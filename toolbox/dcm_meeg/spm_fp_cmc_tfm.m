@@ -12,7 +12,7 @@ function [f] = spm_fp_cmc_tfm(x,u,P,M)
 %   x(:,7) - voltage     (deep pyramidal cells)
 %   x(:,8) - conductance (deep pyramidal cells)
 %
-% f        - dp(t)/dt  = f(x(t),u(t),P,M)
+% f        - dP = h(x(t),u(t),P,M)
 %
 % Prior fixed parameter scaling
 %
@@ -28,7 +28,7 @@ function [f] = spm_fp_cmc_tfm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp_cmc_tfm.m 6123 2014-07-25 17:10:51Z karl $
+% $Id: spm_fp_cmc_tfm.m 6234 2014-10-12 09:59:10Z karl $
 
 % Neuronal states (deviations from baseline firing)
 %--------------------------------------------------------------------------
@@ -41,32 +41,37 @@ function [f] = spm_fp_cmc_tfm(x,u,P,M)
 %   x(:,7) - voltage     (deep pyramidal cells)
 %   x(:,8) - conductance (deep pyramidal cells)
 %--------------------------------------------------------------------------
-persistent iG nP
+persistent iG nP Ca G
 if isempty(iG)
+    Ca  = zeros(size(P.G));
+    G   = zeros(size(P.G));                    % parameter (deviates)
     iG  = spm_fieldindices(P,'G');
     nP  = spm_length(P);
 end
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-f  = zeros(nP,1);                          % flow
-dG = zeros(size(P.G));                     % change in parameters
-x  = spm_unvec(x,M.x);                     % neuronal states
-
+f  = zeros(nP,1);                              % flow
+x  = spm_unvec(x,M.x);                         % neuronal states
+x  = x(:,1:2:end);                             % depolarisation
 
 % neuronal populations with Voltage-dependent connectivity
+%==========================================================================
+%                  ss sp ii dp                 % neuronal populations
 %--------------------------------------------------------------------------
-i  = [3 1 5];
-a  = [32 8 8];                             % potentiation (upper bound)
-b  = [2 4 8];                              % decay rate
+a     = [1 8 2 1]*64;                          % potentiation rate
+b     = [4 2 2 1]*4;                           % decay rate
 
-% NMDA-like Voltage-dependent chnegs i synaptic efficacy
+NMDA  = @(x)1./(1 + exp(-x)) - 1/2;            % depolarisation CDF
+
+% NMDA-like Voltage-dependent changes in (recurrent) synaptic efficacy
 %--------------------------------------------------------------------------
-for j = 1:size(P.E,2)
-    A       = exp(a(j)*exp(P.E(:,j)).*x(:,i(j))) - 1;
-    dG(:,j) = A.*(     exp(P.F(:,j))/2 - P.G(:,j)) - ....
-                       b(j)*(P.G(:,j)  - M.Q.G(:,j));
-end
+A     = exp(P.E)*diag(a);
+B     = exp(P.F)*diag(b);
+dC    = (A.*NMDA(8*x) - Ca).*B;
+dG    = Ca.*(2 - G)/2  - G.*B;
+Ca    = Ca + dC*M.dt;
+G     = G  + dG*M.dt;
+f(iG) = G(:);
 
-f(iG) = dG(:);
 

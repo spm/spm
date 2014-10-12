@@ -33,7 +33,7 @@ function [DCM] = spm_dcm_tfm_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_results.m 6112 2014-07-21 09:39:53Z karl $
+% $Id: spm_dcm_tfm_results.m 6234 2014-10-12 09:59:10Z karl $
  
  
 % get figure
@@ -333,7 +333,7 @@ switch(lower(Action))
         spm_figure('GetWin','induced and evoked predictions');
         xY.csd = DCM.csd;
         xY.erp = DCM.erp;
-        spm_dcm_tfm_response(xY,DCM.pst,DCM.xY.Hz)
+        spm_dcm_tfm_response(xY,DCM.xY.pst,DCM.xY.Hz,DCM.xY)
         
     case{lower('induced predictions - sources')}
         

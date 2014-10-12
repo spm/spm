@@ -29,7 +29,7 @@ function DCM = spm_dcm_tfm_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_data.m 6112 2014-07-21 09:39:53Z karl $
+% $Id: spm_dcm_tfm_data.m 6234 2014-10-12 09:59:10Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -245,7 +245,7 @@ for e = 1:Ne;
         Q = Q + P;
     end
     
-    % normalise induced responses in relation to evoked responses
+    % normalise induced responses in relation variance about ERP
     %--------------------------------------------------------------------------
     Vm    = mean(mean(squeeze(var(Y,[],3))));
     Vs    = mean(diag(squeeze(mean(squeeze(mean(Q))))));

@@ -34,7 +34,7 @@ function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_tfm.m 6122 2014-07-25 13:48:47Z karl $
+% $Id: spm_fx_cmc_tfm.m 6234 2014-10-12 09:59:10Z karl $
  
  
 % get dimensions and configure state variables
@@ -46,20 +46,10 @@ n  = size(x,1);                       % number of sources
 % [default] fixed parameters
 %--------------------------------------------------------------------------
 E  = [4 2 2 2]*200;                   % extrinsic (forward and backward)  
-G  = [8 4 8 4 4 2 4 4 2 2 0 2]*200;   % intrinsic connections
-T  = [200 160 12 8];                  % synaptic time constants
-R  = 1;                               % slope of sigmoid activation function
+T  = [256 128 16 8];                  % synaptic rate constants
+R  = 1;                               % gain of activation function
+B  = 0;                               % baseline firing
 
-% [specified] fixed parameters
-%--------------------------------------------------------------------------
-if isfield(M,'pF')
-    try, E = M.pF.E; end
-    try, G = M.pF.G; end
-    try, T = M.pF.T; end
-    try, R = M.pF.R; end
-end
- 
- 
 % Extrinsic connections
 %--------------------------------------------------------------------------
 % ss = spiny stellate
@@ -85,9 +75,8 @@ C    = exp(P.C);
  
 % pre-synaptic inputs: s(V)
 %--------------------------------------------------------------------------
-R    = R.*exp(P.S);               % gain of activation function
-F    = 1./(1 + exp(-R*x + 0));    % firing rate
-S    = F - 1/(1 + exp(0));        % deviation from baseline firing (0)
+F    = 1./(1 + exp(-R*x(:,1:2:end) + B));    % firing rate
+S    = F - 1/(1 + exp(B));                   % deviation 
 
 % input
 %==========================================================================
@@ -101,7 +90,7 @@ if isfield(M,'u')
 else
     % exogenous input
     %----------------------------------------------------------------------
-    U   = C*u(:)*8;
+    U   = C*u(:)*4;
     M.m = size(C,2);
     
 end
@@ -109,8 +98,9 @@ end
  
 % time constants and intrinsic connections
 %==========================================================================
-T    = ones(n,1)*T;
-G    = ones(n,1)*G;
+T      = ones(n,1)*T;
+i      = 1:size(P.T,2);
+T(:,i) = T(:,i).*exp(P.T);
 
 % extrinsic connections
 %--------------------------------------------------------------------------
@@ -119,24 +109,7 @@ G    = ones(n,1)*G;
 % backward (i)   2  dp -> sp (-ve)
 % backward (ii)  1  dp -> ii (-ve)
 %--------------------------------------------------------------------------
-% free parameters on time constants and intrinsic connections
-%--------------------------------------------------------------------------
-% index   coupling    type  strength  effects
-%                                     theta alpha beta gamme
-%__________________________________________________________________________
-% G(:,1)  ss -> ss (-ve self)  4      -     -     +    +++
-% G(:,2)  sp -> ss (-ve rec )  4      -     -     +    ++++
-% G(:,3)  ii -> ss (-ve rec )  8      -     -     +++  +
-% G(:,4)  ii -> ii (-ve self)  4      -     -     +++  +
-% G(:,5)  ss -> ii (+ve rec )  4      -     -     +++  +
-% G(:,6)  dp -> ii (+ve rec )  2      -     ++    -    -
-% G(:,7)  sp -> sp (-ve self)  4      -     -     -    ++
-% G(:,8)  ss -> sp (+ve rec )  4      -     -     -    +++
-% G(:,9)  ii -> dp (-ve rec )  2      -     ++    -    -
-% G(:,10) dp -> dp (-ve self)  2      -     ++    -    -
-% G(:,11) sp -> ii (+ve rec)   2      -     -     +++  +
-% G(:,12) ii -> sp (-ve rec)   4      -     -     +    ++
-%--------------------------------------------------------------------------
+
 % Neuronal states (deviations from baseline firing)
 %--------------------------------------------------------------------------
 %   S(:,1) - voltage     (spiny stellate cells)
@@ -148,21 +121,26 @@ G    = ones(n,1)*G;
 %   S(:,7) - voltage     (deep pyramidal cells)
 %   S(:,8) - conductance (deep pyramidal cells)
 %--------------------------------------------------------------------------
-i       = 1:size(P.T,2);
-T(:,i)  = T(:,i).*exp(P.T);
+%     ss sp ii dp   % intrinsic connections
+%--------------------------------------------------------------------------
+g  = [-8 -4 -4  0;  % ss
+       4 -8 -2  0;  % sp
+       4  2 -4  2;  % ii
+       0  0 -2 -4]; % dp
 
+g  = g*200*exp(P.S);
 
 % intrinsic connections to be optimised (only the first is modulated)
 %--------------------------------------------------------------------------
-j       = [7 1 4 12 2 3 5 6 8 9 10 11];
-i       = j(1:size(P.G,2));
+G       = ones(n,1)*diag(g)';
+i       = 1:size(P.G,2);
 G(:,i)  = G(:,i).*exp(P.G);
 
 
 % Modulatory effects of sp depolarisation on recurrent inhibition
 %--------------------------------------------------------------------------
 if isfield(P,'M')
-    G(:,7) = G(:,7).*exp(-P.M*32*S(:,3));
+    G(:,2) = G(:,2).*exp(-P.M*32*S(:,2));
 end
 
  
@@ -174,34 +152,30 @@ end
  
 % Granular layer (excitatory interneurons): spiny stellate: Hidden causes
 %--------------------------------------------------------------------------
-u      =   A{1}*S(:,3) + U;
-u      = - G(:,1).*S(:,1) - G(:,3).*S(:,5) - G(:,2).*S(:,3) + u;
-f(:,2) =  (u - 2*x(:,2) - x(:,1).*T(:,1)).*T(:,1);
+u      = G(:,1).*S(:,1) + g(1,3)*S(:,3) + g(1,2)*S(:,2) + A{1}*S(:,2) + U;
+f(:,2) = (u - x(:,2)).*T(:,1);
  
 % Supra-granular layer (superficial pyramidal cells): Hidden causes - error
 %--------------------------------------------------------------------------
-u      = - A{3}*S(:,7);
-u      =   G(:,8).*S(:,1) - G(:,7).*S(:,3) - G(:,12).*S(:,5) + u;
-f(:,4) =  (u - 2*x(:,4) - x(:,3).*T(:,2)).*T(:,2);
+u      = g(2,1)*S(:,1) + G(:,2).*S(:,2) + g(2,3)*S(:,3) - A{3}*S(:,4);
+f(:,4) = (u - x(:,4)).*T(:,2);
  
 % Supra-granular layer (inhibitory interneurons): Hidden states - error
 %--------------------------------------------------------------------------
-u      = - A{4}*S(:,7);
-u      =   G(:,5).*S(:,1) + G(:,6).*S(:,7) - G(:,4).*S(:,5) + G(:,11).*S(:,3) + u;
-f(:,6) =  (u - 2*x(:,6) - x(:,5).*T(:,3)).*T(:,3);
+u      = g(3,1)*S(:,1) + g(3,4)*S(:,4) + G(:,3).*S(:,3) + g(3,2)*S(:,2) - A{4}*S(:,4);
+f(:,6) = (u - x(:,6)).*T(:,3);
  
 % Infra-granular layer (deep pyramidal cells): Hidden states
 %--------------------------------------------------------------------------
-u      =   A{2}*S(:,3);
-u      = - G(:,10).*S(:,7) - G(:,9).*S(:,5) + u;
-f(:,8) =  (u - 2*x(:,8) - x(:,7).*T(:,4)).*T(:,4);
+u      = G(:,4).*S(:,4) + g(4,3)*S(:,3) + A{2}*S(:,2);
+f(:,8) = (u - x(:,8)).*T(:,4);
  
 % Voltage
 %==========================================================================
-f(:,1) = x(:,2);
-f(:,3) = x(:,4);
-f(:,5) = x(:,6);
-f(:,7) = x(:,8);
+f(:,1) = x(:,2) - x(:,1).*T(:,1);
+f(:,3) = x(:,4) - x(:,3).*T(:,2);
+f(:,5) = x(:,6) - x(:,5).*T(:,3);
+f(:,7) = x(:,8) - x(:,7).*T(:,4);
 f      = spm_vec(f);
  
  

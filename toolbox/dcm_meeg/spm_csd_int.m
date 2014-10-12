@@ -1,6 +1,6 @@
-function [CSD,ERP,csd,mtf,w,t,x,dP] = spm_csd_int(P,M,U)
+function [CSD,ERP,csd,mtf,w,pst,x,dP] = spm_csd_int(P,M,U)
 % Time frequency response of a neural mass model
-% FORMAT [CSD,ERP,csd,mtf,w,t,x,dP] = spm_csd_int(P,M,U)
+% FORMAT [CSD,ERP,csd,mtf,w,pst,x,dP] = spm_csd_int(P,M,U)
 %        ERP = spm_csd_int(P,M,U)
 %
 % P - parameters
@@ -12,10 +12,10 @@ function [CSD,ERP,csd,mtf,w,t,x,dP] = spm_csd_int(P,M,U)
 %                       - for w frequencies over time t in M.Hz
 % csd  - {G(t,w,nc,nc}} - cross spectrum density (before sampling)
 % mtf  - {S(t,w,nc,nu}} - transfer functions
-% w  - frequencies
-% t  - peristimulus time
-% x  - expectation of hidden (neuronal) states (for last trial)
-% dP - {dP(t,np)}        - parameter fluctuations (plasticity)
+% w    - frequencies
+% pst  - peristimulus time (sec)
+% x    - expectation of hidden (neuronal) states (for last trial)
+% dP   - {dP(t,np)}        - parameter fluctuations (plasticity)
 %__________________________________________________________________________
 %
 % This integration routine evaluates the responses of a neural mass model
@@ -32,7 +32,7 @@ function [CSD,ERP,csd,mtf,w,t,x,dP] = spm_csd_int(P,M,U)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 6122 2014-07-25 13:48:47Z karl $
+% $Id: spm_csd_int.m 6234 2014-10-12 09:59:10Z karl $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -46,9 +46,8 @@ end
 
 % equations of motion (and OPT for computing CSD vs. ERP)
 %--------------------------------------------------------------------------
-if ~isfield(M,'TFM'), OPT = 1; else, OPT = 0; end
-if ~isfield(M,'g'), M.g = @(x,u,P,M) x; end
-if ~isfield(M,'h'), M.h = @(x,u,P,M) 0; end
+if ~isfield(M,'g'),   M.g = @(x,u,P,M) x;      end
+if ~isfield(M,'h'),   M.h = @(x,u,P,M) 0;      end
 
 M.f = spm_funcheck(M.f);
 M.g = spm_funcheck(M.g);
@@ -56,6 +55,7 @@ M.h = spm_funcheck(M.h);
 
 % check input function  u = f(t,P,M)
 %--------------------------------------------------------------------------
+try, ds   = M.ds;   catch, ds    = 1;           end
 try, fu   = M.fu;   catch, fu    = 'spm_erp_u'; end
 try, ns   = M.ns;   catch, ns    = 128;         end
 try, wnum = M.Rft;  catch, wnum  = 8;           end
@@ -73,7 +73,8 @@ end
 % peristimulus time
 %--------------------------------------------------------------------------
 ns   = size(u,2);
-t    = (1:ns)*U.dt;
+pst  = (1:ns)*dt;
+M.dt = dt;
 
 % between-trial (experimental) inputs
 %==========================================================================
@@ -141,13 +142,16 @@ for c = 1:size(X,1)
     
     % cycle over time - expanding around expected states and input
     %======================================================================
-    M.Q   = Q;
     R     = Q;
     Q     = spm_vec(Q);
     dR    = zeros(size(Q));
     dX    = dR;
     dU    = dR;
-    for i = 1:length(t)
+    
+    % clear persistent variables and solve
+    %------------------------------------------------------------------
+    clear(char(M.h))
+    for i = 1:length(pst)
         
         % hidden states
         %------------------------------------------------------------------
@@ -156,9 +160,9 @@ for c = 1:size(X,1)
         
         % state-dependent parameters (and plasticity)
         %==================================================================
-        if isfield(P,'X'), dU  = P.X*u(:,i);                       end
-        if isfield(P,'Y'), dX  = P.Y*x(:,i);                       end
-        if isfield(M,'h'), dR  = dR + M.h(x(:,i),u(:,i),R,M)*U.dt; end
+        if isfield(P,'X'), dU  = P.X*u(:,i);             end
+        if isfield(P,'Y'), dX  = P.Y*x(:,i);             end
+        if isfield(M,'h'), dR  = M.h(x(:,i),u(:,i),P,M); end
         
         % update and save it necessary
         %------------------------------------------------------------------
@@ -171,25 +175,27 @@ for c = 1:size(X,1)
         
         % compute complex cross spectral density
         %==================================================================
-        if OPT
+        if ds
+            if ~rem(i + ds - 1,ds)
             
-            % add exogenous input and expand around current states
-            %--------------------------------------------------------------
-            M.u     = sparse(nu,1);
-            M.x     = spm_unvec(x(:,i),M.x);
-            [g,w,s] = spm_csd_mtf(R,M);
+                % add exogenous input and expand around current states
+                %----------------------------------------------------------
+                M.u     = sparse(nu,1);
+                M.x     = spm_unvec(x(:,i),M.x);
+                [g,w,s] = spm_csd_mtf(R,M);
+                
+                % reset exogenous input and expansion point
+                %----------------------------------------------------------
+                M.x     = spm_unvec(x(:,1),M.x);
+                M       = rmfield(M,'u');
             
+            end
             
             % place CSD and transfer functions in response
             %--------------------------------------------------------------
-            csd{c}(i,:,:,:) = g{1};
-            mtf{c}(i,:,:,:) = s{1};
-            
-            % remove exogenous input and reset expansion point 
-            %--------------------------------------------------------------
-            M.x     = spm_unvec(x(:,1),M.x);
-            M       = rmfield(M,'u');
-            
+            csd{c}(i,:,:,:) = g{:};
+            mtf{c}(i,:,:,:) = s{:};
+                        
         end
         
         
@@ -211,7 +217,7 @@ for c = 1:size(X,1)
     % expected responses (under wavelet transforms)
     %----------------------------------------------------------------------
     ERP{c} = erp';
-    if OPT
+    if ds
         CSD{c} = spm_morlet_conv(csd{c},w,dt,wnum);
     else
         CSD{c} = ERP{c};

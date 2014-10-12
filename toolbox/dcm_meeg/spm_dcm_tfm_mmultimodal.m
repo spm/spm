@@ -50,13 +50,13 @@ function DCM = spm_dcm_tfm(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm.m 6234 2014-10-12 09:59:10Z karl $
+% $Id: spm_dcm_tfm_mmultimodal.m 6234 2014-10-12 09:59:10Z karl $
  
  
 % check options and preliminaries
 %==========================================================================
 drawnow
-clear functions
+clear spm_erp_L
 try, DCM = rmfield(DCM,'M'); end
 name     = sprintf('DCM_%s',date);
 DCM.options.analysis  = 'TFM';
@@ -83,8 +83,7 @@ DCM.options.model  = model;
 DCM.options.Nmax   = 32;
 DCM.options.h      = h;
 DCM.M.dipfit.model = model;
-DCM.M.N            = 2^8;
-DCM.M.ds           = 8;
+DCM.M.N            = 2^16;
 
  
 % Get posterior from event-related responses
@@ -92,7 +91,7 @@ DCM.M.ds           = 8;
 ERP            = DCM;
 [pth name]     = fileparts(DCM.name);
 ERP.name       = fullfile(pth,[name '_erp']);
-ERP.M.ds       = 0;
+ERP.M.TFM      = 1;
 ERP.M.hE       = 8;
 ERP.M.hC       = 1/128;
 ERP            = spm_dcm_erp(ERP);
@@ -106,6 +105,14 @@ DCM.xY         = ERP.xY;
 DCM.M.dipfit   = ERP.M.dipfit ;
 DCM.M.U        = ERP.M.U;
 DCM            = spm_dcm_tfm_data(DCM);
+
+% concatenate erp and csd into cell array
+%--------------------------------------------------------------------------
+DCM.xY.y = {};
+for i = 1:numel(DCM.xY.erp)
+    DCM.xY.y{end + 1} = DCM.xY.erp{i};
+    DCM.xY.y{end + 1} = DCM.xY.csd{i};
+end
  
 % Use posterior as the prior in a model of induced responses
 %==========================================================================
@@ -139,12 +146,11 @@ nu        = size(pE.C,2);
 % hyperpriors (slightly less precise than the ERP)
 %--------------------------------------------------------------------------
 hE        = 6;
-hC        = 1/512;
+hC        = 1/128;
  
 % create DCM
 %--------------------------------------------------------------------------
-% DCM.M.FS  = 'spm_csd_sel';
-DCM.M.IS  = 'spm_csd_int';
+DCM.M.IS  = 'spm_csd_int_IS';
 DCM.M.g   = 'spm_gx_erp';
 DCM.M.f   = f;
 DCM.M.h   = h;
@@ -174,7 +180,6 @@ Ns        = length(DCM.A{1});                   % number of sources
 Nm        = size(DCM.M.U,2);                    % number of spatial modes
 Nf        = length(DCM.xY.Hz);                  % number of frequency bins
 Nb        = length(DCM.xY.pst);                 % number of time bins
-Nt        = length(DCM.xY.csd);                 % number of trial types
 DCM.M.l   = Nm;
 DCM.M.Hz  = DCM.xY.Hz;
 DCM.M.Rft = DCM.xY.Rft;
@@ -185,8 +190,14 @@ DCM.M.pst = DCM.xY.pst;
 %--------------------------------------------------------------------------
 Qt        = spm_Q(1/2,Nb,1);
 Qf        = spm_Q(1/2,Nf,1);
-DCM.xY.Q  = kron(Qf,Qt);
-DCM.xY.X0 = sparse(Nt*Nm*Nm*Nf*Nb,0);
+Qerp      = kron(speye(Nm),Qt);
+Qcsd      = kron(speye(Nm*Nm),kron(Qf,Qt));
+DCM.xY.Q  = {blkdiag(Qerp,Qcsd*0),blkdiag(Qerp*0,Qcsd)};
+
+Nh        = DCM.options.h;
+X0        = spm_dctmtx(Nb,Nh);
+DCM.xY.X0 = [kron(speye(Nm),X0); sparse(Nm*Nm*Nf*Nb,Nm*Nh)];
+
 
  
 % Inspect stability
@@ -208,25 +219,7 @@ end
 %==========================================================================
 DCM.M.Nmax   = 32;
 [Qp,Cp,Eh,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
-DCM.M.ds     = 1;
-
-
-% Re-estimate spatial (lead field) parameters for ERP
-%==========================================================================
-% clear functions
-% ERP.M.Nmax   = 1;
-% ERP.M.pE     = spm_unvec(spm_vec(DCM.Ep),ERP.M.pE);
-% ERP.M.pC     = spm_unvec(spm_vec(ERP.M.pC)*0,ERP.M.pC);
-% ERP          = spm_dcm_erp(ERP);
-% clear functions
-% 
-% % and update posterior expectation
-% %------------------------------------------------------------------------
-% f     = fieldnames(DCM.Eg);
-% for i = 1:numel(f)
-%     Qp = setfield(Qp,f{i},getfield(ERP.Eg,f{i}));
-% end
-
+ 
  
 % Data ID
 %--------------------------------------------------------------------------
@@ -285,4 +278,5 @@ DCM.TFM = tfm;                  % conditional induced responses
 DCM.DTF = dtf;                  % conditional directed transfer functions
 DCM.ERP = erp;                  % conditional evoked responses
 
+ 
 save(DCM.name, 'DCM', spm_get_defaults('mat.format'));

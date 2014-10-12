@@ -9,7 +9,7 @@ function [E,V] = spm_tfm_priors(A,B,C)
 % synaptic parameters
 %--------------------------------------------------------------------------
 %    pE.T - syaptic time constants
-%    pE.S - activation function parameters
+%    pE.S - intrinsic again
 %    pE.G - intrinsic connection strengths
 %
 % connectivity parameters
@@ -44,7 +44,7 @@ function [E,V] = spm_tfm_priors(A,B,C)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_tfm_priors.m 6122 2014-07-25 13:48:47Z karl $
+% $Id: spm_tfm_priors.m 6234 2014-10-12 09:59:10Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -100,9 +100,8 @@ end
 
 % plasticity parameters
 %--------------------------------------------------------------------------
-m    = 3;                                         % number of plastic
-E.E  = sparse(n,m);   V.E  = sparse(n,m) + 1/16;  % potentiation                                             % potentiation
-E.F  = sparse(n,m);   V.F  = sparse(n,m) + 1/16;  % decay
+E.E  = sparse(n,4);   V.E  = sparse(n,4) + 1/16;  % potentiation                                             % potentiation
+E.F  = sparse(n,4);   V.F  = sparse(n,4) + 1/16;  % decay
 
 
 % modulatory connectivity - input-dependent scaling
@@ -120,11 +119,10 @@ V.C    = C/32;
  
 % synaptic parameters
 %--------------------------------------------------------------------------
-m    = 4;                                         % number of intrinsic
 E.T  = sparse(n,4);   V.T  = sparse(n,4) + 1/16;  % time constants
-E.G  = sparse(n,m);   V.G  = sparse(n,m) + 1/16;  % intrinsic connectivity
+E.G  = sparse(n,4);   V.G  = sparse(n,4) + 1/16;  % intrinsic connectivity
 E.D  = sparse(n,n);   V.D  = Q/32;                % delay
-E.S  = 0;             V.S  = 1/32;                % slope of sigmoid
+E.S  = 0;             V.S  = 1/16;                % intrinsic gain
 
  
 % set stimulus parameters: onset and dispersion

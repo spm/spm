@@ -25,6 +25,7 @@ function DCM = spm_dcm_erp(DCM)
 %   options.onset        - stimulus onset (ms)
 %   options.dur          - and dispersion (sd)
 %   options.CVA          - use CVA for spatial modes [default = 0]
+%   options.Nmax         - maxiumum number of iterations [default = 64]
 %
 % The scheme can be initialised with parameters for the neuronal model
 % and spatial (observer) model by specifying the fields DCM.P and DCM.Q, 
@@ -36,13 +37,15 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 6122 2014-07-25 13:48:47Z karl $
+% $Id: spm_dcm_erp.m 6234 2014-10-12 09:59:10Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
 drawnow
 clear functions
 name = sprintf('DCM_%s',date);
+
+
 
 % Filename and options
 %--------------------------------------------------------------------------
@@ -55,8 +58,9 @@ try, model    = DCM.options.model;    catch, model     = 'NMM';       end
 try, lock     = DCM.options.lock;     catch, lock      = 0;           end
 try, multC    = DCM.options.multiC;   catch, multC     = 0;           end
 try, symm     = DCM.options.symmetry; catch, symm      = 0;           end
-try, Nmax     = DCM.options.Nmax;     catch, Nmax      = 64;          end
 try, CVA      = DCM.options.CVA;      catch, CVA       = 0;           end
+try, Nmax     = DCM.options.Nmax;     catch, Nmax      = 64;          end
+try, Nmax     = DCM.M.Nmax;           catch, Nmax      = Nmax;        end
 
 % symmetry contraints for ECD models only
 %--------------------------------------------------------------------------
@@ -157,17 +161,17 @@ hC      = 1/128;
 try
     pE  = M.pE;
     pC  = M.pC;
-    fprintf('Using previous priors (for neural model) \n')
+    fprintf('Using specified priors (for neural model) \n')
 end
 try
     gE  = M.gE;
     gC  = M.gC;
-    fprintf('Using previous priors (for spatial model)\n')
+    fprintf('Using specified priors (for spatial model)\n')
 end
 try
     hE  = M.hE;
     hC  = M.hC;
-    fprintf('Using previous priors (for noise precision) \n')
+    fprintf('Using specified priors (for noise precision) \n')
 end
 
 
@@ -389,5 +393,5 @@ end
 
 % and save
 %--------------------------------------------------------------------------
-save(DCM.name,  'DCM', spm_get_defaults('mat.format'));
-assignin('base','DCM',DCM)
+save(DCM.name, 'DCM', spm_get_defaults('mat.format'));
+
