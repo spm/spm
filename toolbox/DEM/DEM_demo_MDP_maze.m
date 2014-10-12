@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_maze
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_maze.m 6100 2014-07-13 21:32:36Z karl $
+% $Id: DEM_demo_MDP_maze.m 6235 2014-10-12 10:03:05Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -163,10 +163,11 @@ legend({'FE','KL','RL','DA'})
 
 % dopamine responses to US and CS
 %==========================================================================
+OPT   = 'FE';
 MDP.N = 16;
 MDP.a = [4 2 2];
 MDP.o = [1 ((4 - 1)*4 + 1) ((2 - 1)*4 + 3)];
-MDP   = spm_MDP_game(MDP,'FE');
+MDP   = spm_MDP_game(MDP,OPT);
 
 % axis
 %--------------------------------------------------------------------------
@@ -192,7 +193,7 @@ axis square, set(gca,'XLim',ax(1:2))
 %--------------------------------------------------------------------------
 MDP.a = [1 1 2];
 MDP.o = [1 ((1 - 1)*4 + 1) ((2 - 1)*4 + 3)];
-MDP   = spm_MDP_game(MDP,'FE');
+MDP   = spm_MDP_game(MDP,OPT);
 
 subplot(3,2,3)
 plot(pst,MDP.d,'r'), hold off
@@ -215,7 +216,6 @@ title('Simulated (US) responses','FontSize',16)
 xlabel('Peristimulus time (sec)','FontSize',12)
 ylabel('Rate','FontSize',12)
 axis square, set(gca,'XLim',ax(1:2))
-
 
 
 % different levels of priors and uncertainty

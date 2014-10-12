@@ -23,28 +23,28 @@ function DEM_demo_duet
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_duet.m 6198 2014-09-25 10:38:48Z karl $
+% $Id: DEM_demo_duet.m 6235 2014-10-12 10:03:05Z karl $
  
 
 % preliminaries
 %--------------------------------------------------------------------------
 rng('default')
 
-LEARN = 1;                                 % enables learning
+LEARN = 0;                                 % enables learning
 NULL  = 0;                                 % no communication
 
 A   = 2;                                   % number of agents (birds)
 T   = 2;                                   % number of trials
 dt  = 1/64;                                % time bin (seconds)
 N   = 128;                                 % length of stimulus (bins)
-w   = 4;                                   % precision flow
+w   = 2;                                   % precision of flow
 
-if LEARN, N = 256; A = 2; T = 24; end      % learning enabled
+if LEARN, N = 128; A = 2; T = 16; end      % learning enabled
 
 
 % generative process and model
 %==========================================================================
-M(1).E.d        = 2;                       % approximation order
+M(1).E.d        = 1;                       % approximation order
 M(1).E.n        = 3;                       % embedding order
 M(1).E.s        = 1/2;                     % smoothness
  
@@ -65,7 +65,7 @@ x0    = [1; 1];
 
 Up    = exp([ 8  8 -8 -8]);                % sensory attenutation
 Uq    = exp([-8 -8 -8 -8]);                % sensory attention
-Vp    = exp([-8 -8  0  0]);                % attenutation
+Vp    = exp([-8 -8 -w -w]);                % attenutation
 Vq    = exp([-8 -8  w  w]);                % attention
 
 for i = 1:A
@@ -114,7 +114,7 @@ end
 M(1).f  = @(x,v,P) Mf1(x,v,P);
 M(1).g  = @(x,v,P) Mg1(x,v,P);
 M(1).x  = x;
-M(1).pE = {0,0};
+M(1).pE = {6,6};
 M(1).W  = exp(w);
 M(1).V  = spm_cat(V); 
 
@@ -131,16 +131,14 @@ M(2).f  = @(x,v,P) Mf2(x,v,P);
 M(2).g  = @(x,v,P) Mg2(x,v,P);
 M(2).x  = x;
 M(2).v  = 0;
-M(2).pE = {0,0};
 M(2).W  = exp(8);
 M(2).V  = exp(8);
 
 % hidden cause and prior expectations
 %--------------------------------------------------------------------------
-j  = 1;
 if LEARN
-    M(j).pE = {0,0};
-    M(j).pC = [0 1];
+    M(1).pE = {6,0};
+    M(1).pC = [1/16 4];
 end
 
  
@@ -158,6 +156,8 @@ DEM.C = C;
 
 % reset initial hidden states and invert
 %==========================================================================
+p = zeros(3,T);
+c = zeros(3,T);
 for t = 1:T
     
     DEM    = spm_ADEM(DEM);
@@ -181,11 +181,11 @@ for t = 1:T
     DEM.M(1).V  = spm_cat(V);
     
 
-
+    % synchronisation manifold
+    %======================================================================
     if LEARN
         
-        % synchronisation manifold
-        %==================================================================
+        
         spm_figure('GetWin','Figure 3');
         if t == 2
             subplot(2,2,3)
@@ -202,8 +202,8 @@ for t = 1:T
         ylabel('second level expectations (second bird)')
         axis square
         
-        p(:,t) = spm_vec(DEM.M(j).pE);
-        c(:,t) = spm_vec(diag(DEM.M(j).pC));
+        p(1:2,t) = spm_vec(DEM.M(1).pE);
+        c(1:2,t) = spm_vec(diag(DEM.M(1).pC));
         
         subplot(2,1,1)
         spm_plot_ci(p,c)
@@ -219,7 +219,7 @@ for t = 1:T
     
     % update states and action
     %----------------------------------------------------------------------
-    DEM = spm_ADEM_update(DEM);
+    DEM = spm_ADEM_update(DEM,1/32);
 
 end
 
@@ -342,7 +342,8 @@ end
 %--------------------------------------------------------------------------
 function f = Mf1(x,v,P)
 for i = 1:length(x)
-    dxdt   = [-10 10 0; (v{i}(1) - P{i} - x{i}(3)) -1 0; x{i}(2) 0 -8/3]*x{i}/16;
+    p      = spm_softmax([0; P{i}]);
+    dxdt   = [-10 10 0; (v{i}(1) - [8 4]*p - x{i}(3)) -1 0; x{i}(2) 0 -8/3]*x{i}/16;
     f{i,1} = min(max(dxdt,-32),32);
 end
 
@@ -351,7 +352,8 @@ end
 %--------------------------------------------------------------------------
 function f = Mf2(x,v,P)
 for i = 1:length(x)
-    dxdt   = [-10 10 0; (32 - P{i} - x{i}(3)) -1 0; x{i}(2) 0 -8/3]*x{i}/128;
+
+    dxdt   = [-10 10 0; (32 - x{i}(3)) -1 0; x{i}(2) 0 -8/3]*x{i}/128;
     f{i,1} = min(max(dxdt,-4),4);
 end
 

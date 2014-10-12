@@ -29,11 +29,13 @@ function LAP = DEM_demo_texture
 % the influence of ascending sensory information that competes to influence 
 % posterior expectations.
 %
+% PS: for a 2-D simulation delete 'return' below.
+%
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_texture.m 6132 2014-08-06 19:59:46Z karl $
+% $Id: DEM_demo_texture.m 6235 2014-10-12 10:03:05Z karl $
  
 
 % Create a generative model:
@@ -44,7 +46,7 @@ rng('default')
 %--------------------------------------------------------------------------
 G(1).v  = zeros(128,1);                   % output channels (stimuli)
 G(1).V  = 16;                             % error precision (noise)
-G(1).g  = inline('v','x','v','P');
+G(1).g  = inline('spm_conv(v,2)','x','v','P');
 
 
 % level 2; underlying causes (three Gaussian patches)
@@ -62,15 +64,15 @@ G(3).V  = exp(8);
 
 % evaluate G to generate stimulus
 %--------------------------------------------------------------------------
-U       = [1;1;0]*(8 + 1);                % amplitude and size
+U       = [1;1;0]*(8 + 4);                % amplitude and size
 LAP     = spm_DEM_generate(G,U);
 
 
  
 % invert to simulate  predictive coding
 %==========================================================================
-LAP.M(3).v = U;                           % use correct starting estimates
-LAP.M(3).V = 1/8;
+LAP.M(3).v = U - U + 8;                           % use correct starting estimates
+LAP.M(3).V = 1/2;
 LAP        = spm_LAP(LAP);
 
 % plot results
@@ -80,13 +82,15 @@ spm_DEM_qU(LAP.qU,LAP.pU)
 
 subplot(3,2,1), title('prediction and error','FontSize',16)
 subplot(3,2,2), title('signal plus noise','FontSize',16)
-subplot(3,2,3), title('prediction','FontSize',16)
-subplot(3,2,4), title('true signal','FontSize',16)
-subplot(3,2,6), title('true causes','FontSize',16)
+subplot(3,2,3), title('posterior beliefs','FontSize',16)
+subplot(3,2,4), title('hidden cause (1st order)','FontSize',16)
+subplot(3,2,5), title('posterior beliefs','FontSize',16)
+subplot(3,2,6), title('hidden cause (2nd order)','FontSize',16)
 
 f  = exp(-ph1([],LAP.qU.v{3},[],LAP.M)/2);
 subplot(3,2,3), hold on, plot(f,'r')
-
+f  = LAP.G(1).g([],LAP.pU.v{2},[]);
+subplot(3,2,1), hold on, plot(f,'b:')
 f  = exp(-ph1([],LAP.pU.v{3},[],LAP.G)/2);
 subplot(3,2,4), hold on, plot(f,'r')
 
@@ -102,7 +106,7 @@ rng('default')
 %--------------------------------------------------------------------------
 G(1).v  = zeros(32^2,1);                   % output channels (stimuli)
 G(1).V  = 16;                              % error variances (noise)
-G(1).g  = inline('v','x','v','P');
+G(1).g  = inline('spm_conv(v,2)','x','v','P');
 
 
 % level 2; underlying causes (three Gaussian patches)
@@ -139,13 +143,15 @@ spm_DEM_qU(LAP.qU,LAP.pU)
 
 qp  = exp(-ph2([],LAP.qU.v{3},[],LAP.M)/2);
 pp  = exp(-ph2([],LAP.pU.v{3},[],LAP.G)/2);
+qf  = LAP.M(1).g([],LAP.qU.v{2},[]);
+pf  = LAP.G(1).g([],LAP.pU.v{2},[]);
 n   = 32;
 
-subplot(3,3,1), imagesc(reshape(LAP.pU.v{2},32,32)); axis square, title('feature','FontSize',16)
+subplot(3,3,1), imagesc(reshape(pf,32,32)); axis square, title('feature','FontSize',16)
 hold on, plot([0 n],([n n] + 1)/2,':w',([n n] + 1)/2,[0 n],':w'), hold off
 subplot(3,3,2), imagesc(reshape(LAP.Y,32,32));       axis square, title('stimulus','FontSize',16)
 hold on, plot([0 n],([n n] + 1)/2,':w',([n n] + 1)/2,[0 n],':w'), hold off
-subplot(3,3,3), imagesc(reshape(LAP.qU.v{2},32,32)); axis square, title('percept','FontSize',16)
+subplot(3,3,3), imagesc(reshape(qf,32,32)); axis square, title('percept','FontSize',16)
 hold on, plot([0 n],([n n] + 1)/2,':w',([n n] + 1)/2,[0 n],':w'), hold off
 subplot(3,2,3), imagesc(reshape(qp,32,32)); axis square, title('predicted variance','FontSize',16)
 hold on, plot([0 n],([n n] + 1)/2,':w',([n n] + 1)/2,[0 n],':w'), hold off
