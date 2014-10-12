@@ -49,7 +49,7 @@ function spm_csd_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_demo.m 5922 2014-03-18 20:10:17Z karl $
+% $Id: spm_csd_demo.m 6236 2014-10-12 10:03:44Z karl $
  
 clear global
  
@@ -155,7 +155,7 @@ spm_figure('GetWin','Figure 2'); clf
  
 % plot spectral density
 %==========================================================================
-[G w] = spm_lfp_mtf(Ep,M);
+[G w] = spm_csd_mtf(Ep,M);
  
 % plot
 %--------------------------------------------------------------------------

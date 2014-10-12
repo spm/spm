@@ -13,13 +13,13 @@ function spm_induced_optimise(Ep,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 5951 2014-04-12 11:38:44Z karl $
+% $Id: spm_induced_optimise.m 6236 2014-10-12 10:03:44Z karl $
  
  
 % Model specification
 %==========================================================================
 if nargin < 2
-    model = 'TFM';
+    model = 'CMC';
 end
 
 % number of regions in coupled map lattice

@@ -32,7 +32,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 6122 2014-07-25 13:48:47Z karl $
+% $Id: spm_induced_demo.m 6236 2014-10-12 10:03:44Z karl $
  
  
 % Model specification
@@ -66,11 +66,18 @@ pE    = spm_L_priors(M.dipfit,pE);
 pE    = spm_ssr_priors(pE);
 x     = spm_dcm_x_neural(pE,options.model);
 
+% extrinsic connections
+%--------------------------------------------------------------------------
+pE.A{1}   = pE.A{1} + 1;
+pE.A{2}   = pE.A{2} + 1;
+pE.A{3}   = pE.A{3} - 1;
+pE.A{4}   = pE.A{4} - 1;
+
 % supress noise
 %--------------------------------------------------------------------------
 pE.a(1,:) = -2;
-pE.b(1,:) = -2;
-pE.c(1,:) = -2;
+pE.b(1,:) = -4;
+pE.c(1,:) = -4;
  
 % orders and model
 %==========================================================================
@@ -90,6 +97,7 @@ M.m   = nu;
 M.l   = Nc;
 M.Hz  = 2:64;
 M.Rft = 4;
+M.ds  = 4;
  
 % solve for steady state
 %--------------------------------------------------------------------------
@@ -101,9 +109,8 @@ M.x   = spm_dcm_neural_x(pE,M);
 % invoke exogenous inputs
 %--------------------------------------------------------------------------
 N     = 128;
-U.dt  = 4/1024;
-b     = (1:N)';
-pst   = (b-N/4)*U.dt;
+U.dt  = 6/1024;
+pst   = ((1:N)' - N/4)*U.dt;
 U.u   = sparse(N,M.m);
  
 
@@ -115,15 +122,16 @@ U.u(:,1) = spm_erp_u(pst,pE,M);
  
 % integrate generative model to simulate a time frequency response
 %--------------------------------------------------------------------------
-[csd,erp,CSD,mtf,w,t,x,dP] = spm_csd_int(pE,M,U);
+[csd,erp,CSD,mtf,w,pst,x,dP] = spm_csd_int(pE,M,U);
 
 
 % plot expected responses
 %==========================================================================
 spm_figure('GetWin','Simulated time-frequency responses');
+pst = 1000*pst;
  
 subplot(4,2,1)
-plot(pst*1000,U.u)
+plot(pst,U.u)
 xlabel('peristimulus time (ms)')
 title('Exogenous input','FontSize',16)
 spm_axis tight
@@ -132,13 +140,13 @@ spm_axis tight
 %--------------------------------------------------------------------------
 subplot(4,2,2)
 j   = find(kron(sparse(1,[3 1 5],1,1,8),ones(Ns,1)));
-plot(pst*1000,x(j,:))
+plot(pst,x(j,:))
 xlabel('peristimulus time (ms)')
 title('Hidden neuronal states','FontSize',16)
 spm_axis tight
 
 subplot(4,2,3)
-plot(pst*1000,erp{1})
+plot(pst,erp{1})
 xlabel('peristimulus time (ms)')
 title('Evoked response','FontSize',16)
 spm_axis tight
@@ -146,7 +154,7 @@ spm_axis tight
 % LFP – expectation
 %--------------------------------------------------------------------------
 subplot(4,2,4)
-plot(pst*1000,dP{1})
+plot(pst,dP{1})
 xlabel('peristimulus time (ms)')
 title('intrinsic connectivity','FontSize',16)
 spm_axis tight
@@ -156,6 +164,7 @@ spm_axis tight
 %--------------------------------------------------------------------------
 spm_dcm_tfm_image(CSD{1},pst,w,1)
 
+return
 
 % expected time frequency response
 %--------------------------------------------------------------------------
@@ -173,6 +182,8 @@ spm_figure('GetWin','Predicted responses');
 xY.erp = erp;
 xY.csd = csd;
 spm_dcm_tfm_response(xY,pst,w)
+
+return
 
 
 % Integrate system to simulate responses
@@ -203,7 +214,7 @@ for j = 1:Nt
     % LFP – random fluctuations
     %----------------------------------------------------------------------
     subplot(2,2,1)
-    plot(pst*1000,D(:,:,j)), hold on
+    plot(pst,D(:,:,j)), hold on
     xlabel('time (s)')
     title('simulated response and ERP','FontSize',16)
     spm_axis tight, axis square; drawnow
@@ -251,13 +262,13 @@ spm_dcm_tfm_image(Q,pst,w,1)
 
 % simulated responses
 %==========================================================================
-spm_figure('GetWin','Predicted responses');
+spm_figure('GetWin','Predicted responses - simulated');
  
 % time-frequency
 %--------------------------------------------------------------------------
 xY.erp{1} = E;
 xY.csd{1} = Q;
-spm_dcm_tfm_response(xY,pst,w,5)
+spm_dcm_tfm_response(xY,pst,w)
 
 
 % compare expected and simulated responses
