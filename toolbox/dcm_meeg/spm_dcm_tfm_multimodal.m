@@ -50,7 +50,7 @@ function DCM = spm_dcm_tfm(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_mmultimodal.m 6234 2014-10-12 09:59:10Z karl $
+% $Id: spm_dcm_tfm_multimodal.m 6237 2014-10-12 10:08:13Z karl $
  
  
 % check options and preliminaries
