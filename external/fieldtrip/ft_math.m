@@ -82,13 +82,13 @@ function data = ft_math(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_math.m 9868 2014-10-01 07:53:22Z jansch $
+% $Id: ft_math.m 9870 2014-10-02 07:00:05Z jansch $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 9868 2014-10-01 07:53:22Z jansch $';
+revision = '$Id: ft_math.m 9870 2014-10-02 07:00:05Z jansch $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will show the function help if nargin==0 and return an error
@@ -282,7 +282,7 @@ if length(varargin)==1
         % gather x1, x2, ... into a cell-array
         arginval = eval(sprintf('{%s}', arginstr));
         eval(sprintf('operation = @(%s) %s;', arginstr, cfg.operation));
-        if isscalar(s)
+        if numel(s)<=1
           y = arrayfun(operation, arginval{:});
         elseif size(s)==size(arginval{1})
           y = feval(operation, arginval{:});
@@ -301,7 +301,7 @@ if length(varargin)==1
           arginstr = sprintf('xx%i,', 1:length(varargin));
           arginstr = arginstr(1:end-1); % remove the trailing ','
           arginval = eval(sprintf('{%s}', arginstr));
-          if isscalar(s)
+          if numel(s)<=1
             y{i} = arrayfun(operation, arginval{:});
           else
             y{i} = feval(operation, arginval{:});
@@ -380,7 +380,7 @@ else
         % gather x1, x2, ... into a cell-array
         arginval = eval(sprintf('{%s}', arginstr));
         eval(sprintf('operation = @(%s) %s;', arginstr, cfg.operation));
-        if isscalar(s)
+        if numel(s)<=1
           y = arrayfun(operation, arginval{:});
         else
           y = feval(operation, arginval{:});
@@ -399,7 +399,7 @@ else
           arginstr = sprintf('xx%i,', 1:length(varargin));
           arginstr = arginstr(1:end-1); % remove the trailing ','
           arginval = eval(sprintf('{%s}', arginstr));
-          if isscalar(s)
+          if numel(s)<=1
             y{i} = arrayfun(operation, arginval{:});
           else
             y{i} = feval(operation, arginval{:});

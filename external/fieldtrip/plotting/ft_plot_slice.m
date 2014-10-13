@@ -50,14 +50,9 @@ function [h, T2] = ft_plot_slice(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_slice.m 9805 2014-09-15 12:16:09Z jansch $
+% $Id: ft_plot_slice.m 9884 2014-10-07 11:36:44Z eelspa $
 
 persistent dim X Y Z
-
-if isnan(dat(1))
-  disp('yes')
-end
-
 
 if isequal(dim, size(dat))
   % reuse the persistent variables to speed up subsequent calls with the same input

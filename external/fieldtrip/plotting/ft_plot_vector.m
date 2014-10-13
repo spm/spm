@@ -81,7 +81,7 @@ function [varargout] = ft_plot_vector(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vector.m 9861 2014-09-27 17:41:55Z roboos $
+% $Id: ft_plot_vector.m 9886 2014-10-07 12:26:43Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -463,7 +463,6 @@ if ~isempty(axis) && ~strcmp(axis, 'no')
     otherwise
       error('invalid specification of the "axis" option')
   end
-  
   
   if xaxis
     % x-axis should touch 0,0

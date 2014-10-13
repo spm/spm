@@ -19,7 +19,7 @@ function [obj] = ft_convert_coordsys(obj, target, opt, template)
 %
 % The following input objects are supported
 %   anatomical mri, see FT_READ_MRI
-%   anatomical or functional atlas, see FT_PREPARE_ATLAS
+%   anatomical or functional atlas, see FT_READ_ATLAS
 %   (not yet) electrode definition
 %   (not yet) gradiometer array definition
 %   (not yet) volume conductor definition
@@ -52,7 +52,7 @@ function [obj] = ft_convert_coordsys(obj, target, opt, template)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_coordsys.m 9364 2014-04-07 08:43:48Z roboos $
+% $Id: ft_convert_coordsys.m 9872 2014-10-02 11:56:27Z jimher $
 
 if ~isfield(obj, 'coordsys') || isempty(obj.coordsys)
   % determine the coordinate system of the input object

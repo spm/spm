@@ -32,7 +32,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_postamble_provenance.m 9746 2014-07-19 08:37:18Z roboos $
+% $Id: ft_postamble_provenance.m 9900 2014-10-13 15:06:43Z roboos $
 
 % the name of the variables are passed in the preamble field
 global ft_default
@@ -91,7 +91,15 @@ for iargout = 1:numel(tmpargout)
   bytenum = whos('tmparg');
   bytenum = bytenum.bytes;
   if bytenum<2^31
-    cfg.callinfo.outputhash{iargout} = CalcMD5(mxSerialize(tmparg));
+    try
+      cfg.callinfo.outputhash{iargout} = CalcMD5(mxSerialize(tmparg));
+    catch
+      % the mxSerialize mex file is not available on all platforms
+      % http://bugzilla.fcdonders.nl/show_bug.cgi?id=2452
+      % do not compute a hash
+    end
+  else
+    % the data is too large, do not compute a hash
   end
 end
 clear iargout tmpargout tmparg bytenum; % remove the extra references

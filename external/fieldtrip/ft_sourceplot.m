@@ -42,7 +42,7 @@ function ft_sourceplot(cfg, data)
 %
 % The following parameters can be used in all methods:
 %   cfg.downsample    = downsampling for resolution reduction, integer value (default = 1) (orig: from surface)
-%   cfg.atlas         = string, filename of atlas to use (default = []) SEE FT_PREPARE_ATLAS
+%   cfg.atlas         = string, filename of atlas to use (default = []) SEE FT_READ_ATLAS
 %                        for ROI masking (see "masking" below) or in "ortho-plotting" mode (see "ortho-plotting" below)
 %
 % The following parameters can be used for the functional data:
@@ -108,13 +108,14 @@ function ft_sourceplot(cfg, data)
 % interpolation is performed onto a specified surface. Note that the
 % coordinate system in which the surface is defined should be the same as
 % the coordinate system that is represented in source.pos.
-%
+% 
 % The following parameters apply to surface-plotting when an interpolation
 % is required
 %   cfg.surffile       = string, file that contains the surface (default = 'surface_white_both.mat')
 %                        'surface_white_both.mat' contains a triangulation that corresponds with the
 %                         SPM anatomical template in MNI coordinates
 %   cfg.surfinflated   = string, file that contains the inflated surface (default = [])
+%                        may require specifying a point-matching (uninflated) surffile                       
 %   cfg.surfdownsample = number (default = 1, i.e. no downsampling)
 %   cfg.projmethod     = projection method, how functional volume data is projected onto surface
 %                        'nearest', 'project', 'sphere_avg', 'sphere_weighteddistance'
@@ -141,7 +142,7 @@ function ft_sourceplot(cfg, data)
 % corresponding to the input structure.
 %
 % See also FT_SOURCEANALYSIS, FT_SOURCEGRANDAVERAGE, FT_SOURCESTATISTICS,
-% FT_VOLUMELOOKUP, FT_PREPARE_ATLAS, FT_READ_MRI
+% FT_VOLUMELOOKUP, FT_READ_ATLAS, FT_READ_MRI
 
 % TODO have to be built in:
 %   cfg.marker        = [Nx3] array defining N marker positions to display (orig: from sliceinterp)
@@ -172,9 +173,9 @@ function ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 9856 2014-09-27 09:58:15Z roboos $
+% $Id: ft_sourceplot.m 9898 2014-10-09 10:42:03Z arjsto $
 
-revision = '$Id: ft_sourceplot.m 9856 2014-09-27 09:58:15Z roboos $';
+revision = '$Id: ft_sourceplot.m 9898 2014-10-09 10:42:03Z arjsto $';
 
 % do the general setup of the function
 ft_defaults
@@ -944,7 +945,7 @@ elseif isequal(cfg.method,'surface')
   cortex_dark  = [0.781 0.762 0.664]/2;
   if isfield(surf, 'curv')
     % the curvature determines the color of gyri and sulci
-    color = surf.curv(:) * cortex_light + (1-surf.curv(:)) * cortex_dark;
+    color = surf.curv(:) * cortex_light + (1-surf.curv(:)) * cortex_light;
   else
     color = repmat(cortex_light, size(surf.pnt,1), 1);
   end

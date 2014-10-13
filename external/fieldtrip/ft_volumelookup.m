@@ -37,8 +37,8 @@ function [output] = ft_volumelookup(cfg, volume)
 % The configuration options for labels from a mask:
 %   cfg.inputcoord    = 'mni' or 'tal', coordinate system of the mri/source/stat
 %   cfg.atlas         = string, filename of atlas to use, either the AFNI
-%                        brik file that is available from http://afni.nimh.nih.gov/afni/doc/misc/ttatlas_tlrc,
-%                        or the WFU atlasses available from http://fmri.wfubmc.edu. see FT_PREPARE_ATLAS
+%                        brik file that is available from http://afni.nimh.nih.gov/afni/doc/misc/afni_ttatlas/,
+%                        or the WFU atlasses available from http://fmri.wfubmc.edu. see FT_READ_ATLAS
 %   cfg.maskparameter = string, field in volume to be lookedup, data in field should be logical
 %   cfg.maxqueryrange = number, should be 1, 3, 5 (default = 1)
 %
@@ -77,9 +77,9 @@ function [output] = ft_volumelookup(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumelookup.m 9754 2014-07-25 05:24:42Z jansch $
+% $Id: ft_volumelookup.m 9872 2014-10-02 11:56:27Z jimher $
 
-revision = '$Id: ft_volumelookup.m 9754 2014-07-25 05:24:42Z jansch $';
+revision = '$Id: ft_volumelookup.m 9872 2014-10-02 11:56:27Z jimher $';
 
 % do the general setup of the function
 ft_defaults

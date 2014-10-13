@@ -34,7 +34,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_provenance.m 9746 2014-07-19 08:37:18Z roboos $
+% $Id: ft_preamble_provenance.m 9900 2014-10-13 15:06:43Z roboos $
 
 % Record the start time and memory. These are used by ft_postamble_callinfo, which
 % stores them in the output cfg.callinfo.  In the mean time, they are stored in the
@@ -71,7 +71,15 @@ for iargin = 1:numel(tmpargin)
   bytenum = whos('tmparg');
   bytenum = bytenum.bytes;
   if bytenum<2^31
-    cfg.callinfo.inputhash{iargin} = CalcMD5(mxSerialize(tmparg));
+    try
+      cfg.callinfo.inputhash{iargin} = CalcMD5(mxSerialize(tmparg));
+    catch
+      % the mxSerialize mex file is not available on all platforms
+      % http://bugzilla.fcdonders.nl/show_bug.cgi?id=2452
+      % do not compute a hash
+    end
+  else
+    % the data is too large, do not compute a hash
   end
 end
 clear iargin tmpargin tmparg bytenum; % remove the extra references

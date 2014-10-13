@@ -78,7 +78,7 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %   cfg.grid.tight   = 'yes' or 'no' (default is automatic)
 %   cfg.inwardshift  = number, how much should the innermost surface be moved inward to constrain
 %                      sources to be considered inside the source compartment (default = 0)
-%   cfg.moveinward   = number, , move dipoles inward to ensure a certain distance to the innermost
+%   cfg.moveinward   = number, move dipoles inward to ensure a certain distance to the innermost
 %                      surface of the source compartment (default = 0)
 %   cfg.spherify     = 'yes' or 'no', scale the source model so that it fits inside a sperical
 %                      volume conduction model (default = 'no')
@@ -107,9 +107,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_prepare_sourcemodel.m 9876 2014-10-03 16:08:23Z roboos $
 
-revision = '$Id: ft_prepare_sourcemodel.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_prepare_sourcemodel.m 9876 2014-10-03 16:08:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

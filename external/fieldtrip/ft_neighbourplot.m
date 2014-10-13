@@ -50,7 +50,7 @@ function [cfg] = ft_neighbourplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_neighbourplot.m 9521 2014-05-14 09:45:42Z roboos $';
+revision = '$Id: ft_neighbourplot.m 9874 2014-10-03 16:05:01Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -118,6 +118,7 @@ else
 end
 hf = figure;
 axis equal
+axis vis3d
 axis off
 hold on;
 hl = [];

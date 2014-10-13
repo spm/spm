@@ -183,7 +183,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 9820 2014-09-22 11:43:33Z tzvpop $';
+revision = '$Id: ft_freqanalysis.m 9883 2014-10-07 11:00:10Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -595,13 +595,12 @@ for itrial = 1:ntrials
       end
       
       % set ingredients for below
-      acttboi  = squeeze(~isnan(spectrum(1,1,foiind(ifoi),:)));
-      nacttboi = sum(acttboi);
       if ~hastime
         acttboi  = 1;
         nacttboi = 1;
-      elseif sum(acttboi)==0
-        %nacttboi = 1;
+      else
+        acttboi  = ~all(isnan(squeeze(spectrum(1,:,foiind(ifoi),:))), 1);
+        nacttboi = sum(acttboi);
       end
       acttap = logical([ones(ntaper(ifoi),1);zeros(size(spectrum,1)-ntaper(ifoi),1)]);
       if powflg

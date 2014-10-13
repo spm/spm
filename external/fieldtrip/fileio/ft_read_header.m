@@ -89,7 +89,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 9832 2014-09-24 13:19:25Z vlalit $
+% $Id: ft_read_header.m 9893 2014-10-08 15:18:16Z jansch $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -1552,9 +1552,18 @@ switch headerformat
     [p,f,e]    = fileparts(filename);
     listing    = dir(p);
     filenames  = {listing.name}';
-    lfpfile    = filenames{~cellfun('isempty',strfind(filenames,'.eeg'))};
-    rawfile    = filenames{~cellfun('isempty',strfind(filenames,'.dat'))};
     
+    lfpfile_idx = find(~cellfun('isempty',strfind(filenames,'.eeg')));
+    rawfile_idx = find(~cellfun('isempty',strfind(filenames,'.dat')));
+    
+    if ~isempty(lfpfile_idx)
+      % FIXME this assumes only 1 such file, or at least it only takes the
+      % first one.
+      lfpfile = filenames{lfpfile_idx(1)};
+    end
+    if ~isempty(rawfile_idx)
+      rawfile = filenames{rawfile_idx(1)};
+    end
     params     = LoadParameters(filename);
     
     hdr         = [];

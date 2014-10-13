@@ -43,7 +43,7 @@ function ft_plot_lay(lay, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_lay.m 9515 2014-05-13 13:30:43Z roboos $
+% $Id: ft_plot_lay.m 9875 2014-10-03 16:07:53Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -139,7 +139,7 @@ if label
 end
 
 if box
-  line([X-Width/2 X+Width/2 X+Width/2 X-Width/2 X-Width/2]',[Y-Height/2 Y-Height/2 Y+Height/2 Y+Height/2 Y-Height/2]');
+  line([X-Width/2 X+Width/2 X+Width/2 X-Width/2 X-Width/2]',[Y-Height/2 Y-Height/2 Y+Height/2 Y+Height/2 Y-Height/2]', 'color', [0 0 0]);
 end
 
 if outline && isfield(lay, 'outline')

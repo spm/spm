@@ -85,9 +85,9 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 9785 2014-09-10 13:10:38Z jansch $
+% $Id: ft_timelockanalysis.m 9891 2014-10-08 10:29:46Z johzum $
 
-revision = '$Id: ft_timelockanalysis.m 9785 2014-09-10 13:10:38Z jansch $';
+revision = '$Id: ft_timelockanalysis.m 9891 2014-10-08 10:29:46Z johzum $';
 
 % do the general setup of the function
 ft_defaults
@@ -147,6 +147,9 @@ end
 ntrial      = length(data.trial);
 nchan       = length(data.label);   % number of channels
 numsamples  = zeros(ntrial,1);      % number of selected samples in each trial, is determined later
+
+if ntrial==0, error('Number of trials selected in data is zero');   end
+if nchan==0,  error('Number of channels selected in data is zero'); end
 
 % determine the duration of each trial
 begsamplatency = zeros(1,ntrial);
