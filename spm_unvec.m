@@ -12,7 +12,7 @@ function [varargout] = spm_unvec(vX,varargin)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_unvec.m 6151 2014-09-03 18:09:33Z guillaume $
+% $Id: spm_unvec.m 6238 2014-10-13 09:38:23Z karl $
 
 
 %error('spm_unvec.c not compiled - see Makefile')
@@ -28,6 +28,13 @@ if numel(varargin) == 1
 else
     X  = varargin;
 end
+
+% check vX is numeric
+%--------------------------------------------------------------------------
+if ~(isnumeric(vX) || islogical(vX))
+    vX = spm_vec(vX);
+end
+
 
 % reshape numerical arrays
 %--------------------------------------------------------------------------

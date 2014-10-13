@@ -1,4 +1,4 @@
-function DEM_morphogenesis
+function DEM = DEM_morphogenesis
 % This demonstration uses active inference (as implemented in spm_ALAP) to
 % illustrate birdsong and communication using predictive coding. In this
 % example, priors on high-level sensorimotor constructs (e.g., in the
@@ -23,67 +23,68 @@ function DEM_morphogenesis
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_morphogenesis.m 6235 2014-10-12 10:03:05Z karl $
+% $Id: DEM_morphogenesis.m 6238 2014-10-13 09:38:23Z karl $
  
 
 % preliminaries
 %--------------------------------------------------------------------------
 rng('default')
 
-A   = 4;                                   % number of cells
-N   = 64;                                 % length of stimulus (bins)
+n   = 4;                                   % number of cells
+m   = 3;                                   % number of signals
+N   = 32;                                  % length of stimulus (bins)
 
 % generative process and model
 %==========================================================================
 M(1).E.d        = 1;                       % approximation order
 M(1).E.n        = 2;                       % embedding order
 M(1).E.s        = 1/2;                     % smoothness
- 
 
-% initialise parameters, states and precisions
+% priors (prototype)
 %--------------------------------------------------------------------------
-x     = cell(A,1);
-a     = cell(A,1);
+P.x     = (1:n)/2;                         % position of each cell
+P.s     = [(P.x > 0);                      % signalling of each cell
+           (P.x >= 1/2);
+           (P.x < 1/2)];
+P.x     = spm_detrend(P.x')';
+P.s     = double(P.s);
+P.c     = morphogenesis(P.x,P.s);          % signal sensed at each position
+
+
+% generative process 
+%==========================================================================
 
 % level 1 of generative process
 %--------------------------------------------------------------------------
-for i = 1:A
-    x{i}.x = randn(1,1)/4;                 % states (position)
-    x{i}.v = zeros(1,1)/4;                 % states (velocity)
-    x{i}.c = spm_softmax(randn(2,1));      % states (chemotaxis)
-end
-G(1).f  = @(x,v,a,P) Gf(x,v,a,P);
-G(1).g  = @(x,v,a,P) Gg(x,v,a,P);          % 
-G(1).x  = x;                               % hidden state
+a.x     = randn(1,n)/4;                    % states (position)
+a.s     = spm_softmax(randn(m,n));         % states (chemotaxis)
+
+G(1).g  = @(x,v,a,P) Gg(x,v,a,P);
 G(1).V  = exp(16);                         % precision (noise)
-G(1).W  = exp(16);                         % precision (states)
-G(1).U  = exp(4);                          % precision (action)
+G(1).U  = exp(2);                          % precision (action)
+G(1).pE = a;                               % precision (action)
 
  
-% level 2; causes
+% level 2; causes (action)
 %--------------------------------------------------------------------------
-for i = 1:A
-    a{i}.x = zeros(1,1);                   % action (migration)
-    a{i}.c = zeros(2,1);                   % action (release)
-end
-G(2).v  = 0;                               % exogenous  cause
 G(2).a  = spm_vec(a);                      % endogenous cause (action)
+G(2).v  = 0;                               % exogenous  cause
 G(2).V  = exp(16);
 
 
-
+% generative model
+%==========================================================================
 % level 1 of the generative model: 
 %--------------------------------------------------------------------------
-clear x
-for i = 1:A
-    x{i}.i = zeros(3,1);                   % states (identity)
+for i = 1:n
+    x(i).i = randn(n,1)/64 - 1;               % states (identity)
 end
 M(1).f  = @(x,v,P) Mf(x,v,P);
 M(1).g  = @(x,v,P) Mg(x,v,P);
 M(1).x  = x;
-M(1).W  = exp(4);
+M(1).W  = exp(0);
 M(1).V  = exp(4);
-M(1).pE = x; 
+M(1).pE = P;
 
 % level 2: 
 %--------------------------------------------------------------------------
@@ -106,88 +107,94 @@ DEM.U = C;
 %==========================================================================
 DEM   = spm_ADEM(DEM);
 spm_DEM_qU(DEM.qU,DEM.pU)
+
+
+% graphics
+%--------------------------------------------------------------------------
+subplot(2,2,3); cla;
+
+for t = 1:N
+    v = spm_unvec(DEM.qU.a{2}(:,t),a);
+    for i = 1:n
+        x = v.x(:,i);
+        c = v.s(:,i);
+        c = max(min(c,1),0);
+        plot(t,x,'.','markersize',t + 4,'color',c); hold on
+    end
+end
+
+% target morphology
+%--------------------------------------------------------------------------
+for i = 1:n
+    x = P.x(:,i);
+    c = P.s(:,i);
+    c = max(min(c,1),0);
+    plot(N + 4,x,'.','markersize',t + 4,'color',c); hold on
+end
+
+title('morphogenesis','Fontsize',16)
+xlabel('time')
+ylabel('llocation')
+axis([0 (N + 4) -1 1]); set(gca,'Color','k');
+axis square, box off
     
 return
 
 % illustrate responses with sonogram (and sound file)
 %==========================================================================
 % spm_figure('GetWin','Figure 1'); clf
-% 
-% 
-% for t = 1:T
-%     x = DEM.qU.x{2}([1 2 3],:);
-%     y = DEM{t}.qU.x{2}([1 2 3] + 3,:);
-% end
-% 
-% plot(x',y')
-% title('Synchronization manifold','Fontsize',16)
-% xlabel('second level expectations (first bird)')
-% ylabel('second level expectations (second bird)')
-% axis square
+
 
 
 
 % Equations of motion and observer functions
 %==========================================================================
 
-
-% first level process: Genersting input
+% sensed signal
 %--------------------------------------------------------------------------
-function g = Gg(x,v,a,P)
-n     = length(x);
-m     = length(x{1}.c);
-for i = 1:n
-    g(i).c = 0;
-    g(i).s = 0;
-    for j = 1:n
+function c = morphogenesis(x,s,y)
+% x - location of cells
+% s - signals released
+% y - location of sampling [default: x]
+%__________________________________________________________________________
+
+% preliminaries
+%--------------------------------------------------------------------------
+if nargin < 3; y = x; end                  % sample locations
+k     = 1/2*[1 1 1]';                          % signal decay over space 
+c     = zeros(size(s,1),size(y,2));        % signal sensed at each location
+for i = 1:size(y,2)
+    for j = 1:size(x,2)
         
         % distance
         %------------------------------------------------------------------
-        d      = x{i}.x - x{j}.x;
+        d      = y(:,i) - x(:,j);
+        d      = sqrt(d'*d);
         
-        % concentration (local)
+        % signal concentration
         %------------------------------------------------------------------
-        q      = exp(-8*abs(d));
-        g(i).c = g(i).c + q;
-        
-        % concentration (global)
-        %------------------------------------------------------------------
-        q      = exp(-1*abs(d));
-        for k = 1:m
-           c(k,1) = x{j}.c(k)*q;
-        end
-        g(i).s = g(i).s + c;
+        c(:,i) = c(:,i) + exp(-k*abs(d)).*s(:,j);
 
     end
 end
+
+
+% first level process: generating input
+%--------------------------------------------------------------------------
+function g = Gg(x,v,a,P)
+a     = spm_unvec(a,P);
+g.s   = a.s;
+g.c   = morphogenesis(a.x,a.s);
 
 % first level model: mapping hidden causes to sensations
 %--------------------------------------------------------------------------
 function g = Mg(x,v,P)
 n     = length(x);
-m     = 2;
 for i = 1:n 
-    g(i).c = 1 + 1/2;
-    g(i).s = zeros(2,1);
+    p        = spm_softmax(x(i).i);
+    g.s(:,i) = P.s*p;
+    g.c(:,i) = P.c*p;
 end
-
-% first level process: Hidden states
-%--------------------------------------------------------------------------
-function f = Gf(x,v,a,P)
-n     = length(x);
-m     = length(x{1}.c);
-for i = 1:n
-    q{i}.x = x{i}.x;
-    q{i}.c = x{i}.c;
-end
-a   = spm_unvec(a,q);
-f   = x;
-for i = 1:n
-    f{i}.x = x{i}.v;
-    f{i}.v = a{i}.x/16 - 4*x{i}.v;
-    f{i}.c = a{i}.c/16 - x{i}.c/256;
-end
-
 
 % first level model: flow of hidden states
 %--------------------------------------------------------------------------
@@ -195,7 +202,7 @@ function f = Mf(x,v,P)
 n   = length(x);
 f   = x;
 for i = 1:n
-    f{i}.i = 0*x{i}.i;
+    f(i).i = ( 1 - sum(exp(x(i).i)) - 2*x(i).i.*exp(x(i).i))/16;
 end
 
  
