@@ -4,7 +4,7 @@ function mfx = spm_cfg_mfx
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_mfx.m 6028 2014-05-30 16:29:42Z guillaume $
+% $Id: spm_cfg_mfx.m 6239 2014-10-13 14:53:48Z guillaume $
 
 %--------------------------------------------------------------------------
 % dir Directory
@@ -140,6 +140,8 @@ if ~isempty(SPMS{1}.xM.VM)
 end
 if strncmp('AR',SPMS{1}.xVi.form,2)
     matlabbatch{1}.spm.stats.fmri_spec.cvi  = 'AR(1)';
+elseif strcmp(SPMS{1}.xVi.form,'FAST')
+    matlabbatch{1}.spm.stats.fmri_spec.cvi  = 'FAST';
 else
     %matlabbatch{1}.spm.stats.fmri_spec.cvi  = 'none';
     disp('Forcing serial correlation modelling to be AR(1).');
