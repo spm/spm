@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 6218 2014-09-30 12:22:42Z bernadette $
+% $Id: spm_dcm_ind_data.m 6241 2014-10-13 18:30:01Z bernadette $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -130,13 +130,15 @@ end
 DCM.xY.Time = time(D, [], 'ms');
 
 ms          = DCM.options.Tdcm(1) - DCM.xY.Time(1);
-ms          = max(min(ms,512),64);
-T1          = DCM.options.Tdcm(1) - ms;
-T2          = DCM.options.Tdcm(2) + ms;
+ms1         = max(min(ms,512),64);
+ms          = DCM.xY.Time(end)-DCM.options.Tdcm(2);
+ms2         = max(min(ms,512),64);
+T1          = DCM.options.Tdcm(1) - ms1;
+T2          = DCM.options.Tdcm(2) + ms2;
 [dummy, T1] = min(abs(DCM.xY.Time - T1));
 [dummy, T2] = min(abs(DCM.xY.Time - T2));
-B1          = T1 + fix(ms*D.fsample/1000);
-B2          = T2 - fix(ms*D.fsample/1000);
+B1          = T1 + fix(ms1*D.fsample/1000);
+B2          = T2 - fix(ms2*D.fsample/1000);
 
 
 % % Not used for now - leads to very low time resolution for long pst windows
@@ -357,7 +359,6 @@ for i = 1:Ne;
         Yz{i,j} = Yk - Yb;
     end
 end
-
 
 % reduce to frequency modes
 %==========================================================================
