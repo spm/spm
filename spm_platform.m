@@ -14,6 +14,7 @@ function varargout=spm_platform(varargin)
 %        - 'host'    - returns system's host name
 %        - 'tempdir' - returns name of temp directory
 %        - 'drives'  - returns string containing valid drive letters
+%        - 'desktop' - returns whether or not the Desktop is in use
 %
 % FORMAT PlatFontNames = spm_platform('fonts')
 % Returns structure with fields named after the generic (UNIX) fonts, the
@@ -49,10 +50,10 @@ function varargout=spm_platform(varargin)
 % Platform specific definitions are contained in the data structures at
 % the beginning of the init_platform subfunction at the end of this file.
 %__________________________________________________________________________
-% Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 4964 2012-09-26 10:51:05Z guillaume $
+% $Id: spm_platform.m 6245 2014-10-15 11:22:15Z guillaume $
 
 
 %-Initialise
@@ -118,6 +119,10 @@ switch lower(varargin{2})
         warning(['Unknown font ',varargin{2},', using default'])
         varargout = {PLATFORM.font.helvetica};
 end
+
+case 'desktop'                                       %-Return desktop usage
+%==========================================================================
+varargout = {PLATFORM.desktop};
 
     otherwise                                       %-Unknown Action string
 %==========================================================================
@@ -248,4 +253,13 @@ switch comp
         PLATFORM.font.times     = 'Times New Roman';
         PLATFORM.font.courier   = 'Courier New';
         PLATFORM.font.symbol    = 'Symbol';
+end
+
+
+%-Desktop
+%--------------------------------------------------------------------------
+try
+    PLATFORM.desktop = desktop('-inuse');
+catch
+    PLATFORM.desktop = false;
 end

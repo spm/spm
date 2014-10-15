@@ -8,7 +8,7 @@ function varargout = spm_toolbox(action,varargin)
 % Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_toolbox.m 6196 2014-09-24 18:02:17Z guillaume $
+% $Id: spm_toolbox.m 6245 2014-10-15 11:22:15Z guillaume $
 
 
 if ~nargin, action = 'Display'; end
@@ -168,7 +168,7 @@ try
     if isempty(url), error('Empty URL.'); end
 catch
     str = ext.url;
-    if desktop('-inuse'), str = sprintf('<a href="%s">%s</a>',str,str); end
+    if spm_platform('desktop'), str = sprintf('<a href="%s">%s</a>',str,str); end
     fprintf(['Toolbox "%s" is only available through website:\n' ...
         '  ' str '\n'], tbx);
     if ~spm('CmdLine'), web(ext.url,'-browser'); end

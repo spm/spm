@@ -17,7 +17,7 @@ function varargout = spm_atlas(action,varargin)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_atlas.m 6206 2014-09-27 16:15:15Z guillaume $
+% $Id: spm_atlas.m 6245 2014-10-15 11:22:15Z guillaume $
 
 
 if ~nargin, action = 'load'; end
@@ -579,7 +579,7 @@ case 'install'
             if strcmp(A,AA.atlas{i}.name)
                 url = AA.atlas{i}.download;
                 if isempty(url)
-                    if desktop('-inuse')
+                    if spm_platform('desktop')
                         str = sprintf('<a href="%s">%s</a>',url,url);
                     else
                         str = url;
