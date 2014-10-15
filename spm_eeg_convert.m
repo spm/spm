@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 6229 2014-10-06 14:59:20Z vladimir $
+% $Id: spm_eeg_convert.m 6244 2014-10-15 11:15:09Z vladimir $
 
-SVNrev = '$Rev: 6229 $';
+SVNrev = '$Rev: 6244 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -248,7 +248,9 @@ if ismember(S.mode, {'continuous', 'header'})
     
     readbytrials = 0;
     
+    
     D.timeOnset = (trl(1,1)-1)./hdr.Fs;
+ 
     D.Nsamples = nsampl;
 else % Read by trials
     if isfield(S, 'trl') || isfield(S, 'trialdef')
@@ -306,10 +308,10 @@ else % Read by trials
                 offset = [];
             end
             
-            if length(offset) == 1
+            if length(offset) == 1 && offset~=0
                 D.timeOnset = offset/D.Fsample;
-            else
-                D.timeOnset = 0;
+            else            
+                D.timeOnset = -hdr.nSamplesPre/hdr.Fs;
             end
             conditionlabels = {};
             for i = 1:length(trialind)
