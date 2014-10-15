@@ -91,6 +91,9 @@ if ischar(obj.labels)
   end
 else
   obj.labels = mars_struct('fillafromb', obj.labels, def_labs);
+  dist   = mean(diff(obj.slices));
+  prec   = ceil(-min(log10(dist), 0));
+  obj.labels.format = sprintf('%%+3.%1df', prec);
 end
 
 % figure area stuff
