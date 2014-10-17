@@ -1,21 +1,21 @@
 function spm_eeg_inv_image_display(varargin)
-% Display an interpolated 3D image of a contrast or window
+% Display an interpolated 3D image or mesh of a contrast or window
 %
 % FORMAT D = spm_eeg_inv_image_display(D,val)
 % Input:
 % D        - input data struct (optional)
 %__________________________________________________________________________
-% Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_image_display.m 5461 2013-05-02 19:01:57Z vladimir $
+% $Id: spm_eeg_inv_image_display.m 6248 2014-10-17 12:00:54Z guillaume $
 
 
-% checks
+%-Checks
 %--------------------------------------------------------------------------
 [D,val] = spm_eeg_inv_check(varargin{:});
 
-% EEG and sMRI files
+%-EEG and underlay files
 %--------------------------------------------------------------------------
 try
     sMRI = D.inv{val}.mesh.wmMRI; spm_vol(sMRI);
@@ -24,10 +24,16 @@ catch
 end
 wEEG = D.inv{val}.contrast.fname{D.con};
 
-% display
+%-Display
 %--------------------------------------------------------------------------
 spm_figure('Clear','Graphics');
-spm_check_registration(sMRI);
-spm_orthviews('addcolouredimage',1,[wEEG, ',1'],[1 0 0]);
-spm_orthviews('addcolourbar',1,1);
-spm_orthviews('Redraw');
+switch lower(char(D.inv{val}.contrast.format))
+    case 'image'
+        spm_check_registration(sMRI);
+        spm_orthviews('addcolouredimage',1,[wEEG, ',1'],[1 0 0]);
+        spm_orthviews('addcolourbar',1,1);
+        spm_orthviews('Redraw');
+    case 'mesh'
+        ax = subplot(2,1,1,'parent',spm_figure('GetWin','Graphics'));
+        spm_mesh_render(wEEG,'parent',ax);
+end
