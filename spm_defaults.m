@@ -8,7 +8,7 @@ function spm_defaults
 % MATLAB Startup Folder: userhome/Documents/MATLAB.
 %
 % Example: create the following file to change the image file extension:
-% ----------- file /home/karl/Documents/MATLAB/spm_my_defauls.m -----------
+% ----------- file /home/karl/Documents/MATLAB/spm_my_defaults.m -----------
 % global defaults
 % defaults.images.format = 'img';
 %--------------------------------------------------------------------------
@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 6221 2014-09-30 20:52:29Z guillaume $
+% $Id: spm_defaults.m 6249 2014-10-29 12:16:07Z guillaume $
 
 
 global defaults
@@ -119,8 +119,7 @@ defaults.unwarp.estimate.jm       = 0;
 defaults.unwarp.estimate.noi      = 5;
 defaults.unwarp.estimate.expround = 'Average';
 %
-% Unwarp uses defaults.realign.write 
-% defaults for writing.
+% Unwarp uses defaults.realign.write defaults for writing.
 %
 
 % Coregistration defaults
