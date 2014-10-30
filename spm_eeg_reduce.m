@@ -23,9 +23,9 @@ function D = spm_eeg_reduce(S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce.m 6118 2014-07-23 16:42:26Z vladimir $
+% $Id: spm_eeg_reduce.m 6252 2014-10-30 16:06:30Z vladimir $
 
-SVNrev = '$Rev: 6118 $';
+SVNrev = '$Rev: 6252 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -48,9 +48,9 @@ badind = D.badchannels;
 
 chanind = setdiff(D.selectchannels(S.channels), badind);
 
-if isempty(chanind)
-    error('No channels selected.');
-end
+% if isempty(chanind)
+%     error('No channels selected.');
+% end
 
 %%%%%%%%%
 % MWW
