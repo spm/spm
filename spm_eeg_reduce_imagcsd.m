@@ -17,7 +17,7 @@ function res = spm_eeg_reduce_imagcsd(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce_imagcsd.m 6252 2014-10-30 16:06:30Z vladimir $
+% $Id: spm_eeg_reduce_imagcsd.m 6253 2014-10-30 16:29:39Z vladimir $
 
 
 if nargin == 0
@@ -71,6 +71,13 @@ if nargin == 0
     return
 end
 
+flag_tbx = license('checkout','signal_toolbox') && ~isempty(ver('signal'));
+if flag_tbx
+    taper = 'dpss';
+else
+    taper = 'sine';
+end
+
 D = S.D;
 
 nsets = numel(S.chanset);
@@ -110,11 +117,11 @@ for i = 1:nsets
     
     fY =[];
     for c = 1:size(Y, 1)
-        [spectrum,ntaper,freqoi] = ft_specest_mtmfft(spm_squeeze(Y(c, :, :), 1)', D.time, 'taper', 'dpss', 'freqoi', mean(foi), 'tapsmofrq', 0.5*diff(foi), 'verbose', 0);
+        [spectrum,ntaper,freqoi] = ft_specest_mtmfft(spm_squeeze(Y(c, :, :), 1)', D.time, 'taper', taper, 'freqoi', mean(foi), 'tapsmofrq', 0.5*diff(foi), 'verbose', 0);
         fY = [fY spectrum(:)];
     end
     
-    fYr = ft_specest_mtmfft(spm_squeeze(Yr, 1)', D.time, 'taper', 'dpss', 'freqoi', mean(foi), 'tapsmofrq', 0.5*diff(foi), 'verbose', 0);
+    fYr = ft_specest_mtmfft(spm_squeeze(Yr, 1)', D.time, 'taper', taper, 'freqoi', mean(foi), 'tapsmofrq', 0.5*diff(foi), 'verbose', 0);
     
     fYr = fYr(:);
     
