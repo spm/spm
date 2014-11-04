@@ -11,7 +11,7 @@ function [y] = spm_rand_power_law(csd,Hz,dt,N)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_rand_power_law.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_rand_power_law.m 6254 2014-11-04 18:24:21Z karl $
  
 
 % create random process
@@ -24,7 +24,7 @@ for i = 1:size(csd,2);
     ccf    = spm_csd2ccf(csd(:,i),Hz,dt);
     mar    = spm_ccf2mar(ccf,p);
     A      = [1 -mar.a'];
-    P      = spdiags(ones(N,1)*A,-(0:p),N,N);
+    P      = spdiags(ones(N,1)*A,-(0:mar.p),N,N);
     y(:,i) = P\randn(N,1)*sqrt(max(ccf));    
 end
 

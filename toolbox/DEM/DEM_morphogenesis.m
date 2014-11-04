@@ -23,32 +23,43 @@ function DEM = DEM_morphogenesis
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_morphogenesis.m 6238 2014-10-13 09:38:23Z karl $
+% $Id: DEM_morphogenesis.m 6254 2014-11-04 18:24:21Z karl $
  
 
 % preliminaries
 %--------------------------------------------------------------------------
 rng('default')
 
-n   = 4;                                   % number of cells
+n   = 5;                                   % number of cells
 m   = 3;                                   % number of signals
-N   = 32;                                  % length of stimulus (bins)
+N   = 64;                                  % length of stimulus (bins)
 
 % generative process and model
 %==========================================================================
-M(1).E.d        = 1;                       % approximation order
-M(1).E.n        = 2;                       % embedding order
-M(1).E.s        = 1/2;                     % smoothness
+M(1).E.d = 1;                              % approximation order
+M(1).E.n = 2;                              % embedding order
+M(1).E.s = 1/2;                            % smoothness
 
 % priors (prototype)
 %--------------------------------------------------------------------------
 P.x     = (1:n)/2;                         % position of each cell
 P.s     = [(P.x > 0);                      % signalling of each cell
-           (P.x >= 1/2);
-           (P.x < 1/2)];
+           (P.x > mean(P.x));
+           (P.x < mean(P.x));
+           (P.x == mean(P.x))];
 P.x     = spm_detrend(P.x')';
 P.s     = double(P.s);
 P.c     = morphogenesis(P.x,P.s);          % signal sensed at each position
+
+% initialise action and expectations
+%--------------------------------------------------------------------------
+for i = 1:n
+    x(i).i = randn(n,1)/2;                 % states (identity)
+end
+g       = Mg(x,[],P);
+a.x     = zeros(1,n);                      % states (position)
+a.s     = g.s;                             % states (chemotaxis)
+
 
 
 % generative process 
@@ -56,12 +67,9 @@ P.c     = morphogenesis(P.x,P.s);          % signal sensed at each position
 
 % level 1 of generative process
 %--------------------------------------------------------------------------
-a.x     = randn(1,n)/4;                    % states (position)
-a.s     = spm_softmax(randn(m,n));         % states (chemotaxis)
-
 G(1).g  = @(x,v,a,P) Gg(x,v,a,P);
 G(1).V  = exp(16);                         % precision (noise)
-G(1).U  = exp(2);                          % precision (action)
+G(1).U  = exp(4);                          % precision (action)
 G(1).pE = a;                               % precision (action)
 
  
@@ -74,15 +82,13 @@ G(2).V  = exp(16);
 
 % generative model
 %==========================================================================
+
 % level 1 of the generative model: 
 %--------------------------------------------------------------------------
-for i = 1:n
-    x(i).i = randn(n,1)/64 - 1;               % states (identity)
-end
 M(1).f  = @(x,v,P) Mf(x,v,P);
 M(1).g  = @(x,v,P) Mg(x,v,P);
 M(1).x  = x;
-M(1).W  = exp(0);
+M(1).W  = exp(8);
 M(1).V  = exp(4);
 M(1).pE = P;
 
@@ -117,7 +123,7 @@ for t = 1:N
     v = spm_unvec(DEM.qU.a{2}(:,t),a);
     for i = 1:n
         x = v.x(:,i);
-        c = v.s(:,i);
+        c = v.s(end - 2:end,i);
         c = max(min(c,1),0);
         plot(t,x,'.','markersize',t + 4,'color',c); hold on
     end
@@ -127,7 +133,7 @@ end
 %--------------------------------------------------------------------------
 for i = 1:n
     x = P.x(:,i);
-    c = P.s(:,i);
+    c = P.s(end - 2:end,i);
     c = max(min(c,1),0);
     plot(N + 4,x,'.','markersize',t + 4,'color',c); hold on
 end
@@ -135,9 +141,9 @@ end
 title('morphogenesis','Fontsize',16)
 xlabel('time')
 ylabel('llocation')
-axis([0 (N + 4) -1 1]); set(gca,'Color','k');
+set(gca,'Color','k');
 axis square, box off
-    
+
 return
 
 % illustrate responses with sonogram (and sound file)
@@ -161,7 +167,7 @@ function c = morphogenesis(x,s,y)
 % preliminaries
 %--------------------------------------------------------------------------
 if nargin < 3; y = x; end                  % sample locations
-k     = 1/2*[1 1 1]';                          % signal decay over space 
+k     = [4 2 1 1]';                         % signal decay over space 
 c     = zeros(size(s,1),size(y,2));        % signal sensed at each location
 for i = 1:size(y,2)
     for j = 1:size(x,2)
@@ -202,7 +208,8 @@ function f = Mf(x,v,P)
 n   = length(x);
 f   = x;
 for i = 1:n
-    f(i).i = ( 1 - sum(exp(x(i).i)) - 2*x(i).i.*exp(x(i).i))/16;
+    f(i).i = ((speye(n,n) - 1)*( 1./(1 + exp(-x(i).i))) - x(i).i/8  + 1)/4;
 end
+
 
  

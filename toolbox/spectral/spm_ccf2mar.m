@@ -18,7 +18,7 @@ function [mar,pcond] = spm_ccf2mar(ccf,p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ccf2mar.m 5902 2014-03-02 18:26:06Z karl $
+% $Id: spm_ccf2mar.m 6254 2014-11-04 18:24:21Z karl $
 
 
 % MAR coeficients
@@ -26,6 +26,7 @@ function [mar,pcond] = spm_ccf2mar(ccf,p)
 N     = size(ccf,1);
 m     = size(ccf,2);
 n     = (N - 1)/2;
+p     = min(p,n - 1);
 ccf   = ccf((1:n) + n,:,:);
 
 % create ccf matrices

@@ -1,11 +1,13 @@
 function [CSD,ERP,csd,mtf,w,pst,x,dP] = spm_csd_int(P,M,U)
 % Time frequency response of a neural mass model
 % FORMAT [CSD,ERP,csd,mtf,w,pst,x,dP] = spm_csd_int(P,M,U)
-%        ERP = spm_csd_int(P,M,U)
+%        ERP = spm_csd_int(P,M,U): M.ds = 0
 %
-% P - parameters
-% M - neural mass model structure
-% U - time-dependent input
+% P    - parameters
+% M    - neural mass model structure
+% M.ds - down-sampling for comutational efficiency (default = 1)
+%        if ~M.ds then the ERP is returned
+% U    - time-dependent input
 %
 % ERP  - {E(t,nc}}      - event-related average (sensor space)
 % CSD  - {Y(t,w,nc,nc}} - cross-spectral density for nc channels {trials}
@@ -32,7 +34,7 @@ function [CSD,ERP,csd,mtf,w,pst,x,dP] = spm_csd_int(P,M,U)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 6234 2014-10-12 09:59:10Z karl $
+% $Id: spm_csd_int.m 6254 2014-11-04 18:24:21Z karl $
 
 
 % check input - default: one trial (no between-trial effects)

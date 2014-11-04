@@ -1,24 +1,27 @@
 function [f] = spm_lotka_volterra(x,v,P)
 % equations of motion for Lotka-Volterra dynamics
 % FORMAT [f] = spm_lotka_volterra(x,v,P)
+% FORMAT [f] = spm_lotka_volterra(x,v)
 % FORMAT [f] = spm_lotka_volterra(n)
 %
 % [x.]x - hidden states
 % [x.]v - exogenous inputs
+% v     - parameter of P.f
 % P.f   - lateral connectivity
-% P.k   - rate [default 1]
+% P.k   - rate = 1/dt [default 1]
 %
 % returns f = dx/dt = P.f*S(x) - x/8 + 1;
 %              S(x) = 1./(1 + exp(-x))
 %
-% where C determines the order of unstable fixed points visited in the
-% stable heteroclinic channel.
+% where P.f determines the order of unstable fixed points visited in the
+% stable heteroclinic channel. If P.f is not specified it will be computed
+% using v. If x is a scalar P.f isreturned (with v = 1).
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lotka_volterra.m 4297 2011-04-07 18:12:29Z karl $
+% $Id: spm_lotka_volterra.m 6254 2014-11-04 18:24:21Z karl $
 
 
 % intialise
@@ -30,7 +33,7 @@ try, l = P.l; catch, l = 1; end
 %--------------------------------------------------------------------------
 if nargin == 1
     n   = x;
-    f   = spm_speye(n,n,-1) - spm_speye(n,n,1); P.f(n,1) = -1; P.f(1,n) = 1;
+    f   = spm_speye(n,n,-1) - spm_speye(n,n,1); f(n,1) = -1; f(1,n) = 1;
     f   = f + speye(n,n) - 1;
     return
 end

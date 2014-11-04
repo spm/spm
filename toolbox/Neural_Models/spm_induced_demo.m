@@ -32,7 +32,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 6236 2014-10-12 10:03:44Z karl $
+% $Id: spm_induced_demo.m 6254 2014-11-04 18:24:21Z karl $
  
  
 % Model specification
@@ -164,7 +164,6 @@ spm_axis tight
 %--------------------------------------------------------------------------
 spm_dcm_tfm_image(CSD{1},pst,w,1)
 
-return
 
 % expected time frequency response
 %--------------------------------------------------------------------------
@@ -183,7 +182,6 @@ xY.erp = erp;
 xY.csd = csd;
 spm_dcm_tfm_response(xY,pst,w)
 
-return
 
 
 % Integrate system to simulate responses
@@ -198,7 +196,7 @@ Gu    = spm_csd_mtf_gu(pE,Hz);
  
 % simulate Nt trials
 %--------------------------------------------------------------------------
-M.TFM = 1;
+M.ds  = 0;                                       % switch to ERP generation
 Nt    = 8;
 V     = U;
 for j = 1:Nt

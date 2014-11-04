@@ -75,7 +75,7 @@ function DCM = spm_dcm_post_hoc(P,fun,field,write_all)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_post_hoc.m 6192 2014-09-23 17:35:00Z peter $
+% $Id: spm_dcm_post_hoc.m 6254 2014-11-04 18:24:21Z karl $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -126,26 +126,32 @@ params.N         = numel(params.P);     % Number of input models
 params.nograph   = spm('CmdLine');      % Graphical display
 
 %-Run post-hoc DCM
-%--------------------------------------------------------------------------
+%==========================================================================
 
 % Check that models are compatible in terms of their prior variances
+%--------------------------------------------------------------------------
 [example_DCM,C] = check_models(params);
 
 % Greedy search (GS) - eliminating parameters in a top down fashion
+%--------------------------------------------------------------------------
 [C,model_space] = greedy_search(C,example_DCM,nmax,params);
 
 % Inference over families
+%--------------------------------------------------------------------------
 [Pk, Pf] = family_inference(example_DCM,C,model_space,params);
 
 % Calculate reduced models and BPA
+%--------------------------------------------------------------------------
 [BPA, P_opt] = compute_post_hoc(example_DCM,C,params);
 
 % Show full and reduced conditional estimates (for Bayesian average)
+%--------------------------------------------------------------------------
 if ~params.nograph
     create_plots(example_DCM,BPA,Pk,Pf,params,~nargout);
 end
 
 % Save Bayesian Parameter Average and family-wise model inference
+%--------------------------------------------------------------------------
 DCM = save_bpa_dcm(Pk,BPA,Pf,params,P_opt);
 
 
@@ -744,7 +750,7 @@ qC  = DCM.Cp;
 pE  = DCM.M.pE;
 pC  = DCM.M.pC;
 
-rC = diag(C)*pC*diag(C);
+rC  = diag(C)*pC*diag(C);
 
 %-Get posterior of selected model - rC
 %--------------------------------------------------------------------------
