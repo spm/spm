@@ -19,7 +19,7 @@ function [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6232 2014-10-09 17:03:26Z guillaume $
+% $Id: spm_results_nidm.m 6256 2014-11-05 11:46:16Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -43,7 +43,7 @@ end
 %--------------------------------------------------------------------------
 gz           = '.gz'; %-Compressed NIfTI {'.gz', ''}
 coordsys     = 'nidm:MNICoordinateSystem'; %-Assuming MNI space
-NIDMversion  =  '0.2.0';
+NIDMversion  = '0.2.0';
 
 
 %==========================================================================
@@ -342,7 +342,7 @@ if isfield(SPM.xVi,'form')
             };
     end
 else
-    if numel(SPM.xVi.Vi) == 1 % assume it's identity
+    if ~isfield(SPM.xVi,'Vi') || numel(SPM.xVi.Vi) == 1 % assume it's identity
         extra_fields_NM = {...
             'nidm:hasErrorDependence','nidm:IndependentError',...
             'nidm:errorVarianceHomogeneous',{'true','xsd:boolean'},...
