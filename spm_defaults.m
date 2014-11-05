@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 6249 2014-10-29 12:16:07Z guillaume $
+% $Id: spm_defaults.m 6255 2014-11-05 09:55:02Z christophe $
 
 
 global defaults
@@ -91,6 +91,7 @@ defaults.coreg.write.prefix     = 'r';
 defaults.unwarp.write.prefix    = 'u';
 defaults.normalise.write.prefix = 'w';
 defaults.smooth.prefix          = 's';
+defaults.imcalc.prefix          = 'i';
 
 % Realignment defaults
 %==========================================================================

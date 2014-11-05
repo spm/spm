@@ -3,7 +3,7 @@ function imcalc = spm_cfg_imcalc
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 6096 2014-07-10 12:27:32Z volkmar $
+% $Id: spm_cfg_imcalc.m 6255 2014-11-05 09:55:02Z christophe $
 
 %--------------------------------------------------------------------------
 % input Input Images
@@ -22,9 +22,10 @@ input.num     = [1 Inf];
 output         = cfg_entry;
 output.tag     = 'output';
 output.name    = 'Output Filename';
-output.help    = {'The output image is written to current working directory unless a valid full pathname is given. If a path name is given here, the output directory setting will be ignored.'};
+output.help    = {'The output image is written to current working directory unless a valid full pathname is given. If a path name is given here, the output directory setting will be ignored.'
+    'If the field is left empty, i.e. set to '''', then the name of the 1st input image, preprended with ''i'', is used (change this letter in the spm_defaults if necessary).'};
 output.strtype = 's';
-output.num     = [1 Inf];
+output.num     = [0 Inf];
 output.val     = {'output'};
 
 %--------------------------------------------------------------------------
@@ -207,6 +208,10 @@ if isempty(p)
     else
         p = job.outdir{1};
     end
+end
+if isempty(nam)
+    nam = [spm_get_defaults('imcalc.prefix') spm_file(job.input{1},'basename')];
+    ext = ['.' spm_file(job.input{1},'ext')];
 end
 if isempty(ext)
     ext = ['.' spm_get_defaults('images.format')];
