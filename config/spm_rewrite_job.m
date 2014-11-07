@@ -3,7 +3,7 @@ function job = spm_rewrite_job(job)
 %__________________________________________________________________________
 % Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 6209 2014-09-28 18:16:37Z guillaume $
+% $Id: spm_rewrite_job.m 6258 2014-11-07 18:15:40Z guillaume $
 
 
 try
@@ -126,6 +126,27 @@ end
 try
     job.util.ecat;
     job.util = struct('import', job.util);
+end
+
+try
+    job.tools.fieldmap;
+    opts = {'presubphasemag','realimag','phasemag','precalcfieldmap'};
+    imgs{1} = {'phase','magnitude'};
+    imgs{2} = {'shortreal','shortimag','longreal','longimag'};
+    imgs{3} = {'shortphase','shortmag','longphase','longmag'};
+    imgs{4} = {'precalcfieldmap','magfieldmap'};
+    for j=1:numel(opts)
+        try
+            job.tools.fieldmap.(opts{j});
+            job.tools.fieldmap = struct('calculatevdm',job.tools.fieldmap.(opts{j}));
+            for i=1:numel(job.tools.fieldmap.calculatevdm.subj)
+                for k=1:numel(imgs{j})
+                    job.tools.fieldmap.calculatevdm.subj(i).data.(opts{j}).(imgs{j}{k}) = job.tools.fieldmap.calculatevdm.subj(i).(imgs{j}{k});
+                end
+            end
+            job.tools.fieldmap.calculatevdm.subj = rmfield(job.tools.fieldmap.calculatevdm.subj,imgs{j});
+        end
+    end
 end
 
 try

@@ -31,17 +31,17 @@ function out = FieldMap_applyvdm(job)
 % series (this can also be done via the FieldMap toolbox).
 %
 % Outputs:
-% The resmapled and resliced images resliced to the same subdirectory with a prefix.
+% The resampled and resliced images resliced to the same subdirectory with a prefix.
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2014 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: FieldMap_applyvdm.m 4842 2012-08-15 18:02:30Z guillaume $
+% $Id: FieldMap_applyvdm.m 6258 2014-11-07 18:15:40Z guillaume $
 
 tiny = 5e-2;
 
 % assemble roptions
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 flags.interp    = job.roptions.rinterp;
 flags.wrap      = job.roptions.wrap;
 flags.mask      = job.roptions.mask;
@@ -58,7 +58,7 @@ if applydim~=1 &&  applydim~=2 && applydim~=3
 end
 
 % Gather up data into ds structure which holds images and vdm file
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 P = {};
 for i = 1:numel(job.data)
     P{i} = strvcat(job.data(i).scans{:});
@@ -78,12 +78,12 @@ for i=1:length(ds)
 end
 
 % Set up  x y z for resampling
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 [x,y,z] = ndgrid(1:ds(1).P(1).dim(1),1:ds(1).P(1).dim(2),1:ds(1).P(1).dim(3));
 xyz = [x(:) y(:) z(:) ones(prod(ds(1).P(1).dim(1:3)),1)]; clear x y z;
 
 % Create mask if required (usually default and required to create mean)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if flags.mask || flags.mean,
     spm_progress_bar('Init',ntot,'Computing available voxels',...
         'volumes completed');
@@ -145,7 +145,7 @@ if flags.mask || flags.mean,
 end
 
 % Apply fieldmap to all files, looping through sessions
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 spm_progress_bar('Init',ntot,'Reslicing','volumes completed');
 tv = 1;
 for s = 1:numel(ds)
@@ -199,10 +199,10 @@ for s = 1:numel(ds)
 end
 
 % Write mean image
-%-----------------------------------------------------------
+%--------------------------------------------------------------------------
 if flags.mean
    % Write integral image (16 bit signed)
-   %-----------------------------------------------------------
+   %-----------------------------------------------------------------------
    sw = warning('off','MATLAB:divideByZero'); 
    Integral   = Integral./Count;
    warning(sw);
@@ -222,11 +222,9 @@ end
 
 spm_figure('Clear','Interactive');
 
-%_______________________________________________________________________
+
+%==========================================================================
 function vo = nan2zero(vi)
 vo = vi;
 vo(~isfinite(vo)) = 0;
 return;
-%_______________________________________________________________________
-
-
