@@ -14,6 +14,8 @@ function DCM = spm_dcm_ind_data(DCM)
 %    DCM.options.Rft
 %    DCM.options.h
 %
+% optional: DCM.options.baseline [start(ms) end(ms)]
+%
 % sets
 %
 %    DCM.xY.pst     - Peristimulus Time [ms] of time-frequency data
@@ -41,7 +43,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 6241 2014-10-13 18:30:01Z bernadette $
+% $Id: spm_dcm_ind_data.m 6259 2014-11-10 12:08:18Z bernadette $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -352,10 +354,18 @@ for i = 1:Ne;
     
     % sum response over dipole moments and remove baseline (first few bins)
     %----------------------------------------------------------------------
-    n     = fix(Nb/8);
+    
+    try
+        bl_ind = find(DCM.xY.pst>=DCM.options.baseline(1)&DCM.xY.pst<=DCM.options.baseline(end));
+        n = length(bl_ind);
+    catch
+        n = fix(Nb/8);
+        bl_ind = 1:n;
+    end
+    
     for j = 1:Nr
         Yk      = squeeze(sum(Y(:,:,j,:),2))/Nt;
-        Yb      = ones(Nb,n)*Yk(1:n,:)/n;
+        Yb      = ones(Nb,n)*Yk(bl_ind,:)/n;
         Yz{i,j} = Yk - Yb;
     end
 end
