@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 6145 2014-09-02 09:39:05Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 6260 2014-11-14 12:22:54Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -48,9 +48,10 @@ switch varargin{1}
                     nts                     = min([2e2,D.nsamples]);
                     decim                   = max([floor(D.nsamples./nts),1]);
                     data                    = D(visuSensors,1:decim:D.nsamples,:);
-                    sd                      = mean(abs(data(:)-mean(data(:))));%std(data(:));
+                    sd                      = nanmean(abs(data(:)-nanmean(data(:))));%std(data(:));
                     offset                  = (0:1:length(visuSensors)-1)'*(sd+eps)/2;
                     v_data                  = 0.25.*data +repmat(offset,[1 size(data,2) size(data,3)]);
+                    v_data                  = v_data(~isnan(v_data(:)));
                     ma                      = max(v_data(:))+sd;
                     mi                      = min(v_data(:))-sd;
                     ylim                    = [mi ma];
@@ -1187,7 +1188,9 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 v_data = zeros(size(VIZU.montage.M,1),...
                     size(D,2),Ntrials);
                 for i=1:Ntrials
-                    v_datai                 = full(VIZU.montage.M)*D(:,:,trN(i));
+                    v_datai                 = D(:,:,trN(i));
+                    v_datai(isnan(v_datai)) = 0;
+                    v_datai                 = full(VIZU.montage.M)*v_datai;
                     v_datai                 = VIZU.visu_scale*(v_datai);
                     v_data(:,:,i)           = v_datai;
                 end

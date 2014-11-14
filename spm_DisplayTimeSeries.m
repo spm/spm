@@ -57,12 +57,14 @@ function [ud] = spm_DisplayTimeSeries(y,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_DisplayTimeSeries.m 6070 2014-06-26 20:53:39Z guillaume $
+% $Id: spm_DisplayTimeSeries.m 6260 2014-11-14 12:22:54Z vladimir $
 
 
 if ~exist('options','var')
     options = [];
 end
+
+y(isnan(y)) = 0;
 
 % Get optional parameters if any) and set up defaults
 %==========================================================================
