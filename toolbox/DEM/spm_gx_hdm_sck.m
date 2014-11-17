@@ -2,8 +2,8 @@ function [y] = spm_gx_hdm_sck(x,u,P,M)
 % Simulated BOLD response to input.
 % FORMAT [y] = spm_gx_hdm_sck(x,u,P,M)
 % y    - BOLD response (%)
-% x    - state vector     (see spm_fx_dcm)
-% P    - Parameter vector (see spm_fx_dcm)
+% x    - state vector     (see spm_fx_fmri)
+% P    - Parameter vector (see spm_fx_fmri)
 %__________________________________________________________________________
 %
 % This function implements the BOLD signal model described in: 
@@ -14,7 +14,7 @@ function [y] = spm_gx_hdm_sck(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_hdm_sck.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: spm_gx_hdm_sck.m 6263 2014-11-17 13:48:36Z karl $
 
 
 % biophysical constants for 1.5 T: 

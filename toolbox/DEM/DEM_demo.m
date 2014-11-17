@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 17-Jul-2014 19:59:31
+% Last Modified by GUIDE v2.5 10-Nov-2014 18:46:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -489,3 +489,8 @@ run_demo_Callback(hObject, handles, 'DEM_demo_MDP_maze')
 function pushbutton153_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Post%20hoc%20Bayesian%20model%20selection.pdf';
 run_demo_Callback(hObject, handles, 'DEM_demo_Bayesian_Model_Reduction')
+
+% --- Executes on button press in pushbutton154.
+function pushbutton154_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Life%20as%20we%20know%20it.pdf';
+run_demo_Callback(hObject, handles, 'DEM_morphogenesis')
