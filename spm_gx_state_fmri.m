@@ -3,8 +3,8 @@ function [y] = spm_gx_state_fmri(x,u,P,M)
 % FORMAT [y] = spm_gx_state_fmri(x,u,P,M)
 % y          - BOLD response and copied state vector
 %
-% x          - state vector     (see spm_fx_dcm)
-% P          - Parameter vector (see spm_fx_dcm)
+% x          - state vector     (see spm_fx_fmri)
+% P          - Parameter vector (see spm_fx_fmri)
 % M          - model specification structure (see spm_nlsi)
 %
 % The `copied state vector' passes the first hidden variable in each region
@@ -16,7 +16,7 @@ function [y] = spm_gx_state_fmri(x,u,P,M)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Will Penny
-% $Id: spm_gx_state_fmri.m 4694 2012-03-19 12:30:29Z will $
+% $Id: spm_gx_state_fmri.m 6262 2014-11-17 13:47:56Z karl $
  
 y = spm_gx_fmri(x,u,P,M);
 

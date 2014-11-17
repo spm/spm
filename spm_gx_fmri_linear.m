@@ -2,8 +2,8 @@ function [y] = spm_gx_fmri_linear(x,u,P,M)
 % Simulated BOLD response to input (linear version)
 % FORMAT [y] = spm_gx_fmri_linear(x,u,P,M)
 % y          - BOLD response (%)
-% x          - state vector     (see spm_fx_dcm)
-% P          - Parameter vector (see spm_fx_dcm)
+% x          - state vector     (see spm_fx_fmri)
+% P          - Parameter vector (see spm_fx_fmri)
 % M          - model specification structure (see spm_nlsi)
 %__________________________________________________________________________
 %
@@ -15,7 +15,7 @@ function [y] = spm_gx_fmri_linear(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_fmri_linear.m 4052 2010-08-27 19:22:44Z karl $
+% $Id: spm_gx_fmri_linear.m 6262 2014-11-17 13:47:56Z karl $
  
  
 % Biophysical constants for 1.5T

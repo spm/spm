@@ -2,8 +2,8 @@ function [g,dgdx] = spm_gx_fmri(x,u,P,M)
 % Simulated BOLD response to input
 % FORMAT [g,dgdx] = spm_gx_fmri(x,u,P,M)
 % g          - BOLD response (%)
-% x          - state vector     (see spm_fx_dcm)
-% P          - Parameter vector (see spm_fx_dcm)
+% x          - state vector     (see spm_fx_fmri)
+% P          - Parameter vector (see spm_fx_fmri)
 % M          - model specification structure (see spm_nlsi)
 %__________________________________________________________________________
 %
@@ -15,7 +15,7 @@ function [g,dgdx] = spm_gx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_fmri.m 5667 2013-10-02 18:26:06Z karl $
+% $Id: spm_gx_fmri.m 6262 2014-11-17 13:47:56Z karl $
  
  
 % Biophysical constants for 1.5T
