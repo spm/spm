@@ -25,7 +25,7 @@ function [res] = montage(this,action,varargin)
 
 % Remy Lehembre & Christophe Phillips
 % Cyclotron Research Centre, University of Liège, Belgium
-% $Id: montage.m 5081 2012-11-28 14:22:07Z christophe $
+% $Id: montage.m 6264 2014-11-18 13:46:51Z vladimir $
 
 % Montage definition in the object structure by simply adding a 'montage'
 % field in the object structure:
@@ -228,7 +228,7 @@ res = find(res);
 
 newbads = find(any(mont.tra(:, res),2));
 for ii=1:length(newbads)
-    S.montage.M(idx).channels(ii).bad = 1;
+    S.montage.M(idx).channels(newbads(ii)).bad = 1;
 end
 
 % set channel info: type, units
