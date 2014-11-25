@@ -28,10 +28,10 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 5461 2013-05-02 19:01:57Z vladimir $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 6266 2014-11-25 14:29:58Z vladimir $
 
 
-SVNrev = '$Rev: 5461 $';
+SVNrev = '$Rev: 6266 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -203,7 +203,7 @@ for c = 1:length(ucon)
         str = tag{uwin(w)};
         
         fname     = fullfile(D.path,...
-            sprintf('%s_%.0f_%s%.0f.nii', name, val, str, con(c)));
+            sprintf('%s_%.0f_%s%.0f.nii', name, val, str, ucon(c)));
         
         %-Initialise image
         %----------------------------------------------------------------------
