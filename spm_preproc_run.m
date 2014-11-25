@@ -28,10 +28,10 @@ function varargout = spm_preproc_run(job,action)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 6217 2014-09-29 17:54:33Z guillaume $
+% $Id: spm_preproc_run.m 6267 2014-11-25 16:12:43Z guillaume $
 
 
-SVNid = '$Rev: 6217 $';
+SVNid = '$Rev: 6267 $';
 
 if nargin == 1, action = 'run'; end
 
@@ -74,14 +74,17 @@ end
 
 for iter=1:nit
     for subj=1:numel(job.channel(1).vols)
-        images = '';
+        fprintf('Segment %s\n',spm_file(job.channel(1).vols{subj},...
+            'link','spm_image(''display'',''%s'')'));
+        
+        images = cell(numel(job.channel),1);
         for n=1:numel(job.channel)
-            images = strvcat(images,job.channel(n).vols{subj});
+            images{n} = job.channel(n).vols{subj};
         end
-        obj.image    = spm_vol(images);
+        obj.image    = spm_vol(char(images));
         spm_check_orientations(obj.image);
 
-        obj.fwhm    = job.warp.fwhm;
+        obj.fwhm     = job.warp.fwhm;
         obj.biasreg  = cat(1,job.channel(:).biasreg);
         obj.biasfwhm = cat(1,job.channel(:).biasfwhm);
         obj.tpm      = tpm;
@@ -221,17 +224,17 @@ n     = numel(job.channel(1).vols);
 parts = cell(n,4);
 
 channel = struct('biasfield',{},'biascorr',{});
-for i=1:numel(job.channel),
+for i=1:numel(job.channel)
     for j=1:n,
         [parts{j,:}] = spm_fileparts(job.channel(i).vols{j});
     end
-    if job.channel(i).write(1),
+    if job.channel(i).write(1)
         channel(i).biasfield = cell(n,1);
         for j=1:n
             channel(i).biasfield{j} = fullfile(parts{j,1},['BiasField_',parts{j,2},'.nii']);
         end
     end
-    if job.channel(i).write(2),
+    if job.channel(i).write(2)
         channel(i).biascorr = cell(n,1);
         for j=1:n
             channel(i).biascorr{j} = fullfile(parts{j,1},['m',parts{j,2},'.nii']);
@@ -239,7 +242,7 @@ for i=1:numel(job.channel),
     end
 end
 
-for j=1:n,
+for j=1:n
     [parts{j,:}] = spm_fileparts(job.channel(1).vols{j});
 end
 param = cell(n,1);
@@ -248,26 +251,26 @@ for j=1:n
 end
 
 tiss = struct('c',{},'rc',{},'wc',{},'mwc',{});
-for i=1:numel(job.tissue),
-    if job.tissue(i).native(1),
+for i=1:numel(job.tissue)
+    if job.tissue(i).native(1)
         tiss(i).c = cell(n,1);
         for j=1:n
             tiss(i).c{j} = fullfile(parts{j,1},['c',num2str(i),parts{j,2},'.nii']);
         end
     end
-    if job.tissue(i).native(2),
+    if job.tissue(i).native(2)
         tiss(i).rc = cell(n,1);
         for j=1:n
             tiss(i).rc{j} = fullfile(parts{j,1},['rc',num2str(i),parts{j,2},'.nii']);
         end
     end
-    if job.tissue(i).warped(1),
+    if job.tissue(i).warped(1)
         tiss(i).wc = cell(n,1);
         for j=1:n
             tiss(i).wc{j} = fullfile(parts{j,1},['wc',num2str(i),parts{j,2},'.nii']);
         end
     end
-    if job.tissue(i).warped(2),
+    if job.tissue(i).warped(2)
         tiss(i).mwc = cell(n,1);
         for j=1:n
             tiss(i).mwc{j} = fullfile(parts{j,1},['mwc',num2str(i),parts{j,2},'.nii']);
@@ -275,7 +278,7 @@ for i=1:numel(job.tissue),
     end
 end
 
-if job.warp.write(1),
+if job.warp.write(1)
     invdef = cell(n,1);
     for j=1:n
         invdef{j} = fullfile(parts{j,1},['iy_',parts{j,2},'.nii']);
@@ -284,7 +287,7 @@ else
     invdef = {};
 end
 
-if job.warp.write(2),
+if job.warp.write(2)
     fordef = cell(n,1);
     for j=1:n
         fordef{j} = fullfile(parts{j,1},['y_',parts{j,2},'.nii']);
@@ -304,7 +307,7 @@ vout = vout_job(job);
 vf   = vout.param;
 if ~isempty(vout.invdef), vf = {vf{:}, vout.invdef{:}}; end
 if ~isempty(vout.fordef), vf = {vf{:}, vout.fordef{:}}; end
-for i=1:numel(vout.channel),
+for i=1:numel(vout.channel)
     if ~isempty(vout.channel(i).biasfield), vf = {vf{:}, vout.channel(i).biasfield{:}}; end
     if ~isempty(vout.channel(i).biascorr),  vf = {vf{:}, vout.channel(i).biascorr{:}};  end
 end
