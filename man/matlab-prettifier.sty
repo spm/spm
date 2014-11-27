@@ -1,0 +1,539 @@
+%%
+%% This is file `matlab-prettifier.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% matlab-prettifier.dtx  (with options: `package')
+%% 
+%% This is a generated file.
+%% 
+%% Copyright (C) 2014 by Julien Cretel <jubobs.matlab.prettifier at gmail.com>
+%% 
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%% 
+%%     http://www.latex-project.org/lppl.txt
+%% 
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2005/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status `maintained'.
+%% 
+%% The Current Maintainer of this work is Julien Cretel.
+%% 
+%% This work currently consists of the files matlab-prettifier.dtx,
+%% matlab-prettifier.ins, and the derived file matlab-prettifier.sty.
+%% 
+\NeedsTeXFormat{LaTeX2e}[2011/06/27]
+\ProvidesPackage{matlab-prettifier}
+  [2014/06/19 v0.3 A package for prettyprinting Matlab source code]
+\newcommand\lstoptcheck@mlpr[1]
+{%
+  \@ifpackagewith{listings}{#1}%
+  {
+    \PackageError{matlab-prettifier}%
+      {incompatible listings' option #1}%
+      {%
+        Make sure the `listings' package
+        doesn't get loaded with option `#1'%
+      }
+  }
+  {}
+}
+\lstoptcheck@mlpr{noaspects}
+\lstoptcheck@mlpr{0.21}
+\lstoptcheck@mlpr{savemem}
+\newif\ifframed@mlpr@
+\DeclareOption{framed}{\framed@mlpr@true}
+\newif\ifnumbered@mlpr@
+\DeclareOption{numbered}{\numbered@mlpr@true}
+\DeclareOption{draft}{\PassOptionsToPackage{\CurrentOption}{listings}}
+\DeclareOption{final}{\PassOptionsToPackage{\CurrentOption}{listings}}
+\DeclareOption*%
+{%
+  \OptionNotUsed
+  \PackageWarning{matlab-prettifier}{Unknown `\CurrentOption' option}
+}
+\ProcessOptions\relax
+\RequirePackage{textcomp}[2005/09/27]
+\RequirePackage{xcolor}[2007/01/21]
+\RequirePackage{listings}[2013/08/26]
+\newcommand\language@mlpr{Matlab-pretty}
+\expandafter\lst@NormedDef\expandafter\languageNormedDefd@mlpr%
+  \expandafter{\language@mlpr}
+\expandafter\expandafter\expandafter\lstdefinelanguage\expandafter%
+{\language@mlpr}
+{%
+  sensitive=true,
+  alsoother={\$@},
+  MoreSelectCharTable=\MoreSelectCharTable@mlpr,
+  morekeywords=[1]%
+  {%
+    for,
+    if,
+    otherwise,
+    parfor,
+    spmd,
+    switch,
+    try,
+    while,
+  },
+  keywordstyle=[1]\processOpRegKW@mlpr,
+  morekeywords=[2]%
+  {%
+    break,
+    case,
+    catch,
+    continue,
+    else,
+    elseif,
+    function,
+    return,
+  },
+  keywordstyle=[2]\processMidKW@mlpr,
+  morekeywords=[3]%
+  {%
+    global,
+    persistent,
+  },
+  keywordstyle=[3]\processStdaKW@mlpr,
+  morekeywords=[4]{classdef},
+  keywordstyle=[4]\processClassdefKW@mlpr,
+  morekeywords=[5]%
+  {%
+    enumeration,
+    events,
+    methods,
+    properties,
+  },
+  keywordstyle=[5]\processMidClassdefKW@mlpr,
+  morekeywords=[6]{end},
+  keywordstyle=[6]\processEndKW@mlpr,
+  morestring=[m]',
+  stringstyle=\processString@mlpr,
+  morecomment=[l]\%,
+  morecomment=[n]{\%\{\^^M}{\%\}\^^M},
+  commentstyle=\commentStyle@mlpr,
+  moredelim=**[il][\processDotDotDot@mlpr]{...},
+  moredelim=[l][\processSectionTitle@mlpr]{\%\%\ },
+  moredelim=[l][\syscomStyle@mlpr]!,
+}[
+  keywords,
+  strings,
+  comments,
+]
+\newcount\netBracketCount@mlpr
+\newcount\blkLvl@mlpr
+\newcount\blkLvlAtClassdef@mlpr
+\newif\ifClosingEndKW@mlpr@    \ClosingEndKW@mlpr@true
+\newif\ifInClassdef@mlpr@        \InClassdef@mlpr@false
+\newif\ifInStr@mlpr@                  \InStr@mlpr@false
+\newif\ifVisCharOccured@mlpr@\VisCharOccured@mlpr@false
+\newif\ifInSecTitle@mlpr@        \InSecTitle@mlpr@false
+\newif\ifDroppingOutput@mlpr@\DroppingOutput@mlpr@false
+\newcommand\resetEndKW@mlpr
+{%
+  \global\ClosingEndKW@mlpr@true%
+  \global\netBracketCount@mlpr=0%
+}
+\newcommand\resetClassdefKW@mlpr
+{%
+  \global\InClassdef@mlpr@false%
+  \global\blkLvl@mlpr=0%
+  \global\blkLvlAtClassdef@mlpr=0%
+}
+\newcommand\MoreSelectCharTable@mlpr
+{%
+  \processOpenBracket@mlpr{`(}{\roundBktOp@mlpr}%
+  \processOpenBracket@mlpr{`[}{\squareBktOp@mlpr}%
+  \processOpenBracket@mlpr{`\{}{\curlyBktOp@mlpr}%
+  \processCloseBracket@mlpr{`)}{\roundBktCl@mlpr}%
+  \processCloseBracket@mlpr{`]}{\squareBktCl@mlpr}%
+  \processCloseBracket@mlpr{`\}}{\curlyBktCl@mlpr}%
+  \processSemicolon@mlpr{`;}{\semicolon@mlpr}%
+}
+\newcommand\processOpenBracket@mlpr[2]
+{%
+  \lst@DefSaveDef{#1}#2%
+  {%
+    #2%
+    \ifnum\lst@mode=\lst@Pmode\relax%
+      \global\ClosingEndKW@mlpr@false%
+      \global\advance\netBracketCount@mlpr by \@ne%
+    \fi
+  }%
+}
+\newcommand\processCloseBracket@mlpr[2]
+{%
+  \lst@DefSaveDef{#1}#2%
+  {%
+    #2%
+    \ifnum\lst@mode=\lst@Pmode\relax%
+      \ifClosingEndKW@mlpr@%
+        \netBracketCount@mlpr=0%
+      \else
+        \global\advance\netBracketCount@mlpr by \m@ne%
+        \ifnum\netBracketCount@mlpr>0%
+        \else
+          \global\ClosingEndKW@mlpr@true%
+        \fi
+      \fi
+    \fi
+  }%
+}
+\newcommand\processSemicolon@mlpr[2]
+{%
+  \lst@DefSaveDef{#1}#2%
+  {%
+    #2%
+    \ifnum\lst@mode=\lst@Pmode\relax%
+      \resetEndKW@mlpr%
+    \fi
+  }%
+}
+\newcommand\processOpRegKW@mlpr
+{%
+  \resetEndKW@mlpr%
+  \global\advance\blkLvl@mlpr\@ne%
+  \keywordStyle@mlpr%
+}
+\newcommand\processMidKW@mlpr
+{%
+  \resetEndKW@mlpr%
+  \keywordStyle@mlpr%
+}
+\newcommand\processStdaKW@mlpr\processMidKW@mlpr
+\newcommand\processClassdefKW@mlpr
+{%
+  \resetEndKW@mlpr%
+  \global\InClassdef@mlpr@true%
+  \global\blkLvlAtClassdef@mlpr=\blkLvl@mlpr%
+  \global\advance\blkLvl@mlpr\@ne%
+  \keywordStyle@mlpr%
+}
+\newcommand\processMidClassdefKW@mlpr
+{%
+  \ifOverridecontext@mlpr@%
+    \keywordStyle@mlpr%
+  \else
+    \ifInClassdef@mlpr@%
+      \resetEndKW@mlpr%
+      \global\advance\blkLvl@mlpr\@ne%
+      \keywordStyle@mlpr%
+    \fi
+  \fi
+}
+\newcommand\processEndKW@mlpr
+{%
+  \ifOverridecontext@mlpr@%
+    \lastElemStyle@mlpr%
+  \else
+    \ifClosingEndKW@mlpr@%
+      \ifnum\blkLvl@mlpr>0%
+        \global\advance\blkLvl@mlpr\m@ne%
+      \fi
+      \ifnum\blkLvl@mlpr=\blkLvlAtClassdef@mlpr%
+        \global\InClassdef@mlpr@false%
+      \fi
+      \keywordStyle@mlpr%
+    \else
+      \lastElemStyle@mlpr%
+    \fi
+  \fi
+}
+\newcommand\processString@mlpr
+{%
+    \global\InStr@mlpr@true%
+    \stringStyle@mlpr%
+}
+\newcommand\processDotDotDot@mlpr
+{%
+  \lst@CalcLostSpaceAndOutput%
+  {\keywordStyle@mlpr...}%
+  \lst@modetrue%
+  \lst@Lmodetrue%
+  \commentStyle@mlpr%
+}
+\newlength\emHeight@mlpr
+\newlength\jayDepth@mlpr
+\newlength\sectionRuleOffset@mlpr
+\newcommand\processSectionTitle@mlpr
+{%
+  \ifInSecTitle@mlpr@%
+    \sectionTitleStyle@mlpr%
+  \else
+    \ifVisCharOccured@mlpr@%
+      \commentStyle@mlpr%
+    \else % a section title is starting here
+      \global\InSecTitle@mlpr@true%
+      \resetEndKW@mlpr%
+      \ifShowSectRules@mlpr@%
+        \drawSectionRule@mlpr%
+      \fi
+      \sectionTitleStyle@mlpr%
+    \fi
+  \fi
+}
+\newcommand\drawSectionRule@mlpr
+{%
+  \setlength\emHeight@mlpr{\fontcharht\font`M}%
+  \setlength\jayDepth@mlpr{\fontchardp\font`j}%
+  \setlength\sectionRuleOffset@mlpr%
+  {%
+    \dimexpr.5\emHeight@mlpr%
+           +.5\baselineskip%
+           -.5\jayDepth@mlpr\relax%
+  }%
+  \bgroup%
+  \color{\sectionRuleColor@mlpr}%
+    \makebox[0em][l]%
+    {%
+      \raisebox{\sectionRuleOffset@mlpr}[0pt][0pt]%
+        {\rule{\lst@linewidth}{\sectionRuleRT@mlpr\baselineskip}}%
+    }%
+  \egroup%
+}
+\newcommand\localFontSize@mlpr{}
+\newcommand\localBaselineskip@mlpr{}
+\newcommand\scaleInlineCode@mlpr
+{%
+  \lst@ifdisplaystyle%
+  \else
+    \ifScaleInline@mlpr@%
+      \let\localFontSize@mlpr\f@size%
+      \let\localBaselineskip@mlpr\f@baselineskip%
+      \expandafter\def\expandafter\lst@basicstyle\expandafter%
+      {%
+        \lst@basicstyle%
+        \fontsize{\localFontSize@mlpr}{\localBaselineskip@mlpr}%
+        \selectfont%
+      }%
+    \fi
+  \fi
+}
+\newcommand\dropOutputAfterHeader@mlpr
+{%
+  \ifonlyheader@mlpr@%
+    \ifnum\lst@lineno>1%
+      \lst@ifLmode%
+      \else
+        \ifDroppingOutput@mlpr@%
+        \else
+          \lst@EnterMode\lst@Pmode{}%
+          \lst@BeginDropOutput\lst@Pmode%
+        \fi
+        \global\DroppingOutput@mlpr@true%
+      \fi
+    \fi
+  \fi
+}
+\newcommand\addedToInitVarsEOL@mlpr{}
+\lst@AddToHook{InitVarsEOL}{\addedToInitVarsEOL@mlpr}
+\newcommand\@ddedToInitVarsEOL@mlpr
+{%
+  \ifInStr@mlpr@%
+    \global\InStr@mlpr@false%
+    \lst@LeaveMode%
+  \fi
+  \global\InSecTitle@mlpr@false%
+  \global\VisCharOccured@mlpr@false%
+}
+\newcommand\addedToEndGroup@mlpr{}
+\lst@AddToHook{EndGroup}{\addedToEndGroup@mlpr}
+\newcommand\@ddedToEndGroup@mlpr{\global\InStr@mlpr@false}
+\newcommand\addedToPostOutput@mlpr{}
+\lst@AddToHook{PostOutput}{\addedToPostOutput@mlpr}
+\newcommand\@ddedToPostOutput@mlpr
+{%
+  \lst@ifwhitespace%
+  \else
+    \global\VisCharOccured@mlpr@true%
+  \fi
+}
+\newcommand\addedToOutput@mlpr{}
+\lst@AddToHook{Output}{\addedToOutput@mlpr}
+\newcommand\@ddedToOutput@mlpr{\dropOutputAfterHeader@mlpr}
+\newcommand\addedToOutputOther@mlpr{}
+\lst@AddToHook{OutputOther}{\addedToOutputOther@mlpr}
+\newcommand\@ddedToOutputOther@mlpr{\dropOutputAfterHeader@mlpr}
+\newcommand\addedToPreInitHook@mlpr
+{%
+  \ifx\lst@language\languageNormedDefd@mlpr%
+    \scaleInlineCode@mlpr%
+    \renewcommand\addedToInitVarsEOL@mlpr\@ddedToInitVarsEOL@mlpr%
+    \renewcommand\addedToEndGroup@mlpr\@ddedToEndGroup@mlpr%
+    \renewcommand\addedToPostOutput@mlpr\@ddedToPostOutput@mlpr%
+    \renewcommand\addedToOutput@mlpr\@ddedToOutput@mlpr%
+    \renewcommand\addedToOutputOther@mlpr\@ddedToOutputOther@mlpr%
+    \DroppingOutput@mlpr@false%
+\fi
+}
+\lst@AddToHook{PreInit}{\addedToPreInitHook@mlpr}
+\newcommand\addedToDeInitHook@mlpr
+{%
+  \ifx\lst@language\languageNormedDefd@mlpr%
+    \resetEndKW@mlpr%
+    \resetClassdefKW@mlpr%
+    \global\InStr@mlpr@false%
+    \global\VisCharOccured@mlpr@false%
+    \global\InSecTitle@mlpr@false%
+    \global\DroppingOutput@mlpr@false%
+  \fi
+}
+\lst@AddToHook{DeInit}{\addedToDeInitHook@mlpr}
+\newcommand\keywordStyle@mlpr{}
+\lst@Key{mlkeywordstyle}\relax%
+  {\renewcommand\keywordStyle@mlpr{#1}}
+\newcommand\lastElemStyle@mlpr{}
+\lst@Key{mllastelementstyle}\relax%
+  {\renewcommand\lastElemStyle@mlpr{#1}}
+\lst@Key{mloverride}{false}[t]%
+  {\lstKV@SetIf{#1}\ifOverridecontext@mlpr@}
+\newcommand\stringStyle@mlpr{}
+\lst@Key{mlstringstyle}\relax%
+  {\renewcommand\stringStyle@mlpr{#1}}
+\newcommand\commentStyle@mlpr{}
+\lst@Key{mlcommentstyle}\relax%
+  {\renewcommand\commentStyle@mlpr{#1}}
+\newcommand\sectionTitleStyle@mlpr{}
+\lst@Key{mlsectiontitlestyle}\relax
+  {\renewcommand\sectionTitleStyle@mlpr{#1}}
+\lst@Key{mlshowsectionrules}{false}[t]%
+  {\lstKV@SetIf{#1}\ifShowSectRules@mlpr@}
+\newcommand\sectionRuleRT@mlpr{.05}
+\lst@Key{mlsectionrulethickness}\relax%
+  {\renewcommand\sectionRuleRT@mlpr{#1}}
+\newcommand\sectionRuleColor@mlpr{black!15}
+\lst@Key{mlsectionrulecolor}\relax%
+  {\renewcommand\sectionRuleColor@mlpr{#1}}
+\newcommand\syscomStyle@mlpr{}
+\lst@Key{mlsyscomstyle}\relax%
+  {\renewcommand\syscomStyle@mlpr{#1}}
+\gdef\InstallKeywords@mlpr#1#2#3#4#5%
+{%
+  \lst@Key{ml#2}\relax
+    {\lst@UseFamily{#2}[\@ne]##1\relax\lst@MakeKeywords}%
+  \lst@Key{mlmore#2}\relax
+    {\lst@UseFamily{#2}[\@ne]##1\relax\lst@MakeMoreKeywords}%
+  \lst@Key{mldelete#2}\relax
+    {\lst@UseFamily{#2}[\@ne]##1\relax\lst@DeleteKeywords}%
+  \ifx\@empty#3\@empty\else
+     \lst@Key{#3}{#4}{\@namedef{lst@#3}{##1}}%
+  \fi
+  \expandafter\lst@InstallFamily@
+     \csname\@lst @#2@data\expandafter\endcsname
+     \csname\@lst @#5\endcsname {#1}{#2}{#3}
+}
+\InstallKeywords@mlpr k{sharedvars}{mlsharedvarstyle}\relax%
+  {mlsharedvarstyle}{}ld
+\lst@Key{mlunquotedstringdelim}\relax%
+  {\lst@DelimKey\relax{[is][\stringStyle@mlpr]{#1}}}
+\newcommand\phStyle@mlpr{}
+\lst@Key{mlplaceholderstyle}\relax%
+  {\renewcommand\phStyle@mlpr{#1}}
+\lst@Key{mlscaleinline}{true}[t]%
+  {\lstKV@SetIf{#1}\ifScaleInline@mlpr@}
+\lst@Key{mlonlyheader}{false}[t]%
+  {\lstKV@SetIf{#1}\ifonlyheader@mlpr@}
+\newcommand\mlttfamily
+{%
+  \def\fvm@Scale{.85}%
+  \fontfamily{fvm}\selectfont%
+}
+\newcommand\mlplaceholder[1]
+{%
+  \bgroup%
+    \phStyle@mlpr%
+    \bgroup%
+      \phDelimStyle@mlpr%
+      \phOpDelim@mlpr%
+    \egroup%
+    #1\itcorr@mlpr%
+    \bgroup%
+      \phDelimStyle@mlpr%
+      \phClDelim@mlpr%
+    \egroup%
+  \egroup%
+}
+\newcommand\phDelimStyle@mlpr{\rmfamily\upshape}
+\newcommand\phOpDelim@mlpr{\textlangle}
+\newcommand\phClDelim@mlpr{\textrangle}
+\newcommand\itcorr@mlpr
+{%
+  \expandafter\newcommand\expandafter\long@f@shape@mlpr%
+    \expandafter{\f@shape}%
+  \ifx\long@f@shape@mlpr\itdefault%
+    \/%
+  \else
+    \ifx\long@f@shape@mlpr\sldefault%
+      \/%
+    \fi
+  \fi
+}
+\newtoks\toks@mlpr
+\toks@mlpr=%
+{
+  language               = \languageNormedDefd@mlpr,
+  basicstyle             = \color{black}\ttfamily\normalsize,
+  breaklines             = true,
+  showspaces             = false,
+  showstringspaces       = false,
+  upquote                = true,
+  rulecolor              = \color{black!67},
+  numberstyle            = \color{black!33},
+  mlscaleinline          = true,
+  mlonlyheader           = false,
+}
+\ifframed@mlpr@
+  \toks@mlpr=\expandafter{\the\toks@mlpr frame=single,}
+\fi
+\ifnumbered@mlpr@
+  \toks@mlpr=\expandafter{\the\toks@mlpr numbers=left,}
+\fi
+\begingroup\edef\@tempa{\endgroup
+  \noexpand\lstdefinestyle{MatlabBaseStyle@mlpr}{\the\toks@mlpr}
+}\@tempa
+\newcommand\mleditorphstyle{\color[RGB]{209,000,086}\rmfamily\itshape}
+\lstdefinestyle{Matlab-editor}
+{
+  style               = MatlabBaseStyle@mlpr,
+  mllastelementstyle  = \color{black}                    ,
+  mlkeywordstyle      = \color[RGB]{000,000,255}         ,
+  mlcommentstyle      = \color[RGB]{034,139,034}         ,
+  mlstringstyle       = \color[RGB]{160,032,240}         ,
+  mlsyscomstyle       = \color[RGB]{178,140,000}         ,
+  mlsectiontitlestyle = \commentStyle@mlpr      \bfseries,
+  mlsharedvarstyle    = \color[RGB]{000,163,163}         ,
+  mlplaceholderstyle  = \mleditorphstyle,
+}
+\newcommand\mlbwphstyle{\color[gray]{0}\rmfamily\itshape}
+\lstdefinestyle{Matlab-bw}
+{
+  style               = MatlabBaseStyle@mlpr,
+  mlkeywordstyle      = \color[gray]{0}  \bfseries        ,
+  mlcommentstyle      = \color[gray]{.75}         \itshape,
+  mlstringstyle       = \color[gray]{.5}                  ,
+  mlsyscomstyle       = \color[gray]{.25}                 ,
+  mlsectiontitlestyle = \color[gray]{.75}\bfseries\itshape,
+  mlsharedvarstyle    = \color[gray]{0}                   ,
+  mlplaceholderstyle  = \mlbwphstyle,
+}
+\newcommand\mlpyglikephstyle{\color[RGB]{127,063,127}\rmfamily\itshape}
+\lstdefinestyle{Matlab-Pyglike}
+{
+  style               = MatlabBaseStyle@mlpr,
+  mllastelementstyle  = \color[RGB]{127,000,000}                 ,
+  mlkeywordstyle      = \color[RGB]{000,127,000}\bfseries        ,
+  mlcommentstyle      = \color[RGB]{063,127,127}         \itshape,
+  mlstringstyle       = \color[RGB]{186,034,034}                 ,
+  mlsyscomstyle       = \color[RGB]{000,127,000}                 ,
+  mlsectiontitlestyle = \color[RGB]{063,127,127}         \itshape,
+  mlsharedvarstyle    = \color[RGB]{034,034,186}                 ,
+  mlplaceholderstyle  = \mlpyglikephstyle,
+}
+\endinput
+%%
+%% End of file `matlab-prettifier.sty'.

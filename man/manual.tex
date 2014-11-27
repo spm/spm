@@ -8,6 +8,8 @@ pdfauthor={The SPM Developers},
 pdfsubject={Statistical Parametric Mapping},
 pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}
 ]{hyperref}
+\usepackage{matlab-prettifier}
+\usepackage[T1]{fontenc}
 \pagestyle{headings}
 \bibliographystyle{plain}
 
@@ -23,6 +25,7 @@ pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}
 \marginparsep=5mm
 \marginparwidth=21mm
 \footskip=10mm
+\mlttfamily
 
 \newcommand{\matlab}{\textsc{Matlab}}
 
@@ -164,7 +167,7 @@ Institute of Neurology, UCL\\
 \include{meg_sloc/meg_sloc}
 \include{mmn/mmn}
 \include{meeg_artefact/meeg_artefact}
-%\include{multimodal/multimodal}
+\include{multi/multi}
 \include{dcm_ir/dcm_ir}
 \include{dcm_phase/dcm_phase}
 \include{dcm_csd/dcm_csd}
