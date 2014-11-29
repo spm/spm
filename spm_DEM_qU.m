@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 6263 2014-11-17 13:48:36Z karl $
+% $Id: spm_DEM_qU.m 6270 2014-11-29 12:04:48Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -84,7 +84,7 @@ for i = 1:g
             j      = 1:size(V{i},1);
             y      = ci*c(j,:);
             c(j,:) = [];
-            fill([t fliplr(t)],[full(V{i} + y) fliplr(full(V{i} - y))],...
+            fill([t fliplr(t)],[full(V{i} + y)' fliplr(full(V{i} - y)')],...
                  [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
             plot(t,full(E{i})',':r',t,full(V{i})')
             hold off
@@ -135,9 +135,15 @@ for i = 1:g
             j      = (1:size(V{i},1));
             y      = ci*c(j,:);
             c(j,:) = [];
-            fill([t fliplr(t)],[full(V{i} + y) fliplr(full(V{i} - y))],...
-                        [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
-            try 
+            
+            if size(V{i},1) < size(V{i},2)
+                fill([t fliplr(t)],[full(V{i} + y) fliplr(full(V{i} - y))],...
+                    [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
+            else
+                fill([t fliplr(t)]',[full(V{i} + y) fliplr(full(V{i} - y))]',...
+                    [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
+            end
+            try
                 plot(t,pV{i}','-.k','linewidth',2)
             end
             try
@@ -146,7 +152,7 @@ for i = 1:g
             plot(t,full(V{i})'),box off
             hold off
         end
- 
+        
         % title, action and true causes (if available)
         %------------------------------------------------------------------
         if i == 1

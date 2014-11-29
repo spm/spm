@@ -129,7 +129,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM.m 5509 2013-05-20 17:12:12Z karl $
+% $Id: spm_ADEM.m 6270 2014-11-29 12:04:48Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -192,7 +192,8 @@ try, nM = M(1).E.nM; catch, nM = 8;  end
  
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
-td = 1;                                   % log integration time for D-Step
+global t
+td = 1;                                   %     integration time for D-Step
 te = 2;                                   % log integration time for E-Step
 
 
@@ -364,9 +365,10 @@ if ~np && ~nh, nE = 1; end
 %--------------------------------------------------------------------------
 [z w]  = spm_DEM_z(G,nY);
 z{end} = C + z{end};
+a      = {G.a};
 Z      = spm_cat(z(:));
 W      = spm_cat(w(:));
-A      = spm_cat({G.a});
+A      = spm_cat(a(:));
  
 % Iterate DEM
 %==========================================================================
@@ -409,6 +411,9 @@ for iE = 1:nE
     %======================================================================
     for iY = 1:nY
  
+        % time (GLOBAL variable for non-automomous systems)
+        %------------------------------------------------------------------
+        t      = iY*td;
         
         % pass action to pu.a (external states)
         %==================================================================
@@ -587,7 +592,16 @@ for iE = 1:nE
             EE  = E*E'+ EE;
             ECE = ECE + ECEu + ECEp;
         end
- 
+        
+        if nE == 1
+            
+            % evaluate objective function (F)
+            %======================================================================
+            J(iY) = - trace(E'*iS*E)/2  ...            % states (u)
+                    + spm_logdet(qu.c)  ...            % entropy q(u)
+                    + spm_logdet(iS)*1/2;              % entropy - error
+        end
+        
     end % sequence (nY)
  
     % augment with priors
@@ -825,3 +839,4 @@ DEM.qP = qP;                  % conditional moments of model-parameters
 DEM.qH = qH;                  % conditional moments of hyper-parameters
  
 DEM.F  = F;                   % [-ve] Free energy
+DEM.J  = J;                   % [-ve] Free energy (over samples)

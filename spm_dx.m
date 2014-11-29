@@ -49,12 +49,12 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 6233 2014-10-12 09:43:50Z karl $
+% $Id: spm_dx.m 6270 2014-11-29 12:04:48Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
-
-if nargin < 3, t = Inf; end
+nmax  = 512;                        % threshold for numerical approximation
+if nargin < 3, t = Inf; end         % integration time
 
 % t is a regulariser
 %--------------------------------------------------------------------------
@@ -71,6 +71,62 @@ if min(t) > exp(16)
     dx = -spm_pinv(dfdx)*spm_vec(f);
     dx =  spm_unvec(dx,f);
 
+elseif length(f) > nmax && t < 2
+    
+    % numerical approximation (removing very dissipative modes)
+    % fprintf('\nnumerical approximation: n = %i',length(f));
+    %----------------------------------------------------------------------
+    tol     = 1e-6;
+    OPT.tol = tol*norm((dfdx),'inf');
+      
+    n     = 512;
+    [V,D] = eigs(dfdx,1,'SR',OPT);
+    N     = max(-real(D)*2,n);
+    dt    = 1/N;
+    
+    s     = 0;
+    x     = f - f;
+    dx    = f*dt;
+    df    = dfdx*dx;
+    while s < t
+        
+        % while there are dissipative modes
+        %------------------------------------------------------------------
+        while N > n;
+            
+            
+            % while principal mode dissipiates
+            %--------------------------------------------------------------
+            while abs(df'*V) > tol && s < t
+                for i = 1:8
+                    df = dfdx*dx;
+                    f  = f + df;
+                    dx = f*dt;
+                    x  = x + dx;
+                    s  = s + dt;
+                end
+            end
+            
+            % sliminate the principal mode 
+            %--------------------------------------------------------------
+            dfdx  = dfdx - V*(pinv(V)*dfdx);
+            [V,D] = eigs(dfdx,1,'SR',OPT);
+            N     = max(-real(D)*2,n);
+            dt    = 1/N; 
+           
+        end
+        
+        % continue integration until s > t
+        %------------------------------------------------------------------
+        f  = f + dfdx*dx;
+        dx = f*dt;
+        x  = x + dx;
+        s  = s + dt;
+        
+    end
+    
+    dx = x;
+    
 else
     
     % ensure t is a scalar or matrix
@@ -80,10 +136,10 @@ else
     % augment Jacobian and take matrix exponential
     %======================================================================
     J = full(spm_cat({0 []; t*spm_vec(f) t*dfdx}));
-    if length(J) < 1024
+    if length(f) <= nmax
         dx = expm(J);
     else
-        [V,D] = eig(J); 
+        [V,D] = eig(J,'nobalance'); 
         dx    = V*diag(exp(diag(D)))/V;
     end
     dx = spm_unvec(dx(2:end,1),f);

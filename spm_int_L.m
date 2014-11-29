@@ -58,7 +58,7 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 6110 2014-07-21 09:36:13Z karl $
+% $Id: spm_int_L.m 6270 2014-11-29 12:04:48Z karl $
  
  
 % convert U to U.u if necessary
@@ -105,7 +105,7 @@ end
 
 % dx(t)/dt and Jacobian df/dx and check for delay operator
 %--------------------------------------------------------------------------
-D    = 1;
+D       = 1;
 if nargout(f) >= 3
     [fx, dfdx,D] = f(x,u,P,M);
     
@@ -115,10 +115,11 @@ elseif nargout(f) == 2
 else
     dfdx         = spm_cat(spm_diff(f,x,u,P,M,1)); 
 end
-p     = max(abs(real(eig(full(dfdx)))));
-N     = ceil(max(1,dt*p*2));
-n     = spm_length(x);
-Q     = (spm_expm(dt*D*dfdx/N) - speye(n,n))*spm_inv(dfdx);
+OPT.tol = 1e-6*norm((dfdx),'inf');
+p       = abs(eigs(dfdx,1,'SR',OPT));
+N       = ceil(max(1,dt*p*2));
+n       = spm_length(x);
+Q       = (spm_expm(dt*D*dfdx/N) - speye(n,n))*spm_inv(dfdx);
  
 % integrate
 %==========================================================================

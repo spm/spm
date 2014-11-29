@@ -38,7 +38,7 @@ function [E,dE,f,g] = spm_DEM_eval(M,qu,qp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_eval.m 6233 2014-10-12 09:43:50Z karl $
+% $Id: spm_DEM_eval.m 6270 2014-11-29 12:04:48Z karl $
  
  
 % get dimensions
@@ -55,8 +55,8 @@ np    = sum(spm_vec(M.p));               % number of p (parameters)
  
 % Get states {qu.v{1},qu.x{1}} in hierarchical form (v{i},x{i})
 %--------------------------------------------------------------------------
-v     = spm_unvec(qu.v{1},{M(1 + 1:end).v'});
-x     = spm_unvec(qu.x{1},{M(1:end - 1).x'});
+v     = spm_unvec(qu.v{1},{M(1 + 1:end).v});
+x     = spm_unvec(qu.x{1},{M(1:end - 1).x});
 for i = 1:(nl - 1)
     p      = spm_unvec(spm_vec(M(i).pE) + qp.u{i}*qp.p{i},M(i).pE);
     f{i,1} = feval(M(i).f,x{i},v{i},p);
