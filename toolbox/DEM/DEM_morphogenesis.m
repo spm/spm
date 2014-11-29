@@ -23,14 +23,14 @@ function DEM = DEM_morphogenesis
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_morphogenesis.m 6270 2014-11-29 12:04:48Z karl $
+% $Id: DEM_morphogenesis.m 6272 2014-11-29 12:18:16Z karl $
  
  
 % preliminaries
 %--------------------------------------------------------------------------
 rng('default')
-SPLIT    = 2;
-N        = 32;                             % length of process (bins)
+SPLIT    = 0;                              % split: 1 = upper, 2 = lower
+N        = 16;                             % length of process (bins)
  
 % generative process and model
 %==========================================================================
