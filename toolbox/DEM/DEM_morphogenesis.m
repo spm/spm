@@ -23,7 +23,7 @@ function DEM = DEM_morphogenesis
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_morphogenesis.m 6272 2014-11-29 12:18:16Z karl $
+% $Id: DEM_morphogenesis.m 6273 2014-11-29 12:44:04Z karl $
  
  
 % preliminaries
@@ -153,7 +153,7 @@ if SPLIT
     
     % select (partially diferentiated cells to duplicate
     %----------------------------------------------------------------------
-    t    = 3;
+    t    = 8;
     v    = spm_unvec(DEM.pU.v{1}(:,t),DEM.M(1).v);
     if SPLIT > 1
         [i j] = sort(v.x(1,:), 'ascend');
@@ -165,11 +165,15 @@ if SPLIT
     % reset hidden causes and expectations
     %----------------------------------------------------------------------
     v    = spm_unvec(DEM.qU.v{2}(:,t),DEM.M(2).v);
-    v    = v(:,j);
+    g    = spm_unvec(DEM.qU.v{1}(:,t),DEM.M(1).v);
+    a    = spm_unvec(DEM.qU.a{2}(:,t),DEM.G(1).pE);
     
-    g    = Mg([],v,P);
-    a.x  = g.x;
-    a.s  = g.s;
+    v    = v(:,j);
+    g.x  = g.x(:,j);
+    g.s  = g.s(:,j);
+    g.c  = g.c(:,j);
+    a.x  = a.x(:,j) + randn(size(a.x))/512;
+    a.s  = a.s(:,j) + randn(size(a.s))/512;
     
     DEM.M(1).v = g;
     DEM.M(2).v = v;
