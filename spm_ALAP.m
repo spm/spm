@@ -149,7 +149,7 @@ function [DEM] = spm_ALAP(DEM)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ALAP.m 6198 2014-09-25 10:38:48Z karl $
+% $Id: spm_ALAP.m 6274 2014-12-01 08:33:05Z karl $
 
 
 % check model, data and priors
@@ -419,9 +419,10 @@ ip    = (1:np) + nu;
 %--------------------------------------------------------------------------
 [z w]  = spm_DEM_z(G,ns);
 z{end} = C + z{end};
+a      = {G.a};
 Z      = spm_cat(z(:));
 W      = spm_cat(w(:));
-A      = spm_cat({G.a});
+A      = spm_cat(a(:));
 
 
 % number of iterations for convergence
