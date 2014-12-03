@@ -23,14 +23,14 @@ function DEM_demo_duet
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_duet.m 6274 2014-12-01 08:33:05Z karl $
+% $Id: DEM_demo_duet.m 6276 2014-12-03 11:22:54Z karl $
  
 
 % preliminaries
 %--------------------------------------------------------------------------
 rng('default')
 
-LEARN = 1;                                 % enables learning
+LEARN = 0;                                 % enables learning
 NULL  = 0;                                 % no communication
 
 A   = 2;                                   % number of agents (birds)
@@ -40,7 +40,6 @@ N   = 128;                                 % length of stimulus (bins)
 w   = 2;                                   % sensory attenuation
 
 if A == 1; N = 256; T = 1;            end  % single (singing) bird
-if A == 2; N = 128; w = 2;            end  % singing birds
 if LEARN,  N = 256; A = 2; T = 16;    end  % learning enabled
 
 % generative process and model
@@ -221,9 +220,7 @@ for t = 1:T
     % update states and action
     %----------------------------------------------------------------------
     DEM         = spm_ADEM_update(DEM);
-    qP          = spm_vec(DEM.qP.P{1});
-    DEM.M(1).pE = spm_unvec(qP,DEM.M(1).pE);
-    DEM.M(1).pC = DEM.M(1).pC*(1 - 1/4);
+
 end
 
 
@@ -248,7 +245,7 @@ end
 %--------------------------------------------------------------------------
 subplot(3,1,1)
 colormap('pink')
-spm_DEM_play_song(qU,T*N*dt);
+spm_DEM_play_song(qU,2*N*dt);
 title('percept','Fontsize',16)
 
 subplot(3,1,2)
@@ -296,10 +293,18 @@ for t = 1:T
     x = [x LAP{t}.qU.x{2}([1 2 3],:)];
     y = [y LAP{t}.qU.x{2}([1 2 3] + 3,:)];
 end
+x    = x';
+y    = y';
+y    = [y gradient(y,1)];
+y    = [y.^0 y.^1 y.^2];
+y    = y*(pinv(y)*x);
 
-j    = 128:size(x,2);
-plot(x',y',':'), hold on
-plot(x(:,j)',y(:,j)'), hold off
+
+j    = 128:size(x,1);
+r    = min(x(:)):max(x(:));
+plot(x,y,':'), hold on
+plot(r,r,'-k'), hold on
+plot(x(j,:),y(j,:)), hold off
 title('Synchronization manifold','Fontsize',16)
 xlabel('second level expectations (first bird)')
 ylabel('second level expectations (second bird)')
