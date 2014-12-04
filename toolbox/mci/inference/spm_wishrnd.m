@@ -17,9 +17,9 @@ function [S] = spm_wishrnd (B,a,N)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_wishrnd.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_wishrnd.m 6277 2014-12-04 12:16:52Z guillaume $
 
-if nargin < 3 | isempty(N)
+if nargin < 3 || isempty(N)
     N=1;
 end
 

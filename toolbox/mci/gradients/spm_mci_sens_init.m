@@ -15,7 +15,7 @@ function [y,sy,st] = spm_mci_sens_init (R,P,M,U)
 % M.f       Flow function dx/dt=f(x,u,P,M)
 % M.g       Observation function y=g(x,u,P,M)
 %
-% This function uses Matlab's ODE suite 
+% This function uses MATLAB's ODE suite.
 %
 % B. Sengupta, K. Friston and W. Penny (2014) Efficient Gradient
 % Computation for Dynamical Models. Neuroimage,98, 521-527. 
@@ -23,14 +23,14 @@ function [y,sy,st] = spm_mci_sens_init (R,P,M,U)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_sens_init.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_sens_init.m 6277 2014-12-04 12:16:52Z guillaume $
 
 y=[];sy=[];x=[];sx=[];
 st=0;
 
 % Tolerances for ode15s 
-try tol.rel=M.reltol; catch tol.rel=1e-2; end
-try tol.abs=M.abstol; catch tol.abs=1e-4; end
+try, tol.rel=M.reltol; catch, tol.rel=1e-2; end
+try, tol.abs=M.abstol; catch, tol.abs=1e-4; end
 
 if isempty(U)
     U=zeros(1,M.N);
@@ -126,6 +126,3 @@ Sx = Fx*Sx_old;
 DvDt(sens_ind)=Sx(:);
 
 end
-
-
-

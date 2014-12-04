@@ -13,7 +13,7 @@ function [] = mci_lds_plot_fit (MCI,lds,n,plotfit)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_lds_plot_fit.m 6275 2014-12-01 08:41:18Z will $
+% $Id: mci_lds_plot_fit.m 6277 2014-12-04 12:16:52Z guillaume $
 
 if nargin < 4
     plotfit=0;
@@ -63,7 +63,7 @@ end
 
 
 % Data
-try ind=Y{n}.ind; catch ind=1:M{n}.N; end
+try, ind=Y{n}.ind; catch, ind=1:M{n}.N; end
 Ny=size(y,2);
 ry=ceil(sqrt(Ny));
 

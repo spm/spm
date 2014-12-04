@@ -14,16 +14,15 @@ function [post] = spm_mci_post (inference,M,U,Y,true_P,verbose)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_post.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_post.m 6277 2014-12-04 12:16:52Z guillaume $
 
-try tp = true_P; catch tp=0; end
-try verbose=verbose; catch verbose=0; end
+try, tp = true_P; catch, tp=0; end
+try, verbose=verbose; catch, verbose=0; end
 
 tic;
 switch inference,
     case 'mh',
-        disp('Estimating parameters using Metropolis-Hastings');
-        disp(' ');
+        fprintf('Estimating parameters using Metropolis-Hastings\n\n');
         
         % MH defaults
         Nsamp=200;
@@ -58,8 +57,7 @@ switch inference,
         post.mcmc=mcmc;
         
     case 'vl',
-        disp('Estimating parameters using Variational Laplace');
-        disp(' ');
+        fprintf('Estimating parameters using Variational Laplace\n\n');
         
         D.y=Y;
         if ~verbose
@@ -84,8 +82,7 @@ switch inference,
         M = spm_mci_minit (M);
         
     case 'langevin',
-        disp('Estimating parameters using Langevin Monte Carlo');
-        disp(' ');
+        fprintf('Estimating parameters using Langevin Monte Carlo\n\n');
         
         mcmc.maxits=512;
         mcmc.verbose=verbose;
@@ -103,11 +100,11 @@ switch inference,
         post.dEdit=stats.dEdit;
         
     otherwise
-        disp('Unknown inference method');
+        error('Unknown inference method');
 end
 
 post.els=toc;
-disp(sprintf('Optimisation time = %1.2f seconds',post.els));
+fprintf('Optimisation time = %1.2f seconds\n',post.els);
 
 % Generate predictions
 if isfield(M,'IS')
@@ -138,7 +135,7 @@ end
 % get parameters in reduced space
 Pr=M.V'*(post.Ep-M.vpE);
 post.L_est = spm_mci_joint (Pr,M,U,Y);
-disp(sprintf('Estimated Log Joint=%1.2f',post.L_est));
+fprintf('Estimated Log Joint=%1.2f\n',post.L_est);
 
 Pr=M.V'*(post.Ep-M.vpE);
 pt=4;
@@ -168,8 +165,7 @@ if tp
     end
     
     post.L_true = spm_mci_joint (Pr,M,U,Y);
-    disp(sprintf('True Log Joint=%1.2f',post.L_true));
-    disp(' ');
+    fprintf('True Log Joint=%1.2f\n\n',post.L_true);
 end
 
 switch inference,

@@ -26,16 +26,16 @@ function [y,sy,st,x,sx] = spm_mci_sens_sun (P,M,U,csx)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_sens_sun.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_sens_sun.m 6277 2014-12-04 12:16:52Z guillaume $
 
 y=[];sy=[];x=[];sx=[];
 st=0;
 
-try csx=csx; catch csx=0; end
+try, csx=csx; catch, csx=0; end
 
 % Tolerances for ode15s and SUNDIALS
-try reltol=M.reltol; catch reltol=1e-2; end
-try abstol=M.abstol; catch abstol=1e-4; end
+try, reltol=M.reltol; catch, reltol=1e-2; end
+try, abstol=M.abstol; catch, abstol=1e-4; end
 
 tDur=[0 M.T];
 
@@ -109,6 +109,3 @@ end
 
 y=y';
 x=x';
-
-
-

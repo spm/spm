@@ -17,11 +17,11 @@ function [] = mci_plot_dist_multi (dist,name,P)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_plot_dist_multi.m 6275 2014-12-01 08:41:18Z will $
+% $Id: mci_plot_dist_multi.m 6277 2014-12-04 12:16:52Z guillaume $
 
 Ndist=length(dist);
 for i=1:Ndist
-    if strcmp(lower(dist{i}.type),'sample')
+    if strcmpi(dist{i}.type,'sample')
         figure;
         plot(dist{i}.P');
         xlabel('Sample');

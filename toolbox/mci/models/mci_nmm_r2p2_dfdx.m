@@ -1,6 +1,6 @@
-function [F] = mci_nmm_r2p2_dfdp (x,u,P,M)
+function [F] = mci_nmm_r2p2_dfdx (x,u,P,M)
 % State Jacobian for two region, two parameter NMM
-% FORMAT [F] = mci_nmm_r2p2_dfdp (x,u,P,M)
+% FORMAT [F] = mci_nmm_r2p2_dfdx (x,u,P,M)
 %
 % x         State
 % u         Inputs
@@ -12,7 +12,7 @@ function [F] = mci_nmm_r2p2_dfdp (x,u,P,M)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: mci_nmm_r2p2_dfdx.m 6275 2014-12-01 08:41:18Z will $
+% $Id: mci_nmm_r2p2_dfdx.m 6277 2014-12-04 12:16:52Z guillaume $
 
 % 18 state variables
 F = zeros(18,18);
@@ -26,4 +26,3 @@ curr_P.A{1}(2,1)=P(1); % Forward connection, w_21
 curr_P.A{2}(1,2)=P(2); % Backward connection, w_12
 
 f = mci_nmm_fx_delay(x,u,curr_P,M);
-

@@ -25,18 +25,18 @@ function [y,sy,st,x,sx] = spm_mci_sens (P,M,U,csx)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_sens.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_sens.m 6277 2014-12-04 12:16:52Z guillaume $
 
 %disp('Warning: spm_mci_sens.m needs fixing for M.V not square !');
 
 y=[];sy=[];x=[];sx=[];
 st=0;
 
-try csx=csx; catch csx=0; end
+try, csx=csx; catch, csx=0; end
 
 % Tolerances for ode15s 
-try tol.rel=M.reltol; catch tol.rel=1e-2; end
-try tol.abs=M.abstol; catch tol.abs=1e-4; end
+try, tol.rel=M.reltol; catch, tol.rel=1e-2; end
+try, tol.abs=M.abstol; catch, tol.abs=1e-4; end
 
 if isempty(U)
     U=zeros(1,M.N);

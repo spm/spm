@@ -16,14 +16,14 @@ function [S] = spm_mci_random (mcmc,R,v,M,U,Y)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_random.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_random.m 6277 2014-12-04 12:16:52Z guillaume $
 
 % Data precision
 
-try verbose=mcmc.verbose; catch verbose=0; end
-try maxits=mcmc.maxits; catch maxits=64; end
-try plot_int=mcmc.plot_int; catch plot_int=1; end
-try h=mcmc.h; catch h=0.5; end 
+try, verbose=mcmc.verbose; catch, verbose=0; end
+try, maxits=mcmc.maxits; catch, maxits=64; end
+try, plot_int=mcmc.plot_int; catch, plot_int=1; end
+try, h=mcmc.h; catch, h=0.5; end 
 
 % Assign init/flow params as fixed/random effects
 assign=mcmc.assign;
@@ -31,12 +31,12 @@ assign=mcmc.assign;
 % Compute eigen-parameterisation
 M = spm_mci_minit (M);
 
-try init=mcmc.init; catch init=R.pE; end
+try, init=mcmc.init; catch, init=R.pE; end
 % Initial param in eigenspace
 xinit = init;
 
 % Read data points and time indices
-try ind=Y.ind; catch ind=1:M.N; end
+try, ind=Y.ind; catch, ind=1:M.N; end
 Nt=length(ind);
 y=Y.y;
 
@@ -48,7 +48,7 @@ x(1,:) = xinit';
 ipC=pinv(R.pC);
 logdet_RCp=spm_logdet(R.pC);
 
-if verbose figure; end
+if verbose, figure; end
 
 % Tune h by monitoring acceptance rate
 tune_h=1;
@@ -59,15 +59,15 @@ total_acc_target=64; % Number of accepted samples to get
 acc=zeros(maxits,1);
 
 i=1;
-while (i < maxits) & (sum(acc) < total_acc_target),
+while (i < maxits) && (sum(acc) < total_acc_target),
     
     if verbose
-        if mod(i,plot_int) == 0 & i > 2
+        if mod(i,plot_int) == 0 && i > 2
             spm_mci_progress (x,E,i);
         end
     end
     
-    if mod(i,acc_block)==0 & tune_h
+    if mod(i,acc_block)==0 && tune_h
         % Change step size h ?
         Nacc=sum(acc(i-acc_block+1:i-1));
         prop_acc=Nacc/acc_block;

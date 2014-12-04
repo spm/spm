@@ -13,9 +13,9 @@ function [M,U,Xfull] = mci_linear_struct (Nobs,lambda,des)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_linear_struct.m 6275 2014-12-01 08:41:18Z will $
+% $Id: mci_linear_struct.m 6277 2014-12-04 12:16:52Z guillaume $
 
-try design=des; catch design='linear-offset'; end
+try, design=des; catch, design='linear-offset'; end
 
 % Number of time points
 T=100;
@@ -85,5 +85,3 @@ M.l=1;
 M.t=t;
 M.T=T;
 M.N=T;
-
-

@@ -19,17 +19,17 @@ function [y,x,st] = spm_mci_fwd (P,M,U)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_fwd.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_fwd.m 6277 2014-12-04 12:16:52Z guillaume $
 
 st=0;
 y=[];sy=[];x=[];sx=[];
 
-try csy=csy; catch csy=0; end
-try csx=csx; catch csx=0; end
+try, csy=csy; catch, csy=0; end
+try, csx=csx; catch, csx=0; end
 
 % Tolerances for ode15s and SUNDIALS
-try reltol=M.reltol; catch reltol=1e-2; end
-try abstol=M.abstol; catch abstol=1e-4; end
+try, reltol=M.reltol; catch, reltol=1e-2; end
+try, abstol=M.abstol; catch, abstol=1e-4; end
 
 tDur=[0 M.T];
 
@@ -68,8 +68,7 @@ switch lower(M.int)
         end
         
     otherwise
-        disp(sprintf('Error in spm_mci_fwd.m: Unknown integrator %s ',M.int));
-        return
+        error('Unknown integrator %s ',M.int);
 end
 
 for n=1:M.N,
@@ -78,6 +77,3 @@ end
 
 y=y';
 x=x';
-
-
-

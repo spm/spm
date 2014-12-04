@@ -14,13 +14,13 @@ function [els,names] = mci_compare_gradients (model,cost,methods)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_compare_gradients.m 6275 2014-12-01 08:41:18Z will $
+% $Id: mci_compare_gradients.m 6277 2014-12-04 12:16:52Z guillaume $
 
-if nargin < 2 | isempty(cost)
+if nargin < 2 || isempty(cost)
     cost='spm_mci_joint';
 end
 
-if nargin < 3 | isempty(methods)
+if nargin < 3 || isempty(methods)
     methods=[1:5];
 end
 

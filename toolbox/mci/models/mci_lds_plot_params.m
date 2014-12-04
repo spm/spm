@@ -1,6 +1,6 @@
-function [rmse] = mci_lds_plot_results (MCI,lds)
+function [rmse] = mci_lds_plot_params (MCI,lds)
 % Plot results of group LDS estimation
-% FORMAT [rmse] = mci_lds_plot_results (MCI,lds)
+% FORMAT [rmse] = mci_lds_plot_params (MCI,lds)
 %
 % MCI      MCI-MFX data structure
 % lds      true model data structure with fields:
@@ -13,7 +13,7 @@ function [rmse] = mci_lds_plot_results (MCI,lds)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_lds_plot_params.m 6275 2014-12-01 08:41:18Z will $
+% $Id: mci_lds_plot_params.m 6277 2014-12-04 12:16:52Z guillaume $
 
 pinit=lds.pinit; pflow=lds.pflow;
 d=size(MCI.M{1}.x0,1);
@@ -57,10 +57,9 @@ else
     rmse.pinitK=sqrt(mean(diag(e2'*e2))/d);
 end
 
-disp(' ');
-disp('Initial state parameters:');
-disp(sprintf('Pinit0 RMSE=%1.2f',rmse.pinit0));
-disp(sprintf('PinitK RMSE=%1.2f',rmse.pinitK));
+fprintf('\nInitial state parameters:\n');
+fprintf('Pinit0 RMSE=%1.2f\n',rmse.pinit0);
+fprintf('PinitK RMSE=%1.2f\n',rmse.pinitK);
   
 
 
@@ -102,6 +101,5 @@ else
     rmse.pflowK=sqrt(mean(diag(e2'*e2))/Np);
 end
 
-disp(' ');
-disp('Flow parameters:');
-disp(sprintf('PflowK RMSE=%1.2f',rmse.pflowK));
+fprintf('\nFlow parameters:\n');
+fprintf('PflowK RMSE=%1.2f\n',rmse.pflowK);

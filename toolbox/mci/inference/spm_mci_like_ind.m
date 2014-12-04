@@ -14,10 +14,10 @@ function [L,e] = spm_mci_like_ind (P,R,M,U,Y)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_like_ind.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_like_ind.m 6277 2014-12-04 12:16:52Z guillaume $
 
 % Read data points and time indices
-try ind=Y.ind; catch ind=1:M.N; end
+try, ind=Y.ind; catch, ind=1:M.N; end
 Nt=length(ind);
 y=Y.y;
 

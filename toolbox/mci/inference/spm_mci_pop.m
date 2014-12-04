@@ -43,7 +43,7 @@ function [P,logev,D,M] = spm_mci_pop (mcmc,M,U,Y)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_pop.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_pop.m 6277 2014-12-04 12:16:52Z guillaume $
 
 Nm=length(M);
 if Nm>1
@@ -138,7 +138,7 @@ for j=1:J,
     if isfield(mcmc,'init')
         xinit=mcmc.init{j};
     else
-        if model_switch & isfield(M{1},'Ep')
+        if model_switch && isfield(M{1},'Ep')
             xinit=(1-beta(j))*M{1}.Ep+beta(j)*M{2}.Ep;
         else
             xinit=spm_normrnd(M{1}.vpE,M{j}.pC,1);
@@ -282,17 +282,17 @@ for i=2:Ntot,
                     %P{jsel}.C=0.25*P{jsel}.C;
                     P{jsel}.C=0.5*P{jsel}.C;
                     if verbose
-                        disp(sprintf('Acceptance Rate = %1.2f : Decreasing proposal width',ar));
+                        fprintf('Acceptance Rate = %1.2f : Decreasing proposal width\n',ar);
                     end
                 elseif ar > 0.4
                     %P{jsel}.C=4*P{jsel}.C;
                     P{jsel}.C=2*P{jsel}.C;
                     if verbose
-                        disp(sprintf('Acceptance Rate = %1.2f : Increasing proposal width',ar));
+                        fprintf('Acceptance Rate = %1.2f : Increasing proposal width\n',ar);
                     end
                 else
                     if verbose
-                        disp(sprintf('Acceptance Rate = %1.2f',ar));
+                        fprintf('Acceptance Rate = %1.2f\n',ar);
                     end
                 end
                 
@@ -300,13 +300,13 @@ for i=2:Ntot,
                 P{jsel}.last_update=0;
             end
             
-        elseif i>nscale*J & i < (ntune+nscale)*J
+        elseif i>nscale*J && i < (ntune+nscale)*J
             
             %keyboard
             % Step 2 - tune
             if P{jsel}.scaled==0
                 if verbose
-                    disp('Tuning ...');
+                    fprintf('Tuning ...\n');
                 end
                 P{jsel}.scaled=1;
                 P{jsel}.adapt_its=1;
@@ -322,7 +322,7 @@ for i=2:Ntot,
             
             if mod(i-nscale,50)==0
                 if verbose
-                    disp(sprintf('Iteration %d out of %d',i-nscale,ntune));
+                    fprintf('Iteration %d out of %d\n',i-nscale,ntune);
                 end
             end
             
@@ -331,7 +331,7 @@ for i=2:Ntot,
             % Step 3 - sample
             if P{jsel}.tuned==0
                 if verbose
-                    disp('Sampling ...');
+                    fprintf('Sampling ...\n');
                 end
                 P{jsel}.tuned=1;
                 
@@ -353,7 +353,7 @@ for i=2:Ntot,
             
             if mod(i-nscale-ntune,50)==0
                 if verbose
-                    disp(sprintf('Iteration %d out of %d',i-nscale-ntune,nsamp));
+                    fprintf('Iteration %d out of %d\n',i-nscale-ntune,nsamp);
                 end
             end
         end
@@ -486,5 +486,3 @@ else
 end
 
 D.els=toc;
-
-

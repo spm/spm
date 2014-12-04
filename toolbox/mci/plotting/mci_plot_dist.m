@@ -15,9 +15,10 @@ function [] = mci_plot_dist (dist,j,xlims)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: mci_plot_dist.m 6275 2014-12-01 08:41:18Z will $
+% $Id: mci_plot_dist.m 6277 2014-12-04 12:16:52Z guillaume $
 
-try ks=dist.ks; catch ks=1; end
+try, ks=dist.ks; catch, ks=1; end
+if ~exist('ksdensity','file'), ks = 0; end % ksdensity is in the Stats tbx
 
 if nargin > 2
     limits=1;

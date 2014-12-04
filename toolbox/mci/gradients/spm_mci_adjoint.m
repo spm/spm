@@ -21,9 +21,9 @@ function [dLdp,g,x] = spm_mci_adjoint (Pr,M,U,Y)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_adjoint.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_adjoint.m 6277 2014-12-04 12:16:52Z guillaume $
 
-try adjlike=M.adjlike; catch adjlike=0; end
+try, adjlike=M.adjlike; catch, adjlike=0; end
 
 % Parameters in original space
 P = M.V*Pr+M.vpE;

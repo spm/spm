@@ -11,9 +11,9 @@ function [Ep,SDp] = spm_mci_report (P,mcmc,true_P)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_report.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_report.m 6277 2014-12-04 12:16:52Z guillaume $
 
-if nargin < 3 | isempty(true_P)
+if nargin < 3 || isempty(true_P)
     tp=0;
 else
     tp=1;
@@ -53,15 +53,15 @@ if Np==2
     end
 end
 
-disp(sprintf('Scaling acceptance rate = %1.2f',P{1}.ar_scale));
-disp(sprintf('Tuning acceptance rate = %1.2f',P{1}.ar_tune));
-disp(sprintf('Sampling acceptance rate = %1.2f',P{1}.ar_sample));
+fprintf('Scaling acceptance rate = %1.2f\n',P{1}.ar_scale);
+fprintf('Tuning acceptance rate = %1.2f\n',P{1}.ar_tune);
+fprintf('Sampling acceptance rate = %1.2f\n',P{1}.ar_sample);
 
-disp('Scaled covariance - used in tuning stage');
+fprintf('Scaled covariance - used in tuning stage\n');
 P{1}.C
 
 if isfield(P{1},'Ct')
-    disp('Tuned covariance - used in sampling stage');
+    fprintf('Tuned covariance - used in sampling stage\n');
     P{1}.Ct
 end
 

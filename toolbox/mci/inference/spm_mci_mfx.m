@@ -50,23 +50,23 @@ function [MCI] = spm_mci_mfx (MCI)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_mfx.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_mfx.m 6277 2014-12-04 12:16:52Z guillaume $
 
-try verbose=MCI.verbose; catch verbose=0; end
+try, verbose=MCI.verbose; catch, verbose=0; end
 
 % Update observation noise ?
 try update_obs_noise=MCI.update_obs_noise; catch update_obs_noise=1; end
 
 % Number of samples during Gibbs steps
-try mfx_its=MCI.mfx_its; catch mfx_its=256; end
-try ffx_its=MCI.ffx_its; catch ffx_its=4; end
-try rfx_its=MCI.rfx_its; catch rfx_its=4; end
+try, mfx_its=MCI.mfx_its; catch, mfx_its=256; end
+try, ffx_its=MCI.ffx_its; catch, ffx_its=4; end
+try, rfx_its=MCI.rfx_its; catch, rfx_its=4; end
 
 % Number of RFX/FFX iterations on first MFX iteration
 % Note: if fixed_only (see below) ffx1_its is overwritten
 % if random_only rfx1_its is overwritten
-try ffx1_its=MCI.ffx1_its; catch ffx1_its=64; end
-try rfx1_its=MCI.rfx1_its; catch rfx1_its=64; end
+try, ffx1_its=MCI.ffx1_its; catch, ffx1_its=64; end
+try, rfx1_its=MCI.rfx1_its; catch, rfx1_its=64; end
 
 M=MCI.M;U=MCI.U;Y=MCI.Y;
 Np=length(spm_vec(M{1}.pE));
@@ -145,10 +145,10 @@ w = w_init;
 
 % Do we have only RFX or only FFX ?
 random_only=1;fixed_only=1;
-if strcmp(assign.init_par,'random') | strcmp(assign.flow_par,'random')
+if strcmp(assign.init_par,'random') || strcmp(assign.flow_par,'random')
     fixed_only=0;
 end
-if strcmp(assign.init_par,'fixed') | strcmp(assign.flow_par,'fixed')
+if strcmp(assign.init_par,'fixed') || strcmp(assign.flow_par,'fixed')
     random_only=0;
 end
 if random_only
@@ -167,10 +167,10 @@ end
 for it=1:mfx_its,
     
     if verbose
-        disp(sprintf('MCI iteration %d',it));
+        fprintf('MCI iteration %d\n',it);
     end
         
-    if it>1 & Nrand > 0      
+    if it>1 && Nrand > 0      
         % Update second level params
         S = spm_nwpost (S,w);
         [m,Lambda,C] = spm_nwrnd (S.post,1);

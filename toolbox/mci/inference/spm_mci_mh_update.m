@@ -1,6 +1,6 @@
-function [x,E,accepted] = mh_update (x,E,pos,verbose)
+function [x,E,accepted] = spm_mci_mh_update (x,E,pos,verbose)
 % Update parameters using Metropolis-Hastings
-% FORMAT [x,E,accepted] = mh_update (x,E,pos,verbose)
+% FORMAT [x,E,accepted] = spm_mci_mh_update (x,E,pos,verbose)
 %
 % x         parameters
 % E         energy
@@ -14,7 +14,7 @@ function [x,E,accepted] = mh_update (x,E,pos,verbose)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_mh_update.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_mh_update.m 6277 2014-12-04 12:16:52Z guillaume $
 
 i=length(E);
 new_energy=E(i);
@@ -29,7 +29,7 @@ if i > 1
     % Hastings ratio
     if alpha > test_prob
         if verbose
-            display(['*********** sample accepted *****************']);
+            disp('*********** sample accepted ***********');
         end
         % accept and update parameters
         x(i,:) = pos;

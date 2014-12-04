@@ -27,15 +27,15 @@ function [M,stats] = spm_mci_lgv (mcmc,M,U,Y)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_lgv.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_lgv.m 6277 2014-12-04 12:16:52Z guillaume $
 
 % Defaults
-try verbose=mcmc.verbose; catch verbose=0; end
-try maxits=mcmc.maxits; catch maxits=64; end
-try plot_int=mcmc.plot_int; catch plot_int=1; end
-try update_obs_noise=mcmc.update_obs_noise; catch update_obs_noise=1; end
-try update_obs_step=mcmc.update_obs_step; catch update_obs_step=64; end
-try h=mcmc.h; catch h=0.5; end 
+try, verbose=mcmc.verbose; catch, verbose=0; end
+try, maxits=mcmc.maxits; catch, maxits=64; end
+try, plot_int=mcmc.plot_int; catch, plot_int=1; end
+try, update_obs_noise=mcmc.update_obs_noise; catch, update_obs_noise=1; end
+try, update_obs_step=mcmc.update_obs_step; catch, update_obs_step=64; end
+try, h=mcmc.h; catch, h=0.5; end 
 
 % Observation noise
 Ny=size(Y,2);
@@ -46,7 +46,7 @@ noise.D0=eye(Ny);
 M = spm_mci_minit (M);
 V  = M.V;
 
-try init=mcmc.init; catch init=M.vpE; end
+try, init=mcmc.init; catch, init=M.vpE; end
 % Initial param in eigenspace
 xinit = M.V'*(init-M.vpE);
 
@@ -54,7 +54,7 @@ xinit = M.V'*(init-M.vpE);
 x = zeros(maxits,M.Np);
 x(1,:) = xinit';         
 
-if verbose figure; end
+if verbose, figure; end
 
 % Tune h by monitoring acceptance rate
 tune_h=1;
@@ -66,15 +66,15 @@ acc=zeros(maxits,1);
 
 % Main Loop
 i=1; Ce=[];
-while (i < maxits) & (sum(acc) < total_acc_target),
+while (i < maxits) && (sum(acc) < total_acc_target),
     
     if verbose
-        if mod(i,plot_int) == 0 & i > 2
+        if mod(i,plot_int) == 0 && i > 2
             spm_mci_progress (x,E,i);
         end
     end
 
-    if mod(i,acc_block)==0 & tune_h
+    if mod(i,acc_block)==0 && tune_h
         % Change step size h ?
         Nacc=sum(acc(i-acc_block+1:i-1));
         prop_acc=Nacc/acc_block;
@@ -111,8 +111,7 @@ while (i < maxits) & (sum(acc) < total_acc_target),
     
     [L,tmp,st] = spm_mci_joint (pos,M,U,Y);
     if st == -1
-        disp('Integration problem in spm_mci_lgv.m');
-        keyboard
+        error('Integration problem.');
     end
     
     E(i) = -L;
@@ -123,9 +122,9 @@ while (i < maxits) & (sum(acc) < total_acc_target),
     acc(i)=accepted;
     
     % Update observation noise
-    if i > update_obs_step & update_obs_noise
+    if i > update_obs_step && update_obs_noise
         if verbose, disp('Updating observation noise'); end
-        try ind=Y.ind; catch ind=1:M.N; end
+        try, ind=Y.ind; catch, ind=1:M.N; end
         if isfield(M,'IS')
             yhat = feval(M.IS,x(i,:)',M,U);
             err=Y-yhat;
@@ -146,7 +145,7 @@ while (i < maxits) & (sum(acc) < total_acc_target),
 end
 
 if verbose
-    disp(sprintf('Total accepted samples = %d', sum(acc)));
+    fprintf('Total accepted samples = %d\n', sum(acc));
 end
 % Project parameters back from eigenspace into original space
 x=x(1:i-1,:);

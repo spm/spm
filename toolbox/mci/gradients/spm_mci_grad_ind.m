@@ -21,10 +21,10 @@ function [dLdp,iCpY] = spm_mci_grad_ind (P,R,M,U,Y,pars)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_grad_ind.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_grad_ind.m 6277 2014-12-04 12:16:52Z guillaume $
 
 % Read data points and time indices
-try ind=Y.ind; catch ind=1:M.N; end
+try, ind=Y.ind; catch, ind=1:M.N; end
 Nt=length(ind);
 y=Y.y;
 
@@ -41,8 +41,7 @@ switch pars,
         iCpY=zeros(M.n,M.n);
         
     otherwise
-        disp('Unknown parameter type in spm_mci_grad_ind.m');
-        return
+        error('Unknown parameter type.');
 end
 
 if st==-1, disp('Problem !'); return; end

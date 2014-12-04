@@ -12,14 +12,14 @@ function [noise,M] = spm_mci_obsnoise (w,v,assign,noise,M,U,Y)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_obsnoise.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_obsnoise.m 6277 2014-12-04 12:16:52Z guillaume $
 
 N=length(M);
 
 err=[];
 for n=1:N,
     if ~isempty(w), wsub=w(:,n); else, wsub=[]; end
-    try ind=Y{n}.ind; catch ind=1:M{n}.N; end
+    try, ind=Y{n}.ind; catch, ind=1:M{n}.N; end
     if isfield(M{n},'IS')
         % Other model type
         yhat = feval(M{n}.IS,wsub,M{n},U{n});

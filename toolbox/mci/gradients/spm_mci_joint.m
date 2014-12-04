@@ -17,10 +17,10 @@ function [L,L2,st] = spm_mci_joint (Pr,M,U,Y,beta)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_joint.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_joint.m 6277 2014-12-04 12:16:52Z guillaume $
 
 st=0;
-if nargin < 5 | isempty(beta)
+if nargin < 5 || isempty(beta)
     beta=1;
 end
 Pr=Pr(:);
