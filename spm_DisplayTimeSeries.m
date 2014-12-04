@@ -1,11 +1,11 @@
 function [ud] = spm_DisplayTimeSeries(y,options)
-% This function builds a GUI for 'smart' time series display.
-% FORMAT function [ud] = spm_DisplayTimeSeries(y,options)
+% Build a GUI for 'smart' time series display
+% FORMAT [ud] = spm_DisplayTimeSeries(y,options)
 % IN:
 %   - y: the txn data, where t is the number of time sample, and p the
-%   number of 'channels'
+%        number of 'channels'
 %   - options: a structure (default is empty), which allows to adapt this
-%   function to specific needs. Optional fields are:
+%              function to specific needs. Optional fields are:
 %       .hp: the handle of the parent figure/object. This is used to
 %       include the time series display in a panel/figure. By default, a
 %       new figure will be created.
@@ -51,22 +51,24 @@ function [ud] = spm_DisplayTimeSeries(y,options)
 %       time series one above each other !!
 % OUT:
 %   - ud: a structure containing all relevant informations about the
-%   graphical objects created for the GUI. This is useful for maniupalting
-%   the figure later on (see bellow).
+%   graphical objects created for the GUI. This is useful for manipulating
+%   the figure later on (see below).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_DisplayTimeSeries.m 6260 2014-11-14 12:22:54Z vladimir $
+% $Id: spm_DisplayTimeSeries.m 6278 2014-12-04 13:20:20Z guillaume $
 
 
 if ~exist('options','var')
     options = [];
 end
 
-y(isnan(y)) = 0;
+if ~isa(y,'meeg')
+    y(isnan(y)) = 0;
+end
 
-% Get optional parameters if any) and set up defaults
+% Get optional parameters (if any) and set up defaults
 %==========================================================================
 
 if ~isempty(options) && isfield(options,'hp')
@@ -260,6 +262,12 @@ else
     ma = ma + ma.*1e-3;
 end
 
+if spm_check_version('matlab','8.4') >= 0
+    dispmode = {'SortMethod','childorder'};
+else
+    dispmode = {'drawmode','fast'};
+end
+
 % Create axes
 ud.v.handles.axes = axes('parent',hp,...
     'units','normalized',...
@@ -268,7 +276,7 @@ ud.v.handles.axes = axes('parent',hp,...
     'ytick',ytick,'yticklabel',yticklabel,...
     'tag',tag,...
     'nextplot','add',...
-    'drawmode','fast'); % 'SortMethod','childorder');
+    dispmode{:});
 ud.v.handles.gpa  = axes('parent',hp,...
     'units','normalized',...
     'position',pos2,...
@@ -276,7 +284,7 @@ ud.v.handles.gpa  = axes('parent',hp,...
     'box','off',...
     'color','none',...
     'ygrid','off',...
-    'drawmode','fast'); % 'SortMethod','childorder');
+    dispmode{:});
 
 % Initialize time series
 col = colormap(lines);
@@ -534,8 +542,3 @@ set(v.handles.hslider,...
     'min',max([1,sw/2-1]),...
     'max',max([v.nt,v.nt-sw/2+1]),...
     'sliderstep',.1*[sw/(v.nt-1) 4*sw/(v.nt-1)]);
-
-
-
-
-

@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 6072 2014-06-27 16:35:30Z guillaume $
+% $Id: spm_eeg_review_switchDisplay.m 6278 2014-12-04 13:20:20Z guillaume $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -754,8 +754,12 @@ end
 function [ht,hc] = my_uitable(varargin)
 %==========================================================================
 % conversion layer for various MATLAB versions
+persistent runOnce
 if spm_check_version('matlab','8.4') >= 0
-    warning('Consider migrating to the new uitable component.');
+    if isempty(runOnce)
+        warning('Consider migrating to the new uitable component.');
+        runOnce = true;
+    end
     [ht,hc] = uitable('v0',varargin{:});
 else
     [ht,hc] = spm_uitable(varargin{:});
