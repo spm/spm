@@ -448,27 +448,27 @@ Once you had added all the contrasts you want, you can save this batch file (it 
 
 \section{fMRI Preprocessing and Statistics}
 
-We will keep description of the preprocessing and analysis of the fMRI data to a minimum, given that fMRI analysis is covered in several other chapters. We start with preprocessing Subject 15's data. For the fMRI experiment, there were 9 runs (sessions), rather than the 6 in the M/EEG experiment. This is because the SOA was increased in the fMRI experiment, by virtue of jittering, which is necessary to estimate the BOLD response versus interstimulus baseline (e.g., to compare with the evoked EEG/MEG response versus prestimulus baseline). Preprocessing involves the following modules, which can be found under the menu ``SPM -- Spatial'':
+We will keep description of the preprocessing and analysis of the fMRI data to a minimum, given that fMRI analysis is covered in several other chapters. We start with preprocessing Subject 15's data. For the fMRI experiment, there were 9 runs (sessions), rather than the 6 in the M/EEG experiment. This is because the SOA was increased in the fMRI experiment, by virtue of jittering, which is necessary to estimate the BOLD response versus interstimulus baseline (e.g., to compare with the evoked EEG/MEG response versus prestimulus baseline). If you already launched SPM to analyse the M/EEG data from the previous sections, select ``FMRI'' instead of ``EEG'' in the pulldown menu of the main SPM window, otherwise start SPM by typing \texttt{spm fmri}. Preprocessing involves the following modules, which can be found under the menu ``SPM -- Spatial'':
 
 \subsection{Realignment of EPI (fMRI) data}
 
-The first step is to coregister the 9 runs of 208 images to one another (i.e., correcting for movement) using a rigid-body transform. Select ``Realign: Estimate \& Reslice'', and on the ``Data'' item, add nine new ``Sessions''. Then, for the first session, select the 208 \texttt{f*.nii} images in the \texttt{BOLD/Run\_01} directory of Subject 15, and then repeat for the remaining eight sessions. On the ``Reslice Options'' item, change the default value of ``All Images + Mean Image'' to ``Mean Image Only''. This is because we do not re-slice the EPI data: the coregistration parameters will be stored in the header information of the NIfTI file, and can be combined with the normalisation parameters when re-slicing the normalised images below (re-slicing can introduce interpolation artifacts so generally best to reduce number of re-slicings). However, we do need a re-sliced mean image, which we can use for coregistration with the T1 below. Thus the contents of the \texttt{f*.nii} files will change (as header updated), but no new (\texttt{rf*.nii}) files will be output, except for the \texttt{meanf*.nii} file.
+The first step is to coregister the 9 runs of 208 images to one another (i.e., correcting for movement) using a rigid-body transform. Select ``Realign: Estimate \& Reslice'', and on the ``Data'' item, add nine new ``Sessions''. Then, for the first session, select the 208 \texttt{f*.nii} images in the \texttt{BOLD/Run\_01} directory of Subject 15 (using right-click, ``Select All''), and then repeat for the remaining eight sessions. On the ``Reslice Options'' item, change the default value of ``All Images + Mean Image'' to ``Mean Image Only''. This is because we do not re-slice the EPI data: the coregistration parameters will be stored in the header information of the NIfTI file, and can be combined with the normalisation parameters when re-slicing the normalised images below (re-slicing can introduce interpolation artifacts so generally best to reduce number of re-slicings). However, we do need a re-sliced mean image, which we can use for coregistration with the T1 below. Thus the contents of the \texttt{f*.nii} files will change (as header updated), but no new (\texttt{rf*.nii}) files will be output, except for the \texttt{meanf*.nii} file.
 
-\subsection{Segmentation of T1 images}
+\subsection{Normalisation/Segmentation of T1 images}
 
-We will use SPM12's unified segmentation to estimate normalisation parameters to MNI space (this is generally better that SPM's old normalisation, though an alternative would be to normalise the mean EPI image to an EPI template, which, even though lower spatial resolution, at least contains the same distortions). Select ``Segment'' item, and for the ``Volumes'' item, select the ``mprage.nii'' image in the ``SMRI'' directory of Subject 15. You can leave the remaining menu items at their defaults (even though the tissue segment images are not required in this analysis), but you do need to change the final option ``Deformation Fields'' from ``None'' to ``Forward'' (these are the normalisation parameters we will apply to EPI data below).
+We will use SPM12's unified segmentation to estimate normalisation parameters to MNI space. Select ``Normalise: Estimate'' item, add a new ``Subject'' in ``Data'' and select the \texttt{mprage.nii} image in the ``SMRI'' directory of Subject 15 for ``Image to Align''. The output of this step will be a file \texttt{y\_mprage.nii} containing the estimated deformation field that warps data from subject to MNI space.
 
 \subsection{Coregistration of mean EPI (fMRI) to T1 (sMRI)}
 
-Because we have determined the normalisation parameters from the subject's native space to MNI space via the unified segmentation of their T1 image, we need to coregister all the EPI images to that T1 image, so that the normalisation warps can be later applied. Select ``Coregister - Estimate'' item, and for the ``Reference Image'', select the same \texttt{mprage.nii} image in the \texttt{SMRI} directory. For the``Source Image'', select ``Dependency'' and then use Ctrl to select all 9 sessions from the ``Realign'' stage.
+Because we have determined the normalisation parameters from the subject's native space to MNI space via the unified segmentation of their T1 image, we need to coregister all the EPI images to that T1 image, so that the normalisation warps can be later applied. Select ``Coregister - Estimate'' item, and for the ``Reference Image'', select the same \texttt{mprage.nii} image in the \texttt{SMRI} directory. For the``Source Image'', select ``Dependency'' and then use ``Realign: Estimate \& Reslice: Mean Image''. For ``Other Images'', select ``Dependency'' and then use the Ctrl key to select all 9 sessions from the ``Realign'' stage.
 
 \subsection{Application of Normalisation parameters to EPI data}
 
-We can now apply the normalisation parameters (warps) to each of the EPI volumes, to produce new, re-sliced \texttt{wf} images. Select ``Normalise -- Write'' item, and for the ``Deformation Field'', use select the ``Segment: Forward Deformations'' dependency. For the ``Images to Write'', select the ``Coregister: Estimate: Coregistered Images''. You can also change the default voxel size from \texttt{[2 2 2]} to \texttt{[3 3 3]} if you want to save diskspace, since the original data are [3 3 3.9] (for Subject 15), so interpolation does not really gain new information.
+We can now apply the normalisation parameters (warps) to each of the EPI volumes, to produce new, re-sliced \texttt{wf} images. Select ``Normalise -- Write'' item, and for the ``Deformation Field'', use select the ``Normalise: Estimate: Deformation'' dependency. For the ``Images to Write'', select the ``Coregister: Estimate: Coregistered Images''. You can also change the default voxel size from \texttt{[2 2 2]} to \texttt{[3 3 3]} if you want to save diskspace, since the original data are [3 3 3.9] (for Subject 15), so interpolation does not really gain new information.
 
 \subsection{Smoothing}
 
-Finally, we smooth the normalised images by an 8mm isotropic Gaussian kernel to produce \texttt{swf*} images. So select the ``Smooth'' item, and select the input to depend on the output of the prior ``Normalisation'' stage.
+Finally, we smooth the normalised images by an 8mm isotropic Gaussian kernel to produce \texttt{swf*} images. So select the ``Smooth'' item, and select the input to depend on the output of the prior ``Normalisation: Write'' stage.
 
 \paragraph{Save batch and review}
 
@@ -480,31 +480,52 @@ Select the ``fMRI model specification'' option from the ``SPM -- Stats'' menu. S
 
 For the basis functions, keep ``Canonical HRF'', but change the ``model derivatives'' from ``no'' to ``time and dispersion derivatives'' (see earlier Chapter manuals). Then keep the remaining options as their defaults.
 
-You then need to replicate this for the remaining 8 sessions, updating all three fields each time: i.e., the scans, conditions and (movement) regressors. (It is at this point, that you might want to switch to scripting, which is much less effort!). Leave the remaining options as their defaults.
+You then need to replicate this for the remaining 8 sessions, updating all three fields each time: i.e., the scans, conditions and (movement) regressors. It is at this point, that you might want to switch to scripting, which is much less effort -- see e.g. this:
+
+\begin{lstlisting}[style=Matlab-editor,basicstyle=\mlttfamily\footnotesize]
+swd = '.../Sub15/BOLD'; % folder containing Subject 15's fMRI data
+clear matlabbatch
+matlabbatch{1}.spm.stats.fmri_spec.dir = {fullfile(swd,'Stats')};
+matlabbatch{1}.spm.stats.fmri_spec.timing.units = 'secs';
+matlabbatch{1}.spm.stats.fmri_spec.timing.RT = 2;
+for r=1:9
+    matlabbatch{1}.spm.stats.fmri_spec.sess(r).scans = ...
+        cellstr(spm_select('FPList',fullfile(swd,sprintf('Run_%02d',r)),'^swf.*\.nii'));
+    matlabbatch{1}.spm.stats.fmri_spec.sess(r).multi = ...
+        cellstr(fullfile(swd,'Trials',sprintf('run_%02d_spmdef.mat',r)));
+    matlabbatch{1}.spm.stats.fmri_spec.sess(r).multi_reg = ...
+        cellstr(spm_select('FPList',fullfile(swd,sprintf('Run_%02d',r)),'^rp_.*\.txt'));
+end
+matlabbatch{1}.spm.stats.fmri_spec.bases.hrf.derivs = [1 1];
+spm_jobman('interactive',matlabbatch);
+\end{lstlisting}
 
 \subsection{Model Estimation}
 
-Add a module for model estimation from the Stats bar and define the file name as being dependent on the results of the factorial design specification output. For ``write residuals'', keep ``no'' and select classical statistics.
+Add a module for ``Model estimation'' from the ``SPM -- Stats'' menu and define the \texttt{SPM.mat} file name as being dependent on the results of the fMRI model specification output. For ``write residuals'', keep ``No'' and stick to ``Classical'' estimation.
 
 \subsection{Setting up contrasts}
 
-To create some contrasts, select ``Contrast Manager'' from the Stats bar. Define the file name as dependent on the model estimation. The first contrast will be a generic one that tests whether significant variance is captured by the 3 canonical HRF regressors (one per condition). So create a new F-contrast, call it the ``Canonical HRF effects of interest'', and enter as the weights matrix:
+To create some contrasts, select ``Contrast Manager'' from the ``SPM -- Stats'' menu. Define the \texttt{SPM.mat} file name as dependent on the model estimation. The first contrast will be a generic one that tests whether significant variance is captured by the 3 canonical HRF regressors (one per condition). So create a new F-contrast, call it the ``Canonical HRF effects of interest'', and enter as the weights matrix (SPM will automatically perform zero padding over the movement regressors):
 \begin{verbatim}
-[1 0 0 0 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0
- 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0]
+   [1 0 0 0 0 0 0 0 0
+    0 0 0 1 0 0 0 0 0
+    0 0 0 0 0 0 1 0 0]
 \end{verbatim}
-Then select ``Replicate'' to reproduce this across the 9 sessions. We can also define a T-contrast to identify face-related activation, e.g., ``Faces \(>\) Scrambled Faces'', given the weight matrix \texttt{[0.5 0 0  0.5 0 0  -1 0 0  0 0 0 0 0 0]}, again replicated across sessions. (Note that there are 3 basis functions per condition, and the zeros here ignore the temporal and dispersion derivatives, but if you want to include them, you can add them as separate rows and test for any face-related differences in BOLD response with an F-contrast; see earlier chapters).
+Then select ``Replicate'' to reproduce this across the 9 sessions. We can also define a T-contrast to identify face-related activation, e.g., ``Faces \(>\) Scrambled Faces'', given the weight matrix \texttt{[0.5 0 0  0.5 0 0  -1 0 0]}, again replicated across sessions. (Note that there are 3 basis functions per condition, and the zeros here ignore the temporal and dispersion derivatives, but if you want to include them, you can add them as separate rows and test for any face-related differences in BOLD response with an F-contrast; see earlier chapters).
 
-Finally, for the group-level (2nd-level) analyses below, we need an estimate of activation of each condition separately (versus baseline), averaged across the sessions. So create three new T-contrasts, whose weights correspond to the three rows of the above F-contrast, i.e, that pick out the parameter estimate for the canonical HRF:
+Finally, for the group-level (2nd-level) analyses below, we need an estimate of activation of each condition separately (versus baseline), averaged across the sessions. So create three new T-contrasts, whose weights correspond to the three rows of the above F-contrast, i.e, that pick out the parameter estimate for the canonical HRF (with ``Replicate over sessions'' set to ``Replicate''):
 
 \begin{itemize}
-	\item[] for Famous, \texttt{[1 0 0  0 0 0  0 0 0  0 0 0 0 0 0]},
-	\item[] for Unfamiliar \texttt{[0 0 0  1 0 0  0 0 0  0 0 0 0 0 0]},
-	\item[] for Scrambled \texttt{[0 0 0  0 0 0  1 0 0  0 0 0 0 0 0]}.
+    \setlength\itemsep{0em}
+	\item[] for Famous: \texttt{[1 0 0 0 0 0 0 0 0]},
+	\item[] for Unfamiliar: \texttt{[0 0 0 1 0 0 0 0 0]},
+	\item[] for Scrambled: \texttt{[0 0 0 0 0 0 1 0 0]}.
 \end{itemize}
 
-These T-contrasts will be numbered 3-5, and used in group analysis below.
+These T-contrasts will be numbered 3-5, and used in group analysis below.\footnote{
+Note that you can create a \matlab\ variable containing the weights of the F-contrast with \texttt{C = kron(eye(3),[1 0 0])}, and then enter \texttt{C}, \texttt{0.5*C(1,:)+0.5*C(2,:)-C(3,:)}, \texttt{C(1,:)}, \texttt{C(2,:)} and \texttt{C(3,:)} respectively for the 5 contrasts specified above.
+}
 
 \paragraph{Save batch and review}
 
@@ -557,7 +578,7 @@ Once you have run this script, we can do 2nd-level (group) statistics on resulti
 
 \subsection{Group Statistics on fMRI data}
 
-Now we have a new set of 16x3 NIfTI images for each subject and each condition, we can put them into the same repeated-measures ANOVA that we used to test for differences in power across sensors in the time-frequency analysis above, i.e, re-use the \texttt{batch\_stats\_rmANOVA\_job.m} file created above. This can be scripted as:
+Now we have a new set of 16\(\times\)3 NIfTI images for each subject and each condition, we can put them into the same repeated-measures ANOVA that we used to test for differences in power across sensors in the time-frequency analysis above, i.e, re-use the \texttt{batch\_stats\_rmANOVA\_job.m} file created above. This can be scripted as:
 
 \begin{lstlisting}[style=Matlab-editor,basicstyle=\mlttfamily\footnotesize]
 fmristatsdir = fullfile(outpth,'BOLD');
