@@ -23,15 +23,16 @@ function DEM_demo_duet
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_duet.m 6276 2014-12-03 11:22:54Z karl $
+% $Id: DEM_demo_duet.m 6282 2014-12-05 21:57:47Z karl $
  
 
 % preliminaries
 %--------------------------------------------------------------------------
 rng('default')
 
-LEARN = 0;                                 % enables learning
+LEARN = 1;                                 % enables learning
 NULL  = 0;                                 % no communication
+PHASE = 0;                                 % phase portrait
 
 A   = 2;                                   % number of agents (birds)
 T   = 4;                                   % number of trials
@@ -40,7 +41,8 @@ N   = 128;                                 % length of stimulus (bins)
 w   = 2;                                   % sensory attenuation
 
 if A == 1; N = 256; T = 1;            end  % single (singing) bird
-if LEARN,  N = 256; A = 2; T = 16;    end  % learning enabled
+if LEARN,  N = 256; A = 2; T = 32;    end  % learning enabled
+if PHASE,  N = 128; A = 1; T = 1;     end  % learning enabled
 
 % generative process and model
 %==========================================================================
@@ -136,7 +138,7 @@ M(2).V  = exp(4);
 % hidden cause and prior expectations
 %--------------------------------------------------------------------------
 if LEARN
-    M(1).pE = {1/2,1};
+    M(1).pE = {0.5,1};
     M(1).pC = [1 1]/64;
 end
 
@@ -153,10 +155,43 @@ DEM.M = M;
 DEM.G = G;
 DEM.C = C;
 
+
+% phase portrait
+%==========================================================================
+if PHASE
+    
+    spm_figure('GetWin','Figure 1'); clf
+    p     = linspace(0,1,128);
+    for i = 1:length(p)
+        
+        DEM.M(1).pE = {p(i)};
+        
+        DEM   = spm_ADEM(DEM);
+        x     = DEM.qU.x{1}(3,:);
+        [d j] = find(diff(diff(x) > 0));
+        x     = x(j + 1);
+        
+        spm_figure('GetWin','Figure 1');
+        subplot(2,1,1), hold on
+        plot(p(i),x,'.k','MarkerSize',8)
+        set(gca,'XLim',[p(1) p(end)])
+        
+    end
+    
+    xlabel('parameter')
+    ylabel('exurision points')
+    title('bifurcation diagram')
+    axis square
+    return
+end
+
+
 % reset initial hidden states and invert
 %==========================================================================
-p = zeros(3,T);
-c = zeros(3,T);
+if LEARN, spm_figure('GetWin','Figure 3');clf, end
+p     = zeros(3,T);
+c     = zeros(3,T);
+R     = 0;
 for t = 1:T
     
     DEM    = spm_ADEM(DEM);
@@ -184,23 +219,21 @@ for t = 1:T
     %======================================================================
     if LEARN
         
-        
         spm_figure('GetWin','Figure 3');
-        x = LAP{t}.qU.x{2}([1 2 3],:);
-        y = LAP{t}.qU.x{2}([1 2 3] + 3,:);
-        if t == 1
+        if t < 2
             subplot(2,2,3)
-            plot(x',y')
+            manifold(LAP{t});
             title({'Synchronization manifold';'(before learning)'},'Fontsize',16)
-        elseif t < 15
-            subplot(2,2,4)
-            plot(x',y')
-            title({'Synchronization manifold';'(after)'},'Fontsize',16)
+        elseif t > 2
+            r = manifold(LAP{t});
+            if r > R
+                subplot(2,2,4)
+                manifold(LAP{t});
+                title({'Synchronization manifold';'(after)'},'Fontsize',16)
+                drawnow
+                R = r;
+            end
         end
-        
-        xlabel('second level expectations (first bird)')
-        ylabel('second level expectations (second bird)')
-        axis square
         
         p(1:2,t) = spm_vec(DEM.M(1).pE);
         c(1:2,t) = spm_vec(diag(DEM.M(1).pC));
@@ -208,8 +241,8 @@ for t = 1:T
         subplot(2,1,1)
         spm_plot_ci(p,c)
         title('Parameter learning','Fontsize',16)
-        xlabel('control parameter (first bird)')
-        ylabel('trials')
+        xlabel('exchanges')
+        ylabel('parameters')
         spm_axis tight
         drawnow
         
@@ -219,7 +252,7 @@ for t = 1:T
     
     % update states and action
     %----------------------------------------------------------------------
-    DEM         = spm_ADEM_update(DEM);
+    DEM = spm_ADEM_update(DEM);
 
 end
 
@@ -227,7 +260,6 @@ end
 % illustrate responses with sonogram (and sound file)
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
-
 
 % sonogram (reducing the second birds percepts by a half)
 %--------------------------------------------------------------------------
@@ -286,28 +318,45 @@ if A < 2; return, end
 %==========================================================================
 spm_figure('GetWin','Figure 2'); clf
 subplot(2,1,1)
+manifold(LAP);
+
+% synchronisation manifold function
+%==========================================================================
+function r = manifold(LAP)
+
+if iscell(LAP)
+    for i = 1:length(LAP)
+        manifold(LAP{i});
+        hold on
+    end
+    return
+end
 
 x = [];
 y = [];
-for t = 1:T
-    x = [x LAP{t}.qU.x{2}([1 2 3],:)];
-    y = [y LAP{t}.qU.x{2}([1 2 3] + 3,:)];
+for t = 1:length(LAP)
+    x = LAP.qU.x{2}([1 2 3],:);
+    y = LAP.qU.x{2}([1 2 3] + 3,:);
 end
-x    = x';
-y    = y';
-y    = [y gradient(y,1)];
-y    = [y.^0 y.^1 y.^2];
+x     = x';
+y     = y';
+for i = 1:2
+    y = [y gradient(y,1)];
+end
+y    = [ones(length(y),1) y];
 y    = y*(pinv(y)*x);
 
-
-j    = 128:size(x,1);
-r    = min(x(:)):max(x(:));
-plot(x,y,':'), hold on
-plot(r,r,'-k'), hold on
-plot(x(j,:),y(j,:)), hold off
+if nargout
+    r = corrcoef(spm_detrend(x),spm_detrend(y));
+    r = r(1,2);
+    return
+end
+r    = (min(x(:)) - 8):(max(x(:)) + 8);
+plot(x,y),      hold on
+plot(r,r,'-k'), hold off
 title('Synchronization manifold','Fontsize',16)
-xlabel('second level expectations (first bird)')
-ylabel('second level expectations (second bird)')
+xlabel('second-level expectations (first bird)')
+ylabel('expectations (second bird)')
 axis square
 
 
@@ -353,7 +402,7 @@ end
 %--------------------------------------------------------------------------
 function f = Mf1(x,v,P)
 for i = 1:length(x)
-    R      = P{i}*v{i}(1) - 8;
+    R      = P{i}*(v{i}(1) - 8);
     dxdt   = [-10 10 0; (R - x{i}(3)) -1 0; x{i}(2) 0 -8/3]*x{i}/16;
     f{i,1} = min(max(dxdt,-32),32);
 
