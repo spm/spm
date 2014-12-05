@@ -1,6 +1,6 @@
 function [H,Hnames,B,Bnames] = spm_design_flexible(fblock,I)
 % Create H partition of design matrix
-% FORMAT [H,Hnames] = spm_design_flexible(fblock,I)
+% FORMAT [H,Hnames,B,Bnames] = spm_design_flexible(fblock,I)
 %
 % fblock   - Part of job structure containing within-subject design info
 % I        - Nscan x 4 factor matrix
@@ -10,10 +10,10 @@ function [H,Hnames,B,Bnames] = spm_design_flexible(fblock,I)
 % B        - Component of design matrix describing blocks
 % Bnames   - Block names
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_design_flexible.m 4979 2012-09-28 14:49:15Z ged $
+% $Id: spm_design_flexible.m 6280 2014-12-05 14:52:06Z guillaume $
 
 %-Sort main effects and interactions
 %--------------------------------------------------------------------------
@@ -50,17 +50,14 @@ end
 %-Create interactions
 %--------------------------------------------------------------------------
 for i=1:length(inter)
-    % Get the two factors for this interaction
-    f1 = inter(i).fnums(1);
-    f2 = inter(i).fnums(2);
+    % Factors for this interaction
+    f            = inter(i).fnums;
     
     % Names
-    iname{1}     = fblock.fac(f1).name;
-    iname{2}     = fblock.fac(f2).name;
+    iname        = {fblock.fac(f).name};
     
     % Augment H partition - explicit factor numbers are 1 lower than in I matrix
-    Isub         = [I(:,f1+1),I(:,f2+1)];
-    [Hf,Hfnames] = spm_DesMtx(Isub,'-',iname);
+    [Hf,Hfnames] = spm_DesMtx(I(:,f+1),'-',iname);
     H            = [H,Hf];
     Hnames       = [Hnames; Hfnames];
 end
