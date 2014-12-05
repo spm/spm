@@ -39,9 +39,9 @@ function [freq] = ft_freqbaseline(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqbaseline.m 9724 2014-07-14 13:30:47Z eelspa $
+% $Id: ft_freqbaseline.m 9987 2014-11-28 11:30:54Z roboos $
 
-revision = '$Id: ft_freqbaseline.m 9724 2014-07-14 13:30:47Z eelspa $';
+revision = '$Id: ft_freqbaseline.m 9987 2014-11-28 11:30:54Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -57,8 +57,7 @@ if abort
 end
 
 % check if the input data is valid for this function
-freq = ft_checkdata(freq, 'datatype',...
-  {'freq+comp', 'freq'}, 'feedback', 'yes');
+freq = ft_checkdata(freq, 'datatype', {'freq+comp', 'freq'}, 'feedback', 'yes');
 
 % update configuration fieldnames
 cfg              = ft_checkconfig(cfg, 'renamed', {'param', 'parameter'});
@@ -142,6 +141,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output scaffolding
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+if numel(cfg.parameter)==1
+  % convert from cell-array to string
+  cfg.parameter = cfg.parameter{1};
+end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug

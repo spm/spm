@@ -1,8 +1,8 @@
 function [cfg] = ft_multiplotTFR(cfg, data)
 
-% FT_MULTIPLOTTFR plots time-frequency representations of power or
-% coherence in a topographical layout. The plots of the indivual sensors
-% are arranged according to their location specified in the layout.
+% FT_MULTIPLOTTFR plots the time-frequency representations of power or coherence
+% in a topographical layout. The plots of the indivual sensors are arranged
+% according to their location specified in the layout.
 %
 % Use as
 %   ft_multiplotTFR(cfg, data)
@@ -119,9 +119,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 9887 2014-10-07 12:39:53Z roboos $
+% $Id: ft_multiplotTFR.m 9987 2014-11-28 11:30:54Z roboos $
 
-revision = '$Id: ft_multiplotTFR.m 9887 2014-10-07 12:39:53Z roboos $';
+revision = '$Id: ft_multiplotTFR.m 9987 2014-11-28 11:30:54Z roboos $';
 
 % do the general setup of the function
 ft_defaults

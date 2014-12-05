@@ -52,7 +52,7 @@ function [type] = ft_voltype(vol, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_voltype.m 8740 2013-11-08 08:17:28Z roboos $
+% $Id: ft_voltype.m 10013 2014-12-03 09:14:21Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -81,7 +81,7 @@ if isequal(current_argin, previous_argin)
   return
 end
 
-if isfield(vol, 'type') && ~(ft_datatype(vol,'grad') || ft_datatype(vol,'sens')) % grad and sens also contain .type fields 
+if isfield(vol, 'type') && ~(ft_datatype(vol, 'grad') || ft_datatype(vol, 'sens')) % grad and sens also contain .type fields 
   % preferably the structure specifies its own type
   type = vol.type;
   

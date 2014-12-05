@@ -1,4 +1,4 @@
-function filt = filter_with_correction(B,A,dat,dir)
+function filt = filter_with_correction(B,A,dat,dir,usefftfilt)
 
 % FILTER_WITH_CORRECTION applies a to the data and corrects
 % edge-artifacts for one-pass filtering.
@@ -37,7 +37,7 @@ function filt = filter_with_correction(B,A,dat,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: filter_with_correction.m 9738 2014-07-17 07:45:01Z roboos $
+% $Id: filter_with_correction.m 9991 2014-12-01 16:03:02Z jansch $
 
 % convert the data to double precision
 % see  http://bugzilla.fcdonders.nl/show_bug.cgi?id=2653
@@ -77,9 +77,9 @@ switch dir
     filt2 = fliplr(filtfilt(B, A, fliplr(dat)')');
     filt  = (filt1 + filt2)/2;
   case 'onepass-zerophase'
-    filt = fir_filterdcpadded(B, A, dat', 0)';
+    filt = fir_filterdcpadded(B, A, dat', 0, usefftfilt)';
   case 'onepass-minphase'
-    filt = fir_filterdcpadded(B, A, dat', 1)';
+    filt = fir_filterdcpadded(B, A, dat', 1, usefftfilt)';
   otherwise
     error('unsupported filter direction "%s"', dir);
 end

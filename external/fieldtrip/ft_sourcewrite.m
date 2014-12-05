@@ -1,15 +1,16 @@
 function ft_sourcewrite(cfg, source)
 
-% FT_SOURCEWRITE exports source analysis results to gifti or nifti format
-% file, depending on whether the source locations are described by on a
-% cortically constrained sheet (gifti) or by a regular 3D lattice (nifti).
+% FT_SOURCEWRITE exports source-reconstructed results to gifti or nifti format file.
+% The appropriate output file depends on whether the source locations are described by
+% on a cortically constrained sheet (gifti) or by a regular 3D lattice (nifti).
 %
 % Use as
 %  ft_sourcewrite(cfg, source)
 % where source is a source structure obtained from FT_SOURCEANALYSIS and
 % cfg is a structure that should contain
 %
-%  cfg.filename  = string, name of the file
+%  cfg.filename  = string, filename without the extension
+%  cfg.filetype  = string, can be 'nifti', 'gifti' or 'cifti' (default is automatic)
 %  cfg.parameter = string, functional parameter to be written to file
 %  cfg.precision = string, can be 'single', 'double', etc.
 %
@@ -22,7 +23,7 @@ function ft_sourcewrite(cfg, source)
 % See also FT_SOURCEANALYSIS FT_SOURCEDESCRIPTIVES FT_VOLUMEWRITE
 
 % Copyright (C) 2011, Jan-Mathijs Schoffelen
-% Copyright (C) 2011-2013, Jan-Mathijs Schoffelen, Robert Oostenveld
+% Copyright (C) 2011-2014, Jan-Mathijs Schoffelen, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -40,9 +41,9 @@ function ft_sourcewrite(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcewrite.m 9850 2014-09-27 09:41:31Z roboos $
+% $Id: ft_sourcewrite.m 10017 2014-12-03 13:56:16Z roboos $
 
-revision = '$Id: ft_sourcewrite.m 9850 2014-09-27 09:41:31Z roboos $';
+revision = '$Id: ft_sourcewrite.m 10017 2014-12-03 13:56:16Z roboos $';
 
 ft_defaults
 ft_preamble init
@@ -141,12 +142,6 @@ switch (cfg.filetype)
     ft_write_headshape(cfg.filename, source, 'data', getsubfield(source, cfg.parameter), 'format', 'gifti');
     
   case 'cifti'
-    [p, f, x] = fileparts(cfg.filename);
-    if isequal(x, '.nii')
-      cfg.filename = fullfile(p, f); % strip the extension
-    end
-    cfg.filename = [cfg.filename '.' cfg.parameter '.nii'];
-    
     % brainstructure should represent the global anatomical structure, such as CortexLeft, Thalamus, etc.
     % parcellation should represent the detailled parcellation, such as BA1, BA2, BA3, etc.
     ft_write_cifti(cfg.filename, source, 'parameter', cfg.parameter, 'brainstructure', cfg.brainstructure, 'parcellation', cfg.parcellation, 'precision', cfg.precision);

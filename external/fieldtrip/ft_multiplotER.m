@@ -1,7 +1,7 @@
 function [cfg] = ft_multiplotER(cfg, varargin)
 
-% FT_MULTIPLOTER plots the event-related fields or potentials versus time
-% or of oscillatory activity (power or coherence) versus frequency. Multiple
+% FT_MULTIPLOTER plots the event-related potentials, event-related fields 
+% or oscillatory activity (power or coherence) versus frequency. Multiple
 % datasets can be overlayed.  The plots are arranged according to their
 % location specified in the layout.
 %
@@ -118,9 +118,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 9887 2014-10-07 12:39:53Z roboos $
+% $Id: ft_multiplotER.m 9987 2014-11-28 11:30:54Z roboos $
 
-revision = '$Id: ft_multiplotER.m 9887 2014-10-07 12:39:53Z roboos $';
+revision = '$Id: ft_multiplotER.m 9987 2014-11-28 11:30:54Z roboos $';
 
 % do the general setup of the function
 ft_defaults

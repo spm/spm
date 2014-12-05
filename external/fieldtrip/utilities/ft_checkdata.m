@@ -56,7 +56,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 9850 2014-09-27 09:41:31Z roboos $
+% $Id: ft_checkdata.m 10020 2014-12-03 16:20:24Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -133,7 +133,6 @@ isdip           = ft_datatype(data, 'dip');
 ismvar          = ft_datatype(data, 'mvar');
 isfreqmvar      = ft_datatype(data, 'freqmvar');
 ischan          = ft_datatype(data, 'chan');
-
 % FIXME use the istrue function on ismeg and hasxxx options
 
 if ~isequal(feedback, 'no')
@@ -298,13 +297,17 @@ if ~isempty(dtype)
       data = volume2source(data); % segmentation=volume, parcellation=source
       data = ft_datatype_parcellation(data);
       issegmentation = 0;
+      isvolume = 0;
       isparcellation = 1;
+      issource = 1;
       okflag = 1;
     elseif isequal(dtype(iCell), {'segmentation'}) && isparcellation
       data = source2volume(data); % segmentation=volume, parcellation=source
       data = ft_datatype_segmentation(data);
       isparcellation = 0;
+      issource = 0;
       issegmentation = 1;
+      isvolume = 1;
       okflag = 1;
     elseif isequal(dtype(iCell), {'source'}) && isvolume
       data = volume2source(data);
@@ -815,10 +818,12 @@ end
 % represent the covariance matrix in a particular manner
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = fixcov(data, desired)
-if isfield(data, 'cov')     && ~isfield(data, 'labelcmb')
-  current = 'full';
-elseif isfield(data, 'cov') &&  isfield(data, 'labelcmb')
-  current = 'sparse';
+if any(isfield(data, {'cov', 'corr'}))
+  if ~isfield(data, 'labelcmb')
+    current = 'full';
+  else
+    current = 'sparse';
+  end
 else
   error('Could not determine the current representation of the covariance matrix');
 end
@@ -1700,8 +1705,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function source = parcellated2source(data)
 if ~isfield(data, 'brainordinate')
-  error('converting parcellated data requires the specification of the brainordinates');
+  error('projecting parcellated data onto the full brain model geometry requires the specification of brainordinates');
 end
+% the main structure contains the functional data on the parcels
+% the brainordinate sub-structure contains the original geometrical model
 source = data.brainordinate;
 data   = rmfield(data, 'brainordinate');
 if isfield(data, 'cfg')
@@ -1732,7 +1739,7 @@ else
 end
 
 for i=1:numel(parameter)
-  source.(parameter{i}) = unparcellate(data, data.brainordinate, parameter{i}, parcelparam);
+  source.(parameter{i}) = unparcellate(data, source, parameter{i}, parcelparam);
 end
 
 
@@ -1777,10 +1784,7 @@ if isfield(data, 'dim') && length(data.dim)>=3,
 end
 
 % remove the unwanted fields
-if isfield(data, 'pos'),    data = rmfield(data, 'pos');    end
-if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
-if isfield(data, 'ygrid'),  data = rmfield(data, 'ygrid');  end
-if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
+data = removefields(data, {'pos', 'xgrid', 'ygrid', 'zgrid', 'tri', 'tet', 'hex'});
 
 % make inside a volume
 data = fixinside(data, 'logical');
@@ -2096,4 +2100,6 @@ data.label = spike.label;
 data.fsample = fsample;
 if isfield(spike,'hdr'), data.hdr = spike.hdr; end
 if isfield(spike,'cfg'), data.cfg = spike.cfg; end
+
+
 

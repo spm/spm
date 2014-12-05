@@ -120,7 +120,23 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 % See also FT_SINGLEPLOTER, FT_MULTIPLOTER, FT_SINGLEPLOTTFR, FT_MULTIPLOTTFR,
 % FT_TOPOPLOTTFR, FT_PREPARE_LAYOUT
 
-% Undocumented local options:
+% Undocumented options: 
+%
+% It is possible to use multiple highlight-selections (e.g.: multiple
+% statistical clusters of channels) To do this, all the content of
+% the highlight-options (including cfg.highlight) should be placed
+% in a cell-array (even if the normal content was already in a
+% cell-array). Specific marker settings (e.g. color, size) are defaulted
+% when not present.
+% 
+% Example (3 selections):
+% cfg.highlight          = {'labels', 'labels', 'numbers'}
+% cfg.highlightchannel   = {{'MZF03','MZC01','MRT54'}, [1:5], 'C*'}
+% cfg.highlightsymbol    = {'o',[],'+'}        % the empty option will be defaulted
+% cfg.highlightcolor     = {'r',[0 0 1]};      % the missing option will be defaulted
+% cfg.highlightsize      = [];                 % will be set to default, as will the missing cfg.highlightfontsize
+%
+% Other options:
 % cfg.labeloffset (offset of labels to their marker, default = 0.005)
 
 % Copyright (C) 2005-2011, F.C. Donders Centre
@@ -141,9 +157,9 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 9737 2014-07-16 15:50:21Z roboos $
+% $Id: ft_topoplotER.m 9904 2014-10-15 21:23:21Z dieloz $
 
-revision = '$Id: ft_topoplotER.m 9737 2014-07-16 15:50:21Z roboos $';
+revision = '$Id: ft_topoplotER.m 9904 2014-10-15 21:23:21Z dieloz $';
 
 % do the general setup of the function
 ft_defaults

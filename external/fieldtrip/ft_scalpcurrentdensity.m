@@ -4,6 +4,9 @@ function [scd] = ft_scalpcurrentdensity(cfg, data)
 % second-order derivative (the surface Laplacian) of the EEG potential
 % distribution
 %
+% The relation between the surface Laplacian and the SCD is explained 
+% in more detail on http://tinyurl.com/ptovowl.
+%
 % Use as
 %   [data] = ft_scalpcurrentdensity(cfg, data)
 % or
@@ -81,9 +84,9 @@ function [scd] = ft_scalpcurrentdensity(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalpcurrentdensity.m 9810 2014-09-17 14:44:38Z jimher $
+% $Id: ft_scalpcurrentdensity.m 9931 2014-10-29 11:06:45Z roboos $
 
-revision = '$Id: ft_scalpcurrentdensity.m 9810 2014-09-17 14:44:38Z jimher $';
+revision = '$Id: ft_scalpcurrentdensity.m 9931 2014-10-29 11:06:45Z roboos $';
 
 % do the general setup of the function
 ft_defaults

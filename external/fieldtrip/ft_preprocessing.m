@@ -81,6 +81,7 @@ function [data] = ft_preprocessing(cfg, data)
 %   cfg.bpfiltdev     = bandpass max passband deviation (firws with 'kaiser' window, default 0.001 set in low-level function)
 %   cfg.bsfiltdev     = bandstop max passband deviation (firws with 'kaiser' window, default 0.001 set in low-level function)
 %   cfg.plotfiltresp  = 'no' or 'yes', plot filter responses (firws, default = 'no')
+%   cfg.usefftfilt    = 'no' or 'yes', use fftfilt instead of filter (firws, default = 'no')
 %   cfg.medianfiltord = length of median filter (default = 9)
 %   cfg.demean        = 'no' or 'yes', whether to apply baseline correction (default = 'no')
 %   cfg.baselinewindow = [begin end] in seconds, the default is the complete trial (default = 'all')
@@ -161,9 +162,9 @@ function [data] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 9685 2014-07-02 14:23:19Z eelspa $
+% $Id: ft_preprocessing.m 9989 2014-12-01 15:40:51Z jansch $
 
-revision = '$Id: ft_preprocessing.m 9685 2014-07-02 14:23:19Z eelspa $';
+revision = '$Id: ft_preprocessing.m 9989 2014-12-01 15:40:51Z jansch $';
 
 % do the general setup of the function
 ft_defaults

@@ -89,9 +89,9 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_mvaranalysis.m 9962 2014-11-13 09:41:09Z jansch $
 
-revision = '$Id: ft_mvaranalysis.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_mvaranalysis.m 9962 2014-11-13 09:41:09Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -323,7 +323,7 @@ for j = 1:ntoi
   cfg.toi(j)    = timeaxis(sample);
   
   tmpcfg        = [];
-  tmpcfg.toilim = [timeaxis(sample-floor(tfwin/2)) timeaxis(sample+ceil(tfwin/2)-1)];
+  tmpcfg.toilim = [timeaxis(sample-ceil(tfwin/2)) timeaxis(sample+floor(tfwin/2)-1)];
   tmpcfg.feedback = 'no';
   tmpcfg.minlength= 'maxperlen';
   tmpdata       = ft_redefinetrial(tmpcfg, data);

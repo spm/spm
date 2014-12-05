@@ -53,9 +53,9 @@ function data = ft_anonimizedata(cfg, data)
 %  You should have received a copy of the GNU General Public License
 %  along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_anonimizedata.m 9825 2014-09-22 15:19:53Z roboos $
+% $Id: ft_anonimizedata.m 9980 2014-11-20 10:12:58Z roboos $
 
-revision = '$Id: ft_anonimizedata.m 9825 2014-09-22 15:19:53Z roboos $';
+revision = '$Id: ft_anonimizedata.m 9980 2014-11-20 10:12:58Z roboos $';
 
 % do the general setup of the function
 ft_defaults               % this ensures that the path is correct and that the ft_defaults global variable is available
@@ -171,12 +171,12 @@ uicontrol('tag', 'button5', 'parent', h, 'units', 'pixels', 'style', 'pushbutton
 uicontrol('tag', 'button6', 'parent', h, 'units', 'pixels', 'style', 'pushbutton', 'string', 'quit',        'userdata', 'q',  'callback', @keyboard_cb)
 
 % use manual positioning of the buttons in pixel units
-ft_uilayout(h, 'tag', 'button1', 'hpos', 20+(80+10)*0, 'vpos', 10, 'width', 80, 'height', 25);
-ft_uilayout(h, 'tag', 'button2', 'hpos', 20+(80+10)*1, 'vpos', 10, 'width', 80, 'height', 25);
-ft_uilayout(h, 'tag', 'button3', 'hpos', 20+(80+10)*2, 'vpos', 10, 'width', 80, 'height', 25);
-ft_uilayout(h, 'tag', 'button4', 'hpos', 20+(80+10)*3, 'vpos', 10, 'width', 80, 'height', 25);
-ft_uilayout(h, 'tag', 'button5', 'hpos', 20+(80+10)*4, 'vpos', 10, 'width', 80, 'height', 25);
-ft_uilayout(h, 'tag', 'button6', 'hpos', 20+(80+10)*5, 'vpos', 10, 'width', 80, 'height', 25);
+ft_uilayout(h, 'tag', 'button1', 'hpos', 20+(100+10)*0, 'vpos', 10, 'width', 100, 'height', 25);
+ft_uilayout(h, 'tag', 'button2', 'hpos', 20+(100+10)*1, 'vpos', 10, 'width', 100, 'height', 25);
+ft_uilayout(h, 'tag', 'button3', 'hpos', 20+(100+10)*2, 'vpos', 10, 'width', 100, 'height', 25);
+ft_uilayout(h, 'tag', 'button4', 'hpos', 20+(100+10)*3, 'vpos', 10, 'width', 100, 'height', 25);
+ft_uilayout(h, 'tag', 'button5', 'hpos', 20+(100+10)*4, 'vpos', 10, 'width', 100, 'height', 25);
+ft_uilayout(h, 'tag', 'button6', 'hpos', 20+(100+10)*5, 'vpos', 10, 'width', 100, 'height', 25);
 
 ft_uilayout(h, 'tag', 'button1', 'retag', 'buttongroup')
 ft_uilayout(h, 'tag', 'button1', 'retag', 'buttongroup')

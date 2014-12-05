@@ -50,7 +50,7 @@ function [h, T2] = ft_plot_slice(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_slice.m 9884 2014-10-07 11:36:44Z eelspa $
+% $Id: ft_plot_slice.m 9988 2014-12-01 11:41:39Z jansch $
 
 persistent dim X Y Z
 
@@ -79,7 +79,7 @@ mask                = ft_getopt(varargin, 'datmask');
 opacitylim          = ft_getopt(varargin, 'opacitylim');
 interpmethod        = ft_getopt(varargin, 'interpmethod', 'nearest');
 cmap                = ft_getopt(varargin, 'colormap');
-clim                = ft_getopt(varargin, 'colorlim');
+clim                = ft_getopt(varargin, 'clim');
 doscale             = ft_getopt(varargin, 'doscale', true); % only scale when necessary (time consuming), i.e. when plotting as grayscale image & when the values are not between 0 and 1
 h                   = ft_getopt(varargin, 'surfhandle', []);
 
@@ -294,8 +294,17 @@ if isempty(cmap),
     clear dmin dmax
   end
   V(isnan(V)) = 0;
-  % convert anatomy into RGB values
+  
+  % deal with clim for RGB data here, where the purpose is to increase the
+  % contrast range, rather than shift the average grey value
+  if ~isempty(clim)
+    V = (V-clim(1))./clim(2);
+    V(V>1)=1;
+  end
+  
+  % convert into RGB values, e.g. for the plotting of anatomy
   V = cat(3, V, V, V);
+  
 end
 
 % get positions of the voxels in the interpolation plane in head coordinates
@@ -349,11 +358,11 @@ end
 
 if ~isempty(cmap)
   colormap(cmap);
+  if ~isempty(clim)
+    caxis(clim);
+  end
 end
 
-if ~isempty(clim)
-  caxis(clim);
-end
 
 % update the axes to ensure that the whole volume fits
 ax = [min(corner_hc) max(corner_hc)];

@@ -45,9 +45,9 @@ function [cfg] = ft_clusterplot(cfg, stat)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_clusterplot.m 9888 2014-10-07 13:52:58Z roboos $
+% $Id: ft_clusterplot.m 9974 2014-11-19 09:33:51Z tzvpop $
 
-revision = '$Id: ft_clusterplot.m 9888 2014-10-07 13:52:58Z roboos $';
+revision = '$Id: ft_clusterplot.m 9974 2014-11-19 09:33:51Z tzvpop $';
 
 % do the general setup of the function
 ft_defaults
@@ -127,15 +127,32 @@ cfgtopo.layout = ft_prepare_layout(cfg, stat);
 % detect 2D or 1D
 hastime = isfield(stat, 'time');
 hasfreq = isfield(stat, 'freq');
+% if hastime ==1 || numel(stat.time)==1 || hasfreq==1 
+%     stat= rmfield(stat,'time');
+% end;
+
 is1D = xor(hastime, hasfreq); % either one
 is2D = and(hastime, hasfreq); % both
+
+% deal with single latency
+if hastime ==1;
+    singlelatency = numel(stat.time);
+    if singlelatency == 1
+        stat=rmfield(stat,'time');
+        is1D=1;
+        stat.dimord = 'chan_freq';
+        hastime = 0;
+    end;
+end;
 
 if hasfreq && ~hastime
   % make the subsequent code believe we are dealing with time instead of freq data
   stat.time = stat.freq;
   stat = rmfield(stat, 'freq');
   stat.dimord = 'chan_freq';
-end
+  is1D = 0;
+  is2D = 1;
+end;
 
 if issubfield(stat, 'cfg.correcttail') && ((strcmp(stat.cfg.correcttail,'alpha') || strcmp(stat.cfg.correcttail,'prob')) && (stat.cfg.tail == 0));
   if ~(cfg.alpha >= stat.cfg.alpha);

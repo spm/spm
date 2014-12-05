@@ -34,7 +34,7 @@ function [ws warned] = warning_once(varargin)
 %   warning_once(sprintf('the value is %d', 10))
 
 % Copyright (C) 2012, Robert Oostenveld
-% Copyright (C) 2013, Robert Oostenveld, Jörn M. Horschig
+% Copyright (C) 2013, Robert Oostenveld, J?rn M. Horschig
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -52,7 +52,7 @@ function [ws warned] = warning_once(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warning_once.m 9789 2014-09-11 07:49:09Z jansch $
+% $Id: warning_once.m 10001 2014-12-02 09:04:27Z roboos $
 
 global ft_default
 
@@ -166,8 +166,7 @@ else
   
 end
 
-
-end % function
+end % function warning_once
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper functions

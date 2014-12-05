@@ -89,7 +89,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 9824 2014-09-22 15:02:13Z roboos $
+% $Id: ft_read_event.m 10019 2014-12-03 15:14:23Z roboos $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -635,10 +635,15 @@ switch eventformat
     end
     
     if ~isempty(trg) && ~isempty(hdr)
+      if filetype_check_header(filename, 'RIFF')
+        scaler = 1000; % for 32-bit files from ASAlab triggers are in miliseconds
+      elseif filetype_check_header(filename, 'RF64');
+        scaler = 1; % for 64-bit files from ASAlab triggers are in seconds
+      end
       % translate the EEProbe trigger codes to events
       for i=1:length(trg)
         event(i).type     = 'trigger';
-        event(i).sample   = round((trg(i).time/1000) * hdr.Fs) + 1;    % convert from ms to samples
+        event(i).sample   = round((trg(i).time/scaler) * hdr.Fs) + 1;    % convert from ms to samples
         event(i).value    = trg(i).code;
         event(i).offset   = 0;
         event(i).duration = 0;

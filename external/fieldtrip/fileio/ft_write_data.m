@@ -48,7 +48,7 @@ function ft_write_data(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 9732 2014-07-16 08:50:23Z roboos $
+% $Id: ft_write_data.m 9937 2014-11-04 09:51:05Z roboos $
 
 global data_queue    % for fcdc_global
 global header_queue  % for fcdc_global
@@ -276,28 +276,44 @@ switch dataformat
     % multiplexed data in a *.bin file (ieee-le, 64 bit floating point values),
     % accompanied by a matlab V6 file containing the header
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if append
-      error('appending data is not yet supported for this data format');
-    end
-    
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.mat']);
     datafile   = fullfile(path, [file '.bin']);
-    if nchans~=hdr.nChans && length(chanindx)==nchans
-      % assume that the header corresponds to the original multichannel
-      % file and that the data represents a subset of channels
-      hdr.label     = hdr.label(chanindx);
-      hdr.nChans    = length(chanindx);
+    
+    if append && exist(headerfile, 'file') && exist(datafile, 'file')
+      % read the existing header and perform a sanity check
+      old = load(headerfile);
+      assert(old.hdr.nChans==size(dat,1));
+      
+      % update the existing header
+      hdr          = old.hdr;
+      hdr.nSamples = hdr.nSamples + size(dat,2);
+      save(headerfile, 'hdr', '-v6');
+      
+      % update the data file
+      [fid,message] = fopen(datafile,'ab','ieee-le');
+      fwrite(fid, dat, hdr.precision);
+      fclose(fid);
+      
+    else
+      if nchans~=hdr.nChans && length(chanindx)==nchans
+        % assume that the header corresponds to the original multichannel
+        % file and that the data represents a subset of channels
+        hdr.label     = hdr.label(chanindx);
+        hdr.nChans    = length(chanindx);
+      end
+      if ~isfield(hdr, 'precision')
+        hdr.precision = 'double';
+      end
+      % write the header file
+      save(headerfile, 'hdr', '-v6');
+      
+      % write the data file
+      [fid,message] = fopen(datafile,'wb','ieee-le');
+      fwrite(fid, dat, hdr.precision);
+      fclose(fid);
     end
-    if ~isfield(hdr, 'precision')
-      hdr.precision = 'double';
-    end
-    % write the header file
-    save(headerfile, 'hdr', '-v6');
-    % write the data file
-    [fid,message] = fopen(datafile,'wb','ieee-le');
-    fwrite(fid, dat, hdr.precision);
-    fclose(fid);
+    
     
   case 'fcdc_mysql'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -82,9 +82,9 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 9865 2014-09-28 12:33:58Z roboos $
+% $Id: ft_prepare_leadfield.m 10000 2014-12-02 09:04:25Z roboos $
 
-revision = '$Id: ft_prepare_leadfield.m 9865 2014-09-28 12:33:58Z roboos $';
+revision = '$Id: ft_prepare_leadfield.m 10000 2014-12-02 09:04:25Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -120,7 +120,7 @@ cfg.backproject    = ft_getopt(cfg, 'backproject',    'yes'); % determines wheth
 % cfg.reducerank   = ft_getopt(cfg, 'reducerank', 'no');      % the default for this depends on EEG/MEG and is set below
 
 % put the low-level options pertaining to the dipole grid in their own field
-cfg = ft_checkconfig(cfg, 'renamed', {'tightgrid', 'tight'}); % this is moved to cfg.grid.tight by the subsequent createsubcfg
+cfg = ft_checkconfig(cfg, 'renamed', {'tightgrid', 'tight'});  % this is moved to cfg.grid.tight by the subsequent createsubcfg
 cfg = ft_checkconfig(cfg, 'renamed', {'sourceunits', 'unit'}); % this is moved to cfg.grid.unit by the subsequent createsubcfg
 cfg = ft_checkconfig(cfg, 'createsubcfg',  {'grid'});
 

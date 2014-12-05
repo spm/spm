@@ -22,10 +22,11 @@ function [data] = fixdimord(data)
 %  'rpttap'
 %  'pos'
 %  'ori'
+%  'rgb'
 %  'comp'
 %  'voxel'
 
-% Copyright (C) 2009-2010, Robert Oostenveld, Jan-Mathijs Schoffelen
+% Copyright (C) 2009-2014, Robert Oostenveld, Jan-Mathijs Schoffelen
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -43,7 +44,7 @@ function [data] = fixdimord(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixdimord.m 8898 2013-11-28 19:49:22Z jansch $
+% $Id: fixdimord.m 9972 2014-11-19 08:09:34Z roboos $
 
 % if nargin<2, keepsourcedimord = 0; end
 %
@@ -139,6 +140,9 @@ for i=1:length(dimtok)
       % don't change, it is ok
       
     case {'ori'}
+      % don't change, it is ok
+      
+    case {'rgb'}
       % don't change, it is ok
       
     case {'voxel' 'vox' 'repl' 'wcond'}

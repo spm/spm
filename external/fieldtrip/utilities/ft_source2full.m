@@ -29,7 +29,7 @@ function [source] = ft_source2full(source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2full.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id: ft_source2full.m 9933 2014-10-30 13:09:02Z tzvpop $
 
 ft_defaults
 
@@ -148,7 +148,9 @@ if strcmp(stype, 'old'),
   [param]    = parameterselection('all', source);
   trlparam   = strmatch('trial', param);
   sel        = setdiff(1:length(param), trlparam);
-  param      = param(sel);
+  ind=find(ismember(param,'inside'));% find the index of 'inside' field
+  % because its position varies with isfield('plvspctrm') vs. 'cohspctrm'
+  param      = param(sel(ind));
   
   for j = 1:length(param)
     dat = getsubfield(source, param{j});
@@ -313,7 +315,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_source2full.m 9663 2014-06-22 07:06:19Z roboos $';
+cfg.version.id = '$Id: ft_source2full.m 9933 2014-10-30 13:09:02Z tzvpop $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 
