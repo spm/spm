@@ -23,7 +23,7 @@ function DEM = DEM_morphogenesis
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_morphogenesis.m 6273 2014-11-29 12:44:04Z karl $
+% $Id: DEM_morphogenesis.m 6283 2014-12-08 10:35:12Z karl $
  
  
 % preliminaries
@@ -96,13 +96,17 @@ a.s   = g.s;                              % action (signal release)
  
 % generative process 
 %==========================================================================
- 
+R     = spm_cat({kron(eye(n,n),ones(2,2)) []; [] kron(eye(n,n),ones(4,4));
+                 kron(eye(n,n),ones(4,2)) kron(eye(n,n),ones(4,4))});
+R     = 1;
+
 % level 1 of generative process
 %--------------------------------------------------------------------------
 G(1).g  = @(x,v,a,P) Gg(x,v,a,P);
 G(1).v  = Gg([],[],a,a);
 G(1).V  = exp(16);                         % precision (noise)
 G(1).U  = exp(2);                          % precision (action)
+G(1).R  = R;                               % restriction matrix
 G(1).pE = a;                               % form (action)
  
  
