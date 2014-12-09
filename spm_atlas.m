@@ -2,7 +2,7 @@ function varargout = spm_atlas(action,varargin)
 % Atlas multi-function
 % FORMAT xA = spm_atlas('load',atlas)
 % FORMAT L = spm_atlas('list')
-% FORMAT [S,sts] = spm_atlas('select',xA)
+% FORMAT [S,sts] = spm_atlas('select',xA,label)
 % FORMAT Q = spm_atlas('query',xA,XYZmm)
 % FORMAT VM = spm_atlas('mask',xA,label)
 % FORMAT V = spm_atlas('prob',xA,label)
@@ -17,7 +17,7 @@ function varargout = spm_atlas(action,varargin)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_atlas.m 6245 2014-10-15 11:22:15Z guillaume $
+% $Id: spm_atlas.m 6285 2014-12-09 15:52:59Z guillaume $
 
 
 if ~nargin, action = 'load'; end
@@ -292,7 +292,7 @@ case 'menu'
 %==========================================================================
 case 'select'
 %==========================================================================
-    % FORMAT [S,sts] = spm_atlas('select',xA)
+    % FORMAT [S,sts] = spm_atlas('select',xA,label)
     %-Select atlas or labels
     
     S = '';
@@ -304,14 +304,19 @@ case 'select'
         if ~sts, varargout = { S, sts }; return; end
     else
         xA = spm_atlas('load',varargin{1});
-        [sel,sts] = listdlg(...
-            'ListString',{xA.labels.name},...
-            'SelectionMode','multiple',...
-            'ListSize', [400 300],...
-            'Name','Select label(s)',...
-            'PromptString',sprintf('Labels from %s atlas:',xA.info.name));
-        if ~sts, varargout = { S, sts }; return; end
-        S  = {xA.labels(sel).name};
+        if numel(varargin) == 1
+            [sel,sts] = listdlg(...
+                'ListString',{xA.labels.name},...
+                'SelectionMode','multiple',...
+                'ListSize', [400 300],...
+                'Name','Select label(s)',...
+                'PromptString',sprintf('Labels from %s atlas:',xA.info.name));
+            if ~sts, varargout = { S, sts }; return; end
+            S  = {xA.labels(sel).name};
+        else
+            sts = true;
+            S = filter_labels(xA,varargin{2});
+        end
     end
     varargout = { S, sts };
     
@@ -896,7 +901,11 @@ end
 % FUNCTION [labels,i] = filter_labels(xA,labels)
 %==========================================================================
 function [labels,i] = filter_labels(xA,labels)
-if ~iscellstr(labels)
+% calls to 'intersect' should use 'stable' option and handle repetitions
+if isnumeric(labels)
+    [unused,idx] = intersect([xA.labels.index],labels);
+    labels  = {xA.labels(idx).name};
+elseif ~iscellstr(labels)
     idx = ~cellfun(@isempty,regexp({xA.labels.name},labels));
     labels = {xA.labels(idx).name};
 end
