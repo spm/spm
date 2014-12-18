@@ -10,7 +10,7 @@ function sts = write_hdr_raw(fname,hdr,be)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: write_hdr_raw.m 6189 2014-09-23 15:32:03Z guillaume $
+% $Id: write_hdr_raw.m 6289 2014-12-18 15:55:02Z guillaume $
 
 
 [pth,nam] = fileparts(fname);
@@ -62,7 +62,8 @@ if sts
             dat = hdr.(org(i).label);
             if length(dat) ~= org(i).len
                 if length(dat)< org(i).len
-                    dat = [dat(:) ; zeros(org(i).len-length(dat),1)];
+                    if ischar(dat), z = char(0); else z = 0; end
+                    dat = [dat(:) ; repmat(z,org(i).len-length(dat),1)];
                 else
                     dat = dat(1:org(i).len);
                 end

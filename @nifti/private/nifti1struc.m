@@ -4,7 +4,7 @@ function o = nifti1struc
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: nifti1struc.m 4962 2012-09-25 19:48:18Z john $
+% $Id: nifti1struc.m 6289 2014-12-18 15:55:02Z guillaume $
 
 
 persistent org;
@@ -23,8 +23,8 @@ f = t(5);
 
 table = {...
     i,  1, 'sizeof_hdr', 348
-    c, 10, 'data_type', []
-    c, 18, 'db_name', []
+    c, 10, 'data_type', ''
+    c, 18, 'db_name', ''
     i,  1, 'extents', []
     s,  1, 'session_error', []
     c,  1, 'regular', 'r'
@@ -72,7 +72,8 @@ os  = 0;
 for j=1:length(org)
     os  = org(j).dtype.size*ceil(os/org(j).dtype.size);
     fun = org(j).dtype.conv;
-    def = [org(j).def zeros(1,org(j).len-length(org(j).def))];
+    if ischar(org(j).def), z = char(0); else z = 0; end
+    def = [org(j).def repmat(z,1,org(j).len-length(org(j).def))];
     org(j).def    = feval(fun,def);
     org(j).offset = os;
     os  = os + org(j).len*org(j).dtype.size;
