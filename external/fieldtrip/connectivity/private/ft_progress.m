@@ -47,7 +47,7 @@ function ft_progress(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_progress.m 9688 2014-07-02 14:55:11Z eelspa $
+% $Id: ft_progress.m 10029 2014-12-09 15:09:38Z eelspa $
 
 global ft_default;
 
@@ -99,7 +99,7 @@ if nargin>1 && ischar(varargin{1}) && strcmp(varargin{1}, 'init')
     else
       h = waitbar(0, 'Please wait');
     end
-  case {'text', 'textnl', 'textcr'}
+  case {'text', 'textnl', 'textcr', 'dial'}
     if ~isempty(s)
       % print the title to the screen and go to the next line
       fprintf('%s\n', s)

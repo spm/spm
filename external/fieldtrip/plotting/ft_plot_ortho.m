@@ -17,6 +17,7 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 %   'datmask'      = 3D-matrix with the same size as the matrix dat, serving as opacitymap if the second input argument to the function contains a matrix, this will be used as the mask
 %   'interpmethod' = string specifying the method for the interpolation, see INTERPN (default = 'nearest')
 %   'colormap'     = string, see COLORMAP
+%   'clim'         = [min max], lower and upper color limits
 %
 % See also FT_PLOT_SLICE, FT_PLOT_MONTAGE, FT_SOURCEPLOT
 
@@ -38,7 +39,7 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_ortho.m 9946 2014-11-12 13:13:29Z jansch $
+% $Id: ft_plot_ortho.m 10024 2014-12-08 09:00:27Z roboos $
 
 % parse first input argument(s). it is either
 % (dat, varargin)

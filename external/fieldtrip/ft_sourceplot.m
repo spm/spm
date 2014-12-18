@@ -173,9 +173,9 @@ function ft_sourceplot(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 10002 2014-12-02 09:11:47Z roboos $
+% $Id: ft_sourceplot.m 10024 2014-12-08 09:00:27Z roboos $
 
-revision = '$Id: ft_sourceplot.m 10002 2014-12-02 09:11:47Z roboos $';
+revision = '$Id: ft_sourceplot.m 10024 2014-12-08 09:00:27Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -1387,7 +1387,7 @@ if opt.hasfun
       tmph  = [h1 h2 h3];
       ft_plot_ortho(opt.fun(:,:,:,tmpqi(1),tmpqi(2)), 'datmask', opt.msk(:,:,:,tmpqi(1),tmpqi(2)), 'transform', eye(4), 'location', opt.ijk, ...
         'style', 'subplot', 'parents', tmph, 'update', opt.update, ...
-        'colormap', opt.funcolormap, 'colorlim', [opt.fcolmin opt.fcolmax], ...
+        'colormap', opt.funcolormap, 'clim', [opt.fcolmin opt.fcolmax], ...
         'opacitylim', [opt.opacmin opt.opacmax]);
       
       
@@ -1396,7 +1396,7 @@ if opt.hasfun
       tmph  = [h1 h2 h3];
       ft_plot_ortho(opt.fun(:,:,:,tmpqi(1),tmpqi(2)), 'transform', eye(4), 'location', opt.ijk, ...
         'style', 'subplot', 'parents', tmph, 'update', opt.update, ...
-        'colormap', opt.funcolormap, 'colorlim', [opt.fcolmin opt.fcolmax]);
+        'colormap', opt.funcolormap, 'clim', [opt.fcolmin opt.fcolmax]);
     end
     % after the first call, the handles to the functional surfaces
     % exist. create a variable containing this, and sort according to
@@ -1424,14 +1424,14 @@ if opt.hasfun
       tmph  = opt.funhandles;
       ft_plot_ortho(opt.fun(:,:,:,tmpqi(1),tmpqi(2)), 'datmask', opt.msk(:,:,:,tmpqi(1),tmpqi(2)), 'transform', eye(4), 'location', opt.ijk, ...
         'style', 'subplot', 'surfhandle', tmph, 'update', opt.update, ...
-        'colormap', opt.funcolormap, 'colorlim', [opt.fcolmin opt.fcolmax], ...
+        'colormap', opt.funcolormap, 'clim', [opt.fcolmin opt.fcolmax], ...
         'opacitylim', [opt.opacmin opt.opacmax]);
     else
       tmpqi = [opt.qi 1];
       tmph  = opt.funhandles;
       ft_plot_ortho(opt.fun(:,:,:,tmpqi(1),tmpqi(2)), 'transform', eye(4), 'location', opt.ijk, ...
         'style', 'subplot', 'surfhandle', tmph, 'update', opt.update, ...
-        'colormap', opt.funcolormap, 'colorlim', [opt.fcolmin opt.fcolmax]);
+        'colormap', opt.funcolormap, 'clim', [opt.fcolmin opt.fcolmax]);
     end
   end
 end

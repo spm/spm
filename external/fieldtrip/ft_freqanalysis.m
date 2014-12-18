@@ -183,7 +183,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 9963 2014-11-13 12:32:07Z roboos $';
+revision = '$Id: ft_freqanalysis.m 10045 2014-12-15 11:20:00Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -226,6 +226,15 @@ tmpcfg.channel = cfg.channel;
 data = ft_selectdata(tmpcfg, data);
 % restore the provenance information
 [cfg, data] = rollback_provenance(cfg, data);
+
+% some proper error handling
+if isfield(data, 'trial') && numel(data.trial)==0
+  error('no trials were selected'); % this does not apply for MVAR data
+end
+
+if numel(data.label)==0
+  error('no channels were selected');
+end
 
 % switch over method and do some of the method specfic checks and defaulting
 switch cfg.method

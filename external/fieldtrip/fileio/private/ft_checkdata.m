@@ -56,7 +56,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 10021 2014-12-03 16:20:25Z roboos $
+% $Id: ft_checkdata.m 10050 2014-12-15 15:05:39Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -315,13 +315,13 @@ if ~isempty(dtype)
       isvolume = 0;
       issource = 1;
       okflag = 1;
-    elseif isequal(dtype(iCell), {'volume'}) && ischan
+    elseif isequal(dtype(iCell), {'volume'}) && (ischan || istimelock || isfreq)
       data = parcellated2source(data);
       data = ft_datatype_volume(data);
       ischan = 0;
       isvolume = 1;
       okflag = 1;
-    elseif isequal(dtype(iCell), {'source'}) && ischan
+    elseif isequal(dtype(iCell), {'source'}) && (ischan || istimelock || isfreq)
       data = parcellated2source(data);
       data = ft_datatype_source(data);
       ischan = 0;
@@ -1716,7 +1716,8 @@ if isfield(data, 'cfg')
 end
 
 fn = fieldnames(data);
-fn = setdiff(fn, {'label', 'time', 'freq', 'hdr', 'cfg', 'grad', 'elec', 'dimord'});
+fn = setdiff(fn, {'label', 'time', 'freq', 'hdr', 'cfg', 'grad', 'elec', 'dimord'}); % remove irrelevant fields
+fn(~cellfun(@isempty, regexp(fn, 'dimord$'))) = []; % remove irrelevant (dimord) fields
 sel = false(size(fn));
 for i=1:numel(fn)
   try

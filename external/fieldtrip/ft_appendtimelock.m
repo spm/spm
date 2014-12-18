@@ -36,9 +36,9 @@ function [timelock] = ft_appendtimelock(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendtimelock.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_appendtimelock.m 10047 2014-12-15 11:50:42Z johzum $
 
-revision = '$Id: ft_appendtimelock.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_appendtimelock.m 10047 2014-12-15 11:50:42Z johzum $';
 
 % do the general setup of the function
 ft_defaults
@@ -117,7 +117,7 @@ switch cfg.appenddim
       timelock.dimord = 'rpt_chan_time';
       
       % these don't make sense when concatenating the avg
-      hastrialinfo  = isfield(varargin{1}, 'triainfo');
+      hastrialinfo  = isfield(varargin{1}, 'trialinfo');
       hassampleinfo = isfield(varargin{1}, 'sampleinfo');
       
       ntrial = size(varargin{1}.trial,1);
@@ -188,7 +188,7 @@ switch cfg.appenddim
     
     if isfield(varargin{1}, 'trial')
       % these don't make sense when concatenating the avg
-      hastrialinfo  = isfield(varargin{1}, 'triainfo');
+      hastrialinfo  = isfield(varargin{1}, 'trialinfo');
       hassampleinfo = isfield(varargin{1}, 'sampleinfo');
       
       ntrial = zeros(size(varargin));
