@@ -20,7 +20,7 @@ function ADEM_pursuit
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_pursuit.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: ADEM_pursuit.m 6290 2014-12-20 22:11:50Z karl $
  
  
 % hidden causes and states
@@ -46,7 +46,7 @@ function ADEM_pursuit
 % parameters mapping from (unstable) point attractors to visual space
 %--------------------------------------------------------------------------
 n   = 8;                                      % number of attractors
-a   = [1:n]*2*pi/n;                           % angles on unit circle
+a   = (1:n)*2*pi/n;                           % angles on unit circle
 P   = [cos(a); sin(a)];
 n   = size(P,2);                              % number of attractors
 x.o = [0;0];                                  % oculomotor angle
@@ -138,9 +138,9 @@ subplot(2,2,4), title('Unexpected','FontSize',16)
 %---------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
 
-iE    = [D:(N - D)];
+iE    = (D:(N - D));
 iU    = iE + D;
-t     = [1:length(iE)]*8;
+t     = (1:length(iE))*8;
  
 % true displacement from target (in intrinsic coordinates)
 %--------------------------------------------------------------------------

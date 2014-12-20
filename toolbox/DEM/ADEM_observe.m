@@ -13,7 +13,7 @@ function ADEM_observe
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_observe.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: ADEM_observe.m 6290 2014-12-20 22:11:50Z karl $
  
  
 % hidden causes and states
@@ -167,7 +167,7 @@ px = px - mean(px);
  
 subplot(2,2,4)
 xca = xcorr(qx,px,n,'coef');
-plot([0:(n + n)] - n,xca,[0:(n + n)] - n,xc,':',[0 0],[-1 1],'k-.')
+plot((0:(n + n)) - n,xca,(0:(n + n)) - n,xc,':',[0 0],[-1 1],'k-.')
 title('observation','FontSize',16)
 xlabel('time')
 ylabel('cross-correlation')

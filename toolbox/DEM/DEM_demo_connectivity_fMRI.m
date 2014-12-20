@@ -31,7 +31,7 @@ function DEM_demo_connectivity_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 5831 2014-01-10 16:49:55Z karl $
+% $Id: DEM_demo_connectivity_fMRI.m 6290 2014-12-20 22:11:50Z karl $
 
 % Simulate timeseries
 %==========================================================================
@@ -215,7 +215,7 @@ title('True','FontSize',16)
 
 
 
-% eturn if called as a demo - otherwise perform model search
+% return if called as a demo - otherwise perform model search
 %--------------------------------------------------------------------------
 if ~exist('DCM_stochastic.mat','file')
     return

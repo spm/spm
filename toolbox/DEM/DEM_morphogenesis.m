@@ -23,20 +23,21 @@ function DEM = DEM_morphogenesis
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_morphogenesis.m 6283 2014-12-08 10:35:12Z karl $
+% $Id: DEM_morphogenesis.m 6290 2014-12-20 22:11:50Z karl $
  
  
 % preliminaries
 %--------------------------------------------------------------------------
+clear global
 rng('default')
 SPLIT    = 0;                              % split: 1 = upper, 2 = lower
-N        = 16;                             % length of process (bins)
+N        = 32;                             % length of process (bins)
  
 % generative process and model
 %==========================================================================
-M(1).E.d = 2;                              % approximation order
-M(1).E.n = 2;                              % embedding order
-M(1).E.s = 1;                              % smoothness
+M(1).E.d  = 2;                             % approximation order
+M(1).E.n  = 2;                             % embedding order
+M(1).E.s  = 1;                             % smoothness
  
 % priors (prototype)
 %--------------------------------------------------------------------------
@@ -87,18 +88,16 @@ P.c   = morphogenesis(P.x,P.s);           % signal sensed at each position
  
 % initialise action and expectations
 %--------------------------------------------------------------------------
-v     = randn(n,n)/8;                     % states (identity)
+v     = randn(n,n)/8;                       % states (identity)
 g     = Mg([],v,P);
-a.x   = randn(size(P.x))/8;               % action (chemotaxis)
+a.x   = g.x;                              % action (chemotaxis)
 a.s   = g.s;                              % action (signal release)
- 
  
  
 % generative process 
 %==========================================================================
 R     = spm_cat({kron(eye(n,n),ones(2,2)) []; [] kron(eye(n,n),ones(4,4));
                  kron(eye(n,n),ones(4,2)) kron(eye(n,n),ones(4,4))});
-R     = 1;
 
 % level 1 of generative process
 %--------------------------------------------------------------------------
@@ -124,7 +123,7 @@ G(2).V  = exp(16);
 %--------------------------------------------------------------------------
 M(1).g  = @(x,v,P) Mg([],v,P);
 M(1).v  = g;
-M(1).V  = exp(4);
+M(1).V  = exp(3);
 M(1).pE = P;
  
 % level 2: 
@@ -223,7 +222,7 @@ axis square, box off
  
 % free energy and expectations
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1');
+spm_figure('GetWin','Figure 1'); clf
 colormap pink
 subplot(2,2,1); cla
  
@@ -247,27 +246,23 @@ axis square tight
  
 % target morphology
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2');
- 
- 
-subplot(4,2,1); cla
-bar(P.x')
-spm_axis tight
-xlabel('cell','Fontsize',16)
-ylabel('location')
- 
-subplot(4,2,3); cla
+spm_figure('GetWin','Figure 2'); clf
+
+subplot(2,2,1); cla
 for i = 1:m
     for j = 1:n
+        x = P.x(2,j);
+        y = P.x(1,j) + i/6;
         if P.s(i,j)
-            plot(j,i,'.','markersize',32,'color','k'); hold on
+            plot(x,y,'.','markersize',24,'color','k'); hold on
         else
-            plot(j,i,'o','markersize',12,'color','k'); hold on
+            plot(x,y,'.','markersize',24,'color','c'); hold on
         end
     end
 end
 xlabel('cell')
-spm_axis tight, axis image ij off
+title('Encoding','Fontsize',16)
+axis image off
 hold off
  
 subplot(2,2,2); cla
@@ -384,22 +379,25 @@ end
 % first level process: generating input
 %--------------------------------------------------------------------------
 function g = Gg(x,v,a,P)
- 
+global t
 % k     = diag([2 1]);                   % perturbations
 % k     = diag([1 1 1/4 1]);             % perturbations
- 
+
 a     = spm_unvec(a,P);
+
 g.x   = a.x;                             % position  signal
 g.s   = a.s;                             % intrinsic signal
-g.c   = morphogenesis(a.x,a.s);          % extrinsic signal
+g.c   = t*morphogenesis(a.x,a.s);        % extrinsic signal
  
 % first level model: mapping hidden causes to sensations
 %--------------------------------------------------------------------------
 function g = Mg(x,v,P)
 global t
+if isempty(t); t = 0; end
 
-p    = spm_softmax(v,t/16);              % expected identity
+p    = spm_softmax(v);                   % expected identity
+
 g.x  = P.x*p;                            % position
 g.s  = P.s*p;                            % intrinsic signal
-g.c  = P.c*p;                            % extrinsic signal
+g.c  = t*P.c*p;                          % extrinsic signal
 

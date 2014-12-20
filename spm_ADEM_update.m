@@ -3,20 +3,19 @@ function [DEM] = spm_ADEM_update(DEM,COV)
 % FORMAT [DEM] = spm_ADEM_update(DEM,COV)
 %
 % DEM - DEM structure
-% COV - flag for Bayesian belief updating (with covariance)
+% COV - Covariance of parameter (P) fluctuations (E): P(i + 1) = P(i) + E
+%     - where cov(E) = COV*pC
 %
-% this routine updates posterior expectations about states and parameters
+% This routine updates posterior expectations about states and parameters
 % by replacing prior expectations with posterior expectations (and
-% similarly updating hidden states and causes to the final iteration). It
+% similarly updating hidden states and causes to the final iteration). If
 % called with an extra argument, the posterior variances of the
 % parameters are also updated.
-%
-% COV ranges from 0 to 1 to conrol the degree of covariance updating.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_ADEM_update.m 6282 2014-12-05 21:57:47Z karl $
+% $Id: spm_ADEM_update.m 6290 2014-12-20 22:11:50Z karl $
 
 
 % preliminaries
@@ -33,31 +32,20 @@ for i = 1:(n - 1)
     %----------------------------------------------------------------------
     DEM.M(i).x  = spm_unvec(DEM.qU.x{i}(:,end),DEM.M(i).x);
     
+    % parameters
+    %----------------------------------------------------------------------
+    qE          = spm_vec(DEM.qP.P{i});
+    DEM.M(i).pE = spm_unvec(qE,DEM.M(i).pE);
+    
     if nargin > 1
         
         % parameter covariance
         %------------------------------------------------------------------
-        np          = length(DEM.M(i).pC);
-        qP          = spm_inv(C(1:np,1:np));
-        pP          = spm_inv(DEM.M(i).pC);
-        pC          = spm_inv(COV*qP + (1 - COV)*pP);
-        np          = np + 1;
-        C           = C(np:end,np:end);
-        DEM.M(i).pC = pC;
-        
-        % and parameters
-        %------------------------------------------------------------------
-        pE          = spm_vec(DEM.M(i).pE);
-        qE          = spm_vec(DEM.qP.P{i});
-        qE          = pC*(COV*qP*qE + (1 - COV)*pP*pE);
-        DEM.M(i).pE = spm_unvec(qE,DEM.M(i).pE);
-        
-    else
-        
-        % parameters
-        %------------------------------------------------------------------
-        qE          = spm_vec(DEM.qP.P{i});
-        DEM.M(i).pE = spm_unvec(qE,DEM.M(i).pE);
+        pC          = DEM.M(i).pC;
+        np          = length(pC);
+        qC          = C(1:np,1:np);
+        C           = C(np + 1:end,np + 1:end);
+        DEM.M(i).pC = qC + COV*pC;
         
     end
     

@@ -129,7 +129,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM.m 6283 2014-12-08 10:35:12Z karl $
+% $Id: spm_ADEM.m 6290 2014-12-20 22:11:50Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -188,13 +188,13 @@ na   = ga;                                % number of a (action)
 %--------------------------------------------------------------------------
 try, nE = M(1).E.nE; catch, nE = 16; end
 try, nM = M(1).E.nM; catch, nM = 8;  end
+try, dt = M(1).E.dt; catch, dt = 1;  end
  
  
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
-global t
-td = 1;                                   %     integration time for D-Step
 te = 2;                                   % log integration time for E-Step
+global t
 
 
 % precision (roughness) of generalised fluctuations
@@ -423,7 +423,7 @@ for iE = 1:nE
  
         % time (GLOBAL variable for non-automomous systems)
         %------------------------------------------------------------------
-        t      = iY*td;
+        t      = iY/nY;
         
         % pass action to pu.a (external states)
         %==================================================================
@@ -562,7 +562,7 @@ for iE = 1:nE
  
         % update states q = {x,v,z,w} and conditional modes
         %==================================================================
-        du    = spm_dx(dFduu,dFdu,td);
+        du    = spm_dx(dFduu,dFdu,dt);
         u     = spm_unvec(spm_vec(u) + du,u);
  
         % and save them
@@ -609,7 +609,7 @@ for iE = 1:nE
             %======================================================================
             J(iY) = - trace(E'*iS*E)/2  ...            % states (u)
                     + spm_logdet(qu.c)  ...            % entropy q(u)
-                    + spm_logdet(iS)*1/2;              % entropy - error
+                    + spm_logdet(iS)/2;                % entropy - error
         end
         
     end % sequence (nY)
@@ -849,4 +849,6 @@ DEM.qP = qP;                  % conditional moments of model-parameters
 DEM.qH = qH;                  % conditional moments of hyper-parameters
  
 DEM.F  = F;                   % [-ve] Free energy
-DEM.J  = J;                   % [-ve] Free energy (over samples)
+try
+    DEM.J  = J;               % [-ve] Free energy (over samples)
+end

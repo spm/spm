@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 6270 2014-11-29 12:04:48Z karl $
+% $Id: spm_DEM_qU.m 6290 2014-12-20 22:11:50Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -73,7 +73,7 @@ for i = 1:g
         E{i} = real(E{i});
         V{i} = real(V{i});
         t = 1:size(V{i},1);
-        plot(t,full(E{i})',':r',t,full(V{i})')
+        plot(t,full(E{i})',':',t,full(V{i})')
         box off
  
  
@@ -86,7 +86,7 @@ for i = 1:g
             c(j,:) = [];
             fill([t fliplr(t)],[full(V{i} + y)' fliplr(full(V{i} - y)')],...
                  [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
-            plot(t,full(E{i})',':r',t,full(V{i})')
+            plot(t,full(E{i})',':',t,full(V{i})')
             hold off
         end
  
@@ -122,7 +122,7 @@ for i = 1:g
             plot(t,full(V{i})')
         end
         try
-            plot(t,full(E{i})',':r')
+            plot(t,full(E{i})',':')
         end
         box off, hold off
         set(gca,'XLim',[t(1) t(end)])
@@ -147,7 +147,7 @@ for i = 1:g
                 plot(t,pV{i}','-.k','linewidth',2)
             end
             try
-                plot(t,full(E{i}'),':r')
+                plot(t,full(E{i}'),':')
             end
             plot(t,full(V{i})'),box off
             hold off
@@ -222,7 +222,7 @@ if isfield(qU,'a')
         plot(t,full(qU.a{end})');
         str = 'action'; hold on
         try
-            plot(t,full(pU.v{2})','-.k','Linewidth',2)
+            plot(t,full(pU.v{2})','-.k','Linewidth',1)
             box off, 
             str = 'perturbation and action';
         end

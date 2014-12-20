@@ -16,7 +16,7 @@ function [p,dp] = spm_LAP_eval(M,qu,qh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_LAP_eval.m 6017 2014-05-24 14:36:02Z karl $
+% $Id: spm_LAP_eval.m 6290 2014-12-20 22:11:50Z karl $
 
 
 % Get states {qu.v{1},qu.x{1}} in hierarchical form (v{i},x{i})
@@ -57,17 +57,12 @@ if nargout < 2, return, end
 % gradients
 %==========================================================================
 
-% assume predicions are a function of, and only of hyperparameters
+% assume precisions can be functions of hyper-parameters and states
 %--------------------------------------------------------------------------
-try
-    method   = M(1).E.method;
-catch
-    method.h = 1;
-    method.g = 1;
-    method.x = 0;
-    method.v = 0;
-end
-
+try method.h = M(1).E.method.h; catch, method.h = 1; end
+try method.g = M(1).E.method.g; catch, method.g = 1; end
+try method.x = M(1).E.method.x; catch, method.x = 1; end
+try method.v = M(1).E.method.v; catch, method.v = 1; end
 
 % number of variables
 %--------------------------------------------------------------------------

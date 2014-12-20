@@ -149,7 +149,7 @@ function [DEM] = spm_ALAP(DEM)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ALAP.m 6274 2014-12-01 08:33:05Z karl $
+% $Id: spm_ALAP.m 6290 2014-12-20 22:11:50Z karl $
 
 
 % check model, data and priors
@@ -180,26 +180,9 @@ end
 %--------------------------------------------------------------------------
 try, nN = M(1).E.nN; catch, nN = 16;  end
 
-
 % ensure integration scheme evaluates gradients at each time-step
 %--------------------------------------------------------------------------
 M(1).E.linear = 4;
-
-% assume precisions are a function of, and only of, hyperparameters
-%--------------------------------------------------------------------------
-try
-    method = M(1).E.method;
-catch
-    method.h = 1;
-    method.g = 1;
-    method.x = 0;
-    method.v = 0;
-end
-try method.h; catch, method.h = 0; end
-try method.g; catch, method.g = 0; end
-try method.x; catch, method.x = 0; end
-try method.v; catch, method.v = 0; end
-
 
 % assume precisions have a Gaussian autocorrelation function
 %--------------------------------------------------------------------------
@@ -213,18 +196,17 @@ end
 %--------------------------------------------------------------------------
 for i  = 1:length(M)
     try
-        feval(M(i).ph,M(i).x,M(i + 1).v,M(i).hE,M(i)); method.v = 1;
+        feval(M(i).ph,M(i).x,M(i + 1).v,M(i).hE,M(i));
     catch
         M(i).ph = inline('spm_LAP_ph(x,v,h,M)','x','v','h','M');
     end
     try
-        feval(M(i).pg,M(i).x,M(i + 1).v,M(i).gE,M(i)); method.x = 1;
+        feval(M(i).pg,M(i).x,M(i + 1).v,M(i).gE,M(i));
     catch
         M(i).pg = inline('spm_LAP_pg(x,v,h,M)','x','v','h','M');
     end
 end
 
-M(1).E.method = method;
 
 % order parameters (d = n = 1 for static models) and checks
 %==========================================================================
@@ -388,18 +370,27 @@ dHdp  = sparse(np,1);
 dHdu  = sparse(nu,1);
 
 
+% test for dependency of precisions on hyperparameters and states
+%--------------------------------------------------------------------------
+[p,dp]        = spm_LAP_eval(M,qu,qh);
+try method.h  = M(1).E.method.h; catch, method.h = any(dp.h.dh(:)); end
+try method.g  = M(1).E.method.g; catch, method.g = any(dp.g.dg(:)); end
+try method.x  = M(1).E.method.x; catch, method.x = any([dp.g.dx(:);dp.h.dx(:)]); end
+try method.v  = M(1).E.method.v; catch, method.v = any([dp.g.dv(:);dp.h.dv(:)]); end
+M(1).E.method = method;
+
+
 % preclude unnecessary iterations and set switches
 %--------------------------------------------------------------------------
 mnh   = nh*method.h;
 mng   = ng*method.g;
 mnx   = nx*method.x;
 mnv   = nv*method.v;
-if ~np && ~mnh && ~mng, nN = 1; end
+if ~np && ~logical(mnh) && ~logical(mng), nN = 1; end
 
 
 % preclude very precise states from entering free-energy/action
 %--------------------------------------------------------------------------
-p     = spm_LAP_eval(M,qu,qh);
 ih    = p.h < 8;
 ig    = p.g < 8;
 ie    = kron(ones(n,1),ih);
@@ -1073,7 +1064,7 @@ qH.W   = P{2};
 %--------------------------------------------------------------------------
 DEM.M    = M;                   % model
 DEM.U    = U;                   % causes
-DEM.Y    = pU.v{1};             % ssimulated response variables
+DEM.Y    = pU.v{1};             % simulated response variables
 
 DEM.qU   = qU;                  % conditional moments of model-states
 DEM.qP   = qP;                  % conditional moments of model-parameters

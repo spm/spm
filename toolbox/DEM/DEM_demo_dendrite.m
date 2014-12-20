@@ -24,15 +24,16 @@ function DEM_demo_dendrite
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_dendrite.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: DEM_demo_dendrite.m 6290 2014-12-20 22:11:50Z karl $
  
 % preliminaries
 %==========================================================================
-DemoMode = 1;
+rng('default')
+DemoMode = 0;
  
 % generative model - Stable heteroclinic channel of pre-synaptic neurons
 %==========================================================================
-fx  = inline('spm_lotka_volterra(x,exp(v),P)','x','v','P');
+fx  = inline('spm_lotka_volterra(x,exp(v))','x','v','P');
 gx  = inline('x(P.w)','x','v','P');
  
 % connection weights: NB synapses are changed by switching Y (not P.w)
@@ -107,10 +108,8 @@ else
         % model search over new prior without the i-th parameter
         % -----------------------------------------------------------------
         for k = 1:ny
-            R     = speye(ny,ny) - sparse(k,k,1,ny,ny);
             rE    = pE;
             rE(k) = 4;
-            rC    = R*pC*R;
             Z(k)  = spm_log_evidence(qE,qC,pE,pC,rE,pC);
         end
         
@@ -204,11 +203,9 @@ pC    = DEM.M(1).hC;
 % -------------------------------------------------------------------------
 QE    = linspace(-2,4,32);
 for k = 1:length(QE)
-    R     = speye(ny,ny) - sparse(1,1,1,ny,ny);
     rE    = pE;
     rE(1) = 4;
     qE(1) = QE(k);
-    rC    = R*pC*R;
     L     = spm_log_evidence(qE,qC,pE,pC,rE,pC);
     p(k)  = exp(L)/(exp(L) + 1);
 end
@@ -240,7 +237,9 @@ h = findobj(gca,'type','image');
 set(h(1),'Userdata',{MM,16})
 set(h(1),'ButtonDownFcn','spm_DEM_ButtonDownFcn')
  
- 
+return
+
+
 % Illustrate sequence specificity
 %==========================================================================
 SIM   = DEM;
@@ -252,7 +251,6 @@ SIM.M(2).v    = -1;
 SIM.M(2).V    =  8;
 n     = 3;
 t     = 1:N;
-j     = 1:np;
 Q     = P;
 for i = 1:n
     
@@ -313,8 +311,6 @@ SIM.M(2).V    =  8;
 IN    = 1:np;
 OUT   = fliplr(IN);
 u     = [1 2 4 6];
-U     = -((1:N) - N/2).^2/(2*(N/8)^2);
- 
 for i = 1:length(u)
     
     % Speed

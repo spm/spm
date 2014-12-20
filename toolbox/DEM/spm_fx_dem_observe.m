@@ -19,7 +19,7 @@ function [f]= spm_fx_dem_observe(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_dem_observe.m 3901 2010-05-27 16:14:36Z karl $
+% $Id: spm_fx_dem_observe.m 6290 2014-12-20 22:11:50Z karl $
 
 % motion of physical states
 %==========================================================================
@@ -51,12 +51,7 @@ f.x  = [x.x(3);
 
 % motion of (Lorenz) attractor states
 %==========================================================================
-T.f      = spm_speye(n,n,-1) - spm_speye(n,n,+1) + 2*spm_speye(n,n,0);
-T.f(n,1) = -1;
-T.f(1,n) = +1;
-T.f      = T.f/2 - 1;
- 
-f.a      = spm_lotka_volterra(x.a,[],T)*.8;
+f.a  = spm_lotka_volterra(x.a,1/2)*.8;
 
 
 

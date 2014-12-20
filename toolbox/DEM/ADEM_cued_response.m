@@ -30,7 +30,7 @@ function ADEM_cued_response
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cued_response.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: ADEM_cued_response.m 6290 2014-12-20 22:11:50Z karl $
  
  
 % hidden causes and states
@@ -127,7 +127,6 @@ G(2).V  = exp(16);
  
 % Create cues
 %==========================================================================
-dt    = 64;                                  % bin size (ms)
 isi   = 12;                                  % inter stimulus interval
 dur   = 4;                                   % stimulus duration
 j     = [1 2 3 4 1 4 3 2 1 4 3 2 1];         % stimulus order

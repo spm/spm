@@ -29,7 +29,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_response_set.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: ADEM_response_set.m 6290 2014-12-20 22:11:50Z karl $
  
  
 % hidden causes and states
@@ -140,9 +140,10 @@ DEM.M = M;
 DEM.C = C;
 
 
-DEM   = spm_ADEM(DEM)
+DEM   = spm_ADEM(DEM);
 subplot(4,2,7)
-%spm_dem_set_movie(DEM)
+spm_dem_set_movie(DEM)
+
 return
 
 
@@ -156,9 +157,6 @@ xlabel('cue onset (sec)','FontSize',12)
 ylabel('milliseconds','FontSize',12)
 title('reaction times','FontSize',16)
 axis square, box off, hold off
-
-
-
 
 % set precision of salience or affordance
 %--------------------------------------------------------------------------

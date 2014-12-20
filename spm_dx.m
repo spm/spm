@@ -49,7 +49,7 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 6270 2014-11-29 12:04:48Z karl $
+% $Id: spm_dx.m 6290 2014-12-20 22:11:50Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -71,7 +71,7 @@ if min(t) > exp(16)
     dx = -spm_pinv(dfdx)*spm_vec(f);
     dx =  spm_unvec(dx,f);
 
-elseif length(f) > nmax && t < 2
+elseif length(f) > nmax && max(t) < 2 && isscalar(t)
     
     % numerical approximation (removing very dissipative modes)
     % fprintf('\nnumerical approximation: n = %i',length(f));

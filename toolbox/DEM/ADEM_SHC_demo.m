@@ -7,19 +7,19 @@ function ADEM_SHC_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_SHC_demo.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: ADEM_SHC_demo.m 6290 2014-12-20 22:11:50Z karl $
  
 % generative process
 %==========================================================================
-M(1).E.n = 4;
+M(1).E.n = 2;
 M(1).E.d = 2;
 M(1).E.s = 1;
  
 % level 1
 %--------------------------------------------------------------------------
 G(1).x  = [1/2;0];
-G(1).f  = inline('a','x','v','a','P');
-G(1).g  = inline('x','x','v','a','P');
+G(1).f  = @(x,v,a,P) a;
+G(1).g  = @(x,v,a,P) x;
 G(1).V  = exp(8);                           % error precision
 G(1).W  = exp(8);                           % error precision
 G(1).U  = 1;                                % error precision
@@ -30,47 +30,38 @@ G(1).U  = 1;                                % error precision
 G(2).v  = 0;                                % inputs
 G(2).a  = [0;0];                            % action
 G(2).V  = exp(16);
-G       = spm_ADEM_M_set(G);
- 
- 
+
 % generative model
 %==========================================================================                        
-fx      = inline('spm_lotka_volterra(x,v,P)','x','v','P');
-gx      = inline('x.v','x','v','P');
  
 % positions associated with each state (on unit circle)
 %--------------------------------------------------------------------------
-nx        = 8;
-P.g(1,:)  = cos(2*pi*((1:nx)' - 1)/nx);
-P.g(2,:)  = sin(2*pi*((1:nx)' - 1)/nx);
+nx       = 8;
+P.g(1,:) = cos(2*pi*((1:nx)' - 1)/nx);
+P.g(2,:) = sin(2*pi*((1:nx)' - 1)/nx);
  
 % parameters of succession
 %--------------------------------------------------------------------------
-P.f       =  spm_speye(nx,nx,-1) - spm_speye(nx,nx,+1);
-P.f(nx,1) = -1;
-P.f(1,nx) =  1;
-P.f       =  P.f/2 - 1 + speye(nx);
+P.f      =  spm_lotka_volterra(nx,1/2);
  
 % level 1
 %--------------------------------------------------------------------------
-M(1).x.x  = sparse(1,1,8,nx,1) - 8;
-M(1).x.v  = [1; 0];
-M(1).f    = fx;
-M(1).g    = gx;
-M(1).pE   = P;
-M(1).V    = exp(4);                           % error precision
-M(1).W    = exp(8);                           % error precision
+M(1).x   = sparse(1,1,8,nx,1) - 8;
+M(1).f   = @(x,v,P) spm_lotka_volterra(x,v,P.f);
+M(1).g   = @(x,v,P) P.g*spm_softmax(x);
+M(1).pE  = P;
+M(1).V   = exp(2);                           % error precision
+M(1).W   = exp(8);                           % error precision
  
 % level 2
 %--------------------------------------------------------------------------
 M(2).v = 0;                                   % inputs
 M(2).V = exp(16);
-M      = spm_DEM_M_set(M);
- 
+
  
 % ADEM
 %==========================================================================
-U      = sparse(128,M(1).m);
+U      = sparse(128,1);
 DEM.U  = U;
 DEM.C  = U;
 DEM.G  = G;

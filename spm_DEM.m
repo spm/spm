@@ -90,7 +90,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_DEM.m 6290 2014-12-20 22:11:50Z karl $
 
 
 % check model, data, priors and confounds and unpack
@@ -493,10 +493,6 @@ for iE = 1:nE
             f     = K*dFdu  + D*u;
             dfdu  = K*dFduu + D;
             
-            if iD == 1 && isfield(DEM,'E')
-                DEM.E(:,iY) = eig(full(dfdu));
-            end
-            
             du    = spm_dx(dfdu,f,td);
             q     = spm_unvec(u + du,q);
                         
@@ -505,7 +501,12 @@ for iE = 1:nE
             qu.x(1:n) = q((1:n));
             qu.v(1:d) = q((1:d) + n);
             
-            
+            % save Lyapunov exponents (eigenvalues) if requested
+            %--------------------------------------------------------------
+            if iD == 1 && isfield(DEM,'E')
+                DEM.E(:,iY) = eig(full(dfdu));
+            end
+                        
             % D-Step: break if convergence (for static models)
             %--------------------------------------------------------------
             if ~nx
