@@ -97,7 +97,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 6233 2014-10-12 09:43:50Z karl $
+% $Id: spm_nlsi_GN.m 6291 2014-12-22 11:15:19Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -443,7 +443,7 @@ for k = 1:M.Nmax
     % E-Step with Levenberg-Marquardt regularization
     %======================================================================
     
-    % objective function: F(p) (= log evidence - divergence)
+    % objective function: F(p) = log evidence - divergence
     %----------------------------------------------------------------------
     L(1) = spm_logdet(iS)*nq/2  - real(e'*iS*e)/2 - ny*log(8*atan(1))/2;            ...
     L(2) = spm_logdet(ipC*Cp)/2 - p'*ipC*p/2;

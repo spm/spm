@@ -7,7 +7,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_VL.m 6235 2014-10-12 10:03:05Z karl $
+% $Id: DEMO_VL.m 6291 2014-12-22 11:15:19Z karl $
 
 % Model specification
 %==========================================================================
@@ -58,10 +58,9 @@ M.l   = 1;
 %==========================================================================
 spm_figure('GetWin','Figure 1');clf
 
-pe      = spm_vec(pE);
-PP      = spm_unvec(pe + randn(size(pe))/32,pE);
+PP      = pE;
 PP.G(1) = 2;
-PP.G(2) = 2.5;
+PP.G(2) = 0.5;
 
 
 M.ons  = 64;
@@ -72,7 +71,7 @@ t      = (1:N)*U.dt;
 pst    = t*1000;
 U.u    = spm_erp_u(t,PP,M);
 Yy     = spm_gen_erp(PP,M,U);
-Y.y{1} = Yy{1} + mean(std(Yy{1}))*randn(size(Yy{1}))/8;
+Y.y{1} = Yy{1} + mean(std(Yy{1}))*randn(size(Yy{1}))/4;
 Y.dt   = U.dt;
 
 % input
@@ -132,17 +131,24 @@ ll   = LL - max(max(LL)); ll(ll < -WIN) = -WIN;
 dp   = Dp - max(max(Dp)); dp(dp < -WIN) = -WIN;
 dh   = Dh - max(max(Dh)); dh(dh < -WIN) = -WIN;
 
+[i j] = find(FE == max(FE(:)));
+qP(1) = P1(i);
+qP(2) = P2(j);
+
+
+
 % graphics
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2');clf
 
 subplot(3,2,1)
 imagesc(P1,P2,HZ), hold on, 
-plot(PP.G(2),PP.G(1),'.r','MarkerSize',32), hold off
+plot(PP.G(2),PP.G(1),'.r','MarkerSize',32), hold on
+plot(qP(2),qP(1),'.g','MarkerSize',32), hold off
 axis square
 ylabel('inhibitory time constant (ms)')
 xlabel('excitatory time constant (ms)')
-title('Hrequency','FontSize',16)
+title('Frequency','FontSize',16)
 
 subplot(3,2,2)
 imagesc(P1,P2,LE), hold on, 
@@ -150,7 +156,7 @@ plot(PP.G(2),PP.G(1),'.r','MarkerSize',32), hold off
 axis square
 ylabel('inhibitory time constant (ms)')
 xlabel('excitatory time constant (ms)')
-title('stability','FontSize',16)
+title('Stability','FontSize',16)
 
 subplot(3,2,3)
 imagesc(P1,P2,fe), hold on, 
@@ -158,7 +164,7 @@ plot(PP.G(2),PP.G(1),'.r','MarkerSize',32), hold off
 axis square
 xlabel('inhibitory time constant')
 ylabel('excitatory time constant')
-title('free energy','FontSize',16)
+title('Free energy','FontSize',16)
 
 subplot(3,2,4)
 imagesc(P1,P2,ll), hold on, 
@@ -166,7 +172,7 @@ plot(PP.G(2),PP.G(1),'.r','MarkerSize',32), hold off
 axis square
 xlabel('inhibitory time constant')
 ylabel('excitatory time constant')
-title('log likelihood','FontSize',16)
+title('Log likelihood','FontSize',16)
 
 subplot(3,2,5)
 imagesc(P1,P2,dp), hold on, 
@@ -182,7 +188,7 @@ plot(PP.G(2),PP.G(1),'.r','MarkerSize',32), hold off
 axis square
 xlabel('inhibitory time constant')
 ylabel('excitatory time constant')
-title('hyperparameters','FontSize',16)
+title('Hyperparameters','FontSize',16)
 
 
 
