@@ -1,12 +1,11 @@
 function this = delete(this)
-% Delete the files of M/EEG dataset from the disk
+% Delete files of an M/EEG dataset from disk and return unlinked object
 % FORMAT this = delete(this)
-% returns unlinked object
-%_______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: delete.m 5200 2013-01-22 10:08:01Z vladimir $
+% $Id: delete.m 6293 2014-12-23 18:15:57Z guillaume $
 
 
 if islinked(this)
@@ -14,4 +13,3 @@ if islinked(this)
 end
 this = unlink(this);
 spm_unlink(fullfile(this));
-
