@@ -183,7 +183,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 10045 2014-12-15 11:20:00Z roboos $';
+revision = '$Id: ft_freqanalysis.m 10072 2014-12-22 22:36:07Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -374,6 +374,7 @@ end
 chanind    = match_str(data.label, cfg.channel);
 nchan      = size(chanind,1);
 if csdflg
+  assert(nchan>1, 'CSD output requires multiple channels');
   % determine the corresponding indices of all channel combinations
   [dummy,chancmbind(:,1)] = match_str(cfg.channelcmb(:,1), data.label);
   [dummy,chancmbind(:,2)] = match_str(cfg.channelcmb(:,2), data.label);

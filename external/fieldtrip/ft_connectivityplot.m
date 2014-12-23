@@ -1,8 +1,8 @@
 function [cfg] = ft_connectivityplot(cfg, varargin)
 
-% FT_CONNECTIVITYPLOT plots frequency-resolved connectivity between EEG/MEG
-% channels. The data are rendered in a square grid of subplots and each
-% subplot containing the connectivity spectrum.
+% FT_CONNECTIVITYPLOT plots channel-level frequency resolved connectivity. The
+% data are rendered in a square grid of subplots, each subplot containing the
+% connectivity spectrum between the two respective channels.
 %
 % Use as
 %   ft_connectivityplot(cfg, data)
@@ -38,9 +38,9 @@ function [cfg] = ft_connectivityplot(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityplot.m 9798 2014-09-15 08:06:26Z roboos $
+% $Id: ft_connectivityplot.m 10071 2014-12-22 22:35:23Z roboos $
 
-revision = '$Id: ft_connectivityplot.m 9798 2014-09-15 08:06:26Z roboos $';
+revision = '$Id: ft_connectivityplot.m 10071 2014-12-22 22:35:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

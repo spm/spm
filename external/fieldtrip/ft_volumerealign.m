@@ -181,9 +181,9 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 9988 2014-12-01 11:41:39Z jansch $
+% $Id: ft_volumerealign.m 10065 2014-12-22 16:18:41Z roboos $
 
-revision = '$Id: ft_volumerealign.m 9988 2014-12-01 11:41:39Z jansch $';
+revision = '$Id: ft_volumerealign.m 10065 2014-12-22 16:18:41Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -214,6 +214,7 @@ cfg.clim       = ft_getopt(cfg, 'clim',      []);
 cfg.viewmode   = ft_getopt(cfg, 'viewmode',  'ortho'); % for method=interactive
 cfg.snapshot   = ft_getopt(cfg, 'snapshot',  false);
 cfg.snapshotfile = ft_getopt(cfg, 'snapshotfile', fullfile(pwd,'ft_volumerealign_snapshot'));
+cfg.spmversion   = ft_getopt(cfg, 'spmversion', 'spm8');
 
 if isempty(cfg.method)
   if isempty(cfg.fiducial)
@@ -800,8 +801,14 @@ switch cfg.method
     delete(tmpname4);
     
   case 'spm'
-    % ensure spm8 on the path
-    ft_hastoolbox('SPM8', 1);
+    % ensure that SPM is on the path
+    if strcmpi(cfg.spmversion, 'spm2'),
+      ft_hastoolbox('SPM2',1);
+    elseif strcmpi(cfg.spmversion, 'spm8'),
+      ft_hastoolbox('SPM8',1);
+    elseif strcmpi(cfg.spmversion, 'spm12'),
+      ft_hastoolbox('SPM12',1);
+    end
     
     if ~isfield(cfg, 'spm'), cfg.spm = []; end
     cfg.spm.regtype = ft_getopt(cfg.spm, 'regtype', 'subj');

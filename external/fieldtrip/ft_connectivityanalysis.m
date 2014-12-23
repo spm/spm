@@ -113,9 +113,9 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 9965 2014-11-13 16:56:13Z roboos $
+% $Id: ft_connectivityanalysis.m 10070 2014-12-22 22:34:59Z roboos $
 
-revision = '$Id: ft_connectivityanalysis.m 9965 2014-11-13 16:56:13Z roboos $';
+revision = '$Id: ft_connectivityanalysis.m 10070 2014-12-22 22:34:59Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -861,13 +861,7 @@ switch dtype
     end
     
   case 'source'
-    stat = [];
-    stat.pos = data.pos;
-    if isfield(stat, 'dim'),
-      stat.dim = data.dim;
-    end
-    stat.inside  = data.inside;
-    stat.outside = data.outside;
+    stat = keepfields(data, {'pos', 'dim', 'transform', 'inside', 'outside'});
     stat.(outparam) = datout;
     if ~isempty(varout),
       stat.([outparam, 'sem']) = (varout/nrpt).^0.5;

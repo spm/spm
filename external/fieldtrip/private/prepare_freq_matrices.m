@@ -26,7 +26,7 @@ function [Cf, Cr, Pr, Ntrials, cfg] = prepare_freq_matrices(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_freq_matrices.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id: prepare_freq_matrices.m 10077 2014-12-22 22:40:13Z roboos $
 
 % set the defaults
 if ~isfield(cfg, 'dicsfix'), cfg.dicsfix = 'yes'; end
@@ -74,11 +74,13 @@ else
 end
 
 % the time-frequency latency has already been squeezed away (see above)
-if strcmp(freq.dimord, 'chan_freq') || strcmp(freq.dimord, 'chancmb_freq') || strcmp(freq.dimord, 'chan_chan_freq')
+if strcmp(freq.dimord, 'chan_freq') || strcmp(freq.dimord, 'chancmb_freq') || strcmp(freq.dimord, 'chan_chan_freq') || strcmp(freq.dimord, 'chan_chan_freq_time')
   Ntrials = 1;
 elseif strcmp(freq.dimord, 'rpt_chan_freq') || strcmp(freq.dimord, 'rpt_chancmb_freq') || strcmp(freq.dimord, 'rpt_chan_chan_freq')
   Ntrials = size(freq.cumtapcnt,1);
 elseif strcmp(freq.dimord, 'rpttap_chan_freq') || strcmp(freq.dimord, 'rpttap_chancmb_freq') || strcmp(freq.dimord, 'rpttap_chan_chan_freq')
+  Ntrials = size(freq.cumtapcnt,1);
+elseif strcmp(freq.dimord, 'rpttap_chan_freq_time') || strcmp(freq.dimord, 'rpttap_chancmb_freq_time') || strcmp(freq.dimord, 'rpttap_chan_chan_freq_time')
   Ntrials = size(freq.cumtapcnt,1);
 else
   error('unrecognized dimord for frequency data');

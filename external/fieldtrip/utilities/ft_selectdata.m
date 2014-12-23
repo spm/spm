@@ -68,7 +68,7 @@ function [varargout] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 9938 2014-11-05 13:52:24Z roboos $
+% $Id: ft_selectdata.m 10087 2014-12-23 11:25:49Z roboos $
 
 if nargin==1 || (nargin>2 && ischar(varargin{end-1})) || (isstruct(varargin{1}) && ~ft_datatype(varargin{1}, 'unknown'))
   % this is the OLD calling style, like this
@@ -122,6 +122,11 @@ end
 % this function only works for the upcoming (not yet standard) source representation without sub-structures
 % update the old-style beamformer source reconstruction to the upcoming representation
 if strcmp(dtype, 'source')
+  if isfield(varargin{1}, 'avg')
+    restoreavg = fieldnames(varargin{1}.avg);
+  else
+    restoreavg = {};
+  end
   for i=1:length(varargin)
     varargin{i} = ft_datatype_source(varargin{i}, 'version', 'upcoming');
   end
@@ -384,6 +389,15 @@ for i=1:length(orgdim1)
   for j=1:length(varargin)
     varargin{j}.(orgdim1{i}) = dimord;
   end
+end
+
+% restore the source.avg field, this keeps the output reasonably consistent with the
+% old-style source representation of the input
+if strcmp(dtype, 'source') && ~isempty(restoreavg)
+  for i=1:length(varargin)
+    varargin{i}.avg = keepfields(varargin{i}, restoreavg);
+    varargin{i}     = removefields(varargin{i}, restoreavg);
+  end  
 end
 
 varargout = varargin;
@@ -873,7 +887,11 @@ if isempty(cfg.latency)
   
 elseif numel(cfg.latency)==1
   % this single value should be within the time axis of each input data structure
-  tbin = nearest(alltimevec, cfg.latency, true, true);
+  if numel(alltimevec)>1
+    tbin = nearest(alltimevec, cfg.latency, true, true); % determine the numerical tolerance
+  else
+    tbin = nearest(alltimevec, cfg.latency, true, false); % don't consider tolerance
+  end
   cfg.latency = alltimevec(tbin);
   
   for k = 1:ndata
@@ -986,7 +1004,11 @@ if isfield(cfg, 'frequency')
     
   elseif numel(cfg.frequency)==1
     % this single value should be within the frequency axis of each input data structure
-    fbin = nearest(freqaxis, cfg.frequency, true, true);
+    if numel(freqaxis)>1
+      fbin = nearest(freqaxis, cfg.frequency, true, true); % determine the numerical tolerance
+    else
+      fbin = nearest(freqaxis, cfg.frequency, true, false); % don't consider tolerance
+    end
     cfg.frequency = freqaxis(fbin);
     
     for k = 1:ndata

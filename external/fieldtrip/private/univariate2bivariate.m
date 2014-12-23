@@ -33,7 +33,7 @@ function [data, powindx, hasrpt] = univariate2bivariate(data, inparam, outparam,
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: univariate2bivariate.m 9092 2014-01-13 10:23:36Z jansch $
+% $Id: univariate2bivariate.m 10080 2014-12-22 22:42:39Z roboos $
 
 cmb         = ft_getopt(varargin, 'cmb');
 demeanflag  = ft_getopt(varargin, 'demeanflag', false);
@@ -135,6 +135,9 @@ switch dtype
   case 'source'
     ncmb = numel(cmb);
     
+    % the code further down requires this to be a vector with indices
+    data = fixinside(data, 'index');
+    
     if strcmp(inparam, 'pow') && strcmp(outparam, 'powcov'),
       [nvox,nrpt] = size(data.pow);
       if sqrtflag, data.pow = sqrt(data.pow); end
@@ -199,9 +202,9 @@ switch dtype
           data.outside = setdiff((1:nvox*(ncmb+1))', data.inside);
           if isfield(data, 'momdimord'),
             data.crsspctrmdimord = ['pos_',data.momdimord(14:end)];% FIXME this assumes dimord to be 'rpttap_...'
+            data = rmfield(data, 'momdimord');
           end
           data = rmfield(data, 'mom');
-          data = rmfield(data, 'momdimord');
           
         else
           [nrpt,nvox] = size(mom);

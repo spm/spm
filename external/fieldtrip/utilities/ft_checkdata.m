@@ -56,7 +56,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 10049 2014-12-15 15:05:37Z roboos $
+% $Id: ft_checkdata.m 10082 2014-12-23 11:03:21Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -798,10 +798,12 @@ end % cmbrepresentation
 
 if issource && ~isempty(sourcerepresentation)
   data = fixsource(data, 'type', sourcerepresentation);
+  data = fixinside(data, inside); % FIXME fixsource reverts the representation to indexed
 end
 
 if issource && ~strcmp(haspow, 'no')
   data = fixsource(data, 'type', sourcerepresentation, 'haspow', haspow);
+  
 end
 
 if isfield(data, 'grad')
@@ -1386,6 +1388,11 @@ if isempty(haspow), haspow = 'no';  end
 fnames = fieldnames(input);
 tmp    = cell2mat(strfind(fnames, 'dimord')); % get dimord like fields
 
+if isfield(input, 'inside') && islogical(input.inside)
+  % the following code expects an indexed representation
+  input = fixinside(input, 'index');
+end
+
 if any(tmp>1)
   current = 'new';
 elseif any(tmp==1)
@@ -1515,7 +1522,7 @@ elseif strcmp(current, 'old') && strcmp(type, 'new'),
       tmp = getfield(stuff, fnames{k});
       siz = size(tmp);
       if isfield(input, 'cumtapcnt') && strcmp(fnames{k}, 'mom')
-        %pcc based mom is orixrpttap
+        %pcc based mom is ori*rpttap
         %tranpose to keep manageable
         for kk = 1:numel(input.inside)
           indx = input.inside(kk);

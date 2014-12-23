@@ -45,9 +45,9 @@ function [downsample] = ft_volumedownsample(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumedownsample.m 9654 2014-06-21 07:24:04Z roboos $
+% $Id: ft_volumedownsample.m 10065 2014-12-22 16:18:41Z roboos $
 
-revision = '$Id: ft_volumedownsample.m 9654 2014-06-21 07:24:04Z roboos $';
+revision = '$Id: ft_volumedownsample.m 10065 2014-12-22 16:18:41Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -118,6 +118,8 @@ if isfield(cfg, 'smooth') && ~strcmp(cfg.smooth, 'no'),
     ft_hastoolbox('SPM2',1);
   elseif strcmpi(cfg.spmversion, 'spm8'),
     ft_hastoolbox('SPM8',1);
+  elseif strcmpi(cfg.spmversion, 'spm12'),
+    ft_hastoolbox('SPM12',1);
   end
   
   for j = 1:length(cfg.parameter)

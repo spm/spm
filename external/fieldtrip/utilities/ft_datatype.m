@@ -31,7 +31,7 @@ function [type, dimord] = ft_datatype(data, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype.m 10010 2014-12-02 14:43:47Z roboos $
+% $Id: ft_datatype.m 10063 2014-12-22 14:30:48Z roboos $
 
 if nargin<2
   desired = [];
@@ -260,7 +260,7 @@ end
 
 fn = fieldnames(source);
 for i=1:length(fn)
-  if isfield(source, [fn{i} 'label'])
+  if isfield(source, [fn{i} 'label']) && isnumeric(source.(fn{i}))
     res = true;
     return
   end

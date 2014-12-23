@@ -10,19 +10,20 @@ function [data] = spm2fieldtrip(D)
 %
 % See also FT_PREPROCESSING, SPM_EEG_LOAD
 
-revision = '$Id: spm2fieldtrip.m 9273 2014-03-07 16:38:42Z jansch $';
+revision = '$Id: spm2fieldtrip.m 10086 2014-12-23 11:16:39Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble callinfo
 
-if ~ft_hastoolbox('spm8')
-  error('this requires a full version of SPM8 on your MATLAB path');
+if ~ft_hastoolbox('SPM12') && ~ft_hastoolbox('SPM8')
+  % it should be version spm8 or higher, since spm99, spm2 and spm5 did not yet the "meeg" object
+  error('this requires the SPM toolbox on your MATLAB path');
 end
 
 if ~isa(D, 'meeg')
-  error('this requires an SPM8 "meeg" object as input')
+  error('this requires an SPM "meeg" object as input')
 end
 
 % this is how SPM8 represents it
