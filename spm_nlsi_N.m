@@ -84,7 +84,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 6233 2014-10-12 09:43:50Z karl $
+% $Id: spm_nlsi_N.m 6294 2014-12-31 16:47:47Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -261,6 +261,7 @@ Vg    = spm_svd(M.gC,0);
 np    = size(Vp,2);                   % number of parameters (f)
 ng    = size(Vg,2);                   % number of parameters (g)
 nu    = size(dgdu,2);                 % number of parameters (u)
+
  
 % prior moments
 %--------------------------------------------------------------------------
@@ -273,11 +274,13 @@ uE    = sparse(nu,1);
 sw    = warning('off','all');
 pC    = Vp'*M.pC*Vp;
 gC    = Vg'*M.gC*Vg;
-uC    = speye(nu,nu)*exp(32);
+uC    = speye(nu,nu)*exp(16);
 ipC   = spm_inv(pC);                           % p - state parameters
 igC   = spm_inv(gC);                           % g - observer parameters
 iuC   = spm_inv(uC);                           % u - fixed parameters
 ibC   = spm_cat(spm_diag({ipC,igC,iuC}));      % all parameters
+bC    = speye(size(ibC))*exp(-16);
+
  
 % initialize conditional density
 %--------------------------------------------------------------------------
@@ -375,7 +378,7 @@ for ip = 1:M.Nmax
             S     = spm_inv(iS);
             iS    = kron(speye(nq),iS);
             dFdbb = dgdb'*iS*dgdb + ibC;
-            Cb    = spm_inv(dFdbb);
+            Cb    = spm_inv(dFdbb) + bC;
             
             % precision operators for M-Step
             %--------------------------------------------------------------

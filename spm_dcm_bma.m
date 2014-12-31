@@ -1,10 +1,15 @@
 function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Model-independent samples from DCM posterior
-% FORMAT bma = spm_dcm_bma (post,post_indx,subj,Nsamp,oddsr)
+% FORMAT bma = spm_dcm_bma(DCM)
+% FORMAT bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
+%
+% DCM       - cell array of DCMs over which to BMA
+%
+% or
 %
 % post      [Ni x M] vector of posterior model probabilities
 %           If Ni>1 then inference is based on subject-specific RFX posterior
-% post_indx models to use in BMA (position of models in subj sctructure)
+% post_indx models to use in BMA (position of models in subj structure)
 % subj      subj(n).sess(s).model(m).fname: DCM filename
 % Nsamp     Number of samples (default = 1e3)
 % oddsr     posterior odds ratio for defining Occam's window (default=0, ie
@@ -61,8 +66,36 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_dcm_bma.m 6294 2014-12-31 16:47:47Z karl $
 
+% inputs are DCMs – assemble input arguments
+%--------------------------------------------------------------------------
+if nargin == 1 && iscell(post)
+    
+    DCM   = post;
+    [n m] = size(DCM);
+    for i = 1:n
+        for j = 1:m
+            subj(i).sess(1).model(j).Ep = DCM{i}.Ep;
+            subj(i).sess(1).model(j).Cp = DCM{i}.Cp;
+            F(i,j) = DCM{i,j}.F;
+        end
+    end
+    
+    % (FFX) posterior over models
+    %----------------------------------------------------------------------
+    F    = sum(F);
+    F    = F - max(F);
+    P    = exp(F);
+    post = P/sum(P);
+    indx = 1:m;
+    bma  = spm_dcm_bma(post,indx,subj);
+    
+    return
+end
+
+% defaults
+%--------------------------------------------------------------------------
 if nargin < 4 || isempty(Nsamp)
     Nsamp = 1e3;
 end
@@ -74,13 +107,17 @@ Nsub = length(subj);
 Nses = length(subj(1).sess);
 
 % Number of regions
-load(subj(1).sess(1).model(1).fname);
-if isfield(DCM,'a')
-    dcm_fmri = 1;
-    nreg = DCM.n;
-    min  = DCM.M.m;
-    dimD = 0;
-else
+try
+    load(subj(1).sess(1).model(1).fname);
+    if isfield(DCM,'a')
+        dcm_fmri = 1;
+        nreg = DCM.n;
+        min  = DCM.M.m;
+        dimD = 0;
+    else
+        dcm_fmri = 0;
+    end
+catch
     dcm_fmri = 0;
 end
 
@@ -369,8 +406,8 @@ Ep_avgsbj  = mean(Ep_sbj,3);
 Ep_stdsbj  = std(Ep_sbj,0,3);
 
 for is=1:Nsub
-    bma.mEps(is)=spm_unvec(Ep_avgsbj(:,is),params(1).model(1).Ep);
-    bma.sEps(is)=spm_unvec(Ep_stdsbj(:,is),params(1).model(1).Ep);
+    bma.mEps{is}=spm_unvec(Ep_avgsbj(:,is),params(1).model(1).Ep);
+    bma.sEps{is}=spm_unvec(Ep_stdsbj(:,is),params(1).model(1).Ep);
 end
 
 if dcm_fmri

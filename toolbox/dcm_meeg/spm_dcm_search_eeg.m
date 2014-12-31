@@ -1,9 +1,12 @@
-function DCM = spm_dcm_search_eeg(P,SAVE_DCM)
-% Post hoc optimisation of DCMs (under Laplace approximation)
-% FORMAT DCM = spm_dcm_search_eeg([P],[SAVE_DCM])
+function [DCM,P] = spm_dcm_search_eeg(P,SAVE_DCM)
+% Bayesian model reduction (under Laplace approximation)
+% FORMAT [DCM,P]= spm_dcm_search_eeg(P,SAVE_DCM)
 %
 % P - character/cell array of DCM filenames or cell array of DCM structures
 % SAVE_DCM - optional flag to save every DCM.mat
+% 
+% DCM - reduced (best) DCM
+% P   - reduced DCM array
 %
 % Each reduced model requires DCM.A,DCM.B,DCM.C and DCM.options.model
 % or the implicit prior expectation and covariances in DCM.pE and DCM.pC
@@ -47,7 +50,7 @@ function DCM = spm_dcm_search_eeg(P,SAVE_DCM)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_search_eeg.m 5900 2014-02-27 21:54:51Z karl $
+% $Id: spm_dcm_search_eeg.m 6294 2014-12-31 16:47:47Z karl $
 
 % get filenames and set up
 %--------------------------------------------------------------------------

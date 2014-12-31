@@ -14,7 +14,6 @@ function DCM = spm_dcm_erp(DCM)
 %       C: [nr x 1 double]
 %
 %   options.trials       - indices of trials
-%   options.Lpos         - source location priors
 %   options.Tdcm         - [start end] time window in ms
 %   options.D            - time bin decimation       (usually 1 or 2)
 %   options.h            - number of DCT drift terms (usually 1 or 2)
@@ -37,7 +36,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 6234 2014-10-12 09:59:10Z karl $
+% $Id: spm_dcm_erp.m 6294 2014-12-31 16:47:47Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
@@ -60,7 +59,9 @@ try, multC    = DCM.options.multiC;   catch, multC     = 0;           end
 try, symm     = DCM.options.symmetry; catch, symm      = 0;           end
 try, CVA      = DCM.options.CVA;      catch, CVA       = 0;           end
 try, Nmax     = DCM.options.Nmax;     catch, Nmax      = 64;          end
+try, DATA     = DCM.options.DATA;     catch, DATA      = 1;           end
 try, Nmax     = DCM.M.Nmax;           catch, Nmax      = Nmax;        end
+
 
 % symmetry contraints for ECD models only
 %--------------------------------------------------------------------------
@@ -69,24 +70,27 @@ if ~strcmp(DCM.options.spatial,'ECD'), symm = 0; end
 
 % Data and spatial model
 %==========================================================================
-DCM    = spm_dcm_erp_data(DCM);
-DCM    = spm_dcm_erp_dipfit(DCM,1);
-xY     = DCM.xY;
-xU     = DCM.xU;
-M      = DCM.M;
+if DATA
+    DCM = spm_dcm_erp_data(DCM);
+    DCM = spm_dcm_erp_dipfit(DCM,1);
+end
+xY      = DCM.xY;
+xU      = DCM.xU;
+M       = DCM.M;
+
 
 % dimensions
 %--------------------------------------------------------------------------
-Nt     = length(xY.y);                  % number of trials
-Nr     = size(DCM.C,1);                 % number of sources
-Nu     = size(DCM.C,2);                 % number of exogenous inputs
-Ns     = size(xY.y{1},1);               % number of time bins
-Nc     = size(xY.y{1},2);               % number of channels
-Nx     = size(xU.X,2);                  % number of trial-specific effects
+Nt      = length(xY.y);                  % number of trials
+Nr      = size(DCM.C,1);                 % number of sources
+Nu      = size(DCM.C,2);                 % number of exogenous inputs
+Ns      = size(xY.y{1},1);               % number of time bins
+Nc      = size(xY.y{1},2);               % number of channels
+Nx      = size(xU.X,2);                  % number of trial-specific effects
 
 % check the number of modes is greater or equal to the number of sources
 %--------------------------------------------------------------------------
-Nm     = max(Nm,Nr);
+Nm      = max(Nm,Nr);
 
 % confounds - residual forming matrix
 %--------------------------------------------------------------------------
@@ -153,8 +157,8 @@ if symm, gC = spm_dcm_symm(gC,gE);   end
 
 % hyperpriors (assuming a high signal to noise)
 %--------------------------------------------------------------------------
-hE      = 8;
-hC      = 1/128;
+hE      = 6;
+hC      = 1/32;
 
 % check for previous priors
 %--------------------------------------------------------------------------
@@ -390,6 +394,10 @@ if strcmp(M.dipfit.type,'IMG')
     end
     save(D);
 end
+
+% remove dipfit stucture to save memory
+%--------------------------------------------------------------------------
+DCM.M  = rmfield(DCM.M,'dipfit');
 
 % and save
 %--------------------------------------------------------------------------
