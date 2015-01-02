@@ -1,21 +1,24 @@
-% function ROBOT_DCM_LAPACE
+function E = ROBOT_DCM_LAPLACE
 % test routine to check group DCM for electrophysiology
 %==========================================================================
 %   options.analysis     - 'ERP','CSD', 'IND' or 'TFM
 %   options.model        - 'ERP','SEP','CMC','LFP','NNM' or 'MFM'
 %   options.spatial      - 'ECD','LFP' or 'IMG'
 
+% $Id: ROBOT_DCM_LAPLACE.m 6296 2015-01-02 16:20:19Z guillaume $
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
 try
-    cd('C:\home\spm\DCM\DCM tests')
+    cd('/home/spm/tests/DCM/MEEG')
 catch
     cd('C:\Users\karl\Documents\SPM\DCM tests')
 end
-close all, clear all
-clc
+close all
+delete(get(0,'Children'))
 rng('default')
+
+E = {};
 
 % set up
 %==========================================================================
@@ -110,7 +113,7 @@ for i = 1:Ns
     end
 end
 
-% Bayesian model reduction – over subjects
+% Bayesian model reduction - over subjects
 %--------------------------------------------------------------------------
 for i = 1:Ns
     [q,P]    = spm_dcm_search_eeg(GCM(i,:));
@@ -120,13 +123,13 @@ end
 % get results
 %==========================================================================
 
-% BMA – over subjects
+% BMA - over subjects
 %--------------------------------------------------------------------------
 bma   = spm_dcm_bma(GCM);
 rma   = spm_dcm_bma(RCM);
 for i = 1:Ns
     
-    %  data – over subjects
+    %  data - over subjects
     %----------------------------------------------------------------------
     Y(:,i,1) = GCM{i,1}.xY.y{1}*DCM.M.U(:,1);
     Y(:,i,2) = GCM{i,1}.xY.y{2}*DCM.M.U(:,1);
@@ -212,7 +215,7 @@ spm_axis tight, axis square
 clear COR IF cor f
 for k = 1:8
     
-    % (FFX) BPA – over subjects
+    % (FFX) BPA - over subjects
     %----------------------------------------------------------------------
     BPA   = spm_dcm_average(RCM(:,1),{},1);
     
@@ -250,7 +253,7 @@ for i = 1:Ns
 end
 
 
-% (FFX) BMA – over subjects
+% (FFX) BMA - over subjects
 %----------------------------------------------------------------------
 rma   = spm_dcm_bma(RCM);
 for i = 1:Ns

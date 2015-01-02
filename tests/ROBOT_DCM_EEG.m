@@ -9,7 +9,7 @@ function E = ROBOT_DCM_EEG
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
 try
-    cd('C:\home\spm\DCM\DCM tests')
+    cd('/home/spm/tests/DCM/MEEG')
 catch
     cd('C:\Users\karl\Documents\SPM\DCM tests')
 end
