@@ -58,9 +58,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 %
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_eeg_merge.m 6298 2015-01-05 12:18:23Z vladimir $
 
-SVNrev = '$Rev: 5592 $';
+SVNrev = '$Rev: 6298 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -256,7 +256,7 @@ elseif iscell(S.recode)
     end
     Dout = conditions(Dout, ':', clb);
 elseif isstruct(S.recode)
-    Dout = conditions(Dout, ':', clb);
+    clbnew = clb;
     
     for i = 1:numel(S.recode)
         if isnumeric(S.recode(i).file)
@@ -284,9 +284,11 @@ elseif isstruct(S.recode)
             labelnew = strrep(labelnew, '#file#', spm_file(F{Find(ind(j))}, 'basename'));
             labelnew = strrep(labelnew, '#labelorg#', clb(ind(j)));
             
-            Dout     = conditions(Dout, ind(j), labelnew);
+            clbnew{ind(j)} = labelnew;
         end
     end
+    
+    Dout = conditions(Dout, ':', clbnew);
 end
             
 %-Average sensor locations
