@@ -36,7 +36,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 6294 2014-12-31 16:47:47Z karl $
+% $Id: spm_dcm_erp.m 6297 2015-01-05 10:37:27Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
@@ -158,7 +158,7 @@ if symm, gC = spm_dcm_symm(gC,gE);   end
 % hyperpriors (assuming a high signal to noise)
 %--------------------------------------------------------------------------
 hE      = 6;
-hC      = 1/32;
+hC      = 1/128;
 
 % check for previous priors
 %--------------------------------------------------------------------------

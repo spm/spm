@@ -1,7 +1,7 @@
 function [ix] = spm_fieldindices(X,varargin)
 % Return the indices of fields in a structure (and vice versa)
 % FORMAT [i]     = spm_fieldindices(X,field1,field2,...)
-% FORMAT [field] = spm_fieldindices(X,i1,i2,...)
+% FORMAT [field] = spm_fieldindices(X,i)
 %
 % X         - structure
 % field1,.. - fields
@@ -12,50 +12,81 @@ function [ix] = spm_fieldindices(X,varargin)
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fieldindices.m 5769 2013-11-27 19:37:01Z karl $
+% $Id: spm_fieldindices.m 6297 2015-01-05 10:37:27Z karl $
 
 
 % if varargin is a vector simply return fieldnames
 %--------------------------------------------------------------------------
-if nargin == 2
-   if isnumeric(varargin{1})
-       if numel(varargin{1}) > 1
-           for j = 1:length(varargin{1})
-               ix{j} = spm_fieldindices(X,varargin{1}(j));
-           end
-           return
-       end
-   end
+if isnumeric(varargin{1})
+    if numel(varargin{1}) > 1
+        for j = 1:length(varargin{1})
+            ix{j} = spm_fieldindices(X,varargin{1}(j));
+        end
+        return
+    end
 end
-
 
 % create structure of zeros
 %--------------------------------------------------------------------------
-X0    = spm_vec(X)*0;
-ix    = X0;
-X0    = spm_unvec(X0,X);
+X0    = spm_zeros(X);
+ix    = spm_vec(X0);
 
 % and add one to specified fields
 %--------------------------------------------------------------------------
 for i = 1:length(varargin)
     
-    if ischar(varargin{i}) && isfield(X0,varargin{i})
+    if ischar(varargin{i})
         
+        field = varargin{i};
         x  = X0;
-        f  = x.(varargin{i});
-        f  = spm_unvec(spm_vec(f) + 1,f);
-        x.(varargin{i}) = f;
-        ix = ix + spm_vec(x);
-    
+        try
+            % field is a field name
+            %--------------------------------------------------------------
+            f  = x.(field);
+            f  = spm_unvec(spm_vec(f) + 1,f);
+            x.(field) = f;
+            ix = ix + spm_vec(x);
+            
+        catch
+            try
+                % field is the expression
+                %----------------------------------------------------------
+                eval(['x.' field ' = x.' field ' + 1;']);
+                ix = ix + spm_vec(x);
+            end
+        end
+        
     % or return the name of the field
     %----------------------------------------------------------------------
-    elseif isnumeric(varargin{1})
-        name  = fieldnames(X);
+    elseif isnumeric(varargin{i})
+        
+        ind    = varargin{i};
+        x      = ix;
+        x(ind) = 1;
+        x      = spm_unvec(x,X);
+        name   = fieldnames(x);
+        
         for j = 1:length(name)
-            k = spm_fieldindices(X,name{j});
-            if any(ismember(varargin{i},k))
-                ix = name{j};
-                return
+            if any(spm_vec(x.(name{j})))
+                if iscell(x.(name{j}))
+                    for k = 1:numel(x.(name{j}))
+                        if any(spm_vec(x.(name{j}){k}))
+                            [p q] = find(x.(name{j}){k});
+                            ix = sprintf('%s{%i}(%i,%i)',name{j},k,p,q);
+                            return
+                        end
+                    end
+                elseif isnumeric(x.(name{j}))
+                    if isvector(x.(name{j}))
+                        p = find(x.(name{j}));
+                        ix = sprintf('%s(%i)',name{j},p);
+                        return
+                    else
+                        [p q] = find(x.(name{j}));
+                        ix = sprintf('%s(%i,%i)',name{j},p,q);
+                        return
+                    end
+                end
             end
         end
     end

@@ -3,12 +3,15 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % FORMAT bma = spm_dcm_bma(DCM)
 % FORMAT bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 %
-% DCM       - cell array of DCMs over which to BMA
+% DCM       - {subjects x models} cell array of DCMs over which to average
+%   DCM{i,j}.Ep - posterior expectation
+%   DCM{i,j}.Cp - posterior covariances
+%   DCM{i,j}.F  - free energy
 %
 % or
 %
 % post      [Ni x M] vector of posterior model probabilities
-%           If Ni>1 then inference is based on subject-specific RFX posterior
+%           If Ni > 1 then inference is based on subject-specific RFX posterior
 % post_indx models to use in BMA (position of models in subj structure)
 % subj      subj(n).sess(s).model(m).fname: DCM filename
 % Nsamp     Number of samples (default = 1e3)
@@ -26,7 +29,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 %           For `Subject Parameter Averaging (SPA)':
 %
 %           .mEp    posterior mean 
-%           .sEp    posterior SD%           
+%           .sEp    posterior SD           
 %           .mEps   subject specific posterior mean 
 %           .sEps   subject specific posterior SD
 %
@@ -66,7 +69,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 6294 2014-12-31 16:47:47Z karl $
+% $Id: spm_dcm_bma.m 6297 2015-01-05 10:37:27Z karl $
 
 % inputs are DCMs – assemble input arguments
 %--------------------------------------------------------------------------
@@ -76,15 +79,15 @@ if nargin == 1 && iscell(post)
     [n m] = size(DCM);
     for i = 1:n
         for j = 1:m
-            subj(i).sess(1).model(j).Ep = DCM{i}.Ep;
-            subj(i).sess(1).model(j).Cp = DCM{i}.Cp;
+            subj(i).sess(1).model(j).Ep = DCM{i,j}.Ep;
+            subj(i).sess(1).model(j).Cp = DCM{i,j}.Cp;
             F(i,j) = DCM{i,j}.F;
         end
     end
     
     % (FFX) posterior over models
     %----------------------------------------------------------------------
-    F    = sum(F);
+    F    = sum(F,1);
     F    = F - max(F);
     P    = exp(F);
     post = P/sum(P);

@@ -46,7 +46,7 @@ function DEM = ADEM_eyeblink(OPTION)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_eyeblink.m 6291 2014-12-22 11:15:19Z karl $
+% $Id: ADEM_eyeblink.m 6297 2015-01-05 10:37:27Z karl $
 
 
 % paradigm and stimuli
@@ -102,13 +102,14 @@ switch OPTION
         PC     = 1;                                  % enable learning
         
     case{'CONDITION'}
-        N      = 256;                                % number of time bins
-        NT     = 1;                                  % number of trials
+        N      = 128;                                % number of time bins
+        NT     = 8;                                  % number of trials
         CS     = 48;                                 % onset of CS (bins)
         C(:,1) = exp(-((1:N) - CS).^2/(2*4^2));      % CS: loud sound
         C(:,2) = sparse(1,N);                        % US: air puff
         P.x    = -0.08;                              % connection strengths
         P.v    = [0.06 0.08 0.46];                   % connection strengths
+        PC     = 1;                                  % enable learning
         V      = [8 0 0];                            % sensory precision
     
     case{'EXTINCTION'}
