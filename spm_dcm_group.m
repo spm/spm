@@ -1,5 +1,5 @@
 function [HDM] = spm_dcm_group(P,X,field)
-% hhierarchical inversion of DCMs using Bayesian model reduction and VL
+% Hierarchical inversion of DCMs using Bayesian model reduction and VL
 % FORMAT [HDM] = spm_dcm_group(P,X,field)
 %
 % DCM    - {N} structure array of DCMs from N subjects
@@ -47,7 +47,7 @@ function [HDM] = spm_dcm_group(P,X,field)
 % over the parameters of a set of first level DCMs, using  second level or
 % between subject constraints specified in the design matrix X.this scheme
 % is efficient in the sense that it does not require inversion of the first
-% level DCMs – it just requires the prior and posterior densities from each
+% level DCMs - it just requires the prior and posterior densities from each
 % first level DCMs  to compute empirical priors under the implicit
 % hierarchical model. The output of this scheme (HDM) can be re-entered
 % recursively to invert deep hierarchical models. Furthermore, Bayesian
@@ -62,10 +62,10 @@ function [HDM] = spm_dcm_group(P,X,field)
 % design matrix is assumed to model mixtures of parameters at the first
 % level.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence_reduce.m 5394 2013-04-07 14:51:28Z karl $
+% $Id: spm_dcm_group.m 6299 2015-01-08 12:56:00Z guillaume $
  
 % Compute reduced log-evidence
 %==========================================================================
@@ -85,7 +85,7 @@ try, load(P{1}); catch, DCM = P{1}; end
 if nargin < 3;
     field  = {'A','B'};
 end
-if strcmp(lower(field),'all');
+if strcmpi(field,'all');
     field = fieldnames(DCM.M.pE);
 end
 
@@ -232,7 +232,7 @@ for n = 1:32
         %------------------------------------------------------------------
         Xi         = kron(X(i,:),W);
         rE         = Xi*b;
-        [Fi sE sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
+        [Fi,sE,sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
         
         % supplement gradients and curvatures
         %------------------------------------------------------------------
@@ -330,7 +330,7 @@ for i = 1:Ns
     
     % get reduced first level posteriors
     %----------------------------------------------------------------------
-    [Fi sE sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
+    [Fi,sE,sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
     
     % and save
     %----------------------------------------------------------------------
@@ -367,6 +367,3 @@ HDM.F    = F;
 
 
 try, delete tmp.mat, end
-
-
-

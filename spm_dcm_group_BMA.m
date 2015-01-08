@@ -1,5 +1,5 @@
 function [BMA] = spm_dcm_group_BMA(HDM,models)
-% hhierarchical dynamic model comparison and averaging
+% Hierarchical dynamic model comparison and averaging
 % FORMAT [BMA] = spm_dcm_group_BMA(HDM,models)
 %
 % HCM    - GCM of between subject (second level) effects
@@ -62,10 +62,10 @@ function [BMA] = spm_dcm_group_BMA(HDM,models)
 %
 % see also: spm_dcm_group.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence_reduce.m 5394 2013-04-07 14:51:28Z karl $
+% $Id: spm_dcm_group_BMA.m 6299 2015-01-08 12:56:00Z guillaume $
  
 % Compute reduced log-evidence
 %==========================================================================
@@ -73,7 +73,7 @@ function [BMA] = spm_dcm_group_BMA(HDM,models)
 
 %  mmodel space of within subject effects
 %--------------------------------------------------------------------------
-[Np Nx]   = size(HDM.Ep);             % number of parameters and effects
+[Np,Nx]   = size(HDM.Ep);             % number of parameters and effects
 Pname     = char(HDM.Pnames);
 if nargin == 2;
     if ischar(models)
@@ -89,7 +89,7 @@ else
     K      = ones(2^sum(k),Np);       
     K(:,k) = spm_perm_mtx(sum(k));
 end
-[Nm Np]  = size(K);
+[Nm,Np]  = size(K);
 
 
 % check number of models
@@ -219,7 +219,7 @@ for i = 1:length(HDM.SUB)
     qE        = HDM.SUB(i).Ep;
     qC        = HDM.SUB(i).Cp;
     
-    [F sE sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
+    [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
         
     % and save
     %----------------------------------------------------------------------
@@ -259,7 +259,7 @@ ylabel('Model (commonalities)','FontSize',12)
 axis square
 
 subplot(3,2,3)
-[m i] = max(P1); bar(P1),
+[m,i] = max(P1); bar(P1),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Commonalities','FontSize',16)
 xlabel('Model','FontSize',12)
@@ -282,7 +282,7 @@ ylabel('Model (commonalities)','FontSize',12)
 axis square
 
 subplot(3,2,4)
-[m i] = max(P2); bar(P2),
+[m,i] = max(P2); bar(P2),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Differences','FontSize',16)
 xlabel('Model','FontSize',12)
@@ -294,11 +294,3 @@ title('Differences','FontSize',16)
 xlabel('Parameter','FontSize',12)
 ylabel('Mosterior probability','FontSize',12)
 axis([0 (Nb + 1) 0 1]), axis square
-
-
-
-
-
-
-
-

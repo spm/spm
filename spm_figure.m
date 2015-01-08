@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 6094 2014-07-07 19:17:37Z guillaume $
+% $Id: spm_figure.m 6299 2015-01-08 12:56:00Z guillaume $
 
 
 %==========================================================================
@@ -810,6 +810,10 @@ t0=uimenu(F, 'Position',pos, 'Label','&SPM Figure', 'HandleVisibility','off', 'C
 uimenu(t0, 'Label','Show All &Windows', 'HandleVisibility','off',...
     'CallBack','spm(''Show'');');
 
+%-Show MATLAB Command Window
+uimenu(t0, 'Label','Show &MATLAB Window', 'HandleVisibility','off',...
+    'CallBack','commandwindow;');
+
 %-Dock SPM Figures
 uimenu(t0, 'Label','&Dock SPM Windows', 'HandleVisibility','off',...
     'CallBack',@mydockspm);
@@ -857,7 +861,7 @@ uimenu(t1, 'Label','&Increase', 'CallBack','spm_figure(''FontSize'',1)',  'Accel
 uimenu(t1, 'Label','&Decrease', 'CallBack','spm_figure(''FontSize'',-1)', 'Accelerator', '-');
 
 %-Renderer Menu
-t1=uimenu(t0, 'Label','Renderer', 'HandleVisibility','off');
+t1=uimenu(t0, 'Label','R&enderer', 'HandleVisibility','off');
 uimenu(t1, 'Label', 'painters', 'CallBack','spm_get_defaults(''renderer'',''painters'');set(gcf,''Renderer'',''painters'');');
 uimenu(t1, 'Label', 'zbuffer',  'CallBack','spm_get_defaults(''renderer'',''zbuffer'');set(gcf,''Renderer'',''zbuffer'');');
 uimenu(t1, 'Label', 'OpenGL',   'CallBack','spm_get_defaults(''renderer'',''opengl'');set(gcf,''Renderer'',''opengl'');');
