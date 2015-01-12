@@ -117,13 +117,13 @@ function varargout = spm_uw_apply(ds,flags)
 %             subdirectory with the same filename but prefixed with an 'u'.
 %             They are all aligned with the first.
 %__________________________________________________________________________
-% Copyright (C) 2003-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2003-2015 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 5961 2014-04-17 11:24:26Z guillaume $
+% $Id: spm_uw_apply.m 6301 2015-01-12 17:23:08Z guillaume $
 
 
-SVNid = '$Rev: 5961 $';
+SVNid = '$Rev: 6301 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -328,10 +328,7 @@ for s=1:length(ds)
                 ivol(msk) = NaN;
             end
             ivol = reshape(ivol,PO.dim(1:3));
-            PO   = spm_create_vol(PO);
-            for ii=1:PO.dim(3)
-                PO = spm_write_plane(PO,ivol(:,:,ii),ii);
-            end
+            PO = spm_write_vol(PO,ivol);
             if nargout > 0
                 oP{s}(i) = PO;
             end

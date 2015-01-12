@@ -27,10 +27,10 @@ function D = spm_eeg_inv_fmripriors(S)
 % source reconstruction. Henson R, Flandin G, Friston K & Mattout J.
 % Human Brain Mapping (in press).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin and Rik Henson
-% $Id: spm_eeg_inv_fmripriors.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_eeg_inv_fmripriors.m 6301 2015-01-12 17:23:08Z guillaume $
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
@@ -194,11 +194,7 @@ V = struct('fname',   D.inv{val}.inverse.fmri.clusters, ...
            'mat',     V.mat, ...
            'pinfo',   [1 0 0]', ...
            'descrip', 'clusters');
-V = spm_create_vol(V);
-
-for i=1:V.dim(3)
-    V = spm_write_plane(V,l(:,:,i),i);
-end
+V = spm_write_vol(V,l);
 
 %-Save spatial priors vectors as GIfTI file
 %--------------------------------------------------------------------------

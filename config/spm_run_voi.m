@@ -7,10 +7,10 @@ function out = spm_run_voi(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_voi.m 5512 2013-05-20 18:35:33Z guillaume $
+% $Id: spm_run_voi.m 6301 2015-01-12 17:23:08Z guillaume $
 
 
 %-Load SPM.mat
@@ -44,11 +44,7 @@ Vm = struct('fname', fullfile(swd, ['VOI_' job.name '_mask' spm_file_ext]), ...
      'mat',     SPM.xVol.M, ...
      'pinfo',   [1 0 0]', ...
      'descrip', 'VOI');
-Vm = spm_create_vol(Vm);
-
-for i=1:Vm.dim(3)
-    Vm = spm_write_plane(Vm,voi(:,:,i),i);
-end
+Vm = spm_write_vol(Vm,voi);
 
 %-Extract VOI time-series
 %--------------------------------------------------------------------------
