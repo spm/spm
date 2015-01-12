@@ -1,4 +1,4 @@
-function data = ft_math(cfg, varargin)
+  function data = ft_math(cfg, varargin)
 
 % FT_MATH performs mathematical operations on FieldTrip data structures,
 % such as addition, subtraction, division, etc.
@@ -8,8 +8,8 @@ function data = ft_math(cfg, varargin)
 % with one or multiple FieldTrip data structures as input and where cfg is a
 % configuration structure that should contain
 %
-%  cfg.operation  = string, can be 'add', 'subtract', 'divide', 'multiply', 'log10'
-%                   or a functional specification of the operation (see below)
+%  cfg.operation  = string, can be 'add', 'subtract', 'divide', 'multiply',
+%                   'log10', 'abs' or a functional specification of the operation (see below)
 %  cfg.parameter  = string, field from the input data on which the operation is
 %                   performed, e.g. 'pow' or 'avg'
 %
@@ -82,13 +82,13 @@ function data = ft_math(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_math.m 9870 2014-10-02 07:00:05Z jansch $
+% $Id: ft_math.m 10090 2015-01-08 11:30:27Z jansch $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 9870 2014-10-02 07:00:05Z jansch $';
+revision = '$Id: ft_math.m 10090 2015-01-08 11:30:27Z jansch $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will show the function help if nargin==0 and return an error
@@ -268,6 +268,14 @@ if length(varargin)==1
         y = celllog10(x1);
       else
         y = log10(x1);
+      end
+      
+    case 'abs'
+      fprintf('taking the abs of %s\n', cfg.parameter);
+      if iscell(x1)
+        y = cellabs(x1);
+      else
+        y = abs(x1);
       end
       
     otherwise
@@ -488,3 +496,6 @@ z = cellfun(@rdivide, x, y, 'UniformOutput', false);
 
 function z = celllog10(x)
 z = cellfun(@log10, x, 'UniformOutput', false);
+
+function z = cellabs(x)
+z = cellfun(@abs, x, 'UniformOutput', false);

@@ -53,7 +53,7 @@ function source = ft_read_cifti(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_cifti.m 9919 2014-10-19 09:29:16Z roboos $
+% $Id: ft_read_cifti.m 10091 2015-01-09 12:46:03Z roboos $
 
 readdata         = ft_getopt(varargin, 'readdata', []);   % the default depends on file size, see below
 readsurface      = ft_getopt(varargin, 'readsurface', true);
@@ -539,7 +539,7 @@ if ~isempty(BrainModel)
   end
   
   % it would be possible to represent all voxels, but for efficiency we only include voxel positions with data
-  if ~isempty(Volume)
+  if ~isempty(Volume) && any(isnan(surfaceIndex))
     tmp       = ft_warp_apply(Volume.Transform, cat(1, BrainModel(isnan(surfaceIndex)).VoxelIndicesIJK));
     pos       = cat(1, pos, tmp);
     posIndex  = cat(1, posIndex, nan(size(tmp,1),1));

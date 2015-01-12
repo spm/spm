@@ -29,7 +29,7 @@ function [el, prj] = project_elec(elc, pnt, tri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: project_elec.m 8739 2013-11-08 08:17:23Z roboos $
+% $Id: project_elec.m 10094 2015-01-12 14:38:50Z jansch $
 
 Nelc = size(elc,1);
 el   = zeros(Nelc, 4);
@@ -42,7 +42,7 @@ tri = double(tri);
 for i=1:Nelc
   [proj,dist] = ptriprojn(pnt(tri(:,1),:), pnt(tri(:,2),:), pnt(tri(:,3),:), elc(i,:), 1);
   
-  [mindist, minindx] = min(dist);
+  [mindist, minindx] = min(abs(dist));
   [la, mu] = lmoutr(pnt(tri(minindx,1),:), pnt(tri(minindx,2),:), pnt(tri(minindx,3),:), proj(minindx,:));
   smallest_dist = dist(minindx);
   smallest_tri  = minindx;

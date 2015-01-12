@@ -41,7 +41,7 @@ function [indx] = nearest(array, val, insideflag, toleranceflag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nearest.m 8534 2013-09-25 08:15:54Z jorhor $
+% $Id: nearest.m 10088 2014-12-23 11:53:54Z roboos $
 
 mbreal(array);
 mbreal(val);
@@ -89,7 +89,11 @@ maxarray = max(array);
 if insideflag
   if ~toleranceflag
     if val<minarray || val>maxarray
-      error('the value %g should be within the range of the array from %g to %g', val, minarray, maxarray);
+      if numel(array)==1
+        warning('the value %g should be within the range of the array from %g to %g', val, minarray, maxarray);
+      else
+        error('the value %g should be within the range of the array from %g to %g', val, minarray, maxarray);
+      end
     end
   else
     if ~isequal(array, sort(array))
