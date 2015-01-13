@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 6082 2014-07-02 17:40:56Z guillaume $
+% $Id: checkmeeg.m 6302 2015-01-13 16:11:27Z vladimir $
 
 
 %-Initialise data dimensions
@@ -236,7 +236,7 @@ if Ntrials > 0
         end
         
         if isa(label, 'char')
-            this.trials(i).label = label;
+            this.trials(i).label = deblank(label);
         else
             this.trials(i).label = 'Unknown';
             warning_flexible('SPM:checkmeeg', 'Some trial labels were not strings, changing back to ''Unknown''.');
