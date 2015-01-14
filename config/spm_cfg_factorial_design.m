@@ -1,10 +1,10 @@
 function factorial_design = spm_cfg_factorial_design
 % SPM Configuration file for second-level models
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 6011 2014-05-22 17:53:54Z guillaume $
+% $Id: spm_cfg_factorial_design.m 6304 2015-01-14 12:58:54Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -28,6 +28,8 @@ scans.help    = {'Select the images.  They must all have the same image dimensio
 scans.filter  = {'image','mesh'};
 scans.ufilter = '.*';
 scans.num     = [1 Inf];
+scans.preview = @(f) spm_check_registration(char(f));
+
 
 %==========================================================================
 % t1 One-sample t-test
@@ -48,6 +50,7 @@ scans1.help    = {'Select the images from sample 1.  They must all have the same
 scans1.filter  = {'image','mesh'};
 scans1.ufilter = '.*';
 scans1.num     = [1 Inf];
+scans1.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
 % scans2 Group 2 scans
@@ -59,6 +62,7 @@ scans2.help    = {'Select the images from sample 2.  They must all have the same
 scans2.filter  = {'image','mesh'};
 scans2.ufilter = '.*';
 scans2.num     = [1 Inf];
+scans2.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
 % dept Independence
@@ -194,6 +198,7 @@ scans.help    = {'Select the images.  They must all have the same image dimensio
 scans.filter  = {'image','mesh'};
 scans.ufilter = '.*';
 scans.num     = [1 Inf];
+scans.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
 % c Vector
@@ -732,7 +737,7 @@ cov.help    = {'Add a new covariate to your experimental design.'};
 generic        = cfg_repeat;
 generic.tag    = 'generic';
 generic.name   = 'Covariates';
-generic.help   = {'This option allows for the specification of covariates and nuisance variables. Unlike SPM94/5/6, where the design was partitioned into effects of interest and nuisance effects for the computation of adjusted data and the F-statistic (which was used to thresh out voxels where there appeared to be no effects of interest), SPM does not partition the design in this way anymore. The only remaining distinction between effects of interest (including covariates) and nuisance effects is their location in the design matrix, which we have retained for continuity.  Pre-specified design matrix partitions can be entered.'};
+generic.help   = {'This option allows for the specification of covariates and nuisance variables (note that SPM does not make any distinction between effects of interest (including covariates) and nuisance effects).'};
 generic.values = {cov};
 generic.num    = [0 Inf];
 
@@ -744,10 +749,10 @@ cov.tag     = 'files';
 cov.name    = 'File(s)';
 cov.val{1}  = {''};
 cov.help    = {
-                     'Select the *.mat/*.txt file(s) containing details of your multiple covariates. '
-                     ''
-                     'You will first need to create a *.mat file containing a matrix R or a *.txt file containing the covariates. Each column of R will contain a different covariate. Unless the covariates names are given in a cell array called ''names'' in the MAT-file containing variable R, the covariates will be named R1, R2, R3, ..etc.'
-                     }';
+               'Select the *.mat/*.txt file(s) containing details of your multiple covariates. '
+               ''
+               'You will first need to create a *.mat file containing a matrix R or a *.txt file containing the covariates. Each column of R will contain a different covariate. Unless the covariates names are given in a cell array called ''names'' in the MAT-file containing variable R, the covariates will be named R1, R2, R3, ..etc.'
+              }';
 cov.filter  = 'mat';
 cov.ufilter = '.*';
 cov.num     = [0 Inf];
