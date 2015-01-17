@@ -1,23 +1,19 @@
-function [DCM,RCM]   = spm_dcm_search_eeg(P,SAVE_DCM)
+function [RCM,BMR] = spm_dcm_bmr(P)
 % Bayesian model reduction (under Laplace approximation)
-% FORMAT [DCM,RCM] = spm_dcm_search_eeg(P,SAVE_DCM)
+% FORMAT [RCM,BMR] = spm_dcm_bmr(P)
 %
 % P - {Nsub x Nmodel} cell array of DCM filenames or model structures for 
 %      Nsub subjects, where each model is reduced independently for each
 %      subject
 %      
-% SAVE_DCM - optional flag to save DCMs
-% 
-% DCM - reduced (best) DCM
 % RCM - reduced DCM array
-%
-% Each reduced model requires DCM.A,DCM.B,DCM.C and DCM.options.model
-% or the implicit prior expectation and covariances in DCM.pE and DCM.pC
-% if the reduce models are specified explicitly in terms of prior
-% expectations and covariances (pE and pC) these will be used first.
+% BMR - (Nsub) summary structure 
+%        BMR.name - character/cell array of DCM filenames
+%        BMR.F    - their associated free energies
+%        BMR.P    - and posterior (model) probabilities
 %
 %--------------------------------------------------------------------------
-% spm_dcm_search_eeg operates on different DCMs of the same data to find
+% spm_dcm_bmr operates on different DCMs of the same data (rows) to find
 % the best model. It assumes the full model – whose free-parameters are
 % the union (superset) of all free parameters in each model – has been
 % inverted. A post hoc selection procedure is used to evaluate the log-
@@ -25,35 +21,19 @@ function [DCM,RCM]   = spm_dcm_search_eeg(P,SAVE_DCM)
 % specified.
 %
 % Reduced models can be specified either in terms of the allowable
-% connections (specified in the DCM.A, DCM.B and DCM.C fields) or the
+% connections (specified in the DCM.A/a, DCM.B/b and DCM.C/c fields) or the
 % resulting prior density (specified in DCM.pE and DCM.pC).  If the
 % latter exist, they will be used as the model specification.
 %
 % The outputs of this routine are graphics reporting the model space search
-% (optimisation) and a DCM_optimum (in the first DCMs directory) for the
-% best DCM. The structural and function (spectral embedding) graphs are
-% based on this DCM.
+% (optimisation) and the reduced (cell array of) DCM structures
 %
-% Conditional esimates (Ep, Cp and F values) in DCM_??? (specifed by P) are
-% replaced by their reduced estimates (but only these estimates) in rDCM_???
-%
-% DCM_optimum (saved with nargout = 0) contains the fields:
-%
-%        DCM.Pname - character/cell array of DCM filenames
-%        DCM.PF    - their associated free energies
-%        DCM.PP    - and posterior (model) probabilities
-%
-% If requested, the free energies and posterior estimates of each DCM in P
-% are saved for subsequent searches over different partitions of model
-% space.
-%
-% See also: spm_dcm_post_hoc.m, spm_dcm_group and spm_dcm_bma
-%
+% See also: spm_dcm_post_hoc.m, spm_dcm_bpa, spm_dcm_peb and spm_dcm_bma
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_search_eeg.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_dcm_bmr.m 6305 2015-01-17 12:40:51Z karl $
 
 % get filenames and set up
 %--------------------------------------------------------------------------
@@ -61,7 +41,6 @@ if ~nargin
     [P, sts] = spm_select([2 Inf],'^DCM.*\.mat$','Select DCM*.mat files');
     if ~sts, return; end
 end
-if nargin < 2,  SAVE_DCM = 0;    end
 if ischar(P),   P = cellstr(P);  end
 if isstruct(P), P = {P};         end
 
@@ -71,9 +50,9 @@ if isstruct(P), P = {P};         end
 
 if Ns > 2
     for i = 1:Ns
-        [p,q]    = spm_dcm_search_eeg(P(i,:));
-        DCM{i,1} = p;
-        RCM(i,:) = q;
+        [p,q]    = spm_dcm_bmr(P(i,:));
+        RCM(i,:) = p;
+        BMR(i)   = q;
     end
     return
 end
@@ -91,8 +70,6 @@ try
         try, load(P{j}); catch, DCM = P{j}; end
         par(:,j) = logical(diag(DCM.M.pC));
     end
-    
-    
     
 catch
     
@@ -126,18 +103,11 @@ if ~all(isfield(DCM,{'Ep','Cp'}))
     return
 end
 
-
-% directory to save reduced [r]DCMs
-% -------------------------------------------------------------------------
-pathname = spm_file(DCM.name,'path');
-if ~exist(pathname,'dir');
-    pathname = pwd;
-end
-
-
 % Get full priors and posteriors
 % -------------------------------------------------------------------------
-options = DCM.options;
+try, options = DCM.options;                   catch, options = {};    end
+try, DCMname = spm_file(DCM.name,'basename'); catch, DCMname = 'DCM'; end
+
 qE      = DCM.Ep;
 qC      = DCM.Cp;
 pE      = DCM.M.pE;
@@ -146,6 +116,7 @@ pC      = DCM.M.pC;
 %-Loop through models and get log-evidences
 %==========================================================================
 name  = cell(N,1);
+RCM   = cell(1,N);
 G     = zeros(N,1);
 for j = 1:N
     
@@ -198,25 +169,11 @@ for j = 1:N
     DCM.Pp   = Pp;
     DCM.Vp   = Vp;
     DCM.F    = F;
-    
-    filename = spm_file(DCM.name,'basename');
-    name{j}  = filename(5:end);
-    filename = spm_file(DCM.name,'filename');
-    filename = spm_file(filename,'prefix','r');
-    filename = fullfile(pathname,filename);
-    
-    
-    % Save DCM
-    %======================================================================
-    if SAVE_DCM
-        save(filename,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
-    end
-    if nargout > 1
-        RCM{j} = DCM;
-    end
-    
-    % Record free-energy and MAP estimates
+
+    % Save DCM and record free-energy
     %----------------------------------------------------------------------
+    name{j}  = ['BMR_' DCMname];
+    RCM{j}   = DCM;
     G(j)     = F;
     
 end
@@ -228,15 +185,19 @@ p     = exp(G - max(G));
 p     = p/sum(p);
 [q,j] = max(p);
 
+%-Save best DCM
+%==========================================================================
+BMR.name = name;
+BMR.F    = G;
+BMR.P    = p;
+
 % Get selected model
 %--------------------------------------------------------------------------
 try, load(P{j}); catch, DCM = P{j}; end
 
-
 qE    = spm_vec(qE);
 Ep    = spm_vec(DCM.Ep);
 Cp    = DCM.Cp;
-F     = DCM.F;
 try
     i = find(diag(pC));
 catch
@@ -274,18 +235,5 @@ title('MAP connections (optimum)','FontSize',16)
 axis square, axis(a)
 
 
-
-%-Save best DCM
-%==========================================================================
-DCM.Pname = name;
-DCM.PF    = G;
-DCM.PP    = p;
-
-% Reduced model (optimum)
-%--------------------------------------------------------------------------
-if SAVE_DCM
-    filename = fullfile(pathname,'DCM_optimum.mat');
-    save(filename,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
-end
 
 

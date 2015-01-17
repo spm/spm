@@ -1,6 +1,6 @@
-function [DCM,RCM]   = spm_dcm_search_eeg(P,SAVE_DCM)
+function [DCM,P]   = spm_dcm_bmr(P,SAVE_DCM)
 % Bayesian model reduction (under Laplace approximation)
-% FORMAT [DCM,RCM] = spm_dcm_search_eeg(P,SAVE_DCM)
+% FORMAT [DCM,RCM] = spm_dcm_bmr(P,SAVE_DCM)
 %
 % P - {Nsub x Nmodel} cell array of DCM filenames or model structures for 
 %      Nsub subjects, where each model is reduced independently for each
@@ -37,7 +37,7 @@ function [DCM,RCM]   = spm_dcm_search_eeg(P,SAVE_DCM)
 % Conditional esimates (Ep, Cp and F values) in DCM_??? (specifed by P) are
 % replaced by their reduced estimates (but only these estimates) in rDCM_???
 %
-% DCM_optimum (saved with nargout = 0) contains the fields:
+% DCM output (saved with SAVE_DCM) contains the fields:
 %
 %        DCM.Pname - character/cell array of DCM filenames
 %        DCM.PF    - their associated free energies
@@ -47,13 +47,13 @@ function [DCM,RCM]   = spm_dcm_search_eeg(P,SAVE_DCM)
 % are saved for subsequent searches over different partitions of model
 % space.
 %
-% See also: spm_dcm_post_hoc.m, spm_dcm_group and spm_dcm_bma
+% See also: spm_dcm_post_hoc.m, spm_dcm_peb and spm_dcm_bma
 %
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_search_eeg.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_dcm_bmr.m 6305 2015-01-17 12:40:51Z karl $
 
 % get filenames and set up
 %--------------------------------------------------------------------------
@@ -71,7 +71,7 @@ if isstruct(P), P = {P};         end
 
 if Ns > 2
     for i = 1:Ns
-        [p,q]    = spm_dcm_search_eeg(P(i,:));
+        [p,q]    = spm_dcm_bmr(P(i,:));
         DCM{i,1} = p;
         RCM(i,:) = q;
     end
@@ -211,8 +211,8 @@ for j = 1:N
     if SAVE_DCM
         save(filename,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
     end
-    if nargout > 1
-        RCM{j} = DCM;
+    if isstruct(P{j})
+        P{j} = DCM;
     end
     
     % Record free-energy and MAP estimates

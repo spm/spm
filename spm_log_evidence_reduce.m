@@ -1,4 +1,4 @@
-function [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC)
+function [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC,TOL)
 % Returns the log-evidence of a reduced model (under Laplace approximation)
 % FORMAT [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC)
 %
@@ -24,7 +24,7 @@ function [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence_reduce.m 5394 2013-04-07 14:51:28Z karl $
+% $Id: spm_log_evidence_reduce.m 6305 2015-01-17 12:40:51Z karl $
  
 % Compute reduced log-evidence
 %==========================================================================
@@ -48,7 +48,7 @@ rC    = U'*rC*U;
  
 % fix tolerance for matrix inversions
 %--------------------------------------------------------------------------
-TOL   = exp(-16);
+if nargin < 7, TOL = exp(-16); end
  
 % preliminaries
 %--------------------------------------------------------------------------

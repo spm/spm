@@ -55,7 +55,7 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_PEB.m 6305 2015-01-17 12:40:51Z karl $
 
 % set default
 %--------------------------------------------------------------------------
@@ -121,7 +121,7 @@ y        = [y; sparse(n,1)];
 % last level constraints
 %--------------------------------------------------------------------------
 n        = size(P{p}.X,2);
-I{p + 1} = [1:n] + I{end}(end);
+I{p + 1} = (1:n) + I{end}(end);
 q        = I{end}(end);
 Cb       = sparse(q,q);
 if ~iscell(P{end}.C)
@@ -161,9 +161,9 @@ if ~isfield(P{1},'Q')
             % indices for ith-level hyperparameters
             %--------------------------------------------------------------
             try
-                K{i}  = [1:m] + K{end}(end);
+                K{i}  = (1:m) + K{end}(end);
             catch
-                K{i}  = [1:m];
+                K{i}  = (1:m);
             end
 
         else
@@ -258,7 +258,6 @@ for k = 1:M
     %----------------------------------------------------------------------
     Py    = iC*(y - XX*B);
     iCXC  = iCX*Cby;
-
     for i = 1:m
 
         % dF/dh = -trace(dF/diC*iC*Q{i}*iC)
@@ -299,19 +298,19 @@ for k = 1:M
     %======================================================================
     w     = norm(dh,1);
     
-    % fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
+    fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
     
     % if dF < 0.01
     %----------------------------------------------------------------------
-    if dFdh'*dh < 1e-2, break, end
+    if dFdh'*dh < 1e-2,     break, end
     
     % if dh^2 < 1e-8
     %----------------------------------------------------------------------
-    if w < 1e-4,        break, end
+    if w < 1e-4,            break, end
     
     % if log-normal hyperpriors and h < exp(-16)
     %----------------------------------------------------------------------
-    if OPT && h < -16,  break, end
+    if OPT && all(h < -16), break, end
 
 end
 

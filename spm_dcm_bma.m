@@ -1,14 +1,33 @@
 function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Model-independent samples from DCM posterior
-% FORMAT bma = spm_dcm_bma(DCM)
+% FORMAT BMA = spm_dcm_bma(DCM)
 % FORMAT bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 %
-% DCM       - {subjects x models} cell array of DCMs over which to average
-%   DCM{i,j}.Ep - posterior expectation
-%   DCM{i,j}.Cp - posterior covariances
-%   DCM{i,j}.F  - free energy
+% DCM   - {subjects x models} cell array of DCMs over which to average
+% ---------------------------------------------------------------------
+%     DCM{i,j}.Ep - posterior expectation
+%     DCM{i,j}.Cp - posterior covariances
+%     DCM{i,j}.F  - free energy
 %
-% or
+% BMA   - Baysian model average structure
+% ---------------------------------------------------------------------
+%     BMA.Ep      - BMA posterior mean
+%     BMA.Sp      - BMA posterior variance
+%     BMA.F       - Accumulated free energy over subjects;
+%     BMA.P       - Posterior model probability over subjects;
+%
+%     BMA.SUB.Ep  - subject specific BMA posterior mean
+%     BMA.SUB.Sp  - subject specific BMA posterior variance
+%     BMA.nsamp   - Number of samples
+%     BMA.Nocc    - number of models in Occam's window
+%     BMA.Mocc    - index of models in Occam's window
+%
+% If DCM is an array, Bayesian model averaging will be applied over 
+% subjects (i.e., over columns) using FFX Baysian parameter averaging
+%
+%--------------------------------------------------------------------------
+% OR
+%--------------------------------------------------------------------------
 %
 % post      [Ni x M] vector of posterior model probabilities
 %           If Ni > 1 then inference is based on subject-specific RFX posterior
@@ -69,7 +88,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 6297 2015-01-05 10:37:27Z karl $
+% $Id: spm_dcm_bma.m 6305 2015-01-17 12:40:51Z karl $
 
 % inputs are DCMs – assemble input arguments
 %--------------------------------------------------------------------------
@@ -92,8 +111,24 @@ if nargin == 1 && iscell(post)
     P    = exp(F);
     post = P/sum(P);
     indx = 1:m;
-    bma  = spm_dcm_bma(post,indx,subj);
     
+    % BMA (and BPA)
+    %----------------------------------------------------------------------
+    bma        = spm_dcm_bma(post,indx,subj);
+    BMA.Ep     = bma.mEp;
+    BMA.Cp     = spm_unvec(spm_vec(bma.sEp).^2,bma.sEp);
+    
+    BMA.nsamp  = bma.nsamp;
+    BMA.Nocc   = bma.Nocc;
+    BMA.Mocc   = bma.Mocc;
+    BMA.F      = F;
+    BMA.P      = P;
+    
+    for i = 1:n
+        BMA.SUB(i).Ep = bma.mEps{i};
+        BMA.SUB(i).Cp = spm_unvec(spm_vec(bma.sEps{i}).^2,bma.sEps{i});
+    end
+    bma        = BMA;
     return
 end
 
@@ -110,6 +145,7 @@ Nsub = length(subj);
 Nses = length(subj(1).sess);
 
 % Number of regions
+%--------------------------------------------------------------------------
 try
     load(subj(1).sess(1).model(1).fname);
     if isfield(DCM,'a')
@@ -156,11 +192,13 @@ if rfx
         end
 
         % Renormalise post prob to Occam group
+        %------------------------------------------------------------------
         renorm(i).post = post(i,post_ind{i});
         sp             = sum(renorm(i).post,2);
         renorm(i).post = renorm(i).post./(sp*ones(1,Nocc(i)));
 
         % Load DCM posteriors for models in Occam's window
+        %------------------------------------------------------------------
         for kk = 1:Nocc(i),
 
             sel     = post_indx(post_ind{i}(kk));
@@ -175,6 +213,7 @@ if rfx
             end
             
             % Average sessions
+            %--------------------------------------------------------------
             if Nses > 1
 
                 clear miCp mEp
@@ -254,10 +293,12 @@ else % Use an FFX
     end
 
     % Renormalise post prob to Occam group
+    %----------------------------------------------------------------------
     post=post(post_ind);
     post=post/sum(post);
 
     % Load DCM posteriors for models in Occam's window
+    %----------------------------------------------------------------------
     for n=1:Nsub,
 
         for kk=1:Nocc,
@@ -279,6 +320,7 @@ else % Use an FFX
                 disp('Averaging sessions...')
 
                 % Average sessions
+                %----------------------------------------------------------
                 for ss = 1:Nses
 
                     % Only parameters with non-zero prior variance
@@ -313,8 +355,8 @@ else % Use an FFX
                 %==========================================================
                 Cp(wsel,wsel) = inv(sum(miCp,3));
 
-                pE            = subj(n).sess(ss).model(sel).Ep;
-                weighted_Ep   = 0;
+                pE          = subj(n).sess(ss).model(sel).Ep;
+                weighted_Ep = 0;
                 for s = 1:Nses
                     weighted_Ep = weighted_Ep + miCp(:,:,s)*mEp(:,s);
                 end
@@ -339,9 +381,11 @@ else % Use an FFX
 end
 
 % Pre-allocate sample arrays
+%--------------------------------------------------------------------------
 Np = length(params(firstsub).model(firstmod).vEp);
 
 % get dimensions of a b c d parameters
+%--------------------------------------------------------------------------
 if dcm_fmri
 
     Nr      = nreg*nreg;
@@ -367,11 +411,14 @@ Ep_sbj = zeros(Np,Nsub,Nsamp);
 Ep     = zeros(Np,Nsamp);
 
 for i=1:Nsamp
+    
     % Pick a model
+    %----------------------------------------------------------------------
     if ~rfx
         m = spm_multrnd(post,1);
     end
     % Pick parameters from model for each subject
+    %----------------------------------------------------------------------
     for n=1:Nsub
 
         clear mu dsig vsig
@@ -380,24 +427,26 @@ for i=1:Nsamp
             m = spm_multrnd(renorm(n).post,1);
         end
 
-        mu                    = params(n).model(m).vEp;
-        nmu                   = length(mu);
-        dsig                  = params(n).model(m).dCp(1:nmu,1);
-        vsig(:,:)             = params(n).model(m).vCp(1:nmu,1:nmu);
+        mu                = params(n).model(m).vEp;
+        nmu               = length(mu);
+        dsig              = params(n).model(m).dCp(1:nmu,1);
+        vsig(:,:)         = params(n).model(m).vCp(1:nmu,1:nmu);
 
-        tmp                   = spm_normrnd(mu,{dsig,vsig},1);
+        tmp               = spm_normrnd(mu,{dsig,vsig},1);
         
-        Ep_all(1:nmu,n)      = tmp(:);
-        Ep_sbj(1:nmu,n,i)    = Ep_all(1:nmu,n); 
+        Ep_all(1:nmu,n)   = tmp(:);
+        Ep_sbj(1:nmu,n,i) = Ep_all(1:nmu,n); 
 
     end
     
     % Average over subjects
+    %----------------------------------------------------------------------
     Ep(:,i) = mean(Ep_all,2);
 
 end
 
 % save mean parameters
+%--------------------------------------------------------------------------
 Ep_avg     = mean(Ep,2);
 Ep_std     = std(Ep,0,2);
 Ep_avg     = spm_unvec(Ep_avg,params(1).model(1).Ep);

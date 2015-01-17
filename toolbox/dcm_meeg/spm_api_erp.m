@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 6140 2014-08-21 13:54:25Z vladimir $
+% $Id: spm_api_erp.m 6305 2015-01-17 12:40:51Z karl $
  
 
 %-Launch GUI
@@ -1528,7 +1528,7 @@ spm_api_nmm(handles.DCM)
 
 % --- Executes on button press in save_spec.
 function save_spec_Callback(hObject, eventdata, handles)
-spm_dcm_search_eeg;
+spm_dcm_bmr;
 
 
 % --- Executes on button press in reduce.
