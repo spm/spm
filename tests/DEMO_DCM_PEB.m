@@ -24,7 +24,7 @@
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: DEMO_DCM_PEB.m 6306 2015-01-18 20:50:38Z karl $
 
 
 % change to ddirectory with empirical data
@@ -74,7 +74,7 @@ end
 
 % model space
 %--------------------------------------------------------------------------
-mw  = 3;                              % true model (within)
+mw  = 2;                              % true model (within)
 mx  = 4;                              % true model (between)
 Nm  = length(B);                      % number of models
 Ns  = 16;                             % number of subjects
@@ -100,12 +100,9 @@ DCM.Ep.B{1} = B{mw}*2*sd;
 
 % between subject effects: constant, group difference and covariance
 %--------------------------------------------------------------------------
-X     = [ones(Ns,1) kron([0;1],ones(Ns/2,1)) randn(Ns,1)];
-gE    = spm_zeros(DCM.Ep);
-gE.B{1}(1,1) =  4*sd;
-gE.B{1}(2,2) =  4*sd;
-gE.B{1}(3,3) =  2*sd;
-gE.B{1}(4,4) =  2*sd;
+X           = [ones(Ns,1) kron([0;1],ones(Ns/2,1)) randn(Ns,1)];
+DCM.Ex      = spm_zeros(DCM.Ep);
+DCM.Ex.B{1} = B{mx}*2*sd;
 
 % create subject-specifc DCM
 %--------------------------------------------------------------------------
@@ -126,7 +123,7 @@ for i = 1:Ns
     % generate data
     %----------------------------------------------------------------------
     ep  = spm_sqrtm(Cp)*randn(Np,1);
-    Pp  = X(i,1)*spm_vec(DCM.Ep) + X(i,2)*spm_vec(gE) + ep;
+    Pp  = X(i,1)*spm_vec(DCM.Ep) + X(i,2)*spm_vec(DCM.Ex) + ep;
     Pp  = spm_unvec(Pp,DCM.Ep);
     Pg  = spm_vec(DCM.Eg) + spm_sqrtm(Cg)*randn(Ng,1);
     Pg  = spm_unvec(Pg,DCM.Eg);
@@ -137,7 +134,7 @@ for i = 1:Ns
     x   = feval(DCM.M.IS,Pp,DCM.M,DCM.xU);
     for c = 1:length(x)
         e    = spm_pinv(DCM.M.R)*DCM.R{c}*spm_pinv(DCM.M.U);
-        e    = spm_phase_shuffle(full(e))*2;
+        e    = spm_phase_shuffle(full(e))*4;
         y{c} = x{c}*G' + e;
         y{c} = DCM.M.R*y{c};
     end
@@ -156,15 +153,16 @@ end
 
 % invert full models (first column)
 %==========================================================================
-GCM       = spm_dcm_fit(GCM);
+GCM           = spm_dcm_fit(GCM);
 
-% Bayesian model reduction – for each subject
+% Bayesian model reduction – for each subject & set hyperprior expectation
 %==========================================================================
-[RCM,BMR] = spm_dcm_bmr(GCM);
+RCM           = spm_dcm_bmr(GCM);
+RCM{1,1}.M.eE = 2;                             
 
-% hierarchical (RFX) analysis
+% hierarchical (empirical Bayes) analysis using model reduction
 %==========================================================================
-[PEB,PCM] = spm_dcm_peb(RCM);
+[REB,PCM]     = spm_dcm_peb(RCM);
 
 % BMA – (first level)
 %--------------------------------------------------------------------------
@@ -178,14 +176,10 @@ PEB   = spm_dcm_peb(RCM(:,1),X);
 BMA   = spm_dcm_peb_bmc(PEB,RCM(1,:));
 
 
-% show results
+% extract results
 %==========================================================================
+clear Q
 for i = 1:Ns
-    
-    %  data – over subjects
-    %----------------------------------------------------------------------
-    Y(:,i,1) = GCM{i,1}.xY.y{1}*DCM.M.U(:,1);
-    Y(:,i,2) = GCM{i,1}.xY.y{2}*DCM.M.U(:,1);
     
     % Parameter averages
     %----------------------------------------------------------------------
@@ -197,14 +191,14 @@ for i = 1:Ns
     % Free energies
     %----------------------------------------------------------------------
     for j = 1:Nm
-        F(i,j,1) = GCM{i,j}.F;
-        F(i,j,2) = RCM{i,j}.F;
-        F(i,j,3) = PCM{i,j}.F;
+        F(i,j,1) = GCM{i,j}.F - GCM{i,1}.F;
+        F(i,j,2) = RCM{i,j}.F - RCM{i,1}.F;
+        F(i,j,3) = REB(j).F   - REB(1).F;
     end
     
 end
 
-% select parameters
+% indices to select parameters
 %--------------------------------------------------------------------------
 pC    = GCM{1,1}.M.pC;
 c     = spm_vec(pC);
@@ -215,7 +209,7 @@ iB    = iB(find(c(iB)));
 
 
 % plot simulation data
-%--------------------------------------------------------------------------
+%==========================================================================
 spm_figure('GetWin','Figure 1');clf
 
 subplot(3,2,1)
@@ -262,91 +256,71 @@ axis square
 
 % plot results: Bayesian model reduction vs. reduced models
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2');clf
+spm_figure('GetWin','Figure 2'); clf
 
-subplot(3,2,1), image((F - max(F(:)))/4 + 64)
-xlabel('model'), ylabel('subject'), title('Free energy','FontSize',16)
+occ = 512;
+f  = F(:,:,1); f = f - max(f(:)) + occ; f(f < 0) = 0;
+subplot(3,2,1), imagesc(f)
+xlabel('model'), ylabel('subject'), title('Free energy (FFX)','FontSize',16)
 axis square
 
-subplot(3,2,2), image((R - max(R(:)))*2 + 64)
-xlabel('model'), ylabel('subject'), title('Free energy (BMR)','FontSize',16)
-axis square
-
-subplot(3,2,3)
-GF  = sum(F); GF  = GF - min(GF);
-bar(GF), xlabel('model'), ylabel('Free energy'), title('Free energy (FFX)','FontSize',16)
+f  = sum(f,1); f  = f - max(f) + occ; f(f < 0) = 0;
+subplot(3,2,3), bar(f), xlabel('model'), ylabel('Free energy'), title('Free energy (FFX)','FontSize',16)
 spm_axis tight, axis square
 
-subplot(3,2,4)
-GF  = sum(R); GF  = GF - min(GF);
-bar(GF), xlabel('model'), ylabel('Free energy'), title('Free energy (BMR)','FontSize',16)
-spm_axis tight, axis square
-
-subplot(3,2,5)
-GF  = sum(F); GF  = exp(GF - max(GF)); GF = GF/sum(GF);
-bar(GF), xlabel('model'), ylabel('probability'), title('Posterior (FFX)','FontSize',16)
-spm_axis tight, axis square
-
-subplot(3,2,6)
-GF  = sum(R); GF  = exp(GF - max(GF)); GF = GF/sum(GF);
-bar(GF), xlabel('model'), ylabel('probability'), title('Posterior (BMR)','FontSize',16)
-spm_axis tight, axis square
-
-
-% parameter estimates and Bayesian model averages
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 3');clf
-
-subplot(3,2,1), plot(Q(iA,:,3),Q(iA,:,1),'.c','MarkerSize',16), hold on
-plot(Q(iB,:,3),Q(iB,:,1),'.b','MarkerSize',16), hold off
-xlabel('true parameter'), ylabel('Model average'), title('Parameters (BMA)','FontSize',16)
-axis([-1 1 -1 1]*ALim), axis square
-
-subplot(3,2,3), plot(Q(iA,:,3),Q(iA,:,2),'.c','MarkerSize',16), hold on
-plot(Q(iB,:,3),Q(iB,:,2),'.b','MarkerSize',16), hold off
-xlabel('true parameter'), ylabel('Model average'), title('Parameters (BMR)','FontSize',16)
-axis([-1 1 -1 1]*ALim), axis square
-
-GF  = sum(F); GF  = exp(GF - max(GF)); p = GF/sum(GF);
-subplot(3,2,2), bar(p),[m i] = max(p); 
+p  = exp(f - max(f)); p = p/sum(p); [m i] = max(p); 
+subplot(3,2,5), bar(p)
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (FFX)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
-GF  = sum(R); GF  = exp(GF - max(GF)); p = GF/sum(GF);
-subplot(3,2,4), bar(p),[m i] = max(p); 
+
+occ = 128;
+f  = F(:,:,2); f = f - max(f(:)) + occ; f(f < 0) = 0;
+subplot(3,2,2), imagesc(f)
+xlabel('model'), ylabel('subject'), title('Free energy (BMR)','FontSize',16)
+axis square
+
+f  = sum(f,1); f  = f - max(f) + occ; f(f < 0) = 0;
+subplot(3,2,4), bar(f), xlabel('model'), ylabel('Free energy'), title('Free energy (BMR)','FontSize',16)
+spm_axis tight, axis square
+
+p  = exp(f - max(f)); p = p/sum(p); [m i] = max(p); 
+subplot(3,2,6), bar(p)
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (BMR)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
+
 % a more detailed analysis of Bayesian model comparison
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 4'); clf
+spm_figure('GetWin','Figure 3'); clf
 
 for i = 1:Ns
-    p       = exp(R(i,:));
+    p       = exp(F(i,:,2));
     p       = p/sum(p);
-    RR(i,:) = p;
+    pp(i,:) = p;
 end
 
-subplot(3,2,1), image((R - max(R(:)))*2 + 64)
+f  = F(:,:,2); f = f - max(f(:)) + occ; f(f < 0) = 0;
+subplot(3,2,1), imagesc(f)
 xlabel('model'), ylabel('subject'), title('Free energy (BMR)','FontSize',16)
 axis square
 
-subplot(3,2,2), imagesc(RR)
+subplot(3,2,2), imagesc(pp)
 xlabel('model'), ylabel('subject'), title('Model posterior (BMR)','FontSize',16)
 axis square
 
-[p i] = max(RR(:,1));
-[p j] = min(RR(:,1));
+[p i] = max(pp(:,2));
+[p j] = min(pp(:,2));
 stri  = sprintf('Subject %i',i);
 strj  = sprintf('Subject %i',j);
 
-subplot(3,2,3), bar(RR(i,:))
+subplot(3,2,3), bar(pp(i,:))
 xlabel('model'), ylabel('probability'), title(stri,'FontSize',16)
 axis square, spm_axis tight
 
-subplot(3,2,4), bar(RR(j,:))
+subplot(3,2,4), bar(pp(j,:))
 xlabel('model'), ylabel('probability'), title(strj,'FontSize',16)
 axis square, spm_axis tight
 
@@ -374,43 +348,88 @@ xlabel('parameter (B)'), ylabel('expectation'), title('Parameters','FontSize',16
 axis square, axis(a);
 
 
-% hierarchical (RFX) analysis
-%==========================================================================
-PEB = spm_dcm_peb(GCM(:,1),X(:,1),{'A','B'});
-
-% (RFX) BMA – define the model space in terms of a matrix
+% first level parameter estimates and Bayesian model averages
 %--------------------------------------------------------------------------
-K     = ones(length(B),length(PEB.Pind));
-k     = spm_fieldindices(Pp,'B');
-j     = find(ismember(PEB.Pind,k));
-q     = find(spm_vec(B{1})');
-for i = 1:length(B)
-    m      = spm_vec(B{i});
-    K(i,j) = m(q)';
-end
-    
-% Bayesian model averaging
-%--------------------------------------------------------------------------
-BMA = spm_dcm_group_BMA(PEB,K);
+spm_figure('GetWin','Figure 4');clf, ALim = 1/2;
 
-
-spm_figure('GetWin','Figure 3');
-
-Ep  = spm_cat({BMA.SUB.Ep});
-i   = ismember(BMA.Pind,iA);
-j   = ismember(BMA.Pind,iB);
-
-subplot(3,2,5), plot(Q(iA,:,3),Ep(i,:),'.c','MarkerSize',16), hold on
-plot(Q(iB,:,3),Ep(j,:),'.b','MarkerSize',16), hold off
-xlabel('true parameter'), ylabel('Model average'), title('Parameters (RFX)','FontSize',16)
+r   = corr(spm_vec(Q([iA; iB],:,1)),spm_vec(Q([iA; iB],:,2)));
+str = sprintf('BMA: correlation = %-0.2f',r);
+subplot(3,2,1), plot(Q(iA,:,1),Q(iA,:,2),'.c','MarkerSize',16), hold on
+plot(Q(iB,:,1),Q(iB,:,2),'.b','MarkerSize',16), hold off
+xlabel('true parameter'), ylabel('Model average'), title(str,'FontSize',16)
 axis([-1 1 -1 1]*ALim), axis square
 
-p   = BMA.P;
+r   = corr(spm_vec(Q([iA; iB],:,1)),spm_vec(Q([iA; iB],:,3)));
+str = sprintf('BMR: correlation = %-0.2f',r);
+subplot(3,2,3), plot(Q(iA,:,1),Q(iA,:,3),'.c','MarkerSize',16), hold on
+plot(Q(iB,:,1),Q(iB,:,3),'.b','MarkerSize',16), hold off
+xlabel('true parameter'), ylabel('Model average'), title(str,'FontSize',16)
+axis([-1 1 -1 1]*ALim), axis square
+
+r   = corr(spm_vec(Q([iA; iB],:,1)),spm_vec(Q([iA; iB],:,4)));
+str = sprintf('PEB: correlation = %-0.2f',r);
+subplot(3,2,5), plot(Q(iA,:,1),Q(iA,:,4),'.c','MarkerSize',16), hold on
+plot(Q(iB,:,1),Q(iB,:,4),'.b','MarkerSize',16), hold off
+xlabel('true parameter'), ylabel('Model average'), title(str,'FontSize',16)
+axis([-1 1 -1 1]*ALim), axis square
+
+f   = sum(F(:,:,1)); f = f - max(f(:)); f(f < -64) = -64;
+p   = exp(f - max(f)); p = p/sum(p);
+subplot(3,2,2), bar(p),[m i] = max(p); 
+text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
+xlabel('model'), ylabel('probability'), title('Posterior (FFX)','FontSize',16)
+axis([0 (length(p) + 1) 0 1]), axis square
+
+f   = sum(F(:,:,2)); f = f - max(f(:)); f(f < -64) = -64;
+p   = exp(f - max(f)); p = p/sum(p);
+subplot(3,2,4), bar(p),[m i] = max(p); 
+text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
+xlabel('model'), ylabel('probability'), title('Posterior (BMR)','FontSize',16)
+axis([0 (length(p) + 1) 0 1]), axis square
+
+f   = sum(F(:,:,3)); f = f - max(f(:)); f(f < -64) = -64;
+p   = exp(f - max(f)); p = p/sum(p);
 subplot(3,2,6), bar(p),[m i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
-title('Posterior (RFX)','FontSize',16)
-xlabel('Model','FontSize',12)
-ylabel('probability','FontSize',12)
+xlabel('model'), ylabel('probability'), title('Posterior (PEB)','FontSize',16)
+axis([0 (length(p) + 1) 0 1]), axis square
+
+
+
+% second level parameter estimates and Bayesian model comparison
+%==========================================================================
+spm_figure('GetWin','Figure 5');clf
+
+% to an estimated seven double parameters
+%--------------------------------------------------------------------------
+Tp  = spm_vec(DCM.Ep);
+Tx  = spm_vec(DCM.Ex);
+Tp  = Tp(BMA.Pind);
+Tx  = Tx(BMA.Pind);
+
+i   = spm_fieldindices(DCM.Ep,'B');
+i   = ismember(BMA.Pind,i);
+j   = find([i; i]);
+i   = find(i);
+
+subplot(2,2,1), spm_plot_ci(BMA.Ep(j),BMA.Cp(j)), hold on, bar([Tp(i);Tx(i)],1/2), hold off
+xlabel('parameters'), ylabel('expectation'), title('2nd level arameters','FontSize',16)
+axis square
+
+% random effects Bayesian model comparison
+%--------------------------------------------------------------------------
+[~,~,xp] = spm_dcm_bmc(RCM);
+
+p   = full(spm_cat({REB.F})); p = exp(p - max(p)); p = p/sum(p);
+subplot(2,2,3), bar(p),[m i] = max(p); 
+text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
+xlabel('model'), ylabel('posterior probability'), title('Random parameter effects','FontSize',16)
+axis([0 (length(p) + 1) 0 1]), axis square
+
+p   = xp;
+subplot(2,2,4), bar(p),[m i] = max(p); 
+text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
+xlabel('model'), ylabel('exceedance probability'), title('Random model effects','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
 
@@ -419,168 +438,73 @@ axis([0 (length(p) + 1) 0 1]), axis square
 
 % classical inference of second level
 %--------------------------------------------------------------------------
-CVA = spm_cva(Q(iB,:,3)',X,[],[0 1 0]'); CP(1) = log(CVA.p);
-CVA = spm_cva(Q(iB,:,1)',X,[],[0 1 0]'); CP(2) = log(CVA.p);
-CVA = spm_cva(Q(iB,:,2)',X,[],[0 1 0]'); CP(3) = log(CVA.p);
-CVA = spm_cva(Ep(j,:)',  X,[],[0 1 0]'); CP(4) = log(CVA.p);
+CVA = spm_cva(Q(iB,:,1)',X,[],[0 1 0]'); CP(1) = log(CVA.p);
+CVA = spm_cva(Q(iB,:,2)',X,[],[0 1 0]'); CP(2) = log(CVA.p);
+CVA = spm_cva(Q(iB,:,3)',X,[],[0 1 0]'); CP(3) = log(CVA.p);
 
 
 % Bayesian model comparison
 %--------------------------------------------------------------------------
 field  = {'A','B'};
-PEB = spm_dcm_group(GCM(:,1),X(:,[1 1 1]),field);  HF(1) = PEB.F
-PEB = spm_dcm_group(GCM(:,1),X(:,[1 1 2]),field);  HF(2) = PEB.F
-PEB = spm_dcm_group(GCM(:,1),X(:,[1 1 3]),field);  HF(3) = PEB.F
-PEB = spm_dcm_group(GCM(:,1),X(:,[1 2 3]),field);  HF(4) = PEB.F
+PB = spm_dcm_peb(GCM(:,1),X(:,[1 1 1]),field);  HF(1) = PB.F;
+PB = spm_dcm_peb(GCM(:,1),X(:,[1 1 2]),field);  HF(2) = PB.F;
+PB = spm_dcm_peb(GCM(:,1),X(:,[1 1 3]),field);  HF(3) = PB.F;
+PB = spm_dcm_peb(GCM(:,1),X(:,[1 2 3]),field);  HF(4) = PB.F;
 
-spm_figure('GetWin','Figure 5');
 
 p  = HF; p  = exp(p - max(p)); p = p/sum(p);
-subplot(2,2,1), bar(p),[m i] = max(p); 
+subplot(2,2,2), bar(p),[m i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
-title('Posterior probability','FontSize',16)
+title('BMC of group effects','FontSize',16)
 xlabel('Model','FontSize',12)
 ylabel('Probability','FontSize',12)
 axis([0 (length(p) + 1) 0 1]), axis square
-set(gca,'XTickLabel',{'1&1','1&2','1&3','1&2&3'})
+set(gca,'XTickLabel',{'1','1 & 2','1 & 3','1,2 & 3'})
 
 
-% (RFX) BMA – define the model space in terms of a matrix
-%--------------------------------------------------------------------------
-K     = ones(length(B),length(PEB.Pind));
-k     = spm_fieldindices(Pp,'B');
-j     = find(ismember(PEB.Pind,k));
-q     = find(spm_vec(B{1})');
-for i = 1:length(B)
-    m      = spm_vec(B{i});
-    K(i,j) = m(q)';
-end
-    
-% Bayesian model comparison of the second level
-%--------------------------------------------------------------------------
-BMA = spm_dcm_group_BMA(PEB,K);
+return
 
-
-i = spm_fieldindices(DCM.Ep,'B{1}(1,1)');
-j = spm_fieldindices(DCM.Ep,'B{1}(2,2)');
-
-subplot(3,2,5), plot(Q(i,~X(:,2),3),Q(j,~X(:,2),3),'.r','MarkerSize',32), hold on
-plot(Q(i,~~X(:,2),3),Q(j,~~X(:,2),3),'.b','MarkerSize',32), hold off
-xlabel('B{1}(1,1)'), ylabel('B{1}(2,2)'), title('Group effects','FontSize',16)
-axis square
-
-i = spm_fieldindices(DCM.Ep,'B{1}(3,3)');
-j = spm_fieldindices(DCM.Ep,'B{1}(4,4)');
-
-subplot(3,2,6), plot(Q(i,~X(:,2),3),Q(j,~X(:,2),3),'or','MarkerSize',8), hold on
-plot(Q(i,~~X(:,2),3),Q(j,~~X(:,2),3),'ob','MarkerSize',8), hold off
-xlabel('B{1}(3,3)'), ylabel('B{1}(4,4)'), title('Group effects','FontSize',16)
-axis square
-
-
-
-
-
-
-
-
-
-
+% posterior predictive density and cross validation
+%==========================================================================
+% spm_figure('GetWin','Figure 5');clf
+% spm_dcm_loo(RCM,X)
 
 
 % reinvert (full) model with initialization; recursively
 %==========================================================================
+ECM   = GCM(:,1);
+iq    = find(spm_vec(DCM.M.pC));
+ECM{1}.M.eE = 2;     
 for k = 1:8
     
-    % (FFX) BPA – over subjects
+    % empirical Bayes – over subjects
     %----------------------------------------------------------------------
-    BPA   = spm_dcm_average(RCM(:,1),{},1);
+    [~,ECM] = spm_dcm_peb(ECM(:,1));
     
     for i = 1:Ns
-        for j = 1:Nm
-            try
-                RCM{i,j}  = rmfield(RCM{i,j},'M');
-            end
-        end
-        
+
         % invert the full (first) model
         %------------------------------------------------------------------
-        RCM{i,1}.M.P      = BPA.Ep;
-        RCM{i,1}.M.dipfit = DCM.M.dipfit;
-        RCM{i,1}          = spm_dcm_erp(RCM{i,1});
+        try
+            ECM{i}      = rmfield(ECM{i},'M');
+        end
+        try
+            ECM{i}.M.P  = ECM{i}.Ep;
+        end
+        ECM{i}.M.dipfit = DCM.M.dipfit;
+        ECM             = spm_dcm_fit(ECM);
         
         % correlations and free energy
         %------------------------------------------------------------------
-        qp     = spm_vec(RCM{i,1}.Ep);
-        pp     = spm_vec(RCM{i,1}.Tp);
-        rho    = corr([qp(iq) pp(iq)]);
-        cor(i) = rho(1,2);
-        f(i)   = RCM{i,1}.F;
+        qp       = spm_vec(ECM{i,1}.Ep);
+        pp       = spm_vec(ECM{i,1}.Tp);
+        cor(i,k) = corr(qp(iq),pp(iq));
+        FF(i,k)  = RCM{i,1}.F;
     end
     
-    COR(k) = mean(cor)
-    IF(k)  = mean(f)
-end
-
-% Bayesian model reduction
-%--------------------------------------------------------------------------
-for i = 1:Ns
-    [q,P]    = spm_dcm_search_eeg(RCM(i,:));
-    RCM(i,:) = P;
+    mean(cor)
+    mean(FF)
 end
 
 
-% (FFX) BMA – over subjects
-%----------------------------------------------------------------------
-rma   = spm_dcm_bma(RCM);
-for i = 1:Ns
-    
-    % Parameter averages
-    %------------------------------------------------------------------
-    QP(:,i) = spm_vec(rma.mEps{i});
-    
-    % and free energy
-    %----------------------------------------------------------------------
-    for j = 1:Nm
-        RF(i,j)   = RCM{i,j}.F;
-    end
-    
-end
 
-
-% select parameters
-%--------------------------------------------------------------------------
-qp     = QP(iq,:);
-
-
-% plot
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2');clf
-
-subplot(3,2,1), plot(Q(:,:,3),qp,'o'), hold on
-xlabel('true parameter'), ylabel('Model average'), title('Parameters','FontSize',16)
-axis square
-
-subplot(3,2,2), plot(Q(:,:,3),Q(:,:,2),'o'), hold on
-xlabel('true parameter'), ylabel('BMA (BMR)'), title('Parameters','FontSize',16)
-axis square
-
-subplot(3,2,3), imagesc(RF)
-xlabel('model'), ylabel('subject'), title('Free energy','FontSize',16)
-axis square
-
-subplot(3,2,4), imagesc(R)
-xlabel('model'), ylabel('subject'), title('Free energy (BMR)','FontSize',16)
-axis square
-
-subplot(3,2,5)
-GF  = sum(RF);
-GF  = GF - min(GF);
-bar(GF), xlabel('model'), ylabel('Free energy'), title('Free energy (FFX)','FontSize',16)
-spm_axis tight, axis square
-
-subplot(3,2,6)
-GF  = sum(R);
-GF  = GF - min(GF);
-bar(GF), xlabel('model'), ylabel('FFX Free energy'), title('BMR Free energy','FontSize',16)
-spm_axis tight, axis square

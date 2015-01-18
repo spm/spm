@@ -41,7 +41,7 @@ function RCM = DEM_demo_Bayesian_Model_Reduction
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Bayesian_Model_Reduction.m 6111 2014-07-21 09:37:39Z karl $
+% $Id: DEM_demo_Bayesian_Model_Reduction.m 6306 2015-01-18 20:50:38Z karl $
 
 rng('default')
 
@@ -101,8 +101,8 @@ for i = 1:Nr
     
     % model inversion for this region
     %----------------------------------------------------------------------
-    Y.y          = y(:,i);
-    [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
+    Y.y       = y(:,i);
+    [Ep,Cp]   = spm_nlsi_GN(M,U,Y);
     
     % save model for subsequent BMS
     %----------------------------------------------------------------------

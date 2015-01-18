@@ -76,7 +76,7 @@ function [PEB,P]   = spm_dcm_peb(P,X,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_dcm_peb.m 6306 2015-01-18 20:50:38Z karl $
  
 
 % get filenames and set up
@@ -217,6 +217,7 @@ if Ns > 1;
     W     = speye(Np,Np);
     bE    = pE{1};
     bC    = pC{1};
+
     
 else
     
@@ -225,6 +226,7 @@ else
     if nargin > 1
         W = X;
         X = 1;
+        Q = {};
     else
         W = pE{1};
         X = 1;
@@ -235,8 +237,6 @@ else
 
 end
 
-
-    
 
 % prior expectations and precisions of second level parameters
 %--------------------------------------------------------------------------
@@ -364,7 +364,7 @@ for n = 1:32
     % Convergence
     %======================================================================
     fprintf('VL Iteration %-8d: F = %-3.2f dF: %2.4f  [%+2.2f]\n',n,full(F),full(dF),t); 
-    if t < -8 || (dF < 1e-2 && ~t && n > 4) , break, end
+    if t < -4 || (dF < 1e-2 && ~t && n > 4) , break, end
     
     
 end

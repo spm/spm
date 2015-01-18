@@ -1,20 +1,21 @@
+function DEMO_SLR
 % demo of sparse logistic regression
 %__________________________________________________________________________
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_SLR.m 6247 2014-10-15 13:58:56Z guillaume $
+% $Id: DEMO_SLR.m 6306 2015-01-18 20:50:38Z karl $
 
 
 % Genomic data (G)
 %--------------------------------------------------------------------------
-Ny = 32;                                  % number of observations
-Nx = 128;                                 % number of explanatory variables
+Ny   = 32;                                  % number of observations
+Nx   = 128;                                 % number of explanatory variables
 
 % Design matrix (U)
 %--------------------------------------------------------------------------
-X  = randn(Ny,Nx);
-X0 = ones(Ny,1);
+X    = randn(Ny,Nx);
+X0   = ones(Ny,1);
 
 % Relevant explanatory variables (j)
 %--------------------------------------------------------------------------

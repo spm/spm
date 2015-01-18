@@ -33,7 +33,7 @@ function [RCM,BMR] = spm_dcm_bmr(P)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmr.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_dcm_bmr.m 6306 2015-01-18 20:50:38Z karl $
 
 % get filenames and set up
 %--------------------------------------------------------------------------
@@ -108,10 +108,10 @@ end
 try, options = DCM.options;                   catch, options = {};    end
 try, DCMname = spm_file(DCM.name,'basename'); catch, DCMname = 'DCM'; end
 
-qE      = DCM.Ep;
-qC      = DCM.Cp;
-pE      = DCM.M.pE;
-pC      = DCM.M.pC;
+qE    = DCM.Ep;
+qC    = DCM.Cp;
+pE    = DCM.M.pE;
+pC    = DCM.M.pC;
 
 %-Loop through models and get log-evidences
 %==========================================================================
@@ -174,7 +174,7 @@ for j = 1:N
     %----------------------------------------------------------------------
     name{j}  = ['BMR_' DCMname];
     RCM{j}   = DCM;
-    G(j)     = F;
+    G(j)     = DCM.F;
     
 end
 
@@ -183,16 +183,16 @@ end
 G     = G - max(G);
 p     = exp(G - max(G));
 p     = p/sum(p);
-[q,j] = max(p);
 
-%-Save best DCM
-%==========================================================================
+%-Save summary structure
+%--------------------------------------------------------------------------
 BMR.name = name;
 BMR.F    = G;
 BMR.P    = p;
 
-% Get selected model
-%--------------------------------------------------------------------------
+% Get aand display selected model
+%==========================================================================
+[q,j] = max(p);
 try, load(P{j}); catch, DCM = P{j}; end
 
 qE    = spm_vec(qE);
@@ -207,7 +207,7 @@ j     = spm_fieldindices(pE,'A','B','C');
 i     = j(ismember(j,i));
 
 % Show results: Graphics
-%==========================================================================
+%--------------------------------------------------------------------------
 spm_figure('Getwin','Graphics'); clf
 
 subplot(2,2,1)

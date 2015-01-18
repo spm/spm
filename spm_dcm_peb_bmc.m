@@ -30,8 +30,8 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 %         SUB(i).Cp - posterior covariances under BMA of empirical priors
 %         SUB(i).F  - (reduced) free energy under BMA of empirical priors
 %
-%     BMA.Ep   - BMA expectation of ssecond level parameters
-%     BMA.Cp   - BMA covariances of ssecond level parameters
+%     BMA.Ep   - BMA expectation of second level parameters
+%     BMA.Cp   - BMA covariances of second level parameters
 %     BMA.F    - free energy over model space
 %     BMA.P    - posterior probability over models
 %     BMA.Px   - posterior probability over parameters (differences)
@@ -70,7 +70,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_dcm_peb_bmc.m 6306 2015-01-18 20:50:38Z karl $
 
 % Compute reduced log-evidence
 %==========================================================================
