@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 6307 2015-01-20 10:45:56Z vladimir $
+% $Id: spm_eeg_grandmean.m 6308 2015-01-20 10:52:11Z vladimir $
 
-SVNrev = '$Rev: 6307 $';
+SVNrev = '$Rev: 6308 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -259,7 +259,7 @@ if strncmp(D{1}.transformtype, 'TF',2)
         for j = 1:D{1}.nchannels
 
             for k = 1:Nfiles
-                 if any(badchans{k}==j) 
+                 if ~any(badchans{k}==j) 
                     ind = trialinds{k}(i);
                     if ~isempty(ind)
                         d(j, :, :) = d(j, :, :) + nrepl(k, i)*D{k}(j, :, :, ind);
@@ -288,7 +288,7 @@ else
         for j = 1:D{1}.nchannels
 
             for k = 1:Nfiles
-                if any(badchans{k}==j) 
+                if ~any(badchans{k}==j) 
                     ind = trialinds{k}(i);
                     if ~isempty(ind)
                         d(j, :) = d(j, :) + nrepl(k, i)*D{k}(j, :, ind); 
