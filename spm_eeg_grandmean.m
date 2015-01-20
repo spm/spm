@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 6257 2014-11-07 14:51:00Z vladimir $
+% $Id: spm_eeg_grandmean.m 6307 2015-01-20 10:45:56Z vladimir $
 
-SVNrev = '$Rev: 6257 $';
+SVNrev = '$Rev: 6307 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -243,6 +243,8 @@ end
 % for determining bad channels of the grandmean
 w = zeros(Do.nchannels, Ntypes);
 
+badchans  = cellfun(@badchannels, D, 'UniformOutput', 0); 
+trialinds = cellfun(@(x) x.indtrial(types, 'GOOD'), D, 'UniformOutput', 0); 
 
 %-Do the averaging
 %--------------------------------------------------------------------------
@@ -257,8 +259,8 @@ if strncmp(D{1}.transformtype, 'TF',2)
         for j = 1:D{1}.nchannels
 
             for k = 1:Nfiles
-                if ~ismember(j, D{k}.badchannels)
-                    ind = D{k}.indtrial(types{i}, 'GOOD');
+                 if any(badchans{k}==j) 
+                    ind = trialinds{k}(i);
                     if ~isempty(ind)
                         d(j, :, :) = d(j, :, :) + nrepl(k, i)*D{k}(j, :, :, ind);
                         w(j, i) = w(j, i) + nrepl(k, i);
@@ -280,15 +282,16 @@ if strncmp(D{1}.transformtype, 'TF',2)
 
 else
     for i = 1:Ntypes
+        
         d = zeros(D{1}.nchannels, D{1}.nsamples);
 
         for j = 1:D{1}.nchannels
 
             for k = 1:Nfiles
-                if ~ismember(j, D{k}.badchannels)
-                    ind = D{k}.indtrial(types{i}, 'GOOD');
+                if any(badchans{k}==j) 
+                    ind = trialinds{k}(i);
                     if ~isempty(ind)
-                        d(j, :) = d(j, :) + nrepl(k, i)*D{k}(j, :, ind);
+                        d(j, :) = d(j, :) + nrepl(k, i)*D{k}(j, :, ind); 
                         w(j, i) = w(j, i) + nrepl(k, i);
                     end
                 end
