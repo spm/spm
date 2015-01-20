@@ -2,7 +2,7 @@ function DEMO_BMR_PEB
 % Demonstration routine for empirical Bayes and Bayesian model reduction
 %--------------------------------------------------------------------------
 % This routine illustrates the use of Bayesian model reduction when
-% inverting hierarchical (linear) models – it is essentially a software
+% inverting hierarchical (linear) models - it is essentially a software
 % validation demo and proof of concept. It uses a parametric empirical
 % Bayesian model (i.e., nested linear models) to eschew local minima issues
 % and to assure the Laplace assumption is correct. In brief, the data are
@@ -31,10 +31,10 @@ function DEMO_BMR_PEB
 %
 % See also: spm_dcm_bmr, spm_dcm_peb and spm_dcm_peb_bma
 %__________________________________________________________________________
-% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BMR_PEB.m 6306 2015-01-18 20:50:38Z karl $
+% $Id: DEMO_BMR_PEB.m 6309 2015-01-20 21:01:36Z spm $
 
 
 % set up
@@ -77,7 +77,7 @@ DCM.Ex      = spm_zeros(DCM.Ep);
 DCM.Ex.B{1} = B{mx}*2*sd;
 
 
-% (RFX) BMA – define the model space in terms of a matrix
+% (RFX) BMA ï¿½ define the model space in terms of a matrix
 %--------------------------------------------------------------------------
 K     = ones(length(B),spm_length(DCM.Ep));
 k     = spm_fieldindices(DCM.M.pE,'B');
@@ -175,7 +175,7 @@ end
 
 
 
-% Bayesian model reduction – for each subject & set hyperprior expectation
+% Bayesian model reduction ï¿½ for each subject & set hyperprior expectation
 %==========================================================================
 RCM           = spm_dcm_bmr(GCM);
 RCM{1,1}.M.eE = 4;                             
@@ -184,13 +184,13 @@ RCM{1,1}.M.eE = 4;
 %==========================================================================
 [REB,PCM]     = spm_dcm_peb(RCM);
 
-% BMA – (first level)
+% BMA ï¿½ (first level)
 %--------------------------------------------------------------------------
 bma   = spm_dcm_bma(GCM);
 rma   = spm_dcm_bma(RCM);
 pma   = spm_dcm_bma(PCM);
 
-% BMA – (second level)
+% BMA ï¿½ (second level)
 %--------------------------------------------------------------------------
 PEB   = spm_dcm_peb(RCM(:,1),X);
 BMA   = spm_dcm_peb_bmc(PEB,RCM(1,:));
@@ -237,7 +237,7 @@ f  = sum(f,1); f  = f - max(f) + 64; f(f < 0) = 0;
 subplot(3,2,3), bar(f), xlabel('model'), ylabel('Free energy'), title('Free energy (FFX)','FontSize',16)
 spm_axis tight, axis square
 
-p  = exp(f - max(f)); p = p/sum(p); [m i] = max(p); 
+p  = exp(f - max(f)); p = p/sum(p); [m,i] = max(p); 
 subplot(3,2,5), bar(p)
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (FFX)','FontSize',16)
@@ -252,7 +252,7 @@ f  = sum(f,1); f  = f - max(f) + 64; f(f < 0) = 0;
 subplot(3,2,4), bar(f), xlabel('model'), ylabel('Free energy'), title('Free energy (BMR)','FontSize',16)
 spm_axis tight, axis square
 
-p  = exp(f - max(f)); p = p/sum(p); [m i] = max(p); 
+p  = exp(f - max(f)); p = p/sum(p); [m,i] = max(p); 
 subplot(3,2,6), bar(p)
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (BMR)','FontSize',16)
@@ -287,14 +287,14 @@ axis([-1 1 -1 1]*ALim), axis square
 
 f   = sum(F(:,:,1)); f = f - max(f(:)); f(f < -64) = -64;
 p   = exp(f - max(f)); p = p/sum(p);
-subplot(3,2,2), bar(p),[m i] = max(p); 
+subplot(3,2,2), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (FFX)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
 f   = sum(F(:,:,2)); f = f - max(f(:)); f(f < -64) = -64;
 p   = exp(f - max(f)); p = p/sum(p);
-subplot(3,2,4), bar(p),[m i] = max(p); 
+subplot(3,2,4), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (BMR)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
@@ -323,13 +323,13 @@ axis square
 [~,~,xp] = spm_dcm_bmc(RCM);
 
 p   = full(spm_cat({REB.F})); p = exp(p - max(p)); p = p/sum(p);
-subplot(2,2,3), bar(p),[m i] = max(p); 
+subplot(2,2,3), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('posterior probability'), title('Random parameter effects','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
 p   = xp;
-subplot(2,2,4), bar(p),[m i] = max(p); 
+subplot(2,2,4), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('exceedance probability'), title('Random model effects','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
@@ -350,7 +350,7 @@ ylabel('Model (commonalities)','FontSize',12)
 axis square
 
 subplot(3,2,3)
-[m i] = max(sum(p,1)); bar(sum(p,1)),
+[m,i] = max(sum(p,1)); bar(sum(p,1)),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Commonalities','FontSize',16)
 xlabel('Model','FontSize',12)
@@ -364,7 +364,7 @@ ylabel('Model (commonalities)','FontSize',12)
 axis square
 
 subplot(3,2,4)
-[m i] = max(sum(p,2)); bar(sum(p,2)),
+[m,i] = max(sum(p,2)); bar(sum(p,2)),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Differences','FontSize',16)
 xlabel('Model','FontSize',12)
@@ -377,6 +377,14 @@ axis([0 (Nm + 1) 0 1]), axis square
 % spm_figure('GetWin','Figure 5');clf
 % spm_dcm_loo(RCM,X)
 
+
+return
+
+
+function r = corr(A,B)
+% corr() is part of the Statistic toolbox
+r = corrcoef(A,B);
+r = r(1,2);
 
 return
 

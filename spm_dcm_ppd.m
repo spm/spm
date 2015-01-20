@@ -1,10 +1,10 @@
-function [qE,qC]   = spm_dcm_ppd(TEST,TRAIN,X,field)
-% posterior predictive density for empirical Bayes and DCM
-% FORMAT [qE,qC]   = spm_dcm_ppd(TEST,TRAIN,X,field)
-
+function [qE,qC] = spm_dcm_ppd(TEST,TRAIN,X,field)
+% Posterior predictive density for empirical Bayes and DCM
+% FORMAT [qE,qC] = spm_dcm_ppd(TEST,TRAIN,X,field)
+%
 % TEST   - {1 [x M]} structure DCM array of new subject
 % TRAIN  - {N [x M]} structure DCM array of (M) DCMs from (N) subjects
-% ------------------------------------------------------------
+% --------------------------------------------------------------------
 %     DCM{i}.M.pE - prior expectation of parameters
 %     DCM{i}.M.pC - prior covariances of parameters
 %     DCM{i}.Ep   - posterior expectations
@@ -14,10 +14,10 @@ function [qE,qC]   = spm_dcm_ppd(TEST,TRAIN,X,field)
 % field  - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %          'All' will invoke all fields
 % 
-% qE    - posterior predictive expectation
-% qC    - posterior predictive covariances
+% qE     - posterior predictive expectation
+% qC     - posterior predictive covariances
+%__________________________________________________________________________
 %
-%--------------------------------------------------------------------------
 % This routine inverts a hierarchical DCM using variational Laplace and
 % Bayesian model reduction. In essence, it optimises the empirical priors
 % over the parameters of a training set of first level DCMs, using 
@@ -28,14 +28,15 @@ function [qE,qC]   = spm_dcm_ppd(TEST,TRAIN,X,field)
 % predictive density over this group effect can be used for classification
 % or cross validation.
 %
-% see also: spm_dcm_peb.m and spm_dcm_loo.m
+% See also: spm_dcm_peb.m and spm_dcm_loo.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
 % $Id: spm_dcm_peb.m 6305 2015-01-17 12:40:51Z karl $
 
-%  set up
+
+% Set up
 %==========================================================================
 
 % parameter fields
@@ -47,7 +48,7 @@ if strcmpi(field,'all');
     field = fieldnames(TEST(1,1).M.pE);
 end
 
-% repeat for each column if TEST is an array
+% Repeat for each column if TEST is an array
 %==========================================================================
 if size(TRAIN,2) > 1
     
@@ -61,7 +62,7 @@ if size(TRAIN,2) > 1
     return
 end
 
-% posterior predictive density
+% Posterior predictive density
 %==========================================================================
 
 % evaluate empirical priors from training set
@@ -73,9 +74,3 @@ PEB  = spm_dcm_peb(TRAIN,X,field);
 peb  = spm_dcm_peb(TEST,PEB.Ep,field);
 qE   = peb.Ep;
 qC   = peb.Cp;
-
-
-
-
-
-

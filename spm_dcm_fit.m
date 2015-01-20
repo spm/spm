@@ -4,26 +4,26 @@ function [P]   = spm_dcm_fit(P)
 %
 % P    - {N x M} DCM structure array (or filenames) from N subjects
 %
-% DCM  - Inverted (1st level) DCM structures with emprical priors
+% DCM  - Inverted (1st level) DCM structures with empirical priors
+%__________________________________________________________________________
 %
-%--------------------------------------------------------------------------
 % This routine is just a wrapper that calls the apprioriate dcm inversion
-% routine. for a set a pre-specifed DCMs.
+% routine for a set a pre-specifed DCMs.
 %
 % If called with a cell array, each column is assumed to contain 1st level
 % DCMs inverted under the same model. Each row contains a different data
 % set (or subject).
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fit.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_dcm_fit.m 6309 2015-01-20 21:01:36Z spm $
 
 
 % get filenames and set up
 %--------------------------------------------------------------------------
 if ~nargin
-    [P, sts] = spm_select([2 Inf],'^DCM.*\.mat$','Select DCM*.mat files');
+    [P, sts] = spm_select([1 Inf],'^DCM.*\.mat$','Select DCM*.mat files');
     if ~sts, return; end
 end
 if ischar(P),   P = cellstr(P);  end
@@ -113,7 +113,7 @@ for i = 1:Ns
                 DCM = spm_dcm_nfm(DCM);
                 
             otherwise
-                warndlg('unknown DCM')
+                spm('alert!','unknown DCM','Warning');
                 return
         end
         

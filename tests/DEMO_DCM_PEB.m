@@ -1,18 +1,18 @@
-% function DEMO_PEB_PEB
+% function DEMO_DCM_PEB
 % Test routine to check group DCM for electrophysiology
 %--------------------------------------------------------------------------
 % This routine illustrates the use of Bayesian model reduction when
 % inverting hierarchical (dynamical) models; for example, multisubject DCM
 % models. In this context, we have hierarchical models that are formally
-% similar to parametric empirical Bayesian models – with the exception
+% similar to parametric empirical Bayesian models - with the exception
 % that the model of the first level can be nonlinear and dynamic. In brief,
 % this routine shows how to finesse the brittleness of Bayesian model
 % comparison at the single subject level by equipping the model with an
 % extra (between subject) level. It illustrates the recovery of group
 % effects on modulatory changes in effective connectivity (in the mismatch
-% negativity paradigm) – based upon real data.
+% negativity paradigm) - based upon real data.
 % 
-% First, an EEG DCM (using empirical ggrand mean data) is inverted to
+% First, an EEG DCM (using empirical grand mean data) is inverted to
 % find plausible group mean parameters. Single subject data are
 % then generated using typical within and between subject variance (here, 
 % group differences in the modulation of intrinsic connectivity. We then
@@ -21,13 +21,13 @@
 %
 % See also: spm_dcm_bmr, spm_dcm_peb and spm_dcm_peb_bma
 %__________________________________________________________________________
-% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6306 2015-01-18 20:50:38Z karl $
+% $Id: DEMO_DCM_PEB.m 6309 2015-01-20 21:01:36Z spm $
 
 
-% change to ddirectory with empirical data
+% change to directory with empirical data
 %--------------------------------------------------------------------------
 %   options.analysis     - 'ERP','CSD', 'IND' or 'TFM
 %   options.model        - 'ERP','SEP','CMC','LFP','NNM' or 'MFM'
@@ -79,7 +79,7 @@ mx  = 4;                              % true model (between)
 Nm  = length(B);                      % number of models
 Ns  = 16;                             % number of subjects
 C   = 32;                             % within:between [co]variance ratio
-occ = 64;                             % Ockham's window for display
+occ = 64;                             % Occam's window for display
 
 % invert base model
 %--------------------------------------------------------------------------
@@ -155,7 +155,7 @@ end
 %==========================================================================
 GCM           = spm_dcm_fit(GCM);
 
-% Bayesian model reduction – for each subject & set hyperprior expectation
+% Bayesian model reduction - for each subject & set hyperprior expectation
 %==========================================================================
 RCM           = spm_dcm_bmr(GCM);
 RCM{1,1}.M.eE = 2;                             
@@ -164,13 +164,13 @@ RCM{1,1}.M.eE = 2;
 %==========================================================================
 [REB,PCM]     = spm_dcm_peb(RCM);
 
-% BMA – (first level)
+% BMA - (first level)
 %--------------------------------------------------------------------------
 bma   = spm_dcm_bma(GCM);
 rma   = spm_dcm_bma(RCM);
 pma   = spm_dcm_bma(PCM);
 
-% BMA – (second level)
+% BMA - (second level)
 %--------------------------------------------------------------------------
 PEB   = spm_dcm_peb(RCM(:,1),X);
 BMA   = spm_dcm_peb_bmc(PEB,RCM(1,:));
@@ -268,7 +268,7 @@ f  = sum(f,1); f  = f - max(f) + occ; f(f < 0) = 0;
 subplot(3,2,3), bar(f), xlabel('model'), ylabel('Free energy'), title('Free energy (FFX)','FontSize',16)
 spm_axis tight, axis square
 
-p  = exp(f - max(f)); p = p/sum(p); [m i] = max(p); 
+p  = exp(f - max(f)); p = p/sum(p); [m,i] = max(p); 
 subplot(3,2,5), bar(p)
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (FFX)','FontSize',16)
@@ -285,7 +285,7 @@ f  = sum(f,1); f  = f - max(f) + occ; f(f < 0) = 0;
 subplot(3,2,4), bar(f), xlabel('model'), ylabel('Free energy'), title('Free energy (BMR)','FontSize',16)
 spm_axis tight, axis square
 
-p  = exp(f - max(f)); p = p/sum(p); [m i] = max(p); 
+p  = exp(f - max(f)); p = p/sum(p); [m,i] = max(p); 
 subplot(3,2,6), bar(p)
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (BMR)','FontSize',16)
@@ -311,8 +311,8 @@ subplot(3,2,2), imagesc(pp)
 xlabel('model'), ylabel('subject'), title('Model posterior (BMR)','FontSize',16)
 axis square
 
-[p i] = max(pp(:,2));
-[p j] = min(pp(:,2));
+[p,i] = max(pp(:,2));
+[p,j] = min(pp(:,2));
 stri  = sprintf('Subject %i',i);
 strj  = sprintf('Subject %i',j);
 
@@ -375,21 +375,21 @@ axis([-1 1 -1 1]*ALim), axis square
 
 f   = sum(F(:,:,1)); f = f - max(f(:)); f(f < -64) = -64;
 p   = exp(f - max(f)); p = p/sum(p);
-subplot(3,2,2), bar(p),[m i] = max(p); 
+subplot(3,2,2), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (FFX)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
 f   = sum(F(:,:,2)); f = f - max(f(:)); f(f < -64) = -64;
 p   = exp(f - max(f)); p = p/sum(p);
-subplot(3,2,4), bar(p),[m i] = max(p); 
+subplot(3,2,4), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (BMR)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
 f   = sum(F(:,:,3)); f = f - max(f(:)); f(f < -64) = -64;
 p   = exp(f - max(f)); p = p/sum(p);
-subplot(3,2,6), bar(p),[m i] = max(p); 
+subplot(3,2,6), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (PEB)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
@@ -421,19 +421,19 @@ axis square
 [~,~,xp] = spm_dcm_bmc(RCM);
 
 p   = full(spm_cat({REB.F})); p = exp(p - max(p)); p = p/sum(p);
-subplot(2,2,3), bar(p),[m i] = max(p); 
+subplot(2,2,3), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('posterior probability'), title('Random parameter effects','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
 p   = xp;
-subplot(2,2,4), bar(p),[m i] = max(p); 
+subplot(2,2,4), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('exceedance probability'), title('Random model effects','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
 
-% inference
+% Inference
 %==========================================================================
 
 % classical inference of second level
@@ -453,7 +453,7 @@ PB = spm_dcm_peb(GCM(:,1),X(:,[1 2 3]),field);  HF(4) = PB.F;
 
 
 p  = HF; p  = exp(p - max(p)); p = p/sum(p);
-subplot(2,2,2), bar(p),[m i] = max(p); 
+subplot(2,2,2), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('BMC of group effects','FontSize',16)
 xlabel('Model','FontSize',12)
@@ -477,7 +477,7 @@ iq    = find(spm_vec(DCM.M.pC));
 ECM{1}.M.eE = 2;     
 for k = 1:8
     
-    % empirical Bayes – over subjects
+    % empirical Bayes - over subjects
     %----------------------------------------------------------------------
     [~,ECM] = spm_dcm_peb(ECM(:,1));
     
@@ -505,6 +505,3 @@ for k = 1:8
     mean(cor)
     mean(FF)
 end
-
-
-

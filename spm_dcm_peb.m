@@ -17,8 +17,8 @@ function [PEB,P]   = spm_dcm_peb(P,X,field)
 % 
 % PEB    - hierarchical dynamic model
 % -------------------------------------------------------------
-%     PEB.Snames - string array of first level model names
-%     PEB.Pnames - string array of parameters of interest
+%     PEB.Snames - char array of first level model names
+%     PEB.Pnames - char array of parameters of interest
 %     PEB.Pind   - indices of parameters in spm_vec(DCM{i}.Ep) 
 % 
 %     PEB.SUB  -   first level (within subject) models
@@ -45,17 +45,17 @@ function [PEB,P]   = spm_dcm_peb(P,X,field)
 %
 % DCM    - 1st level (reduced) DCM structures with emprical priors
 %
-%          If DCM is an an (N x M} array, hierarchicial inversion will be
+%          If DCM is an an {N x M} array, hierarchicial inversion will be
 %          applied to each model (i.e., each row) - and PEB will be a 
 %          {1 x M} cell array.
+%__________________________________________________________________________
 %
-%--------------------------------------------------------------------------
 % This routine inverts a hierarchical DCM using variational Laplace and
 % Bayesian model reduction. In essence, it optimises the empirical priors
 % over the parameters of a set of first level DCMs, using  second level or
 % between subject constraints specified in the design matrix X. This scheme
 % is efficient in the sense that it does not require inversion of the first
-% level DCMs – it just requires the prior and posterior densities from each
+% level DCMs - it just requires the prior and posterior densities from each
 % first level DCMs to compute empirical priors under the implicit
 % hierarchical model. The output of this scheme (PEB) can be re-entered
 % recursively to invert deep hierarchical models. Furthermore, Bayesian
@@ -73,20 +73,20 @@ function [PEB,P]   = spm_dcm_peb(P,X,field)
 % If called with a cell array, each column is assumed to contain 1st level
 % DCMs inverted under the same model.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6306 2015-01-18 20:50:38Z karl $
+% $Id: spm_dcm_peb.m 6309 2015-01-20 21:01:36Z spm $
  
 
-% get filenames and set up
+% Get filenames and set up
 %==========================================================================
 if ~nargin
     [P, sts] = spm_select([2 Inf],'^DCM.*\.mat$','Select DCM*.mat files');
     if ~sts, return; end
 end
-if ischar(P),   P = cellstr(P);  end
-if isstruct(P), P = {P};         end
+if ischar(P),   P = cellstr(P); end
+if isstruct(P), P = {P};        end
 
 
 % parameter fields
@@ -125,8 +125,7 @@ else
 end
 
 
-
-% get (first level) densities (summary statistics)
+% Get (first level) densities (summary statistics)
 %==========================================================================
 j     = spm_fieldindices(DCM.M.pE,field{:});
 q     = j(find(diag(DCM.Cp(j,j))));
@@ -167,7 +166,7 @@ for i = 1:length(P)
     
 end
 
-% hierarchical dynamic model design and defaults
+% Hierarchical dynamic model design and defaults
 %==========================================================================
 pP     = spm_inv(pC{1});              % lower bound on prior precision
 Ns     = numel(P);                    % number of subjects
@@ -218,7 +217,6 @@ if Ns > 1;
     bE    = pE{1};
     bC    = pC{1};
 
-    
 else
     
     % within subject design
@@ -289,7 +287,7 @@ for n = 1:32
         %------------------------------------------------------------------
         Xi         = kron(X(i,:),W);
         rE         = Xi*b;
-        [Fi sE sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
+        [Fi,sE,sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
         
         % supplement gradients and curvatures
         %------------------------------------------------------------------
@@ -326,7 +324,7 @@ for n = 1:32
     %----------------------------------------------------------------------
     if n == 1, F0 = F; end
     
-    % update parameters
+    % Update parameters
     %======================================================================
     
     % if F is increasing save current expansion point
@@ -356,7 +354,7 @@ for n = 1:32
     % Fisher scoring
     %----------------------------------------------------------------------
     dp      = spm_dx(dFdpp,dFdp,{t});
-    [db dg] = spm_unvec(dp,b,g);
+    [db,dg] = spm_unvec(dp,b,g);
     p       = p + dp;
     b       = b + db;
     g       = g + tanh(dg);
@@ -370,7 +368,7 @@ for n = 1:32
 end
 
 
-% assemble output structure
+% Assemble output structure
 %==========================================================================
 
 % place new (emprical) priors in structures
@@ -406,7 +404,7 @@ for i = 1:Ns
     
     % get first level posteriors under expected empirical priors
     %----------------------------------------------------------------------
-    [Fi sE sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
+    [Fi,sE,sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
     
     % and save
     %----------------------------------------------------------------------
@@ -431,7 +429,7 @@ for i = 1:Ns
         
         % First level BMR
         %------------------------------------------------------------------
-        [Fi sE sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},RE,RC);
+        [Fi,sE,sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},RE,RC);
 
         DCM.M.pE = RE;
         DCM.M.pC = RC;
@@ -468,6 +466,3 @@ PEB.Ce   = rC;
 PEB.F    = F;
 
 try, delete tmp.mat, end
-
-
-

@@ -2,20 +2,20 @@ function [RCM,BMR] = spm_dcm_bmr(P)
 % Bayesian model reduction (under Laplace approximation)
 % FORMAT [RCM,BMR] = spm_dcm_bmr(P)
 %
-% P - {Nsub x Nmodel} cell array of DCM filenames or model structures for 
-%      Nsub subjects, where each model is reduced independently for each
-%      subject
+% P   - {Nsub x Nmodel} cell array of DCM filenames or model structures for 
+%       Nsub subjects, where each model is reduced independently for each
+%       subject
 %      
 % RCM - reduced DCM array
 % BMR - (Nsub) summary structure 
 %        BMR.name - character/cell array of DCM filenames
 %        BMR.F    - their associated free energies
 %        BMR.P    - and posterior (model) probabilities
-%
-%--------------------------------------------------------------------------
+%__________________________________________________________________________
+% 
 % spm_dcm_bmr operates on different DCMs of the same data (rows) to find
-% the best model. It assumes the full model – whose free-parameters are
-% the union (superset) of all free parameters in each model – has been
+% the best model. It assumes the full model - whose free-parameters are
+% the union (superset) of all free parameters in each model - has been
 % inverted. A post hoc selection procedure is used to evaluate the log-
 % evidence and conditional density over free-parameters of each model
 % specified.
@@ -26,14 +26,15 @@ function [RCM,BMR] = spm_dcm_bmr(P)
 % latter exist, they will be used as the model specification.
 %
 % The outputs of this routine are graphics reporting the model space search
-% (optimisation) and the reduced (cell array of) DCM structures
+% (optimisation) and the reduced (cell array of) DCM structures.
 %
 % See also: spm_dcm_post_hoc.m, spm_dcm_bpa, spm_dcm_peb and spm_dcm_bma
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmr.m 6306 2015-01-18 20:50:38Z karl $
+% $Id: spm_dcm_bmr.m 6309 2015-01-20 21:01:36Z spm $
+
 
 % get filenames and set up
 %--------------------------------------------------------------------------
@@ -46,7 +47,7 @@ if isstruct(P), P = {P};         end
 
 % number of subjects and models: BMR over models (rows) for each subject
 %--------------------------------------------------------------------------
-[Ns N] = size(P);
+[Ns,N] = size(P);
 
 if Ns > 2
     for i = 1:Ns
@@ -86,9 +87,9 @@ catch
     end
 end
 
-%-load full model
+%-Load full model
 %==========================================================================
-[i j] = max(sum(par));
+[i,j] = max(sum(par));
 try, load(P{j}); catch, DCM = P{j}; end
 
 % check this is a full model and that is has been inverted
@@ -104,7 +105,7 @@ if ~all(isfield(DCM,{'Ep','Cp'}))
 end
 
 % Get full priors and posteriors
-% -------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try, options = DCM.options;                   catch, options = {};    end
 try, DCMname = spm_file(DCM.name,'basename'); catch, DCMname = 'DCM'; end
 
@@ -147,11 +148,11 @@ for j = 1:N
     
     
     % evaluate (reduced) free-energy and posteriors
-    % ---------------------------------------------------------------------
+    %----------------------------------------------------------------------
     [F,Ep,Cp] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
     
     % Put reduced conditional estimates in DCM
-    % =====================================================================
+    %======================================================================
     
     % Bayesian inference and variance
     %----------------------------------------------------------------------
@@ -179,7 +180,7 @@ for j = 1:N
 end
 
 % Model evidences and best model
-% =========================================================================
+%==========================================================================
 G     = G - max(G);
 p     = exp(G - max(G));
 p     = p/sum(p);
@@ -190,7 +191,7 @@ BMR.name = name;
 BMR.F    = G;
 BMR.P    = p;
 
-% Get aand display selected model
+% Get and display selected model
 %==========================================================================
 [q,j] = max(p);
 try, load(P{j}); catch, DCM = P{j}; end
@@ -233,7 +234,3 @@ subplot(2,2,4)
 spm_plot_ci(Ep(i),Cp(i,i))
 title('MAP connections (optimum)','FontSize',16)
 axis square, axis(a)
-
-
-
-
