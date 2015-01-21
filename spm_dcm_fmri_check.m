@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_fmri_check(P)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_check.m 5615 2013-08-15 14:37:24Z spm $
+% $Id: spm_dcm_fmri_check.m 6310 2015-01-21 10:54:22Z adeel $
 
 
 %-Load DCM structure
@@ -52,8 +52,22 @@ end
 
 % coefficient of determination (percent variance explained)
 %--------------------------------------------------------------------------
-PSS   = sum(sum(DCM.y.^2));
-RSS   = sum(sum(DCM.R.^2));
+
+% Check if spectral DCM (DCM for cross spectra)
+%--------------------------------------------------------------------------
+try
+    analysis = DCM.options.analysis;
+catch
+    analysis = '';
+end
+if strcmp(analysis,'CSD')
+    PSS   = sum(sum(sum(abs(DCM.Hc).^2)));
+    RSS   = sum(sum(sum(abs(DCM.Rc).^2)));
+else
+    PSS   = sum(sum(DCM.y.^2));
+    RSS   = sum(sum(DCM.R.^2));
+end
+
 D(1)  = 100*PSS/(PSS + RSS);
 
 % largest absolute posterior expectation (extrinsic connections)
@@ -91,19 +105,58 @@ spm_figure('GetWin','DCM diagnostics'); clf
 % plot predicted and observed regional responses
 %--------------------------------------------------------------------------
 subplot(2,1,1);
-t   = (1:DCM.v)*DCM.Y.dt;
 D   = full(D);
 
-plot(t,DCM.y,t,DCM.y + DCM.R,':');
-str = sprintf('variance explained %0.0f%%', D(1));
-str = {'responses and predictions',str};
-if D(1) > 10
-    title(str,'FontSize',16);
-else
-    title(str,'FontSize',16,'Color','r');
-end
-xlabel('time {seconds}');
+% Check if spectral DCM (DCM for cross spectra)
+%--------------------------------------------------------------------------
+if strcmp(analysis,'CSD')
+    
+    %-CSD data
+    %--------------------------------------------------------------------------
+    Hz   = DCM.Hz;                 % frequencies
+    name = {DCM.xY.name};          % names
+    ns   = size(DCM.a,1);          % number of regions
+    ns   = min(ns,8);              % bounded number of regions
+    
+    for i = 1:ns
 
+        Hc(:,i) = abs(DCM.Hc(:,i,i));
+        Yc(:,i) = abs(DCM.Hc(:,i,i) + DCM.Rc(:,i,i));
+            
+    end
+        
+        plot(Hz,Hc), hold on
+        plot(Hz,Yc,':'), hold off
+        str = sprintf('variance explained %0.0f%%', D(1));
+        str = {'responses and predictions',str};
+        
+        if D(1) > 10
+    
+            title(str,'FontSize',16);
+        else
+            title(str,'FontSize',16,'Color','r');
+        end
+        
+        xlabel('frequency (Hz)')
+        ylabel('abs(CSD)')
+        axis square, spm_axis tight
+        legend(name)
+else
+    t   = (1:DCM.v)*DCM.Y.dt;
+    plot(t,DCM.y,t,DCM.y + DCM.R,':');
+    str = sprintf('variance explained %0.0f%%', D(1));
+    str = {'responses and predictions',str};
+    
+    if D(1) > 10
+        title(str,'FontSize',16);
+    else
+        title(str,'FontSize',16,'Color','r');
+    end
+    
+    xlabel('time {seconds}');
+end
+
+    
 
 % posterior densities over A parameters
 %--------------------------------------------------------------------------
