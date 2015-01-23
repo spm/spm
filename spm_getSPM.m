@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 6227 2014-10-06 12:23:58Z guillaume $
+% $Id: spm_getSPM.m 6314 2015-01-23 17:00:51Z guillaume $
 
 
 %-GUI setup
@@ -600,9 +600,9 @@ end
 
 switch STAT
     case 'T'
-        STATstr = sprintf('%c%s_{%.0f}','T',str,df(2));
+        STATstr = sprintf('%s%s_{%.0f}','T',str,df(2));
     case 'F'
-        STATstr = sprintf('%c%s_{%.0f,%.0f}','F',str,df(1),df(2));
+        STATstr = sprintf('%s%s_{%.0f,%.0f}','F',str,df(1),df(2));
     case 'P'
         if strcmp(SPM.PPM.xCon(Ic).PSTAT,'T')
             STATstr = sprintf('%s^{%0.2f}','PPM',df(1));

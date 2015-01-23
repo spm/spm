@@ -68,7 +68,7 @@ function varargout = spm_graph_ui(action, varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Guillaume Flandin
-% $Id: spm_graph_ui.m 5581 2013-07-16 15:28:33Z guillaume $
+% $Id: spm_graph_ui.m 6314 2015-01-23 17:00:51Z guillaume $
 
 
 if nargin && ~ischar(action)
@@ -174,10 +174,11 @@ case 'ui'                                                              %-UI
             for i = 1:u
                 Uname{i} = SPM.Sess(s).Fc(i).name;
             end
+            if isempty(Uname), error('No conditions found.'); end
 
             % get effect
             %--------------------------------------------------------------
-            str   = sprintf('which effect');
+            str   = 'which effect';
             u     = spm_input(str,'+1','m',Uname);
             xG.spec.u = u;
 

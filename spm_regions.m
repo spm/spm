@@ -50,7 +50,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_regions.m 6025 2014-05-29 13:35:51Z guillaume $
+% $Id: spm_regions.m 6314 2015-01-23 17:00:51Z guillaume $
 
 
 %-Shortcut for VOI display
@@ -298,7 +298,7 @@ if fullsize, title(['Region: ' xY.name]); end
 if fullsize, subplot(2,1,2); else subplot(2,2,4); end
 if nargin == 2
     plot(TR*[1:length(xY.u)],xY.u);
-    str = 'time (seconds}';
+    str = 'time \{seconds\}';
 else
     plot(xY.u);
     str = 'scan';

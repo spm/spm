@@ -4,7 +4,7 @@ function o = nifti2struc
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: nifti2struc.m 4967 2012-09-26 18:19:23Z guillaume $
+% $Id: nifti2struc.m 6314 2015-01-23 17:00:51Z guillaume $
 
 
 persistent org;
@@ -70,7 +70,8 @@ os  = 0;
 for j=1:length(org)
     os  = org(j).dtype.size*ceil(os/org(j).dtype.size);
     fun = org(j).dtype.conv;
-    def = [org(j).def zeros(1,org(j).len-length(org(j).def))];
+    if ischar(org(j).def), z = char(0); else z = 0; end
+    def = [org(j).def repmat(z,1,org(j).len-length(org(j).def))];
     org(j).def    = feval(fun,def);
     org(j).offset = os;
     os  = os + org(j).len*org(j).dtype.size;
