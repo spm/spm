@@ -6,14 +6,14 @@ function N = spm_ecat2nifti(fname,opts)
 %
 % N        - NIfTI object (written in current directory)
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Roger Gunn
-% $Id: spm_ecat2nifti.m 4466 2011-09-07 16:50:29Z guillaume $
+% $Id: spm_ecat2nifti.m 6315 2015-01-23 17:09:06Z guillaume $
 
 
 if nargin==1
-    opts = struct('ext',['.' spm_file_ext]);
+    opts = struct('ext',spm_file_ext);
 else
     if opts.ext(1) ~= '.', opts.ext = ['.' opts.ext]; end
 end

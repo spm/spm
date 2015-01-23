@@ -1,9 +1,9 @@
 function spmjobs = spm_cfg
 % SPM Configuration file for MATLABBATCH
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 6157 2014-09-05 18:17:54Z guillaume $
+% $Id: spm_cfg.m 6315 2015-01-23 17:09:06Z guillaume $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -48,7 +48,7 @@ spm_cfg_import        = cfg_choice;
 spm_cfg_import.tag    = 'import';
 spm_cfg_import.name   = 'Import';
 spm_cfg_import.help   = {'Import.'};
-spm_cfg_import.values = { spm_cfg_dicom spm_cfg_minc spm_cfg_ecat };
+spm_cfg_import.values = { spm_cfg_dicom spm_cfg_minc spm_cfg_ecat spm_cfg_parrec};
 
 util         = cfg_choice;
 util.tag     = 'util';
