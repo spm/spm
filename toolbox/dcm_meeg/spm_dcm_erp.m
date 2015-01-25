@@ -36,7 +36,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 6297 2015-01-05 10:37:27Z karl $
+% $Id: spm_dcm_erp.m 6316 2015-01-25 11:49:37Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
@@ -306,7 +306,7 @@ DCM.options.analysis = 'ERP';
 
 % store estimates in D
 %--------------------------------------------------------------------------
-if strcmp(M.dipfit.type,'IMG')
+if strcmp(M.dipfit.type,'IMG') && DATA
 
     % Assess accuracy; signal to noise (over sources), SSE and log-evidence
     %----------------------------------------------------------------------

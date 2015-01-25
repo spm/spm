@@ -49,18 +49,34 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 6290 2014-12-20 22:11:50Z karl $
+% $Id: spm_dx.m 6316 2015-01-25 11:49:37Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
 nmax  = 512;                        % threshold for numerical approximation
 if nargin < 3, t = Inf; end         % integration time
+xf    = f; f = spm_vec(f);          % vectorise
+U     = 1;                          % default (null) projector
 
 % t is a regulariser
 %--------------------------------------------------------------------------
-sw = warning('off','MATLAB:log:logOfZero');
+sw  = warning('off','MATLAB:log:logOfZero');
+SVD = 0;
 if iscell(t)
+    
+    
+    % work in natural gradients
+    %----------------------------------------------------------------------
+    if any(any(abs(dfdx - dfdx') > exp(-16))) && SVD
+        U    = spm_svd(dfdx,0);
+        dfdx = U'*dfdx*U;
+        f    = U'*f;
+    end
+    
+    % relative integration time
+    %----------------------------------------------------------------------
     t  = exp(t{:} - log(diag(-dfdx)));
+    
 end
 warning(sw);
 
@@ -68,8 +84,7 @@ warning(sw);
 %==========================================================================
 if min(t) > exp(16)
 
-    dx = -spm_pinv(dfdx)*spm_vec(f);
-    dx =  spm_unvec(dx,f);
+    dx = -spm_pinv(dfdx)*f;
 
 elseif length(f) > nmax && max(t) < 2 && isscalar(t)
     
@@ -125,7 +140,7 @@ elseif length(f) > nmax && max(t) < 2 && isscalar(t)
         
     end
     
-    dx = x;
+    dx = U*x;
     
 else
     
@@ -135,15 +150,22 @@ else
 
     % augment Jacobian and take matrix exponential
     %======================================================================
-    J = full(spm_cat({0 []; t*spm_vec(f) t*dfdx}));
+    J = full(spm_cat({0   [];
+                      t*f t*dfdx}));
+                  
+    % solve using matrix expectation
+    %----------------------------------------------------------------------
     if length(f) <= nmax
         dx = expm(J);
     else
         [V,D] = eig(J,'nobalance'); 
         dx    = V*diag(exp(diag(D)))/V;
     end
-    dx = spm_unvec(dx(2:end,1),f);
+    
+    % recover update
+    %----------------------------------------------------------------------
+    dx = dx(2:end,1);
     
 end
-dx     = real(dx);
+dx     = spm_unvec(U*real(dx),xf);
 

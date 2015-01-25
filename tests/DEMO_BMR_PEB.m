@@ -34,7 +34,7 @@ function DEMO_BMR_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BMR_PEB.m 6309 2015-01-20 21:01:36Z spm $
+% $Id: DEMO_BMR_PEB.m 6316 2015-01-25 11:49:37Z karl $
 
 
 % set up
@@ -121,7 +121,7 @@ for i = 1:Ns
         % defined model in terms of prior covariance
         %------------------------------------------------------------------
         P{2}.C        = diag(K(j,:))*pC*diag(K(j,:));
-        [qP,D,F]      = spm_PEB(y{i,1},P,1);
+        [qP,~,F]      = spm_PEB(y{i,1},P,1);
         
         % store results in group array
         %------------------------------------------------------------------
@@ -158,7 +158,7 @@ for i = 1:Nm
         pCi        = diag(K(i,:))*pC*diag(K(i,:));
         pCj        = diag(K(j,:))*pC*diag(K(j,:));
         P{3}.C     = blkdiag(pCi,pCj);
-        [qP,D,F]   = spm_PEB(spm_cat(y),P,1);
+        [qP,~,F]   = spm_PEB(spm_cat(y),P,1);
         
         
         % record Estimates as a reference
@@ -177,12 +177,11 @@ end
 
 % Bayesian model reduction � for each subject & set hyperprior expectation
 %==========================================================================
-RCM           = spm_dcm_bmr(GCM);
-RCM{1,1}.M.eE = 4;                             
+RCM       = spm_dcm_bmr(GCM);                           
 
 % hierarchical (empirical Bayes) analysis using model reduction
 %==========================================================================
-[REB,PCM]     = spm_dcm_peb(RCM);
+[REB,PCM] = spm_dcm_peb(RCM);
 
 % BMA � (first level)
 %--------------------------------------------------------------------------
@@ -391,13 +390,13 @@ return
 
 % Notes
 %==========================================================================
-eE    = linspace(-4,4,16);
-eC    = 1/2;
+eE    = linspace(-4,6,16);
+eC    = 1/8;
 clear Eh HF
 for i = 1:length(eE)
-    RCM{1,1}.M.eE = eE(i);
-    RCM{1,1}.M.eC = eC;
-    PEB   = spm_dcm_peb(RCM(:,1));
+    GCM{1,1}.M.eE = eE(i);
+    GCM{1,1}.M.eC = eC;
+    PEB   = spm_dcm_peb(GCM(:,1));
     HF(i) = PEB.F;
     Eh(:,i) = PEB.Eh;
 

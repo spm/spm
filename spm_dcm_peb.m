@@ -76,7 +76,7 @@ function [PEB,P]   = spm_dcm_peb(P,X,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6309 2015-01-20 21:01:36Z spm $
+% $Id: spm_dcm_peb.m 6316 2015-01-25 11:49:37Z karl $
  
 
 % Get filenames and set up
@@ -124,8 +124,12 @@ else
     return
 end
 
+% hyperpriors on second level log precision
+%--------------------------------------------------------------------------
+gE    = 2;
+gC    = 1/2;
 
-% Get (first level) densities (summary statistics)
+% get (first level) densities (summary statistics)
 %==========================================================================
 j     = spm_fieldindices(DCM.M.pE,field{:});
 q     = j(find(diag(DCM.Cp(j,j))));
@@ -159,10 +163,8 @@ for i = 1:length(P)
     %----------------------------------------------------------------------
     iF(i) = DCM.F;
     
-    if i == 1
-            try, gE = DCM.M.eE; catch gE = 0;   end
-            try, gC = DCM.M.eC; catch gC = 1/2; end
-    end
+    if isfield(DCM.M,'eE'), gE = DCM.M.eE; end
+    if isfield(DCM.M,'eC'), gC = DCM.M.eC; end
     
 end
 
@@ -176,7 +178,7 @@ Q      = {};                          % precision components
 
 % precision components for empirical covariance
 %--------------------------------------------------------------------------
-OPTION = 'all';
+OPTION = 'single';
 switch OPTION
     
     case{'single'}

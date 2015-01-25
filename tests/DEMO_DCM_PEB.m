@@ -24,7 +24,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6309 2015-01-20 21:01:36Z spm $
+% $Id: DEMO_DCM_PEB.m 6316 2015-01-25 11:49:37Z karl $
 
 
 % change to directory with empirical data
@@ -47,7 +47,7 @@ ALim = 3/4;
 %==========================================================================
 load DCM_MMN                               % base DCM
 
-DCM.options.spatial  = 'IMG';
+DCM.options.spatial  = 'ECD';
 DCM.options.analysis = 'ERP';
 DCM.options.model    = 'ERP';
 DCM.options.Nmax     = 32;
@@ -74,11 +74,11 @@ end
 
 % model space
 %--------------------------------------------------------------------------
-mw  = 2;                              % true model (within)
+mw  = 3;                              % true model (within)
 mx  = 4;                              % true model (between)
 Nm  = length(B);                      % number of models
 Ns  = 16;                             % number of subjects
-C   = 32;                             % within:between [co]variance ratio
+C   = 16;                             % within:between [co]variance ratio
 occ = 64;                             % Occam's window for display
 
 % invert base model
@@ -100,7 +100,7 @@ DCM.Ep.B{1} = B{mw}*2*sd;
 
 % between subject effects: constant, group difference and covariance
 %--------------------------------------------------------------------------
-X           = [ones(Ns,1) kron([0;1],ones(Ns/2,1)) randn(Ns,1)];
+X           = [ones(Ns,1) kron([-1;1],ones(Ns/2,1)) randn(Ns,1)];
 DCM.Ex      = spm_zeros(DCM.Ep);
 DCM.Ex.B{1} = B{mx}*2*sd;
 
@@ -133,8 +133,8 @@ for i = 1:Ns
     G   = feval(DCM.M.G, Pg,DCM.M);
     x   = feval(DCM.M.IS,Pp,DCM.M,DCM.xU);
     for c = 1:length(x)
-        e    = spm_pinv(DCM.M.R)*DCM.R{c}*spm_pinv(DCM.M.U);
-        e    = spm_phase_shuffle(full(e))*4;
+        e    = spm_conv(randn(size(DCM.xY.y{c})),8,0);
+        e    = e*mean(std(y{1}))/mean(std(e))/32;
         y{c} = x{c}*G' + e;
         y{c} = DCM.M.R*y{c};
     end
@@ -158,7 +158,7 @@ GCM           = spm_dcm_fit(GCM);
 % Bayesian model reduction - for each subject & set hyperprior expectation
 %==========================================================================
 RCM           = spm_dcm_bmr(GCM);
-RCM{1,1}.M.eE = 2;                             
+RCM{1,1}.M.eE = 0;                             
 
 % hierarchical (empirical Bayes) analysis using model reduction
 %==========================================================================
@@ -172,7 +172,7 @@ pma   = spm_dcm_bma(PCM);
 
 % BMA - (second level)
 %--------------------------------------------------------------------------
-PEB   = spm_dcm_peb(RCM(:,1),X);
+PEB   = spm_dcm_peb(RCM(:,1),X(:,1:2));
 BMA   = spm_dcm_peb_bmc(PEB,RCM(1,:));
 
 
@@ -180,7 +180,12 @@ BMA   = spm_dcm_peb_bmc(PEB,RCM(1,:));
 %==========================================================================
 clear Q
 for i = 1:Ns
-    
+        
+    %  data – over subjects
+    %----------------------------------------------------------------------
+    Y(:,i,1) = GCM{i,1}.xY.y{1}*DCM.M.U(:,1);
+    Y(:,i,2) = GCM{i,1}.xY.y{2}*DCM.M.U(:,1);
+
     % Parameter averages
     %----------------------------------------------------------------------
     Q(:,i,1) = spm_vec(GCM{i,1}.Tp);
@@ -311,8 +316,8 @@ subplot(3,2,2), imagesc(pp)
 xlabel('model'), ylabel('subject'), title('Model posterior (BMR)','FontSize',16)
 axis square
 
-[p,i] = max(pp(:,2));
-[p,j] = min(pp(:,2));
+[p i] = max(pp(:,1));
+[p j] = min(pp(:,1));
 stri  = sprintf('Subject %i',i);
 strj  = sprintf('Subject %i',j);
 
@@ -413,7 +418,7 @@ j   = find([i; i]);
 i   = find(i);
 
 subplot(2,2,1), spm_plot_ci(BMA.Ep(j),BMA.Cp(j)), hold on, bar([Tp(i);Tx(i)],1/2), hold off
-xlabel('parameters'), ylabel('expectation'), title('2nd level arameters','FontSize',16)
+xlabel('parameters'), ylabel('expectation'), title('2nd level parameters','FontSize',16)
 axis square
 
 % random effects Bayesian model comparison
@@ -462,7 +467,7 @@ axis([0 (length(p) + 1) 0 1]), axis square
 set(gca,'XTickLabel',{'1','1 & 2','1 & 3','1,2 & 3'})
 
 
-return
+% return
 
 % posterior predictive density and cross validation
 %==========================================================================
@@ -472,36 +477,71 @@ return
 
 % reinvert (full) model with initialization; recursively
 %==========================================================================
-ECM   = GCM(:,1);
-iq    = find(spm_vec(DCM.M.pC));
-ECM{1}.M.eE = 2;     
+for i = 1:Ns
+    GCM{i,1}.M.Nmax = 4;
+    GCM{i,1}.M.eE = 2;
+    GCM{i,1}.M.eC = 1/8;
+end
+FCM         = GCM(:,1);
+iq          = find(spm_vec(DCM.M.pC));
+pE          = FCM{1}.M.pE;
+P           = spm_vec(pE);
+clear PP QP CC FF Fk Pk
 for k = 1:8
+       
+    for i = 1:Ns
+        
+        % re-initialise and invert the full (first) model
+        %------------------------------------------------------------------
+        GCM{i,1}.M.dipfit = DCM.M.dipfit;
+        FCM(i,k)          = spm_dcm_fit(GCM{i,1});
+        
+    end
     
     % empirical Bayes - over subjects
     %----------------------------------------------------------------------
-    [~,ECM] = spm_dcm_peb(ECM(:,1));
+    [peb,dcm] = spm_dcm_peb(FCM(:,k),ones(Ns,1),'all');
     
+    % get intial parameters
+    %----------------------------------------------------------------------
     for i = 1:Ns
-
-        % invert the full (first) model
-        %------------------------------------------------------------------
-        try
-            ECM{i}      = rmfield(ECM{i},'M');
+        for j = 1:k
+            Fk(j,1)  = FCM{i,j}.F;
+            Pk(:,j)  = spm_vec(dcm{i,j}.Ep);
         end
-        try
-            ECM{i}.M.P  = ECM{i}.Ep;
-        end
-        ECM{i}.M.dipfit = DCM.M.dipfit;
-        ECM             = spm_dcm_fit(ECM);
+        GCM{i,1}.M.P = spm_unvec(Pk*spm_softmax(Fk),pE);
+        
         
         % correlations and free energy
         %------------------------------------------------------------------
-        qp       = spm_vec(ECM{i,1}.Ep);
-        pp       = spm_vec(ECM{i,1}.Tp);
-        cor(i,k) = corr(qp(iq),pp(iq));
-        FF(i,k)  = RCM{i,1}.F;
+        qp       = spm_vec(FCM{i,k}.Ep);
+        pp       = spm_vec(FCM{i,k}.Tp);
+        QP(:,i)  = qp(iq);
+        PP(:,i)  = pp(iq);
+        CC(i,k)  = CC(qp(iq),pp(iq));
+        FF(i,k)  = FCM{i,k}.F;
+        
     end
     
-    mean(cor)
-    mean(FF)
+    subplot(2,2,1), imagesc(CC), xlabel('iterations'),ylabel('subject')
+    title('correlations','FontSize',16); axis square
+    subplot(2,2,2), imagesc(FF), xlabel('iterations'),ylabel('subject')
+    title('Free energy','FontSize',16); axis square, drawnow
+
 end
+
+
+% correlations
+%--------------------------------------------------------------------------
+[peb,dcm] = spm_dcm_peb(GCM(:,1),ones(Ns,1),'all');
+for i = 1:Ns
+    pp       = spm_vec(GCM{i,1}.Tp);
+    gp       = spm_vec(GCM{i,1}.Ep);
+    qp       = spm_vec(dcm{i,1}.Ep);
+    gc(i)    = corr(pp(iq),gp(iq));
+    cc(i)    = corr(pp(iq),qp(iq));
+end
+bar([gc;cc])
+
+
+

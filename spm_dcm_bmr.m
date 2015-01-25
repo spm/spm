@@ -33,7 +33,7 @@ function [RCM,BMR] = spm_dcm_bmr(P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmr.m 6309 2015-01-20 21:01:36Z spm $
+% $Id: spm_dcm_bmr.m 6316 2015-01-25 11:49:37Z karl $
 
 
 % get filenames and set up
@@ -185,7 +185,7 @@ G     = G - max(G);
 p     = exp(G - max(G));
 p     = p/sum(p);
 
-%-Save summary structure
+%-summary structure
 %--------------------------------------------------------------------------
 BMR.name = name;
 BMR.F    = G;

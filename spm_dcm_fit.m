@@ -4,7 +4,7 @@ function [P]   = spm_dcm_fit(P)
 %
 % P    - {N x M} DCM structure array (or filenames) from N subjects
 %
-% DCM  - Inverted (1st level) DCM structures with empirical priors
+% DCM  - Inverted (1st level) DCM structures with posterior densities
 %__________________________________________________________________________
 %
 % This routine is just a wrapper that calls the apprioriate dcm inversion
@@ -17,7 +17,7 @@ function [P]   = spm_dcm_fit(P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fit.m 6309 2015-01-20 21:01:36Z spm $
+% $Id: spm_dcm_fit.m 6316 2015-01-25 11:49:37Z karl $
 
 
 % get filenames and set up
