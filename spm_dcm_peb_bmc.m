@@ -1,11 +1,11 @@
 function [BMA] = spm_dcm_peb_bmc(PEB,models)
-% Hierarchical (PEB) dynamic model comparison and averaging
+% hierarchical (PEB) dynamic model comparison and averaging
 % FORMAT [BMA] = spm_dcm_peb_bmc(PEB,models)
 %
 % PEB -  between subject (second level) effects (from spm_dcm_peb)
-% ----------------------------------------------------------------
-%     PEB.Snames - char array of Ns first level model names
-%     PEB.Pnames - char array of Np parameters of interest
+% ------------------------------------------------------------
+%     PEB.Snames - string array of Ns first level model names
+%     PEB.Pnames - string array of Np parameters of interest
 %
 %     PEB.M.X  -   second level (between subject) design matrix
 %     PEB.M.W  -   second level (within  subject) design matrix
@@ -20,9 +20,9 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 %          or an array of DCMs specifying Nm (parameteric) model space
 %
 % BMA    - DCM structure of Bayesian model average
-% ----------------------------------------------------------------
-%     BMA.Snames - char array of first level model names
-%     BMA.Pnames - char array of parameters of interest
+% -------------------------------------------------------------
+%     BMA.Snames - string array of first level model names
+%     BMA.Pnames - string array of parameters of interest
 %     BMA.Pind
 %
 %     BMA.SUB  - first level (within subject)
@@ -38,8 +38,8 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 %     BMA.Pw   - posterior probability over parameters (common)
 %     BMA.M    - second level model
 %     BMA.K    - model space
-%__________________________________________________________________________
-% 
+%
+%--------------------------------------------------------------------------
 % This routine performs Bayesian model comparison & averaging at the second
 % level of a hierarchical (PEB) model. The model space is defined either
 % in terms of fields (e.g. 'A' or 'B') or as a logical matrix, with one row
@@ -53,32 +53,32 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % and averaging here evaluates the Bayesian model average of the second
 % level parameters and uses these as BMA estimates of empirical priors to
 % compute subject specific posteriors (returned in BMA.SUB). Using
-% partitions of model space one can then compute the posterior probability
+% partitions of model space one can then computes the posterior probability
 % of various combinations of group effects over different parameters. Of
 % particular interest are (i) the posterior probabilities over the
 % the first two group effects in the design matrix and the posterior
 % probability of models with and without each parameter, for the common
 % (first) and subject-specific (second) group affects (returned in BMA.P,
-% BMA.Pw and BMA.Px respectively). The Bayesian model averages of the
-% second level parameters and can be found in BMA.Ep and BMA.Cp.
+% BMA.Pw and BMA.Px respectively. The Bayesian model averages of the second
+% level parameters and can be found in BMA.Ep and BMA.Cp.
 %
-% NB: for EEG models the absence of a connection means it is equal to its
+% NB for EEG models the absence of a connection means it is equal to its
 % prior mesn, not that is is zero.
 %
-% See also: spm_dcm_peb.m and spm_dcm_bmr
+% see also: spm_dcm_peb.m and spm_dcm_bmr
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6309 2015-01-20 21:01:36Z spm $
-
+% $Id: spm_dcm_peb_bmc.m 6317 2015-01-25 15:15:40Z karl $
 
 % Compute reduced log-evidence
 %==========================================================================
 
+
 % number of parameters and effects
 %--------------------------------------------------------------------------
-[Np,Nx]   = size(PEB.Ep);
+[Np Nx]   = size(PEB.Ep);
 if nargin < 2, models = 'B'; end
 if ischar(models)
     
@@ -91,7 +91,7 @@ if ischar(models)
     
 elseif iscell(models)
     
-    % (RFX) BMA - define the model space in terms of a matrix
+    % (RFX) BMA – define the model space in terms of a matrix
     %----------------------------------------------------------------------
     Nm    = length(models);
     Np    = length(PEB.Pind);
@@ -114,23 +114,23 @@ else
     K     = models;
     k     = find(any(~K));
 end
-[Nm,Np]   = size(K);
+[Nm Np]   = size(K);
 
 
 % check number of models
 %--------------------------------------------------------------------------
 i = find(any(~K),1);
 if (Nm > 32 && Nx > 1) || (Nm > 1024 && Nx < 2)
-    spm('alert!','Please reduce the size of your model space','Warning');
+    warndlg('please reduce the size of your model space')
     return
 end
 if isempty(i)
-    spm('alert!','your model space is empty','Warning');
+    warndlg('your model space is empty')
     return
 end
 
 
-%-Score models with log-evidences
+%-score models with log-evidences
 %==========================================================================
 fprintf('BMC:     ')
 
@@ -190,7 +190,7 @@ for i = 1:Nm
     end
 end
 
-% Family wise inference over models and parameters
+% family wise inference over models and parameters
 %==========================================================================
 P     = G;
 P(:)  = exp(P(:) - max(P(:)));
@@ -222,7 +222,7 @@ Px    = Px(2,:)./sum(Px,1);
 P1    = sum(P,2);
 P2    = sum(P,1);
 
-%-Hierarchical inversion using optimised second level priors
+%-hierarchical inversion using optimised second level priors
 %==========================================================================
 
 % Bayesian model averaging (with an Occam's window of eight)
@@ -241,7 +241,7 @@ for i = 1:length(PEB.SUB)
     qE        = PEB.SUB(i).Ep;
     qC        = PEB.SUB(i).Cp;
     
-    [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
+    [F sE sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
     
     % and save
     %----------------------------------------------------------------------
@@ -279,7 +279,7 @@ ylabel('Model (commonalities)','FontSize',12)
 axis square
 
 subplot(3,2,3)
-[m,i] = max(P1); bar(P1),
+[m i] = max(P1); bar(P1),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Commonalities','FontSize',16)
 xlabel('Model','FontSize',12)
@@ -289,7 +289,7 @@ axis([0 (Nm + 1) 0 1]), axis square
 subplot(3,2,5), bar(diag(Pw),length(Pw));
 title('Commonalities','FontSize',16)
 xlabel('Parameter','FontSize',12)
-ylabel('Posterior probability','FontSize',12)
+ylabel('Model probability','FontSize',12)
 axis([0 (Nb + 1) 0 1]), axis square
 legend(Kname)
 
@@ -302,7 +302,7 @@ ylabel('Model (commonalities)','FontSize',12)
 axis square
 
 subplot(3,2,4)
-[m,i] = max(P2); bar(P2),
+[m i] = max(P2); bar(P2),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Differences','FontSize',16)
 xlabel('Model','FontSize',12)
@@ -312,5 +312,7 @@ axis([0 (Nm + 1) 0 1]), axis square
 subplot(3,2,6), bar(diag(Px),length(Px))
 title('Differences','FontSize',16)
 xlabel('Parameter','FontSize',12)
-ylabel('Posterior probability','FontSize',12)
+ylabel('Model probability','FontSize',12)
 axis([0 (Nb + 1) 0 1]), axis square
+
+

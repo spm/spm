@@ -1,24 +1,28 @@
-function [PEB,P]   = spm_dcm_peb(P,X,field)
+function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Hierarchical (PEB) inversion of DCMs using BMR and VL
-% FORMAT [PEB,DCM] = spm_dcm_peb(DCM,X,field)
+% FORMAT [PEB,DCM] = spm_dcm_peb(DCM,M,field)
 %
 % DCM    - {N [x M]} structure array of DCMs from N subjects
 % ------------------------------------------------------------
 %     DCM{i}.M.pE - prior expectation of parameters
 %     DCM{i}.M.pC - prior covariances of parameters
-%     DCM{i}.M.eE - prior covariances of log precisions
-%     DCM{i}.M.eC - prior covariances of log precisions
 %     DCM{i}.Ep   - posterior expectations
 %     DCM{i}.Cp   - posterior covariance
 %
-% X      - second level design matrix, where X(:,1) = ones(N,1) [default]
+% M.X    - second level design matrix, where X(:,1) = ones(N,1) [default]
+% M.pE   - second level prior expectation of parameters
+% M.pC   - second level prior covariances of parameters
+% M.hE   - second level prior expectation of log precisions
+% M.hC   - second level prior covariances of log precisions
+% 
 % field  - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
-%          'All' will invoke all fields
+%          'All' will invoke all fields. this argument effectively allows 
+%          one to specify which parameters constitute random effects.     
 % 
 % PEB    - hierarchical dynamic model
 % -------------------------------------------------------------
-%     PEB.Snames - char array of first level model names
-%     PEB.Pnames - char array of parameters of interest
+%     PEB.Snames - string array of first level model names
+%     PEB.Pnames - string array of parameters of interest
 %     PEB.Pind   - indices of parameters in spm_vec(DCM{i}.Ep) 
 % 
 %     PEB.SUB  -   first level (within subject) models
@@ -45,17 +49,17 @@ function [PEB,P]   = spm_dcm_peb(P,X,field)
 %
 % DCM    - 1st level (reduced) DCM structures with emprical priors
 %
-%          If DCM is an an {N x M} array, hierarchicial inversion will be
+%          If DCM is an an (N x M} array, hierarchicial inversion will be
 %          applied to each model (i.e., each row) - and PEB will be a 
 %          {1 x M} cell array.
-%__________________________________________________________________________
 %
+%--------------------------------------------------------------------------
 % This routine inverts a hierarchical DCM using variational Laplace and
 % Bayesian model reduction. In essence, it optimises the empirical priors
 % over the parameters of a set of first level DCMs, using  second level or
 % between subject constraints specified in the design matrix X. This scheme
 % is efficient in the sense that it does not require inversion of the first
-% level DCMs - it just requires the prior and posterior densities from each
+% level DCMs – it just requires the prior and posterior densities from each
 % first level DCMs to compute empirical priors under the implicit
 % hierarchical model. The output of this scheme (PEB) can be re-entered
 % recursively to invert deep hierarchical models. Furthermore, Bayesian
@@ -73,66 +77,77 @@ function [PEB,P]   = spm_dcm_peb(P,X,field)
 % If called with a cell array, each column is assumed to contain 1st level
 % DCMs inverted under the same model.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6316 2015-01-25 11:49:37Z karl $
+% $Id: spm_dcm_peb.m 6317 2015-01-25 15:15:40Z karl $
  
 
-% Get filenames and set up
+% get filenames and set up
 %==========================================================================
 if ~nargin
     [P, sts] = spm_select([2 Inf],'^DCM.*\.mat$','Select DCM*.mat files');
     if ~sts, return; end
 end
-if ischar(P),   P = cellstr(P); end
-if isstruct(P), P = {P};        end
+if ischar(P),   P = cellstr(P);  end
+if isstruct(P), P = {P};         end
 
 
 % parameter fields
 %--------------------------------------------------------------------------
 try, load(P{1}); catch, DCM = P{1}; end
+if nargin < 2;
+    M.X   = ones(length(P),1);
+end
 if nargin < 3;
-    field  = {'A','B'};
+    field = {'A','B'};
 end
 if strcmpi(field,'all');
     field = fieldnames(DCM.M.pE);
 end
+if ischar(field)
+    field = {field};
+end
 
-% repeat for each column if P is an array
+% second level model (ensure first is a constant or main effect)
 %--------------------------------------------------------------------------
-if isvector(P)
-    
-    % between subject effects (ensure first is a constant or main effect)
-    %----------------------------------------------------------------------
-    X(:,1) = ones(length(P),1);
-    
-else
-    
-    % between subject effects
-    %----------------------------------------------------------------------
-    X(:,1) = ones(size(P,1),1);
-    
-    % loop over models in each column
-    %----------------------------------------------------------------------
+if ~isstruct(M)
+    M = struct('X',M);
+end
+
+% repeat for each model (column) if P is an array
+%==========================================================================
+if size(P,2) > 1
     for i = 1:size(P,2)
-        [p,q]   = spm_dcm_peb(P(:,i),X,field);
+        [p,q]   = spm_dcm_peb(P(:,i),M,field);
         PEB(i)  = p;
         P(:,i)  = q;
     end
-    
     return
 end
 
-% hyperpriors on second level log precision
+% use priors from the first level if necessary
 %--------------------------------------------------------------------------
-gE    = 2;
-gC    = 1/2;
+if ~isfield(M,'pE')
+    M.pE = spm_vec(DCM.M.pE);
+end
+if ~isfield(M,'pC')
+    if isstruct(DCM.M.pC)
+        M.pC = diag(spm_vec(DCM.M.pC));
+    else
+        M.pC = DCM.M.pC;
+    end
+end
+if isstruct(M.pE), M.pE =      spm_vec(M.pE) ; end
+if isstruct(M.pC), M.pC = diag(spm_vec(M.pC)); end
+
+
 
 % get (first level) densities (summary statistics)
 %==========================================================================
+TOL   = exp(-16);
 j     = spm_fieldindices(DCM.M.pE,field{:});
-q     = j(find(diag(DCM.Cp(j,j))));
+q     = j(find(diag(DCM.Cp(j,j)) > TOL));
 Pstr  = spm_fieldindices(DCM.M.pE,q);
 for i = 1:length(P)
     
@@ -163,18 +178,14 @@ for i = 1:length(P)
     %----------------------------------------------------------------------
     iF(i) = DCM.F;
     
-    if isfield(DCM.M,'eE'), gE = DCM.M.eE; end
-    if isfield(DCM.M,'eC'), gC = DCM.M.eC; end
-    
 end
 
-% Hierarchical dynamic model design and defaults
+% hierarchical model design and defaults
 %==========================================================================
-pP     = spm_inv(pC{1});              % lower bound on prior precision
+pP     = spm_inv(M.pC(q,q));          % lower bound on prior precision
 Ns     = numel(P);                    % number of subjects
-Np     = length(qC{1});               % number of parameters
+Np     = length(q);                   % number of parameters
 Q      = {};                          % precision components
-
 
 % precision components for empirical covariance
 %--------------------------------------------------------------------------
@@ -192,7 +203,8 @@ switch OPTION
         for i = 1:length(field)
             j    = spm_fieldindices(DCM.M.pE,field{i});
             j    = find(ismember(q,j));
-            Q{i} = sparse(j,j,1,Np,Np);
+            Q{i} = sparse(Np,Np);
+            Q{i}(j,j) = pP(j,j);
         end
         
     case{'all'}
@@ -200,9 +212,7 @@ switch OPTION
         %------------------------------------------------------------------
         for i = 1:Np
             p    = pP(i,i);
-            if p < exp(16);
-                Q{end + 1} = sparse(i,i,pP(i,i),Np,Np);
-            end
+            Q{i} = sparse(i,i,pP(i,i),Np,Np);
         end
         
     otherwise
@@ -211,24 +221,26 @@ end
 
 % priors for empirical expectations
 %--------------------------------------------------------------------------
+Np    = length(pP);
 if Ns > 1;
     
     % between subject design matrices and prior expectations
     %----------------------------------------------------------------------
+    X     = M.X;
     W     = speye(Np,Np);
-    bE    = pE{1};
-    bC    = pC{1};
+    bE    = M.pE(q);
+    bC    = M.pC(q,q);
 
 else
     
     % within subject design
     %----------------------------------------------------------------------
     if nargin > 1
-        W = X;
+        W = M.X;
         X = 1;
         Q = {};
     else
-        W = pE{1};
+        W = M.pE;
         X = 1;
     end
     Nw = size(W,2);
@@ -236,6 +248,23 @@ else
     bC = eye(Nw,Nw);
 
 end
+
+
+% default priors on log precision (based on sample covariance)
+%--------------------------------------------------------------------------
+dP     = diag(pP);
+sV     = var(spm_cat(qE),0,2);
+try
+    gE = mean( - log(dP) - log(sV)) - 1;
+catch
+    gE = 0;
+end
+gC     = 1;
+
+% check for user-specified priors on log precision of second level effects
+%--------------------------------------------------------------------------
+try, gE = M.hE; end
+try, gC = M.hC; end
 
 
 % prior expectations and precisions of second level parameters
@@ -250,6 +279,7 @@ bC    = kron(eye(Nx,Nx),bC);         % prior covariance of group effects
 gC    = eye(Ng,Ng)*gC;               % prior covariance of log precisions
 bP    = spm_inv(bC);
 gP    = spm_inv(gC);
+
 
 % initialise parameters 
 %--------------------------------------------------------------------------
@@ -289,7 +319,7 @@ for n = 1:32
         %------------------------------------------------------------------
         Xi         = kron(X(i,:),W);
         rE         = Xi*b;
-        [Fi,sE,sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
+        [Fi sE sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
         
         % supplement gradients and curvatures
         %------------------------------------------------------------------
@@ -312,7 +342,7 @@ for n = 1:32
         end
     end
 
-    % Free-energy
+    % Free-energy and update parameters
     %======================================================================
     dFdp  = [dFdb; dFdg];
     dFdpp = spm_cat({dFdbb  dFdbg;
@@ -326,7 +356,7 @@ for n = 1:32
     %----------------------------------------------------------------------
     if n == 1, F0 = F; end
     
-    % Update parameters
+    % convergence and regularisation
     %======================================================================
     
     % if F is increasing save current expansion point
@@ -356,7 +386,7 @@ for n = 1:32
     % Fisher scoring
     %----------------------------------------------------------------------
     dp      = spm_dx(dFdpp,dFdp,{t});
-    [db,dg] = spm_unvec(dp,b,g);
+    [db dg] = spm_unvec(dp,b,g);
     p       = p + dp;
     b       = b + db;
     g       = g + tanh(dg);
@@ -370,7 +400,7 @@ for n = 1:32
 end
 
 
-% Assemble output structure
+% assemble output structure
 %==========================================================================
 
 % place new (emprical) priors in structures
@@ -406,7 +436,7 @@ for i = 1:Ns
     
     % get first level posteriors under expected empirical priors
     %----------------------------------------------------------------------
-    [Fi,sE,sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
+    [Fi sE sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
     
     % and save
     %----------------------------------------------------------------------
@@ -431,7 +461,7 @@ for i = 1:Ns
         
         % First level BMR
         %------------------------------------------------------------------
-        [Fi,sE,sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},RE,RC);
+        [Fi sE sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},RE,RC);
 
         DCM.M.pE = RE;
         DCM.M.pC = RC;
@@ -445,7 +475,7 @@ for i = 1:Ns
 end
 
 
-% second level hierarchical dynamic model
+% second level results
 %--------------------------------------------------------------------------
 PEB.Snames = Sstr';
 PEB.Pnames = Pstr';
@@ -454,7 +484,6 @@ PEB.Pind   = q;
 PEB.SUB  = SUB;
 PEB.M.X  = X;
 PEB.M.W  = W;
-PEB.M.Q  = Q;
 PEB.M.pE = bE;
 PEB.M.pC = bC;
 PEB.M.hE = gE;
@@ -468,3 +497,6 @@ PEB.Ce   = rC;
 PEB.F    = F;
 
 try, delete tmp.mat, end
+
+
+

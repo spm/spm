@@ -17,7 +17,7 @@ function [P]   = spm_dcm_fit(P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fit.m 6316 2015-01-25 11:49:37Z karl $
+% $Id: spm_dcm_fit.m 6317 2015-01-25 15:15:40Z karl $
 
 
 % get filenames and set up
@@ -34,17 +34,37 @@ if isstruct(P), P = {P};         end
 [Ns,Nm] = size(P);
 
 % Find model class and modality
-%--------------------------------------------------------------------------
+%==========================================================================
 try, load(P{1}); catch, DCM = P{1}; end
-if isfield(DCM.options,'spatial')
-    model = DCM.options.analysis;
-else
-    try
-        DCM.options.analysis;
-        model = 'fMRI_CSD';
-    catch
-        model = 'fMRI';
+if isfield(DCM,'options')
+    
+    % spatial models for EEG
+    %----------------------------------------------------------------------
+    if isfield(DCM.options,'spatial')
+        model = DCM.options.analysis;
+    else
+        
+        % an fMRI model
+        %------------------------------------------------------------------
+        try
+            DCM.options.analysis;
+            model = 'fMRI_CSD';
+        catch
+            model = 'fMRI';
+        end
+        
     end
+    
+elseif isfield(DCM.M,'IS')
+    
+    % assume the model is specified explicitly
+    %----------------------------------------------------------------------
+    model  = 'NLSI';
+    
+else
+    
+    warning('unknown inversion scheme');
+    eturn
     
 end
 
@@ -111,6 +131,15 @@ for i = 1:Ns
                 %----------------------------------------------------------
             case{'NFM'}
                 DCM = spm_dcm_nfm(DCM);
+                
+                % generic nonlinear system identification
+                %----------------------------------------------------------
+            case{'NLSI'}
+                [Ep,Cp,Eh,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
+                DCM.Ep       = Ep;
+                DCM.Eh       = Eh;
+                DCM.Cp       = Cp;
+                DCM.F        = F;
                 
             otherwise
                 spm('alert!','unknown DCM','Warning');
