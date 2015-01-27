@@ -4,9 +4,9 @@ function prepare = spm_cfg_eeg_prepare
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_prepare.m 5466 2013-05-05 16:11:21Z vladimir $
+% $Id: spm_cfg_eeg_prepare.m 6320 2015-01-27 16:18:40Z vladimir $
 
-rev = '$Rev: 5466 $';
+rev = '$Rev: 6320 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -24,9 +24,9 @@ defaulttype.help = {'Reset all channel types to default'};
 newtype = cfg_menu;
 newtype.tag = 'newtype';
 newtype.name = 'New channel type';
-newtype.labels = {'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'Other'};
+newtype.labels = {'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'ILAM', 'Other'};
 newtype.val = {'Other'};
-newtype.values = {'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'Other'};
+newtype.values = {'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'ILAM', 'Other'};
 newtype.help = {'Select the new channel type to set'};
 
 settype = cfg_branch;

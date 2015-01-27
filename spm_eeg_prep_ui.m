@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 6070 2014-06-26 20:53:39Z guillaume $
+% $Id: spm_eeg_prep_ui.m 6320 2015-01-27 16:18:40Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ end
 %==========================================================================
 function CreateMenu
 
-SVNrev = '$Rev: 6070 $';
+SVNrev = '$Rev: 6320 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -135,7 +135,7 @@ ChanTypeMenu = uimenu(Finter,'Label','Channel types',...
     'Enable', 'off', ...
     'HandleVisibility','on');
 
-chanTypes = {'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'Other'};
+chanTypes = {'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'ILAM', 'Other'};
 
 for i = 1:length(chanTypes)
     CTypesMenu(i) = uimenu(ChanTypeMenu, 'Label', chanTypes{i},...
