@@ -80,7 +80,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6317 2015-01-25 15:15:40Z karl $
+% $Id: spm_dcm_peb.m 6321 2015-01-28 14:40:44Z karl $
  
 
 % get filenames and set up
@@ -182,10 +182,18 @@ end
 
 % hierarchical model design and defaults
 %==========================================================================
-pP     = spm_inv(M.pC(q,q));          % lower bound on prior precision
 Ns     = numel(P);                    % number of subjects
 Np     = length(q);                   % number of parameters
 Q      = {};                          % precision components
+
+
+% lower bound on prior precision
+%--------------------------------------------------------------------------
+try
+    pP = spm_inv(M.pC(q,q));
+catch
+    pP = spm_inv(M.pC);
+end
 
 % precision components for empirical covariance
 %--------------------------------------------------------------------------
@@ -236,11 +244,11 @@ else
     % within subject design
     %----------------------------------------------------------------------
     if nargin > 1
-        W = M.X;
-        X = 1;
-        Q = {};
+        W  = M.X;
+        X  = 1;
+        Q  = {};
     else
-        W = M.pE;
+        W = M.pE(q);
         X = 1;
     end
     Nw = size(W,2);
@@ -250,19 +258,10 @@ else
 end
 
 
-% default priors on log precision (based on sample covariance)
-%--------------------------------------------------------------------------
-dP     = diag(pP);
-sV     = var(spm_cat(qE),0,2);
-try
-    gE = mean( - log(dP) - log(sV)) - 1;
-catch
-    gE = 0;
-end
-gC     = 1;
-
 % check for user-specified priors on log precision of second level effects
 %--------------------------------------------------------------------------
+gE      = 0;
+gC      = 4;
 try, gE = M.hE; end
 try, gC = M.hC; end
 
@@ -365,19 +364,17 @@ for n = 1:32
         
         dF = F - F0;
         F0 = F;
-        save tmp b g dFdb dFdbb dFdg dFdgg
+        save tmp b g F0 dFdb dFdbb dFdg dFdgg
         
         % decrease regularisation
         %------------------------------------------------------------------
-        t  = min(t + 1/4,0);
+        t  = min(t + 1/4,2);
         
     else
         
         % otherwise, retrieve expansion point and increase regularisation
         %------------------------------------------------------------------
         t  = t - 1;
-        F  = F0;
-        dF = F - F0;
         load tmp
         
     end
@@ -394,9 +391,8 @@ for n = 1:32
     % Convergence
     %======================================================================
     fprintf('VL Iteration %-8d: F = %-3.2f dF: %2.4f  [%+2.2f]\n',n,full(F),full(dF),t); 
-    if t < -4 || (dF < 1e-2 && ~t && n > 4) , break, end
-    
-    
+    if t < -4 || (dF < 1e-3 && n > 4) , break, end
+     
 end
 
 

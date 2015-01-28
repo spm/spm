@@ -49,13 +49,14 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 6316 2015-01-25 11:49:37Z karl $
+% $Id: spm_dx.m 6321 2015-01-28 14:40:44Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
 nmax  = 512;                        % threshold for numerical approximation
 if nargin < 3, t = Inf; end         % integration time
 xf    = f; f = spm_vec(f);          % vectorise
+n     = length(f);                  % dimensionality
 U     = 1;                          % default (null) projector
 
 % t is a regulariser
@@ -75,7 +76,12 @@ if iscell(t)
     
     % relative integration time
     %----------------------------------------------------------------------
-    t  = exp(t{:} - log(diag(-dfdx)));
+    t      = t{:};
+    if isscalar(t)
+        t  = exp(t - spm_logdet(dfdx)/n);
+    else
+        t  = exp(t - log(diag(-dfdx)));
+    end
     
 end
 warning(sw);
@@ -86,7 +92,7 @@ if min(t) > exp(16)
 
     dx = -spm_pinv(dfdx)*f;
 
-elseif length(f) > nmax && max(t) < 2 && isscalar(t)
+elseif n > nmax && max(t) < 2 && isscalar(t)
     
     % numerical approximation (removing very dissipative modes)
     % fprintf('\nnumerical approximation: n = %i',length(f));
@@ -155,7 +161,7 @@ else
                   
     % solve using matrix expectation
     %----------------------------------------------------------------------
-    if length(f) <= nmax
+    if n  <= nmax
         dx = expm(J);
     else
         [V,D] = eig(J,'nobalance'); 

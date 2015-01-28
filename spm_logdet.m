@@ -10,7 +10,7 @@ function H = spm_logdet(C)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston and Ged Ridgway
-% $Id: spm_logdet.m 6297 2015-01-05 10:37:27Z karl $
+% $Id: spm_logdet.m 6321 2015-01-28 14:40:44Z karl $
 
 % Note that whether sparse or full, rank deficient cases are handled in the
 % same way as in spm_logdet revision 4068, using svd on a full version of C
@@ -23,12 +23,15 @@ C       = C(i,i);
 [i,j,s] = find(C);
 if any(isnan(s)), H = nan; return; end
 
+% TOL = max(size(C)) * eps(max(s)); % as in MATLAB's rank function
+%--------------------------------------------------------------------------
+TOL   = 1e-16;
 
 if any(i ~= j)
     
     % assymetric matrix
     %------------------------------------------------------------------
-    if any(spm_vec(C - C'))
+    if norm(spm_vec(C - C'),inf) > TOL
         
         s = svd(full(C));
         
@@ -68,6 +71,4 @@ end
 
 % if still here, singular values in s (diagonal values as a special case)
 %--------------------------------------------------------------------------
-% TOL = max(size(C)) * eps(max(s)); % as in MATLAB's rank function
-TOL   = 1e-16;                        % as in spm_logdet
 H     = sum(log(s(s > TOL & s < 1/TOL)));

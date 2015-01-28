@@ -102,13 +102,21 @@ end
 %==========================================================================
 for i = 1:Ns
     DCM{i,1}.M.Nmax = 4;
+    try, dipfit{i}  = DCM{i,1}.M.dipfit; end
 end
 for k = 1:64
+    
+    % replace spatial model if necessary
+    %----------------------------------------------------------------------
+    for i = 1:Ns
+        try, DCM{i,1}.M.dipfit = dipfit{i}; end
+    end
+    
     
     % re-initialise and invert the full (first) model
     %----------------------------------------------------------------------
     DCM       = spm_dcm_fit(DCM);
-   
+     
     % empirical Bayes – over subjects
     %----------------------------------------------------------------------
     [PEB,DCM] = spm_dcm_peb(DCM,M,field);
@@ -128,7 +136,7 @@ for k = 1:64
         dF   = PEB.F - F(k - 1);
         F(k) = PEB.F;
     end
-    if dF < 1/8 && k > 4; break, end
+    if dF < 1/8 && k > 16; break, end
     
 end
 

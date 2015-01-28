@@ -148,7 +148,7 @@ M.pC  = DCM.M.pC;
 
 % hierarchical inversion
 %--------------------------------------------------------------------------
-[gcm,peb,F] = spm_dcm_peb_fit(GCM(:,1),M);
+[gcm,peb,F] = spm_dcm_peb_fit(GCM,M);
 
 
 % repeated using Bayesian model reduction summary statistic approach
@@ -157,11 +157,11 @@ GCM  = spm_dcm_fit(GCM);
 PEB  = spm_dcm_peb(GCM,M);
 
 
-% second level parameter estimates and free energy
+% second level parameter estimates
 %==========================================================================
 spm_figure('GetWin','Figure 1');clf
 
-% eestimated and true second level parameters
+% estimated and true second level parameters
 %--------------------------------------------------------------------------
 subplot(2,2,1), spm_plot_ci(PB.Ep,PB.Cp), hold on, bar([Ep;Ex],1/2), hold off
 xlabel('parameters'), ylabel('expectation'), 
@@ -178,5 +178,58 @@ title('Hierarchical inversion','FontSize',16), axis square
 subplot(2,2,4), plot(F)
 xlabel('iterations'), ylabel('free energy'), 
 title('second level free energy','FontSize',16), axis square
+
+
+% Bayesian model reduction with and without hierarchical inversion
+%==========================================================================
+
+% define the model space in terms of a matrix
+%--------------------------------------------------------------------------
+K     = ones(length(B),spm_length(DCM.Ep));
+k     = spm_fieldindices(DCM.M.pE,'B');
+for i = 1:length(B)
+    K(i,k) = spm_vec(B{i})';
+end
+
+% defined model in terms of prior covariance
+%--------------------------------------------------------------------------
+Nm    = size(K,2);
+for i = 1:Ns
+    for j = 1:Nm
+        gcm{i,j}      = gcm{i,1};
+        GCM{i,j}      = GCM{i,1};
+        gcm{i,j}.M.pC = diag(K(j,:))*M.pC*diag(K(j,:));
+        GCM{i,j}.M.pC = diag(K(j,:))*M.pC*diag(K(j,:));
+    end
+end
+
+rcm   = spm_dcm_bmr(gcm);
+RCM   = spm_dcm_bmr(GCM);
+
+
+% Free energies
+%--------------------------------------------------------------------------
+for i = 1:Ns
+    for j = 1:Nm
+        G(i,j,1) = rcm{i,j}.F - rcm{i,1}.F;
+        G(i,j,2) = RCM{i,j}.F - RCM{i,1}.F;
+    end
+end
+
+%  free energy model comparison
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 2');clf
+
+p  = spm_softmax(sum(G(:,:,1))'); [m i] = max(p); 
+subplot(2,2,1), bar(p)
+text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
+xlabel('model'), ylabel('probability'), title('Iterative PEB','FontSize',16)
+axis([0 (length(p) + 1) 0 1]), axis square
+
+p  = spm_softmax(sum(G(:,:,1))'); [m i] = max(p); 
+subplot(2,2,2), bar(p)
+text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
+xlabel('model'), ylabel('probability'), title('Bayesian model reduction','FontSize',16)
+axis([0 (length(p) + 1) 0 1]), axis square
 
 

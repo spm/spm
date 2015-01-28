@@ -36,7 +36,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 6316 2015-01-25 11:49:37Z karl $
+% $Id: spm_dcm_erp.m 6321 2015-01-28 14:40:44Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
@@ -165,7 +165,7 @@ hC      = 1/128;
 try
     pE  = M.pE;
     pC  = M.pC;
-    fprintf('Using specified priors (for neural model) \n')
+    fprintf('Using specified priors (for neural model)\n')
 end
 try
     gE  = M.gE;
@@ -175,7 +175,7 @@ end
 try
     hE  = M.hE;
     hC  = M.hC;
-    fprintf('Using specified priors (for noise precision) \n')
+    fprintf('Using specified priors (for noise precision)\n')
 end
 
 

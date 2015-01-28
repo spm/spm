@@ -24,7 +24,7 @@ function DEMO_DCM_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6317 2015-01-25 15:15:40Z karl $
+% $Id: DEMO_DCM_PEB.m 6321 2015-01-28 14:40:44Z karl $
 
 
 % change to directory with empirical data
@@ -41,7 +41,6 @@ end
 close all, clear all
 clc
 rng('default')
-ALim = 3/4;
 
 % set up
 %==========================================================================
@@ -79,15 +78,14 @@ mx  = 4;                              % true model (between)
 Nm  = length(B);                      % number of models
 Ns  = 16;                             % number of subjects
 C   = 16;                             % within:between [co]variance ratio
-occ = 64;                             % Occam's window for display
 
 % invert base model
 %--------------------------------------------------------------------------
 if isfield(DCM,'M')
     DCM = rmfield(DCM,'M');
 end
-DCM.B = B(mw);
-DCM   = spm_dcm_erp(DCM);
+DCM.B   = B(mw);
+DCM     = spm_dcm_erp(DCM);
 
 % create subject-specifc DCM
 %==========================================================================
@@ -133,9 +131,10 @@ for i = 1:Ns
     G   = feval(DCM.M.G, Pg,DCM.M);
     x   = feval(DCM.M.IS,Pp,DCM.M,DCM.xU);
     for c = 1:length(x)
-        e    = spm_conv(randn(size(DCM.xY.y{c})),8,0);
-        e    = e*mean(std(y{1}))/mean(std(e))/32;
-        y{c} = x{c}*G' + e;
+        y{c} = x{c}*G';
+        e    = spm_conv(randn(size(y{c})),8,0);
+        e    = e*mean(std(y{c}))/mean(std(e))/32;
+        y{c} = y{c} + e;
         y{c} = DCM.M.R*y{c};
     end
     
@@ -151,9 +150,26 @@ for i = 1:Ns
     end
 end
 
+
 % invert full models (first column)
 %==========================================================================
 GCM       = spm_dcm_fit(GCM);
+
+% second level model
+%--------------------------------------------------------------------------
+M     = struct('X',X);
+M.pE  = GCM{1}.M.pE;
+M.pC  = GCM{1}.M.pC;
+
+
+% invert - hierarchical iterative inversion
+%==========================================================================
+for i = 1:Ns
+    GCM{i,1}.M.dipfit = DCM.M.dipfit;
+end
+
+[rcm,peb,pebF] = spm_dcm_peb_fit(GCM,M,{'A','B'});
+
 
 % Bayesian model reduction – for each subject & set hyperprior expectation
 %==========================================================================
@@ -162,12 +178,6 @@ RCM       = spm_dcm_bmr(GCM);
 % hierarchical (empirical Bayes) analysis using model reduction
 %==========================================================================
 [REB,PCM] = spm_dcm_peb(RCM);
-
-% second level model
-%--------------------------------------------------------------------------
-M.X   = X;
-M.pE  = GCM{1}.M.pE;
-M.pC  = GCM{1}.M.pC;
 
 
 % BMA – (first level)
@@ -455,13 +465,13 @@ CVA = spm_cva(Q(iB,:,3)',X,[],[0 1 0]'); CP(3) = log(CVA.p);
 %--------------------------------------------------------------------------
 field  = {'B'};
 i  = 1;
-PB = spm_dcm_peb(GCM(:,i),X(:,[1    ]),field);  HF(1) = PB.F;
-PB = spm_dcm_peb(GCM(:,i),X(:,[1 2  ]),field);  HF(2) = PB.F;
-PB = spm_dcm_peb(GCM(:,i),X(:,[1 3  ]),field);  HF(3) = PB.F;
-PB = spm_dcm_peb(GCM(:,i),X(:,[1 2 3]),field);  HF(4) = PB.F;
+PB = spm_dcm_peb(GCM(:,i),X(:,[1    ]),field);  BF(1) = PB.F;
+PB = spm_dcm_peb(GCM(:,i),X(:,[1 2  ]),field);  BF(2) = PB.F;
+PB = spm_dcm_peb(GCM(:,i),X(:,[1 3  ]),field);  BF(3) = PB.F;
+PB = spm_dcm_peb(GCM(:,i),X(:,[1 2 3]),field);  BF(4) = PB.F;
 
 
-p  = HF; p  = exp(p - max(p)); p = p/sum(p);
+p  = BF; p  = exp(p - max(p)); p = p/sum(p);
 subplot(2,2,2), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('BMC of group effects','FontSize',16)
@@ -470,12 +480,58 @@ ylabel('Probability','FontSize',12)
 axis([0 (length(p) + 1) 0 1]), axis square
 set(gca,'XTickLabel',{'1','1 & 2','1 & 3','1,2 & 3'})
 
+% posterior predictive density and cross validation
+%==========================================================================
+spm_figure('GetWin','Figure 6');clf
+spm_dcm_loo(RCM(:,2),X,{'A','B'});
+
 
 return
 
-% posterior predictive density and cross validation
-%==========================================================================
-% spm_figure('GetWin','Figure 5');clf
-% spm_dcm_loo(RCM,X)
 
+% second level parameter estimates and free energy
+%==========================================================================
+spm_figure('GetWin','Figure 7');clf
+
+% eestimated and true second level parameters
+%--------------------------------------------------------------------------
+subplot(2,2,1), spm_plot_ci(PB.Ep,PB.Cp), hold on, bar([Ep;Ex],1/2), hold off
+xlabel('parameters'), ylabel('expectation'), 
+title('Parametric Bayes','FontSize',16), axis square
+
+subplot(2,2,2), spm_plot_ci(PEB.Ep(:),PEB.Cp), hold on, bar([Ep;Ex],1/2), hold off
+xlabel('parameters'), ylabel('expectation'), 
+title('Sufficient statistics','FontSize',16), axis square
+
+subplot(2,2,3), spm_plot_ci(peb.Ep(:),peb.Cp), hold on, bar([Ep;Ex],1/2), hold off
+xlabel('parameters'), ylabel('expectation'), 
+title('Hierarchical inversion','FontSize',16), axis square
+
+subplot(2,2,4), plot(F)
+xlabel('iterations'), ylabel('free energy'), 
+title('second level free energy','FontSize',16), axis square
+
+
+
+
+
+% Notes
+%==========================================================================
+hE    = linspace(-4,4,16);
+hC    = 4;
+clear Eh HF
+for i = 1:length(hE)
+    M.X     = X;
+    M.hE    = hE(i);
+    M.hC    = hC;
+    PEB     = spm_dcm_peb(RCM(:,1),M,{'A','B'});
+    HF(i)   = PEB.F;
+    Eh(:,i) = PEB.Eh;
+
+end
+
+subplot(2,2,1)
+plot(hE,HF - max(HF))
+subplot(2,2,2)
+plot(hE,Eh)
 

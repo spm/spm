@@ -1,6 +1,6 @@
-function [qE,qC] = spm_dcm_ppd(TEST,TRAIN,X,field)
+function [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,X,field)
 % Posterior predictive density for empirical Bayes and DCM
-% FORMAT [qE,qC] = spm_dcm_ppd(TEST,TRAIN,X,field)
+% FORMAT [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,X,field)
 %
 % TEST   - {1 [x M]} structure DCM array of new subject
 % TRAIN  - {N [x M]} structure DCM array of (M) DCMs from (N) subjects
@@ -16,6 +16,7 @@ function [qE,qC] = spm_dcm_ppd(TEST,TRAIN,X,field)
 % 
 % qE     - posterior predictive expectation
 % qC     - posterior predictive covariances
+% P      - posterior probability over unique values of X(:,2)
 %__________________________________________________________________________
 %
 % This routine inverts a hierarchical DCM using variational Laplace and
@@ -55,9 +56,10 @@ if size(TRAIN,2) > 1
     % loop over models in each column
     %----------------------------------------------------------------------
     for i = 1:size(TRAIN,2)
-        [p,q]  = spm_dcm_ppd(TEST(1,i),TRAIN(:,i),X,field);
-        qE{i}  = p;
-        qC{i}  = q;
+        [p,q,r]  = spm_dcm_ppd(TEST(1,i),TRAIN(:,i),X,field);
+        qE{i}    = p;
+        qC{i}    = q;
+        P{i}     = r;
     end
     return
 end
@@ -71,6 +73,22 @@ PEB  = spm_dcm_peb(TRAIN,X,field);
 
 % and estimate their contribution to the test subject
 %--------------------------------------------------------------------------
-peb  = spm_dcm_peb(TEST,PEB.Ep,field);
-qE   = peb.Ep;
-qC   = peb.Cp;
+M.X  = PEB.Ep;                  % emprical prior expectations
+M.pC = PEB.Ce;                  % emprical prior covariance
+
+i    = 2;
+peb  = spm_dcm_peb(TEST,M,field);
+qE   = peb.Ep(i);
+qC   = peb.Cp(i,i);
+pE   = peb.M.pE(i);
+pC   = peb.M.pC(i,i);
+
+% Bayesian model reduction over levels of (second) explanatory variables
+%--------------------------------------------------------------------------
+x    = unique(X(:,i));
+for j = 1:length(x)
+    F(j,1) = spm_log_evidence(qE,qC,pE,pC,x(j),0);
+end
+P    = spm_softmax(F);
+
+

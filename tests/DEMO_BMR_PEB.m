@@ -2,7 +2,7 @@ function DEMO_BMR_PEB
 % Demonstration routine for empirical Bayes and Bayesian model reduction
 %--------------------------------------------------------------------------
 % This routine illustrates the use of Bayesian model reduction when
-% inverting hierarchical (linear) models – it is essentially a software
+% inverting hierarchical (linear) models - it is essentially a software
 % validation demo and proof of concept. It uses a parametric empirical
 % Bayesian model (i.e., nested linear models) to eschew local minima issues
 % and to assure the Laplace assumption is correct. In brief, the data are
@@ -34,7 +34,7 @@ function DEMO_BMR_PEB
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BMR_PEB.m 6317 2015-01-25 15:15:40Z karl $
+% $Id: DEMO_BMR_PEB.m 6321 2015-01-28 14:40:44Z karl $
 
 
 % set up
@@ -395,22 +395,23 @@ return
 
 % Notes
 %==========================================================================
-eE    = linspace(-4,4,16);
-eC    = 1/2;
+hE    = linspace(-4,4,16);
+hC    = 1;
 clear Eh HF
-for i = 1:length(eE)
-    GCM{1,1}.M.eE = eE(i);
-    GCM{1,1}.M.eC = eC;
-    PEB   = spm_dcm_peb(GCM(:,1));
-    HF(i) = PEB.F;
+for i = 1:length(hE)
+    M.X     = X;
+    M.hE    = hE(i);
+    M.hC    = hC;
+    PEB     = spm_dcm_peb(RCM(:,1),M);
+    HF(i)   = PEB.F;
     Eh(:,i) = PEB.Eh;
 
 end
 
 subplot(2,2,1)
-plot(eE,HF)
+plot(hE,HF - max(HF))
 subplot(2,2,2)
-plot(eE,Eh)
+plot(hE,Eh)
 
 
 % random field theory notes for number of the minimal
