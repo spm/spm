@@ -8,9 +8,9 @@ function out = spm_run_fmri_spec(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 6157 2014-09-05 18:17:54Z guillaume $
+% $Id: spm_run_fmri_spec.m 6324 2015-02-02 17:10:20Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -196,7 +196,11 @@ for i = 1:numel(job.sess)
             
             %-Mutiple Conditions: Orthogonalisation of Modulations
             %--------------------------------------------------------------
-            cond.orth        = true;
+            if isfield(multicond,'orth') && (j <= numel(multicond.orth))
+                cond.orth    = multicond.orth{j};
+            else
+                cond.orth    = true;
+            end
             
             %-Append to singly-specified conditions
             %--------------------------------------------------------------
