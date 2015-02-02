@@ -50,12 +50,12 @@ function [MCI] = spm_mci_mfx (MCI)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_mfx.m 6277 2014-12-04 12:16:52Z guillaume $
+% $Id: spm_mci_mfx.m 6322 2015-02-02 12:56:16Z guillaume $
 
 try, verbose=MCI.verbose; catch, verbose=0; end
 
 % Update observation noise ?
-try update_obs_noise=MCI.update_obs_noise; catch update_obs_noise=1; end
+try, update_obs_noise=MCI.update_obs_noise; catch update_obs_noise=1; end
 
 % Number of samples during Gibbs steps
 try, mfx_its=MCI.mfx_its; catch, mfx_its=256; end
