@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 6308 2015-01-20 10:52:11Z vladimir $
+% $Id: spm_eeg_grandmean.m 6325 2015-02-03 10:54:03Z vladimir $
 
-SVNrev = '$Rev: 6308 $';
+SVNrev = '$Rev: 6325 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -344,7 +344,7 @@ Do = type(Do, 'evoked');
 
 nrepl = sum(nrepl, 1);
 
-Do = badchannels(Do, ':', ~any(w'));
+Do = badchannels(Do, ':', ~any(w, 2));
 Do = conditions(Do, ':', types);
 Do = repl(Do, ':', nrepl);
 Do = badtrials(Do, ':', 0);
