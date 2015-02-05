@@ -27,14 +27,6 @@ function [DCM,PEB,F] = spm_dcm_peb_fit(GCM,M,field)
 %     PEB.Pnames - string array of parameters of interest
 %     PEB.Pind   - indices of parameters in spm_vec(DCM{i}.Ep)
 %
-%     PEB.SUB  -   first level (within subject) models
-%         SUB(i).M  - model and full first level priors
-%         SUB(i).pE - empirical prior expectation of first level parameters
-%         SUB(i).pC - empirical prior covariance  of first level parameters
-%         SUB(i).Ep - empirical posterior expectations
-%         SUB(i).Cp - empirical posterior covariance
-%         SUB(i).F  - empirical (reduced) free energy
-%
 %     PEB.M.X  -   second level (between subject) design matrix
 %     PEB.M.W  -   second level (within  subject) design matrix
 %     PEB.M.Q  -   precision [components] of second level random effects

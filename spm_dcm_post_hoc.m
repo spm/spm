@@ -75,7 +75,7 @@ function DCM = spm_dcm_post_hoc(P,fun,field,write_all)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_post_hoc.m 6297 2015-01-05 10:37:27Z karl $
+% $Id: spm_dcm_post_hoc.m 6329 2015-02-05 19:25:52Z karl $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -147,7 +147,7 @@ params.nograph   = spm('CmdLine');      % Graphical display
 % Show full and reduced conditional estimates (for Bayesian average)
 %--------------------------------------------------------------------------
 if ~params.nograph
-    create_plots(example_DCM,BPA,Pk,Pf,params,~nargout);
+    try, create_plots(example_DCM,BPA,Pk,Pf,params,~nargout); end
 end
 
 % Save Bayesian Parameter Average and family-wise model inference
@@ -209,10 +209,15 @@ function [C,model_space] = greedy_search(C,DCM,nmax,params)
 GS = 1;
 while GS
     
-    %-Find free coupling parameters
+    %-Find free parameters
     %----------------------------------------------------------------------
-    k = spm_fieldindices(DCM.Ep,params.field{:});
-    k = k(C(k));
+    if isstruct(DCM.Ep)
+        k = spm_fieldindices(DCM.Ep,params.field{:});
+    else
+        k = 1:spm_length(DCM.Ep);
+    end
+
+    k      = k(C(k));
     nparam = length(k);
     
     %-If there are too many params find those with the least evidence
@@ -610,9 +615,15 @@ function create_plots(DCM,BPA,Pk,Pf,params,extra_plots)
 % params      - User supplied parameters
 % extra_plots - additional plots if there are no output arguments
 
-pE = DCM.M.pE;
 
-i   = spm_fieldindices(DCM.Ep,'A','B','C');
+
+if isstruct(DCM.Ep)
+    i = spm_fieldindices(DCM.Ep,'A','B','C');
+else
+    i = 1:spm_length(DCM.Ep);
+end
+
+pE  = DCM.M.pE;
 pE  = spm_vec(pE);
 EP  = spm_vec(BPA.EQ);
 Ep  = spm_vec(BPA.Eq);
@@ -662,12 +673,14 @@ try
 catch
     try
         spm_dcm_graph(DCM,BPA.Eq.A);
+    catch
+        delete(gcf);
     end
 end
 
 %-Show coupling matrices
 %--------------------------------------------------------------------------
-if numel(params.field) == 3;
+if numel(params.field) == 3 && isfeild(DCM,'a');
     
     spm_figure('GetWin','Bayesian parameter average (selected model)'); clf
     spm_dcm_fmri_image(BPA.Eq)
@@ -722,7 +735,9 @@ catch
     name = fullfile(pwd,'DCM_BPA.mat');
 end
 
-save(name,'DCM', spm_get_defaults('mat.format')); 
+if params.write_all
+    save(name,'DCM', spm_get_defaults('mat.format'));
+end
 
 
 %==========================================================================

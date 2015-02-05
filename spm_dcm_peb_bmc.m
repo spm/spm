@@ -25,11 +25,6 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 %     BMA.Pnames - string array of parameters of interest
 %     BMA.Pind
 %
-%     BMA.SUB  - first level (within subject)
-%         SUB(i).Ep - posterior expectation under BMA of empirical priors
-%         SUB(i).Cp - posterior covariances under BMA of empirical priors
-%         SUB(i).F  - (reduced) free energy under BMA of empirical priors
-%
 %     BMA.Ep   - BMA expectation of second level parameters
 %     BMA.Cp   - BMA covariances of second level parameters
 %     BMA.F    - free energy over model space
@@ -51,9 +46,8 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % subjects) and the second group effect (generally modelling between
 % subject differences). The particular form of Bayesian model comparison
 % and averaging here evaluates the Bayesian model average of the second
-% level parameters and uses these as BMA estimates of empirical priors to
-% compute subject specific posteriors (returned in BMA.SUB). Using
-% partitions of model space one can then computes the posterior probability
+% level parameters.
+% Given the model space one can then computes the posterior probability
 % of various combinations of group effects over different parameters. Of
 % particular interest are (i) the posterior probabilities over the
 % the first two group effects in the design matrix and the posterior
@@ -70,7 +64,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6317 2015-01-25 15:15:40Z karl $
+% $Id: spm_dcm_peb_bmc.m 6329 2015-02-05 19:25:52Z karl $
 
 % Compute reduced log-evidence
 %==========================================================================
@@ -183,10 +177,10 @@ for i = 1:Nm
         % Bayesian model reduction (of second level)
         %------------------------------------------------------------------
         [F, sE, sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
-        BMR{i,j}.Ep = sE(q);
-        BMR{i,j}.Cp = sC(q,q);
-        BMR{i,j}.F  = F;
-        G(i,j)      = F;
+        BMR{i,1}.Ep = sE(q);
+        BMR{i,1}.Cp = sC(q,q);
+        BMR{i,1}.F  = F;
+        G(i,1)      = F;
     end
 end
 
@@ -227,30 +221,8 @@ P2    = sum(P,1);
 
 % Bayesian model averaging (with an Occam's window of eight)
 %--------------------------------------------------------------------------
-i     = G(:) > max(G(:) - 8);
-BMA   = spm_dcm_bma(BMR(i)');
-for i = 1:length(PEB.SUB)
-    
-    % get empirical prior expectations and reduced 1st level posterior
-    %----------------------------------------------------------------------
-    rE        = kron(PEB.M.X(i,:),PEB.M.W)*BMA.Ep;
-    rC        = PEB.Ce;
-    
-    pE        = PEB.SUB(i).pE;
-    pC        = PEB.SUB(i).pC;
-    qE        = PEB.SUB(i).Ep;
-    qC        = PEB.SUB(i).Cp;
-    
-    [F sE sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
-    
-    % and save
-    %----------------------------------------------------------------------
-    SUB(i).Ep = sE;
-    SUB(i).Cp = sC;
-    SUB(i).F  = F;
-    
-end
-
+i         = G(:) > max(G(:) - 8);
+BMA       = spm_dcm_bma(BMR(i)');
 
 % assemble BMA output structure
 %--------------------------------------------------------------------------
@@ -259,7 +231,6 @@ BMA.Pname = PEB.Pnames;
 BMA.Pind  = PEB.Pind;
 BMA.Kname = Kname;
 
-BMA.SUB   = SUB;
 BMA.F     = G;
 BMA.P     = P;
 BMA.Px    = Px;

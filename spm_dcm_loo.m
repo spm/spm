@@ -74,7 +74,7 @@ for i = 1:Ns
     %----------------------------------------------------------------------
     j         = 1:Ns;
     j(i)      = [];
-    [Ep,Cp,P] = spm_dcm_ppd(DCM(i),DCM(j,1),X(j,:),field);
+    [Ep,Cp,P] = spm_dcm_ppd(DCM(i),DCM(j,1),X(i,:),X(j,:),field);
     qE(i)     = Ep;
     qC(i)     = Cp;
     Q(:,i)    = P;
@@ -83,18 +83,17 @@ end
 
 % show results
 %--------------------------------------------------------------------------
+spm_figure('GetWin','LOO cross-validation');clf
 subplot(2,2,1), spm_plot_ci(qE,qC)
 xlabel('subject'), ylabel('group effect')
 title('Out of sample estimates','FontSize',16)
 spm_axis tight, axis square
 
 if size(Q,1) > 2
-    
     subplot(2,2,2), imagesc(Q)
     xlabel('subject'), ylabel('levels of group effect')
     title('Posterior probability','FontSize',16)
     spm_axis tight, axis square
-    
 else
     subplot(2,2,2), bar(Q(2,:))
     xlabel('subject'), ylabel('posterior probability')

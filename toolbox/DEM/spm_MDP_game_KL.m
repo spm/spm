@@ -1,7 +1,7 @@
 function [MDP] = spm_MDP_game_KL(MDP,varargin)
-% aaction selection using active inference (KL formulation)
+% action selection using active inference (KL formulation)
 % FORMAT [MDP] = spm_MDP_game_KL(MDP,[EU])
-
+%
 % EU              - optional flag to invoke expected utility only
 %
 % MDP.T           - process depth (the horizon)
@@ -87,7 +87,7 @@ function [MDP] = spm_MDP_game_KL(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game_KL.m 6064 2014-06-23 09:39:46Z karl $
+% $Id: spm_MDP_game_KL.m 6329 2015-02-05 19:25:52Z karl $
 
 % set up and preliminaries
 %==========================================================================

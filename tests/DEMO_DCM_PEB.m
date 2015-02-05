@@ -24,7 +24,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6326 2015-02-03 20:26:55Z karl $
+% $Id: DEMO_DCM_PEB.m 6329 2015-02-05 19:25:52Z karl $
 
 
 % change to directory with empirical data
@@ -133,7 +133,7 @@ for i = 1:Ns
     for c = 1:length(x)
         y{c} = x{c}*G';
         e    = spm_conv(randn(size(y{c})),8,0);
-        e    = e*mean(std(y{c}))/mean(std(e))/32;
+        e    = e*mean(std(y{c}))/mean(std(e))/8;
         y{c} = y{c} + e;
         y{c} = DCM.M.R*y{c};
     end
@@ -150,10 +150,9 @@ for i = 1:Ns
     end
 end
 
+% The following section contains the key analyses
+%XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-% invert full models (first column)
-%==========================================================================
-GCM   = spm_dcm_fit(GCM);
 
 % second level model
 %--------------------------------------------------------------------------
@@ -161,32 +160,46 @@ M     = struct('X',X);
 M.pE  = GCM{1}.M.pE;
 M.pC  = GCM{1}.M.pC;
 
+% invert rreduced models (standard inversion)
+%==========================================================================
+% GCM   = spm_dcm_fit(GCM);
 
-% Bayesian model reduction – for each subject & set hyperprior expectation
+% Bayesian model reduction (avoiding local minima over models)
 %==========================================================================
 RCM   = spm_dcm_bmr(GCM);
 
 % hierarchical (empirical Bayes) analysis using model reduction
 %==========================================================================
-[REB,PCM] = spm_dcm_peb(RCM);
 
+% BMC – first level
+%--------------------------------------------------------------------------
+[BMC,PEB,PCM] = spm_dcm_bmc_peb(RCM,M,{'A','B'});
 
-% BMA – (first level)
+% BMA – first level
 %--------------------------------------------------------------------------
 bma   = spm_dcm_bma(GCM);
 rma   = spm_dcm_bma(RCM);
 pma   = spm_dcm_bma(PCM);
 
-% BMC – (first level)
+% BMC/BMA – second level
 %--------------------------------------------------------------------------
-BMC   = spm_dcm_bmc_peb(RCM,M,'B');
+BMA   = spm_dcm_peb_bmc(PEB,GCM(1,:));
+PMA   = spm_dcm_bmr_all(PEB,{'A','B'});
 
-% BMC – (second level)
+% posterior predictive density and LOO cross validation
+%==========================================================================
+spm_dcm_loo(PCM,X,{'A','B'});
+
+% full hierarchical inversion
 %--------------------------------------------------------------------------
-PEB   = spm_dcm_peb(RCM(:,1),M,'B');
-BMA   = spm_dcm_peb_bmc(PEB,RCM(1,:));
+% [dcm,peb,Fpeb] = spm_dcm_peb_fit(GCM,M,{'A','B'});
 
-% extract results
+
+%XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+
+
+% extract and plot results
 %==========================================================================
 clear Q
 for i = 1:Ns
@@ -208,13 +221,11 @@ for i = 1:Ns
     for j = 1:Nm
         F(i,j,1) = GCM{i,j}.F - GCM{i,1}.F;
         F(i,j,2) = RCM{i,j}.F - RCM{i,1}.F;
-        F(i,j,3) = REB(j).F   - REB(1).F;
-  
     end
     
 end
 
-% indices to select parameters
+% indices to plot parameters
 %--------------------------------------------------------------------------
 pC    = GCM{1,1}.M.pC;
 c     = spm_vec(pC);
@@ -229,14 +240,14 @@ iB    = iB(find(c(iB)));
 spm_figure('GetWin','Figure 1');clf
 
 subplot(3,2,1)
-plot(DCM.M.R*x{2}*G','m'), hold on
-plot(x{2}*G',':m'),     hold off
+plot(DCM.M.R*x{2}*G','k'), hold on
+plot(x{2}*G',':k'),     hold off
 xlabel('pst'), ylabel('response'), title('Signal (single subject)','FontSize',16)
 axis square, spm_axis tight,  a = axis;
 
 subplot(3,2,2)
-plot(DCM.M.R*e,'m'), hold on
-plot(e,':m'),     hold off
+plot(DCM.M.R*e,'k'), hold on
+plot(e,':k'),     hold off
 xlabel('pst'), ylabel('response'), title('Noise','FontSize',16)
 axis square, spm_axis tight, axis(a)
 
@@ -281,34 +292,32 @@ axis square
 spm_figure('GetWin','Figure 2'); clf
 
 occ = 512;
-f  = F(:,:,1); f = f - max(f(:)) + occ; f(f < 0) = 0;
+f   = F(:,:,1); f = f - max(f(:)) + occ; f(f < 0) = 0;
 subplot(3,2,1), imagesc(f)
 xlabel('model'), ylabel('subject'), title('Free energy (FFX)','FontSize',16)
 axis square
 
-f  = sum(f,1); f  = f - max(f) + occ; f(f < 0) = 0;
+f   = sum(f,1); f  = f - max(f) + occ; f(f < 0) = 0;
 subplot(3,2,3), bar(f), xlabel('model'), ylabel('Free energy'), title('Free energy (FFX)','FontSize',16)
 spm_axis tight, axis square
-axis([0 (length(f) + 1) 0 1]), axis square
 
-p  = softmax(f'); [m,i] = max(p); 
+p   = softmax(f'); [m,i] = max(p); 
 subplot(3,2,5), bar(p)
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (FFX)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
 occ = 128;
-f  = F(:,:,2); f = f - max(f(:)) + occ; f(f < 0) = 0;
+f   = F(:,:,2); f = f - max(f(:)) + occ; f(f < 0) = 0;
 subplot(3,2,2), imagesc(f)
 xlabel('model'), ylabel('subject'), title('Free energy (BMR)','FontSize',16)
 axis square
 
-f  = sum(f,1); f  = f - max(f) + occ; f(f < 0) = 0;
+f   = sum(f,1); f  = f - max(f) + occ; f(f < 0) = 0;
 subplot(3,2,4), bar(f), xlabel('model'), ylabel('Free energy'), title('Free energy (BMR)','FontSize',16)
 spm_axis tight, axis square
-axis([0 (length(f) + 1) 0 1]), axis square
 
-p  = softmax(f'); [m,i] = max(p); 
+p   = softmax(f'); [m,i] = max(p); 
 subplot(3,2,6), bar(p)
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (BMR)','FontSize',16)
@@ -405,7 +414,7 @@ text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (BMR)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
-p   = spm_softmax(sum(F(:,:,3))');
+p   = BMC.Pw;
 subplot(3,2,6), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (PEB)','FontSize',16)
@@ -436,26 +445,20 @@ axis square
 
 % random effects Bayesian model comparison
 %==========================================================================
-spm_figure('GetWin','Figure 5');clf
+spm_figure('GetWin','Figure 6');clf
 [~,~,xp] = spm_dcm_bmc(RCM);
 
-p   = spm_softmax(full(spm_cat({REB.F}))');
-subplot(2,2,3), bar(p),[m,i] = max(p); 
+p   = BMC.Pw;
+subplot(2,2,1), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('posterior probability'), title('Random parameter effects','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
 p   = xp;
-subplot(2,2,4), bar(p),[m,i] = max(p); 
+subplot(2,2,2), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('exceedance probability'), title('Random model effects','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
-
-
-% posterior predictive density and cross validation
-%==========================================================================
-spm_figure('GetWin','Figure 7');clf
-spm_dcm_loo(RCM(:,1),X,{'B'});
 
 
 return
@@ -483,21 +486,21 @@ PB = spm_dcm_peb(GCM(:,i),X(:,[1 2 3]),field);  BF(4) = PB.F;
 
 % Notes
 %==========================================================================
-hE    = linspace(-4,4,16);
-hC    = 1;
+hE    = 0;
+hC    = linspace(-4,4,16);
 clear Eh HF
-for i = 1:length(hE)
-    M.X     = X;
-    M.hE    = hE(i);
-    M.hC    = hC;
-    PEB     = spm_dcm_peb(RCM(:,1),M,{'A','B'});
+for i = 1:length(hC)
+    M.X     = X(:,1:2);
+    M.hE    = hE;
+    M.hC    = exp(hC(i));
+    PEB     = spm_dcm_peb(GCM(:,1),M,{'A','B'});
     HF(i)   = PEB.F;
     Eh(:,i) = PEB.Eh;
 
 end
 
 subplot(2,2,1)
-plot(hE,HF - max(HF))
+plot(hC,HF - max(HF))
 subplot(2,2,2)
-plot(hE,Eh)
+plot(hC,Eh)
 

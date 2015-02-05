@@ -33,7 +33,7 @@ function [RCM,BMR] = spm_dcm_bmr(P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmr.m 6316 2015-01-25 11:49:37Z karl $
+% $Id: spm_dcm_bmr.m 6329 2015-02-05 19:25:52Z karl $
 
 
 % get filenames and set up
@@ -194,11 +194,9 @@ BMR.P    = p;
 % Get and display selected model
 %==========================================================================
 [q,j] = max(p);
-try, load(P{j}); catch, DCM = P{j}; end
-
 qE    = spm_vec(qE);
-Ep    = spm_vec(DCM.Ep);
-Cp    = DCM.Cp;
+Ep    = spm_vec(RCM{j}.Ep);
+Cp    = RCM{j}.Cp;
 try
     i = find(diag(pC));
 catch

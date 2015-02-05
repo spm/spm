@@ -1,6 +1,6 @@
-function [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
-% hierarchical (PEB) model comparison
-% FORMAT [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
+function [BMC,PEB,DCM] = spm_dcm_bmc_peb(DCM,M,field)
+% hierarchical (PEB) model comparison and selection
+% FORMAT [BMC,PEB,DCM] = spm_dcm_bmc_peb(DCM,M,field)
 %
 % DCM    - {N [x M]} structure array of DCMs from N subjects
 % ------------------------------------------------------------
@@ -32,8 +32,7 @@ function [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
 %     PEB.Snames - string array of first level model names
 %     PEB.Pnames - string array of parameters of interest
 %     PEB.Pind   - indices of parameters in spm_vec(DCM{i}.Ep) 
-% 
-%     PEB.SUB  -   first level (within subject) parameters
+%
 %     PEB.M    -   first level (within subject) model
 %     PEB.Ep   -   posterior expectation of second level parameters
 %     PEB.Eh   -   posterior expectation of second level log-precisions
@@ -42,13 +41,17 @@ function [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
 %     PEB.Ce   -   expected covariance of second level random effects
 %     PEB.F    -   free energy of second level model
 %
+% DCM    - selected DCM structures with first level parameter estimates
+% -------------------------------------------------------------------------
+%
 %--------------------------------------------------------------------------
 % This routine performs Bayesian model comparison in the joint space of
 % models specified in terms of (first level) model parameters and models
 % specified in terms of (second level) group effects. The first level model
 % space is defined by the columns of the DCM array, while the second level
 % model space is specified by combinations of second level effects encoded 
-% in a design matrix.
+% in a design matrix. first, the design matrix is a constant term or
+% that models a group mean. This is assumed to be present a priori.
 %
 % this routine assumes that all the models have been reduced (i.e. inverted
 % using Bayesian model reduction). It then use sempirical Bayes and the
@@ -56,7 +59,7 @@ function [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
 % between subject effects by considering all combinations of columns in the
 % design matrix.
 %
-% tthis Bayesian model comparison should be contrasted with model
+% This Bayesian model comparison should be contrasted with model
 % comparison at the second level. Here, we are interested in the best model
 % of first level parameters that show a second level effect. This is not
 % the same as trying to find the best model of second level effects. model
@@ -121,13 +124,18 @@ end
 % Bayesian model comparison in joint first and second level model space
 %==========================================================================
 K     = spm_perm_mtx(size(M.X,2));
+K     = K(K(:,1),:);
 Nk    = size(K,1);
 Mk    = M;
 for i = 1:Nm
     for k = 1:Nk
-        Mk.X     = M.X*diag(K(k,:));
+        
+        % second level model reduction
+        %------------------------------------------------------------------
+        Mk.X     = M.X(:,K(k,:));
         PEB{i,k} = spm_dcm_peb(DCM(:,i),Mk,field);
         F(i,k)   = PEB{i,k}.F;
+        
     end
 end
 
@@ -144,8 +152,10 @@ Pw     = sum(P,2);
 
 % select best empirical Bayes model
 %--------------------------------------------------------------------------
-[m i]  = max(F(:));
-PEB    = PEB{i};
+[m i]     = max(Pw);
+[m k]     = max(Px);
+M.X       = M.X(:,K(k,:));
+[PEB,DCM] = spm_dcm_peb(DCM(:,i),M,field);
 
 % assemble BMC output structure
 %--------------------------------------------------------------------------

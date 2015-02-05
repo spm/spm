@@ -25,14 +25,6 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 %     PEB.Pnames - string array of parameters of interest
 %     PEB.Pind   - indices of parameters in spm_vec(DCM{i}.Ep) 
 % 
-%     PEB.SUB  -   first level (within subject) models
-%         SUB(i).M  - model and full first level priors
-%         SUB(i).pE - empirical prior expectation of first level parameters
-%         SUB(i).pC - empirical prior covariance  of first level parameters
-%         SUB(i).Ep - empirical posterior expectations
-%         SUB(i).Cp - empirical posterior covariance
-%         SUB(i).F  - empirical (reduced) free energy
-%
 %     PEB.M.X  -   second level (between subject) design matrix
 %     PEB.M.W  -   second level (within  subject) design matrix
 %     PEB.M.Q  -   precision [components] of second level random effects 
@@ -80,7 +72,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6321 2015-01-28 14:40:44Z karl $
+% $Id: spm_dcm_peb.m 6329 2015-02-05 19:25:52Z karl $
  
 
 % get filenames and set up
@@ -252,16 +244,20 @@ else
         X = 1;
     end
     Nw = size(W,2);
-    bE = zeros(Nw,1);
-    bC = eye(Nw,Nw);
+    try, bE = M.bE(:); catch, bE = zeros(Nw,1); end
+    try, bC = M.bC;    catch, bC = eye(Nw,Nw);  end
 
 end
 
 
 % check for user-specified priors on log precision of second level effects
 %--------------------------------------------------------------------------
-gE      = 0;
-gC      = 4;
+% Y     = spm_cat(qE)';
+% bX    = pinv(X)*Y;
+% gX    = -log(trace(pP*cov(Y - X*bX))/Np);
+
+gE    = 0;
+gC    = 1/2;
 try, gE = M.hE; end
 try, gC = M.hC; end
 
@@ -386,34 +382,18 @@ for n = 1:32
     [db dg] = spm_unvec(dp,b,g);
     p       = p + dp;
     b       = b + db;
-    g       = g + tanh(dg);
+    g       = g + dg;
     
     % Convergence
     %======================================================================
     fprintf('VL Iteration %-8d: F = %-3.2f dF: %2.4f  [%+2.2f]\n',n,full(F),full(dF),t); 
-    if t < -4 || (dF < 1e-3 && n > 4) , break, end
+    if t < -4 || (dF < 1e-4 && n > 4) , break, end
      
 end
 
 
 % assemble output structure
 %==========================================================================
-
-% place new (emprical) priors in structures
-%--------------------------------------------------------------------------
-r    = spm_vec(DCM.M.pE);
-r(q) = rE; 
-RE   = spm_unvec(r,DCM.M.pE);
-if isstruct(DCM.M.pC)
-    r      = spm_vec(DCM.M.pC);
-    r(q)   = diag(rC); 
-    RC     = spm_unvec(r,DCM.M.pE);
-else
-    r      = spm_inv(DCM.M.pC);
-    r(q,q) = r(q,q) + rP - pP;
-    RC     = spm_inv(r);
-end
-
 for i = 1:Ns
     
     % get first(within subject) level DCM
@@ -430,24 +410,32 @@ for i = 1:Ns
         end
     end
     
-    % get first level posteriors under expected empirical priors
-    %----------------------------------------------------------------------
-    [Fi sE sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
     
-    % and save
-    %----------------------------------------------------------------------
-    SUB(i).M  = DCM.M;
-    SUB(i).pE = rE;
-    SUB(i).pC = rC;
-    SUB(i).Ep = sE;
-    SUB(i).Cp = sC;
-    SUB(i).F  = Fi + iF(i);
-    
-    
-    % repeat for all parameters
+    % evaluate reduced first level parameters if required
     %----------------------------------------------------------------------
     if nargout > 1
         
+        % posterior densities over all parameters
+        %------------------------------------------------------------------
+        if isstruct(DCM.M.pC)
+            pC{i} = diag(spm_vec(DCM.M.pC));
+        else
+            pC{i} = DCM.M.pC;
+        end
+        pE{i} = DCM.M.pE;
+        qE{i} = DCM.Ep;
+        qC{i} = DCM.Cp;
+        
+        % augment empirical priors
+        %------------------------------------------------------------------
+        RP      = spm_inv(pC{i});
+        RP(q,q) = RP(q,q) + rP - pP;
+        RC      = spm_inv(RP);
+        
+        RE      = spm_vec(pE{i});
+        RE(q)   = rE;
+        RE      = spm_unvec(RE,pE{i});
+
         % posterior densities over all parameters
         %------------------------------------------------------------------
         pE{i} = DCM.M.pE;
@@ -477,7 +465,6 @@ PEB.Snames = Sstr';
 PEB.Pnames = Pstr';
 PEB.Pind   = q;
 
-PEB.SUB  = SUB;
 PEB.M.X  = X;
 PEB.M.W  = W;
 PEB.M.pE = bE;

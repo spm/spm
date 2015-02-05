@@ -1,5 +1,5 @@
 function [MDP] = spm_MDP_game(MDP,OPTION,W)
-% aaction selection using active inference
+% action selection using active inference
 % FORMAT [MDP] = spm_MDP_game(MDP,OPTION,W)
 %
 % MDP.T           - process depth (the horizon)
@@ -102,7 +102,7 @@ function [MDP] = spm_MDP_game(MDP,OPTION,W)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game.m 6100 2014-07-13 21:32:36Z karl $
+% $Id: spm_MDP_game.m 6329 2015-02-05 19:25:52Z karl $
 
 % set up and preliminaries
 %==========================================================================
