@@ -20,7 +20,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_maff8.m 5962 2014-04-17 12:47:43Z spm $
+% $Id: spm_maff8.m 6328 2015-02-05 11:54:45Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -161,8 +161,10 @@ for iter=1:200
     ll0 = 0;
     for subit=1:60
         h0  = zeros(256,numel(tpm.dat))+eps;
-        ll1 = ll0;
-        ll0 = 0;
+        if ~rem(subit,4),
+            ll1 = ll0;
+            ll0 = 0;
+        end
         for i=1:length(x3),
             if ~buf(i).nm || ~buf(i).nm1, continue; end
             gm    = double(buf(i).g(buf(i).msk1))+1;
