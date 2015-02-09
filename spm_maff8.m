@@ -20,7 +20,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_maff8.m 6328 2015-02-05 11:54:45Z john $
+% $Id: spm_maff8.m 6330 2015-02-09 16:19:26Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -159,7 +159,7 @@ for iter=1:200
     end
 
     ll0 = 0;
-    for subit=1:60
+    for subit=1:32
         h0  = zeros(256,numel(tpm.dat))+eps;
         if ~rem(subit,4),
             ll1 = ll0;
@@ -180,11 +180,13 @@ for iter=1:200
                 h0(:,k) = h0(:,k) + accumarray(gm,q(:,k)./sq,[256 1]);
             end
         end
-        if ~rem(subit,4) && (ll0-ll1)/sum(h0(:)) < 1e-5, break; end
         h1  = conv2((h0+eps)/sum(h0(:)),krn,'same');
-       %figure(9); plot(log(h0+1)); drawnow;
-
         h1  = h1./(sum(h1,2)*sum(h1,1));
+        if ~rem(subit,4),
+           %spm_plot_convergence('Set',ll0/sum(h0(:)));
+            if (ll0-ll1)/sum(h0(:)) < 1e-5, break; end
+        end
+       %figure(9); plot(log(h0+1)); drawnow;
     end
     for i=1:length(x3)
         buf(i).b    = [];
@@ -195,7 +197,7 @@ for iter=1:200
     ll1   = (sum(sum(h0.*log(h1))) - penalty)/ssh/log(2);
    %fprintf('%g\t%g\n', sum(sum(h0.*log2(h1)))/ssh, -penalty/ssh);
     spm_plot_convergence('Set',ll1);
-    if abs(ll1-ll)<1e-5, break; end
+    if abs(ll1-ll)<1e-4, break; end
     if (ll1<ll)
         stepsize = stepsize*0.5;
         h1       = oh1;

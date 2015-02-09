@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 5973 2014-05-06 18:12:24Z john $
+% $Id: spm_preproc8.m 6330 2015-02-09 16:19:26Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -80,12 +80,9 @@ M         = tpm.M\Affine*V(1).mat;
 d0        = V(1).dim(1:3);
 vx        = sqrt(sum(V(1).mat(1:3,1:3).^2));
 sk        = max([1 1 1],round(obj.samp*[1 1 1]./vx));
-sk4       = reshape(sk,[1 1 1 3]);
 [x0,y0,o] = ndgrid(1:sk(1):d0(1),1:sk(2):d0(2),1);
 z0        = 1:sk(3):d0(3);
 tiny      = eps*eps;
-MT        = [sk(1) 0 0 (1-sk(1));0 sk(2) 0 (1-sk(2)); 0 0 sk(3) (1-sk(3));0 0 0 1];
-
 lkp       = obj.lkp;
 if isempty(lkp),
     K       = 2000;
@@ -125,12 +122,19 @@ spm_diffeo('boundary',1);
 
 % Initialise Deformation
 %-----------------------------------------------------------------------
+% This part is fiddly because of the regularisation of the warps.
+% The fact that displacement fields are only parameterised every few
+% voxels means that the functions in spm_diffeo need tweaking to
+% account for the difference between the units of displacement and
+% the separation of the voxels (if that makes sense).
 param  = [sk.*vx ff*obj.reg];
-lam    = [0 0 0  1e-4 0.01 0.01 0.01 0.01];
+MT     = [sk(1) 0 0 (1-sk(1));0 sk(2) 0 (1-sk(2)); 0 0 sk(3) (1-sk(3));0 0 0 1];
+sk4    = reshape(sk,[1 1 1 3]);
 d      = [size(x0) length(z0)];
 if isfield(obj,'Twarp'),
     Twarp = obj.Twarp;
-    llr   = -0.5*sum(sum(sum(sum(Twarp.*bsxfun(@times,spm_diffeo('vel2mom',bsxfun(@times,Twarp,1./sk4),param),sk4)))));
+    llr   = -0.5*sum(sum(sum(sum(Twarp.*bsxfun(@times,spm_diffeo('vel2mom',bsxfun(@times,Twarp,1./sk4),param),1./sk4)))));
+
 else
     Twarp = zeros([d,3],'single');
     llr   = 0;
@@ -141,7 +145,7 @@ end
 %-----------------------------------------------------------------------
 N    = numel(V);
 cl   = cell(N,1);
-args = {'C',cl,'B1',cl,'B2',cl,'B3',cl,'T',cl,'ll',cl,'lmreg',cl};
+args = {'C',cl,'B1',cl,'B2',cl,'B3',cl,'T',cl,'ll',cl};
 if use_mog,
     chan = struct(args{:});
 else
@@ -253,7 +257,6 @@ for n=1:N,
     C  = chan(n).C;
     T  = chan(n).T;
     chan(n).ll = double(-0.5*T(:)'*C*T(:));
-    chan(n).lmreg = 0.0001;
     for z=1:numel(z0),
         bf           = transf(B1,B2,B3(z,:),T);
         tmp          = bf(buf(z).msk);
@@ -270,7 +273,7 @@ if isfield(obj,'wp'),
 else
     wp = ones(1,Kb);
 end
-for iter=1:20,
+for iter=1:30,
 
     % Load the warped prior probability images into the buffer
     %------------------------------------------------------------
@@ -409,7 +412,7 @@ for iter=1:20,
                     clear cr
                 end
 
-                %fprintf('MOG:\t%g\t%g\t%g\n', ll,llr,llrb);
+                my_fprintf('MOG:\t%g\t%g\t%g\n', ll,llr,llrb);
 
                 % Mixing proportions, Means and Variances
                 for k=1:K,
@@ -453,17 +456,17 @@ for iter=1:20,
                     chan(n).hist               = zeros(K,Kb);
                 end
                 mgm  = zeros(1,Kb);
-                h0   = zeros(size(h0));
                 for z=1:length(z0),
-                    q   = double(buf(z).dat);
-                    s   = 1./(q*wp');
-                    mgm = mgm + s'*q;
-                    q   = bsxfun(@times,bsxfun(@times,q,wp),s);
+                    B   = double(buf(z).dat);
+                    s   = 1./(B*wp');
+                    mgm = mgm + s'*B;
+                    B   = bsxfun(@times,bsxfun(@times,B,wp),s);
 
-                    cr = cell(N,1);
+                    q   = B;
+                    cr  = cell(N,1);
                     for n=1:N,
-                        tmp     = round(buf(z).f{n}.*buf(z).bf{n}*chan(n).interscal(2) + chan(n).interscal(1));
-                        tmp     = min(max(tmp,1),K);
+                        tmp     = buf(z).f{n}.*buf(z).bf{n}*chan(n).interscal(2) + chan(n).interscal(1);
+                        tmp     = min(max(round(tmp),1),K);
                         cr{n}   = tmp;
                         for k1=1:Kb,
                             q(:,k1) = q(:,k1).*chan(n).lik(tmp,k1);
@@ -480,10 +483,11 @@ for iter=1:20,
                 end
                 wp = sum(chan(1).hist)./mgm;
                 for n=1:N,
-                    chan(n).lik   = spm_smohist(chan(n).hist,chan(n).lam)*chan(n).interscal(2);
+                    [chan(n).lik,chan(n).alph] = spm_smohist(chan(n).hist,chan(n).lam);
+                    chan(n).lik                = chan(n).lik*chan(n).interscal(2);
                 end
 
-               %fprintf('Hist:\t%g\t%g\t%g\n', ll,llr,llrb);
+                my_fprintf('Hist:\t%g\t%g\t%g\n', ll,llr,llrb);
 
                 if subit>1 || iter>1,
                     spm_plot_convergence('Set',ll);
@@ -498,7 +502,6 @@ for iter=1:20,
                 chan(n).grad2 = convn(chan(n).alph,[1  -2  1  ]'*chan(n).interscal(2)^2,'same');
             end
         end
-
         if iter1 > 1 && ~((ll-ooll)>2*tol1*nm), break; end
         ooll = ll;
 
@@ -582,84 +585,53 @@ for iter=1:20,
                         clear wt1 wt2 b3
                     end
 
-                    oll = ll;
-                    C   = chan(n).C; % Inverse covariance of priors
-                    for iter2=1:20,
-                        T       = chan(n).T; % Current estimate
-                        ollbias = chan(n).ll;
+                    oll     = ll;
+                    C       = chan(n).C; % Inverse covariance of priors
 
-                        % Gauss-Newton (Levenberg-Marquardt) iteration to update bias field parameters
-                        R          = diag(chan(n).lmreg*(abs(Beta)+sqrt(sum(Beta.^2)/numel(Beta)))); % L-M regularisation
-                        chan(n).T  = T - reshape((Alpha + C + R)\(Beta + C*T(:)),size(T));
-                        clear R
+                    % Gauss-Newton iteration to update bias field parameters
+                    chan(n).T = chan(n).T - reshape((Alpha + C)\(Beta + C*chan(n).T(:)),size(chan(n).T));
 
-                        % Re-generate bias field, and compute terms of the objective function
-                        chan(n).ll = double(-0.5*chan(n).T(:)'*C*chan(n).T(:));
-                        for z=1:length(z0),
-                            if ~buf(z).nm, continue; end
-                            bf           = transf(chan(n).B1,chan(n).B2,chan(n).B3(z,:),chan(n).T);
-                            tmp          = bf(buf(z).msk);
-                            chan(n).ll   = chan(n).ll + double(sum(tmp));
-                            buf(z).bf{n} = single(exp(tmp));
-                        end
-                        llrb = 0;
-                        for n1=1:N, llrb = llrb + chan(n1).ll; end
-                        ll    = llr+llrb;
-                        for z=1:length(z0),
-                            if ~buf(z).nm, continue; end
-                            B = bsxfun(@times,double(buf(z).dat),wp);
-                            B = bsxfun(@times,B,1./sum(B,2));
-
-                            if use_mog,
-                                q = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
-                                for k1=1:Kb,
-                                    for k=find(lkp==k1),
-                                        q(:,k) = q(:,k).*B(:,k1);
-                                    end
-                                end
-                                ll = ll + sum(log(sum(q,2)+tiny));
-                            else
-                                q = B;
-                                for n1=1:N,
-                                    cr = buf(z).f{n1}.*buf(z).bf{n1}*chan(n1).interscal(2) + chan(n1).interscal(1);
-                                    cr = min(max(round(cr),1),K);
-                                    for k1=1:Kb,
-                                        q(:,k1) = q(:,k1).*chan(n1).lik(cr,k1);
-                                    end
-                                end
-                                ll  = ll + sum(log(sum(q,2)+tiny),1);
-                            end
-                            clear q
-                        end
-
-
-                        if oll-ll>tol1*nm,
-                            % Worse solution, so revert back to old bias field
-                           %fprintf('Bias-%d:\t%g\t%g\t%g :o(\n', n, ll, llr,llrb);
-
-                            chan(n).lmreg = chan(n).lmreg*8;
-                            chan(n).T     = T;
-                            chan(n).ll    = ollbias;
-
-                            for z=1:length(z0),
-                                if ~buf(z).nm, continue; end
-                                bf           = transf(chan(n).B1,chan(n).B2,chan(n).B3(z,:),chan(n).T);
-                                buf(z).bf{n} = single(exp(bf(buf(z).msk)));
-                            end
-                            llrb = 0;
-                            for n1=1:N, llrb = llrb + chan(n1).ll; end
-                        else
-                            % Accept new solution
-                            spm_plot_convergence('Set',ll);
-                           %fprintf('Bias-%d:\t%g\t%g\t%g :o)\n', n, ll, llr,llrb);
-                            if oll-ll<0,
-                                chan(n).lmreg = chan(n).lmreg*0.5;
-                            else
-                                chan(n).lmreg = chan(n).lmreg*4;
-                            end
-                            break
-                        end
+                    % Re-generate bias field, and compute terms of the objective function
+                    chan(n).ll = double(-0.5*chan(n).T(:)'*C*chan(n).T(:));
+                    for z=1:length(z0),
+                        if ~buf(z).nm, continue; end
+                        bf           = transf(chan(n).B1,chan(n).B2,chan(n).B3(z,:),chan(n).T);
+                        tmp          = bf(buf(z).msk);
+                        chan(n).ll   = chan(n).ll + double(sum(tmp));
+                        buf(z).bf{n} = single(exp(tmp));
                     end
+                    llrb = 0;
+                    for n1=1:N, llrb = llrb + chan(n1).ll; end
+                    ll    = llr+llrb;
+                    for z=1:length(z0),
+                        if ~buf(z).nm, continue; end
+                        B = bsxfun(@times,double(buf(z).dat),wp);
+                        B = bsxfun(@times,B,1./sum(B,2));
+
+                        if use_mog,
+                            q = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
+                            for k1=1:Kb,
+                                for k=find(lkp==k1),
+                                    q(:,k) = q(:,k).*B(:,k1);
+                                end
+                            end
+                            ll = ll + sum(log(sum(q,2)+tiny));
+                        else
+                            q = B;
+                            for n1=1:N,
+                                cr = buf(z).f{n1}.*buf(z).bf{n1}*chan(n1).interscal(2) + chan(n1).interscal(1);
+                                cr = min(max(round(cr),1),K);
+                                for k1=1:Kb,
+                                    q(:,k1) = q(:,k1).*chan(n1).lik(cr,k1);
+                                end
+                            end
+                            ll  = ll + sum(log(sum(q,2)+tiny),1);
+                        end
+                        clear q
+                    end
+                    spm_plot_convergence('Set',ll);
+
+                    my_fprintf('Bias-%d:\t%g\t%g\t%g\n', n, ll, llr,llrb);
                     clear Alpha Beta T C
                 end
             end
@@ -703,7 +675,7 @@ for iter=1:20,
     end
 
 
- 
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Estimate deformations
     %------------------------------------------------------------
@@ -734,7 +706,9 @@ for iter=1:20,
         % Compute likelihoods, and save them in buf.dat
         for z=1:length(z0),
             if ~buf(z).nm, continue; end
-            q = ones(buf(z).nm,Kb);
+            q   = ones(buf(z).nm,Kb);
+            B   = bsxfun(@times,double(buf(z).dat),wp);
+            B   = bsxfun(@times,B,1./sum(B,2));
             for n=1:N,
                 cr = buf(z).f{n}.*buf(z).bf{n}*chan(n).interscal(2) + chan(n).interscal(1);
                 cr = min(max(round(cr),1),K);
@@ -742,13 +716,12 @@ for iter=1:20,
                     q(:,k1) = q(:,k1).*chan(n).lik(cr(:),k1);
                 end
             end
-            ll         = ll + sum(log(sum(q.*buf(z).dat,2) + tiny),1);
+            ll         = ll + sum(log(sum(q.*B,2) + tiny),1);
             buf(z).dat = q;
         end
     end
 
     oll = ll;
-
     for subit=1:3,
         Alpha  = zeros([size(x0),numel(z0),6],'single');
         Beta   = zeros([size(x0),numel(z0),3],'single');
@@ -792,12 +765,13 @@ for iter=1:20,
             dp1 = zeros(buf(z).nm,1);
             dp2 = zeros(buf(z).nm,1);
             dp3 = zeros(buf(z).nm,1);
+            MM  = M*MT; % Map from sampled voxels to atlas data
             for k1=1:Kb,
                 pp  = double(buf(z).dat(:,k1));
                 p   = p   + pp.*b{k1};
-                dp1 = dp1 + pp.*(M(1,1)*db1{k1} + M(2,1)*db2{k1} + M(3,1)*db3{k1});
-                dp2 = dp2 + pp.*(M(1,2)*db1{k1} + M(2,2)*db2{k1} + M(3,2)*db3{k1});
-                dp3 = dp3 + pp.*(M(1,3)*db1{k1} + M(2,3)*db2{k1} + M(3,3)*db3{k1});
+                dp1 = dp1 + pp.*(MM(1,1)*db1{k1} + MM(2,1)*db2{k1} + MM(3,1)*db3{k1});
+                dp2 = dp2 + pp.*(MM(1,2)*db1{k1} + MM(2,2)*db2{k1} + MM(3,2)*db3{k1});
+                dp3 = dp3 + pp.*(MM(1,3)*db1{k1} + MM(2,3)*db2{k1} + MM(3,3)*db3{k1});
             end
             clear b db1 db2 db3
 
@@ -850,13 +824,17 @@ for iter=1:20,
         % Add in the first derivatives of the prior term
         Beta   = Beta  + spm_diffeo('vel2mom',bsxfun(@times,Twarp,1./sk4),prm);
 
-        for lmreg=1:6,
-            % L-M update
-            Twarp1 = Twarp - spm_diffeo('fmg',Alpha,Beta,[prm+lam 1 1]);
+        % Gauss-Newton increment
+        Update = bsxfun(@times,spm_diffeo('fmg',Alpha,Beta,[prm 2 2]),sk4);
 
-            llr1   = -0.5*sum(sum(sum(sum(Twarp1.*bsxfun(@times,spm_diffeo('vel2mom',bsxfun(@times,Twarp1,1./sk4),prm),sk4)))));
+        % Line search to ensure objective function improves
+        armijo = 1.0;
+        for line_search=1:12,
+            Twarp1 = Twarp - armijo*Update; % Backtrack if necessary
+
+            % Recompute objective funciton
+            llr1   = -0.5*sum(sum(sum(sum(Twarp1.*bsxfun(@times,spm_diffeo('vel2mom',bsxfun(@times,Twarp1,1./sk4),prm),1./sk4)))));
             ll1    = llr1+llrb;
-
             for z=1:length(z0),
                 if ~buf(z).nm, continue; end
                 [x1,y1,z1] = defs(Twarp1,z,x0,y0,z0,M,buf(z).msk);
@@ -874,33 +852,38 @@ for iter=1:20,
                 ll1 = ll1 + sum(log(sq + tiny));
                 clear sq
             end
+
             if ll1<ll,
-                lam   = lam*8;
-               %fprintf('Warp:\t%g\t%g\t%g :o(\n', ll1, llr1,llrb);
+                % Still not better, so keep going
+                my_fprintf('Warp:\t%g\t%g\t%g :o(\t(%g)\n', ll1, llr1,llrb,armijo);
+                armijo = armijo*0.75;
             else
+                % Better.  Accept the new solution
                 spm_plot_convergence('Set',ll1);
-                lam   = lam*0.5;
-                ll    = ll1;
-                llr   = llr1;
-                Twarp = Twarp1;
-               %fprintf('Warp:\t%g\t%g\t%g :o)\n', ll1, llr1,llrb);
+                my_fprintf('Warp:\t%g\t%g\t%g :o)\t(%g)\n', ll1, llr1,llrb,armijo);
+                ll     = ll1;
+                llr    = llr1;
+                Twarp  = Twarp1;
                 break
             end
         end
         clear Alpha Beta
 
         if ~((ll-oll)>tol1*nm),
+            % Registration no longer helping, so move on
             break
         end
         oll = ll;
     end
 
     if iter>5 && ~((ll-ooll)>4*tol1*nm),
+        % Finished
         break
     end
 end
 % spm_plot_convergence('Clear');
 
+% Save the results
 results.image  = obj.image;
 results.tpm    = tpm.V;
 results.Affine = Affine;
@@ -908,13 +891,12 @@ results.lkp    = lkp;
 results.MT     = MT;
 results.Twarp  = Twarp;
 results.Tbias  = {chan(:).T};
+results.wp     = wp;
 if use_mog,
     results.mg     = mg;
     results.mn     = mn;
     results.vr     = vr;
-    results.wp     = wp;
 else
-    results.wp     = wp;
     for n=1:N,
         results.intensity(n).lik       = chan(n).lik;
         results.intensity(n).interscal = chan(n).interscal;
@@ -963,11 +945,19 @@ for n=1:N,
 end
 p  = zeros(numel(f{1}),K);
 for k=1:K,
-    amp    = mg(k)/sqrt((2*pi)^N * det(vr(:,:,k)));
-    d      = bsxfun(@minus,cr,mn(:,k)')*inv(chol(vr(:,:,k)));
-    p(:,k) = amp*exp(-0.5*sum(d.*d,2));
+    C      = chol(vr(:,:,k));
+    d      = bsxfun(@minus,cr,mn(:,k)')/C;
+    p(:,k) = exp(log(mg(k)) - (N/2)*log(2*pi) - sum(log(diag(C))) - 0.5*sum(d.*d,2));
 end
 %=======================================================================
 
 %=======================================================================
+function count = my_fprintf(varargin)
+verbose = false;
+if verbose
+    count = fprintf(varargin{:});
+else
+    count = 0;
+end
+
 
