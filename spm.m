@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 6299 2015-01-08 12:56:00Z guillaume $
+% $Id: spm.m 6332 2015-02-10 19:09:00Z guillaume $
 
 
 %=======================================================================
@@ -712,7 +712,7 @@ elseif Win(1)=='0'
     end
     if size(Rect,1) > 1 % Multiple Monitors
         %-The MonitorPositions property depends on the architecture
-        if ~ispc
+        if ~ispc || spm_check_version('matlab','8.4') >= 0
             Rect(:,[3 4]) = Rect(:,[3 4]) + Rect(:,[1 2]);
         end
         monitor = spm_get_defaults('ui.monitor');
