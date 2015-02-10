@@ -5,10 +5,10 @@ function M = spm_get_space(P,M)
 % P - image filename
 % M - voxel-to-world mapping
 %__________________________________________________________________________
-% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_get_space.m 4495 2011-09-20 18:30:22Z guillaume $
+% $Id: spm_get_space.m 6331 2015-02-10 13:41:42Z guillaume $
 
 
 [pth,nam,ext,num] = spm_fileparts(P);
@@ -27,12 +27,12 @@ if nargin==2
             if ~isfield(N.extras,'mat')
                 N.extras.mat = zeros([4 4 size(N.dat,4)]);
             else
-                if size(N.extras.mat,4)<size(N.dat,4)
+                if size(N.extras.mat,3)<size(N.dat,4)
                     N.extras.mat(:,:,size(N.dat,4)) = zeros(4);
                 end
             end
             for i=2:size(N.dat,4)
-                if sum(sum(N.extras.mat(:,:,i).^2))==0,
+                if sum(sum(N.extras.mat(:,:,i).^2))==0
                     N.extras.mat(:,:,i) = M0;
                 end
             end
