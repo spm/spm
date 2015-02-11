@@ -10,7 +10,7 @@ function out = spm_run_results(job)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_results.m 6147 2014-09-02 19:03:42Z guillaume $
+% $Id: spm_run_results.m 6337 2015-02-11 18:46:30Z guillaume $
 
 
 cspec = job.conspec;
@@ -135,8 +135,10 @@ for k = 1:numel(cspec)
                     n(ni)   = 1:num;
                     Z       = n(Z);
             end
-            spm_write_filtered(Z,xSPM.XYZ,xSPM.DIM,xSPM.M,...
+            V = spm_write_filtered(Z,xSPM.XYZ,xSPM.DIM,xSPM.M,...
                 descrip,fname);
+            cmd = 'spm_image(''display'',''%s'')';
+            fprintf('Written %s\n',spm_file(V.fname,'link',cmd));
         otherwise
             error('Unknown option.');
     end

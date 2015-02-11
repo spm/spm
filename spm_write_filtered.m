@@ -21,13 +21,11 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 % It is intended for writing out filtered SPM's from the results section
 % of SPM, but can be used freestanding.
 %__________________________________________________________________________
-% Copyright (C) 1996-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_write_filtered.m 6079 2014-06-30 18:25:37Z spm $
+% $Id: spm_write_filtered.m 6337 2015-02-11 18:46:30Z guillaume $
 
-
-SVNid = '$Rev: 6079 $';
 
 %-Parse arguments
 %--------------------------------------------------------------------------
@@ -36,7 +34,7 @@ if nargin < 2
         try
             xSPM = evalin('base', 'xSPM');
         catch
-            error('Please run SPM results query first')
+            error('Please run SPM results query first.')
         end
     else
         xSPM = Z;
@@ -44,7 +42,7 @@ if nargin < 2
     Vo = spm_write_filtered(xSPM.Z, xSPM.XYZ, xSPM.DIM, xSPM.M);
     return
 elseif nargin < 3
-    error('Insufficient arguments');
+    error('Not enough input arguments.');
 end
 if nargin<4, M = spm_matrix(-(DIM+1)/2); end
 if nargin<5, descrip = 'SPM-filtered'; end
@@ -56,6 +54,7 @@ if isempty(F), F = 'output'; end
 if isempty(spm_file(F,'ext'))
     F = spm_file(F,'ext',spm_file_ext);
 end
+F = spm_file(F,'CPath');
 
 %-Set up header information
 %--------------------------------------------------------------------------
@@ -81,9 +80,3 @@ Y(OFF) = Z.*(Z > 0);
 %-Write the reconstructed volume
 %--------------------------------------------------------------------------
 Vo = spm_write_vol(Vo,Y);
-
-%-Report
-%--------------------------------------------------------------------------
-cmd = 'spm_image(''display'',''%s'')';
-spm('FnBanner',mfilename,SVNid);                                        %-#
-fprintf('Written %s\n',spm_file(spm_file(F,'CPath'),'link',cmd));       %-#

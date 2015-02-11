@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 6226 2014-10-03 13:35:10Z guillaume $
+% $Id: spm_results_ui.m 6337 2015-02-11 18:46:30Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 6226 $'; 
+SVNid = '$Rev: 6337 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -1369,8 +1369,11 @@ switch lower(action)
         error('Unknown action.');
 end
 
-spm_write_filtered(Z, XYZ, xSPM.DIM, xSPM.M,...
+V = spm_write_filtered(Z, XYZ, xSPM.DIM, xSPM.M,...
     sprintf('SPM{%c}-filtered: u = %5.3f, k = %d',xSPM.STAT,xSPM.u,xSPM.k));
+
+cmd = 'spm_image(''display'',''%s'')';
+fprintf('Written %s\n',spm_file(V.fname,'link',cmd));                   %-#
 
 %==========================================================================
 function myslover

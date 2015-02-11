@@ -16,10 +16,10 @@ function [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % PROV-DM: The PROV Data Model:
 %   http://www.w3.org/TR/prov-dm/
 %__________________________________________________________________________
-% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6256 2014-11-05 11:46:16Z guillaume $
+% $Id: spm_results_nidm.m 6337 2015-02-11 18:46:30Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -103,7 +103,7 @@ end
 %--------------------------------------------------------------------------
 files.tspm = fullfile(outdir,['ExcursionSet.nii' gz]);
 if ~isempty(gz), files.tspm = spm_file(files.tspm,'ext',''); end
-evalc('spm_write_filtered(xSPM.Z,xSPM.XYZ,xSPM.DIM,xSPM.M,'''',files.tspm);');
+spm_write_filtered(xSPM.Z,xSPM.XYZ,xSPM.DIM,xSPM.M,'',files.tspm);
 if ~isempty(gz), gzip(files.tspm); spm_unlink(files.tspm); files.tspm = [files.tspm gz]; end
 
 %-Residual Mean Squares image (as NIfTI)
@@ -166,7 +166,7 @@ if max(Z) ~= numel(idx)
     n(numel(idx)+1:max(Z)) = 0;
 end
 Z    = n(Z);
-evalc('spm_write_filtered(Z,xSPM.XYZ,xSPM.DIM,xSPM.M,'''',files.clust);');
+spm_write_filtered(Z,xSPM.XYZ,xSPM.DIM,xSPM.M,'',files.clust);
 if ~isempty(gz), gzip(files.clust); spm_unlink(files.clust); files.clust = [files.clust gz]; end
 
 %-Display mask images (as NIfTI)
