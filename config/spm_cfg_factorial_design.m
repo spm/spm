@@ -4,7 +4,7 @@ function factorial_design = spm_cfg_factorial_design
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 6304 2015-01-14 12:58:54Z guillaume $
+% $Id: spm_cfg_factorial_design.m 6333 2015-02-11 13:14:23Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -304,7 +304,7 @@ levels.tag     = 'levels';
 levels.name    = 'Levels';
 levels.help    = {'Enter number of levels for this factor, eg. 2.'};
 levels.strtype = 'n';
-levels.num     = [Inf 1];
+levels.num     = [1 1];
 
 %--------------------------------------------------------------------------
 % fact Factor

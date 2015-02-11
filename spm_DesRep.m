@@ -115,10 +115,10 @@ function varargout = spm_DesRep(varargin)
 % Double clicking on a contrast depiction extracts the contrast weights
 % into the base workspace.
 %__________________________________________________________________________
-% Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2015 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 6070 2014-06-26 20:53:39Z guillaume $
+% $Id: spm_DesRep.m 6333 2015-02-11 13:14:23Z guillaume $
 
 
 %==========================================================================
@@ -251,7 +251,7 @@ function varargout = spm_DesRep(varargin)
 %__________________________________________________________________________
 
 
-SVNid = '$Rev: 6070 $'; 
+SVNid = '$Rev: 6333 $'; 
 
 %-Format arguments
 %--------------------------------------------------------------------------
@@ -898,7 +898,7 @@ subplot(2,2,1)
 plot(Sess(s).row,rX)
 xlabel('scan')
 ylabel('regressor[s]')
-title({'Time domain',['regressors for ' Sess(s).Fc(i).name]})
+title({'Time domain',['Regressors for ' Sess(s).Fc(i).name]})
 grid on
 axis tight
 
@@ -932,8 +932,8 @@ if length(Sess(s).U) >= i
     t    = [1:size(SPM.xBF.bf,1)]*dt;
     pst  = Sess(s).U(i).pst;
     plot(t,SPM.xBF.bf,pst,0*pst,'.','MarkerSize',16)
-    str  = sprintf('TR = %0.2fsecs',RT);
-    xlabel({'time (secs)' str sprintf('%0.0fms time bins',1000*dt)})
+    str  = sprintf('TR = %0.2fs',RT);
+    xlabel({'time {secs}' str sprintf('%0.0fms time bins',1000*dt)})
     title({'Basis set and peristimulus sampling' SPM.xBF.name})
     axis tight
     grid on
@@ -950,7 +950,7 @@ if length(Sess(s).U) >= i
         ons = Sess(s).U(i).ons;
         plot(ons,Sess(s).U(i).P(p).P,'.','MarkerSize',8)
         xlabel('time {secs}')
-        title('parameters')
+        title('Parameters')
         grid on
         hold on
 
