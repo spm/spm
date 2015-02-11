@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 6334 2015-02-11 17:11:53Z john $
+% $Id: spm_preproc8.m 6335 2015-02-11 17:14:26Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -963,7 +963,7 @@ end
 
 %=======================================================================
 function count = my_fprintf(varargin)
-verbose = true;%false;
+verbose = false;
 if verbose
     count = fprintf(varargin{:});
 else
