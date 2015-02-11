@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 6330 2015-02-09 16:19:26Z john $
+% $Id: spm_preproc8.m 6334 2015-02-11 17:11:53Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -127,14 +127,24 @@ spm_diffeo('boundary',1);
 % voxels means that the functions in spm_diffeo need tweaking to
 % account for the difference between the units of displacement and
 % the separation of the voxels (if that makes sense).
-param  = [sk.*vx ff*obj.reg];
+
+% More work/thought is needed in terms of adjusting regularisation to
+% account for different voxel sizes.  I'm still not satisfied that
+% this (rescaling the regularisaiton by prod(vx.*sk)) is optimal.
+% The same thing applies to all the nonlinear warping code in SPM.
+param  = [sk.*vx prod(vx.*sk)*ff*obj.reg];
+
+% Mapping from indices of subsampled voxels to indices of voxels in image(s).
 MT     = [sk(1) 0 0 (1-sk(1));0 sk(2) 0 (1-sk(2)); 0 0 sk(3) (1-sk(3));0 0 0 1];
+
+% For multiplying and dividing displacements to map from the subsampled voxel indices
+% and the actual image voxel indices.
 sk4    = reshape(sk,[1 1 1 3]);
+
 d      = [size(x0) length(z0)];
 if isfield(obj,'Twarp'),
     Twarp = obj.Twarp;
     llr   = -0.5*sum(sum(sum(sum(Twarp.*bsxfun(@times,spm_diffeo('vel2mom',bsxfun(@times,Twarp,1./sk4),param),1./sk4)))));
-
 else
     Twarp = zeros([d,3],'single');
     llr   = 0;
@@ -778,9 +788,9 @@ for iter=1:30,
             % Compute first and second derivatives of the matching term.  Note that
             % these can be represented by a vector and tensor field respectively.
             tmp             = zeros(d(1:2));
-            tmp(buf(z).msk) = dp1./p; dp1 = tmp/sk(1);
-            tmp(buf(z).msk) = dp2./p; dp2 = tmp/sk(2);
-            tmp(buf(z).msk) = dp3./p; dp3 = tmp/sk(3);
+            tmp(buf(z).msk) = dp1./p; dp1 = tmp;
+            tmp(buf(z).msk) = dp2./p; dp2 = tmp;
+            tmp(buf(z).msk) = dp3./p; dp3 = tmp;
 
             Beta(:,:,z,1)   = -dp1;     % First derivatives
             Beta(:,:,z,2)   = -dp2;
@@ -953,7 +963,7 @@ end
 
 %=======================================================================
 function count = my_fprintf(varargin)
-verbose = false;
+verbose = true;%false;
 if verbose
     count = fprintf(varargin{:});
 else
