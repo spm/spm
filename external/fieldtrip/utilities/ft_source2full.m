@@ -29,7 +29,7 @@ function [source] = ft_source2full(source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2full.m 9933 2014-10-30 13:09:02Z tzvpop $
+% $Id: ft_source2full.m 10197 2015-02-11 09:35:58Z roboos $
 
 ft_defaults
 
@@ -311,11 +311,11 @@ try
   % get the full name of the function
   cfg.version.name = mfilename('fullpath');
 catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
+  % required for compatibility with MATLAB versions prior to release 13 (6.5)
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_source2full.m 9933 2014-10-30 13:09:02Z tzvpop $';
+cfg.version.id = '$Id: ft_source2full.m 10197 2015-02-11 09:35:58Z roboos $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

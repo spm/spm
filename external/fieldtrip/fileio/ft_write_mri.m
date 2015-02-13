@@ -42,7 +42,7 @@ function [V] = ft_write_mri(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_mri.m 9343 2014-04-03 17:48:03Z jansch $
+% $Id: ft_write_mri.m 10197 2015-02-11 09:35:58Z roboos $
 
 % get the options
 transform     = ft_getopt(varargin, 'transform', eye(4));
@@ -73,7 +73,7 @@ switch dataformat
     % mgz-volume using freesurfer
     ft_hastoolbox('freesurfer', 1);
     
-    % in matlab the transformation matrix assumes the voxel indices to be 1-based
+    % in MATLAB the transformation matrix assumes the voxel indices to be 1-based
     % freesurfer assumes the voxel indices to be 0-based
     transform = vox2ras_1to0(transform);
     save_mgh(dat, filename, transform);

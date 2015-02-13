@@ -14,7 +14,7 @@ function [tissue1, tissue2, tissue3] = validate_seg(tissue1, tissue2, tissue3)
 % the input is invalid and cannot be converted to overlapping segmentations, this function will give
 % an error.
 %
-% This function makes use of functions from the Matlab Signal Processing Toolbox.
+% This function makes use of functions from the MATLAB Signal Processing Toolbox.
 %
 % See also TRIANGULATE_SEG, PREPARE_MESH_SEGMENTATION
 
@@ -36,7 +36,7 @@ function [tissue1, tissue2, tissue3] = validate_seg(tissue1, tissue2, tissue3)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: validate_seg.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: validate_seg.m 10197 2015-02-11 09:35:58Z roboos $
 
 % the boundaries for surface extraction should be at
 % t = sort(unique(brain+skull+2*scalp))

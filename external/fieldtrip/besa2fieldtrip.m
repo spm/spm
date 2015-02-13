@@ -11,18 +11,18 @@ function [data] = besa2fieldtrip(input)
 % compatible with FieldTrip.
 %
 % The format of the output structure depends on the type of datafile:
-%   *.avr is converted to a structure similar to the output of TIMELOCKANALYSIS
-%   *.mul is converted to a structure similar to the output of TIMELOCKANALYSIS
-%   *.swf is converted to a structure similar to the output of TIMELOCKANALYSIS (*)
-%   *.tfc is converted to a structure similar to the output of FREQANALYSIS     (*)
-%   *.dat is converted to a structure similar to the output of SOURCANALYSIS
-%   *.dat combined with a *.gen or *.generic is converted to a structure similar to the output of PREPROCESSING
+%   *.avr is converted to a structure similar to the output of FT_TIMELOCKANALYSIS
+%   *.mul is converted to a structure similar to the output of FT_TIMELOCKANALYSIS
+%   *.swf is converted to a structure similar to the output of FT_TIMELOCKANALYSIS (*)
+%   *.tfc is converted to a structure similar to the output of FT_FREQANALYSIS     (*)
+%   *.dat is converted to a structure similar to the output of FT_SOURCANALYSIS
+%   *.dat combined with a *.gen or *.generic is converted to a structure similar to the output of FT_PREPROCESSING
 %
 % Note (*): If the BESA toolbox by Karsten Hochstatter is found on your
 % MATLAB path, the readBESAxxx functions will be used (where xxx=tfc/swf),
 % alternatively the private functions from FieldTrip will be used.
 %
-% See also EEGLAB2FIELDTRIP
+% See also EEGLAB2FIELDTRIP, SPM2FIELDTRIP
 
 % Copyright (C) 2005-2010, Robert Oostenveld
 %
@@ -42,9 +42,9 @@ function [data] = besa2fieldtrip(input)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: besa2fieldtrip.m 9226 2014-02-23 13:12:06Z roboos $
+% $Id: besa2fieldtrip.m 10156 2015-02-04 08:45:19Z roboos $
 
-revision = '$Id: besa2fieldtrip.m 9226 2014-02-23 13:12:06Z roboos $';
+revision = '$Id: besa2fieldtrip.m 10156 2015-02-04 08:45:19Z roboos $';
 
 % do the general setup of the function
 ft_defaults

@@ -38,12 +38,13 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %   unused          = {'opt1', 'opt2', etc.} % list the unused options, these will be removed and a warning is issued
 %   createsubcfg    = {'subname', etc.}      % list the names of the subcfg
 %   dataset2files   = 'yes', 'no'            % converts dataset into headerfile and datafile
+%   index2logical   = 'yes', 'no'            % converts cfg.index or cfg.grid.index into logical representation
 %   checksize       = 'yes', 'no'            % remove large fields from the cfg
 %   trackconfig     = 'on', 'off'            % start/end config tracking
 %
 % See also FT_CHECKDATA, FT_DEFAULTS
 
-% Copyright (C) 2007-2012, Robert Oostenveld, Saskia Haegens
+% Copyright (C) 2007-2014, Robert Oostenveld, Saskia Haegens
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -61,7 +62,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 9826 2014-09-24 08:52:04Z roboos $
+% $Id: ft_checkconfig.m 10204 2015-02-11 14:34:49Z roboos $
 
 global ft_default
 
@@ -79,6 +80,7 @@ renamedval      = ft_getopt(varargin, 'renamedval');
 allowedval      = ft_getopt(varargin, 'allowedval');
 createsubcfg    = ft_getopt(varargin, 'createsubcfg');
 checkfilenames  = ft_getopt(varargin, 'dataset2files');
+checkinside     = ft_getopt(varargin, 'index2logical', 'off');
 checksize       = ft_getopt(varargin, 'checksize', 'off');
 trackconfig     = ft_getopt(varargin, 'trackconfig');
 
@@ -191,6 +193,7 @@ end
 if ~isempty(allowed)
   % there are some general options that should always be allowed
   allowed = union(allowed, {
+    'trkcfgcount'
     'trackconfig'
     'checkconfig'
     'checksize'
@@ -473,13 +476,31 @@ if ~isempty(createsubcfg)
   end
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% checkinside, i.e. index2logical
+%
+% Converts indexed cfg.inside/outside into logical representation if neccessary.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if istrue(checkinside)
+  if isfield(cfg, 'inside') && any(cfg.inside>1)
+    inside = false(size(cfg.pos,1),1);
+    inside(cfg.inside) = true;
+    cfg = removefields(cfg, {'inside', 'outside'});
+    cfg.inside = inside;
+  elseif isfield(cfg, 'grid') && isfield(cfg.grid, 'inside') && any(cfg.grid.inside>1)
+    inside = false(size(cfg.grid.pos,1),1);
+    inside(cfg.grid.inside) = true;
+    cfg.grid = removefields(cfg.grid, {'inside', 'outside'});
+    cfg.grid.inside = inside;
+  end
+end % if checkinside
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % checkfilenames, i.e. dataset2files
 %
 % Converts cfg.dataset into cfg.headerfile and cfg.datafile if neccessary.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~isempty(checkfilenames) && strcmp(checkfilenames, 'yes')
+if istrue(checkfilenames)
   
   % start with empty fields if they are not present
   if ~isfield(cfg, 'dataset')
@@ -493,7 +514,7 @@ if ~isempty(checkfilenames) && strcmp(checkfilenames, 'yes')
   end
   
   if ~isempty(cfg.dataset)
-    if strcmp(cfg.dataset, 'gui') || strcmp(cfg.dataset, 'uigetfile')
+    if isequal(cfg.dataset, 'gui') || isequal(cfg.dataset, 'uigetfile')
       % display a graphical file selection dialog
       [f, p] = uigetfile('*.*', 'Select a data file');
       if isequal(f, 0)
@@ -546,14 +567,16 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~isempty(trackconfig)
   try
-    if strcmp(trackconfig, 'on') && isa(cfg, 'struct')
-      % turn ON configuration tracking
-      cfg = config(cfg);
-      % remember that configtracking has been turned on
-      cfg.trkcfgcount = 1;
-    elseif strcmp(trackconfig, 'on') && isa(cfg, 'config')
-      % remember how many times configtracking has been turned on
-      cfg.trkcfgcount = cfg.trkcfgcount+1; % count the 'ONs'
+    if strcmp(trackconfig, 'on')
+      if isa(cfg, 'struct')
+        % turn ON configuration tracking
+        cfg = config(cfg);
+        % remember that configtracking has been turned on
+        cfg = access(cfg, 'set', 'trkcfgcount', 1);
+      elseif isa(cfg, 'config')
+        % remember how many times trackconfig has been turned on
+        cfg = access(cfg, 'set', 'trkcfgcount', access(cfg, 'get', 'trkcfgcount'));
+      end
     end
     
     if strcmp(trackconfig, 'off') && isa(cfg, 'config')

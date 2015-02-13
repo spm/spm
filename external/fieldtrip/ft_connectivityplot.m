@@ -38,9 +38,9 @@ function [cfg] = ft_connectivityplot(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityplot.m 10071 2014-12-22 22:35:23Z roboos $
+% $Id: ft_connectivityplot.m 10137 2015-01-28 11:19:58Z roboos $
 
-revision = '$Id: ft_connectivityplot.m 10071 2014-12-22 22:35:23Z roboos $';
+revision = '$Id: ft_connectivityplot.m 10137 2015-01-28 11:19:58Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -145,16 +145,13 @@ if ~isfield(data, cfg.parameter)
   error('the data does not contain the requested parameter %s', cfg.parameter);
 end
 
-cfg.channel = ft_channelselection(cfg.channel, data.label);
-
-tmpcfg         = [];
-tmpcfg.channel = cfg.channel;
-tmpcfg.foilim  = cfg.xlim;
-data           = ft_selectdata(tmpcfg, data);
-
+% get the selection of the data
+tmpcfg           = [];
+tmpcfg.channel   = cfg.channel;
+tmpcfg.frequency = cfg.xlim;
+data             = ft_selectdata(tmpcfg, data);
 % restore the provenance information
 [cfg, data] = rollback_provenance(cfg, data);
-
 
 dat   = data.(cfg.parameter);
 nchan = numel(data.label);

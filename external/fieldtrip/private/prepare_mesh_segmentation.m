@@ -22,7 +22,7 @@ function bnd = prepare_mesh_segmentation(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_segmentation.m 9530 2014-05-14 16:13:20Z roboos $
+% $Id: prepare_mesh_segmentation.m 10225 2015-02-12 09:29:27Z roboos $
 
 
 % ensure that the input is consistent with what this function expects
@@ -137,11 +137,9 @@ for i =1:numel(cfg.tissue)
   % seg = volumesmooth(seg, nan, nan);
   
   % ensure that the segmentation is binary and that there is a single contiguous region
-  % FIXME is this still needed when it is already binary?
   seg = volumethreshold(seg, 0.5, tissue);
   
   % the function that generates the mesh will fail if there is a hole in the middle
-  % FIXME is this still needed when it is already binary?
   seg = volumefillholes(seg);
   
   switch cfg.method

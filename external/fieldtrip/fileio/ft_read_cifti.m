@@ -53,7 +53,7 @@ function source = ft_read_cifti(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_cifti.m 10091 2015-01-09 12:46:03Z roboos $
+% $Id: ft_read_cifti.m 10224 2015-02-12 09:26:06Z jansch $
 
 readdata         = ft_getopt(varargin, 'readdata', []);   % the default depends on file size, see below
 readsurface      = ft_getopt(varargin, 'readsurface', true);
@@ -370,6 +370,7 @@ if readdata
   % hdr.dim(3) is reserved for the y-dimension
   % hdr.dim(4) is reserved for the z-dimension
   % hdr.dim(5) is reserved for the time-dimension
+  % hdr.dim(6:8) are used for CIFTI
   voxdata = reshape(voxdata, hdr.dim(6:end));
 end
 fclose(fid);
@@ -685,6 +686,7 @@ if readdata
   end
   
   switch source.dimord
+    % the following representations are directly consistent with FieldTrip
     case {'pos' 'chan'}
       [m, n] = size(voxdata);
       if m>n
@@ -694,13 +696,19 @@ if readdata
         dat = nan(Ngreynodes,m);
         dat(greynodeIndex(dataIndex),:) = transpose(voxdata);
       end
-    case {'pos_pos' 'chan_chan'}
-      dat = nan(Ngreynodes,Ngreynodes);
-      dat(greynodeIndex(dataIndex),greynodeIndex(dataIndex)) = voxdata;
     case {'pos_time' 'chan_time'}
       Ntime = size(voxdata,2);
       dat = nan(Ngreynodes,Ntime);
       dat(greynodeIndex(dataIndex),:) = voxdata;
+    case {'pos_pos' 'chan_chan'}
+      dat = nan(Ngreynodes,Ngreynodes);
+      dat(greynodeIndex(dataIndex),greynodeIndex(dataIndex)) = voxdata;
+    case {'pos_pos_time' 'chan_chan_time'}
+      Ntime = size(voxdata,3);
+      dat = nan(Ngreynodes,Ngreynodes,Ntime);
+      dat(greynodeIndex(dataIndex),greynodeIndex(dataIndex),:) = voxdata;
+      
+      % the following representations need to be transposed to be consistent with FieldTrip
     case 'time_pos'
       Ntime = size(voxdata,1);
       dat = nan(Ngreynodes,Ntime);
@@ -711,8 +719,19 @@ if readdata
       dat = nan(Ngreynodes,Ntime);
       dat(greynodeIndex(dataIndex),:) = transpose(voxdata);
       source.dimord = 'chan_time';
+    case 'time_pos_pos'
+      Ntime = size(voxdata,1);
+      dat = nan(Ngreynodes,Ngreynodes,Ntime);
+      dat(greynodeIndex(dataIndex),greynodeIndex(dataIndex),:) = permute(voxdata, [2 3 1]);
+      source.dimord = 'pos_pos_time';
+    case 'time_chan_chan'
+      Ntime = size(voxdata,1);
+      dat = nan(Ngreynodes,Ngreynodes,Ntime);
+      dat(greynodeIndex(dataIndex),greynodeIndex(dataIndex),:) = permute(voxdata, [2 3 1]);
+      source.dimord = 'chan_chan_time';
+      
     otherwise
-      error('unsupported dimord');
+      error('unsupported dimord %s', source.dimord);
   end % switch
   
   if isfield(Cifti, 'mapname') && length(Cifti.mapname)>1
@@ -728,7 +747,7 @@ if readdata
     % the name of the data will be based on the filename
     source.data = dat;
   end
-end % if data
+end % if readdata
 
 source = copyfields(Cifti, source, {'time', 'freq'});
 source.hdr = hdr;
@@ -902,11 +921,32 @@ else
   source.label = {Parcel(:).Name};
 end
 
+haslabeltable = false;
+if ~isempty(NamedMap)
+  % the following assumes a single NamedMap
+  if isfield(NamedMap, 'LabelTable')
+    % use the key-label combination in the label table
+    haslabeltable    = true;
+    key              = NamedMap.LabelTable.Key;
+    source.datalabel = NamedMap.LabelTable.Label(:);
+  end
+end
+
 if readdata
   if isfield(source, 'data')
     % rename the data field
     source.(fixname(dataname)) = source.data;
+    
+    % adopt FT convention for parcel-to-label mapping
+    if haslabeltable
+      tempdata = nan+zeros(size(source.data));
+      for k = 1:numel(key)
+        tempdata(source.data==key(k)) = k;
+      end
+      source.data = tempdata;
+    end
     source = rmfield(source, 'data');
+    
   end
   
   % rename the datalabel field
@@ -914,4 +954,5 @@ if readdata
     source.(fixname([dataname 'label'])) = source.datalabel;
     source = rmfield(source, 'datalabel');
   end
-end
+  
+end % if readdata

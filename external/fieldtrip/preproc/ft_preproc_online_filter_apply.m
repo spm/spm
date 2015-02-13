@@ -23,7 +23,7 @@ function [FM, xf] = ft_preproc_online_filter_apply(FM, x)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_online_filter_apply.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_preproc_online_filter_apply.m 10197 2015-02-11 09:35:58Z roboos $
 
 [dimX, numX] = size(x);
 
@@ -39,7 +39,7 @@ if dimX > numX
 		FM.z(:,1) = z0;
 	end
 else
-	% use built-in Matlab stuff - faster for many samples
+	% use built-in MATLAB stuff - faster for many samples
 	[xf, z] = filter(FM.B,FM.A, x, FM.z',2);
 	FM.z = z';
 end

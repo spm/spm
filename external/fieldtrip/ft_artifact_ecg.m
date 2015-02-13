@@ -56,9 +56,9 @@ function [cfg, artifact] = ft_artifact_ecg(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_ecg.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_artifact_ecg.m 10160 2015-02-04 16:56:00Z roboos $
 
-revision = '$Id: ft_artifact_ecg.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_artifact_ecg.m 10160 2015-02-04 16:56:00Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -103,7 +103,7 @@ end
 hasdata = exist('data', 'var');
 
 if ~hasdata
-  cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
+  cfg = ft_checkconfig(cfg, 'dataset2files', 'yes');
   cfg = ft_checkconfig(cfg, 'required', {'headerfile', 'datafile'});
   hdr = ft_read_header(cfg.headerfile,'headerformat', cfg.headerformat);
   trl = cfg.trl;

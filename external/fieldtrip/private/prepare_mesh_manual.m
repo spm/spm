@@ -31,7 +31,7 @@ function bnd = prepare_mesh_manual(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_manual.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id: prepare_mesh_manual.m 10197 2015-02-11 09:35:58Z roboos $
 
 % FIXME: control slice's cmap referred to abs values
 % FIXME: clean structure slicedata
@@ -930,7 +930,7 @@ return;
 function Yml = shlib_Yml(l, m, theta, phi)
 % function Yml = shlib_Yml(l, m, theta, phi)
 %
-% A matlab function that takes a given order and degree, and the matrix of
+% MATLAB function that takes a given order and degree, and the matrix of
 % theta and phi and constructs a spherical harmonic from these. The
 % analogue in the 1D case would be to give a particular frequency.
 %

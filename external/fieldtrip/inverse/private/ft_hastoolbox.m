@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 8983 2013-12-06 11:48:30Z roboos $
+% $Id: ft_hastoolbox.m 10198 2015-02-11 09:36:13Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -435,7 +435,7 @@ if autoadd>0 && ~status
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
   
-  % use the matlab subdirectory in your homedirectory, this works on linux and mac
+  % use the MATLAB subdirectory in your homedirectory, this works on linux and mac
   prefix = fullfile(getenv('HOME'), 'matlab');
   if ~status && isdir(prefix)
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
@@ -479,7 +479,7 @@ if isdeployed
 elseif exist(toolbox, 'dir')
   if ~silent,
     ws = warning('backtrace', 'off');
-    warning('adding %s toolbox to your Matlab path', toolbox);
+    warning('adding %s toolbox to your MATLAB path', toolbox);
     warning(ws); % return to the previous warning level
   end
   addpath(toolbox);

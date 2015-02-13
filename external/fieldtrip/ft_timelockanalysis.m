@@ -85,9 +85,9 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 10054 2014-12-16 13:00:25Z roboos $
+% $Id: ft_timelockanalysis.m 10105 2015-01-19 13:37:56Z jimher $
 
-revision = '$Id: ft_timelockanalysis.m 10054 2014-12-16 13:00:25Z roboos $';
+revision = '$Id: ft_timelockanalysis.m 10105 2015-01-19 13:37:56Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -112,7 +112,7 @@ cfg = ft_checkconfig(cfg, 'renamed',     {'blc', 'demean'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'blcwindow', 'baselinewindow'});
 
 % set the defaults
-cfg.trials       = ft_getopt(cfg, 'trials',      'all');
+cfg.trials       = ft_getopt(cfg, 'trials',      'all', 1);
 cfg.channel      = ft_getopt(cfg, 'channel',     'all');
 cfg.keeptrials   = ft_getopt(cfg, 'keeptrials',  'no');
 cfg.covariance   = ft_getopt(cfg, 'covariance',  'no');

@@ -14,8 +14,8 @@ function [spectrum] = specest_nanfft(dat, time, varargin)
 %   basis      = precomputes set of basis functions (sines/cosines)
 %   datataype  = 0, 1, 2
 %
-% FFT SPEED NOT YET OPTIMIZED (e.g. matlab version, transpose or not)
-% FUNCTION IS RECURSIVE, SHOULD BE AVOIDED IN FAVOR OF TRANSPARANCY
+% FIXME: FFT speed not yet optimized, e.g. MATLAB version, transpose or not, ...
+% FIXME: function is recursive, should be avoided in favor of transparancy
 %
 % See also SPECEST_MTMFFT, SPECEST_CONVOL, SPECEST_HILBERT, SPECEST_MTMCONVOL, SPECEST_MVAR, SPECEST_WAVELET
 
@@ -37,7 +37,7 @@ function [spectrum] = specest_nanfft(dat, time, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: specest_nanfft.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: specest_nanfft.m 10197 2015-02-11 09:35:58Z roboos $
 
 % get the optional arguments
 basis     = ft_getopt(varargin, 'basis');

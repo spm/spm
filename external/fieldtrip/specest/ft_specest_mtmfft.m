@@ -4,7 +4,7 @@ function [spectrum,ntaper,freqoi] = ft_specest_mtmfft(dat, time, varargin)
 % the DPSS sequence or using a variety of single tapers
 %
 % Use as
-%   [spectrum,ntaper,freqoi] = specest_mtmfft(dat,time...)
+%   [spectrum,ntaper,freqoi] = ft_specest_mtmfft(dat,time...)
 % where
 %   dat      = matrix of chan*sample
 %   time     = vector, containing time in seconds for each sample
@@ -29,7 +29,7 @@ function [spectrum,ntaper,freqoi] = ft_specest_mtmfft(dat, time, varargin)
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_mtmfft.m 8368 2013-08-01 13:59:19Z vlalit $
+% $Id: ft_specest_mtmfft.m 10197 2015-02-11 09:35:58Z roboos $
 
 % these are for speeding up computation of tapers on subsequent calls
 persistent previous_argin previous_tap
@@ -319,7 +319,7 @@ previous_tap   = tap;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION ensure that the first two input arguments are of double
 % precision this prevents an instability (bug) in the computation of the
-% tapers for Matlab 6.5 and 7.0
+% tapers for MATLAB 6.5 and 7.0
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tap] = double_dpss(a, b, varargin)
 tap = dpss(double(a), double(b), varargin{:});

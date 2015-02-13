@@ -56,22 +56,21 @@ function [stat, cfg] = ft_statistics_analytic(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_analytic.m 10069 2014-12-22 22:34:17Z roboos $
+% $Id: ft_statistics_analytic.m 10194 2015-02-11 09:08:16Z roboos $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamedval',  {'correctm', 'bonferoni', 'bonferroni'});
 cfg = ft_checkconfig(cfg, 'renamedval',  {'correctm', 'holms', 'holm'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'statfun', 'depsamplesF', 'ft_statfun_depsamplesFmultivariate'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'statfun', 'ft_statfun_depsamplesF', 'ft_statfun_depsamplesFmultivariate'});
 
 % set the defaults
-if ~isfield(cfg, 'correctm'), cfg.correctm = 'no'; end
-if ~isfield(cfg, 'alpha'),    cfg.alpha = 0.05;    end
-if ~isfield(cfg, 'tail'),     cfg.tail = 0;        end
+cfg.correctm = ft_getopt(cfg, 'correctm', 'no');
+cfg.alpha    = ft_getopt(cfg, 'alpha', 0.05);
+cfg.tail     = ft_getopt(cfg, 'tail', 0);
 
 % fetch function handle to the low-level statistics function
 statfun = ft_getuserfun(cfg.statistic, 'statfun');
-if isempty(statfun) && (strcmp(cfg.statistic,'depsamplesF') || strcmp(cfg.statistic,'ft_statfun_depsamplesF'));
-  error(['statistic function ' cfg.statistic ' has recently changed its name to ft_statfun_depsamplesFmultivariate']);
-end
 if isempty(statfun)
   error('could not locate the appropriate statistics function');
 else

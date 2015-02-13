@@ -1,4 +1,4 @@
-% DEFINE_BIFF matlab script to define the known BIFF chunk types 
+% DEFINE_BIFF script to define the known BIFF chunk types 
 %
 % This function should not be called seperately, it is intended to
 % be used from withing read_biff and write_biff.
@@ -23,7 +23,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: define_biff.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: define_biff.m 10197 2015-02-11 09:35:58Z roboos $
 
 CAT_.desc = {'CAT ', 'cat', 'unknown'};
 LIST.desc = {'LIST', 'list',    'unknown'};

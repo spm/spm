@@ -24,7 +24,7 @@ function [nrm] = normals(pnt, tri, opt)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: normals.m 9664 2014-06-22 07:06:29Z roboos $
+% $Id: normals.m 10198 2015-02-11 09:36:13Z roboos $
 
 if nargin<3
   opt='vertex';
@@ -74,7 +74,7 @@ else
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% fast cross product to replace the Matlab standard version
+% fast cross product to replace the MATLAB standard version
 function [c] = cross(a,b)
 c = [a(:,2).*b(:,3)-a(:,3).*b(:,2) a(:,3).*b(:,1)-a(:,1).*b(:,3) a(:,1).*b(:,2)-a(:,2).*b(:,1)];
 

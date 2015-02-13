@@ -81,7 +81,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 9255 2014-03-07 08:22:07Z jansch $
+% $Id: ft_compute_leadfield.m 10222 2015-02-12 08:36:45Z roboos $
 
 if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
@@ -274,7 +274,7 @@ elseif ismeg
         end
       else
         warning('No system matrix is present, Calling the Nemo Lab pipeline')
-        lf = ft_leadfield_openmeeg(pos, vol, sens);
+        lf = leadfield_openmeeg(pos, vol, sens);
       end
       
     case {'infinite_magneticdipole', 'infinite'}
@@ -439,7 +439,7 @@ elseif iseeg
         lf = vol.mat*dsm;
       else
         disp('No system matrix is present, calling the Nemo Lab pipeline...')
-        lf = ft_leadfield_openmeeg(pos, vol, sens);
+        lf = leadfield_openmeeg(pos, vol, sens);
       end
       
     case 'metufem'

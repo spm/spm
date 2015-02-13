@@ -81,13 +81,13 @@ function [cfg] = ft_rejectartifact(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 9880 2014-10-07 08:40:34Z roboos $
+% $Id: ft_rejectartifact.m 10160 2015-02-04 16:56:00Z roboos $
 
 % FIXME this function contains a lot of lines of code that pertain to backward 
 % compatibility support that dates back to 2004/2005. It would be good to strip 
 % that code and only keep the relevant parts
 
-revision = '$Id: ft_rejectartifact.m 9880 2014-10-07 08:40:34Z roboos $';
+revision = '$Id: ft_rejectartifact.m 10160 2015-02-04 16:56:00Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -105,7 +105,7 @@ end
 % ft_checkdata is done further down
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
+cfg = ft_checkconfig(cfg, 'dataset2files', 'yes');
 
 % set the defaults
 if ~isfield(cfg, 'artfctdef'),              cfg.artfctdef        = [];         end

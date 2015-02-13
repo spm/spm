@@ -94,7 +94,7 @@ function segmentation = ft_datatype_segmentation(segmentation, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_segmentation.m 9916 2014-10-19 07:11:47Z roboos $
+% $Id: ft_datatype_segmentation.m 10212 2015-02-11 16:47:05Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version           = ft_getopt(varargin, 'version', 'latest');
@@ -122,8 +122,9 @@ switch segversion
   case '2012'
     % determine whether the style of the input fields is probabilistic or indexed
     fn = fieldnames(segmentation);
+    fn = setdiff(fn, 'inside'); % exclude the inside field from any conversions
     [indexed, probabilistic] = determine_segmentationstyle(segmentation, fn, segmentation.dim);
-
+    
     % ignore the fields that do not contain a segmentation
     sel = indexed | probabilistic;
     fn            = fn(sel);

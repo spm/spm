@@ -63,7 +63,7 @@ function [varargout] = ft_selectdata_new(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_new.m 9649 2014-06-20 13:58:26Z roboos $
+% $Id: ft_selectdata_new.m 10197 2015-02-11 09:35:58Z roboos $
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will reset warning_once and show the function help if nargin==0 and return an error
@@ -614,7 +614,7 @@ varargout = varargin;
 
 ft_postamble debug              % this clears the onCleanup function used for debugging in case of an error
 ft_postamble trackconfig        % this converts the config object back into a struct and can report on the unused fields
-ft_postamble provenance         % this records the time and memory at the end of the function, prints them on screen and adds this information together with the function name and matlab version etc. to the output cfg
+ft_postamble provenance         % this records the time and memory at the end of the function, prints them on screen and adds this information together with the function name and MATLAB version etc. to the output cfg
 % ft_postamble previous varargin  % this copies the datain.cfg structure into the cfg.previous field. You can also use it for multiple inputs, or for "varargin"
 % ft_postamble history varargout  % this adds the local cfg structure to the output data structure, i.e. dataout.cfg = cfg
 

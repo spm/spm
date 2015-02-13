@@ -76,7 +76,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 9977 2014-11-20 08:59:32Z roboos $
+% $Id: ft_filetype.m 10197 2015-02-11 09:35:58Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -1039,7 +1039,7 @@ elseif filetype_check_extension(filename, '.minf') && filetype_check_ascii(filen
   % some other known file types
 elseif length(filename)>4 && exist([filename(1:(end-4)) '.mat'], 'file') && exist([filename(1:(end-4)) '.bin'], 'file')
   % this is a self-defined FCDC data format, consisting of two files
-  % there is a matlab V6 file with the header and a binary file with the data (multiplexed, ieee-le, double)
+  % there is a MATLAB V6 file with the header and a binary file with the data (multiplexed, ieee-le, double)
   type = 'fcdc_matbin';
   manufacturer = 'Donders Centre for Cognitive Neuroimaging';
   content = 'multiplexed electrophysiology data';

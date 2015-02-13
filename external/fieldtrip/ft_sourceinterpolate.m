@@ -90,9 +90,9 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 10002 2014-12-02 09:11:47Z roboos $
+% $Id: ft_sourceinterpolate.m 10221 2015-02-12 08:28:20Z roboos $
 
-revision = '$Id: ft_sourceinterpolate.m 10002 2014-12-02 09:11:47Z roboos $';
+revision = '$Id: ft_sourceinterpolate.m 10221 2015-02-12 08:28:20Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -116,35 +116,14 @@ end
 cfg = ft_checkconfig(cfg, 'unused',     {'keepinside' 'voxelcoord'});
 cfg = ft_checkconfig(cfg, 'deprecated', {'sourceunits', 'mriunits'});
 cfg = ft_checkconfig(cfg, 'required',   'parameter');
+cfg = ft_checkconfig(cfg, 'renamedval', {'parameter', 'avg.pow', 'pow'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'parameter', 'avg.coh', 'coh'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'parameter', 'avg.mom', 'mom'});
 
 % set the defaults
 cfg.downsample = ft_getopt(cfg, 'downsample', 1);
 cfg.feedback   = ft_getopt(cfg, 'feedback',   'text');
 % cfg.interpmethod depends on how the interpolation should be done and will be specified below
-
-if ~isa(cfg.parameter, 'cell')
-  cfg.parameter = {cfg.parameter};
-end
-
-if any(strcmp(cfg.parameter, 'all'))
-  cfg.parameter = parameterselection('all', functional);
-  for k = numel(cfg.parameter):-1:1
-    % check whether the field is numeric
-    tmp = getsubfield(functional, cfg.parameter{k});
-    if iscell(tmp)
-      cfg.parameter(k) = [];
-    elseif strcmp(cfg.parameter{k}, 'pos')
-      cfg.parameter(k) = [];
-    end
-  end
-end
-
-for i=1:length(cfg.parameter)
-  if ~issubfield(functional, cfg.parameter{i}) && issubfield(functional, ['avg.' cfg.parameter{i}])
-    % the data is located in the avg sub-structure
-    cfg.parameter{i} = ['avg.' cfg.parameter{i}];
-  end
-end
 
 % replace pnt by pos
 anatomical = fixpos(anatomical);
@@ -184,6 +163,25 @@ if is2Dfun
   functional = ft_checkdata(functional, 'datatype', 'source', 'inside', 'logical', 'feedback', 'yes', 'hasunit', 'yes');
 else
   functional = ft_checkdata(functional, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunit', 'yes');
+end
+
+
+if ~isa(cfg.parameter, 'cell')
+  cfg.parameter = {cfg.parameter};
+end
+
+% try to select all relevant parameters present in the data
+if any(strcmp(cfg.parameter, 'all'))
+  cfg.parameter = parameterselection('all', functional);
+  for k = numel(cfg.parameter):-1:1
+    % check whether the field is numeric
+    tmp = getsubfield(functional, cfg.parameter{k});
+    if iscell(tmp)
+      cfg.parameter(k) = [];
+    elseif strcmp(cfg.parameter{k}, 'pos')
+      cfg.parameter(k) = [];
+    end
+  end
 end
 
 % ensure that the functional data has the same unit as the anatomical data
@@ -249,7 +247,7 @@ elseif (~is2Dana && is2Dfun) || (is2Dana && is2Dfun)
     clear ax ay az
   end
   
-  interpmat = interp_ungridded(functional.pos, anatomical.pos, 'projmethod', cfg.interpmethod, 'sphereradius', cfg.sphereradius, 'power', cfg.power); %FIXME include other key-value pairs as well
+  interpmat = interp_ungridded(functional.pos, anatomical.pos, 'projmethod', cfg.interpmethod, 'sphereradius', cfg.sphereradius, 'power', cfg.power); % FIXME include other key-value pairs as well
   interpmat(~anatomical.inside(:), :) = 0;
   
   % identify the inside voxels after interpolation
@@ -323,7 +321,7 @@ elseif is2Dana && ~is2Dfun
   else
     for k = 1:numel(cfg.parameter)
       tmp    = getsubfield(functional, cfg.parameter{k});
-      tmpnew = interp_gridded(functional.transform, tmp, anatomical.pos, 'projmethod', 'project', 'projvec', cfg.projvec, 'projweight', cfg.projweight, 'projcomb', cfg.projcomb, 'projthresh', cfg.projthresh, 'dim', dim);
+      tmpnew = interp_gridded(functional.transform, tmp, anatomical.pos, 'dim', functional.dim, 'projmethod', 'project', 'projvec', cfg.projvec, 'projweight', cfg.projweight, 'projcomb', cfg.projcomb, 'projthresh', cfg.projthresh);
       interp = setsubfield(interp, cfg.parameter{k}, tmpnew);
     end
   end

@@ -119,9 +119,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 9987 2014-11-28 11:30:54Z roboos $
+% $Id: ft_multiplotTFR.m 10196 2015-02-11 09:15:07Z roboos $
 
-revision = '$Id: ft_multiplotTFR.m 9987 2014-11-28 11:30:54Z roboos $';
+revision = '$Id: ft_multiplotTFR.m 10196 2015-02-11 09:15:07Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -152,7 +152,7 @@ cfg = ft_checkconfig(cfg, 'deprecated', {'xparam', 'yparam'});
 % set the defaults
 cfg.baseline       = ft_getopt(cfg, 'baseline', 'no');
 cfg.baselinetype   = ft_getopt(cfg, 'baselinetype', 'absolute');
-cfg.trials         = ft_getopt(cfg, 'trials', 'all');
+cfg.trials         = ft_getopt(cfg, 'trials', 'all', 1);
 cfg.xlim           = ft_getopt(cfg, 'xlim', 'maxmin');
 cfg.ylim           = ft_getopt(cfg, 'ylim', 'maxmin');
 cfg.zlim           = ft_getopt(cfg, 'zlim', 'maxmin');
@@ -166,7 +166,7 @@ cfg.channel        = ft_getopt(cfg, 'channel', 'all');
 cfg.fontsize       = ft_getopt(cfg, 'fontsize', 8);
 cfg.interactive    = ft_getopt(cfg, 'interactive', 'yes');
 cfg.hotkeys        = ft_getopt(cfg, 'hotkeys', 'no');
-cfg.renderer       = ft_getopt(cfg, 'renderer'); % let matlab decide on default
+cfg.renderer       = ft_getopt(cfg, 'renderer'); % let MATLAB decide on default
 cfg.orient         = ft_getopt(cfg, 'orient', 'landscape');
 cfg.maskalpha      = ft_getopt(cfg, 'maskalpha', 1);
 cfg.masknans       = ft_getopt(cfg, 'masknans', 'yes');

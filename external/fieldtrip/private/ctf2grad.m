@@ -30,7 +30,7 @@ function [grad] = ctf2grad(hdr, dewar)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ctf2grad.m 8335 2013-07-29 10:09:23Z arjsto $
+% $Id: ctf2grad.m 10197 2015-02-11 09:35:58Z roboos $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels
@@ -222,7 +222,7 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
 
 elseif isfield(hdr, 'sensType') && isfield(hdr, 'Chan')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % the header was read using the open-source matlab code that originates from CTF and that was modified by the FCDC
+  % the header was read using the open-source MATLAB code that originates from CTF and that was modified by the FCDC
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   selMEG = find(hdr.sensType==5);

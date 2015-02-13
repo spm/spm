@@ -36,9 +36,9 @@ function [lfp, spike, stm, bhv] = spass2fieldtrip(dirname, varargin)
 
 % Copyright (C) 2007, Robert Oostenveld
 %
-% $Id: spass2fieldtrip.m 9273 2014-03-07 16:38:42Z jansch $
+% $Id: spass2fieldtrip.m 10156 2015-02-04 08:45:19Z roboos $
 
-revision = '$Id: spass2fieldtrip.m 9273 2014-03-07 16:38:42Z jansch $';
+revision = '$Id: spass2fieldtrip.m 10156 2015-02-04 08:45:19Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -89,7 +89,7 @@ for i=1:size(ana.data,1)
   lfp.label{i,1} = sprintf('chan%d', i);
 end
 
-% the data is trial based, try to estimate teh time between subsequent
+% the data is trial based, try to estimate the time between subsequent
 % trials, or better: the time between subsequent stimuli
 isi = 10^ceil(log10(max(nsamples)+1));
 

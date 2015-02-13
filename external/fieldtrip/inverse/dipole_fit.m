@@ -51,7 +51,7 @@ function [dipout] = dipole_fit(dip, sens, vol, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dipole_fit.m 9853 2014-09-27 09:54:57Z roboos $
+% $Id: dipole_fit.m 10197 2015-02-11 09:35:58Z roboos $
 
 % It is neccessary to provide backward compatibility support for the old function call
 % in case people want to use it in conjunction with EEGLAB and the dipfit1 plugin.
@@ -103,7 +103,7 @@ constr.rigidbody  = ft_getopt(constr, 'rigidbody', false);
 constr.sequential = ft_getopt(constr, 'sequential', false);
 
 if isempty(optimfun)
-  % determine whether the Matlab Optimization toolbox is available and can be used
+  % determine whether the MATLAB Optimization toolbox is available and can be used
   if ft_hastoolbox('optim')
     optimfun = @fminunc;
   else

@@ -33,7 +33,7 @@ function [vol] = ft_read_vol(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_vol.m 7311 2013-01-14 15:53:29Z roboos $
+% $Id: ft_read_vol.m 10197 2015-02-11 09:35:58Z roboos $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -48,7 +48,7 @@ fileformat = ft_getopt(varargin, 'fileformat', ft_filetype(filename));
 
 switch fileformat
   case 'matlab'
-    matfile = filename;   % this solves a problem with the matlab compiler v3
+    matfile = filename;   % this solves a problem with the MATLAB compiler v3
     ws = warning('off', 'MATLAB:load:variableNotFound');
     tmp = load(matfile, 'vol');
     warning(ws);

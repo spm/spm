@@ -24,9 +24,19 @@ function [filename, headerfile, datafile] = dataset2files(filename, format)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dataset2files.m 9102 2014-01-15 14:10:53Z jimher $
+% $Id: dataset2files.m 10112 2015-01-20 09:22:43Z roboos $
 
 persistent previous_argin previous_argout
+
+if iscell(filename)
+  % use recursion to go over multiple files
+  headerfile = cell(size(filename));
+  datafile   = cell(size(filename));
+  for i=1:numel(filename)
+    [filename{i}, headerfile{i}, datafile{i}] = dataset2files(filename{i}, format);
+  end
+  return
+end
 
 if isempty(format)
   format = ft_filetype(filename);

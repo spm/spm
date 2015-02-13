@@ -28,7 +28,7 @@ function [timelock, cfg] = freq2timelock(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: freq2timelock.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id: freq2timelock.m 10099 2015-01-14 14:27:05Z roboos $
 
 if isfield(freq, 'fourierspctrm')
   fprintf('constructing real/imag data representation from single trial fourier representation\n');
@@ -42,7 +42,7 @@ if isfield(freq, 'fourierspctrm')
     spctrm = dimindex(freq.fourierspctrm, fdim, fbin)';
   end
   % select the desired channels in the data
-  cfg.channel = channelselection(cfg.channel, freq.label);
+  cfg.channel = ft_channelselection(cfg.channel, freq.label);
   [dum, chansel] = match_str(cfg.channel, freq.label);
   spctrm = spctrm(chansel,:);
   % concatenate the real and imaginary part
@@ -50,7 +50,7 @@ if isfield(freq, 'fourierspctrm')
 elseif isfield(freq, 'crsspctrm')
   fprintf('constructing real/imag data representation from csd matrix\n');
   % hmmm... I have no idea whether this is correct
-  cfg.channel = channelselection(cfg.channel, freq.label);
+  cfg.channel = ft_channelselection(cfg.channel, freq.label);
   % this subfunction also takes care of the channel selection
   [Cf, Cr, Pr, Ntrials, dum] = prepare_freq_matrices(cfg, freq);
   cfg.frequency = dum.frequency;

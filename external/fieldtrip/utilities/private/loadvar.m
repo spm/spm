@@ -4,7 +4,7 @@ function value = loadvar(filename, varname)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Id: loadvar.m 9381 2014-04-08 16:07:47Z roboos $
+% $Id: loadvar.m 10198 2015-02-11 09:36:13Z roboos $
 
 assert(ischar(filename), 'file name should be a string');
 
@@ -16,7 +16,7 @@ else
 end
 
 % note that this sometimes fails, returning an empty var
-% this is probably due to matlab filename and matlab version issues
+% this is probably due to MATLAB filename and MATLAB version issues
 var = whos('-file', filename);
 
 if length(var)==0 && nargin==1

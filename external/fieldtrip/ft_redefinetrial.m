@@ -70,9 +70,9 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 9577 2014-05-21 20:01:00Z roboos $
+% $Id: ft_redefinetrial.m 10217 2015-02-12 08:14:04Z jansch $
 
-revision = '$Id: ft_redefinetrial.m 9577 2014-05-21 20:01:00Z roboos $';
+revision = '$Id: ft_redefinetrial.m 10217 2015-02-12 08:14:04Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -95,7 +95,7 @@ cfg.toilim       = ft_getopt(cfg, 'toilim',    []);
 cfg.begsample    = ft_getopt(cfg, 'begsample', []);
 cfg.endsample    = ft_getopt(cfg, 'endsample', []);
 cfg.minlength    = ft_getopt(cfg, 'minlength', []);
-cfg.trials       = ft_getopt(cfg, 'trials',    'all');
+cfg.trials       = ft_getopt(cfg, 'trials',    'all', 1);
 cfg.feedback     = ft_getopt(cfg, 'feedback',  'yes');
 cfg.trl          = ft_getopt(cfg, 'trl',       []);
 cfg.length       = ft_getopt(cfg, 'length',    []);
@@ -104,6 +104,12 @@ cfg.overlap      = ft_getopt(cfg, 'overlap',   0);
 % store original datatype
 dtype = ft_datatype(data);
 
+% deal with the special case of timelock rpt_chan_time with 1 trial
+oneRptTimelock = (strcmp(dtype, 'timelock') &&...
+  strcmp(data.dimord, 'rpt_chan_time') &&...
+  size(data.trial, 1) == 1);
+  
+
 % check if the input data is valid for this function, this will convert it to raw if needed
 data = ft_checkdata(data, 'datatype', {'raw+comp', 'raw'}, 'feedback', cfg.feedback);
 fb   = istrue(cfg.feedback);
@@ -111,7 +117,13 @@ fb   = istrue(cfg.feedback);
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
   if fb, fprintf('selecting %d trials\n', length(cfg.trials)); end
-  data = ft_selectdata(data, 'rpt', cfg.trials);
+  
+  % select trials of interest
+  tmpcfg = keepfields(cfg, 'trials');
+  data   = ft_selectdata(tmpcfg, data);
+  % restore the provenance information
+  [cfg, data] = rollback_provenance(cfg, data);
+  
   if length(cfg.offset)>1 && length(cfg.offset)~=length(cfg.trials)
     cfg.offset=cfg.offset(cfg.trials);
   end
@@ -231,7 +243,7 @@ elseif ~isempty(cfg.trl)
     offset    = trl(iTrl,3);
     trllength = endsample - begsample + 1;
     
-    data.trial{iTrl} = ft_fetch_data(dataold, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', 1:hdr.nChans, 'docheck', 0);
+    data.trial{iTrl} = ft_fetch_data(dataold, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', 1:hdr.nChans, 'skipcheckdata', 1);
     data.time{iTrl}  = offset2time(offset, dataold.fsample, trllength);
     
     % ensure correct handling of trialinfo.
@@ -319,6 +331,12 @@ end
 switch dtype
   case 'timelock'
     data = ft_checkdata(data, 'datatype', 'timelock');
+    if oneRptTimelock
+      % deal with the special case of rpt_chan_time timelock data with one
+      % repetition
+      data.trial = reshape(data.avg, [1 size(data.avg)]);
+      data.dimord = 'rpt_chan_time';
+    end
   otherwise
     % keep the output as it is
 end

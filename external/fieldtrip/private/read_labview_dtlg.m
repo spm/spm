@@ -26,7 +26,7 @@ function [dat] = read_labview_dtlg(filename, datatype)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_labview_dtlg.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id: read_labview_dtlg.m 10197 2015-02-11 09:35:58Z roboos $
 
 
 fid     = fopen(filename, 'r', 'ieee-be');
@@ -125,7 +125,7 @@ end
 for i=1:nd
   fseek(fid, offset(i), 'bof');
   n = fread(fid, ndim, 'int32')';
-  % Labview uses the C-convention for storing data, and Matlab uses the Fortran convention
+  % Labview uses the C-convention for storing data, and MATLAB uses the Fortran convention
   n = fliplr(n);
   data{i} = fread(fid, n, datatype);
 end

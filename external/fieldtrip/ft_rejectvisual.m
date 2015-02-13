@@ -108,13 +108,13 @@ function [data] = ft_rejectvisual(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 9882 2014-10-07 10:26:58Z roboos $
+% $Id: ft_rejectvisual.m 10105 2015-01-19 13:37:56Z jimher $
 
 % Undocumented options
 % cfg.plotlayout = 'square' (default) or '1col', plotting every channel/trial under each other
 % cfg.viewmode   = 'remove', 'toggle' or 'hide', only applies to summary mode (default = 'remove')
 
-revision = '$Id: ft_rejectvisual.m 9882 2014-10-07 10:26:58Z roboos $';
+revision = '$Id: ft_rejectvisual.m 10105 2015-01-19 13:37:56Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -145,7 +145,7 @@ cfg = ft_checkconfig(cfg, 'renamed',  {'keepchannels',  'keepchannel'});
 
 % set the defaults
 cfg.channel     = ft_getopt(cfg, 'channel'    , 'all');
-cfg.trials      = ft_getopt(cfg, 'trials'     , 'all');
+cfg.trials      = ft_getopt(cfg, 'trials'     , 'all', 1);
 cfg.latency     = ft_getopt(cfg, 'latency'    , 'maxperlength');
 cfg.keepchannel = ft_getopt(cfg, 'keepchannel', 'no');
 cfg.keeptrial   = ft_getopt(cfg, 'keeptrial'  , 'no');

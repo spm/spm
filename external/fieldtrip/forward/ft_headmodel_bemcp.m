@@ -32,7 +32,7 @@ function vol = ft_headmodel_bemcp(geom, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_bemcp.m 9864 2014-09-28 11:54:01Z roboos $
+% $Id: ft_headmodel_bemcp.m 10225 2015-02-12 09:29:27Z roboos $
 
 ft_hastoolbox('bemcp', 1);
 
@@ -75,7 +75,7 @@ if numel(vol.bnd)>1 && ~isequal(order(:)', 1:numel(vol.bnd))
 end
 
 if isempty(conductivity)
-  warning('No conductivity is declared, Assuming standard values\n')
+  warning('No conductivity is declared, assuming standard values')
   % brain/skull/skin
   conductivity = [1 1/80 1] * 0.33;
   vol.cond = conductivity;

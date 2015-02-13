@@ -14,8 +14,7 @@ function [source] = loreta2fieldtrip(filename, varargin)
 % The following optional arguments are supported
 %   'timeframe'  =  integer number, which timepoint to read (default is to read all)
 %
-% See also NUTMEG2FIELDTRIP, SPASS2FIELDTRIP, FIELDTRIP2SPSS,
-% FT_SOURCEANALYSIS, FT_SOURCEPLOT
+% See also EEGLAB2FIELDTRIP, SPM2FIELDTRIP, NUTMEG2FIELDTRIP, SPASS2FIELDTRIP
 
 % This function depends on the loreta_ind.mat file
 
@@ -37,9 +36,9 @@ function [source] = loreta2fieldtrip(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: loreta2fieldtrip.m 9274 2014-03-07 16:39:11Z jansch $
+% $Id: loreta2fieldtrip.m 10156 2015-02-04 08:45:19Z roboos $
 
-revision = '$Id: loreta2fieldtrip.m 9274 2014-03-07 16:39:11Z jansch $';
+revision = '$Id: loreta2fieldtrip.m 10156 2015-02-04 08:45:19Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -131,18 +130,15 @@ if Ntime>1
     mom{i} = activity(i,:);
   end
   mom{end+1} = []; % this one is used
-  source.avg.mom = mom(lorind);
+  source.mom = mom(lorind);
   fprintf('returning the activity at %d timepoints as dipole moments for each voxel\n', Ntime);
 else
-  % put it in source.avg.pow
+  % put it in source.mom
   activity(end+1) = nan;
   % reshuffle the activity to ensure that the ordering is correct
-  source.avg.pow  = activity(lorind);
+  source.mom  = activity(lorind);
   fprintf('returning the activity at one timepoint as a single distribution of power\n');
 end
-
-% FIXME someone should figure out how to interpret the activity
-fprintf('note that there is a discrepancy between dipole moment (amplitude) and power (amplitude squared)\n');
 
 % add the options used here to the configuration
 cfg = [];

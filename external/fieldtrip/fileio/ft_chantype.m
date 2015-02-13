@@ -29,7 +29,7 @@ function type = ft_chantype(input, desired)
 %
 % See also FT_READ_HEADER, FT_SENSTYPE, FT_CHANUNIT
 
-% Copyright (C) 2008-2013, Robert Oostenveld
+% Copyright (C) 2008-2015, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -47,7 +47,7 @@ function type = ft_chantype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chantype.m 9869 2014-10-01 10:34:03Z vlalit $
+% $Id: ft_chantype.m 10197 2015-02-11 09:35:58Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion
@@ -232,7 +232,7 @@ elseif ft_senstype(input, 'ctf') && isheader
   origSensType = [];
   if isfield(input, 'orig')
     if isfield(input.orig, 'sensType') && isfield(input.orig, 'Chan')
-      % the header was read using the open-source matlab code that originates from CTF and that was modified by the FCDC
+      % the header was read using the open-source MATLAB code that originates from CTF and that was modified by the FCDC
       origSensType = input.orig.sensType;
     elseif isfield(input.orig, 'res4') && isfield(input.orig.res4, 'senres')
       % the header was read using the CTF p-files, i.e. readCTFds

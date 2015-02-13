@@ -1,10 +1,9 @@
 function ft_progress(varargin)
 
-% FT_PROGRESS shows a graphical or non-graphical progress indication similar
-% to the standard Matlab WAITBAR function, but with the extra option of
-% printing it in the command window as a plain text string or as a rotating
-% dial. Alternatively, you can also specify it not to give feedback on the
-% progress.
+% FT_PROGRESS shows a graphical or non-graphical progress indication similar to the
+% standard WAITBAR function, but with the extra option of printing it in the command
+% window as a plain text string or as a rotating dial. Alternatively, you can also
+% specify it not to give feedback on the progress.
 %
 % Prior to the for-loop, you should call either
 %   ft_progress('init', 'none',    'Please wait...')
@@ -47,7 +46,7 @@ function ft_progress(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_progress.m 10029 2014-12-09 15:09:38Z eelspa $
+% $Id: ft_progress.m 10198 2015-02-11 09:36:13Z roboos $
 
 global ft_default;
 

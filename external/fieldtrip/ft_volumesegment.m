@@ -128,9 +128,9 @@ function [segmented] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 9867 2014-09-30 10:10:12Z tzvpop $
+% $Id: ft_volumesegment.m 10223 2015-02-12 09:21:11Z roboos $
 
-revision = '$Id: ft_volumesegment.m 9867 2014-09-30 10:10:12Z tzvpop $';
+revision = '$Id: ft_volumesegment.m 10223 2015-02-12 09:21:11Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -196,7 +196,7 @@ if ~(isempty(cfg.threshold))
   end
   if isempty(cfg.scalpthreshold)
     cfg.scalpthreshold=cfg.threshold;
-    warning('Threshold can be specified separately for scalp and brain. User-specified threshold  will be applied for scalpmask.')
+    warning('Threshold can be specified separately for scalp and brain. User-specified threshold will be applied for scalpmask.')
   end
 end
 % then set defaults again

@@ -35,7 +35,7 @@ function [bp, x] = binomialprob(pobs, alpha, subjratio)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: binomialprob.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id: binomialprob.m 10197 2015-02-11 09:35:58Z roboos $
 
 % determine the number of subjects
 [M, N] = size(pobs);
@@ -83,6 +83,6 @@ elseif ~isthresh && ~isalpha
   error('can only determine alpha automatically from thresholded statistical maps');
 end
 
-% this uses Matlab stats toolbox
+% this uses MATLAB stats toolbox
 bp = 1 - binocdf(x, N, p);
 

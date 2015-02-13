@@ -76,7 +76,7 @@ function parcellation = ft_datatype_parcellation(parcellation, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_parcellation.m 9916 2014-10-19 07:11:47Z roboos $
+% $Id: ft_datatype_parcellation.m 10213 2015-02-11 19:38:33Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version           = ft_getopt(varargin, 'version', 'latest');
@@ -113,6 +113,7 @@ switch parcelversion
     
     % make a list of fields that represent a parcellation
     fn = fieldnames(parcellation);
+    fn = setdiff(fn, 'inside'); % exclude the inside field from any conversions
     sel = false(size(fn));
     for i=1:numel(fn)
       sel(i) = isnumeric(parcellation.(fn{i})) && numel(parcellation.(fn{i}))==dim;

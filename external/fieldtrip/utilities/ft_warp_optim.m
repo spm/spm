@@ -59,7 +59,7 @@ function [result, M] = ft_warp_optim(input, target, method)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_warp_optim.m 8764 2013-11-11 15:34:03Z roboos $
+% $Id: ft_warp_optim.m 10197 2015-02-11 09:35:58Z roboos $
 
 % this can be used for printing detailled user feedback
 fb = false;
@@ -77,7 +77,7 @@ pos2 = target;
 % feval that is executed by the optimalization toolbox.
 errorfun = str2func('ft_warp_error');
 
-% determine whether the Matlab Optimization toolbox is available and can be used
+% determine whether the MATLAB Optimization toolbox is available and can be used
 if ft_hastoolbox('optim')
   optimfun = @fminunc;
 else

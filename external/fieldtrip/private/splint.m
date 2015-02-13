@@ -43,7 +43,7 @@ function [V2, L2, L1] = splint(elc1, V1, elc2)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: splint.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: splint.m 10197 2015-02-11 09:35:58Z roboos $
 
 N = size(elc1,1);   % number of known electrodes
 M = size(elc2,1);   % number of unknown electrodes
@@ -142,7 +142,7 @@ gx = zeros(size(x));
 hx = zeros(size(x));
 x(find(x>1)) = 1;       % to avoid rounding off errors
 x(find(x<-1)) = -1;     % to avoid rounding off errors
-% using Matlab function to compute legendre polynomials
+% using MATLAB function to compute legendre polynomials
 % P = zeros(size(x,1), size(x,2), N);
 % for k=1:N
 %  tmp = legendre(k,x);

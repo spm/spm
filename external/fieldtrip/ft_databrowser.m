@@ -123,14 +123,14 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 9957 2014-11-12 14:56:25Z jorhor $
+% $Id: ft_databrowser.m 10160 2015-02-04 16:56:00Z roboos $
 
 % FIXME these should be removed or documented
 % cfg.preproc
 % cfg.channelcolormap
 % cfg.colorgroups
 
-revision = '$Id: ft_databrowser.m 9957 2014-11-12 14:56:25Z jorhor $';
+revision = '$Id: ft_databrowser.m 10160 2015-02-04 16:56:00Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -306,7 +306,7 @@ if hasdata
   
 else
   % check if the input cfg is valid for this function
-  cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
+  cfg = ft_checkconfig(cfg, 'dataset2files', 'yes');
   cfg = ft_checkconfig(cfg, 'required', {'headerfile', 'datafile'});
   cfg = ft_checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
   cfg = ft_checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});

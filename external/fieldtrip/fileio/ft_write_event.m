@@ -50,7 +50,7 @@ function ft_write_event(filename, event, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_event.m 8770 2013-11-12 13:54:58Z roboos $
+% $Id: ft_write_event.m 10197 2015-02-11 09:35:58Z roboos $
 
 global event_queue   % for fcdc_global
 global db_blob       % for fcdc_mysql
@@ -98,7 +98,7 @@ switch eventformat
       buffer('flush_evt', [], host, port);  % flush event
     end
 
-	% the MEX file now can handle various Matlab types directly and respects the fields
+	% the MEX file now can handle various MATLAB types directly and respects the fields
 	% sample, offset, duration
 	%   -- these must all be numeric and non-empty (only first element is of interest)
 	% type, value
@@ -234,7 +234,7 @@ switch eventformat
         % assume that it is a file. Since the file probably does not yet
         % exist, determine its type by only looking at the extension
         if filetype_check_extension(filename, '.mat')
-            % write the events to a matlab file
+            % write the events to a MATLAB file
             if exist(filename,'file') && strcmp(append, 'yes')
                 try
                     tmp = load(filename, 'event');

@@ -69,7 +69,7 @@ function label = ft_senslabel(type, varargin)
 %  You should have received a copy of the GNU General Public License
 %  along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senslabel.m 9537 2014-05-15 09:59:29Z vlalit $
+% $Id: ft_senslabel.m 10124 2015-01-26 11:40:07Z roboos $
 
 % these are for speeding up subsequent calls with the same input arguments
 persistent eeg electrode ant128 btiref bti148 bti148_planar bti148_planar_combined bti248 bti248_planar bti248_planar_combined ctfref ctfheadloc ctf64 ctf151 ctf151_planar ctf151_planar_combined ctf275 ctf275_planar ctf275_planar_combined neuromag122 neuromag122_combined neuromag306 neuromag306_combined eeg1020 eeg1010 eeg1005 ext1020 biosemi64 biosemi128 biosemi256 egi32 egi64 egi128 egi256 itab28 itab153 itab153_planar itab153_planar_combined yokogawa9 yokogawa64 yokogawa64_planar yokogawa64_planar_combined yokogawa160 yokogawa160_planar yokogawa160_planar_combined yokogawa440 yokogawa440_planar yokogawa440_planar_combined
@@ -2901,7 +2901,8 @@ elseif isempty(eval(type))
       for i = 1:33
         label{i} = sprintf('E%d', i);
       end
-      label{end+1} = 'Cz';
+      % there might also be a reference channel, but its name is inconsistent
+      % it might be Cz, REF, VREF or 'vertex reference'
       
     case 'egi64'
       % this should be  uppercase for consistency with ft_read_header
@@ -2909,7 +2910,8 @@ elseif isempty(eval(type))
       for i = 1:65
         label{i} = sprintf('E%d', i);
       end
-      label{end+1} = 'Cz';
+      % there might also be a reference channel, but its name is inconsistent
+      % it might be Cz, REF, VREF or 'vertex reference'
       
     case 'egi128'
       % this should be  uppercase for consistency with ft_read_header
@@ -2917,7 +2919,8 @@ elseif isempty(eval(type))
       for i = 1:129
         label{i} = sprintf('E%d', i);
       end
-      label{end+1} = 'Cz';
+      % there might also be a reference channel, but its name is inconsistent
+      % it might be Cz, REF, VREF or 'vertex reference'
       
     case 'egi256'
       % this should be  uppercase for consistency with ft_read_header
@@ -2925,7 +2928,8 @@ elseif isempty(eval(type))
       for i = 1:257
         label{i} = sprintf('E%d', i);
       end
-      label{end+1} = 'Cz';
+      % there might also be a reference channel, but its name is inconsistent
+      % it might be Cz, REF, VREF or 'vertex reference'
       
     case 'itab28'
       label = {

@@ -34,9 +34,9 @@ function [grad] = ft_headmovement(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmovement.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_headmovement.m 10160 2015-02-04 16:56:00Z roboos $
 
-revision = '$Id: ft_headmovement.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_headmovement.m 10160 2015-02-04 16:56:00Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -51,7 +51,7 @@ if abort
 end
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
+cfg = ft_checkconfig(cfg, 'dataset2files', 'yes');
 
 % set the defaults
 if ~isfield(cfg, 'numclusters'), cfg.numclusters = 12; end

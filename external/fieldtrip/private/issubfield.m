@@ -1,8 +1,8 @@
 function [r] = issubfield(s, f)
 
 % ISSUBFIELD tests for the presence of a field in a structure just like the standard
-% Matlab ISFIELD function, except that you can also specify nested fields
-% using a '.' in the fieldname. The nesting can be arbitrary deep.
+% ISFIELD function, except that you can also specify nested fields using a '.' in the
+% fieldname. The nesting can be arbitrary deep.
 %
 % Use as
 %   f = issubfield(s, 'fieldname')
@@ -32,7 +32,7 @@ function [r] = issubfield(s, f)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: issubfield.m 9254 2014-03-04 08:56:37Z jorhor $
+% $Id: issubfield.m 10197 2015-02-11 09:35:58Z roboos $
 
 try
   getsubfield(s, f);    % if this works, then the subfield must be present  

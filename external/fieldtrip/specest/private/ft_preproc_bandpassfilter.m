@@ -15,9 +15,9 @@ function [filt] = ft_preproc_bandpassfilter(dat,Fs,Fbp,N,type,dir,instabilityfix
 %   type       optional filter type, can be
 %                'but' Butterworth IIR filter (default)
 %                'firws' windowed sinc FIR filter
-%                'fir' FIR filter using Matlab fir1 function
-%                'firls' FIR filter using Matlab firls function (requires Matlab Signal Processing Toolbox)
-%                'brickwall' Frequency-domain filter using Matlab FFT and iFFT function
+%                'fir' FIR filter using MATLAB fir1 function
+%                'firls' FIR filter using MATLAB firls function (requires MATLAB Signal Processing Toolbox)
+%                'brickwall' Frequency-domain filter using MATLAB FFT and iFFT function
 %   dir        optional filter direction, can be
 %                'onepass'         forward filter only
 %                'onepass-reverse' reverse filter only, i.e. backward in time
@@ -69,7 +69,7 @@ function [filt] = ft_preproc_bandpassfilter(dat,Fs,Fbp,N,type,dir,instabilityfix
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_bandpassfilter.m 9990 2014-12-01 15:40:54Z jansch $
+% $Id: ft_preproc_bandpassfilter.m 10198 2015-02-11 09:36:13Z roboos $
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);
@@ -256,15 +256,15 @@ switch type
     end
     z(pos1:pos2) = 1;
     A = 1;
-    B = firls(N,f,z); % requires Matlab signal processing toolbox
+    B = firls(N,f,z); % requires MATLAB signal processing toolbox
   case 'brickwall'
-    ax = linspace(0, Fs, size(dat,2)); % frequency coefficients
-    fl = nearest(ax, min(Fbp))-1; % low cut-off frequency
-    fh = nearest(ax, max(Fbp))+1; % high cut-off frequency
+    ax = linspace(0, Fs, size(dat,2));  % frequency coefficients
+    fl = nearest(ax, min(Fbp))-1;       % low cut-off frequency
+    fh = nearest(ax, max(Fbp))+1;       % high cut-off frequency
     a  = 0; % suppresion rate of frequencies-not-of-interest
-    f           = fft(dat,[],2); % FFT
-    f(:,1:fl)   = a.*f(:,1:fl); % perform low cut-off
-    f(:,fh:end) = a.*f(:,fh:end); % perform high cut-off
+    f           = fft(dat,[],2);        % FFT
+    f(:,1:fl)   = a.*f(:,1:fl);         % perform low cut-off
+    f(:,fh:end) = a.*f(:,fh:end);       % perform high cut-off
     filt        = 2*real(ifft(f,[],2)); % iFFT
     return
   otherwise

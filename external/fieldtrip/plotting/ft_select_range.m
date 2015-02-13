@@ -60,7 +60,7 @@ function ft_select_range(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_range.m 9955 2014-11-12 14:43:37Z jorhor $
+% $Id: ft_select_range.m 10197 2015-02-11 09:35:58Z roboos $
 
 % get the optional arguments
 event       = ft_getopt(varargin, 'event');
@@ -77,7 +77,7 @@ xrange    = istrue(xrange);
 yrange    = istrue(yrange);
 clear     = istrue(clear);
 
-% get the figure handle, dependent on matlab version
+% get the figure handle, dependent on MATLAB version
 if matlabversion('2014b', Inf) % >= 2014b?
  while ~isa(handle, 'matlab.ui.Figure')
     handle = p;

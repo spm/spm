@@ -183,7 +183,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 10072 2014-12-22 22:36:07Z roboos $';
+revision = '$Id: ft_freqanalysis.m 10202 2015-02-11 14:15:07Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -202,7 +202,7 @@ end
 cfg.feedback    = ft_getopt(cfg, 'feedback',   'text');
 cfg.inputlock   = ft_getopt(cfg, 'inputlock',  []);  % this can be used as mutex when doing distributed computation
 cfg.outputlock  = ft_getopt(cfg, 'outputlock', []);  % this can be used as mutex when doing distributed computation
-cfg.trials      = ft_getopt(cfg, 'trials',     'all');
+cfg.trials      = ft_getopt(cfg, 'trials',     'all', 1);
 cfg.channel     = ft_getopt(cfg, 'channel',    'all');
 
 % check if the input data is valid for this function
@@ -252,6 +252,16 @@ switch cfg.method
       if isequal(cfg.taper, 'dpss') && not(isfield(cfg, 'tapsmofrq'))
         error('you must specify a smoothing parameter with taper = dpss');
       end
+    end
+    cfg = ft_checkconfig(cfg, 'required', 'toi');
+    if ischar(cfg.toi) && strcmp(cfg.toi, 'all')
+      % do an educated guess with respect to the requested time bins
+      begtim  = min(cellfun(@min,data.time));
+      endtim  = max(cellfun(@max,data.time));
+      cfg.toi = linspace(begtim,endtim,round((endtim-begtim)./mean(diff(data.time{1})))+1);
+      
+    elseif ischar(cfg.toi)
+      error('cfg.toi should be either a numeric vector, or can be ''all''');
     end
     
   case 'mtmfft'

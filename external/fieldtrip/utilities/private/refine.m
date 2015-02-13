@@ -41,7 +41,7 @@ function [pntr, trir] = refine(pnt, tri, method, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: refine.m 9695 2014-07-04 10:47:51Z roboos $
+% $Id: refine.m 10198 2015-02-11 09:36:13Z roboos $
 
 if nargin<3
   method = 'banks';
@@ -113,7 +113,7 @@ switch lower(method)
       [pnt, tri] = refine(pnt, tri, 'banks');
       ntri = size(tri,1);
     end
-    % reduce number of triangles using Matlab function
+    % reduce number of triangles using MATLAB function
     [trir, pntr] = reducepatch(tri, pnt, varargin{1});
     
   otherwise

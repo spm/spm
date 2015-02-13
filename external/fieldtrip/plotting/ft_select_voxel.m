@@ -5,7 +5,7 @@ function ft_select_voxel(handle, eventdata, varargin)
 %
 % Use as
 %   voxel = ft_select_voxel(h, eventdata, ...)
-% The first two arguments are automatically passed by Matlab to any
+% The first two arguments are automatically passed by MATLAB to any
 % callback function.
 %
 % Additional options should be specified in key-value pairs and can be
@@ -49,7 +49,7 @@ function ft_select_voxel(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_voxel.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_select_voxel.m 10197 2015-02-11 09:35:58Z roboos $
 
 % get optional input arguments
 callback = ft_getopt(varargin, 'callback');

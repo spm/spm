@@ -46,7 +46,7 @@ function [H] = rotate(f)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rotate.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: rotate.m 10198 2015-02-11 09:36:13Z roboos $
 
 if numel(f)~=3
   error('incorrect input vector');
@@ -94,7 +94,7 @@ H = [
 if 0
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following code can be used to construct the combined rotation matrix
-% for either xyz or zyx ordering (using the Matlab symbolic math toolbox)
+% for either xyz or zyx ordering (using the MATLAB symbolic math toolbox)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   syms sX sY sZ cX cY cZ
   % this is for only rotating around x

@@ -32,6 +32,17 @@ function [warped] = ft_warp_apply(M, input, method, tol)
 % If the method 'homogeneous' is selected, the input matrix M should be
 % a 4x4 homogenous transformation matrix.
 %
+% If the method 'sn2individual' or 'individual2sn' is selected, the input
+% M should be a structure based on nonlinear (warping) normalisation parameters
+% created by SPM8 for alignment between an individual structural MRI and the
+% template MNI brain.  These options call private functions of the same name.
+% M will have subfields like this:
+%     Affine: [4x4 double]
+%         Tr: [4-D double]
+%         VF: [1x1 struct]
+%         VG: [1x1 struct]
+%      flags: [1x1 struct]
+%
 % If any other method is selected, it is assumed that it specifies
 % the name of an auxiliary function that will, when given the input
 % parameter vector M, return an 4x4 homogenous transformation
@@ -59,7 +70,7 @@ function [warped] = ft_warp_apply(M, input, method, tol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_warp_apply.m 9000 2013-12-10 08:24:03Z jansch $
+% $Id: ft_warp_apply.m 10131 2015-01-27 16:08:26Z johzum $
 
 if nargin<4
   tol = [];

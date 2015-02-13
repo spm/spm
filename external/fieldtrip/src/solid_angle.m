@@ -33,10 +33,10 @@ function [varargout] = funname(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: solid_angle.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: solid_angle.m 10197 2015-02-11 09:35:58Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The first section contains the plain Matlab implementation. The mex file
+% The first section contains the plain MATLAB implementation. The mex file
 % is many times faster and this function is called so frequently (for
 % large meshes), that the mex file should be used in all practical cases.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

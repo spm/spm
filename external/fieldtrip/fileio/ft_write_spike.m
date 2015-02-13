@@ -38,7 +38,7 @@ function ft_write_spike(filename, spike, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_spike.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_write_spike.m 10197 2015-02-11 09:35:58Z roboos $
 
 % get the options
 dataformat          = ft_getopt(varargin, 'dataformat');
@@ -60,7 +60,7 @@ nchans = length(spike.label);
 switch dataformat
   case 'matlab'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % plain matlab file
+    % plain MATLAB file
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     [path, file, ext] = fileparts(filename);
     filename = fullfile(path, [file, '.mat']);

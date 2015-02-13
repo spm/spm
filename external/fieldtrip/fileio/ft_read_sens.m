@@ -60,7 +60,7 @@ function [sens] = ft_read_sens(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_sens.m 9859 2014-09-27 11:19:58Z roboos $
+% $Id: ft_read_sens.m 10197 2015-02-11 09:35:58Z roboos $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -214,8 +214,8 @@ switch fileformat
     end
     
   case 'matlab'
-    % matlab files can contain either electrodes or gradiometers
-    matfile = filename;   % this solves a problem with the matlab compiler v3
+    % MATLAB files can contain either electrodes or gradiometers
+    matfile = filename;   % this solves a problem with the MATLAB compiler v3
     ws = warning('off', 'MATLAB:load:variableNotFound');
     tmp = load(matfile, 'elec', 'grad', 'sens', 'elc');
     warning(ws);
@@ -228,7 +228,7 @@ switch fileformat
     elseif isfield(tmp, 'elc')
       sens = tmp.elc;
     else
-      error('no electrodes or gradiometers found in Matlab file');
+      error('no electrodes or gradiometers found in MATLAB file');
     end
     
   case 'zebris_sfp'

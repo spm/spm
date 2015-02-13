@@ -25,10 +25,10 @@ function [varargout] = funname(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: routlm.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: routlm.m 10197 2015-02-11 09:35:58Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This is the native Matlab implementation.
+% This is the native MATLAB implementation.
 % The mex file is many times faster and is therefore preferred.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function [proj] = routlm(v1, v2, v3, la, mu);

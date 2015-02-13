@@ -76,7 +76,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 9906 2014-10-16 12:54:01Z jansch $
+% $Id: ft_read_headshape.m 10197 2015-02-11 09:35:58Z roboos $
 
 % % optionally get the data from the URL and make a temporary local copy
 % filename = fetch_url(filename);
@@ -658,7 +658,7 @@ else
         shape.fid.pnt   = tmp.elec.chanpos;
         shape.fid.label = tmp.elec.label;
       else
-        error('no headshape found in Matlab file');
+        error('no headshape found in MATLAB file');
       end
       
     case {'freesurfer_triangle_binary', 'freesurfer_quadrangle'}

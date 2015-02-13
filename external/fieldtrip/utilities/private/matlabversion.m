@@ -1,6 +1,6 @@
 function [inInterval] = matlabversion(min, max)
 
-% MATLABVERSION checks if the current matlab version is within the interval
+% MATLABVERSION checks if the current MATLAB version is within the interval
 % specified by min and max.
 %
 % Use, e.g., as:
@@ -9,12 +9,12 @@ function [inInterval] = matlabversion(min, max)
 %  end
 %
 % Both strings and numbers, as well as infinities, are supported, eg.:
-%  matlabversion(7.1, 7.9)    % is version between 7.1 and 7.9?
-%  matlabversion(6, '7.10')   % is version between 6 and 7.10? (note: '7.10', not 7.10)
-%  matlabversion(-Inf, 7.6)   % is version <= 7.6?
-%  matlabversion('2008b', '2010a')
-%  matlabversion('2008b', Inf)
-%  matlabversion('2009b')     % exactly 2009b
+%  matlabversion(7.1, 7.9)          % is version between 7.1 and 7.9?
+%  matlabversion(6, '7.10')         % is version between 6 and 7.10? (note: '7.10', not 7.10)
+%  matlabversion(-Inf, 7.6)         % is version <= 7.6?
+%  matlabversion('2009b')           % exactly 2009b
+%  matlabversion('2008b', '2010a')  % between two versions
+%  matlabversion('2008b', Inf)      % from a version onwards
 %  etc.
 %
 % See also VERSION, VER, VERLESSTHAN
@@ -38,7 +38,7 @@ function [inInterval] = matlabversion(min, max)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: matlabversion.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: matlabversion.m 10198 2015-02-11 09:36:13Z roboos $
 
 % this does not change over subsequent calls, making it persistent speeds it up
 persistent curVer

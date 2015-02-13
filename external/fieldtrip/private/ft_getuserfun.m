@@ -1,5 +1,6 @@
 function func = ft_getuserfun(func, prefix)
-% FT_GETUSERFUN will search the Matlab path for a function with the
+
+% FT_GETUSERFUN will search the MATLAB path for a function with the
 % appropriate name, and return a function handle to the function.
 % Considered are, in this order:
 %  - the name itself, i.e. you get exactly the same func back as you put in;
@@ -32,7 +33,7 @@ function func = ft_getuserfun(func, prefix)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_getuserfun.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_getuserfun.m 10197 2015-02-11 09:35:58Z roboos $
 
 if isa(func, 'function_handle')
   % treat function handle as-is

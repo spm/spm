@@ -35,7 +35,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %                       interactive plot when a selected area is clicked. multiple areas
 %                       can be selected by holding down the shift key.
 %   cfg.renderer      = 'painters', 'zbuffer',' opengl' or 'none' (default = [])
-%   cfg.linestyle     = linestyle/marker type, see options of the matlab plot function (default = '-')
+%   cfg.linestyle     = linestyle/marker type, see options of the PLOT function (default = '-')
 %                       can be a single style for all datasets, or a cell-array containing one style for each dataset
 %   cfg.linewidth     = linewidth in points (default = 0.5)
 %   cfg.graphcolor    = color(s) used for plotting the dataset(s) (default = 'brgkywrgbkywrgbkywrgbkyw')
@@ -95,9 +95,9 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 9951 2014-11-12 13:51:31Z roboos $
+% $Id: ft_singleplotER.m 10196 2015-02-11 09:15:07Z roboos $
 
-revision = '$Id: ft_singleplotER.m 9951 2014-11-12 13:51:31Z roboos $';
+revision = '$Id: ft_singleplotER.m 10196 2015-02-11 09:15:07Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -127,7 +127,7 @@ cfg = ft_checkconfig(cfg, 'deprecated', {'xparam'});
 
 % set the defaults
 cfg.baseline        = ft_getopt(cfg, 'baseline',    'no');
-cfg.trials          = ft_getopt(cfg, 'trials',      'all');
+cfg.trials          = ft_getopt(cfg, 'trials',      'all', 1);
 cfg.xlim            = ft_getopt(cfg, 'xlim',        'maxmin');
 cfg.ylim            = ft_getopt(cfg, 'ylim',        'maxmin');
 cfg.zlim            = ft_getopt(cfg, 'zlim',        'maxmin');

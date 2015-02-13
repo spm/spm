@@ -39,9 +39,9 @@ function [data] = ft_denoise_synthetic(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_synthetic.m 9521 2014-05-14 09:45:42Z roboos $
+% $Id: ft_denoise_synthetic.m 10217 2015-02-12 08:14:04Z jansch $
 
-revision = '$Id: ft_denoise_synthetic.m 9521 2014-05-14 09:45:42Z roboos $';
+revision = '$Id: ft_denoise_synthetic.m 10217 2015-02-12 08:14:04Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -60,7 +60,7 @@ end
 cfg = ft_checkconfig(cfg, 'required', {'gradient'});
 
 % set the defaults
-if ~isfield(cfg, 'trials'), cfg.trials = 'all'; end
+cfg.trials = ft_getopt(cfg, 'trials', 'all', 1);
 
 % store the original type of the input data
 dtype = ft_datatype(data);
@@ -81,10 +81,10 @@ if ~hasref
 end
 
 % select trials of interest
-if ~strcmp(cfg.trials, 'all')
-  fprintf('selecting %d trials\n', length(cfg.trials));
-  data = ft_selectdata(data, 'rpt', cfg.trials);
-end
+tmpcfg = keepfields(cfg, 'trials');
+data   = ft_selectdata(tmpcfg, data);
+% restore the provenance information
+[cfg, data] = rollback_provenance(cfg, data);
 
 % remember the original channel ordering
 labelorg = data.label;

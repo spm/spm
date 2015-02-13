@@ -26,7 +26,7 @@ function FM = ft_preproc_online_filter_init(B, A, x)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_online_filter_init.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_preproc_online_filter_init.m 10197 2015-02-11 09:35:58Z roboos $
 
 % Normalize filter coefficients if not already done so
 A = A(:); % use column vector
@@ -61,7 +61,7 @@ FM.A2 = A(2:end);
 FM.B1 = B(1);
 FM.B2 = B(2:end);
 
-% this would be for direct form II, but Matlab filter uses direct form II transpose
+% this would be for direct form II, but MATLAB filter uses direct form II transpose
 % FM.z = x*(ones(1,FM.N)/sum(B));
 
 % there might be a faster way to compute this, but I can't think of any right now

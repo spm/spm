@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 9951 2014-11-12 13:51:31Z roboos $
+% $Id: topoplot_common.m 10197 2015-02-11 09:35:58Z roboos $
 
-revision = '$Id: topoplot_common.m 9951 2014-11-12 13:51:31Z roboos $';
+revision = '$Id: topoplot_common.m 10197 2015-02-11 09:35:58Z roboos $';
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'unused',     {'cohtargetchannel'});
@@ -124,10 +124,10 @@ cfg.comment           = ft_getopt(cfg, 'comment',       'auto');
 cfg.commentpos        = ft_getopt(cfg, 'commentpos',    'leftbottom');
 cfg.fontsize          = ft_getopt(cfg, 'fontsize',      8);
 cfg.baseline          = ft_getopt(cfg, 'baseline',      'no'); %to avoid warning in timelock/freqbaseline
-cfg.trials            = ft_getopt(cfg, 'trials',        'all');
+cfg.trials            = ft_getopt(cfg, 'trials',        'all', 1);
 cfg.interactive       = ft_getopt(cfg, 'interactive',   'yes');
 cfg.hotkeys           = ft_getopt(cfg, 'hotkeys',       'no');
-cfg.renderer          = ft_getopt(cfg, 'renderer',      []); % matlab sets the default
+cfg.renderer          = ft_getopt(cfg, 'renderer',      []); % MATLAB sets the default
 cfg.marker            = ft_getopt(cfg, 'marker',        'on');
 cfg.markersymbol      = ft_getopt(cfg, 'markersymbol',  'o');
 cfg.markercolor       = ft_getopt(cfg, 'markercolor',   [0 0 0]);

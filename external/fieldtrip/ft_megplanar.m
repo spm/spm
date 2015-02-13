@@ -70,9 +70,9 @@ function [data] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 9762 2014-08-04 14:55:35Z dieloz $
+% $Id: ft_megplanar.m 10105 2015-01-19 13:37:56Z jimher $
 
-revision = '$Id: ft_megplanar.m 9762 2014-08-04 14:55:35Z dieloz $';
+revision = '$Id: ft_megplanar.m 10105 2015-01-19 13:37:56Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -107,7 +107,7 @@ end
 
 % set the default configuration
 cfg.channel      = ft_getopt(cfg, 'channel',      'MEG');
-cfg.trials       = ft_getopt(cfg, 'trials',       'all');
+cfg.trials       = ft_getopt(cfg, 'trials',       'all', 1);
 cfg.planarmethod = ft_getopt(cfg, 'planarmethod', 'sincos');
 cfg.feedback     = ft_getopt(cfg, 'feedback',     'text');
 

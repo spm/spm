@@ -52,9 +52,9 @@ function [data] = ft_combineplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_combineplanar.m 9813 2014-09-18 16:27:42Z dieloz $
+% $Id: ft_combineplanar.m 10105 2015-01-19 13:37:56Z jimher $
 
-revision = '$Id: ft_combineplanar.m 9813 2014-09-18 16:27:42Z dieloz $';
+revision = '$Id: ft_combineplanar.m 10105 2015-01-19 13:37:56Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -83,7 +83,7 @@ cfg.demean         = ft_getopt(cfg, 'demean',         'no');
 cfg.foilim         = ft_getopt(cfg, 'foilim',         [-inf inf]);
 cfg.baselinewindow = ft_getopt(cfg, 'baselinewindow', [-inf inf]);
 cfg.combinemethod  = ft_getopt(cfg, 'combinemethod',  'sum');
-cfg.trials         = ft_getopt(cfg, 'trials',         'all');
+cfg.trials         = ft_getopt(cfg, 'trials',         'all', 1);
 cfg.feedback       = ft_getopt(cfg, 'feedback',       'none');
 
 if isfield(cfg, 'baseline')

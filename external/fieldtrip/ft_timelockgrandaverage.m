@@ -62,9 +62,9 @@ function [grandavg] = ft_timelockgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockgrandaverage.m 10059 2014-12-17 15:04:01Z roboos $
+% $Id: ft_timelockgrandaverage.m 10194 2015-02-11 09:08:16Z roboos $
 
-revision = '$Id: ft_timelockgrandaverage.m 10059 2014-12-17 15:04:01Z roboos $';
+revision = '$Id: ft_timelockgrandaverage.m 10194 2015-02-11 09:08:16Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -95,7 +95,7 @@ for i=1:length(varargin)
     end
   else
     if isfield(varargin{i},'trial') && ~isfield(varargin{i},'avg');
-      error(['dataset ' num2str(i) ' does not contain avg field: seeft_timelockanalysis']);
+      error('input dataset %d does not contain avg field: see ft_timelockanalysis', i);
     end
   end
 end

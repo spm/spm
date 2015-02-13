@@ -65,9 +65,9 @@ function [data] = ft_channelrepair(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 9762 2014-08-04 14:55:35Z dieloz $
+% $Id: ft_channelrepair.m 10105 2015-01-19 13:37:56Z jimher $
 
-revision = '$Id: ft_channelrepair.m 9762 2014-08-04 14:55:35Z dieloz $';
+revision = '$Id: ft_channelrepair.m 10105 2015-01-19 13:37:56Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -85,7 +85,7 @@ end
 % set the default configuration
 cfg.badchannel     = ft_getopt(cfg, 'badchannel',     {});
 cfg.missingchannel = ft_getopt(cfg, 'missingchannel', {});
-cfg.trials         = ft_getopt(cfg, 'trials',         'all');
+cfg.trials         = ft_getopt(cfg, 'trials',         'all', 1);
 cfg.method         = ft_getopt(cfg, 'method',         'nearest');
 cfg.lambda         = ft_getopt(cfg, 'lambda',         []); % subfunction will handle this
 cfg.order          = ft_getopt(cfg, 'order',          []); % subfunction will handle this

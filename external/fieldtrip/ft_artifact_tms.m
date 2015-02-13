@@ -15,8 +15,7 @@ function [cfg, artifact] = ft_artifact_tms(cfg, data)
 %
 % In both cases the configuration should also contain
 %   cfg.trl         = structure that defines the data segments of interest. See FT_DEFINETRIAL
-%   cfg.continuous  = 'yes' or 'no' whether the file contains continuous
-%   data (default   = 'yes')
+%   cfg.continuous  = 'yes' or 'no' whether the file contains continuous data (default   = 'yes')
 %   cfg.method      = 'detect', TMS-artifacts are detected by preprocessing
 %                     the data to be sensitive to transient high gradients, typical for
 %                     TMS-pulses.
@@ -94,9 +93,9 @@ function [cfg, artifact] = ft_artifact_tms(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_tms.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: ft_artifact_tms.m 10177 2015-02-06 18:21:15Z roboos $
 
-revision = '$Id: ft_artifact_tms.m 8776 2013-11-14 09:04:48Z roboos $';
+revision = '$Id: ft_artifact_tms.m 10177 2015-02-06 18:21:15Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -152,7 +151,7 @@ switch cfg.method
       fsample = data.fsample;
       [tmpcfg, artifact] = ft_artifact_zvalue(tmpcfg, data);
     else
-      cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
+      cfg = ft_checkconfig(cfg, 'dataset2files', 'yes');
       cfg = ft_checkconfig(cfg, 'required', {'headerfile', 'datafile'});
       hdr = ft_read_header(cfg.headerfile);
       fsample = hdr.Fs;
@@ -181,7 +180,7 @@ switch cfg.method
     
   case 'marker'
     % Check if the cfg is correct for this method
-    cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
+    cfg = ft_checkconfig(cfg, 'dataset2files', 'yes');
     ft_checkconfig(cfg, 'required','trialdef');
     cfg.trialfun = ft_getopt(cfg, 'trialfun', 'ft_trialfun_general');
     trialdef = cfg.trialdef;
@@ -191,12 +190,12 @@ switch cfg.method
     
     % Get the trialfun
     cfg.trialfun = ft_getuserfun(cfg.trialfun, 'trialfun');
-  
+    
     % Evaluate the trialfun
     fprintf('evaluating trialfunction ''%s''\n', func2str(cfg.trialfun));
     trl   = feval(cfg.trialfun, cfg);
     
-    % Prepare the found events for output 
+    % Prepare the found events for output
     artifact = trl(:,1:2);
     cfg.artfctdef.tms.artifact = artifact;
     fprintf('found %d events\n', size(artifact,1));

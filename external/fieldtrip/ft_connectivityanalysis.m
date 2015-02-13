@@ -113,9 +113,9 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 10070 2014-12-22 22:34:59Z roboos $
+% $Id: ft_connectivityanalysis.m 10201 2015-02-11 13:28:08Z jansch $
 
-revision = '$Id: ft_connectivityanalysis.m 10070 2014-12-22 22:34:59Z roboos $';
+revision = '$Id: ft_connectivityanalysis.m 10201 2015-02-11 13:28:08Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -139,7 +139,7 @@ cfg.feedback    = ft_getopt(cfg, 'feedback', 'none');
 cfg.channel     = ft_getopt(cfg, 'channel', 'all');
 cfg.channelcmb  = ft_getopt(cfg, 'channelcmb', {'all' 'all'});
 cfg.refindx     = ft_getopt(cfg, 'refindx', 'all');
-cfg.trials      = ft_getopt(cfg, 'trials', 'all');
+cfg.trials      = ft_getopt(cfg, 'trials', 'all', 1);
 cfg.complex     = ft_getopt(cfg, 'complex', 'abs');
 cfg.jackknife   = ft_getopt(cfg, 'jackknife', 'no');
 cfg.removemean  = ft_getopt(cfg, 'removemean', 'yes');
@@ -154,7 +154,12 @@ normpow = 1; % default, has to be overruled e.g. in csd,
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
-  data = ft_selectdata(data, 'rpt', cfg.trials);
+  tmpcfg = [];
+  tmpcfg.trials = cfg.trials;
+  data = ft_selectdata(tmpcfg, data);
+  [cfg, data] = rollback_provenance(cfg, data);
+  
+  %data = ft_selectdata(data, 'rpt', cfg.trials);
 end
 
 % select channels/channelcombination of interest and set the cfg-options accordingly

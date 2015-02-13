@@ -147,14 +147,14 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 10068 2014-12-22 19:19:24Z roboos $
+% $Id: ft_componentanalysis.m 10105 2015-01-19 13:37:56Z jimher $
 
 % undocumented cfg options:
 %   cfg.cellmode = string, 'no' or 'yes', allows to run in cell-mode, i.e.
 %     no concatenation across trials is needed. This is based on experimental
 %     code and only supported for 'dss', 'fastica' and 'bsscca' as methods.
 
-revision = '$Id: ft_componentanalysis.m 10068 2014-12-22 19:19:24Z roboos $';
+revision = '$Id: ft_componentanalysis.m 10105 2015-01-19 13:37:56Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -182,7 +182,7 @@ cfg = ft_checkconfig(cfg, 'deprecated', {'topo'});
 % set the defaults
 cfg.method          = ft_getopt(cfg, 'method',       'runica');
 cfg.demean          = ft_getopt(cfg, 'demean',       'yes');
-cfg.trials          = ft_getopt(cfg, 'trials',       'all');
+cfg.trials          = ft_getopt(cfg, 'trials',       'all', 1);
 cfg.channel         = ft_getopt(cfg, 'channel',      'all');
 cfg.numcomponent    = ft_getopt(cfg, 'numcomponent', 'all');
 cfg.normalisesphere = ft_getopt(cfg, 'normalisesphere', 'yes');
@@ -226,6 +226,7 @@ if isfield(cfg, 'unmixing') && isfield(cfg, 'topolabel')
   tmpcfg.numcomponent = 'all';
   tmpcfg.method       = 'predetermined unmixing matrix';
   tmpcfg.doscale      = cfg.doscale;
+  tmpcfg.updatesens   = cfg.updatesens;
   cfg                 = tmpcfg;
 end
 

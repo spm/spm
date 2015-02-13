@@ -11,7 +11,7 @@ function [filt] = highpassfilter(dat,Fs,Fhp,N,type,dir)
 %   N          optional filter order, default is 6 (but) or 25 (fir)
 %   type       optional filter type, can be
 %                'but' Butterworth IIR filter (default)
-%                'fir' FIR filter using Matlab fir1 function 
+%                'fir' FIR filter using MATLAB fir1 function 
 %   dir        optional filter direction, can be
 %                'onepass'         forward filter only
 %                'onepass-reverse' reverse filter only, i.e. backward in time
@@ -41,7 +41,7 @@ function [filt] = highpassfilter(dat,Fs,Fhp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: highpassfilter.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: highpassfilter.m 10197 2015-02-11 09:35:58Z roboos $
 
 % set the default filter order later
 if nargin<4

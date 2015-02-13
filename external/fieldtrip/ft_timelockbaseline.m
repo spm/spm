@@ -44,9 +44,9 @@ function [timelock] = ft_timelockbaseline(cfg, timelock)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockbaseline.m 9987 2014-11-28 11:30:54Z roboos $
+% $Id: ft_timelockbaseline.m 10223 2015-02-12 09:21:11Z roboos $
 
-revision = '$Id: ft_timelockbaseline.m 9987 2014-11-28 11:30:54Z roboos $';
+revision = '$Id: ft_timelockbaseline.m 10223 2015-02-12 09:21:11Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -155,7 +155,7 @@ if ~(ischar(cfg.baseline) && strcmp(cfg.baseline, 'no'))
       elseif d == 2
         timelock.(par)(chansel,:) = ft_preproc_baselinecorrect(timelock.(par)(chansel,:), tbeg, tend);
       else
-        warning('Not doing anything -  matrices up to only three dimensions are supported');
+        warning('Not doing anything - matrices up to only three dimensions are supported');
       end
 
     end

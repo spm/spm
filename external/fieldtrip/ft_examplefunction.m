@@ -29,13 +29,13 @@ function dataout = ft_examplefunction(cfg, datain)
 % Here come the Copyrights
 %
 % Here comes the Revision tag, which is auto-updated by the version control system
-% $Id: ft_examplefunction.m 9587 2014-05-23 11:11:25Z roboos $
+% $Id: ft_examplefunction.m 10196 2015-02-11 09:15:07Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_examplefunction.m 9587 2014-05-23 11:11:25Z roboos $';
+revision = '$Id: ft_examplefunction.m 10196 2015-02-11 09:15:07Z roboos $';
 
 % do the general setup of the function
 
@@ -44,7 +44,7 @@ revision = '$Id: ft_examplefunction.m 9587 2014-05-23 11:11:25Z roboos $';
 
 ft_defaults                 % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init            % this will reset warning_once and show the function help if nargin==0 and return an error
-ft_preamble provenance      % this records the time and memory usage at teh beginning of the function
+ft_preamble provenance      % this records the time and memory usage at the beginning of the function
 ft_preamble trackconfig     % this converts the cfg structure in a config object, which tracks the cfg options that are being used
 ft_preamble debug           % this allows for displaying or saving the function name and input arguments upon an error
 ft_preamble loadvar datain  % this reads the input data in case the user specified the cfg.inputfile option
@@ -97,7 +97,7 @@ dataout = [];
 
 ft_postamble debug            % this clears the onCleanup function used for debugging in case of an error
 ft_postamble trackconfig      % this converts the config object back into a struct and can report on the unused fields
-ft_postamble provenance       % this records the time and memory at the end of the function, prints them on screen and adds this information together with the function name and matlab version etc. to the output cfg
+ft_postamble provenance       % this records the time and memory at the end of the function, prints them on screen and adds this information together with the function name and MATLAB version etc. to the output cfg
 ft_postamble previous datain  % this copies the datain.cfg structure into the cfg.previous field. You can also use it for multiple inputs, or for "varargin"
 ft_postamble history dataout  % this adds the local cfg structure to the output data structure, i.e. dataout.cfg = cfg
 ft_postamble savevar dataout  % this saves the output data structure to disk in case the user specified the cfg.outputfile option

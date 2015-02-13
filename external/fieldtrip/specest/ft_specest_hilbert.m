@@ -4,7 +4,7 @@ function [spectrum,freqoi,timeoi] = ft_specest_hilbert(dat, time, varargin)
 % applying a bandpass filter and then doing a hilbert transform.
 %
 % Use as
-%   [spectrum,freqoi,timeoi] = specest_hilbert(dat,time,...)
+%   [spectrum,freqoi,timeoi] = ft_specest_hilbert(dat,time,...)
 % where
 %   dat      = matrix of chan*sample
 %   time     = vector, containing time in seconds for each sample
@@ -29,7 +29,7 @@ function [spectrum,freqoi,timeoi] = ft_specest_hilbert(dat, time, varargin)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Id: ft_specest_hilbert.m 8479 2013-09-23 12:18:02Z roevdmei $
+% $Id: ft_specest_hilbert.m 10100 2015-01-15 09:23:55Z jansch $
 
 % get the optional input arguments
 freqoi    = ft_getopt(varargin, 'freqoi');

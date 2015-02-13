@@ -81,9 +81,9 @@ function [layout, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 10023 2014-12-05 12:56:39Z roboos $
+% $Id: ft_prepare_layout.m 10154 2015-02-03 15:21:41Z vlalit $
 
-revision = '$Id: ft_prepare_layout.m 10023 2014-12-05 12:56:39Z roboos $';
+revision = '$Id: ft_prepare_layout.m 10154 2015-02-03 15:21:41Z vlalit $';
 
 % do the general setup of the function
 ft_defaults
@@ -928,10 +928,15 @@ sens = ft_datatype_sens(sens);
 
 % remove the balancing from the sensor definition, e.g. 3rd order gradients, PCA-cleaned data or ICA projections
 % this not only removed the linear projections, but also ensures that the channel labels are correctly named
+if isfield(sens, 'chanposorg')
+    chanposorg = sens.chanposorg;
+else
+    chanposorg = [];
+end
 if isfield(sens, 'balance') && ~strcmp(sens.balance.current, 'none')            
     sens = undobalancing(sens);
-    if isfield(sens, 'chanposorg')
-        sens.chanpos = sens.chanposorg;
+    if size(chanposorg, 1) == numel(sens.label)
+        sens.chanpos = chanposorg;
     end
 end
 

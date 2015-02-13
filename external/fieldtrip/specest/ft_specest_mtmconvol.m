@@ -4,7 +4,7 @@ function [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(dat, time, varar
 % by multiplication in the frequency domain
 %
 % Use as
-%   [spectrum,freqoi,timeoi] = specest_mtmconvol(dat,time,...)
+%   [spectrum,freqoi,timeoi] = ft_specest_mtmconvol(dat,time,...)
 % where
 %   dat      = matrix of chan*sample
 %   time     = vector, containing time in seconds for each sample
@@ -32,7 +32,7 @@ function [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(dat, time, varar
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_mtmconvol.m 8368 2013-08-01 13:59:19Z vlalit $
+% $Id: ft_specest_mtmconvol.m 10197 2015-02-11 09:35:58Z roboos $
 
 % these are for speeding up computation of tapers on subsequent calls
 persistent previous_argin previous_wltspctrm
@@ -269,7 +269,7 @@ end
 switch dimord
         
   case 'tap_chan_freq_time' % default
-    % compute fft, major speed increases are possible here, depending on which matlab is being used whether or not it helps, which mainly focuses on orientation of the to be fft'd matrix
+    % compute fft, major speed increases are possible here, depending on which MATLAB is being used whether or not it helps, which mainly focuses on orientation of the to be fft'd matrix
     datspectrum = fft(ft_preproc_padding(dat, padtype, 0, postpad), [], 2);
     spectrum = cell(max(ntaper), nfreqoi);
     for ifreqoi = 1:nfreqoi
@@ -351,7 +351,7 @@ previous_wltspctrm = wltspctrm;
 
 % % below code does the exact same as above, but without the trick of converting to cell-arrays for speed increases. however, when there is a huge variability in number of tapers per freqoi
 % % than this approach can benefit from the fact that the array can be precreated containing nans
-% % compute fft, major speed increases are possible here, depending on which matlab is being used whether or not it helps, which mainly focuses on orientation of the to be fft'd matrix
+% % compute fft, major speed increases are possible here, depending on which MATLAB is being used whether or not it helps, which mainly focuses on orientation of the to be fft'd matrix
 % datspectrum = transpose(fft(transpose([dat repmat(postpad,[nchan, 1])]))); % double explicit transpose to speedup fft
 % % NOTE: double explicit transpose around fft is not faster than using fft
 % with dim argument (in fact, it is slower)
@@ -389,7 +389,7 @@ previous_wltspctrm = wltspctrm;
 % end
 % tapfreq = tapfreq(:);
 %
-% % compute fft, major speed increases are possible here, depending on which matlab is being used whether or not it helps, which mainly focuses on orientation of the to be fft'd matrix
+% % compute fft, major speed increases are possible here, depending on which MATLAB is being used whether or not it helps, which mainly focuses on orientation of the to be fft'd matrix
 % %spectrum = complex(nan([numel(tapfreq),nchan,ntimeboi]));
 % datspectrum = fft([dat repmat(postpad,[nchan, 1])],[],2);
 % spectrum = cell(numel(tapfreq), nchan, ntimeboi);
@@ -420,7 +420,7 @@ previous_wltspctrm = wltspctrm;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION ensure that the first two input arguments are of double
 % precision this prevents an instability (bug) in the computation of the
-% tapers for Matlab 6.5 and 7.0
+% tapers for MATLAB 6.5 and 7.0
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tap] = double_dpss(a, b, varargin)
 tap = dpss(double(a), double(b), varargin{:});

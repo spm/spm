@@ -124,7 +124,7 @@ function ft_sourceplot(cfg, functional, anatomical)
 %   cfg.projcomb       = 'mean', 'max', method to combine the different projections
 %   cfg.projweight     = vector of weights for the different projections (default = 1)
 %   cfg.projthresh     = implements thresholding on the surface level
-%   (cfg.projthresh    = 0.7 means 70% of maximum)
+%                        for example, 0.7 means 70% of maximum
 %   cfg.sphereradius   = maximum distance from each voxel to the surface to be
 %                        included in the sphere projection methods, expressed in mm
 %   cfg.distmat        = precomputed distance matrix (default = [])
@@ -173,9 +173,9 @@ function ft_sourceplot(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 10024 2014-12-08 09:00:27Z roboos $
+% $Id: ft_sourceplot.m 10221 2015-02-12 08:28:20Z roboos $
 
-revision = '$Id: ft_sourceplot.m 10024 2014-12-08 09:00:27Z roboos $';
+revision = '$Id: ft_sourceplot.m 10221 2015-02-12 08:28:20Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -199,15 +199,20 @@ if nargin==3
   % interpolate on the fly
   tmpcfg = keepfields(cfg, {'downsample', 'interpmethod'});
   tmpcfg.parameter = cfg.funparameter;
-  orgcfg.parameter = cfg.funparameter;
   functional = ft_sourceinterpolate(tmpcfg, functional, anatomical);
   [cfg, functional] = rollback_provenance(cfg, functional);
 end
-  
+
 % ensure that old and unsupported options are not being relied on by the end-user's script
 % instead of specifying cfg.coordsys, the user should specify the coordsys in the functional data
 cfg = ft_checkconfig(cfg, 'forbidden', {'units', 'inputcoordsys', 'coordinates'});
 cfg = ft_checkconfig(cfg, 'deprecated', 'coordsys');
+cfg = ft_checkconfig(cfg, 'renamedval', {'funparameter', 'avg.pow', 'pow'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'funparameter', 'avg.coh', 'coh'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'funparameter', 'avg.mom', 'mom'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'maskparameter', 'avg.pow', 'pow'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'maskparameter', 'avg.coh', 'coh'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'maskparameter', 'avg.mom', 'mom'});
 
 if isfield(cfg, 'atlas') && ~isempty(cfg.atlas)
   % the atlas lookup requires the specification of the coordsys

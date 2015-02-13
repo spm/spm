@@ -80,9 +80,9 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 9951 2014-11-12 13:51:31Z roboos $
+% $Id: ft_singleplotTFR.m 10223 2015-02-12 09:21:11Z roboos $
 
-revision = '$Id: ft_singleplotTFR.m 9951 2014-11-12 13:51:31Z roboos $';
+revision = '$Id: ft_singleplotTFR.m 10223 2015-02-12 09:21:11Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -114,7 +114,7 @@ cfg = ft_checkconfig(cfg, 'deprecated',  {'xparam',         'yparam'});
 % Set the defaults:
 cfg.baseline       = ft_getopt(cfg, 'baseline',     'no');
 cfg.baselinetype   = ft_getopt(cfg, 'baselinetype', 'absolute');
-cfg.trials         = ft_getopt(cfg, 'trials',       'all');
+cfg.trials         = ft_getopt(cfg, 'trials',       'all', 1);
 cfg.xlim           = ft_getopt(cfg, 'xlim',         'maxmin'); 
 cfg.ylim           = ft_getopt(cfg, 'ylim',         'maxmin');
 cfg.zlim           = ft_getopt(cfg, 'zlim',         'maxmin');
@@ -355,7 +355,7 @@ end
 % 
 % % masking only possible for evenly spaced axis
 % if strcmp(cfg.masknans, 'yes') && (~evenx || ~eveny)
-%   warning('(one of the) axis are not evenly spaced -> nans cannot be masked out ->  cfg.masknans is set to ''no'';')
+%   warning('(one of the) axis are not evenly spaced -> nans cannot be masked out -> cfg.masknans is set to ''no'';')
 %   cfg.masknans = 'no';
 % end
 % 

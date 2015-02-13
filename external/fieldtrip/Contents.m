@@ -52,7 +52,7 @@
 % the actual work, such as reading data from binary files and forward and inverse
 % modelling of the EEG/MEG. These low-level functions are contained in the private
 % subdirectory. These other toolboxes on which the framework depends are copyrighted by
-% their respective authors, see each individual matlab file for the details.
+% their respective authors, see each individual MATLAB file for the details.
 %
 % Unauthorised copying and distribution of functions that are not explicitely covered by
 % the GPL is not allowed!
@@ -128,6 +128,6 @@
 %   ft_sourceplot
 %   ft_clusterplot
 
-% $Id: Contents.m 9226 2014-02-23 13:12:06Z roboos $
-% $Rev: 9226 $
+% $Id: Contents.m 10196 2015-02-11 09:15:07Z roboos $
+% $Rev: 10196 $
 

@@ -40,7 +40,7 @@ function [dat] = volplot(x, y, z, dat, sel, cscale)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: volplot.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: volplot.m 10197 2015-02-11 09:35:58Z roboos $
 
 if nargin<2
   dat = x;
@@ -173,7 +173,7 @@ elseif strcmp(sel, 'montage')
   maxval = max(dat(:));
 %  for z=1:size(dat,3)
 %    % convert to 4D image for montage display
-%    % transpose to correct for x-y axis change in Matlab image function
+%    % transpose to correct for x-y axis change in MATLAB image function
 %    img(:,:,1,z) = transpose(dat(:,:,z));
 %  end
 %  montage(img);

@@ -47,7 +47,7 @@ function [simulated] = ft_connectivitysimulation(cfg)
 %
 % Method 'mvnrnd' implements a linear mixing with optional timeshifts in
 % where the number of unobserved signals is equal to the number of observed
-% signals. This method used the matlab function mvnrnd. The implementation
+% signals. This method used the MATLAB function mvnrnd. The implementation
 % is a bit ad-hoc and experimental, so users are discouraged to apply it.
 % The time shift occurs only after the linear mixing, so the effect of the
 % parameters on the simulation is not really clear. This method will be
@@ -99,9 +99,9 @@ function [simulated] = ft_connectivitysimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivitysimulation.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_connectivitysimulation.m 10196 2015-02-11 09:15:07Z roboos $
 
-revision = '$Id: ft_connectivitysimulation.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_connectivitysimulation.m 10196 2015-02-11 09:15:07Z roboos $';
 
 % do the general setup of the function
 ft_defaults

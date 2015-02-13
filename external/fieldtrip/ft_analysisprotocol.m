@@ -75,14 +75,14 @@ function [script, details] = ft_analysisprotocol(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_analysisprotocol.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_analysisprotocol.m 10196 2015-02-11 09:15:07Z roboos $
 
 persistent depth   % this corresponds to the vertical   direction in the figure
 persistent branch  % this corresponds to the horizontal direction in the figure
 persistent parent
 persistent info
 
-revision = '$Id: ft_analysisprotocol.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_analysisprotocol.m 10196 2015-02-11 09:15:07Z roboos $';
 
 % callinfo feedback is highly annoying in this recursive function
 % do this here, otherwise ft_defaults will override our setting
@@ -222,7 +222,7 @@ for i=1:length(cfg.remove)
   end
 end
 
-% convert this part of the configuration to a matlab script
+% convert this part of the configuration to a MATLAB script
 if isfield(datacfg, 'previous')
   thiscfg = rmfield(datacfg, 'previous');
 else
@@ -603,7 +603,7 @@ pos = get(get(gcbo, 'CurrentAxes'), 'CurrentPoint');
 x = pos(1,1);
 y = pos(1,2);
 patches = guidata(h);
-patches = patches.patches; % stupid matlab syntax doesn't allow guidata(h).patches
+patches = patches.patches; % stupid MATLAB syntax doesn't allow guidata(h).patches
 
 for k = 1:numel(patches)
   patchX = patches{k}.x;

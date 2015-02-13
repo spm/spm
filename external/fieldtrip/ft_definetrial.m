@@ -110,9 +110,9 @@ function [cfg] = ft_definetrial(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_definetrial.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_definetrial.m 10160 2015-02-04 16:56:00Z roboos $
 
-revision = '$Id: ft_definetrial.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_definetrial.m 10160 2015-02-04 16:56:00Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -125,7 +125,7 @@ if abort
 end
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
+cfg = ft_checkconfig(cfg, 'dataset2files', 'yes');
 
 if ~isfield(cfg, 'trl') && (~isfield(cfg, 'trialfun') || isempty(cfg.trialfun))
   % there used to be other system specific trialfuns in previous versions

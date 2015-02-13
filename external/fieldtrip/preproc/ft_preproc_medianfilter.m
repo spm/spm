@@ -2,7 +2,7 @@ function dat = ft_preproc_medianfilter(dat, order)
 
 % FT_PREPROC_MEDIANFILTER applies a median filter, which smooths the data with
 % a boxcar-like kernel except that it keeps steps in the data. This
-% function requires the Matlab Signal Processing toolbox.
+% function requires the MATLAB Signal Processing toolbox.
 %
 % Use as
 %   [dat] = ft_preproc_medianfilter(dat, order)
@@ -30,7 +30,7 @@ function dat = ft_preproc_medianfilter(dat, order)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_medianfilter.m 9683 2014-07-02 09:30:07Z eelspa $
+% $Id: ft_preproc_medianfilter.m 10197 2015-02-11 09:35:58Z roboos $
 
 % set the default filter order
 if nargin<2 || isempty(order)
