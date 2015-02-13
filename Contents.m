@@ -35,9 +35,9 @@
 %
 % See README.txt for details of this release.
 %__________________________________________________________________________
-% Copyright (C) 1991,1994-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: Contents.m 6224 2014-10-01 15:08:41Z guillaume $
+% $Id: Contents.m 6339 2015-02-13 14:05:35Z guillaume $
 
 %==========================================================================
 % PROGRAMMERS NOTE:
