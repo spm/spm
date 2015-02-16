@@ -1,9 +1,9 @@
 function imcalc = spm_cfg_imcalc
 % SPM Configuration file for ImCalc
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 6255 2014-11-05 09:55:02Z christophe $
+% $Id: spm_cfg_imcalc.m 6340 2015-02-16 12:25:56Z guillaume $
 
 %--------------------------------------------------------------------------
 % input Input Images
@@ -224,7 +224,11 @@ extra_vars = {};
 if numel(job.var)
     extra_vars = { job.var };
 end
+
 spm_imcalc(char(job.input), out.files{1}, job.expression, job.options, extra_vars{:});
+
+cmd = 'spm_image(''display'',''%s'')';
+fprintf('ImCalc Image: %s\n',spm_file(out.files{1},'link',cmd));
 
 
 %==========================================================================
@@ -233,9 +237,9 @@ spm_imcalc(char(job.input), out.files{1}, job.expression, job.options, extra_var
 function dep = vout(job)
 dep = cfg_dep;
 if ~ischar(job.output) || strcmp(job.output, '<UNDEFINED>')
-    dep.sname  = 'Imcalc Computed Image';
+    dep.sname  = 'ImCalc Computed Image';
 else
-    dep.sname  = sprintf('Imcalc Computed Image: %s', job.output);
+    dep.sname  = sprintf('ImCalc Computed Image: %s', job.output);
 end
 dep.src_output = substruct('.','files');
 dep.tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});

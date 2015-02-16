@@ -9,7 +9,7 @@ function ret = spm_ov_display(varargin)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_display.m 6200 2014-09-25 17:33:13Z guillaume $
+% $Id: spm_ov_display.m 6340 2015-02-16 12:25:56Z guillaume $
 
 
 switch lower(varargin{1})
@@ -56,7 +56,7 @@ if strcmp(get(hObj, 'Checked'),'on')
     for i=1:numel(st.vols)
         if ~isempty(st.vols{i})
             xlabel(st.vols{i}.ax{3}.ax,'');
-            st.vols{i} = rmfield(st.vols{i},'display');
+            try, st.vols{i} = rmfield(st.vols{i},'display'); end
         end
     end
 else

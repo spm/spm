@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 6337 2015-02-11 18:46:30Z guillaume $
+% $Id: spm_results_ui.m 6340 2015-02-16 12:25:56Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 6337 $'; 
+SVNid = '$Rev: 6340 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -821,8 +821,24 @@ switch lower(Action), case 'setup'                         %-Set up results
     %======================================================================
         % spm_results_ui('SetupAtlasMenu',Finter)
     
-        hC = spm_atlas('menu',varargin{2:end});
-    
+        Finter = varargin{2};
+        
+        %hC  = uicontextmenu;
+        hC   = uimenu(Finter,'Label','Atlas', 'Tag','AtlasUI');
+        
+        hC1  = uimenu(hC,'Label','Label using');
+        
+        list = spm_atlas('List','installed');
+        for i=1:numel(list)
+            uimenu(hC1,'Label',list(i).name,...
+                'Callback',sprintf('spm_list(''label'',''%s'');',list(i).name));
+        end
+        if isempty(list), set(hC1,'Enable','off'); end
+        
+        %hC2  = uimenu(hC,'Label','Download Atlas...',...
+        %    'Separator','on',...
+        %    'Callback','spm_atlas(''install'');');
+        
         varargout = {hC};
     
     
