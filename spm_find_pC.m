@@ -1,10 +1,10 @@
 function [i,pC,pE] = spm_find_pC(pC,pE,fields)
 % Utility routine that finds the indices of non-zero covariance
-% FORMAT [i]       = spm_find_pC(pC,[TOL,pE,fields])
+% FORMAT [i]       = spm_find_pC(pC,pE,fields])
 % FORMAT [i,rC,rE] = spm_find_pC(DCM)
 % 
 % pC     - covaraince matrix or variance stucture
-% pE     - structure
+% pE     - parameter structure
 % fields - desired feilds of pE
 %
 % or
@@ -19,7 +19,7 @@ function [i,pC,pE] = spm_find_pC(pC,pE,fields)
 % Copyright (C) 2006-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_find_pC.m 6341 2015-02-18 14:46:43Z karl $
+% $Id: spm_find_pC.m 6342 2015-02-18 15:22:07Z karl $
 
 
 %-get rC
