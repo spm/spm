@@ -35,7 +35,7 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,X,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_dcm_loo.m 6343 2015-02-18 16:46:00Z spm $
 
 
 % Set up
@@ -101,6 +101,3 @@ else
     axis([0 (Ns + 1) 0 1]), axis square
     axis square
 end
-
-
-

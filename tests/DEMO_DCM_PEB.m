@@ -24,7 +24,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6341 2015-02-18 14:46:43Z karl $
+% $Id: DEMO_DCM_PEB.m 6343 2015-02-18 16:46:00Z spm $
 
 
 % change to directory with empirical data
@@ -34,15 +34,17 @@
 %   options.spatial      - 'ECD','LFP' or 'IMG'
 %--------------------------------------------------------------------------
 try
-    cd('C:\home\spm\DCM\DCM tests')
+    cd(fullfile(spm('Dir'),'tests','data','DCM'))
 catch
     cd('C:\Users\karl\Documents\SPM\DCM tests')
 end
 close all, clear all
 clc
 rng('default')
+corr = @(x,y) subsref(corrcoef(x,y),substruct('()',{1,2})); % Stats tbx
 
-% set up
+
+% Set up
 %==========================================================================
 load DCM_MMN                               % base DCM
 
@@ -188,13 +190,13 @@ if 0
 end
 
 
-% BMA – first level
+% BMA - first level
 %--------------------------------------------------------------------------
 bma  = spm_dcm_bma(GCM);
 rma  = spm_dcm_bma(RCM);
 pma  = spm_dcm_bma(PCM);
 
-% BMC/BMA – second level
+% BMC/BMA - second level
 %==========================================================================
 
 % BMC - search over first and second level effects
@@ -243,7 +245,7 @@ M0.X(:,2) = M0.X(randperm(Ns),2);
 clear Q
 for i = 1:Ns
         
-    % data – over subjects
+    % data - over subjects
     %----------------------------------------------------------------------
     Y(:,i,1) = GCM{i,1}.xY.y{1}*DCM.M.U(:,1);
     Y(:,i,2) = GCM{i,1}.xY.y{2}*DCM.M.U(:,1);
@@ -436,8 +438,8 @@ subplot(3,2,2), imagesc(pp)
 xlabel('model'), ylabel('subject'), title('Model posterior (BMR)','FontSize',16)
 axis square
 
-[p i] = max(pp(:,1));
-[p j] = min(pp(:,1));
+[p,i] = max(pp(:,1));
+[p,j] = min(pp(:,1));
 stri  = sprintf('Subject %i',i);
 strj  = sprintf('Subject %i',j);
 

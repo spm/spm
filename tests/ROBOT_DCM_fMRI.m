@@ -12,14 +12,14 @@ function E = ROBOT_DCM_fMRI
 % DCM.options.P                      % starting estimates for parameters
 % DCM.options.hidden                 % indices of hidden regions
 
-% $Id: ROBOT_DCM_fMRI.m 6296 2015-01-02 16:20:19Z guillaume $
+% $Id: ROBOT_DCM_fMRI.m 6343 2015-02-18 16:46:00Z spm $
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
 try
-    cd('/home/spm/tests/DCM/fMRI')
+    cd(fullfile(spm('Dir'),'tests','data','DCM'))
 catch
-    cd('C:\Users\karl\Documents\SPM\DCM fMRI')
+    cd('C:\Users\karl\Documents\SPM\DCM tests')
 end
 close all
 delete(get(0,'Children'))

@@ -1,4 +1,4 @@
-function [PEB,P]   = spm_dcm_peb(P,M,field)
+function [PEB,P]   = spm_dcm_peb_full(P,M,field)
 % Hierarchical (PEB) inversion of DCMs using BMR and VL
 % FORMAT [PEB,DCM] = spm_dcm_peb(DCM,M,field)
 % FORMAT [PEB,DCM] = spm_dcm_peb(DCM,X,field)
@@ -52,7 +52,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % over the parameters of a set of first level DCMs, using  second level or
 % between subject constraints specified in the design matrix X. This scheme
 % is efficient in the sense that it does not require inversion of the first
-% level DCMs – it just requires the prior and posterior densities from each
+% level DCMs ï¿½ it just requires the prior and posterior densities from each
 % first level DCMs to compute empirical priors under the implicit
 % hierarchical model. The output of this scheme (PEB) can be re-entered
 % recursively to invert deep hierarchical models. Furthermore, Bayesian
@@ -70,10 +70,10 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % If called with a cell array, each column is assumed to contain 1st level
 % DCMs inverted under the same model.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_full.m 6341 2015-02-18 14:46:43Z karl $
+% $Id: spm_dcm_peb_full.m 6343 2015-02-18 16:46:00Z spm $
  
 
 % get filenames and set up
@@ -188,13 +188,13 @@ else
 end
 switch OPTION
     
-    case{'single'}
+    case {'single'}
         % one between subject precision component
         %------------------------------------------------------------------
         Q{1}          = sparse(Np,Np);
         Q{1}(q,q)     = pP(q,q);
         
-    case{'fields'}
+    case {'fields'}
         % between subject precision components (one for each field)
         %------------------------------------------------------------------
         for i = 1:length(field)
@@ -204,7 +204,7 @@ switch OPTION
             Q{i}(j,j) = pP(j,j);
         end
         
-    case{'all'}
+    case {'all'}
         % between subject precision components (one for each parameter)
         %------------------------------------------------------------------
         for i = 1:Nq
@@ -381,7 +381,7 @@ for n = 1:32
     % Fisher scoring
     %----------------------------------------------------------------------
     dp      = spm_dx(dFdpp,dFdp,{t});
-    [db dg] = spm_unvec(dp,b,g);
+    [db,dg] = spm_unvec(dp,b,g);
     p       = p + dp;
     b       = b + db;
     g       = g + dg;
@@ -419,7 +419,7 @@ for i = 1:Ns
         
         % First level BMR (supplemented with second level complexity)
         %------------------------------------------------------------------
-        [Fi sE sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
+        [Fi,sE,sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
 
         DCM.M.pE = rE;
         DCM.M.pC = rC;
@@ -454,6 +454,5 @@ PEB.Ce   = rC;
 PEB.F    = F;
 
 try, delete tmp.mat, end
-
 
 

@@ -1,5 +1,5 @@
 function [BMC,PEB,DCM] = spm_dcm_bmc_peb(DCM,M,field)
-% hierarchical (PEB) model comparison and selection
+% Hierarchical (PEB) model comparison and selection
 % FORMAT [BMC,PEB,DCM] = spm_dcm_bmc_peb(DCM,M,field)
 %
 % DCM    - {N [x M]} structure array of DCMs from N subjects
@@ -42,9 +42,9 @@ function [BMC,PEB,DCM] = spm_dcm_bmc_peb(DCM,M,field)
 %     PEB.F    -   free energy of second level model
 %
 % DCM    - selected DCM structures with first level parameter estimates
-% -------------------------------------------------------------------------
 %
-%--------------------------------------------------------------------------
+%__________________________________________________________________________
+%
 % This routine performs Bayesian model comparison in the joint space of
 % models specified in terms of (first level) model parameters and models
 % specified in terms of (second level) group effects. The first level model
@@ -53,27 +53,27 @@ function [BMC,PEB,DCM] = spm_dcm_bmc_peb(DCM,M,field)
 % in a design matrix. first, the design matrix is a constant term or
 % that models a group mean. This is assumed to be present a priori.
 %
-% this routine assumes that all the models have been reduced (i.e. inverted
-% using Bayesian model reduction). It then use sempirical Bayes and the
-% summary statistic approach tto evaluate the relative contributions of
+% This routine assumes that all the models have been reduced (i.e. inverted
+% using Bayesian model reduction). It then uses empirical Bayes and the
+% summary statistic approach to evaluate the relative contributions of
 % between subject effects by considering all combinations of columns in the
 % design matrix.
 %
-% This Bayesian model comparison should be contrasted with model
-% comparison at the second level. Here, we are interested in the best model
-% of first level parameters that show a second level effect. This is not
-% the same as trying to find the best model of second level effects. model
-% comparison among second level parameters uses spm_dcm_bmr_peb.
+% This Bayesian model comparison should be contrasted with model comparison
+% at the second level. Here, we are interested in the best model of first
+% level parameters that show a second level effect. This is not the same as
+% trying to find the best model of second level effects. Model comparison
+% among second level parameters uses spm_dcm_bmr_peb.
 %
 % NB for EEG models the absence of a connection means it is equal to its
-% prior mesn, not that is is zero.
+% prior mean, not that is is zero.
 %
 % see also: spm_dcm_peb.m and spm_dcm_bmr_peb
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6306 2015-01-18 20:50:38Z karl $
+% $Id: spm_dcm_bmc_peb.m 6343 2015-02-18 16:46:00Z spm $
 
 
 % set up
@@ -92,7 +92,7 @@ if ~isstruct(M)
     M = struct('X',M);
 end
 
-% feels that specify which parameters are random effects
+% fields that specify which parameters are random effects
 %--------------------------------------------------------------------------
 if nargin < 3;
     field = {'A','B'};
@@ -128,7 +128,7 @@ P      = F;
 P(:)   = exp(P(:) - max(P(:)));
 P(:)   = P/sum(P(:));
 
-% family wise inference over mmodels and design
+% family wise inference over models and design
 %--------------------------------------------------------------------------
 Px     = sum(P,1);
 Pw     = sum(P,2);
@@ -154,14 +154,14 @@ BMC.K  = K;
 %==========================================================================
 spm_figure('Getwin','PEB-BMC'); clf
 
-subplot(3,2,1), [m i] = max(Pw); bar(Pw),
+subplot(3,2,1), [m,i] = max(Pw); bar(Pw),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('First level','FontSize',16)
 xlabel('Model','FontSize',12)
 ylabel('Probability','FontSize',12)
 axis([0 (Nm + 1) 0 1]), axis square
 
-subplot(3,2,2), [m i] = max(Px); bar(Px),
+subplot(3,2,2), [m,i] = max(Px); bar(Px),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Second level','FontSize',16)
 xlabel('Model','FontSize',12)

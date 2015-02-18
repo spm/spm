@@ -1,4 +1,4 @@
-function [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,Y,X,field,i)
+function [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,Y,X,field,iX)
 % Posterior predictive density for empirical Bayes and DCM
 % FORMAT [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,Y,X,field,i)
 %
@@ -14,7 +14,7 @@ function [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,Y,X,field,i)
 % X      - second level design matrix, where X(:,1) = ones(N,1) [default]
 % field  - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %          'All' will invoke all fields (these constitute random effects)
-% i      - column of design matrix to be predicted   [default: i =2]
+% iX     - column of design matrix to be predicted   [default: iX=2]
 % 
 % qE     - posterior predictive expectation
 % qC     - posterior predictive covariances
@@ -38,7 +38,7 @@ function [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,Y,X,field,i)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_dcm_ppd.m 6343 2015-02-18 16:46:00Z spm $
 
 
 % Set up
@@ -47,13 +47,13 @@ function [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,Y,X,field,i)
 % explanatory variable (between subject effect) of interest
 %--------------------------------------------------------------------------
 if nargin < 6;
-    iX  = 2;
+    iX    = 2;
 end
 
 % parameter fields
 %--------------------------------------------------------------------------
 if nargin < 5;
-    field  = {'A','B'};
+    field = {'A','B'};
 end
 if strcmpi(field,'all');
     field = fieldnames(TEST(1,1).M.pE);
@@ -66,10 +66,10 @@ if size(TRAIN,2) > 1
     % loop over models in each column
     %----------------------------------------------------------------------
     for i = 1:size(TRAIN,2)
-        [p,q,r]  = spm_dcm_ppd(TEST(1,i),TRAIN(:,i),X,field);
-        qE{i}    = p;
-        qC{i}    = q;
-        P{i}     = r;
+        [p,q,r] = spm_dcm_ppd(TEST(1,i),TRAIN(:,i),X,field);
+        qE{i}   = p;
+        qC{i}   = q;
+        P{i}    = r;
     end
     return
 end
@@ -110,5 +110,3 @@ for j = 1:length(x)
     F(j,1) = spm_log_evidence(qE,qC,pE,pC,x(j),0);
 end
 P     = spm_softmax(F);
-
-

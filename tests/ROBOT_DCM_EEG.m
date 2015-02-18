@@ -5,11 +5,12 @@ function E = ROBOT_DCM_EEG
 %   options.model        - 'ERP','SEP','CMC','LFP','NNM' or 'MFM'
 %   options.spatial      - 'ECD','LFP' or 'IMG'
 
+% $Id: ROBOT_DCM_EEG.m 6343 2015-02-18 16:46:00Z spm $
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
 try
-    cd('/home/spm/tests/DCM/MEEG')
+    cd(fullfile(spm('Dir'),'tests','data','DCM'))
 catch
     cd('C:\Users\karl\Documents\SPM\DCM tests')
 end

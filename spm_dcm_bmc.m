@@ -34,7 +34,7 @@ function [post,exp_r,xp,pxp,bor] = spm_dcm_bmc(DCM)
 % Copyright (C) 2009-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_dcm_bmc.m 6343 2015-02-18 16:46:00Z spm $
 
 
 % assemble log evidence

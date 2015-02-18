@@ -33,13 +33,13 @@ function DCM = spm_dcm_bmr_all(DCM,field)
 % DCM.Ep     -  Bayesian model averages
 % DCM.Cp     -  Bayesian model variance
 %
-% See also: spm_dcm_post_hoc – this routine is essentially a simplified
+% See also: spm_dcm_post_hoc - this routine is essentially a simplified
 % version of spm_dcm_post_hoc
 %__________________________________________________________________________
-% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_post_hoc.m 6297 2015-01-05 10:37:27Z karl $
+% $Id: spm_dcm_bmr_all.m 6343 2015-02-18 16:46:00Z spm $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -144,7 +144,7 @@ while GS
     
     %-Get selected model and prune redundant parameters
     %======================================================================
-    [z i]  = max(p);
+    [z,i]  = max(p);
     C(k(K(i,:))) = 0;
     
     % Continue greedy search if any parameters have been eliminated

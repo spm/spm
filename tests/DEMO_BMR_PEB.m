@@ -8,14 +8,14 @@ function DEMO_BMR_PEB
 % and to assure the Laplace assumption is correct. In brief, the data are
 % generated for multiple subjects, under a linear model with subject
 % specific parameters at the first level and group specific parameters at
-% the second. These model a group effect comment all subjects in a subset of
-% parameters and differences in a further subset. The objective of
+% the second. These model a group effect common to all subjects in a subset
+% of parameters and differences in a further subset. The objective of
 % empirical Bayesian inversion is to recover the group effects in terms of
 % posteriors and perform Bayesian model comparison at the second (between
 % subject) level.
 %
-% This provides empirical shrinkage priors at the first level, which can 
-% be used to compute the predictive posterior for any subject. In turn, the
+% This provides empirical shrinkage priors at the first level, which can be
+% used to compute the predictive posterior for any subject. In turn, the
 % predictive posterior can be used for leave-one-out cross validation.
 %
 % The key aspect of this approach to empirical Bayesian modelling is that
@@ -26,19 +26,20 @@ function DEMO_BMR_PEB
 % dealing with large first-level or complicated models: as in DCM.
 % 
 % The parameterisation of the models uses the format of DCM. This means
-% parameters are specified as a structure with key parameters being
-% in the fields A, B and C.
+% parameters are specified as a structure with key parameters being in the
+% fields A, B and C.
 %
 % See also: spm_dcm_bmr, spm_dcm_peb and spm_dcm_peb_bma
 %__________________________________________________________________________
-% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BMR_PEB.m 6341 2015-02-18 14:46:43Z karl $
+% $Id: DEMO_BMR_PEB.m 6343 2015-02-18 16:46:00Z spm $
 
 
 % set up
 %==========================================================================
+corr = @(x,y) subsref(corrcoef(x,y),substruct('()',{1,2})); % Stats tbx
 rng('default')
 
 % model space - defined in terms of combinations of some parameters
@@ -245,7 +246,7 @@ f  = sum(f,1); f  = f - max(f) + 64; f(f < 0) = 0;
 subplot(3,2,3), bar(f), xlabel('model'), ylabel('Free energy'), title('Free energy (FFX)','FontSize',16)
 spm_axis tight, axis square
 
-p  = exp(f - max(f)); p = p/sum(p); [m i] = max(p); 
+p  = exp(f - max(f)); p = p/sum(p); [m,i] = max(p); 
 subplot(3,2,5), bar(p)
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (FFX)','FontSize',16)
@@ -260,7 +261,7 @@ f  = sum(f,1); f  = f - max(f) + 64; f(f < 0) = 0;
 subplot(3,2,4), bar(f), xlabel('model'), ylabel('Free energy'), title('Free energy (BMR)','FontSize',16)
 spm_axis tight, axis square
 
-p  = exp(f - max(f)); p = p/sum(p); [m i] = max(p); 
+p  = exp(f - max(f)); p = p/sum(p); [m,i] = max(p); 
 subplot(3,2,6), bar(p)
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (BMR)','FontSize',16)
@@ -295,21 +296,21 @@ axis([-1 1 -1 1]*ALim), axis square
 
 f   = sum(F(:,:,1)); f = f - max(f(:)); f(f < -64) = -64;
 p   = exp(f - max(f)); p = p/sum(p);
-subplot(3,2,2), bar(p),[m i] = max(p); 
+subplot(3,2,2), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (FFX)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
 f   = sum(F(:,:,2)); f = f - max(f(:)); f(f < -64) = -64;
 p   = exp(f - max(f)); p = p/sum(p);
-subplot(3,2,4), bar(p),[m i] = max(p); 
+subplot(3,2,4), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (BMR)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
 f   = sum(F(:,:,3)); f = f - max(f(:)); f(f < -64) = -64;
 p   = exp(f - max(f)); p = p/sum(p);
-subplot(3,2,6), bar(p),[m i] = max(p); 
+subplot(3,2,6), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (PEB)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
@@ -318,7 +319,7 @@ axis([0 (length(p) + 1) 0 1]), axis square
 
 % second level parameter estimates and Bayesian model comparison
 %==========================================================================
-spm_figure('GetWin','Figure 4');clf
+spm_figure('GetWin','Figure 4'); clf
 
 % and estimated second level parameters
 %--------------------------------------------------------------------------
@@ -331,13 +332,13 @@ axis square
 [~,~,xp] = spm_dcm_bmc(RCM);
 
 p   = full(spm_cat({REB.F})); p = exp(p - max(p)); p = p/sum(p);
-subplot(2,2,3), bar(p),[m i] = max(p); 
+subplot(2,2,3), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('posterior probability'), title('Random parameter effects','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
 p   = xp;
-subplot(2,2,4), bar(p),[m i] = max(p); 
+subplot(2,2,4), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('exceedance probability'), title('Random model effects','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
@@ -375,7 +376,7 @@ ylabel('Model (commonalities)','FontSize',12)
 axis square
 
 subplot(3,2,3)
-[m i] = max(sum(p,2)); bar(sum(p,2)),
+[m,i] = max(sum(p,2)); bar(sum(p,2)),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Commonalities','FontSize',16)
 xlabel('Model','FontSize',12)
@@ -389,7 +390,7 @@ ylabel('Model (commonalities)','FontSize',12)
 axis square
 
 subplot(3,2,4)
-[m i] = max(sum(p,1)); bar(sum(p,1))
+[m,i] = max(sum(p,1)); bar(sum(p,1))
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Differences','FontSize',16)
 xlabel('Model','FontSize',12)

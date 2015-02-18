@@ -1,5 +1,5 @@
 function [DCM,PEB,F] = spm_dcm_peb_fit(GCM,M,field)
-% Bayesian ggroup inversion  using empirical Bayes
+% Bayesian group inversion  using empirical Bayes
 % FORMAT [DCM,PEB,F] = spm_dcm_peb_fit(DCM,M,field)
 %
 % DCM    - {N [x M]} structure array of DCMs from N subjects
@@ -40,8 +40,8 @@ function [DCM,PEB,F] = spm_dcm_peb_fit(GCM,M,field)
 %     PEB.Ch   -   posterior covariance  of second level log-precisions
 %     PEB.Ce   -   expected covariance of second level random effects
 %     PEB.F    -   free energy of second level model
+%__________________________________________________________________________
 %
-%--------------------------------------------------------------------------
 % This routine performs hierarchical empirical Bayesian inversion of a
 % group DCM study. It uses Bayesian model reduction to place second
 % (between subject) level constraints on the coordinate descent implicit
@@ -50,7 +50,7 @@ function [DCM,PEB,F] = spm_dcm_peb_fit(GCM,M,field)
 % subject inversion, the priors are updated using empirical priors from
 % the second level. The free energy of this hierarchical model comprises
 % the complexity of group effects plus the sum of free energies from each
-% subject – evaluated under the empirical priors  provided by the second
+% subject - evaluated under the empirical priors  provided by the second
 % level.
 %
 % If called with a cell array, each column is assumed to contain the same
@@ -61,10 +61,10 @@ function [DCM,PEB,F] = spm_dcm_peb_fit(GCM,M,field)
 %
 % see also: spm_dcm_fit.m; spm_dcm_peb.m; spm_dcm_bmr.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fit.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_dcm_peb_fit.m 6343 2015-02-18 16:46:00Z spm $
 
 
 % set up
@@ -104,7 +104,7 @@ for k = 1:64
     %----------------------------------------------------------------------
     try, DCM  = spm_dcm_fit(DCM); catch, break;  end
      
-    % empirical Bayes – over subjects
+    % empirical Bayes ï¿½ over subjects
     %----------------------------------------------------------------------
     [PEB,DCM] = spm_dcm_peb(DCM,M,field);
     
@@ -156,5 +156,3 @@ if Nm > 1
     DCM   = spm_dcm_bmr(GCM);
     
 end
-
-

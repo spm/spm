@@ -1,14 +1,14 @@
 function spm_MDP_da(MDP)
-% simulated histograms of dopamine firing
+% Simulated histograms of dopamine firing
 % FORMAT spm_MDP_da(MDP)
 %
 % See also: spm_MDP_game, which generalises this scheme and replaces prior
 % beliefs about KL control with minimisation of expected free energy.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game_KL.m 6064 2014-06-23 09:39:46Z karl $
+% $Id: spm_MDP_da.m 6343 2015-02-18 16:46:00Z spm $
 
 % deconvolve to simulate dopamine responses
 %--------------------------------------------------------------------------
