@@ -1,6 +1,7 @@
 function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % hierarchical (PEB) dynamic model comparison and averaging
 % FORMAT [BMA] = spm_dcm_peb_bmc(PEB,models)
+% FORMAT [BMA] = spm_dcm_peb_bmc(PEB)
 %
 % PEB -  between subject (second level) effects (from spm_dcm_peb)
 % ------------------------------------------------------------
@@ -15,9 +16,12 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 %     PEB.Ep   -   posterior expectation of second level parameters
 %     PEB.Cp   -   posterior covariance  of second level parameters
 %
-% models - parameter field in HCM.Ep to compare [default: 'B']
+% models - field in HCM.Ep to compare For the first two group effects
 %          or logical (Nm x Np) matrix of Nm (parameteric) model space
 %          or an array of DCMs specifying Nm (parameteric) model space
+%
+% if models are not specified, all combinations of second level parameters
+% will be tested.
 %
 % BMA    - DCM structure of Bayesian model average
 % -------------------------------------------------------------
@@ -26,13 +30,16 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 %     BMA.Pind
 %
 %     BMA.Ep   - BMA expectation of second level parameters
-%     BMA.Cp   - BMA covariances of second level parameters
+%     BMA.Cp   - BMA   variances of second level parameters
+%     BMA.M    - second level model
+%
 %     BMA.F    - free energy over model space
 %     BMA.P    - posterior probability over models
 %     BMA.Px   - posterior probability over parameters (differences)
 %     BMA.Pw   - posterior probability over parameters (common)
-%     BMA.M    - second level model
 %     BMA.K    - model space
+% or
+%     BMA.K    - posterior probability with and without each parameter
 %
 %--------------------------------------------------------------------------
 % This routine performs Bayesian model comparison & averaging at the second
@@ -47,6 +54,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % subject differences). The particular form of Bayesian model comparison
 % and averaging here evaluates the Bayesian model average of the second
 % level parameters.
+%
 % Given the model space one can then computes the posterior probability
 % of various combinations of group effects over different parameters. Of
 % particular interest are (i) the posterior probabilities over the
@@ -56,6 +64,10 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % BMA.Pw and BMA.Px respectively. The Bayesian model averages of the second
 % level parameters and can be found in BMA.Ep and BMA.Cp.
 %
+% If models are not specified, all  and combinations of individual
+% parameters over all group effects will be considered and the ensuing
+% Bayesian model reduction reported for each effect in the design matrix.
+%
 % NB for EEG models the absence of a connection means it is equal to its
 % prior mesn, not that is is zero.
 %
@@ -64,16 +76,63 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6329 2015-02-05 19:25:52Z karl $
+% $Id: spm_dcm_peb_bmc.m 6341 2015-02-18 14:46:43Z karl $
 
-% Compute reduced log-evidence
+% (greedy) search over all combinations of second level parameters
+%==========================================================================
+if nargin < 2
+    
+    % greedy search and (second level) Bayesian model average
+    %----------------------------------------------------------------------
+    BMA  = spm_dcm_bmr_all(PEB);
+    
+    %  plot posteriors over parameters
+    %======================================================================
+    spm_figure('Getwin','BMC'); clf
+    
+    Np    = size(BMA.Pind,1);
+    str   = {'Group means','Group effect'};
+    for i = 1:min(2,size(PEB.M.X,2))
+        
+        j = (1:Np)' + (i - 1)*Np;
+        
+        % posterior density over parameters
+        %------------------------------------------------------------------
+        subplot(3,2,0 + i), spm_plot_ci(PEB.Ep(j),PEB.Cp(j,j))
+        title(str{i},'FontSize',16)
+        xlabel('Parameter','FontSize',12)
+        ylabel('Effect size','FontSize',12)
+        axis square
+        
+        % posterior density over parameters
+        %------------------------------------------------------------------
+        subplot(3,2,2 + i), spm_plot_ci(BMA.Ep(j),BMA.Cp(j))
+        title('Reduced','FontSize',16)
+        xlabel('Parameter','FontSize',12)
+        ylabel('Effect size','FontSize',12)
+        axis square
+
+        % posterior density over parameters
+        %------------------------------------------------------------------
+        subplot(3,2,4 + i), bar(diag(BMA.Pp(j)),Np)
+        title('Posterior','FontSize',16)
+        xlabel('Parameter','FontSize',12)
+        ylabel('Probability','FontSize',12)
+        axis([0 (Np + 1) 0 1]), axis square
+    
+    end
+    legend(BMA.Pnames)
+    return
+end
+
+% otherwise search a smaller joint space of first and second group effects
 %==========================================================================
 
 
 % number of parameters and effects
 %--------------------------------------------------------------------------
-[Np Nx]   = size(PEB.Ep);
-if nargin < 2, models = 'B'; end
+[Np,Nx]   = size(PEB.Ep);
+
 if ischar(models)
     
     % compare all combinations of field in 'models'
@@ -91,24 +150,20 @@ elseif iscell(models)
     Np    = length(PEB.Pind);
     K     = ones(Nm,Np);
     for i = 1:Nm
-        
-        pC = models{i}.M.pC;
-        if isstruct(pC)
-            k  = find(spm_vec(pC));
-        else
-            k  = find(diag(pC));
-        end
+        k      = spm_find_pC(models{i}.M.pC);
         j      = find(~ismember(PEB.Pind,k));
         K(i,j) = 0;
     end
     
 else
+    
     % model space in defined in terms of a matrix
     %----------------------------------------------------------------------
     K     = models;
-    k     = find(any(~K));
+    
 end
-[Nm Np]   = size(K);
+K         = unique(K,'rows','stable');
+[Nm,Np]   = size(K);
 
 
 % check number of models
@@ -243,14 +298,16 @@ BMA.K     = K;
 %==========================================================================
 spm_figure('Getwin','BMC'); clf
 
-subplot(3,2,1), imagesc(G)
-title('Free energy','FontSize',16)
-xlabel('Model (differences)','FontSize',12)
-ylabel('Model (commonalities)','FontSize',12)
+subplot(3,2,1), imagesc(K')
+title('Model space','FontSize',16)
+xlabel('Model','FontSize',12)
+ylabel('Parameter','FontSize',12)
+set(gca,'XTick',1:Nm)
+set(gca,'YTick',1:Np,'YTickLabel',PEB.Pnames)
 axis square
 
 subplot(3,2,3)
-[m i] = max(P1); bar(P1),
+[m,i] = max(P1); bar(P1),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Commonalities','FontSize',16)
 xlabel('Model','FontSize',12)
@@ -264,16 +321,16 @@ ylabel('Model probability','FontSize',12)
 axis([0 (Nb + 1) 0 1]), axis square
 legend(Kname)
 
-if Nx < 2, return, end
-
 subplot(3,2,2), imagesc(P)
 title('Posterior probabilities','FontSize',16)
 xlabel('Model (differences)','FontSize',12)
 ylabel('Model (commonalities)','FontSize',12)
 axis square
 
+if Nx < 2, return, end
+
 subplot(3,2,4)
-[m i] = max(P2); bar(P2),
+[m,i] = max(P2); bar(P2),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Differences','FontSize',16)
 xlabel('Model','FontSize',12)

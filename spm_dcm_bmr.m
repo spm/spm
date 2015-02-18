@@ -33,7 +33,7 @@ function [RCM,BMR] = spm_dcm_bmr(P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmr.m 6329 2015-02-05 19:25:52Z karl $
+% $Id: spm_dcm_bmr.m 6341 2015-02-18 14:46:43Z karl $
 
 
 % get filenames and set up
@@ -69,7 +69,10 @@ try
     %----------------------------------------------------------------------
     for j = 1:N
         try, load(P{j}); catch, DCM = P{j}; end
-        par(:,j) = logical(diag(DCM.M.pC));
+        
+        Np       = spm_length(DCM.M.pE);
+        i        = spm_find_pC(DCM.M.pC);
+        par(:,j) = sparse(i,1,true,Np,1);
     end
     
 catch
@@ -83,7 +86,6 @@ catch
         catch
             par(:,j) = logical(spm_vec(DCM.a,DCM.b,DCM.c));
         end
-        
     end
 end
 
@@ -197,13 +199,11 @@ BMR.P    = p;
 qE    = spm_vec(qE);
 Ep    = spm_vec(RCM{j}.Ep);
 Cp    = RCM{j}.Cp;
-try
-    i = find(diag(pC));
-catch
-    i = find(spm_vec(pC));
+i     = spm_find_pC(pC);
+if isstruct(pE)
+    j = spm_fieldindices(pE,'A','B','C');
+    i = j(ismember(j,i));
 end
-j     = spm_fieldindices(pE,'A','B','C');
-i     = j(ismember(j,i));
 
 % Show results: Graphics
 %--------------------------------------------------------------------------
@@ -226,9 +226,12 @@ axis square
 subplot(2,2,3)
 spm_plot_ci(qE(i),qC(i,i))
 title('MAP connections (full)','FontSize',16)
+xlabel('parameter'), ylabel('size')
 axis square, a = axis;
 
 subplot(2,2,4)
 spm_plot_ci(Ep(i),Cp(i,i))
 title('MAP connections (optimum)','FontSize',16)
+xlabel('parameter'), ylabel('size')
 axis square, axis(a)
+drawnow

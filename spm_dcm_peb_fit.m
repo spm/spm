@@ -79,11 +79,6 @@ DCM       = GCM(:,1);
 %--------------------------------------------------------------------------
 if nargin < 2;
     M.X   = ones(Ns,1);
-    M.pE  = DCM{1}.M.pE;
-    M.pC  = DCM{1}.M.pC;
-else
-    M.pE  = DCM{1}.M.pE;
-    M.pC  = DCM{1}.M.pC;
 end
 if nargin < 3;
     field = fieldnames(DCM{1,1}.M.pE);
@@ -93,7 +88,7 @@ end
 % reinvert (full) model with initialization; recursively
 %==========================================================================
 for i = 1:Ns
-    DCM{i,1}.M.Nmax = 4;
+    DCM{i,1}.M.Nmax = 8;
     try, dipfit{i}  = DCM{i,1}.M.dipfit; end
 end
 for k = 1:64
@@ -107,7 +102,7 @@ for k = 1:64
     
     % re-initialise and invert the full (first) model
     %----------------------------------------------------------------------
-    DCM       = spm_dcm_fit(DCM);
+    try, DCM  = spm_dcm_fit(DCM); catch, break;  end
      
     % empirical Bayes – over subjects
     %----------------------------------------------------------------------
@@ -116,6 +111,7 @@ for k = 1:64
     % get intial parameters
     %----------------------------------------------------------------------
     for i = 1:Ns
+        % DCM{i,1}.M.pC = DCM{i,1}.M.pC*2;
         DCM{i,1}.M.P  = DCM{i,1}.Ep;
     end
     
@@ -128,15 +124,37 @@ for k = 1:64
         dF   = PEB.F - F(k - 1);
         F(k) = PEB.F;
     end
-    if dF < 1/8 && k > 16; break, end
+    if dF < 1e-2 && k > 32; break, end
     
 end
+
 
 % Bayesian model reduction if necessary
 %==========================================================================
 if Nm > 1
+    
+    % place posteriors in full model (first column)
+    %----------------------------------------------------------------------
     GCM(:,1) = DCM;
-    DCM      = spm_dcm_bmr(GCM);
+    
+    % place emprical priros in reduced models
+    %----------------------------------------------------------------------
+    pE    = GCM{1,1}.M.pE;
+    pC    = GCM{1,1}.M.pC;
+    Np    = size(pC,1);
+    for j = 1:Nm
+        k     = spm_find_pC(GCM{1,j});
+        R     = sparse(k,k,1,Np,Np);
+        for i = 1:Ns
+            GCM{i,j}.M.pE = spm_unvec(R*spm_vec(pE),pE);
+            GCM{i,j}.M.pC = R*pC*R;
+        end
+    end
+    
+    % and reduce
+    %----------------------------------------------------------------------
+    DCM   = spm_dcm_bmr(GCM);
+    
 end
 
 

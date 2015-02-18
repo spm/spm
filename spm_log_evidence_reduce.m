@@ -24,7 +24,7 @@ function [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC,TOL)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence_reduce.m 6309 2015-01-20 21:01:36Z spm $
+% $Id: spm_log_evidence_reduce.m 6341 2015-02-18 14:46:43Z karl $
  
 
 % Compute reduced log-evidence
@@ -72,7 +72,6 @@ F     = F/2;
 if nargout > 1
     pE = spm_vec(E);
     rE = sC*sE;
-    rC = sC;
     sE = spm_unvec(U*rE + pE - U*U'*pE,E);
-    sC = U*rC*U';
+    sC = U*sC*U';
 end

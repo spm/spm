@@ -34,7 +34,7 @@ function DEMO_BMR_PEB
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BMR_PEB.m 6321 2015-01-28 14:40:44Z karl $
+% $Id: DEMO_BMR_PEB.m 6341 2015-02-18 14:46:43Z karl $
 
 
 % set up
@@ -77,7 +77,7 @@ DCM.Ex      = spm_zeros(DCM.Ep);
 DCM.Ex.B{1} = B{mx}*2*sd;
 
 
-% (RFX) BMA – define the model space in terms of a matrix
+% (RFX) BMA - define the model space in terms of a matrix
 %--------------------------------------------------------------------------
 K     = ones(length(B),spm_length(DCM.Ep));
 k     = spm_fieldindices(DCM.M.pE,'B');
@@ -176,36 +176,32 @@ end
 
 % second level model
 %--------------------------------------------------------------------------
-M.X   = X;
-M.pE  = DCM.M.pE;
-M.pC  = DCM.M.pC;
+M     = struct('X',X);
 
-
-% Bayesian model reduction – for each subject
+% Bayesian model reduction - for each subject
 %==========================================================================
 RCM           = spm_dcm_bmr(GCM);
                     
 % hierarchical (empirical Bayes) analysis using model reduction
 %==========================================================================
 [REB,PCM]     = spm_dcm_peb(RCM);
+BMC   = spm_dcm_bmc_peb(RCM,M,{'B'});
 
-% BMA – (first level)
+% BMA - (first level)
 %--------------------------------------------------------------------------
 bma   = spm_dcm_bma(GCM);
 rma   = spm_dcm_bma(RCM);
 pma   = spm_dcm_bma(PCM);
 
-% BMA – (second level)
+% BMA - (second level)
 %--------------------------------------------------------------------------
 PEB   = spm_dcm_peb(RCM(:,1),M);
 BMA   = spm_dcm_peb_bmc(PEB,RCM(1,:));
 
-% BMC – (second level)
-%--------------------------------------------------------------------------
-BMC   = spm_dcm_bmc_peb(RCM,M,'B');
 
-
-
+% posterior predictive density and cross validation
+%==========================================================================
+spm_dcm_loo(RCM(:,mw),X,{'B'});
 
 
 % show results
@@ -277,21 +273,21 @@ axis([0 (length(p) + 1) 0 1]), axis square
 spm_figure('GetWin','Figure 3');clf, ALim = 1/2;
 
 r   = corr(spm_vec(Q([iA; iB],:,1)),spm_vec(Q([iA; iB],:,2)));
-str = sprintf('BMA: correlation = %-0.2f',r);
+str = sprintf('BMA: correlation = %-0.3f',r);
 subplot(3,2,1), plot(Q(iA,:,1),Q(iA,:,2),'.c','MarkerSize',16), hold on
 plot(Q(iB,:,1),Q(iB,:,2),'.b','MarkerSize',16), hold off
 xlabel('true parameter'), ylabel('Model average'), title(str,'FontSize',16)
 axis([-1 1 -1 1]*ALim), axis square
 
 r   = corr(spm_vec(Q([iA; iB],:,1)),spm_vec(Q([iA; iB],:,3)));
-str = sprintf('BMR: correlation = %-0.2f',r);
+str = sprintf('BMR: correlation = %-0.3f',r);
 subplot(3,2,3), plot(Q(iA,:,1),Q(iA,:,3),'.c','MarkerSize',16), hold on
 plot(Q(iB,:,1),Q(iB,:,3),'.b','MarkerSize',16), hold off
 xlabel('true parameter'), ylabel('Model average'), title(str,'FontSize',16)
 axis([-1 1 -1 1]*ALim), axis square
 
 r   = corr(spm_vec(Q([iA; iB],:,1)),spm_vec(Q([iA; iB],:,4)));
-str = sprintf('PEB: correlation = %-0.2f',r);
+str = sprintf('PEB: correlation = %-0.3f',r);
 subplot(3,2,5), plot(Q(iA,:,1),Q(iA,:,4),'.c','MarkerSize',16), hold on
 plot(Q(iB,:,1),Q(iB,:,4),'.b','MarkerSize',16), hold off
 xlabel('true parameter'), ylabel('Model average'), title(str,'FontSize',16)
@@ -347,6 +343,23 @@ xlabel('model'), ylabel('exceedance probability'), title('Random model effects',
 axis([0 (length(p) + 1) 0 1]), axis square
 
 
+
+% report log precision of random effects
+%--------------------------------------------------------------------------
+spm_figure('Getwin','Figure 5'); clf
+
+h   = ones(size(PEB.Eh))*log(C - 1);
+subplot(2,2,1), spm_plot_ci(PEB.Eh,PEB.Ch), a = axis;
+title('Estimated log precision','FontSize',16)
+axis square
+
+subplot(2,2,2), bar(h), axis(a)
+title('True log precision','FontSize',16)
+box off, axis square
+
+
+
+
 % report (second level) model comparison using explicit PEB estimates (PF)
 %--------------------------------------------------------------------------
 spm_figure('Getwin','BMC - PEB'); clf
@@ -362,7 +375,7 @@ ylabel('Model (commonalities)','FontSize',12)
 axis square
 
 subplot(3,2,3)
-[m i] = max(sum(p,1)); bar(sum(p,1)),
+[m i] = max(sum(p,2)); bar(sum(p,2)),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Commonalities','FontSize',16)
 xlabel('Model','FontSize',12)
@@ -376,19 +389,18 @@ ylabel('Model (commonalities)','FontSize',12)
 axis square
 
 subplot(3,2,4)
-[m i] = max(sum(p,2)); bar(sum(p,2)),
+[m i] = max(sum(p,1)); bar(sum(p,1))
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Differences','FontSize',16)
 xlabel('Model','FontSize',12)
 ylabel('Probability','FontSize',12)
 axis([0 (Nm + 1) 0 1]), axis square
 
-
-% posterior predictive density and cross validation
-%==========================================================================
-% spm_figure('GetWin','Figure 5');clf
-% spm_dcm_loo(RCM,X)
-
+subplot(3,2,6), imagesc(sparse(mw,mx,1,length(p),length(p)));
+title('Correct solution','FontSize',16)
+xlabel('Model (differences)','FontSize',12)
+ylabel('Model (commonalities)','FontSize',12)
+axis square
 
 return
 

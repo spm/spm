@@ -73,7 +73,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6341 2015-02-18 14:46:43Z karl $
+% $Id: spm_dcm_peb_full.m 6341 2015-02-18 14:46:43Z karl $
  
 
 % get filenames and set up
@@ -159,14 +159,6 @@ for i = 1:length(P)
     pE{i} = spm_vec(DCM.M.pE); 
     qE{i} = spm_vec(DCM.Ep);
     qC{i} = DCM.Cp;
-
-    
-    % select parameters in field
-    %----------------------------------------------------------------------
-    pE{i} = pE{i}(q); 
-    pC{i} = pC{i}(q,q); 
-    qE{i} = qE{i}(q); 
-    qC{i} = qC{i}(q,q); 
     
     % and free energy of model with full priors
     %----------------------------------------------------------------------
@@ -177,41 +169,47 @@ end
 % hierarchical model design and defaults
 %==========================================================================
 Ns     = numel(P);                    % number of subjects
-Np     = length(q);                   % number of parameters
+Np     = length(pE{1});               % number of RFX parameters
+Nq     = length(q);                   % number of RFX parameters
 Q      = {};                          % precision components
 
-% lower bound on prior precision and components for empirical covariance
+
+% lower bound on prior precision
+%--------------------------------------------------------------------------
+pP = spm_inv(M.pC);
+
+
+% precision components for empirical covariance
 %--------------------------------------------------------------------------
 if Ns > 1
     OPTION = 'single';
-    pP     = spm_inv(M.pC(q,q));
 else
     OPTION = 'none';
-    pP     = spm_inv(M.pC);
 end
-
 switch OPTION
     
     case{'single'}
         % one between subject precision component
         %------------------------------------------------------------------
-        Q = {pP};
+        Q{1}          = sparse(Np,Np);
+        Q{1}(q,q)     = pP(q,q);
         
     case{'fields'}
         % between subject precision components (one for each field)
         %------------------------------------------------------------------
         for i = 1:length(field)
-            j    = spm_fieldindices(DCM.M.pE,field{i});
-            j    = find(ismember(q,j));
-            Q{i} = sparse(Np,Np);
+            j         = spm_fieldindices(DCM.M.pE,field{i});
+            j         = find(ismember(j,q));
+            Q{i}      = sparse(Np,Np);
             Q{i}(j,j) = pP(j,j);
         end
         
     case{'all'}
         % between subject precision components (one for each parameter)
         %------------------------------------------------------------------
-        for i = 1:Np
-            Q{i} = sparse(i,i,pP(i,i),Np,Np);
+        for i = 1:Nq
+            j         = q(i);
+            Q{i}(j,j) = sparse(i,i,pP(j,j),Np,Np);
         end
         
     otherwise
@@ -220,13 +218,12 @@ end
 
 % priors for empirical expectations
 %--------------------------------------------------------------------------
-Np    = length(pP);
 if Ns > 1;
     
     % between-subject design matrices and prior expectations
     %======================================================================
     X     = M.X;
-    W     = speye(Np,Np);
+    W     = sparse(q,1:Nq,1,Np,Nq);
     bE    = M.pE(q);
     bC    = M.pC(q,q);
 
@@ -235,21 +232,26 @@ else
     % within subject design
     %======================================================================
     if nargin > 1
-        W = M.X;
-        X = 1;
+        W      = sparse(Np,size(M.X,2));
+        W(q,:) = M.X;
+        X      = 1;
     else
         W = M.pE(q);
         X = 1;
     end
     Nw      = size(W,2);
-    try, bE = M.bE(:); catch, bE = zeros(Nw,1); end
-    try, bC = M.bC;    catch, bC = eye(Nw,Nw);  end
+    try, bE = spm_vec(M.bE); catch, bE = zeros(Nw,1); end
+    try, bC = M.bC;          catch, bC = eye(Nw,Nw);  end
 
 end
 
 
 % check for user-specified priors on log precision of second level effects
 %--------------------------------------------------------------------------
+% Y     = spm_cat(qE)';
+% bE    = pinv(X)*Y;
+% gE    = -log(trace(pP*cov(Y - X*bE))/Np);
+
 gE    = 0;
 gC    = 1;
 try, gE = M.hE; end
@@ -379,7 +381,7 @@ for n = 1:32
     % Fisher scoring
     %----------------------------------------------------------------------
     dp      = spm_dx(dFdpp,dFdp,{t});
-    [db,dg] = spm_unvec(dp,b,g);
+    [db dg] = spm_unvec(dp,b,g);
     p       = p + dp;
     b       = b + db;
     g       = g + dg;
@@ -415,40 +417,12 @@ for i = 1:Ns
     %----------------------------------------------------------------------
     if nargout > 1
         
-        % posterior densities over all parameters
-        %------------------------------------------------------------------
-        if isstruct(DCM.M.pC)
-            pC{i} = diag(spm_vec(DCM.M.pC));
-        else
-            pC{i} = DCM.M.pC;
-        end
-        pE{i} = DCM.M.pE;
-        qE{i} = DCM.Ep;
-        qC{i} = DCM.Cp;
-        
-        % augment empirical priors
-        %------------------------------------------------------------------
-        RP      = spm_inv(pC{i});
-        RP(q,q) = RP(q,q) + rP - pP;
-        RC      = spm_inv(RP);
-        
-        RE      = spm_vec(pE{i});
-        RE(q)   = rE;
-        RE      = spm_unvec(RE,pE{i});
-
-        % posterior densities over all parameters
-        %------------------------------------------------------------------
-        pE{i} = DCM.M.pE;
-        pC{i} = DCM.M.pC;
-        qE{i} = DCM.Ep;
-        qC{i} = DCM.Cp;
-        
         % First level BMR (supplemented with second level complexity)
         %------------------------------------------------------------------
-        [Fi,sE,sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},RE,RC);
+        [Fi sE sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
 
-        DCM.M.pE = RE;
-        DCM.M.pC = RC;
+        DCM.M.pE = rE;
+        DCM.M.pC = rC;
         DCM.Ep   = sE;
         DCM.Cp   = sC;
         DCM.F    = Fi + iF(i) - Fc/Ns;

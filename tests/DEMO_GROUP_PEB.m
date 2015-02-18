@@ -179,6 +179,8 @@ subplot(2,2,4), plot(F)
 xlabel('iterations'), ylabel('free energy'), 
 title('second level free energy','FontSize',16), axis square
 
+return
+
 
 % Bayesian model reduction with and without hierarchical inversion
 %==========================================================================

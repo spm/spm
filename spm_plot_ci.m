@@ -10,7 +10,7 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 6233 2014-10-12 09:43:50Z karl $
+% $Id: spm_plot_ci.m 6341 2015-02-18 14:46:43Z karl $
 
 % unpack expectations into a matrix
 %--------------------------------------------------------------------------
@@ -133,11 +133,21 @@ else
             end
             
         else
-            
-            % conditional means
-            %--------------------------------------------------------------
-            bar(E,width,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
-            hold on
+                        
+            if n > 1
+                
+                % conditional means
+                %--------------------------------------------------------------
+                bar(E,width,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
+                hold on
+                
+            else
+                % conditional means
+                %--------------------------------------------------------------
+                bar(E,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
+                hold on
+                
+            end
             
             % conditional variances
             %--------------------------------------------------------------

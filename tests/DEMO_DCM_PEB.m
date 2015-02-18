@@ -24,7 +24,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6329 2015-02-05 19:25:52Z karl $
+% $Id: DEMO_DCM_PEB.m 6341 2015-02-18 14:46:43Z karl $
 
 
 % change to directory with empirical data
@@ -73,7 +73,7 @@ end
 
 % model space
 %--------------------------------------------------------------------------
-mw  = 2;                              % true model (within)
+mw  = 3;                              % true model (within)
 mx  = 4;                              % true model (between)
 Nm  = length(B);                      % number of models
 Ns  = 16;                             % number of subjects
@@ -86,6 +86,7 @@ if isfield(DCM,'M')
 end
 DCM.B   = B(mw);
 DCM     = spm_dcm_erp(DCM);
+Ep      = DCM.Ep;
 
 % create subject-specifc DCM
 %==========================================================================
@@ -94,13 +95,20 @@ DCM     = spm_dcm_erp(DCM);
 %--------------------------------------------------------------------------
 sd          = sqrt(DCM.M.pC.B{1}(1,1));
 sd          = sd/sqrt(C);
-DCM.Ep.B{1} = B{mw}*2*sd;
+DCM.Ep.B{1} = [
+    0.1  0    0   0   0;
+    0    0.1  0   0   0;
+    0.3  0    0.3 0   0;
+    0    0.3  0   0.3 0;
+    0    0    0   0   0];
 
 % between subject effects: constant, group difference and covariance
 %--------------------------------------------------------------------------
 X           = [ones(Ns,1) kron([-1;1],ones(Ns/2,1)) randn(Ns,1)];
 DCM.Ex      = spm_zeros(DCM.Ep);
-DCM.Ex.B{1} = B{mx}*2*sd;
+DCM.Ex.B{1} = -B{mx}*2*sd;
+Tp          = spm_vec(DCM.Ep);           % true second level paramters
+Tx          = spm_vec(DCM.Ex);           % true second level paramters
 
 % create subject-specifc DCM
 %--------------------------------------------------------------------------
@@ -138,7 +146,7 @@ for i = 1:Ns
         y{c} = DCM.M.R*y{c};
     end
     
-    % invert models
+    % specify models
     %----------------------------------------------------------------------
     for j = 1:Nm
         GCM{i,j}          = rmfield(DCM,'M');
@@ -157,46 +165,77 @@ end
 % second level model
 %--------------------------------------------------------------------------
 M     = struct('X',X);
-M.pE  = GCM{1}.M.pE;
-M.pC  = GCM{1}.M.pC;
 
 % invert rreduced models (standard inversion)
 %==========================================================================
-% GCM   = spm_dcm_fit(GCM);
+GCM   = spm_dcm_fit(GCM);
 
 % Bayesian model reduction (avoiding local minima over models)
 %==========================================================================
 RCM   = spm_dcm_bmr(GCM);
 
-% hierarchical (empirical Bayes) analysis using model reduction
+% hierarchical (empirical Bayes) model reduction
 %==========================================================================
+[peb,PCM] = spm_dcm_peb(RCM,[],'all');
 
-% BMC – first level
-%--------------------------------------------------------------------------
-[BMC,PEB,PCM] = spm_dcm_bmc_peb(RCM,M,{'A','B'});
+if 0
+    % alternative (more robust but expensive) iterative inversion
+    %----------------------------------------------------------------------
+    for i = 1:Ns
+        GCM{i,1}.M.dipfit = DCM.M.dipfit;
+    end
+    [PCM,peb,G] = spm_dcm_peb_fit(GCM);
+end
+
 
 % BMA – first level
 %--------------------------------------------------------------------------
-bma   = spm_dcm_bma(GCM);
-rma   = spm_dcm_bma(RCM);
-pma   = spm_dcm_bma(PCM);
+bma  = spm_dcm_bma(GCM);
+rma  = spm_dcm_bma(RCM);
+pma  = spm_dcm_bma(PCM);
 
 % BMC/BMA – second level
+%==========================================================================
+
+% BMC - search over first and second level effects
 %--------------------------------------------------------------------------
-BMA   = spm_dcm_peb_bmc(PEB,GCM(1,:));
-PMA   = spm_dcm_bmr_all(PEB,{'A','B'});
+[BMC,PEB] = spm_dcm_bmc_peb(PCM,M,{'A','B'});
+
+% BMA - exhaustive search over second level parameters
+%--------------------------------------------------------------------------
+BMA       = spm_dcm_peb_bmc(PEB);
+
+% overlay true values
+%--------------------------------------------------------------------------
+subplot(3,2,1),hold on, bar(Tp(BMA.Pind),1/2), hold off
+subplot(3,2,3),hold on, bar(Tp(BMA.Pind),1/2), hold off
+subplot(3,2,2),hold on, bar(Tx(BMA.Pind),1/2), hold off
+subplot(3,2,4),hold on, bar(Tx(BMA.Pind),1/2), hold off
+
+if 0
+    % alternative search over restricted model space at second level
+    %----------------------------------------------------------------------
+    spm_dcm_peb_bmc(PEB,PCM(1,:));
+    
+end
 
 % posterior predictive density and LOO cross validation
 %==========================================================================
-spm_dcm_loo(PCM,X,{'A','B'});
+spm_dcm_loo(RCM(:,1),X,{'A','B'});
 
-% full hierarchical inversion
-%--------------------------------------------------------------------------
-% [dcm,peb,Fpeb] = spm_dcm_peb_fit(GCM,M,{'A','B'});
 
 
 %XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+
+% null analysis
+%==========================================================================
+
+% BMC - search over first and second level effects
+%--------------------------------------------------------------------------
+M0        = M;
+M0.X(:,2) = M0.X(randperm(Ns),2);
+% spm_dcm_bmc_peb(RCM,M0,{'A','B'});
 
 
 % extract and plot results
@@ -204,10 +243,17 @@ spm_dcm_loo(PCM,X,{'A','B'});
 clear Q
 for i = 1:Ns
         
-    %  data – over subjects
+    % data – over subjects
     %----------------------------------------------------------------------
     Y(:,i,1) = GCM{i,1}.xY.y{1}*DCM.M.U(:,1);
     Y(:,i,2) = GCM{i,1}.xY.y{2}*DCM.M.U(:,1);
+    
+    % Parameter estimates under true model
+    %----------------------------------------------------------------------
+    P(:,i,1) = spm_vec(GCM{i,mw}.Tp);
+    P(:,i,2) = spm_vec(GCM{i,mw}.Ep);
+    P(:,i,3) = spm_vec(RCM{i,mw}.Ep);
+    P(:,i,4) = spm_vec(PCM{i,mw}.Ep);
 
     % Parameter averages
     %----------------------------------------------------------------------
@@ -221,9 +267,12 @@ for i = 1:Ns
     for j = 1:Nm
         F(i,j,1) = GCM{i,j}.F - GCM{i,1}.F;
         F(i,j,2) = RCM{i,j}.F - RCM{i,1}.F;
+        F(i,j,3) = PCM{i,j}.F - PCM{i,1}.F;
     end
     
 end
+
+
 
 % indices to plot parameters
 %--------------------------------------------------------------------------
@@ -233,6 +282,54 @@ iA    = spm_fieldindices(Pp,'A');
 iB    = spm_fieldindices(Pp,'B');
 iA    = iA(find(c(iA)));
 iB    = iB(find(c(iB)));
+
+% classical inference
+%==========================================================================
+
+% classical inference of second level
+%--------------------------------------------------------------------------
+i   = [iA;iB];
+CVA = spm_cva(Q(i,:,1)',X,[],[0 1 0]'); CP(1) = log(CVA.p); CR(1) = corr(Tx(i),CVA.V);
+CVA = spm_cva(Q(i,:,2)',X,[],[0 1 0]'); CP(2) = log(CVA.p); CR(2) = corr(Tx(i),CVA.V);
+CVA = spm_cva(Q(i,:,3)',X,[],[0 1 0]'); CP(3) = log(CVA.p); CR(3) = corr(Tx(i),CVA.V);
+CVA = spm_cva(Q(i,:,4)',X,[],[0 1 0]'); CP(4) = log(CVA.p); CR(4) = corr(Tx(i),CVA.V);
+
+spm_figure('GetWin','CVA');clf
+subplot(2,2,1), bar(spm_en([Tx(i) CVA.V]))
+title('Canonical vector','FontSize',16)
+xlabel('parameter'), ylabel('weight'), axis square
+
+subplot(2,2,2), bar(spm_en([X(:,2) CVA.v]))
+title('Canonical variate','FontSize',16)
+xlabel('parameter'), ylabel('weight'), axis square
+legend({'RFX','True'})
+
+subplot(2,1,2), bar(abs(CR(2:end)))
+title('Correlations with true values','FontSize',16)
+xlabel('inversion scheme'), ylabel('correlation'), axis square
+set(gca,'XTickLabel',{'FFX','BMR','PEB'})
+
+% correlations with true values
+%==========================================================================
+for i = 1:3
+    R(i)    = corr(spm_vec(P([iA; iB],:,1)),spm_vec(P([iA; iB],:,i + 1)));
+    Rstr{i} = num2str(R(i));
+end
+
+% plot
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Correlations');clf
+subplot(2,2,1)
+plot(spm_vec(P([iA; iB],:,2)),spm_vec(P([iA; iB],:,3)),'.','MarkerSize',8)
+title('Parameter estimates','FontSize',16)
+xlabel('mean (standard inverion)'), ylabel('BMR'), axis square
+
+subplot(2,2,2), bar(R)
+title('Correlations with true values','FontSize',16)
+xlabel('inversion scheme'), ylabel('correlation'), axis square
+text((1:3) - 1/8,R/2,Rstr(:),'Color','w','Fontsize',10)
+set(gca,'XTickLabel',{'FFX','BMR','RFX'})
+
 
 
 % plot simulation data
@@ -272,8 +369,8 @@ i = spm_fieldindices(DCM.Ep,'B{1}(1,1)');
 j = spm_fieldindices(DCM.Ep,'B{1}(2,2)');
 
 subplot(3,2,5)
-plot(Q(i,q,1),Q(j,q,1),'.r','MarkerSize',32), hold on
-plot(Q(i,p,1),Q(j,p,1),'.b','MarkerSize',32), hold off
+plot(Q(i,q,1),Q(j,q,1),'.r','MarkerSize',24), hold on
+plot(Q(i,p,1),Q(j,p,1),'.b','MarkerSize',24), hold off
 xlabel('B{1}(1,1)'), ylabel('B{1}(2,2)'), title('Group effects','FontSize',16)
 axis square
 
@@ -281,8 +378,8 @@ i = spm_fieldindices(DCM.Ep,'B{1}(3,3)');
 j = spm_fieldindices(DCM.Ep,'B{1}(4,4)');
 
 subplot(3,2,6)
-plot(Q(i,q,1),Q(j,q,1),'or','MarkerSize',8), hold on
-plot(Q(i,p,1),Q(j,p,1),'ob','MarkerSize',8), hold off
+plot(Q(i,q,1),Q(j,q,1),'.r','MarkerSize',24), hold on
+plot(Q(i,p,1),Q(j,p,1),'.b','MarkerSize',24), hold off
 xlabel('B{1}(3,3)'), ylabel('B{1}(4,4)'), title('Group effects','FontSize',16)
 axis square
 
@@ -328,13 +425,13 @@ axis([0 (length(p) + 1) 0 1]), axis square
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
 
-pp = softmax(F(:,:,2)')';
 
-f  = F(:,:,2); f = f - max(f(:)) + occ; f(f < 0) = 0;
+f   = F(:,:,2); f = f - max(f(:)) + occ; f(f < 0) = 0;
 subplot(3,2,1), imagesc(f)
 xlabel('model'), ylabel('subject'), title('Free energy (BMR)','FontSize',16)
 axis square
 
+pp  = softmax(f')';
 subplot(3,2,2), imagesc(pp)
 xlabel('model'), ylabel('subject'), title('Model posterior (BMR)','FontSize',16)
 axis square
@@ -414,33 +511,11 @@ text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (BMR)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
 
-p   = BMC.Pw;
+p   = spm_softmax(sum(F(:,:,3))');
 subplot(3,2,6), bar(p),[m,i] = max(p); 
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 xlabel('model'), ylabel('probability'), title('Posterior (PEB)','FontSize',16)
 axis([0 (length(p) + 1) 0 1]), axis square
-
-
-
-% second level parameter estimates and Bayesian model comparison
-%==========================================================================
-spm_figure('GetWin','Figure 5');clf
-
-% and estimated second level parameters
-%--------------------------------------------------------------------------
-Tp  = spm_vec(DCM.Ep);
-Tx  = spm_vec(DCM.Ex);
-Tp  = Tp(PEB.Pind);
-Tx  = Tx(PEB.Pind);
-
-i   = spm_fieldindices(DCM.Ep,'B');
-i   = ismember(PEB.Pind,i);
-j   = find([i; i]);
-i   = find(i);
-
-subplot(2,2,1), spm_plot_ci(PEB.Ep(j),PEB.Cp(j,j)), hold on, bar([Tp(i);Tx(i)],1/2), hold off
-xlabel('parameters'), ylabel('expectation'), title('2nd level parameters','FontSize',16)
-axis square
 
 
 % random effects Bayesian model comparison
@@ -464,24 +539,6 @@ axis([0 (length(p) + 1) 0 1]), axis square
 return
 
 
-% classical inference
-%==========================================================================
-
-% classical inference of second level
-%--------------------------------------------------------------------------
-CVA = spm_cva(Q(iB,:,1)',X,[],[0 1 0]'); CP(1) = log(CVA.p);
-CVA = spm_cva(Q(iB,:,2)',X,[],[0 1 0]'); CP(2) = log(CVA.p);
-CVA = spm_cva(Q(iB,:,3)',X,[],[0 1 0]'); CP(3) = log(CVA.p);
-
-
-% Bayesian model comparison
-%--------------------------------------------------------------------------
-field  = {'B'};
-i  = 1;
-PB = spm_dcm_peb(GCM(:,i),X(:,[1    ]),field);  BF(1) = PB.F;
-PB = spm_dcm_peb(GCM(:,i),X(:,[1 2  ]),field);  BF(2) = PB.F;
-PB = spm_dcm_peb(GCM(:,i),X(:,[1 3  ]),field);  BF(3) = PB.F;
-PB = spm_dcm_peb(GCM(:,i),X(:,[1 2 3]),field);  BF(4) = PB.F;
 
 
 % Notes

@@ -87,27 +87,10 @@ function [BMC,PEB,DCM] = spm_dcm_bmc_peb(DCM,M,field)
 %--------------------------------------------------------------------------
 if nargin < 2;
     M.X   = ones(Ns,1);
-    M.pE  = DCM{1}.M.pE;
-    M.pC  = DCM{1}.M.pC;
 end
 if ~isstruct(M)
     M = struct('X',M);
 end
-
-% use priors from the first level if necessary
-%--------------------------------------------------------------------------
-if ~isfield(M,'pE')
-    M.pE = spm_vec(DCM{1}.M.pE);
-end
-if ~isfield(M,'pC')
-    if isstruct(DCM{1}.M.pC)
-        M.pC = diag(spm_vec(DCM{1}.M.pC));
-    else
-        M.pC = DCM{1}.M.pC;
-    end
-end
-if isstruct(M.pE), M.pE =      spm_vec(M.pE) ; end
-if isstruct(M.pC), M.pC = diag(spm_vec(M.pC)); end
 
 % feels that specify which parameters are random effects
 %--------------------------------------------------------------------------
@@ -154,12 +137,12 @@ Pw     = sum(P,2);
 %--------------------------------------------------------------------------
 [m i]     = max(Pw);
 [m k]     = max(Px);
-M.X       = M.X(:,K(k,:));
-[PEB,DCM] = spm_dcm_peb(DCM(:,i),M,field);
+Mk.X      = M.X(:,K(k,:));
+[PEB,DCM] = spm_dcm_peb(DCM(:,i),Mk,field);
 
 % assemble BMC output structure
 %--------------------------------------------------------------------------
-BMC.M  = M;
+BMC.M  = Mk;
 BMC.F  = F;
 BMC.P  = P;
 BMC.Px = Px;

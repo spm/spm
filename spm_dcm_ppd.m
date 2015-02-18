@@ -85,7 +85,7 @@ PEB   = spm_dcm_peb(TRAIN,X,field);
 %--------------------------------------------------------------------------
 nX    = size(X,2);               % number of explanatory variables
 Y(iX) = 0;                       % prior expectation (variables)
-bC    = sparse(iX,1,128,nX,1);   % prior covariances (variables)
+bC    = sparse(iX,1,512,nX,1);   % prior covariances (variables)
 M.X   = PEB.Ep;                  % emprical prior expectations
 M.pC  = PEB.Ce;                  % emprical prior covariance (parameters)
 M.bE  = Y;                       % prior expectation (variables)

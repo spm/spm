@@ -88,14 +88,16 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_dcm_bma.m 6341 2015-02-18 14:46:43Z karl $
 
 % inputs are DCMs – assemble input arguments
 %--------------------------------------------------------------------------
-if nargin == 1 && iscell(post)
+if nargin == 1
+    
+    if ~iscell(post), post = {post}; end
     
     DCM   = post;
-    [n m] = size(DCM);
+    [n,m] = size(DCM);
     for i = 1:n
         for j = 1:m
             subj(i).sess(1).model(j).Ep = DCM{i,j}.Ep;

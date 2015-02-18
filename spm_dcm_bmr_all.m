@@ -1,12 +1,12 @@
 function DCM = spm_dcm_bmr_all(DCM,field)
 % Bayesian model reduction of all permutations of modelparameters
-% FORMAT DCM = spm_dcm_post_hoc(P,fun,field,write_all)
+% FORMAT DCM = spm_dcm_bmr_all(DCM,field)
 %
 %  DCM      - DCM structures; where
 %  DCM.M.pE - prior expectation (with parameters in pE.A, pE.B and pE.C)
 %  DCM.M.pC - prior covariance
-%  DCM.Ep   - posterior expectations
-%  DCM.Cp   - posterior covariance
+%  DCM.Ep   - posterior expectation
+%  DCM.Cp   - posterior covariances
 %
 % field  - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %          'All' will invoke all fields (i.e. random effects)
@@ -27,11 +27,11 @@ function DCM = spm_dcm_bmr_all(DCM,field)
 % consider.
 %
 % The outputs of this routine are graphics reporting the model reduction
-% aand the following characterisation of the model parameters
+% and the following characterisation of the model parameters
 %
 % DCM.Pp     -  Model posterior (with and without each parameter)
-% DCM.Ep     -  Bayesian parameter average under selected model
-% DCM.Cp     -  Bayesian parameter covariance under selected model
+% DCM.Ep     -  Bayesian model averages
+% DCM.Cp     -  Bayesian model variance
 %
 % See also: spm_dcm_post_hoc – this routine is essentially a simplified
 % version of spm_dcm_post_hoc
@@ -77,7 +77,8 @@ pC    = U'*pC*U;
 
 % Accumulated reduction vector (C)
 %--------------------------------------------------------------------------
-C   = logical(diag(DCM.M.pC));
+q   = diag(DCM.M.pC);
+C   = logical(q > mean(q(q < 1024))/1024);
 GS  = 1;
 while GS
     
@@ -97,11 +98,13 @@ while GS
         
         % Model search over new prior without the i-th parameter
         %------------------------------------------------------------------
-        Z     = [];
-        for i = 1:length(k)
+        Z     = zeros(1,nparam);
+        for i = 1:nparam
             r    = C; r(k(i)) = 0;
             R    = U(r,:)'*U(r,:);
-            Z(i) = spm_log_evidence(qE,qC,pE,pC,pE,R*pC*R);
+            rE   = R*pE;
+            rC   = R*pC*R;
+            Z(i) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
         end
         
         % Find parameters with the least evidence
@@ -128,13 +131,14 @@ while GS
     %----------------------------------------------------------------------
     G     = [];
     for i = 1:length(K)
-        r            = C;
-        r(k(K(i,:))) = 0;
-        R            = U(r,:)'*U(r,:);
-        G(i)         = spm_log_evidence(qE,qC,pE,pC,pE,R*pC*R);
+        r    = C; r(k(K(i,:))) = 0;
+        R    = U(r,:)'*U(r,:);
+        rE   = R*pE;
+        rC   = R*pC*R;
+        G(i) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
     end
     
-    % this demo probability
+    % posterior probability
     %----------------------------------------------------------------------
     p      = spm_softmax(G(:));
     
@@ -183,15 +187,28 @@ Pn(k) = Pk;
 Pk    = spm_unvec(Pn,pE);
 
 
-%-Conditional estimates of selected model
+%-Bayesian model average
 %==========================================================================
 qE    = DCM.Ep;
 qC    = DCM.Cp;
 pE    = DCM.M.pE;
 pC    = DCM.M.pC;
-rC    = diag(C)*pC*diag(C);
-
-[F,Ep,Cp] = spm_log_evidence_reduce(qE,qC,pE,pC,pE,rC);
+BMA   = {};
+Gmax  = max(G);
+for i = 1:length(K)
+    if G(i) > (Gmax - 8)
+        r            = C;
+        r(k(K(i,:))) = 0;
+        R            = diag(r);
+        rE           = R*pE;
+        rC           = R*pC*R;
+        [F,Ep,Cp]    = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
+        BMA{end + 1} = struct('Ep',Ep,'Cp',Cp,'F',F);
+    end
+end
+BMA   = spm_dcm_bma(BMA);
+Ep    = BMA.Ep;
+Cp    = BMA.Cp;
 
 
 % Show full and reduced conditional estimates (for Bayesian average)
@@ -214,7 +231,7 @@ axis square
 a   = axis;
 
 subplot(3,2,4)
-spm_plot_ci(Ep(i),abs(Cp(i,i)))
+spm_plot_ci(Ep(i),abs(Cp(i)))
 title('MAP connections (reduced)','FontSize',16)
 axis square
 axis(a)
@@ -237,7 +254,7 @@ drawnow
 %-Save Bayesian parameter average and family-wise model inference
 %==========================================================================
 DCM.Pp    = Pk;        % Model posterior over parameters (with and without)
-DCM.Ep    = Ep;        % Bayesian parameter under selected model
-DCM.Cp    = Cp;        % Bayesian parameter covariance under selected model
+DCM.Ep    = Ep;        % Bayesian model averages
+DCM.Cp    = Cp;        % Bayesian model variance
 DCM.F     = DCM.F + F; % reduced free energy
 
