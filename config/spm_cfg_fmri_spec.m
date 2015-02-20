@@ -1,9 +1,9 @@
 function fmri_spec = spm_cfg_fmri_spec
 % SPM Configuration file for fMRI model specification
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 6088 2014-07-03 17:57:09Z guillaume $
+% $Id: spm_cfg_fmri_spec.m 6344 2015-02-20 11:59:25Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -561,14 +561,23 @@ fir.val     = {length order };
 fir.help    = {'Finite impulse response - requires SPM{F} for inference.'};
 
 %--------------------------------------------------------------------------
+% none None
+%--------------------------------------------------------------------------
+none         = cfg_const;
+none.tag     = 'none';
+none.name    = 'None';
+none.val     = { true };
+none.help    = {'No convolution.'};
+
+%--------------------------------------------------------------------------
 % bases Basis Functions
 %--------------------------------------------------------------------------
 bases         = cfg_choice;
 bases.tag     = 'bases';
 bases.name    = 'Basis Functions';
 bases.val     = {hrf };
-bases.help    = {'The most common choice of basis function is the Canonical HRF with or without time and dispersion derivatives. '};
-bases.values  = {hrf fourier fourier_han gamma fir };
+bases.help    = {'The most common choice of basis function is the Canonical HRF with or without time and dispersion derivatives.'};
+bases.values  = {hrf fourier fourier_han gamma fir none};
 
 %--------------------------------------------------------------------------
 % volt Model Interactions (Volterra)

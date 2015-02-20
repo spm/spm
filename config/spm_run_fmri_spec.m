@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 6324 2015-02-02 17:10:20Z guillaume $
+% $Id: spm_run_fmri_spec.m 6344 2015-02-20 11:59:25Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -68,7 +68,9 @@ SPM.xBF.T0    = job.timing.fmri_t0;
 %-Basis functions
 %--------------------------------------------------------------------------
 bf = char(fieldnames(job.bases));
-if strcmp(bf,'hrf')
+if strcmp(bf,'none')
+    SPM.xBF.name = 'NONE';
+elseif strcmp(bf,'hrf')
     if all(job.bases.hrf.derivs == [0 0])
         SPM.xBF.name = 'hrf';
     elseif all(job.bases.hrf.derivs == [1 0])
