@@ -54,7 +54,7 @@ function str = spm_file(str,varargin)
 % Copyright (C) 2011-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file.m 6245 2014-10-15 11:22:15Z guillaume $
+% $Id: spm_file.m 6346 2015-02-24 11:01:50Z volkmar $
 
 
 needchar = ischar(str);
@@ -132,17 +132,17 @@ while ~isempty(options)
         [pth,nam,ext,num] = spm_fileparts(deblank(str{n}));
         switch lower(options{1})
             case 'path'
-                pth = options{2};
+                pth = char(options{2});
             case 'basename'
-                nam = options{2};
+                nam = char(options{2});
             case 'ext'
-                ext = options{2};
+                ext = char(options{2});
                 if ~isempty(ext) && ext(1) ~= '.'
                     ext = ['.' ext];
                 end
                 num = '';
             case 'filename'
-                nam = options{2};
+                nam = char(options{2});
                 ext = '';
             case 'number'
                 if isnumeric(options{2})
@@ -153,9 +153,9 @@ while ~isempty(options)
                 end
                 num = options{2};
             case 'prefix'
-                nam = [options{2} nam];
+                nam = [char(options{2}) nam];
             case 'suffix'
-                nam = [nam options{2}];
+                nam = [nam char(options{2})];
             case 'link'
                 if spm_platform('desktop')
                     cmd = ['<a href="matlab:' options{2} ';">%s</a>'];
