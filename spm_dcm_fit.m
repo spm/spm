@@ -17,7 +17,7 @@ function [P]   = spm_dcm_fit(P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fit.m 6317 2015-01-25 15:15:40Z karl $
+% $Id: spm_dcm_fit.m 6348 2015-02-25 13:34:21Z peter $
 
 
 % get filenames and set up
@@ -64,7 +64,7 @@ elseif isfield(DCM.M,'IS')
 else
     
     warning('unknown inversion scheme');
-    eturn
+    return
     
 end
 
