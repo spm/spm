@@ -45,19 +45,19 @@ function spm_image(action,varargin)
 % or images can be superimposed and the intensity windowing can also be
 % changed.
 %__________________________________________________________________________
-% Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 6215 2014-09-29 13:55:30Z guillaume $
+% $Id: spm_image.m 6349 2015-02-26 12:15:06Z guillaume $
 
 
-SVNid = '$Rev: 6215 $';
+SVNid = '$Rev: 6349 $';
 
 global st
 
 if ~nargin, action = 'Init'; end
 
-if ~any(strcmpi(action,{'init','reset','display'})) && ...
+if ~any(strcmpi(action,{'init','reset','display','resetorient'})) && ...
         (isempty(st) || ~isfield(st,'vols') || isempty(st.vols{1}))
     warning('spm:spm_image:lostInfo','Lost image information. Resetting.');
     spm_image('Reset');
@@ -166,10 +166,11 @@ switch lower(action)
             xA = spm_atlas('load',f{i});
             if numel(xA.VA) == 1 % assume a single image is a label image
                 VM = spm_atlas('mask',xA);
-                [Z,XYZmm] = spm_read_vols(VM);
-                XYZ = VM.mat\[XYZmm;ones(1,size(XYZmm,2))];
-                m  = find(Z);
-                spm_orthviews('AddColouredBlobs',1,XYZ(:,m),Z(m),VM.mat,colours(c,:));
+                %[Z,XYZmm] = spm_read_vols(VM);
+                %XYZ = VM.mat\[XYZmm;ones(1,size(XYZmm,2))];
+                %m  = find(Z);
+                %spm_orthviews('AddColouredBlobs',1,XYZ(:,m),Z(m),VM.mat,colours(c,:));
+                spm_orthviews('AddColouredImage',1,VM,colours(c,:));
             else
                 V = spm_atlas('prob',xA);
                 spm_orthviews('AddColouredImage',1,V,colours(c,:));
@@ -278,9 +279,14 @@ switch lower(action)
     case 'resetorient'
     % Reset orientation of images
     %----------------------------------------------------------------------
-    warning('Action ''ResetOrient'' is deprecated.');
-    [P,sts] = spm_select([1 Inf], 'image','Images to reset orientation of');
-    if ~sts, return; else P = cellstr(P); end
+    % warning('Action ''ResetOrient'' is deprecated.');
+    if ~isempty(varargin)
+        P = varargin{1};
+    else
+        [P,sts] = spm_select([1 Inf], 'image','Images to reset orientation of');
+        if ~sts, return; end
+    end
+    P = cellstr(P);
     spm_progress_bar('Init',numel(P),'Resetting orientations',...
         'Images Complete');
     for i=1:numel(P)
@@ -298,10 +304,10 @@ switch lower(action)
         spm_progress_bar('Set',i);
     end
     spm_progress_bar('Clear');
-    tmp = spm_get_space([st.vols{1}.fname ',' num2str(st.vols{1}.n)]);
-    if sum((tmp(:)-st.vols{1}.mat(:)).^2) > 1e-8
-        spm_image('Init',st.vols{1}.fname);
-    end
+    % tmp = spm_get_space([st.vols{1}.fname ',' num2str(st.vols{1}.n)]);
+    % if sum((tmp(:)-st.vols{1}.mat(:)).^2) > 1e-8
+    %     spm_image('Init',st.vols{1}.fname);
+    % end
 
     
     case 'update'
