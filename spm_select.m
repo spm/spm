@@ -56,7 +56,7 @@ function varargout = spm_select(varargin)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 6181 2014-09-17 16:35:39Z guillaume $
+% $Id: spm_select.m 6350 2015-02-26 12:56:26Z volkmar $
 
 
 % For developers:
@@ -142,6 +142,8 @@ else
         end
         varargin{4} = varargin{3};
         varargin{3} = 'image';
+    elseif nargin > 6 && isnumeric(varargin{1})
+        varargin{7} = struct('frames', varargin{7});
     end
     
     [t, sts] = cfg_getfile(varargin{:});
