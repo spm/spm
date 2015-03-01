@@ -1,6 +1,6 @@
-function [BMC,PEB,DCM] = spm_dcm_bmc_peb(DCM,M,field)
-% Hierarchical (PEB) model comparison and selection
-% FORMAT [BMC,PEB,DCM] = spm_dcm_bmc_peb(DCM,M,field)
+function [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
+% hierarchical (PEB) model comparison and selection
+% FORMAT [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
 %
 % DCM    - {N [x M]} structure array of DCMs from N subjects
 % ------------------------------------------------------------
@@ -27,7 +27,7 @@ function [BMC,PEB,DCM] = spm_dcm_bmc_peb(DCM,M,field)
 %     BMC.M    - second level model
 %     BMC.K    - model space
 %
-% PEB    - selected second level model and parameter estimates
+% PEB    - selected (best) second level model and parameter estimates
 % -------------------------------------------------------------
 %     PEB.Snames - string array of first level model names
 %     PEB.Pnames - string array of parameters of interest
@@ -41,10 +41,7 @@ function [BMC,PEB,DCM] = spm_dcm_bmc_peb(DCM,M,field)
 %     PEB.Ce   -   expected covariance of second level random effects
 %     PEB.F    -   free energy of second level model
 %
-% DCM    - selected DCM structures with first level parameter estimates
-%
-%__________________________________________________________________________
-%
+%--------------------------------------------------------------------------
 % This routine performs Bayesian model comparison in the joint space of
 % models specified in terms of (first level) model parameters and models
 % specified in terms of (second level) group effects. The first level model
@@ -53,27 +50,27 @@ function [BMC,PEB,DCM] = spm_dcm_bmc_peb(DCM,M,field)
 % in a design matrix. first, the design matrix is a constant term or
 % that models a group mean. This is assumed to be present a priori.
 %
-% This routine assumes that all the models have been reduced (i.e. inverted
-% using Bayesian model reduction). It then uses empirical Bayes and the
-% summary statistic approach to evaluate the relative contributions of
+% this routine assumes that all the models have been reduced (i.e. inverted
+% using Bayesian model reduction). It then use sempirical Bayes and the
+% summary statistic approach tto evaluate the relative contributions of
 % between subject effects by considering all combinations of columns in the
 % design matrix.
 %
-% This Bayesian model comparison should be contrasted with model comparison
-% at the second level. Here, we are interested in the best model of first
-% level parameters that show a second level effect. This is not the same as
-% trying to find the best model of second level effects. Model comparison
-% among second level parameters uses spm_dcm_bmr_peb.
+% This Bayesian model comparison should be contrasted with model
+% comparison at the second level. Here, we are interested in the best model
+% of first level parameters that show a second level effect. This is not
+% the same as trying to find the best model of second level effects. model
+% comparison among second level parameters uses spm_dcm_bmr_peb.
 %
 % NB for EEG models the absence of a connection means it is equal to its
-% prior mean, not that is is zero.
+% prior mesn, not that is is zero.
 %
 % see also: spm_dcm_peb.m and spm_dcm_bmr_peb
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmc_peb.m 6343 2015-02-18 16:46:00Z spm $
+% $Id: spm_dcm_bmc_peb.m 6353 2015-03-01 11:52:49Z karl $
 
 
 % set up
@@ -92,7 +89,7 @@ if ~isstruct(M)
     M = struct('X',M);
 end
 
-% fields that specify which parameters are random effects
+% feels that specify which parameters are random effects
 %--------------------------------------------------------------------------
 if nargin < 3;
     field = {'A','B'};
@@ -106,18 +103,45 @@ end
 
 % Bayesian model comparison in joint first and second level model space
 %==========================================================================
-K     = spm_perm_mtx(size(M.X,2));
+Nx    = size(M.X,2);
+K     = spm_perm_mtx(Nx);
 K     = K(K(:,1),:);
 Nk    = size(K,1);
-Mk    = M;
+
 for i = 1:Nm
+    
+    % invert under full second level model
+    %----------------------------------------------------------------------
+    PEB   = spm_dcm_peb(DCM(:,i),M,field);
+    
+    % Get priors and posteriors - of first and second order parameters
+    %----------------------------------------------------------------------
+    Np    = size(PEB.Ep,1);
+    q     = 1:(Nx*Np);
+    
+    qE    = spm_vec(PEB.Ep,PEB.Eh);
+    qC    = PEB.Cph;
+    pE    = spm_vec(PEB.M.pE,PEB.M.hE);
+    pC    = blkdiag(PEB.M.pC,PEB.M.hC);
+
+
     for k = 1:Nk
         
         % second level model reduction
         %------------------------------------------------------------------
-        Mk.X     = M.X(:,K(k,:));
-        PEB{i,k} = spm_dcm_peb(DCM(:,i),Mk,field);
-        F(i,k)   = PEB{i,k}.F;
+        R   = kron(diag(K(k,:)),speye(Np,Np));
+        rE  = spm_vec(R*PEB.M.pE,  PEB.M.hE);
+        rC  = blkdiag(R*PEB.M.pC*R,PEB.M.hC);
+        
+        % Bayesian model reduction (of second level)
+        %------------------------------------------------------------------
+        [sF, sE, sC]   = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
+
+        peb{i,k}       = PEB;
+        peb{i,k}.Ep(:) = sE(q);
+        peb{i,k}.Cp    = sC(q,q);
+        peb{i,k}.F     = PEB.F + sF;
+        F(i,k)         = peb{i,k}.F;
         
     end
 end
@@ -128,21 +152,19 @@ P      = F;
 P(:)   = exp(P(:) - max(P(:)));
 P(:)   = P/sum(P(:));
 
-% family wise inference over models and design
+% family wise inference over mmodels and design
 %--------------------------------------------------------------------------
 Px     = sum(P,1);
 Pw     = sum(P,2);
 
 % select best empirical Bayes model
 %--------------------------------------------------------------------------
-[m i]     = max(Pw);
-[m k]     = max(Px);
-Mk.X      = M.X(:,K(k,:));
-[PEB,DCM] = spm_dcm_peb(DCM(:,i),Mk,field);
+[m i]  = max(Pw);
+[m k]  = max(Px);
+PEB    = peb{i,k};
 
 % assemble BMC output structure
 %--------------------------------------------------------------------------
-BMC.M  = Mk;
 BMC.F  = F;
 BMC.P  = P;
 BMC.Px = Px;
@@ -154,14 +176,14 @@ BMC.K  = K;
 %==========================================================================
 spm_figure('Getwin','PEB-BMC'); clf
 
-subplot(3,2,1), [m,i] = max(Pw); bar(Pw),
+subplot(3,2,1), [m i] = max(Pw); bar(Pw),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('First level','FontSize',16)
 xlabel('Model','FontSize',12)
 ylabel('Probability','FontSize',12)
 axis([0 (Nm + 1) 0 1]), axis square
 
-subplot(3,2,2), [m,i] = max(Px); bar(Px),
+subplot(3,2,2), [m i] = max(Px); bar(Px),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Second level','FontSize',16)
 xlabel('Model','FontSize',12)

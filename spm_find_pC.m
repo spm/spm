@@ -19,7 +19,7 @@ function [i,pC,pE] = spm_find_pC(pC,pE,fields)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_find_pC.m 6343 2015-02-18 16:46:00Z spm $
+% $Id: spm_find_pC.m 6353 2015-03-01 11:52:49Z karl $
 
 
 %-get rC
@@ -43,6 +43,7 @@ i  = find(q > mean(q(q < 1024))/1024);
 %-subsample fields if necessary
 %--------------------------------------------------------------------------
 if nargin > 2
+    if ischar(fields), fields = {fields}; end
     if isstruct(pE)
         j = spm_fieldindices(pE,fields{:});
         if ~isempty(j)

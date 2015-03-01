@@ -5,7 +5,7 @@ function [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c)
 % xX    - Design matrix or structure
 % V     - (m x m) error covariance constraint
 % Y     - {m x n} matrix of response {m x 1} variables
-% c     - {p x 1} contrasts
+% c     - {p x q} matrix of (q) contrasts
 %
 % F     - {t x n} matrix of T or F values
 % df    - {1 x 2} vector of degrees of freedom
@@ -20,12 +20,12 @@ function [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c)
 %
 % to compute the parameter estimates (beta) and make inferences (T or F)
 % where V = K*K' represents the correlation structure. If c has only one
-% column T statistics is returned, otherwise F ratios are computed.
+% column T statistics are returned, otherwise F ratios are computed.
 %__________________________________________________________________________
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ancova.m 4498 2011-09-23 18:40:43Z guillaume $
+% $Id: spm_ancova.m 6353 2015-03-01 11:52:49Z karl $
 
 % assume V = I (i.i.d.) if empty
 %--------------------------------------------------------------------------

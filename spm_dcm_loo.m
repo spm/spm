@@ -35,7 +35,7 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,X,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_loo.m 6343 2015-02-18 16:46:00Z spm $
+% $Id: spm_dcm_loo.m 6353 2015-03-01 11:52:49Z karl $
 
 
 % Set up
@@ -70,7 +70,7 @@ end
 Ns    = numel(DCM);
 for i = 1:Ns
 
-    % get posterior predictive density for the subject
+    % get posterior predictive density for each subject
     %----------------------------------------------------------------------
     j         = 1:Ns;
     j(i)      = [];
@@ -84,20 +84,38 @@ end
 % show results
 %--------------------------------------------------------------------------
 spm_figure('GetWin','LOO cross-validation');clf
-subplot(2,2,1), spm_plot_ci(qE,qC)
+subplot(2,2,1), spm_plot_ci(qE,qC), hold on
+plot(X(:,2),':'), hold off
 xlabel('subject'), ylabel('group effect')
 title('Out of sample estimates','FontSize',16)
 spm_axis tight, axis square
 
+% classical inference on classification accuracy
+%--------------------------------------------------------------------------
+[T,df] = spm_ancova(X(:,1:2),[],qE(:),[0;1]);
+r      = corr(qE(:),X(:,2));
+p      = 1 - spm_Fcdf(T^2,df);
+str    = sprintf('corr(df:%-2.0f) = %-0.2f: p = %-0.5f',df(2),r,p);
+
+subplot(2,2,2)
+plot(X(:,2),qE,'o','Markersize',8)
+xlabel('group effect'), ylabel('estimate')
+title(str,'FontSize',16)
+spm_axis tight, set(gca,'XLim',[min(X(:,2))-1 max(X(:,2)+1)]), axis square
+
+
 if size(Q,1) > 2
-    subplot(2,2,2), imagesc(Q)
+    subplot(2,1,2), imagesc(Q)
     xlabel('subject'), ylabel('levels of group effect')
     title('Posterior probability','FontSize',16)
-    spm_axis tight, axis square
+    axis square
 else
-    subplot(2,2,2), bar(Q(2,:))
+    subplot(2,1,2), bar(Q(2,:))
     xlabel('subject'), ylabel('posterior probability')
     title('Group effect','FontSize',16)
     axis([0 (Ns + 1) 0 1]), axis square
     axis square
 end
+
+
+

@@ -7,6 +7,7 @@ function DCM = spm_dcm_bmr_all(DCM,field)
 %  DCM.M.pC - prior covariance
 %  DCM.Ep   - posterior expectation
 %  DCM.Cp   - posterior covariances
+%  DCM.Pp   -  Model posterior (with and without each parameter)
 %
 % field  - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %          'All' will invoke all fields (i.e. random effects)
@@ -26,20 +27,13 @@ function DCM = spm_dcm_bmr_all(DCM,field)
 % are retained in the best model or there are no more parameters to
 % consider.
 %
-% The outputs of this routine are graphics reporting the model reduction
-% and the following characterisation of the model parameters
-%
-% DCM.Pp     -  Model posterior (with and without each parameter)
-% DCM.Ep     -  Bayesian model averages
-% DCM.Cp     -  Bayesian model variance
-%
-% See also: spm_dcm_post_hoc - this routine is essentially a simplified
+% See also: spm_dcm_post_hoc – this routine is essentially a simplified
 % version of spm_dcm_post_hoc
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 6343 2015-02-18 16:46:00Z spm $
+% $Id: spm_dcm_bmr_all.m 6353 2015-03-01 11:52:49Z karl $
 
 
 %-Number of parameters to consider before invoking greedy search

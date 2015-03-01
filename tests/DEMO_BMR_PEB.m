@@ -34,7 +34,7 @@ function DEMO_BMR_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BMR_PEB.m 6343 2015-02-18 16:46:00Z spm $
+% $Id: DEMO_BMR_PEB.m 6353 2015-03-01 11:52:49Z karl $
 
 
 % set up
@@ -175,9 +175,7 @@ for i = 1:Nm
 end
 
 
-% second level model
-%--------------------------------------------------------------------------
-M     = struct('X',X);
+
 
 % Bayesian model reduction - for each subject
 %==========================================================================
@@ -186,13 +184,17 @@ RCM           = spm_dcm_bmr(GCM);
 % hierarchical (empirical Bayes) analysis using model reduction
 %==========================================================================
 [REB,PCM]     = spm_dcm_peb(RCM);
-BMC   = spm_dcm_bmc_peb(RCM,M,{'B'});
 
 % BMA - (first level)
 %--------------------------------------------------------------------------
 bma   = spm_dcm_bma(GCM);
 rma   = spm_dcm_bma(RCM);
 pma   = spm_dcm_bma(PCM);
+
+% second level model
+%--------------------------------------------------------------------------
+M     = struct('X',X);
+BMC   = spm_dcm_bmc_peb(RCM,M,{'B'});
 
 % BMA - (second level)
 %--------------------------------------------------------------------------
@@ -203,6 +205,19 @@ BMA   = spm_dcm_peb_bmc(PEB,RCM(1,:));
 % posterior predictive density and cross validation
 %==========================================================================
 spm_dcm_loo(RCM(:,mw),X,{'B'});
+
+
+
+% null analysis
+%--------------------------------------------------------------------------
+[~,k] = max(BMC.Pw);
+M0    = M;
+for i = 1:0 %%% or 16
+    M0.X(:,2) = M.X(randperm(Ns),2);
+    bmc       = spm_dcm_bmc_peb(RCM(:,k),M0,{'A','B'});
+    Px(i,:)   = bmc.Px;
+end
+
 
 
 % show results
@@ -350,14 +365,13 @@ axis([0 (length(p) + 1) 0 1]), axis square
 spm_figure('Getwin','Figure 5'); clf
 
 h   = ones(size(PEB.Eh))*log(C - 1);
-subplot(2,2,1), spm_plot_ci(PEB.Eh,PEB.Ch), a = axis;
+subplot(2,2,1), spm_plot_ci(PEB.Eh,PEB.Ch),
 title('Estimated log precision','FontSize',16)
-axis square
+axis square, a = axis;
 
-subplot(2,2,2), bar(h), axis(a)
+subplot(2,2,2), bar(h)
 title('True log precision','FontSize',16)
-box off, axis square
-
+box off, axis square, axis(a)
 
 
 

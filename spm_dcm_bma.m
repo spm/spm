@@ -88,7 +88,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 6341 2015-02-18 14:46:43Z karl $
+% $Id: spm_dcm_bma.m 6353 2015-03-01 11:52:49Z karl $
 
 % inputs are DCMs – assemble input arguments
 %--------------------------------------------------------------------------
@@ -116,7 +116,7 @@ if nargin == 1
     
     % BMA (and BPA)
     %----------------------------------------------------------------------
-    bma        = spm_dcm_bma(post,indx,subj);
+    bma        = spm_dcm_bma(post,indx,subj,1e2);
     BMA.Ep     = bma.mEp;
     BMA.Cp     = spm_unvec(spm_vec(bma.sEp).^2,bma.sEp);
     

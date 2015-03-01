@@ -24,7 +24,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6343 2015-02-18 16:46:00Z spm $
+% $Id: DEMO_DCM_PEB.m 6353 2015-03-01 11:52:49Z karl $
 
 
 % change to directory with empirical data
@@ -164,10 +164,6 @@ end
 %XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 
-% second level model
-%--------------------------------------------------------------------------
-M     = struct('X',X);
-
 % invert rreduced models (standard inversion)
 %==========================================================================
 GCM   = spm_dcm_fit(GCM);
@@ -181,12 +177,14 @@ RCM   = spm_dcm_bmr(GCM);
 [peb,PCM] = spm_dcm_peb(RCM,[],'all');
 
 if 0
+    
     % alternative (more robust but expensive) iterative inversion
     %----------------------------------------------------------------------
     for i = 1:Ns
         GCM{i,1}.M.dipfit = DCM.M.dipfit;
     end
-    [PCM,peb,G] = spm_dcm_peb_fit(GCM);
+    [PCMG,PEBG,FG] = spm_dcm_peb_fit(GCM);
+    
 end
 
 
@@ -198,6 +196,10 @@ pma  = spm_dcm_bma(PCM);
 
 % BMC/BMA - second level
 %==========================================================================
+
+% second level model
+%--------------------------------------------------------------------------
+M         = struct('X',X);
 
 % BMC - search over first and second level effects
 %--------------------------------------------------------------------------
@@ -279,11 +281,8 @@ end
 % indices to plot parameters
 %--------------------------------------------------------------------------
 pC    = GCM{1,1}.M.pC;
-c     = spm_vec(pC);
-iA    = spm_fieldindices(Pp,'A');
-iB    = spm_fieldindices(Pp,'B');
-iA    = iA(find(c(iA)));
-iB    = iB(find(c(iB)));
+iA    = spm_find_pC(pC,pC,'A');
+iB    = spm_find_pC(pC,pC,'B');
 
 % classical inference
 %==========================================================================

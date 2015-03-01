@@ -13,13 +13,13 @@ function [f] = spm_lotka_volterra(x,v,P)
 %
 % where P determines the order of unstable fixed points visited in the
 % stable heteroclinic channel. If P is not specified it will be computed
-% using v. If x is a scalar a matric of size x (P) is returned (with v = 1).
+% using v. If x is a scalar a matrix of size x (P) is returned (with v = 1).
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lotka_volterra.m 6290 2014-12-20 22:11:50Z karl $
+% $Id: spm_lotka_volterra.m 6353 2015-03-01 11:52:49Z karl $
 
 
 % intialise

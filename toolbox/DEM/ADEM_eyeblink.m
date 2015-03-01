@@ -46,7 +46,7 @@ function DEM = ADEM_eyeblink(OPTION)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_eyeblink.m 6297 2015-01-05 10:37:27Z karl $
+% $Id: ADEM_eyeblink.m 6353 2015-03-01 11:52:49Z karl $
 
 
 % paradigm and stimuli
@@ -163,7 +163,7 @@ M(1).f  = @(x,v,P) M1f(x,v,P);
 M(1).g  = @(x,v,P) M1g(x,v,P);
 M(1).pE = P;
 M(1).pC = PC;
-M(1).W  = exp(0);                                 % cerebellar lesion
+M(1).W  = diag(exp([4 0 4]));                     % cerebellar (IPN) lesion
 M(1).W  = exp(4);                                 % error precision
 M(1).V  = exp(V);                                 % sensory attenuation
 

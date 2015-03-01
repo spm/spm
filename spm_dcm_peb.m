@@ -15,6 +15,8 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % M.pC   - second level prior covariances of parameters
 % M.hE   - second level prior expectation of log precisions
 % M.hC   - second level prior covariances of log precisions
+%
+% M.Q    - covariance components: {'single','fields','all','none'}
 % 
 % field  - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %          'All' will invoke all fields. this argument effectively allows 
@@ -73,7 +75,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6341 2015-02-18 14:46:43Z karl $
+% $Id: spm_dcm_peb.m 6353 2015-03-01 11:52:49Z karl $
  
 
 % get filenames and set up
@@ -183,7 +185,11 @@ Q      = {};                          % precision components
 % lower bound on prior precision and components for empirical covariance
 %--------------------------------------------------------------------------
 if Ns > 1
-    OPTION = 'single';
+    if isfield(M,'Q')
+        OPTION = M.Q;
+    else
+        OPTION = 'single';
+    end
     pP     = spm_inv(M.pC(q,q));
 else
     OPTION = 'none';
@@ -248,22 +254,25 @@ else
 end
 
 
-% check for user-specified priors on log precision of second level effects
-%--------------------------------------------------------------------------
-gE    = 0;
-gC    = 1;
-try, gE = M.hE; end
-try, gC = M.hC; end
-
-
-% prior expectations and precisions of second level parameters
+% number of parameters and effects
 %--------------------------------------------------------------------------
 Nx    = size(X,2);                   % number of between subject effects
 Nw    = size(W,2);                   % number of within  subject effects
 Ng    = length(Q);                   % number of precision components
 Nb    = Nw*Nx;                       % number of second level parameters
 
-bX    = speye(Nx,Nx);
+% check for user-specified priors on log precision of second level effects
+%--------------------------------------------------------------------------
+gE    = 0;
+gC    = 1;
+try, gE = M.hE; end
+try, gC = M.hC; end
+try, bX = M.bX; catch
+    bX  = speye(Nx,Nx)*8; bX(1,1) = 1;
+end
+
+% prior expectations and precisions of second level parameters
+%--------------------------------------------------------------------------
 bE    = kron(spm_speye(Nx,1),bE);    % prior expectation of group effects
 gE    = zeros(Ng,1) + gE;            % prior expectation of log precisions
 bC    = kron(bX,bC);                 % prior covariance of group effects

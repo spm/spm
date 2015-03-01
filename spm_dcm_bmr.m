@@ -33,7 +33,7 @@ function [RCM,BMR] = spm_dcm_bmr(P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmr.m 6341 2015-02-18 14:46:43Z karl $
+% $Id: spm_dcm_bmr.m 6353 2015-03-01 11:52:49Z karl $
 
 
 % get filenames and set up
@@ -79,6 +79,7 @@ catch
     
     % number of free parameters
     %----------------------------------------------------------------------
+    clear par
     for j = 1:N
         try, load(P{j}); catch, DCM = P{j}; end
         try
