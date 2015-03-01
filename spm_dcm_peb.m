@@ -75,7 +75,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6353 2015-03-01 11:52:49Z karl $
+% $Id: spm_dcm_peb.m 6354 2015-03-01 14:13:17Z karl $
  
 
 % get filenames and set up
@@ -268,7 +268,9 @@ gC    = 1;
 try, gE = M.hE; end
 try, gC = M.hC; end
 try, bX = M.bX; catch
-    bX  = speye(Nx,Nx)*8; bX(1,1) = 1;
+    bX        = sum(X.^-2)/size(X,1);
+    bX(2:end) = bX(2:end)*16;
+    bX        = diag(bX);
 end
 
 % prior expectations and precisions of second level parameters

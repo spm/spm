@@ -64,7 +64,7 @@ function [DCM,PEB,F] = spm_dcm_peb_fit(GCM,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_fit.m 6353 2015-03-01 11:52:49Z karl $
+% $Id: spm_dcm_peb_fit.m 6354 2015-03-01 14:13:17Z karl $
 
 
 % set up
@@ -112,14 +112,14 @@ for k = 1:16
     %----------------------------------------------------------------------
     try, DCM  = spm_dcm_fit(DCM); catch, break;  end
      
-    % empirical Bayes – over subjects
+    % empirical Bayes - over subjects
     %----------------------------------------------------------------------
     [PEB,DCM] = spm_dcm_peb(DCM,M,field);
     
     % get intial parameters
     %----------------------------------------------------------------------
     for i = 1:Ns
-        DCM{i,1}.M.pC = DCM{i,1}.M.pC + M.pC/4;
+        % DCM{i,1}.M.pC = DCM{i,1}.M.pC + M.pC/4;
         % DCM{i,1}.M.P = DCM{i,1}.M.Ep;
     end
     
@@ -132,7 +132,12 @@ for k = 1:16
         dF   = PEB.F - F(k - 1);
         F(k) = PEB.F;
     end
-    if dF < 1e-2 && k > 8; break, end
+    if dF < 1e-2 && k > 4
+        if dF < 0, load tmp, end
+        break
+    else
+        save tmp DCM
+    end
     
 end
 

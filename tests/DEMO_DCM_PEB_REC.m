@@ -20,7 +20,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB_REC.m 6353 2015-03-01 11:52:49Z karl $
+% $Id: DEMO_DCM_PEB_REC.m 6354 2015-03-01 14:13:17Z karl $
 
 
 % change to directory with empirical data
@@ -180,7 +180,7 @@ for i = 1:Ns
     GCM{i,1}.M.dipfit = DCM.M.dipfit;
 end
 [ECM,eeb,E] = spm_dcm_peb_fit(GCM);
-[eeb,ECM]   = spm_dcm_peb(ECM,[],'all');
+
 
 spm_figure('GetWin','SI');
 subplot(3,2,6), plot(E)
