@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 6107 2014-07-16 12:07:47Z volkmar $
+% $Id: cfg_getfile.m 6357 2015-03-02 07:52:02Z volkmar $
 
 t = {};
 sts = false;
@@ -214,7 +214,7 @@ end
 ok  = 0;
 
 t = '';
-sfilt = mk_filter(typ,filt,varargin{7:end});
+sfilt = mk_filter(typ,filt,varargin{:});
 
 % Message
 if nargin<3 || ~(ischar(mesg) || iscellstr(mesg))
