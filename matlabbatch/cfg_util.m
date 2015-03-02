@@ -423,9 +423,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 6355 2015-03-02 07:52:00Z volkmar $
+% $Id: cfg_util.m 6356 2015-03-02 07:52:01Z volkmar $
 
-rev = '$Rev: 6355 $';
+rev = '$Rev: 6356 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -1611,15 +1611,12 @@ function [job, err] = local_runcj(job, cjob, pflag, cflag)
 % in job.cjrun, the corresponding modules will not be run again.
 
 if cfg_get_defaults('cfg_util.run_diary')
-    % create diary file
-    fid   = fopen(tempname, 'w');
-    % get diary filename and start diary
-    dname = fopen(fid);
-    fclose(fid);
     % save old diary state
     odstate = get(0, 'Diary');
     odname = get(0, 'DiaryFile');
-    diary(dname);
+    % new diary
+    diary(tempname);
+    dname = get(0, 'DiaryFile');
 end
 cfg_message('matlabbatch:run:jobstart', ...
             ['\n\n------------------------------------------------------------------------\n',...
