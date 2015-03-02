@@ -423,9 +423,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 6134 2014-08-07 10:35:09Z volkmar $
+% $Id: cfg_util.m 6355 2015-03-02 07:52:00Z volkmar $
 
-rev = '$Rev: 6134 $';
+rev = '$Rev: 6355 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -952,6 +952,8 @@ switch lower(cmd),
         cflag = any(strcmpi(cmd, {'cont','contserial'}));
         [jobs(cjob), err] = local_runcj(jobs(cjob), cjob, pflag, cflag);
         if ~isempty(err)
+            % store c0 and jobs before throwing error
+            cfg_util_persistent(c0, jobs);
             cfg_message(err);
         elseif dflag
             cfg_util('deljob', cjob);
