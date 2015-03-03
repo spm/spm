@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 6357 2015-03-02 07:52:02Z volkmar $
+% $Id: cfg_getfile.m 6358 2015-03-03 14:30:14Z volkmar $
 
 t = {};
 sts = false;
@@ -144,12 +144,14 @@ if nargin > 0 && ischar(varargin{1})
             sts     = cell(numel(direc),1);
             for k = 1:numel(t)
                 if regexpi(varargin{1},'rec')
-                    [t{k}, sts{k}] = select_rec1(direc{k}, filt);
+                    [t{k}, sts{k}] = select_rec1(direc{k}, filt, false);
                 else
-                    [t{k}, sts{k}] = listfiles(direc{k}, filt); % (sts is subdirs here)
+                    [t{k}, sts{k}] = listfiles(direc{k}, filt, false); % (sts is subdirs here)
                     sts{k} = sts{k}(~(strcmp(sts{k},'.')|strcmp(sts{k},'..'))); % remove '.' and '..' entries
                     if regexpi(varargin{1}, 'fplist') % return full pathnames
                         if ~isempty(t{k})
+                            % starting with r2012b, this could be written as
+                            % t{k} = fullfile(direc{k}, t{k});
                             t{k} = strcat(direc{k}, filesep, t{k});
                         end
                         if (nargout > 1) && ~isempty(sts{k})
@@ -849,15 +851,15 @@ filt.filt = {get(sib('regexp'), 'String')};
 ptr    = get(gcbf,'Pointer');
 try
     set(gcbf,'Pointer','watch');
-    sel    = select_rec1(start,filt);
+    sel    = select_rec1(start,filt,true);
     select(sel,false);
 end
 set(gcbf,'Pointer',ptr);
 %=======================================================================
 
 %=======================================================================
-function [f,d]=select_rec1(cdir,filt)
-[f,d] = listfiles(cdir,filt);
+function [f,d]=select_rec1(cdir,filt,cdflag)
+[f,d] = listfiles(cdir,filt,cdflag);
 if isempty(f)
     f = {};
 else
@@ -866,7 +868,7 @@ end
 dsel = cellfun(@(d1)any(strcmp(d1,{'.','..'})),d);
 if any(~dsel)
     d       = strcat(cdir,filesep,d(~dsel));
-    [f1,d1] = cellfun(@(d1)select_rec1(d1,filt),d,'UniformOutput',false);
+    [f1,d1] = cellfun(@(d1)select_rec1(d1,filt,cdflag),d,'UniformOutput',false);
     f       = [f(:);cat(1,f1{:})];
     d       = [d(:);cat(1,d1{:})];
 else
@@ -897,7 +899,7 @@ return;
 %=======================================================================
 
 %=======================================================================
-function [f,d] = listfiles(dr,filt)
+function [f,d] = listfiles(dr,filt,cdflag)
 try
     ob = sib('msg');
     domsg = ~isempty(ob);
@@ -907,6 +909,7 @@ end
 if domsg
     omsg = msg('Listing directory...');
 end
+if nargin<3, cdflag = true; end
 if nargin<2, filt = '';  end
 if nargin<1, dr   = '.'; end
 de      = dir(dr);
@@ -930,7 +933,7 @@ end
 dsel = strcmp({filt.tfilt.typ},'dir');
 if any(dsel)
     fd = d(~strcmp('..',d));
-    if ~any(strcmp('.',fd))
+    if cdflag && ~any(strcmp('.',fd))
         fd = [{'.'}; fd(:)];
     end
     % reset regex filter
