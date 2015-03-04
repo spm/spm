@@ -24,7 +24,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6353 2015-03-01 11:52:49Z karl $
+% $Id: DEMO_DCM_PEB.m 6360 2015-03-04 19:24:56Z spm $
 
 
 % change to directory with empirical data
@@ -34,7 +34,7 @@
 %   options.spatial      - 'ECD','LFP' or 'IMG'
 %--------------------------------------------------------------------------
 try
-    cd(fullfile(spm('Dir'),'tests','data','DCM'))
+    cd(fullfile(spm('Dir'),'tests','data','MEEG'))
 catch
     cd('C:\Users\karl\Documents\SPM\DCM tests')
 end
@@ -47,6 +47,14 @@ corr = @(x,y) subsref(corrcoef(x,y),substruct('()',{1,2})); % Stats tbx
 % Set up
 %==========================================================================
 load DCM_MMN                               % base DCM
+try
+    D  = spm_eeg_load(DCM.xY.Dfile);
+    if ~spm_existfile(D.inv{end}.forward.vol)
+        D.inv{end}.forward.vol = spm_file(D.inv{end}.forward.vol,...
+            'path',fullfile(spm('Dir'),'canonical'));
+        save(D);
+    end
+end
 
 DCM.options.spatial  = 'ECD';
 DCM.options.analysis = 'ERP';

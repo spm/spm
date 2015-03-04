@@ -13,10 +13,14 @@ function results = spm_tests(varargin)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_tests.m 6352 2015-02-27 18:30:35Z guillaume $
+% $Id: spm_tests.m 6360 2015-03-04 19:24:56Z spm $
 
 
-SVNid = '$Rev: 6352 $';
+if spm_check_version('matlab','8.3') < 0
+    error('Unit Tests require MATLAB R2014a or above.');
+end
+
+SVNid = '$Rev: 6360 $';
 SPMid = spm('FnBanner',mfilename,SVNid);
 
 %-Input parameters
@@ -37,20 +41,18 @@ end
 
 %-Unit tests
 %==========================================================================
-import matlab.unittest.TestSuite;
-import matlab.unittest.TestRunner;
-import matlab.unittest.plugins.TAPPlugin;
-import matlab.unittest.plugins.ToFile;
-import matlab.unittest.plugins.CodeCoveragePlugin;
 
 %-Create a TestSuite
 %--------------------------------------------------------------------------
+import matlab.unittest.TestSuite;
 tests = fullfile(spm('Dir'),'tests');
 suite = TestSuite.fromFolder(tests, 'IncludingSubfolders', true);
 %suite.selectIf('ParameterProperty', '*')
 
 %-Create a TestRunner
 %--------------------------------------------------------------------------
+import matlab.unittest.TestRunner;
+import matlab.unittest.plugins.*
 if ~options.verbose
     runner = TestRunner.withNoPlugins;
 else

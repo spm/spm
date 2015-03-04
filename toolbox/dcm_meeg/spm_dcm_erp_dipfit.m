@@ -1,18 +1,18 @@
 function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
-% prepares structures for ECD forward model (EEG, MEG and LFP)
+% Prepare structures for ECD forward model (EEG, MEG and LFP)
 % FORMAT DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
+% DCM           - DCM structure
 % save_vol_sens - optional argument indicating whether to perform
 %                 the time consuming step required for actually using
 %                 the forward model to compute lead fields (1, default)
 %                 or skip it if the function is only called for
 %                 verification of the input (0).
-% requires:
 %
-% needs:
+% Input DCM structure requires:
 %       DCM.xY.Dfile
 %       DCM.xY.Ic
 %       DCM.Lpos
-%       DCM.options.spatial     - 'ERP', 'LFP' or 'IMG'
+%       DCM.options.spatial - 'ERP', 'LFP' or 'IMG'
 %
 % fills in:
 %
@@ -31,10 +31,10 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 %    dipfit.vol      - volume structure (for M/EEG)
 %    dipfit.datareg  - registration structure (for M/EEG)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 5779 2013-12-04 20:23:10Z rosalyn $
+% $Id: spm_dcm_erp_dipfit.m 6360 2015-03-04 19:24:56Z spm $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -42,8 +42,8 @@ try
     DCM.xY.Dfile;
     DCM.M.dipfit.Ic = DCM.xY.Ic;
 catch
-    errordlg('Please specify data');
-    error('')
+    spm('alert*','Please specify data');
+    error('Data not specified.')
 end
  
 if nargin == 1
@@ -81,14 +81,14 @@ switch DCM.xY.modality
  
         [D, ok] = check(D, '3d');
         if ~ok
-            errordlg(['File not ready for source reconstruction.'...
-                'Use prep to specify sensors and fiducials.']);
+            spm('alert*',{'File not ready for source reconstruction.',...
+                'Use Prepare to specify sensors and fiducials.'});
         end
  
         try
             DCM.M.dipfit.Lpos = DCM.Lpos;
         catch
-            errordlg({'Please specify source locations','in DCM.Lpos'})
+            spm('alert*',{'Please specify source locations','in DCM.Lpos'})
         end
  
         DCM.M.dipfit.modality = DCM.xY.modality;
@@ -161,7 +161,7 @@ switch DCM.options.spatial
         % Load Gain or Lead field matrix
         %------------------------------------------------------------------
         DCM.val = D.val;
-        [L D]   = spm_eeg_lgainmat(D, [], D.chanlabels(DCM.xY.Ic));
+        [L,D]   = spm_eeg_lgainmat(D, [], D.chanlabels(DCM.xY.Ic));
         
         % centers
         %------------------------------------------------------------------
@@ -207,10 +207,10 @@ switch DCM.options.spatial
  
         % Save results
         %==================================================================
-        DCM.M.dipfit.radius  = rad;                           % VOI (XYZ, Radius)
-        DCM.M.dipfit.Nm      = Nm;                            % modes per region
-        DCM.M.dipfit.Nd      = length(vert);                  % number of dipoles
-        DCM.M.dipfit.gainmat = D.inv{D.val}.gainmat;          % Lead field filename
+        DCM.M.dipfit.radius  = rad;                   % VOI (XYZ, Radius)
+        DCM.M.dipfit.Nm      = Nm;                    % modes per region
+        DCM.M.dipfit.Nd      = length(vert);          % number of dipoles
+        DCM.M.dipfit.gainmat = D.inv{D.val}.gainmat;  % Lead field filename
  
     otherwise
  

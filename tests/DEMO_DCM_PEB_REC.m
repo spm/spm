@@ -20,7 +20,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB_REC.m 6354 2015-03-01 14:13:17Z karl $
+% $Id: DEMO_DCM_PEB_REC.m 6360 2015-03-04 19:24:56Z spm $
 
 
 % change to directory with empirical data
@@ -30,7 +30,7 @@
 %   options.spatial      - 'ECD','LFP' or 'IMG'
 %--------------------------------------------------------------------------
 try
-    cd('C:\home\spm\DCM\DCM tests')
+    cd(fullfile(spm('Dir'),'tests','data','MEEG'))
 catch
     cd('C:\Users\karl\Documents\SPM\DCM tests')
 end
@@ -189,7 +189,7 @@ title('Free energy','FontSize',16)
 axis square
 
 
-% BMC/BMA – second level
+% BMC/BMA - second level
 %==========================================================================
 
 % BMC - search over first and second level effects
