@@ -35,7 +35,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6284 2014-12-09 13:19:47Z guillaume $
+% $Id: spm_dicom_convert.m 6359 2015-03-04 16:01:11Z john $
 
 
 %-Input parameters
@@ -855,7 +855,10 @@ for i=1:length(hdr)
             fprintf('File "%s" can not be converted because it does not encode an image.\n', hdr{i}.Filename);
         end
         guff = [guff(:)',hdr(i)];
-        
+    elseif isfield(hdr{i},'SharedFunctionalGroupsSequence') || isfield(hdr{i},'PerFrameFunctionalGroupsSequence'),
+        fprintf('"%s" appears to be multi-frame DICOM.\nThis form of DICOM can not yet be converted by SPM.\n', hdr{i}.Filename);
+        guff = [guff(:)',hdr(i)];
+ 
     elseif ~checkfields(hdr{i},'StartOfPixelData','SamplesPerPixel',...
             'Rows','Columns','BitsAllocated','BitsStored','HighBit','PixelRepresentation')
         fprintf('Cant find "Image Pixel" information for "%s".',hdr{i}.Filename);
@@ -865,7 +868,7 @@ for i=1:length(hdr)
             || isfield(hdr{i},'Private_0029_1110') || isfield(hdr{i},'Private_0029_1210'))
         fprintf('Can''t find "Image Plane" information for "%s".\n',hdr{i}.Filename);
         guff = [guff(:)',hdr(i)];
-        
+
     elseif ~checkfields(hdr{i},'SeriesNumber','AcquisitionNumber','InstanceNumber')
        %disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
         if ~isfield(hdr{i},'SeriesNumber')
