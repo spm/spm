@@ -64,7 +64,7 @@ function [DCM,PEB,F] = spm_dcm_peb_fit(GCM,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_fit.m 6354 2015-03-01 14:13:17Z karl $
+% $Id: spm_dcm_peb_fit.m 6362 2015-03-05 20:08:48Z karl $
 
 
 % set up
@@ -133,10 +133,10 @@ for k = 1:16
         F(k) = PEB.F;
     end
     if dF < 1e-2 && k > 4
-        if dF < 0, load tmp, end
+        if dF < 0, DCM = tmp; end
         break
     else
-        save tmp DCM
+        tmp = DCM;
     end
     
 end

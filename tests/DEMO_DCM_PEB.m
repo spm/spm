@@ -24,7 +24,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6360 2015-03-04 19:24:56Z spm $
+% $Id: DEMO_DCM_PEB.m 6362 2015-03-05 20:08:48Z karl $
 
 
 % change to directory with empirical data
@@ -211,7 +211,7 @@ M         = struct('X',X);
 
 % BMC - search over first and second level effects
 %--------------------------------------------------------------------------
-[BMC,PEB] = spm_dcm_bmc_peb(PCM,M,{'A','B'});
+[BMC,PEB] = spm_dcm_bmc_peb(RCM,M,{'A','B'});
 
 % BMA - exhaustive search over second level parameters
 %--------------------------------------------------------------------------
@@ -227,7 +227,7 @@ subplot(3,2,4),hold on, bar(Tx(BMA.Pind),1/2), hold off
 if 0
     % alternative search over restricted model space at second level
     %----------------------------------------------------------------------
-    spm_dcm_peb_bmc(PEB,PCM(1,:));
+    spm_dcm_peb_bmc(PEB,RCM(1,:));
     
 end
 

@@ -33,7 +33,7 @@ function DCM = spm_dcm_bmr_all(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 6353 2015-03-01 11:52:49Z karl $
+% $Id: spm_dcm_bmr_all.m 6362 2015-03-05 20:08:48Z karl $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -178,7 +178,7 @@ end
 Pk    = Pk(1,:)./sum(Pk);
 Pn    = full(C);
 Pn(k) = Pk;
-Pk    = spm_unvec(Pn,pE);
+Pk    = spm_unvec(Pn,DCM.M.pE);
 
 
 %-Bayesian model average
