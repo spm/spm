@@ -35,7 +35,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6359 2015-03-04 16:01:11Z john $
+% $Id: spm_dicom_convert.m 6361 2015-03-05 13:41:29Z john $
 
 
 %-Input parameters
@@ -46,10 +46,11 @@ if nargin<4, format   = spm_get_defaults('images.format'); end
 
 %-Select files
 %--------------------------------------------------------------------------
-[images, other]    = select_tomographic_images(hdr);
-[spect, guff]      = select_spectroscopy_images(other);
-[mosaic, standard] = select_mosaic_images(images);
-[standard, guff]   = select_last_guff(standard, guff);
+[images, other]     = select_tomographic_images(hdr);
+[multiframe,images] = select_multiframe(images);
+[spect, guff]       = select_spectroscopy_images(other);
+[mosaic, standard]  = select_mosaic_images(images);
+[standard, guff]    = select_last_guff(standard, guff);
 
 if ~isempty(guff)
     warning('spm:dicom','%d files could not be converted from DICOM.', numel(guff));
@@ -69,7 +70,9 @@ end
 if (strcmp(opts,'all') || strcmp(opts,'spect')) && ~isempty(spect)
     fspe = convert_spectroscopy(spect,root_dir,format);
 end
-
+if (strcmp(opts,'all') || strcmp(opts,'multiframe')) && ~isempty(multiframe)
+    fspe = convert_multiframes(multiframe,root_dir,format);
+end
 out.files = [fmos(:); fstd(:); fspe(:)];
 if isempty(out.files)
     out.files = {''};
@@ -508,7 +511,7 @@ fname = getfilelocation(hdr{1}, root_dir,'s',format);
 nc = hdr{1}.Columns;
 nr = hdr{1}.Rows;
 
-if length(hdr) == 1 && isfield(hdr{1},'NumberofFrames') && hdr{1}.NumberofFrames > 1
+if length(hdr) == 1 && isfield(hdr{1},'NumberOfFrames') && hdr{1}.NumberOfFrames > 1
     if isfield(hdr{1},'ImagePositionPatient') &&...
        isfield(hdr{1},'ImageOrientationPatient') &&...
        isfield(hdr{1},'SliceThickness') &&...
@@ -520,10 +523,10 @@ if length(hdr) == 1 && isfield(hdr{1},'NumberofFrames') && hdr{1}.NumberofFrames
        if det(orient)<0, orient(:,3) = -orient(:,3); end
        slicevec         = orient(:,3);
    
-       hdr_temp = cell(1,hdr{1}.NumberofFrames); % alternative: NumberofSlices
+       hdr_temp = cell(1,hdr{1}.NumberOfFrames); % alternative: NumberofSlices
        hdr_temp{1} = hdr{1};
-       hdr_temp{1}.SizeOfPixelData           = hdr{1}.SizeOfPixelData / hdr{1}.NumberofFrames;
-       for sn = 2 : hdr{1}.NumberofFrames
+       hdr_temp{1}.SizeOfPixelData           = hdr{1}.SizeOfPixelData / hdr{1}.NumberOfFrames;
+       for sn = 2 : hdr{1}.NumberOfFrames
            hdr_temp{sn}                      = hdr{1};
            hdr_temp{sn}.ImagePositionPatient = hdr{1}.ImagePositionPatient + (sn-1) * hdr{1}.SliceThickness * slicevec;
            hdr_temp{sn}.SizeOfPixelData      = hdr_temp{1}.SizeOfPixelData;
@@ -855,9 +858,6 @@ for i=1:length(hdr)
             fprintf('File "%s" can not be converted because it does not encode an image.\n', hdr{i}.Filename);
         end
         guff = [guff(:)',hdr(i)];
-    elseif isfield(hdr{i},'SharedFunctionalGroupsSequence') || isfield(hdr{i},'PerFrameFunctionalGroupsSequence'),
-        fprintf('"%s" appears to be multi-frame DICOM.\nThis form of DICOM can not yet be converted by SPM.\n', hdr{i}.Filename);
-        guff = [guff(:)',hdr(i)];
  
     elseif ~checkfields(hdr{i},'StartOfPixelData','SamplesPerPixel',...
             'Rows','Columns','BitsAllocated','BitsStored','HighBit','PixelRepresentation')
@@ -866,8 +866,16 @@ for i=1:length(hdr)
         
     elseif ~(checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient') ...
             || isfield(hdr{i},'Private_0029_1110') || isfield(hdr{i},'Private_0029_1210'))
-        fprintf('Can''t find "Image Plane" information for "%s".\n',hdr{i}.Filename);
-        guff = [guff(:)',hdr(i)];
+        if isfield(hdr{i},'SharedFunctionalGroupsSequence') || isfield(hdr{i},'PerFrameFunctionalGroupsSequence'),
+            fprintf(['\n"%s" appears to be multi-frame DICOM.\n'...
+                     'Converting these data is still experimental and has only been tested on a very small number of\n'...
+                     'multiframe DICOM files. Feedback about problems would be appreciated - particularly if you can\n'...
+                     'give us examples of problematic data (providing there are no subject confidentiality issues).\n\n'], hdr{i}.Filename);
+            images = [images(:)',hdr(i)];
+        else
+            fprintf('Can''t find "Image Plane" information for "%s".\n',hdr{i}.Filename);
+            guff = [guff(:)',hdr(i)];
+        end
 
     elseif ~checkfields(hdr{i},'SeriesNumber','AcquisitionNumber','InstanceNumber')
        %disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
@@ -904,6 +912,21 @@ for i=1:length(hdr)
     %    guff = {guff{:},hdr{i}};
     else
         images = [images(:)',hdr(i)];
+    end
+end
+
+
+%==========================================================================
+% function [multiframe,other] = select_multiframe(hdr)
+%==========================================================================
+function [multiframe,other] = select_multiframe(hdr)
+multiframe = {};
+other      = {};
+for i=1:length(hdr)
+    if isfield(hdr{i},'SharedFunctionalGroupsSequence') || isfield(hdr{i},'PerFrameFunctionalGroupsSequence'),
+        multiframe = [multiframe(:)',hdr(i)];
+    else
+        other      = [other(:)',hdr(i)];
     end
 end
 
@@ -999,6 +1022,12 @@ if fp==-1,
     return;
 end;
 
+if isfield(hdr,'NumberOfFrames'),
+    NFrames = hdr.NumberOfFrames;
+else
+    NFrames = 1;
+end
+
 if isfield(hdr,'TransferSyntaxUID')
     switch(hdr.TransferSyntaxUID)
     case {'1.2.840.10008.1.2.4.50','1.2.840.10008.1.2.4.51',... % 8 bit JPEG & 12 bit JPEG
@@ -1035,14 +1064,14 @@ if isfield(hdr,'TransferSyntaxUID')
          warning('spm:dicom',[hdr.Filename ': cant deal with JPIP/MPEG data (' hdr.TransferSyntaxUID ')']);
     otherwise
         fseek(fp,hdr.StartOfPixelData,'bof');
-        img = fread(fp,hdr.Rows*hdr.Columns,prec);
+        img = fread(fp,hdr.Rows*hdr.Columns*NFrames,prec);
     end
 else
     fseek(fp,hdr.StartOfPixelData,'bof');
-    img = fread(fp,hdr.Rows*hdr.Columns,prec);
+    img = fread(fp,hdr.Rows*hdr.Columns*NFrames,prec);
 end
 fclose(fp);
-if numel(img)~=hdr.Rows*hdr.Columns,
+if numel(img)~=hdr.Rows*hdr.Columns*NFrames,
     error([hdr.Filename ': cant read whole image']);
 end;
 
@@ -1062,7 +1091,7 @@ else
     img      = double(bitand(img,msk));
 end;
 
-img = reshape(img,hdr.Columns,hdr.Rows);
+img = reshape(img,[hdr.Columns,hdr.Rows,NFrames]);
 
 
 %==========================================================================
@@ -1335,3 +1364,357 @@ else
         dt  = [spm_type('uint16') be];
     end
 end
+
+%==========================================================================
+% function fspe = convert_multiframes(hdr,root_dir,format)
+%==========================================================================
+function fspe = convert_multiframes(hdr,root_dir,format)
+fspe = {};
+dict = load('spm_dicom_dict.mat');
+for i=1:numel(hdr)
+    out  = convert_multiframe(hdr{i}, dict, root_dir, format);
+    fspe = [fspe(:); out(:)];
+end
+
+%==========================================================================
+% function out = convert_multiframe(H, dict, root_dir, format)
+%==========================================================================
+
+function out = convert_multiframe(H, dict, root_dir, format)
+
+out      = {};
+diminfo  = read_DimOrg(H,dict);
+dat      = read_FGS(H,diminfo);
+
+fname = getfilelocation(H, root_dir,'MF',format);
+[pth,nam,ext] = fileparts(fname);
+fname = fullfile(pth,nam);
+
+N = numel(dat);
+for n=1:N,
+    dat(n).fname = fname;
+end
+
+ndim = numel(diminfo);
+for d=1:ndim,
+    if isfield(dat,diminfo(d).DimensionIndexPointer),
+        if strcmp(diminfo(d).DimensionIndexPointer,'InStackPositionNumber')
+        elseif strcmp(diminfo(d).DimensionIndexPointer,'TemporalPositionIndex')
+        else
+            u = unique(strvcat(dat.(diminfo(d).DimensionIndexPointer)),'rows');
+            if size(u,1)>1,
+                for n=1:N
+                    if ischar(dat(n).(diminfo(d).DimensionIndexPointer)),
+                        dat(n).fname = [dat(n).fname '_' strip_unwanted(dat(n).(diminfo(d).DimensionIndexPointer))];
+                    else % assume it is numeric
+                        dat(n).fname = sprintf('%s_%-.4d', dat(n).fname, dat(n).(diminfo(d).DimensionIndexPointer));
+                    end
+                end
+            end
+        end
+    else
+        error('"%s" has unrecognised dimensions ("%s").\n', H.Filename,diminfo(d).DimensionIndexPointer);
+    end
+end
+for n=1:N,
+    dat(n).fname = [dat(n).fname ext];
+end
+
+volume = read_image_data(H);
+u      = unique({dat.fname});
+for n=1:numel(u),
+    ind  = strcmp(u{n},{dat.fname});
+    this = dat(ind);
+
+    % Image dimensions
+    %--------------------------------------------------------------------------
+    nc   = H.Columns;
+    nr   = H.Rows;
+    dim = [nc nr 1 1];
+    if isfield(dat,'InStackPositionNumber')
+        dim(3) = numel(unique(cat(1,dat.InStackPositionNumber)));
+    end
+    if isfield(dat,'TemporalPositionIndex')
+        dim(4) = numel(unique(cat(1,dat.TemporalPositionIndex)));
+    end
+
+    dt     = determine_datatype(H);
+
+    % Orientation information
+    %--------------------------------------------------------------------------
+    % Axial Analyze voxel co-ordinate system:
+    % x increases     right to left
+    % y increases posterior to anterior
+    % z increases  inferior to superior
+
+    % DICOM patient co-ordinate system:
+    % x increases     right to left
+    % y increases  anterior to posterior
+    % z increases  inferior to superior
+
+    % T&T co-ordinate system:
+    % x increases      left to right
+    % y increases posterior to anterior
+    % z increases  inferior to superior
+
+    analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]; % Flip voxels in y
+    patient_to_tal   = diag([-1 -1 1 1]); % Flip mm coords in x and y directions
+
+    ind = find(cat(1,this.InStackPositionNumber)==1);
+    ImagePositionPatient    = this(ind).ImagePositionPatient(:);
+    ImageOrientationPatient = this(ind).ImageOrientationPatient(:);
+    PixelSpacing            = this(ind).PixelSpacing(:);
+
+    R  = [reshape(ImageOrientationPatient,3,2)*diag(PixelSpacing); 0 0];
+    x1 = [1;1;1;1];
+    y1 = [ImagePositionPatient(:); 1];
+
+    if dim(3)>1
+        x2 = [1;1;dim(3); 1];
+        [unused,ind] = max(cat(1,this.InStackPositionNumber));
+        y2 = [this(ind(1)).ImagePositionPatient(:); 1];
+    else
+        orient           = reshape(ImageOrientationPatient,[3 2]);
+        orient(:,3)      = null(orient');
+        if det(orient)<0, orient(:,3) = -orient(:,3); end
+        if isfield(H,'SliceThickness'), z = H.SliceThickness; else z = 1; end
+        x2 = [0;0;1;0];
+        y2 = [orient*[0;0;z];0];
+    end
+
+    dicom_to_patient = [y1 y2 R]/[x1 x2 eye(4,2)];
+    mat              = patient_to_tal*dicom_to_patient*analyze_to_dicom;
+    flip_lr          = det(mat(1:3,1:3))>0;
+
+    % Possibly useful information
+    %--------------------------------------------------------------------------
+    if isfield(H,'AcquisitionTime')
+        tim = datevec(H.AcquisitionTime/(24*60*60));
+    elseif isfield(H,'StudyTime')
+        tim = datevec(H.StudyTime/(24*60*60));
+    elseif isfield(H,'ContentTime') 
+        tim = datevec(H.ContentTime/(24*60*60));      
+    else
+        tim = '';
+    end
+    if ~isempty(tim), tim = sprintf(' %d:%d:%.5g', tim(4),tim(5),tim(6)); end
+
+    if isfield(H,'AcquisitionDate') 
+        day = datestr(H.AcquisitionDate);
+    elseif isfield(H,'StudyDate')
+        day = datestr(H.StudyDate);
+    elseif isfield(H,'ContentDate')
+        day = datestr(H.ContentDate);
+    else
+        day = '';
+    end
+    when = [day tim]; 
+
+    if checkfields(H,'MagneticFieldStrength','MRAcquisitionType',...
+                     'ScanningSequence','RepetitionTime','EchoTime','FlipAngle')
+        if isfield(H,'ScanOptions')
+            ScanOptions = H.ScanOptions;
+        else
+            ScanOptions = 'no';
+        end
+
+        descrip = sprintf('%gT %s %s TR=%gms/TE=%gms/FA=%gdeg/SO=%s %s',...
+            H.MagneticFieldStrength, H.MRAcquisitionType,...
+            deblank(H.ScanningSequence),...
+            H.RepetitionTime,H.EchoTime,H.FlipAngle,...
+            ScanOptions,...
+            when);
+    else
+        descrip = H.Modality;
+    end
+
+    if flip_lr,
+        mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
+    end
+
+    % Write the image volume
+    %--------------------------------------------------------------------------
+    spm_progress_bar('Init',length(this),['Writing ' fname], 'Planes written');
+    pinfos = [ones(length(this),1) zeros(length(this),1)];
+    for i=1:length(this)
+        if isfield(this(i),'RescaleSlope'),     pinfos(i,1) = this(i).RescaleSlope;     end
+        if isfield(this(i),'RescaleIntercept'), pinfos(i,2) = this(i).RescaleIntercept; end
+    end
+    if ~any(any(diff(pinfos,1)))
+        % Same slopes and intercepts for all slices
+        pinfo = pinfos(1,:);
+    else
+        % Variable slopes and intercept (maybe PET/SPECT)
+        mx = max(volume(:));
+        mn = min(volume(:));
+
+        %  Slope and Intercept
+        %  32767*pinfo(1) + pinfo(2) = mx
+        % -32768*pinfo(1) + pinfo(2) = mn
+        % pinfo = ([32767 1; -32768 1]\[mx; mn])';
+
+        % Slope only
+        dt    = 'int16-be';
+        pinfo = [max(mx/32767,-mn/32768) 0];
+
+        % Ensure random numbers are reproducible (see later)
+        % when intensities are dithered to prevent aliasing effects.
+        rand('state',0);
+    end
+
+    Nii      = nifti;
+    Nii.dat  = file_array(this(1).fname,dim,dt,0,pinfo(1),pinfo(2));
+    Nii.mat  = mat;
+    Nii.mat0 = mat;
+    Nii.mat_intent  = 'Scanner';
+    Nii.mat0_intent = 'Scanner';
+    Nii.descrip     = descrip;
+    create(Nii);
+
+    for i=1:length(this)
+
+        plane = volume(:,:,i);
+
+        if any(any(diff(pinfos,1)))
+            % This is to prevent aliasing effects in any subsequent histograms
+            % of the data (eg for mutual information coregistration).
+            % It's a bit inelegant, but probably necessary for when slices are
+            % individually rescaled.
+            plane = double(plane) + rand(size(plane)) - 0.5;
+        end
+
+        if pinfos(i,1)~=1, plane = plane*pinfos(i,1); end
+        if pinfos(i,2)~=0, plane = plane+pinfos(i,2); end
+
+        plane = fliplr(plane);
+
+        if flip_lr, plane = flipud(plane); end
+
+        z = 1;
+        if isfield(this,'InStackPositionNumber'),
+            z = this(i).InStackPositionNumber;
+        end
+        t = 1;
+        if isfield(dat,'TemporalPositionIndex')
+            t = this(i).TemporalPositionIndex;
+        end
+        Nii.dat(:,:,z,t) = plane;
+        spm_progress_bar('Set',i);
+    end
+
+    out = [out; {Nii.dat.fname}];
+    spm_progress_bar('Clear');
+
+end
+
+
+
+
+
+function dim = read_DimOrg(H,dict)
+
+dim = struct('DimensionIndexPointer',[],'FunctionalGroupPointer',[]);
+
+if isfield(H,'DimensionIndexSequence'),
+    for i=1:numel(H.DimensionIndexSequence),
+        DIP = H.DimensionIndexSequence{i}.DimensionIndexPointer;
+        ind = find(dict.group==DIP(1) & dict.element == DIP(2));
+        if numel(ind)==1,
+            dim(i).DimensionIndexPointer = dict.values(ind).name;
+        else
+            if rem(DIP(1),2)
+                dim(i).DimensionIndexPointer = sprintf('Private_%.4x_%.4x',DIP);
+            else
+                dim(i).DimensionIndexPointer = sprintf('Tag_%.4x_%.4x',DIP);
+            end
+        end
+
+        FGP = H.DimensionIndexSequence{i}.FunctionalGroupPointer;
+        ind = find(dict.group==FGP(1) & dict.element == FGP(2));
+        if numel(ind)==1,
+            dim(i).FunctionalGroupPointer     = dict.values(ind).name;
+        else
+            if rem(DIP(1),2)
+                dim(i).FunctionalGroupPointer = sprintf('Private_%.4x_%.4x',DIP);
+            else
+                dim(i).FunctionalGroupPointer = sprintf('Tag_%.4x_%.4x',DIP);
+            end
+        end
+    end
+end
+return
+
+
+function dat = read_FGS(H,dim)
+dat = struct;
+if isfield(H,'PerFrameFunctionalGroupsSequence'),
+    % For documentation, see C.7.6.16 "Multi-frame Functional Groups Module"
+    % of DICOM Standard PS 3.3 - 2003, Page 261.
+
+    % Multiframe DICOM
+    N = numel(H.PerFrameFunctionalGroupsSequence);
+    if isfield(H,'NumberOfFrames') && H.NumberOfFrames ~= N,
+        fprintf('"%s" has incompatible numbers of frames.', dat.Filename);
+    end
+
+    macros = {'PixelMeasuresSequence',{'PixelSpacing','SliceThickness'}
+              'FrameContentSequence',{'Frame Acquisition Number','FrameReferenceDatetime',...
+                                      'FrameAcquisitionDatetime','FrameAcquisitionDuration',...
+                                      'CardiacCyclePosition','RespiratoryCyclePosition',...
+                                      'DimensionIndexValues','TemporalPositionIndex','Stack ID',...
+                                      'InStackPositionNumber','FrameComments'}
+              'PlanePositionSequence',{'ImagePositionPatient'}
+              'PlaneOrientationSequence',{'ImageOrientationPatient'}
+              'ReferencedImageSequence',{'ReferencedSOPClassUID','ReferencedSOPInstanceUID',...
+                                         'ReferencedFrameNumber','PurposeOfReferenceCode'}
+              'PixelValueTransformationSequence',{'RescaleIntercept','RescaleSlope','RescaleType'}};
+
+    if isfield(H,'SharedFunctionalGroupsSequence')
+        for d=1:numel(dim),
+            if isfield(H.SharedFunctionalGroupsSequence{1},dim(d).FunctionalGroupPointer) && ...
+               isfield(H.SharedFunctionalGroupsSequence{1}.(dim(d).FunctionalGroupPointer),dim(d).DimensionIndexPointer),
+                for n=N:-1:1
+                    dat(n).(dim(d).DimensionIndexPointer) = H.SharedFunctionalGroupsSequence{1}.(dim(d).FunctionalGroupPointer).(dim(d).DimensionIndexPointer);
+                end
+            end
+        end
+
+        for k1=1:size(macros,1)
+            if isfield(H.SharedFunctionalGroupsSequence{1},macros{k1,1})
+                for k2=1:numel(macros{k1,2})
+                    if isfield(H.SharedFunctionalGroupsSequence{1}.(macros{k1,1}){1},macros{k1,2}{k2})
+                        for n=N:-1:1
+                            dat(n).(macros{k1,2}{k2}) = H.SharedFunctionalGroupsSequence{1}.(macros{k1,1}){1}.(macros{k1,2}{k2});
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    for n=1:N,
+        dat(n).number = n;
+        F = H.PerFrameFunctionalGroupsSequence{n};
+        for d=1:numel(dim),
+            if isfield(F,dim(d).FunctionalGroupPointer) && ...
+               isfield(F.(dim(d).FunctionalGroupPointer){1},dim(d).DimensionIndexPointer)
+                dat(n).(dim(d).DimensionIndexPointer) = F.(dim(d).FunctionalGroupPointer){1}.(dim(d).DimensionIndexPointer);
+            end
+        end
+
+        for k1=1:size(macros,1)
+            if isfield(F,macros{k1,1})
+                for k2=1:numel(macros{k1,2})
+                    if isfield(F.(macros{k1,1}){1},macros{k1,2}{k2})
+                        dat(n).(macros{k1,2}{k2}) = F.(macros{k1,1}){1}.(macros{k1,2}{k2});
+                    end
+                end
+            end
+        end
+    end
+
+else
+    error('"%s" is not multiframe.', H.FileName);
+end
+
+
