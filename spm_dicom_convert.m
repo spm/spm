@@ -35,7 +35,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6361 2015-03-05 13:41:29Z john $
+% $Id: spm_dicom_convert.m 6363 2015-03-06 11:51:44Z john $
 
 
 %-Input parameters
@@ -1379,19 +1379,18 @@ end
 %==========================================================================
 % function out = convert_multiframe(H, dict, root_dir, format)
 %==========================================================================
-
 function out = convert_multiframe(H, dict, root_dir, format)
 
 out      = {};
 diminfo  = read_DimOrg(H,dict);
 dat      = read_FGS(H,diminfo);
 
-fname = getfilelocation(H, root_dir,'MF',format);
+fname    = getfilelocation(H, root_dir,'MF',format);
 [pth,nam,ext] = fileparts(fname);
-fname = fullfile(pth,nam);
+fname    = fullfile(pth,nam);
 
-N = numel(dat);
-for n=1:N,
+N        = numel(dat);
+for n=1:N
     dat(n).fname = fname;
 end
 
@@ -1416,15 +1415,19 @@ for d=1:ndim,
         error('"%s" has unrecognised dimensions ("%s").\n', H.Filename,diminfo(d).DimensionIndexPointer);
     end
 end
-for n=1:N,
+for n=1:N % Put extensions back on
     dat(n).fname = [dat(n).fname ext];
 end
 
+% Read the atual image data
 volume = read_image_data(H);
+
+% Sort into unique files
 u      = unique({dat.fname});
 for n=1:numel(u),
+    % Identify all slices that should go into the same output file
     ind  = strcmp(u{n},{dat.fname});
-    this = dat(ind);
+    this = dat(ind); 
 
     % Image dimensions
     %--------------------------------------------------------------------------
@@ -1437,8 +1440,6 @@ for n=1:numel(u),
     if isfield(dat,'TemporalPositionIndex')
         dim(4) = numel(unique(cat(1,dat.TemporalPositionIndex)));
     end
-
-    dt     = determine_datatype(H);
 
     % Orientation information
     %--------------------------------------------------------------------------
@@ -1460,33 +1461,66 @@ for n=1:numel(u),
     analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]; % Flip voxels in y
     patient_to_tal   = diag([-1 -1 1 1]); % Flip mm coords in x and y directions
 
-    ind = find(cat(1,this.InStackPositionNumber)==1);
-    ImagePositionPatient    = this(ind).ImagePositionPatient(:);
-    ImageOrientationPatient = this(ind).ImageOrientationPatient(:);
-    PixelSpacing            = this(ind).PixelSpacing(:);
+    if any(sum(diff(cat(2,this(1).ImageOrientationPatient),1,2).^2,1)>0.001),
+        fprintf('"%s" contains irregularly oriented slices.\n', H.Filename);
+        % break % Option to skip writing out the NIfTI image
+    end
+    ImageOrientationPatient = this(1).ImageOrientationPatient(:);
 
-    R  = [reshape(ImageOrientationPatient,3,2)*diag(PixelSpacing); 0 0];
-    x1 = [1;1;1;1];
-    y1 = [ImagePositionPatient(:); 1];
+    if any(sum(diff(cat(2,this(1).PixelSpacing),1,2).^2,1)>0.001),
+        fprintf('"%s" contains slices with irregularly spaced pixels.\n', H.Filename);
+        % break % Option to skip writing out the NIfTI image
+    end
+    PixelSpacing            = this(1).PixelSpacing(:);
+
+    R   = [reshape(ImageOrientationPatient,3,2)*diag(PixelSpacing); 0 0];
 
     if dim(3)>1
-        x2 = [1;1;dim(3); 1];
-        [unused,ind] = max(cat(1,this.InStackPositionNumber));
-        y2 = [this(ind(1)).ImagePositionPatient(:); 1];
+
+        % Determine the order of the slices by sorting their positions according to where they project
+        % on a vector orthogonal to the iamge plane
+        orient      = reshape(this(1).ImageOrientationPatient,[3 2]);
+        orient(:,3) = null(orient');
+        if det(orient)<0, orient(:,3) = -orient(:,3); end
+        Positions   = unique([cat(1,this.InStackPositionNumber) cat(2,this.ImagePositionPatient)'],'rows');
+        [proj,ind]  = sort(Positions(:,2:4)*orient(3,:)');
+        if any(abs(diff(diff(proj,1,1),1,1))>0.01),
+            fprintf('"%s" contains irregularly spaced slices.\n', H.Filename);
+            % break % Option to skip writing out the NIfTI image
+        end
+
+        % Some mathematics involving permutation groups.
+        clear inv_ind
+        inv_ind(ind) = 1:numel(ind); % Inverse of permutation
+        slice_order(Positions(ind,1)) = inv_ind;
+        clear inv_InStackPositionNumber inv_slice_order
+        inv_InStackPositionNumber(cat(1,this.InStackPositionNumber)) = 1:numel(this);
+        inv_slice_order(slice_order)                                 = 1:numel(slice_order);
+        ind = inv_InStackPositionNumber(inv_slice_order);
+
+        y1  = [this(ind(1)).ImagePositionPatient(:); 1];
+        y2  = [this(ind(end)).ImagePositionPatient(:); 1];
     else
+        slice_order      = 1;
         orient           = reshape(ImageOrientationPatient,[3 2]);
         orient(:,3)      = null(orient');
         if det(orient)<0, orient(:,3) = -orient(:,3); end
         if isfield(H,'SliceThickness'), z = H.SliceThickness; else z = 1; end
-        x2 = [0;0;1;0];
-        y2 = [orient*[0;0;z];0];
+        y1  = [this(1).ImagePositionPatient(:); 1];
+        y2  = [orient*[0;0;z];0];
     end
 
+    x1               = [1;1;1;1];
+    x2               = [1;1;dim(3); 1];
     dicom_to_patient = [y1 y2 R]/[x1 x2 eye(4,2)];
     mat              = patient_to_tal*dicom_to_patient*analyze_to_dicom;
     flip_lr          = det(mat(1:3,1:3))>0;
 
-    % Possibly useful information
+    if flip_lr,
+        mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
+    end
+
+    % Possibly useful information for descrip field
     %--------------------------------------------------------------------------
     if isfield(H,'AcquisitionTime')
         tim = datevec(H.AcquisitionTime/(24*60*60));
@@ -1517,24 +1551,20 @@ for n=1:numel(u),
         else
             ScanOptions = 'no';
         end
-
-        descrip = sprintf('%gT %s %s TR=%gms/TE=%gms/FA=%gdeg/SO=%s %s',...
+        modality = sprintf('%gT %s %s TR=%gms/TE=%gms/FA=%gdeg/SO=%s',...
             H.MagneticFieldStrength, H.MRAcquisitionType,...
             deblank(H.ScanningSequence),...
             H.RepetitionTime,H.EchoTime,H.FlipAngle,...
-            ScanOptions,...
-            when);
+            ScanOptions);
     else
-        descrip = H.Modality;
+         modality = H.Modality;
     end
+    descrip = [modality ' ' when];
 
-    if flip_lr,
-        mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
-    end
 
-    % Write the image volume
+
+    % Sort out datatype, as well as any scalefactors or intercepts
     %--------------------------------------------------------------------------
-    spm_progress_bar('Init',length(this),['Writing ' fname], 'Planes written');
     pinfos = [ones(length(this),1) zeros(length(this),1)];
     for i=1:length(this)
         if isfield(this(i),'RescaleSlope'),     pinfos(i,1) = this(i).RescaleSlope;     end
@@ -1542,6 +1572,7 @@ for n=1:numel(u),
     end
     if ~any(any(diff(pinfos,1)))
         % Same slopes and intercepts for all slices
+        dt    = determine_datatype(H);
         pinfo = pinfos(1,:);
     else
         % Variable slopes and intercept (maybe PET/SPECT)
@@ -1562,6 +1593,9 @@ for n=1:numel(u),
         rand('state',0);
     end
 
+
+    % Create the header
+    %--------------------------------------------------------------------------
     Nii      = nifti;
     Nii.dat  = file_array(this(1).fname,dim,dt,0,pinfo(1),pinfo(2));
     Nii.mat  = mat;
@@ -1570,6 +1604,11 @@ for n=1:numel(u),
     Nii.mat0_intent = 'Scanner';
     Nii.descrip     = descrip;
     create(Nii);
+
+
+    % Write the image volume
+    %--------------------------------------------------------------------------
+    spm_progress_bar('Init',length(this),['Writing ' fname], 'Planes written');
 
     for i=1:length(this)
 
@@ -1587,12 +1626,11 @@ for n=1:numel(u),
         if pinfos(i,2)~=0, plane = plane+pinfos(i,2); end
 
         plane = fliplr(plane);
-
         if flip_lr, plane = flipud(plane); end
 
         z = 1;
         if isfield(this,'InStackPositionNumber'),
-            z = this(i).InStackPositionNumber;
+            z = slice_order(this(i).InStackPositionNumber);
         end
         t = 1;
         if isfield(dat,'TemporalPositionIndex')
@@ -1604,15 +1642,15 @@ for n=1:numel(u),
 
     out = [out; {Nii.dat.fname}];
     spm_progress_bar('Clear');
-
 end
 
 
 
 
-
+%==========================================================================
+% function dim = read_DimOrg(H,dict)
+%==========================================================================
 function dim = read_DimOrg(H,dict)
-
 dim = struct('DimensionIndexPointer',[],'FunctionalGroupPointer',[]);
 
 if isfield(H,'DimensionIndexSequence'),
@@ -1644,7 +1682,9 @@ if isfield(H,'DimensionIndexSequence'),
 end
 return
 
-
+%==========================================================================
+% dat = read_FGS(H,dim)
+%==========================================================================
 function dat = read_FGS(H,dim)
 dat = struct;
 if isfield(H,'PerFrameFunctionalGroupsSequence'),
