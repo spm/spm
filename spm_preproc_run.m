@@ -25,13 +25,13 @@ function varargout = spm_preproc_run(job,action)
 %
 % See also spm_preproc8.m amd spm_preproc_write8.m
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 6267 2014-11-25 16:12:43Z guillaume $
+% $Id: spm_preproc_run.m 6365 2015-03-06 18:59:55Z guillaume $
 
 
-SVNid = '$Rev: 6267 $';
+SVNid = '$Rev: 6365 $';
 
 if nargin == 1, action = 'run'; end
 
@@ -99,7 +99,7 @@ for iter=1:nit
 
         if iter==1
             % Initial affine registration.
-            Affine  = [];
+            Affine  = eye(4);
             if ~isempty(job.warp.affreg)
                 if isfield(job.warp,'Affine')
                     Affine = job.warp.Affine;
