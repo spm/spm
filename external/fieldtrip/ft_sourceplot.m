@@ -173,9 +173,9 @@ function ft_sourceplot(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 10221 2015-02-12 08:28:20Z roboos $
+% $Id: ft_sourceplot.m 10235 2015-02-16 10:35:39Z roboos $
 
-revision = '$Id: ft_sourceplot.m 10221 2015-02-12 08:28:20Z roboos $';
+revision = '$Id: ft_sourceplot.m 10235 2015-02-16 10:35:39Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -393,14 +393,8 @@ if hasfun
   if strcmp(dimtok{1}, '{pos}')
     tmpdim = getdimsiz(functional, cfg.funparameter);
     tmpfun = nan(tmpdim);
-    if any(functional.inside)<1
-      % logical representation
-      inside = find(functional.inside(:));
-    else
-      % indexed representation
-      inside = functional.inside(:);
-    end
-    for i=inside(:)'
+    insideindx = find(functional.inside);
+    for i=insideindx(:)'
       tmpfun(i,:) = fun{i};
     end
     fun = tmpfun;       % replace the cell-array functional with a normal array

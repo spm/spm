@@ -11,7 +11,7 @@ function mesh=prepare_mesh_hexahedral(cfg,mri)
 
 % Copyrights (C) 2012-2013, Johannes Vorwerk
 %
-% $Id: prepare_mesh_hexahedral.m 9006 2013-12-10 11:24:56Z roboos $
+% $Id: prepare_mesh_hexahedral.m 10264 2015-03-02 10:14:28Z eelspa $
 
 % ensure that the input is consistent with what this function expects
 mri = ft_checkdata(mri, 'datatype', {'volume', 'segmentation'}, 'hasunit', 'yes');
@@ -25,7 +25,7 @@ cfg.background  = ft_getopt(cfg, 'background');
 if isempty(cfg.tissue)
   mri = ft_datatype_segmentation(mri, 'segmentationstyle', 'indexed');
   fn = fieldnames(mri);
-  for i=1:numel(fn),if numel(mri.(fn{i}))==prod(mri.dim), segfield=fn{i};end;end
+    for i=1:numel(fn),if (numel(mri.(fn{i}))==prod(mri.dim))&(~strcmp(fn{i},'inside')), segfield=fn{i};end;end
   cfg.tissue=setdiff(unique(mri.(segfield)(:)),0);
 end
 

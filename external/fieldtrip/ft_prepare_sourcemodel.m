@@ -106,9 +106,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 10169 2015-02-05 12:56:47Z roboos $
+% $Id: ft_prepare_sourcemodel.m 10241 2015-02-19 14:33:26Z johzum $
 
-revision = '$Id: ft_prepare_sourcemodel.m 10169 2015-02-05 12:56:47Z roboos $';
+revision = '$Id: ft_prepare_sourcemodel.m 10241 2015-02-19 14:33:26Z johzum $';
 
 % do the general setup of the function
 ft_defaults
@@ -140,7 +140,12 @@ cfg.spmversion = ft_getopt(cfg, 'spmversion', 'spm8');
 cfg.grid.unit  = ft_getopt(cfg.grid, 'unit',  'auto');
 
 % this code expects the inside to be represented as a logical array
-cfg.grid = ft_checkconfig(cfg.grid, 'renamed',  {'pnt' 'pos'});
+if isfield(cfg, 'grid')
+  cfg.grid = ft_checkconfig(cfg.grid, 'renamed',  {'pnt' 'pos'});
+  if isfield(cfg.grid, 'template')
+    cfg.grid.template = ft_checkconfig(cfg.grid.template, 'renamed',  {'pnt' 'pos'});
+  end
+end
 cfg = ft_checkconfig(cfg, 'index2logical', 'yes');
 
 if ~isfield(cfg, 'vol') && nargin>1
@@ -349,7 +354,7 @@ if basedonpos
   % a grid is already specified in the configuration, reuse as much of the
   % prespecified grid as possible (but only known objects)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  grid = keepfields(cfg.grid, {'pos', 'unit', 'xgrid', 'ygrid', 'zgrid', 'mom', 'tri', 'dim', 'transform', 'inside', 'lbex', 'subspace', 'leadfield', 'filter'});
+  grid = keepfields(cfg.grid, {'pos', 'unit', 'xgrid', 'ygrid', 'zgrid', 'mom', 'tri', 'dim', 'transform', 'inside', 'lbex', 'subspace', 'leadfield', 'filter', 'label'});
 end
 
 if basedonmri
@@ -594,7 +599,10 @@ if basedonmni
     grid.pos = ft_warp_apply(inv(normalise.initial), ft_warp_apply(normalise.params, mnigrid.pos, 'sn2individual'));
   end
   if isfield(mnigrid, 'dim')
-    grid.dim     = mnigrid.dim;
+    grid.dim   = mnigrid.dim;
+  end
+  if isfield(mnigrid, 'tri')
+    grid.tri   = mnigrid.tri;
   end
   grid.unit    = mnigrid.unit;
   grid.inside  = mnigrid.inside;

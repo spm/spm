@@ -43,7 +43,7 @@ function atlas = ft_read_atlas(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_atlas.m 9639 2014-06-19 15:27:44Z roboos $
+% $Id: ft_read_atlas.m 10263 2015-02-27 08:08:31Z roboos $
 
 % deal with multiple filenames
 if isa(filename, 'cell')
@@ -2074,7 +2074,7 @@ switch atlasformat
     atlas = [];
     for k = 1:size(g.cdata,2)
       tmporig  = g.cdata(:,k);
-      tmpnew   = zeros(size(tmporig))+nan;
+      tmpnew   = nan(size(tmporig));
       tmplabel = cell(0,1);
       cnt = 0;
       for m = 1:numel(label)

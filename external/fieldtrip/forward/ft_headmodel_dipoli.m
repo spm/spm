@@ -27,7 +27,7 @@ function vol = ft_headmodel_dipoli(geom, varargin)
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
-% $Id: ft_headmodel_dipoli.m 8305 2013-07-02 09:59:57Z roboos $
+% $Id: ft_headmodel_dipoli.m 10238 2015-02-16 21:26:17Z roboos $
 
 ft_hastoolbox('dipoli', 1);
 
@@ -148,10 +148,11 @@ fprintf('using the executable "%s"\n', dipoli);
 
 
 % write the triangulations to file
-bndfile = {};
-bnddip = vol.bnd;
+prefix  = tempname;
+bndfile = cell(1,numboundaries);
+bnddip  = vol.bnd;
 for i=1:numboundaries
-  bndfile{i} = [tempname '.tri'];
+  bndfile{i} = sprintf('%s_%d.tri', prefix, i);
   % checks if normals are inwards oriented otherwise flips them
   ok = checknormals(bnddip(i));
   if ~ok

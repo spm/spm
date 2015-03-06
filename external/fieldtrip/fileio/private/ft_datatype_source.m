@@ -75,7 +75,7 @@ function source = ft_datatype_source(source, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_source.m 10175 2015-02-06 14:41:24Z roboos $
+% $Id: ft_datatype_source.m 10266 2015-03-04 12:20:43Z jansch $
 
 % FIXME: I am not sure whether the removal of the xgrid/ygrid/zgrid fields
 % was really in 2007
@@ -173,6 +173,7 @@ switch version
         
         
         if iscell(dat)
+          datsiz(1) = nrpt; % swap the size of pos with the size of rpt
           val  = cell(npos,1);
           indx = find(source.inside);
           for k=1:length(indx)

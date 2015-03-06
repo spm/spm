@@ -85,9 +85,9 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 10105 2015-01-19 13:37:56Z jimher $
+% $Id: ft_timelockanalysis.m 10263 2015-02-27 08:08:31Z roboos $
 
-revision = '$Id: ft_timelockanalysis.m 10105 2015-01-19 13:37:56Z jimher $';
+revision = '$Id: ft_timelockanalysis.m 10263 2015-02-27 08:08:31Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -213,7 +213,7 @@ end
 
 % pre-allocate some memory space for the covariance matrices
 if strcmp(cfg.covariance, 'yes')
-  covsig = zeros(ntrial, nchan, nchan); covsig(:) = nan;
+  covsig = nan(ntrial, nchan, nchan);
   numcovsigsamples = zeros(ntrial,1);
 end
 
@@ -224,7 +224,7 @@ s        = zeros(nchan, maxwin);    % this will contain the sum
 ss       = zeros(nchan, maxwin);    % this will contain the squared sum
 dof      = zeros(1, maxwin);
 if (strcmp(cfg.keeptrials,'yes'))
-  singtrial = zeros(ntrial, nchan, maxwin); singtrial(:) = nan;
+  singtrial = nan(ntrial, nchan, maxwin);
 end
 
 ft_progress('init', cfg.feedback, 'averaging trials');

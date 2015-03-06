@@ -59,9 +59,9 @@ function [source] = ft_sourcedescriptives(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedescriptives.m 10173 2015-02-05 16:43:40Z roboos $
+% $Id: ft_sourcedescriptives.m 10263 2015-02-27 08:08:31Z roboos $
 
-revision = '$Id: ft_sourcedescriptives.m 10173 2015-02-05 16:43:40Z roboos $';
+revision = '$Id: ft_sourcedescriptives.m 10263 2015-02-27 08:08:31Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -77,7 +77,7 @@ if abort
 end
 
 % check if the input data is valid for this function
-source = ft_checkdata(source, 'datatype', 'source', 'feedback', 'yes');
+% source = ft_checkdata(source, 'datatype', 'source', 'feedback', 'yes');
 
 cfg = ft_checkconfig(cfg, 'forbidden',   {'trials'});    % trial selection is not implented here, you may want to consider ft_selectdata
 
@@ -129,7 +129,7 @@ end
 
 % determine the type of data, this is only relevant for a few specific types
 ispccdata = isfield(source, 'avg')   && isfield(source.avg, 'csdlabel');
-islcmvavg = isfield(source, 'avg')   && isfield(source, 'time') && isfield(source.avg,   'mom') && size(source.avg.pow, 2)==1;
+islcmvavg = isfield(source, 'avg')   && isfield(source, 'time') && isfield(source.avg,   'mom') && any(size(source.avg.pow)==1);
 islcmvtrl = isfield(source, 'trial') && isfield(source, 'time') && isfield(source.trial, 'mom');
 ismneavg  = isfield(source, 'avg')   && isfield(source, 'time') && isfield(source.avg,   'mom') && size(source.avg.pow, 2)==numel(source.time);
 
@@ -853,19 +853,19 @@ if strcmp(source.method, 'jackknife') || strcmp(source.method, 'bootstrap') || s
   
   % allocate memory for all elements in the dipole structure
   sumdip = [];
-  if isfield(dip(1), 'var'),   sumdip.var    = zeros(size(dip(1).var  )); sumdip.var  (~source.inside)=nan;   end
-  if isfield(dip(1), 'pow'),   sumdip.pow    = zeros(size(dip(1).pow  )); sumdip.pow  (~source.inside)=nan;   end
-  if isfield(dip(1), 'coh'),   sumdip.coh    = zeros(size(dip(1).coh  )); sumdip.coh  (~source.inside)=nan;   end
-  if isfield(dip(1), 'rv'),    sumdip.rv     = zeros(size(dip(1).rv   )); sumdip.rv   (~source.inside)=nan;   end
-  if isfield(dip(1), 'noise'), sumdip.noise  = zeros(size(dip(1).noise)); sumdip.noise(~source.inside)=nan;   end
-  if isfield(dip(1), 'nai'),   sumdip.nai    = zeros(size(dip(1).nai  )); sumdip.nai  (~source.inside)=nan;   end
+  if isfield(dip(1), 'var'),   sumdip.var    = nan(size(dip(1).var  )); end
+  if isfield(dip(1), 'pow'),   sumdip.pow    = nan(size(dip(1).pow  )); end
+  if isfield(dip(1), 'coh'),   sumdip.coh    = nan(size(dip(1).coh  )); end
+  if isfield(dip(1), 'rv'),    sumdip.rv     = nan(size(dip(1).rv   )); end
+  if isfield(dip(1), 'noise'), sumdip.noise  = nan(size(dip(1).noise)); end
+  if isfield(dip(1), 'nai'),   sumdip.nai    = nan(size(dip(1).nai  )); end
   sqrdip = [];
-  if isfield(dip(1), 'var'),   sqrdip.var    = zeros(size(dip(1).var  )); sqrdip.var  (~source.inside)=nan;   end
-  if isfield(dip(1), 'pow'),   sqrdip.pow    = zeros(size(dip(1).pow  )); sqrdip.pow  (~source.inside)=nan;   end
-  if isfield(dip(1), 'coh'),   sqrdip.coh    = zeros(size(dip(1).coh  )); sqrdip.coh  (~source.inside)=nan;   end
-  if isfield(dip(1), 'rv'),    sqrdip.rv     = zeros(size(dip(1).rv   )); sqrdip.rv   (~source.inside)=nan;   end
-  if isfield(dip(1), 'noise'), sqrdip.noise  = zeros(size(dip(1).noise)); sqrdip.noise(~source.inside)=nan;   end
-  if isfield(dip(1), 'nai'),   sqrdip.nai    = zeros(size(dip(1).nai  )); sqrdip.nai  (~source.inside)=nan;   end
+  if isfield(dip(1), 'var'),   sqrdip.var    = nan(size(dip(1).var  )); end
+  if isfield(dip(1), 'pow'),   sqrdip.pow    = nan(size(dip(1).pow  )); end
+  if isfield(dip(1), 'coh'),   sqrdip.coh    = nan(size(dip(1).coh  )); end
+  if isfield(dip(1), 'rv'),    sqrdip.rv     = nan(size(dip(1).rv   )); end
+  if isfield(dip(1), 'noise'), sqrdip.noise  = nan(size(dip(1).noise)); end
+  if isfield(dip(1), 'nai'),   sqrdip.nai    = nan(size(dip(1).nai  )); end
   if isfield(dip(1), 'mom')
     sumdip.mom = cell(size(dip(1).mom));
     sqrdip.mom = cell(size(dip(1).mom));

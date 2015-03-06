@@ -6,7 +6,7 @@ function [pipeline] = ft_analysispipeline(cfg, data)
 % or in a specialized pipeline format (e.g. PSOM, JIST, LONI, Taverna).
 %
 % Use as
-%   output = ft_analysisprotocol(cfg, data)
+%   output = ft_analysispipeline(cfg, data)
 %
 % The first cfg input contains the settings that apply to the behaviour of this
 % particular function and the second data input argument can be the output of any
@@ -73,9 +73,9 @@ function [pipeline] = ft_analysispipeline(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_analysispipeline.m 10036 2014-12-11 14:26:55Z roboos $
+% $Id: ft_analysispipeline.m 10246 2015-02-23 13:45:04Z jimher $
 
-revision = '$Id: ft_analysispipeline.m 10036 2014-12-11 14:26:55Z roboos $';
+revision = '$Id: ft_analysispipeline.m 10246 2015-02-23 13:45:04Z jimher $';
 
 % callinfo feedback is highly annoying in this recursive function
 % do this here, otherwise ft_defaults will override our setting

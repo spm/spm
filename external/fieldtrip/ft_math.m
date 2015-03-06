@@ -82,13 +82,13 @@ function data = ft_math(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_math.m 10196 2015-02-11 09:15:07Z roboos $
+% $Id: ft_math.m 10268 2015-03-06 15:07:53Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 10196 2015-02-11 09:15:07Z roboos $';
+revision = '$Id: ft_math.m 10268 2015-03-06 15:07:53Z roboos $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will show the function help if nargin==0 and return an error
@@ -161,15 +161,19 @@ dimord = dimordtmp{1}; clear dimordtmp
 dimtok = tokenize(dimord, '_');
 
 % this determines which descriptive fields will get copied over
-haschan = any(strcmp(dimtok, 'chan'));
-hasfreq = any(strcmp(dimtok, 'freq'));
-hastime = any(strcmp(dimtok, 'time'));
-haspos  = any(strcmp(dimtok, 'pos'));
+haschan    = any(strcmp(dimtok, 'chan'));
+haschancmb = any(strcmp(dimtok, 'chancmb'));
+hasfreq    = any(strcmp(dimtok, 'freq'));
+hastime    = any(strcmp(dimtok, 'time'));
+haspos     = any(strcmp(dimtok, 'pos'));
 
 % construct the output data structure
 data = [];
 if haschan
   data.label = varargin{1}.label;
+end
+if haschancmb
+  data.labelcmb = varargin{1}.labelcmb;
 end
 if hasfreq
   data.freq = varargin{1}.freq;
