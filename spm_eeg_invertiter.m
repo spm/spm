@@ -14,7 +14,7 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname,patchi
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5924 2014-03-19 14:59:12Z gareth $
+% $Id: spm_eeg_invertiter.m 6367 2015-03-09 15:02:25Z gareth $
 
 if nargin<2,
     Npatchiter=[];
@@ -37,10 +37,14 @@ if numel(Dtest)>1,
 end;
 
 
+
 val=Dtest{1}.val;
+
+
+
 Nvert=size(Dtest{1}.inv{val}.mesh.tess_mni.vert,1);
 Np=Dtest{1}.inv{val}.inverse.Np;
-%U=Dtest{1}.inv{val}.inverse.U{1};
+
 
 
 allF=zeros(Npatchiter,1);
