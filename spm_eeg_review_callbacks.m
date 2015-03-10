@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 6320 2015-01-27 16:18:40Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 6370 2015-03-10 16:29:21Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -1634,6 +1634,8 @@ if length(cn) == 5  % channel info
                         D = chantype(D,i,'PHYS');
                     case 'ilam'
                         D = chantype(D,i,'ILAM');
+                    case 'src'
+                        D = chantype(D,i,'SRC'); 
                     case 'other'
                         D = chantype(D,i,'Other');
                     otherwise

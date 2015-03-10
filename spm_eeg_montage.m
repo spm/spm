@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 6320 2015-01-27 16:18:40Z vladimir $
+% $Id: spm_eeg_montage.m 6370 2015-03-10 16:29:21Z vladimir $
 
-SVNrev = '$Rev: 6320 $';
+SVNrev = '$Rev: 6370 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -344,7 +344,7 @@ switch S.mode
                     % Just remove known non-scalp channels to be on the
                     % safe side. 'Other' channels are not removed as they
                     % can be some kind of spatial components.
-                    lblaux    = Dnew.chanlabels(Dnew.indchantype({'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'ILAM'}));
+                    lblaux    = Dnew.chanlabels(Dnew.indchantype({'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'ILAM', 'SRC'}));
                     [sel3, sel4] = spm_match_str(lblaux, sensmontage.labelnew);
                     sensmontage.tra(sel4, :) = [];
                     sensmontage.labelnew(sel4) = [];
