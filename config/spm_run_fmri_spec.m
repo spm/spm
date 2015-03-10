@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 6344 2015-02-20 11:59:25Z guillaume $
+% $Id: spm_run_fmri_spec.m 6372 2015-03-10 21:37:21Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -161,8 +161,17 @@ for i = 1:numel(job.sess)
             %-Mutiple Conditions: names, onsets and durations
             %--------------------------------------------------------------
             cond.name     = multicond.names{j};
+            if isempty(cond.name)
+                error('MultiCond file: sess %d cond %d has no name.',i,j);
+            end
             cond.onset    = multicond.onsets{j};
+            if isempty(cond.onset)
+                error('MultiCond file: sess %d cond %d has no onset.',i,j);
+            end
             cond.duration = multicond.durations{j};
+            if isempty(cond.onset)
+                error('MultiCond file: sess %d cond %d has no duration.',i,j);
+            end
             
             %-Mutiple Conditions: Time Modulation
             %--------------------------------------------------------------
@@ -235,9 +244,17 @@ for i = 1:numel(job.sess)
         P  = [];
         q1 = 0;
         %-Time Modulation
+        switch job.timing.units
+            case 'secs'
+                sf    = 1 / 60;
+            case 'scans'
+                sf    = job.timing.RT / 60;
+            otherwise
+                error('Unknown unit "%s".',job.timing.units);
+        end
         if cond.tmod > 0
             P(1).name = 'time';
-            P(1).P    = U(j).ons * job.timing.RT / 60;
+            P(1).P    = U(j).ons * sf;
             P(1).h    = cond.tmod;
             q1        = 1;
         end
