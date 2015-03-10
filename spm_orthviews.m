@@ -148,10 +148,10 @@ function varargout = spm_orthviews(action,varargin)
 % spm_orthviews('plugin_name', plugin_arguments). For detailed descriptions
 % of each plugin see help spm_orthviews/spm_ov_'plugin_name'.
 %__________________________________________________________________________
-% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 6077 2014-06-30 16:55:03Z spm $
+% $Id: spm_orthviews.m 6371 2015-03-10 20:19:46Z guillaume $
 
 
 % The basic fields of st are:
@@ -257,9 +257,14 @@ end
     
 switch lower(action)
     case 'image'
-        H = specify_image(varargin{1});
+        if numel(varargin)>=3
+            F = varargin{3};
+        else
+            F = st.fig;
+        end
+        H = specify_image(varargin{1},F);
         if ~isempty(H)
-            if numel(varargin)>=2
+            if numel(varargin)>=2 && ~isempty(varargin{2})
                 st.vols{H}.area = varargin{2};
             else
                 st.vols{H}.area = [0 0 1 1];
@@ -538,9 +543,9 @@ spm('Pointer','Arrow');
 
 
 %==========================================================================
-% function H = specify_image(img)
+% function H = specify_image(img, h)
 %==========================================================================
-function H = specify_image(img)
+function H = specify_image(img,h)
 global st
 H = [];
 if isstruct(img)
@@ -561,7 +566,7 @@ while ~isempty(st.vols{ii}), ii = ii + 1; end
 DeleteFcn = ['spm_orthviews(''Delete'',' num2str(ii) ');'];
 V.ax = cell(3,1);
 for i=1:3
-    ax = axes('Visible','off', 'Parent',st.fig, ...
+    ax = axes('Visible','off', 'Parent',h, ...
         'YDir','normal', 'DeleteFcn',DeleteFcn, 'ButtonDownFcn',@repos_start);
     d  = image(0, 'Tag','Transverse', 'Parent',ax, 'DeleteFcn',DeleteFcn);
     set(ax, 'Ydir','normal', 'ButtonDownFcn',@repos_start);
@@ -718,7 +723,8 @@ if st.mode == 0,
 else
     axpos = get(st.vols{vh}.ax{1}.ax,'Position');
 end
-st.vols{vh}.blobs{bh}.cbar = axes('Parent',st.fig,...
+H = ancestor(st.vols{vh}.ax{1}.ax,{'figure','uipanel'});
+st.vols{vh}.blobs{bh}.cbar = axes('Parent',H,...
     'Position',[(axpos(1)+axpos(3)+0.05+(bh-1)*.1) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
     'Box','on', 'YDir','normal', 'XTickLabel',[], 'XTick',[]);
 if isfield(st.vols{vh}.blobs{bh},'name')
@@ -830,13 +836,10 @@ global st
 rmblobs(handle);
 % remove displayed axes
 for i=valid_handles(handle)
-    kids = get(st.fig,'Children');
     for j=1:3
         try
-            if any(kids == st.vols{i}.ax{j}.ax)
-                set(get(st.vols{i}.ax{j}.ax,'Children'),'DeleteFcn','');
-                delete(st.vols{i}.ax{j}.ax);
-            end
+            set(get(st.vols{i}.ax{j}.ax,'Children'),'DeleteFcn','');
+            delete(st.vols{i}.ax{j}.ax);
         end
     end
     st.vols{i} = [];
@@ -982,12 +985,14 @@ TD = Dims([1 2])';
 CD = Dims([1 3])';
 if st.mode == 0, SD = Dims([3 2])'; else SD = Dims([2 3])'; end
 
-un    = get(st.fig,'Units');set(st.fig,'Units','Pixels');
-sz    = get(st.fig,'Position');set(st.fig,'Units',un);
-sz    = sz(3:4);
-sz(2) = sz(2)-40;
-
 for i=valid_handles
+    
+    H     = ancestor(st.vols{i}.ax{1}.ax,{'figure','uipanel'});
+    un    = get(H,'Units');set(H,'Units','Pixels');
+    sz    = get(H,'Position');set(H,'Units',un);
+    sz    = sz(3:4);
+    sz(2) = sz(2)-40;
+    
     area   = st.vols{i}.area(:);
     area   = [area(1)*sz(1) area(2)*sz(2) area(3)*sz(1) area(4)*sz(2)];
     if st.mode == 0
