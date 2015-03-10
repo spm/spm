@@ -31,9 +31,9 @@ function images = spm_eeg_convert2images(S)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 6003 2014-05-21 10:41:05Z vladimir $
+% $Id: spm_eeg_convert2images.m 6369 2015-03-10 10:46:49Z vladimir $
 
-SVNrev = '$Rev: 6003 $';
+SVNrev = '$Rev: 6369 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -68,7 +68,7 @@ if isTF
     end
     
     df = unique(diff(D.frequencies(freqind)));
-    if length(df)> 1;
+    if length(df)> 1 && (max(diff(df))/mean(df))>0.1
         error('Irregular frequency spacing');
     end
 else
