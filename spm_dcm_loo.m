@@ -18,10 +18,10 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,X,field)
 % Q     - posterior probability over unique levels of X(:,2)
 %__________________________________________________________________________
 %
-% This routine uses the posture predictive density over the coefficient of
-% between subject effects encoded by the design matrix X. It is assumed
+% This routine uses the posterior predictive density over the coefficients 
+% of between subject effects encoded by a design matrix X. It is assumed
 % that the second column of X contains classification predictor variables.
-% A scheme is used to estimate the mixture of parameters at the first
+% A CV scheme is used to estimate the mixture of parameters at the first
 % (within subject) level that are conserved over subjects in terms of a
 % constant (first column of X) and differences (second column of X). Using
 % a leave-one-out scheme, the predictive posterior density of the
@@ -35,7 +35,7 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,X,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_loo.m 6353 2015-03-01 11:52:49Z karl $
+% $Id: spm_dcm_loo.m 6373 2015-03-11 17:10:54Z karl $
 
 
 % Set up

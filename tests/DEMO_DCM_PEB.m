@@ -24,7 +24,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6362 2015-03-05 20:08:48Z karl $
+% $Id: DEMO_DCM_PEB.m 6373 2015-03-11 17:10:54Z karl $
 
 
 % change to directory with empirical data
@@ -242,12 +242,8 @@ spm_dcm_loo(RCM(:,1),X,{'A','B'});
 
 % null analysis
 %==========================================================================
-
-% BMC - search over first and second level effects
-%--------------------------------------------------------------------------
-M0        = M;
-M0.X(:,2) = M0.X(randperm(Ns),2);
-% spm_dcm_bmc_peb(RCM,M0,{'A','B'});
+[~,k] = max(BMC.Pw);
+% spm_dcm_peb_rnd(RCM(:,k),M,{'A','B'});
 
 
 % extract and plot results

@@ -34,7 +34,7 @@ function DEMO_BMR_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BMR_PEB.m 6353 2015-03-01 11:52:49Z karl $
+% $Id: DEMO_BMR_PEB.m 6373 2015-03-11 17:10:54Z karl $
 
 
 % set up
@@ -207,16 +207,10 @@ BMA   = spm_dcm_peb_bmc(PEB,RCM(1,:));
 spm_dcm_loo(RCM(:,mw),X,{'B'});
 
 
-
 % null analysis
-%--------------------------------------------------------------------------
+%==========================================================================
 [~,k] = max(BMC.Pw);
-M0    = M;
-for i = 1:0 %%% or 16
-    M0.X(:,2) = M.X(randperm(Ns),2);
-    bmc       = spm_dcm_bmc_peb(RCM(:,k),M0,{'A','B'});
-    Px(i,:)   = bmc.Px;
-end
+% spm_dcm_peb_rnd(RCM(:,k),M,{'B'});
 
 
 

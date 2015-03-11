@@ -70,7 +70,7 @@ function [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmc_peb.m 6353 2015-03-01 11:52:49Z karl $
+% $Id: spm_dcm_bmc_peb.m 6373 2015-03-11 17:10:54Z karl $
 
 
 % set up
@@ -107,7 +107,6 @@ Nx    = size(M.X,2);
 K     = spm_perm_mtx(Nx);
 K     = K(K(:,1),:);
 Nk    = size(K,1);
-
 for i = 1:Nm
     
     % invert under full second level model
@@ -123,7 +122,6 @@ for i = 1:Nm
     qC    = PEB.Cph;
     pE    = spm_vec(PEB.M.pE,PEB.M.hE);
     pC    = blkdiag(PEB.M.pC,PEB.M.hC);
-
 
     for k = 1:Nk
         

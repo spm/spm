@@ -15,7 +15,6 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % M.pC   - second level prior covariances of parameters
 % M.hE   - second level prior expectation of log precisions
 % M.hC   - second level prior covariances of log precisions
-%
 % M.Q    - covariance components: {'single','fields','all','none'}
 % 
 % field  - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
@@ -75,7 +74,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6362 2015-03-05 20:08:48Z karl $
+% $Id: spm_dcm_peb.m 6373 2015-03-11 17:10:54Z karl $
  
 
 % get filenames and set up
@@ -268,9 +267,7 @@ gC    = 1;
 try, gE = M.hE; end
 try, gC = M.hC; end
 try, bX = M.bX; catch
-    bX        = size(X,1)./sum(X.^2);
-    bX(2:end) = bX(2:end)*32;
-    bX        = diag(bX);
+    bX  = diag(size(X,1)./sum(X.^2));
 end
 
 % prior expectations and precisions of second level parameters
@@ -440,7 +437,7 @@ for i = 1:Ns
         % augment empirical priors
         %------------------------------------------------------------------
         RP      = spm_inv(pC{i});
-        RP(q,q) = RP(q,q) + rP - pP;
+        RP(q,q) = rP;
         RC      = spm_inv(RP);
         
         RE      = spm_vec(pE{i});
