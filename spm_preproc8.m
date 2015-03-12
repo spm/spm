@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 6335 2015-02-11 17:14:26Z john $
+% $Id: spm_preproc8.m 6375 2015-03-12 11:37:10Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -225,11 +225,11 @@ for z=1:length(z0),
     % Initially load all the data, but prepare to exclude
     % locations where any of the images is not finite, or
     % is zero.  We want this to work for skull-stripped
-    % images too.
+    % images too. The -3924 option has been added for CT data.
     fz = cell(1,N);
     for n=1:N,
         fz{n}      = spm_sample_vol(V(n),x0,y0,o*z0(z),0);
-        buf(z).msk = buf(z).msk & isfinite(fz{n}) & (fz{n}~=0);
+        buf(z).msk = buf(z).msk & isfinite(fz{n}) & (fz{n}~=0) & (fz{n}~=-3024);
     end
 
     if isfield(obj,'msk') && ~isempty(obj.msk),

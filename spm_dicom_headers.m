@@ -15,7 +15,7 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 6284 2014-12-09 13:19:47Z guillaume $
+% $Id: spm_dicom_headers.m 6375 2015-03-12 11:37:10Z john $
 
 if nargin<2, essentials = false; end
 
@@ -94,7 +94,6 @@ while len<lim
     if tag.group==65534 && tag.element==57357 % FFFE,E00D ItemDelimitationItem
         break;
     end
- 
     if tag.length>0
         switch tag.name
             case {'GroupLength'},
@@ -197,19 +196,20 @@ while len<lim
                         dat = fread(fp,tag.length/4,'uint32')';
                     case {'SL'},
                         dat = fread(fp,tag.length/4,'int32')';
-                    case {'FL'},
+                    case {'FL','OF'},
                         dat = fread(fp,tag.length/4,'float')';
-                    case {'FD'},
+                    case {'FD','OD'},
                         dat = fread(fp,tag.length/8,'double')';
                     case {'SQ'},
                         [dat,len1] = read_sq(fp, flg,dict,tag.length);
                         tag.length = len1;
                     otherwise,
-                        dat = '';
-                        if tag.length
-                            fseek(fp,tag.length,'cof');
-                            warning('spm:dicom','%s: Unknown VR [%X%X] (offset=%d).', fopen(fp), tag.vr+0, ftell(fp));
-                        end
+                        dat = fread(fp,tag.length,'uint8')';
+                       %dat = '';
+                        %if tag.length
+                        %    fseek(fp,tag.length,'cof');
+                        %    warning('spm:dicom','%s: Unknown VR "%s" [%X%X] (offset=%d).', fopen(fp), tag.vr, tag.vr(1)+0, tag.vr(2)+0, ftell(fp));
+                        %end
                 end
                 if ~isempty(tag.name)
                     ret.(tag.name) = dat;
@@ -312,12 +312,11 @@ if flg(2) == 'b'
         fseek(fp,pos,'bof');
     end
 end
-
 if flg(1) =='e'
     tag.vr      = char(fread(fp,2,'uint8')');
     tag.le      = 6;
     switch tag.vr
-        case {'OB','OW','SQ','UN','UT'}
+        case {'OB','OW','OF','OD','SQ','UN','UT'}
             if ~strcmp(tag.vr,'UN') || tag.group~=65534,
                 unused = fread(fp,1,'ushort');
                 tag.le = 12;

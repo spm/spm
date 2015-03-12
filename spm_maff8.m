@@ -20,7 +20,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_maff8.m 6330 2015-02-09 16:19:26Z john $
+% $Id: spm_maff8.m 6375 2015-03-12 11:37:10Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -65,7 +65,7 @@ sf = [mn 1;mx 1]\[1;4000];
 h  = zeros(4000,1);
 for i=1:d(3)
     p = g(:,:,i);
-    p = p(isfinite(p) & (p~=0));
+    p = p(isfinite(p) & (p~=0) & (p~=-3024));
     p = round(p*sf(1)+sf(2));
     h = h + accumarray(p(:),1,[4000,1]);
     spm_progress_bar('Set',i);

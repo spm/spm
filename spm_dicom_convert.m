@@ -35,7 +35,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6363 2015-03-06 11:51:44Z john $
+% $Id: spm_dicom_convert.m 6375 2015-03-12 11:37:10Z john $
 
 
 %-Input parameters
@@ -1384,62 +1384,47 @@ function out = convert_multiframe(H, dict, root_dir, format)
 out      = {};
 diminfo  = read_DimOrg(H,dict);
 dat      = read_FGS(H,diminfo);
-
-fname    = getfilelocation(H, root_dir,'MF',format);
-[pth,nam,ext] = fileparts(fname);
-fname    = fullfile(pth,nam);
-
 N        = numel(dat);
-for n=1:N
-    dat(n).fname = fname;
+fname0   = getfilelocation(H, root_dir,'MF',format);
+[pth,nam,ext0] = fileparts(fname0);
+fname0   = fullfile(pth,nam);
+
+if ~isfield(dat,'ImageOrientationPatient') || ~isfield(dat,'PixelSpacing') || ~isfield(dat,'ImagePositionPatient'),
+    fprintf('"%s" does not seem to have positional information.\n', H.Filename);
+    return;
 end
 
-ndim = numel(diminfo);
-for d=1:ndim,
-    if isfield(dat,diminfo(d).DimensionIndexPointer),
-        if strcmp(diminfo(d).DimensionIndexPointer,'InStackPositionNumber')
-        elseif strcmp(diminfo(d).DimensionIndexPointer,'TemporalPositionIndex')
-        else
-            u = unique(strvcat(dat.(diminfo(d).DimensionIndexPointer)),'rows');
-            if size(u,1)>1,
-                for n=1:N
-                    if ischar(dat(n).(diminfo(d).DimensionIndexPointer)),
-                        dat(n).fname = [dat(n).fname '_' strip_unwanted(dat(n).(diminfo(d).DimensionIndexPointer))];
-                    else % assume it is numeric
-                        dat(n).fname = sprintf('%s_%-.4d', dat(n).fname, dat(n).(diminfo(d).DimensionIndexPointer));
-                    end
-                end
-            end
-        end
-    else
-        error('"%s" has unrecognised dimensions ("%s").\n', H.Filename,diminfo(d).DimensionIndexPointer);
-    end
-end
-for n=1:N % Put extensions back on
-    dat(n).fname = [dat(n).fname ext];
-end
+%if isfield(dat,'DimensionIndexValues')
+%    disp(cat(1,dat.DimensionIndexValues))
+%end
 
 % Read the atual image data
 volume = read_image_data(H);
 
-% Sort into unique files
-u      = unique({dat.fname});
-for n=1:numel(u),
+% Sort into unique files according to image orientations etc
+stuff = [cat(2,dat.ImageOrientationPatient); cat(2,dat.PixelSpacing)]';
+if isfield(dat,'StackID')
+    stuff = [stuff double(cat(1,dat.StackID))];
+end
+ds    = find(any(diff(stuff,1,1)~=0,2));
+ord   = sparse([],[],[],N,numel(ds)+1);
+start = 1;
+for i=1:numel(ds),
+    ord(start:ds(i),i) = 1;
+    start = ds(i)+1;
+end
+ord(start:size(stuff,1),numel(ds)+1) = 1;
+for n=1:size(ord,2),
     % Identify all slices that should go into the same output file
-    ind  = strcmp(u{n},{dat.fname});
+    %ind  = find(all(bsxfun(@eq,stuff,u(n,:)),2));
+    ind = find(ord(:,n));
     this = dat(ind); 
+    if size(ord,2)>1,
+        fname = sprintf('%s_%-.3d',fname0,n);
+    else
+        fname = fname0;
+    end
 
-    % Image dimensions
-    %--------------------------------------------------------------------------
-    nc   = H.Columns;
-    nr   = H.Rows;
-    dim = [nc nr 1 1];
-    if isfield(dat,'InStackPositionNumber')
-        dim(3) = numel(unique(cat(1,dat.InStackPositionNumber)));
-    end
-    if isfield(dat,'TemporalPositionIndex')
-        dim(4) = numel(unique(cat(1,dat.TemporalPositionIndex)));
-    end
 
     % Orientation information
     %--------------------------------------------------------------------------
@@ -1458,16 +1443,14 @@ for n=1:numel(u),
     % y increases posterior to anterior
     % z increases  inferior to superior
 
-    analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]; % Flip voxels in y
-    patient_to_tal   = diag([-1 -1 1 1]); % Flip mm coords in x and y directions
 
-    if any(sum(diff(cat(2,this(1).ImageOrientationPatient),1,2).^2,1)>0.001),
+    if any(sum(diff(cat(2,this.ImageOrientationPatient),1,2).^2,1)>0.001),
         fprintf('"%s" contains irregularly oriented slices.\n', H.Filename);
         % break % Option to skip writing out the NIfTI image
     end
     ImageOrientationPatient = this(1).ImageOrientationPatient(:);
 
-    if any(sum(diff(cat(2,this(1).PixelSpacing),1,2).^2,1)>0.001),
+    if any(sum(diff(cat(2,this.PixelSpacing),1,2).^2,1)>0.001),
         fprintf('"%s" contains slices with irregularly spaced pixels.\n', H.Filename);
         % break % Option to skip writing out the NIfTI image
     end
@@ -1475,44 +1458,83 @@ for n=1:numel(u),
 
     R   = [reshape(ImageOrientationPatient,3,2)*diag(PixelSpacing); 0 0];
 
-    if dim(3)>1
+    % Determine the order of the slices by sorting their positions according to where they project
+    % on a vector orthogonal to the iamge plane
+    orient      = reshape(this(1).ImageOrientationPatient,[3 2]);
+    orient(:,3) = null(orient');
+    if det(orient)<0, orient(:,3) = -orient(:,3); end
+        
+    Positions  = cat(2,this.ImagePositionPatient)';
+    [proj,slice_order,inv_slice_order] = unique(round(Positions*orient(:,3)*100)/100);
+    if any(abs(diff(diff(proj),1,1))>0.025),
+        problem1 = true;
+    else
+        problem1 = false;
+    end
+ 
+    inv_time_order = ones(numel(this),1);
+    for i=1:numel(slice_order),
+        ind = find(inv_slice_order == i);
+        if numel(ind)>1,
+            if isfield(this,'TemporalPositionIndex'),
+                sort_on = cat(2,this(ind).TemporalPositionIndex)';
+            else
+                sort_on = ind;
+            end
+            [unused,tsort]      = sort(sort_on);
+            inv_time_order(ind) = tsort';
+        end
+    end
 
-        % Determine the order of the slices by sorting their positions according to where they project
-        % on a vector orthogonal to the iamge plane
-        orient      = reshape(this(1).ImageOrientationPatient,[3 2]);
+    
+    % Image dimensions
+    %--------------------------------------------------------------------------
+    nc   = H.Columns;
+    nr   = H.Rows;
+    dim  = [nc nr 1 1];
+    dim(3) = max(inv_slice_order);
+    dim(4) = max(inv_time_order);
+
+    problem2 = false;
+    for i=1:max(inv_time_order)
+        if sum(inv_time_order==i)~=dim(3)
+            problem2 = true;
+        end
+    end
+    if problem1 || problem2
+        fname = [fname '-problem'];
+    end
+    if problem1
+        fprintf('"%s" contains irregularly spaced slices with the following spacings:\n', H.Filename);
+        spaces = unique(round(diff(proj)*100)/100);
+        fprintf(' %g', spaces);
+        fname = [fname '-problem'];
+        fprintf('\nSee %s%s\n\n',fname,ext0);
+        % break % Option to skip writing out the NIfTI image
+    end
+    if problem2
+        fprintf('"%s" contains missing slices.\nSee %s%s\n\n', H.Filename,fname,ext0);
+        % break % Option to skip writing out the NIfTI image
+    end
+ 
+    if dim(3)>1
+        y1 = [this(slice_order(  1)).ImagePositionPatient(:); 1];
+        y2 = [this(slice_order(end)).ImagePositionPatient(:); 1];
+        x2 = [1;1;dim(3); 1];
+    else
+        orient      = reshape(ImageOrientationPatient,[3 2]);
         orient(:,3) = null(orient');
         if det(orient)<0, orient(:,3) = -orient(:,3); end
-        Positions   = unique([cat(1,this.InStackPositionNumber) cat(2,this.ImagePositionPatient)'],'rows');
-        [proj,ind]  = sort(Positions(:,2:4)*orient(3,:)');
-        if any(abs(diff(diff(proj,1,1),1,1))>0.01),
-            fprintf('"%s" contains irregularly spaced slices.\n', H.Filename);
-            % break % Option to skip writing out the NIfTI image
-        end
-
-        % Some mathematics involving permutation groups.
-        clear inv_ind
-        inv_ind(ind) = 1:numel(ind); % Inverse of permutation
-        slice_order(Positions(ind,1)) = inv_ind;
-        clear inv_InStackPositionNumber inv_slice_order
-        inv_InStackPositionNumber(cat(1,this.InStackPositionNumber)) = 1:numel(this);
-        inv_slice_order(slice_order)                                 = 1:numel(slice_order);
-        ind = inv_InStackPositionNumber(inv_slice_order);
-
-        y1  = [this(ind(1)).ImagePositionPatient(:); 1];
-        y2  = [this(ind(end)).ImagePositionPatient(:); 1];
-    else
-        slice_order      = 1;
-        orient           = reshape(ImageOrientationPatient,[3 2]);
-        orient(:,3)      = null(orient');
-        if det(orient)<0, orient(:,3) = -orient(:,3); end
         if isfield(H,'SliceThickness'), z = H.SliceThickness; else z = 1; end
-        y1  = [this(1).ImagePositionPatient(:); 1];
-        y2  = [orient*[0;0;z];0];
+        y1 = [this(1).ImagePositionPatient(:); 1];
+        y2 = [orient*[0;0;z];0];
+        x2 = [0;0;1;0];
     end
 
     x1               = [1;1;1;1];
-    x2               = [1;1;dim(3); 1];
     dicom_to_patient = [y1 y2 R]/[x1 x2 eye(4,2)];
+    analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]; % Flip voxels in y
+    patient_to_tal   = diag([-1 -1 1 1]); % Flip mm coords in x and y directions
     mat              = patient_to_tal*dicom_to_patient*analyze_to_dicom;
     flip_lr          = det(mat(1:3,1:3))>0;
 
@@ -1597,14 +1619,15 @@ for n=1:numel(u),
     % Create the header
     %--------------------------------------------------------------------------
     Nii      = nifti;
-    Nii.dat  = file_array(this(1).fname,dim,dt,0,pinfo(1),pinfo(2));
+    fname    = sprintf('%s%s',fname,ext0);
+    Nii.dat  = file_array(fname,dim,dt,0,pinfo(1),pinfo(2));
     Nii.mat  = mat;
     Nii.mat0 = mat;
     Nii.mat_intent  = 'Scanner';
     Nii.mat0_intent = 'Scanner';
     Nii.descrip     = descrip;
     create(Nii);
-
+    Nii.dat(end,end,end,end,end) = 0;
 
     % Write the image volume
     %--------------------------------------------------------------------------
@@ -1612,7 +1635,7 @@ for n=1:numel(u),
 
     for i=1:length(this)
 
-        plane = volume(:,:,i);
+        plane = volume(:,:,this(i).number);
 
         if any(any(diff(pinfos,1)))
             % This is to prevent aliasing effects in any subsequent histograms
@@ -1628,14 +1651,8 @@ for n=1:numel(u),
         plane = fliplr(plane);
         if flip_lr, plane = flipud(plane); end
 
-        z = 1;
-        if isfield(this,'InStackPositionNumber'),
-            z = slice_order(this(i).InStackPositionNumber);
-        end
-        t = 1;
-        if isfield(dat,'TemporalPositionIndex')
-            t = this(i).TemporalPositionIndex;
-        end
+        z = inv_slice_order(i);
+        t = inv_time_order(i);
         Nii.dat(:,:,z,t) = plane;
         spm_progress_bar('Set',i);
     end
@@ -1651,7 +1668,8 @@ end
 % function dim = read_DimOrg(H,dict)
 %==========================================================================
 function dim = read_DimOrg(H,dict)
-dim = struct('DimensionIndexPointer',[],'FunctionalGroupPointer',[]);
+% This is only sometimes used.
+dim = struct('DimensionIndexPointer',{},'FunctionalGroupPointer',{});
 
 if isfield(H,'DimensionIndexSequence'),
     for i=1:numel(H.DimensionIndexSequence),
@@ -1712,9 +1730,9 @@ if isfield(H,'PerFrameFunctionalGroupsSequence'),
     if isfield(H,'SharedFunctionalGroupsSequence')
         for d=1:numel(dim),
             if isfield(H.SharedFunctionalGroupsSequence{1},dim(d).FunctionalGroupPointer) && ...
-               isfield(H.SharedFunctionalGroupsSequence{1}.(dim(d).FunctionalGroupPointer),dim(d).DimensionIndexPointer),
+               isfield(H.SharedFunctionalGroupsSequence{1}.(dim(d).FunctionalGroupPointer){1},dim(d).DimensionIndexPointer),
                 for n=N:-1:1
-                    dat(n).(dim(d).DimensionIndexPointer) = H.SharedFunctionalGroupsSequence{1}.(dim(d).FunctionalGroupPointer).(dim(d).DimensionIndexPointer);
+                    dat(n).(dim(d).DimensionIndexPointer) = H.SharedFunctionalGroupsSequence{1}.(dim(d).FunctionalGroupPointer){1}.(dim(d).DimensionIndexPointer);
                 end
             end
         end
@@ -1722,7 +1740,8 @@ if isfield(H,'PerFrameFunctionalGroupsSequence'),
         for k1=1:size(macros,1)
             if isfield(H.SharedFunctionalGroupsSequence{1},macros{k1,1})
                 for k2=1:numel(macros{k1,2})
-                    if isfield(H.SharedFunctionalGroupsSequence{1}.(macros{k1,1}){1},macros{k1,2}{k2})
+                    if (numel(H.SharedFunctionalGroupsSequence{1}.(macros{k1,1}))>0) &&...
+                            isfield(H.SharedFunctionalGroupsSequence{1}.(macros{k1,1}){1},macros{k1,2}{k2})
                         for n=N:-1:1
                             dat(n).(macros{k1,2}{k2}) = H.SharedFunctionalGroupsSequence{1}.(macros{k1,1}){1}.(macros{k1,2}{k2});
                         end
@@ -1743,7 +1762,7 @@ if isfield(H,'PerFrameFunctionalGroupsSequence'),
         end
 
         for k1=1:size(macros,1)
-            if isfield(F,macros{k1,1})
+            if isfield(F,macros{k1,1}) && (numel(F.(macros{k1,1}))>0)
                 for k2=1:numel(macros{k1,2})
                     if isfield(F.(macros{k1,1}){1},macros{k1,2}{k2})
                         dat(n).(macros{k1,2}{k2}) = F.(macros{k1,1}){1}.(macros{k1,2}{k2});
@@ -1752,7 +1771,6 @@ if isfield(H,'PerFrameFunctionalGroupsSequence'),
             end
         end
     end
-
 else
     error('"%s" is not multiframe.', H.FileName);
 end
