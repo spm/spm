@@ -1,6 +1,6 @@
-function out = spm_dicom_convert(hdr,opts,root_dir,format)
+function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Convert DICOM images into something that SPM can use (e.g. NIfTI)
-% FORMAT spm_dicom_convert(hdr,opts,root_dir,format)
+% FORMAT spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Inputs:
 % hdr      - a cell array of DICOM headers from spm_dicom_headers
 % opts     - options:
@@ -26,6 +26,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 %              'img'      - Two file (hdr+img) NIfTI format
 %            All images will contain a single 3D dataset, 4D images will
 %            not be created.
+% out_dir  - output directory name.
 %
 % Output:
 % out      - a struct with a single field .files. out.files contains a
@@ -35,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6375 2015-03-12 11:37:10Z john $
+% $Id: spm_dicom_convert.m 6376 2015-03-12 15:15:57Z john $
 
 
 %-Input parameters
@@ -43,6 +44,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 if nargin<2, opts     = 'all';  end
 if nargin<3, root_dir = 'flat'; end
 if nargin<4, format   = spm_get_defaults('images.format'); end
+if nargin<5, out_dir  = pwd;    end
 
 %-Select files
 %--------------------------------------------------------------------------
@@ -62,16 +64,16 @@ fmos = {};
 fstd = {};
 fspe = {};
 if (strcmp(opts,'all') || strcmp(opts,'mosaic')) && ~isempty(mosaic)
-    fmos = convert_mosaic(mosaic,root_dir,format);
+    fmos = convert_mosaic(mosaic,root_dir,format,out_dir);
 end
 if (strcmp(opts,'all') || strcmp(opts,'standard')) && ~isempty(standard)
-    fstd = convert_standard(standard,root_dir,format);
+    fstd = convert_standard(standard,root_dir,format,out_dir);
 end
 if (strcmp(opts,'all') || strcmp(opts,'spect')) && ~isempty(spect)
-    fspe = convert_spectroscopy(spect,root_dir,format);
+    fspe = convert_spectroscopy(spect,root_dir,format,out_dir);
 end
 if (strcmp(opts,'all') || strcmp(opts,'multiframe')) && ~isempty(multiframe)
-    fspe = convert_multiframes(multiframe,root_dir,format);
+    fspe = convert_multiframes(multiframe,root_dir,format,out_dir);
 end
 out.files = [fmos(:); fstd(:); fspe(:)];
 if isempty(out.files)
@@ -80,9 +82,9 @@ end
 
 
 %==========================================================================
-% function fnames = convert_mosaic(hdr,root_dir,format)
+% function fnames = convert_mosaic(hdr,root_dir,format,out_dir)
 %==========================================================================
-function fnames = convert_mosaic(hdr,root_dir,format)
+function fnames = convert_mosaic(hdr,root_dir,format,out_dir)
 spm_progress_bar('Init',length(hdr),'Writing Mosaic', 'Files written');
 
 fnames = cell(length(hdr),1);
@@ -90,7 +92,7 @@ for i=1:length(hdr)
 
     % Output filename
     %----------------------------------------------------------------------
-    fnames{i} = getfilelocation(hdr{i},root_dir,'f',format);
+    fnames{i} = getfilelocation(hdr{i},root_dir,'f',format,out_dir);
 
     % Image dimensions and data
     %----------------------------------------------------------------------
@@ -235,13 +237,13 @@ spm_progress_bar('Clear');
 
 
 %==========================================================================
-% function fnames = convert_standard(hdr,root_dir,format)
+% function fnames = convert_standard(hdr,root_dir,format,out_dir)
 %==========================================================================
-function fnames = convert_standard(hdr,root_dir,format)
+function fnames = convert_standard(hdr,root_dir,format,out_dir)
 hdr = sort_into_volumes(hdr);
 fnames = cell(length(hdr),1);
 for i=1:length(hdr)
-    fnames{i} = write_volume(hdr{i},root_dir,format);
+    fnames{i} = write_volume(hdr{i},root_dir,format,out_dir);
 end
 
 
@@ -498,13 +500,13 @@ end
 
 
 %==========================================================================
-% function fname = write_volume(hdr,root_dir,format)
+% function fname = write_volume(hdr,root_dir,format,out_dir)
 %==========================================================================
-function fname = write_volume(hdr,root_dir,format)
+function fname = write_volume(hdr,root_dir,format,out_dir)
 
 % Output filename
 %--------------------------------------------------------------------------
-fname = getfilelocation(hdr{1}, root_dir,'s',format);
+fname = getfilelocation(hdr{1}, root_dir,'s',format,out_dir);
 
 % Image dimensions
 %--------------------------------------------------------------------------
@@ -675,22 +677,22 @@ spm_progress_bar('Clear');
 
 
 %==========================================================================
-% function fnames = convert_spectroscopy(hdr,root_dir,format)
+% function fnames = convert_spectroscopy(hdr,root_dir,format,out_dir)
 %==========================================================================
-function fnames = convert_spectroscopy(hdr,root_dir,format)
+function fnames = convert_spectroscopy(hdr,root_dir,format,out_dir)
 fnames = cell(length(hdr),1);
 for i=1:length(hdr)
-    fnames{i} = write_spectroscopy_volume(hdr(i),root_dir,format);
+    fnames{i} = write_spectroscopy_volume(hdr(i),root_dir,format,out_dir);
 end
 
 
 %==========================================================================
-% function fname = write_spectroscopy_volume(hdr,root_dir,format)
+% function fname = write_spectroscopy_volume(hdr,root_dir,format,out_dir)
 %==========================================================================
-function fname = write_spectroscopy_volume(hdr,root_dir,format)
+function fname = write_spectroscopy_volume(hdr,root_dir,format,out_dir)
 % Output filename
 %-------------------------------------------------------------------
-fname = getfilelocation(hdr{1}, root_dir,'S',format);
+fname = getfilelocation(hdr{1}, root_dir,'S',format,out_dir);
 
 % guess private field to use
 if isfield(hdr{1}, 'Private_0029_1210')
@@ -1177,9 +1179,9 @@ end
 
 
 %==========================================================================
-% function fname = getfilelocation(hdr,root_dir,prefix,format)
+% function fname = getfilelocation(hdr,root_dir,prefix,format,out_dir)
 %==========================================================================
-function fname = getfilelocation(hdr,root_dir,prefix,format)
+function fname = getfilelocation(hdr,root_dir,prefix,format,out_dir)
 
 if nargin < 3
     prefix = 'f';
@@ -1218,7 +1220,7 @@ if strcmp(root_dir, 'flat')
             strip_unwanted(PatientID),InstanceNumber, format);
     end
 
-    fname = fullfile(pwd,fname);
+    fname = fullfile(out_dir,fname);
     return;
 end
 
@@ -1255,15 +1257,15 @@ serdes   = strrep(strip_unwanted(SeriesDescription), strip_unwanted(ProtocolName
 protname = sprintf('%s%s_%.4d',strip_unwanted(ProtocolName), serdes, SeriesNumber);
 switch root_dir
     case 'date_time',
-        dname = fullfile(pwd, id, protname);
+        dname = fullfile(out_dir, id, protname);
     case 'patid',
-        dname = fullfile(pwd, id, protname);
+        dname = fullfile(out_dir, id, protname);
     case 'patid_date',
-        dname = fullfile(pwd, id, studydate, protname);
+        dname = fullfile(out_dir, id, studydate, protname);
     case 'patname',
-        dname = fullfile(pwd, strip_unwanted(PatientsName), id, protname);
+        dname = fullfile(out_dir, strip_unwanted(PatientsName), id, protname);
     case 'series',
-        dname = fullfile(pwd, protname);
+        dname = fullfile(out_dir, protname);
     otherwise
         error('unknown file root specification');
 end
@@ -1366,26 +1368,25 @@ else
 end
 
 %==========================================================================
-% function fspe = convert_multiframes(hdr,root_dir,format)
+% function fspe = convert_multiframes(hdr,root_dir,format,out_dir)
 %==========================================================================
-function fspe = convert_multiframes(hdr,root_dir,format)
+function fspe = convert_multiframes(hdr,root_dir,format,out_dir)
 fspe = {};
 dict = load('spm_dicom_dict.mat');
 for i=1:numel(hdr)
-    out  = convert_multiframe(hdr{i}, dict, root_dir, format);
+    out  = convert_multiframe(hdr{i}, dict, root_dir, format,out_dir);
     fspe = [fspe(:); out(:)];
 end
 
 %==========================================================================
-% function out = convert_multiframe(H, dict, root_dir, format)
+% function out = convert_multiframe(H, dict, root_dir, format,out_dir)
 %==========================================================================
-function out = convert_multiframe(H, dict, root_dir, format)
-
+function out = convert_multiframe(H, dict, root_dir, format,out_dir)
 out      = {};
 diminfo  = read_DimOrg(H,dict);
 dat      = read_FGS(H,diminfo);
 N        = numel(dat);
-fname0   = getfilelocation(H, root_dir,'MF',format);
+fname0   = getfilelocation(H, root_dir,'MF',format,out_dir);
 [pth,nam,ext0] = fileparts(fname0);
 fname0   = fullfile(pth,nam);
 
@@ -1508,7 +1509,6 @@ for n=1:size(ord,2),
         fprintf('"%s" contains irregularly spaced slices with the following spacings:\n', H.Filename);
         spaces = unique(round(diff(proj)*100)/100);
         fprintf(' %g', spaces);
-        fname = [fname '-problem'];
         fprintf('\nSee %s%s\n\n',fname,ext0);
         % break % Option to skip writing out the NIfTI image
     end
@@ -1579,7 +1579,7 @@ for n=1:size(ord,2),
             H.RepetitionTime,H.EchoTime,H.FlipAngle,...
             ScanOptions);
     else
-         modality = H.Modality;
+         modality = [H.Modality ' ' H.ImageType];
     end
     descrip = [modality ' ' when];
 
