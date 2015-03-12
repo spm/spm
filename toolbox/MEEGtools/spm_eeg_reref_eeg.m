@@ -19,9 +19,9 @@ function [D, S] = spm_eeg_reref_eeg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Rik Henson (updated so that bad channels included in tra but not used)
-% $Id: spm_eeg_reref_eeg.m 6048 2014-06-16 11:48:09Z vladimir $
+% $Id: spm_eeg_reref_eeg.m 6374 2015-03-12 10:15:18Z vladimir $
 
-SVNrev = '$Rev: 6048 $';
+SVNrev = '$Rev: 6374 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -88,8 +88,8 @@ S1=[];
 S1.D = D;
 S1.montage.labelorg = D.chanlabels(eegchan);
 S1.montage.labelnew = D.chanlabels(eegchan);
-S1.montage.chantypeorg = D.chantype(eegchan)';
-S1.montage.chantypenew = S1.montage.chantypeorg;
+S1.montage.chantypeorg = lower(D.chantype(eegchan)');
+S1.montage.chantypenew = lower(S1.montage.chantypeorg);
 S1.montage.chanunitorg = D.units(eegchan)';
 S1.montage.chanunitnew = S1.montage.chanunitorg;
 S1.montage.tra = tra;

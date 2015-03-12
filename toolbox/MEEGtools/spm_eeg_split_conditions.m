@@ -20,7 +20,7 @@ function D = spm_eeg_split_conditions(S)
 % Dominik R Bach
 % based on spm_eeg_remove_bad_trials
 
-SVNrev = '$Rev: 5640 $';
+SVNrev = '$Rev: 6374 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -34,13 +34,14 @@ try
 catch
     [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
     if ~sts, D = []; return; end
+    S.D = D;
 end
 
 D = spm_eeg_load(D);
 
 %-Check that there is any good data available
 %--------------------------------------------------------------------------
-if ntrials(D)==0 || all(reject(D))
+if ntrials(D)==0 || all(badtrials(D, ':'))
     warning('No good trials were found. Nothing to do.');
     return;
 end
@@ -51,7 +52,7 @@ cl   = D.condlist;
 
 goodtrials = [];
 for i = 1:numel(cl)
-    goodtrials{i}  = indchantype(D, cl{i}, 'GOOD');
+    goodtrials{i}  = indtrial(D, cl{i}, 'GOOD');
 end
 
 %-Generate new files & copy data
@@ -82,10 +83,10 @@ for i = 1:length(goodtrials)
    
     %-Copy trial-specific data.
     %--------------------------------------------------------------------------
-    Dnew = conditions(Dnew, [], conditions(D, goodtrials{i}));
-    Dnew = repl(Dnew, [], repl(D, goodtrials{i}));
-    Dnew = events(Dnew, [], events(D, goodtrials{i}));
-    Dnew = trialonset(Dnew, [], trialonset(D, goodtrials{i}));
+    Dnew = conditions(Dnew, ':', conditions(D, goodtrials{i}));
+    Dnew = repl(Dnew, ':', repl(D, goodtrials{i}));
+    Dnew = events(Dnew, ':', events(D, goodtrials{i}));
+    Dnew = trialonset(Dnew, ':', trialonset(D, goodtrials{i}));
 
     %-Save the new M/EEG dataset
     %--------------------------------------------------------------------------

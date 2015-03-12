@@ -7,7 +7,7 @@ function res = sensors(this, type, newsens)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: sensors.m 6046 2014-06-16 10:58:27Z vladimir $
+% $Id: sensors.m 6374 2015-03-12 10:15:18Z vladimir $
 
 if nargin<2
     error('Sensor type (EEG or MEG) must be specified');
@@ -40,7 +40,7 @@ switch lower(type)
         error('Unsupported sensor type');
 end
 
-if  ~isempty(res) && this.montage.Mind > 0
+if  nargin < 3 && ~isempty(res) && this.montage.Mind > 0
     sens = res;
     montage = this.montage.M(this.montage.Mind);
     if  ~isempty(intersect(sens.label, montage.labelorg))
