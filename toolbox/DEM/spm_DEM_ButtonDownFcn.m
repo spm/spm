@@ -8,7 +8,7 @@ function spm_DEM_ButtonDownFcn
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_ButtonDownFcn.m 5709 2013-10-22 11:07:29Z guillaume $
+% $Id: spm_DEM_ButtonDownFcn.m 6377 2015-03-13 20:16:44Z karl $
  
 % default
 %--------------------------------------------------------------------------
@@ -26,7 +26,7 @@ if isstruct(S{1})
         %------------------------------------------------------------------
         [FILENAME, PATHNAME] = uiputfile('*.avi','movie file');
         NAME = fullfile(PATHNAME,FILENAME);
-        movie2avi(S{1},NAME,'compression','none')
+        movie2avi(S{1},NAME,'compression','none','fps',15)
     end
     
 else
