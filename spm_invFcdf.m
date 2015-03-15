@@ -1,7 +1,7 @@
 function x = spm_invFcdf(F,v,w)
 % Inverse Cumulative Distribution (CDF) of F (Fisher-Snedecor) distribution
-% FORMAT x = spm_invFpdf(F,df)
-% FORMAT x = spm_invFpdf(F,v,w)
+% FORMAT x = spm_invFcdf(F,df)
+% FORMAT x = spm_invFcdf(F,v,w)
 %
 % F  - CDF (lower tail p-value)
 % df - Degrees of freedom, concatenated along last dimension
@@ -61,7 +61,7 @@ function x = spm_invFcdf(F,v,w)
 % Copyright (C) 1993-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_invFcdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% $Id: spm_invFcdf.m 6378 2015-03-15 14:46:41Z karl $
 
 
 %-Format arguments, note & check sizes

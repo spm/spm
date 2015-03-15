@@ -76,7 +76,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6341 2015-02-18 14:46:43Z karl $
+% $Id: spm_dcm_peb_bmc.m 6378 2015-03-15 14:46:41Z karl $
 
 % (greedy) search over all combinations of second level parameters
 %==========================================================================
@@ -162,7 +162,8 @@ else
     K     = models;
     
 end
-K         = unique(K,'rows','stable');
+[k,i]     = unique(K,'rows');
+K         = K(sort(i),:);
 [Nm,Np]   = size(K);
 
 

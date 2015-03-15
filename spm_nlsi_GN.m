@@ -75,7 +75,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % of log-precisions.  Although these two steps can be thought of in
 % terms of E and N steps they are in fact variational steps of a full
 % variational Laplace scheme that accommodates conditional uncertainty
-% over both parameters and log precisions (c.f. hyperparameters with hyper 
+% over both parameters and log precisions (c.f. hyperparameters with hyper
 % priors)
 %
 % An optional feature selection can be specified with parameters M.FS.
@@ -97,11 +97,12 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 6291 2014-12-22 11:15:19Z karl $
+% $Id: spm_nlsi_GN.m 6378 2015-03-15 14:46:41Z karl $
 
 % options
 %--------------------------------------------------------------------------
-try, M.nograph; catch, M.nograph = 0;  end
+try, M.nograph; catch, M.nograph = 0;   end
+try, M.noprint; catch, M.noprint = 0;   end
 try, M.Nmax;    catch, M.Nmax    = 128; end
 
 % figure (unless disabled)
@@ -364,7 +365,7 @@ for k = 1:M.Nmax
     end
     
     % convergence failure
-    %----------------------------------------------------------------------    
+    %----------------------------------------------------------------------
     if revert
         if ~isdeployed
             msgstr = 'Convergence failure - invoking keyboard.';
@@ -386,7 +387,7 @@ for k = 1:M.Nmax
     % M-step; Fisher scoring scheme to find h = max{F(p,h)}
     %======================================================================
     for m = 1:8
-               
+        
         % precision and conditional covariance
         %------------------------------------------------------------------
         iS    = sparse(0);
@@ -446,14 +447,17 @@ for k = 1:M.Nmax
     % objective function: F(p) = log evidence - divergence
     %----------------------------------------------------------------------
     L(1) = spm_logdet(iS)*nq/2  - real(e'*iS*e)/2 - ny*log(8*atan(1))/2;            ...
-    L(2) = spm_logdet(ipC*Cp)/2 - p'*ipC*p/2;
+        L(2) = spm_logdet(ipC*Cp)/2 - p'*ipC*p/2;
     L(3) = spm_logdet(ihC*Ch)/2 - d'*ihC*d/2;
     F    = sum(L);
     
     % record increases and reference log-evidence for reporting
     %----------------------------------------------------------------------
     try
-        F0; fprintf(' actual: %.3e (%.2f sec)\n',full(F - C.F),toc(tStart))
+        F0;
+        if ~M.noprint
+            fprintf(' actual: %.3e (%.2f sec)\n',full(F - C.F),toc(tStart))
+        end
     catch
         F0 = F;
     end
@@ -542,7 +546,7 @@ for k = 1:M.Nmax
             title(tstr,'FontSize',16)
             grid on
             
-        else 
+        else
             subplot(2,2,1)
             plot(x,real(f)), hold on
             plot(x,real(f + e),':'), hold off
@@ -575,10 +579,16 @@ for k = 1:M.Nmax
     % convergence
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
-    fprintf('%-6s: %i %6s %-6.3e %6s %.3e ',str,k,'F:',full(C.F - F0),'dF predicted:',full(dF))
-    
+    if ~M.noprint
+        fprintf('%-6s: %i %6s %-6.3e %6s %.3e ',str,k,'F:',full(C.F - F0),'dF predicted:',full(dF))
+    end
     criterion = [(dF < 1e-1) criterion(1:end - 1)];
-    if all(criterion), fprintf(' convergence\n'), break, end
+    if all(criterion)
+        if ~M.noprint
+            fprintf(' convergence\n')
+        end
+        break
+    end
     
 end
 
