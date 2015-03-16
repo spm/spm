@@ -8,7 +8,7 @@ function M = spm_get_space(P,M)
 % Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_get_space.m 6331 2015-02-10 13:41:42Z guillaume $
+% $Id: spm_get_space.m 6379 2015-03-16 13:27:26Z guillaume $
 
 
 [pth,nam,ext,num] = spm_fileparts(P);
@@ -18,6 +18,7 @@ P = fullfile(pth,[nam ext]);
 N = nifti(P);
 
 if nargin==2
+    if isempty(N.mat_intent), N.mat = N.mat; end
     N.mat_intent = 'Aligned';
     if n(1)==1
 

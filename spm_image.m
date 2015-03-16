@@ -48,10 +48,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 6349 2015-02-26 12:15:06Z guillaume $
+% $Id: spm_image.m 6379 2015-03-16 13:27:26Z guillaume $
 
 
-SVNid = '$Rev: 6349 $';
+SVNid = '$Rev: 6379 $';
 
 global st
 
@@ -223,8 +223,8 @@ switch lower(action)
     end
     P = {spm_file(st.vols{1}.fname, 'number', st.vols{1}.n)};
     p = spm_fileparts(st.vols{1}.fname);
-    [P, ok] = spm_select(Inf, 'image', {'Image(s) to reorient'}, P, p);
-    if ~ok
+    [P, sts] = spm_select(Inf, 'image', {'Image(s) to reorient'}, P, p);
+    if ~sts
         disp('Reorientation cancelled.');
         return
     end
@@ -244,6 +244,7 @@ switch lower(action)
         end
     end
     if isempty(P{1}), return, end
+    P = spm_select('expand',P);
     Mats = zeros(4,4,numel(P));
     spm_progress_bar('Init',numel(P),'Reading current orientations',...
         'Images Complete');
