@@ -75,12 +75,12 @@ function [SPM] = spm_mfx(SPM,c)
 % See spm_reml.m
 %
 %__________________________________________________________________________
-% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mfx.m 5859 2014-01-30 15:12:14Z guillaume $
+% $Id: spm_mfx.m 6380 2015-03-17 16:13:50Z guillaume $
 
-SVNid = '$Rev: 5859 $';
+SVNid = '$Rev: 6380 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -104,15 +104,20 @@ try
     cd(swd);
 end
  
-
 %-Check this is a repeated measures design
 %--------------------------------------------------------------------------
-n     = length(SPM.Sess);            % number of sessions
-for i = 1:n
-    if length(SPM.Sess(i).col) ~= length(SPM.Sess(1).col)
-        error('This is not a repeated measures design.')
+if isfield(SPM,'Sess')
+    n     = length(SPM.Sess);            % number of sessions
+    for i = 1:n
+        if length(SPM.Sess(i).col) ~= length(SPM.Sess(1).col)
+            error('This is not a repeated measures design.')
+        end
     end
+else
+    % This is not first level fMRI so ask for number of subjects
+    n     = spm_input('Number of subjects', '+1', 'r', [], 1);
 end
+
 
 %-Build MFX design specification
 %==========================================================================
@@ -171,9 +176,9 @@ if nargin < 2
     try, spm_unlink(fullfile(tmpdir,'SPM.mat')); end
     try, rmdir(tmpdir); end
 else
-    I=1;
-    xCon(I).c=c;
-    xCon(I).name='2nd level';
+    I = 1;
+    xCon(I).c = c;
+    xCon(I).name = '2nd level';
 end
 X2        = xCon(I).c;
 X2        = kron(X2,speye(nP,nP));
@@ -259,7 +264,11 @@ end
 % 2nd-level non-sphericity (including original whitening and filtering)
 %--------------------------------------------------------------------------
 W         = SPM.xX.W;
-K         = SPM.xX.K;
+try
+    K     = SPM.xX.K;
+catch
+    K     = 1;
+end
 pX1       = SPM.xX.pKX;
 M1        = pX1(iX1,:)*spm_filter(K,W);
 
