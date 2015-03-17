@@ -19,7 +19,7 @@ function [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs (lme, alpha0, Nsamp)
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_BMS_gibbs.m 5452 2013-04-26 14:55:35Z will $
+% $Id: spm_BMS_gibbs.m 6381 2015-03-17 17:55:09Z will $
 
 
 if nargin < 3 || isempty(Nsamp)
@@ -45,19 +45,10 @@ sr = sum(r,2);
 for k = 1:Nk
     r(:,k) = r(:,k)./sr;
 end
-
-% Subtract subject means
-lme = lme - mean(lme,2)*ones(1,Nk);
-
-% Ensure all log model evidence differences are now within machine range
-max_val = log(realmax('double'));
-max_val = max_val/Nk;
-for i = 1:Ni
-    for k = 1:Nk
-        lme(i,k) = sign(lme(i,k)) * min(max_val,abs(lme(i,k)));
-    end
-end
         
+% Subtract max evidence for subject 
+lme = lme - max(lme,[],2)*ones(1,Nk);
+
 % Gibbs sampling 
 r_samp = zeros(Nsamp,Nk);
 g_post = zeros(Ni,Nk);
