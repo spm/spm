@@ -64,7 +64,7 @@ function [DCM,PEB,F] = spm_dcm_peb_fit(GCM,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_fit.m 6362 2015-03-05 20:08:48Z karl $
+% $Id: spm_dcm_peb_fit.m 6385 2015-03-21 12:06:22Z karl $
 
 
 % set up
@@ -116,12 +116,6 @@ for k = 1:16
     %----------------------------------------------------------------------
     [PEB,DCM] = spm_dcm_peb(DCM,M,field);
     
-    % get intial parameters
-    %----------------------------------------------------------------------
-    for i = 1:Ns
-        % DCM{i,1}.M.pC = DCM{i,1}.M.pC + M.pC/4;
-        % DCM{i,1}.M.P = DCM{i,1}.M.Ep;
-    end
     
     % convergence
     %----------------------------------------------------------------------

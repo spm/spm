@@ -1,4 +1,4 @@
-% function DEMO_DCM_PEB
+function DEMO_DCM_PEB
 % Test routine to check group DCM for electrophysiology
 %--------------------------------------------------------------------------
 % This routine illustrates the use of Bayesian model reduction when
@@ -24,7 +24,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6373 2015-03-11 17:10:54Z karl $
+% $Id: DEMO_DCM_PEB.m 6385 2015-03-21 12:06:22Z karl $
 
 
 % change to directory with empirical data
@@ -209,6 +209,10 @@ pma  = spm_dcm_bma(PCM);
 %--------------------------------------------------------------------------
 M         = struct('X',X);
 
+% randomisation analysis
+%--------------------------------------------------------------------------
+spm_dcm_peb_rnd(RCM(:,mw),M,{'A','B'});
+
 % BMC - search over first and second level effects
 %--------------------------------------------------------------------------
 [BMC,PEB] = spm_dcm_bmc_peb(RCM,M,{'A','B'});
@@ -235,15 +239,9 @@ end
 %==========================================================================
 spm_dcm_loo(RCM(:,1),X,{'A','B'});
 
-
-
 %XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 
-% null analysis
-%==========================================================================
-[~,k] = max(BMC.Pw);
-% spm_dcm_peb_rnd(RCM(:,k),M,{'A','B'});
 
 
 % extract and plot results
@@ -548,13 +546,13 @@ return
 
 % Notes
 %==========================================================================
-hE    = 0;
-hC    = linspace(-4,4,16);
+hE    = linspace(-4,4,16);
+hC    = 1;
 clear Eh HF
-for i = 1:length(hC)
+for i = 1:length(hE)
     M.X     = X(:,1:2);
-    M.hE    = hE;
-    M.hC    = exp(hC(i));
+    M.hE    = hE(i);
+    M.hC    = 1;
     PEB     = spm_dcm_peb(GCM(:,1),M,{'A','B'});
     HF(i)   = PEB.F;
     Eh(:,i) = PEB.Eh;
@@ -562,7 +560,11 @@ for i = 1:length(hC)
 end
 
 subplot(2,2,1)
-plot(hC,HF - max(HF))
+plot(hE,HF - max(HF))
+title('Free-energy','FontSize',16)
+xlabel('Prior')
 subplot(2,2,2)
-plot(hC,Eh)
+plot(hE,Eh)
+xlabel('Prior')
+title('log-preciion','FontSize',16)
 

@@ -35,7 +35,7 @@ function [p] = spm_dcm_peb_rnd(DCM,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_rnd.m 6373 2015-03-11 17:10:54Z karl $
+% $Id: spm_dcm_peb_rnd.m 6385 2015-03-21 12:06:22Z karl $
 
 
 % Set up
@@ -54,7 +54,7 @@ end
 % re-randomisation
 %--------------------------------------------------------------------------
 Ns  = size(M.X,1);
-N   = 128;
+N   = 32;
 M0  = M;
 for i = 1:N
     M0.X(:,2) = M.X(randperm(Ns),2);
@@ -81,8 +81,8 @@ subplot(3,2,1)
 hist(F,32), hold on
 plot([G G],[0 N/4],'--r'), hold on
 plot([r r],[0 N/4],'--b'), hold on
-text(G,N/4,sprintf('p < %-2.3f',p),  'FontSize',10), hold off
-text(r,N/4,sprintf('p < %-2.3f',0.05),'FontSize',10), hold off
+text(G,N/6,sprintf('p < %-2.3f',p),   'FontSize',10), hold off
+text(r,N/6,sprintf('p < %-2.3f',0.05),'FontSize',10), hold off
 xlabel('Log Bayes Factor'), ylabel('Frequency')
 title('Null distribution','FontSize',16)
 axis square
@@ -90,3 +90,5 @@ axis square
 subplot(3,2,2); title('Posterior','FontSize',16)
 subplot(3,2,3); delete(gca)
 subplot(3,2,5); delete(gca)
+
+set(gcf,'Tag','PEB-RND','name','PEB_RND')

@@ -74,7 +74,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6378 2015-03-15 14:46:41Z karl $
+% $Id: spm_dcm_peb.m 6385 2015-03-21 12:06:22Z karl $
  
 
 % get filenames and set up
@@ -234,6 +234,7 @@ if Ns > 1;
     W     = speye(Np,Np);
     bE    = M.pE(q);
     bC    = M.pC(q,q);
+    bC    = bC/8;
 
 else
     
@@ -267,7 +268,7 @@ gC    = 1;
 try, gE = M.hE; end
 try, gC = M.hC; end
 try, bX = M.bX; catch
-    bX  = diag(size(X,1)./sum(X.^2))*8;
+    bX  = diag(size(X,1)./sum(X.^2));
 end
 
 % prior expectations and precisions of second level parameters
@@ -278,7 +279,6 @@ bC    = kron(bX,bC);                 % prior covariance of group effects
 gC    = eye(Ng,Ng)*gC;               % prior covariance of log precisions
 bP    = spm_inv(bC);
 gP    = spm_inv(gC);
-
 
 % initialise parameters 
 %--------------------------------------------------------------------------
