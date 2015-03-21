@@ -22,7 +22,7 @@ function DEMO_BAYES_FACTORS(pC,hE,hC,N)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BAYES_FACTORS.m 6378 2015-03-15 14:46:41Z karl $
+% $Id: DEMO_BAYES_FACTORS.m 6386 2015-03-21 12:08:03Z karl $
 
 
 % set up
@@ -51,7 +51,7 @@ M.hC = hC;
 
 % re-randomisation
 %--------------------------------------------------------------------------
-Ns  = 256;
+Ns  = 64;
 for i = 1:Ns
     X{i} = XX;
     X{i}(:,2) = XX(randperm(N),2);
