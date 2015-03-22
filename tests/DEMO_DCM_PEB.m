@@ -24,7 +24,7 @@ function DEMO_DCM_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6385 2015-03-21 12:06:22Z karl $
+% $Id: DEMO_DCM_PEB.m 6388 2015-03-22 20:27:00Z karl $
 
 
 % change to directory with empirical data
@@ -279,6 +279,8 @@ for i = 1:Ns
 end
 
 
+% classical inference
+%==========================================================================
 
 % indices to plot parameters
 %--------------------------------------------------------------------------
@@ -286,8 +288,6 @@ pC    = GCM{1,1}.M.pC;
 iA    = spm_find_pC(pC,pC,'A');
 iB    = spm_find_pC(pC,pC,'B');
 
-% classical inference
-%==========================================================================
 
 % classical inference of second level
 %--------------------------------------------------------------------------

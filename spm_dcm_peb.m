@@ -74,7 +74,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6385 2015-03-21 12:06:22Z karl $
+% $Id: spm_dcm_peb.m 6388 2015-03-22 20:27:00Z karl $
  
 
 % get filenames and set up
@@ -142,8 +142,10 @@ if isstruct(M.pC), M.pC = diag(spm_vec(M.pC)); end
 
 % get (first level) densities (summary statistics)
 %==========================================================================
-q     = spm_find_pC(DCM.M.pC,DCM.M.pE,field);
-Pstr  = spm_fieldindices(DCM.M.pE,q);
+q     = spm_find_pC(DCM.M.pC,DCM.M.pE,field);   % parameter indices
+Pstr  = spm_fieldindices(DCM.M.pE,q);           % field names
+Ns    = numel(P);                               % number of subjects
+Np    = length(q);                              % number of parameters
 for i = 1:length(P)
     
     % get first(within subject) level DCM
@@ -157,7 +159,7 @@ for i = 1:length(P)
     else
         pC{i} = DCM.M.pC;
     end
-    pE{i} = spm_vec(DCM.M.pE); 
+    pE{i} = spm_vec(DCM.M.pE);
     qE{i} = spm_vec(DCM.Ep);
     qC{i} = DCM.Cp;
 
@@ -169,6 +171,12 @@ for i = 1:length(P)
     qE{i} = qE{i}(q); 
     qC{i} = qC{i}(q,q); 
     
+    % shrink posterior to accommodate inefficient inversions
+    %----------------------------------------------------------------------
+    if Ns > 1
+       qC{i} = spm_inv(spm_inv(qC{i}) + spm_inv(pC{i})/4);
+    end
+    
     % and free energy of model with full priors
     %----------------------------------------------------------------------
     iF(i) = DCM.F;
@@ -177,9 +185,7 @@ end
 
 % hierarchical model design and defaults
 %==========================================================================
-Ns     = numel(P);                    % number of subjects
-Np     = length(q);                   % number of parameters
-Q      = {};                          % precision components
+Q     = {};                                     % precision components
 
 % lower bound on prior precision and components for empirical covariance
 %--------------------------------------------------------------------------
@@ -225,7 +231,7 @@ end
 
 % priors for empirical expectations
 %--------------------------------------------------------------------------
-Np    = length(pP);
+beta  = 8;                          % within:between subject variance ratio
 if Ns > 1;
     
     % between-subject design matrices and prior expectations
@@ -233,8 +239,7 @@ if Ns > 1;
     X     = M.X;
     W     = speye(Np,Np);
     bE    = M.pE(q);
-    bC    = M.pC(q,q);
-    bC    = bC/8;
+    bC    = M.pC(q,q)/beta;
 
 else
     
@@ -256,10 +261,10 @@ end
 
 % number of parameters and effects
 %--------------------------------------------------------------------------
-Nx    = size(X,2);                   % number of between subject effects
-Nw    = size(W,2);                   % number of within  subject effects
-Ng    = length(Q);                   % number of precision components
-Nb    = Nw*Nx;                       % number of second level parameters
+Nx    = size(X,2);                  % number of between subject effects
+Nw    = size(W,2);                  % number of within  subject effects
+Ng    = length(Q);                  % number of precision components
+Nb    = Nw*Nx;                      % number of second level parameters
 
 % check for user-specified priors on log precision of second level effects
 %--------------------------------------------------------------------------
@@ -268,15 +273,19 @@ gC    = 1;
 try, gE = M.hE; end
 try, gC = M.hC; end
 try, bX = M.bX; catch
+    
+    % adjust (second level) priors for the norm of explanatory variables
+    %----------------------------------------------------------------------
     bX  = diag(size(X,1)./sum(X.^2));
+    
 end
 
 % prior expectations and precisions of second level parameters
 %--------------------------------------------------------------------------
-bE    = kron(spm_speye(Nx,1),bE);    % prior expectation of group effects
-gE    = zeros(Ng,1) + gE;            % prior expectation of log precisions
-bC    = kron(bX,bC);                 % prior covariance of group effects
-gC    = eye(Ng,Ng)*gC;               % prior covariance of log precisions
+bE    = kron(spm_speye(Nx,1),bE);   % prior expectation of group effects
+gE    = zeros(Ng,1) + gE;           % prior expectation of log precisions
+bC    = kron(bX,bC);                % prior covariance of group effects
+gC    = eye(Ng,Ng)*gC;              % prior covariance of log precisions
 bP    = spm_inv(bC);
 gP    = spm_inv(gC);
 
@@ -290,7 +299,7 @@ ipC   = spm_cat({bP [];
 
 % variational Laplace
 %--------------------------------------------------------------------------
-t     = -2;                           % Fisher scoring parameter
+t     = -2;                         % Fisher scoring parameter
 for n = 1:32
 
     % compute prior covariance
@@ -436,21 +445,14 @@ for i = 1:Ns
         
         % augment empirical priors
         %------------------------------------------------------------------
-        RP      = spm_inv(pC{i});
-        RP(q,q) = rP;
-        RC      = spm_inv(RP);
+        RP       = spm_inv(pC{i});
+        RP(q,q)  = rP;
+        RC       = spm_inv(RP);
         
-        RE      = spm_vec(pE{i});
-        RE(q)   = rE;
-        RE      = spm_unvec(RE,pE{i});
-
-        % posterior densities over all parameters
-        %------------------------------------------------------------------
-        pE{i} = DCM.M.pE;
-        pC{i} = DCM.M.pC;
-        qE{i} = DCM.Ep;
-        qC{i} = DCM.Cp;
-        
+        RE       = spm_vec(pE{i});
+        RE(q)    = rE;
+        RE       = spm_unvec(RE,pE{i});
+       
         % First level BMR (supplemented with second level complexity)
         %------------------------------------------------------------------
         [Fi,sE,sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},RE,RC);
