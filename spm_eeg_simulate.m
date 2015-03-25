@@ -1,5 +1,5 @@
 function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni,woi,whitenoise,SNRdB,trialind,mnimesh,dipfwhm,nAmdipmom);
-%function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
+%function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,dipfwhm);
 %% Simulate a number of MSP patches at specified locations on existing mesh
 %
 % Created by:   Jose David Lopez - ralph82co@gmail.com
@@ -15,11 +15,11 @@ function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni
 %% SNRdB power signal to noise ratio in dBs
 %% trialind: trials on which the simulated data will be added to the noise
 %% mnimesh : a new mesh with vertices in mni space
-%% SmthInit - the smoothing step that creates the patch- larger numbers larger patches default 0.6. Note current density should be constant (i.e. larger patch on tangential surface will not give larger signal)
+%% dipfwhm - patch smoothness in mm
 %% Outputs
 %% Dnew- new dataset
 %% meshsourceind- vertex indices of sources on the mesh
-% $Id: spm_eeg_simulate.m 6366 2015-03-09 15:01:34Z gareth $
+% $Id: spm_eeg_simulate.m 6389 2015-03-25 11:15:53Z gareth $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -63,7 +63,7 @@ end;
 
 
 if nargin<11
-      dipfwhm=[]; %% number of iterations used to smooth patch out (more iterations, larger patch)
+    dipfwhm=[]; %% number of iterations used to smooth patch out (more iterations, larger patch)
 end;
 
 
@@ -73,7 +73,7 @@ if isempty(prefix),
 end;
 
 if isempty(dipfwhm),
-    dipfwhm=0.006; %% FWHM in m
+    dipfwhm=6; %% FWHM in mm
 end;
 
 if isempty(woi),
@@ -124,13 +124,14 @@ if ~isempty(mnimesh),
 end; % if
 
 % Two synchronous sources
-if patchmni~=0,
+if ~isempty(patchmni),
     Ndips=size(patchmni,1);
 else
     Ndips=0;
 end;
 
 if size(simsignal,1)~=Ndips,
+    keyboard
     error('number of signals given does not match number of sources');
 end;
 
@@ -175,7 +176,7 @@ catch
     Lscale=1.0;
 end;
 
-    
+
 
 
 
@@ -219,14 +220,14 @@ try
             %tmp=tmp./1e15; %% also computed in fT originally
         case 'fT'
             simscale=1.0; %% sensors already in fT
-            %whitenoise=whitenoise; %% rms  Tesla 
+            %whitenoise=whitenoise; %% rms  Tesla
             %tmp=tmp;
         case 'uV'
             whitenoise=whitenoise; %% micro volts
             tmp=tmp;
         case 'V'
             whitenoise=whitenoise./1e6; %% volts
-            tmp=tmp./1e6;        
+            tmp=tmp./1e6;
             error('not supported for EEG at the moment');
             
         otherwise
@@ -251,7 +252,7 @@ if ~isempty(ormni), %%%% DIPOLE SIMULATION
     posdipmm=posdipmm(1:3)';
     %% need to make a pure rotation for orientation transform to native space
     M1 = Dnew.inv{val}.datareg.fromMNI;
-    [U, L, V] = svd(M1(1:3, 1:3)); 
+    [U, L, V] = svd(M1(1:3, 1:3));
     ordip=ormni*(U*V');
     ordip=ordip./sqrt(dot(ordip,ordip)); %% make sure it is unit vector
     
@@ -260,7 +261,7 @@ if ~isempty(ormni), %%%% DIPOLE SIMULATION
     vol=Dnew.inv{val}.forward.vol;
     
     
-%% Get good channels    
+    %% Get good channels
     useind=Dnew.indchantype(Dnew.modality);
     useind=setxor(Dnew.badchannels,goodchans);
     
@@ -292,29 +293,33 @@ else %%% CURRENT DENSITY ON SURFACE SIMULATION
     
     fprintf(' - done\n')
     
-   
+    
     
     
     nativemesh=Dnew.inv{val}.forward.mesh;
     
-    priors={};
-    priors{1}.priortype='fixedpatch';
-    priors{1}.allIp=meshsourceind;
-    priors{1}.Np=2;
-    priors{1}.smooth=dipfwhm; %% in m (same as for mesh)
-    priors{1}.nAm=nAmdipmom; %  total nAm
-     
     Qe=[];, %% SNR may be defined by sensor level data in which case we have to get data first then go back
     
-    [Qp,Qe,priors,priorfname] = spm_eeg_invert_EBconstruct_priors(Dnew,val,nativemesh,priors,Qe,L,'sim');
+    %[Qp,Qe,priors,priorfname] = spm_eeg_invert_EBconstruct_priors(Dnew,val,nativemesh,priors,Qe,L,'sim');
+    base.patchfwhm=dipfwhm;
+    base.nAm=nAmdipmom;
     
     
+    [a1,b1,c1]=fileparts(Dnew.fname);
     
+    priordir=[Dnew.path filesep 'simprior_' b1 ];
+    mkdir(priordir);
+    fprintf('Saving prior in directory %s\n',priordir);
+    
+    [Qp,Qe,priorfname]=spm_eeg_invert_setuppatches(meshsourceind,nativemesh,base,priordir,Qe,L);
+    
+    
+    keyboard
     % Add waveform of all smoothed sources to their equivalent dipoles
     % QGs add up to 0.9854
     fullsignal=zeros(Ndip,Dnew.nsamples); %% simulation padded with zeros
     fullsignal(1:Ndip,f1ind)=simsignal;
-  
+    
     tmp     = sparse(zeros(Nchans,Dnew.nsamples));                     % simulated data
     X=zeros(size(full(Qp{1}.q)));
     for j=1:Ndip
@@ -329,25 +334,19 @@ else %%% CURRENT DENSITY ON SURFACE SIMULATION
 end; % if ori
 
 
-
-
-
-
 allchanstd=std(tmp');
 meanrmssignal=mean(allchanstd);
 
 
 if ~isempty(SNRdB),
     whitenoise = meanrmssignal.*(10^(-SNRdB/20));
-    
     disp(sprintf('Setting white noise to give sensor level SNR of %dB',SNRdB));
 end;
 
 Qe=eye(Nchans).*(whitenoise^2); %% sensor level noise
 
-[Qp,Qe,priors,priorfname] = spm_eeg_invert_EBconstruct_priors(Dnew,val,nativemesh,priors,Qe,L,'sim');
 
-YY=zeros(size(chanind),size(chanind));
+YY=zeros(length(chanind),length(chanind));
 n=0;
 for i=1:Ntrials
     if any(i == trialind), %% only add signal to specific trials
@@ -362,28 +361,26 @@ for i=1:Ntrials
 end
 
 YY=YY./n; %% NORMALIZE HERE
-keyboard
-LQpL=zeros(Nchans,Nchans);
-for f=1:numel(Qp),
-    LQpL=LQpL+L*(Qp{f}.q*Qp{f}.q')*L';
-end;
+
+F=[];
+UL=L;
+save(priorfname,'Qp','Qe','UL','F');
 
 figure;
-subplot(4,1,1);
+ploton=1;
+[LQpL,Q,sumLQpL,QE,Csensor]=spm_eeg_assemble_priors(L,Qp,{Qe},ploton);
+
+
+figure;
+subplot(3,1,1);
 imagesc(YY);colorbar;
-title('Simulated Data covariance: YY');
-subplot(4,1,2);
-imagesc(Qe);colorbar;
-title('prior sens noise');
-subplot(4,1,3);
-imagesc(LQpL);colorbar;
-title('prior source at sensors');
-subplot(4,1,4);
-imagesc([LQpL+Qe]);colorbar;
-title('prior on total sensor covariance');
-
-
-
+title('Empirical data covariance per sample: YY');
+subplot(3,1,2);
+imagesc(Csensor);colorbar;
+title('Prior total sensor covariance');
+subplot(3,1,3);
+imagesc(YY-Csensor);colorbar;
+title('Difference');
 
 
 
@@ -397,7 +394,7 @@ if isempty(ormni)
     hold on
     mnivert=Dnew.inv{val}.mesh.tess_mni.vert;
     
-
+    
     Nj      = size(mnivert,1);
     M       = X;
     G       = sqrt(sparse(1:Nj,1,M,Nj,1));
@@ -412,7 +409,7 @@ if isempty(ormni)
     drawnow
 end;
 figure
-    
+
 aux = tmp(tmpind(end),:);
 subplot(2,1,1);
 plot(Dnew.time,Dnew(dnewind(end),:,1),Dnew.time,aux,'r');
