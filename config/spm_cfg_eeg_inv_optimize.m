@@ -25,7 +25,7 @@ val.val = {1};
 
 postname = cfg_entry;
 postname.tag = 'postname';
-postname.name = 'Prefix for posterior';
+postname.name = 'Prefix for priors';
 postname.strtype = 's';
 postname.num = [1 Inf];
 postname.val = {'priorset1'};
@@ -69,7 +69,7 @@ opttype.val  = {REMLopt};
 optsetup = cfg_exbranch;
 optsetup.tag = 'optsetup';
 optsetup.name = 'Inversion optimization';
-optsetup.val = {D, val,opttype,postname};
+optsetup.val = {D,val,postname,opttype};
 optsetup.help = {'Set optimization scheme for source reconstruction'};
 optsetup.prog = @opt_priors;
 optsetup.vout = @vout_opt_priors;
@@ -86,6 +86,7 @@ inverse=D.inv{job.val}.inverse;
 AY=inverse.AY;
 
 mesh=D.inv{job.val}.mesh.tess_mni;
+
 
 [a1,b1,c1]=fileparts(D.fname);
 priordir=[D.path filesep job.postname '_' b1];

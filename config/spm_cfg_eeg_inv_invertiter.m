@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5924 2014-03-19 14:59:12Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 6394 2015-03-25 17:09:10Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -294,7 +294,17 @@ function  out = run_inversion(job)
 
 D = spm_eeg_load(job.D{1});
 
+
+
+
 inverse = [];
+try
+inverse.priors=D.inv{job.val}.inverse.priors;
+catch
+    inverse.priors=[];
+end;
+    
+
 if isfield(job.whatconditions, 'condlabel')
     inverse.trials = job.whatconditions.condlabel;
 end

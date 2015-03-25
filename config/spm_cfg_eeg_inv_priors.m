@@ -37,13 +37,13 @@ sensorlevel.help = {'Assuming white sensor noise of same magnitude on all channe
 sensorlevel.val = {100};
 
 
-patchfwhm = cfg_entry;
-patchfwhm.tag = 'patchfwhm';
-patchfwhm.name = 'Patch smoothness';
-patchfwhm.strtype = 'r';
-patchfwhm.num = [1 1];
-patchfwhm.val = {[4]};
-patchfwhm.help = {'FWHM on cortex in mm '};
+FWHMmm = cfg_entry;
+FWHMmm.tag = 'FWHMmm';
+FWHMmm.name = 'Patch smoothness';
+FWHMmm.strtype = 'r';
+FWHMmm.num = [1 1];
+FWHMmm.val = {[4]};
+FWHMmm.help = {'FWHM on cortex in mm '};
 
 
 popular=cfg_menu;
@@ -59,7 +59,7 @@ popularpars=cfg_branch;
 popularpars.tag='popularpars';
 popularpars.name='Popular priors';
 popularpars.help={' Select from popular priors and kernel smoothness (no smoothing used for IID)'};
-popularpars.val={popular,patchfwhm};
+popularpars.val={popular,FWHMmm};
 
 
 npatches = cfg_entry;
@@ -83,7 +83,7 @@ randpatch = cfg_branch;
 randpatch.tag = 'randpatch';
 randpatch.name = 'Random Patches';
 randpatch.help = {'Define random patches'};
-randpatch.val  = {npatches,niter,patchfwhm};
+randpatch.val  = {npatches,niter,FWHMmm};
 
 fixedfile = cfg_files;
 fixedfile.tag = 'fixedfile';
@@ -106,7 +106,7 @@ fixedpatch = cfg_branch;
 fixedpatch.tag = 'fixedpatch';
 fixedpatch.name = 'Fixed Patches';
 fixedpatch.help = {'Define fixed patches'};
-fixedpatch.val  = {fixedfile,fixedrows,patchfwhm};
+fixedpatch.val  = {fixedfile,fixedrows,FWHMmm};
 
 
 space = cfg_menu;
@@ -166,6 +166,7 @@ end;
 
 [a1,b1,c1]=fileparts(D.fname);
 priordir=[D.path filesep job.priorname '_' b1];
+
 if ~isdir(priordir),
     fprintf('Making directory for priors: %s\n',priordir);
     mkdir(priordir);
@@ -174,11 +175,11 @@ else
     [priorfiles] = spm_select('FPListRec',priordir,'.*\.mat$');
     fprintf('Deleting existing priors in this directory\n');
     for f=1:size(priorfiles,1),
-      delete(deblank(priorfiles(f,:)));  
+        delete(deblank(priorfiles(f,:)));
     end;
-    % spm_eeg_inv_view_priors(priorfiles,mesh);
-    
+    % spm_eeg_inv_view_priors(priorfiles,mesh)
 end;
+
 mesh=D.inv{val}.forward.mesh; %% assume this is in metres
 
 Ns=size(mesh.vert,1);
@@ -243,62 +244,12 @@ for i=1:numel(job.priortype), %% move through different prior specifications
     
     %%%%%%%%%%%%%%% FIXED OR RANDOM PATCHES
     if isfield(job.priortype{i},'fixedpatch') || isfield(job.priortype{i},'randpatch'),
-        [Qp,Qe,allpriornames]=spm_eeg_invert_setuppatches(allIp,mesh,base,priordir,Qe,UL)
         
-        Npatchiter=size(allIp,1);
-        Np=size(allIp,2);%% number of patches per iteration
-        
-        smoothm=base.patchfwhm./1000;
-        disp(sprintf('Using %d iterations of %d fixed patches',Npatchiter,Np));
-        
-        
-        M.vertices=mesh.vert;
-        M.faces=mesh.face;
-        
-        if isfield(base,'nAm')
-            nAm=base.nAm;
-        else
-            nAm=ones(Np,1).*10;
-            fprintf('\nNo magnitudes defined, setting to %3.2fnAm',nAm(1));
-        end;
-        
-        if isfield(base,'smooth')
-            smoothm=base.smooth./1000;
-        else
-            smoothm=ones(Np,1).*smoothm;
-            fprintf('\nSmoothness of all patches is set to %3.2fmm\n',smoothm(1)*1000);
-        end;
-        
-        for k=1:Npatchiter,
-            Ip=allIp(k,:);
-            Qp={};
-            for j = 1:Np
-                % Patch locations determined by Ip
-                %--------------------------------------------------------------
-                
-                q0=sparse(1,Ns).*0;
-                [q,dist,useind]               = gauss_patch(M,Ip(j),smoothm(j),q0); %% priors.smooth should be in metres like the mesh
-                
-                q=q./sum(q); %patch adds up to unity
-                q=q.*nAm(j);
-                
-                Qp{end + 1}.q   = q';
-                
-                areamm2=pi*(max(dist*1000)/2).^2;
-                mompervertex=mean(q(useind));
-                peakmom=max(q(useind));
-                mompermm2=full(mompervertex*length(dist)/(pi*areamm2)); %% nAm/mm2
-                peakmompermm2=full(peakmom*length(dist)/(pi*areamm2));%% nAm/mm2
-                
-                %fprintf('\nsetting up patch %d with  %3.2f nAm , FWHM %3.2fmm, mean moment density %3.2f pAm/mm2, peak momemnt density %3.2f pAm/mm2 \n',j,nAm(j),smoothm(j)*1000,mompermm2*1000,peakmompermm2*1000);
-            end; % for j
-            %% NOW MAYBE WRITE A NEW PATCH FILE
-            count=count+1;
-            priorfname=[priordir filesep sprintf('prior%d.mat',count)];
-            fprintf('Saving %s\n',priorfname);
-            F=[]; % no associated free energy value
-            save(priorfname,'Qp','Qe','UL','F');
-        end; % for k
+        %% Set up patches on cortical surface determined by indices of allIp
+        %% one prior files per row of Ip
+        [Qp,Qe,allpriornames]=spm_eeg_invert_setuppatches(allIp,mesh,base,priordir,Qe,UL);
+        count=count+size(allpriornames,1);
+  
         
     end; % if fixedpatch or randpatch
     
@@ -375,11 +326,10 @@ for i=1:numel(job.priortype), %% move through different prior specifications
         disp(sprintf('Adding prior covariance matrix for %s algorithm',base.popular));
         
         if strcmp(base.popular,'EBB'),
-            
-            smoothm=base.patchfwhm./1000;
-            fprintf('Smoothing %3.2f mm\n ', smoothm*1000);
-            
-            AYYA=D.inv{val}.inverse.AYYA;
+           
+            %% calculate power on cortical surface
+            %% using beamformer assumptions
+           AYYA=D.inv{val}.inverse.AYYA;
             
             InvCov = spm_inv(AYYA);
             
@@ -389,63 +339,65 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             for bk = 1:Ns
                 normpower = 1/(UL(:,bk)'*UL(:,bk));
                 Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
-                allsource(bk) = Sourcepower(bk)./normpower;
+                %% normalise power by unit noise through lead fields
+                allsource(bk) = Sourcepower(bk)./normpower; 
             end
             
-            
+            %% now get local maxima on mesh
             M.vertices=mesh.vert;
             M.faces=mesh.face;
             
-            L = spm_mesh_get_lm(M,allsource);
+            Ip = spm_mesh_get_lm(M,allsource); %% get local maxima
             figure;
             plot(allsource);
             hold on;
-            maxBFpatch=20;
+            maxBFpatch=40;
             fprintf('Limiting to a max of %d peaks\n',maxBFpatch);
             
-            [vals,ind]=sort(allsource(L),'descend');
-            L=L(ind(1:maxBFpatch));
-            plot(L,allsource(L),'ro');
-            
-            q0=zeros(1,Ns);
-            for k=1:length(L),
-                Qp{end+1}.q=gauss_patch(M,L(k),smoothm,q0); %%
-            end;
-            
-            
+            [vals,ind]=sort(allsource(Ip),'descend');
+            Ip=Ip(ind(1:maxBFpatch));
+            plot(Ip,allsource(Ip),'ro');
+        
+            [Qp,Qe,allpriornames]=spm_eeg_invert_setuppatches(Ip,mesh,base,priordir,Qe,UL)
+            count=count+size(allpriornames,1);
         end; % EBB
         
         if strcmp(base.popular,'COH'),
             
             % create minimum norm prior
             %------------------------------------------------------------------
-            Qp{end+1}  = speye(Ns,Ns);
-            
-            
+            Qp  = speye(Ns,Ns);
+            warning(' SMOOTHING NOT SPECIFIED IN MM');
             [QG,Qi]=GLsmooth(vert,face,priors{i}.smooth);
             
             % add smoothness component in source space
             %------------------------------------------------------------------
-            Qp{end+1}   = QG*QG';
+            Qp  = QG*QG';
             
             disp('Set up COH prior');
+            count=count+1;
+            priorfname=[priordir filesep sprintf('prior%d.mat',count)];
+            fprintf('Saving %s\n',priorfname);
+            F=[]; % no associated free energy value
+            save(priorfname,'Qp','Qe','UL','F');
         end; % COH
         
         if strcmp(base.popular,'IID'),
             
             % create minimum norm prior
             %------------------------------------------------------------------
-            Qp{end+1}   = speye(Ns,Ns);
+            Qp  = speye(Ns,Ns);
             
             disp('Set up IID prior');
+            count=count+1;
+            priorfname=[priordir filesep sprintf('prior%d.mat',count)];
+            fprintf('Saving %s\n',priorfname);
+            F=[]; % no associated free energy value
+            save(priorfname,'Qp','Qe','UL','F');
         end; % IID
         
-        count=count+1;
-        priorfname=[priordir filesep sprintf('prior%d.mat',count)];
-        fprintf('Saving %s\n',priorfname);
-        F=[]; % no associated free energy value
-        save(priorfname,'Qp','Qe','UL','F');
-    end;
+        
+    end; % popular priors
     
 end; % for i (looping over priors)
 
@@ -477,7 +429,7 @@ for f=1:min(length(r),4),
     
 end;
 
-if ~isempty(sigma2),    
+if ~isempty(sigma2),
     title(sprintf('Prior Profile of prior amplitude across cortex'));
     meanfwhm=mean(sqrt(sigma2))*2.355*1000; %% in mm
     stdfwhm=std(sqrt(sigma2))*2.355*1000;
@@ -500,15 +452,15 @@ dep.src_output = substruct('.','D');
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
 
 
-function [q,dist,useind]= gauss_patch(M,i,FWHM,q)
-
-order=1;
-
-
-sigma=FWHM./2.355;
-sigma2=sigma^2;
-
-d=spm_mesh_geodesic(M,i-1,order);
-useind=find(d<FWHM*2);
-dist=d(useind);
-q(useind)=exp(-(dist.^2)/(2*sigma2));
+% function [q,dist,useind]= gauss_patch(M,i,FWHM,q)
+%
+% order=1;
+%
+%
+% sigma=FWHM./2.355;
+% sigma2=sigma^2;
+%
+% d=spm_mesh_geodesic(M,i-1,order);
+% useind=find(d<FWHM*2);
+% dist=d(useind);
+% q(useind)=exp(-(dist.^2)/(2*sigma2));

@@ -19,7 +19,7 @@ function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni
 %% Outputs
 %% Dnew- new dataset
 %% meshsourceind- vertex indices of sources on the mesh
-% $Id: spm_eeg_simulate.m 6389 2015-03-25 11:15:53Z gareth $
+% $Id: spm_eeg_simulate.m 6394 2015-03-25 17:09:10Z gareth $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -131,7 +131,6 @@ else
 end;
 
 if size(simsignal,1)~=Ndips,
-    keyboard
     error('number of signals given does not match number of sources');
 end;
 
@@ -314,7 +313,7 @@ else %%% CURRENT DENSITY ON SURFACE SIMULATION
     [Qp,Qe,priorfname]=spm_eeg_invert_setuppatches(meshsourceind,nativemesh,base,priordir,Qe,L);
     
     
-    keyboard
+
     % Add waveform of all smoothed sources to their equivalent dipoles
     % QGs add up to 0.9854
     fullsignal=zeros(Ndip,Dnew.nsamples); %% simulation padded with zeros
