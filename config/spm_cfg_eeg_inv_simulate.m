@@ -5,7 +5,7 @@ function simulate = spm_cfg_eeg_inv_simulate
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_simulate.m 6077 2014-06-30 16:55:03Z spm $
+% $Id: spm_cfg_eeg_inv_simulate.m 6390 2015-03-25 11:18:35Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -88,11 +88,11 @@ isSin.val = {foi};
 
 dipmom = cfg_entry;
 dipmom.tag = 'dipmom';
-dipmom.name = 'Dipole moments (nAm) ';
+dipmom.name = 'Dipole moment  ';
 dipmom.strtype = 'r';
 dipmom.num = [Inf Inf];
-dipmom.val = {[20;20]};
-dipmom.help = {'Enter dipole moments for sources: note only relative value will be used if SNR is specified later, for pure dipole simulations enter 3 moment values (for mesh just one)'};
+dipmom.val = {[10 10;10 5]};
+dipmom.help = {' EITHER (for perfect dipoles) enter dipole moment in nAm in x,y,z as nAm OR (for surfaces) enter total dipole moment (again nAm), followed by spatial extent (FWHM of a Gaussian) in mm. Note only relative value will be used if SNR is specified later'};
 
 whitenoise = cfg_entry;
 whitenoise.tag = 'whitenoise';
@@ -222,7 +222,7 @@ if isfield(job.isinversion,'setsources'), %% defining individual sources
     end;
     
     mnimesh=[]; %% using mesh defined in forward model at the moment
-    SmthInit=[]; %% leave patch size as default for now
+    
     
     ormni=[]; %% dipoles will get orientations from cortical mesh
     dipmom=job.isinversion.setsources.dipmom;
@@ -233,7 +233,11 @@ if isfield(job.isinversion,'setsources'), %% defining individual sources
             nAmdipmom(j)=sqrt(dot(dipmom(j,:),dipmom(j,:))); % magnitude of dipole
         end;
     else %% only one moment parameter given
-        nAmdipmom=dipmom; %% just need to record magnitude
+        nAmdipmom=dipmom(:,1); %% total momnent in nAm
+        dipfwhm=[];
+        if size(dipmom,1)==2,
+            dipfwhm=dipmom(:,2); %% fhwm in mm
+        end;
     end;
         
     woi=job.isinversion.setsources.woi./1000;
@@ -248,8 +252,8 @@ if isfield(job.isinversion,'setsources'), %% defining individual sources
         simsignal=ft_preproc_highpassfilter(simsignal,D{1}.fsample,job.isinversion.setsources.isSin.fband(1),2);
         [u,s,v]=svd(simsignal*simsignal');
         simsignal=u*simsignal; %% orthogonalise all signals
-        simsignal=simsignal./repmat(std(simsignal'),size(simsignal,2),1)'; %% unit variance
-        simsignal=simsignal.*repmat(nAmdipmom,1,size(simsignal,2)); %% now scale by moment
+        
+      %  simsignal=simsignal.*repmat(nAmdipmom,1,size(simsignal,2)); %% now scale by moment
         
     else
         %% simulate sinusoids
@@ -257,15 +261,16 @@ if isfield(job.isinversion,'setsources'), %% defining individual sources
         % Create the waveform for each source
         
         for j=1:Nsources                % For each source
-                simsignal(j,:)=nAmdipmom(j)*sin((D{1}.time(timeind)- D{1}.time(min(timeind)))*sinfreq(j)*2*pi);
+                simsignal(j,:)=sin((D{1}.time(timeind)- D{1}.time(min(timeind)))*sinfreq(j)*2*pi);
         end; % for j
         
         
     end; %% if isfield fband
-    
+ 
+    simsignal=simsignal./repmat(std(simsignal'),size(simsignal,2),1)'; %% Set sim signal to have unit variance
     %[D,meshsourceind,signal]=spm_eeg_simulate(D,job.prefix, job.isinversion.setsources.locs,simsignal,woi,whitenoisefT,SNRdB,trialind,mnimesh,SmthInit);
     
-    [D,meshsourceind]=spm_eeg_simulate(D,job.prefix,job.isinversion.setsources.locs,simsignal,ormni,woi,whitenoisefT,SNRdB,trialind,mnimesh,SmthInit);
+    [D,meshsourceind]=spm_eeg_simulate(D,job.prefix,job.isinversion.setsources.locs,simsignal,ormni,woi,whitenoisefT,SNRdB,trialind,mnimesh,dipfwhm,nAmdipmom);
     
 else %% simulate sources based on inversion
     if ~isfield(D{i}.inv{job.val},'inverse'),
