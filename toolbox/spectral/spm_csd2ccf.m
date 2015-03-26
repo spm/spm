@@ -18,7 +18,7 @@ function [ccf,pst] = spm_csd2ccf(csd,Hz,dt)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd2ccf.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_csd2ccf.m 6395 2015-03-26 15:05:04Z adeel $
 
 % Nyquist
 %--------------------------------------------------------------------------
@@ -50,9 +50,9 @@ end
 dw    = Hz(2) - Hz(1);
 Hz    = Hz/dw;
 ns    = 1/dt;
-N     = round(ns/2/dw);
+N     = ceil(ns/2/dw);
 gj    = find(Hz > 0 & Hz < (N + 1));
-gi    = gj + round(Hz(1)) - 1;
+gi    = gj + ceil(Hz(1)) - 1;
 g     = zeros(N,1);
 
 % Fourier transform cross-spectral density
