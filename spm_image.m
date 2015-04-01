@@ -48,10 +48,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 6379 2015-03-16 13:27:26Z guillaume $
+% $Id: spm_image.m 6396 2015-04-01 11:49:01Z guillaume $
 
 
-SVNid = '$Rev: 6379 $';
+SVNid = '$Rev: 6396 $';
 
 global st
 
@@ -99,8 +99,8 @@ switch lower(action)
         ho = findobj(st.fig,'Tag',sprintf('spm_image:reorient:%s',trzs{trz}));
         set(ho,'String',B(trz));
     else
-        try, B(trz) = eval(get(gco,'String')); end
-        set(gco,'String',B(trz));
+        try, B(trz) = eval(get(gcbo,'String')); end
+        set(gcbo,'String',num2str(B(trz)));
     end
     st.vols{1}.premul = spm_matrix(B);
     set(h,'UserData',B);
@@ -570,7 +570,7 @@ end
 uicontrol('Parent',u2,'Style','Popupmenu', 'Position',[5 45 125 20].*WS,...
     'String',czlabel, 'Tag','spm_image:zoom',...
     'Callback','spm_image(''zoom'')','ToolTipString','Zoom in by different amounts');
-c = 'if get(gco,''Value'')==1, spm_orthviews(''Space''), else, spm_orthviews(''Space'', 1);end;spm_image(''zoom'')';
+c = 'if get(gcbo,''Value'')==1, spm_orthviews(''Space''), else, spm_orthviews(''Space'', 1);end;spm_image(''zoom'')';
 uicontrol('Parent',u2,'Style','Popupmenu', 'Position',[5 25 125 20].*WS,...
     'String',char('World Space','Voxel Space'),...
     'Callback',c,'ToolTipString','Display in aquired/world orientation');
@@ -583,7 +583,7 @@ uicontrol('Parent',u2,'Style','Pushbutton', 'Position',[140 45 125 20].*WS,...
 uicontrol('Parent',u2,'Style','Popupmenu', 'Position',[140 25 125 20].*WS,...
     'String',char('NN interp.','Trilinear interp.','Sinc interp.'),...
     'UserData',[0 1 -4],'Value',2,...
-    'Callback','spm_orthviews(''Interp'',subsref(get(gco,''UserData''),substruct(''()'',{get(gco,''Value'')})))',...
+    'Callback','spm_orthviews(''Interp'',subsref(get(gcbo,''UserData''),substruct(''()'',{get(gcbo,''Value'')})))',...
     'ToolTipString','Interpolation method for displaying images');
 uicontrol('Parent',u2,'Style','Pushbutton', 'Position',[140 5 125 20].*WS,...
     'String','Add Overlay...', 'Tag','spm_image:overlay',...

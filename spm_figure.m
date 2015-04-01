@@ -54,10 +54,10 @@ function varargout=spm_figure(varargin)
 %
 % See also: spm_print, spm_clf
 %__________________________________________________________________________
-% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2015 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 6299 2015-01-08 12:56:00Z guillaume $
+% $Id: spm_figure.m 6396 2015-04-01 11:49:01Z guillaume $
 
 
 %==========================================================================
@@ -800,8 +800,13 @@ end
 %- About Menu
 uimenu(t0,'Separator','on','Label',['&About ' spm('Ver')],...
     'CallBack',@spm_about);
-uimenu(t0,'Label','&About MATLAB',...
-    'CallBack','helpmenufcn(gcbf,''HelpAbout'')');
+if strcmpi(spm_check_version,'matlab')
+    uimenu(t0,'Label','&About MATLAB',...
+        'CallBack','web(''http://www.mathworks.com/matlab/'');');
+else
+    uimenu(t0,'Label','&About GNU Octave',...
+        'CallBack','web(''http://www.octave.org/'');');
+end
 
 %-Figure Menu
 t0=uimenu(F, 'Position',pos, 'Label','&SPM Figure', 'HandleVisibility','off', 'Callback',@myfigmenu);
@@ -810,13 +815,15 @@ t0=uimenu(F, 'Position',pos, 'Label','&SPM Figure', 'HandleVisibility','off', 'C
 uimenu(t0, 'Label','Show All &Windows', 'HandleVisibility','off',...
     'CallBack','spm(''Show'');');
 
-%-Show MATLAB Command Window
-uimenu(t0, 'Label','Show &MATLAB Window', 'HandleVisibility','off',...
-    'CallBack','commandwindow;');
+if strcmpi(spm_check_version,'matlab')
+    %-Show MATLAB Command Window
+    uimenu(t0, 'Label','Show &MATLAB Window', 'HandleVisibility','off',...
+        'CallBack','commandwindow;');
 
-%-Dock SPM Figures
-uimenu(t0, 'Label','&Dock SPM Windows', 'HandleVisibility','off',...
-    'CallBack',@mydockspm);
+    %-Dock SPM Figures
+    uimenu(t0, 'Label','&Dock SPM Windows', 'HandleVisibility','off',...
+        'CallBack',@mydockspm);
+end
 
 %-Print Menu
 %t1=uimenu(t0, 'Label','&Save Figure', 'HandleVisibility','off','Separator','on');
@@ -966,7 +973,7 @@ else
     set(hr,'Checked','off');
 end
 rend = get(ancestor(obj,'figure'),'Renderer');
-hr   = get(findall(obj,'Label','Renderer'),'Children');
+hr   = get(findall(obj,'Label','R&enderer'),'Children');
 set(hr,'Checked','off');
 set(hr(ismember(lower(get(hr,'Label')),rend)),'Checked','on');
 

@@ -50,10 +50,10 @@ function varargout=spm(varargin)
 % FORMAT & help in the main body of spm.m
 %
 %_______________________________________________________________________
-% Copyright (C) 1991,1994-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2015 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 6332 2015-02-10 19:09:00Z guillaume $
+% $Id: spm.m 6396 2015-04-01 11:49:01Z guillaume $
 
 
 %=======================================================================
@@ -1036,12 +1036,10 @@ if isempty(CmdLine)
     try
         CmdLine = spm_get_defaults('cmdline');
     catch
-        CmdLine = 0;
+        CmdLine = false;
     end
 end
-varargout = { CmdLine | ...
-              (get(0,'ScreenDepth')==0) | ...
-              strcmpi(spm_check_version,'octave') };
+varargout = { CmdLine | (get(0,'ScreenDepth')==0) };
 
 
 %=======================================================================
