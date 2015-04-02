@@ -124,7 +124,7 @@ switch lower(action)
     fval = getfield(a(si), fn);
        case 1 % shared field
     bfc = getfield(b(si), fn);
-    if isempty(getfield(a(si), fn)) | ... % a field is empty
+    if isempty(getfield(a(si), fn)) || ... % a field is empty
           (any(flags == 'f' & ~isempty(bfc)))% or force fill
       fval = bfc;
     else % field not empty, could be struct -> recurse
@@ -189,7 +189,7 @@ switch lower(action)
   varargout = {c};
   
  case 'ffillsplit'
-  if isempty(a) | isempty(b)
+  if isempty(a) || isempty(b)
     % Nothing in common, return unchanged
     varargout = {a, b}; return
   end
