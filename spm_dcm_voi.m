@@ -12,10 +12,10 @@ function DCM = spm_dcm_voi(DCM,VOIs)
 % subject Y's. The model can then be re-estimated without having to go 
 % through model specification again.
 %__________________________________________________________________________
-% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_voi.m 6202 2014-09-26 10:46:19Z mohamed $
+% $Id: spm_dcm_voi.m 6400 2015-04-07 18:19:20Z guillaume $
 
 
 %-Get input arguments
@@ -44,13 +44,13 @@ end
 
 %-Replace relevant fields in DCM with xY
 %--------------------------------------------------------------------------
-DCM               = rmfield(DCM,'xY');
+DCM.xY            = [];
 DCM.Y.y           = [];
 for i=1:n
     load(VOIs{i});    
     DCM.Y.y(:,i)  = xY.u;
     DCM.Y.name{i} = xY.name;
-    DCM.xY(i)     = xY;
+    DCM.xY        = spm_cat_struct(DCM.xY,xY);
 end
 DCM.v         = size(xY.u,1);
 DCM.Y.X0      = xY.X0;
