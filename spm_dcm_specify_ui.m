@@ -7,16 +7,16 @@ function DCM = spm_dcm_specify_ui(SPM,xY)
 %
 % DCM      - DCM structure (see spm_dcm_ui)
 %__________________________________________________________________________
-% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify_ui.m 6031 2014-06-02 12:49:52Z guillaume $
+% $Id: spm_dcm_specify_ui.m 6399 2015-04-07 16:05:10Z guillaume $
 
 
 %-Interactive window
 %--------------------------------------------------------------------------
 Finter = spm_figure('GetWin','Interactive');
-bcolor = get(Finter,'color');
+bcolor = get(Finter,'Color');
 WS     = spm('WinScale');
 dx     = 20;
 
@@ -34,10 +34,10 @@ if nargin < 2 || isempty(xY)
     if ~sts, DCM = []; return; end
     P     = cellstr(P);
     m     = numel(P);
-    clear xY;
+    xY    = [];
     for i = 1:m
-        p     = load(P{i},'xY');
-        xY(i) = p.xY;
+        p  = load(P{i},'xY');
+        xY = spm_cat_struct(xY,p.xY);
     end
 else
     m = numel(xY);
