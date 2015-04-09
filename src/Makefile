@@ -1,9 +1,9 @@
 #!/usr/bin/env make -f
 # General Makefile to compile SPM C-MEX files
 #
-# Copyright (C) 1991-2014 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 1991-2015 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 6154 2014-09-04 16:29:19Z guillaume $
+# $Id: Makefile 6402 2015-04-09 18:11:06Z guillaume $
 #
 ###############################################################################
 #
@@ -57,6 +57,10 @@ SUBDIRS =\
 	@file_array/private \
 	@xmltree/private \
 	toolbox/FieldMap
+
+ifeq (mex,$(SUF))
+	SUBDIRS += @gifti/private
+endif
 
 ###############################################################################
 # Public make targets
@@ -320,9 +324,6 @@ verb.mexglx:
 verb.mexa64:
 	$(call verb, "Linux compilation (x86-64)")
 
-verb.mexmac:
-	$(call verb, "MacOS compilation (PowerPC)")
-
 verb.mexmaci:
 	$(call verb, "MacOS compilation (Intel 32 bit)")
 
@@ -340,7 +341,6 @@ verb.distclean.end:
         
 verb.install.end:
 	$(call verb, "Installation: done")
-
 
 verb.external:
 	$(call verb, "In external")
