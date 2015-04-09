@@ -10,6 +10,11 @@ function M = dunzip(Z)
 % Michael Kleder, Nov 2005
 % Modified by Guillaume Flandin, May 2008
 
+if exist('OCTAVE_VERSION','builtin')
+    M = zstream('D',Z);
+    return;
+end
+
 import com.mathworks.mlwidgets.io.InterruptibleStreamCopier
 a   = java.io.ByteArrayInputStream(Z);
 b   = java.util.zip.InflaterInputStream(a);

@@ -11,11 +11,14 @@ function Z = dzip(M)
 % Michael Kleder, Nov 2005
 % Modified by Guillaume Flandin, May 2008
 
+if exist('OCTAVE_VERSION','builtin')
+    Z = zstream('C',M);
+    return;
+end
+
 M = typecast(M(:),'uint8');
 f = java.io.ByteArrayOutputStream();
-%f = javaObject('java.io.ByteArrayOutputStream');
 g = java.util.zip.DeflaterOutputStream(f);
-%g = javaObject('java.util.zip.DeflaterOutputStream',f);
 g.write(M);
 g.close;
 Z = typecast(f.toByteArray,'uint8');
