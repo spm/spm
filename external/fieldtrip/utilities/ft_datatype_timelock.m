@@ -65,7 +65,7 @@ function timelock = ft_datatype_timelock(timelock, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_timelock.m 9315 2014-03-26 15:40:42Z dieloz $
+% $Id: ft_datatype_timelock.m 10287 2015-03-28 13:04:14Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -85,6 +85,13 @@ timelock = fixdimord(timelock);
 if isfield(timelock, 'numsamples'),       timelock = rmfield(timelock, 'numsamples');       end
 if isfield(timelock, 'numcovsamples'),    timelock = rmfield(timelock, 'numcovsamples');    end
 if isfield(timelock, 'numblcovsamples'),  timelock = rmfield(timelock, 'numblcovsamples');  end
+
+if ~iscolumn(timelock.label)
+  timelock.label = timelock.label';
+end
+if ~isrow(timelock.time)
+  timelock.time = timelock.time';
+end
 
 switch version
   case '2011v2'

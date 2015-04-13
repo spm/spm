@@ -64,9 +64,9 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 10156 2015-02-04 08:45:19Z roboos $
+% $Id: ft_sourcegrandaverage.m 10313 2015-03-31 11:00:05Z roboos $
 
-revision = '$Id: ft_sourcegrandaverage.m 10156 2015-02-04 08:45:19Z roboos $';
+revision = '$Id: ft_sourcegrandaverage.m 10313 2015-03-31 11:00:05Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -81,27 +81,6 @@ if abort
   return
 end
 
-% check if cfg.parameter is specified in an old-fashioned way (e.g.
-% 'avg.pow')
-% if this is the case, and the data indeed is also specified in this old
-% way, then later on we will strip the 'avg.' part from the cfg, as the
-% data field will be moved up to the main structure by ft_datatype_source
-% with version=upcoming.
-% this check is performed here, rather than below the ft_checkdata step,
-% because we need to verify that the input data indeed contains a
-% substructure. If it does not, then specifying cfg.parameter=xxx.yyy is a
-% user error.
-if isfield(cfg, 'parameter') && ~isempty(strfind(cfg.parameter, '.'))
-  [tok,rem] = strtok(cfg.parameter, '.');
-  for i = 1:length(varargin)
-    if ~isfield(varargin{i}, tok)
-      error('data does not contain ''%s'' substructure', tok);
-    end
-  end
-  
-  cfg.parameter = rem(2:end);
-end
-
 % check if the input data is valid for this function
 for i=1:length(varargin)
   varargin{i} = ft_checkdata(varargin{i}, 'datatype', {'source'}, 'feedback', 'no', 'inside', 'logical', 'sourcerepresentation', 'new');
@@ -112,8 +91,15 @@ end
 cfg = ft_checkconfig(cfg, 'forbidden', {'concatenate', 'randomization', 'permutation', 'c1', 'c2'});
 
 % set the defaults
-cfg.parameter       = ft_getopt(cfg, 'parameter', 'pow');
 cfg.keepindividual  = ft_getopt(cfg, 'keepindividual', 'no');
+cfg.parameter       = ft_getopt(cfg, 'parameter', 'pow');
+
+if strncmp(cfg.parameter, 'avg.', 4)
+  cfg.parameter = cfg.parameter(5:end); % remove the 'avg.' part
+end
+for i=1:length(varargin)
+  assert(isfield(varargin{i}, cfg.parameter), 'data does not contain parameter "%s"', cfg.parameter);
+end
 
 % check that these fields are identical for each input source
 checkfields = {'pos' 'dim' 'xgrid' 'ygrid' 'zgrid' 'transform' 'inside' 'outside'};

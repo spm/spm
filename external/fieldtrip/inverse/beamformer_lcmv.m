@@ -61,7 +61,7 @@ function [dipout] = beamformer_lcmv(dip, grad, vol, dat, Cy, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: beamformer_lcmv.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id: beamformer_lcmv.m 10273 2015-03-11 08:34:59Z jansch $
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs
@@ -275,18 +275,18 @@ for i=1:size(dip.pos,1)
   end
   if powlambda1
     % dipout.pow(i) = lambda1(pinv(lf' * invCy * lf));        % this is more efficient if the filters are not present
-    dipout.pow(i) = lambda1(filt * Cy * ctranspose(filt));    % this is more efficient if the filters are present
+    dipout.pow(i,1) = lambda1(filt * Cy * ctranspose(filt));    % this is more efficient if the filters are present
   elseif powtrace
     % dipout.pow(i) = trace(pinv(lf' * invCy * lf));          % this is more efficient if the filters are not present, van Veen eqn. 24
-    dipout.pow(i) = trace(filt * Cy * ctranspose(filt));      % this is more efficient if the filters are present
+    dipout.pow(i,1) = trace(filt * Cy * ctranspose(filt));      % this is more efficient if the filters are present
   end
   if keepcov
     % compute the source covariance matrix
-    dipout.cov{i} = filt * Cy * ctranspose(filt);
+    dipout.cov{i,1} = filt * Cy * ctranspose(filt);
   end
   if keepmom && ~isempty(dat)
     % estimate the instantaneous dipole moment at the current position
-    dipout.mom{i} = filt * dat;
+    dipout.mom{i,1} = filt * dat;
   end
   if computekurt && ~isempty(dat)
     % compute the kurtosis of the dipole time series
@@ -295,27 +295,27 @@ for i=1:size(dip.pos,1)
   if projectnoise
     % estimate the power of the noise that is projected through the filter
     if powlambda1
-      dipout.noise(i) = noise * lambda1(filt * ctranspose(filt));
+      dipout.noise(i,1) = noise * lambda1(filt * ctranspose(filt));
     elseif powtrace
-      dipout.noise(i) = noise * trace(filt * ctranspose(filt));
+      dipout.noise(i,1) = noise * trace(filt * ctranspose(filt));
     end
     if keepcov
-      dipout.noisecov{i} = noise * filt * ctranspose(filt);
+      dipout.noisecov{i,1} = noise * filt * ctranspose(filt);
     end
   end
   if keepfilter
     if ~isempty(subspace)
-      dipout.filter{i} = filt*subspace;
+      dipout.filter{i,1} = filt*subspace;
       %dipout.filter{i} = filt*pinv(subspace);
     else
-      dipout.filter{i} = filt;
+      dipout.filter{i,1} = filt;
     end
   end
   if keepleadfield
     if ~isempty(subspace)
-      dipout.leadfield{i} = lforig;
+      dipout.leadfield{i,1} = lforig;
     else
-      dipout.leadfield{i} = lf;
+      dipout.leadfield{i,1} = lf;
     end
   end
   ft_progress(i/size(dip.pos,1), 'scanning grid %d/%d\n', i, size(dip.pos,1));
@@ -376,7 +376,7 @@ s = s(1);
 % standard MATLAB function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 10197 $  $Date: 2009/03/23 21:14:42 $
+%   $Revision: 10273 $  $Date: 2009/03/23 21:14:42 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

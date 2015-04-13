@@ -56,7 +56,7 @@ function [dipout] = beamformer_pcc(dip, grad, vol, dat, Cf, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: beamformer_pcc.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id: beamformer_pcc.m 10270 2015-03-09 08:43:23Z jansch $
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs
@@ -259,19 +259,19 @@ for i=1:size(dip.pos,1)
   clear filtn
   
   if keepcsd
-    dipout.csd{i} = filt * Cf * ctranspose(filt);
+    dipout.csd{i,1} = filt * Cf * ctranspose(filt);
   end
   if projectnoise
-    dipout.noisecsd{i} = noise * (filt * ctranspose(filt));
+    dipout.noisecsd{i,1} = noise * (filt * ctranspose(filt));
   end
   if keepmom && ~isempty(dat)
-    dipout.mom{i} = filt * dat;
+    dipout.mom{i,1} = filt * dat;
   end
   if keepfilter
-    dipout.filter{i} = filt;
+    dipout.filter{i,1} = filt;
   end
   if keepleadfield
-    dipout.leadfield{i} = lf;
+    dipout.leadfield{i,1} = lf;
   end
   
   ft_progress(i/size(dip.pos,1), 'beaming source %d from %d\n', i, size(dip.pos,1));
@@ -284,7 +284,7 @@ for i=1:size(dip.pos,1)
   refchanlabel = repmat({'refchan'}, 1, Nrefchan);
   supchanlabel = repmat({'supchan'}, 1, Nsupchan);
   % concatenate all the labels
-  dipout.csdlabel{i} = [scandiplabel refdiplabel supdiplabel refchanlabel supchanlabel];
+  dipout.csdlabel{i,1} = [scandiplabel refdiplabel supdiplabel refchanlabel supchanlabel];
 end % for all dipoles
 
 ft_progress('close');
@@ -332,7 +332,7 @@ end
 % standard MATLAB function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 10197 $  $Date: 2009/01/07 13:12:03 $
+%   $Revision: 10270 $  $Date: 2009/01/07 13:12:03 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

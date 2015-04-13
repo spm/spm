@@ -28,8 +28,7 @@ function [channel] = ft_channelselection(desired, datachannel, senstype)
 %  'EOG'     is replaced by all recognized EOG channels
 %  'ECG'     is replaced by all recognized ECG channels
 %  'EMG'     is replaced by all channels in the datafile starting with 'EMG'
-%  'lfp'     is replaced by all channels in the datafile starting with
-%  'lfp'
+%  'lfp'     is replaced by all channels in the datafile starting with 'lfp'
 %  'mua'     is replaced by all channels in the datafile starting with 'mua'
 %  'spike'   is replaced by all channels in the datafile starting with 'spike'
 %  10        is replaced by the 10th channel in the datafile
@@ -72,7 +71,7 @@ function [channel] = ft_channelselection(desired, datachannel, senstype)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 9600 2014-06-04 16:28:09Z sardal $
+% $Id: ft_channelselection.m 10284 2015-03-28 10:47:46Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion 

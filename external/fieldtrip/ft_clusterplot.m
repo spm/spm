@@ -12,6 +12,7 @@ function [cfg] = ft_clusterplot(cfg, stat)
 %   cfg.highlightsizeseries       = 1x5 vector, highlight marker size series   (default [6 6 6 6 6] for p < [0.01 0.05 0.1 0.2 0.3])
 %   cfg.highlightcolorpos         = color of highlight marker for positive clusters (default = [0 0 0])
 %   cfg.highlightcolorneg         = color of highlight marker for negative clusters (default = [0 0 0])
+%   cfg.subplotsize               = layout of subplots ([h w], default [3 5])
 %   cfg.saveaspng                 = string, filename of the output figures (default = 'no')
 %
 % You can also specify cfg options that apply to FT_TOPOPLOTTFR, except for
@@ -45,9 +46,9 @@ function [cfg] = ft_clusterplot(cfg, stat)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_clusterplot.m 9974 2014-11-19 09:33:51Z tzvpop $
+% $Id: ft_clusterplot.m 10275 2015-03-16 08:33:46Z eelspa $
 
-revision = '$Id: ft_clusterplot.m 9974 2014-11-19 09:33:51Z tzvpop $';
+revision = '$Id: ft_clusterplot.m 10275 2015-03-16 08:33:46Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -97,6 +98,7 @@ if ~isfield(cfg,'highlightcolorpos'),      cfg.highlightcolorpos = [0 0 0];     
 if ~isfield(cfg,'highlightcolorneg'),      cfg.highlightcolorneg = [0 0 0];                     end;
 if ~isfield(cfg,'parameter'),              cfg.parameter = 'stat';                              end;
 if ~isfield(cfg,'saveaspng'),              cfg.saveaspng = 'no';                                end;
+if ~isfield(cfg,'subplotsize'),            cfg.subplotsize = [3 5];                             end;
 
 % error if cfg.highlightseries is not a cell, for possible confusion with cfg-options
 if ~iscell(cfg.highlightseries)
@@ -335,7 +337,9 @@ else
   else
     Npl = 1;
   end
-  Nfig = ceil(Npl/15);
+  
+  numSubplots = prod(cfg.subplotsize);
+  Nfig = ceil(Npl/numSubplots);
   
   % put channel indexes in list
   if is2D
@@ -364,8 +368,8 @@ else
     figure;
     if is2D
       if iPl < Nfig
-        for iT = 1:15
-          PlN = (iPl-1)*15 + iT; %plotnumber
+        for iT = 1:numSubplots
+          PlN = (iPl-1)*numSubplots + iT; %plotnumber
           cfgtopo.xlim = [stat.time(ind_timewin_min+PlN-1) stat.time(ind_timewin_min+PlN-1)];
           cfgtopo.highlightchannel = list{PlN};
           if hastime
@@ -374,12 +378,12 @@ else
             cfgtopo.comment = strcat('freq: ',num2str(stat.time(ind_timewin_min+PlN-1)), ' Hz');
           end
           cfgtopo.commentpos = 'title';
-          subplot(3,5,iT);
+          subplot(cfg.subplotsize(1), cfg.subplotsize(2), iT);
           ft_topoplotTFR(cfgtopo, stat);
         end
       elseif iPl == Nfig
-        for iT = 1:Npl-(15*(Nfig-1))
-          PlN = (iPl-1)*15 + iT; %plotnumber
+        for iT = 1:Npl-(numSubplots*(Nfig-1))
+          PlN = (iPl-1)*numSubplots + iT; %plotnumber
           cfgtopo.xlim = [stat.time(ind_timewin_min+PlN-1) stat.time(ind_timewin_min+PlN-1)];
           cfgtopo.highlightchannel   = list{PlN};
           if hastime
@@ -388,7 +392,7 @@ else
             cfgtopo.comment = strcat('freq: ',num2str(stat.time(ind_timewin_min+PlN-1)), ' Hz');
           end
           cfgtopo.commentpos = 'title';
-          subplot(3,5,iT);
+          subplot(cfg.subplotsize(1), cfg.subplotsize(2), iT);
           ft_topoplotTFR(cfgtopo, stat);
         end
       end

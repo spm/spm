@@ -65,7 +65,7 @@ function [dipout] = minimumnormestimate(dip, grad, vol, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: minimumnormestimate.m 10207 2015-02-11 15:14:19Z jansch $
+% $Id: minimumnormestimate.m 10315 2015-04-02 12:09:11Z jansch $
 
 % get the optional inputs for the MNE method according to Dale et al 2000, and Liu et al. 2002
 noisecov       = ft_getopt(varargin, 'noisecov');
@@ -143,13 +143,11 @@ else
       dip.leadfield{i} = ft_compute_leadfield(dip.pos(i,:), grad, vol, 'reducerank', reducerank, 'normalize', normalize, 'normalizeparam', normalizeparam) * dip.mom(:,i);
     end
   else
-    for i=size(dip.pos,1)
+      
+    for i=1:size(dip.pos,1)
       % compute the leadfield
       dip.leadfield{i} = ft_compute_leadfield(dip.pos(i,:), grad, vol, 'reducerank', reducerank, 'normalize', normalize, 'normalizeparam', normalizeparam);
     end
-  end
-  for i=size(dip.pos,1)
-    dip.leadfield{i} = [];
   end
 end
 
@@ -309,7 +307,7 @@ if ~isempty(noisecov) && ~hasfilter
 elseif ~isempty(noisecov)
   % compute estimate of the projected noise
   for i=1:size(dip.pos,1)
-    dipout.noisecov{i} = dipout.filter{i}*noisecov*dipout.filter{i}';
+    dipout.noisecov{i} = dip.filter{i}*noisecov*dip.filter{i}';
   end
 end
 

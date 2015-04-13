@@ -90,7 +90,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 10261 2015-02-26 13:37:24Z roboos $
+% $Id: ft_read_header.m 10329 2015-04-09 06:59:39Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -335,12 +335,12 @@ switch headerformat
     hdr.nTrials     = 1;
     hdr.label       = orig.label;
     
-  case {'biosig'}
+  case 'biosig'
     % this requires the biosig toolbox
     ft_hastoolbox('BIOSIG', 1);
     hdr = read_biosig_header(filename);
     
-  case {'gdf'}
+  case 'gdf'
     % this requires the biosig toolbox
     ft_hastoolbox('BIOSIG', 1);
     % In the case that the gdf files are written by one of the FieldTrip
@@ -669,10 +669,23 @@ switch headerformat
     hdr.nSamplesPre = hdr.xmin*hdr.rate/1000;
     hdr.nTrials     = 1;        % it can always be interpreted as continuous data
     % remove the data and variance if present
-    hdr = rmfield(hdr, 'data');
-    try, hdr = rmfield(hdr, 'variance'); end
+    hdr = removefields(hdr, {'data', 'variance'});
     
-  case 'eeglab_set'
+  case 'eep_cnt'
+    % check that the required low-level toolbox is available
+    ft_hastoolbox('eeprobe', 1);
+    % read the first sample from the continous data, this will also return the header
+    orig = read_eep_cnt(filename, 1, 1);
+    hdr.Fs          = orig.rate;
+    hdr.nSamples    = orig.nsample;
+    hdr.nSamplesPre = 0;
+    hdr.label       = orig.label;
+    hdr.nChans      = orig.nchan;
+    hdr.nTrials     = 1;        % it can always be interpreted as continuous data
+    hdr.orig        = orig;     % remember the original details
+    
+
+ case 'eeglab_set'
     hdr = read_eeglabheader(filename);
     
   case 'eeglab_erp'
@@ -719,17 +732,6 @@ switch headerformat
     
   case  'ced_spike6mat'
     hdr = read_spike6mat_header(filename);
-    
-  case 'eep_cnt'
-    % check that the required low-level toolbox is available
-    ft_hastoolbox('eeprobe', 1);
-    % read the first sample from the continous data, which will also return the header
-    hdr = read_eep_cnt(filename, 1, 1);
-    hdr.Fs          = hdr.rate;
-    hdr.nSamples    = hdr.nsample;
-    hdr.nSamplesPre = 0;
-    hdr.nChans      = hdr.nchan;
-    hdr.nTrials     = 1;        % it can always be interpreted as continuous data
     
   case 'egi_egia'
     [fhdr,chdr,ename,cnames,fcom,ftext] = read_egis_header(filename);
@@ -1273,6 +1275,48 @@ switch headerformat
     hdr.orig.chansel = chansel;
     % add the gradiometer definition
     hdr.grad         = itab2grad(header_info);
+    
+  case 'jaga16'
+    % this is hard-coded for the Jinga-Hi JAGA16 system with 16 channels
+    packetsize = (4*2 + 6*2 + 16*43*2); % in bytes
+    % read the first packet
+    fid  = fopen(filename, 'r');
+    buf  = fread(fid, packetsize/2, 'uint16');  
+    fclose(fid);
+    
+    if buf(1)==0
+      % it does not have timestamps, i.e. it is the raw UDP stream
+      packetsize = packetsize - 8; % in bytes
+      packet     = jaga16_packet(buf(1:(packetsize/2)), false);
+    else
+      % each packet starts with a timestamp
+      packet = jaga16_packet(buf, true);
+    end
+    
+    % determine the number of packets from the file size
+    info     = dir(filename);
+    npackets = floor((info.bytes)/packetsize/2);
+    
+    hdr             = [];
+    hdr.Fs          = packet.fsample;
+    hdr.nChans      = packet.nchan;  
+    hdr.nSamples    = 43;
+    hdr.nSamplesPre = 0;        
+    hdr.nTrials     = npackets; 
+    hdr.label       = cell(hdr.nChans,1);
+    hdr.chantype    = cell(hdr.nChans,1);
+    hdr.chanunit    = cell(hdr.nChans,1);
+    for i=1:hdr.nChans
+      hdr.label{i} = sprintf('%d', i);
+      hdr.chantype{i} = 'eeg';
+      hdr.chanunit{i} = 'uV';
+    end
+    
+    % store some low-level details
+    hdr.orig.offset     = 0;
+    hdr.orig.packetsize = packetsize;
+    hdr.orig.packet     = packet;
+    hdr.orig.info       = info;
     
   case 'micromed_trc'
     orig = read_micromed_trc(filename);

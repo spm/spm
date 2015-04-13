@@ -76,7 +76,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id: ft_filetype.m 10283 2015-03-28 09:05:25Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -842,7 +842,13 @@ elseif (filetype_check_extension(filename, '.ini') ||  filetype_check_extension(
   type = 'deymed_ini';
   manufacturer = 'Deymed';
   content = 'eeg header information';
-  
+
+elseif filetype_check_extension(filename, '.dat') && (filetype_check_header(filename, [0 0 16 0 16 0], 8) || filetype_check_header(filename, [0 0 16 0 16 0], 0))
+  % this should go before curry_dat
+  type = 'jaga16';
+  manufacturer = 'Jinga-Hi';
+  content = 'electrophysiological data';
+
   % known Curry V4 file types
 elseif filetype_check_extension(filename, '.dap')
   type = 'curry_dap';   % FIXME, can also be MPI Frankfurt electrophysiological data

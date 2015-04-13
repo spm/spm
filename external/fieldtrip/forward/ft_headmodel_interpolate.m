@@ -44,7 +44,7 @@ function vol = ft_headmodel_interpolate(filename, sens, grid, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_interpolate.m 10174 2015-02-06 14:41:21Z roboos $
+% $Id: ft_headmodel_interpolate.m 10312 2015-03-30 14:38:23Z roboos $
 
 % check the validity of the input arguments
 assert(ft_datatype(sens, 'sens'), 'the second input argument should be a sensor definition');
@@ -144,7 +144,7 @@ if ischar(grid)
   
   for i=1:length(insideindx)
     sel = 3*(i-1)+(1:3);
-    grid.leadfield{insideindx} = lft(:,sel);
+    grid.leadfield{insideindx(i)} = lft(:,sel);
   end
   
   fprintf('finished import of BESA leadfield file\n');

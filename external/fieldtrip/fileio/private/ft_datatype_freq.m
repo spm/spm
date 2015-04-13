@@ -80,7 +80,7 @@ function freq = ft_datatype_freq(freq, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_freq.m 9316 2014-03-26 15:40:46Z dieloz $
+% $Id: ft_datatype_freq.m 10325 2015-04-08 09:55:58Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -95,6 +95,17 @@ end
 
 % ensure consistency between the dimord string and the axes that describe the data dimensions
 freq = fixdimord(freq);
+
+if ~isrow(freq.freq)
+  freq.freq = freq.freq';
+end
+if isfield(freq, 'label') && ~iscolumn(freq.label)
+  % this is not present if the dimord is chancmb_freq or chancmb_freq_time
+  freq.label = freq.label';
+end
+if isfield(freq, 'time') && ~isrow(freq.time)
+  freq.time = freq.time';
+end
 
 switch version
   case '2011'

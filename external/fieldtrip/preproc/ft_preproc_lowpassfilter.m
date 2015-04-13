@@ -68,7 +68,7 @@ function [filt] = ft_preproc_lowpassfilter(dat,Fs,Flp,N,type,dir,instabilityfix,
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_lowpassfilter.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id: ft_preproc_lowpassfilter.m 10290 2015-03-29 08:23:23Z roboos $
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);
@@ -123,12 +123,16 @@ end
 
 % Set default filter function
 if nargin < 12 || isempty(usefftfilt)
-  usefftfilt = 'no';
-end
-if strcmp(usefftfilt, 'yes')
-    usefftfilt = 1;
+  usefftfilt = false;
 else
-    usefftfilt = 0;
+  % convert to boolean value
+  usefftfilt = istrue(usefftfilt);
+end
+
+% Filtering does not work on integer data
+typ = class(dat);
+if ~strcmp(typ, 'double') && ~strcmp(typ, 'single')
+  dat = cast(dat, 'double');
 end
 
 % Nyquist frequency
@@ -288,8 +292,8 @@ catch
       warning('backtrace', 'off')
       warning('instability detected - splitting the %dth order filter in a sequential %dth and a %dth order filter', N, N1, N2);
       warning('backtrace', 'on')
-      filt1 = ft_preproc_lowpassfilter(dat  ,Fs,Flp,N1,type,dir,instabilityfix);
-      filt  = ft_preproc_lowpassfilter(filt1,Fs,Flp,N2,type,dir,instabilityfix);
+      filt = ft_preproc_lowpassfilter(dat ,Fs,Flp,N1,type,dir,instabilityfix);
+      filt = ft_preproc_lowpassfilter(filt,Fs,Flp,N2,type,dir,instabilityfix);
     otherwise
       error('incorrect specification of instabilityfix');
   end % switch
@@ -297,3 +301,4 @@ end
 
 % add the mean back to the filtered data
 filt = bsxfun(@plus, filt, meandat);
+

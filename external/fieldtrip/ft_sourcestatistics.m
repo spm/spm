@@ -61,9 +61,9 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 10196 2015-02-11 09:15:07Z roboos $
+% $Id: ft_sourcestatistics.m 10313 2015-03-31 11:00:05Z roboos $
 
-revision = '$Id: ft_sourcestatistics.m 10196 2015-02-11 09:15:07Z roboos $';
+revision = '$Id: ft_sourcestatistics.m 10313 2015-03-31 11:00:05Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -105,15 +105,13 @@ cfg.latency     = ft_getopt(cfg, 'latency',     'all');
 cfg.avgovertime = ft_getopt(cfg, 'avgovertime', 'no');
 cfg.frequency   = ft_getopt(cfg, 'frequency',   'all');
 cfg.avgoverfreq = ft_getopt(cfg, 'avgoverfreq', 'no');
+cfg.parameter   = ft_getopt(cfg, 'parameter', 'pow');
 
-if isempty(cfg.parameter)
-  if isfield(varargin{1}, 'pow')
-    cfg.parameter = 'pow';
-  end
-end
-
-if length(cfg.parameter)>4 && strcmp(cfg.parameter(1:4), 'avg.')
+if strncmp(cfg.parameter, 'avg.', 4)
   cfg.parameter = cfg.parameter(5:end); % remove the 'avg.' part
+end
+for i=1:length(varargin)
+  assert(isfield(varargin{i}, cfg.parameter), 'data does not contain parameter "%s"', cfg.parameter);
 end
 
 % ensure that the data in all inputs has the same channels, time-axis, etc.

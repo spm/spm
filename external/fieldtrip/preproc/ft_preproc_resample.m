@@ -35,7 +35,7 @@ function [datout, tim] = ft_preproc_resample(dat, Fold, Fnew, method)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_resample.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_preproc_resample.m 10290 2015-03-29 08:23:23Z roboos $
 
 [nchans, nsamples] = size(dat);
 
@@ -48,10 +48,9 @@ if Fold==Fnew
   return
 end
 
-typ = class(dat);
-
 % resample and decimate require double formatted input
-if ~strcmp(method, 'downsample') && ~strcmp(typ, 'double')
+if ~strcmp(method, 'downsample')
+  typ = class(dat);
   dat = cast(dat, 'double');
 end
 
@@ -78,7 +77,7 @@ switch method
     error('unsupported resampling method');
 end
 
-if ~strcmp(method, 'downsample') && ~strcmp(typ, 'double')
+if ~strcmp(method, 'downsample')
   % convert back into the original input format
   datout = cast(datout, typ);
 end
