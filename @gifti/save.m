@@ -10,7 +10,7 @@ function save(this,filename,encoding)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 5888 2014-02-19 19:54:12Z guillaume $
+% $Id: save.m 6404 2015-04-13 14:29:53Z guillaume $
 
 
 % Check filename and file format
@@ -236,7 +236,7 @@ for i=1:length(this.data)
             fprintf(fid,base64encode(typecast(this.data{i}.data(:),'uint8')));
             % uses native machine format
         case 'GZipBase64Binary'
-            fprintf(fid,base64encode(dzip(typecast(this.data{i}.data(:),'uint8'))));
+            fprintf(fid,base64encode(zstream('C',typecast(this.data{i}.data(:),'uint8'))));
             % uses native machine format
         case 'ExternalFileBinary'
             extfilename = this.data{i}.attributes.ExternalFileName;

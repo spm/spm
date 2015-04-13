@@ -7,7 +7,7 @@ function this = read_gifti_file(filename, this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: read_gifti_file.m 6347 2015-02-24 17:59:16Z guillaume $
+% $Id: read_gifti_file.m 6404 2015-04-13 14:29:53Z guillaume $
 
 % Import XML-based GIfTI file
 %--------------------------------------------------------------------------
@@ -161,7 +161,7 @@ switch s.Encoding
         d = typecast(sb(base64decode(get(t,children(t,uid),'value'))), tp.cast);
 
     case 'GZipBase64Binary'
-        d = typecast(dunzip(sb(base64decode(get(t,children(t,uid),'value')))), tp.cast);
+        d = typecast(zstream('D',sb(base64decode(get(t,children(t,uid),'value')))), tp.cast);
 
     case 'ExternalFileBinary'
         [p,f,e] = fileparts(s.ExternalFileName);
