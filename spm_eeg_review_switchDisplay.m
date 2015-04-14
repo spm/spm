@@ -1,10 +1,10 @@
 function [D] = spm_eeg_review_switchDisplay(D)
 % Switch between displays in the M/EEG Review facility
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 6278 2014-12-04 13:20:20Z guillaume $
+% $Id: spm_eeg_review_switchDisplay.m 6405 2015-04-14 15:13:02Z guillaume $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -699,7 +699,7 @@ switch D.PSD.VIZU.uitable
                     end
                     colnames = {'label','date','modality','model','#dipoles','method',...
                         'pst','hanning','band pass','#modes','%var','log[p(y|m)]'};
-                    [ht,hc] = my_uitable('set',table,colnames);
+                    [ht,hc] = my_uitable(table,colnames);
                     set(ht,'units','normalized');
                     set(hc,'position',[0.1 0.05 0.8 0.7],...
                         'tag','plotEEG');
@@ -755,12 +755,16 @@ function [ht,hc] = my_uitable(varargin)
 %==========================================================================
 % conversion layer for various MATLAB versions
 persistent runOnce
-if spm_check_version('matlab','8.4') >= 0
-    if isempty(runOnce)
-        warning('Consider migrating to the new uitable component.');
-        runOnce = true;
+try
+    if spm_check_version('matlab','8.4') >= 0
+        if isempty(runOnce)
+            warning('Consider migrating to the new uitable component.');
+            runOnce = true;
+        end
+        [ht,hc] = uitable('v0',varargin{:});
+    else
+        [ht,hc] = spm_uitable(varargin{:});
     end
-    [ht,hc] = uitable('v0',varargin{:});
-else
-    [ht,hc] = spm_uitable(varargin{:});
+catch
+    [ht,hc]     = deal([]);
 end

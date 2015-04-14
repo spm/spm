@@ -5,10 +5,10 @@ function spm_eeg_inv_image_display(varargin)
 % Input:
 % D        - input data struct (optional)
 %__________________________________________________________________________
-% Copyright (C) 2007-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_image_display.m 6248 2014-10-17 12:00:54Z guillaume $
+% $Id: spm_eeg_inv_image_display.m 6405 2015-04-14 15:13:02Z guillaume $
 
 
 %-Checks
@@ -35,5 +35,7 @@ switch lower(char(D.inv{val}.contrast.format))
         spm_orthviews('Redraw');
     case 'mesh'
         ax = subplot(2,1,1,'parent',spm_figure('GetWin','Graphics'));
-        spm_mesh_render(wEEG,'parent',ax);
+        spm_mesh_render('Disp',wEEG,'parent',ax);
+    otherwise
+        error('Unknown data format.');
 end
