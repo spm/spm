@@ -5,7 +5,7 @@ function H = spm_eeg_history(S)
 % S  - filename or input struct (optional)
 % (optional) fields of S:
 % history         - history of M/EEG object (D.history)
-% sname           - filename of the to be generated MATLAB script
+% sname           - filename of the MATLAB script to generate
 %
 % H               - cell array summary of history for review purposes
 %__________________________________________________________________________
@@ -19,10 +19,10 @@ function H = spm_eeg_history(S)
 % course, the generated script can also be used as a template for a
 % slightly different analysis or for different subjects.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_history.m 5379 2013-04-02 18:59:18Z karl $
+% $Id: spm_eeg_history.m 6406 2015-04-14 15:26:39Z guillaume $
 
 try
     h = S.history;
@@ -129,6 +129,7 @@ for i=1:nf
             Df = args.D;
             try,Df = args.D.fname;end
             H{i,3} = Df;
+            if iscell(H{i,3}),H{i,3}='[composite]';end
             if i<nf
                 try
                     args2 = h(i+1).args;
