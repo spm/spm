@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 1996-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 6191 2014-09-23 17:33:40Z guillaume $
+% $Id: spm_mip_ui.m 6409 2015-04-16 16:19:38Z guillaume $
 
 
 %==========================================================================
@@ -302,7 +302,7 @@ switch lower(varargin{1}), case 'display'
 
     %-Create UIContextMenu for marker jumping
     %-----------------------------------------------------------------------
-    h = uicontextmenu('Tag','MIPconmen','UserData',hMIPax);
+    h = uicontextmenu('Tag','MIPconmen','UserData',hMIPax,'Parent',F);
     if isempty(XYZ), str='off'; else str='on'; end
     uimenu(h,'Separator','off','Label','goto nearest suprathreshold voxel',...
         'CallBack',['spm_mip_ui(''Jump'',',...

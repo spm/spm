@@ -5,7 +5,7 @@ function s = spm_cat_struct(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cat_struct.m 5898 2014-02-27 14:11:09Z vladimir $
+% $Id: spm_cat_struct.m 6409 2015-04-16 16:19:38Z guillaume $
 
 if nargin < 2
     error('At least two arguments are required');
@@ -26,12 +26,12 @@ elseif isempty(s2)
 else
     addfields1 = setdiff(fieldnames(s2), fieldnames(s1));
     for i = 1:numel(addfields1)
-        [s1(:).(addfields1{i})] = deal([]);
+        [s1.(addfields1{i})] = deal([]);
     end
     
     addfields2 = setdiff(fieldnames(s1), fieldnames(s2));
     for i = 1:numel(addfields2)
-        [s2(:).(addfields2{i})] = deal([]);
+        [s2.(addfields2{i})] = deal([]);
     end
     
     s = [s1(:); s2(:)];

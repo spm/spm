@@ -16,7 +16,7 @@ function [H, HC] = spm_browser(url,F,pos,format)
 % Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_browser.m 4823 2012-08-02 16:23:49Z guillaume $
+% $Id: spm_browser.m 6409 2015-04-16 16:19:38Z guillaume $
 
 %-Input arguments
 %--------------------------------------------------------------------------
@@ -27,7 +27,7 @@ end
 if nargin < 2 || isempty(F)
     F    = spm_figure('GetWin','Graphics');
 end
-isUpdate = ismethod(F,'setCurrentLocation');
+try, isUpdate = ismethod(F,'setCurrentLocation'); catch, isUpdate=false; end
 if ~isUpdate, F = spm_figure('FindWin',F); end
 
 if (nargin < 3 || isempty(pos)) && ~isUpdate

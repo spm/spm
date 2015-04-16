@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2015 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 6397 2015-04-02 15:07:46Z guillaume $
+% $Id: spm.m 6409 2015-04-16 16:19:38Z guillaume $
 
 
 %=======================================================================
@@ -1159,9 +1159,7 @@ if ~CmdLine
     str = sprintf('%s  %s  %s',SPMver,repmat(' ',1,tmp-4),timestr);
     h   = msgbox([{''};Message(:);{''};{''};{str}],...
           sprintf('%s: %s',spm('Version'),Title),...
-          icon,'non-modal');
-    drawnow
-    set(h,'windowstyle','modal');
+          icon,'modal');
 end
 
 if wait
