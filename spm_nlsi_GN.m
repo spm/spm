@@ -36,7 +36,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 %
 % Y.y  - outputs (samples x observations x ...)
 % Y.dt - sampling interval for outputs
-% Y.X0 - Confounds or null space      (over size(y,1) samples or all vec(y))
+% Y.X0 - confounds or null space      (over size(y,1) samples or all vec(y))
 % Y.Q  - q error precision components (over size(y,1) samples or all vec(y))
 %
 %
@@ -94,10 +94,10 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % J. Phys. D. Appl. Phys 1970 3:1759-1764.
 %
 %__________________________________________________________________________
-% Copyright (C) 2001-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2001-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 6378 2015-03-15 14:46:41Z karl $
+% $Id: spm_nlsi_GN.m 6410 2015-04-17 15:52:19Z guillaume $
 
 % options
 %--------------------------------------------------------------------------
@@ -367,14 +367,7 @@ for k = 1:M.Nmax
     % convergence failure
     %----------------------------------------------------------------------
     if revert
-        if ~isdeployed
-            msgstr = 'Convergence failure - invoking keyboard.';
-            warning('SPM:spm_nlsi_GN',msgstr)
-            keyboard
-        else
-            msgstr = 'Convergence failure.';
-            error('SPM:spm_nlsi_GN',msgstr)
-        end
+        error('SPM:spm_nlsi_GN','Convergence failure.');
     end
     
     
@@ -384,7 +377,7 @@ for k = 1:M.Nmax
     J     = -[dfdp dfdu];
     
     
-    % M-step; Fisher scoring scheme to find h = max{F(p,h)}
+    % M-step: Fisher scoring scheme to find h = max{F(p,h)}
     %======================================================================
     for m = 1:8
         
@@ -507,7 +500,7 @@ for k = 1:M.Nmax
     
     
     
-    % graphics
+    % Graphics
     %======================================================================
     if exist('Fsi', 'var')
         spm_figure('Select', Fsi)
@@ -603,4 +596,3 @@ Cp     = V*C.Cp(ip,ip)*V';
 Eh     = C.h;
 F      = C.F;
 L      = C.L;
-
