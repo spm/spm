@@ -1,5 +1,5 @@
 /*
- * $Id: zstream.c 6401 2015-04-09 17:21:33Z guillaume $
+ * $Id: zstream.c 6415 2015-04-20 15:27:42Z guillaume $
  * Guillaume Flandin
  */
 
@@ -69,8 +69,7 @@ plhs[0] = mxCreateNumericMatrix(OUTlen,1,mxUINT8_CLASS,mxREAL);
 if (plhs[0] == NULL)
     mexErrMsgTxt("Error when creating output variable.");
 
-p = (unsigned char*)mxGetData(plhs[0]);
-for (int i=0;i<OUTlen;i++) p[i] = OUT[i];
+memcpy(mxGetData(plhs[0]), OUT, OUTlen);
 
 mxFree(action);
 mz_free(OUT);
