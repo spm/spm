@@ -1,24 +1,25 @@
 function H = spm_dwtmtx(N,K,T)
-% Creates basis functions for Discrete (Haar) Wavelet Transform.
+% Create basis functions for Discrete (Haar) Wavelet Transform
 % FORMAT H = spm_dwtmtx(N,K,T)
 %
 %   N - dimension
 %   K - order: number of basis functions = N/K
 %
-%   T - option flag for thinning eccentric wavelets
+%   T - option flag for thinning eccentric wavelets [default: false]
 %__________________________________________________________________________
-% spm_dctmtx creates a matrix for the first few basis functions of a one
+%
+% spm_dwtmtx creates a matrix for the first few basis functions of a one
 % dimensional Haar Discrete Wavelet transform.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dwtmtx.m 4170 2011-01-24 18:37:42Z karl $
+% $Id: spm_dwtmtx.m 6416 2015-04-21 15:34:10Z guillaume $
  
  
 % Create basis set
 %==========================================================================
-try, T; catch, T = 0; end
+try, T; catch, T = false; end
  
 K     = max(K,1); 
 H     = ones(N,1);
@@ -70,7 +71,3 @@ if T
     %----------------------------------------------------------------------
     H  = H(:,j);
 end
-
-
-
-

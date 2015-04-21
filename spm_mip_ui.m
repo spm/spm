@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 1996-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 6409 2015-04-16 16:19:38Z guillaume $
+% $Id: spm_mip_ui.m 6416 2015-04-21 15:34:10Z guillaume $
 
 
 %==========================================================================
@@ -330,7 +330,8 @@ switch lower(varargin{1}), case 'display'
 
     % overlay sensor positions for M/EEG
     %----------------------------------------------------------------------
-    if strcmp(spm('CheckModality'), 'EEG')
+    if strcmp(spm('CheckModality'), 'EEG') && ...
+            (isequal(units,{'mm' 'mm' 'ms'}) || isequal(units,{'mm' 'mm' 'Hz'}))
         uimenu(h,'Separator','on','Label','display/hide channels',...
             'CallBack',['spm_mip_ui(''Channels'', ',...
             'get(get(gcbo,''Parent''),''UserData''));'],...
@@ -476,6 +477,7 @@ switch lower(varargin{1}), case 'display'
                 str       = 'nearest suprathreshold channel';
                 if ~isfield(MD, 'hChanPlot'), spm_mip_ui('Channels',h); end
                 MD        = get(h,'UserData');
+                if ~isfield(MD, 'hChanPlot'), return; end
                 [xyz,i,d] = spm_XYZreg('NearestXYZ',[oxyz(1); oxyz(2); 0],MD.Channels.pos);
                 xyz(3)    = oxyz(3);
                 str       = [str sprintf(' (%s)',MD.Channels.name{i})];

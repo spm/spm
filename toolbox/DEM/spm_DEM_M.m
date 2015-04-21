@@ -1,7 +1,7 @@
-function [M] = spm_dem_M(model,varargin)
-% creates a [template] model structure
-% FORMAT [M] = spm_dem_M(model,l,n)
-% FORMAT [M] = spm_dem_M(model,X1,X2,...)
+function [M] = spm_DEM_M(model,varargin)
+% Create a [template] model structure
+% FORMAT [M] = spm_DEM_M(model,l,n)
+% FORMAT [M] = spm_DEM_M(model,X1,X2,...)
 %
 % model: 'General linear model','GLM'
 %        'Factor analysis','FA'
@@ -38,6 +38,11 @@ function [M] = spm_dem_M(model,varargin)
 %   M(i).n  = number of states x(i);
 %   M(i).l  = number of output v(i);
 %__________________________________________________________________________
+% Copyright (C) 2007-2015 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_DEM_M.m 6416 2015-04-21 15:34:10Z guillaume $
+
 
 switch lower(model)
 

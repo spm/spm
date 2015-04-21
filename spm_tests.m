@@ -5,6 +5,7 @@ function results = spm_tests(varargin)
 %     verbose:  verbosity level of test run progress report [default: 2]
 %     display:  display test results [default: false]
 %     coverage: display code coverage [default: false]
+%     tag:      test tag selector [default: '', ie all tests]
 %     tap:      save a Test Anything Protocol (TAP) file [default: false]
 % 
 % results     - TestResult array containing information describing the
@@ -13,19 +14,20 @@ function results = spm_tests(varargin)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_tests.m 6360 2015-03-04 19:24:56Z spm $
+% $Id: spm_tests.m 6416 2015-04-21 15:34:10Z guillaume $
 
 
 if spm_check_version('matlab','8.3') < 0
     error('Unit Tests require MATLAB R2014a or above.');
 end
 
-SVNid = '$Rev: 6360 $';
+SVNid = '$Rev: 6416 $';
 SPMid = spm('FnBanner',mfilename,SVNid);
 
 %-Input parameters
 %--------------------------------------------------------------------------
-options = struct('verbose',2, 'display',false, 'coverage',false, 'tap',false);
+options = struct('verbose',2, 'display',false, 'coverage',false, ...
+                 'tag', '', 'tap',false);
 if nargin
     if isstruct(varargin{1})
         fn = fieldnames(varargin{1});
@@ -45,9 +47,12 @@ end
 %-Create a TestSuite
 %--------------------------------------------------------------------------
 import matlab.unittest.TestSuite;
+import matlab.unittest.selectors.*;
 tests = fullfile(spm('Dir'),'tests');
 suite = TestSuite.fromFolder(tests, 'IncludingSubfolders', true);
-%suite.selectIf('ParameterProperty', '*')
+if ~isempty(options.tag)
+    suite = suite.selectIf(~HasTag | HasTag(options.tag));
+end
 
 %-Create a TestRunner
 %--------------------------------------------------------------------------

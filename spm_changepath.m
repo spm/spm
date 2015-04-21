@@ -18,7 +18,7 @@ function varargout = spm_changepath(Sf, oldp, newp)
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_changepath.m 5731 2013-11-04 18:11:44Z guillaume $
+% $Id: spm_changepath.m 6416 2015-04-21 15:34:10Z guillaume $
 
 
 %-Input arguments
@@ -116,6 +116,13 @@ switch class(S)
     
     case 'file_array'
         S.fname = changepath(S.fname,oldp,newp);
+        
+    case 'gifti'
+        if isfield(S,'cdata') && isa(S.cdata,'file_array')
+            fa = struct(S.cdata);
+            fa.fname = changepath(fa.fname,oldp,newp);
+            S.cdata = file_array(fa);
+        end
         
     otherwise
         warning('Unknown class "%s".',class(S));

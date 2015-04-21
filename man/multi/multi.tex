@@ -25,7 +25,7 @@ The raw data can be found here (see \texttt{README.txt} there for more details):
 
 The MEG data consist of 102 magnetometers and 204 planar gradiometers from an Elekta VectorView system. The same system was used to simultaneously record EEG data from 70 electrodes (using a nose reference), which are stored in the same ``FIF'' format file. The above FTP site includes a raw FIF file for each run/subject, but also a second FIF file in which the MEG data have been ``cleaned'' using Signal-Space Separation as implemented in MaxFilter 2.1. We use the latter here. A Polhemus digitizer was used to digitise three fiducial points and a large number of other points across the scalp, which can be used to coregister the M/EEG data with the structural MRI image. Six runs (sessions) of approximately 10mins were acquired for each subject, while they judged the left-right symmetry of each stimulus (face or scrambled), leading to nearly 300 trials in total for each of the 3 conditions.
 
-The MRI data were acquired on a 3T Siemens TIM Trio, and include a 1\(\times\)1\(\times\)1mm \(T_1\)-weighted structural MRI (sMRI) as well as a large number of 3\(\times\)3\(\times\)\(\sim\)4mm \(T^*_2\)-weighted functional MRI (fMRI) EPI volumes acquired during 9 runs of the same task (performed by same subjects with different set of stimuli on a separate visit). (The FTP site also contains ME-FLASH data from the same subjects, plus DWI data from a subset, which could be used for improved head modelling for example, but these are not used here.) For full description of the data and paradigm, see [Wakeman and Henson].
+The MRI data were acquired on a 3T Siemens TIM Trio, and include a 1\(\times\)1\(\times\)1mm \(T_1\)-weighted structural MRI (sMRI) as well as a large number of 3\(\times\)3\(\times\)\(\sim\)4mm \(T^*_2\)-weighted functional MRI (fMRI) EPI volumes acquired during 9 runs of the same task (performed by same subjects with different set of stimuli on a separate visit). (The FTP site also contains ME-FLASH data from the same subjects, plus DWI data from a subset, which could be used for improved head modelling for example, but these are not used here.) For full description of the data and paradigm, see [Wakeman and Henson (2015)]\footnote{\url{http://www.nature.com/articles/sdata20151}}.
 
 Versions of the SPM12 batch job files and scripts used in this chapter can be found here:
 
@@ -859,7 +859,7 @@ When it has run, press ``Results'' from the SPM Menu window an select the \textt
 
 \noindent 1. Henson, R.N., Mattout, J., Phillips, C. and Friston, K.J. (2009). Selecting forward models for MEG source-reconstruction using model-evidence. Neuroimage, 46, 168-176. \\
 \noindent 2. Henson, R.N., Wakeman, D.G., Litvak, V. and Friston, K.J. (2011). A Parametric Empirical Bayesian framework for the EEG/MEG inverse problem: generative models for multisubject and multimodal integration. Frontiers in Human Neuroscience, 5, 76, 1-16. \\
-\noindent 3. Wakeman, D.G. and Henson, R.N. Under review. \\
+\noindent 3. Wakeman, D.G. and Henson, R.N. A multi-subject, multi-modal human neuroimaging dataset. Scientific Data, 2:150001. \\
 
 \section{Acknowledgements}
 This work was supported by MRC (A060\_MC\_5PR10). The author (RNH) thanks Rebecca Beresford, Hunar Abdulraham, Daniel Wakeman, Guillaume Flandin and Vladimir Litvak for their help.

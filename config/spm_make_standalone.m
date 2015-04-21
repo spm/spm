@@ -18,10 +18,10 @@ function spm_make_standalone(outdir)
 %
 % See spm_standalone.m
 %__________________________________________________________________________
-% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_make_standalone.m 4996 2012-10-11 18:28:37Z guillaume $
+% $Id: spm_make_standalone.m 6416 2015-04-21 15:34:10Z guillaume $
 
 %-Care of startup.m
 %--------------------------------------------------------------------------
@@ -50,8 +50,7 @@ dd = regexp(d,'^\.');
 if ~iscell(dd), dd = {dd}; end
 d  = {'' d{cellfun('isempty',dd)}};
 ft = {};
-ftc = {};
-%-Look for '*_cfg_*.m' or '*_config_*.m' files in these directories
+%-Look for '*_cfg_*.m' files in these directories
 for i=1:length(d)
     d2 = fullfile(tbxdir,d{i});
     di = dir(d2); di = {di(~[di.isdir]).name};
@@ -60,28 +59,16 @@ for i=1:length(d)
     fi = di(~cellfun('isempty',f2));
     if ~isempty(fi)
         ft = [ft(:); fi(:)];
-    else
-        % try *_config_*.m files, if toolbox does not have '*_cfg_*.m' files
-        f2 = regexp(di,'.*_config_.*\.m$');
-        if ~iscell(f2), f2 = {f2}; end
-        fi = di(~cellfun('isempty',f2));
-        ftc = [ftc(:); fi(:)];
-    end;
+    end
 end
-if ~isempty(ft)||~isempty(ftc)
+if ~isempty(ft)
     if isempty(ft)
         ftstr = '';
     else
         ft = cellfun(@(cft)strtok(cft,'.'),ft,'UniformOutput',false);
         ftstr  = sprintf('%s ', ft{:});
     end
-    if isempty(ftc)
-        ftcstr = '';
-    else
-        ftc = cellfun(@(cftc)strtok(cftc,'.'),ftc,'UniformOutput',false);
-        ftcstr = sprintf('cfg_struct2cfg(%s) ', ftc{:});
-    end
-    fprintf(fid,'values = {%s %s};\n', ftstr, ftcstr);
+    fprintf(fid,'values = {%s};\n', ftstr);
 end
 fclose(fid);
 
@@ -100,8 +87,11 @@ if ~sts, warning('Copy of Contents.m failed.'); end
 %==========================================================================
 %-Compilation
 %==========================================================================
-mcc('-m', '-C', '-v', '-o',lower(spm('Ver')), 'spm_standalone.m',...
+opts = {'-p',fullfile(matlabroot,'toolbox','signal')};
+mcc('-m', '-C', '-v',...
+    '-o',lower(spm('Ver')),...
     '-d',outdir,...
-    '-N','-p',fullfile(matlabroot,'toolbox','signal'),...
+    '-N',opts{:},...
     '-R','-singleCompThread',...
-    '-a',spm('Dir'))
+    '-a',spm('Dir'),...
+    'spm_standalone.m');

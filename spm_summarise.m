@@ -1,6 +1,6 @@
 function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 % Summarise data within a Region of Interest
-% FUNCTION [Y, xY] = spm_summarise(V,xY,fhandle)
+% FORMAT [Y, xY] = spm_summarise(V,xY,fhandle)
 % V       - [1 x n] vector of mapped image volumes to read (from spm_vol)
 %           Or a char array of filenames
 % xY      - VOI structure (from spm_ROI)
@@ -22,10 +22,10 @@ function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 %               struct('def','sphere', 'spec',8, 'xyz',[10 20 30]'),...
 %               @mean)
 %__________________________________________________________________________
-% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin, Ged Ridgway
-% $Id: spm_summarise.m 5670 2013-10-04 16:48:38Z ged $
+% $Id: spm_summarise.m 6416 2015-04-21 15:34:10Z guillaume $
 
 %-Argument checks
 %--------------------------------------------------------------------------

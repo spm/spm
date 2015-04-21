@@ -10,7 +10,7 @@ function save(this,filename,encoding)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 6404 2015-04-13 14:29:53Z guillaume $
+% $Id: save.m 6416 2015-04-21 15:34:10Z guillaume $
 
 
 % Check filename and file format
@@ -78,12 +78,6 @@ def.DataType           = 'NIFTI_TYPE_FLOAT32';
 def.ExternalFileName   = '';
 def.ExternalFileOffset = '';
 def.offset             = 0;
-
-if strcmp(def.Encoding,'GZipBase64Binary') && ~usejava('jvm')
-    warning(['Cannot save GIfTI in ''GZipBase64Binary'' encoding. ' ...
-        'Revert to ''Base64Binary''.']);
-    def.Encoding = 'Base64Binary';
-end
 
 % Edit object DataArray attributes
 %--------------------------------------------------------------------------
@@ -301,7 +295,7 @@ fprintf(fid,'%s<asset>\n',o(1));
 fprintf(fid,'%s<contributor>\n',o(2));
 fprintf(fid,'%s<author_website>%s</author_website>\n',o(3),...
     'http://www.fil.ion.ucl.ac.uk/spm/');
-fprintf(fid,'%s<authoring_tool>%s</authoring_tool>\n',o(3),spm('Ver'));
+fprintf(fid,'%s<authoring_tool>%s</authoring_tool>\n',o(3),'SPM');
 fprintf(fid,'%s</contributor>\n',o(2));
 fprintf(fid,'%s<created>%s</created>\n',o(2),datestr(now,'yyyy-mm-ddTHH:MM:SSZ'));
 fprintf(fid,'%s<modified>%s</modified>\n',o(2),datestr(now,'yyyy-mm-ddTHH:MM:SSZ'));
@@ -411,7 +405,7 @@ fprintf(fid,'</COLLADA>\n');
 %==========================================================================
 function fid = save_idtf(fid,this)
 
-o = inline('blanks(x*3)');
+o = @(x) blanks(x*3);
 
 s = struct(this);
 

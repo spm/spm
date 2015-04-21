@@ -4,7 +4,7 @@ function this = subsasgn(this, subs, A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: subsasgn.m 6345 2015-02-20 12:25:50Z guillaume $
+% $Id: subsasgn.m 6416 2015-04-21 15:34:10Z guillaume $
 
 switch subs(1).type
     case '.'
@@ -92,8 +92,13 @@ switch subs(1).type
                         end
                     else
                         if numel(n) == 1
-                            this.data{n}.data = single(A);
-                            this.data{n}.attributes.Dim = size(A);
+                            if isa(A,'file_array')
+                                this.data{n}.data = A;
+                                this.data{n}.attributes.Dim = A.dim;
+                            else
+                                this.data{n}.data = single(A);
+                                this.data{n}.attributes.Dim = size(A);
+                            end
                         else
                             error('Syntax not implemented.');
                         end

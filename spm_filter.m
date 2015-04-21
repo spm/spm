@@ -19,14 +19,14 @@ function varargout = spm_filter(K,Y)
 %__________________________________________________________________________
 %
 % spm_filter implements high-pass filtering in an efficient way by
-% using the residual forming matrix of X0 - low frequency confounds
-%.spm_filter also configures the filter structure in accord with the
-% specification fields if called with one argument
+% using the residual forming matrix of X0 - low frequency confounds.
+% spm_filter also configures the filter structure in accord with the
+% specification fields if called with one argument.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_filter.m 4498 2011-09-23 18:40:43Z guillaume $
+% $Id: spm_filter.m 6416 2015-04-21 15:34:10Z guillaume $
 
 
 %-Configure filter
