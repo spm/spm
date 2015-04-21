@@ -18,8 +18,12 @@ function Z = zstream(action,D)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: zstream.m 6404 2015-04-13 14:29:53Z guillaume $
+% $Id: zstream.m 6417 2015-04-21 16:03:44Z guillaume $
 
+
+if exist('OCTAVE_VERSION','builtin')
+    error('zstream.c not compiled - see Makefile');
+end
 
 switch upper(action)
     case 'C'
