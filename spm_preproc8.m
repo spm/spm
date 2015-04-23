@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 6376 2015-03-12 15:15:57Z john $
+% $Id: spm_preproc8.m 6421 2015-04-23 16:54:25Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -409,7 +409,7 @@ for iter=1:30,
                         end
                     end
                     sq = sum(q,2)+tiny;
-                    ll = ll + sum(log(sq + tiny));
+                    ll = ll + sum(log(sq));
                     cr = zeros(size(q,1),N);
                     for n=1:N,
                         cr(:,n)  = double(buf(z).f{n}.*buf(z).bf{n});
@@ -483,7 +483,7 @@ for iter=1:30,
                             q(:,k1) = q(:,k1).*chan(n).lik(tmp,k1);
                         end
                     end
-                    sq = sum(q,2)+eps;
+                    sq = sum(q,2)+tiny;
                     ll = ll + sum(log(sq));
                     for k1=1:Kb,
                         q(:,k1) = q(:,k1)./sq;
@@ -492,7 +492,7 @@ for iter=1:30,
                         end
                     end
                 end
-                wp = sum(chan(1).hist)./mgm;
+                wp = (sum(chan(1).hist)+1)./(mgm+1);
                 for n=1:N,
                     [chan(n).lik,chan(n).alph] = spm_smohist(chan(n).hist,chan(n).lam);
                     chan(n).lik                = chan(n).lik*chan(n).interscal(2);
@@ -525,6 +525,12 @@ for iter=1:30,
         % The aim is to save memory, and maybe make the computations
         % faster.
         %------------------------------------------------------------
+
+        if use_mog
+            pr = zeros(size(vr)); % Precisions
+            for k=1:K, pr(:,:,k) = inv(vr(:,:,k)); end
+        end
+
         for subit=1:1,
             for n=1:N,
                 d3  = numel(chan(n).T);
@@ -548,18 +554,25 @@ for iter=1:30,
                             sq = sum(q,2)+tiny;
                            %ll = ll + sum(log(sq));
 
-                            cr = double(buf(z).f{n}).*double(buf(z).bf{n});
+                            cr = cell(N,1);
+                            for n1=1:N, cr{n1} = double(buf(z).f{n1}).*double(buf(z).bf{n1}); end
+      
                             w1 = zeros(buf(z).nm,1);
                             w2 = zeros(buf(z).nm,1);
                             for k=1:K,
-                                tmp = q(:,k)./sq/vr(n,n,k); % Only the diagonal of vr is used
-                                w1  = w1 + tmp.*(mn(n,k) - cr);
-                                w2  = w2 + tmp;
+                                tmp = q(:,k)./sq;
+                                w0  = zeros(buf(z).nm,1);
+                                for n1=1:N
+                                    w0 = w0 + pr(n1,n,k)*(mn(n1,k) - cr{n1});
+                                end
+                                w1  = w1 + tmp.*w0;
+                                w2  = w2 + tmp*pr(n,n,k);
                             end
                             wt1   = zeros(d(1:2));
-                            wt1(buf(z).msk) = -(1 + cr.*w1); % US eq. 34 (gradient)
+                            wt1(buf(z).msk) = -(1 + cr{n}.*w1); % US eq. 34 (gradient)
                             wt2   = zeros(d(1:2));
-                            wt2(buf(z).msk) = cr.*cr.*w2 + 1; % Simplified Hessian of US eq. 34
+                            wt2(buf(z).msk) = cr{n}.*cr{n}.*w2 + 1; % Simplified Hessian of US eq. 34
+                            clear cr
                         else
                             q = B;
                             for n1=1:N,
@@ -860,7 +873,7 @@ for iter=1:30,
                     sq = sq + double(buf(z).dat(:,k1)).*double(b{k1});
                 end
                 clear b
-                ll1 = ll1 + sum(log(sq + tiny));
+                ll1 = ll1 + sum(log(sq));
                 clear sq
             end
 
