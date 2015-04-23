@@ -38,12 +38,11 @@ function [f] = spm_fx_fnirs(x,u,P,M)
 %
 % This script is based on spm_fx_fmri.m written by 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fnirs.m 6418 2015-04-23 08:40:08Z sungho $
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_fx_fnirs.m 6418 2015-04-23 08:40:08Z sungho $
+% $Id: spm_fx_fnirs.m 6422 2015-04-23 16:55:52Z spm $
 
 % Neuronal motion
 %==========================================================================
@@ -150,9 +149,3 @@ f(:,5)   = (x(:,3).*ff - fv_d.*x(:,5)./x(:,4))./(tt.*x(:,5));
 f(:,6)   = (x(:,3) - fv_d  .* x(:,6)./x(:,4))./(tt.*x(:,6));
 
 f        = f(:);
-
-
-
-
-
-

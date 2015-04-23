@@ -21,17 +21,17 @@ function [g] = spm_gx_fnirs(x,u,P,M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_gx_fnirs.m 6419 2015-04-23 16:11:34Z sungho $
+% $Id: spm_gx_fnirs.m 6422 2015-04-23 16:55:52Z spm $
 
 % exponentiation of hemodynamic state variables
 x(:, 3:6) = exp(x(:,3:6)); 
 
 % optics parameters
-%------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %   N(1) - oxygen saturation                                            SO2
-%   N(2) - baseline total-hb concentration [mM]                P0
-%   N(3) - cortical weighting factor                                   w
-%------------------------------------------------------------------------------------
+%   N(2) - baseline total-hb concentration [mM]                          P0
+%   N(3) - cortical weighting factor                                      w
+%--------------------------------------------------------------------------
 N = [0.65 0.071 2]; 
 
 % baseline dxy-hb concentration 
@@ -78,4 +78,3 @@ for i = 1:M.nwav
     g(:,i) = (pv .* (S * [sh sq])) * M.eps(i,:)'; 
 end
 g = spm_vec(g);
-

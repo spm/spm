@@ -9,7 +9,7 @@ function DCM = spm_dcm_fnirs_specify(Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_dcm_fnirs_specify.m 6418 2015-04-23 08:40:08Z sungho $
+% $Id: spm_dcm_fnirs_specify.m 6422 2015-04-23 16:55:52Z spm $
 
 %-Interactive window
 %--------------------------------------------------------------------------
@@ -34,7 +34,6 @@ if ~nargin || isempty(Y)
         Y = spm_fnirs_convert; 
     catch 
         error('Cannot read fNIRS data file.');
-        return;
     end
 end
 

@@ -2,12 +2,12 @@ function [D] = spm_fnirs_convert(S)
 % Convert fNIRS data formats to SPM format, to perform DCM-fNIRS analysis 
 % FORMAT [D] = spm_fnirs_convert(S) 
 %
-% S.fnirs - file name of optical density changes 
-% S.ch - file name of source and detector position 
+% S.fnirs  - file name of optical density changes 
+% S.ch     - file name of source and detector position 
 % S.fgreen - file name of Green's function
 %
-% D - structure array of fNIRS data, which is an input of
-% spm_dcm_fnirs_specify.m 
+% D        - structure array of fNIRS data, which is an input of
+%            spm_dcm_fnirs_specify.m 
 %--------------------------------------------------------------------------
 % D.y: optical density changes [# samples x (# of channels x # of waves)]
 % Various fNIRS data formats are converted to matrix of optical density
@@ -26,7 +26,7 @@ function [D] = spm_fnirs_convert(S)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_fnirs_convert.m 6419 2015-04-23 16:11:34Z sungho $
+% $Id: spm_fnirs_convert.m 6422 2015-04-23 16:55:52Z spm $
 
 spm_input('Read fNIRS data files: ... ', 1, 'd');
 
@@ -126,7 +126,7 @@ str = [];
 if nfiles > 1,
     fons = zeros(1, nfiles); 
     
-    str{1,1} = 'fNIRS time series were concatenated:'
+    str{1,1} = 'fNIRS time series were concatenated:';
     fons = 0; 
     for i = 1:nfiles, 
         str = [str; sprintf('Onset of data %i (s): %4.1f', i, fons)];
@@ -170,4 +170,3 @@ D.pos.d = pos.d; % detector positions
 D.pos.ch_sd = pos.ch_sd; % channel configuration  
 
 D.fgreen = S.fgreen; 
-

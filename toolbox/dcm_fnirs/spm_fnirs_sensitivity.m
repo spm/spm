@@ -2,22 +2,22 @@ function A = spm_fnirs_sensitivity(G, pos_o, pos_h, r, roi_ch)
 % Calculate sensitivity matrix which corresponds to the effective
 % pathlength of detected photons for the channel measurements in the
 % hemodynamic source. 
-% FORMAT [A] = spm_fnirs_sensitivity(G, pos_optd, pos_h, r, roi_ch) 
+% FORMAT [A] = spm_fnirs_sensitivity(G, pos_o, pos_h, r, roi_ch) 
 % 
-% G                 estimated Green's function 
-% pos_optd     MNI coordinates of source and detector positions 
-% pos_h           MNI coordinates of hemodynamic source positions 
-% r                   radius of spatially distributed sources 
-% roi_ch           channels of interets 
+% G        - estimated Green's function 
+% pos_o    - MNI coordinates of source and detector positions 
+% pos_h    - MNI coordinates of hemodynamic source positions 
+% r        - radius of spatially distributed sources 
+% roi_ch   - channels of interets 
 %
-% A - sensitivity matrix 
+% A        - sensitivity matrix 
 % 
 % Green's function
 %--------------------------------------------------------------------------
-% G.g              estimated Green's function [# channels x # voxels x # wavelengths]
-% G.xyz          MNI locations [3 x # voxels] 
-% G.tissue        tissue types of voxels [3 x # voxels] (optional)
-%                     1-scalp, 2-CSF, 3-gray matter, 4-white matter 
+% G.g      - estimated Green's function [# channels x # voxels x # wavelengths]
+% G.xyz    - MNI locations [3 x # voxels] 
+% G.tissue - tissue types of voxels [3 x # voxels] (optional)
+%            1-scalp, 2-CSF, 3-gray matter, 4-white matter 
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
@@ -90,11 +90,3 @@ for i = 1:nwav
         A(j).(sprintf('S%d',i)) = S; 
     end
 end
-
-
-
-
-
-
-
-

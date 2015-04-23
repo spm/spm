@@ -52,14 +52,12 @@ function [DCM] = spm_dcm_fnirs_estimate(P)
 % DCM.AIC                            % Akaike Information criterion
 % DCM.BIC                            % Bayesian Information criterion
 %
-% This script is based on spm_dcm_estimate.m written by 
-% Karl Friston
-% $Id: spm_dcm_fnirs_estimate.m 6419 2015-04-23 16:11:34Z sungho $
+% This function is based on spm_dcm_estimate.m written by Karl Friston.
 %__________________________________________________________________________
-% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_dcm_fnirs_estimate.m 6419 2015-04-23 16:11:34Z sungho $
+% $Id: spm_dcm_fnirs_estimate.m 6422 2015-04-23 16:55:52Z spm $
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -319,5 +317,3 @@ if ~nargin
     spm('Pointer','Arrow');
     spm('FigName','Done');
 end
-
-
