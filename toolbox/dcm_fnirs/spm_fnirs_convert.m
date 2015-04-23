@@ -26,7 +26,7 @@ function [D] = spm_fnirs_convert(S)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_fnirs_convert.m 6418 2015-04-23 08:40:08Z sungho $
+% $Id: spm_fnirs_convert.m 6419 2015-04-23 16:11:34Z sungho $
 
 spm_input('Read fNIRS data files: ... ', 1, 'd');
 
@@ -47,7 +47,7 @@ if ~nargin || ~isfield(S, 'fnirs')
     
     for i = 1:nfiles
         % if multiple data are selected, time courses are concatenated. 
-        [~, fname, fext] = fileparts(S.fnirs(i,:));
+        [fpath, fname, fext] = fileparts(S.fnirs(i,:));
         str = sprintf('fNIRS file%i: %s%s', i, fname, fext); 
         spm_input(str, '+1', 'd');
         
@@ -70,7 +70,7 @@ end
 if ~nargin || ~isfield(S, 'ch') 
     [S.ch, sts] = spm_select(1, '^*.*\.mat$', 'Select optode position file.'); 
     if ~sts, D = []; return; end 
-    [~, fname, fext] = fileparts(S.ch); 
+    [fpath, fname, fext] = fileparts(S.ch); 
     spm_input(sprintf('Optode position: %s%s', fname, fext), '+1', 'd'); 
     
     try

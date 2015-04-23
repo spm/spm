@@ -21,7 +21,7 @@ function [g] = spm_gx_fnirs(x,u,P,M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_gx_fnirs.m 6418 2015-04-23 08:40:08Z sungho $
+% $Id: spm_gx_fnirs.m 6419 2015-04-23 16:11:34Z sungho $
 
 % exponentiation of hemodynamic state variables
 x(:, 3:6) = exp(x(:,3:6)); 
@@ -73,7 +73,7 @@ end
 
 % calculate optical density changes 
 for i = 1:M.nwav
-    eval(sprintf('S = spm_vec(M.A.S%d);', i));
+    S = spm_vec(M.A.(sprintf('S%d', i))); 
     S = reshape(S, M.nch, []);
     g(:,i) = (pv .* (S * [sh sq])) * M.eps(i,:)'; 
 end

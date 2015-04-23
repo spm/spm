@@ -87,7 +87,7 @@ for i = 1:nwav
             indx_d = find(pos_o.d.label == pos_o.ch_sd(roi_ch(k), 2));
             S(k,:) = (G.s(indx_s, A(j).node_h,i) .* G.d(indx_d, A(j).node_h,i))./(G.s(indx_s, node_d(indx_d),i)); 
         end
-        eval(sprintf('A(j).S%d = S;', i));
+        A(j).(sprintf('S%d',i)) = S; 
     end
 end
 

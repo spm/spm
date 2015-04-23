@@ -54,12 +54,12 @@ function [DCM] = spm_dcm_fnirs_estimate(P)
 %
 % This script is based on spm_dcm_estimate.m written by 
 % Karl Friston
-% $Id: spm_dcm_fnirs_estimate.m 6418 2015-04-23 08:40:08Z sungho $
+% $Id: spm_dcm_fnirs_estimate.m 6419 2015-04-23 16:11:34Z sungho $
 %__________________________________________________________________________
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_dcm_fnirs_estimate.m 6418 2015-04-23 08:40:08Z sungho $
+% $Id: spm_dcm_fnirs_estimate.m 6419 2015-04-23 16:11:34Z sungho $
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -289,9 +289,6 @@ DCM.R   = R;
 DCM.y   = y;
 DCM.T   = 0;
 
-global beta; 
-DCM.beta = beta; 
-
 % Data ID and log-evidence
 %--------------------------------------------------------------------------
 if isfield(M,'FS')
@@ -315,11 +312,7 @@ DCM.BIC    = evidence.bic_overall;
 %-Save DCM
 %--------------------------------------------------------------------------
 if ~isstruct(P)
-    if spm_check_version('matlab','7') >= 0
-        save(P,'-V6','DCM','F','Ep','Cp');
-    else
-        save(P,'DCM','F','Ep','Cp');
-    end
+    save(P, 'DCM', 'F', 'Ep', 'Cp', spm_get_defaults('mat.format')); 
 end
 
 if ~nargin
