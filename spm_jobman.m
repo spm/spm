@@ -53,10 +53,10 @@ function varargout = spm_jobman(varargin)
 % jobs        - char or cell array of filenames, or
 %               'jobs'/'matlabbbatch' variable
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 6157 2014-09-05 18:17:54Z guillaume $
+% $Id: spm_jobman.m 6423 2015-04-23 18:38:01Z guillaume $
 
 
 %__________________________________________________________________________
@@ -168,7 +168,22 @@ switch action
             addpath(fullfile(spm('Dir'),'matlabbatch'));
             addpath(fullfile(spm('Dir'),'config'));
         end
-        spm_select('init');
+        try
+            spm_select('init');
+        catch
+            S = which('spm_select','-all');
+            if numel(S) > 1
+                fprintf('spm_select appears several times in your MATLAB path:\n');
+                for i=1:numel(S)
+                    if i==1
+                        fprintf('  %s (SHADOWING)\n',S{1});
+                    else
+                        fprintf('  %s\n',S{i});
+                    end
+                end
+            end
+            rethrow(lasterror);
+        end
         cfg_get_defaults('cfg_util.genscript_run', @genscript_run);
         cfg_util('initcfg'); % This must be the first call to cfg_util
         %if ~spm('cmdline')
