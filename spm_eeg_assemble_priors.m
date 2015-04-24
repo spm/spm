@@ -15,7 +15,7 @@ function [LCpL,Q,sumLCpL,QE,Cy,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(L,Qp,Qe,ploto
 %% M is the MAP estimator  : M = Cp*L'*inv(Qe + L*Cp*L'))
 %% Cp is the total source covariance matrix
 %% Cq is conditional source covariance- need to implement
-%% Lq is cell array of the L*q (imapact of each source component at sensor level)
+%% Lq is cell array of the L*q (impact of each source component at sensor level)
 
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
@@ -72,19 +72,10 @@ for i = 1:Np
             Q(:,i)=q*v;
             
             %% Lq is the sensor level projection of the prior Q{i}.q
-            
-        else
-            
-            [q,v] = spm_svd(Qp{i}); %% each source in Q will come out as an eigen vector - q(:,1) will be the dominant source
-            if length(v)>1,
-                warning('compressing eigenmodes ');
-            end;
-            qamp=sum(abs(q*sqrt(v)))';
-            Q(:,i)= qamp; % dominant amplitude component, keep positive
-            
+            Lq{i}.q = L*Q(:,i); %%  supply an eigen mode in q
+           
         end;
-    end; % if iscell
-    Lq{i}.q = L*Q(:,i); %%  supply an eigen mode in q
+    end; % if iscell   
     
 end
 
@@ -115,7 +106,7 @@ for i = 1:Np,
         Qtmp=Qp{i}*hp(i);
         LCpL{i}=L*Qtmp*L';
         Cp  = Cp + Qtmp;
-        Q(:,i)=diag(Qtmp);
+       % Q(:,i)=diag(Qtmp);
     end;
     
     sumLCpL=sumLCpL+LCpL{i};

@@ -180,37 +180,7 @@ if isfield(job.isstandard, 'custom')
     inverse.Han  = job.isstandard.custom.hanning;
     inverse.lpf  =  fix(min(job.isstandard.custom.foi));
     inverse.hpf  =  fix(max(job.isstandard.custom.foi));
-    
-%     P = char(job.isstandard.custom.priors.priorsmask);
-%     if ~isempty(P)        
-%         [p,f,e] = fileparts(P);
-%         switch lower(e)
-%             case '.gii'
-%                 g = gifti(P);
-%                 inverse.pQ = cell(1,size(g.cdata,2));
-%                 for i=1:size(g.cdata,2)
-%                     inverse.pQ{i} = double(g.cdata(:,i));
-%                 end
-%             case '.mat'
-%                 load(P);
-%                 inverse.pQ = pQ;
-%             case {'.img', '.nii'}
-%                 S.D = D;
-%                 S.fmri = P;
-%                 S.space = job.isstandard.custom.priors.space;
-%                 D = spm_eeg_inv_fmripriors(S);
-%                 inverse.fmri = D.inv{D.val}.inverse.fmri;
-%                 load(inverse.fmri.priors);
-%                 inverse.pQ = pQ;
-%             otherwise
-%                 error('Unknown file type.');
-%         end
-%     end
-    
-%     if ~isempty(job.isstandard.custom.restrict.locs)
-%         inverse.xyz = job.isstandard.custom.restrict.locs;
-%         inverse.rad = job.isstandard.custom.restrict.radius;
-%     end
+   
 end
 
 [mod, list] = modality(D, 1, 1);

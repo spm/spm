@@ -5,14 +5,14 @@ function inv_post = spm_cfg_eeg_inv_post
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_post.m 5926 2014-03-25 11:55:25Z gareth $
+% $Id: spm_cfg_eeg_inv_post.m 6424 2015-04-24 14:33:33Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
 D.name = 'M/EEG datasets';
 D.filter = 'mat';
 D.num = [1 Inf];
-D.help = {'Select the M/EEG mat files or .mat files containing inverses'};
+D.help = {'Select the M/EEG file'};
 
 val = cfg_entry;
 val.tag = 'val';
@@ -29,20 +29,20 @@ smth.help = {'Smoothing of power over cortical surface'};
 smth.val = {30};
 
 
-prefix = cfg_entry;
-prefix.tag = 'prefix';
-prefix.name = 'Gifti file name';
-prefix.strtype = 's';
-prefix.val={'post1'};
-prefix.help = {'name for gifti mesh that will contain the approximate posterior'};
-
+postname = cfg_entry;
+postname.tag = 'postname';
+postname.name = 'Prefix for priors';
+postname.strtype = 's';
+postname.num = [1 Inf];
+postname.val = {'priorset1'};
+postname.help = {'Prefix for prior directory'};
 
 
 
 inv_post = cfg_exbranch;
 inv_post.tag = 'inv_post';
 inv_post.name = 'Create approx posterior';
-inv_post.val = {D, val,smth,prefix};
+inv_post.val = {D, val,smth,postname};
 inv_post.help = {'Use to combine posterior variance estimates from multiple sessions- possibly for use as prior in future session'};
 inv_post.prog = @run_inv_post;
 inv_post.vout = @vout_inv_post;
@@ -52,91 +52,76 @@ function  out = run_inv_post(job)
 
 
 inverse = [];
-if numel(job.D)<1,
-    error('Need to add a number of files to combine');
+if numel(job.D)~=1,
+    error('Need a single dataset');
 end;
 
+D=spm_eeg_load(job.D{1});
+val=job.val;
 
-%% first compile multiple inversions
-disp('Loading inversions');
-allID=[];
-allJ=[];
-allqC=[];
-allF=[];
+[a1,b1,c1]=fileparts(D.fname);
+priordir=[D.path filesep job.postname '_' b1];
 
-surfdir=[];
-for j=1:numel(job.D), %% move through files- assume that changing directory means surface(i.e. lead field also changes)
-    [a1,b1,c1]=fileparts(job.D{j});
-    surfdir=strvcat(surfdir,a1);
+[priorfiles] = spm_select('FPListRec',priordir,'.*\.mat$');
+
+Nfiles=size(priorfiles,1);
+fprintf('Found %d prior files\n',Nfiles);
+if Nfiles==0,
+    error('No prior file found in directory: %s', priordir);
 end;
 
+mesh=D.inv{val}.mesh.tess_mni;
 
-gainfiles=[];
+qsum=sparse(Nfiles,length(mesh.vert));
 
-for j=1:numel(job.D), %% move through files- assume that changing directory means surface(i.e. lead field also changes)
+for j=1:Nfiles
+    fprintf('Loading priorfile %d of %d \n',j,Nfiles);
+    load(deblank(priorfiles(j,:)),'Qp','Qe','UL','F');
     
-    try
-        spmfilename=job.D{j};
-        D = spm_eeg_load(spmfilename);
-        inv=D.inv{job.val};
-    catch
-        dum=load(job.D{j});
-        spmfilename=dum.spmfilename;
-        [a0,b1,c1]=fileparts(spmfilename);
-        [a1,b0,c0]=fileparts(job.D{j});
-        D=spm_eeg_load([a1 filesep b1 c1]);
-        inv=dum.inv;
-    end;
+    [LCpL,Q,sumLCpL,QE,Cy,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(UL,Qp,{Qe});
+    allF(j)=F;
     
-    %%allF(j)=inv.inverse.F;
-    qC=sqrt(inv.inverse.qC); %% sum standard deviation over source space rather than power
-    ProbqC=qC./max(qC);
-    if j==1,
-        sumPqC=ProbqC;
-        mesh= inv.mesh.tess_mni;
-        
-    else
-        
-        if max(max(mesh.vert-inv.mesh.tess_mni.vert))>0.01,
-            error('all inversions need to lie on the same mesh');
-        end;
-        sumPqC=sumPqC+ProbqC;
-    end;
+    qsum(j,:)=sqrt(diag(Cp)); %% sum standard deviation over source space rather than power
+   
+     
     
 end;
+sumq=sum(qsum);
+sumq=sumq./sum(sumq); %% sums to unity
 
 mesh.faces=mesh.face;mesh.vertices=mesh.vert;
-
-sumPqC=spm_mesh_smooth(mesh,sumPqC,job.smth);
-sumPqC=sumPqC./sum(sumPqC);
-figure;
 mesh=rmfield(mesh,'face');
 mesh=rmfield(mesh,'vert');
+ssumq=spm_mesh_smooth(mesh,sumq',job.smth);
+
+ssumq=ssumq/sum(ssumq);
+
 mesh=spm_mesh_inflate(mesh);
 
 figure;
-trisurf(mesh.faces,mesh.vertices(:,1),mesh.vertices(:,2),mesh.vertices(:,3),sumPqC);
+
+trisurf(mesh.faces,mesh.vertices(:,1),mesh.vertices(:,2),mesh.vertices(:,3),ssumq);
 colorbar;
 title('smooth posterior');
 
 %% write gifti
-save(gifti(mesh), [job.prefix '.surf.gii']);
+
+save(gifti(mesh), [priordir filesep 'post.surf.gii']);
 
 
-fname = fullfile(pwd, [job.prefix '.gii']);
+fname = fullfile(priordir, ['post' '.gii']);
 
 G = gifti;
 G.private.metadata(1).name = 'SurfaceID';
-G.private.metadata(1).value = [job.prefix '.surf.gii'];
+G.private.metadata(1).value = ['post' '.surf.gii'];
 
-G.cdata = full(sumPqC);
+G.cdata = full(ssumq);
 G.cdata = G.cdata(:);
 
 save(G, fname, 'ExternalFileBinary');
 
+out.D = job.D;
 
-
-out.D = {fname};
 
 function dep = vout_inv_post(job)
 % Output is always in field "D", no matter how job is structured

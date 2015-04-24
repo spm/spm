@@ -19,7 +19,7 @@ function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni
 %% Outputs
 %% Dnew- new dataset
 %% meshsourceind- vertex indices of sources on the mesh
-% $Id: spm_eeg_simulate.m 6394 2015-03-25 17:09:10Z gareth $
+% $Id: spm_eeg_simulate.m 6424 2015-04-24 14:33:33Z gareth $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -300,7 +300,7 @@ else %%% CURRENT DENSITY ON SURFACE SIMULATION
     Qe=[];, %% SNR may be defined by sensor level data in which case we have to get data first then go back
     
     %[Qp,Qe,priors,priorfname] = spm_eeg_invert_EBconstruct_priors(Dnew,val,nativemesh,priors,Qe,L,'sim');
-    base.patchfwhm=dipfwhm;
+    base.FWHMmm=dipfwhm;
     base.nAm=nAmdipmom;
     
     

@@ -95,6 +95,9 @@ priordir=[D.path filesep job.postname '_' b1];
 
 Nfiles=size(priorfiles,1);
 fprintf('Found %d prior files\n',Nfiles);
+if Nfiles==0,
+    error('No prior file found in directory: %s', priordir);
+end;
 
 %% add in functional (from other modalities or experiment) hypotheses
 
@@ -104,68 +107,91 @@ allF=zeros(Nfiles,1);
 Qpall={};Qeall={};
 Fmax=-Inf;
 
-
-for j=1:Nfiles,
+figure;
+maxind=1;
+for j=1:Nfiles, %% move through prior files
     load(deblank(priorfiles(j,:)),'Qp','Qe','UL','F');
     fprintf('Optimizing priorfile %d of %d on its own\n',j,Nfiles);
+    %keyboard
+    %NEED TO JUST WORK THROUGH THE LOGIC OF THIS BIT
+    Fmax_file=-Inf; %% max F from this prior file
     if ~isempty(F),
-        Fstart=F;
-    else 
-        Fstart=-Inf;
+        Fmax_file=F;
     end;
     
-    for k=1:length(job.opttype),
-        [F,M,Cq,Cp,Qe,Qp] = spm_eeg_invert_EBoptimise(AY,UL,job.opttype(k),Qp,Qe,Qe0);
-    end;
     
-    if F<Fstart,
-        disp('Could not improve, returning to prior');
-        load(deblank(priorfiles(j,:)),'Qp','Qe','UL','F');
-    end;
+    for k=1:length(job.opttype), %% move through optimization schemes       
+        [F2,M2,Cq2,Cp2,Qe,Qp] = spm_eeg_invert_EBoptimise(AY,UL,job.opttype(k),Qp,Qe,Qe0);
         
-     
+    end;
+    
+    if F2<Fmax_file
+        
+        load(deblank(priorfiles(j,:)),'Qp','Qe','UL','F');
+        %fprintf('F drop= %3.2f rejecting optimization step %d\n ',F-F2,k);
+        fprintf('F drop= %3.2f rejecting all optimization steps\n ',F2-Fmax);
+        Fmax_file=F;
+    else
+        Fmax_file=F2;
+    end;
+    
     %% now try combining this solution with best so far
-    if j>1, 
+    if j>1,
         disp('Running in addition to best prior so far');
+        Qpstart=Qp; % posterior from current optimization
+        Qestart=Qe;
         a=load(deblank(priorfiles(maxind,:)),'Qp','Qe','UL','F');
-        Qpall=Qp; % posterior from current optimization
-        for k=1:length(a.Qp), % 
-            Qpall{end+1}=a.Qp{k}; % augment with posterior from best so far
+        
+        for k=1:length(a.Qp), %
+            Qp{length(Qpstart)+k}=a.Qp{k}; % augment with posterior from best so far
         end;
         maxpriors=512; %% set a max limit
-        if length(Qpall)>maxpriors,
-            Qpall=Qpall{1:maxpriors};
+        if length(Qp)>maxpriors,
+            Qp=Qp{1:maxpriors};
             warning('Limiting priors');
         end;
-        [F2,M2,Cq2,Cp2,Qe2,Qp2] = spm_eeg_invert_EBoptimise(AY,UL,job.opttype,Qpall,Qe,Qe0);
-        if F2>Fmax, %% if the combined posterior is better then use this and resave in same file
-            fprintf('F improvment of %3.2f, Combining posteriors from prior files %d and %d\n',F2-Fmax,maxind,j);
-            F=F2;M=M2;Cq=Cq2;Qe=Qe2;Qp=Qp2;Cp=Cp2;  
+        for k=1:length(job.opttype), %% move through optimization schemes
+            [F2,M2,Cq2,Cp2,Qe,Qp] = spm_eeg_invert_EBoptimise(AY,UL,job.opttype(k),Qp,Qe,Qe0);
         end;
-    end;
+        
+        if F2<Fmax_file, %% if the combined posterior is better then use this and resave in same file
+            Qp=Qpstart;Qe=Qestart;
+        else
+            fprintf('F improvment of %3.2f, Combining posteriors from prior files %d and %d\n',F2-Fmax_file,maxind,j);
+            Fmax_file=F2;
+        end; % if F2
+    end; % if j>1
     
-    allF(j)=F;
-    if F>Fmax,
-         Fmax=F;
-         maxind=j;
-         figure;colormap('gray');
-         spm_mip([diag(Cp)],mesh.vert,6);
-         title(sprintf('best iter %d, F=%3.2f',j,F));colorbar;
-         inverse.F=F;
-         inverse.M=M;
-         inverse.Cq=Cq;
-         inverse.Cp=Cp; %% posterior source level
-         inverse.Qe=Qe; %% posterior sensor level
-         inverse.Qp=Qp;
-
-     end;
-     
-    save(deblank(priorfiles(j,:)),'Qp','Qe','UL','F'); 
+    allF(j)=Fmax_file;
+    if Fmax_file>Fmax,
+        [LCpL,Q,sumLCpL,QE,Cy,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(UL,Qp,{Qe});
+        Fmax=Fmax_file;
+        maxind=j;
+        subplot(2,1,1);
+        colormap('gray');
+        spm_mip([diag(Cp)],mesh.vert,6);
+        title(sprintf('best iter %d, F=%3.2f',j,Fmax));colorbar;
+        subplot(2,1,2);
+        bar(allF(1:j));
+        
+        
+        
+        inverse.F=Fmax;
+        inverse.M=M;
+        inverse.Cq=Cq;
+        inverse.Cp=Cp; %% posterior source level
+        inverse.Qe=Qe; %% posterior sensor level
+        inverse.Qp=Qp;
+        
+        
+    end;
+    F=Fmax_file;
+    save(deblank(priorfiles(j,:)),'Qp','Qe','UL','F');
     
     
 end; % for j
-    
-   
+
+
 
 
 inverse.allF=allF;
@@ -203,9 +229,10 @@ inverse.R2   = 100*(SST - SSR)/SST;
 fprintf('Percent variance explained %.2f\n',full(inverse.R2));
 D.inv{job.val}.inverse=inverse;
 
+
 spm_eeg_invert_display(D);
 
-spm_eeg_inv_view_priors(priorfiles,mesh);
+%spm_eeg_inv_view_priors(priorfiles,mesh);
 
 rmind=find(allF<max(allF)-3);
 fprintf('Removing %d poorest prior files\n',length(rmind));
@@ -215,7 +242,7 @@ for j=1:length(rmind),
 end;
 
 
-
+D.save;
 out.D = job.D;
 
 
