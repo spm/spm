@@ -34,7 +34,7 @@ classdef spm_provenance < handle
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 6081 2014-07-01 18:19:42Z guillaume $
+% $Id: spm_provenance.m 6425 2015-04-29 18:24:51Z guillaume $
 
 
 %-Properties
@@ -719,9 +719,9 @@ function attr = attrstr(attr)
             end
         elseif iscell(attr{i}) && iscell(attr{i}{1})
             if numel(attr{i}) == 1
-                attr{i} = cell2str(attr{i}{1});
+                attr{i} = jsonesc(cell2str(attr{i}{1}));
             else
-                attr{i}{1} = cell2str(attr{i}{1});
+                attr{i}{1} = jsonesc(cell2str(attr{i}{1}));
             end
         elseif iscell(attr{i})
             if isinteger(attr{i}{1})
@@ -747,6 +747,11 @@ function str = htmlesc(str)
     str = strrep(str,'<','&lt;');
     str = strrep(str,'>','&gt;');
     str = strrep(str,'"','&quot;');
+end
+
+function str = jsonesc(str)
+    % See http://json.org/
+    str = strrep(str,'"','\"');
 end
 
 function id = get_valid_identifier(id)
@@ -798,7 +803,8 @@ function s = dotlist(l)
 end
 
 function s = cell2str(s)
-    s = ['[' sprintf('''%s'', ',s{:}) ']']; s(end-2:end-1) = [];
+    s = jsonesc(s);
+    s = ['[' sprintf('"%s", ',s{:}) ']']; s(end-2:end-1) = [];
 end
 
 function l = list_expressions

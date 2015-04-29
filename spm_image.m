@@ -48,10 +48,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 6396 2015-04-01 11:49:01Z guillaume $
+% $Id: spm_image.m 6425 2015-04-29 18:24:51Z guillaume $
 
 
-SVNid = '$Rev: 6396 $';
+SVNid = '$Rev: 6425 $';
 
 global st
 
@@ -97,7 +97,7 @@ switch lower(action)
         try, B(trz) = varargin{2}; end
         trzs = {'t1' 't2' 't3' 'r1' 'r2' 'r3' 'z1' 'z2' 'z3'};
         ho = findobj(st.fig,'Tag',sprintf('spm_image:reorient:%s',trzs{trz}));
-        set(ho,'String',B(trz));
+        set(ho,'String',num2str(B(trz)));
     else
         try, B(trz) = eval(get(gcbo,'String')); end
         set(gcbo,'String',num2str(B(trz)));

@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 6340 2015-02-16 12:25:56Z guillaume $
+% $Id: spm_list.m 6425 2015-04-29 18:24:51Z guillaume $
 
 
 %==========================================================================
@@ -776,6 +776,11 @@ case 'table'                                                        %-Table
     uimenu(h,'Label','Export to CSV file',...
         'CallBack',...
         'spm_list(''csvlist'',get(get(gcbo,''Parent''),''UserData''));',...
+        'Interruptible','off','BusyAction','Cancel');
+    % Export to NIDM uses global xSPM/TabDat
+    uimenu(h,'Label','Export to NIDM',...
+        'CallBack',...
+        'fprintf(''Exporting results in:\n  %s\n'',spm_results_nidm(SPM,xSPM,TabDat));',...
         'Interruptible','off','BusyAction','Cancel');
 
     %-Setup registry
