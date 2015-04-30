@@ -129,7 +129,7 @@ Now we need to define and estimate the GLM. This is not the main topic of this c
 Let's specify a batch that will specify the model and estimate it.
 
 \begin{enumerate}
- \item The analysis directory should include
+ \item The analysis directory you have downloaded should include
  \begin{enumerate}
   \item A directory named \texttt{functional}, which includes the preprocessed fMRI volumes.
   \item A directory named \texttt{structural}, which includes a normalised T1 structural volume
@@ -148,9 +148,9 @@ Let's specify a batch that will specify the model and estimate it.
  \item \textsc{Interscan interval} [3.22]
  \item Click \textsc{Data \& Design}, Choose \textsc{New "Subject/Session"}
  \item Click \textsc{Scans} and choose all the functional scans \texttt{snffM00587\_00xx.img}. There should be 360 \texttt{*.img} files.
- \item Load the MAT-file containing the individual conditions in \matlab\ workspace:
+ \item Go back to the main \matlab\ workspace and load the MAT-file containing the experimental conditions:
 \begin{verbatim}
->> load factors.mat
+>> load ../factors.mat
 \end{verbatim}
 You can look at the loaded variables by typing the variable names.
 (\texttt{stat} = stationary, \texttt{natt} = no attention, \texttt{att} = attention)
@@ -159,7 +159,7 @@ You can look at the loaded variables by typing the variable names.
 >> natt
 >> att
 \end{verbatim}
- \item Create 3 \textsc{New: Condition} under \textsc{Conditions} so that:
+ \item Return to the batch editor. Click \textsc{Conditions} then double click \textsc{New: Condition} three times. Enter the following details for each:
  \begin{itemize}
   \item Condition 1: \textsc{Name} = \texttt{Photic}, \textsc{Onsets} = \texttt{[att natt stat]} and \textsc{Durations} = \texttt{10}.
   \item Condition 2: \textsc{Name} = \texttt{Motion}, \textsc{Onsets} = \texttt{[att natt]} and \textsc{Durations} = \texttt{10}.
@@ -172,7 +172,7 @@ You can look at the loaded variables by typing the variable names.
 
 \subsection{Extracting time series}
 
-Once you have specified and estimated the GLM, you should define t-contrasts that test for photic, motion, and attention, respectively. These serve to locate areas that show effects due to visual stimulation (e.g. in V1), motion (e.g. V5) and attention (e.g. V5 and superior parietal cortex, SPC). Because V5 shows both motion and attention effects, it is useful to mask the motion-contrast inclusively with the attention-contrast when extracting time series for V5. You should also compute the usual ``effects of interest'' F-contrast, this is needed for mean-correcting the extracted time series (see below).
+Once you have specified and estimated the GLM, you should define t-contrasts that test for photic, motion, and attention, respectively. These serve to locate areas that show effects due to visual stimulation (e.g. in V1), motion (e.g. V5) and attention (e.g. V5 and superior parietal cortex, SPC). Because V5 shows both motion and attention effects, it is useful to mask the motion-contrast with the attention-contrast when extracting time series for V5. You should also compute an ``effects of interest'' F-contrast, which is needed for mean-correcting the extracted time series (see below).
 
 \begin{enumerate}
  \item From the main SPM window, click on the \textsc{Batch} button.
@@ -193,10 +193,12 @@ Here is now a step-by-step example for extracting the V5 time series:
  \item Press \textsc{Results}.
  \item Select the \texttt{SPM.mat} file.
  \item Choose the t-contrast for the \texttt{Motion} condition.
- \item Mask with other contrasts: Yes
+ \item Apply masking: contrast
  \item Choose the t-contrast for the \texttt{Attention} condition.
- \item Mask inclusively and choose a threshold of $p \leq 0.05$ uncorrected.
- \item Select the global maxima that looks V5-ish, e.g. \texttt{[-36 -87 -3]} (by overlaying the activations onto the normalised structural image you should be able to identify V5 more easily).
+ \item Uncorrected mask p-value $p \leq 0.05$ and nature of mask: inclusive.
+ \item p value adjustment to control: none with a threshold of 0.001 and extent 0
+ \item To overlay these results on a structural scan, click ``overlays...'' in the SPM Results window, then click ``sections''. Navigate to the structural folder and select the file named ``nsM00587\_0002.img''.
+ \item Select the global maxima that looks V5-ish, e.g. \texttt{[-36 -87 -3]}.
  \item Press the \textsc{eigenvariate} button.
  \item Name of region: \texttt{V5}
  \item Adjust data for: \texttt{Effects of interest} (this effectively mean-corrects the time series)
@@ -205,7 +207,7 @@ Here is now a step-by-step example for extracting the V5 time series:
 \end{enumerate}
 SPM now computes the first principal component of the time series from all voxels included in the sphere. The result is stored (together with the original time series) in a file named \texttt{VOI\_V5\_1.mat} in the working directory (the ``1'' refers to session 1).
 
-You can now proceed to select time series for V1 (using the \textsc{Photic} contrast) with an \texttt{8} mm sphere centered on the global maxima (\texttt{[0 -93 18]}). Same thing with SPC (using the \textsc{attention} contrast with a $p \leq 0.001$ uncorrected threshold) and a sphere centered on the local maxima around \texttt{[-27 -84 36]}. This will create files \texttt{VOI\_V1\_1.mat} and \texttt{VOI\_SPC\_1.mat}.
+You can now proceed to select time series for V1 (using the \textsc{Photic} contrast with ``Apply masking'' set to none) with an \texttt{8} mm sphere centered on V1 (here we are using coordinates \texttt{[0 -93 18]}). Do the same thing with SPC (using the \textsc{attention} contrast) with a sphere centred on \texttt{[-27 -84 36]}. This will create files \texttt{VOI\_V1\_1.mat} and \texttt{VOI\_SPC\_1.mat}.
 
 \subsection{Specifying and estimating the DCM}
 
@@ -231,6 +233,7 @@ as follows:
 \item Modulatory effects: \texttt{bilinear}
 \item States per region: \texttt{one}
 \item Stochastic effects: \texttt{no}
+\item Centre input: \texttt{no}
 \item Define the following extrinsic connections: V1 to V5, V5 to V1, V5 to SPC, SPC to V5, i.e. a hierarchy with reciprocal connections between neighbouring areas. Note that the columns specify the source of the connection and the rows specify its target. Your connectivity matrix should look like the one in Fig.~\ref{dcm_fig4}.
 \item Specify Photic as a driving input into V1.  See Fig.~\ref{dcm_fig4}
 \item Specify Motion to modulate the connection from V1 to V5.  See Fig.~\ref{dcm_fig4}
@@ -248,7 +251,7 @@ A polite ``Thank you'' completes the model specification process. A file called 
 \end{center}
 \end{figure}
 
-You can now estimate the model parameters, either by pressing the DCM button again and choosing \textsc{estimate}, or by typing
+You can now estimate the model parameters, either by pressing the DCM button again and choosing \textsc{estimate (time-series)}, or by typing
 \begin{verbatim}
 >> spm_dcm_estimate('DCM_mod_bwd');
 \end{verbatim}
@@ -273,18 +276,17 @@ Once this is completed, you can review the results as follows:
 \item Press the DCM button.
 \item Choose \textsc{review}.
 \item Select \texttt{DCM\_mod\_bwd.mat}
-\item Threshold: \texttt{0}
 \end{enumerate}
-Now you have multiple options, e.g. you can revisit the fit of the model (``Outputs'') or look at the parameter estimates for the endogenous coupling (``Intrinsic connections'') or for the parameters associated with the driving or modulatory inputs (``Effects of Photic'', ``Effects of Motion'', ``Effects of Attention'').
+By clicking ``review...'' you can now select from multiple options, e.g. you can revisit the fit of the model (``Outputs'') or look at the parameter estimates for the endogenous coupling (``Intrinsic connections'') or for the parameters associated with the driving or modulatory inputs (``Effects of Photic'', ``Effects of Motion'', ``Effects of Attention'').
 
 Also, you can use the ``Contrasts'' option to determine how confident you can be that a contrast of certain parameter estimates exceeds the threshold you chose in step 4.
 Of course, you can also explore the model results at the level of the \matlab\ command line by loading the model and inspecting the parameter estimates directly. These can be found in \texttt{DCM.Ep.A} (endogenous coupling), \texttt{DCM.Ep.B} (modulatory inputs) and \texttt{DCM.Ep.C} (driving inputs).
 
 \subsection{Comparing models}
 
-Let us now specify an alternative model and compare it against the one that we defined and estimated above. The change that we are going to make is to assume that attention modulates the $V1 \rightarrow V5$ connection (as opposed to the $SPC \rightarrow V5$ connection in the previous model). For defining this model, you repeat all the steps from the above example, the only differences being that the model gets a new name (e.g. \verb!mod_fwd!) and that attention now acts on the forward connection. This DCM is shown schematically in Figure~\ref{fwd}.
+Let us now specify an alternative model and compare it against the one that we defined and estimated above. The change that we are going to make is to assume that attention modulates the $V1 \rightarrow V5$ connection (as opposed to the $SPC \rightarrow V5$ connection in the previous model). For defining this model, you repeat all the steps from the above example, the only difference being that the model gets a new name (e.g. \verb!mod_fwd!) and that attention now acts on the forward connection. This DCM is shown schematically in Figure~\ref{fwd}.
 
-Once you have estimated this new model, you can perform a Bayesian model comparison as follows:
+Estimate this new model as above. You can then perform a Bayesian model comparison as follows:
 \begin{enumerate}
  \item Press the ``DCM'' button.
  \item Choose \textsc{Compare}.
