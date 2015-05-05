@@ -73,7 +73,7 @@ function [PEB,P]   = spm_dcm_peb_full(P,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_full.m 6343 2015-02-18 16:46:00Z spm $
+% $Id: spm_dcm_peb_full.m 6427 2015-05-05 15:42:35Z karl $
  
 
 % get filenames and set up
@@ -240,8 +240,8 @@ else
         X = 1;
     end
     Nw      = size(W,2);
-    try, bE = spm_vec(M.bE); catch, bE = zeros(Nw,1); end
-    try, bC = M.bC;          catch, bC = eye(Nw,Nw);  end
+    try, bE = M.pE; catch, bE = zeros(Nw,1); end
+    try, bC = M.bC; catch, bC = eye(Nw,Nw);  end
 
 end
 
@@ -289,7 +289,7 @@ for n = 1:32
 
     % compute prior covariance
     %----------------------------------------------------------------------
-    rP    = pP;
+    rP    = 0;
     for i = 1:Ng
         rP = rP + exp(g(i))*Q{i};
     end

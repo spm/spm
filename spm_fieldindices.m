@@ -12,7 +12,7 @@ function [ix] = spm_fieldindices(X,varargin)
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fieldindices.m 6297 2015-01-05 10:37:27Z karl $
+% $Id: spm_fieldindices.m 6427 2015-05-05 15:42:35Z karl $
 
 
 % if varargin is a vector simply return fieldnames
@@ -71,19 +71,26 @@ for i = 1:length(varargin)
                 if iscell(x.(name{j}))
                     for k = 1:numel(x.(name{j}))
                         if any(spm_vec(x.(name{j}){k}))
-                            [p q] = find(x.(name{j}){k});
+                            [p,q] = find(x.(name{j}){k});
                             ix = sprintf('%s{%i}(%i,%i)',name{j},k,p,q);
                             return
                         end
                     end
                 elseif isnumeric(x.(name{j}))
-                    if isvector(x.(name{j}))
-                        p = find(x.(name{j}));
-                        ix = sprintf('%s(%i)',name{j},p);
-                        return
+                    s   = size(x.(name{j}));
+                    if numel(s) < 3
+                        if min(s) == 1
+                            p = find(x.(name{j}));
+                            ix = sprintf('%s(%i)',name{j},p);
+                            return
+                        else
+                            [p,q] = find(x.(name{j}));
+                            ix = sprintf('%s(%i,%i)',name{j},p,q);
+                            return
+                        end
                     else
-                        [p q] = find(x.(name{j}));
-                        ix = sprintf('%s(%i,%i)',name{j},p,q);
+                        [p,q,r] = ind2sub(s,find(x.(name{j})));
+                        ix = sprintf('%s(%i,%i,%i)',name{j},p,q,r);
                         return
                     end
                 end

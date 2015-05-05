@@ -16,16 +16,17 @@ function [y,pst] = spm_gen_erp(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 5758 2013-11-20 21:04:01Z karl $
+% $Id: spm_gen_erp.m 6427 2015-05-05 15:42:35Z karl $
 
 % default inputs - one trial (no between-trial effects)
 %--------------------------------------------------------------------------
 if nargin < 3, U.X = sparse(1,0); end
 
-% check input u = f(t,P,M)
+% check input u = f(t,P,M) and switch off full delay operator
 %--------------------------------------------------------------------------
 try, M.fu; catch, M.fu  = 'spm_erp_u'; end
 try, M.ns; catch, M.ns  = 128;         end
+try, M.N;  catch, M.N   = 0;           end
 try, U.dt; catch, U.dt  = 0.004;       end
 
 % peristimulus time

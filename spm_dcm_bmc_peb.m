@@ -1,6 +1,6 @@
 function [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
-% hierarchical (PEB) model comparison and selection
-% FORMAT [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
+% hierarchical (PEB) model comparison and averaging (1st level)
+% FORMAT [BMC,PEB] = spm_dcm_bmc_peb(DCM,[M,field])
 %
 % DCM    - {N [x M]} structure array of DCMs from N subjects
 % ------------------------------------------------------------
@@ -47,20 +47,20 @@ function [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
 % specified in terms of (second level) group effects. The first level model
 % space is defined by the columns of the DCM array, while the second level
 % model space is specified by combinations of second level effects encoded 
-% in a design matrix. first, the design matrix is a constant term or
-% that models a group mean. This is assumed to be present a priori.
+% in a design matrix.  The first effect in the design matrix is assumed 
+% to be a constant term that models a group mean.
 %
-% this routine assumes that all the models have been reduced (i.e. inverted
+% This routine assumes that all the models have been reduced (i.e. inverted
 % using Bayesian model reduction). It then use sempirical Bayes and the
-% summary statistic approach tto evaluate the relative contributions of
+% summary statistic approach to evaluate the relative contributions of
 % between subject effects by considering all combinations of columns in the
 % design matrix.
 %
 % This Bayesian model comparison should be contrasted with model
 % comparison at the second level. Here, we are interested in the best model
 % of first level parameters that show a second level effect. This is not
-% the same as trying to find the best model of second level effects. model
-% comparison among second level parameters uses spm_dcm_bmr_peb.
+% the same as trying to find the best model of second level effects. Model
+% comparison among second level parameters uses spm_dcm_peb_bmc.
 %
 % NB for EEG models the absence of a connection means it is equal to its
 % prior mesn, not that is is zero.
@@ -70,7 +70,7 @@ function [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmc_peb.m 6373 2015-03-11 17:10:54Z karl $
+% $Id: spm_dcm_bmc_peb.m 6427 2015-05-05 15:42:35Z karl $
 
 
 % set up
@@ -89,7 +89,7 @@ if ~isstruct(M)
     M = struct('X',M);
 end
 
-% feels that specify which parameters are random effects
+% fields that specify which parameters are random effects
 %--------------------------------------------------------------------------
 if nargin < 3;
     field = {'A','B'};
@@ -105,7 +105,9 @@ end
 %==========================================================================
 Nx    = size(M.X,2);
 K     = spm_perm_mtx(Nx);
-K     = K(K(:,1),:);
+if Nx > 1
+    K = K(K(:,1),:);
+end
 Nk    = size(K,1);
 for i = 1:Nm
     
@@ -157,9 +159,10 @@ Pw     = sum(P,2);
 
 % select best empirical Bayes model
 %--------------------------------------------------------------------------
-[m i]  = max(Pw);
-[m k]  = max(Px);
+[m,i]  = max(Pw);
+[m,k]  = max(Px);
 PEB    = peb{i,k};
+
 
 % assemble BMC output structure
 %--------------------------------------------------------------------------
@@ -174,14 +177,19 @@ BMC.K  = K;
 %==========================================================================
 spm_figure('Getwin','PEB-BMC'); clf
 
-subplot(3,2,1), [m i] = max(Pw); bar(Pw),
-text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
+subplot(3,2,1), [m,i] = max(Pw);
+if Nm > 32
+    plot(Pw,'k')
+else
+    bar(Pw),
+    text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
+end
 title('First level','FontSize',16)
 xlabel('Model','FontSize',12)
 ylabel('Probability','FontSize',12)
 axis([0 (Nm + 1) 0 1]), axis square
 
-subplot(3,2,2), [m i] = max(Px); bar(Px),
+subplot(3,2,2), [m,i] = max(Px); bar(Px),
 text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
 title('Second level','FontSize',16)
 xlabel('Model','FontSize',12)
@@ -194,22 +202,48 @@ xlabel('Model (first level)','FontSize',12)
 ylabel('Model (second level)','FontSize',12)
 axis square
 
-subplot(3,2,4), imagesc(M.X)
-title('Design matrix','FontSize',16)
-xlabel('Second level effect','FontSize',12)
-ylabel('Subject','FontSize',12)
-axis square
-
 subplot(3,2,5), imagesc(F')
 title('Free energy','FontSize',16)
 xlabel('Model (first level)','FontSize',12)
 ylabel('Model (second level)','FontSize',12)
 axis square
 
-subplot(3,2,6), imagesc(K)
-title('Model space','FontSize',16)
-xlabel('Second level effect','FontSize',12)
-ylabel('Second level model','FontSize',12)
-axis square
+
+if Nx < 2
+    
+    % posterior density over parameters
+    %----------------------------------------------------------------------
+    subplot(3,2,4), spm_plot_ci(PEB.Ep,PEB.Cp)
+    title('MAP (selected)','FontSize',16)
+    xlabel('Parameter','FontSize',12)
+    ylabel('Effect size','FontSize',12)
+    axis square
+    
+    % posterior density over parameters
+    %----------------------------------------------------------------------
+    subplot(3,2,6), spm_plot_ci(peb{1}.Ep,peb{1}.Cp)
+    title('MAP (full)','FontSize',16)
+    xlabel('Parameter','FontSize',12)
+    ylabel('Effect size','FontSize',12)
+    axis square
+    
+else
+    
+    % Model space
+    %----------------------------------------------------------------------
+    subplot(3,2,4), imagesc(M.X)
+    title('Design matrix','FontSize',16)
+    xlabel('Second level effect','FontSize',12)
+    ylabel('Subject','FontSize',12)
+    axis square
+    
+    subplot(3,2,6), imagesc(K)
+    title('Model space','FontSize',16)
+    xlabel('Second level effect','FontSize',12)
+    ylabel('Second level model','FontSize',12)
+    axis square
+    
+    
+end
 
 

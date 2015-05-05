@@ -1,16 +1,18 @@
-function [RCM,BMR] = spm_dcm_bmr(P)
+function [RCM,BMR,BMA] = spm_dcm_bmr(P,field)
 % Bayesian model reduction (under Laplace approximation)
-% FORMAT [RCM,BMR] = spm_dcm_bmr(P)
+% FORMAT [RCM,BMR,BMA] = spm_dcm_bmr(P,[field])
 %
-% P   - {Nsub x Nmodel} cell array of DCM filenames or model structures for 
-%       Nsub subjects, where each model is reduced independently for each
-%       subject
+% P     - {Nsub x Nmodel} cell array of DCM filenames or model structures  
+%         of Nsub subjects, where each model is reduced independently 
+%
+% field - parameter fields in DCM{i}.Ep to plot [default: {'A','B'}]
 %      
-% RCM - reduced DCM array
-% BMR - (Nsub) summary structure 
-%        BMR.name - character/cell array of DCM filenames
-%        BMR.F    - their associated free energies
-%        BMR.P    - and posterior (model) probabilities
+% RCM   - reduced DCM array
+% BMR   - (Nsub) summary structure 
+%          BMR.name - character/cell array of DCM filenames
+%          BMR.F    - their associated free energies
+%          BMR.P    - and posterior (model) probabilities
+% BMA   - Baysian model average (see spm_dcm_bma)
 %__________________________________________________________________________
 % 
 % spm_dcm_bmr operates on different DCMs of the same data (rows) to find
@@ -25,6 +27,9 @@ function [RCM,BMR] = spm_dcm_bmr(P)
 % resulting prior density (specified in DCM.pE and DCM.pC).  If the
 % latter exist, they will be used as the model specification.
 %
+% If a single subject (DCM) is specified, an exhaustive search search will
+% be performed.
+%
 % The outputs of this routine are graphics reporting the model space search
 % (optimisation) and the reduced (cell array of) DCM structures.
 %
@@ -33,7 +38,7 @@ function [RCM,BMR] = spm_dcm_bmr(P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmr.m 6353 2015-03-01 11:52:49Z karl $
+% $Id: spm_dcm_bmr.m 6427 2015-05-05 15:42:35Z karl $
 
 
 % get filenames and set up
@@ -45,49 +50,44 @@ end
 if ischar(P),   P = cellstr(P);  end
 if isstruct(P), P = {P};         end
 
+% fields to plot
+%--------------------------------------------------------------------------
+if nargin < 2;
+    field = {'A','B'};
+end
+if ischar(field)
+    field = {field};
+end
+
 % number of subjects and models: BMR over models (rows) for each subject
 %--------------------------------------------------------------------------
 [Ns,N] = size(P);
-
 if Ns > 2
     for i = 1:Ns
-        [p,q]    = spm_dcm_bmr(P(i,:));
+        [p,q]    = spm_dcm_bmr(P(i,:),field);
         RCM(i,:) = p;
         BMR(i)   = q;
     end
     return
 end
 
+% exhaustive search
+%--------------------------------------------------------------------------
+if N < 2
+    [RCM,BMR,BMA] = spm_dcm_bmr_all(P{1},field);
+    return
+end
+
+
 %-Check models are compatible in terms of their data
 %==========================================================================
 
-% establish whether reduced models are specifed in term of pE,pC or A.B.C
-%--------------------------------------------------------------------------
-try
-    
-    % number of free parameters
-    %----------------------------------------------------------------------
-    for j = 1:N
-        try, load(P{j}); catch, DCM = P{j}; end
-        
-        Np       = spm_length(DCM.M.pE);
-        i        = spm_find_pC(DCM.M.pC);
-        par(:,j) = sparse(i,1,true,Np,1);
-    end
-    
-catch
-    
-    % number of free parameters
-    %----------------------------------------------------------------------
-    clear par
-    for j = 1:N
-        try, load(P{j}); catch, DCM = P{j}; end
-        try
-            par(:,j) = logical(spm_vec(DCM.A,DCM.B,DCM.C));
-        catch
-            par(:,j) = logical(spm_vec(DCM.a,DCM.b,DCM.c));
-        end
-    end
+% number of free parameters
+%----------------------------------------------------------------------
+for j = 1:N
+    try, load(P{j}); catch, DCM = P{j}; end
+    [i,rC,rE,Np] = spm_find_pC(DCM);
+    par(:,j)     = sparse(i,1,true,Np,1);
 end
 
 %-Load full model
@@ -109,7 +109,6 @@ end
 
 % Get full priors and posteriors
 %--------------------------------------------------------------------------
-try, options = DCM.options;                   catch, options = {};    end
 try, DCMname = spm_file(DCM.name,'basename'); catch, DCMname = 'DCM'; end
 
 qE    = DCM.Ep;
@@ -126,29 +125,11 @@ for j = 1:N
     
     % Get reduced model specification
     % ---------------------------------------------------------------------
-    try, load(P{j}); catch, DCM = P{j}; end
+    try, load(P{j},'DCM'); catch, DCM = P{j}; end
     
     % Get model (priors)
     % ---------------------------------------------------------------------
-    try
-        rE   = DCM.M.pE;
-        rC   = DCM.M.pC;
-
-    catch
-        
-        % get priors from alterntie model specification
-        %------------------------------------------------------------------
-        if isfield(options,'analysis')
-            if strcmpi(options.analysis,'IND')
-                [rE,gE,rC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,Nf);
-            else
-                [rE,rC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,options.model);
-            end
-        else
-            [rE,rC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,options);
-        end
-    end
-    
+    [i,rC,rE] = spm_find_pC(DCM);
     
     % evaluate (reduced) free-energy and posteriors
     %----------------------------------------------------------------------
@@ -196,15 +177,31 @@ BMR.P    = p;
 
 % Get and display selected model
 %==========================================================================
-[q,j] = max(p);
 qE    = spm_vec(qE);
-Ep    = spm_vec(RCM{j}.Ep);
-Cp    = RCM{j}.Cp;
-i     = spm_find_pC(pC);
-if isstruct(pE)
-    j = spm_fieldindices(pE,'A','B','C');
-    i = j(ismember(j,i));
+i     = spm_find_pC(pC,pE,field);
+
+if nargout > 2
+    
+    % Baysian model average
+    %----------------------------------------------------------------------
+    BMA = spm_dcm_bma(RCM);
+    str = 'MAP (average)';
+    Ep  = spm_vec(BMA.Ep);
+    Cp  = spm_vec(BMA.Cp);
+    
+else
+    
+    % Baysian model selection
+    %----------------------------------------------------------------------
+    [q,j] = max(p);
+    str   = 'MAP (selected)';
+    Ep    = spm_vec(RCM{j}.Ep);
+    Cp    = diag(RCM{j}.Cp);
+    
 end
+
+if strcmp(field{1},'none'), return, end
+
 
 % Show results: Graphics
 %--------------------------------------------------------------------------
@@ -216,23 +213,20 @@ title('log-posterior','FontSize',16)
 xlabel('model','FontSize',12), ylabel('log-probability','FontSize',12)
 axis square
 
-subplot(2,2,2)
-if length(P) > 32, plot(p,'k'), else, bar(diag(p),N), end
+subplot(2,2,2), bar(p,'k')
 title('model posterior','FontSize',16)
 xlabel('model','FontSize',12), ylabel('probability','FontSize',12)
 axis square
 
 % Show full and reduced conditional estimates (for optimum DCM)
 %--------------------------------------------------------------------------
-subplot(2,2,3)
-spm_plot_ci(qE(i),qC(i,i))
-title('MAP connections (full)','FontSize',16)
+subplot(2,2,3), spm_plot_ci(qE(i),qC(i,i))
+title('MAP (full)','FontSize',16)
 xlabel('parameter'), ylabel('size')
 axis square, a = axis;
 
-subplot(2,2,4)
-spm_plot_ci(Ep(i),Cp(i,i))
-title('MAP connections (optimum)','FontSize',16)
+subplot(2,2,4), spm_plot_ci(Ep(i),Cp(i))
+title(str,'FontSize',16)
 xlabel('parameter'), ylabel('size')
 axis square, axis(a)
 drawnow

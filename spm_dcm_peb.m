@@ -4,25 +4,27 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % FORMAT [PEB,DCM] = spm_dcm_peb(DCM,X,field)
 %
 % DCM    - {N [x M]} structure array of DCMs from N subjects
-% ------------------------------------------------------------
+% -------------------------------------------------------------------------
 %     DCM{i}.M.pE - prior expectation of parameters
 %     DCM{i}.M.pC - prior covariances of parameters
 %     DCM{i}.Ep   - posterior expectations
 %     DCM{i}.Cp   - posterior covariance
 %
 % M.X    - second level design matrix, where X(:,1) = ones(N,1) [default]
-% M.pE   - second level prior expectation of parameters
-% M.pC   - second level prior covariances of parameters
+% M.bE   - second level prior expectation of parameters
+% M.bC   - second level prior covariances of parameters
 % M.hE   - second level prior expectation of log precisions
 % M.hC   - second level prior covariances of log precisions
+%
 % M.Q    - covariance components: {'single','fields','all','none'}
+% M.beta - within:between precision ratio:  [default = 16]
 % 
 % field  - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %          'All' will invoke all fields. this argument effectively allows 
 %          one to specify which parameters constitute random effects.     
 % 
 % PEB    - hierarchical dynamic model
-% -------------------------------------------------------------
+% -------------------------------------------------------------------------
 %     PEB.Snames - string array of first level model names
 %     PEB.Pnames - string array of parameters of interest
 %     PEB.Pind   - indices of parameters in spm_vec(DCM{i}.Ep) 
@@ -74,7 +76,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6388 2015-03-22 20:27:00Z karl $
+% $Id: spm_dcm_peb.m 6427 2015-05-05 15:42:35Z karl $
  
 
 % get filenames and set up
@@ -118,35 +120,13 @@ if size(P,2) > 1
 end
 
 
-% second level model (ensure first is a constant or main effect)
-%--------------------------------------------------------------------------
-if ~isstruct(M)
-    M = struct('X',M);
-end
-
-% use priors from the first level if necessary
-%--------------------------------------------------------------------------
-if ~isfield(M,'pE')
-    M.pE = spm_vec(DCM.M.pE);
-end
-if ~isfield(M,'pC')
-    if isstruct(DCM.M.pC)
-        M.pC = diag(spm_vec(DCM.M.pC));
-    else
-        M.pC = DCM.M.pC;
-    end
-end
-if isstruct(M.pE), M.pE =      spm_vec(M.pE) ; end
-if isstruct(M.pC), M.pC = diag(spm_vec(M.pC)); end
-
-
 % get (first level) densities (summary statistics)
 %==========================================================================
 q     = spm_find_pC(DCM.M.pC,DCM.M.pE,field);   % parameter indices
 Pstr  = spm_fieldindices(DCM.M.pE,q);           % field names
 Ns    = numel(P);                               % number of subjects
-Np    = length(q);                              % number of parameters
-for i = 1:length(P)
+Np    = numel(q);                               % number of parameters
+for i = 1:Ns
     
     % get first(within subject) level DCM
     %----------------------------------------------------------------------
@@ -174,7 +154,7 @@ for i = 1:length(P)
     % shrink posterior to accommodate inefficient inversions
     %----------------------------------------------------------------------
     if Ns > 1
-       qC{i} = spm_inv(spm_inv(qC{i}) + spm_inv(pC{i})/4);
+       qC{i} = spm_inv(spm_inv(qC{i}) + spm_inv(pC{i})/16);
     end
     
     % and free energy of model with full priors
@@ -185,22 +165,35 @@ end
 
 % hierarchical model design and defaults
 %==========================================================================
-Q     = {};                                     % precision components
 
-% lower bound on prior precision and components for empirical covariance
+% second level model
 %--------------------------------------------------------------------------
-if Ns > 1
-    if isfield(M,'Q')
-        OPTION = M.Q;
-    else
-        OPTION = 'single';
-    end
-    pP     = spm_inv(M.pC(q,q));
+if ~isstruct(M),      M      = struct('X',M);                   end
+if isfield(M,'beta'), beta   = M.beta; else, beta = 16;         end
+if isfield(M,'Q'),    OPTION = M.Q;    else, OPTION = 'single'; end
+if Ns == 1,           OPTION = 'no';   end
+
+
+% get priors (from DCM if necessary)
+%--------------------------------------------------------------------------
+if isfield(M,'bE')
+    M.bE = spm_vec(M.bE);
+    if size(M.bE,1) > Np, M.bE = M.bE(q); end
 else
-    OPTION = 'none';
-    pP     = spm_inv(M.pC);
+    M.bE = pE{1};
+end
+if isfield(M,'bC')
+    if isstruct(M.bC),    M.bC = diag(spm_vec(M.bC)); end
+    if size(M.bC,1) > Np, M.bC = M.bC(q,q);           end
+else
+    M.bC = pC{1};
 end
 
+
+% prior precision (pP) and components (Q) for empirical covariance
+%--------------------------------------------------------------------------
+pP    = spm_inv(M.bC/beta);
+Q     = {};
 switch OPTION
     
     case{'single'}
@@ -231,45 +224,33 @@ end
 
 % priors for empirical expectations
 %--------------------------------------------------------------------------
-beta  = 8;                          % within:between subject variance ratio
 if Ns > 1;
     
     % between-subject design matrices and prior expectations
     %======================================================================
-    X     = M.X;
-    W     = speye(Np,Np);
-    bE    = M.pE(q);
-    bC    = M.pC(q,q)/beta;
-
+    X   = M.X;
+    W   = speye(Np,Np);
+    
 else
     
     % within subject design
     %======================================================================
-    if nargin > 1
-        W = M.X;
-        X = 1;
-    else
-        W = M.pE(q);
-        X = 1;
-    end
-    Nw      = size(W,2);
-    try, bE = M.bE(:); catch, bE = zeros(Nw,1); end
-    try, bC = M.bC;    catch, bC = eye(Nw,Nw);  end
-
+    X   = 1;
+    W   = M.X;
+    
 end
-
 
 % number of parameters and effects
 %--------------------------------------------------------------------------
 Nx    = size(X,2);                  % number of between subject effects
 Nw    = size(W,2);                  % number of within  subject effects
-Ng    = length(Q);                  % number of precision components
+Ng    = numel(Q);                   % number of precision components
 Nb    = Nw*Nx;                      % number of second level parameters
 
 % check for user-specified priors on log precision of second level effects
 %--------------------------------------------------------------------------
 gE    = 0;
-gC    = 1;
+gC    = 1/16;
 try, gE = M.hE; end
 try, gC = M.hC; end
 try, bX = M.bX; catch
@@ -282,9 +263,9 @@ end
 
 % prior expectations and precisions of second level parameters
 %--------------------------------------------------------------------------
-bE    = kron(spm_speye(Nx,1),bE);   % prior expectation of group effects
+bE    = kron(spm_speye(Nx,1),M.bE); % prior expectation of group effects
 gE    = zeros(Ng,1) + gE;           % prior expectation of log precisions
-bC    = kron(bX,bC);                % prior covariance of group effects
+bC    = kron(bX,M.bC);              % prior covariance of group effects
 gC    = eye(Ng,Ng)*gC;              % prior covariance of log precisions
 bP    = spm_inv(bC);
 gP    = spm_inv(gC);
@@ -296,6 +277,8 @@ g     = gE;
 p     = [b; g];
 ipC   = spm_cat({bP [];
                 [] gP});
+            
+
 
 % variational Laplace
 %--------------------------------------------------------------------------
@@ -304,11 +287,15 @@ for n = 1:32
 
     % compute prior covariance
     %----------------------------------------------------------------------
-    rP    = pP;
-    for i = 1:Ng
-        rP = rP + exp(g(i))*Q{i};
+    if Ng > 0
+        rP  = 0;
+        for i = 1:Ng
+            rP = rP + exp(g(i))*Q{i};
+        end
+    else
+        rP  = M.rP;
     end
-    rC    = spm_inv(rP);
+    rC      = spm_inv(rP);
     
     % update model parameters
     %======================================================================
@@ -416,7 +403,7 @@ for i = 1:Ns
     % get first(within subject) level DCM
     %----------------------------------------------------------------------
     try
-        load(P{i});
+        load(P{i},'DCM');
         Sstr{i} = P{i};
     catch
         DCM     = P{i};

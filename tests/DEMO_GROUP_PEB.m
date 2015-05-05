@@ -38,7 +38,7 @@ function DEMO_GROUP_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_GROUP_PEB.m 6343 2015-02-18 16:46:00Z spm $
+% $Id: DEMO_GROUP_PEB.m 6427 2015-05-05 15:42:35Z karl $
 
 
 % set up
@@ -148,7 +148,7 @@ M.pC  = DCM.M.pC;
 
 % hierarchical inversion
 %--------------------------------------------------------------------------
-[gcm,peb,F] = spm_dcm_peb_fit(GCM,M);
+[gcm,peb,M] = spm_dcm_peb_fit(GCM,M);
 
 
 % repeated using Bayesian model reduction summary statistic approach
@@ -175,7 +175,7 @@ subplot(2,2,3), spm_plot_ci(peb.Ep(:),peb.Cp), hold on, bar([Ep;Ex],1/2), hold o
 xlabel('parameters'), ylabel('expectation'), 
 title('Hierarchical inversion','FontSize',16), axis square
 
-subplot(2,2,4), plot(F)
+subplot(2,2,4), bar(gcm{1}.FEB)
 xlabel('iterations'), ylabel('free energy'), 
 title('second level free energy','FontSize',16), axis square
 

@@ -1,7 +1,7 @@
-function [i,pC,pE] = spm_find_pC(pC,pE,fields)
+function [i,pC,pE,Np] = spm_find_pC(pC,pE,fields)
 % Utility routine that finds the indices of non-zero covariance
-% FORMAT [i]       = spm_find_pC(pC,pE,fields)
-% FORMAT [i,rC,rE] = spm_find_pC(DCM)
+% FORMAT [i,pC,pE,Np] = spm_find_pC(pC,pE,fields)
+% FORMAT [i,pC,pE,Np] = spm_find_pC(DCM)
 % 
 % pC     - covariance matrix or variance stucture
 % pE     - parameter structure
@@ -19,16 +19,20 @@ function [i,pC,pE] = spm_find_pC(pC,pE,fields)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_find_pC.m 6353 2015-03-01 11:52:49Z karl $
+% $Id: spm_find_pC.m 6427 2015-05-05 15:42:35Z karl $
 
 
-%-get rC
+%-get pC  from DCM structure
 %--------------------------------------------------------------------------
-if isfield(pC,'options')
-    [pC,pE] = spm_find_rC(pC);
+if ischar(pC)
+    pC = load(pC,'DCM');
+    pC = pC.DCM;
+end
+if any(isfield(pC,{'options','M'}))
+    try, [pC,pE] = spm_find_rC(pC); end
 end
 
-%-Deal with structures
+%-Deal with variance structures
 %--------------------------------------------------------------------------
 if isstruct(pC)
     q = spm_vec(pC);
@@ -39,6 +43,7 @@ end
 %-Get indices
 %--------------------------------------------------------------------------
 i  = find(q > mean(q(q < 1024))/1024);
+Np = numel(q);
 
 %-subsample fields if necessary
 %--------------------------------------------------------------------------
@@ -62,7 +67,7 @@ function [pC,pE] = spm_find_rC(DCM)
 
 % Get full priors and posteriors
 %--------------------------------------------------------------------------
-if isfield(DCM,'M')
+try
     pC  = DCM.M.pC;
     pE  = DCM.M.pE;
     return
@@ -70,12 +75,12 @@ end
 
 % get priors from model specification
 %------------------------------------------------------------------
-if isfield(options,'analysis')
-    if strcmpi(options.analysis,'IND')
-        [pE,~,pC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,Nf);
+if isfield(DCM.options,'analysis')
+    if strcmpi(DCM.options.analysis,'IND')
+        [pE,~,pC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,DCM.Nf);
     else
-        [pE,pC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,options.model);
+        [pE,pC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,DCM.options.model);
     end
 else
-    [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,options);
+    [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
 end

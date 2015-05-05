@@ -1,6 +1,6 @@
-function [DCM,PEB,F] = spm_dcm_peb_fit(GCM,M,field)
-% Bayesian ggroup inversion  using empirical Bayes
-% FORMAT [DCM,PEB,F] = spm_dcm_peb_fit(DCM,M,field)
+function [DCM,PEB,M,HCM] = spm_dcm_peb_fit(GCM,M,field)
+% Bayesian group inversion using empirical Bayes
+% FORMAT [DCM,PEB,M] = spm_dcm_peb_fit(DCM,M,field)
 %
 % DCM    - {N [x M]} structure array of DCMs from N subjects
 % ------------------------------------------------------------
@@ -8,6 +8,7 @@ function [DCM,PEB,F] = spm_dcm_peb_fit(GCM,M,field)
 %     DCM{i}.M.pC - prior covariances of parameters
 %     DCM{i}.Ep   - posterior expectations
 %     DCM{i}.Cp   - posterior covariance
+%     DCM{i}.FEB  - free energy over empirical Bayes iterations
 %
 % M.X    - second level design matrix, where X(:,1) = ones(N,1) [default]
 % M.pE   - second level prior expectation of parameters
@@ -50,7 +51,7 @@ function [DCM,PEB,F] = spm_dcm_peb_fit(GCM,M,field)
 % subject inversion, the priors are updated using empirical priors from
 % the second level. The free energy of this hierarchical model comprises
 % the complexity of group effects plus the sum of free energies from each
-% subject – evaluated under the empirical priors  provided by the second
+% subject - evaluated under the empirical priors  provided by the second
 % level.
 %
 % If called with a cell array, each column is assumed to contain the same
@@ -59,12 +60,17 @@ function [DCM,PEB,F] = spm_dcm_peb_fit(GCM,M,field)
 % applied automatically, after inversion of the full model, which is
 % assumed to occupy the first column.
 %
+% The posterior densities of subject or session specific DCMs are adjusted
+% so that they correspond to what would have been obtained under the
+% original priors. Effectively, this group inversion is used to suppress
+% local minima, prior to inference on group means.
+%
 % see also: spm_dcm_fit.m; spm_dcm_peb.m; spm_dcm_bmr.m
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_fit.m 6385 2015-03-21 12:06:22Z karl $
+% $Id: spm_dcm_peb_fit.m 6427 2015-05-05 15:42:35Z karl $
 
 
 % set up
@@ -73,7 +79,19 @@ function [DCM,PEB,F] = spm_dcm_peb_fit(GCM,M,field)
 % Number of subjects (data) and models (of those data)
 %--------------------------------------------------------------------------
 [Ns,Nm]   = size(GCM);
+for i = 1:Ns
+    for j = 1:Nm
+        if ischar(GCM{i,j})
+            model    = load(GCM{i,j});
+            GCM{i,j} = model.DCM;
+        end
+    end
+end
+
+% get priors
+%--------------------------------------------------------------------------
 DCM       = GCM(:,1);
+[i,rC,rE] = spm_find_pC(DCM{1});
 
 % priors and parameter fields
 %--------------------------------------------------------------------------
@@ -81,25 +99,26 @@ if nargin < 2;
     M.X   = ones(Ns,1);
 end
 if nargin < 3;
-    field = fieldnames(DCM{1,1}.M.pE);
+    field = 'all'; 
 end
+
 
 % enforce fixed priors at second level
 %--------------------------------------------------------------------------
-if ~isfield(M,'Q' ); M.Q  = 'single';            end
-if ~isfield(M,'pE'); M.pE = DCM{1,1}.M.pE;       end
-if ~isfield(M,'pC'); M.pC = DCM{1,1}.M.pC;       end
-if isstruct(M.pE),   M.pE =      spm_vec(M.pE) ; end
-if isstruct(M.pC),   M.pC = diag(spm_vec(M.pC)); end
+if ~isfield(M,'Q');  M.Q    = 'single'; end
+if ~isfield(M,'bE'); M.bE   = rE;       end
+if ~isfield(M,'bC'); M.bC   = rC;       end
 
 
 % reinvert (full) model with initialization; recursively
 %==========================================================================
 for i = 1:Ns
-    DCM{i,1}.M.Nmax = 32;
+    DCM{i,1}.M.Nmax = 64;
+    DCM{i,1}.M.hE   = 6;
+    DCM{i,1}.M.hC   = 1/32;
     try, dipfit{i}  = DCM{i,1}.M.dipfit; end
 end
-for k = 1:16
+for k = 1:8
     
     % replace spatial model if necessary
     %----------------------------------------------------------------------
@@ -111,6 +130,7 @@ for k = 1:16
     % re-initialise and invert the full (first) model
     %----------------------------------------------------------------------
     try, DCM  = spm_dcm_fit(DCM); catch, break;  end
+    
      
     % empirical Bayes - over subjects
     %----------------------------------------------------------------------
@@ -119,49 +139,83 @@ for k = 1:16
     
     % convergence
     %----------------------------------------------------------------------
-    if k == 1
-        F(k) = PEB.F;
-        dF   = 0;
+    E(k) = PEB.Eh;
+    F(k) = PEB.F;
+    H(k) = spm_logdet(PEB.Cp);
+    
+    disp('log precision      : ');disp(E);
+    disp('free energy        : ');disp(F);
+    disp('conditional entropy: ');disp(H);
+    
+    if k > 2
+        if H(k) > H(k - 1)
+            DCM = tmpDCM;
+            PEB = tmpPEB;
+            break
+        else
+            tmpDCM = DCM;
+            tmpPEB = PEB;
+        end
     else
-        dF   = PEB.F - F(k - 1);
-        F(k) = PEB.F;
+        tmpDCM = DCM;
+        tmpPEB = PEB;
     end
-    if dF < 1e-2 && k > 4
-        if dF < 0, DCM = tmp; end
-        break
-    else
-        tmp = DCM;
-    end
+    
+    % save
+    %----------------------------------------------------------------------
+    HCM(:,k) = DCM;
     
 end
 
+% save second level free energy
+%--------------------------------------------------------------------------
+for i = 1:Ns
+    DCM{i}.EEB = E;
+    DCM{i}.FEB = F;
+    DCM{i}.HEB = H;
+end
 
+% restore original priors
+%==========================================================================
+DCM = spm_dcm_reduce(DCM,rE,rC);
+HCM = spm_dcm_reduce(HCM,rE,rC);
+   
 % Bayesian model reduction if necessary
 %==========================================================================
 if Nm > 1
-    
-    % place posteriors in full model (first column)
-    %----------------------------------------------------------------------
     GCM(:,1) = DCM;
-    
-    % place emprical priors in reduced models
-    %----------------------------------------------------------------------
-    pE    = GCM{1,1}.M.pE;
-    pC    = GCM{1,1}.M.pC;
-    Np    = size(pC,1);
-    for j = 1:Nm
-        k     = spm_find_pC(GCM{1,j});
-        R     = sparse(k,k,1,Np,Np);
-        for i = 1:Ns
-            GCM{i,j}.M.pE = spm_unvec(R*spm_vec(pE),pE);
-            GCM{i,j}.M.pC = R*pC*R;
-        end
-    end
-    
-    % and reduce
-    %----------------------------------------------------------------------
-    DCM   = spm_dcm_bmr(GCM);
-    
+    DCM      = spm_dcm_bmr(GCM,'none');
 end
 
+return
 
+function DCM = spm_dcm_reduce(DCM,rE,rC)
+% FORMAT RCM = spm_dcm_reduce(DCM,rE,rC)
+% This routine reduces the posterior of DCM given new priors (rE,rC)
+%__________________________________________________________________________
+
+% deal with cell arrays
+%--------------------------------------------------------------------------
+if iscell(DCM)
+    for i = 1:numel(DCM)
+       DCM{i} = spm_dcm_reduce(DCM{i},rE,rC);
+       return
+    end
+end
+
+% empirical prior and posterior densities
+%--------------------------------------------------------------------------
+pE = DCM.M.pE;
+pC = DCM.M.pC;
+qE = DCM.Ep;
+qC = DCM.Cp;
+
+% evaluate posteriors under original priors
+%--------------------------------------------------------------------------
+[F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
+
+DCM.M.pE = rE;
+DCM.M.pC = rC;
+DCM.Ep   = sE;
+DCM.Cp   = sC;
+DCM.F    = F + DCM.F;

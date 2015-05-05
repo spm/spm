@@ -20,7 +20,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB_REC.m 6360 2015-03-04 19:24:56Z spm $
+% $Id: DEMO_DCM_PEB_REC.m 6427 2015-05-05 15:42:35Z karl $
 
 
 % change to directory with empirical data
@@ -179,11 +179,11 @@ RCM   = spm_dcm_bmr(GCM);
 for i = 1:Ns
     GCM{i,1}.M.dipfit = DCM.M.dipfit;
 end
-[ECM,eeb,E] = spm_dcm_peb_fit(GCM);
+ECM   = spm_dcm_peb_fit(GCM);
 
 
 spm_figure('GetWin','SI');
-subplot(3,2,6), plot(E)
+subplot(3,2,6), bar(ECM{1}.FEB)
 xlabel('recursion'), ylabel(' (second level) free energy')
 title('Free energy','FontSize',16)
 axis square

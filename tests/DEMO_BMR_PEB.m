@@ -34,7 +34,7 @@ function DEMO_BMR_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BMR_PEB.m 6385 2015-03-21 12:06:22Z karl $
+% $Id: DEMO_BMR_PEB.m 6427 2015-05-05 15:42:35Z karl $
 
 
 % set up
@@ -358,7 +358,7 @@ axis([0 (length(p) + 1) 0 1]), axis square
 %--------------------------------------------------------------------------
 spm_figure('Getwin','Figure 5'); clf
 
-h   = ones(size(PEB.Eh))*log(C - 1);
+h   = ones(size(PEB.Eh))*log(C/16);
 subplot(2,2,1), spm_plot_ci(PEB.Eh,PEB.Ch),
 title('Estimated log precision','FontSize',16)
 axis square, a = axis;
@@ -366,7 +366,6 @@ axis square, a = axis;
 subplot(2,2,2), bar(h)
 title('True log precision','FontSize',16)
 box off, axis square, axis(a)
-
 
 
 % report (second level) model comparison using explicit PEB estimates (PF)
@@ -417,7 +416,7 @@ return
 % Notes
 %==========================================================================
 hE    = linspace(-4,4,16);
-hC    = 1;
+hC    = 1/16;
 clear Eh HF
 for i = 1:length(hE)
     M.X     = X;

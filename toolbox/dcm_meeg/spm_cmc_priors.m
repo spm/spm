@@ -39,7 +39,7 @@ function [E,V] = spm_cmc_priors(A,B,C)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmc_priors.m 5939 2014-04-06 17:13:50Z karl $
+% $Id: spm_cmc_priors.m 6427 2015-05-05 15:42:35Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -68,7 +68,7 @@ D{4}  = A{2};                                     % backward (ii)
 % modulatory extrinsic connectivity
 %--------------------------------------------------------------------------
 E.M   = 0*A{3};
-V.M   = ~~A{3};
+V.M   = ~~A{3}/32;
 A     = D;
  
 % extrinsic connectivity
@@ -77,7 +77,7 @@ Q     = sparse(n,n);
 for i = 1:length(A)
       A{i} = ~~A{i};
     E.A{i} = A{i}*32 - 32;
-    V.A{i} = A{i}/8;
+    V.A{i} = A{i}/16;
     Q      = Q | A{i};
 end
 
@@ -108,11 +108,11 @@ V.C    = C/32;
  
 % synaptic parameters
 %--------------------------------------------------------------------------
-m    = 4;                                         % number of intrinsic
-E.T  = sparse(n,4);   V.T  = sparse(n,4) + 1/16;  % time constants
-E.G  = sparse(n,m);   V.G  = sparse(n,m) + 1/16;  % intrinsic connectivity
-E.D  = sparse(n,n);   V.D  = Q/32;                % delay
-E.S  = 0;             V.S  = 1/32;                % slope of sigmoid
+m    = 3;                                         % number of intrinsic
+E.T  = sparse(1,4);   V.T  = sparse(1,4) + 1/32;  % time constants
+E.G  = sparse(n,m);   V.G  = sparse(n,m) + 1/32;  % intrinsic connectivity
+E.D  = sparse(n,n);   V.D  = Q/64;                % delay
+E.S  = 0;             V.S  = 1/64;                % slope of sigmoid
 
  
 % set stimulus parameters: onset and dispersion

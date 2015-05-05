@@ -26,7 +26,7 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 %  M.pF.D = [2 16];              % propogation delays (intrinsic, extrinsic)
 %  M.pF.G = [4 32];              % receptor densities (excitatory, inhibitory)
 %  M.pF.T = [8 16];              % synaptic constants (excitatory, inhibitory)
-%  M.pF.R = [1 1/2];             % parameter of static nonlinearity
+%  M.pF.S = [1 1/2];             % parameters of activation function
 %
 %__________________________________________________________________________
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
@@ -35,7 +35,7 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_erp.m 5369 2013-03-28 20:09:27Z karl $
+% $Id: spm_fx_erp.m 6427 2015-05-05 15:42:35Z karl $
 
 
 % get dimensions and configure state variables

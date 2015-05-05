@@ -24,7 +24,7 @@ function DEMO_DCM_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6388 2015-03-22 20:27:00Z karl $
+% $Id: DEMO_DCM_PEB.m 6427 2015-05-05 15:42:35Z karl $
 
 
 % change to directory with empirical data
@@ -191,7 +191,7 @@ if 0
     for i = 1:Ns
         GCM{i,1}.M.dipfit = DCM.M.dipfit;
     end
-    [PCMG,PEBG,FG] = spm_dcm_peb_fit(GCM);
+    [PCMG,PEBG] = spm_dcm_peb_fit(GCM);
     
 end
 

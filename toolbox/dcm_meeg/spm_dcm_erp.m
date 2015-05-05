@@ -36,7 +36,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 6321 2015-01-28 14:40:44Z karl $
+% $Id: spm_dcm_erp.m 6427 2015-05-05 15:42:35Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
@@ -189,7 +189,7 @@ end
 
 % scale data features
 %--------------------------------------------------------------------------
-scale    = max(spm_vec(spm_fy_erp(xY.y,M)));
+scale    = std(spm_vec(spm_fy_erp(xY.y,M)));
 xY.y     = spm_unvec(spm_vec(xY.y)/scale,xY.y);
 xY.scale = xY.scale/scale;
 
@@ -197,7 +197,7 @@ xY.scale = xY.scale/scale;
 % likelihood model
 %==========================================================================
 
-% Use TFM intrgation scheme (with plasticity) if indicated
+% Use TFM integration scheme (with plasticity) if indicated
 %--------------------------------------------------------------------------
 if isfield(M,'TFM')
      IS = 'spm_csd_int';
