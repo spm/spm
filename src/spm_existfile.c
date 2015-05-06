@@ -1,5 +1,5 @@
 /*
- * $Id: spm_existfile.c 5160 2012-12-21 16:58:38Z guillaume $
+ * $Id: spm_existfile.c 6428 2015-05-06 14:09:04Z guillaume $
  * Guillaume Flandin
  */
 
@@ -7,8 +7,16 @@
 #undef  _LARGEFILE64_SOURCE
 #define _LARGEFILE64_SOURCE
 #include <sys/stat.h>
+#if defined(_WIN32)
+#define structStat struct _stati64
+#define getFileStat _stati64
+#elif defined(__APPLE__)
+#define structStat struct stat
+#define getFileStat stat
+#else
 #define structStat struct stat64
 #define getFileStat stat64
+#endif
 #else
 #include "io64.h"
 #endif

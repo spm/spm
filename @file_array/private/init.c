@@ -1,29 +1,37 @@
 /*
- * $Id: init.c 6076 2014-06-30 13:41:11Z guillaume $
+ * $Id: init.c 6428 2015-05-06 14:09:04Z guillaume $
  * Guillaume Flandin
  */
 
 #ifndef MATLAB_MEX_FILE
-#undef  _LARGEFILE64_SOURCE
-#define _LARGEFILE64_SOURCE
-#include <stdio.h>
-#include <sys/stat.h>
-#define structStat struct stat64
-#define getFileFstat fstat64
-#define getFilePos fgetpos64
-#define setFilePos fsetpos64
-#define fpos_T fpos64_t
+# undef  _LARGEFILE64_SOURCE
+# define _LARGEFILE64_SOURCE
+# include <stdio.h>
+# include <sys/stat.h>
+# if defined(__APPLE__)
+#  define structStat struct stat
+#  define getFileFstat fstat
+#  define getFilePos fgetpos
+#  define setFilePos fsetpos
+#  define fpos_T fpos_t
+# else
+#  define structStat struct stat64
+#  define getFileFstat fstat64
+#  define getFilePos fgetpos64
+#  define setFilePos fsetpos64
+#  define fpos_T fpos64_t
+# endif
 #else
-#include "io64.h"
+# include "io64.h"
 #endif
 #include "mex.h"
 #ifdef SPM_WIN32
-#include <io.h>
-#define snprintf _snprintf
-#define ftruncate _chsize_s
+# include <io.h>
+# define snprintf _snprintf
+# define ftruncate _chsize_s
 #else
-#include <unistd.h>
-#include <sys/types.h>
+# include <unistd.h>
+# include <sys/types.h>
 #endif
 
 
