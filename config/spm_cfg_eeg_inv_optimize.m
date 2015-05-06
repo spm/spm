@@ -182,6 +182,8 @@ for j=1:Nfiles, %% move through prior files
         inverse.Cp=Cp; %% posterior source level
         inverse.Qe=Qe; %% posterior sensor level
         inverse.Qp=Qp;
+        inverse.Is=1:size(Cp,1); % %% temporary fix
+        
         
         
     end;
