@@ -69,7 +69,7 @@ function label = ft_senslabel(type, varargin)
 %  You should have received a copy of the GNU General Public License
 %  along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senslabel.m 10124 2015-01-26 11:40:07Z roboos $
+% $Id: ft_senslabel.m 10341 2015-04-17 14:10:18Z jorhor $
 
 % these are for speeding up subsequent calls with the same input arguments
 persistent eeg electrode ant128 btiref bti148 bti148_planar bti148_planar_combined bti248 bti248_planar bti248_planar_combined ctfref ctfheadloc ctf64 ctf151 ctf151_planar ctf151_planar_combined ctf275 ctf275_planar ctf275_planar_combined neuromag122 neuromag122_combined neuromag306 neuromag306_combined eeg1020 eeg1010 eeg1005 ext1020 biosemi64 biosemi128 biosemi256 egi32 egi64 egi128 egi256 itab28 itab153 itab153_planar itab153_planar_combined yokogawa9 yokogawa64 yokogawa64_planar yokogawa64_planar_combined yokogawa160 yokogawa160_planar yokogawa160_planar_combined yokogawa440 yokogawa440_planar yokogawa440_planar_combined
@@ -3655,7 +3655,7 @@ elseif isempty(eval(type))
         };
       yokogawa440_planar_combined = label(:,3);
       label = label(:,1:2);
-      
+       
     case {'eeg' 'electrode'}
       % there is no default set of electrode labels for all possible EEG systems
       % but nevertheless the requested input type should not result in an error

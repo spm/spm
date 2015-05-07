@@ -24,7 +24,7 @@ function [filename, headerfile, datafile] = dataset2files(filename, format)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dataset2files.m 10113 2015-01-20 09:22:46Z roboos $
+% $Id: dataset2files.m 10381 2015-05-07 07:31:10Z roboos $
 
 persistent previous_argin previous_argout
 
@@ -127,7 +127,11 @@ switch format
     headerfile = fullfile(path, [file '.mat']);
     datafile   = fullfile(path, [file '.bin']);
   case 'fcdc_buffer_offline'
-    [path, file, ext] = fileparts(filename);
+    if isdir(filename)
+      path = filename;
+    else
+      [path, file, ext] = fileparts(filename);
+    end
     headerfile = fullfile(path, 'header');
     datafile   = fullfile(path, 'samples');
   case {'tdt_tsq' 'tdt_tev'}

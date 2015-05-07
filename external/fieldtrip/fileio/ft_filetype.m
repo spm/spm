@@ -76,7 +76,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 10283 2015-03-28 09:05:25Z roboos $
+% $Id: ft_filetype.m 10380 2015-05-06 20:10:14Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -147,7 +147,13 @@ if isempty(filename)
 end
 
 % the parts of the filename are used further down
-[p, f, x] = fileparts(filename);
+if isdir(filename)
+  p = filename;
+  f = '';
+  x = '';
+else
+  [p, f, x] = fileparts(filename);
+end
 
 % prevent this test if the filename resembles an URI, i.e. like "scheme://"
 if isempty(strfind(filename , '://')) && isdir(filename)
@@ -624,7 +630,7 @@ elseif isdir(filename) && most(filetype_check_extension({ls.name}, '.ntt'))
   manufacturer = 'Neuralynx';
   content = 'tetrode recordings ';
   
-elseif isdir(p) && exist(fullfile(p, 'header'), 'file') && exist(fullfile(p, 'events'), 'file')
+elseif isdir(p) && exist(fullfile(p, 'header'), 'file') && exist(fullfile(p, 'samples'), 'file') && exist(fullfile(p, 'events'), 'file')
   type = 'fcdc_buffer_offline';
   manufacturer = 'Donders Centre for Cognitive Neuroimaging';
   content = 'FieldTrip buffer offline dataset';
@@ -980,6 +986,12 @@ elseif filetype_check_extension(filename, '.txt') && numel(strfind(filename,'_nr
   manufacturer = 'BUCN';
   content = 'ascii formatted nirs data';
   
+  % known Artinis file format
+elseif filetype_check_extension(filename, '.oxy3')  
+  type = 'oxy3';
+  manufacturer = 'Artinis Medical Systems';
+  content = '(f)NIRS data';
+  
   % known TETGEN file types, see http://tetgen.berlios.de/fformats.html
 elseif any(filetype_check_extension(filename, {'.node' '.poly' '.smesh' '.ele' '.face' '.edge' '.vol' '.var' '.neigh'})) && exist(fullfile(p, [f '.node']), 'file') && filetype_check_ascii(fullfile(p, [f '.node']), 100) && exist(fullfile(p, [f '.poly']), 'file')
   type = 'tetgen_poly';
@@ -1192,6 +1204,10 @@ elseif filetype_check_extension(filename, '.csv')
   type = 'csv';
   manufacturer = 'Generic';
   content = 'Comma-separated values, see http://en.wikipedia.org/wiki/Comma-separated_values';
+elseif filetype_check_extension(filename, '.ah5')
+    type = 'AnyWave';
+    manufacturer = 'AnyWave, http://meg.univ-amu.fr/wiki/AnyWave';
+    content = 'MEG/SEEG/EEG data';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

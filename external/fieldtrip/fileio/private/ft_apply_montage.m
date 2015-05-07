@@ -61,7 +61,7 @@ function [input] = ft_apply_montage(input, montage, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_apply_montage.m 9512 2014-05-13 09:44:04Z roboos $
+% $Id: ft_apply_montage.m 10341 2015-04-17 14:10:18Z jorhor $
 
 % get optional input arguments
 keepunused  = ft_getopt(varargin, 'keepunused',  'no');
@@ -144,6 +144,11 @@ else
   else
     inputchanunit = repmat({'unknown'}, size(input.label));
   end
+end
+
+% check the consistency of the montage
+if ~iscell(montage.labelorg) || ~iscell(montage.labelnew)
+  error('montage labels need to be specified in cell-arrays');
 end
 
 % check the consistency of the montage

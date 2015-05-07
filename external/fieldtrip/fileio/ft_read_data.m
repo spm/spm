@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 10300 2015-03-29 17:34:39Z roboos $
+% $Id: ft_read_data.m 10361 2015-04-30 17:55:37Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -282,7 +282,8 @@ end
 % read the data with the low-level reading function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch dataformat
-  
+  case 'AnyWave'
+     dat = read_ah5_data(filename, hdr, begsample, endsample, chanindx);
   case {'4d' '4d_pdf', '4d_m4d', '4d_xyz'}
     [fid,message] = fopen(datafile,'rb','ieee-be');
     % determine the type and size of the samples
@@ -1026,6 +1027,9 @@ switch dataformat
   case 'neuroprax_eeg'
     tmp = np_readdata(filename, hdr.orig, begsample - 1, endsample - begsample + 1, 'samples');
     dat = tmp.data(:,chanindx)';
+    
+  case 'oxy3'
+    dat = read_artinis_oxy3(filename, hdr, begsample, endsample, chanindx);
     
   case 'plexon_ds'
     dat = read_plexon_ds(filename, hdr, begsample, endsample, chanindx);

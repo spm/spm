@@ -53,7 +53,7 @@ function source = ft_read_cifti(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_cifti.m 10322 2015-04-05 06:06:49Z jansch $
+% $Id: ft_read_cifti.m 10353 2015-04-29 07:21:03Z jansch $
 
 readdata         = ft_getopt(varargin, 'readdata', []);   % the default depends on file size, see below
 readsurface      = ft_getopt(varargin, 'readsurface', true);
@@ -927,7 +927,7 @@ else
   % it is a parcellated source structure, i.e. represented by one channel per parcel
   % copy the geometrical description of the brainordinates into a sub-structure
   source.brainordinate = brainordinate;
-  source.label = {Parcel(:).Name};
+  source.label = {Parcel(:).Name}';
 end
 
 haslabeltable = false;
@@ -945,7 +945,7 @@ if readdata
   if isfield(source, 'data')
     % rename the data field
     source.(fixname(dataname)) = source.data;
-    
+    source = rmfield(source, 'data');
 %     % adopt FT convention for parcel-to-label mapping
 %     if haslabeltable
 %       tempdata = nan+zeros(size(source.data));

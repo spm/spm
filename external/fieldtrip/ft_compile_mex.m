@@ -33,7 +33,7 @@ function ft_compile_mex(force)
 
 % Copyright (C) 2010, Stefan Klanke
 %
-% $Id: ft_compile_mex.m 9332 2014-04-02 07:30:17Z roboos $
+% $Id: ft_compile_mex.m 10357 2015-04-30 08:11:06Z timvmou $
 
 if nargin<1
   force=false;
@@ -62,7 +62,7 @@ L = add_mex_source(L,'@config/private','increment');
 L = add_mex_source(L,'@config/private','setzero');
 
 L = add_mex_source(L,'realtime/online_mri','ft_omri_smooth_volume');
-L = add_mex_source(L,'realtime/acquisition/siemens', 'sap2matlab',[],[],'siemensap.c -I.');
+L = add_mex_source(L,'realtime/src/acquisition/siemens/src', 'sap2matlab', [], [], 'siemensap.c -I../include');
 
 L = add_mex_source(L,'src','ft_getopt');
 L = add_mex_source(L,'src','read_16bit');

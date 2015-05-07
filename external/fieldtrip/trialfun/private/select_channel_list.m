@@ -33,7 +33,7 @@ function [select] = select_channel_list(label, select, titlestr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: select_channel_list.m 9664 2014-06-22 07:06:29Z roboos $
+% $Id: select_channel_list.m 10346 2015-04-25 09:13:00Z roboos $
 
 if nargin<3
   titlestr = 'Select';
@@ -42,7 +42,7 @@ end
 pos      = get(0,'DefaultFigurePosition');
 pos(3:4) = [290 300];
 dlg      = dialog('Name', titlestr, 'Position', pos);
-axis off % explicitly turn of axis, sometimes an axis system appears
+set(gca, 'Visible', 'off'); % explicitly turn the axis off, as it sometimes appears
 
 select            = select(:)';     % ensure that it is a row array
 userdata.label    = label;

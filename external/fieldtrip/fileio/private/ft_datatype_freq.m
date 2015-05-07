@@ -80,7 +80,7 @@ function freq = ft_datatype_freq(freq, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_freq.m 10325 2015-04-08 09:55:58Z roboos $
+% $Id: ft_datatype_freq.m 10363 2015-04-30 19:03:34Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -105,6 +105,9 @@ if isfield(freq, 'label') && ~iscolumn(freq.label)
 end
 if isfield(freq, 'time') && ~isrow(freq.time)
   freq.time = freq.time';
+end
+if ~isfield(freq, 'label') && ~isfield(freq, 'labelcmb')
+  warning('data structure is incorrect since it has no channel labels');
 end
 
 switch version

@@ -90,7 +90,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 10329 2015-04-09 06:59:39Z roboos $
+% $Id: ft_read_header.m 10361 2015-04-30 17:55:37Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -239,6 +239,18 @@ hdr = [];
 % read the data with the low-level reading function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch headerformat
+   case 'AnyWave'
+    orig = read_ahdf5_hdr(datafile);
+    hdr.orig = orig;
+    hdr.Fs = orig.channels(1).samplingRate;
+    hdr.nChans = numel(orig.channels);
+    hdr.nSamples = orig.numberOfSamples;
+    hdr.nTrials = orig.numberOfBlocks;
+    hdr.nSamplesPre = 0;
+    hdr.label = orig.label;
+    hdr.reference = orig.reference(:);
+    hdr.chanunit = orig.unit(:);
+    hdr.chantype = orig.type(:);
   case '4d'
     orig            = read_4d_hdr(datafile);
     hdr.Fs          = orig.header_data.SampleFrequency;
@@ -1781,6 +1793,10 @@ switch headerformat
     % remember the original header details
     hdr.orig = orig;
     
+  case 'oxy3'
+    ft_hastoolbox('artinis', 1);    
+    hdr = read_artinis_oxy3(filename);    
+    
   case 'plexon_ds'
     hdr = read_plexon_ds(filename);
     
@@ -1961,10 +1977,18 @@ switch headerformat
     hdr.nSamples    = siz(1);
     hdr.nSamplesPre = 0;
     hdr.nTrials     = 1;
-    for i=1:hdr.nChans
-      hdr.label{i,1} = sprintf('%d', i);
-      hdr.chantype{i,1} = 'audio';
+    [p, f, x] = fileparts(filename);
+    if hdr.nChans>1
+      for i=1:hdr.nChans
+        % use the file name and channel number
+        hdr.label{i,1} = sprintf('%s channel %d', f, i);
+        hdr.chantype{i,1} = 'audio';
+      end
+    else
+      hdr.label{1,1} = f;
+      hdr.chantype{1,1} = 'audio';
     end
+    % remember the details
     hdr.orig = opts;
     
   case {'manscan_mbi', 'manscan_mb2'}

@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 10198 2015-02-11 09:36:13Z roboos $
+% $Id: ft_hastoolbox.m 10341 2015-04-17 14:10:18Z jorhor $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -202,7 +202,9 @@ switch toolbox
   case 'MRI'    % other functions in the mri section
     status = (exist('avw_hdr_read', 'file') && exist('avw_img_read', 'file'));
   case 'NEUROSHARE'
-    status  = (exist('ns_OpenFile', 'file') && exist('ns_SetLibrary', 'file') && exist('ns_GetAnalogData', 'file'));
+    status  = (exist('ns_OpenFile', 'file') && exist('ns_SetLibrary', 'file') && exist('ns_GetAnalogData', 'file'));    
+  case 'ARTINIS'
+    status  = exist('read_artinis_oxy3', 'file');
   case 'BESA'
     status = (exist('readBESAtfc', 'file') && exist('readBESAswf', 'file'));
   case 'EEPROBE'

@@ -49,7 +49,7 @@ function ft_write_data(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 10300 2015-03-29 17:34:39Z roboos $
+% $Id: ft_write_data.m 10379 2015-05-06 20:07:30Z roboos $
 
 global data_queue    % for fcdc_global
 global header_queue  % for fcdc_global
@@ -60,7 +60,7 @@ end
 
 % get the options
 append        = ft_getopt(varargin, 'append', false);
-nbits         = ft_getopt(varargin, 'nbits'); % for riff_wave
+nbits         = ft_getopt(varargin, 'nbits', 16); % for riff_wave
 chanindx      = ft_getopt(varargin, 'chanindx');
 hdr           = ft_getopt(varargin, 'header');
 evt           = ft_getopt(varargin, 'event');

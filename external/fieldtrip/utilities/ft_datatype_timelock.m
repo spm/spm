@@ -65,7 +65,7 @@ function timelock = ft_datatype_timelock(timelock, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_timelock.m 10287 2015-03-28 13:04:14Z roboos $
+% $Id: ft_datatype_timelock.m 10362 2015-04-30 19:03:31Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -91,6 +91,9 @@ if ~iscolumn(timelock.label)
 end
 if ~isrow(timelock.time)
   timelock.time = timelock.time';
+end
+if ~isfield(timelock, 'label')
+  warning('data structure is incorrect since it has no channel labels');
 end
 
 switch version

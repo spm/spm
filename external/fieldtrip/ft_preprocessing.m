@@ -161,9 +161,9 @@ function [data] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 10231 2015-02-13 11:30:11Z roboos $
+% $Id: ft_preprocessing.m 10340 2015-04-17 14:10:04Z jorhor $
 
-revision = '$Id: ft_preprocessing.m 10231 2015-02-13 11:30:11Z roboos $';
+revision = '$Id: ft_preprocessing.m 10340 2015-04-17 14:10:04Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -610,6 +610,9 @@ else
     end
     if isfield(hdr, 'elec')
       dataout.elec             = hdr.elec;             % EEG information in header (f.e. headerformat = 'neuromag_fif')
+    end
+    if isfield(hdr, 'opto')
+      dataout.opto             = hdr.opto;             % NIRS  information in header (f.e. headerformat = 'artinis')
     end
     
   end % for all channel groups

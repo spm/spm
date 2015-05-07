@@ -85,9 +85,9 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 10263 2015-02-27 08:08:31Z roboos $
+% $Id: ft_timelockanalysis.m 10340 2015-04-17 14:10:04Z jorhor $
 
-revision = '$Id: ft_timelockanalysis.m 10263 2015-02-27 08:08:31Z roboos $';
+revision = '$Id: ft_timelockanalysis.m 10340 2015-04-17 14:10:04Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -357,7 +357,7 @@ if strcmp(cfg.covariance, 'yes')
 end
 
 % some fields from the input should be copied over in the output
-copyfield = {'grad', 'elec', 'topo', 'topolabel', 'unmixing'};
+copyfield = {'grad', 'elec', 'opto', 'topo', 'topolabel', 'unmixing'};
 for i=1:length(copyfield)
   if isfield(data, copyfield{i})
     timelock.(copyfield{i}) = data.(copyfield{i});
