@@ -1,4 +1,4 @@
-function [sig0,alph] = spm_smohist(t0,lam)
+function [sig0,alph] = spm_smohist(t0,lam,alph)
 % Smooth a histogram
 % FORMAT [sig,alpha] = spm_smohist(t,lam)
 % t     - a column vector, or matrix of column vectors containing
@@ -17,7 +17,7 @@ function [sig0,alph] = spm_smohist(t0,lam)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_smohist.m 6330 2015-02-09 16:19:26Z john $
+% $Id: spm_smohist.m 6431 2015-05-08 18:24:28Z john $
 
 sig0 = zeros(size(t0));
 n  = size(t0,1);
@@ -32,7 +32,9 @@ if nargin<2,
     end
 end
 
-alph = log(t0+1);
+if nargin<3
+    alph = log(t0+1);
+end
 
 % Regularisation
 G0 = spdiags(repmat([-1 2 -1],n,1),[-1 0 1],n,n);
