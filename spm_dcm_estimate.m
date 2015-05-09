@@ -53,10 +53,10 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_estimate.m 5729 2013-11-01 17:18:49Z mohamed $
+% $Id: spm_dcm_estimate.m 6432 2015-05-09 12:58:12Z karl $
 
 
-SVNid = '$Rev: 5729 $';
+SVNid = '$Rev: 6432 $';
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -96,7 +96,8 @@ try, DCM.n;                  catch, DCM.n = size(DCM.a,1);          end
 try, DCM.v;                  catch, DCM.v = size(DCM.Y.y,1);        end
 
 try, M.nograph = DCM.options.nograph; catch, M.nograph = spm('CmdLine');end
-
+try, M.Nmax    = DCM.options.nN     ; catch,M.Nmax = 64;            end
+try, M.Nmax    = DCM.M.Nmax         ; catch,M.Nmax = 64;            end
 
 % analysis and options
 %--------------------------------------------------------------------------
@@ -170,11 +171,16 @@ end
 
 % priors (and initial states)
 %--------------------------------------------------------------------------
-[pE,pC,x] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
+[pE,pC,x]  = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
+str        = 'Using specified priors\n';
 
-try, M.P     = DCM.options.P;  end      % initial parameters
-try, pE      = DCM.options.pE; end      % prior expectation
-try, pC      = DCM.options.pC; end      % prior covariance
+try, M.P   = DCM.options.P;                end      % initial parameters
+try, pE    = DCM.options.pE; fprintf(str); end      % prior expectation
+try, pC    = DCM.options.pC; fprintf(str); end      % prior covariance
+
+try, M.P   = DCM.M.P;                end            % initial parameters
+try, pE    = DCM.M.pE; fprintf(str); end            % prior expectation
+try, pC    = DCM.M.pC; fprintf(str); end            % prior covariance
 
 
 % eigenvector constraints on pC for large models

@@ -84,7 +84,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 6294 2014-12-31 16:47:47Z karl $
+% $Id: spm_nlsi_N.m 6432 2015-05-09 12:58:12Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -121,7 +121,11 @@ if isfield(M,'FS')
     %----------------------------------------------------------------------
     try
         y  = feval(M.FS,Y.y,M);
-        FS = inline([M.FS '(y,M)'],'y','M');
+        try
+            FS = inline([M.FS '(y,M)'],'y','M');
+        catch
+            FS = M.FS;
+        end
  
     % FS(y)
     %----------------------------------------------------------------------
@@ -220,6 +224,9 @@ nq    = nr*ns/nt;           % for compact Kronecker form of M-step
 % confounds (if specified)
 %--------------------------------------------------------------------------
 try
+    if isempty(Y.X0)
+        Y.X0 = sparse(ns,0);
+    end
     dgdu = kron(speye(nr,nr),Y.X0);
 catch
     dgdu = sparse(ns*nr,0);
@@ -253,6 +260,8 @@ end
 %--------------------------------------------------------------------------
 if isstruct(M.pC); M.pC = spm_diag(spm_vec(M.pC)); end
 if isstruct(M.gC); M.gC = spm_diag(spm_vec(M.gC)); end
+if isvector(M.pC); M.pC = spm_diag(M.pC); end
+if isvector(M.gC); M.gC = spm_diag(M.gC); end
 
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------
@@ -520,12 +529,17 @@ for ip = 1:M.Nmax
     
     % subplot times
     %----------------------------------------------------------------------
-    if length(Y.pst) == size(yp,1)
-        yt = Y.pst;
-    else
+    try
+        if length(Y.pst) == size(yp,1)
+            yt = Y.pst;
+        else
+            yt = (1:size(yp,1))*Y.dt*1000;
+        end
+    catch
         yt = (1:size(yp,1))*Y.dt*1000;
     end
- 
+    
+    
     % graphics
     %----------------------------------------------------------------------
     if exist('Fsi', 'var')
@@ -534,9 +548,13 @@ for ip = 1:M.Nmax
         % subplot prediction
         %------------------------------------------------------------------
         subplot(3,1,1)
-        plot(yt,x)
-        xlabel('time (ms)')
-        set(gca,'XLim',[yt(1) yt(end)])
+        try
+            plot(yt,x)
+            xlabel('time (ms)')
+            set(gca,'XLim',[yt(1) yt(end)])
+        catch
+            plot(x), spm_axis tight
+        end
         title(sprintf('%s: %i','E-Step: hidden states',ip))
         grid on
         
