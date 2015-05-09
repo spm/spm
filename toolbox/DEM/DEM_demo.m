@@ -514,3 +514,8 @@ run_demo_Callback(hObject, handles, 'DEMO_BMR_PEB')
 function pushbutton158_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Post%20hoc%20Bayesian%20model%20selection.pdf';
 run_demo_Callback(hObject, handles, 'DEMO_GROUP_PEB')
+
+% --- Executes on button press in pushbutton159.
+function pushbutton159_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/spm/doc/papers/sjk_aibf.pdf';
+run_demo_Callback(hObject, handles, 'DEM_spatial_deconvolution')
