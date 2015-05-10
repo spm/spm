@@ -26,7 +26,7 @@ function DCM = spm_dcm_csd_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_data.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_dcm_csd_data.m 6434 2015-05-10 20:16:28Z vladimir $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -116,7 +116,7 @@ end
 try
     trial = DCM.options.trials;
 catch
-    trial = D.nconditions;
+    trial = 1:D.nconditions;
 end
  
 % check data are not oversampled (< 4ms)
