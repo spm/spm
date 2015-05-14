@@ -47,7 +47,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_coreg.m 5669 2013-10-03 19:51:35Z john $
+% $Id: spm_coreg.m 6435 2015-05-14 09:59:54Z guillaume $
 
 %--------------------------------------------------------------------------
 % References
@@ -84,7 +84,7 @@ function x = spm_coreg(varargin)
 % Published by Cambridge.
 %--------------------------------------------------------------------------
 
-SVNid = '$Rev: 5669 $';
+SVNid = '$Rev: 6435 $';
 
 if nargin >= 4
     x = optfun(varargin{:});
@@ -351,8 +351,8 @@ set(ax,'DataAspectRatio',[1 1 1],...
     'PlotBoxAspectRatioMode','auto','XDir','normal','YDir','normal',...
     'XTick',[],'YTick',[]);
 title('Original Joint Histogram','Parent',ax);
-xlabel(spm_file(VG.fname,'short22'),'Parent',ax);
-ylabel(spm_file(VF.fname,'short22'),'Parent',ax);
+xlabel(spm_file(VG.fname,'short22'),'Parent',ax,'Interpreter','none');
+ylabel(spm_file(VF.fname,'short22'),'Parent',ax,'Interpreter','none');
 
 H   = spm_hist2(VG.uint8,VF.uint8,VF.mat\spm_matrix(x(:)')*VG.mat,[1 1 1]);
 ax  = axes('Position',[0.6 0.5 0.35 0.3],'Visible','off','Parent',fig);
@@ -362,8 +362,8 @@ set(ax,'DataAspectRatio',[1 1 1],...
     'PlotBoxAspectRatioMode','auto','XDir','normal','YDir','normal',...
     'XTick',[],'YTick',[]);
 title('Final Joint Histogram','Parent',ax);
-xlabel(spm_file(VG.fname,'short22'),'Parent',ax);
-ylabel(spm_file(VF.fname,'short22'),'Parent',ax);
+xlabel(spm_file(VG.fname,'short22'),'Parent',ax,'Interpreter','none');
+ylabel(spm_file(VF.fname,'short22'),'Parent',ax,'Interpreter','none');
 
 % Display ortho-views
 %--------------------------------------------------------------------------
