@@ -47,10 +47,10 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % be extracted from xY.y, and will be the same as the [adjusted] data 
 % returned by the plotting routine (spm_graph.m) for the same contrast.
 %__________________________________________________________________________
-% Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_regions.m 6314 2015-01-23 17:00:51Z guillaume $
+% $Id: spm_regions.m 6436 2015-05-14 10:05:27Z guillaume $
 
 
 %-Shortcut for VOI display
@@ -94,7 +94,11 @@ end
  
 % and update GUI location
 %--------------------------------------------------------------------------
-spm_XYZreg('SetCoords',xyz,hReg);
+if spm_mesh_detect(SPM.xY.VY)
+    spm_XYZreg('SetCoords',xyz,hReg,1);
+else
+    spm_XYZreg('SetCoords',xyz,hReg);
+end
  
  
 %-Get adjustment options and VOI name
@@ -174,7 +178,7 @@ spm('Pointer','Watch')
  
 %-Get raw data, whiten and filter 
 %--------------------------------------------------------------------------
-y        = spm_get_data(SPM.xY.VY,xSPM.XYZ(:,Q));
+y        = spm_data_read(SPM.xY.VY,'xyz',xSPM.XYZ(:,Q));
 y        = spm_filter(SPM.xX.K,SPM.xX.W*y);
  
  
@@ -187,7 +191,7 @@ if xY.Ic ~= 0
  
     %-Parameter estimates: beta = xX.pKX*xX.K*y
     %----------------------------------------------------------------------
-    beta  = spm_get_data(SPM.Vbeta,xSPM.XYZ(:,Q));
+    beta  = spm_data_read(SPM.Vbeta,'xyz',xSPM.XYZ(:,Q));
  
     %-subtract Y0 = XO*beta,  Y = Yc + Y0 + e
     %----------------------------------------------------------------------
