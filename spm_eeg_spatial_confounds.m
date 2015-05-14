@@ -13,10 +13,10 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 6029 2014-05-30 18:52:03Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 6437 2015-05-14 12:27:21Z vladimir $
 
 
-SVNrev = '$Rev: 6029 $';
+SVNrev = '$Rev: 6437 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -29,7 +29,7 @@ if ~isfield(S, 'threshold') && isfield(S, 'svdthresh'),  S.threshold  = S.svdthr
 
 D = spm_eeg_load(S.D);
 
-
+sconf = [];
 switch upper(S.mode)
     case 'EYES'
         [D, ok] = check(D, 'sensfid');
@@ -104,12 +104,9 @@ switch upper(S.mode)
             
             sconf.coeff(sel1, :) = spm_cond_units(L(sel2, :));
             sconf.bad(sel1, :) = 0;
-        end
-        
-        D = sconfounds(D, sconf);
+        end       
     case 'BESA'       
         sconf = spm_eeg_read_bsa(S.conffile );
-        D = sconfounds(D, sconf);
     case 'SVD'       
         cl = D.condlist;
         svdinput = [];
@@ -141,16 +138,17 @@ switch upper(S.mode)
             sconf.coeff(sel1, :) = U(sel2, 1:ncomp);
             sconf.bad = ones(length(sconf.label), 1);
             sconf.bad(sel1, :) = 0;
-            D = sconfounds(D, sconf);
         end
     case 'SPMEEG'       
         Ds = spm_eeg_load(S.conffile);
-        sconf = getfield(Ds, 'sconfounds');
-        D = sconfounds(D, sconf);
+        sconf = getfield(Ds, 'sconfounds');        
     case 'CLEAR'
         D = rmfield(D, 'sconfounds');
 end
 
+if ~isempty(sconf)
+    D = sconfounds(D, sconf, 'append');
+end
 
 % Plot scalp topographies
 % ---------------------------------------------------------------------

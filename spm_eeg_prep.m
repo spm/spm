@@ -17,16 +17,16 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 6194 2014-09-24 12:47:55Z vladimir $
+% $Id: spm_eeg_prep.m 6437 2015-05-14 12:27:21Z vladimir $
 
 D = spm_eeg_load(S.D);
 
 switch lower(S.task)
-        %----------------------------------------------------------------------
+    %----------------------------------------------------------------------
     case 'setbadchan'
         %----------------------------------------------------------------------
-        D = badchannels(D, D.selectchannels(S.channels), S.status);        
-    %----------------------------------------------------------------------
+        D = badchannels(D, D.selectchannels(S.channels), S.status);
+        %----------------------------------------------------------------------
     case 'settype'
         %----------------------------------------------------------------------
         D = chantype(D, S.ind, S.type);
@@ -80,6 +80,8 @@ switch lower(S.task)
         %----------------------------------------------------------------------
     case {'loadtemplate', 'setcoor2d', 'project3d'}
         %----------------------------------------------------------------------
+        chanind = 1:D.nchannels;
+        
         switch lower(S.task)
             case 'loadtemplate'
                 template    = load(S.P); % must contain Cpos, Cnames
@@ -100,6 +102,13 @@ switch lower(S.task)
                     sens    = D.sensors(S.modality);
                 end
                 [xy, label] = spm_eeg_project3D(sens, S.modality);
+                
+                switch S.modality
+                    case 'EEG'
+                        chanind  = D.indchantype('EEG');
+                    case 'MEG'
+                        chanind  = D.indchantype('MEGANY');
+                end
         end
         
         megcombind   = D.indchantype('MEGCOMB');
@@ -116,7 +125,8 @@ switch lower(S.task)
             xy    = [xy 0.5*(xy(:, sel2(sel6)) + xy(:, sel4(sel7)))];
         end
         
-        [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(label));
+        [sel1, sel2] = spm_match_str(lower(D.chanlabels(chanind)), lower(label));
+        sel1         = chanind(sel1);        
         
         if ~isempty(sel1)
             
@@ -247,25 +257,25 @@ switch lower(S.task)
             ind = strmatch([ft_senstype(D.chanlabels(D.indchantype('EEG'))) '.sfp'], template_sfp, 'exact');
         end
         
-        if ~isempty(ind)            
+        if ~isempty(ind)
             fid = D.fiducials;
             
-            if isequal(D.modality(1, 0), 'Multimodal') && ~isempty(fid)                
+            if isequal(D.modality(1, 0), 'Multimodal') && ~isempty(fid)
                 
                 nzlbl = {'fidnz', 'nz', 'nas', 'nasion', 'spmnas'};
                 lelbl = {'fidle', 'fidt9', 'lpa', 'lear', 'earl', 'le', 'l', 't9', 'spmlpa'};
                 relbl = {'fidre', 'fidt10', 'rpa', 'rear', 'earr', 're', 'r', 't10', 'spmrpa'};
                 
-                [sel1, nzind] = spm_match_str(nzlbl, lower(fid.fid.label)); 
-                 if ~isempty(nzind)                   
+                [sel1, nzind] = spm_match_str(nzlbl, lower(fid.fid.label));
+                if ~isempty(nzind)
                     nzind = nzind(1);
                 end
                 [sel1, leind] = spm_match_str(lelbl, lower(fid.fid.label));
-                 if ~isempty(leind)                   
+                if ~isempty(leind)
                     leind = leind(1);
-                 end               
+                end
                 [sel1, reind] = spm_match_str(relbl, lower(fid.fid.label));
-                if ~isempty(reind)                 
+                if ~isempty(reind)
                     reind = reind(1);
                 end
                 
@@ -284,7 +294,7 @@ switch lower(S.task)
                 S1.sensfile = fullfile(spm('dir'), 'EEGtemplates', template_sfp{ind});
                 S1.updatehistory = 0;
                 D = spm_eeg_prep(S1);
-            else                
+            else
                 elec = ft_read_sens(fullfile(spm('dir'), 'EEGtemplates', template_sfp{ind}));
                 
                 [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(elec.label));
@@ -338,8 +348,8 @@ switch lower(S.task)
         
         %----------------------------------------------------------------------
     case 'loadmegsens'
-        %----------------------------------------------------------------------        
-        hdr  = ft_read_header(S.source);        
+        %----------------------------------------------------------------------
+        hdr  = ft_read_header(S.source);
         D = sensors(D, 'MEG', hdr.grad);
         D = fiducials(D, ft_convert_units(ft_read_headshape(S.source), 'mm'));
         
@@ -353,10 +363,10 @@ switch lower(S.task)
             
             D = spm_eeg_prep(S1);
         end
-                
+        
         %----------------------------------------------------------------------
     case 'sens2chan'
-        %----------------------------------------------------------------------        
+        %----------------------------------------------------------------------
         if isfield(S, 'montage')
             montage = S.montage;
             if ischar(montage)
@@ -382,7 +392,7 @@ switch lower(S.task)
         else
             error('Montage or list of reference sensors should be specified');
         end
-                       
+        
         modalities = {'EEG', 'MEG'};
         for m = 1:numel(modalities)
             sens = sensors(D, modalities{m});
@@ -462,14 +472,14 @@ switch lower(S.task)
         D = spm_eeg_inv_mesh_ui(D, val, 1, Msize);
         D = spm_eeg_inv_datareg_ui(D, val);
         
-    case 'sortconditions'    
+    case 'sortconditions'
         if ischar(S.condlist)
             cl = getfield(load(S.condlist), 'condlist');
         else
             cl = S.condlist;
         end
         
-        D = condlist(D, cl);        
+        D = condlist(D, cl);
         %----------------------------------------------------------------------
     otherwise
         %----------------------------------------------------------------------

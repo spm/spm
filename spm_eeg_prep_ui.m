@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 6370 2015-03-10 16:29:21Z vladimir $
+% $Id: spm_eeg_prep_ui.m 6437 2015-05-14 12:27:21Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ end
 %==========================================================================
 function CreateMenu
 
-SVNrev = '$Rev: 6370 $';
+SVNrev = '$Rev: 6437 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -1011,8 +1011,10 @@ D = getD;
 switch get(gcbo, 'Label')
     case 'Project 3D (EEG)'
         modality = 'EEG';
+        chanind  = D.indchantype('EEG');
     case 'Project 3D (MEG)'
         modality = 'MEG';
+        chanind  = D.indchantype('MEGANY');
 end
 
 if ~isfield(D, 'val')
@@ -1029,7 +1031,9 @@ end
 
 [xy, label] = spm_eeg_project3D(sens, modality);
 
-plot_sensors2D(xy, label);
+[sel1, sel2] = spm_match_str(D.chanlabels(chanind), label);
+
+plot_sensors2D(xy(:, sel2), label(sel2));
 
 update_menu;
 
@@ -1168,9 +1172,9 @@ if isa(get(Finter, 'UserData'), 'meeg')
     
     template_sfp = dir(fullfile(spm('dir'), 'EEGtemplates', '*.sfp'));
     template_sfp = {template_sfp.name};
-    ind = strmatch([ft_senstype(D.chanlabels) '.sfp'], template_sfp, 'exact');
+    ind = strmatch([ft_senstype(D.chanlabels(D.indchantype('EEG'))) '.sfp'], template_sfp, 'exact');
     
-    if ~isempty(ind) || ft_senstype(D.chanlabels, 'ext1020')
+    if ~isempty(ind) || ft_senstype(D.chanlabels(D.indchantype('EEG')), 'ext1020')
         HasDefaultLocs = 'on';
     end
     

@@ -18,9 +18,9 @@ function D = spm_eeg_crop(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_crop.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_eeg_crop.m 6437 2015-05-14 12:27:21Z vladimir $
 
-SVNrev = '$Rev: 5079 $';
+SVNrev = '$Rev: 6437 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -68,9 +68,11 @@ Dnew = units(Dnew, ':', units(D, chanind));
 Dnew = coor2D(Dnew, ':', coor2D(D, chanind));
 
 if isequal(Dnew.type, 'continuous')
-   ev = Dnew.events;
-   ev = ev([ev.time]>=Dnew.time(1) & [ev.time]<=Dnew.time(end));
-   Dnew   = events(Dnew, 1, ev);
+    ev = Dnew.events;
+    if ~isempty(ev)
+        ev = ev([ev.time]>=Dnew.time(1) & [ev.time]<=Dnew.time(end));
+        Dnew   = events(Dnew, 1, ev);
+    end
 end
 
 %-Copy data

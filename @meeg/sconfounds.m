@@ -1,18 +1,18 @@
-function res = sconfounds(this, newsconfounds)
+function res = sconfounds(this, newsconfounds, append)
 % Method for getting/setting spatial confounds
 % FORMAT res = sconfounds(this, newsconfounds)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: sconfounds.m 5640 2013-09-18 12:02:29Z vladimir $
+% $Id: sconfounds.m 6437 2015-05-14 12:27:21Z vladimir $
 
-if nargin == 2
+if nargin >= 2
     meegind = indchantype(this, 'MEEG');
     
     [sel1, sel2] = match_str(chanlabels(this, meegind), newsconfounds.label);
 
-    sel1 = meegind(sel1);
+    sel1 = meegind(sel1);        
     
     if length(sel1)<length(meegind)
         error('The spatial confounds do not match the MEEG channels.');
@@ -26,6 +26,16 @@ if nargin == 2
     newsconfounds.label = newsconfounds.label(sel2);
     newsconfounds.coeff = newsconfounds.coeff(sel2, :);
     newsconfounds.bad = newsconfounds.bad(sel2);
+    
+    if nargin == 3 && isfield(this.other, 'sconfounds')
+        oldsconfounds = this.other.sconfounds;
+        
+        if ~isequal(newsconfounds.label, oldsconfounds.label)
+            error('New confounds incompatible with old. Cannot append.');
+        end
+        
+        newsconfounds.coeff = [oldsconfounds.coeff newsconfounds.coeff];
+    end            
 
     this.other(1).sconfounds = newsconfounds;
     

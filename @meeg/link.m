@@ -10,7 +10,7 @@ function this = link(this, fnamedat, dtype, slope, offset)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: link.m 5061 2012-11-16 11:15:50Z vladimir $
+% $Id: link.m 6437 2015-05-14 12:27:21Z vladimir $
 
 if isempty(this)
    error('All header dimensions should be >0');
@@ -56,10 +56,12 @@ end
 
 this.data = file_array(fnamedat, siz, dtype, offset, slope);
 
-try
-    this.data(size(this));
+siz = num2cell(size(this));
+
+try    
+    this.data(siz{:});
 catch
     error('Dimensions mismatch. Could not link to the data file');
 end
-  
+
 this = check(this);

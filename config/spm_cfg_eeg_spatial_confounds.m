@@ -4,7 +4,7 @@ function sconfounds = spm_cfg_eeg_spatial_confounds
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_spatial_confounds.m 6029 2014-05-30 18:52:03Z vladimir $
+% $Id: spm_cfg_eeg_spatial_confounds.m 6437 2015-05-14 12:27:21Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -82,11 +82,11 @@ clr.name = 'Clear';
 clr.val  = {1};
 clr.help = {'Clear previously defined spatial confounds'};
 
-mode = cfg_choice;
+mode = cfg_repeat;
 mode.tag = 'mode';
 mode.name = 'Mode';
 mode.values = {svd, spmeeg, besa, eyes, clr};
-mode.help = {'Select a method for defining spatial confounds.'};
+mode.help = {'Select methods for defining spatial confounds.'};
 
 sconfounds = cfg_exbranch;
 sconfounds.tag = 'sconfounds';
@@ -98,24 +98,32 @@ sconfounds.vout = @vout_eeg_sconfounds;
 sconfounds.modality = {'EEG'};
 
 function out = eeg_sconfounds(job)
-% construct the S struct
-S.D = char(job.D{1});
-S.mode = char(fieldnames(job.mode));
-switch S.mode
-    case 'svd'
-        if ~isnan(job.mode.svd.threshold)
-            S.threshold = job.mode.svd.threshold;
-        else
-            S.ncomp = job.mode.svd.ncomp;
-        end
-        S.timewin = job.mode.svd.timewin;
-    case {'besa', 'spmeeg'}
-        S.conffile = char(job.mode.(S.mode).conffile);
-    otherwise
-        % do nothing
+
+D = char(job.D{1});
+
+for i = 1:numel(job.mode)
+    mode = job.mode{i};
+    S = [];
+    S.D = D;
+    S.mode = char(fieldnames(mode));
+    switch S.mode
+        case 'svd'
+            if ~isnan(mode.svd.threshold)
+                S.threshold = mode.svd.threshold;
+            else
+                S.ncomp = mode.svd.ncomp;
+            end
+            S.timewin = mode.svd.timewin;
+        case {'besa', 'spmeeg'}
+            S.conffile = char(mode.(S.mode).conffile);
+        otherwise
+            % do nothing
+    end
+    
+    D = spm_eeg_spatial_confounds(S);
 end
 
-D = spm_eeg_spatial_confounds(S);
+
 out.D = {fullfile(D)};
 
 function dep = vout_eeg_sconfounds(job)
