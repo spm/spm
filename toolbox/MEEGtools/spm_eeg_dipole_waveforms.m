@@ -23,7 +23,7 @@ function sD = spm_eeg_dipole_waveforms(S)
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_dipole_waveforms.m 6121 2014-07-25 11:34:46Z vladimir $
+% $Id: spm_eeg_dipole_waveforms.m 6438 2015-05-18 11:50:42Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Dipole waveform extraction', 0);
 %%
@@ -98,7 +98,7 @@ dipoles.pos = S.dipoles.pnt;
 dipoles.ori = S.dipoles.ori;
 
 
-dipoles = ft_transform_geometry(data.transforms.fromMNI, dipoles);
+dipoles = ft_transform_geometry(inv(data.transforms.toMNI), dipoles);
 pnt = dipoles.pos;
 label = S.dipoles.label;
 
