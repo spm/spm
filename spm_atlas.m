@@ -17,7 +17,7 @@ function varargout = spm_atlas(action,varargin)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_atlas.m 6409 2015-04-16 16:19:38Z guillaume $
+% $Id: spm_atlas.m 6440 2015-05-19 16:54:28Z guillaume $
 
 
 if ~nargin, action = 'load'; end
@@ -797,7 +797,7 @@ function xA = preloaded(atlas,xA)
 persistent pl_atlas
 persistent pl_xA
 if isempty(pl_atlas), pl_atlas = {}; end
-if isempty(pl_xA), pl_xA = []; end
+if isempty(pl_xA), pl_xA = {}; end
 i = find(ismember(pl_atlas,atlas));
 if nargin == 1
     if isempty(i)
@@ -808,7 +808,7 @@ if nargin == 1
 else
     if isempty(i)
         pl_atlas = [pl_atlas atlas];
-        pl_xA = [pl_xA xA];
+        pl_xA = [pl_xA {xA}];
     else
         pl_xA{i} = xA;
     end
