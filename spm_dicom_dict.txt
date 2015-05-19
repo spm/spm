@@ -3607,10 +3607,14 @@ FFFE	E0DD	SequenceDelimitationItem	UN	1
 0029	1018	CSASeriesHeaderType	CS	1
 0029	1019	CSASeriesHeaderVersion	LO	1
 0029	1020	CSASeriesHeaderInfo	OB	1
+0029	1110	Private_0029_1110	OB	1
+0029	1120	Private_0029_1120	OB	1
 0029	1131	PMTFInformation1	LO	1
 0029	1132	PMTFInformation2	UL	1
 0029	1133	PMTFInformation3	UL	1
 0029	1134	PMTFInformation4	CS	1
+0029	1210	Private_0029_1210	OB	1
+0029	1220	Private_0029_1220	OB	1
 0031	1009	NumberRawDataChannels	UL	1
 7fe1	1010	CSAData	OB	1
 0029	1140	SiemensMedcomHeader	SQ	1

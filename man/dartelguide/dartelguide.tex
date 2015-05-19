@@ -257,31 +257,36 @@ If \emph{A} is the mapping from MNI to template, and \emph{B} is the mapping fro
 Spatially normalising via the composed deformations can be achieved through the \emph{Deformations} utility. 
 
 \begin{itemize}
-\item{{\bf Deformations}
+\item {\bf Deformations}
   \begin{itemize}
-  \item{{\bf Composition}
+  \item {\bf Composition}
     \begin{itemize}
-    \item{{\bf Dartel flow}
+    \item {\bf Dartel flow}
       \begin{itemize}
-      \item{{\bf Flow field}: Specify the u\_rc1*.nii flow field for that subject.}
-      \item{{\bf Forward/Backwards}: This should be set to ``Backward'' to indicate a mapping from template to individual.}
-      \item{{\bf Time Steps}: This is the number of time steps used by the final iterations of the Dartel registration (usually 64).}
+      \item {\bf Flow field}: Specify the u\_rc1*.nii flow field for that subject.
+      \item {\bf Forward/Backwards}: This should be set to ``Backward'' to indicate a mapping from template to individual.
+      \item {\bf Time Steps}: This is the number of time steps used by the final iterations of the Dartel registration (usually 64).
+      \item {\bf Dartel template}: leave this field empty.
       \end{itemize}
-    }
-    \item{{\bf Imported \_sn.mat}
+    \item {\bf Imported \_sn.mat}
       \begin{itemize}
-      \item{{\bf Parameter File}: Select the spatial normalisation parameters that would spatially normalise the Template\_6.nii file.}
-      \item{{\bf Voxel sizes}: These are set to ``NaN'' (not a number) by default, which would take the voxel sizes for the apriori/grey.nii file.  Alternatively, you could specify your favourite voxel sizes for spatially normalised images.}
-      \item{{\bf Bounding box}: Again, these are set to non-finite values by default, which results in the same bounding box as the apriori/grey.nii file.  To specify your favourite bounding box, enter $[x_{min}, y_{min}, z_{min}; x_{max}, y_{max}, z_{max}]$ (in units of mm, relative to the AC).}
+      \item {\bf Parameter File}: Select the spatial normalisation parameters that would spatially normalise the Template\_6.nii file.
+      \item {\bf Voxel sizes}: These are set to ``NaN'' (not a number) by default, which would take the voxel sizes for the apriori/grey.nii file.  Alternatively, you could specify your favourite voxel sizes for spatially normalised images.
+      \item {\bf Bounding box}: Again, these are set to non-finite values by default, which results in the same bounding box as the apriori/grey.nii file.  To specify your favourite bounding box, enter $[x_{min}, y_{min}, z_{min}; x_{max}, y_{max}, z_{max}]$ (in units of mm, relative to the AC).
       \end{itemize}
-    }
     \end{itemize}
-  }
-  \item{{\bf Save as}: You can save the composed deformations as a file. This would be called y\_*.nii, which contains three volumes that encode the x, y and z components of the mapping.  Note that only the first (x) component can be visualised in SPM. These things were not really designed to be visualised as images anyway.}
-  \item{{\bf Apply to}: Specify the images for that subject that you would like spatially normalised. Note that the spatially normalised images are not masked (see the Chapter on Realignment for more information here).  If realignment parameters are to be incorporated into the transformation, then this could cause problems at the edges.  These can be avoided by reslicing after realignment (which is the default option if you ``Realign Unwarp'').  Alternatively, some form of additional masking  could be applied to the spatially normalised images, prior to smoothing.}
-  \item{{\bf Interpolation}: Specify the form of interpolation.}
+  \item {\bf Output}
+    \begin{itemize}
+    \item {\bf Pullback}
+      \begin{itemize}
+      \item {\bf Apply to}: Specify the images for that subject that you would like spatially normalised.
+      \item {\bf Output destination}: Specify where you want to write the images.
+      \item {\bf Interpolation}: Specify the form of interpolation.
+      \item {\bf Mask images}: Say whether you want to mask the images (see the Chapter on Realignment for more information here).
+      \item {\bf Gaussian FWHM}: The images can be smoothed when they are written.  If you do not want this, then enter 0 0 0.
+      \end{itemize}
+    \end{itemize}
   \end{itemize}
-}
 \end{itemize}
 
 The above procedure would be repeated for each subject in the study.
@@ -318,36 +323,41 @@ This can be achieved by aligning them both with a pre-existing template, but it 
 Once the flow fields (u\_rc1*.nii files) have been estimated, then the resulting deformations can be composed using \emph{SPM$\rightarrow$Utils$\rightarrow$Deformations}.
 If the objective is to warp A.nii to align with B.nii, then the procedure is set up by:
 \begin{itemize}
-\item{{\bf Deformations}
+\item {\bf Deformations}
   \begin{itemize}
-  \item{{\bf Composition}
+  \item {\bf Composition}
     \begin{itemize}
-    \item{{\bf Dartel flow}
+    \item {\bf Dartel flow}
       \begin{itemize}
-      \item{{\bf Flow field}: Specify the u\_rc1A\_Template.nii flow field.}
-      \item{{\bf Forward/Backwards}: Backward.}
-      \item{{\bf Time Steps}: Usually 64.}
+      \item {\bf Flow field}: Specify the u\_rc1A\_Template.nii flow field.
+      \item {\bf Forward/Backwards}: Backward.
+      \item {\bf Time Steps}: Usually 64.
+      \item {\bf Dartel template}: leave this field empty.
       \end{itemize}
-    }
-    \item{{\bf Dartel flow}
+    \item {\bf Dartel flow}
       \begin{itemize}
-      \item{{\bf Flow Field}: Specify the u\_rc1B\_Template.nii flow field.}
-      \item{{\bf Forward/Backwards}: Forward.}
-      \item{{\bf Time Steps}: Usually 64.}
+      \item {\bf Flow Field}: Specify the u\_rc1B\_Template.nii flow field.
+      \item {\bf Forward/Backwards}: Forward.
+      \item {\bf Time Steps}: Usually 64.
+      \item {\bf Dartel template}: leave this field empty.
       \end{itemize}
-    }
-    \item{{\bf Identity}
+    \item {\bf Identity}
       \begin{itemize}
-      \item{{\bf Image to base Id on}: Specify B.nii in order to have the deformed image(s) written out at this resolution, and with the same orientations etc (ie so there is a voxel-for-voxel alignment, rather than having the images only aligned according to their ``voxel-to-world'' mappings).}
+      \item {\bf Image to base Id on}: Specify B.nii in order to have the deformed image(s) written out at this resolution, and with the same orientations etc (ie so there is a voxel-for-voxel alignment, rather than having the images only aligned according to their ``voxel-to-world'' mappings).
       \end{itemize}
-    }
     \end{itemize}
-  }
-  \item{{\bf Save as}: You can save the composed deformations as a file. This would be called y\_*.nii, which contains three volumes that encode the x, y and z components of the mapping.}
-  \item{{\bf Apply to}: Specify A.nii, and any other images for that subject that you would like warped to match B.nii. Note that these other images must be in alignment according to \emph{Check Reg}.}
-  \item{{\bf Interpolation}: Specify the form of interpolation.}
+  \item {\bf Output}
+    \begin{itemize}
+    \item {\bf Pullback}
+      \begin{itemize}
+      \item {\bf Apply to}: Specify A.nii, and any other images for that subject that you would like warped to match B.nii. Note that these other images must be in alignment according to \emph{Check Reg}.
+      \item {\bf Output destination}: Specify where you want to write the images.
+      \item {\bf Interpolation}: Specify the form of interpolation.
+      \item {\bf Mask images}: Say whether you want to mask the images.
+      \item {\bf Gaussian FWHM}: The images can be smoothed when they are written.  If you do not want this, then enter 0 0 0.
+      \end{itemize}
+    \end{itemize}
   \end{itemize}
-}
 \end{itemize}
 
 Suppose the image of one subject has been manually labelled, then this option is useful for transferring the labels on to images of other subjects.
