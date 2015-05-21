@@ -1,11 +1,10 @@
 function prepro = spm_cfg_eeg_inv_prepro
-% configuration file for configuring imaging source inversion
-% reconstruction
-%_______________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Configuration file for configuring imaging source inversion reconstruction
+%__________________________________________________________________________
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invert.m 5568 2013-07-01 11:07:18Z vladimir $
+% $Id: spm_cfg_eeg_inv_prepro.m 6444 2015-05-21 11:15:48Z guillaume $
 
 D = cfg_files;
 D.tag = 'D';
@@ -165,6 +164,7 @@ prepro.prog = @run_prepro;
 prepro.vout = @vout_prepro;
 prepro.modality = {'EEG'};
 
+
 function  out = run_prepro(job)
 
 D = spm_eeg_load(job.D{1});
@@ -229,6 +229,7 @@ end
 
 out.D = job.D;
 
+
 function dep = vout_prepro(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -237,4 +238,3 @@ dep.sname = 'M/EEG dataset(s) after imaging source reconstruction';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-

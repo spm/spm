@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 6139 2014-08-20 17:55:24Z guillaume $
+% $Id: spm_check_installation.m 6444 2015-05-21 11:15:48Z guillaume $
 
 if isdeployed, return; end
 
@@ -206,7 +206,7 @@ fprintf('SPM version is %s (%s, %s)\n', ...
 
 %-Detect SPM toolboxes
 %--------------------------------------------------------------------------
-officials = {'DARTEL', 'dcm_meeg', 'DEM', 'FieldMap', ...
+officials = {'DARTEL', 'dcm_fnirs', 'dcm_meeg', 'DEM', 'FieldMap', ...
     'Longitudinal', 'MEEGtools', 'mixture', 'mlm', 'Neural_Models', ...
     'OldNorm', 'OldSeg', 'Shoot', 'spectral', 'SPEM_and_DCM', 'SRender'};
 dd = dir(fullfile(SPMdir,'toolbox'));

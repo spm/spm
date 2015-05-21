@@ -1,6 +1,6 @@
-function [bor,F0,F1] = spm_BMS_bor (L,posterior,priors,C)
+function [bor,F0,F1] = spm_BMS_bor(L,posterior,priors,C)
 % Compute Bayes Omnibus Risk
-% FORMAT [bor,F0,F1] = spm_BMS_bor (L,posterior,priors,C)
+% FORMAT [bor,F0,F1] = spm_BMS_bor(L,posterior,priors,C)
 %
 % L         Log model evidence table (models x  subjects)
 % posterior .a model counts, .r model-subject probs
@@ -12,21 +12,22 @@ function [bor,F0,F1] = spm_BMS_bor (L,posterior,priors,C)
 % REFERENCES:
 %
 % Rigoux, L, Stephan, KE, Friston, KJ and Daunizeau, J. (2014)
-% Bayesian model selection for group studies—Revisited. 
+% Bayesian model selection for group studies - Revisited. 
 % NeuroImage 84:971-85. doi: 10.1016/j.neuroimage.2013.08.065
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_BMS_bor.m 6444 2015-05-21 11:15:48Z guillaume $
+
 
 if nargin < 4
-    options.families=0;
+    options.families = 0;
     % Evidence of null (equal model freqs)
     F0 = FE_null(L,options); 
 else
-    options.families=1;
-    options.C=C;
+    options.families = 1;
+    options.C = C;
     % Evidence of null (equal model freqs) under family prior
     [tmp,F0] = FE_null(L,options); 
 end
@@ -36,7 +37,8 @@ F1 = FE(L,posterior,priors);
 
 % Implied by Eq 5 (see also p39) in Rigoux et al.
 % See also, last equation in Appendix 2
-bor=1/(1+exp(F1-F0)); 
+bor = 1/(1+exp(F1-F0)); 
+
 
 function [F,ELJ,Sqf,Sqm] = FE(L,posterior,priors)
 % derives the free energy for the current approximate posterior
@@ -61,6 +63,7 @@ for i=1:n
     end
 end
 F = ELJ + Sqf + Sqm;
+
 
 function [F0m,F0f] = FE_null (L,options)
 % Free energy of the 'null' (H0: equal frequencies)
