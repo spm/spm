@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 6358 2015-03-03 14:30:14Z volkmar $
+% $Id: cfg_getfile.m 6443 2015-05-21 11:04:30Z volkmar $
 
 t = {};
 sts = false;
@@ -948,36 +948,38 @@ else
 end
 f = [sort(fd(:)); sort(ff(:))];
 
-if domsg
-    msg('Filtering %d files...',numel(f));
-end
-f  = sort(do_filter(f,filt.filt));
-if domsg
-    msg('Listing %d files...',numel(f));
-end
-f1   = cell(size(filt.tfilt));
-i1   = cell(size(filt.tfilt));
-for k = 1:numel(filt.tfilt)
-    [f11,i11] = do_filter(f,filt.tfilt(k).regex);
-    if isempty(f11)||isempty(filt.tfilt(k).fun)
-        f1{k} = f11;
-        i1{k} = i11;
-    else
-        [unused,prms] = harvest(filt.tfilt(k).prms, filt.tfilt(k).prms, false, false);
-        [f1{k},i12] = filt.tfilt(k).fun('list',dr,f11,prms);
-        i1{k}       = i11(i12);
+if ~isempty(f)
+    if domsg
+        msg('Filtering %d files...',numel(f));
     end
+    f  = sort(do_filter(f,filt.filt));
+    if domsg
+        msg('Listing %d files...',numel(f));
+    end
+    f1   = cell(size(filt.tfilt));
+    i1   = cell(size(filt.tfilt));
+    for k = 1:numel(filt.tfilt)
+        [f11,i11] = do_filter(f,filt.tfilt(k).regex);
+        if isempty(f11)||isempty(filt.tfilt(k).fun)
+            f1{k} = f11;
+            i1{k} = i11;
+        else
+            [unused,prms] = harvest(filt.tfilt(k).prms, filt.tfilt(k).prms, false, false);
+            [f1{k},i12] = filt.tfilt(k).fun('list',dr,f11,prms);
+            i1{k}       = i11(i12);
+        end
+    end
+    % files might have been matched by multiple filters. Sort into roughly
+    % alphabetical order before removing duplicates with 'stable' option.
+    f = cat(1,f1{:});
+    o = cat(1,i1{:});
+    % [un,so] = sort(o);
+    % f       = unique(f(so), 'stable');
+    [un,fi,fj] = unique(f);
+    ufi        = unique(fi(fj));
+    [un,so]    = sort(o(ufi));
+    f = f(ufi(so));
 end
-% files might have been matched by multiple filters. Sort into roughly
-% alphabetical order before removing duplicates with 'stable' option.
-f = cat(1,f1{:});
-o = cat(1,i1{:});
-% [un,so] = sort(o);
-% f       = unique(f(so), 'stable');
-[un,fi,fj] = unique(f);
-ufi        = unique(fi(fj));
-[un,so]    = sort(o(ufi));
-f = f(ufi(so));
 d = unique(d(:));
 if domsg
     msg(omsg);
