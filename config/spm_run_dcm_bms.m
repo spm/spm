@@ -17,10 +17,10 @@ function out = spm_run_dcm_bms(job)
 % Copyright (C) 2009-2014 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_dcm_bms.m 6203 2014-09-26 14:36:54Z will $
+% $Id: spm_run_dcm_bms.m 6442 2015-05-21 09:13:44Z will $
 
 
-SVNid = '$Rev: 6203 $';
+SVNid = '$Rev: 6442 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -114,7 +114,7 @@ if  ld_f
     data      = job.load_f{1};
     load(data);
     nm        = size(F,2);                                % No of Models
-    ns        = size(F,1);                                % No of Models
+    ns        = size(F,1);                                % No of Subjects
     N         = 1:nm;
     subj      = [];                                       % subj structure
     f_fname   = data;                                     % LogE file name
@@ -196,6 +196,8 @@ else
                         
                     else
                         
+                        tmp = subj(k).sess(h).model(j).fname; 
+                        DCM = load(tmp); 
                         F_sess = [F_sess,subj(k).sess(h).model(j).F];
                         
                     end
@@ -392,16 +394,20 @@ else
     if ~do_family
         [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs(F);
         model.g_post             = g_post;
-        alpha                    = [];
-        model.alpha = alpha;
+        model.alpha = exp_r*(nm+ns);
         model.exp_r = exp_r;
         model.xp    = xp;
         family      = [];
         
         % Compute protected xp's
-        [tmp1,tmp2,tmp3,pxp,bor]=spm_BMS(F);
-        model.pxp=pxp;
-        model.bor=bor;
+        posterior.a=model.alpha;
+        posterior.r=g_post';
+        priors.a=ones(1,nm);
+        model.bor = spm_BMS_bor (F',posterior,priors);
+
+        % Compute protected exceedance probs - Eq 7 in Rigoux et al.
+        model.pxp=(1-model.bor)*xp+model.bor/nm;
+        
     else
         Ffam           = F(:,sort(m_indx));
         [family,model] = spm_compare_families(Ffam,family);
@@ -412,10 +418,11 @@ else
     %-Display result
     if do_family
         P = spm_api_bmc(sumF,N,model.exp_r,model.xp,family);
+        
     else
         P = spm_api_bmc(sumF,N,model.exp_r,model.xp);
         
-        % Plot protexted xp's
+        % Plot protected xp's
         nm_tmp = length(N);
         Fpxp  = spm_figure('Create','Graphics','BMS: results ...');
         figure(Fpxp);
