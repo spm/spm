@@ -17,7 +17,7 @@ function varargout = spm_atlas(action,varargin)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_atlas.m 6440 2015-05-19 16:54:28Z guillaume $
+% $Id: spm_atlas.m 6448 2015-05-22 18:31:04Z guillaume $
 
 
 if ~nargin, action = 'load'; end
@@ -89,6 +89,7 @@ case 'load'
                 if numel(xA.VA) == 1
                     xA.info.type = 'label';
                     l = unique(spm_read_vols(xA.VA));
+                    % discard 0/NaN/Inf?
                 else
                     xA.info.type = 'probabilistic';
                     l = 1:numel(xA.VA);
@@ -760,6 +761,8 @@ function [labels,i] = filter_labels(xA,labels)
 if isnumeric(labels)
     [unused,idx] = intersect([xA.labels.index],labels);
     labels  = {xA.labels(idx).name};
+elseif isstruct(labels)
+    labels = {labels.name};
 elseif ~iscellstr(labels)
     idx = ~cellfun(@isempty,regexp({xA.labels.name},labels));
     labels = {xA.labels(idx).name};

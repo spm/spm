@@ -25,7 +25,7 @@ function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 % Copyright (C) 2010-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin, Ged Ridgway
-% $Id: spm_summarise.m 6416 2015-04-21 15:34:10Z guillaume $
+% $Id: spm_summarise.m 6448 2015-05-22 18:31:04Z guillaume $
 
 %-Argument checks
 %--------------------------------------------------------------------------
@@ -53,6 +53,8 @@ if ischar(xY)
     end
 elseif isnumeric(xY) && any(size(xY, 1) == [3 4])
     xY = struct('XYZmm', xY(1:3, :));
+elseif isstruct(xY) && isfield(xY,'fname')
+    xY = struct('def','mask', 'spec',xY);
 elseif ~isstruct(xY)
     error('Incorrect xY specified')
 end
