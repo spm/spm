@@ -72,7 +72,7 @@ function [channel] = ft_channelselection(desired, datachannel, senstype)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 10335 2015-04-15 13:03:29Z jorhor $
+% $Id: ft_channelselection.m 10410 2015-05-20 19:32:43Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion 
@@ -170,7 +170,7 @@ labelnirs   = datachannel(~cellfun(@isempty, regexp(datachannel, sprintf('%s%s',
 
 % use regular expressions to deal with the wildcards
 labelreg = false(size(datachannel));
-findreg = [];
+findreg  = [];
 for i=1:length(channel)
   if length(channel{i}) < 1
       continue;
@@ -185,9 +185,8 @@ for i=1:length(channel)
   lreg = ~cellfun(@isempty, regexp(datachannel, rexp));
   if any(lreg)
     labelreg = labelreg | lreg;  
-    findreg  = [findreg i];
-  end
-  
+    findreg  = [findreg; i];
+  end  
 end
 
 if ~isempty(findreg)

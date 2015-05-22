@@ -22,7 +22,7 @@ function [stat, cfg] = ft_statistics_stats(cfg, dat, design)
 %   cfg.tail      = number, -1, 1 or 0 (default = 0)
 %   cfg.feedback  = string, 'gui', 'text', 'textbar' or 'no' (default = 'textbar')
 %   cfg.method    = 'stats'
-%   cfg.statistic = 'ttest'        test against a mean of zero
+%   cfg.statistic = 'ttest'          test against a mean of zero
 %                   'ttest2'         compare the mean in two conditions
 %                   'paired-ttest'
 %                   'anova1'
@@ -54,7 +54,7 @@ function [stat, cfg] = ft_statistics_stats(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_stats.m 10278 2015-03-16 16:00:39Z jimher $
+% $Id: ft_statistics_stats.m 10411 2015-05-20 19:33:32Z roboos $
 
 % test for the presence of the statistics toolbox
 ft_hastoolbox('stats', 1);

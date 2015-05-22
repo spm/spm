@@ -22,7 +22,7 @@ function bnd = prepare_mesh_segmentation(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_segmentation.m 10225 2015-02-12 09:29:27Z roboos $
+% $Id: prepare_mesh_segmentation.m 10385 2015-05-07 11:50:13Z jansch $
 
 
 % ensure that the input is consistent with what this function expects
@@ -60,7 +60,7 @@ if isempty(cfg.tissue)
   mri = ft_datatype_segmentation(mri, 'segmentationstyle', 'indexed');
   fn = fieldnames(mri);
   for i=1:numel(fn)
-    if numel(mri.(fn{i}))==prod(mri.dim)
+    if numel(mri.(fn{i}))==prod(mri.dim) && isfield(mri, [fn{i},'label'])
       segfield=fn{i};
     end
   end

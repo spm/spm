@@ -40,14 +40,14 @@ function [cluster, total] = findcluster(onoff, spatdimneighbstructmat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: findcluster.m 8729 2013-11-07 10:14:53Z jansch $
+% $Id: findcluster.m 10386 2015-05-07 16:48:22Z vlalit $
 
 spatdimlength = size(onoff, 1);
 nfreq = size(onoff, 2);
 ntime = size(onoff, 3);
 
 % ensure that spm8 (preferred) or spm2 is available, needed for spm_bwlabeln
-hasspm = ft_hastoolbox('spm8', 3) || ft_hastoolbox('spm2', 3);
+hasspm = ft_hastoolbox('spm12', 3) || ft_hastoolbox('spm8', 3) || ft_hastoolbox('spm2', 3);
 if ~hasspm
   error('the spm_bwlabeln function from SPM is needed for clustering');
 end

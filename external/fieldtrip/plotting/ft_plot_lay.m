@@ -43,7 +43,7 @@ function ft_plot_lay(lay, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_lay.m 9875 2014-10-03 16:07:53Z roboos $
+% $Id: ft_plot_lay.m 10416 2015-05-21 13:35:55Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -73,6 +73,10 @@ mask    = istrue(mask);
 outline = istrue(outline);
 verbose = istrue(verbose);
 
+if ~(point || box || label || mask || outline)
+  % there is nothing to be plotted
+  return;
+end
 
 % everything is added to the current figure
 holdflag = ishold;

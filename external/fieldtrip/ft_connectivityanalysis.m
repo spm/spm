@@ -113,9 +113,9 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 10201 2015-02-11 13:28:08Z jansch $
+% $Id: ft_connectivityanalysis.m 10406 2015-05-13 08:37:04Z jimher $
 
-revision = '$Id: ft_connectivityanalysis.m 10201 2015-02-11 13:28:08Z jansch $';
+revision = '$Id: ft_connectivityanalysis.m 10406 2015-05-13 08:37:04Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -612,7 +612,7 @@ switch cfg.method
         for k = 1:nblocks
           for m = (k+1):nblocks
             cnt  = cnt+1;
-            rest = setdiff(blocks, [k m]);
+            rest = setdiff(reshape(blocks,[1 numel(blocks)]), [k m]); % make sure to reshape blocks into 1xn vector
             tmp{cnt, 1} = [k m rest];
             tmp{cnt, 2} = [k   rest];
             newlabelcmb{cnt, 1} = data.block(m).name; % note the index swap: convention is driver in left column

@@ -123,14 +123,14 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 10369 2015-05-06 16:17:34Z roboos $
+% $Id: ft_databrowser.m 10413 2015-05-20 19:35:40Z roboos $
 
 % FIXME these should be removed or documented
 % cfg.preproc
 % cfg.channelcolormap
 % cfg.colorgroups
 
-revision = '$Id: ft_databrowser.m 10369 2015-05-06 16:17:34Z roboos $';
+revision = '$Id: ft_databrowser.m 10413 2015-05-20 19:35:40Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -181,6 +181,7 @@ if ~isfield(cfg, 'plotlabels'),      cfg.plotlabels = 'yes';              end
 if ~isfield(cfg, 'event'),           cfg.event = [];                      end % this only exists for backward compatibility and should not be documented
 if ~isfield(cfg, 'continuous'),      cfg.continuous = [];                 end % the default is set further down in the code, conditional on the input data
 if ~isfield(cfg, 'ploteventlabels'), cfg.ploteventlabels = 'type=value';  end
+if ~isfield(cfg, 'precision'),       cfg.precision = 'double';            end
 cfg.zlim           = ft_getopt(cfg, 'zlim',          'maxmin');
 cfg.compscale      = ft_getopt(cfg, 'compscale',     'global');
 cfg.renderer       = ft_getopt(cfg, 'renderer',      []);
@@ -392,6 +393,10 @@ if ischar(cfg.ylim)
     % one second of data is read from file to determine the vertical scaling
     dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', 1, 'endsample', round(hdr.Fs), 'chanindx', chansel, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat, 'headerformat', cfg.headerformat);
   end % if hasdata
+  % convert the data to another numeric precision, i.e. double, single or int32
+  if ~isempty(cfg.precision)
+    dat = cast(dat, cfg.precision);
+  end
   minval = min(dat(:));
   maxval = max(dat(:));
   switch cfg.ylim
@@ -1485,6 +1490,11 @@ else
   dat = ft_fetch_data(opt.orgdata, 'header', opt.hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'allowoverlap', true); % ALLOWING OVERLAPPING TRIALS
 end
 art = ft_fetch_data(opt.artdata, 'begsample', begsample, 'endsample', endsample);
+
+% convert the data to another numeric precision, i.e. double, single or int32
+if ~isempty(cfg.precision)
+  dat = cast(dat, cfg.precision);
+end
 
 % apply preprocessing and determine the time axis
 [dat, lab, tim] = preproc(dat, opt.hdr.label(chanindx), offset2time(offset, opt.fsample, size(dat,2)), cfg.preproc);

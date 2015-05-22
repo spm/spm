@@ -147,14 +147,14 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 10105 2015-01-19 13:37:56Z jimher $
+% $Id: ft_componentanalysis.m 10395 2015-05-08 10:09:56Z roboos $
 
 % undocumented cfg options:
 %   cfg.cellmode = string, 'no' or 'yes', allows to run in cell-mode, i.e.
 %     no concatenation across trials is needed. This is based on experimental
 %     code and only supported for 'dss', 'fastica' and 'bsscca' as methods.
 
-revision = '$Id: ft_componentanalysis.m 10105 2015-01-19 13:37:56Z jimher $';
+revision = '$Id: ft_componentanalysis.m 10395 2015-05-08 10:09:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -606,13 +606,15 @@ switch cfg.method
     clear C D E d
     
   case 'svd'
+    % it is more memory efficient to use the (non-scaled) covariance
     if cfg.numcomponent<Nchans
       % compute only the first components
-      [u, s, v] = svds(dat, cfg.numcomponent);
+      [u, s, v] = svds(dat*dat', cfg.numcomponent);
     else
       % compute all components
-      [u, s, v] = svd(dat, 0);
+      [u, s, v] = svd(dat*dat', 0);
     end
+    clear s v % not needed
     
     unmixing = u';
     mixing = [];

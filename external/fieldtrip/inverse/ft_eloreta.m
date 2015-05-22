@@ -27,7 +27,7 @@ function [dipout] = ft_eloreta(dip, grad, vol, dat, Cf, varargin)
 %  'reducerank'       = reduce the leadfield rank, can be 'no' or a number (e.g. 2)
 %  'normalize'        = normalize the leadfield
 %  'normalizeparam'   = parameter for depth normalization (default = 0.5)
-
+%
 % If the dipole definition only specifies the dipole location, a rotating
 % dipole (regional source) is assumed on each location. If a dipole moment
 % is specified, its orientation will be used and only the strength will
@@ -56,7 +56,7 @@ function [dipout] = ft_eloreta(dip, grad, vol, dat, Cf, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_eloreta.m 10254 2015-02-23 16:31:14Z jansch $
+% $Id: ft_eloreta.m 10407 2015-05-18 11:27:55Z roboos $
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs

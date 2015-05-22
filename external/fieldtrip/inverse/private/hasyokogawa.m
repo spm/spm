@@ -37,18 +37,21 @@ function [version] = hasyokogawa(desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: hasyokogawa.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: hasyokogawa.m 10399 2015-05-08 15:56:55Z tilsan $
 
 ws = warning('off', 'MATLAB:pfileOlderThanMfile');
 
 % there are a few versions of the old preliminary implementation, such as
-% 12bitBeta3, 16bitBeta3 and 16bitBeta6. Medio 2011 a completely new
+% 12bitBeta3, 16bitBeta3 and 16bitBeta6. In 2011 a completely new
 % implementation was officially released, which contains functions with
 % other names. At the time of writing this, the new implementation is
 % version 1.4.
 
+if exist('getYkgwVersion')
+  res = getYkgwVersion();
+  version = res.version;
 
-if exist('GetMeg160ADbitInfoM') || exist('GetMeg160ChannelInfoM') || exist('GetMeg160ContinuousRawDataM')
+elseif exist('GetMeg160ADbitInfoM') || exist('GetMeg160ChannelInfoM') || exist('GetMeg160ContinuousRawDataM')
   % start with unknown, try to refine the version
   version = 'unknown';
   
@@ -82,10 +85,6 @@ if exist('GetMeg160ADbitInfoM') || exist('GetMeg160ChannelInfoM') || exist('GetM
       end
     end
   end
-  
-elseif exist('getYkgwVersion')
-  res = getYkgwVersion();
-  version = res.version;
   
 else
   % return empty if none of them is present

@@ -107,7 +107,7 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 % The following options are optional:
 %   cfg.headshape.scalpsmooth    = scalar, smoothing parameter for the scalp
 %                                  extraction (default = 2)
-%   cfg.headsahpe.scalpthreshold = scalar, threshold parameter for the scalp
+%   cfg.headshape.scalpthreshold = scalar, threshold parameter for the scalp
 %                                  extraction (default = 0.1)
 %   cfg.headshape.interactive    = 'yes' or 'no', use interactive realignment to
 %                                  align headshape with scalp surface (default =
@@ -132,7 +132,7 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 %                          resliced conform the target image (default = 'yes')
 %
 % When cfg.method = 'spm', a third input argument is required. The input volume is
-% coregistered to this target volume, using spm. Options pertaining to the
+% coregistered to this target volume, using SPM. Options pertaining to the
 % behavior of spm can be defined in the subcfg cfg.spm and can include:
 %   cfg.spm.regtype = 'subj', 'rigid'
 %   cfg.spm.smosrc  = scalar value
@@ -147,7 +147,8 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 % on the left-right axis.
 %
 % To facilitate data-handling and distributed computing you can use
-%   cfg.inputfile   =  ... cfg.outputfile  =  ...
+%   cfg.inputfile   =  ...
+%   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a
 % *.mat file on disk and/or the output data will be written to a *.mat
 % file. These mat files should contain only a single variable,
@@ -181,9 +182,9 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 10328 2015-04-08 19:24:45Z roboos $
+% $Id: ft_volumerealign.m 10418 2015-05-22 10:19:38Z roboos $
 
-revision = '$Id: ft_volumerealign.m 10328 2015-04-08 19:24:45Z roboos $';
+revision = '$Id: ft_volumerealign.m 10418 2015-05-22 10:19:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -613,6 +614,8 @@ switch cfg.method
     
     % the icp function wants this as a function handle.
     weights = @(x)assignweights(x,w);
+
+    ft_hastoolbox('fileexchange',1);
     
     % construct the coregistration matrix
     nrm = normals(scalp.pnt, scalp.tri, 'vertex');
