@@ -24,7 +24,7 @@ function [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC,TOL)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence_reduce.m 6341 2015-02-18 14:46:43Z karl $
+% $Id: spm_log_evidence_reduce.m 6449 2015-05-24 14:26:59Z karl $
  
 
 % Compute reduced log-evidence
@@ -35,11 +35,14 @@ function [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC,TOL)
 if isstruct(pC), pC = diag(spm_vec(pC)); end
 if isstruct(rC), rC = diag(spm_vec(rC)); end
  
+% fix tolerance for matrix inversions
+%--------------------------------------------------------------------------
+if nargin < 7, TOL = 1e-8; end
  
 % Remove (a priori) null space
 %--------------------------------------------------------------------------
 E     = rE;
-U     = spm_svd(pC);
+U     = spm_svd(pC,1e-4);
 qE    = U'*spm_vec(qE);
 pE    = U'*spm_vec(pE);
 rE    = U'*spm_vec(rE);
@@ -47,20 +50,17 @@ qC    = U'*qC*U;
 pC    = U'*pC*U;
 rC    = U'*rC*U;
  
-% fix tolerance for matrix inversions
-%--------------------------------------------------------------------------
-if nargin < 7, TOL = exp(-16); end
- 
 % preliminaries
 %--------------------------------------------------------------------------
 qP    = spm_inv(qC,TOL);
 pP    = spm_inv(pC,TOL);
 rP    = spm_inv(rC,TOL);
-sP    = qP + rP - pP;
+sP    = qP + rP - pP; 
 sC    = spm_inv(sP,TOL);
 pC    = spm_inv(pP,TOL);
 sE    = qP*qE + rP*rE - pP*pE;
- 
+
+
 % log-evidence
 %--------------------------------------------------------------------------
 F     = spm_logdet(rP*qP*sC*pC) ...

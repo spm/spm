@@ -18,7 +18,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB_FIT.m 6427 2015-05-05 15:42:35Z karl $
+% $Id: DEMO_DCM_PEB_FIT.m 6449 2015-05-24 14:26:59Z karl $
 
 
 % change to directory with empirical data
@@ -235,6 +235,7 @@ for i = 1:Ns
 end
 
 [RCM,REB,M,HCM] = spm_dcm_peb_fit(GCM);
+HCM    = spm_dcm_reduce(HCM,M.bE,M.bC);
 
 
 % BMC/BMA - second level
@@ -242,7 +243,7 @@ end
 
 % Empirical Bayes and model comparison (specified model space)
 %--------------------------------------------------------------------------
-[PEB,PCM] = spm_dcm_peb(RCM(:,1),[],{'A','B'});
+[PEB,PCM] = spm_dcm_peb(HCM(:,2),[],{'A','B'});
 BMA       = spm_dcm_peb_bmc(PEB);
 
 % overlay true values
@@ -258,46 +259,44 @@ subplot(3,2,4),hold on, bar(Tp(iAB),1/2), hold off
 
 % extract and plot results over iterations
 %==========================================================================
-clear Q W Vq Cq
+clear Q T
 for i = 1:Ns
     
     % Parameter estimates
     %----------------------------------------------------------------------
-    T(:,i,1) = spm_vec(GCM{i,1}.Tp);
+    T(:,i) = spm_vec(GCM{i,1}.Tp);
     for j = 1:size(HCM,2)
         Q(:,i,j) = spm_vec(HCM{i,j}.Ep);
-        W(:,i,j) = diag(HCM{i,j}.Cp);
     end
     
 end
 i     = iB;
 for j = 1:size(HCM,2)
-    Vq(:,j) = var(Q(i,:,j),[],2);
-    Cq(:,j) = mean(W(i,:,j),2);
-    R(j)    = corr(spm_vec(T(i,:,1)),spm_vec(Q(i,:,j)));
+    R(j) = corr(spm_vec(T(i,:)),spm_vec(Q(i,:,j)));
 end
 
 % free energy over iterations of empirical Bayes
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Inversion');
-subplot(3,2,1), bar(RCM{1}.FEB)
+spm_figure('GetWin','Inversion'); j = 1:4;
+
+subplot(3,2,1), bar(RCM{1}.FEB(j))
 xlabel('iteration'), ylabel('(second level) free energy')
 title('Free energy','FontSize',16)
 axis square
 
-subplot(3,2,2), bar(R)
+subplot(3,2,2), bar(R(j))
 xlabel('iteration'), ylabel('correlation')
 title('Correlation with truth','FontSize',16)
 axis square
 
-subplot(3,2,3), bar(Vq')
+subplot(3,2,3), bar(RCM{1}.EEB(j),'b')
 xlabel('iteration'), ylabel('correlation')
-title('Sample variance','FontSize',16)
+title('log precision','FontSize',16)
 axis square
 
-subplot(3,2,4), bar(Cq')
+subplot(3,2,4), bar(RCM{1}.HEB(j),'c')
 xlabel('iteration'), ylabel('correlation')
-title('Posterior variance','FontSize',16)
+title('Posterior uncertainty','FontSize',16)
 axis square
 
 

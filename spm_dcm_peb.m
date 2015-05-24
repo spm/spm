@@ -76,7 +76,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6427 2015-05-05 15:42:35Z karl $
+% $Id: spm_dcm_peb.m 6449 2015-05-24 14:26:59Z karl $
  
 
 % get filenames and set up
@@ -192,14 +192,15 @@ end
 
 % prior precision (pP) and components (Q) for empirical covariance
 %--------------------------------------------------------------------------
-pP    = spm_inv(M.bC/beta);
+pP    = spm_inv(M.bC);
+pQ    = pP*beta;
 Q     = {};
 switch OPTION
     
     case{'single'}
         % one between subject precision component
         %------------------------------------------------------------------
-        Q = {pP};
+        Q = {pQ};
         
     case{'fields'}
         % between subject precision components (one for each field)
@@ -208,14 +209,14 @@ switch OPTION
             j    = spm_fieldindices(DCM.M.pE,field{i});
             j    = find(ismember(q,j));
             Q{i} = sparse(Np,Np);
-            Q{i}(j,j) = pP(j,j);
+            Q{i}(j,j) = pQ(j,j);
         end
         
     case{'all'}
         % between subject precision components (one for each parameter)
         %------------------------------------------------------------------
         for i = 1:Np
-            Q{i} = sparse(i,i,pP(i,i),Np,Np);
+            Q{i} = sparse(i,i,pQ(i,i),Np,Np);
         end
         
     otherwise
@@ -274,12 +275,9 @@ gP    = spm_inv(gC);
 %--------------------------------------------------------------------------
 b     = bE;
 g     = gE;
-p     = [b; g];
 ipC   = spm_cat({bP [];
                 [] gP});
             
-
-
 % variational Laplace
 %--------------------------------------------------------------------------
 t     = -2;                         % Fisher scoring parameter
@@ -288,7 +286,7 @@ for n = 1:32
     % compute prior covariance
     %----------------------------------------------------------------------
     if Ng > 0
-        rP  = 0;
+        rP  = pP;
         for i = 1:Ng
             rP = rP + exp(g(i))*Q{i};
         end
@@ -348,7 +346,9 @@ for n = 1:32
     
     % second level complexity component of free energy
     %----------------------------------------------------------------------
-    Fc    = b'*bP*b/2 + g'*gP*g/2 - spm_logdet(ipC*Cp)/2;
+    Fb    = b'*bP*b;
+    Fg    = g'*gP*g;
+    Fc    = Fb/2 + Fg/2 - spm_logdet(ipC*Cp)/2;
     F     = F - Fc;
     
     % best free energy so far
@@ -360,7 +360,7 @@ for n = 1:32
     
     % if F is increasing save current expansion point
     %----------------------------------------------------------------------
-    if F >= F0
+    if F >= F0 && isempty(find(Fb/Nb > 64,1))
         
         dF = F - F0;
         F0 = F;
@@ -384,14 +384,13 @@ for n = 1:32
     %----------------------------------------------------------------------
     dp      = spm_dx(dFdpp,dFdp,{t});
     [db,dg] = spm_unvec(dp,b,g);
-    p       = p + dp;
     b       = b + db;
     g       = g + dg;
     
     % Convergence
     %======================================================================
     fprintf('VL Iteration %-8d: F = %-3.2f dF: %2.4f  [%+2.2f]\n',n,full(F),full(dF),t); 
-    if t < -4 || (dF < 1e-4 && n > 4) , break, end
+    if t < -4 || (dF < 1e-4 && n > 4), break, end
      
 end
 

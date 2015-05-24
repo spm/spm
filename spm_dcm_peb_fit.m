@@ -70,7 +70,7 @@ function [DCM,PEB,M,HCM] = spm_dcm_peb_fit(GCM,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_fit.m 6427 2015-05-05 15:42:35Z karl $
+% $Id: spm_dcm_peb_fit.m 6449 2015-05-24 14:26:59Z karl $
 
 
 % set up
@@ -118,7 +118,7 @@ for i = 1:Ns
     DCM{i,1}.M.hC   = 1/32;
     try, dipfit{i}  = DCM{i,1}.M.dipfit; end
 end
-for k = 1:8
+for k = 1:4
     
     % replace spatial model if necessary
     %----------------------------------------------------------------------
@@ -186,36 +186,3 @@ if Nm > 1
     GCM(:,1) = DCM;
     DCM      = spm_dcm_bmr(GCM,'none');
 end
-
-return
-
-function DCM = spm_dcm_reduce(DCM,rE,rC)
-% FORMAT RCM = spm_dcm_reduce(DCM,rE,rC)
-% This routine reduces the posterior of DCM given new priors (rE,rC)
-%__________________________________________________________________________
-
-% deal with cell arrays
-%--------------------------------------------------------------------------
-if iscell(DCM)
-    for i = 1:numel(DCM)
-       DCM{i} = spm_dcm_reduce(DCM{i},rE,rC);
-       return
-    end
-end
-
-% empirical prior and posterior densities
-%--------------------------------------------------------------------------
-pE = DCM.M.pE;
-pC = DCM.M.pC;
-qE = DCM.Ep;
-qC = DCM.Cp;
-
-% evaluate posteriors under original priors
-%--------------------------------------------------------------------------
-[F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
-
-DCM.M.pE = rE;
-DCM.M.pC = rC;
-DCM.Ep   = sE;
-DCM.Cp   = sC;
-DCM.F    = F + DCM.F;
