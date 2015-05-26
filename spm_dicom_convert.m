@@ -36,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6453 2015-05-26 12:45:02Z volkmar $
+% $Id: spm_dicom_convert.m 6454 2015-05-26 12:45:03Z volkmar $
 
 
 %-Input parameters
@@ -709,9 +709,12 @@ end
 %--------------------------------------------------------------------------
 nc = get_numaris4_numval(privdat,'Columns');
 nr = get_numaris4_numval(privdat,'Rows');
-% Guess number of timepoints in file - don't know whether this should be
-% 'DataPointRows'-by-'DataPointColumns' or 'SpectroscopyAcquisitionDataColumns'
-ntp = get_numaris4_numval(privdat,'DataPointRows')*get_numaris4_numval(privdat,'DataPointColumns');
+% Guess number of timepoints in file - I don't know for sure whether this should be
+% 'DataPointRows'-by-'DataPointColumns', 'SpectroscopyAcquisitionDataColumns'
+% or sSpecPara.lVectorSize from SIEMENS ASCII header
+% ntp = get_numaris4_numval(privdat,'DataPointRows')*get_numaris4_numval(privdat,'DataPointColumns');
+ac = read_ascconv(hdr{1});
+ntp = ac.sSpecPara.lVectorSize;
 
 dim    = [nc nr numel(hdr) 2 ntp];
 dt     = spm_type('float32'); % Fixed datatype
@@ -780,16 +783,16 @@ if length(hdr)>1
 else
     orient(:,3)      = null(orient');
     if det(orient)<0, orient(:,3) = -orient(:,3); end
-    try
+    z = get_numaris4_numval(privdat,...
+        'VoiThickness');
+    if isempty(z)
         z = get_numaris4_numval(privdat,...
-            'VoiThickness');
-    catch
-        try
-            z = get_numaris4_numval(privdat,...
-                'SliceThickness');
-        catch
-            z = 1;
-        end
+            'SliceThickness');
+    end
+    if isempty(z)
+        warning('spm_dicom_convert:spectroscopy',...
+            'Can not determine voxel thickness.');
+        z = 1;
     end
     x2 = [0;0;1;0];
     y2 = [orient*[0;0;z];0];
@@ -842,7 +845,7 @@ N.extras      = struct('MagneticFieldStrength',...
 create(N);
 
 % Read data, swap dimensions
-data = permute(reshape(read_spect_data(hdr{1},privdat),dim([4 5 1 2 3])), ...
+data = permute(reshape(read_spect_data(hdr{1},ntp),dim([4 5 1 2 3])), ...
                 [3 4 5 1 2]);
 % plane = fliplr(plane);
 
@@ -1106,10 +1109,7 @@ img = reshape(img,[hdr.Columns,hdr.Rows,NFrames]);
 %==========================================================================
 % function img = read_spect_data(hdr,privdat)
 %==========================================================================
-function img = read_spect_data(hdr,privdat)
-% Guess number of timepoints in file - don't know whether this should be
-% 'DataPointRows'-by-'DataPointColumns' or 'SpectroscopyAcquisitionDataColumns'
-ntp = get_numaris4_numval(privdat,'DataPointRows')*get_numaris4_numval(privdat,'DataPointColumns');
+function img = read_spect_data(hdr,ntp)
 % Data is stored as complex float32 values, timepoint by timepoint, voxel
 % by voxel. Reshaping is done in write_spectroscopy_volume.
 if ntp*2*4 ~= hdr.SizeOfCSAData
@@ -1343,7 +1343,7 @@ ascend = strfind(X,'### ASCCONV END ###');
 if ~isempty(ascstart) && ~isempty(ascend)
     tokens = textscan(char(X((ascstart+22):(ascend-1))),'%s', ...
         'delimiter',char(10));
-    tokens{1}=regexprep(tokens{1},{'\[([0-9]*)\]','"(.*)"','0x([0-9a-fA-F]*)'},{'($1+1)','''$1''','hex2dec(''$1'')'});
+    tokens{1}=regexprep(tokens{1},{'\[([0-9]*)\]','"(.*)"','^([^"]*)0x([0-9a-fA-F]*)','#.*'},{'($1+1)','''$1''','$1hex2dec(''$2'')',''});
     % If everything would evaluate correctly, we could use
     % eval(sprintf('ret.%s;\n',tokens{1}{:}));
     for k = 1:numel(tokens{1})
