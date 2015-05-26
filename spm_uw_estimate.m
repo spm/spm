@@ -83,7 +83,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2003-2011 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 5655 2013-09-25 17:58:48Z guillaume $
+% $Id: spm_uw_estimate.m 6456 2015-05-26 15:24:36Z john $
 
 % This is a major rewrite which uses some new ideas to speed up
 % the estimation of the field. The time consuming part is the
@@ -166,7 +166,7 @@ function ds = spm_uw_estimate(P,par)
 %    Our tests have indicated that this is NOT a good idea though. 
 
 
-SVNid = '$Rev: 5655 $';
+SVNid = '$Rev: 6456 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -247,7 +247,7 @@ ds.P  = P;
 % Get matrix of 'expansion point'-corrected movement parameters 
 % for which we seek partial derivative fields.
 %
-[ds.q,ds.ep] = make_q(P,ds.fot,ds.sot,ds.exp_round);
+[ds.q,ds.p0] = make_q(P,ds.fot,ds.sot,ds.exp_round);
 
 %
 % Create matrix for regularisation of warps.
