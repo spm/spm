@@ -36,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6454 2015-05-26 12:45:03Z volkmar $
+% $Id: spm_dicom_convert.m 6455 2015-05-26 12:45:05Z volkmar $
 
 
 %-Input parameters
@@ -694,11 +694,11 @@ function fname = write_spectroscopy_volume(hdr,root_dir,format,out_dir)
 %-------------------------------------------------------------------
 fname = getfilelocation(hdr{1}, root_dir,'S',format,out_dir);
 
-% guess private field to use
-if isfield(hdr{1}, 'Private_0029_1210')
-    privdat = hdr{1}.Private_0029_1210;
-elseif isfield(hdr{1}, 'Private_0029_1110')
-    privdat = hdr{1}.Private_0029_1110;
+% private field to use - depends on SIEMENS software version
+if isfield(hdr{1}, 'CSANonImageHeaderInfoVA')
+    privdat = hdr{1}.CSANonImageHeaderInfoVA;
+elseif isfield(hdr{1}, 'CSANonImageHeaderInfoVB')
+    privdat = hdr{1}.CSANonImageHeaderInfoVB;
 else
     disp('Don''t know how to handle these spectroscopy data');
     fname = '';
@@ -877,7 +877,7 @@ for i=1:length(hdr)
         guff = [guff(:)',hdr(i)];
         
     elseif ~(checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient') ...
-            || isfield(hdr{i},'Private_0029_1110') || isfield(hdr{i},'Private_0029_1210'))
+            || isfield(hdr{i},'CSANonImageHeaderInfoVA') || isfield(hdr{i},'CSANonImageHeaderInfoVB'))
         if isfield(hdr{i},'SharedFunctionalGroupsSequence') || isfield(hdr{i},'PerFrameFunctionalGroupsSequence'),
             fprintf(['\n"%s" appears to be multi-frame DICOM.\n'...
                      'Converting these data is still experimental and has only been tested on a very small number of\n'...
@@ -1317,7 +1317,7 @@ function ret = read_ascconv(hdr)
 % ### ASCCONV END ###
 % It is read by spm_dicom_headers into an entry 'MrProtocol' in
 % CSASeriesHeaderInfo or into an entry 'MrPhoenixProtocol' in
-% Private_0029_1120 or Private_0029_1220.
+% CSAMiscProtocolHeaderInfoVA or CSAMiscProtocolHeaderVB.
 % The additional items are assignments in C syntax, here they are just
 % translated according to
 % [] -> ()
@@ -1327,10 +1327,10 @@ function ret = read_ascconv(hdr)
 ret=struct;
 
 % get ascconv data
-if isfield(hdr, 'Private_0029_1120')
-    X = get_numaris4_val(hdr.Private_0029_1120,'MrPhoenixProtocol');
-elseif isfield(hdr, 'Private_0029_1220')
-    X = get_numaris4_val(hdr.Private_0029_1220,'MrPhoenixProtocol');
+if isfield(hdr, 'CSAMiscProtocolHeaderInfoVA')
+    X = get_numaris4_val(hdr.CSAMiscProtocolHeaderInfoVA,'MrProtocol');
+elseif isfield(hdr, 'CSAMiscProtocolHeaderInfoVB')
+    X = get_numaris4_val(hdr.CSAMiscProtocolHeaderInfoVB,'MrPhoenixProtocol');
 elseif isfield(hdr, 'CSASeriesHeaderInfo')
     X=get_numaris4_val(hdr.CSASeriesHeaderInfo,'MrProtocol');
 else

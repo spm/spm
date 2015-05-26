@@ -15,7 +15,7 @@ function hdr = spm_dicom_header(P, dict)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_header.m 6431 2015-05-08 18:24:28Z john $
+% $Id: spm_dicom_header.m 6455 2015-05-26 12:45:05Z volkmar $
 
 hdr = [];
 P   = deblank(P);
@@ -86,7 +86,7 @@ while len<lim
                 ret.StartOfCSAData = ftell(fp);
                 ret.SizeOfCSAData = tag.length;
                 fseek(fp,tag.length,'cof');
-            case {'CSAImageHeaderInfo', 'CSASeriesHeaderInfo','Private_0029_1110','Private_0029_1120','Private_0029_1210','Private_0029_1220'},
+            case {'CSAImageHeaderInfo', 'CSASeriesHeaderInfo','CSANonImageHeaderInfoVA','CSAMiscProtocolHeaderInfoVA','CSANonImageHeaderInfoVB','CSAMiscProtocolHeaderInfoVB'},
                 dat  = decode_csa(fp,tag.length);
                 ret.(tag.name) = dat;
             case {'TransferSyntaxUID'},
