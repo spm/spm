@@ -36,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6452 2015-05-26 12:44:55Z volkmar $
+% $Id: spm_dicom_convert.m 6453 2015-05-26 12:45:02Z volkmar $
 
 
 %-Input parameters
@@ -1317,7 +1317,7 @@ function ret = read_ascconv(hdr)
 % ### ASCCONV END ###
 % It is read by spm_dicom_headers into an entry 'MrProtocol' in
 % CSASeriesHeaderInfo or into an entry 'MrPhoenixProtocol' in
-% Private_0029_1110 or Private_0029_1120.
+% Private_0029_1120 or Private_0029_1220.
 % The additional items are assignments in C syntax, here they are just
 % translated according to
 % [] -> ()
@@ -1327,12 +1327,14 @@ function ret = read_ascconv(hdr)
 ret=struct;
 
 % get ascconv data
-if isfield(hdr, 'Private_0029_1110')
-    X = get_numaris4_val(hdr.Private_0029_1110,'MrPhoenixProtocol');
-elseif isfield(hdr, 'Private_0029_1120')
+if isfield(hdr, 'Private_0029_1120')
     X = get_numaris4_val(hdr.Private_0029_1120,'MrPhoenixProtocol');
-else
+elseif isfield(hdr, 'Private_0029_1220')
+    X = get_numaris4_val(hdr.Private_0029_1220,'MrPhoenixProtocol');
+elseif isfield(hdr, 'CSASeriesHeaderInfo')
     X=get_numaris4_val(hdr.CSASeriesHeaderInfo,'MrProtocol');
+else
+    return;
 end
 
 ascstart = strfind(X,'### ASCCONV BEGIN ###');
