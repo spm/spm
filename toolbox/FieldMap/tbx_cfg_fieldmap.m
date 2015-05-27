@@ -3,7 +3,7 @@ function fieldmap = tbx_cfg_fieldmap
 %__________________________________________________________________________
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_fieldmap.m 6258 2014-11-07 18:15:40Z guillaume $
+% $Id: tbx_cfg_fieldmap.m 6458 2015-05-27 16:22:09Z spm $
 
 
 addpath(fullfile(spm('dir'),'toolbox','FieldMap'));
@@ -29,8 +29,8 @@ maskbrain        = cfg_menu;
 maskbrain.tag    = 'maskbrain';
 maskbrain.name   = 'Mask brain';
 maskbrain.help   = {
-	'Select masking or no masking of the brain. If masking is selected,'
-	'the magnitude image is used to generate a mask of the brain.'
+    'Select masking or no masking of the brain. If masking is selected,'
+    'the magnitude image is used to generate a mask of the brain.'
 }';
 maskbrain.labels = {
                     'Mask brain'

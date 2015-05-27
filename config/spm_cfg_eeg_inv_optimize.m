@@ -1,11 +1,11 @@
 function optsetup = spm_cfg_eeg_inv_optimize
-%function optsetup = spm_cfg_eeg_inv_optimize
-% configuration file to set up optimization routines for M/EEG source
+% Configuration file to set up optimization routines for M/EEG source
 % inversion
-%_______________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
+% $Id: spm_cfg_eeg_inv_optimize.m 6458 2015-05-27 16:22:09Z spm $
 
 
 D = cfg_files;
@@ -81,7 +81,7 @@ function  out = opt_priors(job)
 
 D = spm_eeg_load(job.D{1});
 
-%% get data specific terms sorted out
+% get data specific terms sorted out
 inverse=D.inv{job.val}.inverse;
 AY=inverse.AY;
 
@@ -99,7 +99,7 @@ if Nfiles==0,
     error('No prior file found in directory: %s', priordir);
 end;
 
-%% add in functional (from other modalities or experiment) hypotheses
+% add in functional (from other modalities or experiment) hypotheses
 
 Qe0=0;%% bounding ratio of noise to signal power
 disp('NB NO min sensor noise level');  %% NO MIN SENSOR NOISE LEVEL
@@ -135,7 +135,7 @@ for j=1:Nfiles, %% move through prior files
         Fmax_file=F2;
     end;
     
-    %% now try combining this solution with best so far
+    % now try combining this solution with best so far
     if j>1,
         disp('Running in addition to best prior so far');
         Qpstart=Qp; % posterior from current optimization
@@ -256,5 +256,3 @@ dep.sname = 'M/EEG dataset(s) after imaging source reconstruction';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-
-

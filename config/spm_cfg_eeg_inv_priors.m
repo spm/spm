@@ -1,10 +1,10 @@
 function priors = spm_cfg_eeg_inv_priors
-% configuration file to set up priors for M/EEG source
-% reconstruction
-%_______________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Configuration file to set up priors for M/EEG source reconstruction
+%__________________________________________________________________________
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
+% $Id: spm_cfg_eeg_inv_priors.m 6458 2015-05-27 16:22:09Z spm $
 
 
 D = cfg_files;

@@ -16,10 +16,10 @@ function spm_dcm_review(DCM,action)
 %          'estimates of precisions'
 %          ['   hidden states: ' DCM.Y.name{i}]
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 6175 2014-09-15 19:57:22Z guillaume $
+% $Id: spm_dcm_review.m 6458 2015-05-27 16:22:09Z spm $
 
 
 %-Get DCM structure
@@ -40,8 +40,8 @@ catch
     analysis = '';
 end
 if strcmp(analysis,'CSD')
-	spm_dcm_fmri_results(DCM);
-	return
+    spm_dcm_fmri_results(DCM);
+    return
 end
 
 %-Get model specification structure (see spm_nlsi)

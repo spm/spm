@@ -1,21 +1,25 @@
-function [Qp,Qe,allpriornames]=spm_eeg_invert_setuppatches(allIp,mesh,base,priordir,Qe,UL)
-%%function [Qp,Qe,allpriornames]=spm_eeg_invert_setuppatches(allIp,mesh,base,priordir,Qe,UL)
-%% function for setting up prior files.
-%% each file contains  number of smooth patches on cortical surface a
-%% allIp each row denotes a different prior file
-%%        each column denotes the index of an impulse on the cortical surface
-%% mesh is the cortical surface mesh (in metres)
-%% base.nAm (optional). This is the magnitude of the impulse. There should be one value per column of Ip
-%% base.smooth (optional). This is the FWHM smoothness of the impulse on cortical surface (in mm)
-%% priordir. Directory in which the new priorfiles will be saved
-%% Qe sensor level covariance
-%% UL reduced lead field (only used to make a complete prior file)
-%% Qp prior source covariances from prior created in last row of allIp
-%% Qe prior sensor covariances
-
+function [Qp,Qe,allpriornames] = spm_eeg_invert_setuppatches(allIp,mesh,base,priordir,Qe,UL)
+% Set prior files for source inversion
+% FORMAT [Qp,Qe,allpriornames] = spm_eeg_invert_setuppatches(allIp,mesh,base,priordir,Qe,UL)
+% Each file contains  number of smooth patches on cortical surface a
+% allIp    - each row denotes a different prior file
+%            each column denotes the index of an impulse on the cortical surface
+% mesh     - cortical surface mesh (in metres)
+% base.nAm (optional)    - magnitude of the impulse.
+%                          There should be one value per column of Ip
+% base.smooth (optional) - FWHM smoothness of the impulse on cortical surface (in mm)
+% priordir - Directory in which the new priorfiles will be saved
+% Qe       - sensor level covariance
+% UL       - reduced lead field (only used to make a complete prior file)
+%
+% Qp  - prior source covariances from prior created in last row of allIp
+% Qe  - prior sensor covariances
+%__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
+% $Id: spm_eeg_invert_setuppatches.m 6458 2015-05-27 16:22:09Z spm $
+
 
 Npatchiter=size(allIp,1);
 Np=size(allIp,2);%% number of patches per iteration
@@ -86,7 +90,7 @@ for k=1:Npatchiter,
     fprintf('Prior %d. Average Peak (max vertex) moment density %3.2f, sd %3.2f pAm/mm2\n',k,mean(peakmompermm2)*1000,std(peakmompermm2)*1000);
     
     
-    %% NOW MAYBE WRITE A NEW PATCH FILE
+    % NOW MAYBE WRITE A NEW PATCH FILE
     
     priorfname=[priordir filesep sprintf('prior%d.mat',k+priorcount)];
     fprintf('Saving %s\n',priorfname);
@@ -96,18 +100,17 @@ for k=1:Npatchiter,
 end; % for k
 
 
-function [q,dist,useind,areapervertex]= gauss_patch(M,i,FWHM,q)
-%%function [q,dist,useind,dist2fwhm,useind2]= gauss_patch(M,i,FWHM,q)
+%==========================================================================
+function [q,dist,useind,areapervertex] = gauss_patch(M,i,FWHM,q)
+%function [q,dist,useind,dist2fwhm,useind2]= gauss_patch(M,i,FWHM,q)
 
 
 order=1;
 
-
-
 sigma=FWHM./2.355;
 sigma2=sigma^2;
 
-d=spm_mesh_geodesic(M,i-1,order);
+d = spm_mesh_geodesic(M,i-1,order);
 
 useind2=find(d<10/1000); %% a much larger area so that for small FWHM the per vertex area can be calculated
 dist2fwhm=d(useind2);
@@ -116,13 +119,11 @@ areapervertex=pi*(max(dist2fwhm/2).^2)/length(useind2);
 
 useind=find(d<=FWHM); %% maybe only extend just over 2 sigma in any one direction (i.e. cover 95% interval)
 
-if FWHM==0,
+if FWHM==0
     useind=i;
     dist=0;
     q(useind)=1; %% impulse for 0 FWHM
 else
     dist=d(useind);
     q(useind)=exp(-(dist.^2)/(2*sigma2));
-end;
-
-
+end
