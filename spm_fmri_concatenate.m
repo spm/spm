@@ -1,4 +1,4 @@
-function spm_post_concatenate(P, scans)
+function spm_fmri_concatenate(P, scans)
 % Adjust an SPM.mat which has concatenated sessions to improve accuracy
 % FORMAT spm_post_concatenate(P, scans)
 % The high pass filter will be re-specified as if sessions are separate.
@@ -26,7 +26,7 @@ function spm_post_concatenate(P, scans)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_fmri_concatenate.m 6458 2015-05-27 16:22:09Z spm $
+% $Id: spm_fmri_concatenate.m 6459 2015-05-27 16:54:53Z peter $
 
 
 %-Input parameters
