@@ -32,7 +32,7 @@ function [t,sts] = cfg_getfile(varargin)
 %     sts  - status (1 means OK, 0 means window quit)
 %
 % FORMAT [t,ind] = cfg_getfile('Filter',files,typ,filt,prms,...)
-% filter the list of files (cell array) in the same way as the
+% filter the list of files (column cell array) in the same way as the
 % GUI would do. The 'prms...' argument(s) will be passed to a typ
 % specific filtering function, if available.
 % When filtering directory names, the filt argument will be applied to the
@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 6443 2015-05-21 11:04:30Z volkmar $
+% $Id: cfg_getfile.m 6461 2015-05-28 08:30:32Z volkmar $
 
 t = {};
 sts = false;
@@ -110,6 +110,9 @@ if nargin > 0 && ischar(varargin{1})
             if isempty(t) || (numel(t) == 1 && isempty(t{1}))
                 sts = 1;
                 return;
+            end
+            if ~ismatrix(t) || size(t,2) > 1
+                cfg_message('cfg_getfile:notcolumncell','Input file lists to %s(''%s'',...) must be a column cellstr.', mfilename, varargin{1});
             end
             t = cpath(t);
             [unused,n,e] = cellfun(@fileparts,t,'UniformOutput',false);

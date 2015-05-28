@@ -11,9 +11,9 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 6460 2015-05-28 08:30:28Z volkmar $
+% $Id: cfg_mlbatch_defaults.m 6461 2015-05-28 08:30:32Z volkmar $
 
-rev = '$Rev: 6460 $'; %#ok
+rev = '$Rev: 6461 $'; %#ok
 
 try
     % Font definition for cfg_ui user interface
@@ -83,9 +83,12 @@ cfg_defaults.msgcfg(4)             = cfg_defaults.msgdef;
 cfg_defaults.msgcfg(4).identifier  = 'matlabbatch:fopen';
 cfg_defaults.msgcfg(4).level       = 'error';
 cfg_defaults.msgcfg(5)             = cfg_defaults.msgdef;
-cfg_defaults.msgcfg(5).identifier  = 'matlabbatch:subsref:cfg_dep:multisubs';
-cfg_defaults.msgcfg(5).level       = 'warning';
-cfg_defaults.msgcfg(5).backtrace   = 'on';
+cfg_defaults.msgcfg(5).identifier  = 'cfg_getfile:notcolumncell';
+cfg_defaults.msgcfg(5).level       = 'error';
+cfg_defaults.msgcfg(6)             = cfg_defaults.msgdef;
+cfg_defaults.msgcfg(6).identifier  = 'matlabbatch:subsref:cfg_dep:multisubs';
+cfg_defaults.msgcfg(6).level       = 'warning';
+cfg_defaults.msgcfg(6).backtrace   = 'on';
 
 cfg_defaults.msgtpl( 1)             = cfg_defaults.msgdef;
 cfg_defaults.msgtpl( 1).identifier  = '^matlabbatch:subsasgn';
