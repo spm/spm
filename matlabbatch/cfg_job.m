@@ -15,7 +15,7 @@ classdef cfg_job
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_job.m 5678 2013-10-11 14:58:04Z volkmar $
+% $Id: cfg_job.m 6460 2015-05-28 08:30:28Z volkmar $
 
     properties (Access=private)
         c0;
@@ -103,7 +103,10 @@ classdef cfg_job
         % Save the harvested job to a MATLAB script.
             [~, matlabbatch] = harvest(obj);
             str = gencode(matlabbatch);
-            fid = fopen(filename, 'w');
+            [fid, msg] = fopen(filename, 'w');
+            if fid == -1
+                cfg_message('matlabbatch:fopen', 'Failed to open ''%s'' for writing:\n%s', filename, msg);
+            end
             fprintf(fid, 'matlabbatch = %s;\n', class(obj));
             fprintf(fid, '%s\n', str{:});
             fclose(fid);

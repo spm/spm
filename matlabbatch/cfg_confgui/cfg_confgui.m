@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 5688 2013-10-11 14:58:28Z volkmar $
+% $Id: cfg_confgui.m 6460 2015-05-28 08:30:28Z volkmar $
 
-rev = '$Rev: 5688 $'; %#ok
+rev = '$Rev: 6460 $'; %#ok
 
 %% Declaration of fields
 
@@ -601,7 +601,10 @@ end
 [str, tag] = gencode(out.c0,'',{});
 [p, n, e] = fileparts(varargin{1}.gencode_fname);
 out.cfg_file{1} = fullfile(varargin{1}.gencode_dir{1}, [n '.m']);
-fid = fopen(out.cfg_file{1}, 'wt');
+[fid, msg] = fopen(out.cfg_file{1}, 'wt');
+if fid == -1
+    cfg_message('matlabbatch:fopen', 'Failed to open ''%s'' for writing:\n%s', out.cfg_file{1}, msg);
+end
 fprintf(fid, 'function %s = %s\n', tag, n);
 fprintf(fid, ...
         ['%% ''%s'' - MATLABBATCH configuration\n' ...
@@ -624,7 +627,10 @@ if varargin{1}.gencode_opts.gencode_o_def
     [str, dtag] = gencode(out.djob, sprintf('%s_def', tag));
     dn = sprintf('%s_def', n);
     out.def_file{1} = fullfile(varargin{1}.gencode_dir{1}, sprintf('%s.m', dn));
-    fid = fopen(out.def_file{1}, 'wt');
+    [fid, msg] = fopen(out.def_file{1}, 'wt');
+    if fid == -1
+        cfg_message('matlabbatch:fopen', 'Failed to open ''%s'' for writing:\n%s', out.def_file{1}, msg);
+    end
     fprintf(fid, 'function %s = %s\n', dtag, dn);
     fprintf(fid, ...
         ['%% ''%s'' - MATLABBATCH defaults\n' ...
@@ -640,7 +646,10 @@ end
 if varargin{1}.gencode_opts.gencode_o_mlb
     % Generate cfg_util initialisation file
     out.mlb_file{1} = fullfile(varargin{1}.gencode_dir{1}, 'cfg_mlbatch_appcfg.m');
-    fid = fopen(out.mlb_file{1}, 'wt');
+    [fid, msg] = fopen(out.mlb_file{1}, 'wt');
+    if fid == -1
+        cfg_message('matlabbatch:fopen', 'Failed to open ''%s'' for writing:\n%s', out.mlb_file{1}, msg);
+    end
     fprintf(fid, 'function [cfg, def] = cfg_mlbatch_appcfg(varargin)\n');
     fprintf(fid, ...
         ['%% ''%s'' - MATLABBATCH cfg_util initialisation\n' ...

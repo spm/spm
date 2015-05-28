@@ -423,9 +423,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 6356 2015-03-02 07:52:01Z volkmar $
+% $Id: cfg_util.m 6460 2015-05-28 08:30:28Z volkmar $
 
-rev = '$Rev: 6356 $';
+rev = '$Rev: 6460 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -516,7 +516,10 @@ switch lower(cmd),
             copyfile(apps{k}, appcfgs{k});
         end
         cmaster = fullfile(p, 'private', 'cfg_mlbatch_appcfg_master.m');
-        fid     = fopen(cmaster,'w');
+        [fid, msg] = fopen(cmaster,'w');
+        if fid == -1
+            cfg_message('matlabbatch:fopen', 'Failed to open ''%s'' for writing:\n%s', cmaster, msg);
+        end
         fprintf(fid,'function cfg_mlbatch_appcfg_master\n');
         for k = 1:numel(apps)
             fprintf(fid,'[cfg, def] = cfg_mlbatch_appcfg_%d;\n', k);
@@ -656,7 +659,10 @@ switch lower(cmd),
                 script{end+1} = 'end';
                 script{end+1} = 'cfg_util(''deljob'', job_id);';
             end
-            fid = fopen(scriptfile, 'wt');
+            [fid, msg] = fopen(scriptfile, 'wt');
+            if fid == -1
+                cfg_message('matlabbatch:fopen', 'Failed to open ''%s'' for writing:\n%s', scriptfile, msg);
+            end
             fprintf(fid, '%s\n', script{:});
             fclose(fid);
         end
@@ -975,7 +981,11 @@ switch lower(cmd),
                     save(varargin{2},'matlabbatch','-v6');
                 case '.m'
                     jobstr = gencode(matlabbatch, tag);
-                    fid = fopen(fullfile(p, [n '.m']), 'wt');
+                    jobfile    = fullfile(p, [n '.m']);
+                    [fid, msg] = fopen(jobfile, 'wt');
+                    if fid == -1
+                        cfg_message('matlabbatch:fopen', 'Failed to open ''%s'' for writing:\n%s', jobfile, msg);
+                    end
                     fprintf(fid, '%%-----------------------------------------------------------------------\n');
                     fprintf(fid, '%% Job saved on %s by %s (rev %s)\n', datestr(now), mfilename, rev);
                     versions = cfg_get_defaults('versions');
@@ -1289,7 +1299,10 @@ if isempty(tropts)||isequal(tropts,cfg_tropts({{}},1,Inf,1,Inf,true)) || ...
         unpostfix = [unpostfix '1'];
         fname = fullfile(p, [funcname unpostfix '.m']);
     end
-    fid = fopen(fname, 'wt');
+    [fid, msg] = fopen(fname, 'wt');
+    if fid == -1
+        cfg_message('matlabbatch:fopen', 'Failed to open ''%s'' for writing:\n%s', fname, msg);
+    end
     fprintf(fid, 'function %s = %s\n', tag, funcname);
     fprintf(fid, '%s\n', preamble{:});
     fprintf(fid, '%s\n', cstr{:});
@@ -1309,7 +1322,10 @@ else
             preamble = {};
         end
     end
-    fid = fopen(fname, 'wt');
+    [fid, msg] = fopen(fname, 'wt');
+    if fid == -1
+        cfg_message('matlabbatch:fopen', 'Failed to open ''%s'' for writing:\n%s', fname, msg);
+    end
     fprintf(fid, 'function %s = %s\n', tag, funcname);
     fprintf(fid, '%s\n', preamble{:});
     fprintf(fid, '%s\n', cstr{:});
