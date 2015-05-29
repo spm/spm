@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 6461 2015-05-28 08:30:32Z volkmar $
+% $Id: cfg_getfile.m 6462 2015-05-29 11:00:11Z volkmar $
 
 t = {};
 sts = false;
@@ -111,7 +111,7 @@ if nargin > 0 && ischar(varargin{1})
                 sts = 1;
                 return;
             end
-            if ~ismatrix(t) || size(t,2) > 1
+            if ndims(t) > 2 || size(t,2) > 1
                 cfg_message('cfg_getfile:notcolumncell','Input file lists to %s(''%s'',...) must be a column cellstr.', mfilename, varargin{1});
             end
             t = cpath(t);
