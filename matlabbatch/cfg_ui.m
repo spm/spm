@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 6136 2014-08-07 10:35:12Z volkmar $
+% $Id: cfg_ui.m 6463 2015-05-29 14:10:15Z volkmar $
 
-rev = '$Rev: 6136 $'; %#ok
+rev = '$Rev: 6463 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -177,14 +177,10 @@ end;
 function local_setfont(obj,fs)
 handles = guidata(obj);
 cfg_get_defaults([mfilename '.lfont'], fs);
-% construct argument list for set
-fn = fieldnames(fs);
-fs = struct2cell(fs);
-fnfs = [fn'; fs'];
-set(handles.modlist, fnfs{:});
-set(handles.module, fnfs{:});
-set(handles.valshow, fnfs{:});
-set(handles.helpbox, fnfs{:});
+set(handles.modlist, fs{:});
+set(handles.module, fs{:});
+set(handles.valshow, fs{:});
+set(handles.helpbox, fs{:});
 
 % --------------------------------------------------------------------
 function local_pointer(ptr)
@@ -519,8 +515,8 @@ if isempty(udmodlist) || ~(~isempty(udmodlist.cjob) && cfg_util('isjob_id', udmo
 end;
 
 % set initial font
-fs = cfg_get_defaults([mfilename '.lfont']);
-local_setfont(hObject, fs);
+lf = cfg_get_defaults([mfilename '.lfont']);
+local_setfont(hObject, lf);
 
 % set ExpertEdit checkbox
 set(handles.MenuViewExpertEdit, ...
@@ -837,9 +833,13 @@ function MenuViewFontSize_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-fs = uisetfont(cfg_get_defaults([mfilename '.lfont']));
+lf = cfg_get_defaults([mfilename '.lfont']);
+fs = uisetfont(cell2struct(lf(2:2:end),lf(1:2:end),2));
 if isstruct(fs)
-    local_setfont(hObject,fs);
+    % construct argument list for set
+    fn = fieldnames(fs);
+    fs = struct2cell(fs);
+    local_setfont(hObject,[fn'; fs']);
     MenuViewUpdateView_Callback(hObject, eventdata, handles);
 end;
 
