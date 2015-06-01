@@ -45,9 +45,9 @@ function crossfreq = ft_crossfrequencyanalysis(cfg,freqlow,freqhigh)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_crossfrequencyanalysis.m 9825 2014-09-22 15:19:53Z roboos $
+% $Id: ft_crossfrequencyanalysis.m 10425 2015-05-28 20:39:13Z roboos $
 
-revision = '$Id: ft_crossfrequencyanalysis.m 9825 2014-09-22 15:19:53Z roboos $';
+revision = '$Id: ft_crossfrequencyanalysis.m 10425 2015-05-28 20:39:13Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -70,9 +70,9 @@ freqlow  = ft_checkdata(freqlow,  'datatype', 'freq', 'feedback', 'yes');
 freqhigh = ft_checkdata(freqhigh, 'datatype', 'freq', 'feedback', 'yes');
 
 cfg.chanlow    = ft_getopt(cfg, 'chanlow');
-cfg.chanhigh   = ft_getopt(cfg, 'chanlow');
-cfg.freqlow    = ft_getopt(cfg, 'chanlow');
-cfg.freqhigh   = ft_getopt(cfg, 'chanlow');
+cfg.chanhigh   = ft_getopt(cfg, 'chanhigh');
+cfg.freqlow    = ft_getopt(cfg, 'freqlow');
+cfg.freqhigh   = ft_getopt(cfg, 'freqhigh');
 cfg.keeptrials = ft_getopt(cfg, 'keeptrials');
 
 % make selection of frequencies and channels

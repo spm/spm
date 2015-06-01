@@ -91,7 +91,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 10340 2015-04-17 14:10:04Z jorhor $
+% $Id: ft_senstype.m 10420 2015-05-22 15:07:21Z sardal $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -165,6 +165,8 @@ if isdata
   elseif isfield(input, 'label')
     sens.label = input.label;
     islabel    = true;
+  else
+    sens = [];
   end
   
 elseif isheader
