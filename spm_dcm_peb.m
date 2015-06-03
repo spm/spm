@@ -76,7 +76,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6449 2015-05-24 14:26:59Z karl $
+% $Id: spm_dcm_peb.m 6471 2015-06-03 21:08:41Z karl $
  
 
 % get filenames and set up
@@ -143,13 +143,12 @@ for i = 1:Ns
     qE{i} = spm_vec(DCM.Ep);
     qC{i} = DCM.Cp;
 
-    
     % select parameters in field
     %----------------------------------------------------------------------
     pE{i} = pE{i}(q); 
     pC{i} = pC{i}(q,q); 
     qE{i} = qE{i}(q); 
-    qC{i} = qC{i}(q,q); 
+    qC{i} = qC{i}(q,q);
     
     % shrink posterior to accommodate inefficient inversions
     %----------------------------------------------------------------------
@@ -178,13 +177,13 @@ if Ns == 1,           OPTION = 'no';   end
 %--------------------------------------------------------------------------
 if isfield(M,'bE')
     M.bE = spm_vec(M.bE);
-    if size(M.bE,1) > Np, M.bE = M.bE(q); end
+    if size(M.bE,1) > Np && Ns > 1, M.bE = M.bE(q);   end
 else
     M.bE = pE{1};
 end
 if isfield(M,'bC')
     if isstruct(M.bC),    M.bC = diag(spm_vec(M.bC)); end
-    if size(M.bC,1) > Np, M.bC = M.bC(q,q);           end
+    if size(M.bC,1) > Np && Ns > 1, M.bC = M.bC(q,q); end
 else
     M.bC = pC{1};
 end
@@ -281,12 +280,12 @@ ipC   = spm_cat({bP [];
 % variational Laplace
 %--------------------------------------------------------------------------
 t     = -2;                         % Fisher scoring parameter
-for n = 1:32
+for n = 1:64
 
     % compute prior covariance
     %----------------------------------------------------------------------
     if Ng > 0
-        rP  = pP;
+        rP  = 0;
         for i = 1:Ng
             rP = rP + exp(g(i))*Q{i};
         end

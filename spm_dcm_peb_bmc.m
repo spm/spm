@@ -49,14 +49,11 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % (encoded by the design matrix, X). Using Bayesian model reduction, this
 % joint model space is scored over the specified models at the first level
 % (for the constant terms modelling effects that are common to all
-% subjects) and combinations of group effect (generally modelling between
-% subject differences). This model comparison is in terms of second level
-% parameters; however, if a parameter is removed at the second level it is
-% alos removed from the first (i.e., if the group averge is zero, then it
-% is zero for all subjects).
+% subjects) and combinations of group effects (modelling between
+% subject differences).
 %
 % If there is only a group effect (and no between subject differences) this
-% reduces to a search over different models at the first level.
+% reduces to a search over different models of the group mean.
 %
 % Given the model space one can then computes the posterior probability
 % of various combinations of group effects over different parameters. Of
@@ -79,7 +76,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6466 2015-06-03 12:42:14Z karl $
+% $Id: spm_dcm_peb_bmc.m 6471 2015-06-03 21:08:41Z karl $
 
 % (greedy) search over all combinations of second level parameters
 %==========================================================================
@@ -190,11 +187,10 @@ fprintf('BMC:     ')
 
 % Get priors and posteriors - of first and second order parameters
 %--------------------------------------------------------------------------
-qE    = spm_vec(PEB.Ep,PEB.Eh);
-qC    = PEB.Cph;
-pE    = spm_vec(PEB.M.pE,PEB.M.hE);
-pC    = blkdiag(PEB.M.pC,PEB.M.hC);
-q     = 1:Nx*Np;
+qE    = spm_vec(PEB.Ep);
+qC    = PEB.Cp;
+pE    = spm_vec(PEB.M.pE);
+pC    = PEB.M.pC;
 for i = 1:Nm
     
     if Nx > 1
@@ -207,14 +203,14 @@ for i = 1:Nm
             %--------------------------------------------------------------
             k   = [K(i,:) K(j,:) ones(1,(Nx - 2)*Np)];
             R   = diag(k);
-            rE  = spm_vec(R*PEB.M.pE,  PEB.M.hE);
-            rC  = blkdiag(R*PEB.M.pC*R,PEB.M.hC);
+            rE  = R*pE;
+            rC  = R*pC*R;
             
             % Bayesian model reduction (of second level)
             %--------------------------------------------------------------
             [F, sE, sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
-            BMR{i,j}.Ep = sE(q);
-            BMR{i,j}.Cp = sC(q,q);
+            BMR{i,j}.Ep = sE;
+            BMR{i,j}.Cp = sC;
             BMR{i,j}.F  = F;
             G(i,j)      = F;
             
@@ -231,14 +227,14 @@ for i = 1:Nm
         k   = K(i,:);
         R   = diag(k);
         
-        rE  = spm_vec(R*PEB.M.pE,  PEB.M.hE);
-        rC  = blkdiag(R*PEB.M.pC*R,PEB.M.hC);
+        rE  = R*pE;
+        rC  = R*pC*R;
         
         % Bayesian model reduction (of second level)
         %------------------------------------------------------------------
         [F, sE, sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
-        BMR{i,1}.Ep = sE(q);
-        BMR{i,1}.Cp = sC(q,q);
+        BMR{i,1}.Ep = sE;
+        BMR{i,1}.Cp = sC;
         BMR{i,1}.F  = F;
         G(i,1)      = F;
     end

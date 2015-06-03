@@ -35,7 +35,7 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,X,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_loo.m 6373 2015-03-11 17:10:54Z karl $
+% $Id: spm_dcm_loo.m 6471 2015-06-03 21:08:41Z karl $
 
 
 % Set up
@@ -94,7 +94,7 @@ spm_axis tight, axis square
 %--------------------------------------------------------------------------
 [T,df] = spm_ancova(X(:,1:2),[],qE(:),[0;1]);
 r      = corr(qE(:),X(:,2));
-p      = 1 - spm_Fcdf(T^2,df);
+p      = 1 - spm_Tcdf(T,df(2));
 str    = sprintf('corr(df:%-2.0f) = %-0.2f: p = %-0.5f',df(2),r,p);
 
 subplot(2,2,2)

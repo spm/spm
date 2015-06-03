@@ -34,7 +34,7 @@ function DEMO_BMR_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BMR_PEB.m 6449 2015-05-24 14:26:59Z karl $
+% $Id: DEMO_BMR_PEB.m 6471 2015-06-03 21:08:41Z karl $
 
 
 % set up
@@ -199,7 +199,7 @@ M     = struct('X',X);
 %--------------------------------------------------------------------------
 spm_dcm_peb_rnd(RCM(:,mw),M,{'B'});
 
-% BMC - (second level)
+% BMC - (first and second level)
 %--------------------------------------------------------------------------
 BMC   = spm_dcm_bmc_peb(RCM,M,{'B'});
 
@@ -362,7 +362,7 @@ subplot(2,2,1), spm_plot_ci(PEB.Eh,PEB.Ch),
 title('Estimated log precision','FontSize',16)
 axis square, a = axis;
 
-subplot(2,2,2), bar(log((C - 1)/16))
+subplot(2,2,2), bar(log((C - 0)/16))
 title('True log precision','FontSize',16)
 box off, axis square, axis(a)
 

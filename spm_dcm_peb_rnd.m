@@ -35,7 +35,7 @@ function [p] = spm_dcm_peb_rnd(DCM,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_rnd.m 6385 2015-03-21 12:06:22Z karl $
+% $Id: spm_dcm_peb_rnd.m 6471 2015-06-03 21:08:41Z karl $
 
 
 % Set up
@@ -62,13 +62,18 @@ for i = 1:N
     F(i,:)    = bmc.F;
 end
 
-j   = 1 + size(bmc.K,1)/2;
-F   = F(:,1) - F(:,j);
+j   = find(bmc.K(:,2));
+P   = softmax(F');
+P   = sum(P(j,:));
+F   = log(P./(1 - P));
 
 % Bayesian model comparison
 %--------------------------------------------------------------------------
 BMC = spm_dcm_bmc_peb(DCM,M,field);
-G   = BMC.F(1) - BMC.F(j);
+G   = BMC.F;
+P   = softmax(G');
+P   = sum(P(j,:));
+G   = log(P/(1 - P));
 
 p   = (sum(F > G) + 1)/(N + 1);
 r   = sort(F);
