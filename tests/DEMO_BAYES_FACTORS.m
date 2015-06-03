@@ -14,7 +14,7 @@ function DEMO_BAYES_FACTORS(pC,hE,hC,N,b)
 % computes the null distribution over both statistics and plots them
 % against each other.  There is a linear relationship, which allows one to
 % evaluate the false-positive rate for any threshold on the Bayes factor.
-% Ideally, one would like to see a log Bayes factor of three map to a
+% Ideally, one would like to see a positive log Bayes factor map to a
 % classical threshold of p=0.05. The offset and slope of the linear
 % relationship between the two statistics depends upon prior beliefs about
 % the covariance of the parameters and the log precision. These can be
@@ -23,18 +23,18 @@ function DEMO_BAYES_FACTORS(pC,hE,hC,N,b)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BAYES_FACTORS.m 6387 2015-03-22 16:03:19Z karl $
+% $Id: DEMO_BAYES_FACTORS.m 6466 2015-06-03 12:42:14Z karl $
 
 
 % set up
 %--------------------------------------------------------------------------
 rng('default')
 
-try, pC; catch, pC = 4;    end
-try, hE; catch, hE = 1;    end
-try, hC; catch, hC = 1/8;  end
-try, N;  catch, N  = 16;   end
-try, b;  catch, b  = 1/32; end
+try, pC; catch, pC = 1;     end
+try, hE; catch, hE = 0;     end
+try, hC; catch, hC = 1/16;  end
+try, N;  catch, N  = 32;    end
+try, b;  catch, b  = 1/128; end
 
 Y    = randn(N,1);
 XX   = kron([1 1; 1 -1],ones(N/2,1));
@@ -61,15 +61,22 @@ end
 
 pE    = M.pE;                    % full prior expectations
 pC    = M.pC;                    % full prior covariance
-rC    = [1 0;0 b];               % restricted or reduced priors
-Cr    = [0 0;0 1];               % classically contrast
+rC    = pC; rC(2,2) = b;         % restricted or reduced priors
+R     = M; R.pC = rC;            % reduced model  
+Cr    = [0 0;0 1];               % classical contrast
 for i = 1:Ns
-    disp(i)
+    
+    % Bayesian analysis (full comparison and model reduction)
+    %----------------------------------------------------------------------
     [qE,qC,Eh,f] =  spm_nlsi_GN(M,X{i},Y);
     F(i,1)       = -spm_log_evidence(qE,qC,pE,pC,pE,rC);
-    [qE,qC,Eh,t] =  spm_nlsi_GN(M,X{i}*rC,Y);
+    [qE,qC,Eh,r] =  spm_nlsi_GN(R,X{i},Y);
+    G(i,1)       =  f - r; disp(i)
+    
+    % classical analysis
+    %----------------------------------------------------------------------
     T(i,1)       =  spm_ancova(X{i},[],Y,Cr);
-    G(i,1)       =  f - t;
+    
 end
 
 % classical threshold
@@ -108,10 +115,11 @@ plot(F,T,'.b','Markersize',8), hold on
 plot(G,T,'.r','Markersize',8), hold on
 plot(Fq,Tq,'b'), hold on
 plot([3 3],[0 16],':r'), hold on
+plot([0 0],[0 16],'--r'), hold on
 plot([-32, 32],[r r],':b'), hold off
 xlabel('free energy difference'), ylabel('Classical F-ratio')
 title('Null distribution','FontSize',16)
-axis([-32 32 0 16])
+axis([-8 8 0 16])
 axis square
 
 

@@ -17,8 +17,8 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 %     PEB.Cp   -   posterior covariance  of second level parameters
 %
 % models - field in DCM.Ep to compare For the first two group effects
-%          or logical (Nm x Np) matrix of Nm (parameteric) model space
-%          or an array of DCMs specifying Nm (parameteric) model space
+%          or logical (Nm x Np) matrix of Nm (parametric) model space
+%          or an array of DCMs specifying Nm (parametric) model space
 %
 % if models are not specified, all combinations of second level parameters
 % will be tested.
@@ -79,7 +79,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6427 2015-05-05 15:42:35Z karl $
+% $Id: spm_dcm_peb_bmc.m 6466 2015-06-03 12:42:14Z karl $
 
 % (greedy) search over all combinations of second level parameters
 %==========================================================================
