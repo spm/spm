@@ -19,7 +19,7 @@ function [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6468 2015-06-03 16:22:52Z guillaume $
+% $Id: spm_results_nidm.m 6472 2015-06-04 14:04:47Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -656,6 +656,7 @@ idHeightThresh2 = getid('niiri:height_threshold_id_2',isHumanReadable);
 idHeightThresh3 = getid('niiri:height_threshold_id_3',isHumanReadable);
 p.entity(idHeightThresh,{...
     'prov:type',nidm_conv('nidm:HeightThreshold'),...
+    'prov:type',thresh(1).type,...
     'prov:label',{thresh(1).label,'xsd:string'},... %esc
     'prov:value',{thresh(1).value,'xsd:float'},...
     nidm_conv('nidm:equivalentThreshold'),idHeightThresh2,...
