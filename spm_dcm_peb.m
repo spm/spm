@@ -76,7 +76,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6471 2015-06-03 21:08:41Z karl $
+% $Id: spm_dcm_peb.m 6473 2015-06-04 19:05:05Z karl $
  
 
 % get filenames and set up
@@ -282,10 +282,10 @@ ipC   = spm_cat({bP [];
 t     = -2;                         % Fisher scoring parameter
 for n = 1:64
 
-    % compute prior covariance
+    % compute prior precision (with a lower bound of pP/256)
     %----------------------------------------------------------------------
     if Ng > 0
-        rP  = 0;
+        rP  = pP/256;
         for i = 1:Ng
             rP = rP + exp(g(i))*Q{i};
         end
@@ -388,8 +388,13 @@ for n = 1:64
     
     % Convergence
     %======================================================================
-    fprintf('VL Iteration %-8d: F = %-3.2f dF: %2.4f  [%+2.2f]\n',n,full(F),full(dF),t); 
-    if t < -4 || (dF < 1e-4 && n > 4), break, end
+    if ~isfield(M,'noplot')
+        fprintf('VL Iteration %-8d: F = %-3.2f dF: %2.4f  [%+2.2f]\n',n,full(F),full(dF),t); 
+    end
+    if t < -4 || (dF < 1e-4 && n > 4)
+        fprintf('VL Iteration %-8d: F = %-3.2f dF: %2.4f  [%+2.2f]\n',n,full(F),full(dF),t); 
+        break
+    end
      
 end
 

@@ -23,7 +23,7 @@ function DEMO_BAYES_FACTORS(pC,hE,hC,N,b)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BAYES_FACTORS.m 6466 2015-06-03 12:42:14Z karl $
+% $Id: DEMO_BAYES_FACTORS.m 6473 2015-06-04 19:05:05Z karl $
 
 
 % set up
@@ -98,7 +98,7 @@ spm_figure('GetWin','Graphics');clf
 
 subplot(2,2,1)
 hist(F,32), hold on
-xlabel('Log Bayes Factor'), ylabel('Frequency')
+xlabel('Log Bayes Factor','FontSize',16), ylabel('Frequency')
 title('Null distribution','FontSize',16)
 axis square
 
@@ -106,7 +106,7 @@ subplot(2,2,2)
 hist(T,32), hold on
 plot([u u],[0 Ns/4],'--r'), hold on
 plot([r r],[0 Ns/4],'--b'), hold off
-xlabel('Classical F-ratio'), ylabel('Frequency')
+xlabel('Classical F-ratio','FontSize',16), ylabel('Frequency')
 title('Null distribution','FontSize',16)
 axis square
 
@@ -117,7 +117,7 @@ plot(Fq,Tq,'b'), hold on
 plot([3 3],[0 16],':r'), hold on
 plot([0 0],[0 16],'--r'), hold on
 plot([-32, 32],[r r],':b'), hold off
-xlabel('free energy difference'), ylabel('Classical F-ratio')
+xlabel('free energy difference','FontSize',16), ylabel('Classical F-ratio')
 title('Null distribution','FontSize',16)
 axis([-8 8 0 16])
 axis square

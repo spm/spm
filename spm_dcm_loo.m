@@ -1,6 +1,6 @@
-function [qE,qC,Q] = spm_dcm_loo(DCM,X,field)
+function [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
 % Leave-one-out cross validation for empirical Bayes and DCM
-% FORMAT [qE,qC,Q] = spm_dcm_loo(DCM,X,field)
+% FORMAT [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
 %
 % DCM   - {N [x M]} structure DCM array of (M) DCMs from (N) subjects
 % -------------------------------------------------------------------
@@ -9,7 +9,7 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,X,field)
 %     DCM{i}.Ep   - posterior expectations
 %     DCM{i}.Cp   - posterior covariance
 %
-% X     - second level design matrix, where X(:,1) = ones(N,1) [default]
+% M.X   - second level design matrix, where X(:,1) = ones(N,1) [default]
 % field - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %         'All' will invoke all fields
 % 
@@ -35,7 +35,7 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,X,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_loo.m 6471 2015-06-03 21:08:41Z karl $
+% $Id: spm_dcm_loo.m 6473 2015-06-04 19:05:05Z karl $
 
 
 % Set up
@@ -57,7 +57,7 @@ if size(DCM,2) > 1
     % loop over models in each column
     %----------------------------------------------------------------------
     for i = 1:size(DCM,2)
-        [p,q,r] = spm_dcm_loo(DCM(:,i),X,field);
+        [p,q,r] = spm_dcm_loo(DCM(:,i),M,field);
         qE{i}   = p;
         qC{i}   = q;
         Q{i}    = r;
@@ -74,7 +74,7 @@ for i = 1:Ns
     %----------------------------------------------------------------------
     j         = 1:Ns;
     j(i)      = [];
-    [Ep,Cp,P] = spm_dcm_ppd(DCM(i),DCM(j,1),X(i,:),X(j,:),field);
+    [Ep,Cp,P] = spm_dcm_ppd(DCM(i),DCM(j,1),M.X(i,:),M.X(j,:),field);
     qE(i)     = Ep;
     qC(i)     = Cp;
     Q(:,i)    = P;
@@ -85,23 +85,23 @@ end
 %--------------------------------------------------------------------------
 spm_figure('GetWin','LOO cross-validation');clf
 subplot(2,2,1), spm_plot_ci(qE,qC), hold on
-plot(X(:,2),':'), hold off
+plot(M.X(:,2),':'), hold off
 xlabel('subject'), ylabel('group effect')
 title('Out of sample estimates','FontSize',16)
 spm_axis tight, axis square
 
 % classical inference on classification accuracy
 %--------------------------------------------------------------------------
-[T,df] = spm_ancova(X(:,1:2),[],qE(:),[0;1]);
-r      = corr(qE(:),X(:,2));
+[T,df] = spm_ancova(M.X(:,1:2),[],qE(:),[0;1]);
+r      = corr(qE(:),M.X(:,2));
 p      = 1 - spm_Tcdf(T,df(2));
 str    = sprintf('corr(df:%-2.0f) = %-0.2f: p = %-0.5f',df(2),r,p);
 
 subplot(2,2,2)
-plot(X(:,2),qE,'o','Markersize',8)
+plot(M.X(:,2),qE,'o','Markersize',8)
 xlabel('group effect'), ylabel('estimate')
 title(str,'FontSize',16)
-spm_axis tight, set(gca,'XLim',[min(X(:,2))-1 max(X(:,2)+1)]), axis square
+spm_axis tight, set(gca,'XLim',[min(M.X(:,2))-1 max(M.X(:,2)+1)]), axis square
 
 
 if size(Q,1) > 2

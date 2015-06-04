@@ -70,7 +70,7 @@ function [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmc_peb.m 6471 2015-06-03 21:08:41Z karl $
+% $Id: spm_dcm_bmc_peb.m 6473 2015-06-04 19:05:05Z karl $
 
 
 % set up
@@ -113,8 +113,6 @@ for i = 1:Nm
     
     % invert under full second level model
     %----------------------------------------------------------------------
-    M.hE   = 0;
-    M.hC   = 1/16;
     PEB    = spm_dcm_peb(DCM(:,i),M,field);
     
     % Get priors and posteriors - of first and second order parameters
@@ -173,9 +171,9 @@ BMC.Px = Px;
 BMC.Pw = Pw;
 BMC.K  = K;
 
-
 % Show results
 %==========================================================================
+if isfield(M,'noplot'), return, end
 spm_figure('Getwin','PEB-BMC'); clf
 
 subplot(3,2,1), [m,i] = max(Pw);

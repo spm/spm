@@ -1,6 +1,6 @@
-function [p] = spm_dcm_peb_rnd(DCM,M,field)
+function [p,P,f] = spm_dcm_peb_rnd(DCM,M,field)
 % Re-randomisation testing for empirical Bayes and DCM
-% FORMAT [p] = spm_dcm_peb_rnd(DCM,M,field)
+% FORMAT [p,P,f] = spm_dcm_peb_rnd(DCM,M,field)
 %
 % DCM   - {N x 1} structure DCM array of (M) DCMs from (N) subjects
 % -------------------------------------------------------------------
@@ -16,10 +16,14 @@ function [p] = spm_dcm_peb_rnd(DCM,M,field)
 % M.hC   - second level prior covariances of log precisions
 % M.Q    - covariance components: {'single','fields','all','none'}
 %
-% field - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
-%         'All' will invoke all fields
+% M.N    -  number of re-randomizations [default: M.N = 32]
+%
+% field  - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
+%          'All' will invoke all fields
 % 
-% p      - classical (re-randomization) p - value
+% p      - classical (re-randomization) p-value
+% P      - null(re-randomization) distribution of p-values
+% f      - marginal likelihood
 %__________________________________________________________________________
 %
 % This routine uses the posterior  density over the coefficients of
@@ -35,14 +39,21 @@ function [p] = spm_dcm_peb_rnd(DCM,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_rnd.m 6471 2015-06-03 21:08:41Z karl $
+% $Id: spm_dcm_peb_rnd.m 6473 2015-06-04 19:05:05Z karl $
 
 
 % Set up
 %==========================================================================
 
+% supress plotting
+%--------------------------------------------------------------------------
+if nargout, M.noplot = 1; end
+
 % parameter fields
 %--------------------------------------------------------------------------
+if ~isfield(M,'N')
+    M.N = 32;
+end
 if nargin < 3;
     field  = {'A','B'};
 end
@@ -51,10 +62,11 @@ if strcmpi(field,'all');
 end
 
 
+
 % re-randomisation
 %--------------------------------------------------------------------------
 Ns  = size(M.X,1);
-N   = 32;
+N   = M.N;
 M0  = M;
 for i = 1:N
     M0.X(:,2) = M.X(randperm(Ns),2);
@@ -71,13 +83,15 @@ F   = log(P./(1 - P));
 %--------------------------------------------------------------------------
 BMC = spm_dcm_bmc_peb(DCM,M,field);
 G   = BMC.F;
-P   = softmax(G');
-P   = sum(P(j,:));
-G   = log(P/(1 - P));
+f   = softmax(G');
+f   = sum(f(j,:));
+G   = log(f/(1 - f));
 
 p   = (sum(F > G) + 1)/(N + 1);
 r   = sort(F);
 r   = r(fix((1 - 0.05)*N));
+
+if nargout, return, end
 
 % show results
 %--------------------------------------------------------------------------

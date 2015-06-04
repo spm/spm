@@ -38,7 +38,7 @@ function [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,Y,X,field,iX)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ppd.m 6449 2015-05-24 14:26:59Z karl $
+% $Id: spm_dcm_ppd.m 6473 2015-06-04 19:05:05Z karl $
 
 
 % Set up
@@ -79,7 +79,8 @@ end
 
 % evaluate empirical priors from training set
 %--------------------------------------------------------------------------
-PEB   = spm_dcm_peb(TRAIN,X,field);
+M.X   = X;
+PEB   = spm_dcm_peb(TRAIN,M,field);
 
 % and estimate their contribution to the test subject
 %--------------------------------------------------------------------------
