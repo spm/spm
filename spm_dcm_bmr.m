@@ -1,6 +1,6 @@
-function [RCM,BMR,BMA] = spm_dcm_bmr(P,field)
+function [RCM,BMC,BMA] = spm_dcm_bmr(P,field)
 % Bayesian model reduction (under Laplace approximation)
-% FORMAT [RCM,BMR,BMA] = spm_dcm_bmr(P,[field])
+% FORMAT [RCM,BMC,BMA] = spm_dcm_bmr(P,[field])
 %
 % P     - {Nsub x Nmodel} cell array of DCM filenames or model structures  
 %         of Nsub subjects, where each model is reduced independently 
@@ -8,10 +8,10 @@ function [RCM,BMR,BMA] = spm_dcm_bmr(P,field)
 % field - parameter fields in DCM{i}.Ep to plot [default: {'A','B'}]
 %      
 % RCM   - reduced DCM array
-% BMR   - (Nsub) summary structure 
-%          BMR.name - character/cell array of DCM filenames
-%          BMR.F    - their associated free energies
-%          BMR.P    - and posterior (model) probabilities
+% BMC   - (Nsub) summary structure 
+%          BMC.name - character/cell array of DCM filenames
+%          BMC.F    - their associated free energies
+%          BMC.P    - and posterior (model) probabilities
 % BMA   - Baysian model average (see spm_dcm_bma)
 %__________________________________________________________________________
 % 
@@ -38,7 +38,7 @@ function [RCM,BMR,BMA] = spm_dcm_bmr(P,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmr.m 6427 2015-05-05 15:42:35Z karl $
+% $Id: spm_dcm_bmr.m 6474 2015-06-06 10:41:55Z karl $
 
 
 % get filenames and set up
@@ -59,14 +59,14 @@ if ischar(field)
     field = {field};
 end
 
-% number of subjects and models: BMR over models (rows) for each subject
+% number of subjects and models: BMC over models (rows) for each subject
 %--------------------------------------------------------------------------
 [Ns,N] = size(P);
 if Ns > 2
     for i = 1:Ns
         [p,q]    = spm_dcm_bmr(P(i,:),field);
         RCM(i,:) = p;
-        BMR(i)   = q;
+        BMC(i)   = q;
     end
     return
 end
@@ -74,7 +74,7 @@ end
 % exhaustive search
 %--------------------------------------------------------------------------
 if N < 2
-    [RCM,BMR,BMA] = spm_dcm_bmr_all(P{1},field);
+    [RCM,BMC,BMA] = spm_dcm_bmr_all(P{1},field);
     return
 end
 
@@ -157,7 +157,7 @@ for j = 1:N
 
     % Save DCM and record free-energy
     %----------------------------------------------------------------------
-    name{j}  = ['BMR_' DCMname];
+    name{j}  = ['BMC_' DCMname];
     RCM{j}   = DCM;
     G(j)     = DCM.F;
     
@@ -171,9 +171,9 @@ p     = p/sum(p);
 
 %-summary structure
 %--------------------------------------------------------------------------
-BMR.name = name;
-BMR.F    = G;
-BMR.P    = p;
+BMC.name = name;
+BMC.F    = G;
+BMC.P    = p;
 
 % Get and display selected model
 %==========================================================================

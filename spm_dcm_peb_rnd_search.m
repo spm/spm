@@ -32,12 +32,12 @@ function [HP] = spm_dcm_peb_rnd_search(DCM,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_rnd_search.m 6473 2015-06-04 19:05:05Z karl $
+% $Id: spm_dcm_peb_rnd_search.m 6474 2015-06-06 10:41:55Z karl $
 
 
 % Set up
 %==========================================================================
-hP    = 4:4:34;
+hP    = 4:4:32;
 M.hE  = 0;
 M.N   = 128;
 bins  = 1/40:1/20:1;
@@ -53,7 +53,7 @@ end
 % histogram of p-values and entropy (S)
 %--------------------------------------------------------------------------
 H     = H/M.N;
-S     = -diag(H'*log(H + 1e-6));
+S     = -sum(H.*log(H + 1e-6));
 [s,i] = max(S);
 
 % repeat with maximum entropy hyperprior

@@ -76,7 +76,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6471 2015-06-03 21:08:41Z karl $
+% $Id: spm_dcm_peb_bmc.m 6474 2015-06-06 10:41:55Z karl $
 
 % (greedy) search over all combinations of second level parameters
 %==========================================================================
@@ -151,7 +151,7 @@ elseif iscell(models)
     Np    = length(PEB.Pind);
     K     = ones(Nm,Np);
     for i = 1:Nm
-        k      = spm_find_pC(models{i}.M.pC);
+        k      = spm_find_pC(models{i});
         j      = find(~ismember(PEB.Pind,k));
         K(i,j) = 0;
     end
