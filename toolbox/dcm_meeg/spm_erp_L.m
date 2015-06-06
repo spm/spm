@@ -25,7 +25,7 @@ function [L] = spm_erp_L(P,dipfit)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_L.m 5775 2013-12-04 13:03:55Z vladimir $
+% $Id: spm_erp_L.m 6475 2015-06-06 10:44:20Z karl $
 
 % Create a persient variable that rembers the last locations
 %--------------------------------------------------------------------------
@@ -110,6 +110,12 @@ switch type
             n = m;
         end
         L     = sparse(1:m,1:m,P.L,m,n);
+        
+        % assume common sources contribute to the last channel
+        %------------------------------------------------------------------
+        if isfield(dipfit,'common_source')
+            L(m,m:n) = L(m,m);
+        end
 
     otherwise
         warndlg('unknown spatial model')
