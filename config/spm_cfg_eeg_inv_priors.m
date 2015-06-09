@@ -1,10 +1,11 @@
 function priors = spm_cfg_eeg_inv_priors
-% Configuration file to set up priors for M/EEG source reconstruction
-%__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% configuration file to set up priors for M/EEG source
+% reconstruction
+%_______________________________________________________________________
+% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_priors.m 6458 2015-05-27 16:22:09Z spm $
+% $Id: spm_cfg_eeg_inv_priors.m 6477 2015-06-09 13:54:35Z gareth $
 
 
 D = cfg_files;
@@ -43,15 +44,15 @@ FWHMmm.name = 'Patch smoothness';
 FWHMmm.strtype = 'r';
 FWHMmm.num = [1 1];
 FWHMmm.val = {[4]};
-FWHMmm.help = {'FWHM on cortex in mm '};
+FWHMmm.help = {'FWHM on cortex in mm. NB. Ignored for EBB and IID. Square windowed for COH '};
 
 
 popular=cfg_menu;
 popular.tag='popular';
 popular.name='prior types';
 popular.help={' Select from popular priors: IID (min norm), COH (LORETA) or EBB (beamforming)'};
-popular.labels={'IID','COH','EBB'};
-popular.values={'IID','COH','EBB'};
+popular.labels={'IID','COH','EBB','sparseEBB'};
+popular.values={'IID','COH','EBB','sparseEBB'};
 popular.val={'IID'};
 
 
@@ -355,7 +356,7 @@ for i=1:numel(job.priortype), %% move through different prior specifications
         
         disp(sprintf('Adding prior covariance matrix for %s algorithm',base.popular));
         
-        if strcmp(base.popular,'EBB'),
+        if strcmp(base.popular,'sparseEBB'),
             
             %% calculate power on cortical surface
             %% using beamformer assumptions
@@ -391,6 +392,37 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             [Qp,Qe,allpriornames]=spm_eeg_invert_setuppatches(Ip,mesh,base,priordir,Qe{1},UL);
             
             count=count+size(allpriornames,1);
+        end; % sparse EBB
+        
+        if strcmp(base.popular,'EBB'),
+            
+            %% calculate power on cortical surface
+            %% using beamformer assumptions
+            AYYA=D.inv{val}.inverse.AYYA;
+            
+            InvCov = spm_inv(AYYA);
+            
+            allsource = sparse(Ns,1);
+            Sourcepower = sparse(Ns,1);
+            
+            for bk = 1:Ns
+                normpower = 1/(UL(:,bk)'*UL(:,bk));
+                Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
+                %% normalise power by unit noise through lead fields
+                allsource(bk) = Sourcepower(bk)./normpower;
+            end
+            
+            %% now get local maxima on mesh
+            M.vertices=mesh.vert;
+            M.faces=mesh.face;
+            warning('Smoothing not used');
+            Qp{1}=diag(Sourcepower);
+            
+            count=count+1;
+            priorfname=[priordir filesep sprintf('prior%d.mat',count)];
+            F=[]; 
+            save(priorfname,'Qp','Qe','UL','F');
+            
         end; % EBB
         
         if strcmp(base.popular,'COH'),
