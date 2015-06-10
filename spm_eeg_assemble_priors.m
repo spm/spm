@@ -1,28 +1,26 @@
-function [LCpL,Q,sumLCpL,QE,Cy,M,Cp,Cq,Lq] = spm_eeg_assemble_priors(L,Qp,Qe,ploton,h)
-% Predict sensor level impact of sources in Qp given sensor noise Qe
-% FORMAT [LCpL,Q,sumLCpL,QE,Cy,M,Cp,Cq,Lq] = spm_eeg_assemble_priors(L,Qp,Qe,ploton,h)
-% L   - lead fields
-% Qp  - priors on source level dipole moment nAm/(mm2) per sample
-% Qe  - sensor level variance in fT^2 per sample
-% h   - optional hyperparameters that scale the variance components in Qe
-%       and Qp (assume sensor followed by source level parameters)
-%
-% LCpL    - sensor level covariance components corresponding to the source
-%           priors Qp
-% Q       - sparse array over sources holding dipole moment density nAm/(mm2)
-% sumLCpL - predicted sensor level variance due to sources (in fT^2)
-% QE      - predicted sensor level noise variance (in fT^2)
-% Cy      - total sensor noise covariance predicted: Cy = QE+sumLCpL
-% M       - the MAP estimator  : M = Cp*L'*inv(Qe + L*Cp*L'))
-% Cp      - the total source covariance matrix
-% Cq      - conditional source covariance- need to implement
-% Lq      - cell array of the L*q (impact of each source component at sensor level)
-%__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+function [LCpL,Q,sumLCpL,QE,Cy,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(L,Qp,Qe,ploton,h)
+%% function [LCpL,Q,sumLCpL,QE,Cy,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(L,Qp,Qe,ploton,h)
+%% to predict sensor level impact of sources in Qp given sensor noise Qe
+%% L are the lead fields
+%% Qp are priors on source level dipole moment nAm/(mm2) per sample
+%% Qe is sensor level variance in fT^2 per sample
+%% h are optional hyperparameters that scale the variance components in Qe and Qp (assume sensor followed by source level parameters)
+
+% LCpL are the sensor level covariance components corresponding to the
+% source priors Qp
+%% Q is a sparse array over sources holding dipole moment density nAm/(mm2)
+%% sumLCpL is predicted sensor level variance due to sources (in fT^2)
+%% QE is predicted sensor level noise variance (in fT^2)
+%% Cy = QE+sumLCpL is the total sensor noise covariance predicted
+%% M is the MAP estimator  : M = Cp*L'*inv(Qe + L*Cp*L'))
+%% Cp is the total source covariance matrix
+%% Cq is conditional source covariance- need to implement
+%% Lq is cell array of the L*q (impact of each source component at sensor level)
+
+% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_assemble_priors.m 6458 2015-05-27 16:22:09Z spm $
-
+% $Id: spm_eeg_assemble_priors.m 6479 2015-06-10 13:44:14Z gareth $
 
 if nargin<4,
     ploton=[];
@@ -74,7 +72,7 @@ for i = 1:Np
             
             Q(:,i)=q*v;
             
-            % Lq is the sensor level projection of the prior Q{i}.q
+            %% Lq is the sensor level projection of the prior Q{i}.q
             Lq{i}.q = L*Q(:,i); %%  supply an eigen mode in q
            
         end;
@@ -104,7 +102,8 @@ for i = 1:Np,
         LQp = L*Q(:,i);
         LCpL{i}=LQp*LQp';
         Cp  = Cp + Q(:,i)*Q(:,i)'; %% Q is already scaled by root hp
-        LCp = LCp+LQp;
+        %LCp = LCp+LQp;
+        LCp = LCp+L*Cp;
     else % full matrix version
         Qtmp=Qp{i}*hp(i);
         LCpL{i}=L*Qtmp*L';
@@ -138,15 +137,12 @@ M=Cp*L'/Cy;
 % Cq    = Cp - Cp*L'*iC*L*Cp;
 %----------------------------------------------------------------------
 %Cq    = Cp - sum(LCp.*M')'; in original
-%Cq    = diag(Cp) - sum(LCp.*M')';
-%keyboard
-%Cq    = diag(Cp) - sum(LCp.*M')';
-Cq=[];
 
+Cq    = diag(Cp) - sum(LCp.*M')';
 
 disp('end assemble');
 
-if ploton
+if ploton,
     subplot(3,1,1);
     imagesc(sumLCpL);colorbar;
     title('source prior');
@@ -156,4 +152,6 @@ if ploton
     subplot(3,1,3);
     imagesc(Cy);colorbar;
     title('Sensor covariance per sample (fT^2)');
-end
+end;
+
+
