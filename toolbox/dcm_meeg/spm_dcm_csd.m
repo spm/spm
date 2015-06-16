@@ -41,7 +41,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 5975 2014-05-07 18:07:42Z karl $
+% $Id: spm_dcm_csd.m 6481 2015-06-16 17:01:47Z karl $
  
  
 % check options
@@ -90,7 +90,7 @@ if isempty(DCM.xU.X),    DCM.C    = sparse(Ns,0); end
 % check to see if neuronal priors have already been specified
 %--------------------------------------------------------------------------
 try
-    if length(spm_vec(DCM.M.pE)) == length(spm_vec(pE));
+    if spm_length(DCM.M.pE) == spm_length(pE);
         pE = DCM.M.pE;
         pC = DCM.M.pC;
         fprintf('Using existing priors\n')
@@ -104,6 +104,14 @@ end
 % augment with priors on endogenous inputs (neuronal) and noise
 %--------------------------------------------------------------------------
 [pE,pC]  = spm_ssr_priors(pE,pC);
+
+try
+    if spm_length(DCM.M.pE) == spm_length(pE);
+        pE = DCM.M.pE;
+        pC = DCM.M.pC;
+        fprintf('Using existing priors\n')
+    end
+end
  
 % initial states and equations of motion
 %--------------------------------------------------------------------------

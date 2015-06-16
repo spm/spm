@@ -1,6 +1,7 @@
-function [i,pC,pE,Np] = spm_find_pC(pC,pE,fields)
+function [i,pC,pE,Np] = spm_find_pC(varargin)
 % Utility routine that finds the indices of non-zero covariance
 % FORMAT [i,pC,pE,Np] = spm_find_pC(pC,pE,fields)
+% FORMAT [i,pC,pE,Np] = spm_find_pC(DCM,fields)
 % FORMAT [i,pC,pE,Np] = spm_find_pC(DCM)
 % 
 % pC     - covariance matrix or variance stucture
@@ -19,17 +20,31 @@ function [i,pC,pE,Np] = spm_find_pC(pC,pE,fields)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_find_pC.m 6427 2015-05-05 15:42:35Z karl $
+% $Id: spm_find_pC.m 6481 2015-06-16 17:01:47Z karl $
 
-
-%-get pC  from DCM structure
+%-parse input arguments
 %--------------------------------------------------------------------------
-if ischar(pC)
-    pC = load(pC,'DCM');
-    pC = pC.DCM;
+if nargin > 2
+    pC     = varargin{1};
+    pE     = varargin{2};
+    fields = varargin{3};
+elseif numel(varargin) > 1
+    DCM     = varargin{1};
+    fields  = varargin{2};
+else
+    DCM     = varargin{1};
 end
-if any(isfield(pC,{'options','M'}))
-    try, [pC,pE] = spm_find_rC(pC); end
+
+%-get prior density from DCM
+%--------------------------------------------------------------------------
+if nargin < 3
+    if ischar(DCM)
+        DCM = load(DCM,'DCM');
+        DCM = DCM.DCM;
+    end
+    if any(isfield(DCM,{'options','M'}))
+        try, [pC,pE] = spm_find_rC(DCM); end
+    end
 end
 
 %-Deal with variance structures
@@ -47,7 +62,7 @@ Np = numel(q);
 
 %-subsample fields if necessary
 %--------------------------------------------------------------------------
-if nargin > 2
+if nargin > 1
     if ischar(fields), fields = {fields}; end
     if isstruct(pE)
         j = spm_fieldindices(pE,fields{:});

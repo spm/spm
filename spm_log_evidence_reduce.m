@@ -24,7 +24,7 @@ function [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC,TOL)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence_reduce.m 6449 2015-05-24 14:26:59Z karl $
+% $Id: spm_log_evidence_reduce.m 6481 2015-06-16 17:01:47Z karl $
  
 
 % Compute reduced log-evidence
@@ -42,7 +42,7 @@ if nargin < 7, TOL = 1e-8; end
 % Remove (a priori) null space
 %--------------------------------------------------------------------------
 E     = rE;
-U     = spm_svd(pC,1e-4);
+U     = spm_svd(pC,1e-6);
 qE    = U'*spm_vec(qE);
 pE    = U'*spm_vec(pE);
 rE    = U'*spm_vec(rE);

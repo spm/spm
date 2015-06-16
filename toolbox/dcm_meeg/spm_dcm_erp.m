@@ -36,7 +36,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 6427 2015-05-05 15:42:35Z karl $
+% $Id: spm_dcm_erp.m 6481 2015-06-16 17:01:47Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
@@ -78,6 +78,9 @@ xY      = DCM.xY;
 xU      = DCM.xU;
 M       = DCM.M;
 
+if ~isfield(xY,'X0'),    xY.X0 = sparse(size(xY.y{1},1),0); end
+if ~isfield(xU,'X'),     xU.X  = sparse(1,0);               end
+if ~isfield(xY,'scale'), xY.scale  = 1;                     end
 
 % dimensions
 %--------------------------------------------------------------------------
@@ -401,5 +404,6 @@ DCM.M  = rmfield(DCM.M,'dipfit');
 
 % and save
 %--------------------------------------------------------------------------
-save(DCM.name, 'DCM', spm_get_defaults('mat.format'));
-
+if DATA
+    save(DCM.name, 'DCM', spm_get_defaults('mat.format'));
+end

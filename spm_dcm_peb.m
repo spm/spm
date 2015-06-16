@@ -11,10 +11,11 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 %     DCM{i}.Cp   - posterior covariance
 %
 % M.X    - second level design matrix, where X(:,1) = ones(N,1) [default]
-% M.bE   - second level prior expectation of parameters
-% M.bC   - second level prior covariances of parameters
+% M.pC   - second level prior covariances of parameters
 % M.hE   - second level prior expectation of log precisions
 % M.hC   - second level prior covariances of log precisions
+% M.bE   - third  level prior expectation of parameters
+% M.bC   - third  level prior covariances of parameters
 %
 % M.Q    - covariance components: {'single','fields','all','none'}
 % M.beta - within:between precision ratio:  [default = 16]
@@ -76,7 +77,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6473 2015-06-04 19:05:05Z karl $
+% $Id: spm_dcm_peb.m 6481 2015-06-16 17:01:47Z karl $
  
 
 % get filenames and set up
@@ -95,7 +96,10 @@ try, load(P{1}); catch, DCM = P{1}; end
 if nargin < 2
     M.X   = ones(length(P),1);
 end
-if isempty(M)
+if isnumeric(M)
+    M     = struct('X',M);
+end
+if ~isfield(M,'X')
     M.X   = ones(length(P),1);
 end
 if nargin < 3;
@@ -122,7 +126,7 @@ end
 
 % get (first level) densities (summary statistics)
 %==========================================================================
-q     = spm_find_pC(DCM.M.pC,DCM.M.pE,field);   % parameter indices
+q     = spm_find_pC(DCM,field);                 % parameter indices
 Pstr  = spm_fieldindices(DCM.M.pE,q);           % field names
 Ns    = numel(P);                               % number of subjects
 Np    = numel(q);                               % number of parameters
@@ -167,13 +171,12 @@ end
 
 % second level model
 %--------------------------------------------------------------------------
-if ~isstruct(M),      M      = struct('X',M);                   end
 if isfield(M,'beta'), beta   = M.beta; else, beta = 16;         end
 if isfield(M,'Q'),    OPTION = M.Q;    else, OPTION = 'single'; end
 if Ns == 1,           OPTION = 'no';   end
 
 
-% get priors (from DCM if necessary)
+% get priors (from DCM if necessary) and ensure correct sizes
 %--------------------------------------------------------------------------
 if isfield(M,'bE')
     M.bE = spm_vec(M.bE);
@@ -187,12 +190,20 @@ if isfield(M,'bC')
 else
     M.bC = pC{1};
 end
+if isfield(M,'pC')
+    if isstruct(M.pC),    M.pC = diag(spm_vec(M.pC)); end
+    if size(M.pC,1) > Np && Ns > 1, M.pC = M.pC(q,q); end
+else
+    M.pC = M.bC/beta;
+end
+
+
 
 
 % prior precision (pP) and components (Q) for empirical covariance
 %--------------------------------------------------------------------------
 pP    = spm_inv(M.bC);
-pQ    = pP*beta;
+pQ    = spm_inv(M.pC);
 Q     = {};
 switch OPTION
     

@@ -8,7 +8,7 @@ function [h] = spm_funcheck(f)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_funcheck.m 5664 2013-10-01 18:39:05Z spm $
+% $Id: spm_funcheck.m 6481 2015-06-16 17:01:47Z karl $
 
 
 %-Create function handle
@@ -16,7 +16,7 @@ function [h] = spm_funcheck(f)
 
 % if f is already a function handle
 %--------------------------------------------------------------------------
-if isa(f,'function_handle')
+if isa(f,'function_handle') || isempty(f)
     h     = f;
     
 % if f is filename or expression

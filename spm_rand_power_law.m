@@ -1,17 +1,20 @@
-function [y] = spm_rand_power_law(csd,Hz,dt,N)
+function [y,K] = spm_rand_power_law(csd,Hz,dt,N)
 % generates random variates with a power law spectral density
-% FORMAT [y] = spm_rand_power_law(csd,Hz,dt,N)
-% G   - spectral densities (one per row)
+% FORMAT [y,K] = spm_rand_power_law(csd,Hz,dt,N)
+% csd - spectral densities (one per row)
 % Hz  - frequencies
 % dt  - sampling interval
 % N   - number of time bins
+%
+% y   - random variate
+% K   - convolution (kernel) operator: y(:,i) = K*randn(N,1)
 %
 % see also: spm_rand_mar; spm_Q
 %__________________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_rand_power_law.m 6254 2014-11-04 18:24:21Z karl $
+% $Id: spm_rand_power_law.m 6481 2015-06-16 17:01:47Z karl $
  
 
 % create random process
@@ -28,17 +31,23 @@ for i = 1:size(csd,2);
     y(:,i) = P\randn(N,1)*sqrt(max(ccf));    
 end
 
+% convolution kernel
+%--------------------------------------------------------------------------
+if nargout > 1
+    K = inv(P)*sqrt(max(ccf));
+end
+
 return
 
-% cNB: alternative scheme - create random process
+% NB: alternative scheme - create random process
 %==========================================================================
-[m n] = size(G);
+[m n] = size(csd);
 w     = (0:(N - 1))/dt/N;
 dHz   = Hz(2) - Hz(1);
 g     = zeros(N,n);
 for i = 1:m
     j      = find(w > Hz(i),1);
-    s      = sqrt(G(i,:)).*(randn(1,n) + 1j*randn(1,n));
+    s      = sqrt(csd(i,:)).*(randn(1,n) + 1j*randn(1,n));
     g(j,:) = s;
     j      = N - j + 2;
     g(j,:) = conj(s);

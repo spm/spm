@@ -97,7 +97,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 6432 2015-05-09 12:58:12Z karl $
+% $Id: spm_nlsi_GN.m 6481 2015-06-16 17:01:47Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -162,8 +162,6 @@ IS  = spm_funcheck(IS);
 if isfield(M,'f'), M.f = spm_funcheck(M.f);  end
 if isfield(M,'g'), M.g = spm_funcheck(M.g);  end
 if isfield(M,'h'), M.h = spm_funcheck(M.h);  end
-
-
 
 
 % size of data (samples x response component x response component ...)

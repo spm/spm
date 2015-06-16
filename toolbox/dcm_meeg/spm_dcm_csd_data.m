@@ -26,7 +26,7 @@ function DCM = spm_dcm_csd_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_data.m 6434 2015-05-10 20:16:28Z vladimir $
+% $Id: spm_dcm_csd_data.m 6481 2015-06-16 17:01:47Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -181,7 +181,7 @@ condlabels = D.condlist;               % condition or trial type labels
 DCM.xY.csd = cell(1,Ne);               % CSD for each condition
 
 w     = min(fix(2/DCM.xY.dt),Nb);      % window length (bins)
-m     = 1;                             % retain primcipal mode
+m     = 1;                             % retain principal mode
 for i = 1:Ne;
    
     % trial indices

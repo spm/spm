@@ -20,7 +20,7 @@ function [ccf] = spm_mar2ccf(mar,n)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mar2ccf.m 5893 2014-02-24 12:44:17Z guillaume $
+% $Id: spm_mar2ccf.m 6481 2015-06-16 17:01:47Z karl $
 
 
 % Nyquist
@@ -75,7 +75,7 @@ B     = spm_cat(B);
 C     = spm_cat(C);
 K     = inv(B - A);
 
-% compute crosscovariance matrices and reduces to an array of vectors
+% compute cross-covariance matrices and reduces to an array of vectors
 %--------------------------------------------------------------------------
 CCF   = K*C*K';
 ccf   = zeros(n,d,d);

@@ -35,7 +35,7 @@ function [y,w,s,g] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 6112 2014-07-21 09:39:53Z karl $
+% $Id: spm_csd_mtf.m 6481 2015-06-16 17:01:47Z karl $
 
 
 
@@ -145,6 +145,22 @@ if isfield(M,'g')
 else
     y = g;
 end
+
+% model data features summarised with a MAR process
+%==========================================================================
+if isfield(M,'p')
+    p = M.p - 1;
+    if isfield(M,'dt')
+        dt = M.dt;
+    else
+        dt = 1/(2*w(end));
+    end
+    for c  = 1:length(y)
+        mar  = spm_csd2mar(y{c},w,p,dt);
+        y{c} = spm_mar2csd(mar,w,1/dt);
+    end
+end
+
 
 % Granger causality (normalised transfer functions) if requested
 %==========================================================================

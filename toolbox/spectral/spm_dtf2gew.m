@@ -1,5 +1,5 @@
 function [gew,pve] = spm_dtf2gew(dtf,C)
-% Convert cross sspectral density to Geweke Granger causality
+% Converts directed transfer function to Geweke Granger causality
 % FORMAT [gew,pve] = spm_csd2gew(dtf,C)
 %
 % dtf  (N,n,n)   - (unnormalised) directed or modulation functions
@@ -18,7 +18,7 @@ function [gew,pve] = spm_dtf2gew(dtf,C)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dtf2gew.m 5908 2014-03-05 20:31:57Z karl $
+% $Id: spm_dtf2gew.m 6481 2015-06-16 17:01:47Z karl $
 
 
 % preliminaries
