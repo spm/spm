@@ -41,7 +41,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 6427 2015-05-05 15:42:35Z karl $
+% $Id: spm_dcm_bmr_all.m 6482 2015-06-17 02:57:05Z peter $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -191,7 +191,7 @@ for i = 1:length(k)
     Pk(2,i) = mean(p( K(:,i)));
 end
 Pk    = Pk(1,:)./sum(Pk);
-Pp    = full(C);
+Pp    = double(full(C));
 Pp(k) = Pk;
 
 
