@@ -12,7 +12,7 @@ function DEM_demo_DCM_LAP
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_DCM_LAP.m 5692 2013-10-13 13:44:05Z karl $
+% $Id: DEM_demo_DCM_LAP.m 6483 2015-06-21 21:14:34Z karl $
  
 % Specify a DCM to generate synthetic data
 %==========================================================================
@@ -22,7 +22,6 @@ rng('default')
 % -------------------------------------------------------------------------
 T  = 256;
 TR = 3.22;
-t  = (1:T)*TR;
 n  = 4;
 U  = spm_conv(randn(n,T),0,2)/4;
  
@@ -142,7 +141,15 @@ for i = 1:length(A)
     P(i,1)  = spm_log_evidence(qE,qC,pE,pC,rE,rC);
 end
  
-
+% posterior density under best model
+% -------------------------------------------------------------------------
+[p,i]     = max(P);
+k         = find(~A{i});
+rE        = pE;
+rC        = pC;
+rE(k)     = 0;
+rC(k,k)   = 0; 
+[F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
  
 % log-posterior (model)
 % -------------------------------------------------------------------------
@@ -154,7 +161,7 @@ PP    = PP/sum(PP);
 spm_figure('Getwin','Figure 2'); clf
  
 subplot(2,2,1)
-spm_plot_ci(spm_vec(qE),qC),     hold on
+spm_plot_ci(spm_vec(sE),sC),     hold on
 bar(spm_vec(pP.A),1/2), hold off
 title('true and MAP connections','FontSize',16)
 axis square
