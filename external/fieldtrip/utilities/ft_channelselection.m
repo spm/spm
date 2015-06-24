@@ -72,7 +72,7 @@ function [channel] = ft_channelselection(desired, datachannel, senstype)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 10410 2015-05-20 19:32:43Z roboos $
+% $Id: ft_channelselection.m 10449 2015-06-10 18:34:02Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion 

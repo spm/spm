@@ -39,7 +39,7 @@ function [H, Z, S, psi] = sfactorization_wilson2x2(S,freq,Niterations,tol,cmbind
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: sfactorization_wilson2x2.m 9175 2014-01-30 11:45:09Z eelspa $
+% $Id: sfactorization_wilson2x2.m 10451 2015-06-10 22:00:07Z roboos $
 
 if nargin<8, checkflag = true;   end
 if nargin<7, init      = 'chol'; end
@@ -56,7 +56,7 @@ if ~all(dfreq==dfreq(1))
 end
 
 if freq(1)~=0
-  warning_once('FieldTrip:connectivity:sfactorization_wilson2x2', 'when performing non-parametric spectral factorization, the frequency axis should ideally start at 0, zero padding the spectral density'); 
+  ft_warning('FieldTrip:connectivity:sfactorization_wilson2x2', 'when performing non-parametric spectral factorization, the frequency axis should ideally start at 0, zero padding the spectral density'); 
   dfreq = mean(dfreq);
   npad  = freq(1)./dfreq;
   

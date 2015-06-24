@@ -25,7 +25,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_postamble_history.m 9561 2014-05-21 06:50:39Z roboos $
+% $Id: ft_postamble_history.m 10451 2015-06-10 22:00:07Z roboos $
 
 global ft_default
 
@@ -56,4 +56,4 @@ end
 clear tmpindx
 
 % clear warnings from ft_default, so that they don't end up in the next cfg
-warning_once('-clear');
+ft_warning('-clear');

@@ -50,7 +50,7 @@ function [h, T2] = ft_plot_slice(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_slice.m 9988 2014-12-01 11:41:39Z jansch $
+% $Id: ft_plot_slice.m 10451 2015-06-10 22:00:07Z roboos $
 
 persistent dim X Y Z
 
@@ -96,7 +96,7 @@ if ~isa(dat, 'double')
 end
 
 if exist('msk', 'var') && isempty(mask)
-  warning_once('using the second input argument as mask rather than the one from the varargin list');
+  ft_warning('using the second input argument as mask rather than the one from the varargin list');
   mask = msk; clear msk;
 end
 

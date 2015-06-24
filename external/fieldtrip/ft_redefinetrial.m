@@ -70,9 +70,9 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 10217 2015-02-12 08:14:04Z jansch $
+% $Id: ft_redefinetrial.m 10451 2015-06-10 22:00:07Z roboos $
 
-revision = '$Id: ft_redefinetrial.m 10217 2015-02-12 08:14:04Z jansch $';
+revision = '$Id: ft_redefinetrial.m 10451 2015-06-10 22:00:07Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -253,7 +253,7 @@ elseif ~isempty(cfg.trl)
     if size(cfg.trl,2)>3 %In case user specified a trialinfo
       data.trialinfo(iTrl,:) = cfg.trl(iTrl,4:end);
       if isfield(dataold,'trialinfo')
-        warning_once('Original data has trialinfo, using user specified trialinfo instead');
+        ft_warning('Original data has trialinfo, using user specified trialinfo instead');
       end;
     elseif isfield(dataold,'trialinfo') % If old data has trialinfo
       if isequal(dataold.trialinfo(iTrlorig,:),1) || numel(iTrlorig)==1 % Checks whether trials that are combined have same trialinfo

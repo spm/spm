@@ -42,7 +42,7 @@ function [trl, event] = ft_trialfun_general(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_trialfun_general.m 10356 2015-04-30 06:49:05Z roboos $
+% $Id: ft_trialfun_general.m 10436 2015-06-05 12:34:13Z roboos $
 
 % some events do not require the specification a type, pre or poststim period
 % in that case it is more convenient not to have them, instead of making them empty
@@ -139,6 +139,11 @@ if isfield(cfg.trialdef, 'eventtype') && ~isempty(cfg.trialdef.eventtype)
   for i=1:numel(event)
     sel(i) = sel(i) && ismatch(event(i).type, cfg.trialdef.eventtype);
   end
+elseif ~isfield(cfg.trialdef, 'eventtype') || isempty(cfg.trialdef.eventtype)
+  % search for trial events
+  for i=1:numel(event)
+    sel(i) = sel(i) && ismatch(event(i).type, 'trial');
+  end
 end
 
 % select all events with the specified value
@@ -217,7 +222,7 @@ for i=sel
 end
 
 % append the vector with values
-if ~isempty(val) && ~all(isnan(val))
+if ~isempty(val) && ~all(isnan(val)) && size(trl,1)==size(val,1)
   trl = [trl val];
 end
 

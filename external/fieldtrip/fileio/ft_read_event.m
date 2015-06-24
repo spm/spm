@@ -17,6 +17,7 @@ function [event] = ft_read_event(filename, varargin)
 %   'chanindx'       list with channel indices in case of different sampling frequencies (only for EDF)
 %   'trigshift'      integer, number of samples to shift from flank to detect trigger value (default = 0)
 %   'trigindx'       list with channel numbers for the trigger detection, only for Yokogawa (default is automatic)
+%   'triglabel'      list of channel labels for the trigger detection, only for Artinis oxy3-files (default is all ADC* channels)
 %   'threshold'      threshold for analog trigger channels (default is system specific)
 %   'blocking'       wait for the selected number of events (default = 'no')
 %   'timeout'        amount of time in seconds to wait when blocking (default = 5)
@@ -90,7 +91,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 10432 2015-05-31 11:10:16Z roboos $
+% $Id: ft_read_event.m 10482 2015-06-24 14:05:09Z jorhor $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -101,7 +102,7 @@ if isempty(db_blob)
 end
 
 if iscell(filename)
-  warning_once(sprintf('concatenating events from %d files', numel(filename)));
+  ft_warning(sprintf('concatenating events from %d files', numel(filename)));
   % use recursion to read events from multiple files
   
   hdr = ft_getopt(varargin, 'header');
@@ -142,6 +143,7 @@ hdr              = ft_getopt(varargin, 'header');
 detectflank      = ft_getopt(varargin, 'detectflank', 'up');   % up, down or both
 trigshift        = ft_getopt(varargin, 'trigshift');           % default is assigned in subfunction
 trigindx         = ft_getopt(varargin, 'trigindx');            % this allows to override the automatic trigger channel detection and is useful for Yokogawa
+triglabel        = ft_getopt(varargin, 'triglabel', 'ADC*');  % this allows subselection of AD channels to be markes as trigger channels (for Artinis oxy3 data)
 headerformat     = ft_getopt(varargin, 'headerformat');
 dataformat       = ft_getopt(varargin, 'dataformat');
 threshold        = ft_getopt(varargin, 'threshold');           % this is used for analog channels
@@ -331,7 +333,10 @@ switch eventformat
     schan = find(strcmpi(hdr.label,'STATUS'));
     sdata = ft_read_data(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', begsample, 'endsample', endsample, 'chanindx', schan);
     
-    if matlabversion(-inf, '2012a')
+    if ft_platform_supports('int32_logical_operations')
+      % convert to 32-bit integer representation and only preserve the lowest 24 bits
+      sdata = bitand(int32(sdata), 2^24-1);
+    else
       % find indices of negative numbers
       bit24i = find(sdata < 0);
       % make number positive and preserve bits 0-22
@@ -340,9 +345,6 @@ switch eventformat
       sdata(bit24i) = sdata(bit24i)+(2^(24-1));
       % typecast the data to ensure that the status channel is represented in 32 bits
       sdata = uint32(sdata);
-    else
-      % convert to 32-bit integer representation and only preserve the lowest 24 bits
-      sdata = bitand(int32(sdata), 2^24-1);
     end
     
     byte1 = 2^8  - 1;
@@ -1783,7 +1785,40 @@ switch eventformat
     event = read_bucn_nirsevent(filename);
     
   case 'oxy3'
+    ft_hastoolbox('artinis', 1);    
     event = read_artinis_oxy3(filename, true);
+    
+    if isempty(hdr)
+      hdr = read_artinis_oxy3(filename);
+    end
+    
+    if isempty(trigindx) % indx gets precedence over labels! numbers before words
+      trigindx = find(ismember(hdr.label, ft_channelselection(triglabel, hdr.label)));
+    end
+        
+    % read the trigger channel and do flank detection
+    triggers = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'threshold', threshold, 'chanindx', trigindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixartinis', true);
+    
+    % remove consecutive triggers
+    i = 1;
+    last_trigger_sample = triggers(i).sample;
+    while i<numel(triggers)
+      if strcmp(triggers(i).type, triggers(i+1).type) && triggers(i+1).sample-last_trigger_sample <= tolerance
+        [triggers(i).value, idx] = max([triggers(i).value, triggers(i+1).value]);
+        fprintf('Merging triggers at sample %d and %d\n', triggers(i).sample, triggers(i+1).sample);        
+        last_trigger_sample =  triggers(i+1).sample;
+        if (idx==2)
+          triggers(i).sample = triggers(i+1).sample;
+        end
+          
+        triggers(i+1) = [];        
+      else
+        i=i+1;
+        last_trigger_sample = triggers(i).sample;
+      end
+    end
+    
+    event = appendevent(event, triggers);
     
   case {'manscan_mbi', 'manscan_mb2'}
     if isempty(hdr)

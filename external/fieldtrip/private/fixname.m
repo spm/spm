@@ -8,7 +8,7 @@ function str = fixname(str)
 %   str = fixname(str)
 %
 %
-% MATLAB 2014a introduces the matlab.lang.makeValidName and 
+% MATLAB 2014a introduces the matlab.lang.makeValidName and
 % matlab.lang.makeUniqueStrings functions for constructing unique MATLAB identifiers,
 % but this particular implementation also works with older MATLAB versions.
 %
@@ -32,7 +32,7 @@ function str = fixname(str)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixname.m 9794 2014-09-11 13:02:28Z jansch $
+% $Id: fixname.m 10455 2015-06-11 21:30:27Z roboos $
 
 str = lower(str);
 str(regexp(str,'\W')) = '_';
@@ -40,8 +40,14 @@ str(regexp(str,'\W')) = '_';
 while(str(1) == '_'),   str = str(2:end); end;   % remove all underscore at the begin of the string
 while(str(end) == '_'), str = str(1:end-1); end; % remove all underscore at the end of the string
 
-%if ~isempty(str2double(str(1))) && ~isequal(str(1), 'i')
 if int8(str(1))<58 && int8(str(1))>47
   % the string begins with a digit, prepend an 'x'
   str = ['x' str];
+end
+
+% truncate the string if it's too long: MATLAB maximizes the string length to 63
+% characters (and throws a warning when truncating)
+if numel(str)>63
+  ft_warning(sprintf('%s exceeds MATLAB''s maximum name length of 63 characters and has been truncated to %s',str,str(1:63)));
+  str = str(1:63);
 end

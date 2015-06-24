@@ -62,7 +62,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 10236 2015-02-16 19:53:23Z roboos $
+% $Id: ft_checkconfig.m 10452 2015-06-11 02:14:45Z roboos $
 
 global ft_default
 
@@ -196,11 +196,15 @@ if ~isempty(allowed)
     'trackconfig'
     'checkconfig'
     'checksize'
-    'showcallinfo'
-    'trackcallinfo'
+    'trackusage'
     'trackdatainfo'
-    'trackparaminfo'
+    'trackcallinfo'
+    'showcallinfo'
+    'callinfo'
+    'version'
+    'warning'
     'debug'
+    'previous'
     });
   fieldsused = fieldnames(cfg);
   [c, i] = setdiff(fieldsused, allowed);
@@ -353,7 +357,7 @@ if ~isempty(createsubcfg)
           'realfilter'
           'subspace'
           };
-      
+        
       case 'eloreta'
         fieldname = {
           'keepfilter'
@@ -592,8 +596,29 @@ if ~isempty(trackconfig)
           
           key = fieldnames(cfg);
           key = key(:)';
-          
-          ignorefields = {'checksize', 'trl', 'trlold', 'event', 'artifact', 'artfctdef', 'previous', 'debug'}; % these fields should never be removed!
+
+          ignorefields = {
+             % these fields from the user should never be removed
+             'trl'
+             'trlold'
+             'event'
+             'artifact'
+             'artfctdef'
+             % these fields are for internal usage
+             'trackconfig'
+             'checkconfig'
+             'checksize'
+             'trackusage'
+             'trackdatainfo'
+             'trackcallinfo'
+             'showcallinfo'
+             'callinfo'
+             'version'
+             'warning'
+             'debug'
+             'previous'
+           };
+
           skipsel      = match_str(key, ignorefields);
           key(skipsel) = [];
           
@@ -685,7 +710,7 @@ norecursion  = {'event'}; % these fields should not be handled recursively
 fieldsorig = fieldnames(cfg);
 for i=1:numel(fieldsorig)
   for k=1:numel(cfg)  % process each structure in a struct-array
-
+    
     if any(strcmp(fieldsorig{i}, ignorefields))
       % keep this field, regardless of its size
       continue

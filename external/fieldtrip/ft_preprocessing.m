@@ -161,9 +161,9 @@ function [data] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 10340 2015-04-17 14:10:04Z jorhor $
+% $Id: ft_preprocessing.m 10451 2015-06-10 22:00:07Z roboos $
 
-revision = '$Id: ft_preprocessing.m 10340 2015-04-17 14:10:04Z jorhor $';
+revision = '$Id: ft_preprocessing.m 10451 2015-06-10 22:00:07Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -272,7 +272,7 @@ if hasdata
         strcmp(cfg.medianfilter, 'yes')
       padding = round(cfg.padding * data.fsample);
       if strcmp(cfg.padtype, 'data')
-        warning_once('datapadding not possible with in-memory data - padding will be performed by data mirroring');
+        ft_warning('datapadding not possible with in-memory data - padding will be performed by data mirroring');
         cfg.padtype = 'mirror';
       end
     else

@@ -173,9 +173,9 @@ function ft_sourceplot(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 10235 2015-02-16 10:35:39Z roboos $
+% $Id: ft_sourceplot.m 10451 2015-06-10 22:00:07Z roboos $
 
-revision = '$Id: ft_sourceplot.m 10235 2015-02-16 10:35:39Z roboos $';
+revision = '$Id: ft_sourceplot.m 10451 2015-06-10 22:00:07Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -1470,7 +1470,7 @@ elseif strcmp(opt.colorbar,  'yes') && ~isfield(opt, 'hc'),
       set(opt.hc, 'XLim', [opt.fcolmin opt.fcolmax]);
     end
   else
-    warning_once('no colorbar possible without functional data');
+    ft_warning('no colorbar possible without functional data');
   end
 end
 

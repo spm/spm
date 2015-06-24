@@ -30,7 +30,7 @@ function [event] = read_trigger(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_trigger.m 9077 2014-01-08 09:10:15Z roboos $
+% $Id: read_trigger.m 10482 2015-06-24 14:05:09Z jorhor $
 
 % get the optional input arguments
 hdr         = ft_getopt(varargin, 'header'             );
@@ -46,6 +46,7 @@ fixctf      = ft_getopt(varargin, 'fixctf',       false);
 fixneuromag = ft_getopt(varargin, 'fixneuromag',  false);
 fix4d8192   = ft_getopt(varargin, 'fix4d8192',    false);
 fixbiosemi  = ft_getopt(varargin, 'fixbiosemi',   false);
+fixartinis  = ft_getopt(varargin, 'fixartinis',   false);
 threshold   = ft_getopt(varargin, 'threshold'          ); 
 
 if isempty(hdr)
@@ -142,6 +143,11 @@ if fix4d8192
   % triggers containing the first bit assume a value of 4096 when sent by presentation
   % this does not seem to hold for matlab; check this
   % dat = dat - bitand(dat, 4096)*4095/4096;
+end
+
+if fixartinis
+  % we are dealing with an AD box here, and analog values can be noisy.  
+  dat = round(10*dat)/10; % steps of 0.1V are to be assumed
 end
 
 if ~isempty(threshold)

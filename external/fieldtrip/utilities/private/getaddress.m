@@ -1,12 +1,15 @@
-function [argout] = mxSerialize(argin)
+function address = getip(hostname)
 
-% MXSERIALIZE converts any MATLAB object into a uint8 array suitable
-% for passing down a comms channel to be reconstructed at the other end.
+% GETADDRESS returns the IP address
 %
-% See also MXDESERIALIZE
+% Use as
+%   address = getaddress();
+% or
+%   address = getaddress(hostname);
+%
+% See also GETUSERNAME, GETHOSTNAME
 
-% Copyright (C) 2005, Brad Phelan         http://xtargets.com
-% Copyright (C) 2007, Robert Oostenveld   http://www.fcdonders.ru.nl
+% Copyright (C) 2015, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -24,14 +27,27 @@ function [argout] = mxSerialize(argin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mxSerialize.m 10458 2015-06-18 19:53:31Z roboos $
+% $Id: getaddress.m 10452 2015-06-11 02:14:45Z roboos $
 
-if ft_platform_supports('libmx_c_interface') % older than 2014a
-  % use the original implementation of the mex file
-  argout = mxSerialize_c(argin);
-else
-  % use the C++ implementation of the mex file
-  % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=2452
-  argout = mxSerialize_cpp(argin);
+% this is to speed up subsequent calls
+persistent previous_argin previous_argout
+
+if nargin==0
+  hostname = [];
 end
 
+if ~isempty(previous_argout) && isequal(hostname, previous_argin)
+  address = previous_argout;
+  return
+end
+
+if ~isempty(hostname)
+  address = java.net.InetAddress.getByName(hostname);
+else
+  address = java.net.InetAddress.getLocalHost;
+end
+address = char(address.getHostAddress);
+
+% remember for subsequent calls
+previous_argin  = hostname;
+previous_argout = address;

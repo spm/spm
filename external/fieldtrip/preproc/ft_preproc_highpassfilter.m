@@ -68,7 +68,7 @@ function [filt] = ft_preproc_highpassfilter(dat,Fs,Fhp,N,type,dir,instabilityfix
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_highpassfilter.m 10290 2015-03-29 08:23:23Z roboos $
+% $Id: ft_preproc_highpassfilter.m 10451 2015-06-10 22:00:07Z roboos $
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);
@@ -278,14 +278,14 @@ catch
       rethrow(lasterror);
     case 'reduce'
       warning('backtrace', 'off')
-      warning_once(sprintf('filter instability detected - reducing the %dth order filter to an %dth order filter', N, N-1));
+      ft_warning(sprintf('filter instability detected - reducing the %dth order filter to an %dth order filter', N, N-1));
       warning('backtrace', 'on')
       filt = ft_preproc_highpassfilter(dat,Fs,Fhp,N-1,type,dir,instabilityfix);
     case 'split'
       N1 = ceil(N/2);
       N2 = floor(N/2);
       warning('backtrace', 'off')
-      warning_once(sprintf('filter instability detected - splitting the %dth order filter in a sequential %dth and a %dth order filter', N, N1, N2));
+      ft_warning(sprintf('filter instability detected - splitting the %dth order filter in a sequential %dth and a %dth order filter', N, N1, N2));
       warning('backtrace', 'on')
       filt = ft_preproc_highpassfilter(dat ,Fs,Fhp,N1,type,dir,instabilityfix);
       filt = ft_preproc_highpassfilter(filt,Fs,Fhp,N2,type,dir,instabilityfix);

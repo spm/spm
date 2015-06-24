@@ -24,9 +24,9 @@ function [argout] = mxSerialize(argin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mxSerialize.m 10026 2014-12-08 18:07:07Z eelspa $
+% $Id: mxSerialize.m 10458 2015-06-18 19:53:31Z roboos $
 
-if matlabversion(-Inf, '2013b') % older than 2014a
+if ft_platform_supports('libmx_c_interface') % older than 2014a
   % use the original implementation of the mex file
   argout = mxSerialize_c(argin);
 else

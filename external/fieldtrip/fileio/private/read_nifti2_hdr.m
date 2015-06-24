@@ -37,7 +37,7 @@ function [hdr] = read_nifti2_hdr(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_nifti2_hdr.m 9825 2014-09-22 15:19:53Z roboos $
+% $Id: read_nifti2_hdr.m 10471 2015-06-23 08:24:18Z roboos $
 
 hdr.endian = 'l';
 fid = fopen(filename, 'rb', hdr.endian);
@@ -58,7 +58,7 @@ else
   % the file is now open with the appropriate little or big-endianness
 end
 
-if hdr.sizeof_hdr==384
+if hdr.sizeof_hdr==348
   % the remainder of the code is for nifti-2 files
   error('%s seems to be a nifti-1 file', filename)
 end

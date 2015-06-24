@@ -52,13 +52,13 @@ function dataout = ft_globalmeanfield(cfg, datain)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_globalmeanfield.m 10196 2015-02-11 09:15:07Z roboos $
+% $Id: ft_globalmeanfield.m 10451 2015-06-10 22:00:07Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_globalmeanfield.m 10196 2015-02-11 09:15:07Z roboos $';
+revision = '$Id: ft_globalmeanfield.m 10451 2015-06-10 22:00:07Z roboos $';
 
 % do the general setup of the function
 
@@ -66,7 +66,7 @@ revision = '$Id: ft_globalmeanfield.m 10196 2015-02-11 09:15:07Z roboos $';
 % fieldtrip/utility/private that are able to modify the local workspace
 
 ft_defaults                 % this ensures that the path is correct and that the ft_defaults global variable is available
-ft_preamble init            % this will reset warning_once and show the function help if nargin==0 and return an error
+ft_preamble init            % this will reset ft_warning and show the function help if nargin==0 and return an error
 ft_preamble provenance      % this records the time and memory usage at the beginning of the function
 ft_preamble trackconfig     % this converts the cfg structure in a config object, which tracks the cfg options that are being used
 ft_preamble debug           % this allows for displaying or saving the function name and input arguments upon an error

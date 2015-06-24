@@ -33,7 +33,7 @@ function ft_compile_mex(force)
 
 % Copyright (C) 2010, Stefan Klanke
 %
-% $Id: ft_compile_mex.m 10357 2015-04-30 08:11:06Z timvmou $
+% $Id: ft_compile_mex.m 10480 2015-06-24 12:06:32Z roboos $
 
 if nargin<1
   force=false;
@@ -47,6 +47,8 @@ end
 % MAC
 % MACI
 % MACI64
+
+[ftver, ftpath] = ft_version;
 
 L = [];
 L = add_mex_source(L,'fileio/@uint64','abs');
@@ -100,20 +102,19 @@ L = add_mex_source(L,'src','combineClusters');
 L = add_mex_source(L,'external/fileexchange','CalcMD5');
 
 % this one depends on the MATLAB version
-if matlabversion('2014a', inf)
-  % use the C++ interface
-  L = add_mex_source(L,'src','mxSerialize_cpp');
-  L = add_mex_source(L,'src','mxDeserialize_cpp');
-else
+if ft_platform_supports('libmx_c_interface')
   % use the C interface
   L = add_mex_source(L,'src','mxSerialize_c');
   L = add_mex_source(L,'src','mxDeserialize_c');
+else
+  % use the C++ interface
+  L = add_mex_source(L,'src','mxSerialize_cpp');
+  L = add_mex_source(L,'src','mxDeserialize_cpp');
 end
 
 oldDir = pwd;
-[baseDir, myName] = fileparts(mfilename('fullpath'));
 try
-  compile_mex_list(L, baseDir, force);
+  compile_mex_list(L, ftpath, force);
 catch
   % the "catch me" syntax is broken on MATLAB74, this fixes it
   me = lasterror;

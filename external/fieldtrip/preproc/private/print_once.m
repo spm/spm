@@ -6,7 +6,7 @@ function [ws warned] = print_once(varargin)
 % Use as one of the following
 %   print_once(string)
 %   print_once(id, string)
-% Alternatively, you can use warning_once using a timeout
+% Alternatively, you can use ft_warning using a timeout
 %   print_once(string, timeout)
 %   print_once(id, string, timeout)
 % where timeout should be inf if you don't want to see the warning ever
@@ -39,7 +39,7 @@ function [ws warned] = print_once(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: print_once.m 9825 2014-09-22 15:19:53Z roboos $
+% $Id: print_once.m 10451 2015-06-10 22:00:07Z roboos $
 
 global ft_default
 
@@ -170,7 +170,7 @@ name(name==',')=[];
 end % function
 
 function [fname ft_previous_warnings line] = fieldnameFromStack(ft_previous_warnings)
-% stack(1) is this function, stack(2) is warning_once
+% stack(1) is this function, stack(2) is ft_warning
 stack = dbstack('-completenames');
 if size(stack) < 3
   fname = [];

@@ -138,9 +138,9 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 10330 2015-04-09 07:14:54Z jansch $
+% $Id: ft_sourceanalysis.m 10451 2015-06-10 22:00:07Z roboos $
 
-revision = '$Id: ft_sourceanalysis.m 10330 2015-04-09 07:14:54Z jansch $';
+revision = '$Id: ft_sourceanalysis.m 10451 2015-06-10 22:00:07Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -387,7 +387,7 @@ if isfield(cfg.grid, 'filter')
   if numel(cfg.grid.filter) == size(grid.pos, 1)
     grid.filter = cfg.grid.filter;
   else
-    warning_once('ignoring predefined filter as it does not match the number of source positions');
+    ft_warning('ignoring predefined filter as it does not match the number of source positions');
   end
 end
 
@@ -500,8 +500,8 @@ if isfreq && any(strcmp(cfg.method, {'dics', 'pcc', 'eloreta', 'mne', 'rv', 'mus
           tbin = nearest(data.time, cfg.latency);
           avg  = transpose(data.fourierspctrm(:, datchanindx, fbin, tbin));
         end
-      else
-        avg = [];
+      else % The input data is a CSD matrix, this is enough for computing source power, coherence and residual power.
+        avg = Cf;
       end
       
     case 'dics'
@@ -679,7 +679,9 @@ if isfreq && any(strcmp(cfg.method, {'dics', 'pcc', 'eloreta', 'mne', 'rv', 'mus
       case 'mne'
         dip(i) = minimumnormestimate(grid, sens, vol, avg, optarg{:});
         % error(sprintf('method ''%s'' is unsupported for source reconstruction in the frequency domain', cfg.method));
-      case {'rv' 'music'}
+      case {'rv'}
+        dip(i) = residualvariance(grid, sens, vol, avg, optarg{:}) ;
+      case {'music'}
         error('method ''%s'' is temporarily unsupported for source reconstruction with frequency domain data. Please contact the fieldtrip development team if you think that you need this functionality',cfg.method);
       otherwise 
     end
@@ -720,7 +722,7 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'rv', 'music'
       end
     end
     hascovariance = 0;
-    warning_once('No covariance matrix found - will assume identity covariance matrix (mininum-norm solution)');
+    ft_warning('No covariance matrix found - will assume identity covariance matrix (mininum-norm solution)');
   end
   
   if strcmp(cfg.method, 'pcc')

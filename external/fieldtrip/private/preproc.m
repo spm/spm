@@ -120,7 +120,7 @@ function [dat, label, time, cfg] = preproc(dat, label, time, cfg, begpadding, en
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id: preproc.m 10451 2015-06-10 22:00:07Z roboos $
 
 % compute fsample
 fsample = 1./nanmean(diff(time));
@@ -277,7 +277,7 @@ end
 
 if any(any(isnan(dat)))
   % filtering is not possible for at least a selection of the data
-  warning_once('data contains NaNs, no filtering applied');
+  ft_warning('data contains NaNs, no filtering applied');
   return;
 end
 

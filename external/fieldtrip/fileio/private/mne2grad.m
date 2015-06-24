@@ -39,7 +39,7 @@ function [grad, elec] = mne2grad(hdr, dewar)
 % You should have received a copy of the GNU General Public License
 % along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mne2grad.m 9194 2014-02-11 20:39:09Z arjsto $
+% $Id: mne2grad.m 10451 2015-06-10 22:00:07Z roboos $
 
 if nargin<2 || isempty(dewar)
   dewar = false;
@@ -231,7 +231,7 @@ if nEEG>0
       if kChan<=numel(dig_eeg)
         elec.elecpos(kChan,1:3) = orig.dig(dig_eeg(kChan)).r;
       else
-        warning_once('not all EEG channel positions have been digitized');
+        ft_warning('not all EEG channel positions have been digitized');
         elec.elecpos(kChan,1:3) = nan;
       end
     end

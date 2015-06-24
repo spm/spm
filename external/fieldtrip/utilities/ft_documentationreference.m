@@ -26,7 +26,7 @@ function ft_documentationreference(outdir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_documentationreference.m 9541 2014-05-16 09:28:05Z roboos $
+% $Id: ft_documentationreference.m 10449 2015-06-10 18:34:02Z roboos $
 
 ft_defaults
 

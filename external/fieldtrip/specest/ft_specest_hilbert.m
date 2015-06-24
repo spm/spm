@@ -44,7 +44,7 @@ function [spectrum,freqoi,timeoi] = ft_specest_hilbert(dat, time, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_specest_hilbert.m 10307 2015-03-29 20:58:31Z roboos $
+% $Id: ft_specest_hilbert.m 10451 2015-06-10 22:00:07Z roboos $
 
 % get the optional input arguments
 freqoi    = ft_getopt(varargin, 'freqoi');
@@ -119,10 +119,10 @@ end
 % throw a warning if input timeoi is different from output timeoi
 if isnumeric(timeoiinput)
   if numel(timeoiinput) ~= numel(timeoi) % timeoi will not contain double time-bins when requested
-    warning_once('output time-bins are different from input time-bins, multiples of the same bin were requested but not given');
+    ft_warning('output time-bins are different from input time-bins, multiples of the same bin were requested but not given');
   else
     if any(abs(timeoiinput-timeoi) >= eps*1e6)
-      warning_once('output time-bins are different from input time-bins');
+      ft_warning('output time-bins are different from input time-bins');
     end
   end
 end

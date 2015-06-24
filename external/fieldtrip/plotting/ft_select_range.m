@@ -60,7 +60,7 @@ function ft_select_range(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_range.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id: ft_select_range.m 10458 2015-06-18 19:53:31Z roboos $
 
 % get the optional arguments
 event       = ft_getopt(varargin, 'event');
@@ -78,7 +78,7 @@ yrange    = istrue(yrange);
 clear     = istrue(clear);
 
 % get the figure handle, dependent on MATLAB version
-if matlabversion('2014b', Inf) % >= 2014b?
+if ft_platform_supports('graphics_objects')
  while ~isa(handle, 'matlab.ui.Figure')
     handle = p;
     p = get(handle, 'parent');
@@ -353,14 +353,14 @@ if ~isempty(callback)
     callback  = {funhandle, val};
   end
   for icmenu = 1:numel(hcmenuopt)
-    set(hcmenuopt(icmenu),'callback',{@evalContextCallback, callback{:}})
+    set(hcmenuopt(icmenu),'callback',{@evalcontextcallback, callback{:}})
   end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function evalContextCallback(hcmenuopt, eventdata, varargin)
+function evalcontextcallback(hcmenuopt, eventdata, varargin)
 
 % delete selection box if present
 % get parent (uimenu -> uicontextmenu -> parent)

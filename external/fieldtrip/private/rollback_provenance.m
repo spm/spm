@@ -37,7 +37,7 @@ function [cfg, varargout] = rollback_provenance(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rollback_provenance.m 9424 2014-04-15 19:42:36Z roboos $
+% $Id: rollback_provenance.m 10450 2015-06-10 19:52:47Z roboos $
 
 for i=1:(nargin-1)
   
@@ -60,16 +60,18 @@ for i=1:(nargin-1)
   
   % ignore the provenance fields themselves
   fn = setdiff(fn, { ...
-    'callinfo'
+    'trackconfig'
     'checkconfig'
     'checksize'
-    'debug'
-    'showcallinfo'
-    'trackcallinfo'
-    'trackconfig'
+    'trackusage'
     'trackdatainfo'
-    'trackparaminfo'
+    'trackcallinfo'
+    'showcallinfo'
+    'callinfo'
     'version'
+    'warning'
+    'debug'
+    'previous'
     });
   
   for j=1:length(fn)

@@ -56,7 +56,7 @@ function [s, cfg] = ft_statfun_indepsamplesT(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_indepsamplesT.m 9560 2014-05-20 20:38:42Z dieloz $
+% $Id: ft_statfun_indepsamplesT.m 10451 2015-06-10 22:00:07Z roboos $
 
 % set the defaults
 if ~isfield(cfg, 'computestat'),    cfg.computestat    = 'yes'; end
@@ -81,7 +81,7 @@ nreplc1 = sum(~isnan(dat(:,sel1)), 2);
 nreplc2 = sum(~isnan(dat(:,sel2)), 2);
 nrepl   = nreplc1 + nreplc2;
 if any(nrepl<size(design,2)),
-  warning_once('Not all replications are used for the computation of the statistic.');
+  ft_warning('Not all replications are used for the computation of the statistic.');
 end;
 %if nrepl<3
 %    error('The data must contain at least three trials/subjects.');

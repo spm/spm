@@ -26,6 +26,7 @@ function source = ft_read_cifti(filename, varargin)
 %   'cortexleft'       = string, filename with left cortex (optional, default is automatic)
 %   'cortexright'      = string, filename with right cortex (optional, default is automatic)
 %   'hemisphereoffset' = number, amount in milimeter to move the hemispheres apart from each other (default = 0)
+%   'mapname'          = string, 'field' to represent multiple maps separately, or 'array' to represent as array (default = 'field')
 %   'debug'            = boolean, write a debug.xml file (default = false)
 %
 % See also FT_WRITE_CIFTI, FT_READ_MRI, FT_WRITE_MRI
@@ -53,7 +54,7 @@ function source = ft_read_cifti(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_cifti.m 10393 2015-05-08 08:06:57Z roboos $
+% $Id: ft_read_cifti.m 10471 2015-06-23 08:24:18Z roboos $
 
 readdata         = ft_getopt(varargin, 'readdata', []);   % the default depends on file size, see below
 readsurface      = ft_getopt(varargin, 'readsurface', true);
@@ -61,9 +62,25 @@ cortexleft       = ft_getopt(varargin, 'cortexleft', {});
 cortexright      = ft_getopt(varargin, 'cortexright', {});
 hemisphereoffset = ft_getopt(varargin, 'hemisphereoffset', 0); % in mm, move the two hemispheres apart from each other
 debug            = ft_getopt(varargin, 'debug', false);
+mapname          = ft_getopt(varargin, 'mapname', 'field');
 
 % convert 'yes'/'no' into boolean
 readdata = istrue(readdata);
+
+if ~isempty(regexp(filename, 'nii.gz$', 'once'))
+  % the file is compressed, unzip on the fly
+  if ispc
+    error('cannot decompress gzipped files on a PC');
+  else
+    tempfile = [tempname '.nii.gz'];
+    [a, b] = system(sprintf('cp %s %s', filename, tempfile));
+    [a, b] = system(sprintf('gunzip %s', tempfile));
+  end
+  origfile = filename;
+  filename = tempfile(1:end-3); % strip the .gz
+else
+  origfile = filename;
+end
 
 % read the header section
 hdr = read_nifti2_hdr(filename);
@@ -173,10 +190,20 @@ for i=1:length(uid_MatrixIndicesMap)
     end
   end
   
-  uid_Volume = find(map,'/MatrixIndicesMap/Volume');
+  switch Cifti.Version
+    case {'1' '1.0'}
+      uid_Volume = find(tree,'/CIFTI/Matrix/Volume');
+    case {'2' '2.0'}
+      uid_Volume = find(map,'/MatrixIndicesMap/Volume');
+  end
   % the following will fail if there are multiple volumes
   if ~isempty(uid_Volume)
-    volume = branch(map, uid_Volume);
+    switch Cifti.Version
+      case {'1' '1.0'}
+        volume = branch(tree, uid_Volume);
+      case {'2' '2.0'}
+        volume = branch(map, uid_Volume);
+    end
     attr = attributes(volume, 'get', 1); % there should only be one attribute here
     if ~iscell(attr), attr = {attr}; end % treat one attribute just like multiple attributes
     for j=1:numel(attr)
@@ -550,7 +577,7 @@ if ~isempty(BrainModel)
   if ~isempty(Surface)
     voxeloffset = sum([Surface.SurfaceNumberOfVertices]);
   else
-    voxeloffset  = 0;
+    voxeloffset = 0;
   end
   
   greynodeOffset = nan(size(BrainModel));
@@ -732,24 +759,43 @@ if readdata
       error('unsupported dimord %s', source.dimord);
   end % switch
   
-  if isfield(Cifti, 'mapname') && (length(Cifti.mapname)>1 || isfield(Cifti, 'labeltable'))
-    % use distict names if there are multiple scalars or labels
-    for i=1:length(Cifti.mapname)
-      fieldname = fixname(Cifti.mapname{i});
-      
-      % truncate the string if it's too long: MATLAB maximizes the string
-      % length to 63 characters (and throws a warning when truncating), 
-      % anticipating a possible presence of the labeltable it will be 
-      % truncated here to 58
-      if numel(fieldname)>58
-        warning_once(sprintf('%s exceeds MATLAB''s maximum name length of 63 characters and has been truncated to %s',fieldname,fieldname(1:58)));
-        fieldname = fieldname(1:58);
-      end
-      source.(fieldname) = dat(:,i);
-      if isfield(Cifti, 'labeltable')
-        source.([fieldname 'label']) = Cifti.labeltable{i};
-      end
+  if isfield(Cifti, 'mapname') && isfield(Cifti, 'labeltable') && strcmp(mapname, 'array')
+    allthesame = true;
+    for i=2:length(Cifti.labeltable)
+      allthesame = allthesame && isequal(Cifti.labeltable{1}, Cifti.labeltable{i});
     end
+    if allthesame
+      warning('using the same labels for all maps in the array');
+      source.datalabel = Cifti.labeltable{1};
+      Cifti = rmfield(Cifti, 'labeltable');
+    else
+      error('multiple maps cannot be represented as array in the presence of different labeltables');
+    end
+  end
+  
+  if isfield(Cifti, 'mapname') && (length(Cifti.mapname)>1 || isfield(Cifti, 'labeltable'))
+    switch mapname
+      case 'field'
+        % use distict names if there are multiple scalars or labels
+        for i=1:length(Cifti.mapname)
+          fieldname = Cifti.mapname{i};
+          if isfield(Cifti, 'labeltable')
+            if length(fieldname)>58
+              % truncate it, needed to be able to append 'label' to the end
+              fieldname = fieldname(1:58);
+              % append 'label' to the end
+              source.([fieldname 'label']) = Cifti.labeltable{i};
+            end
+          end
+          source.(fieldname) = dat(:,i);
+        end
+      case 'array'
+        source.mapname = {NamedMap.MapName}; % keep the original names, not the field names
+        source.data    = dat;
+        source.dimord  = [source.dimord '_mapname'];
+      otherwise
+        error('incorrect specification of mapname "%s"', mapname);
+    end % switch mapname
   else
     % the name of the data will be based on the filename
     source.data = dat;
@@ -764,6 +810,9 @@ source.unit = 'mm'; % per definition
 % try to get the geometrical information from the corresponding gifti files
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if readsurface
+  
+  % use the filename prior to decompression
+  filename = origfile;
   
   [p, f, x] = fileparts(filename);
   t = tokenize(f, '.');
@@ -953,7 +1002,6 @@ if readdata
 %       source.data = tempdata;
 %     end
 %     source = rmfield(source, 'data');
-%     
   end
   
   % rename the datalabel field

@@ -123,14 +123,14 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 10413 2015-05-20 19:35:40Z roboos $
+% $Id: ft_databrowser.m 10458 2015-06-18 19:53:31Z roboos $
 
 % FIXME these should be removed or documented
 % cfg.preproc
 % cfg.channelcolormap
 % cfg.colorgroups
 
-revision = '$Id: ft_databrowser.m 10413 2015-05-20 19:35:40Z roboos $';
+revision = '$Id: ft_databrowser.m 10458 2015-06-18 19:53:31Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -1177,7 +1177,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function keyboard_cb(h, eventdata)
 
-if (isempty(eventdata) && matlabversion(-Inf, '2014a')) || isa(eventdata, 'matlab.ui.eventdata.ActionData')
+if (isempty(eventdata) && ft_platform_supports('matlabversion',-Inf, '2014a')) || isa(eventdata, 'matlab.ui.eventdata.ActionData')
   % determine the key that corresponds to the uicontrol element that was activated
   key = get(h, 'userdata');
 else

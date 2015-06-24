@@ -56,7 +56,7 @@ function [dipout] = beamformer_pcc(dip, grad, vol, dat, Cf, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: beamformer_pcc.m 10270 2015-03-09 08:43:23Z jansch $
+% $Id: beamformer_pcc.m 10451 2015-06-10 22:00:07Z roboos $
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs
@@ -237,7 +237,7 @@ for i=1:size(dip.pos,1)
       % update the number of dipole components
       Ndip = size(lfa,2);
     else
-      warning_once('Ignoring ''fixedori''. The fixedori option is supported only if there is ONE dipole for location.')
+      ft_warning('Ignoring ''fixedori''. The fixedori option is supported only if there is ONE dipole for location.')
     end
   end
   
@@ -332,7 +332,7 @@ end
 % standard MATLAB function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 10270 $  $Date: 2009/01/07 13:12:03 $
+%   $Revision: 10451 $  $Date: 2009/01/07 13:12:03 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

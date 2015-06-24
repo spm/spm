@@ -44,7 +44,7 @@ function [data] = fixdimord(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixdimord.m 9972 2014-11-19 08:09:34Z roboos $
+% $Id: fixdimord.m 10451 2015-06-10 22:00:07Z roboos $
 
 % if nargin<2, keepsourcedimord = 0; end
 %
@@ -147,7 +147,7 @@ for i=1:length(dimtok)
       
     case {'voxel' 'vox' 'repl' 'wcond'}
       % these are used in some fieldtrip functions, but are not considered standard
-      warning_once('unexpected dimord "%s"', data.dimord);
+      ft_warning('unexpected dimord "%s"', data.dimord);
       
     case {'pos'}
       % this is for source data on a 3-d grid, a cortical sheet, or unstructured positions

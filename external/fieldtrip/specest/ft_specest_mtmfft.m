@@ -43,7 +43,7 @@ function [spectrum,ntaper,freqoi] = ft_specest_mtmfft(dat, time, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_specest_mtmfft.m 10307 2015-03-29 20:58:31Z roboos $
+% $Id: ft_specest_mtmfft.m 10451 2015-06-10 22:00:07Z roboos $
 
 % these are for speeding up computation of tapers on subsequent calls
 persistent previous_argin previous_tap
@@ -124,13 +124,13 @@ if isnumeric(freqoiinput)
   % check whether padding is appropriate for the requested frequency resolution
   rayl = 1/endtime;
   if any(rem(freqoiinput,rayl)) % not always the case when they mismatch
-    warning_once('padding not sufficient for requested frequency resolution, for more information please see the FAQs on www.ru.nl/neuroimaging/fieldtrip');
+    ft_warning('padding not sufficient for requested frequency resolution, for more information please see the FAQs on www.ru.nl/neuroimaging/fieldtrip');
   end
   if numel(freqoiinput) ~= numel(freqoi) % freqoi will not contain double frequency bins when requested
-    warning_once('output frequencies are different from input frequencies, multiples of the same bin were requested but not given');
+    ft_warning('output frequencies are different from input frequencies, multiples of the same bin were requested but not given');
   else
     if any(abs(freqoiinput-freqoi) >= eps*1e6)
-      warning_once('output frequencies are different from input frequencies');
+      ft_warning('output frequencies are different from input frequencies');
     end
   end
 end
@@ -156,7 +156,7 @@ else
         if isempty(tap)
           error('datalength to short for specified smoothing\ndatalength: %.3f s, smoothing: %.3f Hz, minimum smoothing: %.3f Hz',ndatsample/fsample,tapsmofrq,fsample/ndatsample);
         elseif size(tap,1) == 1
-          warning_once('using only one taper for specified smoothing');
+          ft_warning('using only one taper for specified smoothing');
         end
       elseif numel(tapsmofrq)>1
         tap = cell(1,nfreqoi);

@@ -61,9 +61,9 @@ function [stat] = ft_networkanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_networkanalysis.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_networkanalysis.m 10451 2015-06-10 22:00:07Z roboos $
 
-revision = '$Id: ft_networkanalysis.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_networkanalysis.m 10451 2015-06-10 22:00:07Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -186,7 +186,7 @@ for k = 1:size(input, 3)
     % switch to the appropriate function from the BCT
     switch cfg.method
       case 'assortativity'
-        if ~isbinary, warning_once(binarywarning); end
+        if ~isbinary, ft_warning(binarywarning); end
         
         if isdirected
           output(k,m) = assortativity(input(:,:,k,m), 1);
@@ -216,7 +216,7 @@ for k = 1:size(input, 3)
           output(:,k,m) = clustering_coef_wu(input(:,:,k,m));
         end
       case 'degrees'
-        if ~isbinary, warning_once(binarywarning); end
+        if ~isbinary, ft_warning(binarywarning); end
         
         if isdirected
           [in, out, output(:,k,m)] = degrees_dir(input(:,:,k,m));
@@ -225,7 +225,7 @@ for k = 1:size(input, 3)
           output(:,k,m) = degrees_und(input(:,:,k,m));
         end
       case 'density'
-        if ~isbinary, warning_once(binarywarning); end
+        if ~isbinary, ft_warning(binarywarning); end
       
         if isdirected
           output(k,m) = density_dir(input(:,:,k,m));
