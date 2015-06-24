@@ -8,10 +8,10 @@ function SPM = spm_contrasts(SPM,Ic)
 % This function fills in SPM.xCon and writes con_????, ess_???? and
 % spm?_???? images.
 %__________________________________________________________________________
-% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Will Penny & Guillaume Flandin
-% $Id: spm_contrasts.m 6289 2014-12-18 15:55:02Z guillaume $
+% $Id: spm_contrasts.m 6486 2015-06-24 16:27:17Z guillaume $
 
 
 % Temporary copy of the SPM variable, to avoid saving it in SPM.mat unless
@@ -53,8 +53,14 @@ else
     VHp   = SPM.VResMS;
 end
 
-if spm_mesh_detect(Vbeta), file_ext = '.gii';
-else file_ext = spm_file_ext; end
+if spm_mesh_detect(Vbeta)
+    file_ext = '.gii';
+    g        = SPM.xY.VY(1).private;
+    metadata = {g.private.metadata(1).name, g.private.metadata(1).value};
+else
+    file_ext = spm_file_ext;
+    metadata = {};
+end
 
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %==========================================================================
@@ -111,7 +117,8 @@ for i = 1:length(Ic)
                         'dt',     [spm_type('float32'), spm_platform('bigend')],...
                         'mat',    SPM.xVol.M,...
                         'pinfo',  [1,0,0]',...
-                        'descrip',sprintf('Contrast %d: %s',ic,xCon(ic).name));
+                        'descrip',sprintf('Contrast %d: %s',ic,xCon(ic).name),...
+                        metadata{:});
                     
                     xCon(ic).Vcon = spm_data_hdr_write(xCon(ic).Vcon);
                     
@@ -150,7 +157,8 @@ for i = 1:length(Ic)
                     'dt',     [spm_type('float32'), spm_platform('bigend')],...
                     'mat',    SPM.xVol.M,...
                     'pinfo',  [1,0,0]',...
-                    'descrip',sprintf('ESS contrast %d: %s',ic,xCon(ic).name));
+                    'descrip',sprintf('ESS contrast %d: %s',ic,xCon(ic).name),...
+                    metadata{:});
                 
                 xCon(ic).Vcon = spm_data_hdr_write(xCon(ic).Vcon);
                 
@@ -275,7 +283,8 @@ for i = 1:length(Ic)
             'mat',    SPM.xVol.M,...
             'pinfo',  [1,0,0]',...
             'descrip',sprintf('SPM{%s_%s} - contrast %d: %s',...
-                xCon(ic).STAT,str,ic,xCon(ic).name));
+                xCon(ic).STAT,str,ic,xCon(ic).name),...
+            metadata{:});
         
         xCon(ic).Vspm = spm_data_hdr_write(xCon(ic).Vspm);
         

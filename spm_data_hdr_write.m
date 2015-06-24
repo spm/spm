@@ -3,10 +3,10 @@ function V = spm_data_hdr_write(V)
 % FORMAT V = spm_data_hdr_write(V)
 % V        - a structure array (see spm_data_hdr_read)
 %__________________________________________________________________________
-% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-20154 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_data_hdr_write.m 5916 2014-03-13 13:15:02Z guillaume $
+% $Id: spm_data_hdr_write.m 6486 2015-06-24 16:27:17Z guillaume $
 
 
 switch lower(spm_file(V(1).fname,'ext'))
@@ -18,12 +18,17 @@ switch lower(spm_file(V(1).fname,'ext'))
             V(i).private = gifti(struct('cdata',zeros(V(i).dim)));
             V(i).private.private.data{1}.attributes.DataType = ...
                 ['NIFTI_TYPE_' upper(spm_type(V(i).dt(1)))];
+            if isfield(V(i),'SurfaceID')
+                V(i).private.private.metadata(1).name = 'SurfaceID';
+                V(i).private.private.metadata(1).value = V(i).SurfaceID;
+            end
             % see also endianness, scale/offset/offset_byte, metadata
             save(V(i).private, V(i).fname, 'ExternalFileBinary');
             V(i).private = gifti(V(i).fname);
             %V(i).private.dat = file_array(spm_file(V(i).fname,'ext','dat'), ...
             %    V(i).dim, spm_type(V(i).dt(1)));
         end
+        if isfield(V,'SurfaceID'), V = rmfield(V,'SurfaceID'); end
         
     otherwise
         error('File "%s" is not of a recognised type.', V(1).fname);

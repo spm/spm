@@ -22,7 +22,7 @@ function Y = spm_data_read(V,varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_data_read.m 5916 2014-03-13 13:15:02Z guillaume $
+% $Id: spm_data_read.m 6486 2015-06-24 16:27:17Z guillaume $
 
 
 if ~isstruct(V)
@@ -30,7 +30,7 @@ if ~isstruct(V)
 end
 
 cl = class(V(1).private);
-if isfield(V(1),'dat'), cl = 'nifti'; end
+if isfield(V(1),'dat') && ~isequal(cl,'gifti'), cl = 'nifti'; end
 
 switch cl
     case 'nifti'
