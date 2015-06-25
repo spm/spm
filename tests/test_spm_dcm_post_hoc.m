@@ -7,7 +7,7 @@ tests = functiontests(localfunctions);
 
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
-data_path = fullfile( fileparts(mfilename('fullpath')), ...
+data_path = fullfile( spm('Dir'), 'tests', ...
     'data', 'test_spm_dcm_post_hoc');
 
 % -------------------------------------------------------------------------
@@ -20,10 +20,12 @@ artefacts = {fullfile(data_path,'DCM_BPA.mat');
     
 % Delete if exist
 for i = 1:length(artefacts)
-    if exist(artefacts{i},'file') > 0
-        delete(artefacts{i});
-    end    
+    spm_unlink(artefacts{i});   
 end
+
+% Initialize SPM
+spm('defaults','fmri');
+spm_get_defaults('cmdline',true);
 
 % -------------------------------------------------------------------------
 function test_on_simulated_attention_data(testCase)
