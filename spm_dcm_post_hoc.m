@@ -75,7 +75,7 @@ function DCM = spm_dcm_post_hoc(P,fun,field,write_all)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_post_hoc.m 6329 2015-02-05 19:25:52Z karl $
+% $Id: spm_dcm_post_hoc.m 6487 2015-06-25 16:15:15Z peter $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -680,7 +680,7 @@ end
 
 %-Show coupling matrices
 %--------------------------------------------------------------------------
-if numel(params.field) == 3 && isfeild(DCM,'a');
+if numel(params.field) == 3 && isfield(DCM,'a');
     
     spm_figure('GetWin','Bayesian parameter average (selected model)'); clf
     spm_dcm_fmri_image(BPA.Eq)
@@ -735,9 +735,7 @@ catch
     name = fullfile(pwd,'DCM_BPA.mat');
 end
 
-if params.write_all
-    save(name,'DCM', spm_get_defaults('mat.format'));
-end
+save(name,'DCM', spm_get_defaults('mat.format'));
 
 
 %==========================================================================
