@@ -36,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6455 2015-05-26 12:45:05Z volkmar $
+% $Id: spm_dicom_convert.m 6489 2015-06-26 11:46:29Z john $
 
 
 %-Input parameters
@@ -284,7 +284,7 @@ for i=2:length(hdr)
                 strcmp(vol{j}{1}.Modality,'CT') % Our CT seems to have shears in slice positions
             dist2 = 0;
         end
-        if ~isempty(ice1) && isfield(vol{j}{1},'CSAImageHeaderInfo') && isfield(vol{j}{1}.CSAImageHeaderInfo(1),'name')
+        if ~isempty(ice1) && isfield(vol{j}{1},'CSAImageHeaderInfo') && numel(vol{j}{1}.CSAImageHeaderInfo)>=1 && isfield(vol{j}{1}.CSAImageHeaderInfo(1),'name')
             % Replace 'X' in ICE_Dims by '-1'
             ice2 = sscanf( ...
                 strrep(get_numaris4_val(vol{j}{1}.CSAImageHeaderInfo,'ICE_Dims'), ...
