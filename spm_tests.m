@@ -7,6 +7,7 @@ function results = spm_tests(varargin)
 %     coverage: display code coverage [default: false]
 %     tag:      test tag selector [default: '', ie all tests]
 %     tap:      save a Test Anything Protocol (TAP) file [default: false]
+%     test:     name of function to test [default: '', ie all tests]
 % 
 % results     - TestResult array containing information describing the
 %               result of running the test suite.
@@ -14,20 +15,20 @@ function results = spm_tests(varargin)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_tests.m 6416 2015-04-21 15:34:10Z guillaume $
+% $Id: spm_tests.m 6492 2015-06-26 14:27:40Z guillaume $
 
 
 if spm_check_version('matlab','8.3') < 0
     error('Unit Tests require MATLAB R2014a or above.');
 end
 
-SVNid = '$Rev: 6416 $';
+SVNid = '$Rev: 6492 $';
 SPMid = spm('FnBanner',mfilename,SVNid);
 
 %-Input parameters
 %--------------------------------------------------------------------------
 options = struct('verbose',2, 'display',false, 'coverage',false, ...
-                 'tag', '', 'tap',false);
+                 'tag', '', 'tap',false, 'test','');
 if nargin
     if isstruct(varargin{1})
         fn = fieldnames(varargin{1});
@@ -49,7 +50,16 @@ end
 import matlab.unittest.TestSuite;
 import matlab.unittest.selectors.*;
 tests = fullfile(spm('Dir'),'tests');
-suite = TestSuite.fromFolder(tests, 'IncludingSubfolders', true);
+if isempty(options.test)
+    suite = TestSuite.fromFolder(tests, 'IncludingSubfolders', true);
+else
+    mtest = fullfile(tests,['test_' spm_file(options.test,'ext','.m')]);
+    if ~spm_existfile(mtest)
+        warning('SPM:tests:fileNotFound','No tests found for %s',options.test);
+        return;
+    end
+    suite = TestSuite.fromFile(mtest);
+end
 if ~isempty(options.tag)
     suite = suite.selectIf(~HasTag | HasTag(options.tag));
 end

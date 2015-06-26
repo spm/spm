@@ -3,14 +3,18 @@ function tests = test_spm_dcm_post_hoc
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
+% $Id: test_spm_dcm_post_hoc.m 6492 2015-06-26 14:27:40Z guillaume $
+
 tests = functiontests(localfunctions);
 
-% -------------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 function data_path = get_data_path()
 data_path = fullfile( spm('Dir'), 'tests', ...
     'data', 'test_spm_dcm_post_hoc');
 
-% -------------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 function setup(testCase)
 data_path = get_data_path();
 
@@ -27,7 +31,8 @@ end
 spm('defaults','fmri');
 spm_get_defaults('cmdline',true);
 
-% -------------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 function test_on_simulated_attention_data(testCase)
 import matlab.unittest.constraints.*
  
