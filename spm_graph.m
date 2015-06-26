@@ -24,7 +24,7 @@ function [Y,y,beta,Bcov,G] = spm_graph(SPM,XYZ,xG)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 6025 2014-05-29 13:35:51Z guillaume $
+% $Id: spm_graph.m 6490 2015-06-26 11:51:46Z guillaume $
 
 
 if nargin == 3 && isstruct(SPM) && isstruct(XYZ) && ishandle(xG)
@@ -39,13 +39,13 @@ if nargin < 3, [xG,G] = deal(struct([])); end
 %==========================================================================
 Y     = [];
 try
-    y = spm_get_data(SPM.xY.VY,XYZ);
+    y = spm_data_read(SPM.xY.VY,'xyz',XYZ);
 catch
     try
         % remap files in SPM.xY.P if SPM.xY.VY is no longer valid
         %------------------------------------------------------------------
-        SPM.xY.VY = spm_vol(SPM.xY.P);
-        y = spm_get_data(SPM.xY.VY,XYZ);
+        SPM.xY.VY = spm_data_hdr_read(SPM.xY.P);
+        y = spm_data_read(SPM.xY.VY,'xyz',XYZ);
         
     catch
         % data has been moved or renamed
@@ -64,15 +64,15 @@ catch
                     spm('Pointer','Arrow');
                     return;
                 end
-                SPM.xY.VY = spm_vol(SPM.xY.P);
+                SPM.xY.VY = spm_data_hdr_read(SPM.xY.P);
                 for i = 1:numel(SPM.xY.VY)
                     SPM.xY.VY(i).pinfo(1:2,:) = ...
                         SPM.xY.VY(i).pinfo(1:2,:)*SPM.xGX.gSF(i);
                 end
-                y = spm_get_data(SPM.xY.VY,XYZ);
+                y = spm_data_read(SPM.xY.VY,'xyz',XYZ);
             case 'Search'
                 SPM.xY.VY = spm_check_filename(SPM.xY.VY);
-                y = spm_get_data(SPM.xY.VY,XYZ);
+                y = spm_data_read(SPM.xY.VY,'xyz',XYZ);
             otherwise
                 y = [];
         end
@@ -106,15 +106,15 @@ if ~isfield(SPM,'VCbeta') % xSPM.STAT ~= 'P'
     %-Parameter estimates:   beta = xX.pKX*xX.K*y;
     %-Residual mean square: ResMS = sum(R.^2)/xX.trRV
     %----------------------------------------------------------------------
-    beta  = spm_get_data(SPM.Vbeta, XYZ);
-    ResMS = spm_get_data(SPM.VResMS,XYZ);
+    beta  = spm_data_read(SPM.Vbeta,'xyz',XYZ);
+    ResMS = spm_data_read(SPM.VResMS,'xyz',XYZ);
     Bcov  = ResMS*SPM.xX.Bcov;
 
 else
     % or conditional estimates with
     % Cov(b|y) through Taylor approximation
     %----------------------------------------------------------------------
-    beta  = spm_get_data(SPM.VCbeta, XYZ);
+    beta  = spm_data_read(SPM.VCbeta, 'xyz', XYZ);
 
     if isfield(SPM.PPM,'VB')
         % Get approximate posterior covariance at ic
@@ -123,17 +123,17 @@ else
         % Get posterior SD beta's
         Nk = size(SPM.xX.X,2);
         for k=1:Nk
-            sd_beta(k,:) = spm_get_data(SPM.VPsd(k),XYZ);
+            sd_beta(k,:) = spm_data_read(SPM.VPsd(k),'xyz',XYZ);
         end
 
         % Get AR coefficients
         nsess = length(SPM.Sess);
         for ss=1:nsess
             for p=1:SPM.PPM.AR_P
-                Sess(ss).a(p,:) = spm_get_data(SPM.PPM.Sess(ss).VAR(p),XYZ);
+                Sess(ss).a(p,:) = spm_data_read(SPM.PPM.Sess(ss).VAR(p),'xyz',XYZ);
             end
             % Get noise SD
-            Sess(ss).lambda = spm_get_data(SPM.PPM.Sess(ss).VHp,XYZ);
+            Sess(ss).lambda = spm_data_read(SPM.PPM.Sess(ss).VHp,'xyz',XYZ);
         end
 
         % Which block are we in ?
@@ -165,7 +165,7 @@ else
     else
         Bcov     = SPM.PPM.Cby;
         for j = 1:length(SPM.PPM.l)
-            l    = spm_get_data(SPM.VHp(j),XYZ);
+            l    = spm_data_read(SPM.VHp(j),'xyz',XYZ);
             Bcov = Bcov + SPM.PPM.dC{j}*(l - SPM.PPM.l(j));
         end
     end

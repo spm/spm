@@ -11,7 +11,7 @@ function SPM = spm_contrasts(SPM,Ic)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Will Penny & Guillaume Flandin
-% $Id: spm_contrasts.m 6486 2015-06-24 16:27:17Z guillaume $
+% $Id: spm_contrasts.m 6490 2015-06-26 11:51:46Z guillaume $
 
 
 % Temporary copy of the SPM variable, to avoid saving it in SPM.mat unless
@@ -218,7 +218,7 @@ for i = 1:length(Ic)
                     % Simple contrast - Gaussian distributed
                     
                     c     = xCon(ic).c;
-                    cB    = spm_get_data(xCon(ic).Vcon,XYZ);
+                    cB    = spm_data_read(xCon(ic).Vcon,'xyz',XYZ);
                     if isfield(SPM.PPM,'VB');
                         % If posterior sd image for that contrast does
                         % not already exist, then compute it
@@ -228,7 +228,7 @@ for i = 1:length(Ic)
                             SPM = spm_vb_contrasts(SPM,XYZ,xCon,ic);
                         end
                         % Read in posterior sd image for contrast
-                        Vsd = spm_get_data(SPM.PPM.Vcon_sd(ic),XYZ);
+                        Vsd = spm_data_read(SPM.PPM.Vcon_sd(ic),'xyz',XYZ);
                         VcB = Vsd.^2;
                     else
                         VcB   = c'*SPM.PPM.Cby*c;
@@ -236,7 +236,7 @@ for i = 1:length(Ic)
                             
                             % hyperparameter and Taylor approximation
                             %----------------------------------------------
-                            l   = spm_get_data(SPM.VHp(j),XYZ);
+                            l   = spm_data_read(SPM.VHp(j),'xyz',XYZ);
                             VcB = VcB + (c'*SPM.PPM.dC{j}*c)*(l - SPM.PPM.l(j));
                         end
                     end
@@ -254,7 +254,7 @@ for i = 1:length(Ic)
                     % Compound contrast - Log Bayes Factor
                     fprintf('\t\t%-75s\n','Log Bayes Factor for compound contrast');
                     fprintf('\t%-32s: %29s\n',' ',' ');
-                    Z = spm_get_data(xCon(ic).Vcon,XYZ);
+                    Z = spm_data_read(xCon(ic).Vcon,'xyz',XYZ);
                     
                     str = sprintf('[%1.2f]',xCon(ic).eidf);
                 end

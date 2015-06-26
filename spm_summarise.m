@@ -25,7 +25,7 @@ function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 % Copyright (C) 2010-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin, Ged Ridgway
-% $Id: spm_summarise.m 6448 2015-05-22 18:31:04Z guillaume $
+% $Id: spm_summarise.m 6490 2015-06-26 11:51:46Z guillaume $
 
 %-Argument checks
 %--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ if nargin < 1 || isempty(V)
     if ~sts, error('Must select 1 or more images'), end
 end
 if iscellstr(V), V = char(V); end
-if ischar(V), V = spm_vol(V); end
+if ischar(V), V = spm_data_hdr_read(V); end
 spm_check_orientations(V);
 
 if nargin < 2 || isempty(xY), xY = struct; end
@@ -80,7 +80,7 @@ end
 XYZ = round(V(1).mat \ [xY.XYZmm; ones(1, size(xY.XYZmm, 2))]);
 
 % Run on first volume to determine p, and transpose if column vector
-Y = fhandle(dropNaNs(spm_get_data(V(1), XYZ)));
+Y = fhandle(dropNaNs(spm_data_read(V(1), 'xyz', XYZ)));
 if ndims(Y) > 2
     error('Function must return a [1 x p] array')
 elseif size(Y, 1) ~= 1
@@ -95,5 +95,5 @@ end
 % Preallocate space and then run on remaining volumes
 Y(2:numel(V), :) = 0;
 for i = 2:numel(V)
-    Y(i, :) = fhandle(dropNaNs(spm_get_data(V(i), XYZ)));
+    Y(i, :) = fhandle(dropNaNs(spm_data_read(V(i), 'xyz', XYZ)));
 end
