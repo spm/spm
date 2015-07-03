@@ -78,7 +78,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 6382 2015-03-19 11:26:20Z holly $
+% $Id: spm_eeg_invert_classic.m 6493 2015-07-03 05:25:59Z gareth $
 
 
 
@@ -615,7 +615,8 @@ switch(type)
         %------------------------------------------------------------------
         
         
-        [Cy,h,Ph,F] = spm_sp_reml(AYYA,[],[Qe LQpL],1);
+        %[Cy,h,Ph,F] = spm_sp_reml(AYYA,[],[Qe LQpL],1);
+        [Cy,h,Ph,F] = spm_sp_reml(AYYA,[],[Qe LQpL],Nn);
         
         
         % Spatial priors (QP)
@@ -649,7 +650,7 @@ switch(type)
         
         
         
-        [Cy,h,Ph,F] = spm_reml_sc(AYYA,[],[Qe LQpL],1,-4,16,Q0);
+        [Cy,h,Ph,F] = spm_reml_sc(AYYA,[],[Qe LQpL],Nn,-4,16,Q0);
         
         % Spatial priors (QP)
         %------------------------------------------------------------------
@@ -694,7 +695,7 @@ if rank(AYYA)~=size(A,1),
 end;
 
 
-[Cy,h,Ph,F]= spm_reml_sc(AYYA,[],Q,1,-4,16,Q0);
+[Cy,h,Ph,F]= spm_reml_sc(AYYA,[],Q,Nn,-4,16,Q0);
 
 
 
