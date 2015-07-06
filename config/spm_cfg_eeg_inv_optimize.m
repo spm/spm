@@ -6,7 +6,7 @@ function optsetup = spm_cfg_eeg_inv_optimize
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_optimize.m 6478 2015-06-10 13:27:13Z gareth $
+% $Id: spm_cfg_eeg_inv_optimize.m 6494 2015-07-06 10:23:04Z gareth $
 
 
 D = cfg_files;
@@ -93,7 +93,13 @@ mesh=D.inv{job.val}.mesh.tess_mni;
 priordir=[D.path filesep job.postname '_' b1];
 
 [priorfiles] = spm_select('FPListRec',priordir,'.*\.mat$');
+[postfiles] = spm_select('FPListRec',priordir,'^post.*\.mat$');
 
+USEPOST=1;
+if ~isempty(postfiles) && USEPOST,
+    fprintf('Using only posterior\n');
+    priorfiles=postfiles;
+end;
 Nfiles=size(priorfiles,1);
 fprintf('Found %d prior files\n',Nfiles);
 if Nfiles==0,
@@ -134,14 +140,16 @@ for j=1:Nfiles, %% move through prior files
     for k=1:length(job.opttype), %% move through optimization schemes
         %%% TERMS WHICH EVOLVE ARE Qe and Qp (M, Cq, Cp follow)
         priorcount(k)=length(Qp);
+        
         [F,M,Cq,Cp,Qe,Qp] = spm_eeg_invert_EBoptimise(AY,UL,job.opttype(k),Qp,Qe,Qe0);
         
         if j>1, %% nothing to augment on 1st iteration
+            
             [F_aug,M,Cq,Cp,Qe_aug,Qp_aug] = spm_eeg_invert_EBoptimise(AY,UL,job.opttype(k),Qp_aug,Qe_aug,Qe0);
         end;
     end;
-    figure; bar(priorcount); drawnow; pause(1);
-   
+    
+    
     if F_aug>F,
         fprintf('Taking augmented set forward\n');
         Qp=Qp_aug;
@@ -209,6 +217,19 @@ fprintf('Percent variance explained %.2f\n',full(inverse.R2));
 D.inv{job.val}.inverse=inverse;
 
 
+
+
+% meanqVtime=mean(diag(inverse.qV));
+%
+%
+%   [i,js] = max(max(abs(J),[],2)); %% max J in space
+%   [i,jt] = max(abs(J(js,:))); %% in time
+%
+% qCspace = qC*meanqVtime; %% posterior covariance over space based on mean temporal variance
+%   Z  = mean(abs(J)')./sqrt(qCspace);
+%     PP = fix(100*(spm_Ncdf(Z)));
+
+
 spm_eeg_invert_display(D);
 
 rmind=find(allF<max(allF)-3);
@@ -222,6 +243,41 @@ goodind=setxor(1:length(allF),rmind);
 for j=1:length(goodind),
     fprintf('Using prior file %s\n',priorfiles(goodind(j),:))
 end;
+
+postname=[priordir filesep 'post.mat'];
+
+Jtime=J{1}*inverse.T'; %% J is Nvert* Nsamples
+
+Mmesh=[];Mmesh.vertices=mesh.vert;Mmesh.faces=mesh.face;
+
+
+allsource=var(Jtime'); %% ./inverse.qC';
+
+
+Ip = spm_mesh_get_lm(Mmesh,allsource); %% get local maxima
+figure;
+plot(allsource);
+legend('sparse post');
+hold on;
+maxBFpatch=100;
+fprintf('Limiting to a max of %d peaks\n',maxBFpatch);
+
+[vals,ind]=sort(allsource(Ip),'descend');
+Ip=Ip(ind(1:maxBFpatch));
+plot(Ip,allsource(Ip),'ro');
+Qp=[];
+for k=1:length(Ip),
+    Qp{k}.q=sparse(size(mesh.vert,1),1);
+    Qp{k}.q(Ip(k))=sqrt(var(Jtime(Ip(k),:)));
+end;
+
+
+%[Qp,Qe,allpriornames]=spm_eeg_invert_setuppatches(Ip,mesh,base,priordir,Qe{1},UL);
+
+fprintf('SAving %s\n',postname);
+F=-Inf;
+save(postname,'Qp','Qe','UL','F');
+
 D.save;
 out.D = job.D;
 

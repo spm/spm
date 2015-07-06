@@ -5,7 +5,7 @@ function simulate = spm_cfg_eeg_inv_simulate
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_simulate.m 6390 2015-03-25 11:18:35Z gareth $
+% $Id: spm_cfg_eeg_inv_simulate.m 6494 2015-07-06 10:23:04Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -78,11 +78,20 @@ fband.num = [ 1 2];
 fband.val = {[10  40]};
 fband.help = {'Enter frequencies over which random signal exists in Hz'};
 
+
+fromfile = cfg_files;
+fromfile.tag = 'fromfile';
+fromfile.name = 'Variable s in a .mat file';
+fromfile.filter = 'mat';
+fromfile.num = [1 1];
+fromfile.help = {'Select the .mat file containing the variable s'};
+
+
 isSin = cfg_choice;
 isSin.tag = 'isSin';
-isSin.name = 'Simulate sinusoids or bandlimited orthogonal white signal ?';
-isSin.help = {'Choose whether to simulate a sinusoidal signal or a random (gaussian white) filtered (and orthogonal) signals'};
-isSin.values = {foi, fband};
+isSin.name = 'How to generate signals ?';
+isSin.help = {'Choose whether to simulate a sinusoidal signal OR a random (gaussian white) filtered (and orthogonal) signals OR to load time series from a matfile (s(n,:) is nth dipole time series (all timeserie will be normalized to unit amplitude, and scaled only by dipole moment)'};
+isSin.values = {foi, fband,fromfile};
 isSin.val = {foi};
 
 
@@ -239,37 +248,60 @@ if isfield(job.isinversion,'setsources'), %% defining individual sources
             dipfwhm=dipmom(:,2); %% fhwm in mm
         end;
     end;
-        
+    
     woi=job.isinversion.setsources.woi./1000;
     timeind = intersect(find(D{1}.time>woi(1)),find(D{1}.time<=woi(2)));
     simsignal = zeros(Nsources,length(timeind));
+    
+    if isfield(job.isinversion.setsources.isSin,'fromfile'),
+        %% Simulate orthogonal Gaussian signals
+        filename=cell2mat(job.isinversion.setsources.isSin.fromfile);
+        a=load(filename,'s');
+        
+        if size(a.s,1)~=Nsources,
+            error('size of simulated data in file does not match number of sources');
+        end;
+        
+        if size(a.s,2)~=length(timeind),
+            warning(sprintf('sim signal from file is not same length as time window (%d vs %d samples) truncating or padding with zeros',size(a.s,2),length(timeind)));
+        end;
+        usesamples=1:min(length(timeind),size(a.s,2));
+        simsignal(:,usesamples)=a.s(:,usesamples);
+        
+    end; % if isfield fband
+    
     if isfield(job.isinversion.setsources.isSin,'fband'),
         %% Simulate orthogonal Gaussian signals
-
+        
         simsignal=randn(Nsources,length(timeind));
         %% filter to bandwidth
         simsignal=ft_preproc_lowpassfilter(simsignal,D{1}.fsample,job.isinversion.setsources.isSin.fband(2),2);
         simsignal=ft_preproc_highpassfilter(simsignal,D{1}.fsample,job.isinversion.setsources.isSin.fband(1),2);
         [u,s,v]=svd(simsignal*simsignal');
         simsignal=u*simsignal; %% orthogonalise all signals
-        
-      %  simsignal=simsignal.*repmat(nAmdipmom,1,size(simsignal,2)); %% now scale by moment
-        
-    else
+    end; % if isfield fband
+    
+    %  simsignal=simsignal.*repmat(nAmdipmom,1,size(simsignal,2)); %% now scale by moment
+    
+    if isfield(job.isinversion.setsources.isSin,'foi'),
         %% simulate sinusoids
         sinfreq=job.isinversion.setsources.isSin.foi;
         % Create the waveform for each source
         
         for j=1:Nsources                % For each source
-                simsignal(j,:)=sin((D{1}.time(timeind)- D{1}.time(min(timeind)))*sinfreq(j)*2*pi);
+            simsignal(j,:)=sin((D{1}.time(timeind)- D{1}.time(min(timeind)))*sinfreq(j)*2*pi);
         end; % for j
         
         
-    end; %% if isfield fband
- 
+    end; %% if isfield foi
+    
     simsignal=simsignal./repmat(std(simsignal'),size(simsignal,2),1)'; %% Set sim signal to have unit variance
     %[D,meshsourceind,signal]=spm_eeg_simulate(D,job.prefix, job.isinversion.setsources.locs,simsignal,woi,whitenoisefT,SNRdB,trialind,mnimesh,SmthInit);
-    
+    figure;
+    plot(D{1}.time(timeind),simsignal);
+    xlabel('time');
+    ylabel('Normalized amplitude (to be scaled by dip moment later)');
+    legend(num2str([1:Nsources]'));
     [D,meshsourceind]=spm_eeg_simulate(D,job.prefix,job.isinversion.setsources.locs,simsignal,ormni,woi,whitenoisefT,SNRdB,trialind,mnimesh,dipfwhm,nAmdipmom);
     
 else %% simulate sources based on inversion

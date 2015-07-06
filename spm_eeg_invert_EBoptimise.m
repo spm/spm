@@ -23,7 +23,7 @@ function [F,M,Cq,Cp,QE,Qp] = spm_eeg_invert_EBoptimise(AY,UL,opttype,Qp,Qe,Qe0)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_invert_EBoptimise.m 6479 2015-06-10 13:44:14Z gareth $
+% $Id: spm_eeg_invert_EBoptimise.m 6494 2015-07-06 10:23:04Z gareth $
 
 
 if ~iscell(Qe),
@@ -90,7 +90,7 @@ if isfield(opttype{j},'GSopt'),
         F=max(MVB.F);
         
     else
-        disp('Skipping ARD as no eigenmode priors');
+        disp('Skipping GS as no eigenmode priors');
         F=-Inf;
     end;
     
@@ -101,10 +101,10 @@ end; %%GS
 if  isfield(opttype{j},'ARDopt'),
     %% needs to work with sparse (svd decomposed) source covariance matrices
     Nn=size(AY,2); %% number of data samples used to make up covariance matrix
-    [LQpL,Q,sumLQpL,QE,Cy,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(UL,Qp,Qe,ploton);
+%    [LQpL,Q,sumLQpL,QE,Cy,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(UL,Qp,Qe,ploton);
     if ~isempty(sparseind),
-        
         Qp=Qp_sp;
+        
         [LQpL,Q,sumLQpL,QE,Cy,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(UL,Qp,Qe,ploton);
         
         
@@ -116,22 +116,14 @@ if  isfield(opttype{j},'ARDopt'),
         %% SPM_SP_REML STARTS WITH EIGEN MODES Lq RATHER THAN FULL COV MATRICES
         fprintf('entering REML for ARD')
         
-%         m=length(Qe)+length(Lq)
-%         
-%         covLq=speye(length(Lq));
-%         for j=1:length(Lq)
-%             for k=1:length(Lq),
-%                 covLq(j,k)=(Lq{j}.q)'*(Lq{k}.q);
-%             end;
-%         end;
-%         %[Cy,h,Ph,F0] = spm_sp_reml(AYYA,[],[Qe Lq],Nn,hE,hC);
-%         keyboard
-%         
-        %hE=sparse(m,1)-32; %% prior expectation
-        %hC=speye(m,m)*+3e12; %% prior variance- allow it to vary by factor 10
-        %hC(1:length(Lq),1:length(Lq))=covLq;
+        
+        %[Cy,h,Ph,F0] = spm_sp_reml(AYYA,[],[Qe Lq],Nn);
         [Cy,h,Ph,F0] = spm_sp_reml(AYYA,[],[Qe Lq],Nn);
          
+        if isnan(F0),
+            warning('NAN in ARD stage, dropping out');
+            return;
+        end;
         % Spatial priors (QP)
         %------------------------------------------------------------------
         % h provides the final weights of the hyperparameters
@@ -148,6 +140,7 @@ if  isfield(opttype{j},'ARDopt'),
         h=[h(1:Ne) hp(keepind)'];
         
         [LQpL,Q,sumLQpL,QE,Csensor,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(UL,Qp(keepind),Qe,ploton,h);
+        
         [Cy,h2,Ph,F] = spm_sp_reml(AYYA,[],[Qe Lq],Nn);
         [LQpL,Q,sumLQpL,QE,Csensor,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(UL,Qp(keepind),Qe,ploton,h2);
         % Accumulate empirical priors (New set of patches for the second inversion)

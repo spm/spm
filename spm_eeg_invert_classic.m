@@ -78,7 +78,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 6493 2015-07-03 05:25:59Z gareth $
+% $Id: spm_eeg_invert_classic.m 6494 2015-07-06 10:23:04Z gareth $
 
 
 
@@ -307,7 +307,7 @@ It     = max(1,It(1)):min(It(end), length(D.time));
 It     = fix(It);
 disp(sprintf('Number of samples %d',length(It)));
 
-    
+
 
 % Peristimulus time
 %----------------------------------------------------------------------
@@ -383,7 +383,7 @@ YTY         = T'*YY*T;     % Filter
 
 %======================================================================
 
-if isempty(Nt), %% automatically assign appropriate number of temporal modes    
+if isempty(Nt), %% automatically assign appropriate number of temporal modes
     [U E]  = spm_svd(YTY,exp(-8));          % get temporal modes
     if isempty(U), %% fallback
         warning('nothing found using spm svd, using svd');
@@ -413,7 +413,7 @@ Vq     = S*pinv(S'*qV*S)*S';            % temporal precision
 
 % get spatial covariance (Y*Y') for Gaussian process model
 %======================================================================
-% loop over Ntrialtypes trial types 
+% loop over Ntrialtypes trial types
 %----------------------------------------------------------------------
 UYYU = 0;
 AYYA=0;
@@ -428,7 +428,7 @@ for j = 1:Ntrialtypes,
     [c1,ib]=intersect(c,badtrialind); %% remove bad trials ib if there are any
     c=c(setxor(1:length(c),ib));
     Nk    = length(c);
-       
+    
     % loop over epochs
     %------------------------------------------------------------------
     for k = 1:Nk
@@ -438,7 +438,7 @@ for j = 1:Ntrialtypes,
         
         Y       = D(Ic,It,c(k))*S; %% in temporal subspace
         Y=A*Y; %%  in spatial subspace
-  
+        
         
         % accumulate first & second-order responses
         %--------------------------------------------------------------
@@ -493,28 +493,12 @@ switch(type)
             %--------------------------------------------------------------
             q               = QG(:,Ip(i));
             Qp{end + 1}.q   = q;
-            LQpL{end + 1}.q = UL*q;     
+            LQpL{end + 1}.q = UL*q;
         end
         
-%     case {'EBB'}
-%         % create beamforming prior. See:
-%         % Source reconstruction accuracy of MEG and EEG Bayesian inversion approaches.
-%         %Belardinelli P, Ortiz E, Barnes G, Noppeney U, Preissl H. PLoS One. 2012;7(12):e51985.
-%         %------------------------------------------------------------------
-%         InvCov = spm_inv(YY);
-%         allsource = zeros(Ns,1);
-%         Sourcepower = zeros(Ns,1);
-%         for bk = 1:Ns
-%             normpower = 1/(UL(:,bk)'*UL(:,bk));
-%             Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
-%             allsource(bk) = Sourcepower(bk)./normpower;
-%         end
-%         allsource = allsource/max(allsource);   % Normalise
-%         
-%         Qp{1} = diag(allsource);
-%         LQpL{1} = UL*diag(allsource)*UL';
-   case {'EBB'}
-        % create SMOOTH beamforming prior. 
+        
+    case {'EBB'}
+        % create SMOOTH beamforming prior.
         disp('NB smooth EBB algorithm !');
         %------------------------------------------------------------------
         InvCov = spm_inv(AYYA);
@@ -533,22 +517,55 @@ switch(type)
         Qp{1} = diag(allsource);
         LQpL{1} = UL*diag(allsource)*UL';
         
-    case {'EBBgs'}  % NEW BEAMFORMER PRIOR!!
-        % create beamforming prior- Juan David- Martinez Vargas
-        %------------------------------------------------------------------
-        allsource = zeros(Ntrials,Ns);
-        for ii = 1:Ntrials
-            InvCov = spm_inv(YYep{ii});
-            Sourcepower = zeros(Ns,1);
-            for bk = 1:Ns
-                normpower = 1/(UL(:,bk)'*UL(:,bk));
-                Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
-                allsource(ii,bk) = Sourcepower(bk)./normpower;
-            end
+    case {'EBBsparse'}
+        
+        %% calculate power on cortical surface
+        %% using beamformer assumptions
+        disp('NB sparse and smooth EBB algorithm !');
+        
+        InvCov = spm_inv(AYYA);
+        allsource = sparse(Ns,1);
+        Sourcepower = sparse(Ns,1);
+        for bk = 1:Ns
+            q               = QG(:,bk);
             
-            Qp{ii}.q = allsource(ii,:);
+            smthlead = UL*q;     %% THIS IS WHERE THE SMOOTHNESS GETS ADDED
+            normpower = 1/(smthlead'*smthlead);
+            Sourcepower(bk) = 1/(smthlead'*InvCov*smthlead);
+            allsource(bk) = Sourcepower(bk)./normpower;
         end
-             
+        allsource = allsource/max(allsource);
+        
+        
+        %% now get local maxima on mesh
+        M0.vert=vert;
+        M0.faces=face;
+        
+        Ip = spm_mesh_get_lm(M0,allsource); %% get local maxima
+        figure;
+        plot(allsource);
+        legend('sparse EBB');
+        hold on;
+        maxBFpatch=40;
+        fprintf('Limiting to a max of %d peaks\n',maxBFpatch);
+        
+        [vals,ind]=sort(allsource(Ip),'descend');
+        Ip=Ip(ind(1:maxBFpatch));
+        plot(Ip,allsource(Ip),'ro');
+        
+        
+        Qp    = {};
+        LQpL  = {};
+        for i = 1:maxBFpatch
+            % Patch locations determined by Ip
+            %--------------------------------------------------------------
+            q               = QG(:,Ip(i));
+            Qp{end + 1}.q   = q;
+            LQpL{end + 1}.q = UL*q;
+        end; %% end of sparse ebb
+       
+     
+    
     case {'LOR','COH'}
         % create minimum norm prior
         %------------------------------------------------------------------
@@ -560,11 +577,11 @@ switch(type)
         Qp{2}   = QG;
         LQpL{2} = UL*Qp{2}*UL';
         
-    case {'IID','MMN'}
-        % create minimum norm prior
-        %------------------------------------------------------------------
-        Qp{1}   = speye(Ns,Ns);
-        LQpL{1} = UL*UL';
+        case {'IID','MMN'}
+            % create minimum norm prior
+            %------------------------------------------------------------------
+            Qp{1}   = speye(Ns,Ns);
+            LQpL{1} = UL*UL';
 end
 
 fprintf('Using %d spatial source priors provided\n',length(Qp));
@@ -582,7 +599,7 @@ LQPL   = {};
 %--------------------------------------------------------------------------
 switch(type)
     
-    case {'MSP','GS','EBBgs'}
+    case {'MSP','GS','EBBsparse'}
         % Greedy search over MSPs
         %------------------------------------------------------------------
         Np    = length(Qp);
@@ -595,7 +612,7 @@ switch(type)
         % Multivariate Bayes (Here is performed the inversion)
         %------------------------------------------------------------------
         
-        MVB   = spm_mvb(AY,UL,[],Q,Qe,16); %% Qe is identity with unit trace 
+        MVB   = spm_mvb(AY,UL,[],Q,Qe,16); %% Qe is identity with unit trace
         
         % Accumulate empirical priors (New set of patches for the second inversion)
         %------------------------------------------------------------------
@@ -604,7 +621,7 @@ switch(type)
         QP{end + 1}   = sum(Qcp.*Q,2);
         LQP{end + 1}  = (UL*Qcp)*Q';
         LQPL{end + 1} = LQP{end}*UL';
-       
+        
 end
 
 switch(type)

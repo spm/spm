@@ -5,7 +5,7 @@ function priors = spm_cfg_eeg_inv_priors
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_priors.m 6477 2015-06-09 13:54:35Z gareth $
+% $Id: spm_cfg_eeg_inv_priors.m 6494 2015-07-06 10:23:04Z gareth $
 
 
 D = cfg_files;
@@ -118,6 +118,16 @@ fixedpatch.help = {'Define fixed patches'};
 fixedpatch.val  = {fixedfile,fixedrows,FWHMmm};
 
 
+sparsify = cfg_entry;
+sparsify.tag = 'sparsify';
+sparsify.name = 'Sparsify to N largest local maxima';
+sparsify.strtype = 'i';
+sparsify.num = [1 2];
+sparsify.val = {[1 Inf]};
+sparsify.help = {'Select first and last row of patch sets to use from file'};
+
+
+
 space = cfg_menu;
 space.tag = 'space';
 space.name = 'Prior image space';
@@ -138,7 +148,7 @@ funcpriors = cfg_branch;
 funcpriors.tag = 'funcpriors';
 funcpriors.name = 'Functionally defined priors';
 funcpriors.help = {'Use posterior from previous inversion or restrict solutions to pre-specified VOIs'};
-funcpriors.val  = {priorsmask, space};
+funcpriors.val  = {priorsmask, space,sparsify};
 
 
 priortype = cfg_repeat;
@@ -381,8 +391,9 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             Ip = spm_mesh_get_lm(M,allsource); %% get local maxima
             figure;
             plot(allsource);
+            legend('sparse EBB');
             hold on;
-            maxBFpatch=40;
+            maxBFpatch=100;
             fprintf('Limiting to a max of %d peaks\n',maxBFpatch);
             
             [vals,ind]=sort(allsource(Ip),'descend');
@@ -412,11 +423,15 @@ for i=1:numel(job.priortype), %% move through different prior specifications
                 allsource(bk) = Sourcepower(bk)./normpower;
             end
             
+            figure;
+            plot(allsource);
+            legend('EBB');
+            hold on;
             %% now get local maxima on mesh
             M.vertices=mesh.vert;
             M.faces=mesh.face;
-            warning('Smoothing not used');
-            Qp{1}=diag(Sourcepower);
+            warning('Smoothing not used, NO NORMALIZE BY WEIGHTS');
+            Qp{1}=diag(allsource);
             
             count=count+1;
             priorfname=[priordir filesep sprintf('prior%d.mat',count)];
