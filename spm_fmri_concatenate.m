@@ -8,8 +8,7 @@ function spm_fmri_concatenate(P, scans)
 %
 % The expected workflow is:
 %
-% 1. Manually specify a GLM with additional unconvolved regressors
-%    for each session, except for the last session.
+% 1. Manually specify a GLM with timeseries and onsets concatenated
 % 2. Run spm_post_concatenate on the saved SPM.mat.
 % 3. Estimate the SPM.mat in the normal way.
 %
@@ -26,7 +25,7 @@ function spm_fmri_concatenate(P, scans)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_fmri_concatenate.m 6459 2015-05-27 16:54:53Z peter $
+% $Id: spm_fmri_concatenate.m 6495 2015-07-07 14:56:18Z peter $
 
 
 %-Input parameters
