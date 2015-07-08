@@ -78,7 +78,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 6494 2015-07-06 10:23:04Z gareth $
+% $Id: spm_eeg_invert_classic.m 6496 2015-07-08 13:52:34Z gareth $
 
 
 
@@ -563,6 +563,7 @@ switch(type)
             Qp{end + 1}.q   = q;
             LQpL{end + 1}.q = UL*q;
         end; %% end of sparse ebb
+        
        
      
     
@@ -599,7 +600,7 @@ LQPL   = {};
 %--------------------------------------------------------------------------
 switch(type)
     
-    case {'MSP','GS','EBBsparse'}
+    case {'MSP','GS'}
         % Greedy search over MSPs
         %------------------------------------------------------------------
         Np    = length(Qp);
@@ -626,7 +627,7 @@ end
 
 switch(type)
     
-    case {'MSP','ARD'}
+    case {'MSP','ARD','EBBsparse'}
         
         % ReML / ARD   inversion
         %------------------------------------------------------------------
@@ -794,7 +795,7 @@ inverse.R2     = R2;                   % variance explained (reduced)
 inverse.VE     = R2*VE;                % variance explained
 inverse.woi    = w;                    % time-window inverted
 inverse.Ip=Ip;                          %% patch locations
-
+inverse.Nn=Nn
 inverse.modality = modalities;         % modalities inverted
 
 
