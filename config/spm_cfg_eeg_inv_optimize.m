@@ -6,7 +6,7 @@ function optsetup = spm_cfg_eeg_inv_optimize
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_optimize.m 6494 2015-07-06 10:23:04Z gareth $
+% $Id: spm_cfg_eeg_inv_optimize.m 6498 2015-07-15 19:13:31Z gareth $
 
 
 D = cfg_files;
@@ -24,13 +24,13 @@ val.help = {'Index of the cell in D.inv where the forward model can be found and
 val.val = {1};
 
 
-postname = cfg_entry;
-postname.tag = 'postname';
-postname.name = 'Prefix for priors';
-postname.strtype = 's';
-postname.num = [1 Inf];
-postname.val = {'priorset1'};
-postname.help = {'Prefix for prior directory'};
+priorname = cfg_entry;
+priorname.tag = 'priorname';
+priorname.name = 'Prefix for priors';
+priorname.strtype = 's';
+priorname.num = [1 Inf];
+priorname.val = {'priorset1'};
+priorname.help = {'Prefix for prior directory'};
 
 REMLopt = cfg_entry;
 REMLopt.tag = 'REMLopt';
@@ -70,11 +70,10 @@ opttype.val  = {REMLopt};
 optsetup = cfg_exbranch;
 optsetup.tag = 'optsetup';
 optsetup.name = 'Inversion optimization';
-optsetup.val = {D,val,postname,opttype};
+optsetup.val = {D,val,priorname,opttype};
 optsetup.help = {'Set optimization scheme for source reconstruction'};
 optsetup.prog = @opt_priors;
 optsetup.vout = @vout_opt_priors;
-
 
 function  out = opt_priors(job)
 
@@ -90,16 +89,17 @@ mesh=D.inv{job.val}.mesh.tess_mni;
 
 
 [a1,b1,c1]=fileparts(D.fname);
-priordir=[D.path filesep job.postname '_' b1];
+priordir=[D.path filesep job.priorname '_' b1];
+
 
 [priorfiles] = spm_select('FPListRec',priordir,'.*\.mat$');
-[postfiles] = spm_select('FPListRec',priordir,'^post.*\.mat$');
+%[postfiles] = spm_select('FPListRec',priordir,'^post.*\.mat$');
 
-USEPOST=1;
-if ~isempty(postfiles) && USEPOST,
-    fprintf('Using only posterior\n');
-    priorfiles=postfiles;
-end;
+% USEPOST=1;
+% if ~isempty(postfiles) && USEPOST,
+%     fprintf('Using only posterior\n');
+%     priorfiles=postfiles;
+% end;
 Nfiles=size(priorfiles,1);
 fprintf('Found %d prior files\n',Nfiles);
 if Nfiles==0,
@@ -171,6 +171,7 @@ end; % for j
 
 
 %% Now get M, Cp, Cq etc based on Qp and Qe
+
 [LCpL,Q,sumLCpL,QE,Cy,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(UL,Qp,{Qe});
 
 inverse.F=Fmax;
@@ -194,12 +195,16 @@ J     = {};
 
 UY=inverse.UY;
 
+
+
+sourcevar=zeros(1,size(inverse.M,1));
 for j = 1:numel(UY),
     
     % trial-type specific source reconstruction
     %------------------------------------------------------------------
     J{j} = inverse.M*UY{j};
-    
+    Jtime=J{j}*inverse.T'; %% J is Nvert* Nsamples
+    sourcevar=sourcevar+var(Jtime'); %% ./inverse.qC';
     % sum of squares
     %------------------------------------------------------------------
     SSR  = SSR + sum(var((UY{j} - UL*J{j}))); %% changed variance calculation
@@ -218,18 +223,6 @@ D.inv{job.val}.inverse=inverse;
 
 
 
-
-% meanqVtime=mean(diag(inverse.qV));
-%
-%
-%   [i,js] = max(max(abs(J),[],2)); %% max J in space
-%   [i,jt] = max(abs(J(js,:))); %% in time
-%
-% qCspace = qC*meanqVtime; %% posterior covariance over space based on mean temporal variance
-%   Z  = mean(abs(J)')./sqrt(qCspace);
-%     PP = fix(100*(spm_Ncdf(Z)));
-
-
 spm_eeg_invert_display(D);
 
 rmind=find(allF<max(allF)-3);
@@ -239,46 +232,39 @@ for j=1:length(rmind),
     delete(deblank(priorfiles(rmind(j),:)));
 end;
 
-goodind=setxor(1:length(allF),rmind);
-for j=1:length(goodind),
-    fprintf('Using prior file %s\n',priorfiles(goodind(j),:))
-end;
-
-postname=[priordir filesep 'post.mat'];
-
-Jtime=J{1}*inverse.T'; %% J is Nvert* Nsamples
-
-Mmesh=[];Mmesh.vertices=mesh.vert;Mmesh.faces=mesh.face;
 
 
-allsource=var(Jtime'); %% ./inverse.qC';
 
 
-Ip = spm_mesh_get_lm(Mmesh,allsource); %% get local maxima
-figure;
-plot(allsource);
-legend('sparse post');
-hold on;
-maxBFpatch=100;
-fprintf('Limiting to a max of %d peaks\n',maxBFpatch);
 
-[vals,ind]=sort(allsource(Ip),'descend');
-Ip=Ip(ind(1:maxBFpatch));
-plot(Ip,allsource(Ip),'ro');
+idnum=round(spm_data_id(sourcevar)*1000); %% get unique id for file
+postfilename=[priordir filesep sprintf('post%d.mat',idnum)];
+postgiftiname=[priordir filesep sprintf('post%d.gii',idnum)];
+fprintf('Making posterior %s based on diagonal\n',postfilename);
 Qp=[];
-for k=1:length(Ip),
-    Qp{k}.q=sparse(size(mesh.vert,1),1);
-    Qp{k}.q(Ip(k))=sqrt(var(Jtime(Ip(k),:)));
-end;
+Qp{1}=sparse(diag(sourcevar));
+Mmni=[];
+Mmni.faces=D.inv{job.val}.mesh.tess_mni.face;
+Mmni.vertices=D.inv{job.val}.mesh.tess_mni.vert;
+Mmni.cdata=sourcevar';
+Mmni=gifti(Mmni);
 
 
-%[Qp,Qe,allpriornames]=spm_eeg_invert_setuppatches(Ip,mesh,base,priordir,Qe{1},UL);
+save(deblank(postfilename),'Qp','Qe','UL','F','postgiftiname','-v7.3');
+save(Mmni,postgiftiname);
 
-fprintf('SAving %s\n',postname);
-F=-Inf;
-save(postname,'Qp','Qe','UL','F');
+
+figure;
+spm_mip(sourcevar,mesh.vert',6);
+title('Posterior');
+colorbar;
+
+
+
 
 D.save;
+out.postname=postfilename;
+out.postgiftiname=postgiftiname;
 out.D = job.D;
 
 

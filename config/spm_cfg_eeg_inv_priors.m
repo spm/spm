@@ -5,7 +5,7 @@ function priors = spm_cfg_eeg_inv_priors
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_priors.m 6494 2015-07-06 10:23:04Z gareth $
+% $Id: spm_cfg_eeg_inv_priors.m 6498 2015-07-15 19:13:31Z gareth $
 
 
 D = cfg_files;
@@ -79,13 +79,15 @@ niter.num = [1 1];
 niter.val = {[1]};
 niter.help = {'Number of iterations'};
 
-probfile = cfg_files;
+
+probfile = cfg_entry;
 probfile.tag = 'probfile';
-probfile.name = 'Prior distribution of patches file ';
-probfile.filter = 'gii';
-probfile.num = [1 1];
-probfile.help = {'Select patch probability file'};
-probfile.val={{''}};
+probfile.name = 'Prior to bias distribution of patches X';
+probfile.strtype = 's';
+%probfile.num = [1 1];
+probfile.val = {''};
+probfile.help = {'Name of patch probability file'};
+
 
 
 randpatch = cfg_branch;
@@ -136,6 +138,15 @@ space.labels = {'MNI', 'Native'};
 space.values = {1, 0};
 space.val = {1};
 
+clean = cfg_menu;
+clean.tag = 'clean';
+clean.name = 'Start fresh';
+clean.help = {'Start from fresh or keep existing priors'};
+clean.labels = {'Fresh', 'Keep'};
+clean.values = {1, 0};
+clean.val = {1};
+
+
 priorsmask  = cfg_files;
 priorsmask.tag = 'priorsmask';
 priorsmask.name = 'Priors file';
@@ -160,10 +171,65 @@ priortype.values  = {randpatch,fixedpatch,funcpriors,popularpars};
 priortype.val  = {randpatch};
 
 
+%
+% npost = cfg_entry;
+% npost.tag = 'npost';
+% npost.name = 'N posteriors';
+% npost.strtype = 'n';
+% npost.help = {'Nunber of posterior files to generate'};
+% npost.val = {1};
+%
+% noisepost = cfg_entry;
+% noisepost.tag = 'noisepost';
+% noisepost.name = 'Percentage max noise';
+% noisepost.strtype = 'r';
+% noisepost.help = {'Add Gaussian noise with of a certain percentage of maximum power to posterior'};
+% noisepost.val = {0};
+%
+%
+% smoothpost = cfg_entry;
+% smoothpost.tag = 'smoothpost';
+% smoothpost.name = 'Number of smoothing iterations';
+% smoothpost.strtype = 'r';
+% smoothpost.help = {'Number of smoothing iterations (0 for no smoothing)'};
+% smoothpost.val = {0};
+%
+% noisepost = cfg_entry;
+% noisepost.tag = 'noisepost';
+% noisepost.name = 'Percentage max noise';
+% noisepost.strtype = 'r';
+% noisepost.help = {'Add Gaussian noise with of a certain percentage of maximum power to posterior'};
+% noisepost.val = {0};
+%
+% threshpost = cfg_entry;
+% threshpost.tag = 'threshpost';
+% threshpost.name = 'Percentage of maximum power at at which to threshold';
+% threshpost.strtype = 'r';
+% threshpost.help = {'Save posterior with full (0) or thresholded power distribution'};
+% threshpost.val = {0};
+%
+% nmaxpost = cfg_entry;
+% nmaxpost.tag = 'nmaxpost';
+% nmaxpost.name = 'Number of maxima to keep as patch centers';
+% nmaxpost.strtype = 'r';
+% nmaxpost.help = {'Generate another file containing patch centres in Ip structure (0 make no file)'};
+% nmaxpost.val = {0};
+%
+%
+% postname = cfg_entry;
+% postname.tag = 'postname';
+% postname.name = 'Prefix for posterior';
+% postname.strtype = 's';
+% postname.num = [1 Inf];
+% postname.val = {'postset1'};
+% postname.help = {'Prefix for posterior directory'};
+%
+
+
 priors = cfg_exbranch;
 priors.tag = 'priors';
 priors.name = 'Inversion priors';
-priors.val = {D, val,sensorlevel,priortype,priorname};
+priors.val = {D, val,sensorlevel,priortype,priorname,clean};
 priors.help = {'Set priors for source reconstruction'};
 priors.prog = @add_priors;
 priors.vout = @vout_priors;
@@ -193,14 +259,23 @@ if ~isdir(priordir),
 else
     mesh=D.inv{job.val}.mesh.tess_mni;
     [priorfiles] = spm_select('FPListRec',priordir,'.*\.mat$');
-    fprintf('Deleting existing priors in this directory\n');
-    for f=1:size(priorfiles,1),
-        delete(deblank(priorfiles(f,:)));
+    
+    count=size(priorfiles,1);
+    fprintf('Found %d existing priors in this directory\n',count);
+    
+    if job.clean,
+        fprintf('Deleting existing priors\n');
+        for f=1:count,
+            delete(deblank(priorfiles(f,:)));
+        end;
+    else
+        fprintf('Keeping existing priors\n');
     end;
-    % spm_eeg_inv_view_priors(priorfiles,mesh)
+    
 end;
 
 mesh=D.inv{val}.forward.mesh; %% assume this is in metres
+
 
 Ns=size(mesh.vert,1);
 
@@ -213,7 +288,7 @@ Qp={}; %% source level covariance or svd components
 %% add in functional (from other modalities or experiment) hypotheses
 
 
-count=0;
+
 for i=1:numel(job.priortype), %% move through different prior specifications
     allIp=[];
     Qp=[];
@@ -227,13 +302,29 @@ for i=1:numel(job.priortype), %% move through different prior specifications
         Npatchiter = base.niter;
         probfile=base.probfile;
         
-        if isempty(probfile{1}),
+        if isempty(probfile),
             prob=ones(Ns,1)./Ns;
         else
-            prob=gifti(probfile);
-            prob=prob.cdata(:);
+            
+            probmesh=gifti(probfile);
+            
+            data=double(probmesh.cdata);
+            M0.vertices=probmesh.vertices;
+            M0.faces=probmesh.faces;
+            
+            if size(probmesh.vertices,1)==size(mesh.vert,1),
+            %    fprintf('NB smoothing prior with 20 iterations\n');
+                %prob=spm_mesh_smooth(M0,data',20);
+                prob=data;
+            else
+                error('Gifti mesh size does not match');
+            end;
+        end;
+        if sum(prob)>1.01,
+            warning('Rescaling bias file to unit sum');
         end;
         
+        prob=prob./sum(prob);
         Ip=[];
         
         
@@ -241,7 +332,7 @@ for i=1:numel(job.priortype), %% move through different prior specifications
         allIp=sparse(Npatchiter,Np);
         
         
-        rng('shuffle');
+        %rng('shuffle');
         
         dum=sparse(1,Ns);
         figure;
@@ -289,12 +380,63 @@ for i=1:numel(job.priortype), %% move through different prior specifications
         %% one prior files per row of Ip
         
         [Qp,Qe,allpriornames]=spm_eeg_invert_setuppatches(allIp,mesh,base,priordir,Qe,UL);
-        count=count+size(allpriornames,1);
+        
         
         
     end; % if fixedpatch or randpatch
     
+    
+    % figure;
+    %
+    % if job.nmaxpost>0,
+    %     postIpname=[postdir filesep sprintf('post_Ip.mat')];
+    %     Ip=zeros(job.npost,job.nmaxpost);
+    % end;
+    %
+    % M0=[];M0.vertices=mesh.vert; M0.faces=mesh.face;
+    % for f=1:job.npost,
+    %
+    %     subplot(job.npost,1,f);
+    %     plot(sourcevar,'k');hold on;
+    %     postname=[postdir filesep sprintf('post%d.mat',f)];
+    %     fprintf('adding %f percent noise to posterior\n',job.noisepost);
+    %     nsourcevar=sourcevar+max(sourcevar)*job.noisepost*randn(size(sourcevar))./100;
+    %     fprintf('Smoothing by %d iterations\n',job.smoothpost);
+    %     nsourcevar = spm_mesh_smooth(M0, nsourcevar',job.smoothpost);
+    %
+    %     fprintf('Thresholding at %f percent of max power\n',job.threshpost);
+    %     thresh=max(nsourcevar)*job.threshpost./100;
+    %     plot([0,length(sourcevar)],[thresh thresh],':g');
+    %     nsourcevar(nsourcevar<thresh)=0;
+    %     plotind=find(nsourcevar);
+    %     plot(plotind,nsourcevar(plotind),'ro');
+    %     legend('orig','thresh','thresh noisy');
+    %     nsourcevar=sparse(nsourcevar);
+    %     Qp{1}=diag(nsourcevar);
+    %     fprintf('SAving %s\n',postname);
+    %     F=-Inf;
+    %     save(postname,'Qp','Qe','UL','F','-v7.3');
+    %     %%
+    %     fprintf('\n Getting %d local maxima ',job.nmaxpost);
+    %     Ip1 = spm_mesh_get_lm(M0,nsourcevar); %% get local maxima
+    %
+    %     [vals,ind]=sort(nsourcevar(Ip1),'descend');
+    %     Ip(f,:)=Ip1(ind(1:job.nmaxpost));
+    %
+    %
+    %
+    % end; % for f
+    % if job.nmaxpost>0,
+    %     fprintf('Saving %s\n',postIpname);
+    %     save(postIpname,'Ip'); % =[postdir filesep sprintf('post_Ip.mat')];
+    %     %Ip=zeros(job.npost,job.nmaxpost);
+    % end;
+    
+    
+    
+    
     %%%%%%%%%%% FUNCTIONALLY DEFINED PRIORS
+    
     if isfield(job.priortype{i},'funcpriors'),
         base=job.priortype{i}.funcpriors;
         P = char(base.priorsmask);
@@ -352,8 +494,10 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             otherwise
                 error('Unknown file type.');
         end; % switch
-        count=count+1;
-        priorfname=[priordir filesep sprintf('prior%d.mat',count)];
+        
+        idnum=randi(1e6);
+        
+        priorfname=[priordir filesep sprintf('prior%d.mat',idnum)];
         fprintf('Saving %s\n',priorfname);
         F=[]; % no associated free energy value
         save(priorfname,'Qp','Qe','UL','F');
@@ -402,7 +546,7 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             
             [Qp,Qe,allpriornames]=spm_eeg_invert_setuppatches(Ip,mesh,base,priordir,Qe{1},UL);
             
-            count=count+size(allpriornames,1);
+            
         end; % sparse EBB
         
         if strcmp(base.popular,'EBB'),
@@ -430,12 +574,15 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             %% now get local maxima on mesh
             M.vertices=mesh.vert;
             M.faces=mesh.face;
-            warning('Smoothing not used, NO NORMALIZE BY WEIGHTS');
+            warning('Smoothing not used');
             Qp{1}=diag(allsource);
             
-            count=count+1;
-            priorfname=[priordir filesep sprintf('prior%d.mat',count)];
-            F=[]; 
+            
+            
+            
+            idnum=randi(1e6);
+            priorfname=[priordir filesep sprintf('prior%d.mat',idnum)];
+            F=[];
             save(priorfname,'Qp','Qe','UL','F');
             
         end; % EBB
@@ -453,12 +600,14 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             ind=find(dist<base.FWHMmm./1000);;
             ind=intersect(ind,ind2);
             Qp{1}(ind)=1;
-                       
+            
             disp('Set up COH prior');
-            count=count+1;
-            priorfname=[priordir filesep sprintf('prior%d.mat',count)];
+            
+            idnum=randi(1e6);
+            priorfname=[priordir filesep sprintf('prior%d.mat',idnum)];
             fprintf('Saving %s\n',priorfname);
             F=[]; % no associated free energy value
+            
             save(priorfname,'Qp','Qe','UL','F');
         end; % COH
         
@@ -469,8 +618,10 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             Qp{1}  = speye(Ns,Ns);
             
             disp('Set up IID prior');
-            count=count+1;
-            priorfname=[priordir filesep sprintf('prior%d.mat',count)];
+            
+            idnum=randi(1e6);
+            
+            priorfname=[priordir filesep sprintf('prior%d.mat',idnum)];
             fprintf('Saving %s\n',priorfname);
             F=[]; % no associated free energy value
             save(priorfname,'Qp','Qe','UL','F');
@@ -485,8 +636,19 @@ end; % for i (looping over priors)
 
 %     %% NOW JUST WANT TO PLOT OUT THE CURRENT DENSITY PRIORS FOR A RANDOM SET OF PATCHES
 %%%%%%%%%%%% THIS SHOULD ALL GO IN A PREVIEW FUNCTION
-M.vertices=mesh.vert;
-M.faces=mesh.face;
+
+[LCpL,Q,sumLCpL,QE,Cy,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(UL,Qp,Qe);
+
+
+figure;
+mesh=D.inv{job.val}.mesh.tess_mni;
+M0.vertices=mesh.vert;
+M0.faces=mesh.face;
+sourcepwr=diag(Cp);
+
+spm_mip(sourcepwr,mesh.vert',6);
+title('Prior');
+colorbar;
 
 
 CHECKSMOOTH=0;

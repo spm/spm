@@ -20,7 +20,7 @@ function [LCpL,Q,sumLCpL,QE,Cy,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(L,Qp,Qe,ploto
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_assemble_priors.m 6479 2015-06-10 13:44:14Z gareth $
+% $Id: spm_eeg_assemble_priors.m 6498 2015-07-15 19:13:31Z gareth $
 
 if nargin<4,
     ploton=[];
@@ -74,8 +74,13 @@ for i = 1:Np
             
             %% Lq is the sensor level projection of the prior Q{i}.q
             Lq{i}.q = L*Q(:,i); %%  supply an eigen mode in q
-           
+        else %% no .q field, check it is 2D
+            if size(Qp{i},1)~=size(Qp{i},2),
+                disp('making Qp 2D');
+                Qp{i}=diag(sparse(Qp{i}));
+            end;
         end;
+        
     end; % if iscell   
     
 end

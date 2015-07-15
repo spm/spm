@@ -18,7 +18,7 @@ function [Qp,Qe,allpriornames] = spm_eeg_invert_setuppatches(allIp,mesh,base,pri
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_invert_setuppatches.m 6458 2015-05-27 16:22:09Z spm $
+% $Id: spm_eeg_invert_setuppatches.m 6498 2015-07-15 19:13:31Z gareth $
 
 
 Npatchiter=size(allIp,1);
@@ -92,7 +92,8 @@ for k=1:Npatchiter,
     
     % NOW MAYBE WRITE A NEW PATCH FILE
     
-    priorfname=[priordir filesep sprintf('prior%d.mat',k+priorcount)];
+    idnum=randi(1e6);
+    priorfname=[priordir filesep sprintf('prior%d.mat',idnum)];
     fprintf('Saving %s\n',priorfname);
     F=[]; % no associated free energy value
     allpriornames=strvcat(allpriornames,priorfname);
