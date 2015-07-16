@@ -6,7 +6,7 @@ function optsetup = spm_cfg_eeg_inv_optimize
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_optimize.m 6498 2015-07-15 19:13:31Z gareth $
+% $Id: spm_cfg_eeg_inv_optimize.m 6499 2015-07-16 13:37:41Z gareth $
 
 
 D = cfg_files;
@@ -174,6 +174,7 @@ end; % for j
 
 [LCpL,Q,sumLCpL,QE,Cy,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(UL,Qp,{Qe});
 
+
 inverse.F=Fmax;
 inverse.M=M;
 inverse.qC=Cq;
@@ -250,7 +251,7 @@ Mmni.cdata=sourcevar';
 Mmni=gifti(Mmni);
 
 
-save(deblank(postfilename),'Qp','Qe','UL','F','postgiftiname','-v7.3');
+save(deblank(postfilename),'Qp','Qe','UL','Fmax','postgiftiname','-v7.3');
 save(Mmni,postgiftiname);
 
 
