@@ -11,7 +11,7 @@ function N = spm_parrec2nifti(parfile,opts)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_parrec2nifti.m 6497 2015-07-15 13:01:15Z guillaume $
+% $Id: spm_parrec2nifti.m 6500 2015-07-16 14:26:42Z guillaume $
 
 
 %-Display warning
@@ -98,7 +98,8 @@ dato     = N.dat;
 % should handle interleaved data
 % data should not be scaled/unscaled
 for i=1:dim(4)
-    dato(:,:,:,i) = dati(:,:,:,i);
+    slice_order = [hdr.ImageInfo([hdr.ImageInfo.dynamic_scan_number]==i).slice_number];
+    dato(:,:,:,i) = dati(:,:,slice_order,i);
 end
 
 
