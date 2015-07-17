@@ -7,18 +7,18 @@ function out = spm_shoot_scalmom(job)
 % J. Marron, Michael Wiener, and Sarang Joshi. "Multivariate
 % statistical analysis of deformation momenta relating anatomical
 % shape to neuropsychological measures." Medical Image Computing
-% and Computer-Assisted Intervention–MICCAI 2010 (2010): 529-537.
+% and Computer-Assisted Intervention-MICCAI 2010 (2010): 529-537.
 %
 % Singh, Nikhil, Angela Wang, Preethi Sankaranarayanan, P. Fletcher,
 % and Sarang Joshi. "Genetic, Structural and Functional Imaging
 % Biomarkers for Early Detection of Conversion from MCI to AD."
-% Medical Image Computing and Computer-Assisted Intervention–MICCAI
+% Medical Image Computing and Computer-Assisted Intervention-MICCAI
 % 2012 (2012): 132-140.
-%_______________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_scalmom.m 5485 2013-05-09 15:51:24Z john $
+% $Id: spm_shoot_scalmom.m 6501 2015-07-17 14:32:09Z spm $
 
 Pt = strvcat(job.template);
 Nt = nifti(Pt);

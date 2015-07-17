@@ -9,7 +9,7 @@ function varargout = pm_pad(varargin)
 %          and some not.
 % wmap   : Wrap-map, where a non-zero value indicates corresponding 
 %          phase-value in pm has been unwrapped.
-% kernel : kernel used to generate a weighted average of surrounding
+% kernel : kernel used to generate a weighted average of surrounding
 %          voxels.
 %
 % Output: 
@@ -17,12 +17,10 @@ function varargout = pm_pad(varargin)
 %          phase-values have now been replaced.
 % wmap   : Same as wmap in, but where values that was replaced
 %          by weighted average in pm have now been set.
-%__________________________________________________________________
-% Jesper Andersson 30/9-03
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_pad.m 4842 2012-08-15 18:02:30Z guillaume $
+% $Id: pm_pad.m 6501 2015-07-17 14:32:09Z spm $
 
 error('mex-function pm_pad.c not compiled');

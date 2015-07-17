@@ -1,9 +1,9 @@
 function fieldmap = tbx_cfg_fieldmap
 % MATLABBATCH Configuration file for toolbox 'FieldMap'
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_fieldmap.m 6458 2015-05-27 16:22:09Z spm $
+% $Id: tbx_cfg_fieldmap.m 6501 2015-07-17 14:32:09Z spm $
 
 
 addpath(fullfile(spm('dir'),'toolbox','FieldMap'));
@@ -44,7 +44,7 @@ maskbrain.values = {1 0};
 blipdir        = cfg_menu;
 blipdir.tag    = 'blipdir';
 blipdir.name   = 'Blip direction';
-blipdir.help   = {'Enter the blip direction. This is the polarity of the phase-encode blips describing the direction in which k-space is traversed along the y-axis during EPI acquisition with respect to the coordinate system used in SPM. In this coordinate system, the phase encode direction corresponds with the y-direction and is deﬁned as positive from the posterior to the anterior of the head.'};
+blipdir.help   = {'Enter the blip direction. This is the polarity of the phase-encode blips describing the direction in which k-space is traversed along the y-axis during EPI acquisition with respect to the coordinate system used in SPM. In this coordinate system, the phase encode direction corresponds with the y-direction and is defined as positive from the posterior to the anterior of the head.'};
 blipdir.labels = {'-1' '1'};
 blipdir.values = {-1 1};
 
@@ -59,7 +59,7 @@ tert.help    = {
                 'acquire all of the phase encode steps required to cover k-space (ie one image slice). '
                 'For example, if the EPI sequence has 64 phase encode steps, the total readout time is '
                 'the time taken to acquire 64 echoes, e.g. '
-                'total readout time = number of echoes × echo spacing. '
+                'total readout time = number of echoes x echo spacing. '
                 'This time does not include i) the duration of the excitation, ii) the delay between, '
                 'the excitation and the start of the acquisition or iii) time for fat saturation etc.'
 }';
@@ -72,7 +72,7 @@ tert.num     = [1  1];
 epifm        = cfg_menu;
 epifm.tag    = 'epifm';
 epifm.name   = 'EPI-based field map?';
-epifm.help   = {'Select non-EPI or EPI based field map. The field map data may be acquired using a non-EPI sequence (typically a gradient echo sequence) or an EPI sequence. The processing will be slightly different for the two cases. If using an EPI-based ﬁeld map, the resulting Voxel Displacement Map will be inverted since the ﬁeld map was acquired in distorted space.'};
+epifm.help   = {'Select non-EPI or EPI based field map. The field map data may be acquired using a non-EPI sequence (typically a gradient echo sequence) or an EPI sequence. The processing will be slightly different for the two cases. If using an EPI-based field map, the resulting Voxel Displacement Map will be inverted since the field map was acquired in distorted space.'};
 epifm.labels = {'non-EPI' 'EPI'};
 epifm.values = {0 1};
 

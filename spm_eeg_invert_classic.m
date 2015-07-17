@@ -62,33 +62,30 @@ function [D] = spm_eeg_invert_classic(D,val)
 %     inverse.scale  - scaling of data for each of j modalities
 %__________________________________________________________________________
 %
-% Created by:   Jose David Lopez - ralph82co@gmail.com
-%               Gareth Barnes - g.barnes@fil.ion.ucl.ac.uk
-%               Vladimir Litvak - litvak.vladimir@gmail.com
-%
-%
 % This version is for single subject single modality analysis and therefore
 % contains none of the associated scaling factors.
 % No symmetric priors are used in this implementation (just single patches)
 % There is an option for a Beamforming prior : inversion type 'EBB'
-% also added new beamforming method- using GS rather than ARD- from Juan David Martinez Vargas 'EBBgs'
-
-%%The code was used in
-%% L�pez, J. D., Penny, W. D., Espinosa, J. J., Barnes, G. R. (2012).
-% A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
+% also added new beamforming method- using GS rather than ARD- from Juan
+% David Martinez Vargas 'EBBgs'
+%
+% The code was used in
+% Lopez, J. D., Penny, W. D., Espinosa, J. J., Barnes, G. R. (2012).
+% A general Bayesian treatment for MEG source reconstruction incorporating
+% lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
-
-% $Id: spm_eeg_invert_classic.m 6496 2015-07-08 13:52:34Z gareth $
-
+%__________________________________________________________________________
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+ 
+% Jose David Lopez, Gareth Barnes, Vladimir Litvak
+% $Id: spm_eeg_invert_classic.m 6501 2015-07-17 14:32:09Z spm $
 
 
 Nl = length(D);
 
-
-
-if Nl>1,
+if Nl>1
     error('function only defined for a single subject');
-end;
+end
 
 % D - SPM data structure
 %==========================================================================
@@ -332,7 +329,7 @@ j      = find( (dct >= lpf) & (dct <= hpf) ); %% THis is the wrong way round but
 T      = T(:,j);                    % Apply the filter to discrete cosines
 dct    = dct(j);                    % Frequencies accepted
 
-%% Hanning window
+% Hanning window
 %----------------------------------------------------------------------
 
 if Han
@@ -717,7 +714,7 @@ end;
 
 
 
-%% recalculate F here
+% recalculate F here
 
 Cp    = sparse(0);
 LCp   = sparse(0);

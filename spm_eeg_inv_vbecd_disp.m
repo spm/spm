@@ -9,10 +9,10 @@ function spm_eeg_inv_vbecd_disp(action,varargin)
 % Display the ind^th .inv{} cell element, if it is actually a VB-ECD 
 % solution.
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_disp.m 5776 2013-12-04 15:20:18Z gareth $
+% $Id: spm_eeg_inv_vbecd_disp.m 6501 2015-07-17 14:32:09Z spm $
 
 % Note:
 % unfortunately I cannot see how to ensure that when zooming in the image
@@ -234,7 +234,7 @@ end
 
 % Place the underlying image at right cuts
 
-%% GRB FIX- removing the line below July 2013
+% GRB FIX- removing the line below July 2013
 %spm_orthviews('Reposition',loc_mm);
 
 
@@ -321,7 +321,7 @@ Angle = round([th phi]*1800/pi)/10;
 
 set(sdip.hdl.hor1,'String',[num2str(Njs_m(1)),' ',num2str(Njs_m(2)), ...
         ' ',num2str(Njs_m(3))]);
-set(sdip.hdl.hor2,'String',[num2str(Angle(1)),'� ',num2str(Angle(2)),'�']);
+set(sdip.hdl.hor2,'String',[num2str(Angle(1)),'  ',num2str(Angle(2)),' ']);
 set(sdip.hdl.int,'String',Ijs_m);
 
 % Change the colour of toggle button of dipoles actually displayed

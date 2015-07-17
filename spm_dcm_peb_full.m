@@ -52,7 +52,7 @@ function [PEB,P]   = spm_dcm_peb_full(P,M,field)
 % over the parameters of a set of first level DCMs, using  second level or
 % between subject constraints specified in the design matrix X. This scheme
 % is efficient in the sense that it does not require inversion of the first
-% level DCMs � it just requires the prior and posterior densities from each
+% level DCMs - it just requires the prior and posterior densities from each
 % first level DCMs to compute empirical priors under the implicit
 % hierarchical model. The output of this scheme (PEB) can be re-entered
 % recursively to invert deep hierarchical models. Furthermore, Bayesian
@@ -73,7 +73,7 @@ function [PEB,P]   = spm_dcm_peb_full(P,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_full.m 6427 2015-05-05 15:42:35Z karl $
+% $Id: spm_dcm_peb_full.m 6501 2015-07-17 14:32:09Z spm $
  
 
 % get filenames and set up
@@ -454,5 +454,3 @@ PEB.Ce   = rC;
 PEB.F    = F;
 
 try, delete tmp.mat, end
-
-
