@@ -33,10 +33,10 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 %            cellstring with filenames of created files. If no files are
 %            created, a cell with an empty string {''} is returned.
 %__________________________________________________________________________
-% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6489 2015-06-26 11:46:29Z john $
+% $Id: spm_dicom_convert.m 6503 2015-07-22 11:43:06Z guillaume $
 
 
 %-Input parameters
@@ -181,12 +181,18 @@ for i=1:length(hdr)
 
     % Possibly useful information
     %----------------------------------------------------------------------
-    tim = datevec(hdr{i}.AcquisitionTime/(24*60*60));
-    descrip = sprintf('%gT %s %s TR=%gms/TE=%gms/FA=%gdeg %s %d:%d:%.5g Mosaic',...
-        hdr{i}.MagneticFieldStrength, hdr{i}.MRAcquisitionType,...
-        deblank(hdr{i}.ScanningSequence),...
-        hdr{i}.RepetitionTime,hdr{i}.EchoTime,hdr{i}.FlipAngle,...
-        datestr(hdr{i}.AcquisitionDate),tim(4),tim(5),tim(6));
+    if checkfields(hdr{i},'AcquisitionTime','MagneticFieldStrength',...
+            'MRAcquisitionType','ScanningSequence','RepetitionTime',...
+            'EchoTime','FlipAngle','AcquisitionDate')
+        tim = datevec(hdr{i}.AcquisitionTime/(24*60*60));
+        descrip = sprintf('%gT %s %s TR=%gms/TE=%gms/FA=%gdeg %s %d:%d:%.5g Mosaic',...
+            hdr{i}.MagneticFieldStrength, hdr{i}.MRAcquisitionType,...
+            deblank(hdr{i}.ScanningSequence),...
+            hdr{i}.RepetitionTime,hdr{i}.EchoTime,hdr{i}.FlipAngle,...
+            datestr(hdr{i}.AcquisitionDate),tim(4),tim(5),tim(6));
+    else
+        descrip = hdr{1}.Modality;
+    end
 
     % descrip = [deblank(descrip) '   ' hdr{i}.PatientsName];
 
