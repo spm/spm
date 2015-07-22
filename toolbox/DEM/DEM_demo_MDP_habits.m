@@ -35,9 +35,9 @@ function MDP = DEM_demo_MDP_habits
 % see also: spm_MPD_game
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6450 2015-05-24 14:28:03Z karl $
+% $Id: DEM_demo_MDP_habits.m 6502 2015-07-22 11:37:13Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -61,234 +61,55 @@ for i = 1:4
     B{i} = kron(B{i},eye(2));
 end
 
-% priors: softmax(utility)
+% priors: (utility)
 %--------------------------------------------------------------------------
 c  = 2;
-C  = spm_softmax(c*[-1 -1 1 -1 -1 1 0 0]');
+C  = c*[-1 -1 1 -1 -1 1 0 0]';
 
 % prior beliefs about initial state
 %--------------------------------------------------------------------------
-D  = kron([1 0 0 0],[1 1]/2)';
-
-% true initial state
-%--------------------------------------------------------------------------
-S  = kron([1 0 0 0],[1 0])';
-
+d  = kron([1 0 0 0],[8 8])' + 1;
 
 % allowable policies (of depth T)
 %--------------------------------------------------------------------------
 V  = [1  1  1  1  2  3  4  4  4  4
       1  2  3  4  2  3  1  2  3  4];
 
- 
+% true initial states
+%--------------------------------------------------------------------------
+nt    = 8;                         % number of trials
+s     = [0 1 1 1 1 0 0 1];
+for i = 1:nt
+    p    = rand > 1/2;
+    p    = s(i);
+    S{i} = kron([1 0 0 0],[p (1 - p)])';
+end
+
+
 % MDP Structure
 %==========================================================================
-MDP.N = 8;                          % number of variational iterations
-MDP.S = S;                          % true initial state
-MDP.A = A;                          % observation model
-MDP.B = B;                          % transition probabilities (priors)
-MDP.C = C;                          % terminal cost probabilities (priors)
-MDP.D = D;                          % initial state probabilities (priors)
-MDP.V = V;                          % allowable policies
+for i = 1:length(S)
+    
+    MDP(i).V = V;                   % allowable policies
+    MDP(i).S = S{i};                % true initial state
+    MDP(i).A = A;                   % observation model
+    MDP(i).B = B;                   % transition probabilities (priors)
+    MDP(i).C = C;                   % terminal cost probabilities (priors)
+    MDP(i).d = d;                   % initial state probabilities (priors)
+    
+    MDP(i).alpha  = 64;             % gamma hyperparameter
+    MDP(i).beta   = 4;              % gamma hyperparameter
 
-MDP.alpha  = 64;                    % gamma hyperparameter
-MDP.beta   = 4;                     % gamma hyperparameter
-MDP.lambda = 1/4;                   % precision update rate
-
+end
 
 % Solve - an example game
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
-MDP.plot = gcf;
-MDP      = spm_MDP_VB(MDP,'FE');
+OPTIONS.plot  = gcf;
+OPTIONS.habit = 0;
+MDP           = spm_MDP_VB(MDP,OPTIONS);
 
 
 return
 
-
-% different formulations of optimality as a function of preference
-%==========================================================================
-spm_figure('GetWin','Figure 2'); clf
-MDP.plot = 0;
-MDP.N    = 4;
-
-n     = 128;                              % number of simulated trials
-c     = linspace(0,1,6);
-d     = (A*[0 0 1 0 0 1 0 0]') > 1/2;
-for i = 1:length(c)
-    
-    % preference
-    %----------------------------------------------------------------------
-    MDP.C = spm_softmax(c(i)*[-1 -1 1 -1 -1 1 0 0]');
-    
-    
-    % simulate trials and record outcomes
-    %----------------------------------------------------------------------
-    for j = 1:n
-        
-        % randomise reward
-        %------------------------------------------------------------------
-        s       = rand > 1/2;
-        MDP.S   = kron([1 0 0 0],[s ~s])';
-        
-        
-        % invert under different schemes
-        %------------------------------------------------------------------
-        MDP     = spm_MDP_VB(MDP,'FE');
-        FE(j,i) = d'*MDP.O(:,end);
-        MDP     = spm_MDP_VB(MDP,'KL');
-        KL(j,i) = d'*MDP.O(:,end);
-        MDP     = spm_MDP_VB(MDP,'RL');
-        RL(j,i) = d'*MDP.O(:,end);
-        MDP     = spm_MDP_VB(MDP,'FE',1);
-        FP(j,i) = d'*MDP.O(:,end);
-        try MDP = rmfield(MDP,'w'); end
-        
-    end
-    
-end
-MDP.S  = S;
-MDP.C  = C;
-
-% plot behavioural results
-%--------------------------------------------------------------------------
-subplot(3,1,1)
-bar(c,[mean(FE); mean(KL); mean(RL); mean(FP)]'*100), hold on
-plot(c,c*0 + 100*3/8,'--k'), hold on
-plot(c,c*0 + 100*a,  '-.k'), hold off
-title('Performance','FontSize',16)
-xlabel('Prior preference','FontSize',12)
-ylabel('success rate (%)','FontSize',12)
-spm_axis tight, axis square
-legend({'FE','KL','RL','DA'})
-
-
-% dopamine responses to US and CS
-%==========================================================================
-OPT   = 'FE';
-MDP.N = 16;
-MDP.a = [4 2];
-MDP.o = [1 7 3];
-MDP   = spm_MDP_VB(MDP,OPT);
-
-% axis
-%--------------------------------------------------------------------------
-pst   = (1:length(MDP.d))*100/1000;
-ax    = [1 pst(end) 0 4];
-
-subplot(3,2,3)
-plot(pst,MDP.d,'k'), hold on
-subplot(3,2,5)
-plot(pst,MDP.da,'k'), hold on
-
-
-subplot(3,2,6)
-r     = 128;
-bar(pst,r*MDP.da + randn(size(MDP.da)).*sqrt(r*MDP.da))
-title('Simulated (CS & US) responses','FontSize',16)
-xlabel('Peristimulus time (sec)','FontSize',12)
-ylabel('Rate','FontSize',12)
-axis square, set(gca,'XLim',ax(1:2))
-
-
-% repeat but with the US only
-%--------------------------------------------------------------------------
-MDP.a = [1 2];
-MDP.o = [1 1 3];
-MDP   = spm_MDP_VB(MDP,OPT);
-
-subplot(3,2,3)
-plot(pst,MDP.d,'r'), hold off
-title('Precision updates','FontSize',16)
-xlabel('Peristimulus time (sec)','FontSize',12)
-ylabel('Precision','FontSize',12)
-axis square, set(gca,'XLim',ax(1:2))
-
-subplot(3,2,5)
-plot(pst,MDP.da,'r'), hold off
-title('Dopamine responses','FontSize',16)
-xlabel('Peristimulus time (sec)','FontSize',12)
-ylabel('Response','FontSize',12)
-axis square, axis(ax)
-
-subplot(3,2,4)
-r     = 128;
-bar(pst,r*MDP.da + randn(size(MDP.da)).*sqrt(r*MDP.da))
-title('Simulated (US) responses','FontSize',16)
-xlabel('Peristimulus time (sec)','FontSize',12)
-ylabel('Rate','FontSize',12)
-axis square, set(gca,'XLim',ax(1:2))
-
-
-% different levels of priors and uncertainty
-%==========================================================================
-spm_figure('GetWin','Figure 3'); clf; 
-
-MDP.a = [4 2];
-MDP.o = [1 7 3];
-n     = 3;
-c     = linspace(0,2,n);
-for i = 1:length(c)
-    
-    % preference
-    %----------------------------------------------------------------------
-    MDP.C = spm_softmax(c(i)*[-1 -1 1 -1 -1 1 0 0]');
-    
-    % simulate trials and record outcomes
-    %----------------------------------------------------------------------
-    MDP  = spm_MDP_VB(MDP,'FE');
-    col  = [1 1 1]*(length(c) - i)/length(c);
-    
-    subplot(2,2,1)
-    plot(pst,MDP.da,'Color',col), hold on
-    title('Preference (utility)','FontSize',16)
-    xlabel('Peristimulus time (sec)','FontSize',12)
-    ylabel('Response','FontSize',12)
-    axis square, axis(ax)
-    
-    subplot(2*n,2,(i - 1)*2 + 2)
-    r     = 128;
-    bar(pst,r*MDP.da + randn(size(MDP.da)).*sqrt(r*MDP.da))
-    ylabel('Rate','FontSize',12)
-    axis square, set(gca,'XLim',ax(1:2))
-    
-end
-
-% and uncertainty
-%--------------------------------------------------------------------------
-subplot(2,1,2)
-
-MDP.C = C;
-c     = linspace(.5,.9,n);
-for i = 1:length(c)
-    
-    % preference
-    %----------------------------------------------------------------------
-    a      = c(i);
-    U{1,1} = [.5 .5; .5 .5; 0 0; 0 0];
-    U{2,2} = [0 0; 0 0; a (1 - a); (1 - a) a];
-    U{3,3} = [0 0; 0 0; (1 - a) a; a (1 - a)];
-    U{4,4} = [1 0; 0 1; 0 0; 0 0];
-    MDP.A  = spm_cat(U);
-    
-    % simulate trials and record outcomes
-    %----------------------------------------------------------------------
-    MDP  = spm_MDP_VB(MDP,'FE');
-    col  = [1 1 1]*(length(c) - i)/length(c);
-    
-    subplot(2,2,3)
-    plot(pst,MDP.da,'Color',col), hold on
-    title('Uncertainty','FontSize',16)
-    xlabel('Peristimulus time (sec)','FontSize',12)
-    ylabel('Response','FontSize',12)
-    axis square, axis(ax)
-    
-    subplot(2*n,2,(i - 1)*2 + 2 + n*2)
-    r     = 128;
-    bar(pst,r*MDP.da + randn(size(MDP.da)).*sqrt(r*MDP.da))
-    ylabel('Rate','FontSize',12)
-    axis square, set(gca,'XLim',ax(1:2))
-    
-end
-xlabel('Peristimulus time','FontSize',12)
 

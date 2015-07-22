@@ -1,6 +1,6 @@
 function [B0,BV] = spm_MDP_DP(MDP,OPTION)
 % dynamic programming using active inference
-% FORMAT [MDP] = spm_MDP_DP(MDP,OPTION,W)
+% FORMAT [B0,BV] = spm_MDP_DP(MDP,OPTION)
 %
 % MDP.A(O,N)      - Likelihood of O outcomes given N hidden states
 % MDP.B{M}(N,N)   - transition probabilities among hidden states (priors)
@@ -16,7 +16,7 @@ function [B0,BV] = spm_MDP_DP(MDP,OPTION)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_DP.m 6451 2015-05-26 09:26:03Z karl $
+% $Id: spm_MDP_DP.m 6502 2015-07-22 11:37:13Z karl $
 
 % set up and preliminaries
 %==========================================================================

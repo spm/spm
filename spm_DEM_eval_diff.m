@@ -17,7 +17,7 @@ function [D] = spm_DEM_eval_diff(x,v,qp,M,bilinear)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_eval_diff.m 5691 2013-10-11 16:53:00Z karl $
+% $Id: spm_DEM_eval_diff.m 6502 2015-07-22 11:37:13Z karl $
 
 % check for evaluation of bilinear terms
 %--------------------------------------------------------------------------
@@ -76,8 +76,7 @@ end
 
 % inline function for evaluating projected parameters
 %--------------------------------------------------------------------------
-h     = 'feval(f,x,v,spm_unvec(spm_vec(p) + u*q,p))';
-h     = inline(h,'f','x','v','q','u','p');
+h     = @(f,x,v,q,u,p) f(x,v,spm_unvec(spm_vec(p) + u*q,p));
 for i = 1:(nl - 1)
 
     % states level i
@@ -89,15 +88,15 @@ for i = 1:(nl - 1)
     %----------------------------------------------------------------------
     if bilinear && np
         try
-            [dgdxp dgdx] = spm_diff(h,M(i).gx,xvp{:},4,'q');
-            [dgdvp dgdv] = spm_diff(h,M(i).gv,xvp{:},4,'q');
-            [dfdxp dfdx] = spm_diff(h,M(i).fx,xvp{:},4,'q');
-            [dfdvp dfdv] = spm_diff(h,M(i).fv,xvp{:},4,'q');
+            [dgdxp, dgdx] = spm_diff(h,M(i).gx,xvp{:},4,'q');
+            [dgdvp, dgdv] = spm_diff(h,M(i).gv,xvp{:},4,'q');
+            [dfdxp, dfdx] = spm_diff(h,M(i).fx,xvp{:},4,'q');
+            [dfdvp, dfdv] = spm_diff(h,M(i).fv,xvp{:},4,'q');
         catch
-            [dgdxp dgdx] = spm_diff(h,M(i).g,xvp{:},[2 4]);
-            [dgdvp dgdv] = spm_diff(h,M(i).g,xvp{:},[3 4]);
-            [dfdxp dfdx] = spm_diff(h,M(i).f,xvp{:},[2 4]);
-            [dfdvp dfdv] = spm_diff(h,M(i).f,xvp{:},[3 4]);
+            [dgdxp, dgdx] = spm_diff(h,M(i).g,xvp{:},[2 4]);
+            [dgdvp, dgdv] = spm_diff(h,M(i).g,xvp{:},[3 4]);
+            [dfdxp, dfdx] = spm_diff(h,M(i).f,xvp{:},[2 4]);
+            [dfdvp, dfdv] = spm_diff(h,M(i).f,xvp{:},[3 4]);
         end
     else
         try
