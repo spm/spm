@@ -15,10 +15,10 @@ function [VDM,IPcell]=FieldMap_create(fm_imgs,epi_img,pm_defs)
 % For an introduction to the theoretcial and practical principles behind
 % the toolbox, see principles.man.
 %__________________________________________________________________________
-% Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006-2015 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: FieldMap_create.m 5962 2014-04-17 12:47:43Z spm $
+% $Id: FieldMap_create.m 6504 2015-07-22 13:42:43Z guillaume $
 
 if nargin < 3
     error('field map images, epi image and defaults');
@@ -180,6 +180,7 @@ if nsessions==0
     IPcell{1}=IP;
 elseif nsessions==1
     IP.epiP = spm_vol(epi_img{1}(1,:));
+    if numel(IP.epiP) > 1, IP.epiP = IP.epiP(1); end  % 4D
     if isfield(pm_defs, 'match_vdm')
         if pm_defs.match_vdm
             IP.vdmP = FieldMap('MatchVDM',IP);
@@ -217,6 +218,7 @@ else
         IP.vdmP=orig_vdm; % Make sure we start with original for each session
         Ovdm=IP.vdmP;
         IP.epiP = spm_vol(epi_img{sessnum});
+        if numel(IP.epiP) > 1, IP.epiP = IP.epiP(1); end  % 4D
         if isfield(pm_defs, 'match_vdm')
             if pm_defs.match_vdm
                 msg=sprintf('\nMatching session %d...\n',sessnum);

@@ -30,12 +30,12 @@ function varargout = spm_render(dat,brt,rendfile)
 % are 10mm behind the surface have half the intensity of ones at the
 % surface.
 %__________________________________________________________________________
-% Copyright (C) 1996-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 6230 2014-10-06 16:22:38Z guillaume $
+% $Id: spm_render.m 6504 2015-07-22 13:42:43Z guillaume $
 
-SVNrev = '$Rev: 6230 $';
+SVNrev = '$Rev: 6504 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -357,7 +357,9 @@ spm('Pointer','Arrow');
 
 if nargout
     for i=1:numel(rgb)
-        rgb{i} = flipud(rgb{i});
+        for ch=1:size(rgb{i},3)
+            rgb{i}(:,:,ch) = flipud(rgb{i}(:,:,ch));
+        end
     end
     varargout = { rgb };
 end
