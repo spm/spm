@@ -25,7 +25,7 @@ function spm_erp2csd_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp2csd_demo.m 6481 2015-06-16 17:01:47Z karl $
+% $Id: spm_erp2csd_demo.m 6506 2015-07-24 10:26:51Z karl $
 
 
 % Model specification
@@ -275,8 +275,8 @@ CSD = spm_dcm_fit(CSD);
 %  between trial variance. In other words, isolate a single parameter by
 %  setting the precision of between trial variance of the remaining
 %  parameters to a relatively small value. The free energy of the
-%  empirical base model can then be used to evaluate which parameter
-%  business likely to be response for four between trial variations.
+%  empirical Bayes model can then be used to evaluate which parameter
+%  estimates are likely to be responsible for between trial variations.
 %--------------------------------------------------------------------------
 clear M;
 M.hE  = 0;

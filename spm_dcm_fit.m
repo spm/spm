@@ -17,7 +17,7 @@ function [P]   = spm_dcm_fit(P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fit.m 6348 2015-02-25 13:34:21Z peter $
+% $Id: spm_dcm_fit.m 6506 2015-07-24 10:26:51Z karl $
 
 
 % get filenames and set up
@@ -61,6 +61,12 @@ elseif isfield(DCM.M,'IS')
     %----------------------------------------------------------------------
     model  = 'NLSI';
     
+elseif isfield(DCM.M,'E')
+    
+    % assume the model is a hierarchical dynamic model
+    %----------------------------------------------------------------------
+    model  = 'DEM';
+    
 else
     
     warning('unknown inversion scheme');
@@ -82,10 +88,13 @@ for i = 1:Ns
         
         % get data structure for this subject (column)
         %------------------------------------------------------------------
-        if j == 1
-            xY = DCM.xY;
-        else
-            DCM.xY = xY;
+        switch model
+            
+            case{'DEM'}
+                if j == 1, Y  = DCM.Y;  else, DCM.Y  = Y;  end
+            otherwise
+                if j == 1, xY = DCM.xY; else, DCM.xY = xY; end
+                
         end
         
         % invert and save
@@ -140,6 +149,12 @@ for i = 1:Ns
                 DCM.Eh       = Eh;
                 DCM.Cp       = Cp;
                 DCM.F        = F;
+                
+                % hierarchical ddynamic mmodel
+                %----------------------------------------------------------
+            case{'DEM'}
+                DCM = spm_DEM(DCM);
+
                 
             otherwise
                 spm('alert!','unknown DCM','Warning');

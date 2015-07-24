@@ -2,19 +2,24 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Bayesian model reduction of all permutations of model parameters
 % FORMAT [RCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 %
-%  DCM      - DCM structures:
-%  DCM.M.pE - prior expectation (with parameters in pE.A, pE.B and pE.C)
+% DCM      - DCM structures:
+%
+%  DCM.M.pE - prior expectation
 %  DCM.M.pC - prior covariance
-%  DCM.Ep   - posterior expectation: Bayesian model average
-%  DCM.Cp   - posterior covariances; Bayesian model average
-%  DCM.Pp   - Model posterior (with and without each parameter)
+%  DCM.Ep   - posterior expectation
+%  DCM.Cp   - posterior covariances
 %
 % field     - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %             'All' will invoke all fields (i.e. random effects)
 %             If Ep is not a structure, all parameters will be considered
 %
-%
 % RCM - reduced DCM array
+%  RCM.M.pE - prior expectation (with parameters in pE.A, pE.B and pE.C)
+%  RCM.M.pC - prior covariance
+%  RCM.Ep   - posterior expectation: Bayesian model average
+%  RCM.Cp   - posterior covariances; Bayesian model average
+%  RCM.Pp   - Model posterior (with and without each parameter)
+%
 % BMR - (Nsub) summary structure 
 %        BMR.name - character/cell array of DCM filenames
 %        BMR.F    - their associated free energies
@@ -41,7 +46,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 6482 2015-06-17 02:57:05Z peter $
+% $Id: spm_dcm_bmr_all.m 6506 2015-07-24 10:26:51Z karl $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -52,6 +57,9 @@ nmax = 8;
 %--------------------------------------------------------------------------
 if nargin < 2 || isempty(field)
     field = {'A','B'};
+end
+if ischar(field)
+    field = {field};
 end
 
 %-dela with filenames stucture

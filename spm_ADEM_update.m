@@ -15,7 +15,7 @@ function [DEM] = spm_ADEM_update(DEM,COV)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM_update.m 6290 2014-12-20 22:11:50Z karl $
+% $Id: spm_ADEM_update.m 6506 2015-07-24 10:26:51Z karl $
 
 
 % preliminaries
@@ -30,7 +30,10 @@ for i = 1:(n - 1)
     
     % states
     %----------------------------------------------------------------------
-    DEM.M(i).x  = spm_unvec(DEM.qU.x{i}(:,end),DEM.M(i).x);
+    qE          = DEM.qU.x{i};
+    if ~isempty(qE)
+        DEM.M(i).x = spm_unvec(qE(:,end),DEM.M(i).x);
+    end
     
     % parameters
     %----------------------------------------------------------------------
@@ -68,4 +71,6 @@ for i = 1:n
         DEM.G(i).v  = spm_unvec(DEM.pU.v{i}(:,end),DEM.G(i).v);
     end
 end
-DEM.G(n).a = spm_unvec(DEM.qU.a{n}(:,end),DEM.G(n).a);
+if isfield(DEM.G,'a')
+    DEM.G(n).a = spm_unvec(DEM.qU.a{n}(:,end),DEM.G(n).a);
+end
