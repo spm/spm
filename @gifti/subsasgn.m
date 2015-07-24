@@ -4,7 +4,7 @@ function this = subsasgn(this, subs, A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: subsasgn.m 6416 2015-04-21 15:34:10Z guillaume $
+% $Id: subsasgn.m 6507 2015-07-24 16:48:02Z guillaume $
 
 switch subs(1).type
     case '.'
@@ -15,7 +15,7 @@ switch subs(1).type
             [i,n] = isintent(this,subs(1).subs);
             if isempty(i) && ~strcmp(subs(1).subs,'private')
                 n = length(this.data) + 1;
-                if n==1, this.data = {};end
+                if n==1, this.data = {}; end
                 % TODO % Initialise data field appropriately
                 this.data{n}.metadata = struct([]);
                 this.data{n}.space    = [];
@@ -61,10 +61,22 @@ switch subs(1).type
             elseif strcmp(subs(1).subs,'private')
                 this = builtin('subsasgn',this,subs(2:end),A);
             else
-                if strcmp(subs(1).subs,'faces') || strcmp(subs(1).subs,'indices')
+                if strcmp(subs(1).subs,'faces')
                     if length(subs) > 1
                         this.data{n}.data = int32(builtin('subsasgn',this.data{n}.data,subs(2:end),A-1));
                     else
+                        this.data{n}.data = int32(A - 1);
+                        this.data{n}.attributes.Dim = size(A);
+                    end
+                elseif strcmp(subs(1).subs,'indices')
+                    if n ~= 1
+                        this.data = this.data([n setdiff(1:numel(this.data),n)]);
+                        n = 1;
+                    end
+                    if length(subs) > 1
+                        this.data{n}.data = int32(builtin('subsasgn',this.data{n}.data,subs(2:end),A-1));
+                    else
+                        A = A(:);
                         this.data{n}.data = int32(A - 1);
                         this.data{n}.attributes.Dim = size(A);
                     end

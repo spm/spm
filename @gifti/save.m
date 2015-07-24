@@ -10,7 +10,7 @@ function save(this,filename,encoding)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 6416 2015-04-21 15:34:10Z guillaume $
+% $Id: save.m 6507 2015-07-24 16:48:02Z guillaume $
 
 
 % Check filename and file format
@@ -84,6 +84,9 @@ def.offset             = 0;
 for i=1:length(this.data)
     % Revert the dimension storage
     d = this.data{i}.attributes.Dim;
+    if numel(d) > 1 && d(end) == 1
+        d = d(1:end-1);
+    end
     this.data{i}.attributes = rmfield(this.data{i}.attributes,'Dim');
     this.data{i}.attributes.Dimensionality = num2str(length(d));
     for j=1:length(d)
