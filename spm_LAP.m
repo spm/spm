@@ -89,7 +89,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 6018 2014-05-25 09:24:14Z karl $
+% $Id: spm_LAP.m 6508 2015-07-25 15:23:25Z karl $
  
  
 % find or create a DEM figure
@@ -121,8 +121,8 @@ end
  
 % number of iterations
 %--------------------------------------------------------------------------
-try, nD = M(1).E.nD; catch, nD = 1;   end
-try, nN = M(1).E.nN; catch, nN = 16;  end
+try, nD = M(1).E.nD; catch, nD = 1;  end
+try, nN = M(1).E.nN; catch, nN = 8;  end
  
  
 % ensure integration scheme evaluates gradients at each time-step

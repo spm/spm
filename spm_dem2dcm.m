@@ -1,11 +1,10 @@
-function [DCM]   = spm_dem2dcm(DEM,j)
-% reorganisation of posterior is and priors into DCM format
-% FORMAT [DCM]   = spm_dem2dcm(DEM,[j])
-% FORMAT [DEM]   = spm_dem2dcm(DEM,[j],DCM)
+function [DCM]   = spm_dem2dcm(DEM,DCM)
+% reorganisation of posteriors and priors into DCM format
+% FORMAT [DCM]   = spm_dem2dcm(DEM)
+% FORMAT [DEM]   = spm_dem2dcm(DEM,DCM)
 %
-% DEM - structure array
-% DCM - structure array 
-% j   - level to extract/replace [all levels]
+% DEM - structure array (hierarchicial model)
+% DCM - structure array (flat model)
 %
 % -------------------------------------------------------------------------
 %     DCM.M.pE - prior expectation of parameters
@@ -13,46 +12,64 @@ function [DCM]   = spm_dem2dcm(DEM,j)
 %     DCM.Ep   - posterior expectations
 %     DCM.Cp   - posterior covariance
 %     DCM.F   - free energy
+%
+% For hierarchical models (DEM.M) the first level with non-zero prorior
+% varaince on the paramters will be extracted.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
- 
-% Karl Friston
-% $Id: spm_dem2dcm.m 6506 2015-07-24 10:26:51Z karl $
 
-% check input arguments
+% Karl Friston
+% $Id: spm_dem2dcm.m 6508 2015-07-25 15:23:25Z karl $
+
+
+% check for arrays
 %--------------------------------------------------------------------------
-if nargin < 2, j = 1:length(DEM.M); end
-if isempty(j), j = 1:length(DEM.M); end
-if nargin < 3
+if iscell(DEM)
+    for i = 1:size(DEM,1)
+        for j = 1:size(DEM,2)
+            if nargin < 2
+                DCM{i,j}   = spm_dem2dcm(DEM{i,j});
+            else
+                DCM{i,j}   = spm_dem2dcm(DEM{i,j},DCM{i,j});
+            end
+        end
+    end
+    return
+end
+
+
+% get level
+%--------------------------------------------------------------------------
+for j = 1:length(DEM.M)
+    if any(any(DEM.M(j).pC)), break, end
+end
+
+% get indices for covariance
+%--------------------------------------------------------------------------
+k     = spm_length(DEM.qP.P(j));
+k     = spm_length(DEM.qP.P(1:(j - 1))) + (1:k);
+
+% re-organise
+%--------------------------------------------------------------------------
+if nargin < 2
     
+    DCM.M.pE      = DEM.M(j).pE;
+    DCM.M.pC      = DEM.M(j).pC;
+    DCM.Ep        = DEM.qP.P{j};
+    DCM.Cp        = DEM.qP.C(k,k);
+    DCM.F         = DEM.F(end);
     
-    
-    DEM   = P;
-    j     = 2;
-    k     = spm_length(DEM{1}.qP.P(j));
-    k     = spm_length(DEM{1}.qP.P(1:(j - 1))) + (1:k);
-    
-    DCM.M.pE = DEM.M(j).pE;
-    DCM.M.pC = DEM.M(j).pC;
-    DCM.Ep   = DEM.qP.P{j};
-    DCM.Cp   = DEM.qP.C(k,k);
-    DCM.F    = DEM.F(end);
 else
     
+    DEM.M(j).pE   = spm_unvec(DCM.M.pE,DEM.M(j).pE);
+    DEM.M(j).pC   = DCM.M.pC;
+    DEM.qP.P{j}   = spm_unvec(DCM.Ep,DEM.qP.P{j});
+    DEM.qP.C(k,k) = DCM.Cp;
+    DEM.F         = DCM.F;
     
-    j     = 2;
-    k     = spm_length(DEM{1}.qP.P(j));
-    k     = spm_length(DEM{1}.qP.P(1:(j - 1))) + (1:k);
-    for i = 1:numel(P)
-        DEM{i}.M(j).pE   = P{i}.M.pE;
-        DEM{i}.M(j).pC   = P{i}.M.pC;
-        DEM{i}.qP.P{j}   = P{i}.Ep;
-        DEM{i}.qP.C(k,k) = P{i}.Cp;
-        DEM{i}.F         = P{i}.F;
-    end
-    P     = DEM;
-    
-    
+    % output argument
+    %----------------------------------------------------------------------
+    DCM = DEM;
 end
 
 

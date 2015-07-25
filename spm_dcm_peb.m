@@ -78,7 +78,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6506 2015-07-24 10:26:51Z karl $
+% $Id: spm_dcm_peb.m 6508 2015-07-25 15:23:25Z karl $
  
 
 % get filenames and set up
@@ -93,18 +93,8 @@ if isstruct(P), P = {P};         end
 % check for DEM structures
 %--------------------------------------------------------------------------
 try
-    if length(P{1}.M) > 1
-        DEM   = P;
-        j     = 2;
-        k     = spm_length(DEM{1}.qP.P(j));
-        k     = spm_length(DEM{1}.qP.P(1:(j - 1))) + (1:k);
-        for i = 1:numel(DEM)
-            P{i}.M  = DEM{i}.M(j);
-            P{i}.Ep = DEM{i}.qP.P{j};
-            P{i}.Cp = DEM{i}.qP.C(k,k);
-            P{i}.F  = DEM{i}.F(end);
-        end
-    end
+    DEM = P;
+    P   = spm_dem2dcm(P);
 end
 
 
@@ -512,19 +502,7 @@ try, delete tmp.mat, end
 
 % check for DEM structures
 %--------------------------------------------------------------------------
-try
-    j     = 2;
-    k     = spm_length(DEM{1}.qP.P(j));
-    k     = spm_length(DEM{1}.qP.P(1:(j - 1))) + (1:k);
-    for i = 1:numel(P)
-        DEM{i}.M(j).pE   = P{i}.M.pE;
-        DEM{i}.M(j).pC   = P{i}.M.pC;
-        DEM{i}.qP.P{j}   = P{i}.Ep;
-        DEM{i}.qP.C(k,k) = P{i}.Cp;
-        DEM{i}.F         = P{i}.F;
-    end
-    P     = DEM;
-end
+try, P   = spm_dem2dcm(DEM,P); end
 
 
 
