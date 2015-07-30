@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_average(P,name,nocond,graphics)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 5900 2014-02-27 21:54:51Z karl $
+% $Id: spm_dcm_average.m 6509 2015-07-30 11:54:48Z peter $
 
 
 % Preiminaries
@@ -107,7 +107,7 @@ for model = 1:N
     if graphics
         T(model) = trace(Cp);
         H(model) = spm_logdet(miCp(:,:,model));
-        F(model) = DCM.F;
+        Fs(model) = DCM.F;
     end
     
 end
@@ -118,7 +118,7 @@ end
 if graphics
     spm_figure('GetWin','BPA');
     
-    subplot(3,1,1), bar(F)
+    subplot(3,1,1), bar(Fs)
     title('Free energy','FontSize',16)
     xlabel('Subject'), axis square
     
