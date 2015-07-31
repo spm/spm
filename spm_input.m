@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 6505 2015-07-22 14:23:30Z guillaume $
+% $Id: spm_input.m 6510 2015-07-31 14:49:33Z guillaume $
 
 
 %=======================================================================
@@ -1405,7 +1405,7 @@ case 'm'                                             %-Process menu type
         nLabels = size(Labels,1);
         for i = 1:nLabels, fprintf('\t%2d : %s\n',i,Labels(i,:)), end
         Prmpt = ['Menu choice (1-',int2str(nLabels),')'];
-        if DefItem
+        if ~isempty(DefItem)
             Prmpt=[Prmpt,' (Default: ',num2str(DefItem),')'];
         end
 
@@ -1417,11 +1417,11 @@ case 'm'                                             %-Process menu type
             fprintf('Menu choice: 1 - %s\t(only option)',Labels)
         else
             k = input([Prmpt,' ? ']);
-            if DefItem && isempty(k), k=DefItem; end
+            if ~isempty(DefItem) && isempty(k), k=DefItem; end
             while isempty(k) || ~any([1:nLabels]==k)
                 if ~isempty(k),fprintf('%c\t!Out of range\n',7),end
                 k = input([Prmpt,' ? ']);
-                if DefItem && isempty(k), k=DefItem; end
+                if ~isempty(DefItem) && isempty(k), k=DefItem; end
             end
         end
         fprintf('\n')
@@ -1436,7 +1436,7 @@ case 'm'                                             %-Process menu type
         else
 
             Labs=[repmat(' ',nLabels,2),Labels];
-            if DefItem
+            if ~isempty(DefItem)
                 Labs(DefItem,1)='*';
                 H = uicontrol(Finter,'Style','Frame',...
                     'BackGroundColor','k',...

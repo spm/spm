@@ -33,9 +33,9 @@ function varargout = spm_render(dat,brt,rendfile)
 % Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 6504 2015-07-22 13:42:43Z guillaume $
+% $Id: spm_render.m 6510 2015-07-31 14:49:33Z guillaume $
 
-SVNrev = '$Rev: 6504 $';
+SVNrev = '$Rev: 6510 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -130,7 +130,7 @@ if isfield(rend,'vertices')
         col = hot(256);
     else
         col = eye(3);
-        if spm_input('Which colours?','!+1','b',{'RGB','Custom'},[0 1],1)
+        if spm_input('Which colours?','+1','b',{'RGB','Custom'},[0 1],1)
             for k = 1:num
                 col(k,:) = uisetcolor(col(k,:),sprintf('Colour of blob set %d',k));
             end
@@ -149,11 +149,11 @@ if nargin < 2  || isempty(prevrend.brt)
     end
 
     if isfinite(brt)
-        brt = spm_input('Brighten blobs',1,'none|slightly|more|lots',[1 0.75 0.5 0.25], 1);
+        brt = spm_input('Brighten blobs','+1','none|slightly|more|lots',[1 0.75 0.5 0.25], 1);
         col = eye(3);
         % ask for custom colours & get rgb values
         %------------------------------------------------------------------
-        if spm_input('Which colours?','!+1','b',{'RGB','Custom'},[0 1],1)
+        if spm_input('Which colours?','+1','b',{'RGB','Custom'},[0 1],1)
             for k = 1:num
                 col(k,:) = uisetcolor(col(k,:),sprintf('Colour of blob set %d',k));
             end
