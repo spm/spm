@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6502 2015-07-22 11:37:13Z karl $
+% $Id: DEM_demo_MDP_habits.m 6511 2015-08-02 15:05:41Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -77,8 +77,8 @@ V  = [1  1  1  1  2  3  4  4  4  4
 
 % true initial states
 %--------------------------------------------------------------------------
-nt    = 8;                         % number of trials
-s     = [0 1 1 1 1 0 0 1];
+nt    = 3;                         % number of trials
+s     = [0 1 1 1 1 0 0 1 ones(1,128)];
 for i = 1:nt
     p    = rand > 1/2;
     p    = s(i);

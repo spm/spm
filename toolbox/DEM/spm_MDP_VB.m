@@ -101,7 +101,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB.m 6502 2015-07-22 11:37:13Z karl $
+% $Id: spm_MDP_VB.m 6511 2015-08-02 15:05:41Z karl $
 
 
 % deal with a sequence of trials
@@ -145,15 +145,16 @@ if length(MDP) > 1
         NT    = size(MDP(1).V,1) + 1;      % number of transitions
         Np    = size(MDP(1).V,2) + 1;      % number of policies
         for i = 1:Nt
-            x{i} = MDP(i).xn;
+            x{i}   = squeeze(MDP(i).xn(:,[1 3 7],3));
             u(:,i) = MDP(i).R(:,end  - 1);
             s(:,i) = MDP(i).S(:,1);
             d(:,i) = MDP(i).d/sum(MDP(i).d);
             w(:,i) = MDP(i).da;
             p(i)   = sum(sum(MDP(i).C.*MDP(i).S))/NT;
+            q(i)   = sum(MDP(i).rt(2:end));
         end
                 
-        % Initial tates and xpected policies
+        % Initial tates and expected policies (habit in red)
         %------------------------------------------------------------------
         subplot(6,1,1), [s,t] = find(s);
         image(64*(1 - u)),  hold on
@@ -167,13 +168,15 @@ if length(MDP) > 1
         
         % Performance
         %------------------------------------------------------------------
-        subplot(6,1,2), bar(p,'c')
-        title('Performance','FontSize',16)
+        subplot(6,1,2), bar(p,'c'), hold on
+        plot(q,'.','MarkerSize',8), hold on
+        plot(q,':'), hold off
+        title('Performance and reaction times','FontSize',16)
         ylabel('Expected utility','FontSize',12), spm_axis tight
         
         % Initial states (context)
         %------------------------------------------------------------------
-        subplot(6,1,3), plot(-spm_cat(x)','k')
+        subplot(6,1,3), plot(-spm_cat(x(:)),'k')
         title('State estimation (ERPs)','FontSize',16)
         ylabel('Response','FontSize',12), spm_axis tight
         
@@ -320,7 +323,7 @@ S  = sparse(s,1,1,Ns,T);            % states sampled  (1 in K vector)
 O  = sparse(q,1,1,No,T);            % states observed (1 in K vector)
 U  = zeros(Nu,T - 1);               % action selected (1 in K vector)
 P  = zeros(Nu,T - 1);               % posterior beliefs about control
-x  = zeros(Ns,T,Np + 1);            % expectations of hidden states | policy
+x  = zeros(Ns,T,Np + 1) + 1/Ns;     % expectations of hidden states | policy
 X  = zeros(Ns,T + 1);               % expectations of hidden states
 u  = zeros(Np + 1,T - 1);           % expectations of policy
 a  = zeros(1, T - 1);               % action (index)
@@ -330,7 +333,8 @@ X(:,T + 1) = spm_softmax(hA + C(:,end));
 
 % solve
 %==========================================================================
-xn     = zeros(Ns*T,Np,T*16);       % state updates
+Ni     = 16;                        % number of VB iterations
+xn     = zeros(T*Ni,Ns,T,Np);       % state updates
 un     = zeros(Np + 1,T*N);         % policy updates
 wn     = zeros(T*N,1);              % simulated DA responses
 qbeta  = beta;                      % expected rate parameter
@@ -338,9 +342,9 @@ for t  = 1:T
     
     % Variational updates (hidden states) under habitual policies
     %======================================================================
+    % qx    = zeros(size(x)) + log(1/Ns);
     k     = Np + 1;
-    x(:,:,k) = 1/Ns;
-    for i = 1:16
+    for i = 1:Ni
         
         % past and future states
         %------------------------------------------------------------------
@@ -351,8 +355,9 @@ for t  = 1:T
             if j >  1, v = v + qH *x(:,j - 1,k); end
             if j <  T, v = v + qH'*x(:,j + 1,k); end
             
-            qx       = log(x(:,j,k));                    
-            x(:,j,k) = spm_softmax(qx - (qx - v)/16);
+            qx       = log(x(:,j,k));
+            dx       = exp(qx/8).*(qx - v);
+            x(:,j,k) = spm_softmax(qx - dx/16);
         end
     end
     
@@ -364,11 +369,14 @@ for t  = 1:T
     %----------------------------------------------------------------------
     if t > 1
         R = R & ismember(V(t - 1,:),a(t - 1));
+        R = R & u(1:Np,t - 1)' > 1/1000;
     end
     w     = find(R);
+    rt(t) = length(w);
     for k = w
-        x(:,:,k) = 1/Ns;
-        for i = 1:32
+        
+        for i = 1:Ni
+            n     = (t - 1)*Ni + i;
             for j = 1:T
                 v     = 0;
                 if j == 1, v = qD;                               end
@@ -376,15 +384,15 @@ for t  = 1:T
                 if j >  1, v = v + qB{V(j - 1,k)} *x(:,j - 1,k); end
                 if j <  T, v = v + qB{V(j,    k)}'*x(:,j + 1,k); end
                 
-                qx        = log(x(:,j,k));                    
-                x(:,j,k)  = spm_softmax(qx - (qx - v)/32);
-                    
+                qx       = log(x(:,j,k));
+                dx       = exp(qx/8).*(qx - v);
+                x(:,j,k) = spm_softmax(qx - dx/16);
+                
+                % record neuronal activity
+                %--------------------------------------------------------------
+                xn(n,:,j,k) = dx;
+
             end
-            
-            % record neuronal activity
-            %--------------------------------------------------------------
-            n         = (t - 1)*16 + i;
-            xn(:,k,n) = spm_vec(x(:,:,k));
         end
     end
     
@@ -437,10 +445,10 @@ for t  = 1:T
                 W(t) = MDP.w;
             end
         else
-            v     = beta - u(w,t)'*Q(w);
-            qbeta = v + (qbeta - v)/4;
+            qbeta = qbeta + (beta - u(w,t)'*Q(w) - qbeta)*3/4;
             W(t)  = alpha/qbeta;
         end
+        
         
         % simulated dopamine responses (precision as each iteration)
         %------------------------------------------------------------------
@@ -576,15 +584,17 @@ for t  = 1:T
     end
 end
 
-% Baysian model averaging of hidden states over policies
+% Baysian model averaging (selection) of hidden states over policies
 %----------------------------------------------------------------------
 for i = 1:T
-    X(:,i)  = squeeze(x(:,i,:))*u(:,T - 1);
+    X(:,i) = squeeze(x(:,i,:))*u(:,T - 1);
 end
-for i = 1:size(xn,3)
-    Xn(:,i) = squeeze(xn(:,:,i))*u(1:Np,T - 1);
+Xn    = zeros(size(xn(:,:,:,1)));
+for i = 1:T
+    for k = 1:Np
+        Xn(:,:,i) = Xn(:,:,i) + xn(:,:,i,k)*u(k,i);
+    end
 end
-xn    = gradient(Xn);
 
 % learning
 %==========================================================================
@@ -643,10 +653,10 @@ MDP.W   = W;              % posterior expectations of precision
 MDP.C   = C;              % utility
 
 MDP.un  = un;             % simulated neuronal encoding of hidden states
-MDP.xn  = xn;             % simulated neuronal encoding of policies
+MDP.xn  = Xn;             % simulated neuronal encoding of policies
 MDP.wn  = wn;             % simulated neuronal encoding of precision
 MDP.da  = dn;             % simulated dopamine responses (deconvolved)
-
+MDP.rt  = rt;             % simulated dopamine responses (deconvolved)
 return
 
 % NOTES:

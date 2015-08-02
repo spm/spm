@@ -25,7 +25,7 @@ function DEM_demo_ontology
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_ontology.m 6508 2015-07-25 15:23:25Z karl $
+% $Id: DEM_demo_ontology.m 6511 2015-08-02 15:05:41Z karl $
  
  
 % Set up the generative model
@@ -191,9 +191,7 @@ xlabel('probability of remission')
 % second psychopathology is redundant.
 %--------------------------------------------------------------------------
 n      = 8;                                        % number of subjects
-M(1).V = exp(12);                                  % measurement noise
 for i  = 1:n
-    
     DCM{i,1}           = spm_DEM_generate(M,U);
     DCM{i,1}.U         = U;
     DCM{i,1}.M(2).pE.B = eye(2);
@@ -229,7 +227,7 @@ end
 %--------------------------------------------------------------------------
 subplot(6,2,2), imagesc(DEM.qU.v{1}(1:4,:))
 title('diagnostic & symptom profile  ','fontsize',16)
-subplot(6,2,4), imagesc(DEM.qU.v{1}(5:8,:))
+subplot(6,2,4), imagesc(DEM.qU.v{1}(5:end,:))
  
 % supplement with trajectories
 %--------------------------------------------------------------------------
