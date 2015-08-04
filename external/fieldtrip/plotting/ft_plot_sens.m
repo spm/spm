@@ -36,7 +36,7 @@ function hs = ft_plot_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_sens.m 10408 2015-05-19 08:44:05Z jansch $
+% $Id: ft_plot_sens.m 10484 2015-06-25 07:27:53Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -49,6 +49,11 @@ coil          = ft_getopt(varargin, 'coil',   false);
 label         = ft_getopt(varargin, 'label',  'off');
 chantype      = ft_getopt(varargin, 'chantype');
 coildiameter  = ft_getopt(varargin, 'coildiameter', 0);
+unit          = ft_getopt(varargin, 'unit');
+
+if ~isempty(unit)
+  sens = ft_convert_units(sens, unit);
+end
 
 % select a subset of channels to be plotted
 if ~isempty(chantype)

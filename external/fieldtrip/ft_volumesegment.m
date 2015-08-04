@@ -128,17 +128,17 @@ function [segmented] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 10223 2015-02-12 09:21:11Z roboos $
+% $Id: ft_volumesegment.m 10483 2015-06-25 06:54:09Z roboos $
 
-revision = '$Id: ft_volumesegment.m 10223 2015-02-12 09:21:11Z roboos $';
+revision = '$Id: ft_volumesegment.m 10483 2015-06-25 06:54:09Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble callinfo
+ft_preamble loadvar     mri
+ft_preamble provenance  mri
 ft_preamble trackconfig
 ft_preamble debug
-ft_preamble loadvar mri
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -627,9 +627,10 @@ end
 segmented = removefields(segmented, remove);
 
 % do the general cleanup and bookkeeping at the end of the function
-ft_postamble debug
 ft_postamble trackconfig
-ft_postamble callinfo
-ft_postamble previous mri
-ft_postamble history segmented
-ft_postamble savevar segmented
+ft_postamble previous   mri
+ft_postamble provenance segmented
+ft_postamble history    segmented
+ft_postamble savevar    segmented
+ft_postamble debug
+

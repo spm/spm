@@ -173,9 +173,9 @@ function ft_sourceplot(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 10451 2015-06-10 22:00:07Z roboos $
+% $Id: ft_sourceplot.m 10493 2015-06-29 12:06:32Z tzvpop $
 
-revision = '$Id: ft_sourceplot.m 10451 2015-06-10 22:00:07Z roboos $';
+revision = '$Id: ft_sourceplot.m 10493 2015-06-29 12:06:32Z tzvpop $';
 
 % do the general setup of the function
 ft_defaults
@@ -987,7 +987,7 @@ elseif isequal(cfg.method,'surface')
   cortex_dark  = [0.781 0.762 0.664]/2;
   if isfield(surf, 'curv')
     % the curvature determines the color of gyri and sulci
-    color = surf.curv(:) * cortex_light + (1-surf.curv(:)) * cortex_light;
+    color = surf.curv(:) * cortex_dark + (1-surf.curv(:)) * cortex_light;
   else
     color = repmat(cortex_light, size(surf.pnt,1), 1);
   end

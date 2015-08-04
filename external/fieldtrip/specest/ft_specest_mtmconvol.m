@@ -4,10 +4,11 @@ function [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(dat, time, varar
 % multiplication in the frequency domain.
 %
 % Use as
-%   [spectrum,freqoi,timeoi] = ft_specest_mtmconvol(dat,time,...)
-% where
+%   [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(dat,time,...)
+% where input
 %   dat       = matrix of chan*sample
 %   time      = vector, containing time in seconds for each sample
+% and output
 %   spectrum  = matrix of ntaper*chan*freqoi*timeoi of fourier coefficients
 %   ntaper    = vector containing the number of tapers per freqoi
 %   freqoi    = vector of frequencies in spectrum
@@ -46,7 +47,7 @@ function [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(dat, time, varar
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_specest_mtmconvol.m 10451 2015-06-10 22:00:07Z roboos $
+% $Id: ft_specest_mtmconvol.m 10528 2015-07-10 14:03:40Z roboos $
 
 % these are for speeding up computation of tapers on subsequent calls
 persistent previous_argin previous_wltspctrm

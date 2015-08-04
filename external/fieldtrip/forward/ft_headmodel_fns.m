@@ -1,10 +1,10 @@
-function vol = ft_headmodel_fns(seg, varargin)
+function headmodel = ft_headmodel_fns(seg, varargin)
 
 % FT_HEADMODEL_FNS creates the volume conduction structure to be used
 % in the FNS forward solver.
 %
 % Use as
-%   vol = ft_headmodel_fns(seg, ...)
+%   headmodel = ft_headmodel_fns(seg, ...)
 %
 % Optional input arguments should be specified in key-value pairs and
 % can include
@@ -47,7 +47,7 @@ function vol = ft_headmodel_fns(seg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_fns.m 8918 2013-11-29 12:46:24Z roboos $
+% $Id: ft_headmodel_fns.m 10541 2015-07-15 16:49:37Z roboos $
 
 ft_hastoolbox('fns', 1);
 
@@ -151,17 +151,17 @@ catch ME
 end
 
 % start with an empty volume conductor
-vol = [];
-vol.tissue     = tissue;
-vol.tissueval  = tissueval;
-vol.transform  = transform;
-vol.segdim     = size(seg);
-vol.units      = units;
-vol.type       = 'fns';
-vol.transfer   = transfer;
+headmodel = [];
+headmodel.tissue     = tissue;
+headmodel.tissueval  = tissueval;
+headmodel.transform  = transform;
+headmodel.segdim     = size(seg);
+headmodel.units      = units;
+headmodel.type       = 'fns';
+headmodel.transfer   = transfer;
 
 if ~isempty(deepelec)
-  vol.deepelec  = deepelec;
+  headmodel.deepelec  = deepelec;
 end
 
 function cleaner(segfile,confile,elecfile,exefile,datafile)

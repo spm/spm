@@ -47,12 +47,19 @@ function type = ft_chantype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chantype.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id: ft_chantype.m 10516 2015-07-04 13:06:48Z roboos $
+
+% these are for remembering the type on subsequent calls with the same input arguments
+persistent previous_argin previous_argout
 
 % this is to avoid a recursion loop
 persistent recursion
 if isempty(recursion)
   recursion = false;
+end
+
+if nargin<2
+  desired = [];
 end
 
 % determine the type of input, this is handled similarly as in FT_CHANUNIT
@@ -62,6 +69,18 @@ iselec   = isa(input, 'struct')  && isfield(input, 'label') && isfield(input, 'p
 isgrad   = (isa(input, 'struct') && isfield(input, 'label') && isfield(input, 'coilpos')) || isgrad;             % new style 
 iselec   = (isa(input, 'struct') && isfield(input, 'label') && isfield(input, 'elecpos')) || iselec;             % new style 
 islabel  = isa(input, 'cell')    && ~isempty(input) && isa(input{1}, 'char');
+
+if isheader
+  % this speeds up the caching in real-time applications
+  input.nSamples = 0;
+end
+
+current_argin = {input, desired};
+if isequal(current_argin, previous_argin)
+  % don't do the type detection again, but return the previous output from cache
+  type = previous_argout{1};
+  return
+end
 
 if isheader
   label = input.label;
@@ -638,6 +657,12 @@ if nargin>1
     type = strcmp(desired, type);
   end
 end
+
+% remember the current input and output arguments, so that they can be
+% reused on a subsequent call in case the same input argument is given
+current_argout = {type};
+previous_argin  = current_argin;
+previous_argout = current_argout;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function

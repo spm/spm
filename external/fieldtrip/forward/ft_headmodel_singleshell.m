@@ -1,4 +1,4 @@
-function vol = ft_headmodel_singleshell(geometry, varargin)
+function headmodel = ft_headmodel_singleshell(geometry, varargin)
 
 % FT_HEADMODEL_SINGLESHELL creates a volume conduction model of the
 % head for MEG based on a realistic shaped surface of the inside of
@@ -16,7 +16,7 @@ function vol = ft_headmodel_singleshell(geometry, varargin)
 %   in realistic volume conductors", Phys Med Biol. 2003 Nov 21;48(22):3637-52.
 % 
 % Use as
-%   vol = ft_headmodel_singleshell(geom, ...)
+%   headmodel = ft_headmodel_singleshell(geom, ...)
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
@@ -38,7 +38,7 @@ function vol = ft_headmodel_singleshell(geometry, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_singleshell.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_headmodel_singleshell.m 10541 2015-07-15 16:49:37Z roboos $
 
 % if it contains more than 1 shell it retunrs an error
 if isfield(geometry,'pnt')
@@ -51,10 +51,10 @@ end
 
 % represent the geometry in a headmodel strucure
 % the computational parameters will be added later on by ft_prepare_vol_sens
-vol      = [];
-vol.bnd  = geometry;
-vol.type = 'singleshell';
-if ~isfield(vol, 'unit')
-  vol = ft_convert_units(vol);
+headmodel      = [];
+headmodel.bnd  = geometry;
+headmodel.type = 'singleshell';
+if ~isfield(headmodel, 'unit')
+  headmodel = ft_convert_units(headmodel);
 end
 

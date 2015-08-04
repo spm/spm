@@ -67,7 +67,7 @@ function [varargout] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 10451 2015-06-10 22:00:07Z roboos $
+% $Id: ft_selectdata.m 10527 2015-07-09 12:22:50Z roboos $
 
 if nargin==1 || (nargin>2 && ischar(varargin{end-1})) || (isstruct(varargin{1}) && ~ft_datatype(varargin{1}, 'unknown'))
   % this is the OLD calling style, like this
@@ -631,6 +631,10 @@ for k = 1:ndata
   label      = union(label, selchannel);
 end
 
+% this call to match_str ensures that that labels are always in the
+% order of the first input argument see bug_2917
+[ix, iy] = match_str(varargin{1}.label, label);
+label = varargin{1}.label(ix)
 
 indx = nan+zeros(numel(label), ndata);
 for k = 1:ndata
@@ -1250,47 +1254,4 @@ else
   x = mean(x, seldim);
 end
 end % function cellmatmean
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%ISROW True if input is a row vector.
-%   ISROW(V) returns logical 1 (true) if SIZE(V) returns [1 n]
-%   with a nonnegative integer value n, and logical 0 (false) otherwise.
-%
-% This is a drop-in replacement for the MATLAB function with the same name,
-% which does not exist in versions < 2010.
-%
-% See http://bugzilla.fcdonders.nl/show_bug.cgi?id=2567
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function s = isrow(v)
-siz = size(v);
-m = siz(1);
-n = siz(2);
-if numel(siz)==2 && m==1 && n>0
-  s = true;
-else
-  s = false;
-end
-end % function isrow
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%ISROW True if input is a column vector.
-%   ISROW(V) returns logical 1 (true) if SIZE(V) returns [m 1]
-%   with a nonnegative integer value m, and logical 0 (false) otherwise.
-%
-% This is a drop-in replacement for the MATLAB function with the same name,
-% which does not exist in versions < 2010.
-%
-% See http://bugzilla.fcdonders.nl/show_bug.cgi?id=2567
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function s = iscolumn(v)
-siz = size(v);
-m = siz(1);
-n = siz(2);
-if numel(siz)==2 && m>0 && n==1
-  s = true;
-else
-  s = false;
-end
-end % function iscolumn
 

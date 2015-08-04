@@ -1,11 +1,12 @@
-function vol = triangle4pt(vol)
+function headmodel = triangle4pt(headmodel)
 
-% FORMAT vol = triangle4pt(vol)
+% TRIANGLE4PNT takes the volume model and estimates the 4th point of each
+% triangle of each mesh.
 %
-% Takes the volume model and estimates the 4th point of each triangle of
-% each mesh.
+% Use as
+%   headmodel = triangle4pt(headmodel)
 %
-% In each vol.bnd sub-structure, a field '.pnt4' is added. The '.pnt4'
+% In each headmodel.bnd sub-structure, a field '.pnt4' is added. The '.pnt4'
 % field is a Ntri*3 matrix, with the coordinates of a point for each
 % triangle in the meshed surface.
 %
@@ -34,12 +35,12 @@ function vol = triangle4pt(vol)
 % written by Christophe Phillips, 2009/01/19
 % Cyclotron Research Centre, University of li?ge, belgium
 %
-% $Id: triangle4pt.m 8446 2013-09-05 17:48:55Z vlalit $
+% $Id: triangle4pt.m 10542 2015-07-15 16:49:41Z roboos $
 
-Ns = length(vol.bnd);
+Ns = length(headmodel.bnd);
 for ii=1:Ns % treat each mesh one at a time
-  tri = vol.bnd(ii).tri;
-  pnt = vol.bnd(ii).pnt;
+  tri = headmodel.bnd(ii).tri;
+  pnt = headmodel.bnd(ii).pnt;
   Nt = size(tri,1);
   pnt4 = zeros(Nt,3);
   for jj=1:Nt % treat each triangle on a t a time
@@ -71,7 +72,7 @@ for ii=1:Ns % treat each mesh one at a time
         pnt4(jj,:) = pnt_c;
     end
   end
-  vol.bnd(ii).pnt4 = pnt4;
+  headmodel.bnd(ii).pnt4 = pnt4;
 end
 
 return

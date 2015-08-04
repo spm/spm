@@ -52,10 +52,15 @@ function [pipeline] = ft_analysispipeline(cfg, data)
 % all details that are required to reconstruct a complete and valid
 % analysis script.
 %
+% To facilitate data-handling and distributed computing you can use
+%   cfg.inputfile   =  ...
+% If you specify this, the input data will be read from a *.mat file on disk. The
+% file should contain only a single variable, corresponding with the input structure.
+%
 % See also FT_PREPROCESSING, FT_TIMELOCKANALYSIS, FT_FREQANALYSIS, FT_SOURCEANALYSIS,
 % FT_CONNECTIVITYANALYSIS, FT_NETWORKANALYSIS
 
-% Copyright (C) 2014, Robert Oostenveld
+% Copyright (C) 2014-2015, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -73,9 +78,9 @@ function [pipeline] = ft_analysispipeline(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_analysispipeline.m 10246 2015-02-23 13:45:04Z jimher $
+% $Id: ft_analysispipeline.m 10556 2015-07-17 12:22:02Z roboos $
 
-revision = '$Id: ft_analysispipeline.m 10246 2015-02-23 13:45:04Z jimher $';
+revision = '$Id: ft_analysispipeline.m 10556 2015-07-17 12:22:02Z roboos $';
 
 % callinfo feedback is highly annoying in this recursive function
 % do this here, otherwise ft_defaults will override our setting
@@ -84,7 +89,8 @@ if ~isfield(cfg, 'showcallinfo'), cfg.showcallinfo = 'no';   end
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
+ft_preamble loadvar    data
+ft_preamble provenance data
 ft_preamble trackconfig
 ft_preamble debug
 
@@ -138,6 +144,8 @@ if ~isfield(cfg, 'remove')
     'grid.outside'
     'vol.bnd.pnt'
     'vol.bnd.tri'
+    'headmodel.bnd.pnt'
+    'headmodel.bnd.tri'
     };
 elseif ~iscell(cfg.remove)
   cfg.remove = {cfg.remove};
@@ -272,7 +280,7 @@ else
   previous = {};
 end
 
-% parse the side branches, e.g. cfg.vol and cfg.layout
+% parse the side branches, e.g. cfg.vol/cfg.headmodel and cfg.layout
 fn = fieldnames(cfg);
 branch = {};
 for i=1:numel(fn)
@@ -689,18 +697,18 @@ for k = 1:numel(pipeline)
   
   % strip away the cfg.previous fields, and all data-like fields
   tmpcfg = removefields(pipeline(k).cfg,...
-    {'previous', 'grid', 'vol', 'event', 'warning'});
+    {'previous', 'grid', 'headmodel', 'event', 'warning'});
   
+  usercfg = [];
+
   % record the usercfg and proctime if present
   if isfield(tmpcfg, 'callinfo')
     if isfield(tmpcfg.callinfo, 'usercfg')
       usercfg = removefields(tmpcfg.callinfo.usercfg,...
-        {'previous', 'grid', 'vol', 'event', 'warning'});
+        {'previous', 'grid', 'headmodel', 'event', 'warning'});
       
       % avoid processing usercfg twice
       tmpcfg.callinfo = rmfield(tmpcfg.callinfo, 'usercfg');
-    else
-      usercfg = [];
     end
     
     if isfield(tmpcfg.callinfo, 'proctime')

@@ -44,7 +44,7 @@ function [data] = ft_channelrepair(cfg, data)
 % files should contain only a single variable, corresponding with the
 % input/output structure.
 %
-% See also FT_MEGREALIGN, FT_MEGPLANAR, FT_NEIGHBOURSELECTION
+% See also FT_MEGREALIGN, FT_MEGPLANAR, FT_PREPARE_NEIGHBOURS
 
 % Copyright (C) 2004-2009, Robert Oostenveld
 % Copyright (C) 2012-2013, J?rn M. Horschig, Jason Farquhar
@@ -65,9 +65,9 @@ function [data] = ft_channelrepair(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 10105 2015-01-19 13:37:56Z jimher $
+% $Id: ft_channelrepair.m 10557 2015-07-18 18:54:53Z roboos $
 
-revision = '$Id: ft_channelrepair.m 10105 2015-01-19 13:37:56Z jimher $';
+revision = '$Id: ft_channelrepair.m 10557 2015-07-18 18:54:53Z roboos $';
 
 % do the general setup of the function
 ft_defaults

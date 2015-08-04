@@ -62,7 +62,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 10452 2015-06-11 02:14:45Z roboos $
+% $Id: ft_checkconfig.m 10558 2015-07-18 18:57:55Z roboos $
 
 global ft_default
 
@@ -205,6 +205,7 @@ if ~isempty(allowed)
     'warning'
     'debug'
     'previous'
+    'outputfilepresent'
     });
   fieldsused = fieldnames(cfg);
   [c, i] = setdiff(fieldsused, allowed);

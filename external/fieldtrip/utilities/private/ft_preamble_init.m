@@ -26,9 +26,13 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_init.m 10475 2015-06-24 04:38:57Z roboos $
+% $Id: ft_preamble_init.m 10556 2015-07-17 12:22:02Z roboos $
 
+% disabled for now, see further down
 global ft_default
+
+% this script requires some options that can be user-specified, but otherwise are obtained from ft_default
+cfg = mergeconfig(cfg, keepfields(ft_default, {'outpuitfile', 'outputfilepresent'}));
 
 if nargin==0
   stack = dbstack('-completenames');
@@ -46,8 +50,17 @@ end % if nargin
 
 % determine whether function execution should be aborted or continued
 if isfield(cfg, 'outputfile') && ~isempty(cfg.outputfile)
+  assert(any(strcmp(fieldnames(cfg), 'outputfilepresent')), 'cfg.outputfilepresent is a required option, please see FT_DEFAULTS');
   % check whether the output file already exists
-  if ~exist(cfg.outputfile, 'file')
+  [p, f, x] = fileparts(cfg.outputfile);
+  if isempty(p)
+    % the relative path was speciield
+    outputfile = fullfile(pwd, cfg.outputfile);
+  else
+    % the absolute path was specified
+    outputfile = cfg.outputfile;
+  end
+  if ~exist(outputfile, 'file')
     abort = false;
   else
     % the output file exists, determine how to deal with it
@@ -72,6 +85,7 @@ if isfield(cfg, 'outputfile') && ~isempty(cfg.outputfile)
     end % case
   end
 else
+  % there is no reason to abort execution
   abort = false;
 end % if outputfile
 

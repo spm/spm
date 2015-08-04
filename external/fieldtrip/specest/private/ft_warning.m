@@ -1,4 +1,4 @@
-function [ws warned] = ft_warning(varargin)
+function [ws, warned] = ft_warning(varargin)
 
 % FT_WARNING will throw a warning for every unique point in the
 % stacktrace only, e.g. in a for-loop a warning is thrown only once.
@@ -52,7 +52,7 @@ function [ws warned] = ft_warning(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_warning.m 10451 2015-06-10 22:00:07Z roboos $
+% $Id: ft_warning.m 10532 2015-07-13 14:11:08Z roboos $
 
 global ft_default
 
@@ -67,8 +67,16 @@ if isstruct(varargin{1})
 end
 
 if ~isfield(ft_default, 'warning')
+  ft_default.warning = [];
+end
+if ~isfield(ft_default.warning, 'stopwatch')
   ft_default.warning.stopwatch  = [];
+end
+if ~isfield(ft_default.warning, 'identifier')
   ft_default.warning.identifier = [];
+end
+if ~isfield(ft_default.warning, 'ignore')
+  ft_default.warning.ignore = {};
 end
 
 % put the arguments we will pass to warning() in this cell array
@@ -90,6 +98,16 @@ elseif nargin==2 && isnumeric(varargin{2})
   timeout = varargin{2};
   fname = warningArgs{1};
   
+elseif nargin==2 && isequal(varargin{1}, 'off')
+  
+  ft_default.warning.ignore = union(ft_default.warning.ignore, varargin{2});
+  return
+  
+elseif nargin==2 && isequal(varargin{1}, 'on')
+  
+  ft_default.warning.ignore = setdiff(ft_default.warning.ignore, varargin{2});
+  return
+
 elseif nargin==2 && ~isnumeric(varargin{2})
   % calling syntax (id, msg)
   
@@ -106,6 +124,11 @@ elseif nargin==1
   timeout = inf; % default timeout in seconds
   fname = [warningArgs{1}];
   
+end
+
+if ismember(msg, ft_default.warning.ignore)
+  % do not show this warning
+  return;
 end
 
 if isempty(timeout)

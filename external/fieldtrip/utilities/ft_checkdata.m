@@ -55,7 +55,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 10451 2015-06-10 22:00:07Z roboos $
+% $Id: ft_checkdata.m 10496 2015-06-30 15:52:10Z jimher $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -1227,6 +1227,11 @@ elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
   
   complete = all(cmbindx(:)~=0);
   
+   % remove obsolete fields
+  try data      = rmfield(data, 'powspctrm');  end
+  try data      = rmfield(data, 'labelcmb');   end
+  try data      = rmfield(data, 'dof');        end
+  
   fn = fieldnames(data);
   for ii=1:numel(fn)
     if numel(data.(fn{ii})) == nrpt*ncmb*nfrq*ntim;
@@ -1261,12 +1266,7 @@ elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
       end
     end % if numel
   end % for ii
-  
-  % remove obsolete fields
-  try data      = rmfield(data, 'powspctrm');  end
-  try data      = rmfield(data, 'labelcmb');   end
-  try data      = rmfield(data, 'dof');        end
-  
+   
   if ntim>1,
     data.dimord = 'chan_chan_freq_time';
   else

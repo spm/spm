@@ -64,7 +64,7 @@ function [cfg] = ft_movieplotTFR(cfg, data)
 %
 % $id: ft_movieploter.m 4354 2011-10-05 15:06:02z crimic $
 
-revision = '$Id: ft_movieplotTFR.m 9987 2014-11-28 11:30:54Z roboos $';
+revision = '$Id: ft_movieplotTFR.m 10555 2015-07-17 09:45:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -111,7 +111,7 @@ if isfield(data, 'freq')
 end
 
 % read or create the layout that will be used for plotting:
-layout = ft_prepare_layout(cfg);
+layout = ft_prepare_layout(cfg, data);
 
 % apply optional baseline correction
 if ~strcmp(cfg.baseline, 'no')
