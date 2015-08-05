@@ -5,12 +5,13 @@ function save(this,filename,encoding)
 % filename  - name of GIfTI file to be created [Default: 'untitled.gii']
 % encoding  - optional argument to specify encoding format, among
 %             ASCII, Base64Binary, GZipBase64Binary, ExternalFileBinary,
-%             Collada (.dae), IDTF (.idtf). [Default: 'GZipBase64Binary']
+%             Collada (.dae), IDTF (.idtf), VTK (.vtk).
+%             [Default: 'GZipBase64Binary']
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 6507 2015-07-24 16:48:02Z guillaume $
+% $Id: save.m 6513 2015-08-05 17:52:13Z guillaume $
 
 
 % Check filename and file format
@@ -24,6 +25,9 @@ else
     end
     if nargin == 3 && strcmpi(encoding,'idtf')
         ext = '.idtf';
+    end
+    if nargin == 3 && strncmpi(encoding,'vtk',3)
+        ext = '.vtk'; % or .vtp
     end
     [p,f,e] = fileparts(filename);
     if ~ismember(lower(e),{ext})
@@ -49,6 +53,16 @@ switch ext
         fid = save_dae(fid,this);
     case '.idtf'
         fid = save_idtf(fid,this);
+    case '.vtk'
+        if nargin < 3, encoding = 'legacy'; end
+        switch lower(encoding)
+            case {'vtk','vtk-legacy','legacy'}
+                fid = save_vtk_legacy(fid,this,'ASCII');
+            case {'vtk-xml','xml'}
+                fid = save_vtk_xml(fid,this,'ASCII');
+            otherwise
+                error('Unknown file format.');
+        end
     otherwise
         error('Unknown file format.');
 end
@@ -547,3 +561,163 @@ for i=1:numel(s)
     fprintf(fid,'%s}\n',o(1));
     fprintf(fid,'}\n');
 end
+
+%==========================================================================
+% function fid = save_vtk_legacy(fid,this,format)
+%==========================================================================
+function fid = save_vtk_legacy(fid,this,format)
+
+if nargin == 2, format = 'ASCII'; end
+switch upper(format)
+    case 'ASCII'
+        write_data = @(fid,fmt,prec,dat) fprintf(fid,fmt,dat); 
+    case 'BINARY'
+        filename = fopen(fid);
+        fclose(fid);
+        fid = fopen(filename,'wb','ieee-be');
+        write_data = @(fid,fmt,prec,dat) fwrite(fid,dat,prec);
+    otherwise
+        error('Unknown file format.');
+end
+
+s = struct(this);
+
+if ~isfield(s,'normals')
+    try
+        s.normals = spm_mesh_normals(...
+            struct('vertices',s.vertices,'faces',s.faces),true);
+    catch
+        s.normals = [];
+    end
+end
+
+%- Part 1: file version and identifier
+fprintf(fid,'# vtk DataFile Version 2.0\n');
+
+%- Part 2: header
+hdr = 'Saved using @gifti';
+fprintf(fid,'%s\n',hdr(1:min(length(hdr),256)));
+
+%- Part 3: file format
+fprintf(fid,'%s\n',format);
+
+%- Part 4: dataset structure
+fprintf(fid,'DATASET POLYDATA\n');
+if isfield(s,'vertices')
+    fprintf(fid,'POINTS %d %s\n',size(s.vertices,1),'float');
+    write_data(fid,'%f %f %f\n','float32',s.vertices');
+end
+if isfield(s,'faces')
+    fprintf(fid,'POLYGONS %d %d\n',size(s.faces,1),size(s.faces,1)*4);
+    dat = int32([3*ones(1,size(s.faces,1)); (s.faces'-1)]);
+    write_data(fid,'%d %d %d %d\n','uint32',dat);
+end
+fprintf(fid,'\n');
+
+%- Part 5: dataset attributes
+point_data_hdr = false;
+if isfield(s,'normals') && ~isempty(s.normals)
+    if ~point_data_hdr
+        fprintf(fid,'POINT_DATA %d\n',size(s.vertices,1));
+        point_data_hdr = true;
+    end
+    fprintf(fid,'NORMALS %s %s\n','normals','float');
+    write_data(fid,'%f %f %f\n','float32',-s.normals');
+end
+if isfield(s,'cdata') && ~isempty(s.cdata)
+    if ~point_data_hdr
+        fprintf(fid,'POINT_DATA %d\n',size(s.cdata,1));
+        point_data_hdr = true;
+    end
+    fprintf(fid,'SCALARS %s %s %d\n','cdata','float',size(s.cdata,2));
+    fprintf(fid,'LOOKUP_TABLE default\n');
+    fmt = repmat('%f ',1,size(s.cdata,2)); fmt(end) = '';
+    write_data(fid,[fmt '\n'],'float32',s.cdata');
+end
+
+
+%==========================================================================
+% function fid = save_vtk_xml(fid,this,format)
+%==========================================================================
+function fid = save_vtk_xml(fid,this,format)
+
+if nargin == 2, format = 'ascii'; else format = lower(format); end
+switch format
+    case 'ascii'
+        write_data = @(fmt,dat) sprintf(fmt,dat);
+    case 'binary'
+        write_data = @(fmt,dat) base64encode(typecast(dat(:),'uint8'));
+    case 'appended'
+        error('Not implemented.');
+    otherwise
+        error('Unknown format.');
+end
+
+o = @(x) blanks(x*3);
+
+s = struct(this);
+
+if ~isfield(s,'normals')
+    try
+        s.normals = spm_mesh_normals(...
+            struct('vertices',s.vertices,'faces',s.faces),true);
+    catch
+        s.normals = [];
+    end
+end
+
+fprintf(fid,'<?xml version="1.0"?>\n');
+fprintf(fid,'<VTKFile type="%s" version="%s" byte_order="%s">\n',...
+    'PolyData','0.1','LittleEndian'); % compressor="%s"
+
+%- PolyData
+fprintf(fid,'%s<PolyData>\n',o(1));
+fprintf(fid,['%s<Piece NumberOfPoints="%d" NumberOfVerts="%d" NumberOfLines="%d" ' ...
+    'NumberOfStrips="%d" NumberOfPolys="%d">\n'],o(2),...
+    size(s.vertices,1),0,0,0,size(s.faces,1));
+
+%- PointData
+fprintf(fid,'%s<PointData Scalars="scalars" Normals="normals">\n',o(3));
+if isfield(s,'cdata') && ~isempty(s.cdata)
+    fprintf(fid,'%s<DataArray type="%s" Name="%s" NumberOfComponents="%d" format="%s">%s</DataArray>\n',o(4),...
+        'Float32','scalars',size(s.cdata,2),lower(format),write_data('%f ',s.cdata'));
+end
+if isfield(s,'normals') && ~isempty(s.normals)
+    fprintf(fid,'%s<DataArray type="%s" Name="%s" NumberOfComponents="%d" format="%s">%s</DataArray>\n',o(4),...
+        'Float32','normals',3,lower(format),write_data('%f ',-s.normals'));
+end
+fprintf(fid,'%s</PointData>\n',o(3));
+
+%- CellData
+fprintf(fid,'%s<CellData/>\n',o(3));
+
+%- Points
+fprintf(fid,'%s<Points>\n',o(3));
+if isfield(s,'vertices')
+    fprintf(fid,'%s<DataArray type="%s" Name="%s" NumberOfComponents="%d" format="%s">%s</DataArray>\n',o(4),...
+        'Float32','Vertices',3,lower(format),write_data('%f ',s.vertices'));
+end
+fprintf(fid,'%s</Points>\n',o(3));
+
+%- Verts
+fprintf(fid,'%s<Verts/>\n',o(3));
+
+%- Lines
+fprintf(fid,'%s<Lines/>\n',o(3));
+
+%- Strips
+fprintf(fid,'%s<Strips/>\n',o(3));
+
+%- Polys
+fprintf(fid,'%s<Polys>\n',o(3));
+if isfield(s,'faces')
+    fprintf(fid,'%s<DataArray type="%s" Name="%s" format="%s">%s</DataArray>\n',o(4),...
+        'UInt32','connectivity',lower(format),write_data('%d ',s.faces'-1));
+    fprintf(fid,'%s<DataArray type="%s" Name="%s" format="%s">%s</DataArray>\n',o(4),...
+        'UInt32','offsets',lower(format),write_data('%d ',uint32(3:3:3*size(s.faces,1))));
+end
+fprintf(fid,'%s</Polys>\n',o(3));
+
+fprintf(fid,'%s</Piece>\n',o(2));
+fprintf(fid,'%s</PolyData>\n',o(1));
+fprintf(fid,'</VTKFile>\n');
