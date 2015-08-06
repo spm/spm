@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 6463 2015-05-29 14:10:15Z volkmar $
+% $Id: cfg_ui.m 6515 2015-08-06 10:07:55Z volkmar $
 
-rev = '$Rev: 6463 $'; %#ok
+rev = '$Rev: 6515 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -703,7 +703,7 @@ try
     cfg_util('run',udmodlist(1).cjob);
 catch
     le = lasterror;
-    if strcmpi(questdlg(sprintf('%s\n\nSave error information?', le.message),'Error in job execution', 'Yes','No','Yes'), 'yes')
+    if strcmpi(questdlg(sprintf('An error occured during job execution. Please see the MATLAB command window for details.\n\nSave error information?'),'Error in job execution', 'Yes','No','Yes'), 'yes')
         opwd = pwd;
         if ~isempty(udmodlist.wd)
             cd(udmodlist.wd);
