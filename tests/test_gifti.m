@@ -3,7 +3,7 @@ function tests = test_gifti
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_gifti.m 6513 2015-08-05 17:52:13Z guillaume $
+% $Id: test_gifti.m 6516 2015-08-07 17:28:33Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -109,10 +109,10 @@ testCase.verifyThat(s, HasField('face'));
 
 function test_gifti_load(testCase)
 import matlab.unittest.constraints.*
-files = spm_select('FPList',fullfile(spm('Dir'),'canonical'),'.*\.gii$');
-files = cellstr(files);
+d = fullfile(spm('Dir'),'canonical');
+files = dir(fullfile(d,'*.gii'));
 for i=1:numel(files)
-    g = gifti(files{i});
+    g = gifti(fullfile(d,files(i).name));
     testCase.verifyThat(evalc('g'), ~IsEmpty); % check display()
 end
 
