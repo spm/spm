@@ -101,7 +101,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB.m 6511 2015-08-02 15:05:41Z karl $
+% $Id: spm_MDP_VB.m 6517 2015-08-10 11:21:53Z karl $
 
 
 % deal with a sequence of trials
@@ -145,13 +145,18 @@ if length(MDP) > 1
         NT    = size(MDP(1).V,1) + 1;      % number of transitions
         Np    = size(MDP(1).V,2) + 1;      % number of policies
         for i = 1:Nt
-            x{i}   = squeeze(MDP(i).xn(:,[1 3 7],3));
+            for j = 1:NT
+                for k = 1:NT
+                    xi{k,j} = MDP(i).xn(:,:,j,k);
+                end
+            end
+            x{i,1} = xi;
             u(:,i) = MDP(i).R(:,end  - 1);
             s(:,i) = MDP(i).S(:,1);
             d(:,i) = MDP(i).d/sum(MDP(i).d);
             w(:,i) = MDP(i).da;
             p(i)   = sum(sum(MDP(i).C.*MDP(i).S))/NT;
-            q(i)   = sum(MDP(i).rt(2:end));
+            q(i)   = sum(MDP(i).rt);
         end
                 
         % Initial tates and expected policies (habit in red)
@@ -160,23 +165,26 @@ if length(MDP) > 1
         image(64*(1 - u)),  hold on
         for i = 1:max(s)
             j = find(s == i);
-            plot(t(j),s(j),col{i},'MarkerSize',32),      hold on
+            plot(t(j),s(j),col{i},'MarkerSize',32), hold on
         end
-        plot(Np*(1 - u(end,:)),'r'),        hold off
+        plot(Np*(1 - u(end,:)),'r'), hold off
         title('Polcy selection and inital state','FontSize',16)
         xlabel('Trial','FontSize',12),ylabel('Policy','FontSize',12)
         
         % Performance
         %------------------------------------------------------------------
-        subplot(6,1,2), bar(p,'c'), hold on
-        plot(q,'.','MarkerSize',8), hold on
-        plot(q,':'), hold off
+        q     = q - mean(q);
+        q     = q/std(q);
+        subplot(6,1,2), bar(p,'c'),  hold on
+        plot(q,'.','MarkerSize',16), hold on
+        plot(q,':'),                 hold off
         title('Performance and reaction times','FontSize',16)
         ylabel('Expected utility','FontSize',12), spm_axis tight
         
         % Initial states (context)
         %------------------------------------------------------------------
-        subplot(6,1,3), plot(-spm_cat(x(:)),'k')
+        subplot(6,1,3)
+        plot(spm_cat(x))
         title('State estimation (ERPs)','FontSize',16)
         ylabel('Response','FontSize',12), spm_axis tight
         
@@ -260,11 +268,13 @@ for i = 1:Nu
     B{i} = B{i}*diag(1./sum(B{i}));
     
     % parameters (concentration parameters) - B
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if isfield(MDP,'b')
         qB{i} = psi(MDP.b{i}) - ones(Ns,1)*psi(sum(MDP.b{i}));
+        sB{i} = spm_softmax(qB{i});
     else
         qB{i} = log(B{i});
+        sB{i} = B{i};
     end
 end
 
@@ -334,30 +344,43 @@ X(:,T + 1) = spm_softmax(hA + C(:,end));
 % solve
 %==========================================================================
 Ni     = 16;                        % number of VB iterations
-xn     = zeros(T*Ni,Ns,T,Np);       % state updates
+xn     = zeros(Ni,Ns,T,T,Np);       % state updates
 un     = zeros(Np + 1,T*N);         % policy updates
 wn     = zeros(T*N,1);              % simulated DA responses
 qbeta  = beta;                      % expected rate parameter
 for t  = 1:T
     
+    % processing time
+    %------------------------------------------------------------------
+    tstart = tic;
+    
     % Variational updates (hidden states) under habitual policies
     %======================================================================
-    % qx    = zeros(size(x)) + log(1/Ns);
     k     = Np + 1;
     for i = 1:Ni
         
         % past and future states
         %------------------------------------------------------------------
+        F     = 0;
         for j = 1:T
+            
+            % evaluate free energy
+            %--------------------------------------------------------------
             v     = 0;
             if j == 1, v = qD;                   end
             if j <= t, v = v + qA(o(j),:)';      end
             if j >  1, v = v + qH *x(:,j - 1,k); end
-            if j <  T, v = v + qH'*x(:,j + 1,k); end
             
             qx       = log(x(:,j,k));
-            dx       = exp(qx/8).*(qx - v);
-            x(:,j,k) = spm_softmax(qx - dx/16);
+            F        = F + x(:,j,k)'*(qx - v);
+            
+            % complete gradient and update
+            %--------------------------------------------------------------
+            if j <  T, v = v + qH'*x(:,j + 1,k); end
+            
+            dx       = qx - v;
+            x(:,j,k) = spm_softmax(qx - dx/8);
+                
         end
     end
     
@@ -372,28 +395,50 @@ for t  = 1:T
         R = R & u(1:Np,t - 1)' > 1/1000;
     end
     w     = find(R);
-    rt(t) = length(w);
     for k = w
         
+        % gradient descent on free energy
+        %------------------------------------------------------------------
         for i = 1:Ni
-            n     = (t - 1)*Ni + i;
+            F = 0;
+            n = (t - 1)*Ni + i;
             for j = 1:T
-                v     = 0;
-                if j == 1, v = qD;                               end
-                if j <= t, v = v + qA(o(j),:)';                  end
-                if j >  1, v = v + qB{V(j - 1,k)} *x(:,j - 1,k); end
-                if j <  T, v = v + qB{V(j,    k)}'*x(:,j + 1,k); end
                 
-                qx       = log(x(:,j,k));
-                dx       = exp(qx/8).*(qx - v);
-                x(:,j,k) = spm_softmax(qx - dx/16);
+                % evaluate free energy
+                %----------------------------------------------------------
+                v    = 0;
+                if j == 1, v = qD;                                  end
+                if j <= t, v = v + qA(o(j),:)';                     end
+                if j >  1, v = v + log(sB{V(j - 1,k)}*x(:,j - 1,k)); end
+                
+                xj       = x(:,j,k);
+                qx       = log(xj);
+                F        = F + xj'*(qx - v);
+                                
+                % complete gradient and update
+                %----------------------------------------------------------
+                if j <  T, v = v + log(sB{V(j,k)}'*x(:,j + 1,k));    end
+
+                dx       = qx - v;
+                x(:,j,k) = spm_softmax(qx - dx/8);
                 
                 % record neuronal activity
-                %--------------------------------------------------------------
-                xn(n,:,j,k) = dx;
+                %----------------------------------------------------------
+                xn(i,:,j,t,k) = x(:,j,k) - xj;
 
             end
-        end
+            
+            % convergence
+            %--------------------------------------------------------------
+            if i > 1
+                dF = F0 - F;
+                if dF > 1/128, F0 = F0 - dF; else, break, end
+            else
+                F0 = F;
+                
+            end
+            
+        end 
     end
     
     
@@ -445,7 +490,8 @@ for t  = 1:T
                 W(t) = MDP.w;
             end
         else
-            qbeta = qbeta + (beta - u(w,t)'*Q(w) - qbeta)*3/4;
+            v     = beta - u(w,t)'*Q(w) - qbeta;
+            qbeta = qbeta + v*3/4;
             W(t)  = alpha/qbeta;
         end
         
@@ -458,7 +504,10 @@ for t  = 1:T
         
     end
     
-
+    % processing time
+    %------------------------------------------------------------------
+    rt(t) = toc(tstart);
+    
     % action selection and sampling of next state (outcome)
     %======================================================================
     if t < T
@@ -589,12 +638,13 @@ end
 for i = 1:T
     X(:,i) = squeeze(x(:,i,:))*u(:,T - 1);
 end
-Xn    = zeros(size(xn(:,:,:,1)));
+Xn    = zeros(Ni,Ns,T,T);
 for i = 1:T
     for k = 1:Np
-        Xn(:,:,i) = Xn(:,:,i) + xn(:,:,i,k)*u(k,i);
+        Xn(:,:,:,i) = Xn(:,:,:,i) + xn(:,:,:,i,k)*u(k,i);
     end
 end
+
 
 % learning
 %==========================================================================
@@ -632,7 +682,7 @@ end
 
 % simulated dopamine responses
 %--------------------------------------------------------------------------
-dn  = gradient(wn) + wn/16;
+dn  = gradient(wn) + wn/64;
 if OPTIONS.plot
     subplot(3,2,6), hold on
     bar(4*dn,'c'), plot(wn,'k'), hold off

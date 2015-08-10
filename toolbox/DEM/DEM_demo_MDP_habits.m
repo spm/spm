@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6511 2015-08-02 15:05:41Z karl $
+% $Id: DEM_demo_MDP_habits.m 6517 2015-08-10 11:21:53Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -68,7 +68,7 @@ C  = c*[-1 -1 1 -1 -1 1 0 0]';
 
 % prior beliefs about initial state
 %--------------------------------------------------------------------------
-d  = kron([1 0 0 0],[8 8])' + 1;
+d  = kron([1 0 0 0],[4 4])' + 1;
 
 % allowable policies (of depth T)
 %--------------------------------------------------------------------------
@@ -77,8 +77,8 @@ V  = [1  1  1  1  2  3  4  4  4  4
 
 % true initial states
 %--------------------------------------------------------------------------
-nt    = 3;                         % number of trials
-s     = [0 1 1 1 1 0 0 1 ones(1,128)];
+nt    = 16;                         % number of trials
+s     = [1 1 0 1 1 1 1 1 1 1 1 0 1 1 1 1];
 for i = 1:nt
     p    = rand > 1/2;
     p    = s(i);
@@ -102,12 +102,18 @@ for i = 1:length(S)
 
 end
 
-% Solve - an example game
+% Solve - an example game: a run of reds with an oddball
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
 OPTIONS.plot  = gcf;
 OPTIONS.habit = 0;
 MDP           = spm_MDP_VB(MDP,OPTIONS);
+
+spm_figure('GetWin','Figure 2'); clf
+spm_MDP_VB_LFP(MDP)
+
+spm_figure('GetWin','Figure 3'); clf
+spm_MDP_VB_LFP(MDP(1:2),[4 6;3 3])
 
 
 return
