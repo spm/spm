@@ -26,15 +26,7 @@ else
     end
     if nargin == 3 && strncmpi(format,'vtk',3)
         format = lower(format(5:end));
-        if isempty(format), format = 'legacy-ascii'; end
-        switch lower(format)
-            case {'legacy','legacy-ascii','legacy-binary'}
-                ext = '.vtk';
-            case {'xml','xml-ascii','xml-binary','xml-appended'}
-                ext = '.vtp';
-            otherwise
-                error('Unknown file format.');
-        end
+        ext = '.vtk';
     end
     [p,f,e] = fileparts(filename);
     if strcmpi(e,'.gii')
@@ -49,54 +41,32 @@ else
     filename = fullfile(p,[f e]);
 end
 
-% Open file for writing
-%--------------------------------------------------------------------------
-fid = fopen(filename,'wt');
-if fid == -1
-    error('Unable to write file %s: permission denied.',filename);
-end
-
 % Write file
 %--------------------------------------------------------------------------
+s = struct(this);
+
 switch ext
     case '.dae'
-        fid = save_dae(fid,this);
+        save_dae(s,filename);
     case '.idtf'
-        fid = save_idtf(fid,this);
+        save_idtf(s,filename);
     case {'.vtk','.vtp'}
         if nargin < 3, format = 'legacy-ascii'; end
-        switch lower(format)
-            case {'legacy','legacy-ascii'}
-                fid = save_vtk_legacy(fid,this,'ASCII');
-            case {'legacy-binary'}
-                fid = save_vtk_legacy(fid,this,'BINARY');
-            case {'xml','xml-ascii'}
-                fid = save_vtk_xml(fid,this,'ASCII');
-            case {'xml-binary'}
-                fid = save_vtk_xml(fid,this,'BINARY');
-            case {'xml-appended'}
-                fid = save_vtk_xml(fid,this,'APPENDED');
-            otherwise
-                error('Unknown file format.');
-        end
+        mvtk_write(s,filename,format);
     otherwise
         error('Unknown file format.');
 end
 
-% Close file
-%--------------------------------------------------------------------------
-fclose(fid);
 
 %==========================================================================
-% function fid = save_dae(fid,this)
+% function save_dae(s,filename)
 %==========================================================================
-function fid = save_dae(fid,this)
+function save_dae(s,filename)
 
 o = @(x) blanks(x*3);
 
 % Split the mesh into connected components
 %--------------------------------------------------------------------------
-s = struct(this);
 try
     C = spm_mesh_label(s.faces);
     d = [];
@@ -111,7 +81,14 @@ try
     end
     s = d;
 end
-    
+
+% Open file for writing
+%--------------------------------------------------------------------------
+fid = fopen(filename,'wt');
+if fid == -1
+    error('Unable to write file %s: permission denied.',filename);
+end
+
 % Prolog & root of the Collada XML file
 %--------------------------------------------------------------------------
 fprintf(fid,'<?xml version="1.0"?>\n');
@@ -179,7 +156,7 @@ for i=1:numel(s)
     fprintf(fid,'%s<mesh>\n',o(3));
     fprintf(fid,'%s<source id="shape%d-positions">\n',o(4),i);
     fprintf(fid,'%s<float_array id="shape%d-positions-array" count="%d">',o(5),i,numel(s(i).vertices));
-    fprintf(fid,'%f ',repmat(s(i).vertices',1,[]));
+    fprintf(fid,'%f ',reshape(s(i).vertices',1,[]));
     fprintf(fid,'</float_array>\n');
     fprintf(fid,'%s<technique_common>\n',o(5));
     fprintf(fid,'%s<accessor count="%d" offset="0" source="#shape%d-positions-array" stride="3">\n',o(6),size(s(i).vertices,1),i);
@@ -195,7 +172,7 @@ for i=1:numel(s)
     fprintf(fid,'%s<triangles material="material%d" count="%d">\n',o(4),i,size(s(i).faces,1));
     fprintf(fid,'%s<input semantic="VERTEX" source="#shape%d-vertices" offset="0"/>\n',o(5),i);
     fprintf(fid,'%s<p>',o(5));
-    fprintf(fid,'%d ',repmat(s(i).faces',1,[])-1);
+    fprintf(fid,'%d ',reshape(s(i).faces',1,[])-1);
     fprintf(fid,'</p>\n');
     fprintf(fid,'%s</triangles>\n',o(4));
     fprintf(fid,'%s</mesh>\n',o(3));
@@ -228,14 +205,17 @@ fprintf(fid,'%s</scene>\n',o(1));
 %--------------------------------------------------------------------------
 fprintf(fid,'</COLLADA>\n');
 
+% Close file
+%--------------------------------------------------------------------------
+fclose(fid);
+
+
 %==========================================================================
-% function fid = save_idtf(fid,this)
+% function save_idtf(s,filename)
 %==========================================================================
-function fid = save_idtf(fid,this)
+function save_idtf(s,filename)
 
 o = @(x) blanks(x*3);
-
-s = struct(this);
 
 % Compute normals
 %--------------------------------------------------------------------------
@@ -278,6 +258,13 @@ try
         end
     end
     s = d;
+end
+
+% Open file for writing
+%--------------------------------------------------------------------------
+fid = fopen(filename,'wt');
+if fid == -1
+    error('Unable to write file %s: permission denied.',filename);
 end
 
 % FILE_HEADER
@@ -373,271 +360,6 @@ for i=1:numel(s)
     fprintf(fid,'}\n');
 end
 
-%==========================================================================
-% function fid = save_vtk_legacy(fid,this,format)
-%==========================================================================
-function fid = save_vtk_legacy(fid,this,format)
-
-if nargin == 2, format = 'ASCII'; end
-switch upper(format)
-    case 'ASCII'
-        write_data = @(fid,fmt,prec,dat) fprintf(fid,fmt,dat); 
-    case 'BINARY'
-        filename = fopen(fid);
-        fclose(fid);
-        fid = fopen(filename,'wb','ieee-be');
-        write_data = @(fid,fmt,prec,dat) fwrite(fid,dat,prec);
-    otherwise
-        error('Unknown file format.');
-end
-
-s = struct(this);
-
-if ~isfield(s,'normals')
-    try
-        s.normals = spm_mesh_normals(...
-            struct('vertices',s.vertices,'faces',s.faces),true);
-    catch
-        s.normals = [];
-    end
-end
-
-%- Part 1: file version and identifier
-fprintf(fid,'# vtk DataFile Version 2.0\n');
-
-%- Part 2: header
-hdr = 'Saved using @gifti';
-fprintf(fid,'%s\n',hdr(1:min(length(hdr),256)));
-
-%- Part 3: file format
-fprintf(fid,'%s\n',format);
-
-%- Part 4: dataset structure
-fprintf(fid,'DATASET POLYDATA\n');
-if isfield(s,'vertices')
-    fprintf(fid,'POINTS %d %s\n',size(s.vertices,1),'float');
-    write_data(fid,'%f %f %f\n','float32',s.vertices');
-end
-if isfield(s,'faces')
-    fprintf(fid,'POLYGONS %d %d\n',size(s.faces,1),size(s.faces,1)*4);
-    dat = int32([3*ones(1,size(s.faces,1)); (s.faces'-1)]);
-    write_data(fid,'%d %d %d %d\n','uint32',dat);
-end
-fprintf(fid,'\n');
-
-%- Part 5: dataset attributes
-point_data_hdr = false;
-if isfield(s,'normals') && ~isempty(s.normals)
-    if ~point_data_hdr
-        fprintf(fid,'POINT_DATA %d\n',size(s.vertices,1));
-        point_data_hdr = true;
-    end
-    fprintf(fid,'NORMALS %s %s\n','normals','float');
-    write_data(fid,'%f %f %f\n','float32',-s.normals');
-end
-if isfield(s,'cdata') && ~isempty(s.cdata)
-    if ~point_data_hdr
-        fprintf(fid,'POINT_DATA %d\n',size(s.cdata,1));
-        point_data_hdr = true;
-    end
-    fprintf(fid,'SCALARS %s %s %d\n','cdata','float',size(s.cdata,2));
-    fprintf(fid,'LOOKUP_TABLE default\n');
-    fmt = repmat('%f ',1,size(s.cdata,2)); fmt(end) = '';
-    write_data(fid,[fmt '\n'],'float32',s.cdata');
-end
-
-%==========================================================================
-% function fid = save_vtk_xml(fid,this,format)
-%==========================================================================
-function fid = save_vtk_xml(fid,this,format)
-
-if nargin == 2, format = 'ascii'; else format = lower(format); end
-clear store_appended_data
-switch format
-    case 'ascii'
-        write_data = @(fmt,dat) deal('',sprintf(fmt,dat));
-    case 'binary'
-        write_data = @(fmt,dat) deal('',[...
-            base64encode(typecast(uint32(numel(dat)*numel(typecast(dat(1),'uint8'))),'uint8')) ...
-            base64encode(typecast(dat(:),'uint8'))]);
-    case 'appended'
-        store_appended_data('start');
-        store_appended_data('base64'); % format: raw, [base64]
-        store_appended_data('none'); % compression: none, [zlib]
-        write_data = @(fmt,dat) deal(sprintf(' offset="%d"',store_appended_data(fmt,dat)),'');
-    otherwise
-        error('Unknown format.');
-end
-
-o = @(x) blanks(x*3);
-
-s = struct(this);
-
-if ~isfield(s,'normals')
-    try
-        s.normals = spm_mesh_normals(...
-            struct('vertices',s.vertices,'faces',s.faces),true);
-    catch
-        s.normals = [];
-    end
-end
-
-%- XML prolog
-fprintf(fid,'<?xml version="1.0"?>\n');
-
-%- VTKFile
-hdr = struct;
-hdr.type = 'PolyData';
-hdr.version = '0.1';
-hdr.byte_order = 'LittleEndian';
-hdr.header_type = 'UInt32';
-if strcmp(store_appended_data('compression'),'zlib')
-    hdr.compressor = 'vtkZLibDataCompressor';
-end
-fprintf(fid,'<VTKFile');
-for i=fieldnames(hdr)'
-    fprintf(fid,' %s="%s"',i{1},hdr.(i{1}));
-end
-fprintf(fid,'>\n');
-
-%- PolyData
-fprintf(fid,'%s<PolyData>\n',o(1));
-fprintf(fid,['%s<Piece NumberOfPoints="%d" NumberOfVerts="%d" NumberOfLines="%d" ' ...
-    'NumberOfStrips="%d" NumberOfPolys="%d">\n'],o(2),...
-    size(s.vertices,1),0,0,0,size(s.faces,1));
-
-%- PointData
-fprintf(fid,'%s<PointData Scalars="scalars" Normals="normals">\n',o(3));
-if isfield(s,'cdata') && ~isempty(s.cdata)
-    [dat1,dat2] = write_data('%f ',single(s.cdata'));
-    fprintf(fid,'%s<DataArray type="%s" Name="%s" NumberOfComponents="%d" format="%s"%s>%s</DataArray>\n',o(4),...
-        'Float32','scalars',size(s.cdata,2),lower(format),dat1,dat2);
-end
-if isfield(s,'normals') && ~isempty(s.normals)
-    [dat1,dat2] = write_data('%f ',single(-s.normals'));
-    fprintf(fid,'%s<DataArray type="%s" Name="%s" NumberOfComponents="%d" format="%s"%s>%s</DataArray>\n',o(4),...
-        'Float32','normals',3,lower(format),dat1,dat2);
-end
-fprintf(fid,'%s</PointData>\n',o(3));
-
-%- CellData
-fprintf(fid,'%s<CellData/>\n',o(3));
-
-%- Points
-fprintf(fid,'%s<Points>\n',o(3));
-if isfield(s,'vertices')
-    [dat1,dat2] = write_data('%f ',single(s.vertices'));
-    fprintf(fid,'%s<DataArray type="%s" Name="%s" NumberOfComponents="%d" format="%s"%s>%s</DataArray>\n',o(4),...
-        'Float32','Vertices',3,lower(format),dat1,dat2);
-end
-fprintf(fid,'%s</Points>\n',o(3));
-
-%- Verts
-fprintf(fid,'%s<Verts/>\n',o(3));
-
-%- Lines
-fprintf(fid,'%s<Lines/>\n',o(3));
-
-%- Strips
-fprintf(fid,'%s<Strips/>\n',o(3));
-
-%- Polys
-fprintf(fid,'%s<Polys>\n',o(3));
-if isfield(s,'faces')
-    [dat1,dat2] = write_data('%d ',uint32(s.faces'-1));
-    fprintf(fid,'%s<DataArray type="%s" Name="%s" format="%s"%s>%s</DataArray>\n',o(4),...
-        'UInt32','connectivity',lower(format),dat1,dat2);
-    [dat1,dat2] = write_data('%d ',uint32(3:3:3*size(s.faces,1)));
-    fprintf(fid,'%s<DataArray type="%s" Name="%s" format="%s"%s>%s</DataArray>\n',o(4),...
-        'UInt32','offsets',lower(format),dat1,dat2);
-end
-fprintf(fid,'%s</Polys>\n',o(3));
-
-fprintf(fid,'%s</Piece>\n',o(2));
-fprintf(fid,'%s</PolyData>\n',o(1));
-
-%- AppendedData
-if strcmp(format,'appended')
-    dat = store_appended_data('retrieve');
-    store_appended_data('stop');
-    fprintf(fid,'%s<AppendedData encoding="%s">\n',o(1),store_appended_data('encoding'));
-    fprintf(fid,'%s_',o(2));
-    fwrite(fid,dat);
-    fprintf(fid,'\n%s</AppendedData>\n',o(1));
-end
-
-fprintf(fid,'</VTKFile>\n');
-
-%==========================================================================
-% function varargout = store_appended_data(fmt,dat)
-%==========================================================================
-function varargout = store_appended_data(fmt,dat)
-
-persistent fid encoding compression
-
-if isempty(encoding), encoding = 'raw'; end
-if isempty(compression), compression = 'none'; end
-if ~nargin, fmt = 'start'; end
-if nargin < 2
-    switch lower(fmt)
-        case 'start'
-            filename = tempname;
-            fid = fopen(filename,'w+b');
-            if fid == -1
-                error('Cannot open temporary file.');
-            end
-            varargout = {};
-        case 'stop'
-            filename = fopen(fid);
-            fclose(fid);
-            delete(filename);
-            varargout = {};
-        case 'retrieve'
-            frewind(fid);
-            varargout = {fread(fid)};
-        case 'encoding'
-            varargout = {encoding};
-        case 'compression'
-            varargout = {compression};
-        case {'raw','base64'}
-            encoding = fmt;
-        case {'none','zlib'}
-            compression = fmt;
-        otherwise
-            error('Unknown action.');
-    end
-    return;
-end
-
-varargout = {ftell(fid)};
-N = uint32(numel(dat)*numel(typecast(dat(1),'uint8')));
-switch encoding
-    case 'raw'
-        switch compression
-            case 'none'
-                dat = typecast(dat(:),'uint8');
-                hdr = N;
-            case 'zlib'
-                dat = zstream('C',typecast(dat(:),'uint8'));
-                hdr = uint32([1 N N numel(dat)]);
-            otherwise
-                error('Unknown compression.');
-        end
-        fwrite(fid,hdr,'uint32');
-        fwrite(fid,dat,class(dat));
-    case 'base64'
-        switch compression
-            case 'none'
-                dat = typecast(dat(:),'uint8');
-                hdr = N;
-            case 'zlib'
-                dat = zstream('C',typecast(dat(:),'uint8'));
-                hdr = uint32([1 N N numel(dat)]);
-            otherwise
-                error('Unknown compression.');
-        end
-        fwrite(fid,base64encode(typecast(hdr,'uint8')));
-        fwrite(fid,base64encode(dat));
-    otherwise
-        error('Unknown encoding.');
-end
+% Close file
+%--------------------------------------------------------------------------
+fclose(fid);
