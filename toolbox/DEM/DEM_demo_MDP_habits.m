@@ -21,10 +21,10 @@ function MDP = DEM_demo_MDP_habits
 % maximising information gain or epistemic value by moving to the lower arm
 % and then claiming the reward this signified. Here, there are eight hidden
 % states (four locations times right or left reward), four control states
-% (that take the agent to the four locations) and 16 outcomes (four
+% (that take the agent to the four locations) and 8 outcomes (four
 % locations times two cues times two rewards).  The central location has an
 % ambiguous or uninformative cue outcome, while the upper arms are rewarded
-% probabilistically with an 80% schedule.
+% probabilistically with an 90% schedule.
 %
 % A single trial is simulated followed by an examination of dopaminergic
 % responses to conditioned and unconditioned stimuli (cues and rewards). A
@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6517 2015-08-10 11:21:53Z karl $
+% $Id: DEM_demo_MDP_habits.m 6519 2015-08-11 19:06:57Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -45,12 +45,15 @@ function MDP = DEM_demo_MDP_habits
 
 % observation probabilities
 %--------------------------------------------------------------------------
-a      = .9;
-A{1,1} = [.5 .5; .5 .5];
-A{2,2} = [a (1 - a); (1 - a) a];
-A{3,3} = [(1 - a) a; a (1 - a)];
-A{4,4} = [1 0; 0 1];
-A      = spm_cat(A);
+a      = .95;
+b      = 1 - a;
+A      = [1 1 0 0 0 0 0 0;
+          0 0 a b 0 0 0 0;
+          0 0 b a 0 0 0 0;
+          0 0 0 0 b a 0 0;
+          0 0 0 0 a b 0 0;
+          0 0 0 0 0 0 1 0;
+          0 0 0 0 0 0 0 1];
 
 % transition probabilities: states = [centre,L,R,cue] x [R,L]
 %--------------------------------------------------------------------------
@@ -64,7 +67,7 @@ end
 % priors: (utility)
 %--------------------------------------------------------------------------
 c  = 2;
-C  = c*[-1 -1 1 -1 -1 1 0 0]';
+C  = c*[-2 -2 1 -1 -1 1 0 0]';
 
 % prior beliefs about initial state
 %--------------------------------------------------------------------------
@@ -77,8 +80,8 @@ V  = [1  1  1  1  2  3  4  4  4  4
 
 % true initial states
 %--------------------------------------------------------------------------
-nt    = 16;                         % number of trials
-s     = [1 1 0 1 1 1 1 1 1 1 1 0 1 1 1 1];
+nt    = 12;                         % number of trials
+s     = [0 1 0 1 1 1 1 1 1 1 1 0 1 1 1 1 ones(1,128)];
 for i = 1:nt
     p    = rand > 1/2;
     p    = s(i);
@@ -97,23 +100,36 @@ for i = 1:length(S)
     MDP(i).C = C;                   % terminal cost probabilities (priors)
     MDP(i).d = d;                   % initial state probabilities (priors)
     
-    MDP(i).alpha  = 64;             % gamma hyperparameter
-    MDP(i).beta   = 4;              % gamma hyperparameter
+    MDP(i).alpha  = 32;             % gamma hyperparameter
+    MDP(i).beta   = 2;              % gamma hyperparameter
 
 end
 
-% Solve - an example game: a run of reds with an oddball
+% Solve - an example game: a run of reds then an oddball
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
 OPTIONS.plot  = gcf;
-OPTIONS.habit = 0;
+OPTIONS.habit = 1;
+
+% illustrate behavioural respsonses and neuronal correlates
+%--------------------------------------------------------------------------
 MDP           = spm_MDP_VB(MDP,OPTIONS);
+set(gcf,'Tag','Figire 1a','name','Figure 1a')
 
+% illustrate phase-amplitude (theta-gamma) coupling
+%--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2'); clf
-spm_MDP_VB_LFP(MDP)
+spm_MDP_VB_LFP(MDP);
 
+% illustrate phase-precession and responses to chosen option
+%--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
-spm_MDP_VB_LFP(MDP(1:2),[4 6;3 3])
+spm_MDP_VB_LFP(MDP(1:2),[4 6;3 3]);
+
+% illustrate oddball responses (MMN)
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 4'); clf
+spm_MDP_VB_LFP(MDP(11:12),[3 4;2 2]);
 
 
 return

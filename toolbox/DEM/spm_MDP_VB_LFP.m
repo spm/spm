@@ -7,7 +7,7 @@ function [MDP] = spm_MDP_VB_LFP(MDP,UNITS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 6517 2015-08-10 11:21:53Z karl $
+% $Id: spm_MDP_VB_LFP.m 6519 2015-08-11 19:06:57Z karl $
 
 
 % deal with a sequence of trials
@@ -62,9 +62,9 @@ end
 % phase amplitude coupling
 %==========================================================================
 dt  = 1/64;                              % time bin (seconds)
-t   = (1:(Nb*NT*Nt))*dt;                    % ime (seconds)
+t   = (1:(Nb*NT*Nt))*dt;                 % ime (seconds)
 Hz  = 4:32;                              % frequency range
-n   = 1/(2*dt);                          % window length
+n   = 1/(4*dt);                          % window length
 w   = Hz*(dt*n);                         % cycles per window
 K   = exp(-(Hz - 4).^2/4);               % filter (theta)
 
@@ -99,12 +99,13 @@ if Nt == 1, axis square, end
 % local field potentials
 %==========================================================================
 if Nt == 1, subplot(2,2,2), else subplot(4,1,3),end
-plot(t,spm_cat(x),':'), hold on
-plot(t,spm_cat(u)),     hold off
+plot(t,spm_cat(u)),     hold on, spm_axis tight, a = axis;
+plot(t,spm_cat(x),':'), hold off
+
 title('local field potentials','FontSize',16)
 xlabel('time (updates)','FontSize',12)
-ylabel('Response','FontSize',12), spm_axis tight
-grid on, set(gca,'XTick',(1:(NT*Nt))*Nb*dt)
+ylabel('Response','FontSize',12)
+grid on, set(gca,'XTick',(1:(NT*Nt))*Nb*dt), axis(a);
 if Nt == 1, axis square, end
 
 % simulated dopamine responses

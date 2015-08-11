@@ -101,7 +101,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB.m 6517 2015-08-10 11:21:53Z karl $
+% $Id: spm_MDP_VB.m 6519 2015-08-11 19:06:57Z karl $
 
 
 % deal with a sequence of trials
@@ -155,8 +155,9 @@ if length(MDP) > 1
             s(:,i) = MDP(i).S(:,1);
             d(:,i) = MDP(i).d/sum(MDP(i).d);
             w(:,i) = MDP(i).da;
-            p(i)   = sum(sum(MDP(i).C.*MDP(i).S))/NT;
-            q(i)   = sum(MDP(i).rt);
+            p(i)   = trace(MDP(i).C'*MDP(i).S)/NT;
+            p(i)   = trace(log(MDP(i).A*spm_softmax(MDP(i).C))'*MDP(i).O)/NT;
+            q(i)   = sum(MDP(i).rt(2:end));
         end
                 
         % Initial tates and expected policies (habit in red)
@@ -258,7 +259,6 @@ if isfield(MDP,'a')
 else
     qA = log(A);
 end
-hA  = sum(spm_softmax(qA).*qA)';    % negentropy of observations
 
 % transition probabilities (priors)
 %--------------------------------------------------------------------------
@@ -272,9 +272,11 @@ for i = 1:Nu
     if isfield(MDP,'b')
         qB{i} = psi(MDP.b{i}) - ones(Ns,1)*psi(sum(MDP.b{i}));
         sB{i} = spm_softmax(qB{i});
+        rB{i} = spm_softmax(log(B{i})');
     else
         qB{i} = log(B{i});
         sB{i} = B{i};
+        rB{i} = spm_softmax(log(B{i})');
     end
 end
 
@@ -294,11 +296,13 @@ try
 catch
     h  = 1;
     for j = 1:Nu
-        h = h + B{j}*2;
+        h = h + B{j}*4;
     end
     MDP.h = h;
 end
 qH     = psi(h) - ones(Ns,1)*psi(sum(h));
+sH     = spm_softmax(qH);
+rH     = spm_softmax(log(qH)');
 
 
 % terminal probabilities (priors)
@@ -311,16 +315,29 @@ end
 C     = log(spm_softmax(C));
 
 % asume constant preferences if only final states are specified
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if size(C,2) ~= T
     C = C(:,end)*ones(1,T);
+end
+
+% OPTIONS
+%--------------------------------------------------------------------------
+switch OPTIONS.scheme
+    case{'Free Energy','FE'}
+        hA = sum(spm_softmax(qA).*qA)';
+        
+    case{'KL Control','KL','Expected Utility','EU','RL'}
+        hA = 0;
+
+    otherwise
+        disp(['unkown option: ' OPTIONS])
 end
 
 % policies and their expectations
 %--------------------------------------------------------------------------
 V  = MDP.V;                         % allowable policies (T - 1,Np)
 Np = size(V,2);                     % number of allowable policies
-R  = ones(1,Np);                    % policies in play
+R  = ones(Np,1);                    % policies in play
 N  = 8;                             % iterations of precision
 
 % initial states and outcomes
@@ -339,7 +356,10 @@ u  = zeros(Np + 1,T - 1);           % expectations of policy
 a  = zeros(1, T - 1);               % action (index)
 W  = zeros(1, T);                   % posterior precision
 
+% add utility to expected sates (for display purposes)
+%--------------------------------------------------------------------------
 X(:,T + 1) = spm_softmax(hA + C(:,end));
+
 
 % solve
 %==========================================================================
@@ -350,9 +370,10 @@ wn     = zeros(T*N,1);              % simulated DA responses
 qbeta  = beta;                      % expected rate parameter
 for t  = 1:T
     
-    % processing time
-    %------------------------------------------------------------------
+    % processing time and reset
+    %----------------------------------------------------------------------
     tstart = tic;
+    x      = spm_softmax(log(x)/2);
     
     % Variational updates (hidden states) under habitual policies
     %======================================================================
@@ -364,23 +385,30 @@ for t  = 1:T
         F     = 0;
         for j = 1:T
             
-            % evaluate free energy
+            % evaluate free energy and gradients
             %--------------------------------------------------------------
             v     = 0;
-            if j == 1, v = qD;                   end
-            if j <= t, v = v + qA(o(j),:)';      end
-            if j >  1, v = v + qH *x(:,j - 1,k); end
+            if j == 1, v = qD;                  end
+            if j <= t, v = v + qA(o(j),:)';     end
+            if j >  1, v = v + sH*x(:,j - 1,k); end
+            if j <  T, v = v + rH*x(:,j + 1,k); end
             
-            qx       = log(x(:,j,k));
-            F        = F + x(:,j,k)'*(qx - v);
-            
-            % complete gradient and update
+            % update
             %--------------------------------------------------------------
-            if j <  T, v = v + qH'*x(:,j + 1,k); end
-            
+            qx       = log(x(:,j,k));
             dx       = qx - v;
             x(:,j,k) = spm_softmax(qx - dx/8);
-                
+            F        = F + x(:,j,k)'*dx;
+            
+        end
+        
+        % convergence
+        %--------------------------------------------------------------
+        if i > 1
+            dF = F0 - F;
+            if dF > 1/128, F0 = F0 - dF; else, break, end
+        else
+            F0 = F;
         end
     end
     
@@ -391,36 +419,33 @@ for t  = 1:T
     % retain allowable policies (that are consistent with last action)
     %----------------------------------------------------------------------
     if t > 1
-        R = R & ismember(V(t - 1,:),a(t - 1));
-        R = R & u(1:Np,t - 1)' > 1/1000;
+        R = u(1:Np,t - 1) > 1/128;
     end
-    w     = find(R);
+    w     = find(R)';
     for k = w
         
         % gradient descent on free energy
         %------------------------------------------------------------------
         for i = 1:Ni
             F = 0;
-            n = (t - 1)*Ni + i;
             for j = 1:T
                 
-                % evaluate free energy
+                % evaluate free energy and gradients
                 %----------------------------------------------------------
                 v    = 0;
-                if j == 1, v = qD;                                  end
-                if j <= t, v = v + qA(o(j),:)';                     end
+                if j == 1, v = qD;                                   end
+                if j <= t, v = v + qA(o(j),:)';                      end
                 if j >  1, v = v + log(sB{V(j - 1,k)}*x(:,j - 1,k)); end
+                if j <  T, v = v + log(rB{V(j    ,k)}*x(:,j + 1,k)); end
                 
+                % update
+                %----------------------------------------------------------
                 xj       = x(:,j,k);
                 qx       = log(xj);
-                F        = F + xj'*(qx - v);
-                                
-                % complete gradient and update
-                %----------------------------------------------------------
-                if j <  T, v = v + log(sB{V(j,k)}'*x(:,j + 1,k));    end
-
                 dx       = qx - v;
                 x(:,j,k) = spm_softmax(qx - dx/8);
+                
+                F        = F + xj'*dx;
                 
                 % record neuronal activity
                 %----------------------------------------------------------
@@ -435,7 +460,6 @@ for t  = 1:T
                 if dF > 1/128, F0 = F0 - dF; else, break, end
             else
                 F0 = F;
-                
             end
             
         end 
@@ -452,24 +476,23 @@ for t  = 1:T
         
         % path integral of expected free energy
         %------------------------------------------------------------------
-        for j = (t + 1):T
-            
-            switch OPTIONS.scheme
-                case{'Free Energy','FE'}
-                    v = C(:,j) - log(x(:,j,k) + p0) + hA;
-                    
-                case{'KL Control','KL'}
-                    v = C(:,j) - log(x(:,j,k) + p0);
-                    
-                case{'Expected Utility','EU','RL'}
-                    v = C(:,j);
-                    
-                otherwise
-                    disp(['unkown option: ' OPTIONS])
+        for j = 1:T
+            if j == 1
+                v = qD + qA(o(j),:)';
             end
-            Q(k)   = Q(k) + v'*x(:,j,k);
-            
+            if j > 1 && j <= t
+                if k > Np
+                    v = log(sH*x(:,j - 1,k)) + qA(o(j),:)';
+                else
+                    v = log(sB{V(j - 1,k)}*x(:,j - 1,k)) + qA(o(j),:)';
+                end
+            end
+            if j > t
+                v = C(:,j) + hA;
+            end
+            Q(k)  = Q(k) + x(:,j,k)'*(v - log(x(:,j,k)));
         end
+        
     end
     
     % variational updates - policies and precision
@@ -525,8 +548,11 @@ for t  = 1:T
             qo     = A*B{j}*X(:,t);
             P(j,t) = (lnqo - log(qo))'*qo;
         end
-        P(:,t) = spm_softmax(8*P(:,t));
         
+        % accommodate absorbing states (where action is undefined)
+        %------------------------------------------------------------------
+        P(:,t) = spm_softmax(8*P(:,t));
+                
         % next action (the action that minimises expected free energy)
         %------------------------------------------------------------------
         try
@@ -634,7 +660,9 @@ for t  = 1:T
 end
 
 % Baysian model averaging (selection) of hidden states over policies
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
+
+if isempty(w); keyboard; end
 for i = 1:T
     X(:,i) = squeeze(x(:,i,:))*u(:,T - 1);
 end

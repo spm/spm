@@ -14,16 +14,26 @@ function [y] = spm_softmax(x,k)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_softmax.m 6290 2014-12-20 22:11:50Z karl $
+% $Id: spm_softmax.m 6519 2015-08-11 19:06:57Z karl $
  
 % apply
 %--------------------------------------------------------------------------
 if nargin == 1, k = 1; end
 
-n    = size(x,2);
-if n > 1
-    for i = 1:n
-        y(:,i) = spm_softmax(x(:,i),k);
+n    = size(x);
+if n(end) > 1
+    if numel(n) == 4
+        for i = 1:n(end)
+            y(:,:,:,i) = spm_softmax(x(:,:,:,i),k);
+        end
+    elseif numel(n) == 3
+        for i = 1:n(end)
+            y(:,:,i) = spm_softmax(x(:,:,i),k);
+        end
+    else
+        for i = 1:n(end)
+            y(:,i) = spm_softmax(x(:,i),k);
+        end
     end
 else
     x   = k*(x - max(x));
