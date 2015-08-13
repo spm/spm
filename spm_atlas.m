@@ -5,7 +5,7 @@ function varargout = spm_atlas(action,varargin)
 % FORMAT [S,sts] = spm_atlas('select',xA,label)
 % FORMAT Q = spm_atlas('query',xA,XYZmm)
 % FORMAT [Q,P] = spm_atlas('query',xA,xY)
-% FORMAT VM = spm_atlas('mask',xA,label)
+% FORMAT VM = spm_atlas('mask',xA,label,opt)
 % FORMAT V = spm_atlas('prob',xA,label)
 % FORMAT V = spm_atlas('maxprob',xA,thresh)
 % FORMAT D = spm_atlas('dir')
@@ -17,7 +17,7 @@ function varargout = spm_atlas(action,varargin)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_atlas.m 6448 2015-05-22 18:31:04Z guillaume $
+% $Id: spm_atlas.m 6520 2015-08-13 16:13:06Z guillaume $
 
 
 if ~nargin, action = 'load'; end
@@ -245,8 +245,8 @@ case 'query'
 %==========================================================================
 case 'mask'
 %==========================================================================
-    % FORMAT VM = spm_atlas('mask',xA,label)
-    %-Return binary mask for given labels
+    % FORMAT VM = spm_atlas('mask',xA,label,opt)
+    %-Return (binary) mask for given labels
 
     if nargin < 2, xA = ''; else xA = varargin{1}; end
     xA = spm_atlas('load',xA);
@@ -255,6 +255,8 @@ case 'mask'
     label = filter_labels(xA,label);
     
     if numel(xA.VA) == 1 % or xA.info.type contains type definition
+        if nargin < 4 || isempty(varargin{3}), opt = 'binary';
+        else opt = lower(varargin{3}); end
         VM = struct(...
             'fname',   [xA.info.name '_mask' spm_file_ext],...
             'dim',     xA.VA(1).dim,...
@@ -263,13 +265,26 @@ case 'mask'
             'n',       1,...
             'pinfo',   [1 0 0]',...
             'descrip', sprintf('%s mask',xA.info.name));
-        VM.dat = false(VM.dim);
+        if strcmp(opt,'binary')
+            VM.dat = false(VM.dim);
+        else
+            VM.dat = uint8(zeros(VM.dim));
+        end
         
         D = spm_read_vols(xA.VA);
         for i=1:numel(label)
             j = find(ismember({xA.labels.name},label{i}));
             for k=1:numel(j)
-                VM.dat = VM.dat | (D == xA.labels(j(k)).index);
+                idx = xA.labels(j(k)).index;
+                if strcmp(opt,'binary')
+                    VM.dat = VM.dat | (D == idx);
+                elseif strcmp(opt,'atlas')
+                    VM.dat(D == idx) = i;
+                elseif strcmp(opt,'preserve')
+                    VM.dat(D == idx) = idx;
+                else
+                    error('Unknown option.');
+                end
             end
         end
         VM.dat = uint8(VM.dat);

@@ -50,12 +50,12 @@ function varargout = spm_surf(P,mode,thresh)
 % 0.5. The input segmentation images can be manually cleaned up first using
 % e.g., MRIcron.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_surf.m 5101 2012-12-07 18:23:20Z guillaume $
+% $Id: spm_surf.m 6520 2015-08-13 16:13:06Z guillaume $
 
-SVNrev = '$Rev: 5101 $';
+SVNrev = '$Rev: 6520 $';
 
 spm('FnBanner',mfilename,SVNrev);
 spm('FigName','Surface');
@@ -64,10 +64,14 @@ spm('FigName','Surface');
 %--------------------------------------------------------------------------
 try
     if isstruct(P)
-        job    = P;
-        P      = char(job.data);
-        mode   = job.mode;
-        thresh = job.thresh;
+        if all(isfield(P,{'data','mode','thresh'}))
+            job    = P;
+            P      = char(job.data);
+            mode   = job.mode;
+            thresh = job.thresh;
+        else
+            % P is an spm_vol struct array
+        end
     end
 catch
     [P, sts] = spm_select([1 Inf],'image','Select images');
@@ -113,10 +117,10 @@ function out = surfext(P,mode,thresh)
 
 V  = spm_vol(P);
 br = zeros(V(1).dim(1:3));
-for i=1:V(1).dim(3),
+for i=1:V(1).dim(3)
     B         = spm_matrix([0 0 i]);
     tmp       = spm_slice_vol(V(1),B,V(1).dim(1:2),1);
-    for j=2:length(V),
+    for j=2:numel(V)
         M   = V(j).mat\V(1).mat*B;
         tmp = tmp + spm_slice_vol(V(j),M,V(1).dim(1:2),1);
     end
@@ -125,11 +129,11 @@ end
 
 % Build a 3x3x3 seperable smoothing kernel and smooth
 %--------------------------------------------------------------------------
-kx=[0.75 1 0.75];
-ky=[0.75 1 0.75];
-kz=[0.75 1 0.75];
-sm=sum(kron(kron(kz,ky),kx))^(1/3);
-kx=kx/sm; ky=ky/sm; kz=kz/sm;
+kx = [0.75 1 0.75];
+ky = [0.75 1 0.75];
+kz = [0.75 1 0.75];
+sm = sum(kron(kron(kz,ky),kx))^(1/3);
+kx = kx/sm; ky = ky/sm; kz = kz/sm;
 spm_conv_vol(br,br,kx,ky,kz,-[1 1 1]);
 
 [pth,nam] = spm_fileparts(V(1).fname);

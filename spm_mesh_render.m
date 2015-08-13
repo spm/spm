@@ -35,7 +35,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 5411 2013-04-15 11:45:08Z guillaume $
+% $Id: spm_mesh_render.m 6520 2015-08-13 16:13:06Z guillaume $
 
 
 %-Input parameters
@@ -575,7 +575,8 @@ function mySave(obj,evt,H)
     '*.gii' 'GIfTI files (*.gii)'; ...
     '*.png' 'PNG files (*.png)';...
     '*.dae' 'Collada files (*.dae)';...
-    '*.idtf' 'IDTF files (*.idtf)'}, 'Save as');
+    '*.idtf' 'IDTF files (*.idtf)';...
+    '*.vtk' 'VTK files (*.vtk)'}, 'Save as');
 if ~isequal(filename,0) && ~isequal(pathname,0)
     [pth,nam,ext] = fileparts(filename);
     switch ext
@@ -587,6 +588,8 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
             filterindex = 3;
         case '.idtf'
             filterindex = 4;
+        case {'.vtk','.vtp'}
+            filterindex = 5;
         otherwise
             switch filterindex
                 case 1
@@ -595,6 +598,10 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
                     filename = [filename '.png'];
                 case 3
                     filename = [filename '.dae'];
+                case 4
+                    filename = [filename '.idtf'];
+                case 5
+                    filename = [filename '.vtk'];
             end
     end
     switch filterindex
@@ -642,9 +649,11 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
             close(h);
             set(getappdata(obj,'fig'),'renderer',r);
         case 3
-            save(gifti(H.patch),fullfile(pathname, filename),'collada');
+            saveas(gifti(H.patch),fullfile(pathname, filename),'collada');
         case 4
-            save(gifti(H.patch),fullfile(pathname, filename),'idtf');
+            saveas(gifti(H.patch),fullfile(pathname, filename),'idtf');
+        case 5
+            saveas(gifti(H.patch),fullfile(pathname, filename),'vtk');
     end
 end
 
