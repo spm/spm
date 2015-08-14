@@ -16,7 +16,7 @@ function [B0,BV] = spm_MDP_DP(MDP,OPTION)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_DP.m 6502 2015-07-22 11:37:13Z karl $
+% $Id: spm_MDP_DP.m 6521 2015-08-14 11:02:47Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -30,7 +30,7 @@ if nargin < 2, OPTION = 'Free Energy'; end
 T     = size(MDP.V,1) + 1;        % number of outcomes
 Ns    = size(MDP.B{1},1);         % number of hidden states
 Nu    = size(MDP.B,2);            % number of hidden controls
-p0    = exp(-16);                 % smallest probability
+p0    = exp(-8);                  % smallest probability
 
 % likelihood model (for a partially observed MDP implicit in G)
 %--------------------------------------------------------------------------
@@ -46,23 +46,29 @@ H     = sum(A.*lnA)';             % negentropy of observations
 % transition probabilities (priors)
 %--------------------------------------------------------------------------
 for j = 1:Nu
-    B{j}   = MDP.B{1,j} + p0;
+    B{j}   = MDP.B{j} + p0;
     B{j}   = B{j}*diag(1./sum(B{j}));
+    sB{j}  = B{j};
+    rB{j}  = spm_softmax(log(B{j})');
     lnB{j} = log(B{j});
 end
+
 
 % terminal probabilities (priors)
 %--------------------------------------------------------------------------
 try
-    C = MDP.C + p0;
-    if size(C,2) ~= T
-        C = C(:,end)*ones(1,T);
-    end
+    C = MDP.C;
 catch
-    C = ones(Ns,T);
+    C = zeros(Ns,1);
 end
-C     = C*diag(1./sum(C));
-lnC   = log(C);
+C     = log(spm_softmax(C));
+
+% asume constant preferences if only final states are specified
+%--------------------------------------------------------------------------
+if size(C,2) ~= T
+    C = C(:,end)*ones(1,T);
+end
+
 
 % policies, states and their expectations
 %--------------------------------------------------------------------------
@@ -78,32 +84,50 @@ for s = 1:Ns
     
     % Variational iterations (hidden states)
     %======================================================================
-    x     = zeros(Ns,T,Np);
+    x     = zeros(Ns,T,Np) + 1/Ns;
     for k = 1:Np
         
-        for i = 1:2
+        % gradient descent on free energy
+        %------------------------------------------------------------------
+        for i = 1:16
             
             % hiddens states (x)
             %--------------------------------------------------------------
+            x(:,1,k) = 0;
             x(s,1,k) = 1;
             
-            % future states
-            %--------------------------------------------------------------
-            for j = 2:(T - 1)
-                v = lnB{V(j - 1,k)} *x(:,j - 1,k) + ...
-                    lnB{V(j,    k)}'*x(:,j + 1,k);
-                x(:,j,k) = spm_softmax(v);
+            for j = 2:T
+                
+                % current state
+                %----------------------------------------------------------
+                xj   = x(:,j,k);
+                qx   = log(xj);
+                v    = 0;
+                
+                % evaluate free energy and gradients (v = dFdx)
+                %----------------------------------------------------------
+                if j > 1, v = v + qx - log(sB{V(j - 1,k)}*x(:,j - 1,k)); end
+                if j < T, v = v + qx - log(rB{V(j    ,k)}*x(:,j + 1,k)); end
+                
+                % update
+                %----------------------------------------------------------
+                x(:,j,k) = spm_softmax(qx - v/4);
+                F(j,k)   = xj'*v;
+                
             end
             
-            % last state
+            % convergence
             %--------------------------------------------------------------
-            v = lnB{V(T - 1,k)} *x(:,T - 1,k);
-            x(:,T,k) = spm_softmax(v);
+            if i > 1
+                dF = F0 - sum(F(:,k));
+                if dF > 1/128, F0 = F0 - dF; else, break, end
+            else
+                F0 = sum(F(:,k));
+            end
             
         end
-        
     end
-    
+
     % value of policies (Q)
     %======================================================================
     Q     = zeros(Np,1);
@@ -115,13 +139,13 @@ for s = 1:Ns
             
             switch OPTION
                 case{'Free Energy','FE'}
-                    v = lnC(:,j) - log(x(:,j,k)) + H;
+                    v = C(:,j) - log(x(:,j,k)) + H;
                     
                 case{'KL Control','KL'}
-                    v = lnC(:,j) - log(x(:,j,k));
+                    v = C(:,j) - log(x(:,j,k));
                     
                 case{'Expected Utility','EU','RL'}
-                    v = lnC(:,j);
+                    v = C(:,j);
                     
                 otherwise
                     disp(['unkown option: ' OPTION])
@@ -143,7 +167,7 @@ if nargout < 2, return, end
 % value iteration
 %==========================================================================
 V     = zeros(Ns,1);
-lnC   = lnC(:,end);
+C     = C(:,end);
 g     = 1 - 1/T;
 for i = 1:32
     for s  = 1:Ns
@@ -152,7 +176,7 @@ for i = 1:32
         %------------------------------------------------------------------
         Q     = zeros(Nu,1);
         for k = 1:Nu
-            Q(k)   = B{1,k}(:,s)'*(lnC + g*V);
+            Q(k)   = B{1,k}(:,s)'*(C + g*V);
         end
         
         % optimal transition from this state
@@ -164,7 +188,7 @@ for i = 1:32
     
     % optimal transition from this state
     %----------------------------------------------------------------------
-    dV   = BV'*(lnC + g*V) - V;
+    dV   = BV'*(C + g*V) - V;
     V    = V + dV;
     
     % convergence

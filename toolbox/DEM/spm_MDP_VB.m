@@ -101,7 +101,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB.m 6519 2015-08-11 19:06:57Z karl $
+% $Id: spm_MDP_VB.m 6521 2015-08-14 11:02:47Z karl $
 
 
 % deal with a sequence of trials
@@ -222,7 +222,7 @@ end
 % options and precision defaults
 %--------------------------------------------------------------------------
 try, alpha  = MDP.alpha;  catch, alpha  = 8;             end
-try, beta   = MDP.beta;   catch, beta   = 4;             end
+try, beta   = MDP.beta;   catch, beta   = 2;             end
 
 % set up figure if necessary
 %--------------------------------------------------------------------------
@@ -296,14 +296,11 @@ try
 catch
     h  = 1;
     for j = 1:Nu
-        h = h + B{j}*4;
+        h = h + B{j}*2;
     end
     MDP.h = h;
 end
 qH     = psi(h) - ones(Ns,1)*psi(sum(h));
-sH     = spm_softmax(qH);
-rH     = spm_softmax(log(qH)');
-
 
 % terminal probabilities (priors)
 %--------------------------------------------------------------------------
@@ -337,7 +334,6 @@ end
 %--------------------------------------------------------------------------
 V  = MDP.V;                         % allowable policies (T - 1,Np)
 Np = size(V,2);                     % number of allowable policies
-R  = ones(Np,1);                    % policies in play
 N  = 8;                             % iterations of precision
 
 % initial states and outcomes
@@ -375,43 +371,6 @@ for t  = 1:T
     tstart = tic;
     x      = spm_softmax(log(x)/2);
     
-    % Variational updates (hidden states) under habitual policies
-    %======================================================================
-    k     = Np + 1;
-    for i = 1:Ni
-        
-        % past and future states
-        %------------------------------------------------------------------
-        F     = 0;
-        for j = 1:T
-            
-            % evaluate free energy and gradients
-            %--------------------------------------------------------------
-            v     = 0;
-            if j == 1, v = qD;                  end
-            if j <= t, v = v + qA(o(j),:)';     end
-            if j >  1, v = v + sH*x(:,j - 1,k); end
-            if j <  T, v = v + rH*x(:,j + 1,k); end
-            
-            % update
-            %--------------------------------------------------------------
-            qx       = log(x(:,j,k));
-            dx       = qx - v;
-            x(:,j,k) = spm_softmax(qx - dx/8);
-            F        = F + x(:,j,k)'*dx;
-            
-        end
-        
-        % convergence
-        %--------------------------------------------------------------
-        if i > 1
-            dF = F0 - F;
-            if dF > 1/128, F0 = F0 - dF; else, break, end
-        else
-            F0 = F;
-        end
-    end
-    
     
     % Variational updates (hidden states) under sequential policies
     %======================================================================
@@ -419,33 +378,40 @@ for t  = 1:T
     % retain allowable policies (that are consistent with last action)
     %----------------------------------------------------------------------
     if t > 1
-        R = u(1:Np,t - 1) > 1/128;
+        p = find([u(1:Np,t - 1)' 1] > exp(-4));
+    else
+        p = 1:(Np + 1);
     end
-    w     = find(R)';
-    for k = w
+    
+    for k = p
         
         % gradient descent on free energy
         %------------------------------------------------------------------
         for i = 1:Ni
-            F = 0;
             for j = 1:T
                 
-                % evaluate free energy and gradients
+                % current state
+                %----------------------------------------------------------
+                xj   = x(:,j,k);
+                qx   = log(xj);
+                
+                % evaluate free energy and gradients (v = dFdx)
                 %----------------------------------------------------------
                 v    = 0;
-                if j == 1, v = qD;                                   end
-                if j <= t, v = v + qA(o(j),:)';                      end
-                if j >  1, v = v + log(sB{V(j - 1,k)}*x(:,j - 1,k)); end
-                if j <  T, v = v + log(rB{V(j    ,k)}*x(:,j + 1,k)); end
+                if j <= t, v = v - qA(o(j),:)';                  end
+                if j == 1, v = v + qx - qD;                      end
+                if k > Np
+                    if j > 1, v = v + qx - qH* x(:,j - 1,k); end
+                    if j < T, v = v      - qH'*x(:,j + 1,k); end
+                else
+                    if j > 1, v = v + qx - log(sB{V(j - 1,k)}*x(:,j - 1,k)); end
+                    if j < T, v = v + qx - log(rB{V(j    ,k)}*x(:,j + 1,k)); end
+                end
                 
                 % update
                 %----------------------------------------------------------
-                xj       = x(:,j,k);
-                qx       = log(xj);
-                dx       = qx - v;
-                x(:,j,k) = spm_softmax(qx - dx/8);
-                
-                F        = F + xj'*dx;
+                x(:,j,k) = spm_softmax(qx - v/4);
+                F(j,k)   = xj'*v;
                 
                 % record neuronal activity
                 %----------------------------------------------------------
@@ -456,10 +422,10 @@ for t  = 1:T
             % convergence
             %--------------------------------------------------------------
             if i > 1
-                dF = F0 - F;
+                dF = F0 - sum(F(:,k));
                 if dF > 1/128, F0 = F0 - dF; else, break, end
             else
-                F0 = F;
+                F0 = sum(F(:,k));
             end
             
         end 
@@ -470,29 +436,21 @@ for t  = 1:T
     %======================================================================
     Q     = zeros(Np + 1,1);
     if OPTIONS.habit
-        w = [w (Np + 1)];
+        Q(Np + 1) = 0;
+    else
+        Q(Np + 1) = -4;
     end
-    for k = w
+    for k = p
         
         % path integral of expected free energy
         %------------------------------------------------------------------
         for j = 1:T
-            if j == 1
-                v = qD + qA(o(j),:)';
-            end
-            if j > 1 && j <= t
-                if k > Np
-                    v = log(sH*x(:,j - 1,k)) + qA(o(j),:)';
-                else
-                    v = log(sB{V(j - 1,k)}*x(:,j - 1,k)) + qA(o(j),:)';
-                end
-            end
             if j > t
-                v = C(:,j) + hA;
-            end
-            Q(k)  = Q(k) + x(:,j,k)'*(v - log(x(:,j,k)));
+                Q(k) = Q(k) + x(:,j,k)'*(C(:,j) + hA - log(x(:,j,k)));
+            else
+                Q(k) = Q(k) - F(j,k);
+            end       
         end
-        
     end
     
     % variational updates - policies and precision
@@ -501,8 +459,8 @@ for t  = 1:T
         
         % policy (u)
         %------------------------------------------------------------------
-        v      = W(t)*Q(w);
-        u(w,t) = spm_softmax(v);
+        v      = W(t)*Q(p);
+        u(p,t) = spm_softmax(v);
 
         % precision (W)
         %------------------------------------------------------------------
@@ -513,7 +471,7 @@ for t  = 1:T
                 W(t) = MDP.w;
             end
         else
-            v     = beta - u(w,t)'*Q(w) - qbeta;
+            v     = beta - u(p,t)'*Q(p) - qbeta;
             qbeta = qbeta + v*3/4;
             W(t)  = alpha/qbeta;
         end
@@ -523,7 +481,7 @@ for t  = 1:T
         %------------------------------------------------------------------
         n       = (t - 1)*N + i;
         wn(n,1) = W(t);
-        un(w,n) = u(w,t);
+        un(p,n) = u(p,t);
         
     end
     
@@ -593,6 +551,10 @@ for t  = 1:T
         
     end
     
+    % simulated dopamine responses
+    %--------------------------------------------------------------------------
+    dn  = gradient(wn) + wn/64;
+
     
     % plot
     %======================================================================
@@ -650,21 +612,21 @@ for t  = 1:T
         
         % expected action
         %------------------------------------------------------------------
-        subplot(3,2,6)
-        plot(wn,'k')
+        subplot(3,2,6), hold on
+        bar(4*dn,'c'), plot(wn,'k'), hold off
         title('Expected precision (dopamine)','FontSize',14)
         xlabel('updates','FontSize',12)
         ylabel('Precision','FontSize',12)
-               
+        spm_axis tight
+        drawnow
+        
     end
 end
 
 % Baysian model averaging (selection) of hidden states over policies
 %--------------------------------------------------------------------------
-
-if isempty(w); keyboard; end
 for i = 1:T
-    X(:,i) = squeeze(x(:,i,:))*u(:,T - 1);
+    X(:,i) = squeeze(x(:,i,:))*u(:,T);
 end
 Xn    = zeros(Ni,Ns,T,T);
 for i = 1:T
@@ -708,16 +670,6 @@ if isfield(MDP,'d')
     MDP.d = MDP.d + X(:,1);
 end
 
-% simulated dopamine responses
-%--------------------------------------------------------------------------
-dn  = gradient(wn) + wn/64;
-if OPTIONS.plot
-    subplot(3,2,6), hold on
-    bar(4*dn,'c'), plot(wn,'k'), hold off
-    spm_axis tight
-    drawnow
-end
-
 
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------
@@ -735,6 +687,7 @@ MDP.xn  = Xn;             % simulated neuronal encoding of policies
 MDP.wn  = wn;             % simulated neuronal encoding of precision
 MDP.da  = dn;             % simulated dopamine responses (deconvolved)
 MDP.rt  = rt;             % simulated dopamine responses (deconvolved)
+
 return
 
 % NOTES:

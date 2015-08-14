@@ -37,11 +37,11 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6519 2015-08-11 19:06:57Z karl $
+% $Id: DEM_demo_MDP_habits.m 6521 2015-08-14 11:02:47Z karl $
 
 % set up and preliminaries
 %==========================================================================
-% rng('default')
+rng('default')
 
 % observation probabilities
 %--------------------------------------------------------------------------
@@ -71,7 +71,7 @@ C  = c*[-2 -2 1 -1 -1 1 0 0]';
 
 % prior beliefs about initial state
 %--------------------------------------------------------------------------
-d  = kron([1 0 0 0],[4 4])' + 1;
+d  = kron([1 0 0 0],[16 1])' + 1;
 
 % allowable policies (of depth T)
 %--------------------------------------------------------------------------
@@ -80,7 +80,7 @@ V  = [1  1  1  1  2  3  4  4  4  4
 
 % true initial states
 %--------------------------------------------------------------------------
-nt    = 12;                         % number of trials
+nt    = 128;                         % number of trials
 s     = [0 1 0 1 1 1 1 1 1 1 1 0 1 1 1 1 ones(1,128)];
 for i = 1:nt
     p    = rand > 1/2;
@@ -100,8 +100,8 @@ for i = 1:length(S)
     MDP(i).C = C;                   % terminal cost probabilities (priors)
     MDP(i).d = d;                   % initial state probabilities (priors)
     
-    MDP(i).alpha  = 32;             % gamma hyperparameter
-    MDP(i).beta   = 2;              % gamma hyperparameter
+    MDP(i).alpha  = 8;              % gamma hyperparameter
+    MDP(i).beta   = 1;              % gamma hyperparameter
 
 end
 
@@ -114,7 +114,9 @@ OPTIONS.habit = 1;
 % illustrate behavioural respsonses and neuronal correlates
 %--------------------------------------------------------------------------
 MDP           = spm_MDP_VB(MDP,OPTIONS);
-set(gcf,'Tag','Figire 1a','name','Figure 1a')
+set(gcf,'Tag','Figure 1a','name','Figure 1a')
+
+return
 
 % illustrate phase-amplitude (theta-gamma) coupling
 %--------------------------------------------------------------------------
@@ -129,7 +131,10 @@ spm_MDP_VB_LFP(MDP(1:2),[4 6;3 3]);
 % illustrate oddball responses (MMN)
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 4'); clf
-spm_MDP_VB_LFP(MDP(11:12),[3 4;2 2]);
+spm_MDP_VB_LFP(MDP(11:12),[1 2;1 1]);
+
+
+[B0,BV] = spm_MDP_DP(MDP,OPTION)
 
 
 return
