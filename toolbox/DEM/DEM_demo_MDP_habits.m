@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6521 2015-08-14 11:02:47Z karl $
+% $Id: DEM_demo_MDP_habits.m 6523 2015-08-15 20:57:28Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -71,7 +71,7 @@ C  = c*[-2 -2 1 -1 -1 1 0 0]';
 
 % prior beliefs about initial state
 %--------------------------------------------------------------------------
-d  = kron([1 0 0 0],[16 1])' + 1;
+d  = kron([1 0 0 0],[1 1])' + 1;
 
 % allowable policies (of depth T)
 %--------------------------------------------------------------------------
@@ -80,21 +80,14 @@ V  = [1  1  1  1  2  3  4  4  4  4
 
 % true initial states
 %--------------------------------------------------------------------------
-nt    = 128;                         % number of trials
-s     = [0 1 0 1 1 1 1 1 1 1 1 0 1 1 1 1 ones(1,128)];
-for i = 1:nt
-    p    = rand > 1/2;
-    p    = s(i);
-    S{i} = kron([1 0 0 0],[p (1 - p)])';
-end
-
+s     = [2 1 2 1 1 1 1 1 1 1 1 2 1 1 1 1];
 
 % MDP Structure
 %==========================================================================
-for i = 1:length(S)
+for i = 1:length(s)
     
     MDP(i).V = V;                   % allowable policies
-    MDP(i).S = S{i};                % true initial state
+    MDP(i).s = s(i);                % true initial state
     MDP(i).A = A;                   % observation model
     MDP(i).B = B;                   % transition probabilities (priors)
     MDP(i).C = C;                   % terminal cost probabilities (priors)
@@ -107,34 +100,89 @@ end
 
 % Solve - an example game: a run of reds then an oddball
 %==========================================================================
-spm_figure('GetWin','Figure 1'); clf
-OPTIONS.plot  = gcf;
-OPTIONS.habit = 1;
+MDP  = spm_MDP_VB(MDP);
 
 % illustrate behavioural respsonses and neuronal correlates
 %--------------------------------------------------------------------------
-MDP           = spm_MDP_VB(MDP,OPTIONS);
-set(gcf,'Tag','Figure 1a','name','Figure 1a')
+spm_figure('GetWin','Figure 1'); clf
+spm_MDP_VB_game(MDP(1:16));
 
-return
+% illustrate phase-precession and responses to chosen option - 1st trial
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 2'); clf
+spm_MDP_VB_LFP(MDP(1),[4 6;3 3]);
 
 % illustrate phase-amplitude (theta-gamma) coupling
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2'); clf
-spm_MDP_VB_LFP(MDP);
-
-% illustrate phase-precession and responses to chosen option
-%--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
-spm_MDP_VB_LFP(MDP(1:2),[4 6;3 3]);
+spm_MDP_VB_LFP(MDP(1:8));
 
-% illustrate oddball responses (MMN)
+% illustrate oddball responses (MMN) - CS
 %--------------------------------------------------------------------------
+MMN  = MDP(1:2);
+MMN(1).s = [2 8 6];
+MMN(2).s = [2 8 6];
+MMN(1).d = kron([1 0 0 0],[1 1])' + 1;
+MMN(2).d = kron([1 0 0 0],[8 1])' + 1;
+MMN(1).h = [];
+MMN(2).h = [];
+
+MMN(1)  = spm_MDP_VB(MMN(1));
+MMN(2)  = spm_MDP_VB(MMN(2));
 spm_figure('GetWin','Figure 4'); clf
-spm_MDP_VB_LFP(MDP(11:12),[1 2;1 1]);
+spm_MDP_VB_LFP(MMN,[1 2;1 1]);
+
+% illustrate oddball responses (MMN) - US
+%--------------------------------------------------------------------------
+MMN(1).s = [2 8 6];
+MMN(2).s = [2 8 5];
+MMN(1).d = kron([1 0 0 0],[1 4])' + 1;
+MMN(2).d = kron([1 0 0 0],[1 4])' + 1;
+MMN(1).h = [];
+MMN(2).h = [];
+
+MMN(1)  = spm_MDP_VB(MMN(1));
+MMN(2)  = spm_MDP_VB(MMN(2));
+spm_figure('GetWin','Figure 5'); clf
+spm_MDP_VB_LFP(MMN,[5 6;3 3]);
 
 
-[B0,BV] = spm_MDP_DP(MDP,OPTION)
+% illustrate habit leaning and repetition supression
+%==========================================================================
+
+% true initial states
+%--------------------------------------------------------------------------
+clear MDP
+s     = [ones(1,24) 2*ones(1,128)];
+d     = kron([1 0 0 0],[1 1])' + 1;
+
+% MDP Structure
+%==========================================================================
+for i = 1:length(s)
+    
+    MDP(i).V = V;                   % allowable policies
+    MDP(i).s = s(i);                % true initial state
+    MDP(i).A = A;                   % observation model
+    MDP(i).B = B;                   % transition probabilities (priors)
+    MDP(i).C = C;                   % terminal cost probabilities (priors)
+    MDP(i).d = d;                   % initial state probabilities (priors)
+    
+    MDP(i).alpha  = 8;              % gamma hyperparameter
+    MDP(i).beta   = 1;              % gamma hyperparameter
+
+end
+
+OPTIONS.habit = 0;
+MDP  = spm_MDP_VB(MDP,OPTIONS);
+
+
+spm_figure('GetWin','Figure 6'); clf
+spm_MDP_VB_game(MDP);
+
+
+
+
+[B0,BV] = spm_MDP_DP(MDP(1));
 
 
 return

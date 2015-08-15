@@ -31,17 +31,21 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 %
 % produces:
 %
-% MDP.P(M,T)   - probability of emitting an action 1,...,M at time 1,...,T
-% MDP.Q(N,T)   - an array of conditional (posterior) expectations over
-%                N hidden states and time 1,...,T
-% MDP.R        - conditional expectations over policies
-% MDP.O(O,T)   - a sparse matrix of ones encoding outcomes at time 1,...,T
-% MDP.S(N,T)   - a sparse matrix of ones encoding states at time 1,...,T
-% MDP.U(M,T)   - a sparse matrix of ones encoding action at time 1,...,T
-% MDP.W(1,T)   - posterior expectations of precision
-% MDP.da       - simulated dopamine responses (deconvolved)
-% MDP.KLx      - updating as scored with KL (state estimation)
-% MDP.KLu      - updating as scored with KL (policy selection)
+% MDP.P(M,T)      - probability of emitting action 1,...,M at time 1,...,T
+% MDP.Q(N,T)      - an array of conditional (posterior) expectations over
+%                   N hidden states and time 1,...,T
+% MDP.X           - and Bayesian model averages over policies
+% MDP.R           - conditional expectations over policies
+% MDP.O(O,T)      - a sparse matrix encoding outcomes at time 1,...,T
+% MDP.S(N,T)      - a sparse matrix encoding states at time 1,...,T
+% MDP.U(M,T)      - a sparse matrix encoding action at time 1,...,T
+% MDP.W(1,T)      - posterior expectations of precision
+%
+% MDP.un  = un;   - simulated neuronal encoding of hidden states
+% MDP.xn  = Xn;   - simulated neuronal encoding of policies
+% MDP.wn  = wn;   - simulated neuronal encoding of precision
+% MDP.dn  = dn;   - simulated dopamine responses (deconvolved)
+% MDP.rt  = rt;   - simulated dopamine responses (deconvolved)
 %
 % This routine provides solutions of active inference (minimisation of
 % variational free energy) using a generative model based upon a Markov
@@ -101,7 +105,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB.m 6521 2015-08-14 11:02:47Z karl $
+% $Id: spm_MDP_VB.m 6523 2015-08-15 20:57:28Z karl $
 
 
 % deal with a sequence of trials
@@ -128,89 +132,26 @@ if length(MDP) > 1
         % integrate this trial
         %------------------------------------------------------------------
         OPTS = OPTIONS;
-        if i < length(MDP), OPTS.plot = 0; end
+        if i < length(MDP)
+            OPTS.plot = 0;
+        else
+            OPTS.plot = 'plot';
+        end
         OUT(i) = spm_MDP_VB(MDP(i),OPTS);
         
     end
     
     MDP = OUT;
     
-    % summary statistics
+    % summary statistics -over trials (set up figure if necessary)
     %----------------------------------------------------------------------
     if OPTIONS.plot
-        col   = {'r.','b.','g.','c.','m.','k.'};
-        spm_figure('GetWin','MDP_responses'); clf
-        
-        Nt    = length(MDP);               % number of trials
-        NT    = size(MDP(1).V,1) + 1;      % number of transitions
-        Np    = size(MDP(1).V,2) + 1;      % number of policies
-        for i = 1:Nt
-            for j = 1:NT
-                for k = 1:NT
-                    xi{k,j} = MDP(i).xn(:,:,j,k);
-                end
-            end
-            x{i,1} = xi;
-            u(:,i) = MDP(i).R(:,end  - 1);
-            s(:,i) = MDP(i).S(:,1);
-            d(:,i) = MDP(i).d/sum(MDP(i).d);
-            w(:,i) = MDP(i).da;
-            p(i)   = trace(MDP(i).C'*MDP(i).S)/NT;
-            p(i)   = trace(log(MDP(i).A*spm_softmax(MDP(i).C))'*MDP(i).O)/NT;
-            q(i)   = sum(MDP(i).rt(2:end));
+        if ishandle(OPTIONS.plot)
+            figure(OPTIONS.plot); clf
+        else
+            spm_figure('GetWin','MDP'); clf
         end
-                
-        % Initial tates and expected policies (habit in red)
-        %------------------------------------------------------------------
-        subplot(6,1,1), [s,t] = find(s);
-        image(64*(1 - u)),  hold on
-        for i = 1:max(s)
-            j = find(s == i);
-            plot(t(j),s(j),col{i},'MarkerSize',32), hold on
-        end
-        plot(Np*(1 - u(end,:)),'r'), hold off
-        title('Polcy selection and inital state','FontSize',16)
-        xlabel('Trial','FontSize',12),ylabel('Policy','FontSize',12)
-        
-        % Performance
-        %------------------------------------------------------------------
-        q     = q - mean(q);
-        q     = q/std(q);
-        subplot(6,1,2), bar(p,'c'),  hold on
-        plot(q,'.','MarkerSize',16), hold on
-        plot(q,':'),                 hold off
-        title('Performance and reaction times','FontSize',16)
-        ylabel('Expected utility','FontSize',12), spm_axis tight
-        
-        % Initial states (context)
-        %------------------------------------------------------------------
-        subplot(6,1,3)
-        plot(spm_cat(x))
-        title('State estimation (ERPs)','FontSize',16)
-        ylabel('Response','FontSize',12), spm_axis tight
-        
-        % Precision (dopamine)
-        %------------------------------------------------------------------
-        subplot(6,1,4), bar(spm_vec(w),'k')
-        title('Precision (dopamine)','FontSize',16)
-        ylabel('Precision','FontSize',12), spm_axis tight
-        
-        % learning - D
-        %------------------------------------------------------------------
-        subplot(6,1,5), image(64*(1 - d))
-        title('Learning (D and H)','FontSize',16)
-        ylabel('Hidden state','FontSize',12)   
-        
-        % Habit learning
-        %------------------------------------------------------------------
-        k     = round(linspace(1,Nt,6));
-        for j = 1:length(k)
-            h = MDP(k(j)).h;
-            h = h*diag(1./sum(h));
-            subplot(6,6,30 + j), image(64*(1 - h))
-            axis image
-        end
-        
+        spm_MDP_VB_game(MDP)
     end
     return
 end
@@ -221,18 +162,8 @@ end
 
 % options and precision defaults
 %--------------------------------------------------------------------------
-try, alpha  = MDP.alpha;  catch, alpha  = 8;             end
-try, beta   = MDP.beta;   catch, beta   = 2;             end
-
-% set up figure if necessary
-%--------------------------------------------------------------------------
-if OPTIONS.plot
-    if ishandle(OPTIONS.plot)
-        figure(OPTIONS.plot); clf
-    else
-        spm_figure('GetWin','MDP'); clf
-    end
-end
+try, alpha = MDP.alpha;  catch, alpha  = 8;             end
+try, beta  = MDP.beta;   catch, beta   = 2;             end
 
 % generative model and initial states
 %--------------------------------------------------------------------------
@@ -292,15 +223,18 @@ qD    = psi(d) - ones(Ns,1)*psi(sum(d));
 % parameters (concentration parameters) - Habits
 %--------------------------------------------------------------------------
 try
-    h  = MDP.h;
+    h = MDP.h;
 catch
-    h  = 1;
+    h = [];
+end
+if isempty(h)
+    h = 1;
     for j = 1:Nu
         h = h + B{j}*2;
     end
     MDP.h = h;
 end
-qH     = psi(h) - ones(Ns,1)*psi(sum(h));
+qH    = psi(h) - ones(Ns,1)*psi(sum(h));
 
 % terminal probabilities (priors)
 %--------------------------------------------------------------------------
@@ -338,7 +272,11 @@ N  = 8;                             % iterations of precision
 
 % initial states and outcomes
 %--------------------------------------------------------------------------
-s  = find(MDP.S(:,1));              % initial state   (index)
+try
+    s  = MDP.s(1);                  % initial state   (index)
+catch
+    s  = find(MDP.S(:,1));          % initial state   (index)
+end
 q  = find(rand < cumsum(A(:,s)),1); % initial outcome (index)
 
 o  = sparse(1,1,q,1,T);             % observations    (index)
@@ -360,6 +298,7 @@ X(:,T + 1) = spm_softmax(hA + C(:,end));
 % solve
 %==========================================================================
 Ni     = 16;                        % number of VB iterations
+rt     = zeros(1,T);                % reaction times
 xn     = zeros(Ni,Ns,T,T,Np);       % state updates
 un     = zeros(Np + 1,T*N);         % policy updates
 wn     = zeros(T*N,1);              % simulated DA responses
@@ -398,8 +337,8 @@ for t  = 1:T
                 % evaluate free energy and gradients (v = dFdx)
                 %----------------------------------------------------------
                 v    = 0;
-                if j <= t, v = v - qA(o(j),:)';                  end
-                if j == 1, v = v + qx - qD;                      end
+                if j <= t, v = v - qA(o(j),:)';              end
+                if j == 1, v = v + qx - qD;                  end
                 if k > Np
                     if j > 1, v = v + qx - qH* x(:,j - 1,k); end
                     if j < T, v = v      - qH'*x(:,j + 1,k); end
@@ -423,7 +362,11 @@ for t  = 1:T
             %--------------------------------------------------------------
             if i > 1
                 dF = F0 - sum(F(:,k));
-                if dF > 1/128, F0 = F0 - dF; else, break, end
+                if dF > 1/128
+                    F0 = F0 - dF; 
+                else
+                    break
+                end
             else
                 F0 = sum(F(:,k));
             end
@@ -452,6 +395,7 @@ for t  = 1:T
             end       
         end
     end
+    
     
     % variational updates - policies and precision
     %======================================================================
@@ -485,26 +429,27 @@ for t  = 1:T
         
     end
     
+    % Baysian model averaging of hidden states over policies
+    %----------------------------------------------------------------------
+    for i = 1:T
+        X(:,i) = squeeze(x(:,i,:))*u(:,t);
+    end
+    
     % processing time
-    %------------------------------------------------------------------
+    %----------------------------------------------------------------------
     rt(t) = toc(tstart);
+    
     
     % action selection and sampling of next state (outcome)
     %======================================================================
     if t < T
-        
-        % Baysian model averaging of hidden states over policies
-        %------------------------------------------------------------------
-        for i = 1:T
-            X(:,i) = squeeze(x(:,i,:))*u(:,t);
-        end
     
         % posterior expectations (control)
         %==================================================================
-        lnqo  = log(A*X(:,t + 1));
+        v     = log(A*X(:,t + 1));
         for j = 1:Nu
             qo     = A*B{j}*X(:,t);
-            P(j,t) = (lnqo - log(qo))'*qo;
+            P(j,t) = (v - log(qo))'*qo;
         end
         
         % accommodate absorbing states (where action is undefined)
@@ -550,91 +495,8 @@ for t  = 1:T
         S(s(t + 1),t + 1) = 1;
         
     end
-    
-    % simulated dopamine responses
-    %--------------------------------------------------------------------------
-    dn  = gradient(wn) + wn/64;
 
-    
-    % plot
-    %======================================================================
-    if OPTIONS.plot && (T > 3 || t == T)
-        
-        
-        % posterior beliefs about hidden states
-        %------------------------------------------------------------------
-        subplot(3,2,1)
-        image(64*(1 - X)),hold on
-        if size(X,1) > 128
-            spm_spy(X,16,1)
-        end
-        plot(s,'.c','MarkerSize',16), hold off
-        title('Hidden states (and utility)','FontSize',14)
-        xlabel('trial','FontSize',12)
-        ylabel('Hidden state','FontSize',12)
-        
-        % posterior beliefs about control states
-        %==================================================================
-        subplot(3,2,2)
-        image(64*(1 - P)), hold on
-        plot(a,'.c','MarkerSize',16), hold off
-        title('Inferred and selected action','FontSize',14)
-        xlabel('trial','FontSize',12)
-        ylabel('action','FontSize',12)
-        
-        % policies
-        %------------------------------------------------------------------
-        subplot(3,2,3)
-        imagesc(MDP.V')
-        title('Allowable policies','FontSize',14)
-        ylabel('policy','FontSize',12)
-        xlabel('trial','FontSize',12)
-        
-        % expectations over policies
-        %------------------------------------------------------------------
-        subplot(3,2,4)
-        image(64*(1 - un))
-        title('Posterior probability','FontSize',14)
-        ylabel('Policy','FontSize',12)
-        xlabel('updates','FontSize',12)
-        
-        % sample (observation)
-        %------------------------------------------------------------------
-        subplot(3,2,5)
-        if size(O,1) > 128
-            spm_spy(O,16,1)
-        else
-            imagesc(1 - O)
-        end
-        title('Observed states','FontSize',14)
-        xlabel('trial','FontSize',12)
-        ylabel('outcome','FontSize',12)
-        
-        % expected action
-        %------------------------------------------------------------------
-        subplot(3,2,6), hold on
-        bar(4*dn,'c'), plot(wn,'k'), hold off
-        title('Expected precision (dopamine)','FontSize',14)
-        xlabel('updates','FontSize',12)
-        ylabel('Precision','FontSize',12)
-        spm_axis tight
-        drawnow
-        
-    end
 end
-
-% Baysian model averaging (selection) of hidden states over policies
-%--------------------------------------------------------------------------
-for i = 1:T
-    X(:,i) = squeeze(x(:,i,:))*u(:,T);
-end
-Xn    = zeros(Ni,Ns,T,T);
-for i = 1:T
-    for k = 1:Np
-        Xn(:,:,:,i) = Xn(:,:,:,i) + xn(:,:,:,i,k)*u(k,i);
-    end
-end
-
 
 % learning
 %==========================================================================
@@ -670,11 +532,25 @@ if isfield(MDP,'d')
     MDP.d = MDP.d + X(:,1);
 end
 
+% simulated dopamine responses
+%--------------------------------------------------------------------------
+dn    = gradient(wn) + wn/64;
+
+% Baysian model averaging (selection) of hidden states over policies
+%--------------------------------------------------------------------------
+Xn    = zeros(Ni,Ns,T,T);
+for i = 1:T
+    for k = 1:Np
+        Xn(:,:,:,i) = Xn(:,:,:,i) + xn(:,:,:,i,k)*u(k,i);
+    end
+end
+
 
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------
 MDP.P   = P;              % probability of action at time 1,...,T - 1
 MDP.Q   = x;              % conditional expectations over N hidden states
+MDP.X   = X;              % Bayesian model averages
 MDP.R   = u;              % conditional expectations over policies
 MDP.O   = O;              % a sparse matrix, encoding outcomes at 1,...,T
 MDP.S   = S;              % a sparse matrix, encoding the states
@@ -685,16 +561,18 @@ MDP.C   = C;              % utility
 MDP.un  = un;             % simulated neuronal encoding of hidden states
 MDP.xn  = Xn;             % simulated neuronal encoding of policies
 MDP.wn  = wn;             % simulated neuronal encoding of precision
-MDP.da  = dn;             % simulated dopamine responses (deconvolved)
+MDP.dn  = dn;             % simulated dopamine responses (deconvolved)
 MDP.rt  = rt;             % simulated dopamine responses (deconvolved)
 
-return
-
-% NOTES:
-%==========================================================================
-        
-    % KL update – policies
-    %----------------------------------------------------------------------
-    if t > 1
-        KLu(t - 1) = u(:,t)'*(log(u(:,t) + p0) - log(u(:,t - 1) + p0));
+% plot
+%======================================================================
+if OPTIONS.plot
+    if ishandle(OPTIONS.plot)
+        figure(OPTIONS.plot); clf
+    else
+        spm_figure('GetWin','MDP'); clf
     end
+    spm_MDP_VB_trial(MDP)
+end
+
+return

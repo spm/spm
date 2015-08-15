@@ -7,7 +7,7 @@ function [MDP] = spm_MDP_VB_LFP(MDP,UNITS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 6519 2015-08-11 19:06:57Z karl $
+% $Id: spm_MDP_VB_LFP.m 6523 2015-08-15 20:57:28Z karl $
 
 
 % deal with a sequence of trials
@@ -56,7 +56,7 @@ for i = 1:Nt
     
     % ddopamine or changes in precision
     %----------------------------------------------------------------------
-    da(:,i) = MDP(i).da;
+    dn(:,i) = MDP(i).dn;
 end
 
 % phase amplitude coupling
@@ -92,7 +92,7 @@ lfp = 4*lfp/std(lfp) + 16;
 if Nt == 1, subplot(2,2,3), else subplot(4,1,2),end
 imagesc(t,Hz,csd), axis xy, hold on
 plot(t,lfp,'w',t,LFP,'w:'), hold off
-title('time-frequency (and phase)response','FontSize',16)
+title('time-frequency (and phase) response','FontSize',16)
 xlabel('time (seconds)','FontSize',12), ylabel('frequency','FontSize',12)
 if Nt == 1, axis square, end
 
@@ -101,17 +101,20 @@ if Nt == 1, axis square, end
 if Nt == 1, subplot(2,2,2), else subplot(4,1,3),end
 plot(t,spm_cat(u)),     hold on, spm_axis tight, a = axis;
 plot(t,spm_cat(x),':'), hold off
-
+grid on, set(gca,'XTick',(1:(NT*Nt))*Nb*dt), axis(a)
+for i = 2:2:Nt
+    h = patch(((i - 1) + [0 0 1 1])*NT*Nb*dt,a([3,4,4,3]),-[1 1 1 1],'w');
+    set(h,'LineStyle',':','FaceColor',[1 1 1] - 1/32);
+end
 title('local field potentials','FontSize',16)
-xlabel('time (updates)','FontSize',12)
+xlabel('time (seconds)','FontSize',12)
 ylabel('Response','FontSize',12)
-grid on, set(gca,'XTick',(1:(NT*Nt))*Nb*dt), axis(a);
 if Nt == 1, axis square, end
 
 % simulated dopamine responses
 %==========================================================================
 if Nt == 1, subplot(2,2,4), else subplot(4,1,4),end
-bar(spm_vec(da),1,'k'), title('phasic dopamine responses','FontSize',16)
+bar(spm_vec(dn),1,'k'), title('phasic dopamine responses','FontSize',16)
 xlabel('time (updates)','FontSize',12)
 ylabel('change in precision','FontSize',12), spm_axis tight
 if Nt == 1, axis square, end
