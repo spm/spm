@@ -1,5 +1,5 @@
 function out = spm_deformations(job)
-% Various deformation field utilities.
+% Various deformation field utilities
 % FORMAT out = spm_deformations(job)
 % job - a job created via spm_cfg_deformations.m
 % out - a struct with fields
@@ -8,10 +8,10 @@ function out = spm_deformations(job)
 %
 % See spm_cfg_deformations.m for more information.
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 6137 2014-08-19 12:43:11Z john $
+% $Id: spm_deformations.m 6527 2015-08-20 17:40:41Z guillaume $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -21,15 +21,15 @@ for i=1:numel(job.out)
     fn = fn{1};
     switch fn
     case 'savedef'
-        out.def    = [out.def,    save_def(Def,mat,job.out{i}.(fn))];
+        out.def    = [out.def;    save_def(Def,mat,job.out{i}.(fn))];
     case 'pull'
-        out.warped = [out.warped, pull_def(Def,mat,job.out{i}.(fn))];
+        out.warped = [out.warped; pull_def(Def,mat,job.out{i}.(fn))];
     case 'push'
-        out.warped = [out.warped, push_def(Def,mat,job.out{i}.(fn))];
+        out.warped = [out.warped; push_def(Def,mat,job.out{i}.(fn))];
     case 'surf'
-        out.surf   = [out.surf,   surf_def(Def,mat,job.out{i}.(fn))];
+        out.surf   = [out.surf;   surf_def(Def,mat,job.out{i}.(fn))];
     case 'savejac'
-        out.jac    = [out.jac,    jac_def(Def,mat,job.out{i}.(fn))];
+        out.jac    = [out.jac;    jac_def(Def,mat,job.out{i}.(fn))];
     otherwise
         error('Unknown option');
     end
@@ -364,7 +364,7 @@ function out = pull_def(Def,mat,job)
 PI      = job.fnames;
 intrp   = job.interp;
 intrp   = [intrp*[1 1 1], 0 0 0];
-out     = cell(1,numel(PI));
+out     = cell(numel(PI),1);
 
 if numel(PI)==0, return; end
 
@@ -383,7 +383,7 @@ if job.mask
             num     = sscanf(num,',%d');
             j_range = num(1);
         end
-        for j=j_range,
+        for j=j_range
 
             M0 = NI.mat;
             if ~isempty(NI.extras) && isstruct(NI.extras) && isfield(NI.extras,'mat')
@@ -540,7 +540,7 @@ end
 odm = zeros(1,3);
 oM  = zeros(4,4);
 PI  = job.fnames;
-out = cell(1,numel(PI));
+out = cell(numel(PI),1);
 for m=1:numel(PI)
 
     % Generate headers etc for output images
@@ -550,7 +550,7 @@ for m=1:numel(PI)
     j_range = 1:size(NI.dat,4);
     k_range = 1:size(NI.dat,5);
     l_range = 1:size(NI.dat,6);
-    if ~isempty(num),
+    if ~isempty(num)
         num = sscanf(num,',%d');
         if numel(num)>=1, j_range = num(1); end
         if numel(num)>=2, k_range = num(2); end
@@ -572,7 +572,7 @@ for m=1:numel(PI)
         NO.dat.scl_slope = 1.0;
         NO.dat.scl_inter = 0.0;
         NO.dat.dtype     = 'float32-le';
-        if sum(job.fwhm.^2)==0,
+        if sum(job.fwhm.^2)==0
             NO.dat.fname   = fullfile(wd,['mw' nam ext]);
             NO.descrip     = sprintf('Warped & Jac scaled');
         else
@@ -580,7 +580,7 @@ for m=1:numel(PI)
             NO.descrip     = sprintf('Smoothed (%gx%gx%g) warped Jac scaled',job.fwhm);
         end
     else
-        if sum(job.fwhm.^2)==0,
+        if sum(job.fwhm.^2)==0
             NO.dat.fname   = fullfile(wd,['w' nam ext]);
             NO.descrip     = sprintf('Warped');
         else
@@ -595,7 +595,7 @@ for m=1:numel(PI)
     NO.mat_intent  = 'Aligned';
     NO.mat0_intent = 'Aligned';
 
-    if isempty(num),
+    if isempty(num)
         out{m}     = NO.dat.fname;
     else
         out{m}     = [NO.dat.fname, ',', num2str(num(1))];
@@ -611,7 +611,7 @@ for m=1:numel(PI)
     % Loop over volumes within the file
     %----------------------------------------------------------------------
     fprintf('%s',nam); drawnow;
-    for j=j_range,
+    for j=j_range
 
         % Need to resample the mapping by an affine transform
         % so that it maps from voxels in the native space image
@@ -632,7 +632,7 @@ for m=1:numel(PI)
             y   = zeros([dm(1:3),3],'single');
             for d=1:3
                 yd = y0(:,:,:,d);
-                for x3=1:size(y,3),
+                for x3=1:size(y,3)
                     y(:,:,x3,d) = single(spm_slice_vol(yd,M*spm_matrix([0 0 x3]),dm(1:2),[1 NaN]));
                 end
             end
@@ -642,8 +642,8 @@ for m=1:numel(PI)
         oM  = M;
         % Write the warped data for this time point.
         %------------------------------------------------------------------
-        for k=k_range,
-            for l=l_range,
+        for k=k_range
+            for l=l_range
                 f  = single(NI.dat(:,:,:,j,k,l));
                 if isempty(wt)
                     if ~job.preserve
