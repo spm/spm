@@ -46,6 +46,10 @@ function D = meeg(varargin)
 %       .bad - 0 or 1 flag to allow rejection of trials.
 %       .repl - for epochs that are averages - number of replications used 
 %               for the average.
+%       .tag  - the user can put any data here that will be attached to
+%               the respective trial. This is useful e.g. to make sure the 
+%               relation between regressors and data is not broken when
+%               removing bad trials or merging files.
 %       .events - this is a structure array describing events related to 
 %                 each trial.
 %
@@ -114,7 +118,7 @@ function D = meeg(varargin)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: meeg.m 5343 2013-03-21 16:07:50Z vladimir $
+% $Id: meeg.m 6525 2015-08-20 10:03:16Z vladimir $
 
 switch nargin
     case 0
