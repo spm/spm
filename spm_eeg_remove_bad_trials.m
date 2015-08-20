@@ -17,9 +17,9 @@ function D = spm_eeg_remove_bad_trials(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_remove_bad_trials.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_eeg_remove_bad_trials.m 6526 2015-08-20 10:28:36Z vladimir $
 
-SVNrev = '$Rev: 5079 $';
+SVNrev = '$Rev: 6526 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -77,6 +77,7 @@ Dnew = conditions(Dnew, ':', conditions(D, goodtrials));
 Dnew = repl(Dnew, ':', repl(D, goodtrials));
 Dnew = events(Dnew, ':', events(D, goodtrials));
 Dnew = trialonset(Dnew, ':', trialonset(D, goodtrials));
+Dnew = trialtag(Dnew, ':', trialtag(D, goodtrials));
 
 %-Save the new M/EEG dataset
 %--------------------------------------------------------------------------

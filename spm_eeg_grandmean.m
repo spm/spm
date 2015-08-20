@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 6325 2015-02-03 10:54:03Z vladimir $
+% $Id: spm_eeg_grandmean.m 6526 2015-08-20 10:28:36Z vladimir $
 
-SVNrev = '$Rev: 6325 $';
+SVNrev = '$Rev: 6526 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -349,6 +349,7 @@ Do = conditions(Do, ':', types);
 Do = repl(Do, ':', nrepl);
 Do = badtrials(Do, ':', 0);
 Do = trialonset(Do, ':', []);
+Do = trialtag(Do, ':', []);
 Do = Do.history('spm_eeg_grandmean', S, 'reset');
 
 save(Do);

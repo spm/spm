@@ -58,9 +58,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 %
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 6298 2015-01-05 12:18:23Z vladimir $
+% $Id: spm_eeg_merge.m 6526 2015-08-20 10:28:36Z vladimir $
 
-SVNrev = '$Rev: 6298 $';
+SVNrev = '$Rev: 6526 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -348,6 +348,7 @@ for i = 1:Nfiles
     % merged file
     Dout = repl(Dout, find(Find == i), D{i}.repl);
     Dout = trialonset(Dout, find(Find == i), D{i}.trialonset);
+    Dout = trialtag(Dout, find(Find == i), D{i}.trialtag);
     Dout = events(Dout, find(Find == i), D{i}.events);
     
     if ismember(i, Ibar), spm_progress_bar('Set', i); end
