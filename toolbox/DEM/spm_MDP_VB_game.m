@@ -23,7 +23,7 @@ function spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 6523 2015-08-15 20:57:28Z karl $
+% $Id: spm_MDP_VB_game.m 6529 2015-08-21 13:27:38Z karl $
 
 % graphics
 %==========================================================================
@@ -38,7 +38,7 @@ for i = 1:Nt
         end
     end
     x{i,1} = xi;
-    u(:,i) = MDP(i).R(:,end  - 1);
+    u(:,i) = MDP(i).R(:,end);
     s(:,i) = MDP(i).S(:,1);
     o(:,i) = MDP(i).O(:,end);
     d(:,i) = MDP(i).d/sum(MDP(i).d);
@@ -104,7 +104,7 @@ ylabel('Hidden state','FontSize',12)
 %--------------------------------------------------------------------------
 k     = round(linspace(1,Nt,6));
 for j = 1:length(k)
-    h = MDP(k(j)).h;
+    h = MDP(k(j)).c;
     h = h*diag(1./sum(h));
     subplot(6,6,30 + j), image(64*(1 - h))
     axis image

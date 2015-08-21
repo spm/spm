@@ -78,7 +78,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6508 2015-07-25 15:23:25Z karl $
+% $Id: spm_dcm_peb.m 6529 2015-08-21 13:27:38Z karl $
  
 
 % get filenames and set up
@@ -134,9 +134,13 @@ end
 
 % get (first level) densities (summary statistics)
 %==========================================================================
-q     = spm_find_pC(DCM,field);                 % parameter indices
-Pstr  = spm_fieldindices(DCM.M.pE,q);           % field names
 Ns    = numel(P);                               % number of subjects
+if isfield(M,'bC') && Ns > 1
+    q = spm_find_pC(M.bC,M.bE,field);           % parameter indices
+else
+    q = spm_find_pC(DCM,field);                 % parameter indices
+end
+Pstr  = spm_fieldindices(DCM.M.pE,q);           % field names
 Np    = numel(q);                               % number of parameters
 for i = 1:Ns
     

@@ -35,7 +35,7 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_loo.m 6474 2015-06-06 10:41:55Z karl $
+% $Id: spm_dcm_loo.m 6529 2015-08-21 13:27:38Z karl $
 
 
 % Set up
@@ -47,7 +47,7 @@ if nargin < 3;
     field  = {'A','B'};
 end
 if strcmpi(field,'all');
-    field = fieldnames(DCM(1,1).M.pE);
+    field = fieldnames(DCM{1}.M.pE);
 end
 if isnumeric(M)
     M = struct('X',M);
@@ -104,7 +104,7 @@ subplot(2,2,2)
 plot(M.X(:,2),qE,'o','Markersize',8)
 xlabel('group effect'), ylabel('estimate')
 title(str,'FontSize',16)
-spm_axis tight, set(gca,'XLim',[min(M.X(:,2))-1 max(M.X(:,2)+1)]), axis square
+axis square
 
 
 if size(Q,1) > 2

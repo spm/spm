@@ -20,7 +20,7 @@ function [i,pC,pE,Np] = spm_find_pC(varargin)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_find_pC.m 6481 2015-06-16 17:01:47Z karl $
+% $Id: spm_find_pC.m 6529 2015-08-21 13:27:38Z karl $
 
 %-parse input arguments
 %--------------------------------------------------------------------------
@@ -29,10 +29,10 @@ if nargin > 2
     pE     = varargin{2};
     fields = varargin{3};
 elseif numel(varargin) > 1
-    DCM     = varargin{1};
-    fields  = varargin{2};
+    DCM    = varargin{1};
+    fields = varargin{2};
 else
-    DCM     = varargin{1};
+    DCM    = varargin{1};
 end
 
 %-get prior density from DCM

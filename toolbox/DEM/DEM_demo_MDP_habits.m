@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6523 2015-08-15 20:57:28Z karl $
+% $Id: DEM_demo_MDP_habits.m 6529 2015-08-21 13:27:38Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -45,7 +45,7 @@ rng('default')
 
 % observation probabilities
 %--------------------------------------------------------------------------
-a      = .95;
+a      = 1;
 b      = 1 - a;
 A      = [1 1 0 0 0 0 0 0;
           0 0 a b 0 0 0 0;
@@ -67,7 +67,7 @@ end
 % priors: (utility)
 %--------------------------------------------------------------------------
 c  = 2;
-C  = c*[-2 -2 1 -1 -1 1 0 0]';
+C  = [-1 -1 c -c -c c 0 0]';
 
 % prior beliefs about initial state
 %--------------------------------------------------------------------------
@@ -80,27 +80,25 @@ V  = [1  1  1  1  2  3  4  4  4  4
 
 % true initial states
 %--------------------------------------------------------------------------
-s     = [2 1 2 1 1 1 1 1 1 1 1 2 1 1 1 1];
+s     = {2 1 2 1 1 1 1 1 1 1 1 2 1 1 1 1};
 
-% MDP Structure
+% MDP Structure array
 %==========================================================================
 for i = 1:length(s)
     
     MDP(i).V = V;                   % allowable policies
-    MDP(i).s = s(i);                % true initial state
+    MDP(i).s = s{i};                % true initial state
     MDP(i).A = A;                   % observation model
     MDP(i).B = B;                   % transition probabilities (priors)
     MDP(i).C = C;                   % terminal cost probabilities (priors)
     MDP(i).d = d;                   % initial state probabilities (priors)
-    
-    MDP(i).alpha  = 8;              % gamma hyperparameter
-    MDP(i).beta   = 1;              % gamma hyperparameter
 
 end
 
 % Solve - an example game: a run of reds then an oddball
 %==========================================================================
 MDP  = spm_MDP_VB(MDP);
+
 
 % illustrate behavioural respsonses and neuronal correlates
 %--------------------------------------------------------------------------
@@ -116,6 +114,7 @@ spm_MDP_VB_LFP(MDP(1),[4 6;3 3]);
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
 spm_MDP_VB_LFP(MDP(1:8));
+
 
 % illustrate oddball responses (MMN) - CS
 %--------------------------------------------------------------------------
@@ -147,17 +146,17 @@ spm_figure('GetWin','Figure 5'); clf
 spm_MDP_VB_LFP(MMN,[5 6;3 3]);
 
 
-% illustrate habit leaning and repetition supression
+% illustrate reversal learning
 %==========================================================================
 
 % true initial states
 %--------------------------------------------------------------------------
 clear MDP
-s     = [ones(1,24) 2*ones(1,128)];
-d     = kron([1 0 0 0],[1 1])' + 1;
+s     = [ones(1,24) 2*ones(1,32)];
+d     = kron([1 0 0 0],[8 1])' + 1;
 
 % MDP Structure
-%==========================================================================
+%--------------------------------------------------------------------------
 for i = 1:length(s)
     
     MDP(i).V = V;                   % allowable policies
@@ -166,13 +165,10 @@ for i = 1:length(s)
     MDP(i).B = B;                   % transition probabilities (priors)
     MDP(i).C = C;                   % terminal cost probabilities (priors)
     MDP(i).d = d;                   % initial state probabilities (priors)
-    
-    MDP(i).alpha  = 8;              % gamma hyperparameter
-    MDP(i).beta   = 1;              % gamma hyperparameter
 
 end
 
-OPTIONS.habit = 0;
+OPTIONS.habit = 1;
 MDP  = spm_MDP_VB(MDP,OPTIONS);
 
 
@@ -180,6 +176,55 @@ spm_figure('GetWin','Figure 6'); clf
 spm_MDP_VB_game(MDP);
 
 
+% illustrate devaluation
+%==========================================================================
+
+
+% illustrate habit leaning
+%==========================================================================
+
+% true initial states
+%--------------------------------------------------------------------------
+clear MDP
+s     = 1 + (rand(1,128) > 1/2);
+d     = kron([1 0 0 0],[1 1])' + 1;
+
+% MDP Structure
+%--------------------------------------------------------------------------
+for i = 1:length(s)
+    
+    MDP(i).V = V;                   % allowable policies
+    MDP(i).s = s(i);                % true initial state
+    MDP(i).A = A;                   % observation model
+    MDP(i).B = B;                   % transition probabilities (priors)
+    MDP(i).C = C;                   % terminal cost probabilities (priors)
+    MDP(i).d = d;                   % initial state probabilities (priors)
+
+end
+
+spm_figure('GetWin','Figure 8'); clf
+OPTIONS.habit = 1;
+OPTIONS.plot  = gcf;
+MDP  = spm_MDP_VB(MDP,OPTIONS);
+
+% now repeat with unambiguous outcomes
+%--------------------------------------------------------------------------
+A      = [1 0 0 0 0 0 0 0;
+          0 1 0 0 0 0 0 0
+          0 0 a b 0 0 0 0;
+          0 0 b a 0 0 0 0;
+          0 0 0 0 b a 0 0;
+          0 0 0 0 a b 0 0;
+          0 0 0 0 0 0 1 0;
+          0 0 0 0 0 0 0 1];
+      
+[MDP.A] = deal(A);
+
+
+spm_figure('GetWin','Figure 9'); clf
+OPTIONS.habit = 1;
+OPTIONS.plot  = gcf;
+MDP     = spm_MDP_VB(MDP,OPTIONS);
 
 
 [B0,BV] = spm_MDP_DP(MDP(1));
