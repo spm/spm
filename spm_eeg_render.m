@@ -1,56 +1,53 @@
-function  [out] = spm_eeg_render(m,options)
+function [out] = spm_eeg_render(m,options)
 % Visualisation routine for the cortical surface
 % FORMAT [out] = spm_eeg_render(m,options)
 %
 % INPUT:
-% - m = MATLAB mesh (containing the fields .faces et .vertices) or GIFTI
-% format file.
-% - options = structure variable:
-%       .texture = texture to be projected onto the mesh
-%       .clusters = cortical parcelling (cell variable containing the
-%       vertex indices of each cluster) 
-%       .clustersName = name of the clusters
-%       .figname = name to be given to the window
-%       .ParentAxes = handle of the axes within which the mesh should be
-%       displayed
-%       .hfig = handle of existing figure. If this option is provided, then
-%       visu_maillage_surf adds the (textured) mesh to the figure hfig, and
-%       a control for its transparancy.
+% m       - patch structure (with fields .faces et .vertices)
+%           or GIFTI format filename
+% options - structure with optional fields:
+%           .texture      - texture to be projected onto the mesh
+%           .clusters     - cortical parcellation (cell variable containing
+%                           the vertex indices of each cluster) 
+%           .clustersName - name of the clusters
+%           .figname      - name to be given to the figure
+%           .ParentAxes   - handle of the axes within which the mesh should
+%                           be displayed
+%           .hfig         - handle of existing figure. If this option is
+%                           provided, then spm_eeg_render adds the (textured)
+%                           mesh to the figure hfig, and a control for its
+%                           transparency.
 %
 % OUTPUT:
-%   - out: a structure containing the fields:
-%       .hfra: frame structure for movie building
-%       .handles: a structure containing the handles of the created
-%       uicontrols and mesh objects.
-%       .m: the structure used to create the mesh
+% out     - structure with fields:
+%           .hfra    - frame structure for movie building
+%           .handles - structure containing the handles of the created
+%                      uicontrols and mesh objects
+%           .m       - the structure used to create the mesh.
 %__________________________________________________________________________
 %
-% This function is a visualization routine, mainly for texture and
+% This function is a visualisation routine, mainly for texture and
 % clustering on the cortical surface.
-% NB: The texture and the clusters can not be visualized at the same time.
+% NB: The texture and the clusters cannot be visualised at the same time.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 4818 2012-07-31 14:53:10Z guillaume $
+% $Id: spm_eeg_render.m 6528 2015-08-21 11:48:54Z guillaume $
 
 
 %----------------------------------------------------------------------%
-%------------- Common features for any visualization ------------------%
+%------------- Common features for any visualisation ------------------%
 %----------------------------------------------------------------------%
 
 % Check mesh format
 try
-    if ischar(m) && exist(m,'file')==2
-        try m = gifti(m);end
+    if ~isstruct(m)
+        m = export(gifti(m),'patch');
     end
-    m0.faces = m.faces;
-    m0.vertices = m.vertices;
-    m = m0;
-    clear m0;
 catch
-    disp('spm_eeg_render: unknown mesh format!')
-    return
+    if ischar(m), fprintf('File: %s\n',m); end
+    error('Unknown mesh format.')
 end
 
 
@@ -59,8 +56,8 @@ handles.fi = figure(...
     'visible','off',...
     'color',ones(1,3),...
     'NumberTitle','Off',...
-    'Name','Mesh visualization',...
-    'tag','visu_maillage_surf');
+    'Name','Mesh visualisation',...
+    'tag','spm_eeg_render');
 ns = 0;
 texture = 'none';
 clusters = 'none';

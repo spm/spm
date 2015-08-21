@@ -72,10 +72,10 @@ function DCM = spm_dcm_post_hoc(P,fun,field,write_all)
 %
 % See also: spm_dcm_search
 %__________________________________________________________________________
-% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_post_hoc.m 6487 2015-06-25 16:15:15Z peter $
+% $Id: spm_dcm_post_hoc.m 6528 2015-08-21 11:48:54Z guillaume $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -130,29 +130,29 @@ params.nograph   = spm('CmdLine');      % Graphical display
 
 % Check that models are compatible in terms of their prior variances
 %--------------------------------------------------------------------------
-[example_DCM,C] = check_models(params);
+[example_DCM, C] = check_models(params);
 
 % Greedy search (GS) - eliminating parameters in a top down fashion
 %--------------------------------------------------------------------------
-[C,model_space] = greedy_search(C,example_DCM,nmax,params);
+[C, model_space] = greedy_search(C, example_DCM, nmax, params);
 
 % Inference over families
 %--------------------------------------------------------------------------
-[Pk, Pf] = family_inference(example_DCM,C,model_space,params);
+[Pk, Pf] = family_inference(example_DCM, C, model_space, params);
 
 % Calculate reduced models and BPA
 %--------------------------------------------------------------------------
-[BPA, P_opt] = compute_post_hoc(example_DCM,C,params);
+[BPA, P_opt] = compute_post_hoc(example_DCM, C, params);
 
 % Show full and reduced conditional estimates (for Bayesian average)
 %--------------------------------------------------------------------------
 if ~params.nograph
-    try, create_plots(example_DCM,BPA,Pk,Pf,params,~nargout); end
+    create_plots(example_DCM, BPA, Pk, Pf, params, ~nargout);
 end
 
 % Save Bayesian Parameter Average and family-wise model inference
 %--------------------------------------------------------------------------
-DCM = save_bpa_dcm(Pk,BPA,Pf,params,P_opt);
+DCM = save_bpa_dcm(Pk, BPA, Pf, params, P_opt);
 
 
 %==========================================================================
@@ -228,7 +228,7 @@ while GS
         % Flag a greedy search
         GS = 1;
     elseif isempty(k)
-        error('There are no free parameters in this model');
+        error('There are no free parameters in this model.');
     else
         GS = 0;
     end
@@ -244,24 +244,25 @@ while GS
     %-Show results
     %----------------------------------------------------------------------
     if ~params.nograph
-        spm_figure('Getwin','Graphics'); clf
+        Fgraph = spm_figure('Getwin','Graphics');
+        spm_figure('Clear',Fgraph);
         fprintf('%i out of %i free parameters removed \n',nelim,nparam)
         
-        subplot(3,2,1)
+        ax = subplot(3,2,1,'Parent',Fgraph);
         if length(model_space.K) > 32, plot(model_space.S,'k'),...
         else bar(model_space.S,'c'), end
-        title('log-posterior','FontSize',16)
-        xlabel('model','FontSize',12)
-        ylabel('log-probability','FontSize',12)
-        axis square
+        title(ax,'log-posterior','FontSize',16)
+        xlabel(ax,'model','FontSize',12)
+        ylabel(ax,'log-probability','FontSize',12)
+        axis(ax,'square');
     
-        subplot(3,2,2)
+        ax = subplot(3,2,2,'Parent',Fgraph);
         if length(model_space.K) > 32, plot(model_space.p,'k'),...
         else bar(model_space.p,'r'), end
-        title('model posterior','FontSize',16)
-        xlabel('model','FontSize',12)
-        ylabel('probability','FontSize',12)
-        axis square
+        title(ax,'model posterior','FontSize',16)
+        xlabel(ax,'model','FontSize',12)
+        ylabel(ax,'probability','FontSize',12)
+        axis(ax,'square');
         drawnow
     end
 
@@ -630,33 +631,32 @@ Ep  = spm_vec(BPA.Eq);
 
 %-Plot summary of results
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Graphics');
+Fgraph = spm_figure('GetWin','Graphics');
 
-subplot(3,2,3)
-spm_plot_ci(EP(i),BPA.CQ(i,i))
-title('MAP connections (full)','FontSize',16)
-axis square
-a   = axis;
+ax = subplot(3,2,3,'Parent',Fgraph);
+spm_plot_ci(EP(i),BPA.CQ(i,i));
+title(ax,'MAP connections (full)','FontSize',16);
+axis(ax,'square');
 
-subplot(3,2,4)
-spm_plot_ci(Ep(i),abs(BPA.Cq(i,i)))
-title('MAP connections (reduced)','FontSize',16)
-axis square
-axis(a)
+ax = subplot(3,2,4,'Parent',Fgraph);
+spm_plot_ci(Ep(i),abs(BPA.Cq(i,i)));
+title(ax,'MAP connections (reduced)','FontSize',16);
+axis(ax,'square');
 
-subplot(3,2,5)
-bar(EP(i) - pE(i))
-xlabel('parameter')
-title('MAP minus prior','FontSize',16)
-spm_axis tight
-axis square
+ax = subplot(3,2,5,'Parent',Fgraph);
+bar(ax,EP(i) - pE(i));
+xlabel(ax,'parameter');
+title(ax,'MAP minus prior','FontSize',16);
+spm_axis(ax,'tight');
+axis(ax,'square');
 
-subplot(3,2,6)
-bar(Ep(i) - EP(i))
-xlabel('parameter')
-title('differences in MAP','FontSize',16)
-spm_axis tight
-axis square
+ax = subplot(3,2,6,'Parent',Fgraph);
+bar(ax,Ep(i) - EP(i));
+xlabel(ax,'parameter');
+title(ax,'differences in MAP','FontSize',16);
+spm_axis(ax,'tight');
+axis(ax,'square');
+
 drawnow
 
 %-Stop this function here if we only need basic plots
@@ -667,26 +667,29 @@ end
 
 %-Show structural and functional graphs
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Graph analysis'); clf
+F = spm_figure('GetWin','Graph analysis');
+spm_figure('Clear',F);
 try
     spm_dcm_graph(DCM.xY,BPA.Eq.A);
 catch
     try
         spm_dcm_graph(DCM,BPA.Eq.A);
     catch
-        delete(gcf);
+        delete(F);
     end
 end
 
 %-Show coupling matrices
 %--------------------------------------------------------------------------
-if numel(params.field) == 3 && isfield(DCM,'a');
+if numel(params.field) == 3 && isfield(DCM,'a')
     
-    spm_figure('GetWin','Bayesian parameter average (selected model)'); clf
-    spm_dcm_fmri_image(BPA.Eq)
+    F = spm_figure('GetWin','Bayesian parameter average (selected model)');
+    spm_figure('Clear',F);
+    spm_dcm_fmri_image(BPA.Eq);
     
-    spm_figure('GetWin','Model posterior (over parameters)'); clf
-    spm_dcm_fmri_image(Pk)
+    F = spm_figure('GetWin','Model posterior (over parameters)');
+    spm_figure('Clear',F);
+    spm_dcm_fmri_image(Pk);
     
 end
 
@@ -694,12 +697,13 @@ end
 %--------------------------------------------------------------------------
 if ~isempty(params.fun)
     
-    spm_figure('GetWin','Model posterior (over families)'); clf
-    subplot(2,1,1)
-    bar(Pf)
-    xlabel('familiy')
-    title('Model posterior (over families)','FontSize',16)
-    axis square
+    F = spm_figure('GetWin','Model posterior (over families)');
+    ax = subplot(2,1,1,'Parent',F);
+    bar(ax,Pf);
+    xlabel(ax,'family');
+    title(ax,'Model posterior (over families)','FontSize',16);
+    axis(ax,'square');
+    
 end
 
 
