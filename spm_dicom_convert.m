@@ -36,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6503 2015-07-22 11:43:06Z guillaume $
+% $Id: spm_dicom_convert.m 6531 2015-08-21 16:12:52Z guillaume $
 
 
 %-Input parameters
@@ -1054,12 +1054,13 @@ if isfield(hdr,'TransferSyntaxUID')
           '1.2.840.10008.1.2.4.90','1.2.840.10008.1.2.4.91',... % lossless JPEG 2000 & possibly lossy JPEG 2000, Part 1
           '1.2.840.10008.1.2.4.92','1.2.840.10008.1.2.4.93' ... % lossless JPEG 2000 & possibly lossy JPEG 2000, Part 2
          },
-        % try to read PixelData as JPEG image - offset is just a guess
-
-        fseek(fp,hdr.StartOfPixelData+16,'bof');
-        % Skip over the uint16, which seem to encode 65534/57344 (Item),
-        % followed by 4 0  0 0 and then 65534/57344 (Item)
-
+        % try to read PixelData as JPEG image
+        fseek(fp,hdr.StartOfPixelData,'bof');
+        fread(fp,2,'uint16'); % uint16 encoding 65534/57344 (Item)
+        offset = double(fread(fp,1,'uint32')); % followed by 4 0 0 0
+        fread(fp,2,'uint16'); % uint16 encoding 65534/57344 (Item)
+        fread(fp,offset);
+        
         sz  = double(fread(fp,1,'*uint32'));
         img = fread(fp,sz,'*uint8');
 
