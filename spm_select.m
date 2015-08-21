@@ -17,7 +17,7 @@ function varargout = spm_select(varargin)
 %          'xml'   - XML files
 %          'mat'   - MATLAB .mat files or .txt files (assumed to contain
 %                    ASCII representation of a 2D-numeric array)
-%          'batch' - SPM batch files (.m, .mat and XML)
+%          'batch' - SPM batch files (.m or .mat)
 %          'dir'   - select a directory
 %          Other strings act as a filter to regexp. This means that
 %          e.g. DCM*.mat files should have a typ of '^DCM.*\.mat$'
@@ -61,7 +61,7 @@ function varargout = spm_select(varargin)
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 6444 2015-05-21 11:15:48Z guillaume $
+% $Id: spm_select.m 6530 2015-08-21 14:43:52Z guillaume $
 
 
 % For developers:

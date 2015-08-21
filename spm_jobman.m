@@ -9,7 +9,7 @@ function varargout = spm_jobman(varargin)
 % FORMAT output_list = spm_jobman('run',job[,input1,...inputN])
 % FORMAT [output_list, hjob] = spm_jobman('run',job[,input1,...inputN])
 % Run specified job.
-% job         - filename of a job (.m, .mat or .xml), or
+% job         - filename of a job (.m or .mat), or
 %               cell array of filenames, or
 %               'jobs'/'matlabbatch' variable, or
 %               cell array of 'jobs'/'matlabbatch' variables.
@@ -38,7 +38,7 @@ function varargout = spm_jobman(varargin)
 %        job_id = spm_jobman('interactive',job[,node])
 %        job_id = spm_jobman('interactive','',node)
 % Run the user interface in interactive mode.
-% job         - filename of a job (.m, .mat or .xml), or
+% job         - filename of a job (.m or .mat), or
 %               cell array of filenames, or
 %               'jobs'/'matlabbatch' variable, or
 %               cell array of 'jobs'/'matlabbatch' variables.
@@ -56,7 +56,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 6423 2015-04-23 18:38:01Z guillaume $
+% $Id: spm_jobman.m 6530 2015-08-21 14:43:52Z guillaume $
 
 
 %__________________________________________________________________________
@@ -303,10 +303,8 @@ end
 % function newjobs = load_jobs(job)
 %==========================================================================
 function newjobs = load_jobs(job)
-% Load a list of possible job files, return a cell list of jobs. Jobs can
-% be either SPM5 (i.e. containing a 'jobs' variable) or matlabbatch
-% jobs. If a job file failed to load, an empty cell is returned in the
-% list.
+% Load a list of possible job files, return a cell list of jobs.
+% If a job file failed to load, an empty cell is returned in the list.
 filenames = cellstr(job);
 newjobs = {};
 for i = 1:numel(filenames)
@@ -331,18 +329,6 @@ for i = 1:numel(filenames)
             catch
                 warning('spm:spm_jobman:loadFailed','Load failed: ''%s''',filenames{i});
             end
-        case 'xml'
-            spm('Pointer','Watch');
-            try
-                loadxml(filenames{i},'jobs');
-            catch
-                try
-                    loadxml(filenames{i},'matlabbatch');
-                catch
-                    warning('spm:spm_jobman:loadFailed','Load failed: ''%s''',filenames{i});
-                end
-            end
-            spm('Pointer','Arrow');
         otherwise
             warning('spm:spm_jobman:unknownExt','Unknown extension: ''%s''',filenames{i});
     end
