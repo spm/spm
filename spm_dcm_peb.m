@@ -78,7 +78,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6529 2015-08-21 13:27:38Z karl $
+% $Id: spm_dcm_peb.m 6532 2015-08-23 13:59:19Z karl $
  
 
 % get filenames and set up
@@ -302,7 +302,7 @@ ipC   = spm_cat({bP [];
             
 % variational Laplace
 %--------------------------------------------------------------------------
-t     = -2;                         % Fisher scoring parameter
+t     = -4;                         % Fisher scoring parameter
 for n = 1:64
 
     % compute prior precision (with a lower bound of pP/256)
@@ -386,7 +386,7 @@ for n = 1:64
         
         dF = F - F0;
         F0 = F;
-        save tmp b g F0 dFdb dFdbb dFdg dFdgg
+        save('tmp','b','g','F0','dFdb','dFdbb','dFdg','dFdgg');
         
         % decrease regularisation
         %------------------------------------------------------------------
@@ -397,7 +397,7 @@ for n = 1:64
         % otherwise, retrieve expansion point and increase regularisation
         %------------------------------------------------------------------
         t  = t - 1;
-        load tmp
+        load('tmp')
         
     end
     

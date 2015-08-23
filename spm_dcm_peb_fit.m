@@ -70,7 +70,7 @@ function [DCM,PEB,M,HCM] = spm_dcm_peb_fit(GCM,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_fit.m 6449 2015-05-24 14:26:59Z karl $
+% $Id: spm_dcm_peb_fit.m 6532 2015-08-23 13:59:19Z karl $
 
 
 % set up
@@ -91,7 +91,7 @@ end
 % get priors
 %--------------------------------------------------------------------------
 DCM       = GCM(:,1);
-[i,rC,rE] = spm_find_pC(DCM{1});
+[~,rC,rE] = spm_find_pC(DCM{1});
 
 % priors and parameter fields
 %--------------------------------------------------------------------------
@@ -147,7 +147,7 @@ for k = 1:4
     disp('free energy        : ');disp(F);
     disp('conditional entropy: ');disp(H);
     
-    if k > 2
+    if k > 1
         if H(k) > H(k - 1)
             DCM = tmpDCM;
             PEB = tmpPEB;

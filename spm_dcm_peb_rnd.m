@@ -39,7 +39,7 @@ function [p,P,f] = spm_dcm_peb_rnd(DCM,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_rnd.m 6474 2015-06-06 10:41:55Z karl $
+% $Id: spm_dcm_peb_rnd.m 6532 2015-08-23 13:59:19Z karl $
 
 
 % Set up
@@ -75,7 +75,7 @@ for i = 1:N
 end
 
 j   = find(bmc.K(:,2));
-P   = softmax(F');
+P   = spm_softmax(F');
 P   = sum(P(j,:),1);
 F   = log(P./(1 - P));
 
@@ -83,7 +83,7 @@ F   = log(P./(1 - P));
 %--------------------------------------------------------------------------
 BMC = spm_dcm_bmc_peb(DCM,M,field);
 G   = BMC.F;
-f   = softmax(G');
+f   = spm_softmax(G');
 f   = sum(f(j,:),1);
 G   = log(f/(1 - f));
 
@@ -96,12 +96,13 @@ if nargout, return, end
 % show results
 %--------------------------------------------------------------------------
 spm_figure('GetWin','PEB-BMC');
-subplot(3,2,1)
-hist(F,32), hold on
-plot([G G],[0 N/4],'--r'), hold on
-plot([r r],[0 N/4],'--b'), hold on
-text(G,N/6,sprintf('p < %-2.3f',p),   'FontSize',10), hold off
-text(r,N/6,sprintf('p < %-2.3f',0.05),'FontSize',10), hold off
+subplot(3,2,1),hold off
+hist(F(isfinite(F))), hold on
+YLim  = get(gca,'YLim');
+plot([G G],[0 YLim(2)],'r'),   hold on
+plot([r r],[0 YLim(2)],':r'), hold on
+text(G,YLim(2)*3/4,sprintf('p < %-2.3f',p),   'FontSize',10), hold on
+text(r,YLim(2)/2  ,sprintf('p < %-2.3f',0.05),'FontSize',10), hold off
 xlabel('Log Bayes Factor'), ylabel('Frequency')
 title('Null distribution','FontSize',16)
 axis square

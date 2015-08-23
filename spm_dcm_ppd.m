@@ -38,7 +38,7 @@ function [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,Y,X,field,iX)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ppd.m 6473 2015-06-04 19:05:05Z karl $
+% $Id: spm_dcm_ppd.m 6532 2015-08-23 13:59:19Z karl $
 
 
 % Set up
@@ -85,12 +85,11 @@ PEB   = spm_dcm_peb(TRAIN,M,field);
 % and estimate their contribution to the test subject
 %--------------------------------------------------------------------------
 nX    = size(X,2);               % number of explanatory variables
-Y(iX) = 0;                       % prior expectation (variables)
 bC    = var(X(:,iX))*4;
 bC    = sparse(iX,1,bC,nX,1);    % prior covariances (variables)
 M.X   = PEB.Ep;                  % emprical prior expectations
 M.rP  = spm_inv(PEB.Ce);         % emprical prior precision (parameters)
-M.bE  = Y;                       % prior expectation (variables)
+M.bE  = Y; M.bE(:,iX) = 0;       % prior expectation (variables)
 M.bC  = diag(bC + 1);            % prior covariances (variables)
 
 for i = 1:4
@@ -106,7 +105,7 @@ pC    = peb.M.pC(iX,iX);
 
 % Bayesian model reduction over levels of (second) explanatory variables
 %--------------------------------------------------------------------------
-x     = unique(X(:,iX));
+x     = unique([X(:,iX); Y(:,iX)]);
 for j = 1:length(x)
     F(j,1) = spm_log_evidence(qE,qC,pE,pC,x(j),0);
 end

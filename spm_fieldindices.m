@@ -12,7 +12,7 @@ function [ix] = spm_fieldindices(X,varargin)
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fieldindices.m 6481 2015-06-16 17:01:47Z karl $
+% $Id: spm_fieldindices.m 6532 2015-08-23 13:59:19Z karl $
 
 
 % if varargin is a vector simply return fieldnames
@@ -49,7 +49,7 @@ for i = 1:length(varargin)
             
         catch
             try
-                % field is the expression
+                % field is an expression
                 %----------------------------------------------------------
                 eval(['x.' field ' = x.' field ' + 1;']);
                 ix = ix + spm_vec(x);

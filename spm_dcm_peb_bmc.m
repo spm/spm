@@ -76,7 +76,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6474 2015-06-06 10:41:55Z karl $
+% $Id: spm_dcm_peb_bmc.m 6532 2015-08-23 13:59:19Z karl $
 
 % (greedy) search over all combinations of second level parameters
 %==========================================================================
@@ -91,8 +91,8 @@ if nargin < 2
     spm_figure('Getwin','BMC'); clf
     
     Np    = numel(PEB.Pind);
-    str   = {'Group means','Group effect'};
-    Nx    = min(2,size(PEB.M.X,2));
+    Nx    = min(3,size(PEB.M.X,2));
+    str   = {'Group means','1st group effect','2nd group effect'};
     for i = 1:Nx
         
         j = (1:Np)' + (i - 1)*Np;

@@ -35,7 +35,7 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_loo.m 6529 2015-08-21 13:27:38Z karl $
+% $Id: spm_dcm_loo.m 6532 2015-08-23 13:59:19Z karl $
 
 
 % Set up
@@ -108,10 +108,11 @@ axis square
 
 
 if size(Q,1) > 2
-    subplot(2,1,2), imagesc(Q)
-    xlabel('subject'), ylabel('levels of group effect')
-    title('Posterior probability','FontSize',16)
-    axis square
+    subplot(2,1,2), imagesc(1:Ns,unique(M.X(:,2)),Q), hold on
+    plot(M.X(:,2),'.c','MarkerSize',32), hold off
+    xlabel('Subject'), ylabel('levels of group effect')
+    title('Predictive posterior (and true values)','FontSize',16)
+    axis square xy
 else
     subplot(2,1,2), bar(Q(2,:))
     xlabel('subject'), ylabel('posterior probability')
