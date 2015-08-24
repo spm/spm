@@ -1,12 +1,12 @@
 /*
- * $Id: spm_get_lm.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: spm_get_lm.c 6534 2015-08-24 16:02:56Z guillaume $
  * Jesper Andersson
  */
 
 /****************************************************************
  **
  ** Routine that identifies which voxels in a list of coordinates
- ** that are local maxima, and returns a list of indicies into
+ ** that are local maxima, and returns a list of indices into
  ** the coordinate list for those maxima.
  **
  ***************************************************************/
@@ -125,7 +125,7 @@ unsigned int get_maxima(double        *vol,
       iy = ((mwIndex) (list[j+1]+0.1));
       iz = ((mwIndex) (list[j+2]+0.1));
       
-      if (get_index(ix,iy,iz,vdim) > 0)
+      if (get_index(ix,iy,iz,vdim) >= 0)
       {
          if (is_maxima(vol,vdim,ix,iy,iz,cc))
          {
@@ -146,7 +146,7 @@ unsigned int get_maxima(double        *vol,
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   mwIndex       i = 0, j = 0, k = 0;
+   mwIndex       i = 0, j = 0, k = 0, m = 0, n = 0;
    int           tmpint = 0;
    const mwSize  *pdim = NULL;
    mwSize        ndim = 0;
@@ -154,26 +154,26 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    mwSize        ln = 0, lm = 0;
    mwSize        n_lindex = 0;
    mwIndex       *lindex = NULL;
+   unsigned int  conn;
    double        *vol = NULL;
    double        *lp = NULL;
    double        *list = NULL;
    double        *plindex = NULL;
    
-   if (nrhs < 2) mexErrMsgTxt("Not enough input arguments.");
-   if (nrhs > 2) mexErrMsgTxt("Too many input arguments.");
-   if (nlhs < 1) mexErrMsgTxt("Not enough output arguments");
+   if (nrhs < 1) mexErrMsgTxt("Not enough input arguments.");
+   if (nrhs > 3) mexErrMsgTxt("Too many input arguments.");
    if (nlhs > 1) mexErrMsgTxt("Too many output arguments.");
 
    /* Get binary map. */
 
    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
    {
-      mexErrMsgTxt("spm_get_lm: VOL must be numeric, real, full and double");
+      mexErrMsgTxt("Input 'vol' must be numeric, real, full and double.");
    }
    ndim = mxGetNumberOfDimensions(prhs[0]);
    if (ndim != 3 && ndim != 2)
    {
-      mexErrMsgTxt("spm_get_lm: VOL must 2- or 3-dimensional");
+      mexErrMsgTxt("Input 'vol' must 2- or 3-dimensional.");
    }
    pdim = mxGetDimensions(prhs[0]);
    vdim[0] = pdim[0]; vdim[1] = pdim[1]; 
@@ -182,46 +182,95 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
    /* Get list of coordinates */
    
-   if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
+   if (nrhs < 2)
    {
-      mexErrMsgTxt("spm_get_lm: L must be numeric, real, full and double");
-   }
-   lm = mxGetM(prhs[1]);
-   ln = mxGetN(prhs[1]);
-   if (!((lm==3 && ndim==3) || (lm==3 && ndim==2) || (lm==2 && ndim==2)))
-   {
-      mexErrMsgTxt("spm_get_lm: L must be 3xn (or 2xn) list of voxel coordinates");
-   }
-   lp = mxGetPr(prhs[1]);
-   if (lm==3 && ndim==2)  /* Make sure all z-coordinates equal 1 if 3xn list used with 2D map. */
-   {
-      for (i=0, j=0; i<ln; i++, j+=3)
+      lm = 3; ln = vdim[0] * vdim[1] * vdim[2];
+      list = (double *) mxCalloc(lm*ln,sizeof(double));
+      for (k=0,m=0,n=0; k<vdim[2]; k++)
       {
-         tmpint = ((int) lp[j+2]+0.1);
-         if (tmpint != 1)
+         for (j=0; j<vdim[1]; j++)
          {
-            mexErrMsgTxt("spm_get_lm: z-coordinate must be 1 when using 3xn list with 2D map");
+            for (i=0; i<vdim[0]; i++)
+            {
+               /* ignore NaNs */
+               if (!mxIsNaN(vol[n++]))
+               {
+                  list[m++] = (double)i + 1.0;
+                  list[m++] = (double)j + 1.0;
+                  list[m++] = (double)k + 1.0;
+               }
+               else
+               {
+                  list[m++] = -1.0;
+                  list[m++] = -1.0;
+                  list[m++] = -1.0;
+               }
+            }
          }
-      }
-   }
-   list = (double *) mxCalloc(3*ln,sizeof(double));
-   if (lm==2) /* Extend to 3xn list if 2xn list was supplied with 2D-map. */
-   {
-      for (i=0, j=0, k=0; i<ln; i++, j+=3, k+=2)
-      {
-         list[j] = lp[k]; list[j+1] = lp[k+1]; list[j+2] = 1.0; 
       }
    }
    else
    {
-      memcpy(list,lp,3*ln*sizeof(double));
+      if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
+      {
+         mexErrMsgTxt("Input 'list' must be numeric, real, full and double.");
+      }
+      lm = mxGetM(prhs[1]);
+      ln = mxGetN(prhs[1]);
+      if (!((lm==3 && ndim==3) || (lm==3 && ndim==2) || (lm==2 && ndim==2)))
+      {
+         mexErrMsgTxt("Input 'list' must be 3xn (or 2xn) list of voxel coordinates.");
+      }
+      lp = mxGetPr(prhs[1]);
+      if (lm==3 && ndim==2)  /* Make sure all z-coordinates equal 1 if 3xn list used with 2D map. */
+      {
+         for (i=0, j=0; i<ln; i++, j+=3)
+         {
+            tmpint = ((int) lp[j+2]+0.1);
+            if (tmpint != 1)
+            {
+               mexErrMsgTxt("Input 'list' z-coordinate must be 1 when using 3xn list with 2D map.");
+            }
+         }
+      }
+      list = (double *) mxCalloc(3*ln,sizeof(double));
+      if (lm==2) /* Extend to 3xn list if 2xn list was supplied with 2D-map. */
+      {
+         for (i=0, j=0, k=0; i<ln; i++, j+=3, k+=2)
+         {
+            list[j] = lp[k]; list[j+1] = lp[k+1]; list[j+2] = 1.0; 
+         }
+      }
+      else
+      {
+         memcpy(list,lp,3*ln*sizeof(double));
+      }
    }
 
-   /* Find list if indicies to local maxima. */
+   /* Get connectivity criterion */
+   
+   if (nrhs < 3)
+   {
+      conn = 18;
+   }
+   else
+   {
+      if (!mxIsNumeric(prhs[2]) || mxGetNumberOfElements(prhs[2])!=1)
+      {
+         mexErrMsgTxt("Input 'n' must be a scalar.");
+      }
+      conn = (unsigned int)(mxGetScalar(prhs[2]) + 0.1);
+   }
+   if ((conn!=6) && (conn!=18) && (conn!=26))
+   {
+      mexErrMsgTxt("Input 'n' must be 6, 18 or 26.");
+   }
+   
+   /* Find list if indices to local maxima. */
 
-   n_lindex = get_maxima(vol,vdim,list,ln,18,&lindex);
+   n_lindex = get_maxima(vol,vdim,list,ln,conn,&lindex);
 
-   /* Turn indicies into doubles in a MATLAB array. */
+   /* Turn indices into doubles in a MATLAB array. */
 
    plhs[0] = mxCreateDoubleMatrix(1,n_lindex,mxREAL);
    plindex = mxGetPr(plhs[0]);
