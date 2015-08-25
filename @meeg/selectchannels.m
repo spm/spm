@@ -10,7 +10,7 @@ function chanind = selectchannels(this, channels)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: selectchannels.m 5675 2013-10-09 14:27:17Z vladimir $
+% $Id: selectchannels.m 6535 2015-08-25 11:45:26Z vladimir $
 
 if ischar(channels)
     channels = {channels};
@@ -20,7 +20,8 @@ chanind = [];
 
 for i = 1:numel(channels)
     if ismember(upper(channels{i}), ...
-            {'ALL', 'EOG', 'ECG', 'EMG', 'EEG', 'MEG', 'MEGMAG', 'MEGGRAD', 'MEGPLANAR', 'MEGCOMB', 'REF', 'REFMAG', 'REFGRAD', 'LFP'})
+              {'ALL','MEG', 'MEGPLANAR', 'MEGMAG', 'MEGGRAD', 'MEGCOMB','EEG',...
+              'EOG', 'ECG', 'EMG', 'LFP', 'SRC', 'PHYS', 'ILAM', 'OTHER', 'REF', 'REFMAG', 'REFGRAD'})
         chanind = [chanind indchantype(this, upper(channels{i}))];
     elseif strncmpi('regexp_', channels{i}, 7)        
         re        = channels{i}(8:end);

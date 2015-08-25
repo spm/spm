@@ -16,7 +16,7 @@ function res = spm_eeg_reduce_pca(S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak 
-% $Id: spm_eeg_reduce_pca.m 5528 2013-06-07 11:47:27Z vladimir $
+% $Id: spm_eeg_reduce_pca.m 6535 2015-08-25 11:45:26Z vladimir $
 
 
 if nargin == 0 
@@ -40,6 +40,8 @@ end
 
 D = S.D;
 
+isTF = strncmp(D.transformtype, 'TF', 2);
+
 YY = 0;
 ns = 0;
 
@@ -51,10 +53,15 @@ if ntrials > 100, Ibar = floor(linspace(1, ntrials,100));
 else Ibar = 1:ntrials; end
 
 for i = 1:ntrials
-    Y  = squeeze(D(S.chanind, :, i));
+    if isTF
+        Y  = squeeze(D(S.chanind, :, :, i));
+        Y  = reshape(Y, size(Y, 1), []);
+    else
+        Y  = squeeze(D(S.chanind, :, i));
+    end
     Y  = detrend(Y', 'constant');
     YY = YY+(Y'*Y);
-    ns = ns + D.nsamples-1;
+    ns = ns + size(Y, 2) - 1;
     if ismember(i, Ibar)
         spm_progress_bar('Set', i); drawnow;
     end

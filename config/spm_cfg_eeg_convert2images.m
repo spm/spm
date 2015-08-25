@@ -5,7 +5,7 @@ function convert2images = spm_cfg_eeg_convert2images
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert2images.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_eeg_convert2images.m 6535 2015-08-25 11:45:26Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -27,6 +27,7 @@ mode.labels = {
     'scalp x time'
     'scalp x frequency' 
     'scalp' 
+    'source'
     'time x frequency' 
     'time' 
     'frequency'
@@ -100,7 +101,8 @@ S           = job;
 S.D         = S.D{1};
 S.channels  = spm_cfg_eeg_channel_selector(job.channels);
 
-out.files = spm_eeg_convert2images(S);
+[out.files, out.dir{1}] = spm_eeg_convert2images(S);
+
 
 
 %------------------------------------------------------------------------
@@ -110,4 +112,9 @@ dep(1)            = cfg_dep;
 dep(1).sname      = 'M/EEG exported images';
 dep(1).src_output = substruct('.','files');
 dep(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+
+dep(2)            = cfg_dep;
+dep(2).sname      = 'M/EEG images folder';
+dep(2).src_output = substruct('.','dir');
+dep(2).tgt_spec   = cfg_findspec({{'filter','dir','strtype','e'}});
 

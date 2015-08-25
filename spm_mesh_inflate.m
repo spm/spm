@@ -10,7 +10,7 @@ function M = spm_mesh_inflate(M,T,S)
 % Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Jean Daunizeau
-% $Id: spm_mesh_inflate.m 6157 2014-09-05 18:17:54Z guillaume $
+% $Id: spm_mesh_inflate.m 6535 2015-08-25 11:45:26Z vladimir $
 
 
 if nargin < 3, S = 0; end
@@ -40,6 +40,7 @@ w = 0.05;
 
 if nargin < 2 || isinf(T)
     T = floor(size(v,1) * 0.003 - 2);
+    T = max(T,1);
 end
 
 % Compute (normalised) adjacency matrix

@@ -5,7 +5,7 @@ function res = getset(this, parent, fieldname, ind, values)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: getset.m 5935 2014-03-28 15:59:57Z vladimir $
+% $Id: getset.m 6535 2015-08-25 11:45:26Z vladimir $
 
 this = struct(this);
 
@@ -25,7 +25,7 @@ if nargin <= 4
         res{i} = getfield(this, parent, {ind(i)}, fieldname);
     end
 
-    if isempty(res) || (all(cellfun('isclass', res, 'double') & ~cellfun('isempty', res)))
+    if isempty(res) || (all(cellfun('isclass', res, 'double') & (cellfun(@numel, res) == 1)))
         res = [res{:}];
     end
 
