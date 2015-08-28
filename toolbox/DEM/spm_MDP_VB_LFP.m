@@ -1,13 +1,15 @@
-function [MDP] = spm_MDP_VB_LFP(MDP,UNITS)
+function u = spm_MDP_VB_LFP(MDP,UNITS)
 % auxiliary routine for plotting simulated electrophysiological responses
-% FORMAT [MDP] = spm_MDP_VB_LFP(MDP,UNITS)
+% FORMAT u = spm_MDP_VB_LFP(MDP,UNITS)
+%
+% u - selected unit responses {number of trials, number of units}
 %
 % MDP - structure (see spm_MDP_VB
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 6523 2015-08-15 20:57:28Z karl $
+% $Id: spm_MDP_VB_LFP.m 6538 2015-08-28 12:54:40Z karl $
 
 
 % deal with a sequence of trials

@@ -1,6 +1,6 @@
-function spm_MDP_VB_game(MDP)
+function Q = spm_MDP_VB_game(MDP)
 % auxiliary plotting routine for spm_MDP_VB - multiple trials
-% FORMAT spm_MDP_VB_game(MDP)
+% FORMAT Q = spm_MDP_VB_game(MDP)
 %
 % MDP.P(M,T)      - probability of emitting action 1,...,M at time 1,...,T
 % MDP.Q(N,T)      - an array of conditional (posterior) expectations over
@@ -12,22 +12,30 @@ function spm_MDP_VB_game(MDP)
 % MDP.U(M,T)      - a sparse matrix encoding action at time 1,...,T
 % MDP.W(1,T)      - posterior expectations of precision
 %
-% MDP.un  = un;   - simulated neuronal encoding of hidden states
-% MDP.xn  = Xn;   - simulated neuronal encoding of policies
-% MDP.wn  = wn;   - simulated neuronal encoding of precision
-% MDP.da  = dn;   - simulated dopamine responses (deconvolved)
-% MDP.rt  = rt;   - simulated dopamine responses (deconvolved)
+% MDP.un  = un    - simulated neuronal encoding of hidden states
+% MDP.xn  = Xn    - simulated neuronal encoding of policies
+% MDP.wn  = wn    - simulated neuronal encoding of precision
+% MDP.da  = dn    - simulated dopamine responses (deconvolved)
+% MDP.rt  = rt    - simulated dopamine responses (deconvolved)
 %
+% returns summary of performance:
+%
+%     Q.X  = x    - expected hidden states
+%     Q.R  = u    - final policy expectations
+%     Q.S  = s    - actual hidden states
+%     Q.O  = o    - actual outcomes
+%     Q.p  = p    - performance
+%     Q.q  = q    - reaction times
+%     
 % please see spm_MDP_VB
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 6529 2015-08-21 13:27:38Z karl $
+% $Id: spm_MDP_VB_game.m 6538 2015-08-28 12:54:40Z karl $
 
 % graphics
 %==========================================================================
-col   = {'r.','b.','g.','c.','m.','k.'};
 Nt    = length(MDP);               % number of trials
 NT    = size(MDP(1).V,1) + 1;      % number of transitions
 Np    = size(MDP(1).V,2) + 1;      % number of policies
@@ -43,13 +51,26 @@ for i = 1:Nt
     o(:,i) = MDP(i).O(:,end);
     d(:,i) = MDP(i).d/sum(MDP(i).d);
     w(:,i) = MDP(i).dn;
-    p(i)   = trace(MDP(i).C'*MDP(i).S)/NT;
     p(i)   = trace(log(MDP(i).A*spm_softmax(MDP(i).C))'*MDP(i).O)/NT;
     q(i)   = sum(MDP(i).rt(2:end));
 end
 
+% assemble output structure if required
+%--------------------------------------------------------------------------
+if nargout
+    Q.X  = x;            % expected hidden states
+    Q.R  = u;            % final policy expectations
+    Q.S  = s;            % actual hidden states
+    Q.O  = o;            % actual outcomes
+    Q.p  = p;            % performance
+    Q.q  = q;            % reaction times
+    return
+end
+
+
 % Initial tates and expected policies (habit in red)
 %--------------------------------------------------------------------------
+col   = {'r.','b.','g.','c.','m.','k.'};
 subplot(6,1,1), 
 [s,t] = find(s);
 if Nt < 64
@@ -63,7 +84,7 @@ for i = 1:max(s)
     plot(t(j),j - j + 1,col{rem(i - 1,6)+ 1},'MarkerSize',MarkerSize), hold on
 end
 plot(Np*(1 - u(end,:)),'r'), hold off
-title('Polcy selection and inital state','FontSize',16)
+title('Inital state and polcy selection','FontSize',16)
 xlabel('Trial','FontSize',12),ylabel('Policy','FontSize',12)
 
 % Performance
