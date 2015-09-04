@@ -21,13 +21,13 @@ function spm_MDP_VB_trial(MDP)
 % please see spm_MDP_VB
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 6523 2015-08-15 20:57:28Z karl $
-
+% $Id: spm_MDP_VB_trial.m 6539 2015-09-04 08:47:25Z karl $
+ 
 % graphics
 %==========================================================================
-
+ 
 % posterior beliefs about hidden states
 %--------------------------------------------------------------------------
 subplot(3,2,1)
@@ -38,8 +38,8 @@ end
 [s,t] = find(MDP.S); plot(t,s,'.c','MarkerSize',16), hold off
 title('Hidden states (and utility)','FontSize',14)
 xlabel('trial','FontSize',12)
-ylabel('Hidden state','FontSize',12)
-
+ylabel('hidden state','FontSize',12)
+ 
 % posterior beliefs about control states
 %--------------------------------------------------------------------------
 subplot(3,2,2), image(64*(1 - MDP.P)), hold on
@@ -47,23 +47,23 @@ subplot(3,2,2), image(64*(1 - MDP.P)), hold on
 title('Inferred and selected action','FontSize',14)
 xlabel('trial','FontSize',12)
 ylabel('action','FontSize',12)
-
+ 
 % policies
 %--------------------------------------------------------------------------
 subplot(3,2,3)
 imagesc(MDP.V')
-title('Allowable policies','FontSize',14)
+title('allowable policies','FontSize',14)
 ylabel('policy','FontSize',12)
 xlabel('trial','FontSize',12)
-
+ 
 % expectations over policies
 %--------------------------------------------------------------------------
 subplot(3,2,4)
 image(64*(1 - MDP.un))
 title('Posterior probability','FontSize',14)
-ylabel('Policy','FontSize',12)
+ylabel('policy','FontSize',12)
 xlabel('updates','FontSize',12)
-
+ 
 % sample (observation)
 %--------------------------------------------------------------------------
 subplot(3,2,5)
@@ -75,13 +75,13 @@ end
 title('Observed states','FontSize',14)
 xlabel('trial','FontSize',12)
 ylabel('outcome','FontSize',12)
-
+ 
 % expected action
 %--------------------------------------------------------------------------
 subplot(3,2,6), hold on
 bar(4*MDP.dn,'c'), plot(MDP.wn,'k'), hold off
 title('Expected precision (dopamine)','FontSize',14)
 xlabel('updates','FontSize',12)
-ylabel('Precision','FontSize',12)
+ylabel('precision','FontSize',12)
 spm_axis tight
 drawnow

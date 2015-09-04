@@ -30,10 +30,10 @@ function Q = spm_MDP_VB_game(MDP)
 % please see spm_MDP_VB
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 6538 2015-08-28 12:54:40Z karl $
-
+% $Id: spm_MDP_VB_game.m 6539 2015-09-04 08:47:25Z karl $
+ 
 % graphics
 %==========================================================================
 Nt    = length(MDP);               % number of trials
@@ -54,7 +54,7 @@ for i = 1:Nt
     p(i)   = trace(log(MDP(i).A*spm_softmax(MDP(i).C))'*MDP(i).O)/NT;
     q(i)   = sum(MDP(i).rt(2:end));
 end
-
+ 
 % assemble output structure if required
 %--------------------------------------------------------------------------
 if nargout
@@ -66,9 +66,9 @@ if nargout
     Q.q  = q;            % reaction times
     return
 end
-
-
-% Initial tates and expected policies (habit in red)
+ 
+ 
+% Initial states and expected policies (habit in red)
 %--------------------------------------------------------------------------
 col   = {'r.','b.','g.','c.','m.','k.'};
 subplot(6,1,1), 
@@ -84,9 +84,9 @@ for i = 1:max(s)
     plot(t(j),j - j + 1,col{rem(i - 1,6)+ 1},'MarkerSize',MarkerSize), hold on
 end
 plot(Np*(1 - u(end,:)),'r'), hold off
-title('Inital state and polcy selection','FontSize',16)
+title('Initial state and policy selection','FontSize',16)
 xlabel('Trial','FontSize',12),ylabel('Policy','FontSize',12)
-
+ 
 % Performance
 %--------------------------------------------------------------------------
 q     = q - mean(q);
@@ -101,26 +101,26 @@ for i = 1:max(o)
 end
 title('Final outcome, performance and reaction times','FontSize',16)
 ylabel('Expected utility','FontSize',12), spm_axis tight
-
+ 
 % Initial states (context)
 %--------------------------------------------------------------------------
 subplot(6,1,3)
 plot(spm_cat(x))
 title('State estimation (ERPs)','FontSize',16)
 ylabel('Response','FontSize',12), spm_axis tight
-
+ 
 % Precision (dopamine)
 %--------------------------------------------------------------------------
 subplot(6,1,4), bar(spm_vec(w),'k')
 title('Precision (dopamine)','FontSize',16)
 ylabel('Precision','FontSize',12), spm_axis tight
-
+ 
 % learning - D
 %--------------------------------------------------------------------------
 subplot(6,1,5), image(64*(1 - d))
 title('Learning (D and H)','FontSize',16)
 ylabel('Hidden state','FontSize',12)
-
+ 
 % Habit learning
 %--------------------------------------------------------------------------
 k     = round(linspace(1,Nt,6));

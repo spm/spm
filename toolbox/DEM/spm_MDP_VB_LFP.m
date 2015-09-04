@@ -7,21 +7,21 @@ function u = spm_MDP_VB_LFP(MDP,UNITS)
 % MDP - structure (see spm_MDP_VB
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 6538 2015-08-28 12:54:40Z karl $
-
-
+% $Id: spm_MDP_VB_LFP.m 6539 2015-09-04 08:47:25Z karl $
+ 
+ 
 % deal with a sequence of trials
 %==========================================================================
-
+ 
 % dimensions
 %--------------------------------------------------------------------------
 Nt    = length(MDP);               % number of trials
 NT    = size(MDP(1).V,1) + 1;      % number of transitions
 Nx    = size(MDP(1).A,2);          % number of states
 Nb    = size(MDP(1).xn,1);         % number of time bins per transition
-
+ 
 % units to plot
 %--------------------------------------------------------------------------
 ALL   = [];
@@ -56,33 +56,33 @@ for i = 1:Nt
     end
     u{i,1} = uj;
     
-    % ddopamine or changes in precision
+    % dopamine or changes in precision
     %----------------------------------------------------------------------
     dn(:,i) = MDP(i).dn;
 end
-
+ 
 % phase amplitude coupling
 %==========================================================================
 dt  = 1/64;                              % time bin (seconds)
-t   = (1:(Nb*NT*Nt))*dt;                 % ime (seconds)
+t   = (1:(Nb*NT*Nt))*dt;                 % time (seconds)
 Hz  = 4:32;                              % frequency range
 n   = 1/(4*dt);                          % window length
 w   = Hz*(dt*n);                         % cycles per window
 K   = exp(-(Hz - 4).^2/4);               % filter (theta)
-
+ 
 % simulated local field potential
 %--------------------------------------------------------------------------
 LFP = spm_cat(x);
-
+ 
 if Nt == 1, subplot(2,2,1), else subplot(4,1,1),end
-imagesc(t,1:(Nx*NT),LFP'),title('unit responses','FontSize',16)
+imagesc(t,1:(Nx*NT),LFP'),title('Unit responses','FontSize',16)
 xlabel('time (seconds)','FontSize',12), ylabel('unit','FontSize',12)
 grid on, set(gca,'XTick',(1:(NT*Nt))*Nb*dt)
 grid on, set(gca,'YTick',(1:NT)*Nx)
 if NT*Nt > 32, set(gca,'XTickLabel',[]), end
 if Nt == 1,    axis square,              end
-
-% ttime frequency analysis and theta phase
+ 
+% time frequency analysis and theta phase
 %--------------------------------------------------------------------------
 wft = spm_wft(LFP,w,n);
 csd = sum(abs(wft),3);
@@ -90,14 +90,14 @@ LFP = spm_iwft(  wft(:,:,1),w,n);
 lfp = spm_iwft(diag(K)*wft(:,:,1),w,n);
 LFP = 4*LFP/std(LFP) + 16;
 lfp = 4*lfp/std(lfp) + 16;
-
+ 
 if Nt == 1, subplot(2,2,3), else subplot(4,1,2),end
 imagesc(t,Hz,csd), axis xy, hold on
 plot(t,lfp,'w',t,LFP,'w:'), hold off
-title('time-frequency (and phase) response','FontSize',16)
+title('Time-frequency (and phase) response','FontSize',16)
 xlabel('time (seconds)','FontSize',12), ylabel('frequency','FontSize',12)
 if Nt == 1, axis square, end
-
+ 
 % local field potentials
 %==========================================================================
 if Nt == 1, subplot(2,2,2), else subplot(4,1,3),end
@@ -108,11 +108,11 @@ for i = 2:2:Nt
     h = patch(((i - 1) + [0 0 1 1])*NT*Nb*dt,a([3,4,4,3]),-[1 1 1 1],'w');
     set(h,'LineStyle',':','FaceColor',[1 1 1] - 1/32);
 end
-title('local field potentials','FontSize',16)
+title('Local field potentials','FontSize',16)
 xlabel('time (seconds)','FontSize',12)
 ylabel('Response','FontSize',12)
 if Nt == 1, axis square, end
-
+ 
 % simulated dopamine responses
 %==========================================================================
 if Nt == 1, subplot(2,2,4), else subplot(4,1,4),end
@@ -120,6 +120,4 @@ bar(spm_vec(dn),1,'k'), title('phasic dopamine responses','FontSize',16)
 xlabel('time (updates)','FontSize',12)
 ylabel('change in precision','FontSize',12), spm_axis tight
 if Nt == 1, axis square, end
-
-
  
