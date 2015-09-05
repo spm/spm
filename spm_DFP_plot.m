@@ -9,7 +9,7 @@ function spm_DFP_plot(QU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP_plot.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: spm_DFP_plot.m 6540 2015-09-05 10:06:42Z karl $
 
 % defaults for plotting
 %--------------------------------------------------------------------------
@@ -50,14 +50,18 @@ subplot(2,1,1)
 for i = 1:nv
     plot(1:nt,V{i},':','Color',[1 1 1]/(2 + i - 1))
     hold on
-    plot(nt,V{i}(nt,:),'.','Color',[1 1 1]/(2 + i - 1),'MarkerSize',32)
-    plot(nt,V{i}(nt,:),'.','Color',[1 1 1],'MarkerSize',4)
+    if np < 16
+        plot(nt,V{i}(nt,:),'.','Color',[1 1 1]/(2 + i - 1),'MarkerSize',32)
+        plot(nt,V{i}(nt,:),'.','Color',[1 1 1],'MarkerSize',4)
+    else
+        plot(nt,V{i}(nt,:),'.','Color',[1 0 0],'MarkerSize',8)
+    end
     plot(1:nt,mean(V{i},2),'--b','LineWidth',2)
     hold on
 end
 try
     hold on
-    plot([1:nt] - 1,pV,'r')
+    plot((1:nt) - 1,pV,'r')
 end
 hold off
 title('causes','FontSize',16);
@@ -75,15 +79,18 @@ subplot(2,1,2)
 for i = 1:nx
     plot(1:nt,X{i},':','Color',[1 1 1]/(2 + i - 1))
     hold on
-    plot(nt,X{i}(nt,:),'.','Color',[1 1 1]/(2 + i - 1),'MarkerSize',32)
-    plot(nt,X{i}(nt,:),'.','Color',[1 1 1],'MarkerSize',4)
-
+    if np < 16
+        plot(nt,X{i}(nt,:),'.','Color',[1 1 1]/(2 + i - 1),'MarkerSize',32)
+        plot(nt,X{i}(nt,:),'.','Color',[1 1 1],'MarkerSize',4)
+    else
+        plot(nt,X{i}(nt,:),'.','Color',[1 0 0],'MarkerSize',8)
+    end
     plot(1:nt,mean(X{i},2),'--b','LineWidth',2)
     hold on
 end
 try
     hold on
-    plot([1:nt] - 1,pX,'r')
+    plot((1:nt) - 1,pX,'r')
 end
 hold off
 title('hidden states','FontSize',16);

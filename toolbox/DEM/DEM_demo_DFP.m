@@ -13,15 +13,16 @@ function DEM_demo_DFP
 %==========================================================================
 spm_figure('GetWin','DEM');
 
-M      = spm_DEM_M('convolution model');
-M(1).V = exp(8);
-M(1).W = exp(16);
+M        = spm_DEM_M('convolution model');
+M(1).V   = exp(8);
+M(1).W   = exp(16);
+M(1).E.N = 32;
 
  
 % and generate data
 %==========================================================================
 N     = 32;                                        % length of data sequence
-U     = exp(-([1:N] - N/4).^2/(2*(N/32)^2));       % Gaussian cause
+U     = exp(-((1:N) - N/4).^2/(2*(N/32)^2));       % Gaussian cause
 DEM   = spm_DEM_generate(M,U,{},{32 16});
  
 % display

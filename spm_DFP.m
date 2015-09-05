@@ -77,12 +77,13 @@ function [DEM] = spm_DFP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_DFP.m 6540 2015-09-05 10:06:42Z karl $
 
 
 % Check model, data, priros and confounds and unpack
 %--------------------------------------------------------------------------
 [M,Y,U,X] = spm_DEM_set(DEM);
+MOVIE     = 0;
 
 % find or create a DEM figure
 %--------------------------------------------------------------------------
@@ -412,7 +413,7 @@ for iN = 1:nN
                     quy.v  = qv;
                     quy.y  = qy;
                     quy.u  = qc;
-                    [E dE] = spm_DEM_eval(M,quy,qp);
+                    [E,dE] = spm_DEM_eval(M,quy,qp);
                     dE.dP  = [dE.dp spm_cat(dEdb)];
 
                     qu_c   = qu_c*c;
@@ -439,7 +440,7 @@ for iN = 1:nN
                     quy.v  = qu(iP).v;
                     quy.y  = qy;
                     quy.u  = qc;
-                    [e de] = spm_DEM_eval(M,quy,qp);
+                    [e,de] = spm_DEM_eval(M,quy,qp);
 
                     % conditional uncertainty about parameters
                     %======================================================
@@ -502,9 +503,15 @@ for iN = 1:nN
             
             % D-Step: save ensemble density and plot (over samples)
             %--------------------------------------------------------------
-            QU{iY}  = qu;
+            QU{iY} = qu;
             figure(Fdfp)
             spm_DFP_plot(QU,nY)
+            if MOVIE
+                subplot(2,1,1)
+                set(gca,'YLim',[-0.4 1.2])
+                drawnow
+                MOV(iY) = getframe(gca); 
+            end
 
             % Gradients and curvatures for E-Step:
             %==============================================================
@@ -710,3 +717,11 @@ DEM.qP = qP;                  % conditional moments of model-parameters
 DEM.qH = qH;                  % conditional moments of hyper-parameters
  
 DEM.F  = F;                   % [-ve] Free energy
+
+% set ButtonDownFcn
+%--------------------------------------------------------------------------
+if MOVIE
+    figure(Fdfp), subplot(2,1,1)
+    set(gca,'Userdata',{MOV,16})
+    set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
+end
