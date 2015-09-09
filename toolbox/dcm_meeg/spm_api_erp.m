@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_api_erp.m 6542 2015-09-09 11:48:34Z karl $
  
 
 %-Launch GUI
@@ -84,6 +84,7 @@ end
 % 'TFM'    - Time-frequency responses
 % 'IND'    - Induced responses
 % 'PHA'    - (for phase coupling)
+% 'NFM'    - Neural field model
 
 try
     model = DCM.options.analysis;
@@ -146,6 +147,7 @@ end
 % 'ECD'    - Equivalent current dipole
 % 'IMG'    - Imaging
 % 'LFP'    - Local field potentials
+% 'ITR'    - Intra-Laminar recording
 try
     model = DCM.options.spatial;
 catch
@@ -159,6 +161,7 @@ if ismember(DCM.options.analysis, {'IND', 'PHA'})
         case{'IMG'}, set(handles.Spatial,'Value',1);
         case{'ECD'}, set(handles.Spatial,'Value',1);
         case{'LFP'}, set(handles.Spatial,'Value',2);
+        case{'ITR'}, set(handles.Spatial,'Value',4);
         otherwise
     end
 elseif ismember(DCM.options.analysis, {'NFM'})
@@ -171,6 +174,7 @@ else
         case{'IMG'}, set(handles.Spatial,'Value',1);
         case{'ECD'}, set(handles.Spatial,'Value',2);
         case{'LFP'}, set(handles.Spatial,'Value',3);
+        case{'ITR'}, set(handles.Spatial,'Value',4);
         otherwise
     end
 end
@@ -437,7 +441,11 @@ end
 
 if isequal(handles.DCM.xY.modality, 'LFP')
     set(handles.Spatial, 'Value', find(strcmp('LFP', get(handles.Spatial, 'String'))));
-end   
+end  
+
+if isequal(handles.DCM.xY.modality, 'ILAM')
+    set(handles.Spatial, 'Value', find(strcmp('ITR', get(handles.Spatial, 'String'))));
+end 
 
 % Assemble and display data
 %--------------------------------------------------------------------------
@@ -659,7 +667,7 @@ switch DCM.options.spatial
         DCM = spm_dcm_erp_dipfit(DCM);
         set(handles.plot_dipoles,'enable','on')
  
-    case{'LFP'}
+    case{'LFP','ITR'}
           
         if ~isdeployed, 
             addpath(fullfile(spm('Dir'),'toolbox','Neural_Models'));
@@ -1285,7 +1293,7 @@ switch handles.DCM.options.analysis
         
         set(handles.text20,     'String', 'modes');
         set(handles.model,      'Enable','on');
-        set(handles.Spatial,    'String',{'IMG','ECD','LFP'});
+        set(handles.Spatial,    'String',{'IMG','ECD','LFP','ITR'});
         set(handles.Wavelet,    'Enable','off');
         set(handles.onset,      'Enable','on');
         set(handles.dur,        'Enable','on');
@@ -1316,7 +1324,7 @@ switch handles.DCM.options.analysis
         
         set(handles.text20, 'String', 'modes');
         set(handles.model,  'Enable','on');              
-        set(handles.Spatial,'String',{'IMG','ECD','LFP'});
+        set(handles.Spatial,'String',{'IMG','ECD','LFP','ITR'});
         set(handles.Wavelet,'Enable','on');
         set(handles.onset,  'Enable','off');
         set(handles.dur,    'Enable','off');
@@ -1348,7 +1356,7 @@ switch handles.DCM.options.analysis
         end
         
         set(handles.text20, 'String','modes');            
-        set(handles.Spatial,'String',{'IMG','ECD','LFP'});
+        set(handles.Spatial,'String',{'IMG','ECD','LFP','ITR'});
         set(handles.Wavelet,'Enable','on','String','Spectral density');
         set(handles.onset,  'Enable','on');
         set(handles.dur,    'Enable','on');

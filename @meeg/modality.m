@@ -12,7 +12,7 @@ function [res, list] = modality(this, scalp, planar)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: modality.m 5212 2013-01-26 13:16:36Z vladimir $
+% $Id: modality.m 6542 2015-09-09 11:48:34Z karl $
 
 if nargin == 1
     scalp = 1;
@@ -45,6 +45,10 @@ end
 
 if  ~isempty(indchantype(this, 'LFP')) && ~scalp
     list = [list {'LFP'}];
+end
+
+if  ~isempty(indchantype(this, 'ILAM')) && ~scalp
+    list = [list {'ILAM'}];
 end
 
 switch numel(list)

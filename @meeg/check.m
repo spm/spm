@@ -13,7 +13,7 @@ function [this, ok] = check(this, option)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: check.m 5933 2014-03-28 13:22:28Z vladimir $
+% $Id: check.m 6542 2015-09-09 11:48:34Z karl $
 
 if nargin == 1
     option = 'basic';
@@ -147,7 +147,7 @@ end
 
 if isequal(option, 'dcm')
     if strcmp(option, 'dcm')
-        if ~ismember(modality(this, 0), {'EEG', 'MEG', 'MEGPLANAR', 'Multimodal', 'LFP'})
+        if ~ismember(modality(this, 0), {'EEG', 'MEG', 'MEGPLANAR', 'Multimodal', 'LFP','ILAM'})
             ok = 0;
             disp('Unsupported modality for DCM');            
         end
