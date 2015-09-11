@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 5446 2013-04-24 16:56:51Z guillaume $
+ * $Id: file2mat.c 6552 2015-09-11 16:47:52Z spm $
  * John Ashburner
  */
 
@@ -625,7 +625,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (map.dtype->channels == 1)
     {
         plhs[0] = mxCreateNumericArray(ndim,odim,map.dtype->clss,mxREAL);
-        map.dtype->func(ndim-1, idim, iptr, idat, odim, mxGetData(plhs[0]));
+#ifdef SPM_WIN32
+        /* https://msdn.microsoft.com/en-us/library/windows/desktop/aa366801.aspx */
+        __try
+        {
+#endif
+            map.dtype->func(ndim-1, idim, iptr, idat, odim, mxGetData(plhs[0]));
+#ifdef SPM_WIN32
+		}
+        __except(GetExceptionCode()==EXCEPTION_IN_PAGE_ERROR ?
+            EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+        {
+            mexErrMsgTxt("An exception occured while accessing the data.");
+        }
+#endif
         if (map.swap)
             map.dtype->swap(ocumprod[ndim],mxGetData(plhs[0]));
     }

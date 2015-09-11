@@ -1,15 +1,19 @@
 /*
- * $Id: spm_vol_access.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: spm_vol_access.c 6552 2015-09-11 16:47:52Z spm $
  * John Ashburner
  */
 
-/* matlab independent image access routines;
-gateway to routines compiled from spm_vol_utils.c */
+/* MATLAB independent image access routines
+ * Gateway to routines compiled from spm_vol_utils.c 
+ */
 
 #include <math.h>
 #include <stdio.h>
 #include "spm_vol_access.h"
 #include "spm_datatypes.h"
+#ifdef SPM_WIN32
+#include <windows.h>
+#endif
 
 int get_datasize(int type)
 {
@@ -40,6 +44,11 @@ int resample(int m, MAPTYPE *vol, double *out, double *x, double *y, double *z, 
     extern void resample_float_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_double_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
 
+#ifdef SPM_WIN32
+    /* https://msdn.microsoft.com/en-us/library/windows/desktop/aa366801.aspx */
+    __try
+    {
+#endif
     if (vol->dtype == SPM_UNSIGNED_CHAR)
          resample_uchar(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
             hold, background, vol->scale,vol->offset);
@@ -87,6 +96,15 @@ int resample(int m, MAPTYPE *vol, double *out, double *x, double *y, double *z, 
         (void)fprintf(stderr,"%d: Unknown datatype.\n", vol->dtype);
         return(1);
     }
+#ifdef SPM_WIN32
+    }
+    __except(GetExceptionCode()==EXCEPTION_IN_PAGE_ERROR ?
+        EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+    {
+        (void)fprintf(stderr,"An exception occured while accessing the data.");
+        return(1);
+    }
+#endif
     return(0);
 }
 
@@ -107,6 +125,11 @@ int resample_d(int m, MAPTYPE *vol, double *out, double *gradx, double *grady, d
     extern void resample_d_float_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_d_double_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
 
+#ifdef SPM_WIN32
+    /* https://msdn.microsoft.com/en-us/library/windows/desktop/aa366801.aspx */
+    __try
+    {
+#endif
     if (vol->dtype == SPM_UNSIGNED_CHAR)
          resample_d_uchar(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
             hold, background, vol->scale,vol->offset);
@@ -154,6 +177,15 @@ int resample_d(int m, MAPTYPE *vol, double *out, double *gradx, double *grady, d
         (void)fprintf(stderr,"%d: Unknown datatype.\n", vol->dtype);
         return(1);
     }
+#ifdef SPM_WIN32
+    }
+    __except(GetExceptionCode()==EXCEPTION_IN_PAGE_ERROR ?
+        EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+    {
+        (void)fprintf(stderr,"An exception occured while accessing the data.");
+        return(1);
+    }
+#endif
     return(0);
 }
 
@@ -175,6 +207,11 @@ int slice(double *mat, double *image, int xdim1, int ydim1, MAPTYPE *vol, int ho
     extern int slice_double_s(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
     
     int sts = 1;
+#ifdef SPM_WIN32
+    /* https://msdn.microsoft.com/en-us/library/windows/desktop/aa366801.aspx */
+    __try
+    {
+#endif
     if (vol->dtype == SPM_UNSIGNED_CHAR)
          sts = slice_uchar(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2],
             hold,background, vol->scale,vol->offset);
@@ -222,5 +259,14 @@ int slice(double *mat, double *image, int xdim1, int ydim1, MAPTYPE *vol, int ho
         (void)fprintf(stderr,"%d: Unknown datatype.\n", vol->dtype);
         sts = 1;
     }
+#ifdef SPM_WIN32
+    }
+    __except(GetExceptionCode()==EXCEPTION_IN_PAGE_ERROR ?
+        EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+    {
+        (void)fprintf(stderr,"An exception occured while accessing the data.");
+        sts = 1;
+    }
+#endif
     return(sts);
 }
