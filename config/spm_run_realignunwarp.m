@@ -10,7 +10,7 @@ function out = spm_run_realignunwarp(job)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Darren R. Gitelman
-% $Id: spm_run_realignunwarp.m 5644 2013-09-19 17:34:19Z guillaume $
+% $Id: spm_run_realignunwarp.m 6554 2015-09-11 17:21:23Z guillaume $
 
 
 %-Assemble flags
@@ -114,5 +114,7 @@ switch job.uwroptions.uwwhich(1)
         end
 end
 if job.uwroptions.uwwhich(2)
-    out.meanuwr{1} = spm_file(P{1}(1,:), 'prefix',['mean' job.uwroptions.prefix]);
+    out.meanuwr{1} = spm_file(P{1}(1,:), ...
+        'prefix',['mean' job.uwroptions.prefix], ...
+        'number','');
 end

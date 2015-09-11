@@ -9,7 +9,7 @@ function out = spm_run_realign(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_realign.m 5653 2013-09-25 14:03:46Z volkmar $
+% $Id: spm_run_realign.m 6554 2015-09-11 17:21:23Z guillaume $
 
 
 P = cell(size(job.data));
@@ -68,6 +68,6 @@ if isfield(job,'roptions')
         end
     end
     if job.roptions.which(2)
-        out.rmean{1} = spm_file(job.data{1}{1}, 'prefix','mean');
+        out.rmean{1} = spm_file(job.data{1}{1}, 'prefix','mean', 'number','');
     end
 end
