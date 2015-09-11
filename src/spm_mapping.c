@@ -1,9 +1,9 @@
 /*
- * $Id: spm_mapping.c 5783 2013-12-05 16:45:55Z guillaume $
+ * $Id: spm_mapping.c 6549 2015-09-11 15:37:48Z guillaume $
  * John Ashburner
  */
 
-/* Matlab dependent high level data access and map manipulation routines */
+/* MATLAB dependent high level data access and map manipulation routines */
 
 #define _FILE_OFFSET_BITS 64
 
@@ -133,15 +133,23 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
             mexErrMsgTxt("Wrong sized dt.");
         }
         pr = mxGetPr(tmp);
-        if (dtype != (int)fabs(pr[0]))
+        if (!((pr[0] ==   2) && (dtype == SPM_UNSIGNED_CHAR) || 
+              (pr[0] == 256) && (dtype == SPM_SIGNED_CHAR) || 
+              (pr[0] ==   4) && (dtype == SPM_SIGNED_SHORT) || 
+              (pr[0] == 512) && (dtype == SPM_UNSIGNED_SHORT) || 
+              (pr[0] ==   8) && (dtype == SPM_SIGNED_INT) || 
+              (pr[0] == 768) && (dtype == SPM_UNSIGNED_INT) || 
+              (pr[0] ==  16) && (dtype == SPM_FLOAT) || 
+              (pr[0] ==  64) && (dtype == SPM_DOUBLE)))
         {
+            mexPrintf("dtype=%d and dt=%d\n",dtype,(int)fabs(pr[0]));
             free_maps(maps,i);
             mexErrMsgTxt("Incompatible datatype in dt.");
         }
     }
 
-    maps[i].addr      = 0;
-    maps[i].len       = 0;
+    maps[i].addr   = 0;
+    maps[i].len    = 0;
     maps[i].dtype  = dtype;
     maps[i].data   = (void  **)mxCalloc(maps[i].dim[2],sizeof(void *));
     maps[i].scale  = (double *)mxCalloc(maps[i].dim[2],sizeof(double));
@@ -235,7 +243,6 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
     maps[i].dim[0] = (int)fabs(pr[0]);
     maps[i].dim[1] = (int)fabs(pr[1]);
     maps[i].dim[2] = (int)fabs(pr[2]);
-    maps[i].dtype  = (int)fabs(pr[3]);
     maps[i].data   = (void  **)mxCalloc(maps[i].dim[2],sizeof(void *));
     maps[i].scale  = (double *)mxCalloc(maps[i].dim[2],sizeof(double));
     maps[i].offset = (double *)mxCalloc(maps[i].dim[2],sizeof(double));
