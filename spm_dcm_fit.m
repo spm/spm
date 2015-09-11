@@ -7,7 +7,7 @@ function [P]   = spm_dcm_fit(P)
 % DCM  - Inverted (1st level) DCM structures with posterior densities
 %__________________________________________________________________________
 %
-% This routine is just a wrapper that calls the apprioriate dcm inversion
+% This routine is just a wrapper that calls the appropriate dcm inversion
 % routine for a set a pre-specifed DCMs.
 %
 % If called with a cell array, each column is assumed to contain 1st level
@@ -17,7 +17,7 @@ function [P]   = spm_dcm_fit(P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fit.m 6506 2015-07-24 10:26:51Z karl $
+% $Id: spm_dcm_fit.m 6550 2015-09-11 15:59:57Z spm $
 
 
 % get filenames and set up
@@ -157,8 +157,7 @@ for i = 1:Ns
 
                 
             otherwise
-                spm('alert!','unknown DCM','Warning');
-                return
+                error('unknown DCM');
         end
         
         % place inverted model in output array

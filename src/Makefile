@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2015 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 6402 2015-04-09 18:11:06Z guillaume $
+# $Id: Makefile 6550 2015-09-11 15:59:57Z spm $
 #
 ###############################################################################
 #
@@ -55,12 +55,9 @@ SPMMEX  =\
 
 SUBDIRS =\
 	@file_array/private \
+	@gifti/private \
 	@xmltree/private \
 	toolbox/FieldMap
-
-ifeq (mex,$(SUF))
-	SUBDIRS += @gifti/private
-endif
 
 ###############################################################################
 # Public make targets
