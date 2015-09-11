@@ -14,7 +14,7 @@ function [L,E,st] = mci_discount_like (P,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id$
+% $Id: mci_discount_like.m 6548 2015-09-11 12:39:47Z will $
 
 st=0;
 

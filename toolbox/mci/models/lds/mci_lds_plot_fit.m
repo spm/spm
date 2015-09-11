@@ -13,7 +13,7 @@ function [] = mci_lds_plot_fit (MCI,lds,n,plotfit)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_lds_plot_fit.m 6548 2015-09-11 12:39:47Z will $
 
 if nargin < 4
     plotfit=0;

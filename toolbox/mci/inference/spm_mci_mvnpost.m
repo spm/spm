@@ -17,7 +17,7 @@ function [stats,Y,X] = spm_mci_mvnpost (post,method,verbose,max_lag)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id$
+% $Id: spm_mci_mvnpost.m 6548 2015-09-11 12:39:47Z will $
 
 try pmax=max_lag; catch pmax=10; end
 try meth=method; catch meth='ESS'; end

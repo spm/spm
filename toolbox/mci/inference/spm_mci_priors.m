@@ -10,7 +10,7 @@ function [M] = spm_mci_priors (M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_priors.m 6548 2015-09-11 12:39:47Z will $
 
 if isstruct(M.pC)
     pC=full(diag(spm_vec(M.pC)));

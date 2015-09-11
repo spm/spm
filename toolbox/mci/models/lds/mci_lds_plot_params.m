@@ -13,7 +13,7 @@ function [rmse] = mci_lds_plot_results (MCI,lds)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_lds_plot_params.m 6548 2015-09-11 12:39:47Z will $
 
 pinit=lds.pinit; pflow=lds.pflow;
 d=size(MCI.M{1}.x0,1);

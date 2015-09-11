@@ -16,7 +16,7 @@ function [m,Lambda,Cm] = spm_nwrnd (M,N)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_nwrnd.m 6548 2015-09-11 12:39:47Z will $
 
 %iB=inv(M.B);
 for n=1:N,

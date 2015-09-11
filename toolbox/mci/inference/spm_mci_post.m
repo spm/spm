@@ -16,7 +16,7 @@ function [post] = spm_mci_post (mcmc,M,U,Y,true_P)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_post.m 6548 2015-09-11 12:39:47Z will $
 
 try verbose=mcmc.verbose; catch verbose=0; end
 if nargin < 5 | isempty(true_P)

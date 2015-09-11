@@ -12,7 +12,7 @@ function [w0] = mci_interp_init (Y,M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_interp_init.m 6548 2015-09-11 12:39:47Z will $
 
 N=length(Y);
 d=size(Y{1}.y,2);

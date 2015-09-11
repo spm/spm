@@ -17,7 +17,7 @@ function [Psamp,noise,M] = spm_mci_fixed (mcmc,w,fixed,noise,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_fixed.m 6548 2015-09-11 12:39:47Z will $
 
 try verbose=mcmc.verbose; catch verbose=0; end
 try maxits=mcmc.maxits; catch maxits=64; end

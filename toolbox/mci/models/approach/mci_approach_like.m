@@ -8,7 +8,7 @@ function [L,yhat,st] = mci_approach_like (P,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id$
+% $Id: mci_approach_like.m 6548 2015-09-11 12:39:47Z will $
 
 % Status flag (only used for dynamic systems)
 st=[];

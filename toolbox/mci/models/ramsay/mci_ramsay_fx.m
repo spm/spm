@@ -22,7 +22,7 @@ function [F] = mci_ramsay_fx (x,U,P,M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id$
+% $Id: mci_ramsay_fx.m 6548 2015-09-11 12:39:47Z will $
 
 c=3;
 

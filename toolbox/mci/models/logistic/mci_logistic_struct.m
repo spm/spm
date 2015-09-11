@@ -12,7 +12,7 @@ function [M,U,Y] = mci_logistic_struct (log_data,T)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_logistic_struct.m 6548 2015-09-11 12:39:47Z will $
 
 try T=T; catch T=100; end
 

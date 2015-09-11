@@ -13,7 +13,7 @@ function [M,U,Xfull] = mci_linear_struct (Nobs,lambda,des)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_linear_struct.m 6548 2015-09-11 12:39:47Z will $
 
 try design=des; catch design='linear-offset'; end
 

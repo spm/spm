@@ -17,7 +17,7 @@ function [L,L2,st] = spm_mci_joint (Pr,M,U,Y,beta)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: spm_mci_joint.m 6548 2015-09-11 12:39:47Z will $
 
 st=0;
 if nargin < 5 | isempty(beta)

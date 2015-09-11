@@ -17,7 +17,7 @@ function [j,iCpY,st,L,L2] = spm_mci_joint_grad (Pr,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: spm_mci_joint_grad.m 6548 2015-09-11 12:39:47Z will $
 
 try beta=M.beta; catch beta=1; end
     

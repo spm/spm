@@ -21,7 +21,7 @@ function [pstat,mu,nse,batch] = spm_mci_stat (post,nbatch,method)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_stat.m 6548 2015-09-11 12:39:47Z will $
 
 try meth=method; catch meth='ar1'; end
 try Nb=nbatch; catch Nb=6; end

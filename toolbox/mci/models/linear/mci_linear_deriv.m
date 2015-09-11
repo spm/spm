@@ -14,7 +14,7 @@ function [dLdp,iCpY,L] = mci_linear_deriv (P,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_linear_deriv.m 6548 2015-09-11 12:39:47Z will $
 
 G = mci_linear_gen (P,M,U);
 if isstruct(Y)

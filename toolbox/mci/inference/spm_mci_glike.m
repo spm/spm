@@ -17,7 +17,7 @@ function [L,e,st] = spm_mci_glike (P,M,U,Y,G)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: spm_mci_glike.m 6548 2015-09-11 12:39:47Z will $
 
 st=0;
 try

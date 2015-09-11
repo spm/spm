@@ -14,7 +14,7 @@ function [f,A,Pt] = mci_lds_fx (x,u,P,M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_lds_fx.m 6548 2015-09-11 12:39:47Z will $
 
 [A,Pt] = mci_lds_dfdx (x,u,P,M);
 f=A*x;

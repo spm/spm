@@ -12,7 +12,7 @@ function [Pt,a,b] = mci_lds_lat2par (P,M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_lds_lat2par.m 6548 2015-09-11 12:39:47Z will $
 
 % Diagonal entries
 s=exp(P(1:M.d));

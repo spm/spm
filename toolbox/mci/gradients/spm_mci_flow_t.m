@@ -13,7 +13,7 @@ function [dxdt] = spm_mci_flow_t (t,x,U,P,M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: spm_mci_flow_t.m 6548 2015-09-11 12:39:47Z will $
 
 % Find nearest time point for which we have pre-computed input
 % (We could also compute input on the fly)

@@ -9,7 +9,7 @@ function [dLdp,iCpY,L] = spm_mci_diff (P,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_diff.m 6548 2015-09-11 12:39:47Z will $
 
 dLdp = spm_diff(M.L,P,M,U,Y,1);
 dLdp = full(dLdp(:))';

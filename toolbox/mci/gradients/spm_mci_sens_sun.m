@@ -26,7 +26,7 @@ function [y,sy,st,x,sx] = spm_mci_sens_sun (P,M,U,csx)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: spm_mci_sens_sun.m 6548 2015-09-11 12:39:47Z will $
 
 y=[];sy=[];x=[];sx=[];
 st=0;

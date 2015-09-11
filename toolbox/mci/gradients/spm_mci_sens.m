@@ -25,7 +25,7 @@ function [y,sy,st,x,sx] = spm_mci_sens (P,M,U,csx)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: spm_mci_sens.m 6548 2015-09-11 12:39:47Z will $
 
 %disp('Warning: spm_mci_sens.m needs fixing for M.V not square !');
 

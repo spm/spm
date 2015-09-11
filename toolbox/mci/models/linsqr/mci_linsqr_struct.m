@@ -13,7 +13,7 @@ function [M,U,Xfull] = mci_linsqr_struct (Nobs,lambda,des)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_linsqr_struct.m 6548 2015-09-11 12:39:47Z will $
 
 % Number of time points
 T=100;

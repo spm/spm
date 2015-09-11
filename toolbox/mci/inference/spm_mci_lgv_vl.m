@@ -33,7 +33,7 @@ function [M,stats] = spm_mci_lgv_vl (mcmc,M,U,Y,vl,beta)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: spm_mci_lgv_vl.m 6548 2015-09-11 12:39:47Z will $
 
 % Defaults
 try verbose=mcmc.verbose; catch verbose=0; end

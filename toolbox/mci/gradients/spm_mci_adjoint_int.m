@@ -14,7 +14,7 @@ function [lambda] = spm_mci_adjoint_int (U,P,M,V,djdx,tol)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: spm_mci_adjoint_int.m 6548 2015-09-11 12:39:47Z will $
 
 init_t=M.t(1);
 final_t=M.T;

@@ -22,7 +22,7 @@ function [isvl] = spm_mci_isvl (mcmc,M,U,Y,VL)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_isvl.m 6548 2015-09-11 12:39:47Z will $
 
 M = spm_mci_minit (M);
 V  = M.V;

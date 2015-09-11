@@ -13,7 +13,7 @@ function [logp,logq1,logq2] = spm_mci_switch (Pr,M,U,Y,beta)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_switch.m 6548 2015-09-11 12:39:47Z will $
 
 logq1 = spm_mci_joint(Pr,M{1},U{1},Y);
 

@@ -13,7 +13,7 @@ function [Ep,Cp,L] = mci_linear_post (M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_linear_post.m 6548 2015-09-11 12:39:47Z will $
 
 ipC=inv(M.pC);
 iCe=inv(M.Ce);

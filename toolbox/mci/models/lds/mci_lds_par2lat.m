@@ -10,7 +10,7 @@ function [P] = mci_lds_par2lat (Pt,M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_lds_par2lat.m 6548 2015-09-11 12:39:47Z will $
 
 a=Pt(1:M.d)/M.a_typical;
 a=log(a);

@@ -29,7 +29,7 @@ function [stats] = spm_mci_mvntest (X,df)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id$
+% $Id: spm_mci_mvntest.m 6548 2015-09-11 12:39:47Z will $
 
 alpha = 0.05;
 

@@ -8,7 +8,7 @@ function [y] = mci_approach_gen (P,M,U)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id$
+% $Id: mci_approach_gen.m 6548 2015-09-11 12:39:47Z will $
 
 V=exp(P(1));
 tau=exp(P(2));

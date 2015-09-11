@@ -19,7 +19,7 @@ function [y,x,st] = spm_mci_fwd (P,M,U)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: spm_mci_fwd.m 6548 2015-09-11 12:39:47Z will $
 
 st=0;
 y=[];sy=[];x=[];sx=[];

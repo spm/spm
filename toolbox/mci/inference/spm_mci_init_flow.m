@@ -13,7 +13,7 @@ function [x_init,x_flow] = spm_mci_init_flow (assign,w,v,M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_init_flow.m 6548 2015-09-11 12:39:47Z will $
 
 switch assign.init_par,
     case 'known',

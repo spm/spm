@@ -51,7 +51,7 @@ function [P,logev,D,M] = spm_mci_pop (mcmc,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_pop.m 6548 2015-09-11 12:39:47Z will $
 
 Nm=length(M);
 if Nm>1

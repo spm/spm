@@ -18,7 +18,7 @@ function [P,E,logw,acc] = spm_mci_ais_single_vl (mcmc,M,U,Y,vl)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_ais_single_vl.m 6548 2015-09-11 12:39:47Z will $
 
 beta=mcmc.beta;
 nprop=mcmc.nprop;

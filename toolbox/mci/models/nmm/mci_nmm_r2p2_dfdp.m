@@ -12,7 +12,7 @@ function [F] = mci_nmm_r2p2_dfdp (x,u,P,M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: mci_nmm_r2p2_dfdp.m 6548 2015-09-11 12:39:47Z will $
 
 % 18 state variables, 2 parameters
 F=zeros(18,2);

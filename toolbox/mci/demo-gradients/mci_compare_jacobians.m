@@ -7,7 +7,7 @@ function [Fx,Fp,FxFD,FpFD] = mci_compare_jacobians (model)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_compare_jacobians.m 6548 2015-09-11 12:39:47Z will $
 
 switch model,
     case 'phase',

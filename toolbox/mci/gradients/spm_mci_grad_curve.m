@@ -15,7 +15,7 @@ function [dLdp,iCpY,st] = spm_mci_grad_curve (assign,w,v,M,U,Y,fxtype)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_grad_curve.m 6548 2015-09-11 12:39:47Z will $
 
 % Extract init and flow params from rfx or ffx vectors
 [p_init,p_flow] = spm_mci_init_flow (assign,w,v,M);

@@ -5,7 +5,7 @@ function [mh] = spm_mci_popdef (scale,tune,samp)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_popdef.m 6275 2014-12-01 08:41:18Z will $
+% $Id: spm_mci_popdef.m 6548 2015-09-11 12:39:47Z will $
 
 mh.nscale=scale;
 mh.ntune=tune;

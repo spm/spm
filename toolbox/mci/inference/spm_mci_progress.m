@@ -9,7 +9,7 @@ function [] = spm_mci_progress (x,E,i)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_progress.m 6548 2015-09-11 12:39:47Z will $
 
 sample_win=64;
 min_it=max(i-sample_win+1,1);

@@ -15,7 +15,7 @@ function [dLdp,iCpY,st,L] = spm_mci_glike_deriv (P,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: spm_mci_glike_deriv.m 6548 2015-09-11 12:39:47Z will $
 
 %[G,x,S] = spm_mci_fwd (P,M,U,1);
 if strcmp(M.int,'sundials')

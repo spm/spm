@@ -42,7 +42,7 @@ function [MCI] = spm_mci_mfx (MCI)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id$
+% $Id: spm_mci_mfx.m 6548 2015-09-11 12:39:47Z will $
 
 try verbose=MCI.verbose; catch verbose=0; end
 try inference=MCI.inference; catch inference='lgv'; end

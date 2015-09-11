@@ -15,7 +15,7 @@ function [p] = spm_mvtpdf (x,mu,Lambda,v)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mvtpdf.m 6548 2015-09-11 12:39:47Z will $
 
 d=length(mu);
 lnz=gammaln(0.5*v)+0.5*d*log(v)+0.5*d*log(pi);

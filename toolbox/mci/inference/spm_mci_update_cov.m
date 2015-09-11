@@ -9,7 +9,7 @@ function [P] = spm_mci_update_cov (P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_update_cov.m 6548 2015-09-11 12:39:47Z will $
 
 Np=size(P.theta,1);
 gamma=1/P.adapt_its;

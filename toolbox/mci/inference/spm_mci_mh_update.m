@@ -14,7 +14,7 @@ function [next,accepted,bayes_fb,dL] = spm_mci_mh_update (curr,prop,verbose)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_mh_update.m 6548 2015-09-11 12:39:47Z will $
 
 accepted=1;
 

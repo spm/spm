@@ -22,7 +22,7 @@ function [pinit,pflow,names,M,U,Y] = mci_lds_group_data (lds)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_lds_group_data.m 6548 2015-09-11 12:39:47Z will $
 
 R=lds.R; sd=lds.sd; Nsub=lds.Nsub; 
 Nobs=lds.Nobs; model=lds.model;

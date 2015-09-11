@@ -12,7 +12,7 @@ function [M] = spm_nwpost (M,w)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_nwpost.m 6548 2015-09-11 12:39:47Z will $
 
 mw=mean(w,2);
 Sw=cov(w',1);

@@ -11,6 +11,6 @@ function [a] = mci_logistic_act (P,M,U)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_logistic_act.m 6548 2015-09-11 12:39:47Z will $
 
 a = U.X*P;

@@ -21,7 +21,7 @@ function [dLdp,g,x] = spm_mci_adjoint (Pr,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: spm_mci_adjoint.m 6548 2015-09-11 12:39:47Z will $
 
 try adjlike=M.adjlike; catch adjlike=0; end
 

@@ -11,7 +11,7 @@ function [a,v1,v2,k] = mci_discount_act (P,M,U)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id$
+% $Id: mci_discount_act.m 6548 2015-09-11 12:39:47Z will $
 
 k = exp(P(1));  % discount rate
 beta = exp(P(2)); % decision noise

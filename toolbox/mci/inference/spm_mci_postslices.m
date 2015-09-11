@@ -15,7 +15,7 @@ function [x,pnum,pgauss] = spm_mci_postslices (post,M,U,Y,Nbins)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_postslices.m 6548 2015-09-11 12:39:47Z will $
 
 try Nbins=Nbins; catch Nbins=50; end
 

@@ -17,7 +17,7 @@ function [] = mci_plot_dist_multi (dist,name,P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: mci_plot_dist_multi.m 6548 2015-09-11 12:39:47Z will $
 
 Ndist=length(dist);
 for i=1:Ndist

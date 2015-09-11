@@ -16,7 +16,7 @@ function [mess] = spm_mci_diag (post,diag)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_diag.m 6548 2015-09-11 12:39:47Z will $
 
 Ns=size(post.P,2);
 try traceplot=diag.traceplot; catch traceplot=1; end

@@ -32,7 +32,7 @@ function [f] = mci_nmm_fx_delay (x,u,P,M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: mci_nmm_fx_delay.m 6548 2015-09-11 12:39:47Z will $
 
 if ~isstruct(P)
 %     if isfield(M,'V')

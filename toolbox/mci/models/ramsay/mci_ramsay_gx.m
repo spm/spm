@@ -10,7 +10,7 @@ function [y,L] = spm_ramsay_gx (x,u,P,M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id$
+% $Id: mci_ramsay_gx.m 6548 2015-09-11 12:39:47Z will $
 
 nx=length(x);
 L=eye(nx);

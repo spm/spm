@@ -8,7 +8,7 @@ function [] = mci_plot_noiseSD (Ce,ind)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id$
+% $Id: mci_plot_noiseSD.m 6548 2015-09-11 12:39:47Z will $
 
 d=size(Ce,1);
 dist.ind=ind;

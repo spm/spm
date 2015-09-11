@@ -12,7 +12,7 @@ function [M,U] = mci_nmm_struct (back,sd,Np)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id$
+% $Id: mci_nmm_struct.m 6548 2015-09-11 12:39:47Z will $
 
 if nargin < 1 | isempty(back)
     back=1; 

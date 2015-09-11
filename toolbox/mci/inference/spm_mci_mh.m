@@ -19,7 +19,7 @@ function [P,L,D] = spm_mci_mh (mcmc,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id$
+% $Id: spm_mci_mh.m 6548 2015-09-11 12:39:47Z will $
 
 % Compute eigen-parameterisation
 M = spm_mci_minit (M);
