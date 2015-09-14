@@ -17,7 +17,7 @@ function [P]   = spm_dcm_fit(P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fit.m 6550 2015-09-11 15:59:57Z spm $
+% $Id: spm_dcm_fit.m 6555 2015-09-14 09:32:06Z vladimir $
 
 
 % get filenames and set up
@@ -74,33 +74,40 @@ else
     
 end
 
-% loop over subjects (columns)
-%--------------------------------------------------------------------------
+% get data structure for each subject (column)
+%------------------------------------------------------------------
 for i = 1:Ns
-    
-    % loop over models (rows)
-    %----------------------------------------------------------------------
-    for j = 1:Nm
-        
-        % Get model specification
-        %------------------------------------------------------------------
-        try, load(P{i,j}); catch, DCM = P{i,j}; end
-        
-        % get data structure for this subject (column)
-        %------------------------------------------------------------------
+    for j = 2:Nm
         switch model
             
             case{'DEM'}
-                if j == 1, Y  = DCM.Y;  else, DCM.Y  = Y;  end
+                P{i, j}.xY = P{i, 1}.Y;
             otherwise
-                if j == 1, xY = DCM.xY; else, DCM.xY = xY; end
-                
+                P{i, j}.xY = P{i, 1}.xY;
         end
+    end
+end
+
+%matlabpool open 7
+
+% loop over subjects (columns)
+%--------------------------------------------------------------------------
+%parfor i = 1:numel(P)
+
+for i = 1:numel(P)
+    
+    % loop over models (rows)
+    %----------------------------------------------------------------------
+    
+    % Get model specification
+    %------------------------------------------------------------------
+    try, load(P{i}); catch, DCM = P{i}; end
+    
+    
+    % invert and save
+    %==================================================================
+    switch model
         
-        % invert and save
-        %==================================================================
-        switch model
-            
             % fMRI model
             %--------------------------------------------------------------
             case{'fMRI'}
@@ -154,15 +161,19 @@ for i = 1:Ns
                 %----------------------------------------------------------
             case{'DEM'}
                 DCM = spm_DEM(DCM);
-
-                
-            otherwise
+            
+        otherwise
+            try
+                DCM = feval(model, DCM);
+            catch
                 error('unknown DCM');
-        end
-        
-        % place inverted model in output array
-        %------------------------------------------------------------------
-        P{i,j} = DCM;
-        
+            end
     end
+    
+    % place inverted model in output array
+    %------------------------------------------------------------------
+    P{i} = DCM;
 end
+
+
+%matlabpool close
