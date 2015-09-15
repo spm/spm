@@ -47,7 +47,7 @@ function PPI = spm_peb_ppi(varargin)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 5969 2014-05-01 14:37:22Z guillaume $
+% $Id: spm_peb_ppi.m 6556 2015-09-15 15:42:04Z guillaume $
 
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
@@ -430,14 +430,13 @@ switch ppiflag
     xn = xb*C{2}.E(1:N);
     xn = spm_detrend(xn);
 
-    % Setup psychological variable from inputs and contast weights
+    % Setup psychological variable from inputs and contrast weights
     %----------------------------------------------------------------------
     PSY = zeros(N*NT,1);
     for i = 1:size(U.u,2)
         PSY = PSY + full(U.u(:,i) * U.w(i));
     end
-    % PSY = spm_detrend(PSY);  % removed centering of psych variable prior
-                               % to multiplication with xn in r3271.
+    PSY = spm_detrend(PSY);
 
     % Multiply psychological variable by neural signal
     %----------------------------------------------------------------------
