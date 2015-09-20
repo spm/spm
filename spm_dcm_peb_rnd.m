@@ -1,6 +1,6 @@
-function [p,P,f] = spm_dcm_peb_rnd(DCM,M,field)
+function [p,P,f,F,X] = spm_dcm_peb_rnd(DCM,M,field)
 % Re-randomisation testing for empirical Bayes and DCM
-% FORMAT [p,P,f] = spm_dcm_peb_rnd(DCM,M,field)
+% FORMAT [p,P,f,F,X] = spm_dcm_peb_rnd(DCM,M,field)
 %
 % DCM   - {N x 1} structure DCM array of (M) DCMs from (N) subjects
 % -------------------------------------------------------------------
@@ -22,8 +22,10 @@ function [p,P,f] = spm_dcm_peb_rnd(DCM,M,field)
 %          'All' will invoke all fields
 % 
 % p      - classical (re-randomization) p-value
-% P      - null(re-randomization) distribution of p-values
-% f      - marginal likelihood
+% P      - null distribution of p-values
+% f      - Bayesian (posterior) p-value
+% F      - null distribution of log Bayes factors
+% X      - randomised design generating non-distribution
 %__________________________________________________________________________
 %
 % This routine uses the posterior  density over the coefficients of
@@ -39,7 +41,7 @@ function [p,P,f] = spm_dcm_peb_rnd(DCM,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_rnd.m 6532 2015-08-23 13:59:19Z karl $
+% $Id: spm_dcm_peb_rnd.m 6557 2015-09-20 12:44:30Z karl $
 
 
 % Set up
@@ -72,6 +74,7 @@ for i = 1:N
     M0.X(:,2) = M.X(randperm(Ns),2);
     bmc       = spm_dcm_bmc_peb(DCM,M0,field);
     F(i,:)    = bmc.F;
+    X(:,i)    = M0.X(:,2);
 end
 
 j   = find(bmc.K(:,2));
@@ -99,7 +102,7 @@ spm_figure('GetWin','PEB-BMC');
 subplot(3,2,1),hold off
 hist(F(isfinite(F))), hold on
 YLim  = get(gca,'YLim');
-plot([G G],[0 YLim(2)],'r'),   hold on
+plot([G G],[0 YLim(2)],'r'),  hold on
 plot([r r],[0 YLim(2)],':r'), hold on
 text(G,YLim(2)*3/4,sprintf('p < %-2.3f',p),   'FontSize',10), hold on
 text(r,YLim(2)/2  ,sprintf('p < %-2.3f',0.05),'FontSize',10), hold off

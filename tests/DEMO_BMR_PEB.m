@@ -34,7 +34,7 @@ function DEMO_BMR_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BMR_PEB.m 6471 2015-06-03 21:08:41Z karl $
+% $Id: DEMO_BMR_PEB.m 6557 2015-09-20 12:44:30Z karl $
 
 
 % set up
@@ -195,18 +195,14 @@ pma   = spm_dcm_bma(PCM);
 %--------------------------------------------------------------------------
 M     = struct('X',X);
 
-% randomisation analysis
+% BMC - (first and second level) (with optimisation of hyperprior)
 %--------------------------------------------------------------------------
-spm_dcm_peb_rnd(RCM(:,mw),M,{'B'});
-
-% BMC - (first and second level)
-%--------------------------------------------------------------------------
-BMC   = spm_dcm_bmc_peb(RCM,M,{'B'});
+[BMC,M] = spm_dcm_peb_test(RCM(:,1),M,{'B'});
 
 % BMA - (second level)
 %--------------------------------------------------------------------------
-PEB   = spm_dcm_peb(RCM(:,1),M);
-BMA   = spm_dcm_peb_bmc(PEB,RCM(1,:));
+PEB     = spm_dcm_peb(RCM(:,1),M);
+BMA     = spm_dcm_peb_bmc(PEB,RCM(1,:));
 
 
 % posterior predictive density and cross validation

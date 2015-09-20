@@ -5,7 +5,7 @@ function E = ROBOT_DCM_EEG
 %   options.model        - 'ERP','SEP','CMC','LFP','NNM' or 'MFM'
 %   options.spatial      - 'ECD','LFP' or 'IMG'
 
-% $Id: ROBOT_DCM_EEG.m 6360 2015-03-04 19:24:56Z spm $
+% $Id: ROBOT_DCM_EEG.m 6557 2015-09-20 12:44:30Z karl $
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
@@ -164,7 +164,6 @@ for i = 1:length(model)
         if isfield(DCM,'M')
             DCM  = rmfield(DCM,'M');
         end
-        DCM.M.Nmax = 1;
         DCM    = spm_dcm_csd(DCM);
         spm_figure('GetWin',['CSD model: ' model{i}]);
         spm_dcm_csd_results(DCM,'Cross-spectra (channels)',gcf)

@@ -1,6 +1,6 @@
-function [BMC,M] = spm_dcm_peb_rnd_search(DCM,M,field)
-% Re-randomisation testing for empirical Bayes and DCM
-% FORMAT [BMC,M] = spm_dcm_peb_rnd_search(DCM,M,field)
+function [BMC,M] = spm_dcm_peb_test(DCM,M,field)
+% BMC over first and second level models with classical hyperpriors
+% FORMAT [BMC,M] = spm_dcm_peb_test(DCM,M,field)
 %
 % DCM   - {N x 1} structure DCM array of (M) DCMs from (N) subjects
 % -------------------------------------------------------------------
@@ -32,39 +32,60 @@ function [BMC,M] = spm_dcm_peb_rnd_search(DCM,M,field)
 % This routine calls spm_dcm_peb_rnd to assess the distribution of log Bayes
 % factors for different hyperpriors on between subject precision. It is
 % assumed that the best hyperpriors maximise the entropy of the null
-% distribution of ensuing p-values. This type of prior is then used to
+% distribution of ensuing p-values. This hyperprior is then used to
 % perform Bayesian model comparison. The optimised priors are in the second
 % level model (M.hE, M.hC) in the output arguments.
 %
-% See also: spm_dcm_peb_rnd.m and spm_dcm_loo.m
+% this (efficient) version simply tracks the base factor of an unlikely
+% null model to find the prior expectations of between subject precision
+% that renders the Bayes factorconsistent with a classical p-value (i.e.,
+% resolves Lindley's paradox)
+%
+% See also: spm_dcm_bmc_peb.m and spm_dcm_loo.m
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_rnd_search.m 6557 2015-09-20 12:44:30Z karl $
+% $Id: spm_dcm_peb_test.m 6557 2015-09-20 12:44:30Z karl $
 
 
 % Set up
 %==========================================================================
-hE    = linspace(-4,2,8);
+rng('default');
 M.hC  = 1/16;
 M.N   = 64;
-bins  = 1/40:1/20:1;
+
+% find randomisation with the largest classical p-value
+%--------------------------------------------------------------------------
+[p,P,f,F,X] = spm_dcm_peb_rnd(DCM,M,field);
+
+
+M0          = M;
+M0.noplot   = 1;
+[d,i]       = max(F);
+M0.X(:,2)   = X(:,i);
+
+% evaluate the Bayes factor over different hyperpriors
+%--------------------------------------------------------------------------
+hE    = linspace(-4,2,32);
 for i = 1:numel(hE)
-    rng('default');
-    M.hE      = hE(i);
-    [p,P,f,F] = spm_dcm_peb_rnd(DCM,M,field);
-    CP(i)     = p;
-    BP(i)     = 1 - f;
-    H(:,i)    = hist(P,bins)';
-    G(:,i)    = F';
+    
+    M0.hE  = hE(i);
+    bmc    = spm_dcm_bmc_peb(DCM,M0,field);
+    G(i,:) = bmc.F;
 end
 
-% histogram of p-values and entropy (S)
+j   = find(bmc.K(:,2));
+P   = spm_softmax(G');
+P   = sum(P(j,:),1);
+G   = log(P./(1 - P));
+
+
+% find hyperprior that is consistent with classical inference 
 %--------------------------------------------------------------------------
-H     = H/M.N;
-S     = -sum(H.*log(H + 1e-6));
-[s,i] = max(S);
+p     = 1/M.N;
+g     = log((1 - p)/p);
+[d,i] = find(G > g,1);
 
 % repeat with maximum entropy hyperprior
 %--------------------------------------------------------------------------
@@ -72,18 +93,11 @@ M.hE  = hE(i);
 spm_dcm_peb_rnd(DCM,M,field);
 
 subplot(3,2,3)
-imagesc(hE,bins,H),    hold on
-plot(hE,H(end,:),'w'), hold on
-plot([hE(1) hE(end)],[1 1]/20,':w'), hold off
-xlabel('hyperprior'), ylabel('p-value')
-title('Null distribution of p-values','FontSize',16)
+plot(hE,G,'b',[hE(1) hE(end)],[g g],':b',[M.hE M.hE],[min(G) max(G)],'-.')
+text(-2,g,sprintf('p < %-2.3f',p),'FontSize',10)
+xlabel('Hyperprior'), ylabel('Log-Bayes factor')
+title('Threshold under null','FontSize',16)
 
-subplot(3,2,5)
-plot(hE,CP,  'b',[hE(1) hE(end)],[1 1]/20,     ':b'), hold on
-plot(hE,BP,'-.b',[hE(1) hE(end)],[1 1]*log(20),':r'), hold on
-plot(hE,S,   'r',[hE(i) hE(i)  ],[0 s],        ':r'), hold off
-xlabel('hyperprior'), ylabel('p-value and entropy')
-title('p-values and entropy','FontSize',16)
 
 % Bayesian model comparison (at first and second levels)
 %--------------------------------------------------------------------------
