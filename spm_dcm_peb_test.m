@@ -46,7 +46,7 @@ function [BMC,M] = spm_dcm_peb_test(DCM,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_test.m 6557 2015-09-20 12:44:30Z karl $
+% $Id: spm_dcm_peb_test.m 6559 2015-09-22 18:11:08Z karl $
 
 
 % Set up
@@ -75,11 +75,10 @@ for i = 1:numel(hE)
     G(i,:) = bmc.F;
 end
 
-j   = find(bmc.K(:,2));
-P   = spm_softmax(G');
-P   = sum(P(j,:),1);
-G   = log(P./(1 - P));
-
+j     = find(bmc.K(:,2));
+P     = spm_softmax(G');
+P     = sum(P(j,:),1);
+G     = log(P./(1 - P));
 
 % find hyperprior that is consistent with classical inference 
 %--------------------------------------------------------------------------
@@ -90,6 +89,7 @@ g     = log((1 - p)/p);
 % repeat with maximum entropy hyperprior
 %--------------------------------------------------------------------------
 M.hE  = hE(i);
+
 spm_dcm_peb_rnd(DCM,M,field);
 
 subplot(3,2,3)
