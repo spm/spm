@@ -46,13 +46,13 @@ function [BMC,M] = spm_dcm_peb_test(DCM,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_test.m 6559 2015-09-22 18:11:08Z karl $
+% $Id: spm_dcm_peb_test.m 6561 2015-09-23 20:41:57Z karl $
 
 
 % Set up
 %==========================================================================
 rng('default');
-M.hC  = 1/16;
+M.hC  = 1/32;
 M.N   = 64;
 
 % find randomisation with the largest classical p-value
@@ -60,16 +60,15 @@ M.N   = 64;
 [p,P,f,F,X] = spm_dcm_peb_rnd(DCM,M,field);
 
 
-M0          = M;
-M0.noplot   = 1;
-[d,i]       = max(F);
-M0.X(:,2)   = X(:,i);
+M0         = M;
+M0.noplot  = 1;
+[d,i]      = max(F);
+M0.X(:,2)  = X(:,i);
 
 % evaluate the Bayes factor over different hyperpriors
 %--------------------------------------------------------------------------
-hE    = linspace(-4,2,32);
+hE    = linspace(-4,2,64);
 for i = 1:numel(hE)
-    
     M0.hE  = hE(i);
     bmc    = spm_dcm_bmc_peb(DCM,M0,field);
     G(i,:) = bmc.F;
@@ -88,7 +87,11 @@ g     = log((1 - p)/p);
 
 % repeat with maximum entropy hyperprior
 %--------------------------------------------------------------------------
-M.hE  = hE(i);
+if isempty(i)
+    M.hE = hE(end);
+else
+    M.hE = hE(i);
+end
 
 spm_dcm_peb_rnd(DCM,M,field);
 
