@@ -36,9 +36,9 @@ function DCM = spm_dcm_fmri_csd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 6303 2015-01-14 10:09:38Z adeel $
+% $Id: spm_dcm_fmri_csd.m 6560 2015-09-23 13:50:43Z karl $
 
-SVNid = '$Rev: 6303 $';
+SVNid = '$Rev: 6560 $';
 
 % Load DCM structure
 %--------------------------------------------------------------------------
@@ -84,6 +84,7 @@ DCM.options.stochastic = 0;
 % organise response variables: detrend outputs (and inputs)
 %==========================================================================
 DCM.Y.y = spm_detrend(DCM.Y.y);
+DCM.Y.y([1 end],:) = 0;
 if DCM.options.centre
     DCM.U.u = spm_detrend(DCM.U.u);
 end
@@ -102,7 +103,7 @@ DCM.b   = zeros(n,n,0);
 DCM.d   = zeros(n,n,0);
 if isempty(DCM.c) || isempty(DCM.U.u)
     DCM.c      = zeros(DCM.n,1);
-    DCM.b  = zeros(DCM.n,DCM.n,1);
+    DCM.b      = zeros(DCM.n,DCM.n,1);
     DCM.U.u    = zeros(DCM.v,1);
     DCM.U.name = {'null'};
 end
@@ -148,8 +149,8 @@ DCM.M.f  = @spm_fx_fmri;
 DCM.M.x  = x;
 DCM.M.pE = pE;
 DCM.M.pC = pC;
-DCM.M.hE = 4;
-DCM.M.hC = 1/128;
+DCM.M.hE = 6;
+DCM.M.hC = 1/64;
 DCM.M.n  = length(spm_vec(x));
 DCM.M.m  = size(DCM.U.u,2);
 DCM.M.l  = n;

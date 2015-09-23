@@ -26,7 +26,7 @@ function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 6075 2014-06-29 21:11:40Z karl $
+% $Id: spm_csd_fmri_mtf.m 6560 2015-09-23 13:50:43Z karl $
 
 
 % compute log-spectral density
@@ -63,44 +63,43 @@ end
 
 % amplitude scaling constant
 %--------------------------------------------------------------------------
-C     = 1/256;
+C     = 1/512;
 
 % neuronal fluctuations (Gu) (1/f or AR(1) form)
 %--------------------------------------------------------------------------
 for i = 1:nu
     if strcmp(form,'1/f')
-        G     = exp(P.a(1,i))*w.^(-exp(P.a(2,i)))*4;
+        G     = exp(P.a(1,i))*w.^(-exp(P.a(2,i)));
     else
-        G     = exp(P.a(1,i))*spm_mar2csd(exp(P.a(2,i))/2,w,M.ns);
+        G     = exp(P.a(1,i))*spm_mar2csd(exp(P.a(2,i))/2,w);
     end
     Gu(:,i,i) = Gu(:,i,i) + C*G;
 end
 
-% observation noise (1/f or AR(1) form)
+% region specific observation noise (1/f or AR(1) form)
 %--------------------------------------------------------------------------
 for i = 1:nn
-    
-    % global component
-    %----------------------------------------------------------------------
-    for j = 1:nn
-        
-        if strcmp(form,'1/f')
-            G     = exp(P.b(1,1))*w.^(-exp(P.b(2,1))/2)/8;
-        else
-            G     = exp(P.b(1,1))*spm_mar2csd(exp(P.b(2,1))/2,w,M.ns)/64;
-        end
-        Gn(:,i,j) = Gn(:,i,j) + C*G;
-    end
-    
-    % region specific
-    %----------------------------------------------------------------------
     if strcmp(form,'1/f')
         G     = exp(P.c(1,i))*w.^(-exp(P.c(2,i))/2);
     else
-        G     = exp(P.c(1,i))*spm_mar2csd(exp(P.c(2,i))/2,w,M.ns)/8;
+        G     = exp(P.c(1,i))*spm_mar2csd(exp(P.c(2,i))/2,w);
     end
     Gn(:,i,i) = Gn(:,i,i) + C*G;
-    
+end
+
+
+% global components
+%--------------------------------------------------------------------------
+if strcmp(form,'1/f')
+    G = exp(P.b(1,1))*w.^(-exp(P.b(2,1))/2);
+else
+    G = exp(P.b(1,1))*spm_mar2csd(exp(P.b(2,1))/2,w);
+end
+for i = 1:nn
+    for j = i:nn
+        Gn(:,i,j) = Gn(:,i,j) + C*G;
+        Gn(:,j,i) = Gn(:,i,j);
+    end
 end
 
 

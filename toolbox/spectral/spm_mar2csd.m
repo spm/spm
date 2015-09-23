@@ -24,7 +24,7 @@ function [csd,mtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mar2csd.m 6120 2014-07-24 11:20:12Z guillaume $
+% $Id: spm_mar2csd.m 6560 2015-09-23 13:50:43Z karl $
 
 
 % Nyquist
@@ -39,7 +39,6 @@ end
 if isnumeric(mar)
     d  = size(mar,2);
     p  = size(mar,1)/d;
-    lag   = cell(p,1);
     for i = 1:d
         for j = 1:d
             for k = 1:p
@@ -47,6 +46,7 @@ if isnumeric(mar)
             end
         end
     end
+    clear mar
     mar.lag = lag;
 else
     d  = length(mar.lag(1).a);

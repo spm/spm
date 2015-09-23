@@ -177,17 +177,19 @@ switch lower(action)
         
         % inputs
         %------------------------------------------------------------------
-        t     = (1:length(DCM.U.u))*DCM.U.dt;
-        for i = 1:nu
-            
-            subplot(nu,1,i)
-            plot(t,full(DCM.U.u(:,i)))
-            title(['Input - ' DCM.U.name{i}],'FontSize',16)
-            ylabel('event density {Hz}')
-            spm_axis tight
-            
+        try
+            t     = (1:length(DCM.U.u))*DCM.U.dt;
+            for i = 1:nu
+                
+                subplot(nu,1,i)
+                plot(t,full(DCM.U.u(:,i)))
+                title(['Input - ' DCM.U.name{i}],'FontSize',16)
+                ylabel('event density {Hz}')
+                spm_axis tight
+                
+            end
+            xlabel('time {seconds}')
         end
-        xlabel('time {seconds}')
         
     %======================================================================
     % Outputs
