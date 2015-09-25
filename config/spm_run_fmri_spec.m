@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 6372 2015-03-10 21:37:21Z guillaume $
+% $Id: spm_run_fmri_spec.m 6562 2015-09-25 14:38:17Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -303,6 +303,9 @@ for i = 1:numel(job.sess)
                     if isfield(tmp,'names')
                         names = tmp.names;
                     end
+                elseif isfield(tmp,'xY');
+                    R = tmp.xY.u;
+                    names = {tmp.xY.name};
                 elseif isfield(tmp,'PPI')
                     R    = [tmp.PPI.ppi tmp.PPI.Y tmp.PPI.P];
                     names = {...
