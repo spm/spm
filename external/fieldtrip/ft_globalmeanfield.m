@@ -52,13 +52,13 @@ function dataout = ft_globalmeanfield(cfg, datain)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_globalmeanfield.m 10451 2015-06-10 22:00:07Z roboos $
+% $Id: ft_globalmeanfield.m 10602 2015-08-17 13:11:17Z jimher $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_globalmeanfield.m 10451 2015-06-10 22:00:07Z roboos $';
+revision = '$Id: ft_globalmeanfield.m 10602 2015-08-17 13:11:17Z jimher $';
 
 % do the general setup of the function
 
@@ -89,7 +89,7 @@ datain = ft_selectdata(tmpcfg, datain);
 datain = ft_checkdata(datain, 'datatype', {'timelock'}, 'feedback', 'yes', 'hassampleinfo', 'yes');
 
 % get the options
-method    = ft_getopt(cfg, 'method', 'amplitude');        
+cfg.method    = ft_getopt(cfg, 'method', 'amplitude');        
 
 % ensure that the options are valid
 cfg = ft_checkopt(cfg, 'method', 'char', {'amplitude', 'power'});

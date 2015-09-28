@@ -22,7 +22,7 @@ function ft_select_range(handle, eventdata, varargin)
 %   'yrange'      = boolean, yrange variable or not
 %   'clear'       = boolean
 %
-% Example use:
+% Example
 %   x = randn(10,1);
 %   y = randn(10,1);
 %   figure; plot(x, y, '.');
@@ -60,7 +60,7 @@ function ft_select_range(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_range.m 10458 2015-06-18 19:53:31Z roboos $
+% $Id: ft_select_range.m 10689 2015-09-24 13:02:52Z roboos $
 
 % get the optional arguments
 event       = ft_getopt(varargin, 'event');

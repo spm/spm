@@ -46,7 +46,7 @@ function [sens] = ft_fetch_sens(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_sens.m 9846 2014-09-27 09:20:26Z roboos $
+% $Id: ft_fetch_sens.m 10679 2015-09-18 10:33:31Z jansch $
 
 if nargin > 1 && ~isempty(data)
   data = ft_checkdata(data);
@@ -129,6 +129,9 @@ elseif haselecfile
   if isfield(dum,'unit')
     sens.unit = dum.unit;
   end
+  if isfield(dum,'coordsys')
+    sens.coordsys = dum.coordsys;
+  end
 elseif hascfgelec
   display('using electrodes specified in the configuration\n');
   sens = cfg.elec;
@@ -148,6 +151,9 @@ elseif hascfgelec
   if isfield(dum,'unit')
     sens.unit = dum.unit;
   end
+  if isfield(dum,'coordsys')
+    sens.coordsys = dum.coordsys;
+  end
 elseif hasdataelec
   display('using electrodes specified in the data\n');
   sens = data.elec;
@@ -163,6 +169,9 @@ elseif hasdataelec
   sens.label   = dum.label;
   if isfield(dum,'unit')
     sens.unit = dum.unit;
+  end
+  if isfield(dum,'coordsys')
+    sens.coordsys = dum.coordsys;
   end
 elseif haslayout
   display('Using the 2-D layout to determine the sensor position\n');

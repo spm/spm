@@ -1,7 +1,8 @@
 function fieldtrip2fiff(filename, data)
 
 % FIELDTRIP2FIFF saves a FieldTrip raw data structure as a fiff-file, allowing it
-% to be further analyzed by the Neuromag software, or in the MNE suite software.
+% to be further analyzed by the Elekta/Neuromag software, or in the MNE suite
+% software.
 %
 % Use as
 %   fieldtrip2fiff(filename, data)
@@ -37,7 +38,7 @@ function fieldtrip2fiff(filename, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fieldtrip2fiff.m 9521 2014-05-14 09:45:42Z roboos $
+% $Id: fieldtrip2fiff.m 10677 2015-09-16 13:49:13Z roboos $
 
 % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_defaults

@@ -95,6 +95,7 @@ function [dat, label, time, cfg] = preproc(dat, label, time, cfg, begpadding, en
 % Preprocessing options that you should only use for EEG data are
 %   cfg.reref         = 'no' or 'yes' (default = 'no')
 %   cfg.refchannel    = cell-array with new EEG reference channel(s)
+%   cfg.refmethod     = 'avg' or 'median' (default = 'avg')
 %   cfg.implicitref   = 'label' or empty, add the implicit EEG reference as zeros (default = [])
 %   cfg.montage       = 'no' or a montage structure (default = 'no')
 %
@@ -120,7 +121,7 @@ function [dat, label, time, cfg] = preproc(dat, label, time, cfg, begpadding, en
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 10451 2015-06-10 22:00:07Z roboos $
+% $Id: preproc.m 10625 2015-08-24 22:37:33Z arjsto $
 
 % compute fsample
 fsample = 1./nanmean(diff(time));
@@ -157,6 +158,7 @@ end
 % set the defaults for the rereferencing options
 if ~isfield(cfg, 'reref'),        cfg.reref = 'no';             end
 if ~isfield(cfg, 'refchannel'),   cfg.refchannel = {};          end
+if ~isfield(cfg, 'refmethod'),    cfg.refmethod = 'avg';        end
 if ~isfield(cfg, 'implicitref'),  cfg.implicitref = [];         end
 % set the defaults for the signal processing options
 if ~isfield(cfg, 'polyremoval'),  cfg.polyremoval = 'no';       end
@@ -262,7 +264,7 @@ if strcmp(cfg.reref, 'yes'),
   if isempty(refindx)
     error('reference channel was not found')
   end
-  dat = ft_preproc_rereference(dat, refindx);
+  dat = ft_preproc_rereference(dat, refindx, cfg.refmethod);
 end
 
 if ~strcmp(cfg.montage, 'no') && ~isempty(cfg.montage)

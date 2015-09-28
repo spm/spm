@@ -85,9 +85,9 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 10340 2015-04-17 14:10:04Z jorhor $
+% $Id: ft_timelockanalysis.m 10574 2015-08-07 13:40:42Z jansch $
 
-revision = '$Id: ft_timelockanalysis.m 10340 2015-04-17 14:10:04Z jorhor $';
+revision = '$Id: ft_timelockanalysis.m 10574 2015-08-07 13:40:42Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -329,9 +329,9 @@ if strcmp(cfg.covariance, 'yes')
     end
   else
     if strcmp(cfg.removemean, 'yes')
-      covsig = squeeze(nansum(covsig, 1)) / (sum(numcovsigsamples)-ntrial);
+      covsig = shiftdim(nansum(covsig, 1)) / (sum(numcovsigsamples)-ntrial);
     else
-      covsig = squeeze(nansum(covsig, 1)) / sum(numcovsigsamples);
+      covsig = shiftdim(nansum(covsig, 1)) / sum(numcovsigsamples);
     end
   end
 end

@@ -67,7 +67,7 @@ function [varargout] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 10527 2015-07-09 12:22:50Z roboos $
+% $Id: ft_selectdata.m 10671 2015-09-15 12:38:20Z jansch $
 
 if nargin==1 || (nargin>2 && ischar(varargin{end-1})) || (isstruct(varargin{1}) && ~ft_datatype(varargin{1}, 'unknown'))
   % this is the OLD calling style, like this
@@ -386,11 +386,20 @@ end
 % restore the original dimord fields in the data
 for i=1:length(orgdim1)
   dimtok = tokenize(orgdim2{i}, '_');
-  if ~keeprptdim, dimtok = setdiff(dimtok, {'rpt' 'rpttap' 'subj'}); end
-  if ~keepposdim, dimtok = setdiff(dimtok, {'pos' '{pos}'}); end
-  if ~keepchandim, dimtok = setdiff(dimtok, {'chan'}); end
-  if ~keepfreqdim, dimtok = setdiff(dimtok, {'freq'}); end
-  if ~keeptimedim, dimtok = setdiff(dimtok, {'time'}); end
+  
+  % using a setdiff may result in double occurrences of chan and pos to
+  % disappear, so this causes problems as per bug 2962
+  % if ~keeprptdim, dimtok = setdiff(dimtok, {'rpt' 'rpttap' 'subj'}); end
+  % if ~keepposdim, dimtok = setdiff(dimtok, {'pos' '{pos}'}); end
+  % if ~keepchandim, dimtok = setdiff(dimtok, {'chan'}); end
+  % if ~keepfreqdim, dimtok = setdiff(dimtok, {'freq'}); end
+  % if ~keeptimedim, dimtok = setdiff(dimtok, {'time'}); end
+  if ~keeprptdim, dimtok = dimtok(~ismember(dimtok, {'rpt' 'rpttap' 'subj'})); end
+  if ~keepposdim, dimtok = dimtok(~ismember(dimtok, {'pos' '{pos}'}));         end
+  if ~keepchandim, dimtok = dimtok(~ismember(dimtok, {'chan'})); end
+  if ~keepfreqdim, dimtok = dimtok(~ismember(dimtok, {'freq'})); end
+  if ~keeptimedim, dimtok = dimtok(~ismember(dimtok, {'time'})); end
+  
   dimord = sprintf('%s_', dimtok{:});
   dimord = dimord(1:end-1); % remove the trailing _
   for j=1:length(varargin)
@@ -632,9 +641,12 @@ for k = 1:ndata
 end
 
 % this call to match_str ensures that that labels are always in the
-% order of the first input argument see bug_2917
+% order of the first input argument see bug_2917, but also temporarily keep
+% the labels from the other data structures not present in the first one
+% (in case selmode = 'union')
 [ix, iy] = match_str(varargin{1}.label, label);
-label = varargin{1}.label(ix)
+label1   = varargin{1}.label(:); % ensure column array
+label    = [label1(ix); label(setdiff(1:numel(label),iy))]; 
 
 indx = nan+zeros(numel(label), ndata);
 for k = 1:ndata

@@ -11,7 +11,7 @@ function [selected] = ft_select_point3d(bnd, varargin)
 %   'multiple'   = true/false, make multiple selections, pressing "q" on the keyboard finalizes the selection (default = false)
 %   'nearest'    = true/false (default = true)
 %
-% Example use
+% Example
 %   [pnt, tri] = icosahedron162;
 %   bnd.pnt = pnt;
 %   bnd.tri = tri;
@@ -35,7 +35,7 @@ function [selected] = ft_select_point3d(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_point3d.m 9515 2014-05-13 13:30:43Z roboos $
+% $Id: ft_select_point3d.m 10689 2015-09-24 13:02:52Z roboos $
 
 % get optional input arguments
 nearest  = ft_getopt(varargin, 'nearest',  true);

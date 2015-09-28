@@ -69,7 +69,7 @@ function [filt] = ft_preproc_bandpassfilter(dat,Fs,Fbp,N,type,dir,instabilityfix
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_bandpassfilter.m 10291 2015-03-29 08:23:26Z roboos $
+% $Id: ft_preproc_bandpassfilter.m 10597 2015-08-16 21:23:15Z roboos $
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);
@@ -233,6 +233,7 @@ switch type
       N=floor(size(dat,2)/3) - 1;
     end
     [B, A] = fir1(N, [min(Fbp)/Fn max(Fbp)/Fn]);
+    
   case 'firls' % from NUTMEG's implementation
     % Deprecated: see bug 2453
     warning('The filter type you requested is not recommended for neural signals, only proceed if you know what you are doing.')
@@ -261,6 +262,7 @@ switch type
     z(pos1:pos2) = 1;
     A = 1;
     B = firls(N,f,z); % requires MATLAB signal processing toolbox
+    
   case 'brickwall'
     ax = linspace(0, Fs, size(dat,2));  % frequency coefficients
     fl = nearest(ax, min(Fbp))-1;       % low cut-off frequency
@@ -271,6 +273,7 @@ switch type
     f(:,fh:end) = a.*f(:,fh:end);       % perform high cut-off
     filt        = 2*real(ifft(f,[],2)); % iFFT
     return
+    
   otherwise
     error('unsupported filter type "%s"', type);
 end

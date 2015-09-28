@@ -41,13 +41,13 @@ function data = ft_removetemplateartifact(cfg, data, template)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_removetemplateartifact.m 9825 2014-09-22 15:19:53Z roboos $
+% $Id: ft_removetemplateartifact.m 10685 2015-09-24 08:38:45Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_removetemplateartifact.m 9825 2014-09-22 15:19:53Z roboos $';
+revision = '$Id: ft_removetemplateartifact.m 10685 2015-09-24 08:38:45Z roboos $';
 
 % do the general setup of the function
 
@@ -67,7 +67,7 @@ end
 % ensure that the input data is valid for this function, this will also do
 % backward-compatibility conversions of old data that for example was
 % read from an old *.mat file
-data     = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hassampleinfo', 'yes', 'hasoffset', 'yes');
+data     = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hassampleinfo', 'yes');
 template = ft_checkdata(template, 'datatype', 'timelock');
 
 % get the options

@@ -94,7 +94,8 @@ function [headmodel, cfg] = ft_prepare_headmodel(cfg, data)
 %   cfg.tissue
 %   cfg.tissueval
 %   cfg.conductivity
-%   cfg.elec or cfg.grad
+%   cfg.elec
+%   cfg.grad
 %   cfg.transform
 %   cfg.unit
 %
@@ -133,9 +134,9 @@ function [headmodel, cfg] = ft_prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 10541 2015-07-15 16:49:37Z roboos $
+% $Id: ft_prepare_headmodel.m 10639 2015-08-28 10:02:10Z roboos $
 
-revision = '$Id: ft_prepare_headmodel.m 10541 2015-07-15 16:49:37Z roboos $';
+revision = '$Id: ft_prepare_headmodel.m 10639 2015-08-28 10:02:10Z roboos $';
 
 % do the general setup of the function
 ft_defaults

@@ -8,7 +8,7 @@ function hs = ft_plot_headshape(headshape,varargin)
 % be shown.
 %
 % Use as
-%   hs = ft_plot_headshape(shape, ...)
+%   ft_plot_headshape(shape, ...)
 % where the shape is a structure obtained from FT_READ_HEADSHAPE.
 %
 % Optional arguments should come in key-value pairs and can include
@@ -41,7 +41,7 @@ function hs = ft_plot_headshape(headshape,varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_headshape.m 9515 2014-05-13 13:30:43Z roboos $
+% $Id: ft_plot_headshape.m 10689 2015-09-24 13:02:52Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 

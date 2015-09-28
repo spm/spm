@@ -21,16 +21,16 @@ function [cfg] = ft_layoutplot(cfg, data)
 % created based on the specification of an electrode of gradiometer file.
 %
 % You can specify either one of the following configuration options
-%   cfg.layout      filename containg the layout
-%   cfg.rotate      number, rotation around the z-axis in degrees (default = [], which means automatic)
-%   cfg.projection  string, 2D projection method can be 'stereographic', 'ortographic', 'polar', 'gnomic' or 'inverse' (default = 'orthographic')
-%   cfg.elec        structure with electrode positions, or
-%   cfg.elecfile    filename containing electrode positions
-%   cfg.grad        structure with gradiometer definition, or
-%   cfg.gradfile    filename containing gradiometer definition
-%   cfg.output      filename to which the layout will be written (default = [])
-%   cfg.montage     'no' or a montage structure (default = 'no')
-%   cfg.image       filename, use an image to construct a layout (e.g. usefull for ECoG grids)
+%   cfg.layout      = filename containg the layout
+%   cfg.rotate      = number, rotation around the z-axis in degrees (default = [], which means automatic)
+%   cfg.projection  = string, 2D projection method can be 'stereographic', 'ortographic', 'polar', 'gnomic' or 'inverse' (default = 'orthographic')
+%   cfg.elec        = structure with electrode definition
+%   cfg.grad        = structure with gradiometer definition
+%   cfg.elecfile    = filename containing electrode definition
+%   cfg.gradfile    = filename containing gradiometer definition
+%   cfg.output      = filename to which the layout will be written (default = [])
+%   cfg.montage     = 'no' or a montage structure (default = 'no')
+%   cfg.image       = filename, use an image to construct a layout (e.g. usefull for ECoG grids)
 %
 % Alternatively the layout can be constructed from either
 %   data.elec     structure with electrode positions
@@ -70,9 +70,9 @@ function [cfg] = ft_layoutplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_layoutplot.m 9778 2014-09-03 13:59:00Z jorhor $
+% $Id: ft_layoutplot.m 10639 2015-08-28 10:02:10Z roboos $
 
-revision = '$Id: ft_layoutplot.m 9778 2014-09-03 13:59:00Z jorhor $';
+revision = '$Id: ft_layoutplot.m 10639 2015-08-28 10:02:10Z roboos $';
 
 % do the general setup of the function
 ft_defaults

@@ -119,9 +119,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 10196 2015-02-11 09:15:07Z roboos $
+% $Id: ft_multiplotTFR.m 10666 2015-09-14 07:53:27Z jansch $
 
-revision = '$Id: ft_multiplotTFR.m 10196 2015-02-11 09:15:07Z roboos $';
+revision = '$Id: ft_multiplotTFR.m 10666 2015-09-14 07:53:27Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -516,14 +516,17 @@ end
 if isfield(cfg, 'colormap')
   if size(cfg.colormap, 2)~=3, error('multiplotTFR(): Colormap must be a n x 3 matrix'); end
   set(gcf, 'colormap', cfg.colormap);
-end;
+  ncolors = size(cfg.colormap,1);
+else
+  ncolors =[]; % let the low-level function deal with this
+end
 
 % Plot channels:
 for k=1:length(chanseldat)
   % Get cdata:
-  cdata = squeeze(datsel(k, :, :));
+  cdata = shiftdim(datsel(k, :, :));
   if ~isempty(cfg.maskparameter)
-    mdata = squeeze(maskdat(k, :, :));
+    mdata = shiftdim(maskdat(k, :, :));
   end
   
   % scale if needed
@@ -538,18 +541,18 @@ for k=1:length(chanseldat)
   if isequal(cfg.masknans, 'yes') && isempty(cfg.maskparameter)
     nans_mask = ~isnan(cdata);
     mask = double(nans_mask);
-    ft_plot_matrix(cdata, 'clim', [zmin zmax], 'tag', 'cip', 'highlightstyle', cfg.maskstyle, 'highlight', mask, 'hpos', chanX(k), 'vpos', chanY(k), 'width', chanWidth(k), 'height', chanHeight(k))
+    ft_plot_matrix(cdata, 'clim', [zmin zmax], 'tag', 'cip', 'highlightstyle', cfg.maskstyle, 'highlight', mask, 'hpos', chanX(k), 'vpos', chanY(k), 'width', chanWidth(k), 'height', chanHeight(k),'ncolors',ncolors)
   elseif isequal(cfg.masknans, 'yes') && ~isempty(cfg.maskparameter)
     nans_mask = ~isnan(cdata);
     mask = nans_mask .* mdata;
     mask = double(mask);
-    ft_plot_matrix(cdata, 'clim', [zmin zmax], 'tag', 'cip', 'highlightstyle', cfg.maskstyle, 'highlight', mask, 'hpos', chanX(k), 'vpos', chanY(k), 'width', chanWidth(k), 'height', chanHeight(k))
+    ft_plot_matrix(cdata, 'clim', [zmin zmax], 'tag', 'cip', 'highlightstyle', cfg.maskstyle, 'highlight', mask, 'hpos', chanX(k), 'vpos', chanY(k), 'width', chanWidth(k), 'height', chanHeight(k),'ncolors',ncolors)
   elseif isequal(cfg.masknans, 'no') && ~isempty(cfg.maskparameter)
     mask = mdata;
     mask = double(mask);
-    ft_plot_matrix(cdata, 'clim', [zmin zmax], 'tag', 'cip', 'highlightstyle', cfg.maskstyle, 'highlight', mask, 'hpos', chanX(k), 'vpos', chanY(k), 'width', chanWidth(k), 'height', chanHeight(k))
+    ft_plot_matrix(cdata, 'clim', [zmin zmax], 'tag', 'cip', 'highlightstyle', cfg.maskstyle, 'highlight', mask, 'hpos', chanX(k), 'vpos', chanY(k), 'width', chanWidth(k), 'height', chanHeight(k),'ncolors',ncolors)
   else
-    ft_plot_matrix(cdata, 'clim', [zmin zmax], 'tag', 'cip', 'hpos', chanX(k), 'vpos', chanY(k), 'width', chanWidth(k), 'height', chanHeight(k))
+    ft_plot_matrix(cdata, 'clim', [zmin zmax], 'tag', 'cip', 'hpos', chanX(k), 'vpos', chanY(k), 'width', chanWidth(k), 'height', chanHeight(k),'ncolors',ncolors)
   end
   
   % Currently the handle isn't being used below, this is here for possible use in the future
@@ -570,7 +573,7 @@ end
 k = cellstrmatch('SCALE', lay.label);
 if ~isempty(k)
   % Get average cdata across channels:
-  cdata = squeeze(mean(datsel, 1)); 
+  cdata = shiftdim(mean(datsel, 1)); 
  
   % Draw plot (and mask Nan's with maskfield if requested)
   if isequal(cfg.masknans, 'yes') && isempty(cfg.maskparameter)

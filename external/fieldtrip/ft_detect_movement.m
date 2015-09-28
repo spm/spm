@@ -55,13 +55,13 @@ function [cfg movement] = ft_detect_movement(cfg, data)
 
 % Copyright (C) 2014, Diego Lozano-Soldevilla, Robert Oostenveld
 %
-% $Id: ft_detect_movement.m 10451 2015-06-10 22:00:07Z roboos $
+% $Id: ft_detect_movement.m 10685 2015-09-24 08:38:45Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_detect_movement.m 10451 2015-06-10 22:00:07Z roboos $';
+revision = '$Id: ft_detect_movement.m 10685 2015-09-24 08:38:45Z roboos $';
 
 % do the general setup of the function
 
@@ -78,7 +78,7 @@ ft_preamble loadvar data    % this reads the input data in case the user specifi
 % ensure that the input data is valid for this function, this will also do 
 % backward-compatibility conversions of old data that for example was 
 % read from an old *.mat file
-data = ft_checkdata(data, 'datatype', {'raw'}, 'feedback', 'yes', 'hassampleinfo', 'yes', 'hasoffset', 'yes');
+data = ft_checkdata(data, 'datatype', {'raw'}, 'feedback', 'yes', 'hassampleinfo', 'yes');
 
 if isfield(data,'fsample');
   fsample = getsubfield(data,'fsample');

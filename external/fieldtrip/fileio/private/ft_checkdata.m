@@ -55,7 +55,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 10497 2015-06-30 15:52:15Z jimher $
+% $Id: ft_checkdata.m 10686 2015-09-24 08:38:47Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -116,9 +116,6 @@ depHastrialdef = ft_getopt(varargin, 'hastrialdef');
 if (~isempty(depHastrialdef))
   ft_warning('ft_checkdata option ''hastrialdef'' is deprecated; use ''hassampleinfo'' instead');
   hassampleinfo = depHastrialdef;
-end
-if (~isempty(ft_getopt(varargin, 'hasoffset')))
-  ft_warning('ft_checkdata option ''hasoffset'' has been removed and will be ignored');
 end
 
 % determine the type of input data

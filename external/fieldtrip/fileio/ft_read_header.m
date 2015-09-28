@@ -91,7 +91,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 10521 2015-07-04 13:13:36Z roboos $
+% $Id: ft_read_header.m 10688 2015-09-24 11:56:03Z jansch $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -156,9 +156,12 @@ if iscell(headerformat)
 end
 
 if strcmp(headerformat, 'compressed')
-  % we are dealing with a compressed dataset, inflate it first
+  % the file is compressed, unzip on the fly
+  inflated     = true;
   filename     = inflate_file(filename);
   headerformat = ft_filetype(filename);
+else
+  inflated     = false;
 end
 
 realtime = any(strcmp(headerformat, {'fcdc_buffer', 'ctf_shm', 'fcdc_mysql'}));
@@ -1097,8 +1100,8 @@ switch headerformat
     if isunix && filename(1)~=filesep
       % add the full path to the dataset directory
       filename = fullfile(pwd, filename);
-    elseif ispc && filename(2)~=':'
-      % add the full path, including drive letter
+    elseif ispc && ~any(strcmp(filename(2),{':','\'}))
+      % add the full path, including drive letter or slashes as needed.
       filename = fullfile(pwd, filename);
     end
     hdr = read_mff_header(filename);
@@ -1701,6 +1704,7 @@ switch headerformat
     % this pertains to generic header file, and the other neuroscope
     % formats will recurse into this one
     [p,f,e]    = fileparts(filename);
+    if isempty(p), p = pwd; end
     listing    = dir(p);
     filenames  = {listing.name}';
     
@@ -2046,6 +2050,32 @@ switch headerformat
       end
     end
     hdr.orig = orig;
+  
+  case 'blackrock_nsx'
+    ft_hastoolbox('NPMK', 1);
+    
+    % ensure that the filename contains a full path specification,
+    % otherwise the low-level function fails
+    [p,f,e] = fileparts(filename);
+    if ~isempty(p)
+      % this is OK
+    elseif isempty(p)
+      filename = which(filename);
+    end
+    orig = openNSx(filename, 'noread');
+    
+    hdr        = [];
+    hdr.orig   = orig;
+    hdr.Fs     = orig.MetaTags.SamplingFreq;
+    hdr.nChans = orig.MetaTags.ChannelCount;
+    hdr.nSamples    = orig.MetaTags.DataPoints;
+    hdr.nSamplesPre = 0;
+    hdr.nTrials     = 1; %?
+    hdr.label       = deblank({orig.ElectrodesInfo.Label})';
+    hdr.chanunit    = deblank({hdr.orig.ElectrodesInfo.AnalogUnits})';
+    
+  case 'blackrock_nev'
+    error('this still needs some work');
   otherwise
     if strcmp(fallback, 'biosig') && ft_hastoolbox('BIOSIG', 1)
       hdr = read_biosig_header(filename);
@@ -2096,9 +2126,6 @@ if checkUniqueLabels
   end
 end
 
-% ensure that it is a column array
-hdr.label = hdr.label(:);
-
 % as of November 2011, the header is supposed to include the channel type (see FT_CHANTYPE,
 % e.g. meggrad, megref, eeg) and the units of each channel (see FT_CHANUNIT, e.g. uV, fT)
 
@@ -2122,6 +2149,11 @@ if isfield(hdr, 'elec')
   hdr.elec = ft_datatype_sens(hdr.elec);
 end
 
+% ensure that these are column arrays
+hdr.label    = hdr.label(:);
+hdr.chantype = hdr.chantype(:);
+hdr.chanunit = hdr.chanunit(:);
+
 % ensure that these are double precision and not integers, otherwise
 % subsequent computations that depend on these might be messed up
 hdr.Fs          = double(hdr.Fs);
@@ -2129,6 +2161,11 @@ hdr.nSamples    = double(hdr.nSamples);
 hdr.nSamplesPre = double(hdr.nSamplesPre);
 hdr.nTrials     = double(hdr.nTrials);
 hdr.nChans      = double(hdr.nChans);
+
+if inflated
+  % compressed file has been unzipped on the fly, clean up
+  delete(filename);
+end
 
 if cache && exist(headerfile, 'file')
   % put the header in the cache

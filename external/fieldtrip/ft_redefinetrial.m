@@ -70,9 +70,9 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 10451 2015-06-10 22:00:07Z roboos $
+% $Id: ft_redefinetrial.m 10588 2015-08-14 14:55:40Z jorhor $
 
-revision = '$Id: ft_redefinetrial.m 10451 2015-06-10 22:00:07Z roboos $';
+revision = '$Id: ft_redefinetrial.m 10588 2015-08-14 14:55:40Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -270,6 +270,9 @@ elseif ~isempty(cfg.trl)
   end
   if isfield(dataold, 'elec')
     data.elec      = dataold.elec;
+  end
+  if isfield(dataold, 'opto')
+    data.opto      = dataold.opto;
   end
   if isfield(dataold, 'sampleinfo')
     % adjust the trial definition

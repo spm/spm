@@ -91,9 +91,9 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 10541 2015-07-15 16:49:37Z roboos $
+% $Id: ft_megrealign.m 10663 2015-09-13 10:03:57Z roboos $
 
-revision = '$Id: ft_megrealign.m 10541 2015-07-15 16:49:37Z roboos $';
+revision = '$Id: ft_megrealign.m 10663 2015-09-13 10:03:57Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -181,19 +181,21 @@ Ntrials = length(data.trial);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % construct the average template gradiometer array
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Ntemplate = length(cfg.template);
-for i=1:Ntemplate
+template = struct([]); % initialize as empty structure
+for i=1:length(cfg.template)
   if ischar(cfg.template{i}),
     fprintf('reading template sensor position from %s\n', cfg.template{i});
-    template(i) = ft_read_sens(cfg.template{i});
+    tmp = ft_read_sens(cfg.template{i});
   elseif isstruct(cfg.template{i}) && isfield(cfg.template{i}, 'coilpos') && isfield(cfg.template{i}, 'coilori') && isfield(cfg.template{i}, 'tra'),
-    template(i) = cfg.template{i};
+    tmp = cfg.template{i};
   elseif isstruct(cfg.template{i}) && isfield(cfg.template{i}, 'pnt') && isfield(cfg.template{i}, 'ori') && isfield(cfg.template{i}, 'tra'),
     % it seems to be a pre-2011v1 type gradiometer structure, update it
-    template(i) = ft_datatype_sens(cfg.template{i});
+    tmp = ft_datatype_sens(cfg.template{i});
   else
     error('unrecognized template input');
   end
+  % prevent "Subscripted assignment between dissimilar structures" error
+  template = appendstruct(template, tmp); clear tmp
 end
 
 grad = ft_average_sens(template);

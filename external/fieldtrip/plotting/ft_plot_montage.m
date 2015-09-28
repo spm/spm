@@ -8,12 +8,12 @@ function ft_plot_montage(dat, varargin)
 % where dat is a 3-D array.
 % 
 % Additional options should be specified in key-value pairs and can be
-%     'transform'     = 4x4 homogeneous transformation matrix specifying the mapping from voxel space to the coordinate system in which the data are plotted.
-%     'location'      = 1x3 vector specifying a point on the plane which will be plotted the coordinates are expressed in the coordinate system in which the data will be plotted. location defines the origin of the plane
-%     'orientation'   = 1x3 vector specifying the direction orthogonal through the plane which will be plotted (default = [0 0 1])
-%     'srange'        = 
-%     'slicesize'     = 
-%     'nslice'        = scalar, number of slices
+%   'transform'     = 4x4 homogeneous transformation matrix specifying the mapping from voxel space to the coordinate system in which the data are plotted.
+%   'location'      = 1x3 vector specifying a point on the plane which will be plotted the coordinates are expressed in the coordinate system in which the data will be plotted. location defines the origin of the plane
+%   'orientation'   = 1x3 vector specifying the direction orthogonal through the plane which will be plotted (default = [0 0 1])
+%   'srange'        = 
+%   'slicesize'     = 
+%   'nslice'        = scalar, number of slices
 % 
 % See also FT_PLOT_ORTHO, FT_PLOT_SLICE, FT_SOURCEPLOT
 
@@ -39,7 +39,7 @@ function ft_plot_montage(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_montage.m 9714 2014-07-09 15:09:36Z roboos $
+% $Id: ft_plot_montage.m 10689 2015-09-24 13:02:52Z roboos $
 
 transform = ft_getopt(varargin, 'transform', eye(4));
 loc       = ft_getopt(varargin, 'location');

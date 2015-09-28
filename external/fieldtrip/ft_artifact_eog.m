@@ -6,9 +6,10 @@ function [cfg, artifact] = ft_artifact_eog(cfg, data)
 % Use as
 %   [cfg, artifact] = ft_artifact_eog(cfg)
 % with the configuration options
-%   cfg.dataset
-%   cfg.headerfile
-%   cfg.datafile
+%   cfg.dataset     = string with the filename
+% or
+%   cfg.headerfile  = string with the filename
+%   cfg.datafile    = string with the filename
 %
 % Alternatively you can use it as
 %   [cfg, artifact] = ft_artifact_eog(cfg, data)
@@ -68,9 +69,9 @@ function [cfg, artifact] = ft_artifact_eog(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_eog.m 10177 2015-02-06 18:21:15Z roboos $
+% $Id: ft_artifact_eog.m 10641 2015-08-28 10:16:50Z roboos $
 
-revision = '$Id: ft_artifact_eog.m 10177 2015-02-06 18:21:15Z roboos $';
+revision = '$Id: ft_artifact_eog.m 10641 2015-08-28 10:16:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults

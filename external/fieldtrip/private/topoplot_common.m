@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id: topoplot_common.m 10666 2015-09-14 07:53:27Z jansch $
 
-revision = '$Id: topoplot_common.m 10197 2015-02-11 09:35:58Z roboos $';
+revision = '$Id: topoplot_common.m 10666 2015-09-14 07:53:27Z jansch $';
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'unused',     {'cohtargetchannel'});
@@ -200,7 +200,10 @@ end
 if isfield(cfg,'colormap')
   if size(cfg.colormap,2)~=3, error('topoplot(): Colormap must be a n x 3 matrix'); end
   colormap(cfg.colormap);
-end;
+  ncolors = size(cfg.colormap,1);
+else
+  ncolors =[]; % let the low-level function deal with this
+end
 
 dtype  = ft_datatype(data);
 
@@ -764,7 +767,7 @@ if ~strcmp(cfg.style,'blank')
     'datmask', msk};
   if strcmp(style,'imsat') || strcmp(style,'imsatiso')
     % add clim to opt
-    opt = [opt {'clim',[zmin zmax]}];
+    opt = [opt {'clim',[zmin zmax],'ncolors',ncolors}];
   end
   ft_plot_topo(chanX,chanY,dat,opt{:});
 elseif ~strcmp(cfg.style,'blank')

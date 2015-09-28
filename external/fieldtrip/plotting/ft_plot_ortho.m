@@ -4,6 +4,7 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 %
 % Use as
 %   ft_plot_ortho(dat, ...)
+% or
 %   ft_plot_ortho(dat, mask, ...)
 % where dat and mask are equal-sized 3-D arrays.
 %
@@ -39,7 +40,7 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_ortho.m 10024 2014-12-08 09:00:27Z roboos $
+% $Id: ft_plot_ortho.m 10689 2015-09-24 13:02:52Z roboos $
 
 % parse first input argument(s). it is either
 % (dat, varargin)

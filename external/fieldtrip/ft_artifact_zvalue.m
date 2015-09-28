@@ -19,8 +19,10 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg, data)
 % If you are calling FT_ARTIFACT_ZVALUE with only the configuration as first
 % input argument and the data still has to be read from file, you should
 % specify
-%   cfg.headerfile
-%   cfg.datafile
+%   cfg.dataset     = string with the filename
+% or
+%   cfg.headerfile  = string with the filename
+%   cfg.datafile    = string with the filename
 % and optionally
 %   cfg.headerformat
 %   cfg.dataformat
@@ -116,9 +118,9 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_zvalue.m 10494 2015-06-29 13:11:47Z tzvpop $
+% $Id: ft_artifact_zvalue.m 10641 2015-08-28 10:16:50Z roboos $
 
-revision = '$Id: ft_artifact_zvalue.m 10494 2015-06-29 13:11:47Z tzvpop $';
+revision = '$Id: ft_artifact_zvalue.m 10641 2015-08-28 10:16:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults

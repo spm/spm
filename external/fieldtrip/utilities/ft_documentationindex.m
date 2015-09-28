@@ -26,13 +26,13 @@ function index = ft_documentationindex(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_documentationindex.m 10449 2015-06-10 18:34:02Z roboos $
+% $Id: ft_documentationindex.m 10637 2015-08-27 14:03:49Z roboos $
 
 ft_defaults
 
-p = fileparts(which(mfilename));
+[ftver, ftpath] = ft_version;
 
-f1 = dir(fullfile(p, 'ft_*.m'));
+f1 = dir(fullfile(ftpath, 'ft_*.m'));
 f1 = {f1.name}';
 
 funname = f1;

@@ -45,7 +45,7 @@ function [data] = ft_determine_coordsys(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_determine_coordsys.m 10328 2015-04-08 19:24:45Z roboos $
+% $Id: ft_determine_coordsys.m 10678 2015-09-18 10:26:55Z jansch $
 
 dointeractive = ft_getopt(varargin, 'interactive', 'yes');
 axisscale     = ft_getopt(varargin, 'axisscale', 1); % this is used to scale the axmax and rbol
@@ -217,7 +217,7 @@ switch dtype
     camlight;
     
   case {'grad' 'elec' 'sens'}
-    ft_plot_sens(data);
+    ft_plot_sens(data, 'label', 'label');
     camlight;
     
   case {'raw', 'timelock', 'freq', 'mvar', 'freqmvar', 'comp'}
@@ -225,7 +225,7 @@ switch dtype
     if isfield(data, 'grad')
       ft_plot_sens(data.grad);
     elseif isfield(data, 'elec')
-      ft_plot_sens(data.elec);
+      ft_plot_sens(data.elec, 'label', 'label');
     end
     
   case 'unknown'

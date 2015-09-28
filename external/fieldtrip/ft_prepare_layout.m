@@ -21,8 +21,8 @@ function [layout, cfg] = ft_prepare_layout(cfg, data)
 %                   as-is (see below for details)
 %   cfg.rotate      number, rotation around the z-axis in degrees (default = [], which means automatic)
 %   cfg.projection  string, 2D projection method can be 'stereographic', 'orthographic', 'polar', 'gnomic' or 'inverse' (default = 'polar')
-%   cfg.elec        structure with electrode positions, or
-%   cfg.elecfile    filename containing electrode positions
+%   cfg.elec        structure with electrode definition, or
+%   cfg.elecfile    filename containing electrode definition
 %   cfg.grad        structure with gradiometer definition, or
 %   cfg.gradfile    filename containing gradiometer definition
 %   cfg.opto        structure with optode structure definition, or
@@ -84,9 +84,9 @@ function [layout, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 10451 2015-06-10 22:00:07Z roboos $
+% $Id: ft_prepare_layout.m 10639 2015-08-28 10:02:10Z roboos $
 
-revision = '$Id: ft_prepare_layout.m 10451 2015-06-10 22:00:07Z roboos $';
+revision = '$Id: ft_prepare_layout.m 10639 2015-08-28 10:02:10Z roboos $';
 
 % do the general setup of the function
 ft_defaults

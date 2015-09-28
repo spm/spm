@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 10553 2015-07-16 14:55:00Z roboos $
+% $Id: ft_hastoolbox.m 10683 2015-09-21 09:33:44Z jansch $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -74,7 +74,8 @@ url = {
   'EEGSF'      'see http://eeg.sourceforge.net'  % alternative name
   'MRI'        'see http://eeg.sourceforge.net'  % alternative name
   'NEUROSHARE' 'see http://www.neuroshare.org'
-  'BESA'       'see http://www.megis.de, or contact Karsten Hoechstetter'
+  'BESA'         'see http://www.besa.de/downloads/matlab/ and get the "BESA MATLAB Readers"'
+  'MATLAB2BESA'  'see http://www.besa.de/downloads/matlab/ and get the "MATLAB to BESA Export functions"'
   'EEPROBE'    'see http://www.ant-neuro.com, or contact Maarten van der Velde'
   'YOKOGAWA'   'this is deprecated, please use YOKOGAWA_MEG_READER instead'
   'YOKOGAWA_MEG_READER' 'see http://www.yokogawa.com/me/me-login-en.htm'
@@ -143,6 +144,7 @@ url = {
   'FILEEXCHANGE'  'see http://www.mathworks.com/matlabcentral/fileexchange/'
   'NEURALYNX_V6'  'see http://neuralynx.com/research_software/file_converters_and_utilities/ and take the version from Neuralynx (windows only)' 
   'NEURALYNX_V3'  'see http://neuralynx.com/research_software/file_converters_and_utilities/ and take the version from Ueli Rutishauser' 
+  'NPMK'          'see https://github.com/BlackrockMicrosystems/NPMK'
   };
 
 if nargin<2
@@ -210,7 +212,11 @@ switch toolbox
   case 'ARTINIS'
     status  = exist('read_artinis_oxy3', 'file');
   case 'BESA'
-    status = (exist('readBESAtfc', 'file') && exist('readBESAswf', 'file'));
+    filelist = {'readBESAavr' 'readBESAelp' 'readBESAswf'};
+    status = all(cellfun(@exist, filelist, repmat({'file'}, size(filelist))));
+  case 'MATLAB2BESA'
+    filelist = {'besa_save2Avr' 'besa_save2Elp' 'besa_save2Swf'};
+    status = all(cellfun(@exist, filelist, repmat({'file'}, size(filelist))));
   case 'EEPROBE'
     status  = (exist('read_eep_avr', 'file') && exist('read_eep_cnt', 'file'));
   case 'YOKOGAWA'
@@ -339,6 +345,9 @@ switch toolbox
     status = all(cellfun(@exist, filelist, repmat({'file'}, size(filelist))));
   case 'NEURALYNX_V3'
     filelist = {['Nlx2MatCSC_v3.', mexext]};
+    status = all(cellfun(@exist, filelist, repmat({'file'}, size(filelist))));
+  case 'NPMK'
+    filelist = {'OpenNSx' 'OpenNEV'};
     status = all(cellfun(@exist, filelist, repmat({'file'}, size(filelist))));
     
     % the following are fieldtrip modules/toolboxes

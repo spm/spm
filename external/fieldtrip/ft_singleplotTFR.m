@@ -80,9 +80,9 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 10394 2015-05-08 09:42:03Z jansch $
+% $Id: ft_singleplotTFR.m 10666 2015-09-14 07:53:27Z jansch $
 
-revision = '$Id: ft_singleplotTFR.m 10394 2015-05-08 09:42:03Z jansch $';
+revision = '$Id: ft_singleplotTFR.m 10666 2015-09-14 07:53:27Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -453,24 +453,27 @@ end
 if isfield(cfg,'colormap')
   if size(cfg.colormap,2)~=3, error('singleplotTFR(): Colormap must be a n x 3 matrix'); end
   set(gcf,'colormap',cfg.colormap);
-end;
+  ncolors = size(cfg.colormap,1);
+else
+  ncolors =[]; % let the low-level function deal with this
+end
 
 % Draw plot (and mask NaN's if requested):
 cla
 if isequal(cfg.masknans,'yes') && isempty(cfg.maskparameter)
   nans_mask = ~isnan(datamatrix);
   mask = double(nans_mask);
-  ft_plot_matrix(xvector, yvector, datamatrix, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
+  ft_plot_matrix(xvector, yvector, datamatrix, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask,'ncolors',ncolors)
 elseif isequal(cfg.masknans,'yes') && ~isempty(cfg.maskparameter)
   nans_mask = ~isnan(datamatrix);
   mask = mask .* nans_mask;
   mask = double(mask);
-  ft_plot_matrix(xvector, yvector, datamatrix, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
+  ft_plot_matrix(xvector, yvector, datamatrix, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask,'ncolors',ncolors)
 elseif isequal(cfg.masknans,'no') && ~isempty(cfg.maskparameter)
   mask = double(mask);
-  ft_plot_matrix(xvector, yvector, datamatrix, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
+  ft_plot_matrix(xvector, yvector, datamatrix, 'clim',[zmin,zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask,'ncolors',ncolors)
 else
-  ft_plot_matrix(xvector, yvector, datamatrix, 'clim',[zmin,zmax],'tag','cip')
+  ft_plot_matrix(xvector, yvector, datamatrix, 'clim',[zmin,zmax],'tag','cip','ncolors',ncolors)
 end
 hold on
 axis xy;

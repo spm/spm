@@ -30,13 +30,15 @@ function [source] = ft_source2sparse(source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2sparse.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id: ft_source2sparse.m 10585 2015-08-12 15:18:10Z jansch $
 
 ft_defaults
 
 if ~isfield(source, 'inside')
   warning('no gridpoints defined inside the brain');
   source.inside = [];
+elseif all(islogical(source.inside))
+  source = fixinside(source, 'index'); % in contrast to the new convention, this function still relies on an indexed inside
 end
 
 if ~isfield(source, 'outside')
@@ -157,7 +159,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_source2sparse.m 10197 2015-02-11 09:35:58Z roboos $';
+cfg.version.id = '$Id: ft_source2sparse.m 10585 2015-08-12 15:18:10Z jansch $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 
