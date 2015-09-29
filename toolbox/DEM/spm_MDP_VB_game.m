@@ -22,8 +22,8 @@ function Q = spm_MDP_VB_game(MDP)
 %
 %     Q.X  = x    - expected hidden states
 %     Q.R  = u    - final policy expectations
-%     Q.S  = s    - actual hidden states
-%     Q.O  = o    - actual outcomes
+%     Q.S  = s    - initial hidden states
+%     Q.O  = o    - final outcomes
 %     Q.p  = p    - performance
 %     Q.q  = q    - reaction times
 %     
@@ -32,7 +32,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 6539 2015-09-04 08:47:25Z karl $
+% $Id: spm_MDP_VB_game.m 6564 2015-09-29 08:10:22Z karl $
  
 % graphics
 %==========================================================================
@@ -94,13 +94,13 @@ q     = q/std(q);
 [o,t] = find(o);
 subplot(6,1,2), bar(p,'k'),   hold on
 plot(q,'.c','MarkerSize',16), hold on
-plot(q,':c'),                 hold on
+plot(q,':c')
 for i = 1:max(o)
     j = find(o == i);
-    plot(t(j),j - j + 4,col{rem(i - 1,6)+ 1},'MarkerSize',MarkerSize), hold on
+    plot(t(j),j - j + 4,col{rem(i - 1,6)+ 1},'MarkerSize',MarkerSize)
 end
 title('Final outcome, performance and reaction times','FontSize',16)
-ylabel('Expected utility','FontSize',12), spm_axis tight
+ylabel('Expected utility','FontSize',12), spm_axis tight, hold off
  
 % Initial states (context)
 %--------------------------------------------------------------------------

@@ -104,7 +104,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 6539 2015-09-04 08:47:25Z karl $
+% $Id: spm_MDP_VB.m 6564 2015-09-29 08:10:22Z karl $
  
  
 % deal with a sequence of trials
@@ -113,7 +113,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % options
 %--------------------------------------------------------------------------
 try, OPTIONS.scheme; catch, OPTIONS.scheme = 'Free Energy'; end
-try, OPTIONS.habit;  catch, OPTIONS.habit  = 1;             end
+try, OPTIONS.habit;  catch, OPTIONS.habit  = 0;             end
 try, OPTIONS.plot;   catch, OPTIONS.plot   = 0;             end
  
  
@@ -168,6 +168,7 @@ Nu  = size(MDP.B,2);                % number of hidden controls
 V   = MDP.V;                        % allowable policies (T - 1,Np)
 p0  = exp(-8);                      % smallest probability
 q0  = 1/16;                         % smallest probability
+Nh  = Np + 1;                       % index of habit
  
 % parameters of generative model and policies
 %==========================================================================
@@ -181,7 +182,7 @@ catch
     A  = speye(Ns,Ns) + p0;
     No = Ns;
 end
-A      = A*diag(1./sum(A));        % normalise
+A      = spm_norm(A);              % normalise
  
 % parameters (concentration parameters): A
 %--------------------------------------------------------------------------
@@ -197,19 +198,19 @@ end
 for i = 1:Nu
     
     B{i} = MDP.B{i} + p0;
-    B{i} = B{i}*diag(1./sum(B{i}));
+    B{i} = spm_norm(B{i});
     
     % parameters (concentration parameters): B
     %----------------------------------------------------------------------
     if isfield(MDP,'b')
-        qB{i} = MDP.b{i} + q0;
-        qB{i} = psi(qB{i}) - ones(Ns,1)*psi(sum(qB{i}));
+        pB{i} = MDP.b{i} + q0;
+        sB{i} = spm_norm(pB{i} );
+        rB{i} = spm_norm(pB{i}');
     else
-        qB{i} = log(B{i});
-        
+        sB{i} = spm_norm(B{i} );
+        rB{i} = spm_norm(B{i}');
     end
-    sB{i} = spm_softmax(qB{i} );
-    rB{i} = spm_softmax(qB{i}');
+
 end
  
 % parameters (concentration parameters) - Habits
@@ -220,10 +221,10 @@ if ~isfield(MDP,'c')
         MDP.c = MDP.c + MDP.B{j};
     end
 end
-qH    = MDP.c + q0;
-qH    = psi(qH) - ones(Ns,1)*psi(sum(qH));
-sH    = softmax(qH) ;
-rH    = softmax(qH)';
+pH    = MDP.c + q0;
+sH    = spm_norm(pH );
+rH    = spm_norm(pH');
+
  
 % priors over initial hidden states - concentration parameters
 %--------------------------------------------------------------------------
@@ -240,12 +241,12 @@ try
     e = MDP.e + q0;
 catch
     e(1:Np,1) = 8;
-    e(Np + 1) = 4;
+    e(Nh)     = 1;
 end
 if ~OPTIONS.habit
-    e(Np + 1) = q0;
+    e(Nh)     = q0;
 end
-qE    = psi(e) - ones(Np + 1,1)*psi(sum(e));
+qE    = psi(e) - ones(Nh,1)*psi(sum(e));
  
 % prior preferences (log probabilities) : C
 %--------------------------------------------------------------------------
@@ -267,10 +268,8 @@ end
 switch OPTIONS.scheme
     case{'Free Energy','FE'}
         hA = sum(spm_softmax(qA).*qA)';
-        
     case{'KL Control','KL','Expected Utility','EU','RL'}
         hA = 0;
- 
     otherwise
         disp(['unkown option: ' OPTIONS])
 end
@@ -278,8 +277,8 @@ end
     
 % precision defaults
 %--------------------------------------------------------------------------
-try, alpha = MDP.alpha;  catch, alpha  = 4; end
-try, beta  = MDP.beta;   catch, beta   = 2; end
+try, alpha = MDP.alpha;  catch, alpha  = 2; end
+try, beta  = MDP.beta;   catch, beta   = 1; end
  
  
 % initial states and outcomes
@@ -296,9 +295,9 @@ S  = sparse(s,1,1,Ns,T);            % states sampled  (1 in K vector)
 O  = sparse(q,1,1,No,T);            % states observed (1 in K vector)
 U  = zeros(Nu,T - 1);               % action selected (1 in K vector)
 P  = zeros(Nu,T - 1);               % posterior beliefs about control
-x  = zeros(Ns,T,Np + 1) + 1/Ns;     % expectations of hidden states | policy
+x  = zeros(Ns,T,Nh) + 1/Ns;         % expectations of hidden states | policy
 X  = zeros(Ns,T + 1);               % expectations of hidden states
-u  = zeros(Np + 1,T - 1);           % expectations of policy
+u  = zeros(Nh,T - 1);               % expectations of policy
 a  = zeros(1, T - 1);               % action (index)
  
  
@@ -309,7 +308,7 @@ X(:,T + 1) = spm_softmax(hA + C(:,end));
  
 % expected rate parameter
 %--------------------------------------------------------------------------
-qbeta  = beta - u(:,1)'*qE;         % initialise rate parameter
+qbeta  = beta;                      % initialise rate parameter
 W      = zeros(1, T) + alpha/qbeta; % posterior precision
  
 % solve
@@ -317,7 +316,7 @@ W      = zeros(1, T) + alpha/qbeta; % posterior precision
 Ni     = 16;                        % number of VB iterations
 rt     = zeros(1,T);                % reaction times
 xn     = zeros(Ni,Ns,T,T,Np);       % state updates
-un     = zeros(Np + 1,T*Ni);        % policy updates
+un     = zeros(Nh,T*Ni);            % policy updates
 wn     = zeros(T*Ni,1);             % simulated DA responses
 for t  = 1:T
     
@@ -332,11 +331,12 @@ for t  = 1:T
     % retain allowable policies within Ockham's window
     %----------------------------------------------------------------------
     if t > 1
-        p = find([u(1:Np,t - 1)' 1] > 1/16);
+        p = find([u(1:Np,t - 1)' 1] > 1/32);
     else
-        p = 1:(Np + 1);
+        p = 1:(Nh);
     end
     
+    F     = zeros(T,Nh) + 16;
     for k = p
         
         % gradient descent on free energy
@@ -388,26 +388,25 @@ for t  = 1:T
     
     % (negative path integral of) free energy of policies (Q)
     %======================================================================
-    Q     = qE;
+    Q     = zeros(T,Nh);
     for k = p
-        for j = 1:T
-            if j > t
-                Q(k) = Q(k) + x(:,j,k)'*(C(:,j) + hA - log(x(:,j,k)));
-            else
-                Q(k) = Q(k) - F(j,k);
-            end       
+        for j = (t + 1):T
+            Q(j,k) = x(:,j,k)'*(C(:,j) + hA - log(x(:,j,k)));
         end
     end
     
     
     % variational updates - policies and precision
     %======================================================================
+    F     = sum(F,1)';
+    Q     = sum(Q,1)';
     for i = 1:Ni
         
         % policy (u)
         %------------------------------------------------------------------
-        u(p,t) = spm_softmax(W(t)*Q(p));
- 
+        qu = spm_softmax(qE(p) +W(t)*Q(p) - F(p));
+        pu = spm_softmax(qE(p) +W(t)*Q(p));
+        
         % precision (W) with free energy gradients (v = -dF/dw)
         %------------------------------------------------------------------
         if isfield(MDP,'w')
@@ -417,17 +416,17 @@ for t  = 1:T
                 W(t) = MDP.w;
             end
         else
-            v     = qbeta - beta + u(p,t)'*log(u(p,t));
+            v     = qbeta - beta + (qu - pu)'*Q(p);
             qbeta = qbeta - v/2;
             W(t)  = alpha/qbeta;
         end
         
-        
         % simulated dopamine responses (precision as each iteration)
         %------------------------------------------------------------------
+        u(p,t)  = qu;
         n       = (t - 1)*Ni + i;
         wn(n,1) = W(t);
-        un(p,n) = u(p,t);
+        un(p,n) = qu;
         
     end
  
@@ -527,7 +526,7 @@ for t = 1:T
     % mapping from hidden states to hidden states - habit: c
     %----------------------------------------------------------------------
     if isfield(MDP,'c') && t > 1
-        k        = Np + 1;
+        k        = Nh;
         i        = MDP.c > 0;
         dc       = x(:,t,k)*x(:,t - 1,k)';
         MDP.c(i) = MDP.c(i) + dc(i) - (MDP.c(i) - 1)/32;
@@ -547,7 +546,7 @@ end
 if isfield(MDP,'e')
     i         = MDP.e > 0;
     K(1:Np,1) = 8;        % forget all policies (time constant of 8)
-    K(Np + 1) = 16;       % habits became more slowly
+    K(Nh)     = 16;       % habits decay more slowly
     MDP.e(i)  = MDP.e(i) + W(t)*u(i,T) - (MDP.e(i) - 1)./K(i);
 end
  
@@ -593,3 +592,9 @@ if OPTIONS.plot
     end
     spm_MDP_VB_trial(MDP)
 end
+
+
+function A = spm_norm(A)
+% normalisation of a probability transition matrix (columns)
+%--------------------------------------------------------------------------
+A  = A*diag(1./sum(A,1));

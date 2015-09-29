@@ -23,7 +23,7 @@ function spm_MDP_VB_trial(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 6539 2015-09-04 08:47:25Z karl $
+% $Id: spm_MDP_VB_trial.m 6564 2015-09-29 08:10:22Z karl $
  
 % graphics
 %==========================================================================
@@ -79,7 +79,7 @@ ylabel('outcome','FontSize',12)
 % expected action
 %--------------------------------------------------------------------------
 subplot(3,2,6), hold on
-bar(4*MDP.dn,'c'), plot(MDP.wn,'k'), hold off
+bar(8*MDP.dn,'c'), plot(MDP.wn,'k'), hold off
 title('Expected precision (dopamine)','FontSize',14)
 xlabel('updates','FontSize',12)
 ylabel('precision','FontSize',12)

@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6539 2015-09-04 08:47:25Z karl $
+% $Id: DEM_demo_MDP_habits.m 6564 2015-09-29 08:10:22Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -52,7 +52,7 @@ function MDP = DEM_demo_MDP_habits
 % hidden states [centre, right, left, cue] x [reward, loss] and the ensuing
 % outcomes
 %--------------------------------------------------------------------------
-a      = .95;
+a      = .98;
 b      = 1 - a;
 A      = [1 1 0 0 0 0 0 0;    % ambiguous starting position (centre)
           0 0 a b 0 0 0 0;    % left arm selected and rewarded
@@ -87,7 +87,7 @@ C  = [-1 -1 c -c -c c 0 0]';
  
 % now specify prior beliefs about initial state, in terms of counts
 %--------------------------------------------------------------------------
-d  = kron([1 0 0 0],[1 1])';
+d  = kron([1 0 0 0],[8 8])';
  
 % allowable policies (of depth T).  These are just sequences of actions
 %--------------------------------------------------------------------------
@@ -120,14 +120,13 @@ MDP(24).u   = 2;              % go straight to reward (US)
  
 % Solve - an example game: a run of reds then an oddball
 %==========================================================================
-OPTIONS.habit = 0;
-MDP  = spm_MDP_VB(MDP,OPTIONS);
+MDP  = spm_MDP_VB(MDP);
  
 % illustrate behavioural responses – single trial
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1a'); clf
 spm_MDP_VB_trial(MDP(1));
- 
+
 % illustrate behavioural responses and neuronal correlates
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1b'); clf
@@ -166,79 +165,63 @@ legend({'oddball','standard','MMN'}), grid on, axis square
 spm_figure('GetWin','Figure 6'); clf
 spm_MDP_VB_LFP(MDP([23,24]),[3 4;2 2]);
 subplot(4,1,1), title('Transfer of dopamine responses','FontSize',16)
- 
- 
+
  
 % illustrate reversal learning - after trial 32
 %==========================================================================
-clear MDP,   c = 4;
- 
+clear MDP
 [MDP(1:64)]    = deal(mdp);
 [MDP(32:64).s] = deal(2);
-[MDP.C]        = deal([-1 -1 c -c -c c 0 0]');
- 
  
 % just learn the context
 %--------------------------------------------------------------------------
-OPTIONS.habit  = 0;
 spm_figure('GetWin','Figure 7'); clf
-spm_MDP_VB_game(spm_MDP_VB(MDP,OPTIONS));
- 
- 
-% learn both the context and a habit
-%--------------------------------------------------------------------------
-OPTIONS.habit  = 1;
-spm_figure('GetWin','Figure 8'); clf
-spm_MDP_VB_game(spm_MDP_VB(MDP,OPTIONS));
- 
+spm_MDP_VB_game(spm_MDP_VB(MDP));
+
  
 % the effect of prior exposure on reversal learning
 %--------------------------------------------------------------------------
-clear MDP,   c = 3; 
+clear MDP
 [MDP(1:16)]    = deal(mdp);
 [MDP(4:16).s]  = deal(2);
-[MDP.C]        = deal([-1 -1 c -c -c c 0 0]');
-OPTIONS.habit  = 0;
 OPTIONS.plot   = 0;
  
-d     = 2:4:32;
+d     = 2:4:16;
 for i = 1:length(d)
     MDP(1).d   = kron([1 0 0 0],[d(i) 1])' + 1;
     MDP        = spm_MDP_VB(MDP,OPTIONS);
     Q          = spm_MDP_VB_game(MDP);
-    ext(i)     = find([Q.R(9,4:end) 1],1);
+    ext(i)     = find([Q.O(4,4:end) 1],1);
 end
  
-spm_figure('GetWin','Figure 9'); clf
+spm_figure('GetWin','Figure 8'); clf
 subplot(2,1,1); bar(d,ext,'c'), axis square
 xlabel('Previous exposures'), ylabel('Trials until reversal')
 title('Reversal learning','FontSize',16)
+
  
- 
- 
-% illustrate devaluation
+% illustrate devaluation: enable habit learning from now on
 %==========================================================================
- 
+OPTIONS.habit   = 1;
+mdp.e           = e;
+
 % devalue (i.e. switch) preferences after habitisation (trial 32)
 %--------------------------------------------------------------------------
-clear MDP; OPTIONS.habit = 1; c = 2;
+clear MDP; 
  
 [MDP(1:48)]     = deal(mdp);
 [MDP.C]         = deal([-1 -1 c -c -c  c 0 0]');
 [MDP(32:end).C] = deal([-1 -1 -c c  c -c 0 0]');
-MDP(1).e        = e;
-MDP(1).d        = kron([1 0 0 0],[8 8])';
+
  
-spm_figure('GetWin','Figure 10'); clf
+spm_figure('GetWin','Figure 9'); clf
 spm_MDP_VB_game(spm_MDP_VB(MDP,OPTIONS));
  
 % repeat but now devalue before habit formation (at trial 8)
 %--------------------------------------------------------------------------
 [MDP(8:end).C]  = deal([-1 -1 -c c  c -c 0 0]');
-MDP(1).e        = e;
-MDP(1).d        = kron([1 0 0 0],[8 8])';
  
-spm_figure('GetWin','Figure 11'); clf
+spm_figure('GetWin','Figure 10'); clf
 spm_MDP_VB_game(spm_MDP_VB(MDP,OPTIONS));
  
  
@@ -248,15 +231,15 @@ spm_MDP_VB_game(spm_MDP_VB(MDP,OPTIONS));
  
 % true initial states
 %--------------------------------------------------------------------------
-clear MDP; OPTIONS.habit = 1;
+clear MDP;
 i            = rand(1,32) > 1/2;
 [MDP(1:32)]  = deal(mdp);
 [MDP(i).s]   = deal(2);
-MDP(1).e     = e;
+
  
 % habitual (non-sequential) policy
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 12a'); clf
+spm_figure('GetWin','Figure 11'); clf
 MDP = spm_MDP_VB(MDP,OPTIONS); spm_MDP_VB_game(MDP);
 h   = MDP(end).c;
 h   = h*diag(1./sum(h));
@@ -293,7 +276,7 @@ A      = [1 0 0 0 0 0 0 0;
  
 % habitual (non-sequential) policy
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 12b'); clf
+spm_figure('GetWin','Figure 12'); clf
 MDP = spm_MDP_VB(MDP(1:32),OPTIONS); spm_MDP_VB_game(MDP);
 h   = MDP(end).c;
 h   = h*diag(1./sum(h));
