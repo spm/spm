@@ -4,7 +4,7 @@ function fmri = spm_cfg_dcm_fmri
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_dcm_fmri.m 6004 2014-05-21 14:24:14Z guillaume $
+% $Id: spm_cfg_dcm_fmri.m 6565 2015-09-30 10:42:14Z peter $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -55,7 +55,10 @@ session.num     = [1 1];
 val         = cfg_entry;
 val.tag     = 'val';
 val.name    = 'Values';
-val.help    = {'Inputs to include for that condition.'};
+val.help    = {'Inputs to include for one condition. Enter ''1'' ' ...
+               'to include this condition (with no parameteric regressor). '...
+               'Entering [1 0 1] would include this condition and '...
+               'its second parametric regressor.'};
 val.strtype = 'e';
 val.num     = [1 Inf];
 
@@ -65,7 +68,10 @@ val.num     = [1 Inf];
 inp         = cfg_repeat;
 inp.tag     = 'inputs';
 inp.name    = 'Inputs';
-inp.help    = {'Inputs to include and their parametric modulations (PMs).'};
+inp.help    = {'Inputs to include and their parametric modulations (PMs). '...
+               'You should click ''New: Values'' for each condition in '...
+               'your SPM (i.e. SPM.U), up to the last condition you wish  '...
+               'to include.'};
 inp.values  = { val };
 inp.num     = [1 Inf];
 
