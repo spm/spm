@@ -32,7 +32,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 6564 2015-09-29 08:10:22Z karl $
+% $Id: spm_MDP_VB_game.m 6566 2015-10-08 10:12:19Z karl $
  
 % graphics
 %==========================================================================
@@ -81,11 +81,15 @@ end
 image(64*(1 - u)),  hold on
 for i = 1:max(s)
     j = find(s == i);
-    plot(t(j),j - j + 1,col{rem(i - 1,6)+ 1},'MarkerSize',MarkerSize), hold on
+    plot(t(j),j - j + 1,col{rem(i - 1,6)+ 1},'MarkerSize',MarkerSize)
 end
-plot(Np*(1 - u(end,:)),'r'), hold off
+plot(Np*(1 - u(end,:)),'r')
+try
+    E = spm_softmax(spm_cat({MDP.e}));
+    plot(Np*(1 - E(end,:)),'r:')
+end
 title('Initial state and policy selection','FontSize',16)
-xlabel('Trial','FontSize',12),ylabel('Policy','FontSize',12)
+xlabel('Trial','FontSize',12),ylabel('Policy','FontSize',12), hold off
  
 % Performance
 %--------------------------------------------------------------------------
@@ -111,14 +115,15 @@ ylabel('Response','FontSize',12), spm_axis tight
  
 % Precision (dopamine)
 %--------------------------------------------------------------------------
-subplot(6,1,4), bar(spm_vec(w),'k')
+subplot(6,1,4)
+if Nt > 8, plot(spm_vec(w),'k'), else, bar(spm_vec(w),'k'), end
 title('Precision (dopamine)','FontSize',16)
 ylabel('Precision','FontSize',12), spm_axis tight
  
 % learning - D
 %--------------------------------------------------------------------------
 subplot(6,1,5), image(64*(1 - d))
-title('Learning (D and H)','FontSize',16)
+title('Learning (C and D)','FontSize',16)
 ylabel('Hidden state','FontSize',12)
  
 % Habit learning

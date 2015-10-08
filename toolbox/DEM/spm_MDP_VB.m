@@ -104,7 +104,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 6564 2015-09-29 08:10:22Z karl $
+% $Id: spm_MDP_VB.m 6566 2015-10-08 10:12:19Z karl $
  
  
 % deal with a sequence of trials
@@ -203,12 +203,11 @@ for i = 1:Nu
     % parameters (concentration parameters): B
     %----------------------------------------------------------------------
     if isfield(MDP,'b')
-        pB{i} = MDP.b{i} + q0;
-        sB{i} = spm_norm(pB{i} );
-        rB{i} = spm_norm(pB{i}');
+        sB{i} = spm_norm(MDP.b{i}  + q0);
+        rB{i} = spm_norm(MDP.b{i}' + q0);
     else
-        sB{i} = spm_norm(B{i} );
-        rB{i} = spm_norm(B{i}');
+        sB{i} = spm_norm(MDP.B{i}  + p0);
+        rB{i} = spm_norm(MDP.B{i}' + p0);
     end
 
 end
@@ -221,9 +220,8 @@ if ~isfield(MDP,'c')
         MDP.c = MDP.c + MDP.B{j};
     end
 end
-pH    = MDP.c + q0;
-sH    = spm_norm(pH );
-rH    = spm_norm(pH');
+sH    = spm_norm(MDP.c );
+rH    = spm_norm(MDP.c');
 
  
 % priors over initial hidden states - concentration parameters
@@ -240,7 +238,7 @@ qD    = psi(d) - ones(Ns,1)*psi(sum(d));
 try
     e = MDP.e + q0;
 catch
-    e(1:Np,1) = 8;
+    e(1:Np,1) = 4;
     e(Nh)     = 1;
 end
 if ~OPTIONS.habit
@@ -309,7 +307,7 @@ X(:,T + 1) = spm_softmax(hA + C(:,end));
 % expected rate parameter
 %--------------------------------------------------------------------------
 qbeta  = beta;                      % initialise rate parameter
-W      = zeros(1, T) + alpha/qbeta; % posterior precision
+W      = zeros(1,T) + alpha/qbeta;  % posterior precision
  
 % solve
 %==========================================================================
@@ -331,9 +329,9 @@ for t  = 1:T
     % retain allowable policies within Ockham's window
     %----------------------------------------------------------------------
     if t > 1
-        p = find([u(1:Np,t - 1)' 1] > 1/32);
+        p = find([u(1:Np,t - 1)' 1] > 1/256);
     else
-        p = 1:(Nh);
+        p = 1:Nh;
     end
     
     F     = zeros(T,Nh) + 16;
@@ -404,8 +402,8 @@ for t  = 1:T
         
         % policy (u)
         %------------------------------------------------------------------
-        qu = spm_softmax(qE(p) +W(t)*Q(p) - F(p));
-        pu = spm_softmax(qE(p) +W(t)*Q(p));
+        qu = spm_softmax(qE(p) + W(t)*Q(p) - F(p));
+        pu = spm_softmax(qE(p) + W(t)*Q(p));
         
         % precision (W) with free energy gradients (v = -dF/dw)
         %------------------------------------------------------------------
@@ -529,7 +527,7 @@ for t = 1:T
         k        = Nh;
         i        = MDP.c > 0;
         dc       = x(:,t,k)*x(:,t - 1,k)';
-        MDP.c(i) = MDP.c(i) + dc(i) - (MDP.c(i) - 1)/32;
+        MDP.c(i) = MDP.c(i) + dc(i);
     end
     
 end
@@ -538,21 +536,18 @@ end
 %--------------------------------------------------------------------------
 if isfield(MDP,'d')
     i        = MDP.d > 0;
-    MDP.d(i) = MDP.d(i) + X(i,1) - (MDP.d(i) - 1)/8;
+    MDP.d(i) = MDP.d(i) + X(i,1) - (MDP.d(i) - 1)/16;
 end
  
 % policies: e
 %--------------------------------------------------------------------------
 if isfield(MDP,'e')
-    i         = MDP.e > 0;
-    K(1:Np,1) = 8;        % forget all policies (time constant of 8)
-    K(Nh)     = 16;       % habits decay more slowly
-    MDP.e(i)  = MDP.e(i) + W(t)*u(i,T) - (MDP.e(i) - 1)./K(i);
+    MDP.e = MDP.e + W(t)*u(:,T);
 end
  
 % simulated dopamine responses
 %--------------------------------------------------------------------------
-dn    = gradient(wn) + wn/64;
+dn    = gradient(wn) + wn/32;
  
 % Bayesian model averaging of expected hidden states over policies
 %--------------------------------------------------------------------------

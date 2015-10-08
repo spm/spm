@@ -37,11 +37,11 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6564 2015-09-29 08:10:22Z karl $
+% $Id: DEM_demo_MDP_habits.m 6566 2015-10-08 10:12:19Z karl $
  
 % set up and preliminaries
 %==========================================================================
-% rng('default')
+rng('default')
  
  
   
@@ -96,7 +96,8 @@ V  = [1  1  1  1  2  3  4  4  4  4
  
 % prior beliefs about policies
 %--------------------------------------------------------------------------
-e  = [8 + zeros(size(V,2),1); 1];
+Np = size(V,2);
+e  = [4 + zeros(Np,1); 1];
  
  
 % MDP Structure - this will be used to generate arrays for multiple trials
@@ -204,22 +205,22 @@ title('Reversal learning','FontSize',16)
 %==========================================================================
 OPTIONS.habit   = 1;
 mdp.e           = e;
+N               = 64;
 
 % devalue (i.e. switch) preferences after habitisation (trial 32)
 %--------------------------------------------------------------------------
 clear MDP; 
  
-[MDP(1:48)]     = deal(mdp);
+[MDP(1:N)]      = deal(mdp);
 [MDP.C]         = deal([-1 -1 c -c -c  c 0 0]');
-[MDP(32:end).C] = deal([-1 -1 -c c  c -c 0 0]');
-
+[MDP(48:end).C] = deal([-1 -1 -c c  c -c 0 0]');
  
 spm_figure('GetWin','Figure 9'); clf
 spm_MDP_VB_game(spm_MDP_VB(MDP,OPTIONS));
  
 % repeat but now devalue before habit formation (at trial 8)
 %--------------------------------------------------------------------------
-[MDP(8:end).C]  = deal([-1 -1 -c c  c -c 0 0]');
+[MDP(16:end).C]  = deal([-1 -1 -c c  c -c 0 0]');
  
 spm_figure('GetWin','Figure 10'); clf
 spm_MDP_VB_game(spm_MDP_VB(MDP,OPTIONS));
@@ -232,8 +233,8 @@ spm_MDP_VB_game(spm_MDP_VB(MDP,OPTIONS));
 % true initial states
 %--------------------------------------------------------------------------
 clear MDP;
-i            = rand(1,32) > 1/2;
-[MDP(1:32)]  = deal(mdp);
+i            = rand(1,N) > 1/2;
+[MDP(1:N)]   = deal(mdp);
 [MDP(i).s]   = deal(2);
 
  
@@ -277,7 +278,7 @@ A      = [1 0 0 0 0 0 0 0;
 % habitual (non-sequential) policy
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 12'); clf
-MDP = spm_MDP_VB(MDP(1:32),OPTIONS); spm_MDP_VB_game(MDP);
+MDP = spm_MDP_VB(MDP,OPTIONS); spm_MDP_VB_game(MDP);
 h   = MDP(end).c;
 h   = h*diag(1./sum(h));
  

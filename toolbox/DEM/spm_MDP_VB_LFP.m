@@ -9,7 +9,7 @@ function u = spm_MDP_VB_LFP(MDP,UNITS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 6539 2015-09-04 08:47:25Z karl $
+% $Id: spm_MDP_VB_LFP.m 6566 2015-10-08 10:12:19Z karl $
  
  
 % deal with a sequence of trials
@@ -68,13 +68,13 @@ t   = (1:(Nb*NT*Nt))*dt;                 % time (seconds)
 Hz  = 4:32;                              % frequency range
 n   = 1/(4*dt);                          % window length
 w   = Hz*(dt*n);                         % cycles per window
-K   = exp(-(Hz - 4).^2/4);               % filter (theta)
  
 % simulated local field potential
 %--------------------------------------------------------------------------
 LFP = spm_cat(x);
+i   = UNITS(1,end) + (UNITS(2,end) - 1)*Nx;
  
-if Nt == 1, subplot(2,2,1), else subplot(4,1,1),end
+if Nt == 1, subplot(3,2,1), else subplot(4,1,1),end
 imagesc(t,1:(Nx*NT),LFP'),title('Unit responses','FontSize',16)
 xlabel('time (seconds)','FontSize',12), ylabel('unit','FontSize',12)
 grid on, set(gca,'XTick',(1:(NT*Nt))*Nb*dt)
@@ -86,21 +86,23 @@ if Nt == 1,    axis square,              end
 %--------------------------------------------------------------------------
 wft = spm_wft(LFP,w,n);
 csd = sum(abs(wft),3);
-LFP = spm_iwft(  wft(:,:,1),w,n);
-lfp = spm_iwft(diag(K)*wft(:,:,1),w,n);
-LFP = 4*LFP/std(LFP) + 16;
+lfp = LFP(:,i);
+phi = spm_iwft(wft(1,:,i),w(1),n);
 lfp = 4*lfp/std(lfp) + 16;
+phi = 4*phi/std(phi) + 16;
  
-if Nt == 1, subplot(2,2,3), else subplot(4,1,2),end
+if Nt == 1, subplot(3,2,3), else subplot(4,1,2),end
 imagesc(t,Hz,csd), axis xy, hold on
-plot(t,lfp,'w',t,LFP,'w:'), hold off
-title('Time-frequency (and phase) response','FontSize',16)
+plot(t,lfp,'w:',t,phi,'w'), hold off
+grid on, set(gca,'XTick',(1:(NT*Nt))*Nb*dt)
+
+title('Time-frequency response','FontSize',16)
 xlabel('time (seconds)','FontSize',12), ylabel('frequency','FontSize',12)
 if Nt == 1, axis square, end
  
 % local field potentials
 %==========================================================================
-if Nt == 1, subplot(2,2,2), else subplot(4,1,3),end
+if Nt == 1, subplot(3,2,2), else subplot(4,1,3),end
 plot(t,spm_cat(u)),     hold on, spm_axis tight, a = axis;
 plot(t,spm_cat(x),':'), hold off
 grid on, set(gca,'XTick',(1:(NT*Nt))*Nb*dt), axis(a)
@@ -112,11 +114,23 @@ title('Local field potentials','FontSize',16)
 xlabel('time (seconds)','FontSize',12)
 ylabel('Response','FontSize',12)
 if Nt == 1, axis square, end
- 
+
+% firing rates
+%==========================================================================
+if Nt == 1, subplot(3,2,4)
+    plot(t,cumsum(spm_cat(u)) + 1/Nx),     hold on, spm_axis tight, a = axis;
+    plot(t,cumsum(spm_cat(x)) + 1/Nx,':'), hold off
+    grid on, set(gca,'XTick',(1:(NT*Nt))*Nb*dt), axis(a)
+    title('Firing rates','FontSize',16)
+    xlabel('time (seconds)','FontSize',12)
+    ylabel('Response','FontSize',12)
+    axis square
+end
+
 % simulated dopamine responses
 %==========================================================================
-if Nt == 1, subplot(2,2,4), else subplot(4,1,4),end
-bar(spm_vec(dn),1,'k'), title('phasic dopamine responses','FontSize',16)
+if Nt == 1, subplot(3,1,3), else subplot(4,1,4),end
+bar(spm_vec(dn),1,'k'), title('Phasic dopamine responses','FontSize',16)
 xlabel('time (updates)','FontSize',12)
 ylabel('change in precision','FontSize',12), spm_axis tight
 if Nt == 1, axis square, end
