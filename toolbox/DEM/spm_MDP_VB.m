@@ -104,7 +104,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 6566 2015-10-08 10:12:19Z karl $
+% $Id: spm_MDP_VB.m 6567 2015-10-12 09:29:04Z karl $
  
  
 % deal with a sequence of trials
@@ -167,7 +167,7 @@ Ns  = size(MDP.B{1},1);             % number of hidden states
 Nu  = size(MDP.B,2);                % number of hidden controls
 V   = MDP.V;                        % allowable policies (T - 1,Np)
 p0  = exp(-8);                      % smallest probability
-q0  = 1/16;                         % smallest probability
+q0  = 1/256;                        % smallest probability
 Nh  = Np + 1;                       % index of habit
  
 % parameters of generative model and policies
@@ -214,11 +214,12 @@ end
  
 % parameters (concentration parameters) - Habits
 %--------------------------------------------------------------------------
+c = 0;
+for j = 1:Nu
+    c = c + MDP.B{j};
+end
 if ~isfield(MDP,'c')
-    MDP.c = 0;
-    for j = 1:Nu
-        MDP.c = MDP.c + MDP.B{j};
-    end
+    MDP.c = c;
 end
 sH    = spm_norm(MDP.c );
 rH    = spm_norm(MDP.c');
@@ -241,7 +242,7 @@ catch
     e(1:Np,1) = 4;
     e(Nh)     = 1;
 end
-if ~OPTIONS.habit
+if ~OPTIONS.habit || (sum(MDP.c(:)) - sum(c(:))) < 8;
     e(Nh)     = q0;
 end
 qE    = psi(e) - ones(Nh,1)*psi(sum(e));
@@ -275,8 +276,8 @@ end
     
 % precision defaults
 %--------------------------------------------------------------------------
-try, alpha = MDP.alpha;  catch, alpha  = 2; end
-try, beta  = MDP.beta;   catch, beta   = 1; end
+try, alpha = MDP.alpha;  catch, alpha = 1;   end
+try, beta  = MDP.beta;   catch, beta  = 1/2; end
  
  
 % initial states and outcomes
@@ -292,8 +293,8 @@ o  = sparse(1,1,q,1,T);             % observations    (index)
 S  = sparse(s,1,1,Ns,T);            % states sampled  (1 in K vector)
 O  = sparse(q,1,1,No,T);            % states observed (1 in K vector)
 U  = zeros(Nu,T - 1);               % action selected (1 in K vector)
-P  = zeros(Nu,T - 1);               % posterior beliefs about control
-x  = zeros(Ns,T,Nh) + 1/Ns;         % expectations of hidden states | policy
+P  = zeros(Nu,T - 1) - 16;          % posterior beliefs about control
+x  = zeros(Ns,T,Nh)  + 1/Ns;        % expectations of hidden states | policy
 X  = zeros(Ns,T + 1);               % expectations of hidden states
 u  = zeros(Nh,T - 1);               % expectations of policy
 a  = zeros(1, T - 1);               % action (index)
@@ -326,19 +327,20 @@ for t  = 1:T
     % Variational updates (hidden states) under sequential policies
     %======================================================================
     
-    % retain allowable policies within Ockham's window
+    % retain allowable policies within Ockham's window (p)
     %----------------------------------------------------------------------
     if t > 1
-        p = find([u(1:Np,t - 1)' 1] > 1/256);
+        p = ismember(V(t - 1,:),a(t - 1));
+        p = spm_softmax(log(u(1:Np,t - 1)) + p'*16);
+        p = find(p' > 1/32);
+        p = [p Nh];
     else
         p = 1:Nh;
     end
     
-    F     = zeros(T,Nh) + 16;
+    % gradient descent on free energy
+    %----------------------------------------------------------------------
     for k = p
-        
-        % gradient descent on free energy
-        %------------------------------------------------------------------
         for i = 1:Ni
             for j = 1:T
                 
@@ -386,9 +388,8 @@ for t  = 1:T
     
     % (negative path integral of) free energy of policies (Q)
     %======================================================================
-    Q     = zeros(T,Nh);
     for k = p
-        for j = (t + 1):T
+        for j = 1:T
             Q(j,k) = x(:,j,k)'*(C(:,j) + hA - log(x(:,j,k)));
         end
     end
@@ -444,10 +445,16 @@ for t  = 1:T
     %======================================================================
     if t < T
     
-        % posterior expectations about action
+        % posterior expectations about (remaining) actions (q)
         %==================================================================
+        if t > 1
+            p = ismember(V(t - 1,:),a(t - 1));
+        else
+            p = 1:Np;
+        end
+        q     = unique(V(t,p));
         v     = log(A*X(:,t + 1));
-        for j = 1:Nu
+        for j = q
             qo     = A*B{j}*X(:,t);
             P(j,t) = (v - log(qo))'*qo;
         end
@@ -547,7 +554,7 @@ end
  
 % simulated dopamine responses
 %--------------------------------------------------------------------------
-dn    = gradient(wn) + wn/32;
+dn    = gradient(wn) + wn/64;
  
 % Bayesian model averaging of expected hidden states over policies
 %--------------------------------------------------------------------------

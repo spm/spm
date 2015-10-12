@@ -37,13 +37,11 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6566 2015-10-08 10:12:19Z karl $
+% $Id: DEM_demo_MDP_habits.m 6567 2015-10-12 09:29:04Z karl $
  
 % set up and preliminaries
 %==========================================================================
 rng('default')
- 
- 
   
 % outcome probabilities: A
 %--------------------------------------------------------------------------
@@ -137,7 +135,13 @@ spm_MDP_VB_game(MDP);
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2'); clf
 spm_MDP_VB_LFP(MDP(1),[4 6;3 3]);
- 
+
+% place cells
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 2a'); clf
+subplot(2,2,1),spm_MDP_VB_place_cell(MDP(1:6),[3 6;3 3]);
+subplot(2,2,2),spm_MDP_VB_place_cell(MDP(1:6),[7 8;2 2]);
+
 % illustrate phase-amplitude (theta-gamma) coupling
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
@@ -152,10 +156,11 @@ subplot(4,1,1), title('Violation response (P300)','FontSize',16)
 % illustrate oddball responses (MMN) - CS
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 5'); clf
-u = spm_MDP_VB_LFP(MDP([2,11]),[1 2;1 1]);
+spm_MDP_VB_LFP(MDP([2,11]),[1 2;1 1]);
 subplot(4,1,1), title('Repetition suppression','FontSize',16)
  
 spm_figure('GetWin','Figure 5a');clf
+u = spm_MDP_VB_LFP(MDP([2,11]),[1 2;1 1]);
 t = (1:16)*16 + 80;
 subplot(2,1,1),plot(t,u{1}{2,1},'b-.',t,u{2}{2,1},'b:',t,u{2}{2,1} - u{1}{2,1})
 xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',16)
@@ -299,3 +304,32 @@ xlabel('Hidden state'), xlabel('Hidden state')
 title('Dynamic programming','FontSize',16)
  
 return
+
+function spm_MDP_VB_place_cell(MDP,UNITS)
+
+% place cell plotting subroutine
+%--------------------------------------------------------------------------
+col = {'r','g','b','m','c'};
+for t = 1:length(MDP)
+    for j = 1:size(UNITS,2)
+        
+        u     = spm_MDP_VB_LFP(MDP(t),UNITS(:,j));
+        qu    = cumsum(spm_cat(u)) + 1/8;
+        qe    = randn(2,size(qu,1))/4;
+        L     = [0 0 -1 -1 1 1  0  0;
+            0 0  1  1 1 1 -1 -1];
+        for i = 1:size(qu,1)
+            X(:,i) = L(:,find(MDP(t).S(:,ceil(i/16)))) + qe(:,i);
+        end
+        X     = spm_conv(X,0,3);
+        plot(X(1,:),X(2,:),'r:'), hold on
+        for i = 1:size(qu,1)
+            if qu(i) > .8
+                plot(X(1,i),X(2,i),'.','MarkerSize',16,'Color',col{j})
+            end
+        end
+        
+    end
+end
+axis([-2 2 -2 2]), axis square, hold off
+title('Place field responses','fontsize',16)

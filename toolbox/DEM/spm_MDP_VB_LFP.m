@@ -9,7 +9,7 @@ function u = spm_MDP_VB_LFP(MDP,UNITS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 6566 2015-10-08 10:12:19Z karl $
+% $Id: spm_MDP_VB_LFP.m 6567 2015-10-12 09:29:04Z karl $
  
  
 % deal with a sequence of trials
@@ -60,6 +60,8 @@ for i = 1:Nt
     %----------------------------------------------------------------------
     dn(:,i) = MDP(i).dn;
 end
+
+if nargout, return, end
  
 % phase amplitude coupling
 %==========================================================================
@@ -117,9 +119,11 @@ if Nt == 1, axis square, end
 
 % firing rates
 %==========================================================================
+qu   = cumsum(spm_cat(u)) + 1/Nx;
+qx   = cumsum(spm_cat(x)) + 1/Nx;
 if Nt == 1, subplot(3,2,4)
-    plot(t,cumsum(spm_cat(u)) + 1/Nx),     hold on, spm_axis tight, a = axis;
-    plot(t,cumsum(spm_cat(x)) + 1/Nx,':'), hold off
+    plot(t,qu),     hold on, spm_axis tight, a = axis;
+    plot(t,qx,':'), hold off
     grid on, set(gca,'XTick',(1:(NT*Nt))*Nb*dt), axis(a)
     title('Firing rates','FontSize',16)
     xlabel('time (seconds)','FontSize',12)
