@@ -19,7 +19,7 @@ function [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6472 2015-06-04 14:04:47Z guillaume $
+% $Id: spm_results_nidm.m 6568 2015-10-13 11:08:34Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -144,7 +144,12 @@ if ~isempty(gz), gzip(files.grandmean); spm_unlink(files.grandmean); files.grand
 %--------------------------------------------------------------------------
 if ~isempty(SPM.xM.VM)
     files.emask = fullfile(outdir,['CustomMask.nii' gz]);
-    img2nii(fullfile(xSPM.swd,SPM.xM.VM.fname), files.emask);
+    if isempty(spm_file(SPM.xM.VM.fname,'path'))
+        Vem = fullfile(xSPM.swd,SPM.xM.VM.fname);
+    else
+        Vem = SPM.xM.VM.fname;
+    end
+    img2nii(Vem, files.emask);
 else
     files.emask = '';
 end
@@ -348,6 +353,8 @@ if ~isempty(SPM.xM.VM)
             'mat',{xSPM.M,SPM.xM.VM.mat}),false)
         id_emask_coordspace = coordspace(p,SPM.xM.VM.mat,SPM.xM.VM.dim',...
             xSPM.units,coordsys);
+    else
+        id_emask_coordspace = id_data_coordspace;
     end
     idMask2 = getid('niiri:mask_id_2',isHumanReadable);
     p.entity(idMask2,{...
