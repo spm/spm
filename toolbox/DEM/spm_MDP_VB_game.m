@@ -32,7 +32,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 6566 2015-10-08 10:12:19Z karl $
+% $Id: spm_MDP_VB_game.m 6570 2015-10-14 17:00:05Z karl $
  
 % graphics
 %==========================================================================
@@ -45,13 +45,17 @@ for i = 1:Nt
             xi{k,j} = MDP(i).xn(:,:,j,k);
         end
     end
+    s(i)   = MDP(i).s(1);
+    o(i)   = MDP(i).o(end);
     x{i,1} = xi;
     u(:,i) = MDP(i).R(:,end);
-    s(:,i) = MDP(i).S(:,1);
-    o(:,i) = MDP(i).O(:,end);
     d(:,i) = MDP(i).d/sum(MDP(i).d);
     w(:,i) = MDP(i).dn;
-    p(i)   = trace(log(MDP(i).A*spm_softmax(MDP(i).C))'*MDP(i).O)/NT;
+    U      = MDP(i).A*spm_softmax(MDP(i).C);
+    p(i)   = 0;
+    for t  = 1:NT
+        p(i) = p(i) + log(U(MDP(i).o(t),t))/NT;
+    end
     q(i)   = sum(MDP(i).rt(2:end));
 end
  
@@ -60,8 +64,8 @@ end
 if nargout
     Q.X  = x;            % expected hidden states
     Q.R  = u;            % final policy expectations
-    Q.S  = s;            % actual hidden states
-    Q.O  = o;            % actual outcomes
+    Q.S  = s;            % inital hidden states
+    Q.O  = o;            % final outcomes
     Q.p  = p;            % performance
     Q.q  = q;            % reaction times
     return
@@ -71,8 +75,8 @@ end
 % Initial states and expected policies (habit in red)
 %--------------------------------------------------------------------------
 col   = {'r.','b.','g.','c.','m.','k.'};
-subplot(6,1,1), 
-[s,t] = find(s);
+t     = 1:Nt;
+subplot(6,1,1)
 if Nt < 64
     MarkerSize = 32;
 else
@@ -95,7 +99,6 @@ xlabel('Trial','FontSize',12),ylabel('Policy','FontSize',12), hold off
 %--------------------------------------------------------------------------
 q     = q - mean(q);
 q     = q/std(q);
-[o,t] = find(o);
 subplot(6,1,2), bar(p,'k'),   hold on
 plot(q,'.c','MarkerSize',16), hold on
 plot(q,':c')
@@ -116,7 +119,13 @@ ylabel('Response','FontSize',12), spm_axis tight
 % Precision (dopamine)
 %--------------------------------------------------------------------------
 subplot(6,1,4)
-if Nt > 8, plot(spm_vec(w),'k'), else, bar(spm_vec(w),'k'), end
+w   = spm_vec(w);
+if Nt > 8
+    fill([1 1:length(w) length(w)],[0; w.*(w > 0); 0],'k'), hold on
+    fill([1 1:length(w) length(w)],[0; w.*(w < 0); 0],'k'), hold off
+else
+    bar(w,'k')
+end
 title('Precision (dopamine)','FontSize',16)
 ylabel('Precision','FontSize',12), spm_axis tight
  

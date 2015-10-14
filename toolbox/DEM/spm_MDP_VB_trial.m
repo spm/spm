@@ -7,23 +7,22 @@ function spm_MDP_VB_trial(MDP)
 %                   N hidden states and time 1,...,T
 % MDP.X           - and Bayesian model averages over policies
 % MDP.R           - conditional expectations over policies
-% MDP.O(O,T)      - a sparse matrix encoding outcomes at time 1,...,T
-% MDP.S(N,T)      - a sparse matrix encoding states at time 1,...,T
-% MDP.U(M,T)      - a sparse matrix encoding action at time 1,...,T
-% MDP.W(1,T)      - posterior expectations of precision
+% MDP.o           - outcomes at time 1,...,T
+% MDP.s           - states at time 1,...,T
+% MDP.u           - action at time 1,...,T
 %
 % MDP.un  = un;   - simulated neuronal encoding of hidden states
 % MDP.xn  = Xn;   - simulated neuronal encoding of policies
 % MDP.wn  = wn;   - simulated neuronal encoding of precision
 % MDP.da  = dn;   - simulated dopamine responses (deconvolved)
-% MDP.rt  = rt;   - simulated dopamine responses (deconvolved)
+% MDP.rt  = rt;   - simulated reaction times
 %
 % please see spm_MDP_VB
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 6564 2015-09-29 08:10:22Z karl $
+% $Id: spm_MDP_VB_trial.m 6570 2015-10-14 17:00:05Z karl $
  
 % graphics
 %==========================================================================
@@ -35,7 +34,7 @@ image(64*(1 - MDP.X)),hold on
 if size(MDP.X,1) > 128
     spm_spy(MDP.X,16,1)
 end
-[s,t] = find(MDP.S); plot(t,s,'.c','MarkerSize',16), hold off
+plot(MDP.s,'.c','MarkerSize',16), hold off
 title('Hidden states (and utility)','FontSize',14)
 xlabel('trial','FontSize',12)
 ylabel('hidden state','FontSize',12)
@@ -43,7 +42,7 @@ ylabel('hidden state','FontSize',12)
 % posterior beliefs about control states
 %--------------------------------------------------------------------------
 subplot(3,2,2), image(64*(1 - MDP.P)), hold on
-[a,t] = find(MDP.U); plot(t,a,'.c','MarkerSize',16), hold off
+plot(MDP.u,'.c','MarkerSize',16), hold off
 title('Inferred and selected action','FontSize',14)
 xlabel('trial','FontSize',12)
 ylabel('action','FontSize',12)
@@ -67,10 +66,11 @@ xlabel('updates','FontSize',12)
 % sample (observation)
 %--------------------------------------------------------------------------
 subplot(3,2,5)
-if size(MDP.O,1) > 128
-    spm_spy(MDP.O,16,1)
+O  = sparse(MDP.o,1:length(MDP.o),1);
+if size(O,1) > 128
+    spm_spy(O,16,1)
 else
-    imagesc(1 - MDP.O)
+    imagesc(1 - O)
 end
 title('Observed states','FontSize',14)
 xlabel('trial','FontSize',12)
@@ -79,7 +79,7 @@ ylabel('outcome','FontSize',12)
 % expected action
 %--------------------------------------------------------------------------
 subplot(3,2,6), hold on
-bar(8*MDP.dn,'c'), plot(MDP.wn,'k'), hold off
+bar(MDP.dn,'c'), plot(MDP.wn,'k'), hold off
 title('Expected precision (dopamine)','FontSize',14)
 xlabel('updates','FontSize',12)
 ylabel('precision','FontSize',12)

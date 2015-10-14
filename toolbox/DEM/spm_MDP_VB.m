@@ -17,13 +17,13 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % MDP.e(P,1)      - concentration parameters for u
 %
 % optional:
-% MDP.s(1 x T)    - vector of true states  - for deterministic solutions
-% MDP.o(1 x T)    - vector of observations - for deterministic solutions
-% MDP.u(1 x T)    - vector of action       - for deterministic solutions
-% MDP.w(1 x T)    - vector of precisions   - for deterministic solutions
+% MDP.s(1,T)      - vector of true states  - for deterministic solutions
+% MDP.o(1,T)      - vector of observations - for deterministic solutions
+% MDP.u(1,T)      - vector of action       - for deterministic solutions
+% MDP.w(1,T)      - vector of precisions   - for deterministic solutions
 %
-% MDP.alpha       - upper bound on precision (Gamma hyperprior – shape [8])
-% MDP.beta        - precision over precision (Gamma hyperprior - rate  [1])
+% MDP.alpha       - upper bound on precision (Gamma hyperprior – shape [1])
+% MDP.beta        - precision over precision (Gamma hyperprior - rate  [1/2])
 %
 % OPTIONS.plot    - switch to suppress graphics: (default: [0])
 % OPTIONS.scheme  - {'Free Energy' | 'KL Control' | 'Expected Utility'};
@@ -37,16 +37,12 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 %                   N hidden states and time 1,...,T
 % MDP.X           - and Bayesian model averages over policies
 % MDP.R           - conditional expectations over policies
-% MDP.O(O,T)      - a sparse matrix encoding outcomes at time 1,...,T
-% MDP.S(N,T)      - a sparse matrix encoding states at time 1,...,T
-% MDP.U(M,T)      - a sparse matrix encoding action at time 1,...,T
-% MDP.W(1,T)      - posterior expectations of precision
 %
-% MDP.un  = un;   - simulated neuronal encoding of hidden states
-% MDP.xn  = Xn;   - simulated neuronal encoding of policies
-% MDP.wn  = wn;   - simulated neuronal encoding of precision
-% MDP.dn  = dn;   - simulated dopamine responses (deconvolved)
-% MDP.rt  = rt;   - simulated dopamine responses (deconvolved)
+% MDP.un          - simulated neuronal encoding of hidden states
+% MDP.xn          - simulated neuronal encoding of policies
+% MDP.wn          - simulated neuronal encoding of precision (tonic)
+% MDP.dn          - simulated dopamine responses (phasic)
+% MDP.rt          - simulated reaction times
 %
 % This routine provides solutions of active inference (minimisation of
 % variational free energy) using a generative model based upon a Markov
@@ -104,7 +100,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 6569 2015-10-14 08:53:24Z karl $
+% $Id: spm_MDP_VB.m 6570 2015-10-14 17:00:05Z karl $
  
  
 % deal with a sequence of trials
@@ -115,6 +111,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 try, OPTIONS.scheme; catch, OPTIONS.scheme = 'Free Energy'; end
 try, OPTIONS.habit;  catch, OPTIONS.habit  = 0;             end
 try, OPTIONS.plot;   catch, OPTIONS.plot   = 0;             end
+try, OPTIONS.fixed;  catch, OPTIONS.fixed  = 0;             end
  
  
 % if there are multiple trials ensure that parameters are updated
@@ -282,17 +279,12 @@ try, beta  = MDP.beta;   catch, beta  = 1/2; end
  
 % initial states and outcomes
 %--------------------------------------------------------------------------
+s  = MDP.s(1);                      % initial state (index)
 try
-    s  = MDP.s(1);                  % initial state   (index)
+    o = MDP.o(1);                   % initial outcome (index)
 catch
-    s  = find(MDP.S(:,1));          % initial state   (index)
+    o = find(rand < cumsum(A(:,s)),1);
 end
-q  = find(rand < cumsum(A(:,s)),1); % initial outcome (index)
- 
-o  = sparse(1,1,q,1,T);             % observations    (index)
-S  = sparse(s,1,1,Ns,T);            % states sampled  (1 in K vector)
-O  = sparse(q,1,1,No,T);            % states observed (1 in K vector)
-U  = zeros(Nu,T - 1);               % action selected (1 in K vector)
 P  = zeros(Nu,T - 1) - 16;          % posterior beliefs about control
 x  = zeros(Ns,T,Nh)  + 1/Ns;        % expectations of hidden states | policy
 X  = zeros(Ns,T + 1);               % expectations of hidden states
@@ -364,7 +356,7 @@ for t  = 1:T
             %--------------------------------------------------------------
             if i > 1
                 dF = F0 - sum(F(:,k));
-                if dF > 1/128, F0 = F0 - dF; else,  break,  end
+                if dF > 1/256, F0 = F0 - dF; else,  break,  end
             else
                 F0 = sum(F(:,k));
             end
@@ -386,7 +378,7 @@ for t  = 1:T
     %======================================================================
     F     = sum(F,1)';
     Q     = sum(Q,1)';
-    p     = p(softmax(-F(p)) > 1/128);
+    p     = p(softmax(-F(p)) > 1/32);
     for i = 1:Ni
         
         % policy (u)
@@ -396,12 +388,8 @@ for t  = 1:T
         
         % precision (W) with free energy gradients (v = -dF/dw)
         %------------------------------------------------------------------
-        if isfield(MDP,'w')
-            try
-                W(t) = MDP.w(t);
-            catch
-                W(t) = MDP.w;
-            end
+        if OPTIONS.fixed
+            W(t)  = alpha/beta;
         else
             v     = qbeta - beta + (qu - pu)'*Q(p);
             qbeta = qbeta - v/2;
@@ -416,7 +404,7 @@ for t  = 1:T
         un(p,n) = qu;
         
     end
- 
+
     
     % Bayesian model averaging of hidden states over policies
     %----------------------------------------------------------------------
@@ -461,11 +449,7 @@ for t  = 1:T
                 error('there are no more allowable policies')
             end
         end
-        
-        % save action
-        %------------------------------------------------------------------
-        U(a(t),t) = 1;
-        
+                
         % next sampled state
         %------------------------------------------------------------------
         try
@@ -484,9 +468,7 @@ for t  = 1:T
         
         % save outcome and state sampled
         %------------------------------------------------------------------
-        W(1,t + 1)        = W(t);
-        O(o(t + 1),t + 1) = 1;
-        S(s(t + 1),t + 1) = 1;
+        W(1,t + 1)   = W(t);
         
     end
  
@@ -500,7 +482,7 @@ for t = 1:T
     %----------------------------------------------------------------------
     if isfield(MDP,'a')
         i        = MDP.a > 0;
-        da       = O(:,t)*X(:,t)';
+        da       = sparse(o(t),1,1,No,1)*X(:,t)';
         MDP.a(i) = MDP.a + da(i);
     end
     
@@ -541,7 +523,7 @@ end
  
 % simulated dopamine responses
 %--------------------------------------------------------------------------
-dn    = gradient(wn) + wn/64;
+dn    = 8*gradient(wn) + wn/8;
  
 % Bayesian model averaging of expected hidden states over policies
 %--------------------------------------------------------------------------
@@ -559,10 +541,10 @@ MDP.P   = P;              % probability of action at time 1,...,T - 1
 MDP.Q   = x;              % conditional expectations over N hidden states
 MDP.X   = X;              % Bayesian model averages
 MDP.R   = u;              % conditional expectations over policies
-MDP.O   = O;              % a sparse matrix, encoding outcomes at 1,...,T
-MDP.S   = S;              % a sparse matrix, encoding the states
-MDP.U   = U;              % a sparse matrix, encoding the action
-MDP.W   = W;              % posterior expectations of precision
+MDP.o   = o;              % outcomes at 1,...,T
+MDP.s   = s;              % states
+MDP.u   = a;              % action
+MDP.w   = W;              % posterior expectations of precision
 MDP.C   = C;              % utility
  
 MDP.un  = un;             % simulated neuronal encoding of hidden states

@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6569 2015-10-14 08:53:24Z karl $
+% $Id: DEM_demo_MDP_habits.m 6570 2015-10-14 17:00:05Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -112,7 +112,7 @@ mdp.s = 1;                    % true initial state
 i           = [1,3];          % change context in a couple of trials
 [MDP(1:24)] = deal(mdp);      % create structure array
 [MDP(i).s]  = deal(2);        % deal context changes
-MDP(12).o   = [1 6 5];        % unexpected outcome
+MDP(12).o   = [1 6 7];        % unexpected outcome
 
  
 % Solve - an example game: a run of reds then an oddball
@@ -136,28 +136,28 @@ spm_MDP_VB_LFP(MDP(1),[4 6;3 3]);
 
 % place cells
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2a'); clf
+spm_figure('GetWin','Figure 3'); clf
 subplot(2,2,1),spm_MDP_VB_place_cell(MDP(1:6),[3 6;3 3]);
 subplot(2,2,2),spm_MDP_VB_place_cell(MDP(1:6),[7 8;2 2]);
 
 % illustrate phase-amplitude (theta-gamma) coupling
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 3'); clf
+spm_figure('GetWin','Figure 4'); clf
 spm_MDP_VB_LFP(MDP(1:8));
  
 % illustrate oddball responses (P300) - US
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 4'); clf
-spm_MDP_VB_LFP(MDP([11,12]),[5 6;3 3]);
+spm_figure('GetWin','Figure 5'); clf
+spm_MDP_VB_LFP(MDP([11,12]),[3 8;3 3]);
 subplot(4,1,1), title('Violation response (P300)','FontSize',16)
  
 % illustrate oddball responses (MMN) - CS
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 5'); clf
+spm_figure('GetWin','Figure 6a'); clf
 spm_MDP_VB_LFP(MDP([2,11]),[1 2;1 1]);
 subplot(4,1,1), title('Repetition suppression and DA transfer','FontSize',16)
  
-spm_figure('GetWin','Figure 5a');clf
+spm_figure('GetWin','Figure 6b');clf
 u = spm_MDP_VB_LFP(MDP([2,11]),[1 2;1 1]);
 t = (1:16)*16 + 80;
 subplot(2,1,1),plot(t,u{1}{2,1},'b-.',t,u{2}{2,1},'b:',t,u{2}{2,1} - u{1}{2,1})
@@ -187,9 +187,9 @@ OPTIONS.plot   = 0;
 d     = 2:4:16;
 for i = 1:length(d)
     MDP(1).d   = kron([1 0 0 0],[d(i) 1])' + 1;
-    MDP        = spm_MDP_VB(MDP,OPTIONS);
-    Q          = spm_MDP_VB_game(MDP);
-    ext(i)     = find([Q.O(4,4:end) 1],1);
+    M          = spm_MDP_VB(MDP,OPTIONS);
+    Q          = spm_MDP_VB_game(M);
+    ext(i)     = find([Q.O(4:end) == 4, 1],1);
 end
  
 spm_figure('GetWin','Figure 8'); clf
@@ -238,8 +238,8 @@ i            = rand(1,N) > 1/2;
 % habitual (non-sequential) policy
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 11'); clf
-MDP = spm_MDP_VB(MDP,OPTIONS); spm_MDP_VB_game(MDP);
-h   = MDP(end).c;
+M   = spm_MDP_VB(MDP,OPTIONS); spm_MDP_VB_game(M);
+h   = M(end).c;
 h   = h*diag(1./sum(h));
  
 subplot(3,3,7); image(64*(1 - h)), axis square
@@ -275,8 +275,8 @@ A      = [1 0 0 0 0 0 0 0;
 % habitual (non-sequential) policy
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 12'); clf
-MDP = spm_MDP_VB(MDP,OPTIONS); spm_MDP_VB_game(MDP);
-h   = MDP(end).c;
+M = spm_MDP_VB(MDP,OPTIONS); spm_MDP_VB_game(M);
+h   = M(end).c;
 h   = h*diag(1./sum(h));
  
 subplot(3,3,7); image(64*(1 - h)), axis square
@@ -311,7 +311,7 @@ for t = 1:length(MDP)
         L     = [0 0 -1 -1 1 1  0  0;
             0 0  1  1 1 1 -1 -1];
         for i = 1:size(qu,1)
-            X(:,i) = L(:,find(MDP(t).S(:,ceil(i/16)))) + qe(:,i);
+            X(:,i) = L(:,MDP(t).s(ceil(i/16))) + qe(:,i);
         end
         X     = spm_conv(X,0,3);
         plot(X(1,:),X(2,:),'r:'), hold on
