@@ -97,7 +97,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 6481 2015-06-16 17:01:47Z karl $
+% $Id: spm_nlsi_GN.m 6569 2015-10-14 08:53:24Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -307,7 +307,6 @@ for k = 1:M.Nmax
     % time
     %----------------------------------------------------------------------
     tStart = tic;
-    revert = false;
     
     % E-Step: prediction f, and gradients; dfdp
     %======================================================================

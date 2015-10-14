@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6567 2015-10-12 09:29:04Z karl $
+% $Id: DEM_demo_MDP_habits.m 6569 2015-10-14 08:53:24Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -112,10 +112,8 @@ mdp.s = 1;                    % true initial state
 i           = [1,3];          % change context in a couple of trials
 [MDP(1:24)] = deal(mdp);      % create structure array
 [MDP(i).s]  = deal(2);        % deal context changes
-MDP(12).s   = [1 7 5];        % unexpected state transition
-MDP(23).u   = 4;              % go to cue (CS)
-MDP(24).u   = 2;              % go straight to reward (US)
- 
+MDP(12).o   = [1 6 5];        % unexpected outcome
+
  
 % Solve - an example game: a run of reds then an oddball
 %==========================================================================
@@ -157,7 +155,7 @@ subplot(4,1,1), title('Violation response (P300)','FontSize',16)
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 5'); clf
 spm_MDP_VB_LFP(MDP([2,11]),[1 2;1 1]);
-subplot(4,1,1), title('Repetition suppression','FontSize',16)
+subplot(4,1,1), title('Repetition suppression and DA transfer','FontSize',16)
  
 spm_figure('GetWin','Figure 5a');clf
 u = spm_MDP_VB_LFP(MDP([2,11]),[1 2;1 1]);
@@ -166,13 +164,7 @@ subplot(2,1,1),plot(t,u{1}{2,1},'b-.',t,u{2}{2,1},'b:',t,u{2}{2,1} - u{1}{2,1})
 xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',16)
 legend({'oddball','standard','MMN'}), grid on, axis square
  
-% illustrate transfer of dopamine responses
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 6'); clf
-spm_MDP_VB_LFP(MDP([23,24]),[3 4;2 2]);
-subplot(4,1,1), title('Transfer of dopamine responses','FontSize',16)
 
- 
 % illustrate reversal learning - after trial 32
 %==========================================================================
 clear MDP

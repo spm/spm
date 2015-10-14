@@ -104,7 +104,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 6567 2015-10-12 09:29:04Z karl $
+% $Id: spm_MDP_VB.m 6569 2015-10-14 08:53:24Z karl $
  
  
 % deal with a sequence of trials
@@ -167,7 +167,7 @@ Ns  = size(MDP.B{1},1);             % number of hidden states
 Nu  = size(MDP.B,2);                % number of hidden controls
 V   = MDP.V;                        % allowable policies (T - 1,Np)
 p0  = exp(-8);                      % smallest probability
-q0  = 1/256;                        % smallest probability
+q0  = 1/16;                         % smallest probability
 Nh  = Np + 1;                       % index of habit
  
 % parameters of generative model and policies
@@ -317,6 +317,7 @@ rt     = zeros(1,T);                % reaction times
 xn     = zeros(Ni,Ns,T,T,Np);       % state updates
 un     = zeros(Nh,T*Ni);            % policy updates
 wn     = zeros(T*Ni,1);             % simulated DA responses
+p      = 1:Nh;                      % allowable policies
 for t  = 1:T
     
     % processing time and reset
@@ -326,20 +327,6 @@ for t  = 1:T
     
     % Variational updates (hidden states) under sequential policies
     %======================================================================
-    
-    % retain allowable policies within Ockham's window (p)
-    %----------------------------------------------------------------------
-    if t > 1
-        p = ismember(V(t - 1,:),a(t - 1));
-        p = spm_softmax(log(u(1:Np,t - 1)) + p'*16);
-        p = find(p' > 1/32);
-        p = [p Nh];
-    else
-        p = 1:Nh;
-    end
-    
-    % gradient descent on free energy
-    %----------------------------------------------------------------------
     for k = p
         for i = 1:Ni
             for j = 1:T
@@ -399,6 +386,7 @@ for t  = 1:T
     %======================================================================
     F     = sum(F,1)';
     Q     = sum(Q,1)';
+    p     = p(softmax(-F(p)) > 1/128);
     for i = 1:Ni
         
         % policy (u)
@@ -447,12 +435,11 @@ for t  = 1:T
     
         % posterior expectations about (remaining) actions (q)
         %==================================================================
-        if t > 1
-            p = ismember(V(t - 1,:),a(t - 1));
+        if numel(p) > 1
+            q = unique(V(t,p(1:end - 1)));
         else
-            p = 1:Np;
+            q = 1:Nu;
         end
-        q     = unique(V(t,p));
         v     = log(A*X(:,t + 1));
         for j = q
             qo     = A*B{j}*X(:,t);
