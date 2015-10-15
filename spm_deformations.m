@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 6527 2015-08-20 17:40:41Z guillaume $
+% $Id: spm_deformations.m 6577 2015-10-15 15:22:11Z volkmar $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -436,11 +436,16 @@ for m=1:numel(PI)
     end
 
     if sum(job.fwhm.^2)==0
-        NO.dat.fname = fullfile(wd,['w' nam ext]);
-        NO.descrip   = sprintf('Warped');
+        newprefix  = spm_get_defaults('normalise.write.prefix');
+        NO.descrip = sprintf('Warped');
     else
-        NO.dat.fname = fullfile(wd,['sw' nam ext]);
-        NO.descrip   = sprintf('Smoothed (%gx%gx%g subopt) warped',job.fwhm);
+        newprefix  = [spm_get_defaults('smooth.prefix') spm_get_defaults('normalise.write.prefix')];
+        NO.descrip = sprintf('Smoothed (%gx%gx%g subopt) warped',job.fwhm);
+    end
+    if isfield(job,'prefix') && ~isempty(job.prefix)
+        NO.dat.fname = fullfile(wd,[job.prefix nam ext]);
+    else
+        NO.dat.fname = fullfile(wd,[newprefix nam ext]);
     end
     dim            = size(Def);
     dim            = dim(1:3);
@@ -573,20 +578,25 @@ for m=1:numel(PI)
         NO.dat.scl_inter = 0.0;
         NO.dat.dtype     = 'float32-le';
         if sum(job.fwhm.^2)==0
-            NO.dat.fname   = fullfile(wd,['mw' nam ext]);
-            NO.descrip     = sprintf('Warped & Jac scaled');
+            newprefix  = [spm_get_defaults('deformations.modulate.prefix') spm_get_defaults('normalise.write.prefix')];
+            NO.descrip = sprintf('Warped & Jac scaled');
         else
-            NO.dat.fname   = fullfile(wd,['smw' nam ext]);
-            NO.descrip     = sprintf('Smoothed (%gx%gx%g) warped Jac scaled',job.fwhm);
+            newprefix  = [spm_get_defaults('smooth.prefix') spm_get_defaults('deformations.modulate.prefix') spm_get_defaults('normalise.write.prefix')];
+            NO.descrip = sprintf('Smoothed (%gx%gx%g) warped Jac scaled',job.fwhm);
         end
     else
         if sum(job.fwhm.^2)==0
-            NO.dat.fname   = fullfile(wd,['w' nam ext]);
-            NO.descrip     = sprintf('Warped');
+            newprefix  = spm_get_defaults('normalise.write.prefix');
+            NO.descrip = sprintf('Warped');
         else
-            NO.dat.fname   = fullfile(wd,['sw' nam ext]);
-            NO.descrip     = sprintf('Smoothed (%gx%gx%g opt) warped',job.fwhm);
+            newprefix  = [spm_get_defaults('smooth.prefix') spm_get_defaults('normalise.write.prefix')];
+            NO.descrip = sprintf('Smoothed (%gx%gx%g opt) warped',job.fwhm);
         end
+    end
+    if isfield(job,'prefix') && ~isempty(job.prefix)
+        NO.dat.fname = fullfile(wd,[job.prefix nam ext]);
+    else
+        NO.dat.fname = fullfile(wd,[newprefix nam ext]);
     end
     NO.dat.dim     = [dim NI.dat.dim(4:end)];
     NO.dat.offset  = 0; % For situations where input .nii images have an extension.
