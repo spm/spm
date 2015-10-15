@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 6255 2014-11-05 09:55:02Z christophe $
+% $Id: spm_defaults.m 6576 2015-10-15 15:22:09Z volkmar $
 
 
 global defaults
@@ -85,13 +85,14 @@ defaults.stats.results.mipmat         = {fullfile(spm('dir'),'MIP.mat')};
 
 % Filename prefix defaults
 %==========================================================================
-defaults.slicetiming.prefix     = 'a';
-defaults.realign.write.prefix   = 'r';
-defaults.coreg.write.prefix     = 'r';
-defaults.unwarp.write.prefix    = 'u';
-defaults.normalise.write.prefix = 'w';
-defaults.smooth.prefix          = 's';
-defaults.imcalc.prefix          = 'i';
+defaults.slicetiming.prefix           = 'a';
+defaults.realign.write.prefix         = 'r';
+defaults.coreg.write.prefix           = 'r';
+defaults.unwarp.write.prefix          = 'u';
+defaults.normalise.write.prefix       = 'w';
+defaults.deformations.modulate.prefix = 'm';
+defaults.smooth.prefix                = 's';
+defaults.imcalc.prefix                = 'i';
 
 % Realignment defaults
 %==========================================================================
