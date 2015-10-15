@@ -53,7 +53,7 @@ function varargout=spm_platform(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 6245 2014-10-15 11:22:15Z guillaume $
+% $Id: spm_platform.m 6575 2015-10-15 15:22:08Z volkmar $
 
 
 %-Initialise
@@ -259,7 +259,7 @@ end
 %-Desktop
 %--------------------------------------------------------------------------
 try
-    PLATFORM.desktop = desktop('-inuse');
+    PLATFORM.desktop = usejava('desktop');
 catch
     PLATFORM.desktop = false;
 end
