@@ -28,9 +28,9 @@ function [str, sts] = gencode_rvalue(item, cflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_rvalue.m 6109 2014-07-17 11:37:40Z volkmar $
+% $Id: gencode_rvalue.m 6571 2015-10-15 13:18:26Z volkmar $
 
-rev = '$Rev: 6109 $'; %#ok
+rev = '$Rev: 6571 $'; %#ok
 
 if nargin < 2
     cflag = false;
@@ -169,6 +169,10 @@ function str = genstrarray(stritem)
 % generation.
 str = strrep(stritem, '''', '''''');
 for k = 1:numel(str)
-    str{k} = sprintf('''%s''', str{k});
+    if isempty(strfind(str{k}, char(10)))
+        str{k} = sprintf('''%s''', str{k});
+    else
+        str{k} = sprintf('sprintf(''%s'')', strrep(str{k}, char(10), '\n'));
+    end
 end
 
