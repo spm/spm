@@ -4,7 +4,7 @@ function conf = spm_cfg_deformations
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 6137 2014-08-19 12:43:11Z john $
+% $Id: spm_cfg_deformations.m 6578 2015-10-15 15:22:12Z volkmar $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -279,6 +279,16 @@ fwhm.help    = {'Specify the full-width at half maximum (FWHM) of the Gaussian b
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.val     = {''};
+prefix.strtype = 's';
+prefix.num     = [0 Inf];
+prefix.help    = {'The name of the output file(s) will be the name of the input file(s) prefixed with this prefix. Leave empty to use SPM default prefixes.'};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
 mask         = cfg_menu;
 mask.tag     = 'mask';
 mask.name    = 'Masking';
@@ -359,7 +369,7 @@ savedet.help  = {'The Jacobian determinants may be saved to disk as a ``j_*.nii'
 pullback      = cfg_branch;
 pullback.name = 'Pullback';
 pullback.tag  = 'pull';
-pullback.val  = {applyto,savedir,interp,mask,fwhm};
+pullback.val  = {applyto,savedir,interp,mask,fwhm,prefix};
 pullback.help = {[...
 'This is the old way of warping images, which involves resampling images based on a mapping from ',...
 'the new (warped) image space back to the original image.  ',...
@@ -381,7 +391,7 @@ fwhm.help     = {[fwhm.help{1} ' Note that you can specify [0 0 0], ',...
 pushfo        = cfg_branch;
 pushfo.name   = 'Pushforward';
 pushfo.tag    = 'push';
-pushfo.val    = {applyto,weight,savedir,deffov,preserve,fwhm};
+pushfo.val    = {applyto,weight,savedir,deffov,preserve,fwhm,prefix};
 pushfo.help   = {[...
 'This is a newer way of warping images (for SPM at least), and involves the ',...
 'forward pushing of voxel values from the original image into the appropriate place in the warped image. ',...

@@ -4,7 +4,7 @@ function normalise = spm_cfg_norm
 % Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 6148 2014-09-03 15:49:04Z guillaume $
+% $Id: spm_cfg_norm.m 6578 2015-10-15 15:22:12Z volkmar $
 
 
 %--------------------------------------------------------------------------
@@ -321,7 +321,7 @@ prefix.def     = @(val)spm_get_defaults('normalise.write.prefix', val{:});
 woptions      = cfg_branch;
 woptions.tag  = 'woptions';
 woptions.name = 'Writing Options';
-woptions.val  = { bb vox interp};
+woptions.val  = { bb vox interp prefix};
 woptions.help = {'Various options for writing normalised images.'};
 
 %--------------------------------------------------------------------------

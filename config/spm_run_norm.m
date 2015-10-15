@@ -9,7 +9,7 @@ function out = spm_run_norm(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_norm.m 5700 2013-10-17 14:59:50Z guillaume $
+% $Id: spm_run_norm.m 6578 2015-10-15 15:22:12Z volkmar $
 
 
 for i=1:numel(job.subj)
@@ -85,6 +85,7 @@ defs.out{1}.pull.savedir.savesrc = 1;
 defs.out{1}.pull.interp  = job.woptions.interp;
 defs.out{1}.pull.mask    = 1;
 defs.out{1}.pull.fwhm    = [0 0 0];
+defs.out{1}.pull.prefix  = job.woptions.prefix;
 
 for i=1:numel(job.subj)
     defs.out{1}.pull.fnames = job.subj(i).resample;
