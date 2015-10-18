@@ -7,7 +7,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 %
 % MDP.A(O,N)      - likelihood of O outcomes given N hidden states
 % MDP.B{M}(N,N)   - transition probabilities among hidden states (priors)
-% MDP.C(N,1)      - prior preferences   (prior over future states)
+% MDP.C(N,1)      - prior preferences   (prior over future outcomes)
 % MDP.D(N,1)      - prior probabilities (prior over initial states)
 %
 % MDP.a(O,N)      - concentration parameters for A
@@ -100,7 +100,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 6570 2015-10-14 17:00:05Z karl $
+% $Id: spm_MDP_VB.m 6579 2015-10-18 17:25:54Z karl $
  
  
 % deal with a sequence of trials
@@ -108,10 +108,10 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
  
 % options
 %--------------------------------------------------------------------------
-try, OPTIONS.scheme; catch, OPTIONS.scheme = 'Free Energy'; end
-try, OPTIONS.habit;  catch, OPTIONS.habit  = 0;             end
-try, OPTIONS.plot;   catch, OPTIONS.plot   = 0;             end
-try, OPTIONS.fixed;  catch, OPTIONS.fixed  = 0;             end
+try, OPTIONS.habit;   catch, OPTIONS.habit   = 0; end
+try, OPTIONS.plot;    catch, OPTIONS.plot    = 0; end
+try, OPTIONS.gamma_u; catch, OPTIONS.gamma_u = 0; end
+try, OPTIONS.gamma_s; catch, OPTIONS.gamma_s = 0; end
  
  
 % if there are multiple trials ensure that parameters are updated
@@ -155,14 +155,14 @@ end
  
 % set up and preliminaries
 %==========================================================================
- 
+V   = MDP.V;                        % allowable policies (T - 1,Np)
+
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
 T   = size(MDP.V,1) + 1;            % number of transitions
 Np  = size(MDP.V,2);                % number of allowable policies
 Ns  = size(MDP.B{1},1);             % number of hidden states
 Nu  = size(MDP.B,2);                % number of hidden controls
-V   = MDP.V;                        % allowable policies (T - 1,Np)
 p0  = exp(-8);                      % smallest probability
 q0  = 1/16;                         % smallest probability
 Nh  = Np + 1;                       % index of habit
@@ -200,26 +200,32 @@ for i = 1:Nu
     % parameters (concentration parameters): B
     %----------------------------------------------------------------------
     if isfield(MDP,'b')
-        sB{i} = spm_norm(MDP.b{i}  + q0);
-        rB{i} = spm_norm(MDP.b{i}' + q0);
+        b     = MDP.b{i} + q0;
+        sB{i} = spm_norm(b );
+        rB{i} = spm_norm(b');
+        qB{i} = psi(b) - ones(Ns,1)*psi(sum(b));
     else
-        sB{i} = spm_norm(MDP.B{i}  + p0);
-        rB{i} = spm_norm(MDP.B{i}' + p0);
+        b     = MDP.B{i} + p0;
+        sB{i} = spm_norm(b );
+        rB{i} = spm_norm(b');
+        qB{i} = log(b);
     end
 
 end
  
 % parameters (concentration parameters) - Habits
 %--------------------------------------------------------------------------
-c = 0;
+c0 = 0;
 for j = 1:Nu
-    c = c + MDP.B{j};
+    c0 = c0 + MDP.B{j};
 end
 if ~isfield(MDP,'c')
-    MDP.c = c;
+    MDP.c = c0;
 end
-sH    = spm_norm(MDP.c );
-rH    = spm_norm(MDP.c');
+c     = MDP.c + q0;
+sH    = spm_norm(c );
+rH    = spm_norm(c');
+qH    = psi(c) - ones(Ns,1)*psi(sum(c));
 
  
 % priors over initial hidden states - concentration parameters
@@ -239,7 +245,7 @@ catch
     e(1:Np,1) = 4;
     e(Nh)     = 1;
 end
-if ~OPTIONS.habit || (sum(MDP.c(:)) - sum(c(:))) < 8;
+if ~OPTIONS.habit || (sum(MDP.c(:)) - sum(c0(:))) < 8;
     e(Nh)     = q0;
 end
 qE    = psi(e) - ones(Nh,1)*psi(sum(e));
@@ -247,35 +253,30 @@ qE    = psi(e) - ones(Nh,1)*psi(sum(e));
 % prior preferences (log probabilities) : C
 %--------------------------------------------------------------------------
 try
-    C = MDP.C;
+    Vo = MDP.C;
 catch
-    C = zeros(Ns,1);
+    Vo = zeros(No,1);
 end
-C     = log(spm_softmax(C));
- 
+
 % assume constant preferences, if only final states are specified
 %--------------------------------------------------------------------------
-if size(C,2) ~= T
-    C = C(:,end)*ones(1,T);
+if size(Vo,2) ~= T
+    Vo = Vo(:,end)*ones(1,T);
 end
- 
-% OPTIONS
+Vo    = log(spm_softmax(Vo));
+H     = sum(spm_softmax(qA).*qA);
+
+% log preferences over states
 %--------------------------------------------------------------------------
-switch OPTIONS.scheme
-    case{'Free Energy','FE'}
-        hA = sum(spm_softmax(qA).*qA)';
-    case{'KL Control','KL','Expected Utility','EU','RL'}
-        hA = 0;
-    otherwise
-        disp(['unkown option: ' OPTIONS])
-end
- 
+Vs    = spm_norm(A')*spm_softmax(Vo);
+Vs    = log(Vs) + H'*ones(1,T);
+Vs    = log(spm_softmax(Vs));
+
     
 % precision defaults
 %--------------------------------------------------------------------------
-try, alpha = MDP.alpha;  catch, alpha = 1;   end
 try, beta  = MDP.beta;   catch, beta  = 1/2; end
- 
+try, eta   = MDP.eta;    catch, eta   = 2;   end
  
 % initial states and outcomes
 %--------------------------------------------------------------------------
@@ -287,21 +288,25 @@ catch
 end
 P  = zeros(Nu,T - 1) - 16;          % posterior beliefs about control
 x  = zeros(Ns,T,Nh)  + 1/Ns;        % expectations of hidden states | policy
-X  = zeros(Ns,T + 1);               % expectations of hidden states
+X  = zeros(Ns,T);                   % expectations of hidden states
 u  = zeros(Nh,T - 1);               % expectations of policy
 a  = zeros(1, T - 1);               % action (index)
  
- 
 % initialise priors over policies and display utility with expected states
 %--------------------------------------------------------------------------
-u(:,1)     = spm_softmax(qE);
-X(:,T + 1) = spm_softmax(hA + C(:,end));
+for k = 1:Nh
+    x(:,1,k) = spm_softmax(qD);
+end
  
 % expected rate parameter
 %--------------------------------------------------------------------------
-qbeta  = beta;                      % initialise rate parameter
-W      = zeros(1,T) + alpha/qbeta;  % posterior precision
- 
+qbeta  = beta;                      % initialise rate parameters
+qeta   = eta - mean(sum(Vs,2));     % initialise rate parameters
+gu     = zeros(1,T)  + 1/qbeta;     % posterior precision (policy)
+gx     = zeros(Nh,T) + 1/qeta;      % posterior precision (policy)
+qeta   = zeros(Nh,1) + qeta;
+
+
 % solve
 %==========================================================================
 Ni     = 16;                        % number of VB iterations
@@ -319,8 +324,9 @@ for t  = 1:T
     
     % Variational updates (hidden states) under sequential policies
     %======================================================================
-    for k = p
-        for i = 1:Ni
+    for i = 1:Ni
+        for k = p
+            g     = 0;
             for j = 1:T
                 
                 % current state
@@ -328,48 +334,75 @@ for t  = 1:T
                 xj   = x(:,j,k);
                 qx   = log(xj);
                 
+                % transition probabilities (with attention)
+                %----------------------------------------------------------
+                if OPTIONS.gamma_s
+                    gB      = gx(k,t)*Vs(:,j)*ones(1,Ns);
+                    if k > Np
+                        fB  = spm_softmax(qH  + gB);
+                        bB  = spm_softmax(qH' + gB);
+                    else
+                        if j > 1, fB = spm_softmax(qB{V(j - 1,k)}  + gB); end
+                        if j < T, bB = spm_softmax(qB{V(j    ,k)}' + gB); end
+                    end
+                else
+                    
+                    % transition probabilities (without attention)
+                    %------------------------------------------------------
+                    if k > Np
+                        fB  = sH;
+                        bB  = rH;
+                    else
+                        if j > 1, fB = sB{V(j - 1,k)}; end
+                        if j < T, bB = rB{V(j    ,k)}; end
+                    end
+                end
+                
                 % evaluate free energy and gradients (v = dFdx)
                 %----------------------------------------------------------
                 v    = 0;
-                if j <= t, v = v - qA(o(j),:)'; end
-                if j == 1, v = v + qx - qD;     end
-                if k > Np
-                    if j > 1, v = v + qx - log(sH*x(:,j - 1,k)); end
-                    if j < T, v = v + qx - log(rH*x(:,j + 1,k)); end
-                else
-                    if j > 1, v = v + qx - log(sB{V(j - 1,k)}*x(:,j - 1,k)); end
-                    if j < T, v = v + qx - log(rB{V(j    ,k)}*x(:,j + 1,k)); end
-                end
+                if j <= t, v = v - qA(o(j),:)';                 end
+                if j == 1, v = v + qx - qD;                     end
+                if j >  1, v = v + qx - log(fB*x(:,j - 1,k));   end
+                if j <  T, v = v + qx - log(bB*x(:,j + 1,k));   end
                 
+                % evaluate (attention) gradients (g = dFdg)
+                %----------------------------------------------------------
+                g  = g + Vs(:,j)'*x(:,j,k);
+
                 % update
                 %----------------------------------------------------------
-                x(:,j,k) = spm_softmax(qx - v/4);
                 F(j,k)   = xj'*v;
+                x(:,j,k) = spm_softmax(qx - v/4);
                 
                 % record neuronal activity
                 %----------------------------------------------------------
-                xn(i,:,j,t,k) = x(:,j,k) - xj;
- 
+                xn(i,:,j,t,k) = x(:,j,k);
+                
             end
             
-            % convergence
+            % precision (attention) updates
             %--------------------------------------------------------------
-            if i > 1
-                dF = F0 - sum(F(:,k));
-                if dF > 1/256, F0 = F0 - dF; else,  break,  end
-            else
-                F0 = sum(F(:,k));
+            if OPTIONS.gamma_s
+                v       = qeta(k) - eta + g;
+                qeta(k) = qeta(k) - v/2;
+                gx(k,t) = 1/qeta(k);
+                
+                % simulated cholinergic responses (at each iteration)
+                %----------------------------------------------------------
+                n       = (t - 1)*Ni + i;
+                ch(n,k) = gx(k,t);
             end
             
-        end 
+        end
     end
-    
     
     % (negative path integral of) free energy of policies (Q)
     %======================================================================
     for k = p
         for j = 1:T
-            Q(j,k) = x(:,j,k)'*(C(:,j) + hA - log(x(:,j,k)));
+            qx     = A*x(:,j,k);
+            Q(j,k) = qx'*(Vo(:,j) - log(qx)) + H*x(:,j,k);
         end
     end
     
@@ -383,24 +416,24 @@ for t  = 1:T
         
         % policy (u)
         %------------------------------------------------------------------
-        qu = spm_softmax(qE(p) + W(t)*Q(p) - F(p));
-        pu = spm_softmax(qE(p) + W(t)*Q(p));
+        qu = spm_softmax(qE(p) + gu(t)*Q(p) - F(p));
+        pu = spm_softmax(qE(p) + gu(t)*Q(p));
         
-        % precision (W) with free energy gradients (v = -dF/dw)
+        % precision (gu) with free energy gradients (v = -dF/dw)
         %------------------------------------------------------------------
-        if OPTIONS.fixed
-            W(t)  = alpha/beta;
+        if OPTIONS.gamma_u
+            gu(t) = 1/beta;
         else
             v     = qbeta - beta + (qu - pu)'*Q(p);
             qbeta = qbeta - v/2;
-            W(t)  = alpha/qbeta;
+            gu(t) = 1/qbeta;
         end
         
-        % simulated dopamine responses (precision as each iteration)
+        % simulated dopamine responses (precision at each iteration)
         %------------------------------------------------------------------
-        u(p,t)  = qu;
         n       = (t - 1)*Ni + i;
-        wn(n,1) = W(t);
+        u(p,t)  = qu;
+        wn(n,1) = gu(t);
         un(p,n) = qu;
         
     end
@@ -468,7 +501,7 @@ for t  = 1:T
         
         % save outcome and state sampled
         %------------------------------------------------------------------
-        W(1,t + 1)   = W(t);
+        gu(1,t + 1)   = gu(t);
         
     end
  
@@ -518,12 +551,16 @@ end
 % policies: e
 %--------------------------------------------------------------------------
 if isfield(MDP,'e')
-    MDP.e = MDP.e + W(t)*u(:,T);
+    MDP.e = MDP.e + u(:,T);
 end
  
-% simulated dopamine responses
+% simulated dopamine (or cholinergic) responses
 %--------------------------------------------------------------------------
-dn    = 8*gradient(wn) + wn/8;
+if OPTIONS.gamma_s
+    dn    = ch(:,p);
+else
+    dn    = 8*gradient(wn) + wn/8;
+end
  
 % Bayesian model averaging of expected hidden states over policies
 %--------------------------------------------------------------------------
@@ -542,16 +579,17 @@ MDP.Q   = x;              % conditional expectations over N hidden states
 MDP.X   = X;              % Bayesian model averages
 MDP.R   = u;              % conditional expectations over policies
 MDP.o   = o;              % outcomes at 1,...,T
-MDP.s   = s;              % states
-MDP.u   = a;              % action
-MDP.w   = W;              % posterior expectations of precision
-MDP.C   = C;              % utility
+MDP.s   = s;              % states at 1,...,T
+MDP.u   = a;              % action at 1,...,T
+MDP.w   = gu;             % posterior expectations of precision (policy)
+MDP.v   = gx;             % posterior expectations of precision (states)
+MDP.C   = Vo;             % utility
  
-MDP.un  = un;             % simulated neuronal encoding of hidden states
-MDP.xn  = Xn;             % simulated neuronal encoding of policies
+MDP.un  = un;             % simulated neuronal encoding of policies
+MDP.xn  = Xn;             % simulated neuronal encoding of hidden states
 MDP.wn  = wn;             % simulated neuronal encoding of precision
 MDP.dn  = dn;             % simulated dopamine responses (deconvolved)
-MDP.rt  = rt;             % simulated dopamine responses (deconvolved)
+MDP.rt  = rt;             % simulated reaction time
  
 % plot
 %==========================================================================

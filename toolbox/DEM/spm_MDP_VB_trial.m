@@ -22,7 +22,7 @@ function spm_MDP_VB_trial(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 6570 2015-10-14 17:00:05Z karl $
+% $Id: spm_MDP_VB_trial.m 6579 2015-10-18 17:25:54Z karl $
  
 % graphics
 %==========================================================================
@@ -30,7 +30,7 @@ function spm_MDP_VB_trial(MDP)
 % posterior beliefs about hidden states
 %--------------------------------------------------------------------------
 subplot(3,2,1)
-image(64*(1 - MDP.X)),hold on
+image(64*(1 - MDP.X)), hold on
 if size(MDP.X,1) > 128
     spm_spy(MDP.X,16,1)
 end
@@ -51,7 +51,7 @@ ylabel('action','FontSize',12)
 %--------------------------------------------------------------------------
 subplot(3,2,3)
 imagesc(MDP.V')
-title('allowable policies','FontSize',14)
+title('Allowable policies','FontSize',14)
 ylabel('policy','FontSize',12)
 xlabel('trial','FontSize',12)
  
@@ -66,20 +66,24 @@ xlabel('updates','FontSize',12)
 % sample (observation)
 %--------------------------------------------------------------------------
 subplot(3,2,5)
-O  = sparse(MDP.o,1:length(MDP.o),1);
-if size(O,1) > 128
-    spm_spy(O,16,1)
+if size(MDP.C,1) > 128
+    spm_spy(MDP.C,16,1), hold on
 else
-    imagesc(1 - O)
+    imagesc(1 - MDP.C), hold on
 end
-title('Observed states','FontSize',14)
+plot(MDP.o,'.c','MarkerSize',16), hold off
+title('Preferred outcomes','FontSize',14)
 xlabel('trial','FontSize',12)
 ylabel('outcome','FontSize',12)
  
 % expected action
 %--------------------------------------------------------------------------
 subplot(3,2,6), hold on
-bar(MDP.dn,'c'), plot(MDP.wn,'k'), hold off
+if size(MDP.dn,2) > 1
+    plot(MDP.dn,'r:'), plot(MDP.wn,'k'), hold off
+else
+    bar(MDP.dn,'c'),   plot(MDP.wn,'k'), hold off
+end
 title('Expected precision (dopamine)','FontSize',14)
 xlabel('updates','FontSize',12)
 ylabel('precision','FontSize',12)

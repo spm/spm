@@ -32,7 +32,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 6570 2015-10-14 17:00:05Z karl $
+% $Id: spm_MDP_VB_game.m 6579 2015-10-18 17:25:54Z karl $
  
 % graphics
 %==========================================================================
@@ -42,7 +42,7 @@ Np    = size(MDP(1).V,2) + 1;      % number of policies
 for i = 1:Nt
     for j = 1:NT
         for k = 1:NT
-            xi{k,j} = MDP(i).xn(:,:,j,k);
+            xi{k,j} = gradient(MDP(i).xn(:,:,j,k)')';
         end
     end
     s(i)   = MDP(i).s(1);
@@ -50,8 +50,8 @@ for i = 1:Nt
     x{i,1} = xi;
     u(:,i) = MDP(i).R(:,end);
     d(:,i) = MDP(i).d/sum(MDP(i).d);
-    w(:,i) = MDP(i).dn;
-    U      = MDP(i).A*spm_softmax(MDP(i).C);
+    w(:,i) = mean(MDP(i).dn,2);
+    U      = spm_softmax(MDP(i).C);
     p(i)   = 0;
     for t  = 1:NT
         p(i) = p(i) + log(U(MDP(i).o(t),t))/NT;

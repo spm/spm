@@ -1,15 +1,16 @@
-function u = spm_MDP_VB_LFP(MDP,UNITS)
+function [u,v] = spm_MDP_VB_LFP(MDP,UNITS)
 % auxiliary routine for plotting simulated electrophysiological responses
-% FORMAT u = spm_MDP_VB_LFP(MDP,UNITS)
+% FORMAT [u,v]  = spm_MDP_VB_LFP(MDP,UNITS)
 %
-% u - selected unit responses {number of trials, number of units}
+% u - selected unit rate of change of firing (simulated voltage)
+% v - selected unit responses {number of trials, number of units}
 %
 % MDP - structure (see spm_MDP_VB
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 6567 2015-10-12 09:29:04Z karl $
+% $Id: spm_MDP_VB_LFP.m 6579 2015-10-18 17:25:54Z karl $
  
  
 % deal with a sequence of trials
@@ -42,23 +43,27 @@ for i = 1:Nt
     %----------------------------------------------------------------------
     for j = 1:size(ALL,2)
         for k = 1:NT
-            xj{k,j} = MDP(i).xn(:,ALL(1,j),ALL(2,j),k);
+            zj{k,j} = MDP(i).xn(:,ALL(1,j),ALL(2,j),k);
+            xj{k,j} = gradient(zj{k,j}')';
         end
     end
+    z{i,1} = zj;
     x{i,1} = xj;
     
     % selected units
     %----------------------------------------------------------------------
     for j = 1:size(UNITS,2)
         for k = 1:NT
-            uj{k,j} = MDP(i).xn(:,UNITS(1,j),UNITS(2,j),k);
+            vj{k,j} = MDP(i).xn(:,UNITS(1,j),UNITS(2,j),k);
+            uj{k,j} = gradient(vj{k,j}')';
         end
     end
+    v{i,1} = vj;
     u{i,1} = uj;
     
     % dopamine or changes in precision
     %----------------------------------------------------------------------
-    dn(:,i) = MDP(i).dn;
+    dn(:,i) = mean(MDP(i).dn,2);
 end
 
 if nargout, return, end
@@ -73,11 +78,12 @@ w   = Hz*(dt*n);                         % cycles per window
  
 % simulated local field potential
 %--------------------------------------------------------------------------
+
 LFP = spm_cat(x);
 i   = UNITS(1,end) + (UNITS(2,end) - 1)*Nx;
  
 if Nt == 1, subplot(3,2,1), else subplot(4,1,1),end
-imagesc(t,1:(Nx*NT),LFP'),title('Unit responses','FontSize',16)
+imagesc(t,1:(Nx*NT),spm_cat(z)'),title('Unit responses','FontSize',16)
 xlabel('time (seconds)','FontSize',12), ylabel('unit','FontSize',12)
 grid on, set(gca,'XTick',(1:(NT*Nt))*Nb*dt)
 grid on, set(gca,'YTick',(1:NT)*Nx)
@@ -119,8 +125,8 @@ if Nt == 1, axis square, end
 
 % firing rates
 %==========================================================================
-qu   = cumsum(spm_cat(u)) + 1/Nx;
-qx   = cumsum(spm_cat(x)) + 1/Nx;
+qu   = spm_cat(v);
+qx   = spm_cat(z);
 if Nt == 1, subplot(3,2,4)
     plot(t,qu),     hold on, spm_axis tight, a = axis;
     plot(t,qx,':'), hold off

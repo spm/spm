@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6570 2015-10-14 17:00:05Z karl $
+% $Id: DEM_demo_MDP_habits.m 6579 2015-10-18 17:25:54Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -81,7 +81,9 @@ end
 % and, clearly, prefers rewards to losses.
 %--------------------------------------------------------------------------
 c  = 2;
-C  = [-1 -1 c -c -c c 0 0]';
+C  = [0 0  0 0  0 0 0;
+      0 c -c c -c 0 0;
+      0 c -c c -c 0 0]';
  
 % now specify prior beliefs about initial state, in terms of counts
 %--------------------------------------------------------------------------
@@ -144,7 +146,7 @@ subplot(2,2,2),spm_MDP_VB_place_cell(MDP(1:6),[7 8;2 2]);
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 4'); clf
 spm_MDP_VB_LFP(MDP(1:8));
- 
+
 % illustrate oddball responses (P300) - US
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 5'); clf
@@ -154,16 +156,18 @@ subplot(4,1,1), title('Violation response (P300)','FontSize',16)
 % illustrate oddball responses (MMN) - CS
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 6a'); clf
-spm_MDP_VB_LFP(MDP([2,11]),[1 2;1 1]);
+spm_MDP_VB_LFP(MDP([2,20]),[1 2;1 1]);
 subplot(4,1,1), title('Repetition suppression and DA transfer','FontSize',16)
  
 spm_figure('GetWin','Figure 6b');clf
-u = spm_MDP_VB_LFP(MDP([2,11]),[1 2;1 1]);
-t = (1:16)*16 + 80;
-subplot(2,1,1),plot(t,u{1}{2,1},'b-.',t,u{2}{2,1},'b:',t,u{2}{2,1} - u{1}{2,1})
+v  = spm_MDP_VB_LFP(MDP([2,20]),[1 2;1 1]);
+t  = (1:16)*16 + 80;
+subplot(2,1,1),plot(t,v{1}{2,1},'b-.',t,v{2}{2,1},'b:',t,v{2}{2,1} - v{1}{2,1})
 xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',16)
 legend({'oddball','standard','MMN'}), grid on, axis square
- 
+
+
+% return
 
 % illustrate reversal learning - after trial 32
 %==========================================================================
@@ -208,16 +212,15 @@ N               = 64;
 %--------------------------------------------------------------------------
 clear MDP; 
  
-[MDP(1:N)]      = deal(mdp);
-[MDP.C]         = deal([-1 -1 c -c -c  c 0 0]');
-[MDP(48:end).C] = deal([-1 -1 -c c  c -c 0 0]');
+[MDP(1:N)]      = deal( mdp);
+[MDP(48:end).C] = deal(-mdp.C);
  
 spm_figure('GetWin','Figure 9'); clf
 spm_MDP_VB_game(spm_MDP_VB(MDP,OPTIONS));
  
 % repeat but now devalue before habit formation (at trial 8)
 %--------------------------------------------------------------------------
-[MDP(16:end).C]  = deal([-1 -1 -c c  c -c 0 0]');
+[MDP(16:end).C]  = deal(-mdp.C);
  
 spm_figure('GetWin','Figure 10'); clf
 spm_MDP_VB_game(spm_MDP_VB(MDP,OPTIONS));
@@ -261,16 +264,21 @@ title('Dynamic programming','FontSize',16)
  
 % now repeat with unambiguous outcomes
 %--------------------------------------------------------------------------
-A      = [1 0 0 0 0 0 0 0;
-          0 1 0 0 0 0 0 0
-          0 0 a b 0 0 0 0;
-          0 0 b a 0 0 0 0;
-          0 0 0 0 b a 0 0;
-          0 0 0 0 a b 0 0;
-          0 0 0 0 0 0 1 0;
-          0 0 0 0 0 0 0 1];
+A = [1 0 0 0 0 0 0 0;
+     0 1 0 0 0 0 0 0
+     0 0 a b 0 0 0 0;
+     0 0 b a 0 0 0 0;
+     0 0 0 0 b a 0 0;
+     0 0 0 0 a b 0 0;
+     0 0 0 0 0 0 1 0;
+     0 0 0 0 0 0 0 1];
+
+C = [0 0 0  0 0  0 0 0;
+     0 0 c -c c -c 0 0;
+     0 0 c -c c -c 0 0]';
       
 [MDP.A]  = deal(A);
+[MDP.C]  = deal(C);
  
 % habitual (non-sequential) policy
 %--------------------------------------------------------------------------
@@ -305,18 +313,18 @@ col = {'r','g','b','m','c'};
 for t = 1:length(MDP)
     for j = 1:size(UNITS,2)
         
-        u     = spm_MDP_VB_LFP(MDP(t),UNITS(:,j));
-        qu    = cumsum(spm_cat(u)) + 1/8;
+        [~,v] = spm_MDP_VB_LFP(MDP(t),UNITS(:,j));
+        qu    = spm_cat(v);
         qe    = randn(2,size(qu,1))/4;
         L     = [0 0 -1 -1 1 1  0  0;
-            0 0  1  1 1 1 -1 -1];
+                 0 0  1  1 1 1 -1 -1];
         for i = 1:size(qu,1)
             X(:,i) = L(:,MDP(t).s(ceil(i/16))) + qe(:,i);
         end
         X     = spm_conv(X,0,3);
         plot(X(1,:),X(2,:),'r:'), hold on
         for i = 1:size(qu,1)
-            if qu(i) > .8
+            if qu(i) > .98
                 plot(X(1,i),X(2,i),'.','MarkerSize',16,'Color',col{j})
             end
         end
