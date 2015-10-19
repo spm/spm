@@ -36,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6531 2015-08-21 16:12:52Z guillaume $
+% $Id: spm_dicom_convert.m 6580 2015-10-19 13:40:33Z volkmar $
 
 
 %-Input parameters
@@ -879,7 +879,7 @@ for i=1:length(hdr)
  
     elseif ~checkfields(hdr{i},'StartOfPixelData','SamplesPerPixel',...
             'Rows','Columns','BitsAllocated','BitsStored','HighBit','PixelRepresentation')
-        fprintf('Cant find "Image Pixel" information for "%s".',hdr{i}.Filename);
+        fprintf('Cant find "Image Pixel" information for "%s".\n',hdr{i}.Filename);
         guff = [guff(:)',hdr(i)];
         
     elseif ~(checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient') ...
