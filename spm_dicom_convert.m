@@ -36,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6580 2015-10-19 13:40:33Z volkmar $
+% $Id: spm_dicom_convert.m 6581 2015-10-19 13:40:36Z volkmar $
 
 
 %-Input parameters
@@ -1319,7 +1319,7 @@ end
 function ret = read_ascconv(hdr)
 % In SIEMENS data, there is an ASCII text section with
 % additional information items. This section starts with a code
-% ### ASCCONV BEGIN ###
+% ### ASCCONV BEGIN <some version string> ###
 % and ends with
 % ### ASCCONV END ###
 % It is read by spm_dicom_headers into an entry 'MrProtocol' in
@@ -1331,6 +1331,8 @@ function ret = read_ascconv(hdr)
 % "  -> '
 % 0xX -> hex2dec('X')
 % and collected in a struct.
+% In addition, there seems to be "__attribute__" meta information for some
+% items. All "field names" starting with "_" are currently silently ignored.
 ret=struct;
 
 % get ascconv data
@@ -1339,25 +1341,26 @@ if isfield(hdr, 'CSAMiscProtocolHeaderInfoVA')
 elseif isfield(hdr, 'CSAMiscProtocolHeaderInfoVB')
     X = get_numaris4_val(hdr.CSAMiscProtocolHeaderInfoVB,'MrPhoenixProtocol');
 elseif isfield(hdr, 'CSASeriesHeaderInfo')
-    X=get_numaris4_val(hdr.CSASeriesHeaderInfo,'MrProtocol');
+    X = get_numaris4_val(hdr.CSASeriesHeaderInfo,'MrProtocol');
 else
     return;
 end
 
-ascstart = strfind(X,'### ASCCONV BEGIN ###');
-ascend = strfind(X,'### ASCCONV END ###');
+X = regexprep(X,'^.*### ASCCONV BEGIN [^#]*###(.*)### ASCCONV END ###.*$','$1');
 
-if ~isempty(ascstart) && ~isempty(ascend)
-    tokens = textscan(char(X((ascstart+22):(ascend-1))),'%s', ...
+if ~isempty(X)
+    tokens = textscan(char(X),'%s', ...
         'delimiter',char(10));
-    tokens{1}=regexprep(tokens{1},{'\[([0-9]*)\]','"(.*)"','^([^"]*)0x([0-9a-fA-F]*)','#.*'},{'($1+1)','''$1''','$1hex2dec(''$2'')',''});
+    tokens{1}=regexprep(tokens{1},{'\[([0-9]*)\]','"(.*)"','^([^"]*)0x([0-9a-fA-F]*)','#.*','^.*\._.*$'},{'($1+1)','''$1''','$1hex2dec(''$2'')','',''});
     % If everything would evaluate correctly, we could use
     % eval(sprintf('ret.%s;\n',tokens{1}{:}));
     for k = 1:numel(tokens{1})
-        try
-            eval(['ret.' tokens{1}{k} ';']);
-        catch
-            disp(['AscConv: Error evaluating ''ret.' tokens{1}{k} ''';']);
+        if ~isempty(tokens{1}{k})
+            try
+                eval(['ret.' tokens{1}{k} ';']);
+            catch
+                disp(['AscConv: Error evaluating ''ret.' tokens{1}{k} ''';']);
+            end
         end
     end
 end
