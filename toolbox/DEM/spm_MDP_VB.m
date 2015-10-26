@@ -100,7 +100,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 6579 2015-10-18 17:25:54Z karl $
+% $Id: spm_MDP_VB.m 6582 2015-10-26 10:20:28Z karl $
  
  
 % deal with a sequence of trials
@@ -185,9 +185,11 @@ A      = spm_norm(A);              % normalise
 %--------------------------------------------------------------------------
 if isfield(MDP,'a')
     qA = MDP.a + q0;
-    qA = psi(qA) - ones(Ns,1)*psi(sum(qA));
+    qA = psi(qA ) - ones(Ns,1)*psi(sum(qA));
+    pA = psi(qA') - ones(Ns,1)*psi(sum(qA,2));
 else
-    qA = log(A);
+    qA = log(spm_norm(A));
+    pA = log(spm_norm(A'));
 end
  
 % transition probabilities (priors)
@@ -275,8 +277,8 @@ Vs    = log(spm_softmax(Vs));
     
 % precision defaults
 %--------------------------------------------------------------------------
-try, beta  = MDP.beta;   catch, beta  = 1/2; end
-try, eta   = MDP.eta;    catch, eta   = 2;   end
+try, beta  = MDP.beta;   catch, beta  = 1; end
+try, eta   = MDP.eta;    catch, eta   = 2; end
  
 % initial states and outcomes
 %--------------------------------------------------------------------------
@@ -324,15 +326,16 @@ for t  = 1:T
     
     % Variational updates (hidden states) under sequential policies
     %======================================================================
-    for i = 1:Ni
-        for k = p
+    F     = zeros(Nh,T);
+    for k = p
+        for i = 1:Ni
             g     = 0;
+            px    = x(:,:,k);
             for j = 1:T
                 
                 % current state
                 %----------------------------------------------------------
-                xj   = x(:,j,k);
-                qx   = log(xj);
+                qx   = log(x(:,j,k));
                 
                 % transition probabilities (with attention)
                 %----------------------------------------------------------
@@ -360,26 +363,30 @@ for t  = 1:T
                 
                 % evaluate free energy and gradients (v = dFdx)
                 %----------------------------------------------------------
-                v    = 0;
-                if j <= t, v = v - qA(o(j),:)';                 end
-                if j == 1, v = v + qx - qD;                     end
-                if j >  1, v = v + qx - log(fB*x(:,j - 1,k));   end
-                if j <  T, v = v + qx - log(bB*x(:,j + 1,k));   end
+                v    = qx;
+                if j <= t, v = v - pA(:,o(j));            end
+                if j == 1, v = v - qD;                    end
+                if j >  1, v = v - log(fB*x(:,j - 1,k));  end
+                if j <  T, v = v - log(bB*x(:,j + 1,k));  end
                 
                 % evaluate (attention) gradients (g = dFdg)
                 %----------------------------------------------------------
                 g  = g + Vs(:,j)'*x(:,j,k);
 
-                % update
+                % free energy and belief updating
                 %----------------------------------------------------------
-                F(j,k)   = xj'*v;
-                x(:,j,k) = spm_softmax(qx - v/4);
+                F(k,j)  = x(:,j,k)'*v;
+                px(:,j) = spm_softmax(qx - v/8);
                 
                 % record neuronal activity
                 %----------------------------------------------------------
                 xn(i,:,j,t,k) = x(:,j,k);
                 
             end
+            
+            % hidden state updates
+            %--------------------------------------------------------------
+            x(:,:,k) = px(:,:);
             
             % precision (attention) updates
             %--------------------------------------------------------------
@@ -399,18 +406,19 @@ for t  = 1:T
     
     % (negative path integral of) free energy of policies (Q)
     %======================================================================
+    Q     = zeros(Nh,T);
     for k = p
         for j = 1:T
             qx     = A*x(:,j,k);
-            Q(j,k) = qx'*(Vo(:,j) - log(qx)) + H*x(:,j,k);
+            Q(k,j) = qx'*(Vo(:,j) - log(qx)) + H*x(:,j,k);
         end
     end
     
     
     % variational updates - policies and precision
     %======================================================================
-    F     = sum(F,1)';
-    Q     = sum(Q,1)';
+    F     = sum(F,2);
+    Q     = sum(Q,2);
     p     = p(softmax(-F(p)) > 1/32);
     for i = 1:Ni
         
@@ -469,7 +477,7 @@ for t  = 1:T
         
         % action selection
         %------------------------------------------------------------------
-        P(:,t) = spm_softmax(8*P(:,t));
+        P(:,t) = spm_softmax(16*P(:,t));
                 
         % next action
         %------------------------------------------------------------------

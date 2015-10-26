@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6579 2015-10-18 17:25:54Z karl $
+% $Id: DEM_demo_MDP_habits.m 6582 2015-10-26 10:20:28Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -80,7 +80,7 @@ end
 % probabilities. Here, the agent does not like to be exposed in the centre
 % and, clearly, prefers rewards to losses.
 %--------------------------------------------------------------------------
-c  = 2;
+c  = 3;
 C  = [0 0  0 0  0 0 0;
       0 c -c c -c 0 0;
       0 c -c c -c 0 0]';
@@ -112,7 +112,7 @@ mdp.s = 1;                    % true initial state
 % true initial states – with context change at trial 12
 %--------------------------------------------------------------------------
 i           = [1,3];          % change context in a couple of trials
-[MDP(1:24)] = deal(mdp);      % create structure array
+[MDP(1:32)] = deal(mdp);      % create structure array
 [MDP(i).s]  = deal(2);        % deal context changes
 MDP(12).o   = [1 6 7];        % unexpected outcome
 
@@ -130,7 +130,7 @@ spm_MDP_VB_trial(MDP(1));
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1b'); clf
 spm_MDP_VB_game(MDP);
- 
+
 % illustrate phase-precession and responses to chosen option - 1st trial
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2'); clf
@@ -150,13 +150,13 @@ spm_MDP_VB_LFP(MDP(1:8));
 % illustrate oddball responses (P300) - US
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 5'); clf
-spm_MDP_VB_LFP(MDP([11,12]),[3 8;3 3]);
+spm_MDP_VB_LFP(MDP([11,12]),[8;3]);
 subplot(4,1,1), title('Violation response (P300)','FontSize',16)
  
 % illustrate oddball responses (MMN) - CS
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 6a'); clf
-spm_MDP_VB_LFP(MDP([2,20]),[1 2;1 1]);
+spm_MDP_VB_LFP(MDP([2,20]),[1;1]);
 subplot(4,1,1), title('Repetition suppression and DA transfer','FontSize',16)
  
 spm_figure('GetWin','Figure 6b');clf
@@ -167,7 +167,7 @@ xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',1
 legend({'oddball','standard','MMN'}), grid on, axis square
 
 
-% return
+return
 
 % illustrate reversal learning - after trial 32
 %==========================================================================
@@ -324,7 +324,7 @@ for t = 1:length(MDP)
         X     = spm_conv(X,0,3);
         plot(X(1,:),X(2,:),'r:'), hold on
         for i = 1:size(qu,1)
-            if qu(i) > .98
+            if qu(i) > .80
                 plot(X(1,i),X(2,i),'.','MarkerSize',16,'Color',col{j})
             end
         end

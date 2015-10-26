@@ -10,7 +10,7 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 6579 2015-10-18 17:25:54Z karl $
+% $Id: spm_MDP_VB_LFP.m 6582 2015-10-26 10:20:28Z karl $
  
  
 % deal with a sequence of trials
@@ -111,9 +111,10 @@ if Nt == 1, axis square, end
 % local field potentials
 %==========================================================================
 if Nt == 1, subplot(3,2,2), else subplot(4,1,3),end
-plot(t,spm_cat(u)),     hold on, spm_axis tight, a = axis;
-plot(t,spm_cat(x),':'), hold off
-grid on, set(gca,'XTick',(1:(NT*Nt))*Nb*dt), axis(a)
+plot(t,spm_cat(u)),     hold off, spm_axis tight, a = axis;
+plot(t,spm_cat(x),':'), hold on
+plot(t,spm_cat(u)),     hold off, axis(a)
+grid on, set(gca,'XTick',(1:(NT*Nt))*Nb*dt), 
 for i = 2:2:Nt
     h = patch(((i - 1) + [0 0 1 1])*NT*Nb*dt,a([3,4,4,3]),-[1 1 1 1],'w');
     set(h,'LineStyle',':','FaceColor',[1 1 1] - 1/32);
