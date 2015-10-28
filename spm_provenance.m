@@ -34,7 +34,7 @@ classdef spm_provenance < handle
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 6425 2015-04-29 18:24:51Z guillaume $
+% $Id: spm_provenance.m 6585 2015-10-28 16:02:13Z guillaume $
 
 
 %-Properties
@@ -83,9 +83,19 @@ methods (Access='public')
     end
     
     function uri = get_namespace(obj,prefix)
+        if nargin == 1, uri = obj.namespace; return; end
         n = ismember({obj.namespace.prefix},prefix);
         if ~any(n), uri = '';
         else        uri = obj.namespace(n).uri; end
+    end
+    
+    function remove_namespace(obj,prefix)
+        n = ismember({obj.namespace.prefix},prefix);
+        if any(n)
+            obj.namespace(n) = [];
+        else
+            warning('Prefix ''%s'' not found.',prefix);
+        end
     end
     
     %-Components
@@ -479,11 +489,13 @@ methods (Access='private')
         o = blanks(2*step);
         str = '';
         %-Namespace
-        if step ==1
+        %if step == 1 % if step > 1, only write user defined namespaces
             ns = obj.namespace;
-            ns(end+1) = struct('prefix','rdfs','uri','http://www.w3.org/2000/01/rdf-schema#');
-            if ~isempty(ns(1).uri)
-                str = [str sprintf('@prefix : <%s> .\n',ns(1).uri)];
+            if step == 1
+                ns(end+1) = struct('prefix','rdfs','uri','http://www.w3.org/2000/01/rdf-schema#');
+                if ~isempty(ns(1).uri)
+                    str = [str sprintf('@prefix : <%s> .\n',ns(1).uri)];
+                end
             end
             for i=2:numel(ns)
                 str = [str sprintf('@prefix %s: <%s> .\n',ns(i).prefix,ns(i).uri)];
@@ -491,7 +503,7 @@ methods (Access='private')
             if ~isempty(ns(1).uri) || numel(ns) > 3
                 str = [str sprintf('\n')];
             end
-        end
+        %end
         %-Expressions
         % optional entries for activity and relations are not saved
         for i=1:numel(obj.stack)
