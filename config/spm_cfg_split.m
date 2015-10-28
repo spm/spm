@@ -4,7 +4,7 @@ function split = spm_cfg_split
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_split.m 5828 2014-01-03 18:38:35Z guillaume $
+% $Id: spm_cfg_split.m 6583 2015-10-28 10:30:38Z volkmar $
 
 
 %--------------------------------------------------------------------------
@@ -51,7 +51,7 @@ switch lower(cmd)
         odir              = job.outdir;
         if isempty(odir{1}), odir = {}; end
         Vo                = spm_file_split(V, odir{:});
-        out.splitfiles    = {Vo.fname};
+        out.splitfiles    = {Vo.fname}';
         
     case 'vout'
         out(1)            = cfg_dep;
