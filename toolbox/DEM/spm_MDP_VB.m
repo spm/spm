@@ -100,7 +100,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 6582 2015-10-26 10:20:28Z karl $
+% $Id: spm_MDP_VB.m 6586 2015-10-31 12:02:44Z karl $
  
  
 % deal with a sequence of trials
@@ -277,8 +277,9 @@ Vs    = log(spm_softmax(Vs));
     
 % precision defaults
 %--------------------------------------------------------------------------
-try, beta  = MDP.beta;   catch, beta  = 1; end
-try, eta   = MDP.eta;    catch, eta   = 2; end
+try, alpha = MDP.alpha;  catch, alpha = 16; end
+try, beta  = MDP.beta;   catch, beta  = 1;  end
+try, eta   = MDP.eta;    catch, eta   = 2;  end
  
 % initial states and outcomes
 %--------------------------------------------------------------------------
@@ -477,7 +478,7 @@ for t  = 1:T
         
         % action selection
         %------------------------------------------------------------------
-        P(:,t) = spm_softmax(16*P(:,t));
+        P(:,t) = spm_softmax(alpha*P(:,t));
                 
         % next action
         %------------------------------------------------------------------
