@@ -22,7 +22,7 @@ function spm_MDP_VB_trial(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 6579 2015-10-18 17:25:54Z karl $
+% $Id: spm_MDP_VB_trial.m 6587 2015-11-02 10:29:49Z karl $
  
 % graphics
 %==========================================================================
@@ -36,7 +36,7 @@ if size(MDP.X,1) > 128
 end
 plot(MDP.s,'.c','MarkerSize',16), hold off
 title('Hidden states (and utility)','FontSize',14)
-xlabel('trial','FontSize',12)
+xlabel('epoch','FontSize',12)
 ylabel('hidden state','FontSize',12)
  
 % posterior beliefs about control states
@@ -44,7 +44,7 @@ ylabel('hidden state','FontSize',12)
 subplot(3,2,2), image(64*(1 - MDP.P)), hold on
 plot(MDP.u,'.c','MarkerSize',16), hold off
 title('Inferred and selected action','FontSize',14)
-xlabel('trial','FontSize',12)
+xlabel('epoch','FontSize',12)
 ylabel('action','FontSize',12)
  
 % policies
@@ -53,7 +53,7 @@ subplot(3,2,3)
 imagesc(MDP.V')
 title('Allowable policies','FontSize',14)
 ylabel('policy','FontSize',12)
-xlabel('trial','FontSize',12)
+xlabel('epoch','FontSize',12)
  
 % expectations over policies
 %--------------------------------------------------------------------------
@@ -73,7 +73,7 @@ else
 end
 plot(MDP.o,'.c','MarkerSize',16), hold off
 title('Preferred outcomes','FontSize',14)
-xlabel('trial','FontSize',12)
+xlabel('epoch','FontSize',12)
 ylabel('outcome','FontSize',12)
  
 % expected action

@@ -100,7 +100,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 6586 2015-10-31 12:02:44Z karl $
+% $Id: spm_MDP_VB.m 6587 2015-11-02 10:29:49Z karl $
  
  
 % deal with a sequence of trials
@@ -232,13 +232,17 @@ qH    = psi(c) - ones(Ns,1)*psi(sum(c));
  
 % priors over initial hidden states - concentration parameters
 %--------------------------------------------------------------------------
-try
-    d = MDP.d + q0;
-catch
-    d = ones(Ns,1);
+if isfield(MDP,'d')
+    d  = MDP.d + q0;
+    qD = psi(d) - ones(Ns,1)*psi(sum(d));
+elseif isfield(MDP,'D')
+    d  = MDP.D + q0;
+    qD = log(spm_norm(d));
+else
+    d  = ones(Ns,1);
+    qD = psi(d) - ones(Ns,1)*psi(sum(d));
 end
-qD    = psi(d) - ones(Ns,1)*psi(sum(d));
- 
+
 % priors over policies - concentration parameters
 %--------------------------------------------------------------------------
 try
@@ -283,7 +287,11 @@ try, eta   = MDP.eta;    catch, eta   = 2;  end
  
 % initial states and outcomes
 %--------------------------------------------------------------------------
-s  = MDP.s(1);                      % initial state (index)
+try
+    s = MDP.s(1);                   % initial state (index)
+catch
+    s = 1;
+end
 try
     o = MDP.o(1);                   % initial outcome (index)
 catch
@@ -303,22 +311,22 @@ end
  
 % expected rate parameter
 %--------------------------------------------------------------------------
-qbeta  = beta;                      % initialise rate parameters
-qeta   = eta - mean(sum(Vs,2));     % initialise rate parameters
-gu     = zeros(1,T)  + 1/qbeta;     % posterior precision (policy)
-gx     = zeros(Nh,T) + 1/qeta;      % posterior precision (policy)
-qeta   = zeros(Nh,1) + qeta;
+qbeta = beta;                       % initialise rate parameters
+qeta  = eta - mean(sum(Vs,2));      % initialise rate parameters
+gu    = zeros(1,T)  + 1/qbeta;      % posterior precision (policy)
+gx    = zeros(Nh,T) + 1/qeta;       % posterior precision (policy)
+qeta  = zeros(Nh,1) + qeta;
 
 
 % solve
 %==========================================================================
-Ni     = 16;                        % number of VB iterations
-rt     = zeros(1,T);                % reaction times
-xn     = zeros(Ni,Ns,T,T,Np);       % state updates
-un     = zeros(Nh,T*Ni);            % policy updates
-wn     = zeros(T*Ni,1);             % simulated DA responses
-p      = 1:Nh;                      % allowable policies
-for t  = 1:T
+Ni    = 16;                         % number of VB iterations
+rt    = zeros(1,T);                 % reaction times
+xn    = zeros(Ni,Ns,T,T,Np);        % state updates
+un    = zeros(Nh,T*Ni);             % policy updates
+wn    = zeros(T*Ni,1);              % simulated DA responses
+p     = 1:Nh;                       % allowable policies
+for t = 1:T
     
     % processing time and reset
     %----------------------------------------------------------------------

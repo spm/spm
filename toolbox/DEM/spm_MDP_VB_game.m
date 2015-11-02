@@ -32,7 +32,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 6579 2015-10-18 17:25:54Z karl $
+% $Id: spm_MDP_VB_game.m 6587 2015-11-02 10:29:49Z karl $
  
 % graphics
 %==========================================================================
@@ -49,7 +49,11 @@ for i = 1:Nt
     o(i)   = MDP(i).o(end);
     x{i,1} = xi;
     u(:,i) = MDP(i).R(:,end);
-    d(:,i) = MDP(i).d/sum(MDP(i).d);
+    try
+       d(:,i) = MDP(i).d/sum(MDP(i).d);
+    catch
+       d(:,i) = MDP(i).D/sum(MDP(i).D);
+    end
     w(:,i) = mean(MDP(i).dn,2);
     U      = spm_softmax(MDP(i).C);
     p(i)   = 0;

@@ -76,7 +76,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6532 2015-08-23 13:59:19Z karl $
+% $Id: spm_dcm_peb_bmc.m 6587 2015-11-02 10:29:49Z karl $
 
 % (greedy) search over all combinations of second level parameters
 %==========================================================================
@@ -86,13 +86,13 @@ if nargin < 2
     %----------------------------------------------------------------------
     BMA  = spm_dcm_bmr_all(PEB);
     
-    %  plot posteriors over parameters
+    % plot posteriors over parameters
     %======================================================================
     spm_figure('Getwin','BMC'); clf
     
     Np    = numel(PEB.Pind);
     Nx    = min(3,size(PEB.M.X,2));
-    str   = {'Group means','1st group effect','2nd group effect'};
+    str   = {'Group mean','1st group effect','2nd group effect'};
     for i = 1:Nx
         
         j = (1:Np)' + (i - 1)*Np;
@@ -103,7 +103,7 @@ if nargin < 2
         title(str{i},'FontSize',16)
         xlabel('Parameter','FontSize',12)
         ylabel('Effect size','FontSize',12)
-        axis square
+        axis square, a = axis;
         
         % posterior density over parameters
         %------------------------------------------------------------------
@@ -111,11 +111,16 @@ if nargin < 2
         title('Reduced','FontSize',16)
         xlabel('Parameter','FontSize',12)
         ylabel('Effect size','FontSize',12)
-        axis square
+        axis square, axis(a);
 
         % posterior density over parameters
         %------------------------------------------------------------------
-        subplot(3,Nx,Nx + Nx + i), bar(diag(BMA.Pp(j)),Np)
+        subplot(3,Nx,Nx + Nx + i)
+        if Np > 1
+            bar(diag(BMA.Pp(j)),Np)
+        else
+            bar(BMA.Pp(j))
+        end
         title('Posterior','FontSize',16)
         xlabel('Parameter','FontSize',12)
         ylabel('Probability','FontSize',12)

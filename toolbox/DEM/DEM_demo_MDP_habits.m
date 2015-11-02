@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6582 2015-10-26 10:20:28Z karl $
+% $Id: DEM_demo_MDP_habits.m 6587 2015-11-02 10:29:49Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -114,7 +114,9 @@ mdp.s = 1;                    % true initial state
 i           = [1,3];          % change context in a couple of trials
 [MDP(1:32)] = deal(mdp);      % create structure array
 [MDP(i).s]  = deal(2);        % deal context changes
+% [MDP.C]   = deal(C - C);    % for epistemic simulation
 MDP(12).o   = [1 6 7];        % unexpected outcome
+
 
  
 % Solve - an example game: a run of reds then an oddball
@@ -165,7 +167,6 @@ t  = (1:16)*16 + 80;
 subplot(2,1,1),plot(t,v{1}{2,1},'b-.',t,v{2}{2,1},'b:',t,v{2}{2,1} - v{1}{2,1})
 xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',16)
 legend({'oddball','standard','MMN'}), grid on, axis square
-
 
 return
 

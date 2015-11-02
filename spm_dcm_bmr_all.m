@@ -46,7 +46,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 6506 2015-07-24 10:26:51Z karl $
+% $Id: spm_dcm_bmr_all.m 6587 2015-11-02 10:29:49Z karl $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -261,15 +261,20 @@ axis square, a = axis;
 subplot(3,2,4), spm_plot_ci(Ep(i),abs(Cp(i)))
 title('MAP (reduced)','FontSize',16), axis square, axis(a)
 
-subplot(3,2,5), imagesc(K')
+subplot(3,2,5), imagesc(1 - K')
 xlabel('model'), ylabel('parameter'), title('model space','FontSize',16)
 set(gca,'YTickLabel',BMR.name);
 axis tight, axis square
 
-subplot(3,2,6), bar(diag(Pp(i)),length(i))
+subplot(3,2,6)
+Np = length(i);
+if Np > 1
+    bar(diag(Pp(i)),Np)
+else
+    bar(Pp)
+end
 xlabel('parameter'), title(' posterior','FontSize',16)
-spm_axis tight, axis square
-drawnow
+axis square, drawnow
 
 
 %-Save Bayesian parameter average and family-wise model inference

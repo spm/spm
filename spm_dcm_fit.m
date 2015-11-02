@@ -17,7 +17,7 @@ function [P]   = spm_dcm_fit(P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fit.m 6555 2015-09-14 09:32:06Z vladimir $
+% $Id: spm_dcm_fit.m 6587 2015-11-02 10:29:49Z karl $
 
 
 % get filenames and set up
@@ -55,6 +55,12 @@ if isfield(DCM,'options')
         
     end
     
+elseif isfield(DCM,'MDP')
+    
+    % assume the model is specified explicitly
+    %----------------------------------------------------------------------
+    model  = 'MDP';
+
 elseif isfield(DCM.M,'IS')
     
     % assume the model is specified explicitly
@@ -147,6 +153,11 @@ for i = 1:numel(P)
                 %----------------------------------------------------------
             case{'NFM'}
                 DCM = spm_dcm_nfm(DCM);
+                
+                % behavioural Markov decision process model
+                %----------------------------------------------------------
+            case{'MDP'}
+                DCM = spm_dcm_mdp(DCM);
                 
                 % generic nonlinear system identification
                 %----------------------------------------------------------

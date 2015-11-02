@@ -6,16 +6,29 @@ function spm_plot_ci(E,C,x,j,s)
 % x - domain
 % j - rows of E to plot
 % s - string to specify plot type:e.g. '--r' or 'exp'
+%
+% If E is a row vector with two elements, confidence regions will be
+% plotted; otherwise, bar charts with confidence intervals are provided
 %__________________________________________________________________________
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 6528 2015-08-21 11:48:54Z guillaume $
+% $Id: spm_plot_ci.m 6587 2015-11-02 10:29:49Z karl $
 
 
 % get axis
 %--------------------------------------------------------------------------
 ax = gca;
+
+% confidence region plotting
+%--------------------------------------------------------------------------
+if size(E,1) == 1 && size(E,2) == 2
+    E  = E';
+    CR = true;
+else
+    CR = false;
+end
+    
 
 % unpack expectations into a matrix
 %--------------------------------------------------------------------------
@@ -68,6 +81,8 @@ elseif isnumeric(C)
     %----------------------------------------------------------------------
     if all(size(C) == size(E))
         c = ci*sqrt(C(j,:));
+    elseif all(size(C') == size(E))
+        c = ci*sqrt(C(:,j));
     else
         
         % try covariance matrix
@@ -89,7 +104,19 @@ switch lower(get(ax,'NextPlot'))
         width = .8;
 end
 
-% conditional covariances
+% plot elliptical confidence region
+%--------------------------------------------------------------------------
+if CR
+    [x,y] = ellipsoid(E(1),E(2),1,c(1),c(2),0,32);
+    fill(x(16,:)',y(16,:)',[1 1 1]*gr,'EdgeColor',[1 1 1]*.5,'Parent',ax);
+    hold(ax,'on');
+    plot(ax,E(1),E(2),'.','MarkerSize',16);
+    hold(ax,'off'); drawnow
+    return
+end
+
+
+% plot bar chart
 %--------------------------------------------------------------------------
 if N >= 8
     
@@ -106,19 +133,7 @@ if N >= 8
             [.95 .95 1],'EdgeColor',[.8 .8 1],'Parent',ax);
         hold(ax,'on');
         plot(ax,x,E,s);
-    end
-    
-    
-elseif n == 2
-    
-    % plot in state-space
-    %======================================================================
-    try,  C = C{1};  end
-    [x,y] = ellipsoid(E(1),E(2),1,c(1),c(2),0,32);
-    fill(x(16,:)',y(16,:)',[1 1 1]*gr,'EdgeColor',[1 1 1]*.5,'Parent',ax);
-    hold(ax,'on');
-    plot(ax,E(1,1),E(2,1),'.','MarkerSize',16);
-    
+    end    
     
 else
     

@@ -78,7 +78,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6532 2015-08-23 13:59:19Z karl $
+% $Id: spm_dcm_peb.m 6587 2015-11-02 10:29:49Z karl $
  
 
 % get filenames and set up
@@ -140,8 +140,11 @@ if isfield(M,'bC') && Ns > 1
 else
     q = spm_find_pC(DCM,field);                 % parameter indices
 end
-Pstr  = spm_fieldindices(DCM.M.pE,q);           % field names
+Pstr  = spm_fieldindices(DCM.M.pE,q);           % field names 
 Np    = numel(q);                               % number of parameters
+if Np == 1
+    Pstr = {Pstr}; 
+end
 for i = 1:Ns
     
     % get first(within subject) level DCM

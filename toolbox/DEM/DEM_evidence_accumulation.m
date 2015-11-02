@@ -20,7 +20,7 @@ function DEM_evidence_accumulation
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_evidence_accumulation.m 4865 2012-08-28 12:46:50Z karl $
+% $Id: DEM_evidence_accumulation.m 6587 2015-11-02 10:29:49Z karl $
 
 
 % hidden causes and states
@@ -96,7 +96,7 @@ spm_DEM_qU(DEM.qU,DEM.pU)
 
 subplot(2,2,2)
 spm_plot_ci(DEM.qU.x,DEM.qU.S,pst,3,'exp'), hold on
-plot(pst,exp(DEM.qU.x{1}),'LineWidth',1), hold off
+plot(pst,exp(DEM.qU.x{1}),'LineWidth',1),  hold off
 axis([1 N 0 2])
 axis square
 
