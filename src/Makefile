@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2015 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 6550 2015-09-11 15:59:57Z spm $
+# $Id: Makefile 6589 2015-11-03 16:01:08Z guillaume $
 #
 ###############################################################################
 #
@@ -51,7 +51,7 @@ SPMMEX  =\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_voronoi.$(SUF) spm_mesh_utils.$(SUF) \
 	spm_mrf.$(SUF) spm_diffeo.$(SUF) spm_field.$(SUF) \
-	spm_cat.$(SUF)
+	spm_cat.$(SUF) spm_jsonread.$(SUF)
 
 SUBDIRS =\
 	@file_array/private \
@@ -291,7 +291,10 @@ spm_diffeo.$(SUF): spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscal
 	$(MEX) spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_bsplines.c bsplines.c -DIMAGE_SINGLE $(MEXEND)
 
 spm_field.$(SUF): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_boundary.c
-	$(MEX)  spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c $(MEXEND)
+	$(MEX) spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c $(MEXEND)
+
+spm_jsonread.$(SUF): spm_jsonread.c jsmn.h jsmn.c
+	$(MEX) spm_jsonread.c jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)
 
 ###############################################################################
 # Display Messages
