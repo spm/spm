@@ -3627,6 +3627,7 @@ FFFE	E0DD	SequenceDelimitationItem	UN	1
 0031	1009	NumberRawDataChannels	UL	1
 7fe1	1010	CSAData	OB	1
 0029	1140	SiemensMedcomHeader	SQ	1
+0043	102f	GE_ImageType	OB	1
 2001	0010	PrivateCreatorGroup2001	LO	1
 2001	1001	ChemicalShift	FL	1
 2001	1002	ChemicalShiftNumberMR	IS	1

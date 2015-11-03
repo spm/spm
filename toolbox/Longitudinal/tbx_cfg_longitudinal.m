@@ -4,7 +4,7 @@ function cfg = tbx_cfg_longitudinal
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 5885 2014-02-18 11:53:55Z john $
+% $Id: tbx_cfg_longitudinal.m 6588 2015-11-03 15:26:38Z john $
 
 if ~isdeployed,
     addpath(fullfile(spm('Dir'),'toolbox','Longitudinal'));
@@ -170,7 +170,7 @@ long.name    = 'Serial Longitudinal Registration';
 long.val     = {vols tim noise wparam bparam write_avg write_jac write_div write_defs};
 long.help    = {'Longitudinal registration of series of anatomical MRI scans for a single subject.  It is based on groupwise alignment among each of the subject''s scans, and incorporates a bias field correction.  Prior to running the registration, the scans should already be in very rough alignment, although because the model incorporates a rigid-body transform, this need not be extremely precise.  Note that there are a bunch of hyper-parameters to be specified.  If you are unsure what values to take, then the defaults should be a reasonable guess of what works.  Note that changes to these hyper-parameters will impact the results obtained.',...
 '',...
-'The alignment assumes that all scans have similar resolutions and dimensions, and were collected on the same (or very similar) MR scanner using the same pulse sequence.  If these assumption are not correct, then the approach will not work as well.'};
+'The alignment assumes that all scans have similar resolutions and dimensions, and were collected on the same (or very similar) MR scanner using the same pulse sequence.  If these assumption are not correct, then the approach will not work as well.  There are a number of settings (noise estimate, regularisation etc). Default settings often work well, but it can be very helpful to try some different values, as these can have a large effect on the results.'};
 long.prog = @spm_series_align;
 
 cfg        = cfg_repeat;

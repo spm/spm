@@ -36,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6581 2015-10-19 13:40:36Z volkmar $
+% $Id: spm_dicom_convert.m 6588 2015-11-03 15:26:38Z john $
 
 
 %-Input parameters
@@ -327,6 +327,9 @@ for i=2:length(hdr)
             end
             if isfield(hdr{i},'EchoNumbers')  && isfield(vol{j}{1}, 'EchoNumbers')
                 match = match && hdr{i}.EchoNumbers == vol{j}{1}.EchoNumbers;
+            end
+            if isfield(hdr{i},'GE_ImageType')  && isfield(vol{j}{1}, 'GE_ImageType')
+                match = match && hdr{i}.GE_ImageType == vol{j}{1}.GE_ImageType;
             end
         catch
             match = 0;
@@ -1218,20 +1221,32 @@ if isfield(hdr,'SeriesNumber'),      SeriesNumber      = hdr.SeriesNumber;      
 if isfield(hdr,'AcquisitionNumber'), AcquisitionNumber = hdr.AcquisitionNumber;  else AcquisitionNumber = 0;      end
 if isfield(hdr,'InstanceNumber'),    InstanceNumber    = hdr.InstanceNumber;     else InstanceNumber    = 0;      end
 
+ImTyp = '';
+if isfield(hdr,'GE_ImageType')
+    switch hdr.GE_ImageType
+        case 1
+            ImTyp = '-Phase';
+        case 2
+            ImTyp = '-Real';
+        case 3
+            ImTyp = '-Imag';
+    end
+end
+
 if strcmp(root_dir, 'flat')
     % Standard SPM file conversion
     %----------------------------------------------------------------------
     if checkfields(hdr,'SeriesNumber','AcquisitionNumber')
         if checkfields(hdr,'EchoNumbers')
-            fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d.%s', prefix, strip_unwanted(PatientID),...
-                SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, format);
+            fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d%s.%s', prefix, strip_unwanted(PatientID),...
+                SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, ImTyp, format);
         else
-            fname = sprintf('%s%s-%.4d-%.5d-%.6d.%s', prefix, strip_unwanted(PatientID),...
-                SeriesNumber, AcquisitionNumber, InstanceNumber, format);
+            fname = sprintf('%s%s-%.4d-%.5d-%.6d%s.%s', prefix, strip_unwanted(PatientID),...
+                SeriesNumber, AcquisitionNumber, InstanceNumber, ImTyp, format);
         end
     else
-        fname = sprintf('%s%s-%.6d.%s',prefix, ...
-            strip_unwanted(PatientID),InstanceNumber, format);
+        fname = sprintf('%s%s-%.6d%s.%s',prefix, ...
+            strip_unwanted(PatientID), InstanceNumber, ImTyp, format);
     end
 
     fname = fullfile(out_dir,fname);
@@ -1293,8 +1308,8 @@ end
 sa    = sprintf('%02d', floor(rem(AcquisitionTime,60)));
 ma    = sprintf('%02d', floor(rem(AcquisitionTime/60,60)));
 ha    = sprintf('%02d', floor(AcquisitionTime/3600));
-fname = sprintf('%s%s-%s%s%s-%.5d-%.5d-%d.%s', prefix, id, ha, ma, sa, ...
-        AcquisitionNumber, InstanceNumber, EchoNumbers, format);
+fname = sprintf('%s%s-%s%s%s-%.5d-%.5d-%d%s.%s', prefix, id, ha, ma, sa, ...
+        AcquisitionNumber, InstanceNumber, EchoNumbers, ImTyp, format);
 fname = fullfile(dname, fname);
 
 
