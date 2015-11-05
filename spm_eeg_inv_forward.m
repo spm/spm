@@ -12,7 +12,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 6182 2014-09-18 12:03:18Z guillaume $
+% $Id: spm_eeg_inv_forward.m 6590 2015-11-05 16:17:27Z vladimir $
 
 
 %-Initialisation
@@ -122,12 +122,12 @@ for i = 1:numel(D.inv{val}.forward)
             end
             
             cfg = [];
-            cfg.vol = vol;
+            cfg.headmodel = vol;
             cfg.grid.pos = mesh.tess_ctx.vert;         
             cfg.moveinward = 6e-3; %move to empirically determined BEM safe zone
             gridcorrect = ft_prepare_sourcemodel(cfg);
             
-            mesh_correction    = rmfield(cfg, {'vol', 'grid'});
+            mesh_correction    = rmfield(cfg, {'headmodel', 'grid'});
             
             mesh.tess_ctx.vert = gridcorrect.pos;
             
