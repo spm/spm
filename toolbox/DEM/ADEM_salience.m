@@ -1,5 +1,5 @@
 function ADEM_salience
-% Saccadic eye movements under active inference:
+% Saccadic eye movements under active inference
 %__________________________________________________________________________
 % This demo illustrates exploration or visual search in terms of optimality
 % principles based on straightforward ergodic or allostatic principles.
@@ -17,10 +17,13 @@ function ADEM_salience
 % sampling of sensory data) to simulate saccadic eye movements under
 % active inference.
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_salience.m 5521 2013-05-25 11:55:48Z karl $
+% $Id: ADEM_salience.m 6592 2015-11-06 16:20:48Z guillaume $
+
+
+pth = fileparts(mfilename('fullpath'));
 
 
 % hidden causes and states
@@ -51,17 +54,18 @@ DEMO = 0;
 
 try
     
-    STIM.H{1}   = spm_vol('face_R.nii');
-    STIM.H{2}   = spm_vol('face_rot_R.nii');
-    STIM.H{3}   = spm_vol('face_inv_R.nii');
+    STIM.H{1}   = spm_vol(fullfile(pth,'face_R.nii'));
+    STIM.H{2}   = spm_vol(fullfile(pth,'face_rot_R.nii'));
+    STIM.H{3}   = spm_vol(fullfile(pth,'face_inv_R.nii'));
     
-    STIM.S{1}   = spm_vol('face.nii');
-    STIM.S{2}   = spm_vol('face_rot.nii');
-    STIM.S{3}   = spm_vol('face_inv.nii');
+    STIM.S{1}   = spm_vol(fullfile(pth,'face.nii'));
+    STIM.S{2}   = spm_vol(fullfile(pth,'face_rot.nii'));
+    STIM.S{3}   = spm_vol(fullfile(pth,'face_inv.nii'));
     
 catch
     
-    errordlg('please change current directory to DEM toolbox')
+    error('Images not found.');
+    
 end
 
 
@@ -70,13 +74,13 @@ end
 dim    = 16;                                  % dimension of visual sample
 ns     = dim*dim;                             % number of sensory channels
 nh     = length(STIM.H);                      % number of hypotheses
-STIM.R = hanning(dim)*hanning(dim)';          % Retinal precision
+STIM.R = spm_hanning(dim)*spm_hanning(dim)';  % Retinal precision
 
-STIM.V = spm_vol('Nefertiti_R.nii');          % Stimulus (filtered)
-STIM.U = spm_vol('Nefertiti.nii');            % Stimulus (unfiltered)
+STIM.V = spm_vol(fullfile(pth,'Nefertiti_R.nii')); % Stimulus (filtered)
+STIM.U = spm_vol(fullfile(pth,'Nefertiti.nii'));   % Stimulus (unfiltered)
 
-STIM.V = spm_vol('face_R.nii');               % Stimulus (filtered)
-STIM.U = spm_vol('face.nii');                 % Stimulus (unfiltered)
+STIM.V = spm_vol(fullfile(pth,'face_R.nii'));      % Stimulus (filtered)
+STIM.U = spm_vol(fullfile(pth,'face.nii'));        % Stimulus (unfiltered)
 
 
 % hidden states
@@ -210,7 +214,7 @@ return
 % illustrate salience for
 %==========================================================================
 nr          = 64;
-STIM.H{1}   = spm_vol('Nefertiti_R.nii');
+STIM.H{1}   = spm_vol(fullfile(pth,'Nefertiti_R.nii'));
 M(1).x.x    = 0;
 S           = spm_salience_map(M,nr);
 
@@ -233,7 +237,7 @@ F   = F/max(max(F));
 % write volume structure
 %--------------------------------------------------------------------------
 V   = struct(...
-    'fname',  [fname '.nii'],...
+    'fname',  fullfile(pth,[fname '.nii']),...
     'dim',    DIM,...
     'mat',    M,...
     'pinfo',  [1 0 0]',...
@@ -246,8 +250,7 @@ V   = spm_write_plane(V,F,1);
 %==========================================================================
 for i = 1:length(H)
     
-    [PATHSTR,NAME,EXT] = fileparts(H{i}.fname);
-    fname = [NAME '_R' EXT];
+    fname = spm_file(H{i}.fname,'suffix','_R');
     s     = spm_read_vols(H{i});
     s     = s/max(max(s));
     s     = (spm_conv(s,1) - spm_conv(s,4));
@@ -261,7 +264,7 @@ for i = 1:length(H)
         'dim',    DIM,...
         'mat',    M,...
         'pinfo',  [1 0 0]',...
-        'descrip',NAME);
+        'descrip',spm_file(fname,'basename'));
     V   = spm_create_vol(V);
     V   = spm_write_plane(V,s,1);
     

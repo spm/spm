@@ -3,7 +3,7 @@ function spm_MDP_urn
 %__________________________________________________________________________
 %
 % This demonstration uses the Urn or Beads Task to illustrate how choice
-% behaviour can be simulated using active inference – in the context of
+% behaviour can be simulated using active inference - in the context of
 % Markov decision processes. In the urn task, a succession of draws
 % from one of two urns are made and the agent has to decide whether the
 % balls are being drawn from an urn with predominantly red or green balls.
@@ -19,7 +19,7 @@ function spm_MDP_urn
 %
 % This routine first provides an illustration of a game in which a decision
 % is delayed until the last draw to look at inferences during successive
-% draws  – with a special focus on precision. The illustration here shows
+% draws - with a special focus on precision. The illustration here shows
 % a decrease in precision when an unexpected (green ball) is drawn during a
 % sequence of red balls.
 %
@@ -33,7 +33,7 @@ function spm_MDP_urn
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_urn.m 6064 2014-06-23 09:39:46Z karl $
+% $Id: spm_MDP_urn.m 6592 2015-11-06 16:20:48Z guillaume $
  
 % set up and preliminaries
 %==========================================================================
@@ -51,7 +51,7 @@ D(1,1,1,2) = 1;
 D          = spm_vec(D);
 
  
-% likelihood – everything is seen  apart from the hidden states of the urn
+% likelihood - everything is seen  apart from the hidden states of the urn
 %--------------------------------------------------------------------------
 A     = kron([1 1],eye(3*T*T));
 
