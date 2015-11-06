@@ -26,8 +26,10 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.options.induced                % switch for CSD data features
 % DCM.options.P                      % starting estimates for parameters
 % DCM.options.hidden                 % indices of hidden regions
-% DCM.options.nmax                   % maximum number of (effective) nodes
-% DCM.options.nN                     % maximum number of iterations
+% DCM.options.maxnodes               % maximum number of (effective) nodes
+% DCM.options.maxit                  % maximum number of iterations
+% DCM.options.hE                     % expected precision of the noise
+% DCM.options.hC                     % variance of noise expectation
 %
 % Evaluates:
 %--------------------------------------------------------------------------
@@ -53,10 +55,10 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_estimate.m 6432 2015-05-09 12:58:12Z karl $
+% $Id: spm_dcm_estimate.m 6591 2015-11-06 11:18:19Z peter $
 
 
-SVNid = '$Rev: 6432 $';
+SVNid = '$Rev: 6591 $';
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -89,15 +91,41 @@ try, DCM.options.two_state;  catch, DCM.options.two_state  = 0;     end
 try, DCM.options.stochastic; catch, DCM.options.stochastic = 0;     end
 try, DCM.options.nonlinear;  catch, DCM.options.nonlinear  = 0;     end
 try, DCM.options.centre;     catch, DCM.options.centre     = 0;     end
-try, DCM.options.nmax;       catch, DCM.options.nmax       = 8;     end
-try, DCM.options.nN;         catch, DCM.options.nN         = 32;    end
 try, DCM.options.hidden;     catch, DCM.options.hidden     = [];    end
+try, DCM.options.hE;         catch, DCM.options.hE         = 6;     end
+try, DCM.options.hC;         catch, DCM.options.hC         = 1/128; end
 try, DCM.n;                  catch, DCM.n = size(DCM.a,1);          end
 try, DCM.v;                  catch, DCM.v = size(DCM.Y.y,1);        end
 
 try, M.nograph = DCM.options.nograph; catch, M.nograph = spm('CmdLine');end
-try, M.Nmax    = DCM.options.nN     ; catch,M.Nmax = 64;            end
-try, M.Nmax    = DCM.M.Nmax         ; catch,M.Nmax = 64;            end
+
+% check max iterations
+try
+    DCM.options.maxit;
+catch    
+    if isfield(DCM.options,'nN')
+        DCM.options.maxit = DCM.options.nN;
+        warning('options.nN is deprecated. Please use options.maxit');
+    elseif DCM.options.stochastic
+        DCM.options.maxit = 32;
+    else
+        DCM.options.maxit = 128;
+    end
+end
+
+try M.Nmax = DCM.M.Nmax; catch, M.Nmax = DCM.options.maxit; end
+
+% check max nodes
+try
+    DCM.options.maxnodes;
+catch
+    if isfield(DCM.options,'nmax')
+        DCM.options.maxnodes = DCM.options.nmax;
+        warning('options.nmax is deprecated. Please use options.maxnodes');
+    else
+        DCM.options.maxnodes = 8;
+    end
+end
 
 % analysis and options
 %--------------------------------------------------------------------------
@@ -172,7 +200,8 @@ end
 % priors (and initial states)
 %--------------------------------------------------------------------------
 [pE,pC,x]  = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
-str        = 'Using specified priors\n';
+str        = 'Using specified priors ';
+str        = [str '(any changes to DCM.a,b,c,d will be ignored)\n'];
 
 try, M.P   = DCM.options.P;                end      % initial parameters
 try, pE    = DCM.options.pE; fprintf(str); end      % prior expectation
@@ -185,13 +214,13 @@ try, pC    = DCM.M.pC; fprintf(str); end            % prior covariance
 
 % eigenvector constraints on pC for large models
 %--------------------------------------------------------------------------
-if n > DCM.options.nmax
+if n > DCM.options.maxnodes
     
     % remove confounds and find principal (nmax) modes
     %----------------------------------------------------------------------
     y       = Y.y - Y.X0*(pinv(Y.X0)*Y.y);
     V       = spm_svd(y');
-    V       = V(:,1:DCM.options.nmax);
+    V       = V(:,1:DCM.options.maxnodes);
     
     % remove minor modes from priors on A
     %----------------------------------------------------------------------
@@ -203,12 +232,11 @@ end
 
 % hyperpriors over precision - expectation and covariance
 %--------------------------------------------------------------------------
-hE      = sparse(n,1) + 6;
-hC      = speye(n,n)/128;
+hE      = sparse(n,1) + DCM.options.hE;
+hC      = speye(n,n)  * DCM.options.hC;
 i       = DCM.options.hidden;
 hE(i)   = -4;
 hC(i,i) = exp(-16);
-
 
 % complete model specification
 %--------------------------------------------------------------------------
@@ -269,7 +297,7 @@ else
     DEM.M(1).E.s    = 1/2;                % smoothness of fluctuations
     DEM.M(1).E.d    = 2;                  % embedding dimension
     DEM.M(1).E.n    = 4;                  % embedding dimension
-    DEM.M(1).E.nN   = DCM.options.nN;     % maximum number of iterations
+    DEM.M(1).E.nN   = DCM.options.maxit;  % maximum number of iterations
     
     % adjust M.f (DEM works in time bins not seconds) and initialize M.P
     % ---------------------------------------------------------------------
