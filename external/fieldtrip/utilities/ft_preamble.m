@@ -29,7 +29,7 @@ function ft_preamble(cmd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble.m 10458 2015-06-18 19:53:31Z roboos $
+% $Id: ft_preamble.m 10756 2015-10-07 07:57:05Z roboos $
 
 % ideally this would be a script, because the local variables would then be
 % shared with the calling function. Instead, this is a function which then
@@ -56,15 +56,13 @@ if ft_platform_supports('exists-in-private-directory')
     evalin('caller', ['ft_preamble_' cmd]);
   end
 else
-  % Octave does not find files by name, so the full filename must
-  % be specified.
+  % Octave does not find files by name, so the full filename must be specified.
   if exist(['private/ft_preamble_' cmd '.m'], 'file')
 
     % save the original working directory
     orig_pwd=pwd();
 
-    % ensure original working directory is restored when exiting this
-    % function
+    % ensure original working directory is restored when exiting this function
     cleaner=onCleanup(@()cd(orig_pwd));
 
     % cd to private directory

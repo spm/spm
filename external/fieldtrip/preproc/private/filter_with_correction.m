@@ -37,7 +37,7 @@ function filt = filter_with_correction(B,A,dat,dir,usefftfilt)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: filter_with_correction.m 9991 2014-12-01 16:03:02Z jansch $
+% $Id: filter_with_correction.m 10840 2015-11-04 16:51:38Z roboos $
 
 % convert the data to double precision
 % see  http://bugzilla.fcdonders.nl/show_bug.cgi?id=2653

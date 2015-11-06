@@ -45,16 +45,16 @@ function parcel = ft_sourceparcellate(cfg, source, parcellation)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceparcellate.m 9850 2014-09-27 09:41:31Z roboos $
+% $Id: ft_sourceparcellate.m 10765 2015-10-09 18:10:47Z roboos $
 
-revision = '$Id: ft_sourceparcellate.m 9850 2014-09-27 09:41:31Z roboos $';
+revision = '$Id: ft_sourceparcellate.m 10765 2015-10-09 18:10:47Z roboos $';
 
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar source
+ft_preamble provenance source
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -94,7 +94,7 @@ if ~isempty(transform)
 end
 
 % ensure it is a source, not a volume
-source       = ft_checkdata(source, 'datatype', 'source', 'inside', 'logical', 'sourcerepresentation', 'new');
+source = ft_checkdata(source, 'datatype', 'source', 'inside', 'logical');
 
 % ensure that the source and the parcellation are anatomically consistent
 if ~isequalwithequalnans(source.pos, parcellation.pos)
@@ -336,10 +336,10 @@ end
 
 ft_postamble debug
 ft_postamble trackconfig
-ft_postamble provenance
-ft_postamble previous source parcellation
-ft_postamble history parcel
-ft_postamble savevar parcel
+ft_postamble previous   source parcellation
+ft_postamble provenance parcel
+ft_postamble history    parcel
+ft_postamble savevar    parcel
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTIONS to complute something over the first dimension

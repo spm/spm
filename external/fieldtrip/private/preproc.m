@@ -121,7 +121,7 @@ function [dat, label, time, cfg] = preproc(dat, label, time, cfg, begpadding, en
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 10625 2015-08-24 22:37:33Z arjsto $
+% $Id: preproc.m 10741 2015-10-01 11:46:08Z jansch $
 
 % compute fsample
 fsample = 1./nanmean(diff(time));
@@ -357,10 +357,7 @@ if strcmp(cfg.demean, 'yes')
 end
 if strcmp(cfg.dftfilter, 'yes')
   datorig = dat;
-  for i=1:length(cfg.dftfreq)
-    % filter out the 50Hz noise, optionally also the 100 and 150 Hz harmonics
-    dat = ft_preproc_dftfilter(dat, fsample, cfg.dftfreq(i));
-  end
+  dat     = ft_preproc_dftfilter(dat, fsample, cfg.dftfreq);
   if strcmp(cfg.dftinvert, 'yes'),
     dat = datorig - dat;
   end

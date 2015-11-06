@@ -7,7 +7,7 @@ function [data] = besa2fieldtrip(input)
 % Use as
 %   [data] = besa2fieldtrip(filename)
 % where the filename should point to a BESA datafile (or data that
-% is exported by BESA). The output is a MATLAB structure that is
+% was exported by BESA). The output is a MATLAB structure that is
 % compatible with FieldTrip.
 %
 % The format of the output structure depends on the type of datafile:
@@ -42,9 +42,9 @@ function [data] = besa2fieldtrip(input)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: besa2fieldtrip.m 10156 2015-02-04 08:45:19Z roboos $
+% $Id: besa2fieldtrip.m 10696 2015-09-28 16:54:18Z roboos $
 
-revision = '$Id: besa2fieldtrip.m 10156 2015-02-04 08:45:19Z roboos $';
+revision = '$Id: besa2fieldtrip.m 10696 2015-09-28 16:54:18Z roboos $';
 
 % do the general setup of the function
 ft_defaults

@@ -34,7 +34,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_provenance.m 9900 2014-10-13 15:06:43Z roboos $
+% $Id: ft_preamble_provenance.m 10765 2015-10-09 18:10:47Z roboos $
 
 % Record the start time and memory. These are used by ft_postamble_callinfo, which
 % stores them in the output cfg.callinfo.  In the mean time, they are stored in the
@@ -58,7 +58,11 @@ cfg.callinfo.usercfg = cfg;
 if isequal(ft_default.preamble, {'varargin'})
   tmpargin = varargin;
 else
-  tmpargin = cellfun(@eval, ft_default.preamble, 'UniformOutput', false);
+  isvar = cellfun(@(x) exist(x, 'var')==1, ft_default.preamble);
+  tmpargin = cellfun(@eval, ft_default.preamble(isvar), 'UniformOutput', false);
+  tmpargin( isvar) = tmpargin;
+  tmpargin(~isvar) = {[]};
+  clear isvar
 end
 cfg.callinfo.inputhash = cell(1,numel(tmpargin));
 for iargin = 1:numel(tmpargin)

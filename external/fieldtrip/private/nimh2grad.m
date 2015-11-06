@@ -29,7 +29,7 @@ function [grad] = nimh2grad(hdr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nimh2grad.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id: nimh2grad.m 10743 2015-10-02 08:54:02Z roboos $
 
 % only work on the MEG channels
 if isfield(hdr.sensor.index, 'meg')
@@ -39,19 +39,19 @@ else
 end
 
 % start with an empty structure
-grad.pnt = [];
-grad.ori = [];
+grad.coilpos = [];
+grad.coilori = [];
 grad.tra = [];
 grad.label = {};
 
 for i=1:length(sel)
-  pnt = hdr.sensor.info(sel(i)).location';
+  pos = hdr.sensor.info(sel(i)).location';
   ori = hdr.sensor.info(sel(i)).orientation';
-  numcoils(i) = size(pnt,1);
-  if size(ori,1)==1 && size(pnt,1)==1
+  numcoils(i) = size(pos,1);
+  if size(ori,1)==1 && size(pos,1)==1
     % one coil position with one orientation: magnetometer
     ori = ori;
-  elseif size(ori,1)==1 && size(pnt,1)==2
+  elseif size(ori,1)==1 && size(pos,1)==2
     % two coil positions with one orientation: first order gradiometer
     % assume that the orientation of the upper coil is opposite to the lower coil
     ori = [ori; -ori];
@@ -60,15 +60,15 @@ for i=1:length(sel)
   end
 
   % add this channels coil positions and orientations
-  grad.pnt = [grad.pnt; pnt];
+  grad.coilpos = [grad.coilpos; pos];
   grad.ori = [grad.ori; ori];
   grad.label{i} = hdr.sensor.info(sel(i)).label;
 
   % determine the contribution of each coil to each channel's output signal
-  if size(pnt,1)==1
+  if size(pos,1)==1
     % one coil, assume that the orientation is correct, i.e. the weight is +1
     grad.tra(i,end+1) = 1;
-  elseif size(pnt,1)==2
+  elseif size(pos,1)==2
     % two coils, assume that the orientation for each coil is correct, i.e. the weights are +1 and +1
     grad.tra(i,end+1) = 1;
     grad.tra(i,end+1) = 1;
@@ -86,7 +86,7 @@ grad.label = grad.label(:);
 if all(numcoils==2)
   bot = 1:2:sum(numcoils);
   top = 2:2:sum(numcoils);
-  grad.pnt = grad.pnt([bot top], :);
+  grad.coilpos = grad.coilpos([bot top], :);
   grad.ori = grad.ori([bot top], :);
   grad.tra = grad.tra(:, [bot top]);
 end

@@ -89,17 +89,17 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 10255 2015-02-24 08:29:17Z jansch $
+% $Id: ft_mvaranalysis.m 10765 2015-10-09 18:10:47Z roboos $
 
-revision = '$Id: ft_mvaranalysis.m 10255 2015-02-24 08:29:17Z jansch $';
+revision = '$Id: ft_mvaranalysis.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
+ft_preamble provenance data
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -457,10 +457,10 @@ mvardata.fsampleorig = data.fsample;
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble trackconfig
-ft_postamble provenance
-ft_postamble previous data
-ft_postamble history mvardata
-ft_postamble savevar mvardata
+ft_postamble previous   data
+ft_postamble provenance mvardata
+ft_postamble history    mvardata
+ft_postamble savevar    mvardata
 
 %----------------------------------------------------
 %subfunction to concatenate data with nans in between

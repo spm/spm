@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 10683 2015-09-21 09:33:44Z jansch $
+% $Id: ft_hastoolbox.m 10844 2015-11-05 21:39:57Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -145,6 +145,7 @@ url = {
   'NEURALYNX_V6'  'see http://neuralynx.com/research_software/file_converters_and_utilities/ and take the version from Neuralynx (windows only)' 
   'NEURALYNX_V3'  'see http://neuralynx.com/research_software/file_converters_and_utilities/ and take the version from Ueli Rutishauser' 
   'NPMK'          'see https://github.com/BlackrockMicrosystems/NPMK'
+  'VIDEOMEG'      'see https://github.com/andreyzhd/VideoMEG'
   };
 
 if nargin<2
@@ -348,6 +349,9 @@ switch toolbox
     status = all(cellfun(@exist, filelist, repmat({'file'}, size(filelist))));
   case 'NPMK'
     filelist = {'OpenNSx' 'OpenNEV'};
+    status = all(cellfun(@exist, filelist, repmat({'file'}, size(filelist))));
+  case 'VIDEOMEG'
+    filelist = {'comp_tstamps' 'load_audio0123', 'load_video123'};
     status = all(cellfun(@exist, filelist, repmat({'file'}, size(filelist))));
     
     % the following are fieldtrip modules/toolboxes

@@ -65,17 +65,17 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 10196 2015-02-11 09:15:07Z roboos $
+% $Id: ft_freqstatistics.m 10765 2015-10-09 18:10:47Z roboos $
 
-revision = '$Id: ft_freqstatistics.m 10196 2015-02-11 09:15:07Z roboos $';
+revision = '$Id: ft_freqstatistics.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar varargin
+ft_preamble provenance varargin
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -226,7 +226,7 @@ cfg = removefields(cfg, {'dim', 'dimord'});
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble trackconfig
-ft_postamble provenance
-ft_postamble previous varargin
-ft_postamble history stat
-ft_postamble savevar stat
+ft_postamble previous   varargin
+ft_postamble provenance stat
+ft_postamble history    stat
+ft_postamble savevar    stat

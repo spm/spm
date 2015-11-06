@@ -1,4 +1,4 @@
-function [pnt, tri] = icosahedron162()
+function [pos, tri] = icosahedron162()
 
 % ICOSAHEDRON162 creates a 2-fold refined icosahedron
 
@@ -20,10 +20,10 @@ function [pnt, tri] = icosahedron162()
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: icosahedron162.m 8960 2013-12-05 07:43:01Z roboos $
+% $Id: icosahedron162.m 10772 2015-10-14 07:36:57Z roboos $
 
-[pnt, tri] = icosahedron;
-[pnt, tri] = refine(pnt, tri);
-[pnt, tri] = refine(pnt, tri);
+[pos, tri] = icosahedron;
+[pos, tri] = refine(pos, tri);
+[pos, tri] = refine(pos, tri);
 
-pnt = pnt ./ repmat(sqrt(sum(pnt.^2,2)), 1,3);
+pos = pos ./ repmat(sqrt(sum(pos.^2,2)), 1,3);

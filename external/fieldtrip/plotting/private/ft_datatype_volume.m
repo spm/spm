@@ -75,7 +75,7 @@ function volume = ft_datatype_volume(volume, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_volume.m 10175 2015-02-06 14:41:24Z roboos $
+% $Id: ft_datatype_volume.m 10738 2015-09-30 19:18:06Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -122,20 +122,22 @@ switch version
       % move the average fields to the main structure
       fn = fieldnames(volume.avg);
       for i=1:length(fn)
-        dat = volume.avg.(fn{i});
-        try
-          volume.(fn{i}) = reshape(dat, volume.dim);
-        catch
-          warning('could not reshape %s to expected dimensions');
-          volume.(fn{i}) = dat;
-        end
-        clear dat
+        volume.(fn{i}) = volume.avg.(fn{i});
       end
       volume = rmfield(volume, 'avg');
     end
     
     % ensure that it is always logical
     volume = fixinside(volume, 'logical');
+    
+    fn = getdatfield(volume);
+    for i=1:numel(fn)
+      try
+        volume.(fn{i}) = reshape(volume.(fn{i}), volume.dim);
+      catch
+        warning('could not reshape %s to the expected dimensions', fn{i});
+      end
+    end
     
   case '2012b'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

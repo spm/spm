@@ -28,7 +28,7 @@ function [innermost, inside] = find_innermost_boundary(bnd)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: find_innermost_boundary.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: find_innermost_boundary.m 10751 2015-10-06 16:14:11Z roboos $
 
 ncmp = length(bnd);
 
@@ -41,13 +41,13 @@ end
 for i=1:ncmp
 for j=1:ncmp
   % determine for a single vertex on each surface if it is inside or outside the other surfaces
-  curpos = bnd(i).pnt(1,:); % any point on the boundary is ok
-  curpnt = bnd(j).pnt;
-  curtri = bnd(j).tri;
+  curpos1 = bnd(i).pos(1,:); % any point on the boundary is ok
+  curpos  = bnd(j).pos;
+  curtri  = bnd(j).tri;
   if i==j
     inside(i,j) = 0;
   else
-    inside(i,j) = bounding_mesh(curpos, curpnt, curtri);
+    inside(i,j) = bounding_mesh(curpos1, curpos, curtri);
   end
 end
 end

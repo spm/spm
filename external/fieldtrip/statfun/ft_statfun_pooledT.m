@@ -1,4 +1,4 @@
-function [s] = ft_statfun_pooledT(cfg, dat, design)
+function [s, cfg] = ft_statfun_pooledT(cfg, dat, design)
 
 % FT_STATFUN_POOLEDT computes the pooled t-value over a number of
 % replications. The idea is that you compute a contrast between two
@@ -59,7 +59,7 @@ function [s] = ft_statfun_pooledT(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_pooledT.m 9560 2014-05-20 20:38:42Z dieloz $
+% $Id: ft_statfun_pooledT.m 10801 2015-10-20 12:05:28Z roboos $
 
 
 selA = find(design(cfg.ivar,:)==1);

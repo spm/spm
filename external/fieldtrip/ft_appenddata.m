@@ -55,17 +55,17 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 9768 2014-08-06 11:15:00Z eelspa $
+% $Id: ft_appenddata.m 10765 2015-10-09 18:10:47Z roboos $
 
-revision = '$Id: ft_appenddata.m 9768 2014-08-06 11:15:00Z eelspa $';
+revision = '$Id: ft_appenddata.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar varargin
+ft_preamble provenance varargin
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort

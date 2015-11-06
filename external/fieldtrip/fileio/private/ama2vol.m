@@ -23,19 +23,19 @@ function [vol] = ama2vol(ama)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ama2vol.m 8962 2013-12-05 07:48:46Z roboos $
+% $Id: ama2vol.m 10752 2015-10-06 16:14:17Z roboos $
 
 vol  = [];
 ngeo = length(ama.geo);
 for i=1:ngeo
-  vol.bnd(i).pnt = ama.geo(i).pnt;
+  vol.bnd(i).pos = ama.geo(i).pos;
   vol.bnd(i).tri = ama.geo(i).tri;
   vol.cond(i) = ama.geo(i).sigmam;
 end
 vol.mat = ama.bi;
-npnt = size(vol.mat,2);
-if size(vol.mat,1)<npnt
-  vol.mat(npnt, npnt) = 0;    % it should be a square matrix
+npos = size(vol.mat,2);
+if size(vol.mat,1)<npos
+  vol.mat(npos, npos) = 0;    % it should be a square matrix
 end
 vol.mat  = vol.mat;
 vol.type = 'dipoli';

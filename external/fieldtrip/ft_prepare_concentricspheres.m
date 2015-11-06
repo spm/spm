@@ -23,18 +23,18 @@ function [headmodel, cfg] = ft_prepare_concentricspheres(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_concentricspheres.m 10541 2015-07-15 16:49:37Z roboos $
+% $Id: ft_prepare_concentricspheres.m 10765 2015-10-09 18:10:47Z roboos $
 
 warning('FT_PREPARE_CONCENTRICSPHERES is deprecated, please use FT_PREPARE_HEADMODEL with cfg.method = ''concentricspheres'' instead.')
 
-revision = '$Id: ft_prepare_concentricspheres.m 10541 2015-07-15 16:49:37Z roboos $';
+revision = '$Id: ft_prepare_concentricspheres.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
+ft_preamble provenance 
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -145,6 +145,6 @@ headmodel = ft_convert_units(headmodel);
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble trackconfig
-ft_postamble provenance
-ft_postamble history headmodel
+ft_postamble provenance headmodel
+ft_postamble history    headmodel
 

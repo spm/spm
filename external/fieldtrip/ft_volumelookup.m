@@ -77,17 +77,17 @@ function [output] = ft_volumelookup(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumelookup.m 9872 2014-10-02 11:56:27Z jimher $
+% $Id: ft_volumelookup.m 10765 2015-10-09 18:10:47Z roboos $
 
-revision = '$Id: ft_volumelookup.m 9872 2014-10-02 11:56:27Z jimher $';
+revision = '$Id: ft_volumelookup.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar volume
+ft_preamble provenance volume
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort

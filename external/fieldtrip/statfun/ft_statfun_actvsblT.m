@@ -1,4 +1,4 @@
-function [s,cfg] = ft_statfun_actvsblT(cfg, dat, design)
+function [s, cfg] = ft_statfun_actvsblT(cfg, dat, design)
 
 % FT_STATFUN_ACTVSBLT calculates the activation-versus-baseline T-statistic 
 % on the biological data in dat (the dependent variable), using the information on 
@@ -66,7 +66,7 @@ function [s,cfg] = ft_statfun_actvsblT(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_actvsblT.m 9787 2014-09-10 13:31:42Z jansch $
+% $Id: ft_statfun_actvsblT.m 10801 2015-10-20 12:05:28Z roboos $
 
 % set defaults
 if ~isfield(cfg, 'computestat'),       cfg.computestat='yes';     end;

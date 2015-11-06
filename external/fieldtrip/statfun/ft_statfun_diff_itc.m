@@ -1,4 +1,4 @@
-function [s] = ft_statfun_diff_itc(cfg, dat, design)
+function [s, cfg] = ft_statfun_diff_itc(cfg, dat, design)
 
 % FT_STATFUN_DIFF_ITC computes the difference in the inter-trial
 % coherence between two conditions. The input data for this test
@@ -50,7 +50,7 @@ function [s] = ft_statfun_diff_itc(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_diff_itc.m 10118 2015-01-23 11:04:19Z roboos $
+% $Id: ft_statfun_diff_itc.m 10801 2015-10-20 12:05:28Z roboos $
 
 % set the defaults
 if ~isfield(cfg, 'complex'), cfg.complex = 'diffabs';   end

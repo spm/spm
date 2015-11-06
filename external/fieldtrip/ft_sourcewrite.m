@@ -41,16 +41,16 @@ function ft_sourcewrite(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcewrite.m 10017 2014-12-03 13:56:16Z roboos $
+% $Id: ft_sourcewrite.m 10765 2015-10-09 18:10:47Z roboos $
 
-revision = '$Id: ft_sourcewrite.m 10017 2014-12-03 13:56:16Z roboos $';
+revision = '$Id: ft_sourcewrite.m 10765 2015-10-09 18:10:47Z roboos $';
 
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar source
+ft_preamble provenance source
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -152,4 +152,6 @@ end % switch filetype
 
 ft_postamble debug
 ft_postamble trackconfig
+ft_postamble previous source
 ft_postamble provenance
+

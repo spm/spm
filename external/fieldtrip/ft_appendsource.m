@@ -35,17 +35,17 @@ function [source] = ft_appendsource(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendsource.m 10673 2015-09-15 14:40:49Z jansch $
+% $Id: ft_appendsource.m 10765 2015-10-09 18:10:47Z roboos $
 
-revision = '$Id: ft_appendsource.m 10673 2015-09-15 14:40:49Z jansch $';
+revision = '$Id: ft_appendsource.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar varargin
+ft_preamble provenance varargin
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -67,8 +67,8 @@ error('this function does not work.....yet');
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble trackconfig
-ft_postamble provenance
 ft_postamble previous varargin
+ft_postamble provenance source
 ft_postamble history source
 ft_postamble savevar source
 

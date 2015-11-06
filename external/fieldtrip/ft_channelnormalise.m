@@ -37,17 +37,17 @@ function [dataout] = ft_channelnormalise(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelnormalise.m 10215 2015-02-12 07:59:01Z jansch $
+% $Id: ft_channelnormalise.m 10765 2015-10-09 18:10:47Z roboos $
 
-revision = '$Id: ft_channelnormalise.m 10215 2015-02-12 07:59:01Z jansch $';
+revision = '$Id: ft_channelnormalise.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
+ft_preamble provenance data
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -115,7 +115,7 @@ end
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble trackconfig
-ft_postamble provenance
-ft_postamble previous data
-ft_postamble history dataout
-ft_postamble savevar dataout
+ft_postamble previous   data
+ft_postamble provenance dataout
+ft_postamble history    dataout
+ft_postamble savevar    dataout

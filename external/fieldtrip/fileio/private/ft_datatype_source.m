@@ -75,7 +75,7 @@ function source = ft_datatype_source(source, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_source.m 10266 2015-03-04 12:20:43Z jansch $
+% $Id: ft_datatype_source.m 10770 2015-10-12 14:13:08Z roboos $
 
 % FIXME: I am not sure whether the removal of the xgrid/ygrid/zgrid fields
 % was really in 2007
@@ -226,6 +226,23 @@ switch version
     % ensure that it has a dimord (or multiple for the different fields)
     source = fixdimord(source);
     
+    % ensure that all data fields have the correct dimensions
+    fn = getdatfield(source);
+    for i=1:numel(fn)
+      dimord = getdimord(source, fn{i});
+      dimtok = tokenize(dimord, '_');
+      dimsiz = getdimsiz(source, fn{i});
+      dimsiz(end+1:length(dimtok)) = 1; % there can be additional trailing singleton dimensions
+      if numel(dimsiz)>=3 && strcmp(dimtok{1}, 'dim1') && strcmp(dimtok{2}, 'dim2') && strcmp(dimtok{3}, 'dim3')
+        % convert it from voxel-based representation to position-based representation
+        try
+          source.(fn{i}) = reshape(source.(fn{i}), [prod(dimsiz(1:3)) dimsiz(4:end) 1]);
+        catch
+          warning('could not reshape %s to the expected dimensions', fn{i});
+        end
+      end
+    end
+      
     
   case '2011'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -310,17 +327,6 @@ switch version
   otherwise
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     error('unsupported version "%s" for source datatype', version);
-end
-
-function source = fixpos(source)
-if ~isfield(source, 'pos')
-  if isfield(source, 'xgrid') && isfield(source, 'ygrid') && isfield(source, 'zgrid')
-    source.pos = grid2pos(source.xgrid, source.ygrid, source.zgrid);
-  elseif isfield(source, 'dim') && isfield(source, 'transform')
-    source.pos = dim2pos(source.dim, source.transform);
-  else
-    error('cannot reconstruct individual source positions');
-  end
 end
 
 function pos = grid2pos(xgrid, ygrid, zgrid)

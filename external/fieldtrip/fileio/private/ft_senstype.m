@@ -28,10 +28,12 @@ function [type] = ft_senstype(input, desired)
 %   'yokogawa160'
 %   'yokogawa160_planar'
 %   'yokogawa440'
-%   'ext1020' (this includes eeg1020, eeg1010 and eeg1005)
+%   'ext1020'       this includes eeg1020, eeg1010 and eeg1005)
 %   'neuromag122'
 %   'neuromag306'
-%   'babysquid74'
+%   'babysquid74'   this is a BabySQUID system from Tristan Technologies
+%   'artemis123'    this is a BabySQUID system from Tristan Technologies
+%   'magview'       this is a BabySQUID system from Tristan Technologies
 %   'egi32'
 %   'egi64'
 %   'egi128'
@@ -47,7 +49,7 @@ function [type] = ft_senstype(input, desired)
 %   'nirs'
 %
 % The optional input argument for the desired type can be any of the above,
-% or any of the following
+% or any of the following generic classes of acquisition systems
 %   'eeg'
 %   'meg'
 %   'meg_planar'
@@ -56,6 +58,7 @@ function [type] = ft_senstype(input, desired)
 %   'bti'
 %   'neuromag'
 %   'yokogawa'
+%   'babysquid'
 % If you specify the desired type, this function will return a boolean
 % true/false depending on the input data.
 %
@@ -90,7 +93,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 10545 2015-07-16 07:58:51Z roboos $
+% $Id: ft_senstype.m 10789 2015-10-19 08:43:13Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -378,7 +381,7 @@ else
 %     elseif (mean(ismember(sens.label,    ft_senslabel('nirs'))) > 0.8)
 %       type = 'nirs';
     end
-  end % look at label, ori and/or pnt
+  end % look at label, ori and/or pos
 end % if isfield(sens, 'type')
 
 if strcmp(type, 'unknown') && ~recursion
@@ -428,6 +431,8 @@ if ~isempty(desired)
       type = any(strcmp(type, {'bti' 'bti148' 'bti148_planar' 'bti248' 'bti248_planar' 'bti248grad' 'bti248grad_planar'}));
     case 'neuromag'
       type = any(strcmp(type, {'neuromag122' 'neuromag306'}));
+    case 'babysquid'
+      type = any(strcmp(type, {'babysquid74' 'artenis123' 'magview'}));
     case 'yokogawa'
       type = any(strcmp(type, {'yokogawa160' 'yokogawa160_planar' 'yokogawa64' 'yokogawa64_planar' 'yokogawa440'}));
     case 'itab'

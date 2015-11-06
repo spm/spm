@@ -31,7 +31,7 @@ function data = edf2fieldtrip(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: edf2fieldtrip.m 10485 2015-06-25 08:55:24Z roboos $
+% $Id: edf2fieldtrip.m 10783 2015-10-17 08:44:09Z roboos $
 
 hdr = ft_read_header(filename);
 samplerate = unique(hdr.orig.SampleRate);
@@ -72,4 +72,21 @@ end
 
 % concatenate them into a single data structure
 data = ft_appenddata(cfg, data{:});
+
+% reorder the channels to the original order in the EDF file
+origlabel     = cellstr(hdr.orig.Label);
+[currentorder, origorder] = match_str(origlabel, data.label); % sorted according to the 1st input argument
+data.label    = data.label(origorder);
+data.trial{1} = data.trial{1}(origorder,:);
+
+% annotate the manual operation in the data structure provenance
+cfg = [];
+cfg.comment = 'reordered the channels to the original order in the EDF file';
+data = ft_annotate(cfg, data);
+
+if isfield(data, 'hdr')
+  % remove this, as otherwise it might be very confusing with the subselections
+  data = rmfield(data, 'hdr');
+end
+
 

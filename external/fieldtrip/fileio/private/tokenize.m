@@ -36,10 +36,12 @@ function [tok] = tokenize(str, sep, rep)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: tokenize.m 8770 2013-11-12 13:54:58Z roboos $
+% $Id: tokenize.m 10784 2015-10-17 09:41:39Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
+
+str = str(:)';
 
 if nargin<2
   sep = [9:13 32]; % White space characters
@@ -56,9 +58,14 @@ if isequal(current_argin, previous_argin)
   return
 end
 
-tok = {};
-f = find(ismember(str, sep));
+if numel(sep)==1
+  f = find(str==sep);
+else
+  f = find(ismember(str, sep));
+end
 f = [0, f, length(str)+1];
+
+tok = cell(1, length(f)-1);
 for i=1:(length(f)-1)
   tok{i} = str((f(i)+1):(f(i+1)-1));
 end

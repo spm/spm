@@ -62,13 +62,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 10690 2015-09-25 06:51:55Z roboos $
-
-global ft_default
-
-% merge the default configuration with the input configuration
-% the warning and progress fields are used internally
-cfg = mergeconfig(cfg, removefields(ft_default, {'warning', 'progress'}));
+% $Id: ft_checkconfig.m 10793 2015-10-19 14:57:30Z roboos $
 
 renamed         = ft_getopt(varargin, 'renamed');
 allowed         = ft_getopt(varargin, 'allowed');

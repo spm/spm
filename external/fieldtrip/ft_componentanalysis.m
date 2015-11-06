@@ -147,23 +147,23 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 10642 2015-08-28 10:20:44Z roboos $
+% $Id: ft_componentanalysis.m 10765 2015-10-09 18:10:47Z roboos $
 
 % undocumented cfg options:
 %   cfg.cellmode = string, 'no' or 'yes', allows to run in cell-mode, i.e.
 %     no concatenation across trials is needed. This is based on experimental
 %     code and only supported for 'dss', 'fastica' and 'bsscca' as methods.
 
-revision = '$Id: ft_componentanalysis.m 10642 2015-08-28 10:20:44Z roboos $';
+revision = '$Id: ft_componentanalysis.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble randomseed
-ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
+ft_preamble provenance data
+ft_preamble trackconfig
+ft_preamble randomseed
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -865,8 +865,8 @@ end
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble trackconfig
-ft_postamble provenance
 ft_postamble randomseed
-ft_postamble previous data
-ft_postamble history comp
-ft_postamble savevar comp
+ft_postamble previous   data
+ft_postamble provenance comp
+ft_postamble history    comp
+ft_postamble savevar    comp

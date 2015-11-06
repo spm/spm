@@ -44,7 +44,7 @@ function headmodel = ft_headmodel_interpolate(filename, sens, grid, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_interpolate.m 10541 2015-07-15 16:49:37Z roboos $
+% $Id: ft_headmodel_interpolate.m 10751 2015-10-06 16:14:11Z roboos $
 
 % check the validity of the input arguments
 assert(ft_datatype(sens, 'sens'), 'the second input argument should be a sensor definition');
@@ -263,14 +263,14 @@ elseif isfield(grid, 'filename')
   end
   
   % create a 2D projection and triangulation
-  pnt = inputvol.sens.elecpos;
-  prj = elproj(pnt);
+  pos = inputvol.sens.elecpos;
+  prj = elproj(pos);
   tri = delaunay(prj(:,1), prj(:,2));
   
   % project the electrodes on the triangulation and compute the
   % bilinear interpolation from the original to the new electrodes
-  [el, prj] = project_elec(sens.elecpos, pnt, tri);
-  tra = transfer_elec(pnt, tri, el);
+  [el, prj] = project_elec(sens.elecpos, pos, tri);
+  tra = transfer_elec(pos, tri, el);
   
   % define the spaces and the number of elements that they comprise
   n1 = length(inputvol.sens.label);    % computed channels

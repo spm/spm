@@ -34,7 +34,7 @@ function [stat, cfg] = clusterstat(cfg, statrnd, statobs, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: clusterstat.m 10193 2015-02-10 15:49:15Z roboos $
+% $Id: clusterstat.m 10692 2015-09-28 16:06:21Z roboos $
 
 % set the defaults
 cfg.orderedstats = ft_getopt(cfg, 'orderedstats', 'no');
@@ -524,6 +524,7 @@ elseif cfg.tail==-1
 end
 
 % collect the remaining details in the output structure
+stat = struct(); % see http://bugzilla.fieldtriptoolbox.org/show_bug.cgi?id=2972
 stat.prob = prob;
 if needpos,
   stat.posclusters         = posclusters;

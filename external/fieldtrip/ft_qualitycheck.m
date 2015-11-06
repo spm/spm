@@ -55,14 +55,14 @@ function [varargout] = ft_qualitycheck(cfg)
 %
 % $Id:%
 
-revision = '$Id: ft_qualitycheck.m 10220 2015-02-12 08:27:35Z jansch $';
+revision = '$Id: ft_qualitycheck.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
+ft_preamble debug
 ft_preamble provenance
 ft_preamble trackconfig
-ft_preamble debug
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort

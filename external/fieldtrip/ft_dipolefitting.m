@@ -121,17 +121,17 @@ function [source] = ft_dipolefitting(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolefitting.m 10640 2015-08-28 10:13:04Z roboos $
+% $Id: ft_dipolefitting.m 10768 2015-10-12 14:11:10Z roboos $
 
-revision = '$Id: ft_dipolefitting.m 10640 2015-08-28 10:13:04Z roboos $';
+revision = '$Id: ft_dipolefitting.m 10768 2015-10-12 14:11:10Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
+ft_preamble provenance data
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -564,6 +564,9 @@ source.dip    = dip;
 source.Vdata  = Vdata;  % FIXME this should be renamed (if possible w.r.t. EEGLAB)
 source.Vmodel = Vmodel; % FIXME this should be renamed (if possible w.r.t. EEGLAB)
 
+% the units of the fitted source are the same as the units of the headmodel and the sensor array
+source.dip.unit = headmodel.unit;
+
 % assign a latency, frequeny or component axis to the output
 if iscomp
   source.component = cfg.component;
@@ -579,20 +582,10 @@ else
   source.dimord = 'chan_time';
 end
 
-% FIXME why would this be done?
-if isfield(data, 'grad')
-  % copy the gradiometer array along
-  source.grad = data.grad;
-end
-if isfield(data, 'elec')
-  % copy the electrode array along
-  source.elec = data.elec;
-end
-
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble trackconfig
-ft_postamble provenance
-ft_postamble previous data
-ft_postamble history source
-ft_postamble savevar source
+ft_postamble previous   data
+ft_postamble provenance source
+ft_postamble history    source
+ft_postamble savevar    source

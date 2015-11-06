@@ -108,21 +108,21 @@ function [data] = ft_rejectvisual(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 10105 2015-01-19 13:37:56Z jimher $
+% $Id: ft_rejectvisual.m 10765 2015-10-09 18:10:47Z roboos $
 
 % Undocumented options
 % cfg.plotlayout = 'square' (default) or '1col', plotting every channel/trial under each other
 % cfg.viewmode   = 'remove', 'toggle' or 'hide', only applies to summary mode (default = 'remove')
 
-revision = '$Id: ft_rejectvisual.m 10105 2015-01-19 13:37:56Z jimher $';
+revision = '$Id: ft_rejectvisual.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
+ft_preamble provenance data
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -378,7 +378,7 @@ end
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble trackconfig
-ft_postamble provenance
-ft_postamble previous data
-ft_postamble history data
-ft_postamble savevar data
+ft_postamble previous   data
+ft_postamble provenance data
+ft_postamble history    data
+ft_postamble savevar    data

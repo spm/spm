@@ -46,17 +46,17 @@ function [cfg] = ft_clusterplot(cfg, stat)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_clusterplot.m 10603 2015-08-17 13:20:17Z roboos $
+% $Id: ft_clusterplot.m 10765 2015-10-09 18:10:47Z roboos $
 
-revision = '$Id: ft_clusterplot.m 10603 2015-08-17 13:20:17Z roboos $';
+revision = '$Id: ft_clusterplot.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble loadvar stat
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
+ft_preamble loadvar stat
+ft_preamble provenance stat
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -429,10 +429,10 @@ else
 end
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble trackconfig
 ft_postamble previous stat
 ft_postamble provenance
-ft_postamble debug
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

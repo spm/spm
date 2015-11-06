@@ -26,13 +26,10 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_init.m 10556 2015-07-17 12:22:02Z roboos $
+% $Id: ft_preamble_init.m 10819 2015-10-22 19:39:33Z roboos $
 
 % disabled for now, see further down
 global ft_default
-
-% this script requires some options that can be user-specified, but otherwise are obtained from ft_default
-cfg = mergeconfig(cfg, keepfields(ft_default, {'outpuitfile', 'outputfilepresent'}));
 
 if nargin==0
   stack = dbstack('-completenames');
@@ -47,6 +44,9 @@ if nargin==0
   msg.stack       = stack;
   error(msg);
 end % if nargin
+
+% this script requires some options that can be user-specified, but otherwise are obtained from ft_default
+cfg = mergeconfig(cfg, ft_default);
 
 % determine whether function execution should be aborted or continued
 if isfield(cfg, 'outputfile') && ~isempty(cfg.outputfile)

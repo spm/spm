@@ -50,17 +50,17 @@ function [grandavg] = ft_freqgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqgrandaverage.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_freqgrandaverage.m 10765 2015-10-09 18:10:47Z roboos $
 
-revision = '$Id: ft_freqgrandaverage.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_freqgrandaverage.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar varargin
+ft_preamble provenance varargin
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -228,7 +228,7 @@ end
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble trackconfig
-ft_postamble provenance
-ft_postamble previous varargin
-ft_postamble history grandavg
-ft_postamble savevar grandavg
+ft_postamble previous   varargin
+ft_postamble provenance grandavg
+ft_postamble history    grandavg
+ft_postamble savevar    grandavg

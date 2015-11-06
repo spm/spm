@@ -46,16 +46,16 @@ function [data, mri, grid] = nutmeg2fieldtrip(cfg,fileorstruct)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nutmeg2fieldtrip.m 10541 2015-07-15 16:49:37Z roboos $
+% $Id: nutmeg2fieldtrip.m 10765 2015-10-09 18:10:47Z roboos $
 
-revision = '$Id: nutmeg2fieldtrip.m 10541 2015-07-15 16:49:37Z roboos $';
+revision = '$Id: nutmeg2fieldtrip.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
-ft_preamble callinfo
-ft_preamble trackconfig
+ft_preamble init
 ft_preamble debug
+ft_preamble provenance
+ft_preamble trackconfig
 
 if ~isstruct(fileorstruct) && exist(fileorstruct,'file')
   structin=load(fileorstruct);
@@ -120,16 +120,16 @@ if nutsorbeam==1
   raw.label=structin.meg.sensor_labels;
   raw.grad.label=structin.meg.sensor_labels;
   if isfield(structin.meg,'refSensorOrient')
-    raw.grad.ori=[structin.meg.sensorOrient; structin.meg.refSensorOrient];
-    raw.grad.pnt=[structin.meg.sensorCoord; structin.meg.refSensorCoord];
+    raw.grad.coilori=[structin.meg.sensorOrient; structin.meg.refSensorOrient];
+    raw.grad.coilpos=[structin.meg.sensorCoord; structin.meg.refSensorCoord];
   else
-    raw.grad.ori=[structin.meg.sensorOrient];
-    raw.grad.pnt=[structin.meg.sensorCoord];
+    raw.grad.coilori=[structin.meg.sensorOrient];
+    raw.grad.coilpos=[structin.meg.sensorCoord];
   end
-  if size(raw.grad.ori,1)<2*size(structin.meg.data,2)
-    raw.grad.ori=cat(1,raw.grad.ori,raw.grad.ori);
+  if size(raw.grad.coilori,1)<2*size(structin.meg.data,2)
+    raw.grad.coilori=cat(1,raw.grad.coilori,raw.grad.coilori);
   end
-  raw.grad.pnt=reshape(permute(raw.grad.pnt,[1 3 2]),size(raw.grad.pnt,1)*size(raw.grad.pnt,3),size(raw.grad.pnt,2));
+  raw.grad.coilpos=reshape(permute(raw.grad.coilpos,[1 3 2]),size(raw.grad.coilpos,1)*size(raw.grad.coilpos,3),size(raw.grad.coilpos,2));
   if isfield(structin.meg,'chanmixMtx')
     raw.grad.tra=structin.meg.chanmixMtx{1};
   else
@@ -238,6 +238,9 @@ end
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble trackconfig
-ft_postamble callinfo
-ft_postamble history data
+ft_postamble provenance
+% save the output cfg in all three output data structures
+ft_postamble history    data
+ft_postamble history    mri
+ft_postamble history    grid
 

@@ -1,4 +1,4 @@
-function [s,cfg] = ft_statfun_depsamplesregrT(cfg, dat, design)
+function [s, cfg] = ft_statfun_depsamplesregrT(cfg, dat, design)
 
 % FT_STATFUN_DEPSAMPLESREGRT calculates dependent samples regression T-statistic 
 % on the biological data in dat (the dependent variable), using the information on 
@@ -58,7 +58,7 @@ function [s,cfg] = ft_statfun_depsamplesregrT(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_depsamplesregrT.m 9560 2014-05-20 20:38:42Z dieloz $
+% $Id: ft_statfun_depsamplesregrT.m 10801 2015-10-20 12:05:28Z roboos $
 
 % set defaults
 if ~isfield(cfg, 'computestat'),       cfg.computestat='yes';     end;

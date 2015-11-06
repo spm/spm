@@ -1,4 +1,4 @@
-function [lf] = inf_medium_leadfield(rd, pnt, cond);
+function [lf] = inf_medium_leadfield(rd, pnt, cond)
 
 % INF_MEDIUM_LEADFIELD calculate the infinite medium leadfield
 % on positions pnt for dipole position R and conductivity cond
@@ -23,7 +23,7 @@ function [lf] = inf_medium_leadfield(rd, pnt, cond);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: inf_medium_leadfield.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: inf_medium_leadfield.m 10751 2015-10-06 16:14:11Z roboos $
 
 siz = size(rd);
 if any(siz==1)

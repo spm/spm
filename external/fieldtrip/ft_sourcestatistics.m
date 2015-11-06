@@ -61,17 +61,17 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 10313 2015-03-31 11:00:05Z roboos $
+% $Id: ft_sourcestatistics.m 10765 2015-10-09 18:10:47Z roboos $
 
-revision = '$Id: ft_sourcestatistics.m 10313 2015-03-31 11:00:05Z roboos $';
+revision = '$Id: ft_sourcestatistics.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
-ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar varargin
+ft_preamble provenance varargin
+ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
@@ -115,7 +115,7 @@ for i=1:length(varargin)
 end
 
 % ensure that the data in all inputs has the same channels, time-axis, etc.
-tmpcfg = keepfields(cfg, {'frequency', 'avgoverfreq', 'latency', 'avgovertime', 'parameter'});
+tmpcfg = keepfields(cfg, {'frequency', 'avgoverfreq', 'latency', 'avgovertime'});
 [varargin{:}] = ft_selectdata(tmpcfg, varargin{:});
 % restore the provenance information
 [cfg, varargin{:}] = rollback_provenance(cfg, varargin{:});
@@ -231,8 +231,8 @@ cfg = removefields(cfg, {'dim', 'dimord', 'tri', 'inside'});
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble trackconfig
-ft_postamble provenance
-ft_postamble previous varargin
-ft_postamble history stat
-ft_postamble savevar stat
+ft_postamble previous   varargin
+ft_postamble provenance stat
+ft_postamble history    stat
+ft_postamble savevar    stat
 

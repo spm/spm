@@ -1,4 +1,4 @@
-function [s,cfg] = ft_statfun_depsamplesFunivariate(cfg, dat, design)
+function [s, cfg] = ft_statfun_depsamplesFunivariate(cfg, dat, design)
 
 % FT_STATFUN_DEPSAMPLESFUNIIVARIATE calculates the univariate repeated-mesures
 % ANOVA on the biological data in dat (the dependent variable), using the
@@ -60,7 +60,7 @@ function [s,cfg] = ft_statfun_depsamplesFunivariate(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_depsamplesFunivariate.m 9825 2014-09-22 15:19:53Z roboos $
+% $Id: ft_statfun_depsamplesFunivariate.m 10801 2015-10-20 12:05:28Z roboos $
 
 
 % set defaults

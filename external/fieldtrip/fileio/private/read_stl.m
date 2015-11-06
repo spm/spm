@@ -1,4 +1,4 @@
-function [pnt, tri, nrm] = read_stl(filename);
+function [pnt, tri, nrm] = read_stl(filename)
 
 % READ_STL reads a triangulation from an ascii or binary *.stl file, which
 % is a file format native to the stereolithography CAD software created by
@@ -29,7 +29,7 @@ function [pnt, tri, nrm] = read_stl(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_stl.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_stl.m 10800 2015-10-20 09:56:17Z jansch $
 
 fid = fopen(filename, 'rt');
 
@@ -92,21 +92,31 @@ else
   
   fseek(fid, 80, 'bof'); % skip the ascii header
   ntri = fread(fid, 1, 'uint32');
-  tri  = zeros(ntri,3);
-  nrm  = zeros(ntri,3);
-  pnt  = zeros(ntri*3,3);
-  attr = zeros(ntri,1);
-  for i=1:ntri
-    i1 = (i-1)*3+1;
-    i2 = (i-1)*3+2;
-    i3 = (i-1)*3+3;
-    tri(i,:) = [i1 i2 i3];
-    nrm(i,:)  = fread(fid, 3, 'float32');
-    pnt(i1,:) = fread(fid, 3, 'float32');
-    pnt(i2,:) = fread(fid, 3, 'float32');
-    pnt(i3,:) = fread(fid, 3, 'float32');
-    attr(i)   = fread(fid, 1, 'uint16'); % Attribute byte count, don't know what it is
-  end % for each triangle
+  tri = reshape(1:(ntri*3),[3 ntri])';
+  tmp = fread(fid, [12 ntri], '12*float32', 2); % read 12 floats at a time, and skip 2 bytes.
+  nrm = tmp(1:3,:)';
+  
+  tmp = reshape(tmp(4:end,:),[3 3 ntri]); % position info
+  tmp = permute(tmp,[2 3 1]);
+  pnt = reshape(tmp, [], 3);
+  
+  % the above replaces the below, which is much slower, because it is using
+  % a for loop across triangles
+%   tri  = zeros(ntri,3);
+%   nrm  = zeros(ntri,3);
+%   pnt  = zeros(ntri*3,3);
+%   attr = zeros(ntri,1);
+%   for i=1:ntri
+%     i1 = (i-1)*3+1;
+%     i2 = (i-1)*3+2;
+%     i3 = (i-1)*3+3;
+%     tri(i,:) = [i1 i2 i3];
+%     nrm(i,:)  = fread(fid, 3, 'float32');
+%     pnt(i1,:) = fread(fid, 3, 'float32');
+%     pnt(i2,:) = fread(fid, 3, 'float32');
+%     pnt(i3,:) = fread(fid, 3, 'float32');
+%     attr(i)   = fread(fid, 1, 'uint16'); % Attribute byte count, don't know what it is
+%   end % for each triangle
 end
 
 fclose(fid);

@@ -36,7 +36,7 @@ function [headmodel, sens, cfg] = prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_headmodel.m 10541 2015-07-15 16:49:37Z roboos $
+% $Id: prepare_headmodel.m 10769 2015-10-12 14:13:05Z roboos $
 
 % set the defaults
 cfg.channel  = ft_getopt(cfg, 'channel', 'all');
@@ -55,7 +55,7 @@ sens = ft_fetch_sens(cfg, data);
 
 if istrue(cfg.siunits)
   % ensure that the geometrical units are in SI units
-  sens = ft_convert_units(sens, 'm', 'feedback', true);
+  sens       = ft_convert_units(sens,       'm', 'feedback', true);
   headmodel  = ft_convert_units(headmodel,  'm', 'feedback', true);
   if isfield(cfg, 'grid')
     cfg.grid = ft_convert_units(cfg.grid,  'm', 'feedback', true);
@@ -64,7 +64,7 @@ else
   % ensure that the geometrical units are the same
   if isfield(cfg, 'grid') && isfield(cfg.grid, 'unit')
     % convert it to the units of the source model
-    sens = ft_convert_units(sens, cfg.grid.unit, 'feedback', true);
+    sens       = ft_convert_units(sens,       cfg.grid.unit, 'feedback', true);
     headmodel  = ft_convert_units(headmodel,  cfg.grid.unit, 'feedback', true);
   else
     % convert it to the units of the head model

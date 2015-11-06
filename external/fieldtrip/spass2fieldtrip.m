@@ -36,14 +36,14 @@ function [lfp, spike, stm, bhv] = spass2fieldtrip(dirname, varargin)
 
 % Copyright (C) 2007, Robert Oostenveld
 %
-% $Id: spass2fieldtrip.m 10156 2015-02-04 08:45:19Z roboos $
+% $Id: spass2fieldtrip.m 10765 2015-10-09 18:10:47Z roboos $
 
-revision = '$Id: spass2fieldtrip.m 10156 2015-02-04 08:45:19Z roboos $';
+revision = '$Id: spass2fieldtrip.m 10765 2015-10-09 18:10:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
-ft_preamble callinfo
+ft_preamble init
+ft_preamble provenance
 
 fsample_ana = ft_getopt(varargin, 'fsample_ana', 1000); 
 fsample_swa = ft_getopt(varargin, 'fsample_swa', 32000); 
@@ -153,5 +153,5 @@ lfp.hdr.FirstTimeStamp = 0;
 lfp.hdr.TimeStampPerSample = fsample_swa./fsample_ana;
 
 % do the general cleanup and bookkeeping at the end of the function
-ft_postamble callinfo
+ft_postamble provenance lfp spike
 ft_postamble history lfp spike
