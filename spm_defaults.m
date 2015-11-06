@@ -20,10 +20,10 @@ function spm_defaults
 %
 %                 ** This file should not be edited **
 %__________________________________________________________________________
-% Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2015 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 6576 2015-10-15 15:22:09Z volkmar $
+% $Id: spm_defaults.m 6594 2015-11-06 18:47:05Z guillaume $
 
 
 global defaults
@@ -62,6 +62,7 @@ defaults.stats.fmri.t   = 16;
 defaults.stats.fmri.t0  = 8;
 defaults.stats.fmri.hpf = 128;
 defaults.stats.fmri.cvi = 'AR(1)';
+defaults.stats.fmri.hrf = [6 16 1 1 6 0 32];
 
 % Mask defaults
 %==========================================================================
