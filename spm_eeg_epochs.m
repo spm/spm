@@ -49,9 +49,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 6595 2015-11-10 15:47:18Z vladimir $
+% $Id: spm_eeg_epochs.m 6596 2015-11-10 15:52:16Z vladimir $
 
-SVNrev = '$Rev: 6595 $';
+SVNrev = '$Rev: 6596 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -220,7 +220,7 @@ for i = 1:ntrial
     end
     
     Dnew = events(Dnew, i, select_events(D.events, ...
-        D.timeonset+[trl(i, 1)/D.fsample-S.eventpadding  trl(i, 2)/D.fsample+S.eventpadding]));
+        D.trialonset+[trl(i, 1)/D.fsample-S.eventpadding  trl(i, 2)/D.fsample+S.eventpadding]));
     
     if ismember(i, Ibar), spm_progress_bar('Set', i); end
 end
