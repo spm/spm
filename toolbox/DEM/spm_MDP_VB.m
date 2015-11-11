@@ -100,7 +100,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 6587 2015-11-02 10:29:49Z karl $
+% $Id: spm_MDP_VB.m 6598 2015-11-11 19:48:30Z karl $
  
  
 % deal with a sequence of trials
@@ -186,10 +186,8 @@ A      = spm_norm(A);              % normalise
 if isfield(MDP,'a')
     qA = MDP.a + q0;
     qA = psi(qA ) - ones(Ns,1)*psi(sum(qA));
-    pA = psi(qA') - ones(Ns,1)*psi(sum(qA,2));
 else
     qA = log(spm_norm(A));
-    pA = log(spm_norm(A'));
 end
  
 % transition probabilities (priors)
@@ -373,7 +371,7 @@ for t = 1:T
                 % evaluate free energy and gradients (v = dFdx)
                 %----------------------------------------------------------
                 v    = qx;
-                if j <= t, v = v - pA(:,o(j));            end
+                if j <= t, v = v - qA(o(j),:)';           end
                 if j == 1, v = v - qD;                    end
                 if j >  1, v = v - log(fB*x(:,j - 1,k));  end
                 if j <  T, v = v - log(bB*x(:,j + 1,k));  end

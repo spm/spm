@@ -21,12 +21,12 @@ function MDP = DEM_demo_MDP_habits
 % maximising information gain or epistemic value by moving to the lower arm
 % and then claiming the reward this signified. Here, there are eight hidden
 % states (four locations times right or left reward), four control states
-% (that take the agent to the four locations) and seven outcomes (three
+% (that take the agent to the four locations) and five outcomes (two
 % locations times two cues plus the centre).  The central location has an
 % ambiguous or uninformative cue outcome, while the upper arms are rewarded
 % probabilistically.
 %
-% this version  focuses on learning by optimising the parameters of the
+% This version  focuses on learning by optimising the parameters of the
 % generative model. In particular, it looks at the acquisition of epistemic
 % habits  – and how they relate to optimal policies under dynamic
 % programming. We start with a series of simulations to illustrate various
@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6587 2015-11-02 10:29:49Z karl $
+% $Id: DEM_demo_MDP_habits.m 6598 2015-11-11 19:48:30Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -53,10 +53,8 @@ rng('default')
 a      = .98;
 b      = 1 - a;
 A      = [1 1 0 0 0 0 0 0;    % ambiguous starting position (centre)
-          0 0 a b 0 0 0 0;    % left arm selected and rewarded
-          0 0 b a 0 0 0 0;    % left arm selected and not rewarded
-          0 0 0 0 b a 0 0;    % right arm selected and not rewarded
-          0 0 0 0 a b 0 0;    % right arm selected and rewarded
+          0 0 a b b a 0 0;    % reward
+          0 0 b a a b 0 0;    % no reward
           0 0 0 0 0 0 1 0;    % informative cue - reward on right
           0 0 0 0 0 0 0 1];   % informative cue - reward on left
  
@@ -77,13 +75,12 @@ end
 % priors: (utility) C
 %--------------------------------------------------------------------------
 % Finally, we have to specify the prior preferences in terms of  log
-% probabilities. Here, the agent does not like to be exposed in the centre
-% and, clearly, prefers rewards to losses.
+% probabilities. Here, the agent prefers rewards to losses.
 %--------------------------------------------------------------------------
 c  = 3;
-C  = [0 0  0 0  0 0 0;
-      0 c -c c -c 0 0;
-      0 c -c c -c 0 0]';
+C  = [0 0  0 0 0;
+      0 c -c 0 0;
+      0 c -c 0 0]';
  
 % now specify prior beliefs about initial state, in terms of counts
 %--------------------------------------------------------------------------
@@ -115,7 +112,7 @@ i           = [1,3];          % change context in a couple of trials
 [MDP(1:32)] = deal(mdp);      % create structure array
 [MDP(i).s]  = deal(2);        % deal context changes
 % [MDP.C]   = deal(C - C);    % for epistemic simulation
-MDP(12).o   = [1 6 7];        % unexpected outcome
+MDP(12).o   = [1 4 5];        % unexpected outcome
 
 
  
@@ -189,12 +186,12 @@ clear MDP
 [MDP(4:16).s]  = deal(2);
 OPTIONS.plot   = 0;
  
-d     = 2:4:16;
+d     = 2:2:8;
 for i = 1:length(d)
     MDP(1).d   = kron([1 0 0 0],[d(i) 1])' + 1;
     M          = spm_MDP_VB(MDP,OPTIONS);
     Q          = spm_MDP_VB_game(M);
-    ext(i)     = find([Q.O(4:end) == 4, 1],1);
+    ext(i)     = sum(Q.O(4:end) == 3);
 end
  
 spm_figure('GetWin','Figure 8'); clf

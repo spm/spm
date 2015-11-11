@@ -14,7 +14,7 @@ function [B0,BV] = spm_MDP_DP(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_DP.m 6579 2015-10-18 17:25:54Z karl $
+% $Id: spm_MDP_DP.m 6598 2015-11-11 19:48:30Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -100,7 +100,7 @@ for s = 1:Ns
                 % evaluate free energy and gradients (v = dFdx)
                 %----------------------------------------------------------
                 if j > 1, v = v + qx - log(sB{V(j - 1,k)}*x(:,j - 1,k)); end
-                if j < T, v = v + qx - log(rB{V(j    ,k)}*x(:,j + 1,k)); end
+                if j < T, v = v      - log(rB{V(j    ,k)}*x(:,j + 1,k)); end
                 
                 % update
                 %----------------------------------------------------------

@@ -78,7 +78,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6587 2015-11-02 10:29:49Z karl $
+% $Id: spm_dcm_peb.m 6598 2015-11-11 19:48:30Z karl $
  
 
 % get filenames and set up
@@ -336,13 +336,13 @@ for n = 1:64
         % get empirical prior expectations and reduced 1st level posterior
         %------------------------------------------------------------------
         Xi         = kron(X(i,:),W);
-        rE         = Xi*b;
-        [Fi,sE,sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE,rC);
+        rE{i}      = Xi*b;
+        [Fi,sE,sC] = spm_log_evidence_reduce(qE{i},qC{i},pE{i},pC{i},rE{i},rC);
         
         % supplement gradients and curvatures
         %------------------------------------------------------------------
         F     = F  + Fi + iF(i);
-        dE    = sE - rE;
+        dE    = sE - rE{i};
         dFdb  = dFdb  + Xi'*rP*dE;
         dFdbb = dFdbb + Xi'*(rP*sC*rP - rP)*Xi;
         for j = 1:Ng
@@ -466,7 +466,7 @@ for i = 1:Ns
         RC       = spm_inv(RP);
         
         RE       = spm_vec(pE{i});
-        RE(q)    = rE;
+        RE(q)    = rE{i};
         RE       = spm_unvec(RE,pE{i});
        
         % First level BMR (supplemented with second level complexity)
