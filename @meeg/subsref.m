@@ -5,7 +5,7 @@ function varargout=subsref(this,subs)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Stefan Kiebel
-% $Id: subsref.m 5710 2013-10-22 14:01:23Z guillaume $
+% $Id: subsref.m 6599 2015-11-12 10:04:08Z christophe $
 
 if isempty(subs)
     return;
@@ -45,7 +45,7 @@ switch subs(1).type
                 chanidx = subs.subs{1};
             end
 
-            %check if correct channel index
+            % check if correct channel index
             if any(chanidx > nchannels(this))
                 error('channel index higher than number of channels in current montage')
             end
@@ -85,9 +85,9 @@ switch subs(1).type
                     if ii<Nchunk
                         ll = (1:Ntb_chunk)+(ii-1)*Ntb_chunk;
                     else
-                        ll = ((ii-1)*Ntb_chunk):Ntb;
+                        ll = ((ii-1)*Ntb_chunk+1):Ntb;
                     end
-                    subs_ch.subs{2} = ll;
+                    subs_ch.subs{2} = subs_ch.subs{2}(ll);
                     if dat3D
                         for jj=1:numel(subs.subs{3})
                             subs_ch.subs{3} = subs.subs{3}(jj);
