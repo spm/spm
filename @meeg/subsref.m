@@ -5,7 +5,7 @@ function varargout=subsref(this,subs)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Stefan Kiebel
-% $Id: subsref.m 6599 2015-11-12 10:04:08Z christophe $
+% $Id: subsref.m 6600 2015-11-12 13:07:41Z christophe $
 
 if isempty(subs)
     return;
@@ -32,7 +32,9 @@ switch subs(1).type
             end
             if ischar(subs.subs{1})
                 % need to handle the case of a ':' argument
-                if ~strcmp(subs.subs{1},':'), error('This shouldn''t happen....'); end
+                if ~strcmp(subs.subs{1},':'), 
+                    error('This shouldn''t happen....'); 
+                end
                 if length(subs.subs) == 1
                     chanidx = 1:dim(1); 
                     subs.subs{2} = ':'; 
@@ -44,18 +46,21 @@ switch subs(1).type
             else
                 chanidx = subs.subs{1};
             end
-
+            
             % check if correct channel index
             if any(chanidx > nchannels(this))
                 error('channel index higher than number of channels in current montage')
             end
             % get corresponding rows of 'tra' matrix
             traidx = this.montage.M(this.montage.Mind).tra(chanidx,:);
-            %change subs to use only the necessary channels from data
+            % change subs to use only the necessary channels from data
             lchan_o = find(any(traidx,1));
             subs.subs{1} = lchan_o;
+            
+            % need to handle the case of ':' arguments
             if ischar(subs.subs{2})
                 if ~strcmp(subs.subs{2},':'), error('This shouldn''t happen....'); end
+                subs.subs{2} = 1:dim(2);
                 Ntb = dim(2);
             else
                 Ntb = length(subs.subs{2});
