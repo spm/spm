@@ -8,7 +8,7 @@ function this = gifti(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: gifti.m 6347 2015-02-24 17:59:16Z guillaume $
+% $Id: gifti.m 6601 2015-11-19 13:55:32Z guillaume $
 
 switch nargin
     
@@ -66,6 +66,9 @@ switch nargin
                 end
             elseif strcmpi(e,'.asc') || strcmpi(e,'.srf')
                 this = read_freesurfer_file(varargin{1});
+                this = gifti(this);
+            elseif strcmpi(e,'.vtk')
+                this = mvtk_read(varargin{1});
                 this = gifti(this);
             else
                 this = read_gifti_file(varargin{1},giftistruct);

@@ -16,7 +16,7 @@ function mvtk_write(M,filename,format)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: mvtk_write.m 6520 2015-08-13 16:13:06Z guillaume $
+% $Id: mvtk_write.m 6601 2015-11-19 13:55:32Z guillaume $
 
 
 %-Input parameters
@@ -25,9 +25,12 @@ if nargin < 2 || isempty(filename), filename = 'untitled'; end
 if nargin < 3 || isempty(format)
     [pth,name,ext] = fileparts(filename);
     switch ext
-        case {'','.vtk'}
-            ext = '.vtk';
+        case ''
             format = 'legacy-ascii'; % default
+            ext    = '.vtk';
+            filename = fullfile(pth,[name ext]);
+        case '.vtk'
+            format = 'legacy-ascii';
         case 'vtp'
             format = 'xml-ascii';
         case {'.vti','.vtr','.vts','.vtu'}
@@ -130,8 +133,10 @@ fprintf(fid,'%s\n',format);
 %--------------------------------------------------------------------------
 % One of: STRUCTURED_POINTS, STRUCTURED_GRID, UNSTRUCTURED_GRID, POLYDATA,
 % RECTILINEAR_GRID, FIELD
-if isfield(s,'vertices') || isfield(s,'faces')
+if isfield(s,'vertices') && isfield(s,'faces')
     type = 'POLYDATA';
+elseif isfield(s,'vertices')
+    type = 'UNSTRUCTURED_GRID';
 elseif isfield(s,'spacing')
     type = 'STRUCTURED_POINTS';
 %elseif isfield(s,'mat')
@@ -285,7 +290,7 @@ switch format
         fopen_opts = {'wt'};
         store_appended_data('start');
         store_appended_data('base64'); % format: raw, [base64]
-        store_appended_data('none'); % compression: none, [zlib]
+        store_appended_data('zlib'); % compression: none, [zlib]
         write_data = @(fmt,dat) deal(store_appended_data(fmt,dat),'');
     otherwise
         error('Unknown format.');
