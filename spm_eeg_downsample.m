@@ -5,12 +5,14 @@ function D = spm_eeg_downsample(S)
 % S               - optional input struct
 % (optional) fields of S:
 %   S.D           - MEEG object or filename of M/EEG mat-file
+%   S.method      - resampling method. Can be  'resample' (default), 'decimate',
+%                   'downsample', 'fft'
 %   S.fsample_new - new sampling rate, must be lower than the original one
 %   S.prefix     - prefix for the output file (default - 'd')
 %
 % D               - MEEG object (also written on disk)
 %__________________________________________________________________________
-% 
+%
 % This function uses the Signal Processing toolbox from The MathWorks:
 %               http://www.mathworks.com/products/signal/
 % (function resample.m) if present and spm_timeseries_resample.m otherwise.
@@ -18,45 +20,40 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 6016 2014-05-23 17:34:06Z guillaume $
+% $Id: spm_eeg_downsample.m 6602 2015-11-20 19:04:49Z vladimir $
 
-SVNrev = '$Rev: 6016 $';
+SVNrev = '$Rev: 6602 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG downsampling'); spm('Pointer','Watch');
 
-%-Test for the presence of Signal Processing Matlab toolbox
-%--------------------------------------------------------------------------
-flag_tbx = license('checkout','signal_toolbox') && ~isempty(ver('signal'));
-if ~flag_tbx
-    disp(['warning: using homemade resampling routine ' ...
-          'as signal toolbox is not available.']);
-end
-
 if ~isfield(S, 'prefix'),       S.prefix = 'd';           end
+if ~isfield(S, 'method'),       S.method = 'resample';    end
+
+flag_tbx = license('checkout','signal_toolbox') && ~isempty(ver('signal'));
+if ~flag_tbx && ~isequal(S.method, 'fft')
+    S.method = 'fft';
+    disp(['warning: switching to ''fft'' method ' ...
+        'as signal toolbox is not available.']);
+end
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
 D = spm_eeg_load(S.D);
 
 % This is to handle non-integer sampling rates up to a reasonable precision
-P = round(10*S.fsample_new);
-Q = round(10*D.fsample);
+P = round(10*S.fsample_new)/10;
+Q = round(10*D.fsample)/10;
 
 %-First pass: Determine new D.nsamples
 %==========================================================================
-if flag_tbx % Signal Proc. Toolbox
-    nsamples_new = ceil(nsamples(D)*P/Q);
-else
-    d             = double(squeeze(D(1, :, 1)));
-    [d2,alpha]    = spm_timeseries_resample(d,P/Q);
-    fsample_new   = D.fsample*alpha;
-    S.fsample_new = fsample_new;
-    disp(['Resampling frequency is ',num2str(fsample_new), 'Hz'])
-    nsamples_new  = size(d2, 2);
-end
+t             = ft_preproc_resample(D.time, Q, P, S.method);
+nsamples_new  = size(t, 2);
+fsample_new   = 1/mean(diff(t));
+
+disp(['Resampling frequency is ',num2str(fsample_new), 'Hz'])
 
 %-Generate new meeg object with new filenames
 %--------------------------------------------------------------------------
@@ -87,25 +84,19 @@ if strcmp(D.type, 'continuous')
         chncnt=chncnt+blksz;
         
         spm_progress_bar('Set','ylabel','writing...');
-        if flag_tbx % Signal Proc. Toolbox
-            Dnew(blkchan,:) = resample(Dtemp', P, Q)';
-        else
-            Dnew(blkchan,:) = spm_timeseries_resample(Dtemp,P/Q);
-        end
+        
+        Dnew(blkchan,:) = ft_preproc_resample(Dtemp, Q, P, S.method);
+        
         spm_progress_bar('Set', blkchan(end));
-    end    
+    end
 else
     %-Epoched
     %----------------------------------------------------------------------
     spm_progress_bar('Init', D.ntrials, 'Trials downsampled'); drawnow;
     if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials, 100));
     else Ibar = 1:D.ntrials; end
-    for i = 1:D.ntrials  
-        if flag_tbx % signal proc. toolbox
-            Dnew(:, :, i) = resample(spm_squeeze(D(:, :, i), 3)', P, Q)';
-        else
-            Dnew(:, :, i) = spm_timeseries_resample(spm_squeeze(D(:, :, i), 3),P/Q);
-        end       
+    for i = 1:D.ntrials
+        Dnew(:, :, i) = ft_preproc_resample(spm_squeeze(D(:, :, i), 3), Q, P, S.method);
         
         if ismember(i, Ibar), spm_progress_bar('Set', i); end
         
@@ -116,7 +107,7 @@ spm_progress_bar('Clear');
 
 %-Save new downsampled M/EEG dataset
 %--------------------------------------------------------------------------
-Dnew = fsample(Dnew, S.fsample_new);
+Dnew = fsample(Dnew, fsample_new);
 D    = Dnew;
 D    = D.history('spm_eeg_downsample', S);
 save(D);

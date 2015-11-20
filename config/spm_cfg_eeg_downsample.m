@@ -4,7 +4,7 @@ function downsample = spm_cfg_eeg_downsample
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_downsample.m 5983 2014-05-14 17:09:17Z guillaume $
+% $Id: spm_cfg_eeg_downsample.m 6602 2015-11-20 19:04:49Z vladimir $
 
 
 D        = cfg_files;
@@ -21,6 +21,14 @@ fsample_new.strtype = 'r';
 fsample_new.num     = [1 1];
 fsample_new.help    = {'Input the new sampling rate [Hz].'};
 
+method = cfg_menu;
+method.tag  = 'method';
+method.name = 'Resampling method';
+method.labels = {'resample', 'decimate', 'downsample', 'fft'};
+method.values = {'resample', 'decimate', 'downsample', 'fft'};
+method.val = {'resample'};
+method.help = {'Select the downsampling method.'};
+
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
@@ -32,7 +40,7 @@ prefix.val     = {'d'};
 downsample      = cfg_exbranch;
 downsample.tag  = 'downsample';
 downsample.name = 'Downsampling';
-downsample.val  = {D fsample_new, prefix};
+downsample.val  = {D fsample_new, method, prefix};
 downsample.help = {'Downsample EEG/MEG data.'};
 downsample.prog = @eeg_downsample;
 downsample.vout = @vout_eeg_downsample;
