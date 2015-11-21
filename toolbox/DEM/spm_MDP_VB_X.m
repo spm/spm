@@ -1,6 +1,6 @@
-function [MDP] = spm_MDP_VB(MDP,OPTIONS)
+function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % active inference and learning using variational Bayes
-% FORMAT [MDP] = spm_MDP_VB(MDP,OPTIONS)
+% FORMAT [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %
 % MDP.S(N,1)      - true initial state
 % MDP.V(T - 1,P)  - P allowable policies (control sequences)
@@ -84,7 +84,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % mapping to outcomes and the initial state. This is useful for learning
 % the context. In addition, by observing its own behaviour, the agent will
 % automatically learn habits. Finally, by observing policies chosen over
-% trials, the agent develops prior expectations or beliefs about what it 
+% trials, the agent develops prior expectations or beliefs about what it
 % will do. If these priors (over policies – that include the habit) render
 % some policies unlikely (using an Ockham's window), they will not be
 % evaluated.
@@ -98,22 +98,19 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % over hidden states and those specified by preferences or prior beliefs.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_MDP_VB.m 6605 2015-11-21 20:15:13Z karl $
- 
- 
+% $Id: spm_MDP_VB_X.m 6605 2015-11-21 20:15:13Z karl $
+
+
 % deal with a sequence of trials
 %==========================================================================
- 
+
 % options
 %--------------------------------------------------------------------------
-try, OPTIONS.habit;   catch, OPTIONS.habit   = 0; end
 try, OPTIONS.plot;    catch, OPTIONS.plot    = 0; end
 try, OPTIONS.gamma_u; catch, OPTIONS.gamma_u = 0; end
-try, OPTIONS.gamma_s; catch, OPTIONS.gamma_s = 0; end
- 
- 
+
 % if there are multiple trials ensure that parameters are updated
 %--------------------------------------------------------------------------
 if length(MDP) > 1
@@ -127,14 +124,12 @@ if length(MDP) > 1
         if i > 1
             try,  MDP(i).a = OUT(i - 1).a; end
             try,  MDP(i).b = OUT(i - 1).b; end
-            try,  MDP(i).c = OUT(i - 1).c; end
             try,  MDP(i).d = OUT(i - 1).d; end
-            try,  MDP(i).e = OUT(i - 1).e; end
         end
         
         % solve this trial
         %------------------------------------------------------------------
-        OUT(i) = spm_MDP_VB(MDP(i),OPTS);
+        OUT(i) = spm_MDP_VB_X(MDP(i),OPTS);
         
     end
     MDP = OUT;
@@ -151,273 +146,245 @@ if length(MDP) > 1
     end
     return
 end
- 
- 
+
+
 % set up and preliminaries
 %==========================================================================
 V   = MDP.V;                        % allowable policies (T - 1,Np)
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
+Nf  = numel(MDP.B);                 % number of hidden state factors
+Ng  = numel(MDP.A);                 % number of outcome factors
 T   = size(MDP.V,1) + 1;            % number of transitions
 Np  = size(MDP.V,2);                % number of allowable policies
-Ns  = size(MDP.B{1},1);             % number of hidden states
-Nu  = size(MDP.B,2);                % number of hidden controls
+for f = 1:Nf
+    Nu(f) = size(MDP.B{f},3);       % number of hidden controls
+    Ns(f) = size(MDP.B{f},1);       % number of hidden states
+end
+for g = 1:Ng
+    No(g) = size(MDP.A{g},1);       % number of outcomes
+end
 p0  = exp(-8);                      % smallest probability
 q0  = 1/16;                         % smallest probability
-Nh  = Np + 1;                       % index of habit
- 
+
+
 % parameters of generative model and policies
 %==========================================================================
- 
+
 % likelihood model (for a partially observed MDP implicit in G)
 %--------------------------------------------------------------------------
-try
-    A  = MDP.A + p0;
-    No = size(MDP.A,1);            % number of outcomes
-catch
-    A  = speye(Ns,Ns) + p0;
-    No = Ns;
+for g = 1:Ng
+    
+    A{g} = spm_norm(MDP.A{g} + p0);
+    
+    % parameters (concentration parameters): A
+    %----------------------------------------------------------------------
+    if isfield(MDP,'a')
+        qA{g} = spm_psi(MDP.a{g} + q0);
+    else
+        qA{g} = log(A{g});
+    end
+    
+    % entropy
+    %----------------------------------------------------------------------
+    H{g} = spm_ent(qA{g});
+    
 end
-A      = spm_norm(A);              % normalise
- 
-% parameters (concentration parameters): A
-%--------------------------------------------------------------------------
-if isfield(MDP,'a')
-    qA = MDP.a + q0;
-    qA = psi(qA ) - ones(Ns,1)*psi(sum(qA));
-else
-    qA = log(spm_norm(A));
-end
- 
+
 % transition probabilities (priors)
 %--------------------------------------------------------------------------
-for i = 1:Nu
-    
-    B{i} = MDP.B{i} + p0;
-    B{i} = spm_norm(B{i});
-    
-    % parameters (concentration parameters): B
-    %----------------------------------------------------------------------
-    if isfield(MDP,'b')
-        b     = MDP.b{i} + q0;
-        sB{i} = spm_norm(b );
-        rB{i} = spm_norm(b');
-        qB{i} = psi(b) - ones(Ns,1)*psi(sum(b));
-    else
-        b     = MDP.B{i} + p0;
-        sB{i} = spm_norm(b );
-        rB{i} = spm_norm(b');
-        qB{i} = log(b);
+for f = 1:Nf
+    for j = 1:Nu(f)
+        
+        % controlable transition probabilities
+        %------------------------------------------------------------------
+        B{f}(:,:,j)      = spm_norm(MDP.B{f}(:,:,j) + p0);
+        
+        % parameters (concentration parameters): B
+        %------------------------------------------------------------------
+        if isfield(MDP,'b')
+            sB{f}(:,:,j) = spm_norm((MDP.b{f}(:,:,j) + q0) );
+            rB{f}(:,:,j) = spm_norm((MDP.b{f}(:,:,j) + q0)');
+        else
+            sB{f}(:,:,j) = spm_norm(B{f}(:,:,j) );
+            rB{f}(:,:,j) = spm_norm(B{f}(:,:,j)');
+        end
+        
     end
+end
 
-end
- 
-% parameters (concentration parameters) - Habits
-%--------------------------------------------------------------------------
-c0 = 0;
-for j = 1:Nu
-    c0 = c0 + MDP.B{j};
-end
-if ~isfield(MDP,'c')
-    MDP.c = c0;
-end
-c     = MDP.c + q0;
-sH    = spm_norm(c );
-rH    = spm_norm(c');
-qH    = psi(c) - ones(Ns,1)*psi(sum(c));
 
- 
 % priors over initial hidden states - concentration parameters
 %--------------------------------------------------------------------------
-if isfield(MDP,'d')
-    d  = MDP.d + q0;
-    qD = psi(d) - ones(Ns,1)*psi(sum(d));
-elseif isfield(MDP,'D')
-    d  = MDP.D + q0;
-    qD = log(spm_norm(d));
-else
-    d  = ones(Ns,1);
-    qD = psi(d) - ones(Ns,1)*psi(sum(d));
+for f = 1:Nf
+    if isfield(MDP,'d')
+        qD{f} = spm_psi(MDP.d{f} + q0);
+    elseif isfield(MDP,'D')
+        qD{f} = log(spm_norm(MDP.D{f} + q0));
+    else
+        qD{f} = spm_psi(ones(Ns(f),1));
+    end
 end
 
-% priors over policies - concentration parameters
-%--------------------------------------------------------------------------
-try
-    e = MDP.e + q0;
-catch
-    e(1:Np,1) = 4;
-    e(Nh)     = 1;
-end
-if ~OPTIONS.habit || (sum(MDP.c(:)) - sum(c0(:))) < 8;
-    e(Nh)     = q0;
-end
-qE    = psi(e) - ones(Nh,1)*psi(sum(e));
- 
+
 % prior preferences (log probabilities) : C
 %--------------------------------------------------------------------------
-try
-    Vo = MDP.C;
-catch
-    Vo = zeros(No,1);
-end
-
-% assume constant preferences, if only final states are specified
-%--------------------------------------------------------------------------
-if size(Vo,2) ~= T
-    Vo = Vo(:,end)*ones(1,T);
-end
-Vo    = log(spm_softmax(Vo));
-H     = sum(spm_softmax(qA).*qA);
-
-% log preferences over states
-%--------------------------------------------------------------------------
-Vs    = spm_norm(A')*spm_softmax(Vo);
-Vs    = log(Vs) + H'*ones(1,T);
-Vs    = log(spm_softmax(Vs));
-
+for g = 1:Ng
+    if isfield(MDP,'C')
+        Vo{g} = MDP.C{g};
+    else
+        Vo{g} = zeros(No(g),1);
+    end
     
+    % assume constant preferences, if only final states are specified
+    %--------------------------------------------------------------------------
+    if size(Vo{g},2) ~= T
+        Vo{g} = Vo{g}(:,end)*ones(1,T);
+    end
+    Vo{g}     = log(spm_softmax(Vo{g})); 
+end
+
 % precision defaults
 %--------------------------------------------------------------------------
 try, alpha = MDP.alpha;  catch, alpha = 16; end
 try, beta  = MDP.beta;   catch, beta  = 1;  end
-try, eta   = MDP.eta;    catch, eta   = 2;  end
- 
-% initial states and outcomes
+
+% initialise
 %--------------------------------------------------------------------------
-try
-    s = MDP.s(1);                   % initial state (index)
-catch
-    s = 1;
+Ni    = 16;                         % number of VB iterations
+rt    = zeros(1,T);                 % reaction times
+wn    = zeros(T*Ni,1);              % simulated DA responses
+for f = 1:Nf
+    
+    % initialise priors over states
+    %----------------------------------------------------------------------
+    try
+        s(f,1) = MDP.s(f,1);
+    catch
+        s(f,1) = 1;
+    end
+    
+    % initialise posteriors over states
+    %----------------------------------------------------------------------
+    xn{f} = zeros(Ni,Ns(f),T,T,Np);
+    x{f}  = zeros(Ns(f),T,Np) + 1/Ns(f);
+    X{f}  = zeros(Ns(f),T);
+    P{f}  = zeros(Nu(f),T - 1) - 16; 
+    for k = 1:Np
+        x{f}(:,1,k) = spm_softmax(qD{f});
+    end
+    
 end
-try
-    o = MDP.o(1);                   % initial outcome (index)
-catch
-    o = find(rand < cumsum(A(:,s)),1);
-end
-P  = zeros(Nu,T - 1) - 16;          % posterior beliefs about control
-x  = zeros(Ns,T,Nh)  + 1/Ns;        % expectations of hidden states | policy
-X  = zeros(Ns,T);                   % expectations of hidden states
-u  = zeros(Nh,T - 1);               % expectations of policy
-a  = zeros(1, T - 1);               % action (index)
- 
-% initialise priors over states
+
+% initialise posteriors over polices and action
 %--------------------------------------------------------------------------
-for k = 1:Nh
-    x(:,1,k) = spm_softmax(qD);
+un = zeros(Np,T*Ni);
+u  = zeros(Np,T - 1);
+a  = zeros(f, T - 1);
+
+
+% initial outcome (index)
+%--------------------------------------------------------------------------
+for g = 1:Ng
+    try
+        o(g,1) = MDP.o(g,1);
+    catch
+        ind    = num2cell(s(:,1));
+        o(g,1) = find(rand < cumsum(A{g}(:,ind{:})),1);
+    end
 end
- 
+
 % expected rate parameter
 %--------------------------------------------------------------------------
+p     = 1:Np;                       % allowable policies
 qbeta = beta;                       % initialise rate parameters
-qeta  = eta - mean(sum(Vs,2));      % initialise rate parameters
 gu    = zeros(1,T)  + 1/qbeta;      % posterior precision (policy)
-gx    = zeros(Nh,T) + 1/qeta;       % posterior precision (policy)
-qeta  = zeros(Nh,1) + qeta;
-
 
 % solve
 %==========================================================================
-Ni    = 16;                         % number of VB iterations
-rt    = zeros(1,T);                 % reaction times
-xn    = zeros(Ni,Ns,T,T,Np);        % state updates
-un    = zeros(Nh,T*Ni);             % policy updates
-wn    = zeros(T*Ni,1);              % simulated DA responses
-p     = 1:Nh;                       % allowable policies
 for t = 1:T
     
     % processing time and reset
     %----------------------------------------------------------------------
     tstart = tic;
-    x      = spm_softmax(log(x)/2);
+    for f = 1:Nf
+        x{f} = spm_softmax(log(x{f})/2);
+    end
     
     % Variational updates (hidden states) under sequential policies
     %======================================================================
-    F     = zeros(Nh,T);
-    for k = p
-        for i = 1:Ni
-            g     = 0;
-            px    = x(:,:,k);
-            for j = 1:T
-                
-                % current state
-                %----------------------------------------------------------
-                qx   = log(x(:,j,k));
-                
-                % transition probabilities (with attention)
-                %----------------------------------------------------------
-                if OPTIONS.gamma_s
-                    gB      = gx(k,t)*Vs(:,j)*ones(1,Ns);
-                    if k > Np
-                        fB  = spm_softmax(qH  + gB);
-                        bB  = spm_softmax(qH' + gB);
-                    else
-                        if j > 1, fB = spm_softmax(qB{V(j - 1,k)}  + gB); end
-                        if j < T, bB = spm_softmax(qB{V(j    ,k)}' + gB); end
-                    end
-                else
+    for i = 1:Ni
+        px    = x;
+        F     = zeros(Np,T);
+        for f = 1:Nf
+            for k = p
+                for j = 1:T
                     
-                    % transition probabilities (without attention)
+                    % evaluate free energy and gradients (v = dFdx)
+                    %======================================================
+                    
+                    % entropy term
                     %------------------------------------------------------
-                    if k > Np
-                        fB  = sH;
-                        bB  = rH;
-                    else
-                        if j > 1, fB = sB{V(j - 1,k)}; end
-                        if j < T, bB = rB{V(j    ,k)}; end
+                    qx     = log(x{f}(:,j,k));
+                    v      = qx;
+                    
+                    ind    = 1:Nf;
+                    ind(f) = [];
+                    xq     = cell(1,(Nf - 1));
+                    for  q = 1:numel(ind)
+                        xq{q} = x{ind(q)}(:,j,k);
                     end
-                end
-                
-                % evaluate free energy and gradients (v = dFdx)
-                %----------------------------------------------------------
-                v    = qx;
-                if j <= t, v = v - qA(o(j),:)';           end
-                if j == 1, v = v - qD;                    end
-                if j >  1, v = v - log(fB*x(:,j - 1,k));  end
-                if j <  T, v = v - log(bB*x(:,j + 1,k));  end
-                
-                % evaluate (attention) gradients (g = dFdg)
-                %----------------------------------------------------------
-                g  = g + Vs(:,j)'*x(:,j,k);
 
-                % free energy and belief updating
-                %----------------------------------------------------------
-                F(k,j)  = x(:,j,k)'*v;
-                px(:,j) = spm_softmax(qx - v/8);
-                
-                % record neuronal activity
-                %----------------------------------------------------------
-                xn(i,:,j,t,k) = x(:,j,k);
-                
+                    % likelihood
+                    %------------------------------------------------------
+                    if j <= t
+                        for g = 1:Ng
+                            Aq  = spm_dot(qA{g},xq,ind + 1);
+                            v   = v - Aq(o(g,j),:)';
+                        end
+                    end
+                    
+                    % emprical prior
+                    %------------------------------------------------------
+                    if j == 1, v = v - qD{f};                    end
+                    if j >  1, v = v - log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k));  end
+                    if j <  T, v = v - log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k));  end
+                    
+                    % free energy and belief updating
+                    %------------------------------------------------------
+                    F(k,j)       = F(k,j) + x{f}(:,j,k)'*v;
+                    px{f}(:,j,k) = spm_softmax(qx - v/8);
+                    
+                    % record neuronal activity
+                    %------------------------------------------------------
+                    xn{f}(i,:,j,t,k) = x{f}(:,j,k);
+                    
+                end
             end
-            
-            % hidden state updates
-            %--------------------------------------------------------------
-            x(:,:,k) = px;
-            
-            % precision (attention) updates
-            %--------------------------------------------------------------
-            if OPTIONS.gamma_s
-                v       = qeta(k) - eta + g;
-                qeta(k) = qeta(k) - v/2;
-                gx(k,t) = 1/qeta(k);
-                
-                % simulated cholinergic responses (at each iteration)
-                %----------------------------------------------------------
-                n       = (t - 1)*Ni + i;
-                ch(n,k) = gx(k,t);
-            end
-            
         end
+        
+        % hidden state updates
+        %----------------------------------------------------------
+        x = px;
+
     end
     
     % (negative path integral of) free energy of policies (Q)
     %======================================================================
-    Q     = zeros(Nh,T);
+    Q     = zeros(Np,T);
     for k = p
         for j = 1:T
-            qx     = A*x(:,j,k);
-            Q(k,j) = qx'*(Vo(:,j) - log(qx)) + H*x(:,j,k);
+            for g = 1:Ng
+                xq    = cell(1,Nf);
+                ind   = 1:Nf;
+                for f = 1:Nf
+                    xq{f}  = x{f}(:,j,k);
+                end
+                qx     = spm_dot(A{g},xq,ind + 1);
+                Q(k,j) = Q(k,j) + qx'*(Vo{g}(:,j) - log(qx));
+                Q(k,j) = Q(k,j) + spm_dot(H{g},xq,ind);
+            end
         end
     end
     
@@ -431,8 +398,8 @@ for t = 1:T
         
         % policy (u)
         %------------------------------------------------------------------
-        qu = spm_softmax(qE(p) + gu(t)*Q(p) - F(p));
-        pu = spm_softmax(qE(p) + gu(t)*Q(p));
+        qu = spm_softmax(gu(t)*Q(p) - F(p));
+        pu = spm_softmax(gu(t)*Q(p));
         
         % precision (gu) with free energy gradients (v = -dF/dw)
         %------------------------------------------------------------------
@@ -452,7 +419,7 @@ for t = 1:T
         un(p,n) = qu;
         
     end
-
+    
     
     % Bayesian model averaging of hidden states over policies
     %----------------------------------------------------------------------
@@ -468,7 +435,7 @@ for t = 1:T
     % action selection and sampling of next state (outcome)
     %======================================================================
     if t < T
-    
+        
         % posterior expectations about (remaining) actions (q)
         %==================================================================
         if numel(p) > 1
@@ -485,7 +452,7 @@ for t = 1:T
         % action selection
         %------------------------------------------------------------------
         P(:,t) = spm_softmax(alpha*P(:,t));
-                
+        
         % next action
         %------------------------------------------------------------------
         try
@@ -497,7 +464,7 @@ for t = 1:T
                 error('there are no more allowable policies')
             end
         end
-                
+        
         % next sampled state
         %------------------------------------------------------------------
         try
@@ -519,9 +486,9 @@ for t = 1:T
         gu(1,t + 1)   = gu(t);
         
     end
- 
+    
 end
- 
+
 % learning
 %==========================================================================
 for t = 1:T
@@ -555,28 +522,25 @@ for t = 1:T
     end
     
 end
- 
+
 % initial hidden states: d
 %--------------------------------------------------------------------------
 if isfield(MDP,'d')
     i        = MDP.d > 0;
     MDP.d(i) = MDP.d(i) + X(i,1) - (MDP.d(i) - 1)/16;
 end
- 
+
 % policies: e
 %--------------------------------------------------------------------------
 if isfield(MDP,'e')
     MDP.e = MDP.e + u(:,T);
 end
- 
+
 % simulated dopamine (or cholinergic) responses
 %--------------------------------------------------------------------------
-if OPTIONS.gamma_s
-    dn    = ch(:,p);
-else
-    dn    = 8*gradient(wn) + wn/8;
-end
- 
+dn    = 8*gradient(wn) + wn/8;
+
+
 % Bayesian model averaging of expected hidden states over policies
 %--------------------------------------------------------------------------
 Xn    = zeros(Ni,Ns,T,T);
@@ -585,8 +549,8 @@ for i = 1:T
         Xn(:,:,:,i) = Xn(:,:,:,i) + xn(:,:,:,i,k)*u(k,i);
     end
 end
- 
- 
+
+
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------
 MDP.P   = P;              % probability of action at time 1,...,T - 1
@@ -599,13 +563,13 @@ MDP.u   = a;              % action at 1,...,T
 MDP.w   = gu;             % posterior expectations of precision (policy)
 MDP.v   = gx;             % posterior expectations of precision (states)
 MDP.C   = Vo;             % utility
- 
+
 MDP.un  = un;             % simulated neuronal encoding of policies
 MDP.xn  = Xn;             % simulated neuronal encoding of hidden states
 MDP.wn  = wn;             % simulated neuronal encoding of precision
 MDP.dn  = dn;             % simulated dopamine responses (deconvolved)
 MDP.rt  = rt;             % simulated reaction time
- 
+
 % plot
 %==========================================================================
 if OPTIONS.plot
@@ -621,4 +585,32 @@ end
 function A = spm_norm(A)
 % normalisation of a probability transition matrix (columns)
 %--------------------------------------------------------------------------
-A  = A*diag(1./sum(A,1));
+for i = 1:size(A,2)
+    for j = 1:size(A,3)
+        for k = 1:size(A,4)
+             A(:,i,j,k) = A(:,i,j,k)/sum(A(:,i,j,k),1);
+        end
+    end
+end
+
+function A = spm_psi(A)
+% normalisation of a probability transition matrix (columns)
+%--------------------------------------------------------------------------
+for i = 1:size(A,2)
+    for j = 1:size(A,3)
+        for k = 1:size(A,4)
+             A(:,i,j,k) = psi(A(:,i,j,k)) - psi(sum(A(:,i,j,k)));
+        end
+    end
+end
+
+function H = spm_ent(qA)
+% normalisation of a probability transition matrix (columns)
+%--------------------------------------------------------------------------
+for i = 1:size(qA,2)
+    for j = 1:size(qA,3)
+        for k = 1:size(qA,4)
+             H(i,j,k) = spm_softmax(qA(:,i,j,k))'*qA(:,i,j,k);
+        end
+    end
+end
