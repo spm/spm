@@ -100,7 +100,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6605 2015-11-21 20:15:13Z karl $
+% $Id: spm_MDP_VB_X.m 6606 2015-11-22 18:57:07Z karl $
 
 
 % deal with a sequence of trials
@@ -269,8 +269,7 @@ for f = 1:Nf
     %----------------------------------------------------------------------
     xn{f} = zeros(Ni,Ns(f),T,T,Np);
     x{f}  = zeros(Ns(f),T,Np) + 1/Ns(f);
-    X{f}  = zeros(Ns(f),T);
-    P{f}  = zeros(Nu(f),T - 1) - 16; 
+    X{f}  = zeros(Ns(f),T); 
     for k = 1:Np
         x{f}(:,1,k) = spm_softmax(qD{f});
     end
@@ -279,6 +278,7 @@ end
 
 % initialise posteriors over polices and action
 %--------------------------------------------------------------------------
+P  = zeros([Nu (T - 1)]) - 16;
 un = zeros(Np,T*Ni);
 u  = zeros(Np,T - 1);
 a  = zeros(f, T - 1);
@@ -347,7 +347,7 @@ for t = 1:T
                     
                     % emprical prior
                     %------------------------------------------------------
-                    if j == 1, v = v - qD{f};                    end
+                    if j == 1, v = v - qD{f};                                         end
                     if j >  1, v = v - log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k));  end
                     if j <  T, v = v - log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k));  end
                     
@@ -423,8 +423,10 @@ for t = 1:T
     
     % Bayesian model averaging of hidden states over policies
     %----------------------------------------------------------------------
-    for i = 1:T
-        X(:,i) = squeeze(x(:,i,:))*u(:,t);
+    for f = 1:Nf
+        for i = 1:T
+            X{f}(:,i) = squeeze(x{f}(:,i,:))*u(:,t);
+        end
     end
     
     % processing time
@@ -436,52 +438,94 @@ for t = 1:T
     %======================================================================
     if t < T
         
-        % posterior expectations about (remaining) actions (q)
+        % posterior expectations about (remaining) actions
         %==================================================================
-        if numel(p) > 1
-            q = unique(V(t,p(1:end - 1)));
-        else
-            q = 1:Nu;
-        end
-        v     = log(A*X(:,t + 1));
-        for j = q
-            qo     = A*B{j}*X(:,t);
-            P(j,t) = (v - log(qo))'*qo;
+        for g  = 1:Ng
+            
+            % predicted outcome
+            %--------------------------------------------------------------
+            ind   = 1:Nf;
+            for f = ind
+                xq{f} = X{f}(:,t + 1);
+            end
+            v     = log(spm_dot(A{g},xq,ind + 1));
+            
+            % outcome under unique actions
+            %--------------------------------------------------------------
+            up    = unique(shiftdim(V(t,p,:),1),'rows');
+            for i = 1:size(up,1)
+                for f = ind
+                    xq{f} = B{f}(:,:,up(i,f))*X{f}(:,t);
+                end
+                qo     = spm_dot(A{g},xq,ind + 1);
+                dP     = (v - log(qo))'*qo;
+                if     numel(Nu) < 2
+                    P(up(i,1),t) = P(up(i,1),t) + dP;
+                elseif numel(Nu) < 3
+                    P(up(i,1),up(i,2),t) = P(up(i,1),up(i,2),t) + dP;
+                elseif numel(Nu) < 4
+                    P(up(i,1),up(i,2),up(i,3),t) = P(up(i,1),up(i,2),up(i,3),t) + dP;
+                end
+            end
         end
         
         % action selection
         %------------------------------------------------------------------
-        P(:,t) = spm_softmax(alpha*P(:,t));
-        
+        if     numel(Nu) < 2
+            P(:,t) = spm_softmax(alpha*spm_vec(P(:,t)));
+        elseif numel(Nu) < 3
+            P(:,:,t) = spm_softmax(alpha*spm_vec(P(:,:,t)));
+        elseif numel(Nu) < 4
+            P(:,:,:,t) = spm_softmax(alpha*spm_vec(P(:,:,:,t)));
+        end
+
         % next action
         %------------------------------------------------------------------
         try
-            a(t) = MDP.u(t);
+            a(:,t) = MDP.u(:,t);
         catch
-            try
-                a(t) = find(rand < cumsum(P(:,t)),1);
-            catch
-                error('there are no more allowable policies')
+            if     numel(Nu) < 2
+                ind = find(rand < cumsum(spm_vec(P(:,t))),1);
+                [i1] = ind2sub(Nu,ind);
+                a(:,t) = [i1];
+            elseif numel(Nu) < 3
+                ind = find(rand < cumsum(spm_vec(P(:,:,t))),1);
+                [i1,i2] = ind2sub(Nu,ind);
+                a(:,t) = [i1,i2];
+            elseif numel(Nu) < 4
+                ind = find(rand < cumsum(spm_vec(P(:,:,:,t))),1);
+                [i1,i2,i3] = ind2sub(Nu,ind);
+                a(:,t) = [i1,i2,i3];
             end
         end
         
         % next sampled state
         %------------------------------------------------------------------
         try
-            s(t + 1) = MDP.s(t + 1);
+            s(:,t + 1) = MDP.s(t + 1);
         catch
-            s(t + 1) = find(rand < cumsum(B{a(t)}(:,s(t))),1);
+            for f = 1:Nf
+                s(f,t + 1) = find(rand < cumsum(B{f}(:,s(t),a(t))),1);
+            end
         end
         
         % next observed state
         %------------------------------------------------------------------
         try
-            o(t + 1) = MDP.o(t + 1);
+            o(:,t + 1) = MDP.o(:,t + 1);
         catch
-            o(t + 1) = find(rand < cumsum(A(:,s(t + 1))),1);
+            for g = 1:Ng
+                if     Nf < 2
+                    o(g,t + 1) = find(rand < cumsum(A{g}(:,s(1,t + 1))),1);
+                elseif Nf < 3
+                    o(g,t + 1) = find(rand < cumsum(A{g}(:,s(1,t + 1),s(2,t + 1))),1);
+                elseif Nf < 4
+                    o(g,t + 1) = find(rand < cumsum(A{g}(:,s(1,t + 1),s(2,t + 1),s(3,t + 1))),1);
+                end
+            end
         end
         
-        % save outcome and state sampled
+        % save expected precision
         %------------------------------------------------------------------
         gu(1,t + 1)   = gu(t);
         
@@ -496,29 +540,25 @@ for t = 1:T
     % mapping from hidden states to outcomes: a
     %----------------------------------------------------------------------
     if isfield(MDP,'a')
-        i        = MDP.a > 0;
-        da       = sparse(o(t),1,1,No,1)*X(:,t)';
-        MDP.a(i) = MDP.a + da(i);
+        for g = 1:Ng
+            da     = sparse(o(g,t),1,1,No(g),1);
+            for  f = 1:Nf
+                da = spm_cross(da,X{f}(:,t));
+            end
+            MDP.a{g} = MDP.a{g} + da.*(MDP.a{g} > 0);
+        end
     end
     
     % mapping from hidden states to hidden states: b(u)
     %----------------------------------------------------------------------
     if isfield(MDP,'b') && t > 1
-        for k = 1:Np
-            v           = V(t - 1,k);
-            i           = MDP.b{v} > 0;
-            db          = u(k,t - 1)*x(:,t,k)*x(:,t - 1,k)';
-            MDP.b{v}(i) = MDP.b{v}(i) + db(i);
+        for f = 1:Nf
+            for k = 1:Np
+                v   = V(t - 1,k,f);
+                db  = u(k,t - 1)*x{f}(:,t,k)*x{f}(:,t - 1,k)';
+                MDP.b{f}(:,:,v) = MDP.b{f}(:,:,v) + db.*(MDP.b{f}(:,:,v) > 0);
+            end
         end
-    end
-    
-    % mapping from hidden states to hidden states - habit: c
-    %----------------------------------------------------------------------
-    if isfield(MDP,'c') && t > 1
-        k        = Nh;
-        i        = MDP.c > 0;
-        dc       = x(:,t,k)*x(:,t - 1,k)';
-        MDP.c(i) = MDP.c(i) + dc(i);
     end
     
 end
@@ -526,20 +566,15 @@ end
 % initial hidden states: d
 %--------------------------------------------------------------------------
 if isfield(MDP,'d')
-    i        = MDP.d > 0;
-    MDP.d(i) = MDP.d(i) + X(i,1) - (MDP.d(i) - 1)/16;
-end
-
-% policies: e
-%--------------------------------------------------------------------------
-if isfield(MDP,'e')
-    MDP.e = MDP.e + u(:,T);
+    for f = 1:Nf
+        i = MDP.d{f} > 0;
+        MDP.d{f}(i) = MDP.d{f}(i) + X{f}(i,1) - (MDP.d{f}(i) - 1)/16;
+    end
 end
 
 % simulated dopamine (or cholinergic) responses
 %--------------------------------------------------------------------------
 dn    = 8*gradient(wn) + wn/8;
-
 
 % Bayesian model averaging of expected hidden states over policies
 %--------------------------------------------------------------------------
