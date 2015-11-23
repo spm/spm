@@ -20,9 +20,9 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 6602 2015-11-20 19:04:49Z vladimir $
+% $Id: spm_eeg_downsample.m 6607 2015-11-23 11:51:19Z vladimir $
 
-SVNrev = '$Rev: 6602 $';
+SVNrev = '$Rev: 6607 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -51,7 +51,13 @@ Q = round(10*D.fsample)/10;
 %==========================================================================
 t             = ft_preproc_resample(D.time, Q, P, S.method);
 nsamples_new  = size(t, 2);
-fsample_new   = 1/mean(diff(t));
+fsample_new   = 1/mode(diff(t));
+
+if abs(S.fsample_new - fsample_new)<=0.1
+    fsample_new = S.fsample_new;
+else
+    fsample_new = round(10*fsample_new)/10; 
+end
 
 disp(['Resampling frequency is ',num2str(fsample_new), 'Hz'])
 
@@ -107,7 +113,7 @@ spm_progress_bar('Clear');
 
 %-Save new downsampled M/EEG dataset
 %--------------------------------------------------------------------------
-Dnew = fsample(Dnew, fsample_new);
+Dnew = fsample(Dnew, S.fsample_new);
 D    = Dnew;
 D    = D.history('spm_eeg_downsample', S);
 save(D);
