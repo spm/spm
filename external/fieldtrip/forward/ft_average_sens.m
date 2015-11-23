@@ -31,7 +31,7 @@ function [asens, afiducials] = ft_average_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_average_sens.m 10751 2015-10-06 16:14:11Z roboos $
+% $Id: ft_average_sens.m 8757 2013-11-11 13:14:30Z roboos $
 
 % get the optional input arguments
 % fileformat = ft_getopt(varargin, 'fileformat');
@@ -71,12 +71,12 @@ else
   afiducials = [];
 end
 
-pos = detrend(sens(1).chanpos, 'constant');
-[u s v]= svd(pos'*pos);
+pnt = detrend(sens(1).chanpos, 'constant');
+[u s v]= svd(pnt'*pnt);
 
 % starting with the second PC works a little better (e.g. on BTi)
-x1 = pos*u(:, 2);
-x2 = pos*u(:, 1);
+x1 = pnt*u(:, 2);
+x2 = pnt*u(:, 1);
 
 % detemine the indices of three reference sensors that are close to the three principal axes
 [m ind1] = min(x1);
@@ -127,7 +127,7 @@ if ismeg
   
 elseif iseeg
   % also average sensor locations
-  pos = zeros(size(sens(1).chanpos));
+  pnt = zeros(size(sens(1).chanpos));
   for i=1:nsens
     tra1  = ft_headcoordinates(sens(i).chanpos(ind1, :), sens(i).chanpos(ind2, :), sens(i).chanpos(ind3, :));
     csens = ft_transform_sens(tra\tra1, sens(i));
@@ -137,10 +137,10 @@ elseif iseeg
       hold on
     end
     
-    pos = pos + weights(i).*csens.chanpos;
+    pnt = pnt + weights(i).*csens.chanpos;
   end % for nsens
   
-  csens.chanpos = pos;
+  csens.chanpos = pnt;
   asens     = csens;
   
 else
@@ -166,18 +166,18 @@ switch nfid
     afiducials = ft_transform_headshape(tra\tra1, fiducials);
     
   case nsens    
-    hspos = [];
+    hspnt = [];
       
     for i=1:nsens
       hs = strmatch('headshape', fiducials(i).fid.label);
       fiducials(i).fid.label(hs)  = [];      
       
-      fiducials(i).pos = [fiducials(i).pos; fiducials(i).fid.pos(hs, :)];
+      fiducials(i).pnt = [fiducials(i).pnt; fiducials(i).fid.pnt(hs, :)];
       
-      fiducials(i).fid.pos(hs, :) = [];      
+      fiducials(i).fid.pnt(hs, :) = [];      
       
       if i == 1
-          fidpos = zeros(size(fiducials(1).fid.pos));
+          fidpnt = zeros(size(fiducials(1).fid.pnt));
       end
       
       if ~isequal(fiducials(i).fid.label, fiducials(1).fid.label)
@@ -188,13 +188,13 @@ switch nfid
       
       cfiducials = ft_transform_headshape(tra1, fiducials(i));
       
-      fidpos = fidpos + weights(i).*cfiducials.fid.pos;
+      fidpnt = fidpnt + weights(i).*cfiducials.fid.pnt;
       
-      hspos = [hspos; cfiducials.pos];
+      hspnt = [hspnt; cfiducials.pnt];
     end
     
-    cfiducials.pos = hspos;
-    cfiducials.fid.pos = fidpos;
+    cfiducials.pnt = hspnt;
+    cfiducials.fid.pnt = fidpnt;
     afiducials = ft_transform_headshape(inv(tra), cfiducials);
     
     afiducials = ft_convert_units(afiducials);
@@ -212,9 +212,9 @@ switch nfid
             c = 100;
     end
     
-    [upos, ind] = unique(round(c*afiducials.pos/tolerance), 'rows');
+    [upnt, ind] = unique(round(c*afiducials.pnt/tolerance), 'rows');
     
-    afiducials.pos = afiducials.pos(ind, :);
+    afiducials.pnt = afiducials.pnt(ind, :);
     
   otherwise
     error('there should be either one set of fiducials or a set per sensor array');
