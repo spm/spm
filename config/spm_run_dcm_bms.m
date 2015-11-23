@@ -14,13 +14,13 @@ function out = spm_run_dcm_bms(job)
 % Note: All functions use the negative free energy (F) as an approximation
 % to the log model evidence.
 %__________________________________________________________________________
-% Copyright (C) 2009-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2015 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_dcm_bms.m 6442 2015-05-21 09:13:44Z will $
+% $Id: spm_run_dcm_bms.m 6609 2015-11-23 18:52:01Z guillaume $
 
 
-SVNid = '$Rev: 6442 $';
+SVNid = '$Rev: 6609 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ if bma_do
         if data_se
             load(job.sess_dcm{1}(1).dcmmat{1})
         else
-            spm('alert','Please specify DCM.mat files or model_space.mat to do BMA!','Error');
+            spm('alert*','Please specify DCM.mat files or model_space.mat to do BMA.','Error');
             return
         end
     end
@@ -94,10 +94,10 @@ if bma_do
 else
     if ld_msp
         fprintf('%-40s: ','Loading model space')                        %-#
-        load(job.model_sp{1});
+        load(job.model_sp{1},'subj');
         fprintf('%30s\n','...done')                                     %-#
         if ~exist('subj','var')
-            spm('alert','Incorrect model space file! File must contain ''subj'' structure.','Error');
+            spm('alert*',{'Incorrect model space file.','File must contain ''subj'' structure.'},'Error');
             return
         end
     end
@@ -112,7 +112,11 @@ N      = {};                % Models
 %--------------------------------------------------------------------------
 if  ld_f
     data      = job.load_f{1};
-    load(data);
+    load(data,'F');
+    if ~exist('F','var')
+        spm('alert*',{'Incorrect log-evidence matrix file.','File must contain ''F'' matrix.'},'Error');
+        return
+    end
     nm        = size(F,2);                                % No of Models
     ns        = size(F,1);                                % No of Subjects
     N         = 1:nm;
@@ -142,7 +146,7 @@ else
     
     % Check if No of models > 2
     if nm < 2
-        spm('alert','Please select more than one file','Error');
+        spm('alert*','Please select more than one file.','Error');
         return
     end
     
@@ -248,7 +252,7 @@ else
                 end
             end
         else
-            spm('alert','The number of sessions/models should be the same for all subjects!','Error');
+            spm('alert*','The number of sessions/models should be the same for all subjects.','Error');
             return         
         end
         
@@ -277,7 +281,7 @@ if isfield(job.family_level,'family_file')
         m_indx  = 1:nm;
         
         if nfam ~= npart || npart == 1 || maxpart > npart
-            spm('alert','Invalid family file!','Error');
+            spm('alert*','Invalid family file.','Error');
             return
         end
     else
@@ -309,7 +313,7 @@ else
         nmodfam = length(m_indx);
         
         if nfam ~= npart || npart == 1 || maxpart > npart || nmodfam > nm
-            spm('alert','Invalid family!','Error');
+            spm('alert*','Invalid family.','Error');
             return
         end
         
@@ -349,7 +353,7 @@ if strcmp(method,'FFX')
                         indx  = find(family.partition==bma_fam);
                         post  = model.post(indx);
                     else
-                        spm('alert','Incorrect family for BMA!','Error');
+                        spm('alert*','Incorrect family for BMA.','Error');
                         return
                     end
                 end
