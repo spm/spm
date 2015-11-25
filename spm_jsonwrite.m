@@ -14,7 +14,7 @@ function varargout = spm_jsonwrite(varargin)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 6604 2015-11-20 20:19:14Z guillaume $
+% $Id: spm_jsonwrite.m 6610 2015-11-25 17:50:05Z guillaume $
 
 
 %-Input parameters
@@ -33,7 +33,7 @@ end
 %--------------------------------------------------------------------------
 if ~isstruct(json) && ~iscell(json)
     if ~isempty(root)
-        json = struct('root',json);
+        json = struct(root,json);
     else
         error('Invalid JSON structure.');
     end
@@ -71,14 +71,19 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S = jsonwrite_struct(json,tab)
-fn = fieldnames(json);
-S = ['{' sprintf('\n')];
-for i=1:numel(fn)
-    S = [S blanks((tab+1)*2) jsonwrite_char(fn{i}) ': ' jsonwrite_var(json.(fn{i}),tab+1)];
-    if i ~= numel(fn), S = [S ',']; end
-    S = [S sprintf('\n')];
+if numel(json) == 1
+    fn = fieldnames(json);
+    S = ['{' sprintf('\n')];
+    for i=1:numel(fn)
+        S = [S blanks((tab+1)*2) jsonwrite_char(fn{i}) ': ' ...
+            jsonwrite_var(json.(fn{i}),tab+1)];
+        if i ~= numel(fn), S = [S ',']; end
+        S = [S sprintf('\n')];
+    end
+    S = [S blanks(2*tab) '}'];
+else
+    S = jsonwrite_cell(arrayfun(@(x) {x},json),tab);
 end
-S = [S blanks(2*tab) '}'];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S = jsonwrite_cell(json,tab)
@@ -93,7 +98,8 @@ S = [S blanks(2*tab) ']'];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S = jsonwrite_char(json)
 % any-Unicode-character-except-"-or-\-or-control-character
-% \" \\ \/ \b \f \n \r \t \u four-hex-digits 
+% \" \\ \/ \b \f \n \r \t \u four-hex-digits
+json = regexprep(json,'[^\\]"','\\"');
 S = ['"' json '"'];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
