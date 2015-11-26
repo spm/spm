@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 6425 2015-04-29 18:24:51Z guillaume $
+% $Id: spm_list.m 6611 2015-11-26 18:33:13Z guillaume $
 
 
 %==========================================================================
@@ -801,6 +801,12 @@ case 'table'                                                        %-Table
         if nargin < 3, hReg = []; else hReg = varargin{3};   end
         xSPM = varargin{2};
 
+        if isfield(xSPM,'G')
+            warning('"current cluster" option not implemented for meshes.');
+            varargout = { evalin('base','TabDat') };
+            return;
+        end
+        
         %-Get number of maxima per cluster to be reported
         %------------------------------------------------------------------
         if nargin < 4, Num = spm_get_defaults('stats.results.svc.nbmax');

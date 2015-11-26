@@ -19,7 +19,7 @@ function [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6610 2015-11-25 17:50:05Z guillaume $
+% $Id: spm_results_nidm.m 6611 2015-11-26 18:33:13Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -44,7 +44,7 @@ end
 gz           = '.gz'; %-Compressed NIfTI {'.gz', ''}
 coordsys     = 'nidm_MNICoordinateSystem'; %-Assuming MNI space
 NIDMversion  = '1.1.0';
-SVNrev       = '$Rev: 6610 $';
+SVNrev       = '$Rev: 6611 $';
 
 try
     units = xSPM.units;
@@ -257,7 +257,6 @@ pp.entity(idResults,{...
   'prov:label','NIDM-Results',...
   nidm_conv('nidm_version',pp),{NIDMversion,'xsd:string'},...
   });
-pp.wasGeneratedBy(idResults,'-',now);
 
 idExporter = getid('niiri:exporter_id',isHumanReadable);
 pp.agent(idExporter,{...
@@ -273,7 +272,7 @@ pp.activity(idExport,{...
     'prov:label','NIDM-Results export',...
 	});
 pp.wasAssociatedWith(idExport, idExporter);
-pp.wasGeneratedBy(idResults, idExport);
+pp.wasGeneratedBy(idResults, idExport, now);
 
 p = spm_provenance;
 p.remove_namespace('prov');
@@ -982,7 +981,7 @@ pp.bundle(idResults,p);
 serialize(pp,fullfile(outdir,'nidm.provn'));
 serialize(pp,fullfile(outdir,'nidm.ttl'));
 %serialize(pp,fullfile(outdir,'nidm.json'));
-serialize(pp,fullfile(outdir,'nidm.pdf'));
+%serialize(pp,fullfile(outdir,'nidm.pdf'));
 zip(fullfile(SPM.swd,[spm_file(outdir,'basename'),'.nidm.zip']),'*',outdir)
 
 prov = pp;
