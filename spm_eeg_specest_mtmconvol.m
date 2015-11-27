@@ -25,7 +25,7 @@ function res = spm_eeg_specest_mtmconvol(S, data, time)
 %______________________________________________________________________________________
 % Copyright (C) 2011-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_eeg_specest_mtmconvol.m 6047 2014-06-16 11:11:22Z vladimir $
+% $Id: spm_eeg_specest_mtmconvol.m 6612 2015-11-27 18:43:15Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
@@ -135,6 +135,10 @@ timeoi=(time(1)+(timeres/2)):timestep:(time(end)-(timeres/2)-1/fsample); % Time 
 [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(data, time, 'taper', S.taper, 'timeoi', timeoi, 'freqoi', S.frequencies,...
     'timwin', repmat(timeres, 1, length(S.frequencies)), 'tapsmofrq', freqres, 'pad', pad, 'verbose', 0);
 
+% To prevent differences between files due to numerical imprecision
+if length(freqoi)==length(S.frequencies) && max(abs(freqoi-S.frequencies))<0.1
+    freqoi = S.frequencies;
+end
 
 % This in principle should not happen
 if length(unique(diff(timeoi)))>1 && max(abs(diff(unique(diff(timeoi)))))>1e-6
