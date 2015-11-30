@@ -33,7 +33,7 @@ function ft_compile_mex(force)
 
 % Copyright (C) 2010, Stefan Klanke
 %
-% $Id: ft_compile_mex.m 10480 2015-06-24 12:06:32Z roboos $
+% $Id: ft_compile_mex.m 10900 2015-11-17 15:39:11Z roboos $
 
 if nargin<1
   force=false;
@@ -99,7 +99,7 @@ L = add_mex_source(L,'src','sandwich2x2');
 L = add_mex_source(L,'src','combineClusters');
 
 % this one is located elsewhere
-L = add_mex_source(L,'external/fileexchange','CalcMD5');
+L = add_mex_source(L,'external/fileexchange','CalcMD5',[],[],'CFLAGS=''-std=c99 -fPIC''');
 
 % this one depends on the MATLAB version
 if ft_platform_supports('libmx_c_interface')

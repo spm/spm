@@ -35,7 +35,7 @@ function [inside] = ft_inside_vol(dippos, headmodel, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_inside_vol.m 10860 2015-11-10 15:00:52Z roboos $
+% $Id: ft_inside_vol.m 10861 2015-11-10 15:00:55Z roboos $
 
 % get the optional input arguments
 grad        = ft_getopt(varargin, 'grad');

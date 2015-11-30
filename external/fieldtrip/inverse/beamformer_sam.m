@@ -32,7 +32,7 @@ function [dipout] = beamformer_sam(dip, sens, headmodel, dat, all_cov, varargin)
 % Copyright (C) 2005-2009, Arjan Hillebrand
 % Copyright (C) 2005-2009, Gareth Barnes
 %
-% $Id: beamformer_sam.m 10541 2015-07-15 16:49:37Z roboos $
+% $Id: beamformer_sam.m 10855 2015-11-10 12:11:07Z roboos $
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs
@@ -154,7 +154,7 @@ for diplop=1:size(dip.pos,1)
     [junk, min_ind] = min(all_costfun_val);
     
     optim_options = optimset('Display', 'final', 'TolX', 1e-3, 'Display', 'off');
-    [opt_angle, fval, exitflag, output] = fminsearch('SAM_costfun', all_angles(min_ind), optim_options, vox_pos, tanu, tanv, lf, all_cov, inv_cov, noise_cov);
+    [opt_angle, fval, exitflag, output] = fminsearch(@SAM_costfun, all_angles(min_ind), optim_options, vox_pos, tanu, tanv, lf, all_cov, inv_cov, noise_cov);
     MDip        = settang(opt_angle, tanu, tanv);
     MagDip      = sqrt(dot(MDip,MDip));
     opt_vox_or  = (MDip/MagDip)';

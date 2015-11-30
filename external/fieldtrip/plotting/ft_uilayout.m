@@ -75,13 +75,13 @@ function ft_uilayout(h, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_uilayout.m 10350 2015-04-28 21:21:36Z roboos $
+% $Id: ft_uilayout.m 10936 2015-11-25 20:30:01Z roboos $
 
 % these are used to select the uicontrol elements that will be updated
 tag    = ft_getopt(varargin, 'tag');
 style  = ft_getopt(varargin, 'style');
 
-if any(ismember(tag, '.*?^$'))
+if any(tag=='.' | tag=='*' | tag=='?' | tag=='^' | tag=='$')
   % use regular expressions
   tagopt = {'-regexp'};
 else

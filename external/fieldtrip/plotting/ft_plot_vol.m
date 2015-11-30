@@ -43,7 +43,7 @@ function ft_plot_vol(headmodel, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vol.m 10689 2015-09-24 13:02:52Z roboos $
+% $Id: ft_plot_vol.m 10950 2015-11-30 10:07:05Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -69,7 +69,7 @@ faceindex   = istrue(faceindex);   % yes=view the face number
 vertexindex = istrue(vertexindex); % yes=view the vertex number
 
 % we will probably need a sphere, so let's prepare one
-[pnt, tri] = icosahedron2562;
+[pos, tri] = icosahedron2562;
 
 % prepare a single or multiple triangulated boundaries
 switch ft_voltype(headmodel)
@@ -77,9 +77,9 @@ switch ft_voltype(headmodel)
     headmodel.r = sort(headmodel.r);
     bnd = [];
     for i=1:length(headmodel.r)
-      bnd(i).pnt(:,1) = pnt(:,1)*headmodel.r(i) + headmodel.o(1);
-      bnd(i).pnt(:,2) = pnt(:,2)*headmodel.r(i) + headmodel.o(2);
-      bnd(i).pnt(:,3) = pnt(:,3)*headmodel.r(i) + headmodel.o(3);
+      bnd(i).pos(:,1) = pos(:,1)*headmodel.r(i) + headmodel.o(1);
+      bnd(i).pos(:,2) = pos(:,2)*headmodel.r(i) + headmodel.o(2);
+      bnd(i).pos(:,3) = pos(:,3)*headmodel.r(i) + headmodel.o(3);
       bnd(i).tri = tri;
     end
     if isempty(edgecolor)
@@ -89,9 +89,9 @@ switch ft_voltype(headmodel)
   case 'localspheres'
     bnd = [];
     for i=1:length(headmodel.label)
-      bnd(i).pnt(:,1) = pnt(:,1)*headmodel.r(i) + headmodel.o(i,1);
-      bnd(i).pnt(:,2) = pnt(:,2)*headmodel.r(i) + headmodel.o(i,2);
-      bnd(i).pnt(:,3) = pnt(:,3)*headmodel.r(i) + headmodel.o(i,3);
+      bnd(i).pos(:,1) = pos(:,1)*headmodel.r(i) + headmodel.o(i,1);
+      bnd(i).pos(:,2) = pos(:,2)*headmodel.r(i) + headmodel.o(i,2);
+      bnd(i).pos(:,3) = pos(:,3)*headmodel.r(i) + headmodel.o(i,3);
       bnd(i).tri = tri;
     end
     if isempty(edgecolor)

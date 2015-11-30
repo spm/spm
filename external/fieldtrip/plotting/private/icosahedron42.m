@@ -1,15 +1,8 @@
-% FT_PREAMBLE_TRACKCONFIG is a helper script that calls ft_checkconfig to switch the
-% (optional) configuration tracking on. This should be used together with
-% FT_POSTAMBLE_TRACKCONFIG.
-%
-% Use as
-%   ft_preamble trackconfig
-%   ... regular code goes here ...
-%   ft_postamble trackconfig
-%
-% See also FT_POSTAMBLE_TRACKCONFIG
+function [pos, tri] = icosahedron42()
 
-% Copyright (C) 2011-2012, Robert Oostenveld, DCCN
+% ICOSAHEDRON42 creates a 1-fold refined icosahedron
+
+% Copyright (C) 2003, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -27,11 +20,9 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_trackconfig.m 10896 2015-11-17 12:31:35Z roboos $
+% $Id: icosahedron42.m 10933 2015-11-23 16:07:26Z roboos $
 
-% otherwise the empty field would end up in the output cfg
-global ft_default
+[pos, tri] = icosahedron;
+[pos, tri] = refine(pos, tri);
 
-% most fieldtrip functions should allow for configuration tracking, except for
-% the functions that take a cfg as input and return a cfg as output
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+pos = pos ./ repmat(sqrt(sum(pos.^2,2)), 1,3);

@@ -55,13 +55,13 @@ function [cfg movement] = ft_detect_movement(cfg, data)
 
 % Copyright (C) 2014, Diego Lozano-Soldevilla, Robert Oostenveld
 %
-% $Id: ft_detect_movement.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id: ft_detect_movement.m 10896 2015-11-17 12:31:35Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_detect_movement.m 10765 2015-10-09 18:10:47Z roboos $';
+revision = '$Id: ft_detect_movement.m 10896 2015-11-17 12:31:35Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -197,9 +197,7 @@ for i=1:ntrial
 end
 ft_progress('close');
 
-ft_postamble debug
 ft_postamble trackconfig
-ft_postamble previous   data
-ft_postamble provenance movement
-ft_postamble history    movement
-ft_postamble savevar    movement
+ft_postamble provenance
+ft_postamble debug
+ft_postamble previous data

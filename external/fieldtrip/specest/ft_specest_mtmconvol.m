@@ -47,7 +47,7 @@ function [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(dat, time, varar
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_specest_mtmconvol.m 10528 2015-07-10 14:03:40Z roboos $
+% $Id: ft_specest_mtmconvol.m 10930 2015-11-20 20:59:12Z roevdmei $
 
 % these are for speeding up computation of tapers on subsequent calls
 persistent previous_argin previous_wltspctrm
@@ -311,7 +311,7 @@ switch dimord
         if itap > ntaper(ifreqoi)
           spectrum{itap,ifreqoi} = complex(nan(nchan,ntimeboi));
         else                                
-          dum = fftshift(ifft(datspectrum .* repmat(wltspctrm{ifreqoi}(itap,:),[nchan 1]), [], 2),2);
+          dum = fftshift(ifft(datspectrum .* repmat(wltspctrm{ifreqoi}(itap,:),[nchan 1]), [], 2),2); % fftshift is necessary to implement zero-phase/acyclic/acausal convolution (either here, or the wavelet should be wrapped around sample=0)
           tmp = complex(nan(nchan,ntimeboi));
           tmp(:,reqtimeboiind) = dum(:,reqtimeboi);
           tmp = tmp .* sqrt(2 ./ timwinsample(ifreqoi));
@@ -349,7 +349,7 @@ switch dimord
         reqtimeboi       = timeboi(reqtimeboiind);
         
         % compute datspectrum*wavelet, if there are reqtimeboi's that have data
-        dum = fftshift(ifft(datspectrum .* repmat(wltspctrm{ifreqoi}(itap,:),[nchan 1]), [], 2),2);
+        dum = fftshift(ifft(datspectrum .* repmat(wltspctrm{ifreqoi}(itap,:),[nchan 1]), [], 2),2); % fftshift is necessary to implement zero-phase/acyclic/acausal convolution (either here, or the wavelet should be wrapped around sample=0)
         tmp = complex(nan(nchan,ntimeboi),nan(nchan,ntimeboi));
         tmp(:,reqtimeboiind) = dum(:,reqtimeboi);
         tmp = tmp .* sqrt(2 ./ timwinsample(ifreqoi));
@@ -421,7 +421,7 @@ previous_wltspctrm = wltspctrm;
 %
 %       % compute datspectrum*wavelet, if there are reqtimeboi's that have data
 %       if ~isempty(reqtimeboi)
-%         dum = fftshift(ifft(datspectrum(ichan,:) .* wltspctrm{ifreqoi}(itap,:),[],2)); % fftshift is necessary because of post zero-padding, not necessary when pre-padding
+%         dum = fftshift(ifft(datspectrum(ichan,:) .* wltspctrm{ifreqoi}(itap,:),[],2)); 
 %         %spectrum(tapfreqind,ichan,reqtimeboiind) = dum(reqtimeboi);
 %         tmp = complex(nan(1,ntimeboi));
 %         tmp(reqtimeboiind) = dum(reqtimeboi);

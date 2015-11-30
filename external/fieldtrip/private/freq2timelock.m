@@ -28,13 +28,13 @@ function [timelock, cfg] = freq2timelock(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: freq2timelock.m 10099 2015-01-14 14:27:05Z roboos $
+% $Id: freq2timelock.m 10926 2015-11-20 08:48:23Z roboos $
 
 if isfield(freq, 'fourierspctrm')
   fprintf('constructing real/imag data representation from single trial fourier representation\n');
   % select the complex amplitude at the frequency of interest
   cdim = dimnum(freq.dimord, 'chan');  % should be 2
-  fdim = dimnum(freq.dimord, 'freq');     % should be 3
+  fdim = dimnum(freq.dimord, 'freq');  % should be 3
   fbin = nearest(freq.freq, cfg.frequency);
   cfg.frequency = freq.freq(fbin);
   if cdim==2 && fdim==3

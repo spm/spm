@@ -56,7 +56,7 @@ function [dipout] = ft_eloreta(dip, grad, headmodel, dat, Cf, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_eloreta.m 10541 2015-07-15 16:49:37Z roboos $
+% $Id: ft_eloreta.m 10856 2015-11-10 12:19:23Z roboos $
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs
@@ -84,12 +84,8 @@ if ~isfield(dip, 'inside')
   dip.inside = ft_inside_vol(dip.pos, headmodel);
 end
 
-if any(dip.inside>1)
-  % convert to logical representation
-  tmp = false(size(dip.pos,1),1);
-  tmp(dip.inside) = true;
-  dip.inside = tmp;
-end
+% ensure logical representation
+dip.inside = logical(dip.inside);
 
 % keep the original details on inside and outside positions
 originside = dip.inside;

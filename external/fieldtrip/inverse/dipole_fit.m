@@ -51,7 +51,7 @@ function [dipout] = dipole_fit(dip, sens, headmodel, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dipole_fit.m 10541 2015-07-15 16:49:37Z roboos $
+% $Id: dipole_fit.m 10926 2015-11-20 08:48:23Z roboos $
 
 % It is neccessary to provide backward compatibility support for the old function call
 % in case people want to use it in conjunction with EEGLAB and the dipfit1 plugin.
@@ -201,6 +201,7 @@ param = reshape(pos', 1, numel(pos));
 
 % add the orientation to the nonlinear parameters
 if constr.fixedori
+  numdip = size(pos,1);
   for i=1:numdip
     % add the orientation to the list of parameters
     [th, phi, r] = cart2sph(ori(1,i), ori(2,i), ori(3,i));
