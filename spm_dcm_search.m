@@ -35,7 +35,7 @@ function spm_dcm_search(P)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_search.m 5392 2013-04-05 19:14:45Z karl $
+% $Id: spm_dcm_search.m 6615 2015-11-30 12:56:02Z peter $
  
 % get filenames
 %--------------------------------------------------------------------------
@@ -75,23 +75,23 @@ for j = 1:N
     
     % accumate model in terms of which parameters are free
     %----------------------------------------------------------------------
-    A{j} = DCM.a;
-    B{j} = DCM.b;
-    C{j} = DCM.c;
-    D{j} = DCM.d;
+    A = DCM.a;
+    B = DCM.b;
+    C = DCM.c;
+    D = DCM.d;
     
     % Get full models free parameters
     %----------------------------------------------------------------------
     if j == 1
-        a    = A{j};
-        b    = B{j};
-        c    = C{j};
-        d    = D{j};
+        a    = A;
+        b    = B;
+        c    = C;
+        d    = D;
     else
-        a    = a | A{j};
-        b    = b | B{j};
-        c    = c | C{j};
-        d    = d | D{j};
+        a    = a | A;
+        b    = b | B;
+        c    = c | C;
+        d    = d | D;
     end
 end
  
@@ -118,6 +118,13 @@ pC    = FUL.M.pC;
 for j = 1:N
     
     load(P{j});
+    
+    % Fix for endogenous DCM (to match spm_dcm_estimate)
+    % ---------------------------------------------------------------------
+    if isempty(DCM.c) || isempty(U.u)
+        DCM.c  = zeros(DCM.n,1);
+        DCM.b  = zeros(DCM.n,DCM.n,1);
+    end
     
     % Get model (priors) and evaluate (reduced) free-energy and posteriors
     % ---------------------------------------------------------------------
