@@ -20,9 +20,9 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 6607 2015-11-23 11:51:19Z vladimir $
+% $Id: spm_eeg_downsample.m 6614 2015-11-30 10:42:02Z vladimir $
 
-SVNrev = '$Rev: 6607 $';
+SVNrev = '$Rev: 6614 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -51,7 +51,7 @@ Q = round(10*D.fsample)/10;
 %==========================================================================
 t             = ft_preproc_resample(D.time, Q, P, S.method);
 nsamples_new  = size(t, 2);
-fsample_new   = 1/mode(diff(t));
+fsample_new   = (nsamples_new/D.nsamples)*D.fsample;
 
 if abs(S.fsample_new - fsample_new)<=0.1
     fsample_new = S.fsample_new;
