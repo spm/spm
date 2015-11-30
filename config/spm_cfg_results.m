@@ -3,7 +3,7 @@ function results = spm_cfg_results
 %__________________________________________________________________________
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 6147 2014-09-02 19:03:42Z guillaume $
+% $Id: spm_cfg_results.m 6617 2015-11-30 19:21:42Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -75,6 +75,20 @@ extent.help    = {''};
 extent.strtype = 'w';
 extent.num     = [1 1];
 extent.val     = {0};
+
+%--------------------------------------------------------------------------
+% conjunction Conjunction Number
+%--------------------------------------------------------------------------
+conjunction         = cfg_entry;
+conjunction.tag     = 'conjunction';
+conjunction.name    = 'Conjunction number';
+conjunction.help    = {'Conjunction number. Unused if a simple contrast is entered.'
+    'For Conjunction Null, enter 1.'
+    'For Global Null, enter the number of selected contrasts.'
+    'For Intermediate, enter the number of selected contrasts minus the number of effects under the Null.'}';
+conjunction.strtype = 'n';
+conjunction.num     = [1 1];
+conjunction.val     = {1};
 
 %--------------------------------------------------------------------------
 % contrasts Contrast(s)
@@ -161,7 +175,7 @@ mask.val    = {none};
 conspec      = cfg_branch;
 conspec.tag  = 'conspec';
 conspec.name = 'Contrast query';
-conspec.val  = {titlestr contrasts threshdesc thresh extent mask};
+conspec.val  = {titlestr contrasts threshdesc thresh extent conjunction mask};
 conspec.help = {''};
 
 %--------------------------------------------------------------------------

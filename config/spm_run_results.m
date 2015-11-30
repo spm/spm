@@ -7,10 +7,10 @@ function out = spm_run_results(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_results.m 6337 2015-02-11 18:46:30Z guillaume $
+% $Id: spm_run_results.m 6617 2015-11-30 19:21:42Z guillaume $
 
 
 cspec = job.conspec;
@@ -52,7 +52,9 @@ for k = 1:numel(cspec)
     xSPM.thresDesc = job.conspec.threshdesc;
     xSPM.title     = job.conspec.titlestr;
     xSPM.k         = job.conspec.extent;
-    %xSPM.n        = 1; % conjunction 
+    try
+        xSPM.n     = job.conspec.conjunction;
+    end
     switch job.units
         case 1
             xSPM.units = {'mm' 'mm' 'mm'};

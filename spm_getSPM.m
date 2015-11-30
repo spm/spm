@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 6314 2015-01-23 17:00:51Z guillaume $
+% $Id: spm_getSPM.m 6617 2015-11-30 19:21:42Z guillaume $
 
 
 %-GUI setup
@@ -856,8 +856,11 @@ if ~isempty(XYZ)
     end
     
 else
-    
-    k = 0;
+    try
+        k = xSPM.k;
+    catch
+        k = 0;
+    end
     
 end % (if ~isempty(XYZ))
 
