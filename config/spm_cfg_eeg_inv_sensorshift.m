@@ -6,7 +6,7 @@ function sensorshift = spm_cfg_eeg_inv_sensorshift
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_sensorshift.m 5422 2013-04-16 15:35:49Z gareth $
+% $Id: spm_cfg_eeg_inv_sensorshift.m 6618 2015-12-01 16:25:38Z spm $
 
 D = cfg_files;
 D.tag = 'D';

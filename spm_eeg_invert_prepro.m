@@ -85,7 +85,7 @@ function [D] = spm_eeg_invert_prepro(D,val)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Jose David Lopez, Gareth Barnes, Vladimir Litvak
-% $Id: spm_eeg_invert_prepro.m 6501 2015-07-17 14:32:09Z spm $
+% $Id: spm_eeg_invert_prepro.m 6618 2015-12-01 16:25:38Z spm $
 
 
 Nl = length(D);
@@ -316,31 +316,31 @@ YTY         = T'*YY*T;     % Filter
 %======================================================================
 
 if isempty(Nt), %% automatically assign appropriate number of temporal modes    
-    [U E]  = spm_svd(YTY,exp(-8));			% get temporal modes
+    [U E]  = spm_svd(YTY,exp(-8));          % get temporal modes
     if isempty(U), %% fallback
         warning('nothing found using spm svd, using svd');
-        [U E]  = svd(YTY);			% get temporal modes
+        [U E]  = svd(YTY);          % get temporal modes
     end;
-    E      = diag(E)/trace(YTY);			% normalise variance
-    Nr     = min(length(E),Nmax);			% number of temporal modes
+    E      = diag(E)/trace(YTY);            % normalise variance
+    Nr     = min(length(E),Nmax);           % number of temporal modes
     Nr=max(Nr,1); %% use at least one mode
 else %% use predefined number of modes
-    [U E]  = svd(YTY);			% get temporal modes
-    E      = diag(E)/trace(YTY);			% normalise variance
+    [U E]  = svd(YTY);          % get temporal modes
+    E      = diag(E)/trace(YTY);            % normalise variance
     disp('Fixed number of temporal modes');
     Nr=Nt;
 end;
 
-V      = U(:,1:Nr);						% temporal modes
-VE     = sum(E(1:Nr));					% variance explained
+V      = U(:,1:Nr);                     % temporal modes
+VE     = sum(E(1:Nr));                  % variance explained
 
 fprintf('Using %i temporal modes, ',Nr)
 fprintf('accounting for %0.2f percent average variance\n',full(100*VE))
 
 % projection and whitening
 %----------------------------------------------------------------------
-S      = T*V;							% temporal projector
-Vq     = S*pinv(S'*qV*S)*S';			% temporal precision
+S      = T*V;                           % temporal projector
+Vq     = S*pinv(S'*qV*S)*S';            % temporal precision
 
 %disp('FIXIN TEMP PROJECTOR TO FULL RANK');
 %S=eye(size(YY,1));

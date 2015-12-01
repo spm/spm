@@ -10,6 +10,6 @@ function res = trialtag(this, varargin)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: trialonset.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: trialtag.m 6618 2015-12-01 16:25:38Z spm $
 
 res = getset(this, 'trials', 'tag', varargin{:});

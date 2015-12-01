@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 6552 2015-09-11 16:47:52Z spm $
+ * $Id: file2mat.c 6618 2015-12-01 16:25:38Z spm $
  * John Ashburner
  */
 
@@ -632,7 +632,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 #endif
             map.dtype->func(ndim-1, idim, iptr, idat, odim, mxGetData(plhs[0]));
 #ifdef SPM_WIN32
-		}
+        }
         __except(GetExceptionCode()==EXCEPTION_IN_PAGE_ERROR ?
             EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
         {

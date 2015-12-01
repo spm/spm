@@ -19,7 +19,7 @@ function [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6617 2015-11-30 19:21:42Z guillaume $
+% $Id: spm_results_nidm.m 6618 2015-12-01 16:25:38Z spm $
 
 
 %-Get input parameters, interactively if needed
@@ -44,7 +44,7 @@ end
 gz           = '.gz'; %-Compressed NIfTI {'.gz', ''}
 coordsys     = 'nidm_MNICoordinateSystem'; %-Assuming MNI space
 NIDMversion  = '1.1.0';
-SVNrev       = '$Rev: 6617 $';
+SVNrev       = '$Rev: 6618 $';
 
 try
     units = xSPM.units;
@@ -270,7 +270,7 @@ idExport = getid('niiri:export_id',isHumanReadable);
 pp.activity(idExport,{...
     'prov:type',nidm_conv('nidm_NIDMResultsExport',pp),...
     'prov:label','NIDM-Results export',...
-	});
+    });
 pp.wasAssociatedWith(idExport, idExporter);
 pp.wasGeneratedBy(idResults, idExport, now);
 

@@ -9,7 +9,7 @@ function saveas(this,filename,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id$
+% $Id: saveas.m 6618 2015-12-01 16:25:38Z spm $
 
 
 % Check filename and file format
