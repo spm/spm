@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 6617 2015-11-30 19:21:42Z guillaume $
+% $Id: spm_getSPM.m 6619 2015-12-01 19:20:22Z guillaume $
 
 
 %-GUI setup
@@ -713,7 +713,7 @@ if STAT ~= 'P'
             
         case 'FDR' % False discovery rate
             %--------------------------------------------------------------
-            if topoFDR,
+            if topoFDR
                 fprintf('\n');                                          %-#
                 error('Change defaults.stats.topoFDR to use voxel FDR');
             end
@@ -750,16 +750,20 @@ if STAT ~= 'P'
     %-Compute p-values for topological and voxel-wise FDR (all search voxels)
     %----------------------------------------------------------------------
     if ~topoFDR
+        %-Voxel-wise FDR
+        %------------------------------------------------------------------
         fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...for voxelFDR')  %-#
         Ps = spm_z2p(Zum,df,STAT,n);
-    end
-    
-    %-Peak FDR
-    %----------------------------------------------------------------------
-    if ~spm_mesh_detect(xCon(Ic(1)).Vspm)
-        [up,Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Zum,XYZum,u);
+        up = spm_uc_FDR(0.05,df,STAT,n,sort(Ps(:)));
+        Pp = [];
     else
-        [up,Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Zum,XYZum,u,G);
+        %-Peak FDR
+        %------------------------------------------------------------------
+        if ~spm_mesh_detect(xCon(Ic(1)).Vspm)
+            [up,Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Zum,XYZum,u);
+        else
+            [up,Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Zum,XYZum,u,G);
+        end
     end
     
     %-Cluster FDR
@@ -775,6 +779,11 @@ if STAT ~= 'P'
     else
         uc  = NaN;
         ue  = NaN;
+        Pc  = [];
+    end
+    
+    if ~topoFDR
+        uc  = NaN;
         Pc  = [];
     end
     
