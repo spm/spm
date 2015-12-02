@@ -43,7 +43,7 @@ function [BPA] = spm_dcm_bpa(P,nocd)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_bpa.m 6309 2015-01-20 21:01:36Z spm $
+% $Id: spm_dcm_bpa.m 6620 2015-12-02 17:35:13Z peter $
 
 
 % Preiminaries
@@ -67,7 +67,7 @@ if ~isvector(P)
     % loop over models in each column
     %----------------------------------------------------------------------
     for i = 1:size(P,2)
-        BPA(i)  = spm_dcm_bpa(P(:,i),nocd);
+        BPA{i}  = spm_dcm_bpa(P(:,i),nocd);
     end
     
     return
