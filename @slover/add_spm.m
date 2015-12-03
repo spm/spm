@@ -1,11 +1,13 @@
 function obj = add_spm(obj,xSPM)
-% Adds SPM blobs as new img to object, split effect, 'hot' colormap
+% Add SPM blobs as new img to object, split effect, 'hot' colormap
 % FORMAT obj = add_spm(obj)
-% 
+%
 % SPM results are fetched from the workspace
-% 
-% $Id: add_spm.m,v 1.1 2005/04/20 15:05:36 matthewbrett Exp $
-  
+%__________________________________________________________________________
+
+% Matthew Brett
+% $Id: add_spm.m 6623 2015-12-03 18:38:08Z guillaume $
+
 if nargin == 2
     XYZ = xSPM.XYZ;
     Z   = xSPM.Z;
@@ -14,8 +16,8 @@ else
     [XYZ,Z,M] = pr_get_spm_results;
 end
 if isempty(XYZ)
-  warning('slover:noSPM', 'No SPM results to add');
-  return
+    warning('slover:noSPM', 'No SPM results to add');
+    return
 end
 
 newimg = length(obj.img)+1;

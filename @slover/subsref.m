@@ -1,7 +1,9 @@
 function result = subsref(this, Struct)
-% method to overload the . notation.
+% Method to overload the . notation.
 % . reference works directly on object fields
-%
-% $Id: subsref.m,v 1.1 2005/04/20 15:05:36 matthewbrett Exp $
+%__________________________________________________________________________
+
+% Matthew Brett
+% $Id: subsref.m 6623 2015-12-03 18:38:08Z guillaume $
 
 result = builtin('subsref', this, Struct );

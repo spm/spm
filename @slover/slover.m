@@ -2,8 +2,8 @@ function [o, others] = slover(params, others, varargin)
 % class constructor for slice overlay (slover) object
 % FORMAT [o, others] = slover(params, others, varargin)
 %
-% Inputs  
-% params    - either: 
+% Inputs
+% params    - either:
 %             - action string implementing class methods (see below)
 %             - array of image names / vol structs to display
 %             - structure with some fields for object (see below)
@@ -18,7 +18,7 @@ function [o, others] = slover(params, others, varargin)
 %  - img - array of structs with information for images to display
 %        - img structs contain fields
 %             type - one of {'truecolour' 'split', 'contour'};
-%                   truecolour - displays transparent (see prop) image 
+%                   truecolour - displays transparent (see prop) image
 %                      overlaid with any previous
 %                   split - in defined area, replaces image present (SPM
 %                      type activation display)
@@ -30,7 +30,7 @@ function [o, others] = slover(params, others, varargin)
 %             cmap - colormap for this image
 %             nancol - color for NaN. If scalar, this is an index into
 %                    the image cmap.  If 1x3 vector, it's a colour
-%             prop - proportion of intensity for this cmap/img 
+%             prop - proportion of intensity for this cmap/img
 %             func - function to apply to image before scaling to cmap
 %                    (and therefore before min/max thresholding. E.g. a func of
 %                    'i1(i1==0)=NaN' would convert zeros to NaNs
@@ -43,14 +43,14 @@ function [o, others] = slover(params, others, varargin)
 %                    colormap values < 1, i.e for image values <
 %                    range(1), if (range(1)<range(2)), and image values >
 %                    range(1) where (range(1)>range(2)). If missing,
-%                    display min (for Left) and max (for Right) value from colormap. 
+%                    display min (for Left) and max (for Right) value from colormap.
 %                    Otherwise should be a 2 element cell array, where
 %                    the first element is the colour value for image values
 %                    left of 'range', and the second is for image values
 %                    right of 'range'.  Scalar values for
 %                    colour index the colormap, 3x1 vectors are colour
 %                    values.  An empty array attracts default settings
-%                    appropriate to the mode - i.e. transparent colour (where 
+%                    appropriate to the mode - i.e. transparent colour (where
 %                    img(n).type is truecolour), or split colour.  Empty cells
 %                    default to 0. 0 specifies that voxels with this
 %                    colour do not influence the image (split =
@@ -61,11 +61,11 @@ function [o, others] = slover(params, others, varargin)
 %                    NaN
 %            linespec - string, applies only to contour map,
 %                    e.g. 'w-' for white continuous lines
-%            contours - vector, applies to contour map only, defines 
-%                    values in image for which to show contours 
+%            contours - vector, applies to contour map only, defines
+%                    values in image for which to show contours
 %                    (see help contours)
 %            linewidth - scalar, width in points of contour lines
-%            
+%
 % - transform - either - 4x4 transformation to apply to image slice position,
 %             relative to mm given by slicedef, before display
 %               or     - text string, one of axial, coronal, sagittal
@@ -98,15 +98,15 @@ function [o, others] = slover(params, others, varargin)
 %                  halign - one of left,{center},right
 %                  valign - one of top,{middle},bottom
 % - xslices  - no of slices to display across figure (defaults to an optimum)
-% - cbar      - if empty, missing, no colourbar.  If an array of integers, then 
+% - cbar      - if empty, missing, no colourbar.  If an array of integers, then
 %             indexes img array, and makes colourbar for each cmap for
 %             that img.  Cbars specified in order of appearance L->R
 % - labels - struct can be:
 %                  - empty (-> default numerical labels)
-%                  - 'none' (string) (no labels) 
+%                  - 'none' (string) (no labels)
 %                  - or contain fields:
-%                  colour - colour for label text 
-%                  size - font size in units normalized to slice axes 
+%                  colour - colour for label text
+%                  size - font size in units normalized to slice axes
 %                  format - if = cell array of strings =
 %                  labels for each slice in Z.  If is string, specifies
 %                  sprintf format string for labelling in distance of the
@@ -119,9 +119,9 @@ function [o, others] = slover(params, others, varargin)
 %              mm of the position of a mouse click on one of the image
 %              slices, set callback to:
 %                   'get_pos(get(gcf, ''UserData''))'
-%              To print the intensity values of the images at the clicked point: 
+%              To print the intensity values of the images at the clicked point:
 %                   ['so_obj = get(gcf, ''UserData''); ' ...
-%                    'point_vals(so_obj, get_pos(so_obj))'] 
+%                    'point_vals(so_obj, get_pos(so_obj))']
 % - printstr - string for printing slice overlay figure window, e.g.
 %              'print -dpsc -painters -noui' (the default)
 % - printfile - name of file to print output to; default 'slices.ps'
@@ -138,100 +138,102 @@ function [o, others] = slover(params, others, varargin)
 % in matrices as above
 %
 % FORMAT vol = slover('matrix2vol', mat3d, mat)
-% returns (pseudo) vol struct for 3d matrix 
+% returns (pseudo) vol struct for 3d matrix
 % input matrices as above
 %
 % FORMAT obj = slover('basic_ui' [,dispf])
 % Runs basic UI to fetch some parameters, does display, returns object
 % If optional dispf parameter = 0, supresses display
-% 
-% $Id: slover.m,v 1.2 2005/05/06 22:59:56 matthewbrett Exp $
-  
+%__________________________________________________________________________
+
+% Matthew Brett
+% $Id: slover.m 6623 2015-12-03 18:38:08Z guillaume $
+
 myclass = 'slover';
 
 % Default object structure
 defstruct = struct('img', [], ...
-           'transform', 'axial', ...
-           'slicedef', [], ... 
-           'slices', [], ...
-           'figure', [], ...
-           'figure_struct', [], ...
-           'refreshf', 1, ...
-           'clf', 1, ...
-           'resurrectf', 1, ...
-           'userdata', 1, ...
-           'area', [], ...
-           'xslices', [], ...
-           'cbar', [], ...
-           'labels', [], ...
-           'callback', ';', ...
-           'printstr', 'print -dpsc -painters -noui', ...
-           'printfile', 'slices.ps');
+    'transform', 'axial', ...
+    'slicedef', [], ...
+    'slices', [], ...
+    'figure', [], ...
+    'figure_struct', [], ...
+    'refreshf', 1, ...
+    'clf', 1, ...
+    'resurrectf', 1, ...
+    'userdata', 1, ...
+    'area', [], ...
+    'xslices', [], ...
+    'cbar', [], ...
+    'labels', [], ...
+    'callback', ';', ...
+    'printstr', 'print -dpsc -painters -noui', ...
+    'printfile', 'slices.ps');
 
 if nargin < 1
-  o = class(defstruct, myclass);
-  others = [];
-  return
+    o = class(defstruct, myclass);
+    others = [];
+    return
 end
 if nargin < 2
-  others = [];
+    others = [];
 end
 
 % parse out string action calls (class functions)
 if ischar(params)
-  switch params
-   case 'getcmap'
-    if nargin < 2
-      error('Need colormap name');
+    switch params
+        case 'getcmap'
+            if nargin < 2
+                error('Need colormap name');
+            end
+            o = pr_getcmap(others);
+            return
+        case 'volmaxmin'
+            if nargin < 2
+                error('Need volume to calculate max/min');
+            end
+            [o,others] = pr_volmaxmin(others);
+            return
+        case 'blobs2vol'
+            if nargin < 4
+                error('Need XYZ, vals, mat');
+            end
+            o = pr_blobs2vol(others, varargin{:});
+            return
+        case 'matrix2vol'
+            if nargin < 3
+                error('Need matrix and mat');
+            end
+            o = pr_matrix2vol(others, varargin{:});
+            return
+        case 'basic_ui'
+            o = pr_basic_ui(others, varargin{:});
+            if ~isempty(o), o = paint(o); end
+            return
     end
-    o = pr_getcmap(others);
-    return
-   case 'volmaxmin'
-    if nargin < 2
-      error('Need volume to calculate max/min');
-    end
-    [o others] = pr_volmaxmin(others);
-    return
-   case 'blobs2vol'
-    if nargin < 4
-      error('Need XYZ, vals, mat');
-    end
-    o = pr_blobs2vol(others, varargin{:});
-    return
-   case 'matrix2vol'
-    if nargin < 3
-      error('Need matrix and mat');
-    end
-    o = pr_matrix2vol(others, varargin{:});
-    return
-   case 'basic_ui'
-    o = pr_basic_ui(others, varargin{:});
-    if ~isempty(o), o = paint(o); end
-    return
-  end
-  
-  % if not action string, must be filename(s)
-  params = spm_vol(params);
-end    
+    
+    % if not action string, must be filename(s)
+    params = spm_vol(params);
+end
 
 % Could these just be image vol structs?
 if isfield(params, 'fname')
-  for i = 1:numel(params)
-    obj.img(i).vol = params(i);
-  end
-  params = obj;
+    for i = 1:numel(params)
+        obj.img(i).vol = params(i);
+    end
+    params = obj;
 end
 
 % Deal with passed objects of this (or child) class
 if isa(params, myclass)
-  o = params;
-  % Check for simple form of call
-  if isempty(others), return, end
-
-  % Otherwise, we are being asked to set fields of object
-  [p others] = mars_struct('split', others, defstruct);
-  o = mars_struct('ffillmerge', o, p);
-  return
+    o = params;
+    % Check for simple form of call
+    if isempty(others), return, end
+    
+    % Otherwise, we are being asked to set fields of object
+    [p,others] = mars_struct('split', others, defstruct);
+    o = mars_struct('ffillmerge', o, p);
+    return
 end
 
 % fill params with defaults, parse into fields for this object, children
@@ -243,5 +245,3 @@ o  = class(params, myclass);
 
 % refill with defaults
 o = fill_defaults(o);
-
-return
