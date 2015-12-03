@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 6526 2015-08-20 10:28:36Z vladimir $
+% $Id: spm_eeg_grandmean.m 6625 2015-12-03 21:49:24Z vladimir $
 
-SVNrev = '$Rev: 6526 $';
+SVNrev = '$Rev: 6625 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -214,6 +214,7 @@ end
 
 % The order of the conditions will be consistent with the first file
 [sel1, sel2] = spm_match_str(D{1}.condlist, types);
+sel2  = sel2(:)';
 types = types([sel2, setdiff(1:length(types), sel2)]);
 
 Ntypes = numel(types);

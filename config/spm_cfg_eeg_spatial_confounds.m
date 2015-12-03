@@ -4,7 +4,7 @@ function sconfounds = spm_cfg_eeg_spatial_confounds
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_spatial_confounds.m 6437 2015-05-14 12:27:21Z vladimir $
+% $Id: spm_cfg_eeg_spatial_confounds.m 6625 2015-12-03 21:49:24Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -20,6 +20,19 @@ timewin.strtype = 'r';
 timewin.num     = [1 2];
 timewin.val     = {[-Inf Inf]};
 timewin.help    = {'Time window (ms)'};
+
+condlabel = cfg_entry;
+condlabel.tag = 'conditions';
+condlabel.name = 'Condition label';
+condlabel.strtype = 's';
+
+conditions = cfg_repeat;
+conditions.tag = 'condrepeat';
+conditions.name = 'Conditions';
+conditions.help = {'Specify the labels of the conditions to include in the SVD.'};
+conditions.num  = [0 Inf];
+conditions.values  = {condlabel};
+conditions.val = {};
 
 ncomp = cfg_entry;
 ncomp.tag = 'ncomp';
@@ -40,7 +53,7 @@ threshold.help = {'Threshold for data amplitude after correction.',...
 svd = cfg_branch;
 svd.tag = 'svd';
 svd.name = 'SVD';
-svd.val = {timewin, threshold,ncomp};
+svd.val = {timewin, conditions, threshold, ncomp};
 svd.help = {'Define confounds from SVD of artefact samples.'};
 
 conffile = cfg_files;

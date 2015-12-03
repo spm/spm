@@ -13,10 +13,10 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 6437 2015-05-14 12:27:21Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 6625 2015-12-03 21:49:24Z vladimir $
 
 
-SVNrev = '$Rev: 6437 $';
+SVNrev = '$Rev: 6625 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -28,6 +28,9 @@ if ~isfield(S, 'threshold') && isfield(S, 'svdthresh'),  S.threshold  = S.svdthr
 
 
 D = spm_eeg_load(S.D);
+
+if ~isfield(S, 'conditions') || isempty(S.conditions),   S.conditions = D.condlist;      end 
+if ~iscell(S.conditions), S.conditions = {S.conditions};                                 end
 
 sconf = [];
 switch upper(S.mode)
@@ -111,7 +114,8 @@ switch upper(S.mode)
         cl = D.condlist;
         svdinput = [];
         for i = 1:numel(cl)
-            svdinput = [svdinput mean(D(D.indchantype('MEEG', 'GOOD'), D.indsample(1e-3*S.timewin(1)):D.indsample(1e-3*S.timewin(2)), D.indtrial(cl{i})), 3)];
+            tmp      = D(D.indchantype('MEEG', 'GOOD'), D.indsample(1e-3*S.timewin(1)):D.indsample(1e-3*S.timewin(2)), D.indtrial(cl{i}));
+            svdinput = [svdinput, reshape(tmp, size(tmp, 1),  [])];
         end
         [U, L, V] = spm_svd(svdinput);
         
