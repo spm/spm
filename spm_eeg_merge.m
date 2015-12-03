@@ -58,9 +58,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 %
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 6526 2015-08-20 10:28:36Z vladimir $
+% $Id: spm_eeg_merge.m 6622 2015-12-03 11:54:13Z vladimir $
 
-SVNrev = '$Rev: 6526 $';
+SVNrev = '$Rev: 6622 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -132,15 +132,15 @@ for i = 1:Nfiles
     end
 
     if ~isempty(D{i}.sensors('MEG'))
-        megsens = [megsens D{i}.sensors('MEG')];
+        megsens = spm_cat_struct(megsens, D{i}.sensors('MEG'));
     end
     
     if ~isempty(D{i}.sensors('EEG'))
-        eegsens = [eegsens D{i}.sensors('EEG')];
+        eegsens = spm_cat_struct(eegsens, D{i}.sensors('EEG'));
     end
     
     if ~isempty(megsens) || ~isempty(eegsens)
-        fid = [fid D{i}.fiducials];
+        fid = spm_cat_struct(fid, D{i}.fiducials);
     end
     
     Ntrials = [Ntrials D{i}.ntrials];

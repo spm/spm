@@ -5,12 +5,12 @@ function res = fiducials(this, newfiducials)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: fiducials.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: fiducials.m 6622 2015-12-03 11:54:13Z vladimir $
 
 switch nargin
     case 1
          res = this.fiducials;
     case 2
-         this.fiducials = newfiducials;
+         this.fiducials = ft_struct2double(fixpnt(newfiducials));
          res = this;
 end

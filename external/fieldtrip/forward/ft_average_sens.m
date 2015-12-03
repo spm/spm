@@ -39,14 +39,16 @@ weights       = ft_getopt(varargin, 'weights');
 fiducials     = ft_getopt(varargin, 'fiducials');
 fb            = ft_getopt(varargin, 'feedback');
 
-toplot = ~isempty(fb);
-nsens  = numel(sens);
+toplot    = ~isempty(fb);
+nsens     = numel(sens);
 
 % ensure the correct representation
 for i=1:nsens
   newsens(i) = ft_datatype_sens(sens(i));
 end
 sens = newsens; clear newsens
+
+fiducials = fixpos(fiducials);
 
 % set the defaults
 if isempty(weights) || ~any(weights)
