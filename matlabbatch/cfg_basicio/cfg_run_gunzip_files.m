@@ -8,11 +8,11 @@ function out = cfg_run_gunzip_files(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_gunzip_files.m 6627 2015-12-04 08:20:49Z volkmar $
+% $Id: cfg_run_gunzip_files.m 6628 2015-12-04 08:20:51Z volkmar $
 
-rev = '$Rev: 6627 $'; %#ok
+rev = '$Rev: 6628 $'; %#ok
 
-if isempty(job.outdir)
+if isempty(job.outdir) || isempty(job.outdir{1})
     out = gunzip(job.files);
 else
     out = gunzip(job.files, job.outdir{1});
