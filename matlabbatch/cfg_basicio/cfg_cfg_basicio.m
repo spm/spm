@@ -4,7 +4,7 @@ function cfg_basicio = cfg_cfg_basicio
 % by MATLABBATCH using ConfGUI. It describes menu structure, validity
 % constraints and links to run time code.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2013-10-02 13:55:50.
+% Created at 2015-12-01 13:53:35.
 % ---------------------------------------------------------------------
 % files Files
 % ---------------------------------------------------------------------
@@ -325,14 +325,38 @@ files.filter = {'any'};
 files.ufilter = '.*';
 files.num     = [0 Inf];
 % ---------------------------------------------------------------------
-% cfg_gzip_files GZip Files
+% outdir Output directory
+% ---------------------------------------------------------------------
+outdir         = cfg_files;
+outdir.tag     = 'outdir';
+outdir.name    = 'Output directory';
+outdir.help    = {'Output files will be placed in this folder. Leave empty to put them into the same folder as the original files.'};
+outdir.filter = {'dir'};
+outdir.ufilter = '.*';
+outdir.num     = [0 1];
+% ---------------------------------------------------------------------
+% keep Keep original files
+% ---------------------------------------------------------------------
+keep         = cfg_menu;
+keep.tag     = 'keep';
+keep.name    = 'Keep original files';
+keep.labels = {
+               'Yes'
+               'No'
+               }';
+keep.values = {
+               true
+               false
+               }';
+% ---------------------------------------------------------------------
+% cfg_gzip_files Gzip Files
 % ---------------------------------------------------------------------
 cfg_gzip_files         = cfg_exbranch;
 cfg_gzip_files.tag     = 'cfg_gzip_files';
-cfg_gzip_files.name    = 'GZip Files';
-cfg_gzip_files.val     = {files };
-cfg_gzip_files.help    = {'GZip each file in a set of files.'};
-cfg_gzip_files.prog = @(job)gzip(job.files);
+cfg_gzip_files.name    = 'Gzip Files';
+cfg_gzip_files.val     = {files outdir keep };
+cfg_gzip_files.help    = {'Gzip each file in a set of files.'};
+cfg_gzip_files.prog = @cfg_run_gzip_files;
 cfg_gzip_files.vout = @cfg_vout_gzip_files;
 % ---------------------------------------------------------------------
 % files File Set
@@ -345,14 +369,38 @@ files.filter = {'\.gz$'};
 files.ufilter = '.*';
 files.num     = [0 Inf];
 % ---------------------------------------------------------------------
-% cfg_gunzip_files GunZip Files
+% outdir Output directory
+% ---------------------------------------------------------------------
+outdir         = cfg_files;
+outdir.tag     = 'outdir';
+outdir.name    = 'Output directory';
+outdir.help    = {'Output files will be placed in this folder. Leave empty to put them into the same folder as the original files.'};
+outdir.filter = {'dir'};
+outdir.ufilter = '.*';
+outdir.num     = [0 1];
+% ---------------------------------------------------------------------
+% keep Keep original files
+% ---------------------------------------------------------------------
+keep         = cfg_menu;
+keep.tag     = 'keep';
+keep.name    = 'Keep original files';
+keep.labels = {
+               'Yes'
+               'No'
+               }';
+keep.values = {
+               true
+               false
+               }';
+% ---------------------------------------------------------------------
+% cfg_gunzip_files Gunzip Files
 % ---------------------------------------------------------------------
 cfg_gunzip_files         = cfg_exbranch;
 cfg_gunzip_files.tag     = 'cfg_gunzip_files';
-cfg_gunzip_files.name    = 'GunZip Files';
-cfg_gunzip_files.val     = {files };
-cfg_gunzip_files.help    = {'GunZip each file in a set of files.'};
-cfg_gunzip_files.prog = @(job)gunzip(job.files);
+cfg_gunzip_files.name    = 'Gunzip Files';
+cfg_gunzip_files.val     = {files outdir keep };
+cfg_gunzip_files.help    = {'Gunzip each file in a set of files.'};
+cfg_gunzip_files.prog = @cfg_run_gunzip_files;
 cfg_gunzip_files.vout = @cfg_vout_gunzip_files;
 % ---------------------------------------------------------------------
 % name Input Name

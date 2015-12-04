@@ -5,7 +5,7 @@ function cfg_basicio_def = cfg_cfg_basicio_def
 % menu items and provides a full documentation of all fields that may
 % be present in a job variable for this application.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2013-10-02 13:55:50.
+% Created at 2015-12-01 13:53:35.
 cfg_basicio_def.file_dir.cfg_fileparts.files = '<UNDEFINED>';
 cfg_basicio_def.file_dir.dir_ops.cfg_cd.dir = '<UNDEFINED>';
 cfg_basicio_def.file_dir.dir_ops.cfg_mkdir.parent = '<UNDEFINED>';
@@ -25,7 +25,11 @@ cfg_basicio_def.file_dir.file_ops.file_move.action.copyren.patrep.repl = '<UNDEF
 cfg_basicio_def.file_dir.file_ops.file_move.action.copyren.unique = '<UNDEFINED>';
 cfg_basicio_def.file_dir.file_ops.file_move.action.delete = false;
 cfg_basicio_def.file_dir.file_ops.cfg_gzip_files.files = '<UNDEFINED>';
+cfg_basicio_def.file_dir.file_ops.cfg_gzip_files.outdir = '<UNDEFINED>';
+cfg_basicio_def.file_dir.file_ops.cfg_gzip_files.keep = '<UNDEFINED>';
 cfg_basicio_def.file_dir.file_ops.cfg_gunzip_files.files = '<UNDEFINED>';
+cfg_basicio_def.file_dir.file_ops.cfg_gunzip_files.outdir = '<UNDEFINED>';
+cfg_basicio_def.file_dir.file_ops.cfg_gunzip_files.keep = '<UNDEFINED>';
 cfg_basicio_def.file_dir.file_ops.cfg_named_file.name = '<UNDEFINED>';
 cfg_basicio_def.file_dir.file_ops.cfg_named_file.files = {'<UNDEFINED>'};
 cfg_basicio_def.file_dir.file_ops.file_fplist.dir = '<UNDEFINED>';
