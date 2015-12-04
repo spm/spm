@@ -5,7 +5,7 @@ function invert = spm_cfg_eeg_inv_invert
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invert.m 5568 2013-07-01 11:07:18Z vladimir $
+% $Id: spm_cfg_eeg_inv_invert.m 6633 2015-12-04 17:09:24Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -121,11 +121,19 @@ radius.strtype = 'r';
 radius.num = [1 1];
 radius.val = {32};
 
+mask  = cfg_files;
+mask.tag = 'mask';
+mask.name = 'Mask image';
+mask.filter = '(.*\.nii(,\d+)?$)|(.*\.img(,\d+)?$)';
+mask.num = [0 1];
+mask.help = {'Select a mask image'};
+mask.val = {{''}};
+
 restrict = cfg_branch;
 restrict.tag = 'restrict';
 restrict.name = 'Restrict solutions';
 restrict.help = {'Restrict solutions to pre-specified VOIs'};
-restrict.val  = {locs, radius};
+restrict.val  = {locs, radius, mask};
 
 custom = cfg_branch;
 custom.tag = 'custom';
@@ -210,6 +218,11 @@ if isfield(job.isstandard, 'custom')
     if ~isempty(job.isstandard.custom.restrict.locs)
         inverse.xyz = job.isstandard.custom.restrict.locs;
         inverse.rad = job.isstandard.custom.restrict.radius;
+    end
+    
+    P = char(job.isstandard.custom.restrict.mask);
+    if ~isempty(P)
+        inverse.mask = P;
     end
 end
 

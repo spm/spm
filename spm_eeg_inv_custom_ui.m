@@ -21,7 +21,7 @@ function [inverse] = spm_eeg_inv_custom_ui(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_custom_ui.m 5568 2013-07-01 11:07:18Z vladimir $
+% $Id: spm_eeg_inv_custom_ui.m 6633 2015-12-04 17:09:24Z vladimir $
  
 % defaults from D is specified
 %==========================================================================
@@ -97,15 +97,21 @@ if spm_input('Model','+1','b',{'Standard|Custom'},[0 1],1)
     
     % Source space restictions
     %----------------------------------------------------------------------
-    if spm_input('Restrict solutions','+1','no|yes',[0 1],1)        
-        [P, sts] = spm_select(1, 'mat', 'Select source (n x 3) location file');
-        if sts
-            xyz         = load(P);
-            name        = fieldnames(xyz);
-            inverse.xyz = xyz.(name{1});
-            inverse.rad = spm_input('radius of VOI (mm)','+1','r',32);
-        end
-        
+    switch spm_input('Restrict solutions','+1','no|roi|mask',[0, 1, 2],1)
+        case 1
+            [P, sts] = spm_select(1, 'mat', 'Select source (n x 3) location file');
+            if sts
+                xyz         = load(P);
+                name        = fieldnames(xyz);
+                inverse.xyz = xyz.(name{1});
+                inverse.rad = spm_input('radius of VOI (mm)','+1','r',32);
+            end
+        case 2 
+            f = '(.*\.nii(,\d+)?$)|(.*\.img(,\d+)?$)';
+            [P, sts]   = spm_select(1, f, 'Select mask image');
+            if sts
+                inverse.mask = P;
+            end            
     end
 end
  

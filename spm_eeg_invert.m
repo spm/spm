@@ -122,7 +122,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 6182 2014-09-18 12:03:18Z guillaume $
+% $Id: spm_eeg_invert.m 6633 2015-12-04 17:09:24Z vladimir $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -154,6 +154,7 @@ try, Np   = inverse.Np;     catch, Np   = 256;      end
 try, Nr   = inverse.Nr;     catch, Nr   = 16;       end
 try, xyz  = inverse.xyz;    catch, xyz  = [0 0 0];  end
 try, rad  = inverse.rad;    catch, rad  = 128;      end
+try, mask = inverse.mask;   catch, mask = [];       end
 try, lpf  = inverse.lpf;    catch, lpf  = 0;        end
 try, hpf  = inverse.hpf;    catch, hpf  = 48;       end
 try, sdv  = inverse.sdv;    catch, sdv  = 4;        end
@@ -359,12 +360,20 @@ end
 % Restrict source space to Ns sources by eliminating dipoles
 %--------------------------------------------------------------------------
 Is    = sparse(Nd,1);
-for i = 1:Nv
-    Iv = sum([vert(:,1) - xyz(i,1), ...
-        vert(:,2) - xyz(i,2), ...
-        vert(:,3) - xyz(i,3)].^2,2) < rad(i)^2;
-    Is = Is | Iv;
+if any(any(xyz))
+    for i = 1:Nv
+        Iv = sum([vert(:,1) - xyz(i,1), ...
+            vert(:,2) - xyz(i,2), ...
+            vert(:,3) - xyz(i,3)].^2,2) < rad(i)^2;
+        Is = Is | Iv;
+    end
 end
+
+if ~isempty(mask)
+    Iv = spm_mesh_project(struct('vertices',vert,'faces',face), mask);
+    Is = Is | Iv(:);
+end
+
 Is    = find(Is);
 vert  = vert(Is,:);
 QG    = QG(Is,Is);
