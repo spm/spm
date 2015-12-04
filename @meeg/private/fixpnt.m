@@ -2,6 +2,8 @@ function data = fixpnt(data, recurse)
 
 % helper function to replace pnt by pos
 
+% $Id: fixpnt.m 6630 2015-12-04 12:44:43Z spm $
+
 if nargin==1
   recurse = 1;
 end
