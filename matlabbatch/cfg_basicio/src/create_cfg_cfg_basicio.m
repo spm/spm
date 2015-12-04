@@ -10,7 +10,7 @@ cfg_util('run',id);
 cfg_util('deljob',id);
 
 function out = process_dir(d)
-[m sd] = cfg_getfile('fplist', d,'^batch_basicio_[0-9]*_.*\.m$');
+[m, sd] = cfg_getfile('fplist', d,'^batch_basicio_[0-9]*_.*\.m$');
 %% List of modules
 % Each module batch is assumed to contain exactly one cfg_exbranch, and
 % this should be the last output of the batch
@@ -23,13 +23,13 @@ for cm = 1:numel(m)
     cfg_util('deljob',id);
 end
 %% List of subdirs
-[u n e] = cellfun(@fileparts,sd,'UniformOutput',false);
+[u, n, e] = cellfun(@fileparts,sd,'UniformOutput',false);
 sd = sd(cellfun(@isempty,regexp(strcat(n,e),'^\.')));
 outs = cell(size(sd));
 for cs = 1:numel(sd)
     outs{cs} = process_dir(sd{cs});
 end
-outa = {outm{:} outs{:}};
+outa = [outm(:); outs(:)];
 %% Top level batch
 % This batch needs to be modified if the number of modules or sublevels
 % changes - the top level choice will have to contain the correct number of
