@@ -12,9 +12,9 @@ function spm_eeg_img2maps(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_img2maps.m 5640 2013-09-18 12:02:29Z vladimir $
+% $Id: spm_eeg_img2maps.m 6634 2015-12-04 17:09:52Z vladimir $
 
-SVNrev = '$Rev: 5640 $';
+SVNrev = '$Rev: 6634 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -77,14 +77,11 @@ end
 
 %-Get channel indices and coordinates
 %--------------------------------------------------------------------------
-[Cel, Cind] = spm_eeg_locate_channels(D, n, 1);
-
 modality    = spm_eeg_modality_ui(D, 1, 1);
 
-goodchan    = find(ismember(Cind, D.indchantype(modality, 'GOOD')));
+Cind = D.indchantype(modality, 'GOOD');
 
-Cel         = Cel(goodchan, :);
-Cind        = Cind(goodchan);
+Cel = spm_eeg_locate_channels(D, n, Cind);
 
 if isempty(Cind)
     error('No good channels to plot');
