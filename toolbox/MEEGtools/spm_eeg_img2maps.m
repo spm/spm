@@ -12,9 +12,9 @@ function spm_eeg_img2maps(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_img2maps.m 6634 2015-12-04 17:09:52Z vladimir $
+% $Id: spm_eeg_img2maps.m 6635 2015-12-05 23:13:24Z vladimir $
 
-SVNrev = '$Rev: 6634 $';
+SVNrev = '$Rev: 6635 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -47,6 +47,9 @@ D = spm_eeg_load(D);
 if ~isfield(S, 'window')
     S.window = spm_input('start and end of window [ms or Hz]', '+1', 'r', '', 2);
 end
+
+style = char(spm_input('Plot style','+1','SPM|FT|3D',{'spm','ft','3d'},1));
+
 
 V = spm_vol(S.image);
 Y = spm_read_vols(V);
@@ -95,19 +98,46 @@ Y = Y(sub2ind(size(Y), Cel(:, 1), Cel(:, 2)));
 %--------------------------------------------------------------------------
 Fgraph  = spm_figure('GetWin','Graphics'); spm_figure('Clear',Fgraph)
 
-if ~isfield(S, 'clim')
-    in.max = max(abs(Y));
-    in.min = -in.max;
-else
-    in.min = S.clim(1);
-    in.max = S.clim(2);
-end
-
-in.type = modality;
-in.f = Fgraph;
-in.ParentAxes = axes;
-
-spm_eeg_plotScalpData(Y, D.coor2D(Cind), D.chanlabels(Cind), in);
+switch style
+    case 'spm'
+        if ~isfield(S, 'clim')
+            in.max = max(abs(Y));
+            in.min = -in.max;
+        else
+            in.min = S.clim(1);
+            in.max = S.clim(2);
+        end
+        
+        in.type = modality;
+        in.f = Fgraph;
+        in.ParentAxes = axes;
+        
+        spm_eeg_plotScalpData(Y, D.coor2D(Cind), D.chanlabels(Cind), in);
+    case 'ft'    
+        
+        dummy = [];
+        dummy.dimord = 'chan_time';
+        dummy.avg = Y;
+        dummy.label = D.chanlabels(Cind);
+        dummy.time  = 1e-3*mean(S.window);
+        
+        cfg = [];
+        cfg.parameter = 'avg';
+        cfg.comment = 'no';
+        
+        switch modality
+            case 'EEG'
+                cfg.elec = D.sensors('EEG');
+            case 'MEG'
+                cfg.grad = D.sensors('MEG');
+        end
+        cfg.zlim = max(abs(Y))*[-1 1];
+        
+        ft_topoplotER(cfg, dummy);
+        
+    case '3d'        
+        spm_headplot(Y, D, axes);
+end    
 %%
 %-Cleanup
 %--------------------------------------------------------------------------
