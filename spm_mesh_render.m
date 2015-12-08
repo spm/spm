@@ -35,7 +35,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 6520 2015-08-13 16:13:06Z guillaume $
+% $Id: spm_mesh_render.m 6637 2015-12-08 18:12:51Z guillaume $
 
 
 %-Input parameters
@@ -168,6 +168,9 @@ switch lower(action)
         
         uimenu(cmenu, 'Label','Image Sections...', 'Interruptible','off', ...
             'Callback',{@myImageSections, H});
+        
+        uimenu(cmenu, 'Label','Change geometry...', 'Interruptible','off', ...
+            'Callback',{@myChangeGeometry, H});
         
         c = uimenu(cmenu, 'Label', 'Connected Components', 'Interruptible','off');
         C = getappdata(H.patch,'cclabel');
@@ -673,6 +676,17 @@ function myImageSections(obj,evt,H)
 [P, sts] = spm_select(1,'image','Select image to render');
 if ~sts, return; end
 renderSlices(H,P);
+
+%==========================================================================
+function myChangeGeometry(obj,evt,H)
+[P, sts] = spm_select(1,'mesh','Select new geometry mesh');
+if ~sts, return; end
+G = gifti(P);
+if size(H.patch.Vertices,1) ~= size(G.vertices,1)
+    error('Number of vertices must match.');
+end
+H.patch.Vertices = G.vertices;
+H.patch.Faces = G.faces;
 
 %==========================================================================
 function renderSlices(H,P,pls)
