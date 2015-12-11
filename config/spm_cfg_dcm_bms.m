@@ -4,7 +4,7 @@ function bms = spm_cfg_dcm_bms
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_dcm_bms.m 6005 2014-05-21 16:46:26Z guillaume $
+% $Id: spm_cfg_dcm_bms.m 6642 2015-12-11 16:52:29Z peter $
 
 %--------------------------------------------------------------------------
 % dir Directory
@@ -245,7 +245,7 @@ bma_all.help    = {'Use all families for Bayesian Model Averaging (BMA).'}';
 bma_famwin         = cfg_const;
 bma_famwin.tag     = 'bma_famwin';
 bma_famwin.name    = 'Winning family';
-bma_famwin.val     = {'fanwin'};
+bma_famwin.val     = {'famwin'};
 bma_famwin.help    = {'Use winning family for Bayesian Model Averaging (BMA).'}';
 
 %--------------------------------------------------------------------------
