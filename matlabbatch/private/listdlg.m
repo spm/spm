@@ -42,7 +42,7 @@ function [selection,value] = listdlg(varargin)
 %    MSGBOX, QUESTDLG, WARNDLG.
 
 %   Copyright 1984-2005 The MathWorks, Inc.
-%   $Revision: 6463 $  $Date: 2005/10/28 15:54:55 $
+%   $Revision: 6641 $  $Date: 2005/10/28 15:54:55 $
 
 %   'uh'            uicontrol button height, in pixels; default = 22.
 %   'fus'           frame/uicontrol spacing, in pixels; default = 8.
@@ -52,7 +52,6 @@ function [selection,value] = listdlg(varargin)
 %
 % d = dir; [s,v] = listdlg('PromptString','Select a file:','ListString',{d.name});
 % 
-cfg_message(nargchk(1,inf,nargin,'struct'))
 
 figname = '';
 smode = 2;   % (multiple)

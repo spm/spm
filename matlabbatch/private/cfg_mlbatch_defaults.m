@@ -11,9 +11,9 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 6463 2015-05-29 14:10:15Z volkmar $
+% $Id: cfg_mlbatch_defaults.m 6641 2015-12-11 10:17:11Z volkmar $
 
-rev = '$Rev: 6463 $'; %#ok
+rev = '$Rev: 6641 $'; %#ok
 
 try
     % Font definition for cfg_ui user interface
@@ -103,35 +103,32 @@ cfg_defaults.msgtpl( 4)             = cfg_defaults.msgdef;
 cfg_defaults.msgtpl( 4).identifier  = '^matlabbatch:deprecated';
 cfg_defaults.msgtpl( 4).destination = 'none';
 cfg_defaults.msgtpl( 5)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl( 5).identifier  = '^MATLAB:nargchk';
+cfg_defaults.msgtpl( 5).identifier  = '^matlabbatch:usage';
 cfg_defaults.msgtpl( 5).level       = 'error';
 cfg_defaults.msgtpl( 6)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl( 6).identifier  = '^matlabbatch:usage';
-cfg_defaults.msgtpl( 6).level       = 'error';
+cfg_defaults.msgtpl( 6).identifier  = '^matlabbatch:setval';
+cfg_defaults.msgtpl( 6).destination = 'none';
 cfg_defaults.msgtpl( 7)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl( 7).identifier  = '^matlabbatch:setval';
-cfg_defaults.msgtpl( 7).destination = 'none';
+cfg_defaults.msgtpl( 7).identifier  = '^matlabbatch:run:nomods';
+cfg_defaults.msgtpl( 7).level       = 'info';
 cfg_defaults.msgtpl( 8)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl( 8).identifier  = '^matlabbatch:run:nomods';
-cfg_defaults.msgtpl( 8).level       = 'info';
+cfg_defaults.msgtpl( 8).identifier  = '^matlabbatch:cfg_struct2cfg';
+cfg_defaults.msgtpl( 8).destination = 'none';
 cfg_defaults.msgtpl( 9)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl( 9).identifier  = '^matlabbatch:cfg_struct2cfg';
-cfg_defaults.msgtpl( 9).destination = 'none';
+cfg_defaults.msgtpl( 9).identifier  = '^MATLAB:inputdlg';
+cfg_defaults.msgtpl( 9).level       = 'error';
 cfg_defaults.msgtpl(10)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(10).identifier  = '^MATLAB:inputdlg';
+cfg_defaults.msgtpl(10).identifier  = '^MATLAB:listdlg';
 cfg_defaults.msgtpl(10).level       = 'error';
 cfg_defaults.msgtpl(11)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(11).identifier  = '^MATLAB:listdlg';
+cfg_defaults.msgtpl(11).identifier  = '^MATLAB:num2str';
 cfg_defaults.msgtpl(11).level       = 'error';
 cfg_defaults.msgtpl(12)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(12).identifier  = '^MATLAB:num2str';
-cfg_defaults.msgtpl(12).level       = 'error';
+cfg_defaults.msgtpl(12).identifier  = '^matlabbatch:ok_subsasgn';
+cfg_defaults.msgtpl(12).destination = 'none';
 cfg_defaults.msgtpl(13)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(13).identifier  = '^matlabbatch:ok_subsasgn';
+cfg_defaults.msgtpl(13).identifier  = 'matlabbatch:checkval:numcheck:transposed';
 cfg_defaults.msgtpl(13).destination = 'none';
-cfg_defaults.msgtpl(14)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(14).identifier  = 'matlabbatch:checkval:numcheck:transposed';
-cfg_defaults.msgtpl(14).destination = 'none';
 
 % value check for cfg_branch/choice/repeat items - set to false after
 % configuration has been initialised to speed up job
