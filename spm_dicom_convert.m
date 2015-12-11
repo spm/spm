@@ -36,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6588 2015-11-03 15:26:38Z john $
+% $Id: spm_dicom_convert.m 6639 2015-12-11 09:50:49Z volkmar $
 
 
 %-Input parameters
@@ -1372,7 +1372,11 @@ if ~isempty(X)
     for k = 1:numel(tokens{1})
         if ~isempty(tokens{1}{k})
             try
-                eval(['ret.' tokens{1}{k} ';']);
+                [tlhrh, un] = regexp(tokens{1}{k}, '(?:=)+', 'split', 'match');
+                [tlh, un]   = regexp(tlhrh{1}, '(?:\.)+', 'split', 'match');
+                tlh = cellfun(@genvarname, tlh, 'UniformOutput',false);
+                tlh = sprintf('.%s', tlh{:});
+                eval(sprintf('ret%s = %s;', tlh, tlhrh{2}));
             catch
                 disp(['AscConv: Error evaluating ''ret.' tokens{1}{k} ''';']);
             end
