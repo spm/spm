@@ -76,10 +76,10 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 % in multiple testing under dependency". To appear, Annals of Statistics.
 % Available at http://www.math.tau.ac.il/~benja
 %__________________________________________________________________________
-% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_uc_FDR.m 5824 2014-01-02 14:50:13Z guillaume $
+% $Id: spm_uc_FDR.m 6643 2015-12-11 16:57:25Z guillaume $
 
 
 if (nargin<6), Vm = []; end
@@ -92,14 +92,14 @@ cV = 1;
 % Load, mask & sort statistic image (if needed)
 %--------------------------------------------------------------------------
 if isstruct(Vs)
-    Ts = spm_read_vols(Vs(1));
-    for i = 2:length(Vs)
-        Ts = min(Ts,spm_read_vols(Vs(i)));
+    Ts = spm_data_read(Vs(1));
+    for i=2:numel(Vs)
+        Ts = min(Ts,spm_data_read(Vs(i)));
     end
     if ~isempty(Vm)
         if isstruct(Vm)
-            Ts(spm_read_vols(Vm)==0) = [];
-        elseif (numel(Vm)==1)
+            Ts(spm_data_read(Vm)==0) = [];
+        elseif numel(Vm)==1
             Ts(Ts==Vm) = [];
         else
             Ts = Ts(Vm);
