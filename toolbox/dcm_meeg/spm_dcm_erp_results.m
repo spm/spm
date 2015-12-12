@@ -30,7 +30,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 6112 2014-07-21 09:39:53Z karl $
+% $Id: spm_dcm_erp_results.m 6644 2015-12-12 14:53:37Z karl $
 
 
 % get Action if necessary
@@ -181,6 +181,7 @@ switch(lower(Action))
         % spm_dcm_erp_results(DCM,'ERPs (sources)');
         %------------------------------------------------------------------
         col   = {'b','r','g','m','y','c'}; A = [0 0];
+        sty   = {':','-.','-','--','-'};
         for i = 1:ns
             str   = {};
             subplot(ceil(ns/2),2,i), hold on
@@ -204,15 +205,12 @@ switch(lower(Action))
                 %----------------------------------------------------------
                 for j = 1:np
                     for k = 1:nt
-                        if j == np
+  
                             plot(t, DCM.K{k}(:,i + ns*(j - 1)), ...
                                 'Color',col{k}, ...
+                                'LineStyle',sty{j}, ...
                                 'LineWidth',2);
-                        else
-                            plot(t, DCM.K{k}(:,i + ns*(j - 1)), ':', ...
-                                'Color',col{k}, ...
-                                'LineWidth',2);
-                        end
+ 
                         str{end + 1} = sprintf('trial %i (pop. %i)',k,j);
                     end
                 end
