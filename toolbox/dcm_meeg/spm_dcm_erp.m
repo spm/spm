@@ -36,7 +36,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 6481 2015-06-16 17:01:47Z karl $
+% $Id: spm_dcm_erp.m 6645 2015-12-12 14:55:22Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
@@ -53,7 +53,7 @@ try, DCM.xU;                          catch, DCM.xU.X  = sparse(1,0); end
 try, Nm       = DCM.options.Nmodes;   catch, Nm        = 8;           end
 try, onset    = DCM.options.onset;    catch, onset     = 60;          end
 try, dur      = DCM.options.dur;      catch, dur       = 16;          end
-try, model    = DCM.options.model;    catch, model     = 'NMM';       end
+try, model    = DCM.options.model;    catch, model     = 'CMC';       end
 try, lock     = DCM.options.lock;     catch, lock      = 0;           end
 try, multC    = DCM.options.multiC;   catch, multC     = 0;           end
 try, symm     = DCM.options.symmetry; catch, symm      = 0;           end
