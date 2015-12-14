@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 6646 2015-12-14 19:00:26Z guillaume $
+% $Id: spm_results_ui.m 6647 2015-12-14 19:12:54Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 6646 $'; 
+SVNid = '$Rev: 6647 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -722,13 +722,11 @@ switch lower(Action), case 'setup'                         %-Set up results
                'thresholded SPM',...
                'all clusters (binary)',...
                'all clusters (n-ary)',...
-               'current cluster',...
-               'NIDM-Results'};
+               'current cluster'};
         tmp = {{@mysavespm, 'thresh' },...
                {@mysavespm, 'binary' },...
                {@mysavespm, 'n-ary'  },...
-               {@mysavespm, 'current'},...
-                @myexportnidm};
+               {@mysavespm, 'current'}};
         
         uicontrol('Parent',hPan,'Style','popupmenu','String',str,...
             'FontSize',FS(10),...
@@ -1422,15 +1420,6 @@ else
 end
 
 fprintf('Written %s\n',spm_file(F,'link',cmd));                         %-#
-
-%==========================================================================
-function myexportnidm
-%==========================================================================
-SPM = evalin('base','SPM');
-xSPM = evalin('base','xSPM;');
-TabDat = evalin('base','TabDat;');
-odir = spm_results_nidm(SPM,xSPM,TabDat); % or without TabDat for all peaks
-fprintf('Exporting results in:\n  %s\n',spm_file(odir,'link','winopen(''%s'')'));
 
 %==========================================================================
 function myslover
