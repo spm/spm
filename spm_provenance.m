@@ -6,7 +6,8 @@ classdef spm_provenance < handle
 % p.get_default_namespace
 % p.set_default_namespace(uri)
 % p.add_namespace(prefix,uri)
-% p.get_namespace
+% p.get_namespace(prefix)
+% p.remove_namespace(prefix)
 % p.entity(id,attributes)
 % p.activity(id,startTime,endTime,attributes)
 % p.agent(id,attributes)
@@ -31,10 +32,10 @@ classdef spm_provenance < handle
 % p.hadMember(collection,entity)
 % p.bundle(id,b)
 %__________________________________________________________________________
-% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 6585 2015-10-28 16:02:13Z guillaume $
+% $Id: spm_provenance.m 6646 2015-12-14 19:00:26Z guillaume $
 
 
 %-Properties

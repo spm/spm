@@ -1,12 +1,12 @@
-function [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
+function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Export SPM stats results using the Neuroimaging Data Model (NIDM)
-% FORMAT [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
-% SPM     - structure containing analysis details (see spm_spm.m)
-% xSPM    - structure containing inference details (see spm_getSPM.m)
-% TabDat  - structure containing results details (see spm_list.m)
+% FORMAT [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat)
+% SPM      - structure containing analysis details (see spm_spm.m)
+% xSPM     - structure containing inference details (see spm_getSPM.m)
+% TabDat   - structure containing results details (see spm_list.m)
 %
-% outdir  - output directory
-% prov    - provenance object (see spm_provenance.m)
+% nidmfile - output NIDM zip file
+% prov     - provenance object (see spm_provenance.m)
 %__________________________________________________________________________
 % References:
 % 
@@ -19,7 +19,7 @@ function [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6618 2015-12-01 16:25:38Z spm $
+% $Id: spm_results_nidm.m 6646 2015-12-14 19:00:26Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -43,8 +43,8 @@ end
 %--------------------------------------------------------------------------
 gz           = '.gz'; %-Compressed NIfTI {'.gz', ''}
 coordsys     = 'nidm_MNICoordinateSystem'; %-Assuming MNI space
-NIDMversion  = '1.1.0';
-SVNrev       = '$Rev: 6618 $';
+NIDMversion  = '1.2.0';
+SVNrev       = '$Rev: 6646 $';
 
 try
     units = xSPM.units;
@@ -60,9 +60,8 @@ end
 %-Populate output directory
 %==========================================================================
 if ~exist(SPM.swd,'dir'), SPM.swd = pwd; end
-outdir = fullfile(SPM.swd,'nidm');
-outdir = spm_file(outdir,'uniquedir');
-sts    = mkdir(outdir);
+outdir       = tempname(SPM.swd);
+sts          = mkdir(outdir);
 if ~sts, error('Cannot create directory "%s".',outdir); end
 
 %-Design Matrix image (as png and csv)
@@ -250,6 +249,8 @@ pp.add_namespace('obo','http://purl.obolibrary.org/obo/');
 
 %-Provenance
 %--------------------------------------------------------------------------
+[V,R] = spm('Ver');
+
 idResults = getid('niiri:spm_results_id',isHumanReadable);
 pp.entity(idResults,{...
   'prov:type','prov:Bundle',...
@@ -263,7 +264,7 @@ pp.agent(idExporter,{...
     'prov:type',nidm_conv('nidm_spm_results_nidm',pp),...
     'prov:type','prov:SoftwareAgent',...
     'prov:label',{'spm_results_nidm','xsd:string'},...
-    nidm_conv('nidm_softwareVersion',pp),{char(regexp(SVNrev,'\$Rev: (\d.*?) \$','tokens','once')),'xsd:string'},...
+    nidm_conv('nidm_softwareVersion',pp),{[V(4:end) '.' char(regexp(SVNrev,'\$Rev: (\d.*?) \$','tokens','once'))],'xsd:string'},...
     });
 
 idExport = getid('niiri:export_id',isHumanReadable);
@@ -281,7 +282,6 @@ coordsys = nidm_conv(coordsys,p);
 
 %-Agent: SPM
 %--------------------------------------------------------------------------
-[V,R] = spm('Ver');
 idSoftware = getid('niiri:software_id',isHumanReadable);
 p.agent(idSoftware,{...
     'prov:type',nidm_conv('neurolex_SPM',p),...
@@ -431,10 +431,10 @@ else
             };
     else
         extra_fields_NM = {...
-            nidm_conv('nidm_hasErrorDependence',p),'nidm_ArbitrarilyCorrelatedError',...
-            'nidm_dependenceMapWiseDependence','nidm_ConstantParameter',...
-            'nidm_errorVarianceHomogeneous',{'false','xsd:boolean'},...
-            'nidm_varianceMapWiseDependence','nidm_IndependentParameter',...
+            nidm_conv('nidm_hasErrorDependence',p),nidm_conv('stato_UnstructuredCorrelationStructure',p),...
+            nidm_conv('nidm_dependenceMapWiseDependence',p),nidm_conv('nidm_ConstantParameter',p),...
+            nidm_conv('nidm_errorVarianceHomogeneous',p),{'false','xsd:boolean'},...
+            nidm_conv('nidm_varianceMapWiseDependence',p),nidm_conv('nidm_IndependentParameter',p),...
             };
         extra_fields_PE = {
             nidm_conv('nidm_withEstimationMethod',p),nidm_conv('stato_GLS',p),...
@@ -444,7 +444,7 @@ end
 idErrorModel = getid('niiri:error_model_id',isHumanReadable);
 p.entity(idErrorModel,{...
     'prov:type',nidm_conv('nidm_ErrorModel',p),...
-    nidm_conv('nidm_hasErrorDistribution',p),nidm_conv('nidm_GaussianDistribution',p),...
+    nidm_conv('nidm_hasErrorDistribution',p),nidm_conv('stato_GaussianDistribution',p),...
     extra_fields_NM{:}});
 
 %-Activity: Model Parameters Estimation
@@ -727,7 +727,7 @@ idExtentThresh3 = getid('niiri:extent_threshold_id_3',isHumanReadable);
 p.entity(idExtentThresh,{...
     'prov:type',nidm_conv('nidm_ExtentThreshold',p),...
     'prov:type',nidm_conv('obo_Statistic',p),...
-    'prov:label',{['Extent Threshold: k=' num2str(TabDat.ftr{2,2}(1))],'xsd:string'},...
+    'prov:label',{['Extent Threshold: k>=' num2str(TabDat.ftr{2,2}(1))],'xsd:string'},...
     nidm_conv('nidm_clusterSizeInVoxels',p),{TabDat.ftr{2,2}(1),'xsd:int'},... % xSPM.k
     nidm_conv('nidm_clusterSizeInResels',p),{TabDat.ftr{2,2}(1)*V2R,'xsd:float'},...
     nidm_conv('nidm_equivalentThreshold',p),idExtentThresh2,...
@@ -783,8 +783,8 @@ else
               'prov:label','Conjunction Inference'};
     else
         st = {'prov:type','spm_PartialConjunctionInference', ...
-              'prov:label','k-Conjunction Inference', ...
-              nidm_conv('spm_partialConjunctionDegree',p),xSPM.n};
+              'prov:label',' Partial Conjunction Inference', ...
+              nidm_conv('spm_partialConjunctionDegree',p),{xSPM.n,'xsd:int'}};
     end
 end
 idInference = getid('niiri:inference_id',isHumanReadable);
@@ -981,7 +981,17 @@ serialize(pp,fullfile(outdir,'nidm.provn'));
 serialize(pp,fullfile(outdir,'nidm.ttl'));
 %serialize(pp,fullfile(outdir,'nidm.json'));
 %serialize(pp,fullfile(outdir,'nidm.pdf'));
-zip(fullfile(SPM.swd,[spm_file(outdir,'basename'),'.nidm.zip']),'*',outdir)
+
+i = 1;
+while true
+    nidmfile = fullfile(SPM.swd,sprintf('spm_%04d.nidm.zip',i));
+    if spm_existfile(nidmfile), i = i + 1; else break; end
+end
+f = zip(nidmfile,'*',outdir);
+for i=1:numel(f)
+    spm_unlink(fullfile(outdir,f{i}));
+end
+rmdir(outdir);
 
 prov = pp;
 
@@ -997,9 +1007,9 @@ if numel(v) == 1 && isnan(v),          v = 'NaN';  end
 
 
 %==========================================================================
-% function str = esc(str)
+% function str = html_esc(str)
 %==========================================================================
-function str = esc(str)
+function str = html_esc(str)
 %-Escape
 % See http://www.w3.org/TR/html4/charset.html#h-5.3.2
 str = strrep(str,'&','&amp;');
@@ -1013,20 +1023,19 @@ str = strrep(str,'"','&quot;');
 %==========================================================================
 function u = uri(u)
 %-File URI scheme
-if ispc, s='/'; else s=''; end
-u = ['file://' s strrep(spm_file(u,'cpath'),'\','/')];
+%if ispc, s='/'; else s=''; end
+%u = ['file://' s strrep(spm_file(u,'cpath'),'\','/')];
 e = ' ';
 for i=1:length(e)
     u = strrep(u,e(i),['%' dec2hex(e(i))]);
 end
-u = ['file://./' spm_file(u,'filename')];
+u = spm_file(u,'filename');
 
 
 %==========================================================================
 % function checksum = sha512sum(file)
 %==========================================================================
 function checksum = sha512sum(file)
-%checksum = 'e43b6e01b0463fe7d40782137867a...'; return % TEMP (short)
 md   = java.security.MessageDigest.getInstance('SHA-512');
 file = spm_file(file,'cpath');
 fid  = fopen(file,'rb');
@@ -1041,7 +1050,6 @@ checksum = lower(reshape(dec2hex(checksum)',1,[]));
 % function checksum = md5sum(data)
 %==========================================================================
 function checksum = md5sum(data)
-%checksum = 'd41d8cd98f00b204e9800998ecf8427e'; return % TEMP (short)
 if ~nargin
     data = char(java.util.UUID.randomUUID);
 end
@@ -1449,8 +1457,10 @@ C = [C; {...
 'obo:STATO_0000370', 'stato_OLS';...
 'obo:STATO_0000372', 'stato_GLS';...
 'obo:STATO_0000176', 'stato_TStatistic';...
+'obo:STATO_0000227', 'stato_GaussianDistribution';...
 'obo:STATO_0000282', 'stato_FStatistic';...
 'obo:STATO_0000376', 'stato_ZStatistic';...
 'obo:STATO_0000323', 'stato_ContrastWeightMatrix';...
 'obo:STATO_0000357', 'stato_ToeplitzCovarianceStructure';...
+'obo:STATO_0000405', 'stato_UnstructuredCorrelationStructure';...
 }];
