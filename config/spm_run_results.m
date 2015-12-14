@@ -10,7 +10,7 @@ function out = spm_run_results(job)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_results.m 6646 2015-12-14 19:00:26Z guillaume $
+% $Id: spm_run_results.m 6648 2015-12-14 19:13:47Z guillaume $
 
 
 cspec = job.conspec;
@@ -93,8 +93,8 @@ for k = 1:numel(cspec)
                 else                        cmd = 'winopen(''%s'')'; end
                 fprintf('Saving results to:\n  %s\n',spm_file(ofile,'link',cmd));
             case 'nidm'
-                odir = spm_results_nidm(SPM,xSPM,TabDat);
-                fprintf('Exporting results in:\n  %s\n',spm_file(odir,'link','winopen(''%s'')'));
+                nidmfile = spm_results_nidm(SPM,xSPM,TabDat);
+                fprintf('Exporting results in:\n  %s\n',nidmfile);
             otherwise
                 if ~spm('CmdLine')
                     spm_figure('Print','Graphics','',job.print);
