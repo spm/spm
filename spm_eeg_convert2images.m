@@ -32,9 +32,9 @@ function [images, outroot] = spm_eeg_convert2images(S)
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 6584 2015-10-28 11:24:38Z vladimir $
+% $Id: spm_eeg_convert2images.m 6649 2015-12-17 14:48:15Z vladimir $
 
-SVNrev = '$Rev: 6584 $';
+SVNrev = '$Rev: 6649 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -71,11 +71,17 @@ if isTF
     df = unique(diff(D.frequencies(freqind)));
     if length(df)> 1
         if (max(diff(df))/mean(df))>0.1
-            error('Irregular frequency spacing');
+            df = unique(diff(log(D.frequencies(freqind))));
+            if (max(diff(df))/mean(df))>0.1
+                error('Irregular frequency spacing');
+            else
+                freqonset = log(D.frequencies(freqind(1)));
+            end
         else
-            df = mean(df);
+            freqonset = D.frequencies(freqind(1));
         end
     end
+    df = mean(df);
 else
     df = 0;
 end
@@ -130,7 +136,7 @@ switch S.mode
         N.mat = [...
             V(1)  0     0               -C(1);...
             0     V(2)  0               -C(2);...
-            0     0     df              D.frequencies(freqind(1));...
+            0     0     df              freqonset;...
             0     0     0               1];
         N.mat(3,4) = N.mat(3,4) - N.mat(3,3);
         
@@ -170,7 +176,7 @@ switch S.mode
         avflag = [1 0 0];
         
         N.mat = [...
-            df      0               0  D.frequencies(freqind(1));...
+            df      0               0  freqonset;...
             0       1e3/D.fsample   0  time(D, timeind(1), 'ms');...
             0       0               1  0;...
             0       0               0  1];
@@ -195,7 +201,7 @@ switch S.mode
         avflag = [1 0 1];
         
         N.mat(1, 1) = df;
-        N.mat(1, 4) = D.frequencies(freqind(1)) - N.mat(1, 1);
+        N.mat(1, 4) = freqonset - N.mat(1, 1);
         
         dat = file_array('', [length(freqind) 1], 'FLOAT32-LE');
         
@@ -205,7 +211,7 @@ switch S.mode
         N.mat(1, 4) = time(D, timeind(1), 'ms');
         
         if isTF
-            N.mat(2, 4) = D.frequencies(freqind(1));
+            N.mat(2, 4) = freqonset;
         end
         
         dat = file_array('', [1 1], 'FLOAT32-LE');
