@@ -10,7 +10,7 @@ function [Y,W] = spm_robust_average(X, dim, ks)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_robust_average.m 5856 2014-01-29 14:28:33Z vladimir $
+% $Id: spm_robust_average.m 6650 2015-12-17 14:48:43Z vladimir $
 
 if nargin < 3 || isempty(ks)
     ks = 3;
@@ -43,10 +43,13 @@ if length(origsize) > 2
     X  = reshape(X, size(X, 1), []);
 end
 
+%-Replace Inf with NaN
+%--------------------------------------------------------------------------
+X(~isfinite(X)) = NaN;
+
 %-Rescale the data
 %--------------------------------------------------------------------------
 [X, scalefactor] = spm_cond_units(X);
-
 
 %-Actual robust averaging
 %--------------------------------------------------------------------------
