@@ -91,7 +91,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 10934 2015-11-23 20:34:33Z sardal $
+% $Id: ft_read_event.m 11027 2015-12-15 11:10:36Z roboos $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -289,6 +289,19 @@ switch eventformat
       end
     end
     
+  case 'besa_besa'
+    % read the header
+    if isempty(hdr)
+      hdr = ft_read_header(filename);
+    end
+    
+    if ~isempty(detectflank) % parse the trigger channel (indicated by chanindx) for events
+      event = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', chanindx, 'detectflank', detectflank, 'trigshift', trigshift, 'threshold', threshold);
+    elseif issubfield(hdr, 'orig.events') && ~isempty(hdr.orig.events.offsets) % FIXME: add support for reading in events from the datafile
+    else
+      event = [];
+    end
+
   case {'besa_avr', 'besa_swf'}
     if isempty(hdr)
       hdr = ft_read_header(filename);
@@ -1051,8 +1064,11 @@ switch eventformat
     filename = fullfile(path, [file '.mat']);
     % read the events from the MATLAB file
     tmp   = load(filename, 'event');
-    event = tmp.event;
-    
+    if isfield(tmp, 'event')
+      event = tmp.event;
+    else
+      event = [];
+    end
     
   case 'fcdc_fifo'
     fifo = filetype_check_uri(filename);

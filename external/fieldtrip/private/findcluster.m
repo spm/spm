@@ -40,7 +40,7 @@ function [cluster, total] = findcluster(onoff, spatdimneighbstructmat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: findcluster.m 10386 2015-05-07 16:48:22Z vlalit $
+% $Id: findcluster.m 11030 2015-12-16 13:39:00Z jansch $
 
 spatdimlength = size(onoff, 1);
 nfreq = size(onoff, 2);
@@ -88,12 +88,16 @@ end;
 % for each channel (combination), find the connected time-frequency clusters
 labelmat = zeros(size(onoff));
 total = 0;
-for spatdimlev=1:spatdimlength
-  [labelmat(spatdimlev, :, :), num] = spm_bwlabel(double(reshape(onoff(spatdimlev, :, :), nfreq, ntime)), 6); % the previous code contained a '4' for input
-  labelmat(spatdimlev, :, :) = labelmat(spatdimlev, :, :) + (labelmat(spatdimlev, :, :)~=0)*total;
-  total = total + num;
+if nfreq*ntime>1
+  for spatdimlev=1:spatdimlength
+    [labelmat(spatdimlev, :, :), num] = spm_bwlabel(double(reshape(onoff(spatdimlev, :, :), nfreq, ntime)), 6); % the previous code contained a '4' for input
+    labelmat(spatdimlev, :, :) = labelmat(spatdimlev, :, :) + (labelmat(spatdimlev, :, :)~=0)*total;
+    total = total + num;
+  end
+else
+  labelmat(onoff>0) = 1:sum(onoff(:));
+  total = sum(onoff(:));
 end
-
 % combine the time and frequency dimension for simplicity
 labelmat = reshape(labelmat, spatdimlength, nfreq*ntime);
 

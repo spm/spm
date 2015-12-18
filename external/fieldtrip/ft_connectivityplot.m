@@ -38,9 +38,9 @@ function [cfg] = ft_connectivityplot(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityplot.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id: ft_connectivityplot.m 11010 2015-12-14 11:26:53Z jansch $
 
-revision = '$Id: ft_connectivityplot.m 10765 2015-10-09 18:10:47Z roboos $';
+revision = '$Id: ft_connectivityplot.m 11010 2015-12-14 11:26:53Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -188,8 +188,8 @@ end
 
 % add channel labels on grand X and Y axes
 for k = 1:nchan
-  ft_plot_text(0,       (nchan + 1 - k).*1.2, data.label{k}, 'Interpreter', 'none');
-  ft_plot_text(k.*1.2,  (nchan + 1)    .*1.2, data.label{k}, 'Interpreter', 'none');
+  ft_plot_text(0,       (nchan + 1 - k).*1.2, data.label{k}, 'Interpreter', 'none', 'horizontalalignment', 'right');
+  ft_plot_text(k.*1.2,  (nchan + 1)    .*1.2, data.label{k}, 'Interpreter', 'none', 'horizontalalignment', 'left', 'rotation', 90);
 end
 
 % add 'from' and 'to' labels

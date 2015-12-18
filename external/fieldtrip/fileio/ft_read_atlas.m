@@ -43,7 +43,7 @@ function atlas = ft_read_atlas(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_atlas.m 10263 2015-02-27 08:08:31Z roboos $
+% $Id: ft_read_atlas.m 11005 2015-12-14 11:12:43Z jansch $
 
 % deal with multiple filenames
 if isa(filename, 'cell')
@@ -2062,8 +2062,13 @@ switch atlasformat
     ft_hastoolbox('gifti', 1);
     g = gifti(filename);
     
-    label = g.labels.name(:);
-    key   = g.labels.key(:);
+    if isfield(g, 'labels'),
+      label = g.labels.name(:);
+      key   = g.labels.key(:);
+    else 
+      label = g.private.label.name(:);
+      key   = g.private.label.key(:);
+    end
     
     %label = g.private.label.name; % provides the name of the parcel
     %key   = g.private.label.key;  % maps value to name

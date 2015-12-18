@@ -62,7 +62,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 10793 2015-10-19 14:57:30Z roboos $
+% $Id: ft_checkconfig.m 10976 2015-12-08 17:45:11Z lucamb $
 
 renamed         = ft_getopt(varargin, 'renamed');
 allowed         = ft_getopt(varargin, 'allowed');
@@ -412,7 +412,19 @@ if ~isempty(createsubcfg)
           'snr'
           'scalesourcecov'
           };
-        
+      case 'harmony'
+        fieldname = {
+          'feedback'
+          'lambda'
+          'keepfilter'
+          'prewhiten'
+          'snr'
+          'scalesourcecov'
+          'filter_order'
+          'filter_bs'
+          'connected_components'
+          'number_harmonics'
+          };
       case 'music'
         fieldname = {
           'feedback'

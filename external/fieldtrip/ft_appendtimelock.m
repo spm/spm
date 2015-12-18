@@ -36,9 +36,9 @@ function [timelock] = ft_appendtimelock(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendtimelock.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id: ft_appendtimelock.m 11029 2015-12-15 12:13:54Z jansch $
 
-revision = '$Id: ft_appendtimelock.m 10765 2015-10-09 18:10:47Z roboos $';
+revision = '$Id: ft_appendtimelock.m 11029 2015-12-15 12:13:54Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -222,6 +222,22 @@ switch cfg.appenddim
     timelock.dimord = 'rpt_chan_time';
   otherwise
     error('it is not allowed to concatenate across dimension %s',cfg.appenddim);      
+end
+
+% deal with the sensor information, if present
+if isfield(varargin{1}, 'grad') || isfield(varargin{1}, 'elec')
+  keepsensinfo = true;
+
+  if isfield(varargin{1}, 'grad'), sensfield = 'grad'; end
+  if isfield(varargin{1}, 'elec'), sensfield = 'elec'; end
+  
+  for k = 2:Ndata
+    keepsensinfo = keepsensinfo && isequaln(varargin{1}.(sensfield), varargin{k}.(sensfield));
+  end
+  
+  if keepsensinfo,
+    timelock.(sensfield) = varargin{1}.(sensfield);
+  end
 end
 
 % do the general cleanup and bookkeeping at the end of the function

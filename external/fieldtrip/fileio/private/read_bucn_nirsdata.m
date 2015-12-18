@@ -7,6 +7,8 @@ function [dat] = read_bucn_nirsdata(filename, hdr, begsample, endsample, chanind
 %
 % Use as
 %   [dat] = read_bucn_nirsdata(filename, hdr, begsample, endsample, chanindx)
+%
+% See also READ_BUCN_NIRSHDR, READ_BUCN_NIRSEVENT
 
 % Copyright (C) 2011, Jan-Mathijs Schoffelen
 %
@@ -26,7 +28,7 @@ function [dat] = read_bucn_nirsdata(filename, hdr, begsample, endsample, chanind
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_bucn_nirsdata.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: read_bucn_nirsdata.m 11028 2015-12-15 11:11:18Z roboos $
 
 % initialize some variables
 nchan = numel(hdr.label);

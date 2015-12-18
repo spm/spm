@@ -54,7 +54,7 @@ function source = ft_read_cifti(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_cifti.m 10623 2015-08-24 21:13:31Z roboos $
+% $Id: ft_read_cifti.m 10968 2015-12-06 13:55:31Z roboos $
 
 readdata         = ft_getopt(varargin, 'readdata', []);   % the default depends on file size, see below
 readsurface      = ft_getopt(varargin, 'readsurface', true);
@@ -67,7 +67,7 @@ mapname          = ft_getopt(varargin, 'mapname', 'field');
 % convert 'yes'/'no' into boolean
 readdata = istrue(readdata);
 
-if strcmp(dataformat, 'compressed')
+if ft_filetype(filename, 'compressed')
   % the file is compressed, unzip on the fly
   inflated = true;
   origfile = filename;

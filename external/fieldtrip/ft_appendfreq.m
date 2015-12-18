@@ -47,9 +47,9 @@ function [freq] = ft_appendfreq(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendfreq.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id: ft_appendfreq.m 11029 2015-12-15 12:13:54Z jansch $
 
-revision = '$Id: ft_appendfreq.m 10765 2015-10-09 18:10:47Z roboos $';
+revision = '$Id: ft_appendfreq.m 11029 2015-12-15 12:13:54Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -385,6 +385,22 @@ for k = 1:numel(param)
     freq.(param{k}) = cat(catdim,tmp{:});
   end
 end % for k = 1:numel(param)
+
+% deal with the sensor information, if present
+if isfield(varargin{1}, 'grad') || isfield(varargin{1}, 'elec')
+  keepsensinfo = true;
+
+  if isfield(varargin{1}, 'grad'), sensfield = 'grad'; end
+  if isfield(varargin{1}, 'elec'), sensfield = 'elec'; end
+  
+  for k = 2:Ndata
+    keepsensinfo = keepsensinfo && isequaln(varargin{1}.(sensfield), varargin{k}.(sensfield));
+  end
+  
+  if keepsensinfo,
+    freq.(sensfield) = varargin{1}.(sensfield);
+  end
+end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug

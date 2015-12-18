@@ -55,7 +55,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 10730 2015-09-29 13:49:09Z roboos $
+% $Id: ft_checkdata.m 10993 2015-12-10 09:57:22Z jansch $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -733,7 +733,14 @@ elseif strcmp(current, 'fourier') && strcmp(desired, 'sparsewithpow')
     data.dimord = ['rpt_',data.dimord];
   end
   
-  if flag, siz = size(data.crsspctrm); data.crsspctrm = reshape(data.crsspctrm, [siz(2:end) 1]); end
+  if flag, 
+    siz = size(data.powspctrm);
+    data.powspctrm = reshape(data.powspctrm, [siz(2:end) 1]);
+    if isfield(data, 'crsspctrm')
+      siz = size(data.crsspctrm); 
+      data.crsspctrm = reshape(data.crsspctrm, [siz(2:end) 1]);
+    end
+  end
 elseif strcmp(current, 'fourier') && strcmp(desired, 'sparse')
   
   if isempty(channelcmb), error('no channel combinations are specified'); end
@@ -813,7 +820,16 @@ elseif strcmp(current, 'fourier') && strcmp(desired, 'sparse')
     data.dimord = ['rpt_',data.dimord];
   end
   
-  if flag, siz = size(data.crsspctrm); data.crsspctrm = reshape(data.crsspctrm, [siz(2:end) 1]); end
+  if flag,
+    % deal with the singleton 'rpt', i.e. remove it
+    siz = size(data.powspctrm);
+    data.powspctrm = reshape(data.powspctrm, [siz(2:end) 1]);
+    if isfield(data,'crsspctrm')
+      % this conditional statement is needed in case there's a single channel
+      siz            = size(data.crsspctrm); 
+      data.crsspctrm = reshape(data.crsspctrm, [siz(2:end) 1]);
+    end 
+  end
 elseif strcmp(current, 'fourier') && strcmp(desired, 'full')
   
   % this is how it is currently and the desired functionality of prepare_freq_matrices

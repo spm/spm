@@ -92,7 +92,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 10843 2015-11-05 21:39:54Z roboos $
+% $Id: ft_read_header.m 10988 2015-12-09 23:22:36Z arjsto $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -324,6 +324,9 @@ switch headerformat
       hdr.orig.states         = states;
       hdr.orig.total_samples  = total_samples;
     end
+
+  case 'besa_besa'
+    hdr = read_besa_besa(filename);
     
   case 'besa_avr'
     orig = read_besa_avr(filename);
@@ -731,6 +734,13 @@ switch headerformat
     % store the complete information in hdr.orig
     % ft_read_data and ft_read_event will get it from there
     hdr.orig        = orig;
+    
+
+  case 'tobii_tsv'
+    tsv = read_tobii_tsv(filename);
+    keyboard
+    % remember the original header details
+    hdr.orig = tsv;
     
   case 'eyelink_asc'
     asc = read_eyelink_asc(filename);
