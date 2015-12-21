@@ -16,7 +16,7 @@ function [Y] = spm_dot(X,x,DIM)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dot.m 6605 2015-11-21 20:15:13Z karl $
+% $Id: spm_dot.m 6652 2015-12-21 10:51:54Z karl $
 
 % initialise X and vX
 %--------------------------------------------------------------------------
@@ -37,15 +37,17 @@ end
 if nargin < 3, DIM = numel(size(X)); end
 if isvector(X), Y = X*x; return,     end
     
-d          = size(X);
-d(DIM)     = 1;
-Y          = zeros(d);
-ind        = repmat(',:',1,numel(d));
-ind(DIM*2) = 'i';
-ind        = ind(2:end);
+d        = size(X);
+d(DIM)   = 1;
+Y        = zeros(d);
+ind      = cell(size(d));
+[ind{:}] = deal(':');
+sub.type = '()';
 
 for i = 1:numel(x)
-    Y = Y + eval(['X(' ind ')*x(i);']);
+    sub.subs      = ind;
+    sub.subs{DIM} = i;
+    Y = Y + subsref(X,sub)*x(i);
 end
 Y     = squeeze(Y);
 

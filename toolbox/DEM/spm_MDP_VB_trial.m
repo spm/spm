@@ -20,41 +20,94 @@ function spm_MDP_VB_trial(MDP)
 % please see spm_MDP_VB
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 6587 2015-11-02 10:29:49Z karl $
- 
+% $Id: spm_MDP_VB_trial.m 6652 2015-12-21 10:51:54Z karl $
+
 % graphics
 %==========================================================================
- 
+
+% numbers of transitions, policies and states
+%--------------------------------------------------------------------------
+if iscell(MDP.X)
+    Nf = numel(MDP.B);                 % number of hidden state factors
+    Ng = numel(MDP.A);                 % number of outcome factors
+    X  = MDP.X;
+    C  = MDP.C;
+else
+    Nf = 1;
+    Ng = 1;
+    X  = {MDP.X};
+    C  = {MDP.C};
+end
+
+
+
 % posterior beliefs about hidden states
 %--------------------------------------------------------------------------
-subplot(3,2,1)
-image(64*(1 - MDP.X)), hold on
-if size(MDP.X,1) > 128
-    spm_spy(MDP.X,16,1)
+for f  = 1:Nf
+    subplot(3*Nf,2,(f - 1)*2 + 1)
+    image(64*(1 - X{f})), hold on
+    if size(X{f},1) > 128
+        spm_spy(X{f},16,1)
+    end
+    plot(MDP.s(f,:),'.c','MarkerSize',16), hold off
+    try
+        title(sprintf('Hidden states - %s',MDP.Bname{f}));
+    catch
+        if f < 2, title('Hidden states'); end
+    end
+    xlabel('time')
+    ylabel('hidden state')
 end
-plot(MDP.s,'.c','MarkerSize',16), hold off
-title('Hidden states (and utility)','FontSize',14)
-xlabel('epoch','FontSize',12)
-ylabel('hidden state','FontSize',12)
- 
+
 % posterior beliefs about control states
 %--------------------------------------------------------------------------
-subplot(3,2,2), image(64*(1 - MDP.P)), hold on
-plot(MDP.u,'.c','MarkerSize',16), hold off
-title('Inferred and selected action','FontSize',14)
-xlabel('epoch','FontSize',12)
-ylabel('action','FontSize',12)
- 
+for f  = 1:Nf
+    subplot(3*Nf,2,f*2)
+    if Nf == 1
+        P = MDP.P;
+    elseif Nf == 2
+        if f == 1
+            P = squeeze(mean(MDP.P,2));
+        else
+            P = squeeze(mean(MDP.P,1))';
+        end
+    elseif Nf == 3
+        if f == 1
+            P = squeeze(mean(squeeze(mean(MDP.P,3),2)));
+        elseif f == 2
+            P = squeeze(mean(squeeze(mean(MDP.P,3),1)));
+        else
+            P = squeeze(mean(squeeze(mean(MDP.P,1),2)));
+        end
+    end
+    
+    image(64*(1 - P)), hold on
+    plot(MDP.u(f,:),'.c','MarkerSize',16), hold off
+    try
+        title(sprintf('Inferred and selected action - %s',MDP.Bname{f}));
+    catch
+        if f < 2, title('Inferred and selected action'); end
+    end
+    xlabel('time')
+    ylabel('action')
+end
+
 % policies
 %--------------------------------------------------------------------------
-subplot(3,2,3)
-imagesc(MDP.V')
-title('Allowable policies','FontSize',14)
-ylabel('policy','FontSize',12)
-xlabel('epoch','FontSize',12)
- 
+for f  = 1:Nf
+    subplot(3*Nf,2,(Nf + f - 1)*2 + 1)
+    imagesc(MDP.V(:,:,f)')
+    try
+        title(sprintf('Allowable policies - %s',MDP.Bname{f}));
+    catch
+        if f < 2, title('Allowable policies'); end
+    end
+    ylabel('policy')
+    xlabel('time')
+end
+
 % expectations over policies
 %--------------------------------------------------------------------------
 subplot(3,2,4)
@@ -62,27 +115,33 @@ image(64*(1 - MDP.un))
 title('Posterior probability','FontSize',14)
 ylabel('policy','FontSize',12)
 xlabel('updates','FontSize',12)
- 
-% sample (observation)
+
+% sample (observation) and preferences
 %--------------------------------------------------------------------------
-subplot(3,2,5)
-if size(MDP.C,1) > 128
-    spm_spy(MDP.C,16,1), hold on
-else
-    imagesc(1 - MDP.C), hold on
+for g  = 1:Ng
+    subplot(3*Ng,2,(2*Ng + g - 1)*2 + 1)
+    if size(C{g},1) > 128
+        spm_spy(C{g},16,1), hold on
+    else
+        imagesc(1 - C{g}), hold on
+    end
+    plot(MDP.o(g,:),'.c','MarkerSize',16), hold off
+    try
+        title(sprintf('Outcomes and preferences - %s',MDP.Aname{g}));
+    catch
+        if f < 2, title('Outcomes and preferences'); end
+    end
+    xlabel('time')
+    ylabel('outcome')
 end
-plot(MDP.o,'.c','MarkerSize',16), hold off
-title('Preferred outcomes','FontSize',14)
-xlabel('epoch','FontSize',12)
-ylabel('outcome','FontSize',12)
- 
-% expected action
+
+% expected precision
 %--------------------------------------------------------------------------
 subplot(3,2,6), hold on
 if size(MDP.dn,2) > 1
     plot(MDP.dn,'r:'), plot(MDP.wn,'k'), hold off
 else
-    bar(MDP.dn,'c'),   plot(MDP.wn,'k'), hold off
+    bar(MDP.dn,1.1,'k'),   plot(MDP.wn,'k'), hold off
 end
 title('Expected precision (dopamine)','FontSize',14)
 xlabel('updates','FontSize',12)

@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 6605 2015-11-21 20:15:13Z karl $
+% $Id: DEM_demo_MDP_X.m 6652 2015-12-21 10:51:54Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -53,19 +53,24 @@ rng('default')
 a      = .98;
 b      = 1 - a;
 A{1}(:,:,1) = [...
-    1 0 0 0;    % ambiguous starting position (centre)
-    0 a b 0;    % reward
-    0 b a 0;    % no reward
+    1 1 1 0;    % cue neutral
     0 0 0 1;    % cue left
     0 0 0 0];   % cue right
 A{1}(:,:,2) = [...
-    1 0 0 0;    % ambiguous starting position (centre)
-    0 b a 0;    % reward
-    0 a b 0;    % no reward
+    1 1 1 0;    % cue neutral
     0 0 0 0;    % cue left
     0 0 0 1];   % cue right
 
- 
+A{2}(:,:,1) = [...
+    1 0 0 1;    % reward neutral
+    0 a b 0;    % reward positive
+    0 b a 0];   % reward negative
+A{2}(:,:,2) = [...
+    1 0 0 1;    % reward neutral
+    0 b a 0;    % reward positive
+    0 a b 0];   % reward negative
+
+
 % controlled transitions: B{u}
 %--------------------------------------------------------------------------
 % Next, we have to specify the probabilistic transitions of hidden states
@@ -77,7 +82,7 @@ B{1}(:,:,2)  = [0 0 0 0; 1 1 0 1;0 0 1 0;0 0 0 0];
 B{1}(:,:,3)  = [0 0 0 0; 0 1 0 0;1 0 1 1;0 0 0 0];
 B{1}(:,:,4)  = [0 0 0 0; 0 1 0 0;0 0 1 0;1 0 0 1];
 
-% context
+% contextthe point that
 %--------------------------------------------------------------------------
 B{2}         = eye(2);
 
@@ -86,15 +91,19 @@ B{2}         = eye(2);
 % Finally, we have to specify the prior preferences in terms of  log
 % probabilities over outcomes. Here, the agent prefers rewards to losses.
 %--------------------------------------------------------------------------
-c  = 3;
-C{1}  = [0 0  0 0 0;
-         0 c -c 0 0;
-         0 c -c 0 0]';
+c     = 3;
+C{1}  = [0  0  0;
+         0  0  0;
+         0  0  0];
+
+C{2}  = [0  0  0;
+         0  c  c;
+         0 -c -c];
  
 % now specify prior beliefs about initial state, in terms of counts
 %--------------------------------------------------------------------------
 d{1} = [1 0 0 0]';
-d{2} = [8 8]';
+d{2} = [1 1]';
 
 
 % allowable policies (of depth T).  These are just sequences of actions
@@ -113,59 +122,49 @@ mdp.B = B;                    % transition probabilities
 mdp.C = C;                    % preferred outcomes
 mdp.d = d;                    % prior over initial states
 mdp.s = [1 1]';               % true initial state
+
+mdp.Aname = {'exteroceptive','interoceptive'};
+mdp.Bname = {'position','context'};
  
 % true initial states – with context change at trial 12
 %--------------------------------------------------------------------------
-i           = [1,3];          % change context in a couple of trials
-[MDP(1:32)] = deal(mdp);      % create structure array
-[MDP(i).s]  = deal([1 2]');   % deal context changes
-MDP(12).o   = [1 4 5];        % unexpected outcome
+i              = [1,3];          % change context in a couple of trials
+[MDP(1:32)]    = deal(mdp);      % create structure array
+[MDP(i).s]     = deal([1 2]');   % deal context changes
 
- 
+
 % Solve - an example game: a run of reds then an oddball
 %==========================================================================
 MDP  = spm_MDP_VB_X(MDP);
  
 % illustrate behavioural responses – single trial
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1a'); clf
+spm_figure('GetWin','Figure 1'); clf
 spm_MDP_VB_trial(MDP(1));
 
 % illustrate behavioural responses and neuronal correlates
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1b'); clf
+spm_figure('GetWin','Figure 2'); clf
 spm_MDP_VB_game(MDP);
 
 % illustrate phase-precession and responses to chosen option - 1st trial
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2'); clf
-spm_MDP_VB_LFP(MDP(1),[4 6;3 3]);
-
-% place cells
-%--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
-subplot(2,2,1),spm_MDP_VB_place_cell(MDP(1:6),[3 6;3 3]);
-subplot(2,2,2),spm_MDP_VB_place_cell(MDP(1:6),[7 8;2 2]);
+spm_MDP_VB_LFP(MDP(1),[2 3;3 3],1);
 
 % illustrate phase-amplitude (theta-gamma) coupling
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 4'); clf
 spm_MDP_VB_LFP(MDP(1:8));
-
-% illustrate oddball responses (P300) - US
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 5'); clf
-spm_MDP_VB_LFP(MDP([11,12]),[8;3]);
-subplot(4,1,1), title('Violation response (P300)','FontSize',16)
  
 % illustrate oddball responses (MMN) - CS
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 6a'); clf
-spm_MDP_VB_LFP(MDP([2,20]),[1;1]);
+spm_figure('GetWin','Figure 5'); clf
+spm_MDP_VB_LFP(MDP([2,16]),[1;2],2);
 subplot(4,1,1), title('Repetition suppression and DA transfer','FontSize',16)
  
-spm_figure('GetWin','Figure 6b');clf
-v  = spm_MDP_VB_LFP(MDP([2,20]),[1 2;1 1]);
+spm_figure('GetWin','Figure 6'); clf
+v  = spm_MDP_VB_LFP(MDP([2,16]),[1;2],2);
 t  = (1:16)*16 + 80;
 subplot(2,1,1),plot(t,v{1}{2,1},'b-.',t,v{2}{2,1},'b:',t,v{2}{2,1} - v{1}{2,1})
 xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',16)
