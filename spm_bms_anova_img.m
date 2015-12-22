@@ -7,14 +7,14 @@ function [P,g,prior] = spm_bms_anova_img (P,g,prior)
 % prior     Specification of a single group is equivalent to a one sample t-test.
 %           For this case you can specify 'unit' or 'jzs' (default) priors
 %           See spm_bms_ttest.m and spm_bms_anova.m for more details
-%_______________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2014-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_bms_anova_img.m 6038 2014-06-04 15:22:42Z will $
+% $Id: spm_bms_anova_img.m 6654 2015-12-22 12:55:36Z spm $
 
 % Select files and groups if not provided
-if nargin < 2 | isempty(P) | isempty(g)
+if nargin < 2 || isempty(P) || isempty(g)
     Ng=input('Enter number of groups ');
     P=[];g=[];
     for j=1:Ng,
@@ -28,19 +28,17 @@ else
     Ng=length(unique(g));
 end
 
-try
-    prior=prior;
-catch
-    prior='jzs';
+if nargin < 3
+    prior = 'jzs';
 end
 
-VY    = spm_data_hdr_read(P);
-M      = VY{1}.mat;
-DIM    = VY{1}.dim(1:3);
+VY      = spm_data_hdr_read(P);
+M       = VY{1}.mat;
+DIM     = VY{1}.dim(1:3);
 YNaNrep = spm_type(VY{1}.dt(1),'nanrep');
-mask   = true(DIM);
+mask    = true(DIM);
 
-fn=['logBF_alt_',prior];
+fn = ['logBF_alt_',prior];
 V = struct(...
     'fname',   [fn spm_file_ext],...
     'dim',     DIM,...
@@ -50,7 +48,7 @@ V = struct(...
     'descrip', 'spm_bms_anova:LogBF against null');
 V = spm_data_hdr_write(V);
 
-nScan=length(VY);
+nScan     = length(VY);
 chunksize = floor(spm_get_defaults('stats.maxmem') / 8 / nScan);
 nbchunks  = ceil(prod(DIM) / chunksize);
 chunks    = min(cumsum([1 repmat(chunksize,1,nbchunks)]),prod(DIM)+1);
@@ -84,14 +82,14 @@ for i=1:nbchunks
     Y            = Y(:,cmask);                     %-Data within mask
     
     Nvoxels=size(Y,2);
-    for n=1:Nvoxels,
+    for n=1:Nvoxels
         if Ng==1
             logBF(n)=spm_bms_ttest(Y(:,n),prior);
         else
             logBF(n)=spm_bms_anova(Y(:,n),g);
         end
         if rem(n,1000)==0
-            disp(sprintf('Voxel %d out of %d',n,Nvoxels));
+            fprintf('Voxel %d out of %d\n',n,Nvoxels);                  %-#
         end
     end
     
@@ -109,5 +107,3 @@ end
 
 fprintf('\n');                                                          %-#
 spm_progress_bar('Clear');
-                       
-end

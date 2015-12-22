@@ -16,7 +16,7 @@ function [P,f] = spm_gn_fmin(fun,Q,C,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gn_fmin.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_gn_fmin.m 6654 2015-12-22 12:55:36Z spm $
  
  
 % stochastic search
@@ -45,7 +45,7 @@ F      = sparse(N,1);
 for i = 1:N
     F(i) = feval(fun,spm_unvec(p(:,i),Q),varargin{:});
 end
-[f i] = min(F);
+[f,i] = min(F);
 pmin  = p(:,i);
 clear p F
  

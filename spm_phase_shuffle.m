@@ -4,10 +4,10 @@ function [y] = spm_phase_shuffle(x,n)
 % x   - data matrix (time-series in columns)
 % n   - optional window length for windowed shuffling
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_phase_shuffle.m 3334 2009-08-25 16:13:38Z karl $
+% $Id: spm_phase_shuffle.m 6654 2015-12-22 12:55:36Z spm $
  
  
 try
@@ -17,7 +17,7 @@ try
     k     = 1:fix(n/2);
     for i = 1:size(x,2);
         C      = spm_wft(x(:,i),k,n);
-        W      = abs(C).*exp(j*angle(C(randperm(size(C,1)),:)));
+        W      = abs(C).*exp(1i*angle(C(randperm(size(C,1)),:)));
         y(:,i) = spm_iwft(W,k,n)';
     end
     
@@ -32,7 +32,7 @@ catch
     p              = zeros(n,size(x,2));
     p(i,:)         =  r;
     p(n - i + 2,:) = -r;
-    s              = abs(s).*exp(j*p);
+    s              = abs(s).*exp(1i*p);
     y              = real(ifft(s));
  
 end

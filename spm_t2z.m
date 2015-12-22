@@ -1,6 +1,6 @@
 function [z,t1,z1] = spm_t2z(t,df,Tol)
-% Students t to standard Normal (z-score) distribution
-% FORMAT [z,t1] = spm_t2z(t,df,Tol);
+% Student's t to standard Normal (z-score) distribution
+% FORMAT [z,t1,z1] = spm_t2z(t,df,Tol)
 % t   - t values 
 % df  - degrees of freedom
 % Tol - minimum tail probability for direct computation
@@ -51,10 +51,10 @@ function [z,t1,z1] = spm_t2z(t,df,Tol)
 % (though still significant) results.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2015 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_t2z.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_t2z.m 6654 2015-12-22 12:55:36Z spm $
 
 
 %-Initialisation
@@ -79,10 +79,10 @@ z     = zeros(size(t));
 % betainc(1,*,*) and betainc(0,*,*) warn "Log of zero"
 %---------------------------------------------------------------------------
 Qi    = find(isinf(t));
-if length(Qi), z(Qi)=t(Qi); end
+if ~isempty(Qi), z(Qi)=t(Qi); end
 tmp   = df./(df + t.^2);
 Q     = find(tmp~=1 & ~isinf(t));
-if ~length(Q); return; end
+if isempty(Q), return; end
 
 %-Mask out at +/- t1 for interpolation
 %---------------------------------------------------------------------------

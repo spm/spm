@@ -23,7 +23,7 @@ function DCM = spm_dcm_fmri_csd_DEM(DCM)
 % spectra are the predicted spectra plus some smooth Gaussian fluctuations
 % (noise). The characterisation of the model parameters can then be
 % examined in terms of directed transfer functions, spectral density and
-% crosscorrelation functions at the neuronal level – having accounted for
+% crosscorrelation functions at the neuronal level ï¿½ having accounted for
 % variations in haemodynamics at each node.
 %
 % This scheming uses a hierarchical generative model of connectivity with
@@ -37,10 +37,10 @@ function DCM = spm_dcm_fmri_csd_DEM(DCM)
 % see also: spm_dcm_estimate
 %           spm_dcm_fmri_csd
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_DEM.m 5821 2013-12-31 14:26:41Z karl $
+% $Id: spm_dcm_fmri_csd_DEM.m 6654 2015-12-22 12:55:36Z spm $
 
 
 % get DCM
@@ -278,9 +278,9 @@ M.g    = @(x,u,P,M) x(:,1);                          % neuronal observer
 Qp.b        = Qp.b - 32;                             % Switch off noise
 Qp.c        = Qp.c - 32;                             % Switch off noise
 Qp.C        = Ep.C;
-[Hs Hz dtf] = spm_csd_fmri_mtf(Qp,M,DCM.U);
-[ccf pst]   = spm_csd2ccf(Hs,Hz);
-[coh fsd]   = spm_csd2coh(Hs,Hz);
+[Hs,Hz,dtf] = spm_csd_fmri_mtf(Qp,M,DCM.U);
+[ccf,pst]   = spm_csd2ccf(Hs,Hz);
+[coh,fsd]   = spm_csd2coh(Hs,Hz);
 DCM.dtf     = dtf;
 DCM.ccf     = ccf;
 DCM.coh     = coh;

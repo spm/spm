@@ -1,5 +1,5 @@
 /*
- * $Id: spm_krutil.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: spm_krutil.c 6654 2015-12-22 12:55:36Z spm $
  * John Ashburner & Jesper Andersson
  */
  
@@ -98,7 +98,7 @@ void mexFunction_kron(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]
  
    if (nrhs == 0) mexErrMsgTxt("usage: BM=spm_kron(M1,M2)");
    if (nrhs != 2) mexErrMsgTxt("spm_kron: 2 input arguments required");
-   if (nlhs != 1) mexErrMsgTxt("spm_kron: 1 output argument required");
+   if (nlhs > 1) mexErrMsgTxt("spm_kron: 1 output argument required");
  
    /* Get first matrix */
    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
