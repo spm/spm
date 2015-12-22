@@ -32,9 +32,9 @@ function [images, outroot] = spm_eeg_convert2images(S)
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 6649 2015-12-17 14:48:15Z vladimir $
+% $Id: spm_eeg_convert2images.m 6653 2015-12-22 09:32:06Z vladimir $
 
-SVNrev = '$Rev: 6649 $';
+SVNrev = '$Rev: 6653 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -68,6 +68,7 @@ if isTF
         error('Selected frequency window is invalid.');
     end
     
+    freqonset = D.frequencies(freqind(1));
     df = unique(diff(D.frequencies(freqind)));
     if length(df)> 1
         if (max(diff(df))/mean(df))>0.1
@@ -77,8 +78,6 @@ if isTF
             else
                 freqonset = log(D.frequencies(freqind(1)));
             end
-        else
-            freqonset = D.frequencies(freqind(1));
         end
     end
     df = mean(df);
