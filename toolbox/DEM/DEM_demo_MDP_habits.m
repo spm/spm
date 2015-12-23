@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6598 2015-11-11 19:48:30Z karl $
+% $Id: DEM_demo_MDP_habits.m 6655 2015-12-23 20:21:27Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -165,7 +165,7 @@ subplot(2,1,1),plot(t,v{1}{2,1},'b-.',t,v{2}{2,1},'b:',t,v{2}{2,1} - v{1}{2,1})
 xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',16)
 legend({'oddball','standard','MMN'}), grid on, axis square
 
-return
+% return
 
 % illustrate reversal learning - after trial 32
 %==========================================================================

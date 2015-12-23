@@ -1,5 +1,5 @@
-function MDP = DEM_demo_MDP_X
-% Demo of active inference for trust games
+function MDP = DEM_demo_MDP_search
+% Demo of active inference for visula salience
 %__________________________________________________________________________
 %
 % This routine uses a Markov decision process formulation of active
@@ -38,86 +38,105 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 6655 2015-12-23 20:21:27Z karl $
+% $Id: DEM_demo_MDP_search.m 6655 2015-12-23 20:21:27Z karl $
  
 % set up and preliminaries
 %==========================================================================
 rng('default')
-  
-% outcome probabilities: A
+
+% prior beliefs about initial states (in terms of counts_: D and d
 %--------------------------------------------------------------------------
-% We start by specifying the probabilistic mapping from hidden states
-% to outcomes; where outcome can be exteroceptive or interoceptive: The
-% exteroceptive outcomes A{1} provide cues about location and context,
-% while interoceptive outcome A{2) denotes different levels of reward
+d{1} = [8 8 8]';           % what:  {'flee','feed','wait'}
+d{2} = [1 0 0 0 0 0 0 0]'; % where: {'start','1',...,'4','flee','feed','wait'}
+d{3} = [8 8]';             % flip:  {'up','down'}
+d{4} = [8 8]';             % flip:  {'left','right'}
+
+
+% probabilistic mapping from hidden states to outcomes: A
 %--------------------------------------------------------------------------
-a      = .98;
-b      = 1 - a;
-A{1}(:,:,1) = [...
-    1 0 0 0;    % cue start
-    0 1 1 0;    % cue bait
-    0 0 0 1     % cue right
-    0 0 0 0];   % cue left
-A{1}(:,:,2) = [...
-    1 0 0 0;    % cue start
-    0 1 1 0;    % cue bait
-    0 0 0 0     % cue right
-    0 0 0 1];   % cue left
+Nf    = numel(d);
+for f = 1:Nf
+    Ns(f) = numel(d{f});
+end
+No    = [6 8];
+Ng    = numel(No);
+for g = 1:Ng
+    A{g} = zeros([No(g),Ns]);
+end
+for f1 = 1:Ns(1)
+    for f2 = 1:Ns(2)
+        for f3 = 1:Ns(3)
+            for f4 = 1:Ns(4)
+                
+                % latent cues for this hidden state
+                %----------------------------------------------------------
+                if f1 == 1, a = {'bird','cat' ;'null','null'}; end
+                if f1 == 2, a = {'bird','seed';'null','null'}; end
+                if f1 == 3, a = {'bird','null';'null','seed'}; end
+                
+                if f3 == 2, a = flipud(a); end
+                if f3 == 2, a = fliplr(a); end
+                
+                % what: A{1} {'null','bird,'seed','cat','right','wrong'}
+                %----------------------------------------------------------
+                if f2 == 1
+                    A{1}(1,f1,f2,f3,f4) = 1;           
+                elseif f2 > 1 && f2 < 5
+                    A{1}(1,f1,f2,f3,f4) = strcmp(a{f2 - 1},'null');
+                    A{1}(2,f1,f2,f3,f4) = strcmp(a{f2 - 1},'bird');
+                    A{1}(3,f1,f2,f3,f4) = strcmp(a{f2 - 1},'seed');
+                    A{1}(4,f1,f2,f3,f4) = strcmp(a{f2 - 1},'cat');
+                else
+                    A{1}(5,f1,f2,f3,f4) = (f2 - 5) == f1;
+                    A{1}(6,f1,f2,f3,f4) = (f2 - 5) ~= f1;
+                end
+                
+                % where: A{2} {'start','1',...,'4','flee','feed','wait'}
+                %----------------------------------------------------------
+                A{2}(f2,f1,f2,f3,f4) = 1;
+                
+            end
+        end
+    end
+end
+for g = 1:Ng
+    A{g} = double(A{g});
+end
  
-A{2}(:,:,1) = [...
-    1 0 0 1;    % reward neutral
-    0 a b 0;    % reward positive
-    0 b a 0];   % reward negative
-A{2}(:,:,2) = [...
-    1 0 0 1;    % reward neutral
-    0 b a 0;    % reward positive
-    0 a b 0];   % reward negative
- 
- 
-% controlled transitions: B{u}
+% controlled transitions: B{f} for each factor
 %--------------------------------------------------------------------------
-% Next, we have to specify the probabilistic transitions of hidden states
-% for each factor. Here, there are four actions taking the agent directly
-% to each of the four locations.
+for f = 1:Nf
+    B{f} = eye(Ns(f));
+end
+
+% controlable fixation points (
 %--------------------------------------------------------------------------
-B{1}(:,:,1)  = [1 0 0 1; 0 1 0 0;0 0 1 0;0 0 0 0];
-B{1}(:,:,2)  = [0 0 0 0; 1 1 0 1;0 0 1 0;0 0 0 0];
-B{1}(:,:,3)  = [0 0 0 0; 0 1 0 0;1 0 1 1;0 0 0 0];
-B{1}(:,:,4)  = [0 0 0 0; 0 1 0 0;0 0 1 0;1 0 0 1];
- 
-% context, which cannot be changed by action
+for k = 1:Ns(2)
+    B{2}(:,1:5,k)   = 0;
+    B{2}(k,1:5,k)   = 1;        % move to the k-th location
+    B{2}(6:8,6:8,k) = eye(3);   % last three locations are absorbing
+end
+
+
+% allowable policies (of depth T): sequences of actions for each factor
 %--------------------------------------------------------------------------
-B{2}         = eye(2);
- 
+Nu       = 8;
+U(1,:)   = kron(1:Nu,ones(1,Nu));
+U(2,:)   = kron(ones(1,Nu),1:Nu);
+T        = size(U,1);
+Np       = size(U,2);
+V        = ones(T,Np,Nf);
+V(:,:,2) = U;
+
+
 % priors: (utility) C
 %--------------------------------------------------------------------------
-% Finally, we have to specify the prior preferences in terms of log
-% probabilities over outcomes. Here, the agent prefers rewards to losses -
-% and has no prior preferences about where it is:
-%--------------------------------------------------------------------------
-c     = 4;
-C{1}  = [0  0  0;
-         0  0  0;
-         0  0  0;
-         0  0  0];
- 
-C{2}  = [0  0  0;
-         0  c  c;
-         0 -c -c];
- 
-% now specify prior beliefs about initial states, in terms of counts. Here
-% the hidden states are factorised into location and context:
-%--------------------------------------------------------------------------
-d{1} = [1 0 0 0]';
-d{2} = [8 8]';
- 
- 
-% allowable policies (of depth T).  These are just sequences of actions
-% (with an action for each hidden factor)
-%--------------------------------------------------------------------------
-V(:,:,1) = [1  1  1  1  2  3  4  4  4  4
-            1  2  3  4  2  3  1  2  3  4];
-V(:,:,2) = 1;
+T         = size(V,1);
+c         = 4;
+C{1}      = zeros(No(1),T);
+C{2}      = zeros(No(2),T);
+C{1}(5,:) =  c;                  % the agent expects to be right
+C{1}(6,:) = -c;                  % and not wrong
  
  
 % MDP Structure - this will be used to generate arrays for multiple trials
@@ -127,10 +146,16 @@ mdp.A = A;                    % observation model
 mdp.B = B;                    % transition probabilities
 mdp.C = C;                    % preferred outcomes
 mdp.d = d;                    % prior over initial states
-mdp.s = [1 1]';               % true initial state
+mdp.s = ones(Nf,1);           % true initial state
  
-mdp.Aname = {'exteroceptive','interoceptive'};
-mdp.Bname = {'position','context'};
+mdp.Aname = {'what','where'};
+mdp.Bname = {'what','where','flip','flip'};
+
+MDP  = spm_MDP_VB_X(mdp);
+spm_figure('GetWin','Figure 1'); clf
+spm_MDP_VB_trial(MDP);
+
+return
  
 % true initial states – with context change at trial 12
 %--------------------------------------------------------------------------

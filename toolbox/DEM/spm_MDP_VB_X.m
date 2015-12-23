@@ -21,7 +21,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %
 % MDP.alpha             - precision – action selection [16]
 % MDP.beta              - precision over precision (Gamma hyperprior - [1])
-% 
+%
 % OPTIONS.plot          - switch to suppress graphics: (default: [0])
 %
 % produces:
@@ -86,7 +86,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6652 2015-12-21 10:51:54Z karl $
+% $Id: spm_MDP_VB_X.m 6655 2015-12-23 20:21:27Z karl $
 
 
 % deal with a sequence of trials
@@ -185,7 +185,7 @@ for f = 1:Nf
         
         % controlable transition probabilities
         %------------------------------------------------------------------
-        B{f}(:,:,j)      = spm_norm(MDP.B{f}(:,:,j) + p0);
+        B{f}(:,:,j) = spm_norm(MDP.B{f}(:,:,j) + p0);
         
         % parameters (concentration parameters): B
         %------------------------------------------------------------------
@@ -228,7 +228,7 @@ for g = 1:Ng
     if size(Vo{g},2) ~= T
         Vo{g} = Vo{g}(:,end)*ones(1,T);
     end
-    Vo{g}     = log(spm_softmax(Vo{g})); 
+    Vo{g}     = log(spm_softmax(Vo{g}));
 end
 
 % precision defaults
@@ -255,7 +255,7 @@ for f = 1:Nf
     %----------------------------------------------------------------------
     xn{f} = zeros(Ni,Ns(f),T,T,Np);
     x{f}  = zeros(Ns(f),T,Np) + 1/Ns(f);
-    X{f}  = zeros(Ns(f),T); 
+    X{f}  = zeros(Ns(f),T);
     for k = 1:Np
         x{f}(:,1,k) = spm_softmax(qD{f});
     end
@@ -285,7 +285,7 @@ end
 %--------------------------------------------------------------------------
 p     = 1:Np;                       % allowable policies
 qbeta = beta;                       % initialise rate parameters
-gu    = zeros(1,T)  + 1/qbeta;      % posterior precision (policy)
+gu    = zeros(1,T) + 1/qbeta;       % posterior precision (policy)
 
 % solve
 %==========================================================================
@@ -321,7 +321,7 @@ for t = 1:T
                     for  q = 1:numel(ind)
                         xq{q} = x{ind(q)}(:,j,k);
                     end
-
+                    
                     % likelihood
                     %------------------------------------------------------
                     if j <= t
@@ -353,7 +353,7 @@ for t = 1:T
         % hidden state updates
         %------------------------------------------------------------------
         x = px;
-
+        
     end
     
     % (negative path integral of) free energy of policies (Q)
@@ -379,7 +379,7 @@ for t = 1:T
     %======================================================================
     F     = sum(F,2);
     Q     = sum(Q,2);
-    p     = p(softmax(-F(p)) > 1/32);
+    p     = p(softmax(-F(p)) > 1/(Np*32));
     for i = 1:Ni
         
         % policy (u)
@@ -411,7 +411,7 @@ for t = 1:T
     %----------------------------------------------------------------------
     for f = 1:Nf
         for i = 1:T
-            X{f}(:,i) = squeeze(x{f}(:,i,:))*u(:,t);
+            X{f}(:,i) = reshape(x{f}(:,i,:),Ns(f),Np)*u(:,t);
         end
     end
     
@@ -431,7 +431,7 @@ for t = 1:T
             % predicted outcome
             %--------------------------------------------------------------
             ind   = 1:Nf;
-            for f = ind
+            for f = 1:Nf
                 xq{f} = X{f}(:,t + 1);
             end
             v     = log(spm_dot(A{g},xq,ind + 1));
@@ -440,7 +440,7 @@ for t = 1:T
             %--------------------------------------------------------------
             up    = unique(shiftdim(V(t,p,:),1),'rows');
             for i = 1:size(up,1)
-                for f = ind
+                for f = 1:Nf
                     xq{f} = B{f}(:,:,up(i,f))*X{f}(:,t);
                 end
                 qo = spm_dot(A{g},xq,ind + 1);
@@ -450,7 +450,7 @@ for t = 1:T
                 %----------------------------------------------------------
                 sub         = num2cell(up(i,:));
                 P(sub{:},t) = P(sub{:},t) + dP;
-
+                
             end
         end
         
@@ -588,7 +588,9 @@ function A = spm_norm(A)
 for i = 1:size(A,2)
     for j = 1:size(A,3)
         for k = 1:size(A,4)
-             A(:,i,j,k) = A(:,i,j,k)/sum(A(:,i,j,k),1);
+            for l = 1:size(A,5)
+                A(:,i,j,k,l) = A(:,i,j,k,l)/sum(A(:,i,j,k,l),1);
+            end
         end
     end
 end
@@ -599,18 +601,22 @@ function A = spm_psi(A)
 for i = 1:size(A,2)
     for j = 1:size(A,3)
         for k = 1:size(A,4)
-             A(:,i,j,k) = psi(A(:,i,j,k)) - psi(sum(A(:,i,j,k)));
+            for l = 1:size(A,5)
+                A(:,i,j,k,l) = psi(A(:,i,j,k,l)) - psi(sum(A(:,i,j,k,l)));
+            end
         end
     end
 end
 
-function H = spm_ent(qA)
+function H = spm_ent(A)
 % normalisation of a probability transition matrix (columns)
 %--------------------------------------------------------------------------
-for i = 1:size(qA,2)
-    for j = 1:size(qA,3)
-        for k = 1:size(qA,4)
-             H(i,j,k) = spm_softmax(qA(:,i,j,k))'*qA(:,i,j,k);
+for i = 1:size(A,2)
+    for j = 1:size(A,3)
+        for k = 1:size(A,4)
+            for l = 1:size(A,5)
+                H(i,j,k,l) = spm_softmax(A(:,i,j,k,l))'*A(:,i,j,k,l);
+            end
         end
     end
 end
@@ -621,9 +627,9 @@ function sub = spm_ind2sub(siz,ndx)
 n = numel(siz);
 k = [1 cumprod(siz(1:end-1))];
 for i = n:-1:1,
-  vi       = rem(ndx - 1, k(i)) + 1;         
-  vj       = (ndx - vi)/k(i)  + 1; 
-  sub(i,1) = vj; 
-  ndx      = vi;     
+    vi       = rem(ndx - 1,k(i)) + 1;
+    vj       = (ndx - vi)/k(i) + 1;
+    sub(i,1) = vj;
+    ndx      = vi;
 end
 

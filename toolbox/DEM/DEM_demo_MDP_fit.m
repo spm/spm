@@ -8,7 +8,7 @@ function BMA = DEM_demo_MDP_fit
 % and group data to make inferences about subject specific parameters –
 % such as their prior beliefs about precision and utility.
 %
-% we first generate some synthetic data for a single subject and illustrate
+% We first generate some synthetic data for a single subject and illustrate
 % the recovery of key parameters using variational Laplace. We then
 % consider the inversion of multiple trials from a group of subjects to
 % illustrate the use of empirical Bayes in making inferences at the between
@@ -34,7 +34,7 @@ function BMA = DEM_demo_MDP_fit
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_fit.m 6587 2015-11-02 10:29:49Z karl $
+% $Id: DEM_demo_MDP_fit.m 6655 2015-12-23 20:21:27Z karl $
  
 % set up and preliminaries: first generate synthetic (single subject) data
 %==========================================================================

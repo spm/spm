@@ -22,7 +22,7 @@ function spm_MDP_VB_trial(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 6652 2015-12-21 10:51:54Z karl $
+% $Id: spm_MDP_VB_trial.m 6655 2015-12-23 20:21:27Z karl $
 
 % graphics
 %==========================================================================
@@ -34,9 +34,13 @@ if iscell(MDP.X)
     Ng = numel(MDP.A);                 % number of outcome factors
     X  = MDP.X;
     C  = MDP.C;
+    for f = 1:Nf
+        Nu(f) = size(MDP.B{f},3) > 1;
+    end
 else
     Nf = 1;
     Ng = 1;
+    Nu = 1;
     X  = {MDP.X};
     C  = {MDP.C};
 end
@@ -57,34 +61,30 @@ for f  = 1:Nf
     catch
         if f < 2, title('Hidden states'); end
     end
-    xlabel('time')
+    if f == Nf, xlabel('time'), end
     ylabel('hidden state')
 end
 
 % posterior beliefs about control states
 %--------------------------------------------------------------------------
-for f  = 1:Nf
-    subplot(3*Nf,2,f*2)
-    if Nf == 1
-        P = MDP.P;
-    elseif Nf == 2
-        if f == 1
-            P = squeeze(mean(MDP.P,2));
-        else
-            P = squeeze(mean(MDP.P,1))';
+Nu     = find(Nu);
+Np     = length(Nu);
+for f  = 1:Np
+    subplot(3*Np,2,f*2)
+    
+    P = MDP.P;
+    if Nf > 1
+        ind     = 1:Nf;
+        for dim = 1:Nf
+            if dim ~= ind(Nu(f));
+                P = sum(P,dim);
+            end
         end
-    elseif Nf == 3
-        if f == 1
-            P = squeeze(mean(squeeze(mean(MDP.P,3),2)));
-        elseif f == 2
-            P = squeeze(mean(squeeze(mean(MDP.P,3),1)));
-        else
-            P = squeeze(mean(squeeze(mean(MDP.P,1),2)));
-        end
+        P = squeeze(P);
     end
     
     image(64*(1 - P)), hold on
-    plot(MDP.u(f,:),'.c','MarkerSize',16), hold off
+    plot(MDP.u(Nu(f),:),'.c','MarkerSize',16), hold off
     try
         title(sprintf('Inferred and selected action - %s',MDP.Bname{f}));
     catch
@@ -96,11 +96,11 @@ end
 
 % policies
 %--------------------------------------------------------------------------
-for f  = 1:Nf
-    subplot(3*Nf,2,(Nf + f - 1)*2 + 1)
-    imagesc(MDP.V(:,:,f)')
+for f  = 1:Np
+    subplot(3*Np,2,(Np + f - 1)*2 + 1)
+    imagesc(MDP.V(:,:,Nu(f))')
     try
-        title(sprintf('Allowable policies - %s',MDP.Bname{f}));
+        title(sprintf('Allowable policies - %s',MDP.Bname{Nu(f)}));
     catch
         if f < 2, title('Allowable policies'); end
     end
@@ -131,7 +131,7 @@ for g  = 1:Ng
     catch
         if f < 2, title('Outcomes and preferences'); end
     end
-    xlabel('time')
+    if g == Ng, xlabel('time'), end
     ylabel('outcome')
 end
 

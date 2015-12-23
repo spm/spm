@@ -1,5 +1,7 @@
 function DEM = ADEM_eyeblink(OPTION)
+% Simulation of eyeblink conditioning
 % FORMAT DEM = ADEM_eyeblink(OPTION)
+%
 %  OPTION:
 %     case{'EYEBLINK'}   : spontaneous eye blinking
 %     case{'AIRPUFF'}    : unconditioned eyeblink response to air puff
@@ -45,7 +47,7 @@ function DEM = ADEM_eyeblink(OPTION)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_eyeblink.m 6378 2015-03-15 14:46:41Z karl $
+% $Id: ADEM_eyeblink.m 6655 2015-12-23 20:21:27Z karl $
 
 
 % paradigm and stimuli

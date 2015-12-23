@@ -1,5 +1,4 @@
 function FEP_Manifold
-% FORMAT FEP_Manifold
 % This demonstration routine simulates the emergence of life - as defined
 % in terms of active inference - using a synthetic primordial soup. The key
 % aspect of this dynamics is that there is a separation between dynamical
@@ -31,7 +30,7 @@ function FEP_Manifold
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_Manifold.m 5709 2013-10-22 11:07:29Z guillaume $
+% $Id: FEP_Manifold.m 6655 2015-12-23 20:21:27Z karl $
  
  
 % default settings (GRAPHICS sets movies)
