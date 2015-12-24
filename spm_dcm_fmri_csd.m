@@ -23,7 +23,7 @@ function DCM = spm_dcm_fmri_csd(P)
 % spectra are the predicted spectra plus some smooth Gaussian fluctuations
 % (noise). The characterisation of the model parameters can then be
 % examined in terms of directed transfer functions, spectral density and
-% crosscorrelation functions at the neuronal level � having accounted for
+% crosscorrelation functions at the neuronal level - having accounted for
 % variations in haemodynamics at each node.
 %
 % note that neuronal fluctuations are not changes in synaptic activity or
@@ -36,9 +36,9 @@ function DCM = spm_dcm_fmri_csd(P)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 6654 2015-12-22 12:55:36Z spm $
+% $Id: spm_dcm_fmri_csd.m 6656 2015-12-24 16:49:52Z guillaume $
 
-SVNid = '$Rev: 6654 $';
+SVNid = '$Rev: 6656 $';
 
 % Load DCM structure
 %--------------------------------------------------------------------------

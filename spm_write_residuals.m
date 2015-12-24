@@ -10,7 +10,7 @@ function VRes = spm_write_residuals(SPM,Ic)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_write_residuals.m 5575 2013-07-08 16:38:51Z guillaume $
+% $Id: spm_write_residuals.m 6656 2015-12-24 16:49:52Z guillaume $
 
 
 %-Get SPM.mat
@@ -55,7 +55,7 @@ end
 %==========================================================================
 spm('Pointer','Watch')
 M   = SPM.xY.VY(1).mat;
-DIM = SPM.xY.VY(1).dim(1:3);
+DIM = SPM.xY.VY(1).dim(1:min(numel(SPM.xY.VY(1).dim),3));
 [nScan, nBeta] = size(SPM.xX.X);
 
 if spm_mesh_detect(SPM.xY.VY)

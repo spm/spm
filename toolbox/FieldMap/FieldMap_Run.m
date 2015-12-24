@@ -28,10 +28,10 @@ function vdm = FieldMap_Run(job)
 %         shortimag - name of short imaginary image for real/imaginary job
 %         longimag  - name of long imaginary image for real/imaginary job
 %__________________________________________________________________________
-% Copyright (C) 2007-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007-2015 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton & Jesper Andersson
-% $Id: FieldMap_Run.m 6258 2014-11-07 18:15:40Z guillaume $
+% $Id: FieldMap_Run.m 6656 2015-12-24 16:49:52Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -133,12 +133,13 @@ if ~isempty(job.sessname)
 else
     pm_defs.sessname = 'session';
 end
+
 %--------------------------------------------------------------------------
 % Call FieldMap_create
 %--------------------------------------------------------------------------
 [VDM, IPcell] = FieldMap_create(fm_imgs,epi_img,pm_defs);
 
-for sessnum=1:max([1 nsessions]);
+for sessnum=1:max([1 nsessions])
     
     IP = IPcell{sessnum};
     

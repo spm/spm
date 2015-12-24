@@ -13,7 +13,7 @@ function Mo = spm_mesh_calc(Mi,Mo,f,varargin)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_calc.m 6537 2015-08-26 16:28:53Z guillaume $
+% $Id: spm_mesh_calc.m 6656 2015-12-24 16:49:52Z guillaume $
 
 
 %-Check input arguments
@@ -21,6 +21,9 @@ function Mo = spm_mesh_calc(Mi,Mo,f,varargin)
 if ~isempty(Mo)
     Mo = spm_file(Mo,'ext','.gii');
     Mo = spm_file(Mo,'cpath');
+end
+if numel(varargin) == 1 && isstruct(varargin{1})
+    varargin = reshape([fieldnames(varargin{1})';struct2cell(varargin{1})'],1,[]);
 end
 if mod(numel(varargin),2)
     error('Incorrect number of input arguments.');

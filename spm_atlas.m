@@ -17,7 +17,7 @@ function varargout = spm_atlas(action,varargin)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_atlas.m 6520 2015-08-13 16:13:06Z guillaume $
+% $Id: spm_atlas.m 6656 2015-12-24 16:49:52Z guillaume $
 
 
 if ~nargin, action = 'load'; end
@@ -260,7 +260,7 @@ case 'mask'
         VM = struct(...
             'fname',   [xA.info.name '_mask' spm_file_ext],...
             'dim',     xA.VA(1).dim,...
-            'dt',      [spm_type('uint8') spm_platform('bigend')],...
+            'dt',      [spm_type('uint16') spm_platform('bigend')],...
             'mat',     xA.VA(1).mat,...
             'n',       1,...
             'pinfo',   [1 0 0]',...
@@ -268,7 +268,7 @@ case 'mask'
         if strcmp(opt,'binary')
             VM.dat = false(VM.dim);
         else
-            VM.dat = uint8(zeros(VM.dim));
+            VM.dat = uint16(zeros(VM.dim));
         end
         
         D = spm_read_vols(xA.VA);
@@ -287,7 +287,7 @@ case 'mask'
                 end
             end
         end
-        VM.dat = uint8(VM.dat);
+        VM.dat = uint16(VM.dat);
     else
         if nargin < 4, thresh = 0.5; else thresh = varargin{3}; end
         VM       = spm_atlas('prob',xA,label);

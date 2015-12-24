@@ -56,7 +56,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 6530 2015-08-21 14:43:52Z guillaume $
+% $Id: spm_jobman.m 6656 2015-12-24 16:49:52Z guillaume $
 
 
 %__________________________________________________________________________
@@ -103,9 +103,10 @@ function varargout = spm_jobman(varargin)
 %--------------------------------------------------------------------------
 persistent isInitCfg;
 if isempty(isInitCfg) &&  ~(nargin == 1 && strcmpi(varargin{1},'initcfg'))
-    warning('spm:spm_jobman:notInitialised',...
-        'Run spm_jobman(''initcfg''); beforehand');
+    % Run spm_jobman('initcfg') beforehand.
+    fprintf('Initialising batch system... ');
     spm_jobman('initcfg');
+    fprintf('done.\n');
 end
 isInitCfg = true;
 

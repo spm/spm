@@ -40,13 +40,13 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % are retained in the best model or there are no more parameters to
 % consider.
 %
-% See also: spm_dcm_post_hoc – this routine is essentially a simplified
+% See also: spm_dcm_post_hoc - this routine is essentially a simplified
 % version of spm_dcm_post_hoc
 %__________________________________________________________________________
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 6587 2015-11-02 10:29:49Z karl $
+% $Id: spm_dcm_bmr_all.m 6656 2015-12-24 16:49:52Z guillaume $
 
 
 %-Number of parameters to consider before invoking greedy search

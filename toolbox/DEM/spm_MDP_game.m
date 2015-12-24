@@ -24,7 +24,7 @@ function [MDP] = spm_MDP_game(MDP,OPTION,W)
 %                   (default: MDP.G{T,M} = MDP.G{M} = MDP.B{M})
 %
 % MDP.plot        - switch to suppress graphics: (default: [0])
-% MDP.alpha       - upper bound on precision (Gamma hyperprior � shape [8])
+% MDP.alpha       - upper bound on precision (Gamma hyperprior - shape [8])
 % MDP.beta        - precision over precision (Gamma hyperprior - rate  [1])
 % MDP.gamma       - initial precision
 % MDP.lamba       - precision update rate
@@ -102,7 +102,7 @@ function [MDP] = spm_MDP_game(MDP,OPTION,W)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game.m 6592 2015-11-06 16:20:48Z guillaume $
+% $Id: spm_MDP_game.m 6656 2015-12-24 16:49:52Z guillaume $
 
 % set up and preliminaries
 %==========================================================================
@@ -181,7 +181,7 @@ try
         C = A*C;
     end
     
-    % asume no preferences if only final outceoms are specifed
+    % asume no preferences if only final outcomes are specifed
     %----------------------------------------------------------------------
     if size(C,2) ~= T
         C = C(:,end)*ones(1,T);
@@ -233,7 +233,7 @@ CA     = CA/sum(CA);
 
 % initial states and outcomes
 %--------------------------------------------------------------------------
-[p q]  = max(A*MDP.S(:,1));        % initial outcome (index)
+[p,q]  = max(A*MDP.S(:,1));        % initial outcome (index)
 s      = find( MDP.S(:,1));        % initial state   (index)
 o      = sparse(1,1,q,1,T);        % observations    (index)
 S      = sparse(s,1,1,Ns,T);       % states sampled  (1 in K vector)

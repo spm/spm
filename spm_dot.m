@@ -1,32 +1,33 @@
 function [Y] = spm_dot(X,x,DIM)
-% Mulitimensional dot (inner) preoduct
-% [Y] = spm_dot(X,x,DIM)
+% Multidimensional dot (inner) preoduct
+% FORMAT [Y] = spm_dot(X,x,DIM)
 %
 % X  - numeric array
 % x  - vector or cell array of numeric vectors
 %
-% Y  - inner product obtained by summing the products of X and x along DIM.
+% Y  - inner product obtained by summing the products of X and x along DIM
 %
-% if DIM is not specified the last dimension of X is used.  If x is a cell
-% array recursive dot products are computed (starting with the last entry 
-% if (the vector) DIM is not specified
+% If DIM is not specified the last dimension of X is used.  If x is a cell
+% array recursive dot products are computed (starting with the last entry
+% if (the vector) DIM is not specified).
 %
 % See also: spm_cross
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dot.m 6655 2015-12-23 20:21:27Z karl $
+% $Id: spm_dot.m 6656 2015-12-24 16:49:52Z guillaume $
+
 
 % initialise X and vX
 %--------------------------------------------------------------------------
 if iscell(x)
     if nargin < 3
-        DIM = (1:numel(x)) + numel(size(X)) - numel(x); 
+        DIM = (1:numel(x)) + numel(size(X)) - numel(x);
     end
     for i = 1:numel(x)
-      X   = spm_dot(X,x{i},DIM(i));
-      DIM = DIM - 1;
+        X   = spm_dot(X,x{i},DIM(i));
+        DIM = DIM - 1;
     end
     Y     = X;
     return
@@ -49,7 +50,7 @@ elseif ismatrix(X)
     end
     return
 end
-    
+
 d      = size(X);
 ind    = cell(size(d));
 ind(:) = {':'};
@@ -65,6 +66,3 @@ if ~ismatrix(Y)
     d(DIM) = [];
     Y      = reshape(Y,d);
 end
-
-
-

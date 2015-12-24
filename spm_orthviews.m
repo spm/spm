@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 6371 2015-03-10 20:19:46Z guillaume $
+% $Id: spm_orthviews.m 6656 2015-12-24 16:49:52Z guillaume $
 
 
 % The basic fields of st are:
@@ -278,6 +278,8 @@ switch lower(action)
         mmcentre     = mean(st.Space*[maxbb';1 1],2)';
         st.centre    = mmcentre(1:3);
         redraw_all
+        try, set(F, 'WindowScrollWheelFcn', @scroll_wheel); end
+
 
     case 'caption'
         if ~isnumeric(varargin{1})
@@ -972,6 +974,13 @@ spm_orthviews('reposition');
 
 function repos_end(varargin)
 set(gcbf,'windowbuttonmotionfcn','', 'windowbuttonupfcn','');
+
+function scroll_wheel(varargin)
+ScrollWheelData = varargin{2};
+% detect if mouse is over an axis and change 
+centre = spm_orthviews('Pos');
+spm_orthviews('setcoords',centre+[0 0 ScrollWheelData.VerticalScrollCount]');
+%spm_orthviews('reposition');
 
 
 %==========================================================================
