@@ -2,7 +2,10 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % active inference and learning using variational Bayes (factorised)
 % FORMAT [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %
-% MDP.V(T - 1,P,F)      - P allowable policies of T epochs over F factors
+% MDP.V(T - 1,P,F)      - P allowable policies of T moves over F factors
+% or
+% MDP.U(1,P,F)          - P allowable actions at each move
+% MDP.T                 - number of outcomes
 %
 % MDP.A{G}(O,N1,...,NF) - likelihood of O outcomes given hidden states
 % MDP.B{F}(NF,NF,MF)    - transitions among hidden under MF control states
@@ -86,7 +89,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6655 2015-12-23 20:21:27Z karl $
+% $Id: spm_MDP_VB_X.m 6657 2015-12-31 17:59:31Z karl $
 
 
 % deal with a sequence of trials
@@ -136,14 +139,19 @@ end
 
 % set up and preliminaries
 %==========================================================================
-V   = MDP.V;                        % allowable policies (T - 1,Np)
+try
+    V = MDP.U;                        % allowable actions (1,Np)
+    T = MDP.T;                        % number of transitions
+catch
+    V = MDP.V;                        % allowable policies (T - 1,Np)
+    T = size(MDP.V,1) + 1;            % number of transitions
+end
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
 Nf  = numel(MDP.B);                 % number of hidden state factors
 Ng  = numel(MDP.A);                 % number of outcome factors
-T   = size(MDP.V,1) + 1;            % number of transitions
-Np  = size(MDP.V,2);                % number of allowable policies
+Np  = size(V,2);                    % number of allowable policies
 for f = 1:Nf
     Nu(f) = size(MDP.B{f},3);       % number of hidden controls
     Ns(f) = size(MDP.B{f},1);       % number of hidden states
@@ -207,7 +215,7 @@ for f = 1:Nf
     if isfield(MDP,'d')
         qD{f} = spm_psi(MDP.d{f} + q0);
     elseif isfield(MDP,'D')
-        qD{f} = log(spm_norm(MDP.D{f} + q0));
+        qD{f} = log(spm_norm(MDP.D{f} + p0));
     else
         qD{f} = spm_psi(ones(Ns(f),1));
     end
@@ -253,8 +261,8 @@ for f = 1:Nf
     
     % initialise posteriors over states
     %----------------------------------------------------------------------
-    xn{f} = zeros(Ni,Ns(f),T,T,Np);
-    x{f}  = zeros(Ns(f),T,Np) + 1/Ns(f);
+    xn{f} = zeros(Ni,Ns(f),T,T,Np) + 1/Ns(f);
+    x{f}  = zeros(Ns(f),T,Np)      + 1/Ns(f);
     X{f}  = zeros(Ns(f),T);
     for k = 1:Np
         x{f}(:,1,k) = spm_softmax(qD{f});
@@ -264,10 +272,10 @@ end
 
 % initialise posteriors over polices and action
 %--------------------------------------------------------------------------
-P  = zeros([Nu (T - 1)]) - 16;
+P  = zeros([Nu,(T - 1)]);
 un = zeros(Np,T*Ni);
 u  = zeros(Np,T - 1);
-a  = zeros(f, T - 1);
+a  = zeros(Nf,T - 1);
 
 
 % initial outcome (index)
@@ -300,12 +308,13 @@ for t = 1:T
     
     % Variational updates (hidden states) under sequential policies
     %======================================================================
+    S     = size(V,1) + 1;
     for i = 1:Ni
         px    = x;
-        F     = zeros(Np,T);
+        F     = zeros(Np,S);
         for f = 1:Nf
             for k = p
-                for j = 1:T
+                for j = 1:S
                     
                     % evaluate free energy and gradients (v = dFdx)
                     %======================================================
@@ -335,12 +344,12 @@ for t = 1:T
                     %------------------------------------------------------
                     if j == 1, v = v - qD{f};                                         end
                     if j >  1, v = v - log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k));  end
-                    if j <  T, v = v - log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k));  end
+                    if j <  S, v = v - log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k));  end
                     
                     % free energy and belief updating
                     %------------------------------------------------------
-                    F(k,j)       = F(k,j) + x{f}(:,j,k)'*v;
-                    px{f}(:,j,k) = spm_softmax(qx - v/8);
+                    F(k,j)       = F(k,j) - x{f}(:,j,k)'*v;
+                    px{f}(:,j,k) = spm_softmax(qx - v/4);
                     
                     % record neuronal activity
                     %------------------------------------------------------
@@ -350,23 +359,37 @@ for t = 1:T
             end
         end
         
-        % hidden state updates
+        % hidden state updates and convergence
         %------------------------------------------------------------------
         x = px;
-        
+        if i > 1
+            if all(sum(F - G,2) < 1/128)
+                for g = i:Ni
+                    for f = 1:Nf
+                        for k = p
+                            for j = 1:S
+                                xn{f}(g,:,j,t,k) = x{f}(:,j,k);
+                            end
+                        end
+                    end
+                end
+                break
+            end
+        end
+        G = F;
     end
     
     % (negative path integral of) free energy of policies (Q)
     %======================================================================
-    Q     = zeros(Np,T);
+    Q     = zeros(Np,S);
     for k = p
-        for j = 1:T
+        for j = 1:S
+            xq    = cell(1,Nf);
+            ind   = 1:Nf;
+            for f = 1:Nf
+                xq{f}  = x{f}(:,j,k);
+            end
             for g = 1:Ng
-                xq    = cell(1,Nf);
-                ind   = 1:Nf;
-                for f = 1:Nf
-                    xq{f}  = x{f}(:,j,k);
-                end
                 qx     = spm_dot(A{g},xq,ind + 1);
                 Q(k,j) = Q(k,j) + qx'*(Vo{g}(:,j) - log(qx));
                 Q(k,j) = Q(k,j) + spm_dot(H{g},xq,ind);
@@ -379,12 +402,14 @@ for t = 1:T
     %======================================================================
     F     = sum(F,2);
     Q     = sum(Q,2);
-    p     = p(softmax(-F(p)) > 1/(Np*32));
+    if ~isfield(MDP,'U')
+        p = p((F(p) - max(F(p))) > -3);
+    end
     for i = 1:Ni
         
         % policy (u)
         %------------------------------------------------------------------
-        qu = spm_softmax(gu(t)*Q(p) - F(p));
+        qu = spm_softmax(gu(t)*Q(p) + F(p));
         pu = spm_softmax(gu(t)*Q(p));
         
         % precision (gu) with free energy gradients (v = -dF/dw)
@@ -410,7 +435,7 @@ for t = 1:T
     % Bayesian model averaging of hidden states (over policies)
     %----------------------------------------------------------------------
     for f = 1:Nf
-        for i = 1:T
+        for i = 1:S
             X{f}(:,i) = reshape(x{f}(:,i,:),Ns(f),Np)*u(:,t);
         end
     end
@@ -426,30 +451,40 @@ for t = 1:T
         
         % posterior potential for (allowable) actions (for each modality)
         %==================================================================
-        for g  = 1:Ng
+        
+        % unique combinations of actions
+        %------------------------------------------------------------------
+        up    = unique(shiftdim(V(t,p,:),1),'rows');
+        
+        % predicted hidden statesat the next time step
+        %------------------------------------------------------------------
+        ind   = 1:Nf;
+        for f = 1:Nf
+            xp{f} = X{f}(:,t + 1);
+        end
+        
+        % predicted hidden states under each action
+        %------------------------------------------------------------------
+        for i = 1:size(up,1)
             
-            % predicted outcome
-            %--------------------------------------------------------------
-            ind   = 1:Nf;
             for f = 1:Nf
-                xq{f} = X{f}(:,t + 1);
+                xq{f} = B{f}(:,:,up(i,f))*X{f}(:,t);
             end
-            v     = log(spm_dot(A{g},xq,ind + 1));
             
-            % compare predicted outcomes with the consequences of action
+            % accumulate action potential over outcomes
             %--------------------------------------------------------------
-            up    = unique(shiftdim(V(t,p,:),1),'rows');
-            for i = 1:size(up,1)
-                for f = 1:Nf
-                    xq{f} = B{f}(:,:,up(i,f))*X{f}(:,t);
-                end
+            for g = 1:Ng
+                
+                % predicted outcome
+                %----------------------------------------------------------
+                po = spm_dot(A{g},xp,ind + 1);
                 qo = spm_dot(A{g},xq,ind + 1);
-                dP = (v - log(qo))'*qo;
+                dP = (log(po) - log(qo))'*qo;
                 
                 % augment action potential
                 %----------------------------------------------------------
                 sub         = num2cell(up(i,:));
-                P(sub{:},t) = P(sub{:},t) + dP;
+                P(sub{:},t) = P(sub{:},t) + dP + 16;
                 
             end
         end
@@ -493,8 +528,25 @@ for t = 1:T
         %------------------------------------------------------------------
         gu(1,t + 1)   = gu(t);
         
+        % update policy if necessary
+        %------------------------------------------------------------------
+        if isfield(MDP,'U') && t < (T - 1)
+            for f = 1:Nf
+                V(t,:,f) = a(f,t);
+            end
+            V(t + 1,:,:) = MDP.U;
+            
+            % and reinitialise expectations about hidden states
+            %--------------------------------------------------------------
+            j     = 1:t;
+            for f = 1:Nf
+                for k = 1:Np
+                    x{f}(:,j,k) = x{f}(:,j,a(f,t));
+                end
+            end
+            
+        end
     end
-    
 end
 
 % learning
@@ -558,6 +610,7 @@ MDP.P   = P;              % probability of action at time 1,...,T - 1
 MDP.Q   = x;              % conditional expectations over N hidden states
 MDP.X   = X;              % Bayesian model averages
 MDP.R   = u;              % conditional expectations over policies
+MDP.V   = V;              % policies
 MDP.o   = o;              % outcomes at 1,...,T
 MDP.s   = s;              % states at 1,...,T
 MDP.u   = a;              % action at 1,...,T
@@ -596,7 +649,7 @@ for i = 1:size(A,2)
 end
 
 function A = spm_psi(A)
-% normalisation of a probability transition matrix (columns)
+% normalisation of a probability transition rate matrix (columns)
 %--------------------------------------------------------------------------
 for i = 1:size(A,2)
     for j = 1:size(A,3)

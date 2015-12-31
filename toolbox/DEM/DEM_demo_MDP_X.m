@@ -38,7 +38,7 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 6655 2015-12-23 20:21:27Z karl $
+% $Id: DEM_demo_MDP_X.m 6657 2015-12-31 17:59:31Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -51,18 +51,20 @@ rng('default')
 % exteroceptive outcomes A{1} provide cues about location and context,
 % while interoceptive outcome A{2) denotes different levels of reward
 %--------------------------------------------------------------------------
-a      = .98;
+a      = .90;
 b      = 1 - a;
 A{1}(:,:,1) = [...
     1 0 0 0;    % cue start
-    0 1 1 0;    % cue bait
-    0 0 0 1     % cue right
-    0 0 0 0];   % cue left
+    0 1 0 0;    % cue left
+    0 0 1 0;    % cue right
+    0 0 0 1     % cue CS right
+    0 0 0 0];   % cue CS left
 A{1}(:,:,2) = [...
     1 0 0 0;    % cue start
-    0 1 1 0;    % cue bait
-    0 0 0 0     % cue right
-    0 0 0 1];   % cue left
+    0 1 0 0;    % cue left
+    0 0 1 0;    % cue right
+    0 0 0 0     % cue CS right
+    0 0 0 1];   % cue CS left
  
 A{2}(:,:,1) = [...
     1 0 0 1;    % reward neutral
@@ -99,17 +101,18 @@ c     = 4;
 C{1}  = [0  0  0;
          0  0  0;
          0  0  0;
+         0  0  0;
          0  0  0];
  
-C{2}  = [0  0  0;
-         0  c  c;
-         0 -c -c];
+C{2}  = [ 0  0  0;
+          c  c  c;
+         -c -c -c];
  
 % now specify prior beliefs about initial states, in terms of counts. Here
 % the hidden states are factorised into location and context:
 %--------------------------------------------------------------------------
 d{1} = [1 0 0 0]';
-d{2} = [8 8]';
+d{2} = [1 1]'*4;
  
  
 % allowable policies (of depth T).  These are just sequences of actions
@@ -170,8 +173,9 @@ spm_MDP_VB_LFP(MDP([2,16]),[1;2],2);
 subplot(4,1,1), title('Repetition suppression and DA transfer','FontSize',16)
  
 spm_figure('GetWin','Figure 6'); clf
-v  = spm_MDP_VB_LFP(MDP([2,16]),[1;2],2);
-t  = (1:16)*16 + 80;
+n  = size(MDP(1).xn{1},1);
+v  = spm_MDP_VB_LFP(MDP([2,n]),[1;2],2);
+t  = ((1:n)*16 + 80)*16/n;
 subplot(2,1,1),plot(t,v{1}{2,1},'b-.',t,v{2}{2,1},'b:',t,v{2}{2,1} - v{1}{2,1})
 xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',16)
 legend({'oddball','standard','MMN'}), grid on, axis square

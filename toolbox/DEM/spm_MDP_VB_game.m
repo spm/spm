@@ -32,7 +32,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 6652 2015-12-21 10:51:54Z karl $
+% $Id: spm_MDP_VB_game.m 6657 2015-12-31 17:59:31Z karl $
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
@@ -185,9 +185,9 @@ if Nt > 8
     fill([1 1:length(w) length(w)],[0; w.*(w > 0); 0],'k'), hold on
     fill([1 1:length(w) length(w)],[0; w.*(w < 0); 0],'k'), hold off
 else
-    bar(w,'k')
+    bar(w,1.1,'k')
 end
-title('Precision (dopamine)','FontSize',16)
+title('Precision (dopamine)')
 ylabel('Precision','FontSize',12), spm_axis tight
 
 % learning - D

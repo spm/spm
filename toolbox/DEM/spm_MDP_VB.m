@@ -100,7 +100,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 6605 2015-11-21 20:15:13Z karl $
+% $Id: spm_MDP_VB.m 6657 2015-12-31 17:59:31Z karl $
  
  
 % deal with a sequence of trials
@@ -163,9 +163,10 @@ T   = size(MDP.V,1) + 1;            % number of transitions
 Np  = size(MDP.V,2);                % number of allowable policies
 Ns  = size(MDP.B{1},1);             % number of hidden states
 Nu  = size(MDP.B,2);                % number of hidden controls
+Nh  = Np + 1;                       % index of habit
 p0  = exp(-8);                      % smallest probability
 q0  = 1/16;                         % smallest probability
-Nh  = Np + 1;                       % index of habit
+
  
 % parameters of generative model and policies
 %==========================================================================
@@ -295,8 +296,8 @@ try
 catch
     o = find(rand < cumsum(A(:,s)),1);
 end
-P  = zeros(Nu,T - 1) - 16;          % posterior beliefs about control
-x  = zeros(Ns,T,Nh)  + 1/Ns;        % expectations of hidden states | policy
+P  = zeros(Nu,T - 1);               % posterior beliefs about control
+x  = zeros(Ns,T,Nh) + 1/Ns;         % expectations of hidden states | policy
 X  = zeros(Ns,T);                   % expectations of hidden states
 u  = zeros(Nh,T - 1);               % expectations of policy
 a  = zeros(1, T - 1);               % action (index)
@@ -320,7 +321,7 @@ qeta  = zeros(Nh,1) + qeta;
 %==========================================================================
 Ni    = 16;                         % number of VB iterations
 rt    = zeros(1,T);                 % reaction times
-xn    = zeros(Ni,Ns,T,T,Np);        % state updates
+xn    = zeros(Ni,Ns,T,T,Np) + 1/Ns; % history of state updates
 un    = zeros(Nh,T*Ni);             % policy updates
 wn    = zeros(T*Ni,1);              % simulated DA responses
 p     = 1:Nh;                       % allowable policies
@@ -382,7 +383,7 @@ for t = 1:T
 
                 % free energy and belief updating
                 %----------------------------------------------------------
-                F(k,j)  = x(:,j,k)'*v;
+                F(k,j)  = -x(:,j,k)'*v;
                 px(:,j) = spm_softmax(qx - v/8);
                 
                 % record neuronal activity
@@ -426,12 +427,12 @@ for t = 1:T
     %======================================================================
     F     = sum(F,2);
     Q     = sum(Q,2);
-    p     = p(softmax(-F(p)) > 1/32);
+    p     = p((F(p) - max(F(p))) > -3);
     for i = 1:Ni
         
         % policy (u)
         %------------------------------------------------------------------
-        qu = spm_softmax(qE(p) + gu(t)*Q(p) - F(p));
+        qu = spm_softmax(qE(p) + gu(t)*Q(p) + F(p));
         pu = spm_softmax(qE(p) + gu(t)*Q(p));
         
         % precision (gu) with free energy gradients (v = -dF/dw)
@@ -479,7 +480,7 @@ for t = 1:T
         v     = log(A*X(:,t + 1));
         for j = q
             qo     = A*B{j}*X(:,t);
-            P(j,t) = (v - log(qo))'*qo;
+            P(j,t) = (v - log(qo))'*qo + 16;
         end
         
         % action selection

@@ -10,12 +10,13 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 6652 2015-12-21 10:51:54Z karl $
+% $Id: spm_MDP_VB_LFP.m 6657 2015-12-31 17:59:31Z karl $
  
  
-% deal with a sequence of trials
+% defaults
 %==========================================================================
-try, f = FACTOR; catch, f = 1; end
+try, f = FACTOR; catch, f = 1;      end
+try, UNITS;      catch, UNITS = []; end
 
 
 % dimensions
@@ -38,7 +39,7 @@ for i = 1:Ne
         ALL(:,end + 1) = [j;i];
     end
 end
-if nargin < 2;
+if isempty(UNITS)
     UNITS = ALL;
 end
     
@@ -91,10 +92,8 @@ w   = Hz*(dt*n);                         % cycles per window
  
 % simulated local field potential
 %--------------------------------------------------------------------------
-
 LFP = spm_cat(x);
-i   = UNITS(1,end) + (UNITS(2,end) - 1)*Nx;
- 
+
 if Nt == 1, subplot(3,2,1), else subplot(4,1,1),end
 imagesc(t,1:(Nx*Ne),spm_cat(z)'),title('Unit responses','FontSize',16)
 xlabel('time (seconds)','FontSize',12), ylabel('unit','FontSize',12)
@@ -107,8 +106,8 @@ if Nt == 1,    axis square,              end
 %--------------------------------------------------------------------------
 wft = spm_wft(LFP,w,n);
 csd = sum(abs(wft),3);
-lfp = LFP(:,i);
-phi = spm_iwft(wft(1,:,i),w(1),n);
+lfp = sum(LFP,2);
+phi = spm_iwft(sum(wft(1,:,:),3),w(1),n);
 lfp = 4*lfp/std(lfp) + 16;
 phi = 4*phi/std(phi) + 16;
  
@@ -123,7 +122,7 @@ if Nt == 1, axis square, end
  
 % local field potentials
 %==========================================================================
-if Nt == 1, subplot(3,2,2), else subplot(4,1,3),end
+if Nt == 1, subplot(3,2,4), else subplot(4,1,3),end
 plot(t,spm_cat(u)),     hold off, spm_axis tight, a = axis;
 plot(t,spm_cat(x),':'), hold on
 plot(t,spm_cat(u)),     hold off, axis(a)
@@ -141,7 +140,7 @@ if Nt == 1, axis square, end
 %==========================================================================
 qu   = spm_cat(v);
 qx   = spm_cat(z);
-if Nt == 1, subplot(3,2,4)
+if Nt == 1, subplot(3,2,2)
     plot(t,qu),     hold on, spm_axis tight, a = axis;
     plot(t,qx,':'), hold off
     grid on, set(gca,'XTick',(1:(Ne*Nt))*Nb*dt), axis(a)
