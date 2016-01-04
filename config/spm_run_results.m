@@ -10,7 +10,7 @@ function out = spm_run_results(job)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_results.m 6648 2015-12-14 19:13:47Z guillaume $
+% $Id: spm_run_results.m 6658 2016-01-04 18:33:19Z guillaume $
 
 
 cspec = job.conspec;
@@ -118,8 +118,7 @@ for k = 1:numel(cspec)
     switch fn{1}
         case 'none'
         case {'tspm','binary','nary'}
-            if numel(xSPM.Ic)>1, continue; end
-            fname = spm_file(xSPM.Vspm.fname,...
+            fname = spm_file(xSPM.Vspm(1).fname,...
                 'suffix',['_' job.write.(fn{1}).basename]);
             out.filtered{k} = fname;
             descrip = sprintf('SPM{%c}-filtered: u = %5.3f, k = %d',...
@@ -130,17 +129,35 @@ for k = 1:numel(cspec)
                 case 'binary'
                     Z = ones(size(xSPM.Z));
                 case 'nary'
-                    Z       = spm_clusters(xSPM.XYZ);
-                    num     = max(Z);
-                    [n, ni] = sort(histc(Z,1:num), 2, 'descend');
-                    n       = size(ni);
-                    n(ni)   = 1:num;
-                    Z       = n(Z);
+                    if ~isfield(xSPM,'G')
+                        Z       = spm_clusters(xSPM.XYZ);
+                        num     = max(Z);
+                        [n, ni] = sort(histc(Z,1:num), 2, 'descend');
+                        n       = size(ni);
+                        n(ni)   = 1:num;
+                        Z       = n(Z);
+                    else
+                        C       = NaN(1,size(xSPM.G.vertices,1));
+                        C(xSPM.XYZ(1,:)) = ones(size(xSPM.Z));
+                        C       = spm_mesh_clusters(xSPM.G,C);
+                        Z       = C(xSPM.XYZ(1,:));
+                    end
             end
-            V = spm_write_filtered(Z,xSPM.XYZ,xSPM.DIM,xSPM.M,...
-                descrip,fname);
-            cmd = 'spm_image(''display'',''%s'')';
-            fprintf('Written %s\n',spm_file(V.fname,'link',cmd));
+            if isfield(xSPM,'G')
+                M     = gifti(xSPM.G);
+                C     = zeros(1,size(xSPM.G.vertices,1));
+                C(xSPM.XYZ(1,:)) = Z; % or use NODE_INDEX
+                M.cdata = C;
+                F     = spm_file(fname,'path',xSPM.swd);
+                save(M,F);
+                cmd   = 'spm_mesh_render(''Disp'',''%s'')';
+            else
+                V = spm_write_filtered(Z,xSPM.XYZ,xSPM.DIM,xSPM.M,...
+                    descrip,fname);
+                cmd = 'spm_image(''display'',''%s'')';
+                F = V.fname;
+            end
+            fprintf('Written %s\n',spm_file(F,'link',cmd));
         otherwise
             error('Unknown option.');
     end
