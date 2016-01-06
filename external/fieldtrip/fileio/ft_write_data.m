@@ -49,7 +49,7 @@ function ft_write_data(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 10379 2015-05-06 20:07:30Z roboos $
+% $Id: ft_write_data.m 11032 2015-12-19 11:11:53Z roboos $
 
 global data_queue    % for fcdc_global
 global header_queue  % for fcdc_global
@@ -288,15 +288,25 @@ switch dataformat
       
       % update the existing header
       hdr          = old.hdr;
-      hdr.nSamples = hdr.nSamples + size(dat,2);
-      save(headerfile, 'hdr', '-v6');
+      hdr.nSamples = hdr.nSamples + nsamples;
       
+      % there are no new events
+      if isfield(old, 'event')
+        event = old.event;
+      else
+        event = [];
+      end
+      
+      save(headerfile, 'hdr', 'event', '-v6');
+
       % update the data file
       [fid,message] = fopen(datafile,'ab','ieee-le');
       fwrite(fid, dat, hdr.precision);
       fclose(fid);
       
     else
+      hdr.nSamples = nsamples;
+      hdr.nTrials  = 1;
       if nchans~=hdr.nChans && length(chanindx)==nchans
         % assume that the header corresponds to the original multichannel
         % file and that the data represents a subset of channels
@@ -306,8 +316,10 @@ switch dataformat
       if ~isfield(hdr, 'precision')
         hdr.precision = 'double';
       end
+      % there are no events
+      event = [];
       % write the header file
-      save(headerfile, 'hdr', '-v6');
+      save(headerfile, 'hdr', 'event', '-v6');
       
       % write the data file
       [fid,message] = fopen(datafile,'wb','ieee-le');

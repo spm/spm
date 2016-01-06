@@ -76,7 +76,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 10541 2015-07-15 16:49:37Z roboos $
+% $Id: ft_read_headshape.m 11039 2016-01-04 15:04:47Z roboos $
 
 % % optionally get the data from the URL and make a temporary local copy
 % filename = fetch_url(filename);
@@ -883,7 +883,7 @@ else
               origunit = read_asa(filename, 'UnitHeadShapePoints', '%s', 1);
               pnt  = read_asa(filename, 'HeadShapePoints', '%f', npnt, ':');
               
-              pnt = scalingfactor(origunit, 'mm')*pnt;
+              pnt = ft_scalingfactor(origunit, 'mm')*pnt;
               
               shape.pnt = pnt;
           end

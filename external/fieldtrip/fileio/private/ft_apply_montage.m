@@ -61,7 +61,7 @@ function [input] = ft_apply_montage(input, montage, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_apply_montage.m 10341 2015-04-17 14:10:18Z jorhor $
+% $Id: ft_apply_montage.m 11040 2016-01-04 15:04:51Z roboos $
 
 % get optional input arguments
 keepunused  = ft_getopt(varargin, 'keepunused',  'no');
@@ -291,11 +291,11 @@ end
 
 % update the channel scaling if the input has different units than the montage expects
 if isfield(input, 'chanunit') && ~isequal(input.chanunit, montage.chanunitorg)
-  scale = scalingfactor(input.chanunit, montage.chanunitorg);
+  scale = ft_scalingfactor(input.chanunit, montage.chanunitorg);
   montage.tra = montage.tra * diag(scale);
   montage.chanunitorg = input.chanunit;
 elseif isfield(input, 'chanunitnew') && ~isequal(input.chanunitnew, montage.chanunitorg)
-  scale = scalingfactor(input.chanunitnew, montage.chanunitorg);
+  scale = ft_scalingfactor(input.chanunitnew, montage.chanunitorg);
   montage.tra = montage.tra * diag(scale);
   montage.chanunitorg = input.chanunitnew;
 end

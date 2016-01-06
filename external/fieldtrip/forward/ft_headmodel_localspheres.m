@@ -41,7 +41,7 @@ function headmodel = ft_headmodel_localspheres(mesh, grad, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_localspheres.m 10751 2015-10-06 16:14:11Z roboos $
+% $Id: ft_headmodel_localspheres.m 11039 2016-01-04 15:04:47Z roboos $
 
 % get the additional inputs and set the defaults
 unit          = ft_getopt(varargin, 'unit');
@@ -89,9 +89,9 @@ grad = ft_convert_units(grad, mesh.unit);
 headmodel.unit = mesh.unit;
 
 % ensure that all defaults have the same user-defined units
-radius    = ft_getopt(varargin, 'radius',    scalingfactor('cm', headmodel.unit) * 8.5);
-maxradius = ft_getopt(varargin, 'maxradius', scalingfactor('cm', headmodel.unit) * 20);
-baseline  = ft_getopt(varargin, 'baseline',  scalingfactor('cm', headmodel.unit) * 5);
+radius    = ft_getopt(varargin, 'radius',    ft_scalingfactor('cm', headmodel.unit) * 8.5);
+maxradius = ft_getopt(varargin, 'maxradius', ft_scalingfactor('cm', headmodel.unit) * 20);
+baseline  = ft_getopt(varargin, 'baseline',  ft_scalingfactor('cm', headmodel.unit) * 5);
 
 % get the points from the triangulated surface
 mesh = mesh.pos;

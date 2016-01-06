@@ -34,7 +34,7 @@ function ft_plot_axes(object, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_axes.m 10950 2015-11-30 10:07:05Z roboos $
+% $Id: ft_plot_axes.m 11039 2016-01-04 15:04:47Z roboos $
 
 axisscale = ft_getopt(varargin, 'axisscale', 1);   % this is used to scale the axmax and rbol
 fontcolor = ft_getopt(varargin, 'fontcolor', 'y'); % default is yellow
@@ -53,8 +53,8 @@ else
   coordsys = 'unknown';
 end
 
-axmax = 150 * scalingfactor('mm', unit);
-rbol  =   5 * scalingfactor('mm', unit);
+axmax = 150 * ft_scalingfactor('mm', unit);
+rbol  =   5 * ft_scalingfactor('mm', unit);
 
 % this is useful if the anatomy is from a non-human primate or rodent
 axmax = axisscale*axmax;

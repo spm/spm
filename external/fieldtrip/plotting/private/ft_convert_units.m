@@ -39,7 +39,7 @@ function [obj] = ft_convert_units(obj, target, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 10764 2015-10-09 07:54:23Z roboos $
+% $Id: ft_convert_units.m 11040 2016-01-04 15:04:51Z roboos $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -165,7 +165,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % compute the scaling factor from the input units to the desired ones
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-scale = scalingfactor(unit, target);
+scale = ft_scalingfactor(unit, target);
 
 if istrue(feedback)
   % give some information about the conversion

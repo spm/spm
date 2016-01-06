@@ -56,7 +56,7 @@ function [headmodel, sens] = ft_prepare_vol_sens(headmodel, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 10759 2015-10-07 08:19:43Z roboos $
+% $Id: ft_prepare_vol_sens.m 11039 2016-01-04 15:04:47Z roboos $
 
 % get the optional input arguments
 % fileformat = ft_getopt(varargin, 'fileformat');
@@ -281,7 +281,7 @@ elseif ismeg
       
       % initialize the forward calculation (only if  coils are available)
       if size(sens.coilpos,1)>0 && ~isfield(headmodel, 'forwpar')
-        s = scalingfactor(headmodel.unit, 'cm');
+        s = ft_scalingfactor(headmodel.unit, 'cm');
         headmodel.forwpar = meg_ini([s*headmodel.bnd.pos headmodel.bnd.nrm], s*center', order, [s*sens.coilpos sens.coilori]);
         headmodel.forwpar.scale = s;
       end

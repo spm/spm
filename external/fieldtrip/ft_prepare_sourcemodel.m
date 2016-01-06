@@ -103,9 +103,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, headmodel, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 10996 2015-12-11 12:17:40Z jansch $
+% $Id: ft_prepare_sourcemodel.m 11039 2016-01-04 15:04:47Z roboos $
 
-revision = '$Id: ft_prepare_sourcemodel.m 10996 2015-12-11 12:17:40Z jansch $';
+revision = '$Id: ft_prepare_sourcemodel.m 11039 2016-01-04 15:04:47Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -460,7 +460,7 @@ if basedonmri
   head = dat./max(dat(:)) > cfg.threshold;
   
   % convert the source/functional data into the same units as the anatomical MRI
-  scale = scalingfactor(cfg.grid.unit, mri.unit);
+  scale = ft_scalingfactor(cfg.grid.unit, mri.unit);
   
   ind                 = find(head(:));
   fprintf('%d from %d voxels in the segmentation are marked as ''inside'' (%.0f%%)\n', length(ind), numel(head), 100*length(ind)/numel(head));

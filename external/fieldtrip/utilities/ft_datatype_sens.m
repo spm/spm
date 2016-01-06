@@ -93,7 +93,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_sens.m 9528 2014-05-14 15:46:44Z roboos $
+% $Id: ft_datatype_sens.m 11039 2016-01-04 15:04:47Z roboos $
 
 % undocumented options for the upcoming (2013?) format
 %   amplitude     = string, can be 'T' or 'fT'
@@ -172,11 +172,11 @@ switch version
       for i=1:nchan
         if ~isempty(regexp(sens.chanunit{i}, 'm$', 'once'))
           % this channel is expressed as amplitude per distance
-          sens.tra(i,:)    = sens.tra(i,:) * scalingfactor(sens.chanunit{i}, [amplitude '/' distance]);
+          sens.tra(i,:)    = sens.tra(i,:) * ft_scalingfactor(sens.chanunit{i}, [amplitude '/' distance]);
           sens.chanunit{i} = [amplitude '/' distance];
         elseif ~isempty(regexp(sens.chanunit{i}, '[T|V]$', 'once'))
           % this channel is expressed as amplitude
-          sens.tra(i,:)    = sens.tra(i,:) * scalingfactor(sens.chanunit{i}, amplitude);
+          sens.tra(i,:)    = sens.tra(i,:) * ft_scalingfactor(sens.chanunit{i}, amplitude);
           sens.chanunit{i} = amplitude;
         else
           error('unexpected channel unit "%s" in channel %d', sens.chanunit{i}, i);

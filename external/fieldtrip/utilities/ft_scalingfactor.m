@@ -1,17 +1,17 @@
-function factor = scalingfactor(old, new)
+function factor = ft_scalingfactor(old, new)
 
-% SCALINGFACTOR determines the scaling factor from old to new units.
+% FT_SCALINGFACTOR determines the scaling factor from old to new units.
 %
 % Use as
-%   factor = scalingfactor(old, new)
+%   factor = ft_scalingfactor(old, new)
 % where old and new are strings that specify the units.
 %
 % For example
-%   scalingfactor('m', 'cm')          % returns 100
-%   scalingfactor('V', 'uV')          % returns 1000
-%   scalingfactor('T/cm', 'fT/m')     % returns 10^15 divided by 10^-2, which is 10^17
-%   scalingfactor('cm^2', 'mm^2')     % returns 100
-%   scalingfactor('1/ms', 'Hz')       % returns 1000
+%   ft_scalingfactor('m', 'cm')          % returns 100
+%   ft_scalingfactor('V', 'uV')          % returns 1000
+%   ft_scalingfactor('T/cm', 'fT/m')     % returns 10^15 divided by 10^-2, which is 10^17
+%   ft_scalingfactor('cm^2', 'mm^2')     % returns 100
+%   ft_scalingfactor('1/ms', 'Hz')       % returns 1000
 %
 % The following fundamental units are supported
 %   metre       m   length  l (a lowercase L), x, r L
@@ -74,7 +74,7 @@ function factor = scalingfactor(old, new)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: scalingfactor.m 10750 2015-10-06 16:12:40Z roboos $
+% $Id: ft_scalingfactor.m 11039 2016-01-04 15:04:47Z roboos $
 
 persistent previous_old previous_new previous_factor
 

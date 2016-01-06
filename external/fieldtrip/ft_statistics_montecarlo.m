@@ -98,7 +98,7 @@ function [stat, cfg] = ft_statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_montecarlo.m 10427 2015-05-29 07:39:46Z roboos $
+% $Id: ft_statistics_montecarlo.m 11034 2016-01-04 08:17:24Z jansch $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'factor',           'ivar'});
@@ -144,7 +144,7 @@ if strcmp(cfg.correctm, 'cluster')
   
   % deal with the neighbourhood of the channels/triangulation/voxels
   if isempty(cfg.connectivity)
-    if isfield(cfg, 'dim') && ~isfield(cfg, 'channel')
+    if isfield(cfg, 'dim') && ~isfield(cfg, 'channel') && ~isfield(cfg, 'tri')
       % input data can be reshaped into a 3D volume, use bwlabeln/spm_bwlabel rather than clusterstat
       fprintf('using connectivity of voxels in 3-D volume\n');
       cfg.connectivity = nan;

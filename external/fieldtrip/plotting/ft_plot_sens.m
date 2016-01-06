@@ -38,7 +38,7 @@ function hs = ft_plot_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_sens.m 10950 2015-11-30 10:07:05Z roboos $
+% $Id: ft_plot_sens.m 11039 2016-01-04 15:04:47Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -106,7 +106,7 @@ end
 if istrue(coilorientation) && isfield(sens, 'coilori')
   pos = sens.coilpos;
   ori = sens.coilori;
-  scale = scalingfactor('mm', sens.unit)*20; % draw a line segment of 20 mm
+  scale = ft_scalingfactor('mm', sens.unit)*20; % draw a line segment of 20 mm
   for i=1:size(pos,1)
     x = [pos(i,1) pos(i,1)+ori(i,1)*scale];
     y = [pos(i,2) pos(i,2)+ori(i,2)*scale];
