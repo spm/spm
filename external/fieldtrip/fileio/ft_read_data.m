@@ -51,7 +51,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 11000 2015-12-14 10:20:45Z jansch $
+% $Id: ft_read_data.m 11042 2016-01-07 17:03:42Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -1342,7 +1342,7 @@ if ~isempty(chanunit)
   end
   
   % determine the scaling factor for each channel
-  scaling = cellfun(@scalingfactor, hdr.chanunit(chanindx(:)), chanunit(:));
+  scaling = cellfun(@ft_scalingfactor, hdr.chanunit(chanindx(:)), chanunit(:));
   
   switch dimord
     case 'chans_samples'

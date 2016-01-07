@@ -135,9 +135,9 @@ function [headmodel, cfg] = ft_prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 10774 2015-10-15 06:38:27Z roboos $
+% $Id: ft_prepare_headmodel.m 11042 2016-01-07 17:03:42Z roboos $
 
-revision = '$Id: ft_prepare_headmodel.m 10774 2015-10-15 06:38:27Z roboos $';
+revision = '$Id: ft_prepare_headmodel.m 11042 2016-01-07 17:03:42Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -268,9 +268,9 @@ switch cfg.method
       if any(isnan(headmodel.mat(:)))
         % HACK add a little bit of noise, with the NatMEG tutorial data, I discovered that this prevents the warning
         % Matrix is singular, close to singular or badly scaled. Results may be inaccurate. RCOND = NaN.
-        geometry(1).pos = geometry(1).pos + randn(size(geometry(1).pos))*scalingfactor('um', geometry(1).unit);
-        geometry(2).pos = geometry(2).pos + randn(size(geometry(2).pos))*scalingfactor('um', geometry(2).unit);
-        geometry(3).pos = geometry(3).pos + randn(size(geometry(3).pos))*scalingfactor('um', geometry(3).unit);
+        geometry(1).pos = geometry(1).pos + randn(size(geometry(1).pos))*ft_scalingfactor('um', geometry(1).unit);
+        geometry(2).pos = geometry(2).pos + randn(size(geometry(2).pos))*ft_scalingfactor('um', geometry(2).unit);
+        geometry(3).pos = geometry(3).pos + randn(size(geometry(3).pos))*ft_scalingfactor('um', geometry(3).unit);
         warning('NaN detected, trying once more with slightly different vertex positions');
         headmodel = ft_headmodel_bemcp(geometry, 'conductivity', cfg.conductivity);
       end

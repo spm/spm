@@ -74,7 +74,7 @@ function factor = ft_scalingfactor(old, new)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalingfactor.m 11039 2016-01-04 15:04:47Z roboos $
+% $Id: ft_scalingfactor.m 11043 2016-01-07 17:05:09Z roboos $
 
 persistent previous_old previous_new previous_factor
 
@@ -89,7 +89,7 @@ if ~isequal(class(old), class(new))
 end
 
 if iscell(old)
-  factor = cellfun(@scalingfactor, old(:), new(:));
+  factor = cellfun(@ft_scalingfactor, old(:), new(:));
   return
 end
 
