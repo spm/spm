@@ -26,7 +26,7 @@ function D = spm_eeg_fix_ctf_headloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_fix_ctf_headloc.m 5614 2013-08-15 12:15:16Z vladimir $
+% $Id: spm_eeg_fix_ctf_headloc.m 6663 2016-01-08 16:45:32Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Fix CTF head locations',0);
@@ -44,6 +44,7 @@ end
 
 D = spm_eeg_load(S.D);
 
+if ~isfield(S, 'mode'), S.mode = 'interpolate'; end
 
 %read HLC-channels
 %HLC0011 HLC0012 HLC0013 x, y, z coordinates of nasion-coil in m.
@@ -141,10 +142,13 @@ if ~isfield(S, 'quickfix')
     OK = [nasOK;nasOK;nasOK; leOK; leOK;leOK; reOK;reOK;reOK];
     
     if min(sum(OK, 2))>2               
-        fixed = tmpdat;
+        fixed  = tmpdat;
+        marked = tmpdat;
+
         for i = 1:size(tmpdat, 1)
-            if any(~OK(i, :)) || (length(tmpind)<size(tmpdat, 2))
+            if any(~OK(i, :)) || (length(tmpind)<size(tmpdat, 2))                
                 fixed(i, :) = interp1(D.time(tmpind(OK(i, :))), tmpdat(i, tmpind(OK(i, :))),  D.time, 'linear', 'extrap');
+                marked(i, tmpind(~OK(i, :))) = NaN;
             end
         end
     else
@@ -159,7 +163,12 @@ if ~isfield(S, 'quickfix')
         end       
     end
     
-    D(D.indchannel(hlc_chan_label), :) = fixed;
+    switch S.mode
+        case 'interpolate'
+            D(D.indchannel(hlc_chan_label), :) = fixed;
+        case 'mark'
+            D(D.indchannel(hlc_chan_label), :) = marked;
+    end
     
     dewarfid = 100*reshape(median(fixed(:, tmpind), 2), 3, 3);
     %%
@@ -169,7 +178,14 @@ if ~isfield(S, 'quickfix')
     subplot(2, 1, 1);
     plot(D.time, tmpdat, 'Color', 0.5*[1 1 1], 'LineWidth', 5);
     hold on
-    plot(D.time, fixed, 'r');
+    
+    switch S.mode
+        case 'interpolate'
+            plot(D.time, fixed, 'r');
+        case 'mark'
+            plot(D.time, marked, 'r');
+    end
+    
     ylim([min(fixed(:)) max(fixed(:))]);
     subplot(2, 1, 2);
 else
@@ -233,7 +249,7 @@ function [grad] = ctf2grad(hdr, dewar)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: spm_eeg_fix_ctf_headloc.m 5614 2013-08-15 12:15:16Z vladimir $
+% $Id: spm_eeg_fix_ctf_headloc.m 6663 2016-01-08 16:45:32Z vladimir $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels
