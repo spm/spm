@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 23-Dec-2015 15:34:54
+% Last Modified by GUIDE v2.5 07-Jan-2016 18:33:42
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -544,3 +544,8 @@ run_demo_Callback(hObject, handles, 'DEM_demo_MDP_X')
 function pushbutton168_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Active%20inference%20and%20epistemic%20value.pdf';
 run_demo_Callback(hObject, handles, 'DEM_demo_MDP_search')
+
+% --- Executes on button press in pushbutton169.
+function pushbutton169_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Active%20inference%20and%20epistemic%20value.pdf';
+run_demo_Callback(hObject, handles, 'DEM_demo_MDP_reading')

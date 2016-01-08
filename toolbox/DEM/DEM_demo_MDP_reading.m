@@ -1,4 +1,4 @@
-function MDP = DEM_demo_MDP_search
+function MDP = DEM_demo_MDP_reading
 % Demo of active inference for visual salience
 %__________________________________________________________________________
 %
@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_search
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_search.m 6665 2016-01-08 21:05:13Z karl $
+% $Id: DEM_demo_MDP_reading.m 6665 2016-01-08 21:05:13Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -54,22 +54,26 @@ function MDP = DEM_demo_MDP_search
 % (the eight locations) and two further factors modelling invariance
 %--------------------------------------------------------------------------
 rng('default')
+
+
+% first level (lexcial)
+%==========================================================================
  
 % prior beliefs about initial states (in terms of counts_: D and d
 %--------------------------------------------------------------------------
-d{1} = [1 1 1]';           % what:     {'flee','feed','wait'}
-d{2} = [1 0 0 0 0 0 0 0]'; % where:    {'start','1',...,'4','flee','feed','wait'}
-d{3} = [1 1]';             % flip(ud): {'no','yes'}
-d{4} = [1 1]';             % flip(rl): {'no','yes'}
+D{1} = [1 1 1]';           % what:     {'flee','feed','wait'}
+D{2} = [1 0 0 0]';         % where:    {'1',...,'4'}
+D{3} = [1 1]';             % flip(ud): {'no','yes'}
+D{4} = [1 1]';             % flip(rl): {'no','yes'}
  
  
 % probabilistic mapping from hidden states to outcomes: A
 %--------------------------------------------------------------------------
-Nf    = numel(d);
+Nf    = numel(D);
 for f = 1:Nf
-    Ns(f) = numel(d{f});
+    Ns(f) = numel(D{f});
 end
-No    = [6 8];
+No    = [3 4];             % outcome modalities: {'object','where'} 
 Ng    = numel(No);
 for g = 1:Ng
     A{g} = zeros([No(g),Ns]);
@@ -90,31 +94,15 @@ for f1 = 1:Ns(1)
                 if f3 == 2, a = flipud(a); end
                 if f4 == 2, a = fliplr(a); end
                 
-                % what: A{1} {'null','bird,'seed','cat','right','wrong'}
+                % what: A{1} {'null','bird,'seed','cat'}
                 %==========================================================
-                if f2 == 1
-                    
-                    % at fixation location
-                    %----------------------------------------------------------
-                    A{1}(1,f1,f2,f3,f4) = true;
-                    
-                elseif f2 > 1 && f2 < 6
-                    
-                    % saccade to cue location
-                    %----------------------------------------------------------
-                    A{1}(1,f1,f2,f3,f4) = strcmp(a{f2 - 1},'null');
-                    A{1}(2,f1,f2,f3,f4) = strcmp(a{f2 - 1},'bird');
-                    A{1}(3,f1,f2,f3,f4) = strcmp(a{f2 - 1},'seed');
-                    A{1}(4,f1,f2,f3,f4) = strcmp(a{f2 - 1},'cat');
-                    
-                elseif f2 > 5
-                    
-                    % saccade choice location
-                    %------------------------------------------------------
-                    A{1}(5,f1,f2,f3,f4) = (f2 - 5) == f1;
-                    A{1}(6,f1,f2,f3,f4) = (f2 - 5) ~= f1;
-                    
-                end
+ 
+                % saccade to cue location
+                %----------------------------------------------------------
+                A{1}(1,f1,f2,f3,f4) = strcmp(a{f2},'null');
+                A{1}(2,f1,f2,f3,f4) = strcmp(a{f2},'bird');
+                A{1}(3,f1,f2,f3,f4) = strcmp(a{f2},'seed');
+                A{1}(4,f1,f2,f3,f4) = strcmp(a{f2},'cat');
                 
                 % where: A{2} {'start','1',...,'4','flee','feed','wait'}
                 %----------------------------------------------------------
@@ -150,26 +138,135 @@ U(:,:,2)  = 1:Np;
  
 % priors: (utility) C
 %--------------------------------------------------------------------------
-T         = 6;
-C{1}      = zeros(No(1),T);
-C{2}      = zeros(No(2),T);
-C{1}(5,:) =  2;                 % the agent expects to be right
-C{1}(6,:) = -4;                 % and not wrong
- 
- 
-% MDP Structure - this will be used to generate arrays for multiple trials
-%==========================================================================
+T     = 6;
+for g = 1:Ng
+    C{g}  = zeros(No(g),T);
+end
+
+% MDP Structure
+%--------------------------------------------------------------------------
 mdp.T = T;                      % number of moves
 mdp.U = U;                      % allowable policies
 mdp.A = A;                      % observation model
 mdp.B = B;                      % transition probabilities
 mdp.C = C;                      % preferred outcomes
-mdp.D = d;                      % prior over initial states
-mdp.s = [1 1 1 1]';             % initial state
-mdp.o = [1 1]';                 % initial outcome
- 
+mdp.D = D;                      % prior over initial states
+
 mdp.Aname = {'what','where'};
 mdp.Bname = {'what','where','flip','flip'};
+
+clear A B C D
+
+mdp = spm_MDP_check(mdp);
+
+% first level (lexcial)
+%==========================================================================
+% story 1: 'flee','feed','wait' (happy)
+% story 2: 'flee','wait','feed' (happy)
+% story 3: 'feed','flee','wait' (sad)
+% story 4: 'feed','wait','flee' (sad)
+% story 5: 'wait','feed','flee' (sad)
+% story 6: 'wait','flee','feed' (happy)
+
+ 
+% prior beliefs about initial states (in terms of counts_: D and d
+%--------------------------------------------------------------------------
+D{1} = [1 1 1 1 1 1]';   % what:   {'story 1',...,'story 6'}
+D{2} = [1 0 0]';         % where:  {'1',...,'3'}
+D{3} = [1 0 0]';         % report: {'null','happy','sad'}
+ 
+% probabilistic mapping from hidden states to outcomes: A
+%--------------------------------------------------------------------------
+Nf    = numel(D);
+for f = 1:Nf
+    Ns(f) = numel(D{f});
+end
+No    = [3 3 3];          % outcomes: {'picture','where','feedback'}
+Ng    = numel(No);
+for g = 1:Ng
+    A{g} = zeros([No(g),Ns]);
+end
+for f1 = 1:Ns(1)
+    for f2 = 1:Ns(2)
+        for f3 = 1:Ns(3)
+                   
+                % location of cues for this hidden state
+                %----------------------------------------------------------
+                if f1 == 1, a = {'flee','feed','wait'}; end
+                if f1 == 2, a = {'flee','wait','feed'}; end
+                if f1 == 3, a = {'feed','flee','wait'}; end
+                if f1 == 4, a = {'feed','wait','flee'}; end
+                if f1 == 5, a = {'wait','feed','flee'}; end
+                if f1 == 6, a = {'wait','flee','feed'}; end
+                
+                
+                % what: A{1} 'flee','feed','wait'
+                %==========================================================
+                A{1}(1,f1,f2,f3) = strcmp(a{f2},'flee');
+                A{1}(2,f1,f2,f3) = strcmp(a{f2},'feed');
+                A{1}(3,f1,f2,f3) = strcmp(a{f2},'wait');
+
+                % where: A{2} {'1',...,'3'}
+                %----------------------------------------------------------
+                A{2}(f2,f1,f2,f3) = 1;
+                
+                % report: A{3} {'null','right','wrong'}
+                %----------------------------------------------------------
+                A{3}(1,f1,f2,f3) = double(f3 == 1);
+                A{3}(2,f1,f2,f3) = double(f3 == 2 & any(ismember([1 2 6],f1)));
+                A{3}(2,f1,f2,f3) = double(f3 == 3 & any(ismember([3 4 5],f1)));
+                A{3}(1,f1,f2,f3) = double(f3 ~= 1 & ~A{3}(2,f1,f2,f3));
+
+        end
+    end
+end
+for g = 1:Ng
+    A{g} = double(A{g});
+end
+ 
+% controlled transitions: B{f} for each factor
+%--------------------------------------------------------------------------
+for f = 1:Nf
+    B{f} = eye(Ns(f));
+end
+ 
+% controllable fixation points: move to the k-th location
+%--------------------------------------------------------------------------
+for k = 1:Ns(2)
+    B{2}(:,:,k) = 0;
+    B{2}(k,:,k) = 1;
+end
+
+% allowable policies (here, specified as the next action) U
+%--------------------------------------------------------------------------
+Np        = size(B{2},3);
+U         = ones(1,Np,Nf);
+U(:,:,2)  = 1:Np;
+ 
+% priors: (utility) C
+%--------------------------------------------------------------------------
+T     = 6;
+for g = 1:Ng
+    C{g}  = zeros(No(g),T);
+end
+C{3}(2,:) =  2;                 % the agent expects to be right
+C{3}(3,:) = -4;                 % and not wrong
+ 
+ 
+% MDP Structure
+%--------------------------------------------------------------------------
+mdp.mdp = mdp;
+
+mdp.T = 4;                      % number of moves
+mdp.U = U;                      % allowable policies
+mdp.A = A;                      % observation model
+mdp.B = B;                      % transition probabilities
+mdp.C = C;                      % preferred outcomes
+mdp.D = D;                      % prior over initial states
+mdp.s = [1 1 1]';               % initial state
+ 
+mdp.Aname = {'picture','where','feedback'};
+mdp.Bname = {'what','where','report'};
  
  
 % illustrate a single trial
@@ -180,6 +277,9 @@ MDP   = spm_MDP_VB_X(mdp);
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1'); clf
 spm_MDP_VB_trial(MDP);
+
+return
+
 subplot(3,2,3)
 spm_MDP_search_plot(MDP)
  
