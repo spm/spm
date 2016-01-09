@@ -26,13 +26,16 @@ Although the stochastic models in  Eq.~\ref{spdcm_eq1} and their inversion in ti
 
 Spectral DCM simply estimates the time-invariant parameters of their cross spectra. In other words, while stochastic DCMs model the observed BOLD timeseries of each node, spectral DCMs model the observed functional connectivity between nodes. Effectively, this is achieved by replacing the original timeseries with their second-order statistics (i.e., cross spectra), under stationarity assumptions. This means, instead of estimating time varying hidden states, we are estimating their covariance, which does not change with time. This means we need to estimate the covariance of the random fluctuations; where a scale free (power law) form for the state noise (resp. observation noise) that can be motivated from previous work on neuronal activity:
 \begin{eqnarray}\label{spdcm_eq4}
-& g_{v}(\omega) & = \alpha_{v}\omega^{-\beta_{v}}\\ \nonumber
-& g_{e}(\omega) & = \alpha_{e}\omega^{-\beta_{e}}
+& g_{v}(\omega,\theta) & = \alpha_{v}\omega^{-\beta_{v}}\\ \nonumber
+& g_{e}(\omega,\theta) & = \alpha_{e}\omega^{-\beta_{e}}
 \end{eqnarray}
 Here, $\{\alpha,\beta\}\subset \theta$ are the parameters controlling the amplitudes and exponents of the spectral density of the neural fluctuations. This models neuronal noise with a generic $1/f^{\gamma}$ spectra, which characterizes fluctuations in systems that are at nonequilibrium steady-state. Using the model parameters, $\theta \supseteq \{A,C,\alpha, \beta\}$, we can simply generate the expected cross spectra:
-
-
-where $K(\omega)$ is the Fourier transform of the system's (first order) Volterra kernels  $\kappa(t)$, which are a function of the Jacobian or effective connectivity. The unknown quantities $\psi=\{\phi,\theta,\sigma\}$ of this deterministic model can now be estimated using standard Variational Laplace procedures \cite{FristonLaplace2007}. Here $g_{y} (\omega)$ represents the predicted cross spectra that can be estimated, for example, using autoregressive (AR) model. Specifically, we use a fourth-order autoregressive model to ensure smooth sample cross spectra of the sort predicted by the generative model. The frequencies usually considered for fMRI range from 1/128 Hz to the Nyquist frequency (half the sampling rate) in 32 evenly spaced frequency bins.
+\begin{eqnarray}\label{spdcm_eq5}
+& y & = \kappa \ast v + e\\ \nonumber
+& \kappa & = \partial_x h \mathrm{exp} (t \partial_x f ) \\ \nonumber
+& g_{y}(\omega,\theta) & = |K(\omega)|^2 g_{v}(\omega,\theta) + g_{e}(\omega,\theta)
+\end{eqnarray}
+where $K(\omega)$ is the Fourier transform of the system's (first order) Volterra kernels  $\kappa$, which are a function of the Jacobian or effective connectivity. The unknown quantities $\psi=\{\phi,\theta,\sigma\}$ of this deterministic model can now be estimated using standard Variational Laplace procedures \cite{FristonLaplace2007}. Here $g_{y} (\omega,\theta)$ represents the predicted cross spectra that can be estimated, for example, using autoregressive (AR) model. Specifically, we use a fourth-order autoregressive model to ensure smooth sample cross spectra of the sort predicted by the generative model. The frequencies usually considered for fMRI range from 1/128 Hz to 0.1 Hz in 32 evenly spaced frequency bins.
 
 \section{Practical example}
 
@@ -157,7 +160,7 @@ By clicking ``review...'' you can now select from multiple options, e.g. you can
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[width=100mm]{dcm_rs/dcm_mod_full}
-\caption{\em DCM with with fully connected model.\label{spdcm_full}}
+\caption{\em DCM with fully connected model.\label{spdcm_full}}
 \end{center}
 \end{figure}
 
@@ -165,20 +168,23 @@ By clicking ``review...'' you can now select from multiple options, e.g. you can
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{dcm_rs/Fig1}
-\caption{\em DCM with attentional modulation of forwards connection. Dotted lines denote modulatory connections.\label{spdcm_Fig1}}
+\caption{\em Specification of model depicted in Fig~\ref{spdcm_Fig1}. Filled circles define the structure of the extrinsic connections A such that all circles are filled since we are using a fully connected model here.
+\label{spdcm_Fig1}}
 \end{center}
 \end{figure}
 
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[width=140mm]{dcm_rs/Fig2}
-\caption{\em Plot of predicted and observed response, after convergence and conditional expectation of the parameters.\label{spdcm_Fig2}}
+\caption{\em Plot of predicted and observed cross spectral densities after convergence in Fig~\ref{spdcm_Fig2}. The dotted lines are measured cross spectra and solid lines are its predictions. The lower left panel shows the self cross spectra for the four regions. The rest of the graphics show both self and cross spectra for the four regions.
+\label{spdcm_Fig2}}
 \end{center}
 \end{figure}
 
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[width=140mm]{dcm_rs/Fig3}
-\caption{\em Fig~\ref{spdcm_full}).\label{spdcm_Fig3}}
+\caption{\em This Fig~\ref{spdcm_Fig3} shows the estimated fixed A matrix (top and lower left panels). The posterior probabilities of these effective connectivity parameters are shown on the lower right panel. The red dashed line depicts the 95\% threshold.
+\label{spdcm_Fig3}}
 \end{center}
 \end{figure}
