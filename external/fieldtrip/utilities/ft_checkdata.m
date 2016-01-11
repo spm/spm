@@ -55,7 +55,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 10993 2015-12-10 09:57:22Z jansch $
+% $Id: ft_checkdata.m 11052 2016-01-09 17:51:12Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -603,7 +603,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % represent the covariance matrix in a particular manner
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function data = fixcov(data, desired)
+function [data] = fixcov(data, desired)
 if any(isfield(data, {'cov', 'corr'}))
   if ~isfield(data, 'labelcmb')
     current = 'full';
@@ -1160,7 +1160,7 @@ end % convert from one to another bivariate representation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function source = parcellated2source(data)
+function [source] = parcellated2source(data)
 if ~isfield(data, 'brainordinate')
   error('projecting parcellated data onto the full brain model geometry requires the specification of brainordinates');
 end

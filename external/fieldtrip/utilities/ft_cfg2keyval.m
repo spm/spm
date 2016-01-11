@@ -4,7 +4,9 @@ function [optarg] = ft_cfg2keyval(cfg)
 % pairs which can be used for optional input arguments.
 %
 % Use as
-%   [optarg] = ft_cfg2keyval(cfg)
+%   optarg = ft_cfg2keyval(cfg)
+%
+% See also FT_GETOPT
 
 % Copyright (C) 2006, Robert Oostenveld
 %
@@ -24,7 +26,7 @@ function [optarg] = ft_cfg2keyval(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_cfg2keyval.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id: ft_cfg2keyval.m 11052 2016-01-09 17:51:12Z roboos $
 
 if ~isempty(cfg)
   optarg = [fieldnames(cfg) struct2cell(cfg)]';

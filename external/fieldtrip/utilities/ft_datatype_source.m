@@ -1,4 +1,4 @@
-function source = ft_datatype_source(source, varargin)
+function [source] = ft_datatype_source(source, varargin)
 
 % FT_DATATYPE_SOURCE describes the FieldTrip MATLAB structure for data that is
 % represented at the source level. This is typically obtained with a beamformer of
@@ -75,7 +75,7 @@ function source = ft_datatype_source(source, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_source.m 10769 2015-10-12 14:13:05Z roboos $
+% $Id: ft_datatype_source.m 11052 2016-01-09 17:51:12Z roboos $
 
 % FIXME: I am not sure whether the removal of the xgrid/ygrid/zgrid fields
 % was really in 2007

@@ -4,7 +4,7 @@ function [event]=ft_fetch_event(data)
 % raw data structure instead of a file on disk.
 %
 % Use as
-%   [event] = ft_fetch_event(data)
+%   event = ft_fetch_event(data)
 %
 % See also FT_READ_EVENT, FT_FETCH_HEADER, FT_FETCH_DATA
 
@@ -26,7 +26,7 @@ function [event]=ft_fetch_event(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_event.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_fetch_event.m 11052 2016-01-09 17:51:12Z roboos $
 
 % check whether input is data
 data = ft_checkdata(data, 'datatype', 'raw');
@@ -41,4 +41,3 @@ if (isfield(data, 'cfg'))
 else
   event = [];
 end
-

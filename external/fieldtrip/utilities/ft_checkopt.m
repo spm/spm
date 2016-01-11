@@ -59,7 +59,7 @@ function opt = ft_checkopt(opt, key, allowedtype, allowedval)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkopt.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_checkopt.m 11052 2016-01-09 17:51:12Z roboos $
 
 if nargin<3
   allowedtype = {};
@@ -159,7 +159,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function s = printcell(c)
+function [s] = printcell(c)
 if ~isempty(c)
   s = sprintf('%s, ', c{:});
   s = sprintf('{%s}', s(1:end-2));

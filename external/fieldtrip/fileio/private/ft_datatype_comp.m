@@ -1,4 +1,4 @@
-function comp = ft_datatype_comp(comp, varargin)
+function [comp] = ft_datatype_comp(comp, varargin)
 
 % FT_DATATYPE_COMP describes the FieldTrip MATLAB structure for comp data
 %
@@ -64,7 +64,7 @@ function comp = ft_datatype_comp(comp, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_comp.m 9565 2014-05-21 09:24:52Z roboos $
+% $Id: ft_datatype_comp.m 11053 2016-01-09 17:51:21Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version       = ft_getopt(varargin, 'version', 'latest');

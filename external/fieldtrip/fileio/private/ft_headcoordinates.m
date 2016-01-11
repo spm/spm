@@ -88,7 +88,7 @@ function [h, coordsys] = ft_headcoordinates(fid1, fid2, fid3, fid4, coordsys)
 %   the y-axis points from dorsal to ventral, i.e. from inferior to superior
 %   the z-axis passes through bregma and lambda and points from cranial to caudal, i.e. from anterior to posterior
 %
-% See also FT_ELECTRODEREALIGN, FT_VOLUMEREALIGN
+% See also FT_ELECTRODEREALIGN, FT_VOLUMEREALIGN, FT_INTERACTIVEREALIGN
 
 % Copyright (C) 2003-2014 Robert Oostenveld
 %
@@ -108,7 +108,7 @@ function [h, coordsys] = ft_headcoordinates(fid1, fid2, fid3, fid4, coordsys)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headcoordinates.m 9634 2014-06-17 12:16:18Z roboos $
+% $Id: ft_headcoordinates.m 11053 2016-01-09 17:51:21Z roboos $
 
 % figure out the input arguments
 if nargin==3

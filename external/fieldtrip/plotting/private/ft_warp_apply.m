@@ -70,7 +70,7 @@ function [warped] = ft_warp_apply(M, input, method, tol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_warp_apply.m 10132 2015-01-27 16:08:29Z johzum $
+% $Id: ft_warp_apply.m 11053 2016-01-09 17:51:21Z roboos $
 
 if nargin<4
   tol = [];
@@ -163,13 +163,13 @@ elseif strcmp(method, 'homogenous') || strcmp(method, 'homogeneous')
       M(3,1) M(3,2)  0  M(3,3)
       ];
   end
-    
+
   %warped = M * [input'; ones(1, size(input, 1))];
   %warped = warped(1:3,:)';
-  
+
   % below achieves the same as lines 154-155
   warped = [input ones(size(input, 1),1)]*M(1:3,:)';
-  
+
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % using external function that returns a homogeneous transformation matrix
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

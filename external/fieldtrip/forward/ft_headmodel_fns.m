@@ -14,7 +14,6 @@ function headmodel = ft_headmodel_fns(seg, varargin)
 %   tissue           = see fns_contable_write
 %   tissueval        = match tissues of segmentation input
 %   transform        = 4x4 transformation matrix (default eye(4))
-%   units            = string (default 'cm')
 %   sens             = sensor information (for which ft_datatype(sens,'sens')==1)
 %   deepelec         = used in the case of deep voxel solution
 %   tolerance        = scalar (default 1e-8)
@@ -47,7 +46,7 @@ function headmodel = ft_headmodel_fns(seg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_fns.m 10541 2015-07-15 16:49:37Z roboos $
+% $Id: ft_headmodel_fns.m 11049 2016-01-09 15:15:12Z roboos $
 
 ft_hastoolbox('fns', 1);
 
@@ -156,7 +155,6 @@ headmodel.tissue     = tissue;
 headmodel.tissueval  = tissueval;
 headmodel.transform  = transform;
 headmodel.segdim     = size(seg);
-headmodel.units      = units;
 headmodel.type       = 'fns';
 headmodel.transfer   = transfer;
 

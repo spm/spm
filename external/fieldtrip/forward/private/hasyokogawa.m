@@ -5,7 +5,7 @@ function [version] = hasyokogawa(desired)
 % installed. Only the newest version of the toolbox is accepted.
 %
 % Use as
-%   [string]  = hasyokogawa;
+%   string  = hasyokogawa;
 % which returns a string describing the toolbox version, e.g. "12bitBeta3",
 % "16bitBeta3", or "16bitBeta6" for preliminary versions, or '1.4' for the
 % official Yokogawa MEG Reader Toolbox. An empty string is returned if the toolbox
@@ -37,7 +37,7 @@ function [version] = hasyokogawa(desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: hasyokogawa.m 10399 2015-05-08 15:56:55Z tilsan $
+% $Id: hasyokogawa.m 11053 2016-01-09 17:51:21Z roboos $
 
 ws = warning('off', 'MATLAB:pfileOlderThanMfile');
 
@@ -54,7 +54,7 @@ if exist('getYkgwVersion')
 elseif exist('GetMeg160ADbitInfoM') || exist('GetMeg160ChannelInfoM') || exist('GetMeg160ContinuousRawDataM')
   % start with unknown, try to refine the version
   version = 'unknown';
-  
+
   try
     % Call some functions with input argument "Inf": If
     % the functions are present they return their revision number.
@@ -85,7 +85,7 @@ elseif exist('GetMeg160ADbitInfoM') || exist('GetMeg160ChannelInfoM') || exist('
       end
     end
   end
-  
+
 else
   % return empty if none of them is present
   version = [];
@@ -95,7 +95,7 @@ if nargin>0
   % return a true/false value
   if isempty(version)
     version = false;
-  else 
+  else
     version = strcmpi(version, desired);
   end
 end

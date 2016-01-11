@@ -1,9 +1,9 @@
-function index = ft_documentationindex(filename)
+function [index] = ft_documentationindex(filename)
 
-% FT_DOCUMENTATIONINDEX is a function to maintain the online documentation. 
+% FT_DOCUMENTATIONINDEX is a helper function to maintain the online documentation.
 %
 % Normal users will not be calling this function, but will rather look at
-% http://fieldtrip.fcdonders.nl/reference/index where the output of this
+% http://www.fieldtriptoolboxorg/reference/index where the output of this
 % function can be found.
 %
 % See FT_DOCUMENTATIONREFERENCE
@@ -26,7 +26,7 @@ function index = ft_documentationindex(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_documentationindex.m 10637 2015-08-27 14:03:49Z roboos $
+% $Id: ft_documentationindex.m 11052 2016-01-09 17:51:12Z roboos $
 
 ft_defaults
 
@@ -166,15 +166,14 @@ for i=1:size(index,1)
     fprintf(fid, '===== %s =====\n\n', upper(char(currletter)));
   end
   fprintf(fid, '** %s ** // %s //\\\\\n', index{i,2}, index{i,1});
-  
+
   % do postprocessing to make sure we don't mess up dokuwiki layout
   % '' is a markup instruction for dokuwiki so escape by replacing it
   % with %%''%%
   index{i,3} = strrep(index{i,3},'''''','%%''''%%');
-  
+
   fprintf(fid, '%s\n\n', index{i,3});
 end
 fclose(fid);
 
 return
-

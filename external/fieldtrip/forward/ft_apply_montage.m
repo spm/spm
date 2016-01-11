@@ -61,7 +61,7 @@ function [input] = ft_apply_montage(input, montage, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_apply_montage.m 11039 2016-01-04 15:04:47Z roboos $
+% $Id: ft_apply_montage.m 11046 2016-01-08 17:20:16Z eelspa $
 
 % get optional input arguments
 keepunused  = ft_getopt(varargin, 'keepunused',  'no');
@@ -235,6 +235,21 @@ addchanunit = inputchanunit(sort(ix));
 m = size(montage.tra,1);
 n = size(montage.tra,2);
 k = length(addlabel);
+% check for NaNs in unused channels; these will be mixed in with the rest
+% of the channels and result in NaNs in the output even when multiplied
+% with zeros or identity
+if k > 0 && isfield(input, 'trial') % check for raw data now only
+  cfg = [];
+  cfg.channel = addlabel;
+  data_unused = ft_selectdata(cfg, input);
+  tmp = cat(1, data_unused.trial{:});
+  if any(isnan(tmp(:)))
+    error('FieldTrip:NaNsinInputData', ['Your input data contains NaNs in channels that are unused '...
+      'in the supplied montage. This would result in undesired NaNs in the '...
+      'output data. Please remove these channels from the input data (using '...
+      'ft_selectdata) before attempting to apply the montage.']);
+  end
+end
 if istrue(keepunused)
   % add the channels that are not rereferenced to the input and output of the
   % montage

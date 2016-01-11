@@ -12,13 +12,29 @@ function opt = ft_setopt(opt, key, val)
 
 % Copyright (C) 2011-2012, Robert Oostenveld
 %
-% $Id: ft_setopt.m 9865 2014-09-28 12:33:58Z roboos $
+% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% for the documentation and details.
+%
+%    FieldTrip is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    FieldTrip is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+%
+%    You should have received a copy of the GNU General Public License
+%    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
+%
+% $Id: ft_setopt.m 11052 2016-01-09 17:51:12Z roboos $
 
 if isa(opt, 'struct') || isa(opt, 'config')
-  
+
   % just replace or add the option
   opt.(key) = val;
-  
+
 elseif isa(opt, 'cell')
   % determine whether the key already exists
   fn = opt(1:2:end);

@@ -1,6 +1,7 @@
-function mvar = ft_datatype_mvar(mvar, varargin)
+function [mvar] = ft_datatype_mvar(mvar, varargin)
 
-% FT_DATATYPE_MVAR describes the FieldTrip MATLAB structure for mvar data
+% FT_DATATYPE_MVAR describes the FieldTrip MATLAB structure for multi-variate
+% autoregressive model data.
 %
 % The mvar datatype represents multivariate model estimates in the time- or
 % in the frequency-domain. This is usually obtained from FT_MVARANALYSIS,
@@ -69,7 +70,7 @@ function mvar = ft_datatype_mvar(mvar, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_mvar.m 7497 2013-02-19 09:38:12Z roboos $
+% $Id: ft_datatype_mvar.m 11052 2016-01-09 17:51:12Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -89,12 +90,12 @@ switch version
       % ensure that the gradiometer structure is up to date
       mvar.grad = ft_datatype_sens(mvar.grad);
     end
-    
+
     if isfield(mvar, 'elec')
       % ensure that the electrode structure is up to date
       mvar.elec = ft_datatype_sens(mvar.elec);
     end
-  
+
   case '2008'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % there are no known conversions for backward or forward compatibility support
@@ -103,4 +104,3 @@ switch version
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     error('unsupported version "%s" for mvar datatype', version);
 end
-

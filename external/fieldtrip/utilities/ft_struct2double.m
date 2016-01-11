@@ -1,11 +1,11 @@
 function [x] = ft_struct2double(x, maxdepth)
 
-% FT_STRUCT2DOUBLE converts all single precision numeric data in a structure 
+% FT_STRUCT2DOUBLE converts all single precision numeric data in a structure
 % into double precision. It will also convert plain matrices and
 % cell-arrays.
 %
 % Use as
-%    x = ft_struct2double(x);
+%   x = ft_struct2double(x)
 %
 % Starting from MATLAB 7.0, you can use single precision data in your
 % computations, i.e. you do not have to convert back to double precision.
@@ -35,7 +35,7 @@ function [x] = ft_struct2double(x, maxdepth)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_struct2double.m 9208 2014-02-18 08:57:38Z roboos $
+% $Id: ft_struct2double.m 11052 2016-01-09 17:51:12Z roboos $
 
 if nargin<2
   maxdepth = inf;
@@ -66,7 +66,7 @@ switch class(a)
         ra = convert(ra, depth+1, maxdepth);
         a(j) = setfield(a(j), fn, ra);
       end
-    end 
+    end
 
   case 'cell'
     % process all elements of the cell-array recursively

@@ -8,10 +8,10 @@ function [type, dimord] = ft_datatype(data, desired)
 %   [type, dimord] = ft_datatype(data)
 %   [status]       = ft_datatype(data, desired)
 %
-% See also FT_DATATYPE_COMP FT_DATATYPE_FREQ FT_DATATYPE_MVAR
-% FT_DATATYPE_SEGMENTATION FT_DATATYPE_PARCELLATION FT_DATATYPE_SOURCE
-% FT_DATATYPE_TIMELOCK FT_DATATYPE_DIP FT_DATATYPE_HEADMODEL
-% FT_DATATYPE_RAW FT_DATATYPE_SENS FT_DATATYPE_SPIKE FT_DATATYPE_VOLUME
+% See also FT_DATATYPE_COMP, FT_DATATYPE_FREQ, FT_DATATYPE_MVAR,
+% FT_DATATYPE_SEGMENTATION, FT_DATATYPE_PARCELLATION, FT_DATATYPE_SOURCE,
+% FT_DATATYPE_TIMELOCK, FT_DATATYPE_DIP, FT_DATATYPE_HEADMODEL,
+% FT_DATATYPE_RAW, FT_DATATYPE_SENS, FT_DATATYPE_SPIKE, FT_DATATYPE_VOLUME
 
 % Copyright (C) 2008-2015, Robert Oostenveld
 %
@@ -31,7 +31,7 @@ function [type, dimord] = ft_datatype(data, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype.m 10796 2015-10-19 15:50:31Z roboos $
+% $Id: ft_datatype.m 11052 2016-01-09 17:51:12Z roboos $
 
 if nargin<2
   desired = [];

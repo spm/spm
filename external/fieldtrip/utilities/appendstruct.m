@@ -1,11 +1,12 @@
-function s1 = appendstruct(s1, s2);
+function [s1] = appendstruct(s1, s2)
 
-% APPENDSTRUCT appends a structure to a struct-array. It also works if the initial
-% structure is an empty structure or an empty double array.
+% APPENDSTRUCT appends a structure to a structure or struct-array.
+% It also works if the initial structure is an empty structure or
+% an empty double array.
 %
 % Use as
 %   a = appendstruct(a, b)
-% which 
+% which appends b to a.
 %
 % See also PRINTSTRUCT, COPYFIELDS, KEEPFIELDS, REMOVEFIELDS
 
@@ -27,7 +28,7 @@ function s1 = appendstruct(s1, s2);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: appendstruct.m 10663 2015-09-13 10:03:57Z roboos $
+% $Id: appendstruct.m 11052 2016-01-09 17:51:12Z roboos $
 
 assert(isstruct(s1) || isempty(s1), 'input argument 1 should be empty or a structure');
 assert(isstruct(s2), 'input argument 2 should be a structure');

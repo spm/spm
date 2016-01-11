@@ -92,7 +92,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 10988 2015-12-09 23:22:36Z arjsto $
+% $Id: ft_read_header.m 11049 2016-01-09 15:15:12Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -1430,7 +1430,7 @@ switch headerformat
       Dim.(fname) = fval;
     end
     
-    % convert the relevant fields into teh default header structure
+    % convert the relevant fields into the default header structure
     hdr.Fs          = 1000/Var.samplinginterval;
     hdr.nChans      = length(Var.channelstatus);
     hdr.nSamples    = Var.numsamples;

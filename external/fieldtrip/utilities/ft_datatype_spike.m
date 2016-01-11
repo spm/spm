@@ -1,4 +1,4 @@
-function spike = ft_datatype_spike(spike, varargin)
+function [spike] = ft_datatype_spike(spike, varargin)
 
 % FT_DATATYPE_SPIKE describes the FieldTrip MATLAB structure for spike data
 %
@@ -138,7 +138,7 @@ function spike = ft_datatype_spike(spike, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_spike.m 9344 2014-04-03 18:02:14Z roboos $
+% $Id: ft_datatype_spike.m 11052 2016-01-09 17:51:12Z roboos $
 
 
 % get the optional input arguments, which should be specified as key-value pairs

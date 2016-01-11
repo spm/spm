@@ -5,7 +5,7 @@ function [x] = ft_struct2single(x, maxdepth)
 % to double precision. It will also convert plain matrices and cell-arrays.
 %
 % Use as
-%    x = ft_struct2single(x);
+%   x = ft_struct2single(x)
 %
 % Starting from MATLAB 7.0, you can use single precision data in your
 % computations, i.e. you do not have to convert back to double precision.
@@ -35,7 +35,7 @@ function [x] = ft_struct2single(x, maxdepth)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_struct2single.m 9208 2014-02-18 08:57:38Z roboos $
+% $Id: ft_struct2single.m 11052 2016-01-09 17:51:12Z roboos $
 
 if nargin<2
   maxdepth = inf;
