@@ -1,4 +1,4 @@
-\chapter{Dynamic Causal Modeling for resting state fMRI \label{Chap:DCM_rsfmri}}
+\chapter{Dynamic Causal Modelling for resting state fMRI \label{Chap:DCM_rsfmri}}
 
 This chapter provides an extension to the framework of Dynamic Causal Modelling (DCM) for modelling intrinsic dynamics of a resting state network \cite{rsDCM2014,rsDCM2015}. This DCM estimates the effective connectivity among coupled populations of neurons, which subtends the observed functional connectivity in the frequency domain. We refer to this as spectral DCM (spDCM).
 
@@ -20,7 +20,7 @@ where $\dot{z}$ is the rate in change of the neuronal states $z$, $\theta$ are u
 \end{equation}
 where $A$ is the Jacobian describing the behaviour -- i.e. the effective connectivity -- of the system near its stationary point ($f(z_{o})=0$) in the absence of the fluctuations $v$. It is to be noted that we can still include exogenous (or experimental) inputs, $u$  in our model. These inputs drive the hidden states -- and are usually set to zero in resting state models. It is perfectly possible to have external, (non-modulatory) stimuli, as in the case of conventional functional neuroimaging studies. For example, in \cite{dcm} we used an attention to visual motion paradigm to illustrate this point.
 
-Inverting the stochastic DCM of the form given by Eq.~\ref{spdcm_eq3} in the time domain, which includes state noise, is rather complicated because such models require estimation of not only the model parameters (and any hyperparameters that parameterise the random fluctuations), but also the hidden states, which become random (probabilistic) variables. Hence the unknown quantities to be estimated under a stochastic DCM are  $\psi=\{z,\phi,\theta,\sigma\}$, where $\sigma$ refers to any hyperparameters (precisions or inverse covariances) defining the neuronal fluctuations. In terms of temporal characteristics, the hidden states are time-variant, whereas the model parameters (and hyperparameters) are time-invariant. There are various variational schemes in literature that can invert such models. For example, dynamic expectation maximization (DEM) \cite{FristonDEM2008} and generalized filtering (GF) \cite{FristonGenFilt2010}.
+Inverting the stochastic DCM of the form given by Eq.~\ref{spdcm_eq3} in the time domain, which includes state noise, is rather complicated because such models require estimation of not only the model parameters (and any hyperparameters that parameterise the random fluctuations), but also the hidden states, which become random (probabilistic) variables. Hence the unknown quantities to be estimated under a stochastic DCM are  $\psi=\{z,\phi,\theta,\sigma\}$, where $\sigma$ refers to any hyperparameters (precisions or inverse covariances) defining the neuronal fluctuations. In terms of temporal characteristics, the hidden states are time-variant, whereas the model parameters (and hyperparameters) are time-invariant. There are various variational schemes in literature that can invert such models. For example, dynamic expectation maximization (DEM) \cite{karl_DEM} and generalized filtering (GF) \cite{karl_generalised_filtering}.
 
 Although the stochastic models in  Eq.~\ref{spdcm_eq1} and their inversion in time domain provide a useful means to estimate effective connectivity they also require us to estimate hidden states. This poses a difficult inverse problem that is computationally demanding; especially when the number of hidden states becomes large. To finesse this problem, we furnish a constrained inversion of the stochastic model by parameterising the neuronal fluctuations. This parameterisation also provides an opportunity to compare parameters encoding the neuronal fluctuations among groups. The parameterisation of endogenous fluctuations means that the states are no longer probabilistic; hence the inversion scheme is significantly simpler, requiring estimation of only the parameters (and hyperparameters) of the model.
 
@@ -35,18 +35,18 @@ Here, $\{\alpha,\beta\}\subset \theta$ are the parameters controlling the amplit
 & \kappa & = \partial_x h \mathrm{exp} (t \partial_x f ) \\ \nonumber
 & g_{y}(\omega,\theta) & = |K(\omega)|^2 g_{v}(\omega,\theta) + g_{e}(\omega,\theta)
 \end{eqnarray}
-where $K(\omega)$ is the Fourier transform of the system's (first order) Volterra kernels  $\kappa$, which are a function of the Jacobian or effective connectivity. The unknown quantities $\psi=\{\phi,\theta,\sigma\}$ of this deterministic model can now be estimated using standard Variational Laplace procedures \cite{FristonLaplace2007}. Here $g_{y} (\omega,\theta)$ represents the predicted cross spectra that can be estimated, for example, using autoregressive (AR) model. Specifically, we use a fourth-order autoregressive model to ensure smooth sample cross spectra of the sort predicted by the generative model. The frequencies usually considered for fMRI range from 1/128 Hz to 0.1 Hz in 32 evenly spaced frequency bins.
+where $K(\omega)$ is the Fourier transform of the system's (first order) Volterra kernels  $\kappa$, which are a function of the Jacobian or effective connectivity. The unknown quantities $\psi=\{\phi,\theta,\sigma\}$ of this deterministic model can now be estimated using standard Variational Laplace procedures \cite{karl_vb_laplace}. Here $g_{y} (\omega,\theta)$ represents the predicted cross spectra that can be estimated, for example, using autoregressive (AR) model. Specifically, we use a fourth-order autoregressive model to ensure smooth sample cross spectra of the sort predicted by the generative model. The frequencies usually considered for fMRI range from 1/128 Hz to 0.1 Hz in 32 evenly spaced frequency bins.
 
 \section{Practical example}
 
-Data used for this example can be downloaded from the SPM website. This dataset\footnote{Resting state DCM dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/spDCM/}} consists of an exemplar subject from the full dataset available from the FC1000 project website and was used in (Razi et al., 2015) to interrogate the information integration in default mode network (DMN) -- a distinct brain system that is activated when an individual engages in introspection like mindwandering or daydreaming. The DMN comprises part of the medial prefrontal cortex (mPFC), posterior cingulate cortex (PCC) and parts of inferior parietal lobe and superior frontal regions.
+Data used for this example can be downloaded from the SPM website. This dataset\footnote{Resting state DCM dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/spDCM/}} consists of an exemplar subject from the full dataset available from the FC1000 project website\footnote{``1000 Functional Connectomes'' Project,: \url{http://fcon_1000.projects.nitrc.org/fcpClassic/FcpTable.html}} and was used in \cite{rsDCM2015} to interrogate the information integration in default mode network (DMN) -- a distinct brain system that is activated when an individual engages in introspection like mindwandering or daydreaming. The DMN comprises part of the medial prefrontal cortex (mPFC), posterior cingulate cortex (PCC) and parts of inferior parietal lobe and superior frontal regions.
 
 The archive contains the smoothed, spatially normalised, realigned, slice-time corrected images in the directory \texttt{func}. The directory \texttt{anat} contains a spatially normalised T1 structural image and the directory \texttt{GLM} contains the file \texttt{rp\_rest0000.txt} containing six head motion parameters. All preprocessing took place using SPM12.
 
 \subsection{Defining the GLM}
-First, we need to set up the GLM analysis and extract our time series from the results. For resting state fMRI because there is no task so first we need to generate SPM.mat so that we can extract the time series. This can be done by following the steps below.
+First, we need to set up the GLM analysis and extract our time series from the results. For resting state fMRI because there is no task so first we need to generate \texttt{SPM.mat} so that we can extract the time series. This can be done by following the steps below.
 
-Let's specify a batch that will specify the model and estimate it.
+Let's set up a batch that will specify the model and estimate it.
 
 \begin{enumerate}
  \item The analysis directory you have downloaded should include:
@@ -129,7 +129,7 @@ SPM now computes the first principal component of the time series from all voxel
 
 \subsection{Specifying and estimating the DCM}
 
-Now we have exracted the time series, we are ready to build the DCM. We will look at a simplified version of the model described in \cite{rsDCM2015}.  In our example here, we will model a fully connected system comprising PCC, mPFC and bilateral IPC. This DCM is shown schematically in Figure~\ref{spdcm_full}, and can be made as follows:
+Now we have extracted the time series, we are ready to build the DCM. We will look at a simplified version of the model described in \cite{rsDCM2015}.  In our example here, we will model a fully connected system comprising PCC, mPFC and bilateral IPC. This DCM is shown schematically in Figure~\ref{spdcm_full}, and can be made as follows:
 \begin{enumerate}
  \item Press the large \texttt{Dynamic Causal Modelling} button.
  \item Choose \textsc{specify}.
