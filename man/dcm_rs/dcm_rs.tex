@@ -83,7 +83,7 @@ We will also need to extract signal from CSF and white matter (WM) to be used as
  \item Name of VOI: \texttt{WM}
  \item Select 'Region(s) of Interest' $>$ Sphere
  \item Centre: \texttt{[0 -24 -33]}
- \item VOI radius (mm): e.g.\texttt{4} mm
+ \item VOI radius (mm): e.g.\texttt{6} mm
  \item Select 'Movement of Centre' $>$ Fixed
  \item Select 'Region of Interest' $>$ Mask Image
  \item Image file: select \texttt{mask.nii} (in \texttt{GLM} folder)
@@ -91,7 +91,7 @@ We will also need to extract signal from CSF and white matter (WM) to be used as
  \item Now you should be able to press the green arrow button. This would extract the WM time series and save this as  \texttt{VOI\_WM\_1.mat} in the working directory.
 \end{enumerate}
 
-Do the same thing with to extract CSF (from one of the ventricles) signal with a sphere centred on \texttt{[1 -39 3]}. This will create files \texttt{VOI\_CSF\_1.mat}. Next we need to adjust the SPM with the covariates. Do the following procedure:
+Do the same thing with to extract CSF (from one of the ventricles) signal with a sphere centred on \texttt{[0 -40 -5]}. This will create files \texttt{VOI\_CSF\_1.mat}. Next we need to adjust the SPM with the covariates. Do the following procedure:
 \begin{enumerate}
  \item From the main SPM window, click on the \textsc{Batch} button.
  \item From the SPM menu at the top of the \textsc{Batch Editor}, select ``Stats $>$ fMRI model specification''.
@@ -117,7 +117,7 @@ Once you have specified and estimated the GLM, here is now a step-by-step exampl
  \item Which session: \texttt{1}
  \item Name of VOI: \texttt{PCC}
  \item Select 'Region(s) of Interet' $>$ Sphere
- \item Centre: \texttt{[0 -52 -26]}
+ \item Centre: \texttt{[0 -52 26]}
  \item VOI radius(mm): e.g.\texttt{ 8} mm
  \item Select 'Movement of Centre' $>$ Fixed
  \item Select 'Region of Interest' $>$ Mask Image
