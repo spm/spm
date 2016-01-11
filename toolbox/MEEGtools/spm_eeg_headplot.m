@@ -1,15 +1,15 @@
-function spm_headplot(Y, D, H)
+function spm_eeg_headplot(Y, D, H)
 % SPM interface to headplot function from EEGLAB
-% FORMAT  spm_headplot(Y, D, H)
+% FORMAT spm_eeg_headplot(Y, D, H)
 %
 %         Y - data vector
 %         D - M/EEG object
 %         H - (optional) axes handle
 %
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_eeg_reref_eeg.m 6374 2015-03-12 10:15:18Z vladimir $
+% $Id: spm_eeg_headplot.m 6669 2016-01-11 15:51:06Z guillaume $
 
 if ~exist('headplot', 'file')
     error('This functionality requires EEGLAB http://sccn.ucsd.edu/eeglab/');

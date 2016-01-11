@@ -12,9 +12,9 @@ function spm_eeg_img2maps(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_img2maps.m 6635 2015-12-05 23:13:24Z vladimir $
+% $Id: spm_eeg_img2maps.m 6669 2016-01-11 15:51:06Z guillaume $
 
-SVNrev = '$Rev: 6635 $';
+SVNrev = '$Rev: 6669 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -136,7 +136,7 @@ switch style
         ft_topoplotER(cfg, dummy);
         
     case '3d'        
-        spm_headplot(Y, D, axes);
+        spm_eeg_headplot(Y, D, axes);
 end    
 %%
 %-Cleanup
