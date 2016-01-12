@@ -13,10 +13,10 @@ function varargout = spm_check_installation(action)
 % Build signature of SPM distribution as used by 'full' option.
 % (for developers)
 %__________________________________________________________________________
-% Copyright (C) 2009-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 6444 2015-05-21 11:15:48Z guillaume $
+% $Id: spm_check_installation.m 6675 2016-01-12 18:22:29Z guillaume $
 
 if isdeployed, return; end
 
@@ -207,7 +207,7 @@ fprintf('SPM version is %s (%s, %s)\n', ...
 %-Detect SPM toolboxes
 %--------------------------------------------------------------------------
 officials = {'DARTEL', 'dcm_fnirs', 'dcm_meeg', 'DEM', 'FieldMap', ...
-    'Longitudinal', 'MEEGtools', 'mixture', 'mlm', 'Neural_Models', ...
+    'Longitudinal', 'mci', 'MEEGtools', 'mixture', 'mlm', 'Neural_Models', ...
     'OldNorm', 'OldSeg', 'Shoot', 'spectral', 'SPEM_and_DCM', 'SRender'};
 dd = dir(fullfile(SPMdir,'toolbox'));
 dd = {dd([dd.isdir]).name};
