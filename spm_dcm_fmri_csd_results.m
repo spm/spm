@@ -1,6 +1,6 @@
 function spm_dcm_fmri_csd_results(DCM,action,fig)
 % Review an estimated DCM for BOLD CSD
-% FORMAT spm_dcm_fmri_results(DCM,action,fig)
+% FORMAT spm_dcm_fmri_csd_results(DCM,action,fig)
 %
 % Action:
 %     'Spectral data'
@@ -17,7 +17,10 @@ function spm_dcm_fmri_csd_results(DCM,action,fig)
 %     'Location of regions'
 %     'Quit'
 %__________________________________________________________________________
-% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_dcm_fmri_csd_results.m 6673 2016-01-12 17:23:32Z guillaume $
 
 
 %-Input arguments
@@ -33,7 +36,7 @@ if ~isstruct(DCM)
     load(DCM);
 end
  
-%-Get action if neccessary
+%-Get action if necessary
 %--------------------------------------------------------------------------
 if nargin < 2 || isempty(action)
     str = {'Timeseries data',...
