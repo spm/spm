@@ -89,7 +89,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6657 2015-12-31 17:59:31Z karl $
+% $Id: spm_MDP_VB_X.m 6672 2016-01-12 12:28:31Z karl $
 
 
 % deal with a sequence of trials
@@ -390,8 +390,8 @@ for t = 1:T
                 xq{f}  = x{f}(:,j,k);
             end
             for g = 1:Ng
-                qx     = spm_dot(A{g},xq,ind + 1);
-                Q(k,j) = Q(k,j) + qx'*(Vo{g}(:,j) - log(qx));
+                qo     = spm_dot(A{g},xq,ind + 1);
+                Q(k,j) = Q(k,j) + qo'*(Vo{g}(:,j) - log(qo));
                 Q(k,j) = Q(k,j) + spm_dot(H{g},xq,ind);
             end
         end
@@ -465,6 +465,7 @@ for t = 1:T
         
         % predicted hidden states under each action
         %------------------------------------------------------------------
+        Pu    = zeros(Nu);
         for i = 1:size(up,1)
             
             for f = 1:Nf
@@ -483,8 +484,8 @@ for t = 1:T
                 
                 % augment action potential
                 %----------------------------------------------------------
-                sub         = num2cell(up(i,:));
-                P(sub{:},t) = P(sub{:},t) + dP + 16;
+                sub        = num2cell(up(i,:));
+                Pu(sub{:}) = Pu(sub{:}) + dP + 16;
                 
             end
         end
@@ -492,14 +493,15 @@ for t = 1:T
         % action selection - a softmax function of action potential
         %------------------------------------------------------------------
         sub         = repmat({':'},1,Nf);
-        P(sub{:},t) = spm_softmax(alpha*spm_vec(P(sub{:},t)));
+        Pu(:)       = spm_softmax(alpha*Pu(:));
+        P(sub{:},t) = Pu;
         
         % next action - sampled from beliefs about control states
         %------------------------------------------------------------------
         try
             a(:,t)  = MDP.u(:,t);
         catch
-            ind     = find(rand < cumsum(P(sub{:},t)),1);
+            ind     = find(rand < cumsum(Pu(:)),1);
             a(:,t)  = spm_ind2sub(Nu,ind);
         end
         
@@ -534,7 +536,11 @@ for t = 1:T
             for f = 1:Nf
                 V(t,:,f) = a(f,t);
             end
-            V(t + 1,:,:) = MDP.U;
+            for j = 1:size(MDP.U,1)
+                if (t + j) < T
+                    V(t + j,:,:) = MDP.U(j,:,:);
+                end
+            end
             
             % and reinitialise expectations about hidden states
             %--------------------------------------------------------------

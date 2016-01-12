@@ -22,7 +22,7 @@ function spm_MDP_VB_trial(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 6655 2015-12-23 20:21:27Z karl $
+% $Id: spm_MDP_VB_trial.m 6672 2016-01-12 12:28:31Z karl $
 
 % graphics
 %==========================================================================
@@ -71,7 +71,6 @@ Nu     = find(Nu);
 Np     = length(Nu);
 for f  = 1:Np
     subplot(3*Np,2,f*2)
-    
     P = MDP.P;
     if Nf > 1
         ind     = 1:Nf;
@@ -83,14 +82,16 @@ for f  = 1:Np
         P = squeeze(P);
     end
     
+    % display
+    %----------------------------------------------------------------------
     image(64*(1 - P)), hold on
     plot(MDP.u(Nu(f),:),'.c','MarkerSize',16), hold off
     try
-        title(sprintf('Inferred and selected action - %s',MDP.Bname{f}));
+        title(sprintf('Inferred and selected action - %s',MDP.Bname{Nu(f)}));
     catch
         if f < 2, title('Inferred and selected action'); end
     end
-    xlabel('time')
+    if f == Np, xlabel('time'), end
     ylabel('action')
 end
 
@@ -104,8 +105,8 @@ for f  = 1:Np
     catch
         if f < 2, title('Allowable policies'); end
     end
+    if Np == 1, xlabel('time'), end
     ylabel('policy')
-    xlabel('time')
 end
 
 % expectations over policies

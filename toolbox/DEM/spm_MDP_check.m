@@ -9,7 +9,7 @@ function [MDP] = spm_MDP_check(MDP)
 %
 % MDP.A{G}(O,N1,...,NF) - likelihood of O outcomes given hidden states
 % MDP.B{F}(NF,NF,MF)    - transitions among hidden under MF control states
-% MDP.C{G}(O,T)         - prior preferences over O outsomes in modality G
+% MDP.C{G}(O,T)         - prior preferences over O outcomes in modality G
 % MDP.D{F}(NF,1)        - prior probabilities over initial states
 %
 % MDP.a{G}              - concentration parameters for A
@@ -22,19 +22,21 @@ function [MDP] = spm_MDP_check(MDP)
 % MDP.u(F,T - 1)        - vector of action      - for each hidden factor
 % MDP.w(1,T)            - vector of precisions
 %
-% MDP.alpha             - precision – action selection [16]
-% MDP.beta              - precision over precision (Gamma hyperprior - [1])
+% if C or D are not specified, they will be set to default values (of no
+% preferences and uniform priors over initial steps).  If there are no
+% policies, it will be assumed that I = 1 and all policies (for each 
+% marginal hidden state) are allowed.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_MDP_check.m 6665 2016-01-08 21:05:13Z karl $
-
-
+% $Id: spm_MDP_check.m 6672 2016-01-12 12:28:31Z karl $
+ 
+ 
 % deal with a sequence of trials
 %==========================================================================
-
-% if there are multiple structures check each one
+ 
+% if there are multiple structures check each separately
 %--------------------------------------------------------------------------
 if length(MDP) > 1
     for i = 1:length(MDP)
@@ -42,44 +44,86 @@ if length(MDP) > 1
     end    
     return
 end
-
-% check hierarchical MDP
-%--------------------------------------------------------------------------
-if isfield(MDP,'MDP')
-    MDP.MDP = spm_MDP_check(MDP.MDP);
-    return
-end
-
-% set up and preliminaries
+ 
+% check dimensions and orders
 %==========================================================================
-try
-    V = MDP.U;                      % allowable actions (1,Np)
-    T = MDP.T;                      % number of transitions
-catch
-    try
-        V = MDP.V;                  % allowable policies (T - 1,Np)
-        T = size(MDP.V,1) + 1;      % number of transitions
-    catch
-        error('please specify sequential policies V (or U and T)')
-    end
-end
-
+ 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
 Nf  = numel(MDP.B);                 % number of hidden state factors
 Ng  = numel(MDP.A);                 % number of outcome factors
 for f = 1:Nf
-    Nu(f) = size(MDP.B{f},3);       % number of hidden controls
-    Ns(f) = size(MDP.B{f},1);       % number of hidden states
+    Nu(f)    = size(MDP.B{f},3);    % number of hidden controls
+    Ns(f)    = size(MDP.B{f},1);    % number of hidden states
+    MDP.B{f} = double(MDP.B{f});
 end
 for g = 1:Ng
-    No(g) = size(MDP.A{g},1);       % number of outcomes
+    No(g)    = size(MDP.A{g},1);    % number of outcomes
+    MDP.A{g} = double(MDP.A{g});
 end
+ 
+% check policy specification
+%--------------------------------------------------------------------------
+try
+    V = MDP.U;                      % allowable actions (1,Np)
+catch
+    try
+        V = MDP.V;                  % allowable policies (T - 1,Np)
+    catch
+        
+        % components allowable policies from allowable actions
+        %------------------------------------------------------------------
+        for f = 1:Nf
+            u = 1;
+            for i = 1:Nf
+                if i == f
+                    u = kron(1:Nu(i),u);
+                else
+                    u = kron(ones(1,Nu(i)),u);
+                end
+            end
+            U(1,:,f)  = u;
+        end
+        MDP.U = U;
+        V = MDP.U;
+    end
+end
+ 
+% check policy specification
+%--------------------------------------------------------------------------
 if Nf  ~= size(V,3);
-    error('please ensure V(:,:,1:Nf) is conistent with MDP.B{1:Nf}')
+    error('please ensure V(:,:,1:Nf) is consistent with MDP.B{1:Nf}')
+end
+ 
+% check preferences
+%--------------------------------------------------------------------------
+if ~isfield(MDP,'C')
+    for g = 1:Ng
+        MDP.C{g} = zeros(No(g),1);
+    end
+end
+for g = 1:Ng
+    if No(g) ~= size(MDP.C{g},1);
+        error(['please ensure A{' num2str(g) '} and C{' num2str(g) '} are consistent'])
+    end
+end
+ 
+% check iinitial states
+%--------------------------------------------------------------------------
+if ~isfield(MDP,'D')
+    for f = 1:Nf
+        MDP.D{f} = ones(Ns(f),1);
+    end
 end
 if Nf  ~= numel(MDP.D);
-    error('please ensure V(:,:,1:Nf) is conistent with MDP.D{1:Nf}')
+    error('please ensure V(:,:,1:Nf) is consistent with MDP.D{1:Nf}')
+end
+ 
+ 
+% check iinitial states and internal consistency
+%--------------------------------------------------------------------------
+if Nf  ~= numel(MDP.D);
+    error('please ensure V(:,:,1:Nf) is consistent with MDP.D{1:Nf}')
 end
 for f = 1:Nf
     if Ns(f) ~= size(MDP.D{f},1);
@@ -95,64 +139,58 @@ for f = 1:Nf
         end
     end
 end
+ 
+% check probability matrices are properly specified
+%--------------------------------------------------------------------------
+for f = 1:Nf
+    if ~all(spm_vec(any(MDP.B{f},1)))
+         error(['please check B{' num2str(f) '} for missing entries'])
+    end
+end
 for g = 1:Ng
-    if No(g) ~= size(MDP.C{g},1);
-        error(['please ensure A{' num2str(g) '} and C{' num2str(g) '} are consistent'])
+    if ~all(spm_vec(any(MDP.A{g},1)))
+         error(['please check A{' num2str(g) '} for missing entries'])
+    end
+end
+ 
+% check initial states if specified
+%--------------------------------------------------------------------------
+if isfield(MDP,'s')
+    if size(MDP.s,1) ~= Nf
+        error('please specify an initial state MDP.s for each factor')
+    end
+    if any(max(MDP.s,[],2) > Ns(:))
+        error('please ensure initial states MDP.s are consistent with MDP.B')
+    end 
+else
+    MDP.s = ones(Nf,1);
+end
+ 
+% check outcomes if specified
+%--------------------------------------------------------------------------
+if isfield(MDP,'o')
+    if size(MDP.o,1) ~= Ng
+        error('please specify an outcomes MDP.o for each modality')
+    end
+    if any(max(MDP.o,[],2) > No(:))
+        error('please ensure outcomes MDP.o are consistent with MDP.A')
+    end 
+else
+    MDP.s = ones(Nf,1);
+end
+ 
+% check names is specified
+%--------------------------------------------------------------------------
+if isfield(MDP,'Aname')
+    if numel(MDP.Aname) ~= Ng
+        error('please specify an MDP.Aname for each modality')
+    end
+end
+if isfield(MDP,'Bname')
+    if numel(MDP.Bname) ~= Nf
+        error('please specify an MDP.Bname for each factor')
     end
 end
 
-return
 
-
-
-function A = spm_norm(A)
-% normalisation of a probability transition matrix (columns)
-%--------------------------------------------------------------------------
-for i = 1:size(A,2)
-    for j = 1:size(A,3)
-        for k = 1:size(A,4)
-            for l = 1:size(A,5)
-                A(:,i,j,k,l) = A(:,i,j,k,l)/sum(A(:,i,j,k,l),1);
-            end
-        end
-    end
-end
-
-function A = spm_psi(A)
-% normalisation of a probability transition rate matrix (columns)
-%--------------------------------------------------------------------------
-for i = 1:size(A,2)
-    for j = 1:size(A,3)
-        for k = 1:size(A,4)
-            for l = 1:size(A,5)
-                A(:,i,j,k,l) = psi(A(:,i,j,k,l)) - psi(sum(A(:,i,j,k,l)));
-            end
-        end
-    end
-end
-
-function H = spm_ent(A)
-% normalisation of a probability transition matrix (columns)
-%--------------------------------------------------------------------------
-for i = 1:size(A,2)
-    for j = 1:size(A,3)
-        for k = 1:size(A,4)
-            for l = 1:size(A,5)
-                H(i,j,k,l) = spm_softmax(A(:,i,j,k,l))'*A(:,i,j,k,l);
-            end
-        end
-    end
-end
-
-function sub = spm_ind2sub(siz,ndx)
-% subscripts from linear index
-%--------------------------------------------------------------------------
-n = numel(siz);
-k = [1 cumprod(siz(1:end-1))];
-for i = n:-1:1,
-    vi       = rem(ndx - 1,k(i)) + 1;
-    vj       = (ndx - vi)/k(i) + 1;
-    sub(i,1) = vj;
-    ndx      = vi;
-end
 
