@@ -19,7 +19,7 @@ function spm_dcm_review(DCM,action)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 6458 2015-05-27 16:22:09Z spm $
+% $Id: spm_dcm_review.m 6671 2016-01-12 12:01:21Z peter $
 
 
 %-Get DCM structure
@@ -32,7 +32,7 @@ if ~isstruct(DCM)
     load(DCM);
 end
 
-%-Call spm_dcm_fmri_results for DCM of CSD
+%-Call spm_dcm_fmri_csd_results for DCM of CSD
 %--------------------------------------------------------------------------
 try
     analysis = DCM.options.analysis;
@@ -40,7 +40,7 @@ catch
     analysis = '';
 end
 if strcmp(analysis,'CSD')
-    spm_dcm_fmri_results(DCM);
+    spm_dcm_fmri_csd_results(DCM);
     return
 end
 
