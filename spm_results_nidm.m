@@ -5,7 +5,7 @@ function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % xSPM     - structure containing inference details (see spm_getSPM.m)
 % TabDat   - structure containing results details (see spm_list.m)
 %
-% nidmfile - output NIDM zip file
+% nidmfile - output NIDM zip archive filename
 % prov     - provenance object (see spm_provenance.m)
 %__________________________________________________________________________
 % References:
@@ -16,10 +16,10 @@ function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % PROV-DM: The PROV Data Model:
 %   http://www.w3.org/TR/prov-dm/
 %__________________________________________________________________________
-% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6646 2015-12-14 19:00:26Z guillaume $
+% $Id: spm_results_nidm.m 6676 2016-01-13 14:37:14Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -44,7 +44,7 @@ end
 gz           = '.gz'; %-Compressed NIfTI {'.gz', ''}
 coordsys     = 'nidm_MNICoordinateSystem'; %-Assuming MNI space
 NIDMversion  = '1.2.0';
-SVNrev       = '$Rev: 6646 $';
+SVNrev       = '$Rev: 6676 $';
 
 try
     units = xSPM.units;
@@ -782,7 +782,7 @@ else
         st = {'prov:type',nidm_conv('nidm_ConjunctionInference',p), ...
               'prov:label','Conjunction Inference'};
     else
-        st = {'prov:type','spm_PartialConjunctionInference', ...
+        st = {'prov:type',nidm_conv('spm_PartialConjunctionInference'), ...
               'prov:label',' Partial Conjunction Inference', ...
               nidm_conv('spm_partialConjunctionDegree',p),{xSPM.n,'xsd:int'}};
     end
