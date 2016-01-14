@@ -1,9 +1,10 @@
-function [R, RPV] = spm_mesh_resels(M,T,S)
+function [R, RPV] = spm_mesh_resels(M,T,S,ndf)
 % Returns the RESEL counts of a search volume on a surface mesh
 % FORMAT R = spm_mesh_resels(M,T,[S])
 % M        - a patch structure or [nx3] faces array (#faces = n)
 % T        - a [mx1] logical vector (#vertices = m) defining search volume
 % S        - a [mxp] array of standardised residuals [optional]
+% ndf      - a 2-vector, [n df], the original n & dof of the linear model
 %
 % R        - a [1xD] array of RESEL counts {adimensional}
 % RPV      - a [mx1] vector of RESELs per vertex
@@ -17,19 +18,22 @@ function [R, RPV] = spm_mesh_resels(M,T,S)
 %
 % [2] SurfStat: http://www.math.mcgill.ca/keith/surfstat/, K.J. Worsley.
 %__________________________________________________________________________
-% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_resels.m 5097 2012-12-06 16:08:16Z guillaume $
+% $Id: spm_mesh_resels.m 6678 2016-01-14 18:23:33Z guillaume $
 
 %-Parse input arguments
 %--------------------------------------------------------------------------
-if nargin < 3
+if nargin < 3 || isempty(S)
     if ~isnumeric(M)
         S = M.vertices;
     else
         S = ones(max(M(:)),2);
     end
+end
+if nargin < 4
+    ndf = [size(S,2) size(S,2)]; % Assume full df
 end
 
 if ~isnumeric(M), M = M.faces; end
@@ -51,6 +55,7 @@ E      = spm_mesh_edges(M);
 SSR    = S(E',:);
 SSR    = reshape(SSR',size(SSR,2),2,[]);
 SSR    = mean(squeeze((SSR(:,1,:) - SSR(:,2,:)).^2),1)';
+SSR    = SSR * (ndf(1)/ndf(2)); % see comment in spm_est_smoothness.m
 SSR    = sqrt(SSR);
 
 %-Lipschitz-Killing Curvature (LKC)
