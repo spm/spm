@@ -19,7 +19,7 @@ function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6676 2016-01-13 14:37:14Z guillaume $
+% $Id: spm_results_nidm.m 6677 2016-01-14 15:00:06Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -44,7 +44,7 @@ end
 gz           = '.gz'; %-Compressed NIfTI {'.gz', ''}
 coordsys     = 'nidm_MNICoordinateSystem'; %-Assuming MNI space
 NIDMversion  = '1.2.0';
-SVNrev       = '$Rev: 6676 $';
+SVNrev       = '$Rev: 6677 $';
 
 try
     units = xSPM.units;
@@ -673,9 +673,11 @@ else
             thresh_order = [2 1 3]; % uncorrected
             thresh_desc  = sprintf(': p<%f (unc.)',TabDat.ftr{1,2}(2));
         case 'FDR'
-            warning('FDR not handled.');
-            thresh_order = 1:3; % unknown
-            thresh_desc  = '';
+            thresh(3).type  = nidm_conv('obo_qValueFDR',p);
+            thresh(3).label = 'Height Threshold';
+            thresh(3).value = str2double(td.u);
+            thresh_order = [3 1 2]; % FDR
+            thresh_desc  = sprintf(': p<%s (FDR)',td.u);
         otherwise
             warning('Unkwnown threshold type.');
             thresh_order = 1:3; % unknown
@@ -780,9 +782,11 @@ if numel(xSPM.Ic) == 1
 else
     if xSPM.n == 1
         st = {'prov:type',nidm_conv('nidm_ConjunctionInference',p), ...
+              nidm_conv('nidm_hasAlternativeHypothesis',p),nidm_conv('nidm_OneTailedTest',p),...
               'prov:label','Conjunction Inference'};
     else
-        st = {'prov:type',nidm_conv('spm_PartialConjunctionInference'), ...
+        st = {'prov:type',nidm_conv('spm_PartialConjunctionInference',p), ...
+              nidm_conv('nidm_hasAlternativeHypothesis',p),nidm_conv('nidm_OneTailedTest',p),...
               'prov:label',' Partial Conjunction Inference', ...
               nidm_conv('spm_partialConjunctionDegree',p),{xSPM.n,'xsd:int'}};
     end
@@ -859,7 +863,7 @@ end
 if spm_get_defaults('stats.rft.nonstat'), rftstat = {'false','xsd:boolean'};
 else                                      rftstat = {'true','xsd:boolean'}; end
 idSearchSpace = getid('niiri:search_space_id',isHumanReadable);
-p.entity(idSearchSpace,{...
+search_space_attributes = {...
     'prov:type',nidm_conv('nidm_SearchSpaceMaskMap',p),...
     'prov:location',{uri(spm_file(files.searchspace,'cpath')),'xsd:anyURI'},...
     'nfo:fileName',{spm_file(files.searchspace,'filename'),'xsd:string'},...
@@ -878,10 +882,19 @@ p.entity(idSearchSpace,{...
     nidm_conv('nidm_expectedNumberOfClusters',p),{TabDat.ftr{4,2},'xsd:float'},...
     nidm_conv('nidm_heightCriticalThresholdFWE05',p),{xSPM.uc(1),'xsd:float'},...
     nidm_conv('nidm_heightCriticalThresholdFDR05',p),{xSPM.uc(2),'xsd:float'},...
-    nidm_conv('spm_smallestSupraThresholdClusterSizeInVoxelsFWE05',p),{xSPM.uc(3),'xsd:int'},...
-    nidm_conv('spm_smallestSupraThresholdClusterSizeInVoxelsFDR05',p),{xSPM.uc(4),'xsd:int'},...
     'crypto:sha512',{sha512sum(spm_file(files.searchspace,'cpath')),'xsd:string'},...
-    });
+    };
+if isfinite(xSPM.uc(3))
+    search_space_attributes = [search_space_attributes, {...
+        nidm_conv('spm_smallestSupraThresholdClusterSizeInVoxelsFWE05',p),{xSPM.uc(3),'xsd:int'},...
+        }];
+end
+if isfinite(xSPM.uc(4))
+    search_space_attributes = [search_space_attributes, {...
+        nidm_conv('spm_smallestSupraThresholdClusterSizeInVoxelsFDR05',p),{xSPM.uc(4),'xsd:int'},...
+        }];
+end
+p.entity(idSearchSpace,search_space_attributes);
 p.wasGeneratedBy(idSearchSpace, idInference);
 
 %-Entity: Excursion Set
