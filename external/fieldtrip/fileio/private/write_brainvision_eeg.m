@@ -27,7 +27,7 @@ function write_brainvision_eeg(filename, hdr, dat, event)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: write_brainvision_eeg.m 9732 2014-07-16 08:50:23Z roboos $
+% $Id: write_brainvision_eeg.m 11056 2016-01-13 15:55:53Z roboos $
 
 if nargin<4
   event = [];
@@ -91,7 +91,7 @@ fprintf(fid, 'DataFormat=%s\r\n',        hdr.DataFormat);
 fprintf(fid, 'DataOrientation=%s\r\n',   hdr.DataOrientation);
 fprintf(fid, 'NumberOfChannels=%d\r\n',  hdr.nChans);
 % Sampling interval in microseconds
-fprintf(fid, 'SamplingInterval=%d\r\n',  round(1e6/hdr.Fs));
+fprintf(fid, 'SamplingInterval=%d\r\n',  1e6/hdr.Fs);
 fprintf(fid, '\r\n');
 fprintf(fid, '[Binary Infos]\r\n');
 fprintf(fid, 'BinaryFormat=%s\r\n',      hdr.BinaryFormat);
