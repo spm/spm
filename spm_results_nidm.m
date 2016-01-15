@@ -19,7 +19,7 @@ function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6677 2016-01-14 15:00:06Z guillaume $
+% $Id: spm_results_nidm.m 6681 2016-01-15 13:21:00Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -44,7 +44,7 @@ end
 gz           = '.gz'; %-Compressed NIfTI {'.gz', ''}
 coordsys     = 'nidm_MNICoordinateSystem'; %-Assuming MNI space
 NIDMversion  = '1.2.0';
-SVNrev       = '$Rev: 6677 $';
+SVNrev       = '$Rev: 6681 $';
 
 try
     units = xSPM.units;
@@ -787,7 +787,7 @@ else
     else
         st = {'prov:type',nidm_conv('spm_PartialConjunctionInference',p), ...
               nidm_conv('nidm_hasAlternativeHypothesis',p),nidm_conv('nidm_OneTailedTest',p),...
-              'prov:label',' Partial Conjunction Inference', ...
+              'prov:label','Partial Conjunction Inference', ...
               nidm_conv('spm_partialConjunctionDegree',p),{xSPM.n,'xsd:int'}};
     end
 end
