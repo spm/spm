@@ -1,8 +1,8 @@
-function data = fixpnt(data, recurse)
+function data = spm_eeg_fixpnt(data, recurse)
 
 % helper function to replace pos by pnt
 
-% $Id: fixpnt.m 6682 2016-01-15 15:52:00Z vladimir $
+% $Id: spm_eeg_fixpnt.m 6682 2016-01-15 15:52:00Z vladimir $
 
 if nargin==1
   recurse = 1;
