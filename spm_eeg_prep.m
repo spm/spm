@@ -17,7 +17,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 6437 2015-05-14 12:27:21Z vladimir $
+% $Id: spm_eeg_prep.m 6686 2016-01-20 14:49:15Z vladimir $
 
 D = spm_eeg_load(S.D);
 
@@ -216,7 +216,7 @@ switch lower(S.task)
                     end
                 end
                 
-                shape = ft_read_headshape(S.sensfile);
+                shape = spm_eeg_fixpnt(ft_read_headshape(S.sensfile));
                 
                 % In case electrode file is used for fiducials, the
                 % electrodes can be used as headshape
@@ -432,7 +432,7 @@ switch lower(S.task)
                     shape.pnt = [];
                 end
             otherwise
-                shape = ft_read_headshape(S.headshapefile);
+                shape = spm_eeg_fixpnt(ft_read_headshape(S.headshapefile));
                 
                 % In case electrode file is used for fiducials, the
                 % electrodes can be used as headshape

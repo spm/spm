@@ -4,7 +4,6 @@ function res = spm_eeg_artefact_heartbeat(S)
 % fields of S:
 %    S.D                - M/EEG object
 %    S.chanind          - vector of indices of channels that this plugin will look at.
-%    S.threshold        - threshold parameter (in stdev)
 %
 %    Additional parameters can be defined specific for each plugin
 % Output:
@@ -18,7 +17,7 @@ function res = spm_eeg_artefact_heartbeat(S)
 
 % Vladimir Litvak
 % see http://fsl.fmrib.ox.ac.uk/eeglab/fmribplugin/
-% $Id: spm_eeg_artefact_heartbeat.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_eeg_artefact_heartbeat.m 6686 2016-01-20 14:49:15Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -44,7 +43,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 5592 $';
+SVNrev = '$Rev: 6686 $';
 
 %-Startup
 %--------------------------------------------------------------------------
