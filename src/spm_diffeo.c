@@ -1,4 +1,4 @@
-/* $Id: spm_diffeo.c 6137 2014-08-19 12:43:11Z john $ */
+/* $Id: spm_diffeo.c 6688 2016-01-22 16:16:38Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -138,8 +138,8 @@ static void fmg3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 
     {
      /* Penalise absolute displacements slightly in case supplied Hessian is too small.
-        Extra penalty based on value in centre of difference operator, scaled by some
-        slightly arbitrary amount.
+        Extra penalty based on sum of values in centre of difference operator, scaled
+        by some arbitrary multiple of eps('single').
       */
         double v0   = param[0]*param[0],
                v1   = param[1]*param[1],
@@ -151,7 +151,7 @@ static void fmg3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
         wx000     =  2*mu*(2*v0+v1+v2)/v0+2*lam + w000/v0;
         wy000     =  2*mu*(v0+2*v1+v2)/v1+2*lam + w000/v1;
         wz000     =  2*mu*(v0+v1+2*v2)/v2+2*lam + w000/v2;
-        param[3] += (wx000 + wy000 + wz000)*1.2e-7/3.0;
+        param[3] += (wx000 + wy000 + wz000)*1.1921e-7;
     }
 
     if (nrhs>=4)

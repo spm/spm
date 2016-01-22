@@ -1,4 +1,4 @@
-/* $Id: shoot_regularisers.c 4875 2012-08-30 20:04:30Z john $ */
+/* $Id: shoot_regularisers.c 6688 2016-01-22 16:16:38Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<mex.h>
@@ -490,7 +490,7 @@ void relax_le(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
         wy010  = 0.0;
         wz010  = 0.0;
     }
-    if (dm[1]==1)
+    if (dm[2]==1)
     {
         wx000 += 2*wx001 + 2*wy001 + 2*wz001;
         wx001  = 0.0;
@@ -1319,14 +1319,14 @@ void relax_all(mwSize dm[], float a[], float b[], double s[], int nit, float u[]
         {
             wx000 += 4*w110/v0;
             wy000 += 4*w110/v1;
-            wz000 += 2*w110/v2;
+            wz000 += 4*w110/v2;
             w110   = 0.0;
         }
         if (dm[2]==1)
         {
             wx000 += 4*w101/v0;
             wy000 += 4*w101/v1;
-            wz000 += 2*w101/v2;
+            wz000 += 4*w101/v2;
             w101   = 0.0;
         }
 
@@ -1340,7 +1340,7 @@ void relax_all(mwSize dm[], float a[], float b[], double s[], int nit, float u[]
         {
             wx000 += 4*w011/v0;
             wy000 += 4*w011/v1;
-            wz000 += 2*w011/v2;
+            wz000 += 4*w011/v2;
             w011   = 0.0;
         }
     }
@@ -1350,6 +1350,9 @@ void relax_all(mwSize dm[], float a[], float b[], double s[], int nit, float u[]
         wy000 += 2*wy001; wy001  = 0.0;
         wz000 += 2*wz001; wz001  = 0.0;
     }
+    if (wx000<0.0) wx000;
+    if (wy000<0.0) wy000;
+    if (wz000<0.0) wz000;
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
