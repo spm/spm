@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 6618 2015-12-01 16:25:38Z spm $
+ * $Id: spm_jsonread.c 6690 2016-01-25 12:32:45Z guillaume $
  * Guillaume Flandin
  */
 
@@ -140,6 +140,8 @@ static char * get_data(const mxArray * mx, size_t * jslen) {
         mexErrMsgTxt("mxArrayToString()");
     }
     *jslen = strlen(js);
+    if (*jslen == 0)
+        mexErrMsgTxt("Empty JSON.");
     
     /* detect whether input string is a filename */
     for (i = 0, filename = 1; i < *jslen; i++) {
