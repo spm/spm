@@ -268,10 +268,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 6678 2016-01-14 18:23:33Z guillaume $
+% $Id: spm_spm.m 6693 2016-01-25 19:14:47Z guillaume $
 
 
-SVNid = '$Rev: 6678 $';
+SVNid = '$Rev: 6693 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -329,6 +329,11 @@ if spm_mesh_detect(VY)
     file_ext = '.gii';
     g        = VY(1).private;
     metadata = {g.private.metadata(1).name, g.private.metadata(1).value};
+    try
+        metadata{1} = genvarname(metadata{1});
+    catch
+        metadata{1} = matlab.lang.makeValidName(metadata{1});
+    end
 else
     file_ext = spm_file_ext;
     metadata = {};

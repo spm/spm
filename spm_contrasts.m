@@ -11,7 +11,7 @@ function SPM = spm_contrasts(SPM,Ic)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Will Penny & Guillaume Flandin
-% $Id: spm_contrasts.m 6490 2015-06-26 11:51:46Z guillaume $
+% $Id: spm_contrasts.m 6693 2016-01-25 19:14:47Z guillaume $
 
 
 % Temporary copy of the SPM variable, to avoid saving it in SPM.mat unless
@@ -57,6 +57,11 @@ if spm_mesh_detect(Vbeta)
     file_ext = '.gii';
     g        = SPM.xY.VY(1).private;
     metadata = {g.private.metadata(1).name, g.private.metadata(1).value};
+    try
+        metadata{1} = genvarname(metadata{1});
+    catch
+        metadata{1} = matlab.lang.makeValidName(metadata{1});
+    end
 else
     file_ext = spm_file_ext;
     metadata = {};
