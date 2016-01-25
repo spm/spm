@@ -63,7 +63,7 @@ for i=1:nFid % loop over fiducials
   switch hdr.orig.dig(i).kind % constants defined in MNE - see p.215 of MNE manual
     case 1 % Cardinal point (Nasion, LPA or RPA)
       % get location of fiducial:
-      hc.head.pnt(pntN,1:3) = hdr.orig.dig(i).r*100; % multiply by 100 to convert to cm
+      hc.head.pos(pntN,1:3) = hdr.orig.dig(i).r*100; % multiply by 100 to convert to cm
       switch hdr.orig.dig(i).ident
         case 1 % LPA
           hc.head.label{pntN} = 'LPA';
@@ -77,17 +77,17 @@ for i=1:nFid % loop over fiducials
       pntN = pntN + 1;
       
     case 2 % HPI coil (up to 5)
-      hc.head.pnt(pntN,1:3) = hdr.orig.dig(i).r*100;
+      hc.head.pos(pntN,1:3) = hdr.orig.dig(i).r*100;
       hc.head.label{pntN} = strcat('hpi_', num2str(hdr.orig.dig(i).ident));
       pntN = pntN + 1;
       
     case 3 % EEG electrode location (or ECG)
-      hc.head.pnt(pntN,1:3) = hdr.orig.dig(i).r*100;
+      hc.head.pos(pntN,1:3) = hdr.orig.dig(i).r*100;
       hc.head.label{pntN} = strcat('eeg_', num2str(hdr.orig.dig(i).ident));
       pntN = pntN + 1;
       
     case 4 % Additional head point
-      hc.head.pnt(pntN,1:3) = hdr.orig.dig(i).r*100;
+      hc.head.pos(pntN,1:3) = hdr.orig.dig(i).r*100;
       hc.head.label{pntN} = strcat('extra_', num2str(hdr.orig.dig(i).ident));
       pntN = pntN + 1;
       
@@ -129,7 +129,7 @@ for i=1:nFid % loop over fiducials
   switch hdr.orig.dig(i).kind % constants defined in MNE - see p.215 of MNE manual
     case 1 % Cardinal point (Nasion, LPA or RPA)
       % get location of fiducial:
-      hc.dewar.pnt(pntN,1:3) = hdr.orig.dig(i).r*100; % multiply by 100 to convert to cm
+      hc.dewar.pos(pntN,1:3) = hdr.orig.dig(i).r*100; % multiply by 100 to convert to cm
       switch hdr.orig.dig(i).ident
         case 1 % LPA
           hc.dewar.label{pntN} = 'LPA';
@@ -143,17 +143,17 @@ for i=1:nFid % loop over fiducials
       pntN = pntN + 1;
       
     case 2 % HPI coil (up to 5)
-      hc.dewar.pnt(pntN,1:3) = hdr.orig.dig(i).r*100;
+      hc.dewar.pos(pntN,1:3) = hdr.orig.dig(i).r*100;
       hc.dewar.label{pntN} = strcat('hpi_', num2str(hdr.orig.dig(i).ident));
       pntN = pntN + 1;
       
     case 3 % EEG electrode location (or ECG)
-      hc.dewar.pnt(pntN,1:3) = hdr.orig.dig(i).r*100;
+      hc.dewar.pos(pntN,1:3) = hdr.orig.dig(i).r*100;
       hc.dewar.label{pntN} = strcat('eeg_', num2str(hdr.orig.dig(i).ident));
       pntN = pntN + 1;
       
     case 4 % Additional head point
-      hc.dewar.pnt(pntN,1:3) = hdr.orig.dig(i).r*100;
+      hc.dewar.pos(pntN,1:3) = hdr.orig.dig(i).r*100;
       hc.dewar.label{pntN} = strcat('extra_', num2str(hdr.orig.dig(i).ident));
       pntN = pntN + 1;
       
