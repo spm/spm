@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mesh_utils.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: spm_mesh_utils.c 6694 2016-01-26 17:09:11Z guillaume $
  * Guillaume Flandin
  */
 
@@ -83,7 +83,7 @@ void mexFunctionVolume(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[
 /* Gateway Function for Neighbours */
 void mexFunctionNeighbours(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    mwSize i, j, k, n, d = 0;
+    mwSize i, j, k, l, n, d = 0;
     mwIndex *Ir = NULL, *Jc = NULL;
     double *N = NULL, *D = NULL, *pr = NULL;
     
@@ -91,14 +91,14 @@ void mexFunctionNeighbours(int nlhs, mxArray *plhs[], int nrhs, const mxArray *p
     if (nrhs > 1) mexErrMsgTxt("Too many input arguments.");
     if (!mxIsSparse(prhs[0])) mexErrMsgTxt("First argument must be a sparse array.");
 
-    plhs[0] = mxCreateDoubleMatrix(mxGetM(prhs[0]), d, mxREAL);
+    n = mxGetM(prhs[0]);
+    plhs[0] = mxCreateDoubleMatrix(n, d, mxREAL);
     N = mxGetPr(plhs[0]);
     if (nlhs > 1) {
-        plhs[1] = mxCreateDoubleMatrix(mxGetM(prhs[0]), d, mxREAL);
+        plhs[1] = mxCreateDoubleMatrix(n, d, mxREAL);
         D = mxGetPr(plhs[1]);
     }
     
-    n  = mxGetM(prhs[0]);
     Ir = mxGetIr(prhs[0]);
     Jc = mxGetJc(prhs[0]);
     pr = mxGetPr(prhs[0]);
@@ -106,8 +106,17 @@ void mexFunctionNeighbours(int nlhs, mxArray *plhs[], int nrhs, const mxArray *p
     for (i=0;i<n;i++) {
         k = Jc[i+1]-Jc[i];
         if (k > d) {
-            d = k; N = mxRealloc(N, mxGetM(prhs[0])*d*sizeof(double));
-            if (nlhs > 1) D = mxRealloc(D, mxGetM(prhs[0])*d*sizeof(double));
+            N = mxRealloc(N, n*k*sizeof(double));
+            for (j=d;j<k;j++)
+                for (l=0;l<n;l++)
+                    N[l+n*j] = 0;
+            if (nlhs > 1) {
+                D = mxRealloc(D, n*k*sizeof(double));
+                for (j=d;j<k;j++)
+                    for (l=0;l<n;l++)
+                        D[l+n*j] = 0;
+            }
+            d = k;
         }
         for (j=0;j<k;j++) N[i+n*j] = 1 + *Ir++;
         if (nlhs > 1)
