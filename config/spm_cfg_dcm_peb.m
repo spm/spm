@@ -55,73 +55,7 @@ subj.tag  = 'subj';
 subj.name = 'Subject';
 subj.val  = {dcmmat};
 subj.help = {'Subject with one or more models.'};
-
-% -------------------------------------------------------------------------
-% multiple_models Create set of subjects
-%--------------------------------------------------------------------------
-subjects        = cfg_repeat;
-subjects.tag    = 'subjects';
-subjects.name   = 'Select multiple models per subject';
-subjects.values = {subj};
-subjects.help   = {'Create the subjects and select the models for each'};
-subjects.num    = [1 Inf];
-
-% -------------------------------------------------------------------------
-% models Select models (one per subject)
-%--------------------------------------------------------------------------
-models      = cfg_branch;
-models.tag  = 'models';
-models.name = 'Select one model per subject';
-models.val  = {dcmmat};
-models.help = {'Models - one per subject.'};
-
-% -------------------------------------------------------------------------
-% way Choice of ways to select DCMs (full model)
-%--------------------------------------------------------------------------
-full      = cfg_branch;
-full.tag  = 'full';
-full.name = 'Full model';
-full.val  = {dcmmat};
-full.help = {'Select a DCM for each subject. The DCMs are ''full'' in ' ...
-             'the sense that all connections of interest are enabled.'};
-              
-% ---------------------------------------------------------------------
-% nested_none No nested models
-% ---------------------------------------------------------------------
-nested_none         = cfg_branch;
-nested_none.tag     = 'none';
-nested_none.name    = 'None';
-nested_none.val     = {};
-nested_none.help    = {'No nested models - just a full model for each subject'};
-            
-% -------------------------------------------------------------------------
-% way Choice of ways to select DCMs (nested models)
-%--------------------------------------------------------------------------
-nested        = cfg_choice;
-nested.tag    = 'nested';
-nested.name   = 'Nested models';
-nested.values = {nested_none models subjects};
-nested.val    = {nested_none};
-nested.help   = {['Select any additional models for each subject. These ' ...
-                  'should be nested or reduced or forms of the full model - ' ...
-                  'i.e. with certain connections disabled'] ...
-                 ['Select one nested model per subject, or select multiple ' ...
-                  'nested models for each subject. This choice is provided '...
-                  'to ease setup - the analysis is the same.']};
-
-% ---------------------------------------------------------------------
-% preload Choice of whether to pre-load DCMs
-% ---------------------------------------------------------------------
-preload = cfg_menu;
-preload.tag    = 'preload';
-preload.name   = 'Pre-load DCMs';
-preload.labels = {'Yes','No'};
-preload.values = {1,0};
-preload.val    = {1};
-preload.help   = {'If Yes, then all DCMs will be loaded into the ' ...
-                  'model space file. If No, the model space file will ' ...
-                  'link to the DCMs'' original filenames'};
-
+    
 % -------------------------------------------------------------------------
 % pebmat Select PEB_*.mat
 % -------------------------------------------------------------------------
@@ -243,12 +177,14 @@ covariates.tag     = 'cov';
 covariates.name    = 'Covariates';
 covariates.values  = { cov_none design_mtx regressors };
 covariates.help    = {['Specify between-subjects effects (covariates). The ' ...
-                      'PEB model will have parameters representing the ' ...
-                      'influence of each effect on each connection. The ' ...
                       'covariates may be entered all at once as a design ' ...
-                      'matrix or individually.'] ...
-                      'If none is set, only the group mean will be '...
-                      'estimated.'};               
+                      'matrix or individually. Note that if performing ' ...
+                      'bayesian model comparison, only the first covariate ' ...
+                      'will be treated as being of experimental interest.'] '' ...                      
+                      ['Each parameter in the estimated PEB model will ' ...
+                      'represent the influence of a covariate on a ' ...
+                      'connection. If none is set, only the group mean will '...
+                      'be estimated.']};
 covariates.val    = {cov_none};
     
 % =========================================================================
@@ -277,8 +213,8 @@ field_all.val = {'All fields'};
 field_entry  = cfg_entry;
 field_entry.name = 'Enter manually';
 field_entry.tag  = 'field_entry';
-field_entry.help = {'Enter the fields in curly brackets eg {''A'',''C''}'};
-field_entry.strtype = 's';
+field_entry.help = {'Enter the fields e.g. A or A,C'};
+field_entry.strtype = 'e';
 field_entry.num     = [0 Inf];
 
 % ---------------------------------------------------------------------
@@ -293,7 +229,27 @@ fields.help   = {'Select the fields of the DCM to include in the model.' '' ...
                   'All: Includes all fields' ...
                   'Enter manually: Enter a cell array e.g. {''A'',''C''}'};
 fields.val    = {field_default};
+                       
+% =========================================================================
+% Bayesian Model Comparison selection
+% =========================================================================
 
+bmc         = cfg_menu;
+bmc.tag     = 'bmc';
+bmc.name    = 'Bayesian Model Comparison';
+bmc.labels  = {'Yes','No'};
+bmc.values  = {1,0};
+bmc.val     = {1};
+bmc.help    = {['If set to Yes, a comparison is performed to identify which ' ...
+                'first level DCM best explains between-subjects effects. '...
+                'If set to No, a PEB model for each DCM is simply '...
+                'returned'] '' ...
+               ['The comparison works by estimating a PEB model for each ' ...
+                'DCM and each combination of second level covariates. '...
+                'The PEB with the greatest evidence over the joint ' ...
+                'space of first and second-level models is returned.']};
+
+            
 % =========================================================================
 % Priors on log precision (between-subjects variability) entry
 % =========================================================================
@@ -355,7 +311,7 @@ priors_parameters_ratio.help = {['Within:between variance ratio. This ratio ' ..
     'our uncertainty about connection strengths at the first level.'] '' ...
     ['Specifically, the diagonal of each precision component matrix (M.pC) ' ...
     'is set to the prior variance of the second-level parameters (M.bC) ' ...
-    'divided by this ratio (M.beta).']};
+    'divided by the ratio set here (M.beta).']};
 priors_parameters_ratio.strtype = 'r';
 priors_parameters_ratio.num     = [1 1];
 priors_parameters_ratio.val     = {16};
@@ -381,37 +337,13 @@ priors_between.help    = {['Between-subjects variability over second-' ...
       'a hyper-parameter, which is estimated from the data. The prior ' ...
       'expectation and uncertainty of these hyper-parameters are also '...
       'set below.']};
-                       
-% =========================================================================
-% Priors on second level parameters entry
-% =========================================================================
-
-% ---------------------------------------------------------------------
-% priors_parameters_from_dcm Priors on second level parameters
-% ---------------------------------------------------------------------
-priors_parameters_from_dcm       = cfg_branch;
-priors_parameters_from_dcm.tag   = 'priors_parameters_from_dcm';
-priors_parameters_from_dcm.name  = 'From first level';
-priors_parameters_from_dcm.val   = { };                             
-priors_parameters_from_dcm.help = {['The connection parameters ' ...
-    'at the second level are assigned the same prior expectation (M.bE) '...
-    'and uncertainty (M.bC) as the first level parameters.']};
-
-% ---------------------------------------------------------------------
-% priors_parameters Priors on second level parameters
-% ---------------------------------------------------------------------
-priors_parameters         = cfg_branch;
-priors_parameters.tag     = 'priors_parameters';
-priors_parameters.name    = 'Second-level parameters';
-priors_parameters.val     = { priors_parameters_from_dcm };                             
-priors_parameters.help    = priors_parameters_from_dcm.help;
 
 % ---------------------------------------------------------------------
 % show_review Select whether to review results
 % ---------------------------------------------------------------------
 show_review  = cfg_menu;
 show_review.tag    = 'show_review';
-show_review.name   = 'Review results';
+show_review.name   = 'Review PEB results';
 show_review.labels = {'Yes','No'};
 show_review.values = {1,0};
 show_review.val    = {1};
@@ -427,7 +359,7 @@ specify      = cfg_exbranch;
 specify.tag  = 'peb_specify';
 specify.name = 'Specify / Estimate PEB';
 specify.val  = { name model_space_mat covariates fields ...
-                 priors_parameters priors_between show_review };
+                 bmc priors_between show_review };
 specify.help = {'Specifies and estimates a second-level DCM (PEB) model.'};
 specify.prog = @spm_run_create_peb;
 
@@ -449,9 +381,9 @@ review.val  = { pebmat model_space_mat_op };
 review.help = {'Reviews PEB results'};
 review.prog = @spm_run_dcm_peb_review;
 
-% -------------------------------------------------------------------------
+% =========================================================================
 % second_level Second level DCM batch
-% -------------------------------------------------------------------------
+% =========================================================================
 second_level         = cfg_choice; 
 second_level.tag     = 'PEB';
 second_level.name    = 'Second level';
@@ -551,16 +483,26 @@ M.X      = X;
 M.Xnames = Xnames;
 
 % Specify / estimate
-PEB = spm_dcm_peb(GCM,M,field);
-
-% Write
-dir_out  = fileparts(job.model_space_mat{1});
-name     = job.name;
-filename = fullfile(dir_out,['PEB_' name '.mat']);
-save(filename,'PEB');
-
-% Review
-if job.show_review == 1
-    spm_dcm_peb_review(filename,GCM);
+run_bmc = (job.bmc == 1);
+dir_out = fileparts(job.model_space_mat{1});
+name    = job.name;
+    
+if run_bmc
+    [BMC,PEB] = spm_dcm_bmc_peb(GCM,M,field);
+    
+    % Write BMC
+    bmc_filename = fullfile(dir_out,['BMC_' name '.mat']);
+    save(bmc_filename,'BMC');    
+else
+    PEB = spm_dcm_peb(GCM,M,field);
 end
-out = filename;
+
+% Write PEB
+peb_filename = fullfile(dir_out,['PEB_' name '.mat']);
+save(peb_filename,'PEB');
+
+% Review PEB
+if job.show_review == 1
+    spm_dcm_peb_review(peb_filename,GCM);
+end
+out = peb_filename;

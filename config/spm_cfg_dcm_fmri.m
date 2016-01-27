@@ -4,7 +4,7 @@ function fmri = spm_cfg_dcm_fmri
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_fmri.m 6695 2016-01-27 10:51:26Z peter $
+% $Id: spm_cfg_dcm_fmri.m 6698 2016-01-27 15:56:50Z peter $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -122,19 +122,29 @@ subj.help = {'Subject with one or more models.'};
 %--------------------------------------------------------------------------
 subjects        = cfg_repeat;
 subjects.tag    = 'subjects';
-subjects.name   = 'Select multiple models per subject';
+subjects.name   = 'Per subject';
 subjects.values = {subj};
 subjects.help   = {'Create the subjects and select the models for each'};
 subjects.num    = [1 Inf];
 
 % -------------------------------------------------------------------------
-% models Select models (one per subject)
+% subj Create single model
 %--------------------------------------------------------------------------
-models      = cfg_branch;
-models.tag  = 'models';
-models.name = 'Select one model per subject';
-models.val  = {dcmmat};
-models.help = {'Models - one per subject.'};
+model      = cfg_branch;
+model.tag  = 'model';
+model.name = 'Model';
+model.val  = {dcmmat};
+model.help = {'Corresponding model for each subject'};
+
+% -------------------------------------------------------------------------
+% subjects Create set of models
+%--------------------------------------------------------------------------
+models        = cfg_repeat;
+models.tag    = 'models';
+models.name   = 'Per model';
+models.values = {model};
+models.help   = {'Select DCM.mat files per model'};
+models.num    = [1 Inf];
 
 % -------------------------------------------------------------------------
 % output_single Output one .mat file for the group
@@ -290,11 +300,20 @@ EST_NONE         = 4;
 dcms = job.dcms;
 
 % Build subjects x models filename matrix
-if isfield(dcms,'models')
-    P = dcms.models.dcmmat;
-    ns = size(P,1);
-    nm = 1;
+if isfield(dcms,'model')
+    ns = length(dcms.model(1).dcmmat);
+    nm = length(dcms.model);
+    P  = cell(ns,nm);
+    
+    for m = 1:nm
+        if length(dcms.model(m).dcmmat) ~= ns
+            error(['Please ensure all models have the same number of ' ... 
+                   'subjects']);
+        end
         
+        P(:,m) = dcms.model(m).dcmmat;
+    end
+    
     % Load all models into memory
     GCM = spm_dcm_load(P);    
     
