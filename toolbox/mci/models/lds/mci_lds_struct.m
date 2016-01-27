@@ -19,10 +19,10 @@ function [M,U,names] = mci_lds_struct (M)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_lds_struct.m 6548 2015-09-11 12:39:47Z will $
+% $Id: mci_lds_struct.m 6697 2016-01-27 14:57:28Z spm $
 
 d=M.d;
-try R=M.R; catch R=ones(d,1); end
+try, R=M.R; catch, R=ones(d,1); end
 
 M.N=length(M.t);
 M.T=M.t(end);

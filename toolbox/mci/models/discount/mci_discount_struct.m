@@ -10,10 +10,10 @@ function [M,U] = mci_discount_struct (Nobs)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: mci_discount_struct.m 6548 2015-09-11 12:39:47Z will $
+% $Id: mci_discount_struct.m 6697 2016-01-27 14:57:28Z spm $
 
 % Number of data points
-try T=Nobs; catch T=100; end
+try, T=Nobs; catch, T=100; end
 
 % Set rewards
 rmax=70; % maximum reward (pounds)

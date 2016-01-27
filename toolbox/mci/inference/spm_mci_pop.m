@@ -51,7 +51,7 @@ function [P,logev,D,M] = spm_mci_pop (mcmc,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_pop.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_pop.m 6697 2016-01-27 14:57:28Z spm $
 
 Nm=length(M);
 if Nm>1
@@ -147,7 +147,7 @@ for j=1:J,
         xinit=mcmc.init{j};
     else
         % Drawn from prior
-        if model_switch & isfield(M{1},'Ep')
+        if model_switch && isfield(M{1},'Ep')
             xinit=(1-beta(j))*M{1}.Ep+beta(j)*M{2}.Ep;
         else
             xinit=spm_normrnd(M{1}.vpE,M{1}.pC,1);
@@ -294,7 +294,7 @@ for i=2:Ntot,
                 P{jsel}.last_update=0;
             end
             
-        elseif i>nscale*J & i < (ntune+nscale)*J
+        elseif i>nscale*J && i < (ntune+nscale)*J
             % Step 2 - tune
             if P{jsel}.scaled==0
                 if verbose

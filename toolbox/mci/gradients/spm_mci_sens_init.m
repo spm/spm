@@ -23,14 +23,14 @@ function [y,sy,st] = spm_mci_sens_init (R,P,M,U)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_sens_init.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_sens_init.m 6697 2016-01-27 14:57:28Z spm $
 
 y=[];sy=[];x=[];sx=[];
 st=0;
 
 % Tolerances for ode15s 
-try tol.rel=M.reltol; catch tol.rel=1e-2; end
-try tol.abs=M.abstol; catch tol.abs=1e-4; end
+try, tol.rel=M.reltol; catch, tol.rel=1e-2; end
+try, tol.abs=M.abstol; catch, tol.abs=1e-4; end
 
 if isempty(U)
     U=zeros(1,M.N);

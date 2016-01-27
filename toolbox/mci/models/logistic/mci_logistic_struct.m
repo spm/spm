@@ -12,9 +12,9 @@ function [M,U,Y] = mci_logistic_struct (log_data,T)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_logistic_struct.m 6548 2015-09-11 12:39:47Z will $
+% $Id: mci_logistic_struct.m 6697 2016-01-27 14:57:28Z spm $
 
-try T=T; catch T=100; end
+try, T=T; catch, T=100; end
 
 switch log_data,
     % Data is from Brian Ripley's archive

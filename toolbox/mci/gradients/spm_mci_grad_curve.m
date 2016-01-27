@@ -15,7 +15,7 @@ function [dLdp,iCpY,st] = spm_mci_grad_curve (assign,w,v,M,U,Y,fxtype)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_grad_curve.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_grad_curve.m 6697 2016-01-27 14:57:28Z spm $
 
 % Extract init and flow params from rfx or ffx vectors
 [p_init,p_flow] = spm_mci_init_flow (assign,w,v,M);
@@ -56,7 +56,7 @@ else
 end
 
 % Read data points and time indices
-try ind=Y.ind; catch ind=1:M.N; end
+try, ind=Y.ind; catch, ind=1:M.N; end
 Nt=length(ind);
 y=Y.y;
 

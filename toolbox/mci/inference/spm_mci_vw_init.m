@@ -14,10 +14,10 @@ function [w_init,v_init,assign,update_ffx,update_rfx] = spm_mci_vw_init (MCI)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_vw_init.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_vw_init.m 6697 2016-01-27 14:57:28Z spm $
 
 assign=MCI.assign;
-try fixed=MCI.fixed; catch fixed=[]; end
+try, fixed=MCI.fixed; catch, fixed=[]; end
 S=MCI.S;
 
 Np=length(spm_vec(MCI.M{1}.pE));

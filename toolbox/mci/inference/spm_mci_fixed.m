@@ -17,13 +17,13 @@ function [Psamp,noise,M] = spm_mci_fixed (mcmc,w,fixed,noise,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_fixed.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_fixed.m 6697 2016-01-27 14:57:28Z spm $
 
-try verbose=mcmc.verbose; catch verbose=0; end
-try maxits=mcmc.maxits; catch maxits=64; end
-try plot_int=mcmc.plot_int; catch plot_int=1; end
-try update_obs_step=mcmc.update_obs_step; catch update_obs_step=64; end
-try h=mcmc.h; catch h=0.5; end 
+try, verbose=mcmc.verbose; catch, verbose=0; end
+try, maxits=mcmc.maxits; catch, maxits=64; end
+try, plot_int=mcmc.plot_int; catch, plot_int=1; end
+try, update_obs_step=mcmc.update_obs_step; catch, update_obs_step=64; end
+try, h=mcmc.h; catch, h=0.5; end 
 
 assign=mcmc.assign;
 
@@ -40,7 +40,7 @@ for n=1:N
     M{n}.iCe = inv(M{n}.Ce);
 end
     
-try init=mcmc.init; catch init=fixed.vpE; end
+try, init=mcmc.init; catch, init=fixed.vpE; end
 xinit = init;
 x = zeros(maxits,Np);
 x(1,:) = xinit';       
@@ -56,15 +56,15 @@ total_acc_target=64; % Number of accepted samples to get
 acc=zeros(maxits,1);
 
 i=1;
-while (i < maxits) & (sum(acc) < total_acc_target),
+while (i < maxits) && (sum(acc) < total_acc_target),
     
     if verbose
-        if mod(i,plot_int) == 0 & i > 2
+        if mod(i,plot_int) == 0 && i > 2
             spm_mci_progress (x,E,i);
         end
     end
     
-    if mod(i,acc_block)==0 & tune_h
+    if mod(i,acc_block)==0 && tune_h
         % Change step size h ?
         Nacc=sum(acc(i-acc_block+1:i-1));
         prop_acc=Nacc/acc_block;

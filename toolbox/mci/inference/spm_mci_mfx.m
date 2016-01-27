@@ -42,16 +42,16 @@ function [MCI] = spm_mci_mfx (MCI)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mci_mfx.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_mfx.m 6697 2016-01-27 14:57:28Z spm $
 
-try verbose=MCI.verbose; catch verbose=0; end
-try inference=MCI.inference; catch inference='lgv'; end
+try, verbose=MCI.verbose; catch, verbose=0; end
+try, inference=MCI.inference; catch, inference='lgv'; end
 
 % Update observation noise ?
-try update_obs_noise=MCI.update_obs_noise; catch update_obs_noise=1; end
+try, update_obs_noise=MCI.update_obs_noise; catch, update_obs_noise=1; end
 
-try total_its=MCI.total_its; catch total_its=1024; end
-try rinit=MCI.rinit; catch rinit=0.25; end
+try, total_its=MCI.total_its; catch, total_its=1024; end
+try, rinit=MCI.rinit; catch, rinit=0.25; end
 
 rfx_its=2;
 mfx_its=ceil((1-rinit)*total_its);
@@ -172,7 +172,7 @@ for it=1:mfx_its,
     end
     
     % Update observation noise precision
-    if update_obs_noise & gauss_noise
+    if update_obs_noise && gauss_noise
         if verbose, disp('Updating observation noise precision'); end
         [noise,M] = spm_mci_obsnoise (w,[],[],noise,M,U,Y);
     end

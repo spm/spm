@@ -15,10 +15,10 @@ function [y] = spm_mci_quantiles (post,j,q3,expP)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_quantiles.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_quantiles.m 6697 2016-01-27 14:57:28Z spm $
 
-try plotq=q3; catch plotq=1; end
-try expP=expP; catch expP=0; end
+try, plotq=q3; catch, plotq=1; end
+try, expP=expP; catch, expP=0; end
 
 q = [.025 .5 .975];
 N = length(q);

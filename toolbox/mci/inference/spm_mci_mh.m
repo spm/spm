@@ -19,13 +19,13 @@ function [P,L,D] = spm_mci_mh (mcmc,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_mh.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_mh.m 6697 2016-01-27 14:57:28Z spm $
 
 % Compute eigen-parameterisation
 M = spm_mci_minit (M);
 V  = M.V;
 
-try init=mcmc.init; catch init=M.vpE; end
+try, init=mcmc.init; catch, init=M.vpE; end
 
 % Initialise proposal covariance
 Cprop=V'*mcmc.Cprop*V;

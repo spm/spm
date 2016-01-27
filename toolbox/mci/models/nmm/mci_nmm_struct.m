@@ -12,12 +12,12 @@ function [M,U] = mci_nmm_struct (back,sd,Np)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: mci_nmm_struct.m 6548 2015-09-11 12:39:47Z will $
+% $Id: mci_nmm_struct.m 6697 2016-01-27 14:57:28Z spm $
 
-if nargin < 1 | isempty(back)
+if nargin < 1 || isempty(back)
     back=1; 
 end
-try lambda=1/(sd^2); catch lambda=10000; end
+try, lambda=1/(sd^2); catch, lambda=10000; end
 
 M.Nr=2;
 

@@ -15,9 +15,9 @@ function [x,pnum,pgauss] = spm_mci_postslices (post,M,U,Y,Nbins)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_postslices.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_postslices.m 6697 2016-01-27 14:57:28Z spm $
 
-try Nbins=Nbins; catch Nbins=50; end
+try, Nbins=Nbins; catch, Nbins=50; end
 
 k=5; % Defines width of domain in number of SDs
 

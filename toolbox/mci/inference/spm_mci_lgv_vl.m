@@ -33,13 +33,13 @@ function [M,stats] = spm_mci_lgv_vl (mcmc,M,U,Y,vl,beta)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_lgv_vl.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_lgv_vl.m 6697 2016-01-27 14:57:28Z spm $
 
 % Defaults
-try verbose=mcmc.verbose; catch verbose=0; end
-try maxits=mcmc.maxits; catch maxits=64; end
-try h=mcmc.h; catch h=0.5; end 
-try init=mcmc.init; catch init=spm_vec(M.pE); end
+try, verbose=mcmc.verbose; catch, verbose=0; end
+try, maxits=mcmc.maxits; catch, maxits=64; end
+try, h=mcmc.h; catch, h=0.5; end 
+try, init=mcmc.init; catch, init=spm_vec(M.pE); end
 
 % Compute eigen-parameterisation
 M = spm_mci_minit (M);

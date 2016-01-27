@@ -21,10 +21,10 @@ function [pstat,mu,nse,batch] = spm_mci_stat (post,nbatch,method)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_stat.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_stat.m 6697 2016-01-27 14:57:28Z spm $
 
-try meth=method; catch meth='ar1'; end
-try Nb=nbatch; catch Nb=6; end
+try, meth=method; catch, meth='ar1'; end
+try, Nb=nbatch; catch, Nb=6; end
 Ns=size(post.P,2);
 
 % Define batches
@@ -81,10 +81,10 @@ function [y,f]=spectrum(x,nfft,nw)
 %SPECTRUM Power spectral density using Hanning window
 %  [y,f]=spectrum(x,nfft,nw) 
 
-if nargin < 2 | isempty(nfft)
+if nargin < 2 || isempty(nfft)
   nfft = min(length(x),256);
 end
-if nargin < 3 | isempty(nw)
+if nargin < 3 || isempty(nw)
   nw = fix(nfft/4);
 end
 noverlap = fix(nw/2);

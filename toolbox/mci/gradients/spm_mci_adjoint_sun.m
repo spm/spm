@@ -22,10 +22,10 @@ function [dLdp] = spm_mci_adjoint_sun (Pr,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_adjoint_sun.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_adjoint_sun.m 6697 2016-01-27 14:57:28Z spm $
 
-try backint=M.backint; catch backint=1; end
-try adjlike=M.adjlike; catch adjlike=0; end
+try, backint=M.backint; catch, backint=1; end
+try, adjlike=M.adjlike; catch, adjlike=0; end
 
 % Tolerances 
 tol_scale = 1e-3;

@@ -43,18 +43,18 @@ function [M,stats] = spm_mci_lgv (mcmc,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_lgv.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_lgv.m 6697 2016-01-27 14:57:28Z spm $
 
 % Defaults
-try verbose=mcmc.verbose; catch verbose=0; end
-try maxits=mcmc.maxits; catch maxits=64; end
-try restart=mcmc.restart; catch restart=0; end
-try plot_int=mcmc.plot_int; catch plot_int=1; end
-try update_obs_noise=mcmc.update_obs_noise; catch update_obs_noise=1; end
-try update_obs_step=mcmc.update_obs_step; catch update_obs_step=maxits/2; end
-try h=mcmc.h; catch h=0.5; end 
-try adapt_h=mcmc.adapt_h; catch adapt_h=0; end
-try init=mcmc.init; catch init=spm_vec(M.pE); end
+try, verbose=mcmc.verbose; catch, verbose=0; end
+try, maxits=mcmc.maxits; catch, maxits=64; end
+try, restart=mcmc.restart; catch, restart=0; end
+try, plot_int=mcmc.plot_int; catch, plot_int=1; end
+try, update_obs_noise=mcmc.update_obs_noise; catch, update_obs_noise=1; end
+try, update_obs_step=mcmc.update_obs_step; catch, update_obs_step=maxits/2; end
+try, h=mcmc.h; catch, h=0.5; end 
+try, adapt_h=mcmc.adapt_h; catch, adapt_h=0; end
+try, init=mcmc.init; catch, init=spm_vec(M.pE); end
 
 % Observation noise
 Ny=size(Y,2);
@@ -92,12 +92,12 @@ i=1; Ce=[];
 while (i <= maxits),
     
     if verbose
-        if mod(i,plot_int) == 0 & i > 2
+        if mod(i,plot_int) == 0 && i > 2
             spm_mci_progress (x,E,i);
         end
     end
 
-    if mod(i,acc_block)==0 & adapt_h
+    if mod(i,acc_block)==0 && adapt_h
         % Change step size h ?
         Nacc=sum(acc(i-acc_block+1:i-1));
         prop_acc=Nacc/acc_block;
@@ -122,8 +122,7 @@ while (i <= maxits),
     prop.pos=pos;
     [j,iCpY,st,prop.L,prop.L2] = spm_mci_joint_grad (pos,M,U,Y);
     if st==-1
-        disp('Integration problem in spm_mci_lgv.m');
-        keyboard
+        error('Integration problem in spm_mci_lgv.m');
     end
     % Posterior covariance under local linear approximation
     prop.Cp = h*inv(iCpY+M.ipC);
@@ -143,9 +142,9 @@ while (i <= maxits),
     x(i,:)=curr.pos;
     
     % Update observation noise
-    if (i > update_obs_step & update_obs_noise) | (restart & update_obs_noise)
+    if (i > update_obs_step && update_obs_noise) || (restart && update_obs_noise)
         if verbose, disp('Updating observation noise'); end
-        try ind=Y.ind; catch ind=1:M.N; end
+        try, ind=Y.ind; catch, ind=1:M.N; end
         % Parameters in original space
         xorg = M.V*x(i,:)'+M.vpE;
         if isfield(M,'IS')

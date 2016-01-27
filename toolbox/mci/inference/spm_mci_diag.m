@@ -16,15 +16,15 @@ function [mess] = spm_mci_diag (post,diag)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_diag.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_diag.m 6697 2016-01-27 14:57:28Z spm $
 
 Ns=size(post.P,2);
-try traceplot=diag.traceplot; catch traceplot=1; end
-try autoplot=diag.autoplot; catch autoplot=0; end
-try essplot=diag.essplot; catch essplot=0; end
-try eplot=diag.eplot; catch eplot=1; end
-try bplot=diag.bplot; catch bplot=1; end
-try ind=diag.ind; catch ind=[1:Ns]; end
+try, traceplot=diag.traceplot; catch, traceplot=1; end
+try, autoplot=diag.autoplot; catch, autoplot=0; end
+try, essplot=diag.essplot; catch, essplot=0; end
+try, eplot=diag.eplot; catch, eplot=1; end
+try, bplot=diag.bplot; catch, bplot=1; end
+try, ind=diag.ind; catch, ind=[1:Ns]; end
 
 P=post.P(:,ind);
 
@@ -67,7 +67,7 @@ if bplot
         ylabel('dL');
     end
     
-    if isfield(post,'dL') & isfield(post,'bayes_fb')
+    if isfield(post,'dL') && isfield(post,'bayes_fb')
         subplot(2,2,2);
         semilogx(post.dL(j)-post.bayes_fb(j),'k');
         set(gca,'FontSize',16);

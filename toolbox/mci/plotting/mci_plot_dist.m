@@ -15,9 +15,9 @@ function [] = mci_plot_dist (dist,j,xlims)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: mci_plot_dist.m 6548 2015-09-11 12:39:47Z will $
+% $Id: mci_plot_dist.m 6697 2016-01-27 14:57:28Z spm $
 
-try ks=dist.ks; catch ks=1; end
+try, ks=dist.ks; catch, ks=1; end
 
 if nargin > 2
     limits=1;

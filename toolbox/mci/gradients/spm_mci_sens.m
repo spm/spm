@@ -25,18 +25,18 @@ function [y,sy,st,x,sx] = spm_mci_sens (P,M,U,csx)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_sens.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_sens.m 6697 2016-01-27 14:57:28Z spm $
 
 %disp('Warning: spm_mci_sens.m needs fixing for M.V not square !');
 
 y=[];sy=[];x=[];sx=[];
 st=0;
 
-try csx=csx; catch csx=0; end
+try, csx=csx; catch, csx=0; end
 
 % Tolerances for ode15s 
-try tol.rel=M.reltol; catch tol.rel=1e-2; end
-try tol.abs=M.abstol; catch tol.abs=1e-4; end
+try, tol.rel=M.reltol; catch, tol.rel=1e-2; end
+try, tol.abs=M.abstol; catch, tol.abs=1e-4; end
 
 if isstruct(U)
     U=U.u';
@@ -56,7 +56,7 @@ options = odeset('AbsTol',tol.abs,'RelTol',tol.rel);
 x=zeros(M.N,M.n);
 y=zeros(M.N,M.l);
 
-try Np = M.Npflow; catch Np=length(spm_vec(P)); end
+try, Np = M.Npflow; catch, Np=length(spm_vec(P)); end
 sx=zeros(M.N,M.n,Np);
 sy=zeros(M.N,M.l,Np);
 
@@ -94,7 +94,7 @@ function DvDt = integrate_states(t,v,U,P,M)
 % Integrate states and sensitivities
 
 Nx=length(M.x0);
-try Np = M.Npflow; catch Np=length(spm_vec(P)); end
+try, Np = M.Npflow; catch, Np=length(spm_vec(P)); end
 Nt=Nx+Nx*Np;  
 
 state_ind=1:Nx;

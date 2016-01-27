@@ -44,16 +44,16 @@ function [post] = spm_mci_ais (mcmc,M,U,Y,vl)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_ais.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_ais.m 6697 2016-01-27 14:57:28Z spm $
             
-try J=mcmc.J; catch J=32; end
-try anneal=mcmc.anneal; catch anneal='power'; end
-try prop=mcmc.prop; catch prop='mh'; end
-try maxits=mcmc.maxits; catch maxits=32; end
-try nprop=mcmc.nprop; catch nprop=5; end
-try verbose=mcmc.verbose; catch verbose=1; end
-try vl=vl; catch vl=[]; end;
-try mcmc.rec_traj; catch mcmc.rec_traj=0; end
+try, J=mcmc.J; catch, J=32; end
+try, anneal=mcmc.anneal; catch, anneal='power'; end
+try, prop=mcmc.prop; catch, prop='mh'; end
+try, maxits=mcmc.maxits; catch, maxits=32; end
+try, nprop=mcmc.nprop; catch, nprop=5; end
+try, verbose=mcmc.verbose; catch, verbose=1; end
+try, vl=vl; catch, vl=[]; end;
+try, mcmc.rec_traj; catch, mcmc.rec_traj=0; end
 
 nprop=nprop+1;
 

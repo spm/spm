@@ -65,22 +65,22 @@ function [MCI] = spm_mci_mfx_dynamic (MCI)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mci_mfx_dynamic.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_mfx_dynamic.m 6697 2016-01-27 14:57:28Z spm $
 
-try verbose=MCI.verbose; catch verbose=0; end
+try, verbose=MCI.verbose; catch, verbose=0; end
 
 % Update observation noise ?
-try update_obs_noise=MCI.update_obs_noise; catch update_obs_noise=1; end
+try, update_obs_noise=MCI.update_obs_noise; catch, update_obs_noise=1; end
 
 % Numbers of iterations, with and without group model
-try total_its=MCI.total_its; catch total_its=1024; end
-try rinit=MCI.rinit; catch rinit=0.25; end
+try, total_its=MCI.total_its; catch, total_its=1024; end
+try, rinit=MCI.rinit; catch, rinit=0.25; end
 rfx_its=2;
 mfx_its=(1-rinit)*total_its/rfx_its;
 rfx1_its=rinit*total_its;
 
-try ffx_its=MCI.ffx_its; catch ffx_its=4; end
-try ffx1_its=MCI.ffx1_its; catch ffx1_its=64; end
+try, ffx_its=MCI.ffx_its; catch, ffx_its=4; end
+try, ffx1_its=MCI.ffx1_its; catch, ffx1_its=64; end
 
 M=MCI.M;U=MCI.U;Y=MCI.Y;
 Np=length(spm_vec(M{1}.pE));
@@ -172,13 +172,13 @@ subj_mcmc.maxits=rfx_its;
 subj_mcmc.verbose=0;
 
 % Main Loop
-for it=1:mfx_its,
+for it=1:mfx_its
     
     if verbose
         disp(sprintf('MCI iteration %d',it));
     end
         
-    if it>1 & Nrand > 0   
+    if it>1 && Nrand > 0   
         % Update second level params
         S = spm_nwpost (S,w);
         [m,Lambda,C] = spm_nwrnd (S.post,1);
@@ -249,14 +249,14 @@ post_ind=[burn_in+1:total_its];
 % Return samples
 MCI.sm=sm;
 MCI.sw=sw;
-try MCI.sv=v'; catch MCI.sv=[]; end
+try, MCI.sv=v'; catch, MCI.sv=[]; end
 
 % Return posterior means
 if update_rfx
     MCI.sm_mean=mean(sm(:,post_ind),2);
     MCI.sw_mean=mean(sw(:,:,post_ind),3);
 end
-try MCI.sv_mean=mean(v(post_ind,:)); catch MCI.sv_mean=[]; end
+try, MCI.sv_mean=mean(v(post_ind,:)); catch, MCI.sv_mean=[]; end
 MCI.post_ind=post_ind;
 
 % Extract posterior means for pinit, pflow, pout
@@ -267,7 +267,7 @@ switch assign.init_par,
         MCI.pinit_sub=MCI.sw_mean(assign.w_init,:);
         MCI.pinit=MCI.sm_mean(assign.w_init,:);
     otherwise
-        try MCI.pinit=MCI.pinit0; catch MCI.pinit=[]; end
+        try, MCI.pinit=MCI.pinit0; catch, MCI.pinit=[]; end
 end
 switch assign.flow_par,
     case 'fixed',
@@ -276,7 +276,7 @@ switch assign.flow_par,
         MCI.pflow_sub=MCI.sw_mean(assign.w_flow,:);
         MCI.pflow=MCI.sm_mean(assign.w_flow,:);
     otherwise
-        try MCI.pflow=MCI.flow0; catch MCI.pflow=[]; end
+        try, MCI.pflow=MCI.flow0; catch, MCI.pflow=[]; end
 end
 switch assign.out_par,
     case 'fixed',
@@ -285,7 +285,7 @@ switch assign.out_par,
         MCI.pout_sub=MCI.sw_mean(assign.w_out,:);
         MCI.pout=MCI.sm_mean(assign.w_out,:);
     otherwise
-        try MCI.pout=MCI.out0; catch MCI.pout=[]; end
+        try, MCI.pout=MCI.out0; catch, MCI.pout=[]; end
 end
 
 MCI.M=M;

@@ -13,7 +13,7 @@ function [dLdp,g,x] = spm_mci_adjoint (Pr,M,U,Y)
 %
 % If M.adjlike=1 this function returns gradient of log likelihood
 %
-% This function uses integrators from Matlab's ODE Suite
+% This function uses integrators from MATLAB's ODE Suite
 %
 % B. Sengupta, K. Friston and W. Penny (2014) Efficient Gradient
 % Computation for Dynamical Models. Neuroimage,98, 521-527. 
@@ -21,9 +21,9 @@ function [dLdp,g,x] = spm_mci_adjoint (Pr,M,U,Y)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_adjoint.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_adjoint.m 6697 2016-01-27 14:57:28Z spm $
 
-try adjlike=M.adjlike; catch adjlike=0; end
+try, adjlike=M.adjlike; catch, adjlike=0; end
 
 % Parameters in original space
 P = M.V*Pr+M.vpE;

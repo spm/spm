@@ -15,11 +15,11 @@ function [ess,m] = spm_mci_ess (x,p)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_ess.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_ess.m 6697 2016-01-27 14:57:28Z spm $
 
 N=length(x);
 
-try pmax=p; catch pmax=min(ceil(N/10),256); end
+try, pmax=p; catch, pmax=min(ceil(N/10),256); end
 
 for i=1:pmax,
     y(:,i)=x(pmax-i+1:end-i);

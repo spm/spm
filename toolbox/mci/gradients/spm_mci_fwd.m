@@ -19,17 +19,17 @@ function [y,x,st] = spm_mci_fwd (P,M,U)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_fwd.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_fwd.m 6697 2016-01-27 14:57:28Z spm $
 
 st=0;
 y=[];sy=[];x=[];sx=[];
 
-try csy=csy; catch csy=0; end
-try csx=csx; catch csx=0; end
+try, csy=csy; catch, csy=0; end
+try, csx=csx; catch, csx=0; end
 
 % Tolerances for ode15s and SUNDIALS
-try reltol=M.reltol; catch reltol=1e-2; end
-try abstol=M.abstol; catch abstol=1e-4; end
+try, reltol=M.reltol; catch, reltol=1e-2; end
+try, abstol=M.abstol; catch, abstol=1e-4; end
 
 tDur=[0 M.T];
 

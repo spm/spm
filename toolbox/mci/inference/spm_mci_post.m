@@ -16,10 +16,10 @@ function [post] = spm_mci_post (mcmc,M,U,Y,true_P)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_post.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_post.m 6697 2016-01-27 14:57:28Z spm $
 
-try verbose=mcmc.verbose; catch verbose=0; end
-if nargin < 5 | isempty(true_P)
+try, verbose=mcmc.verbose; catch, verbose=0; end
+if nargin < 5 || isempty(true_P)
     tp=0;
 else
     tp=1;
@@ -96,7 +96,7 @@ switch mcmc.inference,
         
         % Draw initialisation point from prior ?
         %mcmc.init{1}=spm_normrnd(M.pE,M.pC,1);
-        try mc.init{1}=mcmc.init; catch mc.init{1}=spm_vec(M.pE); end
+        try, mc.init{1}=mcmc.init; catch, mc.init{1}=spm_vec(M.pE); end
         
         MM{1}=M;
         UU{1}=U;
