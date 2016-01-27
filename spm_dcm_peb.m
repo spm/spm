@@ -18,8 +18,10 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % M.bE   - third  level prior expectation of parameters
 % M.bC   - third  level prior covariances of parameters
 %
-% M.Q    - covariance components: {'single','fields','all','none'}
-% M.beta - within:between precision ratio:  [default = 16]
+% M.Q      - covariance components: {'single','fields','all','none'}
+% M.beta   - within:between precision ratio:  [default = 16]
+%
+% M.Xnames - cell array of names for second level parameters [default: {}]
 % 
 % field  - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %          'All' will invoke all fields. this argument effectively allows 
@@ -30,6 +32,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 %     PEB.Snames - string array of first level model names
 %     PEB.Pnames - string array of parameters of interest
 %     PEB.Pind   - indices of parameters in spm_vec(DCM{i}.Ep) 
+%     PEB.Xnames - names of second level parameters
 % 
 %     PEB.M.X  -   second level (between subject) design matrix
 %     PEB.M.W  -   second level (within  subject) design matrix
@@ -78,7 +81,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6645 2015-12-12 14:55:22Z karl $
+% $Id: spm_dcm_peb.m 6695 2016-01-27 10:51:26Z peter $
  
 
 % get filenames and set up
@@ -203,6 +206,15 @@ if isfield(M,'beta'), beta   = M.beta; else, beta = 16;         end
 if isfield(M,'Q'),    OPTION = M.Q;    else, OPTION = 'single'; end
 if Ns == 1,           OPTION = 'no';   end
 
+if isfield(M,'Xnames')
+    Xnames = M.Xnames;
+else
+    Nx = size(M.X,2);
+    Xnames = cell(1, Nx);
+    for i = 1:Nx
+        Xnames{i} = sprintf('Covariate %d',i);
+    end
+end
 
 % get priors (from DCM if necessary) and ensure correct sizes
 %--------------------------------------------------------------------------
@@ -504,6 +516,7 @@ end
 PEB.Snames = Sstr';
 PEB.Pnames = Pstr';
 PEB.Pind   = q;
+PEB.Xnames = Xnames;
 
 Ub       = kron(eye(Nx,Nx),U);
 PEB.M.X  = X;

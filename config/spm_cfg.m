@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 6315 2015-01-23 17:09:06Z guillaume $
+% $Id: spm_cfg.m 6695 2016-01-27 10:51:26Z peter $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -39,7 +39,7 @@ dcm         = cfg_choice;
 dcm.tag     = 'dcm';
 dcm.name    = 'DCM';
 dcm.help    = {'Dynamic Causal Modelling.'};
-dcm.values  = { spm_cfg_dcm_fmri spm_cfg_dcm_meeg spm_cfg_dcm_bms};
+dcm.values  = { spm_cfg_dcm_fmri spm_cfg_dcm_meeg spm_cfg_dcm_bms spm_cfg_dcm_peb};
 
 %--------------------------------------------------------------------------
 % Util
