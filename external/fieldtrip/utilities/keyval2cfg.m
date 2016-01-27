@@ -24,7 +24,7 @@ function [cfg] = keyval2cfg(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: keyval2cfg.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id: keyval2cfg.m 11096 2016-01-22 09:22:33Z roboos $
 
 if iscell(varargin) && length(varargin)==1
   varargin = varargin{1};

@@ -24,7 +24,7 @@ function [nse] = read_neuralynx_nse(filename, begrecord, endrecord)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neuralynx_nse.m 8135 2013-05-17 15:52:14Z roboos $
+% $Id: read_neuralynx_nse.m 11096 2016-01-22 09:22:33Z roboos $
 
 if nargin<2
   begrecord = 1;

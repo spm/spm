@@ -63,7 +63,7 @@ function [dipout] = beamformer_dics(dip, grad, headmodel, dat, Cf, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: beamformer_dics.m 10541 2015-07-15 16:49:37Z roboos $
+% $Id: beamformer_dics.m 11117 2016-01-25 19:47:34Z roboos $
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs
@@ -349,8 +349,8 @@ switch submethod
           
           % and compute the leadfield for that orientation
           lf  = lf * maxpowori;
-          dipout.ori{i,1} = maxpowori;
-          dipout.eta{i,1} = eta;
+          dipout.ori{i} = maxpowori;
+          dipout.eta(i) = eta;
           if ~isempty(subspace), lforig = lforig * maxpowori; end
           
           % recompute the filter to only use that orientation
@@ -597,6 +597,10 @@ if isfield(dipout, 'ori')
   dipout.ori( originside) = dipout.ori;
   dipout.ori(~originside) = {[]};
 end
+if isfield(dipout, 'eta')
+  dipout.eta( originside) = dipout.eta;
+  dipout.eta(~originside) = nan;
+end
 if isfield(dipout, 'pow')
   dipout.pow( originside) = dipout.pow;
   dipout.pow(~originside) = nan;
@@ -628,7 +632,7 @@ ori = u(:,1);
 % standard MATLAB function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 10541 $  $Date: 2009/06/17 13:40:37 $
+%   $Revision: 11117 $  $Date: 2009/06/17 13:40:37 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

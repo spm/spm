@@ -23,7 +23,7 @@ function [lf] = inf_medium_leadfield(rd, pnt, cond)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: inf_medium_leadfield.m 10751 2015-10-06 16:14:11Z roboos $
+% $Id: inf_medium_leadfield.m 11096 2016-01-22 09:22:33Z roboos $
 
 siz = size(rd);
 if any(siz==1)

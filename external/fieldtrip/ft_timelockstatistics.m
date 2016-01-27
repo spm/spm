@@ -56,9 +56,9 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockstatistics.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id: ft_timelockstatistics.m 11081 2016-01-19 09:27:28Z jansch $
 
-revision = '$Id: ft_timelockstatistics.m 10765 2015-10-09 18:10:47Z roboos $';
+revision = '$Id: ft_timelockstatistics.m 11081 2016-01-19 09:27:28Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -179,12 +179,14 @@ if strcmp(func2str(statmethod),'ft_statistics_montecarlo')
   % the following (ugly) work around is necessary
   if num>1
     [stat, cfg] = statmethod(cfg, dat, design);
+    cfg         = rollback_provenance(cfg); % ensure that changes to the cfg are passed back to the right level
   else
     [stat] = statmethod(cfg, dat, design);
   end
 else
   if num>1
     [stat, cfg] = statmethod(cfg, dat, design);
+    cfg         = rollback_provenance(cfg); % ensure that changes to the cfg are passed back to the right level
   else
     [stat] = statmethod(cfg, dat, design);
   end

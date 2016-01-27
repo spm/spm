@@ -44,7 +44,7 @@ function [dist] = ft_warp_error(M, input, target, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_warp_error.m 11052 2016-01-09 17:51:12Z roboos $
+% $Id: ft_warp_error.m 11096 2016-01-22 09:22:33Z roboos $
 
 if ~isempty(M)
   % apply the warp to the input positions
@@ -54,19 +54,19 @@ end
 if isstruct(target)
   % project points onto target surface and compute distance between points and surface
   % this is done here in one step, but can also be done in seperate steps (see example code below)
-  el = project_elec(input, target.pnt, target.tri);
+  el = project_elec(input, target.pos, target.tri);
   dist = mean(el(:,4));
   % the following example code is more elaborate, and can be used for detailled testing
   if 0
-    Npnt = size(input,1);
-    prj = zeros(Npnt, 3);
+    Npos = size(input,1);
+    prj = zeros(Npos, 3);
     % step 1: project each input point onto the triangulated surface
-    el = project_elec(input, target.pnt, target.tri);
+    el = project_elec(input, target.pos, target.tri);
     % step 2: compute the projected point on the triangulated surface
-    for i=1:Npnt
-      v1 = target.pnt(target.tri(el(i,1),1),:); % position of vertex 1
-      v2 = target.pnt(target.tri(el(i,1),2),:); % position of vertex 2
-      v3 = target.pnt(target.tri(el(i,1),3),:); % position of vertex 3
+    for i=1:Npos
+      v1 = target.pos(target.tri(el(i,1),1),:); % position of vertex 1
+      v2 = target.pos(target.tri(el(i,1),2),:); % position of vertex 2
+      v3 = target.pos(target.tri(el(i,1),3),:); % position of vertex 3
       prj(i,:) = routlm(v1, v2, v3, el(i,2), el(i,3));
     end
     % step 3: compute the distance

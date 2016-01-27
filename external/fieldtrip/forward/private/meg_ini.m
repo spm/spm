@@ -46,7 +46,7 @@ function forwpar=meg_ini(vc,center,order,sens,refs,gradlocs,weights)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: meg_ini.m 8303 2013-07-02 09:43:39Z roboos $
+% $Id: meg_ini.m 11096 2016-01-22 09:22:33Z roboos $
 
 if nargin==4
   if order>0;

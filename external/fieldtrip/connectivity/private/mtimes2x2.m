@@ -1,4 +1,4 @@
-function [z] = mtimes2x2(x, y)
+function z = mtimes2x2(x, y)
 
 % MTIMES2X2 compute x*y where the dimensionatity is 2x2xN or 2x2xNxM
 
@@ -20,7 +20,7 @@ function [z] = mtimes2x2(x, y)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mtimes2x2.m 7124 2012-12-06 21:21:53Z roboos $
+% $Id: mtimes2x2.m 11071 2016-01-19 07:30:50Z roboos $
 
 z     = complex(zeros(size(x)));
 xconj = conj(x);

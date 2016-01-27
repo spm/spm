@@ -84,9 +84,9 @@ function [layout, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 10639 2015-08-28 10:02:10Z roboos $
+% $Id: ft_prepare_layout.m 11088 2016-01-20 11:13:18Z vlalit $
 
-revision = '$Id: ft_prepare_layout.m 10639 2015-08-28 10:02:10Z roboos $';
+revision = '$Id: ft_prepare_layout.m 11088 2016-01-20 11:13:18Z vlalit $';
 
 % do the general setup of the function
 ft_defaults

@@ -28,7 +28,7 @@ function grad = fif2grad(filename)
 % You should have received a copy of the GNU General Public License
 % along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fif2grad.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: fif2grad.m 11096 2016-01-22 09:22:33Z roboos $
 
 % this try-catch construct ensures that missing gradiometer information is
 % handeled in a "graceful" way

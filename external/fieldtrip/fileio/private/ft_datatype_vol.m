@@ -57,7 +57,7 @@ function vol = ft_datatype_vol(vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_vol.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_datatype_vol.m 11096 2016-01-22 09:22:33Z roboos $
 
 
 % get the optional input arguments, which should be specified as key-value pairs

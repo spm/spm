@@ -31,7 +31,7 @@ function [label] = atlas_lookup(atlas, pos, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: atlas_lookup.m 8765 2013-11-12 11:15:09Z jansch $
+% $Id: atlas_lookup.m 11090 2016-01-21 13:50:42Z roboos $
 
 % get the optional input arguments
 queryrange  = ft_getopt(varargin, 'queryrange', 3);

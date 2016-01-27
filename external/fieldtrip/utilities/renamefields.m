@@ -27,7 +27,7 @@ function b = renamefields(a, old, new)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: renamefields.m 11062 2016-01-15 11:27:50Z roboos $
+% $Id: renamefields.m 11096 2016-01-22 09:22:33Z roboos $
 
 if isempty(a)
   % this prevents problems if a is an empty double, i.e. []

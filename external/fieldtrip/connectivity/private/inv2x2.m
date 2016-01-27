@@ -1,4 +1,4 @@
-function [d] = inv2x2(x)
+function d = inv2x2(x)
 
 % INV2X2 computes inverse of matrix x, using explicit analytic definition
 % if size(x,1) < 4, otherwise use MATLAB inv-function
@@ -21,7 +21,7 @@ function [d] = inv2x2(x)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: inv2x2.m 10198 2015-02-11 09:36:13Z roboos $
+% $Id: inv2x2.m 11071 2016-01-19 07:30:50Z roboos $
 
 siz = size(x);
 if all(siz(1:2)==2),

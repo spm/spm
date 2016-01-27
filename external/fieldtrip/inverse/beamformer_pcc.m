@@ -56,7 +56,7 @@ function [dipout] = beamformer_pcc(dip, grad, headmodel, dat, Cf, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: beamformer_pcc.m 10577 2015-08-10 15:09:52Z jansch $
+% $Id: beamformer_pcc.m 11117 2016-01-25 19:47:34Z roboos $
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs
@@ -241,7 +241,7 @@ for i=1:size(dip.pos,1)
         end
         lfa  = lfa * maxpowori;
         dipout.ori{i} = maxpowori;
-        dipout.eta{i} = eta;
+        dipout.eta(i) = eta;
         % update the number of dipole components
         Ndip = size(lfa,2);
       end
@@ -333,7 +333,7 @@ if isfield(dipout, 'ori')
 end
 if isfield(dipout, 'eta')
   dipout.eta( originside) = dipout.eta;
-  dipout.eta(~originside) = {[]};
+  dipout.eta(~originside) = nan;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -341,7 +341,7 @@ end
 % standard MATLAB function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 10577 $  $Date: 2009/01/07 13:12:03 $
+%   $Revision: 11117 $  $Date: 2009/01/07 13:12:03 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

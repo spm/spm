@@ -192,9 +192,9 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 10928 2015-11-20 20:23:19Z arjsto $
+% $Id: ft_volumerealign.m 11123 2016-01-26 03:46:14Z arjsto $
 
-revision = '$Id: ft_volumerealign.m 10928 2015-11-20 20:23:19Z arjsto $';
+revision = '$Id: ft_volumerealign.m 11123 2016-01-26 03:46:14Z arjsto $';
 
 % do the general setup of the function
 ft_defaults
@@ -215,19 +215,21 @@ mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'realignfiducial', 'fiducial'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'landmark', 'fiducial'}); % cfg.landmark -> cfg.fiducial
+% see http://bugzilla.fieldtriptoolbox.org/show_bug.cgi?id=2837
+cfg = ft_checkconfig(cfg, 'renamed', {'viewdim', 'axisratio'});
 
 % set the defaults
-cfg.coordsys   = ft_getopt(cfg, 'coordsys',  []);
-cfg.method     = ft_getopt(cfg, 'method',    []); % deal with this below
-cfg.fiducial   = ft_getopt(cfg, 'fiducial',  []);
-cfg.parameter  = ft_getopt(cfg, 'parameter', 'anatomy');
-cfg.clim       = ft_getopt(cfg, 'clim',      []);
-cfg.viewmode   = ft_getopt(cfg, 'viewmode',  'ortho'); % for method=interactive
-cfg.viewdim    = ft_getopt(cfg, 'viewdim',   'data'); % viewing dimensions of the orthoplots, 'square' or 'data' 
-
-cfg.snapshot   = ft_getopt(cfg, 'snapshot',  false);
-cfg.snapshotfile = ft_getopt(cfg, 'snapshotfile', fullfile(pwd,'ft_volumerealign_snapshot'));
-cfg.spmversion   = ft_getopt(cfg, 'spmversion', 'spm8');
+cfg.coordsys      = ft_getopt(cfg, 'coordsys',  []);
+cfg.method        = ft_getopt(cfg, 'method',    []); % deal with this below
+cfg.fiducial      = ft_getopt(cfg, 'fiducial',  []);
+cfg.parameter     = ft_getopt(cfg, 'parameter', 'anatomy');
+cfg.clim          = ft_getopt(cfg, 'clim',      []);
+cfg.viewmode      = ft_getopt(cfg, 'viewmode',  'ortho'); % for method=interactive
+cfg.snapshot      = ft_getopt(cfg, 'snapshot',  false);
+cfg.snapshotfile  = ft_getopt(cfg, 'snapshotfile', fullfile(pwd,'ft_volumerealign_snapshot'));
+cfg.spmversion    = ft_getopt(cfg, 'spmversion', 'spm8');
+cfg.voxelratio    = ft_getopt(cfg, 'voxelratio', 'data'); % display size of the voxel, 'data' or 'square'
+cfg.axisratio     = ft_getopt(cfg, 'axisratio',  'data'); % size of the axes of the three orthoplots, 'square', 'voxel', or 'data'
 
 if isempty(cfg.method)
   if isempty(cfg.fiducial)
@@ -326,57 +328,73 @@ switch cfg.method
         h = figure;
         set(h, 'color', [1 1 1]);
         set(h, 'visible', 'on');
-        % add callbacks
+        
+        % axes settings
+        if strcmp(cfg.axisratio, 'voxel')
+          % determine the number of voxels to be plotted along each axis
+          axlen1 = mri.dim(1);
+          axlen2 = mri.dim(2);
+          axlen3 = mri.dim(3);
+        elseif strcmp(cfg.axisratio, 'data')
+          % determine the length of the edges along each axis
+          [cp_voxel, cp_head] = cornerpoints(mri.dim, mri.transform);
+          axlen1 = norm(cp_head(2,:)-cp_head(1,:));
+          axlen2 = norm(cp_head(4,:)-cp_head(1,:));
+          axlen3 = norm(cp_head(5,:)-cp_head(1,:));
+        elseif strcmp(cfg.axisratio, 'square')
+          % the length of the axes should be equal
+          axlen1 = 1;
+          axlen2 = 1;
+          axlen3 = 1;
+        end
+        
+        % this is the size reserved for subplot h1, h2 and h3
+        h1size(1) = 0.82*axlen1/(axlen1 + axlen2);
+        h1size(2) = 0.82*axlen3/(axlen2 + axlen3);
+        h2size(1) = 0.82*axlen2/(axlen1 + axlen2);
+        h2size(2) = 0.82*axlen3/(axlen2 + axlen3);
+        h3size(1) = 0.82*axlen1/(axlen1 + axlen2);
+        h3size(2) = 0.82*axlen2/(axlen2 + axlen3);
+        
+        if strcmp(cfg.voxelratio, 'square')
+          voxlen1 = 1;
+          voxlen2 = 1;
+          voxlen3 = 1;
+        elseif strcmp(cfg.voxelratio, 'data')
+          % the size of the voxel is scaled with the data
+          [cp_voxel, cp_head] = cornerpoints(mri.dim, mri.transform);
+          voxlen1 = norm(cp_head(2,:)-cp_head(1,:))/norm(cp_voxel(2,:)-cp_voxel(1,:));
+          voxlen2 = norm(cp_head(4,:)-cp_head(1,:))/norm(cp_voxel(4,:)-cp_voxel(1,:));
+          voxlen3 = norm(cp_head(5,:)-cp_head(1,:))/norm(cp_voxel(5,:)-cp_voxel(1,:));
+        end
+        
+        %% the figure is interactive, add callbacks
         set(h, 'windowbuttondownfcn', @cb_buttonpress);
         set(h, 'windowbuttonupfcn',   @cb_buttonrelease);
         set(h, 'windowkeypressfcn',   @cb_keyboard);
         set(h, 'CloseRequestFcn',     @cb_cleanup);
         
-        % inspect transform matrix, if the voxels are isotropic then the screen
-        % pixels also should be square
-        hasIsotropicVoxels = norm(mri.transform(1:3,1)) == norm(mri.transform(1:3,2))...
-          && norm(mri.transform(1:3,2)) == norm(mri.transform(1:3,3));
+        % axis handles will hold the anatomical functional if present, along with labels etc.
+        h1 = axes('position',[0.06                0.06+0.06+h3size(2) h1size(1) h1size(2)]);
+        h2 = axes('position',[0.06+0.06+h1size(1) 0.06+0.06+h3size(2) h2size(1) h2size(2)]);
+        h3 = axes('position',[0.06                0.06                h3size(1) h3size(2)]);
         
-        % axes settings
-        if strcmp(cfg.viewdim, 'data')
-          xdim = mri.dim(1) + mri.dim(2); % data-defined viewing dimensions
-          ydim = mri.dim(2) + mri.dim(3);
-          xsize(1) = 0.82*mri.dim(1)/xdim;
-          xsize(2) = 0.82*mri.dim(2)/xdim;
-          ysize(1) = 0.82*mri.dim(3)/ydim;
-          ysize(2) = 0.82*mri.dim(2)/ydim;
-        elseif strcmp(cfg.viewdim, 'square')
-          xsize = [0.41 0.41]; % square viewing dimensions
-          ysize = [0.41 0.41];
-        end
+        set(h1, 'Tag', 'ik', 'Visible', 'off', 'XAxisLocation', 'top');
+        set(h2, 'Tag', 'jk', 'Visible', 'off', 'YAxisLocation', 'right'); % after rotating in ft_plot_ortho this becomes top
+        set(h3, 'Tag', 'ij', 'Visible', 'off');
         
-        % create figure handles
+        set(h1, 'DataAspectRatio', 1./[voxlen1 voxlen2 voxlen3]);
+        set(h2, 'DataAspectRatio', 1./[voxlen1 voxlen2 voxlen3]);
+        set(h3, 'DataAspectRatio', 1./[voxlen1 voxlen2 voxlen3]);
         
-        % axis handles will hold the anatomical data if present, along with labels etc.
-        h1 = axes('position',[0.07 0.07+ysize(2)+0.05 xsize(1) ysize(1)]);
-        h2 = axes('position',[0.07+xsize(1)+0.05 0.07+ysize(2)+0.05 xsize(2) ysize(1)]);
-        h3 = axes('position',[0.07 0.07 xsize(1) ysize(2)]);
-        set(h1,'Tag','ik','Visible','on','XAxisLocation','top');
-        set(h2,'Tag','jk','Visible','on','XAxisLocation','top');
-        set(h3,'Tag','ij','Visible','on');
-        
-        if hasIsotropicVoxels
-          set(h1,'DataAspectRatio',[1 1 1]);
-          set(h2,'DataAspectRatio',[1 1 1]);
-          set(h3,'DataAspectRatio',[1 1 1]);
-        end
+        xc = round(mri.dim(1)/2); % start with center view
+        yc = round(mri.dim(2)/2);
+        zc = round(mri.dim(3)/2);
         
         dat = double(mri.(cfg.parameter));
         dmin = min(dat(:));
         dmax = max(dat(:));
         dat  = (dat-dmin)./(dmax-dmin);
-        
-        x = 1:mri.dim(1);
-        y = 1:mri.dim(2);
-        z = 1:mri.dim(3);
-        xc = round(mri.dim(1)/2);
-        yc = round(mri.dim(2)/2);
-        zc = round(mri.dim(3)/2);
         
         if isfield(cfg, 'pnt')
           pnt = cfg.pnt;
@@ -407,8 +425,9 @@ switch cfg.method
         opt               = [];
         opt.dim           = mri.dim;
         opt.ijk           = [xc yc zc];
-        opt.xsize         = xsize;
-        opt.ysize         = ysize;
+        opt.h1size        = h1size;
+        opt.h2size        = h2size;
+        opt.h3size        = h3size;
         opt.handlesaxes   = [h1 h2 h3];
         opt.handlesfigure = h;
         opt.quit          = false;

@@ -25,7 +25,7 @@ function [s] = removefields(s, fields)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: removefields.m 9825 2014-09-22 15:19:53Z roboos $
+% $Id: removefields.m 11096 2016-01-22 09:22:33Z roboos $
 
 if isempty(s)
    % this prevents problems if s is an empty double, i.e. []

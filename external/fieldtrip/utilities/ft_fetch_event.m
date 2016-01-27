@@ -26,7 +26,7 @@ function [event]=ft_fetch_event(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_event.m 11052 2016-01-09 17:51:12Z roboos $
+% $Id: ft_fetch_event.m 11096 2016-01-22 09:22:33Z roboos $
 
 % check whether input is data
 data = ft_checkdata(data, 'datatype', 'raw');

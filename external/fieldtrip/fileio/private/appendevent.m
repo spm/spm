@@ -20,7 +20,7 @@ function c = appendevent(a, b)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: appendevent.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: appendevent.m 11096 2016-01-22 09:22:33Z roboos $
 
 if isempty(a)
   c = b(:);

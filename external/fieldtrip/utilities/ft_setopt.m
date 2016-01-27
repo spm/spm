@@ -28,7 +28,7 @@ function opt = ft_setopt(opt, key, val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_setopt.m 11052 2016-01-09 17:51:12Z roboos $
+% $Id: ft_setopt.m 11096 2016-01-22 09:22:33Z roboos $
 
 if isa(opt, 'struct') || isa(opt, 'config')
 

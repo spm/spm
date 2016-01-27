@@ -70,7 +70,7 @@ function [varargout] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 11052 2016-01-09 17:51:12Z roboos $
+% $Id: ft_selectdata.m 11096 2016-01-22 09:22:33Z roboos $
 
 if nargin==1 || (nargin>2 && ischar(varargin{end-1})) || (isstruct(varargin{1}) && ~ft_datatype(varargin{1}, 'unknown'))
   % this is the OLD calling style, like this

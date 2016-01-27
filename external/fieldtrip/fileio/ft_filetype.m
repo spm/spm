@@ -76,7 +76,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 11028 2015-12-15 11:11:18Z roboos $
+% $Id: ft_filetype.m 11104 2016-01-22 11:31:09Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -771,7 +771,7 @@ elseif filetype_check_extension(filename, '.sfh') && filetype_check_header(filen
 elseif filetype_check_extension(filename, '.besa')
   type = 'besa_besa';
   manufacturer = 'BESA';
-  content = 'electrophysiological data'
+  content = 'electrophysiological data';
 elseif filetype_check_extension(filename, '.srf') && filetype_check_header(filename, [0 0 0 0], 4)
   type = 'brainvoyager_srf';
   manufacturer = 'BrainVoyager'; % see http://support.brainvoyager.com/installation-introduction/23-file-formats/375-users-guide-23-the-format-of-srf-files.html

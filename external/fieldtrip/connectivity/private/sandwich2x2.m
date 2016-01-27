@@ -1,4 +1,4 @@
-function [z] = sandwich2x2(x, y)
+function z = sandwich2x2(x, y)
 
 % SANDWICH2X2 compute x*y*x' provided y is Hermitian and dimensionality is 2x2xN
 
@@ -20,7 +20,7 @@ function [z] = sandwich2x2(x, y)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: sandwich2x2.m 7124 2012-12-06 21:21:53Z roboos $
+% $Id: sandwich2x2.m 11071 2016-01-19 07:30:50Z roboos $
 
 % FIXME build in check for hermitianity
 z     = complex(zeros(size(x)));
@@ -50,4 +50,3 @@ z(2,2,:,:) = xabs2(2,1,:,:) .* y(1,1,:,:) + ...
 %
 %a1*abs(b1)^2 + a2*(b1'*b2) + a2'*(b1*b2') + a3*abs(b2)^2    a1*b1*b3'    + a2*b2*b3'   + a2'*b1*b4'   + a3*b2*b4'
 %a1*b1'*b3    + a2*b1'*b4   + a2'*b2'*b3   + a3*b2'*b4       a1*abs(b3)^2 + a2*(b3'*b4) + a2'*(b3*b4') + a3*abs(b4)^2
-

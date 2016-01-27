@@ -1,7 +1,12 @@
-function [x,mx,sx] = standardise(x,dim,lim)
+function [x, mx, sx] = standardise(x, dim, lim)
 
-% X = STANDARDISE(X, DIM) computes the zscore of a matrix along dimension dim
+% STANDARDISE computes the zscore of a matrix along dimension dim
 % has similar functionality as the stats-toolbox's zscore function
+%
+% Use as
+%   x = standardise(x, dim)
+%
+% See also ZSCORE
 
 % Copyright (C) 2009, Jan-Mathijs Schoffelen
 %
@@ -21,9 +26,9 @@ function [x,mx,sx] = standardise(x,dim,lim)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: standardise.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: standardise.m 11072 2016-01-19 07:30:57Z roboos $
 
-if nargin == 1, 
+if nargin == 1,
   dim = find(size(x)>1,1,'first');
 end
 

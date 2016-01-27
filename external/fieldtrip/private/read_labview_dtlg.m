@@ -26,7 +26,7 @@ function [dat] = read_labview_dtlg(filename, datatype)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_labview_dtlg.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id: read_labview_dtlg.m 11096 2016-01-22 09:22:33Z roboos $
 
 
 fid     = fopen(filename, 'r', 'ieee-be');

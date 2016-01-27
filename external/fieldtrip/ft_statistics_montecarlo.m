@@ -98,7 +98,9 @@ function [stat, cfg] = ft_statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_montecarlo.m 11034 2016-01-04 08:17:24Z jansch $
+% $Id: ft_statistics_montecarlo.m 11081 2016-01-19 09:27:28Z jansch $
+
+ft_preamble randomseed; % deal with the user specified random seed
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'factor',           'ivar'});
@@ -125,7 +127,6 @@ cfg.uvar         = ft_getopt(cfg, 'uvar',       []);
 cfg.cvar         = ft_getopt(cfg, 'cvar',       []);
 cfg.wvar         = ft_getopt(cfg, 'wvar',       []);
 cfg.correcttail  = ft_getopt(cfg, 'correcttail',  'no');
-%cfg.randomseed   = ft_getopt(cfg, 'randomseed',   'yes');
 cfg.precondition = ft_getopt(cfg, 'precondition', []);
 
 % explicit check for option 'yes' in cfg.correctail.
@@ -206,16 +207,6 @@ if isempty(statfun)
 else
   fprintf('using "%s" for the single-sample statistics\n', func2str(statfun));
 end
-
-% % initialize the random number generator.
-% if strcmp(cfg.randomseed, 'no')
-%   % do nothing
-% elseif strcmp(cfg.randomseed, 'yes')
-%   rand('state',sum(100*clock));
-% else
-%   % seed with the user-given value
-%   rand('state',cfg.randomseed);
-% end;
 
 % construct the resampled design matrix or data-shuffling matrix
 fprintf('constructing randomized design\n');
@@ -500,6 +491,8 @@ for i=1:length(fn)
     stat = setfield(stat, fn{i}, getfield(statfull, fn{i}));
   end
 end
+
+ft_postamble randomseed; % deal with the potential user specified randomseed
 
 warning(ws); % revert to original state
 

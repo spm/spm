@@ -1,4 +1,4 @@
-function [data] = besa2fieldtrip(input)
+function data = besa2fieldtrip(input)
 
 % BESA2FIELDTRIP reads and converts various BESA datafiles into a FieldTrip
 % data structure, which subsequently can be used for statistical analysis
@@ -42,9 +42,9 @@ function [data] = besa2fieldtrip(input)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: besa2fieldtrip.m 10696 2015-09-28 16:54:18Z roboos $
+% $Id: besa2fieldtrip.m 11085 2016-01-19 14:49:53Z roboos $
 
-revision = '$Id: besa2fieldtrip.m 10696 2015-09-28 16:54:18Z roboos $';
+revision = '$Id: besa2fieldtrip.m 11085 2016-01-19 14:49:53Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -171,7 +171,7 @@ elseif ischar(input)
     data = [];
     data.label = [];
     if isfield(tmp, 'ChannelLabels'),
-        data.label = fixlabels(tmp.ChannelLabels); 
+        data.label = fixlabels(tmp.ChannelLabels);
     end;
     data.avg     = tmp.Data;
     data.time    = tmp.Time / 1000; % convert to seconds

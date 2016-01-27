@@ -51,7 +51,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 11042 2016-01-07 17:03:42Z roboos $
+% $Id: ft_read_data.m 11104 2016-01-22 11:31:09Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -380,7 +380,7 @@ switch dataformat
     dimord = 'chans_samples';
     
   case 'besa_besa'
-    dat = read_besa_besa(filename, chanindx, begsample, endsample);
+    dat = read_besa_besa(filename, hdr, begsample, endsample, chanindx);
 
   case 'besa_avr'
     % BESA average data

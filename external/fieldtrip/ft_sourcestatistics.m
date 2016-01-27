@@ -61,9 +61,9 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id: ft_sourcestatistics.m 11114 2016-01-25 13:42:20Z jansch $
 
-revision = '$Id: ft_sourcestatistics.m 10765 2015-10-09 18:10:47Z roboos $';
+revision = '$Id: ft_sourcestatistics.m 11114 2016-01-25 13:42:20Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -200,6 +200,7 @@ end
 % perform the statistical test
 if num>1
   [stat, cfg] = statmethod(cfg, dat, design);
+  cfg         = rollback_provenance(cfg); % ensure that changes to the cfg are passed back to the right level
 else
   [stat] = statmethod(cfg, dat, design);
 end
@@ -223,7 +224,7 @@ end
 stat.dimord = cfg.dimord;
 
 % copy the descripive fields into the output
-stat = copyfields(varargin{1}, stat, {'freq', 'time', 'pos', 'dim', 'transform'});
+stat = copyfields(varargin{1}, stat, {'freq', 'time', 'pos', 'dim', 'transform', 'tri'});
 
 % these were only present to inform the low-level functions
 cfg = removefields(cfg, {'dim', 'dimord', 'tri', 'inside'});

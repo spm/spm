@@ -47,7 +47,7 @@ function [data] = ft_determine_coordsys(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_determine_coordsys.m 11052 2016-01-09 17:51:12Z roboos $
+% $Id: ft_determine_coordsys.m 11068 2016-01-19 07:26:53Z roboos $
 
 dointeractive = ft_getopt(varargin, 'interactive', 'yes');
 axisscale     = ft_getopt(varargin, 'axisscale', 1); % this is used to scale the axmax and rbol
@@ -59,15 +59,20 @@ data  = ft_convert_units(data);
 % the high-level data structures are detected with ft_datatype, but there are
 % also some low-level data structures that need to be supproted here
 if strcmp(dtype, 'unknown')
-  if isfield(data, 'fid') || (isfield(data, 'tri') && isfield(data, 'pnt'))
+  if isfield(data, 'fid') || (isfield(data, 'tri') && isfield(data, 'pos'))
     dtype = 'headshape';
-  elseif isfield(data, 'tet') && isfield(data, 'pnt')
+  elseif isfield(data, 'hex') && isfield(data, 'pos')
+    dtype = 'mesh';
+  elseif isfield(data, 'tet') && isfield(data, 'pos')
     dtype = 'mesh';
   elseif ~strcmp(ft_voltype(data), 'unknown')
     dtype = 'headmodel';
   elseif ~strcmp(ft_senstype(data), 'unknown')
     dtype = 'sens';
   end
+elseif strcmp(dtype, 'mesh+label')
+  % we don't care about the labels here
+  dtype = 'mesh';
 end
 
 % NOTE this section should be kept consistent with the shorter labels in FT_PLOT_AXES

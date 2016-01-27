@@ -8,11 +8,12 @@ function [hdr] = ft_read_header(filename, varargin)
 %   hdr = ft_read_header(filename, ...)
 %
 % Additional options should be specified in key-value pairs and can be
-%   'headerformat'   string
-%   'fallback'       can be empty or 'biosig' (default = [])
-%   'coordsys'       string, 'head' or 'dewar' (default = 'head')
-%   'checkmaxfilter' boolean, whether to check that maxfilter has been correctly applied (default = true)
-%   'chanindx'       list with channel indices in case of different sampling frequencies (only for EDF)
+%   'headerformat'   = string
+%   'fallback'       = can be empty or 'biosig' (default = [])
+%   'checkmaxfilter' = boolean, whether to check that maxfilter has been correctly applied (default = true)
+%   'chanindx'       = list with channel indices in case of different sampling frequencies (only for EDF)
+%   'coordsys'       = string, 'head' or 'dewar' (default = 'head')
+%   'coilaccuracy'   = can be empty or a number (0, 1 or 2) to specify the accuracy (default = [])
 %
 % This returns a header structure with the following elements
 %   hdr.Fs                  sampling frequency
@@ -53,7 +54,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %   EGI - Electrical Geodesics, Inc. (*.egis, *.ave, *.gave, *.ses, *.raw, *.sbin, *.mff)
 %   GTec (*.mat)
 %   Generic data formats (*.edf, *.gdf)
-%   Megis/BESA (*.avr, *.swf)
+%   Megis/BESA (*.avr, *.swf, *.besa)
 %   NeuroScan (*.eeg, *.cnt, *.avg)
 %   Nexstim (*.nxe)
 %
@@ -92,7 +93,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 11049 2016-01-09 15:15:12Z roboos $
+% $Id: ft_read_header.m 11106 2016-01-22 12:25:55Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -140,8 +141,9 @@ end
 % get the options
 headerformat   = ft_getopt(varargin, 'headerformat');
 retry          = ft_getopt(varargin, 'retry', false);     % the default is not to retry reading the header
-coordsys       = ft_getopt(varargin, 'coordsys', 'head'); % this is used for ctf and neuromag_mne, it can be head or dewar
 chanindx       = ft_getopt(varargin, 'chanindx');         % this is used for EDF with different sampling rates
+coordsys       = ft_getopt(varargin, 'coordsys', 'head'); % this is used for ctf and neuromag_mne, it can be head or dewar
+coilaccuracy   = ft_getopt(varargin, 'coilaccuracy');     % empty, or a number between 0-2
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -326,7 +328,16 @@ switch headerformat
     end
 
   case 'besa_besa'
-    hdr = read_besa_besa(filename);
+    if isempty(chanindx)
+      hdr = read_besa_besa(filename);
+    else
+      hdr = read_besa_besa(filename,[],1);
+      if chanindx > hdr.orig.channel_info.orig_n_channels
+        error('FILEIO:InvalidChanIndx', 'selected channels are not present in the data');
+      else
+        hdr = read_besa_besa(filename,[],chanindx);
+      end;
+    end;
     
   case 'besa_avr'
     orig = read_besa_avr(filename);
@@ -570,7 +581,7 @@ switch headerformat
     end
     % add a gradiometer structure for forward and inverse modelling
     try
-      hdr.grad = ctf2grad(orig, strcmp(coordsys, 'dewar'));
+      hdr.grad = ctf2grad(orig, strcmp(coordsys, 'dewar'), coilaccuracy);
     catch
       % this fails if the res4 file is not correctly closed, e.g. during realtime processing
       tmp = lasterror;
@@ -1159,7 +1170,7 @@ switch headerformat
       
       % add a gradiometer structure for forward and inverse modelling
       try
-        [grad, elec] = mne2grad(cachechunk, 1); % 1: 'coordsys' = 'dewar'
+        [grad, elec] = mne2grad(cachechunk, true, coilaccuracy); % the coordsys is 'dewar'
         if ~isempty(grad)
           hdr.grad = grad;
         end
@@ -1521,10 +1532,10 @@ switch headerformat
     hdr.label       = info.ch_names(:);
     hdr.nChans      = info.nchan;
     hdr.Fs          = info.sfreq;
-    
+
     % add a gradiometer structure for forward and inverse modelling
     try
-      [grad, elec] = mne2grad(info, strcmp(coordsys, 'dewar'));
+      [grad, elec] = mne2grad(info, strcmp(coordsys, 'dewar'), coilaccuracy);
       if ~isempty(grad)
         hdr.grad = grad;
       end

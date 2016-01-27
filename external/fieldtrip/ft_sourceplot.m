@@ -102,13 +102,12 @@ function ft_sourceplot(cfg, functional, anatomical)
 %   cfg.slicedim      = dimension to slice 1 (x-axis) 2(y-axis) 3(z-axis) (default = 3)
 %   cfg.title         = string, title of the figure window
 %
-% When cfg.method = 'surface', the functional data will be rendered onto a
-% cortical mesh (can be an inflated mesh). If the input source data contains a
-% tri-field, no interpolation is needed. If the input source data does not contain
-% a tri-field (i.e. a description of a mesh), an interpolation is performed onto a
-% specified surface. Note that the coordinate system in which the surface is
-% defined should be the same as the coordinate system that is represented in
-% source.pos.
+% When cfg.method = 'surface', the functional data will be rendered onto a cortical
+% mesh (can be an inflated mesh). If the input source data contains a tri-field (i.e.
+% a description of a mesh), no interpolation is needed. If the input source data does
+% not contain a tri-field, an interpolation is performed onto a specified surface.
+% Note that the coordinate system in which the surface is defined should be the same
+% as the coordinate system that is represented in source.pos.
 %
 % The following parameters apply to surface-plotting when an interpolation
 % is required
@@ -156,7 +155,7 @@ function ft_sourceplot(cfg, functional, anatomical)
 %   surface also optimal when inside present
 %   come up with a good glass brain projection
 
-% Copyright (C) 2007-2015, Robert Oostenveld, Ingrid Nieuwenhuis
+% Copyright (C) 2007-2016, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -174,9 +173,9 @@ function ft_sourceplot(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 10937 2015-11-25 20:52:21Z roboos $
+% $Id: ft_sourceplot.m 11075 2016-01-19 07:42:03Z roboos $
 
-revision = '$Id: ft_sourceplot.m 10937 2015-11-25 20:52:21Z roboos $';
+revision = '$Id: ft_sourceplot.m 11075 2016-01-19 07:42:03Z roboos $';
 
 % do the general setup of the function
 ft_defaults

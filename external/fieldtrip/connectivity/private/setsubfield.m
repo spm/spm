@@ -1,4 +1,4 @@
-function [s] = setsubfield(s, f, v)
+function s = setsubfield(s, f, v)
 
 % SETSUBFIELD sets the contents of the specified field to a specified value
 % just like the standard Matlab SETFIELD function, except that you can also
@@ -33,7 +33,7 @@ function [s] = setsubfield(s, f, v)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: setsubfield.m 9789 2014-09-11 07:49:09Z jansch $
+% $Id: setsubfield.m 11071 2016-01-19 07:30:50Z roboos $
 
 if ~ischar(f)
   error('incorrect input argument for fieldname');
@@ -45,7 +45,7 @@ end
 %   if isempty(f)
 %     break
 %   end
-%   
+%
 % end
 %
 %s = setfield(s, t{:}, v);

@@ -103,9 +103,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, headmodel, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 11039 2016-01-04 15:04:47Z roboos $
+% $Id: ft_prepare_sourcemodel.m 11077 2016-01-19 07:45:08Z roboos $
 
-revision = '$Id: ft_prepare_sourcemodel.m 11039 2016-01-04 15:04:47Z roboos $';
+revision = '$Id: ft_prepare_sourcemodel.m 11077 2016-01-19 07:45:08Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -174,7 +174,7 @@ basedongrid       = isfield(cfg.grid, 'xgrid') && ~ischar(cfg.grid.xgrid);      
 basedonpos        = isfield(cfg.grid, 'pos');                                                           % using user-supplied grid positions, which can be regular or irregular
 basedonshape      = ~isempty(cfg.headshape);                                                            % surface grid based on inward shifted head surface from external file
 basedonmri        = isfield(cfg, 'mri') && ~(isfield(cfg.grid, 'warpmni') && istrue(cfg.grid.warpmni)); % regular 3D grid, based on segmented MRI, restricted to gray matter
-basedonmni        = isfield(cfg, 'mri') && (isfield(cfg.grid, 'warpmni') && istrue(cfg.grid.warpmni));  % regular 3D grid, based on warped MNI template
+basedonmni        = isfield(cfg, 'mri') &&  (isfield(cfg.grid, 'warpmni') && istrue(cfg.grid.warpmni)); % regular 3D grid, based on warped MNI template
 basedonvol        = false;                                                                              % surface grid based on inward shifted brain surface from volume conductor
 basedoncortex     = isfield(cfg, 'headshape') && (iscell(cfg.headshape) || any(ft_filetype(cfg.headshape, {'neuromag_fif', 'freesurfer_triangle_binary', 'caret_surf', 'gifti'}))); % cortical sheet from external software such as Caret or FreeSurfer, can also be two separate hemispheres
 basedonresolution = isfield(cfg.grid, 'resolution') && ~basedonmri && ~basedonmni;                      % regular 3D grid with specification of the resolution

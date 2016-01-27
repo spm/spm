@@ -25,6 +25,7 @@ function [simulated] = ft_dipolesimulation(cfg)
 % specifying an absolute or a relative noise level
 %   cfg.relnoise    = add noise with level relative to simulated signal
 %   cfg.absnoise    = add noise with absolute level
+%   cfg.randomseed  = 'yes' or a number or vector with the seed value (default = 'yes')
 %
 % Optional input arguments are
 %   cfg.channel    = Nx1 cell-array with selection of channels (default = 'all'),
@@ -41,8 +42,8 @@ function [simulated] = ft_dipolesimulation(cfg)
 %   cfg.elecfile      = name of file containing the electrode positions, see FT_READ_SENS
 %   cfg.gradfile      = name of file containing the gradiometer definition, see FT_READ_SENS
 %
-% See also FT_SOURCEANALYSIS, FT_SOURCESTATISTICS, FT_SOURCEPLOT,
-% FT_PREPARE_VOL_SENS
+% See also FT_SOURCEANALYSIS, FT_SOURCESTATISTICS, FT_SOURCEPLOT, FT_FREQSIMULATION, 
+% FT_CONNECTIVITYSIMULATION
 
 % Undocumented local options
 % cfg.feedback
@@ -67,15 +68,16 @@ function [simulated] = ft_dipolesimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolesimulation.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id: ft_dipolesimulation.m 11080 2016-01-19 08:39:26Z roboos $
 
-revision = '$Id: ft_dipolesimulation.m 10765 2015-10-09 18:10:47Z roboos $';
+revision = '$Id: ft_dipolesimulation.m 11080 2016-01-19 08:39:26Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
 ft_preamble debug
 ft_preamble provenance
+ft_preamble randomseed
 ft_preamble trackconfig
 
 % the abort variable is set to true or false in ft_preamble_init
@@ -239,6 +241,7 @@ simulated.label   = sens.label;
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble trackconfig
+ft_postamble randomseed
 ft_postamble provenance simulated
 ft_postamble history    simulated
 ft_postamble savevar    simulated

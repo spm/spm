@@ -1,4 +1,4 @@
-function [source] = loreta2fieldtrip(filename, varargin)
+function source = loreta2fieldtrip(filename, varargin)
 
 % LORETA2FIELDTRIP reads and converts a LORETA source reconstruction into a
 % FieldTrip data structure, which subsequently can be used for statistical
@@ -36,9 +36,9 @@ function [source] = loreta2fieldtrip(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: loreta2fieldtrip.m 10156 2015-02-04 08:45:19Z roboos $
+% $Id: loreta2fieldtrip.m 11085 2016-01-19 14:49:53Z roboos $
 
-revision = '$Id: loreta2fieldtrip.m 10156 2015-02-04 08:45:19Z roboos $';
+revision = '$Id: loreta2fieldtrip.m 11085 2016-01-19 14:49:53Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -62,7 +62,7 @@ if ft_filetype(filename, 'loreta_slor') || is_txt && strcmp(filename(end-7:end-4
   %   source.xgrid =  -70:5:70;
   %   source.ygrid = -100:5:65;
   %   source.zgrid =  -45:5:70;
-  
+
   %Note2, ingie: I'm assuming that the above is where the INSIDE of the source
   % runs between, looking at the data and the Loreta-Key program, this makes
   % a lot of sense. I based the below source.transform on this.
@@ -101,8 +101,8 @@ if ~is_txt
     activity = fread(fid, [voxnumber 1], 'float=>single');
   else
     error('you can read either one timeframe, or the complete timecourse');
-  end  
-  fclose(fid);  
+  end
+  fclose(fid);
 else
   % read with textfile
   activity = dlmread(filename);
@@ -118,7 +118,7 @@ else
   else
     % read timeframe
     activity = activity(:,timeframe);
-  end  
+  end
 end
 
 fprintf('file %s contains %d timepoints\n', filename, Ntime);
@@ -148,4 +148,3 @@ cfg.filename  = filename;
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble callinfo
 ft_postamble history source
-

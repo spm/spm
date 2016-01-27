@@ -59,7 +59,7 @@ function [result, M] = ft_warp_optim(input, target, method)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_warp_optim.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id: ft_warp_optim.m 11096 2016-01-22 09:22:33Z roboos $
 
 % this can be used for printing detailled user feedback
 fb = false;
