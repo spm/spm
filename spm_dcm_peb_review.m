@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id$
+% $Id: spm_dcm_peb_review.m 6702 2016-01-28 15:10:49Z guillaume $
 
 % Prepare input
 % -------------------------------------------------------------------------

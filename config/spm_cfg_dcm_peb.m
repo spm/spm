@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_fmri.m 6565 2015-09-30 10:42:14Z peter $
+% $Id: spm_cfg_dcm_peb.m 6702 2016-01-28 15:10:49Z guillaume $
 
 
 % =========================================================================
