@@ -44,6 +44,18 @@ if ~isempty(DCM) && iscell(DCM{1}) && numel(DCM) == 1
     DCM = DCM{1};
 end
 
+% Correct BMA matrix size (Ep)
+np = length(PEB.Pnames); % Parameters
+nc = size(PEB.M.X,2);    % Covariates
+if size(PEB.Ep,2) ~= nc
+    PEB.Ep = reshape(PEB.Ep,np,nc);
+end
+
+% Correct BMA matrix size (Cp)
+if isvector(PEB.Cp)
+    PEB.Cp = diag(PEB.Cp);
+end
+
 % Create state variable
 xPEB = struct();
 xPEB.PEB           = PEB;

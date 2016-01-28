@@ -62,7 +62,7 @@ subj.help = {'Subject with one or more models.'};
 pebmat         = cfg_files;
 pebmat.tag     = 'pebmat';
 pebmat.name    = 'Select PEB file';
-pebmat.help    = {'Select PEB_*.mat file to review.'};
+pebmat.help    = {'Select PEB_*.mat file.'};
 pebmat.filter  = 'mat';
 pebmat.ufilter = '^PEB_.*\.mat$';
 pebmat.num     = [1 1];
@@ -73,7 +73,7 @@ pebmat.num     = [1 1];
 model_space_mat         = cfg_files;
 model_space_mat.tag     = 'model_space_mat';
 model_space_mat.name    = 'First-level DCMs';
-model_space_mat.help    = {'Select model_space_*.mat file or one DCM ' ...
+model_space_mat.help    = {'Select group DCM file (GCM_*.mat) or one DCM ' ...
                            'per subject'};
 model_space_mat.filter  = 'mat';
 model_space_mat.ufilter = '^GCM.*\.mat$';
@@ -241,13 +241,14 @@ bmc.labels  = {'Yes','No'};
 bmc.values  = {1,0};
 bmc.val     = {1};
 bmc.help    = {['If set to Yes, a comparison is performed to identify which ' ...
-                'first level DCM best explains between-subjects effects. '...
-                'If set to No, a PEB model for each DCM is simply '...
-                'returned'] '' ...
-               ['The comparison works by estimating a PEB model for each ' ...
-                'DCM and each combination of second level covariates. '...
-                'The PEB with the greatest evidence over the joint ' ...
-                'space of first and second-level models is returned.']};
+                'first level DCM best explains between subjects effects '...
+                '(spm_dcm_bmc_peb). If set to No, a PEB model for each DCM '...
+                'is returned.'] '' ...
+               ['The comparison works as follows. For each DCM, several ' ...
+                'PEB models are estimated - one per combination of second- ' ...
+                'level effects. The PEB with the greatest evidence over ' ...
+                'the joint space of first-level DCMs and second-level ' ...
+                'effects is returned.']};
 
             
 % =========================================================================
@@ -351,29 +352,38 @@ show_review.val    = {1};
 % =========================================================================
 % PEB specification batch
 % =========================================================================
-
-% -------------------------------------------------------------------------
-% specify Specify PEB model
-% -------------------------------------------------------------------------
 specify      = cfg_exbranch;
 specify.tag  = 'peb_specify';
 specify.name = 'Specify / Estimate PEB';
 specify.val  = { name model_space_mat covariates fields ...
                  bmc priors_between show_review };
-specify.help = {'Specifies and estimates a second-level DCM (PEB) model.'};
+specify.help = {['Specifies and estimates a second-level DCM (PEB) model. ' ...
+                 'Optionally, PEB models can automatically be compared to ' ...
+                 'find the best for explaining within and between-subject ' ...
+                 'effects.']};
+            
 specify.prog = @spm_run_create_peb;
-
+specify.vout = @vout_peb;
 % =========================================================================
-% PEB review batch
+% PEB reduce / average / compare batch
 % =========================================================================
-
-% -------------------------------------------------------------------------
-% review Review PEB model
-% -------------------------------------------------------------------------
 model_space_mat_op = model_space_mat;
 model_space_mat_op.num = [0 Inf];
 model_space_mat_op.val = {''};
 
+peb_reduce      = cfg_exbranch;
+peb_reduce.tag  = 'peb_reduce';
+peb_reduce.name = 'Reduce / Average PEB';
+peb_reduce.val  = { pebmat model_space_mat_op show_review};
+peb_reduce.help = {['Compares a PEB model to nested sub-models where ' ...
+    'certain parameters have been disabled (fixed at their prior mean of ' ...
+    'zero). Parameters are then averaged over reduced models to give a '...
+    'an averaged PEB (referred to as a Bayesian Model Average, BMA).']};
+peb_reduce.prog = @spm_run_reduce_peb;
+
+% =========================================================================
+% PEB review batch
+% =========================================================================
 review      = cfg_exbranch;
 review.tag  = 'peb_review';
 review.name = 'Review PEB';
@@ -388,7 +398,15 @@ second_level         = cfg_choice;
 second_level.tag     = 'PEB';
 second_level.name    = 'Second level';
 second_level.help    = {'Parametric Empirical Bayes for DCM'};
-second_level.values  = { specify review };
+second_level.values  = { specify peb_reduce review };
+
+%==========================================================================
+function dep = vout_peb(varargin)
+%==========================================================================
+dep(1)            = cfg_dep;
+dep(1).sname      = 'PEB mat File(s)';
+dep(1).src_output = substruct('.','pebmat');
+dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
 
 %==========================================================================
 function out = spm_run_dcm_peb_review(job)
@@ -493,6 +511,7 @@ if run_bmc
     % Write BMC
     bmc_filename = fullfile(dir_out,['BMC_' name '.mat']);
     save(bmc_filename,'BMC');    
+    out.bmcmat = {bmc_filename};
 else
     PEB = spm_dcm_peb(GCM,M,field);
 end
@@ -505,4 +524,36 @@ save(peb_filename,'PEB');
 if job.show_review == 1
     spm_dcm_peb_review(peb_filename,GCM);
 end
-out = peb_filename;
+
+out.pebmat = {peb_filename};
+
+%==========================================================================
+function spm_run_reduce_peb(job)
+%==========================================================================
+
+PEB = load(job.pebmat{1});
+PEB = PEB.PEB;
+
+% Run BMA
+BMA = spm_dcm_peb_bmc(PEB);
+
+% Write BMA
+[dir_out, name] = fileparts(job.pebmat{1});
+filename = fullfile(dir_out, ['BMA_' name '.mat']);
+save(filename,'BMA');
+
+% Review BMA
+if job.show_review == 1
+    
+    DCM = job.model_space_mat;
+    if ~isempty(DCM)
+        DCM = load(DCM{1});
+        if isfield(DCM,'GCM')
+            DCM = DCM.GCM;
+        else
+            DCM = DCM.DCM;
+        end
+    end    
+    
+    spm_dcm_peb_review(BMA,DCM);
+end
