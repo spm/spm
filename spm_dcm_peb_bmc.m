@@ -55,7 +55,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % If there is only a group effect (and no between subject differences) this
 % reduces to a search over different models of the group mean.
 %
-% Given the model space one can then computes the posterior probability
+% Given the model space one can then compute the posterior probability
 % of various combinations of group effects over different parameters. Of
 % particular interest are (i) the posterior probabilities over the
 % the first two group effects in the design matrix and the posterior
@@ -76,7 +76,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6587 2015-11-02 10:29:49Z karl $
+% $Id: spm_dcm_peb_bmc.m 6701 2016-01-28 15:00:28Z peter $
 
 % (greedy) search over all combinations of second level parameters
 %==========================================================================

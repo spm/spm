@@ -67,9 +67,20 @@ xPEB.region_names  = {};    % First level region names
 xPEB.input_names   = {};    % First level input names
 
 % Get first-level DCM metadata
-if ~isempty(DCM) && isfield(DCM{1},'xY')
-    xPEB.region_names = {DCM{1}.xY.name};    
-    xPEB.input_names  = strcat({'Input '}, DCM{1}.U.name);       
+if ~isempty(DCM) 
+    if isfield(DCM{1},'Sname')
+        % MEG / EEG
+        xPEB.region_names = DCM{1}.Sname;
+        xPEB.input_names  = DCM{1}.xU.name;
+    elseif isfield(DCM{1},'xY')
+        % fMRI
+        xPEB.region_names = {DCM{1}.xY.name};    
+        xPEB.input_names  = strcat({'Input '}, DCM{1}.U.name);       
+    else
+        % Don't use the DCM
+        warning('Unknown modality');
+        xPEB.DCM = [];
+    end
 end
 
 % Add in posterior correlations
@@ -134,8 +145,47 @@ Ch = PEB.Ch;
 % -------------------------------------------------------------------------
 display_connectivity = (effect > 0 && effect <= nc && ~isempty(DCM));
 
-if display_connectivity    
-    [xPEB.Eq, xPEB.fields, nu] = unpack_dcm(DCM, effect);   
+if display_connectivity   
+    
+    sel_field_idx = xPEB.sel_field_idx;
+    sel_input     = xPEB.sel_input;    
+    
+    % Get names of DCM fields included in the PEB
+    fields = {};
+    parts  = {};
+    for p = 1:np
+        [name,parts{p}] = pname_to_string(PEB.Pnames{p}, ...
+                                          xPEB.region_names, ...
+                                          xPEB.input_names);
+
+        if isnan(parts{p}.input)
+            parts{p}.input = 1;
+        end
+        
+        if ~any(strcmp(parts{p}.field, fields))
+            fields{end+1} = parts{p}.field;
+        end        
+    end
+    
+    sel_field = fields{sel_field_idx};
+    
+    % Get the size of this field's matrix in the DCM
+    [i,j,k] = size(eval(['DCM{1}.Ep.' sel_field]));
+    
+    % Reshape PEB parameters
+    Eq = zeros(i,j,k);    
+    for p = 1:np
+        if strcmp(parts{p}.field, sel_field)
+            Eq(parts{p}.row, parts{p}.col, parts{p}.input) = PEB.Ep(p,effect);
+        end
+    end
+    
+    % Limit to a specific input (fMRI)
+    nu = size(Eq,3);
+    Eq = Eq(:,:,xPEB.sel_input);
+    
+    xPEB.fields = fields;
+    xPEB.Eq     = Eq;  
 end
 
 % Set GUI constants
@@ -265,7 +315,8 @@ elseif view <= (nc+1)
         set(gca,'XAxisLocation','top','Tag','connectivity');
         title('Connectivity','FontSize',16);
         
-        if size(xPEB.Eq,1) == size(xPEB.Eq,2) && size(xPEB.Eq,1) == DCM{1}.n
+        if size(xPEB.Eq,1) == size(xPEB.Eq,2) && ...
+                size(xPEB.Eq,1) == length(xPEB.region_names)
             set(gca,'YTickLabel',xPEB.region_names,'XTickLabel',{''});
         end               
     end
@@ -314,45 +365,6 @@ h = uicontrol('Style','Popupmenu','Units','normalized', ...
         'ToolTipString','','Enable','on',varargin{:});
     
 % =========================================================================
-function [Eq, fields, nu] = unpack_dcm(DCM, effect)
-% Gets data from the DCMs for a given between-subjects effect
-%
-% Eq     - posterior nxn connectivity matrix for a given effect
-% fields - names of fields with non-zero parameters
-% nu     - number of inputs for this field i.e. third dimension
-
-xPEB = evalin('base','xPEB');
-PEB           = xPEB.PEB;
-sel_field_idx = xPEB.sel_field_idx;
-sel_input     = xPEB.sel_input;
-
-% Populate DCM parameter structure from PEB
-Eq           = spm_vec(DCM{1}.Ep) .* 0;
-Eq(PEB.Pind) = PEB.Ep(:,effect);
-Eq           = spm_unvec(Eq, DCM{1}.Ep);
-
-% Get names of non-empty fields
-fields  = fieldnames(Eq);
-rfields = fields;
-for i = length(fields):-1:1
-    mtx = Eq.(fields{i});
-    if ~any(mtx(:))
-        rfields(i) = [];
-    end
-end
-fields = rfields;
-
-% Get connectivity matrix for selected field / input
-Eq         = Eq.(fields{sel_field_idx});    
-nu         = size(Eq,3);
-Eq         = Eq(:,:,sel_input);
-
-% Prettify field names
-for i = 1:length(fields)
-    fields{i} = ['Displaying field ' fields{i}];
-end
-
-% =========================================================================
 function create_tile(stat,label)
 % Creates a square display with a statistic and a label
 stat = num2str(stat);
@@ -366,40 +378,47 @@ text(0.5,0.45,label,'FontSize',8,'HorizontalAlignment','Center',...
 set(gca,'Color',[0.2 0.2 0.2],'XTick',[],'YTick',[]);
 
 % =========================================================================
-function out = pname_to_string(pname, region_names, input_names)
+function [out,parts] = pname_to_string(pname, region_names, input_names)
 % Translates a PEB parameter string e.g. B(1,2,3) to a friendly descriptor
 % e.g. B(From region 1 to region 3 input 3)
+%
+% pname        - parameter name string from PEB e.g. A{2}(1,2,3)
+% region_names - cell array of region names
+% input_names  - cell array of input (condition) names
+%
+% out          - friendly name for the parameter
+% parts        - cell array for row, col and (fMRI) task input
 
-if isempty(region_names)
-    out = pname;
-    return;
-end
-
-str = ['(?<field>[A-Za-z]+)\('... % Match field and open bracket or comma
+str = ['(?<field>[A-Za-z0-9\{\},]+)\('... % Match field and open bracket
        '(?<row>\d+)(,|\))'...     % Match row and open bracket or comma
        '(?<col>\d+)?(,|\))?'...   % Match column and open bracket or comma
        '(?<input>\d+)?(,|\))?'];  % Match input and open bracket or comma
 
 parts = regexp(pname, str, 'names');
 
-row = parts.row;
-col = parts.col;
-input = parts.input;
+parts.row   = str2double(parts.row);
+parts.col   = str2double(parts.col);
+parts.input = str2double(parts.input);
 
-out = [parts.field '-matrix '];
-if isempty(col)
-    % Row only
-    out = sprintf('%s %s', out, region_names{str2double(row)});
-else
-    % Row and col
-    out = sprintf('%sfrom %s to %s', ...
-        out, ...
-        region_names{str2double(col)}, ...
-        region_names{str2double(row)});
+if isempty(region_names)
+    out = pname;
+    return;
 end
 
-if ~isempty(parts.input)
-    out = sprintf('%s (%s)', out, input_names{str2double(input)});
+out = [parts.field '-matrix '];
+if isnan(parts.col)
+    % Row only
+    out = sprintf('%s %s', out, region_names{parts.row});
+else
+    % Row and col
+    out = sprintf('%s from %s to %s', ...
+        out, ...
+        region_names{parts.col}, ...
+        region_names{parts.row});
+end
+
+if ~isnan(parts.input)
+    out = sprintf('%s (%s)', out, input_names{parts.input});
 end
 
 % =========================================================================
