@@ -33,10 +33,10 @@ function Dcoh = spm_eeg_ft_multitaper_coherence(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_coherence.m 6059 2014-06-19 11:57:31Z vladimir $
+% $Id: spm_eeg_ft_multitaper_coherence.m 6699 2016-01-28 09:55:26Z vladimir $
 
 %%
-SVNrev = '$Rev: 6059 $';
+SVNrev = '$Rev: 6699 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -115,6 +115,8 @@ end
 
 if ~isfield(S, 'robust') && spm_input('Use robust averaging?','+1','yes|no', [1 0], 0)
     S.robust = [];
+else
+    S.robust = 'no';
 end
         
 if  ~isequal(S.robust, 'no')
@@ -162,7 +164,7 @@ cfg.output ='powandcsd';
 cfg.taper = 'dpss';
 cfg.channel = unique(S.chancomb(:));
 cfg.channelcmb = S.chancomb;
-cfg.method          = 'mtmfft';
+cfg.method          = 'mtmconvol';
 cfg.keeptrials = 'yes';
 cfg.keeptapers = 'no';
 
@@ -268,8 +270,8 @@ for j = 1:np
         end
 
         if ~robust
-            Dcoh(j, :, :, i) = shiftdim(spm_squeeze(abs(mean(freq.crsspctrm(w, crossind, :, :))./...
-                sqrt(mean(freq.powspctrm(w, powind(1), :, :)).*mean(freq.powspctrm(w, powind(2), :, :)))), 2), -1);
+            Dcoh(j, :, :, i) = spm_squeeze(abs(mean(freq.crsspctrm(w, crossind, :, :))./...
+                sqrt(mean(freq.powspctrm(w, powind(1), :, :)).*mean(freq.powspctrm(w, powind(2), :, :)))), 2);
         else
             if bycondition
                 [Y, W] = spm_robust_average(permute(cat(4, spm_squeeze(abs(freq.crsspctrm(w, crossind , :, :)), 2),...
