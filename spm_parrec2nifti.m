@@ -11,7 +11,7 @@ function N = spm_parrec2nifti(parfile,opts)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_parrec2nifti.m 6500 2015-07-16 14:26:42Z guillaume $
+% $Id: spm_parrec2nifti.m 6703 2016-01-28 17:36:10Z guillaume $
 
 
 %-Display warning
@@ -54,7 +54,7 @@ dim   = double(dim);
 dtype = double(hdr.ImageInfo(1).image_pixel_size);
 if prod(dim)*dtype/8 ~= bytes
     % can happen for corrupted files or non dynamic data
-    dim(4) = bytes*8/dtype/prod(dim(1:3));
+    dim(4) = floor(bytes*8/dtype/prod(dim(1:3)));
     fprintf('Size of REC file does not match PAR file. ');
     fprintf('Setting dim(4) to %d.\n',dim(4));
 end
@@ -237,6 +237,7 @@ dict = {...
     'Protocol name',                       'ProtocolName', '%s', n
     'Examination date/time',               'ExaminationDate', '%s', @(x) datevec(x,'yyyy.mm.dd / HH:MM:SS')
     'Series Type',                         'SeriesType', '%s', n
+    'Series_data_type',                    'SeriesDataType', '%s', n
     'Acquisition nr',                      'AcquisitionNr', '%d', n
     'Reconstruction nr',                   'ReconstructionNr', '%d', n
     'Scan Duration [sec]',                 'ScanDuration', '%d', n
@@ -245,12 +246,14 @@ dict = {...
     'Max. number of slices/locations',     'MaxNumberOfSlices', '%d', n
     'Max. number of dynamics',             'MaxNumberOfDynamics', '%d', n
     'Max. number of mixes',                'MaxNumberOfMixes', '%d', n
+    'Patient Position',                    'PatientPosition', '%s', n
     'Patient position',                    'PatientPosition', '%s', n
     'Preparation direction',               'PreparationDirection', '%s', n
     'Technique',                           'Technique', '%s', n
     'Scan resolution  (x, y)',             'ScanResolution', '%d  %d', n
     'Scan mode',                           'ScanMode', '%s', n
     'Repetition time [ms]',                'RepetitionTime', '%f', n
+    'Repetition time [msec]',              'RepetitionTime', '%f', n
     'FOV (ap,fh,rl) [mm]',                 'FOV', '%f  %f  %f', n
     'Water Fat shift [pixels]',            'WaterFatShift', '%f', n
     'Angulation midslice(ap,fh,rl)[degr]', 'AngulationMidslice', '%f  %f  %f', n
@@ -264,6 +267,7 @@ dict = {...
     'Dynamic scan      <0=no 1=yes> ?',    'DynamicScan', '%d', @logical
     'Diffusion         <0=no 1=yes> ?',    'Diffusion', '%d', @logical
     'Diffusion echo time [ms]',            'DiffusionEchoTime', '%f', n
+    'Diffusion echo time [msec]',          'DiffusionEchoTime', '%f', n
     'Max. number of diffusion values',     'MaxNumberOfDiffusionValues', '%d', n
     'Max. number of gradient orients',     'MaxNumberOfGradientsOrients', '%d', n
     'Number of label types   <0=no ASL>',  'NumberOfLabelTypes', '%d', n
