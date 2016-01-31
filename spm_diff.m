@@ -24,7 +24,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_diff.m 6110 2014-07-21 09:36:13Z karl $
+% $Id: spm_diff.m 6705 2016-01-31 13:06:48Z karl $
 
 % create inline object
 %--------------------------------------------------------------------------
@@ -103,14 +103,16 @@ if length(n) == 1
         J = sparse(0,length(xm));
     end
     
-    % or differentiation of a vector
+    % or differentiation of a scalar or vector
     %----------------------------------------------------------------------
     if isvector(f0) && isnumeric(f0) && q
         
         % concatenate into a matrix
         %------------------------------------------------------------------
-        if size(f0,2) == 1
+        if size(f0,2) == 1 && size(f0,1) > 1
             J = spm_cat(J);
+        elseif size(f0,2) == 1 && size(f0,1) == 1
+            J = spm_cat(J');
         else
             J = spm_cat(J')';
         end

@@ -5,83 +5,80 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 %
 % DCM    - {N [x M]} structure array of DCMs from N subjects
 % -------------------------------------------------------------------------
-%     DCM{i}.M.pE - prior expectation of parameters
-%     DCM{i}.M.pC - prior covariances of parameters
-%     DCM{i}.Ep   - posterior expectations
-%     DCM{i}.Cp   - posterior covariance
-%     DCM{i}.F   - free energy
+%     DCM{i}.M.pE	- prior expectation of parameters
+%     DCM{i}.M.pC	- prior covariances of parameters
+%     DCM{i}.Ep		- posterior expectations
+%     DCM{i}.Cp		- posterior covariance
+%     DCM{i}.F		- free energy
 %
-% M.X    - second level design matrix, where X(:,1) = ones(N,1) [default]
-% M.pC   - second level prior covariances of parameters
-% M.hE   - second level prior expectation of log precisions
-% M.hC   - second level prior covariances of log precisions
-% M.bE   - third  level prior expectation of parameters
-% M.bC   - third  level prior covariances of parameters
+% M.X		- second level design matrix, where X(:,1) = ones(N,1) [default]
+% M.pC   	- second level prior covariances of parameters
+% M.hE		- second level prior expectation of log precisions
+% M.hC		- second level prior covariances of log precisions
+% M.bE		- third level prior expectation of parameters
+% M.bC		- third level prior covariances of parameters
 %
 % M.Q      - covariance components: {'single','fields','all','none'}
 % M.beta   - within:between precision ratio:  [default = 16]
 %
 % M.Xnames - cell array of names for second level parameters [default: {}]
 % 
-% field  - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
-%          'All' will invoke all fields. this argument effectively allows 
-%          one to specify which parameters constitute random effects.     
+% field  	- parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
+%          		'All' will invoke all fields. This argument effectively allows 
+%          		one to specify the parameters that constitute random effects.     
 % 
-% PEB    - hierarchical dynamic model
+% PEB    	- hierarchical dynamic model
 % -------------------------------------------------------------------------
-%     PEB.Snames - string array of first level model names
-%     PEB.Pnames - string array of parameters of interest
-%     PEB.Pind   - indices of parameters in spm_vec(DCM{i}.Ep) 
+%     PEB.Snames 	- string array of first level model names
+%     PEB.Pnames 	- string array of parameters of interest
+%     PEB.Pind   	- indices of parameters in spm_vec(DCM{i}.Ep) 
 %     PEB.Xnames - names of second level parameters
 % 
-%     PEB.M.X  -   second level (between subject) design matrix
-%     PEB.M.W  -   second level (within  subject) design matrix
-%     PEB.M.Q  -   precision [components] of second level random effects 
-%     PEB.M.pE -   prior expectation of second level parameters
-%     PEB.M.pC -   prior covariance  of second level parameters
-%     PEB.M.hE -   prior expectation of second level log-precisions
-%     PEB.M.hC -   prior covariance  of second level log-precisions
-%     PEB.Ep   -   posterior expectation of second level parameters
-%     PEB.Eh   -   posterior expectation of second level log-precisions
-%     PEB.Cp   -   posterior covariance  of second level parameters
-%     PEB.Ch   -   posterior covariance  of second level log-precisions
-%     PEB.Ce   -   expected covariance of second level random effects
-%     PEB.F    -   free energy of second level model
+%     PEB.M.X  		- second level (between-subject) design matrix
+%     PEB.M.W  		- second level (within-subject) design matrix
+%     PEB.M.Q  		- precision [components] of second level random effects 
+%     PEB.M.pE 		- prior expectation of second level parameters
+%     PEB.M.pC 		- prior covariance of second level parameters
+%     PEB.M.hE 		- prior expectation of second level log-precisions
+%     PEB.M.hC 		- prior covariance of second level log-precisions
+%     PEB.Ep		- posterior expectation of second level parameters
+%     PEB.Eh   		- posterior expectation of second level log-precisions
+%     PEB.Cp  		- posterior covariance of second level parameters
+%     PEB.Ch   		- posterior covariance of second level log-precisions
+%     PEB.Ce   		- expected  covariance of second level random effects
+%     PEB.F    		- free energy of second level model
 %
-% DCM    - 1st level (reduced) DCM structures with emprical priors
+% DCM    		- 1st level (reduced) DCM structures with empirical priors
 %
-%          If DCM is an an (N x M} array, hierarchicial inversion will be
+%          If DCM is an an (N x M} array, hierarchical inversion will be
 %          applied to each model (i.e., each row) - and PEB will be a 
 %          {1 x M} cell array.
-%
-%--------------------------------------------------------------------------
+% 
 % This routine inverts a hierarchical DCM using variational Laplace and
 % Bayesian model reduction. In essence, it optimises the empirical priors
-% over the parameters of a set of first level DCMs, using  second level or
+% over the parameters of a set of first level DCMs, using second level or
 % between subject constraints specified in the design matrix X. This scheme
 % is efficient in the sense that it does not require inversion of the first
 % level DCMs – it just requires the prior and posterior densities from each
-% first level DCMs to compute empirical priors under the implicit
+% first level DCM to compute empirical priors under the implicit
 % hierarchical model. The output of this scheme (PEB) can be re-entered
 % recursively to invert deep hierarchical models. Furthermore, Bayesian
-% model comparison (BMC) can be specified in terms of the empirical
-% priors to perform BMC at the group level. Alternatively, subject-specific
-% (first level) posterior expectations can be used for classical inference
-% in the usual way. Note that these (summary statistics) and  optimal in
-% the sense that they have been estimated under empirical (hierarchical) 
-% priors.
+% model comparison (BMC) can be specified in terms of the empirical priors
+% to perform BMC at the group level. Alternatively, subject-specific (first
+% level) posterior expectations can be used for classical inference in the
+% usual way. Note that these (summary statistics) are optimal in the sense
+% that they have been estimated under empirical (hierarchical)  priors. 
 %
-% If called with a single DCM, there are no between subject effects and the
+% If called with a single DCM, there are no between-subject effects and the
 % design matrix is assumed to model mixtures of parameters at the first
-% level.
+% level. If called with a cell array, each column is assumed to contain 1st
+% level DCMs inverted under the same model.
 %
-% If called with a cell array, each column is assumed to contain 1st level
-% DCMs inverted under the same model.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6695 2016-01-27 10:51:26Z peter $
+% $Id: spm_dcm_peb.m 6705 2016-01-31 13:06:48Z karl $
  
 
 % get filenames and set up

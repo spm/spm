@@ -1,41 +1,39 @@
 function [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
-% Leave-one-out cross validation for empirical Bayes and DCM
+% Leave-one-out cross-validation for empirical Bayes and DCM
 % FORMAT [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
 %
 % DCM   - {N [x M]} structure DCM array of (M) DCMs from (N) subjects
 % -------------------------------------------------------------------
-%     DCM{i}.M.pE - prior expectation of parameters
-%     DCM{i}.M.pC - prior covariances of parameters
-%     DCM{i}.Ep   - posterior expectations
-%     DCM{i}.Cp   - posterior covariance
+%     DCM{i}.M.pE	- prior expectation of parameters
+%     DCM{i}.M.pC	- prior covariances of parameters
+%     DCM{i}.Ep   	- posterior expectations
+%     DCM{i}.Cp   	- posterior covariance
 %
-% M.X   - second level design matrix, where X(:,1) = ones(N,1) [default]
-% field - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
-%         'All' will invoke all fields
+% M.X   	- second level design matrix, where X(:,1) = ones(N,1) [default]
+% field 	- parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
+%             'All' will invoke all fields
 % 
-% qE    - posterior predictive expectation (group effect)
-% qC    - posterior predictive covariances (group effect)
-% Q     - posterior probability over unique levels of X(:,2)
-%__________________________________________________________________________
-%
-% This routine uses the posterior predictive density over the coefficients 
-% of between subject effects encoded by a design matrix X. It is assumed
-% that the second column of X contains classification predictor variables.
-% A CV scheme is used to estimate the mixture of parameters at the first
-% (within subject) level that are conserved over subjects in terms of a
-% constant (first column of X) and differences (second column of X). Using
-% a leave-one-out scheme, the predictive posterior density of the
-% predictive variable is used to assess cross validation accuracy.
-%
-% For multiple models, this procedure is repeated for each model in the
-% columns of the DCM array.
-%
+% qE    	- posterior predictive expectation (group effect)
+% qC    	- posterior predictive covariances (group effect)
+% Q     	- posterior probability over unique levels of X(:,2)
+% 
+% This routine uses the posterior predictive density over the coefficients
+% of between-subject effects encoded by a design matrix X. It is assumed
+% that the second column of X contains classification or predictor
+% variables. A cross-validation scheme is used to estimate the mixture of
+% parameters at the first (within-subject) level that are conserved over
+% subjects in terms of a constant (first column of X) and differences
+% (second column of X). Using a leave-one-out scheme, the predictive
+% posterior density of the predictive variable is used to assess
+% cross-validation accuracy. For multiple models, this procedure is
+% repeated for each model in the columns of the DCM array.
+% 
 % See also: spm_dcm_peb.m and spm_dcm_ppd.m
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_loo.m 6532 2015-08-23 13:59:19Z karl $
+% $Id: spm_dcm_loo.m 6705 2016-01-31 13:06:48Z karl $
 
 
 % Set up
@@ -43,8 +41,12 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
 
 % parameter fields
 %--------------------------------------------------------------------------
-if nargin < 3;
-    field  = {'A','B'};
+if nargin < 3
+    try
+        field = DCM{1}.field;
+    catch
+        field = {'A','B'};
+    end
 end
 if strcmpi(field,'all');
     field = fieldnames(DCM{1}.M.pE);
@@ -105,7 +107,6 @@ plot(M.X(:,2),qE,'o','Markersize',8)
 xlabel('group effect'), ylabel('estimate')
 title(str,'FontSize',16)
 axis square
-
 
 if size(Q,1) > 2
     subplot(2,1,2), imagesc(1:Ns,unique(M.X(:,2)),Q), hold on

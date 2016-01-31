@@ -4,38 +4,38 @@ function [DCM] = spm_dcm_mdp(DCM)
 %
 % Expects:
 %--------------------------------------------------------------------------
-% DCM.MDP                            % MDP model
-% DCM.field                          % parameter (field) names to optimise
-% DCM.U                              % cell array of outcomes (stimului)
-% DCM.Y                              % cell array of responses (action)
+% DCM.MDP	% MDP structure specifying a generative model
+% DCM.field	% parameter (field) names to optimise
+% DCM.U	% cell array of outcomes (stimuli)
+% DCM.Y	% cell array of responses (action)
 %
 % Returns:
 %--------------------------------------------------------------------------
-% DCM.M                              % genertive model (DCM)
-% DCM.Ep                             % Conditional means (structure)
-% DCM.Cp                             % Conditional covariances
-% DCM.F                              % Free-energy bound on log evidence
-%
+% DCM.M	% generative model (DCM)
+% DCM.Ep	% Conditional means (structure)
+% DCM.Cp	% Conditional covariances
+% DCM.F	% (negative) Free-energy bound on log evidence
+% 
 % This routine inverts (cell arrays of) trials specified in terms of the
 % stimuli or outcomes and subsequent choices or responses. It first
 % computes the prior expectations (and covariances) of the free parameters
-% specified by DCM.field. These parameters are log scaling parametersthat
-% are applied to the fields of DCM.MDP.
+% specified by DCM.field. These parameters are log scaling parameters that
+% are applied to the fields of DCM.MDP. 
 %
-% If there is no learning implicit in multi-trial games, only unique
-% trials (as specified by the stimuli), are used to generate (subjective)
+% If there is no learning implicit in multi-trial games, only unique trials
+% (as specified by the stimuli), are used to generate (subjective)
 % posteriors over choice or action. Otherwise, all trials are used in the
-% order specified.
+% order specified. The ensuing posterior probabilities over choices are
+% used with the specified choices or actions to evaluate their log
+% probability. This is used to optimise the MDP (hyper) parameters in
+% DCM.field using variational Laplace (with numerical evaluation of the
+% curvature).
 %
-% The ensuing posture probabilities over choices are used with the
-% subjective actions to evaluate their log probability. This is used to
-% optimise the NDP parameters using variational class (with numerical
-% evaluation of the curvature).
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mdp.m 6587 2015-11-02 10:29:49Z karl $
+% $Id: spm_dcm_mdp.m 6705 2016-01-31 13:06:48Z karl $
 
 % OPTIONS
 %--------------------------------------------------------------------------
