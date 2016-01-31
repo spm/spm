@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6655 2015-12-23 20:21:27Z karl $
+% $Id: DEM_demo_MDP_habits.m 6707 2016-01-31 13:16:28Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -53,8 +53,10 @@ rng('default')
 a      = .98;
 b      = 1 - a;
 A      = [1 1 0 0 0 0 0 0;    % ambiguous starting position (centre)
-          0 0 a b b a 0 0;    % reward
-          0 0 b a a b 0 0;    % no reward
+          0 0 a b 0 0 0 0;    % reward - right
+          0 0 b a 0 0 0 0;    % no reward - right
+          0 0 0 0 b a 0 0;    % reward - left
+          0 0 0 0 a b 0 0;    % no reward - left
           0 0 0 0 0 0 1 0;    % informative cue - reward on right
           0 0 0 0 0 0 0 1];   % informative cue - reward on left
  
@@ -78,9 +80,9 @@ end
 % probabilities. Here, the agent prefers rewards to losses.
 %--------------------------------------------------------------------------
 c  = 3;
-C  = [0 0  0 0 0;
-      0 c -c 0 0;
-      0 c -c 0 0]';
+C  = [0 0  0  0  0 0 0;
+      0 c -c  c -c 0 0;
+      0 c -c  c -c 0 0]';
  
 % now specify prior beliefs about initial state, in terms of counts
 %--------------------------------------------------------------------------
@@ -112,7 +114,7 @@ i           = [1,3];          % change context in a couple of trials
 [MDP(1:32)] = deal(mdp);      % create structure array
 [MDP(i).s]  = deal(2);        % deal context changes
 % [MDP.C]   = deal(C - C);    % for epistemic simulation
-MDP(12).o   = [1 4 5];        % unexpected outcome
+MDP(12).o   = [1 6 7];        % unexpected outcome
 
 
  
@@ -152,14 +154,15 @@ spm_figure('GetWin','Figure 5'); clf
 spm_MDP_VB_LFP(MDP([11,12]),[8;3]);
 subplot(4,1,1), title('Violation response (P300)','FontSize',16)
  
-% illustrate oddball responses (MMN) - CS
+% illustrate oddball responses (MMN)  - CS and dopamine transfer
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 6a'); clf
-spm_MDP_VB_LFP(MDP([2,20]),[1;1]);
+i  = find(ismember(spm_cat({MDP.u}'),[4 2],'rows'));
+spm_MDP_VB_LFP(MDP([i(1),i(end)]),[1;1]);
 subplot(4,1,1), title('Repetition suppression and DA transfer','FontSize',16)
  
 spm_figure('GetWin','Figure 6b');clf
-v  = spm_MDP_VB_LFP(MDP([2,20]),[1 2;1 1]);
+v  = spm_MDP_VB_LFP(MDP([i(1),i(end)]),[1;1]);
 t  = (1:16)*16 + 80;
 subplot(2,1,1),plot(t,v{1}{2,1},'b-.',t,v{2}{2,1},'b:',t,v{2}{2,1} - v{1}{2,1})
 xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',16)
@@ -186,9 +189,9 @@ clear MDP
 [MDP(4:16).s]  = deal(2);
 OPTIONS.plot   = 0;
  
-d     = 2:2:8;
+d     = linspace(32,64,4);
 for i = 1:length(d)
-    MDP(1).d   = kron([1 0 0 0],[d(i) 1])' + 1;
+    MDP(1).d   = kron([1 0 0 0],[d(i) 8])';
     M          = spm_MDP_VB(MDP,OPTIONS);
     Q          = spm_MDP_VB_game(M);
     ext(i)     = sum(Q.O(4:end) == 3);

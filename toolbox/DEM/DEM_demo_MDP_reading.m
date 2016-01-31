@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_reading
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_reading.m 6672 2016-01-12 12:28:31Z karl $
+% $Id: DEM_demo_MDP_reading.m 6707 2016-01-31 13:16:28Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -213,17 +213,20 @@ end
 
 % allowable policies (specified as the next action) U
 %--------------------------------------------------------------------------
-U(1,1,:)  = [1 1 1]';            % stay on this page
-U(2,1,:)  = [1 2 1]';            % and then move forward
-U(1,2,:)  = [1 2 1]';            % move to next page
-U(2,2,:)  = [1 2 1]';            % and then move forward
+% U(1,1,:)  = [1 1 1]';            % stay on this page
+% U(2,1,:)  = [1 2 1]';            % and then move forward
+% U(1,2,:)  = [1 2 1]';            % move to next page
+% U(2,2,:)  = [1 2 1]';            % and then move forward
+% 
+% U(1,3,:)  = [1 1 2]';            % stay on current page and report happy
+% U(2,3,:)  = [1 1 2]';            % stay on current page and report happy
+% U(1,4,:)  = [1 1 3]';            % stay on current page and report sad
+% U(2,4,:)  = [1 1 3]';            % stay on current page and report sad
 
-U(1,3,:)  = [1 1 2]';            % stay on current page and report happy
-U(2,3,:)  = [1 1 2]';            % stay on current page and report happy
-U(1,4,:)  = [1 1 3]';            % stay on current page and report sad
-U(2,4,:)  = [1 1 3]';            % stay on current page and report sad
+U(1,1,:)  = [1 2 1]';            % move to next page
+U(1,2,:)  = [1 1 2]';            % stay on current page and report happy
+U(1,3,:)  = [1 1 3]';            % stay on current page and report sad
 
- 
 % priors: (utility) C
 %--------------------------------------------------------------------------
 for g = 1:Ng
@@ -260,16 +263,19 @@ MDP   = spm_MDP_VB_X(mdp);
 spm_figure('GetWin','Figure 1'); clf
 spm_MDP_VB_trial(MDP);
 
+% illustrate phase-precession and responses
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 2'); clf
+spm_MDP_VB_LFP(MDP,[],1);
+
+
 return
 
 subplot(3,2,3)
 spm_MDP_search_plot(MDP)
  
  
-% illustrate phase-precession and responses
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2'); clf
-spm_MDP_VB_LFP(MDP,[],1);
+
  
  
 % illustrate evidence accumulation and perceptual synthesis
