@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_search
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_search.m 6665 2016-01-08 21:05:13Z karl $
+% $Id: DEM_demo_MDP_search.m 6706 2016-01-31 13:10:08Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -183,13 +183,11 @@ spm_MDP_VB_trial(MDP);
 subplot(3,2,3)
 spm_MDP_search_plot(MDP)
  
- 
 % illustrate phase-precession and responses
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2'); clf
 spm_MDP_VB_LFP(MDP,[],1);
- 
- 
+
 % illustrate evidence accumulation and perceptual synthesis
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf

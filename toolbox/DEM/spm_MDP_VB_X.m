@@ -89,7 +89,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6672 2016-01-12 12:28:31Z karl $
+% $Id: spm_MDP_VB_X.m 6706 2016-01-31 13:10:08Z karl $
 
 
 % deal with a sequence of trials
@@ -159,7 +159,7 @@ end
 for g = 1:Ng
     No(g) = size(MDP.A{g},1);       % number of outcomes
 end
-p0  = exp(-8);                      % smallest probability
+p0  = exp(-16);                     % smallest probability
 q0  = 1/16;                         % smallest probability
 
 
@@ -213,11 +213,11 @@ end
 %--------------------------------------------------------------------------
 for f = 1:Nf
     if isfield(MDP,'d')
-        qD{f} = spm_psi(MDP.d{f} + q0);
+        D{f} = spm_norm(MDP.d{f} + p0);
     elseif isfield(MDP,'D')
-        qD{f} = log(spm_norm(MDP.D{f} + p0));
+        D{f} = spm_norm(MDP.D{f} + p0);
     else
-        qD{f} = spm_psi(ones(Ns(f),1));
+        D{f} = spm_norm(ones(Ns(f),1));
     end
 end
 
@@ -265,7 +265,7 @@ for f = 1:Nf
     x{f}  = zeros(Ns(f),T,Np)      + 1/Ns(f);
     X{f}  = zeros(Ns(f),T);
     for k = 1:Np
-        x{f}(:,1,k) = spm_softmax(qD{f});
+        x{f}(:,1,k) = D{f};
     end
     
 end
@@ -303,7 +303,7 @@ for t = 1:T
     %----------------------------------------------------------------------
     tstart = tic;
     for f = 1:Nf
-        x{f} = spm_softmax(log(x{f})/2);
+        x{f} = spm_softmax(log(x{f})/4);
     end
     
     % Variational updates (hidden states) under sequential policies
@@ -321,9 +321,12 @@ for t = 1:T
                     
                     % entropy term
                     %------------------------------------------------------
-                    qx     = log(x{f}(:,j,k));
-                    v      = qx;
+                    sx     = x{f}(:,j,k);
+                    qx     = log(sx);
+                    v      = 1;
                     
+                    % likelihood term
+                    %------------------------------------------------------
                     ind    = 1:Nf;
                     ind(f) = [];
                     xq     = cell(1,(Nf - 1));
@@ -331,37 +334,46 @@ for t = 1:T
                         xq{q} = x{ind(q)}(:,j,k);
                     end
                     
-                    % likelihood
+                    % marginal likelihood over outcome factors
                     %------------------------------------------------------
                     if j <= t
                         for g = 1:Ng
-                            Aq  = spm_dot(qA{g},xq,ind + 1);
-                            v   = v - Aq(o(g,j),:)';
+                            Aq    = zeros(Ns);
+                            Aq(:) = A{g}(o(g,j),:);
+                            Aq    = spm_dot(Aq,xq,ind);
+                            v     = v.*Aq(:);
                         end
                     end
                     
-                    % emprical prior
+                    % emprical priors
                     %------------------------------------------------------
-                    if j == 1, v = v - qD{f};                                         end
-                    if j >  1, v = v - log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k));  end
-                    if j <  S, v = v - log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k));  end
+                    if j == 1, v = v.*D{f};                                       end
+                    if j >  1, v = v.*(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k));  end
+                    if j <  S, v = v.*(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k));  end
+
                     
-                    % free energy and belief updating
+                    % (negative) free energy
                     %------------------------------------------------------
-                    F(k,j)       = F(k,j) - x{f}(:,j,k)'*v;
-                    px{f}(:,j,k) = spm_softmax(qx - v/4);
+                    e      = log(v) - qx;
+                    F(k,j) = F(k,j) + x{f}(:,j,k)'*e;
                     
-                    % record neuronal activity
+                    % belief update: gradient ascent
                     %------------------------------------------------------
+                    dFdx   = sx.*e - sx*(sx'*e);
+                    dx     = dFdx/2;
+                    
+                    % update and record neuronal activity
+                    %------------------------------------------------------
+                    px{f}(:,j,k)     = spm_softmax(qx + dx);
                     xn{f}(i,:,j,t,k) = x{f}(:,j,k);
                     
                 end
             end
         end
         
-        % hidden state updates and convergence
+        % synchronous updates and convergence
         %------------------------------------------------------------------
-        x = px;
+        x    = px;
         if i > 1
             if all(sum(F - G,2) < 1/128)
                 for g = i:Ni
@@ -417,8 +429,8 @@ for t = 1:T
         if OPTIONS.gamma_u
             gu(t) = 1/beta;
         else
-            v     = qbeta - beta + (qu - pu)'*Q(p);
-            qbeta = qbeta - v/2;
+            dFdg  = qbeta - beta + (qu - pu)'*Q(p);
+            qbeta = qbeta - dFdg/2;
             gu(t) = 1/qbeta;
         end
         
@@ -691,4 +703,14 @@ for i = n:-1:1,
     sub(i,1) = vj;
     ndx      = vi;
 end
+
+
+% NOTES: gradient checks for exact integration
+%==========================================================================
+% mdp_F  = @(qx,v)spm_softmax(qx)'*(log(spm_softmax(qx)) - v);
+% dFdx   = spm_diff(mdp_F,qx,v,1);
+% dFdxx  = spm_diff(mdp_F,qx,v,[1 1]);
+% dFdxx  = spm_cat(dFdxx);
+% dFdxx  = diag(sx + dFdx) - sx*sx' - sx*(sx.*e)';
+% dx     = spm_dx(-dFdxx,-dFdx,1/4);
 
