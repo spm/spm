@@ -76,7 +76,11 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6701 2016-01-28 15:00:28Z peter $
+% $Id: spm_dcm_peb_bmc.m 6708 2016-02-01 19:50:33Z peter $
+
+if nargin < 1 || isempty(PEB) || length(PEB) > 1
+    error('Please provide a single PEB model');
+end
 
 % (greedy) search over all combinations of second level parameters
 %==========================================================================
@@ -287,8 +291,8 @@ BMA       = spm_dcm_bma(BMR(i)');
 
 % assemble BMA output structure
 %--------------------------------------------------------------------------
-BMA.Sname = PEB.Snames;
-BMA.Pname = PEB.Pnames;
+BMA.Snames = PEB.Snames;
+BMA.Pnames = PEB.Pnames;
 BMA.Pind  = PEB.Pind;
 BMA.Kname = Kname;
 
@@ -299,6 +303,11 @@ BMA.Pw    = Pw;
 BMA.M     = PEB.M;
 BMA.K     = K;
 
+% add posterior precisions from PEB (not averaged)
+%--------------------------------------------------------------------------
+BMA.Ce    = PEB.Ce;
+BMA.Ch    = PEB.Ch;
+BMA.Eh    = PEB.Eh;
 
 % Show results
 %==========================================================================

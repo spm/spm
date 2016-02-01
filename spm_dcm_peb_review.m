@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 6702 2016-01-28 15:10:49Z guillaume $
+% $Id: spm_dcm_peb_review.m 6708 2016-02-01 19:50:33Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -33,16 +33,19 @@ end
 
 % Load / validate DCM
 if nargin < 2 || isempty(DCM) || isempty(DCM{1}), DCM = {}; end
-if ~iscell(DCM), DCM = {DCM}; end
+DCM = cellstr(DCM);
 
 if ~isempty(DCM) && ischar(DCM{1})
     DCM{1} = load(DCM{1});
-    DCM{1} = DCM{1}.DCM;
+    if isfield(DCM{1},'DCM')
+        DCM{1} = DCM{1}.DCM;
+    elseif isfield(DCM{1},'GCM')
+        DCM = DCM{1}.GCM;
+    else
+        DCM = [];
+    end
 end
 
-if ~isempty(DCM) && iscell(DCM{1}) && numel(DCM) == 1
-    DCM = DCM{1};
-end
 
 % Correct BMA matrix size (Ep)
 np = length(PEB.Pnames); % Parameters
@@ -182,7 +185,7 @@ if display_connectivity
     
     % Limit to a specific input (fMRI)
     nu = size(Eq,3);
-    Eq = Eq(:,:,xPEB.sel_input);
+    Eq = Eq(:,:,sel_input);
     
     xPEB.fields = fields;
     xPEB.Eq     = Eq;  
@@ -207,7 +210,7 @@ views{VIEW_DIAGNOSTICS} = 'Diagnostics';
     
 % Create GUI
 % -------------------------------------------------------------------------
-f = spm_figure('GetWin','PEB - Review');
+f = spm_figure('GetWin','PEB - Review Parameters');
 spm_figure('ColorMap','gray-jet');
 datacursormode off;
 spm_clf;    
@@ -277,7 +280,8 @@ image(rescale(Ce,1,16));
 set(gca,'Tag','rfx');
 xlabel('First-Level Parameter','FontSize',12);
 text(np,1,'Random effects variance','FontSize',16,...
-        'Color','white','HorizontalAlignment','right');
+        'Color','white','HorizontalAlignment','right',...
+        'VerticalAlignment','top');
 axis square;
 
 % Add plots (lower panel)
@@ -317,24 +321,28 @@ elseif view <= (nc+1)
         
         if size(xPEB.Eq,1) == size(xPEB.Eq,2) && ...
                 size(xPEB.Eq,1) == length(xPEB.region_names)
-            set(gca,'YTickLabel',xPEB.region_names,'XTickLabel',{''});
+            set(gca,'YTickLabel',xPEB.region_names,...
+                'YTick',1:length(xPEB.region_names),...
+                'XTickLabel',{''});            
         end               
     end
     
 elseif view == VIEW_COMPONENTS
     % Precision components    
-    subplot(1,2,1,'Parent',xPEB.panels(2));
-    bar(Eh);
-    xlim([0 length(Eh)+1]);
-    xlabel('Precision component','FontSize',12);
-    title('Precision component weights','FontSize',16);
+    if ~isempty(Eh)
+        subplot(1,2,1,'Parent',xPEB.panels(2));
+        bar(Eh);
+        xlim([0 length(Eh)+1]);
+        xlabel('Precision component','FontSize',12);
+        title('Precision component weights','FontSize',16);
     
-    subplot(1,2,2,'Parent',xPEB.panels(2));
-    image(rescale(Ch, 1, 64));
-    xlabel('Precision component','FontSize',12);
-    set(gca,'XTick',1:length(Eh),'YTick',1:length(Eh));
-    title('Covariance','FontSize',16);
-    colorbar;
+        subplot(1,2,2,'Parent',xPEB.panels(2));
+        image(rescale(Ch, 1, 64));
+        xlabel('Precision component','FontSize',12);
+        set(gca,'XTick',1:length(Eh),'YTick',1:length(Eh));
+        title('Covariance','FontSize',16);
+        colorbar;
+    end
 elseif view == VIEW_DIAGNOSTICS
     % Plot correlations
     axes('Parent',xPEB.panels(2));
@@ -401,6 +409,12 @@ parts.col   = str2double(parts.col);
 parts.input = str2double(parts.input);
 
 if isempty(region_names)
+    out = pname;
+    return;
+end
+
+% Skip G-matrix for CMC model
+if strcmp(parts.field,'G')
     out = pname;
     return;
 end
@@ -486,19 +500,21 @@ switch tag
                sprintf('PEB parameter %d',peb_param_idx(idx1))};
     case 'rfx'        
         pname1 = pname_to_string(Pnames{idx1}, region_names, input_names);
-        pname2 = pname_to_string(Pnames{idx2}, region_names, input_names);
+        pname2 = pname_to_string(Pnames{idx2}, region_names, input_names);        
+        
+        Ce = full(xPEB.PEB.Ce(idx1,idx2));
         
         if idx1==idx2            
             txt = {sprintf('%s',pname1);
                    sprintf('DCM parameter %d',idx1); 
-                   sprintf('Variance: %2.2f',xPEB.PEB.Ce(idx1,idx1))};
+                   sprintf('Variance: %2.2f',Ce)};
         else
                         
             txt = {pname1;
                    'and';
                    pname2;
                    sprintf('DCM parameters %d and %d',idx1,idx2); 
-                   sprintf('Covariance: %2.2f',xPEB.PEB.Ce(idx1,idx2))};            
+                   sprintf('Covariance: %2.2f',Ce)};            
         end
     case 'correlations'        
         % Get index within covariate from the index across all parameters
@@ -522,7 +538,14 @@ switch tag
                 idx1,...
                 idx2);
                 sprintf('Correlation: %2.2f',xPEB.corr(idx1_allparams,idx2_allparams)); };
-    case 'connectivity'       
+    case 'connectivity'   
+        
+        % Exclude for CMC
+        if strcmp(xPEB.fields{xPEB.sel_field_idx},'G')
+            txt = '';
+            return;
+        end
+                
         idx_from = idx1;
         idx_to   = idx2;
         

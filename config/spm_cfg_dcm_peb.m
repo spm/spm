@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6702 2016-01-28 15:10:49Z guillaume $
+% $Id: spm_cfg_dcm_peb.m 6708 2016-02-01 19:50:33Z peter $
 
 
 % =========================================================================
@@ -72,7 +72,7 @@ pebmat.num     = [1 1];
 % -------------------------------------------------------------------------
 model_space_mat         = cfg_files;
 model_space_mat.tag     = 'model_space_mat';
-model_space_mat.name    = 'First-level DCMs';
+model_space_mat.name    = 'DCMs';
 model_space_mat.help    = {'Select group DCM file (GCM_*.mat) or one DCM ' ...
                            'per subject'};
 model_space_mat.filter  = 'mat';
@@ -230,27 +230,7 @@ fields.help   = {'Select the fields of the DCM to include in the model.' '' ...
                   'Enter manually: Enter a cell array e.g. {''A'',''C''}'};
 fields.val    = {field_default};
                        
-% =========================================================================
-% Bayesian Model Comparison selection
-% =========================================================================
-
-bmc         = cfg_menu;
-bmc.tag     = 'bmc';
-bmc.name    = 'Bayesian Model Comparison';
-bmc.labels  = {'Yes','No'};
-bmc.values  = {1,0};
-bmc.val     = {1};
-bmc.help    = {['If set to Yes, a comparison is performed to identify which ' ...
-                'first level DCM best explains between subjects effects '...
-                '(spm_dcm_bmc_peb). If set to No, a PEB model for each DCM '...
-                'is returned.'] '' ...
-               ['The comparison works as follows. For each DCM, several ' ...
-                'PEB models are estimated - one per combination of second- ' ...
-                'level effects. The PEB with the greatest evidence over ' ...
-                'the joint space of first-level DCMs and second-level ' ...
-                'effects is returned.']};
-
-            
+           
 % =========================================================================
 % Priors on log precision (between-subjects variability) entry
 % =========================================================================
@@ -282,24 +262,6 @@ priors_log_precision_var.num     = [1 1];
 priors_log_precision_var.val     = {1/16};
 
 % ---------------------------------------------------------------------
-% components Covariance component selection
-% ---------------------------------------------------------------------
-components = cfg_menu;
-components.tag    = 'components';
-components.name   = 'Precision components';
-components.labels = {'Single','Fields','All','None'};
-components.values = {'single','fields','all','none'};
-components.val    = {'single'};
-components.help   = {'Select the precision components to create:' ...
-    ['Single - One precision component is specified, ' ...
-    'assuming all parameters vary equally over subjects.'] ...
-    ['Fields - One precision component is specified for each field ' ...
-     '(A,B etc).'] ...
-    'All - One precision component is specified for each DCM connection.' ...
-    ['None - No precision components are specified, thus all parameters ' ...
-     'are fixed effects.']};
-
-% ---------------------------------------------------------------------
 % priors_parameters_ratio Priors on log precision variance
 % ---------------------------------------------------------------------
 priors_parameters_ratio  = cfg_entry;
@@ -324,8 +286,7 @@ priors_parameters_ratio.val     = {16};
 priors_between         = cfg_branch;
 priors_between.tag     = 'priors_between';
 priors_between.name    = 'Between-subjects variability';
-priors_between.val     = { components ...
-                           priors_parameters_ratio ...
+priors_between.val     = { priors_parameters_ratio ...
                            priors_log_precision_mu ...
                                  priors_log_precision_var};
 priors_between.help    = {['Between-subjects variability over second-' ...
@@ -344,7 +305,7 @@ priors_between.help    = {['Between-subjects variability over second-' ...
 % ---------------------------------------------------------------------
 show_review  = cfg_menu;
 show_review.tag    = 'show_review';
-show_review.name   = 'Review PEB results';
+show_review.name   = 'Review PEB parameters';
 show_review.labels = {'Yes','No'};
 show_review.values = {1,0};
 show_review.val    = {1};
@@ -356,14 +317,13 @@ specify      = cfg_exbranch;
 specify.tag  = 'peb_specify';
 specify.name = 'Specify / Estimate PEB';
 specify.val  = { name model_space_mat covariates fields ...
-                 bmc priors_between show_review };
+                 priors_between show_review };
 specify.help = {['Specifies and estimates a second-level DCM (PEB) model. ' ...
-                 'Optionally, PEB models can automatically be compared to ' ...
-                 'find the best for explaining within and between-subject ' ...
-                 'effects.']};
+                 'A PEB model will be created for each first level DCM.' ]};
             
 specify.prog = @spm_run_create_peb;
 specify.vout = @vout_peb;
+
 % =========================================================================
 % PEB reduce / average / compare batch
 % =========================================================================
@@ -373,12 +333,18 @@ model_space_mat_op.val = {''};
 
 peb_reduce      = cfg_exbranch;
 peb_reduce.tag  = 'peb_reduce';
-peb_reduce.name = 'Reduce / Average PEB';
+peb_reduce.name = 'Bayesian Model Comparison / Averaging (PEB)';
 peb_reduce.val  = { pebmat model_space_mat_op show_review};
 peb_reduce.help = {['Compares a PEB model to nested sub-models where ' ...
     'certain parameters have been disabled (fixed at their prior mean of ' ...
-    'zero). Parameters are then averaged over reduced models to give a '...
-    'an averaged PEB (referred to as a Bayesian Model Average, BMA).']};
+    'zero). Parameters are then averaged over reduced models to give an '...
+    'averaged PEB (referred to as a Bayesian Model Average, BMA). Each ' ...
+    'parameter in the PEB or BMA represents the effect of one between-' ...
+    'subjects covariate on one connection.'] '' ...
+    ['If only one first-level DCM is provided per subject, a search is made ' ...
+    'over reduced PEB models to prune away any parameters not contributing ' ... 
+    'to the model evidence. If multiple DCMs are provided per subject, ' ...
+    'these are used to define the models over second level parameters.']};
 peb_reduce.prog = @spm_run_reduce_peb;
 
 % =========================================================================
@@ -413,21 +379,16 @@ function out = spm_run_dcm_peb_review(job)
 %==========================================================================
 P   = job.pebmat;
 DCM = job.model_space_mat;
-spm_dcm_peb_review(P,DCM);
+spm_dcm_peb_review(P{1},DCM);
 out = job.pebmat;
 
 %==========================================================================
 function out = spm_run_create_peb(job)
 %==========================================================================
 
-% Load provided group DCM
-model_space = load(job.model_space_mat{1});
-if ~isfield(model_space,'GCM')
-    error('Provided file is not a valid model space');
-end
-GCM = model_space.GCM;
+[GCM,gcm_file] = load_dcm(job);
 
-ns = size(GCM,1);
+[ns, nm] = size(GCM);
 
 if ~isfield(GCM{1},'Ep')
     error('Please estimate DCMs before second-level analysis');
@@ -496,25 +457,14 @@ M = struct();
 M.beta   = job.priors_between.ratio;
 M.hE     = job.priors_between.expectation;
 M.hC     = job.priors_between.var;
-M.Q      = job.priors_between.components;
+M.Q      = 'single';
 M.X      = X;
 M.Xnames = Xnames;
 
-% Specify / estimate
-run_bmc = (job.bmc == 1);
-dir_out = fileparts(job.model_space_mat{1});
-name    = job.name;
-    
-if run_bmc
-    [BMC,PEB] = spm_dcm_bmc_peb(GCM,M,field);
-    
-    % Write BMC
-    bmc_filename = fullfile(dir_out,['BMC_' name '.mat']);
-    save(bmc_filename,'BMC');    
-    out.bmcmat = {bmc_filename};
-else
-    PEB = spm_dcm_peb(GCM,M,field);
-end
+% Specify / estimate PEB on full model only
+dir_out = fileparts(gcm_file);
+name    = job.name;    
+PEB     = spm_dcm_peb(GCM(:,1),M,field);
 
 % Write PEB
 peb_filename = fullfile(dir_out,['PEB_' name '.mat']);
@@ -534,8 +484,15 @@ function spm_run_reduce_peb(job)
 PEB = load(job.pebmat{1});
 PEB = PEB.PEB;
 
-% Run BMA
-BMA = spm_dcm_peb_bmc(PEB);
+GCM = load_dcm(job);
+nm  = size(GCM,2);
+
+% Run BMA on defined reduced models or all submodels
+if nm > 1
+    BMA = spm_dcm_peb_bmc(PEB,GCM(1,:));
+else
+    BMA = spm_dcm_peb_bmc(PEB);
+end
 
 % Write BMA
 [dir_out, name] = fileparts(job.pebmat{1});
@@ -557,3 +514,15 @@ if job.show_review == 1
     
     spm_dcm_peb_review(BMA,DCM);
 end
+
+%==========================================================================
+function [GCM,gcm_file] = load_dcm(job)
+%==========================================================================
+% Load and validate selected model space
+
+gcm_file = job.model_space_mat{1};
+GCM      = load(gcm_file);
+if ~isfield(GCM,'GCM')
+    error('Provided file is not a valid model space');
+end
+GCM = GCM.GCM;
