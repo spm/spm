@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 6708 2016-02-01 19:50:33Z peter $
+% $Id: spm_dcm_peb_review.m 6709 2016-02-01 20:00:19Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -33,7 +33,7 @@ end
 
 % Load / validate DCM
 if nargin < 2 || isempty(DCM) || isempty(DCM{1}), DCM = {}; end
-DCM = cellstr(DCM);
+if ~iscell(DCM), DCM = {DCM}; end
 
 if ~isempty(DCM) && ischar(DCM{1})
     DCM{1} = load(DCM{1});
