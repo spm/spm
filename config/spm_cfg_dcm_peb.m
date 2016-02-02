@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6708 2016-02-01 19:50:33Z peter $
+% $Id: spm_cfg_dcm_peb.m 6710 2016-02-02 18:08:53Z peter $
 
 
 % =========================================================================
@@ -333,9 +333,15 @@ model_space_mat_op.val = {''};
 
 peb_reduce      = cfg_exbranch;
 peb_reduce.tag  = 'peb_reduce';
-peb_reduce.name = 'Bayesian Model Comparison / Averaging (PEB)';
+peb_reduce.name = 'Compare / Average';
 peb_reduce.val  = { pebmat model_space_mat_op show_review};
-peb_reduce.help = {['Compares a PEB model to nested sub-models where ' ...
+peb_reduce.help = {['Addresses the question: which combination of ' ...
+    'connections best explains the commonalities across subjects and ' ...
+    'the group differences between subjects?'] '' ...
+    ['If a group difference is to be investigated, this should be the ' ...
+     'first manually entered between-subjects covariate in the PEB.'] ''  ...
+    ['This analysis is performed by comparing a PEB model to nested ' ...
+    'sub-models where ' ...
     'certain parameters have been disabled (fixed at their prior mean of ' ...
     'zero). Parameters are then averaged over reduced models to give an '...
     'averaged PEB (referred to as a Bayesian Model Average, BMA). Each ' ...
@@ -344,8 +350,25 @@ peb_reduce.help = {['Compares a PEB model to nested sub-models where ' ...
     ['If only one first-level DCM is provided per subject, a search is made ' ...
     'over reduced PEB models to prune away any parameters not contributing ' ... 
     'to the model evidence. If multiple DCMs are provided per subject, ' ...
-    'these are used to define the models over second level parameters.']};
-peb_reduce.prog = @spm_run_reduce_peb;
+    'these are used to define the combinations of second level parameters ' ...
+    'to be compared']};
+peb_reduce.prog = @spm_run_bmc;
+peb_reduce.vout = @vout_bma;
+
+peb_reduce_all       = cfg_exbranch;
+peb_reduce_all.tag   = 'peb_reduce_all';
+peb_reduce_all.name  = 'Search reduced PEB models';
+peb_reduce_all.val   = { pebmat model_space_mat_op show_review};
+peb_reduce_all.help  = {['Optimises a PEB model by trying different ' ...
+                         'combinations of switching off parameters (fixing ' ...
+                         'them at their prior value), where doing so does ' ...
+                         'not reduce the model evidence. Any parameters ' ...
+                         'not contributing will be set to zero.'] '' ...
+                         ['This is equivilant to the function of '... 
+                         'spm_dcm_post_hoc but on the second level (PEB) ' ...
+                         'parameters.']};
+peb_reduce_all.prog = @spm_run_bmr_all;
+peb_reduce_all.vout = @vout_bma;
 
 % =========================================================================
 % PEB review batch
@@ -364,7 +387,15 @@ second_level         = cfg_choice;
 second_level.tag     = 'PEB';
 second_level.name    = 'Second level';
 second_level.help    = {'Parametric Empirical Bayes for DCM'};
-second_level.values  = { specify peb_reduce review };
+second_level.values  = { specify peb_reduce peb_reduce_all review };
+
+%==========================================================================
+function dep = vout_bma(varargin)
+%==========================================================================
+dep(1)            = cfg_dep;
+dep(1).sname      = 'BMA mat filename';
+dep(1).src_output = substruct('.','bmamat');
+dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
 
 %==========================================================================
 function dep = vout_peb(varargin)
@@ -377,6 +408,7 @@ dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
 %==========================================================================
 function out = spm_run_dcm_peb_review(job)
 %==========================================================================
+% Run the PEB review batch
 P   = job.pebmat;
 DCM = job.model_space_mat;
 spm_dcm_peb_review(P{1},DCM);
@@ -385,10 +417,11 @@ out = job.pebmat;
 %==========================================================================
 function out = spm_run_create_peb(job)
 %==========================================================================
+% Run the PEB specification / estimation batch
 
 [GCM,gcm_file] = load_dcm(job);
 
-[ns, nm] = size(GCM);
+ns = size(GCM,1);
 
 if ~isfield(GCM{1},'Ep')
     error('Please estimate DCMs before second-level analysis');
@@ -478,13 +511,43 @@ end
 out.pebmat = {peb_filename};
 
 %==========================================================================
-function spm_run_reduce_peb(job)
+function out = spm_run_bmr_all(job)
 %==========================================================================
+% Run a search over all reduced PEB models and average
+
+GCM = load_dcm(job);
+nm  = size(GCM,2);
+
+if nm ~= 1
+    warning('Running search on the full model only');        
+end
+
+GCM = GCM(:,1);
+
+out = run_peb_bmc_internal(job,GCM);
+
+%==========================================================================
+function out = spm_run_bmc(job)
+%==========================================================================
+% Run a model comparison between specified reduced PEB models
+
+GCM = load_dcm(job);
+nm  = size(GCM,2);
+
+if nm < 2
+    error('More than one DCM per subject is required for BMC');
+end
+
+out = run_peb_bmc_internal(job,GCM);
+
+%==========================================================================
+function out = run_peb_bmc_internal(job, GCM)
+%==========================================================================
+% Search / model comparison both use spm_dcm_peb_bmc, which is called here
 
 PEB = load(job.pebmat{1});
 PEB = PEB.PEB;
 
-GCM = load_dcm(job);
 nm  = size(GCM,2);
 
 % Run BMA on defined reduced models or all submodels
@@ -498,6 +561,8 @@ end
 [dir_out, name] = fileparts(job.pebmat{1});
 filename = fullfile(dir_out, ['BMA_' name '.mat']);
 save(filename,'BMA');
+
+out.bmamat = filename;
 
 % Review BMA
 if job.show_review == 1

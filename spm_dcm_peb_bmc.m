@@ -76,7 +76,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6708 2016-02-01 19:50:33Z peter $
+% $Id: spm_dcm_peb_bmc.m 6710 2016-02-02 18:08:53Z peter $
 
 if nargin < 1 || isempty(PEB) || length(PEB) > 1
     error('Please provide a single PEB model');
@@ -96,7 +96,13 @@ if nargin < 2
     
     Np    = numel(PEB.Pind);
     Nx    = min(3,size(PEB.M.X,2));
-    str   = {'Group mean','1st group effect','2nd group effect'};
+    
+    if isfield(PEB,'Xnames')
+        str   = PEB.Xnames;
+    else
+        str   = {'Group mean','1st group effect','2nd group effect'};
+    end
+        
     for i = 1:Nx
         
         j = (1:Np)' + (i - 1)*Np;
@@ -295,6 +301,7 @@ BMA.Snames = PEB.Snames;
 BMA.Pnames = PEB.Pnames;
 BMA.Pind  = PEB.Pind;
 BMA.Kname = Kname;
+try BMA.Xnames = PEB.Xnames; catch, BMA.Xnames = {}; end
 
 BMA.F     = G;
 BMA.P     = P;
@@ -308,6 +315,14 @@ BMA.K     = K;
 BMA.Ce    = PEB.Ce;
 BMA.Ch    = PEB.Ch;
 BMA.Eh    = PEB.Eh;
+
+% get name of covariate 2 (differences)
+%--------------------------------------------------------------------------
+if Nx > 1 && isfield(PEB,'Xnames') && ~isempty(PEB.Xnames)
+    xname = PEB.Xnames{2};
+else
+    xname = 'Differences';
+end
 
 % Show results
 %==========================================================================
@@ -331,7 +346,7 @@ axis([0 (Nm + 1) 0 1]), axis square
 subplot(3,2,5), bar(diag(Pw),length(Pw));
 title('Commonalities','FontSize',16)
 xlabel('Parameter','FontSize',12)
-ylabel('Model probability','FontSize',12)
+ylabel('Parameter probability','FontSize',12)
 axis([0 (Nb + 1) 0 1]), axis square
 legend(Kname)
 
@@ -366,15 +381,15 @@ else
     subplot(3,2,4)
     [m,i] = max(P2); bar(P2),
     text(i - 1/4,m/2,sprintf('%-2.0f%%',m*100),'Color','w','FontSize',8)
-    title('Differences','FontSize',16)
+    title(xname,'FontSize',16)
     xlabel('Model','FontSize',12)
     ylabel('Probability','FontSize',12)
     axis([0 (Nm + 1) 0 1]), axis square
     
     subplot(3,2,6), bar(diag(Px),length(Px))
-    title('Differences','FontSize',16)
+    title(xname,'FontSize',16)
     xlabel('Parameter','FontSize',12)
-    ylabel('Model probability','FontSize',12)
+    ylabel('Parameter probability','FontSize',12)
     axis([0 (Nb + 1) 0 1]), axis square
     
 end
