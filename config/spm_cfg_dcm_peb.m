@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6710 2016-02-02 18:08:53Z peter $
+% $Id: spm_cfg_dcm_peb.m 6711 2016-02-03 15:25:43Z peter $
 
 
 % =========================================================================
@@ -313,11 +313,15 @@ show_review.val    = {1};
 % =========================================================================
 % PEB specification batch
 % =========================================================================
+% Set show review default to off
+sr     = show_review;
+sr.val = {0};
+
 specify      = cfg_exbranch;
 specify.tag  = 'peb_specify';
 specify.name = 'Specify / Estimate PEB';
 specify.val  = { name model_space_mat covariates fields ...
-                 priors_between show_review };
+                 priors_between sr };
 specify.help = {['Specifies and estimates a second-level DCM (PEB) model. ' ...
                  'A PEB model will be created for each first level DCM.' ]};
             
@@ -333,7 +337,7 @@ model_space_mat_op.val = {''};
 
 peb_reduce      = cfg_exbranch;
 peb_reduce.tag  = 'peb_reduce';
-peb_reduce.name = 'Compare / Average';
+peb_reduce.name = 'Compare / Average PEB models';
 peb_reduce.val  = { pebmat model_space_mat_op show_review};
 peb_reduce.help = {['Addresses the question: which combination of ' ...
     'connections best explains the commonalities across subjects and ' ...
@@ -357,7 +361,7 @@ peb_reduce.vout = @vout_bma;
 
 peb_reduce_all       = cfg_exbranch;
 peb_reduce_all.tag   = 'peb_reduce_all';
-peb_reduce_all.name  = 'Search reduced PEB models';
+peb_reduce_all.name  = 'Search nested PEB models';
 peb_reduce_all.val   = { pebmat model_space_mat_op show_review};
 peb_reduce_all.help  = {['Optimises a PEB model by trying different ' ...
                          'combinations of switching off parameters (fixing ' ...

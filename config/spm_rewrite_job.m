@@ -3,7 +3,7 @@ function job = spm_rewrite_job(job)
 %__________________________________________________________________________
 % Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 6702 2016-01-28 15:10:49Z guillaume $
+% $Id: spm_rewrite_job.m 6711 2016-02-03 15:25:43Z peter $
 
 
 try
@@ -99,11 +99,11 @@ end
 try
     D = job.dcm.fmri.estimate.dcmmat;
     for i=1:numel(D)
-        job.dcm.fmri.estimate.dcms.model(i).dcmmat = D(i);
+        job.dcm.estimate.dcms.model(i).dcmmat = D(i);
     end
-    job.dcm.fmri.estimate = rmfield(job.dcm.fmri.estimate,'dcmmat');
-    job.dcm.fmri.estimate.output_type.output_separate = struct([]);
-    job.dcm.fmri.estimate.est_type = 3;
+    job.dcm.estimate = rmfield(job.dcm.estimate,'dcmmat');
+    job.dcm.estimate.output_type.output_separate = struct([]);
+    job.dcm.estimate.est_type = 3;
 end
 
 try
