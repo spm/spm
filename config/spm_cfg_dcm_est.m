@@ -4,7 +4,7 @@ function estimate = spm_cfg_dcm_est
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_fmri.m 6698 2016-01-27 15:56:50Z peter $
+% $Id: spm_cfg_dcm_est.m 6713 2016-02-04 15:39:47Z peter $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat

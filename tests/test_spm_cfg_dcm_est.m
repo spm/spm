@@ -3,7 +3,7 @@ function tests = test_spm_cfg_dcm_est
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id$
+% $Id: test_spm_cfg_dcm_est.m 6713 2016-02-04 15:39:47Z peter $
 
 tests = functiontests(localfunctions);
 
