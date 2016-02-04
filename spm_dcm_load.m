@@ -2,14 +2,18 @@ function DCM = spm_dcm_load(P)
 % Load a cell array of DCM filenames into a subjects x models cell array
 % FORMAT DCM = spm_dcm_load(P)
 %
+% P - a character array or cell array of DCM filenames
+%
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_load.m 6702 2016-01-28 15:10:49Z guillaume $
+% $Id: spm_dcm_load.m 6714 2016-02-04 17:46:46Z peter $
 
 
-P   = cellstr(P);
+if ischar(P)
+    P   = cellstr(P);
+end
 DCM = cell(size(P));
 
 for s = 1:size(P,1)

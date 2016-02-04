@@ -4,7 +4,7 @@ function estimate = spm_cfg_dcm_est
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_est.m 6713 2016-02-04 15:39:47Z peter $
+% $Id: spm_cfg_dcm_est.m 6714 2016-02-04 17:46:46Z peter $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -361,7 +361,10 @@ else
         for s = 1:ns
             for m = 1:nm
                 DCM = GCM{s,m};
-                save(P{s,m}, 'DCM');
+                F   = DCM.F;
+                Ep  = DCM.Ep;
+                Cp  = DCM.Cp;
+                save(P{s,m}, 'DCM', 'F', 'Ep', 'Cp');
             end
         end
     end
