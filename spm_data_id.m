@@ -8,13 +8,15 @@ function ID = spm_data_id(varargin)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak (based on Karl's spm_vec)
-% $Id: spm_data_id.m 3177 2009-06-03 08:47:41Z vladimir $
+% $Id: spm_data_id.m 6712 2016-02-04 15:12:25Z peter $
 
 X     = varargin;
 
 if length(X) == 1
     X = X{1};
 end
+
+ID = 0;
 
 if ischar(X) % For now strings are not taken into account
     ID = 0;
@@ -35,10 +37,6 @@ elseif iscell(X)
     for i = 1:length(X)
         ID = ID + spm_data_id(X{i});
     end   
-end
-
-if isempty(ID)
-    ID = 0;
 end
 
 if ID > 0
