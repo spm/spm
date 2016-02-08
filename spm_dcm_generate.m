@@ -1,9 +1,10 @@
-function [Y,x] = spm_dcm_generate(syn_model,SNR)
+function [Y,x,DCM] = spm_dcm_generate(syn_model,SNR,show_graphics)
 % Generate synthetic data from a DCM specification
-% FORMAT [Y,x] = spm_dcm_generate(syn_model,SNR)
+% FORMAT [Y,x,DCM] = spm_dcm_generate(syn_model,SNR)
 % 
-% syn_model   - Name of synthetic DCM file
-% SNR         - Signal to noise ratio [default: 1]
+% syn_model     - Name of synthetic DCM file
+% SNR           - Signal to noise ratio [default: 1]
+% show_graphics - Whether to plot each timeseries [default: true]
 %
 % This routine will update the DCM.Y field as follows: 
 %           Y.y    - synthetic BOLD data
@@ -15,11 +16,13 @@ function [Y,x] = spm_dcm_generate(syn_model,SNR)
 %
 % Y           - Simulated (Noisy) BOLD data
 % x           - Simulated neuronal activity (first hidden variable in each region)
+% DCM         - Full generative model
+%
 %__________________________________________________________________________
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 6031 2014-06-02 12:49:52Z guillaume $
+% $Id: spm_dcm_generate.m 6716 2016-02-08 18:21:37Z peter $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -32,7 +35,9 @@ end
 if nargin < 2 || isempty(SNR)
     SNR = 1;
 end
-
+if nargin < 3 || isempty(show_graphics)
+    show_graphics = true;
+end
 
 % Unpack
 %--------------------------------------------------------------------------
@@ -99,7 +104,11 @@ y      = feval(M.IS,DCM.Ep,M,U);
 
 % Compute required r: standard deviation of additive noise, for all areas
 %--------------------------------------------------------------------------
-r      = diag(std(y(:,1:n))/SNR);
+if isinf(SNR)
+    r = zeros(n,n);
+else
+    r = diag(std(y(:,1:n))/SNR);
+end
 
 
 % Add noise
@@ -127,15 +136,11 @@ DCM.M  = M;                                    % model
 
 save(syn_model, 'DCM', spm_get_defaults('mat.format'));
 
-if nargout==1
-    varargout{1} = DCM;
-end
-
-if spm('CmdLine'), return; end
+if spm('CmdLine') || ~show_graphics, return; end
 
 % Display the time series generated
 %--------------------------------------------------------------------------
-spm_figure('Create','Graphics','Simulated BOLD time series');
+spm_figure('GetWin','Simulated BOLD time series');
 t     = Y.dt*[1:1:v];
 for i = 1:n,
     subplot(n,1,i);
@@ -145,7 +150,8 @@ for i = 1:n,
 end
 xlabel('secs');
 
-spm_figure('Create','Graphics','Simulated Neuronal Activity');
+spm_figure('GetWin','Simulated Neuronal Activity');
+
 t     = Y.dt*[1:1:v];
 for i = 1:n,
     subplot(n,1,i);

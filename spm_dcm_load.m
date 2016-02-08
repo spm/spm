@@ -8,7 +8,7 @@ function DCM = spm_dcm_load(P)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_load.m 6714 2016-02-04 17:46:46Z peter $
+% $Id: spm_dcm_load.m 6716 2016-02-08 18:21:37Z peter $
 
 
 if ischar(P)
@@ -19,8 +19,10 @@ DCM = cell(size(P));
 for s = 1:size(P,1)
     for m = 1:size(P,2)
         if isstruct(P{s,m})
+            % DCM already a structure - leave unchanged
             DCM{s,m} = P{s,m};
         else
+            % Load DCM from filename
             try
                 model    = load(P{s,m});
                 DCM{s,m} = model.DCM;

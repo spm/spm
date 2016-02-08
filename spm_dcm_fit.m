@@ -17,7 +17,7 @@ function [P]   = spm_dcm_fit(P)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fit.m 6587 2015-11-02 10:29:49Z karl $
+% $Id: spm_dcm_fit.m 6716 2016-02-08 18:21:37Z peter $
 
 
 % get filenames and set up
@@ -36,48 +36,12 @@ if isstruct(P), P = {P};         end
 % Find model class and modality
 %==========================================================================
 try, load(P{1}); catch, DCM = P{1}; end
-if isfield(DCM,'options')
-    
-    % spatial models for EEG
-    %----------------------------------------------------------------------
-    if isfield(DCM.options,'spatial')
-        model = DCM.options.analysis;
-    else
-        
-        % an fMRI model
-        %------------------------------------------------------------------
-        try
-            DCM.options.analysis;
-            model = 'fMRI_CSD';
-        catch
-            model = 'fMRI';
-        end
-        
-    end
-    
-elseif isfield(DCM,'MDP')
-    
-    % assume the model is specified explicitly
-    %----------------------------------------------------------------------
-    model  = 'MDP';
 
-elseif isfield(DCM.M,'IS')
-    
-    % assume the model is specified explicitly
-    %----------------------------------------------------------------------
-    model  = 'NLSI';
-    
-elseif isfield(DCM.M,'E')
-    
-    % assume the model is a hierarchical dynamic model
-    %----------------------------------------------------------------------
-    model  = 'DEM';
-    
-else
-    
+model = spm_dcm_identify(DCM);
+
+if isempty(model)    
     warning('unknown inversion scheme');
-    return
-    
+    return   
 end
 
 % get data structure for each subject (column)
