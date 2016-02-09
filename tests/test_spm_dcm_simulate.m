@@ -3,7 +3,7 @@ function tests = test_spm_dcm_simulate
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_simulate.m 6716 2016-02-08 18:21:37Z peter $
+% $Id: test_spm_dcm_simulate.m 6718 2016-02-09 10:06:41Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -124,7 +124,7 @@ end
 function p = one_sample_tt(data,mu)
 % One sample t-test
 t = (mean(data)-mu) / (std(data) / sqrt(length(data)));
-p = (1-tcdf(t,length(data)-1)) * 2;
+p = (1-spm_Tcdf(t,length(data)-1)) * 2;
 
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
