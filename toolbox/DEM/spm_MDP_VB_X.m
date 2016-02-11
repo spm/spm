@@ -89,7 +89,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6706 2016-01-31 13:10:08Z karl $
+% $Id: spm_MDP_VB_X.m 6719 2016-02-11 20:18:29Z karl $
 
 
 % deal with a sequence of trials
@@ -170,14 +170,14 @@ q0  = 1/16;                         % smallest probability
 %--------------------------------------------------------------------------
 for g = 1:Ng
     
-    A{g} = spm_norm(MDP.A{g} + p0);
+    A{g}  = spm_norm(MDP.A{g});
     
     % parameters (concentration parameters): A
     %----------------------------------------------------------------------
     if isfield(MDP,'a')
         qA{g} = spm_psi(MDP.a{g} + q0);
     else
-        qA{g} = log(A{g});
+        qA{g} = log(spm_norm(MDP.A{g} + p0));
     end
     
     % entropy
@@ -232,7 +232,7 @@ for g = 1:Ng
     end
     
     % assume constant preferences, if only final states are specified
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if size(Vo{g},2) ~= T
         Vo{g} = Vo{g}(:,end)*ones(1,T);
     end
@@ -243,7 +243,7 @@ end
 %--------------------------------------------------------------------------
 try, alpha = MDP.alpha; catch, alpha = 16; end
 try, beta  = MDP.beta;  catch, beta  = 1;  end
-
+try, tau   = MDP.tau;   catch, tau   = 1;  end
 % initialise
 %--------------------------------------------------------------------------
 Ni    = 16;                         % number of VB iterations
@@ -303,27 +303,23 @@ for t = 1:T
     %----------------------------------------------------------------------
     tstart = tic;
     for f = 1:Nf
-        x{f} = spm_softmax(log(x{f})/4);
+        x{f} = spm_softmax(log(x{f})*0);
     end
     
     % Variational updates (hidden states) under sequential policies
     %======================================================================
     S     = size(V,1) + 1;
-    for i = 1:Ni
-        px    = x;
-        F     = zeros(Np,S);
-        for f = 1:Nf
-            for k = p
+    F     = zeros(Np,S);
+    G     = zeros(Np,S);
+    for k = p
+        for i = 1:Ni
+            px     = x;
+            F(k,:) = 0;
+            for f  = 1:Nf
                 for j = 1:S
                     
                     % evaluate free energy and gradients (v = dFdx)
                     %======================================================
-                    
-                    % entropy term
-                    %------------------------------------------------------
-                    sx     = x{f}(:,j,k);
-                    qx     = log(sx);
-                    v      = 1;
                     
                     % likelihood term
                     %------------------------------------------------------
@@ -336,59 +332,65 @@ for t = 1:T
                     
                     % marginal likelihood over outcome factors
                     %------------------------------------------------------
+                    v     = 0;
                     if j <= t
                         for g = 1:Ng
                             Aq    = zeros(Ns);
                             Aq(:) = A{g}(o(g,j),:);
                             Aq    = spm_dot(Aq,xq,ind);
-                            v     = v.*Aq(:);
+                            v     = v + log(Aq(:) + p0);
                         end
                     end
                     
+                    
+                    % entropy term and belief update
+                    %------------------------------------------------------                   
+                    sx     = x{f}(:,j,k);
+                    qx     = log(sx);
+                       
                     % emprical priors
                     %------------------------------------------------------
-                    if j == 1, v = v.*D{f};                                       end
-                    if j >  1, v = v.*(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k));  end
-                    if j <  S, v = v.*(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k));  end
+                    if j == 1, v = v + log(D{f}) - qx;                                    end
+                    if j >  1, v = v + log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)) - qx; end
+                    if j <  S, v = v + log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)) - qx; end
 
-                    
-                    % (negative) free energy
+                    % (negative) free energy and update
                     %------------------------------------------------------
-                    e      = log(v) - qx;
-                    F(k,j) = F(k,j) + x{f}(:,j,k)'*e;
+                    F(k,j) = F(k,j) + sx'*v;
+                    dFdx   = sx.*(v - sx'*v);
+                    sx     = spm_softmax(qx + dFdx/tau);
+  
                     
-                    % belief update: gradient ascent
+                    % store update neuronal activity
                     %------------------------------------------------------
-                    dFdx   = sx.*e - sx*(sx'*e);
-                    dx     = dFdx/2;
-                    
-                    % update and record neuronal activity
-                    %------------------------------------------------------
-                    px{f}(:,j,k)     = spm_softmax(qx + dx);
-                    xn{f}(i,:,j,t,k) = x{f}(:,j,k);
+                    px{f}(:,j,k)     = sx;
+                    xn{f}(i,:,j,t,k) = sx;
                     
                 end
             end
-        end
-        
-        % synchronous updates and convergence
-        %------------------------------------------------------------------
-        x    = px;
-        if i > 1
-            if all(sum(F - G,2) < 1/128)
-                for g = i:Ni
-                    for f = 1:Nf
-                        for k = p
-                            for j = 1:S
-                                xn{f}(g,:,j,t,k) = x{f}(:,j,k);
-                            end
+            
+            % synchronous updates for all factors under this policy
+            %--------------------------------------------------------------
+            for f = 1:Nf
+                for j = 1:S
+                    x{f}(:,j,k) = px{f}(:,j,k);
+                end
+            end
+
+            % convergence
+            %--------------------------------------------------------------
+            if i > 1
+                if all((F(k,:) - G(k,:)) < 1/128)
+                    for g = i:Ni
+                        for f = 1:Nf 
+                            xn{f}(g,:,1:S,t,k) = x{f}(:,1:S,k); 
                         end
                     end
+                    break
                 end
-                break
             end
+            G(k,:) = F(k,:);
         end
-        G = F;
     end
     
     % (negative path integral of) free energy of policies (Q)
@@ -402,8 +404,8 @@ for t = 1:T
                 xq{f}  = x{f}(:,j,k);
             end
             for g = 1:Ng
-                qo     = spm_dot(A{g},xq,ind + 1);
-                Q(k,j) = Q(k,j) + qo'*(Vo{g}(:,j) - log(qo));
+                qo     = spm_dot(A{g},xq,ind + 1) ;
+                Q(k,j) = Q(k,j) + qo'*(Vo{g}(:,j) - log(qo + p0));
                 Q(k,j) = Q(k,j) + spm_dot(H{g},xq,ind);
             end
         end
@@ -492,7 +494,7 @@ for t = 1:T
                 %----------------------------------------------------------
                 po = spm_dot(A{g},xp,ind + 1);
                 qo = spm_dot(A{g},xq,ind + 1);
-                dP = (log(po) - log(qo))'*qo;
+                dP = (log(po + p0) - log(qo + p0))'*qo;
                 
                 % augment action potential
                 %----------------------------------------------------------
@@ -556,10 +558,9 @@ for t = 1:T
             
             % and reinitialise expectations about hidden states
             %--------------------------------------------------------------
-            j     = 1:t;
             for f = 1:Nf
                 for k = 1:Np
-                    x{f}(:,j,k) = x{f}(:,j,a(f,t));
+                    x{f}(:,1:t,k) = x{f}(:,1:t,a(f,t));
                 end
             end
             
@@ -602,7 +603,7 @@ end
 if isfield(MDP,'d')
     for f = 1:Nf
         i = MDP.d{f} > 0;
-        MDP.d{f}(i) = MDP.d{f}(i) + X{f}(i,1) - (MDP.d{f}(i) - 1)/16;
+        MDP.d{f}(i) = MDP.d{f}(i) + X{f}(i,1);
     end
 end
 
@@ -707,10 +708,14 @@ end
 
 % NOTES: gradient checks for exact integration
 %==========================================================================
-% mdp_F  = @(qx,v)spm_softmax(qx)'*(log(spm_softmax(qx)) - v);
+% mdp_F  = @(qx,v)spm_softmax(qx)'*(log(v) - log(spm_softmax(qx)));
 % dFdx   = spm_diff(mdp_F,qx,v,1);
 % dFdxx  = spm_diff(mdp_F,qx,v,[1 1]);
-% dFdxx  = spm_cat(dFdxx);
-% dFdxx  = diag(sx + dFdx) - sx*sx' - sx*(sx.*e)';
-% dx     = spm_dx(-dFdxx,-dFdx,1/4);
+% dFdx   = sx.*(e - sx'*e);
+
+                    % gradient terms from Markov blanket
+                    %------------------------------------------------------
+% if j >  1, e = e + rB{f}(:,:,V(j - 1,k,f))'*(x{f}(:,j - 1,k)./(rB{f}(:,:,V(j - 1,k,f))*sx));  end
+% if j <  S, e = e + sB{f}(:,:,V(j    ,k,f))'*(x{f}(:,j + 1,k)./(sB{f}(:,:,V(j    ,k,f))*sx));  end
+   
 

@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_reading
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_reading.m 6707 2016-01-31 13:16:28Z karl $
+% $Id: DEM_demo_MDP_reading.m 6719 2016-02-11 20:18:29Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -159,11 +159,11 @@ for f1 = 1:Ns(1)
             % sequence of pictures for each story
             %--------------------------------------------------------------
             if f1 == 1, a = {'flee','wait','feed','wait'}; end  % happy
-            if f1 == 2, a = {'wait','wait','feed','wait'}; end  % happy
-            if f1 == 3, a = {'feed','flee','wait','feed'}; end  % happy
-            if f1 == 4, a = {'flee','wait','flee','wait'}; end  % sad
-            if f1 == 5, a = {'wait','feed','wait','flee'}; end  % sad
-            if f1 == 6, a = {'wait','flee','feed','flee'}; end  % sad
+            if f1 == 2, a = {'wait','wait','wait','feed'}; end  % happy
+            if f1 == 3, a = {'wait','flee','wait','feed'}; end  % happy
+            if f1 == 4, a = {'flee','wait','feed','flee'}; end  % sad
+            if f1 == 5, a = {'wait','wait','wait','flee'}; end  % sad
+            if f1 == 6, a = {'wait','flee','wait','flee'}; end  % sad
             
             
             % A{1} picture: 'flee','feed','wait'
@@ -180,9 +180,9 @@ for f1 = 1:Ns(1)
             %--------------------------------------------------------------
             hap = any(ismember([1 2 3],f1));
             sad = any(ismember([4 5 6],f1));
-            A{3}(1,f1,f2,f3) = (f3 == 1);
-            A{3}(2,f1,f2,f3) = (f3 == 2 & hap) | (f3 == 3 & sad);
-            A{3}(3,f1,f2,f3) = (f3 > 1  & ~A{3}(2,f1,f2,f3));
+            A{3}(1,f1,f2,f3) = (f3 == 1);                         % undecided
+            A{3}(2,f1,f2,f3) = (f3 == 2 & hap) | (f3 == 3 & sad); % right
+            A{3}(3,f1,f2,f3) = (f3 == 3 & hap) | (f3 == 2 & sad); % wrong
             
         end
     end
@@ -202,7 +202,6 @@ end
 %--------------------------------------------------------------------------
 B{2}(:,:,1) = spm_speye(Ns(2),Ns(2), 0);
 B{2}(:,:,2) = spm_speye(Ns(2),Ns(2),-1); B{2}(end,end,2) = 1;
-B{2}(:,:,3) = spm_speye(Ns(2),Ns(2), 1); B{2}(1,1,3)     = 1;
 
 % control states B(3): report {'null,'happy','sad'}
 %--------------------------------------------------------------------------
@@ -213,19 +212,9 @@ end
 
 % allowable policies (specified as the next action) U
 %--------------------------------------------------------------------------
-% U(1,1,:)  = [1 1 1]';            % stay on this page
-% U(2,1,:)  = [1 2 1]';            % and then move forward
-% U(1,2,:)  = [1 2 1]';            % move to next page
-% U(2,2,:)  = [1 2 1]';            % and then move forward
-% 
-% U(1,3,:)  = [1 1 2]';            % stay on current page and report happy
-% U(2,3,:)  = [1 1 2]';            % stay on current page and report happy
-% U(1,4,:)  = [1 1 3]';            % stay on current page and report sad
-% U(2,4,:)  = [1 1 3]';            % stay on current page and report sad
-
-U(1,1,:)  = [1 2 1]';            % move to next page
-U(1,2,:)  = [1 1 2]';            % stay on current page and report happy
-U(1,3,:)  = [1 1 3]';            % stay on current page and report sad
+U(1,1,:)  = [1 2 1]';           % move to next page
+U(1,2,:)  = [1 1 2]';           % stay on current page and report happy
+U(1,3,:)  = [1 1 3]';           % stay on current page and report sad
 
 % priors: (utility) C
 %--------------------------------------------------------------------------
@@ -233,7 +222,7 @@ for g = 1:Ng
     C{g}  = zeros(No(g),1);
 end
 C{3}(2,:) =  2;                 % the agent expects to be right
-C{3}(3,:) = -6;                 % and not wrong
+C{3}(3,:) = -8;                 % and not wrong
  
  
 % MDP Structure
@@ -251,12 +240,12 @@ mdp.s = [1 1 1]';               % initial state
 mdp.Aname = {'picture','where','feedback'};
 mdp.Bname = {'story','where','decision'};
 
-mdp = spm_MDP_check(mdp);
+mdp  = spm_MDP_check(mdp);
  
  
 % illustrate a single trial
 %==========================================================================
-MDP   = spm_MDP_VB_X(mdp);
+MDP  = spm_MDP_VB_X(mdp);
  
 % show belief updates (and behaviour)
 %--------------------------------------------------------------------------

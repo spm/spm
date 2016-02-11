@@ -24,7 +24,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_diff.m 6705 2016-01-31 13:06:48Z karl $
+% $Id: spm_diff.m 6719 2016-02-11 20:18:29Z karl $
 
 % create inline object
 %--------------------------------------------------------------------------
@@ -97,26 +97,18 @@ if length(n) == 1
     if isempty(xm)
         J = sparse(length(f),0);
         
-        % or there are no arguments to differentiate
-        %----------------------------------------------------------------------
+    % or there are no arguments to differentiate
+    %----------------------------------------------------------------------
     elseif isempty(f)
         J = sparse(0,length(xm));
     end
     
-    % or differentiation of a scalar or vector
+    % differentiation of a scalar or vector
     %----------------------------------------------------------------------
-    if isvector(f0) && isnumeric(f0) && q
-        
-        % concatenate into a matrix
-        %------------------------------------------------------------------
-        if size(f0,2) == 1 && size(f0,1) > 1
-            J = spm_cat(J);
-        elseif size(f0,2) == 1 && size(f0,1) == 1
-            J = spm_cat(J');
-        else
-            J = spm_cat(J')';
-        end
+    if isnumeric(f0) && q
+        J = spm_dfdx_cat(J);
     end
+    
     
     % assign output argument and return
     %----------------------------------------------------------------------
@@ -137,13 +129,19 @@ else
         fi    = spm_diff(f,xi{:},n(1:end - 1),V);
         J{i}  = spm_dfdx(fi,f0{1},dx);
     end
+    
+    % or differentiation of a scalar or vector
+    %----------------------------------------------------------------------
+    if isnumeric(J{1}) && q
+        J = spm_dfdx_cat(J);
+    end
     varargout = [{J} f0];
 end
 
 
 function dfdx = spm_dfdx(f,f0,dx)
 % cell subtraction
-%--------------------------------------------------------------------------
+%__________________________________________________________________________
 if iscell(f)
     dfdx  = f;
     for i = 1:length(f(:))
@@ -154,4 +152,28 @@ elseif isstruct(f)
 else
     dfdx  = (f - f0)/dx;
 end
+
+return
+
+function J = spm_dfdx_cat(J)
+% cell concatenation
+%__________________________________________________________________________
+
+% concatenate into a vector
+%------------------------------------------------------------------
+if isscalar(J{1})
+    J = spm_cat(J');
+    return
+end
+
+% concatenate into a matrix
+%------------------------------------------------------------------
+if isvector(J{1})
+    if size(J{1},2) == 1
+        J = spm_cat(J);
+    else
+        J = spm_cat(J')';
+    end
+end
+
 

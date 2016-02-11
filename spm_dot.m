@@ -16,7 +16,40 @@ function [Y] = spm_dot(X,x,DIM)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dot.m 6656 2015-12-24 16:49:52Z guillaume $
+% $Id: spm_dot.m 6719 2016-02-11 20:18:29Z karl $
+
+
+if nnz(X) > 8
+    
+    % subscripts and linear indices
+    %------------------------------------------------------------------
+    sz    = size(X);
+    ind   = find(X);
+    sub   = spm_ind2sub(sz,ind);
+    
+    % products
+    %------------------------------------------------------------------
+    sp    = X(ind);
+    for d = 1:length(DIM)
+        sp = sp.*x{d}(sub(:,DIM(d)));
+    end
+    
+    % sums
+    %------------------------------------------------------------------
+    sz(DIM) = [];
+    if isempty(sz)
+        Y   = sum(sp(:));
+        return
+    end
+    sub(:,DIM)  = [];
+    Y           = zeros([sz,1]);
+    for i = 1:size(sub,1)
+        Y(sub(i)) = Y(sub(i)) + sp(i);
+    end
+    return
+    
+end
+
 
 
 % initialise X and vX
@@ -66,3 +99,19 @@ if ~ismatrix(Y)
     d(DIM) = [];
     Y      = reshape(Y,d);
 end
+
+return
+
+function sub = spm_ind2sub(siz,ndx)
+% subscripts from linear index
+%--------------------------------------------------------------------------
+n     = numel(siz);
+k     = [1 cumprod(siz(1:end-1))];
+sub   = zeros(numel(ndx),n);
+for i = n:-1:1
+    vi       = rem(ndx - 1,k(i)) + 1;
+    vj       = (ndx - vi)/k(i) + 1;
+    sub(:,i) = vj;
+    ndx      = vi;
+end
+

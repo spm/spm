@@ -6,13 +6,13 @@ function [x,f,h] = spm_dcm_x_neural(P,model)
 % 'model'   - 'ERP','SEP','CMC','LFP','CMM','NNM', 'MFM' or 'CMM NMDA'
 %
 % x   - initial states
-% f   - state euquation dxdt = f(x,u,P,M)  - synaptic activity
-% h   - state euquation dPdt = f(x,u,P,M)  - synaptic plasticity
+% f   - state equation dxdt = f(x,u,P,M)  - synaptic activity
+% h   - state equation dPdt = f(x,u,P,M)  - synaptic plasticity
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 6317 2015-01-25 15:15:40Z karl $
+% $Id: spm_dcm_x_neural.m 6719 2016-02-11 20:18:29Z karl $
 
 % paramteric state equation
 %--------------------------------------------------------------------------

@@ -38,7 +38,7 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 6706 2016-01-31 13:10:08Z karl $
+% $Id: DEM_demo_MDP_X.m 6719 2016-02-11 20:18:29Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -51,7 +51,7 @@ rng('default')
 % exteroceptive outcomes A{1} provide cues about location and context,
 % while interoceptive outcome A{2) denotes different levels of reward
 %--------------------------------------------------------------------------
-a      = .95;
+a      = .98;
 b      = 1 - a;
 A{1}(:,:,1) = [...
     1 0 0 0;    % cue start
@@ -89,7 +89,7 @@ B{1}(:,:,4)  = [0 0 0 0; 0 1 0 0;0 0 1 0;1 0 0 1];
  
 % context, which cannot be changed by action
 %--------------------------------------------------------------------------
-B{2}         = eye(2);
+B{2}  = eye(2);
  
 % priors: (utility) C
 %--------------------------------------------------------------------------
@@ -97,7 +97,7 @@ B{2}         = eye(2);
 % probabilities over outcomes. Here, the agent prefers rewards to losses -
 % and has no prior preferences about where it is:
 %--------------------------------------------------------------------------
-c     = 3;
+c     = 4;
 C{1}  = [0  0  0;
          0  0  0;
          0  0  0;
@@ -106,13 +106,13 @@ C{1}  = [0  0  0;
  
 C{2}  = [ 0  0  0;
           c  c  c;
-         -c -c -c];
+         -2 -2 -2];
  
 % now specify prior beliefs about initial states, in terms of counts. Here
 % the hidden states are factorised into location and context:
 %--------------------------------------------------------------------------
 d{1} = [1 0 0 0]';
-d{2} = [1 1]'*2;
+d{2} = [1 1]';
  
  
 % allowable policies (of depth T).  These are just sequences of actions
@@ -131,10 +131,11 @@ mdp.B = B;                    % transition probabilities
 mdp.C = C;                    % preferred outcomes
 mdp.d = d;                    % prior over initial states
 mdp.s = [1 1]';               % true initial state
- 
+
 mdp.Aname = {'exteroceptive','interoceptive'};
 mdp.Bname = {'position','context'};
- 
+mdp.tau   = 2;
+
 % true initial states – with context change at trial 12
 %--------------------------------------------------------------------------
 i              = [1,3];          % change context in a couple of trials
