@@ -35,13 +35,13 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_erp.m 6427 2015-05-05 15:42:35Z karl $
+% $Id: spm_fx_erp.m 6720 2016-02-15 21:06:55Z karl $
 
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-n = length(P.A{1});         % number of sources
-x = spm_unvec(x,M.x);       % neuronal states
+x  = spm_unvec(x,M.x);      % neuronal states
+n  = size(x,1);             % number of sources
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
@@ -73,9 +73,13 @@ G     = ones(n,1)*G;
 
 % exponential transform to ensure positivity constraints
 %--------------------------------------------------------------------------
-A{1}  = exp(P.A{1})*E(1);
-A{2}  = exp(P.A{2})*E(2);
-A{3}  = exp(P.A{3})*E(3);
+if n > 1
+    A{1} = exp(P.A{1})*E(1);
+    A{2} = exp(P.A{2})*E(2);
+    A{3} = exp(P.A{3})*E(3);
+else
+    A = {0,0,0};
+end
 C     = exp(P.C);
 
 % intrinsic connectivity and parameters

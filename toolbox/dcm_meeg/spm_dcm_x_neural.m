@@ -12,11 +12,29 @@ function [x,f,h] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 6719 2016-02-11 20:18:29Z karl $
+% $Id: spm_dcm_x_neural.m 6720 2016-02-15 21:06:55Z karl $
 
 % paramteric state equation
 %--------------------------------------------------------------------------
 h  = [];
+
+% assemble initial states for more than one sort of model
+%==========================================================================
+if iscell(model)
+    
+    P.A{1} = 1;
+    for i = 1:numel(model)
+        x{i} = spm_dcm_x_neural(P,model{i});
+    end
+    
+    % general (multi-model) equations of motion
+    %----------------------------------------------------------------------
+    f  = 'spm_fx_gen'; 
+    return
+    
+end
+
+
 
 % initial state and equation
 %--------------------------------------------------------------------------

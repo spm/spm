@@ -36,12 +36,12 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 6645 2015-12-12 14:55:22Z karl $
+% $Id: spm_dcm_erp.m 6720 2016-02-15 21:06:55Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
 drawnow
-clear functions
+clear spm_erp_L
 name = sprintf('DCM_%s',date);
 
 
@@ -269,7 +269,11 @@ x   = feval(M.IS,Qp,M,xU);              % prediction (source space)
 
 % trial-specific responses (in mode, channel and source space)
 %--------------------------------------------------------------------------
-j   = find(kron(Qg.J,ones(1,Nr)));      % Indices of contributing states
+try
+    j = find(kron(Qg.J,ones(1,Nr)));    % Indices of contributing states
+catch
+    j = find(spm_cat(Qg.J));
+end
 x0  = ones(Ns,1)*spm_vec(M.x)';         % expansion point for states
 for i = 1:Nt
     K{i} = x{i} - x0;                   % centre on expansion point

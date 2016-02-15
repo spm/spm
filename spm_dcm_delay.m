@@ -1,8 +1,11 @@
-function [Q,J] = spm_dcm_delay(P,M)
+function [Q,J] = spm_dcm_delay(P,M,J,N)
 % returns the delay operator for flow and Jacobians of dynamical systems
 % FORMAT [Q,J] = spm_dcm_delay(P,M)
 % P   - model parameters
 % M   - model specification structure
+% J   - optional: system Jacobian
+% N   - optional: auto Taylor expansion [default: 2^6]
+%
 % Required fields:
 %   M.f - dx/dt    = f(x,u,P,M)            {function string or m-file}
 %   M.m - m inputs
@@ -25,8 +28,23 @@ function [Q,J] = spm_dcm_delay(P,M)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_delay.m 6427 2015-05-05 15:42:35Z karl $
+% $Id: spm_dcm_delay.m 6720 2016-02-15 21:06:55Z karl $
 
+% order of Taylor approximation
+%--------------------------------------------------------------------------
+if nargin < 4, N = 2^8; end
+
+% Jacobian
+%==========================================================================
+if nargin < 3
+    
+    if isfield(M,'u'), u = spm_vec(M.u); else, u = sparse(M.m,1); end
+    
+    J = full(spm_diff(M.f,M.x,u,P,M,1));
+    
+else
+    J = full(J);
+end
 
 % evaluate delay matrix D from parameters
 %==========================================================================
@@ -34,10 +52,6 @@ function [Q,J] = spm_dcm_delay(P,M)
 % paramterised delays
 %--------------------------------------------------------------------------
 if isfield(P,'D')
-    
-    % number of states per sources
-    %----------------------------------------------------------------------
-    nx  = size(M.x,2);
     
     % get prior means (log-delays)
     %----------------------------------------------------------------------
@@ -56,10 +70,35 @@ if isfield(P,'D')
     De  = De - Di;
     De  = De*de/1000;
     Di  = Di*di/1000;
-    De  = kron(ones(nx,nx),De);
-    Di  = kron(ones(nx,nx) - speye(nx,nx),Di);
-    D   = Di + De;
     
+    if isnumeric(M.x)
+        
+        % number of states per sources
+        %------------------------------------------------------------------
+        nx  = size(M.x,2);
+        De  = kron(ones(nx,nx),De);
+        Di  = kron(ones(nx,nx) - speye(nx,nx),Di);
+        D   = Di + De;
+        
+    else
+        
+        % number of states per sources
+        %------------------------------------------------------------------
+        for i = 1:numel(M.x)
+            for j = 1:numel(M.x)
+                m = numel(M.x{i});
+                n = numel(M.x{j});
+                if i == j
+                    D{i,j} = Di(i,j)*(1 - speye(m,n));
+                else
+                    D{i,j} = De(i,j)*(1 - zeros(m,n));
+                end
+            end
+        end
+        D   = spm_cat(D);
+        
+    end
+   
 else
     
     % no delays
@@ -69,30 +108,8 @@ else
 end
 
 
-% create inline functions
-%--------------------------------------------------------------------------
-try
-    funx = fcnchk(M.f,'x','u','P','M');
-catch
-    M.f  = inline('sparse(0,1)','x','u','P','M');
-    M.n  = 0;
-    M.x  = sparse(0,0);
-    funx = fcnchk(M.f,'x','u','P','M');
-end
-
-% expansion point
-%--------------------------------------------------------------------------
-try, x = spm_vec(M.x); catch,  x = sparse(M.n,1); end
-try, u = spm_vec(M.u); catch,  u = sparse(M.m,1); end
-try, N = M.N;          catch,  N = 2^8; end
-
-
 % Jacobian and delay operator
 %==========================================================================
-
-% derivatives
-%--------------------------------------------------------------------------
-J     = full(spm_diff(funx,x,u,P,M,1));
 
 % delay operator: first-order approximation if N = 0
 % Implement: dx(t)/dt = f(x(t - d)) = inv(1 + D.*dfdx)*f(x(t))
@@ -107,7 +124,7 @@ end
 %--------------------------------------------------------------------------
 D     = -D;
 QJ    = (eye(length(J)) - D.*J)\J;
-a     = 1/2;
+a     = 1/4;
 TOL   = norm(QJ,'inf')*1e-6;
 dn    = 1;
 Dn    = cell(N,1);

@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 6073 2014-06-28 09:14:29Z karl $
+% $Id: spm_fx_cmc.m 6720 2016-02-15 21:06:55Z karl $
  
  
 % get dimensions and configure state variables
@@ -44,10 +44,9 @@ n  = size(x,1);                   % number of sources
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-E  = [1 1/2 1 1/2]*200;           % extrinsic (forward and backward)  
 G  = [4 4 8 4 4 2 4 4 2 1]*200;   % intrinsic connections
 T  = [2 2 16 28];                 % synaptic time constants
-R  = 2/3;                         % slope of sigmoid activation function
+
  
 % [specified] fixed parameters
 %--------------------------------------------------------------------------
@@ -66,10 +65,15 @@ end
 % dp = deep pyramidal
 % ii = inhibitory interneurons
 %--------------------------------------------------------------------------
-A{1} = exp(P.A{1})*E(1);          % forward  connections (sp -> ss)
-A{2} = exp(P.A{2})*E(2);          % forward  connections (sp -> dp)
-A{3} = exp(P.A{3})*E(3);          % backward connections (dp -> sp)
-A{4} = exp(P.A{4})*E(4);          % backward connections (dp -> ii)
+if n > 1
+    E    = [1 1/2 1 1/2]*200;     % extrinsic (forward and backward)
+    A{1} = exp(P.A{1})*E(1);      % forward  connections (sp -> ss)
+    A{2} = exp(P.A{2})*E(2);      % forward  connections (sp -> dp)
+    A{3} = exp(P.A{3})*E(3);      % backward connections (dp -> sp)
+    A{4} = exp(P.A{4})*E(4);      % backward connections (dp -> ii)
+else
+    A    = {0,0,0,0};
+end
 
 % detect and reduce the strength of reciprocal (lateral) connections
 %--------------------------------------------------------------------------
@@ -84,6 +88,7 @@ C    = exp(P.C);
  
 % pre-synaptic inputs: s(V)
 %--------------------------------------------------------------------------
+R    = 2/3;                      % slope of sigmoid activation function
 B    = 0;                        % bias or background (sigmoid)
 R    = R.*exp(P.S);              % gain of activation function
 F    = 1./(1 + exp(-R*x + B));   % firing rate
@@ -197,8 +202,16 @@ f      = spm_vec(f);
  
  
 if nargout < 2; return, end
+
+% Jacobian
+%==========================================================================
+if isfield(M,'x'), x = spm_vec(M.x); else,  x = sparse(M.n,1); end
+if isfield(M,'u'), u = spm_vec(M.u); else,  u = sparse(M.m,1); end
+J  = spm_diff(M.f,x,u,P,M,1);
  
- 
+if nargout < 3; return, end
+
+
 % delays
 %==========================================================================
 % Delay differential equations can be integrated efficiently (but
@@ -212,9 +225,9 @@ if nargout < 2; return, end
 % Implement: dx(t)/dt = f(x(t - d)) = inv(1 + D.*dfdx)*f(x(t))
 %                     = Q*f = Q*J*x(t)
 %--------------------------------------------------------------------------
-[Q,J] = spm_dcm_delay(P,M);
+Q  = spm_dcm_delay(P,M,J);
  
- 
+
 return
  
 % notes and alpha function (kernels)

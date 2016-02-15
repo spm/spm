@@ -19,10 +19,6 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 %    pE.B  - trial-dependent
 %    pE.C  - stimulus input
 %
-%    pE.SA - switches on extrinsic (excitatory)
-%    pE.GE - switches on intrinsic (excitatory)
-%    pE.GI - switches on intrinsic (inhibitory)
-%
 %    pE.D  - delays
 %
 % stimulus and noise parameters
@@ -40,10 +36,41 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 5939 2014-04-06 17:13:50Z karl $
+% $Id: spm_dcm_neural_priors.m 6720 2016-02-15 21:06:55Z karl $
  
-% check options
+% assemble priors for more than one sort of model
 %==========================================================================
+if iscell(model)
+    
+    % extrinsic parameters (assume CMC form)
+    %----------------------------------------------------------------------
+    ext     = {'A','C','D','R','M','N'};
+    int     = {'T','G','M'};
+    [pE,pC] = spm_cmc_priors(A,B,C);
+    
+    pE      = rmfield(pE,int);
+    pC      = rmfield(pC,int);
+    
+    % intrinsic parameters
+    %----------------------------------------------------------------------
+    for i = 1:numel(model)
+        [iE,iC] = spm_dcm_neural_priors({0,0,0,0},{},0,model{i});
+        
+        % remove extrinsic parameters
+        %----------------------------------------------------------------------
+        for j = 1:numel(ext)
+            if isfield(iE,ext(j))
+                iE = rmfield(iE,ext{j});
+                iC = rmfield(iC,ext{j});
+            end
+        end
+        pE.int{i} = iE;
+        pC.int{i} = iC;    
+    end
+    return
+end
+
+
  
 % get priors on neural model
 %--------------------------------------------------------------------------
