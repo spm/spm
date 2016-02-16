@@ -5,14 +5,14 @@ function E = ROBOT_DCM_EEG
 %   options.model        - 'ERP','SEP','CMC','LFP','NNM' or 'MFM'
 %   options.spatial      - 'ECD','LFP' or 'IMG'
 
-% $Id: ROBOT_DCM_EEG.m 6557 2015-09-20 12:44:30Z karl $
+% $Id: ROBOT_DCM_EEG.m 6721 2016-02-16 20:26:40Z karl $
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
 try
     cd(fullfile(spm('Dir'),'tests','data','MEEG'))
 catch
-    cd('C:\Users\karl\Documents\SPM\DCM tests')
+    cd('C:\home\spm\DCM\DCM tests')
 end
 close all
 delete(get(0,'Children'))
@@ -302,7 +302,7 @@ for j = 1:length(H);
     text(0,0.5,get(gcf,'Name'),'Fontsize',10,'Fontweight','Bold')
     axis off
     
-    spm_print('DEMO.ps',gcf)
+    spm_print('DEMO.pdf',gcf,'pdf')
     
 end
 delete(H)

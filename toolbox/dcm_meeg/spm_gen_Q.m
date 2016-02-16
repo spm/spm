@@ -18,7 +18,7 @@ function [Q] = spm_gen_Q(P,X)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_Q.m 6720 2016-02-15 21:06:55Z karl $
+% $Id: spm_gen_Q.m 6721 2016-02-16 20:26:40Z karl $
 
 
 % condition or trial specific parameters
@@ -64,6 +64,14 @@ for i = 1:length(X)
     %----------------------------------------------------------------------
     if isfield(Q,'G')
         Q.G(:,1) = Q.G(:,1) + X(i)*diag(P.B{i});
+    end
+    
+    % intrinsic connections
+    %----------------------------------------------------------------------
+    if isfield(Q,'int')
+        for j = 1:numel(Q.int)
+            Q.int{j}.G(:,1) = Q.int{j}.G(:,1) + X(i)*P.B{i}(j,j);
+        end
     end
     
 end

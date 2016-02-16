@@ -36,11 +36,17 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 6720 2016-02-15 21:06:55Z karl $
+% $Id: spm_dcm_neural_priors.m 6721 2016-02-16 20:26:40Z karl $
  
 % assemble priors for more than one sort of model
 %==========================================================================
 if iscell(model)
+    
+    % check source specificaton
+    %--------------------------------------------------------------------------
+    if numel(model) ~= size(A{1},1)
+        error('please enure source number and DCM.option.model are consistent')
+    end
     
     % extrinsic parameters (assume CMC form)
     %----------------------------------------------------------------------

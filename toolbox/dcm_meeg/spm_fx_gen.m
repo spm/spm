@@ -29,9 +29,36 @@ function [f,J,Q] = spm_fx_gen(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_gen.m 6720 2016-02-15 21:06:55Z karl $
+% $Id: spm_fx_gen.m 6721 2016-02-16 20:26:40Z karl $
  
  
+% model-specific parameters
+%==========================================================================
+
+% model or node-specific state equations of motions
+%--------------------------------------------------------------------------
+fx{1} = @spm_fx_erp;                                    % ERP model
+fx{2} = @spm_fx_cmc;                                    % CMC model
+
+% indices of extrinsically coupled hidden states
+%--------------------------------------------------------------------------
+efferent(1,:) = [9 9 9 9];               % sources of ERP connections
+afferent(1,:) = [4 8 5 8];               % targets of ERP connections
+
+efferent(2,:) = [3 3 7 7];               % sources of CMC connections
+afferent(2,:) = [2 8 4 6];               % targets of CMC connections
+
+% scaling of afferent extrinsic connectivity (Hz)
+%--------------------------------------------------------------------------
+E(1,:) = [32 2 16 4]*1000;               % ERP connections      
+E(2,:) = [64 4 64 8]*1000;               % CMC connections
+
+% intrinsic delays log(ms)
+%--------------------------------------------------------------------------
+D(1) = 2;                                % ERP connections      
+D(2) = 1;                                % CMC connections
+
+
 % get model specific operators
 %==========================================================================
 if isvector(x)
@@ -50,31 +77,16 @@ for i = 1:n
     end
 end
 
-
-% model or node-specific state equations
-%--------------------------------------------------------------------------
-fx{1} = @spm_fx_erp;                                    % ERP model
-fx{2} = @spm_fx_cmc;                                    % CMC model
-
 % synaptic activation function
 %--------------------------------------------------------------------------
 R     = 2/3;                      % gain of sigmoid activation function
 B     = 0;                        % bias or background (sigmoid)
 R     = R.*exp(P.S);
 sig   = @(x,R,B)1./(1 + exp(-R*x(:) + B)) - 1/(1 + exp(B));
+dSdx  = @(x,R,B)(R*exp(B - R*x(:)))./(exp(B - R*x(:)) + 1).^2;
 for i = 1:n
     S{i} = sig(x{i},R,B);
 end
-
-
-% indices of extrinsically coupled hidden states: targets
-%--------------------------------------------------------------------------
-efferent(1,:) = [9 9 9 9];               % sources of ERP connections
-afferent(1,:) = [4 8 5 8];               % targets of ERP connections
-
-efferent(2,:) = [3 3 7 7];               % sources of CMC connections
-afferent(2,:) = [2 8 4 6];               % targets of CMC connections
-
 
 % Extrinsic connections
 %--------------------------------------------------------------------------
@@ -90,15 +102,13 @@ for i = 1:numel(A)
     A{i} = A{i}./(1 + 4*L);
 end
 
-% scaling of extrinsic connectivity (Hz)
+% and scale of extrinsic connectivity (Hz)
 %--------------------------------------------------------------------------
-E(1,:) = [32 2 16 4]*1000;              % ERP connections      
-E(2,:) = [64 4 64 8]*1000;              % CMC connections
- for i = 1:n
-     for k = 1:numel(P.A)
-         A{k}(i,:) = E(nmm(i),k)*A{k}(i,:);
-     end
- end
+for i = 1:n
+    for k = 1:numel(P.A)
+        A{k}(i,:) = E(nmm(i),k)*A{k}(i,:);
+    end
+end
 
 
 % assemble flow
@@ -141,6 +151,8 @@ if nargout < 2; return, end
 
 % Jacobian
 %==========================================================================
+
+
 for i = 1:n
     for j = 1:n
         
@@ -167,7 +179,7 @@ for i = 1:n
                 if A{k}(i,j) > TOL
                     ik  = afferent(nmm(i),k);
                     jk  = efferent(nmm(j),k);
-                    dS  = spm_diff(sig,x{j}(jk),R,B,1);
+                    dS  = dSdx(x{j}(jk),R,B);
                     J{i,j}(ik,jk) = J{i,j}(ik,jk) + A{k}(i,j)*dS;
                 end
             end
@@ -194,8 +206,24 @@ if nargout < 3; return, end
 % Implement: dx(t)/dt = f(x(t - d)) = inv(1 + D.*dfdx)*f(x(t))
 %                     = Q*f = Q*J*x(t)
 %--------------------------------------------------------------------------
-Q  = spm_dcm_delay(P,M,J,0);
 
+% source specific (intrinsic) delays
+%--------------------------------------------------------------------------
+for i = 1:n
+    P.D(i,i) = P.D(i,i) + log(D(nmm(i)));
+end
+
+% N-th order Taylor approximation to delay
+%--------------------------------------------------------------------------
+N     = 256;
+for i = 1:8
+    Q = spm_dcm_delay(P,M,J,N);
+    if isfinite(norm(Q,'inf')) && (norm(Q*J,'inf') < norm(J,'inf')*4)
+        break
+    else        
+        N = N/2;
+    end
+end
 
 return
 

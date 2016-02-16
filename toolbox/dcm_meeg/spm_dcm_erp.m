@@ -36,7 +36,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 6720 2016-02-15 21:06:55Z karl $
+% $Id: spm_dcm_erp.m 6721 2016-02-16 20:26:40Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
@@ -66,6 +66,12 @@ try, Nmax     = DCM.M.Nmax;           catch, Nmax      = Nmax;        end
 % symmetry contraints for ECD models only
 %--------------------------------------------------------------------------
 if ~strcmp(DCM.options.spatial,'ECD'), symm = 0; end
+
+% disallow IMG solutions for generic DCMs
+%--------------------------------------------------------------------------
+if iscell(model) && strcmp(DCM.options.spatial,'IMG')
+    DCM.options.spatial = 'ECD';
+end
 
 
 % Data and spatial model
