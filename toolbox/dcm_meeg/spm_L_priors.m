@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 6720 2016-02-15 21:06:55Z karl $
+% $Id: spm_L_priors.m 6725 2016-02-19 19:14:25Z karl $
 
 
 
@@ -90,13 +90,13 @@ end
 
 % contributing states (encoded in J)
 %==========================================================================
-if ischar(model), model = {model}; end
+if ischar(model), model.source = model; end
 pE.J = {};
 pC.J = {};
 
 for i = 1:numel(model)
     
-    switch upper(model{i})
+    switch upper(model(i).source)
         
         case{'ERP','SEP'}
             %--------------------------------------------------------------
@@ -152,6 +152,17 @@ for i = 1:numel(model)
         otherwise
             warndlg('Unknown neural model')
             
+    end
+    
+    % source-specific specification
+    %----------------------------------------------------------------------
+    if isfield(model(i),'J')                  % if J is specified
+        if numel(model(i).J)                  % and is non-empty
+            pE.J{i} = spm_zeros(pE.J{i});     % replace J
+            pC.J{i} = spm_zeros(pE.J{i});
+            pE.J{i}(model(i).J) = 1;
+            pC.J{i}(model(i).J) = 1/32;
+        end
     end
     
 end

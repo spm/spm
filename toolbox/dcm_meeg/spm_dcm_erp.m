@@ -36,7 +36,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 6721 2016-02-16 20:26:40Z karl $
+% $Id: spm_dcm_erp.m 6725 2016-02-19 19:14:25Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
@@ -69,7 +69,7 @@ if ~strcmp(DCM.options.spatial,'ECD'), symm = 0; end
 
 % disallow IMG solutions for generic DCMs
 %--------------------------------------------------------------------------
-if iscell(model) && strcmp(DCM.options.spatial,'IMG')
+if isstruct(model) && strcmp(DCM.options.spatial,'IMG')
     DCM.options.spatial = 'ECD';
 end
 

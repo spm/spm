@@ -36,11 +36,24 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 6721 2016-02-16 20:26:40Z karl $
+% $Id: spm_dcm_neural_priors.m 6725 2016-02-19 19:14:25Z karl $
+ 
+% For generic schemes one can mix and match different types of sources;
+% furthermore, they can have different condition-specific modulation of
+% intrinsic connectivity parameters and different, source-specific-
+% contribution to the lead field (or electrode gain). Source-specific
+% models are specified by a structure array model, For the i-th source:
+%
+% model(i).source  = 'ECD','CMC',...  % source model
+% model(i).source  = [i j k ,...]     % free parameters that have B effects
+% model(i).source  = [i j k ,...]     % hidden states contributing to L
+% ...
+%__________________________________________________________________________
+
  
 % assemble priors for more than one sort of model
 %==========================================================================
-if iscell(model)
+if isstruct(model)
     
     % check source specificaton
     %--------------------------------------------------------------------------
@@ -50,17 +63,17 @@ if iscell(model)
     
     % extrinsic parameters (assume CMC form)
     %----------------------------------------------------------------------
-    ext     = {'A','C','D','R','M','N'};
+    ext     = {'A','B','C','D','M','N','R'};
     int     = {'T','G','M'};
     [pE,pC] = spm_cmc_priors(A,B,C);
-    
     pE      = rmfield(pE,int);
     pC      = rmfield(pC,int);
+
     
     % intrinsic parameters
     %----------------------------------------------------------------------
     for i = 1:numel(model)
-        [iE,iC] = spm_dcm_neural_priors({0,0,0,0},{},0,model{i});
+        [iE,iC] = spm_dcm_neural_priors({0,0,0,0},{},0,model(i).source);
         
         % remove extrinsic parameters
         %----------------------------------------------------------------------
@@ -69,6 +82,12 @@ if iscell(model)
                 iE = rmfield(iE,ext{j});
                 iC = rmfield(iC,ext{j});
             end
+        end
+        
+        if isfield(model(i),'B')
+            iE.B = spm_zeros(iE.G);
+            iC.B = spm_zeros(iE.G);
+            iC.B(model(i).B) = 1/16;
         end
         pE.int{i} = iE;
         pC.int{i} = iC;    

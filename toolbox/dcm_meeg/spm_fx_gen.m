@@ -22,6 +22,16 @@ function [f,J,Q] = spm_fx_gen(x,u,P,M)
 % and coupling within notes (that calls on the model specific equations of
 % motion.
 %
+% In generic schemes one can mix and match different types of sources;
+% furthermore, they can have different condition-specific modulation of
+% intrinsic connectivity parameters and different, source-specific-
+% contribution to the lead field (or electrode gain). Source-specific
+% models are specified by a structure array model, For the i-th source:
+%
+% model(i).source  = 'ECD','CMC',...  % source model
+% model(i).source  = [i j k ,...]     % free parameters that have B effects
+% model(i).source  = [i j k ,...]     % hidden states contributing to L
+% ...
 %__________________________________________________________________________
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
@@ -29,7 +39,7 @@ function [f,J,Q] = spm_fx_gen(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_gen.m 6721 2016-02-16 20:26:40Z karl $
+% $Id: spm_fx_gen.m 6725 2016-02-19 19:14:25Z karl $
  
  
 % model-specific parameters
@@ -70,9 +80,9 @@ end
 n     = numel(x);
 model = M.dipfit.model;
 for i = 1:n
-    if     strcmp(model{i},'ERP')
+    if     strcmp(model(i).source,'ERP')
         nmm(i) = 1;
-    elseif strcmp(model{i},'CMC')
+    elseif strcmp(model(i).source,'CMC')
         nmm(i) = 2;
     end
 end
@@ -82,10 +92,10 @@ end
 R     = 2/3;                      % gain of sigmoid activation function
 B     = 0;                        % bias or background (sigmoid)
 R     = R.*exp(P.S);
-sig   = @(x,R,B)1./(1 + exp(-R*x(:) + B)) - 1/(1 + exp(B));
+S     = @(x,R,B)1./(1 + exp(-R*x(:) + B)) - 1/(1 + exp(B));
 dSdx  = @(x,R,B)(R*exp(B - R*x(:)))./(exp(B - R*x(:)) + 1).^2;
 for i = 1:n
-    S{i} = sig(x{i},R,B);
+    Sx{i} = S(x{i},R,B);
 end
 
 % Extrinsic connections
@@ -136,7 +146,7 @@ for i = 1:n
             if A{k}(i,j) > TOL
                 ik       = afferent(nmm(i),k);
                 jk       = efferent(nmm(j),k);
-                f{i}(ik) = f{i}(ik) + A{k}(i,j)*S{j}(jk);
+                f{i}(ik) = f{i}(ik) + A{k}(i,j)*Sx{j}(jk);
             end
         end
     end
