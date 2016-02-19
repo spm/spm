@@ -70,7 +70,7 @@ function DCM = spm_dcm_post_hoc_old(P,fun,varargin)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc_old.m 6152 2014-09-04 07:06:23Z peter $
+% $Id: spm_dcm_post_hoc_old.m 6724 2016-02-19 19:13:07Z karl $
 
 
 % number of parameters to consider before invoking greedy search
@@ -434,12 +434,10 @@ end
 %==========================================================================
 if isstruct(pC), pC = diag(spm_vec(pC)); end
 
-ipC = spm_inv(pC);
-irC = spm_inv(rC);
-CQ  = spm_inv(PQ + (1 - N)*ipC,TOL);
-Cq  = spm_inv(Pq + (1 - N)*irC,TOL);
-EQ  = CQ*(EQ - (N - 1)*ipC*spm_vec(pE));
-Eq  = Cq*(Eq - (N - 1)*irC*spm_vec(pE));
+CQ  = spm_inv(PQ,TOL);
+Cq  = spm_inv(Pq,TOL);
+EQ  = CQ*EQ;
+Eq  = Cq*Eq;
 EQ  = spm_unvec(EQ,pE);
 Eq  = spm_unvec(Eq,pE);
 

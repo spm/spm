@@ -75,7 +75,7 @@ function DCM = spm_dcm_post_hoc(P,fun,field,write_all)
 % Copyright (C) 2010-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_post_hoc.m 6528 2015-08-21 11:48:54Z guillaume $
+% $Id: spm_dcm_post_hoc.m 6724 2016-02-19 19:13:07Z karl $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -585,14 +585,10 @@ end
 %--------------------------------------------------------------------------
 if isstruct(pC), pC = diag(spm_vec(pC)); end
 
-N = params.N;
-
-ipC = spm_inv(pC);                         % prior precision (full)
-irC = spm_inv(rC);                         % prior precision (reduced)
-CQ  = spm_inv(PQ + (1 - N)*ipC,params.TOL);       % post covariance (full)
-Cq  = spm_inv(Pq + (1 - N)*irC,params.TOL);       % post covariance (reduced)
-EQ  = CQ*(EQ - (N - 1)*ipC*spm_vec(pE));   % post mean (full)
-Eq  = Cq*(Eq - (N - 1)*irC*spm_vec(pE));   % post mean (reduced)
+CQ  = spm_inv(PQ,params.TOL);              % post covariance (full)
+Cq  = spm_inv(Pq,params.TOL);              % post covariance (reduced)
+EQ  = CQ*EQ;                               % post mean (full)
+Eq  = Cq*Eq;                               % post mean (reduced)
 EQ  = spm_unvec(EQ,pE);
 Eq  = spm_unvec(Eq,pE);
 
