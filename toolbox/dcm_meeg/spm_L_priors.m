@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 6725 2016-02-19 19:14:25Z karl $
+% $Id: spm_L_priors.m 6727 2016-02-20 18:06:47Z karl $
 
 
 
@@ -90,7 +90,7 @@ end
 
 % contributing states (encoded in J)
 %==========================================================================
-if ischar(model), model.source = model; end
+if ischar(model), mod.source = model; model = mod; end
 pE.J = {};
 pC.J = {};
 
@@ -154,14 +154,21 @@ for i = 1:numel(model)
             
     end
     
-    % source-specific specification
+    % Cardinal sources
     %----------------------------------------------------------------------
-    if isfield(model(i),'J')                  % if J is specified
-        if numel(model(i).J)                  % and is non-empty
-            pE.J{i} = spm_zeros(pE.J{i});     % replace J
-            pC.J{i} = spm_zeros(pE.J{i});
+    if isfield(model(i),'J')
+        if numel(model(i).J)
+            pE.J{i} = spm_zeros(pE.J{i});
             pE.J{i}(model(i).J) = 1;
-            pC.J{i}(model(i).J) = 1/32;
+        end
+    end
+        
+    %  subsidiary (free) sources
+    %----------------------------------------------------------------------
+    if isfield(model(i),'K')
+        if numel(model(i).K)
+            pC.J{i} = spm_zeros(pE.J{i});
+            pC.J{i}(model(i).K) = 1/32;
         end
     end
     

@@ -36,7 +36,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 6725 2016-02-19 19:14:25Z karl $
+% $Id: spm_dcm_neural_priors.m 6727 2016-02-20 18:06:47Z karl $
  
 % For generic schemes one can mix and match different types of sources;
 % furthermore, they can have different condition-specific modulation of
@@ -45,9 +45,9 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % models are specified by a structure array model, For the i-th source:
 %
 % model(i).source  = 'ECD','CMC',...  % source model
-% model(i).source  = [i j k ,...]     % free parameters that have B effects
-% model(i).source  = [i j k ,...]     % hidden states contributing to L
-% ...
+% model(i).B       = [i j k ,...]     % free parameters that have B effects
+% model(i).J       = [i j k ,...]     % cardinal states contributing to L
+% model(i).K       = [i j k ,...]     % other states contributing to L
 %__________________________________________________________________________
 
  
@@ -76,7 +76,7 @@ if isstruct(model)
         [iE,iC] = spm_dcm_neural_priors({0,0,0,0},{},0,model(i).source);
         
         % remove extrinsic parameters
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         for j = 1:numel(ext)
             if isfield(iE,ext(j))
                 iE = rmfield(iE,ext{j});
@@ -84,7 +84,9 @@ if isstruct(model)
             end
         end
         
-        if isfield(model(i),'B')
+        % add condition-specific intrinsic effects (if specified)
+        %------------------------------------------------------------------
+        if isfield(model(i),'B') && numel(B)
             iE.B = spm_zeros(iE.G);
             iC.B = spm_zeros(iE.G);
             iC.B(model(i).B) = 1/16;

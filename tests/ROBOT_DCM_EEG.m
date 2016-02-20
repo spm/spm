@@ -5,7 +5,7 @@ function E = ROBOT_DCM_EEG
 %   options.model        - 'ERP','SEP','CMC','LFP','NNM' or 'MFM'
 %   options.spatial      - 'ECD','LFP' or 'IMG'
 
-% $Id: ROBOT_DCM_EEG.m 6725 2016-02-19 19:14:25Z karl $
+% $Id: ROBOT_DCM_EEG.m 6727 2016-02-20 18:06:47Z karl $
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
@@ -298,7 +298,8 @@ end
 for i = 4:5
     model(i).source  = 'CMC';
     model(i).B       = 1;
-    model(i).J       = 2;
+    model(i).J       = 3;
+    model(i).K       = [1 2 7];
 end
 DCM.options.model = model;
 
@@ -324,14 +325,12 @@ DCM.options.analysis = 'CSD';
 DCM.name             = 'DCM_CSD_GEN';
 
 clear model
+
 for i = 1:2
-    model(i).source  = 'ERP';
-    model(i).B       = [1 2];
-    model(i).J       = 9;
+    model(i).source  = 'CMC';
 end
 for i = 3:4
-    model(i).source  = 'CMC';
-    model(i).B       = 1;
+    model(i).source  = 'ERP';
 end
 DCM.options.model = model;
 

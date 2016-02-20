@@ -29,8 +29,9 @@ function [f,J,Q] = spm_fx_gen(x,u,P,M)
 % models are specified by a structure array model, For the i-th source:
 %
 % model(i).source  = 'ECD','CMC',...  % source model
-% model(i).source  = [i j k ,...]     % free parameters that have B effects
-% model(i).source  = [i j k ,...]     % hidden states contributing to L
+% model(i).B       = [i j k ,...]     % free parameters that have B effects
+% model(i).J       = [i j k ,...]     % cardinal states contributing to L
+% model(i).K       = [i j k ,...]     % other states contributing to L
 % ...
 %__________________________________________________________________________
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
@@ -39,7 +40,7 @@ function [f,J,Q] = spm_fx_gen(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_gen.m 6725 2016-02-19 19:14:25Z karl $
+% $Id: spm_fx_gen.m 6727 2016-02-20 18:06:47Z karl $
  
  
 % model-specific parameters
@@ -60,7 +61,7 @@ afferent(2,:) = [2 8 4 6];               % targets of CMC connections
 
 % scaling of afferent extrinsic connectivity (Hz)
 %--------------------------------------------------------------------------
-E(1,:) = [32 2 16 4]*1000;               % ERP connections      
+E(1,:) = [64 2 32 8]*1000;               % ERP connections      
 E(2,:) = [64 4 64 8]*1000;               % CMC connections
 
 % intrinsic delays log(ms)
@@ -222,6 +223,9 @@ if nargout < 3; return, end
 for i = 1:n
     P.D(i,i) = P.D(i,i) + log(D(nmm(i)));
 end
+Q     = spm_dcm_delay(P,M,J,0);
+
+return
 
 % N-th order Taylor approximation to delay
 %--------------------------------------------------------------------------
