@@ -38,7 +38,7 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 6719 2016-02-11 20:18:29Z karl $
+% $Id: DEM_demo_MDP_X.m 6728 2016-02-20 18:07:58Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -51,7 +51,7 @@ rng('default')
 % exteroceptive outcomes A{1} provide cues about location and context,
 % while interoceptive outcome A{2) denotes different levels of reward
 %--------------------------------------------------------------------------
-a      = .98;
+a      = .95;
 b      = 1 - a;
 A{1}(:,:,1) = [...
     1 0 0 0;    % cue start
@@ -97,7 +97,7 @@ B{2}  = eye(2);
 % probabilities over outcomes. Here, the agent prefers rewards to losses -
 % and has no prior preferences about where it is:
 %--------------------------------------------------------------------------
-c     = 4;
+c     = 5;
 C{1}  = [0  0  0;
          0  0  0;
          0  0  0;
@@ -112,7 +112,7 @@ C{2}  = [ 0  0  0;
 % the hidden states are factorised into location and context:
 %--------------------------------------------------------------------------
 d{1} = [1 0 0 0]';
-d{2} = [1 1]';
+d{2} = [4 4]';
  
  
 % allowable policies (of depth T).  These are just sequences of actions
@@ -160,7 +160,7 @@ spm_MDP_VB_game(MDP);
 % illustrate phase-precession and responses to chosen option - 1st trial
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
-spm_MDP_VB_LFP(MDP(2),[2 1;3 3],1);
+spm_MDP_VB_LFP(MDP(1),[3 4;3 3],1);
  
 % illustrate phase-amplitude (theta-gamma) coupling
 %--------------------------------------------------------------------------

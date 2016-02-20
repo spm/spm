@@ -89,7 +89,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6719 2016-02-11 20:18:29Z karl $
+% $Id: spm_MDP_VB_X.m 6728 2016-02-20 18:07:58Z karl $
 
 
 % deal with a sequence of trials
@@ -140,11 +140,11 @@ end
 % set up and preliminaries
 %==========================================================================
 try
-    V = MDP.U;                        % allowable actions (1,Np)
-    T = MDP.T;                        % number of transitions
+    V = MDP.U;                      % allowable actions (1,Np)
+    T = MDP.T;                      % number of transitions
 catch
-    V = MDP.V;                        % allowable policies (T - 1,Np)
-    T = size(MDP.V,1) + 1;            % number of transitions
+    V = MDP.V;                      % allowable policies (T - 1,Np)
+    T = size(MDP.V,1) + 1;          % number of transitions
 end
 
 % numbers of transitions, policies and states
