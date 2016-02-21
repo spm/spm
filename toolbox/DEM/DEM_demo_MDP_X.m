@@ -38,7 +38,7 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 6728 2016-02-20 18:07:58Z karl $
+% $Id: DEM_demo_MDP_X.m 6729 2016-02-21 15:40:48Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -51,7 +51,7 @@ rng('default')
 % exteroceptive outcomes A{1} provide cues about location and context,
 % while interoceptive outcome A{2) denotes different levels of reward
 %--------------------------------------------------------------------------
-a      = .95;
+a      = .98;
 b      = 1 - a;
 A{1}(:,:,1) = [...
     1 0 0 0;    % cue start
@@ -97,22 +97,22 @@ B{2}  = eye(2);
 % probabilities over outcomes. Here, the agent prefers rewards to losses -
 % and has no prior preferences about where it is:
 %--------------------------------------------------------------------------
-c     = 5;
+c     = 4.5;
 C{1}  = [0  0  0;
          0  0  0;
          0  0  0;
          0  0  0;
          0  0  0];
  
-C{2}  = [ 0  0  0;
-          c  c  c;
-         -2 -2 -2];
+C{2}  = [0  0  0;
+         c  c  c;
+        -2 -2 -2];
  
 % now specify prior beliefs about initial states, in terms of counts. Here
 % the hidden states are factorised into location and context:
 %--------------------------------------------------------------------------
 d{1} = [1 0 0 0]';
-d{2} = [4 4]';
+d{2} = [8 8]';
  
  
 % allowable policies (of depth T).  These are just sequences of actions
@@ -160,7 +160,7 @@ spm_MDP_VB_game(MDP);
 % illustrate phase-precession and responses to chosen option - 1st trial
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
-spm_MDP_VB_LFP(MDP(1),[3 4;3 3],1);
+spm_MDP_VB_LFP(MDP(1),[2 3;3 3],1);
  
 % illustrate phase-amplitude (theta-gamma) coupling
 %--------------------------------------------------------------------------
@@ -172,12 +172,12 @@ spm_MDP_VB_LFP(MDP(1:8));
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 5'); clf
 i = find(ismember(spm_cat({MDP.u}'),[4 2],'rows')); i = (i + 1)/2;
-spm_MDP_VB_LFP(MDP([i(1),i(end)]),[3;3]);
+spm_MDP_VB_LFP(MDP([i(1),i(end)]),[2;3]);
 subplot(4,1,1), title('Repetition suppression and DA transfer','FontSize',16)
  
 spm_figure('GetWin','Figure 6'); clf
 n  = size(MDP(1).xn{1},1);
-v  = spm_MDP_VB_LFP(MDP([i(1),i(end)]),[3;3]);
+v  = spm_MDP_VB_LFP(MDP([i(1),i(end)]),[2;3]);
 t  = ((1:n)*16 + 80)*16/n;
 subplot(2,1,1),plot(t,v{1}{1,1},'b-.',t,v{2}{1,1},'b:',t,v{2}{1,1} - v{1}{1,1})
 xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',16)

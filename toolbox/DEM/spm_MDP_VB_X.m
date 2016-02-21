@@ -89,7 +89,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6728 2016-02-20 18:07:58Z karl $
+% $Id: spm_MDP_VB_X.m 6729 2016-02-21 15:40:48Z karl $
 
 
 % deal with a sequence of trials
@@ -303,26 +303,20 @@ for t = 1:T
     %----------------------------------------------------------------------
     tstart = tic;
     for f = 1:Nf
-        x{f} = spm_softmax(log(x{f})*0);
+        x{f} = spm_softmax(log(x{f})/2);
     end
     
     % Variational updates (hidden states) under sequential policies
     %======================================================================
     S     = size(V,1) + 1;
-    F     = zeros(Np,S);
-    G     = zeros(Np,S);
-    for k = p
-        for i = 1:Ni
-            px     = x;
-            F(k,:) = 0;
-            for f  = 1:Nf
-                for j = 1:S
+    for i = 1:Ni
+        F     = zeros(Np,S);
+        for k = p
+            for j = 1:S
+                for f = 1:Nf
                     
                     % evaluate free energy and gradients (v = dFdx)
                     %======================================================
-                    
-                    % likelihood term
-                    %------------------------------------------------------
                     ind    = 1:Nf;
                     ind(f) = [];
                     xq     = cell(1,(Nf - 1));
@@ -342,7 +336,6 @@ for t = 1:T
                         end
                     end
                     
-                    
                     % entropy term and belief update
                     %------------------------------------------------------                   
                     sx     = x{f}(:,j,k);
@@ -358,38 +351,15 @@ for t = 1:T
                     %------------------------------------------------------
                     F(k,j) = F(k,j) + sx'*v;
                     dFdx   = sx.*(v - sx'*v);
-                    sx     = spm_softmax(qx + dFdx/tau);
-  
+                    sx     = spm_softmax(qx + dFdx/tau); 
                     
                     % store update neuronal activity
                     %------------------------------------------------------
-                    px{f}(:,j,k)     = sx;
+                    x{f}(:,j,k)      = sx;
                     xn{f}(i,:,j,t,k) = sx;
                     
                 end
             end
-            
-            % synchronous updates for all factors under this policy
-            %--------------------------------------------------------------
-            for f = 1:Nf
-                for j = 1:S
-                    x{f}(:,j,k) = px{f}(:,j,k);
-                end
-            end
-
-            % convergence
-            %--------------------------------------------------------------
-            if i > 1
-                if all((F(k,:) - G(k,:)) < 1/128)
-                    for g = i:Ni
-                        for f = 1:Nf 
-                            xn{f}(g,:,1:S,t,k) = x{f}(:,1:S,k); 
-                        end
-                    end
-                    break
-                end
-            end
-            G(k,:) = F(k,:);
         end
     end
     
@@ -404,34 +374,37 @@ for t = 1:T
                 xq{f}  = x{f}(:,j,k);
             end
             for g = 1:Ng
-                qo     = spm_dot(A{g},xq,ind + 1) ;
+                qo     = spm_dot(A{g},xq,ind + 1);
                 Q(k,j) = Q(k,j) + qo'*(Vo{g}(:,j) - log(qo + p0));
                 Q(k,j) = Q(k,j) + spm_dot(H{g},xq,ind);
             end
+            
         end
     end
-    
+        
+    % eliminate unlikely policies
+    %----------------------------------------------------------------------
+    SF = sum(F,2);
+    SQ = sum(Q,2);
+    if ~isfield(MDP,'U')
+        p = p((SF(p) - max(SF(p))) > -3);
+    end
     
     % variational updates - policies and precision
     %======================================================================
-    F     = sum(F,2);
-    Q     = sum(Q,2);
-    if ~isfield(MDP,'U')
-        p = p((F(p) - max(F(p))) > -3);
-    end
     for i = 1:Ni
         
-        % policy (u)
-        %------------------------------------------------------------------
-        qu = spm_softmax(gu(t)*Q(p) + F(p));
-        pu = spm_softmax(gu(t)*Q(p));
+        % posterior and prior beliefs about policies
+        %----------------------------------------------------------------------
+        qu = spm_softmax(gu(t)*SQ(p) + SF(p));
+        pu = spm_softmax(gu(t)*SQ(p));
         
         % precision (gu) with free energy gradients (v = -dF/dw)
         %------------------------------------------------------------------
         if OPTIONS.gamma_u
             gu(t) = 1/beta;
         else
-            dFdg  = qbeta - beta + (qu - pu)'*Q(p);
+            dFdg  = qbeta - beta + (qu - pu)'*SQ(p);
             qbeta = qbeta - dFdg/2;
             gu(t) = 1/qbeta;
         end
@@ -706,16 +679,21 @@ for i = n:-1:1,
 end
 
 
-% NOTES: gradient checks for exact integration
-%==========================================================================
-% mdp_F  = @(qx,v)spm_softmax(qx)'*(log(v) - log(spm_softmax(qx)));
-% dFdx   = spm_diff(mdp_F,qx,v,1);
-% dFdxx  = spm_diff(mdp_F,qx,v,[1 1]);
-% dFdx   = sx.*(e - sx'*e);
+return
 
-                    % gradient terms from Markov blanket
-                    %------------------------------------------------------
-% if j >  1, e = e + rB{f}(:,:,V(j - 1,k,f))'*(x{f}(:,j - 1,k)./(rB{f}(:,:,V(j - 1,k,f))*sx));  end
-% if j <  S, e = e + sB{f}(:,:,V(j    ,k,f))'*(x{f}(:,j + 1,k)./(sB{f}(:,:,V(j    ,k,f))*sx));  end
-   
+% NOTES: gradient checks for hidden states
+%==========================================================================
+mdp_F  = @(qx,v)spm_softmax(qx)'*(log(v) - log(spm_softmax(qx)));
+dFdx   = spm_diff(mdp_F,qx,v,1);
+dFdxx  = spm_diff(mdp_F,qx,v,[1 1]);
+dFdx   = sx.*(e - sx'*e);
+
+% NOTES: gradient checks for precision map
+%==========================================================================
+g      = 1/qbeta;
+mdp_F  = @(g,Q,p,beta) qu'*log(spm_softmax(g*Q(p))) - (beta*g - log(g));
+dFdg   = spm_diff(mdp_F,g,Q,p,beta,1);
+dFdg   = qbeta - beta + (qu - spm_softmax(g*Q(p)))'*Q(p);
+
+
 
