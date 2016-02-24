@@ -36,7 +36,7 @@ function [wpli, v, n] = ft_connectivity_wpli(input, varargin)
 
 % Copyright (C) 2011, Martin Vinck 
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -52,7 +52,7 @@ function [wpli, v, n] = ft_connectivity_wpli(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_wpli.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 feedback    = ft_getopt(varargin, 'feedback', 'none');
 debias      = ft_getopt(varargin, 'debias');

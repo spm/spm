@@ -45,7 +45,7 @@ function [cfg] = prepare_design(cfg)
 
 % Copyright (C) 2006, Eric Maris
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -61,7 +61,7 @@ function [cfg] = prepare_design(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_design.m 9110 2014-01-19 13:04:38Z dieloz $
+% $Id$
 
 % determine whether a beween or a within-units design is requested.
 if any(strcmp(cfg.statistic,{'indepsamplesT','indepsamplesregrT','indepsamplesZcoh','indepsamplesF'}))
@@ -143,5 +143,5 @@ end;
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: prepare_design.m 9110 2014-01-19 13:04:38Z dieloz $';
+cfg.version.id = '$Id$';
 

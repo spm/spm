@@ -34,7 +34,7 @@ function [spike] = ft_read_spike(filename, varargin)
 
 % Copyright (C) 2007-2011 Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -50,7 +50,7 @@ function [spike] = ft_read_spike(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_spike.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id$
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);

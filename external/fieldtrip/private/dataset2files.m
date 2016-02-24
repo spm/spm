@@ -11,7 +11,7 @@ function cfg = dataset2files(cfg)
 
 % Copyright (C) 2004, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ function cfg = dataset2files(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dataset2files.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id$
 
 % start with empty fields if thery are not present
 if ~isfield(cfg, 'dataset')

@@ -13,7 +13,7 @@ function [grad] = nimh2grad(hdr)
 
 % Copyright (C) 2005, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ function [grad] = nimh2grad(hdr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nimh2grad.m 10743 2015-10-02 08:54:02Z roboos $
+% $Id$
 
 % only work on the MEG channels
 if isfield(hdr.sensor.index, 'meg')

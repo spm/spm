@@ -18,7 +18,7 @@ function [trialData] = read_sbin_data(filename, hdr, begtrial, endtrial, chanind
 % Modified from EGI's readEGLY.m with permission 2008-03-31 Joseph Dien
 %
 
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -34,7 +34,7 @@ function [trialData] = read_sbin_data(filename, hdr, begtrial, endtrial, chanind
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_sbin_data.m 8121 2013-05-09 21:22:47Z josdie $
+% $Id$
 
 fh=fopen([filename],'r');
 if fh==-1

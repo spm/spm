@@ -30,7 +30,7 @@ function atlas = ft_read_atlas(filename, varargin)
 
 % Copyright (C) 2005-2016, Robert Oostenveld, Ingrid Nieuwenhuis, Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -46,7 +46,7 @@ function atlas = ft_read_atlas(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_atlas.m 11062 2016-01-15 11:27:50Z roboos $
+% $Id$
 
 % deal with multiple filenames
 if isa(filename, 'cell')

@@ -16,7 +16,7 @@ function M = dimindex(A,dim,idx)
 
 % Copyright (C) 2005, Geerten Kramer
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ function M = dimindex(A,dim,idx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dimindex.m 11157 2016-01-31 12:37:13Z roboos $
+% $Id$
 
 if (~iscell(idx))
   if (~any(size(dim)==1) || ~any(size(idx)==1) || ndims(dim)>2 || ndims(idx)>2 || length(dim)~=length(idx))

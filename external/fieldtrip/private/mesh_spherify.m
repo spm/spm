@@ -17,7 +17,7 @@ function [pnt, tri] = mesh_spherify(pnt, tri, varargin)
 %   smooth = number (default = 20)
 
 % Copyright (C) 2008, Robert Oostenveld
-% $Id: mesh_spherify.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id$
 
 % give some graphical feedback for debugging
 fb = false;

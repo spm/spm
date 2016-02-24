@@ -40,7 +40,7 @@ function [s, cfg] = ft_statfun_indepsamplesT(cfg, dat, design)
 
 % Copyright (C) 2006, Eric Maris
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -56,7 +56,7 @@ function [s, cfg] = ft_statfun_indepsamplesT(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_indepsamplesT.m 10451 2015-06-10 22:00:07Z roboos $
+% $Id$
 
 % set the defaults
 if ~isfield(cfg, 'computestat'),    cfg.computestat    = 'yes'; end

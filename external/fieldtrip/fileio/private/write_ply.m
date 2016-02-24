@@ -13,7 +13,7 @@ function write_ply(fn, pnt, tri, format)
 
 % Copyright (C) 2012, Robert Oostenveld
 %
-% $Id: write_ply.m 9552 2014-05-20 08:02:01Z roboos $
+% $Id$
 
 % the element are described as
 %   Mx3 list of vertices for triangles

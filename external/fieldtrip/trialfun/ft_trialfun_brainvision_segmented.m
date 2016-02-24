@@ -25,7 +25,7 @@ function [trl, event] = ft_trialfun_brainvision_segmented(cfg)
 
 % Copyright (C) 20014, Robert Oostenveld, FCDC
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -41,7 +41,7 @@ function [trl, event] = ft_trialfun_brainvision_segmented(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_trialfun_brainvision_segmented.m 9825 2014-09-22 15:19:53Z roboos $
+% $Id$
 
 hdr = ft_read_header(cfg.dataset);
 event = ft_read_event(cfg.dataset);

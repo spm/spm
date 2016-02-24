@@ -9,7 +9,7 @@ function [nearest, distance] = find_nearest(pnt1, pnt2, npart, gridflag)
 
 % Copyright (C) 2007, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ function [nearest, distance] = find_nearest(pnt1, pnt2, npart, gridflag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: find_nearest.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 % this can be used for printing detailled user feedback
 fb = false;

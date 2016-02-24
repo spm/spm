@@ -30,7 +30,7 @@ function [sens] = ft_fetch_sens(cfg, data)
 
 % Copyright (C) 2011, J?rn M. Horschig
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -46,7 +46,7 @@ function [sens] = ft_fetch_sens(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_sens.m 10679 2015-09-18 10:33:31Z jansch $
+% $Id$
 
 if nargin > 1 && ~isempty(data)
   data = ft_checkdata(data);

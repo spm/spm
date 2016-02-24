@@ -20,7 +20,7 @@ function lf = eeg_leadfield1(R, elc, vol)
 
 % Copyright (C) 2002, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -36,7 +36,7 @@ function lf = eeg_leadfield1(R, elc, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: eeg_leadfield1.m 8963 2013-12-05 08:41:12Z roboos $
+% $Id$
 
 Nchans = size(elc, 1);
 lf = zeros(Nchans,3);

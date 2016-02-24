@@ -6,7 +6,7 @@ function bnd = prepare_mesh_headshape(cfg)
 
 % Copyrights (C) 2009, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@ function bnd = prepare_mesh_headshape(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_headshape.m 8957 2013-12-04 11:09:49Z roboos $
+% $Id$
 
 % get the specific options
 cfg.headshape    = ft_getopt(cfg, 'headshape');
@@ -218,7 +218,7 @@ function [pnt1, tri1] = fairsurface(pnt, tri, N)
 %                    Christophe Phillips & Jeremie Mattout
 % spm_eeg_inv_ElastM.m 1437 2008-04-17 10:34:39Z christophe
 %
-% $Id: prepare_mesh_headshape.m 8957 2013-12-04 11:09:49Z roboos $
+% $Id$
 
 ts = [];
 ts.XYZmm = pnt';

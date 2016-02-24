@@ -7,7 +7,7 @@ function user = getusername()
 
 % Copyright (C) 2011-2012, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ function user = getusername()
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: getusername.m 10453 2015-06-11 02:14:49Z roboos $
+% $Id$
 
 % this is to speed up subsequent calls
 persistent previous_argout

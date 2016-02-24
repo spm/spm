@@ -9,7 +9,7 @@ function [newval, change] = smartinput(question, oldval)
 
 % Copyright (C) 2006-2014, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ function [newval, change] = smartinput(question, oldval)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: smartinput.m 9295 2014-03-18 11:30:44Z roboos $
+% $Id$
 
 if ischar(oldval)
   newval = input(question, 's');

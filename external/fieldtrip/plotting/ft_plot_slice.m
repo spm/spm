@@ -23,7 +23,7 @@ function [h, T2] = ft_plot_slice(dat, varargin)
 %   'interpmethod' = string specifying the method for the interpolation, see INTERPN (default = 'nearest')
 %   'style'        = string, 'flat' or '3D'
 %   'colormap'     = string, see COLORMAP
-%   'colorlim'     = 1x2 vector specifying the min and max for the colorscale
+%   'clim'         = 1x2 vector specifying the min and max for the colorscale
 %
 % See also FT_PLOT_ORTHO, FT_PLOT_MONTAGE, FT_SOURCEPLOT
 
@@ -36,7 +36,7 @@ function [h, T2] = ft_plot_slice(dat, varargin)
 % Copyrights (C) 2010-2014, Jan-Mathijs Schoffelen
 % Copyrights (C) 2014, Robert Oostenveld and Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -52,7 +52,7 @@ function [h, T2] = ft_plot_slice(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_slice.m 11149 2016-01-28 11:36:06Z jansch $
+% $Id$
 
 persistent dim X Y Z
 

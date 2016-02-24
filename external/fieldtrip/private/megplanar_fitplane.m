@@ -8,7 +8,7 @@ function montage = megplanar_fitplane(cfg, grad)
 
 % Copyright (C) 2004-2009, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ function montage = megplanar_fitplane(cfg, grad)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: megplanar_fitplane.m 8599 2013-10-10 11:07:30Z dieloz $
+% $Id$
 
 lab   = grad.label;
 % ensure the correct sensor order

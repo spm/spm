@@ -11,7 +11,7 @@ function [X, Y, Z, pnt1, tri1, pnt2, tri2] = intersect_plane(pnt, tri, v1, v2, v
 
 % Copyright (C) 2002-2012, Robert Oostenveld
 %
-% $Id: intersect_plane.m 8962 2013-12-05 07:48:46Z roboos $
+% $Id$
 
 npnt = size(pnt,1);
 ntri = size(tri,1);

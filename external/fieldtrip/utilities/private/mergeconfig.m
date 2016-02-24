@@ -8,7 +8,7 @@ function input = mergeconfig(input, default)
 
 % Copyright (C) 2009-2012, Robert Oostenveld
 %
-% $Id: mergeconfig.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 if isempty(input) && ~isstruct(input)
   % ensure that it is an empty struct, not an empty double

@@ -19,7 +19,7 @@ function [inside] = ft_inside_vol(dippos, headmodel, varargin)
 
 % Copyright (C) 2003-2013, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -35,7 +35,7 @@ function [inside] = ft_inside_vol(dippos, headmodel, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_inside_vol.m 10861 2015-11-10 15:00:55Z roboos $
+% $Id$
 
 % get the optional input arguments
 grad        = ft_getopt(varargin, 'grad');

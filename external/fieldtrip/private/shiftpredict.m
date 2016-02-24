@@ -19,7 +19,7 @@ function [prb, cohobs, mcohrnd] = shiftpredict(cfg, dat, datindx, refindx, trlta
 
 % Copyright (C) 2005, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -35,7 +35,7 @@ function [prb, cohobs, mcohrnd] = shiftpredict(cfg, dat, datindx, refindx, trlta
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: shiftpredict.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id$
 
 nsgn = size(dat,1);
 ntap = size(dat,2); % total number of tapers over all trials

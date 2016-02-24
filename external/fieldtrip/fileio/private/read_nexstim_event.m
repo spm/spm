@@ -8,7 +8,7 @@ function [event] = read_nexstim_event(filename)
 %
 % Copyright (C) 2007, Vladimir Litvak
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ function [event] = read_nexstim_event(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_nexstim_event.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 % trigLine - either 1(GATE), 2(TRIG1) or 3(TRIG2)
 % trigEdge - either 'rising' or 'falling'

@@ -15,7 +15,7 @@ function [h] = fdr(p, q)
 
 % Copyright (C) 2005-2015, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@ function [h] = fdr(p, q)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fdr.m 10935 2015-11-24 11:29:08Z roboos $
+% $Id$
 
 % convert the input into a row vector
 dim = size(p);

@@ -15,7 +15,7 @@ function [s, cfg] = ft_statfun_diff(cfg, dat, design)
 
 % Copyright (C) 2006, Robert Oostenveld 
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@ function [s, cfg] = ft_statfun_diff(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_diff.m 11025 2015-12-14 11:51:58Z jansch $
+% $Id$
 
 selA = find(design(cfg.ivar,:)==1); % selecton condition 1 or A
 selB = find(design(cfg.ivar,:)==2); % selecton condition 2 or B

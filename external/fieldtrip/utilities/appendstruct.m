@@ -12,7 +12,7 @@ function [s1] = appendstruct(s1, s2)
 
 % Copyright (C) 2015, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ function [s1] = appendstruct(s1, s2)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: appendstruct.m 11052 2016-01-09 17:51:12Z roboos $
+% $Id$
 
 assert(isstruct(s1) || isempty(s1), 'input argument 1 should be empty or a structure');
 assert(isstruct(s2), 'input argument 2 should be a structure');

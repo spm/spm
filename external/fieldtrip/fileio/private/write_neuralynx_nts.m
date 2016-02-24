@@ -9,7 +9,7 @@ function write_neuralynx_nts(filename, nts);
 
 % Copyright (C) 2007, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ function write_neuralynx_nts(filename, nts);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: write_neuralynx_nts.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 if ~isa(nts.TimeStamp, 'uint64')
   error('timestamps should be uint64');

@@ -7,7 +7,7 @@
  *
  * Copyright (C) 2007, Robert Oostenveld
  *
- * $Id: write_ctf_shm.c 7123 2012-12-06 21:21:38Z roboos $
+ * $Id$
  */
 
 #include <string.h>

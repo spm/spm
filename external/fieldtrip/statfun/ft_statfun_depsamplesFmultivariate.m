@@ -49,7 +49,7 @@ function [s, cfg] = ft_statfun_depsamplesFmultivariate(cfg, dat, design)
 
 % Copyright (C) 2006, Eric Maris
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -65,7 +65,7 @@ function [s, cfg] = ft_statfun_depsamplesFmultivariate(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_depsamplesFmultivariate.m 10801 2015-10-20 12:05:28Z roboos $
+% $Id$
 
 
 % set defaults

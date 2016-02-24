@@ -20,7 +20,7 @@ function headmodel = ft_headmodel_singlesphere(mesh, varargin)
 
 % Copyright (C) 2012-2013, Donders Centre for Cognitive Neuroimaging, Nijmegen, NL
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -36,7 +36,7 @@ function headmodel = ft_headmodel_singlesphere(mesh, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_singlesphere.m 10751 2015-10-06 16:14:11Z roboos $
+% $Id$
 
 % get the optional arguments
 conductivity = ft_getopt(varargin, 'conductivity', 1);

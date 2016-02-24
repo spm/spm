@@ -23,7 +23,7 @@ function [lut_t, cuf_t] = eeg_leadfield4_prepare(vol, Nmax)
 
 % Copyright (C) 2002, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -39,7 +39,7 @@ function [lut_t, cuf_t] = eeg_leadfield4_prepare(vol, Nmax)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: eeg_leadfield4_prepare.m 8963 2013-12-05 08:41:12Z roboos $
+% $Id$
 
 % sort the spheres from the smallest to the largest
 [vol.r, indx] = sort(vol.r);

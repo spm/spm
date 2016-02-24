@@ -16,7 +16,7 @@ function trl = ft_trialfun_realtime(cfg)
 
 % Copyright (C) 2009, Marcel van Gerven
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ function trl = ft_trialfun_realtime(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_trialfun_realtime.m 8434 2013-08-28 20:00:36Z roboos $
+% $Id$
 
 if ~isfield(cfg,'minsample'),   cfg.minsample = 0;        end
 if ~isfield(cfg,'blocksize'),   cfg.blocksize = 0.1;  end

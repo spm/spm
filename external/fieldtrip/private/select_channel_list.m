@@ -17,7 +17,7 @@ function [select] = select_channel_list(label, select, titlestr)
 
 % Copyright (C) 2003, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ function [select] = select_channel_list(label, select, titlestr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: select_channel_list.m 10345 2015-04-25 09:12:57Z roboos $
+% $Id$
 
 if nargin<3
   titlestr = 'Select';

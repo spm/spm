@@ -11,7 +11,7 @@ function b = copyfields(a, b, fields)
 
 % Copyright (C) 2014, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ function b = copyfields(a, b, fields)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: copyfields.m 11062 2016-01-15 11:27:50Z roboos $
+% $Id$
 
 if isempty(a)
   % this prevents problems if a is an empty double, i.e. []

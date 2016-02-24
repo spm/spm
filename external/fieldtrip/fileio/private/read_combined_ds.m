@@ -17,7 +17,7 @@ function [dat] = read_combined_ds(dirname, hdr, begsample, endsample, chanindx)
 
 % Copyright (C) 2008-2015, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ function [dat] = read_combined_ds(dirname, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_combined_ds.m 10621 2015-08-24 08:17:53Z roboos $
+% $Id$
 
 needhdr = nargin==1 || isempty(hdr);
 needdat = nargin>1;

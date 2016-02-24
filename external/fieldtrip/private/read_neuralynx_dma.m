@@ -17,7 +17,7 @@ function [dat] = read_neuralynx_dma(filename, begsample, endsample, channel)
 
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ function [dat] = read_neuralynx_dma(filename, begsample, endsample, channel)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neuralynx_dma.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id$
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The data is simply a stream of constant size records,  the size of the

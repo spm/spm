@@ -6,7 +6,7 @@ function outputfile = inflate_file(inputfile)
 
 % Copyright (C) 2012 Eelke Spaak
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@ function outputfile = inflate_file(inputfile)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: inflate_file.m 9825 2014-09-22 15:19:53Z roboos $
+% $Id$
 
 % use a cache to prevent extracting the same file multiple times
 persistent extractcache;

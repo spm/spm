@@ -16,7 +16,7 @@ function [grad] = ctf2grad(hdr, dewar, coilaccuracy)
 
 % Copyright (C) 2004-2016, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ function [grad] = ctf2grad(hdr, dewar, coilaccuracy)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ctf2grad.m 11098 2016-01-22 10:34:30Z roboos $
+% $Id$
 
 if nargin<2 || isempty(dewar)
   dewar = false;

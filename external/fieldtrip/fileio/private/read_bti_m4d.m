@@ -7,7 +7,7 @@ function [msi] = read_bti_m4d(filename)
 
 % Copyright (C) 2007, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ function [msi] = read_bti_m4d(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_bti_m4d.m 8770 2013-11-12 13:54:58Z roboos $
+% $Id$
 
 [p, f, x] = fileparts(filename);
 if ~strcmp(x, '.m4d')

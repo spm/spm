@@ -51,7 +51,7 @@ function [ev] = ft_recodeevent(cfg, event, trl)
 
 % Copyright (C) 2005, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -67,16 +67,19 @@ function [ev] = ft_recodeevent(cfg, event, trl)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_recodeevent.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id$
 
-revision = '$Id: ft_recodeevent.m 9520 2014-05-14 09:33:28Z roboos $';
+% these are used by the ft_preamble/ft_postamble function and scripts
+ft_revision = '$Id$';
+ft_nargin   = nargin;
+ft_nargout  = nargout;
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
 
-% the abort variable is set to true or false in ft_preamble_init
-if abort
+% the ft_abort variable is set to true or false in ft_preamble_init
+if ft_abort
   return
 end
 
@@ -178,7 +181,7 @@ for i=1:Ntrl
   trlend    = trl(i,2);
   trloffset = trl(i,3);
   trlzero   = trlbeg - trloffset;  % the sample that corresponds with t=0
-  
+
   if strcmp(cfg.nearestto, 'trialzero')
     trlsample = trlzero;             % the sample that corresponds with t=0
   elseif strcmp(cfg.nearestto, 'trialbegin')
@@ -188,7 +191,7 @@ for i=1:Ntrl
   else
     error('incorrect specification of cfg.nearestto')
   end
-  
+
   % compute a "distance" measure for each event towards this trial
   switch cfg.searchrange
     case 'anywhere'
@@ -214,13 +217,13 @@ for i=1:Ntrl
     otherwise
       error('incorrect specification of cfg.searchrange');
   end
-  
+
   % determine the event that has the shortest distance towards this trial
   [mindist, minindx] = min(distance);
   if length(find(distance==mindist))>1
     error('multiple events are at the same distance from the trial');
   end
-  
+
   if isinf(mindist)
     % no event was found
     ev(i) = nan;
@@ -247,6 +250,5 @@ for i=1:Ntrl
         error('incorrect specification of cfg.output');
     end
   end
-  
-end % looping over all trials
 
+end % looping over all trials

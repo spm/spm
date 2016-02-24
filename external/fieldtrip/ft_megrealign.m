@@ -60,7 +60,7 @@ function [data] = ft_megrealign(cfg, data)
 % This implements the method described by T.R. Knosche, Transformation
 % of whole-head MEG recordings between different sensor positions.
 % Biomed Tech (Berl). 2002 Mar;47(3):59-62. For more information and
-% related methods, see Stolk et al., Online and offline tools for head 
+% related methods, see Stolk et al., Online and offline tools for head
 % movement compensation in MEG. NeuroImage, 2012.
 %
 % To facilitate data-handling and distributed computing you can use
@@ -75,7 +75,7 @@ function [data] = ft_megrealign(cfg, data)
 
 % Copyright (C) 2004-2014, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -91,9 +91,12 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id$
 
-revision = '$Id: ft_megrealign.m 10765 2015-10-09 18:10:47Z roboos $';
+% these are used by the ft_preamble/ft_postamble function and scripts
+ft_revision = '$Id$';
+ft_nargin   = nargin;
+ft_nargout  = nargout;
 
 % do the general setup of the function
 ft_defaults
@@ -103,8 +106,8 @@ ft_preamble loadvar data
 ft_preamble provenance data
 ft_preamble trackconfig
 
-% the abort variable is set to true or false in ft_preamble_init
-if abort
+% the ft_abort variable is set to true or false in ft_preamble_init
+if ft_abort
   return
 end
 
@@ -153,14 +156,13 @@ tmpcfg.trials  = cfg.trials;
 tmpcfg.channel = setdiff(data.label, ft_channelselection(cfg.channel, data.label));
 rest = ft_selectdata(tmpcfg, data);
 
-tmpcfg.channel = ft_channelselection(cfg.channel, data.label); 
+tmpcfg.channel = ft_channelselection(cfg.channel, data.label);
 data = ft_selectdata(tmpcfg, data);
 
 % restore the provenance information
 [cfg, data] = rollback_provenance(cfg, data);
 
 Ntrials = length(data.trial);
-
 
 % cfg.channel = ft_channelselection(cfg.channel, data.label);
 % dataindx = match_str(data.label, cfg.channel);
@@ -282,7 +284,7 @@ for i=1:Ntrials
       M    = ft_headcoordinates(hmdat(1:3,1),hmdat(4:6,1),hmdat(7:9,1));
       grad = ft_transform_sens(M, data.grad);
     end
-    
+
     volcfg.grad = grad;
     %compute volume conductor
     [volold, grad] = prepare_headmodel(volcfg);
@@ -308,7 +310,7 @@ end
 
 % plot the topography before and after the realignment
 if strcmp(cfg.feedback, 'yes')
-  
+
   warning('showing MEG topography (RMS value over time) in the first trial only');
   Nchan = length(data.grad.label);
   [id,it]   = match_str(data.grad.label, template.grad.label);
@@ -316,7 +318,7 @@ if strcmp(cfg.feedback, 'yes')
   pnt2 = template.grad.chanpos(it,:);
   prj1 = elproj(pnt1); tri1 = delaunay(prj1(:,1), prj1(:,2));
   prj2 = elproj(pnt2); tri2 = delaunay(prj2(:,1), prj2(:,2));
-  
+
   switch cfg.topoparam
     case 'rms'
       p1 = sqrt(mean(data.trial{1}(id,:).^2, 2));
@@ -327,11 +329,11 @@ if strcmp(cfg.feedback, 'yes')
     otherwise
       error('unsupported cfg.topoparam');
   end
-  
+
   X = [pnt1(:,1) pnt2(:,1)]';
   Y = [pnt1(:,2) pnt2(:,2)]';
   Z = [pnt1(:,3) pnt2(:,3)]';
-  
+
   % show figure with old an new helmets, volume model and dipole grid
   figure
   hold on
@@ -341,7 +343,7 @@ if strcmp(cfg.feedback, 'yes')
   plot3(pnt2(:,1), pnt2(:,2), pnt2(:,3), 'g.') % template positions
   line(X,Y,Z, 'color', 'black');
   view(-90, 90);
-  
+
   % show figure with data on old helmet location
   figure
   hold on
@@ -355,7 +357,7 @@ if strcmp(cfg.feedback, 'yes')
   ft_plot_mesh(bnd1,'vertexcolor',p1,'edgecolor','none')
   title('RMS, before realignment')
   view(-90, 90)
-  
+
   % show figure with data on new helmet location
   figure
   hold on

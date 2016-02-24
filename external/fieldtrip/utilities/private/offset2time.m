@@ -17,7 +17,7 @@ function time = offset2time(offset, fsample, nsamples)
 
 % Copyright (C) 2005, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ function time = offset2time(offset, fsample, nsamples)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: offset2time.m 9664 2014-06-22 07:06:29Z roboos $
+% $Id$
 
 % ensure that these are not integers
 offset   = double(offset);

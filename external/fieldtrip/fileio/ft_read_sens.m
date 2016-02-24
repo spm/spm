@@ -42,7 +42,7 @@ function [sens] = ft_read_sens(filename, varargin)
 
 % Copyright (C) 2005-2016 Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -58,7 +58,7 @@ function [sens] = ft_read_sens(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_sens.m 11106 2016-01-22 12:25:55Z roboos $
+% $Id$
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -154,12 +154,11 @@ switch fileformat
     sens.elecpos = sens.elecpos(sel,:);
     
   case 'besa_sfp'
-    fid = fopen(filename);
-    tmp = textscan(fid, ' %[^ \t]%n%n%n');
-    fclose(fid);
-    sens.label   = tmp{1};
-    sens.elecpos = [tmp{2:4}];
-    
+    [lab, pos] = read_besa_sfp(filename);
+	
+    sens.label   = lab;
+    sens.elecpos = pos;
+		
   case {'ctf_ds', 'ctf_res4', 'ctf_old', 'neuromag_fif', 'neuromag_mne', '4d', '4d_pdf', '4d_m4d', '4d_xyz', 'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw', 'itab_raw' 'itab_mhd', 'netmeg'}
     % gradiometer information is always stored in the header of the MEG dataset, hence uses the standard fieldtrip/fileio ft_read_header function
     hdr = ft_read_header(filename, 'headerformat', fileformat, 'coordsys', coordsys, 'coilaccuracy', coilaccuracy);

@@ -40,7 +40,7 @@ function [stat, cfg] = ft_statistics_analytic(cfg, dat, design)
 
 % Copyright (C) 2006-2015, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -56,7 +56,7 @@ function [stat, cfg] = ft_statistics_analytic(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_analytic.m 10427 2015-05-29 07:39:46Z roboos $
+% $Id$
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamedval',  {'correctm', 'bonferoni', 'bonferroni'});

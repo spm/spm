@@ -5,7 +5,7 @@ function bnd = read_asa_bnd(fn);
 
 % Copyright (C) 2002, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@ function bnd = read_asa_bnd(fn);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_asa_bnd.m 8962 2013-12-05 07:48:46Z roboos $
+% $Id$
 
 Npnt = read_asa(fn, 'NumberPositions=', '%d');
 Ntri = read_asa(fn, 'NumberPolygons=', '%d');

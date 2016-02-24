@@ -33,7 +33,7 @@ function ft_plot_matrix(varargin)
 
 % Copyrights (C) 2009-2011, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -49,7 +49,7 @@ function ft_plot_matrix(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_matrix.m 10865 2015-11-11 07:52:19Z roboos $
+% $Id$
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -212,9 +212,11 @@ if ~isempty(highlight)
       delete(h); % this is needed because "hold on" might have been called previously, e.g. in ft_multiplotTFR
       h = uimagesc(hdat, vdat, cdat, clim);
       set(h,'tag',tag);
-      set(h,'AlphaData',highlight);
-      set(h, 'AlphaDataMapping', 'scaled');
-      alim([0 1]);
+      if ft_platform_supports('alim')
+        set(h,'AlphaData',highlight);
+        set(h, 'AlphaDataMapping', 'scaled');
+        alim([0 1]);
+      end
     
     case 'saturation'
       % This approach changes the color of pixels to white, regardless of colormap, without using opengl

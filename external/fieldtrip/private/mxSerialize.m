@@ -8,7 +8,7 @@ function [argout] = mxSerialize(argin)
 % Copyright (C) 2005, Brad Phelan         http://xtargets.com
 % Copyright (C) 2007, Robert Oostenveld   http://www.fcdonders.ru.nl
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ function [argout] = mxSerialize(argin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mxSerialize.m 10458 2015-06-18 19:53:31Z roboos $
+% $Id$
 
 if ft_platform_supports('libmx_c_interface') % older than 2014a
   % use the original implementation of the mex file

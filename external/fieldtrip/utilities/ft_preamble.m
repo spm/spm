@@ -13,7 +13,7 @@ function ft_preamble(cmd, varargin)
 
 % Copyright (C) 2011-2012, Robert Oostenveld, DCCN
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ function ft_preamble(cmd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble.m 10756 2015-10-07 07:57:05Z roboos $
+% $Id$
 
 % ideally this would be a script, because the local variables would then be
 % shared with the calling function. Instead, this is a function which then

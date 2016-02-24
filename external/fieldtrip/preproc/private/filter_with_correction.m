@@ -21,7 +21,7 @@ function filt = filter_with_correction(B,A,dat,dir,usefftfilt)
 
 % Copyright (c) 2010, Stefan Klanke
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -37,7 +37,7 @@ function filt = filter_with_correction(B,A,dat,dir,usefftfilt)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: filter_with_correction.m 10840 2015-11-04 16:51:38Z roboos $
+% $Id$
 
 % convert the data to double precision
 % see  http://bugzilla.fcdonders.nl/show_bug.cgi?id=2653

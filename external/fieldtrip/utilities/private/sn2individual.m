@@ -10,7 +10,7 @@ function [warped]= sn2individual(P, input)
 
 % Copyright (C) 2013, Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ function [warped]= sn2individual(P, input)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: sn2individual.m 9000 2013-12-10 08:24:03Z jansch $
+% $Id$
 
 if numel(P.Tr)==0,
   % only an affine transformation has been done

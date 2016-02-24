@@ -4,7 +4,7 @@ function value = loadvar(filename, varname)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Id: loadvar.m 10198 2015-02-11 09:36:13Z roboos $
+% $Id$
 
 assert(ischar(filename), 'file name should be a string');
 

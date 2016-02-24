@@ -14,7 +14,7 @@ function [source] = ft_source2sparse(source)
 
 % Copyright (C) 2004, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@ function [source] = ft_source2sparse(source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2sparse.m 11096 2016-01-22 09:22:33Z roboos $
+% $Id$
 
 ft_defaults
 
@@ -159,7 +159,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_source2sparse.m 11096 2016-01-22 09:22:33Z roboos $';
+cfg.version.id = '$Id$';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

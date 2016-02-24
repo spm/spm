@@ -7,7 +7,7 @@ function [info] = decode_fif(orig)
 
 % Copyright (C) 2013 Arjen Stolk & Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ function [info] = decode_fif(orig)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: decode_fif.m 9030 2013-12-12 14:54:09Z roboos $
+% $Id$
 
 
 % check that the required low-level toolbox is available

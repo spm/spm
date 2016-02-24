@@ -65,7 +65,7 @@ function [varargout] = ft_plot_vector(varargin)
 
 % Copyrights (C) 2009-2013, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -81,7 +81,7 @@ function [varargout] = ft_plot_vector(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vector.m 10950 2015-11-30 10:07:05Z roboos $
+% $Id$
 
 ws = warning('on', 'MATLAB:divideByZero');
 

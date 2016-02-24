@@ -41,7 +41,7 @@ function ft_select_channel(handle, eventdata, varargin)
 
 % Copyright (C) 2009, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -57,7 +57,7 @@ function ft_select_channel(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_channel.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id$
 
 % get optional input arguments
 multiple = ft_getopt(varargin, 'multiple', false);

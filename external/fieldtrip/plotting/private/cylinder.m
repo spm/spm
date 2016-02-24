@@ -7,7 +7,7 @@ function [pnt, tri] = cylinder(Naz, Nel)
 
 % Copyright (C) 2002, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ function [pnt, tri] = cylinder(Naz, Nel)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: cylinder.m 8962 2013-12-05 07:48:46Z roboos $
+% $Id$
 
 az = (2*pi*(0:(Naz-1))/Naz)';
 el = (linspace(-1,1,Nel))';

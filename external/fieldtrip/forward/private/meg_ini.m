@@ -30,7 +30,7 @@ function forwpar=meg_ini(vc,center,order,sens,refs,gradlocs,weights)
 
 % Copyright (C) 2003, Guido Nolte
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -46,7 +46,7 @@ function forwpar=meg_ini(vc,center,order,sens,refs,gradlocs,weights)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: meg_ini.m 11096 2016-01-22 09:22:33Z roboos $
+% $Id$
 
 if nargin==4
   if order>0;

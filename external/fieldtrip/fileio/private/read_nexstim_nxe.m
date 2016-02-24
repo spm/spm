@@ -27,7 +27,7 @@ function [dat] = read_nexstim_nxe(filename, begsample, endsample, chanindx)
 %
 % Copyright (C) 2007, Vladimir Litvak
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -43,7 +43,7 @@ function [dat] = read_nexstim_nxe(filename, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_nexstim_nxe.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 if nargin==1
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

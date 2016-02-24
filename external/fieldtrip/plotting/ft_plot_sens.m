@@ -22,7 +22,7 @@ function hs = ft_plot_sens(sens, varargin)
 
 % Copyright (C) 2009-2014, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ function hs = ft_plot_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_sens.m 11122 2016-01-25 21:22:29Z roboos $
+% $Id$
 
 ws = warning('on', 'MATLAB:divideByZero');
 

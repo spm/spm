@@ -9,7 +9,7 @@ function lf = leadfield_interpolate(pos, vol)
 
 % Copyright (C) 2013, Vladimir Litvak
 %
-% $Id: leadfield_interpolate.m 8997 2013-12-09 13:23:21Z roboos $
+% $Id$
 
 % express the position in voxel coordinates
 pos = ft_warp_apply(inv(vol.transform), pos);

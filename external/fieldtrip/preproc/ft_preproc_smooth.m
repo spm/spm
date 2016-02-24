@@ -15,7 +15,7 @@ function [datsmooth] = ft_preproc_smooth(dat, n)
 %
 % Copyright (C) 2010, Stefan Klanke
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@ function [datsmooth] = ft_preproc_smooth(dat, n)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_smooth.m 11135 2016-01-28 08:20:04Z jansch $
+% $Id$
 
 % create smoothing kernel
 if isscalar(n)

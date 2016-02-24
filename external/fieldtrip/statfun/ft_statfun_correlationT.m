@@ -39,7 +39,7 @@ function [s, cfg] = ft_statfun_correlationT(cfg, dat, design)
 
 % Copyright (C) 2015, Arjen Stolk
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -55,7 +55,7 @@ function [s, cfg] = ft_statfun_correlationT(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_correlationT.m 10837 2015-10-30 16:06:41Z arjsto $
+% $Id$
 
 % set defaults
 if ~isfield(cfg, 'computestat'),       cfg.computestat='yes';     end;

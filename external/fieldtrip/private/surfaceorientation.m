@@ -11,7 +11,7 @@ function val = surfaceorientation(pnt, tri, ori)
 
 % Copyright (C) 2007, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ function val = surfaceorientation(pnt, tri, ori)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: surfaceorientation.m 8739 2013-11-08 08:17:23Z roboos $
+% $Id$
 
 if nargin<3
   ori = normals(pnt, tri, 'vertex');

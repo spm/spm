@@ -29,7 +29,7 @@ function [V2, L2, L1] = splint(elc1, V1, elc2, order, degree, lambda)
 
 % Copyright (C) 2003, Robert Oostenveld
 % 
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -45,7 +45,7 @@ function [V2, L2, L1] = splint(elc1, V1, elc2, order, degree, lambda)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: splint.m 11033 2016-01-04 07:55:28Z roboos $
+% $Id$
 
 N = size(elc1,1);   % number of known electrodes
 M = size(elc2,1);   % number of unknown electrodes

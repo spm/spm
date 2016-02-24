@@ -10,7 +10,7 @@ function [mri, hdr] = read_ctf_mri(filename);
 
 % Copyright (C) 2003-2010 Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ function [mri, hdr] = read_ctf_mri(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_mri.m 8753 2013-11-11 12:45:48Z roboos $
+% $Id$
 
 % Some versions require specifying latin1 (ISO-8859-1) character encoding.
 fid = fopen(filename, 'rb', 'ieee-be', 'ISO-8859-1');

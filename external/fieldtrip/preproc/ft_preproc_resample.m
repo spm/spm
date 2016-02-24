@@ -19,7 +19,7 @@ function [datout, tim, Fnew] = ft_preproc_resample(dat, Fold, Fnew, method)
 
 % Copyright (C) 2006-2012, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -35,7 +35,7 @@ function [datout, tim, Fnew] = ft_preproc_resample(dat, Fold, Fnew, method)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_resample.m 11134 2016-01-28 08:16:31Z jansch $
+% $Id$
 
 [nchans, nsamples] = size(dat);
 

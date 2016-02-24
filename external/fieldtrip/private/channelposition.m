@@ -11,7 +11,7 @@ function [pnt, ori, lab] = channelposition(sens)
 
 % Copyright (C) 2009-2012, Robert Oostenveld & Vladimir Litvak
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ function [pnt, ori, lab] = channelposition(sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 8919 2013-11-29 13:20:49Z roboos $
+% $Id$
 
 % remove the balancing from the sensor definition, e.g. planar gradients, 3rd-order gradients, PCA-cleaned data or ICA projections
 if isfield(sens, 'balance') && ~strcmp(sens.balance.current, 'none')

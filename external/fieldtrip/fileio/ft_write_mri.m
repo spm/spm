@@ -26,7 +26,7 @@ function [V] = ft_write_mri(filename, dat, varargin)
 
 % Copyright (C) 2011-2012, Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -42,7 +42,7 @@ function [V] = ft_write_mri(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_mri.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id$
 
 % get the options
 transform     = ft_getopt(varargin, 'transform', eye(4));

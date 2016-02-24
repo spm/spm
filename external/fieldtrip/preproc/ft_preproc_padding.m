@@ -21,7 +21,7 @@ function [dat] = ft_preproc_padding(dat, padtype, prepadlength, postpadlength)
 
 % Copyright (C) 2012, Jörn M. Horschig, Robert Oostenveld, Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -37,7 +37,7 @@ function [dat] = ft_preproc_padding(dat, padtype, prepadlength, postpadlength)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_padding.m 10841 2015-11-05 12:44:40Z jansch $
+% $Id$
 
 if nargin < 4
   postpadlength = prepadlength;

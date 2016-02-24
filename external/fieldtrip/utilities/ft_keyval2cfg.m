@@ -1,14 +1,16 @@
-function [cfg] = keyval2cfg(varargin)
+function [cfg] = ft_keyval2cfg(varargin)
 
-% KEYVAL2CFG converts between a structure and a cell-array with key-value
+% FT_KEYVAL2CFG converts between a structure and a cell-array with key-value
 % pairs which can be used for optional input arguments. 
 % 
 % Use as
-%   [cfg] = keyval2cfg(varargin)
-
-% Copyright (C) 2006, Robert Oostenveld
+%   [cfg] = ft_keyval2cfg(varargin)
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% See also FT_CFG2KEYVAL, FT_GETOPT
+
+% Copyright (C) 2006-2016, Robert Oostenveld
+%
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -24,7 +26,7 @@ function [cfg] = keyval2cfg(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: keyval2cfg.m 11096 2016-01-22 09:22:33Z roboos $
+% $Id$
 
 if iscell(varargin) && length(varargin)==1
   varargin = varargin{1};

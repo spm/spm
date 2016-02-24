@@ -10,7 +10,7 @@ function [newbnd] = mesh2edge(bnd)
 
 % Copyright (C) 2013-2015, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ function [newbnd] = mesh2edge(bnd)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mesh2edge.m 10760 2015-10-07 08:19:44Z roboos $
+% $Id$
 
 if isfield(bnd, 'tri')
   % make a list of all edges

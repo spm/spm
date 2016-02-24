@@ -18,7 +18,7 @@ function [cfg] = ft_multiplotCC(cfg, data)
 
 % Copyright (C) 2005-2006, Jan-Mathijs Schoffelen, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -34,9 +34,12 @@ function [cfg] = ft_multiplotCC(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotCC.m 11143 2016-01-28 08:43:56Z jansch $
+% $Id$
 
-revision = '$Id: ft_multiplotCC.m 11143 2016-01-28 08:43:56Z jansch $';
+% these are used by the ft_preamble/ft_postamble function and scripts
+ft_revision = '$Id$';
+ft_nargin   = nargin;
+ft_nargout  = nargout;
 
 % do the general setup of the function
 ft_defaults
@@ -45,8 +48,8 @@ ft_preamble debug
 ft_preamble provenance data
 ft_preamble trackconfig
 
-% the abort variable is set to true or false in ft_preamble_init
-if abort
+% the ft_abort variable is set to true or false in ft_preamble_init
+if ft_abort
   return
 end
 

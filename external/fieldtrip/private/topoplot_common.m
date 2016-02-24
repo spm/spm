@@ -5,7 +5,7 @@ function cfg = topoplot_common(cfg, varargin)
 
 % Copyright (C) 2005-2011, F.C. Donders Centre
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 10666 2015-09-14 07:53:27Z jansch $
+% $Id$
 
-revision = '$Id: topoplot_common.m 10666 2015-09-14 07:53:27Z jansch $';
+revision = '$Id$';
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'unused',     {'cohtargetchannel'});
@@ -109,6 +109,13 @@ cfg = ft_checkconfig(cfg, 'forbidden',  {'hllinewidth', ...
   'highlightfacecolor', ...
   'showlabels'});
 
+if ft_platform_supports('griddata-v4')
+  default_interpmethod='v4';
+else
+  % Octave does not support 'v4', and 'cubic' not yet implemented
+  default_interpmethod='linear';
+end
+
 % Set other config defaults
 cfg.xlim              = ft_getopt(cfg, 'xlim',          'maxmin');
 cfg.ylim              = ft_getopt(cfg, 'ylim',          'maxmin');
@@ -116,7 +123,7 @@ cfg.zlim              = ft_getopt(cfg, 'zlim',          'maxmin');
 cfg.style             = ft_getopt(cfg, 'style',         'both');
 cfg.gridscale         = ft_getopt(cfg, 'gridscale',     67);
 cfg.interplimits      = ft_getopt(cfg, 'interplimits',  'head');
-cfg.interpolation     = ft_getopt(cfg, 'interpolation', 'v4');
+cfg.interpolation     = ft_getopt(cfg, 'interpolation', default_interpmethod);
 cfg.contournum        = ft_getopt(cfg, 'contournum',    6);
 cfg.colorbar          = ft_getopt(cfg, 'colorbar',      'no');
 cfg.shading           = ft_getopt(cfg, 'shading',       'flat');
@@ -921,7 +928,9 @@ if isempty(get(gcf, 'Name'))
   end
   
   if isempty(cfg.figurename)
-    set(gcf, 'Name', sprintf('%d: %s: %s', double(gcf), funcname, join_str(', ',dataname)));
+    dataname_str=join_str(', ', dataname);
+
+    set(gcf, 'Name', sprintf('%d: %s: %s', double(gcf), funcname, dataname_str));
     set(gcf, 'NumberTitle', 'off');
   else
     set(gcf, 'name', cfg.figurename);
@@ -938,8 +947,11 @@ axis equal
 delete(findobj(gcf, 'type', 'uimenu', 'label', 'FieldTrip'));
 if numel(findobj(gcf, 'type', 'axes')) <= 1
   ftmenu = uimenu(gcf, 'Label', 'FieldTrip');
-  uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
-  uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);
+  if ft_platform_supports('uimenu')
+    % not supported by Octave
+    uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
+    uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);
+  end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

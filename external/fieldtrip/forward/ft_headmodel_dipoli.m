@@ -26,7 +26,7 @@ function headmodel = ft_headmodel_dipoli(mesh, varargin)
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
-% $Id: ft_headmodel_dipoli.m 11156 2016-01-30 09:34:53Z roboos $
+% $Id$
 
 ft_hastoolbox('dipoli', 1);
 

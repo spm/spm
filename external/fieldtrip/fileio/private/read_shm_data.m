@@ -5,7 +5,7 @@ function [dat, dimord] = read_shm_data(hdr, chanindx, begtrial, endtrial)
 
 % Copyright (C) 2007-2009, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@ function [dat, dimord] = read_shm_data(hdr, chanindx, begtrial, endtrial)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_shm_data.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 % this persistent variable is used for caching the 600 packets
 % which inproves the throughput when reading overlapping data segments

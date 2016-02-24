@@ -16,7 +16,7 @@ function [hdr] = read_nmc_archive_k_hdr(paramfile)
 
 % Copyright (C) 2009, Roemer van der Meij
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ function [hdr] = read_nmc_archive_k_hdr(paramfile)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_nmc_archive_k_hdr.m 7639 2013-03-12 13:44:54Z roevdmei $
+% $Id$
 
 
 % Checking paramfile

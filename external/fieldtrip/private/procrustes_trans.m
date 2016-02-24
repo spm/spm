@@ -17,7 +17,7 @@ function [h] = procrustes_trans(input,target)
 
 % Copyright (C) 2010, Tilmann Sander-Thoemmes
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ function [h] = procrustes_trans(input,target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: procrustes_trans.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 ninp = size(input,1);
 ntarg = size(target,1);

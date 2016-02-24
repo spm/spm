@@ -46,7 +46,7 @@ function [granger, v, n] = ft_connectivity_granger(H, Z, S, varargin)
 %
 % Copyright (C) 2009-2013, Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -62,7 +62,7 @@ function [granger, v, n] = ft_connectivity_granger(H, Z, S, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_granger.m 11024 2015-12-14 11:49:43Z jansch $
+% $Id$
 
 method  = ft_getopt(varargin, 'method',  'granger');
 hasjack = ft_getopt(varargin, 'hasjack', 0);

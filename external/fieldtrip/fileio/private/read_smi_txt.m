@@ -24,7 +24,7 @@ function smi = read_smi_txt(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_smi_txt.m 11137 2016-01-28 08:27:46Z roboos $
+% $Id$
 
 smi.header  = {};
 smi.label   = {};

@@ -8,7 +8,7 @@ function h = wizard_gui(filename)
 
 % Copyright (C) 2007, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ function h = wizard_gui(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: wizard_base.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id$
 
 % create a new figure
 h = figure('Name','Wizard',...

@@ -40,7 +40,7 @@ function [headmodel, sens] = ft_prepare_vol_sens(headmodel, sens, varargin)
 
 % Copyright (C) 2004-2015, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -56,7 +56,7 @@ function [headmodel, sens] = ft_prepare_vol_sens(headmodel, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 11039 2016-01-04 15:04:47Z roboos $
+% $Id$
 
 % get the optional input arguments
 % fileformat = ft_getopt(varargin, 'fileformat');

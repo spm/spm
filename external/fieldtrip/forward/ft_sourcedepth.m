@@ -16,7 +16,7 @@ function [depth] = ft_sourcedepth(dippos, headmodel)
 
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -32,7 +32,10 @@ function [depth] = ft_sourcedepth(dippos, headmodel)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedepth.m 10860 2015-11-10 15:00:52Z roboos $
+% $Id$
+
+% ensure the representation of the headmodel to be up-to-date
+headmodel = ft_datatype_headmodel(headmodel);
 
 % determine the type of volume conduction model
 switch ft_voltype(headmodel)

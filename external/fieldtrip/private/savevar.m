@@ -4,7 +4,7 @@ function savevar(filename, varname, value)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Id: savevar.m 9380 2014-04-08 16:07:45Z roboos $
+% $Id$
 
 assert(ischar(filename), 'file name should be a string');
 assert(ischar(varname), 'variable name should be a string');

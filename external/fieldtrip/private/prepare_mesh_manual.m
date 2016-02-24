@@ -15,7 +15,7 @@ function bnd = prepare_mesh_manual(cfg, mri)
 
 % Copyrights (C) 2009, Cristiano Micheli & Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@ function bnd = prepare_mesh_manual(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_manual.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id$
 
 % FIXME: control slice's cmap referred to abs values
 % FIXME: clean structure slicedata

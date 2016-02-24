@@ -37,7 +37,7 @@ function [ftver, ftpath] = ft_version
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_version.m 11052 2016-01-09 17:51:12Z roboos $
+% $Id$
 
 persistent issvn
 persistent isgit

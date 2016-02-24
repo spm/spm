@@ -12,7 +12,7 @@ function mesh = prepare_mesh_hexahedral(cfg, mri)
 
 % Copyrights (C) 2012-2013, Johannes Vorwerk
 %
-% $Id: prepare_mesh_hexahedral.m 10925 2015-11-20 08:47:23Z roboos $
+% $Id$
 
 % ensure that the input is consistent with what this function expects
 mri = ft_checkdata(mri, 'datatype', {'volume', 'segmentation'}, 'hasunit', 'yes');

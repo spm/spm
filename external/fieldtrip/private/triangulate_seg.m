@@ -29,7 +29,7 @@ function [pnt, tri] = triangulate_seg(seg, npnt, origin)
 
 % Copyright (C) 2005-2012, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -45,7 +45,7 @@ function [pnt, tri] = triangulate_seg(seg, npnt, origin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: triangulate_seg.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id$
 
 % impose it to be boolean
 seg = (seg~=0);

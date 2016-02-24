@@ -37,7 +37,7 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-% $Id: fir_filterdcpadded.m 9991 2014-12-01 16:03:02Z jansch $
+% $Id$
 
 function [ data ] = fir_filterdcpadded(b, a, data, causal, usefftfilt)
 

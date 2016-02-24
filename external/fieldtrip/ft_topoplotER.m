@@ -120,7 +120,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 % See also FT_SINGLEPLOTER, FT_MULTIPLOTER, FT_SINGLEPLOTTFR, FT_MULTIPLOTTFR,
 % FT_TOPOPLOTTFR, FT_PREPARE_LAYOUT
 
-% Undocumented options: 
+% Undocumented options:
 %
 % It is possible to use multiple highlight-selections (e.g.: multiple
 % statistical clusters of channels) To do this, all the content of
@@ -128,7 +128,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 % in a cell-array (even if the normal content was already in a
 % cell-array). Specific marker settings (e.g. color, size) are defaulted
 % when not present.
-% 
+%
 % Example (3 selections):
 % cfg.highlight          = {'labels', 'labels', 'numbers'}
 % cfg.highlightchannel   = {{'MZF03','MZC01','MRT54'}, [1:5], 'C*'}
@@ -141,7 +141,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 
 % Copyright (C) 2005-2011, F.C. Donders Centre
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -157,9 +157,12 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id$
 
-revision = '$Id: ft_topoplotER.m 10765 2015-10-09 18:10:47Z roboos $';
+% these are used by the ft_preamble/ft_postamble function and scripts
+ft_revision = '$Id$';
+ft_nargin   = nargin;
+ft_nargout  = nargout;
 
 % do the general setup of the function
 ft_defaults
@@ -169,8 +172,8 @@ ft_preamble loadvar varargin
 ft_preamble provenance varargin
 ft_preamble trackconfig
 
-% the abort variable is set to true or false in ft_preamble_init
-if abort
+% the ft_abort variable is set to true or false in ft_preamble_init
+if ft_abort
   return
 end
 

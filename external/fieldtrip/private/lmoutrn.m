@@ -14,7 +14,7 @@ function [la, mu, dist, proj] = lmoutrn(v1, v2, v3, r)
 
 % Copyright (C) 2012, Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@ function [la, mu, dist, proj] = lmoutrn(v1, v2, v3, r)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: lmoutrn.m 10044 2014-12-15 08:32:37Z jansch $
+% $Id$
 
 if size(r,1)==1 && size(v1,1)>1
   r = repmat(r, [size(v1,1), 1]);

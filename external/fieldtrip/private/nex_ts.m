@@ -13,7 +13,7 @@ function [n, ts] = nex_ts(filename, varname)
 % original from Plexon, download from http://www.plexoninc.com (8/4/02)
 % modifications by Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ function [n, ts] = nex_ts(filename, varname)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nex_ts.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 n = 0;
 ts = 0;

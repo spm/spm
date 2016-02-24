@@ -55,7 +55,7 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 % Copyrights (C) 2009-2012, Robert Oostenveld & Cristiano Micheli
 % Copyrights (C) 2012-2013, Robert Oostenveld & Lilla Magyari
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -71,9 +71,12 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id$
 
-revision = '$Id: ft_prepare_mesh.m 10765 2015-10-09 18:10:47Z roboos $';
+% these are used by the ft_preamble/ft_postamble function and scripts
+ft_revision = '$Id$';
+ft_nargin   = nargin;
+ft_nargout  = nargout;
 
 % do the general setup of the function
 ft_defaults
@@ -83,8 +86,8 @@ ft_preamble loadvar mri
 ft_preamble provenance mri
 ft_preamble trackconfig
 
-% the abort variable is set to true or false in ft_preamble_init
-if abort
+% the ft_abort variable is set to true or false in ft_preamble_init
+if ft_abort
   return
 end
 
@@ -128,6 +131,7 @@ if hasdata && cfg.downsample~=1
   % optionally downsample the anatomical volume and/or tissue segmentations
   tmpcfg = keepfields(cfg, {'downsample'});
   mri = ft_volumedownsample(tmpcfg, mri);
+  % restore the provenance information
   [cfg, mri] = rollback_provenance(cfg, mri);
 end
 
@@ -136,26 +140,26 @@ switch cfg.method
     % this makes sense with a non-segmented MRI as input
     % call the corresponding helper function
     bnd = prepare_mesh_manual(cfg, mri);
-    
+
   case {'projectmesh', 'iso2mesh', 'isosurface'}
     % this makes sense with a segmented MRI as input
     % call the corresponding helper function
     bnd = prepare_mesh_segmentation(cfg, mri);
-    
+
   case 'headshape'
     % call the corresponding helper function
     bnd = prepare_mesh_headshape(cfg);
-    
+
   case 'hexahedral'
     % the MRI is assumed to contain a segmentation
     % call the corresponding helper function
     bnd = prepare_mesh_hexahedral(cfg, mri);
-    
+
   case 'tetrahedral'
     % the MRI is assumed to contain a segmentation
     % call the corresponding helper function
     bnd = prepare_mesh_tetrahedral(cfg, mri);
-    
+
   case {'singlesphere' 'concentricspheres' 'localspheres'}
     % FIXME for localspheres it should be replaced by an outline of the head, see private/headsurface
     fprintf('triangulating the sphere in the volume conductor\n');
@@ -169,7 +173,7 @@ switch cfg.method
       bnd(i).pnt(:,3) = pnt(:,3)*headmodel.r(i) + headmodel.o(3);
       bnd(i).tri = tri;
     end
-    
+
   otherwise
     error('unsupported cfg.method')
 end

@@ -21,7 +21,7 @@ function [version] = hasyokogawa(desired)
 
 % Copyright (C) 2010, Tilmann Sander-Thoemmes
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -37,7 +37,7 @@ function [version] = hasyokogawa(desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: hasyokogawa.m 11053 2016-01-09 17:51:21Z roboos $
+% $Id$
 
 ws = warning('off', 'MATLAB:pfileOlderThanMfile');
 

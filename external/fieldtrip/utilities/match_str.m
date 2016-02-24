@@ -17,7 +17,7 @@ function [sel1, sel2] = match_str(a, b, fullout)
 
 % Copyright (C) 2000-2012, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ function [sel1, sel2] = match_str(a, b, fullout)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: match_str.m 8844 2013-11-25 15:40:39Z eelspa $
+% $Id$
 
 % ensure that both are cell-arrays
 if isempty(a)
@@ -72,7 +72,7 @@ Nb = numel(b);
 % See also http://bugzilla.fcdonders.nl/show_bug.cgi?id=1808
 empty_a = cellfun(@isnumeric, a) & cellfun(@isempty, a);
 empty_b = cellfun(@isnumeric, b) & cellfun(@isempty, b);
-% the following allows the unqiue function to operate normally
+% the following allows the unique function to operate normally
 a(empty_a) = {''};
 b(empty_b) = {''};
 

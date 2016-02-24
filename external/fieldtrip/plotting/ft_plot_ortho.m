@@ -24,7 +24,7 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 
 % Copyrights (C) 2010, Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -40,7 +40,7 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_ortho.m 11160 2016-02-02 14:34:05Z jansch $
+% $Id$
 
 % parse first input argument(s). it is either
 % (dat, varargin)
@@ -74,11 +74,6 @@ if ~isa(dat, 'double')
   dat = cast(dat, 'double');
 end
 
-if ~isempty(clim)
-  % clip the data between the color limits
-  dat(dat<clim(1)) = clim(1);
-  dat(dat>clim(2)) = clim(2);
-end
 
 % determine the orientation key-value pair
 keys = varargin(sellist(1:2:end));
@@ -158,13 +153,13 @@ switch style
       hold on
     end
     
-    varargin{sel+1} = ori(1,:);
+    varargin{2*sel} = ori(1,:);
     hx = ft_plot_slice(dat, varargin{:});
     
-    varargin{sel+1} = ori(2,:);
+    varargin{2*sel} = ori(2,:);
     hy = ft_plot_slice(dat, varargin{:});
     
-    varargin{sel+1} = ori(3,:);
+    varargin{2*sel} = ori(3,:);
     hz = ft_plot_slice(dat, varargin{:});
     axis equal; axis tight; axis off;axis vis3d
     view(3);

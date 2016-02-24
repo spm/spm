@@ -35,7 +35,7 @@ function headmodel = ft_headmodel_simbio(mesh, varargin)
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
-% $Id: ft_headmodel_simbio.m 10751 2015-10-06 16:14:11Z roboos $
+% $Id$
 
 ft_hastoolbox('simbio', 1);
 
@@ -86,7 +86,10 @@ else
   headmodel.tissuelabel = mesh.tissuelabel;
 end
 
+
 headmodel.stiff = sb_calc_stiff(headmodel);
 headmodel.type = 'simbio';
+
+
 
 end

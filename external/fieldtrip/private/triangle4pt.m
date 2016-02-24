@@ -35,7 +35,7 @@ function headmodel = triangle4pt(headmodel)
 % written by Christophe Phillips, 2009/01/19
 % Cyclotron Research Centre, University of li?ge, belgium
 %
-% $Id: triangle4pt.m 10770 2015-10-12 14:13:08Z roboos $
+% $Id$
 
 Ns = length(headmodel.bnd);
 for ii=1:Ns % treat each mesh one at a time

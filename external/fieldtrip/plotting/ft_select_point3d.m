@@ -22,7 +22,7 @@ function [selected] = ft_select_point3d(bnd, varargin)
 %   camlight
 %   ... do something here
 
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ function [selected] = ft_select_point3d(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_point3d.m 10875 2015-11-11 14:43:03Z roboos $
+% $Id$
 
 % get optional input arguments
 nearest     = ft_getopt(varargin, 'nearest',  true);

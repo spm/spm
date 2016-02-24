@@ -13,7 +13,7 @@ function ft_create_buffer(port)
 
 % Copyright (C) 2010, Stefan Klanke
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ function ft_create_buffer(port)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_create_buffer.m 9226 2014-02-23 13:12:06Z roboos $
+% $Id$
 
 if nargin<1
   port = 1972;

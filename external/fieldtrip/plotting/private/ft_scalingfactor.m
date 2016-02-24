@@ -60,7 +60,7 @@ function factor = ft_scalingfactor(old, new)
 
 % Copyright (C) 2012-2015, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -76,7 +76,7 @@ function factor = ft_scalingfactor(old, new)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalingfactor.m 11053 2016-01-09 17:51:21Z roboos $
+% $Id$
 
 persistent previous_old previous_new previous_factor
 

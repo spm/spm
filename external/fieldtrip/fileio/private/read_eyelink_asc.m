@@ -8,7 +8,7 @@ function asc = read_eyelink_asc(filename)
 
 % Copyright (C) 2010-2015, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ function asc = read_eyelink_asc(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_eyelink_asc.m 10773 2015-10-15 06:35:34Z roboos $
+% $Id$
 
 asc.header  = {};
 asc.msg     = {};

@@ -10,7 +10,7 @@ function FM = ft_preproc_online_filter_init(B, A, x)
 
 % Copyright (C) 2010, Stefan Klanke
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ function FM = ft_preproc_online_filter_init(B, A, x)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_online_filter_init.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id$
 
 % Normalize filter coefficients if not already done so
 A = A(:); % use column vector

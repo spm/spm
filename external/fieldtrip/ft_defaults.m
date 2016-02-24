@@ -26,7 +26,7 @@ function ft_defaults
 
 % Copyright (C) 2009-2016, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -42,7 +42,7 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 11125 2016-01-26 08:59:23Z roboos $
+% $Id$
 
 global ft_default
 persistent initialized
@@ -135,8 +135,10 @@ if ~isdeployed
   end
 
   try
-    % external/stats contains alternative implementations of some statistics functions
-    addpath(fullfile(fileparts(which('ft_defaults')), 'external', 'stats'));
+    % some alternative implementations of statistics functions
+    if ~ft_platform_supports('stats')
+      addpath(fullfile(fileparts(which('ft_defaults')), 'external', 'stats'));
+    end
   end
 
   try

@@ -13,7 +13,7 @@ function [el, prj] = project_elec(elc, pnt, tri)
 
 % Copyright (C) 1999-2013, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ function [el, prj] = project_elec(elc, pnt, tri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: project_elec.m 10095 2015-01-12 14:38:53Z jansch $
+% $Id$
 
 Nelc = size(elc,1);
 el   = zeros(Nelc, 4);

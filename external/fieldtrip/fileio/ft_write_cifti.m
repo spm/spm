@@ -36,7 +36,7 @@ function ft_write_cifti(filename, source, varargin)
 
 % Copyright (C) 2013-2015, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -52,7 +52,7 @@ function ft_write_cifti(filename, source, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_cifti.m 10393 2015-05-08 08:06:57Z roboos $
+% $Id$
 
 parameter       = ft_getopt(varargin, 'parameter');
 brainstructure  = ft_getopt(varargin, 'brainstructure'); % the default is determined further down

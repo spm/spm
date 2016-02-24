@@ -28,7 +28,7 @@ function varargout = interp_ungridded(pntin, pntout, varargin)
 
 % Copyright (C) 2007-2013, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -44,7 +44,7 @@ function varargout = interp_ungridded(pntin, pntout, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: interp_ungridded.m 9673 2014-06-23 12:05:28Z jansch $
+% $Id$
 
 if nargin<3
   error('Not enough input arguments.');

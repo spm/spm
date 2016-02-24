@@ -33,7 +33,7 @@ function ft_write_data(filename, dat, varargin)
 
 % Copyright (C) 2007-2014, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -49,7 +49,7 @@ function ft_write_data(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 11032 2015-12-19 11:11:53Z roboos $
+% $Id$
 
 global data_queue    % for fcdc_global
 global header_queue  % for fcdc_global

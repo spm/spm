@@ -17,7 +17,7 @@ function headmodel = ft_headmodel_asa(filename)
 
 % Copyright (C) 2012, Donders Centre for Cognitive Neuroimaging, Nijmegen, NL
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ function headmodel = ft_headmodel_asa(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_asa.m 10541 2015-07-15 16:49:37Z roboos $
+% $Id$
 
 % read the headmodel from file
 % this works for ASA version 2.x, perhaps also for ASA 3.x 

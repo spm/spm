@@ -7,8 +7,8 @@ function [cfg, varargout] = rollback_provenance(cfg, varargin)
 % Some examples for use
 %
 %   tmpcfg            = [];
-%   tmpcfg.downsample = cfg.downsample;  % copy over
-%   tmpcfg.smooth     = 'no';            % override the default
+%   tmpcfg.downsample = cfg.downsample;  % simply copy this option
+%   tmpcfg.smooth     = 'no';            % override the default for this option
 %   mri = ft_volumedownsample(tmpcfg, mri);
 %   [cfg, mri] = rollback_provenance(cfg, mri);
 %
@@ -21,7 +21,7 @@ function [cfg, varargout] = rollback_provenance(cfg, varargin)
 
 % Copyright (C) 2013-2014, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -37,7 +37,7 @@ function [cfg, varargout] = rollback_provenance(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rollback_provenance.m 10450 2015-06-10 19:52:47Z roboos $
+% $Id$
 
 for i=1:(nargin-1)
   

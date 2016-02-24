@@ -70,7 +70,7 @@ function [c, v, outcnt] = ft_connectivity_corr(input, varargin)
 
 % Copyright (C) 2009-2010 Donders Institute, Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -86,7 +86,7 @@ function [c, v, outcnt] = ft_connectivity_corr(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_corr.m 9965 2014-11-13 16:56:13Z roboos $
+% $Id$
 
 % FiXME: If output is angle, then jack-knifing should be done
 % differently since it is a circular variable

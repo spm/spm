@@ -17,7 +17,7 @@ function [dat, ref] = ft_preproc_rereference(dat, refchan, method)
 
 % Copyright (C) 1998-2008, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ function [dat, ref] = ft_preproc_rereference(dat, refchan, method)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_rereference.m 10625 2015-08-24 22:37:33Z arjsto $
+% $Id$
 
 % determine the size of the data
 [Nchans, Nsamples] = size(dat);

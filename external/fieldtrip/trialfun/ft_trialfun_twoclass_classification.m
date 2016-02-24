@@ -18,7 +18,7 @@ function [trl] = ft_trialfun_twoclass_classification(cfg)
 
 % Copyright (C) 2009, DCCN
 %
-% $Id: ft_trialfun_twoclass_classification.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 % these are used to count the number of training items in each class
 persistent numtrain1

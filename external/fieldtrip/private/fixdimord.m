@@ -28,7 +28,7 @@ function [data] = fixdimord(data)
 
 % Copyright (C) 2009-2014, Robert Oostenveld, Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -44,7 +44,7 @@ function [data] = fixdimord(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixdimord.m 10451 2015-06-10 22:00:07Z roboos $
+% $Id$
 
 % if nargin<2, keepsourcedimord = 0; end
 %

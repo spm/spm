@@ -20,7 +20,7 @@ function write_plexon_nex(filename, nex)
 
 % Copyright (C) 2007, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -36,7 +36,7 @@ function write_plexon_nex(filename, nex)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: write_plexon_nex.m 11096 2016-01-22 09:22:33Z roboos $
+% $Id$
 
 % get the optional arguments, these are all required
 % FirstTimeStamp = ft_getopt(varargin, 'FirstTimeStamp');
@@ -137,7 +137,7 @@ return
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   function write_NexFileHeader
     % prepare the two char buffers
-    buf1 = padstr('$Id: write_plexon_nex.m 11096 2016-01-22 09:22:33Z roboos $', 256);
+    buf1 = padstr('$Id$', 256);
     buf2 = char(zeros(1, 256));
     % write the stuff to the file
     fwrite(fid, 'NEX1' , 'char');           % NexFileHeader  = string NEX1

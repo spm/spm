@@ -11,7 +11,7 @@ function [dat] = read_brainvision_eeg(filename, hdr, begsample, endsample, chani
 
 % Copyright (C) 2003-2011, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ function [dat] = read_brainvision_eeg(filename, hdr, begsample, endsample, chani
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_brainvision_eeg.m 9187 2014-02-05 16:10:12Z jimher $
+% $Id$
 
 if nargin<5
   % read all channels

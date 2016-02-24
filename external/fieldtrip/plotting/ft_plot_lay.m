@@ -30,7 +30,7 @@ function ft_plot_lay(lay, varargin)
 
 % Copyright (C) 2009, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -46,7 +46,7 @@ function ft_plot_lay(lay, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_lay.m 10660 2015-09-11 09:15:35Z jansch $
+% $Id$
 
 ws = warning('on', 'MATLAB:divideByZero');
 

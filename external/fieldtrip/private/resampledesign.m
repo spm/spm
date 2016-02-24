@@ -48,7 +48,7 @@ function [resample] = resampledesign(cfg, design)
 
 % Copyright (C) 2005-2011, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -64,7 +64,7 @@ function [resample] = resampledesign(cfg, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: resampledesign.m 9455 2014-04-25 08:14:07Z jorhor $
+% $Id$
 
 ft_checkopt(cfg, 'ivar', {'numericscalar', 'numericvector', 'empty'});
 ft_checkopt(cfg, 'uvar', {'numericscalar', 'numericvector', 'empty'});

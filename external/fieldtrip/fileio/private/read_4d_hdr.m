@@ -9,7 +9,7 @@ function [header] = read_4d_hdr(datafile, configfile)
 % Copyright (C) 2008-2009, Centre for Cognitive Neuroimaging, Glasgow, Gavin Paterson & J.M.Schoffelen
 % Copyright (C) 2010-2011, Donders Institute for Brain, Cognition and Behavior, J.M.Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ function [header] = read_4d_hdr(datafile, configfile)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_4d_hdr.m 7593 2013-03-05 16:09:24Z jansch $
+% $Id$
 
 %read header
 if nargin ~= 2

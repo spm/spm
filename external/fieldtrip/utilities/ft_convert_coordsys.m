@@ -36,7 +36,7 @@ function [obj] = ft_convert_coordsys(obj, target, opt, template)
 
 % Copyright (C) 2005-2011, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -52,7 +52,7 @@ function [obj] = ft_convert_coordsys(obj, target, opt, template)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_coordsys.m 9872 2014-10-02 11:56:27Z jimher $
+% $Id$
 
 if ~isfield(obj, 'coordsys') || isempty(obj.coordsys)
   % determine the coordinate system of the input object

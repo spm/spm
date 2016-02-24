@@ -18,7 +18,7 @@ function [connmat] = triangle2connectivity(tri, pos)
 
 % Copyright (C) 2015, Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -34,7 +34,7 @@ function [connmat] = triangle2connectivity(tri, pos)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: triangle2connectivity.m 10155 2015-02-04 08:02:37Z roboos $
+% $Id$
 
 % ensure that the vertices are indexed starting from 1
 if min(tri(:))==0,

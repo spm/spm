@@ -35,7 +35,7 @@ function [dat] = ft_read_data(filename, varargin)
 
 % Copyright (C) 2003-2015 Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -51,7 +51,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 11104 2016-01-22 11:31:09Z roboos $
+% $Id$
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql

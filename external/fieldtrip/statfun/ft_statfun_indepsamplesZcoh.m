@@ -50,7 +50,7 @@ function [s, cfg] = ft_statfun_indepsamplesZcoh(cfg, dat, design)
 
 % Copyright (C) 2006, Eric Maris
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -66,7 +66,7 @@ function [s, cfg] = ft_statfun_indepsamplesZcoh(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_indepsamplesZcoh.m 9560 2014-05-20 20:38:42Z dieloz $
+% $Id$
 
 % set the defaults
 if ~isfield(cfg, 'computestat'),       cfg.computestat='yes';     end;

@@ -21,7 +21,7 @@ function [hdr] = read_nifti2_hdr(filename)
 
 % Copyright (C) 2013, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -37,7 +37,7 @@ function [hdr] = read_nifti2_hdr(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_nifti2_hdr.m 10471 2015-06-23 08:24:18Z roboos $
+% $Id$
 
 hdr.endian = 'l';
 fid = fopen(filename, 'rb', hdr.endian);

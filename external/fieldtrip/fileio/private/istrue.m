@@ -5,7 +5,7 @@ function y = istrue(x)
 
 % Copyright (C) 2009-2012, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@ function y = istrue(x)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: istrue.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 true_list  = {'yes' 'true' 'on' 'y' };
 false_list = {'no' 'false' 'off' 'n' 'none'};

@@ -6,7 +6,7 @@ function bnd = prepare_mesh_segmentation(cfg, mri)
 
 % Copyrights (C) 2009, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@ function bnd = prepare_mesh_segmentation(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_segmentation.m 10385 2015-05-07 11:50:13Z jansch $
+% $Id$
 
 
 % ensure that the input is consistent with what this function expects

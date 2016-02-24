@@ -128,6 +128,6 @@
 %   ft_sourceplot
 %   ft_clusterplot
 
-% $Id: Contents.m 10196 2015-02-11 09:15:07Z roboos $
-% $Rev: 10196 $
+% $Id$
+% $Rev$
 

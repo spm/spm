@@ -15,7 +15,7 @@ function [x, y] = ft_select_box(handle, eventdata, varargin)
 
 % Copyright (C) 2006, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@ function [x, y] = ft_select_box(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_box.m 9515 2014-05-13 13:30:43Z roboos $
+% $Id$
 
 % get the optional arguments
 multiple = ft_getopt(varargin, 'multiple', false);

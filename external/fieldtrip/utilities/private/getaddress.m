@@ -11,7 +11,7 @@ function address = getip(hostname)
 
 % Copyright (C) 2015, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ function address = getip(hostname)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: getaddress.m 10452 2015-06-11 02:14:45Z roboos $
+% $Id$
 
 % this is to speed up subsequent calls
 persistent previous_argin previous_argout

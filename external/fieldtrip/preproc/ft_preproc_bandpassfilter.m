@@ -53,7 +53,7 @@ function [filt] = ft_preproc_bandpassfilter(dat,Fs,Fbp,N,type,dir,instabilityfix
 
 % Copyright (c) 2003-2014, Robert Oostenveld, Arjen Stolk, Andreas Widmann
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -69,7 +69,7 @@ function [filt] = ft_preproc_bandpassfilter(dat,Fs,Fbp,N,type,dir,instabilityfix
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_bandpassfilter.m 10596 2015-08-16 21:23:13Z roboos $
+% $Id$
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);

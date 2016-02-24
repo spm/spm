@@ -12,7 +12,7 @@ function [file] = read_bti_ascii(filename)
 
 % Copyright (C) 2004, Robert Oostenveld
 % 
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ function [file] = read_bti_ascii(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_bti_ascii.m 8313 2013-07-15 09:31:42Z jansch $
+% $Id$
 
 fid = fopen(filename, 'r');
 if fid==-1

@@ -7,7 +7,7 @@ function [hdr, dat] = read_neurosim_signals(filename)
 
 % Copyright (C) 2012 Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ function [hdr, dat] = read_neurosim_signals(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neurosim_signals.m 8128 2013-05-16 14:13:30Z bargip $
+% $Id$
 
 if isdir(filename)
   filename = fullfile(filename, 'signals');

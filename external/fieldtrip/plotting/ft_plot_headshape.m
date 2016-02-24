@@ -26,7 +26,7 @@ function hs = ft_plot_headshape(headshape,varargin)
 
 % Copyright (C) 2009, Cristiano Micheli
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -42,7 +42,7 @@ function hs = ft_plot_headshape(headshape,varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_headshape.m 10974 2015-12-08 16:24:38Z roboos $
+% $Id$
 
 ws = warning('on', 'MATLAB:divideByZero');
 

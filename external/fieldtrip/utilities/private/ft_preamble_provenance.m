@@ -18,7 +18,7 @@
 
 % Copyright (C) 2011-2012, Robert Oostenveld, DCCN
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -34,7 +34,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_provenance.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id$
 
 % Record the start time and memory. These are used by ft_postamble_callinfo, which
 % stores them in the output cfg.callinfo.  In the mean time, they are stored in the
@@ -113,11 +113,11 @@ cfg.callinfo.calltime = clock();
 cfg.version.name = stack.file;
 clear stack
 
-% the revision number is maintained by SVN in the revision variable in the calling function
-if ~exist('revision', 'var')
+% the revision number is maintained by SVN in the ft_revision variable in the calling function
+if ~exist('ft_revision', 'var')
   cfg.version.id   = 'unknown';
 else
-  cfg.version.id   = revision;
+  cfg.version.id   = ft_revision;
 end
 
 ftohDiW7th_FuncTimer = tic();

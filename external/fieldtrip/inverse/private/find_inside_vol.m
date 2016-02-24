@@ -10,7 +10,7 @@ function [inside, outside] = find_inside_vol(pos, vol);
 
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ function [inside, outside] = find_inside_vol(pos, vol);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: find_inside_vol.m 11096 2016-01-22 09:22:33Z roboos $
+% $Id$
 
 warning('find_inside_vol is obsolete and will be removed, please use ft_inside_vol');
 inside  = ft_inside_vol(pos, vol);

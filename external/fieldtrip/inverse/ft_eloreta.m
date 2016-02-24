@@ -40,7 +40,7 @@ function [dipout] = ft_eloreta(dip, grad, headmodel, dat, Cf, varargin)
 % Copyright (C) 2013, Marlene Boenstrup, Jan-Mathijs Schoffelen and Guido
 % Nolte
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -56,7 +56,7 @@ function [dipout] = ft_eloreta(dip, grad, headmodel, dat, Cf, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_eloreta.m 10856 2015-11-10 12:19:23Z roboos $
+% $Id$
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs

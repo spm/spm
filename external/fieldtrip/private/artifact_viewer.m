@@ -6,7 +6,7 @@ function artifact_viewer(cfg, artcfg, zval, artval, zindx, inputdata)
 
 % Copyright (C) 2004-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@ function artifact_viewer(cfg, artcfg, zval, artval, zindx, inputdata)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: artifact_viewer.m 8893 2013-11-28 19:22:46Z jansch $
+% $Id$
 
 if ishandle(cfg)
   % get the input variables from the handle's guidata

@@ -49,7 +49,7 @@ function ft_write_headshape(filename, bnd, varargin)
 
 % Copyright (C) 2011-2014, Lilla Magyari & Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -65,7 +65,7 @@ function ft_write_headshape(filename, bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_headshape.m 9901 2014-10-14 09:28:30Z jansch $
+% $Id$
 
 fileformat    = ft_getopt(varargin, 'format', 'unknown');
 data          = ft_getopt(varargin, 'data');         % can be stored in a gifti file

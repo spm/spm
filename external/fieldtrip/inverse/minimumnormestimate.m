@@ -49,7 +49,7 @@ function [dipout] = minimumnormestimate(dip, grad, headmodel, dat, varargin)
 
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -65,7 +65,7 @@ function [dipout] = minimumnormestimate(dip, grad, headmodel, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: minimumnormestimate.m 10972 2015-12-08 13:09:48Z lucamb $
+% $Id$
 
 % get the optional inputs for the MNE method according to Dale et al 2000, and Liu et al. 2002
 noisecov       = ft_getopt(varargin, 'noisecov');

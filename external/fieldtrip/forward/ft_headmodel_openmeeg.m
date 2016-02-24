@@ -29,7 +29,7 @@ function headmodel = ft_headmodel_openmeeg(mesh, varargin)
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
-%$Id: ft_headmodel_openmeeg.m 10751 2015-10-06 16:14:11Z roboos $
+%$Id$
 
 ft_hastoolbox('openmeeg', 1);
 

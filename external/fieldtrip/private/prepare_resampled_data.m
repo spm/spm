@@ -46,7 +46,7 @@ function [cfg, varargout] = prepare_resampled_data(cfg, varargin)
 
 % Copyright (C) 2004, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -62,7 +62,7 @@ function [cfg, varargout] = prepare_resampled_data(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_resampled_data.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id$
 
 % for backward compatibility with misspelled configuration option
 ft_checkconfig(cfg, 'renamed', {'jacknife', 'jackknife'});

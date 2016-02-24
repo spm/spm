@@ -56,7 +56,7 @@ function [channel] = ft_channelselection(desired, datachannel, senstype)
 
 % Copyright (C) 2003-2014, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -72,7 +72,7 @@ function [channel] = ft_channelselection(desired, datachannel, senstype)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 11001 2015-12-14 10:22:01Z jansch $
+% $Id$
 
 % this is to avoid a recursion loop
 persistent recursion 

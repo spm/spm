@@ -16,7 +16,7 @@ function [lf] = current_dipole(R, pos, ori)
 
 % Copyright (C) 2013, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ function [lf] = current_dipole(R, pos, ori)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: current_dipole.m 9825 2014-09-22 15:19:53Z roboos $
+% $Id$
 
 mu0   = 4*pi*1e-7;
 nchan = size(pos,1);

@@ -10,7 +10,7 @@ function [pnt, tri] = read_vtk(fn)
 
 % Copyright (C) 2002, Robert Oostenveld
 %
-% $Id: read_vtk.m 8962 2013-12-05 07:48:46Z roboos $
+% $Id$
 
 fid = fopen(fn, 'rt');
 if fid~=-1

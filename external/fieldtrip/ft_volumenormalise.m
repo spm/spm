@@ -44,7 +44,7 @@ function [normalised] = ft_volumenormalise(cfg, mri)
 
 % Copyright (C) 2004-2014, Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -60,9 +60,12 @@ function [normalised] = ft_volumenormalise(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id$
 
-revision = '$Id: ft_volumenormalise.m 10765 2015-10-09 18:10:47Z roboos $';
+% these are used by the ft_preamble/ft_postamble function and scripts
+ft_revision = '$Id$';
+ft_nargin   = nargin;
+ft_nargout  = nargout;
 
 % do the general setup of the function
 ft_defaults
@@ -72,8 +75,8 @@ ft_preamble loadvar mri
 ft_preamble provenance mri
 ft_preamble trackconfig
 
-% the abort variable is set to true or false in ft_preamble_init
-if abort
+% the ft_abort variable is set to true or false in ft_preamble_init
+if ft_abort
   return
 end
 
@@ -181,6 +184,7 @@ if cfg.downsample~=1
   % optionally downsample the anatomical and/or functional volumes
   tmpcfg = keepfields(cfg, {'downsample', 'parameter', 'smooth'});
   mri = ft_volumedownsample(tmpcfg, mri);
+  % restore the provenance information
   [cfg, mri] = rollback_provenance(cfg, mri);
 end
 

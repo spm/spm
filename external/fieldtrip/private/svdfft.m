@@ -14,7 +14,7 @@ function [x, ut, ori, sin_val] = svdfft(f, n, trltapcnt)
 
 % Copyright (C) 2005-2007, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@ function [x, ut, ori, sin_val] = svdfft(f, n, trltapcnt)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: svdfft.m 10829 2015-10-26 11:55:59Z lucamb $
+% $Id$
 
 if nargin == 1,
   n         = size(f,1);

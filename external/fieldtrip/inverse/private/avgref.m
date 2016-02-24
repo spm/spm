@@ -9,7 +9,7 @@ function [data] = avgref(data, sel)
 
 % Copyright (C) 1998-2002, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ function [data] = avgref(data, sel)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: avgref.m 9664 2014-06-22 07:06:29Z roboos $
+% $Id$
 
 % determine the dimension of the data
 if length(size(data))==3

@@ -4,7 +4,7 @@ function str = print_tim(tim)
 
 % Copyright (C) 2012, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@ function str = print_tim(tim)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: print_tim.m 10028 2014-12-09 15:09:36Z eelspa $
+% $Id$
 
 % partition the time in seconds into years, months, etc.
 year   = 60*60*24*7*365.25;

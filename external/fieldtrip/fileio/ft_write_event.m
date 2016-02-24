@@ -34,7 +34,7 @@ function ft_write_event(filename, event, varargin)
 
 % Copyright (C) 2007-2010 Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -50,7 +50,7 @@ function ft_write_event(filename, event, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_event.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id$
 
 global event_queue   % for fcdc_global
 global db_blob       % for fcdc_mysql

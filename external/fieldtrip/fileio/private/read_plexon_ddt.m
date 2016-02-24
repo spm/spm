@@ -14,7 +14,7 @@ function [dat] = read_plexon_ddt(filename, begsample, endsample)
 
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@ function [dat] = read_plexon_ddt(filename, begsample, endsample)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_plexon_ddt.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Version 100: Samples are assumed to be 12 bits.  All channels have the same NIDAQ gain, and preamp 

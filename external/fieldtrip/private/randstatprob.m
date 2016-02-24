@@ -23,7 +23,7 @@ function p = randstatprob(randobs, realobs, tail, correctm)
 
 % Copyright (C) 2004-2005, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -39,7 +39,7 @@ function p = randstatprob(randobs, realobs, tail, correctm)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: randstatprob.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id$
 
 if nargin<3
   tail = 0;

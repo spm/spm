@@ -13,7 +13,7 @@ function [vert, face] = read_ply(fn)
 
 % Copyright (C) 2013, Robert Oostenveld
 %
-% $Id: read_ply.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id$
 
 fid = fopen(fn, 'r');
 if fid~=-1

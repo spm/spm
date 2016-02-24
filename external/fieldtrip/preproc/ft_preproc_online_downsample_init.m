@@ -6,7 +6,7 @@ function DM = ft_preproc_online_downsample_init(factor)
 
 % Copyright (C) 2010, Stefan Klanke
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@ function DM = ft_preproc_online_downsample_init(factor)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_online_downsample_init.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 if factor < 1 or factor~=round(factor)
 	error('Argument ''factor'' must be a positive integer number');

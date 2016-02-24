@@ -45,7 +45,7 @@ function [input] = ft_apply_montage(input, montage, varargin)
 
 % Copyright (C) 2008-2014, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -61,7 +61,7 @@ function [input] = ft_apply_montage(input, montage, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_apply_montage.m 11047 2016-01-08 17:20:23Z eelspa $
+% $Id$
 
 % get optional input arguments
 keepunused  = ft_getopt(varargin, 'keepunused',  'no');

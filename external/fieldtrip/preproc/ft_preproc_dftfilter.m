@@ -32,7 +32,7 @@ function [filt] = ft_preproc_dftfilter(dat, Fs, Fl)
 % Copyright (C) 2003, Pascal Fries
 % Copyright (C) 2003-2015, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -48,7 +48,7 @@ function [filt] = ft_preproc_dftfilter(dat, Fs, Fl)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_dftfilter.m 10998 2015-12-13 16:16:25Z roboos $
+% $Id$
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);

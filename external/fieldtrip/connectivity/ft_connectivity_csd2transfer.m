@@ -38,7 +38,7 @@ function [output] = ft_connectivity_csd2transfer(freq, varargin)
 %
 % Copyright (C) 2009-2011, Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -54,7 +54,7 @@ function [output] = ft_connectivity_csd2transfer(freq, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_csd2transfer.m 9671 2014-06-23 08:03:54Z jansch $
+% $Id$
 
 numiteration = ft_getopt(varargin, 'numiteration', 100);
 channelcmb   = ft_getopt(varargin, 'channelcmb',   {});

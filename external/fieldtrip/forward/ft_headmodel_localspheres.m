@@ -25,7 +25,7 @@ function headmodel = ft_headmodel_localspheres(mesh, grad, varargin)
 
 % Copyright (C) 2012, Donders Centre for Cognitive Neuroimaging, Nijmegen, NL
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -41,7 +41,7 @@ function headmodel = ft_headmodel_localspheres(mesh, grad, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_localspheres.m 11039 2016-01-04 15:04:47Z roboos $
+% $Id$
 
 % get the additional inputs and set the defaults
 unit          = ft_getopt(varargin, 'unit');

@@ -10,7 +10,7 @@ function ft_destroy_buffer
 
 % Copyright (C) 2010, Stefan Klanke
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ function ft_destroy_buffer
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_destroy_buffer.m 9226 2014-02-23 13:12:06Z roboos $
+% $Id$
 
 % clearing the mex file from memory will cause the function registered with
 % mexAtExit to be executed. This function will then stop the threads and

@@ -33,7 +33,7 @@ function [grad, elec] = mne2grad(hdr, dewar, coilaccuracy)
 % Copyrights (C) 2008, Laurence Hunt
 % Copyrights (C) 2005, Joachim Gross
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 % FieldTrip is free software: you can redistribute it and/or modify
@@ -49,7 +49,7 @@ function [grad, elec] = mne2grad(hdr, dewar, coilaccuracy)
 % You should have received a copy of the GNU General Public License
 % along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mne2grad.m 11151 2016-01-28 12:41:03Z roboos $
+% $Id$
 
 if nargin<2 || isempty(dewar)
   dewar = false;

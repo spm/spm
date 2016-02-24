@@ -22,7 +22,7 @@ function fieldtrip2fiff(filename, data)
 
 % Copyright (C) 2012-2013, Jan-Mathijs Schoffelen, Gio Piantoni
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ function fieldtrip2fiff(filename, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fieldtrip2fiff.m 10677 2015-09-16 13:49:13Z roboos $
+% $Id$
 
 % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_defaults

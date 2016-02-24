@@ -39,7 +39,7 @@
  */
 
 /*
- * $Id: rfbevent.c 7123 2012-12-06 21:21:38Z roboos $
+ * $Id$
  */
 
 #include "platform.h"

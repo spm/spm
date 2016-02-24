@@ -21,7 +21,7 @@ function [ChannelLabels, Time, Frequency, Data, Info] = read_besa_tfc(FILENAME)
 
 % Copyright (C) 2005, Vladimir Litvak
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -37,7 +37,7 @@ function [ChannelLabels, Time, Frequency, Data, Info] = read_besa_tfc(FILENAME)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_besa_tfc.m 11096 2016-01-22 09:22:33Z roboos $
+% $Id$
 
 fp = fopen(FILENAME);
    

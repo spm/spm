@@ -32,7 +32,7 @@ function [dipout] = beamformer_sam(dip, sens, headmodel, dat, all_cov, varargin)
 % Copyright (C) 2005-2009, Arjan Hillebrand
 % Copyright (C) 2005-2009, Gareth Barnes
 %
-% $Id: beamformer_sam.m 10855 2015-11-10 12:11:07Z roboos $
+% $Id$
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs

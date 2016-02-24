@@ -22,7 +22,7 @@ function h = ft_plot_line(X, Y, varargin)
 
 % Copyrights (C) 2009-2011, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ function h = ft_plot_line(X, Y, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_line.m 9515 2014-05-13 13:30:43Z roboos $
+% $Id$
 
 ws = warning('on', 'MATLAB:divideByZero');
 

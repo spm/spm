@@ -27,7 +27,7 @@ function [dtf, dtfvar, n] = ft_connectivity_dtf(input, varargin)
 
 % Copyright (C) 2009-2013, Jan-Mathijs Schoffelen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -43,7 +43,7 @@ function [dtf, dtfvar, n] = ft_connectivity_dtf(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_dtf.m 7538 2013-02-23 20:40:01Z jansch $
+% $Id$
 
 hasjack = ft_getopt(varargin, 'hasjack', 0);
 powindx = ft_getopt(varargin, 'powindx');

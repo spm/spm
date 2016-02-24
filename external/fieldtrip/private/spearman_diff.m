@@ -12,7 +12,7 @@ function s = spearman_diff(cfg, dat, design)
 % the last dimension should have length two, since this dimension contains the two variables 
 % that are to be rank-correlated
 
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ function s = spearman_diff(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: spearman_diff.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id$
 
 if ~isfield(cfg, 'factor') & prod(size(design)) ~= max(size(design)),
   error('cannot determine the labeling of the trials');

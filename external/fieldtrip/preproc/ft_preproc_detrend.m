@@ -17,7 +17,7 @@ function [dat,beta,x] = ft_preproc_detrend(dat, begsample, endsample)
 
 % Copyright (C) 2008-2014, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ function [dat,beta,x] = ft_preproc_detrend(dat, begsample, endsample)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_detrend.m 9236 2014-02-24 10:34:59Z roboos $
+% $Id$
 
 % take the whole segment if begsample and endsample are not specified
 if nargin<2 || isempty(begsample)

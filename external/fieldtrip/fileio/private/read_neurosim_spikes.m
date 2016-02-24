@@ -21,7 +21,7 @@ function [spike] = read_neurosim_spikes(filename,headerOnly)
 
 % Copyright (C) 2012 Robert Oostenveld, Bart Gips
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -37,7 +37,7 @@ function [spike] = read_neurosim_spikes(filename,headerOnly)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neurosim_spikes.m 7517 2013-02-21 14:17:01Z bargip $
+% $Id$
 
 if isdir(filename)
     filename = fullfile(filename, 'spikes');

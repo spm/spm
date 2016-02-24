@@ -28,7 +28,7 @@ function [dist] = ft_warp_error(M, input, target, varargin)
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -44,7 +44,7 @@ function [dist] = ft_warp_error(M, input, target, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_warp_error.m 11096 2016-01-22 09:22:33Z roboos $
+% $Id$
 
 if ~isempty(M)
   % apply the warp to the input positions

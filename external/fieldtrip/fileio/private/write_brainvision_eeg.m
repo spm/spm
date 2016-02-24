@@ -11,7 +11,7 @@ function write_brainvision_eeg(filename, hdr, dat, event)
 
 % Copyright (C) 2007-2014, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ function write_brainvision_eeg(filename, hdr, dat, event)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: write_brainvision_eeg.m 11096 2016-01-22 09:22:33Z roboos $
+% $Id$
 
 if nargin<4
   event = [];

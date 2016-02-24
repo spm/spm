@@ -66,7 +66,7 @@ function [dat] = read_edf(filename, hdr, begsample, endsample, chanindx)
 
 % Copyright (C) 2006, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -82,7 +82,7 @@ function [dat] = read_edf(filename, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_edf.m 10783 2015-10-17 08:44:09Z roboos $
+% $Id$
 
 switch nargin
     case 1

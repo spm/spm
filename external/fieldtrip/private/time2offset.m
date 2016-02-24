@@ -17,7 +17,7 @@ function offset = time2offset(time, fsample)
 
 % Copyright (C) 2005, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -33,6 +33,6 @@ function offset = time2offset(time, fsample)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: time2offset.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id$
 
 offset = round(time(1)*fsample);

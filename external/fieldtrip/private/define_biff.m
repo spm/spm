@@ -7,7 +7,7 @@
 
 % Copyright (C) 2000, Robert Oostenveld
 % 
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: define_biff.m 10197 2015-02-11 09:35:58Z roboos $
+% $Id$
 
 CAT_.desc = {'CAT ', 'cat', 'unknown'};
 LIST.desc = {'LIST', 'list',    'unknown'};

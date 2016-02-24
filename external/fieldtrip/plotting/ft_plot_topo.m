@@ -30,7 +30,7 @@ function [Zi, h] = ft_plot_topo(chanX, chanY, dat, varargin)
 
 % Copyrights (C) 2009-2013, Giovanni Piantoni, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -46,7 +46,7 @@ function [Zi, h] = ft_plot_topo(chanX, chanY, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo.m 10849 2015-11-05 23:44:36Z roevdmei $
+% $Id$
 
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage
@@ -200,7 +200,7 @@ if ~isempty(datmask)
 end
 
 % take out NaN channels if interpmethod does not work with NaNs
-if flagNaN && strcmp(interpmethod, 'v4')
+if flagNaN && strcmp(interpmethod, default_interpmethod)
   dat(NaNind) = [];
   chanX(NaNind) = [];
   chanY(NaNind) = [];
@@ -214,6 +214,14 @@ chanY = double(chanY);
 %interpolate data
 xi         = linspace(hlim(1), hlim(2), gridscale);       % x-axis for interpolation (row vector)
 yi         = linspace(vlim(1), vlim(2), gridscale);       % y-axis for interpolation (row vector)
+
+if ~ft_platform_supports('griddata-vector-input')
+  % in GNU Octave, griddata does not support vector
+  % positions; make a grid to get the locations in vector form
+  [xi,yi]=meshgrid(xi,yi);
+  xi=xi';
+end
+
 if ~isempty(maskimage) && strcmp(interplim, 'mask_individual')
   % do the interpolation for each set of electrodes within a mask, useful
   % for ECoG data with multiple grids, to avoid cross talk
