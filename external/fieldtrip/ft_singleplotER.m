@@ -95,9 +95,9 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 11022 2015-12-14 11:44:57Z jansch $
+% $Id: ft_singleplotER.m 11158 2016-02-01 11:08:31Z johzum $
 
-revision = '$Id: ft_singleplotER.m 11022 2015-12-14 11:44:57Z jansch $';
+revision = '$Id: ft_singleplotER.m 11158 2016-02-01 11:08:31Z johzum $';
 
 % do the general setup of the function
 ft_defaults
@@ -520,8 +520,12 @@ for i=1:Ndata
   
   % make mask
   if ~isempty(cfg.maskparameter)
-    datmask = varargin{1}.(cfg.maskparameter)(sellab,:);
-    datmask = datmask(xidmin(i):xidmax(i));
+    datmask = varargin{i}.(cfg.maskparameter)(sellab,:);
+    if size(datmask,2)>1
+      datmask = datmask(:,xidmin(i):xidmax(i));
+    else
+      datmask = datmask(xidmin(i):xidmax(i));
+    end
     maskdatavector = reshape(mean(datmask,1), [1 numel(xval)]);
   else
     maskdatavector = [];

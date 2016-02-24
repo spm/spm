@@ -54,7 +54,7 @@ function source = ft_read_cifti(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_cifti.m 10968 2015-12-06 13:55:31Z roboos $
+% $Id: ft_read_cifti.m 11145 2016-01-28 08:46:00Z jansch $
 
 readdata         = ft_getopt(varargin, 'readdata', []);   % the default depends on file size, see below
 readsurface      = ft_getopt(varargin, 'readsurface', true);
@@ -63,6 +63,7 @@ cortexright      = ft_getopt(varargin, 'cortexright', {});
 hemisphereoffset = ft_getopt(varargin, 'hemisphereoffset', 0); % in mm, move the two hemispheres apart from each other
 debug            = ft_getopt(varargin, 'debug', false);
 mapname          = ft_getopt(varargin, 'mapname', 'field');
+dataformat       = ft_getopt(varargin, 'dataformat', []);
 
 % convert 'yes'/'no' into boolean
 readdata = istrue(readdata);

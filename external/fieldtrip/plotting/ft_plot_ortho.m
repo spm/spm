@@ -40,7 +40,7 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_ortho.m 10689 2015-09-24 13:02:52Z roboos $
+% $Id: ft_plot_ortho.m 11160 2016-02-02 14:34:05Z jansch $
 
 % parse first input argument(s). it is either
 % (dat, varargin)
@@ -86,9 +86,9 @@ keys = varargin(sellist(1:2:end));
 sel  = find(strcmp('orientation', keys));
 if isempty(sel)
   % add orientation key-value pair if it does not exist
-  sel             = numel(varargin)+1;
-  varargin{sel  } = 'orientation';
-  varargin{sel+1} = [];
+  sel             = numel(keys)+1;
+  varargin{2*sel-1} = 'orientation';
+  varargin{2*sel} = [];
 end
 
 switch style
@@ -114,7 +114,7 @@ switch style
         varargin(sellist) = ft_setopt(varargin(sellist), 'surfhandle', surfhandle(1));
       end
       % swap the first 2 dimensions because of meshgrid vs ndgrid issues
-      varargin{sel+1} = ori(2,:);
+      varargin{2*sel} = ori(2,:);
       set(gcf,'currentaxes',Hx);
       hx = ft_plot_slice(dat, varargin{:});
       set(Hx, 'view', [0 0]);%, 'xlim', [0.5 size(dat,1)-0.5], 'zlim', [0.5 size(dat,3)-0.5]);
@@ -128,7 +128,7 @@ switch style
       if ~isempty(surfhandle) && update(2)
         varargin(sellist) = ft_setopt(varargin(sellist), 'surfhandle', surfhandle(2));
       end
-      varargin{sel+1} = ori(1,:);
+      varargin{2*sel} = ori(1,:);
       set(gcf,'currentaxes',Hy);
       hy = ft_plot_slice(dat, varargin{:});
       set(Hy, 'view', [90 0]);%, 'ylim', [0.5 size(dat,2)-0.5], 'zlim', [0.5 size(dat,3)-0.5]);
@@ -142,7 +142,7 @@ switch style
       if ~isempty(surfhandle) && update(3)
         varargin(sellist) = ft_setopt(varargin(sellist), 'surfhandle', surfhandle(3));
       end
-      varargin{sel+1} = ori(3,:);
+      varargin{2*sel} = ori(3,:);
       set(gcf,'currentaxes',Hz);
       hz = ft_plot_slice(dat, varargin{:});
       set(Hz, 'view', [0 90]);%, 'xlim', [0.5 size(dat,1)-0.5], 'ylim', [0.5 size(dat,2)-0.5]);

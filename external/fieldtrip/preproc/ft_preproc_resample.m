@@ -1,4 +1,4 @@
-function [datout, tim] = ft_preproc_resample(dat, Fold, Fnew, method)
+function [datout, tim, Fnew] = ft_preproc_resample(dat, Fold, Fnew, method)
 
 % FT_PREPROC_RESAMPLE resamples all channels in the data matrix
 %
@@ -35,12 +35,12 @@ function [datout, tim] = ft_preproc_resample(dat, Fold, Fnew, method)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_resample.m 10927 2015-11-20 19:08:19Z vlalit $
+% $Id: ft_preproc_resample.m 11134 2016-01-28 08:16:31Z jansch $
 
 [nchans, nsamples] = size(dat);
 
-if nargout==2
-  tim = 1:size(dat,nsamples);
+if nargout>1
+  tim = 1:nsamples;
   tim = ft_preproc_resample(tim, Fold, Fnew, method);
 end
 
@@ -56,8 +56,11 @@ end
 
 switch method
   case 'resample'
+    [fold, fnew] = rat(Fold./Fnew);%account for non-integer fs
+    Fnew         = Fold.*(fnew./fold);%get new fs exact
+    
     % the actual implementation resamples along columns
-    datout = resample(dat', Fnew, Fold)';
+    datout = resample(dat', fnew, fold)';
     
   case 'decimate'
     fac         = round(Fold/Fnew);

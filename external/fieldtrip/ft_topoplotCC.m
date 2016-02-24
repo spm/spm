@@ -53,9 +53,9 @@ function [cfg] = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id: ft_topoplotCC.m 11140 2016-01-28 08:35:50Z jansch $
 
-revision = '$Id: ft_topoplotCC.m 10765 2015-10-09 18:10:47Z roboos $';
+revision = '$Id: ft_topoplotCC.m 11140 2016-01-28 08:35:50Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -88,6 +88,7 @@ cfg.arrowsize  = ft_getopt(cfg, 'arrowsize', nan);    % length of the arrow head
 cfg.arrowoffset = ft_getopt(cfg, 'arrowoffset', nan); % absolute, should be in figure units, i.e. the same units as the layout
 cfg.arrowlength = ft_getopt(cfg, 'arrowlength', 0.8);% relative to the complete line
 cfg.linestyle   = ft_getopt(cfg, 'linestyle',   []);
+cfg.colormap    = ft_getopt(cfg, 'colormap',    colormap);
 
 lay = ft_prepare_layout(cfg, freq);
 
@@ -147,7 +148,7 @@ if isnan(cfg.arrowoffset)
   warning('using an arrowoffset of %f', cfg.arrowoffset);
 end
 
-rgb  = colormap;
+rgb  = cfg.colormap;
 if ~isempty(colorparam)
   cmin = min(colorparam(:));
   cmax = max(colorparam(:));

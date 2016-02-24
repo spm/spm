@@ -41,7 +41,7 @@ function output = ft_connectivity_mutualinformation(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_mutualinformation.m 11064 2016-01-15 13:09:25Z vlalit $
+% $Id: ft_connectivity_mutualinformation.m 11147 2016-01-28 08:48:19Z jansch $
 
  
 % check whether the required toolbox is available
@@ -72,7 +72,8 @@ if numel(lags)>1 || lags~=0,
   
   output = zeros(size(input,1), numel(lags));
   for k = 1:numel(lags)
-        
+    fprintf('computing mutualinformation for time lag in samples %d\n', lags(k));
+    
     beg1 = max(0, lags(k))  + 1;
     beg2 = max(0, -lags(k)) + 1;
     n1   = n-abs(lags(k));

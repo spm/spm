@@ -26,7 +26,7 @@ function headmodel = ft_headmodel_dipoli(mesh, varargin)
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
-% $Id: ft_headmodel_dipoli.m 10755 2015-10-07 06:37:19Z roboos $
+% $Id: ft_headmodel_dipoli.m 11156 2016-01-30 09:34:53Z roboos $
 
 ft_hastoolbox('dipoli', 1);
 
@@ -208,8 +208,7 @@ try
   end
   
 catch
-  warning('an error ocurred while running dipoli');
-  disp(lasterr);
+  error('an error ocurred while running the dipoli executable - please look at the screen output');
 end
 
 % delete the temporary files

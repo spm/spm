@@ -91,7 +91,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 11027 2015-12-15 11:10:36Z roboos $
+% $Id: ft_read_event.m 11137 2016-01-28 08:27:46Z roboos $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -964,6 +964,31 @@ switch eventformat
     fn = setdiff(fn, {'type', 'sample', 'value', 'offset', 'duration', 'timestamp'});
     for i=1:length(fn)
       event = rmfield(event, fn{i});
+    end
+  
+  case 'smi_txt'
+    if isempty(hdr)
+      hdr = ft_read_header(filename);
+    end
+    if isfield(hdr.orig, 'trigger')
+      % this is inefficient, since it keeps the complete data in memory
+      % but it does speed up subsequent read operations without the user
+      % having to care about it
+      smi = hdr.orig;
+    else
+      smi = read_smi_txt(filename);
+    end
+    timestamp = [smi.trigger(:).timestamp];
+    value     = [smi.trigger(:).value];
+    % note that in this dataformat the first input trigger can be before
+    % the start of the data acquisition
+    for i=1:length(timestamp)
+      event(end+1).type       = 'Trigger';
+      event(end  ).sample     = (timestamp(i)-hdr.FirstTimeStamp)/hdr.TimeStampPerSample + 1;
+      event(end  ).timestamp  = timestamp(i);
+      event(end  ).value      = value(i);
+      event(end  ).duration   = 1;
+      event(end  ).offset     = 0;
     end
     
   case 'eyelink_asc'

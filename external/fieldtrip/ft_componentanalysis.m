@@ -147,14 +147,14 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 10953 2015-11-30 15:18:28Z roboos $
+% $Id: ft_componentanalysis.m 11144 2016-01-28 08:44:44Z jansch $
 
 % undocumented cfg options:
 %   cfg.cellmode = string, 'no' or 'yes', allows to run in cell-mode, i.e.
 %     no concatenation across trials is needed. This is based on experimental
 %     code and only supported for 'dss', 'fastica' and 'bsscca' as methods.
 
-revision = '$Id: ft_componentanalysis.m 10953 2015-11-30 15:18:28Z roboos $';
+revision = '$Id: ft_componentanalysis.m 11144 2016-01-28 08:44:44Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -481,7 +481,7 @@ switch cfg.method
     end
     
     % construct key-value pairs for the optional arguments
-    optarg = ft_cfg2keyval(cfg.runica);
+    optarg = [ft_cfg2keyval(cfg.runica) {'reset_randomseed' 0}]; % let FieldTrip deal with the random seed handling
     [weights, sphere] = runica(dat, optarg{:});
     
     % scale the sphering matrix to unit norm

@@ -59,9 +59,9 @@ function [source] = ft_sourcedescriptives(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedescriptives.m 10765 2015-10-09 18:10:47Z roboos $
+% $Id: ft_sourcedescriptives.m 11142 2016-01-28 08:40:27Z jansch $
 
-revision = '$Id: ft_sourcedescriptives.m 10765 2015-10-09 18:10:47Z roboos $';
+revision = '$Id: ft_sourcedescriptives.m 11142 2016-01-28 08:40:27Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -481,9 +481,9 @@ if ispccdata
       dipsel = dipselcell{i};
       % compute the power of each source component
       if strcmp(cfg.projectmom, 'yes') && cfg.numcomp>1,
-        source.avg.pow(i) = powmethodfun(source.avg.csd{i}(dipsel,dipsel), 1);
+        source.avg.pow(i) = powmethodfun(source.avg.csd{i}(dipselcell{i},dipselcell{i}), 1);
       else
-        source.avg.pow(i) = powmethodfun(source.avg.csd{i}(dipsel,dipsel));
+        source.avg.pow(i) = powmethodfun(source.avg.csd{i}(dipselcell{i},dipselcell{i}));
       end
       
       if ~isempty(refdipsel),  source.avg.refdippow(i)  = powmethodfun(source.avg.csd{i}(refdipsel,refdipsel));   end
@@ -493,9 +493,9 @@ if ispccdata
       if isnoise
         % compute the power of the noise projected on each source component
         if strcmp(cfg.projectmom, 'yes') && cfg.numcomp>1,
-          source.avg.noise(i) = powmethodfun(source.avg.noisecsd{i}(dipsel,dipsel), 1);
+          source.avg.noise(i) = powmethodfun(source.avg.noisecsd{i}(dipselcell{i},dipselcell{i}), 1);
         else
-          source.avg.noise(i) = powmethodfun(source.avg.noisecsd{i}(dipsel,dipsel));
+          source.avg.noise(i) = powmethodfun(source.avg.noisecsd{i}(dipselcell{i},dipselcell{i}));
         end
         if ~isempty(refdipsel),  source.avg.refdipnoise(i)  = powmethodfun(source.avg.noisecsd{i}(refdipsel,refdipsel));   end
         if ~isempty(supdipsel),  source.avg.supdipnoise(i)  = powmethodfun(source.avg.noisecsd{i}(supdipsel,supdipsel));   end
@@ -530,7 +530,7 @@ if ispccdata
       
       % compute eta
       if strcmp(cfg.eta, 'yes')
-        [source.avg.eta(i), source.avg.ori{i}] = csd2eta(source.avg.csd{i}(dipsel,dipsel));
+        [source.avg.eta(i), source.avg.ori{i}] = csd2eta(source.avg.csd{i}(dipselcell{i},dipselcell{i}));
         if ~isempty(refsel),
           %FIXME this only makes sense when only a reference signal OR a dipole is selected
           [source.avg.etacsd(i), source.avg.ucsd{i}] = csd2eta(source.avg.csd{i}(dipsel,refsel));

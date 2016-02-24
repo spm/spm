@@ -10,6 +10,9 @@ function [datsmooth] = ft_preproc_smooth(dat, n)
 % Where dat is an Nchan x Ntimepoints data matrix, and n the length
 % of the boxcar smoothing kernel
 
+% Undocumented option:
+%  n can also be a vector containing a custom smoothing kernel
+%
 % Copyright (C) 2010, Stefan Klanke
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
@@ -28,14 +31,19 @@ function [datsmooth] = ft_preproc_smooth(dat, n)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_smooth.m 9346 2014-04-03 18:17:32Z jansch $
-
-% deal with padding
-pad       = ceil(n/2);
-dat       = ft_preproc_padding(dat, 'localmean', pad);
+% $Id: ft_preproc_smooth.m 11135 2016-01-28 08:20:04Z jansch $
 
 % create smoothing kernel
-krn       = ones(1,n)/n;
+if isscalar(n)
+  krn = ones(1,n)/n;
+else
+  krn = n(:)'./sum(n(:));
+  n   = numel(krn);
+end
+
+% deal with padding
+dat = ft_preproc_padding(dat, 'localmean', ceil(n/2));
+
 
 % do the smoothing
 if n<100
@@ -48,5 +56,5 @@ else
 end
 
 % cut the eges
-datsmooth = ft_preproc_padding(datsmooth, 'remove', pad);
+datsmooth = ft_preproc_padding(datsmooth, 'remove', ceil(n/2));
 

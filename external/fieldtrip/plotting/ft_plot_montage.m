@@ -39,7 +39,7 @@ function ft_plot_montage(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_montage.m 10689 2015-09-24 13:02:52Z roboos $
+% $Id: ft_plot_montage.m 11152 2016-01-28 16:35:50Z jansch $
 
 transform = ft_getopt(varargin, 'transform', eye(4));
 loc       = ft_getopt(varargin, 'location');
@@ -47,9 +47,10 @@ ori       = ft_getopt(varargin, 'orientation');
 srange    = ft_getopt(varargin, 'slicerange');
 slicesize = ft_getopt(varargin, 'slicesize');
 nslice    = ft_getopt(varargin, 'nslice');
+backgroundcolor = ft_getopt(varargin, 'backgroundcolor', [0 0 0]);
 
 % the intersectmesh and intersectcolor options are passed on to FT_PLOT_SLICE
-dointersect = ~isempty(ft_getopt(varargin, 'intersectmesh'));
+dointersect = ~isempty(ft_getopt(varargin, 'intersectmesh')) || ~isempty(ft_getopt(varargin, 'plotmarker'));
 
 % set the location if empty
 if isempty(loc) && (isempty(transform) || all(all(transform-eye(4)==0)==1))
@@ -170,7 +171,7 @@ for k = 1:nslice
       % update the positions
       set(p(kk), 'ydata', offset(1) + xtmp);
       set(p(kk), 'xdata', offset(2) + ytmp);
-      set(p(kk), 'zdata',         0 * ztmp);
+      set(p(kk), 'zdata',         0.0001 * ztmp);
     end
     pprevious = [pprevious(:);p(:)];
   end
@@ -178,7 +179,7 @@ for k = 1:nslice
   %systems. I don't know what's going on there, but the statement is not
   %really necessary, so commented out.
 end
-set(gcf, 'color', [0 0 0]);
+set(gcf, 'color', backgroundcolor);
 set(gca, 'zlim', [0 1]);
 %axis equal;
 axis off;

@@ -39,7 +39,7 @@ function [obj] = ft_convert_units(obj, target, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 11040 2016-01-04 15:04:51Z roboos $
+% $Id: ft_convert_units.m 11139 2016-01-28 08:33:14Z jansch $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -243,6 +243,12 @@ end
 if isfield(obj, 'transformorig'),
   H = diag([scale scale scale 1]);
   obj.transformorig = H * obj.transformorig;
+end
+
+% sourcemodel obtained through mne also has a orig-field with the high
+% number of vertices
+if isfield(obj, 'orig') && (isfield(obj.orig, 'pnt') || isfield(obj.orig, 'pos'))
+  obj.orig.pnt = scale * obj.orig.pnt; 
 end
 
 % remember the unit
