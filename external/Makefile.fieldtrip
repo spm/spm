@@ -1,19 +1,14 @@
 #!/usr/bin/env make -f
 # FieldTrip Makefile called by {SPM}/external/Makefile
 #
-# Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 2009-2016 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: Makefile.fieldtrip 5914 2014-03-12 12:17:21Z guillaume $
+# $Id: Makefile.fieldtrip 6732 2016-02-24 14:23:08Z guillaume $
 
 include ../src/Makefile.var
 
 FIELDTRIP =\
-	fieldtrip/fileio/@uint64/max.$(SUF) fieldtrip/fileio/@uint64/min.$(SUF) \
-	fieldtrip/fileio/@uint64/minus.$(SUF) fieldtrip/fileio/@uint64/plus.$(SUF) \
-	fieldtrip/fileio/@uint64/rdivide.$(SUF) fieldtrip/fileio/@uint64/times.$(SUF) \
-	fieldtrip/fileio/@uint64/abs.$(SUF) \
-	\
 	fieldtrip/src/read_24bit.$(SUF) fieldtrip/src/read_16bit.$(SUF) \
 	fieldtrip/src/ft_getopt.$(SUF) \
 	\
@@ -71,9 +66,6 @@ tarball: all
 	$(TAR) -cf fieldtrip_mex.tar $(FIELDTRIP)
 
 fieldtrip/src/%.$(SUF) : fieldtrip/src/%.c
-	$(MEX) $< -outdir $(dir $<) $(MEXEND)
-
-fieldtrip/fileio/@uint64/%.$(SUF) : fieldtrip/fileio/@uint64/%.c
 	$(MEX) $< -outdir $(dir $<) $(MEXEND)
 
 fieldtrip/src/lmoutr.$(SUF): fieldtrip/src/lmoutr.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
