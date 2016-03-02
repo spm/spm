@@ -17,7 +17,7 @@ function [D] = spm_DEM_eval_diff(x,v,qp,M,bilinear)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_eval_diff.m 6502 2015-07-22 11:37:13Z karl $
+% $Id: spm_DEM_eval_diff.m 6734 2016-03-02 12:02:46Z peter $
 
 % check for evaluation of bilinear terms
 %--------------------------------------------------------------------------
@@ -93,10 +93,10 @@ for i = 1:(nl - 1)
             [dfdxp, dfdx] = spm_diff(h,M(i).fx,xvp{:},4,'q');
             [dfdvp, dfdv] = spm_diff(h,M(i).fv,xvp{:},4,'q');
         catch
-            [dgdxp, dgdx] = spm_diff(h,M(i).g,xvp{:},[2 4]);
-            [dgdvp, dgdv] = spm_diff(h,M(i).g,xvp{:},[3 4]);
-            [dfdxp, dfdx] = spm_diff(h,M(i).f,xvp{:},[2 4]);
-            [dfdvp, dfdv] = spm_diff(h,M(i).f,xvp{:},[3 4]);
+            [dgdxp, dgdx] = spm_diff(h,M(i).g,xvp{:},[2 4],'q');
+            [dgdvp, dgdv] = spm_diff(h,M(i).g,xvp{:},[3 4],'q');
+            [dfdxp, dfdx] = spm_diff(h,M(i).f,xvp{:},[2 4],'q');
+            [dfdvp, dfdv] = spm_diff(h,M(i).f,xvp{:},[3 4],'q');
         end
     else
         try
