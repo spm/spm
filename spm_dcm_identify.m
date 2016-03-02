@@ -7,7 +7,7 @@ function model = spm_dcm_identify(DCM)
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 %
-% $Id: spm_dcm_identify.m 6716 2016-02-08 18:21:37Z peter $
+% $Id: spm_dcm_identify.m 6735 2016-03-02 15:40:47Z peter $
 
 if ischar(DCM)
     DCM = load(DCM);
@@ -24,10 +24,9 @@ if isfield(DCM,'options')
         
         % an fMRI model
         %------------------------------------------------------------------
-        try
-            DCM.options.analysis;
+        if isfield(DCM.options,'induced') && DCM.options.induced == 1
             model = 'fMRI_CSD';
-        catch
+        else
             model = 'fMRI';
         end
         

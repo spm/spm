@@ -18,9 +18,8 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % M.bE		- third level prior expectation of parameters
 % M.bC		- third level prior covariances of parameters
 %
-% M.Q      - covariance components: {'single','fields','all','none'}
+% M.Q      - covariance components: {'single','fields','all'}
 % M.beta   - within:between precision ratio:  [default = 16]
-% M.rP     - lower bound precision matrix
 %
 % M.Xnames - cell array of names for second level parameters [default: {}]
 % 
@@ -79,7 +78,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6708 2016-02-01 19:50:33Z peter $
+% $Id: spm_dcm_peb.m 6735 2016-03-02 15:40:47Z peter $
  
 
 % get filenames and set up
@@ -334,11 +333,13 @@ for n = 1:64
 
     % compute prior precision (with a lower bound of pP/256)
     %----------------------------------------------------------------------
-    try rP = M.rP; catch, rP = pP/256; end
-    if Ng > 0        
+    if Ng > 0
+        rP  = pP/256;
         for i = 1:Ng
             rP = rP + exp(g(i))*Q{i};
         end
+    else
+        rP  = M.rP;
     end
     rC      = spm_inv(rP);
     

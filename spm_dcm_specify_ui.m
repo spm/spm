@@ -10,7 +10,7 @@ function DCM = spm_dcm_specify_ui(SPM,xY)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify_ui.m 6399 2015-04-07 16:05:10Z guillaume $
+% $Id: spm_dcm_specify_ui.m 6735 2016-03-02 15:40:47Z peter $
 
 
 %-Interactive window
@@ -52,11 +52,16 @@ end
 spm_input('Input specification:...  ',1,'d');
 Sess   = SPM.Sess(xY(1).Sess);
 if isempty(Sess.U)
+    
     % spontaneous activity, i.e. no stimuli
-    nc = 0;
-    U = [];
+    %----------------------------------------------------------------------
+    U.u    = zeros(length(xY(1).u),1);
+    U.name = {'null'};
+    
 else
+    
     % with stimuli
+    %----------------------------------------------------------------------
     U.dt   = Sess.U(1).dt;
     u      = length(Sess.U);
     U.name = {};
@@ -70,8 +75,18 @@ else
             end
         end
     end
-    nc     = size(U.u,2);
+    
+    % Check for at least one (null) input
+    %----------------------------------------------------------------------
+    if isempty(U.u)
+        U.u    = zeros(length(xY(1).u),1);
+        U.name = {'null'};
+    end    
+    
 end
+
+nc            = size(U.u,2);
+is_endogenous = (nc == 1) && strcmp(U.name{1},'null');
 
 %==========================================================================
 % Timings
@@ -106,17 +121,16 @@ end
 %==========================================================================
 % Model options
 %==========================================================================
-if nc                                                    % there are inputs
-    spm_input('Model options:...  ',-1,'d');
-    options.nonlinear  = spm_input('modulatory effects','+1','b',{'bilinear','nonlinear'},[0 1],1);
-    options.two_state  = spm_input('states per region', '+1','b',{'one','two'},[0 1],1);
-    options.stochastic = spm_input('stochastic effects','+1','b',{'no','yes'},[0 1],1);
-    options.centre     = spm_input('centre input',      '+1','b',{'no','yes'},[0 1],1);
+spm_input('Model options:...  ',-1,'d');
+options.nonlinear  = spm_input('modulatory effects','+1','b',{'bilinear','nonlinear'},[0 1],1);
+options.two_state  = spm_input('states per region', '+1','b',{'one','two'},[0 1],1);
+options.stochastic = spm_input('stochastic effects','+1','b',{'no','yes'}, [0 1],1);
+options.centre     = spm_input('centre input',      '+1','b',{'no','yes'}, [0 1],1);
+
+if options.stochastic 
+    options.induced = 0;
 else
-    options.nonlinear  = 0;
-    options.two_state  = 0;
-    options.stochastic = 1;
-    options.centre     = 1;
+    options.induced = spm_input('fit timeseries or CSD','+1','b',{'timeseries','CSD'}, [0 1],1);
 end
 
 %==========================================================================
@@ -161,7 +175,7 @@ for i = 1:m
             set(h3(i,j),'enable','on','TooltipString', ...
                 sprintf('from %s to %s',xY(j).name,xY(i).name));
         end
-        if nc && i~=j
+        if ~is_endogenous && i~=j
             set(h3(i,j),'Value',0);
         else
             set(h3(i,j),'Value',1);
@@ -187,62 +201,65 @@ delete(findobj(get(Finter,'Children'),'flat'));
 %==========================================================================
 uicontrol(Finter,'String','done','Position', [300 100 060 020].*WS,...
     'Callback', 'uiresume(gcbf)');
-for k = 1:nc
 
-    %-Buttons and labels
-    %----------------------------------------------------------------------
-    str   = sprintf(...
-        'Effects of %-12s on regions... and connections',...
-        U.name{k});
-    spm_input(str,1,'d');
+if ~is_endogenous
+    for k = 1:nc
 
-    for i = 1:m
-        h1(i)  = uicontrol(Finter,'String',xY(i).name,...
-            'Style','text',...
-            'BackgroundColor',bcolor,...
-            'FontSize',10,...
-            'Position',[080 350-dx*i 080 020].*WS);
-        h2(i)  = uicontrol(Finter,...
-            'Position',[160 360-dx*i 020 020].*WS,...
-            'BackgroundColor',bcolor,...
-            'Style','radiobutton');
-    end
-    for i = 1:m
-        for j = 1:m
-            if a(i,j) == 1
+        %-Buttons and labels
+        %----------------------------------------------------------------------
+        str   = sprintf(...
+            'Effects of %-12s on regions... and connections',...
+            U.name{k});
+        spm_input(str,1,'d');
 
-                % Allow modulation of endogenous connections
-                %----------------------------------------------------------
-                h3(i,j) = uicontrol(Finter,...
-                    'Position',[220+dx*j 360-dx*i 020 020].*WS,...
-                    'BackgroundColor',bcolor,...
-                    'Style','radiobutton');
-                set(h3(i,j),'TooltipString', ...
-                    sprintf('from %s to %s',xY(j).name,xY(i).name));
+        for i = 1:m
+            h1(i)  = uicontrol(Finter,'String',xY(i).name,...
+                'Style','text',...
+                'BackgroundColor',bcolor,...
+                'FontSize',10,...
+                'Position',[080 350-dx*i 080 020].*WS);
+            h2(i)  = uicontrol(Finter,...
+                'Position',[160 360-dx*i 020 020].*WS,...
+                'BackgroundColor',bcolor,...
+                'Style','radiobutton');
+        end
+        for i = 1:m
+            for j = 1:m
+                if a(i,j) == 1
 
+                    % Allow modulation of endogenous connections
+                    %----------------------------------------------------------
+                    h3(i,j) = uicontrol(Finter,...
+                        'Position',[220+dx*j 360-dx*i 020 020].*WS,...
+                        'BackgroundColor',bcolor,...
+                        'Style','radiobutton');
+                    set(h3(i,j),'TooltipString', ...
+                        sprintf('from %s to %s',xY(j).name,xY(i).name));
+
+                end
             end
         end
-    end
 
-    uiwait(Finter);
+        uiwait(Finter);
 
-    %-Get c
-    %----------------------------------------------------------------------
-    for i = 1:m
-        c(i,k)   = get(h2(i),'Value');
-    end
+        %-Get c
+        %----------------------------------------------------------------------
+        for i = 1:m
+            c(i,k)   = get(h2(i),'Value');
+        end
 
-    %-Get b allowing any 2nd order effects
-    %----------------------------------------------------------------------
-    for i = 1:m
-        for j = 1:m
-            if a(i,j)==1
-                b(i,j,k) = get(h3(i,j),'Value');
+        %-Get b allowing any 2nd order effects
+        %----------------------------------------------------------------------
+        for i = 1:m
+            for j = 1:m
+                if a(i,j)==1
+                    b(i,j,k) = get(h3(i,j),'Value');
+                end
             end
         end
-    end
-    delete([h1(:); h2(:); h3(a==1)])
+        delete([h1(:); h2(:); h3(a==1)])
 
+    end
 end
 delete(findobj(get(Finter,'Children'),'flat'));
 
@@ -316,12 +333,6 @@ Y.Q        = spm_Ce(ones(1,n)*v);
 %==========================================================================
 % DCM structure
 %==========================================================================
-
-% Endogenous input specification
-if isempty(U)
-    U.u    = zeros(v,1);
-    U.name = {'null'};
-end
 
 %-Store all variables in DCM structure
 %--------------------------------------------------------------------------

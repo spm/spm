@@ -4,7 +4,7 @@ function estimate = spm_cfg_dcm_est
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_est.m 6714 2016-02-04 17:46:46Z peter $
+% $Id: spm_cfg_dcm_est.m 6735 2016-03-02 15:40:47Z peter $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -92,7 +92,7 @@ models.num    = [1 Inf];
 % output_single Output one .mat file for the group
 %--------------------------------------------------------------------------
 output_single         = cfg_branch;
-output_single.tag     = 'output_single';
+output_single.tag     = 'single';
 output_single.name    = 'Create group GCM_*.mat file';
 output_single.val     = { dir name };
 output_single.help    = {['Creates a single group-level DCM file ' ...
@@ -102,7 +102,7 @@ output_single.help    = {['Creates a single group-level DCM file ' ...
 % output_overwrite_gcm Output a GCM file with existing name
 %--------------------------------------------------------------------------
 output_overwrite_gcm         = cfg_branch;
-output_overwrite_gcm.tag     = 'output_overwrite_gcm';
+output_overwrite_gcm.tag     = 'overwrite_gcm';
 output_overwrite_gcm.name    = 'Overwrite existing GCM_*.mat file';
 output_overwrite_gcm.val     = {};
 output_overwrite_gcm.help    = {['Overwrites existing group-level DCM file ' ...
@@ -112,20 +112,20 @@ output_overwrite_gcm.help    = {['Overwrites existing group-level DCM file ' ...
 % output_separate Output one .mat file per model
 %--------------------------------------------------------------------------
 output_separate         = cfg_branch;
-output_separate.tag     = 'output_separate';
+output_separate.tag     = 'separate';
 output_separate.name    = 'Overwrite existing individual DCM files';
 output_separate.val     = {};
 output_separate.help    = {'Updated existing individual DCM.mat files'};
 
 % -------------------------------------------------------------------------
-% output_type Choice of how many DCM.mat files to output
+% output Choice of how many DCM.mat files to output
 %--------------------------------------------------------------------------
-output_type         = cfg_choice;
-output_type.tag     = 'output_type';
-output_type.name    = 'Output';
-output_type.values  = { output_single output_overwrite_gcm output_separate };
-output_type.val     = { output_single };
-output_type.help    = {['Whether to create a single DCM file across all ' ...
+output         = cfg_choice;
+output.tag     = 'output';
+output.name    = 'Output';
+output.values  = { output_single output_overwrite_gcm output_separate };
+output.val     = { output_single };
+output.help    = {['Whether to create a single DCM file across all ' ...
                        'subjects / models (default, required for second ' ...
                        'level analysis) or just update the separate' ...
                        'first-level DCM files.']};
@@ -196,7 +196,7 @@ fmri.val     = {fmri_analysis};
 estimate      = cfg_exbranch;
 estimate.tag  = 'estimate';
 estimate.name = 'DCM estimation';
-estimate.val  = { dcms output_type est_type fmri };
+estimate.val  = { dcms output est_type fmri };
 estimate.help = {['Estimate the parameters and free energy (log model ' ...
                   'evidence) of first level DCMs for fMRI. Models ' ...
                   'are assembled into a Subjects x Models array and ' ...
@@ -247,11 +247,11 @@ OUTPUT_GCM_NEW       = 1;
 OUTPUT_GCM_OVERWRITE = 2;
 OUTPUT_DCM           = 3;
 
-if isfield(job.output_type,'output_single')
+if isfield(job.output,'single')
     output_type = OUTPUT_GCM_NEW;
-elseif isfield(job.output_type,'output_overwrite_gcm')
+elseif isfield(job.output,'overwrite_gcm')
     output_type = OUTPUT_GCM_OVERWRITE;
-elseif isfield(job.output_type,'output_separate')
+elseif isfield(job.output,'separate')
     output_type = OUTPUT_DCM;
 else
     error('Unknown output type');
@@ -341,8 +341,8 @@ end
 % Save
 if output_type == OUTPUT_GCM_NEW
     % Create single mat file
-    dir  = job.output_type.output_single.dir{1};
-    name = ['GCM_' job.output_type.output_single.name '.mat'];
+    dir  = job.output.single.dir{1};
+    name = ['GCM_' job.output.single.name '.mat'];
     
     filename = fullfile(dir,name);
     save(filename,'GCM');
@@ -374,8 +374,8 @@ end
 %==========================================================================
 function dep = vout_dcm(job)
 %==========================================================================
-if isfield(job.output_type,'output_single') || ...
-        isfield(job.output_type,'output_overwrite_gcm')
+if isfield(job.output,'single') || ...
+        isfield(job.output,'overwrite_gcm')
     dep(1)            = cfg_dep;
     dep(1).sname      = 'GCM mat File(s)';
     dep(1).src_output = substruct('.','gcmmat');

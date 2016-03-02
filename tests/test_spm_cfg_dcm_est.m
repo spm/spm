@@ -3,17 +3,17 @@ function tests = test_spm_cfg_dcm_est
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_cfg_dcm_est.m 6713 2016-02-04 15:39:47Z peter $
+% $Id: test_spm_cfg_dcm_est.m 6735 2016-03-02 15:40:47Z peter $
 
 tests = functiontests(localfunctions);
 
 % -------------------------------------------------------------------------
 function setup(testCase)
 % Delete output directory before each test
-[input_path, output_path] = prepare_paths(0);
+[input_path, path] = prepare_paths(0);
 
 % Paths to delete
-paths = {fullfile(output_path,'tmp'); output_path};
+paths = {fullfile(path,'tmp'); path};
 
 for p = 1:length(paths)
     if exist(paths{p},'file')
@@ -27,18 +27,18 @@ function test_select_by_gcm(testCase)
 % Test selecting a group DCM file (GCM)
 
 % Prepare paths
-[input_path, output_path] = prepare_paths();
+[input_path, path] = prepare_paths();
 
 % Expected output
-expected = fullfile(output_path,'GCM_test.mat');
+expected = fullfile(path,'GCM_test.mat');
 
 % Input
 gcm_file = fullfile(input_path,'GCM_simulated.mat'); 
 
 % Complete & run batch
 matlabbatch{1}.spm.dcm.estimate.dcms.gcmmat = cellstr(gcm_file);
-matlabbatch{1}.spm.dcm.estimate.output_type.output_single.dir = cellstr(output_path);
-matlabbatch{1}.spm.dcm.estimate.output_type.output_single.name = 'test';
+matlabbatch{1}.spm.dcm.estimate.output.single.dir = cellstr(path);
+matlabbatch{1}.spm.dcm.estimate.output.single.name = 'test';
 matlabbatch{1}.spm.dcm.estimate.est_type = 4;
 matlabbatch{1}.spm.dcm.estimate.fmri.analysis = 'time';
 out = spm_jobman('run',matlabbatch);
@@ -56,10 +56,10 @@ function test_select_by_model(testCase)
 % Test selecting DCMs model-by-model
 
 % Prepare paths
-[input_path, output_path] = prepare_paths();
+[input_path, path] = prepare_paths();
 
 % Expected output
-expected = fullfile(output_path,'GCM_test.mat');
+expected = fullfile(path,'GCM_test.mat');
 
 nm = 4;
 ns = 30;
@@ -75,8 +75,8 @@ for m = 1:nm
 end
 
 % Complete & run batch
-matlabbatch{1}.spm.dcm.estimate.output_type.output_single.dir = cellstr(output_path);
-matlabbatch{1}.spm.dcm.estimate.output_type.output_single.name = 'test';
+matlabbatch{1}.spm.dcm.estimate.output.single.dir = cellstr(path);
+matlabbatch{1}.spm.dcm.estimate.output.single.name = 'test';
 matlabbatch{1}.spm.dcm.estimate.est_type = 4;
 matlabbatch{1}.spm.dcm.estimate.fmri.analysis = 'time';
 out = spm_jobman('run',matlabbatch);
@@ -95,10 +95,10 @@ function test_select_by_subject(testCase)
 % Test selecting DCMs subject-by-subject
 
 % Prepare paths
-[input_path, output_path] = prepare_paths();
+[input_path, path] = prepare_paths();
 
 % Expected output
-expected = fullfile(output_path,'GCM_test.mat');
+expected = fullfile(path,'GCM_test.mat');
 
 ns = 30;
 
@@ -111,8 +111,8 @@ for s = 1:ns
 end
 
 % Complete & run batch
-matlabbatch{1}.spm.dcm.estimate.output_type.output_single.dir = cellstr(output_path);
-matlabbatch{1}.spm.dcm.estimate.output_type.output_single.name = 'test';
+matlabbatch{1}.spm.dcm.estimate.output.single.dir = cellstr(path);
+matlabbatch{1}.spm.dcm.estimate.output.single.name = 'test';
 matlabbatch{1}.spm.dcm.estimate.est_type = 4;
 matlabbatch{1}.spm.dcm.estimate.fmri.analysis = 'time';
 out = spm_jobman('run',matlabbatch);
@@ -131,10 +131,10 @@ function test_separate_dcm_output(testCase)
 % Test that outputing separate DCMs gives the correct results
 
 % Prepare paths
-[input_path, output_path] = prepare_paths();
+[input_path, path] = prepare_paths();
 
 % Copy all DCMs into a temporary folder
-tmp_path = fullfile(output_path, 'tmp');
+tmp_path = fullfile(path, 'tmp');
 mkdir(tmp_path);
 copyfile( fullfile(input_path,'DCM_*.mat'), tmp_path); 
 
@@ -150,7 +150,7 @@ for s = 1:ns
 end
 
 % Complete & run batch
-matlabbatch{1}.spm.dcm.estimate.output_type.output_separate = struct([]);
+matlabbatch{1}.spm.dcm.estimate.output.separate = struct([]);
 matlabbatch{1}.spm.dcm.estimate.est_type = 4;
 matlabbatch{1}.spm.dcm.estimate.fmri.analysis = 'time';
 out = spm_jobman('run',matlabbatch);
@@ -171,7 +171,7 @@ data_path = fullfile( spm('Dir'), 'tests', ...
     'data', 'fMRI', 'simulated_2region');
 
 % -------------------------------------------------------------------------
-function [input_path, output_path] = prepare_paths(do_create)
+function [input_path, path] = prepare_paths(do_create)
 % Prepare input and output paths. If do_create, create out directory
 
 if nargin < 1
@@ -180,10 +180,10 @@ end
 
 data_path   = get_data_path();
 input_path  = fullfile(data_path,'models');
-output_path = fullfile(data_path,'out');
+path = fullfile(data_path,'out');
 
-if do_create && ~exist(output_path,'file')
-    mkdir(output_path);
+if do_create && ~exist(path,'file')
+    mkdir(path);
 end
 % -------------------------------------------------------------------------
 function assert_gcms_match(actual,expected,testCase)

@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6711 2016-02-03 15:25:43Z peter $
+% $Id: spm_cfg_dcm_peb.m 6735 2016-03-02 15:40:47Z peter $
 
 
 % =========================================================================
@@ -57,18 +57,18 @@ subj.val  = {dcmmat};
 subj.help = {'Subject with one or more models.'};
     
 % -------------------------------------------------------------------------
-% pebmat Select PEB_*.mat
+% peb_mat Select PEB_*.mat
 % -------------------------------------------------------------------------
-pebmat         = cfg_files;
-pebmat.tag     = 'pebmat';
-pebmat.name    = 'Select PEB file';
-pebmat.help    = {'Select PEB_*.mat file.'};
-pebmat.filter  = 'mat';
-pebmat.ufilter = '^PEB_.*\.mat$';
-pebmat.num     = [1 1];
+peb_mat         = cfg_files;
+peb_mat.tag     = 'peb_mat';
+peb_mat.name    = 'Select PEB file';
+peb_mat.help    = {'Select PEB_*.mat file.'};
+peb_mat.filter  = 'mat';
+peb_mat.ufilter = '^PEB_.*\.mat$';
+peb_mat.num     = [1 1];
 
 % -------------------------------------------------------------------------
-% pebmat Select model_space_*.mat
+% peb_mat Select model_space_*.mat
 % -------------------------------------------------------------------------
 model_space_mat         = cfg_files;
 model_space_mat.tag     = 'model_space_mat';
@@ -100,7 +100,7 @@ cov_design.num     = [Inf Inf];
 % cov_name Name for a column in the design matrix
 % ---------------------------------------------------------------------
 cov_name         = cfg_entry;
-cov_name.tag     = 'cov_name';
+cov_name.tag     = 'name';
 cov_name.name    = 'Name';
 cov_name.help    = {'Enter a name for a covariate'};
 cov_name.strtype = 's';
@@ -110,7 +110,7 @@ cov_name.num     = [0 Inf];
 % cov_names Contains the names for the covariates
 % ---------------------------------------------------------------------
 cov_names         = cfg_repeat;
-cov_names.tag     = 'cov_names';
+cov_names.tag     = 'names';
 cov_names.name    = 'Covariate names';
 cov_names.values  = { cov_name };
 cov_names.num     = [0 Inf];
@@ -130,7 +130,7 @@ design_mtx.help    = {'Specify the second-level design matrix.'};
 % cov_val Value
 % ---------------------------------------------------------------------
 cov_val         = cfg_entry;
-cov_val.tag     = 'cov_val';
+cov_val.tag     = 'value';
 cov_val.name    = 'Value';
 cov_val.help    = {'Enter the vector of regressor values, one element ' ...
                    'per subject.'};
@@ -195,7 +195,7 @@ covariates.val    = {cov_none};
 % field_default Select fields A,B
 % ---------------------------------------------------------------------
 field_default  = cfg_const;
-field_default.tag  = 'field_default';
+field_default.tag  = 'default';
 field_default.name = 'A- and B-matrix';
 field_default.val = {{'A','B'}};
 
@@ -203,7 +203,7 @@ field_default.val = {{'A','B'}};
 % field_all Select all fields
 % ---------------------------------------------------------------------
 field_all  = cfg_const;
-field_all.tag  = 'field_all';
+field_all.tag  = 'all';
 field_all.name = 'All';
 field_all.val = {'All fields'};
 
@@ -212,7 +212,7 @@ field_all.val = {'All fields'};
 % ---------------------------------------------------------------------
 field_entry  = cfg_entry;
 field_entry.name = 'Enter manually';
-field_entry.tag  = 'field_entry';
+field_entry.tag  = 'custom';
 field_entry.help = {'Enter the fields e.g. A or A,C'};
 field_entry.strtype = 'e';
 field_entry.num     = [0 Inf];
@@ -318,7 +318,7 @@ sr     = show_review;
 sr.val = {0};
 
 specify      = cfg_exbranch;
-specify.tag  = 'peb_specify';
+specify.tag  = 'specify';
 specify.name = 'Specify / Estimate PEB';
 specify.val  = { name model_space_mat covariates fields ...
                  priors_between sr };
@@ -335,11 +335,11 @@ model_space_mat_op = model_space_mat;
 model_space_mat_op.num = [0 Inf];
 model_space_mat_op.val = {''};
 
-peb_reduce      = cfg_exbranch;
-peb_reduce.tag  = 'peb_reduce';
-peb_reduce.name = 'Compare / Average PEB models';
-peb_reduce.val  = { pebmat model_space_mat_op show_review};
-peb_reduce.help = {['Addresses the question: which combination of ' ...
+peb_compare      = cfg_exbranch;
+peb_compare.tag  = 'compare';
+peb_compare.name = 'Compare / Average PEB models';
+peb_compare.val  = { peb_mat model_space_mat_op show_review};
+peb_compare.help = {['Addresses the question: which combination of ' ...
     'connections best explains the commonalities across subjects and ' ...
     'the group differences between subjects?'] '' ...
     ['If a group difference is to be investigated, this should be the ' ...
@@ -356,14 +356,14 @@ peb_reduce.help = {['Addresses the question: which combination of ' ...
     'to the model evidence. If multiple DCMs are provided per subject, ' ...
     'these are used to define the combinations of second level parameters ' ...
     'to be compared']};
-peb_reduce.prog = @spm_run_bmc;
-peb_reduce.vout = @vout_bma;
+peb_compare.prog = @spm_run_bmc;
+peb_compare.vout = @vout_bma;
 
-peb_reduce_all       = cfg_exbranch;
-peb_reduce_all.tag   = 'peb_reduce_all';
-peb_reduce_all.name  = 'Search nested PEB models';
-peb_reduce_all.val   = { pebmat model_space_mat_op show_review};
-peb_reduce_all.help  = {['Optimises a PEB model by trying different ' ...
+reduce_all       = cfg_exbranch;
+reduce_all.tag   = 'reduce_all';
+reduce_all.name  = 'Search nested PEB models';
+reduce_all.val   = { peb_mat model_space_mat_op show_review};
+reduce_all.help  = {['Optimises a PEB model by trying different ' ...
                          'combinations of switching off parameters (fixing ' ...
                          'them at their prior value), where doing so does ' ...
                          'not reduce the model evidence. Any parameters ' ...
@@ -371,8 +371,8 @@ peb_reduce_all.help  = {['Optimises a PEB model by trying different ' ...
                          ['This is equivilant to the function of '... 
                          'spm_dcm_post_hoc but on the second level (PEB) ' ...
                          'parameters.']};
-peb_reduce_all.prog = @spm_run_bmr_all;
-peb_reduce_all.vout = @vout_bma;
+reduce_all.prog = @spm_run_bmr_all;
+reduce_all.vout = @vout_bma;
 
 % =========================================================================
 % PEB review batch
@@ -380,7 +380,7 @@ peb_reduce_all.vout = @vout_bma;
 review      = cfg_exbranch;
 review.tag  = 'peb_review';
 review.name = 'Review PEB';
-review.val  = { pebmat model_space_mat_op };
+review.val  = { peb_mat model_space_mat_op };
 review.help = {'Reviews PEB results'};
 review.prog = @spm_run_dcm_peb_review;
 
@@ -388,10 +388,10 @@ review.prog = @spm_run_dcm_peb_review;
 % second_level Second level DCM batch
 % =========================================================================
 second_level         = cfg_choice; 
-second_level.tag     = 'PEB';
+second_level.tag     = 'peb';
 second_level.name    = 'Second level';
 second_level.help    = {'Parametric Empirical Bayes for DCM'};
-second_level.values  = { specify peb_reduce peb_reduce_all review };
+second_level.values  = { specify peb_compare reduce_all review };
 
 %==========================================================================
 function dep = vout_bma(varargin)
@@ -406,17 +406,17 @@ function dep = vout_peb(varargin)
 %==========================================================================
 dep(1)            = cfg_dep;
 dep(1).sname      = 'PEB mat File(s)';
-dep(1).src_output = substruct('.','pebmat');
+dep(1).src_output = substruct('.','peb_mat');
 dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
 
 %==========================================================================
 function out = spm_run_dcm_peb_review(job)
 %==========================================================================
 % Run the PEB review batch
-P   = job.pebmat;
+P   = job.peb_mat;
 DCM = job.model_space_mat;
 spm_dcm_peb_review(P{1},DCM);
-out = job.pebmat;
+out = job.peb_mat;
 
 %==========================================================================
 function out = spm_run_create_peb(job)
@@ -432,12 +432,12 @@ if ~isfield(GCM{1},'Ep')
 end
 
 % DCM field(s)
-if isfield(job.fields,'field_default')
+if isfield(job.fields,'default')
     field = {'A','B'};
-elseif isfield(job.fields,'field_all')
+elseif isfield(job.fields,'all')
     field = 'all';
 else
-    field = job.fields.field_entry;
+    field = job.fields.custom;
 end
 
 Xnames = {'Group mean'};
@@ -465,8 +465,8 @@ elseif isfield(job.cov, 'regressor')
     regressors = job.cov.regressor;
        
     for r = 1:length(regressors)
-        regressor = regressors(r).cov_val;
-        name      = regressors(r).cov_name;
+        regressor = regressors(r).value;
+        name      = regressors(r).name;
         
         if size(regressor,1) ~= ns
             error('Please ensure regressor %d has one row per subject',r);
@@ -512,7 +512,7 @@ if job.show_review == 1
     spm_dcm_peb_review(peb_filename,GCM);
 end
 
-out.pebmat = {peb_filename};
+out.peb_mat = {peb_filename};
 
 %==========================================================================
 function out = spm_run_bmr_all(job)
@@ -549,7 +549,7 @@ function out = run_peb_bmc_internal(job, GCM)
 %==========================================================================
 % Search / model comparison both use spm_dcm_peb_bmc, which is called here
 
-PEB = load(job.pebmat{1});
+PEB = load(job.peb_mat{1});
 PEB = PEB.PEB;
 
 nm  = size(GCM,2);
@@ -562,7 +562,7 @@ else
 end
 
 % Write BMA
-[dir_out, name] = fileparts(job.pebmat{1});
+[dir_out, name] = fileparts(job.peb_mat{1});
 filename = fullfile(dir_out, ['BMA_' name '.mat']);
 save(filename,'BMA');
 
