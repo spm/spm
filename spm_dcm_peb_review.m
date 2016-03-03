@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 6709 2016-02-01 20:00:19Z peter $
+% $Id: spm_dcm_peb_review.m 6736 2016-03-03 11:51:18Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -68,6 +68,7 @@ xPEB.sel_field_idx = 1;     % Selected first-level DCM field
 xPEB.sel_input     = 1;     % Selected first-level DCM input (U)
 xPEB.region_names  = {};    % First level region names
 xPEB.input_names   = {};    % First level input names
+xPEB.mtx_fig       = [];    % Figure handle for connectivity matrix
 
 % Get first-level DCM metadata
 if ~isempty(DCM) 
@@ -144,31 +145,40 @@ Ce = PEB.Ce;
 Eh = PEB.Eh;
 Ch = PEB.Ch;
 
-% If first level DCMs are provided, unpack
+% If first level DCMs are provided, unpack field names
 % -------------------------------------------------------------------------
-display_connectivity = (effect > 0 && effect <= nc && ~isempty(DCM));
 
-if display_connectivity   
-    
-    sel_field_idx = xPEB.sel_field_idx;
-    sel_input     = xPEB.sel_input;    
-    
-    % Get names of DCM fields included in the PEB
-    fields = {};
-    parts  = {};
-    for p = 1:np
-        [name,parts{p}] = pname_to_string(PEB.Pnames{p}, ...
-                                          xPEB.region_names, ...
-                                          xPEB.input_names);
+% Get names of DCM fields included in the PEB
+fields = {};
+parts  = {};
+for p = 1:np
+    [name,parts{p}] = pname_to_string(PEB.Pnames{p}, ...
+                                      xPEB.region_names, ...
+                                      xPEB.input_names);
 
-        if isnan(parts{p}.input)
-            parts{p}.input = 1;
-        end
-        
-        if ~any(strcmp(parts{p}.field, fields))
-            fields{end+1} = parts{p}.field;
-        end        
+    if isnan(parts{p}.input)
+        parts{p}.input = 1;
     end
+
+    if ~any(strcmp(parts{p}.field, fields))
+        fields{end+1} = parts{p}.field;
+    end        
+end
+
+xPEB.fields = fields;
+
+
+% Reshape PEB parameters according to DCM
+% -------------------------------------------------------------------------
+    
+sel_field_idx = xPEB.sel_field_idx - 1;
+
+display_connectivity_selector = (effect > 0 && effect <= nc && ~isempty(DCM));
+display_connectivity          = display_connectivity_selector & (sel_field_idx > 0);
+
+sel_input = xPEB.sel_input;    
+
+if display_connectivity            
     
     sel_field = fields{sel_field_idx};
     
@@ -186,8 +196,7 @@ if display_connectivity
     % Limit to a specific input (fMRI)
     nu = size(Eq,3);
     Eq = Eq(:,:,sel_input);
-    
-    xPEB.fields = fields;
+        
     xPEB.Eq     = Eq;  
 end
 
@@ -211,7 +220,6 @@ views{VIEW_DIAGNOSTICS} = 'Diagnostics';
 % Create GUI
 % -------------------------------------------------------------------------
 f = spm_figure('GetWin','PEB - Review Parameters');
-spm_figure('ColorMap','gray-jet');
 datacursormode off;
 spm_clf;    
 
@@ -220,10 +228,8 @@ h = create_panel('Position',[0 0.70 1 0.29]);
 xPEB.panels(1) = h;
 
 % Drop-down menu for selecting effect
-uicontrol('Style','Popupmenu','Units','normalized', ...
-    'Position',[0.1 0.58 0.85 0.1],'Tag','peb_select',...
-    'Callback',@selected_view_changed, ... 
-    'ToolTipString','','String',views,'Value',xPEB.view,'Enable','on');
+create_menu('Position',[0.1 0.58 0.85 0.1],'Tag','peb_select',...
+    'Callback',@selected_view_changed, 'String',views,'Value',xPEB.view);
 
 % Panel for estimated parameter plot
 h = create_panel('Position',[0 0.3 1 0.30]);
@@ -233,17 +239,20 @@ xPEB.panels(2) = h;
 h = create_panel('Position',[0.05 0 0.55 0.29]);
 xPEB.panels(3) = h;
 
-if display_connectivity
+if display_connectivity_selector
+    
+    create_text('Display as matrix','Position',[0.13 0.24 0.35 0.03],'FontSize',16);
+    
     % Drop-down menu for controlling reshaped parameter plot
-    create_menu('Position',[0.55 0.13 0.35 0.1],...
+    create_menu('Position',[0.13 0.13 0.35 0.1],...
                 'Tag','peb_select_field',...
                 'Callback',@selected_field_changed,...
-                'String',xPEB.fields,...
+                'String',['Please select a field' xPEB.fields],...
                 'Value',xPEB.sel_field_idx);
     
     % Drop-down menu for selecting first level input
-    if nu > 1        
-        create_menu('Position',[0.55 0.1 0.35 0.1],...
+    if display_connectivity && nu > 1        
+        create_menu('Position',[0.13 0.1 0.35 0.1],...
                     'Tag','peb_select_input',...
                     'Callback',@selected_input_changed,...
                     'String',xPEB.input_names,...
@@ -268,7 +277,7 @@ create_tile(ns,'SUBJECTS');
 % 2nd level design matrix
 subplot(3,7,[8:10 15:17],'Parent',xPEB.panels(1));
 
-image(rescale(PEB.M.X, 1, 64));
+imagesc(PEB.M.X);
 
 set(gca,'XTick',1:nc);
 xlabel('Covariate','FontSize',12); ylabel('Subject','FontSize',12);
@@ -276,7 +285,7 @@ axis square;
 
 % Random effects variance
 subplot(3,7,[4:7 11:14 18:21],'Parent',xPEB.panels(1));
-image(rescale(Ce,1,16));
+imagesc(Ce);
 set(gca,'Tag','rfx');
 xlabel('First-Level Parameter','FontSize',12);
 text(np,1,'Random effects variance','FontSize',16,...
@@ -284,7 +293,7 @@ text(np,1,'Random effects variance','FontSize',16,...
         'VerticalAlignment','top');
 axis square;
 
-% Add plots (lower panel)
+% Add plots (lower panel) and render pop-up plots
 % -------------------------------------------------------------------------
 if view == VIEW_NONE
     % Welcome text    
@@ -311,20 +320,59 @@ elseif view <= (nc+1)
     
     % Plot connectivity matrix
     if display_connectivity
-        axes('Parent',xPEB.panels(3));
-        image(rescale(xPEB.Eq,65,128)); 
         
+        f = gcf;
+        
+        % Get / create popup window
+        if isempty(xPEB.mtx_fig) || ~ishandle(xPEB.mtx_fig)  
+            
+            s = get(0,'screensize');
+            
+            w = round(s(3) * 0.25);
+            h = round(s(4) * 0.38);
+            
+            p = get(gcf,'OuterPosition');            
+            b = p(4) - h;
+                        
+            l = p(1) - w;                 % Attempt left of figure window                        
+            if l < 1, l = p(1)+p(3); end  % Attempt right of figure window                        
+            if l > s(3), l = p(1); end    % Align with figure window
+            
+            xPEB.mtx_fig = figure('Name','Connectivity','NumberTitle','off',...
+                                  'OuterPosition',[l b w h]);
+        else
+            figure(xPEB.mtx_fig);
+        end
+        
+        % Set custom datacursor
+        dcm_obj = datacursormode(xPEB.mtx_fig);
+        set(dcm_obj,'UpdateFcn',@plot_clicked);
+        datacursormode on;        
+        
+        % Plot
+        imagesc(xPEB.Eq);
+        colorbar;               
+        
+        % Style
         axis square;     
         xlabel('From','FontSize',12);ylabel('To','FontSize',12);
         set(gca,'XAxisLocation','top','Tag','connectivity');
-        title('Connectivity','FontSize',16);
+        
+        title_str = ['Connectivity: ' xPEB.fields{sel_field_idx}];
+        if nu > 1
+            title_str = [title_str ' - ' xPEB.input_names{xPEB.sel_input}];
+        end
+        
+        title(title_str,'FontSize',16);        
         
         if size(xPEB.Eq,1) == size(xPEB.Eq,2) && ...
                 size(xPEB.Eq,1) == length(xPEB.region_names)
             set(gca,'YTickLabel',xPEB.region_names,...
                 'YTick',1:length(xPEB.region_names),...
                 'XTickLabel',{''});            
-        end               
+        end
+        
+        set(0, 'currentfigure', f);
     end
     
 elseif view == VIEW_COMPONENTS
@@ -337,7 +385,7 @@ elseif view == VIEW_COMPONENTS
         title('Precision component weights','FontSize',16);
     
         subplot(1,2,2,'Parent',xPEB.panels(2));
-        image(rescale(Ch, 1, 64));
+        imagesc(Ch);
         xlabel('Precision component','FontSize',12);
         set(gca,'XTick',1:length(Eh),'YTick',1:length(Eh));
         title('Covariance','FontSize',16);
@@ -346,7 +394,7 @@ elseif view == VIEW_COMPONENTS
 elseif view == VIEW_DIAGNOSTICS
     % Plot correlations
     axes('Parent',xPEB.panels(2));
-    imagesc(xPEB.corr);
+    imagesc(xPEB.corr); colorbar;
     set(gca,'Tag','correlations');
     xlabel('Parameter','FontSize',12); ylabel('Parameter','FontSize',12);
     title('Parameter Correlation','FontSize',16); axis square;    
@@ -354,7 +402,7 @@ end
 
 % Set custom datacursor
 dcm_obj = datacursormode(f);
-set(dcm_obj,'UpdateFcn',@parameter_clicked);
+set(dcm_obj,'UpdateFcn',@plot_clicked);
 datacursormode on;
 
 % Store view data in the workspace
@@ -371,7 +419,13 @@ function h = create_menu(varargin)
 % Creates a dropdown menu
 h = uicontrol('Style','Popupmenu','Units','normalized', ...
         'ToolTipString','','Enable','on',varargin{:});
-    
+
+% =========================================================================
+function h = create_text(str,varargin)
+% Creates a text label
+h = uicontrol('Style','text','Units','normalized','String',str,...
+              'BackgroundColor',[1 1 1],varargin{:});
+
 % =========================================================================
 function create_tile(stat,label)
 % Creates a square display with a statistic and a label
@@ -470,7 +524,7 @@ assignin('base','xPEB',xPEB);
 
 update_view();
 % =========================================================================
-function txt = parameter_clicked(varargin)
+function txt = plot_clicked(varargin)
 % Returns customised data tip for parameters in each plot
 
 xPEB = evalin('base','xPEB');
@@ -540,8 +594,10 @@ switch tag
                 sprintf('Correlation: %2.2f',xPEB.corr(idx1_allparams,idx2_allparams)); };
     case 'connectivity'   
         
+        sel_field_idx = xPEB.sel_field_idx - 1;
+        
         % Exclude for CMC
-        if strcmp(xPEB.fields{xPEB.sel_field_idx},'G')
+        if strcmp(xPEB.fields{sel_field_idx},'G')
             txt = '';
             return;
         end
@@ -557,14 +613,4 @@ switch tag
                sprintf('%2.2f',Eq(idx_to,idx_from))};
     otherwise
         txt = '';
-end
-
-% =========================================================================
-function new_X = rescale(X, new_min, new_max)
-% Rescales the values in X to fall in the range new_min to new_max
-
-current_min = min(X(:));
-current_max = max(X(:));
-
-scale_factor = (current_max - current_min) / (new_max - new_min);
-new_X = new_min + (X - current_min) / scale_factor;    
+end 
