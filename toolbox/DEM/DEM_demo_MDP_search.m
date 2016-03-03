@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_search
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_search.m 6728 2016-02-20 18:07:58Z karl $
+% $Id: DEM_demo_MDP_search.m 6737 2016-03-03 12:05:51Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -489,7 +489,7 @@ for k = 1:Ne
         
         % save
         %------------------------------------------------------------------
-        axis image, axis([-2,2,-2,2]), drawnow
+        axis image, axis([-2,2,-2,2]),set(gca,'XColor','w','YColor','w'), drawnow
         M((k - 1)*Nx + i) = getframe(gca);
  
     end

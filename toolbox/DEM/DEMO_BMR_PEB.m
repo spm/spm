@@ -34,7 +34,7 @@ function DEMO_BMR_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BMR_PEB.m 6557 2015-09-20 12:44:30Z karl $
+% $Id: DEMO_BMR_PEB.m 6737 2016-03-03 12:05:51Z karl $
 
 
 % set up
@@ -207,7 +207,7 @@ BMA     = spm_dcm_peb_bmc(PEB,RCM(1,:));
 
 % posterior predictive density and cross validation
 %==========================================================================
-spm_dcm_loo(RCM(:,mw),X,{'B'});
+spm_dcm_loo(RCM(:,1),X,{'B'});
 
 
 % show results

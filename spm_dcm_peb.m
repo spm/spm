@@ -18,8 +18,9 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % M.bE		- third level prior expectation of parameters
 % M.bC		- third level prior covariances of parameters
 %
-% M.Q      - covariance components: {'single','fields','all'}
+% M.Q      - covariance components: {'single','fields','all','none'}
 % M.beta   - within:between precision ratio:  [default = 16]
+% M.rP     - lower bound precision matrix
 %
 % M.Xnames - cell array of names for second level parameters [default: {}]
 % 
@@ -78,7 +79,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6735 2016-03-02 15:40:47Z peter $
+% $Id: spm_dcm_peb.m 6737 2016-03-03 12:05:51Z karl $
  
 
 % get filenames and set up
@@ -98,27 +99,18 @@ try
 end
 
 
-% parameter fields
+% check parameter fields and design matrices
 %--------------------------------------------------------------------------
 try, load(P{1}); catch, DCM = P{1}; end
-if nargin < 2
-    M.X   = ones(length(P),1);
-end
-if isnumeric(M)
-    M     = struct('X',M);
-end
-if ~isfield(M,'X')
-    M.X   = ones(length(P),1);
-end
-if nargin < 3;
-    field = {'A','B'};
-end
-if strcmpi(field,'all');
-    field = fieldnames(DCM.M.pE);
-end
-if ischar(field)
-    field = {field};
-end
+
+if nargin < 2,      M.X = ones(length(P),1); end
+if isnumeric(M),    M   = struct('X',M);     end
+if ~isfield(M,'X'), M.X = ones(length(P),1); end
+if isempty(M.X),    M.X = ones(length(P),1); end
+
+if nargin < 3; field = {'A','B'};  end
+if strcmpi(field,'all');  field = fieldnames(DCM.M.pE);end
+if ischar(field), field = {field}; end
 
 % repeat for each model (column) if P is an array
 %==========================================================================
@@ -199,15 +191,39 @@ end
 
 % second level model
 %--------------------------------------------------------------------------
-if isfield(M,'beta'), beta   = M.beta; else, beta = 16;         end
-if isfield(M,'Q'),    OPTION = M.Q;    else, OPTION = 'single'; end
-if Ns == 1,           OPTION = 'no';   end
+if  isfield(M,'beta'), beta   = M.beta; else, beta = 16;         end
+if  isfield(M,'Q'),    OPTION = M.Q;    else, OPTION = 'single'; end
+if ~isfield(M,'W'),    M.W    = speye(Np,Np);                    end
 
+
+% design matrices
+%--------------------------------------------------------------------------
+if Ns > 1;
+    
+    % between-subject design matrices and prior expectations
+    %======================================================================
+    X   = M.X;
+    W   = U'*M.W*U;
+    
+else
+    
+    % within subject design
+    %======================================================================
+    OPTION = 'none';
+    U      = 1;
+    X      = 1;
+    W      = M.W;
+
+
+end
+
+% variable names
+%--------------------------------------------------------------------------
 if isfield(M,'Xnames')
     Xnames = M.Xnames;
 else
-    Nx = size(M.X,2);
-    Xnames = cell(1, Nx);
+    Nx = size(X,2);
+    Xnames = cell(1,Nx);
     for i = 1:Nx
         Xnames{i} = sprintf('Covariate %d',i);
     end
@@ -237,8 +253,8 @@ end
 
 % prior precision (pP) and components (Q) for empirical covariance
 %--------------------------------------------------------------------------
-pP    = spm_inv(U'*M.bC*U);
 pQ    = spm_inv(U'*M.pC*U);
+rP    = pQ;
 Q     = {};
 switch OPTION
     
@@ -269,24 +285,6 @@ switch OPTION
     otherwise
 end
 
-
-% priors for empirical expectations
-%--------------------------------------------------------------------------
-if Ns > 1;
-    
-    % between-subject design matrices and prior expectations
-    %======================================================================
-    X   = M.X;
-    W   = U'*speye(Np,Np)*U;
-    
-else
-    
-    % within subject design
-    %======================================================================
-    X   = 1;
-    W   = M.X;
-    
-end
 
 % number of parameters and effects
 %--------------------------------------------------------------------------
@@ -331,15 +329,13 @@ ipC   = spm_cat({bP [];
 t     = -4;                         % Fisher scoring parameter
 for n = 1:64
 
-    % compute prior precision (with a lower bound of pP/256)
+    % compute prior precision (with a lower bound of pQ/4096)
     %----------------------------------------------------------------------
     if Ng > 0
-        rP  = pP/256;
+        rP   = pQ/4096;        
         for i = 1:Ng
             rP = rP + exp(g(i))*Q{i};
         end
-    else
-        rP  = M.rP;
     end
     rC      = spm_inv(rP);
     

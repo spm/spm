@@ -20,7 +20,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB_REC.m 6427 2015-05-05 15:42:35Z karl $
+% $Id: DEMO_DCM_PEB_REC.m 6737 2016-03-03 12:05:51Z karl $
 
 
 % change to directory with empirical data

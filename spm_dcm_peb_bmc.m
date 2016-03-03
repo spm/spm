@@ -76,7 +76,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6710 2016-02-02 18:08:53Z peter $
+% $Id: spm_dcm_peb_bmc.m 6737 2016-03-03 12:05:51Z karl $
 
 if nargin < 1 || isempty(PEB) || length(PEB) > 1
     error('Please provide a single PEB model');
@@ -114,6 +114,11 @@ if nargin < 2
         xlabel('Parameter','FontSize',12)
         ylabel('Effect size','FontSize',12)
         axis square, a = axis;
+        if var(PEB.Ep(j)) < 1e-6
+            a(3:4) = [-1 1];
+            axis(a)
+        end
+        
         
         % posterior density over parameters
         %------------------------------------------------------------------

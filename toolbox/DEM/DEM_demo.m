@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 18-Feb-2016 17:32:55
+% Last Modified by GUIDE v2.5 02-Mar-2016 18:33:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -554,3 +554,38 @@ run_demo_Callback(hObject, handles, 'DEM_demo_MDP_reading')
 function pushbutton170_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Active%20inference%20and%20epistemic%20value.pdf';
 run_demo_Callback(hObject, handles, 'DEM_demo_MDP_rule')
+
+% --- Executes on button press in pushbutton197.
+function pushbutton197_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'DEMO_BMR_PEB')
+
+% --- Executes on button press in pushbutton198.
+function pushbutton198_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'DEMO_GROUP_PEB')
+
+% --- Executes on button press in pushbutton199.
+function pushbutton199_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'DEMO_DCM_PEB')
+
+% --- Executes on button press in pushbutton200.
+function pushbutton200_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'DEMO_DCM_PEB_FIT')
+
+% --- Executes on button press in pushbutton201.
+function pushbutton201_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'DEMO_BAYES_FACTORS')
+
+% --- Executes on button press in pushbutton202.
+function pushbutton202_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'DEMO_Lindley_paradox')
+
+% --- Executes on button press in pushbutton203.
+function pushbutton203_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'DEMO_BMR_PEB')

@@ -13,7 +13,7 @@ function DEMO_Lindley_paradox(pC,hE,hC)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_Lindley_paradox.m 6481 2015-06-16 17:01:47Z karl $
+% $Id: DEMO_Lindley_paradox.m 6737 2016-03-03 12:05:51Z karl $
 
 
 % set up
@@ -41,11 +41,11 @@ M.hC = hC;
 
 % re-randomisation
 %--------------------------------------------------------------------------
-Ns   = 1e4;
+Ns   = 256;                       % number of samples
 pE   = M.pE;                      % full prior expectations
 pC   = M.pC;                      % full prior covariance
 rC   = pC;                        % restricted or reduced priors
-rC(1,1) = sigma_r^2;
+rC(1) = sigma_r^2;
 
 
 k     = (1:Ns) < Ns/2;            % null and alternative (prevalence)
@@ -98,8 +98,8 @@ for n = 1:length(N)
     EPR(n) = sum(T(j) > u)/length(j);
     EPV(n) = sum(T(i) > u)/sum(T > u);
     
-    fpr(n)  = sum(F(j) > 0)/length(j);
-    ppv(n)  = sum(F(i) > 0)/sum(F > 0);
+    fpr(n) = sum(F(j) > 0)/length(j);
+    ppv(n) = sum(F(i) > 0)/sum(F > 0);
    
     i      = find(T > u);
     Ep(n)  = mean(P(i));
@@ -119,9 +119,9 @@ end
 spm_figure('GetWin','Graphics_null');clf
 
 subplot(2,2,1)
-plot(N,(N*0 + 0.05),'--r'),  hold on
-plot(N,(N*0 + 0.80),'--b'),  hold on
-plot(N,FPR, 'r',N,fpr,'--r'), hold on
+plot(N,(N*0 + 0.05),'--r'),    hold on
+plot(N,(N*0 + 0.80),'--b'),    hold on
+plot(N,FPR, 'r',N,fpr,'--r'),  hold on
 plot(N,EPR,'g',N,EPV,'g'), hold on
 plot(N,PPV, 'b',N,ppv,'--b'), hold off
 xlabel('Number of samples'), ylabel('Probability')
@@ -155,7 +155,7 @@ Tq  = [Fq, ones(size(Fq))]*b;
 subplot(2,2,2)
 plot(F,T,'.b','Markersize',8), hold on
 plot(Fq,Tq,'b'), hold on
-plot([3 3],[0 16],':r'), hold on
+plot([3 3],[0 16],':r'),  hold on
 plot([0 0],[0 16],'--r'), hold on
 plot([-32, 32],[u u],':k'), hold off
 xlabel('Free energy difference'), ylabel('Classical F-ratio')

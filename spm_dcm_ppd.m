@@ -38,7 +38,7 @@ function [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,Y,X,field,iX)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ppd.m 6532 2015-08-23 13:59:19Z karl $
+% $Id: spm_dcm_ppd.m 6737 2016-03-03 12:05:51Z karl $
 
 
 % Set up
@@ -87,8 +87,9 @@ PEB   = spm_dcm_peb(TRAIN,M,field);
 nX    = size(X,2);               % number of explanatory variables
 bC    = var(X(:,iX))*4;
 bC    = sparse(iX,1,bC,nX,1);    % prior covariances (variables)
-M.X   = PEB.Ep;                  % emprical prior expectations
-M.rP  = spm_inv(PEB.Ce);         % emprical prior precision (parameters)
+M.X   = 1;                       % no between subject effects
+M.W   = PEB.Ep;                  % emprical prior expectations
+M.pC  = PEB.Ce;                  % emprical prior covariance (parameters)
 M.bE  = Y; M.bE(:,iX) = 0;       % prior expectation (variables)
 M.bC  = diag(bC + 1);            % prior covariances (variables)
 

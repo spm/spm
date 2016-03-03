@@ -23,7 +23,7 @@ function DEMO_BAYES_FACTORS(pC,hE,hC,N,b)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BAYES_FACTORS.m 6473 2015-06-04 19:05:05Z karl $
+% $Id: DEMO_BAYES_FACTORS.m 6737 2016-03-03 12:05:51Z karl $
 
 
 % set up

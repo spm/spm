@@ -1,4 +1,4 @@
-% function DEMO_DCM_PEB_FIT
+function DEMO_DCM_PEB_FIT
 % Test routine to check group DCM for electrophysiology
 %--------------------------------------------------------------------------
 % This routine illustrates the use of Bayesian model reduction when
@@ -8,9 +8,9 @@
 % with a nonlinear DCMs. The estimates are compared against standard
 % Bayesian model reduction, in terms of the subject specific estimates and
 % Bayesian model comparison  (and averages) at the between subject level.
-% % 
+%
 % This demo considers a single goup (e.g., of normal subjects) and the
-% differences between the group average using emprical Bayesian reduction  
+% differences between the group average using emprical Bayesian reduction
 % and the Bayesian reduction of the (grand) average response.
 %
 % See also: DEMO_DCM_PEB_REC.m
@@ -18,7 +18,7 @@
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB_FIT.m 6449 2015-05-24 14:26:59Z karl $
+% $Id: DEMO_DCM_PEB_FIT.m 6737 2016-03-03 12:05:51Z karl $
 
 
 % change to directory with empirical data
@@ -53,26 +53,26 @@ DCM.name             = 'DCM_GROUP';
 % model space - within subject effects
 %--------------------------------------------------------------------------
 b{1}  = [1 0 0 0 0;
-         0 1 0 0 0;
-         0 0 0 0 0;
-         0 0 0 0 0;
-         0 0 0 0 0]; % intrinsic lower
+    0 1 0 0 0;
+    0 0 0 0 0;
+    0 0 0 0 0;
+    0 0 0 0 0]; % intrinsic lower
 b{2}  = [0 0 0 0 0;
-         0 0 0 0 0;
-         0 0 1 0 0;
-         0 0 0 1 0;
-         0 0 0 0 0]; % intrinsic higher
+    0 0 0 0 0;
+    0 0 1 0 0;
+    0 0 0 1 0;
+    0 0 0 0 0]; % intrinsic higher
 b{3}  = [0 0 0 0 0;
-         0 0 0 0 0;
-         1 0 0 0 0;
-         0 1 0 0 0;
-         0 0 0 0 0]; % forward
+    0 0 0 0 0;
+    1 0 0 0 0;
+    0 1 0 0 0;
+    0 0 0 0 0]; % forward
 b{4}  = [0 0 1 0 0;
-         0 0 0 1 0;
-         0 0 0 0 0;
-         0 0 0 0 0;
-         0 0 0 0 0]; % and backward
-     
+    0 0 0 1 0;
+    0 0 0 0 0;
+    0 0 0 0 0;
+    0 0 0 0 0]; % and backward
+
 k     = spm_perm_mtx(length(b));
 for i = 1:size(k,1)
     B{i}  = zeros(size(b{1}));
@@ -124,9 +124,6 @@ DCM     = spm_dcm_erp(DCM);
 
 % create subject-specifc DCM
 %==========================================================================
-
-% create subject-specifc DCM
-%--------------------------------------------------------------------------
 DCM.options.DATA = 0;
 
 DCM   = spm_dcm_erp_dipfit(DCM,1);
@@ -176,9 +173,9 @@ end
 %--------------------------------------------------------------------------
 switch MODEL
     case{'CMC'}
-        GCM    = GCM(:,mw);
+        GCM = GCM(:,mw);
     otherwise
-        GCM    = GCM(:,1);
+        GCM = GCM(:,1);
 end
 
 % creative grand average
@@ -186,24 +183,19 @@ end
 clear y Tp Tg
 gcm   = GCM{1};
 for i = 1:Ns
-        y(:,i)  = spm_vec(GCM{i,1}.xY.y);
-        Tp(:,i) = spm_vec(GCM{i,1}.Tp);
-        Tg(:,i) = spm_vec(GCM{i,1}.Tg);
+    y(:,i)  = spm_vec(GCM{i,1}.xY.y);
+    Tp(:,i) = spm_vec(GCM{i,1}.Tp);
+    Tg(:,i) = spm_vec(GCM{i,1}.Tg);
 end
 
 % principal eigenvariates
 %--------------------------------------------------------------------------
-% [u s]    = spm_svd(y',0);
-% gcm.xY.y = spm_unvec(y*u(:,1),gcm.xY.y);
-
 gcm.xY.y = spm_unvec(mean(y,2),gcm.xY.y);
 gcm.Tp   = spm_unvec(mean(Tp,2),gcm.Tp);
 gcm.Tg   = spm_unvec(mean(Tg,2),gcm.Tg);
 
 % indices for plotting
 %--------------------------------------------------------------------------
-iP    = spm_find_pC(GCM{1},[],{'all'});
-Pstr  = spm_fieldindices(GCM{1}.Ep,iP);
 iAB   = spm_find_pC(GCM{1},[],{'A','B'});
 iA    = spm_find_pC(GCM{1},[],{'A'});
 iB    = spm_find_pC(GCM{1},[],{'B'});

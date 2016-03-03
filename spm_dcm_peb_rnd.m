@@ -41,7 +41,7 @@ function [p,P,f,F,X] = spm_dcm_peb_rnd(DCM,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_rnd.m 6557 2015-09-20 12:44:30Z karl $
+% $Id: spm_dcm_peb_rnd.m 6737 2016-03-03 12:05:51Z karl $
 
 
 % Set up
@@ -88,7 +88,7 @@ BMC = spm_dcm_bmc_peb(DCM,M,field);
 G   = BMC.F;
 f   = spm_softmax(G');
 f   = sum(f(j,:),1);
-G   = log(f/(1 - f));
+G   = log(f/(1 - f + exp(-16)));
 
 p   = (sum(F > G) + 1)/(N + 1);
 r   = sort(F);

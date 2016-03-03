@@ -38,7 +38,7 @@ function DEMO_GROUP_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_GROUP_PEB.m 6427 2015-05-05 15:42:35Z karl $
+% $Id: DEMO_GROUP_PEB.m 6737 2016-03-03 12:05:51Z karl $
 
 
 % set up
