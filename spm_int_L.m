@@ -58,7 +58,7 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 6720 2016-02-15 21:06:55Z karl $
+% $Id: spm_int_L.m 6738 2016-03-03 12:07:41Z karl $
  
  
 % convert U to U.u if necessary
@@ -89,19 +89,20 @@ catch
     f   = @(x,u,P,M) sparse(0,1);
     M.n = 0;
     M.x = sparse(0,0);
-    M.f = f;
 end
-
+M.f = f;
  
 % output nonlinearity, if specified
 %--------------------------------------------------------------------------
 try
-    g   = spm_funcheck(M.g);
+    g = spm_funcheck(M.g);
+    if isempty(g)
+        g  = @(x,u,P,M) x;
+    end
 catch
-    g   = @(x,u,P,M) x;
-    M.g = g;
+    g = @(x,u,P,M) x;
 end
-
+M.g = g;
 
 % dx(t)/dt and Jacobian df/dx and check for delay operator
 %--------------------------------------------------------------------------

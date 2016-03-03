@@ -37,7 +37,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 5586 2013-07-20 15:27:10Z karl $
+% $Id: spm_bireduce.m 6738 2016-03-03 12:07:41Z karl $
 
 
 % set up
@@ -140,7 +140,7 @@ if nargout < 4, return, end
 
 % Output matrices - L2
 %--------------------------------------------------------------------------
-dgdxx = spm_diff(fung,x,u,P,M,[1 1]);
+dgdxx = spm_diff(fung,x,u,P,M,[1 1],'nocat');
 for i = 1:l
     for j = 1:n
         D{i}(j,:) = dgdxx{j}(i,:);
