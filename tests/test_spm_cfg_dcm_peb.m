@@ -3,7 +3,7 @@ function tests = test_spm_cfg_dcm_peb
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_cfg_dcm_peb.m 6735 2016-03-02 15:40:47Z peter $
+% $Id: test_spm_cfg_dcm_peb.m 6739 2016-03-04 13:48:34Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -43,6 +43,7 @@ hC = 0.07;
 clear matlabbatch;
 matlabbatch{1}.spm.dcm.peb.specify.name = 'test';
 matlabbatch{1}.spm.dcm.peb.specify.model_space_mat = cellstr(GCM_file);
+matlabbatch{1}.spm.dcm.peb.specify.dcm.index = 1;
 matlabbatch{1}.spm.dcm.peb.specify.cov.regressor(1).name = 'c1';
 matlabbatch{1}.spm.dcm.peb.specify.cov.regressor(1).value = X(:,1);
 matlabbatch{1}.spm.dcm.peb.specify.cov.regressor(2).name = 'c2';
@@ -91,6 +92,7 @@ hC = 1/16;
 clear matlabbatch;
 matlabbatch{1}.spm.dcm.peb.specify.name = 'test';
 matlabbatch{1}.spm.dcm.peb.specify.model_space_mat = cellstr(GCM_file);
+matlabbatch{1}.spm.dcm.peb.specify.dcm.index = 1;
 matlabbatch{1}.spm.dcm.peb.specify.cov.regressor(1).name = 'c1';
 matlabbatch{1}.spm.dcm.peb.specify.cov.regressor(1).value = X(:,1);
 matlabbatch{1}.spm.dcm.peb.specify.cov.regressor(2).name = 'c2';
@@ -137,6 +139,7 @@ hC = 1/16;
 clear matlabbatch;
 matlabbatch{1}.spm.dcm.peb.specify.name = 'test';
 matlabbatch{1}.spm.dcm.peb.specify.model_space_mat = cellstr(GCM_file);
+matlabbatch{1}.spm.dcm.peb.specify.dcm.index = 1;
 matlabbatch{1}.spm.dcm.peb.specify.cov.regressor(1).name = 'c1';
 matlabbatch{1}.spm.dcm.peb.specify.cov.regressor(1).value = X(:,1);
 matlabbatch{1}.spm.dcm.peb.specify.cov.regressor(2).name = 'c2';

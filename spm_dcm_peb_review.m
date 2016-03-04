@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 6736 2016-03-03 11:51:18Z peter $
+% $Id: spm_dcm_peb_review.m 6739 2016-03-04 13:48:34Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -45,7 +45,6 @@ if ~isempty(DCM) && ischar(DCM{1})
         DCM = [];
     end
 end
-
 
 % Correct BMA matrix size (Ep)
 np = length(PEB.Pnames); % Parameters
@@ -136,6 +135,7 @@ if effect > 0 && effect <= nc
     Ep = PEB.Ep(:,effect);
     Cp = diag(PEB.Cp);
     Cp = Cp(peb_param_idx);        
+    
 end
 
 % Posterior random effects variance
@@ -552,6 +552,12 @@ switch tag
         txt = {pname1;
                sprintf('DCM parameter %d',idx1); 
                sprintf('PEB parameter %d',peb_param_idx(idx1))};
+           
+        % Posterior probabilities
+        if isfield(xPEB.PEB,'Pp')
+            Pp = xPEB.PEB.Pp(peb_param_idx(idx1));
+            txt = vertcat(txt,sprintf('Posterior probability: %2.2f',Pp));
+        end
     case 'rfx'        
         pname1 = pname_to_string(Pnames{idx1}, region_names, input_names);
         pname2 = pname_to_string(Pnames{idx2}, region_names, input_names);        

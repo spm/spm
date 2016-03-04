@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6735 2016-03-02 15:40:47Z peter $
+% $Id: spm_cfg_dcm_peb.m 6739 2016-03-04 13:48:34Z peter $
 
 
 % =========================================================================
@@ -73,8 +73,9 @@ peb_mat.num     = [1 1];
 model_space_mat         = cfg_files;
 model_space_mat.tag     = 'model_space_mat';
 model_space_mat.name    = 'DCMs';
-model_space_mat.help    = {'Select group DCM file (GCM_*.mat) or one DCM ' ...
-                           'per subject'};
+model_space_mat.help    = {['Select group DCM file (GCM_*.mat). This is a ' ...
+                           'cell array with one row per subject and one ' ...
+                           'column per DCM.']};
 model_space_mat.filter  = 'mat';
 model_space_mat.ufilter = '^GCM.*\.mat$';
 model_space_mat.num     = [1 Inf];
@@ -229,7 +230,46 @@ fields.help   = {'Select the fields of the DCM to include in the model.' '' ...
                   'All: Includes all fields' ...
                   'Enter manually: Enter a cell array e.g. {''A'',''C''}'};
 fields.val    = {field_default};
-                       
+
+% =========================================================================
+% DCM model index selection
+% =========================================================================
+
+% ---------------------------------------------------------------------
+% dcm_all Select all DCMs
+% ---------------------------------------------------------------------
+dcm_all      = cfg_const;
+dcm_all.tag  = 'all';
+dcm_all.name = 'All';
+dcm_all.val  = {'All DCMs'};
+
+% ---------------------------------------------------------------------
+% dcm_idx Single DCM index selection
+% ---------------------------------------------------------------------
+dcm_sel_idx  = cfg_entry;
+dcm_sel_idx.name = 'Selected DCM index';
+dcm_sel_idx.tag  = 'index';
+dcm_sel_idx.help = {['Select index of the DCM (within subject) on which to ' ...
+                 'to build the PEB - e.g. 1 to use each subject''s ' ...
+                 'first DCM.']};
+dcm_sel_idx.strtype = 'r';
+dcm_sel_idx.num     = [1 Inf];
+
+% ---------------------------------------------------------------------
+% dcms Which DCMs to include
+% ---------------------------------------------------------------------
+dcm_idx_1     = dcm_sel_idx;
+dcm_idx_1.val = {1};
+
+dcm_idx         = cfg_choice;
+dcm_idx.tag    = 'dcm';
+dcm_idx.name   = 'DCM index';
+dcm_idx.values = {dcm_idx_1 dcm_all};
+dcm_idx.help   = {['If each subject has multiple DCMs, select which DCM to use ' ...
+                  'for this analysis (or select all). For a standard PEB ' ... 
+                  'analysis, it is recommended to specify the PEB over the ' ...
+                  'first DCM only, then compare models at the second level.']};
+dcm_idx.val    = {dcm_idx_1};
            
 % =========================================================================
 % Priors on log precision (between-subjects variability) entry
@@ -320,7 +360,7 @@ sr.val = {0};
 specify      = cfg_exbranch;
 specify.tag  = 'specify';
 specify.name = 'Specify / Estimate PEB';
-specify.val  = { name model_space_mat covariates fields ...
+specify.val  = { name model_space_mat dcm_idx covariates fields ...
                  priors_between sr };
 specify.help = {['Specifies and estimates a second-level DCM (PEB) model. ' ...
                  'A PEB model will be created for each first level DCM.' ]};
@@ -385,13 +425,37 @@ review.help = {'Reviews PEB results'};
 review.prog = @spm_run_dcm_peb_review;
 
 % =========================================================================
+% PREDICT leave-one-out cross validation
+% =========================================================================
+
+covariates_min1 = covariates;
+covariates_min1.val{1} = covariates_min1.values{2};
+covariates_min1.values(1) = [];
+
+predict      = cfg_exbranch;
+predict.tag  = 'predict';
+predict.name = 'Predict (cross-validation)';
+predict.val  = { name model_space_mat dcm_idx covariates_min1 fields ...
+                 priors_between };
+predict.help = {['Builds a PEB model on all but one subjects, and uses ' ...
+                 'it to predict a between-subjects effect, such as ' ...
+                 'group membership, in the remaining subject. This process ' ...
+                 'is repeated, leaving out each subject in turn ' ...
+                 '(leave-one-out cross-validation) to establish the cross- ' ...
+                 'validation accuracy of the model.'] ...
+                 ['The first covariate (after the automatically inserted ' ...
+                  'mean regressor) is used as the predictor variable.']};            
+predict.prog = @spm_run_dcm_loo;
+specify.vout = @vout_loo;
+
+% =========================================================================
 % second_level Second level DCM batch
 % =========================================================================
 second_level         = cfg_choice; 
 second_level.tag     = 'peb';
 second_level.name    = 'Second level';
 second_level.help    = {'Parametric Empirical Bayes for DCM'};
-second_level.values  = { specify peb_compare reduce_all review };
+second_level.values  = { specify peb_compare reduce_all review predict };
 
 %==========================================================================
 function dep = vout_bma(varargin)
@@ -402,12 +466,21 @@ dep(1).src_output = substruct('.','bmamat');
 dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
 
 %==========================================================================
+function dep = vout_loo(varargin)
+%==========================================================================
+dep(1)            = cfg_dep;
+dep(1).sname      = 'LOO mat File(s)';
+dep(1).src_output = substruct('.','loo_mat');
+dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+
+%==========================================================================
 function dep = vout_peb(varargin)
 %==========================================================================
 dep(1)            = cfg_dep;
 dep(1).sname      = 'PEB mat File(s)';
 dep(1).src_output = substruct('.','peb_mat');
 dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+
 
 %==========================================================================
 function out = spm_run_dcm_peb_review(job)
@@ -422,6 +495,47 @@ out = job.peb_mat;
 function out = spm_run_create_peb(job)
 %==========================================================================
 % Run the PEB specification / estimation batch
+
+[GCM,M,field,gcm_file] = prepare_peb_inputs(job);
+    
+% Specify / estimate PEB on full model only
+dir_out = fileparts(gcm_file);
+name    = job.name;    
+PEB     = spm_dcm_peb(GCM,M,field);
+
+% Write PEB
+peb_filename = fullfile(dir_out,['PEB_' name '.mat']);
+save(peb_filename,'PEB');
+
+% Review PEB
+if job.show_review == 1
+    spm_dcm_peb_review(peb_filename,GCM);
+end
+
+out.peb_mat = {peb_filename};
+
+%==========================================================================
+function out = spm_run_dcm_loo(job)
+%==========================================================================
+% Run leave-one-out cross validation
+
+[GCM,M,field,gcm_file] = prepare_peb_inputs(job);
+
+[qE,qC,Q] = spm_dcm_loo(GCM,M,field);
+
+% Write output
+dir_out      = fileparts(gcm_file);
+name         = job.name;    
+loo_filename = fullfile(dir_out,['LOO_' name '.mat']);
+
+save(loo_filename,'qE','qC','Q');
+
+out.loo_mat = {loo_filename};
+
+%==========================================================================
+function [GCM,M,field,gcm_file] = prepare_peb_inputs(job)
+%==========================================================================
+% Prepare the inputs needed to specify a PEB or run LOO
 
 [GCM,gcm_file] = load_dcm(job);
 
@@ -458,7 +572,7 @@ elseif isfield(job.cov, 'design_mtx')
     
     X = [X x];
     
-    Xnames = [Xnames job.cov.design_mtx.cov_name];
+    Xnames = [Xnames job.cov.design_mtx.name];
 elseif isfield(job.cov, 'regressor')
     % Design matrix entered per-regressor
     
@@ -488,7 +602,7 @@ end
 if size(X,2) ~= length(Xnames)
     error('Please ensure there is one covariate name per covariate');
 end
-    
+
 % Priors / covariance components
 M = struct();
 M.beta   = job.priors_between.ratio;
@@ -497,22 +611,6 @@ M.hC     = job.priors_between.var;
 M.Q      = 'single';
 M.X      = X;
 M.Xnames = Xnames;
-
-% Specify / estimate PEB on full model only
-dir_out = fileparts(gcm_file);
-name    = job.name;    
-PEB     = spm_dcm_peb(GCM(:,1),M,field);
-
-% Write PEB
-peb_filename = fullfile(dir_out,['PEB_' name '.mat']);
-save(peb_filename,'PEB');
-
-% Review PEB
-if job.show_review == 1
-    spm_dcm_peb_review(peb_filename,GCM);
-end
-
-out.peb_mat = {peb_filename};
 
 %==========================================================================
 function out = spm_run_bmr_all(job)
@@ -523,7 +621,7 @@ GCM = load_dcm(job);
 nm  = size(GCM,2);
 
 if nm ~= 1
-    warning('Running search on the full model only');        
+    disp('Running search on the full DCM only');        
 end
 
 GCM = GCM(:,1);
@@ -595,3 +693,9 @@ if ~isfield(GCM,'GCM')
     error('Provided file is not a valid model space');
 end
 GCM = GCM.GCM;
+
+% Limit to specific model(s) if requested
+if isfield(job,'dcm') && isfield(job.dcm,'index')
+    index = job.dcm.index;
+    GCM = GCM(:,index);
+end
