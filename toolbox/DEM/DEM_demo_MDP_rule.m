@@ -18,7 +18,7 @@ function MDP = DEM_demo_MDP_rule
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 6728 2016-02-20 18:07:58Z karl $
+% $Id: DEM_demo_MDP_rule.m 6740 2016-03-06 12:47:09Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -120,18 +120,18 @@ U(1,5,:)  = [1 1 4 2]';         % return and report green
 U(1,6,:)  = [1 1 4 3]';         % return and report blue
 
 
-% priors: (utility) C
+% priors: (utility) C; the agent expects to be right and not wrong
 %--------------------------------------------------------------------------
 for g = 1:Ng
     C{g}  = zeros(No(g),1);
 end
-C{3}(2,:) =  2;                 % the agent expects to be right
-C{3}(3,:) = -8;                 % and not wrong
-
+C{3} = [ 0  0  0  0  0 -8 -8;
+         0  0  0  0  0  0  0;
+        -2 -2 -2 -2 -2 -2 -2];
 
 % MDP Structure
 %--------------------------------------------------------------------------
-mdp.T = 5;                      % number of moves
+mdp.T = size(C{3},2);           % number of moves
 mdp.U = U;                      % allowable policies
 mdp.A = A;                      % observation model
 mdp.B = B;                      % transition probabilities
@@ -159,34 +159,22 @@ spm_MDP_VB_trial(MDP);
 spm_figure('GetWin','Figure 2'); clf
 spm_MDP_VB_LFP(MDP,[],1);
 
-
-return
-
 subplot(3,2,3)
-spm_MDP_search_plot(MDP)
+spm_MDP_rule_plot(MDP)
 
-
-
-
-
-% illustrate evidence accumulation and perceptual synthesis
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 3'); clf
-spm_MDP_search_percept(MDP)
-
-return
+% return
 
 % illustrate a sequence of trials
 %==========================================================================
+clear MDP
 
 % true initial states – with context change at trial 12
 %--------------------------------------------------------------------------
-clear MDP
-N      = 32;
+N      = 64;
 s(1,:) = ceil(rand(1,N)*3);
-s(2,:) = ceil(rand(1,N)*1);
-s(3,:) = ceil(rand(1,N)*2);
-s(4,:) = ceil(rand(1,N)*2);
+s(2,:) = ceil(rand(1,N)*3);
+s(3,:) = 4;
+s(4,:) = 4;
 
 for i = 1:N
     MDP(i)   = mdp;      % create structure array
@@ -200,316 +188,164 @@ MDP  = spm_MDP_VB_X(MDP);
 
 % illustrate behavioural responses and neuronal correlates
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 4'); clf
-spm_MDP_VB_game(MDP);
+spm_figure('GetWin','Figure 3'); clf
+    spm_MDP_VB_game(MDP);
+Q = spm_MDP_VB_game(MDP);
 
 % illustrate phase-amplitude (theta-gamma) coupling
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 5'); clf
+spm_figure('GetWin','Figure 4'); clf
 spm_MDP_VB_LFP(MDP(1:8));
 
 % illustrate behaviour in more detail
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 6'); clf;
-n     = 3;
-for i = 1:n*n
-    subplot(n,n,i), spm_MDP_search_plot(MDP(i));
+spm_figure('GetWin','Figure 5'); clf;
+for i = 1:min(N,15)
+    subplot(5,3,i), spm_MDP_rule_plot(MDP(i));
+    axis square
 end
 
 
-% illustrate the effects of epistemic and incentive salience
-%==========================================================================
-mdp.beta  = 1;
-mdp.T     = 8;                             % maximum number of saccades
 
-c     = (0:8)/8;
-c     = -4*c;
-for j = 1:length(c)
-    
-    % array of trials
-    %----------------------------------------------------------------------
-    clear MDP
-    for i = 1:N
-        MDP(i)           = mdp;            % create structure array
-        MDP(i).C{1}(6,:) = c(j);           % salience
-        MDP(i).s         = s(:,i);         % context
+% repeat with rule learning
+%==========================================================================
+for f1 = 1:Ns(1)                     % location of trgaet colour
+    for f2 = 1:Ns(2)                 % correct colour
+        for f3 = 1:Ns(3)             % location of fixation
+            for f4 = 1:Ns(3)         % decision
+                
+                % A{1} what: {'red','green','blue','null'}
+                %==========================================================
+                if f3 == 4, a{1}(4,f1,f2,f3,f4)  = 128;  end
+                if f3 == 2, a{1}(f1,f1,f2,f3,f4) = 128;  end
+                if f3 == 1
+                    a{1}(1:3,f1,f2,f3,f4) = 1;
+                end
+                if f3 == 3
+                    a{1}(1:3,f1,f2,f3,f4) = 1;
+                end
+                
+                
+            end
+        end
     end
-    
-    % solve and evaluate performance
-    %----------------------------------------------------------------------
-    MDP   = spm_MDP_VB_X(MDP);
-    for i = 1:N
-        o      = MDP(i).o(1,:);                       % outcomes
-        P(1,i) = double(any(o == 5) & ~any(o == 6));  % accuracy
-        P(2,i) = find([(o > 4), 1],1) - 1;            % number of saccades
-        P(3,i) = mean(MDP(i).rt);                     % reaction time
-    end
-    
-    % solve and evaluate performance
-    %----------------------------------------------------------------------
-    EQ(:,j) = mean(P,2);
+end
+mda      = mdp;
+mda.a{1} = a{1};
+mda.a{2} = mda.A{2}*128;
+mda.a{3} = mda.A{3}*128;
+
+mda.alpha = 8;
+
+
+% true initial states – with context change at trial 12
+%--------------------------------------------------------------------------
+clear MDP
+for i = 1:N
+    MDP(i)   = mda;      % create structure array
+    MDP(i).s = s(:,i);   % context
+end
+
+
+% Solve - an example sequence
+%==========================================================================
+MDP  = spm_MDP_VB_X(MDP);
+
+spm_figure('GetWin','Figure 6'); clf;
+for i = 1:min(N,15)
+    subplot(5,3,i), spm_MDP_rule_plot(MDP(i));
+    axis square
 end
 
 spm_figure('GetWin','Figure 7'); clf;
+spm_MDP_VB_trial(MDP(1));
 
-subplot(3,3,1), bar(-c,EQ(1,:)*100)
-xlabel('Prior preference'),ylabel('percent correct')
-title('Accuracy','Fontsize',16), axis square
 
-subplot(3,3,2), bar(-c,EQ(2,:))
-xlabel('Prior preference'),ylabel('number of saccades')
-title('Decision time','Fontsize',16), axis square
+spm_figure('GetWin','Figure 8'); clf;
+spm_MDP_A_plot(MDP(end).a);
 
-subplot(3,3,3), bar(-c,EQ(3,:))
-xlabel('Prior preference'),ylabel('saccade duration')
-title('Reaction time','Fontsize',16), axis square
 
-% now repeat but changing prior precision
-%--------------------------------------------------------------------------
-b     = (0:8)/8;
-b     = 1./(2*b + 1/8);
-for j = 1:length(b)
-    
-    % array of trials
-    %----------------------------------------------------------------------
-    clear MDP
-    for i = 1:N
-        MDP(i)      = mdp;               % create structure array
-        MDP(i).beta = b(j);              % prior (inverse) precision
-        MDP(i).s    = s(:,i);            % context
-    end
-    
-    % solve and evaluate performance
-    %----------------------------------------------------------------------
-    MDP   = spm_MDP_VB_X(MDP);
-    for i = 1:N
-        o      = MDP(i).o(1,:);                       % outcomes
-        P(1,i) = double(any(o == 5) & ~any(o == 6));  % accuracy
-        P(2,i) = find([(o > 4), 1],1) - 1;            % number of saccades
-        P(3,i) = mean(MDP(i).rt);                     % reaction time
-    end
-    
-    % solve and evaluate performance
-    %----------------------------------------------------------------------
-    EP(:,j) = mean(P,2);
-end
-
-subplot(3,3,4), bar(1./b,EP(1,:)*100)
-xlabel('Prior precision'),ylabel('percent correct')
-title('Accuracy','Fontsize',16), axis square
-
-subplot(3,3,5), bar(1./b,EP(2,:))
-xlabel('Prior precision'),ylabel('number of saccades')
-title('Decision time','Fontsize',16), axis square
-
-subplot(3,3,6), bar(1./b,EP(3,:))
-xlabel('Prior precision'),ylabel('saccade duration')
-title('Reaction time','Fontsize',16), axis square
+spm_figure('GetWin','Figure 9'); clf;
+P = spm_MDP_VB_game(MDP);
+subplot(2,1,1), plot(1:N,Q.p,1:N,P.p)
+xlabel('trial'),ylabel('Expected utility')
+title('Performance','Fontsize',16), set(gca,'YLim',[-8 -2]); axis square
+legend({'optimal','learned'})
 
 save
 
 return
 
-it
+function spm_MDP_A_plot(A)
+subplot(4,3,1),imagesc(squeeze(A{1}(:,1,:,1,4)));
+ylabel('rule left');title('sample left'), axis image
+subplot(4,3,2),imagesc(squeeze(A{1}(:,1,:,2,4)));
+ylabel('rule left');title('sample centre'), axis image
+subplot(4,3,3),imagesc(squeeze(A{1}(:,1,:,3,4)));
+ylabel('rule left');title('sample right'), axis image
+subplot(4,3,4),imagesc(squeeze(A{1}(:,2,:,1,4)));
+ylabel('rule centre');title('sample left'), axis image
+subplot(4,3,5),imagesc(squeeze(A{1}(:,2,:,2,4)));
+ylabel('rule centre');title('sample centre'), axis image
+subplot(4,3,6),imagesc(squeeze(A{1}(:,2,:,3,4)));
+ylabel('rule centre');title('sample right'), axis image
+subplot(4,3,7),imagesc(squeeze(A{1}(:,3,:,1,4)));
+ylabel('rule right');title('sample left'), axis image
+subplot(4,3,8),imagesc(squeeze(A{1}(:,3,:,2,4)));
+ylabel('rule right');title('sample centre'), axis image
+subplot(4,3,9),imagesc(squeeze(A{1}(:,3,:,3,4)));
+ylabel('rule right');title('sample  right'), axis image
 
 
-function spm_MDP_search_plot(MDP)
+return
+
+function spm_MDP_rule_plot(MDP)
 % illustrates visual search graphically
 %--------------------------------------------------------------------------
 
 % locations
 %--------------------------------------------------------------------------
-x = [0,0;-1 -1; -1 1; 1 -1;1 1;-1,2.5;0,2.5;1,2.5];
-y = x + 1/4;
-r = [-1,1]/2;
+x{1} = [-1  0; 0  1; 1  0; 0  0];
+x{2} = [-1 -1; 0 -1; 1 -1; 0 -2]/2;
+col  = {'r','g','b','c'};
+
 
 % plot cues
 %--------------------------------------------------------------------------
 if strcmp('replace',get(gca,'Nextplot'))
     
-    % load images
+    % plot cues
     %----------------------------------------------------------------------
-    load MDP_search_graphics
-    null = zeros(size(bird)) + 1;
-    f    = MDP.s(:,1);
-    
-    % latent cues for this hidden state
-    %----------------------------------------------------------------------
-    if f(1) == 1, a = {'bird','cats';'null','null'}; end
-    if f(1) == 2, a = {'bird','seed';'null','null'}; end
-    if f(1) == 3, a = {'bird','null';'null','seed'}; end
-    
-    % flip cues according to hidden (invariants) states
-    %----------------------------------------------------------------------
-    if f(3) == 2, a = flipud(a); end
-    if f(4) == 2, a = fliplr(a); end
-    
-    for i = 1:numel(a)
-        image(r + x(i + 1,1),r + x(i + 1,2),eval(a{i})), hold on
+    s     = MDP.s;hold off
+    for i = 1:length(MDP.D{3})
+        a = MDP.A{1}(:,s(1),s(2),i,1);
+        j = find(rand < cumsum(a),1);
+        plot(x{1}(i,1),x{1}(i,2),['.',col{j}],'MarkerSize',32), hold on
     end
     
-    % choices
+    % plot choices
     %----------------------------------------------------------------------
-    choice = {'flee','feed','wait'};
-    for i = 1:3
-        if i == f(1)
-            text(i - 2,2.5,choice{i},'FontWeight','Bold','color','red')
-        else
-            text(i - 2,2.5,choice{i})
+    for i = 1:length(MDP.D{4})
+        a = find(MDP.A{3}(:,s(1),s(2),4,i));
+        if a == 2
+            plot(x{2}(i,1),x{2}(i,2),['.m'],'MarkerSize',32), hold on
         end
-        
+        plot(x{2}(i,1),x{2}(i,2),['.',col{i}],'MarkerSize',16), hold on
+
     end
-    axis image, axis([-2,2,-2,3])
+    axis([-2 2 -2 2]);
     
-    % labels
-    %----------------------------------------------------------------------
-    for i = 1:size(x,1)
-        text(y(i,1),y(i,2),num2str(i),'FontSize',12,'FontWeight','Bold','color','g')
-    end
 end
 
-% Extract and plot eye movements
+% Extract and plot eye movements and choice
 %--------------------------------------------------------------------------
 for i = 1:numel(MDP.o(2,:))
-    X(i,:) = x(MDP.o(2,i),:);
+    X(i,:) = x{1}(MDP.o(2,i),:);
 end
-for j = 1:2
-    T(:,j) = interp(X(:,j),8,2);
-    T(:,j) = T(:,j) + spm_conv(randn(size(T(:,j))),2)/16;
+plot(X(:,1),X(:,2),'k')
+for i = 1:numel(MDP.s(4,:))
+    X(i,:) = x{2}(MDP.s(4,i),:);
 end
-plot(T(:,1),T(:,2),'b:')
-plot(X(:,1),X(:,2),'b.','MarkerSize',8)
+plot(X(:,1),X(:,2),'k')
+axis([-2 2 -2 2]);
 
-function spm_MDP_search_percept(MDP)
-% illustrates visual search graphically
-%--------------------------------------------------------------------------
-
-% load images
-%--------------------------------------------------------------------------
-load MDP_search_graphics
-clf
-
-null  = zeros(size(bird)) + 1;
-mask  = hamming(256);
-mask  = mask*mask';
-for i = 1:3
-    mask(:,:,i) = mask(:,:,1);
-end
-x     = [0,0;-1 -1; -1 1; 1 -1;1 1;-1,2.5;0,2.5;1,2.5];
-r     = [-1,1]/2;
-try
-    d = MDP.D;
-catch
-    d = MDP.d;
-end
-Nf    = numel(d);
-for f = 1:Nf
-    Ns(f) = numel(d{f});
-end
-
-% plot cues
-%--------------------------------------------------------------------------
-Ni    = 1:size(MDP.xn{1},1);
-Nx    = length(Ni);
-Ne    = find([MDP.o(1,:) > 4,1],1) - 1;
-for k = 1:Ne
-    for i = 1:Nx
-        
-        % movie over peristimulus time
-        %------------------------------------------------------------------
-        subplot(2,1,1)
-        for j = 1:4
-            S{j} = zeros(size(bird));
-        end
-        for f1 = 1:Ns(1)
-            for f2 = 1:Ns(2)
-                for f3 = 1:Ns(3)
-                    for f4 = 1:Ns(4)
-                        
-                        % latent cues for this hidden state
-                        %--------------------------------------------------
-                        if f1 == 1, a = {'bird','cats';'null','null'}; end
-                        if f1 == 2, a = {'bird','seed';'null','null'}; end
-                        if f1 == 3, a = {'bird','null';'null','seed'}; end
-                        
-                        % flip cues according to hidden (invariants) states
-                        %--------------------------------------------------
-                        if f3 == 2, a = flipud(a); end
-                        if f4 == 2, a = fliplr(a); end
-                        
-                        % mixture
-                        %--------------------------------------------------
-                        p     = MDP.xn{1}(Ni(i),f1,1,k)*MDP.xn{3}(Ni(i),f3,1,k)*MDP.xn{4}(Ni(i),f4,1,k);
-                        for j = 1:4
-                            S{j} = S{j} + eval(a{j})*p;
-                        end
-                    end
-                end
-            end
-        end
-        
-        % image
-        %------------------------------------------------------------------
-        hold off
-        for j = 1:numel(S)
-            imagesc(r + x(j + 1,1),r + x(j + 1,2),S{j}/max(S{j}(:))), hold on
-        end
-        
-        % stimulus
-        %------------------------------------------------------------------
-        d   = (1 - exp(1 - i));
-        if     MDP.o(1,k) == 1
-            imagesc(r,r,null.*mask*d)
-        elseif MDP.o(1,k) == 2
-            imagesc(r,r,bird.*mask*d)
-        elseif MDP.o(1,k) == 3
-            imagesc(r,r,seed.*mask*d)
-        elseif MDP.o(1,k) == 4
-            imagesc(r,r,cats.*mask*d)
-        end
-        
-        % save
-        %------------------------------------------------------------------
-        axis image, axis([-2,2,-2,2]), drawnow
-        M((k - 1)*Nx + i) = getframe(gca);
-        
-    end
-    
-    
-    % static pictures
-    %----------------------------------------------------------------------
-    subplot(2,Ne,Ne + k),hold off
-    for j = 1:numel(S)
-        imagesc(r + x(j + 1,1),r + x(j + 1,2),S{j}/max(S{j}(:))), hold on
-    end
-    
-    % stimulus
-    %------------------------------------------------------------------
-    if     MDP.o(1,k) == 1
-        imagesc(r,r,null.*mask)
-    elseif MDP.o(1,k) == 2
-        imagesc(r,r,bird.*mask)
-    elseif MDP.o(1,k) == 3
-        imagesc(r,r,seed.*mask)
-    elseif MDP.o(1,k) == 4
-        imagesc(r,r,cats.*mask)
-    end
-    
-    for j = 1:k
-        X(j,:) = x(MDP.o(2,j),:);
-    end
-    plot(X(:,1),X(:,2),'b.','MarkerSize',8)
-    
-    % save
-    %------------------------------------------------------------------
-    axis image, axis([-2,2,-2,2]), drawnow
-    
-end
-
-% Extract and plot eye movements
-%--------------------------------------------------------------------------
-subplot(2,1,1)
-set(gca,'Userdata',{M,16})
-set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
-title('Scene construction','FontSize',16)
-title('Percept (click axis for movie)')

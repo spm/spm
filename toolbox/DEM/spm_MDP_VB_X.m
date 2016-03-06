@@ -19,17 +19,18 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % optional:
 % MDP.s(F,T)            - vector of true states - for each hidden factor
 % MDP.o(G,T)            - vector of outcome     - for each outcome modality
-% MDP.u(F,T - 1)        - vector of action      - for each hidden factor
+% MDP.u(F,T - 1)        - vector of actions     - for each hidden factor
 % MDP.w(1,T)            - vector of precisions
 %
 % MDP.alpha             - precision – action selection [16]
 % MDP.beta              - precision over precision (Gamma hyperprior - [1])
+% MDP.tau               - time constant  for gradient descents
 %
 % OPTIONS.plot          - switch to suppress graphics: (default: [0])
 %
 % produces:
 %
-% MDP.P(M1,...,MF,T)    - probability of emitting action over time
+% MDP.P(M1,...,MF,T)    - probability of emitting action M1,.. over time
 % MDP.Q{F}(NF,T,P)      - expected hidden states under each policy
 % MDP.X{F}(NF,T)        - and Bayesian model averages over policies
 % MDP.R(P,T)            - conditional expectations over policies
@@ -42,7 +43,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %
 % This routine provides solutions of active inference (minimisation of
 % variational free energy) using a generative model based upon a Markov
-% decision process. This model and inference scheme is formulated
+% decision process. The model and inference scheme is formulated
 % in discrete space and time. This means that the generative model (and
 % process) are  finite state machines or hidden Markov models whose
 % dynamics are given by transition probabilities among states and the
@@ -89,7 +90,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6729 2016-02-21 15:40:48Z karl $
+% $Id: spm_MDP_VB_X.m 6740 2016-03-06 12:47:09Z karl $
 
 
 % deal with a sequence of trials
@@ -149,12 +150,12 @@ end
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
-Nf  = numel(MDP.B);                 % number of hidden state factors
 Ng  = numel(MDP.A);                 % number of outcome factors
+Nf  = numel(MDP.B);                 % number of hidden state factors
 Np  = size(V,2);                    % number of allowable policies
 for f = 1:Nf
-    Nu(f) = size(MDP.B{f},3);       % number of hidden controls
     Ns(f) = size(MDP.B{f},1);       % number of hidden states
+    Nu(f) = size(MDP.B{f},3);       % number of hidden controls
 end
 for g = 1:Ng
     No(g) = size(MDP.A{g},1);       % number of outcomes
@@ -170,14 +171,18 @@ q0  = 1/16;                         % smallest probability
 %--------------------------------------------------------------------------
 for g = 1:Ng
     
-    A{g}  = spm_norm(MDP.A{g});
+    MDP.A{g}  = spm_norm(MDP.A{g});
     
     % parameters (concentration parameters): A
     %----------------------------------------------------------------------
     if isfield(MDP,'a')
+        A{g}  = spm_norm(MDP.a{g});
         qA{g} = spm_psi(MDP.a{g} + q0);
+        wA{g} = 1./spm_cum(MDP.a{g}) - 1./(MDP.a{g} + p0);
+        wA{g} = wA{g}.*(MDP.a{g} > 0);
     else
-        qA{g} = log(spm_norm(MDP.A{g} + p0));
+        A{g}  = MDP.A{g};
+        qA{g} = log(A{g} + p0);
     end
     
     % entropy
@@ -193,16 +198,16 @@ for f = 1:Nf
         
         % controlable transition probabilities
         %------------------------------------------------------------------
-        B{f}(:,:,j) = spm_norm(MDP.B{f}(:,:,j) + p0);
+        MDP.B{f}(:,:,j) = spm_norm(MDP.B{f}(:,:,j));
         
         % parameters (concentration parameters): B
         %------------------------------------------------------------------
         if isfield(MDP,'b')
-            sB{f}(:,:,j) = spm_norm((MDP.b{f}(:,:,j) + q0) );
-            rB{f}(:,:,j) = spm_norm((MDP.b{f}(:,:,j) + q0)');
+            sB{f}(:,:,j) = spm_norm((MDP.b{f}(:,:,j) + p0) );
+            rB{f}(:,:,j) = spm_norm((MDP.b{f}(:,:,j) + p0)');
         else
-            sB{f}(:,:,j) = spm_norm(B{f}(:,:,j) );
-            rB{f}(:,:,j) = spm_norm(B{f}(:,:,j)');
+            sB{f}(:,:,j) = spm_norm(MDP.B{f}(:,:,j)  + p0);
+            rB{f}(:,:,j) = spm_norm(MDP.B{f}(:,:,j)' + p0);
         end
         
     end
@@ -244,6 +249,7 @@ end
 try, alpha = MDP.alpha; catch, alpha = 16; end
 try, beta  = MDP.beta;  catch, beta  = 1;  end
 try, tau   = MDP.tau;   catch, tau   = 1;  end
+
 % initialise
 %--------------------------------------------------------------------------
 Ni    = 16;                         % number of VB iterations
@@ -303,7 +309,7 @@ for t = 1:T
     %----------------------------------------------------------------------
     tstart = tic;
     for f = 1:Nf
-        x{f} = spm_softmax(log(x{f})/2);
+        x{f} = spm_softmax(log(x{f})/4);
     end
     
     % Variational updates (hidden states) under sequential policies
@@ -369,19 +375,29 @@ for t = 1:T
     for k = p
         for j = 1:S
             xq    = cell(1,Nf);
-            ind   = 1:Nf;
             for f = 1:Nf
-                xq{f}  = x{f}(:,j,k);
+                xq{f} = x{f}(:,j,k);
             end
+            
             for g = 1:Ng
-                qo     = spm_dot(A{g},xq,ind + 1);
+                
+                % uncertainty about outcomes
+                %----------------------------------------------------------
+                qo     = spm_dot(A{g},xq,(1:Nf) + 1);
                 Q(k,j) = Q(k,j) + qo'*(Vo{g}(:,j) - log(qo + p0));
-                Q(k,j) = Q(k,j) + spm_dot(H{g},xq,ind);
+                Q(k,j) = Q(k,j) + spm_dot(H{g},xq,1:Nf);
+                
+                % uncertainty about parameters
+                %----------------------------------------------------------
+                if isfield(MDP,'a')
+                    Q(k,j) = Q(k,j) - spm_dot(wA{g},[qo xq],1:(Nf + 1));
+                end
+                
             end
             
         end
     end
-        
+    
     % eliminate unlikely policies
     %----------------------------------------------------------------------
     SF = sum(F,2);
@@ -443,7 +459,7 @@ for t = 1:T
         %------------------------------------------------------------------
         up    = unique(shiftdim(V(t,p,:),1),'rows');
         
-        % predicted hidden statesat the next time step
+        % predicted hidden states at the next time step
         %------------------------------------------------------------------
         ind   = 1:Nf;
         for f = 1:Nf
@@ -456,7 +472,7 @@ for t = 1:T
         for i = 1:size(up,1)
             
             for f = 1:Nf
-                xq{f} = B{f}(:,:,up(i,f))*X{f}(:,t);
+                xq{f} = sB{f}(:,:,up(i,f))*X{f}(:,t);
             end
             
             % accumulate action potential over outcomes
@@ -465,8 +481,8 @@ for t = 1:T
                 
                 % predicted outcome
                 %----------------------------------------------------------
-                po = spm_dot(A{g},xp,ind + 1);
-                qo = spm_dot(A{g},xq,ind + 1);
+                po = spm_dot(MDP.A{g},xp,ind + 1);
+                qo = spm_dot(MDP.A{g},xq,ind + 1);
                 dP = (log(po + p0) - log(qo + p0))'*qo;
                 
                 % augment action potential
@@ -498,7 +514,7 @@ for t = 1:T
             s(:,t + 1) = MDP.s(:,t + 1);
         catch
             for f = 1:Nf
-                s(f,t + 1) = find(rand < cumsum(B{f}(:,s(f,t),a(f,t))),1);
+                s(f,t + 1) = find(rand < cumsum(MDP.B{f}(:,s(f,t),a(f,t))),1);
             end
         end
         
@@ -509,7 +525,7 @@ for t = 1:T
         catch
             for g = 1:Ng
                 ind        = num2cell(s(:,t + 1));
-                o(g,t + 1) = find(rand < cumsum(A{g}(:,ind{:})),1);
+                o(g,t + 1) = find(rand < cumsum(MDP.A{g}(:,ind{:})),1);
             end
         end
         
@@ -533,7 +549,7 @@ for t = 1:T
             %--------------------------------------------------------------
             for f = 1:Nf
                 for k = 1:Np
-                    x{f}(:,1:t,k) = x{f}(:,1:t,a(f,t));
+                    x{f}(:,:,k) = x{f}(:,:,a(f,t));
                 end
             end
             
@@ -635,6 +651,19 @@ for i = 1:size(A,2)
         for k = 1:size(A,4)
             for l = 1:size(A,5)
                 A(:,i,j,k,l) = A(:,i,j,k,l)/sum(A(:,i,j,k,l),1);
+            end
+        end
+    end
+end
+
+function A = spm_cum(A)
+% summation of a probability transition matrix (columns)
+%--------------------------------------------------------------------------
+for i = 1:size(A,2)
+    for j = 1:size(A,3)
+        for k = 1:size(A,4)
+            for l = 1:size(A,5)
+                A(:,i,j,k,l) = sum(A(:,i,j,k,l),1);
             end
         end
     end
