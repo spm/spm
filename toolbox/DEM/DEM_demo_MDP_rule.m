@@ -18,13 +18,14 @@ function MDP = DEM_demo_MDP_rule
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 6740 2016-03-06 12:47:09Z karl $
+% $Id: DEM_demo_MDP_rule.m 6741 2016-03-07 10:32:29Z karl $
 
 % set up and preliminaries
 %==========================================================================
 
 % second level (semantic)
 %==========================================================================
+rng('default')
 
 % prior beliefs about initial states (in terms of counts_: D and d
 %--------------------------------------------------------------------------
@@ -127,7 +128,7 @@ for g = 1:Ng
 end
 C{3} = [ 0  0  0  0  0 -8 -8;
          0  0  0  0  0  0  0;
-        -2 -2 -2 -2 -2 -2 -2];
+        -4 -4 -4 -4 -4 -4 -4];
 
 % MDP Structure
 %--------------------------------------------------------------------------
@@ -170,7 +171,7 @@ clear MDP
 
 % true initial states – with context change at trial 12
 %--------------------------------------------------------------------------
-N      = 64;
+N      = 32;
 s(1,:) = ceil(rand(1,N)*3);
 s(2,:) = ceil(rand(1,N)*3);
 s(3,:) = 4;
@@ -235,8 +236,6 @@ mda.a{1} = a{1};
 mda.a{2} = mda.A{2}*128;
 mda.a{3} = mda.A{3}*128;
 
-mda.alpha = 8;
-
 
 % true initial states – with context change at trial 12
 %--------------------------------------------------------------------------
@@ -253,7 +252,7 @@ MDP  = spm_MDP_VB_X(MDP);
 
 spm_figure('GetWin','Figure 6'); clf;
 for i = 1:min(N,15)
-    subplot(5,3,i), spm_MDP_rule_plot(MDP(i));
+    subplot(5,3,i), spm_MDP_rule_plot(MDP(i + N - min(N,15)));
     axis square
 end
 

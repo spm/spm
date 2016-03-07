@@ -90,7 +90,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6740 2016-03-06 12:47:09Z karl $
+% $Id: spm_MDP_VB_X.m 6741 2016-03-07 10:32:29Z karl $
 
 
 % deal with a sequence of trials
@@ -569,7 +569,9 @@ for t = 1:T
             for  f = 1:Nf
                 da = spm_cross(da,X{f}(:,t));
             end
-            MDP.a{g} = MDP.a{g} + da.*(MDP.a{g} > 0);
+            da       = da.*(MDP.a{g} > 0);
+            MDP.a{g} = MDP.a{g} + da;
+            MDP.Fa   = spm_vec(da)'*spm_vec(qA{g}) - sum(spm_vec(spm_betaln(MDP.a{g})));
         end
     end
     
@@ -611,6 +613,11 @@ for f = 1:Nf
     end
 end
 
+% evaluate free energy
+%==========================================================================
+MDP.Fu   = qu'*log(qu);
+MDP.Fs   = qu'*(- gu(t)*SQ(p) - SF(p));
+MDP.Fg   = beta*gu(t) - log(gu(t));
 
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------
@@ -630,6 +637,7 @@ MDP.xn  = Xn;             % simulated neuronal encoding of hidden states
 MDP.wn  = wn;             % simulated neuronal encoding of precision
 MDP.dn  = dn;             % simulated dopamine responses (deconvolved)
 MDP.rt  = rt;             % simulated reaction time
+
 
 % plot
 %==========================================================================
