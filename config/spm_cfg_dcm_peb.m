@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6739 2016-03-04 13:48:34Z peter $
+% $Id: spm_cfg_dcm_peb.m 6743 2016-03-10 15:07:48Z vladimir $
 
 
 % =========================================================================
@@ -302,6 +302,17 @@ priors_log_precision_var.num     = [1 1];
 priors_log_precision_var.val     = {1/16};
 
 % ---------------------------------------------------------------------
+% group priors_parameters_ratio Priors on log precision variance
+% ---------------------------------------------------------------------
+group_priors_parameters_ratio  = cfg_entry;
+group_priors_parameters_ratio.name = 'Group ratio';
+group_priors_parameters_ratio.tag  = 'group_ratio';
+group_priors_parameters_ratio.help = {'M.alpha'};
+group_priors_parameters_ratio.strtype = 'r';
+group_priors_parameters_ratio.num     = [1 1];
+group_priors_parameters_ratio.val     = {1};
+
+% ---------------------------------------------------------------------
 % priors_parameters_ratio Priors on log precision variance
 % ---------------------------------------------------------------------
 priors_parameters_ratio  = cfg_entry;
@@ -326,7 +337,8 @@ priors_parameters_ratio.val     = {16};
 priors_between         = cfg_branch;
 priors_between.tag     = 'priors_between';
 priors_between.name    = 'Between-subjects variability';
-priors_between.val     = { priors_parameters_ratio ...
+priors_between.val     = { group_priors_parameters_ratio...
+                           priors_parameters_ratio ...
                            priors_log_precision_mu ...
                                  priors_log_precision_var};
 priors_between.help    = {['Between-subjects variability over second-' ...
@@ -605,6 +617,7 @@ end
 
 % Priors / covariance components
 M = struct();
+M.alpha  = job.group_priors_between.ratio;
 M.beta   = job.priors_between.ratio;
 M.hE     = job.priors_between.expectation;
 M.hC     = job.priors_between.var;
