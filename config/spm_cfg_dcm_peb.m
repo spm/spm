@@ -1,15 +1,15 @@
 function second_level = spm_cfg_dcm_peb
 % SPM Configuration file for second-level DCM (PEB)
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6743 2016-03-10 15:07:48Z vladimir $
+% $Id: spm_cfg_dcm_peb.m 6745 2016-03-10 18:21:32Z guillaume $
 
 
-% =========================================================================
+%==========================================================================
 % Directory / filename selection
-% =========================================================================
+%==========================================================================
 
 %--------------------------------------------------------------------------
 % dir Directory
@@ -22,7 +22,7 @@ dir.filter  = 'dir';
 dir.ufilter = '.*';
 dir.num     = [1 1];
 
-% -------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % name Model name
 %--------------------------------------------------------------------------
 name         = cfg_entry;
@@ -32,13 +32,13 @@ name.help    = {'Specify a name for the output'};
 name.strtype = 's';
 name.num     = [0 Inf];
 
-% =========================================================================
+%==========================================================================
 % DCM / PEB file selection
-% =========================================================================
+%==========================================================================
 
-% -------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
-% -------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 dcmmat         = cfg_files;
 dcmmat.tag     = 'dcmmat';
 dcmmat.name    = 'Select DCM files';
@@ -47,7 +47,7 @@ dcmmat.filter  = 'mat';
 dcmmat.ufilter = '^DCM_.*\.mat$';
 dcmmat.num     = [1 Inf];
 
-% -------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % subj Create single subject
 %--------------------------------------------------------------------------
 subj      = cfg_branch;
@@ -56,9 +56,9 @@ subj.name = 'Subject';
 subj.val  = {dcmmat};
 subj.help = {'Subject with one or more models.'};
     
-% -------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % peb_mat Select PEB_*.mat
-% -------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 peb_mat         = cfg_files;
 peb_mat.tag     = 'peb_mat';
 peb_mat.name    = 'Select PEB file';
@@ -67,9 +67,9 @@ peb_mat.filter  = 'mat';
 peb_mat.ufilter = '^PEB_.*\.mat$';
 peb_mat.num     = [1 1];
 
-% -------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % peb_mat Select model_space_*.mat
-% -------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 model_space_mat         = cfg_files;
 model_space_mat.tag     = 'model_space_mat';
 model_space_mat.name    = 'DCMs';
@@ -80,13 +80,13 @@ model_space_mat.filter  = 'mat';
 model_space_mat.ufilter = '^GCM.*\.mat$';
 model_space_mat.num     = [1 Inf];
 
-% =========================================================================
+%==========================================================================
 % Covariates entry
-% =========================================================================
+%==========================================================================
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % design Design matrix
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 cov_design         = cfg_entry;
 cov_design.tag     = 'cov_design';
 cov_design.name    = 'Design matrix';
@@ -97,9 +97,9 @@ cov_design.help    = {['Enter or paste the N x C design matrix for N ' ...
 cov_design.strtype = 'r';
 cov_design.num     = [Inf Inf];
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % cov_name Name for a column in the design matrix
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 cov_name         = cfg_entry;
 cov_name.tag     = 'name';
 cov_name.name    = 'Name';
@@ -107,29 +107,29 @@ cov_name.help    = {'Enter a name for a covariate'};
 cov_name.strtype = 's';
 cov_name.num     = [0 Inf];
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % cov_names Contains the names for the covariates
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 cov_names         = cfg_repeat;
 cov_names.tag     = 'names';
 cov_names.name    = 'Covariate names';
 cov_names.values  = { cov_name };
 cov_names.num     = [0 Inf];
-cov_names.help   = {['Enter names for each covariate (excluding the mean ' ...
+cov_names.help    = {['Enter names for each covariate (excluding the mean ' ...
                      'regressor which is added automatically).']};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % design_mtx Specify whole design matrix 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 design_mtx         = cfg_branch;
 design_mtx.tag     = 'design_mtx';
 design_mtx.name    = 'Specify design matrix';
 design_mtx.val     = { cov_design cov_names };
 design_mtx.help    = {'Specify the second-level design matrix.'};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % cov_val Value
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 cov_val         = cfg_entry;
 cov_val.tag     = 'value';
 cov_val.name    = 'Value';
@@ -138,18 +138,18 @@ cov_val.help    = {'Enter the vector of regressor values, one element ' ...
 cov_val.strtype = 'r';
 cov_val.num     = [Inf 1];
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % covariate A single covariate
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 regressor         = cfg_branch;
 regressor.tag     = 'regressor';
 regressor.name    = 'Covariate';
 regressor.val     = {cov_name cov_val };
 regressor.help    = {'regressor'};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % covariate Specify design matrix per covariate
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 regressors         = cfg_repeat;
 regressors.tag     = 'regressors';
 regressors.name    = 'Specify covariates individually';
@@ -160,9 +160,9 @@ regressors.help    = {'Specify the second-level design matrix one '...
                      'is added automatically.'};
 regressors.num     = [1 Inf];
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % none No covariates
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 cov_none         = cfg_branch;
 cov_none.tag     = 'none';
 cov_none.name    = 'None';
@@ -170,9 +170,9 @@ cov_none.val     = {};
 cov_none.help    = {'Include no covariates (only the group mean for each '...
                 'connection)'};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % covariates Covariates branch
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 covariates         = cfg_choice;
 covariates.tag     = 'cov';
 covariates.name    = 'Covariates';
@@ -188,29 +188,29 @@ covariates.help    = {['Specify between-subjects effects (covariates). The ' ...
                       'be estimated.']};
 covariates.val    = {cov_none};
     
-% =========================================================================
+%==========================================================================
 % PEB fields selection
-% =========================================================================
+%==========================================================================
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % field_default Select fields A,B
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 field_default  = cfg_const;
 field_default.tag  = 'default';
 field_default.name = 'A- and B-matrix';
 field_default.val = {{'A','B'}};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % field_all Select all fields
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 field_all  = cfg_const;
 field_all.tag  = 'all';
 field_all.name = 'All';
 field_all.val = {'All fields'};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % field_entry Custom field entry
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 field_entry  = cfg_entry;
 field_entry.name = 'Enter manually';
 field_entry.tag  = 'custom';
@@ -218,9 +218,9 @@ field_entry.help = {'Enter the fields e.g. A or A,C'};
 field_entry.strtype = 'e';
 field_entry.num     = [0 Inf];
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % fields DCM fields to include
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fields         = cfg_choice;
 fields.tag    = 'fields';
 fields.name   = 'Fields';
@@ -231,21 +231,21 @@ fields.help   = {'Select the fields of the DCM to include in the model.' '' ...
                   'Enter manually: Enter a cell array e.g. {''A'',''C''}'};
 fields.val    = {field_default};
 
-% =========================================================================
+%==========================================================================
 % DCM model index selection
-% =========================================================================
+%==========================================================================
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % dcm_all Select all DCMs
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 dcm_all      = cfg_const;
 dcm_all.tag  = 'all';
 dcm_all.name = 'All';
 dcm_all.val  = {'All DCMs'};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % dcm_idx Single DCM index selection
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 dcm_sel_idx  = cfg_entry;
 dcm_sel_idx.name = 'Selected DCM index';
 dcm_sel_idx.tag  = 'index';
@@ -255,9 +255,9 @@ dcm_sel_idx.help = {['Select index of the DCM (within subject) on which to ' ...
 dcm_sel_idx.strtype = 'r';
 dcm_sel_idx.num     = [1 Inf];
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % dcms Which DCMs to include
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 dcm_idx_1     = dcm_sel_idx;
 dcm_idx_1.val = {1};
 
@@ -271,13 +271,13 @@ dcm_idx.help   = {['If each subject has multiple DCMs, select which DCM to use '
                   'first DCM only, then compare models at the second level.']};
 dcm_idx.val    = {dcm_idx_1};
            
-% =========================================================================
+%==========================================================================
 % Priors on log precision (between-subjects variability) entry
-% =========================================================================
+%==========================================================================
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % priors_log_precision_mu Priors on log precision expectation
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 priors_log_precision_mu  = cfg_entry;
 priors_log_precision_mu.name = 'Expectation';
 priors_log_precision_mu.tag  = 'expectation';
@@ -288,9 +288,9 @@ priors_log_precision_mu.strtype = 'r';
 priors_log_precision_mu.num     = [1 1];
 priors_log_precision_mu.val     = {0};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % priors_log_precision_var Priors on log precision variance
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 priors_log_precision_var  = cfg_entry;
 priors_log_precision_var.name = 'Uncertainty';
 priors_log_precision_var.tag  = 'var';
@@ -301,9 +301,9 @@ priors_log_precision_var.strtype = 'r';
 priors_log_precision_var.num     = [1 1];
 priors_log_precision_var.val     = {1/16};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % group priors_parameters_ratio Priors on log precision variance
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 group_priors_parameters_ratio  = cfg_entry;
 group_priors_parameters_ratio.name = 'Group ratio';
 group_priors_parameters_ratio.tag  = 'group_ratio';
@@ -312,9 +312,9 @@ group_priors_parameters_ratio.strtype = 'r';
 group_priors_parameters_ratio.num     = [1 1];
 group_priors_parameters_ratio.val     = {1};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % priors_parameters_ratio Priors on log precision variance
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 priors_parameters_ratio  = cfg_entry;
 priors_parameters_ratio.name = 'Within:between ratio';
 priors_parameters_ratio.tag  = 'ratio';
@@ -331,9 +331,9 @@ priors_parameters_ratio.num     = [1 1];
 priors_parameters_ratio.val     = {16};
 
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % priors_parameters Priors on log precision branch
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 priors_between         = cfg_branch;
 priors_between.tag     = 'priors_between';
 priors_between.name    = 'Between-subjects variability';
@@ -352,9 +352,9 @@ priors_between.help    = {['Between-subjects variability over second-' ...
       'expectation and uncertainty of these hyper-parameters are also '...
       'set below.']};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % show_review Select whether to review results
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 show_review  = cfg_menu;
 show_review.tag    = 'show_review';
 show_review.name   = 'Review PEB parameters';
@@ -362,9 +362,9 @@ show_review.labels = {'Yes','No'};
 show_review.values = {1,0};
 show_review.val    = {1};
 
-% =========================================================================
+%==========================================================================
 % PEB specification batch
-% =========================================================================
+%==========================================================================
 % Set show review default to off
 sr     = show_review;
 sr.val = {0};
@@ -380,9 +380,9 @@ specify.help = {['Specifies and estimates a second-level DCM (PEB) model. ' ...
 specify.prog = @spm_run_create_peb;
 specify.vout = @vout_peb;
 
-% =========================================================================
+%==========================================================================
 % PEB reduce / average / compare batch
-% =========================================================================
+%==========================================================================
 model_space_mat_op = model_space_mat;
 model_space_mat_op.num = [0 Inf];
 model_space_mat_op.val = {''};
@@ -426,9 +426,9 @@ reduce_all.help  = {['Optimises a PEB model by trying different ' ...
 reduce_all.prog = @spm_run_bmr_all;
 reduce_all.vout = @vout_bma;
 
-% =========================================================================
+%==========================================================================
 % PEB review batch
-% =========================================================================
+%==========================================================================
 review      = cfg_exbranch;
 review.tag  = 'peb_review';
 review.name = 'Review PEB';
@@ -436,9 +436,9 @@ review.val  = { peb_mat model_space_mat_op };
 review.help = {'Reviews PEB results'};
 review.prog = @spm_run_dcm_peb_review;
 
-% =========================================================================
+%==========================================================================
 % PREDICT leave-one-out cross validation
-% =========================================================================
+%==========================================================================
 
 covariates_min1 = covariates;
 covariates_min1.val{1} = covariates_min1.values{2};
@@ -460,14 +460,15 @@ predict.help = {['Builds a PEB model on all but one subjects, and uses ' ...
 predict.prog = @spm_run_dcm_loo;
 specify.vout = @vout_loo;
 
-% =========================================================================
+%==========================================================================
 % second_level Second level DCM batch
-% =========================================================================
+%==========================================================================
 second_level         = cfg_choice; 
 second_level.tag     = 'peb';
 second_level.name    = 'Second level';
 second_level.help    = {'Parametric Empirical Bayes for DCM'};
 second_level.values  = { specify peb_compare reduce_all review predict };
+
 
 %==========================================================================
 function dep = vout_bma(varargin)
@@ -554,7 +555,7 @@ function [GCM,M,field,gcm_file] = prepare_peb_inputs(job)
 ns = size(GCM,1);
 
 if ~isfield(GCM{1},'Ep')
-    error('Please estimate DCMs before second-level analysis');
+    error('Please estimate DCMs before second-level analysis.');
 end
 
 % DCM field(s)
@@ -579,7 +580,7 @@ elseif isfield(job.cov, 'design_mtx')
     x = job.cov.design_mtx.cov_design;
     
     if size(x,1) ~= ns
-        error('Please ensure design matrix has one row per subject');
+        error('Please ensure design matrix has one row per subject.');
     end
     
     X = [X x];
@@ -595,7 +596,7 @@ elseif isfield(job.cov, 'regressor')
         name      = regressors(r).name;
         
         if size(regressor,1) ~= ns
-            error('Please ensure regressor %d has one row per subject',r);
+            error('Please ensure regressor %d has one row per subject.',r);
         end
         
         X = [X regressor];
@@ -607,17 +608,17 @@ end
 if size(X,2) > 1
     bad = find(~any(diff(X(:,2:end))));
     if ~isempty(bad)
-        error('Please check regressor: %d\n', bad);
+        error('Please check regressor %d.', bad);
     end
 end
 
 if size(X,2) ~= length(Xnames)
-    error('Please ensure there is one covariate name per covariate');
+    error('Please ensure there is one covariate name per covariate.');
 end
 
 % Priors / covariance components
 M = struct();
-M.alpha  = job.group_priors_between.ratio;
+M.alpha  = job.priors_between.group_ratio;
 M.beta   = job.priors_between.ratio;
 M.hE     = job.priors_between.expectation;
 M.hC     = job.priors_between.var;
@@ -634,7 +635,7 @@ GCM = load_dcm(job);
 nm  = size(GCM,2);
 
 if nm ~= 1
-    disp('Running search on the full DCM only');        
+    disp('Running search on the full DCM only.');        
 end
 
 GCM = GCM(:,1);
@@ -650,7 +651,7 @@ GCM = load_dcm(job);
 nm  = size(GCM,2);
 
 if nm < 2
-    error('More than one DCM per subject is required for BMC');
+    error('More than one DCM per subject is required for BMC.');
 end
 
 out = run_peb_bmc_internal(job,GCM);
@@ -703,7 +704,7 @@ function [GCM,gcm_file] = load_dcm(job)
 gcm_file = job.model_space_mat{1};
 GCM      = load(gcm_file);
 if ~isfield(GCM,'GCM')
-    error('Provided file is not a valid model space');
+    error('Provided file is not a valid model space.');
 end
 GCM = GCM.GCM;
 
