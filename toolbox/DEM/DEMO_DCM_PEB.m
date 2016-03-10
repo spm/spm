@@ -24,7 +24,7 @@ function DEMO_DCM_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6737 2016-03-03 12:05:51Z karl $
+% $Id: DEMO_DCM_PEB.m 6742 2016-03-10 12:02:31Z karl $
 
 
 % change to directory with empirical data
@@ -360,7 +360,7 @@ subplot(2,2,2), bar(R)
 title('Correlations with true values','FontSize',16)
 xlabel('inversion scheme'), ylabel('correlation'), axis square
 text((1:3) - 1/8,R/2,Rstr(:),'Color','w','Fontsize',10)
-set(gca,'XTickLabel',{'FFX','BMR','RFX'})
+set(gca,'XTickLabel',{'FFX','BMR','PEB'})
 
 
 
