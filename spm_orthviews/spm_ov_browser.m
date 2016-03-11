@@ -6,10 +6,10 @@ function ret = spm_ov_browser(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 6080 2014-07-01 16:00:22Z guillaume $
+% $Id: spm_ov_browser.m 6746 2016-03-11 20:15:00Z guillaume $
 
 
 if ~nargin, varargin = {'ui'}; end
@@ -36,18 +36,33 @@ end
 %==========================================================================
 function browser_ui(hObj,event,varargin)
 
+global st
 if nargin < 3
-    [f,sts] = spm_select([2 Inf],'image','Select images...');
+    if nargin && ~isempty(hObj)
+        hC = current_handle;
+        sel = {[st.vols{hC}.fname ',' num2str(st.vols{hC}.n(1))]};
+    else
+        sel = {};
+    end
+    [f,sts] = spm_select([2 Inf],'image','Select images...',sel);
     if ~sts, return; end
+    f = cellstr(f);
 else
-    f = varargin{1};
+    f = varargin;
+    if numel(f) == 1
+        if ischar(f{1})
+            f = cellstr(f{1});
+        elseif iscellstr(f{1})
+            f = f{1};
+        end
+    end
 end
 
 if nargin && ~isempty(hObj)
     Fgraph = ancestor(hObj,'figure');
     hC = current_handle;
 else
-    spm_check_registration(f(1,:));
+    spm_check_registration(f{1});
     Fgraph = [];
     hC = 1;
 end
@@ -222,9 +237,14 @@ if isempty(hAx) || ~ishandle(hAx)
     hF = figure;
     hAx = axes('Parent',hF);
     setappdata(hObj,'hAx',hAx);
+    %hM = uimenu('Parent',hF,'Label','&Options');
+    %hM = uimenu('Parent',hM,'Label','Select SPM.mat...','Callback',@browser_profile_callback);
+    %setappdata(hM,'hS',hS);
+    %setappdata(hM,'hAx',hAx);
 end
 
-plot(hAx,Y);
+l = plot(hAx,Y);
+set(l,'Tag','profile');
 hold(hAx,'on')
 i = round(get(hS,'value'));
 plot(hAx,i,Y(i),'r*');
@@ -297,6 +317,22 @@ if outputtype == 1, close(writerObj); end
 
 fprintf('Movie saved in %s\n',file);                                    %-#
 
+
+%==========================================================================
+function browser_profile_callback(hObj,event)
+[SPM,sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat...');
+load(SPM);
+if ~sts, return; end
+hS = getappdata(hObj,'hS');
+hC = getappdata(hS,'hC');
+f  = getappdata(hS,'f');
+hAx = getappdata(hObj,'hAx');
+
+Y = get(findobj(hAx,'Tag','profile'),'YData')';
+Y = spm_filter(SPM.xX.K,Y);
+Y = SPM.xX.X*(pinv(spm_filter(SPM.xX.K,SPM.xX.X))*Y);
+hold(hAx,'on');
+plot(Y,'g');
 
 %==========================================================================
 function h = current_handle
