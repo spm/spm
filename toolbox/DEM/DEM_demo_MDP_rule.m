@@ -18,7 +18,7 @@ function MDP = DEM_demo_MDP_rule
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 6741 2016-03-07 10:32:29Z karl $
+% $Id: DEM_demo_MDP_rule.m 6747 2016-03-12 11:33:11Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -171,7 +171,7 @@ clear MDP
 
 % true initial states – with context change at trial 12
 %--------------------------------------------------------------------------
-N      = 32;
+N      = 64;
 s(1,:) = ceil(rand(1,N)*3);
 s(2,:) = ceil(rand(1,N)*3);
 s(3,:) = 4;
@@ -250,51 +250,72 @@ end
 %==========================================================================
 MDP  = spm_MDP_VB_X(MDP);
 
-spm_figure('GetWin','Figure 6'); clf;
-for i = 1:min(N,15)
-    subplot(5,3,i), spm_MDP_rule_plot(MDP(i + N - min(N,15)));
-    axis square
-end
+% show responses to a difficult (right) trial before and after learning
+%--------------------------------------------------------------------------
+i = find(ismember(s(1:2,:)',[3 2],'rows'));
 
-spm_figure('GetWin','Figure 7'); clf;
-spm_MDP_VB_trial(MDP(1));
+spm_figure('GetWin','Figure 6 - before'); spm_MDP_VB_LFP(MDP(i(1)),  [],2); subplot(3,2,2), set(gca,'YLim',[-.1 1]); subplot(3,2,4), set(gca,'YLim',[-.1 .2])
+spm_figure('GetWin','Figure 6 - after' ); spm_MDP_VB_LFP(MDP(i(end)),[],2); subplot(3,2,2), set(gca,'YLim',[-.1 1]); subplot(3,2,4), set(gca,'YLim',[-.1 .2])
 
+% show lernaing effects in terms of underlying uncertainty
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 7 - before'); clf; spm_MDP_VB_trial(MDP(i(1)));
+spm_figure('GetWin','Figure 7 - after' ); clf; spm_MDP_VB_trial(MDP(i(end)));
 
+% show trial by trial measures
+%--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 8'); clf;
-spm_MDP_A_plot(MDP(end).a);
+spm_MDP_VB_game(MDP);
+
+Fu  = spm_cat({MDP.Fu});
+Fs  = spm_cat({MDP.Fs});
+Fq  = spm_cat({MDP.Fq});
+Fg  = spm_cat({MDP.Fg});
+Fa  = spm_cat({MDP.Fa});
+
+F   = Fs + Fu + Fq + Fg + Fa;
+
+subplot(2,1,2)
+subplot(4,1,3),plot(1:N,Fs,1:N,F),xlabel('trial')
+title('States ','Fontsize',16), legend({'Surprise','Total Free energy'})
+subplot(4,1,4),plot(1:N,Fu,1:N,Fq),xlabel('trial')
+title('Action ','Fontsize',16),legend({'Confidence','Expected Free energy'})
 
 
 spm_figure('GetWin','Figure 9'); clf;
 P = spm_MDP_VB_game(MDP);
-subplot(2,1,1), plot(1:N,Q.p,1:N,P.p)
+subplot(2,2,1), plot(1:N,Q.p,1:N,P.p)
 xlabel('trial'),ylabel('Expected utility')
-title('Performance','Fontsize',16), set(gca,'YLim',[-8 -2]); axis square
-legend({'optimal','learned'})
+title('Performance','Fontsize',16), legend({'optimal','learned'})
+set(gca,'YLim',[-5 -2]); axis square
+
+subplot(2,2,2), spm_MDP_A_plot(MDP(end).A);
+subplot(2,2,3), spm_MDP_A_plot(MDP(1).a),  title('before','Fontsize',16)
+subplot(2,2,4), spm_MDP_A_plot(MDP(end).a),title('after', 'Fontsize',16)
+
 
 save
 
 return
 
 function spm_MDP_A_plot(A)
-subplot(4,3,1),imagesc(squeeze(A{1}(:,1,:,1,4)));
-ylabel('rule left');title('sample left'), axis image
-subplot(4,3,2),imagesc(squeeze(A{1}(:,1,:,2,4)));
-ylabel('rule left');title('sample centre'), axis image
-subplot(4,3,3),imagesc(squeeze(A{1}(:,1,:,3,4)));
-ylabel('rule left');title('sample right'), axis image
-subplot(4,3,4),imagesc(squeeze(A{1}(:,2,:,1,4)));
-ylabel('rule centre');title('sample left'), axis image
-subplot(4,3,5),imagesc(squeeze(A{1}(:,2,:,2,4)));
-ylabel('rule centre');title('sample centre'), axis image
-subplot(4,3,6),imagesc(squeeze(A{1}(:,2,:,3,4)));
-ylabel('rule centre');title('sample right'), axis image
-subplot(4,3,7),imagesc(squeeze(A{1}(:,3,:,1,4)));
-ylabel('rule right');title('sample left'), axis image
-subplot(4,3,8),imagesc(squeeze(A{1}(:,3,:,2,4)));
-ylabel('rule right');title('sample centre'), axis image
-subplot(4,3,9),imagesc(squeeze(A{1}(:,3,:,3,4)));
-ylabel('rule right');title('sample  right'), axis image
 
+for i = 1:3
+    for j = 1:3;
+        a{i,j} = squeeze(A{1}(:,i,:,j,4));
+        a{i,j} = a{i,j}*diag(1./sum(a{i,j}));
+    end
+end
+a = spm_cat(a);
+imagesc(a);
+title( 'Sample: left - center - right', 'FontSize',16)
+ylabel('Outcome: left - center - right','FontSize',16)
+xlabel('Correct color', 'FontSize',16)
+set(gca,'XTick',1:9)
+set(gca,'YTick',1:12)
+set(gca,'XTicklabel',repmat(['r','g','b'],[1 3])')
+set(gca,'YTicklabel',repmat(['r','g','b',' '],[1 3])')
+axis image
 
 return
 

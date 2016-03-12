@@ -90,7 +90,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6741 2016-03-07 10:32:29Z karl $
+% $Id: spm_MDP_VB_X.m 6747 2016-03-12 11:33:11Z karl $
 
 
 % deal with a sequence of trials
@@ -420,7 +420,12 @@ for t = 1:T
         if OPTIONS.gamma_u
             gu(t) = 1/beta;
         else
-            dFdg  = qbeta - beta + (qu - pu)'*SQ(p);
+            if ~isfield(MDP,'U')
+                eg = (qu - pu)'*SQ(p);
+            else
+                eg = qu'*log(pu/gu(t));
+            end
+            dFdg  = qbeta - beta + eg;
             qbeta = qbeta - dFdg/2;
             gu(t) = 1/qbeta;
         end
@@ -615,9 +620,12 @@ end
 
 % evaluate free energy
 %==========================================================================
-MDP.Fu   = qu'*log(qu);
-MDP.Fs   = qu'*(- gu(t)*SQ(p) - SF(p));
-MDP.Fg   = beta*gu(t) - log(gu(t));
+SG      = gu(t)*SQ(p);
+Z       = sum(exp(SG));
+MDP.Fu  = qu'*log(qu);
+MDP.Fq  = log(Z) - qu'*SG;
+MDP.Fs  =        - qu'*SF(p);
+MDP.Fg  = beta*gu(t) - log(gu(t));
 
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------
