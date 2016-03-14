@@ -3,7 +3,7 @@ function job = spm_rewrite_job(job)
 %__________________________________________________________________________
 % Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 6714 2016-02-04 17:46:46Z peter $
+% $Id: spm_rewrite_job.m 6749 2016-03-14 17:38:12Z peter $
 
 
 try
@@ -109,16 +109,24 @@ try
 end
 
 try
-    D = job.dcm.fmri.estimate.dcmmat;
+    D = job.dcm.spec.fmri.estimate.dcmmat;
     for i=1:numel(D)
-        job.dcm.estimate.dcms.model(i).dcmmat = cellstr(D(i));
+        job.dcm.estimate.dcms.subj(i).dcmmat = cellstr(D(i));
     end
-    job.dcm.estimate.output_type.output_separate = struct([]);
+    job.dcm.estimate.output.separate = struct([]);
     job.dcm.estimate.est_type = 3;  
-    if isfield(job.dcm.fmri.estimate,'analysis')
+    if isfield(job.dcm.spec.fmri,'estimate') && isfield(job.dcm.spec.fmri.estimate,'analysis')
         job.dcm.estimate.fmri.analysis = job.dcm.fmri.estimate.analysis;
     end
-    job.dcm = rmfield(job.dcm,'fmri');
+    
+    % Prune
+    job.dcm.spec.fmri = rmfield(job.dcm.spec.fmri,'estimate');
+    if isempty(fieldnames(job.dcm.spec.fmri))
+        job.dcm.spec = rmfield(job.dcm.spec,'fmri');
+    end
+    if isempty(fieldnames(job.dcm.spec))
+        job.dcm = rmfield(job.dcm,'spec');
+    end
 end
 
 try
