@@ -30,7 +30,7 @@ function [MDP] = spm_MDP_check(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_check.m 6728 2016-02-20 18:07:58Z karl $
+% $Id: spm_MDP_check.m 6748 2016-03-14 10:04:41Z karl $
  
  
 % deal with a sequence of trials
@@ -161,9 +161,7 @@ if isfield(MDP,'s')
     end
     if any(max(MDP.s,[],2) > Ns(:))
         error('please ensure initial states MDP.s are consistent with MDP.B')
-    end 
-else
-    MDP.s = ones(Nf,1);
+    end
 end
  
 % check outcomes if specified

@@ -90,7 +90,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6747 2016-03-12 11:33:11Z karl $
+% $Id: spm_MDP_VB_X.m 6748 2016-03-14 10:04:41Z karl $
 
 
 % deal with a sequence of trials
@@ -262,14 +262,14 @@ for f = 1:Nf
     try
         s(f,1) = MDP.s(f,1);
     catch
-        s(f,1) = 1;
+        s(f,1) = find(rand < cumsum(D{f}),1);
     end
     
     % initialise posteriors over states
     %----------------------------------------------------------------------
     xn{f} = zeros(Ni,Ns(f),T,T,Np) + 1/Ns(f);
     x{f}  = zeros(Ns(f),T,Np)      + 1/Ns(f);
-    X{f}  = zeros(Ns(f),T);
+    X{f}  = zeros(Ns(f),T)         + 1/Ns(f);
     for k = 1:Np
         x{f}(:,1,k) = D{f};
     end
