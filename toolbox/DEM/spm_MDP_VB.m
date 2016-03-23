@@ -22,7 +22,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % MDP.u(1,T)      	- vector of actions
 % MDP.w(1,T)      	- vector of precisions
 %
-% MDP.alpha       	- upper bound on precision (Gamma hyperprior – shape [1])
+% MDP.alpha       	- upper bound on precision (Gamma hyperprior - shape [1])
 % MDP.beta        	- precision over precision (Gamma hyperprior - rate  [1])
 %
 % OPTIONS.plot    	- switch to suppress graphics: (default: [0])
@@ -49,7 +49,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % upon a Markov decision process. This model and inference scheme is
 % formulated in discrete space and time. This means that the generative
 % model and process are finite state machines or hidden Markov models,
-% whose dynamics are given by transition probabilities among states – and
+% whose dynamics are given by transition probabilities among states - and
 % the likelihood corresponds to the probability of an outcome given hidden
 % states. For simplicity, this routine assumes that action (the world) and
 % hidden control states (in the model) are isomorphic. 
@@ -57,9 +57,9 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % This implementation equips agents with the prior beliefs that they will
 % maximise expected free energy: expected free energy is the free energy of
 % future outcomes under the posterior predictive distribution. This can be
-% interpreted in several ways – most intuitively as minimising the KL
+% interpreted in several ways - most intuitively as minimising the KL
 % divergence between predicted and preferred outcomes (specified as prior
-% beliefs) – while simultaneously minimising the (predicted) entropy of
+% beliefs) - while simultaneously minimising the (predicted) entropy of
 % outcomes conditioned upon hidden states. Expected free energy therefore
 % combines KL optimality based upon preferences or utility functions with
 % epistemic value or information gain.
@@ -68,9 +68,9 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % sequences specified in MDP.V. Constraints on allowable policies can limit
 % the numerics or combinatorics considerably. For example, situations in
 % which one action can be selected at one time can be reduced to T polices
-% – with one (shift) control being emitted at all possible time points.
+% - with one (shift) control being emitted at all possible time points.
 % This specification of polices simplifies the generative model, allowing a
-% fairly exhaustive model of potential outcomes – eschewing a mean field
+% fairly exhaustive model of potential outcomes - eschewing a mean field
 % approximation over successive control states. In brief, the agent encodes
 % beliefs about hidden states in the past and in the future conditioned on
 % each policy (and a non-sequential state-state policy called a habit).
@@ -85,12 +85,12 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % the context. In addition, by observing its own behaviour, the agent will
 % automatically learn habits. Finally, by observing policies chosen over
 % trials, the agent develops prior expectations or beliefs about what it
-% will do. If these priors (over policies – that include the habit) render
+% will do. If these priors (over policies - that include the habit) render
 % some policies unlikely (using an Ockham's window), they will not be
 % evaluated.
 %
 % See also:spm_MDP, which uses multiple future states and a mean field
-% approximation for control states – but allows for different actions
+% approximation for control states - but allows for different actions
 % at all times (as in control problems).
 %
 % See also: spm_MDP_game_KL, which uses a very similar formulation but just
@@ -100,7 +100,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 6706 2016-01-31 13:10:08Z karl $
+% $Id: spm_MDP_VB.m 6751 2016-03-23 15:39:32Z guillaume $
  
  
 % deal with a sequence of trials
@@ -186,7 +186,7 @@ A      = spm_norm(A);              % normalise
 %--------------------------------------------------------------------------
 if isfield(MDP,'a')
     qA = MDP.a + q0;
-    qA = psi(qA ) - ones(Ns,1)*psi(sum(qA));
+    qA = psi(qA ) - ones(No,1)*psi(sum(qA));
 else
     qA = log(spm_norm(A));
 end
@@ -532,7 +532,7 @@ for t = 1:T
     if isfield(MDP,'a')
         i        = MDP.a > 0;
         da       = sparse(o(t),1,1,No,1)*X(:,t)';
-        MDP.a(i) = MDP.a + da(i);
+        MDP.a(i) = MDP.a(i) + da(i);
     end
     
     % mapping from hidden states to hidden states: b(u)
