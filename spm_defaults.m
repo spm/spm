@@ -20,10 +20,10 @@ function spm_defaults
 %
 %                 ** This file should not be edited **
 %__________________________________________________________________________
-% Copyright (C) 1994-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2016 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 6594 2015-11-06 18:47:05Z guillaume $
+% $Id: spm_defaults.m 6753 2016-03-24 20:30:28Z guillaume $
 
 
 global defaults
@@ -70,7 +70,7 @@ defaults.mask.thresh    = 0.8;
 
 % Stats defaults
 %==========================================================================
-defaults.stats.maxmem      = 2^26;
+defaults.stats.maxmem      = 2^28;
 defaults.stats.maxres      = 64;
 defaults.stats.resmem      = false;
 defaults.stats.fmri.ufp    = 0.001;  % Upper tail F-probability
