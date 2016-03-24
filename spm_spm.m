@@ -268,10 +268,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 6693 2016-01-25 19:14:47Z guillaume $
+% $Id: spm_spm.m 6752 2016-03-24 16:17:25Z guillaume $
 
 
-SVNid = '$Rev: 6693 $';
+SVNid = '$Rev: 6752 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -328,11 +328,13 @@ YNaNrep = spm_type(VY(1).dt(1),'nanrep');
 if spm_mesh_detect(VY)
     file_ext = '.gii';
     g        = VY(1).private;
-    metadata = {g.private.metadata(1).name, g.private.metadata(1).value};
-    try
-        metadata{1} = genvarname(metadata{1});
-    catch
-        metadata{1} = matlab.lang.makeValidName(metadata{1});
+    metadata = g.private.metadata;
+    name     = {metadata.name};
+    if any(ismember(name,'SurfaceID'))
+        metadata = metadata(ismember(name,'SurfaceID'));
+        metadata = {metadata.name, metadata.value};
+    else
+        error('SurfaceID not found in GIfTI''s metadata.');
     end
 else
     file_ext = spm_file_ext;

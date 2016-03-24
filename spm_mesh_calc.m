@@ -10,10 +10,10 @@ function Mo = spm_mesh_calc(Mi,Mo,f,varargin)
 % opts - optional list of pairs of property names and values
 %        dmtx - read images into data matrix X [default: false]
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_calc.m 6656 2015-12-24 16:49:52Z guillaume $
+% $Id: spm_mesh_calc.m 6752 2016-03-24 16:17:25Z guillaume $
 
 
 %-Check input arguments
@@ -90,11 +90,16 @@ end
 %-Return or save output
 %--------------------------------------------------------------------------
 gs = gifti(reshape(S,nv));
-g = gifti(Mi{i});
+g  = gifti(Mi{1});
 if isfield(g,'vertices') && isfield(g,'faces')
-    gs.vertices = g.vertices;
-    gs.faces = g.faces;
+    gs.vertices  = g.vertices;
+    gs.faces     = g.faces;
 elseif ~isempty(g.private.metadata)
-    gs.private.metadata(1) = g.private.metadata(1);
+    metadata     = g.private.metadata;
+    name         = {metadata.name};
+    if any(ismember(name,'SurfaceID'))
+        metadata = metadata(ismember(name,'SurfaceID'));
+        gs.private.metadata(1) = metadata;
+    end
 end
 if isempty(Mo), Mo = gs; else save(gs,Mo,'ExternalFileBinary'); end

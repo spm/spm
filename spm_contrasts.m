@@ -8,10 +8,10 @@ function SPM = spm_contrasts(SPM,Ic)
 % This function fills in SPM.xCon and writes con_????, ess_???? and
 % spm?_???? images.
 %__________________________________________________________________________
-% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Will Penny & Guillaume Flandin
-% $Id: spm_contrasts.m 6693 2016-01-25 19:14:47Z guillaume $
+% $Id: spm_contrasts.m 6752 2016-03-24 16:17:25Z guillaume $
 
 
 % Temporary copy of the SPM variable, to avoid saving it in SPM.mat unless
@@ -56,11 +56,13 @@ end
 if spm_mesh_detect(Vbeta)
     file_ext = '.gii';
     g        = SPM.xY.VY(1).private;
-    metadata = {g.private.metadata(1).name, g.private.metadata(1).value};
-    try
-        metadata{1} = genvarname(metadata{1});
-    catch
-        metadata{1} = matlab.lang.makeValidName(metadata{1});
+    metadata = g.private.metadata;
+    name     = {metadata.name};
+    if any(ismember(name,'SurfaceID'))
+        metadata = metadata(ismember(name,'SurfaceID'));
+        metadata = {metadata.name, metadata.value};
+    else
+        metadata = {};
     end
 else
     file_ext = spm_file_ext;
