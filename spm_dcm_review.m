@@ -19,7 +19,7 @@ function spm_dcm_review(DCM,action)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 6671 2016-01-12 12:01:21Z peter $
+% $Id: spm_dcm_review.m 6755 2016-03-25 09:48:34Z karl $
 
 
 %-Get DCM structure
@@ -409,7 +409,7 @@ switch action
             y = DCM.K1(:,:,i);
             subplot(m,2,2*(i - 1) + 1)
             plot(x,y)
-            set(gca,'XLim',[0 16])
+            set(gca,'XLim',[0 8])
             axis square
             title(['neuronal responses to ' DCM.U.name{i}],'FontSize',12)
             xlabel('time {seconds}')
@@ -419,13 +419,13 @@ switch action
                     'HorizontalAlignment','Center')
             end
 
-            % input effects - hemodynamic
+            % input effects - haemodynamic
             %--------------------------------------------------------------
             y = DCM.K1(:,:,i);
             k = DCM.H1(:,:,i);
             subplot(m,2,2*(i - 1) + 2)
             plot(x,k,x,y,':')
-            set(gca,'XLim',[0 16])
+            set(gca,'XLim',[0 24])
             axis square
             title('hemodynamic responses','FontSize',12)
             xlabel('time {seconds}')
