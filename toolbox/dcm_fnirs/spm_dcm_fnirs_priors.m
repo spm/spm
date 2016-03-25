@@ -1,6 +1,6 @@
 function [pE,pC,x] = spm_dcm_fnirs_priors(DCM)
-% Return the priors for a one-state DCM for fNIRS
-% FORMAT [pE,pC,x] = spm_dcm_fnirs_priors(DCM)
+% Returns the priors for a one-state DCM for fNIRS.
+% FORMAT:[pE,pC,x] = spm_dcm_fnirs_priors(DCM)
 %
 % INPUT:
 %    DCM.a,DCM.b,DCM.c,DCM.c - constraints on connections (1 - present, 0 - absent)
@@ -29,7 +29,9 @@ function [pE,pC,x] = spm_dcm_fnirs_priors(DCM)
 %    modelling for functional near-infrared spectroscopy. 
 %    Neuroimage 111: 338-349, 2015. 
 %
-% This script is based on spm_dcm_fmri_priors.m written by Karl Friston.
+% This script is based on spm_dcm_fmri_priors.m written by 
+% Karl Friston
+% $Id: spm_dcm_fnirs_priors.m 6754 2016-03-25 06:44:58Z will $
 % 
 % In this script, optics priors are added, prior covariance of A is changed, 
 % prior for extended Balloon model (viscoelastic time constant) is added. 
@@ -37,7 +39,7 @@ function [pE,pC,x] = spm_dcm_fnirs_priors(DCM)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_dcm_fnirs_priors.m 6422 2015-04-23 16:55:52Z spm $
+% $Id: spm_dcm_fnirs_priors.m 6754 2016-03-25 06:44:58Z will $
 
 % Unpack
 %--------------------------------------------------------------------------
@@ -46,7 +48,7 @@ B = DCM.b;
 C = DCM.c; 
 D = DCM.d; 
 n = DCM.n; % number of sources of interest 
-nch = DCM.Y.nch; % number of channels of interest 
+nch = DCM.Y.P.nch; % number of channels of interest 
 options = DCM.options; 
 
 % check options and D (for nonlinear coupling)
@@ -165,3 +167,5 @@ end
 % prior covariance matrix
 %--------------------------------------------------------------------------
 pC  = diag(spm_vec(pC));
+
+return
