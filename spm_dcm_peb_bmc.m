@@ -76,8 +76,10 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6737 2016-03-03 12:05:51Z karl $
+% $Id: spm_dcm_peb_bmc.m 6757 2016-03-25 17:34:33Z karl $
 
+% checks
+%--------------------------------------------------------------------------
 if nargin < 1 || isempty(PEB) || length(PEB) > 1
     error('Please provide a single PEB model');
 end

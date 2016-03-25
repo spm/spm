@@ -24,7 +24,7 @@ function DEMO_DCM_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6742 2016-03-10 12:02:31Z karl $
+% $Id: DEMO_DCM_PEB.m 6757 2016-03-25 17:34:33Z karl $
 
 
 % change to directory with empirical data
@@ -244,6 +244,7 @@ spm_dcm_peb_rnd(RCM(:,mw),M,{'A','B'});
 
 % BMA - exhaustive search over second level parameters
 %--------------------------------------------------------------------------
+PEB.gamma = 1/16;
 BMA       = spm_dcm_peb_bmc(PEB);
 
 % overlay true values

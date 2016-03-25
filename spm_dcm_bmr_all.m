@@ -46,12 +46,16 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 6656 2015-12-24 16:49:52Z guillaume $
+% $Id: spm_dcm_bmr_all.m 6757 2016-03-25 17:34:33Z karl $
 
 
 %-Number of parameters to consider before invoking greedy search
 %--------------------------------------------------------------------------
-nmax = 8;
+nmax  = 8;
+
+%-specification of null prior covariance
+%--------------------------------------------------------------------------
+if isfield(DCM,'gamma'), gamma = DCM.gamma; else, gamma = 1/16; end
 
 %-Check fields of parameter stucture
 %--------------------------------------------------------------------------
@@ -118,7 +122,8 @@ while GS
         Z     = zeros(1,nparam);
         for i = 1:nparam
             r    = C; r(k(i)) = 0;
-            R    = U(r,:)'*U(r,:);
+            u    = U; u(~r,:) = u(~r,:)*gamma;
+            R    = u'*u;
             rE   = R*pE;
             rC   = R*pC*R;
             Z(i) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
@@ -149,7 +154,8 @@ while GS
     G     = [];
     for i = 1:size(K,1)
         r    = C; r(k(K(i,:))) = 0;
-        R    = U(r,:)'*U(r,:);
+        u    = U; u(~r,:) = u(~r,:)*gamma;
+        R    = u'*u;
         rE   = R*pE;
         rC   = R*pC*R;
         G(i) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
