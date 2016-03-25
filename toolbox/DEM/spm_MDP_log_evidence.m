@@ -20,7 +20,7 @@ function F = spm_MDP_log_evidence(qA,pA,rA)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_log_evidence.m 6748 2016-03-14 10:04:41Z karl $
+% $Id: spm_MDP_log_evidence.m 6756 2016-03-25 09:49:08Z karl $
 
 
 % change in free energy or log model evidence
@@ -34,13 +34,12 @@ return
 % This considers a competition between two inputs:
 %--------------------------------------------------------------------------
 x     = linspace(1,32,128);
-e     = 0;
-pA    = [1; 1] + e;
+pA    = [1; 1];
 rA    = pA;
-rA(1) = 1/2;
+rA(2) = 8;
 for i = 1:numel(x)
     for j = 1:numel(x)
-        qA = [x(i);x(j)] + e;
+        qA = [x(i);x(j)];
         F(i,j) = spm_MDP_log_evidence(qA,pA,rA);
     end
 end
