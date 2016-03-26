@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6745 2016-03-10 18:21:32Z guillaume $
+% $Id: spm_cfg_dcm_peb.m 6758 2016-03-26 07:53:09Z vladimir $
 
 
 %==========================================================================
@@ -387,6 +387,14 @@ model_space_mat_op = model_space_mat;
 model_space_mat_op.num = [0 Inf];
 model_space_mat_op.val = {''};
 
+null_prior_covariance  = cfg_entry;
+null_prior_covariance.name = 'Null prior covariance';
+null_prior_covariance.tag  = 'nullpcov';
+null_prior_covariance.help = {'gamma'};
+null_prior_covariance.strtype = 'r';
+null_prior_covariance.num     = [1 1];
+null_prior_covariance.val     = {1/16};
+
 peb_compare      = cfg_exbranch;
 peb_compare.tag  = 'compare';
 peb_compare.name = 'Compare / Average PEB models';
@@ -414,7 +422,7 @@ peb_compare.vout = @vout_bma;
 reduce_all       = cfg_exbranch;
 reduce_all.tag   = 'reduce_all';
 reduce_all.name  = 'Search nested PEB models';
-reduce_all.val   = { peb_mat model_space_mat_op show_review};
+reduce_all.val   = { peb_mat model_space_mat_op null_prior_covariance show_review};
 reduce_all.help  = {['Optimises a PEB model by trying different ' ...
                          'combinations of switching off parameters (fixing ' ...
                          'them at their prior value), where doing so does ' ...
@@ -663,6 +671,8 @@ function out = run_peb_bmc_internal(job, GCM)
 
 PEB = load(job.peb_mat{1});
 PEB = PEB.PEB;
+
+PEB.gamma = job.nullpcov;
 
 nm  = size(GCM,2);
 
