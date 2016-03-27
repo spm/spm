@@ -36,9 +36,9 @@ function DCM = spm_dcm_fmri_csd(P)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 6735 2016-03-02 15:40:47Z peter $
+% $Id: spm_dcm_fmri_csd.m 6759 2016-03-27 19:45:17Z karl $
 
-SVNid = '$Rev: 6735 $';
+SVNid = '$Rev: 6759 $';
 
 % Load DCM structure
 %--------------------------------------------------------------------------
@@ -139,6 +139,10 @@ end
 if isvector(DCM.a)
     DCM.M.modes = spm_svd(cov(DCM.Y.y));
 end
+
+% check for pre-specified priors
+%--------------------------------------------------------------------------
+try, pE  = DCM.M.pE; pC  = DCM.M.pC; end
 
 % create DCM
 %--------------------------------------------------------------------------

@@ -1,6 +1,6 @@
-function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
+function [y,w,S,Gu,Gn] = spm_csd_fmri_mtf(P,M,U)
 % Spectral response of a DCM (transfer function x noise spectrum)
-% FORMAT [y,w,s] = spm_csd_fmri_mtf(P,M,U)
+% FORMAT [y,w,S,Gu,Gn] = spm_csd_fmri_mtf(P,M,U)
 %
 % P - model parameters
 % M - model structure
@@ -8,8 +8,10 @@ function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
 %
 % y - y(nw,nn,nn} - cross-spectral density for nn nodes
 %                 - for nw frequencies in M.Hz
-% w - frequencies
-% S - directed transfer functions (complex)
+% w  - frequencies
+% S  - directed transfer functions (complex)
+% Gu - CSD of neuronal fluctuations
+% Gn - CSD of observation noise
 %
 % This routine computes the spectral response of a network of regions
 % driven by  endogenous fluctuations and exogenous (experimental) inputs.
@@ -26,7 +28,7 @@ function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 6560 2015-09-23 13:50:43Z karl $
+% $Id: spm_csd_fmri_mtf.m 6759 2016-03-27 19:45:17Z karl $
 
 
 % compute log-spectral density
@@ -39,7 +41,7 @@ nw   = length(w);
 
 % number of nodes and endogenous (neuronal) fluctuations
 %--------------------------------------------------------------------------
-nn   = M.l;
+nn   = size(P.A,1);
 nu   = length(M.u);
 form = '1/f';
 
@@ -61,43 +63,39 @@ if any(any(P.C))
     end
 end
 
-% amplitude scaling constant
-%--------------------------------------------------------------------------
-C     = 1/512;
-
 % neuronal fluctuations (Gu) (1/f or AR(1) form)
 %--------------------------------------------------------------------------
 for i = 1:nu
     if strcmp(form,'1/f')
-        G     = exp(P.a(1,i))*w.^(-exp(P.a(2,i)));
+        G     = w.^(-exp(P.a(2,1)));
     else
-        G     = exp(P.a(1,i))*spm_mar2csd(exp(P.a(2,i))/2,w);
+        G     = spm_mar2csd(exp(P.a(2,1))/2,w);
     end
-    Gu(:,i,i) = Gu(:,i,i) + C*G;
+    Gu(:,i,i) = Gu(:,i,i) + exp(P.a(1,1))*G/sum(G);
 end
 
 % region specific observation noise (1/f or AR(1) form)
 %--------------------------------------------------------------------------
 for i = 1:nn
     if strcmp(form,'1/f')
-        G     = exp(P.c(1,i))*w.^(-exp(P.c(2,i))/2);
+        G     = w.^(-exp(P.c(2,i))/2);
     else
-        G     = exp(P.c(1,i))*spm_mar2csd(exp(P.c(2,i))/2,w);
+        G     = spm_mar2csd(exp(P.c(2,i))/2,w);
     end
-    Gn(:,i,i) = Gn(:,i,i) + C*G;
+    Gn(:,i,i) = Gn(:,i,i) + exp(P.c(1,i))*G/sum(G);
 end
 
 
 % global components
 %--------------------------------------------------------------------------
 if strcmp(form,'1/f')
-    G = exp(P.b(1,1))*w.^(-exp(P.b(2,1))/2);
+    G = w.^(-exp(P.b(2,1))/2);
 else
-    G = exp(P.b(1,1))*spm_mar2csd(exp(P.b(2,1))/2,w);
+    G = spm_mar2csd(exp(P.b(2,1))/2,w);
 end
 for i = 1:nn
     for j = i:nn
-        Gn(:,i,j) = Gn(:,i,j) + C*G;
+        Gn(:,i,j) = Gn(:,i,j) + exp(P.b(1,1))*G/sum(G);
         Gn(:,j,i) = Gn(:,i,j);
     end
 end

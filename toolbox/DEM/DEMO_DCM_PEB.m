@@ -24,7 +24,7 @@ function DEMO_DCM_PEB
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_DCM_PEB.m 6757 2016-03-25 17:34:33Z karl $
+% $Id: DEMO_DCM_PEB.m 6759 2016-03-27 19:45:17Z karl $
 
 
 % change to directory with empirical data
@@ -244,13 +244,13 @@ spm_dcm_peb_rnd(RCM(:,mw),M,{'A','B'});
 
 % BMA - exhaustive search over second level parameters
 %--------------------------------------------------------------------------
-PEB.gamma = 1/16;
+PEB.gamma = 1/128;
 BMA       = spm_dcm_peb_bmc(PEB);
 
 % overlay true values
 %--------------------------------------------------------------------------
-Tp          = spm_vec(DCM.Ep);           % true second level paramters
-Tx          = spm_vec(DCM.Ex);           % true second level paramters
+Tp        = spm_vec(DCM.Ep);           % true second level paramters
+Tx        = spm_vec(DCM.Ex);           % true second level paramters
 
 subplot(3,3,1),hold on, bar(Tp(BMA.Pind),1/2), hold off
 subplot(3,3,4),hold on, bar(Tp(BMA.Pind),1/2), hold off

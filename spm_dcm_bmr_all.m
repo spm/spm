@@ -46,7 +46,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 6757 2016-03-25 17:34:33Z karl $
+% $Id: spm_dcm_bmr_all.m 6759 2016-03-27 19:45:17Z karl $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -55,7 +55,7 @@ nmax  = 8;
 
 %-specification of null prior covariance
 %--------------------------------------------------------------------------
-if isfield(DCM,'gamma'), gamma = DCM.gamma; else, gamma = 1/16; end
+if isfield(DCM,'gamma'), gamma = DCM.gamma; else, gamma = 0; end
 
 %-Check fields of parameter stucture
 %--------------------------------------------------------------------------
@@ -99,7 +99,7 @@ pC  = U'*pC*U;
 % Accumulated reduction vector (C)
 %--------------------------------------------------------------------------
 q   = diag(DCM.M.pC);
-C   = logical(q > mean(q(q < 1024))/1024);
+C   = double(q > mean(q(q < 1024))/1024);
 GS  = 1;
 while GS
     
@@ -110,7 +110,7 @@ while GS
     else
         k = 1:spm_length(DCM.Ep);
     end
-    k = k(C(k));
+    k = k(find(C(k))); %#ok<FNDSB>
     
     % If there are too many find those with the least evidence
     %----------------------------------------------------------------------
@@ -121,9 +121,8 @@ while GS
         %------------------------------------------------------------------
         Z     = zeros(1,nparam);
         for i = 1:nparam
-            r    = C; r(k(i)) = 0;
-            u    = U; u(~r,:) = u(~r,:)*gamma;
-            R    = u'*u;
+            r    = C; r(k(i)) = gamma;
+            R    = U'*diag(r)*U;
             rE   = R*pE;
             rC   = R*pC*R;
             Z(i) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
@@ -153,9 +152,8 @@ while GS
     %----------------------------------------------------------------------
     G     = [];
     for i = 1:size(K,1)
-        r    = C; r(k(K(i,:))) = 0;
-        u    = U; u(~r,:) = u(~r,:)*gamma;
-        R    = u'*u;
+        r    = C; r(k(K(i,:))) = gamma;
+        R    = U'*diag(r)*U;
         rE   = R*pE;
         rC   = R*pC*R;
         G(i) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
@@ -205,7 +203,7 @@ for i = 1:length(k)
     Pk(2,i) = mean(p( K(:,i)));
 end
 Pk    = Pk(1,:)./sum(Pk);
-Pp    = double(full(C));
+Pp    = C;
 Pp(k) = Pk;
 
 
@@ -221,7 +219,7 @@ Gmax  = max(G);
 for i = 1:length(K)
     if G(i) > (Gmax - 8)
         r            = C;
-        r(k(K(i,:))) = 0;
+        r(k(K(i,:))) = gamma;
         R            = diag(r);
         rE           = R*spm_vec(pE);
         rC           = R*pC*R;

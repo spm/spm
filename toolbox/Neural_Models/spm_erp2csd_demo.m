@@ -25,7 +25,7 @@ function spm_erp2csd_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp2csd_demo.m 6506 2015-07-24 10:26:51Z karl $
+% $Id: spm_erp2csd_demo.m 6759 2016-03-27 19:45:17Z karl $
 
 
 % Model specification
@@ -233,7 +233,8 @@ for i = 1:length(G)
     
     subplot(3,2,6), plot(M.Hz,abs(psd{i}),'Color',col), hold on
     xlabel('time (s)'), title(' predicted','FontSize',16)
-    spm_axis tight, drawnow
+    spm_axis tight
+    drawnow
     
     
 end
@@ -304,7 +305,7 @@ for i = 1:length(field)
     
 end
 
-% .results in terms of model comparison
+% results in terms of model comparison
 %--------------------------------------------------------------------------
 spm_figure('GetWin','empirical Bayesian results');clf
 

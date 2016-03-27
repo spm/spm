@@ -9,11 +9,13 @@ function DCM = spm_dcm_fmri_csd_data(DCM)
 %    DCM.Y.dt      - sampling in seconds [s] (down-sampled)
 %    DCM.Y.csd     - cross spectral density over sources
 %    DCM.Y.Hz      - Frequency bins
+%
+%    DCM.U.csd     - cross spectral density of inputs
 %__________________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_data.m 6120 2014-07-24 11:20:12Z guillaume $
+% $Id: spm_dcm_fmri_csd_data.m 6759 2016-03-27 19:45:17Z karl $
 
 % add spectral toolbox
 %--------------------------------------------------------------------------

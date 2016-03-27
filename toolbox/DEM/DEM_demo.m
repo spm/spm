@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 02-Mar-2016 18:33:34
+% Last Modified by GUIDE v2.5 26-Mar-2016 20:38:51
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -589,3 +589,8 @@ run_demo_Callback(hObject, handles, 'DEMO_Lindley_paradox')
 function pushbutton203_Callback(hObject, eventdata, handles)
 handles.web = '';
 run_demo_Callback(hObject, handles, 'DEMO_BMR_PEB')
+
+% --- Executes on button press in pushbutton210.
+function pushbutton210_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'DEM_demo_fMRI_PEB')

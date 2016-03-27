@@ -19,7 +19,7 @@ function DEM_demo_induced_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_induced_fMRI.m 5895 2014-02-26 14:28:23Z karl $
+% $Id: DEM_demo_induced_fMRI.m 6759 2016-03-27 19:45:17Z karl $
  
 % Simulate timeseries
 %==========================================================================
@@ -45,7 +45,7 @@ options.two_state  = 0;
 options.stochastic = 1;
 options.centre     = 1;
 options.induced    = 1;
-options.nN         = 8;
+options.maxit      = 8;
  
 A   = ones(n,n);
 B   = zeros(n,n,0);
