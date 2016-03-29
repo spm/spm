@@ -1,67 +1,62 @@
 
 
-\chapter{DCM for fNIRS \label{Chap:data:dcm_phase}}
+\chapter{DCM for fNIRS \label{Chap:data:fnirs}}
 
-Functional near-infrared spectroscopy (fNIRS) is a noninvasive method for monitoring hemodynamic changes in the brain via measurements of optical absorption changes \citep{jobsis1977noninvasive}. As neuronal process requires extra delivery of oxygen, this hemodynamic change provides a marker of underlying neuronal activity. \\
+Functional near-infrared spectroscopy (fNIRS) is a noninvasive method for monitoring hemodynamic changes in the brain via measurements of optical absorption changes \cite{jobsis1977noninvasive}. As neuronal process requires extra delivery of oxygen, this hemodynamic change provides a marker of underlying neuronal activity. \\
 
 As compared to fMRI, fNIRS provides a more direct measure of changes in oxygenated, deoxygenated, and total hemoglobin (HbO, HbR, and HbT) with high temporal resolution. However, due to complex relationships between neurodynamic and hemodynamic processes, functional connectivity often differs with the type of hemodynamic changes (e.g., HbO and HbR), while underlying interactions between neuronal populations do not vary. This highlights the importance of estimating causal influences among neuronal populations, referring to a biophysical model of how neuronal activity is transformed into fNIRS measurements. \\
 
-DCM for fNIRS allows for making inference about changes in directed connectivity at the neuronal level from the measurement of optical density changes \citep{tak2015dynamic}. DCM is a framework for fitting differential equation models of neuronal activity to brain imaging data using Bayesian inference \citep{Friston2003a, Friston2007a, families}. Because the Bayesian estimation is the same as that used for DCMs for other imaging modalities \citep{Friston2007a, families}, the main differences are a generative model how observed fNIRS data are caused by the interactions among hidden neuronal states. \\
+DCM for fNIRS allows for making inference about changes in directed connectivity at the neuronal level from the measurement of optical density changes \cite{tak2015dynamic}. DCM is a framework for fitting differential equation models of neuronal activity to brain imaging data using Bayesian inference \cite{Friston2003a, Friston2007a, families}. Because the Bayesian estimation is the same as the one used for DCMs for other imaging modalities \cite{Friston2007a, families}, the main differences are a generative model describing how observed fNIRS data are caused by the interactions among hidden neuronal states. \\
 
-In particular, the neurodynamic and hemodynamic models used for DCM-fMRI analysis \citep{Friston2003a} are extended to addtionally include the following components:
+In particular, the neurodynamic and hemodynamic models used for DCM-fMRI analysis \cite{Friston2003a} are extended to addtionally include the following components:
 \begin{itemize} 
-\item In the hemodynamic model, \emph{the rate of HbT changes} $\dot{p}_j$, \citep{cui10} is modeled as
+\item In the hemodynamic model, \emph{the rate of HbT changes} $\dot{p}_j$, \cite{cui10}, is modeled as:
 \begin{eqnarray} 
 \tau_j \dot{p}_j  =  \left(f_{j,in} - f_{j,out}\right)\frac{p_j}{v_j},
 \end{eqnarray}
 where $j$ denotes cortical source region, $f_{j,in}$ is inflow, $f_{j,out}$ is outflow, $v_j$ is blood volume, and $\tau_j$ is the transit time. 
 
-\item \emph{An optics model} relates the hemodynamic sources to measurements of optical density changes \citep{delpy1988estimation, arridge1999optical}. Optical density changes at channel $i$ and wavelength $\lambda$, $y_i(\lambda)$, are described as a linear combination of light absorption changes due to hemoglobin oxygenation: 
+\item \emph{An optics model} relates the hemodynamic sources to measurements of optical density changes \cite{delpy1988estimation, arridge1999optical}. Optical density changes at channel $i$ and wavelength $\lambda$, $y_i(\lambda)$, are described as a linear combination of light absorption changes due to hemoglobin oxygenation: 
 \begin{eqnarray}\label{eq:optics} 
 y_i (\lambda) = \frac{1}{\omega_{i,H}} \sum_{i=1}^{N} S_{i,j}(\lambda)\epsilon_H(\lambda) \Delta H_{j,c} +  \frac{1}{\omega_{i,Q}} \sum_{i=1}^{N} S_{i,j}(\lambda)\epsilon_Q(\lambda) \Delta Q_{j,c}
 \end{eqnarray} 
-where $\Delta H_{j,c}$ and $\Delta Q_{j,c}$ are the HbO and HbR changes in the cortical source region $j$; $S(\lambda)$ is the sensitivity matrix at wavelength $\lambda$; $\epsilon_H$ and $\epsilon_Q$ are the extinction coefficients for HbO and HbR; $\omega = \frac{\mathrm{cortical}}{\mathrm{cortical} + \mathrm{pial}}$ is a factor for correcting the effect of pial vein oxygenation changes on fNIRS measurements  \citep{gagnon2012quantification}. 
+where $\Delta H_{j,c}$ and $\Delta Q_{j,c}$ are the HbO and HbR changes in the cortical source region $j$; $S(\lambda)$ is the sensitivity matrix at wavelength $\lambda$; $\epsilon_H$ and $\epsilon_Q$ are the extinction coefficients for HbO and HbR; $\omega = \frac{\mathrm{cortical}}{\mathrm{cortical} + \mathrm{pial}}$ is a factor for correcting the effect of pial vein oxygenation changes on fNIRS measurements  \cite{gagnon2012quantification}. 
 
 \item \emph{Spatially extended hemodynamic sources}. In the optics model (Eq.~\ref{eq:optics}), each hemodynamic signal is modelled as a point source which produces a hemodynamic response at a single specified anatomical location. However, the hemodynamic response can be spatially extended. Hemodynamic activity at a source location is then specified by convolving the temporal response with a Gaussian spatial kernel.
 
 \end{itemize} 
 
-\newpage
 \section{Example: Motor Execution and Imagery Data} 
-This section presents an illustrative DCM analysis using fNIRS data acquired during the motor execution and motor imagery tasks. This data was collected by Agnieszka Kempny and Alex Leff in Royal Hospital for Neuro-disability, and is available from the SPM website. 
+This section presents an illustrative DCM analysis using fNIRS data acquired during the motor execution and motor imagery tasks. This data was collected by Agnieszka Kempny and Alex Leff in Royal Hospital for Neuro-disability, and is available from the SPM website\footnote{\url{http://www.fil.ion.ucl.ac.uk/spm/data/fnirs/}}.
 
-\begin{itemize} 
-\item Experimental protocol 
+\subsection*{Experimental protocol}
 \begin{itemize}
-\item In the first run, the subject was instructed to squeeze and release a ball with her right hand during task blocks. In the second run, the subjected was instructed to perform kinesthetic imagery of the same hand movement, but without moving the hand. 
-\item For both runs, there were 5 second blocks of tasks where the cue was presented with
-an auditory beep, interspersed with 25 second rest blocks. 
-\item A previous study found consistent activation in the supplementary motor area (SMA) and premotor cortex during motor execution and imagery, and reduced activation in primary motor cortex (M1) during motor imagery \citep{hanakawa2003functional}. Moreover, a recent study has revealed, using DCM for fMRI \citep{kasess2008suppressive}, that coupling between SMA and M1 may serve to attenuate the activation of M1 during motor imagery. 
-\item In this manual, using DCM-fNIRS, we investigate (i) how the motor imagery condition affects the directed connections between SMA and M1, and (ii) how these interactions are associated with the regional activity in
-M1 and SMA during motor execution and imagery.
+\item In the first session, the subject was instructed to squeeze and release a ball with her right hand during task blocks. In the second session, the subjected was instructed to perform kinesthetic imagery of the same hand movement, but without moving the hand. 
+\item For both sessions, there were 5 second blocks of tasks where the cue was presented with an auditory beep, interspersed with 25 second rest blocks. 
+\item A previous study found consistent activation in the supplementary motor area (SMA) and premotor cortex during motor execution and imagery, and reduced activation in primary motor cortex (M1) during motor imagery \cite{hanakawa2003functional}. Moreover, a recent study has revealed, using DCM for fMRI \cite{kasess2008suppressive}, that coupling between SMA and M1 may serve to attenuate the activation of M1 during motor imagery. 
+\item In this manual, using DCM-fNIRS, we investigate (i) how the motor imagery condition affects the directed connections between SMA and M1, and (ii) how these interactions are associated with the regional activity in M1 and SMA during motor execution and imagery.
 \end{itemize}
-\end{itemize} 
 
-\clearpage
 \section{SPM Analysis}
-Prior to DCM analysis, brain regions whose dynamics are driven by
-experimental conditions are identified using SPM analysis \footnote{The first-level fNIRS analysis. including preprocessing, artefact removal, general linear modelling, spatial registration were all implemented using the SPM for fNIRS toolbox. This is available from \url{https://www.nitrc.org/projects/spm_fnirs/.} See the toolbox manual for more details.} Using motor execution and imagery data, we can find that SMA is significantly activated during both motor execution and motor imagery, whereas M1 is only activated during motor execution. The most significantly activated voxels within SMA and M1 are then selected as the source positions for DCM analysis: The MNI coordinates are: SMA, $[−51, −4, 55]$; and M1, $[−44, −16, 65]$.
+Prior to DCM analysis, brain regions whose dynamics are driven by experimental conditions are identified using a standard SPM analysis\footnote{The first-level fNIRS analysis. including preprocessing, artefact removal, general linear modelling, spatial registration were all implemented using the SPM for fNIRS toolbox. This is available from \url{https://www.nitrc.org/projects/spm_fnirs/.} See the toolbox manual for more details.}. Using motor execution and imagery data, we can find that SMA is significantly activated during both motor execution and motor imagery, whereas M1 is only activated during motor execution. The most significantly activated voxels within SMA and M1 are then selected as the source positions for DCM analysis: The MNI coordinates are: SMA, $[51, 4, 55]$; and M1, $[44, 16, 65]$.
 
 \section{Specifying and Estimating the DCM}
 Now we will generate a connectivity model of how observed fNIRS data are caused by interactions among hidden neuronal states. Specifically, we will determine (i) which regions receive driving input, (ii) which regions are connected in the absence of experimental input, and (iii) which connections are modulated by input. In this example, we will generate the best model (selected using Bayesian model comparison) in which task input could affect regional activity in both M1 and SMA, and motor imagery modulates both extrinsic and intrinsic connections. 
 
 \begin{enumerate} 
-\item Enter `spm\textunderscore dcm\textunderscore fnirs\textunderscore specify' at the MATLAB command window. \\
->> spm\textunderscore dcm\textunderscore fnirs\textunderscore specify;
-\item Select the SPM.mat file(s) you have created when specifying the GLM. \\
-eg, ...\textbackslash fnirs\textunderscore data\textbackslash ME\textbackslash SPM.mat., and ...\textbackslash fnirs\textunderscore data\textbackslash MI\textbackslash SPM.mat.
-\item Highlight `name for DCM \textunderscore???.mat' and enter a DCM file name you want to create eg, fully connected.
-\item Select a directory, eg. ...\textbackslash fnirs\textunderscore data, in which to place the results of your DCM analysis.
+\item After starting SPM in the EEG modality, add the DCM for fNIRS toolbox to the MATLAB path:\\
+>> \texttt{addpath(fullfile(spm('Dir'),'toolbox','dcm\_fnirs'))}
+\item Type \texttt{spm\_dcm\_fnirs\_specify} at the MATLAB command window. \\
+>> \texttt{spm\_dcm\_fnirs\_specify};
+\item Select the \texttt{SPM.mat} files that were created when specifying the GLM. \\
+eg, \texttt{fnirs\_data/ME/SPM.mat}, and \texttt{fnirs\_data/MI/SPM.mat}.
+\item Highlight `name for DCM\textunderscore???.mat' and enter a DCM file name you want to create eg, \texttt{fully\_connected}.
+\item Select a directory, eg. \texttt{fnirs\_data}, in which to place the results of your DCM analysis.
 \item \textbf{Preprocess time series of optical density changes}
 \begin{enumerate} 
-\item Highlight `temporal filtering? [Butterworth IIR/No]'. \\Select the Butterwoth IIR button to reduce very low-frequency confounds, and physiological noise eg, respiration and cardiac pulsation.
+\item Highlight `temporal filtering? [Butterworth IIR/No]'. \\Select the Butterworth IIR button to reduce very low-frequency confounds, and physiological noise eg, respiration and cardiac pulsation.
 \begin{itemize}
-\item Highlight `stopband frequencies Hz [start end]'. and then accept the default value `[0 0.008; 0.12 0.35; 0.7 1.5]'.
+\item Highlight `stopband frequencies Hz [start end]', and then accept the default value `[0 0.008; 0.12 0.35; 0.7 1.5]'.
 \end{itemize}
 \item Highlight `average time series over trials?'. \\Select `yes' to average the optical density signal across trials, and then specify averaging window length [secs] for each experimental condition. 
 \begin{itemize} 
@@ -77,15 +72,14 @@ eg, ...\textbackslash fnirs\textunderscore data\textbackslash ME\textbackslash S
 \end{itemize}
 \item Highlight `correction of pial vein contamination? [yes/no'].\\ Select `yes' to correct pial vein contamination of fNIRS measurements.
 \end{enumerate}
-\newpage
+
 \item \textbf{Specify fNIRS channels to be used in DCM}.
 \begin{enumerate}
-\item Highlight `use all sensor measurements? [yes/no]'.\\Select `no' to specify sensor (channel) measurements to be used iin DCM analysis. 
+\item Highlight `use all sensor measurements? [yes/no]'.\\Select `no' to specify sensor (channel) measurements to be used in DCM analysis. 
 \begin{itemize}
 \item Highlight `sensors of interest', and enter eg, [1 2 3 4 9 10 11 12] \\Only fNIRS data from the left hemisphere is used in this study. You can refer to sensor positions shown in `Figure 1: Optode and Channel Positions'.
 \end{itemize}
 \end{enumerate}
-
 \item \textbf{Specify hemo/neurodynamic source positions}.
 \begin{enumerate}
 \item Enter total number of sources to be estimated using DCM eg, 2. 
@@ -100,7 +94,7 @@ eg, ...\textbackslash fnirs\textunderscore data\textbackslash ME\textbackslash S
 \item Highlight `radius of distributed source [mm]', and accept the default value `4'. 
 \end{itemize}
 \end{enumerate}
-\item Select a file containing Green's function of the photon fluence precomputed using the mesh-based Monte Carlo simulation software (MMC, \citep{fang2010mesh}\footnote{We provide a code for estimating Green's function based on the MMC software. The code currently run on a Mac OS.} eg, ...\textbackslash fnirs\textunderscore data\textbackslash greens\textbackslash est\textunderscore G.mat.
+\item Select a file containing Green's function of the photon fluence precomputed using the mesh-based Monte Carlo simulation software (MMC, \cite{fang2010mesh}\footnote{We provide a code for estimating Green's function based on the MMC software. The code currently only runs on Mac OS.} eg, \texttt{fnirs\_data/greens/est\_G.mat}.
 \item \textbf{Input Specification}
 \\Specify experimental input that modulates regional activity and connectivity. 
 \begin{enumerate}
@@ -122,64 +116,56 @@ eg, ...\textbackslash fnirs\textunderscore data\textbackslash ME\textbackslash S
 \end{itemize}
 \item \textbf{Specify regions receiving driving input}
 \begin{itemize}
-\item Highlight `Effects of motor tasks on regions... and connections, and specify motor tasks as a driving input into M1 and SMA. See Fig.~\ref{fig:gui_con}.
+\item Highlight `Effects of motor tasks on regions and connections', and specify motor tasks as a driving input into M1 and SMA. See Fig.~\ref{fig:gui_con}.
 \end{itemize}
 \item \textbf{Specify connections modulated by input}
 \begin{itemize}
-\item Highlight `Effects of motor imagery on regions... and connections. \\Specify motor imagery to modulate intrinsic connections on M1 and SMA; extrinsice connections from M1 to SMA, and from SMA to M1. See Fig.~\ref{fig:gui_con}. 
+\item Highlight `Effects of motor imagery on regions and connections. \\Specify motor imagery to modulate intrinsic connections on M1 and SMA; extrinsic connections from M1 to SMA, and from SMA to M1. See Fig.~\ref{fig:gui_con}. 
 \end{itemize}
-A polite ``Thank You'' completes the model specification process. A file called DCM\textunderscore fully\textunderscore connected.mat will have been generated. 
+A polite ``Thank You'' completes the model specification process. A file called \texttt{DCM\_fully\_connected.mat} will have been generated. 
 \item You can now estimate the model parameters by typing \\
->> spm\textunderscore dcm\textunderscore fnirs \textunderscore estimate;
-\item Select the DCM.mat file created in the last step eg, ...\textbackslash fnirs\textunderscore data\textbackslash DCM\textunderscore fully\textunderscore connected.mat. After convergence of estimation of DCM parameters, results will appear in a window, as shown in Fig.~\ref{fig:fit}. 
+>> \texttt{spm\_dcm\_fnirs\_estimate};
+\item Select the DCM.mat file created in the last step eg, \texttt{fnirs\_data/DCM\_fully\_connected.mat}. After convergence of estimation of DCM parameters, results will appear in a window, as shown in Fig.~\ref{fig:fit}. 
 
 \begin{itemize}
 \item Also, you can display DCM analysis results, including connectivity parameters, estimated neural responses, and DCM fit, by typing \\ 
->> spm\textunderscore dcm\textunderscore fnirs \textunderscore result;
-\item Select the DCM.mat file eg, ...\textbackslash fnirs\textunderscore data\textbackslash, and then results will appear in a window, as shown in Figs.~\ref{fig:est_conn}~\ref{fig:est_neural}. 
+>> \texttt{spm\_dcm\_fnirs\_viewer\_result};
+\item Select the DCM.mat file eg, \texttt{fnirs\_data/}, and then results will appear in a window, as shown in Figs.~\ref{fig:est_conn} and \ref{fig:est_neural}. 
 \end{itemize}
 \end{enumerate}
 
 \newpage
-\begin{figure}[h!]
-\centering
-\vspace*{4cm}
-\centerline{\epsfig{figure=figs/gui_con.pdf, width = 20cm}} 
- \vspace*{-4cm}
-\caption{Specification of model depicted in Fig.7 \citep{tak2015dynamic}. In this model, motor task input affects regional activity in both M1 and SMA, and motor imagery modulates both extrinsic and intrinsic connections. Left: Endogenous (fixed) connections. Middle: Regions receiving driving input (eg, motor tasks encoding the occurrence of motor execution and motor imagery tasks). Right: Connections modulated input (eg, motor imagery task).} 
-\label{fig:gui_con}
+\begin{figure}
+\begin{center}
+\epsfig{file=dcm_fnirs/figs/gui_con,width=14cm}
+\caption{Specification of model depicted in Fig.7 \cite{tak2015dynamic}. In this model, motor task input affects regional activity in both M1 and SMA, and motor imagery modulates both extrinsic and intrinsic connections. Left: Endogenous (fixed) connections. Middle: Regions receiving driving input (eg, motor tasks encoding the occurrence of motor execution and motor imagery tasks). Right: Connections modulated input (eg, motor imagery task).\label{fig:gui_con}}
+\end{center}
 \end{figure}
 
 
 \newpage
-\begin{figure}[h!]
-\centering
-\vspace*{1.5cm}
-\centerline{\epsfig{figure=figs/dcm_fit.pdf, width = 13cm}} 
- \vspace*{0.5cm}
-\caption{Results of estimation of DCM parameters. Top: Predicted and observed response, after convergence. Bottom: Conditional expectation of the parameters.}
-\label{fig:fit}
+\begin{figure}
+\begin{center}
+\epsfig{file=dcm_fnirs/figs/dcm_fit,width=13cm}
+\caption{Results of estimation of DCM parameters. Top: Predicted and observed response, after convergence. Bottom: Conditional expectation of the parameters.\label{fig:fit}}
+\end{center}
 \end{figure}
 
 
 \newpage
-\begin{figure}[h!]
-\centering
-\vspace*{-0.3cm}
-\centerline{\epsfig{figure=figs/est_conn.pdf, width = 13cm}} 
- \vspace*{-0.3cm}
-\caption{Estimated parameters of effective connectivity. These results indicate that while allmotor stimuli positively affect theregional activity in primarymotor cortex (M1), motor imagery negativelymodulates connection fromsupplementarymotor area (SMA) toM1, resulting in the suppressive influence of SMA on M1. See \citep{tak2015dynamic} for more details. } 
-\label{fig:est_conn}
+\begin{figure}
+\begin{center}
+\epsfig{file=dcm_fnirs/figs/est_conn,width=13cm}
+\caption{Estimated parameters of effective connectivity. These results indicate that while all motor stimuli positively affect theregional activity in primarymotor cortex (M1), motor imagery negativelymodulates connection fromsupplementarymotor area (SMA) to M1, resulting in the suppressive influence of SMA on M1. See \cite{tak2015dynamic} for more details. \label{fig:est_conn}}
+\end{center}
 \end{figure}
 
 \newpage
-\begin{figure}[h!]
-\centering
-\vspace*{0cm}
-\centerline{\epsfig{figure=figs/est_neural.pdf, width = 13cm}} 
- \vspace*{-4cm}
-\caption{Estimated neural responses. Duringmotor imagery, neural activity in primary motor cortex (M1) is significantly reduced, while neural activity in supplementary motor area (SMA) is relatively consistent, compared with activity during motor execution.}
-\label{fig:est_neural}
+\begin{figure}
+\begin{center}
+\epsfig{file=dcm_fnirs/figs/est_neural,width=13cm}
+\caption{Estimated neural responses. Duringmotor imagery, neural activity in primary motor cortex (M1) is significantly reduced, while neural activity in supplementary motor area (SMA) is relatively consistent, compared with activity during motor execution.\label{fig:est_neural}}
+\end{center}
 \end{figure}
 
 

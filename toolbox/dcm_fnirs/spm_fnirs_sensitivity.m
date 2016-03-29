@@ -33,15 +33,15 @@ end
 
 %--------------------------------------------------------------------------
 load(DCM.Y.P.fname.pos); % load channel positions 
-load(DCM.Y.P.fname.g); % load Green's function 
+load(DCM.Y.P.fname.g);   % load Green's function 
 
-xyzh = reshape(extractfield(DCM.xY, 'xyz'), [3 DCM.n]); % hemodynamic source positions 
-xyzd = R.d.xyzH; % detector positions 
-ns = R.s.ns; % number of sources (emitter)
-nd = R.d.nd; % number of detectors 
-nh = size(xyzh, 2); % number of hemodynamic sources 
+xyzh = [DCM.xY.xyz];     % hemodynamic source positions 
+xyzd = R.d.xyzH;         % detector positions 
+ns = R.s.ns;             % number of sources (emitter)
+nd = R.d.nd;             % number of detectors 
+nh = size(xyzh, 2);      % number of hemodynamic sources 
 
-nnode = size(G.xyz, 2); % number of nodes 
+nnode = size(G.xyz, 2);  % number of nodes 
 r = DCM.options.rs .* 3; % maximum distance between point and distributed sources 
 rois = DCM.Y.P.rois; 
 
