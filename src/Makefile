@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2015 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 6589 2015-11-03 16:01:08Z guillaume $
+# $Id: Makefile 6761 2016-03-30 15:11:20Z guillaume $
 #
 ###############################################################################
 #
@@ -80,6 +80,9 @@ tarball: all tbx-tarball verb.tarball
 		$(TAR) Af spm_mex.tar  ../$$p/spm_mex.tar;\
 	done
 	$(ZIP) spm_mex.tar
+
+doc:
+	@ $(MAKE) -C ../man --no-print-directory
 
 ###############################################################################
 # Private make targets
