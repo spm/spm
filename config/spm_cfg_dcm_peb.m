@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6758 2016-03-26 07:53:09Z vladimir $
+% $Id: spm_cfg_dcm_peb.m 6762 2016-04-01 16:57:15Z guillaume $
 
 
 %==========================================================================
@@ -28,7 +28,7 @@ dir.num     = [1 1];
 name         = cfg_entry;
 name.tag     = 'name';
 name.name    = 'Name';
-name.help    = {'Specify a name for the output'};
+name.help    = {'Specify a name for the output.'};
 name.strtype = 's';
 name.num     = [0 Inf];
 
@@ -103,7 +103,7 @@ cov_design.num     = [Inf Inf];
 cov_name         = cfg_entry;
 cov_name.tag     = 'name';
 cov_name.name    = 'Name';
-cov_name.help    = {'Enter a name for a covariate'};
+cov_name.help    = {'Enter a name for a covariate.'};
 cov_name.strtype = 's';
 cov_name.num     = [0 Inf];
 
@@ -340,7 +340,7 @@ priors_between.name    = 'Between-subjects variability';
 priors_between.val     = { group_priors_parameters_ratio...
                            priors_parameters_ratio ...
                            priors_log_precision_mu ...
-                                 priors_log_precision_var};
+                           priors_log_precision_var};
 priors_between.help    = {['Between-subjects variability over second-' ...
      'level parameters.'], '' ...
      ['A multi-component model is used. Each component is a ' ...
@@ -355,7 +355,7 @@ priors_between.help    = {['Between-subjects variability over second-' ...
 %--------------------------------------------------------------------------
 % show_review Select whether to review results
 %--------------------------------------------------------------------------
-show_review  = cfg_menu;
+show_review        = cfg_menu;
 show_review.tag    = 'show_review';
 show_review.name   = 'Review PEB parameters';
 show_review.labels = {'Yes','No'};
@@ -398,7 +398,7 @@ null_prior_covariance.val     = {1/16};
 peb_compare      = cfg_exbranch;
 peb_compare.tag  = 'compare';
 peb_compare.name = 'Compare / Average PEB models';
-peb_compare.val  = { peb_mat model_space_mat_op show_review};
+peb_compare.val  = { peb_mat model_space_mat_op null_prior_covariance show_review};
 peb_compare.help = {['Addresses the question: which combination of ' ...
     'connections best explains the commonalities across subjects and ' ...
     'the group differences between subjects?'] '' ...
@@ -415,7 +415,7 @@ peb_compare.help = {['Addresses the question: which combination of ' ...
     'over reduced PEB models to prune away any parameters not contributing ' ... 
     'to the model evidence. If multiple DCMs are provided per subject, ' ...
     'these are used to define the combinations of second level parameters ' ...
-    'to be compared']};
+    'to be compared.']};
 peb_compare.prog = @spm_run_bmc;
 peb_compare.vout = @vout_bma;
 
@@ -474,7 +474,7 @@ specify.vout = @vout_loo;
 second_level         = cfg_choice; 
 second_level.tag     = 'peb';
 second_level.name    = 'Second level';
-second_level.help    = {'Parametric Empirical Bayes for DCM'};
+second_level.help    = {'Parametric Empirical Bayes for DCM.'};
 second_level.values  = { specify peb_compare reduce_all review predict };
 
 
