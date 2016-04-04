@@ -90,7 +90,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6748 2016-03-14 10:04:41Z karl $
+% $Id: spm_MDP_VB_X.m 6763 2016-04-04 09:24:18Z karl $
 
 
 % deal with a sequence of trials
@@ -120,6 +120,12 @@ if length(MDP) > 1
         % solve this trial
         %------------------------------------------------------------------
         OUT(i) = spm_MDP_VB_X(MDP(i),OPTS);
+        
+        % Bayesian model reduction
+        %------------------------------------------------------------------
+        if isfield(OPTIONS,'BMR')
+          OUT(i) = spm_MDP_VB_sleep(OUT(i),OPTIONS.BMR);
+        end
         
     end
     MDP = OUT;
@@ -374,11 +380,33 @@ for t = 1:T
     Q     = zeros(Np,S);
     for k = p
         for j = 1:S
+            
+            % get expected states for this policy and ttime
+            %--------------------------------------------------------------
             xq    = cell(1,Nf);
             for f = 1:Nf
                 xq{f} = x{f}(:,j,k);
             end
             
+            % marginal log-likelihood over outcomes
+            %--------------------------------------------------------------
+            v     = 0;
+            if j <= t
+                for g = 1:Ng
+                    Aq    = zeros(Ns);
+                    Aq(:) = A{g}(o(g,j),:);
+                    Aq    = spm_dot(Aq,xq,(1:Nf));
+                    v     = v + log(Aq(:) + p0);
+                end
+            end
+            
+            % correct (negative) free energy
+            %--------------------------------------------------------------
+            F(k,j) = F(k,j) - v*Nf + v;
+            
+            
+            % (negative) expected free energy
+            %============================================================== 
             for g = 1:Ng
                 
                 % uncertainty about outcomes
@@ -420,11 +448,7 @@ for t = 1:T
         if OPTIONS.gamma_u
             gu(t) = 1/beta;
         else
-            if ~isfield(MDP,'U')
-                eg = (qu - pu)'*SQ(p);
-            else
-                eg = qu'*log(pu/gu(t));
-            end
+            eg    = (qu - pu)'*SQ(p);
             dFdg  = qbeta - beta + eg;
             qbeta = qbeta - dFdg/2;
             gu(t) = 1/qbeta;
@@ -486,8 +510,8 @@ for t = 1:T
                 
                 % predicted outcome
                 %----------------------------------------------------------
-                po = spm_dot(MDP.A{g},xp,ind + 1);
-                qo = spm_dot(MDP.A{g},xq,ind + 1);
+                po = spm_dot(A{g},xp,ind + 1);
+                qo = spm_dot(A{g},xq,ind + 1);
                 dP = (log(po + p0) - log(qo + p0))'*qo;
                 
                 % augment action potential

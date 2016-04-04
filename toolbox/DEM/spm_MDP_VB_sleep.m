@@ -4,6 +4,12 @@ function [MDP] = spm_MDP_VB_sleep(MDP,OPTIONS)
 %
 % MDP  - (inverted) MDP structure
 %
+% OPTIONS.g - [default: 1]
+% OPTIONS.o - [default: {}]
+% OPTIONS.x - [default: 8]
+% OPTIONS.f - [default: 0]
+% OPTIONS.T - [default: 1/4]
+%
 % MDP  - (reduced) model structure: with reduced MDP.a
 %
 % This routine optimises the hyperparameters of a NDP model (i.e.,
@@ -20,7 +26,7 @@ function [MDP] = spm_MDP_VB_sleep(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_sleep.m 6756 2016-03-25 09:49:08Z karl $
+% $Id: spm_MDP_VB_sleep.m 6763 2016-04-04 09:24:18Z karl $
 
 
 % deal with a sequence of trials
@@ -28,15 +34,24 @@ function [MDP] = spm_MDP_VB_sleep(MDP,OPTIONS)
 
 % options
 %--------------------------------------------------------------------------
-try, g   = OPTIONS.g; catch, g = 1;  end
-try, o   = OPTIONS.o; catch, o = {}; end
-try, x   = OPTIONS.x; catch, x = 8;  end
-try, f   = OPTIONS.f; catch, f = 0;  end
+try, g   = OPTIONS.g; catch, g = 1;   end
+try, o   = OPTIONS.o; catch, o = {};  end
+try, x   = OPTIONS.x; catch, x = 8;   end
+try, f   = OPTIONS.f; catch, f = 0;   end
+try, T   = OPTIONS.T; catch, T = 1/4; end
+
+% model selection function
+%--------------------------------------------------------------------------
+if isfield(OPTIONS,'m')
+    m = OPTIONS.m;
+else
+    m = @(i,i1,i2,i3,i4)1;
+end
 
 % Baysian model reduction - parameters
 %--------------------------------------------------------------------------
 if isfield(MDP,'a')
-    [sa,ra] = spm_MDP_VB_prune(MDP(end).a{g},MDP(1).a0{g},f,x);
+    [sa,ra] = spm_MDP_VB_prune(MDP(end).a{g},MDP(1).a0{g},f,x,T,m);
 end
 
 
@@ -77,8 +92,8 @@ else
 end
 
 
-function [sA,rA] = spm_MDP_VB_prune(qA,pA,f,x)
-% FORMAT [sA,rA] = spm_MDP_VB_prune(qA,pA,f,x)
+function [sA,rA] = spm_MDP_VB_prune(qA,pA,f,x,T,m)
+% FORMAT [sA,rA] = spm_MDP_VB_prune(qA,pA,f,x,T,m)
 % qA - posterior expectations
 % pA - prior expectations
 % f  - hidden factor to integrate over [defult: 0]
@@ -90,8 +105,10 @@ function [sA,rA] = spm_MDP_VB_prune(qA,pA,f,x)
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin < 4, x = 8; end
-if nargin < 3, f = 0; end
+if nargin < 5, m = @(i,i1,i2,i3,i4)1; end
+if nargin < 5, x = 1/4; end
+if nargin < 4, x = 8;   end
+if nargin < 3, f = 0;   end
 
 % column-wise model comparison
 %--------------------------------------------------------------------------
@@ -110,17 +127,24 @@ for i1 = 1:size(qA,2)
                 
                 % informative state?
                 %----------------------------------------------------------
-                for i = 1:length(j);
-                    r    = p;
-                    r(i) = x;
-                    F(i) = spm_MDP_log_evidence(q,p,r);
+                F  = 0;
+                if length(j) > 1
+                    for i = 1:length(j);
+                        if m(i,i1,i2,i3,i4)
+                            r    = p;
+                            r(i) = r(i) + x;
+                            F(i) = spm_MDP_log_evidence(q,p,r);
+                        else
+                            F(i) = 16;
+                        end
+                    end
                 end
                 
                 % eliminate parameter
                 %----------------------------------------------------------
                 [F,i] = min(F);
                 mF(i1,i2,i3,i4) = F;
-                iF(i1,i2,i3,i4) = i;
+                iF(i1,i2,i3,i4) = j(i);
             end
         end
     end
@@ -164,11 +188,11 @@ for i1 = 1:size(qA,2)
                 
                 % eliminate parameter
                 %----------------------------------------------------------
-                if F < - 1;
+                if F < - T;
                     sA(:,i1,i2,i3,i4) = 0;
                     rA(:,i1,i2,i3,i4) = 0;
-                    sA(i,i1,i2,i3,i4) = sum(q(i));
-                    rA(i,i1,i2,i3,i4) = 1;
+                    sA(i,i1,i2,i3,i4) = sum(q);
+                    rA(i,i1,i2,i3,i4) = sum(p);
                 else
                     sA(j,i1,i2,i3,i4) = q;
                     rA(j,i1,i2,i3,i4) = p;
@@ -179,22 +203,5 @@ for i1 = 1:size(qA,2)
     end
 end
 
-
-
-
-
-function A = spm_norm(A)
-% normalisation of a probability transition matrix (columns)
-%--------------------------------------------------------------------------
-for i = 1:size(A,2)
-    for j = 1:size(A,3)
-        for k = 1:size(A,4)
-            for l = 1:size(A,5)
-                s = sum(A(:,i,j,k,l),1);
-                if s, A(:,i,j,k,l) = A(:,i,j,k,l)/s; end
-            end
-        end
-    end
-end
 
 
