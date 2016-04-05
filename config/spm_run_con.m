@@ -5,9 +5,9 @@ function out = spm_run_con(job)
 % Output:
 % out    - struct containing contrast and SPM{.} images filename
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 6025 2014-05-29 13:35:51Z guillaume $
+% $Id: spm_run_con.m 6764 2016-04-05 18:05:20Z guillaume $
 
 
 spm('FnBanner','spm_contrasts.m');
@@ -291,8 +291,8 @@ else
     Vcon = ''; Vspm = '';
 end
 if ~isempty(Vcon) && ~isempty(Vspm)
-    out.con = cellstr(char(Vcon.fname));
-    out.spm = cellstr(char(Vspm.fname));
+    out.con = spm_file(cellstr(char(Vcon.fname)),'path',swd);
+    out.spm =  spm_file(cellstr(char(Vspm.fname)),'path',swd);
 else
     out.con = {}; out.spm = {};
 end
