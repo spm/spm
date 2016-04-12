@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6762 2016-04-01 16:57:15Z guillaume $
+% $Id: spm_cfg_dcm_peb.m 6766 2016-04-12 16:09:24Z peter $
 
 
 %==========================================================================
@@ -466,7 +466,7 @@ predict.help = {['Builds a PEB model on all but one subjects, and uses ' ...
                  ['The first covariate (after the automatically inserted ' ...
                   'mean regressor) is used as the predictor variable.']};            
 predict.prog = @spm_run_dcm_loo;
-specify.vout = @vout_loo;
+predict.vout = @vout_loo;
 
 %==========================================================================
 % second_level Second level DCM batch
