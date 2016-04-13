@@ -6,9 +6,9 @@ Functional near-infrared spectroscopy (fNIRS) is a noninvasive method for monito
 
 As compared to fMRI, fNIRS provides a more direct measure of changes in oxygenated, deoxygenated, and total hemoglobin (HbO, HbR, and HbT) with high temporal resolution. However, due to complex relationships between neurodynamic and hemodynamic processes, functional connectivity often differs with the type of hemodynamic changes (e.g., HbO and HbR), while underlying interactions between neuronal populations do not vary. This highlights the importance of estimating causal influences among neuronal populations, referring to a biophysical model of how neuronal activity is transformed into fNIRS measurements. \\
 
-DCM for fNIRS allows for making inference about changes in directed connectivity at the neuronal level from the measurement of optical density changes \cite{tak2015dynamic}. DCM is a framework for fitting differential equation models of neuronal activity to brain imaging data using Bayesian inference \cite{Friston2003a, Friston2007a, families}. Because the Bayesian estimation is the same as the one used for DCMs for other imaging modalities \cite{Friston2007a, families}, the main differences are a generative model describing how observed fNIRS data are caused by the interactions among hidden neuronal states. \\
+DCM for fNIRS allows for making inference about changes in directed connectivity at the neuronal level from the measurement of optical density changes \cite{tak2015dynamic}. DCM is a framework for fitting differential equation models of neuronal activity to brain imaging data using Bayesian inference \cite{dcm, karl_vb_laplace, dcm_families}. Because the Bayesian estimation is the same as the one used for DCMs for other imaging modalities \cite{karl_vb_laplace, dcm_families}, the main differences are a generative model describing how observed fNIRS data are caused by the interactions among hidden neuronal states. \\
 
-In particular, the neurodynamic and hemodynamic models used for DCM-fMRI analysis \cite{Friston2003a} are extended to addtionally include the following components:
+In particular, the neurodynamic and hemodynamic models used for DCM-fMRI analysis \cite{dcm} are extended to addtionally include the following components:
 \begin{itemize} 
 \item In the hemodynamic model, \emph{the rate of HbT changes} $\dot{p}_j$, \cite{cui10}, is modeled as:
 \begin{eqnarray} 
@@ -48,7 +48,7 @@ Now we will generate a connectivity model of how observed fNIRS data are caused 
 >> \texttt{addpath(fullfile(spm('Dir'),'toolbox','dcm\_fnirs'))}
 \item Type \texttt{spm\_dcm\_fnirs\_specify} at the MATLAB command window. \\
 >> \texttt{spm\_dcm\_fnirs\_specify};
-\item Select the \texttt{SPM.mat} files that were created when specifying the GLM. \\
+\item Select the \texttt{SPM.mat} files that were created when specifying the GLM (two files). \\
 eg, \texttt{fnirs\_data/ME/SPM.mat}, and \texttt{fnirs\_data/MI/SPM.mat}.
 \item Highlight `name for DCM\textunderscore???.mat' and enter a DCM file name you want to create eg, \texttt{fully\_connected}.
 \item Select a directory, eg. \texttt{fnirs\_data}, in which to place the results of your DCM analysis.
@@ -85,9 +85,9 @@ eg, \texttt{fnirs\_data/ME/SPM.mat}, and \texttt{fnirs\_data/MI/SPM.mat}.
 \item Enter total number of sources to be estimated using DCM eg, 2. 
 \begin{itemize}
 \item Enter a name of source 1 eg, M1
-\item Enter MNI coordinates of source 2 eg, [$-$44 $-$16 65]
+\item Enter MNI coordinates of source 1 eg, [$-$44 $-$16 65]
 \item Enter a name of source 2 eg, SMA
-\item Enter MNI coordinates of source 1 eg, [$-$51 $-$4 55]
+\item Enter MNI coordinates of source 2 eg, [$-$51 $-$4 55]
 \end{itemize}
 \item Highlight `type of hemodynamic source [Point/Distributed]' \\Select 'Distributed' to use spatially extended hemodynamic source rather than point source. 
 \begin{itemize}
@@ -169,82 +169,5 @@ A polite ``Thank You'' completes the model specification process. A file called 
 \end{figure}
 
 
-\clearpage
-
-\begin{thebibliography}{10}
-
-\bibitem{jobsis1977noninvasive}
-F.~F. Jobsis.
-\newblock Noninvasive, infrared monitoring of cerebral and myocardial oxygen
-  sufficiency and circulatory parameters.
-\newblock {\em Science}, 198(4323):1264--1267, 1977.
-
-\bibitem{tak2015dynamic}
-S.~Tak, A.~Kempny, K.~Friston, A.~Leff, and W.~Penny.
-\newblock Dynamic causal modelling for functional near-infrared spectroscopy.
-\newblock {\em Neuroimage}, 111:338--349, 2015.
-
-\bibitem{Friston2003a}
-K.~J. Friston, L.~M. Harrison, and W.~D. Penny.
-\newblock Dynamic causal modelling.
-\newblock {\em Neuroimage}, 19(4):1273--1302, 2003.
-
-\bibitem{Friston2007a}
-K.~J. Friston, J.~Mattout, N.~Trujillo-Barreto, J.~Ashburner, and W.~D. Penny.
-\newblock Variational free energy and the {Laplace} approximation.
-\newblock {\em Neuroimage}, 34(1):220--234, 2007.
-
-\bibitem{families}
-W.~Penny, K.~E. Stephan, J.~Daunizeau, M.~J. Rosa, K.~J. Friston, T.~M.
-  Schofield, and A.~P. Leff.
-\newblock Comparing families of dynamic causal models.
-\newblock {\em PLoS Comput. Biol.}, 6(3):e1000709, 2010.
-
-\bibitem{cui10}
-X.~Cui, S.~Bray, and A.~L. Reiss.
-\newblock {Functional near infrared spectroscopy (NIRS) signal improvement
-  based on negative correlation between oxygenated and deoxygenated hemoglobin
-  dynamics}.
-\newblock {\em {NeuroImage}}, 49:3039--3046, 2010.
-
-\bibitem{delpy1988estimation}
-D.~T. Delpy, M.~Cope, P.~Van~der Zee, S.~Arridge, S.~Wray, and J.~Wyatt.
-\newblock Estimation of optical pathlength through tissue from direct time of
-  flight measurement.
-\newblock {\em Phys. Med. Biol.}, 33(12):1433--1442, 1988.
-
-\bibitem{arridge1999optical}
-S.~R. Arridge.
-\newblock {Optical tomography in medical imaging}.
-\newblock {\em Inverse Probl.}, 15:R41--R93, 1999.
-
-\bibitem{gagnon2012quantification}
-L.~Gagnon, M.~A. Y{\"u}cel, M.~Dehaes, R.~J. Cooper, K.~L. Perdue, J.~Selb,
-  T.~J. Huppert, R.~D. Hoge, and D.~A. Boas.
-\newblock {Quantification of the cortical contribution to the NIRS signal over
-  the motor cortex using concurrent NIRS-fMRI measurements}.
-\newblock {\em NeuroImage}, 59(4):3933--3940, 2012.
-
-\bibitem{hanakawa2003functional}
-T.~Hanakawa, I.~Immisch, K.~Toma, M.~A. Dimyan, P.~Van~Gelderen, and
-  M.~Hallett.
-\newblock {Functional properties of brain areas associated with motor execution
-  and imagery}.
-\newblock {\em J. Neurophysiol.}, 89:989--1002, 2003.
-
-\bibitem{kasess2008suppressive}
-C.~H. Kasess, C.~Windischberger, R.~Cunnington, R.~Lanzenberger, L.~Pezawas,
-  and E.~Moser.
-\newblock {The suppressive influence of SMA on M1 in motor imagery revealed by
-  fMRI and dynamic causal modeling}.
-\newblock {\em Neuroimage}, 40:828--837, 2008.
-
-\bibitem{fang2010mesh}
-Q.~Fang.
-\newblock {Mesh-based Monte Carlo method using fast ray-tracing in Pl{\"u}cker
-  coordinates}.
-\newblock {\em Biomed. Opt. Express}, 1:165--175, 2010.
-
-\end{thebibliography}
 
 %----------------------------------------------------------------------------------------
