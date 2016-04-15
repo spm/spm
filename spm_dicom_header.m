@@ -15,7 +15,7 @@ function hdr = spm_dicom_header(P, dict)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_header.m 6768 2016-04-15 11:37:19Z volkmar $
+% $Id: spm_dicom_header.m 6769 2016-04-15 11:37:20Z volkmar $
 
 hdr = [];
 P   = deblank(P);
@@ -345,6 +345,10 @@ end
 
 if rem(tag.length,2)
     if tag.length==4294967295 % FFFFFFFF
+        if strcmp(tag.vr,'UN')
+            warning('spm:dicom','%s: Unknown Value Representation of %s tag, assuming ''SQ''.', fopen(fp), tag.name);
+            tag.vr = 'SQ';
+        end
         return;
     else
         warning('spm:dicom','%s: Odd numbered Value Length in %s tag (%X).', fopen(fp), tag.name, tag.length);
