@@ -15,7 +15,7 @@ function hdr = spm_dicom_header(P, dict)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_header.m 6455 2015-05-26 12:45:05Z volkmar $
+% $Id: spm_dicom_header.m 6768 2016-04-15 11:37:19Z volkmar $
 
 hdr = [];
 P   = deblank(P);
@@ -254,13 +254,17 @@ end
 % function tag = read_tag(fp,flg,dict)
 %==========================================================================
 function tag = read_tag(fp,flg,dict)
-tag.group   = fread(fp,1,'ushort');
-tag.element = fread(fp,1,'ushort');
-if isempty(tag.element), tag=[]; return; end
+%tag.group   = fread(fp,1,'ushort');
+%tag.element = fread(fp,1,'ushort');
+%if isempty(tag.element), tag=[]; return; end
+[ge, cnt] = fread(fp,2,'ushort');
+if cnt < 2, tag=[]; return; end
+tag.group   = ge(1);
+tag.element = ge(2);
 if tag.group == 2, flg = 'el'; end
 %t          = dict.tags(tag.group+1,tag.element+1); % Sparse matrix representation
 t           = find(dict.group==tag.group & dict.element==tag.element);
-if t>0
+if ~isempty(t)
     tag.name = dict.values(t).name;
     tag.vr   = dict.values(t).vr{1};
 else
@@ -403,6 +407,7 @@ if isempty(n) || n>1024 || n <= 0
 end
 unused = fread(fp,1,'uint32')'; % Unused "M" or 77 for some reason
 tot = 2*4;
+t(n) = struct('name','', 'vm',[], 'vr','', 'syngodt',[], 'nitems',[], 'xx',[], 'item',struct('xx',{},'val',{}));
 for i=1:n
     t(i).name    = fread(fp,64,'uint8')';
     msk          = find(~t(i).name)-1;
@@ -418,12 +423,16 @@ for i=1:n
     t(i).nitems  = fread(fp,1,'int32')';
     t(i).xx      = fread(fp,1,'int32')'; % 77 or 205
     tot          = tot + 64+4+4+4+4+4;
+    if t(i).nitems > 0
+        t(i).item(t(i).nitems) = struct('xx',[], 'val',[]);
+    end
     for j=1:t(i).nitems
         % This bit is just wierd
         t(i).item(j).xx  = fread(fp,4,'int32')'; % [x x 77 x]
         len              = t(i).item(j).xx(1)-t(1).nitems;
         if len<0 || len+tot+4*4>lim
             t(i).item(j).val = '';
+            t(i).item = t(i).item(1:j);
             tot              = tot + 4*4;
             break;
         end
@@ -449,6 +458,7 @@ if isempty(n) || n>1024 || n < 0
 end
 unused = fread(fp,1,'uint32')'; % Unused "M" or 77 for some reason
 pos    = 16;
+t(n) = struct('name','', 'vm',[], 'vr','', 'syngodt',[], 'nitems',[], 'xx',[], 'item',struct('xx',{},'val',{}));
 for i=1:n
     t(i).name    = fread(fp,64,'uint8')';
     pos          = pos + 64;
@@ -465,6 +475,9 @@ for i=1:n
     t(i).nitems  = fread(fp,1,'int32')';
     t(i).xx      = fread(fp,1,'int32')'; % 77 or 205
     pos          = pos + 20;
+    if t(i).nitems > 0
+        t(i).item(t(i).nitems) = struct('xx',[], 'val',[]);
+    end
     for j=1:t(i).nitems
         t(i).item(j).xx  = fread(fp,4,'int32')'; % [x x 77 x]
         pos              = pos + 16;
@@ -473,6 +486,7 @@ for i=1:n
             len = lim-pos;
             t(i).item(j).val = char(fread(fp,len,'uint8')');
             fread(fp,rem(4-rem(len,4),4),'uint8');
+            t(i).item = t(i).item(1:j);
             warning('spm:dicom','%s: Problem reading Siemens CSA field.', fopen(fp));
             return;
         end
