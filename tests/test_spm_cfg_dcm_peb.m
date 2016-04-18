@@ -3,7 +3,7 @@ function tests = test_spm_cfg_dcm_peb
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_cfg_dcm_peb.m 6739 2016-03-04 13:48:34Z peter $
+% $Id: test_spm_cfg_dcm_peb.m 6770 2016-04-18 09:57:44Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -13,7 +13,9 @@ function setup(testCase)
 
 model_dir = fullfile(get_data_path(),'models');
 expected_output = {fullfile(model_dir,'PEB_test.mat');
-                   fullfile(model_dir,'BMA_PEB_test.mat')};
+                   fullfile(model_dir,'BMA_PEB_test.mat');
+                   fullfile(model_dir,'LOO_test.mat');
+                   fullfile(model_dir,'GCM_simulated_abridged.mat')};
 
 for i = 1:length(expected_output)
     if exist(expected_output{i},'file')
@@ -52,6 +54,7 @@ matlabbatch{1}.spm.dcm.peb.specify.fields.default = {'A' 'B'}';
 matlabbatch{1}.spm.dcm.peb.specify.priors_between.ratio = 16;
 matlabbatch{1}.spm.dcm.peb.specify.priors_between.expectation = hE;
 matlabbatch{1}.spm.dcm.peb.specify.priors_between.var = hC;
+matlabbatch{1}.spm.dcm.peb.specify.priors_glm.group_ratio = 1;
 matlabbatch{1}.spm.dcm.peb.specify.show_review = 0;
 spm_jobman('run',matlabbatch);
 
@@ -101,6 +104,7 @@ matlabbatch{1}.spm.dcm.peb.specify.fields.default = {'A' 'B'}';
 matlabbatch{1}.spm.dcm.peb.specify.priors_between.ratio = 16;
 matlabbatch{1}.spm.dcm.peb.specify.priors_between.expectation = hE;
 matlabbatch{1}.spm.dcm.peb.specify.priors_between.var = hC;
+matlabbatch{1}.spm.dcm.peb.specify.priors_glm.group_ratio = 1;
 matlabbatch{1}.spm.dcm.peb.specify.show_review = 0;
 
 % Model comparison batch
@@ -148,6 +152,7 @@ matlabbatch{1}.spm.dcm.peb.specify.fields.default = {'A' 'B'}';
 matlabbatch{1}.spm.dcm.peb.specify.priors_between.ratio = 16;
 matlabbatch{1}.spm.dcm.peb.specify.priors_between.expectation = hE;
 matlabbatch{1}.spm.dcm.peb.specify.priors_between.var = hC;
+matlabbatch{1}.spm.dcm.peb.specify.priors_glm.group_ratio = 1;
 matlabbatch{1}.spm.dcm.peb.specify.show_review = 0;
 
 % Model comparison batch
@@ -163,6 +168,50 @@ spm_jobman('run',matlabbatch);
 
 % Check BMA created
 expected_output = fullfile(model_dir,'BMA_PEB_test.mat');
+testCase.assertTrue(exist(expected_output,'file') > 0);
+
+% -------------------------------------------------------------------------
+function test_loo(testCase)
+
+% Prepare paths
+data_path = get_data_path();
+model_dir = fullfile(data_path,'models');
+X_file    = fullfile(data_path,'design_matrix.mat');
+GCM_file  = fullfile(model_dir,'GCM_simulated.mat');
+
+% Abridge GCM
+s = 11:18;
+GCM_file_abridged = fullfile(model_dir,'GCM_simulated_abridged.mat');
+GCM = load(GCM_file);
+GCM = GCM.GCM;
+GCM = GCM(s,:);
+save(GCM_file_abridged,'GCM');
+
+% Load design matrix
+X = load(X_file);
+X = X.X;
+
+% PEB settings
+hE = 0;
+hC = 1/16;
+
+clear matlabbatch;
+matlabbatch{1}.spm.dcm.peb.predict.name = 'test';
+matlabbatch{1}.spm.dcm.peb.predict.model_space_mat = cellstr(GCM_file_abridged);
+matlabbatch{1}.spm.dcm.peb.predict.dcm.index = 2;
+matlabbatch{1}.spm.dcm.peb.predict.cov.regressor(1).name = 'c1';
+matlabbatch{1}.spm.dcm.peb.predict.cov.regressor(1).value = X(s,1);
+matlabbatch{1}.spm.dcm.peb.predict.fields.custom = {'B(2,1,2)'};
+matlabbatch{1}.spm.dcm.peb.predict.priors_between.ratio = 16;
+matlabbatch{1}.spm.dcm.peb.predict.priors_between.expectation = hE;
+matlabbatch{1}.spm.dcm.peb.predict.priors_between.var = hC;
+matlabbatch{1}.spm.dcm.peb.predict.priors_glm.group_ratio = 1;
+
+% Run
+spm_jobman('run',matlabbatch);
+
+% Check LOO created
+expected_output = fullfile(model_dir,'LOO_test.mat');
 testCase.assertTrue(exist(expected_output,'file') > 0);
 
 % -------------------------------------------------------------------------

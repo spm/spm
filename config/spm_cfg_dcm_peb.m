@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6766 2016-04-12 16:09:24Z peter $
+% $Id: spm_cfg_dcm_peb.m 6770 2016-04-18 09:57:44Z peter $
 
 
 %==========================================================================
@@ -214,7 +214,7 @@ field_all.val = {'All fields'};
 field_entry  = cfg_entry;
 field_entry.name = 'Enter manually';
 field_entry.tag  = 'custom';
-field_entry.help = {'Enter the fields e.g. A or A,C'};
+field_entry.help = {'Enter the fields e.g. {''A''} or {''A'',''C''}'};
 field_entry.strtype = 'e';
 field_entry.num     = [0 Inf];
 
@@ -283,7 +283,7 @@ priors_log_precision_mu.name = 'Expectation';
 priors_log_precision_mu.tag  = 'expectation';
 priors_log_precision_mu.help = {['Prior expectation of the log precision ' ...
       'parameters (M.hE), which scale each precision component. The default ' ...
-      'is log(0) = 1.']};
+      'is 0, which is translated internally to exp(0) = 1.']};
 priors_log_precision_mu.strtype = 'r';
 priors_log_precision_mu.num     = [1 1];
 priors_log_precision_mu.val     = {0};
@@ -307,7 +307,13 @@ priors_log_precision_var.val     = {1/16};
 group_priors_parameters_ratio  = cfg_entry;
 group_priors_parameters_ratio.name = 'Group ratio';
 group_priors_parameters_ratio.tag  = 'group_ratio';
-group_priors_parameters_ratio.help = {'M.alpha'};
+group_priors_parameters_ratio.help = {['The group ratio (M.alpha) expresses ' ...
+     'our prior uncertainty about second-level (group ' ...
+     'level GLM) parameters. The default is 1, meaning our uncertainty about ' ...
+     'the connection strengths at the second level is the same as our ' ...
+     'uncertainty about the connection strengths at the first level. '] '' ...
+     ['Internally, the prior covariance of second level parameters is set ' ...
+     'to DCM{1}.M.pC / alpha, where DCM{1} is the first DCM provided.']};
 group_priors_parameters_ratio.strtype = 'r';
 group_priors_parameters_ratio.num     = [1 1];
 group_priors_parameters_ratio.val     = {1};
@@ -318,27 +324,26 @@ group_priors_parameters_ratio.val     = {1};
 priors_parameters_ratio  = cfg_entry;
 priors_parameters_ratio.name = 'Within:between ratio';
 priors_parameters_ratio.tag  = 'ratio';
-priors_parameters_ratio.help = {['Within:between variance ratio. This ratio ' ...
-    'controls the expected between-subjects ' ...
-    'variability for each connection. The default is 16, meaning we expect ' ...
-    'the variability in connection strengths across subjects to be 1/16 of ' ...
-    'our uncertainty about connection strengths at the first level.'] '' ...
-    ['Specifically, the diagonal of each precision component matrix (M.pC) ' ...
-    'is set to the prior variance of the second-level parameters (M.bC) ' ...
-    'divided by the ratio set here (M.beta).']};
+priors_parameters_ratio.help = {'Within:between variance ratio (M.beta). ' ...
+    ['This ratio controls the expected between-subjects ' ...
+    'variability for each connection (DCM parameter). The default is 16, ' ...
+    'meaning we expect the variability in connection strengths across ' ...
+    'subjects to be 1/16 of our uncertainty about connection strengths at ' ...
+    'the first level.'] '' ...
+    ['Internally, the prior second level covariance of DCM parameters (M.pC) ' ...
+    'is set to DCM{1}.M.pC / M.beta, where DCM{1} is the first DCM provided.']};
 priors_parameters_ratio.strtype = 'r';
 priors_parameters_ratio.num     = [1 1];
 priors_parameters_ratio.val     = {16};
 
 
 %--------------------------------------------------------------------------
-% priors_parameters Priors on log precision branch
+% priors_between Priors on log precision branch
 %--------------------------------------------------------------------------
 priors_between         = cfg_branch;
 priors_between.tag     = 'priors_between';
 priors_between.name    = 'Between-subjects variability';
-priors_between.val     = { group_priors_parameters_ratio...
-                           priors_parameters_ratio ...
+priors_between.val     = { priors_parameters_ratio ...
                            priors_log_precision_mu ...
                            priors_log_precision_var};
 priors_between.help    = {['Between-subjects variability over second-' ...
@@ -351,6 +356,17 @@ priors_between.help    = {['Between-subjects variability over second-' ...
       'a hyper-parameter, which is estimated from the data. The prior ' ...
       'expectation and uncertainty of these hyper-parameters are also '...
       'set below.']};
+  
+
+%--------------------------------------------------------------------------
+% priors_third Priors on log precision branch
+%--------------------------------------------------------------------------
+priors_glm         = cfg_branch;
+priors_glm.tag     = 'priors_glm';
+priors_glm.name    = 'Second level (GLM) priors';
+priors_glm.val     = { group_priors_parameters_ratio};
+priors_glm.help    = {['Priors on the expected values of the second ' ...
+                       'level General Linear Model (GLM) parameters.']};
 
 %--------------------------------------------------------------------------
 % show_review Select whether to review results
@@ -373,7 +389,7 @@ specify      = cfg_exbranch;
 specify.tag  = 'specify';
 specify.name = 'Specify / Estimate PEB';
 specify.val  = { name model_space_mat dcm_idx covariates fields ...
-                 priors_between sr };
+                 priors_between priors_glm sr };
 specify.help = {['Specifies and estimates a second-level DCM (PEB) model. ' ...
                  'A PEB model will be created for each first level DCM.' ]};
             
@@ -456,7 +472,7 @@ predict      = cfg_exbranch;
 predict.tag  = 'predict';
 predict.name = 'Predict (cross-validation)';
 predict.val  = { name model_space_mat dcm_idx covariates_min1 fields ...
-                 priors_between };
+                 priors_between priors_glm };
 predict.help = {['Builds a PEB model on all but one subjects, and uses ' ...
                  'it to predict a between-subjects effect, such as ' ...
                  'group membership, in the remaining subject. This process ' ...
@@ -626,7 +642,7 @@ end
 
 % Priors / covariance components
 M = struct();
-M.alpha  = job.priors_between.group_ratio;
+M.alpha  = job.priors_glm.group_ratio;
 M.beta   = job.priors_between.ratio;
 M.hE     = job.priors_between.expectation;
 M.hC     = job.priors_between.var;
