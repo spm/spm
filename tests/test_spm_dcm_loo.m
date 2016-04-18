@@ -3,7 +3,7 @@ function tests = test_spm_dcm_loo
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_loo.m 6770 2016-04-18 09:57:44Z peter $
+% $Id: test_spm_dcm_loo.m 6771 2016-04-18 14:10:58Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -13,13 +13,16 @@ function test_loo_group(testCase)
 
 data_path = get_data_path();
 
+% Subjects to include
+s = [11:14 15:18];
+
 % Load first level DCMs
 GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
-GCM = GCM.GCM;
+GCM = GCM.GCM(s,:);
 
 % Prepare group level design matrix
 X  = load(fullfile(data_path,'design_matrix.mat'));
-X  = X.X;
+X  = X.X(s,:);
 ns = size(X,1);
 X  = [ones(ns,1) X];
 
@@ -38,13 +41,16 @@ function test_loo_group_null(testCase)
 
 data_path = get_data_path();
 
+% Subjects to include
+s = [11:14 15:18];
+
 % Load first level DCMs
 GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
-GCM = GCM.GCM;
+GCM = GCM.GCM(s,:);
 
 % Prepare group level design matrix
 X  = load(fullfile(data_path,'design_matrix.mat'));
-X  = X.X;
+X  = X.X(s,:);
 ns = size(X,1);
 X  = [ones(ns,1) X];
 
@@ -63,13 +69,16 @@ function test_loo_continuous_null(testCase)
 
 data_path = get_data_path();
 
+% Subjects to include
+s = [11:14 15:18];
+
 % Load first level DCMs
 GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
-GCM = GCM.GCM;
+GCM = GCM.GCM(s,:);
 
 % Prepare group level design matrix
 X  = load(fullfile(data_path,'design_matrix.mat'));
-X  = X.X;
+X  = X.X(s,:);
 ns = size(X,1);
 X  = [ones(ns,1) X];
 
