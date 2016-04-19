@@ -1,4 +1,4 @@
-/* $Id: spm_field.c 4884 2012-09-03 13:33:17Z guillaume $ */
+/* $Id: spm_field.c 6772 2016-04-19 10:21:41Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"
@@ -52,8 +52,7 @@ static void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
     for(i=nd; i<3; i++) if (dm[i] != 1) mexErrMsgTxt("Incompatible dimensions.");
  
     if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
-        mexErrMsgTxt("Data must be numeric, real, full and double");
-
+        mexErrMsgTxt("Third argument must be numeric, real, full and double");
     if (mxGetNumberOfElements(prhs[2]) != 8)
         mexErrMsgTxt("Third argument should contain vox1, vox2, vox3, param1, param2, param3, ncycles and relax-its.");
     param[0] = 1/mxGetPr(prhs[2])[0];
@@ -120,6 +119,8 @@ static void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArr
     for(i=0; i<nd; i++) dm[i] = mxGetDimensions(prhs[0])[i];
     for(i=nd; i<4; i++) dm[i] = 1;
 
+    if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
+        mexErrMsgTxt("Parameters must be numeric, real, full and double");
     if (mxGetNumberOfElements(prhs[1]) != 6)
         mexErrMsgTxt("Parameters should contain vox1, vox2, vox3, param1, param2 and param3.");
     param[0] = 1/mxGetPr(prhs[1])[0];

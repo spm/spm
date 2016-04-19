@@ -36,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6639 2015-12-11 09:50:49Z volkmar $
+% $Id: spm_dicom_convert.m 6772 2016-04-19 10:21:41Z john $
 
 
 %-Input parameters
@@ -1223,13 +1223,15 @@ if isfield(hdr,'InstanceNumber'),    InstanceNumber    = hdr.InstanceNumber;    
 
 ImTyp = '';
 if isfield(hdr,'GE_ImageType')
-    switch hdr.GE_ImageType
+    if numel(hdr.GE_ImageType)==1
+        switch hdr.GE_ImageType
         case 1
             ImTyp = '-Phase';
         case 2
             ImTyp = '-Real';
         case 3
             ImTyp = '-Imag';
+        end
     end
 end
 

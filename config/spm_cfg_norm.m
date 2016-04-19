@@ -4,7 +4,7 @@ function normalise = spm_cfg_norm
 % Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 6578 2015-10-15 15:22:12Z volkmar $
+% $Id: spm_cfg_norm.m 6772 2016-04-19 10:21:41Z john $
 
 
 %--------------------------------------------------------------------------
@@ -124,6 +124,8 @@ reg.help    = {'The objective function for registering the tissue probability ma
 reg.strtype = 'r';
 reg.num     = [1  5];
 reg.val     = {[0 0.001 0.5 0.05 0.2]};
+%%Eventually these values should be decreased (eg) to:
+%reg.val     = {[0 0.0001 0.05 0.005 0.005]};
 
 %--------------------------------------------------------------------------
 % affreg Affine Regularisation

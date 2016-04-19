@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 6097 2014-07-10 18:51:05Z guillaume $ */
+/* $Id: shoot_optimN.c 6772 2016-04-19 10:21:41Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -363,6 +363,7 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
         w000 += 2*w001;
         w001  = 0.0;
     }
+    if (w000<0.0) w000=0.0;
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
