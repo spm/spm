@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 6494 2015-07-06 10:23:04Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 6776 2016-04-20 15:28:39Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -264,6 +264,14 @@ isstandard.help = {'Choose whether to use standard or custom inversion parameter
 isstandard.values = {standard, custom};
 isstandard.val = {standard};
 
+crossval = cfg_entry;
+crossval.tag = 'crossval';
+crossval.name = 'Cross validation parameters';
+crossval.strtype = 'r';
+crossval.num = [1 2];
+crossval.val = {[0 1]};
+crossval.help = {'Percentage of cross validation test trials (eg 10 for 10 percent test trials, 0 for no cross val), number of cross val permutations'};
+
 modality = cfg_menu;
 modality.tag = 'modality';
 modality.name = 'Select modalities';
@@ -283,7 +291,7 @@ modality.val = {{'All'}};
 invert = cfg_exbranch;
 invert.tag = 'invertiter';
 invert.name = 'Source inversion, iterative';
-invert.val = {D, val, whatconditions, isstandard, modality};
+invert.val = {D, val, whatconditions, isstandard, modality,crossval};
 invert.help = {'Run imaging source reconstruction'};
 invert.prog = @run_inversion;
 invert.vout = @vout_inversion;
@@ -467,9 +475,53 @@ for i = 1:numel(job.D)
 end
 
 
+%% cross val set up
+badtrialind=D{1}.badtrials;
+goodtrialind=setxor(1:D{1}.ntrials,badtrialind);
 
-[D,allmodels,allF] = spm_eeg_invertiter(D,Npatchiter,funccall,allIp);
+Ntest=round(job.crossval(1)*length(goodtrialind)/100);
+Ncrossiter=round(job.crossval(2));
 
+
+
+crosserr=zeros(Ncrossiter,Ntest);
+rng('default');
+rng(1); %% make sure the trials will be the same for different models for the same dataset
+randind=randi(length(goodtrialind),Ncrossiter,Ntest); %% random order of good trials
+
+for j=1:Ncrossiter,
+    
+    
+    testind=goodtrialind(randind(j,:)); % test trials
+    if ~isempty(testind),
+        fprintf('\n Cross val iteration %d, first 2 trials:%d, %d..\n',j,testind(1),testind(2));
+    else
+        fprintf('\n No cross-validation\n');
+    end;
+    fakebadtrialind=[badtrialind testind]; %% used first Ntest random good trials for testing (not training), hence turn them off.
+    
+    D{1} = badtrials(D{1}, fakebadtrialind, 1); %% set test trials to bad
+    [D,allmodels,allF] = spm_eeg_invertiter(D,Npatchiter,funccall,allIp);
+    D{1} = badtrials(D{1}, testind, 0); %5 tyrn off fake bad trials
+    %% now check the cross val.
+    U=D{1}.inv{val}.inverse.U{1};
+    M=D{1}.inv{val}.inverse.M;
+    Ic=D{1}.inv{val}.inverse.Ic{1};
+    T=D{1}.inv{val}.inverse.T;
+    It=D{1}.inv{val}.inverse.It;
+    L=D{1}.inv{val}.inverse.L;
+    
+    for k=1:Ntest,
+        UY=U*squeeze(D{1}(Ic,It,testind(k)))*T; %% data for test trial
+        Jtest=M*UY; %% source estimate for this test trial
+        Pred=L*Jtest; % predicted data for test trial based on source estimate
+        crosserr(j,k)=sqrt(sum(sum((Pred-UY).^2))./(length(It)*length(Ic))); %% RMS ft/sample
+    end;
+    
+    
+end;
+
+D{1}.inv{val}.inverse.crosserr=crosserr;
 
 
 
@@ -485,7 +537,7 @@ for i = 1:numel(D)
         warning(sprintf('Data file is not being updated- inversion results written to %s',outinvname));
         inv=D{i}.inv{val};
         spmfilename=D{i}.fname;
-        save(outinvname,'inv','spmfilename');
+        save(outinvname,'-v7.3','inv','spmfilename');
     end;       
 end
 
