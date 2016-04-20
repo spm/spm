@@ -6,10 +6,10 @@ function ret = spm_ov_contour(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_contour.m 6077 2014-06-30 16:55:03Z spm $
+% $Id: spm_ov_contour.m 6774 2016-04-20 12:25:08Z guillaume $
 
 
 switch lower(varargin{1})
@@ -41,6 +41,11 @@ switch lower(varargin{1})
             'Callback',@(hObj,event) contour_options(hObj,event,item0));
         %'Callback',@(hObj,event) contour_display(hObj,event,varargin{2}));
         ret = item0;
+    case 'display'
+        if nargin == 1
+            varargin{2} = spm_input('Select image', '!+1', 'e');
+        end
+        contour_display(varargin{2:end});
     case 'redraw'
         contour_redraw(varargin{2:end});
     otherwise
