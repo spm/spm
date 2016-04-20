@@ -36,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6772 2016-04-19 10:21:41Z john $
+% $Id: spm_dicom_convert.m 6773 2016-04-20 09:26:59Z john $
 
 
 %-Input parameters
@@ -328,7 +328,8 @@ for i=2:length(hdr)
             if isfield(hdr{i},'EchoNumbers')  && isfield(vol{j}{1}, 'EchoNumbers')
                 match = match && hdr{i}.EchoNumbers == vol{j}{1}.EchoNumbers;
             end
-            if isfield(hdr{i},'GE_ImageType')  && isfield(vol{j}{1}, 'GE_ImageType')
+            if isfield(hdr{i},    'GE_ImageType') && numel(   hdr{i}.GE_ImageType)==1 && ...
+               isfield(vol{j}{1}, 'GE_ImageType') && numel(vol{j}{1}.GE_ImageType)==1
                 match = match && hdr{i}.GE_ImageType == vol{j}{1}.GE_ImageType;
             end
         catch
