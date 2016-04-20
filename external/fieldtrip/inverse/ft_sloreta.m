@@ -1,9 +1,9 @@
-function [dipout] = beamformer_lcmv(dip, grad, headmodel, dat, Cy, varargin)
+function [dipout] = ft_sloreta(dip, grad, headmodel, dat, Cy, varargin)
 
-% BEAMFORMER_LCMV scans on pre-defined dipole locations with a single dipole
-% and returns the beamformer spatial filter output for a dipole on every
+% ft_sloreta scans on pre-defined dipole locations with a single dipole
+% and returns the sLORETA spatial filter output for a dipole on every
 % location. Dipole locations that are outside the head will return a
-% NaN value.
+% NaN value. Adapted from beamformer_lcmv.m
 %
 % Use as
 %   [dipout] = beamformer_lcmv(dipin, grad, headmodel, dat, cov, varargin)
@@ -43,9 +43,10 @@ function [dipout] = beamformer_lcmv(dip, grad, headmodel, dat, Cy, varargin)
 % is specified, its orientation will be used and only the strength will
 % be fitted to the data.
 
-% Copyright (C) 2003-2014, Robert Oostenveld
+% Copyright (C) 2016, Sarang Dalal
+% based on code Copyright (C) 2003-2014, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
+% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -61,7 +62,6 @@ function [dipout] = beamformer_lcmv(dip, grad, headmodel, dat, Cy, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id$
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs
@@ -86,7 +86,8 @@ projectnoise   = keyval('projectnoise',  varargin); if isempty(projectnoise),  p
 projectmom     = keyval('projectmom',    varargin); if isempty(projectmom),    projectmom = 'no';            end
 fixedori       = keyval('fixedori',      varargin); if isempty(fixedori),      fixedori = 'no';              end
 computekurt    = keyval('kurtosis',      varargin); if isempty(computekurt),   computekurt = 'no';           end
-weightnorm     = keyval('weightnorm',    varargin); if isempty(weightnorm),    weightnorm = 'no';         end
+weightnorm     = keyval('weightnorm',    varargin); if isempty(weightnorm),      weightnorm = 'no';            end
+NAI     = keyval('NAI',    varargin); if isempty(NAI),      NAI = 'no';            end
 
 % convert the yes/no arguments to the corresponding logical values
 keepfilter     = istrue(keepfilter);
@@ -97,6 +98,8 @@ projectnoise   = istrue(projectnoise);
 projectmom     = istrue(projectmom);
 fixedori       = istrue(fixedori);
 computekurt    = istrue(computekurt);
+weightnorm    = istrue(weightnorm);
+NAI    = istrue(NAI);
 
 % default is to use the trace of the covariance matrix, see Van Veen 1997
 if isempty(powmethod)
@@ -249,49 +252,24 @@ for i=1:size(dip.pos,1)
     % the shape it is obtained with the following code, the w*lf=I does not hold.
   end
   
+  G = lf * lf'; % Gram matrix
+  invG = pinv(G + lambda * eye(size(G))); % regularized G^-1
+  
   if fixedori
-      switch(weightnorm)
-          case {'unitnoisegain','nai'};
-              % optimal orientation calculation for unit-noise gain beamformer,
-              % (also applies to similar NAI), based on equation 4.47 from Sekihara & Nagarajan (2008)
-              [vv, dd] = eig(pinv(lf' * invCy *lf)*(lf' * invCy^2 *lf));
-              [~,maxeig]=max(diag(dd));
-              eta = vv(:,maxeig);
-              lf  = lf * eta;
-              if ~isempty(subspace), lforig = lforig * eta; end
-              dipout.ori{i} = eta;
-          otherwise
-              % compute the leadfield for the optimal dipole orientation
-              % subsequently the leadfield for only that dipole orientation will be used for the final filter computation
-              % filt = pinv(lf' * invCy * lf) * lf' * invCy;
-              % [u, s, v] = svd(real(filt * Cy * ctranspose(filt)));
-              % in this step the filter computation is not necessary, use the quick way to compute the voxel level covariance (cf. van Veen 1997)
-              [u, s, v] = svd(real(pinv(lf' * invCy *lf)));
-              eta = u(:,1);
-              lf  = lf * eta;
-              if ~isempty(subspace), lforig = lforig * eta; end
-              dipout.ori{i} = eta;
-      end
+      [vv, dd] = eig(pinv(lf' * invG * lf) * lf' * invG * Cy * invG * lf);  % eqn 13.22 from Sekihara & Nagarajan 2008
+      [~,maxeig]=max(diag(dd));
+      eta = vv(:,maxeig);
+      lf  = lf * eta;
+      if ~isempty(subspace), lforig = lforig * eta; end
+      dipout.ori{i} = eta;
   end
   
   if isfield(dip, 'filter')
     % use the provided filter
     filt = dip.filter{i};
-  elseif strcmp(weightnorm,'nai')
-    % Van Veen's Neural Activity Index
-    % below equation is equivalent to following:  
-    % filt = pinv(lf' * invCy * lf) * lf' * invCy; 
-    % filt = filt/sqrt(noise*filt*filt');
-    filt = pinv(sqrt(noise * lf' * invCy^2 * lf)) * lf' *invCy; % based on Sekihara & Nagarajan 2008 eqn. 4.15
-  elseif strcmp(weightnorm,'unitnoisegain')
-    % Unit-noise gain minimum variance (aka Borgiotti-Kaplan) beamformer
-    % below equation is equivalent to following:  
-    % filt = pinv(lf' * invCy * lf) * lf' * invCy; 
-    % filt = filt/sqrt(filt*filt');
-    filt = pinv(sqrt(lf' * invCy^2 * lf)) * lf' *invCy;     % Sekihara & Nagarajan 2008 eqn. 4.15
   else
     % construct the spatial filter
-    filt = pinv(lf' * invCy * lf) * lf' * invCy;              % van Veen eqn. 23, use PINV/SVD to cover rank deficient leadfield
+    filt = pinv(sqrt(lf' * invG * lf)) * lf' * invG;
   end
   if projectmom
     [u, s, v] = svd(filt * Cy * ctranspose(filt));
@@ -401,7 +379,7 @@ s = s(1);
 % standard MATLAB function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision$  $Date: 2009/03/23 21:14:42 $
+%   $Revision: 10541 $  $Date: 2009/03/23 21:14:42 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

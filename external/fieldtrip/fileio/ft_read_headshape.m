@@ -198,8 +198,8 @@ end % if iscell
 
 % checks if there exists a .jpg file of 'filename'
   [pathstr,name]  = fileparts(filename);  
-  if (exist([pathstr,name,'.jpg'],'file') == 2)   
-    image    = [pathstr,name,'.jpg'];
+  if exist(fullfile(pathstr,[name,'.jpg']))
+    image    = fullfile(pathstr,[name,'.jpg']);
     hasimage = 1;
   end  
     
@@ -908,11 +908,6 @@ switch fileformat
 	case 'besa_sfp'
 		[lab, pos] = read_besa_sfp(filename, 0);
 		shape.pos = pos;
-        hs = strmatch('headshape', lab);
-        lab(hs) = [];
-        pos(hs, :) = [];
-        shape.fid.label = lab;
-        shape.fid.pos = pos;
 		
 		% assume that all non-'headshape' points are fiducial markers
 		hs = strmatch('headshape', lab);
