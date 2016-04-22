@@ -1,7 +1,7 @@
 function [PEB,P]   = spm_dcm_peb_full(P,M,field)
 % Hierarchical (PEB) inversion of DCMs using BMR and VL
-% FORMAT [PEB,DCM] = spm_dcm_peb(DCM,M,field)
-% FORMAT [PEB,DCM] = spm_dcm_peb(DCM,X,field)
+% FORMAT [PEB,DCM] = spm_dcm_peb_full(DCM,M,field)
+% FORMAT [PEB,DCM] = spm_dcm_peb_full(DCM,X,field)
 %
 % DCM    - {N [x M]} structure array of DCMs from N subjects
 % ------------------------------------------------------------
@@ -70,10 +70,10 @@ function [PEB,P]   = spm_dcm_peb_full(P,M,field)
 % If called with a cell array, each column is assumed to contain 1st level
 % DCMs inverted under the same model.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_full.m 6501 2015-07-17 14:32:09Z spm $
+% $Id: spm_dcm_peb_full.m 6778 2016-04-22 11:51:29Z guillaume $
  
 
 % get filenames and set up
@@ -362,7 +362,7 @@ for n = 1:32
         
         dF = F - F0;
         F0 = F;
-        save tmp b g F0 dFdb dFdbb dFdg dFdgg
+        save('tmp.mat','b','g','F0','dFdb','dFdbb','dFdg','dFdgg');
         
         % decrease regularisation
         %------------------------------------------------------------------
@@ -373,7 +373,7 @@ for n = 1:32
         % otherwise, retrieve expansion point and increase regularisation
         %------------------------------------------------------------------
         t  = t - 1;
-        load tmp
+        load('tmp.mat');
         
     end
     
@@ -453,4 +453,4 @@ PEB.Cph  = Cp;
 PEB.Ce   = rC;
 PEB.F    = F;
 
-try, delete tmp.mat, end
+spm_unlink('tmp.mat');

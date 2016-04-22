@@ -63,7 +63,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % over the parameters of a set of first level DCMs, using second level or
 % between subject constraints specified in the design matrix X. This scheme
 % is efficient in the sense that it does not require inversion of the first
-% level DCMs – it just requires the prior and posterior densities from each
+% level DCMs - it just requires the prior and posterior densities from each
 % first level DCM to compute empirical priors under the implicit
 % hierarchical model. The output of this scheme (PEB) can be re-entered
 % recursively to invert deep hierarchical models. Furthermore, Bayesian
@@ -79,10 +79,10 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % level DCMs inverted under the same model.
 %
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6742 2016-03-10 12:02:31Z karl $
+% $Id: spm_dcm_peb.m 6778 2016-04-22 11:51:29Z guillaume $
  
 
 % get filenames and set up
@@ -219,7 +219,6 @@ else
     U      = 1;
     X      = 1;
     W      = M.W;
-
 
 end
 
@@ -414,7 +413,7 @@ for n = 1:64
         
         dF = F - F0;
         F0 = F;
-        save('tmp','b','g','F0','dFdb','dFdbb','dFdg','dFdgg');
+        save('tmp.mat','b','g','F0','dFdb','dFdbb','dFdg','dFdgg');
         
         % decrease regularisation
         %------------------------------------------------------------------
@@ -425,7 +424,7 @@ for n = 1:64
         % otherwise, retrieve expansion point and increase regularisation
         %------------------------------------------------------------------
         t  = t - 1;
-        load('tmp')
+        load('tmp.mat');
         
     end
     
@@ -532,12 +531,9 @@ PEB.Cp   = Ub*Cb*Ub';
 PEB.Ce   = U*rC*U';
 PEB.F    = F;
 
-try, delete tmp.mat, end
+spm_unlink('tmp.mat');
 
 % check for DEM structures
 %--------------------------------------------------------------------------
 try, P   = spm_dem2dcm(DEM,P); end
-
-
-
 

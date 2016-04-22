@@ -4,10 +4,12 @@ function E = ROBOT_DEM
 
 % close and clear everything
 %--------------------------------------------------------------------------
-cd('C:\spm\toolbox\DEM')
-clear all
-close all
-delete(get(0,'Children'))
+try
+    cd(fullfile(spm('Dir'),'toolbox','DEM'))
+catch
+    cd('C:\spm\toolbox\DEM');
+end
+close all force
 if exist('DEMO.ps','file')
     delete('DEMO.ps')
 end
