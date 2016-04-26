@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 6776 2016-04-20 15:28:39Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 6780 2016-04-26 12:24:52Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -489,6 +489,8 @@ rng('default');
 rng(1); %% make sure the trials will be the same for different models for the same dataset
 randind=randi(length(goodtrialind),Ncrossiter,Ntest); %% random order of good trials
 
+crosscoverr=zeros(Ncrossiter,1);
+crossmean=crosscoverr;
 for j=1:Ncrossiter,
     
     
@@ -511,17 +513,36 @@ for j=1:Ncrossiter,
     It=D{1}.inv{val}.inverse.It;
     L=D{1}.inv{val}.inverse.L;
     
-    for k=1:Ntest,
-        UY=U*squeeze(D{1}(Ic,It,testind(k)))*T; %% data for test trial
+    trainind=setxor(1:D{1}.ntrials,fakebadtrialind); %% trainind
+    meantrainUY=U*mean(D{1}(Ic,It,trainind),3)*T;
+    meantrainJ=M*meantrainUY;
+    predtrainUY=L*meantrainJ;
+    
+    %% now for cov prediction
+    covPred=zeros(length(Ic),length(Ic));
+    for k=1:length(trainind),
+        UY=U*squeeze(D{1}(Ic,It,trainind(k)))*T; %% data for test trial
         Jtest=M*UY; %% source estimate for this test trial
         Pred=L*Jtest; % predicted data for test trial based on source estimate
-        crosserr(j,k)=sqrt(sum(sum((Pred-UY).^2))./(length(It)*length(Ic))); %% RMS ft/sample
+        covPred=covPred+Pred*Pred'; 
     end;
+    covPred=covPred./length(trainind);
     
     
+    covtest=zeros(length(Ic),length(Ic));
+    for k=1:Ntest,
+        UY=U*squeeze(D{1}(Ic,It,testind(k)))*T; %% data for test trial
+        covtest=covtest+UY*UY';
+    end;
+    covtest=covtest./length(testind);
+    
+    meantestUY=U*squeeze(mean(D{1}(Ic,It,testind),3))*T; %% data for test trial
+    crossmean(j)=sqrt(sum(sum((predtrainUY-meantestUY).^2))./(length(It)*length(Ic))); %% RMS ft/sample
+    crosscoverr(j)=sum(sum(abs(triu(covPred)-triu(covtest))))./(length(It)*length(Ic));
 end;
 
-D{1}.inv{val}.inverse.crosserr=crosserr;
+D{1}.inv{val}.inverse.crosscov=crosscoverr;
+D{1}.inv{val}.inverse.crossmean=crossmean;
 
 
 
