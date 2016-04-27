@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 6739 2016-03-04 13:48:34Z peter $
+% $Id: spm_dcm_peb_review.m 6784 2016-04-27 13:12:05Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -68,6 +68,7 @@ xPEB.sel_input     = 1;     % Selected first-level DCM input (U)
 xPEB.region_names  = {};    % First level region names
 xPEB.input_names   = {};    % First level input names
 xPEB.mtx_fig       = [];    % Figure handle for connectivity matrix
+xPEB.threshold_idx = 1;     % P-threshold following model comparison
 
 % Get first-level DCM metadata
 if ~isempty(DCM) 
@@ -105,6 +106,7 @@ xPEB = evalin('base','xPEB');
 PEB           = xPEB.PEB;
 DCM           = xPEB.DCM;
 view          = xPEB.view;
+threshold_idx = xPEB.threshold_idx;
 
 % Unpack PEB metadata
 np = length(PEB.Pnames); % Parameters
@@ -121,10 +123,26 @@ else
     end
 end    
 
-% Get parameters / variance for the selected covariate
+% Prepare probability threshold (Penny et al., NeuroImage, 2004)
 % -------------------------------------------------------------------------
 effect = view - 1;
 
+has_Pp = isfield(PEB,'Pp') || isfield(PEB,'Pw') || isfield(PEB,'Px');
+    
+display_threshold = (effect > 0 && effect <= nc && has_Pp);
+
+thresholds_str = {'No threshold (P >= 0)';
+                  'Weak evidence (P > 0.5)';
+                  'Positive evidence (P > 0.75)';
+                  'Strong evidence (P > 0.95)';
+                  'Very strong evidence (P > .99)'};
+
+thresholds = [0 0.5 0.75 0.95 0.99]; 
+
+threshold  = thresholds(threshold_idx);
+
+% Get parameters / variance for the selected covariate
+% -------------------------------------------------------------------------
 if effect > 0 && effect <= nc
     % Identify relevant parameters
     effect_idx         = 1:np:(np*nc);
@@ -134,8 +152,23 @@ if effect > 0 && effect <= nc
     % Posterior means / covariance
     Ep = PEB.Ep(:,effect);
     Cp = diag(PEB.Cp);
-    Cp = Cp(peb_param_idx);        
+    Cp = Cp(peb_param_idx);                
+end
+
+% Apply threshold
+% -------------------------------------------------------------------------
+if display_threshold && threshold > 0
     
+    if isfield(PEB,'Pw') && effect == 1
+        Pp = PEB.Pw;
+    elseif isfield(PEB,'Px') && effect == 2
+        Pp = PEB.Px;
+    else
+        Pp = PEB.Pp(peb_param_idx);
+    end
+    
+    Ep = Ep .* (Pp > threshold);
+    Cp = Cp .* (Pp > threshold);
 end
 
 % Posterior random effects variance
@@ -189,7 +222,7 @@ if display_connectivity
     Eq = zeros(i,j,k);    
     for p = 1:np
         if strcmp(parts{p}.field, sel_field)
-            Eq(parts{p}.row, parts{p}.col, parts{p}.input) = PEB.Ep(p,effect);
+            Eq(parts{p}.row, parts{p}.col, parts{p}.input) = Ep(p);
         end
     end
     
@@ -231,32 +264,45 @@ xPEB.panels(1) = h;
 create_menu('Position',[0.1 0.58 0.85 0.1],'Tag','peb_select',...
     'Callback',@selected_view_changed, 'String',views,'Value',xPEB.view);
 
+% Drop-down menu for selecting threshold
+if display_threshold
+    create_text('Threshold (model comparison with/without each parameter):',...
+           'Position',[0.1 0.59 0.65 0.05],'HorizontalAlignment','left');
+    
+    create_menu('Position',[0.62 0.54 0.33 0.1],'Tag','peb_threshold',...
+        'Callback',@selected_threshold_changed, ...
+        'String',thresholds_str,'Value',xPEB.threshold_idx);
+end
+
 % Panel for estimated parameter plot
-h = create_panel('Position',[0 0.3 1 0.30]);
+h = create_panel('Position',[0 0.26 1 0.30]);
 xPEB.panels(2) = h;
 
 % Panel for reshaped parameters plot
-h = create_panel('Position',[0.05 0 0.55 0.29]);
+h = create_panel('Position',[0.05 0 0.55 0.22]);
 xPEB.panels(3) = h;
 
 if display_connectivity_selector
     
-    create_text('Display as matrix','Position',[0.13 0.24 0.35 0.03],'FontSize',16);
+    create_text('Display as matrix','Position',[0.13 0.8 0.6 0.10],...
+                'FontSize',16,'Parent',xPEB.panels(3) );
     
     % Drop-down menu for controlling reshaped parameter plot
-    create_menu('Position',[0.13 0.13 0.35 0.1],...
+    create_menu('Position',[0.13 0.6 0.6 0.1],...
                 'Tag','peb_select_field',...
                 'Callback',@selected_field_changed,...
                 'String',['Please select a field' xPEB.fields],...
-                'Value',xPEB.sel_field_idx);
+                'Value',xPEB.sel_field_idx,...
+                'Parent',xPEB.panels(3));
     
     % Drop-down menu for selecting first level input
     if display_connectivity && nu > 1        
-        create_menu('Position',[0.13 0.1 0.35 0.1],...
+        create_menu('Position',[0.13 0.45 0.6 0.1],...
                     'Tag','peb_select_input',...
                     'Callback',@selected_input_changed,...
                     'String',xPEB.input_names,...
-                    'Value',xPEB.sel_input);        
+                    'Value',xPEB.sel_input,...
+                    'Parent',xPEB.panels(3));        
     end
 end
 
@@ -306,10 +352,10 @@ elseif view <= (nc+1)
     
     % Add hint
     uicontrol('Style','text','Units','normalized',...
-              'Position',[0.1 0.6 0.85 0.03],'String',...
+              'Position',[0.1 0.58 0.85 0.02],'String',...
               ['Tip: Click a plot below for details. (Select Tools->Data '...
               'Cursor if disabled.)'],'FontAngle','italic',...
-              'BackgroundColor',[1 1 1]);
+              'BackgroundColor',[1 1 1],'FontSize',11);
     
     % Plot parameters
     axes('Parent',xPEB.panels(2));
@@ -339,7 +385,9 @@ elseif view <= (nc+1)
             if l > s(3), l = p(1); end    % Align with figure window
             
             xPEB.mtx_fig = figure('Name','Connectivity','NumberTitle','off',...
-                                  'OuterPosition',[l b w h]);
+                                  'OuterPosition',[l b w h],'Color','white',...
+                                  'ToolBar','none');
+                        
         else
             figure(xPEB.mtx_fig);
         end
@@ -348,6 +396,17 @@ elseif view <= (nc+1)
         dcm_obj = datacursormode(xPEB.mtx_fig);
         set(dcm_obj,'UpdateFcn',@plot_clicked);
         datacursormode on;        
+        
+        % Prepare axes
+        ax  = get(xPEB.mtx_fig,'CurrentAxes');
+        if isempty(ax)
+            ax = axes('Parent',xPEB.mtx_fig,'Units','normalized');
+            p = get(ax,'Position');
+            p(1) = 0.2;
+            p(3) = 0.7;
+            p(4) = 0.75;
+            set(ax,'Position',p);
+        end
         
         % Plot
         imagesc(xPEB.Eq);
@@ -501,6 +560,16 @@ assignin('base','xPEB',xPEB);
 update_view();
 
 % =========================================================================
+function selected_threshold_changed(varargin)
+% Callback for change of thershold click
+xPEB = evalin('base','xPEB');
+xPEB.threshold_idx = get(varargin{1},'Value');
+
+assignin('base','xPEB',xPEB);
+
+update_view();
+
+% =========================================================================
 function selected_field_changed(varargin)
 % Callback for change of DCM field click
 
@@ -539,9 +608,18 @@ pos = get(varargin{2},'Position');
 idx1 = pos(1);
 idx2 = pos(2);
 
+% Selected 2nd level effect
+effect = xPEB.view - 1;
+
 Pnames        = xPEB.PEB.Pnames;
 region_names  = xPEB.region_names;
 input_names   = xPEB.input_names;
+
+try
+    Px_name = xPEB.PEB.Xnames{2};
+catch
+    Px_name = 'Group difference';
+end
 
 switch tag
     case 'parameters'
@@ -549,15 +627,29 @@ switch tag
         
         pname1 = pname_to_string(Pnames{idx1}, region_names, input_names);
         
-        txt = {pname1;
+        txt = {pname1; ' ';
                sprintf('DCM parameter %d',idx1); 
                sprintf('PEB parameter %d',peb_param_idx(idx1))};
            
-        % Posterior probabilities
+        % Posterior probabilities (not divided into common effects and
+        % differences)
         if isfield(xPEB.PEB,'Pp')
             Pp = xPEB.PEB.Pp(peb_param_idx(idx1));
-            txt = vertcat(txt,sprintf('Posterior probability: %2.2f',Pp));
+            txt = vertcat(txt,' ',sprintf('P(with > without): %2.2f',Pp));
         end
+        
+        % Probability of common effect
+        if isfield(xPEB.PEB,'Pw') && effect == 1
+            Pp = xPEB.PEB.Pw(idx1);
+            txt = vertcat(txt,' ',sprintf('P(with > without): %2.2f',Pp));
+        end
+        
+        % Probability of group difference
+        if isfield(xPEB.PEB,'Px') && effect == 2
+            Pp = xPEB.PEB.Px(idx1);
+            txt = vertcat(txt,' ',sprintf('P(with > without): %2.2f',Pp));
+        end        
+        
     case 'rfx'        
         pname1 = pname_to_string(Pnames{idx1}, region_names, input_names);
         pname2 = pname_to_string(Pnames{idx2}, region_names, input_names);        
@@ -591,13 +683,15 @@ switch tag
             cov_str = sprintf('Covariates %d and %d',cov1,cov2);
         end
         
+        corr = full(xPEB.corr);
+        
         txt = {sprintf('%s and %s',Pnames{idx1_allparams},Pnames{idx2_allparams});
                cov_str;
                sprintf('DCM parameters %d and %d',idx1_allparams,idx2_allparams); 
                sprintf('PEB parameters %d and %d',...
                 idx1,...
                 idx2);
-                sprintf('Correlation: %2.2f',xPEB.corr(idx1_allparams,idx2_allparams)); };
+                sprintf('Correlation: %2.2f',corr(idx2,idx1)); };
     case 'connectivity'   
         
         sel_field_idx = xPEB.sel_field_idx - 1;

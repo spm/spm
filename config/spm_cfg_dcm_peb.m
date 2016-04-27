@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6770 2016-04-18 09:57:44Z peter $
+% $Id: spm_cfg_dcm_peb.m 6784 2016-04-27 13:12:05Z peter $
 
 
 %==========================================================================
@@ -214,7 +214,8 @@ field_all.val = {'All fields'};
 field_entry  = cfg_entry;
 field_entry.name = 'Enter manually';
 field_entry.tag  = 'custom';
-field_entry.help = {'Enter the fields e.g. {''A''} or {''A'',''C''}'};
+field_entry.help = {['Enter the fields as a cell array e.g. {''A''} ' ...
+                     'or {''A'', ''C''} or {''B(:,:,1)'', ''B(:,:,3)''}']};
 field_entry.strtype = 'e';
 field_entry.num     = [0 Inf];
 
