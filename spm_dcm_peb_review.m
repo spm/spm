@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 6784 2016-04-27 13:12:05Z peter $
+% $Id: spm_dcm_peb_review.m 6785 2016-04-27 14:23:12Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -157,18 +157,26 @@ end
 
 % Apply threshold
 % -------------------------------------------------------------------------
-if display_threshold && threshold > 0
+if display_threshold
     
     if isfield(PEB,'Pw') && effect == 1
         Pp = PEB.Pw;
     elseif isfield(PEB,'Px') && effect == 2
         Pp = PEB.Px;
-    else
+    elseif isfield(PEB,'Pp')
         Pp = PEB.Pp(peb_param_idx);
+    else
+        Pp = [];
     end
     
-    Ep = Ep .* (Pp > threshold);
-    Cp = Cp .* (Pp > threshold);
+    xPEB.Pp = Pp;
+    
+    if ~isempty(Pp) && threshold > 0
+        Ep = Ep .* (Pp(:) > threshold);
+        Cp = Cp .* (Pp(:) > threshold);
+    end
+else
+    xPEB.Pp = [];
 end
 
 % Posterior random effects variance
@@ -621,6 +629,12 @@ catch
     Px_name = 'Group difference';
 end
 
+try
+    Pp = xPEB.Pp;
+catch
+    Pp = [];
+end
+
 switch tag
     case 'parameters'
         peb_param_idx = xPEB.peb_param_idx;
@@ -631,24 +645,9 @@ switch tag
                sprintf('DCM parameter %d',idx1); 
                sprintf('PEB parameter %d',peb_param_idx(idx1))};
            
-        % Posterior probabilities (not divided into common effects and
-        % differences)
-        if isfield(xPEB.PEB,'Pp')
-            Pp = xPEB.PEB.Pp(peb_param_idx(idx1));
-            txt = vertcat(txt,' ',sprintf('P(with > without): %2.2f',Pp));
+        if ~isempty(Pp)
+            txt = vertcat(txt,' ',sprintf('P(with > without): %2.2f',Pp(idx1)));
         end
-        
-        % Probability of common effect
-        if isfield(xPEB.PEB,'Pw') && effect == 1
-            Pp = xPEB.PEB.Pw(idx1);
-            txt = vertcat(txt,' ',sprintf('P(with > without): %2.2f',Pp));
-        end
-        
-        % Probability of group difference
-        if isfield(xPEB.PEB,'Px') && effect == 2
-            Pp = xPEB.PEB.Px(idx1);
-            txt = vertcat(txt,' ',sprintf('P(with > without): %2.2f',Pp));
-        end        
         
     case 'rfx'        
         pname1 = pname_to_string(Pnames{idx1}, region_names, input_names);
