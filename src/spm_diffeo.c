@@ -1,4 +1,4 @@
-/* $Id: spm_diffeo.c 6688 2016-01-22 16:16:38Z john $ */
+/* $Id: spm_diffeo.c 6782 2016-04-27 11:52:19Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -377,6 +377,9 @@ static void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArr
         mexErrMsgTxt("Incorrect usage");
     if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
         mexErrMsgTxt("Data must be numeric, real, full and single");
+    if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
+        mexErrMsgTxt("Data must be numeric, real, full and double");
+
     nd = mxGetNumberOfDimensions(prhs[0]);
     if (nd!=4) mexErrMsgTxt("Wrong number of dimensions.");
     dm = mxGetDimensions(prhs[0]);
