@@ -32,7 +32,7 @@ function MDP = DEM_demo_MDP_rule
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 6763 2016-04-04 09:24:18Z karl $
+% $Id: DEM_demo_MDP_rule.m 6786 2016-04-27 19:38:30Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -458,6 +458,20 @@ for m = 1:Ns
     end
     RDP   = spm_MDP_VB_X(RDP,OPT);
     
+    % look for instances of BMR
+    %----------------------------------------------------------------------
+    vA    = spm_vec(A{1});
+    for i = 1:N
+       c(i,1) = corr(vA,(spm_vec(RDP(i).a{1}) > 0));
+    end
+    bmr(:,m) = diff(c);
+    
+    % preferred locations
+    %----------------------------------------------------------------------
+    for i = 1:N
+        if all(RDP(i).o(3,6:7) == 2); r(i,m) = 1; else, r(i,m) = 0;  end
+    end
+    
     % find run of correct responses
     %----------------------------------------------------------------------
     for i = 1:N
@@ -484,14 +498,25 @@ for m = 1:Ns
     b = bar(mean(H(:,j),2)); set(b,'EdgeColor','w','FaceColor',[1 1 1]*.8),hold off
     xlabel('trial'), ylabel('probability of correct'), axis([0.5 64.5 1/3 1]);
     title('Difficult sequences','Fontsize',16)
-
-    subplot(4,2,5), imagesc(h')
-    xlabel('trial'), ylabel('subject')
-    title('individual performance','Fontsize',16), axis square
     
-    subplot(4,2,6), imagesc(r')
+    
+    % show individual performance
+    %----------------------------------------------------------------------
+    subplot(2,1,2), imagesc(r')
     xlabel('trial'), ylabel('subject')
     title('with BMR','Fontsize',16), axis square
+    
+    % plot model updates
+    %----------------------------------------------------------------------
+    hold on
+    for i = 1:m
+        j = find(bmr(:,i) > 0);
+        try, plot(j(1),i,'.m','MarkerSize',32), end
+        try, plot(j(2),i,'.r','MarkerSize',32), end
+        j = find(bmr(:,i) < 0);
+        plot(j, (j - j + i),'.b','MarkerSize',32)
+    end
+    hold off
     
     save paper
     

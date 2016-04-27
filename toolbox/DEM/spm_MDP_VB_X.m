@@ -90,7 +90,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6763 2016-04-04 09:24:18Z karl $
+% $Id: spm_MDP_VB_X.m 6786 2016-04-27 19:38:30Z karl $
 
 
 % deal with a sequence of trials
@@ -642,11 +642,11 @@ for f = 1:Nf
     end
 end
 
-% evaluate free energy
+% evaluate free action
 %==========================================================================
 SG      = gu(t)*SQ(p);
 Z       = sum(exp(SG));
-MDP.Fu  = qu'*log(qu);
+MDP.Fu  = qu'*log(qu);    % confidence (action)
 MDP.Fq  = log(Z) - qu'*SG;
 MDP.Fs  =        - qu'*SF(p);
 MDP.Fg  = beta*gu(t) - log(gu(t));
