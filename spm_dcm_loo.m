@@ -30,10 +30,10 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
 % 
 % See also: spm_dcm_peb.m and spm_dcm_ppd.m
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_loo.m 6771 2016-04-18 14:10:58Z peter $
+% $Id: spm_dcm_loo.m 6790 2016-04-28 14:30:27Z guillaume $
 
 
 % Set up
@@ -86,8 +86,10 @@ for i = 1:Ns
 
 end
 
-% show results
-%--------------------------------------------------------------------------
+% Show results
+%==========================================================================
+if spm_get_defaults('cmdline'), return; end
+
 spm_figure('GetWin','LOO cross-validation');clf
 subplot(2,2,1), spm_plot_ci(qE,qC), hold on
 plot(M.X(:,2),':'), hold off
@@ -102,7 +104,7 @@ r      = corrcoef(qE(:),M.X(:,2));
 r      = r(1,2);
 
 if isnan(T)
-    p = nan;
+    p = NaN;
 else
     p = 1 - spm_Tcdf(T,df(2));
 end
@@ -138,6 +140,3 @@ else
     axis([0 (Ns + 1) 0 1]);
     line([0 Ns+0.5],[0.95 0.95],'LineStyle','--','Color','r');
 end
-
-
-
