@@ -12,17 +12,17 @@ function results = spm_tests(varargin)
 % results     - TestResult array containing information describing the
 %               result of running the test suite.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_tests.m 6492 2015-06-26 14:27:40Z guillaume $
+% $Id: spm_tests.m 6792 2016-04-28 17:56:33Z guillaume $
 
 
 if spm_check_version('matlab','8.3') < 0
     error('Unit Tests require MATLAB R2014a or above.');
 end
 
-SVNid = '$Rev: 6492 $';
+SVNid = '$Rev: 6792 $';
 SPMid = spm('FnBanner',mfilename,SVNid);
 
 %-Input parameters
@@ -53,12 +53,21 @@ tests = fullfile(spm('Dir'),'tests');
 if isempty(options.test)
     suite = TestSuite.fromFolder(tests, 'IncludingSubfolders', true);
 else
-    mtest = fullfile(tests,['test_' spm_file(options.test,'ext','.m')]);
-    if ~spm_existfile(mtest)
-        warning('SPM:tests:fileNotFound','No tests found for %s',options.test);
-        return;
+    suite = [];
+    options.test = cellstr(options.test);
+    for i=1:numel(options.test)
+        prefix = 'test_';
+        if strncmp(options.test{i},prefix,length(prefix))
+            prefix = '';
+        end
+        mtest = fullfile(tests,[prefix spm_file(options.test{i},'ext','.m')]);
+        if ~spm_existfile(mtest)
+            warning('SPM:tests:fileNotFound',...
+                'No tests found for %s',options.test{i});
+            continue
+        end
+        suite = [suite TestSuite.fromFile(mtest)];
     end
-    suite = TestSuite.fromFile(mtest);
 end
 if ~isempty(options.tag)
     suite = suite.selectIf(~HasTag | HasTag(options.tag));
