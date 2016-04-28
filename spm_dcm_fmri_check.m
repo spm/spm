@@ -47,7 +47,7 @@ function [DCM] = spm_dcm_fmri_check(P, varargin)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_check.m 6787 2016-04-28 11:30:03Z peter $
+% $Id: spm_dcm_fmri_check.m 6789 2016-04-28 12:39:58Z peter $
 
 
 %-Prepare inputs
@@ -101,7 +101,7 @@ if iscell(DCM)
     end
     
     % Call spm_dcm_fmri_check recursively to assemble diagnostics
-    stats = get_diagnostics(DCM);
+    [stats,DCM] = get_diagnostics(DCM);
 
     if nograph, return; end    
     
@@ -302,7 +302,7 @@ end
 axis square
 
 % =========================================================================
-function stats = get_diagnostics(GCM)
+function [stats,GCM] = get_diagnostics(GCM)
 % Builds a [s x m] cell array of diagnostic stats for an array of DCMs
 
 stats    = cell(size(GCM));
