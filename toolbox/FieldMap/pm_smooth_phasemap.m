@@ -15,7 +15,7 @@ function pm = pm_smooth_phasemap(pm,angvar,vxs,fwhm)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_smooth_phasemap.m 4842 2012-08-15 18:02:30Z guillaume $
+% $Id: pm_smooth_phasemap.m 6791 2016-04-28 14:47:20Z john $
 
 if nargin ~= 4 || nargout ~= 1
    help pm_smooth_phasemap
@@ -31,8 +31,8 @@ end
 % (and changed a bit) from spm_smooth.
 %
 fwhm  = fwhm./vxs;                  % voxel anisotropy
-fwhm  = max(fwhm,ones(size(fwhm)));    % lower bound on FWHM
-s  = fwhm/sqrt(8*log(2));           % FWHM -> Gaussian parameter
+fwhm  = max(fwhm,ones(size(fwhm))); % lower bound on FWHM
+s     = fwhm/sqrt(8*log(2));        % FWHM -> Gaussian parameter
 
 x  = round(3*s(1)); x = [-x:x];
 y  = round(3*s(2)); y = [-y:y];
@@ -44,8 +44,15 @@ x  = x/sum(x);
 y  = y/sum(y);
 z  = z/sum(z);
 
-krnl = reshape(kron(z,kron(y,x)),[length(x) length(y) length(z)]);
+i  = (length(x) - 1)/2;
+j  = (length(y) - 1)/2;
+k  = (length(z) - 1)/2;
 
-pm = pm_smooth_phasemap_dtj(pm,1./angvar,krnl);
+q1 = zeros(size(pm));
+q2 = zeros(size(pm));
+spm_conv_vol(pm./angvar,q1,x,y,z,-[i,j,k]);
+spm_conv_vol( 1./angvar,q2,x,y,z,-[i,j,k]);
+pm = q1./q2;
 
 return
+
