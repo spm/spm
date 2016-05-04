@@ -32,7 +32,7 @@ Spectral DCM simply estimates the time-invariant parameters of their cross spect
 Here, $\{\alpha,\beta\}\subset \theta$ are the parameters controlling the amplitudes and exponents of the spectral density of the neural fluctuations. This models neuronal noise with a generic $1/f^{\gamma}$ spectra, which characterizes fluctuations in systems that are at nonequilibrium steady-state. Using the model parameters, $\theta \supseteq \{A,C,\alpha, \beta\}$, we can simply generate the expected cross spectra:
 \begin{eqnarray}\label{spdcm_eq5}
 & y & = \kappa \ast v + e\\ \nonumber
-& \kappa & = \partial_x h \mathrm{exp} (t \partial_x f ) \\ \nonumber
+& \kappa & = \partial_z h \mathrm{exp} (t \partial_z f ) \\ \nonumber
 & g_{y}(\omega,\theta) & = |K(\omega)|^2 g_{v}(\omega,\theta) + g_{e}(\omega,\theta)
 \end{eqnarray}
 where $K(\omega)$ is the Fourier transform of the system's (first order) Volterra kernels  $\kappa$, which are a function of the Jacobian or effective connectivity. The unknown quantities $\psi=\{\phi,\theta,\sigma\}$ of this deterministic model can now be estimated using standard Variational Laplace procedures \cite{karl_vb_laplace}. Here $g_{y} (\omega,\theta)$ represents the predicted cross spectra that can be estimated, for example, using autoregressive (AR) model. Specifically, we use a fourth-order autoregressive model to ensure smooth sample cross spectra of the sort predicted by the generative model. The frequencies usually considered for fMRI range from 1/128 Hz to 0.1 Hz in 32 evenly spaced frequency bins.
