@@ -20,7 +20,7 @@ function [i,pC,pE,Np] = spm_find_pC(varargin)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_find_pC.m 6529 2015-08-21 13:27:38Z karl $
+% $Id: spm_find_pC.m 6793 2016-05-04 12:18:44Z adeel $
 
 %-parse input arguments
 %--------------------------------------------------------------------------
@@ -93,6 +93,8 @@ end
 if isfield(DCM.options,'analysis')
     if strcmpi(DCM.options.analysis,'IND')
         [pE,~,pC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,DCM.Nf);
+    elseif strcmpi(DCM.options.analysis,'CSD')        
+        [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
     else
         [pE,pC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,DCM.options.model);
     end
