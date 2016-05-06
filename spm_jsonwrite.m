@@ -11,10 +11,10 @@ function varargout = spm_jsonwrite(varargin)
 % References:
 %   http://www.json.org/
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 6610 2015-11-25 17:50:05Z guillaume $
+% $Id: spm_jsonwrite.m 6796 2016-05-06 16:18:14Z guillaume $
 
 
 %-Input parameters
@@ -38,7 +38,7 @@ if ~isstruct(json) && ~iscell(json)
         error('Invalid JSON structure.');
     end
 end
-S = jsonwrite_var(json);
+S = jsonwrite_var(json,NaN); % 0 or NaN
 
 %-Output
 %--------------------------------------------------------------------------
@@ -73,27 +73,27 @@ end
 function S = jsonwrite_struct(json,tab)
 if numel(json) == 1
     fn = fieldnames(json);
-    S = ['{' sprintf('\n')];
+    S = ['{' fmt('\n',tab)];
     for i=1:numel(fn)
-        S = [S blanks((tab+1)*2) jsonwrite_char(fn{i}) ': ' ...
+        S = [S fmt((tab+1)*2) jsonwrite_char(fn{i}) ': ' ...
             jsonwrite_var(json.(fn{i}),tab+1)];
         if i ~= numel(fn), S = [S ',']; end
-        S = [S sprintf('\n')];
+        S = [S fmt('\n',tab)];
     end
-    S = [S blanks(2*tab) '}'];
+    S = [S fmt(2*tab) '}'];
 else
     S = jsonwrite_cell(arrayfun(@(x) {x},json),tab);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S = jsonwrite_cell(json,tab)
-S = ['[' sprintf('\n')];
+S = ['[' fmt('\n',tab)];
 for i=1:numel(json)
-    S = [S blanks((tab+1)*2) jsonwrite_var(json{i},tab+1)];
+    S = [S fmt((tab+1)*2) jsonwrite_var(json{i},tab+1)];
     if i ~= numel(json), S = [S ',']; end
-    S = [S sprintf('\n')];
+    S = [S fmt('\n',tab)];
 end
-S = [S blanks(2*tab) ']'];
+S = [S fmt(2*tab) ']'];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S = jsonwrite_char(json)
@@ -105,8 +105,8 @@ S = ['"' json '"'];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S = jsonwrite_numeric(json)
 if numel(json) > 1
-    warning('Not supported: converting to JSON array.');
-    S = jsonwrite_cell(num2cell(json),0); % consider array of array?
+    %warning('Not supported: converting to JSON array.');
+    S = jsonwrite_cell(num2cell(json),NaN); % consider array of array?
     return;
 end
 if islogical(json)
@@ -117,4 +117,13 @@ else
     else
         S = num2str(json);
     end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function b = fmt(varargin)
+b = '';
+if nargin == 1
+    if ~isnan(varargin{1}), b = blanks(varargin{1}); end
+elseif nargin == 2
+    if ~isnan(varargin{2}), b = sprintf(varargin{1}); end
 end
