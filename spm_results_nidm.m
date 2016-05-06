@@ -19,7 +19,7 @@ function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6796 2016-05-06 16:18:14Z guillaume $
+% $Id: spm_results_nidm.m 6797 2016-05-06 16:48:08Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -44,7 +44,7 @@ end
 gz           = '.gz'; %-Compressed NIfTI {'.gz', ''}
 coordsys     = 'nidm_MNICoordinateSystem'; %-Assuming MNI space
 NIDMversion  = '1.3.0-rc2';
-SVNrev       = '$Rev: 6796 $';
+SVNrev       = '$Rev: 6797 $';
 MRIProtocol  = '';
 try
     modality = spm_get_defaults('modality');
@@ -1071,10 +1071,10 @@ pp.bundle(idResults,p);
 %==========================================================================
 %-                  P R O V   S E R I A L I Z A T I O N
 %==========================================================================
-serialize(pp,fullfile(outdir,'nidm.provn'));
+%serialize(pp,fullfile(outdir,'nidm.provn'));
 serialize(pp,fullfile(outdir,'nidm.ttl'));
 %serialize(pp,fullfile(outdir,'nidm.json'));
-serialize(pp,fullfile(outdir,'nidm.pdf'));
+%serialize(pp,fullfile(outdir,'nidm.pdf'));
 
 i = 1;
 while true
