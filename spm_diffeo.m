@@ -328,6 +328,23 @@ function varargout = spm_diffeo(varargin)
 %
 %_______________________________________________________________________
 %
+% FORMAT t = spm_diffeo('trapprox',H, param)
+% v     - the solution n1*n2*n3*3
+% H     - parameterisation of 2nd derivatives 
+% param - 10 parameters (settings)
+%         - [1][2][3] Voxel sizes
+%         - [4][5][6][7][8] Regularisation settings (see vel2mom).
+% t     - approximation of [trace((L+H)\L) trace((L+H)\H)];
+%
+% Generate an approximation of Trace((L+H)\L) and Trace((L+H)\H) for
+% to give a ball-park figure for the "degrees of freedom" in Laplace
+% approximations.  L is the regulariser in sparse matrix form.  The
+% approximation is a poor one, which assumes all the off-diagonals of L
+% are 0.
+% H is single precision floating point.
+%
+%_______________________________________________________________________
+%
 % FORMAT v = spm_diffeo('dartel',v,g,f,param)
 % v     - flow field n1*n2*n3*3 (single precision float)
 % g     - first image n1*n2*n3*n4 (single precision float)
@@ -394,7 +411,7 @@ function varargout = spm_diffeo(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_diffeo.m 4890 2012-09-03 15:19:46Z guillaume $
+% $Id: spm_diffeo.m 6799 2016-05-20 16:50:25Z john $
 
 
 %-This is merely the help file for the compiled routine
