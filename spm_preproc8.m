@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 6431 2015-05-08 18:24:28Z john $
+% $Id: spm_preproc8.m 6798 2016-05-20 11:53:33Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -94,10 +94,13 @@ else
     use_mog = true;
 end
 
-kron = inline('spm_krutil(a,b)','a','b');
+kron = @(a,b) spm_krutil(a,b);
 
 % Some random numbers are used, so initialise random number generators to
-% give the same results each time. These will eventually need changing
+% give the same results each time.
+%rng('default');
+
+% These will eventually need changing
 % because using character strings to control RAND and RANDN is deprecated.
 randn('state',0);
 rand('state',0);
@@ -132,7 +135,7 @@ spm_diffeo('boundary',1);
 % account for different voxel sizes.  I'm still not satisfied that
 % this (rescaling the regularisaiton by prod(vx.*sk)) is optimal.
 % The same thing applies to all the nonlinear warping code in SPM.
-param  = [sk.*vx prod(vx.*sk)*ff*obj.reg];
+param  = [sk.*vx prod(vx.*sk)*ff*obj.reg]; % FIX THIS (remove "prod(vx.*sk)")
 
 % Mapping from indices of subsampled voxels to indices of voxels in image(s).
 MT     = [sk(1) 0 0 (1-sk(1));0 sk(2) 0 (1-sk(2)); 0 0 sk(3) (1-sk(3));0 0 0 1];

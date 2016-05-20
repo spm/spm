@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 6008 2014-05-22 12:08:01Z john $
+% $Id: spm_groupwise_ls.m 6798 2016-05-20 11:53:33Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -123,7 +123,7 @@ for i=1:size(dims,1),
     dims(i,:) = Nii(i).dat.dim(1:3);
 end
 [pyramid(1).mat,pyramid(1).d] = compute_avg_mat(Mat0,dims);
-pyramid(1).sc   = abs(det(pyramid(1).mat(1:3,1:3)));
+pyramid(1).sc   = abs(det(pyramid(1).mat(1:3,1:3)));                  % FIX THIS FOR NEXT MAJOR RELEASE
 pyramid(1).prec = prec;
 
 % Figure out template info for each sucessively lower resolution version
@@ -134,7 +134,7 @@ for level=2:numel(pyramid),
     pyramid(level).mat  = pyramid(level-1).mat*[diag(s), (1-s(:))*0.5; 0 0 0 1];
 
     % Relative scaling of regularisation
-    pyramid(level).sc   = abs(det(pyramid(level).mat(1:3,1:3)));
+    pyramid(level).sc   = abs(det(pyramid(level).mat(1:3,1:3)));      % FIX THIS FOR NEXT MAJOR RELEASE
     pyramid(level).prec = prec*sqrt(pyramid(level).sc/pyramid(1).sc); % Note that the sqrt is ad hoc
 end
 

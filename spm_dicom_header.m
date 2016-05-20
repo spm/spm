@@ -1,8 +1,15 @@
-function hdr = spm_dicom_header(P, dict)
+function hdr = spm_dicom_header(P, dict, options)
 % Read header information from a DICOM file
-% FORMAT hdr = spm_dicom_header(P,dict)
+% FORMAT hdr = spm_dicom_header(P,dict, options)
 % P          - array of filenames
 % dict       - DICOM dictionary loaded from file
+% options    - an (optional) structure containing fields
+%              abort      - if this is a function handle, it will be called
+%                           with fieldname and value arguments.  If this function
+%                           returns true, then reading the header will be aborted.
+%              all_fields - binary true/false, indicating what to do with
+%                           fields thatare not included in the DICOM
+%                           dictionary.
 %
 % hdr        - a header.
 %
@@ -15,7 +22,11 @@ function hdr = spm_dicom_header(P, dict)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_header.m 6769 2016-04-15 11:37:20Z volkmar $
+% $Id: spm_dicom_header.m 6798 2016-05-20 11:53:33Z john $
+
+if nargin<3,
+    options = struct('abort',false,'all_fields',true);
+end
 
 hdr = [];
 P   = deblank(P);
@@ -47,7 +58,12 @@ if ~strcmp(dcm,'DICM')
     end
 end
 try
-    hdr = read_dicom(fp, 'il',dict);
+    hdr = read_dicom(fp, 'il',dict, options);
+    if isempty(hdr)
+        fclose(fp);
+        return;
+    end
+
     hdr.Filename = fopen(fp);
 catch
     problem = lasterror;
@@ -57,14 +73,14 @@ fclose(fp);
 
 
 %==========================================================================
-% function [ret,len] = read_dicom(fp, flg, dict,lim)
+% function [ret,len] = read_dicom(fp, flg, dict, options, lim)
 %==========================================================================
-function [ret,len] = read_dicom(fp, flg, dict,lim)
-if nargin<4, lim=4294967295; end % FFFFFFFF
+function [ret,len] = read_dicom(fp, flg, dict, options, lim)
+if nargin<5, lim=4294967295; end % FFFFFFFF
 len = 0;
 ret = [];
 while len<lim
-    tag = read_tag(fp,flg,dict);
+    tag = read_tag(fp,flg,dict,options);
     if isempty(tag), break; end
 
     %fprintf('(%.4X,%.4X) "%s" %d %d %s\n', tag.group, tag.element, tag.vr, tag.length, tag.le, tag.name);
@@ -179,7 +195,12 @@ while len<lim
                     case {'FD','OD'},
                         dat = fread(fp,tag.length/8,'double')';
                     case {'SQ'},
-                        [dat,len1] = read_sq(fp, flg,dict,tag.length);
+                        [dat,len1] = read_sq(fp, flg,dict, options, tag.length);
+                        if len1==-1 && isempty(dat)
+                            ret = [];
+                            len = -1;
+                            return;
+                        end
                         tag.length = len1;
                     otherwise,
                         dat = fread(fp,tag.length,'uint8')';
@@ -190,6 +211,11 @@ while len<lim
                         %end
                 end
                 if ~isempty(tag.name)
+                    if isa(options.abort,'function_handle') && feval(options.abort,tag.name,dat)
+                        ret = [];
+                        len = -1;
+                        return;
+                    end
                     ret.(tag.name) = dat;
                 end
         end
@@ -199,9 +225,9 @@ end
 
 
 %==========================================================================
-% function [ret,len] = read_sq(fp, flg, dict,lim)
+% function [ret,len] = read_sq(fp, flg, dict, options, lim)
 %==========================================================================
-function [ret,len] = read_sq(fp, flg, dict,lim)
+function [ret,len] = read_sq(fp, flg, dict, options, lim)
 ret = {};
 n   = 0;
 len = 0;
@@ -216,7 +242,13 @@ while len<lim
 
     len         = len + 8;
     if (tag.group == 65534) && (tag.element == 57344)   % FFFE/E000 Item
-        [Item,len1] = read_dicom(fp, flg, dict, tag.length);
+        [Item,len1] = read_dicom(fp, flg, dict, options, tag.length);
+        if len1==-1 && isempty(Item)
+            ret = [];
+            len = -1;
+            return;
+        end
+
         len    = len + len1;
         if ~isempty(Item)
             n      = n + 1;
@@ -231,7 +263,13 @@ while len<lim
         else
             flg1(2) = 'b';
         end
-        [Item,len1] = read_dicom(fp, flg1, dict, tag.length);
+        [Item,len1] = read_dicom(fp, flg1, dict, options, tag.length);
+        if len1==-1 && isempty(Item)
+            len = -1;
+            Item = [];
+            return;
+        end
+
         len    = len + len1;
         n      = n + 1;
         ret{n} = Item;
@@ -251,9 +289,9 @@ end
 
 
 %==========================================================================
-% function tag = read_tag(fp,flg,dict)
+% function tag = read_tag(fp,flg,dict, options)
 %==========================================================================
-function tag = read_tag(fp,flg,dict)
+function tag = read_tag(fp,flg,dict,options)
 %tag.group   = fread(fp,1,'ushort');
 %tag.element = fread(fp,1,'ushort');
 %if isempty(tag.element), tag=[]; return; end
@@ -272,16 +310,20 @@ else
     % in the dictionary.  With a reduced dictionary, this could
     % speed things up considerably.
     % tag.name = '';
-    if tag.element~=0
-        if rem(tag.group,2)
-            tag.name = sprintf('Private_%.4x_%.4x',tag.group,tag.element);
-        else
-            tag.name = sprintf('Tag_%.4x_%.4x',tag.group,tag.element);
-        end
-        tag.vr   = 'UN';
-    else
+    if ~options.all_fields
         tag.name = '';
-        tag.vr   = 'UN';
+    else
+        if tag.element~=0
+            if rem(tag.group,2)
+                tag.name = sprintf('Private_%.4x_%.4x',tag.group,tag.element);
+            else
+                tag.name = sprintf('Tag_%.4x_%.4x',tag.group,tag.element);
+            end
+            tag.vr   = 'UN';
+        else
+            tag.name = '';
+            tag.vr   = 'UN';
+        end
     end
 end
 

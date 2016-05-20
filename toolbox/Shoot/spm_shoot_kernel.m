@@ -18,7 +18,7 @@ function out = spm_shoot_kernel(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_kernel.m 5260 2013-02-19 16:23:33Z john $
+% $Id: spm_shoot_kernel.m 6798 2016-05-20 11:53:33Z john $
 
 defs   = spm_shoot_defaults;
 rparam = defs.rparam;
@@ -30,7 +30,7 @@ out.fname = {ofname};
 N   = nifti(P);
 dm  = size(N(1).dat);
 vx  = sqrt(sum(N(1).mat(1:3,1:3).^2));
-prm = [vx rparam*prod(vx)];
+prm = [vx rparam*prod(vx)]; % FIX THIS
 n   = numel(N);
 K   = zeros(n,n);
 spm_progress_bar('Init',n*n,'Generating matrix','Elements done');

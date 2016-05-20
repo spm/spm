@@ -1,10 +1,11 @@
-function M = spm_klaff(Nf, Ng)
+function M = spm_klaff(Nf, Ng, flag)
 % Affine registration by minimising Kullback-Leibler Divergence
-% FORMAT M = spm_klaff(Nf,Ng)
-% Nf - NIfTI handle for one image
-% Ng - Nifti handle for the other.  If not passed, then
-%      spm*/toolbox/Seg/TPM.nii is used.
-% M  - The voxel-for-voxel affine transform
+% FORMAT M = spm_klaff(Nf,Ng,flag)
+% Nf   - NIfTI handle for one image
+% Ng   - Nifti handle for the other.  If not passed, then
+%        spm*/toolbox/Seg/TPM.nii is used.
+% flag - an optional argument to indicate a Shoot template
+% M    - The voxel-for-voxel affine transform
 %
 % The images that are matched are tissue probability maps, in the
 % same form as spm/tpm/TPM.nii or the Template files
@@ -18,7 +19,7 @@ function M = spm_klaff(Nf, Ng)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_klaff.m 5506 2013-05-14 17:13:43Z john $
+% $Id: spm_klaff.m 6798 2016-05-20 11:53:33Z john $
 
 if nargin<2,   Ng = fullfile(spm('Dir'),'tpm','TPM.nii'); end
 if ischar(Nf), Nf = nifti(Nf); end
@@ -28,6 +29,8 @@ deg = [2 2 2 1 1 1]; % Degree of interpolation to use
 
 df = [size(Nf.dat),1,1];   % Dimensions of data
 dg = [size(Ng.dat),1,1];   % Dimensions of data
+
+if nargin>2 && flag==1, df(4)=df(4)-1; end
 
 nd = min([df(4)+1,dg(4)]); % Use the first nd volumes.
 nd = min(nd,3);            % Just use GM, WM & other
@@ -197,7 +200,7 @@ for it=1:64,
     % f(M_o M^{-1} x) with g(x), so M_n = M_o M^{-1}, where
     % M = I - dM.  In the MATLAB code, M_n = M_o (I-dM) is
     % by M = M/(eye(4) - dM);
-    dM = [reshape(AA\Ab,[3,4]); 0 0 0 0];
+    dM = 0.5*[reshape(AA\Ab,[3,4]); 0 0 0 0];
    %M = M/(eye(4) - dM);  % Theoretically correct according to LM-algorithm
    %M = M*(eye(4) + dM);  % Another possibility
     M = M*real(expm(dM)); % Forces the transform to have non-neg Jacobian
