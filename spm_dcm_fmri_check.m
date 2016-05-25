@@ -47,7 +47,7 @@ function [DCM] = spm_dcm_fmri_check(P, varargin)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_check.m 6789 2016-04-28 12:39:58Z peter $
+% $Id: spm_dcm_fmri_check.m 6800 2016-05-25 09:33:15Z peter $
 
 
 %-Prepare inputs
@@ -91,7 +91,8 @@ end
 if iscell(DCM)
     
     % Prepare figure
-    if ~nograph        
+    if ~nograph      
+        datacursormode off;
         f = spm_figure('GetWin','DCM diagnostics'); spm_clf;  
         colormap(jet);
         add_title('Loading...',...
@@ -114,11 +115,11 @@ if iscell(DCM)
     add_title('DCM for fMRI Diagnostics','Position',[0,p(2)+p(4)/2,1,0.06]);
     
     % Plot grid of models    
-    subplot(10,2,3:2:17);
+    subplot(10,2,3:2:13);
     im = plot_model_space(data, f);
     
     % Create diagnostic panel
-    subplot(10,2,4:2:18); axis off;
+    subplot(10,2,4:2:14); axis off;
     h = create_diagnostic_panel();           
 
     % Store handles and DCM in image
@@ -128,6 +129,24 @@ if iscell(DCM)
     % Enable clicks
     datacursormode on;
     
+    % Plot performance over empirical bayes iterations
+    if isfield(DCM{1},'FEB')
+        subplot(10,3,[25 28]), bar(DCM{1}.FEB(:) - DCM{1}.FEB(1))
+        xlabel('iteration','FontSize',12);
+        title('Free energy','FontSize',16)
+        axis square
+
+        subplot(10,3,[26 29]), bar(DCM{1}.EEB(:),'b')
+        xlabel('iteration','FontSize',12)
+        title('Log precision','FontSize',16)
+        axis square
+
+        subplot(10,3,[27 30]), bar(DCM{1}.HEB(:) - DCM{1}.HEB(1),'c')
+        xlabel('iteration','FontSize',12)
+        title('Posterior uncertainty','FontSize',16)
+        axis square
+    end
+        
     return;
 end
 
