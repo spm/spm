@@ -61,7 +61,7 @@ function [y] = spm_int_J(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_J.m 5667 2013-10-02 18:26:06Z karl $
+% $Id: spm_int_J.m 6801 2016-05-29 19:18:06Z karl $
 
 
 % convert U to U.u if necessary and M(1) to M
@@ -75,7 +75,7 @@ M       = M(1);
 try
     f   = fcnchk(M.f,'x','u','P','M');
 catch
-    f   = inline('sparse(0,1)','x','u','P','M');
+    f   = @(x,v,P,M)x;sparse(0,1);
     M.n = 0;
     M.x = sparse(0,0);
 end
@@ -83,36 +83,40 @@ end
 % and output nonlinearity
 %--------------------------------------------------------------------------
 try
-    g  = fcnchk(M.g,'x','u','P','M');
+    g   = fcnchk(M.g,'x','u','P','M');
 catch
-    g  = inline('x','x','v','P','M');
+    g   = @(x,v,P,M)x;
 end
 
 % Initial states and inputs
 %--------------------------------------------------------------------------
 try
-    u  = U.u(1,:);
+    u   = U.u(1,:);
 catch
-    u  = sparse(1,M.m);
+    u   = sparse(1,M.m);
 end
 try
-    x  = M.x;
+    x   = M.x;
 catch
-    x  = sparse(0,1);
+    x   = sparse(0,1);
     M.x = x;
 end
 
 % check function format
 %--------------------------------------------------------------------------
-try
-    f(x,u,P,M);
-catch
-    f = inline(char(f),'x','v','P','M');
+if ~isa(f,'function_handle')
+    try
+        f(x,u,P,M);
+    catch
+        f = inline(char(f),'x','v','P','M');
+    end
 end
-try
-    g(x,u,P,M);
-catch
-    g = inline(char(g),'x','v','P','M');
+if ~isa(g,'function_handle')
+    try
+        g(x,u,P,M);
+    catch
+        g = inline(char(g),'x','v','P','M');
+    end
 end
 
 % default delay operator
@@ -148,7 +152,11 @@ for i = 1:size(U.u,1)
     
     % output - implement g(x)
     %----------------------------------------------------------------------
-    y(:,i) = spm_vec(g(x,u,P,M));
+    if nargin(g) > 3
+        y(:,i) = spm_vec(g(x,u,P,M));
+    else
+        y(:,i) = spm_vec(g(x,u,P));
+    end
     
 end
 

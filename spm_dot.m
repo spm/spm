@@ -7,19 +7,34 @@ function [Y] = spm_dot(X,x,DIM)
 %
 % Y  - inner product obtained by summing the products of X and x along DIM
 %
-% If DIM is not specified the last dimension of X is used.  If x is a cell
-% array recursive dot products are computed (starting with the last entry
-% if (the vector) DIM is not specified).
+% If DIM is not specified the trailing dimensions of X are used.
 %
 % See also: spm_cross
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dot.m 6719 2016-02-11 20:18:29Z karl $
+% $Id: spm_dot.m 6801 2016-05-29 19:18:06Z karl $
 
+% initialise X and vX
+%--------------------------------------------------------------------------
+if iscell(x)
+    if nargin < 3
+        DIM = (1:numel(x)) + numel(size(X)) - numel(x);
+    end
+end
 
-if nnz(X) > 8
+% deal with simple cases
+%--------------------------------------------------------------------------
+if isnumeric(x)
+    if ismatrix(X)
+        if DIM == 1
+            Y = x'*X;
+        else
+            Y = X*x;
+        end
+    end
+else
     
     % subscripts and linear indices
     %------------------------------------------------------------------
@@ -41,16 +56,19 @@ if nnz(X) > 8
         Y   = sum(sp(:));
         return
     end
-    sub(:,DIM)  = [];
-    Y           = zeros([sz,1]);
+    sub(:,DIM) = [];
+    Y          = zeros([sz,1]);
     for i = 1:size(sub,1)
         Y(sub(i)) = Y(sub(i)) + sp(i);
     end
-    return
     
 end
 
+return
 
+
+% Alternative form
+%==========================================================================
 
 % initialise X and vX
 %--------------------------------------------------------------------------
@@ -84,6 +102,8 @@ elseif ismatrix(X)
     return
 end
 
+% sum of products
+%--------------------------------------------------------------------------
 d      = size(X);
 ind    = cell(size(d));
 ind(:) = {':'};

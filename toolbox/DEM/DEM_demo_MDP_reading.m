@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_reading
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_reading.m 6719 2016-02-11 20:18:29Z karl $
+% $Id: DEM_demo_MDP_reading.m 6801 2016-05-29 19:18:06Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -99,7 +99,7 @@ for f1 = 1:Ns(1)
                 A{1}(3,f1,f2,f3,f4) = strcmp(a{f2},'seed');
                 A{1}(4,f1,f2,f3,f4) = strcmp(a{f2},'cat');
                 
-                % A{2} where: {'start','1',...,'4','flee','feed','wait'}
+                % A{2} where: {'start','1',...,'4'}
                 %----------------------------------------------------------
                 A{2}(f2,f1,f2,f3,f4) = 1;
                 
@@ -172,7 +172,7 @@ for f1 = 1:Ns(1)
             A{1}(2,f1,f2,f3) = strcmp(a{f2},'feed');
             A{1}(3,f1,f2,f3) = strcmp(a{f2},'wait');
             
-            % A{2} where: {'1',...,'3'}
+            % A{2} where: {'1',...,'4'}
             %--------------------------------------------------------------
             A{2}(f2,f1,f2,f3) = 1;
             
@@ -227,7 +227,8 @@ C{3}(3,:) = -8;                 % and not wrong
  
 % MDP Structure
 %--------------------------------------------------------------------------
-mdp.MDP = MDP;
+mdp.MDP  = MDP;
+mdp.link = sparse(1,1,1,numel(MDP.D),Ng);
 
 mdp.T = 5;                      % number of moves
 mdp.U = U;                      % allowable policies

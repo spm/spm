@@ -24,7 +24,7 @@ function [P,F] = spm_fmin(fun,Q,C,varargin)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmin.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_fmin.m 6801 2016-05-29 19:18:06Z karl $
 
 
 % stochastic search
@@ -64,9 +64,9 @@ for k = 1:8
     % sample objective function using N(P,C)
     %----------------------------------------------------------------------
     if k == 1
-        N = 128;                       % number of samples
+        N = 256;                       % number of samples
     else
-        N = 16;
+        N = 32;
     end
     p      = P*ones(1,N) + spm_sqrtm(C)*randn(n,N);
     p(:,1) = pmin;

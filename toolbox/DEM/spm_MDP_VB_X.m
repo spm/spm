@@ -90,7 +90,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6786 2016-04-27 19:38:30Z karl $
+% $Id: spm_MDP_VB_X.m 6801 2016-05-29 19:18:06Z karl $
 
 
 % deal with a sequence of trials
@@ -124,7 +124,7 @@ if length(MDP) > 1
         % Bayesian model reduction
         %------------------------------------------------------------------
         if isfield(OPTIONS,'BMR')
-          OUT(i) = spm_MDP_VB_sleep(OUT(i),OPTIONS.BMR);
+            OUT(i) = spm_MDP_VB_sleep(OUT(i),OPTIONS.BMR);
         end
         
     end
@@ -244,8 +244,8 @@ for g = 1:Ng
     
     % assume constant preferences, if only final states are specified
     %----------------------------------------------------------------------
-    if size(Vo{g},2) ~= T
-        Vo{g} = Vo{g}(:,end)*ones(1,T);
+    if size(Vo{g},2) == 1
+        Vo{g} = repmat(Vo{g},1,T);
     end
     Vo{g}     = log(spm_softmax(Vo{g}));
 end
@@ -263,7 +263,7 @@ rt    = zeros(1,T);                 % reaction times
 wn    = zeros(T*Ni,1);              % simulated DA responses
 for f = 1:Nf
     
-    % initialise priors over states
+    % true states
     %----------------------------------------------------------------------
     try
         s(f,1) = MDP.s(f,1);
@@ -275,7 +275,7 @@ for f = 1:Nf
     %----------------------------------------------------------------------
     xn{f} = zeros(Ni,Ns(f),T,T,Np) + 1/Ns(f);
     x{f}  = zeros(Ns(f),T,Np)      + 1/Ns(f);
-    X{f}  = zeros(Ns(f),T)         + 1/Ns(f);
+    X{f}  = repmat(D{f},1,T);
     for k = 1:Np
         x{f}(:,1,k) = D{f};
     end
@@ -290,17 +290,6 @@ u  = zeros(Np,T - 1);
 a  = zeros(Nf,T - 1);
 
 
-% initial outcome (index)
-%--------------------------------------------------------------------------
-for g = 1:Ng
-    try
-        o(g,1) = MDP.o(g,1);
-    catch
-        ind    = num2cell(s(:,1));
-        o(g,1) = find(rand < cumsum(A{g}(:,ind{:})),1);
-    end
-end
-
 % expected rate parameter
 %--------------------------------------------------------------------------
 p     = 1:Np;                       % allowable policies
@@ -310,6 +299,62 @@ gu    = zeros(1,T) + 1/qbeta;       % posterior precision (policy)
 % solve
 %==========================================================================
 for t = 1:T
+    
+    % observed state
+    %======================================================================
+    if isfield(MDP,'link')
+        
+        mdp   = MDP.MDP;
+        link  = MDP.link;
+        [i,j] = find(link);
+        for f = 1:Nf
+            xq{f} = X{f}(:,t);
+        end
+        
+        % priors over states (of subordinate level)
+        %------------------------------------------------------------------
+        for g = 1:length(j)
+            mdp.D{i(g)} = spm_dot(A{j(g)},xq);
+        end
+        
+        % store this level get (probabilistic) outcome
+        %------------------------------------------------------------------
+        mdp        = spm_MDP_VB_X(mdp);
+        MDP.mdp(t) = mdp;
+    else
+        link   = sparse(Ng,Nf);
+    end
+    
+    % outcomes
+    %----------------------------------------------------------------------
+    for g = 1:Ng
+        
+        % posterior states and outcome (from subordinate level)
+        %------------------------------------------------------------------
+        if any(link(:,g))
+            o(g,t) = mdp.s(i(g),1);
+            O{g,t} = mdp.X{i(g),1};
+        else
+            
+            % outcome at this level
+            %--------------------------------------------------------------
+            try
+                o(g,t) = MDP.o(g,t);
+                O{g,t} = sparse(o(g,t),1,1,No(g),1);
+            catch
+                for g = 1:Ng
+                    ind    = num2cell(s(:,t));
+                    po     = MDP.A{g}(:,ind{:});
+                    o(g,t) = find(rand < cumsum(po),1);
+                    O{g,t} = sparse(o(g,t),1,1,No(g),1);
+                end
+            end
+        end
+    end
+    
+    
+    % Variational updates
+    %======================================================================
     
     % processing time and reset
     %----------------------------------------------------------------------
@@ -331,39 +376,40 @@ for t = 1:T
                     %======================================================
                     ind    = 1:Nf;
                     ind(f) = [];
-                    xq     = cell(1,(Nf - 1));
+                    xq     = cell(1,Nf - 1);
                     for  q = 1:numel(ind)
                         xq{q} = x{ind(q)}(:,j,k);
                     end
+                    ind = [1 (ind + 1)];
                     
                     % marginal likelihood over outcome factors
                     %------------------------------------------------------
                     v     = 0;
+                    w     = 0;
                     if j <= t
                         for g = 1:Ng
-                            Aq    = zeros(Ns);
-                            Aq(:) = A{g}(o(g,j),:);
-                            Aq    = spm_dot(Aq,xq,ind);
-                            v     = v + log(Aq(:) + p0);
+                            Aq = spm_dot(A{g},[O(g,j) xq],ind);
+                            w  = w + log(Aq(:) + p0);
                         end
                     end
                     
                     % entropy term and belief update
-                    %------------------------------------------------------                   
+                    %------------------------------------------------------
                     sx     = x{f}(:,j,k);
                     qx     = log(sx);
-                       
+                    
                     % emprical priors
                     %------------------------------------------------------
                     if j == 1, v = v + log(D{f}) - qx;                                    end
                     if j >  1, v = v + log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)) - qx; end
                     if j <  S, v = v + log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)) - qx; end
-
+                    
                     % (negative) free energy and update
                     %------------------------------------------------------
                     F(k,j) = F(k,j) + sx'*v;
+                    v      = v + w;
                     dFdx   = sx.*(v - sx'*v);
-                    sx     = spm_softmax(qx + dFdx/tau); 
+                    sx     = spm_softmax(qx + dFdx/tau);
                     
                     % store update neuronal activity
                     %------------------------------------------------------
@@ -393,32 +439,30 @@ for t = 1:T
             v     = 0;
             if j <= t
                 for g = 1:Ng
-                    Aq    = zeros(Ns);
-                    Aq(:) = A{g}(o(g,j),:);
-                    Aq    = spm_dot(Aq,xq,(1:Nf));
-                    v     = v + log(Aq(:) + p0);
+                    Aq    = spm_dot(A{g},[O(g,j) xq]);
+                    v     = v + log(Aq + p0);
                 end
             end
             
-            % correct (negative) free energy
+            % add log-likelihood to (negative) free energy
             %--------------------------------------------------------------
-            F(k,j) = F(k,j) - v*Nf + v;
+            F(k,j) = F(k,j) + v;
             
             
             % (negative) expected free energy
-            %============================================================== 
+            %==============================================================
             for g = 1:Ng
                 
                 % uncertainty about outcomes
                 %----------------------------------------------------------
-                qo     = spm_dot(A{g},xq,(1:Nf) + 1);
+                qo     = spm_dot(A{g},xq);
                 Q(k,j) = Q(k,j) + qo'*(Vo{g}(:,j) - log(qo + p0));
-                Q(k,j) = Q(k,j) + spm_dot(H{g},xq,1:Nf);
+                Q(k,j) = Q(k,j) + spm_dot(H{g},xq);
                 
                 % uncertainty about parameters
                 %----------------------------------------------------------
                 if isfield(MDP,'a')
-                    Q(k,j) = Q(k,j) - spm_dot(wA{g},[qo xq],1:(Nf + 1));
+                    Q(k,j) = Q(k,j) - spm_dot(wA{g},[qo xq]);
                 end
                 
             end
@@ -490,7 +534,6 @@ for t = 1:T
         
         % predicted hidden states at the next time step
         %------------------------------------------------------------------
-        ind   = 1:Nf;
         for f = 1:Nf
             xp{f} = X{f}(:,t + 1);
         end
@@ -510,8 +553,8 @@ for t = 1:T
                 
                 % predicted outcome
                 %----------------------------------------------------------
-                po = spm_dot(A{g},xp,ind + 1);
-                qo = spm_dot(A{g},xq,ind + 1);
+                po = spm_dot(A{g},xp);
+                qo = spm_dot(A{g},xq);
                 dP = (log(po + p0) - log(qo + p0))'*qo;
                 
                 % augment action potential
@@ -543,18 +586,8 @@ for t = 1:T
             s(:,t + 1) = MDP.s(:,t + 1);
         catch
             for f = 1:Nf
-                s(f,t + 1) = find(rand < cumsum(MDP.B{f}(:,s(f,t),a(f,t))),1);
-            end
-        end
-        
-        % next observed state
-        %------------------------------------------------------------------
-        try
-            o(:,t + 1) = MDP.o(:,t + 1);
-        catch
-            for g = 1:Ng
-                ind        = num2cell(s(:,t + 1));
-                o(g,t + 1) = find(rand < cumsum(MDP.A{g}(:,ind{:})),1);
+                ps         = MDP.B{f}(:,s(f,t),a(f,t));
+                s(f,t + 1) = find(rand < cumsum(ps),1);
             end
         end
         

@@ -23,7 +23,7 @@ function DEM = DEM_morphogenesis
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_morphogenesis.m 6290 2014-12-20 22:11:50Z karl $
+% $Id: DEM_morphogenesis.m 6801 2016-05-29 19:18:06Z karl $
  
  
 % preliminaries
@@ -71,7 +71,7 @@ p(:,:,2) = T == 2 | T == 1;
 p(:,:,3) = T == 3 | T == 1;
 p(:,:,4) = T == 4;
  
-[y x] = find(p(:,:,1));
+[y,x] = find(p(:,:,1));
 P.x   = spm_detrend([x(:) y(:)])'/2; 
  
 % signalling of each cell type
@@ -88,7 +88,7 @@ P.c   = morphogenesis(P.x,P.s);           % signal sensed at each position
  
 % initialise action and expectations
 %--------------------------------------------------------------------------
-v     = randn(n,n)/8;                       % states (identity)
+v     = randn(n,n)/8;                     % states (identity)
 g     = Mg([],v,P);
 a.x   = g.x;                              % action (chemotaxis)
 a.s   = g.s;                              % action (signal release)
@@ -202,7 +202,7 @@ A     = max(abs(P.x(:)))*3/2;
 h     = 2/3;
  
 x     = linspace(-A,A,32);
-[x y] = ndgrid(x,x);
+[x,y] = ndgrid(x,x);
 x     = spm_detrend([x(:) y(:)])';
 c     = morphogenesis(P.x,P.s,x);
 c     = c - min(c(:));
@@ -380,24 +380,31 @@ end
 %--------------------------------------------------------------------------
 function g = Gg(x,v,a,P)
 global t
-% k     = diag([2 1]);                   % perturbations
-% k     = diag([1 1 1/4 1]);             % perturbations
+if isempty(t);
+    s = 0;
+else
+    s = (1 - exp(-t*2));
+end
+a        = spm_unvec(a,P);
 
-a     = spm_unvec(a,P);
-
-g.x   = a.x;                             % position  signal
-g.s   = a.s;                             % intrinsic signal
-g.c   = t*morphogenesis(a.x,a.s);        % extrinsic signal
+g.x(1,:) = a.x(1,:);                     % position  signal
+g.x(2,:) = a.x(2,:);                     % position  signal
+g.s      = a.s;                          % intrinsic signal
+g.c      = s*morphogenesis(a.x,a.s);     % extrinsic signal
  
 % first level model: mapping hidden causes to sensations
 %--------------------------------------------------------------------------
 function g = Mg(x,v,P)
 global t
-if isempty(t); t = 0; end
+if isempty(t);
+    s = 0;
+else
+    s = (1 - exp(-t*2));
+end
 
 p    = spm_softmax(v);                   % expected identity
 
 g.x  = P.x*p;                            % position
 g.s  = P.s*p;                            % intrinsic signal
-g.c  = t*P.c*p;                          % extrinsic signal
+g.c  = s*P.c*p;                          % extrinsic signal
 

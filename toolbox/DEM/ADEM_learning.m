@@ -19,16 +19,17 @@ function ADEM_learning
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_learning.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: ADEM_learning.m 6801 2016-05-29 19:18:06Z karl $
  
  
 % generative model
 %==========================================================================
-DEMO     = 0;                          % switch for demo
+rng('default')
+DEMO     = 0;                           % switch for demo
 
-G(1).E.s = 1/2;                        % smoothness
-G(1).E.n = 4;                          % smoothness
-G(1).E.d = 2;                          % smoothness
+G(1).E.s = 1/2;                         % smoothness
+G(1).E.n = 4;                           % smoothness
+G(1).E.d = 2;                           % smoothness
  
 % parameters
 %--------------------------------------------------------------------------
@@ -44,16 +45,16 @@ pC(end) = 0;
 %--------------------------------------------------------------------------
 G(1).x  = [0; 0];
 G(1).f  = 'spm_fx_mountaincar';
-G(1).g  = inline('x','x','v','a','P');
+G(1).g  = @(x,v,a,P) x;
 G(1).pE = P;
 G(1).pC = pC;
-G(1).V  = exp(8);                           % error precision
-G(1).W  = exp(16);                          % error precision
+G(1).V  = exp(8);                       % error precision
+G(1).W  = exp(8);                       % error precision
  
 % level 2
 %--------------------------------------------------------------------------
-G(2).a  = 0;                                % action
-G(2).v  = 0;                                % inputs
+G(2).a  = 0;                            % action
+G(2).v  = 0;                            % inputs
 G(2).V  = exp(16);
 G       = spm_ADEM_M_set(G);
  
@@ -67,7 +68,7 @@ G(1).fq = 'spm_mountaincar_Q';
 nx      = 32;
 x{1}    = linspace(-1,1,nx);
 x{2}    = linspace(-1,1,nx);
-[X x]   = spm_ndgrid(x);
+[X,x]   = spm_ndgrid(x);
 G(1).X  = X;
  
  
@@ -77,8 +78,19 @@ G(1).X  = X;
 % optimise parameters: (NB an alternative is P = spm_fp_fmin(G));
 %--------------------------------------------------------------------------
 if DEMO
-    P       = spm_fmin('spm_mountaincar_fun',P,pC,G);
-    P.d     = 0;
+    
+    % Optimise parameters of fictive forces using KL control
+    %----------------------------------------------------------------------
+    P.a = 2.8985;
+    P.b = [-1.7468 3.3942];
+    P.c = [-1.0146 -0.0021 -4.7885 -0.6077];
+    P.d = 0;
+    
+    if DEMO > 1
+        P   = spm_fmin('spm_mountaincar_fun',P,pC,G);
+        P.d = 0;
+    end
+    
     G(1).pE = P;
     disp(P)
     save mountaincar_model G
@@ -134,7 +146,7 @@ drawnow
 % recognition model: learn the controlled environmental dynamics
 %==========================================================================
 M       = G;
-M(1).g  = inline('x','x','v','P');
+M(1).g  = @(x,v,P)x;
  
 % make a niave model (M)
 %--------------------------------------------------------------------------
@@ -151,8 +163,8 @@ clear DEM
 %--------------------------------------------------------------------------
 n     = 16;
 i     = (1:n)*32;
-C     = sparse(1,i,-randn(1,n)*4);
-C     = spm_conv(C,2);
+C     = sparse(1,i,randn(1,n));
+C     = spm_conv(C,4);
  
 DEM.M = M;
 DEM.G = G;
@@ -162,7 +174,7 @@ DEM.U = C;
 % optimise recognition model
 %--------------------------------------------------------------------------
 if DEMO
-    DEM.M(1).E.nE = 8;
+    DEM.M(1).E.nE = 16;
     DEM           = spm_ADEM(DEM);
     save mountaincar_model G DEM
 end
@@ -197,13 +209,15 @@ title('learnt','Fontsize',16)
 %--------------------------------------------------------------------------
 G(1).pE   = P0;
 G(1).pE.d = 1;
-G(1).U    = exp(4);
+G(1).U    = exp(8);
+G(1).V    = exp(16);
+G(1).W    = exp(16);
 
-% create DEM structure and perturb the real car with fluctuations
+% create DEM structure (and perturb the real car with fluctuations)
 %--------------------------------------------------------------------------
 N       = 128;
 U       = sparse(1,N);
-C       = spm_conv(randn(1,N),8)/4;
+C       = spm_conv(randn(1,N),8)/4;      % pertubations
 DEM.G   = G;
 DEM.M   = M;
 DEM.C   = U;
