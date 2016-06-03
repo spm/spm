@@ -18,9 +18,9 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 5624 2013-08-30 11:06:38Z vladimir $
+% $Id: spm_eeg_average.m 6802 2016-06-03 09:03:34Z vladimir $
 
-SVNrev = '$Rev: 5624 $';
+SVNrev = '$Rev: 6802 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -38,6 +38,7 @@ if isstruct(S.robust)
     if ~isfield(S.robust, 'savew'),        S.robust.savew =  0;        end
     if ~isfield(S.robust, 'bycondition'),  S.robust.bycondition = 0;   end
     if ~isfield(S.robust, 'ks'),           S.robust.ks =  3;           end
+    if ~isfield(S.robust, 'removebad'),    S.robust.removebad =  0;    end
     
     robust      = 1;
     savew       = S.robust.savew;
