@@ -32,7 +32,7 @@ function MDP = DEM_demo_MDP_rule
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 6786 2016-04-27 19:38:30Z karl $
+% $Id: DEM_demo_MDP_rule.m 6803 2016-06-06 09:45:33Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -55,7 +55,7 @@ Ns    = zeros(1,Nf);
 for f = 1:Nf
     Ns(f) = numel(D{f});
 end
-for f1 = 1:Ns(1)                     % location of target colour
+for f1 = 1:Ns(1)                     % rule
     for f2 = 1:Ns(2)                 % correct colour
         for f3 = 1:Ns(3)             % location of fixation
             for f4 = 1:Ns(3)         % decision
@@ -142,9 +142,9 @@ for g = 1:Ng
 end
 % and expects itself to make a decision after the fifth observation
 %--------------------------------------------------------------------------
-C{3} = [ 0  0  0  0  0 -8 -8;
-    0  0  0  0  0  0  0;
-    -4 -4 -4 -4 -4 -4 -4];
+C{3} = [ 0  0  0 -8 -8 -8;
+         0  0  0  0  0  0;
+        -4 -4 -4 -4 -4 -4];
 
 % MDP Structure
 %--------------------------------------------------------------------------
@@ -188,7 +188,7 @@ clear MDP
 
 % create structure array
 %--------------------------------------------------------------------------
-N     = 64;
+N     = 8;
 for i = 1:N
     MDP(i) = mdp;
 end
@@ -203,21 +203,18 @@ MDP   = spm_MDP_VB_X(MDP);
 spm_figure('GetWin','Figure 3'); clf
 spm_MDP_VB_game(MDP);
 
-[F,Fs,Fu,Fq] = spm_MDP_get_F(MDP);
+[F,Fu] = spm_MDP_get_F(MDP);
 
-subplot(2,1,2)
-subplot(4,1,3),
-plot(1:N,Fs,1:N,F),  xlabel('trial'), spm_axis tight
-title('States ','Fontsize',16), legend({'Surprise','Total Free energy'})
-subplot(4,1,4), spm_MDP_plot_moves(MDP)
-plot(1:N,Fu,1:N,Fq), xlabel('trial'), spm_axis tight
+subplot(6,1,4), plot(1:N,F),  xlabel('trial'), spm_axis tight, title('Free energy','Fontsize',16)
+subplot(6,1,5), plot(1:N,Fu), xlabel('trial'), spm_axis tight, title('Confidence','Fontsize',16)
+subplot(6,1,6), spm_MDP_plot_moves(MDP),       spm_axis tight
 title('Action ','Fontsize',16), legend({'saccades','hits'})
 
 
 % illustrate phase-amplitude (theta-gamma) coupling
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 4'); clf
-spm_MDP_VB_LFP(MDP(1:8));
+spm_MDP_VB_LFP(MDP);
 
 % illustrate behaviour in more detail
 %--------------------------------------------------------------------------
@@ -233,7 +230,7 @@ end
 
 % retain knowledge about the cue but remove knowledge about the rules
 %--------------------------------------------------------------------------
-for f1 = 1:Ns(1)                     % location of target colour
+for f1 = 1:Ns(1)                     % rule
     for f2 = 1:Ns(2)                 % correct colour
         for f3 = 1:Ns(3)             % location of fixation
             for f4 = 1:Ns(3)         % decision
@@ -243,10 +240,10 @@ for f1 = 1:Ns(1)                     % location of target colour
                 if f3 == 4, a{1}(4,f1,f2,f3,f4)  = 128;  end
                 if f3 == 2, a{1}(f1,f1,f2,f3,f4) = 128;  end
                 if f3 == 1
-                    a{1}(1:3,f1,f2,f3,f4) = 1;
+                    a{1}(1:3,f1,f2,f3,f4) = 2;
                 end
                 if f3 == 3
-                    a{1}(1:3,f1,f2,f3,f4) = 1;
+                    a{1}(1:3,f1,f2,f3,f4) = 2;
                 end
             end
         end
@@ -262,6 +259,7 @@ mda.a0 = a;
 % create structure array
 %--------------------------------------------------------------------------
 clear MDP
+N     = 64;
 for i = 1:N
     MDP(i) = mda;
 end
@@ -269,6 +267,7 @@ end
 
 % Solve - an example sequence
 %==========================================================================
+rng('default')
 MDP  = spm_MDP_VB_X(MDP);
 
 % show responses to a difficult (right) trial before and after learning
@@ -276,7 +275,7 @@ MDP  = spm_MDP_VB_X(MDP);
 for i = 1:N
     s(:,i) = MDP(i).s(:,1);
 end
-i = find(ismember(s(1:2,:)',[1 3],'rows'));
+i = find(ismember(s(1:2,:)',s(1:2,1)','rows'));
 
 spm_figure('GetWin','Figure 6 - before');
 spm_MDP_VB_LFP(MDP(i(1)),[],2);
@@ -297,39 +296,58 @@ title(['trial ' num2str(i(end))],'FontSize',16)
 spm_figure('GetWin','Figure 7 - before'); clf; spm_MDP_VB_trial(MDP(i(1)));
 spm_figure('GetWin','Figure 7 - after' ); clf; spm_MDP_VB_trial(MDP(i(end)));
 
+
+% illustrate phase-amplitude (theta-gamma) coupling
+%--------------------------------------------------------------------------
+n  = min(N,4);
+spm_figure('GetWin','Figure 4a'); clf
+spm_MDP_VB_LFP(MDP(1:n),[],2);
+for i = 1:n
+    subplot(4,n,i + 3*n), spm_MDP_rule_plot(MDP(i));
+    axis square
+end
+
+
 % show trial-by-trial measures in terms of free energy terms
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 8'); clf;
 spm_MDP_VB_game(MDP);
 
 
-[F,Fs,Fu,Fq] = spm_MDP_get_F(MDP);
+[F,Fu] = spm_MDP_get_F(MDP);
 
-subplot(2,1,2), subplot(4,1,3)
-plot(1:N,Fs,1:N,F ), xlabel('trial'), spm_axis tight
-title('States ','Fontsize',16), legend({'Surprise','Total Free energy'})
-subplot(4,1,4), spm_MDP_plot_moves(MDP)
-plot(1:N,Fu,1:N,Fq), xlabel('trial'), spm_axis tight
+subplot(6,1,4), plot(1:N,F),  xlabel('trial'), spm_axis tight, title('Free energy','Fontsize',16)
+subplot(6,1,5), plot(1:N,Fu), xlabel('trial'), spm_axis tight, title('Confidence','Fontsize',16)
+subplot(6,1,6), spm_MDP_plot_moves(MDP),       spm_axis tight
 title('Action ','Fontsize',16), legend({'saccades','hits'})
 
 
 % illustrate Bayesian model reduction
 %--------------------------------------------------------------------------
-n         = 24;
 OPTIONS.g = 1;
 OPTIONS.f = 2;
-OPTIONS.T = 1/8;
+OPTIONS.T = 3;
 OPTIONS.m = @(i,i1,i2,i3,i4) i == i2;
 
-sdp       = spm_MDP_VB_sleep(MDP(n),OPTIONS);
+for n = 1:N
+    sdp{n} = spm_MDP_VB_sleep(MDP(n),OPTIONS);
+    cor(n) = corr(spm_vec(MDP(n).A{1} > 0),spm_vec(sdp{n}.a{1}) > 0);
+end
+[m,n] = max(cor);
+
+spm_figure('GetWin','Figure 9'); clf; str = sprintf('Sleep (trial %d)',n);
+for n = n
+    subplot(3,2,1), spm_MDP_A_plot(MDP(n).A);
+    subplot(3,2,2), spm_MDP_A_plot(MDP(n).a0), title('Before','Fontsize',16)
+    subplot(3,2,3), spm_MDP_A_plot(MDP(n).a),  title('After', 'Fontsize',16)
+    subplot(3,2,4), spm_MDP_A_plot(sdp{n}.a),  title(str,     'Fontsize',16)
+end
+
+% Bayesian model reduction with dreaming
+%--------------------------------------------------------------------------
 OPTIONS.o = {MDP.o};
 rdp       = spm_MDP_VB_sleep(MDP(n),OPTIONS);
-
-spm_figure('GetWin','Figure 9'); clf;
-subplot(3,2,1), spm_MDP_A_plot(MDP(n).A);
-subplot(3,2,2), spm_MDP_A_plot(MDP(n).a0), title('Before','Fontsize',16)
-subplot(3,2,3), spm_MDP_A_plot(MDP(n).a),  title('After', 'Fontsize',16)
-subplot(3,2,4), spm_MDP_A_plot(sdp.a),     title('Sleep', 'Fontsize',16)
+sdp       = sdp{n};
 
 
 % illustrate benefits of sleep (with and without dreaming)
@@ -349,38 +367,41 @@ RDP    = spm_MDP_VB_X(RDP);
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 10'); clf;
 
-[F,Fs,Fu,Fq] = spm_MDP_get_F(MDP);
+[F,Fu] = spm_MDP_get_F(MDP);
 
-subplot(4,1,1),plot(1:N,F,':'),              xlabel('trial'), spm_axis tight, hold on
-subplot(4,1,2),plot(1:N,Fu,':',1:N,Fq,':'),  xlabel('trial'), spm_axis tight, hold on
+subplot(4,1,1),plot(1:N,F, ':'),  xlabel('trial'), spm_axis tight, hold on
+subplot(4,1,2),plot(1:N,Fu,':'),  xlabel('trial'), spm_axis tight, hold on
 
 % and after SWS sleep
 %--------------------------------------------------------------------------
-[F,Fs,Fu,Fq] = spm_MDP_get_F(SDP);
+[F,Fu] = spm_MDP_get_F(SDP);
 
-subplot(4,1,1),plot(n:N,F,'-.'),             xlabel('trial'), spm_axis tight, hold on
-subplot(4,1,2),plot(n:N,Fu,'-.',n:N,Fq,'-.'),xlabel('trial'), spm_axis tight, hold on
+subplot(4,1,1),plot(n:N,F ,'-.'), xlabel('trial'), spm_axis tight, hold on
+subplot(4,1,2),plot(n:N,Fu,'-.'), xlabel('trial'), spm_axis tight, hold on
 
 % and after REM sleep
 %--------------------------------------------------------------------------
-[F,Fs,Fu,Fq] = spm_MDP_get_F(RDP);
+[F,Fu] = spm_MDP_get_F(RDP);
 
-subplot(4,1,1),plot(n:N,F,'-'),              xlabel('trial'), spm_axis tight, hold on
-title('States (with sleep)','Fontsize',16)
-subplot(4,1,2),plot(n:N,Fu,'-',n:N,Fq,'-'),  xlabel('trial'), spm_axis tight, hold on
-title('Action (with sleep)','Fontsize',16)
+subplot(4,1,1),plot(n:N,F ,'-'),  xlabel('trial'), spm_axis tight, hold on
+title('Free energy (with sleep)','Fontsize',16)
+subplot(4,1,2),plot(n:N,Fu,'-'),  xlabel('trial'), spm_axis tight, hold on
+title('Confidence (with sleep)','Fontsize',16)
 
 % and correct responses
 %--------------------------------------------------------------------------
+hit = @(MDP) any(MDP.o(3,:) == 2) & ~any(MDP.o(3,:) == 3);
+k   = min(Fu);
 hold on
 for i = 1:(n - 1)
-    if all(MDP(i).o(3,6:7) == 2); plot(i,0,'hb','MarkerSize',8), end
+    if hit(MDP(i)), plot(i,k,'hb','MarkerSize',8); end
 end
 for i = 1:numel(RDP)
     j = i + n - 1;
-    if all(RDP(i).o(3,6:7) == 2); plot(j,0,'hr','MarkerSize',8), end
+    if hit(SDP(i)), plot(j,k,'hr','MarkerSize',8); end
 end
 hold off
+
 
 % illustrate the benefits of instruction (communication of model)
 %==========================================================================
@@ -396,28 +417,29 @@ for i = 1:length(NDP)
 end
 NDP   = spm_MDP_VB_X(NDP);
 
-% plot performance and without sleep
+% plot performance and without received wisdom
 %--------------------------------------------------------------------------
-[F,Fs,Fu,Fq] = spm_MDP_get_F(MDP(n));
+[F,Fu] = spm_MDP_get_F(MDP(n));
 
-subplot(4,2,5),plot(n,F,'-.'),             xlabel('trial'), spm_axis tight, hold on
-subplot(4,2,6),plot(n,Fu,'-.',n,Fq,'-.'),  xlabel('trial'), spm_axis tight, hold on
+subplot(4,2,5),plot(n,F ,':'), xlabel('trial'), spm_axis tight, hold on
+subplot(4,2,6),plot(n,Fu,':'), xlabel('trial'), spm_axis tight, hold on
 
-% and after sleep
+% and after instruction
 %--------------------------------------------------------------------------
-[F,Fs,Fu,Fq] = spm_MDP_get_F(NDP(n));
+[F,Fu] = spm_MDP_get_F(NDP(n));
+k      = min(Fu);
 
-subplot(4,2,5),plot(n,F),                  xlabel('trial'), spm_axis tight
-title('States (instruction)','Fontsize',16)
-subplot(4,2,6),plot(n,Fu,n,Fq),            xlabel('trial'), spm_axis tight
-title('Action (instruction)','Fontsize',16)
+subplot(4,2,5),plot(n,F),       xlabel('trial'), spm_axis tight
+title('Free energy (instruction)','Fontsize',16)
+subplot(4,2,6),plot(n,Fu),      xlabel('trial'), spm_axis tight
+title('Confidence (instruction)','Fontsize',16)
 
 % and correct responses
 %--------------------------------------------------------------------------
 for i = n
     hold on
-    if all(NDP(i).o(3,6:7) == 2); plot(i,0,'hr','MarkerSize',8), end
-    if all(MDP(i).o(3,6:7) == 2); plot(i,0,'hb','MarkerSize',8),  end
+    if hit(NDP(i)); plot(i,k,'hr','MarkerSize',8), end
+    if hit(MDP(i)); plot(i,k,'hb','MarkerSize',8), end
     hold off
 end
 
@@ -426,11 +448,12 @@ end
 %==========================================================================
 BMR.g   = 1;
 BMR.f   = 2;
-BMR.T   = 1;
+BMR.T   = 3;
 BMR.m   = @(i,i1,i2,i3,i4) i == i2;
 OPT.BMR = BMR;
 
-Ns    = 64;
+N     = 64;
+Ns    = 32;
 for m = 1:Ns
     
     % create structure array and solve
@@ -441,10 +464,16 @@ for m = 1:Ns
     end
     MDP  = spm_MDP_VB_X(MDP);
     
+    % free energy and confidence
+    %----------------------------------------------------------------------
+    [F,Fu]   = spm_MDP_get_F(MDP);
+    Fm(:,m)  = F(:);
+    Fum(:,m) = Fu(:);
+    
     % find run of correct responses
     %----------------------------------------------------------------------
     for i = 1:N
-        if all(MDP(i).o(3,6:7) == 2); h(i,m) = 1; else, h(i,m) = 0;  end
+        if hit(MDP(i)); h(i,m) = 1; else, h(i,m) = 0;  end
     end
 
     % repeat with BMR
@@ -469,13 +498,13 @@ for m = 1:Ns
     % preferred locations
     %----------------------------------------------------------------------
     for i = 1:N
-        if all(RDP(i).o(3,6:7) == 2); r(i,m) = 1; else, r(i,m) = 0;  end
+        if hit(RDP(i)); r(i,m) = 1; else, r(i,m) = 0;  end
     end
     
     % find run of correct responses
     %----------------------------------------------------------------------
     for i = 1:N
-        if all(RDP(i).o(3,6:7) == 2); r(i,m) = 1; else, r(i,m) = 0;  end
+        if hit(RDP(i)); r(i,m) = 1; else, r(i,m) = 0;  end
     end
     
     % find non-learners
@@ -490,13 +519,13 @@ for m = 1:Ns
     subplot(4,1,1)
     b = bar(mean(R(:,:),2)); set(b,'EdgeColor','w','FaceColor',[1 1 1]*.0),hold on
     b = bar(mean(H(:,:),2)); set(b,'EdgeColor','w','FaceColor',[1 1 1]*.8),hold off
-    xlabel('trial'), ylabel('probability of correct'), axis([0.5 64.5 1/3 1]);
+    xlabel('trial'), ylabel('probability of correct'), axis([1/2 (N + 1/2) 1/3 1]);
     title('Average performance','Fontsize',16)
     
     subplot(4,1,2)
     b = bar(mean(R(:,j),2)); set(b,'EdgeColor','w','FaceColor',[1 1 1]*.0),hold on
     b = bar(mean(H(:,j),2)); set(b,'EdgeColor','w','FaceColor',[1 1 1]*.8),hold off
-    xlabel('trial'), ylabel('probability of correct'), axis([0.5 64.5 1/3 1]);
+    xlabel('trial'), ylabel('probability of correct'), axis([1/2 (N + 1/2) 1/3 1]);
     title('Difficult sequences','Fontsize',16)
     
     
@@ -526,7 +555,7 @@ end
 return
 
 
-function [F,Fs,Fu,Fq,Fg,Fa] = spm_MDP_get_F(MDP)
+function [F,Fu,Fs,Fq,Fg,Fa] = spm_MDP_get_F(MDP)
 % get free energy (components) nad behaviour
 %==========================================================================
 Fu  = spm_cat({MDP.Fu});
@@ -550,9 +579,11 @@ h = bar(m); set(h,'EdgeColor','w','FaceColor',[1 1 1]*.9), hold on
 
 % and correct responses
 %--------------------------------------------------------------------------
+hit   = @(MDP) any(MDP.o(3,:) == 2) & ~any(MDP.o(3,:) == 3);
 for i = 1:numel(MDP)
-    if all(MDP(i).o(3,6:7) == 2)
-        h = plot(i,0,'hr','MarkerSize',8); set(h,'MarkerFaceColor',[1 1/2 0])
+    if hit(MDP(i))
+        h = plot(i,0,'hr','MarkerSize',8);
+        set(h,'MarkerFaceColor',[1 1/2 0])
     end
 end
 return

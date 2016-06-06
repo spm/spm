@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_search
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_search.m 6763 2016-04-04 09:24:18Z karl $
+% $Id: DEM_demo_MDP_search.m 6803 2016-06-06 09:45:33Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -234,7 +234,9 @@ for i = 1:n*n
    subplot(n,n,i), spm_MDP_search_plot(MDP(i));
 end
  
- 
+return
+
+
 % illustrate the effects of epistemic and incentive salience
 %==========================================================================
 mdp.beta  = 1;

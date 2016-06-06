@@ -2,13 +2,13 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % active inference and learning using variational Bayes (factorised)
 % FORMAT [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %
-% MDP.V(T - 1,P,F)      - P allowable policies of T moves over F factors
+% MDP.V(T - 1,P,F)      - P allowable policies (T - 1 moves) over F factors
 % or
 % MDP.U(1,P,F)          - P allowable actions at each move
 % MDP.T                 - number of outcomes
 %
 % MDP.A{G}(O,N1,...,NF) - likelihood of O outcomes given hidden states
-% MDP.B{F}(NF,NF,MF)    - transitions among hidden under MF control states
+% MDP.B{F}(NF,NF,MF)    - transitions among states under MF control states
 % MDP.C{G}(O,T)         - prior preferences over O outsomes in modality G
 % MDP.D{F}(NF,1)        - prior probabilities over initial states
 %
@@ -20,13 +20,13 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % MDP.s(F,T)            - vector of true states - for each hidden factor
 % MDP.o(G,T)            - vector of outcome     - for each outcome modality
 % MDP.u(F,T - 1)        - vector of actions     - for each hidden factor
-% MDP.w(1,T)            - vector of precisions
 %
 % MDP.alpha             - precision – action selection [16]
 % MDP.beta              - precision over precision (Gamma hyperprior - [1])
-% MDP.tau               - time constant  for gradient descents
+% MDP.tau               - time constant for gradient descent
 %
-% OPTIONS.plot          - switch to suppress graphics: (default: [0])
+% OPTIONS.plot          - switch to suppress graphics:  (default: [0])
+% OPTIONS.gamma         - switch to suppress precision: (default: [0])
 %
 % produces:
 %
@@ -59,7 +59,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %
 % This particular scheme is designed for any allowable policies or control
 % sequences specified in MDP.V. Constraints on allowable policies can limit
-% the numerics or combinatorics considerably.furthermore, the outcome space
+% the numerics or combinatorics considerably. Further, the outcome space
 % and hidden states can be defined in terms of factors; corresponding to
 % sensory modalities and (functionally) segregated representations,
 % respectively. This means, for each factor or subset of hidden states
@@ -68,7 +68,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %
 % This specification simplifies the generative model, allowing a fairly
 % exhaustive model of potential outcomes. In brief, the agent encodes
-% beliefs about hidden states in the past and in the future conditioned
+% beliefs about hidden states in the past (and in the future) conditioned
 % on each policy. The conditional expectations determine the (path
 % integral) of free energy that then determines the prior over policies.
 % This prior is used to create a predictive distribution over outcomes,
@@ -90,7 +90,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6801 2016-05-29 19:18:06Z karl $
+% $Id: spm_MDP_VB_X.m 6803 2016-06-06 09:45:33Z karl $
 
 
 % deal with a sequence of trials
@@ -98,8 +98,8 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 
 % options
 %--------------------------------------------------------------------------
-try, OPTIONS.plot;    catch, OPTIONS.plot    = 0; end
-try, OPTIONS.gamma_u; catch, OPTIONS.gamma_u = 0; end
+try, OPTIONS.plot;  catch, OPTIONS.plot  = 0; end
+try, OPTIONS.gamma; catch, OPTIONS.gamma = 0; end
 
 % if there are multiple trials ensure that parameters are updated
 %--------------------------------------------------------------------------
@@ -209,8 +209,8 @@ for f = 1:Nf
         % parameters (concentration parameters): B
         %------------------------------------------------------------------
         if isfield(MDP,'b')
-            sB{f}(:,:,j) = spm_norm((MDP.b{f}(:,:,j) + p0) );
-            rB{f}(:,:,j) = spm_norm((MDP.b{f}(:,:,j) + p0)');
+            sB{f}(:,:,j) = spm_norm(MDP.b{f}(:,:,j) + p0);
+            rB{f}(:,:,j) = spm_norm(MDP.b{f}(:,:,j)' + p0);
         else
             sB{f}(:,:,j) = spm_norm(MDP.B{f}(:,:,j)  + p0);
             rB{f}(:,:,j) = spm_norm(MDP.B{f}(:,:,j)' + p0);
@@ -252,9 +252,9 @@ end
 
 % precision defaults
 %--------------------------------------------------------------------------
-try, alpha = MDP.alpha; catch, alpha = 16; end
-try, beta  = MDP.beta;  catch, beta  = 1;  end
-try, tau   = MDP.tau;   catch, tau   = 1;  end
+try, alpha = MDP.alpha; catch, alpha = 16;   end
+try, beta  = MDP.beta;  catch, beta  = 1;    end
+try, tau   = MDP.tau;   catch, tau   = 1/Nf; end
 
 % initialise
 %--------------------------------------------------------------------------
@@ -368,6 +368,7 @@ for t = 1:T
     S     = size(V,1) + 1;
     for i = 1:Ni
         F     = zeros(Np,S);
+        G     = zeros(Np,S);
         for k = p
             for j = 1:S
                 for f = 1:Nf
@@ -385,11 +386,10 @@ for t = 1:T
                     % marginal likelihood over outcome factors
                     %------------------------------------------------------
                     v     = 0;
-                    w     = 0;
                     if j <= t
                         for g = 1:Ng
                             Aq = spm_dot(A{g},[O(g,j) xq],ind);
-                            w  = w + log(Aq(:) + p0);
+                            v  = v + log(Aq(:) + p0);
                         end
                     end
                     
@@ -397,27 +397,37 @@ for t = 1:T
                     %------------------------------------------------------
                     sx     = x{f}(:,j,k);
                     qx     = log(sx);
-                    
+                    v      = v - qx;
+                                        
                     % emprical priors
                     %------------------------------------------------------
-                    if j == 1, v = v + log(D{f}) - qx;                                    end
-                    if j >  1, v = v + log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)) - qx; end
-                    if j <  S, v = v + log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)) - qx; end
+                    if j == 1, v = v + log(D{f});                                    end
+                    if j >  1, v = v + log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
+                    if j <  S, v = v + log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
                     
                     % (negative) free energy and update
                     %------------------------------------------------------
-                    F(k,j) = F(k,j) + sx'*v;
-                    v      = v + w;
-                    dFdx   = sx.*(v - sx'*v);
-                    sx     = spm_softmax(qx + dFdx/tau);
+                    v      = v/Nf;
+                    dF     = sx'*v;
+                    dFdx   = v - dF;
+                    sx     = spm_softmax(qx + dFdx/tau/8);
                     
                     % store update neuronal activity
                     %------------------------------------------------------
                     x{f}(:,j,k)      = sx;
                     xn{f}(i,:,j,t,k) = sx;
                     
+                    % accumulate free energy
+                     %------------------------------------------------------
+                    F(k,j) = F(k,j) + dF;
+                    
                 end
             end
+            if sum(F(k,:),2) < G(k)
+                
+            end
+            disp(sum(F(k,:),2) - G(k))
+            G(k) = sum(F(k,:),2);
         end
     end
     
@@ -427,27 +437,12 @@ for t = 1:T
     for k = p
         for j = 1:S
             
-            % get expected states for this policy and ttime
+            % get expected states for this policy and time
             %--------------------------------------------------------------
             xq    = cell(1,Nf);
             for f = 1:Nf
                 xq{f} = x{f}(:,j,k);
             end
-            
-            % marginal log-likelihood over outcomes
-            %--------------------------------------------------------------
-            v     = 0;
-            if j <= t
-                for g = 1:Ng
-                    Aq    = spm_dot(A{g},[O(g,j) xq]);
-                    v     = v + log(Aq + p0);
-                end
-            end
-            
-            % add log-likelihood to (negative) free energy
-            %--------------------------------------------------------------
-            F(k,j) = F(k,j) + v;
-            
             
             % (negative) expected free energy
             %==============================================================
@@ -476,6 +471,8 @@ for t = 1:T
     SQ = sum(Q,2);
     if ~isfield(MDP,'U')
         p = p((SF(p) - max(SF(p))) > -3);
+    else
+        OPTIONS.gamma = 1;
     end
     
     % variational updates - policies and precision
@@ -489,7 +486,7 @@ for t = 1:T
         
         % precision (gu) with free energy gradients (v = -dF/dw)
         %------------------------------------------------------------------
-        if OPTIONS.gamma_u
+        if OPTIONS.gamma
             gu(t) = 1/beta;
         else
             eg    = (qu - pu)'*SQ(p);
@@ -595,9 +592,10 @@ for t = 1:T
         %------------------------------------------------------------------
         gu(1,t + 1)   = gu(t);
         
-        % update policy if necessary
+        % update policy and states for moving policies
         %------------------------------------------------------------------
-        if isfield(MDP,'U') && t < (T - 1)
+        if isfield(MDP,'U')
+            
             for f = 1:Nf
                 V(t,:,f) = a(f,t);
             end
@@ -611,7 +609,7 @@ for t = 1:T
             %--------------------------------------------------------------
             for f = 1:Nf
                 for k = 1:Np
-                    x{f}(:,:,k) = x{f}(:,:,a(f,t));
+                    x{f}(:,:,k) = 1/Ns(f);
                 end
             end
             
@@ -675,25 +673,32 @@ for f = 1:Nf
     end
 end
 
+% use penultimate beliefs about moving policies
+%--------------------------------------------------------------------------
+if isfield(MDP,'U')
+    qu     = u(p,T - 1);
+    u(p,T) = qu;
+end
+
 % evaluate free action
 %==========================================================================
 SG      = gu(t)*SQ(p);
 Z       = sum(exp(SG));
-MDP.Fu  = qu'*log(qu);    % confidence (action)
-MDP.Fq  = log(Z) - qu'*SG;
-MDP.Fs  =        - qu'*SF(p);
-MDP.Fg  = beta*gu(t) - log(gu(t));
+MDP.Fu  = qu'*log(qu);                 % confidence (action)
+MDP.Fq  = log(Z) - qu'*SG;             % free energy of policies
+MDP.Fs  =        - qu'*SF(p);          % free energy of hidden states
+MDP.Fg  = beta*gu(t) - log(gu(t));     % free energy of precision
 
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------
 MDP.P   = P;              % probability of action at time 1,...,T - 1
 MDP.Q   = x;              % conditional expectations over N hidden states
-MDP.X   = X;              % Bayesian model averages
+MDP.X   = X;              % Bayesian model averages over T outcomes
 MDP.R   = u;              % conditional expectations over policies
 MDP.V   = V;              % policies
 MDP.o   = o;              % outcomes at 1,...,T
-MDP.s   = s;              % states at 1,...,T
-MDP.u   = a;              % action at 1,...,T
+MDP.s   = s;              % states   at 1,...,T
+MDP.u   = a;              % action   at 1,...,T - 1
 MDP.w   = gu;             % posterior expectations of precision (policy)
 MDP.C   = Vo;             % utility
 
@@ -701,7 +706,7 @@ MDP.un  = un;             % simulated neuronal encoding of policies
 MDP.xn  = Xn;             % simulated neuronal encoding of hidden states
 MDP.wn  = wn;             % simulated neuronal encoding of precision
 MDP.dn  = dn;             % simulated dopamine responses (deconvolved)
-MDP.rt  = rt;             % simulated reaction time
+MDP.rt  = rt;             % simulated reaction time (seconds)
 
 
 % plot

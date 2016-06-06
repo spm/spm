@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_reading
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_reading.m 6801 2016-05-29 19:18:06Z karl $
+% $Id: DEM_demo_MDP_reading.m 6803 2016-06-06 09:45:33Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -228,7 +228,7 @@ C{3}(3,:) = -8;                 % and not wrong
 % MDP Structure
 %--------------------------------------------------------------------------
 mdp.MDP  = MDP;
-mdp.link = sparse(1,1,1,numel(MDP.D),Ng);
+% mdp.link = sparse(1,1,1,numel(MDP.D),Ng);
 
 mdp.T = 5;                      % number of moves
 mdp.U = U;                      % allowable policies
