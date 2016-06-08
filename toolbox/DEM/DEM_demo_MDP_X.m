@@ -38,7 +38,7 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 6729 2016-02-21 15:40:48Z karl $
+% $Id: DEM_demo_MDP_X.m 6805 2016-06-08 20:02:45Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -97,7 +97,7 @@ B{2}  = eye(2);
 % probabilities over outcomes. Here, the agent prefers rewards to losses -
 % and has no prior preferences about where it is:
 %--------------------------------------------------------------------------
-c     = 4.5;
+c     = 3;
 C{1}  = [0  0  0;
          0  0  0;
          0  0  0;
@@ -112,7 +112,7 @@ C{2}  = [0  0  0;
 % the hidden states are factorised into location and context:
 %--------------------------------------------------------------------------
 d{1} = [1 0 0 0]';
-d{2} = [8 8]';
+d{2} = [4 4]';
  
  
 % allowable policies (of depth T).  These are just sequences of actions
@@ -134,7 +134,7 @@ mdp.s = [1 1]';               % true initial state
 
 mdp.Aname = {'exteroceptive','interoceptive'};
 mdp.Bname = {'position','context'};
-mdp.tau   = 2;
+mdp.tau   = 8;
 
 % true initial states – with context change at trial 12
 %--------------------------------------------------------------------------

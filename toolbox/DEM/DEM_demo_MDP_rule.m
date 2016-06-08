@@ -32,7 +32,7 @@ function MDP = DEM_demo_MDP_rule
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 6803 2016-06-06 09:45:33Z karl $
+% $Id: DEM_demo_MDP_rule.m 6805 2016-06-08 20:02:45Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -157,6 +157,7 @@ mdp.D = D;                      % prior over initial states
 
 mdp.Aname = {'what','where','feedback'};
 mdp.Bname = {'rule','colour','where','decision'};
+mdp.temp  = 1;
 
 mdp  = spm_MDP_check(mdp);
 
@@ -179,8 +180,6 @@ spm_MDP_VB_LFP(MDP,[],1);
 %--------------------------------------------------------------------------
 subplot(3,2,3)
 spm_MDP_rule_plot(MDP)
-
-% return
 
 % illustrate a sequence of trials
 %==========================================================================

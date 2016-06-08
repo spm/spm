@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_search
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_search.m 6803 2016-06-06 09:45:33Z karl $
+% $Id: DEM_demo_MDP_search.m 6805 2016-06-08 20:02:45Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -165,9 +165,9 @@ mdp.A = A;                      % observation model
 mdp.B = B;                      % transition probabilities
 mdp.C = C;                      % preferred outcomes
 mdp.D = d;                      % prior over initial states
-mdp.s = [1 1 1 1]';             % initial state
+mdp.s = [1 1 1 1]';             % initial state (flee)
 mdp.o = [1 1]';                 % initial outcome
- 
+
 mdp.Aname = {'what','where'};
 mdp.Bname = {'what','where','flip','flip'};
  
@@ -191,7 +191,8 @@ spm_MDP_VB_LFP(MDP,[],1);
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
 spm_MDP_search_percept(MDP)
- 
+
+
 return
  
 % illustrate a sequence of trials

@@ -90,7 +90,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6803 2016-06-06 09:45:33Z karl $
+% $Id: spm_MDP_VB_X.m 6805 2016-06-08 20:02:45Z karl $
 
 
 % deal with a sequence of trials
@@ -209,7 +209,7 @@ for f = 1:Nf
         % parameters (concentration parameters): B
         %------------------------------------------------------------------
         if isfield(MDP,'b')
-            sB{f}(:,:,j) = spm_norm(MDP.b{f}(:,:,j) + p0);
+            sB{f}(:,:,j) = spm_norm(MDP.b{f}(:,:,j)  + p0);
             rB{f}(:,:,j) = spm_norm(MDP.b{f}(:,:,j)' + p0);
         else
             sB{f}(:,:,j) = spm_norm(MDP.B{f}(:,:,j)  + p0);
@@ -252,9 +252,10 @@ end
 
 % precision defaults
 %--------------------------------------------------------------------------
-try, alpha = MDP.alpha; catch, alpha = 16;   end
-try, beta  = MDP.beta;  catch, beta  = 1;    end
-try, tau   = MDP.tau;   catch, tau   = 1/Nf; end
+try, alpha = MDP.alpha; catch, alpha = 16; end
+try, beta  = MDP.beta;  catch, beta  = 1;  end
+try, tau   = MDP.tau;   catch, tau   = 4;  end
+try, temp  = MDP.temp;  catch, temp  = 1;  end
 
 % initialise
 %--------------------------------------------------------------------------
@@ -366,68 +367,77 @@ for t = 1:T
     % Variational updates (hidden states) under sequential policies
     %======================================================================
     S     = size(V,1) + 1;
-    for i = 1:Ni
-        F     = zeros(Np,S);
-        G     = zeros(Np,S);
-        for k = p
-            for j = 1:S
+    F     = zeros(Np,S);
+    for k = p
+        dF    = 1;
+        for i = 1:Ni
+            F(k,:) = 0;
+            for j  = 1:S
                 for f = 1:Nf
                     
+                    % hidden states for this time and policy
+                    %------------------------------------------------------
+                    sx = x{f}(:,j,k);
+                    
                     % evaluate free energy and gradients (v = dFdx)
-                    %======================================================
-                    ind    = 1:Nf;
-                    ind(f) = [];
-                    xq     = cell(1,Nf - 1);
-                    for  q = 1:numel(ind)
-                        xq{q} = x{ind(q)}(:,j,k);
-                    end
-                    ind = [1 (ind + 1)];
-                    
-                    % marginal likelihood over outcome factors
-                    %------------------------------------------------------
-                    v     = 0;
-                    if j <= t
-                        for g = 1:Ng
-                            Aq = spm_dot(A{g},[O(g,j) xq],ind);
-                            v  = v + log(Aq(:) + p0);
+                    %==================================================
+                    if dF > 1/32
+                        
+                        % Markov blanket of hidden states
+                        %--------------------------------------------------
+                        ind    = 1:Nf;
+                        ind(f) = [];
+                        xq     = cell(1,Nf - 1);
+                        for  q = 1:numel(ind)
+                            xq{q} = x{ind(q)}(:,j,k);
                         end
+                        ind = [1 (ind + 1)];
+                        
+                        % marginal likelihood over outcome factors
+                        %--------------------------------------------------
+                        v     = 0;
+                        if j <= t
+                            for g = 1:Ng
+                                Aq = spm_dot(A{g},[O(g,j) xq],ind);
+                                v  = v + log(Aq(:) + p0);
+                            end
+                        end
+                        
+                        % entropy term and belief update
+                        %--------------------------------------------------
+                        qx     = log(sx);
+                        v      = v - temp*qx;
+                        
+                        % emprical priors
+                        %--------------------------------------------------
+                        if j == 1, v = v + log(D{f});                                    end
+                        if j >  1, v = v + log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
+                        if j <  S, v = v + log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
+                        
+                        % (negative) free energy and update
+                        %--------------------------------------------------
+                        F(k,j) = F(k,j) + sx'*v/Nf;
+                        sx     = spm_softmax(qx + v/tau);
+                        
+                    else
+                        F(k,j) = G(k,j);
                     end
-                    
-                    % entropy term and belief update
-                    %------------------------------------------------------
-                    sx     = x{f}(:,j,k);
-                    qx     = log(sx);
-                    v      = v - qx;
-                                        
-                    % emprical priors
-                    %------------------------------------------------------
-                    if j == 1, v = v + log(D{f});                                    end
-                    if j >  1, v = v + log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
-                    if j <  S, v = v + log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
-                    
-                    % (negative) free energy and update
-                    %------------------------------------------------------
-                    v      = v/Nf;
-                    dF     = sx'*v;
-                    dFdx   = v - dF;
-                    sx     = spm_softmax(qx + dFdx/tau/8);
                     
                     % store update neuronal activity
                     %------------------------------------------------------
                     x{f}(:,j,k)      = sx;
                     xn{f}(i,:,j,t,k) = sx;
                     
-                    % accumulate free energy
-                     %------------------------------------------------------
-                    F(k,j) = F(k,j) + dF;
-                    
                 end
             end
-            if sum(F(k,:),2) < G(k)
-                
+            
+            % convergence
+            %--------------------------------------------------------------
+            if i > 1
+                dF = sum(F(k,:),2) - sum(G(k,:),2);
             end
-            disp(sum(F(k,:),2) - G(k))
-            G(k) = sum(F(k,:),2);
+            G = F;
+              
         end
     end
     
@@ -480,7 +490,7 @@ for t = 1:T
     for i = 1:Ni
         
         % posterior and prior beliefs about policies
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         qu = spm_softmax(gu(t)*SQ(p) + SF(p));
         pu = spm_softmax(gu(t)*SQ(p));
         
