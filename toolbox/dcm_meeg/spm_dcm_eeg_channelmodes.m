@@ -20,7 +20,7 @@ function [U] = spm_dcm_eeg_channelmodes(dipfit,Nm,xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_eeg_channelmodes.m 6112 2014-07-21 09:39:53Z karl $
+% $Id: spm_dcm_eeg_channelmodes.m 6806 2016-06-08 20:04:30Z karl $
  
 % number of channels and modes
 %--------------------------------------------------------------------------
@@ -32,7 +32,7 @@ if nargin < 2, Nm = 8; end
 
 % evaluate eigenmodes of gain of covariance in sensor space
 %--------------------------------------------------------------------------
-dGdg  = spm_diff('spm_erp_L',pE,dipfit,1);
+dGdg  = spm_diff('spm_erp_L',pE,dipfit,1,'nocat');
 L     = spm_cat(dGdg(find(spm_vec(pC))));
 
 % eigen-mode reduction
