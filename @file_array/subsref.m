@@ -5,7 +5,7 @@ function varargout=subsref(obj,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsref.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: subsref.m 6804 2016-06-08 16:58:48Z john $
 
 
 if isempty(subs), return; end
@@ -64,9 +64,10 @@ end
 if length(sobj)==1
     t = subfun(sobj,args{:});
 else
-    dt  = datatypes;
-    dt  = dt([dt.code]==sobj(1).dtype); % assuming identical datatypes
-    t = zeros(di',func2str(dt.conv));
+   %dt  = datatypes;
+   %dt  = dt([dt.code]==sobj(1).dtype); % assuming identical datatypes
+   %t   = zeros(di',func2str(dt.conv));
+    t   = zeros(di','double');
     for j=1:length(sobj)
         ps = [sobj(j).pos ones(1,length(args))];
         dm = [sobj(j).dim ones(1,length(args))];

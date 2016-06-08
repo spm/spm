@@ -5,7 +5,7 @@ function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 6137 2014-08-19 12:43:11Z john $
+% $Id: spm_preproc_write8.m 6804 2016-06-08 16:58:48Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -27,8 +27,6 @@ if nargin<3, bf = false(N,2); end % field, corrected
 if nargin<4, df = false(1,2); end % inverse, forward
 if nargin<5, mrf = 1;         end % MRF parameter
 if nargin<6, cleanup = 1;     end % Run the ad hoc cleanup
-if nargin<7, bb = NaN(2,3);   end % Default to TPM bounding box
-if nargin<8, vx = NaN;        end % Default to TPM voxel size
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -39,13 +37,46 @@ d1        = size(tpm.dat{1});
 d1        = d1(1:3);
 M1        = tpm.M;
 
-% Sort out bounding box etc
-[bb1,vx1] = spm_get_bbox(tpm.V(1), 'old');
-bb(~isfinite(bb)) = bb1(~isfinite(bb));
-if ~isfinite(vx), vx = abs(prod(vx1))^(1/3); end;
-bb(1,:) = vx*round(bb(1,:)/vx);
-bb(2,:) = vx*round(bb(2,:)/vx);
-odim    = abs(round((bb(2,1:3)-bb(1,1:3))/vx))+1;
+% Define orientation and field of view of any "normalised" space
+% data that may be generated (wc*.nii, mwc*.nii, rc*.nii & y_*.nii).
+if nargin>=7 && any(isfinite(bb(:)))
+    % If a bounding box is supplied, combine this with the closest
+    % bounding box derived from the dimensions and orientations of
+    % the tissue priors.
+    if nargin<7, bb = NaN(2,3);   end % Default to TPM bounding box
+    if nargin<8, vx = NaN;        end % Default to TPM voxel size
+    [bb1,vx1] = spm_get_bbox(tpm.V(1), 'old');
+    bb(~isfinite(bb)) = bb1(~isfinite(bb));
+    if ~isfinite(vx), vx = abs(prod(vx1))^(1/3); end;
+    bb(1,:) = vx*round(bb(1,:)/vx);
+    bb(2,:) = vx*round(bb(2,:)/vx);
+    odim    = abs(round((bb(2,1:3)-bb(1,1:3))/vx))+1;
+
+    mm  = [[bb(1,1) bb(1,2) bb(1,3)
+            bb(2,1) bb(1,2) bb(1,3)
+            bb(1,1) bb(2,2) bb(1,3)
+            bb(2,1) bb(2,2) bb(1,3)
+            bb(1,1) bb(1,2) bb(2,3)
+            bb(2,1) bb(1,2) bb(2,3)
+            bb(1,1) bb(2,2) bb(2,3)
+            bb(2,1) bb(2,2) bb(2,3)]'; ones(1,8)];
+    vx3 = [[1       1       1
+            odim(1) 1       1
+            1       odim(2) 1
+            odim(1) odim(2) 1
+            1       1       odim(3)
+            odim(1) 1       odim(3)
+            1       odim(2) odim(3)
+            odim(1) odim(2) odim(3)]'; ones(1,8)];
+    mat    = mm/vx3;
+else
+    % Use the actual dimensions and orientations of
+    % the tissue priors.
+    odim = tpm.V(1).dim;
+    mat  = tpm.V(1).mat;
+end
+
+
 
 [pth,nam]=fileparts(res.image(1).fname);
 ind  = res.image(1).n;
@@ -63,8 +94,8 @@ for n=1:N,
     chan(n).T  = res.Tbias{n};
 
     % Need to fix writing of bias fields or bias corrected images, when the data used are 4D.
-    [pth1,nam1,ext1] = fileparts(res.image(n).fname);
-    chan(n).ind      = res.image(n).n;
+    [pth1,nam1,~] = fileparts(res.image(n).fname);
+    chan(n).ind   = res.image(n).n;
 
     if bf(n,2),
         chan(n).Nc      = nifti;
@@ -121,7 +152,7 @@ do_defs = any(df);
 do_defs = do_cls | do_defs;
 if do_defs,
     if df(1),
-        [pth,nam,ext1]=fileparts(res.image(1).fname);
+        [pth,nam,~] =fileparts(res.image(1).fname);
         Ndef      = nifti;
         Ndef.dat  = file_array(fullfile(pth,['iy_', nam, '.nii']),...
                                [res.image(1).dim(1:3),1,3],...
@@ -187,7 +218,7 @@ for z=1:length(x3),
 
         if do_cls,
             % Generate variable Q if tissue classes are needed
-            msk = (f==0) | ~isfinite(f);
+           %msk = (f==0) | ~isfinite(f);
 
             if isfield(res,'mg'),
                 % Parametric representation of intensity distributions
@@ -291,25 +322,6 @@ end
 clear tpm
 M0  = res.image(1).mat;
 
-% Compute Voxel-to-world of "imported" image space
-mm  = [[bb(1,1) bb(1,2) bb(1,3)
-        bb(2,1) bb(1,2) bb(1,3)
-        bb(1,1) bb(2,2) bb(1,3)
-        bb(2,1) bb(2,2) bb(1,3)
-        bb(1,1) bb(1,2) bb(2,3)
-        bb(2,1) bb(1,2) bb(2,3)
-        bb(1,1) bb(2,2) bb(2,3)
-        bb(2,1) bb(2,2) bb(2,3)]'; ones(1,8)];
-vx3 = [[1       1       1
-        odim(1) 1       1
-        1       odim(2) 1
-        odim(1) odim(2) 1
-        1       1       odim(3)
-        odim(1) 1       odim(3)
-        1       odim(2) odim(3)
-        odim(1) odim(2) odim(3)]'; ones(1,8)];
-mat    = mm/vx3; 
-
 if any(tc(:,2)),
     % "Imported" tissue class images
 
@@ -323,12 +335,12 @@ if any(tc(:,2)),
     % transformation to the deformation, weighted by the
     % interesting tissue classes.
     ind    = find(tc(:,2)); % Saved tissue classes
-    [M,R]  = spm_get_closest_affine(x,y1,single(cls{ind(1)})/255);
+    [~,R]  = spm_get_closest_affine(x,y1,single(cls{ind(1)})/255);
     clear x y1
 
     mat0   = R\mat; % Voxel-to-world of original image space
 
-    [pth,nam,ext1]=fileparts(res.image(1).fname);
+    [pth,nam,~]=fileparts(res.image(1).fname);
     fwhm   = max(vx./sqrt(sum(res.image(1).mat(1:3,1:3).^2))-1,0.01);
     for k1=1:size(tc,1),
         if tc(k1,2),
@@ -501,7 +513,7 @@ end
 p  = ones(numel(f{1}),K);
 for k=1:K,
     amp    = mg(k)/sqrt((2*pi)^N * det(vr(:,:,k)));
-    d      = bsxfun(@minus,cr,mn(:,k)')*inv(chol(vr(:,:,k)));
+    d      = bsxfun(@minus,cr,mn(:,k)')/chol(vr(:,:,k));
     p(:,k) = amp*exp(-0.5*sum(d.*d,2)) + eps;
 end
 return;
