@@ -30,10 +30,10 @@ function [out] = spm_eeg_render(m,options)
 % clustering on the cortical surface.
 % NB: The texture and the clusters cannot be visualised at the same time.
 %__________________________________________________________________________
-% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 6528 2015-08-21 11:48:54Z guillaume $
+% $Id: spm_eeg_render.m 6808 2016-06-13 16:48:30Z guillaume $
 
 
 %----------------------------------------------------------------------%
@@ -166,7 +166,7 @@ end
 daspect(ParentAxes,[1 1 1]);
 axis(ParentAxes,'tight');
 axis(ParentAxes,'off')
-camva(ParentAxes,'auto');
+try,camva(ParentAxes,'auto');end
 set(ParentAxes,'view',[25,45]);
 
 % build internal userdata structure
@@ -306,10 +306,10 @@ end
 set(handles.fi,'visible','on');
 drawnow
 % if ~addMesh
-    camlight
+    try,camlight;end
 % end
 
-cameratoolbar(handles.fi,'setmode','orbit')
+%cameratoolbar(handles.fi,'setmode','orbit')
 
 out.hfra = getframe(gcf);
 out.handles = handles;

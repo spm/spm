@@ -1,6 +1,6 @@
 function con = spm_dcm_connectivity_ui(DCM,D,title_text,defaults,enabled)
 % GUI for manually specifying connection values in a DCM
-% FORMAT [con] = spm_dcm_connectivity_ui(DCM,D)
+% FORMAT [con] = spm_dcm_connectivity_ui(DCM,D,title_text,defaults,enabled)
 %
 % DCM        - DCM structure
 % D          - 'A','B' or 'C' i.e. connectivity matrix of interest
@@ -11,12 +11,13 @@ function con = spm_dcm_connectivity_ui(DCM,D,title_text,defaults,enabled)
 %              matrices enabled.A, enabled.B and enabled.C
 % 
 % Returns:
-% con      - structure with con.A, con.B and con.C of user-entered values
+% con        - structure with con.A, con.B and con.C of user-entered values
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging    
+% Copyright (C) 2014-2016 Wellcome Trust Centre for Neuroimaging    
 
 % Will Penny & Peter Zeidman
-% $Id: spm_dcm_connectivity_ui.m 6032 2014-06-02 13:06:51Z peter $
+% $Id: spm_dcm_connectivity_ui.m 6808 2016-06-13 16:48:30Z guillaume $
+
 
 % Set-up data
 %--------------------------------------------------------------------------
@@ -107,7 +108,7 @@ switch D
         for i = 1:n
             for j = 1:n
                 cc=ceil([inum_left+dx*j text_top+4-dx*i wx wy].*WS);                          
-                h3(i,j) = add_matrix_input(cc, A(i,j), enabled.A(i,j)==1);
+                h3(i,j) = add_matrix_input(cc, num2str(A(i,j)), enabled.A(i,j)==1);
             end
         end
         drawnow
