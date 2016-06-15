@@ -6,13 +6,16 @@ function [ix] = spm_fieldindices(X,varargin)
 % X         - structure
 % field1,.. - fields
 %
-% i         - vector of indices or feildname{s}
+% i         - vector of indices or fieldname{s}
+%
+% Note: Fields are returned in column order of X, regardless of the order
+% of fields specified in the input.
 %
 %__________________________________________________________________________
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fieldindices.m 6532 2015-08-23 13:59:19Z karl $
+% $Id: spm_fieldindices.m 6809 2016-06-15 12:51:55Z peter $
 
 
 % if varargin is a vector simply return fieldnames
