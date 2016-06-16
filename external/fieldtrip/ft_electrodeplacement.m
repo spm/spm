@@ -115,12 +115,10 @@ end
 switch cfg.method
   case 'volume'
     mri = ft_checkdata(varargin{1}, 'datatype', 'volume', 'feedback', 'yes');
-  case 'headshape'
+  case  {'headshape'}
     headshape = fixpos(varargin{1});
     headshape = ft_determine_coordsys(headshape);
 end
-
-hascolor = isfield(headshape, 'color'); % color code for vertices
 
 switch cfg.method
   case 'headshape'
@@ -135,7 +133,7 @@ switch cfg.method
     figure;
     % plot the faces of the 2D or 3D triangulation
     
-    if hascolor
+    if isfield(headshape, 'color');
       skin = 'none';
       ft_plot_mesh(headshape);
     else
@@ -430,7 +428,7 @@ switch cfg.method
     if isfield(mri, 'coordsys')
       elec.coordsys = mri.coordsys;
     end
-
+    
 end % switch method
 
 % do the general cleanup and bookkeeping at the end of the function

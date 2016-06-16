@@ -1,9 +1,13 @@
 function [sens] = ft_datatype_sens(sens, varargin)
 
-% FT_DATATYPE_SENS describes the FieldTrip structure that represents
-% an EEG, ECoG, or MEG sensor array. This structure is commonly called
-% "elec" for EEG and "grad" for MEG, or more general "sens" for either
-% one.
+% FT_DATATYPE_SENS describes the FieldTrip structure that represents an EEG, ECoG, or
+% MEG sensor array. This structure is commonly called "elec" for EEG, "grad" for MEG,
+% "opto" for NIRS, or general "sens" for either one.
+%
+% For all sensor types a distinction should be made between the channel (i.e. the
+% output of the transducer that is A/D converted) and the sensor, which may have some
+% spatial extent. E.g. with EEG you can have a bipolar channel, where the position of
+% the channel can be represented as in between the position of the two electrodes.
 %
 % The structure for MEG gradiometers and/or magnetometers contains
 %    sens.label    = Mx1 cell-array with channel labels
@@ -14,38 +18,46 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    sens.coilori  = Nx3 matrix with coil orientations
 %    sens.balance  = structure containing info about the balancing, See FT_APPLY_MONTAGE
 % and optionally
-%    sens.chanposorg = Mx3 matrix with original channel positions (in case
+%    sens.chanposold = Mx3 matrix with original channel positions (in case
 %                      sens.chanpos has been updated to contain NaNs, e.g.
 %                      after ft_componentanalysis)
-%    sens.chanoriorg = Mx3 matrix with original channel orientations
-%    sens.labelorg   = Mx1 cell-array with original channel labels
+%    sens.chanoriold = Mx3 matrix with original channel orientations
+%    sens.labelold   = Mx1 cell-array with original channel labels
 %
 % The structure for EEG or ECoG channels contains
 %    sens.label    = Mx1 cell-array with channel labels
-%    sens.chanpos  = Mx3 matrix with channel positions
-%    sens.tra      = MxN matrix to combine electrodes into channels
 %    sens.elecpos  = Nx3 matrix with electrode positions
+%    sens.chanpos  = Mx3 matrix with channel positions (often the same as electrode positions)
+%    sens.tra      = MxN matrix to combine electrodes into channels
 % In case sens.tra is not present in the EEG sensor array, the channels
 % are assumed to be average referenced.
+%
+% The structure for NIRS channels contains
+%   sens.optopos        = contains information about the position of the optodes
+%   sens.optotype       = contains information about the type of optode (receiver or transmitter)
+%   sens.chanpos        = contains information about the position of the channels (i.e. average of optopos)
+%   sens.tra            = NxC matrix, boolean, contains information about how receiver and transmitter form channels
+%   sens.wavelength     = 1xM vector of all wavelengths that were used
+%   sens.transmits      = NxM matrix, boolean, where N is the number of optodes and M the number of wavelengths per transmitter. Specifies what optode is transmitting at what wavelength (or nothing at all, which indicates that it is a receiver)
+%   sens.laserstrength  = 1xM vector of the strength of the emitted light of the lasers
 %
 % The following fields apply to MEG and EEG
 %    sens.chantype = Mx1 cell-array with the type of the channel, see FT_CHANTYPE
 %    sens.chanunit = Mx1 cell-array with the units of the channel signal, e.g. 'V', 'fT' or 'T/cm', see FT_CHANUNIT
 %
 % The following fields are optional
-%    sens.type     = string with the MEG or EEG acquisition system, see FT_SENSTYPE
+%    sens.type     = string with the type of acquisition system, see FT_SENSTYPE
 %    sens.fid      = structure with fiducial information
 %
 % Historical fields:
-%    - balance, chanori, chanpos, chantype, chanunit, coilori, coilpos,
-%    coordsys elecpos label, labelorg, tra, type, unit, see bug2513
+%    pnt, pos, ori, pnt1, pnt2
 %
 % Revision history:
-%
-% (upcoming) The chantype and chanunit have become required fields. It is possible
-%  to convert the amplitude and distance units (e.g. from T to fT and from m to mm)
-%  and it is possible to express planar and axial gradiometer channels either in
-%  units of amplitude or in units of amplitude/distance (i.e. proper gradient).
+% (2016/latest) The chantype and chanunit have become required fields. It is possible to
+%  convert the amplitude and distance units (e.g. from T to fT and from m to mm) and it is
+%  possible to express planar and axial gradiometer channels either in units of amplitude or
+%  in units of amplitude/distance (i.e. proper gradient).
+%  Original channel details are specified with the suffix "old" rather than "org".
 %  All numeric values are represented in double precision.
 %
 % (2011v2/latest) The chantype and chanunit have been added for MEG.
@@ -74,7 +86,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 % See also FT_READ_SENS, FT_SENSTYPE, FT_CHANTYPE, FT_APPLY_MONTAGE, CTF2GRAD, FIF2GRAD,
 % BTI2GRAD, YOKOGAWA2GRAD, ITAB2GRAD
 
-% Copyright (C) 2011-2013, Robert Oostenveld & Jan-Mathijs Schoffelen
+% Copyright (C) 2011-2016, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
 % This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
@@ -124,7 +136,7 @@ if ~isempty(distance) && ~any(strcmp(distance, {'m' 'dm' 'cm' 'mm'}))
 end
 
 if strcmp(version, 'latest')
-  version = '2011v2';
+  version = '2016';
 end
 
 if isempty(sens)
@@ -139,13 +151,35 @@ ismeg = ft_senstype(sens, 'meg');
 
 switch version
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  case 'upcoming' % this is under development and expected to become the standard in 2013
+  case '2016'
 
     % update it to the previous standard version
     sens = ft_datatype_sens(sens, 'version', '2011v2');
 
     % ensure that all numbers are represented in double precision
     sens = ft_struct2double(sens);
+
+    % use "old/new" rather than "org/new"
+    if isfield(sens, 'labelorg')
+      sens.labelold = sens.labelorg;
+      sens = rmfield(sens, 'labelorg');
+    end
+    if isfield(sens, 'chantypeorg')
+      sens.chantypeold = sens.chantypeorg;
+      sens = rmfield(sens, 'chantypeorg');
+    end
+    if isfield(sens, 'chanuniteorg')
+      sens.chanunitold = sens.chanunitorg;
+      sens = rmfield(sens, 'chanunitorg');
+    end
+    if isfield(sens, 'chanposorg')
+      sens.chanposold = sens.chanposorg;
+      sens = rmfield(sens, 'chanposorg');
+    end
+    if isfield(sens, 'chanoriorg')
+      sens.chanoriold = sens.chanoriorg;
+      sens = rmfield(sens, 'chanoriorg');
+    end
 
     % in version 2011v2 this was optional, now it is required
     if ~isfield(sens, 'chantype') || all(strcmp(sens.chantype, 'unknown'))
@@ -452,3 +486,5 @@ fn = sort(fieldnames(a));
 for i=1:numel(fn)
   b.(fn{i}) = a.(fn{i});
 end
+
+
