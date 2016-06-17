@@ -41,6 +41,9 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % MDP.dn          - simulated dopamine responses (phasic)
 % MDP.rt          - simulated reaction times
 %
+% MDP.F           - (Np x T) free energies over time
+% MDP.G           - (Np x T) expected free energies over time
+%
 % This routine provides solutions of active inference (minimisation of
 % variational free energy) using a generative model based upon a Markov
 % decision process. The model and inference scheme is formulated
@@ -90,7 +93,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6805 2016-06-08 20:02:45Z karl $
+% $Id: spm_MDP_VB_X.m 6811 2016-06-17 09:55:47Z karl $
 
 
 % deal with a sequence of trials
@@ -367,12 +370,15 @@ for t = 1:T
     % Variational updates (hidden states) under sequential policies
     %======================================================================
     S     = size(V,1) + 1;
-    F     = zeros(Np,S);
+    F     = zeros(Np,1);
     for k = p
         dF    = 1;
         for i = 1:Ni
-            F(k,:) = 0;
-            for j  = 1:S
+            
+            % accumulate free energy over factors and time
+            %==============================================================
+            F(k)  = 0;
+            for j = 1:S
                 for f = 1:Nf
                     
                     % hidden states for this time and policy
@@ -380,7 +386,7 @@ for t = 1:T
                     sx = x{f}(:,j,k);
                     
                     % evaluate free energy and gradients (v = dFdx)
-                    %==================================================
+                    %------------------------------------------------------
                     if dF > 1/32
                         
                         % Markov blanket of hidden states
@@ -395,7 +401,7 @@ for t = 1:T
                         
                         % marginal likelihood over outcome factors
                         %--------------------------------------------------
-                        v     = 0;
+                        v   = 0;
                         if j <= t
                             for g = 1:Ng
                                 Aq = spm_dot(A{g},[O(g,j) xq],ind);
@@ -405,8 +411,8 @@ for t = 1:T
                         
                         % entropy term and belief update
                         %--------------------------------------------------
-                        qx     = log(sx);
-                        v      = v - temp*qx;
+                        qx  = log(sx);
+                        v   = v - temp*qx;
                         
                         % emprical priors
                         %--------------------------------------------------
@@ -416,11 +422,11 @@ for t = 1:T
                         
                         % (negative) free energy and update
                         %--------------------------------------------------
-                        F(k,j) = F(k,j) + sx'*v/Nf;
-                        sx     = spm_softmax(qx + v/tau);
+                        F(k) = F(k) + sx'*v/Nf;
+                        sx   = spm_softmax(qx + v/tau);
                         
                     else
-                        F(k,j) = G(k,j);
+                        F(k) = G(k);
                     end
                     
                     % store update neuronal activity
@@ -434,16 +440,16 @@ for t = 1:T
             % convergence
             %--------------------------------------------------------------
             if i > 1
-                dF = sum(F(k,:),2) - sum(G(k,:),2);
+                dF = F(k) - G(k);
             end
             G = F;
               
         end
     end
     
-    % (negative path integral of) free energy of policies (Q)
+    % accumulate expected free energy of policies (Q)
     %======================================================================
-    Q     = zeros(Np,S);
+    Q     = zeros(Np,1);
     for k = p
         for j = 1:S
             
@@ -460,14 +466,14 @@ for t = 1:T
                 
                 % uncertainty about outcomes
                 %----------------------------------------------------------
-                qo     = spm_dot(A{g},xq);
-                Q(k,j) = Q(k,j) + qo'*(Vo{g}(:,j) - log(qo + p0));
-                Q(k,j) = Q(k,j) + spm_dot(H{g},xq);
+                qo   = spm_dot(A{g},xq);
+                Q(k) = Q(k) + qo'*(Vo{g}(:,j) - log(qo + p0));
+                Q(k) = Q(k) + spm_dot(H{g},xq);
                 
                 % uncertainty about parameters
                 %----------------------------------------------------------
                 if isfield(MDP,'a')
-                    Q(k,j) = Q(k,j) - spm_dot(wA{g},[qo xq]);
+                    Q(k) = Q(k) - spm_dot(wA{g},[qo xq]);
                 end
                 
             end
@@ -477,10 +483,8 @@ for t = 1:T
     
     % eliminate unlikely policies
     %----------------------------------------------------------------------
-    SF = sum(F,2);
-    SQ = sum(Q,2);
     if ~isfield(MDP,'U')
-        p = p((SF(p) - max(SF(p))) > -3);
+        p = p((F(p) - max(F(p))) > -3);
     else
         OPTIONS.gamma = 1;
     end
@@ -491,8 +495,8 @@ for t = 1:T
         
         % posterior and prior beliefs about policies
         %------------------------------------------------------------------
-        qu = spm_softmax(gu(t)*SQ(p) + SF(p));
-        pu = spm_softmax(gu(t)*SQ(p));
+        qu = spm_softmax(gu(t)*Q(p) + F(p));
+        pu = spm_softmax(gu(t)*Q(p));
         
         % precision (gu) with free energy gradients (v = -dF/dw)
         %------------------------------------------------------------------
@@ -525,8 +529,12 @@ for t = 1:T
     
     % processing time
     %----------------------------------------------------------------------
-    rt(t) = toc(tstart);
+    rt(t)    = toc(tstart);
     
+    % record (negative) free energies
+    %----------------------------------------------------------------------
+    MDP.F(:,t) = F;
+    MDP.G(:,t) = Q;
     
     % action selection and sampling of next state (outcome)
     %======================================================================
@@ -689,15 +697,6 @@ if isfield(MDP,'U')
     qu     = u(p,T - 1);
     u(p,T) = qu;
 end
-
-% evaluate free action
-%==========================================================================
-SG      = gu(t)*SQ(p);
-Z       = sum(exp(SG));
-MDP.Fu  = qu'*log(qu);                 % confidence (action)
-MDP.Fq  = log(Z) - qu'*SG;             % free energy of policies
-MDP.Fs  =        - qu'*SF(p);          % free energy of hidden states
-MDP.Fg  = beta*gu(t) - log(gu(t));     % free energy of precision
 
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------

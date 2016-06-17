@@ -32,7 +32,7 @@ function MDP = DEM_demo_MDP_rule
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 6805 2016-06-08 20:02:45Z karl $
+% $Id: DEM_demo_MDP_rule.m 6811 2016-06-17 09:55:47Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -142,7 +142,7 @@ for g = 1:Ng
 end
 % and expects itself to make a decision after the fifth observation
 %--------------------------------------------------------------------------
-C{3} = [ 0  0  0 -8 -8 -8;
+C{3} = [ 0  0  0  0 -8 -8;
          0  0  0  0  0  0;
         -4 -4 -4 -4 -4 -4];
 
@@ -193,7 +193,7 @@ for i = 1:N
 end
 
 
-% Solve an example sequence undercover initial states
+% Solve an example sequence under different initial states
 %==========================================================================
 MDP   = spm_MDP_VB_X(MDP);
 
@@ -202,7 +202,7 @@ MDP   = spm_MDP_VB_X(MDP);
 spm_figure('GetWin','Figure 3'); clf
 spm_MDP_VB_game(MDP);
 
-[F,Fu] = spm_MDP_get_F(MDP);
+[F,Fu] = spm_MDP_F(MDP);
 
 subplot(6,1,4), plot(1:N,F),  xlabel('trial'), spm_axis tight, title('Free energy','Fontsize',16)
 subplot(6,1,5), plot(1:N,Fu), xlabel('trial'), spm_axis tight, title('Confidence','Fontsize',16)
@@ -239,10 +239,10 @@ for f1 = 1:Ns(1)                     % rule
                 if f3 == 4, a{1}(4,f1,f2,f3,f4)  = 128;  end
                 if f3 == 2, a{1}(f1,f1,f2,f3,f4) = 128;  end
                 if f3 == 1
-                    a{1}(1:3,f1,f2,f3,f4) = 2;
+                    a{1}(1:3,f1,f2,f3,f4) = 1;
                 end
                 if f3 == 3
-                    a{1}(1:3,f1,f2,f3,f4) = 2;
+                    a{1}(1:3,f1,f2,f3,f4) = 1;
                 end
             end
         end
@@ -258,7 +258,7 @@ mda.a0 = a;
 % create structure array
 %--------------------------------------------------------------------------
 clear MDP
-N     = 64;
+N     = 32;
 for i = 1:N
     MDP(i) = mda;
 end
@@ -313,7 +313,7 @@ spm_figure('GetWin','Figure 8'); clf;
 spm_MDP_VB_game(MDP);
 
 
-[F,Fu] = spm_MDP_get_F(MDP);
+[F,Fu] = spm_MDP_F(MDP);
 
 subplot(6,1,4), plot(1:N,F),  xlabel('trial'), spm_axis tight, title('Free energy','Fontsize',16)
 subplot(6,1,5), plot(1:N,Fu), xlabel('trial'), spm_axis tight, title('Confidence','Fontsize',16)
@@ -325,7 +325,7 @@ title('Action ','Fontsize',16), legend({'saccades','hits'})
 %--------------------------------------------------------------------------
 OPTIONS.g = 1;
 OPTIONS.f = 2;
-OPTIONS.T = 3;
+OPTIONS.T = 2;
 OPTIONS.m = @(i,i1,i2,i3,i4) i == i2;
 
 for n = 1:N
@@ -366,21 +366,21 @@ RDP    = spm_MDP_VB_X(RDP);
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 10'); clf;
 
-[F,Fu] = spm_MDP_get_F(MDP);
+[F,Fu] = spm_MDP_F(MDP);
 
 subplot(4,1,1),plot(1:N,F, ':'),  xlabel('trial'), spm_axis tight, hold on
 subplot(4,1,2),plot(1:N,Fu,':'),  xlabel('trial'), spm_axis tight, hold on
 
 % and after SWS sleep
 %--------------------------------------------------------------------------
-[F,Fu] = spm_MDP_get_F(SDP);
+[F,Fu] = spm_MDP_F(SDP);
 
 subplot(4,1,1),plot(n:N,F ,'-.'), xlabel('trial'), spm_axis tight, hold on
 subplot(4,1,2),plot(n:N,Fu,'-.'), xlabel('trial'), spm_axis tight, hold on
 
 % and after REM sleep
 %--------------------------------------------------------------------------
-[F,Fu] = spm_MDP_get_F(RDP);
+[F,Fu] = spm_MDP_F(RDP);
 
 subplot(4,1,1),plot(n:N,F ,'-'),  xlabel('trial'), spm_axis tight, hold on
 title('Free energy (with sleep)','Fontsize',16)
@@ -392,12 +392,12 @@ title('Confidence (with sleep)','Fontsize',16)
 hit = @(MDP) any(MDP.o(3,:) == 2) & ~any(MDP.o(3,:) == 3);
 k   = min(Fu);
 hold on
-for i = 1:(n - 1)
-    if hit(MDP(i)), plot(i,k,'hb','MarkerSize',8); end
-end
 for i = 1:numel(RDP)
     j = i + n - 1;
     if hit(SDP(i)), plot(j,k,'hr','MarkerSize',8); end
+end
+for i = 1:(n - 1)
+    if hit(MDP(i)), plot(i,k,'hb','MarkerSize',8); end
 end
 hold off
 
@@ -418,14 +418,14 @@ NDP   = spm_MDP_VB_X(NDP);
 
 % plot performance and without received wisdom
 %--------------------------------------------------------------------------
-[F,Fu] = spm_MDP_get_F(MDP(n));
+[F,Fu] = spm_MDP_F(MDP(n));
 
 subplot(4,2,5),plot(n,F ,':'), xlabel('trial'), spm_axis tight, hold on
 subplot(4,2,6),plot(n,Fu,':'), xlabel('trial'), spm_axis tight, hold on
 
 % and after instruction
 %--------------------------------------------------------------------------
-[F,Fu] = spm_MDP_get_F(NDP(n));
+[F,Fu] = spm_MDP_F(NDP(n));
 k      = min(Fu);
 
 subplot(4,2,5),plot(n,F),       xlabel('trial'), spm_axis tight
@@ -451,8 +451,8 @@ BMR.T   = 3;
 BMR.m   = @(i,i1,i2,i3,i4) i == i2;
 OPT.BMR = BMR;
 
-N     = 64;
-Ns    = 32;
+N     = 32;
+Ns    = 64;
 for m = 1:Ns
     
     % create structure array and solve
@@ -461,11 +461,12 @@ for m = 1:Ns
     for i = 1:N
         MDP(i) = mda;
     end
+    rng(m)
     MDP  = spm_MDP_VB_X(MDP);
     
     % free energy and confidence
     %----------------------------------------------------------------------
-    [F,Fu]   = spm_MDP_get_F(MDP);
+    [F,Fu]   = spm_MDP_F(MDP);
     Fm(:,m)  = F(:);
     Fum(:,m) = Fu(:);
     
@@ -484,7 +485,11 @@ for m = 1:Ns
         RDP(i).a0 = mda.a0;
         RDP(i).s  = RDP(i).s(:,1);
     end
+    rng(m)
     RDP   = spm_MDP_VB_X(RDP,OPT);
+    [F,Fu]   = spm_MDP_F(RDP);
+    Rm(:,m)  = F(:);
+    Rum(:,m) = Fu(:);
     
     % look for instances of BMR
     %----------------------------------------------------------------------
@@ -508,9 +513,8 @@ for m = 1:Ns
     
     % find non-learners
     %----------------------------------------------------------------------
-    j = mean(h,1) < 0.8;
-    R = spm_conv(r,3,0);
-    H = spm_conv(h,3,0);
+    R = spm_conv(r,2,0);
+    H = spm_conv(h,2,0);
     
     % show results
     %----------------------------------------------------------------------
@@ -522,17 +526,22 @@ for m = 1:Ns
     title('Average performance','Fontsize',16)
     
     subplot(4,1,2)
-    b = bar(mean(R(:,j),2)); set(b,'EdgeColor','w','FaceColor',[1 1 1]*.0),hold on
-    b = bar(mean(H(:,j),2)); set(b,'EdgeColor','w','FaceColor',[1 1 1]*.8),hold off
-    xlabel('trial'), ylabel('probability of correct'), axis([1/2 (N + 1/2) 1/3 1]);
-    title('Difficult sequences','Fontsize',16)
+    spm_plot_ci(mean(Rm'),var(Rm')), hold on
+    plot(mean(Fm'),'r'),              hold off
+    xlabel('trial'), ylabel('free energy'); set(gca,'XLim',[1 N])
+    title('Average free energy','Fontsize',16)
     
+    subplot(4,1,3)
+    spm_plot_ci(mean(Rum'),var(Rum')), hold on
+    plot(mean(Fum'),'r'),              hold off
+    xlabel('trial'), ylabel('confidence');  set(gca,'XLim',[1 N])
+    title('Average confidence','Fontsize',16)
     
     % show individual performance
     %----------------------------------------------------------------------
-    subplot(2,1,2), imagesc(r')
+    subplot(4,1,4), image(32*(r'))
     xlabel('trial'), ylabel('subject')
-    title('with BMR','Fontsize',16), axis square
+    title('Aha moments','Fontsize',16)
     
     % plot model updates
     %----------------------------------------------------------------------
@@ -544,7 +553,7 @@ for m = 1:Ns
         j = find(bmr(:,i) < 0);
         plot(j, (j - j + i),'.b','MarkerSize',32)
     end
-    hold off
+    hold off, drawnow
     
     save paper
     
@@ -554,19 +563,12 @@ end
 return
 
 
-function [F,Fu,Fs,Fq,Fg,Fa] = spm_MDP_get_F(MDP)
-% get free energy (components) nad behaviour
-%==========================================================================
-Fu  = spm_cat({MDP.Fu});
-Fs  = spm_cat({MDP.Fs});
-Fq  = spm_cat({MDP.Fq});
-Fg  = spm_cat({MDP.Fg});
-try
-    Fa = spm_cat({MDP.Fa});
-catch
-    Fa = 0;
+% confidence – negatively over policies
+%--------------------------------------------------------------------------
+for i = 1:numel(MDP)
+    p     = MDP(i).R;
+    Fu(i) = sum(sum(p.*log(p)));
 end
-F   = Fs + Fu + Fq + Fg + Fa;
 
 return
 
