@@ -93,7 +93,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6811 2016-06-17 09:55:47Z karl $
+% $Id: spm_MDP_VB_X.m 6812 2016-06-18 11:16:21Z karl $
 
 
 % deal with a sequence of trials
@@ -191,12 +191,7 @@ for g = 1:Ng
         wA{g} = wA{g}.*(MDP.a{g} > 0);
     else
         A{g}  = MDP.A{g};
-        qA{g} = log(A{g} + p0);
     end
-    
-    % entropy
-    %----------------------------------------------------------------------
-    H{g} = spm_ent(qA{g});
     
 end
 
@@ -387,7 +382,7 @@ for t = 1:T
                     
                     % evaluate free energy and gradients (v = dFdx)
                     %------------------------------------------------------
-                    if dF > 1/32
+                    if dF > 1/64
                         
                         % Markov blanket of hidden states
                         %--------------------------------------------------
@@ -453,7 +448,7 @@ for t = 1:T
     for k = p
         for j = 1:S
             
-            % get expected states for this policy and time
+            % get expected states for this policy and time point
             %--------------------------------------------------------------
             xq    = cell(1,Nf);
             for f = 1:Nf
@@ -462,15 +457,19 @@ for t = 1:T
             
             % (negative) expected free energy
             %==============================================================
+            
+            % Bayesian surprise about states
+            %--------------------------------------------------------------
+            Q(k) = Q(k) + spm_MDP_G(A,xq);
+            
             for g = 1:Ng
                 
-                % uncertainty about outcomes
+                % prior preferences about outcomes
                 %----------------------------------------------------------
                 qo   = spm_dot(A{g},xq);
-                Q(k) = Q(k) + qo'*(Vo{g}(:,j) - log(qo + p0));
-                Q(k) = Q(k) + spm_dot(H{g},xq);
+                Q(k) = Q(k) + qo'*(Vo{g}(:,j));
                 
-                % uncertainty about parameters
+                % Bayesian surprise about parameters
                 %----------------------------------------------------------
                 if isfield(MDP,'a')
                     Q(k) = Q(k) - spm_dot(wA{g},[qo xq]);
@@ -503,7 +502,7 @@ for t = 1:T
         if OPTIONS.gamma
             gu(t) = 1/beta;
         else
-            eg    = (qu - pu)'*SQ(p);
+            eg    = (qu - pu)'*Q(p);
             dFdg  = qbeta - beta + eg;
             qbeta = qbeta - dFdg/2;
             gu(t) = 1/qbeta;
@@ -769,18 +768,6 @@ for i = 1:size(A,2)
     end
 end
 
-function H = spm_ent(A)
-% normalisation of a probability transition matrix (columns)
-%--------------------------------------------------------------------------
-for i = 1:size(A,2)
-    for j = 1:size(A,3)
-        for k = 1:size(A,4)
-            for l = 1:size(A,5)
-                H(i,j,k,l) = spm_softmax(A(:,i,j,k,l))'*A(:,i,j,k,l);
-            end
-        end
-    end
-end
 
 function sub = spm_ind2sub(siz,ndx)
 % subscripts from linear index

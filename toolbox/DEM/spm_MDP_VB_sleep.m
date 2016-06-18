@@ -4,11 +4,13 @@ function [MDP] = spm_MDP_VB_sleep(MDP,OPTIONS)
 %
 % MDP  - (inverted) MDP structure
 %
-% OPTIONS.g - [default: 1]
-% OPTIONS.o - [default: {}]
-% OPTIONS.x - [default: 8]
-% OPTIONS.f - [default: 0]
-% OPTIONS.T - [default: 1/4]
+% OPTIONS.g - modality [default: 1]
+% OPTIONS.o - outcomes – that induce REM [default: {}]
+% OPTIONS.x - increase in concentration parameters for BMR [default: 8]
+% OPTIONS.f - hearing factors to sum over [default: 0]
+% OPTIONS.T - log Bayes factor threshold [default: 1/4]
+% OPTIONS.m - indicator function to enable BMR [@(i,i1,i2,i3,i4)1]
+%
 %
 % MDP  - (reduced) model structure: with reduced MDP.a
 %
@@ -19,14 +21,14 @@ function [MDP] = spm_MDP_VB_sleep(MDP,OPTIONS)
 %
 % If specified, the scheme will then recompute posterior beliefs about the
 % model parameters based upon (fictive) outcomes generated under its
-% (reduced) a generative model.(c.f., REM sleep)
+% (reduced) generative model.(c.f., REM sleep)
 %
 % See also: spm_MDP_log_evidence.m, spm_MDP_VB and spm_MDP_VB_X.m
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_sleep.m 6763 2016-04-04 09:24:18Z karl $
+% $Id: spm_MDP_VB_sleep.m 6812 2016-06-18 11:16:21Z karl $
 
 
 % deal with a sequence of trials

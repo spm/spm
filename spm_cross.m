@@ -3,7 +3,7 @@ function [Y] = spm_cross(X,x)
 % FORMAT [Y] = spm_cross(X,x)
 %
 % X  - numeric array
-% x  - vector
+% x  - numeric array
 %
 % Y  - outer product
 %
@@ -12,19 +12,10 @@ function [Y] = spm_cross(X,x)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cross.m 6654 2015-12-22 12:55:36Z spm $
+% $Id: spm_cross.m 6812 2016-06-18 11:16:21Z karl $
 
-
-% inner product
+% inner product using bsxfun
 %--------------------------------------------------------------------------
-if isvector(X), Y = X(:)*x(:)'; return, end
-
-d   = size(X);
-ind = repmat(':,',1,numel(d));
-ind = ind(1:end - 1);
-
-d(end + 1) = 1;
-Y          = zeros(d);
-for i = 1:numel(x)
-    eval(['Y(' ind ',' num2str(i) ') = X*x(i);']);
-end
+A = reshape(full(X),[size(X) ones(1,ndims(x))]);
+B = reshape(full(x),[ones(1,ndims(X)) size(x)]);
+Y = squeeze(bsxfun(@times,A,B));
