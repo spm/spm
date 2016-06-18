@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 6398 2015-04-02 15:44:43Z vladimir $
+% $Id: spm_eeg_montage.m 6813 2016-06-18 18:41:31Z vladimir $
 
-SVNrev = '$Rev: 6398 $';
+SVNrev = '$Rev: 6813 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -77,7 +77,9 @@ if ~isfield(S, 'prefix'),        S.prefix = 'M';                    end
 %--------------------------------------------------------------------------
 D = spm_eeg_load(S.D);
 
-D = D.montage('switch', 0);
+if ~isequal(S.mode, 'write')
+    D = D.montage('switch', 0);
+end
 
 %-Get montage
 %--------------------------------------------------------------------------

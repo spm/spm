@@ -23,9 +23,9 @@ function D = spm_eeg_reduce(S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce.m 6252 2014-10-30 16:06:30Z vladimir $
+% $Id: spm_eeg_reduce.m 6813 2016-06-18 18:41:31Z vladimir $
 
-SVNrev = '$Rev: 6252 $';
+SVNrev = '$Rev: 6813 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -42,15 +42,25 @@ if ~isfield(S, 'keepothers'), S.keepothers  = true;           end
 if ~isfield(S, 'prefix'),     S.prefix   = 'R';               end
 
 
-D = spm_eeg_load(S.D);
-
-badind = D.badchannels;
+if iscell(S.D)
+    badind = [];
+    for i = 1:numel(S.D)
+        DD{i} = spm_eeg_load(S.D{i});
+        badind = [badind DD{i}.badchannels];        
+    end
+    D = DD{1};
+    badind = unique(badind);
+else
+    D = spm_eeg_load(S.D);
+    DD{1}  = D;
+    badind = D.badchannels;
+end
 
 chanind = setdiff(D.selectchannels(S.channels), badind);
 
-% if isempty(chanind)
-%     error('No channels selected.');
-% end
+if isempty(chanind)
+    error('No channels selected.');
+end
 
 %%%%%%%%%
 % MWW
@@ -81,7 +91,12 @@ else
     S1 = [];
 end
 
-S1.D       = D;
+if numel(DD)>1
+    S1.D = DD;
+else
+    S1.D = D;
+end
+
 S1.chanind = chanind; 
 S1.trials = trials; 
 S1.samples = samples; 
@@ -90,7 +105,7 @@ montage = feval(['spm_eeg_reduce_' S.method], S1);
 % This is to discard bad channels but keep other channels (like non MEEG).
 
 if ~isempty(badind)
-    montage.labelorg = [montage.labelorg(:); D.chanlabels(badind)']; % added semicolon - MWW
+    montage.labelorg = [montage.labelorg(:); D.chanlabels(badind)']; 
     montage.tra(end, end+length(badind)) = 0;
     
     if isfield(montage, 'chantypeorg')
@@ -103,19 +118,26 @@ if ~isempty(badind)
 end
 
 S1 = [];
-S1.D = D;
 S1.montage = montage;
 S1.keepothers = S.keepothers; 
 S1.prefix = S.prefix;
 S1.updatehistory  = 0;
-D = spm_eeg_montage(S1);
+for i = 1:numel(DD)
+    S1.D = DD{i};
+    D = spm_eeg_montage(S1);
+    
+    %-Save new M/EEG dataset(s)
+    %--------------------------------------------------------------------------
+    D = D.history('spm_eeg_reduce', S);
+    save(D);
+    
+    DD{i} = D;
+end
 
-D = chantype(D, 1:length(montage.labelnew), montage.chantypenew);
+if numel(DD)>1
+    D = DD;
+end
 
-%-Save new M/EEG dataset(s)
-%--------------------------------------------------------------------------
-D = D.history('spm_eeg_reduce', S);
-save(D);
 %-Cleanup
 %--------------------------------------------------------------------------
 spm('FigName','M/EEG reduce: done'); spm('Pointer','Arrow');

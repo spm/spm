@@ -4,7 +4,7 @@ function reduce = spm_cfg_eeg_reduce
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_reduce.m 5675 2013-10-09 14:27:17Z vladimir $
+% $Id: spm_cfg_eeg_reduce.m 6813 2016-06-18 18:41:31Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -14,8 +14,8 @@ D        = cfg_files;
 D.tag    = 'D';
 D.name   = 'File Name';
 D.filter = 'mat';
-D.num    = [1 1];
-D.help   = {'Select the M/EEG mat file.'};
+D.num    = [1 Inf];
+D.help   = {'Select the M/EEG mat file(s).'};
 
 
 %--------------------------------------------------------------------------
