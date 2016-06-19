@@ -28,7 +28,7 @@ function [MDP] = spm_MDP_VB_sleep(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_sleep.m 6812 2016-06-18 11:16:21Z karl $
+% $Id: spm_MDP_VB_sleep.m 6814 2016-06-19 10:24:46Z karl $
 
 
 % deal with a sequence of trials
@@ -91,15 +91,17 @@ else
     %----------------------------------------------------------------------
     MDP.a{g}  = sa;
     MDP.a0{g} = ra;
+    
 end
 
 
-function [sA,rA] = spm_MDP_VB_prune(qA,pA,f,x,T,m)
-% FORMAT [sA,rA] = spm_MDP_VB_prune(qA,pA,f,x,T,m)
+function [sA,nA] = spm_MDP_VB_prune(qA,pA,f,x,T,m)
+% FORMAT [sA,nA] = spm_MDP_VB_prune(qA,pA,f,x,T,m)
 % qA - posterior expectations
 % pA - prior expectations
 % f  - hidden factor to integrate over [defult: 0]
 % x  - prior counts [default: 8]
+% T  - threshold for Bayesian model reduction [default: three]
 %
 % sA - reduced posterior expectations
 % rA - reduced prior expectations
@@ -107,10 +109,112 @@ function [sA,rA] = spm_MDP_VB_prune(qA,pA,f,x,T,m)
 
 % defaults
 %--------------------------------------------------------------------------
+if nargin < 4, T = 3; end
+if nargin < 3, x = 8; end
+
+% identify noninformative subspaces
+%--------------------------------------------------------------------------
+ndim  = ndims(pA);
+for i = 1:ndim
+    d    = 1:ndim;
+    d(i) = [];
+    s    = pA < 4 & pA > 0;
+    for j = 1:(ndim - 1)
+        s = sum(s,d(j));
+    end
+    ind{i} = find(s(:));
+end
+
+% motifs of salient (low free free energy) abilities
+%--------------------------------------------------------------------------
+mot{1} = [1 0 0;0 1 0;0 0 1];
+mot{2} = [1 0 0;0 0 1;0 1 0];
+mot{3} = [0 1 0;1 0 0;0 0 1];
+mot{4} = [0 1 0;0 0 1;1 0 0];
+mot{5} = [0 0 1;1 0 0;0 1 0];
+mot{6} = [0 0 1;0 1 0;1 0 0];
+
+% model space: additional concentration parameters (i.e., precision)
+%--------------------------------------------------------------------------
+nmot  = numel(mot);
+for i = 1:nmot*nmot;
+    rA{i} = spm_zeros(pA);
+end
+
+for m1 = 1:numel(mot)
+    [i1,i2] = find(mot{m1});
+    for m2 = 1:numel(mot)
+        i  = nmot*(m1 - 1) + m2;
+        for j = 1:numel(i1)
+            dA    = spm_zeros(pA);
+            dA(1:3,i1(j),:,i2(j),4) = mot{m2};
+            rA{i} = rA{i} + dA*x;
+        end
+    end
+end
+
+% score models using Bayesian model reduction
+%--------------------------------------------------------------------------
+for i = 1:numel(rA);
+    G    = spm_MDP_log_evidence(qA,pA,pA + rA{i});
+    F(i) = sum(G(isfinite(G)));
+end
+
+% find any model that has greater evidence than the parent model
+%--------------------------------------------------------------------------
+[F,j] = min(F);
+if (F + T) < 0
+    rA = rA{j};
+else
+    rA = spm_zeros(pA);
+end
+
+% reduced posterior and prior
+%--------------------------------------------------------------------------
+sA     = qA;
+nA     = pA;
+for i1 = 1:size(qA,2)
+    for i2 = 1:size(qA,3)
+        for i3 = 1:size(qA,4)
+            for i4 = 1:size(qA,5)
+                
+                % get posteriors, priors and reduced priors
+                %----------------------------------------------------------
+                p  = pA(:,i1,i2,i3,i4);
+                q  = qA(:,i1,i2,i3,i4);
+                r  = rA(:,i1,i2,i3,i4);
+                j  = find(p);
+                p  = p(j);
+                q  = q(j);
+                r  = j(find(r(j)));
+                
+                % redistribute concentration parameters if indicated
+                %----------------------------------------------------------
+                if numel(r);
+                    sA(:,i1,i2,i3,i4) = 0;
+                    nA(:,i1,i2,i3,i4) = 0;
+                    sA(r,i1,i2,i3,i4) = sum(q);
+                    nA(r,i1,i2,i3,i4) = sum(p);
+                else
+                    sA(j,i1,i2,i3,i4) = q;
+                    nA(j,i1,i2,i3,i4) = p;
+                end
+            end
+        end
+    end
+end
+
+return
+
+% alternative formulation with specified indicator functions
+%==========================================================================
+
+% defaults
+%--------------------------------------------------------------------------
 if nargin < 5, m = @(i,i1,i2,i3,i4)1; end
-if nargin < 5, x = 1/4; end
-if nargin < 4, x = 8;   end
-if nargin < 3, f = 0;   end
+if nargin < 4, T = 3; end
+if nargin < 3, x = 8; end
+if nargin < 2, f = 0; end
 
 % column-wise model comparison
 %--------------------------------------------------------------------------

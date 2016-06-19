@@ -93,7 +93,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6812 2016-06-18 11:16:21Z karl $
+% $Id: spm_MDP_VB_X.m 6814 2016-06-19 10:24:46Z karl $
 
 
 % deal with a sequence of trials
@@ -382,7 +382,7 @@ for t = 1:T
                     
                     % evaluate free energy and gradients (v = dFdx)
                     %------------------------------------------------------
-                    if dF > 1/64
+                    if dF > 1/32
                         
                         % Markov blanket of hidden states
                         %--------------------------------------------------

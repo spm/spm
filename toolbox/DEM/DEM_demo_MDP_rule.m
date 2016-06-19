@@ -32,7 +32,7 @@ function MDP = DEM_demo_MDP_rule
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 6811 2016-06-17 09:55:47Z karl $
+% $Id: DEM_demo_MDP_rule.m 6814 2016-06-19 10:24:46Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -325,7 +325,7 @@ title('Action ','Fontsize',16), legend({'saccades','hits'})
 %--------------------------------------------------------------------------
 OPTIONS.g = 1;
 OPTIONS.f = 2;
-OPTIONS.T = 2;
+OPTIONS.T = 3;
 OPTIONS.m = @(i,i1,i2,i3,i4) i == i2;
 
 for n = 1:N
@@ -547,7 +547,7 @@ for m = 1:Ns
     %----------------------------------------------------------------------
     hold on
     for i = 1:m
-        j = find(bmr(:,i) > 0);
+        j = find(bmr(:,i) > 0) + 1;
         try, plot(j(1),i,'.m','MarkerSize',32), end
         try, plot(j(2),i,'.r','MarkerSize',32), end
         j = find(bmr(:,i) < 0);
