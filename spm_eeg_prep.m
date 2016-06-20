@@ -17,7 +17,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 6686 2016-01-20 14:49:15Z vladimir $
+% $Id: spm_eeg_prep.m 6817 2016-06-20 17:10:50Z vladimir $
 
 D = spm_eeg_load(S.D);
 
@@ -300,8 +300,11 @@ switch lower(S.task)
                 [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(elec.label));
                 
                 sens = elec;
-                sens.chanpos = sens.chanpos(sel2, :);
-                sens.elecpos = sens.elecpos(sel2, :);
+                sens.chanpos  = sens.chanpos(sel2, :);
+                sens.elecpos  = sens.elecpos(sel2, :);
+                sens.chantype = sens.chantype(sel2, :);
+                sens.chanunit = sens.chanunit(sel2, :);
+                
                 % This takes care of possible case mismatch
                 sens.label = D.chanlabels(sel1);
                 
