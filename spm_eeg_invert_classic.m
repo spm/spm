@@ -78,7 +78,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 6691 2016-01-25 13:58:05Z gareth $
+% $Id: spm_eeg_invert_classic.m 6815 2016-06-20 09:08:18Z gareth $
 
 
 
@@ -359,11 +359,12 @@ YY    = 0;
 N=0;
 
 badtrialind=D.badtrials;
+Ik=[]; %% keep a record of trials used
 for j = 1:Ntrialtypes,                          % pool over conditions
     c     = D.indtrial(trial{j});     % and trials
     [c1,ib]=intersect(c,badtrialind); %% remove bad trials ib if there are any
     c=c(setxor(1:length(c),ib));
-    
+    Ik=[Ik c];
     Nk    = length(c);
     for k = 1:Nk
         Y     = A*D(Ic,It,c(k));
@@ -765,6 +766,7 @@ inverse.T      = S;                    % temporal projector
 inverse.U      = {A};                    % spatial projector
 inverse.Is     = Is;                   % Indices of active dipoles
 inverse.It     = It;                   % Indices of time bins
+inverse.Ik     =Ik;                    %% indices of trials used
 try
     inverse.Ic{1}     = Ic;                   % Indices of good channels
 catch
