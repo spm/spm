@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 6780 2016-04-26 12:24:52Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 6816 2016-06-20 09:09:35Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -178,7 +178,7 @@ mselect = cfg_menu;
 mselect.tag = 'mselect';
 mselect.name = 'Selction of winning model';
 mselect.help = {'How to get the final current density estimate from multiple iterations'};
-mselect.labels = {'MaxF','Merge'}; 
+mselect.labels = {'MaxF','Merge'};
 mselect.values = {0,1};
 mselect.val = {0};
 
@@ -307,11 +307,11 @@ D = spm_eeg_load(job.D{1});
 
 inverse = [];
 try
-inverse.priors=D.inv{job.val}.inverse.priors;
+    inverse.priors=D.inv{job.val}.inverse.priors;
 catch
     inverse.priors=[];
 end;
-    
+
 
 if isfield(job.whatconditions, 'condlabel')
     inverse.trials = job.whatconditions.condlabel;
@@ -320,7 +320,7 @@ if numel(job.D)>1,
     error('iterative routine only meant for single subjects');
 end;
 
-savejustinv=0; %% by default update dataset 
+savejustinv=0; %% by default update dataset
 if isfield(job.isstandard, 'custom')
     funccall=job.isstandard.custom.invfunc;
     inverse.type = job.isstandard.custom.invtype;
@@ -339,7 +339,7 @@ if isfield(job.isstandard, 'custom')
     else
         
         %% load in patch file
-            
+        
         dum=load(char(job.isstandard.custom.isfixedpatch.fixedpatch.fixedfile));
         if ~isfield(dum,'Ip'),
             error('Need to have patch indices in structure Ip');
@@ -361,19 +361,32 @@ if isfield(job.isstandard, 'custom')
         disp('Auto selecting number of modes');
     end;
     inverse.smooth=job.isstandard.custom.patchfwhm;
+    testchans=[];
+    crossU={};
     if ~isempty(job.isstandard.custom.umodes),
         disp('Loading spatial modes from file');
         
-        a=load(cell2mat(job.isstandard.custom.umodes),'U');
-        A=a.U(:,1:inverse.Nm)';
-    else
+        a=load(cell2mat(job.isstandard.custom.umodes));
+        
+       
+        if isfield(a,'testchans'), %% see if some of channels have been turned off
+            testchans=a.testchans;
+            if numel(a.U)~=size(testchans,1)+1,
+                error('U should one more element than testchans has rows')
+            end;
+            crossU=a.U;
+        else
+            crossU={a.U};
+            
+        end;
+    else %% if isempty U mode file
         A=[];
     end;
     
-    inverse.A=A;
-        
-        
-
+    
+    
+    
+    
     if inverse.Nt==0,
         disp('Getting number of temporal modes from data');
         inverse.Nt=[];
@@ -458,11 +471,11 @@ for i = 1:numel(job.D)
     D{i}.inv{val}.inverse.allF=zeros(1,Npatchiter);
     
     
-%% commented out section will add an inversion at new indices
+    %% commented out section will add an inversion at new indices
     
-%     for iterval=1:Npatchiter-1,
-%         D{i}.inv{iterval+val}=D{i}.inv{val}; %% copy inverse to all iterations which will be stored in the same file in higher vals
-%     end;
+    %     for iterval=1:Npatchiter-1,
+    %         D{i}.inv{iterval+val}=D{i}.inv{val}; %% copy inverse to all iterations which will be stored in the same file in higher vals
+    %     end;
     D{i}.inv{D{i}.val}.inverse.PostMax=zeros(  length(D{i}.inv{D{i}.val}.forward.mesh.vert),1);
     
     
@@ -471,80 +484,130 @@ for i = 1:numel(job.D)
     
     
     
-
+    
 end
 
 
 %% cross val set up
-badtrialind=D{1}.badtrials;
-goodtrialind=setxor(1:D{1}.ntrials,badtrialind);
-
-Ntest=round(job.crossval(1)*length(goodtrialind)/100);
-Ncrossiter=round(job.crossval(2));
 
 
 
-crosserr=zeros(Ncrossiter,Ntest);
-rng('default');
-rng(1); %% make sure the trials will be the same for different models for the same dataset
-randind=randi(length(goodtrialind),Ncrossiter,Ntest); %% random order of good trials
 
-crosscoverr=zeros(Ncrossiter,1);
-crossmean=crosscoverr;
-for j=1:Ncrossiter,
-    
-    
-    testind=goodtrialind(randind(j,:)); % test trials
-    if ~isempty(testind),
-        fprintf('\n Cross val iteration %d, first 2 trials:%d, %d..\n',j,testind(1),testind(2));
-    else
-        fprintf('\n No cross-validation\n');
+modalities = D{1}.inv{1}.forward.modality;
+if size(modalities,1)>1,
+    error('only works for single modality');
+end;
+megind=D{1}.indchantype(modalities);
+
+origbadind=D{1}.badchannels;
+Ntestchans=round(job.crossval(1)*length(megind)/100);
+Nblocks=round(job.crossval(2));
+
+if ~isempty(testchans),
+    if Ntestchans~=size(testchans,2),
+        error('Ntestchans different in U spec and cross val');
     end;
-    fakebadtrialind=[badtrialind testind]; %% used first Ntest random good trials for testing (not training), hence turn them off.
-    
-    D{1} = badtrials(D{1}, fakebadtrialind, 1); %% set test trials to bad
-    [D,allmodels,allF] = spm_eeg_invertiter(D,Npatchiter,funccall,allIp);
-    D{1} = badtrials(D{1}, testind, 0); %5 tyrn off fake bad trials
-    %% now check the cross val.
-    U=D{1}.inv{val}.inverse.U{1};
-    M=D{1}.inv{val}.inverse.M;
-    Ic=D{1}.inv{val}.inverse.Ic{1};
-    T=D{1}.inv{val}.inverse.T;
-    It=D{1}.inv{val}.inverse.It;
-    L=D{1}.inv{val}.inverse.L;
-    
-    trainind=setxor(1:D{1}.ntrials,fakebadtrialind); %% trainind
-    meantrainUY=U*mean(D{1}(Ic,It,trainind),3)*T;
-    meantrainJ=M*meantrainUY;
-    predtrainUY=L*meantrainJ;
-    
-    %% now for cov prediction
-    covPred=zeros(length(Ic),length(Ic));
-    for k=1:length(trainind),
-        UY=U*squeeze(D{1}(Ic,It,trainind(k)))*T; %% data for test trial
-        Jtest=M*UY; %% source estimate for this test trial
-        Pred=L*Jtest; % predicted data for test trial based on source estimate
-        covPred=covPred+Pred*Pred'; 
+    if Nblocks>size(testchans,1),
+        error('Not enough elements defined in U for this many iterations'),
     end;
-    covPred=covPred./length(trainind);
+else,
     
-    
-    covtest=zeros(length(Ic),length(Ic));
-    for k=1:Ntest,
-        UY=U*squeeze(D{1}(Ic,It,testind(k)))*T; %% data for test trial
-        covtest=covtest+UY*UY';
-    end;
-    covtest=covtest./length(testind);
-    
-    meantestUY=U*squeeze(mean(D{1}(Ic,It,testind),3))*T; %% data for test trial
-    crossmean(j)=sqrt(sum(sum((predtrainUY-meantestUY).^2))./(length(It)*length(Ic))); %% RMS ft/sample
-    crosscoverr(j)=sum(sum(abs(triu(covPred)-triu(covtest))))./(length(It)*length(Ic));
+    rng('default');rng(0); %% always use same random seed here- so that cross vals (and Fs) between models can be compared
+    testchans=randi(length(megind),Nblocks,Ntest);
 end;
 
-D{1}.inv{val}.inverse.crosscov=crosscoverr;
-D{1}.inv{val}.inverse.crossmean=crossmean;
 
 
+
+
+%% load in lead field matrix (with all good chans and make a copy)
+Lfull=spm_eeg_lgainmat(D{1});
+% fname = D{1}.inv{val}.gainmat;
+% load(fullfile(D{1}.path, fname),'G','label');
+% fullgainname=fullfile(D{1}.path, ['Full_' fname]);
+% save(fullgainname,'G','label');
+  
+Nchans=D{1}.nchannels;
+
+crosserr=zeros(Nblocks+1,1);
+crossF=zeros(Nblocks+1,1);
+
+for b=1:Nblocks+1,
+    
+    if b>1, %% use all the channels in the first inversion
+        fprintf('\n Cross val iteration %d of %d, first two chans:%d, %d..\n',b-1,Nblocks,testchans(b-1,1),testchans(b-1,2));
+        badmegind=testchans(b-1,:);
+        D{1} = badchannels(D{1}, 1:Nchans, 0); %% set all chans to good
+        D{1} = badchannels(D{1}, [megind(badmegind) origbadind], 1); %% set orignal + test chans as bad
+        
+        
+        
+        
+    end; % if b
+    
+    
+    D{1}.inv{val}.inverse.A=crossU{b};;
+    
+    [Dout,allmodels,allF] = spm_eeg_invertiter(D,Npatchiter,funccall,allIp);
+    
+    Dout{1} = badchannels(Dout{1}, 1:Nchans, 0); %% set all channels as good
+    Dout{1} = badchannels(Dout{1}, origbadind, 1); %% set orginal bad channels back to bad
+    inverse=Dout{1}.inv{val}.inverse;
+    
+    
+    
+    L=inverse.L; %% lead fields used
+    U=inverse.U{:}; %% lead field projection
+    T=inverse.T; %% temporal projector
+    
+    Ic=inverse.Ic{1}; % trials
+    It=inverse.It; %% time points
+    Ik=inverse.Ik; %% trials
+    
+    M=inverse.M; %% MAP operator
+    
+    
+    crossF(b)=inverse.F; %% ok now trained for this model
+    
+    %% use hanning window if used in inversion
+    if inverse.Han,
+        W  = repmat(spm_hanning(length(It))',length(Ic),1); %% use hanning unless specified
+    else
+        W=ones(length(It),length(Ic));
+    end;
+    
+    
+    if b>1,
+        errpred=0;
+        rmstot=0;
+        
+        fprintf('Running cross val..');
+        for t=1:length(Ik),
+            traindata=squeeze((D{1}(Ic,It,Ik(t))));
+            
+            traindata=traindata.*W; %% hanning window
+            allUYtrain=U*(traindata)*T; % test channels - not used in inversion
+            Jtrain=M*allUYtrain; %% source estimate based on training data
+            Ypred=Lfull*Jtrain; %% now predict test channels based on trained source estimate
+            Ymeas=squeeze((D{1}(megind(testchans(b-1,:)),It,Ik(t)))); % test channels - not used in inversion
+            Ymeas=Ymeas.*W(1:size(testchans,2),:)*T;
+            errpred=errpred+sqrt(mean((sum(Ypred(badmegind,:)-Ymeas).^2))); % asusming same model in trial and test (i.e. not necessarily time locked)
+            rmstot=rmstot+sqrt(mean(sum(Ymeas.^2)));
+            
+        end;
+        crosserr(b)=errpred;
+    end; %if b>1
+    
+    
+end; % for b
+
+
+
+D{1}.inv{val}.inverse=inverse;
+D{1}.inv{val}.inverse.crosserr=crosserr;
+D{1}.inv{val}.inverse.crossF=crossF;
+D{1} = badchannels(D{1}, 1:Nchans, 0); %% set all chans to good
+D{1} = badchannels(D{1}, [origbadind], 1); %% set orignal bad chans as bad
 
 if ~iscell(D)
     D = {D};
@@ -559,7 +622,7 @@ for i = 1:numel(D)
         inv=D{i}.inv{val};
         spmfilename=D{i}.fname;
         save(outinvname,'-v7.3','inv','spmfilename');
-    end;       
+    end;
 end
 
 out.D = job.D;
