@@ -12,7 +12,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 6590 2015-11-05 16:17:27Z vladimir $
+% $Id: spm_eeg_inv_forward.m 6819 2016-06-22 15:07:42Z vladimir $
 
 
 %-Initialisation
@@ -40,9 +40,9 @@ for i = 1:numel(D.inv{val}.forward)
     sens = D.inv{val}.datareg(i).sensors;
     
     if isequal(D.inv{val}.datareg(i).modality, 'MEG')
-        sens = ft_datatype_sens(sens, 'version', 'upcoming', 'amplitude', 'T', 'distance', 'm');
+        sens = ft_datatype_sens(sens, 'amplitude', 'T', 'distance', 'm');
     else
-        sens = ft_datatype_sens(sens, 'version', 'upcoming', 'amplitude', 'V', 'distance', 'm');
+        sens = ft_datatype_sens(sens, 'amplitude', 'V', 'distance', 'm');
     end
         
     switch D.inv{val}.forward(i).voltype
