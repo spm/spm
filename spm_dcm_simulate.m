@@ -1,10 +1,10 @@
 function [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
-% Populate the given group DCM array (GCM) with simulated data. If each 
-% subject has M models, any one of these M can be chosen to be the 
-% generative model, and all models for the same subject will be assigned 
+% Populate the given group DCM array (GCM) with simulated data. If each
+% subject has M models, any one of these M can be chosen to be the
+% generative model, and all models for the same subject will be assigned
 % the same simulated data.
 %
-% GCM  - subjects x model cell array where the Ep structure contains 
+% GCM  - subjects x model cell array where the Ep structure contains
 %        connection strengths
 %
 % mode - zero-mean Gaussian noise is added, defined by one of:
@@ -20,14 +20,14 @@ function [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
 %
 % GCM  - DCM array populated with simulated data
 % gen  - vector of generative models for each subject
-% 
+%
 % Example:
 % DCM = spm_dcm_simulate(GCM, 'SNR_std', 1);
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_simulate.m 6717 2016-02-08 21:00:34Z peter $
+% $Id: spm_dcm_simulate.m 6821 2016-06-23 13:25:39Z vladimir $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -42,10 +42,12 @@ model = spm_dcm_identify(GCM{1,1});
 switch model
     case 'fMRI'
         [GCM, gen] = simulate_fmri(GCM, mode, noise, gen_idx);
+    case 'ERP'
+        [GCM, gen] = simulate_erp(GCM, mode, noise, gen_idx);
     otherwise
         error('spm_dcm_simulate not yet implemented for this type of DCM');
 end
-
+end
 %--------------------------------------------------------------------------
 function [GCM, gen] = simulate_fmri(GCM, mode, noise, gen_idx)
 % Simulate determinstic DCM for fMRI (task-based)
@@ -62,24 +64,24 @@ for i=1:GCM{1}.n
     xY(i).XYZmm = [i i i]'*10;
     xY(i).s     = 1;
     xY(i).spec  = 1;
-    xY(i).Sess  = 1; 
+    xY(i).Sess  = 1;
     xY(i).u     = 1;
     xY(i).X0    = [];
 end
 
 graphics = false;
 
-for s = 1:ns    
+for s = 1:ns
     DCM = GCM{s,gen_idx};
     
     % Generate data
     switch lower(mode)
         case 'snr_std'
             SNR = noise;
-            [Y,x,DCM_gen] = spm_dcm_generate(DCM,SNR,graphics);        
+            [Y,x,DCM_gen] = spm_dcm_generate(DCM,SNR,graphics);
         case 'snr_var'
             SNR = sqrt(noise);
-            [Y,x,DCM_gen] = spm_dcm_generate(DCM,SNR,graphics);        
+            [Y,x,DCM_gen] = spm_dcm_generate(DCM,SNR,graphics);
         case 'var'
             [Y,x,DCM_gen] = spm_dcm_generate(DCM,Inf,graphics);
             
@@ -89,7 +91,7 @@ for s = 1:ns
             error('Unknown noise definition');
     end
     
-        
+    
     for i = 1:nm
         % Store simulated timeseries
         GCM{s,i}.Y = DCM_gen.Y;
@@ -102,4 +104,68 @@ for s = 1:ns
     
     % Store generative model
     gen{s} = DCM_gen;
+end
+end
+
+%--------------------------------------------------------------------------
+function [GCM, gen] = simulate_erp(GCM, mode, noise, gen_idx)
+% Simulate determinstic DCM for ERP
+
+[ns, nm] = size(GCM);
+
+gen = cell(ns,1);
+
+% create subject-specifc DCM
+%--------------------------------------------------------------------------
+
+for i = 1:ns
+    DCM = GCM{i,gen_idx};
+  
+    DCM   = spm_dcm_erp_dipfit(DCM,1);
+     
+    DCM.options.DATA = 0;
+    
+    % report
+    %----------------------------------------------------------------------
+    fprintf('Creating subject %i\n',i)     
+    
+    if ~isfield(DCM.M, 'G')
+        DCM.M.G = 'spm_lx_erp';
+    end
+    
+    % generate data
+    %----------------------------------------------------------------------
+    G   = feval(DCM.M.G, DCM.Eg, DCM.M);
+    x   = feval(DCM.M.IS, DCM.Ep, DCM.M,DCM.xU);
+    for c = 1:length(x)
+        y{c} = x{c}*G';
+        e    = spm_conv(randn(size(y{c})),8,0);
+                
+        switch lower(mode)
+            case 'snr_std'
+                e    = e*noise*mean(std(y{c}))/mean(std(e));
+            case 'snr_var'
+                e    = e*noise*mean(var(y{c}))/mean(var(e));                
+            case 'var'
+                e    = e*sqrt(noise);
+            otherwise
+                error('Unknown noise definition');
+        end
+         
+        y{c} = y{c} + e;
+        y{c} = DCM.M.R*y{c};
+    end
+    
+    % specify models
+    %----------------------------------------------------------------------
+    for j = 1:nm
+        GCM{i,j}          = rmfield(DCM,'M');
+        GCM{i,j}.M.dipfit = DCM.M.dipfit;
+        GCM{i,j}.xY.y     = y;
+    end
+    
+    
+    % Store generative model
+    gen{i} = DCM;
+end
 end
