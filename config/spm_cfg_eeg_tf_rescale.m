@@ -4,7 +4,7 @@ function rescale = spm_cfg_eeg_tf_rescale
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_eeg_tf_rescale.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_eeg_tf_rescale.m 6825 2016-07-04 10:03:57Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -39,13 +39,26 @@ timewin.num     = [1 2];
 timewin.val     = {[-Inf 0]};
 
 %--------------------------------------------------------------------------
+% pooledbaseline
+%--------------------------------------------------------------------------
+
+pooledbaseline = cfg_menu;
+pooledbaseline.tag = 'pooledbaseline';
+pooledbaseline.name = 'Pool baseline across trials';
+pooledbaseline.labels = {'Yes', 'No'};
+pooledbaseline.val = {0};
+pooledbaseline.values = {1,0};
+pooledbaseline.help = {'Combine baseline across trials to avoid bias',...
+    'See Ciuparu and Muresan Eur J Neurosci. 43(7):861-9, 2016'};
+
+%--------------------------------------------------------------------------
 % baseline
 %--------------------------------------------------------------------------
 baseline         = cfg_branch;
 baseline.tag     = 'baseline';
 baseline.name    = 'Baseline';
 baseline.help    = {'Baseline parameters.'};
-baseline.val     = {timewin, Db};
+baseline.val     = {timewin, pooledbaseline, Db};
 
 %--------------------------------------------------------------------------
 % method_logr
@@ -167,7 +180,8 @@ S.method    = char(fieldnames(job.method));
 S.prefix    = job.prefix;
 
 if ismember(lower(S.method), {'logr','diff', 'rel', 'zscore'})
-    S.timewin = job.method.(S.method).baseline.timewin;
+    S.timewin        = job.method.(S.method).baseline.timewin;
+    S.pooledbaseline = job.method.(S.method).baseline.pooledbaseline;
     if ~(isempty(job.method.(S.method).baseline.Db) || isequal(job.method.(S.method).baseline.Db, {''}))
         S.Db = job.method.(S.method).baseline.Db{1};
     end

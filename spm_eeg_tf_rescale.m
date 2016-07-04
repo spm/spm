@@ -8,6 +8,9 @@ function D = spm_eeg_tf_rescale(S)
 %   S.method           - 'LogR', 'Diff', 'Rel', 'Log', 'Sqrt', 'None'
 %   S.timewin          - 2-element vector: start and stop of baseline (ms)
 %                        (need to specify this for LogR and Diff)
+%   S.pooledbaseline   - take the baseline individually for each trial 
+%                        (0, default) or pool across trials (1), see  
+%                        doi: 10.1111/ejn.13179
 %   S.Db               - MEEG object or filename of M/EEG mat-file to use
 %                        for the baseline (if different from the input dataset).
 %   prefix             - prefix for the output file (default - 'r')
@@ -21,20 +24,21 @@ function D = spm_eeg_tf_rescale(S)
 % p_b and outputs (i) p-p_b for 'Diff' (ii) 100*(p-p_b)/p_b for 'Rel'
 %                 (iii) log (p/p_b) for 'LogR'
 %__________________________________________________________________________
-% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2016 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 5626 2013-08-30 14:03:16Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 6825 2016-07-04 10:03:57Z vladimir $
 
-SVNrev = '$Rev: 5626 $';
+SVNrev = '$Rev: 6825 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG Time-frequency rescale'); spm('Pointer','Watch');
 
-if ~isfield(S, 'prefix'),       S.prefix   = 'r';           end
-if ~isfield(S, 'timewin'),      S.timewin  = [-Inf 0];      end
+if ~isfield(S, 'prefix'),         S.prefix   = 'r';           end
+if ~isfield(S, 'timewin'),        S.timewin  = [-Inf 0];      end
+if ~isfield(S, 'pooledbaseline'), S.pooledbaseline  = 0;      end
 
 D = spm_eeg_load(S.D);
 
@@ -61,6 +65,32 @@ if needbaseline
 end
 
 
+if needbaseline && S.pooledbaseline 
+    if Db.ntrials > 1
+        xbase = spm_squeeze(Db(:, :,timeind, :), 4);
+    else
+        xbase = spm_squeeze(Db(:, :, timeind, 1), 4);
+    end
+    
+    xbase = reshape(xbase, size(xbase, 1), size(xbase, 2), [], 1);
+
+     switch lower(S.method)
+        
+        case 'logr'
+            xbase         = spm_robust_average(log10(xbase),3);    
+            
+        case 'diff'
+            xbase         = mean(xbase,3);          
+            
+        case 'zscore'
+            stdev            =  std(xbase, [], 3);
+            xbase            =  mean(xbase, 3);            
+            
+        case 'rel'
+            xbase            = mean(xbase, 3);
+     end
+end
+    
 spm_progress_bar('Init', D.ntrials, 'Trials processed');
 if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials, 100));
 else Ibar = 1:D.ntrials; end
@@ -69,30 +99,40 @@ for i = 1:D.ntrials
     
     if needbaseline
         x = spm_squeeze(D(:,:,:,i), 4);
-        if Db.ntrials > 1
-            xbase = spm_squeeze(Db(:,:,:,i), 4);
-        else
-            xbase = spm_squeeze(Db(:,:,:,1), 4);
+        if ~S.pooledbaseline
+            if Db.ntrials > 1
+                xbase = spm_squeeze(Db(:,:,:,i), 4);
+            else
+                xbase = spm_squeeze(Db(:,:,:,1), 4);
+            end
         end
     end
     
     switch lower(S.method)
         
         case 'logr'
-            xbase         = mean(log10(xbase(:,:,timeind)),3);
+            if ~S.pooledbaseline
+                xbase         = spm_robust_average(log10(xbase(:,:,timeind)),3);
+            end
             Dnew(:,:,:,i) = 10*(log10(x) - repmat(xbase,[1 1 Dnew.nsamples 1]));
             
         case 'diff'
-            xbase         = mean(xbase(:, :, timeind),3);
+            if ~S.pooledbaseline
+                xbase         = mean(xbase(:, :, timeind),3);
+            end
             Dnew(:,:,:,i) =  (x - repmat(xbase,[1 1 Dnew.nsamples 1]));
             
         case 'zscore'
-            stdev            =  std(xbase(:, :, timeind), [], 3);
-            xbase            =  mean(xbase(:,:, timeind),3);            
+            if ~S.pooledbaseline
+                stdev            =  std(xbase(:, :, timeind), [], 3);
+                xbase            =  mean(xbase(:,:, timeind),3);
+            end
             Dnew(:, :, :, i) = (x - repmat(xbase,[1 1 Dnew.nsamples 1]))./repmat(stdev,[1 1 Dnew.nsamples 1]);
             
         case 'rel'
-            xbase            = mean(xbase(:, :, timeind), 3);
+            if ~S.pooledbaseline
+                xbase            = mean(xbase(:, :, timeind), 3);
+            end
             Dnew(:, :, :, i) = 100*((x./repmat(xbase,[1 1 Dnew.nsamples 1]) - 1));
             
         case 'log'
