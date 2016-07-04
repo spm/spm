@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 1999-2016 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 6820 2016-06-23 12:12:47Z guillaume $
+% $Id: spm_getSPM.m 6827 2016-07-04 15:19:35Z guillaume $
 
 
 %-GUI setup
@@ -403,7 +403,8 @@ elseif Mask == 2
     try
         Im = xSPM.Im;
     catch
-        Im = cellstr(spm_select([1 Inf],'image','Select mask image(s)'));
+        [Im, sts] = spm_select([1 Inf],{'image','mesh'},'Select mask image(s)');
+        if ~sts, Im = []; else Im = cellstr(Im); end
     end
     
     %-Inclusive or exclusive masking
