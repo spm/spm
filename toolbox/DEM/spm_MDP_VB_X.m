@@ -93,7 +93,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6814 2016-06-19 10:24:46Z karl $
+% $Id: spm_MDP_VB_X.m 6828 2016-07-06 11:34:25Z karl $
 
 
 % deal with a sequence of trials
@@ -169,15 +169,13 @@ end
 for g = 1:Ng
     No(g) = size(MDP.A{g},1);       % number of outcomes
 end
-p0  = exp(-16);                     % smallest probability
-q0  = 1/16;                         % smallest probability
-
 
 % parameters of generative model and policies
 %==========================================================================
 
 % likelihood model (for a partially observed MDP implicit in G)
 %--------------------------------------------------------------------------
+p0    = exp(-16);
 for g = 1:Ng
     
     MDP.A{g}  = spm_norm(MDP.A{g});
@@ -186,7 +184,7 @@ for g = 1:Ng
     %----------------------------------------------------------------------
     if isfield(MDP,'a')
         A{g}  = spm_norm(MDP.a{g});
-        qA{g} = spm_psi(MDP.a{g} + q0);
+        qA{g} = spm_psi(MDP.a{g} + 1/16);
         wA{g} = 1./spm_cum(MDP.a{g}) - 1./(MDP.a{g} + p0);
         wA{g} = wA{g}.*(MDP.a{g} > 0);
     else
@@ -222,9 +220,9 @@ end
 %--------------------------------------------------------------------------
 for f = 1:Nf
     if isfield(MDP,'d')
-        D{f} = spm_norm(MDP.d{f} + p0);
+        D{f} = spm_norm(MDP.d{f});
     elseif isfield(MDP,'D')
-        D{f} = spm_norm(MDP.D{f} + p0);
+        D{f} = spm_norm(MDP.D{f});
     else
         D{f} = spm_norm(ones(Ns(f),1));
     end
@@ -245,7 +243,7 @@ for g = 1:Ng
     if size(Vo{g},2) == 1
         Vo{g} = repmat(Vo{g},1,T);
     end
-    Vo{g}     = log(spm_softmax(Vo{g}));
+    Vo{g}     = spm_log(spm_softmax(Vo{g}));
 end
 
 % precision defaults
@@ -253,7 +251,6 @@ end
 try, alpha = MDP.alpha; catch, alpha = 16; end
 try, beta  = MDP.beta;  catch, beta  = 1;  end
 try, tau   = MDP.tau;   catch, tau   = 4;  end
-try, temp  = MDP.temp;  catch, temp  = 1;  end
 
 % initialise
 %--------------------------------------------------------------------------
@@ -305,34 +302,60 @@ for t = 1:T
         
         mdp   = MDP.MDP;
         link  = MDP.link;
-        [i,j] = find(link);
+        nf    = numel(mdp.D);
         for f = 1:Nf
             xq{f} = X{f}(:,t);
         end
         
         % priors over states (of subordinate level)
         %------------------------------------------------------------------
-        for g = 1:length(j)
-            mdp.D{i(g)} = spm_dot(A{j(g)},xq);
+        for f = 1:nf
+            i = find(link(f,:));
+            if numel(i)
+                
+                % empirical priors
+                %----------------------------------------------------------
+                mdp.D{f} = spm_dot(A{i},xq);
+                
+                % true states if they are hierarchically linked
+                %----------------------------------------------------------
+                ind      = num2cell(s(:,t));
+                po       = MDP.A{i}(:,ind{:});
+                
+            else
+                
+                % otherwise use priors
+                %----------------------------------------------------------
+                po       = mdp.D{f};
+            end
+            
+            % sample true state for lower level
+            %----------------------------------------------------------
+            mdp.s(f,1) = find(rand < cumsum(po),1);
+            
         end
         
-        % store this level get (probabilistic) outcome
+        % get (probabilistic) outcome
         %------------------------------------------------------------------
         mdp        = spm_MDP_VB_X(mdp);
         MDP.mdp(t) = mdp;
+        
     else
-        link   = sparse(Ng,Nf);
+        % otherwise there are no hierarchical links
+        %------------------------------------------------------------------
+        link = sparse(0,Ng);
     end
     
-    % outcomes
+    % generate outcomes
     %----------------------------------------------------------------------
     for g = 1:Ng
         
         % posterior states and outcome (from subordinate level)
         %------------------------------------------------------------------
-        if any(link(:,g))
-            o(g,t) = mdp.s(i(g),1);
-            O{g,t} = mdp.X{i(g),1};
+        i = find(link(:,g));
+        if numel(i)
+            o(g,t) = mdp.s(i,1);
+            O{g,t} = mdp.X{i}(:,1);
         else
             
             % outcome at this level
@@ -341,12 +364,10 @@ for t = 1:T
                 o(g,t) = MDP.o(g,t);
                 O{g,t} = sparse(o(g,t),1,1,No(g),1);
             catch
-                for g = 1:Ng
-                    ind    = num2cell(s(:,t));
-                    po     = MDP.A{g}(:,ind{:});
-                    o(g,t) = find(rand < cumsum(po),1);
-                    O{g,t} = sparse(o(g,t),1,1,No(g),1);
-                end
+                ind    = num2cell(s(:,t));
+                po     = MDP.A{g}(:,ind{:});
+                o(g,t) = find(rand < cumsum(po),1);
+                O{g,t} = sparse(o(g,t),1,1,No(g),1);
             end
         end
     end
@@ -359,7 +380,7 @@ for t = 1:T
     %----------------------------------------------------------------------
     tstart = tic;
     for f = 1:Nf
-        x{f} = spm_softmax(log(x{f})/4);
+        x{f} = spm_softmax(spm_log(x{f})/4);
     end
     
     % Variational updates (hidden states) under sequential policies
@@ -369,11 +390,20 @@ for t = 1:T
     for k = p
         dF    = 1;
         for i = 1:Ni
-            
-            % accumulate free energy over factors and time
-            %==============================================================
             F(k)  = 0;
             for j = 1:S
+                
+                % marginal likelihood over outcome factors
+                %----------------------------------------------------------
+                if j <= t
+                    for f = 1:Nf
+                        xq{f} = x{f}(:,j,k);
+                    end
+                    for g = 1:Ng
+                        Ao{g} = spm_dot(A{g},[O(g,j) xq],(1:Nf) + 1);
+                    end
+                end
+                
                 for f = 1:Nf
                     
                     % hidden states for this time and policy
@@ -382,42 +412,34 @@ for t = 1:T
                     
                     % evaluate free energy and gradients (v = dFdx)
                     %------------------------------------------------------
-                    if dF > 1/32
-                        
-                        % Markov blanket of hidden states
-                        %--------------------------------------------------
-                        ind    = 1:Nf;
-                        ind(f) = [];
-                        xq     = cell(1,Nf - 1);
-                        for  q = 1:numel(ind)
-                            xq{q} = x{ind(q)}(:,j,k);
-                        end
-                        ind = [1 (ind + 1)];
+                    if dF > 0
                         
                         % marginal likelihood over outcome factors
                         %--------------------------------------------------
                         v   = 0;
                         if j <= t
                             for g = 1:Ng
-                                Aq = spm_dot(A{g},[O(g,j) xq],ind);
-                                v  = v + log(Aq(:) + p0);
+                                Aq = spm_dot(Ao{g},xq,f);
+                                v  = v + spm_log(Aq(:));
                             end
                         end
                         
-                        % entropy term and belief update
+                        % entropy 
                         %--------------------------------------------------
-                        qx  = log(sx);
-                        v   = v - temp*qx;
+                        qx  = spm_log(sx);
                         
                         % emprical priors
                         %--------------------------------------------------
-                        if j == 1, v = v + log(D{f});                                    end
-                        if j >  1, v = v + log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
-                        if j <  S, v = v + log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
-                        
-                        % (negative) free energy and update
+                        if j < 2, v = v - qx + spm_log(D{f});                                    end
+                        if j > 1, v = v - qx + spm_log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
+                        if j < S, v = v - qx + spm_log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
+
+                        % (negative) expected free energy
                         %--------------------------------------------------
                         F(k) = F(k) + sx'*v/Nf;
+                        
+                        % update
+                        %--------------------------------------------------
                         sx   = spm_softmax(qx + v/tau);
                         
                     else
@@ -438,7 +460,7 @@ for t = 1:T
                 dF = F(k) - G(k);
             end
             G = F;
-              
+            
         end
     end
     
@@ -450,7 +472,6 @@ for t = 1:T
             
             % get expected states for this policy and time point
             %--------------------------------------------------------------
-            xq    = cell(1,Nf);
             for f = 1:Nf
                 xq{f} = x{f}(:,j,k);
             end
@@ -569,7 +590,7 @@ for t = 1:T
                 %----------------------------------------------------------
                 po = spm_dot(A{g},xp);
                 qo = spm_dot(A{g},xq);
-                dP = (log(po + p0) - log(qo + p0))'*qo;
+                dP = (spm_log(po) - spm_log(qo))'*qo;
                 
                 % augment action potential
                 %----------------------------------------------------------
@@ -666,7 +687,7 @@ for t = 1:T
     
 end
 
-% initial hidden states: d
+% initial hidden states:
 %--------------------------------------------------------------------------
 if isfield(MDP,'d')
     for f = 1:Nf
@@ -682,7 +703,7 @@ dn    = 8*gradient(wn) + wn/8;
 % Bayesian model averaging of expected hidden states over policies
 %--------------------------------------------------------------------------
 for f = 1:Nf
-    Xn{f}    = zeros(Ni,Ns(f),T,T);
+    Xn{f} = zeros(Ni,Ns(f),T,T);
     for i = 1:T
         for k = 1:Np
             Xn{f}(:,:,:,i) = Xn{f}(:,:,:,i) + xn{f}(:,:,:,i,k)*u(k,i);
@@ -728,6 +749,11 @@ if OPTIONS.plot
     spm_MDP_VB_trial(MDP)
 end
 
+function A = spm_log(A)
+% log of numeric array plus a small constant
+%--------------------------------------------------------------------------
+A  = log(A + 1e-16);
+
 
 function A = spm_norm(A)
 % normalisation of a probability transition matrix (columns)
@@ -736,7 +762,12 @@ for i = 1:size(A,2)
     for j = 1:size(A,3)
         for k = 1:size(A,4)
             for l = 1:size(A,5)
-                A(:,i,j,k,l) = A(:,i,j,k,l)/sum(A(:,i,j,k,l),1);
+                S = sum(A(:,i,j,k,l),1);
+                if S > 0
+                    A(:,i,j,k,l) = A(:,i,j,k,l)/S;
+                else
+                    A(:,i,j,k,l) = 1/size(A,1);
+                end
             end
         end
     end
@@ -768,6 +799,15 @@ for i = 1:size(A,2)
     end
 end
 
+function C = spm_joint(A,B)
+% subscripts from linear index
+%--------------------------------------------------------------------------
+C = zeros(size(A,1),size(A,2),size(B,2));
+for i = 1:size(A,1)
+    C(i,:,:) = spm_cross(A(i,:),B(:,i));
+end
+C = spm_norm(C);
+
 
 function sub = spm_ind2sub(siz,ndx)
 % subscripts from linear index
@@ -780,23 +820,6 @@ for i = n:-1:1,
     sub(i,1) = vj;
     ndx      = vi;
 end
-
-
-return
-
-% NOTES: gradient checks for hidden states
-%==========================================================================
-mdp_F  = @(qx,v)spm_softmax(qx)'*(log(v) - log(spm_softmax(qx)));
-dFdx   = spm_diff(mdp_F,qx,v,1);
-dFdxx  = spm_diff(mdp_F,qx,v,[1 1]);
-dFdx   = sx.*(e - sx'*e);
-
-% NOTES: gradient checks for precision map
-%==========================================================================
-g      = 1/qbeta;
-mdp_F  = @(g,Q,p,beta) qu'*log(spm_softmax(g*Q(p))) - (beta*g - log(g));
-dFdg   = spm_diff(mdp_F,g,Q,p,beta,1);
-dFdg   = qbeta - beta + (qu - spm_softmax(g*Q(p)))'*Q(p);
 
 
 

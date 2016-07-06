@@ -38,7 +38,7 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 6805 2016-06-08 20:02:45Z karl $
+% $Id: DEM_demo_MDP_X.m 6828 2016-07-06 11:34:25Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -97,7 +97,7 @@ B{2}  = eye(2);
 % probabilities over outcomes. Here, the agent prefers rewards to losses -
 % and has no prior preferences about where it is:
 %--------------------------------------------------------------------------
-c     = 3;
+c     = 4;
 C{1}  = [0  0  0;
          0  0  0;
          0  0  0;
@@ -106,7 +106,7 @@ C{1}  = [0  0  0;
  
 C{2}  = [0  0  0;
          c  c  c;
-        -2 -2 -2];
+        -3 -3 -3];
  
 % now specify prior beliefs about initial states, in terms of counts. Here
 % the hidden states are factorised into location and context:

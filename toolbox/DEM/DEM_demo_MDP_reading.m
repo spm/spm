@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_reading
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_reading.m 6805 2016-06-08 20:02:45Z karl $
+% $Id: DEM_demo_MDP_reading.m 6828 2016-07-06 11:34:25Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -99,7 +99,7 @@ for f1 = 1:Ns(1)
                 A{1}(3,f1,f2,f3,f4) = strcmp(a{f2},'seed');
                 A{1}(4,f1,f2,f3,f4) = strcmp(a{f2},'cat');
                 
-                % A{2} where: {'start','1',...,'4'}
+                % A{2} where: {'1',...,'4'}
                 %----------------------------------------------------------
                 A{2}(f2,f1,f2,f3,f4) = 1;
                 
@@ -228,7 +228,7 @@ C{3}(3,:) = -8;                 % and not wrong
 % MDP Structure
 %--------------------------------------------------------------------------
 mdp.MDP  = MDP;
-mdp.link = sparse(1,1,1,numel(MDP.D),Ng);
+% mdp.link = sparse(1,1,1,numel(MDP.D),Ng);
 
 mdp.T = 5;                      % number of moves
 mdp.U = U;                      % allowable policies
@@ -581,7 +581,7 @@ for k = 1:Ne
     end
     
     % stimulus
-    %------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if     MDP.o(1,k) == 1
         imagesc(r,r,null.*mask)
     elseif MDP.o(1,k) == 2
@@ -598,7 +598,7 @@ for k = 1:Ne
     plot(X(:,1),X(:,2),'b.','MarkerSize',8)
     
     % save
-    %------------------------------------------------------------------
+    %----------------------------------------------------------------------
     axis image, axis([-2,2,-2,2]), drawnow
     
 end
