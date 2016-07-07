@@ -11,7 +11,7 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 5957 2014-04-16 15:23:19Z vladimir $
+% $Id: clone.m 6829 2016-07-07 10:16:46Z vladimir $
 
 if nargin < 4
     reset = 0;
@@ -27,7 +27,8 @@ if dim(1) ~= nchannels(this)
     disp('Changing the number of channels, so discarding online montages.');
 end
 
-new = unlink(this);
+new = montage(this, 'switch', 0);
+new = unlink(new);
 
 % check file path first
 [pth, fname] = fileparts(fnamedat);

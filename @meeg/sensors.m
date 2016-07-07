@@ -7,7 +7,7 @@ function res = sensors(this, type, newsens)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: sensors.m 6535 2015-08-25 11:45:26Z vladimir $
+% $Id: sensors.m 6829 2016-07-07 10:16:46Z vladimir $
 
 if nargin<2
     error('Sensor type (EEG or MEG) must be specified');
@@ -151,8 +151,8 @@ if  nargin < 3 && ~isempty(res) && ismember(lower(type), {'eeg', 'meg'}) && this
     end
     
     if strcmpi(type, 'MEG')
-        res =  ft_datatype_sens(sens, 'version', 'upcoming', 'amplitude', 'T', 'distance', 'mm');
+        res = ft_datatype_sens(sens, 'amplitude', 'T', 'distance', 'mm');
     else
-        res = ft_datatype_sens(sens, 'version', 'upcoming', 'amplitude', 'V', 'distance', 'mm');
+        res = ft_datatype_sens(sens, 'amplitude', 'V', 'distance', 'mm');
     end
 end

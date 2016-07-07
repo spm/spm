@@ -4,7 +4,7 @@ function reduce = spm_cfg_eeg_reduce
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_reduce.m 6813 2016-06-18 18:41:31Z vladimir $
+% $Id: spm_cfg_eeg_reduce.m 6829 2016-07-07 10:16:46Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -31,6 +31,14 @@ for i = 1:numel(specest_funs)
     method.values{i} = feval(spm_file(specest_funs{i},'basename'));
 end
 
+keeporig = cfg_menu;
+keeporig.tag = 'keeporig';
+keeporig.name = 'Keep original channels';
+keeporig.labels = {'Yes', 'No'};
+keeporig.values = {true, false};
+keeporig.val = {false};
+keeporig.help = {'Specify whether you want to keep the original unreduced channels'};
+
 keepothers = cfg_menu;
 keepothers.tag = 'keepothers';
 keepothers.name = 'Keep other channels';
@@ -53,7 +61,7 @@ prefix.val     = {'R'};
 reduce = cfg_exbranch;
 reduce.tag = 'reduce';
 reduce.name = 'Data reduction';
-reduce.val = {D, spm_cfg_eeg_channel_selector, method, keepothers, prefix};
+reduce.val = {D, spm_cfg_eeg_channel_selector, method, keeporig, keepothers, prefix};
 reduce.help = {'Perform data reduction.'};
 reduce.prog = @eeg_reduce;
 reduce.vout = @vout_eeg_reduce;
@@ -73,6 +81,7 @@ S.channels  = spm_cfg_eeg_channel_selector(job.channels);
 S.method    = cell2mat(fieldnames(job.method));
 S.settings  = job.method.(S.method);
 S.keepothers = job.keepothers;
+S.keeporig  = job.keeporig;
 
 D = spm_eeg_reduce(S);
 
