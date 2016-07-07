@@ -15,14 +15,14 @@ function spm_eeg_cfc(S)
 %__________________________________________________________________________
 %
 % References:
-% van Wijk et al. (submitted)
+% van Wijk et al. 2015 J Neurosci Methods
 %__________________________________________________________________________
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Bernadette van Wijk, Vladimir Litvak
-% $Id: spm_eeg_cfc.m 6211 2014-09-29 10:17:49Z vladimir $
+% $Id: spm_eeg_cfc.m 6830 2016-07-07 11:29:16Z bernadette $
 
-SVNrev = '$Rev: 6211 $';
+SVNrev = '$Rev: 6830 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -492,7 +492,7 @@ for ncf=1:numel(allconfounds)
     cnt=cnt+2;
 end
 sig_total=(p_total<=siglevel);
-subplot(nsub,2,cnt),imagesc(Flow,Famp,all_r_total),set(gca,'ydir','normal');title('full model');colorbar;
+subplot(nsub,2,cnt),imagesc(Flow,Famp,all_r_total),set(gca,'ydir','normal');title('full model');colormap(flipud(hot));colorbar;
 subplot(nsub,2,cnt+1),imagesc(Flow,Famp,sig_total),set(gca,'ydir','normal');title(['significant p<.05']), colorbar;
 %%
 
