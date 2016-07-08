@@ -3,10 +3,10 @@ function res = history(this, varargin)
 % M/EEG data
 % FORMAT res = history(this, varargin)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: history.m 3196 2009-06-11 12:54:47Z vladimir $
+% $Id: history.m 6831 2016-07-08 12:10:45Z vladimir $
 
 
 if isempty(varargin)
@@ -22,10 +22,17 @@ else
 
     if ischar(varargin{1})
         this.history(nh+1).fun = varargin{1};
-
-        if isstruct(varargin{2}) && isfield(varargin{2}, 'D') && ...
-                isa(varargin{2}.D, 'meeg')
-            varargin{2}.D = fullfile(varargin{2}.D.path, varargin{2}.D.fname);
+        
+        if isstruct(varargin{2}) && isfield(varargin{2}, 'D')
+            if  isa(varargin{2}.D, 'meeg')
+                varargin{2}.D = fullfile(varargin{2}.D);
+            elseif isa(varargin{2}.D, 'cell')
+                for i = 1:numel(varargin{2}.D)
+                    if isa(varargin{2}.D{i}, 'meeg')
+                        varargin{2}.D{i} = fullfile(varargin{2}.D{i});
+                    end
+                end
+            end
         end
 
         this.history(nh+1).args = varargin{2};
