@@ -93,7 +93,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6828 2016-07-06 11:34:25Z karl $
+% $Id: spm_MDP_VB_X.m 6832 2016-07-11 09:28:44Z karl $
 
 
 % deal with a sequence of trials
@@ -309,6 +309,7 @@ for t = 1:T
         
         % priors over states (of subordinate level)
         %------------------------------------------------------------------
+        qf    = [];
         for f = 1:nf
             i = find(link(f,:));
             if numel(i)
@@ -321,6 +322,7 @@ for t = 1:T
                 %----------------------------------------------------------
                 ind      = num2cell(s(:,t));
                 po       = MDP.A{i}(:,ind{:});
+                qf       = [qf,f];
                 
             else
                 
@@ -330,13 +332,14 @@ for t = 1:T
             end
             
             % sample true state for lower level
-            %----------------------------------------------------------
+            %--------------------------------------------------------------
             mdp.s(f,1) = find(rand < cumsum(po),1);
             
         end
         
         % get (probabilistic) outcome
         %------------------------------------------------------------------
+        mdp.factor = qf;
         mdp        = spm_MDP_VB_X(mdp);
         MDP.mdp(t) = mdp;
         
@@ -556,6 +559,20 @@ for t = 1:T
     MDP.F(:,t) = F;
     MDP.G(:,t) = Q;
     
+    
+    if isfield(MDP,'factor')
+        
+        for f = MDP.factor
+            qx   = X{f}(:,1);
+            H(f) = qx'*spm_log(qx);
+        end
+        
+        if sum(H) > - 1/128
+         %   T = t;
+        end
+    end
+    
+    
     % action selection and sampling of next state (outcome)
     %======================================================================
     if t < T
@@ -652,6 +669,8 @@ for t = 1:T
             end
             
         end
+    elseif t == T
+        break
     end
 end
 
@@ -720,6 +739,7 @@ end
 
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------
+MDP.T   = T;
 MDP.P   = P;              % probability of action at time 1,...,T - 1
 MDP.Q   = x;              % conditional expectations over N hidden states
 MDP.X   = X;              % Bayesian model averages over T outcomes
