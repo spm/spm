@@ -1,5 +1,5 @@
 function [y] = spm_int_L(P,M,U)
-% integrates a MIMO nonlinear system using a fixed Jacobian: J(x(0))
+% Integrate a MIMO nonlinear system using a fixed Jacobian: J(x(0))
 % FORMAT [y] = spm_int_L(P,M,U)
 % P   - model parameters
 % M   - model structure
@@ -20,7 +20,7 @@ function [y] = spm_int_L(P,M,U)
 %            J = df/dx
 %
 % at input times.  This integration scheme evaluates the update matrix (U)
-% at the expansion point
+% at the expansion point.
 %
 %--------------------------------------------------------------------------
 %
@@ -55,10 +55,10 @@ function [y] = spm_int_L(P,M,U)
 % sparse sampling of the solution and delays in observing outputs. It is
 % used primarily for integrating fMRI models
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 6806 2016-06-08 20:04:30Z karl $
+% $Id: spm_int_L.m 6833 2016-07-12 10:22:40Z guillaume $
  
  
 % convert U to U.u if necessary
@@ -118,8 +118,9 @@ else
     dfdx        = spm_cat(spm_diff(f,x,u,P,M,1)); 
 end
 OPT.tol = 1e-6*norm((dfdx),'inf');
-OPT.v0  = randn(n,1);
-p       = abs(eigs(dfdx,1,'SR',OPT));
+while true
+    try, p = abs(eigs(dfdx,1,'SR',OPT)); break; end
+end
 N       = ceil(max(1,dt*p*2));
 Q       = (spm_expm(dt*D*dfdx/N) - speye(n,n))*spm_inv(dfdx);
  
