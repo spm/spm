@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 6813 2016-06-18 18:41:31Z vladimir $
+% $Id: spm_eeg_montage.m 6835 2016-07-14 16:08:56Z vladimir $
 
-SVNrev = '$Rev: 6813 $';
+SVNrev = '$Rev: 6835 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -114,10 +114,22 @@ if ~isnumeric(montage)
         error('Insufficient or illegal montage specification.');
     end
     
-    % select and discard the columns that are empty
-    selempty         = find(~all(montage.tra == 0, 1));
-    montage.tra      = montage.tra(:, selempty);
-    montage.labelorg = montage.labelorg(selempty);
+    % select and discard the columns that are empty if the corresponding
+    % channels are not present in the data
+    selempty   = find(all(montage.tra == 0, 1));
+    
+    [dum, sel] = setdiff(montage.labelorg(selempty), D.chanlabels);
+    selempty   = selempty(sel);
+    
+    montage.tra(:, selempty)   = [];
+    montage.labelorg(selempty) = [];
+    
+    if isfield(montage, 'chantypeorg')
+        montage.chantypeorg(selempty) = [];
+    end
+    if isfield(montage, 'chanunitorg')
+        montage.chanunitorg(selempty) = [];
+    end
     
     % add columns for the channels that are not involved in the montage
     [add, ind]       = setdiff(D.chanlabels, montage.labelorg);
@@ -148,7 +160,7 @@ if ~isnumeric(montage)
     end
     if isfield(montage, 'chanunitorg')
         montage.chanunitorg = cat(1, montage.chanunitorg(:), D.units(ind)');
-    end
+    end    
     
     % determine whether all channels are unique
     m = size(montage.tra,1);
@@ -163,7 +175,7 @@ if ~isnumeric(montage)
     % determine whether all channels that have to be rereferenced are available
     if length(intersect(D.chanlabels, montage.labelorg)) ~= n
         error('not all channels that are used in the montage are available');
-    end
+    end        
     
     % reorder the columns of the montage matrix
     [selchan, selmont]  = spm_match_str(D.chanlabels, montage.labelorg);
@@ -218,7 +230,7 @@ switch S.mode
                     end
                 else
                     Dnew(:, ((j-1)*nblocksamples +1) : (j*nblocksamples), i) = ...
-                        montage.tra * squeeze(D(:, ((j-1)*nblocksamples +1) : (j*nblocksamples), i));
+                        montage.tra * spm_squeeze(D(:, ((j-1)*nblocksamples +1) : (j*nblocksamples), i), 3);
                 end
                 
                 if D.ntrials == 1 && ismember(j, Ibar)
