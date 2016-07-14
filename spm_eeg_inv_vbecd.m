@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_inv_vbecd.m 5777 2013-12-04 16:18:12Z vladimir $
+% $Id: spm_eeg_inv_vbecd.m 6834 2016-07-14 07:55:46Z gareth $
 
 
 
@@ -133,22 +133,32 @@ P.post_S_w  = Cp(length(mu_s)+1:end,length(mu_s)+1:end);
 %% return a weight matrix to map channels to dipoles
 fulldipmom=[];
 fulllf=[];
+fullforient=[];
+fulldipmomorient=[];
 
 for d=1:Nd,
     dippos=P.post_mu_s((d-1)*3+1:d*3);
     dipmom=P.post_mu_w((d-1)*3+1:d*3);
-     
+    unitmom=dipmom./sqrt(dot(dipmom,dipmom));
+    munitmom=repmat(unitmom',size(leads,3),1);
+    orientlead=dot(munitmom',squeeze(leads(d,:,:)));
     fulllf=[fulllf squeeze(leads(d,:,:))']; % *unitmom(d,:)';
+    fullforient=[fullforient orientlead]; % *unitmom(d,:)';
     fulldipmom=[fulldipmom ;dipmom];
+    fulldipmomorient=[fulldipmomorient ;dot(dipmom,unitmom)];
 end;
-estdata=fulllf*fulldipmom/1000;
 
 D1=fulldipmom*fulldipmom';
-P.post_wdale=D1*fulllf'*pinv(fulllf*D1*fulllf')*1000; % 1000 to put in nAm
-estdipmom=P.post_wdale*estdata; %% re-estimate moment using the dale operator
+D2=fulldipmomorient*fulldipmomorient';
+P.post_wdale=D1*fulllf'*pinv(fulllf*D1*fulllf'); % 1000 to put in nAm
+P.post_wdaleorient=D2*fullforient'*pinv(fullforient*D2*fullforient')
+estdipmom=P.post_wdale*P.y; %% re-estimate moment using the dale operator
 %disp(sprintf('reistimation error %3.2f percent',mean((estdipmom-fulldipmom)./fulldipmom)*100));
-
-
+estdipmom2=P.post_wdaleorient'*P.y;
+rmserrorperchan=sqrt(sum((estdipmom2*fullforient-P.y').^2)./length(P.y));
+rmssignal=sqrt(sum((P.y').^2)./length(P.y));
+C=corrcoef(P.y',estdipmom2*fullforient)
+fprintf('\nVar explained %d percent, rms error per chan %d fT\n',round(100*C(2,1).^2),round(rmserrorperchan));
 
 
 
