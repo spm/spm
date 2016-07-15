@@ -24,7 +24,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_diff.m 6828 2016-07-06 11:34:25Z karl $
+% $Id: spm_diff.m 6836 2016-07-15 09:43:30Z karl $
 
 % create inline object
 %--------------------------------------------------------------------------
@@ -36,7 +36,7 @@ if iscell(varargin{end})
     x = varargin(2:(end - 2));
     n = varargin{end - 1};
     V = varargin{end};
-    q = 0;
+    q = 1;
 elseif isnumeric(varargin{end})
     x = varargin(2:(end - 1));
     n = varargin{end};
