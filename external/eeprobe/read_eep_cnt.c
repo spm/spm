@@ -1,54 +1,40 @@
-/*
-Matlab MEX file to read an ANT-MPI format continuous file (*.cnt)
-this version returns the data in a structure, using fieldnames
-similar to the read_ns_hdr and read_asa_msr functions.
-*/
-
-/*
-Copyright (C) 2003-2004, Robert Oostenveld
-Radboud University, Nijmegen, The Netherlands. http://www.kun.nl/fcdonders/
-Aalborg University, Denmark. http://www.smi.auc.dk/
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
-- Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-- Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-- Neither the name of the University Nijmegen or the University
-  Aalborg, nor the names of its contributors may be used to endorse
-  or promote products derived from this software without specific
-  prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
-*/
+/********************************************************************************
+ *                                                                              *
+ * this file is part of:                                                        *
+ * libeep, the project for reading and writing avr/cnt eeg and related files    *
+ *                                                                              *
+ ********************************************************************************
+ *                                                                              *
+ * LICENSE:Copyright (c) 2003-2009,                                             *
+ * Advanced Neuro Technology (ANT) B.V., Enschede, The Netherlands              *
+ * Max-Planck Institute for Human Cognitive & Brain Sciences, Leipzig, Germany  *
+ *                                                                              *
+ ********************************************************************************
+ *                                                                              *
+ * This library is free software; you can redistribute it and/or modify         *
+ * it under the terms of the GNU Lesser General Public License as published by  *
+ * the Free Software Foundation; either version 3 of the License, or            *
+ * (at your option) any later version.                                          *
+ *                                                                              *
+ * This library is distributed WITHOUT ANY WARRANTY; even the implied warranty  *
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
+ * GNU Lesser General Public License for more details.                          *
+ *                                                                              *
+ * You should have received a copy of the GNU Lesser General Public License     *
+ * along with this program. If not, see <http://www.gnu.org/licenses/>          *
+ *                                                                              *
+ *******************************************************************************/
 
 #include <math.h>
-#include "mex.h"        /* Matlab specific  */
-#include "matrix.h"     /* Matlab specific  */
-#include "eepmisc.h"    /* MPI-ANT specific */
-#include "cnt.h"        /* MPI-ANT specific */
+#include "mex.h"		/* Matlab specific  */
+#include "matrix.h"		/* Matlab specific  */
+#include <eep/eepmisc.h>		/* MPI-ANT specific */
+#include <cnt/cnt.h>		/* MPI-ANT specific */
 
 #define NAME "read_eep_cnt"
 
 void
-mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
-{
+mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]) {
 
   /* these variables are MPI-ANT specific for reading the data */
   char filename[256];
@@ -57,28 +43,40 @@ mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
   int status;
   FILE *fp;
   sraw_t *buf;
-  eeg_t *hdr; 
+  eeg_t *hdr;
 
   /* these variables are Matlab specific for interfacing */
   double *ptr;
   const int dims[] = {1, 1};
   mxArray *label;
-  mxArray *rate;    
+  mxArray *rate;
   mxArray *npnt;
   mxArray *nchan;
   mxArray *nsample;
   mxArray *time;
   mxArray *data;
+  mxArray *triggers;
 
-  const int nfields = 7;
+  const int nfields = 8;
   const char *field_names[] = {
-    "label",                     /* label           */
-    "rate",                      /* 1/(period)          */
-    "npnt",                      /* nsample of this segment */
-    "nchan",                     /* chanc           */
-    "nsample",                   /* nsample of the whole data   */
-    "time",                      /*                 */
-    "data"};                     /* data            */
+    "label",                     /* label			*/
+    "rate",                      /* 1/(period)			*/
+    "npnt",                      /* nsample of this segment	*/
+    "nchan",                     /* chanc			*/
+    "nsample",                   /* nsample of the whole data	*/
+    "time",                      /* 				*/
+    "triggers",                  /* 				*/
+    "data"
+  };                     /* data			*/
+
+  trg_t              * trigger_struct;
+  const int            trigger_field_count = 4;
+  const char         * trigger_field_names[] = { "time", "offset", "code", "type"};
+  int                  trigger_array_index;
+  int                  trigger_index;
+  int                  trigger_count;
+  char               * trigger_label;
+  unsigned long long   trigger_offset;
 
   if (nrhs!=3)
     mexErrMsgTxt ("Invalid number of input arguments");
@@ -89,17 +87,17 @@ mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
   length = se-sb+1;
 
   /* open the data file */
- if ((fp = fopen(filename, "rb"))==NULL)
+  if ((fp = eepio_fopen(filename, "rb"))==NULL)
     mexErrMsgTxt ("Could not open file");
 
   /* read header information */
-  hdr = cnt_init_file(filename, fp, &status);
-  if (status!=CNTERR_NONE)
+  hdr = eep_init_from_file(filename, fp, &status);
+  if ((hdr == NULL) || (status!=CNTERR_NONE))
     mexErrMsgTxt ("Error reading header from file");
 
-  chanc   = get_cnt_chanc(hdr);
-  period  = get_cnt_period(hdr);
-  samplec = get_cnt_samplec(hdr);
+  chanc   = eep_get_chanc(hdr);
+  period  = eep_get_period(hdr);
+  samplec = eep_get_samplec(hdr);
 
   if (sb<0)
     mexErrMsgTxt ("Begin sample should be 1 or larger");
@@ -113,34 +111,82 @@ mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
   if (se>samplec)
     mexErrMsgTxt ("End sample should be less than the number of samples in the data");
 
-  rate      = mxCreateDoubleMatrix(1,1,mxREAL); *mxGetPr(rate     ) = (double)1/period;
-  npnt      = mxCreateDoubleMatrix(1,1,mxREAL); *mxGetPr(npnt     ) = (double)length;
-  nchan     = mxCreateDoubleMatrix(1,1,mxREAL); *mxGetPr(nchan    ) = (double)chanc;
-  nsample   = mxCreateDoubleMatrix(1,1,mxREAL); *mxGetPr(nsample  ) = (double)samplec;
+  /* rate      = mxCreateDoubleMatrix(1,1,mxREAL); *mxGetPr(rate     ) = (double)1/period; */
+  rate      = mxCreateDoubleMatrix(1,1,mxREAL);
+  *mxGetPr(rate     ) = (double)eep_get_rate(hdr);
+  npnt      = mxCreateDoubleMatrix(1,1,mxREAL);
+  *mxGetPr(npnt     ) = (double)length;
+  nchan     = mxCreateDoubleMatrix(1,1,mxREAL);
+  *mxGetPr(nchan    ) = (double)chanc;
+  nsample   = mxCreateDoubleMatrix(1,1,mxREAL);
+  *mxGetPr(nsample  ) = (double)samplec;
   data      = mxCreateDoubleMatrix(chanc,length,mxREAL);
   time      = mxCreateDoubleMatrix(1,length,mxREAL);
   label     = mxCreateCellMatrix(chanc,1);
 
   ptr = mxGetPr(time);
   for (sample=0; sample<length; sample++)
-    ptr[sample] = (double)1000*(sb+sample)*period; 
+    ptr[sample] = (double)1000*(sb+sample)*period;
 
   for (chan=0; chan<chanc; chan++)
-    mxSetCell(label,chan,mxCreateString(get_chan_lab(hdr, chan)));
+    mxSetCell(label,chan,mxCreateString(eep_get_chan_label(hdr, chan)));
 
   /* allocate memory for the data and read it from file */
   buf = (sraw_t *)malloc(CNTBUF_SIZE(hdr, chanc));
   ptr = mxGetPr(data);
-  cntseek(hdr, sb); 
+  eep_seek(hdr, DATATYPE_EEG, sb, 0);
   for (sample=0; sample<length; sample++)
-    if (cntread(hdr, buf, 1) != CNTERR_NONE)
+    if (eep_read_sraw(hdr, DATATYPE_EEG, buf, 1) != CNTERR_NONE)
       mexErrMsgTxt ("Error reading raw data from file");
     else
       for (chan=0; chan<chanc; chan++)
-        ptr[sample*chanc+chan] = get_chan_scale(hdr, chan) * buf[chan];
+        ptr[sample*chanc+chan] = eep_get_chan_scale(hdr, chan) * buf[chan];
 
   /* create the struct array with dimensions 1x1 */
   plhs[0] = mxCreateStructArray(2, dims, nfields, field_names);
+
+  /* trigger stuff */
+  trigger_struct = eep_get_trg(hdr);
+  if(trigger_struct != NULL) {
+    // pass one, count triggers
+    trigger_count = 0;
+    for(trigger_index=0;trigger_index<trg_get_c(trigger_struct);trigger_index++) {
+      trigger_label = trg_get(trigger_struct, trigger_index, & trigger_offset);
+      if( (trigger_offset >= sb) && (trigger_offset < se) ) {
+        trigger_count++;
+      }
+    }
+    // pass two, fill triggers
+    triggers  = mxCreateStructMatrix(1, trigger_count, trigger_field_count, trigger_field_names);
+    trigger_array_index = 0;
+    for(trigger_index=0;trigger_index<trg_get_c(trigger_struct);trigger_index++) {
+      trigger_label = trg_get(trigger_struct, trigger_index, & trigger_offset);
+      if(trigger_offset >= sb && trigger_offset < se) {
+        mxArray * time;
+        mxArray * offset;
+        mxArray * code;
+        mxArray * type;
+
+        time = mxCreateDoubleMatrix(1,1,mxREAL);
+        *mxGetPr(time) = (double) trigger_offset * period;
+
+        offset = mxCreateDoubleMatrix(1,1,mxREAL);
+        *mxGetPr(offset) = (double) trigger_offset;
+
+        code = mxCreateString(trigger_label);
+
+        type = mxCreateDoubleMatrix(1,1,mxREAL);
+        *mxGetPr(type) = (double) atof(trigger_label);
+
+        /* fill the struct array with the variables */
+        mxSetField(triggers, trigger_array_index, "time", time );
+        mxSetField(triggers, trigger_array_index, "offset", offset );
+        mxSetField(triggers, trigger_array_index, "code", code );
+        mxSetField(triggers, trigger_array_index, "type", type );
+        trigger_array_index++;
+      }
+    }
+  }
 
   /* fill the struct array with the variables */
   mxSetField(plhs[0], 0, "rate",      rate     );
@@ -150,11 +196,12 @@ mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
   mxSetField(plhs[0], 0, "data",      data     );
   mxSetField(plhs[0], 0, "time",      time     );
   mxSetField(plhs[0], 0, "label",     label    );
+  mxSetField(plhs[0], 0, "triggers",  triggers );
 
   /* close the file */
-  cntclose(hdr);
-  fclose(fp);
+  eep_free(hdr);
+  eepio_fclose(fp);
   free(buf);
- 
+
   return;
 }
