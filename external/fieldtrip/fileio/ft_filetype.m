@@ -59,6 +59,9 @@ function [type] = ft_filetype(filename, desired, varargin)
 %  - VSM-Medtech/CTF
 %  - Yokogawa
 %  - nifti, gifti
+%  - Nicolet *.e (currently from Natus, formerly Carefusion, Viasys and
+%                 Taugagreining. Also known as Oxford/Teca/Medelec Valor
+%                 - Nervus)
 
 % Copyright (C) 2003-2013 Robert Oostenveld
 %
@@ -1263,6 +1266,15 @@ elseif (isdir(filename) && exist(fullfile(p, [d '.EEG.Poly5']), 'file')) || file
     type = 'tmsi_poly5';
     manufacturer = 'TMSi PolyBench';
     content = 'EEG';
+elseif (isdir(filename) && exist(fullfile(filename, 'DataSetSession.xml'), 'file') && exist(fullfile(filename, 'DataSetProtocol.xml'), 'file'))
+    type = 'mega_neurone';
+    manufacturer = 'Mega - http://www.megaemg.com';
+    content = 'EEG';
+elseif filetype_check_extension(filename, '.e') 
+  type = 'nervus_eeg';  % Nervus/Nicolet EEG files
+  manufacturer = 'Natus';
+  content = 'EEG';
+   
 end
 
 

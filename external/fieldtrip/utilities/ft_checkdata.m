@@ -210,7 +210,7 @@ elseif ismesh
   else
     fprintf('the input is mesh data multiple surfaces\n');
   end
-end % give feedback
+end % give feedback    
 
 if issource && isvolume
   % it should be either one or the other: the choice here is to represent it as volume description since that is simpler to handle
@@ -1348,6 +1348,8 @@ else
   % concatenate all trials
   tmptrial = nan(ntrial, nchan, length(time));
   
+  begsmp = nan(ntrial, 1);
+  endsmp = nan(ntrial, 1);
   for i=1:ntrial
     begsmp(i) = nearest(time, data.time{i}(1));
     endsmp(i) = nearest(time, data.time{i}(end));
