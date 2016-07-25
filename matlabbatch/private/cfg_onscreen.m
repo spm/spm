@@ -10,15 +10,15 @@ function varargout = cfg_onscreen(fg)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_onscreen.m 5155 2012-12-21 12:55:22Z volkmar $
+% $Id: cfg_onscreen.m 6840 2016-07-25 12:21:25Z guillaume $
 
-rev = '$Rev: 5155 $'; 
+rev = '$Rev: 6840 $'; 
 
 % save figure units - use pixels here
 units = get(fg,'Units');
 set(fg,'Units','pixels');
 Rect = get(fg,'Position');
-S0   = get(0,'MonitorPosition');
+S0   = get(0,'MonitorPositions');
 if size(S0,1) > 1 % Multiple Monitors
     %-Use Monitor containing the Pointer
     pl = get(0,'PointerLocation');
