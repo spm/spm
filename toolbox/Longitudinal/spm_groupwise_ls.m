@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 6798 2016-05-20 11:53:33Z john $
+% $Id: spm_groupwise_ls.m 6844 2016-07-28 20:02:34Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -250,18 +250,19 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             for i=1:numel(img),
                 % Gauss-Newton update of logs of rigid-body matrices
                 %-----------------------------------------------------------------------
-                [R,dR]    = spm_dexpm(param(i).r,B);
-                M         = img(i).mat\R*M_avg;
-                [x1a,x2a] = ndgrid(1:d(1),1:d(2));
+                [R,dR]        = spm_dexpm(param(i).r,B);
+                M             = img(i).mat\R*M_avg;
+                dtM           = abs(det(M(1:3,1:3)));
+                [x1a,x2a,x3a] = ndgrid(1:d(1),1:d(2),1);
 
                 Hess = zeros(12);
                 gra  = zeros(12,1);
                 for m=1:d(3)
                     if all(isfinite(w_settings(i,:))),
-                        dt    = spm_diffeo('det',param(i).J(:,:,m,:,:))*abs(det(M(1:3,1:3)));
+                        dt    = spm_diffeo('det',param(i).J(:,:,m,:,:));
                         y     = transform_warp(M,param(i).y(:,:,m,:));
                     else
-                        dt    = ones(d(1:2),'single')*abs(det(M(1:3,1:3)));
+                        dt    = ones(d(1:2),'single');
                         y     = zeros([d(1:2) 1 3],'single');
                         [y(:,:,1),y(:,:,2),y(:,:,3)] = ndgrid(single(1:d(1)),single(1:d(2)),single(m));
                         y     = transform_warp(M,y);
@@ -280,24 +281,83 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
                     msk   = isfinite(b);
                     ebias = ebias(msk);
                     b     = b(msk);
-                    dt    = dt(msk);
-                    x1    = x1a(msk);
-                    x2    = x2a(msk);
-                    d1    = D{1}(:,:,m);d1 = d1(msk).*ebias;
-                    d2    = D{2}(:,:,m);d2 = d2(msk).*ebias;
-                    d3    = D{3}(:,:,m);d3 = d3(msk).*ebias;
 
+                    if ~all(isfinite(w_settings(i,:)))
+                        % No need to account for the nonlinear warps when estimating
+                        % the rigid body transform.
+                        x1 = x1a(msk);
+                        x2 = x2a(msk);
+                        x3 = x3a(msk)*m;
+                        d1 = D{1}(:,:,m);
+                        d2 = D{2}(:,:,m);
+                        d3 = D{3}(:,:,m);
+
+                    else
+                        % The rigid-body transform should register the nonlinearly warped
+                        % template to match the individual.
+
+
+                        % Positions where the template voxels are mapped to via the nonlinear warp.
+                        x1 = param(i).y(:,:,m,1); x1 = x1(msk);
+                        x2 = param(i).y(:,:,m,2); x2 = x2(msk);
+                        x3 = param(i).y(:,:,m,3); x3 = x3(msk);
+
+
+                        % Gradients of nonlinear warped template, warped back to its original space.
+                        % Multiply by transpose of inverse of Jacobian determinants.
+                        % First, get the Jacobians of the nonlinear warp.
+                        J           = reshape(param(i).J(:,:,m,:,:),[d(1:2) 3 3]);
+
+                        % Reciprocal of the determinants.  Note that for the gradients (gra)
+                        % idt cancels out with dt. For the Hessians (Hess), it doesn't.
+                        idt         = 1./max(dt,0.001);
+
+                        % Compute cofactors of Jacobians, where cJ = det(J)*inv(J) 
+                        cJ          = zeros(size(J),'single');
+                        cJ(:,:,1,1) = J(:,:,2,2).*J(:,:,3,3) - J(:,:,2,3).*J(:,:,3,2);
+                        cJ(:,:,1,2) = J(:,:,1,3).*J(:,:,3,2) - J(:,:,1,2).*J(:,:,3,3);
+                        cJ(:,:,1,3) = J(:,:,1,2).*J(:,:,2,3) - J(:,:,1,3).*J(:,:,2,2);
+
+                        cJ(:,:,2,1) = J(:,:,2,3).*J(:,:,3,1) - J(:,:,2,1).*J(:,:,3,3);
+                        cJ(:,:,2,2) = J(:,:,1,1).*J(:,:,3,3) - J(:,:,1,3).*J(:,:,3,1);
+                        cJ(:,:,2,3) = J(:,:,1,3).*J(:,:,2,1) - J(:,:,1,1).*J(:,:,2,3);
+
+                        cJ(:,:,3,1) = J(:,:,2,1).*J(:,:,3,2) - J(:,:,2,2).*J(:,:,3,1);
+                        cJ(:,:,3,2) = J(:,:,1,2).*J(:,:,3,1) - J(:,:,1,1).*J(:,:,3,2);
+                        cJ(:,:,3,3) = J(:,:,1,1).*J(:,:,2,2) - J(:,:,1,2).*J(:,:,2,1);
+
+                        % Premultiply gradients by transpose of inverse of J
+                        d1 = idt.*(cJ(:,:,1,1).*D{1}(:,:,m) + cJ(:,:,2,1).*D{2}(:,:,m) + cJ(:,:,3,1).*D{3}(:,:,m));
+                        d2 = idt.*(cJ(:,:,1,2).*D{1}(:,:,m) + cJ(:,:,2,2).*D{2}(:,:,m) + cJ(:,:,3,2).*D{3}(:,:,m));
+                        d3 = idt.*(cJ(:,:,1,3).*D{1}(:,:,m) + cJ(:,:,2,3).*D{2}(:,:,m) + cJ(:,:,3,3).*D{3}(:,:,m));
+
+                        clear idt cJ
+                    end
+
+                    dt = dt(msk);
+                    d1 = d1(msk).*ebias;
+                    d2 = d2(msk).*ebias;
+                    d3 = d3(msk).*ebias;
+
+                    % Derivatives w.r.t. an affine transform
                     A     = [x1(:).*d1(:) x1(:).*d2(:) x1(:).*d3(:) ...
                              x2(:).*d1(:) x2(:).*d2(:) x2(:).*d3(:) ...
-                                  m*d1(:)      m*d2(:)      m*d3(:) ...
+                             x3(:).*d1(:) x3(:).*d2(:) x3(:).*d3(:) ...
                                     d1(:)        d2(:)        d3(:)];
 
-                    Hess  = Hess + double(A'*bsxfun(@times,A,dt));
-                    gra   = gra  + double(A'*(dt.*b));
+                    if ~all(isfinite(w_settings(i,:)))
+                        Hess  = Hess + dtM*double(A'*A);
+                        gra   = gra  + dtM*double(A'*b);
+                    else
+                        Hess  = Hess + dtM*double(A'*bsxfun(@times,A,dt));
+                        gra   = gra  + dtM*double(A'*(dt.*b));
+                    end
 
                     clear dt y f ebias b msk x1 x2 d1 d2 d3 A 
                 end
 
+                % For converting from derivatives w.r.t. an affine transform
+                % to derivatives w.r.t. the rigid-body transform parameters.
                 dA = zeros(12,6);
                 for m=1:6,
                     tmp     = (R*M_avg)\dR(:,:,m)*M_avg;

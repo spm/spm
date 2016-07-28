@@ -21,7 +21,7 @@ function [p,F,K,theta] = spm_GPclass(XX,t,lab,cov_fun,fun_args)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_GPclass.m 5885 2014-02-18 11:53:55Z john $
+% $Id: spm_GPclass.m 6844 2016-07-28 20:02:34Z john $
 
 if nargin==3
     p = gp_pred_ep_binclass(XX,t,lab);
@@ -50,7 +50,7 @@ function [theta,ll] = GPtrain(t,X,cov_fun,theta)
 % - needs to be implemented more efficiently
 m          = numel(theta);
 thetai     = eye(m);
-tolsc      = ones(m,1)*0.05;
+tolsc      = ones(m,1)*0.01;
 objfun('reset');
 [theta,ll] = spm_powell(theta,thetai,tolsc,@objfun,t,X,cov_fun);
 ll         = -ll;
@@ -125,7 +125,8 @@ sW  = sqrt(W);
 L   = chol(eye(N) + K(o,o).*(sW*sW'));
 M   = L'\diag(sW);
 p   = zeros(size(K,1),1);
-os = RandStream.getDefaultStream;
+%os = RandStream.getDefaultStream;
+os = rng;
 
 p = zeros(sum(~o),1);
 j = 0;
@@ -135,15 +136,19 @@ for i=find(~o)',
     v    = M*K(o,i);
     vr   = K(i,i) - v'*v;
 
-    s    = RandStream.create('mt19937ar','seed',0);
-    RandStream.setDefaultStream(s);
+    %s    = RandStream.create('mt19937ar','seed',0);
+    %RandStream.setDefaultStream(s);
+    rng(0,'twister');
+
     r    = randn(10000,1)*sqrt(vr)+mu;
     p(j) = mean(1./(1+exp(-r)));
     % Alternative approach (from Bishop's PRML)
     % kap  = (1+pi*vr/8)^(-1/2);  % Eq. 4.154
     % p(i) = 1./(1+exp(-kap*mu)); % Eq. 4.153
 end
-RandStream.setDefaultStream(os);
+%RandStream.setDefaultStream(os);
+rng(os);
+
 %__________________________________________________________________________
 %__________________________________________________________________________
 function [f,F] = gp_lap_multiclass(K,t,f)
@@ -231,7 +236,8 @@ for c1=1:C
     E(:,:,c1) = diag(sD)*(L\(L'\diag(sD)));
 end 
 M   = chol(sum(E,3));
-os  = RandStream.getDefaultStream;
+%os  = RandStream.getDefaultStream;
+os  = rng;
 p   = zeros(sum(~o),C);
 j   = 0;
 for i=find(~o)',
@@ -248,14 +254,16 @@ for i=find(~o)',
         end
         S(c1,c1) = S(c1,c1) - b'*K(o,i) + K(i,i);
     end
-    s = RandStream.create('mt19937ar','seed',0);
-    RandStream.setDefaultStream(s);
+    %s = RandStream.create('mt19937ar','seed',0);
+    %RandStream.setDefaultStream(s);
+    rng(0,'twister');
     nsamp  = 10000;
     r      = sqrtm(S)*randn(C,nsamp) + repmat(mu,1,nsamp);
     r      = exp(r);
     p(j,:) = mean(r./repmat(sum(r,1),C,1),2)';
 end
-RandStream.setDefaultStream(os);
+%RandStream.setDefaultStream(os);
+rng(os)
 %__________________________________________________________________________
 %__________________________________________________________________________
 function [nut,taut,F] = gp_ep_binclass(K,t, nut,taut)
@@ -269,9 +277,11 @@ if nargin<3,
 end
 Sig  = K;
 
-os  = RandStream.getDefaultStream;
-s   = RandStream.create('mt19937ar','seed',0);
-RandStream.setDefaultStream(s);
+%os  = RandStream.getDefaultStream;
+%s   = RandStream.create('mt19937ar','seed',0);
+%RandStream.setDefaultStream(s);
+os  = rng;
+rng(0,'twister');
 
 for it=1:128
     prev_nut = nut;
@@ -311,7 +321,8 @@ for it=1:128
         break;
     end
 end
-RandStream.setDefaultStream(os);
+%RandStream.setDefaultStream(os);
+rng(os);
 
 if nargout>2
     mu   = Sig*nut;

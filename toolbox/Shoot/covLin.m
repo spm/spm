@@ -6,7 +6,7 @@ function [K1,lambda] = covLin(lambda0,settings,args,lab)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: covLin.m 4573 2011-11-25 23:01:01Z john $
+% $Id: covLin.m 6844 2016-07-28 20:02:34Z john $
 
 if ischar(lambda0) && strcmpi(lambda0,'init'),
     K            = settings;
@@ -28,5 +28,6 @@ lab    = settings.lab;
 
 lambda = zeros(2,1);%lambda(2)=-12;
 lambda(1:numel(lambda0)) = lambda0(:);
-K1     = min(exp(lambda(1)),1e12)*K(lab,lab) + exp(lambda(2));
+lambda = max(min(lambda,27),-27);
+K1     = exp(lambda(1))*K(lab,lab) + exp(lambda(2));
 
