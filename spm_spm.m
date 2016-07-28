@@ -268,10 +268,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 6827 2016-07-04 15:19:35Z guillaume $
+% $Id: spm_spm.m 6842 2016-07-28 09:02:10Z guillaume $
 
 
-SVNid = '$Rev: 6827 $';
+SVNid = '$Rev: 6842 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -359,8 +359,7 @@ if ~isempty(spm_select('List',SPM.swd,'^mask\..{3}$'))
         sw = warning('off','backtrace');
         warning('Overwriting old results\n\t (pwd = %s) ',SPM.swd);
         warning(sw);
-        try, SPM     = rmfield(SPM,    'xVol'); end
-        try, SPM.xX  = rmfield(SPM.xX, 'W');    end
+        try, SPM.xX  = rmfield(SPM.xX, 'W'); end
         try,
             if isfield(SPM.xVi,'Vi') && numel(SPM.xVi.Vi)>1
                 SPM.xVi = rmfield(SPM.xVi, 'V');
@@ -536,7 +535,7 @@ iRes = round(linspace(1,nScan,nSres))';              % Indices for residual
 %-Get explicit mask(s)
 %==========================================================================
 for i = 1:numel(xM.VM)
-    if ~isfield(SPM.xVol,'G')
+    if ~(isfield(SPM,'xVol') && isfield(SPM.xVol,'G'))
         %-Assume it fits entirely in memory
         C = spm_bsplinc(xM.VM(i), [0 0 0 0 0 0]');
         v = true(DIM);
