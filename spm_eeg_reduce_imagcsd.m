@@ -17,7 +17,7 @@ function res = spm_eeg_reduce_imagcsd(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce_imagcsd.m 6253 2014-10-30 16:29:39Z vladimir $
+% $Id: spm_eeg_reduce_imagcsd.m 6843 2016-07-28 10:55:47Z vladimir $
 
 
 if nargin == 0
@@ -106,10 +106,21 @@ for i = 1:nsets
         error(sprintf('One reference chhannel is necessary, found %d.', length(refind)));
     end
     
-    Y  = D(origind, :, :);
-    Yr = D(refind, :, :);
+    Y  = D(origind, :, :);   
+    Yr = spm_squeeze(D(refind, :, :), 1);    
     
-       
+    if isequal(D.type, 'continuous')
+        fs   = floor(D.fsample);
+        ind = repmat((1:fs:D.nsamples)', 1, fs);
+        ind = ind + repmat(0:(fs-1), size(ind, 1), 1);
+        
+        Yr = Yr(ind);
+        
+        time = (0:(fs-1))/fs;
+    else
+        time = D.time;
+    end
+    
     spm_progress_bar('Set','ylabel','computing CSD...');
     
     foi =  S.chanset(i).foi;
@@ -117,11 +128,15 @@ for i = 1:nsets
     
     fY =[];
     for c = 1:size(Y, 1)
-        [spectrum,ntaper,freqoi] = ft_specest_mtmfft(spm_squeeze(Y(c, :, :), 1)', D.time, 'taper', taper, 'freqoi', mean(foi), 'tapsmofrq', 0.5*diff(foi), 'verbose', 0);
+        Yc = spm_squeeze(Y(c, :, :), 1)';
+        if size(Yc, 1) == 1
+            Yc = Yc(ind);
+        end        
+        [spectrum,ntaper,freqoi] = ft_specest_mtmfft(Yc, time, 'taper', taper, 'freqoi', mean(foi), 'tapsmofrq', 0.5*diff(foi), 'verbose', 0);
         fY = [fY spectrum(:)];
     end
     
-    fYr = ft_specest_mtmfft(spm_squeeze(Yr, 1)', D.time, 'taper', taper, 'freqoi', mean(foi), 'tapsmofrq', 0.5*diff(foi), 'verbose', 0);
+    fYr = ft_specest_mtmfft(Yr, time, 'taper', taper, 'freqoi', mean(foi), 'tapsmofrq', 0.5*diff(foi), 'verbose', 0);
     
     fYr = fYr(:);
     

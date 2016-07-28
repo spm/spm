@@ -25,9 +25,9 @@ function D = spm_eeg_reduce(S)
 % Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce.m 6829 2016-07-07 10:16:46Z vladimir $
+% $Id: spm_eeg_reduce.m 6843 2016-07-28 10:55:47Z vladimir $
 
-SVNrev = '$Rev: 6829 $';
+SVNrev = '$Rev: 6843 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -49,7 +49,7 @@ if iscell(S.D)
     badind = [];
     for i = 1:numel(S.D)
         DD{i} = spm_eeg_load(S.D{i});
-        badind = [badind DD{i}.badchannels];        
+        badind = [badind DD{i}.badchannels];    
     end
     D = DD{1};
     badind = unique(badind);
@@ -139,7 +139,7 @@ end
 % Reorder as in the original file. This might be handy when reducing and
 % then grand-averaging or merging across subjects
 [sel1, sel2] = spm_match_str(D.chanlabels, montage.labelnew);
-sortind = [sel2 setdiff(1:length(montage.labelnew), sel2)];
+sortind = [spm_vec(sel2); spm_vec(setdiff(1:length(montage.labelnew), sel2))];
 
 montage.labelnew = montage.labelnew(sortind);
 montage.tra = montage.tra(sortind, :);
