@@ -8,7 +8,7 @@ function spm_eeg_inv_checkdatareg(varargin)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 6687 2016-01-22 10:55:37Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 6845 2016-07-29 15:23:46Z vladimir $
 
 
 % Inputs
@@ -81,11 +81,10 @@ end
 
 % Sensors (coreg.)
 %--------------------------------------------------------------------------
-h_sens  = ft_plot_sens(sensors, 'chantype', unique(lower(D.chantype(D.indchantype(modality)))));
+h_sens  = ft_plot_sens(sensors, 'chantype', unique(lower(D.chantype(D.indchantype(modality)))), 'edgecolor', [0 1 0]);
 if isempty(h_sens)
-    h_sens  = ft_plot_sens(sensors, 'coil', 'yes');
+    h_sens  = ft_plot_sens(sensors, 'coil', 'yes', 'edgecolor', [0 1 0]);
 end
-set(h_sens, 'Marker', 'o', 'MarkerFaceColor','g','MarkerSize', 12,'MarkerEdgeColor','k');
 axis normal;
 % 
 
