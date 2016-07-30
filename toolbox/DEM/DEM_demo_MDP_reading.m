@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_reading
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_reading.m 6832 2016-07-11 09:28:44Z karl $
+% $Id: DEM_demo_MDP_reading.m 6848 2016-07-30 10:36:29Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -261,6 +261,8 @@ spm_MDP_VB_LFP(MDP,[],1);
 subplot(3,1,3)
 spm_MDP_search_plot(MDP)
 
+return
+
 % illustrate evidence accumulation and perceptual synthesis
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
@@ -429,7 +431,7 @@ for p = 1:numel(MDP.mdp)
             %--------------------------------------------------------------
             axis image ij, axis([2 14 -2 2]), drawnow
             if numel(M)
-              %  M(end + 1) = getframe(gca);
+                M(end + 1) = getframe(gca);
             else
                 M = getframe(gca);
             end
@@ -476,7 +478,7 @@ for p = 1:numel(MDP.mdp)
         % save
         %------------------------------------------------------------------
         drawnow
-        % M(end + 1) = getframe(gca);
+        M(end + 1) = getframe(gca);
         
         
     end

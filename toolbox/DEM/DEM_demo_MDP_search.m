@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_search
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_search.m 6814 2016-06-19 10:24:46Z karl $
+% $Id: DEM_demo_MDP_search.m 6848 2016-07-30 10:36:29Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -155,8 +155,11 @@ C{1}      = zeros(No(1),T);
 C{2}      = zeros(No(2),T);
 C{1}(5,:) =  2;                 % the agent expects to be right
 C{1}(6,:) = -4;                 % and not wrong
- 
- 
+
+% C{2}      = zeros(8,6);       % priors for a speedy reaction time
+% C{2}(1:5,4:end) = -4;         % make tardy sampling costly
+
+
 % MDP Structure - this will be used to generate arrays for multiple trials
 %==========================================================================
 mdp.T = T;                      % number of moves
@@ -440,7 +443,7 @@ for k = 1:Ne
         
         % movie over peristimulus time
         %------------------------------------------------------------------
-        subplot(2,1,1)
+        subplot(2,1,1); hold on
         for j = 1:4
             S{j} = zeros(size(bird));
         end
@@ -473,9 +476,11 @@ for k = 1:Ne
         
         % image
         %------------------------------------------------------------------
-        hold off
+        if i > 1
+            delete(h);
+        end
         for j = 1:numel(S)
-            imagesc(r + x(j + 1,1),r + x(j + 1,2),S{j}/max(S{j}(:))), hold on
+            h(j) = imagesc(r + x(j + 1,1),r + x(j + 1,2),S{j}/max(S{j}(:)));
         end
  
         % stimulus
@@ -493,7 +498,7 @@ for k = 1:Ne
         
         % save
         %------------------------------------------------------------------
-        axis image, axis([-2,2,-2,2]),set(gca,'XColor','w','YColor','w'), drawnow
+        axis image ij, axis([-2,2,-2,2]),set(gca,'XColor','w','YColor','w'), drawnow
         M((k - 1)*Nx + i) = getframe(gca);
  
     end

@@ -93,7 +93,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6832 2016-07-11 09:28:44Z karl $
+% $Id: spm_MDP_VB_X.m 6848 2016-07-30 10:36:29Z karl $
 
 
 % deal with a sequence of trials
@@ -255,8 +255,6 @@ try, tau   = MDP.tau;   catch, tau   = 4;  end
 % initialise
 %--------------------------------------------------------------------------
 Ni    = 16;                         % number of VB iterations
-rt    = zeros(1,T);                 % reaction times
-wn    = zeros(T*Ni,1);              % simulated DA responses
 for f = 1:Nf
     
     % true states
@@ -269,9 +267,9 @@ for f = 1:Nf
     
     % initialise posteriors over states
     %----------------------------------------------------------------------
-    xn{f} = zeros(Ni,Ns(f),T,T,Np) + 1/Ns(f);
+    xn{f} = zeros(Ni,Ns(f),1,1,Np) + 1/Ns(f);
     x{f}  = zeros(Ns(f),T,Np)      + 1/Ns(f);
-    X{f}  = repmat(D{f},1,T);
+    X{f}  = repmat(D{f},1,1);
     for k = 1:Np
         x{f}(:,1,k) = D{f};
     end
@@ -280,17 +278,17 @@ end
 
 % initialise posteriors over polices and action
 %--------------------------------------------------------------------------
-P  = zeros([Nu,(T - 1)]);
-un = zeros(Np,T*Ni);
-u  = zeros(Np,T - 1);
-a  = zeros(Nf,T - 1);
+P  = zeros([Nu,1]);
+un = zeros(Np,1);
+u  = zeros(Np,1);
+a  = zeros(Nf,1);
 
 
 % expected rate parameter
 %--------------------------------------------------------------------------
 p     = 1:Np;                       % allowable policies
 qbeta = beta;                       % initialise rate parameters
-gu    = zeros(1,T) + 1/qbeta;       % posterior precision (policy)
+gu    = 1/qbeta;                    % posterior precision (policy)
 
 % solve
 %==========================================================================
@@ -427,7 +425,7 @@ for t = 1:T
                             end
                         end
                         
-                        % entropy 
+                        % entropy
                         %--------------------------------------------------
                         qx  = spm_log(sx);
                         
@@ -436,7 +434,7 @@ for t = 1:T
                         if j < 2, v = v - qx + spm_log(D{f});                                    end
                         if j > 1, v = v - qx + spm_log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
                         if j < S, v = v - qx + spm_log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
-
+                        
                         % (negative) expected free energy
                         %--------------------------------------------------
                         F(k) = F(k) + sx'*v/Nf;
@@ -535,9 +533,9 @@ for t = 1:T
         % simulated dopamine responses (precision at each iteration)
         %------------------------------------------------------------------
         n       = (t - 1)*Ni + i;
-        u(p,t)  = qu;
         wn(n,1) = gu(t);
         un(p,n) = qu;
+        u(p,t)  = qu;
         
     end
     
@@ -560,6 +558,8 @@ for t = 1:T
     MDP.G(:,t) = Q;
     
     
+    % check for residual uncertainty in hierarchical schemes
+    %----------------------------------------------------------------------
     if isfield(MDP,'factor')
         
         for f = MDP.factor
@@ -567,8 +567,10 @@ for t = 1:T
             H(f) = qx'*spm_log(qx);
         end
         
+        % break if there is no further uncertainty to resolve
+        %------------------------------------------------------------------
         if sum(H) > - 1/128
-         %   T = t;
+            T = t;
         end
     end
     
@@ -670,7 +672,7 @@ for t = 1:T
             
         end
     elseif t == T
-        break
+        break;
     end
 end
 
@@ -725,7 +727,7 @@ for f = 1:Nf
     Xn{f} = zeros(Ni,Ns(f),T,T);
     for i = 1:T
         for k = 1:Np
-            Xn{f}(:,:,:,i) = Xn{f}(:,:,:,i) + xn{f}(:,:,:,i,k)*u(k,i);
+            Xn{f}(:,:,:,i) = Xn{f}(:,:,:,i) + xn{f}(:,:,1:T,i,k)*u(k,i);
         end
     end
 end
@@ -733,8 +735,8 @@ end
 % use penultimate beliefs about moving policies
 %--------------------------------------------------------------------------
 if isfield(MDP,'U')
-    qu     = u(p,T - 1);
-    u(p,T) = qu;
+    u(:,T)  = [];
+    un(:,(end - Ni + 1):end) = [];
 end
 
 % assemble results and place in NDP structure
