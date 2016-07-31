@@ -24,7 +24,7 @@ function [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC,TOL)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence_reduce.m 6481 2015-06-16 17:01:47Z karl $
+% $Id: spm_log_evidence_reduce.m 6849 2016-07-31 12:34:33Z karl $
  
 
 % Compute reduced log-evidence
@@ -41,7 +41,8 @@ if nargin < 7, TOL = 1e-8; end
  
 % Remove (a priori) null space
 %--------------------------------------------------------------------------
-E     = rE;
+RE    = rE;
+SE    = qE;
 U     = spm_svd(pC,1e-6);
 qE    = U'*spm_vec(qE);
 pE    = U'*spm_vec(pE);
@@ -70,8 +71,9 @@ F     = F/2;
 % restore full conditional density
 %--------------------------------------------------------------------------
 if nargout > 1
-    pE = spm_vec(E);
+    pE = spm_vec(RE);
     rE = sC*sE;
-    sE = spm_unvec(U*rE + pE - U*U'*pE,E);
+    sE = U*rE + pE - U*U'*pE;
     sC = U*sC*U';
+    sE = spm_unvec(sE,SE);
 end

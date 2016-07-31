@@ -1,4 +1,4 @@
-function [L,D] = spm_eeg_lgainmat(D,Is, channels)
+function [L,D] = spm_eeg_lgainmat(D,Is,channels)
 % loads or computes if necessary a gain matrix
 % FORMAT [L,D] = spm_eeg_lgainmat(D,Is)
 % D    - Data structure
@@ -9,7 +9,7 @@ function [L,D] = spm_eeg_lgainmat(D,Is, channels)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 6393 2015-03-25 15:22:16Z vladimir $
+% $Id: spm_eeg_lgainmat.m 6849 2016-07-31 12:34:33Z karl $
 
 
 % get gain or lead-field matrix
@@ -95,18 +95,16 @@ catch
         if ~isequal(ft_voltype(vol), 'interpolate')
             Gxyz = zeros(length(forward(ind).channels), 3*nvert);
             for i = 1:nvert
-                
                 if siunits
-                    Gxyz(:, (3*i- 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol,...
+                    Gxyz(:, (3*i - 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol,...
                         'dipoleunit', 'nA*m', 'chanunit', units);
                 else
-                    Gxyz(:, (3*i- 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol);
+                    Gxyz(:, (3*i - 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol);
                 end
                 
                 if ismember(i, Ibar)
                     spm_progress_bar('Set', i); drawnow;
                 end
-                
             end
         else
             if siunits
@@ -121,10 +119,8 @@ catch
         
         G{ind} = zeros(size(Gxyz, 1), size(Gxyz, 2)/3);
         for i = 1:nvert
-            
             G{ind}(:, i) = Gxyz(:, (3*i- 2):(3*i))*norm(i, :)';
-            
-            if ismember(i, Ibar)
+            if ismember(i,Ibar)
                 spm_progress_bar('Set', i); drawnow;
             end
             
@@ -150,7 +146,7 @@ catch
         forward(ind).scale = scale;
     end
     
-    if numel(G)>1
+    if numel(G) > 1
         G = cat(1, G{:});
     else
         G = G{1};
