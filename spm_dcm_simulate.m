@@ -27,7 +27,7 @@ function [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_simulate.m 6821 2016-06-23 13:25:39Z vladimir $
+% $Id: spm_dcm_simulate.m 6851 2016-08-01 12:48:29Z vladimir $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -119,24 +119,37 @@ gen = cell(ns,1);
 %--------------------------------------------------------------------------
 
 for i = 1:ns
-    DCM = GCM{i,gen_idx};
-  
-    DCM   = spm_dcm_erp_dipfit(DCM,1);
+    DCM = GCM{i,gen_idx};     
      
     DCM.options.DATA = 0;
     
+    if isfield(DCM, 'Eg')
+        Eg = DCM.Eg;
+    elseif isfield(GCM{i, 1}, 'Eg')
+        Eg = GCM{i, 1}.Eg;
+        
+        M = DCM.M;
+        DCM.M = GCM{i, 1}.M;
+        
+        fields = fieldnames(M);
+        for j = 1:numel(fields)
+            DCM.M.(fields{j}) = M.(fields{j});
+        end       
+    else
+        error('Full inverted model expected in the first column of the input.');
+    end       
+    
+    DCM   = spm_dcm_erp_dipfit(DCM,1);
+    
     % report
     %----------------------------------------------------------------------
-    fprintf('Creating subject %i\n',i)     
+    fprintf('Creating subject %i\n',i)
     
-    if ~isfield(DCM.M, 'G')
-        DCM.M.G = 'spm_lx_erp';
-    end
     
     % generate data
     %----------------------------------------------------------------------
-    G   = feval(DCM.M.G, DCM.Eg, DCM.M);
-    x   = feval(DCM.M.IS, DCM.Ep, DCM.M,DCM.xU);
+    G   = feval(DCM.M.G, Eg, DCM.M);
+    x   = feval(DCM.M.IS, DCM.Ep, DCM.M, DCM.xU);
     for c = 1:length(x)
         y{c} = x{c}*G';
         e    = spm_conv(randn(size(y{c})),8,0);
