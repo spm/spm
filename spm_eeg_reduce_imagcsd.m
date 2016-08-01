@@ -17,7 +17,7 @@ function res = spm_eeg_reduce_imagcsd(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce_imagcsd.m 6843 2016-07-28 10:55:47Z vladimir $
+% $Id: spm_eeg_reduce_imagcsd.m 6852 2016-08-01 12:48:44Z vladimir $
 
 
 if nargin == 0
@@ -107,7 +107,7 @@ for i = 1:nsets
     end
     
     Y  = D(origind, :, :);   
-    Yr = spm_squeeze(D(refind, :, :), 1);    
+    Yr = spm_squeeze(D(refind, :, :), 1)';    
     
     if isequal(D.type, 'continuous')
         fs   = floor(D.fsample);
