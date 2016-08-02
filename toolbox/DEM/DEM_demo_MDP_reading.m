@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_reading
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_reading.m 6848 2016-07-30 10:36:29Z karl $
+% $Id: DEM_demo_MDP_reading.m 6853 2016-08-02 08:29:03Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -261,16 +261,21 @@ spm_MDP_VB_LFP(MDP,[],1);
 subplot(3,1,3)
 spm_MDP_search_plot(MDP)
 
-return
+% return
+% 
+% % illustrate evidence accumulation and perceptual synthesis
+% %--------------------------------------------------------------------------
+% spm_figure('GetWin','Figure 3'); clf
+% spm_MDP_search_percept(MDP)
 
-% illustrate evidence accumulation and perceptual synthesis
+% electrophysiological responses
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 3'); clf
-spm_MDP_search_percept(MDP)
+spm_figure('GetWin','Figure 4'); clf
+spm_MDP_VB_ERP(MDP,1);
 
 return
 
-% illustrate a sequence of trials
+% illustrate global and local violations
 %==========================================================================
 
 % true initial states – with context change at trial 12

@@ -38,7 +38,7 @@ function D = spm_eeg_inv_vb_ecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 %
-% $Id: spm_eeg_inv_vb_ecd_gui.m 6849 2016-07-31 12:34:33Z karl $
+% $Id: spm_eeg_inv_vb_ecd_gui.m 6853 2016-08-02 08:29:03Z karl $
 
 % Load data, if necessary
 %==========================================================================
@@ -435,10 +435,13 @@ inverse = struct( ...
     'Lecd',L, ...              % dipole lead fields
     'loc',pos, ...             % loc of dip (n_dip x 3)
     'exitflag',1, ...          % Converged (1) or not (0)
+    'n_seeds',1, ...           % one 
+    'Mtb',1, ...               % one 
     'P',[]);                   % save all kaboodle too.
 
 % Save results and display
 %--------------------------------------------------------------------------
+inverse.mniloc = {pos'};
 D.inv{val}.inverse = inverse;
 save(D)
 
