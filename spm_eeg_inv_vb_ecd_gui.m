@@ -21,7 +21,7 @@ function D = spm_eeg_inv_vb_ecd_gui(D,val)
 % - eliminates redundant dipoles using Bayesian model reduction
 % - displays the results.
 %
-% This routine provides a Bayes optimalsolution to the ECD problem. It
+% This routine provides a Bayes optimal solution to the ECD problem. It
 % finesses the nonlinear inversion problem by starting with a large number
 % of dipoles (on the cortical surface). It then fits the principal
 % spatial modes of the data over a specified peristimulus time window using
@@ -38,7 +38,7 @@ function D = spm_eeg_inv_vb_ecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 %
-% $Id: spm_eeg_inv_vb_ecd_gui.m 6853 2016-08-02 08:29:03Z karl $
+% $Id: spm_eeg_inv_vb_ecd_gui.m 6854 2016-08-06 10:04:19Z karl $
 
 % Load data, if necessary
 %==========================================================================
@@ -225,7 +225,7 @@ end % if eeg data
 
 % data and principal modes
 %--------------------------------------------------------------------------
-Nmod  = 4;                              % maximum nnumber of modes
+Nmod  = 4;                              % maximum number of modes
 ntr   = numel(ltr);
 ntb   = numel(ltb);
 dat_y = D(P.Ic,ltb,ltr)*EEGscale;
@@ -347,7 +347,7 @@ while Ndip > Sdip
     pC        = R*pC*R';
     Cp        = R*Cp*R';
     
-    % record changing free energy
+    % record changes in free energy
     %----------------------------------------------------------------------
     Ndip       = numel(r);
     F(end + 1) = G;

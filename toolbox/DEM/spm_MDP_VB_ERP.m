@@ -1,36 +1,53 @@
-function [x] = spm_MDP_VB_ERP(MDP,FACTOR,T)
+function [x,y,ind] = spm_MDP_VB_ERP(MDP,FACTOR,T)
 % auxiliary routine for plotting hierarchical electrophysiological responses
-% FORMAT [x] = spm_MDP_VB_ERP(MDP,FACTOR,T)
+% FORMAT [x,y] = spm_MDP_VB_ERP(MDP,FACTOR,T)
 %
-% u - unit rate of change of firing (simulated voltage)
-% v - unit responses
+% MDP    - structure (see spm_MDP_VB)
+% FACTOR - the hidden factors (at the first and second level) to plot
+% T      - flag to return cell of expectations (at time T; usually 1)
 %
-% T - flag to return cell of expectations (at time T)
+% x      - simulated ERPs (high-level)
+% y      - simulated ERPs (low level)
+% ind    - indices or bins at the end of each (synchronised) epoch
 %
-% MDP - structure (see spm_MDP_VB)
+% This routine combines first and second level hidden expectations by
+% synchronising them; such that first level updating is followed by an
+% epoch of second level updating - during which updating is suspended 
+% (and expectations are held constant). The ensuing spike rates can be
+% regarded as showing delay period activity. In this routine, simulated
+% local field potentials are band pass filtered spike rates (between eight
+% and 32 Hz).
+%
+% Graphics are provided for first and second levels, in terms of simulated
+% spike rates (posterior expectations), which are then combined to show
+% simulated local field potentials for both levels (superimposed).
+%
+% At the lower level, only expectations about hidden states in the first
+% epoch are returned (because the number of epochs can differ from trial
+% to trial).
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_MDP_VB_ERP.m 6853 2016-08-02 08:29:03Z karl $
-
-
-% defaults
+% $Id: spm_MDP_VB_ERP.m 6854 2016-08-06 10:04:19Z karl $
+ 
+ 
+% defaults: assume the first factor is of interest
 %==========================================================================
-try, f = FACTOR; catch, f = 1;      end
-xn  = MDP.xn{f};
-
+try, f = FACTOR(1); catch, f = 1; end
+xn     = MDP.xn{f};
+ 
 % dimensions
 %--------------------------------------------------------------------------
 Nb  = size(xn,1);         % number of time bins per epochs
 Nx  = size(xn,2);         % number of states
 Ne  = size(xn,3);         % number of epochs
-
-% units to plot
+ 
+% units to plot (if T is specified, extract a single time point)
 %--------------------------------------------------------------------------
 UNITS = [];
 if nargin < 3
-    for i = 1:Ne
+    for i = 1:1
         for j = 1:Nx
             UNITS(:,end + 1) = [j;i];
         end
@@ -40,22 +57,23 @@ else
         UNITS(:,end + 1) = [j;T];
     end
 end
-
-% expected states
+ 
+% expected hidden states
 %==========================================================================
 for k = 1:Ne
     for j = 1:size(UNITS,2)
         x{k,j} = xn(:,UNITS(1,j),UNITS(2,j),k);
     end
     if isfield(MDP,'mdp')
-        y{k} = spm_MDP_VB_ERP(MDP.mdp(k),1,1);
+        try, f = FACTOR(2);  catch,  f = 1;  end
+        y{k}   = spm_MDP_VB_ERP(MDP.mdp(k),f,1);
     else
         y{k} = [];
     end
 end
-
+ 
 if nargin > 2, return, end
-
+ 
 % synchronise responses
 %--------------------------------------------------------------------------
 u   = {};
@@ -65,92 +83,55 @@ for k = 1:Ne
     
     % low-level
     %----------------------------------------------------------------------
-    v{end + 1,1}     = spm_cat(y{k});
+    v{end + 1,1} = spm_cat(y{k});
     if k > 1
         u{end + 1,1} = ones(size(v{end,:},1),1)*u{end,1}(end,:);
     else
         u{end + 1,1} = ones(size(v{end,:},1),1)*uu(1,:);
     end
     
+    % time bin indices
+    %----------------------------------------------------------------------
+    ind(k) = size(u{end},1);
+ 
     % high-level
     %----------------------------------------------------------------------
     u{end + 1,1} = spm_cat(x(k,:));
     v{end + 1,1} = ones(size(u{end,:},1),1)*v{end,1}(end,:);
     
+    % time bin indices
+    %----------------------------------------------------------------------
+    ind(k) = ind(k) + size(u{end},1);
+    
 end
-
+ 
+% time bin (seconds)
+%--------------------------------------------------------------------------
 u  = spm_cat(u);
 v  = spm_cat(v);
-
-
-if nargout, return, end
-
-% phase amplitude coupling
-%==========================================================================
-dt  = 1/64;                              % time bin (seconds)
-t   = (1:(Nb*Ne*Nt))*dt;                 % time (seconds)
-Hz  = 4:32;                              % frequency range
-n   = 1/(4*dt);                          % window length
-w   = Hz*(dt*n);                         % cycles per window
-
-% simulated local field potential
+dt = 1/64;
+t  = (1:size(u,1))*dt;
+ 
+% bandpass filter between 8 and 32 Hz
 %--------------------------------------------------------------------------
-LFP = spm_cat(x);
-
-if Nt == 1, subplot(3,2,1), else subplot(4,1,1),end
-imagesc(t,1:(Nx*Ne),spm_cat(z)'),title('Unit responses','FontSize',16)
-xlabel('time (seconds)','FontSize',12), ylabel('unit','FontSize',12)
-grid on, set(gca,'XTick',(1:(Ne*Nt))*Nb*dt)
-grid on, set(gca,'YTick',(1:Ne)*Nx)
-if Ne*Nt > 32, set(gca,'XTickLabel',[]), end
-if Nt == 1,    axis square,              end
-
-% time frequency analysis and theta phase
-%--------------------------------------------------------------------------
-wft = spm_wft(LFP,w,n);
-csd = sum(abs(wft),3);
-lfp = sum(LFP,2);
-phi = spm_iwft(sum(wft(1,:,:),3),w(1),n);
-lfp = 4*lfp/std(lfp) + 16;
-phi = 4*phi/std(phi) + 16;
-
-if Nt == 1, subplot(3,2,3), else subplot(4,1,2),end
-imagesc(t,Hz,csd), axis xy, hold on
-plot(t,lfp,'w:',t,phi,'w'), hold off
-grid on, set(gca,'XTick',(1:(Ne*Nt))*Nb*dt)
-
-title('Time-frequency response','FontSize',16)
-xlabel('time (seconds)','FontSize',12), ylabel('frequency','FontSize',12)
-if Nt == 1, axis square, end
-
-% local field potentials
+c  = 1/32;
+x  = log(u + c);
+y  = log(v + c);
+x  = spm_conv(x,2,0) - spm_conv(x,16,0);
+y  = spm_conv(y,2,0) - spm_conv(y,16,0);
+ 
+if nargout > 2, return, end
+ 
+% simulated firing rates and the local field potentials
 %==========================================================================
-if Nt == 1, subplot(3,2,4), else subplot(4,1,3),end
-plot(t,spm_cat(u)),     hold off, spm_axis tight, a = axis;
-plot(t,spm_cat(x),':'), hold on
-plot(t,spm_cat(u)),     hold off, axis(a)
-grid on, set(gca,'XTick',(1:(Ne*Nt))*Nb*dt),
-for i = 2:2:Nt
-    h = patch(((i - 1) + [0 0 1 1])*Ne*Nb*dt,a([3,4,4,3]),-[1 1 1 1],'w');
-    set(h,'LineStyle',':','FaceColor',[1 1 1] - 1/32);
-end
+subplot(4,1,1), imagesc(t,1:(size(u,2)),1 - u')
+title('Unit responses (high-level)','FontSize',16), ylabel('Unit')
+ 
+subplot(4,1,2), imagesc(t,1:(size(v,2)),1 - v')
+title('Unit responses (low-level)' ,'FontSize',16), ylabel('Unit')
+ 
+subplot(4,1,3), plot(t,x',t,y')
 title('Local field potentials','FontSize',16)
-xlabel('time (seconds)','FontSize',12)
-ylabel('Response','FontSize',12)
-if Nt == 1, axis square, end
-
-% firing rates
-%==========================================================================
-qu   = spm_cat(v);
-qx   = spm_cat(z);
-if Nt == 1, subplot(3,2,2)
-    plot(t,qu),     hold on, spm_axis tight, a = axis;
-    plot(t,qx,':'), hold off
-    grid on, set(gca,'XTick',(1:(Ne*Nt))*Nb*dt), axis(a)
-    title('Firing rates','FontSize',16)
-    xlabel('time (seconds)','FontSize',12)
-    ylabel('Response','FontSize',12)
-    axis square
-end
-
+ylabel('Depolarisation'),spm_axis tight
+grid on, set(gca,'XTick',(1:(length(t)/Nb))*Nb*dt)
 

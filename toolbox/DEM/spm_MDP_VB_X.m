@@ -36,6 +36,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % MDP.R(P,T)            - conditional expectations over policies
 %
 % MDP.un          - simulated neuronal encoding of hidden states
+% MDP.vn          - simulated neuronal prediction error
 % MDP.xn          - simulated neuronal encoding of policies
 % MDP.wn          - simulated neuronal encoding of precision (tonic)
 % MDP.dn          - simulated dopamine responses (phasic)
@@ -93,7 +94,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6848 2016-07-30 10:36:29Z karl $
+% $Id: spm_MDP_VB_X.m 6854 2016-08-06 10:04:19Z karl $
 
 
 % deal with a sequence of trials
@@ -150,13 +151,20 @@ end
 % set up and preliminaries
 %==========================================================================
 try
+    T = MDP.T;                      % number of updates
     V = MDP.U;                      % allowable actions (1,Np)
-    T = MDP.T;                      % number of transitions
+
 catch
     V = MDP.V;                      % allowable policies (T - 1,Np)
     T = size(MDP.V,1) + 1;          % number of transitions
 end
 
+% eensure ppolicy length iis less than the number of updates
+%--------------------------------------------------------------------------
+if size(V,1) > (T - 1)
+    V = V(1:(T - 1),:,:);
+end
+    
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
 Ng  = numel(MDP.A);                 % number of outcome factors
@@ -248,9 +256,10 @@ end
 
 % precision defaults
 %--------------------------------------------------------------------------
-try, alpha = MDP.alpha; catch, alpha = 16; end
-try, beta  = MDP.beta;  catch, beta  = 1;  end
-try, tau   = MDP.tau;   catch, tau   = 4;  end
+try, alpha = MDP.alpha; catch, alpha = 16;   end
+try, beta  = MDP.beta;  catch, beta  = 1;    end
+try, tau   = MDP.tau;   catch, tau   = 4;    end
+try, chi   = MDP.chi;   catch, chi   = 1/64; end
 
 % initialise
 %--------------------------------------------------------------------------
@@ -268,6 +277,7 @@ for f = 1:Nf
     % initialise posteriors over states
     %----------------------------------------------------------------------
     xn{f} = zeros(Ni,Ns(f),1,1,Np) + 1/Ns(f);
+    vn{f} = zeros(Ni,Ns(f),1,1,Np);
     x{f}  = zeros(Ns(f),T,Np)      + 1/Ns(f);
     X{f}  = repmat(D{f},1,1);
     for k = 1:Np
@@ -298,7 +308,13 @@ for t = 1:T
     %======================================================================
     if isfield(MDP,'link')
         
-        mdp   = MDP.MDP;
+        % use previous inversions if available
+        %------------------------------------------------------------------
+        try
+            mdp = MDP.mdp(t);
+        catch
+            mdp = MDP.MDP;
+        end
         link  = MDP.link;
         nf    = numel(mdp.D);
         for f = 1:Nf
@@ -326,12 +342,22 @@ for t = 1:T
                 
                 % otherwise use priors
                 %----------------------------------------------------------
-                po       = mdp.D{f};
+                if isfield(MDP,'d')
+                    po = spm_norm(mdp.d{f});
+                elseif isfield(MDP,'D')
+                    po = spm_norm(mdp.D{f});
+                else
+                    po = spm_norm(ones(Ns(f),1));
+                end
             end
             
             % sample true state for lower level
-            %--------------------------------------------------------------
-            mdp.s(f,1) = find(rand < cumsum(po),1);
+            %----------------------------------------------------------------------
+            try
+                mdp.s(f,1) = mdp.s(f,1);
+            catch
+                mdp.s(f,1) = find(rand < cumsum(po),1);
+            end
             
         end
         
@@ -410,6 +436,7 @@ for t = 1:T
                     % hidden states for this time and policy
                     %------------------------------------------------------
                     sx = x{f}(:,j,k);
+                    v  = spm_zeros(sx);
                     
                     % evaluate free energy and gradients (v = dFdx)
                     %------------------------------------------------------
@@ -417,7 +444,6 @@ for t = 1:T
                         
                         % marginal likelihood over outcome factors
                         %--------------------------------------------------
-                        v   = 0;
                         if j <= t
                             for g = 1:Ng
                                 Aq = spm_dot(Ao{g},xq,f);
@@ -451,6 +477,7 @@ for t = 1:T
                     %------------------------------------------------------
                     x{f}(:,j,k)      = sx;
                     xn{f}(i,:,j,t,k) = sx;
+                    vn{f}(i,:,j,t,k) = v - mean(v);
                     
                 end
             end
@@ -569,7 +596,7 @@ for t = 1:T
         
         % break if there is no further uncertainty to resolve
         %------------------------------------------------------------------
-        if sum(H) > - 1/128
+        if sum(H) > - chi
             T = t;
         end
     end
@@ -725,9 +752,11 @@ dn    = 8*gradient(wn) + wn/8;
 %--------------------------------------------------------------------------
 for f = 1:Nf
     Xn{f} = zeros(Ni,Ns(f),T,T);
+    Vn{f} = zeros(Ni,Ns(f),T,T);
     for i = 1:T
         for k = 1:Np
             Xn{f}(:,:,:,i) = Xn{f}(:,:,:,i) + xn{f}(:,:,1:T,i,k)*u(k,i);
+            Vn{f}(:,:,:,i) = Vn{f}(:,:,:,i) + vn{f}(:,:,1:T,i,k)*u(k,i);
         end
     end
 end
@@ -741,7 +770,7 @@ end
 
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------
-MDP.T   = T;
+MDP.T   = T;              % number of belief updates
 MDP.P   = P;              % probability of action at time 1,...,T - 1
 MDP.Q   = x;              % conditional expectations over N hidden states
 MDP.X   = X;              % Bayesian model averages over T outcomes
@@ -754,6 +783,7 @@ MDP.w   = gu;             % posterior expectations of precision (policy)
 MDP.C   = Vo;             % utility
 
 MDP.un  = un;             % simulated neuronal encoding of policies
+MDP.vn  = Vn;             % simulated neuronal prediction error
 MDP.xn  = Xn;             % simulated neuronal encoding of hidden states
 MDP.wn  = wn;             % simulated neuronal encoding of precision
 MDP.dn  = dn;             % simulated dopamine responses (deconvolved)
