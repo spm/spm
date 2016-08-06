@@ -14,11 +14,31 @@ function [y] = spm_gx_hdm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_hdm.m 6262 2014-11-17 13:47:56Z karl $
+% $Id: spm_gx_hdm.m 6855 2016-08-06 10:06:35Z karl $
 
 
 % biophysical constants for 1.5 T: 
 %==========================================================================
+
+% hemodynamic parameters
+%--------------------------------------------------------------------------
+%   H(1) - signal decay                                   d(ds/dt)/ds)
+%   H(2) - autoregulation                                 d(ds/dt)/df)
+%   H(3) - transit time                                   (t0)
+%   H(4) - exponent for Fout(v)                           (alpha)
+%   H(5) - resting oxygen extraction                      (E0)
+%   H(6) - ratio of intra- to extra-vascular components   (epsilon)
+%--------------------------------------------------------------------------
+if isstruct(P)
+    P     = [0.64 0.32 2.00 0.32 0.4];
+    f     = x;
+    for i = 1:numel(P.decay)
+        P(6)   = P.epsilon;
+        y(i,1) = spm_gx_hdm(x(:,i),u(i),P,M);
+    end
+    return
+end
+
 
 % echo time (seconds)
 %--------------------------------------------------------------------------

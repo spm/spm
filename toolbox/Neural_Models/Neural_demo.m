@@ -22,7 +22,7 @@ function varargout = Neural_demo(varargin)
 
 % Edit the above text to modify the response to help Neural_demo
 
-% Last Modified by GUIDE v2.5 16-Jun-2015 17:40:07
+% Last Modified by GUIDE v2.5 05-Aug-2016 16:41:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -201,4 +201,9 @@ run_demo_Callback(hObject, handles, 'spm_epileptor_demo')
 % --- Executes on button press in pushbutton42.
 function pushbutton42_Callback(hObject, eventdata, handles)
 run_demo_Callback(hObject, handles, 'spm_erp2csd_demo')
+
+
+% --- Executes on button press in pushbutton46.
+function pushbutton46_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'DEMO_dcm_fmri_nnm')
 

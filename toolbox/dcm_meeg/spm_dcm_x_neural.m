@@ -3,7 +3,7 @@ function [x,f,h] = spm_dcm_x_neural(P,model)
 % FORMAT [x,f,h] = spm_dcm_x_neural(P,'model')
 %
 %  P      - parameter structure
-% 'model'   - 'ERP','SEP','CMC','LFP','CMM','NNM', 'MFM' or 'CMM NMDA'
+% 'model' - 'ERP','SEP','CMC','LFP','CMM','NNM', 'MFM' or 'CMM NMDA'
 %
 % x   - initial states
 % f   - state equation dxdt = f(x,u,P,M)  - synaptic activity
@@ -12,7 +12,7 @@ function [x,f,h] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 6725 2016-02-19 19:14:25Z karl $
+% $Id: spm_dcm_x_neural.m 6855 2016-08-06 10:06:35Z karl $
 
 % paramteric state equation
 %--------------------------------------------------------------------------
