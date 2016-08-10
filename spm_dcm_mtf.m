@@ -25,7 +25,7 @@ function [S,K,s,w,t,dfdx] = spm_dcm_mtf(P,M,U)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mtf.m 6233 2014-10-12 09:43:50Z karl $
+% $Id: spm_dcm_mtf.m 6856 2016-08-10 17:55:05Z karl $
 
 
 % get local linear approximation
@@ -100,7 +100,7 @@ s     = diag(s);
 % condition unstable eigenmodes
 %--------------------------------------------------------------------------
 if max(w) > 1
-    s = 1j*imag(s) + min(real(s),-4);
+    s = 1j*imag(s) + real(s) - exp(real(s));
 else
     s = 1j*imag(s) + min(real(s),-1/32);
 end

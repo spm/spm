@@ -37,7 +37,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 6738 2016-03-03 12:07:41Z karl $
+% $Id: spm_bireduce.m 6856 2016-08-10 17:55:05Z karl $
 
 
 % set up
@@ -56,7 +56,7 @@ end
 
 % expansion point
 %--------------------------------------------------------------------------
-x     = M.x;
+x     = spm_vec(M.x);
 try
     u = spm_vec(M.u);
 catch
@@ -74,8 +74,8 @@ if all(isfield(M,{'dfdxu','dfdx','dfdu','f0'}))
     dfdu  = M.dfdu;
     f0    = M.f0;
 else
-    [dfdxu,dfdx] = spm_diff(funx,x,u,P,M,[1 2]);
-    [dfdu, f0]   = spm_diff(funx,x,u,P,M,2);
+    [dfdxu,dfdx] = spm_diff(funx,M.x,u,P,M,[1 2]);
+    [dfdu, f0]   = spm_diff(funx,M.x,u,P,M,2);
 end
 f0        = spm_vec(f0);
 m         = length(dfdxu);          % m inputs
@@ -99,14 +99,14 @@ end
 % Bilinear operator - M0
 %--------------------------------------------------------------------------
 M0    = spm_cat({0                     []    ;
-                (f0 - dfdx*spm_vec(x)) dfdx});
+                (f0 - dfdx*x) dfdx});
 
 % Bilinear operator - M1 = dM0/du
 %--------------------------------------------------------------------------
 M1    = cell(m,1);
 for i = 1:m
     M1{i} = spm_cat({0,                                []        ;
-                    (dfdu(:,i) - dfdxu{i}*spm_vec(x)), dfdxu{i}});
+                    (dfdu(:,i) - dfdxu{i}*x), dfdxu{i}});
 end
 
 if nargout < 3, return, end
@@ -127,20 +127,20 @@ end
 
 % g(x(0),0)
 %--------------------------------------------------------------------------
-[dgdx,g0] = spm_diff(fung,x,u,P,M,1);
+[dgdx,g0] = spm_diff(fung,M.x,u,P,M,1);
 g0        = spm_vec(g0);
 l         = length(g0);
 
 % Output matrices - L1
 %--------------------------------------------------------------------------
-L1    = spm_cat({(spm_vec(g0) - dgdx*spm_vec(x)), dgdx});
+L1    = spm_cat({(spm_vec(g0) - dgdx*x), dgdx});
 
 
 if nargout < 4, return, end
 
 % Output matrices - L2
 %--------------------------------------------------------------------------
-dgdxx = spm_diff(fung,x,u,P,M,[1 1],'nocat');
+dgdxx = spm_diff(fung,M.x,u,P,M,[1 1],'nocat');
 for i = 1:l
     for j = 1:n
         D{i}(j,:) = dgdxx{j}(i,:);

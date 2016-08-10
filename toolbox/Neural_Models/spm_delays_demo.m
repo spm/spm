@@ -19,7 +19,7 @@ function spm_delays_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_delays_demo.m 6030 2014-05-31 13:09:24Z karl $
+% $Id: spm_delays_demo.m 6856 2016-08-10 17:55:05Z karl $
  
 
 % Notes: analysis of delay operator
@@ -100,7 +100,7 @@ for j  = 1:length(k)
     %======================================================================
     [S,K,s,w,t]  = spm_dcm_mtf(P,M);
     
-    spm_spectral_plot(t*1000,K,'r','iimpulse response','density',1)
+    spm_spectral_plot(t*1000,K,'r','peristimulus time (ms)','density',1)
     
 end
 

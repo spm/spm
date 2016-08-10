@@ -14,7 +14,7 @@ function [y] = spm_gx_hdm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_hdm.m 6855 2016-08-06 10:06:35Z karl $
+% $Id: spm_gx_hdm.m 6856 2016-08-10 17:55:05Z karl $
 
 
 % biophysical constants for 1.5 T: 
@@ -30,11 +30,10 @@ function [y] = spm_gx_hdm(x,u,P,M)
 %   H(6) - ratio of intra- to extra-vascular components   (epsilon)
 %--------------------------------------------------------------------------
 if isstruct(P)
-    P     = [0.64 0.32 2.00 0.32 0.4];
-    f     = x;
+    H     = [0.64 0.32 2.00 0.32 0.4];
     for i = 1:numel(P.decay)
-        P(6)   = P.epsilon;
-        y(i,1) = spm_gx_hdm(x(:,i),u(i),P,M);
+        H(6)   = P.epsilon;
+        y(i,1) = spm_gx_hdm(x(i,:),u(i),H,M);
     end
     return
 end

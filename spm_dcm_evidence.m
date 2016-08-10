@@ -16,14 +16,14 @@ function evidence = spm_dcm_evidence(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_evidence.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_dcm_evidence.m 6856 2016-08-10 17:55:05Z karl $
 
 
-% Only look at those parameters with non-zero prior covariance
+% Only look at those parameters with non-zero posterior covariance
 %--------------------------------------------------------------------------
 v     = DCM.v;                                   % number of samples
 n     = DCM.n;                                   % number of regions
-wsel  = find(diag(DCM.M.pC));
+wsel  = find(diag(DCM.Cp));
 
 % Look at costs of coding prediction errors by region
 %--------------------------------------------------------------------------

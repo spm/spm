@@ -39,7 +39,7 @@ function [E,V] = spm_cmc_priors(A,B,C)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmc_priors.m 6855 2016-08-06 10:06:35Z karl $
+% $Id: spm_cmc_priors.m 6856 2016-08-10 17:55:05Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -105,7 +105,7 @@ for i = 1:length(B)
     try
         V.N{i} = (B{i} & Q & V.M)/8;
     catch
-        V.N{i} = 0*B{i};
+        V.N{i} = spm_zeros(B{i});
     end
 end
 

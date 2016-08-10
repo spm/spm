@@ -4,7 +4,7 @@ function [X] = spm_dot(X,x,i)
 %
 % X   - numeric array
 % x   - cell array of numeric vectors
-% DIM - dimensional to omit (asumes ndims(X) = numel(x))
+% DIM - dimensions to omit (asumes ndims(X) = numel(x))
 %
 % Y  - inner product obtained by summing the products of X and x along DIM
 %
@@ -15,7 +15,7 @@ function [X] = spm_dot(X,x,i)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dot.m 6828 2016-07-06 11:34:25Z karl $
+% $Id: spm_dot.m 6856 2016-08-10 17:55:05Z karl $
 
 % initialise X and vXthere
 %--------------------------------------------------------------------------

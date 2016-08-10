@@ -44,7 +44,7 @@ function [E,V] = spm_tfm_priors(A,B,C)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_tfm_priors.m 6234 2014-10-12 09:59:10Z karl $
+% $Id: spm_tfm_priors.m 6856 2016-08-10 17:55:05Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -72,6 +72,8 @@ D{4}  = A{2};                                     % backward (ii)
 
 % modulatory extrinsic connectivity
 %--------------------------------------------------------------------------
+if numel(A) < 3, A{3} = spm_zeros(A{1}); end
+
 E.M   = 0*A{3};
 V.M   = ~~A{3};
 A     = D;
@@ -95,7 +97,11 @@ Q     = Q | speye(n,n);
 for i = 1:length(B)
       B{i} = ~~B{i};
     E.B{i} = 0*B{i};
-    V.B{i} = (B{i} & Q & ~V.M)/8;   
+    try
+        V.B{i} = (B{i} & Q & ~V.M)/8;
+    catch
+        V.B{i} = B{i}/8;
+    end
 end
 
 % plasticity parameters
@@ -108,14 +114,18 @@ E.F  = sparse(n,4);   V.F  = sparse(n,4) + 1/16;  % decay
 %--------------------------------------------------------------------------
 for i = 1:length(B)
     E.N{i} = 0*B{i};
-    V.N{i} = (B{i} & Q & V.M)/8;
+    try
+        V.N{i} = (B{i} & Q & V.M)/8;
+    catch
+        V.N{i} = spm_zeros(B{i});
+    end
 end
 
 % exogenous connectivity - where inputs enter
 %--------------------------------------------------------------------------
-C      = ~~C;
-E.C    = C*32 - 32;
-V.C    = C/32;
+C    = ~~C;
+E.C  = C*32 - 32;
+V.C  = C/32;
  
 % synaptic parameters
 %--------------------------------------------------------------------------

@@ -34,7 +34,7 @@ function [CSD,ERP,csd,mtf,w,pst,x,dP] = spm_csd_int(P,M,U)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 6254 2014-11-04 18:24:21Z karl $
+% $Id: spm_csd_int.m 6856 2016-08-10 17:55:05Z karl $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -91,8 +91,12 @@ end
 
 % number of endogenous inputs and hidden states
 %==========================================================================
-nu    = length(P.A{1});
-nx    = M.n;
+try
+    nx = M.n;
+catch
+    nx = spm_length(M.x);
+end
+nu    = size(P.A{1},1);
 nc    = size(X,1);
 dP    = cell(nc,1);
 mtf   = cell(nc,1);

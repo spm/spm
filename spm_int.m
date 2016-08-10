@@ -55,7 +55,7 @@ function [y] = spm_int(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int.m 5692 2013-10-13 13:44:05Z karl $
+% $Id: spm_int.m 6856 2016-08-10 17:55:05Z karl $
  
  
 % convert U to U.u if necessary
@@ -76,10 +76,9 @@ x = [1; spm_vec(M.x)];
 % add [0] states if not specified
 %--------------------------------------------------------------------------
 try
-    M.f   = spm_funcheck(M.f);
+    M.f = spm_funcheck(M.f);
 catch
     M.f = @(x,u,P,M) sparse(0,1);
-    M.n = 0;
     M.x = sparse(0,0);
 end
 

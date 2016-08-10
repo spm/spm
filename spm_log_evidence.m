@@ -29,7 +29,7 @@ function [F,sE,sC] = spm_log_evidence(varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence.m 5657 2013-09-26 16:53:40Z karl $
+% $Id: spm_log_evidence.m 6856 2016-08-10 17:55:05Z karl $
  
 % Compute reduced log-evidence
 %==========================================================================
@@ -58,8 +58,9 @@ end
 
 % check to see if prior oovaiances are structures
 %--------------------------------------------------------------------------
-if isstruct(pC), pC = diag(spm_vec(pC)); end
-if isstruct(rC), rC = diag(spm_vec(rC)); end
+if isstruct(pC) || iscell(pC), pC = diag(spm_vec(pC)); end
+if isstruct(qC) || iscell(qC), qC = diag(spm_vec(qC)); end
+if isstruct(rC) || iscell(rC), rC = diag(spm_vec(rC)); end
  
 % reduced subspace 
 %--------------------------------------------------------------------------

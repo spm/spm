@@ -13,7 +13,7 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 6587 2015-11-02 10:29:49Z karl $
+% $Id: spm_plot_ci.m 6856 2016-08-10 17:55:05Z karl $
 
 
 % get axis
@@ -45,6 +45,7 @@ if isempty(j),        j = 1:size(E,1);   end
 
 % order and length of sequence
 %--------------------------------------------------------------------------
+O     = E;
 E     = E(j,:);
 [n,N] = size(E);
 
@@ -64,7 +65,7 @@ if iscell(C)
         
         % try cell array of variances
         %------------------------------------------------------------------
-        c = ci*sqrt(spm_unvec(spm_vec(C),E));
+        c = ci*sqrt(spm_unvec(spm_vec(C),O));
         c = c(j,:);
     end
     
@@ -72,16 +73,16 @@ elseif isstruct(C)
     
     % try structure of variances
     %----------------------------------------------------------------------
-    c = ci*sqrt(spm_unvec(spm_vec(C),E));
+    c = ci*sqrt(spm_unvec(spm_vec(C),O));
     c = c(j,:);
     
 elseif isnumeric(C)
     
     % try matrix of variances
     %----------------------------------------------------------------------
-    if all(size(C) == size(E))
+    if all(size(C) == size(O))
         c = ci*sqrt(C(j,:));
-    elseif all(size(C') == size(E))
+    elseif all(size(C') == size(O))
         c = ci*sqrt(C(:,j));
     else
         

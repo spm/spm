@@ -16,7 +16,7 @@ function spm_lfp_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_demo.m 5922 2014-03-18 20:10:17Z karl $
+% $Id: spm_lfp_demo.m 6856 2016-08-10 17:55:05Z karl $
 
 
 % Model specification
@@ -98,7 +98,7 @@ w          = ((1:N) - 1)/N/dt;
 [K0,K1,K2] = spm_kernels(M0,M1,L1,L2,N,dt);
 G1         = fft(K1);
 G2         = fft2(K2);
-i          = 1:(N/8);
+i          = 1:(N/4);
 
 subplot(2,2,1)
 plot(t,K1)

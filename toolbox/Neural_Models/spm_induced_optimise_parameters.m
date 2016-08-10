@@ -10,7 +10,7 @@ function [Ep M] = spm_induced_optimise_parameters(PARAMS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise_parameters.m 5951 2014-04-12 11:38:44Z karl $
+% $Id: spm_induced_optimise_parameters.m 6856 2016-08-10 17:55:05Z karl $
  
 % Parameters to optimise
 %--------------------------------------------------------------------------
@@ -120,11 +120,11 @@ spm_figure('GetWin','Spectral responses'); clf
 subplot(2,2,1)
 Gp    = spm_csd_mtf(pE,M);
 Gq    = spm_csd_mtf(Ep,M);
-plot(Hz,abs(spm_diag_array(Gp{1})),'--'), hold on
-plot(Hz,abs(spm_diag_array(Gq{1})),'-'),  hold on
-plot(Hz,abs(spm_diag_array(csd)),  ':'),  hold off
+plot(Hz,abs(spm_diag_array(Gp{1})),'r'), hold on
+plot(Hz,abs(spm_diag_array(Gq{1})),'b'),  hold on
+plot(Hz,abs(spm_diag_array(csd)),  '--'),  hold off
 
-title('Spectral respones','FontSize',16)
+title({'Spectral responses';'Before (red) and after (blue)'},'FontSize',16)
 xlabel('Frequency')
 ylabel('Spectral density')
 axis square

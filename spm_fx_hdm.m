@@ -27,7 +27,7 @@ function [f] = spm_fx_hdm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_hdm.m 6855 2016-08-06 10:06:35Z karl $
+% $Id: spm_fx_hdm.m 6856 2016-08-10 17:55:05Z karl $
 
 
 % hemodynamic parameters
@@ -40,13 +40,13 @@ function [f] = spm_fx_hdm(x,u,P,M)
 %   H(6) - ratio of intra- to extra-vascular components   (epsilon)
 %--------------------------------------------------------------------------
 if isstruct(P)
-    P     = [0.64 0.32 2.00 0.32 0.4];
-    f     = x;
+    H     = [0.64 0.32 2.00 0.32 0.4 1 1];
     for i = 1:numel(P.decay)
-        P(1)   = P(1)*exp(P.decay(i));
-        P(3)   = P(3)*exp(P.transit(i));
-        f(:,i) = spm_fx_hdm(x(:,i),u(i),P);
+        H(1)   = H(1)*exp(P.decay(i));
+        H(3)   = H(3)*exp(P.transit(i));
+        f(i,:) = spm_fx_hdm(x(i,:),u(i),H);
     end
+    f     = f(:);
     return
 end
 

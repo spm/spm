@@ -41,12 +41,13 @@ function spm_mtf_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mtf_demo.m 5934 2014-03-28 15:03:00Z karl $
+% $Id: spm_mtf_demo.m 6856 2016-08-10 17:55:05Z karl $
  
  
 % empirical data - sort and decimate
 %--------------------------------------------------------------------------
 load  'ten_minute_average_control.mat';
+model = 'LFP';
 y     = G_control(:);
 w     = f_Control(:);
 [w i] = sort(w);
@@ -78,7 +79,7 @@ C     = sparse(n,1,1,n,1);
  
 % get priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_dcm_neural_priors(A,B,C,'LFP');
+[pE,pC] = spm_dcm_neural_priors(A,B,C,model);
 
 % augment with priors on spatial model
 %--------------------------------------------------------------------------
@@ -90,7 +91,7 @@ C     = sparse(n,1,1,n,1);
 
 % intial states and equations of motion
 %--------------------------------------------------------------------------
-[x,f ]  = spm_dcm_x_neural(pE,'LFP');
+[x,f]  = spm_dcm_x_neural(pE,model);
 
 
 % create LFP model

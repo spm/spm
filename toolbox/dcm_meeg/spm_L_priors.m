@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 6727 2016-02-20 18:06:47Z karl $
+% $Id: spm_L_priors.m 6856 2016-08-10 17:55:05Z karl $
 
 
 
@@ -105,7 +105,7 @@ for i = 1:numel(model)
             
         case{'CMC','TFM'}
             %--------------------------------------------------------------
-            pE.J{end + 1} = sparse(1,3,1,1,8);               % 8 states
+            pE.J{end + 1} = sparse(1,[3 7],[4 2],1,8);       % 8 states
             pC.J{end + 1} = sparse(1,[1 7],1/32,1,8);
             
         case{'LFP'}

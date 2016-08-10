@@ -13,13 +13,13 @@ function spm_induced_optimise(Ep,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 6236 2014-10-12 10:03:44Z karl $
+% $Id: spm_induced_optimise.m 6856 2016-08-10 17:55:05Z karl $
  
  
 % Model specification
 %==========================================================================
 if nargin < 2
-    model = 'CMC';
+    model = 'TFM';
 end
 
 % number of regions in coupled map lattice
@@ -108,7 +108,7 @@ for k = 1:length(P)
     sfig = sprintf('%s: Parameter dependency - %i',model,ifig);
     spm_figure('GetWin',sfig);
     
-    Q = getfield(pE,P{k});
+    Q = pE.(P{k});
     
     if isnumeric(Q)
         for i = 1:size(Q,1)

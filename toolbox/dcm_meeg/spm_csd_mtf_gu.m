@@ -24,7 +24,7 @@ function [Gu,Gs,Gn,f] = spm_csd_mtf_gu(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_mtf_gu.m 5907 2014-03-05 20:30:06Z karl $
+% $Id: spm_csd_mtf_gu.m 6856 2016-08-10 17:55:05Z karl $
 
  
 % frequencies of interest
@@ -33,7 +33,11 @@ try, f = M.Hz(:); catch, f = M(:); end
 
 % Number of sources and fequencies
 %--------------------------------------------------------------------------
-ns     = max(size(P.a,2),size(P.d,2));
+if isfield(P,'d')
+    ns = max(size(P.a,2),size(P.d,2));
+else
+    ns = size(P.a,2);
+end
 nf     = size(f,1);
 
 

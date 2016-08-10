@@ -7,7 +7,7 @@ function M0 = spm_bilinear_condition(M0,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_bilinear_condition.m 6755 2016-03-25 09:48:34Z karl $
+% $Id: spm_bilinear_condition.m 6856 2016-08-10 17:55:05Z karl $
  
 % conditions a bilinear operator by suppressing positive eigenmodes
 %==========================================================================
@@ -20,10 +20,10 @@ if nargin == 1, t = 16; end
 % remove unstable modes from Jacobian
 %--------------------------------------------------------------------------
 dfdx  = M0(2:end,2:end);
-[u,s] = eig(full(dfdx));
-S     = diag(s);
-S     = sqrt(-1)*imag(S) - log(1 + exp(real(-t*S)))/t;
+[u,s] = eig(full(dfdx),'nobalance');
+s     = diag(s);
+s     = 1j*imag(s) + real(s) - exp(real(s));
  
 % replace in bilinear operator
 %--------------------------------------------------------------------------
-M0(2:end,2:end) = real(u*diag(S)*spm_pinv(u));
+M0(2:end,2:end) = real(u*diag(s)*spm_pinv(u));
