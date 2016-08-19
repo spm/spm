@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_reading
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_reading.m 6854 2016-08-06 10:04:19Z karl $
+% $Id: DEM_demo_MDP_reading.m 6858 2016-08-19 15:17:52Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -227,9 +227,8 @@ U(1,3,:)  = [1 1 3]';           % stay on current page and report sad
 for g = 1:Ng
     C{g}  = zeros(No(g),1);
 end
-C{3}(2,:) =  2;                 % the agent expects to be right
-C{3}(3,:) = -8;                 % and not wrong
- 
+C{3}(2,:) =  0;                 % the agent expects to be right
+C{3}(3,:) = -4;                 % and not wrong
  
 % MDP Structure
 %--------------------------------------------------------------------------
@@ -263,6 +262,7 @@ spm_MDP_VB_trial(MDP);
 spm_figure('GetWin','Figure 2'); clf
 spm_MDP_VB_LFP(MDP,[],1); subplot(3,1,3)
 spm_MDP_search_plot(MDP)
+
  
 % illustrate evidence accumulation and perceptual synthesis (movie)
 %--------------------------------------------------------------------------
@@ -325,35 +325,35 @@ vb  = vb(i,:);
 pst = (1:length(i))*1000/64;
  
 subplot(3,2,1)
-plot(pst,u ,pst,v ,':'), hold on
-plot(pst,ul,pst,vl,'-'), hold off, axis square
+plot(pst,u,':r',pst,v,':b'), hold on
+plot(pst,ul,'r',pst,vl,'b'), hold off, axis square
 xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
 title('Local deviation','Fontsize',16)
  
 subplot(3,2,2)
-plot(pst,ul - u,pst,vl - v,'-'),   axis square ij
+plot(pst,ul - u,'r',pst,vl - v,'b'),   axis square ij
 xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
 title('Difference waveform','Fontsize',16)
  
 subplot(3,2,3)
-plot(pst,u ,pst,v ,':'), hold on
-plot(pst,ug,pst,vg,'-'), hold off, axis square
+plot(pst,u,'r:',pst,v ,'b:'), hold on
+plot(pst,ug,'r',pst,vg,'b'), hold off, axis square
 xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
 title('Global deviation','Fontsize',16)
  
 subplot(3,2,4)
-plot(pst,ug - u,pst,vg - v,'-'),   axis square ij
+plot(pst,ug - u,'r',pst,vg - v,'b'),   axis square ij
 xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
 title('Difference waveform','Fontsize',16)
  
 subplot(3,2,5)
-plot(pst,u ,pst,v ,':'), hold on
-plot(pst,ub,pst,vb,'-'), hold off, axis square
+plot(pst,u,':r',pst,v ,':b'), hold on
+plot(pst,ub,'r',pst,vb,'b'), hold off, axis square
 xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
 title('Local and global','Fontsize',16)
  
 subplot(3,2,6)
-plot(pst,(ug - u) - (ub - ul),pst,(vg - v) - (vb - vl)),   axis square ij
+plot(pst,(ug - u) - (ub - ul),'r',pst,(vg - v) - (vb - vl),'b'),   axis square ij
 xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
 title('Difference of differences','Fontsize',16)
  
