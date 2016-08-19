@@ -16,7 +16,7 @@ function [G] = spm_morlet_conv(G,w,dt,wnum)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_morlet_conv.m 6123 2014-07-25 17:10:51Z karl $
+% $Id: spm_morlet_conv.m 6857 2016-08-19 15:17:06Z karl $
 
 
 % setup and defaults
@@ -24,9 +24,6 @@ function [G] = spm_morlet_conv(G,w,dt,wnum)
 if nargin < 4, wnum = 8; end
 [nt,nw,ni,nj] = size(G);
 iw            = 1:nw;
-it            = 1:nt;
-
-
 
 % get (non-stationary) convolution matrix for frequencies
 %--------------------------------------------------------------------------
@@ -47,7 +44,7 @@ for i = 1:ni
     end
 end
 
-% convolution over frequencies
+% convolution over time
 %--------------------------------------------------------------------------
 for k = 1:nw
     s     = wnum/(2*pi*w(k));
@@ -61,3 +58,4 @@ for k = 1:nw
         end
     end
 end
+

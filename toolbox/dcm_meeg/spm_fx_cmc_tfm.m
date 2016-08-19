@@ -40,7 +40,7 @@ function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M,OPT)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_tfm.m 6856 2016-08-10 17:55:05Z karl $
+% $Id: spm_fx_cmc_tfm.m 6857 2016-08-19 15:17:06Z karl $
  
  
 % get dimensions and configure state variables
@@ -52,7 +52,7 @@ n  = size(x,1);                       % number of sources
 % [default] fixed parameters
 %--------------------------------------------------------------------------
 E  = [2 1 1 1]*512;                   % extrinsic (forward and backward)  
-T  = [256 128 16 32];                    % synaptic rate constants
+T  = [256 128 16 32];                 % synaptic rate constants
 R  = 1;                               % gain of activation function
 B  = 0;                               % baseline firing
 
@@ -127,7 +127,7 @@ T(:,i) = T(:,i).*exp(P.T);
 g  = [-8 -4  -4  0;  % ss
        4 -8  -2  0;  % sp
        4  2  -4 -2;  % ii
-       0  2  -2 -4]; % dp
+       0  1  -2 -4]; % dp
 
 g  = g*256*exp(P.S);
 
@@ -147,49 +147,47 @@ end
  
 % Motion of states: f(x)
 %--------------------------------------------------------------------------
+
+% Afferents
+%==========================================================================
 u     = zeros(n,4);             % intrinsic – inhibitory
 v     = zeros(n,4);             % intrinsic – excitatory
 w     = zeros(n,4);             % extrinsic – excitatory
+ig    = 2*(1:4);                % indices of conductance
+iv    = ig - 1;                 % indices of voltage
 
-% Conductance
-%==========================================================================
  
 % Granular layer (excitatory interneurons): spiny stellate: Hidden causes
 %--------------------------------------------------------------------------
 u(:,1) = G(:,1).*S(:,1) + g(1,3)*S(:,3) + g(1,2)*S(:,2);
 w(:,1) = A{1}*S(:,2) + U;
-f(:,2) = (u(:,1) + w(:,1) - x(:,2)).*T(:,1);
  
 % Supra-granular layer (superficial pyramidal cells): Hidden causes - error
 %--------------------------------------------------------------------------
 u(:,2) = G(:,2).*S(:,2) + g(2,3)*S(:,3);
 v(:,2) = g(2,1)*S(:,1);
 w(:,2) = A{3}*S(:,4);
-f(:,4) = (u(:,2) + v(:,2) + w(:,2) - x(:,4)).*T(:,2);
- 
+
 % Supra-granular layer (inhibitory interneurons): Hidden states - error
 %--------------------------------------------------------------------------
 u(:,3) = G(:,3).*S(:,3);
 v(:,3) = g(3,1)*S(:,1) + g(3,4)*S(:,4) + g(3,2)*S(:,2);
 w(:,3) = A{4}*S(:,4);
-f(:,6) = (u(:,3) + v(:,3) + w(:,3) - x(:,6)).*T(:,3);
- 
+
 % Infra-granular layer (deep pyramidal cells): Hidden states
 %--------------------------------------------------------------------------
 u(:,4) = G(:,4).*S(:,4) + g(4,3)*S(:,3);
 v(:,4) = g(4,2)*S(:,2);
 w(:,4) = A{2}*S(:,2);
-f(:,8) = (u(:,4) + w(:,4) - x(:,8)).*T(:,4);
+
 
 if nargin > 4; f = -u; J = v; Q = w; return, end
  
-% Voltage
+% Conductance and voltage
 %==========================================================================
-f(:,1) = x(:,2) - x(:,1).*T(:,1);
-f(:,3) = x(:,4) - x(:,3).*T(:,2);
-f(:,5) = x(:,6) - x(:,5).*T(:,3);
-f(:,7) = x(:,8) - x(:,7).*T(:,4);
-f      = spm_vec(f);
+f(:,ig) = (u + v + w - x(:,ig)).*T;
+f(:,iv) = x(:,ig) - x(:,iv).*T;
+f       = spm_vec(f);
  
 
 if nargout < 2; return, end
@@ -203,44 +201,30 @@ dS     = (R*exp(B - R*V))./(exp(B - R*V) + 1).^2;
 
 % intrinsic connectivity
 %--------------------------------------------------------------------------
-J{2,3} = diag(g(1,2) *dS(:,2).*T(:,1));
-J{2,5} = diag(g(1,3) *dS(:,3).*T(:,1));
-J{2,1} = diag(G(:,1).*dS(:,1).*T(:,1));
-
-J{4,5} = diag(g(2,3) *dS(:,3).*T(:,2));
-J{4,1} = diag(g(2,1) *dS(:,1).*T(:,2));
-J{4,3} = diag(G(:,2).*dS(:,2).*T(:,2));
-
-J{6,3} = diag(g(3,2) *dS(:,2).*T(:,3));
-J{6,7} = diag(g(3,4) *dS(:,4).*T(:,3));
-J{6,1} = diag(g(3,1) *dS(:,1).*T(:,3));
-J{6,5} = diag(G(:,3).*dS(:,3).*T(:,3));
-
-J{8,3} = diag(g(4,2) *dS(:,2).*T(:,4));
-J{8,5} = diag(g(4,3) *dS(:,3).*T(:,4));
-J{8,7} = diag(G(:,4).*dS(:,4).*T(:,4));
+for i = 1:4
+    for j = 1:4
+        if i == j
+            J{ig(i),iv(i)} = diag(G(:,i).*dS(:,j).*T(:,i));
+        else
+            J{ig(i),iv(j)} = diag(g(i,j) *dS(:,j).*T(:,i));
+        end
+    end
+end
 
 % extrinsic connectivity
 %--------------------------------------------------------------------------
 J{2,3} = A{1}*diag(dS(:,2).*T(:,1)) + J{2,3};
-J{4,7} = A{3}*diag(dS(:,4).*T(:,2));
+J{4,7} = A{3}*diag(dS(:,4).*T(:,2)) + J{4,7};
 J{6,7} = A{4}*diag(dS(:,4).*T(:,3)) + J{6,7};
-J{8,3} = A{2}*diag(dS(:,2).*T(:,4));
+J{8,3} = A{2}*diag(dS(:,2).*T(:,4)) + J{8,3};
 
 % conductance decay
 %--------------------------------------------------------------------------
-J{2,2} = -diag(T(:,1));
-J{4,4} = -diag(T(:,2));
-J{6,6} = -diag(T(:,3));
-J{8,8} = -diag(T(:,4));
-
-% voltage decay
-%--------------------------------------------------------------------------
-J{1,1} = -diag(T(:,1)); J{1,2} = speye(n,n);
-J{3,3} = -diag(T(:,2)); J{3,4} = speye(n,n);
-J{5,5} = -diag(T(:,3)); J{5,6} = speye(n,n);
-J{7,7} = -diag(T(:,4)); J{7,8} = speye(n,n);
-
+for i = 1:4
+    J{ig(i),ig(i)} = -diag(T(:,i));
+    J{iv(i),iv(i)} = -diag(T(:,i));
+    J{iv(i),ig(i)} =  speye(n,n);
+end
 J     = spm_cat(J);
 
 if nargout < 3; return, end

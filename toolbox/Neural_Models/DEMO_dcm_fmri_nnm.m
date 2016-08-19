@@ -33,7 +33,7 @@ function DCM = DEMO_dcm_fmri_nnm
 % DCM.options.P                      % starting estimates for parameters
 % DCM.options.hidden                 % indices of hidden regions
 
-% $Id: DEMO_dcm_fmri_nnm.m 6856 2016-08-10 17:55:05Z karl $
+% $Id: DEMO_dcm_fmri_nnm.m 6857 2016-08-19 15:17:06Z karl $
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
@@ -96,7 +96,7 @@ T   = (1:size(y,1))  *DCM.Y.dt;    % time of fMRI data
 t   = (1:size(lfp,2))*DCM.U.dt;    % time of LFP data
 j   = 4:64;                        % frequencies to report
 n   = 2;                           % in the n-th region
-ind = csd(:,1:16:end,n)';          % iinduced responses every TR
+ind = csd(:,:,n);                 % induced responses every TR
 
 
 % posterior parameter estimates
@@ -117,17 +117,19 @@ xlabel('Time (seconds)'),ylabel('Normalised BOLD')
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2'); clf
 
-[u,s,v] = spm_svd(ind);
-f       = sign(u'*y(:,1));
-u       = u*diag(f);
-v       = v*diag(f);
-
-for i = 1:min(size(v,2),3)
-    subplot(3,2,2*i - 1), plot(w,v(:,i)), axis square
-    title('Eigenmode','fontsize',16), xlabel('Frequency'),ylabel('Weight')
-    subplot(3,2,2*i - 0), plot(u(:,i),y,'.','Markersize',32), hold on
-    subplot(3,2,2*i - 0), plot(u(:,i),y,':'), hold off
-    title('Haemodynamic correlate','fontsize',16), axis square
+col = {'b','g','r'};
+for i = 1:size(csd,3)
+    ind     = spm_detrend(csd(:,:,i));
+    [u,s,v] = spm_svd(ind);
+    f       = sign(u'*spm_detrend(y(:,1)));
+    u       = u*diag(f);
+    v       = v*diag(f);
+    str     = sprintf('First eigenmode: %s',DCM.xY(i).name);
+    subplot(3,2,2*i - 1), plot(w,v(:,1)), axis square, spm_axis tight, box off
+    title(str,'fontsize',16), xlabel('Frequency'),ylabel('Weight')
+    subplot(3,2,2*i - 0), plot(u(:,1),DCM.Y.y(:,i),['.' col{i}],'Markersize',8), hold on
+    subplot(3,2,2*i - 0), plot(u(:,1),DCM.Y.y(:,i),[':' col{i}]), hold off
+    title('Haemodynamic correlates','fontsize',16), axis square
     xlabel('Eigenvariate'),ylabel('Normalised BOLD')
 end
 

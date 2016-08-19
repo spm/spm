@@ -10,7 +10,7 @@ function [y,lfp,csd,w] = spm_gen_fmri(P,M,U)
 %
 % y    - BOLD predictions (for every TR)
 % lfp  - voltages and conductances (for every micotime bin)
-% csd  - spectral density (for every micotime bin)
+% csd  - spectral density (for every TR)
 % w    - frequencies
 %
 % This integration scheme returns a prediction of neuronal responses to
@@ -30,7 +30,7 @@ function [y,lfp,csd,w] = spm_gen_fmri(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_fmri.m 6856 2016-08-10 17:55:05Z karl $
+% $Id: spm_gen_fmri.m 6857 2016-08-19 15:17:06Z karl $
 
 
 % persistent variables to speed integration schemes
@@ -68,6 +68,8 @@ if INT || nargout > 1
     N.dipfit.type  = 'LFP';
     N.dipfit.Ns    = M.l;
     N.dipfit.Nc    = M.l;
+    
+
     
     for t = 1:size(U.u,1)
         
@@ -129,8 +131,10 @@ if INT || nargout > 1
             % cross spectral density if required
             %--------------------------------------------------------------
             if nargout > 1
-                Q     = spm_L_priors(N.dipfit,Q);
-                Q     = spm_ssr_priors(Q);
+                Q  = spm_L_priors(N.dipfit,Q);
+                Q  = spm_ssr_priors(Q);
+            end
+            if nargout > 2;
                 [g,w] = spm_csd_mtf(Q,N);
             end
             
@@ -160,8 +164,19 @@ if INT || nargout > 1
         %------------------------------------------------------------------
         if nargout > 2
             for i = 1:M.l
-                csd(:,t,i) = real(g{1}(:,i,i));
+                psd(t,:,i) = real(g{1}(:,i,i));
             end
+        end
+    end
+end
+
+% spectral responses every TR (with speckle smoothing)
+%--------------------------------------------------------------------------
+if nargout > 2
+    j     = fix(linspace(1,t,M.ns));
+    for i = 1:M.l
+        for t = 1:M.ns
+            csd(t,:,i) = spm_morlet_conv(psd(j(t),:,i),w,U.dt,16);
         end
     end
 end
