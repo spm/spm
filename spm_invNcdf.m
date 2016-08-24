@@ -24,8 +24,8 @@ function x = spm_invNcdf(F,u,v)
 % al., Ch29 for further definitions and variate relationships.
 %
 % If X~N(u,v), then Z=(Z-u)/sqrt(v) has a standard normal distribution,
-% Z~N(0,1). The CDF of the standard normal distribution is known as \Phi(z),
-% its inverse as \Phi^{-1}(F).
+% Z~N(0,1). The CDF of the standard normal distribution is known as
+% \Phi(z), its inverse as \Phi^{-1}(F).
 %
 % Algorithm:
 %--------------------------------------------------------------------------
@@ -59,26 +59,26 @@ function x = spm_invNcdf(F,u,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 1992-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1992-2016 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_invNcdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% $Id: spm_invNcdf.m 6859 2016-08-24 16:46:16Z guillaume $
 
 
 %-Format arguments, note & check sizes
 %--------------------------------------------------------------------------
-if nargin<3, v=1; end
-if nargin<2, u=0; end
-if nargin<1, x=[]; return, end
+if nargin<3, v = 1; end
+if nargin<2, u = 0; end
+if nargin<1, x = []; return, end
 ad = [ndims(F);ndims(u);ndims(v)];
 rd = max(ad);
-as = [  [size(F),ones(1,rd-ad(1))];...
-    [size(u),ones(1,rd-ad(2))];...
-    [size(v),ones(1,rd-ad(3))]     ];
+as = [ [size(F),ones(1,rd-ad(1))];...
+       [size(u),ones(1,rd-ad(2))];...
+       [size(v),ones(1,rd-ad(3))] ];
 rs = max(as);
-xa = prod(as,2)>1;
+xa = prod(as,2) > 1;
 if sum(xa)>1 && any(any(diff(as(xa,:)),1))
-    error('non-scalar args must match in size');
+    error('Non-scalar arguments must match in size.');
 end
 
 %-Computation
@@ -91,15 +91,15 @@ x = zeros(rs);
 md = ( F>=0  &  F<=1  &  ones(size(u))  &  v>0 );
 if any(~md(:))
     x(~md) = NaN;
-    warning('SPM:outOfRangeNormal','Returning NaN for out of range arguments');
+    warning('SPM:outOfRangeNormal','Returning NaN for out of range arguments.');
 end
 
 %-Compute where defined
-Q  = find( md );
+Q = find(md);
 if isempty(Q), return, end
 if xa(1), QF=Q; else QF=1; end
 if xa(2), Qu=Q; else Qu=1; end
 if xa(3), Qv=Q; else Qv=1; end
 
 %-Compute
-x(Q) = ( sqrt(2)*erfinv(2*F(QF)-1) .* sqrt(v(Qv)) ) + u(Qu);
+x(Q) = ( -sqrt(2)*erfcinv(2*F(QF)) .* sqrt(v(Qv)) ) + u(Qu);
