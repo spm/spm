@@ -3,7 +3,7 @@ function tests = test_spm_invNcdf
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_invNcdf.m 6859 2016-08-24 16:46:16Z guillaume $
+% $Id: test_spm_invNcdf.m 6860 2016-08-25 12:00:10Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -21,8 +21,10 @@ tol = 1e-12;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
 
 function test_spm_invNcdf_3(testCase)
-exp = [1.644853626951473 -1.644853626951473]; % norminv([1-0.05 0.05])
-act = [spm_invNcdf(1-0.05) spm_invNcdf(0.05)];
+exp = [NaN -Inf 0 Inf NaN];
+ws = warning('off','SPM:outOfRangeNormal');
+act = spm_invNcdf([-1 0 0.5 1 2]);
+warning(ws);
 tol = 1e-12;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
 

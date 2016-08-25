@@ -10,7 +10,7 @@ function L = spm_mesh_get_lm(M,T)
 % Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_get_lm.m 6694 2016-01-26 17:09:11Z guillaume $
+% $Id: spm_mesh_get_lm.m 6860 2016-08-25 12:00:10Z guillaume $
 
 
 %-Get adjacency matrix
@@ -27,10 +27,11 @@ out      = isnan(T(:)');
 A(:,out) = 0;
 A(out,:) = 0;
 N        = spm_mesh_neighbours(A);
+if isempty(N), L = []; return; end
 
 %-Identify local maxima
 %--------------------------------------------------------------------------
 T        = [T; -Inf];
 N(N<1)   = numel(T);
-L        = all(T(N) < repmat(T(1:end-1),1,size(N,2)),2); % bsxfun?
+L        = all(bsxfun(@gt,T(1:end-1),T(N)),2);
 L        = find(L');

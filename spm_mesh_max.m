@@ -1,6 +1,6 @@
 function [N,Z,M,A,XYZ] = spm_mesh_max(X,L,G)
 % Sizes, local maxima and locations of excursion sets on a surface mesh
-% FORMAT [N,Z,M,A,XYZ] = spm_mesh_max(X,L)
+% FORMAT [N,Z,M,A,XYZ] = spm_mesh_max(X,L,G)
 % X        - a [nx1] array of stat values
 % L        - a [nx1] array of locations {in vertices}
 % G        - a patch structure
@@ -14,10 +14,10 @@ function [N,Z,M,A,XYZ] = spm_mesh_max(X,L,G)
 %
 % See also: spm_max.m, spm_mesh_clusters.m and spm_mesh_get_lm.m
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_max.m 5065 2012-11-16 20:00:21Z guillaume $
+% $Id: spm_mesh_max.m 6860 2016-08-25 12:00:10Z guillaume $
 
 
 %-Get connected components
