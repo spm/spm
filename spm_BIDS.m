@@ -13,7 +13,7 @@ function BIDS = spm_BIDS(root)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 6846 2016-07-29 16:29:38Z guillaume $
+% $Id: spm_BIDS.m 6862 2016-08-25 14:42:19Z guillaume $
 
 
 if ~nargin, root = pwd; end
@@ -117,7 +117,7 @@ for s=1:numel(sub)
     pth = fullfile(BIDS.subjects(s).path,'anat');
     if exist(pth,'dir')
         a = spm_select('List',pth,...
-            sprintf('^%s.*\.nii(\.gz)$',BIDS.subjects(s).name));
+            sprintf('^%s.*\\.nii(\\.gz)$',BIDS.subjects(s).name));
         if isempty(a), a = {}; else a = cellstr(a); end
         for i=1:numel(a)
             
@@ -138,7 +138,7 @@ for s=1:numel(sub)
             
             %-Metadata file
             %--------------------------------------------------------------
-            % spm_file called twice to handle .nii and .nii.gz
+            % (spm_file called twice to handle .nii and .nii.gz)
             metafile = spm_file(spm_file(a{i},'basename'),'ext','json');
             if exist(fullfile(pth,metafile),'file')
                 BIDS.subjects(s).anat(i).meta = spm_jsonread(metafile);
@@ -154,7 +154,7 @@ for s=1:numel(sub)
     pth = fullfile(BIDS.subjects(s).path,'func');
     if exist(pth,'dir')
         f = spm_select('List',pth,...
-            sprintf('^%s_task-.*_bold\.nii(\.gz)$',BIDS.subjects(s).name));
+            sprintf('^%s_task-.*_bold\\.nii(\\.gz)$',BIDS.subjects(s).name));
         if isempty(f), f = {}; else f = cellstr(f); end
         for i=1:numel(f)
             
@@ -224,7 +224,7 @@ for s=1:numel(sub)
     pth = fullfile(BIDS.subjects(s).path,'dwi');
     if exist(pth,'dir')
         d = spm_select('List',pth,...
-            sprintf('^%s.*_dwi\.nii(\.gz)$',BIDS.subjects(s).name));
+            sprintf('^%s.*_dwi\\.nii(\\.gz)$',BIDS.subjects(s).name));
         if isempty(d), d = {}; else d = cellstr(d); end
         for i=1:numel(d)
             
@@ -241,7 +241,7 @@ for s=1:numel(sub)
             
             %-Metadata file
             %--------------------------------------------------------------
-            % spm_file called twice to handle .nii and .nii.gz
+            % (spm_file called twice to handle .nii and .nii.gz)
             metafile = spm_file(spm_file(a{i},'basename'),'ext','json');
             if exist(fullfile(pth,metafile),'file')
                 BIDS.subjects(s).dwi(i).meta = spm_jsonread(metafile);
@@ -269,4 +269,11 @@ for s=1:numel(sub)
         end
     end
     
+end
+
+%-Inheritance principle
+function s1 = update(s1,s2)
+fn = fieldnames(s2);
+for i=1:numel(fn)
+    s1.fn{i} = s2.fn{i};
 end

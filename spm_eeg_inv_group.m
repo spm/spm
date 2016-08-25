@@ -28,9 +28,9 @@ function spm_eeg_inv_group(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 3979 2010-07-08 14:53:46Z vladimir $
+% $Id: spm_eeg_inv_group.m 6862 2016-08-25 14:42:19Z guillaume $
  
-SVNrev = '$Rev: 3979 $';
+SVNrev = '$Rev: 6862 $';
  
 %-Startup
 %--------------------------------------------------------------------------
@@ -190,11 +190,11 @@ for i = NS
     %----------------------------------------------------------------------
     D{i} = spm_eeg_inv_datareg_ui(D{i}, 1);
     try
-        D{i}.inv{1}.forward.voltype = voltype;
-        D{i}    = spm_eeg_inv_forward(D{i});
+        D{i}.inv{1}.forward.voltype = vltype;
+        D{i}   = spm_eeg_inv_forward(D{i});
     catch
-        D{i}    = spm_eeg_inv_forward_ui(D{i});
-        voltype = D{i}.inv{1}.forward.voltype;
+        D{i}   = spm_eeg_inv_forward_ui(D{i});
+        vltype = D{i}.inv{1}.forward.voltype;
     end
     
     % save forward model
