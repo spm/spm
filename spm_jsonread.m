@@ -5,13 +5,14 @@ function json = spm_jsonread(filename)
 % json     - JSON structure
 % 
 % References:
-%   http://www.json.org/
-%   http://zserge.com/jsmn.html
-%_______________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+%   JSON Standard: http://www.json.org/
+%   JSMN C parser: http://zserge.com/jsmn.html
+%   jsondecode: http://www.mathworks.com/help/matlab/ref/jsondecode.html
+%__________________________________________________________________________
+% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonread.m 6589 2015-11-03 16:01:08Z guillaume $
+% $Id: spm_jsonread.m 6863 2016-08-30 14:56:27Z guillaume $
 
 
 %-This is merely the help file for the compiled routine

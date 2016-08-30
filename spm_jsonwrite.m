@@ -9,12 +9,12 @@ function varargout = spm_jsonwrite(varargin)
 % S        - serialized JSON structure (string)
 % 
 % References:
-%   http://www.json.org/
+%   JSON Standard: http://www.json.org/
 %__________________________________________________________________________
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 6796 2016-05-06 16:18:14Z guillaume $
+% $Id: spm_jsonwrite.m 6863 2016-08-30 14:56:27Z guillaume $
 
 
 %-Input parameters
@@ -75,7 +75,7 @@ if numel(json) == 1
     fn = fieldnames(json);
     S = ['{' fmt('\n',tab)];
     for i=1:numel(fn)
-        S = [S fmt((tab+1)*2) jsonwrite_char(fn{i}) ': ' ...
+        S = [S fmt((tab+1)*2) jsonwrite_char(fn{i}) ':' fmt(~isnan(tab)) ...
             jsonwrite_var(json.(fn{i}),tab+1)];
         if i ~= numel(fn), S = [S ',']; end
         S = [S fmt('\n',tab)];
@@ -105,18 +105,18 @@ S = ['"' json '"'];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S = jsonwrite_numeric(json)
 if numel(json) > 1
-    %warning('Not supported: converting to JSON array.');
-    S = jsonwrite_cell(num2cell(json),NaN); % consider array of array?
+    idx = find(size(json)~=1);
+    if numel(idx) == 1 % vector
+        S = jsonwrite_cell(num2cell(json),NaN);
+    else % array
+        S = jsonwrite_cell(num2cell(json,setdiff(1:ndims(json),idx(1))),NaN);
+    end
     return;
 end
 if islogical(json)
     if json, S = 'true'; else S = 'false'; end
 else
-    if isnan(json)
-        S = 'null';
-    else
-        S = num2str(json);
-    end
+    S = num2str(json);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

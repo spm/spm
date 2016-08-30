@@ -3,7 +3,7 @@ function tests = test_spm_BMS_gibbs
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_BMS_gibbs.m 6492 2015-06-26 14:27:40Z guillaume $
+% $Id: test_spm_BMS_gibbs.m 6863 2016-08-30 14:56:27Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -12,8 +12,10 @@ function test_strong_evidence(testCase)
 
 % Setup
 import matlab.unittest.constraints.*
-rng('default');
-rng(1);
+st = randn('state');
+randn('state',1);
+%rng('default');
+%rng(1);
 
 n = 20;      % Subjects
 models = 4;  % Models per subject
@@ -46,7 +48,8 @@ F(m > 0) = F_gen;
 
 % Check expected frequencies are within 10%
 actual = exp_r;
-testCase.verifyThat(actual, IsEqualTo(r, 'Within', AbsoluteTolerance(0.1) ) );
+%testCase.verifyThat(actual, IsEqualTo(r, 'Within', AbsoluteTolerance(0.1) ) );
+testCase.verifyEqual(r, actual,'AbsTol',0.1);
 
 % Check exceedance probability
 actual = xp(1);

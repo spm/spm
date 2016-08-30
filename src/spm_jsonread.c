@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 6690 2016-01-25 12:32:45Z guillaume $
+ * $Id: spm_jsonread.c 6863 2016-08-30 14:56:27Z guillaume $
  * Guillaume Flandin
  */
 
@@ -16,6 +16,25 @@ static char * get_string(char *js, int start, int end) {
     return js + start;
 }
 
+static void valid_fieldname(char **field) {
+    char *f = *field;
+    while (f[0] != '\0') {
+        if ( ((f[0] >= '0') && (f[0] <= '9')) 
+          || ((f[0] >= 'a') && (f[0] <= 'z'))
+          || ((f[0] >= 'A') && (f[0] <= 'Z'))) {
+        }
+        else {
+        	f[0] = '_';
+        }
+        f++;
+    }
+    if ( (*field[0] == '_')
+      || ((*field[0] >= '0') && (*field[0] <= '9')) ) {
+        *field = *field - 1;
+        *field[0] = 'x';
+    }
+}
+
 static int primitive(char *js, jsmntok_t *tok, mxArray **mx) {
     mxArray *ma = NULL;
     int sts;
@@ -27,7 +46,7 @@ static int primitive(char *js, jsmntok_t *tok, mxArray **mx) {
             *mx =  mxCreateLogicalScalar(0);
             break;
         case 'n' :
-            *mx =  mxCreateDoubleScalar(mxGetNaN());
+            *mx =  mxCreateDoubleMatrix(0,0,mxREAL);
             break;
         default: /* '-', '0'..'9' */
             ma =  mxCreateString(get_string(js, tok->start, tok->end));
@@ -49,12 +68,37 @@ static int value(char *js, jsmntok_t *tok, mxArray **mx) {
 static int array(char *js, jsmntok_t *tok, mxArray **mx) {
     int i, j;
     mxArray *ma = NULL;
+#ifndef MATLAB_MEX_FILE
+    int sts;
+#else
+    mxArray *sts = NULL;
+#endif
+    mxArray *array[1];
+    
     *mx = mxCreateCellMatrix(tok->size, 1);
-    for (i = 0; i < tok->size; i++) {
+    for (i = 0, j = 0; i < tok->size; i++) {
         j += create_struct(js, tok+1+j, &ma);
         mxSetCell(*mx, i, ma);
     }
-    /* Call cell2mat if all cell elements are primitives (mxIsNumeric(ma))? */
+    /* to do: nested arrays (of booleans, numeric, structure, strings)*/
+    /* '[1,2]' => [1;2] */
+    /* '[[1,2]]' => [1 2] */
+    /* '[[1,2],[3,4]]' => [1 2;3 4] */
+    
+    /* Try to convert cell array into array*/
+#ifndef MATLAB_MEX_FILE
+    mexSetTrapFlag(1);
+    sts = mexCallMATLAB(1, array, 1, mx, "cell2mat");
+    mexPrintf("sts = %d\n",sts);
+    if ((sts == 0) && (!mxIsChar(array[0]))) {
+        return j+1; /* temporary always return cell arrays in Octave */
+#else
+    sts = mexCallMATLABWithTrap(1, array, 1, mx, "cell2mat");
+    if ((sts == NULL) && (!mxIsChar(array[0]))) {
+#endif
+        mxDestroyArray(*mx);
+        *mx = *array;
+    }
     return j+1;
 }
 
@@ -62,8 +106,13 @@ static int object(char *js, jsmntok_t *tok, mxArray **mx) {
     int i, j, k;
     mxArray *ma = NULL;
     char *field = NULL;
+    if (tok->size == 0) {
+        *mx = mxCreateStructMatrix(1, 1, 0, NULL);
+        return 1;
+    }
     for (i = 0, j = 0; i < tok->size; i++) {
         field = get_string(js, (tok+1+j)->start, (tok+1+j)->end); /* check it is a JSMN_STRING */
+        valid_fieldname(&field);
         j++;
         if (i == 0) {
             *mx = mxCreateStructMatrix(1, 1, 1, (const char**)&field);
