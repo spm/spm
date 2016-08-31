@@ -3,7 +3,7 @@ function tests = test_spm_jsonread
 %__________________________________________________________________________
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_jsonread.m 6863 2016-08-30 14:56:27Z guillaume $
+% $Id: test_spm_jsonread.m 6864 2016-08-31 15:21:00Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -120,17 +120,36 @@ testCase.verifyTrue(isequal(exp, act));
 json = '[1,NaN,Inf]';
 exp  = [1;NaN;Inf];
 act  = spm_jsonread(json);
-testCase.verifyTrue(isequal(exp, act));
+testCase.verifyTrue(isequaln(exp, act));
 
 % numbers and booleans
 json = '[1,NaN,Inf,true]';
 exp  = {1;NaN;Inf;true};
 act  = spm_jsonread(json);
-testCase.verifyTrue(isequal(exp, act));
+testCase.verifyTrue(isequaln(exp, act));
 
 % numbers and arrays of numbers
 json = '[1,2,[3,4]]';
 exp  = {1;2;[3;4]};
 act  = spm_jsonread(json);
-% testCase.verifyTrue(isequal(exp, act));
-% so far returns [1;2;3;4]
+testCase.verifyTrue(isequal(exp, act));
+
+json = '[[1,2]]';
+exp  = [1 2];
+act  = spm_jsonread(json);
+testCase.verifyTrue(isequal(exp, act));
+
+json = '[[1,2],[3,4]]';
+exp  = [1 2;3 4]; 
+act  = spm_jsonread(json);
+testCase.verifyTrue(isequal(exp, act));
+
+json = '[[1,2],[3,4,5]]';
+exp  = {[1;2];[3;4;5]}; 
+act  = spm_jsonread(json);
+testCase.verifyTrue(isequal(exp, act));
+
+json = '[[[1,2],[3,4]],[[5,6],[7,8]]]';
+exp = [1,3;5,7]; exp(:,:,2) = [2,4;6,8];
+act  = spm_jsonread(json);
+%testCase.verifyTrue(isequal(exp, act));

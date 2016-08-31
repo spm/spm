@@ -3,7 +3,7 @@ function tests = test_spm_dcm_simulate
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_simulate.m 6863 2016-08-30 14:56:27Z guillaume $
+% $Id: test_spm_dcm_simulate.m 6864 2016-08-31 15:21:00Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -19,11 +19,11 @@ GCM = GCM.GCM;
 % Simulate data
 SNR     = 1;
 gen_idx = 1;
-%rng(1);
-st = randn('state');
-randn('state',100);
+rng(1);
+%st = randn('state');
+%randn('state',100);
 [GCM,gen] = spm_dcm_simulate(GCM, 'SNR_var', SNR, gen_idx);
-randn('state',st);
+%randn('state',st);
 
 ns = size(GCM,1);
 
@@ -60,11 +60,11 @@ GCM = GCM.GCM;
 % Simulate data
 SNR     = 1;
 gen_idx = 1;
-%rng(1);
-st = randn('state');
-randn('state',100);
+rng(1);
+%st = randn('state');
+%randn('state',100);
 [GCM,gen] = spm_dcm_simulate(GCM, 'SNR_std', SNR, gen_idx);
-randn('state',st);
+%randn('state',st);
 
 ns = size(GCM,1);
 
@@ -100,11 +100,11 @@ GCM = GCM.GCM;
 % Simulate data
 noise_var = 1;
 gen_idx   = 1;
-%rng(1);
-st = randn('state');
-randn('state',100);
+rng(1);
+%st = randn('state');
+%randn('state',100);
 [GCM,gen] = spm_dcm_simulate(GCM, 'var', noise_var, gen_idx);
-randn('state',st);
+%randn('state',st);
 
 ns = size(GCM,1);
 

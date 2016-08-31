@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 6863 2016-08-30 14:56:27Z guillaume $
+ * $Id: spm_jsonread.c 6864 2016-08-31 15:21:00Z guillaume $
  * Guillaume Flandin
  */
 
@@ -8,6 +8,110 @@
 #include <string.h>
 #include "jsmn.h"
 #include "mex.h"
+
+/* for MATLAB <= R2008a or GNU Octave */
+/*
+#if defined(mxSetLogical) || !defined(MATLAB_MEX_FILE)
+mxArray *mexCallMATLABWithTrap(int nlhs, mxArray *plhs[], int nrhs, mxArray *prhs[], const char *functionName) {
+    mxArray *mx = NULL;
+    const char **fields = (const char *[]){"identifier", "message", "case", "stack"};
+    mexSetTrapFlag(1);
+    if (mexCallMATLAB(nlhs, plhs, nrhs, prhs, functionName)) {
+        mx = mxCreateStructMatrix(1, 1, 4, fields);
+        mxSetFieldByNumber(mx, 0, 0, mxCreateString("MATLAB:error"));
+        mxSetFieldByNumber(mx, 0, 1, mxCreateString(functionName));
+        mxSetFieldByNumber(mx, 0, 2, mxCreateCellMatrix(0, 0));
+        mxSetFieldByNumber(mx, 0, 3, mxCreateStructMatrix(0, 1, 0, NULL));
+        return mx;
+    }
+    else {
+        return NULL;
+    }
+}
+#endif
+*/
+
+static int should_convert_to_array(const mxArray *pm) {
+    size_t i, j, n, nfields;
+    mxClassID cat;
+    mwSize ndims, *dim, *d;
+    
+    if (!mxIsCell(pm)) {
+        return 0;
+    }
+    n = mxGetNumberOfElements(pm);
+    if (n) {
+        cat = mxGetClassID(mxGetCell(pm, 0));
+        ndims = mxGetNumberOfDimensions(mxGetCell(pm, 0));
+        dim = (mwSize *)mxGetDimensions(mxGetCell(pm, 0));
+    }
+    else {
+        return 1;
+    }
+    switch (cat) {
+        case mxSTRUCT_CLASS:
+        case mxDOUBLE_CLASS:
+        case mxLOGICAL_CLASS:
+            break;
+        default:
+            return 0;
+    }
+    for (i = 1; i < n; i++) {
+        if (cat != mxGetClassID(mxGetCell(pm, i))) {
+            return 0;
+        }
+        else if (ndims != mxGetNumberOfDimensions(mxGetCell(pm, i))) {
+            return 0;
+        }
+        d = (mwSize *)mxGetDimensions(mxGetCell(pm, i));
+        for (j = 0; j < ndims; j++) {
+            if (dim[j] != d[j]) {
+                return 0;
+            }
+        }
+        if (cat == mxSTRUCT_CLASS) {
+            nfields = mxGetNumberOfFields(mxGetCell(pm, i));
+            if (nfields != mxGetNumberOfFields(mxGetCell(pm, 0))) {
+                return 0;
+            }
+            for (j = 0; j < nfields; j++) {
+                if (mxGetFieldNumber(mxGetCell(pm, 0), mxGetFieldNameByNumber(mxGetCell(pm, i), j)) == -1) {
+                    return 0;
+                }
+            }
+        }
+    }
+    return 1;
+}
+
+static void possible_transpose(mxArray *pm) {
+    size_t i, n, a, b;
+    mxClassID cat;
+    mxArray *cell;
+    
+    n = mxGetNumberOfElements(pm);
+    if (!n) {
+        return;
+    }
+    cat = mxGetClassID(mxGetCell(pm, 0));
+    if ((cat != mxDOUBLE_CLASS) && (cat != mxLOGICAL_CLASS)) {
+        return;
+    }
+    for (i = 0; i < n; i++) {
+        cell = mxGetCell(pm, i);
+        a = mxGetM(cell);
+        if (a == 1) {
+            return;
+        }
+    }
+    for (i = 0; i < n; i++) {
+        cell = mxGetCell(pm, i);
+        a = mxGetM(cell);
+        b = mxGetN(cell);
+        mxSetM(cell, b);
+        mxSetN(cell, a);
+    }
+}
 
 static int create_struct(char *js, jsmntok_t *tok, mxArray **mx);
 
@@ -68,36 +172,26 @@ static int value(char *js, jsmntok_t *tok, mxArray **mx) {
 static int array(char *js, jsmntok_t *tok, mxArray **mx) {
     int i, j;
     mxArray *ma = NULL;
-#ifndef MATLAB_MEX_FILE
-    int sts;
-#else
-    mxArray *sts = NULL;
-#endif
     mxArray *array[1];
+    int sts;
     
     *mx = mxCreateCellMatrix(tok->size, 1);
     for (i = 0, j = 0; i < tok->size; i++) {
         j += create_struct(js, tok+1+j, &ma);
         mxSetCell(*mx, i, ma);
     }
-    /* to do: nested arrays (of booleans, numeric, structure, strings)*/
-    /* '[1,2]' => [1;2] */
-    /* '[[1,2]]' => [1 2] */
-    /* '[[1,2],[3,4]]' => [1 2;3 4] */
     
-    /* Try to convert cell array into array*/
-#ifndef MATLAB_MEX_FILE
-    mexSetTrapFlag(1);
-    sts = mexCallMATLAB(1, array, 1, mx, "cell2mat");
-    mexPrintf("sts = %d\n",sts);
-    if ((sts == 0) && (!mxIsChar(array[0]))) {
-        return j+1; /* temporary always return cell arrays in Octave */
-#else
-    sts = mexCallMATLABWithTrap(1, array, 1, mx, "cell2mat");
-    if ((sts == NULL) && (!mxIsChar(array[0]))) {
-#endif
-        mxDestroyArray(*mx);
-        *mx = *array;
+    /* Convert cell array into array when required */
+    if (should_convert_to_array(*mx)) {
+        possible_transpose(*mx);
+        sts = mexCallMATLAB(1, array, 1, mx, "cell2mat");
+        if (sts == 0) {
+            mxDestroyArray(*mx);
+            *mx = *array;
+        }
+        else {
+            mexPrintf("Curious to know when this happens...\n");
+        }
     }
     return j+1;
 }
