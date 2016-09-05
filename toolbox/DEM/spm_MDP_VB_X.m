@@ -94,7 +94,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6854 2016-08-06 10:04:19Z karl $
+% $Id: spm_MDP_VB_X.m 6866 2016-09-05 09:19:42Z karl $
 
 
 % deal with a sequence of trials
@@ -153,7 +153,7 @@ end
 try
     T = MDP.T;                      % number of updates
     V = MDP.U;                      % allowable actions (1,Np)
-
+    
 catch
     V = MDP.V;                      % allowable policies (T - 1,Np)
     T = size(MDP.V,1) + 1;          % number of transitions
@@ -164,7 +164,7 @@ end
 if size(V,1) > (T - 1)
     V = V(1:(T - 1),:,:);
 end
-    
+
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
 Ng  = numel(MDP.A);                 % number of outcome factors
@@ -304,27 +304,51 @@ gu    = 1/qbeta;                    % posterior precision (policy)
 %==========================================================================
 for t = 1:T
     
-    % observed state
+    % generate true (default) outcomes
+    %======================================================================
+    ind   = num2cell(s(:,t));
+    for g = 1:Ng
+        
+        try
+            % outcome specified explicitly
+            %--------------------------------------------------------------
+            o(g,t) = MDP.o(g,t);
+            O{g,t} = sparse(o(g,t),1,1,No(g),1);
+            
+        catch
+            
+            % sample outcome from true state
+            %--------------------------------------------------------------
+            po     = MDP.A{g}(:,ind{:});
+            o(g,t) = find(rand < cumsum(po),1);
+            O{g,t} = sparse(o(g,t),1,1,No(g),1);
+            
+        end
+    end
+    
+    % generate outcomes from a subordinate MDP
     %======================================================================
     if isfield(MDP,'link')
         
-        % use previous inversions if available
+        % use previous inversions (if available)
         %------------------------------------------------------------------
         try
             mdp = MDP.mdp(t);
         catch
             mdp = MDP.MDP;
         end
-        link  = MDP.link;
-        nf    = numel(mdp.D);
+        
+        % Bayesian model average of hidden states
+        %------------------------------------------------------------------
         for f = 1:Nf
             xq{f} = X{f}(:,t);
         end
         
         % priors over states (of subordinate level)
         %------------------------------------------------------------------
+        link  = MDP.link;
         qf    = [];
-        for f = 1:nf
+        for f = 1:size(link,1)
             i = find(link(f,:));
             if numel(i)
                 
@@ -332,27 +356,25 @@ for t = 1:T
                 %----------------------------------------------------------
                 mdp.D{f} = spm_dot(A{i},xq);
                 
-                % true states if they are hierarchically linked
+                % true states, if they are hierarchically linked
                 %----------------------------------------------------------
-                ind      = num2cell(s(:,t));
                 po       = MDP.A{i}(:,ind{:});
                 qf       = [qf,f];
                 
             else
                 
-                % otherwise use priors
+                % otherwise use subordinate priors over states
                 %----------------------------------------------------------
-                if isfield(MDP,'d')
-                    po = spm_norm(mdp.d{f});
-                elseif isfield(MDP,'D')
+                if isfield(mdp,'D')
                     po = spm_norm(mdp.D{f});
                 else
                     po = spm_norm(ones(Ns(f),1));
                 end
+                
             end
             
             % sample true state for lower level
-            %----------------------------------------------------------------------
+            %--------------------------------------------------------------
             try
                 mdp.s(f,1) = mdp.s(f,1);
             catch
@@ -361,43 +383,63 @@ for t = 1:T
             
         end
         
-        % get (probabilistic) outcome
+        % infer hidden states at the lower level (outcomes at this level)
         %------------------------------------------------------------------
         mdp.factor = qf;
         mdp        = spm_MDP_VB_X(mdp);
         MDP.mdp(t) = mdp;
         
-    else
-        % otherwise there are no hierarchical links
-        %------------------------------------------------------------------
-        link = sparse(0,Ng);
+        % get outcomes from subordinate MDP
+        %==================================================================
+        for g = 1:Ng
+            i = find(link(:,g));
+            if numel(i)
+                o(g,t) = mdp.s(i,1);
+                O{g,t} = mdp.X{i}(:,1);
+            end
+        end    
     end
     
     % generate outcomes
-    %----------------------------------------------------------------------
-    for g = 1:Ng
+    %======================================================================
+    if isfield(MDP,'demi')
         
-        % posterior states and outcome (from subordinate level)
+        % use previous inversions (if available)
         %------------------------------------------------------------------
-        i = find(link(:,g));
-        if numel(i)
-            o(g,t) = mdp.s(i,1);
-            O{g,t} = mdp.X{i}(:,1);
-        else
-            
-            % outcome at this level
-            %--------------------------------------------------------------
-            try
-                o(g,t) = MDP.o(g,t);
-                O{g,t} = sparse(o(g,t),1,1,No(g),1);
-            catch
-                ind    = num2cell(s(:,t));
-                po     = MDP.A{g}(:,ind{:});
-                o(g,t) = find(rand < cumsum(po),1);
-                O{g,t} = sparse(o(g,t),1,1,No(g),1);
-            end
+        try
+            dem = spm_ADEM_update(MDP.dem(t - 1));
+        catch
+            dem = MDP.DEM;
         end
+
+        
+        % Bayesian model average of hidden states
+        %------------------------------------------------------------------
+        for f = 1:Nf
+            xq{f} = X{f}(:,t);
+        end
+        
+        % posterior predictive density
+        %------------------------------------------------------------------
+        for g = 1:Ng
+            qo{g}  = spm_dot(A{g},xq);
+        end
+        
+        % outcome (from Bayesian filtering)
+        %------------------------------------------------------------------
+        g      = MDP.demi;
+        dem    = spm_MDP_DEM(dem,qo,o(:,t));
+        o(g,t) = dem.s;
+        O{g,t} = dem.X;
+        
+        % save DEM structure
+        %------------------------------------------------------------------
+        MDP.dem(t) = dem;
+        
     end
+    
+    
+ 
     
     
     % Variational updates

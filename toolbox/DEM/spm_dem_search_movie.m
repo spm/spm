@@ -25,19 +25,31 @@ function spm_dem_search_movie(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dem_search_movie.m 4595 2011-12-19 13:06:22Z karl $
+% $Id: spm_dem_search_movie.m 6866 2016-09-05 09:19:42Z karl $
 
 
 % Preliminaries
 %--------------------------------------------------------------------------
 clf, global STIM
+if ~iscell(DEM), DEM = {DEM};          end
+if ~isfield(STIM,'W'), STIM.W = 1/6;   end
+if ~isfield(STIM,'P'), STIM.P = [0;0]; end
 N  = length(DEM);
 S  = spm_read_vols(STIM.U);
 
 % Stimulus
-%======================================================================
-Dx = STIM.U.dim(1)/2;
-Dy = STIM.U.dim(2)/2;
+%==========================================================================
+Dx = STIM.P(1)*16 + STIM.U.dim(1)/2;
+Dy = STIM.P(2)*16 + STIM.U.dim(2)/2;
+
+dim  = size(STIM.R);
+dx   = STIM.U.dim(1)/dim(1)*STIM.W;
+di   = dx*([1 dim(1)] - dim(1)/2) + Dx;
+dj   = dx*([1 dim(2)] - dim(2)/2) + Dy;
+di   = [di;di]; di = di(:);
+dj   = [dj;dj]';dj = dj(:);
+
+
 a  = [];
 
 for i = 1:N
@@ -56,6 +68,12 @@ for i = 1:N
         image((S + 1)*32), axis image, hold on
         plot(qU(2,t) + Dy,qU(1,t) + Dx,'.g','Markersize',8)
         plot(pU(2,t) + Dy,pU(1,t) + Dx,'.r','Markersize',16)
+        plot(pU(2,t) + dj,pU(1,t) + di,'+','Markersize',16)
+        
+        % show location of image ccentre
+        %------------------------------------------------------------------
+        plot(Dy,Dx,'+r','Markersize',32)
+
         drawnow, hold off
         
         % save

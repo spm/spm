@@ -16,7 +16,7 @@ function [f]= spm_fx_dem_reach(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_dem_reach.m 3901 2010-05-27 16:14:36Z karl $
+% $Id: spm_fx_dem_reach.m 6866 2016-09-05 09:19:42Z karl $
 
 
 % evaluate positions
@@ -28,7 +28,7 @@ O  = [0 -1 ;                                  % orthogonal projector
 
 T  = [v(1); v(2)];                            % target location
 J  = spm_dem_reach_x2J(x);                    % joint location
-F  = v(3)*(T - J{1} - J{2})*2;                  % force
+F  = v(3)*(T - J{1} - J{2})*2;                % force
 
 
 % flow

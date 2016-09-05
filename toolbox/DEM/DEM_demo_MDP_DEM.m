@@ -1,4 +1,4 @@
-function MDP = DEM_demo_MDP_reading
+function MDP = DEM_demo_MDP_DEM
 % Demo of active inference for visual salience
 %__________________________________________________________________________
 %
@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_reading
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_reading.m 6866 2016-09-05 09:19:42Z karl $
+% $Id: DEM_demo_MDP_DEM.m 6866 2016-09-05 09:19:42Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -49,6 +49,115 @@ function MDP = DEM_demo_MDP_reading
 %--------------------------------------------------------------------------
  
 rng('default')
+pth = fileparts(mfilename('fullpath'));
+
+
+% generative model at the sensory level (DTM): continuous states
+%==========================================================================
+
+% memory map images and get hypotheses
+%--------------------------------------------------------------------------
+global STIM
+try
+    STIM.H{1}   = spm_vol(fullfile(pth,'face_R.nii'));
+    STIM.H{2}   = spm_vol(fullfile(pth,'face_rot_R.nii'));
+    STIM.H{3}   = spm_vol(fullfile(pth,'face_inv_R.nii'));
+    
+    STIM.S{1}   = spm_vol(fullfile(pth,'face.nii'));
+    STIM.S{2}   = spm_vol(fullfile(pth,'face_rot.nii'));
+    STIM.S{3}   = spm_vol(fullfile(pth,'face_inv.nii'));
+    
+catch
+    
+    error('Images not found.');
+    
+end
+
+
+% set-up:
+%--------------------------------------------------------------------------
+dim    = 8;                                   % dimension of visual sample
+ns     = dim*dim;                             % number of sensory channels
+nh     = length(STIM.H);                      % number of hypotheses
+STIM.P = [1;-4];                               % stimulus position
+STIM.Q = 1/4;                                 % stimulus size
+STIM.R = spm_hanning(dim)*spm_hanning(dim)';  % retinal precision
+STIM.R = ones(size(STIM.R));
+
+STIM.V = spm_vol(fullfile(pth,'face_R.nii')); % Stimulus (filtered)
+STIM.U = spm_vol(fullfile(pth,'face.nii'));   % Stimulus (unfiltered)
+
+
+% generative model
+%==========================================================================
+M(1).E.s = 1/2;                               % smoothness
+M(1).E.n = 4;                                 % order of
+M(1).E.d = 1;                                 % generalised motion
+
+% hidden states
+%--------------------------------------------------------------------------
+x.o    = [0;0];                               % oculomotor angle
+x.x    = -log(nh)*ones(nh,1);                 % hypotheses
+
+% level 1: Displacement dynamics and mapping to sensory/proprioception
+%--------------------------------------------------------------------------
+M(1).f = @(x,v,P)spm_fx_dem_salience(x,v,P);
+M(1).g = @(x,v,P)spm_gx_dem_salience(x,v,P);
+M(1).x = x;                                  % hidden states
+M(1).V = exp(8);                             % error precision (g)
+M(1).W = exp(8);                             % error precision (f)
+
+
+% level 2:
+%--------------------------------------------------------------------------
+M(2).v = [0;0];                              % priors
+M(2).V = exp(16);
+
+
+% generative process
+%==========================================================================
+
+% first level
+%--------------------------------------------------------------------------
+G(1).f = @(x,v,a,P)spm_fx_adem_salience(x,v,a,P);
+G(1).g = @(x,v,a,P)spm_gx_adem_salience(x,v,a,P);
+G(1).x = [0;0];                              % hidden states
+G(1).V = exp(8);                             % error precision
+G(1).W = exp(8);                             % error precision
+G(1).U = [exp(8) exp(8) zeros(1,ns)];        % gain
+
+% second level
+%--------------------------------------------------------------------------
+G(2).v = 0;                                  % exogenous forces
+G(2).a = [0;0];                              % action forces
+G(2).V = exp(16);
+
+
+% generate and invert
+%==========================================================================
+N      = 16;                                   % length of data sequence
+DEM.G  = G;
+DEM.M  = M;
+DEM.C  = sparse(1,N);
+DEM.U  = sparse(2,N);
+DEM.U(1,:) = -2;
+DEM.U(2,:) = 4;
+
+% solve and save saccade
+%------------------------------------------------------------------
+DEM    = spm_ADEM(DEM);
+DEM    = spm_ADEM_update(DEM);
+
+% overlay true values
+%------------------------------------------------------------------
+spm_DEM_qU(DEM.qU,DEM.pU)
+
+spm_figure('GetWin','Figure 1');
+spm_dem_search_movie({DEM})
+        
+        
+return
+
  
 % first level (lexical)
 %==========================================================================
@@ -266,97 +375,15 @@ spm_MDP_search_plot(MDP)
  
 % illustrate evidence accumulation and perceptual synthesis (movie)
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 3'); clf
-spm_MDP_search_percept(MDP)
- 
+% spm_figure('GetWin','Figure 3'); clf
+% spm_MDP_search_percept(MDP)
+%  
 % electrophysiological responses
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 4'); clf
 spm_MDP_VB_ERP(MDP,1);
 subplot(4,1,4)
 spm_MDP_search_plot(MDP)
- 
- 
-% illustrate global and local violations
-%==========================================================================
- 
-% local violation (flipping is now highly likely)
-%--------------------------------------------------------------------------
-MDL = MDP;
-MDL.mdp(4).D{3} = [1;8];
-MDL = spm_MDP_VB_X(MDL);
- 
-% Global violation (the first sentence is surprising)
-%--------------------------------------------------------------------------
-MDG = MDP;
-MDG.D{1}(1,1)   = 1/8;
-MDG = spm_MDP_VB_X(MDG);
- 
-% Global and local violation
-%--------------------------------------------------------------------------
-MDB = MDP;
-MDB.D{1}(1,1)   = 1/8;
-MDB.mdp(4).D{3} = [1;8];
-MDB = spm_MDP_VB_X(MDB);
- 
- 
-% extract simulated responses to the last letter (in the last worked)
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 5'); clf
-[u ,v ,ind] = spm_MDP_VB_ERP(MDP,1);
-[ul,vl,ind] = spm_MDP_VB_ERP(MDL,1);
-[ug,vg,ind] = spm_MDP_VB_ERP(MDG,1);
-[ub,vb,ind] = spm_MDP_VB_ERP(MDB,1);
- 
-i   = cumsum(ind);
-i   = i(4) + (-32:-1);
-u   = u(i,:);
-v   = v(i,:);
-ul  = ul(i,:);
-vl  = vl(i,:);
-ug  = ug(i,:);
-vg  = vg(i,:);
-ub  = ub(i,:);
-vb  = vb(i,:);
- 
- 
-% peristimulus time and plot responses (and difference waveforms)
-%--------------------------------------------------------------------------
-pst = (1:length(i))*1000/64;
- 
-subplot(3,2,1)
-plot(pst,u,':r',pst,v,':b'), hold on
-plot(pst,ul,'r',pst,vl,'b'), hold off, axis square
-xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
-title('Local deviation','Fontsize',16)
- 
-subplot(3,2,2)
-plot(pst,ul - u,'r',pst,vl - v,'b'),   axis square ij
-xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
-title('Difference waveform','Fontsize',16)
- 
-subplot(3,2,3)
-plot(pst,u,'r:',pst,v ,'b:'), hold on
-plot(pst,ug,'r',pst,vg,'b'), hold off, axis square
-xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
-title('Global deviation','Fontsize',16)
- 
-subplot(3,2,4)
-plot(pst,ug - u,'r',pst,vg - v,'b'),   axis square ij
-xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
-title('Difference waveform','Fontsize',16)
- 
-subplot(3,2,5)
-plot(pst,u,':r',pst,v ,':b'), hold on
-plot(pst,ub,'r',pst,vb,'b'), hold off, axis square
-xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
-title('Local and global','Fontsize',16)
- 
-subplot(3,2,6)
-plot(pst,(ug - u) - (ub - ul),'r',pst,(vg - v) - (vb - vl),'b'),   axis square ij
-xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
-title('Difference of differences','Fontsize',16)
- 
  
 return
  

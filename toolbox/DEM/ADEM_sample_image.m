@@ -13,16 +13,24 @@ function [s]= ADEM_sample_image(V,o,R)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_sample_image.m 4595 2011-12-19 13:06:22Z karl $
- 
+% $Id: ADEM_sample_image.m 6866 2016-09-05 09:19:42Z karl $
+
+
+% preliminaries
+%--------------------------------------------------------------------------
+global STIM
+
+if ~isfield(STIM,'W'), STIM.W = 1/6;   end
+if ~isfield(STIM,'P'), STIM.P = [0;0]; end
+
 
 % retinotopic sampling
 %--------------------------------------------------------------------------
 dim  = size(R);
-dx   = V.dim(1)/dim(1)/6;
+dx   = V.dim(1)/dim(1)*STIM.W;
 
-i    = dx*((1:dim(1)) - dim(1)/2) + V.dim(1)/2  + o(1)*16;
-j    = dx*((1:dim(2)) - dim(2)/2) + V.dim(2)/2  + o(2)*16;
+i    = dx*((1:dim(1)) - dim(1)/2) + V.dim(1)/2  + (o(1) + STIM.P(1))*16;
+j    = dx*((1:dim(2)) - dim(2)/2) + V.dim(2)/2  + (o(2) + STIM.P(2))*16;
 x    = kron(ones(1,dim(2)),i);
 y    = kron(j,ones(1,dim(1)));
 z    = ones(1,dim(1)*dim(2));
