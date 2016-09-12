@@ -244,7 +244,7 @@ else
   if isfield(sens, 'chanpos')
     pos = sens.chanpos;
   else
-    hs = plotcoil(sens.chanpos, sens.chanori, chandir, coilsize, coilshape, 'edgecolor', edgecolor, 'facecolor', facecolor, 'edgealpha', edgealpha, 'facealpha', facealpha);
+    pos = [];
   end
   if isfield(sens, 'chanori')
     ori = sens.chanori;
@@ -296,7 +296,8 @@ warning(ws); % revert to original state
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION all optional inputs are passed to ft_plot_mesh
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'%%%%%%%%%%%%%%%%%%
-function hs = plotcoil(coilpos, coilori, coildir, coilsize, coilshape, varargin)
+function plotcoil(coilpos, coilori, chandir, coilsize, coilshape, varargin)
+
 % start with a single template coil at [0 0 0], oriented towards [0 0 1]
 switch coilshape
   case 'circle'
@@ -345,7 +346,6 @@ for i=1:ncoil
   mesh.pos(sel,:) = ft_warp_apply(t*r2*r1*r0*s, pos); % scale, rotate and translate the template coil vertices, skip the central vertex
   mesh.poly(i,:)  = sel;                              % this is a polygon connecting all edge points
   
-  hs = ft_plot_mesh(mesh, varargin{:});
 end
 % plot all polygons together
 ft_plot_mesh(mesh, varargin{:});
