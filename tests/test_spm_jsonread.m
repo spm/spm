@@ -3,7 +3,7 @@ function tests = test_spm_jsonread
 %__________________________________________________________________________
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_jsonread.m 6864 2016-08-31 15:21:00Z guillaume $
+% $Id: test_spm_jsonread.m 6869 2016-09-12 16:11:01Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -150,6 +150,6 @@ act  = spm_jsonread(json);
 testCase.verifyTrue(isequal(exp, act));
 
 json = '[[[1,2],[3,4]],[[5,6],[7,8]]]';
-exp = [1,3;5,7]; exp(:,:,2) = [2,4;6,8];
+exp  = cat(3,[1,3;5,7],[2,4;6,8]);
 act  = spm_jsonread(json);
-%testCase.verifyTrue(isequal(exp, act));
+testCase.verifyTrue(isequal(exp, act));

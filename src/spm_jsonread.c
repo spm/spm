@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 6864 2016-08-31 15:21:00Z guillaume $
+ * $Id: spm_jsonread.c 6869 2016-09-12 16:11:01Z guillaume $
  * Guillaume Flandin
  */
 
@@ -84,33 +84,40 @@ static int should_convert_to_array(const mxArray *pm) {
     return 1;
 }
 
-static void possible_transpose(mxArray *pm) {
+static int setup_for_cell2mat(mxArray *pm) {
     size_t i, n, a, b;
     mxClassID cat;
     mxArray *cell;
+    mwSize d, *olddim = NULL, *newdim = NULL;
     
     n = mxGetNumberOfElements(pm);
     if (!n) {
-        return;
+        return 0;
     }
-    cat = mxGetClassID(mxGetCell(pm, 0));
+    cell = mxGetCell(pm, 0);
+    cat  = mxGetClassID(cell);
     if ((cat != mxDOUBLE_CLASS) && (cat != mxLOGICAL_CLASS)) {
-        return;
+        return 0;
     }
-    for (i = 0; i < n; i++) {
-        cell = mxGetCell(pm, i);
-        a = mxGetM(cell);
-        if (a == 1) {
-            return;
+    if ((mxGetNumberOfDimensions(cell) == 2) && (mxGetM(cell) == 1)) {
+        return 0;
+    }
+    if ((mxGetNumberOfDimensions(cell) == 2) && (mxGetN(cell) == 1)) {
+        mxSetN(pm, mxGetM(pm));
+        mxSetM(pm, 1);
+    }
+    else {
+        d = mxGetNumberOfDimensions(pm);
+        olddim = (mwSize *)mxGetDimensions(pm);
+        newdim = mxMalloc((d+1) * sizeof(*newdim));
+        for (i=0;i<d;i++) {
+            newdim[i] = 1;
         }
+        newdim[d] = olddim[0];
+        mxSetDimensions(pm, newdim, d+1);
+        /*mxFree(newdim);*/
     }
-    for (i = 0; i < n; i++) {
-        cell = mxGetCell(pm, i);
-        a = mxGetM(cell);
-        b = mxGetN(cell);
-        mxSetM(cell, b);
-        mxSetN(cell, a);
-    }
+    return 1; /* cell2mat's output will require a call to permute */
 }
 
 static int create_struct(char *js, jsmntok_t *tok, mxArray **mx);
@@ -172,8 +179,9 @@ static int value(char *js, jsmntok_t *tok, mxArray **mx) {
 static int array(char *js, jsmntok_t *tok, mxArray **mx) {
     int i, j;
     mxArray *ma = NULL;
-    mxArray *array[1];
-    int sts;
+    mxArray *array[1], *parray[2];
+    mwSize d;
+    int perm, sts;
     
     *mx = mxCreateCellMatrix(tok->size, 1);
     for (i = 0, j = 0; i < tok->size; i++) {
@@ -183,14 +191,29 @@ static int array(char *js, jsmntok_t *tok, mxArray **mx) {
     
     /* Convert cell array into array when required */
     if (should_convert_to_array(*mx)) {
-        possible_transpose(*mx);
+        perm = setup_for_cell2mat(*mx);
         sts = mexCallMATLAB(1, array, 1, mx, "cell2mat");
         if (sts == 0) {
             mxDestroyArray(*mx);
             *mx = *array;
+            
+            if (perm) {
+                d = mxGetNumberOfDimensions(*mx);
+                parray[0] = *mx;
+                parray[1] = mxCreateNumericMatrix(1, d, mxDOUBLE_CLASS, mxREAL);
+                mxGetPr(parray[1])[0] = d;
+                for (i=1;i<d;i++) {
+                    mxGetPr(parray[1])[i] = i;
+                }
+                sts = mexCallMATLAB(1, mx, 2, parray, "permute");
+                mxDestroyArray(parray[1]);
+                if (sts != 0) {
+                    mexErrMsgTxt("Call to permute() failed.");
+                }
+            }
         }
         else {
-            mexPrintf("Curious to know when this happens...\n");
+            mexPrintf("Call to cell2mat() failed.\n");
         }
     }
     return j+1;
