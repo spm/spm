@@ -10,7 +10,7 @@ function L = spm_mesh_get_lm(M,T)
 % Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_get_lm.m 6860 2016-08-25 12:00:10Z guillaume $
+% $Id: spm_mesh_get_lm.m 6867 2016-09-12 15:04:44Z guillaume $
 
 
 %-Get adjacency matrix
@@ -24,10 +24,12 @@ end
 %-Get neighbours, restricted to vertices that actually have data (~= NaN)
 %--------------------------------------------------------------------------
 out      = isnan(T(:)');
+if all(out), L = []; return; end             % empty domain
 A(:,out) = 0;
 A(out,:) = 0;
 N        = spm_mesh_neighbours(A);
-if isempty(N), L = []; return; end
+if isempty(N), L = find(~out); return; end   % only singletons
+%S       = ~any(N(~out,:),2);                % some singletons
 
 %-Identify local maxima
 %--------------------------------------------------------------------------

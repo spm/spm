@@ -35,7 +35,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 6637 2015-12-08 18:12:51Z guillaume $
+% $Id: spm_mesh_render.m 6867 2016-09-12 15:04:44Z guillaume $
 
 
 %-Input parameters
@@ -328,6 +328,18 @@ switch lower(action)
         hs   = myCrossBar('Create',H,xyz);
         set(hs,'UserData',hReg);
         spm_XYZreg('Add2Reg',hReg,hs,@myCrossBar);
+        
+    %-Debug
+    %======================================================================
+    case 'debug'
+        if isempty(varargin), varargin{1} = gca; end
+        H = getHandles(varargin{1});
+        set(H.patch,'EdgeColor','r');
+        M = getappdata(H.patch,'patch');
+        for i=1:size(M.vertices,1)
+            text(M.vertices(i,1),M.vertices(i,2),M.vertices(i,3),...
+                sprintf('%d',i));
+        end
         
     %-Otherwise...
     %======================================================================
