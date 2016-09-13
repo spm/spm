@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 6816 2016-06-20 09:09:35Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 6871 2016-09-13 11:31:05Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -363,21 +363,20 @@ if isfield(job.isstandard, 'custom')
     inverse.smooth=job.isstandard.custom.patchfwhm;
     testchans=[];
     crossU={};
+    a=[];
     if ~isempty(job.isstandard.custom.umodes),
         disp('Loading spatial modes from file');
         
         a=load(cell2mat(job.isstandard.custom.umodes));
         
-       
         if isfield(a,'testchans'), %% see if some of channels have been turned off
             testchans=a.testchans;
-            if numel(a.U)~=size(testchans,1)+1,
-                error('U should one more element than testchans has rows')
+            if numel(a.U)~=size(testchans,1),
+                error('U should have same number of elements as testchans has rows')
             end;
             crossU=a.U;
         else
             crossU={a.U};
-            
         end;
     else %% if isempty U mode file
         A=[];
@@ -498,12 +497,15 @@ if size(modalities,1)>1,
     error('only works for single modality');
 end;
 megind=D{1}.indchantype(modalities);
-
 origbadind=D{1}.badchannels;
+megind=setdiff(megind,origbadind); %% start with just the good meg channels
+
 Ntestchans=round(job.crossval(1)*length(megind)/100);
 Nblocks=round(job.crossval(2));
 
-if ~isempty(testchans),
+
+if isfield(a,'testchans'),
+    fprintf('Using testchans defined in spatial modes file\n')
     if Ntestchans~=size(testchans,2),
         error('Ntestchans different in U spec and cross val');
     end;
@@ -511,9 +513,15 @@ if ~isempty(testchans),
         error('Not enough elements defined in U for this many iterations'),
     end;
 else,
-    
+    fprintf('Making random test channels \n')
     rng('default');rng(0); %% always use same random seed here- so that cross vals (and Fs) between models can be compared
-    testchans=randi(length(megind),Nblocks,Ntest);
+    
+    for b=1:Nblocks,
+        dum=randperm(length(megind));
+        testchans(b,:)=dum(1:Ntestchans); %% channels which will be used for testing (Set to bad during training)
+        %useind(b,:)=setdiff(1:length(megind),testchans(b,:)); %% training channels used here to get the spatial modes
+    end;
+    
 end;
 
 
@@ -526,24 +534,19 @@ Lfull=spm_eeg_lgainmat(D{1});
 % load(fullfile(D{1}.path, fname),'G','label');
 % fullgainname=fullfile(D{1}.path, ['Full_' fname]);
 % save(fullgainname,'G','label');
-  
+
 Nchans=D{1}.nchannels;
 
-crosserr=zeros(Nblocks+1,1);
-crossF=zeros(Nblocks+1,1);
+crosserr=zeros(Nblocks,1);
+crossF=zeros(Nblocks,1);
 
-for b=1:Nblocks+1,
+for b=1:Nblocks,
     
-    if b>1, %% use all the channels in the first inversion
-        fprintf('\n Cross val iteration %d of %d, first two chans:%d, %d..\n',b-1,Nblocks,testchans(b-1,1),testchans(b-1,2));
-        badmegind=testchans(b-1,:);
-        D{1} = badchannels(D{1}, 1:Nchans, 0); %% set all chans to good
-        D{1} = badchannels(D{1}, [megind(badmegind) origbadind], 1); %% set orignal + test chans as bad
-        
-        
-        
-        
-    end; % if b
+    
+    badmegind=testchans(b,:);
+    D{1} = badchannels(D{1}, 1:Nchans, 0); %% set all chans to good
+    D{1} = badchannels(D{1}, [megind(badmegind) origbadind], 1); %% set orignal + test chans as bad
+    
     
     
     D{1}.inv{val}.inverse.A=crossU{b};;
@@ -577,7 +580,8 @@ for b=1:Nblocks+1,
     end;
     
     
-    if b>1,
+    if Ntestchans>0, %% if there are any channels to predict..
+        fprintf('\n Cross val iteration %d of %d, first two chans:%d, %d..\n',b,Nblocks,testchans(b,1),testchans(b,2));
         errpred=0;
         rmstot=0;
         
@@ -589,14 +593,14 @@ for b=1:Nblocks+1,
             allUYtrain=U*(traindata)*T; % test channels - not used in inversion
             Jtrain=M*allUYtrain; %% source estimate based on training data
             Ypred=Lfull*Jtrain; %% now predict test channels based on trained source estimate
-            Ymeas=squeeze((D{1}(megind(testchans(b-1,:)),It,Ik(t)))); % test channels - not used in inversion
+            Ymeas=squeeze((D{1}(megind(testchans(b,:)),It,Ik(t)))); % test channels - not used in inversion
             Ymeas=Ymeas.*W(1:size(testchans,2),:)*T;
             errpred=errpred+sqrt(mean((sum(Ypred(badmegind,:)-Ymeas).^2))); % asusming same model in trial and test (i.e. not necessarily time locked)
             rmstot=rmstot+sqrt(mean(sum(Ymeas.^2)));
             
         end;
         crosserr(b)=errpred;
-    end; %if b>1
+    end; %if pctest>0
     
     
 end; % for b
