@@ -23,11 +23,20 @@ function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat,opts)
 % Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6872 2016-09-14 12:12:41Z guillaume $
+% $Id: spm_results_nidm.m 6873 2016-09-14 14:29:30Z guillaume $
 
 
 %-Get input parameters, interactively if needed
 %==========================================================================
+if nargin && ischar(SPM) && strcmpi(SPM,'upload')
+    if nargin > 2
+        upload_to_neurovault(xSPM,TabDat); % token
+    else
+        upload_to_neurovault(xSPM);
+    end
+    return;
+end
+
 if nargin < 1
     [SPM,xSPM] = spm_getSPM;
 elseif nargin < 2
@@ -53,7 +62,7 @@ end
 %--------------------------------------------------------------------------
 gz           = '.gz';                        %-Compressed NIfTI {'.gz', ''}
 NIDMversion  = '1.3.0';
-SVNrev       = '$Rev: 6872 $';
+SVNrev       = '$Rev: 6873 $';
 
 %-Reference space
 %--------------------------------------------------------------------------
@@ -1667,3 +1676,160 @@ C = {...
 'nlx:ixl_0050004', 'nlx_AnatomicalMRIprotocol';...
 'nlx:nlx_inv_20090249', 'nlx_Diffusionweightedimagingprotocol';...
 };
+
+%==========================================================================
+% Upload to NeuroVault
+%==========================================================================
+function upload_to_neurovault(nidmfile,token)
+
+neurovault = 'http://neurovault.org';
+
+% Get token
+if nargin > 1
+    addpref('neurovault','token',token);
+elseif ispref('neurovault','token')
+    token = getpref('neurovault','token');
+else
+    if spm('CmdLine')
+        error('Upload to NeuroVault requires a token-based authentication.');
+    end
+    token = inputdlg('Token','Enter NeuroVault token',1,{''},'on');
+    if isempty(token) || isempty(token{1}), return; else token = char(token); end
+    addpref('neurovault','token',token);
+end
+auth = ['Bearer ' token];
+
+% Check token
+url = [neurovault '/api/my_collections/'];
+statusCode = http_request('head', url, 'Authorization', auth);
+if isnan(statusCode)
+    error('Cannot connect to NeuroVault.');
+elseif statusCode ~= 200
+    warning('Failed authentication with NeuroVault: invalid token.');
+    rmpref('neurovault','token');
+    upload_to_neurovault(nidmfile);
+    return;
+end
+
+% Get user name
+url = [neurovault '/api/user/'];
+[statusCode, responseBody] = http_request('jsonGet', url, 'Authorization', auth);
+if statusCode == 200
+    responseBody = spm_jsonread(responseBody);
+    owner_name = responseBody.username;
+else
+    err = spm_jsonread(responseBody);
+    error(char(err.detail));
+end
+my_collection = sprintf('%s''s %s Collection',owner_name,spm('Ver'));
+
+% Get the list of collections
+url   = [neurovault '/api/my_collections/'];
+[statusCode, responseBody] = http_request('jsonGet', url, 'Authorization', auth);
+if statusCode == 200
+    collections = spm_jsonread(responseBody);
+else
+    err = spm_jsonread(responseBody);
+    error(char(err.detail));
+end
+
+% Create a new collection if needed
+id = NaN;
+for i=1:numel(collections.results)
+    if strcmp(collections.results{i}.name,my_collection)
+        id = collections.results{i}.id;
+        break;
+    end
+end
+if isnan(id)
+    url   = [neurovault '/api/collections/'];
+    requestParts = [];
+    requestParts.Type = 'string';
+    requestParts.Name = 'name';
+    requestParts.Body = my_collection;
+    [statusCode, responseBody] = http_request('multipartPost', url, requestParts, 'Authorization', auth);
+    if statusCode == 201
+        collections = spm_jsonread(responseBody);
+        id = collections.id;
+    else
+        err = spm_jsonread(responseBody);
+        error(char(err.name));
+    end
+end
+
+% Upload NIDM-Results in NeuroVault's collection
+url = [neurovault sprintf('/api/collections/%d/nidm_results/',id)];
+requestParts = [];
+requestParts(1).Type = 'string';
+requestParts(1).Name = 'name';
+requestParts(1).Body = 'No name'; % NAME
+requestParts(2).Type = 'string';
+requestParts(2).Name = 'description';
+requestParts(2).Body = 'No description'; % DESCRIPTION
+requestParts(3).Type = 'file';
+requestParts(3).Name = 'zip_file';
+requestParts(3).Body = nidmfile;
+[statusCode, responseBody] = http_request('multipartPost', url, requestParts, 'Authorization', auth);
+if statusCode == 201
+    responseBody = spm_jsonread(responseBody);
+    W = [neurovault sprintf('/collections/%d/',responseBody.collection)];
+    cmd = 'web(''%s'',''-browser'')';
+    fprintf('Uploaded to %s\n',spm_file(W,'link',cmd));
+else
+    err = spm_jsonread(responseBody);
+    error(char(err.name));
+end
+
+%==========================================================================
+% HTTP requests 
+%==========================================================================
+function varargout = http_request(action, url, varargin)
+% Use missing-http from Paul Sexton:
+% https://github.com/psexton/missing-http/
+
+persistent jar_added_to_path
+if isempty(jar_added_to_path)
+    jarfile = fullfile(spm('Dir'),'external','missing-http','missing-http.jar');
+    if spm_existfile(jarfile)
+        javaaddpath(jarfile); % this clears global
+        jar_added_to_path = true;
+    else
+        error('HTTP library missing.');
+    end
+end
+
+switch lower(action)
+    case 'head'
+        try
+            response = char(net.psexton.missinghttp.MatlabShim.head(url, varargin));
+        catch
+            response = 'NaN';
+        end
+        statusCode   = str2double(response);
+        varargout    = { statusCode };
+    case 'jsonget'
+        try
+            response = cell(net.psexton.missinghttp.MatlabShim.jsonGet(url, varargin));
+        catch
+            response = {'NaN',''};
+        end
+        statusCode   = str2double(response{1});
+        responseBody = response{2};
+        varargout    = { statusCode, responseBody };
+    case 'multipartpost'
+        requestParts = varargin{1};
+        crp = cell(1, numel(requestParts));
+        for k=1:numel(requestParts)
+            crp{k}   = sprintf('%s\n%s\n%s', requestParts(k).Type, requestParts(k).Name, requestParts(k).Body);
+        end
+        try
+            response = cell(net.psexton.missinghttp.MatlabShim.multipartPost(url, crp, varargin(2:end)));
+        catch
+            response = {'NaN',''};
+        end
+        statusCode   = str2double(response{1});
+        responseBody = response{2};
+        varargout    = { statusCode, responseBody };
+    otherwise
+        error('Unknown HTTP request.');
+end
