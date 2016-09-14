@@ -1,9 +1,13 @@
-function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat)
+function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat,opts)
 % Export SPM stats results using the Neuroimaging Data Model (NIDM)
-% FORMAT [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat)
+% FORMAT [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat,opts)
 % SPM      - structure containing analysis details (see spm_spm.m)
 % xSPM     - structure containing inference details (see spm_getSPM.m)
 % TabDat   - structure containing results details (see spm_list.m)
+% opts     - structure containing extra information about:
+%   .group - subject/group(s) under study
+%   .mod   - data modality
+%   .space - reference space
 %
 % nidmfile - output NIDM zip archive filename
 % prov     - provenance object (see spm_provenance.m)
@@ -19,7 +23,7 @@ function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6797 2016-05-06 16:48:08Z guillaume $
+% $Id: spm_results_nidm.m 6872 2016-09-14 12:12:41Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -38,40 +42,98 @@ if nargin < 3
     % Consider Inf local maxima more than 0mm apart (i.e. all)
     TabDat = spm_list('Table',xSPM,Inf,0);
 end
+if nargin < 4
+    opts = struct;
+end
 
 %-Options
+%==========================================================================
+
+%-General options
 %--------------------------------------------------------------------------
-gz           = '.gz'; %-Compressed NIfTI {'.gz', ''}
-coordsys     = 'nidm_MNICoordinateSystem'; %-Assuming MNI space
-NIDMversion  = '1.3.0-rc2';
-SVNrev       = '$Rev: 6797 $';
-MRIProtocol  = '';
-try
-    modality = spm_get_defaults('modality');
-catch
-    modality = 'FMRI';
+gz           = '.gz';                        %-Compressed NIfTI {'.gz', ''}
+NIDMversion  = '1.3.0';
+SVNrev       = '$Rev: 6872 $';
+
+%-Reference space
+%--------------------------------------------------------------------------
+if ~isfield(opts,'space')
+    s = {'subject','ixi','icbm','custom','mni','talairach'};
+    opts.space = spm_input('Reference space :','+1','m',s);
+    opts.space = s{opts.space};
 end
-switch modality
-    case 'FMRI'
-        ImagingInstrument = 'nlx_Magneticresonanceimagingscanner';
+switch opts.space
+    case 'subject'
+        coordsys = 'nidm_SubjectCoordinateSystem';
+    case 'ixi'
+        coordsys = 'nidm_Ixi549CoordinateSystem';
+    case 'icbm'
+        coordsys = 'nidm_IcbmMni152LinearCoordinateSystem';
+    case 'custom'
+        coordsys = 'nidm_CustomCoordinateSystem';        
+    case 'mni'
+        coordsys = 'nidm_MNICoordinateSystem';        
+    case 'talairach'
+        coordsys = 'nidm_TalairachCoordinateSystem';                
+end
+
+%-Data modality
+%--------------------------------------------------------------------------
+MRIProtocol  = '';
+if ~isfield(opts,'mod')
+    m = {'AMRI','FMRI','DMRI','PET','SPECT','EEG','MEG'};
+    opts.mod = spm_input('Data modality :','+1','m',m);
+    opts.mod = m{opts.mod};
+end
+switch opts.mod;
+    case 'AMRI'
+        ImagingInstrument      = 'nlx_Magneticresonanceimagingscanner';
         ImagingInstrumentLabel = 'MRI Scanner';
         
-        MRIProtocol = 'nlx_FunctionalMRIprotocol';
-        % or 'nlx_StructuralMRIprotocol'
+        MRIProtocol            = 'nlx_AnatomicalMRIprotocol';    
+    case 'FMRI'
+        ImagingInstrument      = 'nlx_Magneticresonanceimagingscanner';
+        ImagingInstrumentLabel = 'MRI Scanner';
+        
+        MRIProtocol            = 'nlx_FunctionalMRIprotocol';
+    case 'DMRI'
+        ImagingInstrument      = 'nlx_Magneticresonanceimagingscanner';
+        ImagingInstrumentLabel = 'MRI Scanner';
+        
+        MRIProtocol            = 'nlx_DiffusionMRIprotocol';
     case 'PET'
-        ImagingInstrument =  'nlx_Positronemissiontomographyscanner';
+        ImagingInstrument      = 'nlx_Positronemissiontomographyscanner';
         ImagingInstrumentLabel = 'PET Scanner';
-        % or 'nlx_Singlephotonemissioncomputedtomographyscanner'
+    case 'SPECT'
+        ImagingInstrument      = 'nlx_Singlephotonemissioncomputedtomographyscanner';
+        ImagingInstrumentLabel = 'SPECT Scanner';     
     case 'EEG'
-        ImagingInstrument = 'nlx_Electroencephalographymachine';
+        ImagingInstrument      = 'nlx_Electroencephalographymachine';
         ImagingInstrumentLabel = 'EEG Machine';
-        % or 'nlx_Magnetoencephalographymachine'
+    case 'MEG'
+        ImagingInstrument      = 'nlx_Magnetoencephalographymachine';
+        ImagingInstrumentLabel = 'MEG Machine';        
     otherwise
         error('Unknown modality.');
 end
-groups = 1; % ie single subject or [nG1, nG2, ...]
-groupName = repmat({'Control'},1,numel(groups));
 
+%-Subject/Group(s)
+%--------------------------------------------------------------------------
+if ~isfield(opts,'group')
+    opts.group.N = spm_input('Number of subjects per group :','+1','e');
+    if isequal(opts.group.N,1)
+        opts.group.name = {'single subject'};
+    else
+        for i=1:numel(opts.group.N)
+            opts.group.name{i} = spm_input(...
+                sprintf('Name of group %d :',i),'+1','s');
+        end
+    end
+end
+groups = opts.group;
+
+%-Units
+%--------------------------------------------------------------------------
 try
     units = xSPM.units;
 catch
@@ -289,7 +351,7 @@ pp.agent(idExporter,{...
     'prov:type',nidm_conv('nidm_spm_results_nidm',pp),...
     'prov:type','prov:SoftwareAgent',...
     'prov:label',{'spm_results_nidm','xsd:string'},...
-    nidm_conv('nidm_softwareVersion',pp),{[V(4:end) '.' char(regexp(SVNrev,'\$Rev: (\d.*?) \$','tokens','once'))],'xsd:string'},...
+    nidm_conv('nidm_softwareVersion',pp),{[V(4:end) '.' char(regexp(SVNrev,'\$Rev: (\w.*?) \$','tokens','once'))],'xsd:string'},...
     });
 
 idExport = getid('niiri:export_id',isHumanReadable);
@@ -330,7 +392,7 @@ p.agent(idScanner,{...
 
 %-Agent: Person
 %--------------------------------------------------------------------------
-if isequal(groups,1)
+if isequal(groups.N,1)
     idPerson = getid('niiri:subject_id',isHumanReadable);
     p.agent(idPerson,{...
         'prov:type','prov:Person',...
@@ -339,14 +401,14 @@ if isequal(groups,1)
 else
     %-Agent: Group
     %----------------------------------------------------------------------
-    idGroup = cell(1,numel(groups));
-    for i=1:numel(groups)
+    idGroup = cell(1,numel(groups.N));
+    for i=1:numel(groups.N)
         idGroup{i} = getid(sprintf('niiri:group_id_%d',i),isHumanReadable);
         p.agent(idGroup{i},{...
             'prov:type',nidm_conv('obo_studygrouppopulation',p),...
-            'prov:label',{sprintf('Group: %s',groupName{i}),'xsd:string'},...
-            nidm_conv('nidm_groupName',p),{groupName{i},'xsd:string'},...
-            nidm_conv('nidm_numberOfSubjects',p),{groups(i),'xsd:int'},...
+            'prov:label',{sprintf('Group: %s',groups.name{i}),'xsd:string'},...
+            nidm_conv('nidm_groupName',p),{groups.name{i},'xsd:string'},...
+            nidm_conv('nidm_numberOfSubjects',p),{groups.N(i),'xsd:int'},...
             });
     end
 end
@@ -375,10 +437,10 @@ p.entity(idData,{...
     'prov:label',{'Data','xsd:string'},...
     extra_fields{:}});
 p.wasAttributedTo(idData,idScanner);
-if isequal(groups,1)
+if isequal(groups.N,1)
     p.wasAttributedTo(idData,idPerson);
 else
-    for i=1:numel(groups)
+    for i=1:numel(groups.N)
         p.wasAttributedTo(idData,idGroup{i});
     end
 end
@@ -504,6 +566,7 @@ else
         extra_fields_NM = {...
             nidm_conv('nidm_hasErrorDependence',p),nidm_conv('nidm_IndependentError',p),...
             nidm_conv('nidm_errorVarianceHomogeneous',p),{'true','xsd:boolean'},...
+            nidm_conv('nidm_varianceMapWiseDependence',p),nidm_conv('nidm_IndependentParameter',p),...            
             };
         extra_fields_PE = {
             nidm_conv('nidm_withEstimationMethod',p),nidm_conv('obo_ordinaryleastsquaresestimation',p),...
@@ -577,22 +640,15 @@ p.wasGeneratedBy(idGrandMean, idModelPE);
 %--------------------------------------------------------------------------
 idBeta = cell(1,numel(SPM.Vbeta));
 for i=1:numel(SPM.Vbeta)
-    if ~isempty(files.beta)
-        extra_fields = {...
-            'prov:location',{uri(files.beta{i}),'xsd:anyURI'},...
-            'nfo:fileName',{spm_file(files.beta{i},'filename'),'xsd:string'},...
-            'dct:format',niifmt,...
-            nidm_conv('nidm_inCoordinateSpace',p),id_data_coordspace,...
-            'crypto:sha512',{sha512sum(files.beta{i}),'xsd:string'},...
-        };
-    else
-        extra_fields = {};
-    end
     idBeta{i} = getid(sprintf('niiri:beta_map_id_%d',i),isHumanReadable);
     p.entity(idBeta{i},{...
         'prov:type',nidm_conv('nidm_ParameterEstimateMap',p),...
+        'prov:location',{uri(files.beta{i}),'xsd:anyURI'}...
+        'nfo:fileName',{spm_file(files.beta{i},'filename'),'xsd:string'},...
+        'dct:format',niifmt,...
         'prov:label',{sprintf('Beta Map %d',i),'xsd:string'},...
-        extra_fields{:},...
+        nidm_conv('nidm_inCoordinateSpace',p),id_data_coordspace,...
+        'crypto:sha512',{sha512sum(fullfile(SPM.swd,SPM.Vbeta(i).fname)),'xsd:string'},...        
     });
     id = originalfile(p,fullfile(SPM.swd,SPM.Vbeta(i).fname),idBeta{i},nidm_conv('nidm_ParameterEstimateMap',p));
     p.wasDerivedFrom(idBeta{i},id);
@@ -753,6 +809,9 @@ else
         case 'unc.'
             thresh_order = [2 1 3]; % uncorrected
             thresh_desc  = sprintf(': p<%f (unc.)',TabDat.ftr{1,2}(2));
+            % Set uncorrected p-value threshold to the user-defined value
+            % (to avoid possible floating point approximations)            
+            %thresh(2).value = str2double(td.u);
         case 'FDR'
             thresh(3).type  = nidm_conv('obo_qvalue',p);
             thresh(3).label = 'Height Threshold';
