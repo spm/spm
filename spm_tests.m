@@ -15,14 +15,14 @@ function results = spm_tests(varargin)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_tests.m 6792 2016-04-28 17:56:33Z guillaume $
+% $Id: spm_tests.m 6876 2016-09-15 10:27:19Z guillaume $
 
 
 if spm_check_version('matlab','8.3') < 0
     error('Unit Tests require MATLAB R2014a or above.');
 end
 
-SVNid = '$Rev: 6792 $';
+SVNid = '$Rev: 6876 $';
 SPMid = spm('FnBanner',mfilename,SVNid);
 
 %-Input parameters
@@ -92,7 +92,7 @@ if options.tap
     d = getenv('WORKSPACE');
     if isempty(d), d = spm('Dir'); end
     tapFile = fullfile(d,'spm_tests.tap');
-    plugin = TAPPlugin.producingOriginalFormat(ToFile(tapFile));
+    plugin = TAPPlugin.producingVersion13(ToFile(tapFile));
     runner.addPlugin(plugin);
 end
 
