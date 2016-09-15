@@ -54,7 +54,7 @@ function [GCM,PEB] = spm_dcm_peb_to_gcm(PEB, GCM_template, options)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_to_gcm.m 6874 2016-09-15 09:29:34Z peter $
+% $Id: spm_dcm_peb_to_gcm.m 6877 2016-09-15 14:09:36Z vladimir $
 
 % Set defaults
 try options.gen_idx;   catch, options.gen_idx = 1; end
@@ -171,7 +171,11 @@ for s = 1:ns
         DCM.Ep   = spm_unvec(full(ep), DCM.M.pE);
         
         % Set covariance to be a fraction of the prior
-        DCM.Cp = diag(diag(DCM.M.pC)) / options.ratio;
+        if isa(DCM.M.pC, 'struct')
+            DCM.Cp = diag(spm_vec(DCM.M.pC)) / options.ratio;
+        else
+            DCM.Cp = diag(diag(DCM.M.pC)) / options.ratio;
+        end
         
         % Set any disabled parameters to zero variance
         DCM.Cp(is_off,is_off) = 0;
