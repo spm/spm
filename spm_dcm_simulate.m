@@ -26,8 +26,8 @@ function [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% Peter Zeidman
-% $Id: spm_dcm_simulate.m 6851 2016-08-01 12:48:29Z vladimir $
+% Peter Zeidman, Vladimir Litvak
+% $Id: spm_dcm_simulate.m 6874 2016-09-15 09:29:34Z peter $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -114,9 +114,6 @@ function [GCM, gen] = simulate_erp(GCM, mode, noise, gen_idx)
 [ns, nm] = size(GCM);
 
 gen = cell(ns,1);
-
-% create subject-specifc DCM
-%--------------------------------------------------------------------------
 
 for i = 1:ns
     DCM = GCM{i,gen_idx};     
