@@ -1,5 +1,5 @@
-function [spatialmodename]=spm_eeg_inv_prep_modes_xval(filenames, Nmodes, spatialmodename,Nblocks,pctest);
-%function [spatialmodename]=spm_eeg_inv_prep_modes_xval(filenames, Nmodes, spatialmodename,Nblocks,pctest);
+function [spatialmodename,Nmodes]=spm_eeg_inv_prep_modes_xval(filenames, Nmodes, spatialmodename,Nblocks,pctest);
+%function [spatialmodename,Nmodes]=spm_eeg_inv_prep_modes_xval(filenames, Nmodes, spatialmodename,Nblocks,pctest);
 
 %% prepare a spatial mode file for inversion
 %% this file ensures the same spatial modes are used across different files (which would contain the same data but different head-models for example)

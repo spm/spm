@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 6871 2016-09-13 11:31:05Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 6878 2016-09-16 07:57:06Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -22,10 +22,9 @@ val.val = {1};
 
 outinv = cfg_entry;
 outinv.tag = 'outinv';
-outinv.name = 'Output prefix to save just inv structure';
+outinv.name = 'Output prefix to save a copy of inv structure';
 outinv.strtype = 's';
-outinv.help = {'If this is supplied the original data file will not be written to, but a new inverse structure with this name created'};
-outinv.val = {''};
+outinv.help = {'If this is supplied the original dataset will still be updated but new inverse structure with this name created'};utinv.val = {''};
 
 
 
@@ -320,7 +319,7 @@ if numel(job.D)>1,
     error('iterative routine only meant for single subjects');
 end;
 
-savejustinv=0; %% by default update dataset
+savecopyinv=0; %% by default update dataset
 if isfield(job.isstandard, 'custom')
     funccall=job.isstandard.custom.invfunc;
     inverse.type = job.isstandard.custom.invtype;
@@ -330,7 +329,7 @@ if isfield(job.isstandard, 'custom')
     inverse.hpf  =  fix(max(job.isstandard.custom.foi));
     inverse.mergeflag=job.isstandard.custom.mselect;
     
-    savejustinv = ~isempty(job.isstandard.custom.outinv);
+    savecopyinv = ~isempty(job.isstandard.custom.outinv);
     
     if ~isfield(job.isstandard.custom.isfixedpatch,'fixedpatch'), % fixed or random patch
         inverse.Np =  fix(max(job.isstandard.custom.isfixedpatch.randpatch.npatches));
@@ -496,6 +495,7 @@ modalities = D{1}.inv{1}.forward.modality;
 if size(modalities,1)>1,
     error('only works for single modality');
 end;
+
 megind=D{1}.indchantype(modalities);
 origbadind=D{1}.badchannels;
 megind=setdiff(megind,origbadind); %% start with just the good meg channels
@@ -529,8 +529,9 @@ end;
 
 
 %% load in lead field matrix (with all good chans and make a copy)
-Lfull=spm_eeg_lgainmat(D{1});
-% fname = D{1}.inv{val}.gainmat;
+
+[Lfull D{1}]=spm_eeg_lgainmat(D{1});
+ gainname = D{1}.inv{1}.gainmat
 % load(fullfile(D{1}.path, fname),'G','label');
 % fullgainname=fullfile(D{1}.path, ['Full_' fname]);
 % save(fullgainname,'G','label');
@@ -590,7 +591,7 @@ for b=1:Nblocks,
             traindata=squeeze((D{1}(Ic,It,Ik(t))));
             
             traindata=traindata.*W; %% hanning window
-            allUYtrain=U*(traindata)*T; % test channels - not used in inversion
+            allUYtrain=U*(traindata)*T; %
             Jtrain=M*allUYtrain; %% source estimate based on training data
             Ypred=Lfull*Jtrain; %% now predict test channels based on trained source estimate
             Ymeas=squeeze((D{1}(megind(testchans(b,:)),It,Ik(t)))); % test channels - not used in inversion
@@ -618,11 +619,11 @@ if ~iscell(D)
 end
 
 for i = 1:numel(D)
-    if ~savejustinv,
-        save(D{i});
-    else
+    save(D{i});
+    if savecopyinv, %% actually going to save the dataset anyway- badchannels need to be set right
         outinvname=[D{i}.path filesep job.isstandard.custom.outinv '_' D{i}.fname];
-        warning(sprintf('Data file is not being updated- inversion results written to %s',outinvname));
+        fprintf(sprintf('\nNB. Original dataset is being updated and a copy of inversion results written to %s',outinvname));
+        
         inv=D{i}.inv{val};
         spmfilename=D{i}.fname;
         save(outinvname,'-v7.3','inv','spmfilename');
