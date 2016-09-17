@@ -49,7 +49,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 6856 2016-08-10 17:55:05Z karl $
+% $Id: spm_dcm_bmr_all.m 6879 2016-09-17 17:45:08Z peter $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -128,12 +128,17 @@ while GS
         %------------------------------------------------------------------
         Z     = zeros(1,nparam);
         for i = 1:nparam
+            % Identify parameters to retain r and to remove s
             r    = C; r(k(i)) = 0; s = 1 - r;
+
+            % Create reduced prior covariance matrix
             R    = U'*diag(r + s*gamma)*U;
-            S    = U'*diag(r)*U;
-            rE   = S*pE + U'*s*beta;
             rC   = R*pC*R;
             
+            % Create reduced prior means
+            S    = U'*diag(r)*U;
+            rE   = S*pE + U'*s*beta;
+                        
             Z(i) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
         end
         
@@ -161,11 +166,16 @@ while GS
     %----------------------------------------------------------------------
     G     = [];
     for i = 1:size(K,1)
+        % Identify parameters to retain r and to remove s
         r    = C; r(k(K(i,:))) = 0; s = 1 - r;
+        
+        % Create reduced prior covariance matrix
         R    = U'*diag(r + s*gamma)*U;
+        rC   = R*pC*R;
+        
+        % Create reduced prior means
         S    = U'*diag(r)*U;
         rE   = S*pE + U'*s*beta;
-        rC   = R*pC*R;
         
         G(i) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
     end
@@ -232,18 +242,25 @@ for i = 1:length(K)
         r            = C;
         r(k(K(i,:))) = 0;
         s            = 1 - r;
+        
         R            = diag(r + s*gamma);
+        rC           = R*pC*R;
+        
         S            = diag(r);
         rE           = S*spm_vec(pE) + s*beta;
-        rC           = R*pC*R;
+      
         [F,Ep,Cp]    = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
         BMA{end + 1} = struct('Ep',Ep,'Cp',Cp,'F',F);
     end
 end
 BMA   = spm_dcm_bma(BMA);
+
 Ep    = BMA.Ep;
 Cp    = BMA.Cp;
 
+if isstruct(Cp) || (size(Cp,1) ~= size(Cp,2))
+    Cp = diag(spm_vec(Cp));
+end
 
 % Show full and reduced conditional estimates (for Bayesian average)
 %--------------------------------------------------------------------------
@@ -254,9 +271,11 @@ if isstruct(DCM.Ep)
 else
     i  = 1:spm_length(DCM.Ep);
 end
+
 qE     = spm_vec(qE);
 Ep     = spm_vec(Ep);
 
+j = i(ismember(i,1:length(spm_vec(Ep))));
 
 % BMR summary and plotting
 %--------------------------------------------------------------------------
@@ -279,7 +298,7 @@ subplot(3,2,3), spm_plot_ci(qE(i),qC(i,i))
 title('MAP (full)','FontSize',16)
 axis square, a = axis;
 
-subplot(3,2,4), spm_plot_ci(Ep(i),abs(Cp(i)))
+subplot(3,2,4), spm_plot_ci(Ep(j),abs(Cp(j,j)))
 title('MAP (reduced)','FontSize',16), axis square, axis(a)
 
 subplot(3,2,5), imagesc(1 - K')

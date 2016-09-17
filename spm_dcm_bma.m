@@ -88,7 +88,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 6408 2015-04-16 14:58:47Z peter $
+% $Id: spm_dcm_bma.m 6879 2016-09-17 17:45:08Z peter $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -109,6 +109,10 @@ if nargin == 1
     [n,m] = size(DCM);
     for i = 1:n
         for j = 1:m
+            if ~isfield(DCM{i,j}, 'Ep')
+                error(['Could not average: subject %d model %d ' ...
+                       'not estimated'], i, j);
+            end            
             subj(i).sess(1).model(j).Ep = DCM{i,j}.Ep;
             subj(i).sess(1).model(j).Cp = DCM{i,j}.Cp;
             F(i,j) = DCM{i,j}.F;
