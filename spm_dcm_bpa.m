@@ -43,7 +43,7 @@ function [BPA] = spm_dcm_bpa(P,nocd)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_bpa.m 6723 2016-02-19 15:04:18Z peter $
+% $Id: spm_dcm_bpa.m 6880 2016-09-17 18:00:38Z peter $
 
  
 % Preiminaries
@@ -76,6 +76,11 @@ end
 %==========================================================================
 N     = numel(P);
 TOL   = exp(-16);
+sEp   = []; 
+Up    = []; 
+Pp    = [];
+pE    = [];
+
 for i = 1:N
     
     % get DCM structure
@@ -118,11 +123,10 @@ for i = 1:N
     
     % Get posterior precision matrix and mean
     %----------------------------------------------------------------------
-    pE(:,i)     = Ep;
+    sEp(:,i)    = Ep;    
     Up(:,i)     = U'*Ep;
     Cp          = U'*Cp*U;
     Pp(:,:,i)   = inv(full(Cp));
-    
  
 end
 
@@ -130,9 +134,10 @@ end
 %-Average models using Bayesian fixed-effects analysis -> average Ep,Cp
 %==========================================================================
 
-% average posterior covariance
+% average posterior covariance and mean
 %--------------------------------------------------------------------------
 Cp  = inv(sum(Pp,3));
+mEp = mean(sEp,2);
 
 % average posterior mean
 %--------------------------------------------------------------------------
@@ -144,9 +149,8 @@ Ep  = Cp*Ep;
 
 % project back through U
 %--------------------------------------------------------------------------
-pE  = mean(pE,2);
 Cp  = U*Cp*U';
-Ep  = U*Ep + pE - U*(U'*pE);
+Ep  = U*Ep + mEp - U*(U'*mEp);
 Ep  = spm_unvec(Ep,DCM.M.pE);
 
  
@@ -161,7 +165,8 @@ end
 %--------------------------------------------------------------------------
 sw     = warning('off','SPM:negativeVariance');
 Vp     = diag(Cp);
-Pp     = 1 - spm_Ncdf(0,abs(spm_vec(Ep) - spm_vec(pE)),Vp);
+alpha  = 0;
+Pp     = 1 - spm_Ncdf(0,abs(spm_vec(Ep) - alpha),Vp);
 warning(sw);
 
 BPA.Ep = Ep;
