@@ -6,7 +6,7 @@ function res = history(this, varargin)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: history.m 6831 2016-07-08 12:10:45Z vladimir $
+% $Id: history.m 6883 2016-09-19 13:42:05Z vladimir $
 
 
 if isempty(varargin)
@@ -36,7 +36,8 @@ else
         end
 
         this.history(nh+1).args = varargin{2};
-
+                
+        [dum, this.history(nh+1).ver] = spm('ver'); 
     elseif isstruct(varargin{1})
         this.history = varargin{1};
     end
