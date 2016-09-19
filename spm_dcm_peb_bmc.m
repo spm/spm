@@ -76,7 +76,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6757 2016-03-25 17:34:33Z karl $
+% $Id: spm_dcm_peb_bmc.m 6882 2016-09-19 12:14:50Z peter $
 
 % checks
 %--------------------------------------------------------------------------
@@ -90,10 +90,12 @@ if nargin < 2
     
     % greedy search and (second level) Bayesian model average
     %----------------------------------------------------------------------
-    BMA  = spm_dcm_bmr_all(PEB);
-    
+    [BMA,x,bma]  = spm_dcm_bmr_all(PEB);
+       
     % plot posteriors over parameters
     %======================================================================
+    if spm_get_defaults('cmdline'), return; end
+    
     spm_figure('Getwin','BMC'); clf
     
     Np    = numel(PEB.Pind);
@@ -124,7 +126,7 @@ if nargin < 2
         
         % posterior density over parameters
         %------------------------------------------------------------------
-        subplot(3,Nx,Nx + i), spm_plot_ci(BMA.Ep(j),BMA.Cp(j))
+        subplot(3,Nx,Nx + i), spm_plot_ci(bma.Ep(j),bma.Cp(j))
         title('Reduced','FontSize',16)
         xlabel('Parameter','FontSize',12)
         ylabel('Effect size','FontSize',12)
@@ -333,6 +335,8 @@ end
 
 % Show results
 %==========================================================================
+if spm_get_defaults('cmdline'), return; end
+
 spm_figure('Getwin','BMC'); clf
 
 subplot(3,2,1), imagesc(K')
