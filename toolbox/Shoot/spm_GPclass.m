@@ -21,7 +21,7 @@ function [p,F,K,theta] = spm_GPclass(XX,t,lab,cov_fun,fun_args)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_GPclass.m 6844 2016-07-28 20:02:34Z john $
+% $Id: spm_GPclass.m 6881 2016-09-19 09:48:54Z john $
 
 if nargin==3
     p = gp_pred_ep_binclass(XX,t,lab);
@@ -49,7 +49,7 @@ function [theta,ll] = GPtrain(t,X,cov_fun,theta)
 % Currently only uses Powell's Method from Numerical Recipes
 % - needs to be implemented more efficiently
 m          = numel(theta);
-thetai     = eye(m);
+thetai     = eye(m)*0.1;
 tolsc      = ones(m,1)*0.01;
 objfun('reset');
 [theta,ll] = spm_powell(theta,thetai,tolsc,@objfun,t,X,cov_fun);
@@ -77,7 +77,7 @@ else
     [f,F]   = gp_lap_multiclass(K,t);
 end
 %fprintf('%g\n', F);
-E = -F + 1e-6*(theta'*theta);
+E = -F + 1e-10*(theta'*theta);
 %__________________________________________________________________________
 %__________________________________________________________________________
 function [f,F] = gp_lap_binclass(K,t,f)
@@ -358,4 +358,5 @@ for i=find(~o)',
 end
 %__________________________________________________________________________
 %__________________________________________________________________________
+
 

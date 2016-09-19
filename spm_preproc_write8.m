@@ -5,7 +5,7 @@ function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 6822 2016-06-23 16:34:00Z guillaume $
+% $Id: spm_preproc_write8.m 6881 2016-09-19 09:48:54Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -280,7 +280,7 @@ if do_cls
         nmrf_its = 10;
         spm_progress_bar('init',nmrf_its,['MRF: Working on ' nam],'Iterations completed');
         G   = ones([Kb,1],'single')*mrf;
-        vx2 = single(sum(res.image(1).mat(1:3,1:3).^2));
+        vx2 = 1./single(sum(res.image(1).mat(1:3,1:3).^2));
         %save PQG P Q G tiss Kb x3 ind
         for iter=1:nmrf_its
             spm_mrf(P,Q,G,vx2);

@@ -24,9 +24,10 @@ function varargout = spm_mrf(varargin)
 %           Encodes a symmetric matrix, with zeros on the diagonal, at
 %           each voxel. Saves more memory by using uint8.  Note that
 %           when used, the uint8 values are rescaled by -1/(2^4).
-% w  - A vector of three weights, which normally encode the square of
-%      the voxel sizes.  This is for dealing with anisotropic voxels.
-%      If this argument is not supplied, then [1 1 1] is assumed.
+% w  - A vector of three weights, which normally encode the reciprocal
+%      of the square of the voxel sizes.  This is for dealing with
+%      anisotropic voxels. If this argument is not supplied, then
+%      [1 1 1] is assumed.
 % q1 - Output responsibilities.
 %
 % FORMAT spm_mrf(q,p,G,w)
@@ -44,7 +45,7 @@ function varargout = spm_mrf(varargin)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_mrf.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_mrf.m 6881 2016-09-19 09:48:54Z john $
 
 %-This is merely the help file for the compiled routine
 error('spm_mrf.c not compiled - see Makefile')
