@@ -1,5 +1,6 @@
-function [spatialmodename,Nmodes]=spm_eeg_inv_prep_modes_xval(filenames, Nmodes, spatialmodename,Nblocks,pctest);
-%function [spatialmodename,Nmodes]=spm_eeg_inv_prep_modes_xval(filenames, Nmodes, spatialmodename,Nblocks,pctest);
+function [spatialmodename,Nmodes,newpctest,testchans]=spm_eeg_inv_prep_modes_xval(filenames, Nmodes, spatialmodename,Nblocks,pctest);
+%function [spatialmodename,Nmodes,newpctest,testchans]=spm_eeg_inv_prep_modes_xval(filenames, Nmodes, spatialmodename,Nblocks,pctest);
+
 
 %% prepare a spatial mode file for inversion
 %% this file ensures the same spatial modes are used across different files (which would contain the same data but different head-models for example)
@@ -13,6 +14,9 @@ function [spatialmodename,Nmodes]=spm_eeg_inv_prep_modes_xval(filenames, Nmodes,
 % default 1)
 % pctest- percentatge of channels to be used for testdata (optional and
 % default 0)
+%% if pctest*Nblocks=100 then will use independent MEG channels and may adjust pctest (in output) to 
+%% accomodate this. ( k-fold cross val)
+%% if pctest*Nblocks~=100 then uses random selection of pctest channels for each block (Monte-Carlo cross val)
 
 %% in output file
 %% megind- good meg channel indices
@@ -51,8 +55,18 @@ origbadchans=D.badchannels;
 megind=setdiff(megind,origbadchans);
 fprintf('Removed %d bad channels\n',length(origbadchans));
 
+newpctest=pctest;
+if round(Nblocks*pctest)==100,
+    newpctest=floor(length(megind)/Nblocks)/length(megind)*100;
+    fprintf('\nAdjusting pc test from %3.2f to %3.2f percent to make use of most MEG channels',pctest,newpctest);
+    
+else
+    fprintf('\nTaking random selections of %3.2f percent of channels',newpctest);
+end;
+    
 
-Ntest=round(pctest*length(megind)/100); %% number of test channels per block
+Ntest=round(newpctest*length(megind)/100); %% number of test channels per block
+
 testchans=zeros(Nblocks,Ntest);
 Ntrain=length(megind)-Ntest;
 
@@ -71,10 +85,17 @@ end;
 
 U={};
 useind=zeros(Nblocks,Ntrain);
-testchans=zeros(Nblocks,Ntest)
+testchans=zeros(Nblocks,Ntest);
+
+alldum=randperm(length(megind));
 
 for b=1:Nblocks,
-    dum=randperm(length(megind));
+    if round(Nblocks*pctest)==100,
+        dum=alldum((b-1)*Ntest+1:b*Ntest);
+    else
+        dum=randperm(length(megind));
+    end;
+
     testchans(b,:)=dum(1:Ntest); %% channels which will be used for testing (Set to bad during training)
     useind(b,:)=setdiff(1:length(megind),testchans(b,:)); %% training channels used here to get the spatial modes
 end;
@@ -93,7 +114,7 @@ end; % for f
 U={};
 
 for b=1:Nblocks,
-    fprintf('\nPreparing modes file %d block %d of %d for %d training and %d test chans\n',f, b,Nblocks+1,Ntrain,Ntest);
+    fprintf('\nPreparing modes file %d block %d of %d for %d training and %d test chans\n',f, b,Nblocks,Ntrain,Ntest);
     if Nmodes<Ntrain,
         [U1,S,V]=spm_svd(allL(useind(b,:),:)*allL(useind(b,:),:)',1e-12); %% get general spatial modes matrix
         U{b}=U1(:,1:Nmodes)';

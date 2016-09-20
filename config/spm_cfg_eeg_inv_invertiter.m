@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 6878 2016-09-16 07:57:06Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 6887 2016-09-20 08:01:36Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -269,7 +269,7 @@ crossval.name = 'Cross validation parameters';
 crossval.strtype = 'r';
 crossval.num = [1 2];
 crossval.val = {[0 1]};
-crossval.help = {'Percentage of cross validation test trials (eg 10 for 10 percent test trials, 0 for no cross val), number of cross val permutations'};
+crossval.help = {'Percentage of cross validation test trials (eg 10 for 10 percent test trials, 0 for no cross val), number of cross val permutations. If number permutations*percentage equals 100, then make unique, non-repeating, selection of channels.'};
 
 modality = cfg_menu;
 modality.tag = 'modality';
@@ -539,12 +539,14 @@ end;
 Nchans=D{1}.nchannels;
 
 crosserr=zeros(Nblocks,1);
+allrms=zeros(Nblocks,1);
 crossF=zeros(Nblocks,1);
-
+xvalchans=testchans.*0;
 for b=1:Nblocks,
     
     
     badmegind=testchans(b,:);
+    xvalchans(b,:)=megind(badmegind);
     D{1} = badchannels(D{1}, 1:Nchans, 0); %% set all chans to good
     D{1} = badchannels(D{1}, [megind(badmegind) origbadind], 1); %% set orignal + test chans as bad
     
@@ -601,6 +603,7 @@ for b=1:Nblocks,
             
         end;
         crosserr(b)=errpred;
+        allrms(b)=rmstot;
     end; %if pctest>0
     
     
@@ -611,6 +614,9 @@ end; % for b
 D{1}.inv{val}.inverse=inverse;
 D{1}.inv{val}.inverse.crosserr=crosserr;
 D{1}.inv{val}.inverse.crossF=crossF;
+D{1}.inv{val}.inverse.allrms=allrms;
+D{1}.inv{val}.inverse.xvalchans=xvalchans;
+
 D{1} = badchannels(D{1}, 1:Nchans, 0); %% set all chans to good
 D{1} = badchannels(D{1}, [origbadind], 1); %% set orignal bad chans as bad
 
