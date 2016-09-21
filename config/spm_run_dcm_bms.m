@@ -17,10 +17,10 @@ function out = spm_run_dcm_bms(job)
 % Copyright (C) 2009-2015 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_dcm_bms.m 6609 2015-11-23 18:52:01Z guillaume $
+% $Id: spm_run_dcm_bms.m 6888 2016-09-21 10:52:45Z peter $
 
 
-SVNid = '$Rev: 6609 $';
+SVNid = '$Rev: 6888 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -216,7 +216,7 @@ else
                         
                         M   = DCM.DCM.M;
                         
-                        if isfield(DCM.DCM, 'xY')
+                        if isfield(DCM.DCM, 'xY') && ~isstruct(DCM.DCM.xY)
                             Y = DCM.DCM.xY;  % not fMRI
                         else
                             Y = DCM.DCM.Y;   % fMRI
