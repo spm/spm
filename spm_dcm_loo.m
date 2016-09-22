@@ -33,7 +33,7 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_loo.m 6790 2016-04-28 14:30:27Z guillaume $
+% $Id: spm_dcm_loo.m 6889 2016-09-22 10:54:25Z peter $
 
 
 % Set up
@@ -101,7 +101,7 @@ spm_axis tight, axis square
 %--------------------------------------------------------------------------
 [T,df] = spm_ancova(M.X(:,1:2),[],qE(:),[0;1]);
 r      = corrcoef(qE(:),M.X(:,2));
-r      = r(1,2);
+r      = full(r(1,2));
 
 if isnan(T)
     p = NaN;
