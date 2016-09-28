@@ -22,7 +22,7 @@ function H = spm_eeg_history(S)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_history.m 6406 2015-04-14 15:26:39Z guillaume $
+% $Id: spm_eeg_history.m 6890 2016-09-28 13:34:47Z vladimir $
 
 try
     h = S.history;
@@ -201,10 +201,24 @@ for i=1:numel(h)
             hh{i} = 'Merge';
         case 'spm_eeg_tf'
             hh{i} = 'Compute time-frequency';
-        case 'spm_eeg_weight_epochs'
-            hh{i} = 'Compute contrast';
+        case {'spm_eeg_weight_epochs', 'spm_eeg_contrast'}
+            hh{i} = 'Compute contrast';        
         case 'spm_eeg_sort_conditions'
             hh{i} = 'Sort conditions';
+        case 'spm_eeg_crop'
+            hh{i} = 'Crop';
+        case 'spm_eeg_combineplanar'
+            hh{i} = 'Combine planar';
+        case 'spm_eeg_fuse'
+            hh{i} = 'Fuse';
+        case 'spm_eeg_remove_bad_trials'
+            hh{i} = 'Remove bad trials';
+        case 'spm_eeg_reduce'
+            hh{i} = 'Data reduction';
+        case 'spm_eeg_avgfreq'
+            hh{i} = 'Average over frequency';
+        case 'spm_eeg_avgtime'
+            hh{i} = 'Average over time';    
         case 'spm_eeg_prep'
             switch h(i).args.task
                 case 'settype'
@@ -213,6 +227,8 @@ for i=1:numel(h)
                     hh{i} = 'Set 2D coordinates';
                 case 'loadeegsens'
                     hh{i} = 'Load EEG sensor locations';
+                case 'loadmegsens'
+                    hh{i} = 'Load MEG sensor locations';
                 case 'defaulteegsens'
                     hh{i} = 'Set EEG sensor locations to default';
                 case 'sens2chan'
@@ -221,6 +237,10 @@ for i=1:numel(h)
                     hh{i} = 'Load fiducials/headshape';
                 case 'coregister'
                     hh{i} = 'Coregister';
+                case 'setbadchan'
+                    hh{i} = 'Set bad channels';  
+                case 'sortconditions'
+                    hh{i} = 'Sort conditions';  
                 otherwise
                     hh{i} = ['Prepare: ' h(i).args.task];
             end
