@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 6869 2016-09-12 16:11:01Z guillaume $
+ * $Id: spm_jsonread.c 6891 2016-09-29 13:38:25Z guillaume $
  * Guillaume Flandin
  */
 
@@ -227,7 +227,7 @@ static int object(char *js, jsmntok_t *tok, mxArray **mx) {
         *mx = mxCreateStructMatrix(1, 1, 0, NULL);
         return 1;
     }
-    for (i = 0, j = 0; i < tok->size; i++) {
+    for (i = 0, j = 0, k = 0; i < tok->size; i++) {
         field = get_string(js, (tok+1+j)->start, (tok+1+j)->end); /* check it is a JSMN_STRING */
         valid_fieldname(&field);
         j++;
@@ -235,12 +235,19 @@ static int object(char *js, jsmntok_t *tok, mxArray **mx) {
             *mx = mxCreateStructMatrix(1, 1, 1, (const char**)&field);
         }
         else {
+            k = mxGetFieldNumber(*mx, field);
+            if (k != -1) {
+                mexWarnMsgTxt("Duplicate key.");
+                ma = mxGetFieldByNumber(*mx, 0, k);
+                mxRemoveField(*mx, k);
+                mxDestroyArray(ma);
+            }
             k = mxAddField(*mx, field);
             if (k == -1)
                 mexErrMsgTxt("mxAddField()");
         }
         j += create_struct(js, tok+1+j, &ma);
-        mxSetFieldByNumber(*mx, 0, i, ma);
+        mxSetFieldByNumber(*mx, 0, k, ma);
     }
     return j+1;
 }
