@@ -16,10 +16,11 @@ function con = spm_design_contrasts(SPM)
 % for the average effect of condition, main effects of factors and
 % interactions.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_design_contrasts.m 3528 2009-11-03 16:33:00Z guillaume $
+% $Id: spm_design_contrasts.m 6892 2016-09-30 12:56:35Z guillaume $
+
 
 % Only relevant if factorial design has been specified
 %--------------------------------------------------------------------------
@@ -60,7 +61,7 @@ if isfield(SPM,'Sess')
         block = [];
         for cc=1:conds
             block = [block,con(c).c(:,col:col+nbases-1)];
-            block = [block,zeros(nr,SPM.Sess(1).U(cc).P.h)];
+            block = [block,zeros(nr,sum([SPM.Sess(1).U(cc).P.h]))];
             col   = col + nbases;
         end
         con(c).c  = block;
