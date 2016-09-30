@@ -1,9 +1,9 @@
 function preproc = spm_cfg_preproc
 % SPM Configuration file for toolbox 'Old Segment'
 %______________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_preproc.m 4900 2012-09-05 14:06:50Z john $
+% $Id: spm_cfg_preproc.m 6894 2016-09-30 16:48:46Z spm $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','OldSeg')); end
 
@@ -97,7 +97,7 @@ cleanup         = cfg_menu;
 cleanup.tag     = 'cleanup';
 cleanup.name    = 'Clean up any partitions';
 cleanup.help    = {
-                   'This uses a crude routine for extracting the brain from segmentedimages.  It begins by taking the white matter, and eroding it acouple of times to get rid of any odd voxels.  The algorithmcontinues on to do conditional dilations for several iterations,where the condition is based upon gray or white matter being present.This identified region is then used to clean up the grey and whitematter partitions, and has a slight influences on the CSF partition.'
+                   'This uses a crude routine for extracting the brain from segmented images.  It begins by taking the white matter, and eroding it acouple of times to get rid of any odd voxels.  The algorithm continues on to do conditional dilations for several iterations, where the condition is based upon gray or white matter being present. This identified region is then used to clean up the grey and white matter partitions, and has a slight influences on the CSF partition.'
                    ''
                    'If you find pieces of brain being chopped out in your data, then you may wish to disable or tone down the cleanup procedure.'
 }';

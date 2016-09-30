@@ -1,6 +1,6 @@
 function [y] = spm_percentile(data, p)
 % Compute one or more percentiles from data
-% FUNCTION [y] = spm_percentile(data, p)
+% FORMAT [y] = spm_percentile(data, p)
 % data - arbirarily sized input data (from which NaNs will be excluded)
 % p    - scalar or n-vector of percentage values (from 0 to 100)
 %        if not specified, p defaults to all quartiles: [0 25 50 75 100]
@@ -13,10 +13,10 @@ function [y] = spm_percentile(data, p)
 % Example:
 %  spm_summarise(vols, 'all', @spm_percentile) % quartiles of images
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_percentile.m 4013 2010-07-22 17:12:45Z guillaume $
+% $Id: spm_percentile.m 6894 2016-09-30 16:48:46Z spm $
 
 % The algorithm used is that described by NIST, with x = k+d = 1+p(N-1)/100
 % http://www.itl.nist.gov/div898/handbook/prc/section2/prc252.htm

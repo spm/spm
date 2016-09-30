@@ -10,7 +10,7 @@ function x = spm_load(f,v)
 % Copyright (C) 1995-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_load.m 6646 2015-12-14 19:00:26Z guillaume $
+% $Id: spm_load.m 6894 2016-09-30 16:48:46Z spm $
 
 
 %-Get a filename if none was passed
@@ -127,7 +127,7 @@ eol   = sprintf('\n');
 S   = fileread(f);
 if isempty(S), x = []; return; end
 if S(end) ~= eol, S = [S eol]; end
-S   = regexprep(S,{'\r\n','(\n)\1+'},{'\n','$1'});
+S   = regexprep(S,{'\r\n','\r','(\n)\1+'},{'\n','\n','$1'});
 
 %-Get column names from header line (non-numeric first line)
 %--------------------------------------------------------------------------

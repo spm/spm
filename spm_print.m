@@ -9,10 +9,10 @@ function varargout = spm_print(varargin)
 % FORMAT spm_print(job)
 % Run a batch print job (see spm_cfg_print)
 %__________________________________________________________________________
-% Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_print.m 5969 2014-05-01 14:37:22Z guillaume $
+% $Id: spm_print.m 6894 2016-09-30 16:48:46Z spm $
 
 
 %-Shortcut for list of graphics file formats available
@@ -104,6 +104,8 @@ fprintf('Printing %sfigure to:\n',str);
 if ispc && ~ismember('-dfig',opts.opt), cmd = 'winopen(''%s'')';
 else                                    cmd = 'open(''%s'')'; end
 fprintf('  %s\n',spm_file(fname,'link',cmd));
+
+if nargout, varargout = { fname }; end
 
 
 %==========================================================================

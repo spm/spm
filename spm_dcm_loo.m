@@ -33,7 +33,7 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_loo.m 6889 2016-09-22 10:54:25Z peter $
+% $Id: spm_dcm_loo.m 6894 2016-09-30 16:48:46Z spm $
 
 
 % Set up
@@ -48,7 +48,7 @@ if nargin < 3
         field = {'A','B'};
     end
 end
-if strcmpi(field,'all');
+if strcmpi(field,'all')
     field = fieldnames(DCM{1}.M.pE);
 end
 if isnumeric(M)

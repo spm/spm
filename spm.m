@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2015 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 6750 2016-03-21 12:36:08Z guillaume $
+% $Id: spm.m 6894 2016-09-30 16:48:46Z spm $
 
 
 %=======================================================================
@@ -1196,10 +1196,7 @@ for i=1:numel(mscript)
         if isempty(p), p = pwd;  end
         if isempty(e), e = '.m'; end
         mscript{i} = fullfile(p,[n e]);
-        fid = fopen(mscript{i});
-        if fid == -1, error('Cannot open %s',mscript{i}); end
-        S = fscanf(fid,'%c');
-        fclose(fid);
+        S = fileread(mscript{i});
         try
             assignin('base','mfilename',@(varargin) mscript{i});
             evalin('base',S);

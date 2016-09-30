@@ -4,14 +4,15 @@ function spm_preproc_write(p,opts)
 % p    - results from spm_prep2sn
 % opts - writing options.  A struct containing these fields:
 %        biascor - write bias corrected image
+%        cleanup - level of brain segmentation cleanup
 %        GM      - flags for which images should be written
 %        WM      - similar to GM
 %        CSF     - similar to GM
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write.m 4877 2012-08-31 11:40:43Z guillaume $
+% $Id: spm_preproc_write.m 6894 2016-09-30 16:48:46Z spm $
 
 if ischar(p), p = cellstr(p); end
 

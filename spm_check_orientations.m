@@ -9,10 +9,10 @@ function [sts, str] = spm_check_orientations(V, verbose)
 %
 % When used without LHS, this function throws an error accordingly.
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_orientations.m 5097 2012-12-06 16:08:16Z guillaume $
+% $Id: spm_check_orientations.m 6894 2016-09-30 16:48:46Z spm $
 
 sts = true;
 str = '';
@@ -45,7 +45,7 @@ end
 matx = reshape(cat(3,V.mat),[16,numel(V)]);
 if any(any(abs(diff(matx,1,2))>1e-4))
     sts = false;
-    str = char(str,'The images do not all have same orientation and/or voxel sizes.');
+    str = strvcat(str,'The images do not all have same orientation and/or voxel sizes.');
     if verbose
         fprintf('\n** %s **\n',strtrim(str(end,:)));
         fprintf('The function assumes that a voxel in one image  corresponds exactly\n');

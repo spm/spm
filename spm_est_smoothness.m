@@ -50,18 +50,14 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % Nonstationary cluster-size inference with random field and permutation
 % methods. NeuroImage, 22:676-687, 2004.
 %__________________________________________________________________________
-% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 6157 2014-09-05 18:17:54Z guillaume $
+% $Id: spm_est_smoothness.m 6894 2016-09-30 16:48:46Z spm $
 
 
 %-Assign input arguments
 %--------------------------------------------------------------------------
-if nargin > 3
-    spm('alert!', 'spm_est_smoothness: Wrong number of arguments');
-    return;
-end
 if nargin < 1
     V   = spm_select(Inf,'image','Select residual images',{},pwd,'^ResI.*.{3}$');
 end
@@ -69,23 +65,19 @@ if nargin < 2
     VM  = spm_select(1,'image','Select mask image',{},pwd,'^mask\..{3}$');
 end
 if nargin < 3, ndf = [NaN NaN]; end
-if length(ndf) ~= 2
-    error('ndf argument must be of length 2 ([n df])')
+if numel(ndf) ~= 2
+    error('ndf argument must be of length 2 ([n df]).')
 end
 
 %-Initialise
 %--------------------------------------------------------------------------
-if ~isstruct(V)
-    V  = spm_vol(V);
-end
-if ~isstruct(VM)
-    VM = spm_vol(VM);
-end
+V       = spm_vol(V);
+VM      = spm_vol(VM);
 if any(isnan(ndf))
-    ndf     = [length(V) length(V)];  % Assume full df
+    ndf = [numel(V) numel(V)]; % Assume full df
 end
-n_full = ndf(1);
-edf    = ndf(2);
+n_full  = ndf(1);
+edf     = ndf(2);
 
 %-Initialise RESELS per voxel image
 %--------------------------------------------------------------------------
@@ -120,7 +112,7 @@ spm_progress_bar('Init',100,'smoothness estimation','');
 
 L     = zeros(size(Ix,1),D,D);
 ssq   = zeros(size(Ix,1),1);
-for i = 1:length(V)
+for i = 1:numel(V)
     
     [d,dx,dy,dz] = spm_sample_vol(V(i),Ix,Iy,Iz,1);
     
@@ -143,7 +135,7 @@ for i = 1:length(V)
         L(:,3,3) = L(:,3,3) + dz.*dz;
     end
     
-    spm_progress_bar('Set',100*i/length(V));
+    spm_progress_bar('Set',100*i/numel(V));
     
 end
 spm_progress_bar('Clear')
@@ -175,7 +167,7 @@ spm_progress_bar('Clear')
 % sqrt(RSS) = sqrt(r'*r) is norm(r), while sqrt(RMS) = sqrt(r'*r/edf)
 % is the unbiased (ReML) estimate of the standard deviation.
 %--------------------------------------------------------------------------
-L  = L/length(V);     % Average
+L  = L/numel(V);      % Average
 L  = L*(n_full/edf);  % Scale
 
 
