@@ -36,7 +36,7 @@ function [tap] = hanning(n, str)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: hanning.m 7674 2013-03-16 09:45:12Z roboos $
+% $Id$
 
 if nargin==1,
   str = 'symmetric';
