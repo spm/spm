@@ -1,9 +1,9 @@
 function results = spm_cfg_results
 % SPM Configuration file for Results Report
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 6617 2015-11-30 19:21:42Z guillaume $
+% $Id: spm_cfg_results.m 6896 2016-10-03 16:53:31Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -215,76 +215,144 @@ basename.strtype = 's';
 basename.num     = [1 Inf];
 
 %--------------------------------------------------------------------------
-% type1 Thresholded SPM
+% nsubj Number of subjects
 %--------------------------------------------------------------------------
-type1      = cfg_branch;
-type1.tag  = 'tspm';
-type1.name = 'Thresholded SPM';
-type1.val  = {basename};
-type1.help = {'Save filtered SPM{.} as an image.'};
+nsubj         = cfg_entry;
+nsubj.tag     = 'nsubj';
+nsubj.name    = 'Number of subjects';
+nsubj.help    = {'Number of subjects.'};
+nsubj.strtype = 'r';
+nsubj.num     = [1 1];
 
 %--------------------------------------------------------------------------
-% type2 All clusters (binary)
+% label Label
 %--------------------------------------------------------------------------
-type2      = cfg_branch;
-type2.tag  = 'binary';
-type2.name = 'All clusters (binary)';
-type2.val  = {basename};
-type2.help = {'Save filetered SPM{.} as a binary image.'};
+grplabel         = cfg_entry;
+grplabel.tag     = 'label';
+grplabel.name    = 'Label';
+grplabel.help    = {'Group label.'};
+grplabel.strtype = 's';
+grplabel.num     = [0 Inf];
 
 %--------------------------------------------------------------------------
-% type3 All clusters (n-ary)
+% group 
 %--------------------------------------------------------------------------
-type3         = cfg_branch;
-type3.tag     = 'nary';
-type3.name    = 'All clusters (n-ary)';
-type3.val     = {basename};
-type3.help    = {'Save filtered SPM{.} as an n-ary image.'};
+group      = cfg_branch;
+group.tag  = 'group';
+group.name = 'Group';
+group.val  = {nsubj grplabel};
+group.help = {['Number of subjects and labels per group. ', ...
+    'For a single subject analysis, enter "1" and "single subject".']};
 
 %--------------------------------------------------------------------------
-% none None
+% groups
 %--------------------------------------------------------------------------
-none          = cfg_const;
-none.tag      = 'none';
-none.name     = 'None';
-none.val      = { 1 };
-none.help     = {'Don''t save filtered images.'};
+groups        = cfg_repeat;
+groups.tag    = 'groups';
+groups.name   = 'Groups';
+groups.help   = {['Number of groups. ', ...
+    'For a single subject analysis, specify one group.']};
+groups.values = {group};
+groups.num    = [1 Inf];
 
 %--------------------------------------------------------------------------
-% write Write filtered images
+% modality Modality
 %--------------------------------------------------------------------------
-write         = cfg_choice;
-write.tag     = 'write';
-write.name    = 'Write filtered images';
-write.val     = {none};
-write.help    = {''};
-write.values  = { none type1 type2 type3 };
+modality        = cfg_menu;
+modality.tag    = 'modality';
+modality.name   = 'Modality';
+modality.help   = {'Modality.'};
+modality.labels = {'Anatomical MRI',...
+                   'Functional MRI',...
+                   'Diffusion MRI',...
+                   'PET',...
+                   'SPECT',...
+                   'EEG',...
+                   'MEG'
+}';
+modality.values = {'AMRI','FMRI','DMRI','PET','SPECT','EEG','MEG'};
 
 %--------------------------------------------------------------------------
-% print Print results
+% refspace Reference space
 %--------------------------------------------------------------------------
-print        = cfg_menu;
-print.tag    = 'print';
-print.name   = 'Print results';
-print.help   = {['Select the printing format you want. PostScript (PS) is '...
+refspace        = cfg_menu;
+refspace.tag    = 'refspace';
+refspace.name   = 'Reference space';
+refspace.help   = {['Reference space. For an experiment completed only ',...
+    'within SPM, choose one of the first four options.']};
+refspace.labels = {'Subject space (no normalisation)',...
+                   'Normalised space (using segment)',...
+                   'Normalised space (using old segment)',...
+                   'Customised space',...
+                   'Other normalised MNI space',...
+                   'Other normalised Talairach space',...
+}';
+refspace.values = {'subject','ixi','icbm','custom','mni','talairach'};
+
+%--------------------------------------------------------------------------
+% exports
+%--------------------------------------------------------------------------
+exports{1}      = cfg_branch;
+exports{1}.tag  = 'tspm';
+exports{1}.name = 'Thresholded SPM';
+exports{1}.val  = { basename };
+exports{1}.help = {'Save filtered SPM{.} as an image.'};
+
+exports{end+1}    = cfg_branch;
+exports{end}.tag  = 'binary';
+exports{end}.name = 'All clusters (binary)';
+exports{end}.val  = { basename };
+exports{end}.help = {'Save filtered SPM{.} as a binary image.'};
+
+exports{end+1}    = cfg_branch;
+exports{end}.tag  = 'nary';
+exports{end}.name = 'All clusters (n-ary)';
+exports{end}.val  = { basename };
+exports{end}.help = {'Save filtered SPM{.} as an n-ary image.'};
+
+pf = spm_print('format');
+for i=1:numel(pf)
+    exports{end+1}    = cfg_const;
+    exports{end}.tag  = pf(i).label{1};
+    exports{end}.name = pf(i).name;
+    exports{end}.val  = { true };
+    exports{end}.help = {pf(i).name};
+end
+exports{end+1}    = cfg_const;
+exports{end}.tag  = 'csv';
+exports{end}.name = 'CSV file';
+exports{end}.val  = { true };
+exports{end}.help = {exports{end}.name};
+if ispc
+    exports{end+1}    = cfg_const;
+    exports{end}.tag  = 'xls';
+    exports{end}.name = 'Excel spreadsheet file';
+    exports{end}.val  = { true };
+    exports{end}.help = {exports{end}.name};
+end
+exports{end+1}    = cfg_branch;
+exports{end}.tag  = 'nidm';
+exports{end}.name = 'NIDM (Neuroimaging Data Model)';
+exports{end}.val  = {modality refspace groups};
+exports{end}.help = {exports{end}.name};
+
+%--------------------------------------------------------------------------
+% export Export results
+%--------------------------------------------------------------------------
+export        = cfg_repeat;
+export.tag    = 'export';
+export.name   = 'Export results';
+export.help   = {['Select the export format you want. PostScript (PS) is '...
                'the only format that allows to append figures to the same ' ...
                'file.']};
-pf           = spm_print('format');
-print.labels = {'No'};
-print.values = {false};
-for i=1:numel(pf)
-    print.labels{end+1} = pf(i).name;
-    print.values{end+1} = pf(i).label{1};
+export.values = exports;
+uiprintdef    = spm_get_defaults('ui.print');
+for i=1:numel(exports)
+    if strcmp(uiprintdef,exports{i}.tag)
+        export.val = exports(i);
+        break;
+    end
 end
-print.labels{end+1} = 'CSV file';
-print.values{end+1} = 'csv';
-if ispc
-    print.labels{end+1} = 'Excel spreadsheet file';
-    print.values{end+1} = 'xls';
-end
-print.labels{end+1} = 'NIDM (Neuroimaging Data Model)';
-print.values{end+1} = 'nidm';
-print.def = @(val)spm_get_defaults('ui.print', val{:});
 
 %--------------------------------------------------------------------------
 % results Results Report
@@ -292,7 +360,7 @@ print.def = @(val)spm_get_defaults('ui.print', val{:});
 results      = cfg_exbranch;
 results.tag  = 'results';
 results.name = 'Results Report';
-results.val  = {spmmat generic units print write};
+results.val  = {spmmat generic units export};
 results.help = {''};
 results.prog = @spm_run_results;
 results.vout = @vout_results;
@@ -311,9 +379,13 @@ dep(2).sname      = 'TabDat Variable';
 dep(2).src_output = substruct('.','TabDatvar');
 dep(2).tgt_spec   = cfg_findspec({{'strtype','e'}});
 
-if ~isfield(job.write,'none')
-    dep(3)            = cfg_dep;
-    dep(3).sname      = 'Filtered image';
-    dep(3).src_output = substruct('.','filtered');
-    dep(3).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+for i=1:numel(job.export)
+    fn = char(fieldnames(job.export{i}));
+    if ismember(fn,{'tspm','binary','nary'})
+        dep(end+1)          = cfg_dep;
+        dep(end).sname      = 'Filtered image';
+        dep(end).src_output = substruct('.','filtered');
+        dep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+        break; % so far, a single dependency pointing to the last exported image
+    end
 end
