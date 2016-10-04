@@ -23,7 +23,7 @@ function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat,opts)
 % Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6873 2016-09-14 14:29:30Z guillaume $
+% $Id: spm_results_nidm.m 6898 2016-10-04 17:06:23Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -62,7 +62,7 @@ end
 %--------------------------------------------------------------------------
 gz           = '.gz';                        %-Compressed NIfTI {'.gz', ''}
 NIDMversion  = '1.3.0';
-SVNrev       = '$Rev: 6873 $';
+SVNrev       = '$Rev: 6898 $';
 
 %-Reference space
 %--------------------------------------------------------------------------
@@ -180,7 +180,7 @@ imwrite(MIP,gray(64),files.mip,'png');
 %-Beta images (as NIfTI)
 %--------------------------------------------------------------------------
 for i=1:numel(SPM.Vbeta)
-    files.beta{i} = fullfile(outdir,[sprintf('Beta_%04d',i) '.nii' gz]);
+    files.beta{i} = fullfile(outdir,[sprintf('ParameterEstimate_%04d',i) '.nii' gz]);
     img2nii(fullfile(xSPM.swd,SPM.Vbeta(i).fname), files.beta{i});
 end
 
@@ -998,6 +998,7 @@ if ~isempty(files.svcmask)
         'prov:type','nidm:SubVolumeMap',...
         'prov:location',{uri(spm_file(files.svcmask,'cpath')),'xsd:anyURI'},...
         'nfo:fileName',{spm_file(files.svcmask,'filename'),'xsd:string'},...
+        'dct:format',niifmt,...
         'prov:label',{'Sub-volume','xsd:string'},...
         nidm_conv('nidm_inCoordinateSpace',p),currCoordSpace,...
         'crypto:sha512',{sha512sum(spm_file(files.svcmask,'cpath')),'xsd:string'},...
@@ -1076,6 +1077,9 @@ p.entity(idClusterLabelsMap,{...
     'prov:location',{uri(spm_file(files.clust,'cpath')),'xsd:anyURI'},...
     'nfo:fileName',{spm_file(files.clust,'filename'),'xsd:string'},...
     'dct:format',niifmt,...
+    'prov:label',{'Cluster Labels Map','xsd:string'},...
+    nidm_conv('nidm_inCoordinateSpace',p),id_data_coordspace,...
+    'crypto:sha512',{sha512sum(spm_file(files.clust,'cpath')),'xsd:string'},...
     });
 p.entity(idMaximumIntensityProjection,{...
     'prov:type','dctype:Image',...
@@ -1693,6 +1697,16 @@ else
     if spm('CmdLine')
         error('Upload to NeuroVault requires a token-based authentication.');
     end
+    fprintf([...
+        'To set up integration with NeuroVault you need to obtain a\n',...
+        'secret token first. Please go to http://neurovault.org/ and\n',...
+        'generate a new token. To complete the procedure you will need\n',...
+        'to log into NeuroVault. If you don''t have an account you can\n',...
+        'create one or simply log in using Facebook or Google. When you\n',...
+        'generated a token (a string of 40 random characters), copy it\n',...
+        'into the dialog box. If you ever lose access to this machine\n',...
+        'you can delete the token on NeuroVault.org thus preventing\n',...
+        'unauthorized parties to access your NeuroVault data\n']);
     token = inputdlg('Token','Enter NeuroVault token',1,{''},'on');
     if isempty(token) || isempty(token{1}), return; else token = char(token); end
     addpref('neurovault','token',token);
@@ -1736,8 +1750,8 @@ end
 % Create a new collection if needed
 id = NaN;
 for i=1:numel(collections.results)
-    if strcmp(collections.results{i}.name,my_collection)
-        id = collections.results{i}.id;
+    if strcmp(collections.results(i).name,my_collection)
+        id = collections.results(i).id;
         break;
     end
 end
@@ -1772,16 +1786,15 @@ requestParts(3).Body = nidmfile;
 [statusCode, responseBody] = http_request('multipartPost', url, requestParts, 'Authorization', auth);
 if statusCode == 201
     responseBody = spm_jsonread(responseBody);
-    W = [neurovault sprintf('/collections/%d/',responseBody.collection)];
     cmd = 'web(''%s'',''-browser'')';
-    fprintf('Uploaded to %s\n',spm_file(W,'link',cmd));
+    fprintf('Uploaded to %s\n',spm_file(responseBody.url,'link',cmd));
 else
     err = spm_jsonread(responseBody);
     error(char(err.name));
 end
 
 %==========================================================================
-% HTTP requests 
+% HTTP requests with missing-http
 %==========================================================================
 function varargout = http_request(action, url, varargin)
 % Use missing-http from Paul Sexton:
@@ -1789,12 +1802,21 @@ function varargout = http_request(action, url, varargin)
 
 persistent jar_added_to_path
 if isempty(jar_added_to_path)
-    jarfile = fullfile(spm('Dir'),'external','missing-http','missing-http.jar');
-    if spm_existfile(jarfile)
-        javaaddpath(jarfile); % this clears global
-        jar_added_to_path = true;
-    else
-        error('HTTP library missing.');
+    try
+        net.psexton.missinghttp.MatlabShim;
+    catch
+        err = lasterror;
+        if strcmp(err.identifier, 'MATLAB:dispatcher:noMatchingConstructor')
+            jar_added_to_path = true;
+        else
+            jarfile = fullfile(spm('Dir'),'external','missing-http','missing-http.jar');
+            if spm_existfile(jarfile)
+                javaaddpath(jarfile); % this clears global
+                jar_added_to_path = true;
+            else
+                error('HTTP library missing.');
+            end
+        end
     end
 end
 
@@ -1829,6 +1851,62 @@ switch lower(action)
         end
         statusCode   = str2double(response{1});
         responseBody = response{2};
+        varargout    = { statusCode, responseBody };
+    otherwise
+        error('Unknown HTTP request.');
+end
+
+%==========================================================================
+% HTTP requests with MATLAB R2016b
+%==========================================================================
+function varargout = http_request2(action, url, varargin)
+
+switch lower(action)
+    case 'head'
+        opt = weboptions('HeaderFields',varargin,'ContentType','text');
+        try
+            webread(url,opt); % it's a GET, not a HEAD
+            statusCode = 200;
+        catch
+            err = lasterror;
+            s = regexp(err.identifier,'MATLAB:webservices:HTTP(\d+)','tokens');
+            if isempty(s)
+                statusCode = NaN;
+            else
+                statusCode = str2double(s{1}{1});
+            end
+        end
+        varargout    = { statusCode };
+    case 'jsonget'
+        opt = weboptions('HeaderFields',varargin,'ContentType','text');
+        try
+            responseBody = webread(url,opt);
+            statusCode = 200;
+        catch
+            err = lasterror;
+            s = regexp(err.identifier,'MATLAB:webservices:HTTP(\d+)','tokens');
+            if isempty(s)
+                statusCode = NaN;
+            else
+                statusCode = str2double(s{1}{1});
+            end
+        end
+        varargout    = { statusCode, responseBody };
+    case 'multipartpost'
+        requestParts = varargin{1};
+        opt = weboptions('HeaderFields',varargin(2:end),'ContentType','text');
+        try
+            responseBody = webread(url,opt);
+            statusCode = 200;
+        catch
+            err = lasterror;
+            s = regexp(err.identifier,'MATLAB:webservices:HTTP(\d+)','tokens');
+            if isempty(s)
+                statusCode = NaN;
+            else
+                statusCode = str2double(s{1}{1});
+            end
+        end
         varargout    = { statusCode, responseBody };
     otherwise
         error('Unknown HTTP request.');

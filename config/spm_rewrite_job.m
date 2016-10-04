@@ -3,7 +3,7 @@ function job = spm_rewrite_job(job)
 %__________________________________________________________________________
 % Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 6897 2016-10-03 17:16:29Z guillaume $
+% $Id: spm_rewrite_job.m 6898 2016-10-04 17:06:23Z guillaume $
 
 
 try
@@ -80,13 +80,18 @@ try
 end
 
 try
+    if isequal(job.stats.results.print, false)
+        job.stats.results.export = {};
+        job.stats.results = rmfield(job.stats.results,'print');
+    end
     if isequal(job.stats.results.print, true)
         job.stats.results.print = spm_get_defaults('ui.print');
     end
     try, N = numel(job.stats.results.export)+1; catch, N = 1; end
-    job.stats.results.export{N}.(job.stats.results.print) = true;
     if strcmp(job.stats.results.print,'nidm')
         job.stats.results.export{N}.nidm = struct;
+    else
+        job.stats.results.export{N}.(job.stats.results.print) = true;
     end
     job.stats.results = rmfield(job.stats.results,'print');
 end
