@@ -36,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6773 2016-04-20 09:26:59Z john $
+% $Id: spm_dicom_convert.m 6899 2016-10-07 08:23:34Z volkmar $
 
 
 %-Input parameters
@@ -724,8 +724,13 @@ nr = get_numaris4_numval(privdat,'Rows');
 % or sSpecPara.lVectorSize from SIEMENS ASCII header
 % ntp = get_numaris4_numval(privdat,'DataPointRows')*get_numaris4_numval(privdat,'DataPointColumns');
 ac = read_ascconv(hdr{1});
-ntp = ac.sSpecPara.lVectorSize;
-
+try
+    ntp = ac.sSpecPara.lVectorSize;
+catch
+    disp('Don''t know how to handle these spectroscopy data');
+    fname = '';
+    return;
+end
 dim    = [nc nr numel(hdr) 2 ntp];
 dt     = spm_type('float32'); % Fixed datatype
 
