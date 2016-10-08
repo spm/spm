@@ -24,6 +24,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % MDP.alpha             - precision – action selection [16]
 % MDP.beta              - precision over precision (Gamma hyperprior - [1])
 % MDP.tau               - time constant for gradient descent
+% MDP.eta               - learning rate for a and b parameters
 %
 % OPTIONS.plot          - switch to suppress graphics:  (default: [0])
 % OPTIONS.gamma         - switch to suppress precision: (default: [0])
@@ -94,7 +95,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6901 2016-10-08 13:21:41Z karl $
+% $Id: spm_MDP_VB_X.m 6902 2016-10-08 19:28:25Z karl $
 
 
 % deal with a sequence of trials
@@ -259,6 +260,7 @@ end
 %--------------------------------------------------------------------------
 try, alpha = MDP.alpha; catch, alpha = 16;   end
 try, beta  = MDP.beta;  catch, beta  = 1;    end
+try, eta   = MDP.eta;   catch, eta   = 1;    end
 try, tau   = MDP.tau;   catch, tau   = 4;    end
 try, chi   = MDP.chi;   catch, chi   = 1/64; end
 
@@ -641,7 +643,7 @@ for t = 1:T
         
         % marginal posterior probability of action (for each modality)
         %------------------------------------------------------------------
-        Pu    = zeros(Nu);
+        Pu    = zeros([Nu,1]);
         for i = 1:Np
             sub        = num2cell(V(t,i,:));
             Pu(sub{:}) = Pu(sub{:}) + u(i,t);
@@ -703,7 +705,7 @@ for t = 1:T
                 da = spm_cross(da,X{f}(:,t));
             end
             da       = da.*(MDP.a{g} > 0);
-            MDP.a{g} = MDP.a{g} + da;
+            MDP.a{g} = MDP.a{g} + da*eta;
             MDP.Fa   = spm_vec(da)'*spm_vec(qA{g}) - sum(spm_vec(spm_betaln(MDP.a{g})));
         end
     end
@@ -715,7 +717,8 @@ for t = 1:T
             for k = 1:Np
                 v   = V(t - 1,k,f);
                 db  = u(k,t - 1)*x{f}(:,t,k)*x{f}(:,t - 1,k)';
-                MDP.b{f}(:,:,v) = MDP.b{f}(:,:,v) + db.*(MDP.b{f}(:,:,v) > 0);
+                db  = db.*(MDP.b{f}(:,:,v) > 0);
+                MDP.b{f}(:,:,v) = MDP.b{f}(:,:,v) + db*eta;
             end
         end
     end
