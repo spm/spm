@@ -39,7 +39,7 @@ function [E,V] = spm_erp_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 5657 2013-09-26 16:53:40Z karl $
+% $Id: spm_erp_priors.m 6900 2016-10-08 13:16:46Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -97,10 +97,14 @@ V.C    = C/32;
 E.H    = sparse(1,4);
 V.H    = sparse(1,4) + 1/16;
 
-% set delay
+% set (extrinsic) delay
 %--------------------------------------------------------------------------
 E.D    = sparse(n,n);
 V.D    = Q/16;
+
+% fix intrinsic delays
+%--------------------------------------------------------------------------
+V.D    = V.D - diag(diag(V.D));
  
 % set stimulus parameters: onset, dispersion and sustained proportion
 %--------------------------------------------------------------------------

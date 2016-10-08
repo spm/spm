@@ -19,7 +19,7 @@ function spm_delays_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_delays_demo.m 6856 2016-08-10 17:55:05Z karl $
+% $Id: spm_delays_demo.m 6900 2016-10-08 13:16:46Z karl $
  
 
 % Notes: analysis of delay operator
@@ -60,6 +60,7 @@ pE    = spm_ssr_priors(pE);
 % (log) connectivity parameters
 %--------------------------------------------------------------------------
 pE.A{1}(2,1) = 0;
+pE.G(:,3)    = 0;
 
 % orders and model
 %==========================================================================
@@ -81,16 +82,14 @@ M.x   = spm_dcm_neural_x(pE,M);
 
 % delays
 %--------------------------------------------------------------------------
-D      = 12;
-k      = log((1:8)/8);
+k      = (1:8)/8;
 M.pst  = (1:128)/1000;
-M.pF.D = [1 D];
 for j  = 1:length(k)
     
     % keep total power of fluctuations constant
     %----------------------------------------------------------------------
     P        = pE;
-    P.D(2,1) = k(j);
+    P.D(2,1) = log(k(j));
 
     % create forward model and solve for steady state
     %----------------------------------------------------------------------
