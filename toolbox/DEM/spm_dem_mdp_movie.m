@@ -1,19 +1,18 @@
-function spm_dem_search_movie(DEM)
+function spm_dem_mdp_movie(DEM)
 % creates a movie of visual search in extrinsic and intrinsic coordinates
-% FORMAT spm_dem_search_movie(DEM)
+% FORMAT spm_dem_mdp_movie(DEM)
 %
 % DEM - {DEM} structures from visual search simulations
 %
 % hidden causes and states
 %==========================================================================
 % x    - hidden states:
-%   o(1) - oculomotor angle
-%   o(2) - oculomotor angle
-%   x(1) - relative amplitude of visual hypothesis 1
-%   x(2) - relative amplitude of visual hypothesis 2
-%   x(3) - ...
-%
+%   x(1) - oculomotor angle
+%   x(2) - oculomotor angle
 % v    - hidden causes
+%   v(1) - location of object
+%   v(2) - location of object
+%   v(3) - relative amplitude of visual hypothesis 1...
 %
 % g    - sensations:
 %   g(1) - oculomotor angle (proprioception - x)
@@ -25,49 +24,61 @@ function spm_dem_search_movie(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dem_search_movie.m 6901 2016-10-08 13:21:41Z karl $
+% $Id: spm_dem_mdp_movie.m 6901 2016-10-08 13:21:41Z karl $
 
 
 % Preliminaries
 %--------------------------------------------------------------------------
 clf, global STIM
-if ~iscell(DEM), DEM = {DEM};           end
-if ~isfield(STIM,'W'), STIM.W = 1/6;    end
-if ~isfield(STIM,'P'), STIM.P = [0;0];  end
-if ~isfield(STIM,'U'), STIM.U = STIM.V; end
-if ~isfield(STIM,'S'), STIM.S = STIM.H; end
+if ~isfield(STIM,'W'), STIM.W = 1/6; end
+if ~isfield(STIM,'B'), STIM.B = 1;   end
+B   = STIM.B;
+W   = STIM.W;
+R   = STIM.R;
 
-N   = length(DEM);
-S   = spm_read_vols(STIM.U);
 
 % Stimulus
 %==========================================================================
-Dx  = STIM.P(1)*16 + STIM.U.dim(1)/2;
-Dy  = STIM.P(2)*16 + STIM.U.dim(2)/2;
-
-dim = size(STIM.R);
-vox = STIM.U.dim(1);
-dx  = vox/dim(1)*STIM.W;
-di  = dx*([1 dim(1)] - dim(1)/2) + Dx;
-dj  = dx*([1 dim(2)] - dim(2)/2) + Dy;
-di  = [di;di]; di = di(:);
-dj  = [dj;dj]';dj = dj(:);
-ax  = [(Dy - vox) (Dy + vox) (Dx - vox) (Dx + vox)]/2;
-
-
+N     = length(DEM);
 a     = [];
+for j = 1:numel(DEM(1).X)
+    X{j} = [];
+end
 for i = 1:N
+    
+    % get stimulus and position
+    %--------------------------------------------------------------------------
+    h   = find(DEM(i).C(3:end,1));
+    P   = DEM(i).C(1:2,1);
+    S   = spm_read_vols(STIM.H{h});
+    
+    Dx  = STIM.H{h}.dim(1)/2 - P(1)*16;
+    Dy  = STIM.H{h}.dim(2)/2 - P(2)*16;
+    
+    dim = size(STIM.R);
+    vox = STIM.H{h}.dim(1);
+    dx  = vox/dim(1)*STIM.W;
+    di  = dx*([1 dim(1)] - dim(1)/2) + Dx;
+    dj  = dx*([1 dim(2)] - dim(2)/2) + Dy;
+    di  = [di;di]; di = di(:);
+    dj  = [dj;dj]';dj = dj(:);
+    ax  = [(Dy - vox) (Dy + vox) (Dx - vox) (Dx + vox)];
+    
+    
     
     % i-th saccade - position
     %----------------------------------------------------------------------
-    pU = DEM{i}.pU.x{1}(1:2,:)*16;
-    qU = DEM{i}.qU.x{1}(1:2,:)*16;
+    pU = DEM(i).pU.x{1}(1:2,:)*16;
+    qU = DEM(i).qU.x{1}(1:2,:)*16;
     T  = length(pU);
-    a  = [a DEM{i}.qU.a{2}];
+    a  = [a DEM(i).qU.a{2}];
+    for j = 1:numel(DEM(i).X)
+        X{j} = [X{j} DEM(i).X{j}];
+    end
     
     % eye movements in extrinsic coordinates
     %======================================================================
-    subplot(2,2,1)
+    subplot(3,2,1)
     for t = 1:T
         image((S + 1)*32), axis image, hold on
         plot(qU(2,t) + Dy,qU(1,t) + Dx,'.g','Markersize',8)
@@ -76,8 +87,8 @@ for i = 1:N
         
         % show location of image ccentre
         %------------------------------------------------------------------
-        plot(Dy,Dx,'+r','Markersize',32);  % axis(ax);
-
+        plot(Dy,Dx,'+r','Markersize',32); axis(ax);
+        
         drawnow, hold off
         
         % save
@@ -88,11 +99,16 @@ for i = 1:N
     
     % sensory input
     %======================================================================
-    subplot(2,2,2)
+    subplot(3,2,2)
+    STIM.B = B*B';
+    STIM.W = W;
+    STIM.R = R;
     for t = 1:T
         
-        o   = DEM{i}.pU.x{1}(:,t);
-        s   = ADEM_sample_image(STIM.U,o,STIM.R);
+        x   = DEM(i).pU.x{1}(:,t);
+        v   = DEM(i).pU.v{2}(1:2,t);
+        h   = DEM(i).pU.v{2}(3:end,t);
+        s   = ADEM_sample_image(x - v,h);
         image(s*64), axis image, drawnow
         
         % save
@@ -101,28 +117,19 @@ for i = 1:N
         
     end
     
-    % i-th saccade - percept
-    %----------------------------------------------------------------------
-    qU = DEM{i}.qU.x{1}(3:end,:);
-    
     % percept
     %======================================================================
-    subplot(2,2,4)
+    subplot(3,2,4)
+    STIM.B = 1;
+    STIM.W = W;
+    STIM.R = ones(128,128);
     for t = 1:T
         
-        % hypotheses
-        %------------------------------------------------------------------
-        h     = spm_softmax(qU(:,t),2);
-        H     = 1 + h'*log(h)/log(length(h));
-    
-        
-        % retinotopic predictions
-        %------------------------------------------------------------------
-        s     = 0;
-        for j = 1:length(h)
-            s = s + h(j)*spm_read_vols(STIM.S{j});
-        end
-        image(s*H*64), axis image, drawnow
+        x   = DEM(i).qU.x{1}(:,t);
+        v   = DEM(i).qU.v{2}(1:2,t);
+        h   = DEM(i).qU.v{2}(3:end,t);
+        s   = ADEM_sample_image(x - v,h);
+        image(s*64), axis image, drawnow
         
         % save
         %------------------------------------------------------------------
@@ -132,25 +139,39 @@ for i = 1:N
     
 end
 
+% reset feild of STIM
+%--------------------------------------------------------------------------
+STIM.B = B;
+STIM.W = W;
+STIM.R = R;
+
 % set ButtonDownFcn
 %--------------------------------------------------------------------------
-subplot(2,2,3)
+subplot(3,2,3)
 plot(a')
 title('Action (EOG)','FontSize',16)
 xlabel('time')
 axis square
 
-subplot(2,2,1)
+for j = 1:numel(X)
+    subplot(3,2,4 + j)
+    imagesc(X{j})
+    title('Accumlated evidence','FontSize',16)
+    xlabel('time')
+    axis square
+end
+
+subplot(3,2,1)
 set(gca,'Userdata',{Me,16})
 set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
 title('saccades (click axis for movie)','FontSize',16)
 
-subplot(2,2,2)
+subplot(3,2,2)
 set(gca,'Userdata',{Mi,16})
 set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
 title('samples (click axis for movie)','FontSize',16)
 
-subplot(2,2,4)
+subplot(3,2,4)
 set(gca,'Userdata',{Mq,16})
 set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
 title('percept (click axis for movie)','FontSize',16)

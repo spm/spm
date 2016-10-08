@@ -25,8 +25,8 @@ function [DEM] = spm_ADEM(DEM)
 %
 % hierarchical models M(i)
 %--------------------------------------------------------------------------
-%   M(i).g  = y(t)  = g(x,v,[a],P)    {inline function, string or m-file}
-%   M(i).f  = dx/dt = f(x,v,[a],P)    {inline function, string or m-file}
+%   M(i).g  = y(t)  = g(x,v,P)    {inline function, string or m-file}
+%   M(i).f  = dx/dt = f(x,v,P)    {inline function, string or m-file}
 %
 %   M(i).pE = prior expectation of p model-parameters
 %   M(i).pC = prior covariances of p model-parameters
@@ -47,8 +47,8 @@ function [DEM] = spm_ADEM(DEM)
 
 % hierarchical process G(i)
 %--------------------------------------------------------------------------
-%   G(i).g  = y(t)  = g(x,v,[a],P)    {inline function, string or m-file}
-%   G(i).f  = dx/dt = f(x,v,[a],P)    {inline function, string or m-file}
+%   G(i).g  = y(t)  = g(x,v,a,P)    {inline function, string or m-file}
+%   G(i).f  = dx/dt = f(x,v,a,P)    {inline function, string or m-file}
 %
 %   G(i).pE = model-parameters
 %   G(i).U  = precision (action)
@@ -66,8 +66,10 @@ function [DEM] = spm_ADEM(DEM)
 %
 % true model-states - u
 %--------------------------------------------------------------------------
-%   pU.x    = hidden states
-%   pU.v    = causal states v{1} = response (Y)
+%   pU.x    = true hidden states
+%   pU.v    = true causal states v{1} = response (Y)
+%   pU.C    = prior covariance: cov(v)
+%   pU.S    = prior covariance: cov(x)
 %
 % model-parameters - p
 %--------------------------------------------------------------------------
@@ -129,7 +131,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM.m 6290 2014-12-20 22:11:50Z karl $
+% $Id: spm_ADEM.m 6901 2016-10-08 13:21:41Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -218,7 +220,7 @@ end
 %==========================================================================
 Q     = {};
 for i = 1:nl
-    q0{i,i} = sparse(M(i).l,M(i).l);
+    q0{i,i} = sparse(M(i).l,M(i).l); %#ok<AGROW>
     r0{i,i} = sparse(M(i).n,M(i).n);
 end
 Q0    = kron(iV,spm_cat(q0));
@@ -242,8 +244,10 @@ end
 Q0    = kron(iV,spm_cat(spm_diag({M.V})));
 R0    = kron(iV,spm_cat(spm_diag({M.W})));
 Qp    = blkdiag(Q0,R0);
-nh    = length(Q);                        % number of hyperparameters
- 
+nh    = length(Q);                           % number of hyperparameters
+iR    = [zeros(1,ny),ones(1,nv),ones(1,nx)]; % for empirical priors
+iR    = kron(speye(n,n),diag(iR)); 
+
 % restriction matrices - in terms of precision
 %--------------------------------------------------------------------------
 q0{1} = G(1).U;
@@ -373,7 +377,7 @@ if ~np && ~nh, nE = 1; end
  
 % create innovations (and add causes)
 %--------------------------------------------------------------------------
-[z w]  = spm_DEM_z(G,nY);
+[z,w]  = spm_DEM_z(G,nY);
 z{end} = C + z{end};
 a      = {G.a};
 Z      = spm_cat(z(:));
@@ -410,6 +414,10 @@ for iE = 1:nE
        iS = iS + Q{i}*exp(qh.h(i));
     end
     
+    % precision for empirical priors
+    %----------------------------------------------------------------------
+    iP    = iR*iS*iR;
+    
     % [re-]set states & their derivatives
     %----------------------------------------------------------------------
     try
@@ -439,7 +447,7 @@ for iE = 1:nE
         
         % evaluate generative process
         %------------------------------------------------------------------
-        [pu dg df] = spm_ADEM_diff(G,pu);
+        [pu,dg,df] = spm_ADEM_diff(G,pu);
  
         
         % and pass response to qu.y
@@ -456,18 +464,20 @@ for iE = 1:nE
         
         % evaluate generative model
         %------------------------------------------------------------------       
-        [E dE] = spm_DEM_eval(M,qu,qp);
+        [E,dE] = spm_DEM_eval(M,qu,qp);
  
         
         % conditional covariance [of states {u}]
         %------------------------------------------------------------------
         qu.c   = spm_inv(dE.du'*iS*dE.du + Pu);
+        pu.c   = spm_inv(dE.du'*iP*dE.du + Pu);
         Hqu.c  = Hqu.c + spm_logdet(qu.c);
         
         % save at qu(t)
         %------------------------------------------------------------------
         qE{iY} = E;
         qC{iY} = qu.c;
+        pC{iY} = pu.c;
         qU(iY) = qu;
         pU(iY) = pu;
  
@@ -747,8 +757,10 @@ for iE = 1:nE
             %--------------------------------------------------------------
             i       = (1:nx);
             QU.S{t} = qC{t}(i,i);
+            PU.S{t} = pC{t}(i,i);
             i       = (1:nv) + nx*n;
             QU.C{t} = qC{t}(i,i);
+            PU.C{t} = pC{t}(i,i);
         end
  
         % save conditional densities
@@ -816,12 +828,6 @@ end
  
 % assemble output arguments
 %==========================================================================
- 
-% Fill in DEM with response and its causes
-%--------------------------------------------------------------------------
-DEM.Y    = PU.v{1};
-DEM.pU   = PU;
-DEM.pP.P = {G.pE};
 
 % conditional moments of model-parameters (rotated into original space)
 %--------------------------------------------------------------------------
@@ -839,11 +845,15 @@ qH.V   = spm_unvec(diag(qH.C),{{M.hE} {M.gE}});
 qH.W   = qH.V{2};
 qH.V   = qH.V{1};
  
-% assign output variables
+% Fill in DEM with response and its causes
 %--------------------------------------------------------------------------
-DEM.M  = M;
+DEM.pP.P = {G.pE};            % parameters encoding process
+
+DEM.M  = M;                   % generative model
 DEM.U  = U;                   % causes
- 
+DEM.Y  = PU.v{1};             % response
+
+DEM.pU = PU;                  % prior moments of model-states
 DEM.qU = QU;                  % conditional moments of model-states
 DEM.qP = qP;                  % conditional moments of model-parameters
 DEM.qH = qH;                  % conditional moments of hyper-parameters

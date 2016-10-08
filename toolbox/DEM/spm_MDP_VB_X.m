@@ -94,7 +94,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6866 2016-09-05 09:19:42Z karl $
+% $Id: spm_MDP_VB_X.m 6901 2016-10-08 13:21:41Z karl $
 
 
 % deal with a sequence of trials
@@ -233,6 +233,7 @@ for f = 1:Nf
         D{f} = spm_norm(MDP.D{f});
     else
         D{f} = spm_norm(ones(Ns(f),1));
+        MDP.D{f} = D{f};
     end
 end
 
@@ -261,21 +262,10 @@ try, beta  = MDP.beta;  catch, beta  = 1;    end
 try, tau   = MDP.tau;   catch, tau   = 4;    end
 try, chi   = MDP.chi;   catch, chi   = 1/64; end
 
-% initialise
+% initialise posteriors over states
 %--------------------------------------------------------------------------
 Ni    = 16;                         % number of VB iterations
 for f = 1:Nf
-    
-    % true states
-    %----------------------------------------------------------------------
-    try
-        s(f,1) = MDP.s(f,1);
-    catch
-        s(f,1) = find(rand < cumsum(D{f}),1);
-    end
-    
-    % initialise posteriors over states
-    %----------------------------------------------------------------------
     xn{f} = zeros(Ni,Ns(f),1,1,Np) + 1/Ns(f);
     vn{f} = zeros(Ni,Ns(f),1,1,Np);
     x{f}  = zeros(Ns(f),T,Np)      + 1/Ns(f);
@@ -283,7 +273,6 @@ for f = 1:Nf
     for k = 1:Np
         x{f}(:,1,k) = D{f};
     end
-    
 end
 
 % initialise posteriors over polices and action
@@ -304,25 +293,50 @@ gu    = 1/qbeta;                    % posterior precision (policy)
 %==========================================================================
 for t = 1:T
     
-    % generate true (default) outcomes
+    % generate true states and outcomes
     %======================================================================
+    
+    % sampled state - based on previous action
+    %----------------------------------------------------------------------
+    for f = 1:Nf
+        try
+            s(f,t) = MDP.s(f,t);
+        catch
+            if t > 1
+                ps = MDP.B{f}(:,s(f,t - 1),a(f,t - 1));
+            else
+                ps = spm_norm(MDP.D{f});
+            end
+            s(f,t) = find(rand < cumsum(ps),1);
+        end
+    end
+    
+    % sample outcome from true state if not specified
+    %----------------------------------------------------------------------
     ind   = num2cell(s(:,t));
     for g = 1:Ng
-        
         try
-            % outcome specified explicitly
-            %--------------------------------------------------------------
             o(g,t) = MDP.o(g,t);
-            O{g,t} = sparse(o(g,t),1,1,No(g),1);
-            
         catch
-            
-            % sample outcome from true state
-            %--------------------------------------------------------------
             po     = MDP.A{g}(:,ind{:});
             o(g,t) = find(rand < cumsum(po),1);
+        end
+    end
+    
+    % posterior predictive density (prior for suborinate level)
+    %------------------------------------------------------------------
+    for f = 1:Nf
+        if t > 1
+            xq{f} = sB{f}(:,:,a(f,t - 1))*X{f}(:,t - 1);
+        else
+            xq{f} = X{f}(:,t);
+        end
+    end
+    for g = 1:Ng
+        if isfield(MDP,'link') || isfield(MDP,'demi')
+            O{g,t} = spm_dot(A{g},xq);
+        else
             O{g,t} = sparse(o(g,t),1,1,No(g),1);
-            
         end
     end
     
@@ -330,74 +344,64 @@ for t = 1:T
     %======================================================================
     if isfield(MDP,'link')
         
-        % use previous inversions (if available)
+        % use previous inversions (if available) to reproduce outcomes
         %------------------------------------------------------------------
         try
             mdp = MDP.mdp(t);
         catch
             mdp = MDP.MDP;
         end
-        
-        % Bayesian model average of hidden states
-        %------------------------------------------------------------------
-        for f = 1:Nf
-            xq{f} = X{f}(:,t);
-        end
-        
+        link       = MDP.link;
+        mdp.factor = find(any(link,2));
+
         % priors over states (of subordinate level)
         %------------------------------------------------------------------
-        link  = MDP.link;
-        qf    = [];
         for f = 1:size(link,1)
             i = find(link(f,:));
             if numel(i)
                 
                 % empirical priors
                 %----------------------------------------------------------
-                mdp.D{f} = spm_dot(A{i},xq);
+                mdp.D{f} = O{i,t};
                 
-                % true states, if they are hierarchically linked
+                % true state for lower level is the true outcome
                 %----------------------------------------------------------
-                po       = MDP.A{i}(:,ind{:});
-                qf       = [qf,f];
+                try
+                    mdp.s(f,1) = mdp.s(f,1);
+                catch
+                    mdp.s(f,1) = o(i,t);
+                end
                 
             else
                 
                 % otherwise use subordinate priors over states
                 %----------------------------------------------------------
-                if isfield(mdp,'D')
-                    po = spm_norm(mdp.D{f});
-                else
-                    po = spm_norm(ones(Ns(f),1));
-                end
-                
-            end
-            
-            % sample true state for lower level
-            %--------------------------------------------------------------
-            try
-                mdp.s(f,1) = mdp.s(f,1);
-            catch
-                mdp.s(f,1) = find(rand < cumsum(po),1);
+                try
+                    mdp.s(f,1) = mdp.s(f,1);
+                catch
+                    if isfield(mdp,'D')
+                        ps = spm_norm(mdp.D{f});
+                    else
+                        ps = spm_norm(ones(Ns(f),1));
+                    end
+                    mdp.s(f,1) = find(rand < cumsum(ps),1);
+                end  
             end
             
         end
         
         % infer hidden states at the lower level (outcomes at this level)
         %------------------------------------------------------------------
-        mdp.factor = qf;
-        mdp        = spm_MDP_VB_X(mdp);
-        MDP.mdp(t) = mdp;
-        
-        % get outcomes from subordinate MDP
+        MDP.mdp(t) = spm_MDP_VB_X(mdp);
+
+        % get inferred outcomes from subordinate MDP
         %==================================================================
         for g = 1:Ng
             i = find(link(:,g));
             if numel(i)
-                o(g,t) = mdp.s(i,1);
-                O{g,t} = mdp.X{i}(:,1);
+                O{g,t} = MDP.mdp(t).X{i}(:,1);
             end
-        end    
+        end
     end
     
     % generate outcomes
@@ -407,39 +411,19 @@ for t = 1:T
         % use previous inversions (if available)
         %------------------------------------------------------------------
         try
-            dem = spm_ADEM_update(MDP.dem(t - 1));
+            MDP.dem(t) = spm_ADEM_update(MDP.dem(t - 1));
         catch
-            dem = MDP.DEM;
+            MDP.dem(t) = MDP.DEM;
         end
-
-        
-        % Bayesian model average of hidden states
+              
+        % get inferred outcome (from Bayesian filtering)
         %------------------------------------------------------------------
-        for f = 1:Nf
-            xq{f} = X{f}(:,t);
-        end
-        
-        % posterior predictive density
-        %------------------------------------------------------------------
+        MDP.dem(t) = spm_MDP_DEM(MDP.dem(t),MDP.demi,O(:,t),o(:,t));
         for g = 1:Ng
-            qo{g}  = spm_dot(A{g},xq);
+            O{g,t} = MDP.dem(t).X{g}(:,end);
         end
-        
-        % outcome (from Bayesian filtering)
-        %------------------------------------------------------------------
-        g      = MDP.demi;
-        dem    = spm_MDP_DEM(dem,qo,o(:,t));
-        o(g,t) = dem.s;
-        O{g,t} = dem.X;
-        
-        % save DEM structure
-        %------------------------------------------------------------------
-        MDP.dem(t) = dem;
         
     end
-    
-    
- 
     
     
     % Variational updates
@@ -581,6 +565,12 @@ for t = 1:T
     
     % variational updates - policies and precision
     %======================================================================
+    
+    % previous expected precision
+    %----------------------------------------------------------------------
+    if t > 1
+        gu(t) = gu(t - 1);
+    end
     for i = 1:Ni
         
         % posterior and prior beliefs about policies
@@ -607,6 +597,7 @@ for t = 1:T
         u(p,t)  = qu;
         
     end
+    
     
     
     % Bayesian model averaging of hidden states (over policies)
@@ -648,53 +639,21 @@ for t = 1:T
     %======================================================================
     if t < T
         
-        % posterior potential for (allowable) actions (for each modality)
-        %==================================================================
-        
-        % unique combinations of actions
-        %------------------------------------------------------------------
-        up    = unique(shiftdim(V(t,p,:),1),'rows');
-        
-        % predicted hidden states at the next time step
-        %------------------------------------------------------------------
-        for f = 1:Nf
-            xp{f} = X{f}(:,t + 1);
-        end
-        
-        % predicted hidden states under each action
+        % marginal posterior probability of action (for each modality)
         %------------------------------------------------------------------
         Pu    = zeros(Nu);
-        for i = 1:size(up,1)
-            
-            for f = 1:Nf
-                xq{f} = sB{f}(:,:,up(i,f))*X{f}(:,t);
-            end
-            
-            % accumulate action potential over outcomes
-            %--------------------------------------------------------------
-            for g = 1:Ng
-                
-                % predicted outcome
-                %----------------------------------------------------------
-                po = spm_dot(A{g},xp);
-                qo = spm_dot(A{g},xq);
-                dP = (spm_log(po) - spm_log(qo))'*qo;
-                
-                % augment action potential
-                %----------------------------------------------------------
-                sub        = num2cell(up(i,:));
-                Pu(sub{:}) = Pu(sub{:}) + dP + 16;
-                
-            end
+        for i = 1:Np
+            sub        = num2cell(V(t,i,:));
+            Pu(sub{:}) = Pu(sub{:}) + u(i,t);
         end
         
         % action selection - a softmax function of action potential
         %------------------------------------------------------------------
         sub         = repmat({':'},1,Nf);
-        Pu(:)       = spm_softmax(alpha*Pu(:));
+        Pu(:)       = spm_softmax(alpha*log(Pu(:)));
         P(sub{:},t) = Pu;
         
-        % next action - sampled from beliefs about control states
+        % next action - sampled from marginal posterior
         %------------------------------------------------------------------
         try
             a(:,t)  = MDP.u(:,t);
@@ -703,20 +662,6 @@ for t = 1:T
             a(:,t)  = spm_ind2sub(Nu,ind);
         end
         
-        % next sampled state - based on the current action
-        %------------------------------------------------------------------
-        try
-            s(:,t + 1) = MDP.s(:,t + 1);
-        catch
-            for f = 1:Nf
-                ps         = MDP.B{f}(:,s(f,t),a(f,t));
-                s(f,t + 1) = find(rand < cumsum(ps),1);
-            end
-        end
-        
-        % next expected precision
-        %------------------------------------------------------------------
-        gu(1,t + 1)   = gu(t);
         
         % update policy and states for moving policies
         %------------------------------------------------------------------

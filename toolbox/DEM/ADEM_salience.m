@@ -20,7 +20,7 @@ function ADEM_salience
 % Copyright (C) 2011-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_salience.m 6592 2015-11-06 16:20:48Z guillaume $
+% $Id: ADEM_salience.m 6901 2016-10-08 13:21:41Z karl $
 
 
 pth = fileparts(mfilename('fullpath'));
@@ -205,6 +205,7 @@ spm_dem_search_trajectory(ADEM)
 % create movie in extrinsic and intrinsic coordinates
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3');
+STIM.R = spm_hanning(32)*spm_hanning(32)';
 spm_dem_search_movie(ADEM)
 
 

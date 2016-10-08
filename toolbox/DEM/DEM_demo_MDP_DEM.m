@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_DEM
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_DEM.m 6866 2016-09-05 09:19:42Z karl $
+% $Id: DEM_demo_MDP_DEM.m 6901 2016-10-08 13:21:41Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -47,7 +47,7 @@ function MDP = DEM_demo_MDP_DEM
 % and two further factors modelling invariance. There are no specific prior
 % preferences at this level, which means behaviour is purely epistemic.
 %--------------------------------------------------------------------------
- 
+
 rng('default')
 pth = fileparts(mfilename('fullpath'));
 
@@ -58,60 +58,87 @@ pth = fileparts(mfilename('fullpath'));
 % memory map images and get hypotheses
 %--------------------------------------------------------------------------
 global STIM
-try
-    STIM.H{1}   = spm_vol(fullfile(pth,'face_R.nii'));
-    STIM.H{2}   = spm_vol(fullfile(pth,'face_rot_R.nii'));
-    STIM.H{3}   = spm_vol(fullfile(pth,'face_inv_R.nii'));
-    
-    STIM.S{1}   = spm_vol(fullfile(pth,'face.nii'));
-    STIM.S{2}   = spm_vol(fullfile(pth,'face_rot.nii'));
-    STIM.S{3}   = spm_vol(fullfile(pth,'face_inv.nii'));
-    
-catch
-    
-    error('Images not found.');
-    
+str   = {'null','bird','seed','cats'};
+for i = 1:numel(str)
+    STIM.H{i}   = spm_vol(fullfile(pth,[str{i},'.nii']));
 end
-
 
 % set-up:
 %--------------------------------------------------------------------------
-dim    = 8;                                   % dimension of visual sample
-ns     = dim*dim;                             % number of sensory channels
-nh     = length(STIM.H);                      % number of hypotheses
-STIM.P = [1;-4];                               % stimulus position
-STIM.Q = 1/4;                                 % stimulus size
-STIM.R = spm_hanning(dim)*spm_hanning(dim)';  % retinal precision
-STIM.R = ones(size(STIM.R));
+dim    = 32;                                  % dimension of visual sample
+nb     = 4;                                   % number of basis functions
+ns     = nb*nb;                               % number of sensory channels
+STIM.W = 1/2;                                 % foveal sampling width
+STIM.R = ones(dim,dim);                       % retinal precision
+STIM.B = spm_dctmtx(dim,nb);                  % Basis functions (CRFs)
+STIM.A = 4;                                  % Attenuation (spotlight)
 
-STIM.V = spm_vol(fullfile(pth,'face_R.nii')); % Stimulus (filtered)
-STIM.U = spm_vol(fullfile(pth,'face.nii'));   % Stimulus (unfiltered)
+% and locations
+%--------------------------------------------------------------------------
+L{1}   = [-8;-8];
+L{2}   = [ 8;-8];
+L{3}   = [-8; 8];
+L{4}   = [ 8; 8];
+STIM.L = L;
 
+
+% mapping from outputs of higher (discrete) level to (hidden) causes
+%==========================================================================
+
+% true causes for every combination of discrete states
+%--------------------------------------------------------------------------
+N     = 16;                                  % length of data sequence
+nh    = length(STIM.H);                      % number of hypotheses
+nl    = length(STIM.L);                      % number of locations
+for i = 1:nh
+    for j = 1:nl
+        c           = [STIM.L{j}; sparse(i,1,4,nh,1)];
+        demi.C{i,j} = c*ones(1,N);
+    end
+end
+
+% priors over hidden causes, conditioned on discrete states
+%--------------------------------------------------------------------------
+for i = 1:nh
+    for j = 1:nl
+        u           = [STIM.L{j}; sparse(i,1,4,nh,1)];
+        demi.U{i,j} = u*ones(1,N);
+    end
+end
+
+
+% evaluate true and priors over causes given discrete states
+%--------------------------------------------------------------------------
+o     = [4,1];
+O{1}  = spm_softmax(sparse(1:4,1,1,nh,1));
+O{2}  = spm_softmax(sparse(1,1,4,nl,1));
 
 % generative model
 %==========================================================================
 M(1).E.s = 1/2;                               % smoothness
-M(1).E.n = 4;                                 % order of
+M(1).E.n = 2;                                 % order of
 M(1).E.d = 1;                                 % generalised motion
 
 % hidden states
 %--------------------------------------------------------------------------
-x.o    = [0;0];                               % oculomotor angle
-x.x    = -log(nh)*ones(nh,1);                 % hypotheses
+x      = [0;0];                               % oculomotor angle
+v.x    = [8;0];                               % equilibrium point
+v.h    = sparse(nh,1);                        % hypothesis
+g      = @ADEM_sample_image;
 
 % level 1: Displacement dynamics and mapping to sensory/proprioception
 %--------------------------------------------------------------------------
-M(1).f = @(x,v,P)spm_fx_dem_salience(x,v,P);
-M(1).g = @(x,v,P)spm_gx_dem_salience(x,v,P);
-M(1).x = x;                                  % hidden states
-M(1).V = exp(8);                             % error precision (g)
-M(1).W = exp(8);                             % error precision (f)
+M(1).f = @(x,v,P) (v.x - x)/4;
+M(1).g = @(x,v,P) spm_vec(x,g(x - v.x,v.h));
+M(1).x = x;                                   % hidden states
+M(1).V = [exp(4) exp(4) ones(1,ns)*8];   % error precision (g)
+M(1).W = exp(4);                              % error precision (f)
 
 
 % level 2:
 %--------------------------------------------------------------------------
-M(2).v = [0;0];                              % priors
-M(2).V = exp(16);
+M(2).v = v;                                   % priors
+M(2).V = [exp(8) exp(8) ones(1,nh)];
 
 
 % generative process
@@ -119,45 +146,38 @@ M(2).V = exp(16);
 
 % first level
 %--------------------------------------------------------------------------
-G(1).f = @(x,v,a,P)spm_fx_adem_salience(x,v,a,P);
-G(1).g = @(x,v,a,P)spm_gx_adem_salience(x,v,a,P);
-G(1).x = [0;0];                              % hidden states
-G(1).V = exp(8);                             % error precision
-G(1).W = exp(8);                             % error precision
-G(1).U = [exp(8) exp(8) zeros(1,ns)];        % gain
+G(1).f = @(x,v,a,P) a;
+G(1).g = @(x,v,a,P) spm_vec(x,g(x - v.x,v.h));
+G(1).x = x;                                  % hidden states
+G(1).V = exp(16);                            % error precision
+G(1).W = exp(16);                            % error precision
+G(1).U = [1 1 zeros(1,ns)];                  % gain
 
 % second level
 %--------------------------------------------------------------------------
-G(2).v = 0;                                  % exogenous forces
+G(2).v = v;                                  % exogenous forces
 G(2).a = [0;0];                              % action forces
 G(2).V = exp(16);
 
-
 % generate and invert
 %==========================================================================
-N      = 16;                                   % length of data sequence
 DEM.G  = G;
 DEM.M  = M;
-DEM.C  = sparse(1,N);
-DEM.U  = sparse(2,N);
-DEM.U(1,:) = -2;
-DEM.U(2,:) = 4;
 
 % solve and save saccade
-%------------------------------------------------------------------
-DEM    = spm_ADEM(DEM);
-DEM    = spm_ADEM_update(DEM);
+%--------------------------------------------------------------------------
+DEM    = spm_MDP_DEM(DEM,demi,O,o);
 
 % overlay true values
-%------------------------------------------------------------------
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 1');
 spm_DEM_qU(DEM.qU,DEM.pU)
 
-spm_figure('GetWin','Figure 1');
-spm_dem_search_movie({DEM})
-        
-        
-return
+spm_figure('GetWin','Figure 2');
+spm_dem_mdp_movie(DEM)
+drawnow
 
+% return
  
 % first level (lexical)
 %==========================================================================
@@ -166,8 +186,8 @@ return
 %--------------------------------------------------------------------------
 D{1} = [1 1 1]';           % what:     {'flee','feed','wait'}
 D{2} = [1 0 0 0]';         % where:    {'1',...,'4'}
-D{3} = [1 1]';             % flip(ud): {'no','yes'}
-D{4} = [8 1]';             % flip(rl): {'no','yes'}
+D{3} = [8 1]';             % flip(ud): {'no','yes'}
+D{4} = [9 1]';             % flip(rl): {'no','yes'}
  
  
 % probabilistic mapping from hidden states to outcomes: A
@@ -192,7 +212,7 @@ for f1 = 1:Ns(1)
                 if f3 == 2, a = flipud(a); end
                 if f4 == 2, a = fliplr(a); end
                 
-                % A{1} what: {'null','bird,'seed','cat'}
+                % A{1} what: {'null','bird','seed','cat'}
                 %==========================================================
                 
                 % saccade to cue location
@@ -227,15 +247,17 @@ end
  
 % MDP Structure
 %--------------------------------------------------------------------------
-mdp.T = 3;                      % number of updates
-mdp.A = A;                      % observation model
-mdp.B = B;                      % transition probabilities
-mdp.D = D;                      % prior over initial states
+mdp.T     = 3;                      % number of updates
+mdp.A     = A;                      % observation model
+mdp.B     = B;                      % transition probabilities
+mdp.D     = D;                      % prior over initial states
+mdp.DEM   = DEM;
+mdp.demi  = demi;
  
 mdp.Aname = {'what','where'};
 mdp.Bname = {'what','where','flip','flip'};
-mdp.alpha = 4;
-mdp.chi   = 1/64;
+mdp.alpha = 64;
+mdp.chi   = 1/32;
  
 clear A B D
  
@@ -352,9 +374,10 @@ mdp.C = C;                      % preferred outcomes
 mdp.D = D;                      % prior over initial states
 mdp.s = [1 1 1]';               % initial state
  
-mdp.Aname   = {'picture','where','feedback'};
-mdp.Bname   = {'story','where','decision'};
-mdp         = spm_MDP_check(mdp);
+mdp.Aname = {'picture','where','feedback'};
+mdp.Bname = {'story','where','decision'};
+mdp.alpha = 64;
+mdp       = spm_MDP_check(mdp);
  
  
 % illustrate a single trial
@@ -363,27 +386,31 @@ MDP  = spm_MDP_VB_X(mdp);
  
 % show belief updates (and behaviour)
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1'); clf
+spm_figure('GetWin','Figure 3'); clf
 spm_MDP_VB_trial(MDP);
  
 % illustrate phase-precession and responses
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2'); clf
+spm_figure('GetWin','Figure 4'); clf
 spm_MDP_VB_LFP(MDP,[],1); subplot(3,1,3)
 spm_MDP_search_plot(MDP)
 
  
 % illustrate evidence accumulation and perceptual synthesis (movie)
 %--------------------------------------------------------------------------
-% spm_figure('GetWin','Figure 3'); clf
-% spm_MDP_search_percept(MDP)
-%  
+spm_figure('GetWin','Figure 5'); clf
+spm_MDP_search_percept(MDP)
+
+
 % electrophysiological responses
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 4'); clf
+spm_figure('GetWin','Figure 6'); clf
 spm_MDP_VB_ERP(MDP,1);
 subplot(4,1,4)
 spm_MDP_search_plot(MDP)
+
+spm_figure('GetWin','Figure 7');
+spm_dem_mdp_movie(MDP.mdp(4).dem)
  
 return
  
