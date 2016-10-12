@@ -23,7 +23,7 @@ function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat,opts)
 % Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6898 2016-10-04 17:06:23Z guillaume $
+% $Id: spm_results_nidm.m 6903 2016-10-12 11:36:41Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -62,14 +62,17 @@ end
 %--------------------------------------------------------------------------
 gz           = '.gz';                        %-Compressed NIfTI {'.gz', ''}
 NIDMversion  = '1.3.0';
-SVNrev       = '$Rev: 6898 $';
+SVNrev       = '$Rev: 6903 $';
 
 %-Reference space
 %--------------------------------------------------------------------------
 if ~isfield(opts,'space')
-    s = {'subject','ixi','icbm','custom','mni','talairach'};
-    opts.space = spm_input('Reference space :','+1','m',s);
-    opts.space = s{opts.space};
+    s1 = {'Subject space','Normalised space (using Segment)',...
+        'Normalised space (using Old Segment)','Custom space',...
+        'Other normalised MNI space','Other normalised Talairach space'};
+    s2 = {'subject','ixi','icbm','custom','mni','talairach'};
+    opts.space = spm_input('Reference space :',1,'m',s1);
+    opts.space = s2{opts.space};
 end
 switch opts.space
     case 'subject'
@@ -83,18 +86,21 @@ switch opts.space
     case 'mni'
         coordsys = 'nidm_MNICoordinateSystem';        
     case 'talairach'
-        coordsys = 'nidm_TalairachCoordinateSystem';                
+        coordsys = 'nidm_TalairachCoordinateSystem';  
+    otherwise
+        error('Unknown reference space.');
 end
 
 %-Data modality
 %--------------------------------------------------------------------------
 MRIProtocol  = '';
 if ~isfield(opts,'mod')
-    m = {'AMRI','FMRI','DMRI','PET','SPECT','EEG','MEG'};
-    opts.mod = spm_input('Data modality :','+1','m',m);
-    opts.mod = m{opts.mod};
+    m1 = {'Anatomical MRI','functional MRI','Diffusion MRI','PET','SPECT','EEG','MEG'};
+    m2 = {'AMRI','FMRI','DMRI','PET','SPECT','EEG','MEG'};
+    opts.mod = spm_input('Data modality :','+1','m',m1);
+    opts.mod = m2{opts.mod};
 end
-switch opts.mod;
+switch opts.mod
     case 'AMRI'
         ImagingInstrument      = 'nlx_Magneticresonanceimagingscanner';
         ImagingInstrumentLabel = 'MRI Scanner';
@@ -336,7 +342,7 @@ pp.add_namespace('nidm','http://purl.org/nidash/nidm#');
 pp.add_namespace('niiri','http://iri.nidash.org/');
 pp.add_namespace('spm','http://purl.org/nidash/spm#');
 pp.add_namespace('neurolex','http://neurolex.org/wiki/');
-pp.add_namespace('crypto','http://id.loc.gov/vocabulary/preservation/cryptographicHashFunctions#');
+pp.add_namespace('crypto','http://id.loc.gov/vocabulary/preservation/cryptographicHashFunctions/');
 pp.add_namespace('dct','http://purl.org/dc/terms/');
 pp.add_namespace('nfo','http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#');
 pp.add_namespace('dc','http://purl.org/dc/elements/1.1/');
@@ -645,7 +651,7 @@ p.entity(idGrandMean,{...
     });
 p.wasGeneratedBy(idGrandMean, idModelPE);
 
-%-Entity: Beta Maps
+%-Entity: Parameter Estimate (Beta) Maps
 %--------------------------------------------------------------------------
 idBeta = cell(1,numel(SPM.Vbeta));
 for i=1:numel(SPM.Vbeta)
@@ -655,7 +661,7 @@ for i=1:numel(SPM.Vbeta)
         'prov:location',{uri(files.beta{i}),'xsd:anyURI'}...
         'nfo:fileName',{spm_file(files.beta{i},'filename'),'xsd:string'},...
         'dct:format',niifmt,...
-        'prov:label',{sprintf('Beta Map %d',i),'xsd:string'},...
+        'prov:label',{sprintf('Parameter Estimate Map %d',i),'xsd:string'},...
         nidm_conv('nidm_inCoordinateSpace',p),id_data_coordspace,...
         'crypto:sha512',{sha512sum(fullfile(SPM.swd,SPM.Vbeta(i).fname)),'xsd:string'},...        
     });
@@ -733,7 +739,7 @@ for c=1:numel(xSPM.Ic)
         'prov:location',{uri(spm_file(files.spm{c},'cpath')),'xsd:anyURI'},...
         'nfo:fileName',{spm_file(files.spm{c},'filename'),'xsd:string'},...
         'dct:format',niifmt,...
-        'prov:label',{['Statistic Map: ' nidm_esc(SPM.xCon(xSPM.Ic(c)).name)],'xsd:string'},...
+        'prov:label',{[upper(STAT) '-Statistic Map: ' nidm_esc(SPM.xCon(xSPM.Ic(c)).name)],'xsd:string'},...
         nidm_conv('nidm_statisticType',p),nidm_conv(['obo_' STAT 'statistic'],p),...
         nidm_conv('nidm_contrastName',p),{nidm_esc(SPM.xCon(xSPM.Ic(c)).name),'xsd:string'},...
         nidm_conv('nidm_errorDegreesOfFreedom',p),{xSPM.df(2),'xsd:float'},...
@@ -1145,6 +1151,7 @@ pp.bundle(idResults,p);
 %==========================================================================
 %serialize(pp,fullfile(outdir,'nidm.provn'));
 serialize(pp,fullfile(outdir,'nidm.ttl'));
+try, serialize(pp,fullfile(outdir,'nidm.jsonld')); end
 %serialize(pp,fullfile(outdir,'nidm.json'));
 %serialize(pp,fullfile(outdir,'nidm.pdf'));
 

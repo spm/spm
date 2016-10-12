@@ -35,7 +35,7 @@ classdef spm_provenance < handle
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 6646 2015-12-14 19:00:26Z guillaume $
+% $Id: spm_provenance.m 6903 2016-10-12 11:36:41Z guillaume $
 
 
 %-Properties
@@ -79,15 +79,18 @@ methods (Access='public')
         obj.namespace(n).uri = uri;
         
         if nargout
-            ns = @(x) [prefix ':' x];
+            ns = @(local_name) [prefix ':' local_name];
         end
     end
     
-    function uri = get_namespace(obj,prefix)
+    function [uri,ns] = get_namespace(obj,prefix)
         if nargin == 1, uri = obj.namespace; return; end
         n = ismember({obj.namespace.prefix},prefix);
         if ~any(n), uri = '';
         else        uri = obj.namespace(n).uri; end
+        if nargout > 1
+            ns = @(local_name) [prefix ':' local_name];
+        end
     end
     
     function remove_namespace(obj,prefix)
@@ -250,6 +253,17 @@ methods (Access='public')
                 s = sprintf('{\n');
                 s = [s serialize_json(obj)];
                 s = [s sprintf('}\n')];
+            case 'jsonld'
+                %-PROV-JSONLD
+                % http://dl.acm.org/citation.cfm?id=2962062
+                [s,b] = serialize_jsonld(obj);
+                arr = ~isempty(b);
+                while ~isempty(b)
+                    s = [s sprintf(',\n')];
+                    [s0,b] = serialize_jsonld(b{3},b{2});
+                    s = [s s0];
+                end
+                if arr, s = [sprintf('[\n') s sprintf('\n]\n')]; end
             case 'ttl'
                 %-Turtle
                 % http://www.w3.org/TR/turtle/
@@ -447,23 +461,52 @@ methods (Access='private')
                         if k~=numel(l) || ~isempty(attr), str = [str sprintf(',')]; end
                         str = [str sprintf('\n')];
                     end
-                    for k=1:2:numel(attr)
-                        attribute = attr{k};
-                        literal = attr{k+1};
-                        datatype = 'xsd:string';
-                        if iscell(literal)
-                            datatype = literal{2};
-                            literal = literal{1};
-                        else
-                            if isequal(attribute,'prov:type') || strncmp(literal,'prov:',5)
-                                datatype = 'xsd:QName';
+                    A = reshape(attr,2,[])';
+                    while size(A,1) ~= 0
+                        attribute = A{1,1};
+                        l = 1;
+                        for k=2:size(A,1)
+                            if strcmp(A{k,1},attribute)
+                                l = [l k];
                             end
                         end
-                        str = [str sprintf([o o o '"%s": {\n'],attribute)];
-                        str = [str sprintf([o o o o '"$": "%s",\n'],literal)];
-                        str = [str sprintf([o o o o '"type": "%s"\n'],datatype)];
-                        str = [str sprintf([o o o '}'])];
-                        if k~=numel(attr)-1, str = [str sprintf(',')]; end
+                        for k=1:numel(l)
+                            literal{k} = A{k,2};
+                            datatype{k} = 'xsd:string';
+                            if iscell(literal{k})
+                                datatype{k} = literal{k}{2};
+                                literal{k} = literal{k}{1};
+                            else
+                                if isequal(attribute,'prov:type') || strncmp(literal{k},'prov:',5)
+                                    datatype{k} = 'xsd:QName';
+                                end
+                            end
+                        end
+                        str = [str sprintf([o o o '"%s":'],attribute)];
+                        if numel(l) == 1
+                            str = [str sprintf(' {\n')];
+                        else
+                            str = [str sprintf(' [\n')];
+                        end
+                        for k=1:numel(l)
+                            if numel(l) ~= 1
+                                str = [str sprintf([o o o o '{\n'])];
+                            end
+                            str = [str sprintf([o o o o '"$": "%s",\n'],literal{k})];
+                            str = [str sprintf([o o o o '"type": "%s"\n'],datatype{k})];
+                            if numel(l) ~= 1
+                                str = [str sprintf([o o o o '}'])];
+                                if k~=numel(l), str = [str sprintf(',')]; end
+                                str = [str sprintf('\n')];
+                            end
+                        end
+                        if numel(l) == 1
+                            str = [str sprintf([o o o '}'])];
+                        else
+                            str = [str sprintf([o o o ']'])];
+                        end
+                        A(l,:) = [];
+                        if size(A,1) ~= 0, str = [str sprintf(',')]; end
                         str = [str sprintf('\n')];
                     end
                     str = [str sprintf([o o '}'])];
@@ -478,11 +521,186 @@ methods (Access='private')
             str = [str sprintf(',\n')];
             str = [str sprintf([o '"bundle": {\n'])];
             for i=1:numel(s(end).idx)
-                str = [str serialize_json(obj.stack{s(end).idx(i)}{3},2)];
+                str = [str sprintf([o o '"%s": {\n'],obj.stack{s(end).idx(i)}{2})];
+                str = [str serialize_json(obj.stack{s(end).idx(i)}{3},step+1)];
+                str = [str sprintf([o o '}'])];
+                if i~=numel(s(end).idx), str = [str sprintf(',')]; end
+                str = [str sprintf('\n')];
             end
             str = [str sprintf([o '}'])];
         end
         str = [str sprintf('\n')];
+    end
+    
+    function [str,b] = serialize_jsonld(obj,bundle_id,step)
+        if nargin < 2, bundle_id = ''; end
+        if nargin < 3, step = 1; end
+        o = blanks(2*step);
+        str = sprintf('{\n');
+        b = [];
+        provo = prov_o;
+        %-Namespace
+        str = [str sprintf([o '"@context": [\n'])];
+        str = [str sprintf([o o '"https://provenance.ecs.soton.ac.uk/prov.jsonld"'])];
+        ns = obj.namespace;
+        if ~isempty(bundle_id)
+            ns(end+1) = struct('prefix','rdfs','uri','http://www.w3.org/2000/01/rdf-schema#');
+        end
+        if ~isempty(ns(1).uri) || numel(ns) > 3
+            str = [str sprintf(',\n') o o sprintf('{\n')];
+        else
+            str = [str sprintf('\n')];
+        end
+        if ~isempty(ns(1).uri)
+            str = [str sprintf([o o o '"@base": "%s"'],ns(1).uri)];
+            if numel(ns) > 3
+                str = [str sprintf(',')];
+            end
+            str = [str sprintf('\n')];
+        end
+        for i=4:numel(ns)
+            str = [str sprintf([o o o '"%s": "%s"'],...
+                ns(i).prefix, ns(i).uri)];
+            if i~=numel(ns)
+                str = [str sprintf(',')];
+            end
+            str = [str sprintf('\n')];
+        end
+        if ~isempty(ns(1).uri) || numel(ns) > 3
+            str = [str o o sprintf('}\n')];
+        end
+        str = [str sprintf([o ']'])];
+        %-Identifiant (for Bundle)
+        if ~isempty(bundle_id)
+            str = [str sprintf(',\n') o sprintf('"@id": "%s"',bundle_id)];
+        end
+        %-Graph
+        str = [str sprintf(',\n') o '"@graph": [' sprintf('\n')];
+        for i=1:numel(obj.stack)
+            node = {};
+            ont = provo(ismember(provo(:,1),obj.stack{i}{1}),:);
+            if ismember(obj.stack{i}{1},{'specializationOf','alternateOf','hadMember'})
+                node{1,1} = '@id';
+                node{1,2} = obj.stack{i}{3};
+                node{2,1} = obj.stack{i}{1};
+                node{2,2} = obj.stack{i}{4};
+            elseif ismember(obj.stack{i}{1},{'bundle'})
+                if ~isempty(b)
+                    warning('Only a single bundle is allowed.');
+                end
+                b = obj.stack{i};
+                continue;
+            else
+                attr = obj.stack{i}{end};
+                % identifier
+                if ~isempty(obj.stack{i}{2})
+                    node{end+1,1} = '@id';
+                    node{end,2} = obj.stack{i}{2};
+                end
+                % type
+                node{end+1,1} = '@type';
+                node{end,2} = ont(2);
+                idx = [];
+                for j=1:2:numel(attr)
+                    if strcmp(attr{j},'prov:type') && ~isempty(parseQN(attr{j+1}))
+                        node{end,2}{end+1} = attr{j+1};
+                        idx = [idx j j+1];
+                    end
+                end
+                if numel(node{end,2}) == 1, node{end,2} = char(node{end,2}); end
+                attr(idx) = [];
+                % PROV attributes
+                for j=1:numel(ont{3})
+                    if ~isequal(obj.stack{i}{j+2},'-')
+                        node{end+1,1} = ont{3}{j};
+                        node{end,2} = obj.stack{i}{j+2};
+                    end
+                end
+                % additional attributes
+                for j=1:2:numel(attr)
+                    if isempty(attr{j}), continue; end
+                    switch attr{j}
+                        case 'prov:location'
+                            attr{j} = 'prov:atLocation';
+                        case 'prov:label'
+                            attr{j} = 'rdfs:label';
+                            % remove xsd:string
+                            if iscell(attr{j+1})
+                                attr{j+1} = attr{j+1}{1};
+                            end
+                        case 'prov:hadRole'
+                    end
+                    node{end+1,1} = attr{j};
+                    node{end,2} = attr{j+1};
+                    if iscell(node{end,2})
+                        node{end,2} = {struct(...
+                            'type',node{end,2}{2},...
+                            'value',node{end,2}{1})};
+                    elseif ischar(node{end,2}) &&  ~isempty(parseQN(node{end,2}))
+                        node{end,2} = {struct(...
+                            'id', node{end,2})};
+                    end
+                    for k=(j+2):2:numel(attr)
+                        if strcmp(node{end,1},attr{k})
+                            attr{k} = '';
+                            v = attr{k+1};
+                            if iscell(v)
+                                v = struct('type',v{2},'value',v{1});
+                            elseif ischar(v) &&  ~isempty(parseQN(v))
+                                v = struct('id',v);
+                            end
+                            if ischar(node{end,2})
+                                node{end,2} = {node{end,2},v};
+                            else
+                                node{end,2}{end+1} = v;
+                            end
+                        end
+                    end
+                end
+            end
+            % serialize node
+            str = [str o o sprintf('{\n')];
+            for j=1:size(node,1)
+                str = [str o o o sprintf('"%s": ',node{j,1})];
+                if ischar(node{j,2})
+                    str = [str sprintf('"%s"',node{j,2})];
+                else
+                    if iscell(node{j,2}) && numel(node{j,2})>1, str = [str '[']; end
+                    for k=1:numel(node{j,2})
+                        if iscell(node{j,2}) && ischar(node{j,2}{k})
+                            str = [str sprintf('"%s"',node{j,2}{k})];
+                        else
+                            fn = fieldnames(node{j,2}{k});
+                            str = [str '{'];
+                            for l=1:numel(fn)
+                                str = [str sprintf('"@%s": "%s"',...
+                                    fn{l},node{j,2}{k}.(fn{l}))];
+                                if l<numel(fn)
+                                    str = [str sprintf(', ')];
+                                end
+                            end
+                            str = [str '}'];
+                        end
+                        if k<numel(node{j,2})
+                            str = [str sprintf(',')];
+                        end
+                    end
+                    if iscell(node{j,2}) && numel(node{j,2})>1, str = [str ']']; end
+                end
+                if j<size(node,1)
+                    str = [str sprintf(',')];
+                end
+                str = [str sprintf('\n')];
+            end
+            str = [str o o sprintf('}')];
+            if i<numel(obj.stack) && ~(i==numel(obj.stack)-1 && strcmp(obj.stack{i+1}{1},'bundle'))
+                str = [str ','];
+            end
+            str = [str sprintf('\n')];
+        end
+        str = [str o sprintf(']')];
+        str = [str sprintf('\n')];
+        str = [str sprintf('}')];
     end
     
     function str = serialize_ttl(obj,step)
@@ -516,7 +734,11 @@ methods (Access='private')
                 a_type{1}(6) = upper(a_type{1}(6));
                 str = [str sprintf([o 'a'])];
                 for j=1:numel(a_type)
-                    str = [str sprintf(' %s',a_type{j})];
+                    if ~isempty(parseQN(a_type{j},'prefix'))
+                        str = [str sprintf(' %s',a_type{j})];
+                    else
+                        str = [str sprintf(' "%s"^^xsd:string',a_type{j})];
+                    end
                     if j~=numel(a_type), str = [str sprintf(',')]; end
                 end
                 if ~isempty(attr)
@@ -842,5 +1064,28 @@ l = {
     'specializationOf',  'sO',    {'specificEntity','generalEntity'},      {n,n};...
     'hadMember',         'hM',    {'collection','entity'},                 {n,n};...
     'bundle',            '',      {},                                      {};...
+    };
+end
+
+function m = prov_o
+m = {
+    'entity',            'prov:Entity',           {};                                      ...
+    'activity',          'prov:Activity',         {'startedAtTime','endedAtTime'};         ...
+    'agent',             'prov:Agent',            {};                                      ...
+    'wasGeneratedBy',    'prov:Generation',       {'entity_generated','activity','atTime'};            ...
+    'used',              'prov:Usage',            {'activity_using','entity','atTime'};            ...
+    'wasInformedBy',     'prov:Communication',    {'informed','activity'};                ...
+    'wasStartedBy',      'prov:Start',            {'activity_started','entity','hadActivity','atTime'}; ...
+    'wasEndedBy',        'prov:End',              {'activity_ended','entity','hadActivity','atTime'};   ...
+    'wasInvalidatedBy',  'prov:Invalidation',     {'entity_invalidated','activity','atTime'};            ...
+    'wasDerivedFrom',    'prov:Derivation',       {'entity_derived','entity','hadActivity','hadGeneration','hadUsage'}; ...
+    'wasAttributedTo',   'prov:Attribution',      {'entity_attributed','agent'};                      ...
+    'wasAssociatedWith', 'prov:Association',      {'activity_associated','agent','hadPlan'};             ...
+    'actedOnBehalfOf',   'prov:Delegation',       {'delegate','agent','hadActivity'};   ...
+    'wasInfluencedBy',   'prov:Influence',        {'influencee','influencer'};             ...
+    'alternateOf',       'prov:alternateOf',      {'alternate1','alternate2'};             ... % no @type
+    'specializationOf',  'prov:specializationOf', {'specificEntity','generalEntity'};      ... % no @type
+    'hadMember',         'prov:hadMember',        {'collection','entity'};                 ... % no @type
+    'bundle',            '',                      {};                                      ...
     };
 end

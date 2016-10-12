@@ -50,10 +50,10 @@ function varargout=spm_platform(varargin)
 % Platform specific definitions are contained in the data structures at
 % the beginning of the init_platform subfunction at the end of this file.
 %__________________________________________________________________________
-% Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2016 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 6575 2015-10-15 15:22:08Z volkmar $
+% $Id: spm_platform.m 6903 2016-10-12 11:36:41Z guillaume $
 
 
 %-Initialise
@@ -150,7 +150,7 @@ if nargin<1
                     comp = 'GLNXA64';
                 case {'i586','i686'}
                     comp = 'GLNX86';
-                case {'armv6l'}
+                case {'armv6l','armv7l','armv8l'}
                     comp = 'ARM';
                 otherwise
                     error('%s is not supported.',comp);
