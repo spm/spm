@@ -22,9 +22,9 @@ function D = spm_eeg_combineplanar(S)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_combineplanar.m 5533 2013-06-10 12:35:00Z vladimir $
+% $Id: spm_eeg_combineplanar.m 6904 2016-10-20 12:04:59Z vladimir $
 
-SVNrev = '$Rev: 5533 $';
+SVNrev = '$Rev: 6904 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -46,7 +46,7 @@ for i = 1:size(chanset, 1)
     cind = D.indchannel(chanset(i, 1:2));
     if length(cind) == 2
         chanind  = [chanind cind];
-        labelnew = [labelnew; chanset(i, 3)];
+        labelnew = [labelnew; chanset(i, 4)];
     end
 end
 
