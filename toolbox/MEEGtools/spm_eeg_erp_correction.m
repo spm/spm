@@ -16,9 +16,9 @@ function D = spm_eeg_erp_correction(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Melanie Boly
-% $Id: spm_eeg_erp_correction.m 5640 2013-09-18 12:02:29Z vladimir $
+% $Id: spm_eeg_erp_correction.m 6907 2016-10-21 09:41:59Z vladimir $
 
-SVNrev = '$Rev: 5640 $';
+SVNrev = '$Rev: 6907 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ if S.hanning
     R  = R*diag(spm_hanning(Ns))*R;
 end
 
-Dnew = clone(D, ['C' D.fnamedat]);
+Dnew = clone(D, ['C' fname(D)]);
 
 
 spm_progress_bar('Init', D.ntrials, 'Trials filtered'); drawnow;
