@@ -1,4 +1,4 @@
-function DCM = DEMO_dcm_fmri_nnm
+function DCM = DEMO_dcm_fmri_nmm
 % This demonstration routine illustrates the dynamic causal modelling of
 % fMRI timeseries using neural mass models. We first specify a simple DCM
 % for the attentional dataset. Following inversion, the posterior densities
@@ -33,7 +33,7 @@ function DCM = DEMO_dcm_fmri_nnm
 % DCM.options.P                      % starting estimates for parameters
 % DCM.options.hidden                 % indices of hidden regions
 
-% $Id: DEMO_dcm_fmri_nnm.m 6857 2016-08-19 15:17:06Z karl $
+% $Id: DEMO_dcm_fmri_nmm.m 6909 2016-10-21 13:15:28Z peter $
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
