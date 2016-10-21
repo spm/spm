@@ -1,0 +1,59 @@
+function tests = test_spm_create_vol
+% Unit Tests for spm_create_vol
+%__________________________________________________________________________
+% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
+
+% $Id: test_spm_create_vol.m 6908 2016-10-21 11:29:25Z guillaume $
+
+tests = functiontests(localfunctions);
+
+
+function test_spm_create_vol_hdr(testCase)
+V = struct(...
+    'fname',   [tempname '.img'],...
+    'dim',     [32 32 32],...
+    'dt',      [spm_type('uint8') spm_platform('bigend')],...
+    'mat',     eye(4),...
+    'pinfo',   [1 0 0]',...
+    'descrip', 'description');
+
+V = spm_create_vol(V);
+hdrfile = spm_file(V.fname,'ext','.hdr');
+testCase.verifyEqual(exist(hdrfile,'file'),2);
+spm_unlink(hdrfile);
+
+function test_spm_create_vol_nii(testCase)
+V = struct(...
+    'fname',   [tempname '.nii'],...
+    'dim',     [64 64 64],...
+    'dt',      [spm_type('uint16') spm_platform('bigend')],...
+    'mat',     eye(4),...
+    'pinfo',   [1 0 0]',...
+    'descrip', 'description');
+
+V = spm_create_vol(V);
+testCase.verifyEqual(exist(V.fname,'file'),2);
+spm_unlink(V.fname);
+
+function test_spm_create_vol_nii_min(testCase)
+V = struct(...
+    'fname', [tempname '.nii'],...
+    'dim',   [64 64 64],...
+    'mat',   eye(4));
+
+V = spm_create_vol(V);
+testCase.verifyEqual(exist(V.fname,'file'),2);
+spm_unlink(V.fname);
+
+function test_spm_create_vol_nii_multi(testCase)
+V(1:4) = deal(struct(...
+    'fname', '',...
+    'dim',   [64 64 64],...
+    'mat',   eye(4)));
+for i=1:numel(V), V(i).fname = [tempname '.nii']; end
+
+V = spm_create_vol(V);
+for i=1:numel(V)
+    testCase.verifyEqual(exist(V(i).fname,'file'),2);
+    spm_unlink(V(i).fname);
+end
