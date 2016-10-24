@@ -11,7 +11,7 @@ function SPM = spm_contrasts(SPM,Ic)
 % Copyright (C) 2002-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Will Penny & Guillaume Flandin
-% $Id: spm_contrasts.m 6752 2016-03-24 16:17:25Z guillaume $
+% $Id: spm_contrasts.m 6910 2016-10-24 16:20:03Z guillaume $
 
 
 % Temporary copy of the SPM variable, to avoid saving it in SPM.mat unless
@@ -61,6 +61,8 @@ if spm_mesh_detect(Vbeta)
     if any(ismember(name,'SurfaceID'))
         metadata = metadata(ismember(name,'SurfaceID'));
         metadata = {metadata.name, metadata.value};
+    elseif isfield(g,'faces') && ~isempty(g.faces)
+        metadata = {'SurfaceID', SPM.xY.VY(1).fname};
     else
         metadata = {};
     end
