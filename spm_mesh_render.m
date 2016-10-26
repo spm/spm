@@ -35,7 +35,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 6911 2016-10-26 12:10:58Z guillaume $
+% $Id: spm_mesh_render.m 6912 2016-10-26 14:50:53Z guillaume $
 
 
 %-Input parameters
@@ -692,9 +692,10 @@ renderSlices(H,P);
 
 %==========================================================================
 function myChangeGeometry(obj,evt,H)
-[P, sts] = spm_select(1,'mesh','Select new geometry mesh');
+[P, sts] = spm_select([1, Inf],'mesh','Select new geometry mesh');
 if ~sts, return; end
 G = gifti(P);
+if numel(G) > 1, G = gifti(spm_mesh_join(G)); end
 if size(H.patch.Vertices,1) ~= size(G.vertices,1)
     error('Number of vertices must match.');
 end
@@ -749,7 +750,7 @@ if ischar(v)
         [SPM,v] = spm_getSPM(struct('swd',p));
         cd(swd);
     else
-        try, spm_vol(v); catch, v = gifti(v); end;
+        try, spm_vol(v); catch, v = gifti(v); end
     end
 end
 if isa(v,'gifti'), v = v.cdata; end

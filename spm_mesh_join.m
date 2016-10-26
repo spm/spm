@@ -10,7 +10,7 @@ function M = spm_mesh_join(Ms)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_join.m 6911 2016-10-26 12:10:58Z guillaume $
+% $Id: spm_mesh_join.m 6912 2016-10-26 14:50:53Z guillaume $
 
 
 fn = fieldnames(Ms(1));
@@ -25,12 +25,11 @@ for i=1:numel(Ms)
     M.vertices    = [M.vertices; Ms(i).vertices];
     try, M.cdata  = [M.cdata; Ms(i).cdata]; end
     try
-        if i==1
-            M.mat = Ms(i).mat;
-        else
-            if sum(sum(M.mat - Ms(i).mat)) > 10*eps
-                error('Meshes have different orientation.');
-            end
+        if i==1, M.mat = Ms(i).mat; end
+    end
+    if isfield(M,'mat')
+        if sum(sum(M.mat - Ms(i).mat)) > 10*eps
+            error('Meshes have different orientation.');
         end
     end
 end
