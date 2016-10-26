@@ -35,7 +35,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 6867 2016-09-12 15:04:44Z guillaume $
+% $Id: spm_mesh_render.m 6911 2016-10-26 12:10:58Z guillaume $
 
 
 %-Input parameters
@@ -57,12 +57,13 @@ switch lower(action)
     %======================================================================
     case 'disp'
         if isempty(varargin)
-            [M, sts] = spm_select(1,'mesh','Select surface mesh file');
+            [M, sts] = spm_select([1,Inf],'mesh','Select surface mesh file');
             if ~sts, return; end
         else
             M = varargin{1};
         end
-        if ischar(M) || isstruct(M), M = gifti(M); end
+        M = gifti(M);
+        if numel(M) > 1, M = gifti(spm_mesh_join(M)); end
         if ~isfield(M,'vertices')
             try
                 MM = M;

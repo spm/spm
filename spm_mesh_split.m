@@ -1,16 +1,16 @@
 function MS = spm_mesh_split(M, C)
 % Split a surface mesh into its connected components 
-% FUNCTION [MS] = spm_mesh_split(M, C)
-% M        - a [nx3] faces array or a patch structure
-% C        - a [nx1] vector containing labels for the connected components
-%            or a logical vector indicating vertices to keep
+% FORMAT MS = spm_mesh_split(M, C)
+% M         - a [nx3] faces array or a patch structure
+% C         - a [nx1] vector containing labels for the connected components
+%             or a logical vector indicating vertices to keep
 %
-% MS       - a patch structure array
+% MS        - a patch structure array
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_split.m 4035 2010-08-05 18:54:32Z guillaume $
+% $Id: spm_mesh_split.m 6911 2016-10-26 12:10:58Z guillaume $
 
 if isnumeric(M), M = struct('faces',M); end
 
