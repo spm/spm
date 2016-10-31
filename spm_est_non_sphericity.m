@@ -27,13 +27,13 @@ function [xVi, mask] = spm_est_non_sphericity(SPM)
 % array of non-sphericity components (xVi.Vi), providing a high precise
 % estimate of the non-sphericity matrix (xVi.V).
 %__________________________________________________________________________
-% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_est_non_sphericity.m 6827 2016-07-04 15:19:35Z guillaume $
+% $Id: spm_est_non_sphericity.m 6913 2016-10-31 10:12:27Z guillaume $
 
 
-SVNid = '$Rev: 6827 $';
+SVNid = '$Rev: 6913 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -43,6 +43,7 @@ spm('FnBanner',mfilename,SVNid);
 %-Get data, design, mask and variance components details
 %--------------------------------------------------------------------------
 VY           = SPM.xY.VY;
+M            = VY(1).mat;
 DIM          = VY(1).dim;
 YNaNrep      = spm_type(VY(1).dt(1),'nanrep');
 
@@ -102,7 +103,7 @@ UF           = spm_invFcdf(1 - UFp,[trMV,trRV]);
 %==========================================================================
 mask = true(DIM);
 for i = 1:numel(xM.VM)
-    if ~isfield(SPM.xVol,'G')
+    if ~(isfield(SPM,'xVol') && isfield(SPM.xVol,'G'))
         %-Assume it fits entirely in memory
         C = spm_bsplinc(xM.VM(i), [0 0 0 0 0 0]');
         v = true(DIM);
