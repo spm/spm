@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 6915 2016-11-01 17:38:08Z peter $
+% $Id: spm_dcm_peb_review.m 6916 2016-11-01 18:56:44Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -641,7 +641,7 @@ switch tag
         
         pname1 = pname_to_string(Pnames{idx1}, region_names, input_names);
         
-        Ep = xPEB.PEB.Ep(idx1, effect);
+        Ep = full(xPEB.PEB.Ep(idx1, effect));
         
         txt = {pname1; 
                sprintf('%3.3f', Ep);
