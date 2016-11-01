@@ -2,13 +2,12 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Bayesian model reduction of all permutations of model parameters
 % FORMAT [RCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 %
-% DCM      - DCM structures:
+% DCM      - A single estimated DCM (or PEB) structure:
 %
 %  DCM.M.pE  - prior expectation
 %  DCM.M.pC  - prior covariance
 %  DCM.Ep    - posterior expectation
 %  DCM.Cp    - posterior covariances
-%
 %  DCM.beta  - prior expectation of reduced parameters (default: 0)
 %  DCM.gamma - prior variance    of reduced parameters (default: 0)
 %
@@ -16,32 +15,42 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 %             'All' will invoke all fields (i.e. random effects)
 %             If Ep is not a structure, all parameters will be considered
 %
-% RCM - reduced DCM array
-%  RCM.M.pE  - prior expectation (with parameters in pE.A, pE.B and pE.C)
-%  RCM.M.pC  - prior covariance
-%  RCM.Ep    - posterior expectation: Bayesian model average
-%  RCM.Cp    - posterior covariances; Bayesian model average
-%  RCM.Pp    - Model posterior (with and without each parameter)
+% Returns:
 %
-% BMR - (Nsub) summary structure
+% DCM      - Bayesian Model Average (BMA) over models in the final
+%            iteration of the search:
+%
+%  DCM.Ep     - (BMA) posterior expectation
+%  DCM.Cp     - (BMA) posterior covariance
+%
+% BMR -  (Nsub) summary structure reporting the model space from the last
+%        iteration of the search:
+%
 %        BMR.name - character/cell array of DCM filenames
 %        BMR.F    - their associated free energies
 %        BMR.P    - and posterior (model) probabilities
+%        BMR.K    - [models x parameters] model space (1 = off, 2 = on)
+%
 % BMA - Baysian model average (see spm_dcm_bma)
 %
 %--------------------------------------------------------------------------
-% This routine searches over all possible reduced models of a full model
-% (DCM) and uses Bayesian model reduction to model average. Reduced
-% models mean all permutations of free parameters (parameters with a non-
-% zero prior covariance), where models are defined in terms of their prior
-% covariance. The full model should be inverted prior to post hoc
-% optimization. If there are more than 16 free-parameters, this routine
-% will implement a greedy search: This entails searching over all
-% permutations of the 8 parameters whose removal (shrinking the prior
-% variance to zero) produces the smallest reduction (greatest increase)
-% in model evidence. This procedure is repeated until all 8 parameters
-% are retained in the best model or there are no more parameters to
-% consider.
+% This routine searches over reduced (nested) models of a full model (DCM) 
+% using Bayesian model reduction and performs Bayesian Model Averaging.
+% 'Reduced' means some free parameters (parameters with a non-
+% zero prior covariance) are switched off by fixing their prior variance 
+% to zero. 
+%
+% If there are fewer than nmax = 8 free parameters, all permutations of 
+% switching off parameters will be tested. Otherwise, this routine 
+% implements the following greedy search procedure. The nmax parameters 
+% are identified which, when switched off individually, produce the least 
+% reduction (greatest increase) in model evidence. All permutations of 
+% switching off these parameters are then evaluated and the best 
+% permutation is retained. This procedure is repeated until all nmax
+% parameters are retained or there are no more parameters to consider. 
+% Finally, BMA is performed on the models from the last iteration.
+% 
+% NB: The full model should be estimated prior to running this function. 
 %
 % See also: spm_dcm_post_hoc - this routine is essentially a simplified
 % version of spm_dcm_post_hoc
@@ -49,7 +58,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 6879 2016-09-17 17:45:08Z peter $
+% $Id: spm_dcm_bmr_all.m 6915 2016-11-01 17:38:08Z peter $
 
 
 %-Number of parameters to consider before invoking greedy search
