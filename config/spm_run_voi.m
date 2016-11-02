@@ -10,7 +10,7 @@ function out = spm_run_voi(job)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_voi.m 6301 2015-01-12 17:23:08Z guillaume $
+% $Id: spm_run_voi.m 6921 2016-11-02 15:30:09Z peter $
 
 
 %-Load SPM.mat
@@ -61,7 +61,7 @@ xSPM.M     = SPM.xVol.M; % irrelevant here
 
 if ~isempty(xY.Ic), cwd = pwd; cd(SPM.swd); end % to find beta images
 [Y,xY]     = spm_regions(xSPM,SPM,[],xY);
-if  ~isempty(xY.Ic), cd(cwd); end
+if  ~isempty(xY(1).Ic), cd(cwd); end
 
 %-Save first eigenimage
 %--------------------------------------------------------------------------
@@ -81,7 +81,7 @@ Ve = spm_write_vol(Ve,eigimg);
 assignin('base','Y',Y);
 assignin('base','xY',xY);
 
-if isfield(SPM,'Sess'), s = sprintf('_%i',xY.Sess); else s = ''; end
+if isfield(SPM,'Sess'), s = sprintf('_%i',xY(1).Sess); else s = ''; end
 out.voimat = cellstr(fullfile(swd,['VOI_' job.name s '.mat']));
 out.voiimg = cellstr(Vm.fname);
 out.voieig = cellstr(Ve.fname);
