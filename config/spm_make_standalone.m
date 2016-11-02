@@ -18,10 +18,10 @@ function spm_make_standalone(outdir)
 %
 % See spm_standalone.m
 %__________________________________________________________________________
-% Copyright (C) 2010-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_make_standalone.m 6416 2015-04-21 15:34:10Z guillaume $
+% $Id: spm_make_standalone.m 6919 2016-11-02 14:37:52Z guillaume $
 
 %-Care of startup.m
 %--------------------------------------------------------------------------
@@ -88,6 +88,7 @@ if ~sts, warning('Copy of Contents.m failed.'); end
 %-Compilation
 %==========================================================================
 opts = {'-p',fullfile(matlabroot,'toolbox','signal')};
+if ~exist(opts{2},'dir'), opts = {}; end
 mcc('-m', '-C', '-v',...
     '-o',lower(spm('Ver')),...
     '-d',outdir,...
