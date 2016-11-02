@@ -51,10 +51,10 @@ function [DCM] = spm_dcm_fmri_nmm(P)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_nmm.m 6856 2016-08-10 17:55:05Z karl $
+% $Id: spm_dcm_fmri_nmm.m 6922 2016-11-02 17:28:23Z karl $
  
  
-SVNid = '$Rev: 6856 $';
+SVNid = '$Rev: 6922 $';
  
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -93,7 +93,7 @@ try, DCM.options.hE;         catch, DCM.options.hE         = 6;     end
 try, DCM.options.hC;         catch, DCM.options.hC         = 1/128; end
 try, DCM.options.maxit;      catch, DCM.options.maxit      = 32;    end
 try, DCM.options.maxnodes;   catch, DCM.options.maxnodes   = 16;    end
-
+ 
 try, DCM.n;                  catch, DCM.n = size(DCM.c,1);          end
 try, DCM.v;                  catch, DCM.v = size(DCM.Y.y,1);        end
  
@@ -115,7 +115,7 @@ if DCM.options.centre
     U.u = spm_detrend(U.u);
 end
  
-% check scaling of Y (enforcing a maximum change of 4%
+% check scaling of Y (enforcing a maximum change of 4%)
 %--------------------------------------------------------------------------
 scale   = max(max((Y.y))) - min(min((Y.y)));
 scale   = 4/max(scale,4);
@@ -140,7 +140,7 @@ try, M.TE     = DCM.TE;     end
 %--------------------------------------------------------------------------
 [nE,nC] = spm_dcm_neural_priors(DCM.a,DCM.b,DCM.c,DCM.options.nmm);
 [xn,fn] = spm_dcm_x_neural(nE,DCM.options.nmm);
-
+ 
 % fix some neuronal (neural mass) parameters
 %--------------------------------------------------------------------------
 p = {'T','D','R','G'};
@@ -149,14 +149,14 @@ for i = 1:numel(p)
         nC.(p{i}) = spm_zeros(nC.(p{i}));
     end
 end
-
+ 
 pE.N = rmfield(nE,{'M','N','E','F'});
 pC.N = rmfield(nC,{'M','N','E','F'});
-
+ 
 % add neurovascular parameters
 %--------------------------------------------------------------------------
 pE.J       = sparse(4,3);   pC.J      = sparse(4,3) + 1/16;
-
+ 
 % and hemodynamic priors
 %--------------------------------------------------------------------------
 bE.transit = sparse(n,1);  bC.transit = sparse(n,1) + 1/256;
@@ -164,20 +164,20 @@ bE.decay   = sparse(n,1);  bC.decay   = sparse(n,1) + 1/256;
 bE.epsilon = sparse(1,1);  bC.epsilon = sparse(1,1) + 1/256;
 x.x        = xn;
 x.h        = sparse(n,4);
-
+ 
 pE.H = bE;
 pC.H = bC;
-
-
+ 
+ 
 % Using specified priors
 %--------------------------------------------------------------------------
 str      = 'Using specified priors';
 try, M.P = DCM.options.P;                end      % initial parameters
 try, pE  = DCM.options.pE; fprintf(str); end      % prior expectation
 try, pC  = DCM.options.pC; fprintf(str); end      % prior covariance
-
-
-
+ 
+ 
+ 
 % hyperpriors over precision - expectation and covariance
 %--------------------------------------------------------------------------
 hE       = sparse(n,1) + DCM.options.hE;
@@ -199,12 +199,12 @@ M.m  = size(U.u,2);
 M.n  = size(spm_vec(x),1);
 M.l  = n;
 M.ns = v;
-
+ 
     
-% nonlinear system identification (Variaitonal Laplace)
+% nonlinear system identification (Variational Laplace)
 %==========================================================================
 [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
-
+ 
 % predicted responses (y) and residuals (R)
 %--------------------------------------------------------------------------
 y     = feval(M.IS,Ep,M,U);
@@ -218,7 +218,7 @@ H.f   = @spm_fx_hdm;
 H.g   = @spm_gx_hdm;
 H.x   = M.x.h;
 H.m   = M.m;
-
+ 
 [H0,H1] = spm_kernels(H,Ep.H,64,1/2);
  
 % and neuronal kernels
@@ -226,11 +226,11 @@ H.m   = M.m;
 N.f   = M.fn;
 N.x   = M.x.x;
 N.m   = M.m;
-
+ 
 [K0,K1] = spm_kernels(N,Ep.N,64,8/1000);
  
  
-% Bayesian inference and variance {threshold: prior mean plus T = 0}
+% Bayesian inference and variance
 %--------------------------------------------------------------------------
 T     = full(spm_vec(pE));
 sw    = warning('off','SPM:negativeVariance');
@@ -282,11 +282,10 @@ DCM.BIC    = evidence.bic_overall;
 [DCM.version.SPM.version, DCM.version.SPM.revision] = spm('Ver');
 DCM.version.DCM.version  = spm_dcm_ui('Version');
 DCM.version.DCM.revision = SVNid;
-
+ 
  
 %-Save DCM
 %--------------------------------------------------------------------------
 if ~isstruct(P)
     save(P,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
 end
-

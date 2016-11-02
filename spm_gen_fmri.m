@@ -30,7 +30,7 @@ function [y,lfp,csd,w] = spm_gen_fmri(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_fmri.m 6857 2016-08-19 15:17:06Z karl $
+% $Id: spm_gen_fmri.m 6922 2016-11-02 17:28:23Z karl $
 
 
 % persistent variables to speed integration schemes
@@ -68,8 +68,6 @@ if INT || nargout > 1
     N.dipfit.type  = 'LFP';
     N.dipfit.Ns    = M.l;
     N.dipfit.Nc    = M.l;
-    
-
     
     for t = 1:size(U.u,1)
         
@@ -170,7 +168,7 @@ if INT || nargout > 1
     end
 end
 
-% spectral responses every TR (with speckle smoothing)
+% spectral responses every TR (with spectral smoothing)
 %--------------------------------------------------------------------------
 if nargout > 2
     j     = fix(linspace(1,t,M.ns));

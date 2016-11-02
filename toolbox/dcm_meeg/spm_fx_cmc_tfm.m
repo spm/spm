@@ -40,7 +40,7 @@ function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M,OPT)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_tfm.m 6857 2016-08-19 15:17:06Z karl $
+% $Id: spm_fx_cmc_tfm.m 6922 2016-11-02 17:28:23Z karl $
  
  
 % get dimensions and configure state variables
@@ -52,7 +52,7 @@ n  = size(x,1);                       % number of sources
 % [default] fixed parameters
 %--------------------------------------------------------------------------
 E  = [2 1 1 1]*512;                   % extrinsic (forward and backward)  
-T  = [256 128 16 32];                 % synaptic rate constants
+T  = [16 8 1 2]*16;                   % synaptic rate constants
 R  = 1;                               % gain of activation function
 B  = 0;                               % baseline firing
 
@@ -74,7 +74,9 @@ C    = exp(P.C);
  
 % pre-synaptic inputs: s(V)
 %--------------------------------------------------------------------------
-V    = x(:,1:2:end);                  % Voltage
+ig   = 2*(1:4);                       % indices of conductance
+iv   = ig - 1;                        % indices of voltage
+V    = x(:,iv);                       % Voltage
 F    = 1./(1 + exp(B - R*V));         % firing rate
 S    = F - 1/(1 + exp(B));            % deviation 
 
@@ -105,22 +107,22 @@ T(:,i) = T(:,i).*exp(P.T);
 
 % extrinsic connections
 %--------------------------------------------------------------------------
-% forward  (i)   2  sp -> ss (+ve)
-% forward  (ii)  1  sp -> dp (+ve)
-% backward (i)   2  dp -> sp (-ve)
-% backward (ii)  1  dp -> ii (-ve)
+% forward  A{1}  sp -> ss
+% forward  A{2}  sp -> dp
+% backward A{3}  dp -> sp
+% backward A{4}  dp -> ii
 %--------------------------------------------------------------------------
 
-% Neuronal states (deviations from baseline firing)
+% Neuronal states (deviations from baseline)
 %--------------------------------------------------------------------------
-%   S(:,1) - voltage     (spiny stellate cells)
-%   S(:,2) - conductance (spiny stellate cells)
-%   S(:,3) - voltage     (superficial pyramidal cells)
-%   S(:,4) - conductance (superficial pyramidal cells)
-%   S(:,5) - current     (inhibitory interneurons)
-%   S(:,6) - conductance (inhibitory interneurons)
-%   S(:,7) - voltage     (deep pyramidal cells)
-%   S(:,8) - conductance (deep pyramidal cells)
+%   x(:,1) - voltage     (spiny stellate cells)
+%   x(:,2) - conductance (spiny stellate cells)but
+%   x(:,3) - voltage     (superficial pyramidal cells)
+%   x(:,4) - conductance (superficial pyramidal cells)
+%   x(:,5) - current     (inhibitory interneurons)
+%   x(:,6) - conductance (inhibitory interneurons)
+%   x(:,7) - voltage     (deep pyramidal cells)
+%   x(:,8) - conductance (deep pyramidal cells)
 %--------------------------------------------------------------------------
 %     ss sp ii dp   % intrinsic connections
 %--------------------------------------------------------------------------
@@ -150,12 +152,9 @@ end
 
 % Afferents
 %==========================================================================
-u     = zeros(n,4);             % intrinsic – inhibitory
-v     = zeros(n,4);             % intrinsic – excitatory
-w     = zeros(n,4);             % extrinsic – excitatory
-ig    = 2*(1:4);                % indices of conductance
-iv    = ig - 1;                 % indices of voltage
-
+u      = zeros(n,4);             % intrinsic – inhibitory
+v      = zeros(n,4);             % intrinsic – excitatory
+w      = zeros(n,4);             % extrinsic – excitatory
  
 % Granular layer (excitatory interneurons): spiny stellate: Hidden causes
 %--------------------------------------------------------------------------
@@ -181,7 +180,7 @@ v(:,4) = g(4,2)*S(:,2);
 w(:,4) = A{2}*S(:,2);
 
 
-if nargin > 4; f = -u; J = v; Q = w; return, end
+if nargin > 4; f = u; J = v; Q = w; return, end
  
 % Conductance and voltage
 %==========================================================================
