@@ -17,7 +17,7 @@ function spm_dcm_prior_responses(Ep)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_prior_responses.m 5951 2014-04-12 11:38:44Z karl $
+% $Id: spm_dcm_prior_responses.m 6917 2016-11-02 14:25:08Z karl $
 
 
 % Model specification
@@ -123,7 +123,7 @@ for i = 1:Nm
     %----------------------------------------------------------------------
     pE.b = pE.b - 32;
     pE.c = pE.c - 32;
-    [csd Hz]   = spm_csd_mtf(pE,M,[]);
+    [csd, Hz]  = spm_csd_mtf(pE,M,[]);
     [ccf, lag] = spm_csd2ccf(csd,Hz);
     
     % plot

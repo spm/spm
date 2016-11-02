@@ -95,7 +95,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6902 2016-10-08 19:28:25Z karl $
+% $Id: spm_MDP_VB_X.m 6917 2016-11-02 14:25:08Z karl $
 
 
 % deal with a sequence of trials
@@ -442,11 +442,11 @@ for t = 1:T
     %======================================================================
     S     = size(V,1) + 1;
     F     = zeros(Np,1);
-    for k = p
-        dF    = 1;
-        for i = 1:Ni
-            F(k)  = 0;
-            for j = 1:S
+    for k = p                           % loop over plausible policies
+        dF    = 1;                      % reset criterion for this policy
+        for i = 1:Ni                    % iterate belief updates
+            F(k)  = 0;                  % reset free energy for this policy
+            for j = 1:S                 % loop over future time points
                 
                 % marginal likelihood over outcome factors
                 %----------------------------------------------------------
