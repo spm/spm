@@ -1,9 +1,9 @@
 function st = spm_cfg_st
 % SPM Configuration file for Slice Timing Correction
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 6148 2014-09-03 15:49:04Z guillaume $
+% $Id: spm_cfg_st.m 6918 2016-11-02 14:33:11Z guillaume $
 
 %--------------------------------------------------------------------------
 % scans Session
@@ -14,7 +14,7 @@ scans.name    = 'Session';
 scans.help    = {'Select images to slice-time correct.'};
 scans.filter  = 'image';
 scans.ufilter = '.*';
-scans.num     = [2 Inf];
+scans.num     = [1 Inf];
 scans.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------

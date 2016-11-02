@@ -1,10 +1,10 @@
 function cat = spm_cfg_cat
 % SPM Configuration file for 3D to 4D volumes conversion
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_cat.m 5828 2014-01-03 18:38:35Z guillaume $
+% $Id: spm_cfg_cat.m 6918 2016-11-02 14:33:11Z guillaume $
 
 %--------------------------------------------------------------------------
 % vols 3D Volumes
@@ -40,6 +40,7 @@ name         = cfg_entry;
 name.tag     = 'name';
 name.name    = 'Output Filename';
 name.help    = {'Specify the name of the output 4D volume file.'
+                'Unless explicit, the output folder is the one containing the first image.'
                 'A ''.nii'' extension will be added if not specified.'}';
 name.strtype = 's';
 name.num     = [1 Inf];

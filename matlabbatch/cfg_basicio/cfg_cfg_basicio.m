@@ -74,6 +74,61 @@ cfg_mkdir.help    = {'Create a new directory.'};
 cfg_mkdir.prog = @cfg_run_mkdir;
 cfg_mkdir.vout = @cfg_vout_mkdir;
 % ---------------------------------------------------------------------
+% dir Directory to move/copy/delete
+% ---------------------------------------------------------------------
+dir         = cfg_files;
+dir.tag     = 'dir';
+dir.name    = 'Directory to move/copy/delete';
+dir.help    = {'This directory will be moved, copied or deleted.'};
+dir.filter  = {'dir'};
+dir.ufilter = '.*';
+dir.num     = [1 1];
+% ---------------------------------------------------------------------
+% moveto Move to
+% ---------------------------------------------------------------------
+moveto         = cfg_files;
+moveto.tag     = 'moveto';
+moveto.name    = 'Move to';
+moveto.help    = {'Directory will be moved to the specified directory.'};
+moveto.filter = {'dir'};
+moveto.ufilter = '.*';
+moveto.num     = [1 1];
+% ---------------------------------------------------------------------
+% copyto Copy to
+% ---------------------------------------------------------------------
+copyto         = cfg_files;
+copyto.tag     = 'copyto';
+copyto.name    = 'Copy to';
+copyto.help    = {'Directory will be copied to the specified directory.'};
+copyto.filter = {'dir'};
+copyto.ufilter = '.*';
+copyto.num     = [1 1];
+% ---------------------------------------------------------------------
+% delete Delete
+% ---------------------------------------------------------------------
+delete         = cfg_const;
+delete.tag     = 'delete';
+delete.name    = 'Delete';
+delete.val = {true};
+delete.help    = {'Directory will be deleted.'};
+% ---------------------------------------------------------------------
+% action Action
+% ---------------------------------------------------------------------
+action         = cfg_choice;
+action.tag     = 'action';
+action.name    = 'Action';
+action.values  = {moveto copyto delete};
+% ---------------------------------------------------------------------
+% dir_move Copy/Move/Delete a Directory
+% ---------------------------------------------------------------------
+dir_move      = cfg_exbranch;
+dir_move.tag  = 'dir_move';
+dir_move.name = 'Copy/Move/Delete Directory';
+dir_move.val  = {dir action };
+dir_move.help = {'Copy, move or delete a directory.'};
+dir_move.prog = @cfg_run_dir_move;
+dir_move.vout = @cfg_vout_dir_move;
+% ---------------------------------------------------------------------
 % name Input Name
 % ---------------------------------------------------------------------
 name         = cfg_entry;
@@ -118,7 +173,7 @@ dir_ops         = cfg_choice;
 dir_ops.tag     = 'dir_ops';
 dir_ops.name    = 'Dir Operations';
 dir_ops.help    = {''};
-dir_ops.values  = {cfg_cd cfg_mkdir cfg_named_dir };
+dir_ops.values  = {cfg_cd cfg_mkdir dir_move cfg_named_dir };
 % ---------------------------------------------------------------------
 % files Files to move/copy/delete
 % ---------------------------------------------------------------------
