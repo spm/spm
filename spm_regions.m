@@ -47,10 +47,10 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % be extracted from xY.y, and will be the same as the [adjusted] data 
 % returned by the plotting routine (spm_graph.m) for the same contrast.
 %__________________________________________________________________________
-% Copyright (C) 1999-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_regions.m 6436 2015-05-14 10:05:27Z guillaume $
+% $Id: spm_regions.m 6923 2016-11-04 15:35:12Z guillaume $
 
 
 %-Shortcut for VOI display
@@ -153,7 +153,7 @@ try, xY = rmfield(xY,'rej'); end
  
 if isempty(xY.XYZmm)
     warning('Empty region.');
-    Y = [];
+    [Y, xY.y, xY.u, xY.v, xY.s, xY.X0] = deal([]);
     return;
 end
 
