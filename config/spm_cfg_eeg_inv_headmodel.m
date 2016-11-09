@@ -4,7 +4,7 @@ function headmodel = spm_cfg_eeg_inv_headmodel
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 6545 2015-09-11 12:10:19Z vladimir $
+% $Id: spm_cfg_eeg_inv_headmodel.m 6924 2016-11-09 11:38:00Z guillaume $
 
 
 D = cfg_files;
@@ -172,6 +172,7 @@ coregistration.tag = 'coregistration';
 coregistration.name = 'Coregistration';
 coregistration.values = {coregspecify, coregdefault};
 coregistration.val = {coregspecify};
+coregistration.help = {'Coregistration'};
 
 eeg = cfg_menu;
 eeg.tag = 'eeg';
@@ -193,6 +194,7 @@ forward = cfg_branch;
 forward.tag = 'forward';
 forward.name = 'Forward model';
 forward.val = {eeg, meg};
+forward.help = {'Forward model'};
 
 headmodel = cfg_exbranch;
 headmodel.tag = 'headmodel';

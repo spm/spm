@@ -3,7 +3,7 @@ function cfg_print = spm_cfg_print
 %__________________________________________________________________________
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_print.m 4902 2012-09-05 18:56:48Z guillaume $
+% $Id: spm_cfg_print.m 6924 2016-11-09 11:38:00Z guillaume $
 
 %--------------------------------------------------------------------------
 % opts Printing Format
@@ -65,6 +65,7 @@ fig.tag           = 'fig';
 fig.name          = 'Figure to print';
 fig.values        = {figname, fighandle};
 fig.val           = {figname};
+fig.help          = {'Figure to print'};
 
 %--------------------------------------------------------------------------
 % cfg_print Print figure

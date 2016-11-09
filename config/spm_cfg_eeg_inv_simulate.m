@@ -5,7 +5,7 @@ function simulate = spm_cfg_eeg_inv_simulate
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_simulate.m 6494 2015-07-06 10:23:04Z gareth $
+% $Id: spm_cfg_eeg_inv_simulate.m 6924 2016-11-09 11:38:00Z guillaume $
 
 D = cfg_files;
 D.tag = 'D';
@@ -19,6 +19,7 @@ prefix.tag = 'prefix';
 prefix.name = 'Output file prefix';
 prefix.strtype = 's';
 prefix.val = {'sim_'};
+prefix.help = {'Output file prefix'};
 
 val = cfg_entry;
 val.tag = 'val';
@@ -51,6 +52,7 @@ whatconditions.tag = 'whatconditions';
 whatconditions.name = 'What conditions to include?';
 whatconditions.values = {all, conditions};
 whatconditions.val = {all};
+whatconditions.help = {'What conditions to include?'};
 
 
 woi = cfg_entry;

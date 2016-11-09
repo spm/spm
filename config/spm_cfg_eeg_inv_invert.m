@@ -5,7 +5,7 @@ function invert = spm_cfg_eeg_inv_invert
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invert.m 6885 2016-09-19 15:54:29Z vladimir $
+% $Id: spm_cfg_eeg_inv_invert.m 6924 2016-11-09 11:38:00Z guillaume $
 
 D = cfg_files;
 D.tag = 'D';
@@ -45,6 +45,7 @@ whatconditions.tag = 'whatconditions';
 whatconditions.name = 'What conditions to include?';
 whatconditions.values = {all, conditions};
 whatconditions.val = {all};
+whatconditions.help = {'What conditions to include?'};
 
 standard = cfg_const;
 standard.tag = 'standard';

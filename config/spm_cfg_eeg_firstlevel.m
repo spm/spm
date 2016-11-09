@@ -3,9 +3,9 @@ function convmodel = spm_cfg_eeg_firstlevel
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 6818 2016-06-21 09:42:45Z peter $
+% $Id: spm_cfg_eeg_firstlevel.m 6924 2016-11-09 11:38:00Z guillaume $
 
-rev = '$Rev: 6818 $';
+rev = '$Rev: 6924 $';
 
 % ---------------------------------------------------------------------
 % units Units for design
@@ -52,6 +52,7 @@ timing         = cfg_branch;
 timing.tag     = 'timing';
 timing.name    = 'Timing parameters';
 timing.val     = {timewin units utime};
+timing.help    = {'Timing parameters'};
 
 % ---------------------------------------------------------------------
 % D M/EEG datasets
@@ -496,12 +497,13 @@ prefix.num     = [1 Inf];
 prefix.val     = {'C'};
 
 % ---------------------------------------------------------------------
-% eeg_design MEEG model specification 
+% convmodel M/EEG convolution modelling
 % ---------------------------------------------------------------------
-convmodel         = cfg_exbranch;
-convmodel.tag     = 'convmodel';
-convmodel.name    = 'Convolution modelling';
-convmodel.val     = {spm_cfg_eeg_channel_selector timing sess bases volt, prefix};
+convmodel      = cfg_exbranch;
+convmodel.tag  = 'convmodel';
+convmodel.name = 'Convolution modelling';
+convmodel.val  = {spm_cfg_eeg_channel_selector timing sess bases volt, prefix};
+convmodel.help = {'M/EEG convolution modelling'};
 convmodel.prog = @eeg_run;
 convmodel.vout = @vout_eeg;
 convmodel.modality = {'EEG'};

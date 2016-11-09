@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6784 2016-04-27 13:12:05Z peter $
+% $Id: spm_cfg_dcm_peb.m 6924 2016-11-09 11:38:00Z guillaume $
 
 
 %==========================================================================
@@ -378,13 +378,14 @@ show_review.name   = 'Review PEB parameters';
 show_review.labels = {'Yes','No'};
 show_review.values = {1,0};
 show_review.val    = {1};
+show_review.help   = {'Review PEB parameters'};
 
 %==========================================================================
 % PEB specification batch
 %==========================================================================
 % Set show review default to off
-sr     = show_review;
-sr.val = {0};
+sr      = show_review;
+sr.val  = {0};
 
 specify      = cfg_exbranch;
 specify.tag  = 'specify';

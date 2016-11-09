@@ -3,7 +3,7 @@ function job = spm_rewrite_job(job)
 %__________________________________________________________________________
 % Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 6898 2016-10-04 17:06:23Z guillaume $
+% $Id: spm_rewrite_job.m 6924 2016-11-09 11:38:00Z guillaume $
 
 
 try
@@ -199,6 +199,15 @@ try
             job.tools.fieldmap.calculatevdm.subj = rmfield(job.tools.fieldmap.calculatevdm.subj,imgs{j});
         end
     end
+end
+
+try
+    if numel(job.tools.longit) > 1
+        ws = warning('off','backtrace');
+        warning('Only converting first item of the "Longitudinal Registration" module.');
+        warning(ws);
+    end
+    job.tools.longit = job.tools.longit{1};
 end
 
 try

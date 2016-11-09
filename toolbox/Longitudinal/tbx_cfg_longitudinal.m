@@ -4,7 +4,7 @@ function cfg = tbx_cfg_longitudinal
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 6798 2016-05-20 11:53:33Z john $
+% $Id: tbx_cfg_longitudinal.m 6924 2016-11-09 11:38:00Z guillaume $
 
 if ~isdeployed,
     addpath(fullfile(spm('Dir'),'toolbox','Longitudinal'));
@@ -174,7 +174,7 @@ long.help    = {'Longitudinal registration of series of anatomical MRI scans for
 'The alignment assumes that all scans have similar resolutions and dimensions, and were collected on the same (or very similar) MR scanner using the same pulse sequence.  If these assumption are not correct, then the approach will not work as well.  There are a number of settings (noise estimate, regularisation etc). Default settings often work well, but it can be very helpful to try some different values, as these can have a large effect on the results.'};
 long.prog = @spm_series_align;
 
-cfg        = cfg_repeat;
+cfg        = cfg_choice;
 cfg.tag    = 'longit';
 cfg.name   = 'Longitudinal Registration';
 cfg.values = {long2,long};

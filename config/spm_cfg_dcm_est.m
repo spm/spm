@@ -1,10 +1,10 @@
 function estimate = spm_cfg_dcm_est
 % SPM Configuration file for DCM estimation
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_est.m 6735 2016-03-02 15:40:47Z peter $
+% $Id: spm_cfg_dcm_est.m 6924 2016-11-09 11:38:00Z guillaume $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -189,6 +189,7 @@ fmri         = cfg_branch;
 fmri.tag     = 'fmri';
 fmri.name    = 'MRI specific options';
 fmri.val     = {fmri_analysis};
+fmri.help    = {'MRI specific options'};
                  
 % -------------------------------------------------------------------------
 % estimate Estimate

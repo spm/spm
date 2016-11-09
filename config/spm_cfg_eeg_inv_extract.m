@@ -5,7 +5,7 @@ function extract = spm_cfg_eeg_inv_extract
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_extract.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_inv_extract.m 6924 2016-11-09 11:38:00Z guillaume $
 
 D = cfg_files;
 D.tag = 'D';
@@ -53,7 +53,7 @@ rad.name = 'VOI radius';
 rad.strtype = 'r';
 rad.num = [1 1];
 rad.val = {5};
-woi.help = {'Radius around each location to extract an eigenvariate from (mm).'};
+rad.help = {'Radius around each location to extract an eigenvariate from (mm).'};
 
 type = cfg_menu;
 type.tag = 'type';

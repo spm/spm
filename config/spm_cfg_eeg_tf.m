@@ -4,7 +4,7 @@ function tf = spm_cfg_eeg_tf
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_tf.m 6029 2014-05-30 18:52:03Z vladimir $
+% $Id: spm_cfg_eeg_tf.m 6924 2016-11-09 11:38:00Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -55,7 +55,8 @@ phase.val    = {0};
 %--------------------------------------------------------------------------
 method      = cfg_choice;
 method.tag  = 'method';
-method.name = 'Spectral estimation ';
+method.name = 'Spectral estimation';
+method.help = {'Spectral estimation'};
 
 specest_funs = spm_select('List',spm('dir'),'^spm_eeg_specest_.*\.m$');
 specest_funs = cellstr(specest_funs);

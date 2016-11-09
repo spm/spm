@@ -4,7 +4,7 @@ function channels = spm_cfg_eeg_channel_selector(jobtree)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_channel_selector.m 6535 2015-08-25 11:45:26Z vladimir $
+% $Id: spm_cfg_eeg_channel_selector.m 6924 2016-11-09 11:38:00Z guillaume $
 
 if nargin == 0 || ischar(jobtree)
     chanall = cfg_const;
@@ -50,6 +50,7 @@ if nargin == 0 || ischar(jobtree)
     end
     channels.num = [1 Inf];
     channels.val = {chanall};
+    channels.help = {'Channel selection'};
 else
     channels = {};
     for j = 1:numel(jobtree)
