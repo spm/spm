@@ -3,7 +3,7 @@ function st = spm_cfg_st
 %__________________________________________________________________________
 % Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 6918 2016-11-02 14:33:11Z guillaume $
+% $Id: spm_cfg_st.m 6925 2016-11-09 17:23:40Z guillaume $
 
 %--------------------------------------------------------------------------
 % scans Session
@@ -89,7 +89,7 @@ so.help    = {
               'Note that slice ordering is assumed to be from foot to head. If it is not, enter instead: TR - INTRASCAN_TIME - SLICE_TIMING_VECTOR'
               
 }';
-so.strtype = 'e';
+so.strtype = 'r';
 so.num     = [1 Inf];
 
 %--------------------------------------------------------------------------
@@ -101,7 +101,7 @@ refslice.name    = 'Reference Slice';
 refslice.help    = {'Enter the reference slice.'
                     ''
                     'If slice times are provided instead of slice indices in the previous item, this value should represent a reference time (in ms) instead of the slice index of the reference slice.'};
-refslice.strtype = 'e';
+refslice.strtype = 'r';
 refslice.num     = [1 1];
 
 %--------------------------------------------------------------------------

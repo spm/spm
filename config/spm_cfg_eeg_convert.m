@@ -4,7 +4,7 @@ function convert = spm_cfg_eeg_convert
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 6214 2014-09-29 12:30:45Z vladimir $
+% $Id: spm_cfg_eeg_convert.m 6925 2016-11-09 17:23:40Z guillaume $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -55,7 +55,7 @@ eventtype.strtype = 's';
 eventvalue = cfg_entry;
 eventvalue.tag = 'eventvalue';
 eventvalue.name = 'Event value';
-eventvalue.strtype = 'e';
+eventvalue.strtype = 'r';
 
 trialdef = cfg_branch;
 trialdef.tag = 'trialdef';

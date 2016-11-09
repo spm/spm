@@ -4,7 +4,7 @@ function voi = spm_cfg_voi
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_voi.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_voi.m 6925 2016-11-09 17:23:40Z guillaume $
 
 % -------------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -150,7 +150,7 @@ mp         = cfg_entry;
 mp.tag     = 'spm';
 mp.name    = 'SPM index';
 mp.help    = {'SPM index'};
-mp.strtype = 'e';
+mp.strtype = 'n';
 mp.num     = [1 1];
 
 % -------------------------------------------------------------------------

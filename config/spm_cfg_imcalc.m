@@ -3,7 +3,7 @@ function imcalc = spm_cfg_imcalc
 %__________________________________________________________________________
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 6536 2015-08-26 13:53:45Z guillaume $
+% $Id: spm_cfg_imcalc.m 6925 2016-11-09 17:23:40Z guillaume $
 
 %--------------------------------------------------------------------------
 % input Input Images
@@ -80,7 +80,7 @@ value         = cfg_entry;
 value.tag     = 'value';
 value.name    = 'Value';
 value.help    = {'Value of the variable.'};
-value.strtype = 'e';
+value.strtype = 'r';
 value.num     = [Inf Inf];
 
 %--------------------------------------------------------------------------

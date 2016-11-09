@@ -3,9 +3,9 @@ function convmodel = spm_cfg_eeg_firstlevel
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 6924 2016-11-09 11:38:00Z guillaume $
+% $Id: spm_cfg_eeg_firstlevel.m 6925 2016-11-09 17:23:40Z guillaume $
 
-rev = '$Rev: 6924 $';
+rev = '$Rev: 6925 $';
 
 % ---------------------------------------------------------------------
 % units Units for design
@@ -110,7 +110,7 @@ eventtype.strtype = 's';
 eventvalue         = cfg_entry;
 eventvalue.tag     = 'eventvalue';
 eventvalue.name    = 'Event value';
-eventvalue.strtype = 'e';
+eventvalue.strtype = 'r';
 
 trlshift         = cfg_entry;
 trlshift.tag     = 'trlshift';

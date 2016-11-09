@@ -4,7 +4,7 @@ function fmri = spm_cfg_dcm_fmri
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_fmri.m 6711 2016-02-03 15:25:43Z peter $
+% $Id: spm_cfg_dcm_fmri.m 6925 2016-11-09 17:23:40Z guillaume $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -46,7 +46,7 @@ session         = cfg_entry;
 session.tag     = 'session';
 session.name    = 'Which session';
 session.help    = {'Enter the session number.'};
-session.strtype = 'e';
+session.strtype = 'n';
 session.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -70,7 +70,7 @@ val.help    = {'Inputs to include for one condition. Enter ''1'' ' ...
                'to include this condition (with no parameteric regressor). '...
                'Entering [1 0 1] would include this condition and '...
                'its second parametric regressor.'};
-val.strtype = 'e';
+val.strtype = 'w';
 val.num     = [1 Inf];
 
 % -------------------------------------------------------------------------

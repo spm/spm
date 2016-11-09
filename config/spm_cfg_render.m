@@ -1,9 +1,9 @@
 function rendering = spm_cfg_render
 % SPM Configuration file for Render
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_render.m 6217 2014-09-29 17:54:33Z guillaume $
+% $Id: spm_cfg_render.m 6925 2016-11-09 17:23:40Z guillaume $
 
 %==========================================================================
 % Extract
@@ -190,10 +190,10 @@ generic.num    = [1 3];
 rendfile         = cfg_files;
 rendfile.tag     = 'rendfile';
 rendfile.name    = 'Render File';
-rendfile.help    = {'File containing the images to render on to'};
+rendfile.help    = {'File containing the images to render on to.'};
 rendfile.filter  = {'mat','mesh'};
 rendfile.ufilter = '.*';
-rendfile.num     = [1 2];
+rendfile.num     = [1 1];
 
 %--------------------------------------------------------------------------
 % render Display Surface
