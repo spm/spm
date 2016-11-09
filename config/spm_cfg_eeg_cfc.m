@@ -1,10 +1,10 @@
 function cfc = spm_cfg_eeg_cfc
 % Configuration file for M/EEG cross-frequency coupling analysis
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_cfc.m 6924 2016-11-09 11:38:00Z guillaume $
+% $Id: spm_cfg_eeg_cfc.m 6926 2016-11-09 22:13:19Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -24,6 +24,7 @@ condlabel = cfg_entry;
 condlabel.tag = 'conditions';
 condlabel.name = 'Condition label';
 condlabel.strtype = 's';
+condlabel.help = {''};
 
 conditions = cfg_repeat;
 conditions.tag = 'condrepeat';

@@ -12,11 +12,11 @@ function res = spm_eeg_artefact_jump(S)
 %
 %   If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials
 %   with zeros for clean channel/trials and ones for artefacts.
-%______________________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_jump.m 6060 2014-06-19 13:31:19Z vladimir $
+% $Id: spm_eeg_artefact_jump.m 6926 2016-11-09 22:13:19Z guillaume $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -43,13 +43,14 @@ if nargin == 0
     jump.tag = 'jump';
     jump.name = 'Difference between adjacent samples';
     jump.val = {threshold, excwin};
+    jump.help = {''};
     
     res = jump;
     
     return
 end
 
-SVNrev = '$Rev: 6060 $';
+SVNrev = '$Rev: 6926 $';
 
 %-Startup
 %--------------------------------------------------------------------------

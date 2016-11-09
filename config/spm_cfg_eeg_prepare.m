@@ -1,12 +1,12 @@
 function prepare = spm_cfg_eeg_prepare
-% configuration file for the prepare tool
-%_______________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Configuration file for the prepare tool
+%__________________________________________________________________________
+% Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_prepare.m 6924 2016-11-09 11:38:00Z guillaume $
+% $Id: spm_cfg_eeg_prepare.m 6926 2016-11-09 22:13:19Z guillaume $
 
-rev = '$Rev: 6924 $';
+rev = '$Rev: 6926 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -19,7 +19,7 @@ defaulttype = cfg_const;
 defaulttype.tag = 'defaulttype';
 defaulttype.name = 'Set channel types to default';
 defaulttype.val  = {1};
-defaulttype.help = {'Reset all channel types to default'};
+defaulttype.help = {'Reset all channel types to default.'};
 
 newtype = cfg_menu;
 newtype.tag = 'newtype';
@@ -27,56 +27,56 @@ newtype.name = 'New channel type';
 newtype.labels = {'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'ILAM', 'Other'};
 newtype.val = {'Other'};
 newtype.values = {'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'ILAM', 'Other'};
-newtype.help = {'Select the new channel type to set'};
+newtype.help = {'Select the new channel type to set.'};
 
 settype = cfg_branch;
 settype.tag = 'settype';
 settype.name = 'Set channel type';
 settype.val = {spm_cfg_eeg_channel_selector, newtype};
-settype.help = {'Select the new channel type to set'};
+settype.help = {'Select the new channel type to set.'};
 
 rawmeg = cfg_files;
 rawmeg.tag = 'rawmeg';
 rawmeg.name = 'Select MEG dataset';
 rawmeg.filter = 'any';
 rawmeg.num = [1 1];
-rawmeg.help = {'Select the MEG dataset to copy sensors from'};
+rawmeg.help = {'Select the MEG dataset to copy sensors from.'};
 
 loadmegsens = cfg_branch;
 loadmegsens.tag = 'loadmegsens';
 loadmegsens.name = 'Load MEG sensors';
 loadmegsens.val = {rawmeg};
-loadmegsens.help = {'Reload MEG sensor representation from raw dataset'};
+loadmegsens.help = {'Reload MEG sensor representation from raw dataset.'};
 
 megfid = cfg_files;
 megfid.tag = 'megfid';
 megfid.name = 'Select MEG headshape file';
 megfid.filter = 'any';
 megfid.num = [1 1];
-megfid.help = {'Select the file to read MEG headshape from'};
+megfid.help = {'Select the file to read MEG headshape from.'};
 
 fidname = cfg_entry;
 fidname.tag = 'fidname';
 fidname.name = 'MEG fiducial label';
 fidname.strtype = 's';
-fidname.help = {'Label of a fiducial point as specified in the MEG dataset'};
+fidname.help = {'Label of a fiducial point as specified in the MEG dataset.'};
 
 hsname = cfg_entry;
 hsname.tag = 'hsname';
 hsname.name = 'Surface point label';
 hsname.strtype = 's';
-hsname.help = {'Label of a fiducial point as specified in the surface points file'};
+hsname.help = {'Label of a fiducial point as specified in the surface points file.'};
 
 matching = cfg_branch;
 matching.tag = 'matching';
 matching.name = 'Matching pair';
-matching.help = {'Specify a matching pair of labeled point in the dataset and surface points'};
+matching.help = {'Specify a matching pair of labeled point in the dataset and surface points.'};
 matching.val  = {fidname, hsname};
 
 fiducials = cfg_repeat;
 fiducials.tag = 'fiducials';
 fiducials.name = 'Fiducials';
-fiducials.help = {'Specify at least 3 matching pairs of fiducials to coregister the surface points to the sensors'};
+fiducials.help = {'Specify at least 3 matching pairs of fiducials to coregister the surface points to the sensors.'};
 fiducials.num  = [3 Inf];
 fiducials.values  = {matching};
 fiducials.val = {matching matching matching};
@@ -85,28 +85,28 @@ headshape = cfg_branch;
 headshape.tag = 'headshape';
 headshape.name = 'Load MEG fiducials\headshape';
 headshape.val = {megfid, fiducials};
-headshape.help = {'Load MEG fiducials or headshape from a file'};
+headshape.help = {'Load MEG fiducials or headshape from a file.'};
 
 nasfid = cfg_entry;
 nasfid.tag = 'nasfid';
 nasfid.name = 'Nasion';
 nasfid.strtype = 's';
 nasfid.val = {'nas'};
-nasfid.help = {'Enter the nasion fiducial label'};
+nasfid.help = {'Enter the nasion fiducial label.'};
 
 lpafid = cfg_entry;
 lpafid.tag = 'lpafid';
 lpafid.name = 'Left';
 lpafid.strtype = 's';
 lpafid.val = {'lpa'};
-lpafid.help = {'Enter the left fiducial label'};
+lpafid.help = {'Enter the left fiducial label.'};
 
 rpafid = cfg_entry;
 rpafid.tag = 'rpafid';
 rpafid.name = 'Right';
 rpafid.strtype = 's';
 rpafid.val = {'rpa'};
-rpafid.help = {'Enter the right fiducial label'};
+rpafid.help = {'Enter the right fiducial label.'};
 
 multimodal = cfg_branch;
 multimodal.tag = 'multimodal';
@@ -118,72 +118,73 @@ defaulteegsens = cfg_branch;
 defaulteegsens.tag = 'defaulteegsens';
 defaulteegsens.name = 'Assign default EEG sensors';
 defaulteegsens.val  = {multimodal};
-defaulteegsens.help = {'Set EEG sensor locations to SPM template'};
+defaulteegsens.help = {'Set EEG sensor locations to SPM template.'};
 
 eegsens = cfg_files;
 eegsens.tag = 'eegsens';
 eegsens.name = 'Select EEG sensors file';
 eegsens.filter = 'any';
 eegsens.num = [1 1];
-eegsens.help = {'Select the file with EEG electrode coordinates (e.g. Polhemus or SFP)'};
+eegsens.help = {'Select the file with EEG electrode coordinates (e.g. Polhemus or SFP).'};
 
-nomatch = cfg_const;
-nomatch.tag = 'nomatch';
+nomatch      = cfg_const;
+nomatch.tag  = 'nomatch';
 nomatch.name = 'Not necessary';
 nomatch.val  = {1};
+nomatch.help = {''};
 
 megmatch = cfg_choice;
 megmatch.name = 'Match fiducials to MEG';
 megmatch.tag = 'megmatch';
 megmatch.values = {nomatch, fiducials};
 megmatch.val = {nomatch};
-megmatch.help = {'Match EEG fiducials to MEG fiducials (only for multimodal datasets)'};
+megmatch.help = {'Match EEG fiducials to MEG fiducials (only for multimodal datasets).'};
 
 loadeegsens = cfg_branch;
 loadeegsens.tag = 'loadeegsens';
 loadeegsens.name = 'Load EEG sensors';
 loadeegsens.val = {eegsens, megmatch};
-loadeegsens.help = {'Load EEG electrode locations'};
+loadeegsens.help = {'Load EEG electrode locations.'};
 
 refsens = cfg_branch;
 refsens.tag = 'refsens';
 refsens.name = 'Select reference sensors';
 refsens.val = {spm_cfg_eeg_channel_selector('notype')};
 refsens.help = {'Select the sensors to which the EEG recording was referenced',...
-    '(select ''All'' for average reference)'};
+    '(select ''All'' for average reference).'};
 
 montage = cfg_files;
 montage.tag = 'montage';
 montage.name = 'Select montage file';
 montage.filter = 'mat';
 montage.num = [1 1];
-montage.help = {'Select montage file that specifies the referencing'};
+montage.help = {'Select montage file that specifies the referencing.'};
 
 seteegref = cfg_choice;
 seteegref.tag = 'seteegref';
 seteegref.name = 'Define EEG referencing';
 seteegref.values = {refsens, montage};
 seteegref.val = {refsens};
-seteegref.help = {'Define the way EEG channels were derived from sensors'};
+seteegref.help = {'Define the way EEG channels were derived from sensors.'};
 
 project3dEEG = cfg_const;
 project3dEEG.tag = 'project3dEEG';
 project3dEEG.name = 'Project EEG sensors to 2D';
 project3dEEG.val  = {1};
-project3dEEG.help = {'Project EEG sensor locations to 2D'};
+project3dEEG.help = {'Project EEG sensor locations to 2D.'};
 
 project3dMEG = cfg_const;
 project3dMEG.tag = 'project3dMEG';
 project3dMEG.name = 'Project MEG sensors to 2D';
 project3dMEG.val  = {1};
-project3dMEG.help = {'Project MEG sensor locations to 2D'};
+project3dMEG.help = {'Project MEG sensor locations to 2D.'};
 
 loadtemplate = cfg_files;
 loadtemplate.tag = 'loadtemplate';
 loadtemplate.name = 'Load channel template file';
 loadtemplate.filter = 'mat';
 loadtemplate.num = [1 1];
-loadtemplate.help = {'Specify 2D channel locations by loading a template file'};
+loadtemplate.help = {'Specify 2D channel locations by loading a template file.'};
 
 status = cfg_menu;
 status.tag = 'status';
@@ -191,19 +192,20 @@ status.name = 'Status to set';
 status.labels = {'GOOD', 'BAD'};
 status.val = {1};
 status.values = {0, 1};
-status.help = {'Select the new channel type to set'};
+status.help = {'Select the new channel type to set.'};
 
 setbadchan = cfg_branch;
 setbadchan.tag = 'setbadchan';
 setbadchan.name = 'Set/unset bad channels';
 setbadchan.val = {spm_cfg_eeg_channel_selector, status};
-setbadchan.help = {'Set or clear bad flag for channels'};
+setbadchan.help = {'Set or clear bad flag for channels.'};
 
 fname = cfg_entry;
 fname.tag = 'fname';
 fname.name = 'Output file name';
 fname.strtype = 's';
 fname.val = {'avref_montage.mat'};
+fname.help = {''};
 
 avref = cfg_branch;
 avref.tag = 'avref';
@@ -216,20 +218,21 @@ condlabel = cfg_entry;
 condlabel.tag = 'label';
 condlabel.name = 'Condition label';
 condlabel.strtype = 's';
+condlabel.help = {''};
 
 condlist = cfg_repeat;
 condlist.tag = 'condlist';
 condlist.name = 'Specify conditions list';
 condlist.num = [1 Inf];
 condlist.values = {condlabel};
-condlist.help = {'Specify the conditions order manually as a list'};
+condlist.help = {'Specify the conditions order manually as a list.'};
 
 condfile = cfg_files;
 condfile.tag = 'condfile';
 condfile.name = 'Read from conditions file';
 condfile.filter = 'mat';
 condfile.num = [1 1];
-condfile.help = {'Select a mat-file with cell array of condition labels'};
+condfile.help = {'Select a mat-file with cell array of condition labels.'};
 
 sortconditions = cfg_choice;
 sortconditions.name = 'Sort conditions';
@@ -245,7 +248,7 @@ task.num = [1 Inf];
 task.values = {defaulttype, settype, loadmegsens, headshape,...
     defaulteegsens, loadeegsens, seteegref, project3dEEG, project3dMEG,...
     loadtemplate, setbadchan, avref, sortconditions};
-task.help = {'Select task(s)'};
+task.help = {'Select task(s).'};
 
 prepare = cfg_exbranch;
 prepare.tag = 'prepare';

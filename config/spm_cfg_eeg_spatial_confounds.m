@@ -1,10 +1,10 @@
 function sconfounds = spm_cfg_eeg_spatial_confounds
 % configuration file for reading montage files
-%_______________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2014-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_spatial_confounds.m 6625 2015-12-03 21:49:24Z vladimir $
+% $Id: spm_cfg_eeg_spatial_confounds.m 6926 2016-11-09 22:13:19Z guillaume $
 
 D = cfg_files;
 D.tag = 'D';
@@ -25,6 +25,7 @@ condlabel = cfg_entry;
 condlabel.tag = 'conditions';
 condlabel.name = 'Condition label';
 condlabel.strtype = 's';
+condlabel.help = {''};
 
 conditions = cfg_repeat;
 conditions.tag = 'condrepeat';
@@ -39,7 +40,7 @@ ncomp.tag = 'ncomp';
 ncomp.name = 'Number of components';
 ncomp.strtype = 'n';
 ncomp.num = [1 1];
-ncomp.help = {'Number of confound components to keep'};
+ncomp.help = {'Number of confound components to keep.'};
 
 threshold = cfg_entry;
 threshold.tag = 'threshold';
@@ -93,7 +94,7 @@ clr = cfg_const;
 clr.tag = 'clear';
 clr.name = 'Clear';
 clr.val  = {1};
-clr.help = {'Clear previously defined spatial confounds'};
+clr.help = {'Clear previously defined spatial confounds.'};
 
 mode = cfg_repeat;
 mode.tag = 'mode';
@@ -105,7 +106,7 @@ sconfounds = cfg_exbranch;
 sconfounds.tag = 'sconfounds';
 sconfounds.name = 'Define spatial confounds';
 sconfounds.val = {D, mode};
-sconfounds.help = {'Define spatial confounds for topography-based correction of artefacts'};
+sconfounds.help = {'Define spatial confounds for topography-based correction of artefacts.'};
 sconfounds.prog = @eeg_sconfounds;
 sconfounds.vout = @vout_eeg_sconfounds;
 sconfounds.modality = {'EEG'};

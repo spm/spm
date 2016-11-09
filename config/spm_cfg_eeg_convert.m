@@ -1,10 +1,10 @@
 function convert = spm_cfg_eeg_convert
-% configuration file for data conversion
-%_______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Configuration file for M/EEG data conversion
+%__________________________________________________________________________
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 6925 2016-11-09 17:23:40Z guillaume $
+% $Id: spm_cfg_eeg_convert.m 6926 2016-11-09 22:13:19Z guillaume $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -24,66 +24,77 @@ readall = cfg_const;
 readall.tag = 'readall';
 readall.name = 'Read all';
 readall.val  = {1};
+readall.help = {''};
 
 continuous = cfg_choice;
 continuous.tag = 'continuous';
 continuous.name = 'Continuous';
 continuous.values = {timewin, readall};
 continuous.val = {readall};
+continuous.help = {''};
 
 usetrials = cfg_const;
 usetrials.tag = 'usetrials';
 usetrials.name = 'Trials defined in data';
 usetrials.val = {1};
+usetrials.help = {''};
 
 trlfile = cfg_files;
 trlfile.tag = 'trlfile';
 trlfile.name = 'Trial File';
 trlfile.filter = 'mat';
 trlfile.num = [1 1];
+trlfile.help = {''};
 
 conditionlabel = cfg_entry;
 conditionlabel.tag = 'conditionlabel';
 conditionlabel.name = 'Condition label';
 conditionlabel.strtype = 's';
+conditionlabel.help = {''};
 
 eventtype = cfg_entry;
 eventtype.tag = 'eventtype';
 eventtype.name = 'Event type';
 eventtype.strtype = 's';
+eventtype.help = {''};
 
 eventvalue = cfg_entry;
 eventvalue.tag = 'eventvalue';
 eventvalue.name = 'Event value';
 eventvalue.strtype = 'r';
+eventvalue.help = {''};
 
 trialdef = cfg_branch;
 trialdef.tag = 'trialdef';
 trialdef.name = 'Trial';
 trialdef.val = {conditionlabel, eventtype, eventvalue};
+trialdef.help = {''};
 
 define1 = cfg_repeat;
 define1.tag = 'unused';
 define1.name = 'Trial definitions';
 define1.num = [1 Inf];
 define1.values = {trialdef};
+define1.help = {''};
 
 define = cfg_branch;
 define.tag = 'define';
 define.name = 'Define trial';
 define.val = {timewin define1};
+define.help = {''};
 
 epoched = cfg_choice;
 epoched.tag = 'epoched';
 epoched.name = 'Epoched';
 epoched.values = {usetrials trlfile define};
+epoched.help = {''};
 
 mode = cfg_choice;
 mode.tag = 'mode';
 mode.name = 'Reading mode';
 mode.values = {continuous, epoched};
 mode.val = {continuous};
-mode.help = {'Select whether you want to convert to continuous or epoched data'};
+mode.help = {'Select whether you want to convert to continuous or epoched data.'};
 
 outfile = cfg_entry;
 outfile.tag = 'outfile';
@@ -110,7 +121,7 @@ blocksize.name = 'Block size';
 blocksize.strtype = 'r';
 blocksize.val = {3276800};
 blocksize.num = [1 1];
-blocksize.help = {'size of blocks used internally to split large files default ~100Mb'};
+blocksize.help = {'size of blocks used internally to split large files default ~100Mb.'};
 
 checkboundary = cfg_menu;
 checkboundary.tag = 'checkboundary';
@@ -119,7 +130,7 @@ checkboundary.labels = {'Yes', 'No'};
 checkboundary.val = {1};
 checkboundary.values = {1,0};
 checkboundary.help = {'Check if there are breaks in the file and do not read',...
-    'across those breaks (recommended) or ignore them'};
+    'across those breaks (recommended) or ignore them.'};
 
 saveorigheader = cfg_menu;
 saveorigheader.tag = 'saveorigheader';
@@ -127,7 +138,7 @@ saveorigheader.name = 'Save original header';
 saveorigheader.labels = {'Yes', 'No'};
 saveorigheader.val = {0};
 saveorigheader.values = {1,0};
-saveorigheader.help = {'Keep the original data header which might be useful for some later analyses'};
+saveorigheader.help = {'Keep the original data header which might be useful for some later analyses.'};
 
 inputformat = cfg_entry;
 inputformat.tag = 'inputformat';
@@ -135,14 +146,14 @@ inputformat.name = 'Input data format';
 inputformat.strtype = 's';
 inputformat.val = {'autodetect'};
 inputformat.num = [1 inf];
-inputformat.help = {'Force the reader to assume a particular data format (usually not necessary)'};
+inputformat.help = {'Force the reader to assume a particular data format (usually not necessary).'};
 
 convert = cfg_exbranch;
 convert.tag = 'convert';
 convert.name = 'Conversion';
 convert.val = {dataset mode spm_cfg_eeg_channel_selector outfile...
     eventpadding blocksize checkboundary saveorigheader inputformat};
-convert.help = {'Converts EEG/MEG data.'};
+convert.help = {'Convert EEG/MEG data.'};
 convert.prog = @eeg_convert;
 convert.vout = @vout_eeg_convert;
 convert.modality = {'EEG'};

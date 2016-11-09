@@ -1,10 +1,10 @@
 function epoch = spm_cfg_eeg_epochs
 % Configuration file for M/EEG epoching
 %__________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 6925 2016-11-09 17:23:40Z guillaume $
+% $Id: spm_cfg_eeg_epochs.m 6926 2016-11-09 22:13:19Z guillaume $
 
 
 D        = cfg_files;
@@ -53,16 +53,19 @@ conditionlabel         = cfg_entry;
 conditionlabel.tag     = 'conditionlabel';
 conditionlabel.name    = 'Condition label';
 conditionlabel.strtype = 's';
+conditionlabel.help    = {''};
 
 eventtype         = cfg_entry;
 eventtype.tag     = 'eventtype';
 eventtype.name    = 'Event type';
 eventtype.strtype = 's';
+eventtype.help    = {''};
 
 eventvalue         = cfg_entry;
 eventvalue.tag     = 'eventvalue';
 eventvalue.name    = 'Event value';
 eventvalue.strtype = 'r';
+eventvalue.help    = {''};
 
 trlshift         = cfg_entry;
 trlshift.tag     = 'trlshift';
@@ -77,16 +80,19 @@ trialdef      = cfg_branch;
 trialdef.tag  = 'trialdef';
 trialdef.name = 'Trial';
 trialdef.val  = {conditionlabel eventtype eventvalue, trlshift};
+trialdef.help = {''};
 
 define1        = cfg_repeat;
 define1.tag    = 'unused';
 define1.name   = 'Trial definitions';
 define1.values = {trialdef};
+define1.help   = {''};
 
 define      = cfg_branch;
 define.tag  = 'define';
 define.name = 'Define trial';
 define.val  = {timewin define1};
+define.help = {''};
 
 % input via trialdef
 trialength         = cfg_entry;
@@ -100,7 +106,7 @@ arbitrary      = cfg_branch;
 arbitrary.tag  = 'arbitrary';
 arbitrary.name = 'Arbitrary trials';
 arbitrary.val  = {trialength, conditionlabel};
-arbitrary.help = {'Epoch the data in arbitray fixed length trials (e.g. for spectral analysis'};
+arbitrary.help = {'Epoch the data in arbitray fixed length trials (e.g. for spectral analysis).'};
 
 trlchoice        = cfg_choice;
 trlchoice.tag    = 'trialchoice';

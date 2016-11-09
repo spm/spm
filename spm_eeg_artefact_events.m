@@ -12,11 +12,11 @@ function res = spm_eeg_artefact_events(S)
 %
 %   If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials
 %   with zeros for clean channel/trials and ones for artefacts.
-%______________________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_events.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_eeg_artefact_events.m 6926 2016-11-09 22:13:19Z guillaume $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -28,6 +28,7 @@ if nargin == 0
     artefacts.tag = 'artefacts';
     artefacts.name = 'All artefact events';
     artefacts.val  = {1};
+    artefacts.help = {''};
     
     eventlist = cfg_files;
     eventlist.tag = 'eventlist';
@@ -41,18 +42,20 @@ if nargin == 0
     whatevents.name = 'What events to use?';
     whatevents.values = {artefacts, eventlist};
     whatevents.val = {artefacts};
+    whatevents.help = {''};
     
     events = cfg_branch;
     events.tag = 'events';
     events.name = 'Reject based on events';
     events.val = {whatevents};
+    events.help = {''};
     
     res = events;
     
     return
 end
 
-SVNrev = '$Rev: 5592 $';
+SVNrev = '$Rev: 6926 $';
 
 %-Startup
 %--------------------------------------------------------------------------

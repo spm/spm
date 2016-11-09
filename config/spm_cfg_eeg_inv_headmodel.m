@@ -1,10 +1,10 @@
 function headmodel = spm_cfg_eeg_inv_headmodel
 % Configuration file for specifying the head model for source reconstruction
 %__________________________________________________________________________
-% Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 6924 2016-11-09 11:38:00Z guillaume $
+% $Id: spm_cfg_eeg_inv_headmodel.m 6926 2016-11-09 22:13:19Z guillaume $
 
 
 D = cfg_files;
@@ -32,6 +32,7 @@ template = cfg_const;
 template.tag = 'template';
 template.name = 'Template';
 template.val  = {1};
+template.help = {''};
 
 mri = cfg_files;
 mri.tag = 'mri';
@@ -88,6 +89,7 @@ meshes.tag = 'meshes';
 meshes.name = 'Mesh source';
 meshes.values = {template, mri, custom};
 meshes.val = {template};
+meshes.help = {''};
 
 meshres = cfg_menu;
 meshres.tag = 'meshres';
@@ -133,6 +135,7 @@ specification = cfg_choice;
 specification.tag = 'specification';
 specification.name = 'How to specify?';
 specification.values = {select, type};
+specification.help = {''};
 
 fiducial = cfg_branch;
 fiducial.tag = 'fiducial';
@@ -160,6 +163,7 @@ coregspecify = cfg_branch;
 coregspecify.tag = 'coregspecify';
 coregspecify.name = 'Specify coregistration parameters';
 coregspecify.val = {fiducials, useheadshape};
+coregspecify.help = {''};
 
 coregdefault = cfg_const;
 coregdefault.tag = 'coregdefault';

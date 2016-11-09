@@ -12,11 +12,11 @@ function res = spm_eeg_artefact_peak2peak(S)
 %
 %   If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials  
 %   with zeros for clean channel/trials and ones for artefacts.
-%______________________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_peak2peak.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_eeg_artefact_peak2peak.m 6926 2016-11-09 22:13:19Z guillaume $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -35,13 +35,14 @@ if nargin == 0
     peak2peak.tag = 'peak2peak';
     peak2peak.name = 'Peak to peak amplitude';
     peak2peak.val = {threshold};
+    peak2peak.help = {''};
     
     res = peak2peak;
     
     return
 end
 
-SVNrev = '$Rev: 5592 $';
+SVNrev = '$Rev: 6926 $';
 
 %-Startup
 %--------------------------------------------------------------------------

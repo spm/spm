@@ -13,11 +13,11 @@ function res = spm_eeg_artefact_eyeblink(S)
 %
 %   If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials
 %   with zeros for clean channel/trials and ones for artefacts.
-%______________________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Laurence Hunt
-% $Id: spm_eeg_artefact_eyeblink.m 6046 2014-06-16 10:58:27Z vladimir $
+% $Id: spm_eeg_artefact_eyeblink.m 6926 2016-11-09 22:13:19Z guillaume $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -45,13 +45,14 @@ if nargin == 0
     eyeblink.tag = 'eyeblink';
     eyeblink.name = 'Eyeblinks';
     eyeblink.val = {threshold, excwin};
+    eyeblink.help = {''};
     
     res = eyeblink;
     
     return
 end
 
-SVNrev = '$Rev: 6046 $';
+SVNrev = '$Rev: 6926 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -72,16 +73,17 @@ end
 
 eog_data = reshape(squeeze(D(chanind,:,:)), 1, []);
 
-%% filter data at 1-15Hz (eyeblink duration typically 100-300ms) and demean
+%-Filter data at 1-15Hz (eyeblink duration typically 100-300ms) and demean
+%--------------------------------------------------------------------------
 eog_filt = detrend(abs(hilbert(ft_preproc_bandpassfilter(eog_data, D.fsample, [1 15], 4, 'but',[], 'split'))), 'constant');
 
-%% find eye-movements
-
+%-Find eye-movements
+%--------------------------------------------------------------------------
 sd_eeg=(spm_percentile(eog_filt,85)-spm_percentile(eog_filt,15))/2; %robust estimate of standard deviation, suggested by Mark Woolrich
 em_thresh = S.threshold*sd_eeg;
 
-%% find 'spikes' (putative eyeblinks):
-
+%-Find 'spikes' (putative eyeblinks):
+%--------------------------------------------------------------------------
 eblength = round(D.fsample/5); %length of eyeblink(200 ms) in samples;
 spikes = [];
 for i = eblength:length(eog_filt)-eblength;
@@ -120,8 +122,8 @@ if (num_eb_per_min>60)
     error(['As many as ' num2str(num_eb_per_min) ' eye-blinks per minute detected by algorithm. Try a higher threshold.'])
 end
 
-% plot
-%----------------------------------------------------------------------
+%-Plot
+%--------------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
 colormap(gray)
 figure(Fgraph)
@@ -136,8 +138,8 @@ hold on;
 plot(spikemat);plot(mean(spikemat,2),'Color','k','LineWidth',4);
 
 
-% Update the event structure
-%----------------------------------------------------------------------
+%-Update the event structure
+%--------------------------------------------------------------------------
 if ~isempty(spikes)  
     for n = 1:D.ntrials
         cspikes   = spikes(spikes>(D.nsamples*(n-1)) & spikes<(D.nsamples*n));
@@ -185,7 +187,7 @@ if ~isempty(spikes)
         end
     end    
 else
-    warning(['No eye blinks events detected in the selected channel']);
+    warning('No eye blinks events detected in the selected channel');
 end
 
 res = D;

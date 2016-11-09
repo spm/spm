@@ -3,9 +3,9 @@ function convmodel = spm_cfg_eeg_firstlevel
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 6925 2016-11-09 17:23:40Z guillaume $
+% $Id: spm_cfg_eeg_firstlevel.m 6926 2016-11-09 22:13:19Z guillaume $
 
-rev = '$Rev: 6925 $';
+rev = '$Rev: 6926 $';
 
 % ---------------------------------------------------------------------
 % units Units for design
@@ -39,7 +39,7 @@ utime.tag     = 'utime';
 utime.name    = 'Microtime resolution';
 utime.help    = {
                   'The microtime resolution, t, is the number of time-bins per input sample used when building regressors. '
-                  'Can be modified to make the output up- or downsampled with respect to the input'
+                  'Can be modified to make the output up- or downsampled with respect to the input.'
 }';
 utime.strtype = 'r';
 utime.num     = [1 1];
@@ -63,7 +63,7 @@ D.tag = 'D';
 D.name = 'M/EEG dataset';
 D.filter = 'mat';
 D.num = [1 1];
-D.help = {'Select the M/EEG mat file'};
+D.help = {'Select the M/EEG mat file.'};
 
 % ---------------------------------------------------------------------
 % name Name
@@ -71,7 +71,7 @@ D.help = {'Select the M/EEG mat file'};
 name         = cfg_entry;
 name.tag     = 'name';
 name.name    = 'Name';
-name.help    = {'Condition Name'};
+name.help    = {'Condition Name.'};
 name.strtype = 's';
 name.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -101,16 +101,19 @@ manual         = cfg_branch;
 manual.tag     = 'manual';
 manual.name    = 'Specify manually';
 manual.val     = {onset duration};
+manual.help    = {''};
 
 eventtype         = cfg_entry;
 eventtype.tag     = 'eventtype';
 eventtype.name    = 'Event type';
 eventtype.strtype = 's';
+eventtype.help    = {''};
 
 eventvalue         = cfg_entry;
 eventvalue.tag     = 'eventvalue';
 eventvalue.name    = 'Event value';
 eventvalue.strtype = 'r';
+eventvalue.help    = {''};
 
 trlshift         = cfg_entry;
 trlshift.tag     = 'trlshift';
@@ -125,6 +128,7 @@ event      = cfg_branch;
 event.tag  = 'event';
 event.name = 'Event';
 event.val  = {eventtype eventvalue trlshift};
+event.help = {''};
 
 % ---------------------------------------------------------------------
 % 
@@ -134,6 +138,8 @@ fromdata.tag     = 'fromdata';
 fromdata.name    = 'Take from dataset';
 fromdata.values  = {event};
 fromdata.num     = [1 Inf];
+fromdata.help    = {''};
+
 % ---------------------------------------------------------------------
 % bases How to define events
 % ---------------------------------------------------------------------

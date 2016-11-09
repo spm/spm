@@ -1,12 +1,12 @@
 function average = spm_cfg_eeg_average
-% configuration file for M/EEG epoching
-%_______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Configuration file for M/EEG epoching
+%__________________________________________________________________________
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_average.m 5624 2013-08-30 11:06:38Z vladimir $
+% $Id: spm_cfg_eeg_average.m 6926 2016-11-09 22:13:19Z guillaume $
 
-rev = '$Rev: 5624 $';
+rev = '$Rev: 6926 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -18,6 +18,7 @@ standard = cfg_const;
 standard.tag = 'standard';
 standard.name = 'Standard';
 standard.val  = {false};
+standard.help = {''};
 
 ks = cfg_entry;
 ks.tag = 'ks';
@@ -57,11 +58,12 @@ robust = cfg_branch;
 robust.tag = 'robust';
 robust.name = 'Robust';
 robust.val = {ks, bycondition, savew, removebad};
+robust.help = {''};
 
 userobust = cfg_choice;
 userobust.tag = 'userobust';
 userobust.name = 'Averaging type';
-userobust.help = {'choose between using standard and robust averaging'};
+userobust.help = {'choose between using standard and robust averaging.'};
 userobust.values = {standard, robust};
 userobust.val = {standard};
 
@@ -69,7 +71,7 @@ plv = cfg_menu;
 plv.tag = 'plv';
 plv.name = 'Compute phase-locking value';
 plv.help = {'Compute phase-locking value rather than average the phase',...
-    'This option is only relevant for TF-phase datasets'};
+    'This option is only relevant for TF-phase datasets.'};
 plv.labels = {'Yes', 'No'};
 plv.values = {true, false};
 plv.val = {false};

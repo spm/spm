@@ -1,10 +1,10 @@
 function invert = spm_cfg_eeg_inv_invertiter
 % Configuration file for configuring imaging source inversion reconstruction
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 6924 2016-11-09 11:38:00Z guillaume $
+% $Id: spm_cfg_eeg_inv_invertiter.m 6926 2016-11-09 22:13:19Z guillaume $
 
 D = cfg_files;
 D.tag = 'D';
@@ -32,12 +32,14 @@ all = cfg_const;
 all.tag = 'all';
 all.name = 'All';
 all.val  = {1};
+all.help = {''};
 
 condlabel = cfg_entry;
 condlabel.tag = 'condlabel';
 condlabel.name = 'Condition label';
 condlabel.strtype = 's';
 condlabel.val = {''};
+condlabel.help = {''};
 
 conditions = cfg_repeat;
 conditions.tag = 'conditions';
@@ -113,7 +115,7 @@ patchfwhm.help = {'Width of priors in cortex arb units (see inverse.smoothmm to 
 npatches = cfg_entry;
 npatches.tag = 'npatches';
 npatches.name = 'Number of randomly selected patches';
-npatches.strtype = 'i';
+npatches.strtype = 'n';
 npatches.num = [1 1];
 npatches.val = {[512]};
 npatches.help = {'Number of randomly centred patches (priors) on each iteration'};
@@ -121,7 +123,7 @@ npatches.help = {'Number of randomly centred patches (priors) on each iteration'
 niter = cfg_entry;
 niter.tag = 'niter';
 niter.name = 'Number of iterations';
-niter.strtype = 'i';
+niter.strtype = 'n';
 niter.num = [1 1];
 niter.val = {[8]};
 niter.help = {'Number of iterations'};
@@ -152,7 +154,7 @@ fixedfile.help = {'Select patch definition file (mat file with variable Ip: rows
 fixedrows = cfg_entry;
 fixedrows.tag = 'fixedrows';
 fixedrows.name = 'Rows from fixed patch file';
-fixedrows.strtype = 'i';
+fixedrows.strtype = 'n';
 fixedrows.num = [1 2];
 fixedrows.val = {[1 Inf]};
 fixedrows.help = {'Select first and last row of patch sets to use from file'};
@@ -185,7 +187,7 @@ mselect.val = {0};
 nsmodes = cfg_entry;
 nsmodes.tag = 'nsmodes';
 nsmodes.name = 'Number of spatial modes';
-nsmodes.strtype = 'i';
+nsmodes.strtype = 'n';
 nsmodes.num = [1 1];
 nsmodes.val = {[100]};
 nsmodes.help = {'Number of spatial modes'};
@@ -202,7 +204,7 @@ umodes.help = {'File (SPMU..) containing spatail mode definition, if no file is 
 ntmodes = cfg_entry;
 ntmodes.tag = 'ntmodes';
 ntmodes.name = 'Number of temporal modes';
-ntmodes.strtype = 'i';
+ntmodes.strtype = 'n';
 ntmodes.num = [1 1];
 ntmodes.val = {[4]};
 ntmodes.help = {'Number of temporal modes'};
@@ -244,6 +246,7 @@ radius.name = 'Radius of VOI (mm)';
 radius.strtype = 'r';
 radius.num = [1 1];
 radius.val = {32};
+radius.help = {''};
 
 restrict = cfg_branch;
 restrict.tag = 'restrict';
@@ -299,26 +302,22 @@ invert.modality = {'EEG'};
 
 function  out = run_inversion(job)
 
-
 D = spm_eeg_load(job.D{1});
-
-
-
 
 inverse = [];
 try
     inverse.priors=D.inv{job.val}.inverse.priors;
 catch
     inverse.priors=[];
-end;
+end
 
 
 if isfield(job.whatconditions, 'condlabel')
     inverse.trials = job.whatconditions.condlabel;
 end
-if numel(job.D)>1,
+if numel(job.D)>1
     error('iterative routine only meant for single subjects');
-end;
+end
 
 savecopyinv=0; %% by default update dataset
 if isfield(job.isstandard, 'custom')
@@ -338,7 +337,7 @@ if isfield(job.isstandard, 'custom')
         allIp=[];
     else
         
-        %% load in patch file
+        % load in patch file
         
         dum=load(char(job.isstandard.custom.isfixedpatch.fixedpatch.fixedfile));
         if ~isfield(dum,'Ip'),
@@ -470,7 +469,7 @@ for i = 1:numel(job.D)
     D{i}.inv{val}.inverse.allF=zeros(1,Npatchiter);
     
     
-    %% commented out section will add an inversion at new indices
+    % commented out section will add an inversion at new indices
     
     %     for iterval=1:Npatchiter-1,
     %         D{i}.inv{iterval+val}=D{i}.inv{val}; %% copy inverse to all iterations which will be stored in the same file in higher vals
@@ -487,7 +486,7 @@ for i = 1:numel(job.D)
 end
 
 
-%% cross val set up
+% cross val set up
 
 
 
@@ -529,7 +528,7 @@ end;
 
 
 
-%% load in lead field matrix (with all good chans and make a copy)
+% load in lead field matrix (with all good chans and make a copy)
 
 [Lfull D{1}]=spm_eeg_lgainmat(D{1});
  gainname = D{1}.inv{1}.gainmat
@@ -576,7 +575,7 @@ for b=1:Nblocks,
     
     crossF(b)=inverse.F; %% ok now trained for this model
     
-    %% use hanning window if used in inversion
+    % use hanning window if used in inversion
     if inverse.Han,
         W  = repmat(spm_hanning(length(It))',length(Ic),1); %% use hanning unless specified
     else

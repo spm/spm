@@ -13,15 +13,15 @@ function res = spm_eeg_artefact_saccade(S)
 %
 %   If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials
 %   with zeros for clean channel/trials and ones for artefacts.
-%______________________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Markus Bauer, Laurence Hunt
 % simplified version of a method described by 
 % Engbert, R., & Mergenthaler, K. (2006) Microsaccades 
 %  are triggered by low retinal image slip. Proceedings of the National 
 %  Academy of Sciences of the United States of America, 103: 7192-7197. 
-% $Id: spm_eeg_artefact_saccade.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_eeg_artefact_saccade.m 6926 2016-11-09 22:13:19Z guillaume $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -49,13 +49,14 @@ if nargin == 0
     saccade.tag = 'saccade';
     saccade.name = 'Saccades';
     saccade.val = {threshold, excwin};
+    saccade.help = {''};
     
     res = saccade;
     
     return
 end
 
-SVNrev = '$Rev: 5592 $';
+SVNrev = '$Rev: 6926 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -77,22 +78,23 @@ end
 
 eog_data = reshape(squeeze(D(chanind,:,:)), 1, []);
 
-%% SACCADE DETECTION:
+% SACCADE DETECTION:
 % 1) filter the data, saccade duration ~40 ms, filtering at 30 Hz is fine even if it may weaken signal a tiny bit,
 % it takes out quite some noise 
-% 2) calcuilate the velocity values
+% 2) calculate the velocity values
+%--------------------------------------------------------------------------
 eog_data = ft_preproc_lowpassfilter(eog_data, D.fsample, 30);
 eog_filt = [eog_data(:,1),diff(eog_data,1,2)]; 
 % eog_filt = ft_preproc_lowpassfilter(eog_filt, D.fsample, 20);
 
 
-%% find saccades by thresholding
-
+% find saccades by thresholding
+%--------------------------------------------------------------------------
 sd_eeg=(spm_percentile(eog_filt,85)-spm_percentile(eog_filt,15))/2; %robust estimate of standard deviation, suggested by Mark Woolrich
 em_thresh = S.threshold*sd_eeg;
 
-%% find 'spikes' (putative saccades):
-
+% find 'spikes' (putative saccades):
+%--------------------------------------------------------------------------
 eblength = round(D.fsample/5); %length of saccade(200 ms) in samples;
 spikes = [];
 for i = eblength:length(eog_filt)-eblength;
@@ -111,8 +113,9 @@ for i = 1:length(spikes)
     spikemat(:,i) = eog_filt(spikes(i)-eblength+1:spikes(i)+eblength);
 end
 
-%reject spikes whose peak is not within 1 s.d. of the mean (gets rid of most artefacts
-%    etc. not removed by filtering):
+% reject spikes whose peak is not within 1 s.d. of the mean
+% (gets rid of most artefacts etc. not removed by filtering):
+%--------------------------------------------------------------------------
 mn_spike = mean(spikemat(eblength,:));
 sd_spike = std(spikemat(eblength,:));
 spikes(spikemat(eblength,:)>mn_spike+sd_spike | ...
@@ -132,7 +135,7 @@ if (num_eb_per_min>60)
 end
 
 % plot
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
 colormap(gray)
 figure(Fgraph)
@@ -148,7 +151,7 @@ plot(spikemat);plot(mean(spikemat,2),'Color','k','LineWidth',4);
 
 
 % Update the event structure
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~isempty(spikes)  
     for n = 1:D.ntrials
         cspikes   = spikes(spikes>(D.nsamples*(n-1)) & spikes<(D.nsamples*n));
@@ -196,7 +199,7 @@ if ~isempty(spikes)
         end
     end    
 else
-    warning(['No saccade events detected in the selected channel']);
+    warning('No saccade events detected in the selected channel');
 end
 
 res = D;

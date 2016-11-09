@@ -12,12 +12,12 @@ function res = spm_eeg_artefact_heartbeat(S)
 %
 %   If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials
 %   with zeros for clean channel/trials and ones for artefacts.
-%______________________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
 % see http://fsl.fmrib.ox.ac.uk/eeglab/fmribplugin/
-% $Id: spm_eeg_artefact_heartbeat.m 6686 2016-01-20 14:49:15Z vladimir $
+% $Id: spm_eeg_artefact_heartbeat.m 6926 2016-11-09 22:13:19Z guillaume $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -31,19 +31,20 @@ if nargin == 0
     excwin.strtype = 'r';
     excwin.num = [1 1];
     excwin.val = {0};
-    excwin.help = {'Window (in ms) to mark as bad around each heart beat, 0 to not mark data as bad'};
+    excwin.help = {'Window (in ms) to mark as bad around each heart beat, 0 to not mark data as bad.'};
     
-    heartbeat = cfg_branch;
-    heartbeat.tag = 'heartbeat';
+    heartbeat      = cfg_branch;
+    heartbeat.tag  = 'heartbeat';
     heartbeat.name = 'Heart beats';
-    heartbeat.val = {excwin};
+    heartbeat.val  = {excwin};
+    heartbeat.help = {''};
     
     res = heartbeat;
     
     return
 end
 
-SVNrev = '$Rev: 6686 $';
+SVNrev = '$Rev: 6926 $';
 
 %-Startup
 %--------------------------------------------------------------------------

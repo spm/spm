@@ -1,11 +1,11 @@
 function invert = spm_cfg_eeg_inv_invert
-% configuration file for configuring imaging source inversion
+% Configuration file for configuring imaging source inversion
 % reconstruction
-%_______________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invert.m 6924 2016-11-09 11:38:00Z guillaume $
+% $Id: spm_cfg_eeg_inv_invert.m 6926 2016-11-09 22:13:19Z guillaume $
 
 D = cfg_files;
 D.tag = 'D';
@@ -25,12 +25,14 @@ all = cfg_const;
 all.tag = 'all';
 all.name = 'All';
 all.val  = {1};
+all.help = {''};
 
 condlabel = cfg_entry;
 condlabel.tag = 'condlabel';
 condlabel.name = 'Condition label';
 condlabel.strtype = 's';
 condlabel.val = {''};
+condlabel.help = {''};
 
 conditions = cfg_repeat;
 conditions.tag = 'conditions';
@@ -121,6 +123,7 @@ radius.name = 'Radius of VOI (mm)';
 radius.strtype = 'r';
 radius.num = [1 1];
 radius.val = {32};
+radius.help = {''};
 
 mask  = cfg_files;
 mask.tag = 'mask';
