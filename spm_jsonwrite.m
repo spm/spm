@@ -14,7 +14,7 @@ function varargout = spm_jsonwrite(varargin)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 6863 2016-08-30 14:56:27Z guillaume $
+% $Id: spm_jsonwrite.m 6927 2016-11-10 10:39:52Z guillaume $
 
 
 %-Input parameters
@@ -31,14 +31,14 @@ end
 
 %-JSON serialization
 %--------------------------------------------------------------------------
-if ~isstruct(json) && ~iscell(json)
+if ~isstruct(json) && ~iscell(json) && ~isa(json,'containers.Map')
     if ~isempty(root)
         json = struct(root,json);
     else
         error('Invalid JSON structure.');
     end
 end
-S = jsonwrite_var(json,NaN); % 0 or NaN
+S = jsonwrite_var(json,0); % 0 or NaN
 
 %-Output
 %--------------------------------------------------------------------------
@@ -57,7 +57,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S = jsonwrite_var(json,tab)
 if nargin < 2, tab = 0; end
-if isstruct(json)
+if isstruct(json) || isa(json,'containers.Map')
     S = jsonwrite_struct(json,tab);
 elseif iscell(json)
     S = jsonwrite_cell(json,tab);
@@ -72,11 +72,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S = jsonwrite_struct(json,tab)
 if numel(json) == 1
-    fn = fieldnames(json);
+    if isstruct(json), fn = fieldnames(json); else fn = keys(json); end
     S = ['{' fmt('\n',tab)];
     for i=1:numel(fn)
+        if isstruct(json), val = json.(fn{i}); else val = json(fn{i}); end
         S = [S fmt((tab+1)*2) jsonwrite_char(fn{i}) ':' fmt(~isnan(tab)) ...
-            jsonwrite_var(json.(fn{i}),tab+1)];
+            jsonwrite_var(val,tab+1)];
         if i ~= numel(fn), S = [S ',']; end
         S = [S fmt('\n',tab)];
     end
@@ -99,7 +100,8 @@ S = [S fmt(2*tab) ']'];
 function S = jsonwrite_char(json)
 % any-Unicode-character-except-"-or-\-or-control-character
 % \" \\ \/ \b \f \n \r \t \u four-hex-digits
-json = regexprep(json,'[^\\]"','\\"');
+json = strrep(json,'\','\\');
+json = strrep(json,'"','\"');
 S = ['"' json '"'];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
