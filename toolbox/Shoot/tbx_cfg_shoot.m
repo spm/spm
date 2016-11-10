@@ -1,7 +1,7 @@
 function shoot = tbx_cfg_shoot
 % MATLABBATCH Configuration file for toolbox 'Shoot Tools'
 
-% $Id: tbx_cfg_shoot.m 5485 2013-05-09 15:51:24Z john $
+% $Id: tbx_cfg_shoot.m 6928 2016-11-10 12:26:47Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Shoot')); end
 
@@ -433,7 +433,6 @@ template.num     = [0 1];
 fwhm         = cfg_menu;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'Smoothing';
-fwhm.val     = {4};
 fwhm.help    = {'The scalar momenta can be smoothed with a Gaussian to reduce dimensionality. More smoothing is recommended if there are fewer training images or if more channels of data were used for driving the registration. From preliminary experimants, a value of about 10mm seems to work reasonably well.'};
 fwhm.labels  = {
                'None'
