@@ -4,7 +4,7 @@ function bms = spm_cfg_dcm_bms
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_dcm_bms.m 6642 2015-12-11 16:52:29Z peter $
+% $Id: spm_cfg_dcm_bms.m 6929 2016-11-14 13:07:31Z guillaume $
 
 %--------------------------------------------------------------------------
 % dir Directory
@@ -161,7 +161,7 @@ family_file.help    = {['Load family.mat file. This file should contain the '...
                         '''F1'' and ''F2'' and assigns model 1, 4 and 5 to '...
                         'the first family and models 2 and 3 to the second '...
                         'family.']};
-family_file.val{1}  = {''};
+family_file.val     = {{''}};
 family_file.filter  = 'mat';
 family_file.ufilter = '.*';
 family_file.num     = [0 1];

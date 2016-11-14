@@ -4,7 +4,7 @@ function cfc = spm_cfg_eeg_cfc
 % Copyright (C) 2014-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_cfc.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_eeg_cfc.m 6929 2016-11-14 13:07:31Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -66,7 +66,7 @@ regressors.num  = [1 Inf];
 regressors.help = {'Regressors of interest'};
 
 reg_funs = {'spm_eeg_regressors_tfpower.m', 'spm_eeg_regressors_tfphase.m'};
-
+regressors.values = cell(1,numel(reg_funs));
 for i = 1:numel(reg_funs)
     regressors.values{i} = feval(spm_file(reg_funs{i},'basename'));
 end
@@ -82,6 +82,7 @@ confounds.help = {'Confounds'};
 
 reg_funs = spm_select('List',spm('dir'),'^spm_eeg_regressors_.*\.m$');
 reg_funs = cellstr(reg_funs);
+confounds.values = cell(1,numel(reg_funs));
 for i = 1:numel(reg_funs)
     confounds.values{i} = feval(spm_file(reg_funs{i},'basename'));
 end

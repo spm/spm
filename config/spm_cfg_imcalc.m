@@ -3,7 +3,7 @@ function imcalc = spm_cfg_imcalc
 %__________________________________________________________________________
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 6925 2016-11-09 17:23:40Z guillaume $
+% $Id: spm_cfg_imcalc.m 6929 2016-11-14 13:07:31Z guillaume $
 
 %--------------------------------------------------------------------------
 % input Input Images
@@ -34,7 +34,7 @@ output.val     = {'output'};
 outdir         = cfg_files;
 outdir.tag     = 'outdir';
 outdir.name    = 'Output Directory';
-outdir.val{1}  = {''};
+outdir.val     = {{''}};
 outdir.help    = {'Files produced by this function will be written into this output directory. If no directory is given, images will be written to current working directory. If both output filename and output directory contain a directory, then output filename takes precedence.'};
 outdir.filter  = 'dir';
 outdir.ufilter = '.*';

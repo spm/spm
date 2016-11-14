@@ -3,9 +3,9 @@ function convmodel = spm_cfg_eeg_firstlevel
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_eeg_firstlevel.m 6929 2016-11-14 13:07:31Z guillaume $
 
-rev = '$Rev: 6926 $';
+rev = '$Rev: 6929 $';
 
 % ---------------------------------------------------------------------
 % units Units for design
@@ -260,7 +260,7 @@ generic1.num     = [0 Inf];
 multi         = cfg_files;
 multi.tag     = 'multi';
 multi.name    = 'Multiple conditions';
-multi.val{1} = {''};
+multi.val     = {{''}};
 multi.help    = {
                  'Select the *.mat file containing details of your multiple experimental conditions. '
                  ''
@@ -335,7 +335,7 @@ generic3.num     = [0 Inf];
 multi_conv_reg         = cfg_files;
 multi_conv_reg.tag     = 'multi_conv_reg';
 multi_conv_reg.name    = 'Multiple convolution regressors';
-multi_conv_reg.val{1} = {''};
+multi_conv_reg.val     = {{''}};
 multi_conv_reg.help    = {
                      'Select the *.mat/*.txt file containing details of your multiple regressors. '
                      ''
@@ -369,7 +369,7 @@ generic2.num     = [0 Inf];
 multi_reg         = cfg_files;
 multi_reg.tag     = 'multi_reg';
 multi_reg.name    = 'Multiple regressors';
-multi_reg.val{1} = {''};
+multi_reg.val     = {{''}};
 multi_reg.help    = {
                      'Select the *.mat/*.txt file containing details of your multiple regressors. '
                      ''

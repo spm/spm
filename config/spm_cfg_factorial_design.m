@@ -4,7 +4,7 @@ function factorial_design = spm_cfg_factorial_design
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 6333 2015-02-11 13:14:23Z guillaume $
+% $Id: spm_cfg_factorial_design.m 6929 2016-11-14 13:07:31Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -747,7 +747,7 @@ generic.num    = [0 Inf];
 cov         = cfg_files;
 cov.tag     = 'files';
 cov.name    = 'File(s)';
-cov.val{1}  = {''};
+cov.val     = {{''}};
 cov.help    = {
                'Select the *.mat/*.txt file(s) containing details of your multiple covariates. '
                ''

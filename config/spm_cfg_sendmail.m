@@ -3,7 +3,7 @@ function sendmail = spm_cfg_sendmail
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_sendmail.m 4442 2011-08-26 14:53:10Z guillaume $
+% $Id: spm_cfg_sendmail.m 6929 2016-11-14 13:07:31Z guillaume $
 
 % ---------------------------------------------------------------------
 % Recipient
@@ -40,7 +40,7 @@ message.num     = [1 Inf];
 attachments         = cfg_files;
 attachments.tag     = 'attachments';
 attachments.name    = 'Attachments';
-attachments.val{1}  = {};
+attachments.val     = {{}};
 attachments.help    = {'List of files to attach and send along with the message.'};
 attachments.filter  = '.*';
 attachments.ufilter = '.*';

@@ -4,7 +4,7 @@ function artefact = spm_cfg_eeg_artefact
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_artefact.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_eeg_artefact.m 6929 2016-11-14 13:07:31Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -50,6 +50,7 @@ artefact_funs = cellstr(artefact_funs);
 fun      = cfg_choice;
 fun.tag  = 'fun';
 fun.name = 'Detection algorithm';
+fun.values = cell(1,numel(artefact_funs));
 for i = 1:numel(artefact_funs)
     fun.values{i} = feval(spm_file(artefact_funs{i},'basename'));
 end

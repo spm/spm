@@ -4,7 +4,7 @@ function split = spm_cfg_split
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_split.m 6583 2015-10-28 10:30:38Z volkmar $
+% $Id: spm_cfg_split.m 6929 2016-11-14 13:07:31Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -24,7 +24,7 @@ vol.num     = [1 1];
 outdir         = cfg_files;
 outdir.tag     = 'outdir';
 outdir.name    = 'Output Directory';
-outdir.val{1}  = {''};
+outdir.val     = {{''}};
 outdir.help    = {'Specify the output directory. If no directory is given, files will be written in the same directory than the input 4D file.'};
 outdir.filter  = 'dir';
 outdir.ufilter = '.*';

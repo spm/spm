@@ -3,7 +3,7 @@ function fmri_spec = spm_cfg_fmri_spec
 %__________________________________________________________________________
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 6818 2016-06-21 09:42:45Z peter $
+% $Id: spm_cfg_fmri_spec.m 6929 2016-11-14 13:07:31Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -244,7 +244,7 @@ generic1.num     = [0 Inf];
 multi         = cfg_files;
 multi.tag     = 'multi';
 multi.name    = 'Multiple conditions';
-multi.val{1} = {''};
+multi.val     = {{''}};
 multi.help    = {
                  'Select the *.mat file containing details of your multiple experimental conditions. '
                  ''
@@ -324,7 +324,7 @@ generic2.num     = [0 Inf];
 multi_reg         = cfg_files;
 multi_reg.tag     = 'multi_reg';
 multi_reg.name    = 'Multiple regressors';
-multi_reg.val{1} = {''};
+multi_reg.val     = {{''}};
 multi_reg.help    = {
                      'Select the *.mat/*.txt file(s) containing details of your multiple regressors. '
                      ''
@@ -623,7 +623,7 @@ gMT.def     = @(val)spm_get_defaults('mask.thresh', val{:});
 mask         = cfg_files;
 mask.tag     = 'mask';
 mask.name    = 'Explicit mask';
-mask.val{1}  = {''};
+mask.val     = {{''}};
 mask.help    = {'Specify an image for explicitly masking the analysis. '
     'If masking is not required, you can leave this field empty.'
     ['A sensible option here is to use a segmention of structural images to specify a within-brain mask. ',...

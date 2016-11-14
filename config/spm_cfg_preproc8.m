@@ -4,7 +4,7 @@ function preproc = spm_cfg_preproc8
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 6798 2016-05-20 11:53:33Z john $
+% $Id: spm_cfg_preproc8.m 6929 2016-11-14 13:07:31Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -258,10 +258,10 @@ ngaus   = [1 1 2 3 4 2];
 % Change to: ngaus   = [2 2 2 3 4 2];
 nval    = {[1 0],[1 0],[1 0],[1 0],[1 0],[0 0]};
 for k=1:numel(ngaus),
-    tissue.val{1}.val{1} = {[tpm_nam ',' num2str(k)]};
-    tissue.val{2}.val    = {ngaus(k)};
-    tissue.val{3}.val    = {nval{k}};
-    tissues.val{k}       = tissue;
+    tissue.val{1}.val = {{[tpm_nam ',' num2str(k)]}};
+    tissue.val{2}.val = {ngaus(k)};
+    tissue.val{3}.val = {nval{k}};
+    tissues.val{k}    = tissue;
 end
 
 tissues.help    = {'The data for each subject are classified into a number of different tissue types.  The tissue types are defined according to tissue probability maps, which define the prior probability of finding a tissue type at a particular location. Typically, the order of tissues is grey matter, white matter, CSF, bone, soft tissue and air/background (if using tpm/TPM.nii).'};

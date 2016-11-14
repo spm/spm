@@ -4,7 +4,7 @@ function eegreg = spm_cfg_eeg_regressors
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_regressors.m 6924 2016-11-09 11:38:00Z guillaume $
+% $Id: spm_cfg_eeg_regressors.m 6929 2016-11-14 13:07:31Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -28,6 +28,7 @@ methods.help = {'Generation method'};
 
 reg_funs = spm_select('List',spm('dir'),'^spm_eeg_regressors_.*\.m$');
 reg_funs = cellstr(reg_funs);
+methods.values = cell(1,numel(reg_funs));
 for i = 1:numel(reg_funs)
     methods.values{i} = feval(spm_file(reg_funs{i},'basename'));
 end
