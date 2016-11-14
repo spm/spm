@@ -12,7 +12,7 @@ function varargout = spm_print(varargin)
 % Copyright (C) 1994-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_print.m 6894 2016-09-30 16:48:46Z spm $
+% $Id: spm_print.m 6930 2016-11-14 14:35:05Z volkmar $
 
 
 %-Shortcut for list of graphics file formats available
@@ -75,6 +75,19 @@ F = spm_figure('FindWin',F);
 if isempty(F)
     disp('Print error: Figure not found.');
     return;
+end
+
+%-Check valid renderer
+% 'OpenGL' is not a valid renderer in -nodisplay mode. Normally, MATLAB
+% warns and uses 'zbuffer' if one tries to set 'OpenGL' in this case.
+% However, sometimes this setting is not passed properly to the
+% user-visible properties of the figure, and the 'Renderer' property is
+% empty. This causes problems when printing, so it is better to set any
+% invalid 'Renderer' setting to 'zbuffer'.
+%--------------------------------------------------------------------------
+validrend = set(F, 'Renderer');
+if ~any(strcmpi(get(F, 'Renderer'), validrend))
+    set(F, 'Renderer','zbuffer');
 end
 
 %-Print
