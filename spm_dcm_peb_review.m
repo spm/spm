@@ -10,12 +10,12 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 6934 2016-11-16 15:41:15Z peter $
+% $Id: spm_dcm_peb_review.m 6935 2016-11-16 15:50:14Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
 if nargin < 1 || isempty(PEB)
-    [PEB,sts] = spm_select(1,'mat','Select a PEB model',{},pwd,'^PEB_.*mat$');
+    [PEB,sts] = spm_select(1,'mat','Select a PEB model',{},pwd,'^(PEB|BMA)_.*mat$');
     if ~sts, return; end
 end
 
