@@ -14,7 +14,7 @@ function spm_epileptor_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_epileptor_demo.m 6112 2014-07-21 09:39:53Z karl $ 
+% $Id: spm_epileptor_demo.m 6931 2016-11-16 12:09:58Z karl $ 
  
 
 % Model specification
@@ -143,7 +143,7 @@ U.u   = sparse(N,M.m);
 
 % exogenous input
 %--------------------------------------------------------------------------
-U.u(:,1) = tanh((t - 1)*8)*3/2;
+U.u(:,1) = tanh((t - 1)*8)*.8;
 M.W      = inv(diag(sparse(1,1,1,1,M.n) + exp(-32)));
 LFP      = spm_int_sde(pE,M,U);
  

@@ -19,7 +19,7 @@ function spm_dcm_review(DCM,action)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 6755 2016-03-25 09:48:34Z karl $
+% $Id: spm_dcm_review.m 6931 2016-11-16 12:09:58Z karl $
 
 
 %-Get DCM structure
@@ -401,36 +401,41 @@ switch action
 
         % input effects
         %------------------------------------------------------------------
-        x     = (1:DCM.M.N)*DCM.M.dt;
+        try
+            tn = (1:DCM.M.N)*DCM.M.dt;
+            th = (1:DCM.M.N)*DCM.M.dt;
+        catch
+            tn = (1:64)*8/1000;
+            th = (1:64)*1/2;
+        end
         for i = 1:m
 
             % input effects - neuronal
             %--------------------------------------------------------------
             y = DCM.K1(:,:,i);
             subplot(m,2,2*(i - 1) + 1)
-            plot(x,y)
-            set(gca,'XLim',[0 8])
+            plot(tn,y)
+            set(gca,'XLim',[0 min(max(tn),8)])
             axis square
             title(['neuronal responses to ' DCM.U.name{i}],'FontSize',12)
             xlabel('time {seconds}')
             for j = 1:l
-                text(x(j),y(j,j),DCM.Y.name{j},...
+                text(tn(j),y(j,j),DCM.Y.name{j},...
                     'FontWeight','bold','FontSize',fs,...
                     'HorizontalAlignment','Center')
             end
 
             % input effects - haemodynamic
             %--------------------------------------------------------------
-            y = DCM.K1(:,:,i);
             k = DCM.H1(:,:,i);
             subplot(m,2,2*(i - 1) + 2)
-            plot(x,k,x,y,':')
-            set(gca,'XLim',[0 24])
+            plot(th,k)
+            set(gca,'XLim',[0 min(max(th),24)])
             axis square
             title('hemodynamic responses','FontSize',12)
             xlabel('time {seconds}')
             for j = 1:l
-                text(x(j),k(j,j),DCM.Y.name{j},...
+                text(th(j),k(j,j),DCM.Y.name{j},...
                     'FontWeight','bold','FontSize',fs,...
                     'HorizontalAlignment','Center')
             end

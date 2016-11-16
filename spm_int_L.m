@@ -1,9 +1,11 @@
-function [y] = spm_int_L(P,M,U)
+function [y] = spm_int_L(P,M,U,N)
 % Integrate a MIMO nonlinear system using a fixed Jacobian: J(x(0))
-% FORMAT [y] = spm_int_L(P,M,U)
+% FORMAT [y] = spm_int_L(P,M,U,[N])
 % P   - model parameters
 % M   - model structure
 % U   - input structure or matrix
+%
+% N   - number of local linear iterations per time step [default: 1]
 %
 % y   - (v x l)  response y = g(x,u,P)
 %__________________________________________________________________________
@@ -58,13 +60,14 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 6855 2016-08-06 10:06:35Z karl $
+% $Id: spm_int_L.m 6931 2016-11-16 12:09:58Z karl $
  
  
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
 if ~isstruct(U), u.u = U; U = u;   end
 try, dt = U.dt;  catch, dt = 1;    end
+if nargin < 4; N = 1;              end
 
 % Initial states and inputs
 %--------------------------------------------------------------------------
@@ -104,10 +107,10 @@ catch
 end
 M.g = g;
 
-% dx(t)/dt and Jacobian df/dx and check for delay operator
+% dx(t)/dt and Jacobian df/dx (and check for delay operator)
 %--------------------------------------------------------------------------
-D       = 1;
-n       = spm_length(x);
+D   = 1;
+n   = spm_length(x);
 if nargout(f) >= 3
     [fx,dfdx,D] = f(x,u,P,M);
     
@@ -115,13 +118,11 @@ elseif nargout(f) == 2
     [fx,dfdx]   = f(x,u,P,M);
     
 else
-    dfdx        = spm_cat(spm_diff(f,x,u,P,M,1)); 
+    dfdx = spm_cat(spm_diff(f,x,u,P,M,1)); 
 end
-OPT.tol = 1e-6*norm((dfdx),'inf');
-while true
-    try, p = abs(eigs(dfdx,1,'SR',OPT)); break; end
-end
-N     = ceil(max(1,dt*p*2));
+
+% local linear update operator Q = (expm(dt*J) - I)*inv(J)
+%--------------------------------------------------------------------------
 Q     = (spm_expm(dt*D*dfdx/N) - speye(n,n))*spm_inv(dfdx);
  
 % integrate

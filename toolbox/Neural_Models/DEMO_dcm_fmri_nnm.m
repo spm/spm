@@ -33,7 +33,7 @@ function DCM = DEMO_dcm_fmri_nnm
 % DCM.options.P                      % starting estimates for parameters
 % DCM.options.hidden                 % indices of hidden regions
  
-% $Id: DEMO_dcm_fmri_nnm.m 6922 2016-11-02 17:28:23Z karl $
+% $Id: DEMO_dcm_fmri_nnm.m 6931 2016-11-16 12:09:58Z karl $
  
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
@@ -94,7 +94,7 @@ T   = (1:size(y,1))  *DCM.Y.dt;    % time of fMRI data
 t   = (1:size(lfp,2))*DCM.U.dt;    % time of LFP data
 j   = 4:64;                        % frequencies to report
 n   = 2;                           % in the n-th region
-ind = csd(:,:,n);                 % induced responses every TR
+ind = csd(:,:,n);                  % induced responses every TR
  
  
 % posterior parameter estimates

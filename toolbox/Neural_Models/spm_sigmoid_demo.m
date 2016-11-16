@@ -29,7 +29,7 @@ function spm_sigmoid_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_sigmoid_demo.m 5922 2014-03-18 20:10:17Z karl $
+% $Id: spm_sigmoid_demo.m 6931 2016-11-16 12:09:58Z karl $
 
 % relating R amd the variance
 %==========================================================================
@@ -108,7 +108,7 @@ for i = 1:m
     
     % compute kernels (over 128ms)
     %----------------------------------------------------------------------
-    N          = 128;
+    N          = 64;
     dt         = 1/1000;
     t          = (1:N)*dt*1000;
     [K0,K1,K2] = spm_kernels(M0,M1,L1,L2,N,dt);
