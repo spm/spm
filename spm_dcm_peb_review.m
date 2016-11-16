@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 6935 2016-11-16 15:50:14Z peter $
+% $Id: spm_dcm_peb_review.m 6936 2016-11-16 16:18:44Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -19,10 +19,20 @@ if nargin < 1 || isempty(PEB)
     if ~sts, return; end
 end
 
+if nargin < 2 || isempty(DCM)
+    [DCM,sts] = spm_select(1,'mat','(Optional) Select DCM or GCM file',{},pwd,'^(DCM|GCM)_.*mat$');
+end
+
 % Load / validate PEB
 if ischar(PEB)
     PEB = load(PEB);
-    PEB = PEB.PEB;
+    if isfield(PEB,'PEB')
+        PEB = PEB.PEB;
+    elseif isfield(PEB,'BMA')
+        PEB = PEB.BMA;
+    else
+        error('Not a valid PEB or BMA file');
+    end
 end
 
 if length(PEB) > 1, PEB = PEB(1); end
@@ -32,7 +42,7 @@ if ~isfield(PEB,'Ep')
 end
 
 % Load / validate DCM
-if nargin < 2 || isempty(DCM) || isempty(DCM{1}), DCM = {}; end
+if isempty(DCM) || (iscell(DCM) && isempty(DCM{1})), DCM = {}; end
 if ~iscell(DCM), DCM = {DCM}; end
 
 if ~isempty(DCM) && ischar(DCM{1})
@@ -449,18 +459,18 @@ elseif view <= (nc+1)
              1 1 0]; % Yellow                    
         x = [0 1];
         x = x(end:-1:1);
-        c1 = interp1(x,T,linspace(0,1,32));
+        c1 = interp1(x,T,linspace(0,1,64));
         
         % Colormap 2 (cold)
         T = [0 1 1             % Turqoise
              0 0.0745 0.6078]; % Dark blue         
         x = [0 1];
         x = x(end:-1:1);
-        c2 = interp1(x,T,linspace(0,1,32));        
+        c2 = interp1(x,T,linspace(0,1,64));        
          
         % Combine and add white
         c = [c2;c1];
-        c(32:34,:) = 1;
+        c(64:65,:) = 1;
         
         % Plot
         imagesc(xPEB.Eq,[-1 1]);
