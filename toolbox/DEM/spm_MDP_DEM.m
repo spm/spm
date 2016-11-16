@@ -28,10 +28,10 @@ function DEM = spm_MDP_DEM(DEM,demi,O,o)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_DEM.m 6901 2016-10-08 13:21:41Z karl $
+% $Id: spm_MDP_DEM.m 6932 2016-11-16 12:11:01Z karl $
 
 
-% evaluate true and priors over causes given discrete states
+% evaluate true values and priors over causes given discrete states
 %--------------------------------------------------------------------------
 po    = spm_cross(O);
 ind   = num2cell(o);
@@ -75,11 +75,11 @@ for t = 1:nt
     qC    = DEM.qU.C{t}(ic,ic);
     pE    = DEM.U(:,t);
     pC    = DEM.pU.C{t}(ic,ic);
-    gt    = t > 1;
+    gt    = t > 4;
     for i = 1:size(po,1)
         for j = 1:size(po,2)
             for k = 1:size(po,3)
-                rE       = demi.U{i,j,k}(:,end);
+                rE       = demi.U{i,j,k}(:,t);
                 F(i,j,k) = F(i,j,k) + gt*spm_log_evidence(qE,qC,pE,pC,rE,pC);
             end
         end

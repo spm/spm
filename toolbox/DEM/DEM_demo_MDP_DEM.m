@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_DEM
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_DEM.m 6901 2016-10-08 13:21:41Z karl $
+% $Id: DEM_demo_MDP_DEM.m 6932 2016-11-16 12:11:01Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -71,7 +71,7 @@ ns     = nb*nb;                               % number of sensory channels
 STIM.W = 1/2;                                 % foveal sampling width
 STIM.R = ones(dim,dim);                       % retinal precision
 STIM.B = spm_dctmtx(dim,nb);                  % Basis functions (CRFs)
-STIM.A = 4;                                  % Attenuation (spotlight)
+STIM.A = 4;                                   % Attenuation (spotlight)
 
 % and locations
 %--------------------------------------------------------------------------
@@ -85,24 +85,17 @@ STIM.L = L;
 % mapping from outputs of higher (discrete) level to (hidden) causes
 %==========================================================================
 
-% true causes for every combination of discrete states
+% true causes (U) and priors (C) for every combination of discrete states
 %--------------------------------------------------------------------------
 N     = 16;                                  % length of data sequence
 nh    = length(STIM.H);                      % number of hypotheses
 nl    = length(STIM.L);                      % number of locations
 for i = 1:nh
     for j = 1:nl
-        c           = [STIM.L{j}; sparse(i,1,4,nh,1)];
-        demi.C{i,j} = c*ones(1,N);
-    end
-end
-
-% priors over hidden causes, conditioned on discrete states
-%--------------------------------------------------------------------------
-for i = 1:nh
-    for j = 1:nl
-        u           = [STIM.L{j}; sparse(i,1,4,nh,1)];
+        c           = [STIM.L{j}; sparse(i,1,1,nh,1)];
+        u           = [STIM.L{j}; sparse(i,1,1,nh,1)];
         demi.U{i,j} = u*ones(1,N);
+        demi.C{i,j} = c*ones(1,N);
     end
 end
 
@@ -131,7 +124,7 @@ g      = @ADEM_sample_image;
 M(1).f = @(x,v,P) (v.x - x)/4;
 M(1).g = @(x,v,P) spm_vec(x,g(x - v.x,v.h));
 M(1).x = x;                                   % hidden states
-M(1).V = [exp(4) exp(4) ones(1,ns)*8];   % error precision (g)
+M(1).V = [exp(2) exp(2) ones(1,ns)*8];   % error precision (g)
 M(1).W = exp(4);                              % error precision (f)
 
 
@@ -177,7 +170,7 @@ spm_figure('GetWin','Figure 2');
 spm_dem_mdp_movie(DEM)
 drawnow
 
-% return
+return
  
 % first level (lexical)
 %==========================================================================
@@ -187,7 +180,7 @@ drawnow
 D{1} = [1 1 1]';           % what:     {'flee','feed','wait'}
 D{2} = [1 0 0 0]';         % where:    {'1',...,'4'}
 D{3} = [8 1]';             % flip(ud): {'no','yes'}
-D{4} = [9 1]';             % flip(rl): {'no','yes'}
+D{4} = [8 1]';             % flip(rl): {'no','yes'}
  
  
 % probabilistic mapping from hidden states to outcomes: A

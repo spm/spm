@@ -25,7 +25,7 @@ function [s] = ADEM_sample_image(V,o,R)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_sample_image.m 6901 2016-10-08 13:21:41Z karl $
+% $Id: ADEM_sample_image.m 6932 2016-11-16 12:11:01Z karl $
 
 
 % retinotopic predictions
@@ -33,7 +33,6 @@ function [s] = ADEM_sample_image(V,o,R)
 global STIM
 if nargin < 3
     s     = 0;
-    o     = spm_softmax(o(:));
     for i = 1:numel(o)
         s = s + o(i)*ADEM_sample_image(STIM.H{i},V,STIM.R);
     end
