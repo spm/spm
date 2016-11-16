@@ -16,7 +16,7 @@ function [D] = spm_eeg_invert_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_ui.m 6849 2016-07-31 12:34:33Z karl $
+% $Id: spm_eeg_invert_ui.m 6933 2016-11-16 14:02:04Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -85,6 +85,7 @@ switch q_rec
         % Modality
         %------------------------------------------------------------------
         [mod, list] = modality(D, 1, 1);
+        list = setdiff(list, 'MEGCOMB');
         if strcmp(mod, 'Multimodal')
             [selection, ok]= listdlg('ListString', list, 'SelectionMode', 'multiple' ,...
             'Name', 'Select modalities' , 'InitialValue', 1:numel(list),  'ListSize', [400 300]);
