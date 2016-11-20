@@ -34,7 +34,7 @@ function [K0,K1,K2,H1] = spm_kernels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_kernels.m 6755 2016-03-25 09:48:34Z karl $
+% $Id: spm_kernels.m 6937 2016-11-20 12:30:40Z karl $
  
  
 % assign inputs
@@ -114,32 +114,6 @@ for i = 2:N
     end
 end
  
- 
-% check for convergence
-%--------------------------------------------------------------------------
-q     = 0;
-for p = 1:m
-    q = q | norm(M{N,p},'inf') > norm(M{1,p},'inf');
-    q = q | norm(M{N,p},'inf') > exp(16);
-    q = q | isnan(norm(M{N,p}));
-end
- 
-% if necessary, remove unstable modes and repeat with a pseudoinverse
-%--------------------------------------------------------------------------
-if q
-    M0    = spm_bilinear_condition(M0);
-    e1    = expm(dt*M0);
-    ei    = 1;
-    for i = 1:N
-        ei    = e1*ei;
-        ie    = spm_pinv(ei);
-        for p = 1:m
-            M{i,p} = ei*M1{p}*ie;
-        end
-    end
-end
- 
- 
 % 0th order kernel
 %--------------------------------------------------------------------------
 X0    = sparse(1,1,1,n,1);
@@ -147,7 +121,6 @@ if nargout > 0
     H0    = ei*X0;
     K0    = L1*H0;
 end
- 
  
 % 1st order kernel
 %--------------------------------------------------------------------------
@@ -159,7 +132,6 @@ if nargout > 1
         end
     end
 end
- 
  
 % 2nd order kernels
 %--------------------------------------------------------------------------

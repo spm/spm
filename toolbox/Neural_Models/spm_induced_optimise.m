@@ -13,13 +13,13 @@ function spm_induced_optimise(Ep,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 6856 2016-08-10 17:55:05Z karl $
+% $Id: spm_induced_optimise.m 6937 2016-11-20 12:30:40Z karl $
  
  
 % Model specification
 %==========================================================================
 if nargin < 2
-    model = 'TFM';
+    model = 'CMC';
 end
 
 % number of regions in coupled map lattice
@@ -45,7 +45,6 @@ U.dt   = 1/256;
 % get priors
 %--------------------------------------------------------------------------
 pE  = spm_dcm_neural_priors({0 0 0},{},1,options.model);
-P   = fieldnames(pE);
 pE  = spm_L_priors(M.dipfit,pE);
 pE  = spm_ssr_priors(pE);
 
@@ -57,7 +56,8 @@ pE  = spm_ssr_priors(pE);
 % pE.J(3) = 1;
 
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-P = {'G','T','S'};
+P   = fieldnames(pE);
+P   = {'G','T','S'};
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  
 % use input argument if specified
@@ -120,7 +120,7 @@ for k = 1:length(P)
                 for q = 1:length(dQ)
                     qE      = pE;
                     qE      = setfield(qE,P{k},{i,j},dQ(q));
-                    [G w]   = spm_csd_mtf(qE,M,[]);
+                    [G,w]   = spm_csd_mtf(qE,M,[]);
                     GW(:,q) = G{1};
                 end
                 

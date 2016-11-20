@@ -1,21 +1,15 @@
-function M0 = spm_bilinear_condition(M0,t)
+function M0 = spm_bilinear_condition(M0)
 % conditions a bilinear operator by suppressing positive eigenmodes
-% FORMAT M0 = spm_bilinear_condition(M0,t)
+% FORMAT M0 = spm_bilinear_condition(M0)
 % M0 - bilinear operator
-% t  - time constant of largest eigenmode (secs {default: 32]
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_bilinear_condition.m 6856 2016-08-10 17:55:05Z karl $
+% $Id: spm_bilinear_condition.m 6937 2016-11-20 12:30:40Z karl $
  
 % conditions a bilinear operator by suppressing positive eigenmodes
 %==========================================================================
- 
- 
-% upper bound on unstable modes (32 seconds)
-%--------------------------------------------------------------------------
-if nargin == 1, t = 16; end
  
 % remove unstable modes from Jacobian
 %--------------------------------------------------------------------------

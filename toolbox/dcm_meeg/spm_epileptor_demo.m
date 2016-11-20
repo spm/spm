@@ -14,7 +14,7 @@ function spm_epileptor_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_epileptor_demo.m 6931 2016-11-16 12:09:58Z karl $ 
+% $Id: spm_epileptor_demo.m 6937 2016-11-20 12:30:40Z karl $ 
  
 
 % Model specification
@@ -26,7 +26,7 @@ rng('default')
 Nc    = 1;
 Ns    = 1;
 options.spatial  = 'LFP';
-options.model    = 'CMC';
+options.model    = 'TFM';
 options.analysis = 'TFA';
 M.dipfit.model = options.model;
 M.dipfit.type  = options.spatial;
@@ -108,8 +108,8 @@ xlabel('time (ms)')
 p     = linspace(-2,2,64);
 for i = 1:length(p)
     P       = pE;
-    P.G(1)  = p(i);
-    [G w]   = spm_csd_mtf(P,M);
+    P.G(2)  = p(i);
+    [G,w]   = spm_csd_mtf(P,M);
     GW(:,i) = abs(G{1});
 end
 
@@ -143,7 +143,7 @@ U.u   = sparse(N,M.m);
 
 % exogenous input
 %--------------------------------------------------------------------------
-U.u(:,1) = tanh((t - 1)*8)*.8;
+U.u(:,1) = tanh((t - 1)*8)*1;
 M.W      = inv(diag(sparse(1,1,1,1,M.n) + exp(-32)));
 LFP      = spm_int_sde(pE,M,U);
  
@@ -168,7 +168,7 @@ spm_axis tight
 W     = 128;
 TFR   = spm_wft(LFP,w*W*U.dt,W);
 subplot(4,1,3)
-imagesc(t,w,abs(TFR));
+imagesc(t,w,spm_en(abs(TFR)))
 title('time-frequency response','FontSize',16)
 axis  xy
 xlabel('time (s)')
@@ -177,14 +177,14 @@ drawnow
 
 % now integrate a generative model to simulate a time frequency response
 %==========================================================================
-M.f       = M.h;
-M         = rmfield(M,'h');
-[csd,erp] = spm_csd_int(pE,M,U);
+M.f = M.h;
+M   = rmfield(M,'h');
+csd = spm_csd_int(pE,M,U);
 
 % predicted time frequency response
 %--------------------------------------------------------------------------
 subplot(4,1,4)
-imagesc(t,w,spm_conv(abs(csd{1}'),4,4));
+imagesc(t,w,spm_en(abs(csd{1}')));
 title('Predicted response','FontSize',16)
 axis  xy
 xlabel('time (s)')

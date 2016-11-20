@@ -16,7 +16,7 @@ function spm_lfp_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_demo.m 6931 2016-11-16 12:09:58Z karl $
+% $Id: spm_lfp_demo.m 6937 2016-11-20 12:30:40Z karl $
 
 
 % Model specification
@@ -91,7 +91,7 @@ spm_figure('GetWin','Volterra kernels');
 
 % compute kernels (over 64 ms)
 %--------------------------------------------------------------------------
-N          = 64;
+N          = 128;
 dt         = 1/1000;
 t          = (1:N)*dt*1000;
 w          = ((1:N) - 1)/N/dt;

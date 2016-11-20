@@ -14,7 +14,7 @@ function spm_seizure_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_seizure_demo.m 6856 2016-08-10 17:55:05Z karl $ 
+% $Id: spm_seizure_demo.m 6937 2016-11-20 12:30:40Z karl $ 
  
 
 % Model specification
@@ -173,7 +173,7 @@ spm_axis tight
 W     = 128;
 TFR   = spm_wft(LFP,w*W*U.dt,W);
 subplot(4,1,3)
-imagesc(t,w,abs(TFR));
+imagesc(t,w,spm_en(abs(TFR)));
 title('time-frequency response','FontSize',16)
 axis  xy
 xlabel('time (s)')
@@ -189,7 +189,7 @@ csd       = spm_csd_int(pE,M,U);
 % predicted time frequency response
 %--------------------------------------------------------------------------
 subplot(4,1,4)
-imagesc(t,w,abs(csd{1}'));
+imagesc(t,w,spm_en(abs(csd{1}')));
 title('Predicted response','FontSize',16)
 axis xy
 xlabel('time (s)')
