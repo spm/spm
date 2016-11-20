@@ -10,15 +10,14 @@ function L = spm_MDP_L(P,M,U,Y)
 % choices within and between trials under and MDP model of choice behaviour
 % parameterised by P.required fields of the model MR:
 %
-% M.mdp - the MDP model structure used to infer actions
-% M.G   - a function that returns a particular parameterisation; i.e.,
-%         mdp = M.G(P,M.mdp);
+% M.G   - a function that returns a particular MDP parameterisation; i.e.,
+%         MDP = M.G(P);
 %__________________________________________________________________________
 
 % place parameters in MDP
 %--------------------------------------------------------------------------
 if ~isstruct(P); P = spm_unvec(P,M.pE); end
-mdp          = M.G(P,M.mdp);
+mdp          = M.G(P);
 
 % place MDP in trial structure
 %--------------------------------------------------------------------------

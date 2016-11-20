@@ -23,19 +23,18 @@ function DCM = DEM_demo_MDP_fit_fields
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_fit_fields.m 6938 2016-11-20 12:48:07Z karl $
+% $Id: DEM_demo_MDP_fit_fields.m 6939 2016-11-20 13:33:56Z karl $
 
 
 
 % create MDP structure of this paradigm 
 %==========================================================================
-mdp      = spm_MDP_create;
 
 % add prior preferences (and alpha) for this subject
 %--------------------------------------------------------------------------
 P.C      = log([2,1/4]);                 % log scaling for preferences
 P.alpha  = log(16);                      % log scaling for alpha
-mdp      = spm_MDP_field(P,mdp);
+mdp      = spm_MDP_gen(P);
 
 % An example trial:
 %--------------------------------------------------------------------------
@@ -109,9 +108,8 @@ pC        = eye(spm_length(pE))/32; % shrinkage priors
 
 % complete model specification
 %--------------------------------------------------------------------------
-DCM.M.G   = @spm_MDP_field;         % parameterisation of MDP (see below)
+DCM.M.G   = @spm_MDP_gen;           % parameterisation of MDP (see below)
 DCM.M.L   = @spm_MDP_L;             % log-likelihood function
-DCM.M.mdp = mdp;                    % MDP structure
 DCM.M.pE  = pE;                     % prior expectations
 DCM.M.pC  = pC;                     % prior covariances
 DCM.U     = {MDP.o};                % trial specification (stimuli)
@@ -136,42 +134,14 @@ subplot(2,2,4),hold on; plot(p,        '.g','MarkerSize',16); hold off
 return
 
 
-function MDP = spm_MDP_field(pE,MDP)
-% auxiliary function for parameterising MDP models
-% FORMAT: MDP = spm_mdp_field(pE,MDP)
-%
-% link function that takes returns fills in the parameter fields of a MDP
-% using free parameters specified in pE
-%__________________________________________________________________________
-
-% priors: (utility) C
-%--------------------------------------------------------------------------
-T     = MDP.T;
-C{1}  = zeros(6,T);
-C{2}  = zeros(8,T);
-
-C{1}(5,:)   =  1;                 % the agent expects to be right
-C{1}(6,:)   = -2;                 % and not wrong
-C{2}(1:5,3) = -1;                 % make tardy sampling costly
-C{2}(1:5,4) = -2;                 % make tardy sampling costly
-C{2}(1:5,5) = -3;                 % make tardy sampling costly
-
-MDP.C{1}    = C{1}*exp(pE.C(1));
-MDP.C{2}    = C{2}*exp(pE.C(2));
-
-% alpha
-%--------------------------------------------------------------------------
-MDP.alpha = exp(pE.alpha);
-
-return
-
-
-function MDP = spm_MDP_create
+function MDP = spm_MDP_gen(pE)
 % auxiliary function for creating MDP models
-% FORMAT:MDP = spm_MDP_create
+% FORMAT MDP = spm_MDP_gen(pE)
+% pE  - subject specific  parameters
+% MDP - MDP structure  for simulating choice behaviour
 %
-% link function that takes returns fills in the parameter fields of a MDP
-% using free parameters specified in pE
+% This subfunction fills in the parameter fields of a MDP using free
+% parameters specified in pE
 %__________________________________________________________________________
 %
 % In this example, an agent has to categorise a scene that comprises
@@ -298,11 +268,11 @@ Np       = size(B{2},3);
 U        = ones(1,Np,Nf);
 U(:,:,2) = 1:Np;
 
+
 % priors over policies (with a slight preference for reading)
 %--------------------------------------------------------------------------
 E        = ones(Np,1);
 E(end)   = 1 + 1/8;
-
 
 
 % priors: (utility) C
@@ -311,7 +281,21 @@ T        = 5;
 C{1}     = zeros(6,T);
 C{2}     = zeros(8,T);
 
-% MDP Structure - this will be used to generate arrays for multiple trials
+% patterns of preferences
+%--------------------------------------------------------------------------
+C{1}(5,:)   =  1;                 % the agent expects to be right
+C{1}(6,:)   = -2;                 % and not wrong
+C{2}(1:5,3) = -1;                 % make tardy sampling costly
+C{2}(1:5,4) = -2;                 % make tardy sampling costly
+C{2}(1:5,5) = -3;                 % make tardy sampling costly
+
+% scale by parameters
+%--------------------------------------------------------------------------
+C{1}  = C{1}*exp(pE.C(1));
+C{2}  = C{2}*exp(pE.C(2));
+
+
+% MDP Structure
 %==========================================================================
 MDP.T = T;                      % number of moves
 MDP.U = U;                      % allowable policies
@@ -326,3 +310,6 @@ MDP.o = [1 1]';                 % initial outcome
 MDP.Aname = {'what','where'};
 MDP.Bname = {'what','where','flip','flip'};
 
+% alpha
+%--------------------------------------------------------------------------
+MDP.alpha = exp(pE.alpha);
