@@ -39,7 +39,7 @@ function [RCM,BMC,BMA] = spm_dcm_bmr(P,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmr.m 6879 2016-09-17 17:45:08Z peter $
+% $Id: spm_dcm_bmr.m 6940 2016-11-20 18:08:06Z peter $
 
 
 % get filenames and set up
@@ -66,7 +66,7 @@ end
 if Ns > 2
     for i = 1:Ns
         [p,q,r]  = spm_dcm_bmr(P(i,:),field);
-        RCM{i,:} = p;
+        RCM(i,:) = p;
         BMC(i)   = q;
         BMA(i)   = r;
     end
