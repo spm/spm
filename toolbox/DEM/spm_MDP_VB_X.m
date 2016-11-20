@@ -11,6 +11,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % MDP.B{F}(NF,NF,MF)    - transitions among states under MF control states
 % MDP.C{G}(O,T)         - prior preferences over O outsomes in modality G
 % MDP.D{F}(NF,1)        - prior probabilities over initial states
+% MDP.E(P,1)      	    - prior probabilities over policies
 %
 % MDP.a{G}              - concentration parameters for A
 % MDP.b{F}              - concentration parameters for B
@@ -95,7 +96,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6917 2016-11-02 14:25:08Z karl $
+% $Id: spm_MDP_VB_X.m 6938 2016-11-20 12:48:07Z karl $
 
 
 % deal with a sequence of trials
@@ -237,6 +238,15 @@ for f = 1:Nf
         MDP.D{f} = D{f};
     end
 end
+
+% priors over policies - concentration parameters
+%--------------------------------------------------------------------------
+if isfield(MDP,'E')
+    E = spm_norm(MDP.E);
+else
+    E = spm_norm(ones(Np,1));
+end
+qE    = spm_log(E);
 
 
 % prior preferences (log probabilities) : C
@@ -577,8 +587,8 @@ for t = 1:T
         
         % posterior and prior beliefs about policies
         %------------------------------------------------------------------
-        qu = spm_softmax(gu(t)*Q(p) + F(p));
-        pu = spm_softmax(gu(t)*Q(p));
+        qu = spm_softmax(qE(p) + gu(t)*Q(p) + F(p));
+        pu = spm_softmax(qE(p) + gu(t)*Q(p));
         
         % precision (gu) with free energy gradients (v = -dF/dw)
         %------------------------------------------------------------------

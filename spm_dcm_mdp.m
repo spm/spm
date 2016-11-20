@@ -6,15 +6,15 @@ function [DCM] = spm_dcm_mdp(DCM)
 %--------------------------------------------------------------------------
 % DCM.MDP	% MDP structure specifying a generative model
 % DCM.field	% parameter (field) names to optimise
-% DCM.U	% cell array of outcomes (stimuli)
-% DCM.Y	% cell array of responses (action)
+% DCM.U	    % cell array of outcomes (stimuli)
+% DCM.Y	    % cell array of responses (action)
 %
 % Returns:
 %--------------------------------------------------------------------------
-% DCM.M	% generative model (DCM)
+% DCM.M     % generative model (DCM)
 % DCM.Ep	% Conditional means (structure)
 % DCM.Cp	% Conditional covariances
-% DCM.F	% (negative) Free-energy bound on log evidence
+% DCM.F     % (negative) Free-energy bound on log evidence
 % 
 % This routine inverts (cell arrays of) trials specified in terms of the
 % stimuli or outcomes and subsequent choices or responses. It first
@@ -35,7 +35,7 @@ function [DCM] = spm_dcm_mdp(DCM)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mdp.m 6705 2016-01-31 13:06:48Z karl $
+% $Id: spm_dcm_mdp.m 6938 2016-11-20 12:48:07Z karl $
 
 % OPTIONS
 %--------------------------------------------------------------------------
