@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 6137 2014-08-19 12:43:11Z john $ */
+/* $Id: shoot_diffeo3d.c 6943 2016-11-21 16:28:57Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <mex.h>
@@ -633,7 +633,7 @@ void push(mwSize dm[], mwSize m, mwSize n, float def[], float pf[], float po[], 
     {
         double x, y, z;
 
-        if (mxIsFinite(pf[i]))
+        if (mxIsFinite(pf[i]) && mxIsFinite(px[i]) && mxIsFinite(py[i]) && mxIsFinite(pz[i]))
         {
             x    = px[i]-1.0; /* Subtract 1 because of MATLAB indexing */
             y    = py[i]-1.0;
@@ -826,7 +826,7 @@ void pushc(mwSize dm[], mwSize m, mwSize n, float def[], float pf[], float po[],
     {
         double x, y, z;
 
-        if (mxIsFinite(pf[i]))
+        if (mxIsFinite(pf[i]) && mxIsFinite(px[i]) && mxIsFinite(py[i]) && mxIsFinite(pz[i]))
         {
             mwSize o000, o100, o010, o110, o001, o101, o011, o111;
             float w000, w100, w010, w110, w001, w101, w011, w111;
@@ -949,7 +949,7 @@ void pushc_grads(mwSize dmo[], mwSize dm[], float def[], float J[], float pf[], 
 
             for(i0=0; i0<dm[0]; i0++, i++, px++, py++, pz++)
             {
-                if (mxIsFinite(pf[i]))
+                if (mxIsFinite(pf[i]) && mxIsFinite(px[i]) && mxIsFinite(py[i]) && mxIsFinite(pz[i]))
                 {
                     mwSize j, tmpz, tmpy;
                     mwSize o000, o100, o010, o110, o001, o101, o011, o111;
