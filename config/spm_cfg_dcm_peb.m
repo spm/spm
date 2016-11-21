@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_dcm_peb.m 6941 2016-11-21 09:59:59Z vladimir $
 
 
 %==========================================================================
@@ -732,7 +732,7 @@ function [GCM,gcm_file] = load_dcm(job)
 %==========================================================================
 % Load and validate selected model space
 
-gcm_file = job.model_space_mat{1};
+gcm_file = char(job.model_space_mat);
 GCM      = load(gcm_file);
 if ~isfield(GCM,'GCM')
     error('Provided file is not a valid model space.');
