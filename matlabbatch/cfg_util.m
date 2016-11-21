@@ -423,9 +423,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 6460 2015-05-28 08:30:28Z volkmar $
+% $Id: cfg_util.m 6942 2016-11-21 13:17:44Z guillaume $
 
-rev = '$Rev: 6460 $';
+rev = '$Rev: 6942 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -1440,7 +1440,7 @@ if isdeployed
     cfg_mlbatch_appcfg_master;
     [c0, jobs] = cfg_util_persistent;
 else
-    appcfgs = which('cfg_mlbatch_appcfg','-all');
+    appcfgs = cellstr(which('cfg_mlbatch_appcfg','-all'));
     cwd = pwd;
     dirs = cell(size(appcfgs));
     for k = 1:numel(appcfgs)

@@ -3,7 +3,7 @@ function fieldmap = tbx_cfg_fieldmap
 %__________________________________________________________________________
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_fieldmap.m 6501 2015-07-17 14:32:09Z spm $
+% $Id: tbx_cfg_fieldmap.m 6942 2016-11-21 13:17:44Z guillaume $
 
 
 addpath(fullfile(spm('dir'),'toolbox','FieldMap'));
@@ -134,17 +134,16 @@ pad.def     = @(val)pm_get_defaults('PAD', val{:});
 %--------------------------------------------------------------------------
 % ws Weighted smoothing
 %--------------------------------------------------------------------------
-ws         = cfg_menu;
-ws.tag     = 'ws';
-ws.name    = 'Weighted smoothing';
-ws.help    = {'Select normal or weighted smoothing.'};
+ws        = cfg_menu;
+ws.tag    = 'ws';
+ws.name   = 'Weighted smoothing';
+ws.help   = {'Select normal or weighted smoothing.'};
 ws.labels = {
              'Weighted Smoothing'
              'No weighted smoothing'
 }';
-ws.values{1} = 1;
-ws.values{2} = 0;
-ws.def     = @(val)pm_get_defaults('WS', val{:});
+ws.values = {1 0};
+ws.def    = @(val)pm_get_defaults('WS', val{:});
 
 %--------------------------------------------------------------------------
 % uflags uflags

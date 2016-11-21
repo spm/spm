@@ -29,9 +29,7 @@ function [pE,pC,x] = spm_dcm_fnirs_priors(DCM)
 %    modelling for functional near-infrared spectroscopy. 
 %    Neuroimage 111: 338-349, 2015. 
 %
-% This script is based on spm_dcm_fmri_priors.m written by 
-% Karl Friston
-% $Id: spm_dcm_fnirs_priors.m 6754 2016-03-25 06:44:58Z will $
+% This script is based on spm_dcm_fmri_priors.m written by Karl Friston.
 % 
 % In this script, optics priors are added, prior covariance of A is changed, 
 % prior for extended Balloon model (viscoelastic time constant) is added. 
@@ -39,7 +37,7 @@ function [pE,pC,x] = spm_dcm_fnirs_priors(DCM)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_dcm_fnirs_priors.m 6754 2016-03-25 06:44:58Z will $
+% $Id: spm_dcm_fnirs_priors.m 6942 2016-11-21 13:17:44Z guillaume $
 
 % Unpack
 %--------------------------------------------------------------------------

@@ -26,7 +26,7 @@ function D = spm_eeg_fix_ctf_headloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_fix_ctf_headloc.m 6663 2016-01-08 16:45:32Z vladimir $
+% $Id: spm_eeg_fix_ctf_headloc.m 6942 2016-11-21 13:17:44Z guillaume $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Fix CTF head locations',0);
@@ -248,8 +248,6 @@ function [grad] = ctf2grad(hdr, dewar)
 %
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
-%
-% $Id: spm_eeg_fix_ctf_headloc.m 6663 2016-01-08 16:45:32Z vladimir $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels

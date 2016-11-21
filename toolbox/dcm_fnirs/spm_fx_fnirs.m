@@ -37,13 +37,12 @@ function [f] = spm_fx_fnirs(x,u,P,M)
 %    Neuroimage 49:3039-3046, 2010.
 %
 % This script is based on spm_fx_fmri.m written by 
-% Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fnirs.m 6826 2016-07-04 10:39:39Z will $
+% Karl Friston & Klaas Enno Stephan.
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_fx_fnirs.m 6826 2016-07-04 10:39:39Z will $
+% $Id: spm_fx_fnirs.m 6942 2016-11-21 13:17:44Z guillaume $
 
 % Neuronal motion
 %==========================================================================

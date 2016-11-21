@@ -53,15 +53,13 @@ function [DCM] = spm_dcm_fnirs_estimate(P)
 % DCM.BIC                            % Bayesian Information criterion
 %
 % Note: This code 
-% (i) shows best results with spm_nlsi_GN.m (version 6481):
-% Karl Friston $Id: spm_dcm_fnirs_estimate.m 6754 2016-03-25 06:44:58Z will $
-% (ii) is based on spm_dcm_estimate.m:
-% Karl Friston $Id: spm_dcm_fnirs_estimate.m 6754 2016-03-25 06:44:58Z will $
+% (i) shows best results with spm_nlsi_GN.m (version 6481),
+% (ii) is based on spm_dcm_estimate.m by Karl Friston.
 %__________________________________________________________________________
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_dcm_fnirs_estimate.m 6754 2016-03-25 06:44:58Z will $
+% $Id: spm_dcm_fnirs_estimate.m 6942 2016-11-21 13:17:44Z guillaume $
 
 %--------------------------------------------------------------------------
 %-Load DCM structure

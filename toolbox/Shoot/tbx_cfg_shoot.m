@@ -1,7 +1,7 @@
 function shoot = tbx_cfg_shoot
 % MATLABBATCH Configuration file for toolbox 'Shoot Tools'
 
-% $Id: tbx_cfg_shoot.m 6928 2016-11-10 12:26:47Z john $
+% $Id: tbx_cfg_shoot.m 6942 2016-11-21 13:17:44Z guillaume $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Shoot')); end
 
@@ -207,7 +207,7 @@ images.num     = [1 Inf];
 interp         = cfg_menu;
 interp.tag     = 'interp';
 interp.name    = 'Interpolation';
-interp.val{1} = double(1);
+interp.val     = {1};
 interp.help    = {
                   'The method by which the images are sampled when being written in a different space.'
                   '    Nearest Neighbour:          - Fastest, but not normally recommended.'

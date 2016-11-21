@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2016 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 6753 2016-03-24 20:30:28Z guillaume $
+% $Id: spm_defaults.m 6942 2016-11-21 13:17:44Z guillaume $
 
 
 global defaults
@@ -208,7 +208,7 @@ if exist(user_defaults,'file')
     if isdeployed && exist(fullfile(spm('Dir'),user_defaults),'file')
         user_defaults_file = cellstr(fullfile(spm('Dir'),user_defaults));
     else
-        user_defaults_file = which(user_defaults,'-ALL');
+        user_defaults_file = cellstr(which(user_defaults,'-ALL'));
     end
     for i=1:numel(user_defaults_file)
         try

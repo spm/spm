@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 6675 2016-01-12 18:22:29Z guillaume $
+% $Id: spm_check_installation.m 6942 2016-11-21 13:17:44Z guillaume $
 
 if isdeployed, return; end
 
@@ -164,11 +164,19 @@ disp( '\__ \ )___/ )    (   Statistical Parametric Mapping          ' );
 disp(['(___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm/ ']);
 fprintf('\n');
 
+%-
+%-------------------------------------------------------------------------------
+if exist('OCTAVE_VERSION','builtin')
+    software = 'Octave';
+else
+    software = 'MATLAB';
+end
+
 %-Detect SPM directory
 %--------------------------------------------------------------------------
-SPMdir = which('spm.m','-ALL');
+SPMdir = cellstr(which('spm.m','-ALL'));
 if isempty(SPMdir)
-    fprintf('SPM is not in your MATLAB path.\n');
+    fprintf('SPM is not in your %s path.\n',software);
     return;
 elseif numel(SPMdir) > 1
     fprintf('SPM seems to appear in several different folders:\n');
@@ -222,9 +230,9 @@ fprintf('\n');
 
 %-Detect MATLAB & toolboxes
 %--------------------------------------------------------------------------
-fprintf('MATLAB is installed in: %s\n',matlabroot);
-fprintf('MATLAB version is %s\n',version);
-fprintf('MATLAB toolboxes: '); hastbx = false;
+fprintf('%s is installed in: %s\n',software,matlabroot);
+fprintf('%s version is %s\n',software,version);
+fprintf('%s toolboxes: ',software); hastbx = false;
 if license('test','signal_toolbox') && ~isempty(ver('signal'))
     vtbx = ver('signal'); hastbx = true;
     fprintf('signal (v%s) ',vtbx.Version);
@@ -257,8 +265,13 @@ elseif ismac
     else
         platform = system_dependent('getos');
     end
-else    
-   platform = system_dependent('getos');
+else
+   try
+       platform = system_dependent('getos');
+   catch
+       [dummy, platform] = system('uname -sr');
+       platform = deblank(platform);
+   end
 end
 fprintf('OS: %s\n', platform);
 
@@ -283,10 +296,12 @@ fprintf(' (%dbit)\n', get(0,'ScreenDepth'));
 
 %-Detect OpenGL rendering
 %--------------------------------------------------------------------------
-S =  opengl('data');
-fprintf('OpenGL version: %s',S.Version);
-if S.Software, fprintf('(Software)\n'); else fprintf('(Hardware)\n'); end
-fprintf('OpenGL renderer: %s (%s)\n',S.Vendor,S.Renderer);
+if strcmpi(software,'matlab')
+    S =  opengl('data');
+    fprintf('OpenGL version: %s',S.Version);
+    if S.Software, fprintf('(Software)\n'); else fprintf('(Hardware)\n'); end
+    fprintf('OpenGL renderer: %s (%s)\n',S.Vendor,S.Renderer);
+end
 
 %-Detect MEX setup
 %--------------------------------------------------------------------------
@@ -514,7 +529,7 @@ for i=1:length(f)
     else l(end+1) = info;
     end
     if isempty(r) && strcmp(ext,'.m')
-        w = which(f{i},'-ALL');
+        w = cellstr(which(f{i},'-ALL'));
         if numel(w) > 1 && ~strcmpi(f{i},'Contents.m')
             if ~dispw, fprintf('\n'); end
             dispw = true;
@@ -556,7 +571,7 @@ str = char(str(:)');
 r = regexp(str,['\$Id: (?<file>\S+) (?<id>[0-9]+) (?<date>\S+) ' ...
                 '(\S+Z) (?<author>\S+) \$'],'names');
                 
-if isempty(r)
+if isempty(r) || isempty(r(1).file)
     %sts = false;
     %fprintf('\n%s has no SVN Id.\n',f);
 else

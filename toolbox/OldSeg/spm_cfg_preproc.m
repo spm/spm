@@ -3,7 +3,7 @@ function preproc = spm_cfg_preproc
 %______________________________________________________________________
 % Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_preproc.m 6894 2016-09-30 16:48:46Z spm $
+% $Id: spm_cfg_preproc.m 6942 2016-11-21 13:17:44Z guillaume $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','OldSeg')); end
 
@@ -275,9 +275,9 @@ samp.def     = @(val)spm_get_defaults('old.preproc.samp', val{:});
 msk         = cfg_files;
 msk.tag     = 'msk';
 msk.name    = 'Masking image';
-msk.val{1} = {''};
+msk.val     = {{''}};
 msk.help    = {'The segmentation can be masked by an image that conforms to the same space as the images to be segmented.  If an image is selected, then it must match the image(s) voxel-for voxel, and have the same voxel-to-world mapping.  Regions containing a value of zero in this image do not contribute when estimating the various parameters. '};
-msk.filter = 'image';
+msk.filter  = 'image';
 msk.ufilter = '.*';
 msk.num     = [0 1];
 % ---------------------------------------------------------------------
