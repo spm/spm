@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 6437 2015-05-14 12:27:21Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 6944 2016-11-22 10:16:09Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -705,6 +705,7 @@ switch varargin{1}
                     end
                     xlim0               = get(handles.axes,'xlim');
                     if ~isequal(xlim0,[1 D.nsamples])
+                        length_window = round(xlim0(2)-xlim0(1));
                         if offset < round(0.5*length_window)
                             offset      = round(0.5*length_window);
                             set(handles.BUTTONS.slider_step,'value',1);
