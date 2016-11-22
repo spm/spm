@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 6943 2016-11-21 16:28:57Z john $ */
+/* $Id: shoot_diffeo3d.c 6945 2016-11-22 10:29:18Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <mex.h>
@@ -949,7 +949,7 @@ void pushc_grads(mwSize dmo[], mwSize dm[], float def[], float J[], float pf[], 
 
             for(i0=0; i0<dm[0]; i0++, i++, px++, py++, pz++)
             {
-                if (mxIsFinite(pf[i]) && mxIsFinite(px[i]) && mxIsFinite(py[i]) && mxIsFinite(pz[i]))
+                if (mxIsFinite(pf[i]) && mxIsFinite(*px) && mxIsFinite(*py) && mxIsFinite(*pz))
                 {
                     mwSize j, tmpz, tmpy;
                     mwSize o000, o100, o010, o110, o001, o101, o011, o111;
