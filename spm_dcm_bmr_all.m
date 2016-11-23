@@ -17,19 +17,21 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 %
 % Returns:
 %
-% DCM      - Bayesian Model Average (BMA) over models in the final
-%            iteration of the search:
+% DCM - Bayesian Model Average (BMA) over models in the final iteration of 
+%       the search:
 %
-%  DCM.Ep     - (BMA) posterior expectation
-%  DCM.Cp     - (BMA) posterior covariance
+%       DCM.Ep    - (BMA) posterior expectation
+%       DCM.Cp    - (BMA) posterior covariance
 %
 % BMR -  (Nsub) summary structure reporting the model space from the last
 %        iteration of the search:
 %
-%        BMR.name - character/cell array of DCM filenames
-%        BMR.F    - their associated free energies
+%        BMR.name - character/cell array of parameter names
+%        BMR.F    - free energies (relative to full model)
 %        BMR.P    - and posterior (model) probabilities
 %        BMR.K    - [models x parameters] model space (1 = off, 2 = on)
+%        BMR.bma  - cell array of each model's parameters and optimised 
+%                   model evidences used to calculate the BMA
 %
 % BMA - Baysian model average (see spm_dcm_bma)
 %
@@ -58,7 +60,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 6915 2016-11-01 17:38:08Z peter $
+% $Id: spm_dcm_bmr_all.m 6946 2016-11-23 15:26:29Z peter $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -262,6 +264,9 @@ for i = 1:length(K)
         BMA{end + 1} = struct('Ep',Ep,'Cp',Cp,'F',F);
     end
 end
+
+BMR.bma = BMA;
+
 BMA   = spm_dcm_bma(BMA);
 
 Ep    = BMA.Ep;

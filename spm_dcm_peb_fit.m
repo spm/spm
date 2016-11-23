@@ -9,6 +9,8 @@ function [DCM,PEB,M,HCM] = spm_dcm_peb_fit(GCM,M,field)
 %     DCM{i}.Ep   - posterior expectations
 %     DCM{i}.Cp   - posterior covariance
 %     DCM{i}.FEB  - free energy over empirical Bayes iterations
+%     DCM{i}.EEB  - second level log-precisions over iterations
+%     DCM{i}.HEB  - conditional entropy (uncertainty) over iterations
 %
 % M.X    - second level design matrix, where X(:,1) = ones(N,1) [default]
 % M.pE   - second level prior expectation of parameters
@@ -70,7 +72,7 @@ function [DCM,PEB,M,HCM] = spm_dcm_peb_fit(GCM,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_fit.m 6532 2015-08-23 13:59:19Z karl $
+% $Id: spm_dcm_peb_fit.m 6946 2016-11-23 15:26:29Z peter $
 
 
 % set up

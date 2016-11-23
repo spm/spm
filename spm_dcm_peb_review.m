@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 6936 2016-11-16 16:18:44Z peter $
+% $Id: spm_dcm_peb_review.m 6946 2016-11-23 15:26:29Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -189,14 +189,22 @@ end
 % -------------------------------------------------------------------------
 if display_threshold
     
+    % BMA from spm_dcm_peb_bmc only has probabilities for parameters which
+    % differed across models. Get the original indices of these parameters.
+    if isfield(PEB,'Pw') || isfield(PEB,'Px') && isfield(PEB.K)
+        k = find(any(~PEB.K));        
+    end
+    
     if threshold_method_idx == 1
         % Threshold on posterior probability
         T  = 0;
         Pp = 1 - spm_Ncdf(T,abs(Ep),Cp);
     elseif isfield(PEB,'Pw') && effect == 1
-        Pp = PEB.Pw;
+        Pp    = zeros(size(Ep,1),1);
+        Pp(k) = PEB.Pw(:);
     elseif isfield(PEB,'Px') && effect == 2
-        Pp = PEB.Px;
+        Pp    = zeros(size(Ep,1),1);
+        Pp(k) = PEB.Px;
     elseif isfield(PEB,'Pp')
         Pp = PEB.Pp(peb_param_idx);
     else

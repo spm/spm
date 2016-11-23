@@ -1,4 +1,4 @@
-function [BMA] = spm_dcm_peb_bmc(PEB,models)
+function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models)
 % hierarchical (PEB) model comparison and averaging (2nd level)
 % FORMAT [BMA] = spm_dcm_peb_bmc(PEB,models)
 % FORMAT [BMA] = spm_dcm_peb_bmc(PEB)
@@ -24,7 +24,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % will be tested.
 %
 % BMA    - DCM structure of Bayesian model average
-% -------------------------------------------------------------
+% -------------------------------------------------------------------------
 %     BMA.Snames - string array of first level model names
 %     BMA.Pnames - string array of parameters of interest
 %
@@ -37,8 +37,23 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 %     BMA.Px   - posterior probability over parameters (differences)
 %     BMA.Pw   - posterior probability over parameters (common)
 %     BMA.K    - model space
-% or
-%     BMA.K    - posterior probability with and without each parameter
+%
+% or for automatic model search, see spm_dcm_bmr_all.m (output: DCM)
+%
+% BMR   - Parameters and evidence of reduced models which produced the BMA
+% -------------------------------------------------------------------------
+%     BMR{i,j}    - model i of commonalities and j of group differences
+%     BMR{i,j}.Ep - expectations of second level parameters
+%     BMR{i,j}.Cp - covariance of second level parameters
+%     BMR{i,j}.F  - free energy relative to full model
+%
+% or for automatic model search:
+%
+%     BMR.name   - parameter names
+%     BMR.F      - free energy relative to full model
+%     BMR.P      - and posterior (model) probabilities
+%     BMR.K      - [models x parameters] model space (1 = off, 2 = on)
+%     BMR.bma{i} - Model i which contributed to the BMA (Ep,Cp,F)
 %
 %--------------------------------------------------------------------------
 % This routine performs Bayesian model comparison averaging of second
@@ -76,7 +91,7 @@ function [BMA] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6882 2016-09-19 12:14:50Z peter $
+% $Id: spm_dcm_peb_bmc.m 6946 2016-11-23 15:26:29Z peter $
 
 % checks
 %--------------------------------------------------------------------------
@@ -90,7 +105,7 @@ if nargin < 2
     
     % greedy search and (second level) Bayesian model average
     %----------------------------------------------------------------------
-    [BMA,x,bma]  = spm_dcm_bmr_all(PEB);
+    [BMA,BMR,bma]  = spm_dcm_bmr_all(PEB);
        
     % plot posteriors over parameters
     %======================================================================
@@ -195,10 +210,6 @@ K         = K(sort(i),:);
 % check number of models
 %--------------------------------------------------------------------------
 i = find(any(~K),1);
-if (Nm > 32 && Nx > 1) || (Nm > 1024 && Nx < 2)
-    warndlg('please reduce the size of your model space')
-    return
-end
 if isempty(i)
     warndlg('your model space is empty')
     return
@@ -325,6 +336,9 @@ BMA.Ce    = PEB.Ce;
 BMA.Ch    = PEB.Ch;
 BMA.Eh    = PEB.Eh;
 
+% Show results
+%==========================================================================
+
 % get name of covariate 2 (differences)
 %--------------------------------------------------------------------------
 if Nx > 1 && isfield(PEB,'Xnames') && ~isempty(PEB.Xnames)
@@ -333,8 +347,6 @@ else
     xname = 'Differences';
 end
 
-% Show results
-%==========================================================================
 if spm_get_defaults('cmdline'), return; end
 
 spm_figure('Getwin','BMC'); clf
