@@ -3,7 +3,7 @@ function tests = test_spm_jsonwrite
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_jsonwrite.m 6863 2016-08-30 14:56:27Z guillaume $
+% $Id: test_spm_jsonwrite.m 6947 2016-11-23 16:12:12Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -28,6 +28,6 @@ act = spm_jsonread(spm_jsonwrite(exp));
 testCase.verifyTrue(isequal(act, struct('exp',exp)));
 
 str = reshape(1:9,3,3);
-exp = '{"str":[[1,4,7],[2,5,8],[3,6,9]]}';
-act = spm_jsonwrite(str);
+exp = spm_jsonread('{"str":[[1,4,7],[2,5,8],[3,6,9]]}');
+act = spm_jsonread(spm_jsonwrite(str));
 testCase.verifyTrue(isequal(act, exp));

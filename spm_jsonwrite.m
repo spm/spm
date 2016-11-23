@@ -7,6 +7,10 @@ function varargout = spm_jsonwrite(varargin)
 % FORMAT S = spm_jsonwrite(json)
 % json     - JSON structure
 % S        - serialized JSON structure (string)
+%
+% FORMAT [...] = spm_jsonwrite(...,opts)
+% opts     - structure of optional parameters:
+%              compact: compact vs pretty-print formatting [true]
 % 
 % References:
 %   JSON Standard: http://www.json.org/
@@ -14,19 +18,35 @@ function varargout = spm_jsonwrite(varargin)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 6927 2016-11-10 10:39:52Z guillaume $
+% $Id: spm_jsonwrite.m 6947 2016-11-23 16:12:12Z guillaume $
 
 
 %-Input parameters
 %--------------------------------------------------------------------------
+opts         = struct('compact',true);
+opt          = struct([]);
 if nargin > 1
-    filename = varargin{1};
-    json     = varargin{2};
-    root     = inputname(2);
+    if ischar(varargin{1})
+        filename = varargin{1};
+        json     = varargin{2};
+        root     = inputname(2);
+    else
+        filename = '';
+        json = varargin{1};
+        opt  = varargin{2};
+        root = inputname(1);
+    end
+    if nargin > 2
+        opt  = varargin{3};
+    end
 else
     filename = '';
     json     = varargin{1};
     root     = inputname(1);
+end
+fn = fieldnames(opt);
+for i=1:numel(fn)
+    opts.(fn{i}) = opt.(fn{i});
 end
 
 %-JSON serialization
@@ -38,7 +58,8 @@ if ~isstruct(json) && ~iscell(json) && ~isa(json,'containers.Map')
         error('Invalid JSON structure.');
     end
 end
-S = jsonwrite_var(json,0); % 0 or NaN
+if opts.compact, tab = NaN; else tab = 0; end
+S = jsonwrite_var(json,tab);
 
 %-Output
 %--------------------------------------------------------------------------
