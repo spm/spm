@@ -1,4 +1,4 @@
-function varargout = spm_changepath(Sf, oldp, newp)
+function varargout = spm_changepath(Sf, oldp, newp, verbose)
 % Recursively replace all occurences of a text pattern in a MATLAB variable.
 % FORMAT S = spm_changepath(Sf, oldp, newp)
 %
@@ -15,10 +15,10 @@ function varargout = spm_changepath(Sf, oldp, newp)
 % If MAT filenames are specified, they will be overwritten with the new
 % version. A backup of the initial version is made with a ".old" suffix.
 %__________________________________________________________________________
-% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_changepath.m 6416 2015-04-21 15:34:10Z guillaume $
+% $Id: spm_changepath.m 6948 2016-11-24 10:34:01Z guillaume $
 
 
 %-Input arguments
@@ -33,6 +33,10 @@ end
 
 if nargin <= 2
     newp = spm_input('New pattern','+1','s');
+end
+
+if nargin <= 3
+    verbose = true;
 end
 
 %-Replace pattern in given MAT-files
@@ -52,20 +56,20 @@ if ischar(Sf)
         catch
             error('Cannot load "%s".',f);
         end
-        tmp = changepath(S,oldp,newp);
+        tmp = changepath(S,oldp,newp,verbose);
         if ~isequalwithequalnans(tmp,S)
-            fprintf('=> Fixing %s\n',f);
+            if verbose, fprintf('=> Fixing %s\n',f); end
             [sts, msg] = movefile(f,[f '.old']);
             if ~sts, error(msg); end
             save(f ,'-struct','tmp', spm_get_defaults('mat.format'));
         end
     end
 else
-    varargout = { changepath(Sf,oldp,newp) };
+    varargout = { changepath(Sf,oldp,newp,verbose) };
 end
 
 %==========================================================================
-function S = changepath(S,oldp,newp)
+function S = changepath(S,oldp,newp,verbose)
 
 check = false;
 
@@ -75,14 +79,14 @@ switch class(S)
     
     case 'cell'
         for i=1:numel(S)
-            S{i} = changepath(S{i},oldp,newp);
+            S{i} = changepath(S{i},oldp,newp,verbose);
         end
         
     case 'struct'
         for i=1:numel(S)
             fn = fieldnames(S);
             for j=1:length(fn)
-                S(i).(fn{j}) = changepath(S(i).(fn{j}),oldp,newp);
+                S(i).(fn{j}) = changepath(S(i).(fn{j}),oldp,newp,verbose);
             end
         end
         
@@ -103,7 +107,7 @@ switch class(S)
                 else
                     sts = '';
                 end
-                fprintf('%s%s\n',t,sts);
+                if verbose, fprintf('%s%s\n',t,sts); end
             end
             tmp{i} = t;
         end
@@ -111,16 +115,16 @@ switch class(S)
     
     case 'nifti'
         for i=1:numel(S)
-            S(i).dat = changepath(S(i).dat,oldp,newp);
+            S(i).dat = changepath(S(i).dat,oldp,newp,verbose);
         end
     
     case 'file_array'
-        S.fname = changepath(S.fname,oldp,newp);
+        S.fname = changepath(S.fname,oldp,newp,verbose);
         
     case 'gifti'
         if isfield(S,'cdata') && isa(S.cdata,'file_array')
             fa = struct(S.cdata);
-            fa.fname = changepath(fa.fname,oldp,newp);
+            fa.fname = changepath(fa.fname,oldp,newp,verbose);
             S.cdata = file_array(fa);
         end
         
