@@ -1,10 +1,11 @@
 function fmri = spm_cfg_dcm_fmri
 % SPM Configuration file for DCM for fMRI
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_fmri.m 6925 2016-11-09 17:23:40Z guillaume $
+% $Id: spm_cfg_dcm_fmri.m 6952 2016-11-25 16:03:13Z guillaume $
+
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -93,7 +94,7 @@ model      = cfg_branch;
 model.tag  = 'model';
 model.name = 'Model';
 model.val  = {dcmmat};
-model.help = {'Corresponding model for each subject'};
+model.help = {'Corresponding model for each subject.'};
 
 % -------------------------------------------------------------------------
 % subjects Create set of models
@@ -102,7 +103,7 @@ models        = cfg_repeat;
 models.tag    = 'models';
 models.name   = 'Per model';
 models.values = {model};
-models.help   = {'Select DCM.mat files per model'};
+models.help   = {'Select DCM.mat files per model.'};
 models.num    = [1 Inf];
 
 % -------------------------------------------------------------------------
@@ -112,7 +113,7 @@ regions      = cfg_exbranch;
 regions.tag  = 'regions';
 regions.name = 'Region specification';
 regions.val  = { dcmmat voimat };
-regions.help = {'Insert new regions into a DCM model. '...
+regions.help = {'Insert new regions into a DCM model.'...
     '' ...
     'The RT is assumed to be the same as before. '...
     ''...
@@ -129,7 +130,7 @@ inputs      = cfg_exbranch;
 inputs.tag  = 'inputs';
 inputs.name = 'Input specification';
 inputs.val  = { dcmmat spmmat session inp };
-inputs.help = {'Insert new inputs into a DCM model'...
+inputs.help = {'Insert new inputs into a DCM model.'...
     ''...
     ['This functionality can be used, for example, to replace subject X''s '...
     'inputs by subject Y''s. The model can then be re-estimated without '...

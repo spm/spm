@@ -1,10 +1,10 @@
 function bms = spm_cfg_bms_map
 % Configuration file for BMS interface
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms_map.m 6004 2014-05-21 14:24:14Z guillaume $
+% $Id: spm_cfg_bms_map.m 6952 2016-11-25 16:03:13Z guillaume $
 
 %--------------------------------------------------------------------------
 % dir Directory
@@ -269,7 +269,7 @@ bms_map_inf      = cfg_exbranch;
 bms_map_inf.tag  = 'inference';
 bms_map_inf.name = 'BMS: Maps (Inference)';
 bms_map_inf.val  = {dir map name_mod method_maps out_file mask nsamp };
-bms_map_inf.help = {'Bayesian Model Selection for Log-Evidence Maps. '...
+bms_map_inf.help = {'Bayesian Model Selection for Log-Evidence Maps.'...
     ''...
     ['Input: log-evidence maps for each model, session and '...
     'subject. Note that there must be identical numbers of models for '...
@@ -295,7 +295,7 @@ bms_map_vis      = cfg_exbranch;
 bms_map_vis.tag  = 'results';
 bms_map_vis.name = 'BMS: Maps (Results)';
 bms_map_vis.val  = {file img thres k scale};
-bms_map_vis.help = {['Bayesian Model Selection Maps (Results). '...
+bms_map_vis.help = {['Bayesian Model Selection Maps (Results).'...
                     'Show results from BMS Maps (Inference).']};
 bms_map_vis.prog = @spm_run_bms_vis;
 

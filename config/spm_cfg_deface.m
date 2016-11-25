@@ -1,10 +1,10 @@
 function job = spm_cfg_deface
 % SPM Configuration file for toolbox 'De-Face'
 %__________________________________________________________________________
-% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deface.m 6086 2014-07-03 16:08:44Z guillaume $
+% $Id: spm_cfg_deface.m 6952 2016-11-25 16:03:13Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -25,8 +25,10 @@ job       = cfg_exbranch;
 job.tag   = 'deface';
 job.name  = 'De-face Images';
 job.val   = {images};
-job.help  = {'This is a little routine for attempting to strip the face from images, so individuals are more difficult to identify from surface renderings.',...
-             'De-faced images are prefixed by ''anon_''.'};
+job.help  = {
+    'Strip the face from images, so individuals are more difficult to identify from surface renderings.'
+    'De-faced images are prefixed by ''anon_''.'
+    }';
 job.prog  = @spm_deface;
 job.vout  = @vout;
 

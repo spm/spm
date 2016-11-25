@@ -3,7 +3,7 @@ function dicom = spm_cfg_dicom
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_dicom.m 6376 2015-03-12 15:15:57Z john $
+% $Id: spm_cfg_dicom.m 6952 2016-11-25 16:03:13Z guillaume $
 
 % ---------------------------------------------------------------------
 % data DICOM files
@@ -98,7 +98,10 @@ dicom          = cfg_exbranch;
 dicom.tag      = 'dicom';
 dicom.name     = 'DICOM Import';
 dicom.val      = {data root outdir protfilter convopts};
-dicom.help     = {'DICOM Conversion.  Most scanners produce data in DICOM format. This routine attempts to convert DICOM files into SPM compatible image volumes, which are written into the current directory by default. Note that not all flavours of DICOM can be handled, as DICOM is a very complicated format, and some scanner manufacturers use their own fields, which are not in the official documentation at http://medical.nema.org/'};
+dicom.help     = {
+    'DICOM Conversion.'
+    'Most scanners produce data in DICOM format. This routine attempts to convert DICOM files into SPM compatible image volumes, which are written into the current directory by default. Note that not all flavours of DICOM can be handled, as DICOM is a very complicated format, and some scanner manufacturers use their own fields, which are not in the official documentation at http://medical.nema.org/'
+    }';
 dicom.prog     = @spm_run_dicom;
 dicom.vout     = @vout;
 % ---------------------------------------------------------------------

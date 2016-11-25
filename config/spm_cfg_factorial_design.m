@@ -1,10 +1,10 @@
 function factorial_design = spm_cfg_factorial_design
 % SPM Configuration file for second-level models
 %__________________________________________________________________________
-% Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 6929 2016-11-14 13:07:31Z guillaume $
+% $Id: spm_cfg_factorial_design.m 6952 2016-11-25 16:03:13Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -1035,14 +1035,15 @@ factorial_design.tag  = 'factorial_design';
 factorial_design.name = 'Factorial design specification';
 factorial_design.val  = {dir des generic generic2 masking globalc globalm};
 factorial_design.help = {
-                         'This interface configures the design matrix, describing the general linear model, data specification, and other parameters necessary for the statistical analysis. These parameters are saved in a configuration file (SPM.mat), which can then be passed on to spm_spm.m which estimates the design. This is achieved by pressing the ''Estimate'' button. Inference on these estimated parameters is then handled by the SPM results section. '
-                         ''
-                         'This interface is used for setting up analyses of PET data, morphometric data, or ''second level'' (''random effects'') fMRI data, where first level models can be used to produce appropriate summary data that are then used as raw data for the second-level analysis. For example, a simple t-test on contrast images from the first-level turns out to be a random-effects analysis with random subject effects, inferring for the population based on a particular sample of subjects.'
-                         ''
-                         'A separate interface handles design configuration for first level fMRI time series.'
-                         ''
-                         'Various data and parameters need to be supplied to specify the design (1) the image files, (2) indicators of the corresponding condition/subject/group (2) any covariates, nuisance variables, or design matrix partitions (3) the type of global normalisation (if any) (4) grand mean scaling options (5) thresholds and masks defining the image volume to analyse. The interface supports a comprehensive range of options for all these parameters.'
-}';
+    'Configuration of the design matrix, describing the general linear model, data specification, and other parameters necessary for the statistical analysis.'
+    'These parameters are saved in a configuration file (SPM.mat), which can then be passed on to spm_spm.m which estimates the design. This is achieved by pressing the ''Estimate'' button. Inference on these estimated parameters is then handled by the SPM results section. '
+    ''
+    'This interface is used for setting up analyses of PET data, morphometric data, or ''second level'' (''random effects'') fMRI data, where first level models can be used to produce appropriate summary data that are then used as raw data for the second-level analysis. For example, a simple t-test on contrast images from the first-level turns out to be a random-effects analysis with random subject effects, inferring for the population based on a particular sample of subjects.'
+    ''
+    'A separate interface handles design configuration for first level fMRI time series.'
+    ''
+    'Various data and parameters need to be supplied to specify the design (1) the image files, (2) indicators of the corresponding condition/subject/group (2) any covariates, nuisance variables, or design matrix partitions (3) the type of global normalisation (if any) (4) grand mean scaling options (5) thresholds and masks defining the image volume to analyse. The interface supports a comprehensive range of options for all these parameters.'
+    }';
 factorial_design.prog = @spm_run_factorial_design;
 factorial_design.vout = @vout_stats;
 

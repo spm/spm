@@ -1,9 +1,9 @@
 function con = spm_cfg_con
 % SPM Configuration file for contrast specification
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_con.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_con.m 6952 2016-11-25 16:03:13Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -422,7 +422,7 @@ consess.num    = [0 Inf];
 delete        = cfg_menu;
 delete.tag    = 'delete';
 delete.name   = 'Delete existing contrasts';
-delete.help   = {''};
+delete.help   = {'Delete existing contrasts.'};
 delete.labels = {'Yes', 'No'};
 delete.values = {1 0};
 delete.val    = {0};
@@ -434,7 +434,7 @@ con      = cfg_exbranch;
 con.tag  = 'con';
 con.name = 'Contrast Manager';
 con.val  = {spmmat consess delete};
-con.help = {'Set up T and F contrasts.'};
+con.help = {'Specify T and F contrasts.'};
 con.prog = @spm_run_con;
 con.vout = @vout_stats;
 

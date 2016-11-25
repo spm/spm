@@ -1,9 +1,9 @@
 function exp_frames = spm_cfg_exp_frames
 % SPM Configuration file for Expand image frames
 %__________________________________________________________________________
-% Copyright (C) 2009-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_exp_frames.m 5956 2014-04-16 14:34:25Z guillaume $
+% $Id: spm_cfg_exp_frames.m 6952 2016-11-25 16:03:13Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ exp_frames      = cfg_exbranch;
 exp_frames.tag  = 'exp_frames';
 exp_frames.name = 'Expand image frames';
 exp_frames.val  = {files frames };
-exp_frames.help = {'Returns a list of image filenames with appended frame numbers.'};
+exp_frames.help = {'Return a list of image filenames with appended frame numbers.'};
 exp_frames.prog = @run_frames;
 exp_frames.vout = @vout_frames;
 

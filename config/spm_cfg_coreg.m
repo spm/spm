@@ -1,9 +1,9 @@
 function coreg = spm_cfg_coreg
 % SPM Configuration file for Coregister
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 6148 2014-09-03 15:49:04Z guillaume $
+% $Id: spm_cfg_coreg.m 6952 2016-11-25 16:03:13Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -49,7 +49,11 @@ other.preview = @(f) spm_check_registration(char(f));
 cost_fun         = cfg_menu;
 cost_fun.tag     = 'cost_fun';
 cost_fun.name    = 'Objective Function';
-cost_fun.help    = {'Registration involves finding parameters that either maximise or minimise some objective function. For inter-modal registration, use Mutual Information/* \cite{collignon95,wells96}*/, Normalised Mutual Information/* \cite{studholme99}*/, or Entropy Correlation Coefficient/* \cite{maes97}*/.For within modality, you could also use Normalised Cross Correlation.'};
+cost_fun.help    = {
+    'Registration involves finding parameters that either maximise or minimise some objective function.'
+    'For inter-modal registration, use Mutual Information/* \cite{collignon95,wells96}*/, Normalised Mutual Information/* \cite{studholme99}*/, or Entropy Correlation Coefficient/* \cite{maes97}*/.'
+    'For within modality, you could also use Normalised Cross Correlation.'
+    }';
 cost_fun.labels  = {
                     'Mutual Information'
                     'Normalised Mutual Information'
@@ -70,7 +74,10 @@ cost_fun.def     = @(val)spm_get_defaults('coreg.estimate.cost_fun', val{:});
 sep         = cfg_entry;
 sep.tag     = 'sep';
 sep.name    = 'Separation';
-sep.help    = {'The average distance between sampled points (in mm).  Can be a vector to allow a coarse registration followed by increasingly fine ones.'};
+sep.help    = {
+    'The average distance between sampled points (in mm).'
+    'Can be a vector to allow a coarse registration followed by increasingly fine ones.'
+    }';
 sep.strtype = 'r';
 sep.num     = [1 Inf];
 sep.def     = @(val)spm_get_defaults('coreg.estimate.sep', val{:});
@@ -81,7 +88,10 @@ sep.def     = @(val)spm_get_defaults('coreg.estimate.sep', val{:});
 tol         = cfg_entry;
 tol.tag     = 'tol';
 tol.name    = 'Tolerances';
-tol.help    = {'The accuracy for each parameter.  Iterations stop when differences between successive estimates are less than the required tolerance.'};
+tol.help    = {
+    'The accuracy for each parameter.'
+    'Iterations stop when differences between successive estimates are less than the required tolerance.'
+    }';
 tol.strtype = 'r';
 tol.num     = [1 12];
 tol.def     = @(val)spm_get_defaults('coreg.estimate.tol', val{:});
@@ -92,7 +102,10 @@ tol.def     = @(val)spm_get_defaults('coreg.estimate.tol', val{:});
 fwhm         = cfg_entry;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'Histogram Smoothing';
-fwhm.help    = {'Gaussian smoothing to apply to the 256x256 joint histogram. Other information theoretic coregistration methods use fewer bins, but Gaussian smoothing seems to be more elegant.'};
+fwhm.help    = {
+    'Gaussian smoothing to apply to the 256x256 joint histogram.'
+    'Other information theoretic coregistration methods use fewer bins, but Gaussian smoothing seems to be more elegant.'
+    }';
 fwhm.strtype = 'r';
 fwhm.num     = [1 2];
 fwhm.def     = @(val)spm_get_defaults('coreg.estimate.fwhm', val{:});
@@ -114,12 +127,14 @@ estimate.tag     = 'estimate';
 estimate.name    = 'Coregister: Estimate';
 estimate.val     = {ref source other eoptions};
 estimate.help    = {
-                    'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
-                    ''
-                    'At the end of coregistration, the voxel-to-voxel affine transformation matrix is displayed, along with the histograms for the images in the original orientations, and the final orientations.  The registered images are displayed at the bottom.'
-                    ''
-                    'Registration parameters are stored in the headers of the "source" and the "other" images.'
-}';
+    'Within-subject registration using a rigid-body model.'
+    ''
+    'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
+    ''
+    'At the end of coregistration, the voxel-to-voxel affine transformation matrix is displayed, along with the histograms for the images in the original orientations, and the final orientations.  The registered images are displayed at the bottom.'
+    ''
+    'Registration parameters are stored in the headers of the "source" and the "other" images.'
+    }';
 estimate.prog = @spm_run_coreg;
 estimate.vout = @vout_estimate;
 
@@ -129,7 +144,7 @@ estimate.vout = @vout_estimate;
 refwrite         = cfg_files;
 refwrite.tag     = 'ref';
 refwrite.name    = 'Image Defining Space';
-refwrite.help    = {'This is analogous to the reference image.  Images are resliced to match this image (providing they have been coregistered first).'};
+refwrite.help    = {'This is analogous to the reference image. Images are resliced to match this image (providing they have been coregistered first).'};
 refwrite.filter  = 'image';
 refwrite.ufilter = '.*';
 refwrite.num     = [1 1];
@@ -153,7 +168,10 @@ source.preview = @(f) spm_check_registration(char(f));
 interp         = cfg_menu;
 interp.tag     = 'interp';
 interp.name    = 'Interpolation';
-interp.help    = {'The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not normally recommended. It can be useful for re-orienting images while preserving the original intensities (e.g. an image consisting of labels). Trilinear Interpolation is OK for PET, or realigned and re-sliced fMRI. If subject movement (from an fMRI time series) is included in the transformations then it may be better to use a higher degree approach. Note that higher degree B-spline interpolation/* \cite{thevenaz00a,unser93a,unser93b}*/ is slower because it uses more neighbours.'};
+interp.help    = {
+    'The method by which the images are sampled when being written in a different space.'
+    'Nearest Neighbour is fastest, but not normally recommended. It can be useful for re-orienting images while preserving the original intensities (e.g. an image consisting of labels). Trilinear Interpolation is OK for PET, or realigned and re-sliced fMRI. If subject movement (from an fMRI time series) is included in the transformations then it may be better to use a higher degree approach. Note that higher degree B-spline interpolation/* \cite{thevenaz00a,unser93a,unser93b}*/ is slower because it uses more neighbours.'
+    }';
 interp.labels  = {
                   'Nearest neighbour'
                   'Trilinear'
@@ -174,10 +192,11 @@ wrap         = cfg_menu;
 wrap.tag     = 'wrap';
 wrap.name    = 'Wrapping';
 wrap.help    = {
-                'These are typically:'
-                '    No wrapping - for PET or images that have already                  been spatially transformed.'
-                '    Wrap in  Y  - for (un-resliced) MRI where phase encoding                  is in the Y direction (voxel space).'
-}';
+    'This indicates which directions in the volumes the values should wrap around in.'
+    'These are typically:'
+    '    No wrapping - for PET or images that have already been spatially transformed.'
+    '    Wrap in  Y  - for (un-resliced) MRI where phase encoding is in the Y direction (voxel space).'
+    }';
 wrap.labels  = {
                 'No wrap'
                 'Wrap X'
@@ -212,7 +231,7 @@ mask.def     = @(val)spm_get_defaults('coreg.write.mask', val{:});
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
-prefix.help    = {'Specify the string to be prepended to the filenames of the resliced image file(s). Default prefix is ''r''.'};
+prefix.help    = {'String to be prepended to the filenames of the resliced image file(s). Default prefix is ''r''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.def     = @(val)spm_get_defaults('coreg.write.prefix', val{:});
@@ -232,8 +251,11 @@ roptions.help    = {'Various reslicing options.'};
 write         = cfg_exbranch;
 write.tag     = 'write';
 write.name    = 'Coregister: Reslice';
-write.val     = {refwrite source roptions };
-write.help    = {'Reslice images to match voxel-for-voxel with an image defining some space. The resliced images are named the same as the originals except that they are prefixed by ''r''.'};
+write.val     = {refwrite source roptions};
+write.help    = {
+    'Reslice images to match voxel-for-voxel with an image defining some space.'
+    'The resliced images are named the same as the originals except that they are prefixed by ''r''.'
+    }';
 write.prog    = @spm_run_coreg;
 write.vout    = @vout_reslice;
 
@@ -255,14 +277,16 @@ source.preview = @(f) spm_image('Display',char(f));
 estwrite      = cfg_exbranch;
 estwrite.tag  = 'estwrite';
 estwrite.name = 'Coregister: Estimate & Reslice';
-estwrite.val  = {ref source other eoptions roptions };
+estwrite.val  = {ref source other eoptions roptions};
 estwrite.help = {
-                 'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
-                 ''
-                 'At the end of coregistration, the voxel-to-voxel affine transformation matrix is displayed, along with the histograms for the images in the original orientations, and the final orientations.  The registered images are displayed at the bottom.'
-                 ''
-                 'Registration parameters are stored in the headers of the "source" and the "other" images. These images are also resliced to match the source image voxel-for-voxel. The resliced images are named the same as the originals except that they are prefixed by ''r''.'
-}';
+    'Within-subject registration using a rigid-body model and image reslicing.'
+    ''
+    'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
+    ''
+    'At the end of coregistration, the voxel-to-voxel affine transformation matrix is displayed, along with the histograms for the images in the original orientations, and the final orientations.  The registered images are displayed at the bottom.'
+    ''
+    'Registration parameters are stored in the headers of the "source" and the "other" images. These images are also resliced to match the source image voxel-for-voxel. The resliced images are named the same as the originals except that they are prefixed by ''r''.'
+    }';
 estwrite.prog = @spm_run_coreg;
 estwrite.vout = @vout_estwrite;
 
@@ -273,10 +297,11 @@ coreg         = cfg_choice;
 coreg.tag     = 'coreg';
 coreg.name    = 'Coregister';
 coreg.help    = {
-                 'Within-subject registration using a rigid-body model. A rigid-body transformation (in 3D) can be parameterised by three translations and three rotations about the different axes.'
-                 ''
-                 'You get the options of estimating the transformation, reslicing images according to some rigid-body transformations, or estimating and applying rigid-body transformations.'
-}';
+    'Within-subject registration using a rigid-body model.'
+    'A rigid-body transformation (in 3D) can be parameterised by three translations and three rotations about the different axes.'
+    ''
+    'You get the options of estimating the transformation, reslicing images according to some rigid-body transformations, or estimating and applying rigid-body transformations.'
+    }';
 coreg.values  = {estimate write estwrite};
 %coreg.num     = [1 Inf];
 

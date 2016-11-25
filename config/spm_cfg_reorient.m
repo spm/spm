@@ -4,7 +4,7 @@ function reorient = spm_cfg_reorient
 % Copyright (C) 2006-2015 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_cfg_reorient.m 6656 2015-12-24 16:49:52Z guillaume $
+% $Id: spm_cfg_reorient.m 6952 2016-11-25 16:03:13Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -114,7 +114,10 @@ reorient      = cfg_exbranch;
 reorient.tag  = 'reorient';
 reorient.name = 'Reorient Images';
 reorient.val  = {srcfiles transform prefix};
-reorient.help = {'This facility allows to reorient images in a batch. The reorientation parameters can be given either as a 4x4 matrix or as parameters as defined for spm_matrix.m. The new image orientation will be computed by PRE-multiplying the original orientation matrix with the supplied matrix.'};
+reorient.help = {
+    'Reorient images given a set of parameters.'
+    'The reorientation parameters can be given either as a 4x4 matrix or as parameters as defined for spm_matrix.m. The new image orientation will be computed by PRE-multiplying the original orientation matrix with the supplied matrix.'
+    }';
 reorient.prog = @spm_run_reorient;
 reorient.vout = @vout;
 

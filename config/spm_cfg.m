@@ -1,36 +1,36 @@
 function spmjobs = spm_cfg
 % SPM Configuration file for MATLABBATCH
 %__________________________________________________________________________
-% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 6711 2016-02-03 15:25:43Z peter $
+% $Id: spm_cfg.m 6952 2016-11-25 16:03:13Z guillaume $
 
 %--------------------------------------------------------------------------
 % Temporal
 %--------------------------------------------------------------------------
-temporal         = cfg_choice;
-temporal.tag     = 'temporal';
-temporal.name    = 'Temporal';
-temporal.help    = {'Temporal pre-processing functions.'};
-temporal.values  = { spm_cfg_st };
+temporal        = cfg_choice;
+temporal.tag    = 'temporal';
+temporal.name   = 'Temporal';
+temporal.help   = {'Temporal pre-processing functions.'};
+temporal.values = { spm_cfg_st };
 
 %--------------------------------------------------------------------------
 % Spatial
 %--------------------------------------------------------------------------
-spatial         = cfg_choice;
-spatial.tag     = 'spatial';
-spatial.name    = 'Spatial';
-spatial.help    = {'Various spatial and other pre-processing functions.'};
-spatial.values  = { spm_cfg_realign spm_cfg_realignunwarp spm_cfg_coreg spm_cfg_preproc8 spm_cfg_norm spm_cfg_smooth };
+spatial        = cfg_choice;
+spatial.tag    = 'spatial';
+spatial.name   = 'Spatial';
+spatial.help   = {'Spatial pre-processing functions.'};
+spatial.values = { spm_cfg_realign spm_cfg_realignunwarp spm_cfg_coreg spm_cfg_preproc8 spm_cfg_norm spm_cfg_smooth };
 
 %--------------------------------------------------------------------------
 % Stats
 %--------------------------------------------------------------------------
-stats         = cfg_choice;
-stats.tag     = 'stats';
-stats.name    = 'Stats';
-stats.help    = {'Various analysis utilities.'};
-stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_factorial_design spm_cfg_model_review spm_cfg_fmri_est spm_cfg_con spm_cfg_results spm_cfg_mfx spm_cfg_bms_map spm_cfg_ppi spm_cfg_setlevel };
+stats        = cfg_choice;
+stats.tag    = 'stats';
+stats.name   = 'Stats';
+stats.help   = {'Statistical modelling and inference functions.'};
+stats.values = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_factorial_design spm_cfg_model_review spm_cfg_fmri_est spm_cfg_con spm_cfg_results spm_cfg_mfx spm_cfg_bms_map spm_cfg_ppi spm_cfg_setlevel };
 
 %--------------------------------------------------------------------------
 % Dynamic Causal Modelling
@@ -38,13 +38,13 @@ stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cf
 spm_cfg_dcm_spec        = cfg_choice;
 spm_cfg_dcm_spec.tag    = 'spec';
 spm_cfg_dcm_spec.name   = 'DCM specification';
-spm_cfg_dcm_spec.values  = {spm_cfg_dcm_fmri spm_cfg_dcm_meeg};
+spm_cfg_dcm_spec.values = { spm_cfg_dcm_fmri spm_cfg_dcm_meeg };
 
-dcm         = cfg_choice;
-dcm.tag     = 'dcm';
-dcm.name    = 'DCM';
-dcm.help    = {'Dynamic Causal Modelling.'};
-dcm.values  = { spm_cfg_dcm_spec spm_cfg_dcm_est spm_cfg_dcm_bms spm_cfg_dcm_peb};
+dcm        = cfg_choice;
+dcm.tag    = 'dcm';
+dcm.name   = 'DCM';
+dcm.help   = {'Dynamic Causal Modelling.'};
+dcm.values = { spm_cfg_dcm_spec spm_cfg_dcm_est spm_cfg_dcm_bms spm_cfg_dcm_peb };
 
 %--------------------------------------------------------------------------
 % Util
@@ -53,13 +53,13 @@ spm_cfg_import        = cfg_choice;
 spm_cfg_import.tag    = 'import';
 spm_cfg_import.name   = 'Import';
 spm_cfg_import.help   = {'Import.'};
-spm_cfg_import.values = { spm_cfg_dicom spm_cfg_minc spm_cfg_ecat spm_cfg_parrec};
+spm_cfg_import.values = { spm_cfg_dicom spm_cfg_minc spm_cfg_ecat spm_cfg_parrec };
 
-util         = cfg_choice;
-util.tag     = 'util';
-util.name    = 'Util';
-util.help    = {'Various useful tools.'};
-util.values  = { spm_cfg_disp spm_cfg_checkreg spm_cfg_render spm_cfg_import spm_cfg_imcalc spm_cfg_reorient spm_cfg_voi spm_cfg_cdir spm_cfg_md spm_cfg_bbox spm_cfg_deface spm_cfg_deformations spm_cfg_tissue_volumes spm_cfg_print spm_cfg_cat spm_cfg_split spm_cfg_exp_frames spm_cfg_sendmail };
+util        = cfg_choice;
+util.tag    = 'util';
+util.name   = 'Util';
+util.help   = {'Utility tools.'};
+util.values = { spm_cfg_disp spm_cfg_checkreg spm_cfg_render spm_cfg_import spm_cfg_imcalc spm_cfg_reorient spm_cfg_voi spm_cfg_cdir spm_cfg_md spm_cfg_bbox spm_cfg_deface spm_cfg_deformations spm_cfg_tissue_volumes spm_cfg_print spm_cfg_cat spm_cfg_split spm_cfg_exp_frames spm_cfg_sendmail };
 
 %--------------------------------------------------------------------------
 % Tools
@@ -67,7 +67,7 @@ util.values  = { spm_cfg_disp spm_cfg_checkreg spm_cfg_render spm_cfg_import spm
 tools        = cfg_choice;
 tools.tag    = 'tools';
 tools.name   = 'Tools';
-tools.help   = {'Other tools', ...
+tools.help   = {'Other tools.', ...
                 ['Toolbox configuration files should be placed in the ' ...
                  'toolbox directory, with their own *_cfg_*.m files. ' ...
                  'If you write a toolbox, then you can include it in ' ...

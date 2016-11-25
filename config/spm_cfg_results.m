@@ -3,7 +3,7 @@ function results = spm_cfg_results
 %__________________________________________________________________________
 % Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 6896 2016-10-03 16:53:31Z guillaume $
+% $Id: spm_cfg_results.m 6952 2016-11-25 16:03:13Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -361,7 +361,7 @@ results      = cfg_exbranch;
 results.tag  = 'results';
 results.name = 'Results Report';
 results.val  = {spmmat generic units export};
-results.help = {''};
+results.help = {'Statistical inference.'};
 results.prog = @spm_run_results;
 results.vout = @vout_results;
 

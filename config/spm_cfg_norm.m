@@ -1,10 +1,10 @@
 function normalise = spm_cfg_norm
 % SPM Configuration file for Spatial Normalisation
 %__________________________________________________________________________
-% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 6772 2016-04-19 10:21:41Z john $
+% $Id: spm_cfg_norm.m 6952 2016-11-25 16:03:13Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -332,7 +332,10 @@ woptions.help = {'Various options for writing normalised images.'};
 vol         = cfg_files;
 vol.tag     = 'vol';
 vol.name    = 'Image to Align';
-vol.help    = {'The image that the template (atlas) data is warped into alignment with.  The result is a set of warps, which can be applied to this image, or any other image that is in register with it.'};
+vol.help    = {
+    'The image that the template (atlas) data is warped into alignment with.'
+    'The result is a set of warps, which can be applied to this image, or any other image that is in register with it.'
+    }';
 vol.filter  = 'image';
 vol.ufilter = '.*';
 vol.num     = [1 1];
@@ -359,7 +362,10 @@ def.num     = [1 1];
 resample         = cfg_files;
 resample.tag     = 'resample';
 resample.name    = 'Images to Write';
-resample.help    = {'These are the images for warping according to the estimated parameters. They can be any images that are in register with the image used to generate the deformation.'};
+resample.help    = {
+    'These are the images for warping according to the estimated parameters.'
+    'They can be any images that are in register with the image used to generate the deformation.'
+    }';
 resample.filter  = 'image';
 resample.ufilter = '.*';
 resample.num     = [1 Inf];
@@ -372,7 +378,7 @@ subj         = cfg_branch;
 subj.tag     = 'subj';
 subj.name    = 'Subject';
 subj.val     = {vol};
-subj.help    = {'Data for this subject.  The same parameters are used within subject.'};
+subj.help    = {'Data for this subject. The same parameters are used within subject.'};
 
 %--------------------------------------------------------------------------
 % esubjs Data
@@ -391,7 +397,7 @@ subj      = cfg_branch;
 subj.tag  = 'subj';
 subj.name = 'Subject';
 subj.val  = {def resample};
-subj.help = {'Data for this subject.  The same parameters are used within subject.'};
+subj.help = {'Data for this subject. The same parameters are used within subject.'};
 
 %--------------------------------------------------------------------------
 % wsubjs Data
@@ -410,7 +416,7 @@ subj      = cfg_branch;
 subj.tag  = 'subj';
 subj.name = 'Subject';
 subj.val  = {vol resample};
-subj.help = {'Data for this subject.  The same parameters are used within subject.'};
+subj.help = {'Data for this subject. The same parameters are used within subject.'};
 
 %--------------------------------------------------------------------------
 % ewsubjs Data
@@ -430,12 +436,12 @@ est.tag  = 'est';
 est.name = 'Normalise: Estimate';
 est.val  = {esubjs eoptions};
 est.help = {
-    'Spatial normalisation is now done via the segmentation routine (which was known as ``New Segment'''' in SPM8).  The algorithm is essentially the same as that described in the Unified Segmentation paper /* \cite{ashburner05}*/, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain.'
+    'Spatial normalisation performed via the segmentation routine.'
     ''
-    'Note that on a 32 bit computer, the most memory that SPM or any other program can use at any time is 4Gbytes (or sometimes only 2Gbytes).  This is because the largest number that can be represented with 32 bits is 4,294,967,295, which limits how much memory may be addressed by any one process.  Out of memory errors may occasionally be experienced when trying to work with large images.  64-bit computers can usually handle such cases.'
-        ''
-        'If you encounter problems with spatial normalisation, it is advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If mis-alignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images prior to attempting to align them.  This may be done using the Display button.'
-           }';
+    'The algorithm (which was known as ``New Segment'''' in SPM8) is essentially the same as that described in the Unified Segmentation paper /* \cite{ashburner05}*/, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain.'
+    ''
+    'If you encounter problems with spatial normalisation, it is advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If mis-alignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images prior to attempting to align them.  This may be done using the Display button.'
+    }';
 est.prog = @spm_run_norm;
 est.vout = @vout_est;
 
@@ -446,7 +452,8 @@ write      = cfg_exbranch;
 write.tag  = 'write';
 write.name = 'Normalise: Write';
 write.val  = {wsubjs woptions};
-write.help = {'Allows previously estimated warps (stored in ``y_''''imagename``_sn.mat'''' files) to be applied to series of images.'};
+write.help = {
+    'Apply previously estimated warps (stored in ``y_''''imagename``_sn.mat'''' files) to series of images.'};
 write.prog = @spm_run_norm;
 write.vout = @vout_write;
 
@@ -457,9 +464,12 @@ estwrite      = cfg_exbranch;
 estwrite.tag  = 'estwrite';
 estwrite.name = 'Normalise: Estimate & Write';
 estwrite.val  = {ewsubjs eoptions woptions};
-estwrite.help = {'Computes the warp that best aligns the template (atlas) to the individual''s image, inverting it and writing the result to the file `y_''imagename''.nii''. This option also allows the contents of the `y_''imagename''.nii'' files to be applied to a series of images.'
-''
-'Note that if you encounter problems with spatial normalisation, it is often advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If mis-alignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images.  This may be done using the Display button.'};
+estwrite.help = {
+    'Compute the warp that best aligns the template (atlas) to the individual''s image, invert it and write the result to the file `y_''imagename''.nii''.'
+    'This option also allows the contents of the `y_''imagename''.nii'' files to be applied to a series of images.'
+    ''
+    'Note that if you encounter problems with spatial normalisation, it is often advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If mis-alignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images.  This may be done using the Display button.'
+    };
 estwrite.prog = @spm_run_norm;
 estwrite.vout = @vout_estwrite;
 

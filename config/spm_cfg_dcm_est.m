@@ -4,7 +4,7 @@ function estimate = spm_cfg_dcm_est
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_est.m 6924 2016-11-09 11:38:00Z guillaume $
+% $Id: spm_cfg_dcm_est.m 6952 2016-11-25 16:03:13Z guillaume $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -211,7 +211,7 @@ estimate.vout = @vout_dcm;
 est         = cfg_choice; 
 est.tag     = 'est';
 est.name    = 'DCM estimation';
-est.help    = {'Estimation of DCM models'};
+est.help    = {'Estimation of Dynamic Causal Models.'};
 est.values  = { estimate };
 
 %==========================================================================

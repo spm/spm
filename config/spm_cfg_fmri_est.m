@@ -1,9 +1,9 @@
 function fmri_est = spm_cfg_fmri_est
 % SPM Configuration file for Model Estimation
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 5959 2014-04-16 17:14:33Z will $
+% $Id: spm_cfg_fmri_est.m 6952 2016-11-25 16:03:13Z guillaume $
 
 
 %==========================================================================
@@ -13,9 +13,9 @@ spmmat         = cfg_files;
 spmmat.tag     = 'spmmat';
 spmmat.name    = 'Select SPM.mat';
 spmmat.help    = {
-                  'Select the SPM.mat file that contains the design specification. '
-                  'The directory containing this file is known as the input directory.'
-}';
+    'Select the SPM.mat file that contains the design specification.'
+    'The directory containing this file is known as the input directory.'
+    }';
 spmmat.filter  = 'mat';
 spmmat.ufilter = '^SPM\.mat$';
 spmmat.num     = [1 1];
@@ -28,10 +28,11 @@ Classical.tag  = 'Classical';
 Classical.name = 'Classical';
 Classical.val  = {1};
 Classical.help = {
-                     'Model parameters are estimated using Restricted Maximum Likelihood (ReML). This assumes the error correlation structure is the same at each voxel. This correlation can be specified using either an AR(1) or an Independent and Identically Distributed (IID) error model. These options are chosen at the model specification stage. ReML estimation should be applied to spatially smoothed functional images.'
-                     ''
-                     'After estimation, specific profiles of parameters are tested using a linear compound or contrast with the T or F statistic. The resulting statistical map constitutes an SPM. The SPM{T}/{F} is then characterised in terms of focal or regional differences by assuming that (under the null hypothesis) the components of the SPM (ie. residual fields) behave as smooth stationary Gaussian fields.'
-}';
+    'Model parameters are estimated using Restricted Maximum Likelihood (ReML).'
+    'This assumes the error correlation structure is the same at each voxel. This correlation can be specified using either an AR(1) or an Independent and Identically Distributed (IID) error model. These options are chosen at the model specification stage. ReML estimation should be applied to spatially smoothed functional images.'
+    ''
+    'After estimation, specific profiles of parameters are tested using a linear compound or contrast with the T or F statistic. The resulting statistical map constitutes an SPM. The SPM{T}/{F} is then characterised in terms of focal or regional differences by assuming that (under the null hypothesis) the components of the SPM (ie. residual fields) behave as smooth stationary Gaussian fields.'
+    }';
 
 %--------------------------------------------------------------------------
 % volBlocktype Block type
@@ -404,7 +405,10 @@ fmri_est          = cfg_exbranch;
 fmri_est.tag      = 'fmri_est';
 fmri_est.name     = 'Model estimation';
 fmri_est.val      = {spmmat write_residuals method};
-fmri_est.help     = {'Model parameters can be estimated using classical (ReML - Restricted Maximum Likelihood) or Bayesian algorithms. After parameter estimation, the RESULTS button can be used to specify contrasts that will produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs) and tables of statistics.'};
+fmri_est.help     = {
+    'Estimation of model parameters using classical (ReML - Restricted Maximum Likelihood) or Bayesian algorithms.'
+    'After parameter estimation, the ''Results'' button can be used to specify contrasts that will produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs) and tables of statistics.'
+    }';
 fmri_est.prog     = @spm_run_fmri_est;
 fmri_est.vout     = @vout_stats;
 fmri_est.modality = {'FMRI' 'PET' 'EEG'};

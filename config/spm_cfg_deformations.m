@@ -1,14 +1,14 @@
 function conf = spm_cfg_deformations
 % Configuration file for deformation jobs
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 6578 2015-10-15 15:22:12Z volkmar $
+% $Id: spm_cfg_deformations.m 6952 2016-11-25 16:03:13Z guillaume $
 
-hsummary = {[...
-'This is a utility for working with deformation fields. ',...
-'They can be loaded, inverted, combined etc, and the results ',...
+hsummary = {
+'Utility for working with deformation fields.',...
+['They can be loaded, inverted, combined etc, and the results ',...
 'either saved to disk, or applied to some image or surface file. ',...
 'This utility was intended for imaging experts and may therefore ',...
 'be a bit difficult for naive users. ',...
@@ -436,11 +436,9 @@ conf         = exbranch('Deformations','defs',{comp,output});
 conf.prog    = @spm_deformations;
 conf.vout    = @vout;
 conf.help    = hsummary;
-return;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
 
+%==========================================================================
 function vo = vout(job)
 vo = [];
 savedef   = false;
@@ -449,28 +447,28 @@ savesurf  = false;
 savejac   = false;
 for i=1:numel(job.out)
     out = job.out{i};
-    if isfield(out,'savedef') && ~savedef,
+    if isfield(out,'savedef') && ~savedef
         savedef = true;
         if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Deformation';
         vo(end).src_output = substruct('.','def');
         vo(end).tgt_spec   = cfg_findspec({{'filter','nifti'}});
     end
-    if (isfield(out,'pull') || isfield(out,'push')) && ~saveimage,
+    if (isfield(out,'pull') || isfield(out,'push')) && ~saveimage
         saveimage = true;
         if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Warped Images';
         vo(end).src_output = substruct('.','warped');
         vo(end).tgt_spec   = cfg_findspec({{'filter','image'}});
     end
-    if isfield(out,'surf') && ~savesurf,
+    if isfield(out,'surf') && ~savesurf
         savesurf = true;
         if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Warped Surfaces';
         vo(end).src_output = substruct('.','surf');
         vo(end).tgt_spec   = cfg_findspec({{'filter','mesh'}});
     end
-    if isfield(out,'savejac') && ~savejac,
+    if isfield(out,'savejac') && ~savejac
         savejac = true;
         if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Jacobian';
@@ -478,10 +476,9 @@ for i=1:numel(job.out)
         vo(end).tgt_spec   = cfg_findspec({{'filter','image'}});
     end
 end
-return;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
 function entry_item = entry(name, tag, strtype, num)
 entry_item         = cfg_entry;
 entry_item.name    = name;

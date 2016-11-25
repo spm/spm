@@ -1,9 +1,9 @@
 function fmri_data = spm_cfg_fmri_data
 % SPM Configuration file for fMRI data specification
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_data.m 6929 2016-11-14 13:07:31Z guillaume $
+% $Id: spm_cfg_fmri_data.m 6952 2016-11-25 16:03:13Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -12,7 +12,10 @@ function fmri_data = spm_cfg_fmri_data
 scans         = cfg_files;
 scans.tag     = 'scans';
 scans.name    = 'Scans';
-scans.help    = {'Select the fMRI scans for this session.  They must all have the same image dimensions, orientation, voxel size etc.'};
+scans.help    = {
+    'Select the fMRI scans for this session.'
+    'They must all have the same image dimensions, orientation, voxel size etc.'
+    }';
 scans.filter  = {'image','mesh'};
 scans.ufilter = '.*';
 scans.num     = [1 Inf];
@@ -35,7 +38,10 @@ mask         = cfg_files;
 mask.tag     = 'mask';
 mask.name    = 'Explicit mask';
 mask.val     = {{''}};
-mask.help    = {'Specify an image for explicitly masking the analysis. A sensible option here is to use a segmention of structural images to specify a within-brain mask. If you select that image as an explicit mask then only those voxels in the brain will be analysed. This both speeds the estimation and restricts SPMs/PPMs to within-brain voxels. Alternatively, if such structural images are unavailable or no masking is required, then leave this field empty.'};
+mask.help    = {
+    'Specify an image for explicitly masking the analysis.'
+    'A sensible option here is to use a segmention of structural images to specify a within-brain mask. If you select that image as an explicit mask then only those voxels in the brain will be analysed. This both speeds the estimation and restricts SPMs/PPMs to within-brain voxels. Alternatively, if such structural images are unavailable or no masking is required, then leave this field empty.'
+    }';
 mask.filter  = {'image','mesh'};
 mask.ufilter = '.*';
 mask.num     = [0 1];
@@ -46,8 +52,8 @@ mask.num     = [0 1];
 fmri_data          = cfg_exbranch;
 fmri_data.tag      = 'fmri_data';
 fmri_data.name     = 'fMRI data specification';
-fmri_data.val      = {scans spmmat mask };
-fmri_data.help     = {'Select the data and optional explicit mask for a specified design'};
+fmri_data.val      = {scans spmmat mask};
+fmri_data.help     = {'Select data and optional explicit mask for a specified fMRI design'};
 fmri_data.prog     = @spm_run_fmri_data;
 fmri_data.vout     = @vout_stats;
 fmri_data.modality = {'FMRI'};
