@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 6903 2016-10-12 11:36:41Z guillaume $
+% $Id: spm_list.m 6950 2016-11-25 12:05:08Z guillaume $
 
 
 %==========================================================================
@@ -923,12 +923,15 @@ case 'table'                                                        %-Table
         if nargin == 3, ofile = varargin{3};
         else            ofile = [tempname '.csv']; end
         
-        fid = fopen(ofile,'wt');
-        fprintf(fid,[repmat('%s,',1,11) '%d,,\n'],TabDat.hdr{1,:});
-        fprintf(fid,[repmat('%s,',1,12) '\n'],TabDat.hdr{2,:});
-        fmt = TabDat.fmt;
+        fid  = fopen(ofile,'wt');
+        ncol = size(TabDat.hdr,2);
+        fmt  = repmat('%s,',1,ncol);
+        c    = repmat(',',1,nnz([TabDat.hdr{2,:}]==','));
+        fprintf(fid,[fmt(1:end-1) c '\n'],TabDat.hdr{1,:});
+        fprintf(fid,[fmt(1:end-1) '\n'],TabDat.hdr{2,:});
+        fmt  = strtrim(TabDat.fmt);
         [fmt{2,:}] = deal(','); fmt = [fmt{:}];
-        fmt(end:end+1) = '\n'; fmt = strrep(fmt,' ',',');
+        fmt  = [fmt(1:end-1) '\n']; fmt = strrep(fmt,' ',',');
         for i=1:size(TabDat.dat,1)
             fprintf(fid,fmt,TabDat.dat{i,:});
         end
