@@ -58,9 +58,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 6950 2016-11-25 12:05:08Z guillaume $
+% $Id: spm_eeg_merge.m 6951 2016-11-25 12:33:23Z guillaume $
 
-SVNrev = '$Rev: 6950 $';
+SVNrev = '$Rev: 6951 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -293,29 +293,29 @@ end
             
 %-Average sensor locations
 %--------------------------------------------------------------------------
-if ~spm('CmdLine')
-    if ~isempty(megsens)
-        spm_figure('GetWin','Graphics');clf;
-        if ~isempty(eegsens)
-            h = subplot(2, 1, 1);
-            aeegsens = ft_average_sens(eegsens, 'weights', Ntrials, 'feedback', h);
-            Dout = sensors(Dout, 'EEG', aeegsens);
-            
-            h = subplot(2, 1, 2);
-        else
-            h = axes;
-        end
-        
-        [amegsens,afid] = ft_average_sens(megsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
-        Dout = sensors(Dout, 'MEG', amegsens);
-        Dout = fiducials(Dout, afid);
-    elseif ~isempty(eegsens)
-        spm_figure('GetWin','Graphics');clf;
-        h = axes;
-        [aeegsens,afid] = ft_average_sens(eegsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
+CmdLine = spm('CmdLine');
+if CmdLine, h = []; end
+if ~isempty(megsens)
+    if ~CmdLine, spm_figure('GetWin','Graphics');clf; end
+    if ~isempty(eegsens)
+        if ~CmdLine, h = subplot(2, 1, 1); end
+        aeegsens = ft_average_sens(eegsens, 'weights', Ntrials, 'feedback', h);
         Dout = sensors(Dout, 'EEG', aeegsens);
-        Dout = fiducials(Dout, afid);
+        
+        if ~CmdLine, h = subplot(2, 1, 2); end
+    else
+        if ~CmdLine, h = axes; end
     end
+    
+    [amegsens,afid] = ft_average_sens(megsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
+    Dout = sensors(Dout, 'MEG', amegsens);
+    Dout = fiducials(Dout, afid);
+elseif ~isempty(eegsens)
+    if ~CmdLine, spm_figure('GetWin','Graphics');clf; end
+    if ~CmdLine, h = axes; end
+    [aeegsens,afid] = ft_average_sens(eegsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
+    Dout = sensors(Dout, 'EEG', aeegsens);
+    Dout = fiducials(Dout, afid);
 end
 
 %-Write files
