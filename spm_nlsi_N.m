@@ -84,7 +84,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 6432 2015-05-09 12:58:12Z karl $
+% $Id: spm_nlsi_N.m 6953 2016-11-27 13:07:07Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -306,7 +306,6 @@ else
 end
 
 
-
 % EM
 %==========================================================================
 warning(sw); sw = warning('off','all');
@@ -332,10 +331,15 @@ for ip = 1:M.Nmax
     %----------------------------------------------------------------------
     [dxdp,x] = spm_diff(IS,Ep,M,U,1,{Vp}); 
     
-    % check for dissipative dynamics
+    % check for inital iterations and dissipative dynamics
     %----------------------------------------------------------------------
     if all(isfinite(spm_vec(x)))
         Gmax = M.Gmax;
+        if ip < 8
+            vg = -4;
+        else
+            vg = v;
+        end
     else
         Gmax = 0;
     end
@@ -374,7 +378,7 @@ for ip = 1:M.Nmax
         end
   
         % Optimize F(h): parameters of iS(h)
-        %==================================================================
+        %==================================================================        
         dgdb   = [dgdp dgdg dgdu];           
         for ih = 1:M.Hmax
  
@@ -447,7 +451,7 @@ for ip = 1:M.Nmax
  
         % Conditional updates of parameters (g)
         %------------------------------------------------------------------
-        dg    = spm_dx(dFdgg,dFdg,{4});
+        dg    = spm_dx(dFdgg,dFdg,{vg});
         Eg    = spm_unvec(spm_vec(Eg) + Vg*dg,Eg);
          
         % convergence
@@ -501,8 +505,8 @@ for ip = 1:M.Nmax
         C.Eu  = Eu;
         C.h   = h;
         C.F   = F;
-        C.L   = L;
-  
+        C.L   = L;   
+        
     else
  
         % reset expansion point
