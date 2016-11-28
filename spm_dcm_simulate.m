@@ -8,11 +8,14 @@ function [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
 %        connection strengths
 %
 % mode - zero-mean Gaussian noise is added, defined by one of:
-%        'SNR_var' - signal-to-noise ratio based on the variance [default]
+%        'SNR_var' - signal-to-noise ratio based on the variance
 %        'SNR_std' - signal-to-noise ratio based on the standard deviation
 %        'var'     - variance of the observation noise to be added
+%        'Ce'      - picks up the log noise precision from GCM{x}.Ce
+%                   [default]
 %
 % noise - real-valued added noise (interpretation depends on mode, above)
+%         if mode is set to 'hE' then this can be empty
 %
 % gen_idx - index of the generative model
 %
@@ -27,13 +30,13 @@ function [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman, Vladimir Litvak
-% $Id: spm_dcm_simulate.m 6874 2016-09-15 09:29:34Z peter $
+% $Id: spm_dcm_simulate.m 6954 2016-11-28 11:57:12Z peter $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
 GCM = spm_dcm_load(GCM);
 
-if nargin < 2 || isempty(mode),    mode = 'SNR_var'; end
+if nargin < 2 || isempty(mode),    mode = 'none';    end
 if nargin < 3 || isempty(noise),   noise = 1;        end
 if nargin < 4 || isempty(gen_idx), gen_idx = 1;      end
 
@@ -87,11 +90,15 @@ for s = 1:ns
             
             e = sqrt(noise) .* randn(size(DCM_gen.Y.y));
             DCM_gen.Y.y = DCM_gen.y + e;
+        case 'ce'
+            [Y,x,DCM_gen] = spm_dcm_generate(DCM,Inf,graphics);
+            
+            e = randn(size(DCM_gen.Y.y)) * sqrtm(diag(DCM.Ce));
+            DCM_gen.Y.y = DCM_gen.y + e;
         otherwise
             error('Unknown noise definition');
     end
-    
-    
+        
     for i = 1:nm
         % Store simulated timeseries
         GCM{s,i}.Y = DCM_gen.Y;
@@ -172,8 +179,7 @@ for i = 1:ns
         GCM{i,j}          = rmfield(DCM,'M');
         GCM{i,j}.M.dipfit = DCM.M.dipfit;
         GCM{i,j}.xY.y     = y;
-    end
-    
+    end    
     
     % Store generative model
     gen{i} = DCM;
