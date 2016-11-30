@@ -77,13 +77,13 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % Here we've pre-specified the expression and passed the vector c as an
 % additional variable (you'll be prompted to select the n images).
 %__________________________________________________________________________
-% Copyright (C) 1998-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1998-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc.m 6124 2014-07-29 11:51:11Z guillaume $
+% $Id: spm_imcalc.m 6956 2016-11-30 13:31:48Z guillaume $
 
 
-SVNid = '$Rev: 6124 $';
+SVNid = '$Rev: 6956 $';
 
 %-Parameters & arguments
 %==========================================================================
@@ -141,7 +141,7 @@ if ischar(Vo)
     Vo = struct('fname',   fullfile(p, [n, e]),...
                 'dim',     Vi(1).dim(1:3),...
                 'dt',      [dtype spm_platform('bigend')],...
-                'pinfo',   [Inf Inf Inf]',...
+                'pinfo',   [Inf Inf 0]',...
                 'mat',     Vi(1).mat,...
                 'n',       1,...
                 'descrip', 'spm - algebra');
