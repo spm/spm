@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_DEM
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_DEM.m 6932 2016-11-16 12:11:01Z karl $
+% $Id: DEM_demo_MDP_DEM.m 6957 2016-12-01 10:37:00Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -87,7 +87,7 @@ STIM.L = L;
 
 % true causes (U) and priors (C) for every combination of discrete states
 %--------------------------------------------------------------------------
-N     = 16;                                  % length of data sequence
+N     = 24;                                  % length of data sequence
 nh    = length(STIM.H);                      % number of hypotheses
 nl    = length(STIM.L);                      % number of locations
 for i = 1:nh
@@ -121,11 +121,11 @@ g      = @ADEM_sample_image;
 
 % level 1: Displacement dynamics and mapping to sensory/proprioception
 %--------------------------------------------------------------------------
-M(1).f = @(x,v,P) (v.x - x)/4;
+M(1).f = @(x,v,P) (v.x - x)/8;
 M(1).g = @(x,v,P) spm_vec(x,g(x - v.x,v.h));
 M(1).x = x;                                   % hidden states
 M(1).V = [exp(2) exp(2) ones(1,ns)*8];   % error precision (g)
-M(1).W = exp(4);                              % error precision (f)
+M(1).W = exp(2);                              % error precision (f)
 
 
 % level 2:
@@ -170,7 +170,7 @@ spm_figure('GetWin','Figure 2');
 spm_dem_mdp_movie(DEM)
 drawnow
 
-return
+% return
  
 % first level (lexical)
 %==========================================================================
@@ -404,6 +404,10 @@ spm_MDP_search_plot(MDP)
 
 spm_figure('GetWin','Figure 7');
 spm_dem_mdp_movie(MDP.mdp(4).dem)
+
+% movie of expected states and outcomes
+%--------------------------------------------------------------------------
+spm_MDP_plot(MDP)
  
 return
  
