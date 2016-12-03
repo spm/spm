@@ -30,7 +30,7 @@ function [MDP] = spm_MDP_check(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_check.m 6748 2016-03-14 10:04:41Z karl $
+% $Id: spm_MDP_check.m 6959 2016-12-03 12:31:52Z karl $
  
  
 % deal with a sequence of trials
@@ -175,7 +175,7 @@ if isfield(MDP,'o')
     end 
 end
  
-% check names is specified
+% check names are specified properly
 %--------------------------------------------------------------------------
 if isfield(MDP,'Aname')
     if numel(MDP.Aname) ~= Ng
@@ -188,5 +188,35 @@ if isfield(MDP,'Bname')
     end
 end
 
+% check factors and outcome modalities have proper labels
+%--------------------------------------------------------------------------
+for i = 1:Nf
+    try
+        MDP.label.factor{i};
+    catch
+        MDP.label.factor{i} = sprintf('factor %i',i);
+    end
+    for j = 1:Ns(i)
+        try
+            MDP.label.name{i}{j};
+        catch
+            MDP.label.name{i}{j} = sprintf('state %i(%i)',i,j);
+        end
+    end
+end
+for i = 1:Ng
+    try
+        MDP.label.modality(i);
+    catch
+        MDP.label.modality{i} = sprintf('modality %i',i);
+    end
+    for j = 1:No
+        try
+            MDP.label.outcome{i}{j};
+        catch
+            MDP.label.outcome{i}{j} = sprintf('outcome %i(%i)',i,j);
+        end
+    end
+end
 
 

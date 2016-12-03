@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_DEM
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_DEM.m 6957 2016-12-01 10:37:00Z karl $
+% $Id: DEM_demo_MDP_DEM.m 6959 2016-12-03 12:31:52Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -174,7 +174,16 @@ drawnow
  
 % first level (lexical)
 %==========================================================================
+label.factor     = {'what','where','flip','flip'};
+label.name{1}    = {'flee','feed','wait'};
+label.name{2}    = {'-','+'};
+label.name{3}    = {'-','+'};
+
+label.modality   = {'what','where'};
+label.outcome{1} = {'null','bird','seed','cat'};
+label.outcome{2} = {'1','2','3','4'};
  
+
 % prior beliefs about initial states
 %--------------------------------------------------------------------------
 D{1} = [1 1 1]';           % what:     {'flee','feed','wait'}
@@ -246,9 +255,10 @@ mdp.B     = B;                      % transition probabilities
 mdp.D     = D;                      % prior over initial states
 mdp.DEM   = DEM;
 mdp.demi  = demi;
- 
-mdp.Aname = {'what','where'};
-mdp.Bname = {'what','where','flip','flip'};
+
+mdp.label = label;
+mdp.Aname = label.modality;
+mdp.Bname = label.factor;
 mdp.alpha = 64;
 mdp.chi   = 1/32;
  
@@ -269,7 +279,22 @@ clear mdp
  
 % second level (semantic)
 %==========================================================================
- 
+label.factor     = {'story','where','decision'};
+label.name{1}    = {'flee wait feed wait',
+    'wait wait wait feed'
+    'wait flee wait feed'
+    'flee wait feed flee'
+    'wait wait wait flee'
+    'wait flee wait flee'};
+label.name{2}    = {'1st','2nd','3rd','4th'};
+label.name{3}    = {'null','happy','sad'};
+
+label.modality   = {'picture','where','feedback'};
+label.outcome{1} = {'flee','feed','wait'};
+label.outcome{2} = {'1','2','3','4'};
+label.outcome{3} = {'null','right','wrong'};
+
+
 % prior beliefs about initial states (in terms of counts_: D and d
 %--------------------------------------------------------------------------
 D{1} = [1 1 1 1 1 1]';   % what:   {'story 1',...,'story 6'}
@@ -367,8 +392,9 @@ mdp.C = C;                      % preferred outcomes
 mdp.D = D;                      % prior over initial states
 mdp.s = [1 1 1]';               % initial state
  
-mdp.Aname = {'picture','where','feedback'};
-mdp.Bname = {'story','where','decision'};
+mdp.label = label;
+mdp.Aname = label.modality;
+mdp.Bname = label.factor;
 mdp.alpha = 64;
 mdp       = spm_MDP_check(mdp);
  
