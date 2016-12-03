@@ -9,7 +9,7 @@ function [h] = spm_est_V(SPM,c)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_est_V.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_est_V.m 6958 2016-12-03 12:30:53Z karl $
  
 % get data and model
 %==========================================================================
@@ -86,7 +86,7 @@ for q = 1:length(Q)
     
     % ReML and whitening matrix (W)
     %----------------------------------------------------------------------
-    [V,h]   = spm_reml(C,X,Q{q},1,1,1,0,4);
+    [V,h]   = spm_reml(C,X,Q{q},1,1,0,4);
     W       = spm_inv(spm_sqrtm(V));
     
     % scales for plotting later and effective degrees of freedom

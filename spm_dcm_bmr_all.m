@@ -60,7 +60,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 6946 2016-11-23 15:26:29Z peter $
+% $Id: spm_dcm_bmr_all.m 6958 2016-12-03 12:30:53Z karl $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -117,7 +117,11 @@ pC  = U'*pC*U;
 % Accumulated reduction vector (C)
 %--------------------------------------------------------------------------
 q   = diag(DCM.M.pC);
-C   = double(q > mean(q(q < 1024))/1024);
+if sum(q < 1024)
+    C   = double(q > mean(q(q < 1024))/1024);
+else
+    C   = double(q > 0);
+end
 GS  = 1;
 while GS
     
@@ -139,14 +143,18 @@ while GS
         %------------------------------------------------------------------
         Z     = zeros(1,nparam);
         for i = 1:nparam
+            
             % Identify parameters to retain r and to remove s
+            %-------------------------------------------------------------
             r    = C; r(k(i)) = 0; s = 1 - r;
 
             % Create reduced prior covariance matrix
+            %-------------------------------------------------------------
             R    = U'*diag(r + s*gamma)*U;
             rC   = R*pC*R;
             
             % Create reduced prior means
+            %-------------------------------------------------------------
             S    = U'*diag(r)*U;
             rE   = S*pE + U'*s*beta;
                         
@@ -177,14 +185,18 @@ while GS
     %----------------------------------------------------------------------
     G     = [];
     for i = 1:size(K,1)
+        
         % Identify parameters to retain r and to remove s
+        %-------------------------------------------------------------
         r    = C; r(k(K(i,:))) = 0; s = 1 - r;
         
         % Create reduced prior covariance matrix
+        %-------------------------------------------------------------
         R    = U'*diag(r + s*gamma)*U;
         rC   = R*pC*R;
         
         % Create reduced prior means
+        %-------------------------------------------------------------
         S    = U'*diag(r)*U;
         rE   = S*pE + U'*s*beta;
         
@@ -250,13 +262,12 @@ BMA   = {};
 Gmax  = max(G);
 for i = 1:length(K)
     if G(i) > (Gmax - 8)
+        
         r            = C;
         r(k(K(i,:))) = 0;
         s            = 1 - r;
-        
         R            = diag(r + s*gamma);
         rC           = R*pC*R;
-        
         S            = diag(r);
         rE           = S*spm_vec(pE) + s*beta;
       
@@ -266,11 +277,9 @@ for i = 1:length(K)
 end
 
 BMR.bma = BMA;
-
-BMA   = spm_dcm_bma(BMA);
-
-Ep    = BMA.Ep;
-Cp    = BMA.Cp;
+BMA     = spm_dcm_bma(BMA);
+Ep      = BMA.Ep;
+Cp      = BMA.Cp;
 
 if isstruct(Cp) || (size(Cp,1) ~= size(Cp,2))
     Cp = diag(spm_vec(Cp));
@@ -285,7 +294,6 @@ if isstruct(DCM.Ep)
 else
     i  = 1:spm_length(DCM.Ep);
 end
-
 qE     = spm_vec(qE);
 Ep     = spm_vec(Ep);
 
@@ -294,7 +302,7 @@ j = i(ismember(i,1:length(spm_vec(Ep))));
 % BMR summary and plotting
 %--------------------------------------------------------------------------
 try
-    Pnames = spm_fieldindices(DCM.Ep,k);
+    Pnames     = spm_fieldindices(DCM.Ep,k);
 catch
     try
         Np     = numel(DCM.Pnames);
