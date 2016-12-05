@@ -1,12 +1,12 @@
 function spm_srender(job)
 % A function for rendering surfaces
 % FORMAT spm_srender(job)
-% job - a job structure (see spm_config_srender.m)
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% job - a job structure (see tbx_cfg_render.m)
+%__________________________________________________________________________
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_srender.m 5812 2013-12-20 17:52:07Z john $
+% $Id: spm_srender.m 6960 2016-12-05 17:05:09Z guillaume $
 
 
 fg  = spm_figure('GetWin','Graphics');
@@ -19,15 +19,14 @@ try
     set(fg,'CurrentAxes',ax);
     cameramenu
     drawnow
-catch
 end
 
-for i=1:numel(job.Object),
+for i=1:numel(job.Object)
      obj = job.Object(i);
-     for j=1:numel(obj.SurfaceFile),
+     for j=1:numel(obj.SurfaceFile)
          FVo = struct(gifti(obj.SurfaceFile{j}));
          FV  = struct('faces',FVo.faces,'vertices',FVo.vertices);
-         p  = patch(FV, 'Parent',ax,...
+         p   = patch(FV, 'Parent',ax,...
              'FaceColor', [obj.Color.Red,obj.Color.Green, obj.Color.Blue],...
              'FaceVertexCData', [],...
              'EdgeColor', 'none',...
@@ -41,7 +40,7 @@ for i=1:numel(job.Object),
              'EdgeLighting','phong');
     end
 end
-for i=1:numel(job.Light),
+for i=1:numel(job.Light)
     obj = job.Light(i);
     l   = light('Parent',ax,...
         'Position',obj.Position,...
@@ -52,4 +51,3 @@ end
 set(fg,'CurrentAxes',ax);
 axis image equal off;
 drawnow;
-
