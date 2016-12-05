@@ -9,17 +9,19 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 %                 ( and can be omitted from Vo on input.  See spm_vol     )
 %                 or output image filename
 % f             - MATLAB expression to be evaluated
-% flags         - cell array of flags: {dmtx,mask,interp,dtype}
+% flags         - cell array of flags: {dmtx,mask,interp,dtype,descrip}
 %                 or structure with these fieldnames
-%      dmtx     - Read images into data matrix?
+%      dmtx     - read images into data matrix?
 %                 [defaults (missing or empty) to 0 - no]
 %      mask     - implicit zero mask?
-%                 [defaults (missing or empty) to 0]
+%                 [defaults (missing or empty) to 0 - no]
 %                  ( negative value implies NaNs should be zeroed )
 %      interp   - interpolation hold (see spm_slice_vol)
 %                 [defaults (missing or empty) to 0 - nearest neighbour]
 %      dtype    - data type for output image (see spm_type)
 %                 [defaults (missing or empty) to 4 - 16 bit signed shorts]
+%      descrip  - content of the 'descrip' field of the NIfTI header
+%                 [defaults (missing or empty) to 'spm - algebra']
 % extra_vars... - additional variables which can be used in expression
 %
 % Vo (output)   - spm_vol structure of output image volume after
@@ -80,10 +82,10 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % Copyright (C) 1998-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc.m 6956 2016-11-30 13:31:48Z guillaume $
+% $Id: spm_imcalc.m 6961 2016-12-05 17:36:44Z guillaume $
 
 
-SVNid = '$Rev: 6956 $';
+SVNid = '$Rev: 6961 $';
 
 %-Parameters & arguments
 %==========================================================================
@@ -118,21 +120,24 @@ end
 %--------------------------------------------------------------------------
 if nargin < 4, flags = {}; end
 if iscell(flags)
-    if length(flags) < 4, dtype  = []; else dtype  = flags{4}; end
-    if length(flags) < 3, interp = []; else interp = flags{3}; end
-    if length(flags) < 2, mask   = []; else mask   = flags{2}; end
-    if length(flags) < 1, dmtx   = []; else dmtx   = flags{1}; end
+    if numel(flags) < 5, descrip = []; else descrip = flags{5}; end
+    if numel(flags) < 4, dtype   = []; else dtype   = flags{4}; end
+    if numel(flags) < 3, interp  = []; else interp  = flags{3}; end
+    if numel(flags) < 2, mask    = []; else mask    = flags{2}; end
+    if numel(flags) < 1, dmtx    = []; else dmtx    = flags{1}; end
 else
-    if isfield(flags,'dmtx'),   dmtx   = flags.dmtx;   else dmtx   = []; end
-    if isfield(flags,'mask'),   mask   = flags.mask;   else mask   = []; end
-    if isfield(flags,'interp'), interp = flags.interp; else interp = []; end
-    if isfield(flags,'dtype'),  dtype  = flags.dtype;  else dtype  = []; end
+    if isfield(flags,'dmtx'),   dmtx     = flags.dmtx;    else dmtx    = []; end
+    if isfield(flags,'mask'),   mask     = flags.mask;    else mask    = []; end
+    if isfield(flags,'interp'), interp   = flags.interp;  else interp  = []; end
+    if isfield(flags,'dtype'),  dtype    = flags.dtype;   else dtype   = []; end
+    if isfield(flags,'descrip'), descrip = flags.descrip; else descrip = ''; end
 end
-if ischar(dtype),   dtype  = spm_type(dtype); end
-if isempty(interp), interp = 0; end
-if isempty(mask),   mask   = 0; end
-if isempty(dmtx),   dmtx   = 0; end
-if isempty(dtype),  dtype  = spm_type('int16'); end
+if ischar(dtype),    dtype   = spm_type(dtype); end
+if isempty(interp),  interp  = 0; end
+if isempty(mask),    mask    = 0; end
+if isempty(dmtx),    dmtx    = 0; end
+if isempty(dtype),   dtype   = spm_type('int16'); end
+if isempty(descrip), descrip = 'spm - algebra'; end
 
 %-Output image
 %--------------------------------------------------------------------------
@@ -144,7 +149,7 @@ if ischar(Vo)
                 'pinfo',   [Inf Inf 0]',...
                 'mat',     Vi(1).mat,...
                 'n',       1,...
-                'descrip', 'spm - algebra');
+                'descrip', descrip);
 end
 
 %-Process any additional variables
