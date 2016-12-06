@@ -50,10 +50,10 @@ function varargout=spm(varargin)
 % FORMAT & help in the main body of spm.m
 %
 %_______________________________________________________________________
-% Copyright (C) 1991,1994-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2016 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 6894 2016-09-30 16:48:46Z spm $
+% $Id: spm.m 6962 2016-12-06 12:17:01Z guillaume $
 
 
 %=======================================================================
@@ -1191,6 +1191,7 @@ else
 end
 mscript = cellstr(mscript);
 for i=1:numel(mscript)
+    mscript{i} = spm_file(mscript{i},'local',pwd);
     if isdeployed
         [p,n,e] = fileparts(mscript{i});
         if isempty(p), p = pwd;  end
