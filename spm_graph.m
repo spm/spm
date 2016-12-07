@@ -21,10 +21,10 @@ function [Y,y,beta,Bcov,G] = spm_graph(SPM,XYZ,xG)
 %
 % See spm_graph_ui for details.
 %__________________________________________________________________________
-% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 6490 2015-06-26 11:51:46Z guillaume $
+% $Id: spm_graph.m 6963 2016-12-07 16:34:44Z guillaume $
 
 
 if nargin == 3 && isstruct(SPM) && isstruct(XYZ) && ishandle(xG)
@@ -38,43 +38,47 @@ if nargin < 3, [xG,G] = deal(struct([])); end
 %-Extract filtered and whitened data from files
 %==========================================================================
 Y     = [];
-try
-    y = spm_data_read(SPM.xY.VY,'xyz',XYZ);
-catch
+y     = [];
+
+if ismember(xG.def,{'Fitted responses','Event-related responses'})
     try
-        % remap files in SPM.xY.P if SPM.xY.VY is no longer valid
-        %------------------------------------------------------------------
-        SPM.xY.VY = spm_data_hdr_read(SPM.xY.P);
         y = spm_data_read(SPM.xY.VY,'xyz',XYZ);
-        
     catch
-        % data has been moved or renamed
-        %------------------------------------------------------------------
-        choice = questdlg({'Original data have been moved or renamed',...
-            'How to proceed next?'},...
-            [mfilename ': data files missing...'],...
-            'Specify','Search','Ignore','Ignore');
-        
-        switch choice
-            case 'Specify'
-                [SPM.xY.P,sts] = ...
-                    spm_select(numel(SPM.xY.VY),'image','Select images');
-                if ~sts
-                    [Y,y,beta,Bcov] = deal([]);
-                    spm('Pointer','Arrow');
-                    return;
-                end
-                SPM.xY.VY = spm_data_hdr_read(SPM.xY.P);
-                for i = 1:numel(SPM.xY.VY)
-                    SPM.xY.VY(i).pinfo(1:2,:) = ...
-                        SPM.xY.VY(i).pinfo(1:2,:)*SPM.xGX.gSF(i);
-                end
-                y = spm_data_read(SPM.xY.VY,'xyz',XYZ);
-            case 'Search'
-                SPM.xY.VY = spm_check_filename(SPM.xY.VY);
-                y = spm_data_read(SPM.xY.VY,'xyz',XYZ);
-            otherwise
-                y = [];
+        try
+            % remap files in SPM.xY.P if SPM.xY.VY is no longer valid
+            %--------------------------------------------------------------
+            SPM.xY.VY = spm_data_hdr_read(SPM.xY.P);
+            y = spm_data_read(SPM.xY.VY,'xyz',XYZ);
+            
+        catch
+            % data has been moved or renamed
+            %--------------------------------------------------------------
+            choice = questdlg({'Original data have been moved or renamed',...
+                'How to proceed next?'},...
+                [mfilename ': data files missing...'],...
+                'Specify','Search','Ignore','Ignore');
+            
+            switch choice
+                case 'Specify'
+                    [SPM.xY.P,sts] = ...
+                        spm_select(numel(SPM.xY.VY),'image','Select images');
+                    if ~sts
+                        [Y,y,beta,Bcov] = deal([]);
+                        spm('Pointer','Arrow');
+                        return;
+                    end
+                    SPM.xY.VY = spm_data_hdr_read(SPM.xY.P);
+                    for i = 1:numel(SPM.xY.VY)
+                        SPM.xY.VY(i).pinfo(1:2,:) = ...
+                            SPM.xY.VY(i).pinfo(1:2,:)*SPM.xGX.gSF(i);
+                    end
+                    y = spm_data_read(SPM.xY.VY,'xyz',XYZ);
+                case 'Search'
+                    SPM.xY.VY = spm_check_filename(SPM.xY.VY);
+                    y = spm_data_read(SPM.xY.VY,'xyz',XYZ);
+                otherwise
+                    y = [];
+            end
         end
     end
 end
