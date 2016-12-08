@@ -15,9 +15,9 @@ function D = spm_eeg_interpolate_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_interpolate_artefact.m 5640 2013-09-18 12:02:29Z vladimir $
+% $Id: spm_eeg_interpolate_artefact.m 6965 2016-12-08 13:47:06Z vladimir $
 
-SVNrev = '$Rev: 5640 $';
+SVNrev = '$Rev: 6965 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ indchannels = D.indchantype({'MEEG', 'EOG'});
 
 S1         = [];
 S1.D       = D;
-S1.newname = ['i' D.fname];
+S1.outfile = ['i' D.fname];
 S1.updatehistory = 0;
 D          = spm_eeg_copy(S1);
 

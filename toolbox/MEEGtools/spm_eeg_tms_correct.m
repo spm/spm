@@ -23,9 +23,9 @@ function D = spm_eeg_tms_correct(S)
 % Neuroimage. 2007; 37(1):56-70.
 %
 % Vladimir Litvak
-% $Id: spm_eeg_tms_correct.m 5674 2013-10-09 10:00:26Z vladimir $
+% $Id: spm_eeg_tms_correct.m 6965 2016-12-08 13:47:06Z vladimir $
 
-SVNrev = '$Rev: 5674 $';
+SVNrev = '$Rev: 6965 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -93,8 +93,7 @@ for i = 1:D.ntrials
     S = [];
     S.D = tD;
     S.method = 'SVD';
-    S.timewin = [-0.002
-        0.02];
+    S.timewin = [-2 20];
     S.svdthresh = 30;
     tD = spm_eeg_spatial_confounds(S);
     
@@ -102,7 +101,7 @@ for i = 1:D.ntrials
     
     S = [];
     S.D = tD;
-    S.newname = [f '_trial' num2str(i) '.mat'];
+    S.outfile = [f '_trial' num2str(i) '.mat'];
     tD = spm_eeg_copy(S); 
     
     delete(S.D);

@@ -13,10 +13,10 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 6625 2015-12-03 21:49:24Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 6965 2016-12-08 13:47:06Z vladimir $
 
 
-SVNrev = '$Rev: 6625 $';
+SVNrev = '$Rev: 6965 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -24,7 +24,7 @@ spm('FnBanner', mfilename, SVNrev);
 spm('FigName','Define spatial confounds');
 
 if ~isfield(S, 'mode') && isfield(S, 'method'),          S.mode  = S.method;             end
-if ~isfield(S, 'threshold') && isfield(S, 'svdthresh'),  S.threshold  = S.svdthreshd;    end
+if ~isfield(S, 'threshold') && isfield(S, 'svdthresh'),  S.threshold  = S.svdthresh;    end
 
 
 D = spm_eeg_load(S.D);
@@ -124,7 +124,7 @@ switch upper(S.mode)
             temp = zeros(size(svdinput));
             for n = size(V, 2):-1:1
                 temp = temp+U(:, n)*L(n,n)*V(:,n)';
-                if max(max(temp))>S.threshold;
+                if max(max(abs(temp)))>S.threshold;
                     S.ncomp = min(n+1, size(V, 2));
                     break;
                 else
