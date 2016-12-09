@@ -8,7 +8,7 @@ function spm_MDP_plot(MDP)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_plot.m 6959 2016-12-03 12:31:52Z karl $
+% $Id: spm_MDP_plot.m 6967 2016-12-09 11:03:28Z karl $
 
 % Preliminaries
 %--------------------------------------------------------------------------
@@ -26,7 +26,7 @@ try k2 = MDP.MDP.label.k; catch, k2 = 1; end
 %--------------------------------------------------------------------------
 T1     = size(MDP.xn{k1},4);
 F1     = fix(1024/(T1*numel(MDP.label.name{k1}{1})));
-F1     = min(max(F1,8),32)
+F1     = min(max(F1,8),32);
 for t1 = 1:T1
     
     % draw stuff
@@ -78,13 +78,12 @@ for t1 = 1:T1
             
             % next level down
             %--------------------------------------------------------------
-            if isfield(MDP.mdp(t1),'kdem')
+            if isfield(MDP.mdp(t1),'dem')
                 
                 o  = MDP.mdp(t1).dem(t2).X;
                 no = numel(o);
                 T  = size(o{1},2);
                 
-                S   = spm_read_vols(STIM.H{h});
             else
                 
                 % observed outcomes
@@ -92,7 +91,6 @@ for t1 = 1:T1
                 o  = MDP.mdp(t1).o;
                 no = size(o,1);
                 T  = 16;
-
             end
             
             F3     = fix(1024/(no*numel(MDP.MDP.label.outcome{1}{1})));
@@ -104,32 +102,34 @@ for t1 = 1:T1
                 for i = 1:no
                     
                     if iscell(o)
-                        
+                                                
                         % probabilistic outcomes
                         %--------------------------------------------------
-                        p     = 1 - o{i};
-                        p     = p*scale;
+                        p     = spm_softmax(log(o{i}(:,t3)));
                         str   = MDP.MDP.label.outcome{i};
-                        ns    = size(p,1);
-                        for j = 1:ns
-                            try
-                                set(h1(i,j),'Color',[1 1 1]*p(j,i));
-                            catch
-                                h1(i,j) = text(16*i/nt,j/ns + 6,str(j),...
-                                    'HorizontalAlignment','center',...
-                                    'Color',[1 1 1]*p(j,i),'FontSize',F1);
-                            end
+                        [p,j] = sort(p,'descend');
+                        col   = [1 1 1] - [0 1 1]*p(1);
+                        try
+                            set(h3(i),'String',str(j(1)),...
+                                'Color',col);
+                        catch
+                            h3(i) = text(16*i/no,2,str(j(1)),...
+                                'HorizontalAlignment','center',...
+                                'Color',col,'FontSize',F3);
                         end
-
+                        
+                        
+                        % S   = spm_read_vols(STIM.H{h});
+                        
                     else
                         
                         % deterministic outcomes
                         %--------------------------------------------------
                         str = MDP.MDP.label.outcome{i}{o(i,t2)};
                         try
-                            set(h3(i,j),'String',str);
+                            set(h3(i),'String',str);
                         catch
-                            h3(i,j) = text(16*i/no,2,str,'Color','r',...
+                            h3(i) = text(16*i/no,2,str,'Color','r',...
                                 'HorizontalAlignment','center','FontSize',F3);
                         end
                     end
