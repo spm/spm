@@ -1,7 +1,7 @@
 function D = spm_eeg_inv_vb_ecd_gui(D,val)
 % GUI function for variational Bayesian ECD inversion
 %
-% fills in the following fields of the inverse structure:
+% Fills in the following fields of the inverse structure:
 % inverse = struct( ...
 %     'F',            % free energies as dipoles are removed
 %     'pst',          % all time points in data epoch
@@ -15,30 +15,32 @@ function D = spm_eeg_inv_vb_ecd_gui(D,val)
 %     'P'             % forward model
 %
 % In brief, this routine:
-% - load the necessary data, if not provided
+% - load the necessary data, if not provided,
 % - fill in all the necessary bits for the VB-ECD inversion routine,
-% - launch variational Bayesian model inversion
-% - eliminates redundant dipoles using Bayesian model reduction
+% - launch variational Bayesian model inversion,
+% - eliminates redundant dipoles using Bayesian model reduction,
 % - displays the results.
 %
 % This routine provides a Bayes optimal solution to the ECD problem. It
 % finesses the nonlinear inversion problem by starting with a large number
-% of dipoles (on the cortical surface). It then fits the principal
-% spatial modes of the data over a specified peristimulus time window using
-% fixed dipole orientations. Finally, it uses Bayesian model reduction to
-% eliminate the least likely dipoles, until the specified number of
-% dipoles is obtained.
+% of dipoles (on the cortical surface). It then fits the principal spatial
+% modes of the data over a specified peristimulus time window using fixed
+% dipole orientations. Finally, it uses Bayesian model reduction to
+% eliminate the least likely dipoles, until the specified number of dipoles
+% is obtained.
 %
 % The purpose of this routine is to find the location of a small number of
 % dipoles that accurately explain fluctuations in activity over
 % peristimulus time. It is anticipated that the moments of the dipoles will
 % be estimated as needed using a standard pseudo-inverse (ordinary least
-% squares) estimator – should it be required. examples of this are provided
+% squares) estimator - should it be required. examples of this are provided
 % during the presentation of the results below.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-%
-% $Id: spm_eeg_inv_vb_ecd_gui.m 6854 2016-08-06 10:04:19Z karl $
+% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_eeg_inv_vb_ecd_gui.m 6966 2016-12-09 10:26:26Z guillaume $
+
 
 % Load data, if necessary
 %==========================================================================
@@ -49,7 +51,7 @@ end
 % Check if the forward model was prepared & handle the other info bits
 %==========================================================================
 if ~isfield(D,'inv')
-    error('Data must have been prepared for inversion procedure...')
+    error('Data must have been prepared for inversion procedure.');
 end
 
 % check index provided
@@ -173,6 +175,7 @@ switch Sres
         res(2).radius = 36;
         
     otherwise
+        res = [];
 end
 
 
@@ -521,5 +524,3 @@ return
 % AJNR Am J Neuroradiol   www.ajnr.org 1
 % On-line Fig 1. Graphic illustration of 64 ROIs from On-line Table 1 used for connectivity analysis.
 % 2  AJNR   www.ajnr.org
-
-
