@@ -18,7 +18,7 @@ function varargout = spm_jsonwrite(varargin)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 6947 2016-11-23 16:12:12Z guillaume $
+% $Id: spm_jsonwrite.m 6968 2016-12-09 15:58:00Z guillaume $
 
 
 %-Input parameters
@@ -75,7 +75,7 @@ else
 end
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%==========================================================================
 function S = jsonwrite_var(json,tab)
 if nargin < 2, tab = 0; end
 if isstruct(json) || isa(json,'containers.Map')
@@ -90,7 +90,7 @@ else
     error('Class "%s" is not supported.',class(json));
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%==========================================================================
 function S = jsonwrite_struct(json,tab)
 if numel(json) == 1
     if isstruct(json), fn = fieldnames(json); else fn = keys(json); end
@@ -107,8 +107,9 @@ else
     S = jsonwrite_cell(arrayfun(@(x) {x},json),tab);
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%==========================================================================
 function S = jsonwrite_cell(json,tab)
+if numel(json) == 0, tab = NaN; end
 S = ['[' fmt('\n',tab)];
 for i=1:numel(json)
     S = [S fmt((tab+1)*2) jsonwrite_var(json{i},tab+1)];
@@ -117,7 +118,7 @@ for i=1:numel(json)
 end
 S = [S fmt(2*tab) ']'];
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%==========================================================================
 function S = jsonwrite_char(json)
 % any-Unicode-character-except-"-or-\-or-control-character
 % \" \\ \/ \b \f \n \r \t \u four-hex-digits
@@ -125,7 +126,7 @@ json = strrep(json,'\','\\');
 json = strrep(json,'"','\"');
 S = ['"' json '"'];
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%==========================================================================
 function S = jsonwrite_numeric(json)
 if numel(json) > 1
     idx = find(size(json)~=1);
@@ -142,7 +143,7 @@ else
     S = num2str(json);
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%==========================================================================
 function b = fmt(varargin)
 b = '';
 if nargin == 1

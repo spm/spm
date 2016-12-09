@@ -53,10 +53,10 @@ function varargout = spm_jobman(varargin)
 % jobs        - char or cell array of filenames, or
 %               'jobs'/'matlabbbatch' variable
 %__________________________________________________________________________
-% Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 6656 2015-12-24 16:49:52Z guillaume $
+% $Id: spm_jobman.m 6968 2016-12-09 15:58:00Z guillaume $
 
 
 %__________________________________________________________________________
@@ -323,10 +323,21 @@ for i = 1:numel(filenames)
             end
         case 'm'
             try
-                fid = fopen(filenames{i},'rt');
-                str = fread(fid,'*char');
-                fclose(fid);
+                str = fileread(filenames{i});
                 eval(str);
+            catch
+                warning('spm:spm_jobman:loadFailed','Load failed: ''%s''',filenames{i});
+            end
+        case 'json'
+            try
+                S = spm_jsonread(filenames{i});
+                if isstruct(S)
+                    for j=1:numel(S)
+                        matlabbatch{j} = S(j);
+                    end
+                else
+                    matlabbatch = S;
+                end
             catch
                 warning('spm:spm_jobman:loadFailed','Load failed: ''%s''',filenames{i});
             end

@@ -35,7 +35,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 6912 2016-10-26 14:50:53Z guillaume $
+% $Id: spm_mesh_render.m 6968 2016-12-09 15:58:00Z guillaume $
 
 
 %-Input parameters
@@ -221,14 +221,16 @@ switch lower(action)
         uimenu(cmenu, 'Label','Save As...', 'Separator', 'on', ...
             'Callback', {@mySave, H});
         
-        set(H.rotate3d,'enable','off');
-        try, set(H.rotate3d,'uicontextmenu',cmenu); end
-        try, set(H.patch,   'uicontextmenu',cmenu); end
-        set(H.rotate3d,'enable','on');
+        set(H.rotate3d,'Enable','off');
+        try, set(H.rotate3d,'UIContextMenu',cmenu); end
+        try, set(H.patch,   'UIContextMenu',cmenu); end
+        set(H.rotate3d,'Enable','on');
         
-        dcm_obj = datacursormode(H.figure);
-        set(dcm_obj, 'Enable','off', 'SnapToDataVertex','on', ...
-            'DisplayStyle','Window', 'Updatefcn',{@myDataCursorUpdate, H});
+        try
+            dcm_obj = datacursormode(H.figure);
+            set(dcm_obj, 'Enable','off', 'SnapToDataVertex','on', ...
+                'DisplayStyle','Window', 'Updatefcn',{@myDataCursorUpdate, H});
+        end
         
     %-Overlay
     %======================================================================
@@ -510,11 +512,11 @@ set(obj,'Checked','on');
 
 %==========================================================================
 function mySwitchRotate(obj,evt,H)
-if strcmpi(get(H.rotate3d,'enable'),'on')
-    set(H.rotate3d,'enable','off');
+if strcmpi(get(H.rotate3d,'Enable'),'on')
+    set(H.rotate3d,'Enable','off');
     set(obj,'Checked','off');
 else
-    set(H.rotate3d,'enable','on');
+    set(H.rotate3d,'Enable','on');
     set(obj,'Checked','on');
 end
 
