@@ -11,10 +11,10 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 %
 % D            - same data struct including the new required files and variables
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 6182 2014-09-18 12:03:18Z guillaume $
+% $Id: spm_eeg_inv_datareg_ui.m 6969 2016-12-12 13:08:06Z guillaume $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -96,7 +96,7 @@ else
                 
                 newmrifid.fid.pnt   = [newmrifid.fid.pnt; mrifid.fid.pnt(selection, :)];
             case 'type'
-                pnt = spm_input('Input MNI coordinates', '+1', 'r', '', 3);
+                pnt = spm_input('MRI coordinates {mm}', '+1', 'r', '', 3);
                 newmrifid.fid.pnt   = [newmrifid.fid.pnt; pnt(:)'];
             case 'click'
                 while 1
