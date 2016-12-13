@@ -10,7 +10,7 @@ function varargout = spm_jsonwrite(varargin)
 %
 % FORMAT [...] = spm_jsonwrite(...,opts)
 % opts     - structure of optional parameters:
-%              compact: compact vs pretty-print formatting [true]
+%              indent: string to use for indentation [Default: '']
 % 
 % References:
 %   JSON Standard: http://www.json.org/
@@ -18,12 +18,12 @@ function varargout = spm_jsonwrite(varargin)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 6968 2016-12-09 15:58:00Z guillaume $
+% $Id: spm_jsonwrite.m 6970 2016-12-13 16:03:58Z guillaume $
 
 
 %-Input parameters
 %--------------------------------------------------------------------------
-opts         = struct('compact',true);
+opts         = struct('indent','');
 opt          = struct([]);
 if nargin > 1
     if ischar(varargin{1})
@@ -46,6 +46,7 @@ else
 end
 fn = fieldnames(opt);
 for i=1:numel(fn)
+    if ~isfield(opts,fn{i}), warning('Unknown option "%s".',fn{i}); end
     opts.(fn{i}) = opt.(fn{i});
 end
 
@@ -58,8 +59,8 @@ if ~isstruct(json) && ~iscell(json) && ~isa(json,'containers.Map')
         error('Invalid JSON structure.');
     end
 end
-if opts.compact, tab = NaN; else tab = 0; end
-S = jsonwrite_var(json,tab);
+fmt('init',sprintf(opts.indent));
+S = jsonwrite_var(json,~isempty(opts.indent));
 
 %-Output
 %--------------------------------------------------------------------------
@@ -77,7 +78,7 @@ end
 
 %==========================================================================
 function S = jsonwrite_var(json,tab)
-if nargin < 2, tab = 0; end
+if nargin < 2, tab = ''; end
 if isstruct(json) || isa(json,'containers.Map')
     S = jsonwrite_struct(json,tab);
 elseif iscell(json)
@@ -97,26 +98,31 @@ if numel(json) == 1
     S = ['{' fmt('\n',tab)];
     for i=1:numel(fn)
         if isstruct(json), val = json.(fn{i}); else val = json(fn{i}); end
-        S = [S fmt((tab+1)*2) jsonwrite_char(fn{i}) ':' fmt(~isnan(tab)) ...
+        S = [S fmt(tab) jsonwrite_char(fn{i}) ':' fmt(' ',tab) ...
             jsonwrite_var(val,tab+1)];
         if i ~= numel(fn), S = [S ',']; end
         S = [S fmt('\n',tab)];
     end
-    S = [S fmt(2*tab) '}'];
+    S = [S fmt(tab-1) '}'];
 else
     S = jsonwrite_cell(arrayfun(@(x) {x},json),tab);
 end
 
 %==========================================================================
 function S = jsonwrite_cell(json,tab)
-if numel(json) == 0, tab = NaN; end
+if numel(json) == 0 ...
+        || (numel(json) == 1 && iscellstr(json)) ...
+        || all(cellfun(@isnumeric,json)) ...
+        || all(cellfun(@islogical,json))
+    tab = '';
+end
 S = ['[' fmt('\n',tab)];
 for i=1:numel(json)
-    S = [S fmt((tab+1)*2) jsonwrite_var(json{i},tab+1)];
+    S = [S fmt(tab) jsonwrite_var(json{i},tab+1)];
     if i ~= numel(json), S = [S ',']; end
     S = [S fmt('\n',tab)];
 end
-S = [S fmt(2*tab) ']'];
+S = [S fmt(tab-1) ']'];
 
 %==========================================================================
 function S = jsonwrite_char(json)
@@ -128,26 +134,33 @@ S = ['"' json '"'];
 
 %==========================================================================
 function S = jsonwrite_numeric(json)
-if numel(json) > 1
+if numel(json) == 0
+    S = jsonwrite_cell({});
+    return;
+elseif numel(json) > 1
     idx = find(size(json)~=1);
     if numel(idx) == 1 % vector
-        S = jsonwrite_cell(num2cell(json),NaN);
+        S = jsonwrite_cell(num2cell(json),'');
     else % array
-        S = jsonwrite_cell(num2cell(json,setdiff(1:ndims(json),idx(1))),NaN);
+        S = jsonwrite_cell(num2cell(json,setdiff(1:ndims(json),idx(1))),'');
     end
     return;
 end
 if islogical(json)
     if json, S = 'true'; else S = 'false'; end
 else
-    S = num2str(json);
+    S = num2str(json,16);
 end
 
 %==========================================================================
 function b = fmt(varargin)
+persistent tab;
+if nargin == 2 && isequal(varargin{1},'init')
+    tab = varargin{2};
+end
 b = '';
 if nargin == 1
-    if ~isnan(varargin{1}), b = blanks(varargin{1}); end
+    if varargin{1} > 0, b = repmat(tab,1,varargin{1}); end
 elseif nargin == 2
-    if ~isnan(varargin{2}), b = sprintf(varargin{1}); end
+    if ~isempty(tab) && ~isempty(varargin{2}), b = sprintf(varargin{1}); end
 end
