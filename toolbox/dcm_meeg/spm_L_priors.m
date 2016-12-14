@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 6922 2016-11-02 17:28:23Z karl $
+% $Id: spm_L_priors.m 6971 2016-12-14 18:49:19Z bernadette $
 
 
 
@@ -66,8 +66,8 @@ switch type
         pE.Lpos = dipfit.Lpos;   pC.Lpos = ones(3,n)*V;    % positions
         pE.L    = zeros(3,n);    pC.L    = ones(3,n)*64;   % orientations
         
-       Sc = find(~cellfun(@isempty,dipfit.silent_source)); % silence sources for CSD 
-       if(Sc); pC.L(:,Sc) = pC.L(:,Sc)*0; end
+        Sc = find(~cellfun(@isempty,dipfit.silent_source)); % silence sources for CSD
+        if(Sc); pC.L(:,Sc) = pC.L(:,Sc)*0; end
         
     case{'IMG'}
         %------------------------------------------------------------------
@@ -75,8 +75,8 @@ switch type
         pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);    % positions
         pE.L    = zeros(m,n);    pC.L    = ones(m,n)*64;   % modes
         
-       Sc = find(~cellfun(@isempty,dipfit.silent_source)); % silence sources for CSD 
-       if(Sc); pC.L(:,Sc) = pC.L(:,Sc)*0; end
+        Sc = find(~cellfun(@isempty,dipfit.silent_source)); % silence sources for CSD
+        if(Sc); pC.L(:,Sc) = pC.L(:,Sc)*0; end
         
     case{'LFP'}
         %------------------------------------------------------------------
@@ -105,7 +105,7 @@ for i = 1:numel(model)
             
         case{'CMC','TFM'}
             %--------------------------------------------------------------
-            pE.J{end + 1} = sparse(1,[3 7],[2 1],1,8);       % 8 states
+            pE.J{end + 1} = sparse(1,3,1,1,8);               % 8 states
             pC.J{end + 1} = sparse(1,[1 7],1/32,1,8);
             
         case{'LFP'}
@@ -143,6 +143,17 @@ for i = 1:numel(model)
             pE.J{end + 1} = [];                              % null
             pC.J{end + 1} = [];
             
+        case{'BGC'}
+            %--------------------------------------------------------------
+            %assuming data are from STN
+            pE.J{end + 1} = sparse(1,5,1,1,10);               % 10 states
+            pC.J{end + 1} = sparse(1,10);
+        
+        case{'MMC'}
+            %--------------------------------------------------------------
+            pE.J{end + 1} = sparse(1,[1 3 7],[.2 .2 .6],1,8);   % 8 states
+            pC.J{end + 1} = sparse(1,8);
+             
         case{'NULL'}
             %--------------------------------------------------------------
             nx   = size(pE.A,1)/m;
@@ -162,7 +173,7 @@ for i = 1:numel(model)
             pE.J{i}(model(i).J) = 1;
         end
     end
-        
+    
     %  subsidiary (free) sources
     %----------------------------------------------------------------------
     if isfield(model(i),'K')
