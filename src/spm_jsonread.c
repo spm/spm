@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 6891 2016-09-29 13:38:25Z guillaume $
+ * $Id: spm_jsonread.c 6974 2016-12-15 17:57:34Z guillaume $
  * Guillaume Flandin
  */
 
@@ -123,7 +123,44 @@ static int setup_for_cell2mat(mxArray *pm) {
 static int create_struct(char *js, jsmntok_t *tok, mxArray **mx);
 
 static char * get_string(char *js, int start, int end) {
-    js[end] = '\0';
+    int i, j;
+    for (i = start, j = start; j < end; i++, j++) {
+        if (js[j] == '\\') {
+            switch (js[j+1]) {
+                case '"':
+                case '\\':
+                case '/':
+                    js[i] = js[++j];
+                    break;
+                case 'b':
+                    js[i] = '\b'; j++;
+                    break;
+                case 'f':
+                    js[i] = '\f'; j++;
+                    break;
+                case 'n':
+                    js[i] = '\n'; j++;
+                    break;
+                case 'r':
+                    js[i] = '\r'; j++;
+                    break;
+                case 't':
+                    js[i] = '\t'; j++;
+                    break;
+                case 'u':
+                    /* four-hex-digits */
+                    js[i] = 'X'; j+=5;
+                    break;
+                default:
+                    mexPrintf("Unexpected backslash escape.");
+            }
+        }
+        else {
+            if (i != j) js[i] = js[j];
+        }
+    }
+    js[i] = '\0';
+    js[end] = '\0'; /* not necessary sensu stricto */
     return js + start;
 }
 

@@ -18,7 +18,7 @@ function varargout = spm_jsonwrite(varargin)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 6970 2016-12-13 16:03:58Z guillaume $
+% $Id: spm_jsonwrite.m 6974 2016-12-15 17:57:34Z guillaume $
 
 
 %-Input parameters
@@ -84,7 +84,11 @@ if isstruct(json) || isa(json,'containers.Map')
 elseif iscell(json)
     S = jsonwrite_cell(json,tab);
 elseif ischar(json)
-    S = jsonwrite_char(json);
+    if size(json,1) == 1
+        S = jsonwrite_char(json);
+    else
+        S = jsonwrite_cell(cellstr(json),tab);
+    end
 elseif isnumeric(json) || islogical(json)
     S = jsonwrite_numeric(json);
 else
@@ -130,6 +134,12 @@ function S = jsonwrite_char(json)
 % \" \\ \/ \b \f \n \r \t \u four-hex-digits
 json = strrep(json,'\','\\');
 json = strrep(json,'"','\"');
+json = strrep(json,'/','\/');
+json = strrep(json,sprintf('\b'),'\b');
+json = strrep(json,sprintf('\f'),'\f');
+json = strrep(json,sprintf('\n'),'\n');
+json = strrep(json,sprintf('\r'),'\r');
+json = strrep(json,sprintf('\t'),'\t');
 S = ['"' json '"'];
 
 %==========================================================================
