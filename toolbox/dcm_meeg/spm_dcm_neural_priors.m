@@ -34,10 +34,10 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % pC = 1;
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 6727 2016-02-20 18:06:47Z karl $
- 
+% $Id: spm_dcm_neural_priors.m 6973 2016-12-15 12:34:20Z bernadette $
+
 % For generic schemes one can mix and match different types of sources;
 % furthermore, they can have different condition-specific modulation of
 % intrinsic connectivity parameters and different, source-specific-
@@ -50,7 +50,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % model(i).K       = [i j k ,...]     % other states contributing to L
 %__________________________________________________________________________
 
- 
+
 % assemble priors for more than one sort of model
 %==========================================================================
 if isstruct(model)
@@ -68,7 +68,6 @@ if isstruct(model)
     [pE,pC] = spm_cmc_priors(A,B,C);
     pE      = rmfield(pE,int);
     pC      = rmfield(pC,int);
-
     
     % intrinsic parameters
     %----------------------------------------------------------------------
@@ -92,98 +91,145 @@ if isstruct(model)
             iC.B(model(i).B) = 1/16;
         end
         pE.int{i} = iE;
-        pC.int{i} = iC;    
+        pC.int{i} = iC;
+        
+        if isfield(model(i),'Zf') && iscell(model(i).Zf)
+            
+            for k = 1:length(pC.B)
+                
+               if size(model(i).Zf,1)==1
+                    pE.Bf{1,k} = zeros(size(model(i).Zf{1,k}));
+                    pC.Bf{1,k} = model(i).Zf{1,k} * 1/8;
+               elseif size(model(i).Zf,1)==2
+                    pE.Bf{1,k} = zeros(size(model(i).Zf{1,k}));
+                    pC.Bf{1,k} = model(i).Zf{1,k} * 1/8;
+                    pE.Bf{2,k} = zeros(size(model(i).Zf{1,k}));
+                    pC.Bf{2,k} = model(i).Zf{2,k} * 1/8;
+               else disp('uncorrect specification Zf')
+               end
+               if size(model(i).Zb,1)==1
+                    pE.Bb{1,k} = zeros(size(model(i).Zb{1,k}));
+                    pC.Bb{1,k} = model(i).Zb{1,k} * 1/8;
+               elseif size(model(i).Zb,1)==2
+                    pE.Bb{1,k} = zeros(size(model(i).Zb{1,k}));
+                    pC.Bb{1,k} = model(i).Zb{1,k} * 1/8;
+                    pE.Bb{2,k} = zeros(size(model(i).Zb{1,k}));
+                    pC.Bb{2,k} = model(i).Zb{2,k} * 1/8;
+                   else disp('uncorrect specification Zb')
+               end
+                pC.B{k} = 0*pC.B{k};
+            end
+        end
     end
     return
 end
 
 
- 
+
+
 % get priors on neural model
 %--------------------------------------------------------------------------
 switch lower(model)
- 
+    
     % linear David et al model (linear in states)
     %======================================================================
     case{'erp','sep'}
- 
+        
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,pC] = spm_erp_priors(A,B,C);
         
         
-    % linear David et al model (Canonical microcircuit)
-    %======================================================================        
+        % linear David et al model (Canonical microcircuit)
+        %======================================================================
     case{'cmc'}
- 
+        
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,pC] = spm_cmc_priors(A,B,C);
         
-    % linear David et al model (Canonical microcircuit with plasticity)
-    %======================================================================        
+        % linear David et al model (Canonical microcircuit with plasticity)
+        %======================================================================
     case{'tfm'}
- 
+        
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,pC] = spm_tfm_priors(A,B,C);
         
- 
-    % linear David et al model (linear in states)  - with self-inhibition
-    %======================================================================
+        
+        % linear David et al model (linear in states)  - with self-inhibition
+        %======================================================================
     case{'lfp'}
- 
+        
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,pC] = spm_lfp_priors(A,B,C);
- 
- 
-    % Neural mass model (nonlinear in states)
-    %======================================================================
+        
+        
+        % Neural mass model (nonlinear in states)
+        %======================================================================
     case{'nmm','mfm'}
- 
+        
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,pC] = spm_nmm_priors(A,B,C);
         
-            % Neural mass model (nonlinear in states)
-    %======================================================================
+        % Neural mass model (nonlinear in states)
+        %======================================================================
     case{'nmda'}
- 
+        
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,pC] = spm_nmda_priors(A,B,C);
         
-    % Canonical neural mass model (nonlinear in states)
-    %======================================================================
+        % Canonical neural mass model (nonlinear in states)
+        %======================================================================
     case{'cmm'}
- 
+        
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,pC] = spm_cmm_priors(A,B,C);
         
-    % Canonical neural mass model with NMDA channels(nonlinear in states)
-    %======================================================================
+        % Canonical neural mass model with NMDA channels(nonlinear in states)
+        %======================================================================
     case{'cmm_nmda'}
- 
+        
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,pC] = spm_cmm_NMDA_priors(A,B,C);
         
         
-    % Neural field model (linear in states)
-    %======================================================================
+        % Neural field model (linear in states)
+        %======================================================================
     case{'nfm'}
-
+        
         % prior moments on parameters
         %------------------------------------------------------------------
-        [pE,pC] = spm_nfm_priors(A,B,C); 
+        [pE,pC] = spm_nfm_priors(A,B,C);
         
         
-    % Null model - of Jacabian (linear in states)
-    %======================================================================
+        % Neural field model (linear in states)
+        %======================================================================
+    case{'bgc'}
+        
+        % prior moments on parameters
+        %------------------------------------------------------------------
+        [pE,pC] = spm_bgc_priors; %no (A,B,C);
+        
+        
+        % Bhatt et al model (motor microcircuit)
+        %======================================================================
+    case{'mmc'}
+        
+        % prior moments on parameters
+        %------------------------------------------------------------------
+        [pE,pC] = spm_mmc_priors(A,B,C);
+        
+        
+        % Null model - of Jacabian (linear in states)
+        %======================================================================
     case{'null'}
-
+        
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,pC] = spm_null_priors(A,B,C);
