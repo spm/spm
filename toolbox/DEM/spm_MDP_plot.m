@@ -1,28 +1,34 @@
 function spm_MDP_plot(MDP)
-% creates a movie of hierarchical expectations
+% creates a movie of hierarchical expectations and outcomes
 % FORMAT spm_MDP_plot(MDP))
 %
-% DEM - {DEM} structures from visual search simulations
+% MDP - nested MDP (and DEM) structures
 %     - (requires fields to specify the labels of states and outcomes)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_plot.m 6967 2016-12-09 11:03:28Z karl $
+% $Id: spm_MDP_plot.m 6975 2016-12-18 20:27:00Z karl $
 
 % Preliminaries
 %--------------------------------------------------------------------------
-clf; subplot(2,1,1),axis([1 20 0 8]);
+cla,axis([1 20 0 8]); axis image, hold on, box on
+set(gca,'Fontsize',16,'XColor','r','TickLength',[0 0],'XTick',[],'YTick',[])
 title('Narrative construction','FontSize',16)
-scale = 1 - 1/8;
-set(gca,'XTick',[],'YTick',[]), box on
 
+% switch off basis functions for visual stimuli
+%--------------------------------------------------------------------------
+global STIM
+B = STIM.B;
+STIM.B = 1;
+
+% hidden factors to display (one per level)
+%--------------------------------------------------------------------------
+scale  = 1 - 1/16;                             % background level for text
 try k1 = MDP.label.k;     catch, k1 = 1; end
 try k2 = MDP.MDP.label.k; catch, k2 = 1; end
 
-
-
-% draw stuff
+% cycle over highest level
 %--------------------------------------------------------------------------
 T1     = size(MDP.xn{k1},4);
 F1     = fix(1024/(T1*numel(MDP.label.name{k1}{1})));
@@ -76,10 +82,18 @@ for t1 = 1:T1
                 end
             end
             
+            % check for extra time points
+            %--------------------------------------------------------------
+            try
+                delete(h2((nt + 1):end,:))
+            end
+            
             % next level down
             %--------------------------------------------------------------
             if isfield(MDP.mdp(t1),'dem')
                 
+                % accumulated expectations from Bayesian filtering
+                %----------------------------------------------------------
                 o  = MDP.mdp(t1).dem(t2).X;
                 no = numel(o);
                 T  = size(o{1},2);
@@ -93,8 +107,13 @@ for t1 = 1:T1
                 T  = 16;
             end
             
+            % outcome modalities
+            %--------------------------------------------------------------
+            set(gca,'XTickLabel',MDP.MDP.label.modality)
+            set(gca,'XTick',16*(1:no)/no)
+            
             F3     = fix(1024/(no*numel(MDP.MDP.label.outcome{1}{1})));
-            F3     = min(max(F3,8),48);
+            F3     = min(max(F3,8),32);
             for t3 = 1:T
                 
                 % draw stuff
@@ -102,24 +121,39 @@ for t1 = 1:T1
                 for i = 1:no
                     
                     if iscell(o)
-                                                
-                        % probabilistic outcomes
+                        
+                        % probabilistic outcomes (expectations)
                         %--------------------------------------------------
-                        p     = spm_softmax(log(o{i}(:,t3)));
+                        x     = 16*i/no;
+                        p     = spm_softmax(log(o{i}(:,t3))/4);
                         str   = MDP.MDP.label.outcome{i};
                         [p,j] = sort(p,'descend');
-                        col   = [1 1 1] - [0 1 1]*p(1);
+                        col   = [1 1 1] - [0 1 1]*(p(1) - 1/numel(p));
                         try
                             set(h3(i),'String',str(j(1)),...
                                 'Color',col);
                         catch
-                            h3(i) = text(16*i/no,2,str(j(1)),...
+                            h3(i) = text(x,3,str(j(1)),...
                                 'HorizontalAlignment','center',...
                                 'Color',col,'FontSize',F3);
                         end
                         
-                        
-                        % S   = spm_read_vols(STIM.H{h});
+                        % observations in image format
+                        %--------------------------------------------------
+                        x     = [-1 1] + x;
+                        y     = [-1 1] + 1;
+                        try
+                            px = MDP.mdp(t1).dem(t2).pU.x{1}(:,t3);
+                            pv = MDP.mdp(t1).dem(t2).pU.v{2}(:,t3);
+                            px = spm_unvec(px,MDP.MDP.DEM.G(1).x);
+                            pv = spm_unvec(pv,MDP.MDP.DEM.G(2).v);
+                            Y  = MDP.MDP.DEM.label{i}(px,pv);
+                            try
+                                delete(h4(i))
+                            end
+                            h4(i) = image(x,y,flipud(Y)*64);
+                            
+                        end
                         
                     else
                         
@@ -185,6 +219,11 @@ for t1 = 1:T1
         F3     = fix(1024/(no*numel(MDP.label.outcome{1}{1})));
         F3     = min(max(F3,8),48);
         
+        % outcome modalities
+        %--------------------------------------------------------------
+        set(gca,'XTickLabel',MDP.label.modality)
+        set(gca,'XTick',16*(1:no)/no)
+        
         for t3 = 1:T
             
             % draw stuff
@@ -234,6 +273,7 @@ end
 
 % save movie
 %--------------------------------------------------------------------------
+STIM.B = B;
 set(gca,'Userdata',{M,16})
 set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
 

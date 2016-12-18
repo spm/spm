@@ -1,5 +1,5 @@
 function MDP = DEM_demo_MDP_maze
-% Demo of active inference for trust games
+% Demo of active inference for epistemic foraging
 %__________________________________________________________________________
 %
 % This routine uses the Markov decision process formulation of active
@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_maze
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_maze.m 6235 2014-10-12 10:03:05Z karl $
+% $Id: DEM_demo_MDP_maze.m 6975 2016-12-18 20:27:00Z karl $
 
 % set up and preliminaries
 %==========================================================================
