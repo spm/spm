@@ -12,7 +12,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 6819 2016-06-22 15:07:42Z vladimir $
+% $Id: spm_eeg_inv_forward.m 6976 2016-12-22 11:04:45Z vladimir $
 
 
 %-Initialisation
@@ -73,12 +73,12 @@ for i = 1:numel(D.inv{val}.forward)
             vol  = ft_prepare_headmodel(cfg, headshape);
             
             cfg = [];
-            cfg.vol      = vol;
-            cfg.grid.pos = mesh.tess_ctx.vert;
-            cfg.spherify = 'yes';
-            gridsphere = ft_prepare_sourcemodel(cfg);
+            cfg.headmodel = vol;
+            cfg.grid.pos  = mesh.tess_ctx.vert;
+            cfg.spherify  = 'yes';
+            gridsphere    = ft_prepare_sourcemodel(cfg);
             
-            mesh_correction    = rmfield(cfg, {'vol', 'grid'});
+            mesh_correction    = rmfield(cfg, {'headmodel', 'grid'});
             
             mesh.tess_ctx.vert = gridsphere.pos;
             modality = 'EEG';

@@ -5,11 +5,11 @@ function this = rmdata(this)
 % Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: rmdata.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: rmdata.m 6976 2016-12-22 11:04:45Z vladimir $
 
 if islinked(this)
     try
-        delete(fullfile(path(this), fnamedat(this)));
+        delete(fnamedat(this));
     end
 end
 

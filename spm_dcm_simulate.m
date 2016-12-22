@@ -30,7 +30,7 @@ function [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman, Vladimir Litvak
-% $Id: spm_dcm_simulate.m 6954 2016-11-28 11:57:12Z peter $
+% $Id: spm_dcm_simulate.m 6976 2016-12-22 11:04:45Z vladimir $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -153,24 +153,31 @@ for i = 1:ns
     % generate data
     %----------------------------------------------------------------------
     G   = feval(DCM.M.G, Eg, DCM.M);
-    x   = feval(DCM.M.IS, DCM.Ep, DCM.M, DCM.xU);
+    U   = DCM.M.U;
+    x   = feval(DCM.M.IS, DCM.Ep, DCM.M, DCM.xU);    
     for c = 1:length(x)
-        y{c} = x{c}*G';
-        e    = spm_conv(randn(size(y{c})),8,0);
+        y{c} = x{c}*G'*U;
+                
+        e    = randn(size(y{c}));
                 
         switch lower(mode)
             case 'snr_std'
+                e    = spm_conv(e,8,0);
                 e    = e*noise*mean(std(y{c}))/mean(std(e));
             case 'snr_var'
+                e    = spm_conv(e,8,0);
                 e    = e*noise*mean(var(y{c}))/mean(var(e));                
             case 'var'
+                e    = spm_conv(e,8,0);
                 e    = e*sqrt(noise);
+            case 'estimated'
+                e = sqrtm(full(DCM.Ce))*e;
             otherwise
                 error('Unknown noise definition');
         end
          
         y{c} = y{c} + e;
-        y{c} = DCM.M.R*y{c};
+        y{c} = y{c}*spm_pinv(full(U));
     end
     
     % specify models
