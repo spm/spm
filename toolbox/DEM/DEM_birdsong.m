@@ -16,7 +16,7 @@ function [S] = DEM_birdsong(file)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_birdsong.m 4136 2010-12-09 22:22:28Z guillaume $ 
+% $Id: DEM_birdsong.m 6977 2016-12-24 17:48:44Z karl $ 
  
 % load bird song
 %==========================================================================
@@ -31,14 +31,14 @@ T   = length(Y)/FS;                   % duration (seconds)
  
 Nm  = 3;                              % number of frequency modes
 cpw = 4;                              % minimum cycles per window
-pst = [1:length(Y)]/FS;               % peristimulus time (seconds)
-Hz  = [1:64]*4000/64;                 % frequencies
+pst = (1:length(Y))/FS;               % peristimulus time (seconds)
+Hz  = (1:64)*4000/64;                 % frequencies
 k   = cpw*Hz/Hz(1);
 n   = cpw*FS/Hz(1);
  
 % windowed Fourier transform
 %--------------------------------------------------------------------------
-C   = spm_wft(Y,k,n);
+C   = spm_wft(Y(:),k,n);
 C   = spm_conv(C,8,1);
 Y   = spm_iwft(C,k,n);
  

@@ -8,7 +8,7 @@ function spm_MDP_plot(MDP)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_plot.m 6975 2016-12-18 20:27:00Z karl $
+% $Id: spm_MDP_plot.m 6977 2016-12-24 17:48:44Z karl $
 
 % Preliminaries
 %--------------------------------------------------------------------------
@@ -18,9 +18,11 @@ title('Narrative construction','FontSize',16)
 
 % switch off basis functions for visual stimuli
 %--------------------------------------------------------------------------
+try
 global STIM
 B = STIM.B;
 STIM.B = 1;
+end
 
 % hidden factors to display (one per level)
 %--------------------------------------------------------------------------
@@ -220,7 +222,7 @@ for t1 = 1:T1
         F3     = min(max(F3,8),48);
         
         % outcome modalities
-        %--------------------------------------------------------------
+        %------------------------------------------------------------------
         set(gca,'XTickLabel',MDP.label.modality)
         set(gca,'XTick',16*(1:no)/no)
         
@@ -273,7 +275,7 @@ end
 
 % save movie
 %--------------------------------------------------------------------------
-STIM.B = B;
+try, STIM.B = B; end
 set(gca,'Userdata',{M,16})
 set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
 

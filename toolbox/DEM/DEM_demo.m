@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 18-Dec-2016 15:41:14
+% Last Modified by GUIDE v2.5 19-Dec-2016 17:54:32
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -612,4 +612,9 @@ run_demo_Callback(hObject, handles, 'DEM_demo_MDP_DEM')
 function pushbutton213_Callback(hObject, eventdata, handles)
 handles.web = 'Computational Phenotyping in Psychiatry';
 run_demo_Callback(hObject, handles, 'DEM_demo_MDP_fit_fields')
+
+% --- Executes on button press in pushbutton214.
+function pushbutton214_Callback(hObject, eventdata, handles)
+handles.web = 'Active inference and epistemic value';
+run_demo_Callback(hObject, handles, 'DEMO_MDP_maze')
 

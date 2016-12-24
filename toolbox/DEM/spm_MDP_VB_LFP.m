@@ -5,12 +5,12 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR)
 % u - selected unit rate of change of firing (simulated voltage)
 % v - selected unit responses {number of trials, number of units}
 %
-% MDP - structure (see spm_MDP_VB
+% MDP - structure (see spm_MDP_VB_X.m)
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 6657 2015-12-31 17:59:31Z karl $
+% $Id: spm_MDP_VB_LFP.m 6977 2016-12-24 17:48:44Z karl $
  
  
 % defaults
