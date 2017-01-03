@@ -32,7 +32,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 6763 2016-04-04 09:24:18Z karl $
+% $Id: spm_MDP_VB_game.m 6978 2017-01-03 10:42:09Z karl $
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
@@ -189,6 +189,8 @@ else
 end
 title('Precision (dopamine)')
 ylabel('Precision','FontSize',12), spm_axis tight
+YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
+
 
 % learning - D
 %--------------------------------------------------------------------------

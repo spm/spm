@@ -24,7 +24,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %
 % MDP.alpha             - precision – action selection [16]
 % MDP.beta              - precision over precision (Gamma hyperprior - [1])
-% MDP.tau               - time constant for gradient descent
+% MDP.tau               - time constant for gradient descent [4]
 % MDP.eta               - learning rate for a and b parameters
 %
 % OPTIONS.plot          - switch to suppress graphics:  (default: [0])
@@ -96,7 +96,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6938 2016-11-20 12:48:07Z karl $
+% $Id: spm_MDP_VB_X.m 6978 2017-01-03 10:42:09Z karl $
 
 
 % deal with a sequence of trials
