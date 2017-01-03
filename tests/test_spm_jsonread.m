@@ -1,9 +1,9 @@
 function tests = test_spm_jsonread
 % Unit Tests for spm_jsonread
 %__________________________________________________________________________
-% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_jsonread.m 6869 2016-09-12 16:11:01Z guillaume $
+% $Id: test_spm_jsonread.m 6979 2017-01-03 12:07:52Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -26,7 +26,13 @@ function test_jsonread_all_types(testCase)
 
 %   JSON Data Type            | MATLAB Data Type
 
-%   null                      | empty double, []
+%   null, in numeric arrays   | NaN
+json = '[1, 2, null, 4]';
+exp  = [1; 2; NaN; 4];
+act  = spm_jsonread(json);
+%testCase.verifyTrue(isequaln(exp, act));
+
+%   null, in nonnumeric arrays| empty double []
 json = '{"null": null}';
 exp  = struct('null',[]);
 act  = spm_jsonread(json);

@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 6974 2016-12-15 17:57:34Z guillaume $
+ * $Id: spm_jsonread.c 6979 2017-01-03 12:07:52Z guillaume $
  * Guillaume Flandin
  */
 
@@ -66,7 +66,11 @@ static int should_convert_to_array(const mxArray *pm) {
         d = (mwSize *)mxGetDimensions(mxGetCell(pm, i));
         for (j = 0; j < ndims; j++) {
             if (dim[j] != d[j]) {
-                return 0;
+                if ( !( (cat == mxDOUBLE_CLASS)
+                  && (mxGetNumberOfElements(mxGetCell(pm, i)) <= 1)
+                  && (mxGetNumberOfElements(mxGetCell(pm, 0)) <= 1) ) ) {
+                    return 0;
+                }
             }
         }
         if (cat == mxSTRUCT_CLASS) {
@@ -78,6 +82,14 @@ static int should_convert_to_array(const mxArray *pm) {
                 if (mxGetFieldNumber(mxGetCell(pm, 0), mxGetFieldNameByNumber(mxGetCell(pm, i), j)) == -1) {
                     return 0;
                 }
+            }
+        }
+    }
+    if (cat == mxDOUBLE_CLASS) {
+        for (i = 0; i < n; i++) {
+            if (mxGetNumberOfElements(mxGetCell(pm, i)) == 0) {
+                mxDestroyArray(mxGetCell(pm, i));
+                mxSetCell((mxArray *)pm, i, mxCreateDoubleScalar(mxGetNaN()));
             }
         }
     }
