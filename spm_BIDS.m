@@ -3,17 +3,17 @@ function BIDS = spm_BIDS(root)
 % FORMAT BIDS = spm_BIDS(root)
 % root   - directory formated according to BIDS
 % BIDS   - structure containing the BIDS file layout
+%__________________________________________________________________________
 %
-% BIDS (Brain Imaging Data Structure):
-%                     http://bids.neuroimaging.io/
+% BIDS (Brain Imaging Data Structure): http://bids.neuroimaging.io/
 %   The brain imaging data structure, a format for organizing and
 %   describing outputs of neuroimaging experiments.
 %   K. J. Gorgolewski et al, Scientific Data, 2016.
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 6862 2016-08-25 14:42:19Z guillaume $
+% $Id: spm_BIDS.m 6981 2017-01-04 13:22:16Z guillaume $
 
 
 if ~nargin, root = pwd; end
@@ -139,8 +139,8 @@ for s=1:numel(sub)
             %-Metadata file
             %--------------------------------------------------------------
             % (spm_file called twice to handle .nii and .nii.gz)
-            metafile = spm_file(spm_file(a{i},'basename'),'ext','json');
-            if exist(fullfile(pth,metafile),'file')
+            metafile = fullfile(pth,spm_file(spm_file(a{i},'basename'),'ext','json'));
+            if exist(metafile,'file')
                 BIDS.subjects(s).anat(i).meta = spm_jsonread(metafile);
             else
                 BIDS.subjects(s).anat(i).meta = '';
@@ -177,7 +177,7 @@ for s=1:numel(sub)
             
             %-Acquisition file
             %--------------------------------------------------------------
-            metafile = fullfile(pth,spm_file(spm_file(fb,'ext','json')));
+            metafile = fullfile(pth,spm_file(fb,'ext','json'));
             if exist(metafile,'file')
                 BIDS.subjects(s).func(i).meta = spm_jsonread(metafile);
             else
@@ -209,13 +209,170 @@ for s=1:numel(sub)
     %----------------------------------------------------------------------
     %-Fieldmap data
     %----------------------------------------------------------------------
-    if exist(fullfile(BIDS.subjects(s).path,'fmap'),'dir')
+    pth = fullfile(BIDS.subjects(s).path,'fmap');
+    if exist(pth,'dir')
+        f = spm_select('List',pth,...
+            sprintf('^%s.*\\.nii(\\.gz)$',BIDS.subjects(s).name));
+        if isempty(f), f = {}; else f = cellstr(f); end
+        j = 1;
+        
+        %-Phase difference image and at least one magnitude image
+        %------------------------------------------------------------------
+        labels = regexp(f,[...
+            '^sub-[a-zA-Z0-9]+' ... % sub-<participant_label>
+            '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
+            '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
+            '_phasediff\.nii(\.gz)?$'],'names'); % NIfTI file extension
+        if any(~cellfun(@isempty,labels))
+            idx = find(~cellfun(@isempty,labels));
+            for i=1:numel(idx)
+                fb = spm_file(spm_file(f{idx(i)},'basename'),'basename');
+                metafile = fullfile(pth,spm_file(fb,'ext','json'));
+                BIDS.subjects(s).fmap{j} = struct(...
+                    'phasediff',f{idx(i)},...
+                    'magnitude1',strrep(f{idx(i)},'_phasediff.nii','_magnitude1.nii'),...
+                    'magnitude2',strrep(f{idx(i)},'_phasediff.nii','_magnitude2.nii'),... % optional
+                    'acq',strrep(labels{idx(i)}.acq,'_',''),...
+                    'run',strrep(labels{idx(i)}.run,'_',''),...
+                    'meta',spm_load(metafile));
+                j = j + 1;
+            end
+        end
+        
+        %-Two phase images and two magnitude images
+        %------------------------------------------------------------------
+        labels = regexp(f,[...
+            '^sub-[a-zA-Z0-9]+' ... % sub-<participant_label>
+            '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
+            '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
+            '_phase1\.nii(\.gz)?$'],'names'); % NIfTI file extension
+        if any(~cellfun(@isempty,labels))
+            idx = find(~cellfun(@isempty,labels));
+            for i=1:numel(idx)
+                fb = spm_file(spm_file(f{idx(i)},'basename'),'basename');
+                metafile = fullfile(pth,spm_file(fb,'ext','json'));
+                BIDS.subjects(s).fmap{j} = struct(...
+                    'phase1',f{idx(i)},...
+                    'phase2',strrep(f{idx(i)},'_phase1.nii','_phase2.nii'),...
+                    'magnitude1',strrep(f{idx(i)},'_phase1.nii','_magnitude1.nii'),...
+                    'magnitude2',strrep(f{idx(i)},'_phase1.nii','_magnitude2.nii'),...
+                    'acq',strrep(labels{idx(i)}.acq,'_',''),...
+                    'run',strrep(labels{idx(i)}.run,'_',''),...
+                    'meta1',spm_load(metafile),...
+                    'meta2',spm_load(strrep(metafile,'_phase1.json','_phase2.json')));
+                j = j + 1;
+            end
+        end
+        
+        %-A single, real fieldmap image
+        %------------------------------------------------------------------
+        labels = regexp(f,[...
+            '^sub-[a-zA-Z0-9]+' ... % sub-<participant_label>
+            '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
+            '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
+            '_fieldmap\.nii(\.gz)?$'],'names'); % NIfTI file extension
+        if any(~cellfun(@isempty,labels))
+            idx = find(~cellfun(@isempty,labels));
+            for i=1:numel(idx)
+                fb = spm_file(spm_file(f{idx(i)},'basename'),'basename');
+                metafile = fullfile(pth,spm_file(fb,'ext','json'));
+                BIDS.subjects(s).fmap{j} = struct(...
+                    'fieldmap',f{idx(i)},...
+                    'magnitude',strrep(f{idx(i)},'_fieldmap.nii','_magnitude.nii'),...
+                    'acq',strrep(labels{idx(i)}.acq,'_',''),...
+                    'run',strrep(labels{idx(i)}.run,'_',''),...
+                    'meta',spm_load(metafile));
+                j = j + 1;
+            end
+        end
+        
+        %-Multiple phase encoded directions (topup)
+        %------------------------------------------------------------------
+        labels = regexp(f,[...
+            '^sub-[a-zA-Z0-9]+' ... % sub-<participant_label>
+            '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
+            '_dir-(?<dir>[a-zA-Z0-9]+)?' ... % dir-<index>
+            '_epi\.nii(\.gz)?$'],'names'); % NIfTI file extension
+        if any(~cellfun(@isempty,labels))
+            idx = find(~cellfun(@isempty,labels));
+            for i=1:numel(idx)
+                fb = spm_file(spm_file(f{idx(i)},'basename'),'basename');
+                metafile = fullfile(pth,spm_file(fb,'ext','json'));
+                BIDS.subjects(s).fmap{j} = struct(...
+                    'epi',f{idx(i)},...
+                    'acq',strrep(labels{idx(i)}.acq,'_',''),...
+                    'dir',labels{idx(i)}.dir,...
+                    'meta',spm_load(metafile));
+                j = j + 1;
+            end
+        end
     end
     
     %----------------------------------------------------------------------
     %-Behavioral experiment data
     %----------------------------------------------------------------------
-    if exist(fullfile(BIDS.subjects(s).path,'beh'),'dir')
+    pth = fullfile(BIDS.subjects(s).path,'beh');
+    if exist(pth,'dir')
+        
+        %-Event timing
+        %------------------------------------------------------------------
+        f = spm_select('List',pth, '^task-.*_events\.tsv$');
+        if ~isempty(f)
+            f = cellstr(f);
+            for i=1:numel(f)
+                BIDS.subjects(s).beh.events(i).filename = fullfile(pth,f{i});
+                task = regexp(f{i},'^task-([a-zA-Z0-9]+)_events.tsv$','tokens');
+                BIDS.subjects(s).beh.events(i).task = task{1}{1};
+            end
+        end
+        
+        %-Metadata
+        %------------------------------------------------------------------
+        f = spm_select('List',pth, '^task-.*_beh\.tsv$');
+        if ~isempty(f)
+            f = cellstr(f);
+            for i=1:numel(f)
+                BIDS.subjects(s).beh.meta(i).filename = fullfile(pth,f{i});
+                task = regexp(f{i},'^task-([a-zA-Z0-9]+)_beh.tsv$','tokens');
+                BIDS.subjects(s).beh.meta(i).task = task{1}{1};
+            end
+        end
+        
+        %-Physiological recordings
+        %------------------------------------------------------------------
+        f = spm_select('List',pth, '^task-.*_physio\.tsv\.gz$');
+        if ~isempty(f)
+            f = cellstr(f);
+            for i=1:numel(f)
+                BIDS.subjects(s).beh.physio(i).filename = fullfile(pth,f{i});
+                task = regexp(f{i},'^task-([a-zA-Z0-9]+)_physio.tsv\.gz$','tokens');
+                BIDS.subjects(s).beh.physio(i).task = task{1}{1};
+                metafile = fullfile(pth,spm_file(spm_file(f{i},'basename'),'ext','json'));
+                if exist(metafile,'file')
+                    BIDS.subjects(s).physio(i).meta = spm_jsonread(metafile);
+                else
+                    BIDS.subjects(s).physio(i).meta = [];
+                end
+            end
+        end
+        
+        %-Other continuous recordings
+        %------------------------------------------------------------------
+        f = spm_select('List',pth, '^task-.*_stim\.tsv\.gz$');
+        if ~isempty(f)
+            f = cellstr(f);
+            for i=1:numel(f)
+                BIDS.subjects(s).beh.stim(i).filename = fullfile(pth,f{i});
+                task = regexp(f{i},'^task-([a-zA-Z0-9]+)_stim.tsv\.gz$','tokens');
+                BIDS.subjects(s).beh.stim(i).task = task{1}{1};
+                metafile = fullfile(pth,spm_file(spm_file(f{i},'basename'),'ext','json'));
+                if exist(metafile,'file')
+                    BIDS.subjects(s).stim(i).meta = spm_jsonread(metafile);
+                else
+                    BIDS.subjects(s).stim(i).meta = [];
+                end
+            end
+        end
     end
     
     %----------------------------------------------------------------------
