@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_montage
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_montage.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_montage.m 6983 2017-01-06 17:25:22Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -44,7 +44,7 @@ montagenum         = cfg_entry;
 montagenum.tag     = 'montagenum';
 montagenum.name    = 'Montage index';
 montagenum.help    = {'Specify the index of existing montage'};
-montagenum.strtype = 'n';
+montagenum.strtype = 'w';
 montagenum.num     = [1 1];
 
 montspec = cfg_choice;
