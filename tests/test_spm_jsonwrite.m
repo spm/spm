@@ -1,9 +1,9 @@
 function tests = test_spm_jsonwrite
 % Unit Tests for spm_jsonwrite
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_jsonwrite.m 6947 2016-11-23 16:12:12Z guillaume $
+% $Id: test_spm_jsonwrite.m 6984 2017-01-09 13:29:55Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -26,6 +26,10 @@ testCase.verifyTrue(isequal(act, struct('exp',exp)));
 exp = [true;false];
 act = spm_jsonread(spm_jsonwrite(exp));
 testCase.verifyTrue(isequal(act, struct('exp',exp)));
+
+exp = struct('a','');
+act = spm_jsonread(spm_jsonwrite(exp));
+testCase.verifyTrue(isequal(exp, act));
 
 str = reshape(1:9,3,3);
 exp = spm_jsonread('{"str":[[1,4,7],[2,5,8],[3,6,9]]}');

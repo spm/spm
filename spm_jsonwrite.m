@@ -15,10 +15,10 @@ function varargout = spm_jsonwrite(varargin)
 % References:
 %   JSON Standard: http://www.json.org/
 %__________________________________________________________________________
-% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 6974 2016-12-15 17:57:34Z guillaume $
+% $Id: spm_jsonwrite.m 6984 2017-01-09 13:29:55Z guillaume $
 
 
 %-Input parameters
@@ -84,7 +84,7 @@ if isstruct(json) || isa(json,'containers.Map')
 elseif iscell(json)
     S = jsonwrite_cell(json,tab);
 elseif ischar(json)
-    if size(json,1) == 1
+    if size(json,1) <= 1
         S = jsonwrite_char(json);
     else
         S = jsonwrite_cell(cellstr(json),tab);
