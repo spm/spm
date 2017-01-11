@@ -24,7 +24,7 @@ function [Y,y,beta,Bcov,G] = spm_graph(SPM,XYZ,xG)
 % Copyright (C) 1996-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 6963 2016-12-07 16:34:44Z guillaume $
+% $Id: spm_graph.m 6985 2017-01-11 11:51:49Z guillaume $
 
 
 if nargin == 3 && isstruct(SPM) && isstruct(XYZ) && ishandle(xG)
@@ -193,11 +193,16 @@ switch xG.def
     case 'Contrast estimates and 90% C.I.'
         
         Ic    = xG.spec.Ic; % contrast index
+        if numel(Ic) == 1
+            c = SPM.xCon(Ic).c; % contrast weights
+        else
+            c = Ic';
+        end
         
         % compute contrast of parameter estimates and 90% C.I.
         %------------------------------------------------------------------
-        cbeta = SPM.xCon(Ic).c'*beta;
-        SE    = sqrt(diag(SPM.xCon(Ic).c'*Bcov*SPM.xCon(Ic).c));
+        cbeta = c'*beta;
+        SE    = sqrt(diag(c'*Bcov*c));
         CI    = CI*SE;
         
         % returned values

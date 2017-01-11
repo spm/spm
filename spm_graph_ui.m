@@ -68,7 +68,7 @@ function varargout = spm_graph_ui(action, varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Guillaume Flandin
-% $Id: spm_graph_ui.m 6314 2015-01-23 17:00:51Z guillaume $
+% $Id: spm_graph_ui.m 6985 2017-01-11 11:51:49Z guillaume $
 
 
 if nargin && ~ischar(action)
@@ -144,12 +144,24 @@ case 'ui'                                                              %-UI
 
         % select contrast if
         %------------------------------------------------------------------
-        case {'Contrast estimates and 90% C.I.','Fitted responses'}
+        case {'Contrast estimates and 90% C.I.'}
+
+            % determine which contrast
+            %--------------------------------------------------------------
+            xG.spec.Ic = spm_input('Which contrast?','!+1','m',...
+                {SPM.xCon.name,'Specify a temporary contrast...'});
+            if xG.spec.Ic > numel(SPM.xCon)
+                xG.spec.Ic = spm_input('Contrast weights','!+1','x','',Inf,SPM.xX.X);
+            end
+
+        % select contrast if
+        %------------------------------------------------------------------
+        case {'Fitted responses'}
 
             % determine which contrast
             %--------------------------------------------------------------
             xG.spec.Ic = spm_input('Which contrast?','!+1','m',{SPM.xCon.name});
-
+            
         % select session and trial if
         %------------------------------------------------------------------
         case {'Event-related responses','Parametric responses','Volterra Kernels'}
@@ -304,7 +316,12 @@ case 'plot'                                                          %-Plot
                     'LineWidth',6,'Color',Col(3,:),'Parent',ax)
             end
 
-            TTLstr = {xG.def SPM.xCon(xG.spec.Ic).name};
+            TTLstr = {xG.def};
+            if numel(xG.spec.Ic) == 1
+                TTLstr = [TTLstr {SPM.xCon(xG.spec.Ic).name}];
+            else
+                TTLstr = [TTLstr {'user-defined contrast'}];
+            end
             if isfield(SPM,'VCbeta')
                 TTLstr = [TTLstr {'(conditional estimates)'}];
             end
