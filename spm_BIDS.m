@@ -13,7 +13,7 @@ function BIDS = spm_BIDS(root)
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 6981 2017-01-04 13:22:16Z guillaume $
+% $Id: spm_BIDS.m 6986 2017-01-13 13:19:46Z guillaume $
 
 
 if ~nargin, root = pwd; end
@@ -64,11 +64,22 @@ end
 %==========================================================================
 %-Tasks
 %==========================================================================
-t = spm_select('FPList',BIDS.dir,'^task-.*_bold\.json');
+t = spm_select('FPList',BIDS.dir,'^task-.*_(bold|physio|stim)\.json');
 if isempty(t), t = {}; else t = cellstr(t); end
 for i=1:numel(t)
-    task = spm_file(t{i},'basename');
-    BIDS.tasks.(task(6:end-5)) = spm_jsonread(t{i});
+    task = spm_file(t{i},'basename');    
+    labels = regexp(task,[...
+        '^task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
+        '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
+        '(?<rec>_rec-[a-zA-Z0-9]+)?' ... % rec-<label>
+        '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
+        '_(?<type>(bold|physio|stim))$'],'names'); % type
+    BIDS.tasks{i}.type = labels.type;
+    BIDS.tasks{i}.task = labels.task;
+    BIDS.tasks{i}.acq  = strrep(labels.acq,'_','');
+    BIDS.tasks{i}.rec  = strrep(labels.rec,'_','');
+    BIDS.tasks{i}.run  = strrep(labels.run,'_','');
+    BIDS.tasks{i}.meta = spm_jsonread(t{i});
 end
 
 % + scans key file, sessions file
