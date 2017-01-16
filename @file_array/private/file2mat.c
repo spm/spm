@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 6618 2015-12-01 16:25:38Z spm $
+ * $Id: file2mat.c 6988 2017-01-16 12:38:29Z guillaume $
  * John Ashburner
  */
 
@@ -67,8 +67,8 @@ return size;
 
 static long long icumprod[MXDIMS], ocumprod[MXDIMS];
 
-static void get_1_sat(mwSize ndim, mwSize idim[], int *iptr[], unsigned char idat[],
-        mwSize odim[], unsigned char odat[], int indi, int indo)
+static void get_1_sat(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned char idat[],
+        mwSize odim[], unsigned char odat[], unsigned long long indi, unsigned long long indo)
 {
     mwIndex i;
     if (ndim == 0)
@@ -87,13 +87,13 @@ static void get_1_sat(mwSize ndim, mwSize idim[], int *iptr[], unsigned char ida
     }
 }
 
-void get_1(mwSize ndim, mwSize idim[], int *iptr[], unsigned char idat[],
+void get_1(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned char idat[],
            mwSize odim[], unsigned char odat[])
 {
     get_1_sat(ndim, idim, iptr, idat, odim, odat, 0, 0);
 }
 
-void get_8(mwSize ndim, mwSize idim[], int *iptr[], unsigned char idat[],
+void get_8(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned char idat[],
            mwSize odim[], unsigned char odat[])
 {
     mwIndex i;
@@ -110,7 +110,7 @@ void get_8(mwSize ndim, mwSize idim[], int *iptr[], unsigned char idat[],
     }
 }
 
-void get_16(mwSize ndim, mwSize idim[], int *iptr[], unsigned short idat[],
+void get_16(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned short idat[],
             mwSize odim[], unsigned short odat[])
 {
     mwIndex i;
@@ -127,7 +127,7 @@ void get_16(mwSize ndim, mwSize idim[], int *iptr[], unsigned short idat[],
     }
 }
 
-void get_32(mwSize ndim, mwSize idim[], int *iptr[], unsigned int idat[],
+void get_32(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned int idat[],
             mwSize odim[], unsigned int odat[])
 {
     mwIndex i;
@@ -144,7 +144,7 @@ void get_32(mwSize ndim, mwSize idim[], int *iptr[], unsigned int idat[],
     }
 }
 
-void get_64(mwSize ndim, mwSize idim[], int *iptr[], unsigned long long idat[],
+void get_64(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned long long idat[],
             mwSize odim[], unsigned long long odat[])
 {
     mwSize i;
@@ -161,7 +161,7 @@ void get_64(mwSize ndim, mwSize idim[], int *iptr[], unsigned long long idat[],
     }
 }
 
-void get_w8(mwSize ndim, mwSize idim[], int *iptr[], unsigned char idat[],
+void get_w8(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned char idat[],
             mwSize odim[], unsigned char odat_r[], unsigned char odat_i[])
 {
     mwIndex i;
@@ -183,7 +183,7 @@ void get_w8(mwSize ndim, mwSize idim[], int *iptr[], unsigned char idat[],
     }
 }
 
-void get_w16(mwSize ndim, mwSize idim[], int *iptr[], unsigned short idat[],
+void get_w16(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned short idat[],
              mwSize odim[], unsigned short odat_r[], unsigned short odat_i[])
 {
     mwIndex i;
@@ -205,7 +205,7 @@ void get_w16(mwSize ndim, mwSize idim[], int *iptr[], unsigned short idat[],
     }
 }
 
-void get_w32(mwSize ndim, mwSize idim[], int *iptr[], unsigned int idat[],
+void get_w32(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned int idat[],
              mwSize odim[], unsigned int odat_r[], unsigned int odat_i[])
 {
     mwIndex i;
@@ -227,7 +227,7 @@ void get_w32(mwSize ndim, mwSize idim[], int *iptr[], unsigned int idat[],
     }
 }
 
-void get_w64(mwSize ndim, mwSize idim[], int *iptr[], unsigned long long idat[],
+void get_w64(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned long long idat[],
              mwSize odim[], unsigned long long odat_r[], unsigned long long odat_i[])
 {
     mwIndex i;
@@ -563,8 +563,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     void *idat;
     int i;
     mwSize odim[MXDIMS], *idim, ndim;
-    int *iptr[MXDIMS];
-    int one[1];
+    unsigned long long *iptr[MXDIMS];
+    unsigned long long one[1];
     one[0] = 1;
 
     if (nrhs<2 || nlhs>1) mexErrMsgTxt("Incorrect usage.");
@@ -582,13 +582,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     for(i=0;i<nrhs-1; i++)
     {
         int j;
-        if (!mxIsNumeric(prhs[i+1]) || !mxIsInt32(prhs[i+1]) || mxIsComplex(prhs[i+1]))
+        if (!mxIsNumeric(prhs[i+1]) || !mxIsInt64(prhs[i+1]) || mxIsComplex(prhs[i+1]))
         {
             do_unmap_file(&map);
-            mexErrMsgTxt("Indices must be int32.");
+            mexErrMsgTxt("Indices must be int64.");
         }
         odim[i] = mxGetM(prhs[i+1])*mxGetN(prhs[i+1]);
-        iptr[i] = (int *)mxGetData(prhs[i+1]);
+        iptr[i] = (unsigned long long *)mxGetData(prhs[i+1]);
         for(j=0; j<odim[i]; j++)
             if (iptr[i][j]<1 || iptr[i][j]>((i<ndim)?idim[i]:1))
             {
