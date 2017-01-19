@@ -5,7 +5,7 @@ function varargout=subsref(obj,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsref.m 6989 2017-01-16 13:01:47Z guillaume $
+% $Id: subsref.m 6991 2017-01-19 13:09:51Z guillaume $
 
 
 if isempty(subs), return; end
@@ -158,7 +158,7 @@ dt  = datatypes;
 dt  = dt([dt.code]==sobj.dtype);
 sz  = dt.size;
 try
-    mem = spm('Memory')/8; % in bytes, has to be a multiple of 16 (max([dt.size]))
+    mem = spm('Memory'); % in bytes, has to be a multiple of 16 (max([dt.size]))
 catch
     mem = 200 * 1024 * 1024;
 end

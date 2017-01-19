@@ -90,7 +90,7 @@ function ret = spm_ov_roi(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_ov_roi.m 4996 2012-10-11 18:28:37Z guillaume $
+% $Id: spm_ov_roi.m 6991 2017-01-19 13:09:51Z guillaume $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
@@ -565,7 +565,7 @@ switch cmd
         item18 = uimenu(item0, 'Label', 'Help', 'Callback', ...
                         sprintf('spm_help(''%s'');', mfilename));
         % add some stuff outside ROI tool menu
-        iorient = findobj(st.vols{volhandle}.ax{1}.cm, 'Label', 'Orientation');
+        iorient = findobj(get(st.vols{volhandle}.ax{1}.cm,'Children'), 'flat', 'Label', 'Orientation');
         item19 =  uimenu(iorient, 'Label', 'ROI Space', 'Callback', ...
                          sprintf('%s(''context_space'', %d);', mfilename, volhandle), ...
                          'Visible','off', 'Tag',sprintf('ROI_1_%d', volhandle));
@@ -643,16 +643,17 @@ switch cmd
         
     case 'context_space'
         spm_orthviews('space', volhandle, ...
-              st.vols{volhandle}.roi.Vroi.mat, ...
-              st.vols{volhandle}.roi.Vroi.dim(1:3));
-          iorient = get(findobj(0,'Label','Orientation'),'children');
-          if iscell(iorient)
-              iorient = cell2mat(iorient);
-          end;
-          set(iorient, 'Checked', 'Off');
-          ioroi = findobj(iorient, 'Label','ROI space');
-          set(ioroi, 'Checked', 'On');
-          return;
+            st.vols{volhandle}.roi.Vroi.mat, ...
+            st.vols{volhandle}.roi.Vroi.dim(1:3));
+        iorient = get(findobj(get(st.vols{volhandle}.ax{1}.cm,'Children'), ...
+            'flat', 'Label', 'Orientation'),'children');
+        if iscell(iorient)
+            iorient = cell2mat(iorient);
+        end
+        set(iorient, 'Checked', 'Off');
+        ioroi = findobj(iorient, 'Label','ROI Space');
+        set(ioroi, 'Checked', 'On');
+        return;
  
     case 'context_thresh'
         Finter = spm_figure('FindWin', 'Interactive');

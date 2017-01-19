@@ -1,13 +1,14 @@
 function varargout = spm_orthviews(action,varargin)
 % Display orthogonal views of a set of images
-% FORMAT H = spm_orthviews('Image',filename[,position])
+% FORMAT H = spm_orthviews('Image',filename[,area[,F]])
 % filename - name of image to display
 % area     - position of image {relative}
 %            [left, bottom, width, height]
+% F        - figure handle
 % H        - handle for orthogonal sections
 %
 % FORMAT spm_orthviews('Reposition',centre)
-% centre   - X, Y & Z coordinates of centre voxel
+% centre   - X, Y & Z coordinates of centre voxel {mm}
 %
 % FORMAT spm_orthviews('Space'[,handle[,M,dim]])
 % handle   - the view to define the space by, optionally with extra
@@ -18,8 +19,7 @@ function varargout = spm_orthviews(action,varargin)
 % FORMAT H = spm_orthviews('Caption', handle, string, [Property, Value])
 % handle   - the view to which a caption should be added
 % string   - the caption text to add
-% optional:  Property-Value pairs, e.g. 'FontWeight', 'Bold'
-%
+% Property,Value - optional, e.g. 'FontWeight', 'Bold'
 % H        - the handle to the object whose String property has the caption
 %
 % FORMAT spm_orthviews('BB',bb)
@@ -28,21 +28,21 @@ function varargout = spm_orthviews(action,varargin)
 %             hiX hiY hiZ]
 %
 % FORMAT spm_orthviews('MaxBB')
-% Set the bounding box big enough to display the whole of all images
+% Set the bounding box big enough to display the whole of all images.
 %
 % FORMAT spm_orthviews('Resolution'[,res])
 % res      - resolution (mm)
-% Set the sampling resolution for all images. The effective resolution
-% will be the minimum of res and the voxel sizes of all images. If no
-% resolution is specified, the minimum of 1mm and the voxel sizes of the
-% images is used.
+% Set the sampling resolution for all images. The effective resolution will
+% be the minimum of res and the voxel sizes of all images. If no resolution
+% is specified, the minimum of 1mm and the voxel sizes of the images is
+% used.
 %
 % FORMAT spm_orthviews('Zoom'[,fov[,res]])
 % fov      - half width of field of view (mm)
 % res      - resolution (mm)
-% Set the displayed part and sampling resolution for all images. The
-% image display will be centered at the current crosshair position. The
-% image region [xhairs-fov xhairs+fov] will be shown.
+% Set the displayed part and sampling resolution for all images. The image
+% display will be centered at the current crosshair position. The image
+% region [xhairs-fov xhairs+fov] will be shown.
 % If no argument is given or fov == Inf, the image display will be reset to
 % "Full Volume". If fov == 0, the image will be zoomed to the bounding box
 % from spm_get_bbox for the non-zero voxels of the image. If fov is NaN,
@@ -51,7 +51,7 @@ function varargout = spm_orthviews(action,varargin)
 % Optionally, the display resolution can be set as well.
 %
 % FORMAT spm_orthviews('Redraw')
-% Redraw the images
+% Redraw the images.
 %
 % FORMAT spm_orthviews('Reload_mats')
 % Reload the voxel-world mapping matrices from the headers stored on disk,
@@ -64,28 +64,28 @@ function varargout = spm_orthviews(action,varargin)
 % Clear the orthogonal views
 %
 % FORMAT spm_orthviews('Pos')
-% Return the co-ordinate of the crosshairs in millimetres in the
-% standard space.
+% Return the co-ordinate of the crosshairs in millimetres in the standard
+% space.
 %
 % FORMAT spm_orthviews('Pos', i)
-% Return the voxel co-ordinate of the crosshairs in the image in the
-% ith orthogonal section.
+% Return the voxel co-ordinate of the crosshairs in the image in the ith
+% orthogonal section.
 %
 % FORMAT spm_orthviews('Xhairs','off') OR spm_orthviews('Xhairs')
-% Disable the cross-hairs on the display
+% Disable the cross-hairs on the display.
 %
 % FORMAT spm_orthviews('Xhairs','on')
-% Enable the cross-hairs
+% Enable the cross-hairs.
 %
 % FORMAT spm_orthviews('Interp',hld)
-% Set the hold value to hld (see spm_slice_vol)
+% Set the hold value to hld (see spm_slice_vol).
 %
 % FORMAT spm_orthviews('AddBlobs',handle,XYZ,Z,mat,name)
-% Add blobs from a pointlist to the image specified by the handle(s)
+% Add blobs from a pointlist to the image specified by the handle(s).
 % handle   - image number to add blobs to
 % XYZ      - blob voxel locations
 % Z        - blob voxel intensities
-% mat      - matrix from voxels to millimeters of blob.
+% mat      - matrix from voxels to millimetres of blob
 % name     - a name for this blob
 % This method only adds one set of blobs, and displays them using a split
 % colour table.
@@ -106,15 +106,15 @@ function varargout = spm_orthviews(action,varargin)
 % blobs print well.
 %
 % FORMAT spm_orthviews('AddColourBar',handle,blobno)
-% Add colourbar for a specified blob set
+% Add colourbar for a specified blob set.
 % handle    - image number
 % blobno    - blob number
 %
 % FORMAT spm_orthviews('RemoveBlobs',handle)
-% Remove all blobs from the image specified by the handle(s)
+% Remove all blobs from the image specified by the handle(s).
 %
 % FORMAT spm_orthviews('Addtruecolourimage',handle,filename,colourmap,prop,mx,mn)
-% Add blobs from an image in true colour
+% Add blobs from an image in true colour.
 % handle    - image number to add blobs to [Default: 1]
 % filename  - image containing blob data [Default: GUI input]
 % colourmap - colormap to display blobs in [Default: GUI input]
@@ -148,26 +148,26 @@ function varargout = spm_orthviews(action,varargin)
 % spm_orthviews('plugin_name', plugin_arguments). For detailed descriptions
 % of each plugin see help spm_orthviews/spm_ov_'plugin_name'.
 %__________________________________________________________________________
-% Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 6656 2015-12-24 16:49:52Z guillaume $
+% $Id: spm_orthviews.m 6991 2017-01-19 13:09:51Z guillaume $
 
 
 % The basic fields of st are:
-%         n        - the number of images currently being displayed
+%         n        - the number of images currently being displayed.
 %         vols     - a cell array containing the data on each of the
 %                    displayed images.
 %         Space    - a mapping between the displayed images and the
 %                    mm space of each image.
 %         bb       - the bounding box of the displayed images.
-%         centre   - the current centre of the orthogonal views
+%         centre   - the current centre of the orthogonal views.
 %         callback - a callback to be evaluated on a button-click.
-%         xhairs   - crosshairs off/on
-%         hld      - the interpolation method
-%         fig      - the figure that everything is displayed in
+%         xhairs   - crosshairs off/on.
+%         hld      - the interpolation method.
+%         fig      - the figure that everything is displayed in.
 %         mode     - the position/orientation of the sagittal view.
-%                    - currently always 1
+%                    (currently always 1)
 %
 %         st.registry.hReg \_ See spm_XYZreg for documentation
 %         st.registry.hMe  /
@@ -243,6 +243,7 @@ function varargout = spm_orthviews(action,varargin)
 %                callback handling. The order in which plugins are called is
 %                undefined.
 
+
 global st
 
 persistent zoomlist reslist
@@ -257,7 +258,7 @@ end
     
 switch lower(action)
     case 'image'
-        if numel(varargin)>=3
+        if numel(varargin) > 2
             F = varargin{3};
         else
             F = st.fig;
@@ -272,7 +273,6 @@ switch lower(action)
             if isempty(st.bb), st.bb = maxbb; end
             resolution;
             bbox;
-            cm_pos;
         end
         varargout{1} = H;
         mmcentre     = mean(st.Space*[maxbb';1 1],2)';
@@ -354,14 +354,12 @@ switch lower(action)
         if isfield(st,'registry')
             spm_XYZreg('SetCoords',st.centre,st.registry.hReg,st.registry.hMe);
         end
-        cm_pos;
         
     case 'setcoords'
         st.centre = varargin{1};
         st.centre = st.centre(:);
         redraw_all;
         callback;
-        cm_pos;
         
     case 'space'
         if numel(varargin) < 1
@@ -1623,7 +1621,7 @@ global st
 % create context menu
 set(0,'CurrentFigure',st.fig);
 % contextmenu
-item_parent = uicontextmenu;
+item_parent = uicontextmenu('Callback',@(obj,evt) cm_pos);
 
 % contextsubmenu 0
 item00 = uimenu(item_parent, 'Label','unknown image', 'UserData','filename');
@@ -1699,21 +1697,21 @@ item4_3   = uimenu(item4,      'Label','Sinc',  'Callback','spm_orthviews(''cont
 % item5     = uimenu(item_parent,'Label','Position', 'Callback','spm_orthviews(''context_menu'',''position'');');
 
 % contextsubmenu 6
-item6       = uimenu(item_parent,'Label','Image','Separator','on');
-item6_1     = uimenu(item6,      'Label','Window');
-item6_1_1   = uimenu(item6_1,    'Label','local');
-item6_1_1_1 = uimenu(item6_1_1,  'Label','auto', 'Callback','spm_orthviews(''context_menu'',''window'',2);');
-item6_1_1_2 = uimenu(item6_1_1,  'Label','manual', 'Callback','spm_orthviews(''context_menu'',''window'',1);');
-item6_1_1_3 = uimenu(item6_1_1,  'Label','percentiles', 'Callback','spm_orthviews(''context_menu'',''window'',3);');
-item6_1_2   = uimenu(item6_1,    'Label','global');
-item6_1_2_1 = uimenu(item6_1_2,  'Label','auto', 'Callback','spm_orthviews(''context_menu'',''window_gl'',2);');
-item6_1_2_2 = uimenu(item6_1_2,  'Label','manual', 'Callback','spm_orthviews(''context_menu'',''window_gl'',1);');
+item6       = uimenu(item_parent,'Label','Intensity','Separator','on');
+item6_1     = uimenu(item6,      'Label','Range');
+item6_1_1   = uimenu(item6_1,    'Label','This image');
+item6_1_1_1 = uimenu(item6_1_1,  'Label','Automatic', 'Callback','spm_orthviews(''context_menu'',''window'',2);');
+item6_1_1_2 = uimenu(item6_1_1,  'Label','Manual', 'Callback','spm_orthviews(''context_menu'',''window'',1);');
+item6_1_1_3 = uimenu(item6_1_1,  'Label','Percentiles', 'Callback','spm_orthviews(''context_menu'',''window'',3);');
+item6_1_2   = uimenu(item6_1,    'Label','All images');
+item6_1_2_1 = uimenu(item6_1_2,  'Label','Automatic', 'Callback','spm_orthviews(''context_menu'',''window_gl'',2);');
+item6_1_2_2 = uimenu(item6_1_2,  'Label','Manual', 'Callback','spm_orthviews(''context_menu'',''window_gl'',1);');
 if license('test','image_toolbox') == 1
     offon = {'off', 'on'};
     checked = offon(strcmp(st.vols{volhandle}.mapping, ...
         {'linear', 'histeq', 'loghisteq', 'quadhisteq'})+1);
-    item6_2     = uimenu(item6,      'Label','Intensity mapping');
-    item6_2_1   = uimenu(item6_2,    'Label','local');
+    item6_2     = uimenu(item6,      'Label','Mapping');
+    item6_2_1   = uimenu(item6_2,    'Label','This image');
     item6_2_1_1 = uimenu(item6_2_1,  'Label','Linear', 'Checked',checked{1}, ...
         'Callback','spm_orthviews(''context_menu'',''mapping'',''linear'');');
     item6_2_1_2 = uimenu(item6_2_1,  'Label','Equalised histogram', 'Checked',checked{2}, ...
@@ -1722,7 +1720,7 @@ if license('test','image_toolbox') == 1
         'Callback','spm_orthviews(''context_menu'',''mapping'',''loghisteq'');');
     item6_2_1_4 = uimenu(item6_2_1,  'Label','Equalised squared-histogram', 'Checked',checked{4}, ...
         'Callback','spm_orthviews(''context_menu'',''mapping'',''quadhisteq'');');
-    item6_2_2   = uimenu(item6_2,    'Label','global');
+    item6_2_2   = uimenu(item6_2,    'Label','All images');
     item6_2_2_1 = uimenu(item6_2_2,  'Label','Linear', 'Checked',checked{1}, ...
         'Callback','spm_orthviews(''context_menu'',''mapping_gl'',''linear'');');
     item6_2_2_2 = uimenu(item6_2_2,  'Label','Equalised histogram', 'Checked',checked{2}, ...
@@ -1736,21 +1734,21 @@ end
 % contextsubmenu 7
 item7     = uimenu(item_parent,'Label','Overlay');
 item7_1   = uimenu(item7,      'Label','Add blobs');
-item7_1_1 = uimenu(item7_1,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_blobs'',2);');
-item7_1_2 = uimenu(item7_1,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_blobs'',1);');
+item7_1_1 = uimenu(item7_1,    'Label','This image',  'Callback','spm_orthviews(''context_menu'',''add_blobs'',2);');
+item7_1_2 = uimenu(item7_1,    'Label','All images', 'Callback','spm_orthviews(''context_menu'',''add_blobs'',1);');
 item7_2   = uimenu(item7,      'Label','Add image');
-item7_2_1 = uimenu(item7_2,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_image'',2);');
-item7_2_2 = uimenu(item7_2,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_image'',1);');
+item7_2_1 = uimenu(item7_2,    'Label','This image',  'Callback','spm_orthviews(''context_menu'',''add_image'',2);');
+item7_2_2 = uimenu(item7_2,    'Label','All images', 'Callback','spm_orthviews(''context_menu'',''add_image'',1);');
 item7_3   = uimenu(item7,      'Label','Add coloured blobs','Separator','on');
-item7_3_1 = uimenu(item7_3,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',2);');
-item7_3_2 = uimenu(item7_3,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',1);');
+item7_3_1 = uimenu(item7_3,    'Label','This image',  'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',2);');
+item7_3_2 = uimenu(item7_3,    'Label','All images', 'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',1);');
 item7_4   = uimenu(item7,      'Label','Add coloured image');
-item7_4_1 = uimenu(item7_4,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_c_image'',2);');
-item7_4_2 = uimenu(item7_4,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_c_image'',1);');
+item7_4_1 = uimenu(item7_4,    'Label','This image',  'Callback','spm_orthviews(''context_menu'',''add_c_image'',2);');
+item7_4_2 = uimenu(item7_4,    'Label','All images', 'Callback','spm_orthviews(''context_menu'',''add_c_image'',1);');
 item7_5   = uimenu(item7,      'Label','Remove blobs',        'Visible','off','Separator','on');
 item7_6   = uimenu(item7,      'Label','Remove coloured blobs','Visible','off');
-item7_6_1 = uimenu(item7_6,    'Label','local', 'Visible','on');
-item7_6_2 = uimenu(item7_6,    'Label','global','Visible','on');
+item7_6_1 = uimenu(item7_6,    'Label','This image', 'Visible','on');
+item7_6_2 = uimenu(item7_6,    'Label','All images','Visible','on');
 item7_7   = uimenu(item7,      'Label','Set blobs max', 'Visible','off');
 
 for i=1:3
@@ -2052,17 +2050,17 @@ switch lower(varargin{1})
                 c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Overlay'),'Label','Remove blobs');
                 set(c_handle,'Visible','on');
                 delete(get(c_handle,'Children'));
-                item7_3_1 = uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
+                item7_3_1 = uimenu(c_handle,'Label','This image','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
                 if varargin{2} == 1,
-                    item7_3_2 = uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
+                    item7_3_2 = uimenu(c_handle,'Label','All images','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
                 end
                 % Add options for setting maxima for blobs
                 c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Overlay'),'Label','Set blobs max');
                 set(c_handle,'Visible','on');
                 delete(get(c_handle,'Children'));
-                uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''setblobsmax'',2);');
+                uimenu(c_handle,'Label','This image','Callback','spm_orthviews(''context_menu'',''setblobsmax'',2);');
                 if varargin{2} == 1
-                    uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''setblobsmax'',1);');
+                    uimenu(c_handle,'Label','All images','Callback','spm_orthviews(''context_menu'',''setblobsmax'',1);');
                 end
             end
             redraw_all;
@@ -2096,17 +2094,17 @@ switch lower(varargin{1})
                 c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Overlay'),'Label','Remove blobs');
                 set(c_handle,'Visible','on');
                 delete(get(c_handle,'Children'));
-                item7_3_1 = uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
+                item7_3_1 = uimenu(c_handle,'Label','This image','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
                 if varargin{2} == 1
-                    item7_3_2 = uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
+                    item7_3_2 = uimenu(c_handle,'Label','All images','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
                 end
                 % Add options for setting maxima for blobs
                 c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Overlay'),'Label','Set blobs max');
                 set(c_handle,'Visible','on');
                 delete(get(c_handle,'Children'));
-                uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''setblobsmax'',2);');
+                uimenu(c_handle,'Label','This image','Callback','spm_orthviews(''context_menu'',''setblobsmax'',2);');
                 if varargin{2} == 1
-                    uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''setblobsmax'',1);');
+                    uimenu(c_handle,'Label','All images','Callback','spm_orthviews(''context_menu'',''setblobsmax'',1);');
                 end
             end
             redraw_all;
@@ -2246,9 +2244,10 @@ current_handle = find(cm_handles==cm_handle);
 %==========================================================================
 % function cm_pos
 %==========================================================================
-function cm_pos
+function cm_pos(handles)
 global st
-for i = 1:numel(valid_handles)
+if ~nargin, handles = get_current_handle; end
+for i=valid_handles(handles)
     if isfield(st.vols{i}.ax{1},'cm')
         set(findobj(st.vols{i}.ax{1}.cm,'UserData','pos_mm'),...
             'Label',sprintf('mm:  %.1f %.1f %.1f',spm_orthviews('pos')));
