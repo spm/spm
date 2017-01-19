@@ -30,7 +30,7 @@ function [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman, Vladimir Litvak
-% $Id: spm_dcm_simulate.m 6976 2016-12-22 11:04:45Z vladimir $
+% $Id: spm_dcm_simulate.m 6992 2017-01-19 15:27:17Z vladimir $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -154,6 +154,7 @@ for i = 1:ns
     %----------------------------------------------------------------------
     G   = feval(DCM.M.G, Eg, DCM.M);
     U   = DCM.M.U;
+    R   = DCM.xY.R;
     x   = feval(DCM.M.IS, DCM.Ep, DCM.M, DCM.xU);    
     for c = 1:length(x)
         y{c} = x{c}*G'*U;
@@ -177,7 +178,7 @@ for i = 1:ns
         end
          
         y{c} = y{c} + e;
-        y{c} = y{c}*spm_pinv(full(U));
+        y{c} = R*y{c}*spm_pinv(full(U));
     end
     
     % specify models
