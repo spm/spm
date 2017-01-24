@@ -3,10 +3,10 @@ function F = spm_Welcome
 % FORMAT F = spm_Welcome
 % F        - welcome figure handle
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_Welcome.m 6339 2015-02-13 14:05:35Z guillaume $
+% $Id: spm_Welcome.m 6993 2017-01-24 15:22:34Z guillaume $
 
 
 %-Open startup window, set window defaults
@@ -33,7 +33,6 @@ F = figure('IntegerHandle','off',...
     'Color',[1 1 1]*.8,...
     'MenuBar','none',...
     'DefaultUicontrolFontName',PF.helvetica,...
-    'HandleVisibility','off',...
     'Visible','off');
 
 %-Text

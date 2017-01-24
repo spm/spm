@@ -1,0 +1,32 @@
+#!/usr/bin/octave -fqH
+#
+# Command Line Interface for SPM
+# SPM: http://www.fil.ion.ucl.ac.uk/spm/
+#
+# Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
+#
+# Guillaume Flandin
+# $Id$ 
+
+
+spm_dir = getenv ("SPM_HOME");
+if (isempty (spm_dir))
+  spm_dir = mfilename ("fullpath");
+  [out, sts] = readlink (spm_dir);
+  if ! (sts), spm_dir = out; endif
+  spm_dir = fullfile (fileparts (spm_dir), "..");
+endif
+addpath (canonicalize_file_name (spm_dir));
+
+try
+  spm ("Ver");
+catch
+  printf (["error: Cannot find the SPM directory. " ...
+    "Set SPM_HOME environment variable.\n"]);
+  exit (1);
+end
+
+spm_standalone (argv (){:});
+
+H = get (0, "CurrentFigure");
+if ! (isempty (H)), waitfor (H); endif

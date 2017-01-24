@@ -1,0 +1,51 @@
+#!/bin/sh
+#
+# Command Line Interface for SPM
+# SPM: http://www.fil.ion.ucl.ac.uk/spm/
+#
+# Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
+#
+# Guillaume Flandin
+# $Id$ 
+
+if [ "${MATLAB_EXEC}" = "" ]; then
+  MATLAB_EXEC="matlab"
+fi
+if [ "$(command -v ${MATLAB_EXEC})" = "" ]; then
+  echo "MATLAB executable not found." >&2 
+  exit 1
+fi
+
+INPUTS=""
+for var in "$@"
+do
+  INPUTS=$INPUTS"'$var',"
+done
+if [ "$INPUTS" != "" ]; then
+  INPUTS=${INPUTS::-1}
+fi
+
+TMPFILE=$(mktemp --tmpdir spm_XXXXXX.m)
+cat << EOF > ${TMPFILE}
+spm_dir = getenv('SPM_HOME');
+if isempty(spm_dir)
+  spm_dir = fullfile('$(dirname "$(readlink -f "$0")")','..');
+end
+addpath(spm_dir);
+try
+  spm('Ver');
+catch
+  fprintf(['error: Cannot find the SPM directory. ' ...
+    'Set SPM_HOME environment variable.\n']);
+  exit(1);
+end
+spm_standalone(${INPUTS});
+while ~isempty(get(0,'CurrentFigure'))
+  waitfor(get(0,'CurrentFigure'));
+end
+exit(0);
+EOF
+
+${MATLAB_EXEC} -nosplash -nodesktop -r "run('${TMPFILE}');" | tail -n +11
+
+rm -f ${TMPFILE}
