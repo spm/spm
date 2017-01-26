@@ -106,7 +106,7 @@ function varargout = FieldMap(varargin)
 % Copyright (C) 2006-2016 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson and Chloe Hutton 
-% $Id: FieldMap.m 6948 2016-11-24 10:34:01Z guillaume $
+% $Id: FieldMap.m 6994 2017-01-26 16:19:14Z guillaume $
 
 
 persistent PF FS WS PM   % GUI related constants
@@ -142,14 +142,9 @@ switch lower(Action)
    case 'welcome'
               
       % Unless specified, set visibility to on
-      if nargin==2
-          if ~strcmp(varargin{2},'off') && ~strcmp(varargin{2},'Off')
-            visibility = 'On';
-          else
-            visibility = 'Off';
-          end
-      else
-          visibility = 'On';
+      visibility = 'On';
+      if nargin==2 && strcmpi(varargin{2},'off')
+          visibility = 'Off';
       end
       
       DGW = 0;
@@ -161,7 +156,7 @@ switch lower(Action)
       % there is no-one else out there.
       %
       if ~isempty(PM)
-         figure(PM);
+         if strcmpi(visibility,'on'), figure(PM); end
          set(PM,'Visible',visibility);
          return
       end
