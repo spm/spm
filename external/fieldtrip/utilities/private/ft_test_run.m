@@ -1,25 +1,10 @@
-function status = ft_test_run(varargin)
+function passed = ft_test_run(varargin)
 
-% FT_TEST_RUN executes selected FieldTrip test scripts. It checks whether each test
-% script runs without problems as indicated by an explicit error and posts the
-% results on the FieldTrip dashboard.
-%
-% Use as
-%   ft_test_run functionname
-%
-% Additional optional arguments are specified as key-value pairs and can include
-%   dependency   = string
-%   maxmem       = string
-%   maxwalltime  = string
-%
-% Test functions should not require any input arguments.
-% Output arguments of the test function will not be considered.
-%
-% See also FT_TEST_RESULT, FT_VERSION
+% FT_TEST_RUN
 
-% Copyright (C) 2016, Robert oostenveld
+% Copyright (C) 2017, Robert Oostenveld
 %
-% This file is part of FieldTrip, see http://www.ru.nl/donders/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -37,31 +22,47 @@ function status = ft_test_run(varargin)
 %
 % $Id$
 
-optbeg = find(ismember(varargin, {'dependency', 'maxmem', 'maxwalltime'}));
+narginchk(1, inf);
+command = varargin{1};
+assert(isequal(command, 'run'));
+varargin = varargin(2:end);
+
+optbeg = find(ismember(varargin, {'dependency', 'dccnpath', 'maxmem', 'maxwalltime', 'upload', 'assertclean'}));
 if ~isempty(optbeg)
-  optarg = varargin(optbeg:end);
+  optarg   = varargin(optbeg:end);
   varargin = varargin(1:optbeg-1);
 else
   optarg = {};
 end
 
+% varargin contains the file (or files) to test
+% optarg contains the command-specific options
+
 % get the optional input arguments
 dependency  = ft_getopt(optarg, 'dependency', {});
+hasdccnpath = ft_getopt(optarg, 'dccnpath');  % default is handled below
 maxmem      = ft_getopt(optarg, 'maxmem', inf);
 maxwalltime = ft_getopt(optarg, 'maxwalltime', inf);
+upload      = ft_getopt(optarg, 'upload', 'yes');
+assertclean = ft_getopt(optarg, 'assertclean', 'yes');
 
 if ischar(dependency)
   % this should be a cell-array
   dependency = {dependency};
 end
 
+if isempty(hasdccnpath)
+  % true when central storage is available, false otherwise
+  hasdccnpath = exist(dccnpath('/home/common/matlab/fieldtrip/data/'), 'dir');
+end
+
 if ischar(maxwalltime)
-  % it is probably formatted as HH:MM:SS
+  % it is probably formatted as HH:MM:SS, convert to seconds
   maxwalltime = str2walltime(maxwalltime);
 end
 
 if ischar(maxmem)
-  % it is probably formatted as XXmb, or XXgb, ...
+  % it is probably formatted as XXmb, or XXgb, convert to bytes
   maxmem = str2mem(maxmem);
 end
 
@@ -69,7 +70,9 @@ end
 [revision, ftpath] = ft_version;
 
 % testing a work-in-progress version is not supported
-assert(istrue(ft_version('clean')), 'this requires all local changes to be committed');
+if istrue(assertclean)
+  assert(istrue(ft_version('clean')), 'this requires all local changes to be committed');
+end
 
 %% determine the list of functions to test
 if ~isempty(varargin) && exist(varargin{1}, 'file')
@@ -88,12 +91,13 @@ for i=1:numel(functionlist)
   filelist{i} = which(functionlist{i});
 end
 
-fprintf('considering %d test scripts for execution\n', numel(filelist));
+fprintf('considering %d test functions for execution\n', numel(filelist));
 
 %% make a subselection based on the filters
-sel = true(size(filelist));
-mem = zeros(size(filelist));
-tim = zeros(size(filelist));
+dep  = true(size(filelist));
+file = false(size(filelist)); % by default ignore file reads
+mem  = zeros(size(filelist));
+tim  = zeros(size(filelist));
 
 for i=1:numel(filelist)
   fid = fopen(filelist{i}, 'rt');
@@ -102,16 +106,25 @@ for i=1:numel(filelist)
   line = tokenize(str, 10);
   
   if ~isempty(dependency)
-    sel(i) = false;
+    dep(i) = false;
   else
-    sel(i) = true;
+    dep(i) = true;
   end
   
   for k=1:numel(line)
     for j=1:numel(dependency)
+      % search for the dependencies in each of the test functions
       [s, e] = regexp(line{k}, sprintf('%% TEST.*%s.*', dependency{j}), 'once', 'start', 'end');
       if ~isempty(s)
-        sel(i) = true;
+        dep(i) = true;
+      end
+    end
+    
+    if ~istrue(hasdccnpath)
+      % search for the occurence of the DCCNPATH function in each of the test functions
+      [s, e] = regexp(line{k}, 'dccnpath', 'once', 'start', 'end');
+      if ~isempty(s)
+        file(i) = true;
       end
     end
     
@@ -130,13 +143,17 @@ for i=1:numel(filelist)
   
 end % for each function/file
 
-fprintf('%3d scripts do not meet the requirements for dependencies\n', sum(~sel));
-fprintf('%3d scripts do not meet the requirements for memory\n',       sum(mem>maxmem));
-fprintf('%3d scripts do not meet the requirements for walltime \n',    sum(tim>maxwalltime));
+fprintf('%3d scripts are excluded due to the dependencies\n', sum(~dep));
+fprintf('%3d scripts are excluded due to loading files from the DCCN path\n',  sum(file));
+fprintf('%3d scripts are excluded due to the requirements for memory\n',       sum(mem>maxmem));
+fprintf('%3d scripts are excluded due to the requirements for walltime \n',    sum(tim>maxwalltime));
 
-% remove test scripts that exceed walltime or memory
+% make selection of test scripts, remove scripts that exceed walltime or memory
+sel  = true(size(filelist));
 sel(tim>maxwalltime) = false;
 sel(mem>maxmem)      = false;
+sel(dep==false)      = false;
+sel(file==true)      = false;
 
 % make the subselection of functions to test
 functionlist = functionlist(sel);
@@ -152,13 +169,14 @@ for i=1:numel(functionlist)
   try
     stopwatch = tic;
     eval(functionlist{i});
-    status = true;
+    passed = true;
     runtime = round(toc(stopwatch));
     fprintf('=== %s PASSED in %d seconds\n', functionlist{i}, runtime);
-  catch
-    status = false;
+  catch me
+    passed = false;
     runtime = round(toc(stopwatch));
     fprintf('=== %s FAILED in %d seconds\n', functionlist{i}, runtime);
+    disp(me)
   end
   close all
   
@@ -166,14 +184,25 @@ for i=1:numel(functionlist)
   result.matlabversion    = version('-release');
   result.fieldtripversion = revision;
   result.branch           = ft_version('branch');
+  result.arch             = computer('arch');
   result.hostname         = gethostname;
   result.user             = getusername;
-  result.result           = status;
+  result.passed           = passed;
   result.runtime          = runtime;
   result.functionname     = functionlist{i};
   
-  options = weboptions('MediaType','application/json');
-  webwrite('http://dashboard.fieldtriptoolbox.org/api', result, options);
+  if istrue(upload)
+    try
+      % the weboptions function is available in 2014b onward, but behaves inconsistently
+      options = weboptions('MediaType','application/json');
+    catch
+      options = [];
+    end
+    url = 'http://dashboard.fieldtriptoolbox.org/api/';
+    webwrite(url, result, options);
+  else
+    warning('not uploading results to the FieldTrip dashboard')
+  end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
