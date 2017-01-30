@@ -6,7 +6,7 @@
 # Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id$ 
+# $Id: spm12-octave 6996 2017-01-30 11:22:15Z guillaume $ 
 
 
 spm_dir = getenv ("SPM_HOME");

@@ -6,7 +6,7 @@
 # Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id$ 
+# $Id: spm12-matlab 6996 2017-01-30 11:22:15Z guillaume $ 
 
 if [ "${MATLAB_EXEC}" = "" ]; then
   MATLAB_EXEC="matlab"
@@ -17,16 +17,17 @@ if [ "$(command -v ${MATLAB_EXEC})" = "" ]; then
 fi
 
 INPUTS=""
-for var in "$@"
+for arg in "$@"
 do
-  INPUTS=$INPUTS"'$var',"
+  INPUTS=${INPUTS}"'${arg//\'/''}',"
 done
-if [ "$INPUTS" != "" ]; then
+if [ "${INPUTS}" != "" ]; then
   INPUTS=${INPUTS::-1}
 fi
 
 TMPFILE=$(mktemp --tmpdir spm_XXXXXX.m)
 cat << EOF > ${TMPFILE}
+cd(getenv('PWD'));
 spm_dir = getenv('SPM_HOME');
 if isempty(spm_dir)
   spm_dir = fullfile('$(dirname "$(readlink -f "$0")")','..');
