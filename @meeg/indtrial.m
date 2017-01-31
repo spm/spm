@@ -13,7 +13,7 @@ function res = indtrial(this, label, flag)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: indtrial.m 5596 2013-08-01 14:36:18Z vladimir $
+% $Id: indtrial.m 6998 2017-01-31 16:48:27Z vladimir $
 
 if ischar(label)
     label = {label};
@@ -23,10 +23,11 @@ end
 
 if nargin > 2
     if strcmpi(flag, 'GOOD')
-        res = setdiff(res, badtrials(this));
+        [dum, ind] = setdiff(res, badtrials(this));
     elseif strcmpi(flag, 'BAD')
-        res = intersect(res, badtrials(this));
-    end
+        [dum, ind] = intersect(res, badtrials(this));
+    end    
+    res = res(sort(ind));
 end
 
 res = res(:)';
