@@ -86,10 +86,10 @@ function P = spm_realign(P,flags)
 % Copyright (C) 1994-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_realign.m 6070 2014-06-26 20:53:39Z guillaume $
+% $Id: spm_realign.m 6999 2017-02-01 17:18:47Z john $
 
 
-SVNid = '$Rev: 6070 $';
+SVNid = '$Rev: 6999 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -417,16 +417,22 @@ y3 = M(3,1)*x1 + M(3,2)*x2 + M(3,3)*x3 + M(3,4);
 %==========================================================================
 function V = smooth_vol(P,hld,wrp,fwhm)
 % Convolve the volume in memory
-s  = sqrt(sum(P.mat(1:3,1:3).^2)).^(-1)*(fwhm/sqrt(8*log(2)));
+vx = sqrt(sum(P.mat(1:3,1:3).^2));
+s  = vx.^(-1)*(fwhm/sqrt(8*log(2)));
 x  = round(6*s(1)); x = -x:x;
 y  = round(6*s(2)); y = -y:y;
 z  = round(6*s(3)); z = -z:z;
-x  = exp(-(x).^2/(2*(s(1)).^2));
-y  = exp(-(y).^2/(2*(s(2)).^2));
-z  = exp(-(z).^2/(2*(s(3)).^2));
-x  = x/sum(x);
-y  = y/sum(y);
-z  = z/sum(z);
+
+x = spm_smoothkern(fwhm/vx(1),x,1);
+y = spm_smoothkern(fwhm/vx(2),y,1);
+z = spm_smoothkern(fwhm/vx(3),z,1);
+
+%x  = exp(-(x).^2/(2*(s(1)).^2));
+%y  = exp(-(y).^2/(2*(s(2)).^2));
+%z  = exp(-(z).^2/(2*(s(3)).^2));
+%x  = x/sum(x);
+%y  = y/sum(y);
+%z  = z/sum(z);
 
 i  = (length(x) - 1)/2;
 j  = (length(y) - 1)/2;

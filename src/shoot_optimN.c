@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 6772 2016-04-19 10:21:41Z john $ */
+/* $Id: shoot_optimN.c 6999 2017-02-01 17:18:47Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -16,7 +16,7 @@ static void choldc(int n, double a[], double p[])
 
     sm0  = 1e-16;
     for(i=0; i<n; i++) sm0 = sm0 + a[i*n+i];
-    sm0 *= 1e-4;
+    sm0 *= 1e-6;
  /* for(i=0; i<n; i++) a[i*n+i] += sm0; */
 
     for(i=0; i<n; i++)
@@ -448,40 +448,6 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                     {
                         for(m=0; m<dm[3]; m++) pu[m][i] += su[m]/(w000*scal[m]);
                     }
-
-/*
-                    for(m=0; m<dm[3]; m++)
-                    {
-                        mwSignedIndex n;
-                        float *pm = &pu[m][i];
-                        su[m]     = pb[m][i]-
-                                  ( w010*(pm[    jm1    ] + pm[    jp1    ])
-                                  + w020*(pm[    jm2    ] + pm[    jp2    ])
-                                  + w100*(pm[im1        ] + pm[ip1        ])
-                                  + w110*(pm[im1+jm1    ] + pm[ip1+jm1    ] + pm[im1+jp1    ] + pm[ip1+jp1    ])
-                                  + w200*(pm[im2        ] + pm[ip2        ])
-                                  + w001*(pm[        km1] + pm[        kp1])
-                                  + w101*(pm[im1    +km1] + pm[ip1    +km1] + pm[im1    +kp1] + pm[ip1    +kp1])
-                                  + w011*(pm[    jm1+km1] + pm[    jp1+km1] + pm[    jm1+kp1] + pm[    jp1+kp1])
-                                  + w002*(pm[        km2] + pm[        kp2]))*scal[m];
-
-                        if (a)
-                        {
-                            for(n=0; n<dm[3]; n++) su[m] -= a1[m*dm[3]+n]*pu[n][i];
-                            a1[m+dm[3]*m] += w000*scal[m];
-                        }
-                    }
-                    if (a)
-                    {
-                        choldc(dm[3],a1,cp);
-                        cholls(dm[3],a1,cp,su,su);
-                        for(m=0; m<dm[3]; m++) pu[m][i] = su[m];
-                    }
-                    else
-                    {
-                        for(m=0; m<dm[3]; m++) pu[m][i] = su[m]/(w000*scal[m]);
-                    }
-*/
                 }
             }
         }
