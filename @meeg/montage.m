@@ -25,7 +25,7 @@ function [res] = montage(this,action,varargin)
 
 % Remy Lehembre & Christophe Phillips
 % Cyclotron Research Centre, University of Liège, Belgium
-% $Id: montage.m 6264 2014-11-18 13:46:51Z vladimir $
+% $Id: montage.m 7000 2017-02-02 10:09:19Z vladimir $
 
 % Montage definition in the object structure by simply adding a 'montage'
 % field in the object structure:
@@ -212,6 +212,15 @@ end
 %% Subfunction(s)
 
 function S = set_channels(S,mont)
+
+% provided montage does not necessarily apply to all channels
+% this adjusts it to include also the unused channels
+mont_orig = [];
+mont_orig.labelorg = {S.channels(:).label};
+mont_orig.labelnew = mont_orig.labelorg;
+mont_orig.tra = eye(numel(mont_orig.labelnew));
+mont         = ft_apply_montage(mont_orig, mont);
+
 % set channels "default" value, try to guess values from main channels
 % definition in the object.
 
