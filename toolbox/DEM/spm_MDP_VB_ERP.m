@@ -29,7 +29,7 @@ function [x,y,ind] = spm_MDP_VB_ERP(MDP,FACTOR,T)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_ERP.m 6854 2016-08-06 10:04:19Z karl $
+% $Id: spm_MDP_VB_ERP.m 7003 2017-02-02 18:22:56Z karl $
  
  
 % defaults: assume the first factor is of interest
@@ -130,7 +130,7 @@ title('Unit responses (high-level)','FontSize',16), ylabel('Unit')
 subplot(4,1,2), imagesc(t,1:(size(v,2)),1 - v')
 title('Unit responses (low-level)' ,'FontSize',16), ylabel('Unit')
  
-subplot(4,1,3), plot(t,x',t,y')
+subplot(4,1,3), plot(t,x',t,y',':')
 title('Local field potentials','FontSize',16)
 ylabel('Depolarisation'),spm_axis tight
 grid on, set(gca,'XTick',(1:(length(t)/Nb))*Nb*dt)

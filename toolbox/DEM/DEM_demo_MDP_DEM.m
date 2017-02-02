@@ -43,7 +43,7 @@ function MDP = DEM_demo_MDP_DEM
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_DEM.m 6975 2016-12-18 20:27:00Z karl $
+% $Id: DEM_demo_MDP_DEM.m 7003 2017-02-02 18:22:56Z karl $
 
 % set up and preliminaries: first level
 %--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ end
 % set-up:
 %--------------------------------------------------------------------------
 dim    = 32;                                  % dimension of visual sample
-nb     = 4;                                   % number of basis functions
+nb     = 6;                                   % number of basis functions
 ns     = nb*nb;                               % number of sensory channels
 STIM.W = 1/2;                                 % foveal sampling width
 STIM.R = ones(dim,dim);                       % retinal precision
@@ -131,8 +131,8 @@ g      = @ADEM_sample_image;
 M(1).f = @(x,v,P) (v.x - x)/8;
 M(1).g = @(x,v,P) spm_vec(x,g(x - v.x,v.h));
 M(1).x = x;                                   % hidden states
-M(1).V = [exp(2) exp(2) ones(1,ns)*8];        % error precision (g)
-M(1).W = exp(2);                              % error precision (f)
+M(1).V = 8;                                   % error precision (g)
+M(1).W = 8;                                   % error precision (f)
 
 % level 2:
 %--------------------------------------------------------------------------

@@ -35,7 +35,7 @@ function MDP = DEMO_MDP_maze
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_MDP_maze.m 6978 2017-01-03 10:42:09Z karl $
+% $Id: DEMO_MDP_maze.m 7003 2017-02-02 18:22:56Z karl $
 
 % set up and preliminaries: first level
 %--------------------------------------------------------------------------
@@ -227,7 +227,7 @@ end
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 4'); clf
 subplot(2,1,1), bar([M;N]'), xlabel('Exposure (seconds)'), axis square 
-title('Performance','FontSize',16),legend({'Latency','Mistakes'})
+title('Performance','FontSize',16),legend({'Mistakes','Latency'})
 
 return
 
