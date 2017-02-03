@@ -12,7 +12,7 @@ function M = obj_read(filename)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: obj_read.m 7001 2017-02-02 13:53:16Z guillaume $
+% $Id: obj_read.m 7004 2017-02-03 10:57:17Z guillaume $
 
 
 fid = fopen(filename,'rt');
@@ -25,13 +25,19 @@ M = struct('vertices',[],'faces',[]);
 while true
     l = fgetl(fid);
     if ~ischar(l), break; end
-    if numel(l) < 1 || l(1) == '#', continue; end
+    if numel(l) < 1 || isempty(strtrim(l)) || l(1) == '#', continue; end
     switch l(1)
         case 'v'
             switch l(2)
                 case 't'
+                    % texture coordinates, in (u, v [,w]) coordinates
+                    t = sscanf(l(2:end),'%f %f %f');
                 case 'n'
+                    % vertex normals in (x,y,z) form
+                    n = sscanf(l(2:end),'%f %f %f');
                 case 'p'
+                    % Parameter space vertices in (u [,v] [,w]) form
+                    p = sscanf(l(2:end),'%f %f %f');
                 otherwise
                     v = sscanf(l(2:end),'%f %f %f');
                     if numel(v) > 3, v = v(1:3); end
@@ -62,16 +68,16 @@ while true
             if isempty(i), f(i) = size(M.vertices,1) + f(i); end
             M.faces(size(M.faces,1)+1,:) = f;
         case 'o'
-            fprintf('Igoring named objects.\n');
+            fprintf('Ignoring named objects.\n');
         case 'g'
-            fprintf('Igoring polygon groups.\n');
+            fprintf('Ignoring polygon groups.\n');
         case 's'
-            fprintf('Igoring smooth shading.\n');
+            fprintf('Ignoring smooth shading.\n');
         otherwise
             if ~isempty(strmatch('mtllib',l)) || ~isempty(strmatch('usemtl',l))
-                fprintf('Igoring materials.\n');
+                fprintf('Ignoring materials.\n');
             else
-                fprintf('Igoring line starting with %c.\n',l(1));
+                fprintf('Ignoring line starting with %c.\n',l(1));
             end
     end
 end

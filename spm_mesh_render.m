@@ -32,10 +32,10 @@ function varargout = spm_mesh_render(action,varargin)
 % hReg     - Handle of HandleGraphics object to build registry in.
 % See spm_XYZreg for more information.
 %__________________________________________________________________________
-% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 6968 2016-12-09 15:58:00Z guillaume $
+% $Id: spm_mesh_render.m 7004 2017-02-03 10:57:17Z guillaume $
 
 
 %-Input parameters
@@ -129,9 +129,11 @@ switch lower(action)
         
         %-Set viewpoint, light and manipulation options
         %------------------------------------------------------------------
+        if isfield(O,'azimuth'), az = O.azimuth; else az = -90; end
+        if isfield(O,'elevation'), el = O.elevation; else el = 0; end
         axis(H.axis,'image');
         axis(H.axis,'off');
-        view(H.axis,[-90 0]);
+        view(H.axis,[az el]);
         material(H.figure,'dull');
         H.light = camlight; set(H.light,'Parent',H.axis);
         
@@ -147,6 +149,7 @@ switch lower(action)
         %------------------------------------------------------------------
         setappdata(H.axis,'handles',H);
         set(H.patch,'Visible','on');
+        camlight(H.light);
         
         %-Add context menu
         %------------------------------------------------------------------
@@ -594,7 +597,8 @@ function mySave(obj,evt,H)
     '*.png' 'PNG files (*.png)';...
     '*.dae' 'Collada files (*.dae)';...
     '*.idtf' 'IDTF files (*.idtf)';...
-    '*.vtk' 'VTK files (*.vtk)'}, 'Save as');
+    '*.vtk' 'VTK files (*.vtk)';...
+    '*.obj' 'OBJ files (*.obj)'}, 'Save as');
 if ~isequal(filename,0) && ~isequal(pathname,0)
     [pth,nam,ext] = fileparts(filename);
     switch ext
@@ -608,6 +612,8 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
             filterindex = 4;
         case {'.vtk','.vtp'}
             filterindex = 5;
+        case '.obj'
+            filterindex = 6;
         otherwise
             switch filterindex
                 case 1
@@ -620,6 +626,8 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
                     filename = [filename '.idtf'];
                 case 5
                     filename = [filename '.vtk'];
+                case 6
+                    filename = [filename '.obj'];
             end
     end
     switch filterindex
@@ -672,6 +680,8 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
             saveas(gifti(H.patch),fullfile(pathname, filename),'idtf');
         case 5
             saveas(gifti(H.patch),fullfile(pathname, filename),'vtk');
+        case 6
+            saveas(gifti(H.patch),fullfile(pathname, filename),'obj');
     end
 end
 

@@ -9,7 +9,7 @@ function saveas(this,filename,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: saveas.m 6618 2015-12-01 16:25:38Z spm $
+% $Id: saveas.m 7004 2017-02-03 10:57:17Z guillaume $
 
 
 % Check filename and file format
@@ -27,6 +27,10 @@ else
     if nargin == 3 && strncmpi(format,'vtk',3)
         format = lower(format(5:end));
         ext = '.vtk';
+    end
+    if nargin == 3 && strncmpi(format,'obj',3)
+        format = lower(format(5:end));
+        ext = '.obj';
     end
     [p,f,e] = fileparts(filename);
     if strcmpi(e,'.gii')
@@ -53,6 +57,8 @@ switch ext
     case {'.vtk','.vtp'}
         if nargin < 3, format = 'legacy-ascii'; end
         mvtk_write(s,filename,format);
+    case '.obj'
+        save_obj(s,filename);
     otherwise
         error('Unknown file format.');
 end
@@ -359,6 +365,29 @@ for i=1:numel(s)
     fprintf(fid,'%s}\n',o(1));
     fprintf(fid,'}\n');
 end
+
+% Close file
+%--------------------------------------------------------------------------
+fclose(fid);
+
+
+%==========================================================================
+% function save_obj(s,filename)
+%==========================================================================
+function save_obj(s,filename)
+
+% Open file for writing
+%--------------------------------------------------------------------------
+fid = fopen(filename,'wt');
+if fid == -1
+    error('Unable to write file %s: permission denied.',filename);
+end
+
+% Vertices & faces
+%--------------------------------------------------------------------------
+fprintf(fid,'# Wavefront OBJ file saved by %s\n',spm('Version'));
+fprintf(fid,'v %f %f %f\n',s.vertices');
+fprintf(fid,'f %d %d %d\n',s.faces');
 
 % Close file
 %--------------------------------------------------------------------------
