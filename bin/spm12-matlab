@@ -6,7 +6,7 @@
 # Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: spm12-matlab 6996 2017-01-30 11:22:15Z guillaume $ 
+# $Id: spm12-matlab 7005 2017-02-03 17:32:23Z guillaume $ 
 
 if [ "${MATLAB_EXEC}" = "" ]; then
   MATLAB_EXEC="matlab"
@@ -22,10 +22,10 @@ do
   INPUTS=${INPUTS}"'${arg//\'/''}',"
 done
 if [ "${INPUTS}" != "" ]; then
-  INPUTS=${INPUTS::-1}
+  INPUTS=${INPUTS:0:$((${#INPUTS}-1))}
 fi
 
-TMPFILE=$(mktemp --tmpdir spm_XXXXXX.m)
+TMPFILE=$(mktemp --tmpdir -u spm_XXXXXX).m
 cat << EOF > ${TMPFILE}
 cd(getenv('PWD'));
 spm_dir = getenv('SPM_HOME');
