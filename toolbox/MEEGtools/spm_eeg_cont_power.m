@@ -15,9 +15,9 @@ function D = spm_eeg_cont_power(S)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_cont_power.m 5640 2013-09-18 12:02:29Z vladimir $
+% $Id: spm_eeg_cont_power.m 7006 2017-02-06 11:09:06Z vladimir $
 
-SVNrev = '$Rev: 5640 $';
+SVNrev = '$Rev: 7006 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -44,7 +44,7 @@ D = spm_eeg_load(D);
 %--------------------------------------------------------------------------
 
 % generate new meeg object with new filenames
-Dnew = clone(D, ['h' fnamedat(D)], [D.nchannels D.nsamples D.ntrials]);
+Dnew = clone(D, ['h' spm_str_manip(fnamedat(D),'t')], [D.nchannels D.nsamples D.ntrials]);
 
 % determine channels to process
 chanind = D.indchantype('MEEG');
