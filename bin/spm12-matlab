@@ -6,13 +6,29 @@
 # Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: spm12-matlab 7005 2017-02-03 17:32:23Z guillaume $ 
+# $Id: spm12-matlab 7008 2017-02-07 11:02:58Z guillaume $ 
+
+PLATFORM=$(uname)
 
 if [ "${MATLAB_EXEC}" = "" ]; then
   MATLAB_EXEC="matlab"
 fi
 if [ "$(command -v ${MATLAB_EXEC})" = "" ]; then
   echo "MATLAB executable not found." >&2 
+  exit 1
+fi
+
+if [ "${SPM_HOME}" = "" ]; then
+  if [ "${PLATFORM}" = "Darwin" ]; then
+    RL_FLAG="" # alternative needed
+  else
+    RL_FLAG="-f"
+  fi
+  SPM_HOME=$(readlink ${RL_FLAG} "$0")
+  SPM_HOME=$(dirname "$(dirname "${SPM_HOME}")")
+fi
+if [ ! -d "${SPM_HOME}" ]; then
+  echo "SPM directory not found." >&2 
   exit 1
 fi
 
@@ -25,21 +41,26 @@ if [ "${INPUTS}" != "" ]; then
   INPUTS=${INPUTS:0:$((${#INPUTS}-1))}
 fi
 
-TMPFILE=$(mktemp --tmpdir -u spm_XXXXXX).m
+if [ "${PLATFORM}" = "Darwin" ]; then
+  TMPFILE=$(mktemp -u -t spm)
+  TMPFILE=${TMPFILE//./_}.m
+else
+  TMPFILE=$(mktemp --tmpdir -u spm_XXXXXX).m
+fi
 cat << EOF > ${TMPFILE}
+warning('off','backtrace');
 cd(getenv('PWD'));
-spm_dir = getenv('SPM_HOME');
-if isempty(spm_dir)
-  spm_dir = fullfile('$(dirname "$(readlink -f "$0")")','..');
-end
+spm_dir = '${SPM_HOME}';
+try, spm_dir = cd(cd(spm_dir)); end % canonical path
 addpath(spm_dir);
 try
   spm('Ver');
 catch
-  fprintf(['error: Cannot find the SPM directory. ' ...
+  fprintf(['Error: Cannot find the SPM directory. ' ...
     'Set SPM_HOME environment variable.\n']);
   exit(1);
 end
+warning('on','backtrace');
 spm_standalone(${INPUTS});
 while ~isempty(get(0,'CurrentFigure'))
   waitfor(get(0,'CurrentFigure'));
@@ -48,5 +69,12 @@ exit(0);
 EOF
 
 ${MATLAB_EXEC} -nosplash -nodesktop -r "run('${TMPFILE}');" | tail -n +11
+ERR=${PIPESTATUS[0]}
 
 rm -f ${TMPFILE}
+
+if [[ ${ERR} -eq 0 ]]; then
+  exit 0
+else
+  exit 1
+fi

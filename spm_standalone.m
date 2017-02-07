@@ -11,7 +11,7 @@ function spm_standalone(varargin)
 % Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_standalone.m 6996 2017-01-30 11:22:15Z guillaume $ 
+% $Id: spm_standalone.m 7008 2017-02-07 11:02:58Z guillaume $ 
 
 
 if ~nargin, action = ''; else action = varargin{1}; end
@@ -161,5 +161,7 @@ function spm_banner(verbose)
 if nargin && ~verbose, return; end
 [vspm,rspm] = spm('Ver');
 tlkt = ver(spm_check_version);
-fprintf('%s, version %s\n%s, version %s\n',vspm,rspm,tlkt.Name,version);
+if isdeployed, mcr = ' (standalone)'; else mcr = ''; end
+fprintf('%s, version %s%s\n',vspm,rspm,mcr);
+fprintf('%s, version %s\n',tlkt.Name,version);
 spm('asciiwelcome');
