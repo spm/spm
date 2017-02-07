@@ -1,10 +1,10 @@
 function second_level = spm_cfg_dcm_peb
 % SPM Configuration file for second-level DCM (PEB)
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 6941 2016-11-21 09:59:59Z vladimir $
+% $Id: spm_cfg_dcm_peb.m 7007 2017-02-07 10:15:24Z guillaume $
 
 
 %==========================================================================
@@ -547,7 +547,7 @@ PEB     = spm_dcm_peb(GCM,M,field);
 
 % Write PEB
 peb_filename = fullfile(dir_out,['PEB_' name '.mat']);
-save(peb_filename,'PEB');
+save(peb_filename,'PEB', spm_get_defaults('mat.format'));
 
 % Review PEB
 if job.show_review == 1
@@ -570,7 +570,7 @@ dir_out      = fileparts(gcm_file);
 name         = job.name;    
 loo_filename = fullfile(dir_out,['LOO_' name '.mat']);
 
-save(loo_filename,'qE','qC','Q');
+save(loo_filename,'qE','qC','Q', spm_get_defaults('mat.format'));
 
 out.loo_mat = {loo_filename};
 
@@ -707,7 +707,7 @@ end
 % Write BMA
 [dir_out, name] = fileparts(job.peb_mat{1});
 filename = fullfile(dir_out, ['BMA_' name '.mat']);
-save(filename,'BMA');
+save(filename,'BMA', spm_get_defaults('mat.format'));
 
 out.bmamat = filename;
 

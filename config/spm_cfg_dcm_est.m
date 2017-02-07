@@ -1,10 +1,10 @@
 function estimate = spm_cfg_dcm_est
 % SPM Configuration file for DCM estimation
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_est.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_dcm_est.m 7007 2017-02-07 10:15:24Z guillaume $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -346,14 +346,14 @@ if output_type == OUTPUT_GCM_NEW
     name = ['GCM_' job.output.single.name '.mat'];
     
     filename = fullfile(dir,name);
-    save(filename,'GCM');
+    save(filename,'GCM', spm_get_defaults('mat.format'));
     
     out.gcmmat = {filename};
 elseif output_type == OUTPUT_GCM_OVERWRITE
     % Update existing gcm file
     filename = dcms.gcmmat{1};
     
-    save(filename,'GCM');
+    save(filename,'GCM', spm_get_defaults('mat.format'));
     
     out.gcmmat = {filename};
 else
@@ -365,7 +365,7 @@ else
                 F   = DCM.F;
                 Ep  = DCM.Ep;
                 Cp  = DCM.Cp;
-                save(P{s,m}, 'DCM', 'F', 'Ep', 'Cp');
+                save(P{s,m}, 'DCM', 'F', 'Ep', 'Cp', spm_get_defaults('mat.format'));
             end
         end
     end
