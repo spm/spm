@@ -12,7 +12,7 @@ function varargout = spm_print(varargin)
 % Copyright (C) 1994-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_print.m 6930 2016-11-14 14:35:05Z volkmar $
+% $Id: spm_print.m 7013 2017-02-09 18:41:14Z guillaume $
 
 
 %-Shortcut for list of graphics file formats available
@@ -96,11 +96,7 @@ try
     if ismember('-dfig',opts.opt)
         saveas(F, fname, 'fig');
     else
-        if isdeployed
-            deployprint(F, fname, opts.opt{:});
-        else
-            print(F, fname, opts.opt{:});
-        end
+        print(F, fname, opts.opt{:});
     end
 catch
     disp('Print error: nothing has been printed.');

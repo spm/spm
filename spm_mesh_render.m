@@ -35,7 +35,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 7004 2017-02-03 10:57:17Z guillaume $
+% $Id: spm_mesh_render.m 7013 2017-02-09 18:41:14Z guillaume $
 
 
 %-Input parameters
@@ -667,11 +667,7 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
             set(get(h,'children'),'visible','off');
             %a = get(h,'children');
             %set(a,'Position',get(a,'Position').*[0 0 1 1]+[10 10 0 0]);       
-            if isdeployed
-                deployprint(h, '-dpng', '-opengl', fullfile(pathname, filename));
-            else
-                print(h, '-dpng', '-opengl', fullfile(pathname, filename));
-            end
+            print(h, '-dpng', '-opengl', fullfile(pathname, filename));
             close(h);
             set(getappdata(obj,'fig'),'renderer',r);
         case 3
