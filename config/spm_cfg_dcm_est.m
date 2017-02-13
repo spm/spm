@@ -4,7 +4,7 @@ function estimate = spm_cfg_dcm_est
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_est.m 7007 2017-02-07 10:15:24Z guillaume $
+% $Id: spm_cfg_dcm_est.m 7016 2017-02-13 14:53:00Z peter $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -281,10 +281,7 @@ switch input_type
             end
 
             P(:,m) = dcms.model(m).dcmmat;
-        end
-
-        % Load all models into memory
-        GCM = spm_dcm_load(P);    
+        end 
     
     case INPUT_DCM_BY_SUBJECT
         ns  = length(dcms.subj);
@@ -300,14 +297,22 @@ switch input_type
             P(s,:) = dcms.subj(s).dcmmat';
         end
 
-        % Load all models into memory
-        GCM = spm_dcm_load(P);    
-    
     case INPUT_GCM
         GCM = load(dcms.gcmmat{1});
         GCM = GCM.GCM;
         ns = size(GCM,1);
         nm = size(GCM,2);
+        
+        if ischar(GCM{1})
+            P = GCM;
+        else
+            P = '';
+        end
+end
+
+% Load all models into memory
+if ~isempty(P)
+    GCM = spm_dcm_load(P);   
 end
 
 % Set timeseries or CSD estimation (fMRI)
@@ -341,10 +346,9 @@ end
 
 % Save
 if output_type == OUTPUT_GCM_NEW
-    % Create single mat file
+    % Create single GCM mat file
     dir  = job.output.single.dir{1};
-    name = ['GCM_' job.output.single.name '.mat'];
-    
+    name = ['GCM_' job.output.single.name '.mat'];        
     filename = fullfile(dir,name);
     save(filename,'GCM', spm_get_defaults('mat.format'));
     
