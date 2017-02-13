@@ -6,7 +6,7 @@
 # Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: spm12-mcr 7008 2017-02-07 11:02:58Z guillaume $ 
+# $Id: spm12-mcr 7014 2017-02-13 12:31:33Z guillaume $ 
 
 if [ "${MCR_HOME}" = "" ]; then
   echo "Set MCR_HOME environment variable." >&2 
@@ -24,14 +24,21 @@ if [ "${SPM_HOME}" = "" ]; then
     RL_FLAG="-f"
   fi
   SPM_HOME=$(readlink ${RL_FLAG} "$0")
-  SPM_HOME=$(dirname "$(dirname "${SPM_HOME}")")
-  SPM_HOME=$(dirname "$(dirname "${SPM_HOME}")")
-  SPM_HOME=$(dirname "${SPM_HOME}")
+  while [ ! -x "${SPM_HOME}/run_spm12.sh" ]; do
+    if [ "${SPM_HOME}" = "$(dirname "${SPM_HOME}")" ]; then
+      echo "Set SPM_HOME environment variable." >&2 
+      exit 1
+    fi
+    SPM_HOME=$(dirname "${SPM_HOME}")
+  done
 fi
 if [ ! -d "${SPM_HOME}" ]; then
-  echo "SPM directory not found." >&2 
+  echo "SPM MCR directory not found." >&2 
   exit 1
 fi
-
+if [ ! -x "${SPM_HOME}/run_spm12.sh" ]; then
+  echo "SPM MCR executable not found." >&2 
+  exit 1
+fi
 
 ${SPM_HOME}/run_spm12.sh ${MCR_HOME} $@

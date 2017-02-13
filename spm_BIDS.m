@@ -13,10 +13,11 @@ function BIDS = spm_BIDS(root)
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 6986 2017-01-13 13:19:46Z guillaume $
+% $Id: spm_BIDS.m 7014 2017-02-13 12:31:33Z guillaume $
 
 
 if ~nargin, root = pwd; end
+root = spm_select('CPath',root);
 
 %==========================================================================
 %-BIDS structure

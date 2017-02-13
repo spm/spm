@@ -11,6 +11,8 @@ function varargout = spm_jsonwrite(varargin)
 % FORMAT [...] = spm_jsonwrite(...,opts)
 % opts     - structure of optional parameters:
 %              indent: string to use for indentation [Default: '']
+%              replacementStyle: string to control how non-alphanumeric
+%                characters are replaced [Default: 'underscore']
 % 
 % References:
 %   JSON Standard: http://www.json.org/
@@ -18,12 +20,12 @@ function varargout = spm_jsonwrite(varargin)
 % Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 6984 2017-01-09 13:29:55Z guillaume $
+% $Id: spm_jsonwrite.m 7014 2017-02-13 12:31:33Z guillaume $
 
 
 %-Input parameters
 %--------------------------------------------------------------------------
-opts         = struct('indent','');
+opts         = struct('indent','','replacementstyle','underscore');
 opt          = struct([]);
 if nargin > 1
     if ischar(varargin{1})
@@ -44,11 +46,12 @@ else
     json     = varargin{1};
     root     = inputname(1);
 end
-fn = fieldnames(opt);
+fn = lower(fieldnames(opt));
 for i=1:numel(fn)
     if ~isfield(opts,fn{i}), warning('Unknown option "%s".',fn{i}); end
     opts.(fn{i}) = opt.(fn{i});
 end
+optregistry(opts);
 
 %-JSON serialization
 %--------------------------------------------------------------------------
@@ -101,8 +104,13 @@ if numel(json) == 1
     if isstruct(json), fn = fieldnames(json); else fn = keys(json); end
     S = ['{' fmt('\n',tab)];
     for i=1:numel(fn)
+        key = fn{i};
+        if strcmp(optregistry('replacementStyle'),'hex')
+            key = regexprep(key,...
+                'x0x([0-9a-fA-F]+)_', '${native2unicode(hex2dec($1))}');
+        end
         if isstruct(json), val = json.(fn{i}); else val = json(fn{i}); end
-        S = [S fmt(tab) jsonwrite_char(fn{i}) ':' fmt(' ',tab) ...
+        S = [S fmt(tab) jsonwrite_char(key) ':' fmt(' ',tab) ...
             jsonwrite_var(val,tab+1)];
         if i ~= numel(fn), S = [S ',']; end
         S = [S fmt('\n',tab)];
@@ -173,4 +181,13 @@ if nargin == 1
     if varargin{1} > 0, b = repmat(tab,1,varargin{1}); end
 elseif nargin == 2
     if ~isempty(tab) && ~isempty(varargin{2}), b = sprintf(varargin{1}); end
+end
+
+%==========================================================================
+function val = optregistry(opts)
+persistent options
+if isstruct(opts)
+    options = opts;
+else
+    val = options.(lower(opts));
 end

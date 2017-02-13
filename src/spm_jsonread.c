@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 6979 2017-01-03 12:07:52Z guillaume $
+ * $Id: spm_jsonread.c 7014 2017-02-13 12:31:33Z guillaume $
  * Guillaume Flandin
  */
 
@@ -177,18 +177,35 @@ static char * get_string(char *js, int start, int end) {
 }
 
 static void valid_fieldname(char **field) {
-    char *f = *field;
-    while (f[0] != '\0') {
-        if ( ((f[0] >= '0') && (f[0] <= '9')) 
-          || ((f[0] >= 'a') && (f[0] <= 'z'))
-          || ((f[0] >= 'A') && (f[0] <= 'Z'))) {
+    /* matlab.lang.makeValidName
+      with ReplacementStyle == 'underscore' and Prefix == 'x' */
+    char *re = *field, *wr = *field;
+    int beg = 1;
+    while (re[0] != '\0') {
+        if ((re[0] == 32) || (re[0] == 9)) { /* ' ' or \t */
+            if (re[1] == '\0') {
+                break;
+            }
+            else if ((beg != 1) && (re[1] >= 'a') && (re[1] <= 'z')) {
+                re[1] -= 32; /* 'a'-'A' */
+            }
+            re++;
         }
         else {
-        	f[0] = '_';
+            if ( ((re[0] >= '0') && (re[0] <= '9')) 
+              || ((re[0] >= 'a') && (re[0] <= 'z'))
+              || ((re[0] >= 'A') && (re[0] <= 'Z'))) {
+                if (re != wr) { wr[0] = re[0]; }
+            }
+            else {
+                wr[0] = '_';
+            }
+            re++; wr++;
+            beg = 0;
         }
-        f++;
     }
-    if ( (*field[0] == '_')
+    wr[0] = '\0';
+    if ( (*field[0] == '\0') || (*field[0] == '_')
       || ((*field[0] >= '0') && (*field[0] <= '9')) ) {
         *field = *field - 1;
         *field[0] = 'x';

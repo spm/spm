@@ -6,7 +6,7 @@
 # Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: spm12-matlab 7008 2017-02-07 11:02:58Z guillaume $ 
+# $Id: spm12-matlab 7014 2017-02-13 12:31:33Z guillaume $ 
 
 PLATFORM=$(uname)
 
@@ -68,7 +68,7 @@ end
 exit(0);
 EOF
 
-${MATLAB_EXEC} -nosplash -nodesktop -r "run('${TMPFILE}');" | tail -n +11
+${MATLAB_EXEC} -nosplash -nodesktop ${MATLAB_FLAGS} -r "run('${TMPFILE}');" | tail -n +11
 ERR=${PIPESTATUS[0]}
 
 rm -f ${TMPFILE}

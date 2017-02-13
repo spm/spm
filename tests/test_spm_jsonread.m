@@ -3,7 +3,7 @@ function tests = test_spm_jsonread
 %__________________________________________________________________________
 % Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_jsonread.m 6979 2017-01-03 12:07:52Z guillaume $
+% $Id: test_spm_jsonread.m 7014 2017-02-13 12:31:33Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -66,6 +66,16 @@ testCase.verifyTrue(isequal(exp, act));
 %    of name-value pairs.)    |  valid.)
 json = '{"object": {"field1": 1, "field-2": 2, "3field": 3}}';
 exp  = struct('object',struct('field1',1,'field_2',2,'x3field',3));
+act  = spm_jsonread(json);
+testCase.verifyTrue(isequal(exp, act));
+
+json = '{"object": {"field 1": 1, "field two": 2, "  field  Three  ": 3}}';
+exp  = struct('object',struct('field1',1,'fieldTwo',2,'fieldThree',3));
+act  = spm_jsonread(json);
+testCase.verifyTrue(isequal(exp, act));
+
+json = '{"object": {"": 1}}';
+exp  = struct('object',struct('x',1));
 act  = spm_jsonread(json);
 testCase.verifyTrue(isequal(exp, act));
 
