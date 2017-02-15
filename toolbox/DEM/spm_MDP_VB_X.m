@@ -96,7 +96,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 6978 2017-01-03 10:42:09Z karl $
+% $Id: spm_MDP_VB_X.m 7017 2017-02-15 12:50:58Z karl $
 
 
 % deal with a sequence of trials
@@ -194,12 +194,18 @@ for g = 1:Ng
     %----------------------------------------------------------------------
     if isfield(MDP,'a')
         A{g}  = spm_norm(MDP.a{g});
+        rA{g} = spm_back(MDP.a{g});
         qA{g} = spm_psi(MDP.a{g} + 1/16);
         wA{g} = 1./spm_cum(MDP.a{g}) - 1./(MDP.a{g} + p0);
         wA{g} = wA{g}.*(MDP.a{g} > 0);
     else
-        A{g}  = MDP.A{g};
+        A{g}  = spm_norm(MDP.A{g});
+        rA{g} = spm_back(MDP.A{g});
     end
+    
+    % ensure true probabilities are normalised
+    %----------------------------------------------------------------------
+    MDP.A{g}  = spm_norm(MDP.A{g});
     
 end
 
@@ -823,6 +829,13 @@ for i = 1:size(A,2)
             end
         end
     end
+end
+
+function A = spm_back(A)
+% normalisation of a probability transition matrix (columns)
+%--------------------------------------------------------------------------
+for i = 1:size(A,1)
+    A(i,:,:,:,:) = A(i,:,:,:,:)/sum(A(i,:));
 end
 
 function A = spm_cum(A)

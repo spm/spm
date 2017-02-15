@@ -122,7 +122,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 6636 2015-12-05 23:28:50Z vladimir $
+% $Id: spm_eeg_invert.m 7017 2017-02-15 12:50:58Z karl $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -436,6 +436,13 @@ for i = 1:Nl
     T      = T(:,j);
     dct{i} = dct{i}(j);
     
+    % notch filter nf (Hz)
+    %----------------------------------------------------------------------
+    % nf   = 10.2/1000;
+    try
+        T0 = [sin(2*pi*nf*pst{i}(:)) cos(2*pi*nf*pst{i}(:))];
+        T  = T - T0*pinv(T0)*T;
+    end
     
     % Hanning operator (if requested)
     %----------------------------------------------------------------------

@@ -49,30 +49,19 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 6321 2015-01-28 14:40:44Z karl $
+% $Id: spm_dx.m 7017 2017-02-15 12:50:58Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
-nmax  = 512;                        % threshold for numerical approximation
+nmax  = 1024;                       % threshold for numerical approximation
 if nargin < 3, t = Inf; end         % integration time
 xf    = f; f = spm_vec(f);          % vectorise
 n     = length(f);                  % dimensionality
-U     = 1;                          % default (null) projector
 
 % t is a regulariser
 %--------------------------------------------------------------------------
 sw  = warning('off','MATLAB:log:logOfZero');
-SVD = 0;
 if iscell(t)
-    
-    
-    % work in natural gradients
-    %----------------------------------------------------------------------
-    if any(any(abs(dfdx - dfdx') > exp(-16))) && SVD
-        U    = spm_svd(dfdx,0);
-        dfdx = U'*dfdx*U;
-        f    = U'*f;
-    end
     
     % relative integration time
     %----------------------------------------------------------------------
@@ -146,8 +135,6 @@ elseif n > nmax && max(t) < 2 && isscalar(t)
         
     end
     
-    dx = U*x;
-    
 else
     
     % ensure t is a scalar or matrix
@@ -156,7 +143,7 @@ else
 
     % augment Jacobian and take matrix exponential
     %======================================================================
-    J = full(spm_cat({0   [];
+    J = full(spm_cat({0          [];
                       t*f t*dfdx}));
                   
     % solve using matrix expectation
@@ -173,5 +160,5 @@ else
     dx = dx(2:end,1);
     
 end
-dx     = spm_unvec(U*real(dx),xf);
+dx = spm_unvec(real(dx),xf);
 
