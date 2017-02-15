@@ -169,13 +169,13 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Map. 5:243-248
 %
 %__________________________________________________________________________
-% Copyright (C) 1994-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmri_spm_ui.m 6088 2014-07-03 17:57:09Z guillaume $
+% $Id: spm_fmri_spm_ui.m 7018 2017-02-15 13:36:48Z guillaume $
 
 
-SVNid = '$Rev: 6088 $';
+SVNid = '$Rev: 7018 $';
 
 %==========================================================================
 % - D E S I G N   M A T R I X
@@ -243,30 +243,12 @@ else
 
         case 'fast'
             %--------------------------------------------------------------
-            dt = SPM.xY.RT;
-            Q  = {};
-            l  = sum(nscan);
-            k  = 0;
-            for m=1:length(nscan)
-                T     = (0:(nscan(m) - 1))*dt;
-                d     = 2.^(floor(log2(dt/4)):log2(64));
-                for i = 1:length(d)
-                    for j = 0:2
-                        QQ = toeplitz((T.^j).*exp(-T/d(i)));
-                        [x,y,q] = find(QQ);
-                        x = x + k;
-                        y = y + k;
-                        Q{end + 1} = sparse(x,y,q,l,l);
-                    end
-                end
-                k = k + nscan(m);
-            end
-            SPM.xVi.Vi = Q;
+            SPM.xVi.Vi = spm_Ce('fast',nscan,SPM.xY.RT);
             cVi        = upper(cVi);
             
         otherwise               % otherwise assume AR(0.2) in xVi.Vi
             %--------------------------------------------------------------
-            SPM.xVi.Vi = spm_Ce(nscan,0.2);
+            SPM.xVi.Vi = spm_Ce('ar',nscan,0.2);
             cVi        = 'AR(0.2)';
     end
 end

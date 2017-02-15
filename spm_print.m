@@ -9,15 +9,15 @@ function varargout = spm_print(varargin)
 % FORMAT spm_print(job)
 % Run a batch print job (see spm_cfg_print)
 %__________________________________________________________________________
-% Copyright (C) 1994-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_print.m 7013 2017-02-09 18:41:14Z guillaume $
+% $Id: spm_print.m 7018 2017-02-15 13:36:48Z guillaume $
 
 
 %-Shortcut for list of graphics file formats available
 %--------------------------------------------------------------------------
-if nargin > 0 && isequal(lower(varargin{1}),'format')
+if nargin > 0 && ischar(varargin{1}) && strcmpi(varargin{1},'format')
     [varargout{1:nargout}] = print_format(varargin{2:end});
     return;
 end

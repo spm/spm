@@ -19,10 +19,10 @@ function spm_fmri_concatenate(P, scans)
 %   this, acquire additional volumes at the end of each session and / or
 %   add regressors to model the trials at the session borders.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_fmri_concatenate.m 6533 2015-08-24 10:57:35Z peter $
+% $Id: spm_fmri_concatenate.m 7018 2017-02-15 13:36:48Z guillaume $
 
 
 %-Input parameters
@@ -104,8 +104,10 @@ SPM.xX.K = spm_filter(K);
 %--------------------------------------------------------------------------
 switch lower(SPM.xVi.form)
     case {'ar(1)','ar(0.2)'}
-        SPM.xVi.Vi   = spm_Ce(SPM.nscan,0.2);
+        SPM.xVi.Vi   = spm_Ce('ar',SPM.nscan,0.2);
         SPM.xVi.form = 'AR(0.2)';
+    case 'fast'
+        SPM.xVi.Vi   = spm_Ce('fast',SPM.nscan,SPM.xY.RT);
     case {'i.i.d', 'none'}
     otherwise
         warning('Unhandled temporal non-sphericity.');
