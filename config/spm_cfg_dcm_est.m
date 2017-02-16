@@ -4,7 +4,7 @@ function estimate = spm_cfg_dcm_est
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_est.m 7016 2017-02-13 14:53:00Z peter $
+% $Id: spm_cfg_dcm_est.m 7021 2017-02-16 15:09:17Z peter $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -328,6 +328,20 @@ for s = 1:ns
     end
 end
 
+% Check that models 2-N are nested forms of the full model
+if nm > 1 && (est_type == EST_FULL_BMR || est_type == EST_FULL_BMR_PEB)
+    idx1 = spm_find_pC(GCM{1});
+    for m = 2:nm
+        idx = spm_find_pC(GCM{1,m});
+        if any(setdiff(idx,idx1))
+            error(['Model %d is not a nested model of model 1. This is ' ...
+                  'required for Bayesian Model Reduction (BMR). Please ' ...
+                  'introduce a full model as Model 1, or switch estimation ' ...
+                  'type to ''full'''],m);
+        end
+    end
+end
+
 % Estimate models if requested
 switch est_type
     case EST_FULL_BMR
@@ -344,7 +358,26 @@ switch est_type
         % Do nothing
 end
 
-% Save
+% Save individual DCM .mat files if provided
+if ~isempty(P) && (est_type ~= EST_NONE)
+    for s = 1:ns
+        for m = 1:nm
+            DCM = GCM{s,m};
+            F   = DCM.F;
+            Ep  = DCM.Ep;
+            Cp  = DCM.Cp;
+            save(P{s,m}, 'DCM', 'F', 'Ep', 'Cp', ...
+                spm_get_defaults('mat.format'));
+        end
+    end
+end
+
+% If filenames were provided, set the GCM to contain the filenames
+if ~isempty(P)
+    GCM = P; %#ok<NASGU>
+end
+
+% Save GCM
 if output_type == OUTPUT_GCM_NEW
     % Create single GCM mat file
     dir  = job.output.single.dir{1};
@@ -355,24 +388,11 @@ if output_type == OUTPUT_GCM_NEW
     out.gcmmat = {filename};
 elseif output_type == OUTPUT_GCM_OVERWRITE
     % Update existing gcm file
-    filename = dcms.gcmmat{1};
-    
+    filename = dcms.gcmmat{1};    
     save(filename,'GCM', spm_get_defaults('mat.format'));
     
     out.gcmmat = {filename};
 else
-    % Update existing mat files
-    if (est_type ~= EST_NONE)
-        for s = 1:ns
-            for m = 1:nm
-                DCM = GCM{s,m};
-                F   = DCM.F;
-                Ep  = DCM.Ep;
-                Cp  = DCM.Cp;
-                save(P{s,m}, 'DCM', 'F', 'Ep', 'Cp', spm_get_defaults('mat.format'));
-            end
-        end
-    end
     out.dcmmat = P;
 end
 
