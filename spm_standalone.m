@@ -11,7 +11,7 @@ function spm_standalone(varargin)
 % Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_standalone.m 7008 2017-02-07 11:02:58Z guillaume $ 
+% $Id: spm_standalone.m 7019 2017-02-16 10:49:48Z guillaume $ 
 
 
 if ~nargin, action = ''; else action = varargin{1}; end
@@ -63,17 +63,37 @@ switch lower(action)
     case 'batch'
     %----------------------------------------------------------------------
         spm_banner;
-        %spm('defaults','fmri');
+        inputs = varargin(2:end);
+        flg = ismember(inputs,'--modality');
+        if any(flg)
+            idx = find(flg);
+            try
+                modality = inputs{idx+1};
+            catch
+                error('Syntax is: --modality <modality>.');
+            end
+            inputs([idx idx+1]) = [];
+        else
+            modality = 'fmri';
+        end
+        flg = ismember(inputs,'--cmdline');
+        if any(flg)
+            cmdline = true;
+            inputs = inputs(~flg);
+        else
+            cmdline = false;
+        end
+        spm('defaults',modality);
+        spm_get_defaults('cmdline',cmdline);
         spm_jobman('initcfg');
-        if nargin == 1
+        if isempty(inputs)
             h = spm_jobman;
             waitfor(h,'Visible','off');
         else
-            %spm_get_defaults('cmdline',true);
             try
-                spm_jobman('run',varargin{2:end});
+                spm_jobman('run', inputs{:});
             catch
-                fprintf('Execution failed: %s\n', varargin{2});
+                fprintf('Execution failed: %s\n', inputs{1});
                 exit_code = 1;
             end
         end

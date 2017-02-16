@@ -1,10 +1,10 @@
 function spm_make_manual(c)
 % Convert a job configuration tree into a series of LaTeX documents
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_make_manual.m 6163 2014-09-11 12:27:04Z guillaume $
+% $Id: spm_make_manual.m 7019 2017-02-16 10:49:48Z guillaume $
 
 
 if ~nargin, c = spm_cfg; end
@@ -176,7 +176,7 @@ for i=1:numel(st1)
     end
 end
 
-str = [];
+str = '';
 pen = 1;
 for i=1:numel(st)
     str = [str clean_latex(str0(pen:st(i)-1)) str0(st(i)+2:en(i)-1)];

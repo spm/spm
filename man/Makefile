@@ -1,18 +1,23 @@
 #!/usr/bin/env make -f
 # Manual Makefile called by {SPM}/src/Makefile
 #
-# Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 6761 2016-03-30 15:11:20Z guillaume $
+# $Id: Makefile 7019 2017-02-16 10:49:48Z guillaume $
 
 include ../src/Makefile.var
 
 PDFLATEX = pdflatex -interaction=batchmode
 BIBTEX   = bibtex
+ifeq (octave,$(PLATFORM))
+  SPMEXE = ../bin/spm12-octave
+else
+  SPMEXE = ../bin/spm12-matlab
+endif
 
 SPMPDF   = manual.pdf ReleaseNotes.pdf
 
-all: verb.pdf $(SPMPDF) verb.pdf.end
+all: $(SPMPDF)
 	@:
 
 clean:
@@ -25,10 +30,18 @@ install:
 	@:
 
 %.pdf: %.tex
-	@ $(PDFLATEX) $* && $(BIBTEX) $* && $(PDFLATEX) $* && $(PDFLATEX) $*
+	$(call makepdf, $*)
 
-verb.pdf:
-	$(call verb, "Creating PDF files")
+manual.pdf: manual.tex spm_manual.tex
+	$(call makepdf, "manual")
 
-verb.pdf.end:
-	$(call verb, "PDF files: done")
+spm_manual.tex:
+	$(call verb, "Creating TEX files")
+	@ ${SPMEXE} eval "spm_jobman('initcfg');spm_make_manual;"
+	$(call verb, "TEX files: done")
+
+define makepdf
+	$(call verb, "Building $(1).pdf")
+	@ $(PDFLATEX) $(1) && $(BIBTEX) $(1) && $(PDFLATEX) $(1) && $(PDFLATEX) $(1)
+        $(call verb, "$(1).pdf: done")
+endef
