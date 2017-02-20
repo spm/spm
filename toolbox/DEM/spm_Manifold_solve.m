@@ -21,7 +21,7 @@ d    = 8;                           % diameter for graphics markers
 N    = size(x.p,2);                 % number of microsystems
 Q    = zeros(3,N,T);                % history of microstates (states)
 X    = zeros(2,N,T);                % history of microstates (position)
-V    = zeros(2,N,T);                % history of microstates (dusty)
+V    = zeros(2,N,T);                % history of microstates (velocity)
 A    = zeros(N,N,T);                % adjacency matrix
  
 % Integrate

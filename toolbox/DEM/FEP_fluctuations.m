@@ -30,7 +30,7 @@ function FEP_fluctuations
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_fluctuations.m 7003 2017-02-02 18:22:56Z karl $
+% $Id: FEP_fluctuations.m 7022 2017-02-20 10:46:37Z karl $
  
  
 % default settings (GRAPHICS sets movies)
@@ -102,8 +102,8 @@ bb    = B*jj & (1 - jj);                          % Markov blanket
 ee    = 1 - bb - jj;                              % external states
 b     = find(bb);
 e     = find(ee);
-s     = b(find( any(L(e,b))));
-a     = b(find(~any(L(e,b))));
+s     = b(find( any(L(b,e),2)));
+a     = b(find(~any(L(b,e),2)));
  
 % adjacency matrix - with partition underneath (LL)
 %--------------------------------------------------------------------------
@@ -196,92 +196,7 @@ if GRAPHICS
     xlabel('Click for Movie','Color','r')
 end
  
- 
-% overlay attributes
-%--------------------------------------------------------------------------
-subplot(2,2,3)
-plot(X(1,e,T),X(2,e,T),'.c','MarkerSize',24), hold on
-plot(X(1,j,T),X(2,j,T),'.b','MarkerSize',24), hold on
-plot(X(1,s,T),X(2,s,T),'.m','MarkerSize',24), hold on
-plot(X(1,a,T),X(2,a,T),'.r','MarkerSize',24), hold on
-px = X(1,find(~P.a),T);
-py = X(2,find(~P.a),T);
-plot(px,py,'.w','MarkerSize',22)
-xlabel('Position','FontSize',12)
-title('Dynamically closed','FontSize',16)
-axis([-1 1 -1 1]*d)
-axis square
-hold off
- 
-subplot(2,2,4)
-plot(X(1,e,T),X(2,e,T),'.c','MarkerSize',24), hold on
-plot(X(1,j,T),X(2,j,T),'.b','MarkerSize',24), hold on
-plot(X(1,s,T),X(2,s,T),'.m','MarkerSize',24), hold on
-plot(X(1,a,T),X(2,a,T),'.r','MarkerSize',24), hold on
-px = X(1,find(P.k > 1/2),T);
-py = X(2,find(P.k > 1/2),T);
-plot(px,py,'.w','MarkerSize',22)
-xlabel('Position','FontSize',12)
-title('Slow systems','FontSize',16)
-axis([-1 1 -1 1]*d)
-axis square
-hold off
-drawnow
- 
- 
-% Evolution of the Markov blanket
-%==========================================================================
-spm_figure('GetWin','Evolution of the Markov blanket');clf
-rng('default')
- 
-T     = 512;
-for i = 1:4
-    
-    % intervention
-    %--------------------------------------------------------------------------
-    PP  = P;
-    if i == 2
-        PP.a(a) = 1;               % lesion active elements
-    elseif i == 3
-        PP.a(s) = 1;               % lesion sensory elements
-    elseif i == 4
-        PP.a(j) = 1;               % lesion internal elements
-    end
-    
-    % continue integration
-    %--------------------------------------------------------------------------
-    [QQ,XX] = spm_Manifold_solve(x,u,PP,T,dt,0);
-    
-    % plot trajectories of Markov Blanket and final internal state
-    %--------------------------------------------------------------------------
-    subplot(2,2,i),set(gca,'color','w')
-    px = squeeze(XX(1,s,:));
-    py = squeeze(XX(2,s,:));
-    plot(px,py,'.m','MarkerSize',4), hold on
-    px = squeeze(XX(1,a,:));
-    py = squeeze(XX(2,a,:));
-    plot(px,py,'.r','MarkerSize',4), hold on
-    px = squeeze(XX(1,j,:));
-    py = squeeze(XX(2,j,:));
-    plot(px,py,'.b','MarkerSize',8), hold off
-    xlabel('Position','FontSize',12)
-    axis([-1 1 -1 1]*d)
-    axis square
-    
-    % title
-    %--------------------------------------------------------------------------
-    if i == 1
-        title('Markov blanket','FontSize',16)
-    elseif i == 2
-        title('Active lesion','FontSize',16);
-    elseif i == 3
-        title('Sensory lesion','FontSize',16);
-    elseif i == 4
-        title('Internal lesion','FontSize',16);
-    end
-    
-end
- 
+
  
 % illustrate the Bayesian perspective (predictability of external states)
 %==========================================================================
@@ -289,166 +204,80 @@ spm_figure('GetWin','Bayesian perspective');clf
 
 % establish a statistical dependency between internal (dynamic) states (XQ)
 %--------------------------------------------------------------------------
-clear XQ
+m     = j;
 T     = 512;                         % length of timeseries
-n     = 64;                          % temporal embedding
-t     = size(Q,3) - n - T - n;
+t     = size(X,3) - T - 2;
 for i = 1:T
-    for k = 1:(n + n)
-        XQ{i,k} = spm_vec(Q(:,j,i + k + t))';
+    Xe(i,:) = spm_vec(X(:,e,i + t));
+    Xb(i,:) = spm_vec(X(:,[a;s],i + t));
+    Xm(i,:) = spm_vec(X(:,m,i + t));
+end
+
+xe    = zeros(size(Xe));
+xE    = zeros(size(Xe));
+xm    = zeros(size(Xm));
+iC    = inv(cov(Xb));
+for i = 1:T
+    for j = 1:T
+        r       = Xb(i,:) - Xb(j,:);
+        w       = exp(-(r*iC*r')/16);
+        xE(i,:) = xE(i,:) + w*Xe(i,:);
+        xe(i,:) = xe(i,:) + w*Xe(j,:);
+        xm(i,:) = xm(i,:) + w*Xm(j,:);
     end
 end
 
+
 % normalise and retain principal eigenvariates
 %--------------------------------------------------------------------------
-Xq        = spm_en(diff(spm_cat(XQ),1));
-[Xq,S,UX] = spm_svd(Xq,1);
-Xq        = Xq(:,1:32);
-X0        = ones(size(Xq,1),1);
-
-subplot(3,2,1)
-imagesc(Xq')
-xlabel('Time', 'FontSize',12)
-ylabel('Modes','FontSize',12)
-title('Internal states','FontSize',16)
-axis square
-
-% get equivalent external states to be predicted
-%--------------------------------------------------------------------------
-t     = size(Q,3) + (1:T) - n - T;
-for c = 1:length(e)
-    
-    % get the external states for this element
-    %----------------------------------------------------------------------
-    Y    = squeeze(X(:,e(c),t))';
-    Y0   = flipud(Y);
-    Y    = diff(spm_en(Y ),1);
-    Y0   = diff(spm_en(Y0),1);
-    
-    % and take the principal eigenvariates
-    %----------------------------------------------------------------------
-    Yq   = spm_svd(Y,1);
-    Yq0  = spm_svd(Y0,1);
-    
-    % test for dependencies using canonical variance analysis
-    %----------------------------------------------------------------------
-    CVA(c)  = spm_cva(Yq,Xq,X0);
-    CVA0    = spm_cva(Yq0,Xq,X0);
-    SPM(c)  = CVA(c).chi(1);
-    SPM0(c) = CVA0.chi(1);
-    
-end
+xE   = spm_detrend(xE);
+xe   = spm_detrend(xe);
+xm   = spm_detrend(xm);
+CVA  = spm_cva(xe,xm);
 
 % show results
 %--------------------------------------------------------------------------
-subplot(3,2,3)
-[k,i] = max(SPM);
-CVA   = CVA(i);
+subplot(3,2,1)
+V     = CVA.V(:,1);
+V     = spm_unvec(V,X(:,e,1));
+V     = sum(V.^2);
+V     = V/max(V);
+for k = 1:length(V)
+    c = [0 1 1]*V(k) + [1 1 1]*(1 - V(k));
+    plot(X(1,e(k),end),X(2,e(k),end),'.','MarkerSize',32,'Color',c), hold on
+end
+
+V     = CVA.W(:,1);
+V     = spm_unvec(V,X(:,m,1));
+V     = sum(V.^2);
+V     = V/max(V);
+for k = 1:length(V)
+    c = [1 0 0]*V(k) + [1 1 1]*(1 - V(k));
+    plot(X(1,m(k),end),X(2,m(k),end),'.','MarkerSize',32,'Color',c), hold on
+end
+
+
+for i = 1:T
+    Xv(i) = xE(i,:)*CVA.V(:,1);
+end
+
+subplot(3,2,2)
+plot(CVA.w(:,1),Xv,'.r' ),         hold on
+plot(CVA.w(:,1),CVA.v(:,1),'.b' ), hold off
+xlabel('Time', 'FontSize',12)
+ylabel('External states','FontSize',12)
+title('Motion (where)','FontSize',16)
+spm_axis tight
+
+
+subplot(3,1,2)
 plot(CVA.v(:,1),'b:'), hold on
 plot(CVA.w(:,1),'b' ), hold off
 xlabel('Time', 'FontSize',12)
 ylabel('External states','FontSize',12)
 title('Motion (where)','FontSize',16)
-axis square
 spm_axis tight
 
-% SPM of external prediciability
-%--------------------------------------------------------------------------
-subplot(3,2,4)
-W     = (SPM/max(SPM)).^2;
-for k = 1:length(e)
-    c = [0 1 1]*W(k) + [1 1 1]*(1 - W(k));
-    plot(X(1,e(k),end),X(2,e(k),end),'.','MarkerSize',32,'Color',c), hold on
-end
-plot(X(1,e(i),end),X(2,e(i),end),'.m','MarkerSize',32), hold on
-plot(X(1,j,end),X(2,j,end),'.b','MarkerSize',32), hold off
-xlabel('Position','FontSize',12)
-ylabel('Position','FontSize',12)
-title('Predictability','FontSize',16)
-axis([-1 1 -1 1]*d)
-axis square
-hold off
-
-% Distributions
-%--------------------------------------------------------------------------
-subplot(3,2,2)
-hist([SPM' SPM0'],4)
-xlabel('Chi-squared','FontSize',12)
-ylabel('Freuquency','FontSize',12)
-title('Distributions','FontSize',16)
-
-ne   = sum(SPM > max(SPM0));
-pe   = 1 - spm_Icdf(ne,length(e),1/length(e));
-fprintf('\nOminbus p-value: p < %-0.5f\n',pe);
 
 return
  
-
-% NOTES: Phase portrait and entropies (temperature)
-%==========================================================================
-spm_figure('GetWin','Phases and entropies');
-T     = 1024;
-t     = (T - 512):T;
-n     = 16;
-Hp    = zeros(1,n);
-Hq    = zeros(1,n);
-Pe    = linspace(-4,4,n);
-Pp    = P;
-for i = 1:n
-    
-    
-    % parameters (energy and state-dependent forces)
-    %------------------------------------------------------------------
-    Pp.e    = exp(Pe(i));
-    
-    % entropy of dynamics
-    %------------------------------------------------------------------
-    [Q,X]   = spm_Manifold_solve(x,u,Pp,T,1/32,0);
-    
-    
-    % entropy of dynamics
-    %------------------------------------------------------------------
-    q       = squeeze(Q(1,:,t));
-    Hq(i) = spm_logdet(cov(q'));
-    
-    % configuration entropy
-    %------------------------------------------------------------------
-    p       = squeeze(X(1,:,t));
-    Hp(i) = spm_logdet(cov(p'));
-    
-    % update with graphics
-    %------------------------------------------------------------------
-    subplot(2,2,1)
-    plot(Pe,Hp,Pe,Hq)
-    title('Phases and entropy','FontSize',16)
-    xlabel('Entropy','FontSize',12)
-    ylabel('Potential energy','FontSize',12)
-    legend({'Structural','Functional'})
-    axis square
-    
-    subplot(2,2,2)
-    plot(Pe,Hp - Hq)
-    title('Difference','FontSize',16)
-    xlabel('Entropy','FontSize',12)
-    ylabel('Potential energy','FontSize',12)
-    axis square
-    
-    % plot dynamics
-    %--------------------------------------------------------------------------
-    subplot(2,2,3)
-    plot(1:T,squeeze(X(1,:,:)),':',t,squeeze(X(1,:,t)),'-')
-    axis([1 T -64 64])
-    xlabel('time','FontSize',12)
-    title('Dynamics','FontSize',16)
-    axis square
-    
-    % plot entropies
-    %--------------------------------------------------------------------------
-    subplot(2,2,4)
-    plot(Hq(:),Hp(:),'.',Hq(:),Hp(:),'o')
-    xlabel('Functional entropy','FontSize',12)
-    ylabel('Structural entropy','FontSize',12)
-    title('Entropies','FontSize',16)
-    axis square
-    
-end
