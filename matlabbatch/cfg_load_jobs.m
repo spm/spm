@@ -11,15 +11,15 @@ function [newjobs, uind] = cfg_load_jobs(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_load_jobs.m 5678 2013-10-11 14:58:04Z volkmar $
+% $Id: cfg_load_jobs.m 7024 2017-02-21 17:53:55Z guillaume $
 
-rev = '$Rev: 5678 $'; %#ok
+rev = '$Rev: 7024 $'; %#ok
 
 if ischar(job)
     filenames = cellstr(job);
 else
     filenames = job;
-end;
+end
 [ufilenames, unused, uind] = unique(filenames);
 ujobs = cell(size(ufilenames));
 usts  = false(size(ufilenames));
@@ -33,37 +33,39 @@ newjobs = ujobs(uind);
 function [matlabbatch, sts] = load_single_job(filename)
 [p,nam,ext] = fileparts(filename);
 switch ext
-    case '.xml',
+    case '.xml'
         try
             loadxml(filename,'matlabbatch');
         catch
             cfg_message('matlabbatch:initialise:xml','LoadXML failed: ''%s''',filename);
-        end;
+        end
     case '.mat'
         try
             S=load(filename);
             matlabbatch = S.matlabbatch;
         catch
             cfg_message('matlabbatch:initialise:mat','Load failed: ''%s''',filename);
-        end;
+        end
     case '.m'
         try
-            fid = fopen(filename,'rt');
-            str = fread(fid,'*char');
-            fclose(fid);
-            eval(str);
+            str = fileread(filename);
+            if isdeployed && strncmp(str,'V1MCC',5) % mcc compiled script
+                eval(nam);
+            else
+                eval(str);
+            end
         catch
             cfg_message('matlabbatch:initialise:m','Eval failed: ''%s''',filename);
-        end;
+        end
         if ~exist('matlabbatch','var')
             cfg_message('matlabbatch:initialise:m','No matlabbatch job found in ''%s''', filename);
-        end;
+        end
     otherwise
         cfg_message('matlabbatch:initialise:unknown','Unknown extension: ''%s''', filename);
-end;
+end
 if exist('matlabbatch','var')
     sts = true;
 else
     sts = false;
     matlabbatch = [];
-end;
+end
