@@ -30,7 +30,7 @@ function [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman, Vladimir Litvak
-% $Id: spm_dcm_simulate.m 6992 2017-01-19 15:27:17Z vladimir $
+% $Id: spm_dcm_simulate.m 7023 2017-02-21 11:34:52Z vladimir $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -129,8 +129,10 @@ for i = 1:ns
     
     if isfield(DCM, 'Eg')
         Eg = DCM.Eg;
+        Ce = DCM.Ce;
     elseif isfield(GCM{i, 1}, 'Eg')
         Eg = GCM{i, 1}.Eg;
+        Ce = GCM{i, 1}.Ce;
         
         M = DCM.M;
         DCM.M = GCM{i, 1}.M;
@@ -172,7 +174,7 @@ for i = 1:ns
                 e    = spm_conv(e,8,0);
                 e    = e*sqrt(noise);
             case 'estimated'
-                e = sqrtm(full(DCM.Ce))*e;
+                e = sqrtm(full(Ce))*e;
             otherwise
                 error('Unknown noise definition');
         end
@@ -186,6 +188,7 @@ for i = 1:ns
     for j = 1:nm
         GCM{i,j}          = rmfield(DCM,'M');
         GCM{i,j}.M.dipfit = DCM.M.dipfit;
+        GCM{i,j}.M.U      = U;
         GCM{i,j}.xY.y     = y;
     end    
     
