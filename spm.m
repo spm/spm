@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2016 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 6962 2016-12-06 12:17:01Z guillaume $
+% $Id: spm.m 7025 2017-02-22 10:03:58Z guillaume $
 
 
 %=======================================================================
@@ -1200,7 +1200,11 @@ for i=1:numel(mscript)
         S = fileread(mscript{i});
         try
             assignin('base','mfilename',@(varargin) mscript{i});
-            evalin('base',S);
+            if strncmp(S,'V1MCC',5)
+                evalin('base',n); % mcc compiled script
+            else
+                evalin('base',S);
+            end
         catch
             fprintf('Execution failed: %s\n',mscript{i});
             rethrow(lasterror);
