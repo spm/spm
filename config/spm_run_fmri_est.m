@@ -8,9 +8,10 @@ function out = spm_run_fmri_est(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 5809 2013-12-20 14:30:22Z guillaume $
+% $Id: spm_run_fmri_est.m 7029 2017-02-24 15:39:07Z guillaume $
+
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
@@ -36,6 +37,8 @@ if isfield(job.method,'Classical')
     %----------------------------------------------------------------------
     if isfield(SPM,'factor') && ~isempty(SPM.factor) && SPM.factor(1).levels > 1
 
+        Ic = [];
+        
         %-Generate contrasts
         %------------------------------------------------------------------
         cons = spm_design_contrasts(SPM);
@@ -54,7 +57,7 @@ if isfield(job.method,'Classical')
                 else
                     SPM.xCon(end+1) = DxCon;
                 end
-                SPM   = spm_contrasts(SPM,length(SPM.xCon));
+                Ic = [Ic length(SPM.xCon)];
             end
         end
 
@@ -83,13 +86,19 @@ if isfield(job.method,'Classical')
                     else
                         SPM.xCon(end+1) = DxCon;
                     end
-                    SPM   = spm_contrasts(SPM,length(SPM.xCon));
+                    Ic = [Ic length(SPM.xCon)];
                 end
             end
         end
         
+        %-Estimate constrasts
+        %------------------------------------------------------------------
+        if ~isempty(Ic), SPM = spm_contrasts(SPM,Ic); end
+        
     end
     
+    %-Residuals
+    %----------------------------------------------------------------------
     if job.write_residuals
         VRes = spm_write_residuals(SPM,NaN);
     end
