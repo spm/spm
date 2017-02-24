@@ -8,10 +8,10 @@ function SPM = spm_contrasts(SPM,Ic)
 % This function fills in SPM.xCon and writes con_????, ess_???? and
 % spm?_???? images.
 %__________________________________________________________________________
-% Copyright (C) 2002-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Will Penny & Guillaume Flandin
-% $Id: spm_contrasts.m 6910 2016-10-24 16:20:03Z guillaume $
+% $Id: spm_contrasts.m 7028 2017-02-24 10:44:25Z guillaume $
 
 
 % Temporary copy of the SPM variable, to avoid saving it in SPM.mat unless
@@ -319,5 +319,7 @@ SPM.xCon = xCon;
 if spm_check_version('matlab','8.0') >= 0, my_isequaln = @isequaln;
 else my_isequaln = @isequalwithequalnans; end
 if ~my_isequaln(tmpSPM,SPM)
+    fprintf('%-40s: %30s','Saving SPM.mat','...writing');               %-#
     save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
+    fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')            %-#
 end

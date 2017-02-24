@@ -5,9 +5,9 @@ function out = spm_run_con(job)
 % Output:
 % out    - struct containing contrast and SPM{.} images filename
 %__________________________________________________________________________
-% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 6764 2016-04-05 18:05:20Z guillaume $
+% $Id: spm_run_con.m 7028 2017-02-24 10:44:25Z guillaume $
 
 
 spm('FnBanner','spm_contrasts.m');
@@ -89,8 +89,9 @@ if bayes_con
     end
 end
 
-%-Specify & estimate contrasts
+%-Specify contrasts
 %--------------------------------------------------------------------------
+Ic = [];
 for i = 1:length(job.consess)
     
     %-T-contrast
@@ -237,7 +238,7 @@ for i = 1:length(job.consess)
         names = {name};
     end
 
-    %-Estimate newly created contrasts
+    %-Store newly created contrasts in SPM.xCon
     %----------------------------------------------------------------------
     for k=1:numel(cons)
 
@@ -260,16 +261,19 @@ for i = 1:length(job.consess)
         end
 
         %-Append to SPM.xCon
-        % SPM will automatically save any contrasts that evaluate successfully
         %------------------------------------------------------------------
         if isempty(SPM.xCon)
             SPM.xCon = DxCon;
         elseif ~isempty(DxCon)
             SPM.xCon(end+1) = DxCon;
         end
-        SPM = spm_contrasts(SPM,length(SPM.xCon));
+        Ic = [Ic length(SPM.xCon)];
     end
 end
+
+%-Estimate newly created contrasts (and save SPM.mat)
+%--------------------------------------------------------------------------
+if ~isempty(Ic), SPM = spm_contrasts(SPM,Ic); end
 
 fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
 
@@ -282,8 +286,8 @@ cd(cwd);
 out.spmmat = job.spmmat;
 %out.spmvar = SPM;
 if isfield(SPM, 'xCon') && ~isempty(SPM.xCon)
-    Vcon = [SPM.xCon.Vcon]; %cat(1,SPM.xCon.Vcon);
-    Vspm = [SPM.xCon.Vspm]; %cat(1,SPM.xCon.Vspm);
+    Vcon = [SPM.xCon.Vcon]; % [SPM.xCon(Ic).Vcon] ?
+    Vspm = [SPM.xCon.Vspm]; % [SPM.xCon(Ic).Vspm] ?
 elseif isfield(SPM, 'PPM') && ~isempty(SPM.PPM)
     Vcon = cat(1,SPM.PPM.xCon.Vcon);
     Vspm = cat(1,SPM.PPM.xCon.Vspm);
