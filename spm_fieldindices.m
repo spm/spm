@@ -15,7 +15,7 @@ function [ix] = spm_fieldindices(X,varargin)
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fieldindices.m 6809 2016-06-15 12:51:55Z peter $
+% $Id: spm_fieldindices.m 7031 2017-02-27 19:46:48Z karl $
 
 
 % if varargin is a vector simply return fieldnames
@@ -59,8 +59,8 @@ for i = 1:length(varargin)
             end
         end
         
-    % or return the name of the field
-    %----------------------------------------------------------------------
+        % or return the name of the field
+        %----------------------------------------------------------------------
     elseif isnumeric(varargin{i})
         
         ind    = varargin{i};
@@ -73,9 +73,15 @@ for i = 1:length(varargin)
             if any(spm_vec(x.(name{j})))
                 if iscell(x.(name{j}))
                     for k = 1:numel(x.(name{j}))
-                        if any(spm_vec(x.(name{j}){k}))
-                            [p,q] = find(x.(name{j}){k});
-                            ix = sprintf('%s{%i}(%i,%i)',name{j},k,p,q);
+                        xv = spm_vec(x.(name{j}){k});
+                        if any(xv)
+                            if isstruct(x.(name{j}){k})
+                                s     = spm_fieldindices(x.(name{j}){k},find(xv));
+                                ix    = sprintf('%s{%i}.%s',name{j},k,s);
+                            else
+                                [p,q] = find(x.(name{j}){k});
+                                ix    = sprintf('%s{%i}(%i,%i)',name{j},k,p,q);
+                            end
                             return
                         end
                     end
@@ -83,17 +89,17 @@ for i = 1:length(varargin)
                     s   = size(x.(name{j}));
                     if numel(s) < 3
                         if min(s) == 1
-                            p = find(x.(name{j}));
-                            ix = sprintf('%s(%i)',name{j},p);
+                            p    = find(x.(name{j}));
+                            ix   = sprintf('%s(%i)',name{j},p);
                             return
                         else
                             [p,q] = find(x.(name{j}));
-                            ix = sprintf('%s(%i,%i)',name{j},p,q);
+                            ix    = sprintf('%s(%i,%i)',name{j},p,q);
                             return
                         end
                     else
                         [p,q,r] = ind2sub(s,find(x.(name{j})));
-                        ix = sprintf('%s(%i,%i,%i)',name{j},p,q,r);
+                        ix      = sprintf('%s(%i,%i,%i)',name{j},p,q,r);
                         return
                     end
                 end
