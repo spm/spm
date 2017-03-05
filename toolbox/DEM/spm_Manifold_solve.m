@@ -2,10 +2,52 @@
 %==========================================================================
 function [Q,X,V,A,x] = spm_Manifold_solve(x,u,P,T,dt,PLOT)
 % FORMAT [Q,X,V,A,x] = spm_Manifold_solve(x,u,P,T,dt,PLOT)
+% FORMAT [J]         = spm_Manifold_solve(Q,X,V,P)
 % PLOT = 0 - no grphics
 % PLOT = 1 - quick graphics
 % PLOT = 2 - quick graphics with trajectory
 % PLOT = 3 - pretty graphics
+%
+% This auxiliary routine integrates a system – or returns the Jacobian for
+% specified states. It deals with the special case of within and between
+% particle coupling.
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_Manifold_solve.m 7033 2017-03-05 11:19:18Z karl $
+
+% equations of motion
+%--------------------------------------------------------------------------
+fx    = @spm_lorenz_n;
+
+% compute Jacobian for pre-evaluated states
+%==========================================================================
+if isnumeric(x)
+    
+    % rearrange inputs
+    %----------------------------------------------------------------------
+    Q     = x;
+    X     = u;
+    V     = P;
+    P     = T;
+    clear x
+    x.p   = X(:,:,1);
+    x.v   = V(:,:,1);
+    x.q   = Q(:,:,1);
+    J     = zeros(spm_length(x),spm_length(x),size(Q,3));
+    
+    %  evaluate Jacobian is for the states provided – and return
+    %----------------------------------------------------------------------
+    for i = 1:size(Q,3)
+        x.p = X(:,:,i);
+        x.v = V(:,:,i);
+        x.q = Q(:,:,i);
+        J(:,:,i) = spm_diff(fx,x,0,P,1);
+    end
+    Q    = J;
+    return
+end
 
 
 % defaults
@@ -13,6 +55,8 @@ function [Q,X,V,A,x] = spm_Manifold_solve(x,u,P,T,dt,PLOT)
 try, T;    catch, T    = 512;  end
 try, dt;   catch, dt   = 1/64; end
 try, PLOT; catch, PLOT = 0;    end
+try, P.d;  catch, P.d  = 1;    end
+
  
 % set up
 %--------------------------------------------------------------------------
@@ -26,7 +70,6 @@ A    = zeros(N,N,T);                % adjacency matrix
  
 % Integrate
 %--------------------------------------------------------------------------
-fx    = @spm_lorenz_n;
 dn    = 16;
 dt    = dt/dn;
 for i = 1:T
@@ -35,17 +78,24 @@ for i = 1:T
     %----------------------------------------------------------------------
     xn    = spm_vec(x);
     for j = 1:dn
-        [f a] = fx(spm_unvec(xn,x),u,P);
+        
+        % flow
+        %------------------------------------------------------------------
+        [f,a] = fx(spm_unvec(xn,x),u,P);
+        
+        % plus random fluctuations
+        %------------------------------------------------------------------
+        f     = f + randn(size(f)).*P.d;
         xn    = xn + f*dt;
     end
-    x       = spm_unvec(xn,x);
+    x        = spm_unvec(xn,x);
     
     % adjacency matrix and states
     %----------------------------------------------------------------------
     A(:,:,i) = a;
-    Q(:,:,i) = x.q;
     X(:,:,i) = x.p;
     V(:,:,i) = x.v;
+    Q(:,:,i) = x.q;
     
     % graphics
     %----------------------------------------------------------------------
@@ -117,12 +167,9 @@ end
  
 return
  
- 
- 
- 
+
 % Equations of motion
 %==========================================================================
- 
 function [f,A] = spm_lorenz_n(x,u,P)
 % Equations of motion for coupled Lorenz attractors
 % FORMAT [f,A] = spm_lorenz_n(x,u,P)
@@ -148,7 +195,7 @@ if isfield(P,'a'), P.a = find(P.a); else, P.a = []; end
 
 % orders and flow
 %--------------------------------------------------------------------------
-[n N] = size(x.p);
+[n,N] = size(x.p);
 f     = x;
 
 % get distances (Euclidean)
@@ -167,7 +214,7 @@ A        = D < 1;                     % coupling in range
 A        = A - diag(diag(A));         % remove self conections
 A(P.a,:) = 0;                         % preclude outward edges
 A(:,P.b) = 0;                         % preclude inward edges
-[i j]    = find(A);
+[i,j]    = find(A);
 k        = find(A);
 C        = sparse(i,j,1./sqrt(D(k)),N,N);
 
@@ -182,19 +229,20 @@ Q        = sparse(i,j,8*exp(-D(k)*2) - 2,N,N);
  
 % State-dependent coupling
 %--------------------------------------------------------------------------
-xq  = x.q(:,:)*A/8;
-xp  = x.q(1,:)*A;
+xq       = x.q(:,:)*A/8;
+xp       = x.q(1,:)*A;
  
 % Lorentz dynamics (Prandtl number = 10)
 %--------------------------------------------------------------------------
 q        = x.q + xq;
- 
+
 f.q(1,:) =        10*(q(2,:) - q(1,:));
 f.q(2,:) = (32 + xp).*q(1,:) - q(2,:) - q(1,:).*q(3,:);
 f.q(3,:) =    q(2,:).*q(1,:) - 8/3*q(3,:);
  
+% Implement particle specific time constants
+%--------------------------------------------------------------------------
 f.q      = ones(3,1)*P.k.*f.q;
- 
  
 % Newtonian notion
 %==========================================================================
@@ -210,12 +258,9 @@ end
 % Newtonian motion
 %--------------------------------------------------------------------------
 f.p  = x.v;
-f.v  = F*32 - x.v*8 - x.p;
+f.v  = (F*32 - x.v*8 - x.p);
  
 % vectorised flow
 %--------------------------------------------------------------------------
-f    = [f.p(:); f.v(:); f.q(:)];
+f    = spm_vec(f);
 
-% plus random fluctuations
-%--------------------------------------------------------------------------
-f    = f + randn(size(f));

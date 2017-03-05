@@ -1,39 +1,24 @@
 function FEP_MB_demo
-% This demonstration routine simulates the emergence of life - as defined
-% in terms of active inference - using a synthetic primordial soup. The key
-% aspect of this dynamics is that there is a separation between dynamical
-% states and structural states; where the dynamical states of the
-% microsystem are equipped with a Lorentz attractor and the structural
-% states correspond to position and velocity. The flow of structural
-% states conforms to classical Newtonian mechanics. Crucially, the physical
-% motion of each microsystem is coupled to its internal dynamics and vice
-% versa; where the coupling among dynamics rests upon short range
-% (electrochemical) forces. This means that the dependencies among the
-% dynamics of each microsystem dependent on their positions. This induces a
-% dependency of the systems structural integrity on its internal dynamics -
-% which leads to biological self-organisation. This biological self-
-% organisation is illustrated in terms of the following:
+% This  routine illustrates a hierarchical decomposition of Markov blankets
+% (of Markov blankets). It rests upon the dual operators of finding a
+% partition (a Markov partition) and then using an adiabatic dimensional
+% reduction (using the Eigen solution of the Markov blanket). In brief,
+% this means the states of particles at the next level become mixtures of
+% the Markov blanket of particles at the level below.
 %
-% i) the existence of a Markov blanket that separates internal and external
-% states, where the internal states are associated with a system that
-% engages in active or embodied inference.
-%
-% ii) emergent inference is demonstrated by showing that the internal
-% states can predict the extent states, despite their separation by the
-% Markov blanket.
-%
-% iii) this inference (encoded by the internal dynamics) is necessary to
-% maintain structural integrity, as illustrated by simulated lesion
-% experiments, in which the influence of various states are quenched.
+% The ensuing hierarchical decomposition is illustrated in terms of
+% Jacobian is and locations in a scathing space (evaluated using the graph
+% Laplacian). This demonstration uses a fictive Jacobian that is created
+% by hand.
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_MB_demo.m 7032 2017-02-27 19:47:34Z karl $
+% $Id: FEP_MB_demo.m 7033 2017-03-05 11:19:18Z karl $
 
 
-% default settings (GRAPHICS sets movies)
+% default settings
 %--------------------------------------------------------------------------
 % rng('default')
 
@@ -108,7 +93,7 @@ for i = 1:N
     subplot(N,2,(i - 1)*2 + 2),imagesc(abs(J{i}(j,j))),axis square
 end
 
-
+return
 
 % Markov blanket - parents, children, and parents of children
 %==========================================================================

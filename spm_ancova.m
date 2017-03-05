@@ -2,7 +2,7 @@ function [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c)
 % estimation and inference of a linear model
 % FORMAT [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c);
 %
-% xX    - Design matrix or structure
+% xX    - (m x p) Design matrix or structure
 % V     - (m x m) error covariance constraint
 % Y     - {m x n} matrix of response {m x 1} variables
 % c     - {p x q} matrix of (q) contrasts
@@ -25,12 +25,18 @@ function [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c)
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ancova.m 6353 2015-03-01 11:52:49Z karl $
+% $Id: spm_ancova.m 7033 2017-03-05 11:19:18Z karl $
 
 % assume V = I (i.i.d.) if empty
 %--------------------------------------------------------------------------
 if isempty(V)
     V          = speye(size(Y,1));
+end
+
+% or scalar
+%--------------------------------------------------------------------------
+if isscalar(V)
+    V          = speye(size(Y,1))*V;
 end
 
 % create design matrix structure if necessary
@@ -42,11 +48,19 @@ if ~isfield(xX,'pX')
     xX.pX      = spm_sp('x-',xX);
 end
 
+
 % estimate parameters and sum of squared residuals
 %--------------------------------------------------------------------------
 beta           = xX.pX*Y;             %-Parameter estimates
 res            = spm_sp('r',xX,Y);    %-Residuals
 ResSS          = sum(res.^2);         %-Res sum-of-squares
+
+
+% default contrast
+%--------------------------------------------------------------------------
+if nargin < 4
+    c = speye(size(beta,1));
+end
 
 % contrast
 %--------------------------------------------------------------------------
