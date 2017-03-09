@@ -7,10 +7,10 @@ function out = spm_run_voi(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_voi.m 6921 2016-11-02 15:30:09Z peter $
+% $Id: spm_run_voi.m 7034 2017-03-09 17:26:10Z guillaume $
 
 
 %-Load SPM.mat
@@ -18,6 +18,11 @@ function out = spm_run_voi(job)
 swd     = spm_file(job.spmmat{1},'fpath');
 load(fullfile(swd,'SPM.mat'));
 SPM.swd = swd;
+
+%-Output directory
+%--------------------------------------------------------------------------
+[odir,job.name] = fileparts(job.name);
+if isempty(odir), odir = swd; end
 
 %-Initialise VOI voxels coordinates
 %--------------------------------------------------------------------------
@@ -38,7 +43,7 @@ voi     = roi_eval(voi,job.expression);
 
 %-Save VOI as image
 %--------------------------------------------------------------------------
-Vm = struct('fname', fullfile(swd, ['VOI_' job.name '_mask' spm_file_ext]), ...
+Vm = struct('fname', fullfile(odir, ['VOI_' job.name '_mask' spm_file_ext]), ...
      'dim',     SPM.xVol.DIM', ...
      'dt',      [spm_type('uint8') spm_platform('bigend')], ...
      'mat',     SPM.xVol.M, ...
@@ -60,12 +65,13 @@ xSPM.XYZ   = XYZ;
 xSPM.M     = SPM.xVol.M; % irrelevant here
 
 if ~isempty(xY.Ic), cwd = pwd; cd(SPM.swd); end % to find beta images
+SPM.swd    = odir;
 [Y,xY]     = spm_regions(xSPM,SPM,[],xY);
 if  ~isempty(xY(1).Ic), cd(cwd); end
 
 %-Save first eigenimage
 %--------------------------------------------------------------------------
-Ve = struct('fname', fullfile(swd, ['VOI_' job.name '_eigen' spm_file_ext]), ...
+Ve = struct('fname', fullfile(odir, ['VOI_' job.name '_eigen' spm_file_ext]), ...
      'dim',     SPM.xVol.DIM', ...
      'dt',      [spm_type('float32') spm_platform('bigend')], ...
      'mat',     SPM.xVol.M, ...
@@ -82,7 +88,7 @@ assignin('base','Y',Y);
 assignin('base','xY',xY);
 
 if isfield(SPM,'Sess'), s = sprintf('_%i',xY(1).Sess); else s = ''; end
-out.voimat = cellstr(fullfile(swd,['VOI_' job.name s '.mat']));
+out.voimat = cellstr(fullfile(odir,['VOI_' job.name s '.mat']));
 out.voiimg = cellstr(Vm.fname);
 out.voieig = cellstr(Ve.fname);
 
