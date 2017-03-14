@@ -11,7 +11,7 @@ function spm_standalone(varargin)
 % Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_standalone.m 7019 2017-02-16 10:49:48Z guillaume $ 
+% $Id: spm_standalone.m 7035 2017-03-14 12:21:54Z guillaume $ 
 
 
 if ~nargin, action = ''; else action = varargin{1}; end
@@ -62,8 +62,14 @@ switch lower(action)
         
     case 'batch'
     %----------------------------------------------------------------------
-        spm_banner;
         inputs = varargin(2:end);
+        flg = ismember(inputs,'--silent');
+        if any(flg)
+            quiet = true;
+            inputs = inputs(~flg);
+        else
+            quiet = false;
+        end
         flg = ismember(inputs,'--modality');
         if any(flg)
             idx = find(flg);
@@ -83,6 +89,7 @@ switch lower(action)
         else
             cmdline = false;
         end
+        spm_banner(~quiet);
         spm('defaults',modality);
         spm_get_defaults('cmdline',cmdline);
         spm_jobman('initcfg');

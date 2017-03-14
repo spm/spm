@@ -13,7 +13,7 @@ function BIDS = spm_BIDS(root)
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7014 2017-02-13 12:31:33Z guillaume $
+% $Id: spm_BIDS.m 7035 2017-03-14 12:21:54Z guillaume $
 
 
 if ~nargin, root = pwd; end
@@ -36,31 +36,64 @@ BIDS = struct(...
 %==========================================================================
 %-Validation of BIDS root directory
 %==========================================================================
-
 if isempty(BIDS.dir)
     error('A BIDS directory has to be specified.');
 elseif ~exist(BIDS.dir,'dir')
     error('BIDS directory does not exist.');
 elseif ~exist(fullfile(BIDS.dir,'dataset_description.json'),'file')
     error('BIDS directory not valid: missing dataset_description.json.');
-else
-    try
-        BIDS.descr = spm_jsonread(fullfile(BIDS.dir,'dataset_description.json'));
-        if ~isfield(BIDS.descr,'BIDSVersion') || ~isfield(BIDS.descr,'Name')
-            error('BIDS dataset description not valid.');
-        end
-    catch
-        error('BIDS dataset description could not be read.');
-    end
 end
 
 %==========================================================================
-%-Participants
+%-Dataset description
+%==========================================================================
+try
+    BIDS.descr = spm_jsonread(fullfile(BIDS.dir,'dataset_description.json'));
+    if ~isfield(BIDS.descr,'BIDSVersion') || ~isfield(BIDS.descr,'Name')
+        error('BIDS dataset description not valid.');
+    end
+catch
+    error('BIDS dataset description could not be read.');
+end
+% See also optional README and CHANGES files
+
+%==========================================================================
+%-Optional directories
+%==========================================================================
+% [code/]
+% [derivatives/]
+% [stimuli/]
+% [sourcedata/]
+
+%==========================================================================
+%-Scans key file
+%==========================================================================
+
+% sub-<participant_label>/[ses-<session_label>/]
+%     sub-<participant_label>_scans.tsv
+
+%==========================================================================
+%-Participant key file
 %==========================================================================
 p = spm_select('FPList',BIDS.dir,'^participants\.tsv$');
 if ~isempty(p)
     BIDS.participants = spm_load(p);
 end
+p = spm_select('FPList',BIDS.dir,'^participants\.json$');
+if ~isempty(p)
+    spm_jsonread(p); % need to be stored somewhere
+end
+
+p = spm_select('FPList',fullfile(BIDS.dir,'phenotype'),'.*\.tsv$');
+p = spm_select('FPList',fullfile(BIDS.dir,'phenotype'),'.*\.json$');
+% <measurement_tool_name>
+
+%==========================================================================
+%-Sessions file
+%==========================================================================
+
+% sub-<participant_label>/[ses-<session_label>/]
+%      sub-<participant_label>[_ses-<session_label>]_sessions.tsv
 
 %==========================================================================
 %-Tasks
@@ -82,8 +115,6 @@ for i=1:numel(t)
     BIDS.tasks{i}.run  = strrep(labels.run,'_','');
     BIDS.tasks{i}.meta = spm_jsonread(t{i});
 end
-
-% + scans key file, sessions file
 
 %==========================================================================
 %-Subjects
@@ -122,6 +153,7 @@ for s=1:numel(sub)
     BIDS.subjects(s).fmap = struct([]);    % fieldmap data
     BIDS.subjects(s).beh = struct([]);     % behavioral experiment data
     BIDS.subjects(s).dwi = struct([]);     % diffusion imaging data
+    BIDS.subjects(s).meg = struct([]);     % MEG data
     
     %----------------------------------------------------------------------
     %-Anatomy imaging data
@@ -138,12 +170,14 @@ for s=1:numel(sub)
             BIDS.subjects(s).anat(i).filename = a{i}; % or full path?
             labels = regexp(a{i},[...
                 '^sub-[a-zA-Z0-9]+' ... % sub-<participant_label>
+                '(?<ses>_ses-[a-zA-Z0-9]+)?' ... % ses-<label>
                 '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
                 '(?<rec>_rec-[a-zA-Z0-9]+)?' ... % rec-<label>
                 '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
                 '_(?<type>[a-zA-Z0-9]+)?' ... % modality
                 '\.nii(\.gz)?$'],'names'); % NIfTI file extension
             BIDS.subjects(s).anat(i).type = labels.type;
+            BIDS.subjects(s).anat(i).ses = strrep(labels.ses,'_','');
             BIDS.subjects(s).anat(i).acq = strrep(labels.acq,'_','');
             BIDS.subjects(s).anat(i).rec = strrep(labels.rec,'_','');
             BIDS.subjects(s).anat(i).run = strrep(labels.run,'_','');
@@ -177,6 +211,7 @@ for s=1:numel(sub)
             BIDS.subjects(s).func(i).filename = f{i}; % or full path?
             labels = regexp(f{i},[...
                 '^sub-[a-zA-Z0-9]+' ... % sub-<participant_label>
+                '(?<ses>_ses-[a-zA-Z0-9]+)?' ... % ses-<label>
                 '_task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
                 '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
                 '(?<rec>_rec-[a-zA-Z0-9]+)?' ... % rec-<label>
@@ -208,13 +243,23 @@ for s=1:numel(sub)
             
             %-Physiological and other continuous recordings file
             %--------------------------------------------------------------
+            % see also [_recording-<label>]
             physiofile = fullfile(pth,spm_file(spm_file(fb(1:end-5),...
-                'suffix','_physio'),'ext','tsv'));
+                'suffix','_physio'),'ext','tsv.gz'));
             if exist(physiofile,'file')
                 BIDS.subjects(s).func(i).physio = spm_load(physiofile);
             else
                 BIDS.subjects(s).func(i).physio = [];
             end
+            % and metafile _physio.json
+            stimfile = fullfile(pth,spm_file(spm_file(fb(1:end-5),...
+                'suffix','_stim'),'ext','tsv.gz'));
+            if exist(stimfile,'file')
+                BIDS.subjects(s).func(i).stim = spm_load(stimfile);
+            else
+                BIDS.subjects(s).func(i).stim = [];
+            end
+            % and metafile _stim.json
         end
     end
     
@@ -232,6 +277,7 @@ for s=1:numel(sub)
         %------------------------------------------------------------------
         labels = regexp(f,[...
             '^sub-[a-zA-Z0-9]+' ... % sub-<participant_label>
+            '(?<ses>_ses-[a-zA-Z0-9]+)?' ... % ses-<label>
             '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
             '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
             '_phasediff\.nii(\.gz)?$'],'names'); % NIfTI file extension
@@ -244,9 +290,10 @@ for s=1:numel(sub)
                     'phasediff',f{idx(i)},...
                     'magnitude1',strrep(f{idx(i)},'_phasediff.nii','_magnitude1.nii'),...
                     'magnitude2',strrep(f{idx(i)},'_phasediff.nii','_magnitude2.nii'),... % optional
+                    'ses',strrep(labels{idx(i)}.ses,'_',''),...
                     'acq',strrep(labels{idx(i)}.acq,'_',''),...
                     'run',strrep(labels{idx(i)}.run,'_',''),...
-                    'meta',spm_load(metafile));
+                    'meta',spm_jsonread(metafile));
                 j = j + 1;
             end
         end
@@ -255,6 +302,7 @@ for s=1:numel(sub)
         %------------------------------------------------------------------
         labels = regexp(f,[...
             '^sub-[a-zA-Z0-9]+' ... % sub-<participant_label>
+            '(?<ses>_ses-[a-zA-Z0-9]+)?' ... % ses-<label>
             '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
             '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
             '_phase1\.nii(\.gz)?$'],'names'); % NIfTI file extension
@@ -268,10 +316,11 @@ for s=1:numel(sub)
                     'phase2',strrep(f{idx(i)},'_phase1.nii','_phase2.nii'),...
                     'magnitude1',strrep(f{idx(i)},'_phase1.nii','_magnitude1.nii'),...
                     'magnitude2',strrep(f{idx(i)},'_phase1.nii','_magnitude2.nii'),...
+                    'ses',strrep(labels{idx(i)}.ses,'_',''),...
                     'acq',strrep(labels{idx(i)}.acq,'_',''),...
                     'run',strrep(labels{idx(i)}.run,'_',''),...
-                    'meta1',spm_load(metafile),...
-                    'meta2',spm_load(strrep(metafile,'_phase1.json','_phase2.json')));
+                    'meta1',spm_jsonread(metafile),...
+                    'meta2',spm_jsonread(strrep(metafile,'_phase1.json','_phase2.json')));
                 j = j + 1;
             end
         end
@@ -280,6 +329,7 @@ for s=1:numel(sub)
         %------------------------------------------------------------------
         labels = regexp(f,[...
             '^sub-[a-zA-Z0-9]+' ... % sub-<participant_label>
+            '(?<ses>_ses-[a-zA-Z0-9]+)?' ... % ses-<label>
             '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
             '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
             '_fieldmap\.nii(\.gz)?$'],'names'); % NIfTI file extension
@@ -291,9 +341,10 @@ for s=1:numel(sub)
                 BIDS.subjects(s).fmap{j} = struct(...
                     'fieldmap',f{idx(i)},...
                     'magnitude',strrep(f{idx(i)},'_fieldmap.nii','_magnitude.nii'),...
+                    'ses',strrep(labels{idx(i)}.ses,'_',''),...
                     'acq',strrep(labels{idx(i)}.acq,'_',''),...
                     'run',strrep(labels{idx(i)}.run,'_',''),...
-                    'meta',spm_load(metafile));
+                    'meta',spm_jsonread(metafile));
                 j = j + 1;
             end
         end
@@ -302,8 +353,10 @@ for s=1:numel(sub)
         %------------------------------------------------------------------
         labels = regexp(f,[...
             '^sub-[a-zA-Z0-9]+' ... % sub-<participant_label>
+            '(?<ses>_ses-[a-zA-Z0-9]+)?' ... % ses-<label>
             '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
             '_dir-(?<dir>[a-zA-Z0-9]+)?' ... % dir-<index>
+            '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
             '_epi\.nii(\.gz)?$'],'names'); % NIfTI file extension
         if any(~cellfun(@isempty,labels))
             idx = find(~cellfun(@isempty,labels));
@@ -312,10 +365,51 @@ for s=1:numel(sub)
                 metafile = fullfile(pth,spm_file(fb,'ext','json'));
                 BIDS.subjects(s).fmap{j} = struct(...
                     'epi',f{idx(i)},...
+                    'ses',strrep(labels{idx(i)}.ses,'_',''),...
                     'acq',strrep(labels{idx(i)}.acq,'_',''),...
                     'dir',labels{idx(i)}.dir,...
-                    'meta',spm_load(metafile));
+                    'run',strrep(labels{idx(i)}.run,'_',''),...
+                    'meta',spm_jsonread(metafile));
                 j = j + 1;
+            end
+        end
+    end
+    
+    %----------------------------------------------------------------------
+    %-MEG data
+    %----------------------------------------------------------------------
+    pth = fullfile(BIDS.subjects(s).path,'meg');
+    if exist(pth,'dir')
+        m = spm_select('List',pth,...
+            sprintf('^%s_task-.*_meg\\..*$',BIDS.subjects(s).name));
+        if isempty(m), m = {}; else m = cellstr(m); end
+        for i=1:numel(m)
+            
+            %-MEG data file
+            %--------------------------------------------------------------
+            % (spm_file called twice to handle .nii and .nii.gz)
+            fb = spm_file(spm_file(m{i},'basename'),'basename');
+            BIDS.subjects(s).meg(i).filename = m{i}; % or full path?
+            labels = regexp(m{i},[...
+                '^sub-[a-zA-Z0-9]+' ... % sub-<participant_label>
+                '_task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
+                '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
+                '(?<rec>_rec-[a-zA-Z0-9]+)?' ... % rec-<label>
+                '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
+                '_meg\..*$'],'names');
+            BIDS.subjects(s).meg(i).task = labels.task;
+            BIDS.subjects(s).meg(i).acq = strrep(labels.acq,'_','');
+            BIDS.subjects(s).meg(i).rec = strrep(labels.rec,'_','');
+            BIDS.subjects(s).meg(i).run = strrep(labels.run,'_','');
+            
+            %-MEG events file
+            %--------------------------------------------------------------
+            eventsfile = fullfile(pth,spm_file(spm_file(fb(1:end-4),...
+                'suffix','_events'),'ext','tsv'));
+            if exist(eventsfile,'file')
+                BIDS.subjects(s).meg(i).events = spm_load(eventsfile);
+            else
+                BIDS.subjects(s).meg(i).events = [];
             end
         end
     end
@@ -326,38 +420,43 @@ for s=1:numel(sub)
     pth = fullfile(BIDS.subjects(s).path,'beh');
     if exist(pth,'dir')
         
+        % There might be a [_ses-<session_label>]
+        
         %-Event timing
         %------------------------------------------------------------------
-        f = spm_select('List',pth, '^task-.*_events\.tsv$');
+        f = spm_select('List',pth, ...
+            sprintf('^%s_task-.*_events\.tsv$',BIDS.subjects(s).name));
         if ~isempty(f)
             f = cellstr(f);
             for i=1:numel(f)
                 BIDS.subjects(s).beh.events(i).filename = fullfile(pth,f{i});
-                task = regexp(f{i},'^task-([a-zA-Z0-9]+)_events.tsv$','tokens');
+                task = regexp(f{i},'.*task-([a-zA-Z0-9]+)_events\.tsv$','tokens');
                 BIDS.subjects(s).beh.events(i).task = task{1}{1};
             end
         end
         
         %-Metadata
         %------------------------------------------------------------------
-        f = spm_select('List',pth, '^task-.*_beh\.tsv$');
+        f = spm_select('List',pth, ...
+            sprintf('^%s_task-.*_beh\.json$',BIDS.subjects(s).name));
         if ~isempty(f)
             f = cellstr(f);
             for i=1:numel(f)
                 BIDS.subjects(s).beh.meta(i).filename = fullfile(pth,f{i});
-                task = regexp(f{i},'^task-([a-zA-Z0-9]+)_beh.tsv$','tokens');
+                task = regexp(f{i},'.*task-([a-zA-Z0-9]+)_beh.json$','tokens');
                 BIDS.subjects(s).beh.meta(i).task = task{1}{1};
             end
         end
         
         %-Physiological recordings
         %------------------------------------------------------------------
-        f = spm_select('List',pth, '^task-.*_physio\.tsv\.gz$');
+        f = spm_select('List',pth, ...
+            sprintf('^%s_task-.*_physio\.tsv\.gz$',BIDS.subjects(s).name));
         if ~isempty(f)
             f = cellstr(f);
             for i=1:numel(f)
                 BIDS.subjects(s).beh.physio(i).filename = fullfile(pth,f{i});
-                task = regexp(f{i},'^task-([a-zA-Z0-9]+)_physio.tsv\.gz$','tokens');
+                task = regexp(f{i},'.*task-([a-zA-Z0-9]+)_physio\.tsv\.gz$','tokens');
                 BIDS.subjects(s).beh.physio(i).task = task{1}{1};
                 metafile = fullfile(pth,spm_file(spm_file(f{i},'basename'),'ext','json'));
                 if exist(metafile,'file')
@@ -370,12 +469,13 @@ for s=1:numel(sub)
         
         %-Other continuous recordings
         %------------------------------------------------------------------
-        f = spm_select('List',pth, '^task-.*_stim\.tsv\.gz$');
+        f = spm_select('List',pth, ...
+            sprintf('^%s_task-.*_stim\.tsv\.gz$',BIDS.subjects(s).name));
         if ~isempty(f)
             f = cellstr(f);
             for i=1:numel(f)
                 BIDS.subjects(s).beh.stim(i).filename = fullfile(pth,f{i});
-                task = regexp(f{i},'^task-([a-zA-Z0-9]+)_stim.tsv\.gz$','tokens');
+                task = regexp(f{i},'.*task-([a-zA-Z0-9]+)_stim\.tsv\.gz$','tokens');
                 BIDS.subjects(s).beh.stim(i).task = task{1}{1};
                 metafile = fullfile(pth,spm_file(spm_file(f{i},'basename'),'ext','json'));
                 if exist(metafile,'file')
@@ -402,9 +502,11 @@ for s=1:numel(sub)
             BIDS.subjects(s).dwi(i).filename = d{i}; % or full path?
             labels = regexp(d{i},[...
                 '^sub-[a-zA-Z0-9]+' ... % sub-<participant_label>
+                '(?<ses>_ses-[a-zA-Z0-9]+)?' ... % ses-<label>
                 '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
                 '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
                 '_dwi\.nii(\.gz)?$'],'names'); % NIfTI file extension
+            BIDS.subjects(s).dwi(i).ses = strrep(labels.ses,'_','');
             BIDS.subjects(s).dwi(i).acq = strrep(labels.acq,'_','');
             BIDS.subjects(s).dwi(i).run = strrep(labels.run,'_','');
             
@@ -422,7 +524,7 @@ for s=1:numel(sub)
             %--------------------------------------------------------------
             bvalfile = spm_file(spm_file(a{i},'basename'),'ext','bval');
             if exist(fullfile(pth,bvalfile),'file')
-                BIDS.subjects(s).dwi(i).bval = spm_jsonread(bvalfile);
+                BIDS.subjects(s).dwi(i).bval = spm_load(bvalfile);
             else
                 BIDS.subjects(s).dwi(i).bval = [];
             end
@@ -431,7 +533,7 @@ for s=1:numel(sub)
             %--------------------------------------------------------------
             bvecfile = spm_file(spm_file(a{i},'basename'),'ext','bvec');
             if exist(fullfile(pth,bvecfile),'file')
-                BIDS.subjects(s).dwi(i).bvec = spm_jsonread(bvecfile);
+                BIDS.subjects(s).dwi(i).bvec = spm_load(bvecfile);
             else
                 BIDS.subjects(s).dwi(i).bvec = [];
             end

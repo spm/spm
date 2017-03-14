@@ -20,7 +20,7 @@ function varargout = spm_jsonwrite(varargin)
 % Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 7025 2017-02-22 10:03:58Z guillaume $
+% $Id: spm_jsonwrite.m 7035 2017-03-14 12:21:54Z guillaume $
 
 
 %-Input parameters
@@ -31,12 +31,10 @@ if nargin > 1
     if ischar(varargin{1})
         filename = varargin{1};
         json     = varargin{2};
-        root     = inputname(2);
     else
         filename = '';
         json = varargin{1};
         opt  = varargin{2};
-        root = inputname(1);
     end
     if nargin > 2
         opt  = varargin{3};
@@ -44,24 +42,16 @@ if nargin > 1
 else
     filename = '';
     json     = varargin{1};
-    root     = inputname(1);
 end
-fn = lower(fieldnames(opt));
+fn = fieldnames(opt);
 for i=1:numel(fn)
-    if ~isfield(opts,fn{i}), warning('Unknown option "%s".',fn{i}); end
-    opts.(fn{i}) = opt.(fn{i});
+    if ~isfield(opts,lower(fn{i})), warning('Unknown option "%s".',fn{i}); end
+    opts.(lower(fn{i})) = opt.(fn{i});
 end
 optregistry(opts);
 
 %-JSON serialization
 %--------------------------------------------------------------------------
-if ~isstruct(json) && ~iscell(json) && ~isa(json,'containers.Map')
-    if ~isempty(root)
-        json = struct(root,json);
-    else
-        error('Invalid JSON structure.');
-    end
-end
 fmt('init',sprintf(opts.indent));
 S = jsonwrite_var(json,~isempty(opts.indent));
 
@@ -109,18 +99,29 @@ elseif isa(json,'string')
     end
 elseif isa(json,'datetime') || isa(json,'categorical')
     S = jsonwrite_var(string(json));
+elseif isa(json,'table')
+    S = struct;
+    s = size(json);
+    vn = json.Properties.VariableNames;
+    for i=1:s(1)
+        for j=1:s(2)
+            S(i).(vn{j}) = json{i,j};
+        end
+    end
+    S = jsonwrite_struct(S,tab);
 else
     if numel(json) ~= 1
         json = arrayfun(@(x)x,json,'UniformOutput',false);
         S = jsonwrite_cell(json,tab);
     else
-        %p = properties(json);
-        %s = struct;
-        %for i=1:numel(p)
-        %    s.(p{i}) = json.(p{i});
-        %end
-        %S = jsonwrite_struct(s,tab);
-        error('Class "%s" is not supported.',class(json));
+        p = properties(json);
+        if isempty(p), p = fieldnames(json); end % for pre-classdef
+        s = struct;
+        for i=1:numel(p)
+            s.(p{i}) = json.(p{i});
+        end
+        S = jsonwrite_struct(s,tab);
+        %error('Class "%s" is not supported.',class(json));
     end
 end
 
