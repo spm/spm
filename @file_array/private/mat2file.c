@@ -1,5 +1,5 @@
 /*
- * $Id: mat2file.c 5446 2013-04-24 16:56:51Z guillaume $
+ * $Id: mat2file.c 7038 2017-03-15 12:43:51Z guillaume $
  * John Ashburner
  */
 
@@ -269,18 +269,15 @@ void open_file(const mxArray *ptr, FTYPE *map)
  /* if (map->off < 0) map->off = 0; Unsigned, so not necessary */
 
     arr = mxGetField(ptr,0,"fname");
-    if (arr == (mxArray *)0) mexErrMsgTxt("Cant find 'fname' field.");
+    if (arr == (mxArray *)0) mexErrMsgTxt("Cannot find 'fname' field.");
 
     if (mxIsChar(arr))
     {
-        int buflen;
-        char *buf;
-        buflen = mxGetNumberOfElements(arr)+1;
-        buf    = mxCalloc(buflen+1,sizeof(char));
-        if (mxGetString(arr,buf,buflen))
+        char *buf = NULL;
+        if ((buf = mxArrayToString(arr)) == NULL)
         {
             mxFree(buf);
-            mexErrMsgTxt("Cant get 'fname'.");
+            mexErrMsgTxt("Cannot get 'fname'.");
         }
         map->fp = fopen(buf,"rb+");
         if (map->fp == (FILE *)0)
