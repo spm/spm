@@ -5,7 +5,7 @@ function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 6881 2016-09-19 09:48:54Z john $
+% $Id: spm_preproc_write8.m 7041 2017-03-15 16:15:19Z guillaume $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -20,31 +20,31 @@ if isfield(res,'mg')
 else
     Kb  = size(res.intensity(1).lik,2);
 end
-N   = numel(res.image);
+N       = numel(res.image);
 
 if nargin<2, tc = true(Kb,4); end % native, import, warped, warped-mod
 if nargin<3, bf = false(N,2); end % field, corrected
 if nargin<4, df = false(1,2); end % inverse, forward
 if nargin<5, mrf = 1;         end % MRF parameter
 if nargin<6, cleanup = 1;     end % Run the ad hoc cleanup
+if nargin<7, bb = NaN(2,3);   end % Default to TPM bounding box
+if nargin<8, vx = NaN;        end % Default to TPM voxel size
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
-if ~isstruct(tpm) || ~isfield(tpm, 'bg1'),
+if ~isstruct(tpm) || ~isfield(tpm, 'bg1')
     tpm = spm_load_priors8(tpm);
 end
-d1        = size(tpm.dat{1});
-d1        = d1(1:3);
-M1        = tpm.M;
+d1      = size(tpm.dat{1});
+d1      = d1(1:3);
+M1      = tpm.M;
 
 % Define orientation and field of view of any "normalised" space
 % data that may be generated (wc*.nii, mwc*.nii, rc*.nii & y_*.nii).
-if nargin>=7 && any(isfinite(bb(:)))
+if any(isfinite(bb(:))) || ~isfinite(vx)
     % If a bounding box is supplied, combine this with the closest
     % bounding box derived from the dimensions and orientations of
     % the tissue priors.
-    if nargin<7, bb = NaN(2,3);   end % Default to TPM bounding box
-    if nargin<8, vx = NaN;        end % Default to TPM voxel size
     [bb1,vx1] = spm_get_bbox(tpm.V(1), 'old');
     bb(~isfinite(bb)) = bb1(~isfinite(bb));
     if ~isfinite(vx), vx = abs(prod(vx1))^(1/3); end
