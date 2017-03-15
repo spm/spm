@@ -13,7 +13,7 @@ function BIDS = spm_BIDS(root)
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7035 2017-03-14 12:21:54Z guillaume $
+% $Id: spm_BIDS.m 7039 2017-03-15 12:58:13Z guillaume $
 
 
 if ~nargin, root = pwd; end
@@ -425,44 +425,44 @@ for s=1:numel(sub)
         %-Event timing
         %------------------------------------------------------------------
         f = spm_select('List',pth, ...
-            sprintf('^%s_task-.*_events\.tsv$',BIDS.subjects(s).name));
+            sprintf('^%s_task-.*_events.tsv$',BIDS.subjects(s).name));
         if ~isempty(f)
             f = cellstr(f);
             for i=1:numel(f)
-                BIDS.subjects(s).beh.events(i).filename = fullfile(pth,f{i});
+                BIDS.subjects(s).beh(1).events(i).filename = fullfile(pth,f{i});
                 task = regexp(f{i},'.*task-([a-zA-Z0-9]+)_events\.tsv$','tokens');
-                BIDS.subjects(s).beh.events(i).task = task{1}{1};
+                BIDS.subjects(s).beh(1).events(i).task = task{1}{1};
             end
         end
         
         %-Metadata
         %------------------------------------------------------------------
         f = spm_select('List',pth, ...
-            sprintf('^%s_task-.*_beh\.json$',BIDS.subjects(s).name));
+            sprintf('^%s_task-.*_beh.json$',BIDS.subjects(s).name));
         if ~isempty(f)
             f = cellstr(f);
             for i=1:numel(f)
-                BIDS.subjects(s).beh.meta(i).filename = fullfile(pth,f{i});
+                BIDS.subjects(s).beh(1).meta(i).filename = fullfile(pth,f{i});
                 task = regexp(f{i},'.*task-([a-zA-Z0-9]+)_beh.json$','tokens');
-                BIDS.subjects(s).beh.meta(i).task = task{1}{1};
+                BIDS.subjects(s).beh(1).meta(i).task = task{1}{1};
             end
         end
         
         %-Physiological recordings
         %------------------------------------------------------------------
         f = spm_select('List',pth, ...
-            sprintf('^%s_task-.*_physio\.tsv\.gz$',BIDS.subjects(s).name));
+            sprintf('^%s_task-.*_physio.tsv.gz$',BIDS.subjects(s).name));
         if ~isempty(f)
             f = cellstr(f);
             for i=1:numel(f)
-                BIDS.subjects(s).beh.physio(i).filename = fullfile(pth,f{i});
+                BIDS.subjects(s).beh(1).physio(i).filename = fullfile(pth,f{i});
                 task = regexp(f{i},'.*task-([a-zA-Z0-9]+)_physio\.tsv\.gz$','tokens');
-                BIDS.subjects(s).beh.physio(i).task = task{1}{1};
+                BIDS.subjects(s).beh(1).physio(i).task = task{1}{1};
                 metafile = fullfile(pth,spm_file(spm_file(f{i},'basename'),'ext','json'));
                 if exist(metafile,'file')
-                    BIDS.subjects(s).physio(i).meta = spm_jsonread(metafile);
+                    BIDS.subjects(s).beh(1).physio(i).meta = spm_jsonread(metafile);
                 else
-                    BIDS.subjects(s).physio(i).meta = [];
+                    BIDS.subjects(s).beh(1).physio(i).meta = [];
                 end
             end
         end
@@ -470,18 +470,18 @@ for s=1:numel(sub)
         %-Other continuous recordings
         %------------------------------------------------------------------
         f = spm_select('List',pth, ...
-            sprintf('^%s_task-.*_stim\.tsv\.gz$',BIDS.subjects(s).name));
+            sprintf('^%s_task-.*_stim.tsv.gz$',BIDS.subjects(s).name));
         if ~isempty(f)
             f = cellstr(f);
             for i=1:numel(f)
-                BIDS.subjects(s).beh.stim(i).filename = fullfile(pth,f{i});
+                BIDS.subjects(s).beh(1).stim(i).filename = fullfile(pth,f{i});
                 task = regexp(f{i},'.*task-([a-zA-Z0-9]+)_stim\.tsv\.gz$','tokens');
-                BIDS.subjects(s).beh.stim(i).task = task{1}{1};
+                BIDS.subjects(s).beh(1).stim(i).task = task{1}{1};
                 metafile = fullfile(pth,spm_file(spm_file(f{i},'basename'),'ext','json'));
                 if exist(metafile,'file')
-                    BIDS.subjects(s).stim(i).meta = spm_jsonread(metafile);
+                    BIDS.subjects(s).beh(1).stim(i).meta = spm_jsonread(metafile);
                 else
-                    BIDS.subjects(s).stim(i).meta = [];
+                    BIDS.subjects(s).beh(1).stim(i).meta = [];
                 end
             end
         end
