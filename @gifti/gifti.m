@@ -8,7 +8,7 @@ function this = gifti(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: gifti.m 7001 2017-02-02 13:53:16Z guillaume $
+% $Id: gifti.m 7036 2017-03-15 11:19:11Z guillaume $
 
 switch nargin
     
@@ -51,6 +51,21 @@ switch nargin
             this = subsasgn(this,...
                 struct('type','.','subs','cdata'),...
                 varargin{1});
+            
+        elseif iscell(varargin{1}) && numel(varargin{1}) == 1 && ...
+            isnumeric(varargin{1}{1})
+            this = gifti;
+            for i=1:size(varargin{1}{1},2)
+                this.data{i}.metadata = struct([]);
+                this.data{i}.space    = [];
+                this.data{i}.data     = [];
+                this.data{i}.attributes.Intent = 'NIFTI_INTENT_NONE';
+                this.data{i}.attributes.DataType = 'NIFTI_TYPE_FLOAT32';
+                this.data{i}.attributes.Dim = size(varargin{1}{1},1);
+                this = subsasgn(this,...
+                    substruct('.','cdata','()',{':',i}),...
+                    varargin{1}{1}(:,i));
+            end
             
         elseif ischar(varargin{1})
             if size(varargin{1},1)>1
