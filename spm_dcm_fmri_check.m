@@ -47,7 +47,7 @@ function [DCM] = spm_dcm_fmri_check(P, varargin)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_check.m 6800 2016-05-25 09:33:15Z peter $
+% $Id: spm_dcm_fmri_check.m 7042 2017-03-16 10:35:41Z peter $
 
 
 %-Prepare inputs
@@ -101,6 +101,11 @@ if iscell(DCM)
         drawnow;
     end
     
+    % Load if filenames given
+    if ischar(DCM{1})
+        DCM = spm_dcm_load(DCM);
+    end
+      
     % Call spm_dcm_fmri_check recursively to assemble diagnostics
     [stats,DCM] = get_diagnostics(DCM);
 
