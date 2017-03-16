@@ -10,7 +10,7 @@ function x = spm_load(f,v)
 % Copyright (C) 1995-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_load.m 6894 2016-09-30 16:48:46Z spm $
+% $Id: spm_load.m 7044 2017-03-16 13:00:09Z guillaume $
 
 
 %-Get a filename if none was passed
@@ -142,7 +142,7 @@ if any(n1 & ~n2)
     try
         var = genvarname(var);
     catch
-        var = matlab.lang.makeValidName(var);
+        var = matlab.lang.makeValidName(var,'ReplacementStyle','hex');
         var = matlab.lang.makeUniqueStrings(var);
     end
     S       = S(h+1:end);
