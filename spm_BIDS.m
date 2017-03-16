@@ -13,7 +13,7 @@ function BIDS = spm_BIDS(root)
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7039 2017-03-15 12:58:13Z guillaume $
+% $Id: spm_BIDS.m 7043 2017-03-16 11:19:44Z guillaume $
 
 
 if ~nargin, root = pwd; end
@@ -98,7 +98,8 @@ p = spm_select('FPList',fullfile(BIDS.dir,'phenotype'),'.*\.json$');
 %==========================================================================
 %-Tasks
 %==========================================================================
-t = spm_select('FPList',BIDS.dir,'^task-.*_(bold|physio|stim)\.json');
+t = spm_select('FPList',BIDS.dir,...
+    '^task-.*_(beh|bold|channels|physio|stim|meg)\.(json|tsv)$');
 if isempty(t), t = {}; else t = cellstr(t); end
 for i=1:numel(t)
     task = spm_file(t{i},'basename');    
@@ -107,13 +108,13 @@ for i=1:numel(t)
         '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
         '(?<rec>_rec-[a-zA-Z0-9]+)?' ... % rec-<label>
         '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
-        '_(?<type>(bold|physio|stim))$'],'names'); % type
+        '_(?<type>(beh|bold|channels|physio|stim|meg))$'],'names'); % type
     BIDS.tasks{i}.type = labels.type;
     BIDS.tasks{i}.task = labels.task;
     BIDS.tasks{i}.acq  = strrep(labels.acq,'_','');
     BIDS.tasks{i}.rec  = strrep(labels.rec,'_','');
     BIDS.tasks{i}.run  = strrep(labels.run,'_','');
-    BIDS.tasks{i}.meta = spm_jsonread(t{i});
+    BIDS.tasks{i}.meta = spm_load(t{i});
 end
 
 %==========================================================================
@@ -381,36 +382,63 @@ for s=1:numel(sub)
     pth = fullfile(BIDS.subjects(s).path,'meg');
     if exist(pth,'dir')
         m = spm_select('List',pth,...
-            sprintf('^%s_task-.*_meg\\..*$',BIDS.subjects(s).name));
+            sprintf('^%s_task-.*_meg\\..*[^json]$',BIDS.subjects(s).name));
         if isempty(m), m = {}; else m = cellstr(m); end
         for i=1:numel(m)
             
             %-MEG data file
             %--------------------------------------------------------------
-            % (spm_file called twice to handle .nii and .nii.gz)
-            fb = spm_file(spm_file(m{i},'basename'),'basename');
-            BIDS.subjects(s).meg(i).filename = m{i}; % or full path?
+            fb = spm_file(m{i},'basename');
+            BIDS.subjects(s).meg(1).data(i).filename = m{i}; % or full path?
             labels = regexp(m{i},[...
                 '^sub-[a-zA-Z0-9]+' ... % sub-<participant_label>
+                '(?<ses>_ses-[a-zA-Z0-9]+)?' ... % ses-<label>
                 '_task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
-                '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
-                '(?<rec>_rec-[a-zA-Z0-9]+)?' ... % rec-<label>
                 '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
+                '(?<proc>_proc-[a-zA-Z0-9]+)?' ... % proc-<label>
                 '_meg\..*$'],'names');
-            BIDS.subjects(s).meg(i).task = labels.task;
-            BIDS.subjects(s).meg(i).acq = strrep(labels.acq,'_','');
-            BIDS.subjects(s).meg(i).rec = strrep(labels.rec,'_','');
-            BIDS.subjects(s).meg(i).run = strrep(labels.run,'_','');
+            BIDS.subjects(s).meg(1).data(i).task = labels.task;
+            BIDS.subjects(s).meg(1).data(i).ses  = strrep(labels.ses,'_','');
+            BIDS.subjects(s).meg(1).data(i).run  = strrep(labels.run,'_','');
+            BIDS.subjects(s).meg(1).data(i).proc = strrep(labels.proc,'_','');
+            
+            %-Metadata file
+            %--------------------------------------------------------------
+            metafile = fullfile(pth,spm_file(fb,'ext','json'));
+            if exist(metafile,'file')
+                BIDS.subjects(s).meg(1).data(i).meta = spm_jsonread(metafile);
+            else
+                BIDS.subjects(s).meg(1).data(i).meta = [];
+            end
             
             %-MEG events file
             %--------------------------------------------------------------
             eventsfile = fullfile(pth,spm_file(spm_file(fb(1:end-4),...
                 'suffix','_events'),'ext','tsv'));
             if exist(eventsfile,'file')
-                BIDS.subjects(s).meg(i).events = spm_load(eventsfile);
+                BIDS.subjects(s).meg(1).data(i).events = spm_load(eventsfile);
             else
-                BIDS.subjects(s).meg(i).events = [];
+                BIDS.subjects(s).meg(1).data(i).events = [];
             end
+            
+            %-Channel description table
+            %--------------------------------------------------------------
+            channelfile = fullfile(pth,spm_file(spm_file(fb(1:end-4),...
+                'suffix','_channels'),'ext','tsv'));
+            if exist(channelfile,'file')
+                BIDS.subjects(s).meg(1).data(i).channels = spm_load(channelfile);
+            else
+                BIDS.subjects(s).meg(1).data(i).channels = [];
+            end
+        end
+        
+        %-Session-specific files
+        %------------------------------------------------------------------
+        m = spm_select('List',pth,...
+            sprintf('^%s(_ses-[a-zA-Z0-9]+)?_(photo\\.jpg|fid\\.json|fidinfo\\.txt|headshape\\..*)$',BIDS.subjects(s).name));
+        if isempty(m), m = {}; else m = cellstr(m); end
+        for i=1:numel(m)
+            BIDS.subjects(s).meg(1).landmarks(i).filename = m{i}; % or full path?
         end
     end
     
