@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 7014 2017-02-13 12:31:33Z guillaume $
+ * $Id: spm_jsonread.c 7045 2017-03-17 10:41:12Z guillaume $
  * Guillaume Flandin
  */
 
@@ -30,6 +30,13 @@ mxArray *mexCallMATLABWithTrap(int nlhs, mxArray *plhs[], int nrhs, mxArray *prh
 }
 #endif
 */
+
+static enum jsonrepsty {
+    JSON_REPLACEMENT_STYLE_NOP,
+	JSON_REPLACEMENT_STYLE_UNDERSCORE,
+	JSON_REPLACEMENT_STYLE_HEX,
+	JSON_REPLACEMENT_STYLE_DELETE
+} ReplacementStyle;
 
 static int should_convert_to_array(const mxArray *pm) {
     size_t i, j, n, nfields;
@@ -175,11 +182,11 @@ static char * get_string(char *js, int start, int end) {
     js[end] = '\0'; /* not necessary sensu stricto */
     return js + start;
 }
-
-static void valid_fieldname(char **field) {
+    
+static char * valid_fieldname_underscore(char *field) {
     /* matlab.lang.makeValidName
-      with ReplacementStyle == 'underscore' and Prefix == 'x' */
-    char *re = *field, *wr = *field;
+       with ReplacementStyle == 'underscore' and Prefix == 'x' */
+    char *re = field, *wr = field;
     int beg = 1;
     while (re[0] != '\0') {
         if ((re[0] == 32) || (re[0] == 9)) { /* ' ' or \t */
@@ -196,20 +203,103 @@ static void valid_fieldname(char **field) {
               || ((re[0] >= 'a') && (re[0] <= 'z'))
               || ((re[0] >= 'A') && (re[0] <= 'Z'))) {
                 if (re != wr) { wr[0] = re[0]; }
+                wr++;
             }
             else {
-                wr[0] = '_';
+                if (ReplacementStyle == JSON_REPLACEMENT_STYLE_UNDERSCORE) {
+                    wr[0] = '_'; wr++;
+                }
             }
-            re++; wr++;
+            re++;
             beg = 0;
         }
     }
     wr[0] = '\0';
-    if ( (*field[0] == '\0') || (*field[0] == '_')
-      || ((*field[0] >= '0') && (*field[0] <= '9')) ) {
-        *field = *field - 1;
-        *field[0] = 'x';
+    if ( (field[0] == '\0') || (field[0] == '_')
+      || ((field[0] >= '0') && (field[0] <= '9')) ) {
+        field = field - 1;
+        field[0] = 'x';
     }
+    return field;
+}
+
+static char * valid_fieldname_hex(char *field) {
+    /* matlab.lang.makeValidName
+       with ReplacementStyle == 'hex' and Prefix == 'x' */
+    char *re = field, *wr = NULL, *ret = NULL, *str = NULL;
+    int sts, beg = 1;
+    size_t len = 4*strlen(field)+2; /* 'x' + all '0x??' + \0 */
+    mxArray *mx = NULL, *ma = NULL;
+    ret = (char *)malloc(len);
+    wr = ret;
+    if (! (((re[0] >= 'a') && (re[0] <= 'z'))
+        || ((re[0] >= 'A') && (re[0] <= 'Z'))) ) {
+        wr[0] = 'x'; wr++;
+    }
+    while (re[0] != '\0') {
+        if ((re[0] == 32) || (re[0] == 9)) { /* ' ' or \t */
+            if (re[1] == '\0') {
+                break;
+            }
+            else if ((beg != 1) && (re[1] >= 'a') && (re[1] <= 'z')) {
+                re[1] -= 32; /* 'a'-'A' */
+            }
+            re++;
+        }
+        else {
+            if ( ((re[0] >= 'a') && (re[0] <= 'z'))
+              || ((re[0] >= 'A') && (re[0] <= 'Z'))
+              || ((((re[0] >= '0') && (re[0] <= '9')) 
+              || (re[0] == '_')) && !beg) ) {
+                wr[0] = re[0]; wr++;
+            }
+            else {
+                /* could also use sprintf(wr,"%02X",re[0]) 
+                   but might call unicode2native in the future */
+                wr[0] = '0'; wr++;
+                wr[0] = 'x'; wr++;
+                wr[0] = re[0];
+                wr[1] = '\0';
+                ma = mxCreateString((const char *)wr);
+                sts = mexCallMATLAB(1, &mx, 1, &ma, "dec2hex");
+                if (sts != 0) {
+                    mexErrMsgTxt("Cannot convert to hexadecimal representation.");
+                }
+                mxDestroyArray(ma);
+                str = mxArrayToString(mx);
+                mxDestroyArray(mx);
+                wr[0] = str[0]; wr++;
+                wr[0] = str[1]; wr++;
+                mxFree(str);
+            }
+            re++;
+            beg = 0;
+        }
+    }
+    wr[0] = '\0';
+    return ret;
+}
+
+static char * valid_fieldname(char *field, int *need_free) {
+    switch (ReplacementStyle) {
+        case JSON_REPLACEMENT_STYLE_NOP:
+            /* nop */
+            *need_free = 0;
+            break;
+        case JSON_REPLACEMENT_STYLE_UNDERSCORE:
+        case JSON_REPLACEMENT_STYLE_DELETE:
+            field = valid_fieldname_underscore(field);
+            *need_free = 0;
+            break;
+        case JSON_REPLACEMENT_STYLE_HEX:
+            field = valid_fieldname_hex(field);
+            *need_free = 1;
+            break;
+        default:
+            mexErrMsgTxt("Unknown ReplacementStyle.");
+            break;
+    }
+    return field;
 }
 
 static int primitive(char *js, jsmntok_t *tok, mxArray **mx) {
@@ -286,7 +376,7 @@ static int array(char *js, jsmntok_t *tok, mxArray **mx) {
 }
 
 static int object(char *js, jsmntok_t *tok, mxArray **mx) {
-    int i, j, k;
+    int i, j, k, need_free = 0;
     mxArray *ma = NULL;
     char *field = NULL;
     if (tok->size == 0) {
@@ -295,7 +385,7 @@ static int object(char *js, jsmntok_t *tok, mxArray **mx) {
     }
     for (i = 0, j = 0, k = 0; i < tok->size; i++) {
         field = get_string(js, (tok+1+j)->start, (tok+1+j)->end); /* check it is a JSMN_STRING */
-        valid_fieldname(&field);
+        field = valid_fieldname(field, &need_free);
         j++;
         if (i == 0) {
             *mx = mxCreateStructMatrix(1, 1, 1, (const char**)&field);
@@ -312,6 +402,7 @@ static int object(char *js, jsmntok_t *tok, mxArray **mx) {
             if (k == -1)
                 mexErrMsgTxt("mxAddField()");
         }
+        if (need_free) { free(field); }
         j += create_struct(js, tok+1+j, &ma);
         mxSetFieldByNumber(*mx, 0, k, ma);
     }
@@ -409,18 +500,46 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     char *js = NULL;
     size_t jslen = 0;
     jsmntok_t *tok = NULL;
+    mxArray *mx = NULL;
+    char *repsty = NULL;
 
     /* Validate input arguments */
     if (nrhs == 0) {
         mexErrMsgTxt("Not enough input arguments.");
     }
-    else if (nrhs > 1) {
+    else if (nrhs > 2) {
         mexErrMsgTxt("Too many input arguments.");
     }
     if (!mxIsChar(prhs[0])) {
         mexErrMsgTxt("Input must be a string.");
     }
-
+    ReplacementStyle = JSON_REPLACEMENT_STYLE_UNDERSCORE;
+    if (nrhs > 1) {
+        if (!mxIsStruct(prhs[1])){
+            mexErrMsgTxt("Input must be a struct.");
+        }
+        mx = mxGetField(prhs[1],0,"ReplacementStyle");
+        if (mx != NULL) {
+            repsty = mxArrayToString(mx);
+            if (!strcasecmp(repsty,"nop")) {
+                ReplacementStyle = JSON_REPLACEMENT_STYLE_NOP;
+            }
+            else if (!strcasecmp(repsty,"underscore")) {
+                ReplacementStyle = JSON_REPLACEMENT_STYLE_UNDERSCORE;
+            }
+            else if (!strcasecmp(repsty,"hex")) {
+                ReplacementStyle = JSON_REPLACEMENT_STYLE_HEX;
+            }
+            else if (!strcasecmp(repsty,"delete")) {
+                ReplacementStyle = JSON_REPLACEMENT_STYLE_DELETE;
+            }
+            else {
+                mexErrMsgTxt("Unknown ReplacementStyle.");
+            }
+            mxFree(repsty);
+        }
+    }
+    
     /* Get JSON data as char array */
     js = get_data(prhs[0], &jslen);
 
