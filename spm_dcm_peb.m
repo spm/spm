@@ -82,7 +82,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 6778 2016-04-22 11:51:29Z guillaume $
+% $Id: spm_dcm_peb.m 7047 2017-03-21 14:56:40Z peter $
  
 
 % get filenames and set up
@@ -196,7 +196,7 @@ end
 
 % second level model
 %--------------------------------------------------------------------------
-if  isfield(M,'beta'), alpha  = M.alpha; else, alpha = 1;         end
+if  isfield(M,'alpha'), alpha  = M.alpha; else, alpha = 1;        end
 if  isfield(M,'beta'), beta   = M.beta;  else, beta  = 16;        end
 if  isfield(M,'Q'),    OPTION = M.Q;     else, OPTION = 'single'; end
 if ~isfield(M,'W'),    M.W    = speye(Np,Np);                     end
