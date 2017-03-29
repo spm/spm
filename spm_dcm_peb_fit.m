@@ -72,7 +72,7 @@ function [DCM,PEB,M,HCM] = spm_dcm_peb_fit(GCM,M,field)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_fit.m 6946 2016-11-23 15:26:29Z peter $
+% $Id: spm_dcm_peb_fit.m 7049 2017-03-29 10:01:27Z peter $
 
 
 % set up
@@ -141,9 +141,9 @@ for k = 1:4
     
     % convergence
     %----------------------------------------------------------------------
-    E(k) = PEB.Eh;
-    F(k) = PEB.F;
-    H(k) = spm_logdet(PEB.Cp);
+    E(:,k) = PEB.Eh;
+    F(k)   = PEB.F;
+    H(k)   = spm_logdet(PEB.Cp);
     
     disp('log precision      : ');disp(E);
     disp('free energy        : ');disp(F);
