@@ -25,6 +25,13 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % NB: the prior covariance of 2nd-level random effects is:
 %            exp(M.hE)*DCM{1}.M.pC/M.beta [default DCM{1}.M.pC/16]
 %
+% NB2:       to manually specify which parameters should be assigned to 
+%            which covariance components, M.Q can be set to a cell array of 
+%            [nxn] binary matrices, where n is the number of DCM 
+%            parameters. A value of M.Q{i}(n,n)==1 indicates that parameter 
+%            n should be modelled with component i.
+%
+% M.nocd   - suppresses conditions dependencies [default: false]
 % M.Xnames - cell array of names for second level parameters [default: {}]
 % 
 % field    - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
@@ -82,7 +89,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7047 2017-03-21 14:56:40Z peter $
+% $Id: spm_dcm_peb.m 7050 2017-03-29 15:44:54Z peter $
  
 
 % get filenames and set up
@@ -114,6 +121,8 @@ if isempty(M.X),    M.X = ones(length(P),1); end
 if nargin < 3; field = {'A','B'};  end
 if strcmpi(field,'all');  field = fieldnames(DCM.M.pE);end
 if ischar(field), field = {field}; end
+
+try, nocd = M.nocd; catch, nocd = false; end
 
 % repeat for each model (column) if P is an array
 %==========================================================================
@@ -159,6 +168,13 @@ for i = 1:Ns
     qE{i} = spm_vec(DCM.Ep);
     qC{i} = DCM.Cp;
     
+    % suppress conditional dependencies if requested
+    %----------------------------------------------------------------------
+    if nocd
+        pC{i} = diag(diag(pC{i}));
+        qC{i} = diag(diag(qC{i}));
+    end
+    
     % deal with rank deficient priors
     %----------------------------------------------------------------------
     if i == 1
@@ -198,9 +214,19 @@ end
 %--------------------------------------------------------------------------
 if  isfield(M,'alpha'), alpha  = M.alpha; else, alpha = 1;        end
 if  isfield(M,'beta'), beta   = M.beta;  else, beta  = 16;        end
-if  isfield(M,'Q'),    OPTION = M.Q;     else, OPTION = 'single'; end
 if ~isfield(M,'W'),    M.W    = speye(Np,Np);                     end
 
+% covariance component specification
+%--------------------------------------------------------------------------
+Q = {};
+if ~isfield(M,'Q')
+    OPTION = 'single';
+elseif iscell(M.Q)        
+    OPTION = 'manual';
+    Q = M.Q;
+else
+    OPTION = M.Q;
+end
 
 % design matrices
 %--------------------------------------------------------------------------
@@ -260,7 +286,6 @@ end
 %--------------------------------------------------------------------------
 pQ    = spm_inv(U'*M.pC*U);
 rP    = pQ;
-Q     = {};
 switch OPTION
     
     case{'single'}
@@ -271,23 +296,51 @@ switch OPTION
     case{'fields'}
         % between subject precision components (one for each field)
         %------------------------------------------------------------------
+        pq = spm_inv(M.pC);
         for i = 1:length(field)
             j    = spm_fieldindices(DCM.M.pE,field{i});
-            j    = find(ismember(q,j));
+            j    = find(ismember(q,j));            
             Q{i} = sparse(Np,Np);
-            Q{i}(j,j) = pQ(j,j);
+            Q{i}(j,j) = pq(j,j);
             Q{i} = U'*Q{i}*U;
         end
         
     case{'all'}
         % between subject precision components (one for each parameter)
         %------------------------------------------------------------------
+        pq = spm_inv(M.pC);
+        k = 1;
         for i = 1:Np
-            Q{i} = sparse(i,i,pQ(i,i),Np,Np);
-            Q{i} = U'*Q{i}*U;
+            qk = sparse(i,i,pq(i,i),Np,Np);            
+            qk = U'*qk*U;
+            if any(qk(:))
+                Q{k} = qk;
+                k = k + 1;
+            end
         end
         
+    case {'manual'}
+        % manually provided cell array of (binary) precision components
+        %------------------------------------------------------------------
+        pq = spm_inv(M.pC);
+        k = 1;
+        for i = 1:length(Q)
+            j       = find(diag(Q{i}));
+            j       = find(ismember(q,j));
+            qk      = sparse(Np,Np);
+            qk(j,j) = pq(j,j);
+            qk      = U'*qk*U;
+            if any(qk(:))
+                Q{k} = qk;
+                k = k + 1;
+            end
+        end
+        
+    case {'none'}
+        % Do nothing
+        
     otherwise
+        warning('Unknown covariance component specification');
 end
 
 
@@ -530,6 +583,10 @@ PEB.Ch   = Cg;
 PEB.Cp   = Ub*Cb*Ub';
 PEB.Ce   = U*rC*U';
 PEB.F    = F;
+
+for i = 1:length(Q)
+    PEB.M.Q{i} = U*Q{i}*U';
+end
 
 spm_unlink('tmp.mat');
 
