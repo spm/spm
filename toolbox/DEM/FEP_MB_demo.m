@@ -2,7 +2,7 @@ function FEP_MB_demo
 % This  routine illustrates a hierarchical decomposition of Markov blankets
 % (of Markov blankets). It rests upon the dual operators of finding a
 % partition (a Markov partition) and then using an adiabatic dimensional
-% reduction (using the Eigen solution of the Markov blanket). In brief,
+% reduction (using the eigensolution of the Markov blanket). In brief,
 % this means the states of particles at the next level become mixtures of
 % the Markov blanket of particles at the level below.
 %
@@ -15,7 +15,7 @@ function FEP_MB_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_MB_demo.m 7033 2017-03-05 11:19:18Z karl $
+% $Id: FEP_MB_demo.m 7051 2017-04-02 11:35:35Z karl $
 
 
 % default settings
@@ -38,13 +38,13 @@ Jii   = spm_cat({[], eye(n,n),  spm_speye(n,m);
 %--------------------------------------------------------------------------
 Jij   = spm_cat({[], zeros(n,n),  zeros(n,m);
                  randn(n,n),  [], [];
-                 [], zeros(m,n), zeros(m,m)});
+                 [], zeros(m,n),  zeros(m,m)});
 
 
 % an ensemble of blankets
 %--------------------------------------------------------------------------
-D     = 2;
-N     = 13;                      % size of lattice
+D     = 2;                      % distance for seperation
+N     = 8;                      % size of lattice
 [I,J] = ndgrid(1:N,1:N);        % locations
 for i = 1:numel(I)
     for j = 1:numel(J)
@@ -66,42 +66,33 @@ z{1}    = num2cell(1:length(J{1}));
 % hierarchal decomposition
 %==========================================================================
 N     = 3;                       % number of hierarchies
-n     = [4 3 2 1];               % number of eigensolutions
-m     = [3 2 1 1];               % number of internal states
+n     = [4 3 2 1];               % number of eigenvectors
+m     = [3 3 3 3];               % number of internal states
 for i = 1:N
     
     % Markov blanket partition
     %----------------------------------------------------------------------
-    spm_figure('getwin','Markov partition');
-    subplot(N,1,i)
+    spm_figure('getwin',sprintf('Markov level %i',i));
     
     x{i} = spm_Markov_blanket(J{i},z{i},m(i));
-    j    = spm_vec(x{i}');
-    k    = spm_vec(x{i});
     
     % dimension reduction (eliminating internal states)
     %----------------------------------------------------------------------
     if i < N
         [J{i + 1},z{i + 1}] = spm_A_reduce(J{i},x{i},n(i));
     end
-
-    % parameters
-    %----------------------------------------------------------------------
-    spm_figure('getwin','Jacobians');
     
-    subplot(N,2,(i - 1)*2 + 1),imagesc(abs(J{i}(k,k))),axis square
-    subplot(N,2,(i - 1)*2 + 2),imagesc(abs(J{i}(j,j))),axis square
 end
 
 return
 
 % Markov blanket - parents, children, and parents of children
 %==========================================================================
-function [J,z] = spm_A_reduce(J,x,n)
+function [J,z] = spm_A_reduce(J,x,N)
 % reduction of Markovian partition
 % J  - Jacobian
 % x  - {3 x N} indices of Markovian partition
-% n  - number of eigenvectors to retain [default: 2]
+% N  - number of eigenvectors to retain [default: 2]
 %
 % z  - {1 x N} indices of partition for the next level
 %__________________________________________________________________________
@@ -110,13 +101,14 @@ function [J,z] = spm_A_reduce(J,x,n)
 %--------------------------------------------------------------------------
 nx    = size(x,2);                % number of partitions
 if nargin < 3
-    n = 2;                        % number of generalised eigenvectors
+    N = 2;                        % number of generalised eigenvectors
 end
 
 % reduction
 %----------------------------------------------------------------------
 for i = 1:nx
     Jii   = full(J(spm_vec(x(1:2,i)),spm_vec(x(1:2,i))));
+    n     = min(N,size(Jii,1));
     [e,s] = eig(Jii);
     [s,j] = sort(real(diag(s)),'descend');
     v{i}  = e(:,j(1:n));
@@ -133,13 +125,21 @@ J     = spm_cat(A);
 
 
 
-function [x] = spm_Markov_blanket(J,z,m)
+function [x,y] = spm_Markov_blanket(J,z,m)
 % Markovian partition
 % J  - Jacobian
 % z  - {1 x N} indices of partition
 % m  - number of internal states [default: 3]
 %
-% x  - {3 x N} indices of Markovian partition
+% x  - {3 x N} indices of states of partitions
+%     x{1,j} - active states of j-th partition
+%     x{2,j} - sensory states of j-th partition
+%     x{3,j} - internal states of j-th partition
+%
+% y  - {3 x N} indices of partition
+%     y{1,j} - active states of j-th partition
+%     y{2,j} - sensory states of j-th partition
+%     y{3,j} - internal states of j-th partition
 %__________________________________________________________________________
 
 % preliminaries
@@ -154,7 +154,7 @@ end
 for i = 1:nz
     for j = 1:nz
         Lij    = J(z{i},z{j});
-        L(i,j) = any(abs(Lij(:)) > 1e-18);
+        L(i,j) = any(abs(Lij(:)) > 1e-16);
     end
 end
 L     = double(L);
@@ -170,15 +170,13 @@ G     = expm(G);
 %--------------------------------------------------------------------------
 GRAPHICS = 1;
 if GRAPHICS
-    
-    [e v] = eig(G,'nobalance');
+    [e,v] = eig(G,'nobalance');
     [v,j] = sort(real(diag(v)),'descend');
-    X     = real(e(:,j(2:4)));
-    
-    % get first two dimensions of scaling space (X)
-    %----------------------------------------------------------------------
-    plot3(X(:,1),X(:,2),X(:,3),'.c','MarkerSize',24), hold on
-    
+    try
+        X = real(e(:,j(2:3)));
+    catch
+        X = real(e(:,j(1:2)));
+    end
 end
 
 % get Markov blanket and divide into sensory and active states
@@ -193,39 +191,160 @@ for i = 1:128
     
     % internal states (defined by graph Laplacian)
     %----------------------------------------------------------------------
-    [g,j] = max(max(G)'.*~(B*nn));
-    if g == 0
-        break
+    j = ~(B*nn);
+    if any(j)
+        
+        % find internal states
+        %------------------------------------------------------------------
+        [g,j] = max(max(G)'.*j);
+        g     = G(:,j);
+        [g,j] = sort(g,'descend');
+        try
+            j = j(1:m);                                 % internal states
+        end
+        
+        jj    = sparse(j,1,1,size(L,1),1);              % internal states
+        bb    = B*jj & ~jj;                             % Markov blanket
+        ee    = ~bb & ~jj;                              % external states
+        b     = find(bb);
+        e     = find(ee);
+        s     = b(find( any(L(b,e),2)));
+        a     = b(find(~any(L(b,e),2)));
+        
+        % partition
+        %------------------------------------------------------------------
+        x{1,i} = spm_cat(z(a));
+        x{2,i} = spm_cat(z(s));
+        x{3,i} = spm_cat(z(j));
+        
+        % states accounted for (nn)
+        %------------------------------------------------------------------
+        nn   = nn | bb | jj;
+        
+    else
+        
+        % no internal states - find active states (not influenced by e)
+        %------------------------------------------------------------------
+        j = ~any(L(~nn,nn),2);
+        if any(j)
+            
+            % sensory states connected with active states
+            %--------------------------------------------------------------
+            a  = find(~nn);
+            a  = a(j(1));
+            aa = sparse(a,1,1,size(L,1),1);
+            ss = (L*aa | L'*aa) & ~aa & ~nn;
+            a  = find(aa);
+            s  = find(ss);
+            j  = [];
+            
+            % partition
+            %--------------------------------------------------------------
+            x{1,i} = spm_cat(z(a));
+            x{2,i} = spm_cat(z(s));
+            x{3,i} = [];
+            
+            % states accounted for (nn)
+            %--------------------------------------------------------------
+            nn   = nn | aa | ss;
+            
+        elseif any(~nn)
+            
+            % sensory states connected with sensory states
+            %--------------------------------------------------------------
+            s  = find(~nn);
+            ss = sparse(s(1),1,1,size(L,1),1);
+            ss = (L*ss | L'*ss) & ~nn;
+            s  = find(ss);
+            a  = [];
+            j  = [];
+            
+            % partition
+            %--------------------------------------------------------------
+            x{1,i} = [];
+            x{2,i} = spm_cat(z(s));
+            x{3,i} = [];
+            
+            % states accounted for (nn)
+            %--------------------------------------------------------------
+            nn   = nn | ss;
+        end
     end
-    g     = G(:,j);
-    [g,j] = sort(g,'descend');   
-    j     = j(1:m);                                   % internal states
-
-    jj    = sparse(j,1,1,size(L,1),1);                % internal states
-    bb    = B*jj & ~jj;                               % Markov blanket
-    ee    = ~bb & ~jj;                                % external states
-    b     = find(bb);
-    e     = find(ee);
-    s     = b(find( any(L(b,e),2)));
-    a     = b(find(~any(L(b,e),2)));
     
-    % partition
+    % induces for the i-th particle
     %----------------------------------------------------------------------
-    x{1,i} = spm_cat(z(a));
-    x{2,i} = spm_cat(z(s));
-    x{3,i} = spm_cat(z(j));
-    
-    % states accounted for
-    %----------------------------------------------------------------------
-    nn   = nn | ~ee;
+    y{1,i} = a;
+    y{2,i} = s;
+    y{3,i} = j;
     
     % plot
     %----------------------------------------------------------------------
-    if GRAPHICS
-        plot3(X(a,1),X(a,2),X(a,3),'.r','MarkerSize',24), hold on
-        plot3(X(s,1),X(s,2),X(s,3),'.m','MarkerSize',24), hold on
-        plot3(X(j,1),X(j,2),X(j,3),'.b','MarkerSize',24), hold on
-        axis image
+    if all(nn)
+        if GRAPHICS,clf
+            
+            % plot different states
+            %--------------------------------------------------------------
+            subplot(3,2,1)
+            nx    = size(x,2);
+            for k = 1:nx
+                plot(X(y{1,k},1),X(y{1,k},2),'.r','MarkerSize',24), hold on
+                plot(X(y{2,k},1),X(y{2,k},2),'.m','MarkerSize',24), hold on
+                plot(X(y{3,k},1),X(y{3,k},2),'.b','MarkerSize',24), hold on
+            end
+            axis image
+            
+            % plot different particles
+            %--------------------------------------------------------------
+            
+            subplot(3,2,2)
+            for k = 1:nx
+                
+                bol{k} = spm_softmax(log(rand(3,1))*2);
+                col{k} = bol{k}*(1 - 1/2) + ones(3,1)/2;
+                
+                plot(X(y{1,k},1),X(y{1,k},2),'.','color',bol{k},'MarkerSize',24), hold on
+                plot(X(y{2,k},1),X(y{2,k},2),'.','color',bol{k},'MarkerSize',24), hold on
+                plot(X(y{3,k},1),X(y{3,k},2),'.','color',col{k},'MarkerSize',24), hold on
+            end
+            axis image
+            
+            % Jacobian
+            %--------------------------------------------------------------
+            j = spm_vec(x');
+            k = spm_vec(x );
+            subplot(3,2,3),imagesc(abs(J(k,k))),axis square, hold on
+            subplot(3,2,4),imagesc(abs(J(j,j))),axis square, hold on
+            
+            % Colors
+            %--------------------------------------------------------------
+            nj   = spm_length(x);
+            if nj > 32, msz  = 8; else, msz = 24; end
+            j    = 1:nj;
+            k    = spm_unvec(j,x')';
+            j    = spm_unvec(j,x);
+            subplot(3,2,3),hold on
+            for q = 1:nx
+                plot(j{1,q},ones(size(x{1,q})),'.','color',bol{q},   'MarkerSize',msz)
+                plot(j{2,q},ones(size(x{2,q})),'.','color',bol{q},   'MarkerSize',msz)
+                plot(j{3,q},ones(size(x{3,q})),'.','color',col{q},   'MarkerSize',msz)
+                plot(j{1,q},zeros(size(x{1,q})) + nj,'.','color','r','MarkerSize',msz)
+                plot(j{2,q},zeros(size(x{2,q})) + nj,'.','color','m','MarkerSize',msz)
+                plot(j{3,q},zeros(size(x{3,q})) + nj,'.','color','b','MarkerSize',msz)
+            end
+            
+            subplot(3,2,4),hold on
+            for q = 1:nx
+                plot(k{1,q},ones(size(x{1,q})),'.','color',bol{q},   'MarkerSize',msz)
+                plot(k{2,q},ones(size(x{2,q})),'.','color',bol{q},   'MarkerSize',msz)
+                plot(k{3,q},ones(size(x{3,q})),'.','color',col{q},   'MarkerSize',msz)
+                plot(k{1,q},zeros(size(x{1,q})) + nj,'.','color','r','MarkerSize',msz)
+                plot(k{2,q},zeros(size(x{2,q})) + nj,'.','color','m','MarkerSize',msz)
+                plot(k{3,q},zeros(size(x{3,q})) + nj,'.','color','b','MarkerSize',msz)
+            end   
+            
+        end
+        
+        break
     end
     
 end

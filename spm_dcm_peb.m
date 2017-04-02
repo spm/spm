@@ -89,7 +89,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7050 2017-03-29 15:44:54Z peter $
+% $Id: spm_dcm_peb.m 7051 2017-04-02 11:35:35Z karl $
  
 
 % get filenames and set up
@@ -370,8 +370,8 @@ end
 Xe    = spm_speye(Nx,1);
 bE    = kron(Xe,U'*M.bE);            % prior expectation of group effects
 gE    = zeros(Ng,1) + gE;            % prior expectation of log precision
-bC    = kron(Xc,U'*M.bC*U);          % prior covariance of group effects
-gC    = eye(Ng,Ng)*gC;               % prior covariance of log precision
+bC    = kron(Xc,U'*M.bC*U);          % prior covariance  of group effects
+gC    = eye(Ng,Ng)*gC;               % prior covariance  of log precision
 bP    = spm_inv(bC);
 gP    = spm_inv(gC);
 
@@ -395,7 +395,7 @@ for n = 1:64
             rP = rP + exp(g(i))*Q{i};
         end
     end
-    rC      = spm_inv(rP);
+    rC    = spm_inv(rP);
     
     % update model parameters
     %======================================================================
@@ -476,7 +476,7 @@ for n = 1:64
         
         % otherwise, retrieve expansion point and increase regularisation
         %------------------------------------------------------------------
-        t  = t - 1;
+        t  = max(t - 1,-4);
         load('tmp.mat');
         
     end
