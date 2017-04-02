@@ -3,10 +3,23 @@
 function [Q,X,V,A,x] = spm_Manifold_solve(x,u,P,T,dt,PLOT)
 % FORMAT [Q,X,V,A,x] = spm_Manifold_solve(x,u,P,T,dt,PLOT)
 % FORMAT [J]         = spm_Manifold_solve(Q,X,V,P)
-% PLOT = 0 - no grphics
+%
+% x - hidden states (3 x N)
+% u - exogenous input
+% P - parameter structure
+%
+% PLOT = 0 - no graphics
 % PLOT = 1 - quick graphics
 % PLOT = 2 - quick graphics with trajectory
 % PLOT = 3 - pretty graphics
+%
+% returns:
+%
+% Q    - history of microstates (states)
+% X    - history of microstates (position)
+% V    - history of microstates (velocity)
+% A    - adjacency matrix
+% x    - state structure
 %
 % This auxiliary routine integrates a system – or returns the Jacobian for
 % specified states. It deals with the special case of within and between
@@ -15,7 +28,7 @@ function [Q,X,V,A,x] = spm_Manifold_solve(x,u,P,T,dt,PLOT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Manifold_solve.m 7033 2017-03-05 11:19:18Z karl $
+% $Id: spm_Manifold_solve.m 7052 2017-04-02 21:28:52Z karl $
 
 % equations of motion
 %--------------------------------------------------------------------------
