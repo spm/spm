@@ -6,14 +6,23 @@
 # Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: spm12-octave 6996 2017-01-30 11:22:15Z guillaume $ 
+# $Id: spm12-octave 7053 2017-04-03 11:04:13Z guillaume $ 
 
 
 spm_dir = getenv ("SPM_HOME");
 if (isempty (spm_dir))
   spm_dir = mfilename ("fullpath");
-  [out, sts] = readlink (spm_dir);
-  if ! (sts), spm_dir = out; endif
+  sts = false;
+  while ! (sts)
+    [out, sts] = readlink (spm_dir);
+    if ! (sts)
+      if ! (is_absolute_filename (out))
+        spm_dir = fullfile (fileparts (spm_dir), out);
+      else
+        spm_dir = out;
+      endif
+    endif
+  endwhile
   spm_dir = fullfile (fileparts (spm_dir), "..");
 endif
 addpath (canonicalize_file_name (spm_dir));

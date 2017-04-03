@@ -20,7 +20,7 @@ function varargout = spm_jsonwrite(varargin)
 % Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 7044 2017-03-16 13:00:09Z guillaume $
+% $Id: spm_jsonwrite.m 7053 2017-04-03 11:04:13Z guillaume $
 
 
 %-Input parameters
@@ -171,7 +171,7 @@ function S = jsonwrite_char(json)
 % \" \\ \/ \b \f \n \r \t \u four-hex-digits
 json = strrep(json,'\','\\');
 json = strrep(json,'"','\"');
-json = strrep(json,'/','\/');
+%json = strrep(json,'/','\/');
 json = strrep(json,sprintf('\b'),'\b');
 json = strrep(json,sprintf('\f'),'\f');
 json = strrep(json,sprintf('\n'),'\n');

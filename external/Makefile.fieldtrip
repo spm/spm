@@ -4,7 +4,7 @@
 # Copyright (C) 2009-2016 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: Makefile.fieldtrip 6732 2016-02-24 14:23:08Z guillaume $
+# $Id: Makefile.fieldtrip 7053 2017-04-03 11:04:13Z guillaume $
 
 include ../src/Makefile.var
 
@@ -66,22 +66,29 @@ tarball: all
 	$(TAR) -cf fieldtrip_mex.tar $(FIELDTRIP)
 
 fieldtrip/src/%.$(SUF) : fieldtrip/src/%.c
-	$(MEX) $< -outdir $(dir $<) $(MEXEND)
+	$(MEX) $< $(MEXEND)
+	$(MOVE) $*.$(SUF) $(dir $<)
 
 fieldtrip/src/lmoutr.$(SUF): fieldtrip/src/lmoutr.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
-	$(MEX) $< -outdir $(dir $<) fieldtrip/src/geometry.c $(MEXEND)
+	$(MEX) $< fieldtrip/src/geometry.c $(MEXEND)
+	$(MOVE) lmoutr.$(SUF) $(dir $<)
 
 fieldtrip/src/routlm.$(SUF): fieldtrip/src/routlm.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
-	$(MEX) $< -outdir $(dir $<) fieldtrip/src/geometry.c $(MEXEND)
+	$(MEX) $< fieldtrip/src/geometry.c $(MEXEND)
+	$(MOVE) routlm.$(SUF) $(dir $<)
 
 fieldtrip/src/ptriproj.$(SUF): fieldtrip/src/ptriproj.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
-	$(MEX) $< -outdir $(dir $<) fieldtrip/src/geometry.c $(MEXEND)
+	$(MEX) $< fieldtrip/src/geometry.c $(MEXEND)
+	$(MOVE) ptriproj.$(SUF) $(dir $<)
 
 fieldtrip/src/solid_angle.$(SUF): fieldtrip/src/solid_angle.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
-	$(MEX) $< -outdir $(dir $<) fieldtrip/src/geometry.c $(MEXEND)
+	$(MEX) $< fieldtrip/src/geometry.c $(MEXEND)
+	$(MOVE) solid_angle.$(SUF) $(dir $<)
 
 fieldtrip/src/ltrisect.$(SUF): fieldtrip/src/ltrisect.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
-	$(MEX) $< -outdir $(dir $<) fieldtrip/src/geometry.c $(MEXEND)
+	$(MEX) $< fieldtrip/src/geometry.c $(MEXEND)
+	$(MOVE) ltrisect.$(SUF) $(dir $<)
 
 fieldtrip/src/plinproj.$(SUF): fieldtrip/src/plinproj.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
-	$(MEX) $< -outdir $(dir $<) fieldtrip/src/geometry.c $(MEXEND)
+	$(MEX) $< fieldtrip/src/geometry.c $(MEXEND)
+	$(MOVE) plinproj.$(SUF) $(dir $<)

@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 7045 2017-03-17 10:41:12Z guillaume $
+ * $Id: spm_jsonread.c 7053 2017-04-03 11:04:13Z guillaume $
  * Guillaume Flandin
  */
 
@@ -32,10 +32,10 @@ mxArray *mexCallMATLABWithTrap(int nlhs, mxArray *plhs[], int nrhs, mxArray *prh
 */
 
 static enum jsonrepsty {
-    JSON_REPLACEMENT_STYLE_NOP,
-	JSON_REPLACEMENT_STYLE_UNDERSCORE,
-	JSON_REPLACEMENT_STYLE_HEX,
-	JSON_REPLACEMENT_STYLE_DELETE
+  JSON_REPLACEMENT_STYLE_NOP,
+  JSON_REPLACEMENT_STYLE_UNDERSCORE,
+  JSON_REPLACEMENT_STYLE_HEX,
+  JSON_REPLACEMENT_STYLE_DELETE
 } ReplacementStyle;
 
 static int should_convert_to_array(const mxArray *pm) {
@@ -182,7 +182,7 @@ static char * get_string(char *js, int start, int end) {
     js[end] = '\0'; /* not necessary sensu stricto */
     return js + start;
 }
-    
+
 static char * valid_fieldname_underscore(char *field) {
     /* matlab.lang.makeValidName
        with ReplacementStyle == 'underscore' and Prefix == 'x' */
@@ -249,12 +249,12 @@ static char * valid_fieldname_hex(char *field) {
         else {
             if ( ((re[0] >= 'a') && (re[0] <= 'z'))
               || ((re[0] >= 'A') && (re[0] <= 'Z'))
-              || ((((re[0] >= '0') && (re[0] <= '9')) 
+              || ((((re[0] >= '0') && (re[0] <= '9'))
               || (re[0] == '_')) && !beg) ) {
                 wr[0] = re[0]; wr++;
             }
             else {
-                /* could also use sprintf(wr,"%02X",re[0]) 
+                /* could also use sprintf(wr,"%02X",re[0])
                    but might call unicode2native in the future */
                 wr[0] = '0'; wr++;
                 wr[0] = 'x'; wr++;
@@ -539,7 +539,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             mxFree(repsty);
         }
     }
-    
+
     /* Get JSON data as char array */
     js = get_data(prhs[0], &jslen);
 
