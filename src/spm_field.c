@@ -1,4 +1,4 @@
-/* $Id: spm_field.c 6772 2016-04-19 10:21:41Z john $ */
+/* $Id: spm_field.c 7054 2017-04-04 12:09:32Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"
@@ -74,7 +74,7 @@ static void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
     t[0]     = param[0]*param[0];
     t[1]     = param[1]*param[1];
     t[2]     = param[2]*param[2];
-    param[3]+= (param[5]*(6*(t[0]*t[0]+t[1]*t[1]+t[2]*t[2]) + 8*(t[0]*t[1]+t[0]*t[2]+t[1]*t[2]))+param[4]*2*(t[0]+t[1]+t[2]))*1.2e-7;
+    param[3]+= (param[5]*(6*(t[0]*t[0]+t[1]*t[1]+t[2]*t[2]) + 8*(t[0]*t[1]+t[0]*t[2]+t[1]*t[2]))+param[4]*2*(t[0]+t[1]+t[2]))*4e-7;
 
     if (nrhs==4)
     {
