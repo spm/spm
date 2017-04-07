@@ -5,7 +5,7 @@ function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 7041 2017-03-15 16:15:19Z guillaume $
+% $Id: spm_preproc_write8.m 7055 2017-04-07 19:04:46Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -217,7 +217,7 @@ for z=1:length(x3)
 
         if do_cls
             % Generate variable Q if tissue classes are needed
-           %msk = (f==0) | ~isfinite(f);
+            msk = any((f==0) | ~isfinite(f),3);
 
             if isfield(res,'mg')
                 % Parametric representation of intensity distributions
@@ -255,6 +255,13 @@ for z=1:length(x3)
                         likelihood = res.intensity(n).lik(:,k1);
                         q(:,:,k1)  = q(:,:,k1).*likelihood(tmp);
                     end
+                end
+            end
+            if any(msk)
+                for k=1:size(q,3)
+                    tmp = q(:,:,k);
+                    tmp(msk) = 0;
+                    q(:,:,k) = NaN;
                 end
             end
             Q(:,:,z,:) = reshape(q,[d(1:2),1,Kb]);
