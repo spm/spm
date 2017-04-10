@@ -31,7 +31,6 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 %            parameters. A value of M.Q{i}(n,n)==1 indicates that parameter 
 %            n should be modelled with component i.
 %
-% M.nocd   - suppresses conditions dependencies [default: false]
 % M.Xnames - cell array of names for second level parameters [default: {}]
 % 
 % field    - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
@@ -89,7 +88,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7051 2017-04-02 11:35:35Z karl $
+% $Id: spm_dcm_peb.m 7056 2017-04-10 15:49:19Z peter $
  
 
 % get filenames and set up
@@ -121,8 +120,6 @@ if isempty(M.X),    M.X = ones(length(P),1); end
 if nargin < 3; field = {'A','B'};  end
 if strcmpi(field,'all');  field = fieldnames(DCM.M.pE);end
 if ischar(field), field = {field}; end
-
-try, nocd = M.nocd; catch, nocd = false; end
 
 % repeat for each model (column) if P is an array
 %==========================================================================
@@ -167,13 +164,6 @@ for i = 1:Ns
     pE{i} = spm_vec(DCM.M.pE);
     qE{i} = spm_vec(DCM.Ep);
     qC{i} = DCM.Cp;
-    
-    % suppress conditional dependencies if requested
-    %----------------------------------------------------------------------
-    if nocd
-        pC{i} = diag(diag(pC{i}));
-        qC{i} = diag(diag(qC{i}));
-    end
     
     % deal with rank deficient priors
     %----------------------------------------------------------------------
