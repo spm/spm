@@ -32,10 +32,10 @@ classdef spm_provenance < handle
 % p.hadMember(collection,entity)
 % p.bundle(id,b)
 %__________________________________________________________________________
-% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 6903 2016-10-12 11:36:41Z guillaume $
+% $Id: spm_provenance.m 7057 2017-04-13 16:45:49Z guillaume $
 
 
 %-Properties
@@ -658,6 +658,28 @@ methods (Access='private')
                     end
                 end
             end
+            % remove trailing colon
+            for n=1:numel(node)
+                if iscell(node{n})
+                    for k=1:numel(node{n})
+                        if isstruct(node{n}{k})
+                            if isfield(node{n}{k},'value') && node{n}{k}.value(end) == ':'
+                                node{n}{k}.value = node{n}{k}.value(1:end-1);
+                            elseif isfield(node{n}{k},'id') && node{n}{k}.id(end) == ':'
+                                node{n}{k}.id = node{n}{k}.id(1:end-1);
+                            end
+                        else
+                            if node{n}{k}(end) == ':'
+                                node{n}{k} = node{n}{k}(1:end-1);
+                            end
+                        end
+                    end
+                else
+                    if node{n}(end) == ':'
+                        node{n} = node{n}(1:end-1);
+                    end
+                end
+            end
             % serialize node
             str = [str o o sprintf('{\n')];
             for j=1:size(node,1)
@@ -828,7 +850,7 @@ methods (Access='private')
                         attr = obj.stack{j}{end};
                         if ~isempty(attr)
                             url_ann = sprintf('http://annot/ann%d',annn);
-                            attrlist = [];
+                            attrlist = '';
                             for k=1:2:numel(attr)
                                 attribute = attr{k};
                                 literal = attr{k+1};

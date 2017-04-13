@@ -20,10 +20,10 @@ function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat,opts)
 % PROV-DM: The PROV Data Model:
 %   http://www.w3.org/TR/prov-dm/
 %__________________________________________________________________________
-% Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6903 2016-10-12 11:36:41Z guillaume $
+% $Id: spm_results_nidm.m 7057 2017-04-13 16:45:49Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -62,7 +62,7 @@ end
 %--------------------------------------------------------------------------
 gz           = '.gz';                        %-Compressed NIfTI {'.gz', ''}
 NIDMversion  = '1.3.0';
-SVNrev       = '$Rev: 6903 $';
+SVNrev       = '$Rev: 7057 $';
 
 %-Reference space
 %--------------------------------------------------------------------------
@@ -352,6 +352,7 @@ pp.add_namespace('obo','http://purl.obolibrary.org/obo/');
 %-Provenance
 %--------------------------------------------------------------------------
 [V,R] = spm('Ver');
+V = V(4:end);
 
 idResults = getid('niiri:spm_results_id',isHumanReadable);
 pp.entity(idResults,{...
@@ -366,7 +367,7 @@ pp.agent(idExporter,{...
     'prov:type',nidm_conv('nidm_spm_results_nidm',pp),...
     'prov:type','prov:SoftwareAgent',...
     'prov:label',{'spm_results_nidm','xsd:string'},...
-    nidm_conv('nidm_softwareVersion',pp),{[V(4:end) '.' char(regexp(SVNrev,'\$Rev: (\w.*?) \$','tokens','once'))],'xsd:string'},...
+    nidm_conv('nidm_softwareVersion',pp),{[V '.' char(regexp(SVNrev,'\$Rev: (\w.*?) \$','tokens','once'))],'xsd:string'},...
     });
 
 idExport = getid('niiri:export_id',isHumanReadable);
@@ -389,7 +390,7 @@ p.agent(idSoftware,{...
     'prov:type',nidm_conv('src_SPM',p),...
     'prov:type','prov:SoftwareAgent',...
     'prov:label',{'SPM','xsd:string'},...
-    nidm_conv('nidm_softwareVersion',p),{[V(4:end) '.' R],'xsd:string'},...
+    nidm_conv('nidm_softwareVersion',p),{[V '.' R],'xsd:string'},...
     });
 
 %-Entity: Coordinate Space
@@ -797,50 +798,44 @@ end
 %-Entity: Height Threshold
 %--------------------------------------------------------------------------
 thresh(1).type  = nidm_conv('obo_statistic',p);
-thresh(1).label = 'Height Threshold';
 thresh(1).value = xSPM.u; % TabDat.ftr{1,2}(1)
+thresh(1).label = sprintf('Height Threshold: %s=%f)',xSPM.STAT,thresh(1).value);
 thresh(2).type  = nidm_conv('nidm_PValueUncorrected',p);
-thresh(2).label = 'Height Threshold';
 thresh(2).value = TabDat.ftr{1,2}(2);
+thresh(2).label = sprintf('Height Threshold: p<%f (unc.)',thresh(2).value);
 thresh(3).type  = nidm_conv('obo_FWERadjustedpvalue',p);
-thresh(3).label = 'Height Threshold';
 thresh(3).value = TabDat.ftr{1,2}(3);
+thresh(3).label = sprintf('Height Threshold: p<%f (FWE)',thresh(3).value);
 td = regexp(xSPM.thresDesc,'p\D?(?<u>[\.\d]+) \((?<thresDesc>\S+)\)','names');
 if isempty(td)
     td = regexp(xSPM.thresDesc,'\w=(?<u>[\.\d]+)','names');
     if ~isempty(td)
-        thresh_order = 1:3; % Statistic
-        thresh_desc  = sprintf(': %s=%f)',xSPM.STAT,xSPM.u);
+        thresh_order   = 1:3; % Statistic
     else
         warning('Unkwnown threshold type.');
-        thresh_order = 1:3; % unknown
-        thresh_desc  = '';
+        thresh_order   = 1:3; % unknown
     end
 else
     switch td.thresDesc
         case 'FWE'
-            thresh_order = [3 1 2]; % FWE
-            thresh_desc  = sprintf(': p<%f (FWE)',TabDat.ftr{1,2}(3));
+            thresh_order   = [3 1 2]; % FWE
         case 'unc.'
-            thresh_order = [2 1 3]; % uncorrected
-            thresh_desc  = sprintf(': p<%f (unc.)',TabDat.ftr{1,2}(2));
+            thresh_order   = [2 1 3]; % uncorrected
             % Set uncorrected p-value threshold to the user-defined value
             % (to avoid possible floating point approximations)            
             %thresh(2).value = str2double(td.u);
+            thresh(2).label = sprintf('Height Threshold: p<%s (unc.)',td.u);
         case 'FDR'
             thresh(3).type  = nidm_conv('obo_qvalue',p);
-            thresh(3).label = 'Height Threshold';
             thresh(3).value = str2double(td.u);
-            thresh_order = [3 1 2]; % FDR
-            thresh_desc  = sprintf(': p<%s (FDR)',td.u);
+            thresh(3).label =  sprintf(':Height Threshold: p<%s (FDR)',td.u);
+            thresh_order    = [3 1 2]; % FDR
         otherwise
             warning('Unkwnown threshold type.');
             thresh_order = 1:3; % unknown
-            thresh_desc  = '';
     end
 end
 thresh = thresh(thresh_order);
-thresh(1).label = [thresh(1).label thresh_desc];
 idHeightThresh = getid('niiri:height_threshold_id',isHumanReadable);
 idHeightThresh2 = getid('niiri:height_threshold_id_2',isHumanReadable);
 idHeightThresh3 = getid('niiri:height_threshold_id_3',isHumanReadable);
@@ -1151,14 +1146,14 @@ pp.bundle(idResults,p);
 %==========================================================================
 %serialize(pp,fullfile(outdir,'nidm.provn'));
 serialize(pp,fullfile(outdir,'nidm.ttl'));
-try, serialize(pp,fullfile(outdir,'nidm.jsonld')); end
-%serialize(pp,fullfile(outdir,'nidm.json'));
+serialize(pp,fullfile(outdir,'nidm.jsonld'));
+serialize(pp,fullfile(outdir,'nidm.json'));
 %serialize(pp,fullfile(outdir,'nidm.pdf'));
 
 i = 1;
 while true
     nidmfile = fullfile(SPM.swd,sprintf('spm_%04d.nidm.zip',i));
-    if spm_existfile(nidmfile), i = i + 1; else break; end
+    if spm_existfile(nidmfile), i = i + 1; else, break; end
 end
 f = zip(nidmfile,'*',outdir);
 for i=1:numel(f)
@@ -1200,7 +1195,7 @@ function u = uri(u)
 %u = ['file://' s strrep(spm_file(u,'cpath'),'\','/')];
 e = ' ';
 for i=1:length(e)
-    u = strrep(u,e(i),['%' dec2hex(e(i))]);
+    u = strrep(u,e(i),['%' dec2hex(double(e(i)))]);
 end
 u = spm_file(u,'filename');
 
@@ -1209,32 +1204,38 @@ u = spm_file(u,'filename');
 % function checksum = sha512sum(file)
 %==========================================================================
 function checksum = sha512sum(file)
-md   = java.security.MessageDigest.getInstance('SHA-512');
-file = spm_file(file,'cpath');
-fid  = fopen(file,'rb');
-if fid == -1, error('Cannot open "%s".',file); end
-md.update(fread(fid,Inf,'*uint8'));
-fclose(fid);
-checksum = typecast(md.digest,'uint8');
-checksum = lower(reshape(dec2hex(checksum)',1,[]));
-
+if strcmp(spm_check_version,'matlab')
+    md   = java.security.MessageDigest.getInstance('SHA-512');
+    file = spm_file(file,'cpath');
+    fid  = fopen(file,'rb');
+    if fid == -1, error('Cannot open "%s".',file); end
+    md.update(fread(fid,Inf,'*uint8'));
+    fclose(fid);
+    checksum = typecast(md.digest,'uint8');
+    checksum = lower(reshape(dec2hex(checksum)',1,[]));
+else
+    checksum = hash('sha512', fileread(spm_file(file,'cpath')));
+end
 
 %==========================================================================
 % function checksum = md5sum(data)
 %==========================================================================
 function checksum = md5sum(data)
 if ~nargin
-    data = char(java.util.UUID.randomUUID);
+    data = char(javaMethod('randomUUID','java.util.UUID'));
 end
-md   = java.security.MessageDigest.getInstance('MD5');
-if ischar(data)
-    md.update(uint8(data));
+if strcmp(spm_check_version,'matlab')
+    md = java.security.MessageDigest.getInstance('MD5');
+    if ischar(data)
+        md.update(uint8(data));
+    else
+        md.update(typecast(data,'uint8'));
+    end
+    checksum = typecast(md.digest,'uint8');
+    checksum = lower(reshape(dec2hex(checksum)',1,[]));
 else
-    md.update(typecast(data,'uint8'));
+    checksum = hash('md5', typecast(data,'char'));
 end
-checksum = typecast(md.digest,'uint8');
-checksum = lower(reshape(dec2hex(checksum)',1,[]));
-
 
 %==========================================================================
 % function img2nii(img,nii,xSPM)
