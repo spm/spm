@@ -28,9 +28,9 @@ function D = spm_eeg_contrast(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_contrast.m 6526 2015-08-20 10:28:36Z vladimir $
+% $Id: spm_eeg_contrast.m 7058 2017-04-18 10:58:51Z vladimir $
 
-SVNrev = '$Rev: 6526 $';
+SVNrev = '$Rev: 7058 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -55,10 +55,8 @@ c          = S.c;
 Ncontrasts = size(c, 1);
 
 % Pad with zeros as in the contrast manager
-if size(c, 2) <= D.ntrials
-    c = [c zeros(Ncontrasts, D.ntrials - size(c, 2))];
-else
-    error('The number of columns in the contrast matrix exceeds the number of trials.');
+if size(c, 2) ~= D.ntrials
+    error('The number of columns in the contrast matrix does not match the number of trials.');
 end
 
 if ~isempty(D.repl)
