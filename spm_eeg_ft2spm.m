@@ -5,7 +5,7 @@ function D = spm_eeg_ft2spm(ftdata, filename)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft2spm.m 5438 2013-04-24 10:38:47Z vladimir $
+% $Id: spm_eeg_ft2spm.m 7059 2017-04-18 10:59:54Z vladimir $
 
 isTF = 0;
 
@@ -153,8 +153,16 @@ else
     D = type(D, 'single');
 end
 
-if  isfield(ftdata, 'hdr') && isfield(ftdata.hdr, 'grad')
-    D = sensors(D, 'MEG', ft_convert_units(ftdata.hdr.grad, 'mm'));
+if isfield(ftdata, 'hdr') && isfield(ftdata.hdr, 'grad')
+    grad = ftdata.hdr.grad;
+elseif isfield(ftdata, 'grad')
+    grad = ftdata.grad;
+else
+    grad = [];
+end
+    
+if  ~isempty(grad)
+    D = sensors(D, 'MEG', ft_convert_units(grad, 'mm'));
     
     S = [];
     S.task = 'project3D';
