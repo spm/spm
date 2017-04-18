@@ -9,7 +9,7 @@ function DCM = spm_dcm_fnirs_specify(SPMf)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_dcm_fnirs_specify.m 6760 2016-03-29 15:57:32Z guillaume $
+% $Id: spm_dcm_fnirs_specify.m 7060 2017-04-18 16:44:46Z will $
 
 %--------------------------------------------------------------------------
 %-Interactive window
@@ -85,13 +85,17 @@ end
 %-Average time series over trials
 W.type = spm_input('average time series over trials?', '+1', 'y/n');
 if strcmpi(W.type, 'y')
+    
     % read onset times from SPM.mat
     onsets = {}; names = {}; t0 = 0;
     for i = 1:n,
         nc = size(SPMn(i).Sess.U, 2);
         for j = 1:nc
-            onsets = [onsets t0+SPMn(i).Sess.U(j).ons];
-            names = [names SPMn(i).Sess.U(j).name];
+            str = ['include ' SPMn(i).Sess.U(j).name{1} '?']; 
+            if spm_input(str, '+1', 'y/n', [1 0], 1) 
+                onsets = [onsets t0+SPMn(i).Sess.U(j).ons];
+                names = [names SPMn(i).Sess.U(j).name];
+            end
         end
         t0 = t0 + P.ns(i)./P.fs;
     end
@@ -104,9 +108,9 @@ if strcmpi(W.type, 'y')
     fprintf('--------------------------------------------------------- \n');
     fprintf('time window [begin end]\n');
     fprintf('--------------------------------------------------------- \n');
-    t0 = 0;
+    t0 = 0; wdur = min(diff(sort(cell2mat(W.onsets(:))))); 
     for i = 1:nc,
-        W.durations(i) = spm_input(['for ' W.names{i} ':'], '+1', 'r', mean(diff(W.onsets{i})), 1);
+        W.durations(i) = spm_input(['for ' W.names{i} ':'], '+1', 'r', wdur, 1);
         fprintf('%-20s: %4.2f %4.2f [sec] \n', W.names{i}, t0, t0+W.durations(i));
         t0 = t0 + W.durations(i);
     end
@@ -136,14 +140,14 @@ spm_input('Specify fNIRS channels to be used in DCM:...', 1, 'd');
 % display channel positions
 load(P.fname.pos);
 spm_fnirs_viewer_sensor(R);
-clear R;
 
 ans = spm_input('use all sensor measurements ?', '+1',  'y/n');
 if strcmpi(ans, 'y')
-    P.rois = ones(1, P.nch);
+    P.rois = R.ch.label; 
 elseif strcmpi(ans, 'n')
     P.rois = spm_input('sensors of interest:', '+1', 'n');
 end
+clear R; 
 
 %--------------------------------------------------------------------------
 %-Specify hemodynamic source positions

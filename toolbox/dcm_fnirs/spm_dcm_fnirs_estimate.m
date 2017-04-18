@@ -59,7 +59,7 @@ function [DCM] = spm_dcm_fnirs_estimate(P)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_dcm_fnirs_estimate.m 6942 2016-11-21 13:17:44Z guillaume $
+% $Id: spm_dcm_fnirs_estimate.m 7060 2017-04-18 16:44:46Z will $
 
 %--------------------------------------------------------------------------
 %-Load DCM structure
@@ -119,10 +119,10 @@ Y.P.nch = nch;
 
 %--------------------------------------------------------------------------
 % apply temporal filtering 
+addpath(fullfile(spm('Dir'), 'external', 'fieldtrip', 'preproc'));
+forder = 5; ftype = 'but'; fdir = 'twopass';
+
 if strcmpi(Y.K.type, 'Butterworth IIR')
-    addpath(fullfile(spm('Dir'), 'external', 'fieldtrip', 'preproc'));
-    forder = 5; ftype = 'but'; fdir = 'twopass';
-    
     nf = size(Y.K.cutoff, 1); 
     for i = 1:ny
         for j = 1:nf
@@ -143,8 +143,14 @@ y = cell2mat(y);
 % average time series over trials 
 if strcmpi(Y.W.type, 'y')
     nc = size(Y.W.onsets, 2); 
-    for i = 1:nc, wy{i,1} = spm_fnirs_wavg(y, round(Y.W.onsets{i}.*Y.P.fs)+1, round(Y.W.durations(i).*Y.P.fs)); end 
-    y = cell2mat(wy); 
+    for i = 1:nc, 
+        wy{i,1} = spm_fnirs_wavg(y, round(Y.W.onsets{i}.*Y.P.fs)+1, round(Y.W.durations(i).*Y.P.fs)); 
+        wy{i,1} = wy{i,1} - ones(size(wy{i,1},1),1) * wy{i,1}(1,:); 
+    end 
+    y = cell2mat(wy);
+    % remove very slow drift which may exist in averaged time series 
+    hcutoff = 0.008; % default cutoff freq [Hz] 
+    y = ft_preproc_highpassfilter(y', Y.P.fs, hcutoff, forder, ftype, fdir)'; 
 end 
 Y.P.ns = size(y, 1); 
 nout = size(Y.P.wav, 2) * nch; 
