@@ -17,7 +17,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 6817 2016-06-20 17:10:50Z vladimir $
+% $Id: spm_eeg_prep.m 7062 2017-04-19 09:24:11Z vladimir $
 
 D = spm_eeg_load(S.D);
 
@@ -203,6 +203,8 @@ switch lower(S.task)
                 hspind = strmatch('headshape', elec.label);
                 elec.chanpos(hspind, :) = [];
                 elec.elecpos(hspind, :) = [];
+                elec.chantype(hspind, :) = [];
+                elec.chanunit(hspind, :) = [];
                 elec.label(hspind)  = [];
                 
                 % This handles FIL Polhemus case and other possible cases
