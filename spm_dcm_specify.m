@@ -7,17 +7,17 @@ function DCM = spm_dcm_specify(SPM,xY)
 %
 % DCM      - DCM structure (see spm_dcm_ui)
 %__________________________________________________________________________
-% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 6031 2014-06-02 12:49:52Z guillaume $
+% $Id: spm_dcm_specify.m 7064 2017-04-19 14:44:31Z guillaume $
 
 %-Interactive window
 %--------------------------------------------------------------------------
 Finter = spm_figure('GetWin','Interactive');
 spm_input('Specify DCM:...  ',1,'d');
 
-% Get design and directory
+%-Get design and directory
 %--------------------------------------------------------------------------
 if ~nargin || isempty(SPM)
     [SPM, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
@@ -30,8 +30,9 @@ if ischar(SPM)
     catch
         error('Cannot read %s.',fullfile(swd,'SPM.mat'));
     end
+    SPM.swd = swd;
 else
-    swd = pwd;
+    SPM.swd = pwd;
 end
 
 %-Name
@@ -47,4 +48,4 @@ DCM = spm_dcm_specify_ui(SPM, xY);
 
 %-Save
 %--------------------------------------------------------------------------
-save(fullfile(swd,['DCM_' name '.mat']),'DCM', spm_get_defaults('mat.format'));
+save(fullfile(SPM.swd,['DCM_' name '.mat']),'DCM', spm_get_defaults('mat.format'));
