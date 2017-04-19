@@ -1,9 +1,9 @@
 function job = spm_rewrite_job(job)
 % Rewrite a batch job for SPM12
 %__________________________________________________________________________
-% Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 6924 2016-11-09 11:38:00Z guillaume $
+% $Id: spm_rewrite_job.m 7063 2017-04-19 10:49:44Z guillaume $
 
 
 try
@@ -80,11 +80,11 @@ try
 end
 
 try
-    if isequal(job.stats.results.print, false)
+    if isequal(job.stats.results.print, false) || isequal(job.stats.results.print, 'no')
         job.stats.results.export = {};
         job.stats.results = rmfield(job.stats.results,'print');
     end
-    if isequal(job.stats.results.print, true)
+    if isequal(job.stats.results.print, true) || isequal(job.stats.results.print, 'yes')
         job.stats.results.print = spm_get_defaults('ui.print');
     end
     try, N = numel(job.stats.results.export)+1; catch, N = 1; end
