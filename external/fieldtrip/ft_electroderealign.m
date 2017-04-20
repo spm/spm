@@ -117,7 +117,8 @@ function [elec_realigned] = ft_electroderealign(cfg, elec_original)
 %   cfg.headshape      = string, filename containing headshape (e.g. <path to freesurfer/surf/lh.pial>)
 %   cfg.fshome         = string, path to freesurfer
 %
-% See also FT_READ_SENS, FT_VOLUMEREALIGN, FT_INTERACTIVEREALIGN, FT_PREPARE_MESH
+% See also FT_READ_SENS, FT_VOLUMEREALIGN, FT_INTERACTIVEREALIGN,
+% FT_DETERMINE_COORDSYS, FT_PREPARE_MESH
 
 % Copyright (C) 2005-2015, Robert Oostenveld
 %
@@ -270,7 +271,7 @@ if usetarget
     if isstruct(cfg.target{i})
       target(i) = cfg.target{i};
     else
-      target(i) = ft_read_sens(cfg.target{i});
+      target(i) = ft_read_sens(cfg.target{i}, 'senstype', 'eeg');
     end
   end
   clear tmp
