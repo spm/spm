@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 7066 2017-04-20 14:36:29Z guillaume $
+% $Id: cfg_getfile.m 7067 2017-04-20 16:49:53Z guillaume $
 
 t = {};
 sts = false;
@@ -261,7 +261,7 @@ wd = char(cpath(cellstr(wd)));
 [col1,col2,col3,lf,bf] = colours;
 
 % delete old selector, if any
-fg = findobj(0,'Tag',mfilename);
+fg = findobj(0,'-depth',1,'Tag',mfilename);
 if ~isempty(fg)
     delete(fg);
 end
@@ -1530,7 +1530,7 @@ end
 function obj = sib(tag)
 persistent fg;
 if isempty(fg) || ~ishandle(fg)
-    fg = findobj(0,'flat','Tag',mfilename);
+    fg = findobj(0,'-depth',1,'Tag',mfilename);
 end
 obj = findobj(fg,'Tag',tag);
 return;
