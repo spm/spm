@@ -30,13 +30,13 @@ function [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman, Vladimir Litvak
-% $Id: spm_dcm_simulate.m 7023 2017-02-21 11:34:52Z vladimir $
+% $Id: spm_dcm_simulate.m 7069 2017-04-24 10:15:20Z peter $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
 GCM = spm_dcm_load(GCM);
 
-if nargin < 2 || isempty(mode),    mode = 'none';    end
+if nargin < 2 || isempty(mode),    mode = 'ce';    end
 if nargin < 3 || isempty(noise),   noise = 1;        end
 if nargin < 4 || isempty(gen_idx), gen_idx = 1;      end
 
