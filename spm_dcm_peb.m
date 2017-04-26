@@ -88,7 +88,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7056 2017-04-10 15:49:19Z peter $
+% $Id: spm_dcm_peb.m 7071 2017-04-26 13:09:07Z peter $
  
 
 % get filenames and set up
@@ -211,7 +211,7 @@ if ~isfield(M,'W'),    M.W    = speye(Np,Np);                     end
 Q = {};
 if ~isfield(M,'Q')
     OPTION = 'single';
-elseif iscell(M.Q)        
+elseif iscell(M.Q) && isnumeric(M.Q{1})
     OPTION = 'manual';
     Q = M.Q;
 else
