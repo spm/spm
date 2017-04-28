@@ -6,7 +6,7 @@ function varargout = spm_BIDS(varargin)
 %
 % FORMAT result = spm_BIDS(BIDS,query,...)
 % BIDS   - BIDS directory name or structure containing the BIDS file layout
-% query  - query structure
+% query  - type of query
 % result - query's result
 %__________________________________________________________________________
 %
@@ -18,7 +18,7 @@ function varargout = spm_BIDS(varargin)
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7070 2017-04-26 10:23:27Z guillaume $
+% $Id: spm_BIDS.m 7072 2017-04-28 16:52:36Z guillaume $
 
 
 %-Validate input arguments
@@ -46,7 +46,7 @@ BIDS = struct(...
     'descr',struct([]), ...     % content of dataset_description.json
     'sessions',{{}},...         % cellstr of sessions
     'subjects',struct([]), ...  % structure array of subjects
-    'tasks',{{}},...            % content of task-<task_label>_bold.json (to be merged with sub-/func/sub-_bold.json
+    'tasks',struct([]),...      % content of task-<task_label>_bold.json (to be merged with sub-/func/sub-_bold.json
     'scans',struct([]),...      % content of sub-<participant_label>_scans.tsv (should go within subjects)
     'sess',struct([]),...       % content of sub-participants_label>_sessions.tsv (should go within subjects)
     'participants',struct([])); % content of participants.tsv
@@ -120,12 +120,12 @@ for i=1:numel(t)
         '(?<rec>_rec-[a-zA-Z0-9]+)?' ...   % rec-<label>
         '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
         '_(?<type>(beh|bold|channels|physio|stim|meg))$'],'names'); % type
-    BIDS.tasks{i}.type = labels.type;
-    BIDS.tasks{i}.task = labels.task;
-    BIDS.tasks{i}.acq  = strrep(labels.acq,'_','');
-    BIDS.tasks{i}.rec  = strrep(labels.rec,'_','');
-    BIDS.tasks{i}.run  = strrep(labels.run,'_','');
-    BIDS.tasks{i}.meta = spm_load(t{i});
+    BIDS.tasks(i).type = labels.type;
+    BIDS.tasks(i).task = labels.task;
+    BIDS.tasks(i).acq  = regexprep(labels.acq,'^_[a-zA-Z0-9]+-','');
+    BIDS.tasks(i).rec  = regexprep(labels.rec,'^_[a-zA-Z0-9]+-','');
+    BIDS.tasks(i).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
+    BIDS.tasks(i).meta = spm_load(t{i});
 end
 
 %-Subjects
@@ -154,7 +154,7 @@ varargout = { BIDS };
 %==========================================================================
 function subject = parse_subject(p, subjname, sesname)
 
-subject.name = subjname;    % subject name ('sub-*')
+subject.name = subjname; % subject name ('sub-<participant_label>')
 subject.path = fullfile(p,subjname,sesname); % full path to subject directory
 subject.session = sesname;  % session name ('' or 'ses-*')
 subject.anat = struct([]);  % anatomy imaging data
@@ -178,19 +178,24 @@ if exist(pth,'dir')
         %------------------------------------------------------------------
         subject.anat(i).filename = a{i}; % or full path?
         labels = regexp(a{i},[...
-            '^sub-[a-zA-Z0-9]+' ...          % sub-<participant_label>
-            '(?<ses>_ses-[a-zA-Z0-9]+)?' ... % ses-<label>
-            '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
-            '(?<rec>_rec-[a-zA-Z0-9]+)?' ... % rec-<label>
-            '(?<fa>_fa-[a-zA-Z0-9]+)?' ...   % fa-<label>
-            '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
-            '_(?<type>[a-zA-Z0-9]+){1}' ...  % modality
-            '\.nii(\.gz)?$'],'names');       % NIfTI file extension
+            '^sub-[a-zA-Z0-9]+' ...            % sub-<participant_label>
+            '(?<ses>_ses-[a-zA-Z0-9]+)?' ...   % ses-<label>
+            '(?<acq>_acq-[a-zA-Z0-9]+)?' ...   % acq-<label>
+            '(?<rec>_rec-[a-zA-Z0-9]+)?' ...   % rec-<label>
+            '(?<fa>_fa-[a-zA-Z0-9]+)?' ...     % fa-<index>
+            '(?<echo>_echo-[a-zA-Z0-9]+)?' ... % echo-<index>
+            '(?<inv>_inv-[a-zA-Z0-9]+)?' ...   % inv-<index>
+            '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
+            '_(?<type>[a-zA-Z0-9]+){1}' ...    % modality
+            '\.nii(\.gz)?$'],'names');         % NIfTI file extension
         subject.anat(i).type = labels.type;
-        subject.anat(i).ses = strrep(labels.ses,'_','');
-        subject.anat(i).acq = strrep(labels.acq,'_','');
-        subject.anat(i).rec = strrep(labels.rec,'_','');
-        subject.anat(i).run = strrep(labels.run,'_','');
+        subject.anat(i).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
+        subject.anat(i).acq  = regexprep(labels.acq,'^_[a-zA-Z0-9]+-','');
+        subject.anat(i).rec  = regexprep(labels.rec,'^_[a-zA-Z0-9]+-','');
+        subject.anat(i).fa   = regexprep(labels.fa,'^_[a-zA-Z0-9]+-','');
+        subject.anat(i).echo = regexprep(labels.echo,'^_[a-zA-Z0-9]+-','');
+        subject.anat(i).inv  = regexprep(labels.inv,'^_[a-zA-Z0-9]+-','');
+        subject.anat(i).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
 
         %-Metadata file
         %------------------------------------------------------------------
@@ -209,13 +214,15 @@ end
 %--------------------------------------------------------------------------
 pth = fullfile(subject.path,'func');
 if exist(pth,'dir')
+    
+    %-Task imaging data file
+    %----------------------------------------------------------------------
     f = spm_select('List',pth,...
         sprintf('^%s.*_task-.*_bold\\.nii(\\.gz)?$',subject.name));
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
 
         %-Task imaging data file
-        %------------------------------------------------------------------
         % (spm_file called twice to handle .nii and .nii.gz)
         fb = spm_file(spm_file(f{i},'basename'),'basename');
         subject.func(i).filename = f{i}; % or full path?
@@ -225,52 +232,85 @@ if exist(pth,'dir')
             '_task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
             '(?<acq>_acq-[a-zA-Z0-9]+)?' ...   % acq-<label>
             '(?<rec>_rec-[a-zA-Z0-9]+)?' ...   % rec-<label>
+            '(?<fa>_fa-[a-zA-Z0-9]+)?' ...     % fa-<index>
+            '(?<echo>_echo-[a-zA-Z0-9]+)?' ... % echo-<index>
+            '(?<inv>_inv-[a-zA-Z0-9]+)?' ...   % inv-<index>
             '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
             '_bold\.nii(\.gz)?$'],'names');    % NIfTI file extension
+        subject.func(i).type = 'bold';
+        subject.func(i).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
         subject.func(i).task = labels.task;
-        subject.func(i).acq = strrep(labels.acq,'_','');
-        subject.func(i).rec = strrep(labels.rec,'_','');
-        subject.func(i).run = strrep(labels.run,'_','');
+        subject.func(i).acq  = regexprep(labels.acq,'^_[a-zA-Z0-9]+-','');
+        subject.func(i).rec  = regexprep(labels.rec,'^_[a-zA-Z0-9]+-','');
+        subject.func(i).fa   = regexprep(labels.fa,'^_[a-zA-Z0-9]+-','');
+        subject.func(i).echo = regexprep(labels.echo,'^_[a-zA-Z0-9]+-','');
+        subject.func(i).inv  = regexprep(labels.inv,'^_[a-zA-Z0-9]+-','');
+        subject.func(i).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
 
         %-Acquisition file
-        %------------------------------------------------------------------
         metafile = fullfile(pth,spm_file(fb,'ext','json'));
         if exist(metafile,'file')
             subject.func(i).meta = spm_jsonread(metafile);
         else
             subject.func(i).meta = [];
         end
-
-        %-Task events file
-        %------------------------------------------------------------------
-        eventsfile = fullfile(pth,spm_file(spm_file(fb(1:end-5),...
-            'suffix','_events'),'ext','tsv'));
-        if exist(eventsfile,'file')
-            subject.func(i).events = spm_load(eventsfile);
-        else
-            subject.func(i).events = [];
-        end
-
-        %-Physiological and other continuous recordings file
-        %------------------------------------------------------------------
-        % see also [_recording-<label>]
-        physiofile = fullfile(pth,spm_file(spm_file(fb(1:end-5),...
-            'suffix','_physio'),'ext','tsv.gz'));
-        if exist(physiofile,'file')
-            subject.func(i).physio = spm_load(physiofile);
-        else
-            subject.func(i).physio = [];
-        end
-        % and metafile _physio.json
-        stimfile = fullfile(pth,spm_file(spm_file(fb(1:end-5),...
-            'suffix','_stim'),'ext','tsv.gz'));
-        if exist(stimfile,'file')
-            subject.func(i).stim = spm_load(stimfile);
-        else
-            subject.func(i).stim = [];
-        end
-        % and metafile _stim.json
     end
+    
+    %-Task events file
+    %----------------------------------------------------------------------
+    f = spm_select('List',pth,...
+        sprintf('^%s.*_task-.*_events\\.tsv$',subject.name));
+    if isempty(f), f = {}; else f = cellstr(f); end
+    for i=1:numel(f)
+        %-Task events file
+        subject.func(end+1).filename = f{i}; % or full path?
+        labels = regexp(f{i},[...
+            '^sub-[a-zA-Z0-9]+' ...            % sub-<participant_label>
+            '(?<ses>_ses-[a-zA-Z0-9]+)?' ...   % ses-<label>
+            '_task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
+            '(?<acq>_acq-[a-zA-Z0-9]+)?' ...   % acq-<label>
+            '(?<rec>_rec-[a-zA-Z0-9]+)?' ...   % rec-<label>
+            '(?<fa>_fa-[a-zA-Z0-9]+)?' ...     % fa-<index>
+            '(?<echo>_echo-[a-zA-Z0-9]+)?' ... % echo-<index>
+            '(?<inv>_inv-[a-zA-Z0-9]+)?' ...   % inv-<index>
+            '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
+            '_events\.tsv$'],'names');         % NIfTI file extension
+        subject.func(end).type = 'events';
+        subject.func(end).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
+        subject.func(end).task = labels.task;
+        subject.func(end).acq  = regexprep(labels.acq,'^_[a-zA-Z0-9]+-','');
+        subject.func(end).rec  = regexprep(labels.rec,'^_[a-zA-Z0-9]+-','');
+        subject.func(end).fa   = regexprep(labels.fa,'^_[a-zA-Z0-9]+-','');
+        subject.func(end).echo = regexprep(labels.echo,'^_[a-zA-Z0-9]+-','');
+        subject.func(end).inv  = regexprep(labels.inv,'^_[a-zA-Z0-9]+-','');
+        subject.func(end).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
+        subject.func(end).meta = spm_load(fullfile(pth,f{i})); % ?
+    end
+        
+    %-Physiological and other continuous recordings file (TODO)
+    %----------------------------------------------------------------------
+%     f = spm_select('List',pth,...
+%         sprintf('^%s.*_task-.*_physio\\.tsv\.gz$',subject.name));
+%     if isempty(f), f = {}; else f = cellstr(f); end
+%     for i=1:numel(f)
+%         % see also [_recording-<label>]
+%         physiofile = fullfile(pth,spm_file(spm_file(fb(1:end-5),...
+%             'suffix','_physio'),'ext','tsv.gz'));
+%         if exist(physiofile,'file')
+%             subject.func(i).physio = spm_load(physiofile);
+%         else
+%             subject.func(i).physio = [];
+%         end
+%         % and metafile _physio.json
+%         stimfile = fullfile(pth,spm_file(spm_file(fb(1:end-5),...
+%             'suffix','_stim'),'ext','tsv.gz'));
+%         if exist(stimfile,'file')
+%             subject.func(i).stim = spm_load(stimfile);
+%         else
+%             subject.func(i).stim = [];
+%         end
+%         % and metafile _stim.json
+%     end
 end
 
 %--------------------------------------------------------------------------
@@ -296,14 +336,15 @@ if exist(pth,'dir')
         for i=1:numel(idx)
             fb = spm_file(spm_file(f{idx(i)},'basename'),'basename');
             metafile = fullfile(pth,spm_file(fb,'ext','json'));
-            subject.fmap{j} = struct(...
-                'phasediff',f{idx(i)},...
-                'magnitude1',strrep(f{idx(i)},'_phasediff.nii','_magnitude1.nii'),...
-                'magnitude2',strrep(f{idx(i)},'_phasediff.nii','_magnitude2.nii'),... % optional
-                'ses',strrep(labels{idx(i)}.ses,'_',''),...
-                'acq',strrep(labels{idx(i)}.acq,'_',''),...
-                'run',strrep(labels{idx(i)}.run,'_',''),...
-                'meta',spm_jsonread(metafile));
+            subject.fmap(j).type = 'phasediff';
+            subject.fmap(j).filename = f{idx(i)};
+            subject.fmap(j).magnitude = {...
+            	strrep(f{idx(i)},'_phasediff.nii','_magnitude1.nii'),...
+            	strrep(f{idx(i)},'_phasediff.nii','_magnitude2.nii')}; % optional
+            subject.fmap(j).ses = regexprep(labels{idx(i)}.ses,'^_[a-zA-Z0-9]+-','');
+            subject.fmap(j).acq = regexprep(labels{idx(i)}.acq,'^_[a-zA-Z0-9]+-','');
+            subject.fmap(j).run = regexprep(labels{idx(i)}.run,'^_[a-zA-Z0-9]+-','');
+            subject.fmap(j).meta = spm_jsonread(metafile);
             j = j + 1;
         end
     end
@@ -321,16 +362,19 @@ if exist(pth,'dir')
         for i=1:numel(idx)
             fb = spm_file(spm_file(f{idx(i)},'basename'),'basename');
             metafile = fullfile(pth,spm_file(fb,'ext','json'));
-            subject.fmap{j} = struct(...
-                'phase1',f{idx(i)},...
-                'phase2',strrep(f{idx(i)},'_phase1.nii','_phase2.nii'),...
-                'magnitude1',strrep(f{idx(i)},'_phase1.nii','_magnitude1.nii'),...
-                'magnitude2',strrep(f{idx(i)},'_phase1.nii','_magnitude2.nii'),...
-                'ses',strrep(labels{idx(i)}.ses,'_',''),...
-                'acq',strrep(labels{idx(i)}.acq,'_',''),...
-                'run',strrep(labels{idx(i)}.run,'_',''),...
-                'meta1',spm_jsonread(metafile),...
-                'meta2',spm_jsonread(strrep(metafile,'_phase1.json','_phase2.json')));
+            subject.fmap(j).type = 'phase12';
+            subject.fmap(j).filename = {...
+            	f{idx(i)},...
+            	strrep(f{idx(i)},'_phase1.nii','_phase2.nii')};
+            subject.fmap(j).magnitude = {...
+            	strrep(f{idx(i)},'_phase1.nii','_magnitude1.nii'),...
+            	strrep(f{idx(i)},'_phase1.nii','_magnitude2.nii')};
+            subject.fmap(j).ses = regexprep(labels{idx(i)}.ses,'^_[a-zA-Z0-9]+-','');
+            subject.fmap(j).acq = regexprep(labels{idx(i)}.acq,'^_[a-zA-Z0-9]+-','');
+            subject.fmap(j).run = regexprep(labels{idx(i)}.run,'^_[a-zA-Z0-9]+-','');
+            subject.fmap(j).meta = {...
+            	spm_jsonread(metafile),...
+            	spm_jsonread(strrep(metafile,'_phase1.json','_phase2.json'))};
             j = j + 1;
         end
     end
@@ -348,13 +392,13 @@ if exist(pth,'dir')
         for i=1:numel(idx)
             fb = spm_file(spm_file(f{idx(i)},'basename'),'basename');
             metafile = fullfile(pth,spm_file(fb,'ext','json'));
-            subject.fmap{j} = struct(...
-                'fieldmap',f{idx(i)},...
-                'magnitude',strrep(f{idx(i)},'_fieldmap.nii','_magnitude.nii'),...
-                'ses',strrep(labels{idx(i)}.ses,'_',''),...
-                'acq',strrep(labels{idx(i)}.acq,'_',''),...
-                'run',strrep(labels{idx(i)}.run,'_',''),...
-                'meta',spm_jsonread(metafile));
+            subject.fmap(j).type = 'fieldmap';
+            subject.fmap(j).filename = f{idx(i)};
+            subject.fmap(j).magnitude = strrep(f{idx(i)},'_fieldmap.nii','_magnitude.nii');
+            subject.fmap(j).ses = regexprep(labels{idx(i)}.ses,'^_[a-zA-Z0-9]+-','');
+            subject.fmap(j).acq = regexprep(labels{idx(i)}.acq,'^_[a-zA-Z0-9]+-','');
+            subject.fmap(j).run = regexprep(labels{idx(i)}.run,'^_[a-zA-Z0-9]+-','');
+            subject.fmap(j).meta = spm_jsonread(metafile);
             j = j + 1;
         end
     end
@@ -373,13 +417,13 @@ if exist(pth,'dir')
         for i=1:numel(idx)
             fb = spm_file(spm_file(f{idx(i)},'basename'),'basename');
             metafile = fullfile(pth,spm_file(fb,'ext','json'));
-            subject.fmap{j} = struct(...
-                'epi',f{idx(i)},...
-                'ses',strrep(labels{idx(i)}.ses,'_',''),...
-                'acq',strrep(labels{idx(i)}.acq,'_',''),...
-                'dir',labels{idx(i)}.dir,...
-                'run',strrep(labels{idx(i)}.run,'_',''),...
-                'meta',spm_jsonread(metafile));
+            subject.fmap(j).type = 'epi';
+            subject.fmap(j).filename = f{idx(i)};
+            subject.fmap(j).ses = regexprep(labels{idx(i)}.ses,'^_[a-zA-Z0-9]+-','');
+            subject.fmap(j).acq = regexprep(labels{idx(i)}.acq,'^_[a-zA-Z0-9]+-','');
+            subject.fmap(j).dir = labels{idx(i)}.dir;
+            subject.fmap(j).run = regexprep(labels{idx(i)}.run,'^_[a-zA-Z0-9]+-','');
+            subject.fmap(j).meta = spm_jsonread(metafile);
             j = j + 1;
         end
     end
@@ -390,15 +434,17 @@ end
 %--------------------------------------------------------------------------
 pth = fullfile(subject.path,'meg');
 if exist(pth,'dir')
+    
+    %-MEG data file
+    %----------------------------------------------------------------------
     m = spm_select('List',pth,...
         sprintf('^%s.*_task-.*_meg\\..*[^json]$',subject.name));
     if isempty(m), m = {}; else m = cellstr(m); end
     for i=1:numel(m)
 
         %-MEG data file
-        %------------------------------------------------------------------
         fb = spm_file(m{i},'basename');
-        subject.meg(1).data(i).filename = m{i}; % or full path?
+        subject.meg(i).filename = m{i}; % or full path?
         labels = regexp(m{i},[...
             '^sub-[a-zA-Z0-9]+' ...            % sub-<participant_label>
             '(?<ses>_ses-[a-zA-Z0-9]+)?' ...   % ses-<label>
@@ -406,39 +452,63 @@ if exist(pth,'dir')
             '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
             '(?<proc>_proc-[a-zA-Z0-9]+)?' ... % proc-<label>
             '_meg\..*$'],'names');
-        subject.meg(1).data(i).task = labels.task;
-        subject.meg(1).data(i).ses  = strrep(labels.ses,'_','');
-        subject.meg(1).data(i).run  = strrep(labels.run,'_','');
-        subject.meg(1).data(i).proc = strrep(labels.proc,'_','');
+        subject.meg(i).type = 'meg';
+        subject.meg(i).task = labels.task;
+        subject.meg(i).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
+        subject.meg(i).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
+        subject.meg(i).proc = regexprep(labels.proc,'^_[a-zA-Z0-9]+-','');
 
         %-Metadata file
-        %------------------------------------------------------------------
         metafile = fullfile(pth,spm_file(fb,'ext','json'));
         if exist(metafile,'file')
-            subject.meg(1).data(i).meta = spm_jsonread(metafile);
+            subject.meg(i).meta = spm_jsonread(metafile);
         else
-            subject.meg(1).data(i).meta = [];
+            subject.meg(i).meta = [];
         end
-
-        %-MEG events file
-        %------------------------------------------------------------------
-        eventsfile = fullfile(pth,spm_file(spm_file(fb(1:end-4),...
-            'suffix','_events'),'ext','tsv'));
-        if exist(eventsfile,'file')
-            subject.meg(1).data(i).events = spm_load(eventsfile);
-        else
-            subject.meg(1).data(i).events = [];
-        end
-
-        %-Channel description table
-        %------------------------------------------------------------------
-        channelfile = fullfile(pth,spm_file(spm_file(fb(1:end-4),...
-            'suffix','_channels'),'ext','tsv'));
-        if exist(channelfile,'file')
-            subject.meg(1).data(i).channels = spm_load(channelfile);
-        else
-            subject.meg(1).data(i).channels = [];
-        end
+    end
+    
+    %-MEG events file
+    %----------------------------------------------------------------------
+    m = spm_select('List',pth,...
+        sprintf('^%s.*_task-.*_events\\.tsv$',subject.name));
+    if isempty(m), m = {}; else m = cellstr(m); end
+    for i=1:numel(m)
+        subject.meg(end+1).filename = m{i}; % or full path?
+        labels = regexp(m{i},[...
+            '^sub-[a-zA-Z0-9]+' ...            % sub-<participant_label>
+            '(?<ses>_ses-[a-zA-Z0-9]+)?' ...   % ses-<label>
+            '_task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
+            '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
+            '(?<proc>_proc-[a-zA-Z0-9]+)?' ... % proc-<label>
+            '_events\.tsv$'],'names');
+        subject.meg(end).type = 'events';
+        subject.meg(end).task = labels.task;
+        subject.meg(end).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
+        subject.meg(end).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
+        subject.meg(end).proc = regexprep(labels.proc,'^_[a-zA-Z0-9]+-','');
+        subject.meg(end).meta = spm_load(fullfile(pth,m{i})); % ?
+    end
+        
+    %-Channel description table
+    %----------------------------------------------------------------------
+    m = spm_select('List',pth,...
+        sprintf('^%s.*_task-.*_channels\\.tsv$',subject.name));
+    if isempty(m), m = {}; else m = cellstr(m); end
+    for i=1:numel(m)
+        subject.meg(end+1).filename = m{i}; % or full path?
+        labels = regexp(m{i},[...
+            '^sub-[a-zA-Z0-9]+' ...            % sub-<participant_label>
+            '(?<ses>_ses-[a-zA-Z0-9]+)?' ...   % ses-<label>
+            '_task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
+            '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
+            '(?<proc>_proc-[a-zA-Z0-9]+)?' ... % proc-<label>
+            '_channels\.tsv$'],'names');
+        subject.meg(end).type = 'channels';
+        subject.meg(end).task = labels.task;
+        subject.meg(end).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
+        subject.meg(end).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
+        subject.meg(end).proc = regexprep(labels.proc,'^_[a-zA-Z0-9]+-','');
+        subject.meg(end).meta = spm_load(fullfile(pth,m{i})); % ?
     end
 
     %-Session-specific files
@@ -447,11 +517,16 @@ if exist(pth,'dir')
         sprintf('^%s(_ses-[a-zA-Z0-9]+)?.*_(photo\\.jpg|fid\\.json|fidinfo\\.txt|headshape\\..*)$',subject.name));
     if isempty(m), m = {}; else m = cellstr(m); end
     for i=1:numel(m)
-        subject.meg(1).landmarks(i).filename = m{i}; % or full path?
+        subject.meg(end+1).filename = m{i}; % or full path?
+        subject.meg(end).type = 'landmark';
+        subject.meg(end).task = ''; % to fill in
+        subject.meg(end).ses  = ''; % to fill in
+        subject.meg(end).run  = ''; % to fill in
+        subject.meg(end).proc = ''; % to fill in
         if strcmp(spm_file(m{i},'ext'),'json')
-            subject.meg(1).landmarks(i).meta = spm_jsonread(fullfile(pth,m{i}));
+            subject.meg(end).meta = spm_jsonread(fullfile(pth,m{i}));
         else
-            subject.meg(1).landmarks(i).meta = [];
+            subject.meg(end).meta = [];
         end
     end
 end
@@ -548,15 +623,16 @@ if exist(pth,'dir')
             '(?<acq>_acq-[a-zA-Z0-9]+)?' ... % acq-<label>
             '(?<run>_run-[a-zA-Z0-9]+)?' ... % run-<index>
             '_dwi\.nii(\.gz)?$'],'names');   % NIfTI file extension
-        subject.dwi(i).ses = strrep(labels.ses,'_','');
-        subject.dwi(i).acq = strrep(labels.acq,'_','');
-        subject.dwi(i).run = strrep(labels.run,'_','');
+        subject.dwi(i).type = 'dwi';
+        subject.dwi(i).ses = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
+        subject.dwi(i).acq = regexprep(labels.acq,'^_[a-zA-Z0-9]+-','');
+        subject.dwi(i).run = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
 
         %-Metadata file
         %------------------------------------------------------------------
         % (spm_file called twice to handle .nii and .nii.gz)
-        metafile = spm_file(spm_file(a{i},'basename'),'ext','json');
-        if exist(fullfile(pth,metafile),'file')
+        metafile = fullfile(pth,spm_file(spm_file(a{i},'basename'),'ext','json'));
+        if exist(metafile,'file')
             subject.dwi(i).meta = spm_jsonread(metafile);
         else
             subject.dwi(i).meta = '';
@@ -564,7 +640,7 @@ if exist(pth,'dir')
 
         %-bval file
         %------------------------------------------------------------------
-        bvalfile = spm_file(spm_file(a{i},'basename'),'ext','bval');
+        bvalfile = fullfile(pth,spm_file(spm_file(a{i},'basename'),'ext','bval'));
         if exist(fullfile(pth,bvalfile),'file')
             subject.dwi(i).bval = spm_load(bvalfile);
         else
@@ -573,7 +649,7 @@ if exist(pth,'dir')
 
         %-bvec file
         %------------------------------------------------------------------
-        bvecfile = spm_file(spm_file(a{i},'basename'),'ext','bvec');
+        bvecfile = fullfile(pth,spm_file(spm_file(a{i},'basename'),'ext','bvec'));
         if exist(fullfile(pth,bvecfile),'file')
             subject.dwi(i).bvec = spm_load(bvecfile);
         else
@@ -587,9 +663,150 @@ end
 %-Perform a BIDS query
 %==========================================================================
 function result = BIDS_query(BIDS,query,varargin)
+opts = parse_query(varargin);
 switch query
+    case 'subjects'
+        result = unique({BIDS.subjects.name});
+        result = regexprep(result,'^[a-zA-Z0-9]+-','');
+    case 'sessions'
+        result = unique({BIDS.subjects.session});
+        result = regexprep(result,'^[a-zA-Z0-9]+-','');
+    case 'modalities'
+        hasmod = arrayfun(@(y) structfun(@(x) isstruct(x) & ~isempty(x),y),...
+            BIDS.subjects,'UniformOutput',false);
+        hasmod = any([hasmod{:}],2);
+        mods   = fieldnames(BIDS.subjects)';
+        result = mods(hasmod);
+    case 'types'
+        result = {};
+        mods = {'anat','func','fmap','dwi','meg'};
+        for i=1:numel(BIDS.subjects)
+            for j=1:numel(mods)
+                for k=1:numel(BIDS.subjects(i).(mods{j}))
+                    if isfield(BIDS.subjects(i).(mods{j})(k),'type')
+                        result{end+1} = BIDS.subjects(i).(mods{j})(k).type;
+                    end
+                end
+            end
+        end
+        result = unique(result);
+    case 'tasks'
+        result = unique({BIDS.tasks.task});
+    case 'runs'
+        result = {};
+        if any(ismember(opts(:,1),'sub'))
+            subs = opts{ismember(opts(:,1),'sub'),2};
+            opts(ismember(opts(:,1),'sub'),:) = [];
+        else
+            subs = BIDS_query(BIDS,'subjects');
+        end
+        if any(ismember(opts(:,1),'modality'))
+            mods = opts{ismember(opts(:,1),'modality'),2};
+            opts(ismember(opts(:,1),'modality'),:) = [];
+        else
+            mods = BIDS_query(BIDS,'modalities');
+        end
+        for i=1:numel(BIDS.subjects)
+            if ~ismember(BIDS.subjects(i).name(5:end),subs), continue; end
+            for j=1:numel(mods)
+                d = BIDS.subjects(i).(mods{j});
+                for k=1:numel(d)
+                    sts = true;
+                    for l=1:size(opts,1)
+                        if ~isfield(d(k),opts{l,1}) || ~ismember(d(k).(opts{l,1}),opts{l,2})
+                            sts = false;
+                        end
+                    end
+                    if sts && isfield(d(k),'run')
+                    	result{end+1} = d(k).run;
+                    end
+                end
+            end
+        end
+        result = unique(result);
+        result(cellfun('isempty',result)) = [];
+    case 'data'
+        result = {};
+        if any(ismember(opts(:,1),'sub'))
+            subs = opts{ismember(opts(:,1),'sub'),2};
+            opts(ismember(opts(:,1),'sub'),:) = [];
+        else
+            subs = BIDS_query(BIDS,'subjects');
+        end
+        if any(ismember(opts(:,1),'modality'))
+            mods = opts{ismember(opts(:,1),'modality'),2};
+            opts(ismember(opts(:,1),'modality'),:) = [];
+        else
+            mods = BIDS_query(BIDS,'modalities');
+        end
+        for i=1:numel(BIDS.subjects)
+            if ~ismember(BIDS.subjects(i).name(5:end),subs), continue; end
+            for j=1:numel(mods)
+                d = BIDS.subjects(i).(mods{j});
+                for k=1:numel(d)
+                    sts = true;
+                    for l=1:size(opts,1)
+                        if ~isfield(d(k),opts{l,1}) || ~ismember(d(k).(opts{l,1}),opts{l,2})
+                            sts = false;
+                        end
+                    end
+                    if sts && isfield(d(k),'filename')
+                    	result{end+1} = fullfile(BIDS.subjects(i).path,mods{j},d(k).filename);
+                    end
+                end
+            end
+        end
+        result = result';
+    case 'metadata'
+        result = {};
+        if any(ismember(opts(:,1),'sub'))
+            subs = opts{ismember(opts(:,1),'sub'),2};
+            opts(ismember(opts(:,1),'sub'),:) = [];
+        else
+            subs = BIDS_query(BIDS,'subjects');
+        end
+        if any(ismember(opts(:,1),'modality'))
+            mods = opts{ismember(opts(:,1),'modality'),2};
+            opts(ismember(opts(:,1),'modality'),:) = [];
+        else
+            mods = BIDS_query(BIDS,'modalities');
+        end
+        for i=1:numel(BIDS.subjects)
+            if ~ismember(BIDS.subjects(i).name(5:end),subs), continue; end
+            for j=1:numel(mods)
+                d = BIDS.subjects(i).(mods{j});
+                for k=1:numel(d)
+                    sts = true;
+                    for l=1:size(opts,1)
+                        if ~isfield(d(k),opts{l,1}) || ~ismember(d(k).(opts{l,1}),opts{l,2})
+                            sts = false;
+                        end
+                    end
+                    if sts && isfield(d(k),'meta')
+                    	result{end+1} = d(k).meta;
+                    end
+                end
+            end
+        end
     otherwise
         error('Unable to perform BIDS query.');
+end
+
+
+%-Parse BIDS query
+function query = parse_query(query)
+if numel(query) == 1 && isstruct(query{1})
+    query = [fieldnames(query{1}), struct2cell(query{1})];
+else
+    query = reshape(query,2,[])';
+end
+for i=1:size(query,1)
+    if ischar(query{i,2})
+        query{i,2} = cellstr(query{i,2});
+    end
+    for j=1:numel(query{i,2})
+        query{i,2}{j} = regexprep(query{i,2}{j},sprintf('^%s-',query{i,1}),'');
+    end
 end
 
 
