@@ -1,22 +1,20 @@
-function s = spm_cat_struct(varargin)
+function s = spm_cat_struct(s1, s2, varargin)
 % Concatenates structure arrays with possibly different fields
 % FORMAT s = spm_cat_struct(s1, s2, ...)
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cat_struct.m 6409 2015-04-16 16:19:38Z guillaume $
+% $Id: spm_cat_struct.m 7074 2017-05-05 10:51:08Z guillaume $
 
-if nargin < 2
-    error('At least two arguments are required');
-end
 
-s1 = varargin{1};
-
-if nargin > 2
-    s2 = spm_cat_struct(varargin{2:end});
-else
-    s2 = varargin{2};
+if ~nargin
+    s1 = struct([]);
+    s2 = struct([]);
+elseif nargin == 1
+    s2 = struct([]);
+elseif nargin > 2
+    s2 = spm_cat_struct(s2,varargin{:});
 end
 
 if isempty(s1)

@@ -18,7 +18,7 @@ function varargout = spm_BIDS(varargin)
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7073 2017-05-03 14:36:33Z guillaume $
+% $Id: spm_BIDS.m 7074 2017-05-05 10:51:08Z guillaume $
 
 
 %-Validate input arguments
@@ -78,6 +78,7 @@ end
 % [derivatives/]
 % [stimuli/]
 % [sourcedata/]
+% [phenotype]
 
 %-Scans key file
 %==========================================================================
@@ -93,12 +94,8 @@ if ~isempty(p)
 end
 p = spm_select('FPList',BIDS.dir,'^participants\.json$');
 if ~isempty(p)
-    spm_jsonread(p); % need to be stored somewhere
+    BIDS.participants.meta = spm_jsonread(p);
 end
-
-p = spm_select('FPList',fullfile(BIDS.dir,'phenotype'),'.*\.tsv$');
-p = spm_select('FPList',fullfile(BIDS.dir,'phenotype'),'.*\.json$');
-% <measurement_tool_name>
 
 %-Sessions file
 %==========================================================================
@@ -137,16 +134,16 @@ varargout = { BIDS };
 %==========================================================================
 function subject = parse_subject(p, subjname, sesname)
 
-subject.name = subjname; % subject name ('sub-<participant_label>')
+subject.name = subjname;   % subject name ('sub-<participant_label>')
 subject.path = fullfile(p,subjname,sesname); % full path to subject directory
-subject.session = sesname;  % session name ('' or 'ses-*')
-subject.anat = struct([]);  % anatomy imaging data
-subject.func = struct([]);  % task imaging data
-subject.fmap = struct([]);  % fieldmap data
-subject.beh = struct([]);   % behavioral experiment data
-subject.dwi = struct([]);   % diffusion imaging data
-subject.meg = struct([]);   % MEG data
-subject.pet = struct([]);   % PET imaging data
+subject.session = sesname; % session name ('' or 'ses-<label>')
+subject.anat = struct([]); % anatomy imaging data
+subject.func = struct([]); % task imaging data
+subject.fmap = struct([]); % fieldmap data
+subject.beh = struct([]);  % behavioral experiment data
+subject.dwi = struct([]);  % diffusion imaging data
+subject.meg = struct([]);  % MEG data
+subject.pet = struct([]);  % PET imaging data
 
 
 %--------------------------------------------------------------------------
@@ -154,34 +151,16 @@ subject.pet = struct([]);   % PET imaging data
 %--------------------------------------------------------------------------
 pth = fullfile(subject.path,'anat');
 if exist(pth,'dir')
-    a = spm_select('List',pth,...
+    f = spm_select('List',pth,...
         sprintf('^%s.*_([a-zA-Z0-9]+){1}\\.nii(\\.gz)?$',subject.name));
-    if isempty(a), a = {}; else a = cellstr(a); end
-    for i=1:numel(a)
-
+    if isempty(f), f = {}; else f = cellstr(f); end
+    for i=1:numel(f)
+        
         %-Anatomy imaging data file
         %------------------------------------------------------------------
-        subject.anat(i).filename = a{i}; % or full path?
-        labels = regexp(a{i},[...
-            '^sub-[a-zA-Z0-9]+' ...            % sub-<participant_label>
-            '(?<ses>_ses-[a-zA-Z0-9]+)?' ...   % ses-<label>
-            '(?<acq>_acq-[a-zA-Z0-9]+)?' ...   % acq-<label>
-            '(?<rec>_rec-[a-zA-Z0-9]+)?' ...   % rec-<label>
-            '(?<fa>_fa-[a-zA-Z0-9]+)?' ...     % fa-<index>
-            '(?<echo>_echo-[a-zA-Z0-9]+)?' ... % echo-<index>
-            '(?<inv>_inv-[a-zA-Z0-9]+)?' ...   % inv-<index>
-            '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
-            '_(?<type>[a-zA-Z0-9]+){1}' ...    % type
-            '\.nii(\.gz)?$'],'names');         % NIfTI file extension
-        subject.anat(i).type = labels.type;
-        subject.anat(i).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
-        subject.anat(i).acq  = regexprep(labels.acq,'^_[a-zA-Z0-9]+-','');
-        subject.anat(i).rec  = regexprep(labels.rec,'^_[a-zA-Z0-9]+-','');
-        subject.anat(i).fa   = regexprep(labels.fa,'^_[a-zA-Z0-9]+-','');
-        subject.anat(i).echo = regexprep(labels.echo,'^_[a-zA-Z0-9]+-','');
-        subject.anat(i).inv  = regexprep(labels.inv,'^_[a-zA-Z0-9]+-','');
-        subject.anat(i).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
-
+        p = parse_filename(f{i}, {'sub','ses','acq','ce','rec','fa','echo','inv','run'});
+        subject.anat = [subject.anat p];
+        
     end
 end
 
@@ -197,93 +176,40 @@ if exist(pth,'dir')
         sprintf('^%s.*_task-.*_bold\\.nii(\\.gz)?$',subject.name));
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
-
-        %-Task imaging data file
-        subject.func(i).filename = f{i}; % or full path?
-        labels = regexp(f{i},[...
-            '^sub-[a-zA-Z0-9]+' ...            % sub-<participant_label>
-            '(?<ses>_ses-[a-zA-Z0-9]+)?' ...   % ses-<label>
-            '_task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
-            '(?<acq>_acq-[a-zA-Z0-9]+)?' ...   % acq-<label>
-            '(?<rec>_rec-[a-zA-Z0-9]+)?' ...   % rec-<label>
-            '(?<fa>_fa-[a-zA-Z0-9]+)?' ...     % fa-<index>
-            '(?<echo>_echo-[a-zA-Z0-9]+)?' ... % echo-<index>
-            '(?<inv>_inv-[a-zA-Z0-9]+)?' ...   % inv-<index>
-            '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
-            '_(?<type>[a-zA-Z0-9]+){1}' ...    % type (bold|sbref)
-            '\.nii(\.gz)?$'],'names');    % NIfTI file extension
-        subject.func(i).type = labels.type;
-        subject.func(i).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
-        subject.func(i).task = labels.task;
-        subject.func(i).acq  = regexprep(labels.acq,'^_[a-zA-Z0-9]+-','');
-        subject.func(i).rec  = regexprep(labels.rec,'^_[a-zA-Z0-9]+-','');
-        subject.func(i).fa   = regexprep(labels.fa,'^_[a-zA-Z0-9]+-','');
-        subject.func(i).echo = regexprep(labels.echo,'^_[a-zA-Z0-9]+-','');
-        subject.func(i).inv  = regexprep(labels.inv,'^_[a-zA-Z0-9]+-','');
-        subject.func(i).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
-
+        
+        p = parse_filename(f{i}, {'sub','ses','task','acq','rec','fa','echo','inv','run','recording', 'meta'});
+        subject.func = [subject.func p];
+        subject.func(end).meta = struct([]); % ?
+        
     end
     
     %-Task events file
     %----------------------------------------------------------------------
+    % (!) TODO: events file can also be stored at higher levels (inheritance principle)
     f = spm_select('List',pth,...
         sprintf('^%s.*_task-.*_events\\.tsv$',subject.name));
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
-        %-Task events file
-        subject.func(end+1).filename = f{i}; % or full path?
-        labels = regexp(f{i},[...
-            '^sub-[a-zA-Z0-9]+' ...            % sub-<participant_label>
-            '(?<ses>_ses-[a-zA-Z0-9]+)?' ...   % ses-<label>
-            '_task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
-            '(?<acq>_acq-[a-zA-Z0-9]+)?' ...   % acq-<label>
-            '(?<rec>_rec-[a-zA-Z0-9]+)?' ...   % rec-<label>
-            '(?<fa>_fa-[a-zA-Z0-9]+)?' ...     % fa-<index>
-            '(?<echo>_echo-[a-zA-Z0-9]+)?' ... % echo-<index>
-            '(?<inv>_inv-[a-zA-Z0-9]+)?' ...   % inv-<index>
-            '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
-            '_events\.tsv$'],'names');         % NIfTI file extension
-        subject.func(end).type = 'events';
-        subject.func(end).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
-        subject.func(end).task = labels.task;
-        subject.func(end).acq  = regexprep(labels.acq,'^_[a-zA-Z0-9]+-','');
-        subject.func(end).rec  = regexprep(labels.rec,'^_[a-zA-Z0-9]+-','');
-        subject.func(end).fa   = regexprep(labels.fa,'^_[a-zA-Z0-9]+-','');
-        subject.func(end).echo = regexprep(labels.echo,'^_[a-zA-Z0-9]+-','');
-        subject.func(end).inv  = regexprep(labels.inv,'^_[a-zA-Z0-9]+-','');
-        subject.func(end).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
+        
+        p = parse_filename(f{i}, {'sub','ses','task','acq','rec','fa','echo','inv','run','recording', 'meta'});
+        subject.func = [subject.func p];
         subject.func(end).meta = spm_load(fullfile(pth,f{i})); % ?
+
     end
         
     %-Physiological and other continuous recordings file
     %----------------------------------------------------------------------
+    % (!) TODO: stim file can also be stored at higher levels (inheritance principle)
     f = spm_select('List',pth,...
-        sprintf('^%s.*_task-.*_(physio|stim)\\.tsv\.gz$',subject.name));
+        sprintf('^%s.*_task-.*_(physio|stim)\\.tsv\\.gz$',subject.name));
     % see also [_recording-<label>]
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
-        subject.func(end+1).filename = f{i}; % or full path?
-        labels = regexp(f{i},[...
-            '^sub-[a-zA-Z0-9]+' ...            % sub-<participant_label>
-            '(?<ses>_ses-[a-zA-Z0-9]+)?' ...   % ses-<label>
-            '_task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
-            '(?<acq>_acq-[a-zA-Z0-9]+)?' ...   % acq-<label>
-            '(?<rec>_rec-[a-zA-Z0-9]+)?' ...   % rec-<label>
-            '(?<fa>_fa-[a-zA-Z0-9]+)?' ...     % fa-<index>
-            '(?<echo>_echo-[a-zA-Z0-9]+)?' ... % echo-<index>
-            '(?<inv>_inv-[a-zA-Z0-9]+)?' ...   % inv-<index>
-            '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
-            '_(?<type>physio|stim){1}\.tsv\.gz$'],'names'); % NIfTI file extension
-        subject.func(end).type = labels.type;
-        subject.func(end).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
-        subject.func(end).task = labels.task;
-        subject.func(end).acq  = regexprep(labels.acq,'^_[a-zA-Z0-9]+-','');
-        subject.func(end).rec  = regexprep(labels.rec,'^_[a-zA-Z0-9]+-','');
-        subject.func(end).fa   = regexprep(labels.fa,'^_[a-zA-Z0-9]+-','');
-        subject.func(end).echo = regexprep(labels.echo,'^_[a-zA-Z0-9]+-','');
-        subject.func(end).inv  = regexprep(labels.inv,'^_[a-zA-Z0-9]+-','');
-        subject.func(end).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
         
+        p = parse_filename(f{i}, {'sub','ses','task','acq','rec','fa','echo','inv','run','recording', 'meta'});
+        subject.func = [subject.func p];
+        subject.func(end).meta = struct([]); % ?
+         
     end
 end
 
@@ -411,165 +337,74 @@ if exist(pth,'dir')
     
     %-MEG data file
     %----------------------------------------------------------------------
-    m = spm_select('List',pth,...
+    f = spm_select('List',pth,...
         sprintf('^%s.*_task-.*_meg\\..*[^json]$',subject.name));
-    if isempty(m), m = {}; else m = cellstr(m); end
-    for i=1:numel(m)
-
-        %-MEG data file
-        subject.meg(i).filename = m{i}; % or full path?
-        labels = regexp(m{i},[...
-            '^sub-[a-zA-Z0-9]+' ...            % sub-<participant_label>
-            '(?<ses>_ses-[a-zA-Z0-9]+)?' ...   % ses-<label>
-            '_task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
-            '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
-            '(?<proc>_proc-[a-zA-Z0-9]+)?' ... % proc-<label>
-            '_meg\..*$'],'names');
-        subject.meg(i).type = 'meg';
-        subject.meg(i).task = labels.task;
-        subject.meg(i).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
-        subject.meg(i).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
-        subject.meg(i).proc = regexprep(labels.proc,'^_[a-zA-Z0-9]+-','');
-
+    if isempty(f), f = {}; else f = cellstr(f); end
+    for i=1:numel(f)
+        
+        p = parse_filename(f{i}, {'sub','ses','task','run','proc', 'meta'});
+        subject.meg = [subject.meg p];
+        subject.meg(end).meta = struct(); % ?
+        
     end
     
     %-MEG events file
     %----------------------------------------------------------------------
-    m = spm_select('List',pth,...
+    f = spm_select('List',pth,...
         sprintf('^%s.*_task-.*_events\\.tsv$',subject.name));
-    if isempty(m), m = {}; else m = cellstr(m); end
-    for i=1:numel(m)
-        subject.meg(end+1).filename = m{i}; % or full path?
-        labels = regexp(m{i},[...
-            '^sub-[a-zA-Z0-9]+' ...            % sub-<participant_label>
-            '(?<ses>_ses-[a-zA-Z0-9]+)?' ...   % ses-<label>
-            '_task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
-            '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
-            '(?<proc>_proc-[a-zA-Z0-9]+)?' ... % proc-<label>
-            '_events\.tsv$'],'names');
-        subject.meg(end).type = 'events';
-        subject.meg(end).task = labels.task;
-        subject.meg(end).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
-        subject.meg(end).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
-        subject.meg(end).proc = regexprep(labels.proc,'^_[a-zA-Z0-9]+-','');
-        subject.meg(end).meta = spm_load(fullfile(pth,m{i})); % ?
+    if isempty(f), f = {}; else f = cellstr(f); end
+    for i=1:numel(f)
+        
+        p = parse_filename(f{i}, {'sub','ses','task','run','proc', 'meta'});
+        subject.meg = [subject.meg p];
+        subject.meg(end).meta = spm_load(fullfile(pth,f{i})); % ?
+        
     end
         
     %-Channel description table
     %----------------------------------------------------------------------
-    m = spm_select('List',pth,...
+    f = spm_select('List',pth,...
         sprintf('^%s.*_task-.*_channels\\.tsv$',subject.name));
-    if isempty(m), m = {}; else m = cellstr(m); end
-    for i=1:numel(m)
-        subject.meg(end+1).filename = m{i}; % or full path?
-        labels = regexp(m{i},[...
-            '^sub-[a-zA-Z0-9]+' ...            % sub-<participant_label>
-            '(?<ses>_ses-[a-zA-Z0-9]+)?' ...   % ses-<label>
-            '_task-(?<task>[a-zA-Z0-9]+)?' ... % task-<task_label>
-            '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
-            '(?<proc>_proc-[a-zA-Z0-9]+)?' ... % proc-<label>
-            '_channels\.tsv$'],'names');
-        subject.meg(end).type = 'channels';
-        subject.meg(end).task = labels.task;
-        subject.meg(end).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
-        subject.meg(end).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
-        subject.meg(end).proc = regexprep(labels.proc,'^_[a-zA-Z0-9]+-','');
-        subject.meg(end).meta = spm_load(fullfile(pth,m{i})); % ?
+    if isempty(f), f = {}; else f = cellstr(f); end
+    for i=1:numel(f)
+        
+        p = parse_filename(f{i}, {'sub','ses','task','run','proc', 'meta'});
+        subject.meg = [subject.meg p];
+        subject.meg(end).meta = spm_load(fullfile(pth,f{i})); % ?
+        
     end
 
-    %-Session-specific files
+    %-Session-specific file
     %----------------------------------------------------------------------
-    m = spm_select('List',pth,...
+    f = spm_select('List',pth,...
         sprintf('^%s(_ses-[a-zA-Z0-9]+)?.*_(photo\\.jpg|fid\\.json|fidinfo\\.txt|headshape\\..*)$',subject.name));
-    if isempty(m), m = {}; else m = cellstr(m); end
-    for i=1:numel(m)
-        subject.meg(end+1).filename = m{i}; % or full path?
-        labels = regexp(m{i},[...
-            '^sub-[a-zA-Z0-9]+' ...            % sub-<participant_label>
-            '(?<ses>_ses-[a-zA-Z0-9]+)?' ...   % ses-<label>
-            '(?<task>_task-[a-zA-Z0-9]+)?' ... % task-<task_label>
-            '(?<run>_run-[a-zA-Z0-9]+)?' ...   % run-<index>
-            '(?<proc>_proc-[a-zA-Z0-9]+)?' ... % proc-<label>
-            '_(?<type>[a-zA-Z0-9]+)?\..*$'],'names');
-        subject.meg(end).type = labels.type;
-        subject.meg(end).task = regexprep(labels.task,'^_[a-zA-Z0-9]+-','');
-        subject.meg(end).ses  = regexprep(labels.ses,'^_[a-zA-Z0-9]+-','');
-        subject.meg(end).run  = regexprep(labels.run,'^_[a-zA-Z0-9]+-','');
-        subject.meg(end).proc = regexprep(labels.proc,'^_[a-zA-Z0-9]+-','');
-        subject.meg(end).meta = struct();
+    if isempty(f), f = {}; else f = cellstr(f); end
+    for i=1:numel(f)
+        
+        p = parse_filename(f{i}, {'sub','ses','task','run','proc', 'meta'});
+        subject.meg = [subject.meg p];
+        subject.meg(end).meta = struct(); % ?
+        
     end
+
 end
 
 %--------------------------------------------------------------------------
-%-Behavioral experiment data
+%-Behavioral experiments data
 %--------------------------------------------------------------------------
 pth = fullfile(subject.path,'beh');
 if exist(pth,'dir')
-
-    % There might be a [_ses-<session_label>]
-
-    %-Event timing
-    %----------------------------------------------------------------------
-    f = spm_select('List',pth, ...
-        sprintf('^%s_task-.*_events.tsv$',subject.name));
-    if ~isempty(f)
-        f = cellstr(f);
-        for i=1:numel(f)
-            subject.beh(1).events(i).filename = fullfile(pth,f{i});
-            task = regexp(f{i},'.*task-([a-zA-Z0-9]+)_events\.tsv$','tokens');
-            subject.beh(1).events(i).task = task{1}{1};
-        end
-    end
-
-    %-Metadata
-    %----------------------------------------------------------------------
-    f = spm_select('List',pth, ...
-        sprintf('^%s_task-.*_beh.json$',subject.name));
-    if ~isempty(f)
-        f = cellstr(f);
-        for i=1:numel(f)
-            subject.beh(1).meta(i).filename = fullfile(pth,f{i});
-            task = regexp(f{i},'.*task-([a-zA-Z0-9]+)_beh.json$','tokens');
-            subject.beh(1).meta(i).task = task{1}{1};
-        end
-    end
-
-    %-Physiological recordings
-    %----------------------------------------------------------------------
-    f = spm_select('List',pth, ...
-        sprintf('^%s_task-.*_physio.tsv.gz$',subject.name));
-    if ~isempty(f)
-        f = cellstr(f);
-        for i=1:numel(f)
-            subject.beh(1).physio(i).filename = fullfile(pth,f{i});
-            task = regexp(f{i},'.*task-([a-zA-Z0-9]+)_physio\.tsv\.gz$','tokens');
-            subject.beh(1).physio(i).task = task{1}{1};
-            metafile = fullfile(pth,spm_file(spm_file(f{i},'basename'),'ext','json'));
-            if exist(metafile,'file')
-                subject.beh(1).physio(i).meta = spm_jsonread(metafile);
-            else
-                subject.beh(1).physio(i).meta = [];
-            end
-        end
-    end
-
-    %-Other continuous recordings
-    %----------------------------------------------------------------------
-    f = spm_select('List',pth, ...
-        sprintf('^%s_task-.*_stim.tsv.gz$',subject.name));
-    if ~isempty(f)
-        f = cellstr(f);
-        for i=1:numel(f)
-            subject.beh(1).stim(i).filename = fullfile(pth,f{i});
-            task = regexp(f{i},'.*task-([a-zA-Z0-9]+)_stim\.tsv\.gz$','tokens');
-            subject.beh(1).stim(i).task = task{1}{1};
-            metafile = fullfile(pth,spm_file(spm_file(f{i},'basename'),'ext','json'));
-            if exist(metafile,'file')
-                subject.beh(1).stim(i).meta = spm_jsonread(metafile);
-            else
-                subject.beh(1).stim(i).meta = [];
-            end
-        end
+    f = spm_select('FPList',pth,...
+        sprintf('^%s.*_(events\\.tsv|beh\\.json|physio\\.tsv\\.gz|stim\\.tsv\\.gz)$',subject.name));
+    if isempty(f), f = {}; else f = cellstr(f); end
+    for i=1:numel(f)
+        
+        %-Event timing, metadata, physiological and other continuous
+        % recordings
+        %------------------------------------------------------------------
+        p = parse_filename(f{i}, {'sub','ses','task'});
+        subject.beh = [subject.beh p];
+        
     end
 end
 
@@ -788,7 +623,8 @@ if nargin == 2
     try
         p = orderfields(p,['filename','ext','type',fields]);
     catch
-        warning('File %s does not match template.',filename);
+        warning('Ignoring file "%s" not matching template.',filename);
+        p = struct([]);
     end
 end
 
