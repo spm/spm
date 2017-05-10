@@ -20,7 +20,7 @@ function [i,pC,pE,Np] = spm_find_pC(varargin)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_find_pC.m 7040 2017-03-15 15:26:45Z peter $
+% $Id: spm_find_pC.m 7075 2017-05-10 15:08:31Z peter $
 
 %-parse input arguments
 %--------------------------------------------------------------------------
@@ -66,7 +66,7 @@ if nargin > 1
     if ischar(fields), fields = {fields}; end
     if isstruct(pE)
         j = spm_fieldindices(pE,fields{:});
-        if isempty(j)
+        if isempty(j) && ~(~isempty(fields) && strcmp(fields{1},'none'))
             warning('%s not found. Returning all fields',...
                 strjoin(cellstr(fields),','));
         else
