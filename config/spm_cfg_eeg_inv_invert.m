@@ -5,7 +5,7 @@ function invert = spm_cfg_eeg_inv_invert
 % Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invert.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_eeg_inv_invert.m 7076 2017-05-19 12:47:36Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -156,7 +156,7 @@ modality = cfg_menu;
 modality.tag = 'modality';
 modality.name = 'Select modalities';
 modality.help = {'Select modalities for the inversion (only relevant for multimodal datasets).'};
-modality.labels = {'All', 'EEG', 'MEG', 'MEGPLANAR', 'EEG+MEG', 'MEG+MEGPLANAR', 'EEG+MEGPLANAR'};
+modality.labels = {'All', 'EEG', 'MEG', 'MEGPLANAR', 'EEG+MEG', 'MEG+MEGPLANAR', 'EEG+MEGPLANAR', 'EEG+MEG+MEGPLANAR'};
 modality.values = {
     {'All'}
     {'EEG'}
@@ -165,6 +165,7 @@ modality.values = {
     {'EEG', 'MEG'}
     {'MEG', 'MEGPLANAR'}
     {'EEG', 'MEGPLANAR'}
+    {'EEG', 'MEG', 'MEGPLANAR'}
     }';
 modality.val = {{'All'}};
 
