@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 7053 2017-04-03 11:04:13Z guillaume $
+ * $Id: spm_jsonread.c 7077 2017-05-23 09:13:10Z guillaume $
  * Guillaume Flandin
  */
 
@@ -86,7 +86,7 @@ static int should_convert_to_array(const mxArray *pm) {
                 return 0;
             }
             for (j = 0; j < nfields; j++) {
-                if (mxGetFieldNumber(mxGetCell(pm, 0), mxGetFieldNameByNumber(mxGetCell(pm, i), j)) == -1) {
+                if (mxGetFieldNumber(mxGetCell(pm, 0), mxGetFieldNameByNumber(mxGetCell(pm, i), j)) != j) {
                     return 0;
                 }
             }
