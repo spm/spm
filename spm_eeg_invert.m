@@ -122,7 +122,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 7017 2017-02-15 12:50:58Z karl $
+% $Id: spm_eeg_invert.m 7082 2017-05-27 19:36:36Z karl $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -162,7 +162,8 @@ try, Han  = inverse.Han;    catch, Han  = 1;        end
 try, woi  = inverse.woi;    catch, woi  = [];       end
 try, pQ   = inverse.pQ;     catch, pQ   = [];       end
 try, dp   = inverse.dplot;  catch, dp   = 0;        end
- 
+
+
 % get specified modalities to invert (default to all)
 %--------------------------------------------------------------------------
 try
@@ -506,7 +507,7 @@ for i = 1:Nl
         VE(i) = 1;                               % variance explained
         
     else
-        [U E] = spm_svd(YTY,exp(-8));            % get temporal modes
+        [U,E] = spm_svd(YTY,exp(-8));            % get temporal modes
         E     = diag(E)/trace(YTY);              % normalise variance
         Nr(i) = min(length(E),Nmax);             % number of temporal modes
         S{i}  = T*U(:,1:Nr(i));                  % temporal modes
@@ -603,12 +604,13 @@ end
 %==========================================================================
 switch(type)
     
-    case {'MSP','GS','ARD'}
+    case {'MSP','GS','ARD','BMR'}
         
         % create MSP spatial basis set in source space
         %------------------------------------------------------------------
         Qp    = {};
         LQpL  = {};
+        LQL   = {};
         Ip    = ceil([1:Np]*Ns/Np);
         for i = 1:Np
             
@@ -632,7 +634,7 @@ switch(type)
             q               = QG(:,Ip(i)) + QG(:,j);
             Qp{end + 1}.q   = q;
             LQpL{end + 1}.q = UL*q;
-            
+
         end
         
     case {'LOR','COH'}
@@ -660,18 +662,18 @@ switch(type)
         % Source reconstruction accuracy of MEG and EEG Bayesian inversion approaches. 
         % Belardinelli P, Ortiz E, Barnes G, Noppeney U, Preissl H. PLoS One. 2012;7(12):e51985. 
         %------------------------------------------------------------------
-        InvCov = spm_inv(YY);
-        allsource = zeros(Ns,1);
+        InvCov      = spm_inv(YY);
+        allsource   = zeros(Ns,1);
         Sourcepower = zeros(Ns,1);
         for bk = 1:Ns
-            normpower = 1/(UL(:,bk)'*UL(:,bk));
+            normpower       = 1/(UL(:,bk)'*UL(:,bk));
             Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
-            allsource(bk) = Sourcepower(bk)./normpower;
+            allsource(bk)   = Sourcepower(bk)./normpower;
         end
         allsource = allsource/max(allsource);   % Normalise
         
-        Qp{1} = diag(allsource);
-        LQpL{1} = UL*diag(allsource)*UL';
+        Qp{1}     = diag(allsource);
+        LQpL{1}   = UL*diag(allsource)*UL';
         
 end
  
@@ -682,7 +684,7 @@ for i = 1:length(pQ)
     
     switch(type)
         
-        case {'MSP','GS','ARD'}
+        case {'MSP','GS','ARD','BMR'}
             %--------------------------------------------------------------
             if isvector(pQ{i}) && length(pQ{i}) == Ns
                 
@@ -744,7 +746,6 @@ switch(type)
         
         % Accumulate empirical priors
         %------------------------------------------------------------------
-        
         Qcp           = Q*MVB.cp;
         QP{end + 1}   = sum(Qcp.*Q,2);
         LQP{end + 1}  = (UL*Qcp)*Q';
@@ -752,7 +753,49 @@ switch(type)
         
 end
  
- 
+switch(type)
+    
+    case {'BMR'}
+        
+        % convert patterns into covariance components
+        %------------------------------------------------------------------
+        Np    = length(Qp);
+        for i = 1:Np
+            LQpL{i} = LQpL{i}.q*LQpL{i}.q';
+        end
+        
+        % hyperparameter estimation
+        %------------------------------------------------------------------
+        [C,h,Ph,F,Fa,Fc,Eh,Ch,hE,hC] = spm_reml_sc(AYYA,[],[Qe LQpL],sum(Nn),-16,32);
+        
+        
+        % Bayesian model reduction
+        %------------------------------------------------------------------
+        DCM.M.pE = hE;
+        DCM.M.pC = hC;
+        DCM.Ep   = Eh;
+        DCM.Cp   = Ch;
+        h        = spm_dcm_sparse(DCM);
+        
+        % Spatial priors (QP)
+        %------------------------------------------------------------------
+        Ne    = length(Qe);
+        Np    = length(Qp);
+        hp    = h((1:Np) + Ne);
+        qp    = sparse(0);
+        for i = 1:Np
+            qp = qp + hp(i)*Qp{i}.q*Qp{i}.q';
+        end
+        
+        % Accumulate empirical priors
+        %------------------------------------------------------------------
+        QP{end + 1}   = diag(qp);
+        LQP{end + 1}  = UL*qp;
+        LQPL{end + 1} = LQP{end}*UL';
+        
+end
+
+
 switch(type)
     
     case {'MSP','ARD'}
@@ -765,7 +808,7 @@ switch(type)
         %------------------------------------------------------------------
         Ne    = length(Qe);
         Np    = length(Qp);
-        hp    = h([1:Np] + Ne);
+        hp    = h((1:Np) + Ne);
         qp    = sparse(0);
         for i = 1:Np
             if hp(i) > max(hp)/128;
@@ -787,7 +830,7 @@ switch(type)
         
         % or ReML - ARD
         %------------------------------------------------------------------
-        Q0     = exp(-2)*trace(AYYA)/sum(Nn)*AQ{1}/trace(AQ{1});
+        Q0    = exp(-2)*trace(AYYA)/sum(Nn)*AQ{1}/trace(AQ{1});
         [C,h] = spm_reml_sc(AYYA,[],[Qe LQpL],sum(Nn),-4,16,Q0);
         
         % Spatial priors (QP)
