@@ -38,12 +38,12 @@ function [BPA] = spm_dcm_bpa(P,nocd)
 % applied to each model (i.e., each row) - and BPA becomes a {1 x M} cell 
 % array.
 %
-% See also spm_dcm_bma.m, spm_dcm_bma.m and spm_dcm_peb.m
+% See also spm_dcm_bma.m, spm_dcm_bmr.m and spm_dcm_peb.m
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_bpa.m 6880 2016-09-17 18:00:38Z peter $
+% $Id: spm_dcm_bpa.m 7081 2017-05-27 19:36:09Z karl $
 
  
 % Preiminaries

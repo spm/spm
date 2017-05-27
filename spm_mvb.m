@@ -32,7 +32,7 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % many-to-one mapping, from voxel values or data features to a target
 % variable, using a parametric empirical or hierarchical Bayesian model.
 % This model is inverted using standard variational techniques, in this
-% case expectation maximisation, to furnish the model evidence and the
+% case Variational Laplace, to furnish the model evidence and the
 % conditional density of the model's parameters. This allows one to compare
 % different models or hypotheses about the mapping from functional or
 % structural anatomy to perceptual and behavioural consequences (or their
@@ -69,7 +69,7 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_mvb.m 7081 2017-05-27 19:36:09Z karl $
  
 % defaults (use splits +/- one standard deviation by default)
 %--------------------------------------------------------------------------

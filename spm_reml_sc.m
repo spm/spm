@@ -1,6 +1,6 @@
-function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,V)
+function [C,h,Ph,F,Fa,Fc,Eh,Ch,hE,hC] = spm_reml_sc(YY,X,Q,N,hE,hC,V)
 % ReML estimation of covariance components from y*y' - proper components
-% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,[hE,hC,V]);
+% FORMAT [C,h,Ph,F,Fa,Fc,Eh,Ch,hE,hC] = spm_reml_sc(YY,X,Q,N,[hE,hC,V]);
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
@@ -14,6 +14,11 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,V)
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) ReML hyperparameters h
 % Ph  - (q x q) conditional precision of log(h)
+%
+% hE  - prior expectation of log scale parameters
+% hC  - prior covariances of log scale parameters
+% Eh  - posterior expectation of log scale parameters
+% Ch  - posterior covariances of log scale parameters
 %
 % F   - [-ve] free energy F = log evidence = p(Y|X,Q) = ReML objective
 %
@@ -37,7 +42,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_reml_sc.m 4805 2012-07-26 13:16:18Z karl $
+% $Id: spm_reml_sc.m 7081 2017-05-27 19:36:09Z karl $
 
  
 % assume a single sample if not specified
@@ -191,7 +196,7 @@ for k = 1:32
     else
         % eliminate redundant components (automatic selection)
         %------------------------------------------------------------------
-        as  = find(h > -16);
+        as  = find(h > hE);
         as  = as(:)';
     end
 end
@@ -219,6 +224,16 @@ if nargout > 3
  
 end
 
+% priors and posteriors of log parameters (with scaling)
+%--------------------------------------------------------------------------
+if nargout > 7
+    
+    hE = hE + log(sY) - log(sh);
+    hC = spm_inv(hP);
+    Eh = h  + log(sY) - log(sh);
+    Ch = spm_inv(Ph);
+    
+end
 
 % return exp(h) hyperpriors and rescale
 %--------------------------------------------------------------------------

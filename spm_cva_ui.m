@@ -82,7 +82,7 @@ function [CVA] = spm_cva_ui(action,varargin)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cva_ui.m 6242 2014-10-14 11:16:02Z guillaume $
+% $Id: spm_cva_ui.m 7081 2017-05-27 19:36:09Z karl $
 
 
 %-Get figure handles
@@ -234,7 +234,7 @@ switch lower(action)
         
         %-Show results
         %------------------------------------------------------------------
-        spm_figure('GetWin','MVB');
+        spm_figure('GetWin','CVA');
         
         %-Unpack
         %------------------------------------------------------------------

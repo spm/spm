@@ -15,7 +15,7 @@ function FEP_MB_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_MB_demo.m 7051 2017-04-02 11:35:35Z karl $
+% $Id: FEP_MB_demo.m 7081 2017-05-27 19:36:09Z karl $
 
 
 % default settings
@@ -59,15 +59,15 @@ for i = 1:numel(I)
     end
 end
 clear J
-J{1}    = spm_cat(A);
-z{1}    = num2cell(1:length(J{1}));
+J{1}  = spm_cat(A);
+z{1}  = num2cell(1:length(J{1}));
 
 
 % hierarchal decomposition
 %==========================================================================
 N     = 3;                       % number of hierarchies
-n     = [4 3 2 1];               % number of eigenvectors
-m     = [3 3 3 3];               % number of internal states
+n     = [4 4 4 4];               % number of eigenvectors
+m     = [3 2 1 1];               % number of internal states
 for i = 1:N
     
     % Markov blanket partition
@@ -175,7 +175,11 @@ if GRAPHICS
     try
         X = real(e(:,j(2:3)));
     catch
-        X = real(e(:,j(1:2)));
+        try
+            X = real(e(:,[1,2]));
+        catch
+            X = real(e(:,[1,1]));
+        end
     end
 end
 
@@ -231,7 +235,7 @@ for i = 1:128
             % sensory states connected with active states
             %--------------------------------------------------------------
             a  = find(~nn);
-            a  = a(j(1));
+            a  = a(find(j,1));
             aa = sparse(a,1,1,size(L,1),1);
             ss = (L*aa | L'*aa) & ~aa & ~nn;
             a  = find(aa);
@@ -284,29 +288,32 @@ for i = 1:128
             
             % plot different states
             %--------------------------------------------------------------
-            subplot(3,2,1)
+            subplot(3,2,2)
             nx    = size(x,2);
+            msz   = fix(16 + 64/nx);
             for k = 1:nx
-                plot(X(y{1,k},1),X(y{1,k},2),'.r','MarkerSize',24), hold on
-                plot(X(y{2,k},1),X(y{2,k},2),'.m','MarkerSize',24), hold on
-                plot(X(y{3,k},1),X(y{3,k},2),'.b','MarkerSize',24), hold on
+                plot(X(y{1,k},1),X(y{1,k},2),'.r','MarkerSize',msz), hold on
+                plot(X(y{2,k},1),X(y{2,k},2),'.m','MarkerSize',msz), hold on
+                plot(X(y{3,k},1),X(y{3,k},2),'.b','MarkerSize',msz), hold on
             end
-            axis image
+            axis square
+            title('Markov partition','Fontsize',16)
             
             % plot different particles
             %--------------------------------------------------------------
             
-            subplot(3,2,2)
+            subplot(3,2,1)
             for k = 1:nx
                 
                 bol{k} = spm_softmax(log(rand(3,1))*2);
                 col{k} = bol{k}*(1 - 1/2) + ones(3,1)/2;
                 
-                plot(X(y{1,k},1),X(y{1,k},2),'.','color',bol{k},'MarkerSize',24), hold on
-                plot(X(y{2,k},1),X(y{2,k},2),'.','color',bol{k},'MarkerSize',24), hold on
-                plot(X(y{3,k},1),X(y{3,k},2),'.','color',col{k},'MarkerSize',24), hold on
+                plot(X(y{1,k},1),X(y{1,k},2),'.','color',bol{k},'MarkerSize',msz), hold on
+                plot(X(y{2,k},1),X(y{2,k},2),'.','color',bol{k},'MarkerSize',msz), hold on
+                plot(X(y{3,k},1),X(y{3,k},2),'.','color',col{k},'MarkerSize',msz), hold on
             end
-            axis image
+            axis square
+            title('Particles','Fontsize',16)
             
             % Jacobian
             %--------------------------------------------------------------
@@ -318,7 +325,7 @@ for i = 1:128
             % Colors
             %--------------------------------------------------------------
             nj   = spm_length(x);
-            if nj > 32, msz  = 8; else, msz = 24; end
+            msz   = fix(16 + 128/nj);
             j    = 1:nj;
             k    = spm_unvec(j,x')';
             j    = spm_unvec(j,x);
@@ -343,11 +350,12 @@ for i = 1:128
             end   
             
         end
-        
         break
     end
     
 end
+return
+
 
 
 

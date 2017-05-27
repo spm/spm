@@ -18,7 +18,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N,hE);
 % Fc  - complexity (F = Fa - Fc)
 %
 % Performs a Fisher-Scoring ascent on F to find ReML variance parameter
-% estimates,. using uninformative hyperpriors (this is effectively an ARD
+% estimates, using uninformative hyperpriors (this is effectively an ARD
 % scheme).  The specification of components differs from spm_reml and
 % spm_reml_sc.
 %
@@ -34,7 +34,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N,hE);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sp_reml.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_sp_reml.m 7081 2017-05-27 19:36:09Z karl $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------

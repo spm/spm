@@ -10,6 +10,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 %  DCM.Cp    - posterior covariances
 %  DCM.beta  - prior expectation of reduced parameters (default: 0)
 %  DCM.gamma - prior variance    of reduced parameters (default: 0)
+%              NB: beta = 'pE' uses full priors
 %
 % field      - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %             'All' will invoke all fields (i.e. random effects)
@@ -29,7 +30,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 %        BMR.name - character/cell array of parameter names
 %        BMR.F    - free energies (relative to full model)
 %        BMR.P    - and posterior (model) probabilities
-%        BMR.K    - [models x parameters] model space (1 = off, 2 = on)
+%        BMR.K    - [models x parameters] model space (1 = off, 0 = on)
 %        BMR.bma  - cell array of each model's parameters and optimised 
 %                   model evidences used to calculate the BMA
 %
@@ -60,7 +61,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 6958 2016-12-03 12:30:53Z karl $
+% $Id: spm_dcm_bmr_all.m 7081 2017-05-27 19:36:09Z karl $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -145,19 +146,23 @@ while GS
         for i = 1:nparam
             
             % Identify parameters to retain r and to remove s
-            %-------------------------------------------------------------
+            %--------------------------------------------------------------
             r    = C; r(k(i)) = 0; s = 1 - r;
 
             % Create reduced prior covariance matrix
-            %-------------------------------------------------------------
+            %--------------------------------------------------------------
             R    = U'*diag(r + s*gamma)*U;
             rC   = R*pC*R;
             
             % Create reduced prior means
-            %-------------------------------------------------------------
-            S    = U'*diag(r)*U;
-            rE   = S*pE + U'*s*beta;
-                        
+            %--------------------------------------------------------------
+            if isnumeric(beta)
+                S    = U'*diag(r)*U;
+                rE   = S*pE + U'*s*beta;
+            else
+                rE   = pE;
+            end
+            
             Z(i) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
         end
         
@@ -186,19 +191,23 @@ while GS
     G     = [];
     for i = 1:size(K,1)
         
-        % Identify parameters to retain r and to remove s
-        %-------------------------------------------------------------
+        % Identify parameters to retain (r) and to remove (s)
+        %------------------------------------------------------------------
         r    = C; r(k(K(i,:))) = 0; s = 1 - r;
         
         % Create reduced prior covariance matrix
-        %-------------------------------------------------------------
+        %------------------------------------------------------------------
         R    = U'*diag(r + s*gamma)*U;
         rC   = R*pC*R;
         
         % Create reduced prior means
-        %-------------------------------------------------------------
-        S    = U'*diag(r)*U;
-        rE   = S*pE + U'*s*beta;
+        %------------------------------------------------------------------
+        if isnumeric(beta)
+            S    = U'*diag(r)*U;
+            rE   = S*pE + U'*s*beta;
+        else
+            rE   = pE;
+        end
         
         G(i) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
     end
@@ -269,7 +278,11 @@ for i = 1:length(K)
         R            = diag(r + s*gamma);
         rC           = R*pC*R;
         S            = diag(r);
-        rE           = S*spm_vec(pE) + s*beta;
+        if isnumeric(beta)
+            rE       = S*spm_vec(pE) + s*beta;
+        else
+            rE       = pE;
+        end
       
         [F,Ep,Cp]    = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC);
         BMA{end + 1} = struct('Ep',Ep,'Cp',Cp,'F',F);
@@ -281,7 +294,7 @@ BMA     = spm_dcm_bma(BMA);
 Ep      = BMA.Ep;
 Cp      = BMA.Cp;
 
-if isstruct(Cp) || (size(Cp,1) ~= size(Cp,2))
+if isstruct(Cp) || (spm_length(Cp) == spm_length(Ep))
     Cp = diag(spm_vec(Cp));
 end
 
@@ -315,6 +328,7 @@ BMR.name = Pnames;
 BMR.F    = G;
 BMR.P    = p;
 BMR.K    = K;
+BMR.k    = k;
 
 subplot(3,2,3), spm_plot_ci(qE(i),qC(i,i))
 title('MAP (full)','FontSize',16)

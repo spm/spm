@@ -12,7 +12,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % BMA   - Baysian model average structure
 % ---------------------------------------------------------------------
 %     BMA.Ep      - BMA posterior mean
-%     BMA.Sp      - BMA posterior variance
+%     BMA.Cp      - BMA posterior VARIANCE
 %     BMA.F       - Accumulated free energy over subjects;
 %     BMA.P       - Posterior model probability over subjects;
 %
@@ -88,7 +88,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 6879 2016-09-17 17:45:08Z peter $
+% $Id: spm_dcm_bma.m 7081 2017-05-27 19:36:09Z karl $
 
 % defaults
 %--------------------------------------------------------------------------

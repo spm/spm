@@ -56,7 +56,7 @@ function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models)
 %     BMR.bma{i} - Model i which contributed to the BMA (Ep,Cp,F)
 %
 %--------------------------------------------------------------------------
-% This routine performs Bayesian model comparison averaging of second
+% This routine performs Bayesian model comparison and averaging of second
 % level or hierarchical (PEB) models. The model space is defined either
 % in terms of fields (e.g. 'A' or 'B') or as a logical matrix, with one row
 % per model and a column per parameter (in PEB.Pnames). This induces
@@ -91,7 +91,7 @@ function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 6946 2016-11-23 15:26:29Z peter $
+% $Id: spm_dcm_peb_bmc.m 7081 2017-05-27 19:36:09Z karl $
 
 % checks
 %--------------------------------------------------------------------------
@@ -312,15 +312,15 @@ P2    = sum(P,1);
 
 % Bayesian model averaging (with an Occam's window of eight)
 %--------------------------------------------------------------------------
-i         = G(:) > max(G(:) - 8);
-BMA       = spm_dcm_bma(BMR(i)');
+i     = G(:) > max(G(:) - 8);
+BMA   = spm_dcm_bma(BMR(i)');
 
 % assemble BMA output structure
 %--------------------------------------------------------------------------
 BMA.Snames = PEB.Snames;
 BMA.Pnames = PEB.Pnames;
-BMA.Pind  = PEB.Pind;
-BMA.Kname = Kname;
+BMA.Pind   = PEB.Pind;
+BMA.Kname  = Kname;
 try BMA.Xnames = PEB.Xnames; catch, BMA.Xnames = {}; end
 
 BMA.F     = G;
