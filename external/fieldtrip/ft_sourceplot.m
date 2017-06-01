@@ -306,7 +306,7 @@ try, cfg.maskparameter = cfg.maskparameter{1}; end
 
 if isfield(functional, 'time') || isfield(functional, 'freq')
   % make a selection of the time and/or frequency dimension
-  tmpcfg = keepfields(cfg, {'frequency', 'avgoverfreq', 'keepfreqdim', 'latency', 'avgovertime', 'keeptimedim'});
+  tmpcfg = keepfields(cfg, {'frequency', 'avgoverfreq', 'keepfreqdim', 'latency', 'avgovertime', 'keeptimedim', 'showcallinfo'});
   functional = ft_selectdata(tmpcfg, functional);
   % restore the provenance information
   [cfg, functional] = rollback_provenance(cfg, functional);
@@ -317,13 +317,13 @@ hasanatomical = exist('anatomical', 'var');
 
 if hasanatomical && ~strcmp(cfg.method, 'cloud') % cloud method should be able to take multiple surfaces and does not require interpolation
   % interpolate on the fly, this also does the downsampling if requested
-  tmpcfg = keepfields(cfg, {'downsample', 'interpmethod', 'sphereradius'});
+  tmpcfg = keepfields(cfg, {'downsample', 'interpmethod', 'sphereradius', 'showcallinfo'});
   tmpcfg.parameter = cfg.funparameter;
   functional = ft_sourceinterpolate(tmpcfg, functional, anatomical);
   [cfg, functional] = rollback_provenance(cfg, functional);
 elseif ~hasanatomical && cfg.downsample~=1
   % optionally downsample the functional volume
-  tmpcfg = keepfields(cfg, {'downsample'});
+  tmpcfg = keepfields(cfg, {'downsample', 'showcallinfo'});
   tmpcfg.parameter = {cfg.funparameter, cfg.maskparameter, cfg.anaparameter};
   functional = ft_volumedownsample(tmpcfg, functional);
   [cfg, functional] = rollback_provenance(cfg, functional);
@@ -1281,7 +1281,7 @@ switch cfg.method
       tmpfunctional.(cfg.anaparameter) = ana;
     end
     
-    tmpcfg                      = keepfields(cfg, {'anaparameter', 'funparameter', 'funcolorlim', 'funcolormap', 'opacitylim', 'axis', 'renderer'});
+    tmpcfg                      = keepfields(cfg, {'anaparameter', 'funparameter', 'funcolorlim', 'funcolormap', 'opacitylim', 'axis', 'renderer', 'showcallinfo'});
     tmpcfg.method               = 'ortho';
     tmpcfg.location             = [1 1 1];
     tmpcfg.locationcoordinates  = 'voxel';
@@ -1377,11 +1377,13 @@ switch cfg.method
       'scalealpha', cfg.scalealpha, 'facecolor', cfg.facecolor, 'edgecolor', cfg.edgecolor,...
       'facealpha', cfg.facealpha, 'edgealpha', cfg.edgealpha);
     
-    if istrue(cfg.colorbar) && ~strcmp(cfg.slice, '2d')
-      colorbar;
-    else % position the colorbar so that it does not change the axis of the last subplot
-      subplotpos = get(subplot(cfg.nslices,1,cfg.nslices), 'Position'); % position of the bottom or rightmost subplot
-      colorbar('Position', [subplotpos(1)+subplotpos(3)+0.01 subplotpos(2) .05 subplotpos(2)+subplotpos(4)*(cfg.nslices+.1)]);
+    if istrue(cfg.colorbar)
+      if ~strcmp(cfg.slice, '2d')
+        colorbar;
+      else % position the colorbar so that it does not change the axis of the last subplot
+        subplotpos = get(subplot(cfg.nslices,1,cfg.nslices), 'Position'); % position of the bottom or rightmost subplot
+        colorbar('Position', [subplotpos(1)+subplotpos(3)+0.01 subplotpos(2) .03 subplotpos(2)+subplotpos(4)*(cfg.nslices+.1)]);
+      end
     end
     
     
@@ -1634,14 +1636,14 @@ if ~isempty(sel)
 end
 if opt.crosshair
   if opt.init
-    hch1 = crosshair([xi 1 zi], 'parent', opt.handlesaxes(1));
-    hch3 = crosshair([xi yi opt.dim(3)], 'parent', opt.handlesaxes(3));
-    hch2 = crosshair([opt.dim(1) yi zi], 'parent', opt.handlesaxes(2));
+    hch1 = ft_plot_crosshair([xi 1 zi], 'parent', opt.handlesaxes(1));
+    hch3 = ft_plot_crosshair([xi yi opt.dim(3)], 'parent', opt.handlesaxes(3));
+    hch2 = ft_plot_crosshair([opt.dim(1) yi zi], 'parent', opt.handlesaxes(2));
     opt.handlescross  = [hch1(:)';hch2(:)';hch3(:)'];
   else
-    crosshair([xi 1 zi], 'handle', opt.handlescross(1, :));
-    crosshair([opt.dim(1) yi zi], 'handle', opt.handlescross(2, :));
-    crosshair([xi yi opt.dim(3)], 'handle', opt.handlescross(3, :));
+    ft_plot_crosshair([xi 1 zi], 'handle', opt.handlescross(1, :));
+    ft_plot_crosshair([opt.dim(1) yi zi], 'handle', opt.handlescross(2, :));
+    ft_plot_crosshair([xi yi opt.dim(3)], 'handle', opt.handlescross(3, :));
   end
 end
 
