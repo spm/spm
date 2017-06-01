@@ -4,7 +4,7 @@ function artefact = spm_cfg_eeg_artefact
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_artefact.m 7084 2017-06-01 10:40:24Z vladimir $
+% $Id: spm_cfg_eeg_artefact.m 7085 2017-06-01 10:42:01Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -115,6 +115,7 @@ S.D = job.D{1};
 S.mode = job.mode;
 S.badchanthresh = job.badchanthresh;
 S.prefix = job.prefix;
+S.append = job.append;
 
 for i = 1:numel(job.methods)
     S.methods(i).channels = spm_cfg_eeg_channel_selector(job.methods(i).channels);
