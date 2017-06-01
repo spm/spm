@@ -6,8 +6,8 @@ function spm_make_standalone(outdir)
 % outside MATLAB, and therefore does not use up a MATLAB licence.
 %
 % On Windows:
-%   spm12_wxx.exe <modality>
-%   spm12_wxx.exe run <batch.m(at)>
+%   spm12.exe <modality>
+%   spm12.exe run <batch.m(at)>
 %
 % On Linux/Mac:
 %   ./run_spm12.sh <MCRroot> <modality>
@@ -18,10 +18,10 @@ function spm_make_standalone(outdir)
 %
 % See spm_standalone.m
 %__________________________________________________________________________
-% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_make_standalone.m 6919 2016-11-02 14:37:52Z guillaume $
+% $Id: spm_make_standalone.m 7086 2017-06-01 11:50:28Z guillaume $
 
 %-Care of startup.m
 %--------------------------------------------------------------------------
@@ -31,7 +31,10 @@ if exist('startup','file')
         fileparts(which('startup')));
 end
 
-if ~nargin, outdir = fullfile(spm('dir'),'..','spm_exec'); mkdir(outdir); end
+if ~nargin
+    outdir = fullfile(spm('dir'),'..','spm_standalone'); 
+    mkdir(outdir);
+end
 
 %==========================================================================
 %-Static listing of SPM toolboxes

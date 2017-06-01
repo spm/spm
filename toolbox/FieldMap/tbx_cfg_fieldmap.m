@@ -1,12 +1,12 @@
 function fieldmap = tbx_cfg_fieldmap
 % MATLABBATCH Configuration file for toolbox 'FieldMap'
 %__________________________________________________________________________
-% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_fieldmap.m 6942 2016-11-21 13:17:44Z guillaume $
+% $Id: tbx_cfg_fieldmap.m 7086 2017-06-01 11:50:28Z guillaume $
 
 
-addpath(fullfile(spm('dir'),'toolbox','FieldMap'));
+if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','FieldMap')); end
 
 %==========================================================================
 % Default values that are common to all fieldmap jobs
