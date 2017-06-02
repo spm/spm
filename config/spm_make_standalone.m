@@ -1,9 +1,9 @@
-function spm_make_standalone(outdir)
+function spm_make_standalone(outdir, gateway, contentsver)
 % Compile SPM as a standalone executable using the MATLAB compiler
 %   http://www.mathworks.com/products/compiler/
 %
-% This will generate a standalone program, which can be run
-% outside MATLAB, and therefore does not use up a MATLAB licence.
+% This will generate a standalone application, which can be run outside
+% MATLAB, and therefore does not require a MATLAB licence.
 %
 % On Windows:
 %   spm12.exe <modality>
@@ -14,65 +14,64 @@ function spm_make_standalone(outdir)
 %   ./run_spm12.sh <MCRroot> run <batch.m(at)>
 %
 % The first command starts SPM in interactive mode with GUI. The second
-% executes a batch file or starts the Batch Editor if empty.
+% executes a batch file or starts the Batch Editor if none is provided.
 %
+% Full list of options is accessible from:
+%   ./run_spm12.sh <MCRroot> --help
+%
+% When deployed, compiled applications will require the MATLAB Runtime:
+%   http://www.mathworks.com/products/compiler/mcr/
+% 
 % See spm_standalone.m
 %__________________________________________________________________________
 % Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_make_standalone.m 7086 2017-06-01 11:50:28Z guillaume $
+% $Id: spm_make_standalone.m 7089 2017-06-02 09:54:58Z guillaume $
 
-%-Care of startup.m
+
+%-Check startup.m
 %--------------------------------------------------------------------------
-% see http://www.mathworks.com/support/solutions/data/1-QXFMQ.html?1-QXFMQ
 if exist('startup','file')
     warning('A startup.m has been detected in %s.\n',...
         fileparts(which('startup')));
 end
 
+%-Input arguments
+%--------------------------------------------------------------------------
 if ~nargin
-    outdir = fullfile(spm('dir'),'..','spm_standalone'); 
-    mkdir(outdir);
+    outdir = fullfile(spm('Dir'),'..','standalone'); 
+    if ~exist(outdir,'dir'), mkdir(outdir); end
 end
+if nargin < 2 || isempty(gateway), gateway = 'spm_standalone.m'; end
+if nargin < 3, contentsver = ''; end
 
 %==========================================================================
 %-Static listing of SPM toolboxes
 %==========================================================================
-fid = fopen(fullfile(spm('dir'),'config','spm_cfg_static_tools.m'),'wt');
+fid = fopen(fullfile(spm('Dir'),'config','spm_cfg_static_tools.m'),'wt');
 fprintf(fid,'function values = spm_cfg_static_tools\n');
 fprintf(fid,...
     '%% Static listing of all batch configuration files in the SPM toolbox folder\n');
-% create code to insert toolbox config
-%-Toolbox autodetection
 %-Get the list of toolbox directories
 tbxdir = fullfile(spm('Dir'),'toolbox');
-d  = dir(tbxdir); d = {d([d.isdir]).name};
-dd = regexp(d,'^\.');
-%(Beware, regexp returns an array if input cell array is of dim 0 or 1)
-if ~iscell(dd), dd = {dd}; end
-d  = {'' d{cellfun('isempty',dd)}};
+d = [tbxdir; cellstr(spm_select('FPList',tbxdir,'dir'))];
 ft = {};
 %-Look for '*_cfg_*.m' files in these directories
-for i=1:length(d)
-    d2 = fullfile(tbxdir,d{i});
-    di = dir(d2); di = {di(~[di.isdir]).name};
-    f2 = regexp(di,'.*_cfg_.*\.m$');
-    if ~iscell(f2), f2 = {f2}; end
-    fi = di(~cellfun('isempty',f2));
+for i=1:numel(d)
+    fi = spm_select('List',d{i},'.*_cfg_.*\.m$');
     if ~isempty(fi)
-        ft = [ft(:); fi(:)];
+        ft = [ft(:); cellstr(fi)];
     end
 end
-if ~isempty(ft)
-    if isempty(ft)
-        ftstr = '';
-    else
-        ft = cellfun(@(cft)strtok(cft,'.'),ft,'UniformOutput',false);
-        ftstr  = sprintf('%s ', ft{:});
-    end
-    fprintf(fid,'values = {%s};\n', ftstr);
+%-Create code to insert toolbox config
+if isempty(ft)
+    ftstr = '';
+else
+    ft = spm_file(ft,'basename');
+    ftstr = sprintf('%s ', ft{:});
 end
+fprintf(fid,'values = {%s};\n', ftstr);
 fclose(fid);
 
 %==========================================================================
@@ -86,6 +85,14 @@ cfg_util('dumpcfg');
 sts = copyfile(fullfile(spm('Dir'),'Contents.m'),...
                fullfile(spm('Dir'),'Contents.txt'));
 if ~sts, warning('Copy of Contents.m failed.'); end
+if ~isempty(contentsver)
+    % Format: 'xxxx (SPMx) dd-mmm-yyyy'
+    f = fileread(fullfile(spm('Dir'),'Contents.txt'));
+    f = regexprep(f,'\n% Version .*?\n',['\n% Version ' contentsver '\n']);
+    fid = fopen(fullfile(spm('Dir'),'Contents.txt'),'wt');
+    fprintf(fid,'%s',f);
+    fclose(fid);
+end
 
 %==========================================================================
 %-Compilation
@@ -98,4 +105,4 @@ mcc('-m', '-C', '-v',...
     '-N',opts{:},...
     '-R','-singleCompThread',...
     '-a',spm('Dir'),...
-    'spm_standalone.m');
+    gateway);
