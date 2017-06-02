@@ -27,7 +27,7 @@ function spm_make_standalone(outdir, gateway, contentsver)
 % Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_make_standalone.m 7089 2017-06-02 09:54:58Z guillaume $
+% $Id: spm_make_standalone.m 7090 2017-06-02 10:56:38Z guillaume $
 
 
 %-Check startup.m
@@ -88,7 +88,7 @@ if ~sts, warning('Copy of Contents.m failed.'); end
 if ~isempty(contentsver)
     % Format: 'xxxx (SPMx) dd-mmm-yyyy'
     f = fileread(fullfile(spm('Dir'),'Contents.txt'));
-    f = regexprep(f,'\n% Version .*?\n',['\n% Version ' contentsver '\n']);
+    f = regexprep(f,'% Version \S+ \S+ \S+',['% Version ' contentsver]);
     fid = fopen(fullfile(spm('Dir'),'Contents.txt'),'wt');
     fprintf(fid,'%s',f);
     fclose(fid);
