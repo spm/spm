@@ -7,7 +7,7 @@ function out = spm_run_con(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 7028 2017-02-24 10:44:25Z guillaume $
+% $Id: spm_run_con.m 7093 2017-06-05 16:34:04Z guillaume $
 
 
 spm('FnBanner','spm_contrasts.m');
@@ -83,6 +83,7 @@ end
 %--------------------------------------------------------------------------
 if bayes_con
     if ~isfield(SPM.PPM,'xCon')
+        SPM.PPM.xCon = [];
         for ii=1:length(SPM.xCon)
             SPM.PPM.xCon(ii).PSTAT = 'T';
         end
