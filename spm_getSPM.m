@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 1999-2017 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 7091 2017-06-05 14:46:00Z guillaume $
+% $Id: spm_getSPM.m 7092 2017-06-05 15:08:49Z guillaume $
 
 
 %-GUI setup
@@ -518,7 +518,7 @@ if isfield(SPM,'PPM')
             
             % For VB - set default effect size 
             %--------------------------------------------------------------
-            if isfield(xSPM,'gamma') && ~isempty(xSPM.gamma)
+            if exist('xSPM','var') && isfield(xSPM,'gamma') && ~isempty(xSPM.gamma)
                 xCon(Ic).eidf = xSPM.gamma;
             else
                 Gamma = 0.1;
@@ -539,7 +539,7 @@ if isfield(SPM,'PPM')
             % The default is one conditional s.d. of the contrast
             %--------------------------------------------------------------
             if strcmp(xCon(Ic).STAT,'P')
-                if isfield(xSPM,'gamma') && ~isempty(xSPM.gamma)
+                if exist('xSPM','var') && isfield(xSPM,'gamma') && ~isempty(xSPM.gamma)
                    xCon(Ic).eidf = xSPM.gamma;
                 else 
                     Gamma         = full(sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c));
