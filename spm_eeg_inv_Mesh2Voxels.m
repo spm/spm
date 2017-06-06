@@ -25,13 +25,13 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % (using a graph Laplacian) and then in voxel-space using a conventional
 % Gaussian filter.
 %__________________________________________________________________________
-% Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 6412 2015-04-20 10:14:50Z vladimir $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 7094 2017-06-06 11:14:10Z guillaume $
 
 
-SVNrev = '$Rev: 6412 $';
+SVNrev = '$Rev: 7094 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -137,6 +137,7 @@ if strcmpi(fmt,'mesh')
     %-Save mesh data
     %----------------------------------------------------------------------
     spm_progress_bar('Init',numel(ssq),'Exporting as meshes','');
+    fprintf('%-40s: %30s','Export as meshes','...please wait');         %-#
     for c = 1:numel(ssq)
         
         fprintf('%s%30s',repmat(sprintf('\b'),1,30),...
@@ -206,7 +207,7 @@ for c = 1:length(ucon)
             sprintf('%s_%.0f_%s%.0f.nii', name, val, str, ucon(c)));
         
         %-Initialise image
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         N      = nifti;
         N.dat  = file_array(fname, [Vin.dim, length(ind)], 'FLOAT32-LE');
         N.mat  = Vin.mat;
@@ -219,27 +220,27 @@ for c = 1:length(ucon)
             n = n+1;
             
             fprintf('%s%30s',repmat(sprintf('\b'),1,30),...
-                sprintf('...image %d/%d',n,numel(ssq)));                        %-#            
+                sprintf('...image %d/%d',n,numel(ssq)));                %-#            
             
             %-Normalise
-            %----------------------------------------------------------------------
+            %--------------------------------------------------------------
             Contrast = ssq{ind(i)} / scale;
             
             %-Interpolate those values into voxels
-            %----------------------------------------------------------------------
+            %--------------------------------------------------------------
             RECimage = spm_mesh_to_grid(m, Vin, Contrast);
             
             %-3D smoothing and thresholding
-            %----------------------------------------------------------------------
+            %--------------------------------------------------------------
             spm_smooth(RECimage, RECimage, 1);
             RECimage = RECimage.*(RECimage > exp(-8));
             
             %-Write (smoothed and scaled) image
-            %----------------------------------------------------------------------            
+            %--------------------------------------------------------------
             N.dat(:, :, :, i) = RECimage;
             
             %-Store filename
-            %----------------------------------------------------------------------
+            %--------------------------------------------------------------
             D.inv{val}.contrast.fname{n} = fname;
             
             spm_progress_bar('Set', n);

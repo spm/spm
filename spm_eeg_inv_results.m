@@ -1,5 +1,5 @@
 function [D] = spm_eeg_inv_results(D)
-% contrast of evoked responses and power for an MEG-EEG model
+% Contrast of evoked responses and power for an MEG-EEG model
 % FORMAT [D] = spm_eeg_inv_results(D)
 % Requires:
 %
@@ -11,10 +11,10 @@ function [D] = spm_eeg_inv_results(D)
 % induced responses in terms of power (over trials) if requested; otherwise
 % the power in D.inv{i}.contrast.GW corresponds to the evoked power.
 %__________________________________________________________________________
-% Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results.m 5443 2013-04-24 15:16:07Z vladimir $
+% $Id: spm_eeg_inv_results.m 7094 2017-06-06 11:14:10Z guillaume $
 
 
 %-MEEG data structure
@@ -26,14 +26,14 @@ catch
     D.val = numel(D.inv);
 end
 
-% defaults
+%-Defaults
 %--------------------------------------------------------------------------
 try, woi  = model.contrast.woi;     catch, woi  = model.inverse.woi; end
 try, foi  = model.contrast.fboi;    catch, foi  = [];                end
 try, type = model.contrast.type;    catch, type = 'evoked';          end
 try, Disp = model.contrast.display; catch, Disp = 1;                 end
 
-% Ensure contrast woi is within inversion woi
+%-Ensure contrast woi is within inversion woi
 %--------------------------------------------------------------------------
 woi(:,1) = max(woi(:,1),model.inverse.woi(1));
 woi(:,2) = min(woi(:,2),model.inverse.woi(2));
@@ -42,7 +42,7 @@ if ~any(foi)
     foi = [];
 end
 
-fprintf('\ncomputing contrast - please wait\n')
+fprintf('%-40s: %30s','Computing contrast','...please wait');           %-#
 
 % inversion parameters
 %--------------------------------------------------------------------------
@@ -72,7 +72,7 @@ model.contrast.W  = {};
 model.contrast.JW = {};
 model.contrast.GW = {};
 
-for w = 1:Nw;
+for w = 1:Nw
     
     % get [Gaussian] time window
     %--------------------------------------------------------------------------
@@ -222,10 +222,11 @@ for w = 1:Nw;
     model.contrast.JW = JW;
     model.contrast.GW = GW;
     
-end % window
+end
 
 D.inv{D.val}         = model;
 
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done');               %-#
 
 %-Display
 %==========================================================================
