@@ -16,12 +16,12 @@ function D = spm_eeg_average_TF(S)
 % Output:
 % D         - MEEG object (also written to disk).
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 6180 2014-09-17 15:45:11Z vladimir $
+% $Id: spm_eeg_average_TF.m 7097 2017-06-07 13:53:55Z guillaume $
 
-SVNrev = '$Rev: 6180 $';
+SVNrev = '$Rev: 7097 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -177,7 +177,7 @@ Dnew = repl(Dnew, ':', ni);
 %--------------------------------------------------------------------------
 fprintf('%s: Number of replications per contrast:', Dnew.fname);  %-#
 
-s = [];
+s = '';
 for i = 1:D.nconditions
     s = [s sprintf('average %s: %d trials', cl{i}, ni(i))];
     if i < D.nconditions
