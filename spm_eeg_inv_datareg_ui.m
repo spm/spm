@@ -1,7 +1,5 @@
 function D = spm_eeg_inv_datareg_ui(varargin)
-% Data registration user-interface routine
-% commands the EEG/MEG data co-registration within original sMRI space
-%
+% User interface for EEG/MEG data coregistration within original sMRI space
 % FORMAT D = spm_eeg_inv_datareg_ui(D,[val], [meegfid, newmrifid, useheadshape])
 % D            - M/EEG dataset
 %
@@ -11,12 +9,13 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 %
 % D            - same data struct including the new required files and variables
 %__________________________________________________________________________
-% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 6969 2016-12-12 13:08:06Z guillaume $
+% $Id: spm_eeg_inv_datareg_ui.m 7098 2017-06-07 15:00:03Z guillaume $
 
-% initialise
+
+%-Initialisation
 %--------------------------------------------------------------------------
 [Finter, Fgraph] = spm('FnUIsetup','MEEG/MRI coregistration', 0);
 
@@ -27,19 +26,21 @@ mrilbl = mrifid.fid.label;
 
 if nargin>=3
     meegfid = varargin{3};
-    interactive = 0;
+    interactive = false;
 else
-    interactive = 1;
+    interactive = true;
     meegfid = D.fiducials;
     meeglbl = meegfid.fid.label;
     
     if numel(meeglbl)> 3
-        [selection,ok]= listdlg('ListString', meeglbl, 'SelectionMode', 'multiple',...
+        [selection,ok] = listdlg('ListString', meeglbl, ...
+            'SelectionMode', 'multiple',...
             'InitialValue', spm_match_str(upper(meeglbl), upper(mrilbl)), ...
-            'Name', 'Select at least 3 fiducials', 'ListSize', [400 300]);
+            'Name', 'Select at least 3 fiducials', ...
+            'ListSize', [400 300]);
         
         if ~ok || length(selection) < 3
-            error('At least 3 M/EEG fiducials are required for coregistration');
+            error('At least 3 M/EEG fiducials are required for coregistration.');
         end
         
         meegfid.fid.pnt   = meegfid.fid.pnt(selection, :);
@@ -49,12 +50,12 @@ end
 
 meeglbl = meegfid.fid.label;
 
-if numel(meeglbl)<3
-    error('At least 3 M/EEG fiducials are required for coregistration');
+if numel(meeglbl) < 3
+    error('At least 3 M/EEG fiducials are required for coregistration.');
 end
 
 if all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, meegfid.fid.label)) && isempty(D.sensors('MEG'))
-    S =[];
+    S = [];
     S.sourcefid = meegfid;
     S.targetfid = mrifid;
     
@@ -71,7 +72,7 @@ if all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, meegfid.fid.label)) && isempty(D
         S.targetfid.fid.label = S.targetfid.fid.label(1:3, :);
         S.useheadshape = 1;
     end
-elseif nargin>=4
+elseif nargin >= 4
     M1 = [];
     S.sourcefid = meegfid;
     S.targetfid = varargin{4};
@@ -128,7 +129,7 @@ else
     
     % register
     %======================================================================
-    S =[];
+    S = [];
     S.sourcefid = meegfid;
     S.targetfid = newmrifid;    
 end
@@ -178,14 +179,14 @@ if ismember('MEG', modalities) && ~isempty(D.sensors('MEG'))
     D.inv{val}.datareg(ind).modality = 'MEG';
 end
 
-% check and display registration
+%-Check and display registration
 %--------------------------------------------------------------------------
-if interactive
-    if ~spm('CmdLine')
+if ~spm('CmdLine')
+    if interactive
         spm_eeg_inv_checkdatareg(D);
-    end
-else
-    for i = 1:numel(D.inv{val}.datareg)
-        spm_eeg_inv_checkdatareg(D, val, i);
+    else
+        for i = 1:numel(D.inv{val}.datareg)
+            spm_eeg_inv_checkdatareg(D, val, i);
+        end
     end
 end
