@@ -18,7 +18,7 @@ function varargout = spm_BIDS(varargin)
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7074 2017-05-05 10:51:08Z guillaume $
+% $Id: spm_BIDS.m 7099 2017-06-07 16:01:08Z guillaume $
 
 
 %-Validate input arguments
@@ -607,11 +607,11 @@ end
 %==========================================================================
 function p = parse_filename(filename,fields)
 filename = spm_file(filename,'filename');
-parts = strsplit(filename,'_');
+[parts, dummy] = regexp(filename,'(?:_)+','split','match');
 p.filename = filename;
 [p.type, p.ext] = strtok(parts{end},'.');
 for i=1:numel(parts)-1
-    d = strsplit(parts{i},'-');
+    [d, dummy] = regexp(parts{i},'(?:-)+','split','match');
     p.(d{1}) = d{2};
 end
 if nargin == 2
