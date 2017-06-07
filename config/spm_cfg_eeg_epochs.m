@@ -4,7 +4,7 @@ function epoch = spm_cfg_eeg_epochs
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_eeg_epochs.m 7095 2017-06-07 10:15:59Z vladimir $
 
 
 D        = cfg_files;
@@ -64,7 +64,7 @@ eventtype.help    = {''};
 eventvalue         = cfg_entry;
 eventvalue.tag     = 'eventvalue';
 eventvalue.name    = 'Event value';
-eventvalue.strtype = 'r';
+eventvalue.strtype = 'e';
 eventvalue.help    = {''};
 
 trlshift         = cfg_entry;
