@@ -6,7 +6,7 @@ function tests = test_spm_run_dcm_bms
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_run_dcm_bms.m 7101 2017-06-08 12:36:13Z peter $
+% $Id: test_spm_run_dcm_bms.m 7103 2017-06-08 14:39:32Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -40,7 +40,24 @@ run_bms_dcm_files('FFX', P);
 % Check
 load(fullfile(get_output_dir(), 'BMS.mat'));
 testCase.assertTrue(BMS.DCM.ffx.model.post(2) > 0.99);
+% -------------------------------------------------------------------------
+function test_ffx_csd_dcm(testCase)
+% Tests that the BMS can run on a CSD DCM
 
+models_path = fullfile( spm('Dir'), 'tests', ...
+    'data', 'MEEG');
+
+% Select DCMs (2 per subject)
+P1 = spm_select('FPList',models_path,'DCM_CSD.mat');
+P2 = spm_select('FPList',models_path,'DCM_CSD.mat');
+P  = [cellstr(P1)  cellstr(P2)];
+
+% Run FFX BMS
+run_bms_dcm_files('FFX', P);
+
+% Check
+load(fullfile(get_output_dir(), 'BMS.mat'));
+testCase.assertTrue(BMS.DCM.ffx.model.post(2) == 0.5);
 % -------------------------------------------------------------------------
 function test_rfx_no_evidence(testCase)
 % Tests RFX BMS in the context of equal model probabilities
