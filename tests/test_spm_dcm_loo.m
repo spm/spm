@@ -3,7 +3,7 @@ function tests = test_spm_dcm_loo
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_loo.m 6771 2016-04-18 14:10:58Z peter $
+% $Id: test_spm_dcm_loo.m 7102 2017-06-08 12:56:06Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -13,8 +13,8 @@ function test_loo_group(testCase)
 
 data_path = get_data_path();
 
-% Subjects to include
-s = [11:14 15:18];
+% Reduce number of subjects to increase performance
+s = [1:6 24:30];
 
 % Load first level DCMs
 GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
@@ -41,8 +41,8 @@ function test_loo_group_null(testCase)
 
 data_path = get_data_path();
 
-% Subjects to include
-s = [11:14 15:18];
+% Reduce number of subjects to increase performance
+s = [1:6 24:30];
 
 % Load first level DCMs
 GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
@@ -69,8 +69,8 @@ function test_loo_continuous_null(testCase)
 
 data_path = get_data_path();
 
-% Subjects to include
-s = [11:14 15:18];
+% Reduce number of subjects to increase performance
+s = [1:6 24:30];
 
 % Load first level DCMs
 GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
