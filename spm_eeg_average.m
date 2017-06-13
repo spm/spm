@@ -15,12 +15,12 @@ function D = spm_eeg_average(S)
 % Output:
 % D        - MEEG object (also written on disk)
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 6802 2016-06-03 09:03:34Z vladimir $
+% $Id: spm_eeg_average.m 7104 2017-06-13 14:34:52Z guillaume $
 
-SVNrev = '$Rev: 6802 $';
+SVNrev = '$Rev: 7104 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -228,20 +228,13 @@ Dnew = montage(Dnew, 'switch', montage_ind);
 
 %-Display averaging statistics
 %--------------------------------------------------------------------------
-disp(sprintf('%s: Number of replications per contrast:', Dnew.fname));  %-#
-s  = [];
+fprintf('%s: Number of replications per contrast:\n', Dnew.fname);      %-#
 for i = 1:D.nconditions
-    s = [s sprintf('average %s: %d trials', cl{i}, ni(i))];
-    if i < D.nconditions
-        s = [s ', '];
-    else
-        s = [s '.'];
-    end
+    fprintf('  average %s: %d trials\n', cl{i}, ni(i));                 %-#
 end
-disp(s);                                                       %-#
 
 if robust
-    disp('Robust averaging might have introduced high frequencies in the data. It is advised to re-apply low-pass filter');
+    disp('Robust averaging might have introduced high frequencies in the data. It is advised to re-apply low-pass filter.');
 end
 
 %-Save new evoked M/EEG dataset

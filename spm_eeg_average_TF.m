@@ -19,9 +19,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 7097 2017-06-07 13:53:55Z guillaume $
+% $Id: spm_eeg_average_TF.m 7104 2017-06-13 14:34:52Z guillaume $
 
-SVNrev = '$Rev: 7097 $';
+SVNrev = '$Rev: 7104 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -150,7 +150,7 @@ for j = 1:D.nsamples
             end
 
             %-Vector average (eg PLV for phase)
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
         else
             tmp = D(:, :, j, w);
             tmp = exp(sqrt(-1)*tmp);
@@ -161,7 +161,7 @@ for j = 1:D.nsamples
             end
         end
     end
-    if ismember(j, Ibar), spm_progress_bar('Set', j); end
+    if ismember(j, Ibar) | 5, spm_progress_bar('Set', j); end
 end
 
 spm_progress_bar('Clear');
@@ -175,18 +175,10 @@ Dnew = repl(Dnew, ':', ni);
 
 %-Display averaging statistics
 %--------------------------------------------------------------------------
-fprintf('%s: Number of replications per contrast:', Dnew.fname);  %-#
-
-s = '';
+fprintf('%s: Number of replications per contrast:\n', Dnew.fname);      %-#
 for i = 1:D.nconditions
-    s = [s sprintf('average %s: %d trials', cl{i}, ni(i))];
-    if i < D.nconditions
-        s = [s ', '];
-    else
-        s = [s '\n'];
-    end
+    fprintf('  average %s: %d trials\n', cl{i}, ni(i));                 %-#
 end
-fprintf(s);                                                       %-#
 
 %-Save new evoked M/EEG dataset
 %--------------------------------------------------------------------------

@@ -49,12 +49,12 @@ function [D, montage] = spm_eeg_montage(S)
 % correctly when no sensors are specified or when data and sensors are
 % consistent (which is ensured by spm_eeg_prep_ui).
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 6835 2016-07-14 16:08:56Z vladimir $
+% $Id: spm_eeg_montage.m 7104 2017-06-13 14:34:52Z guillaume $
 
-SVNrev = '$Rev: 6835 $';
+SVNrev = '$Rev: 7104 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -67,11 +67,11 @@ if ~isfield(S, 'montage') || isempty(S.montage)
 elseif ~isfield(S, 'mode')
     S.mode      = 'write';
 end
-if ~isfield(S, 'blocksize'),     S.blocksize     = 655360;          end   %20 Mb
-if ~isfield(S, 'keepothers'),    S.keepothers    = 1;               end
-if ~isfield(S, 'keepsensors'),   S.keepsensors   = 1;               end
-if ~isfield(S, 'updatehistory'), S.updatehistory = 1;               end
-if ~isfield(S, 'prefix'),        S.prefix = 'M';                    end
+if ~isfield(S, 'blocksize'),     S.blocksize     = 655360;  end   %20 Mb
+if ~isfield(S, 'keepothers'),    S.keepothers    = 1;       end
+if ~isfield(S, 'keepsensors'),   S.keepsensors   = 1;       end
+if ~isfield(S, 'updatehistory'), S.updatehistory = 1;       end
+if ~isfield(S, 'prefix'),        S.prefix = 'M';            end
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
@@ -132,10 +132,10 @@ if ~isnumeric(montage)
     end
     
     % add columns for the channels that are not involved in the montage
-    [add, ind]       = setdiff(D.chanlabels, montage.labelorg);
-    chlab            = D.chanlabels;
-    ind              = sort(ind);
-    add              = chlab(ind);
+    [add, ind] = setdiff(D.chanlabels, montage.labelorg);
+    chlab      = D.chanlabels;
+    ind        = sort(ind);
+    add        = chlab(ind);
     
     m = size(montage.tra, 1);
     n = size(montage.tra, 2);
@@ -192,14 +192,14 @@ end
 isTF = strncmp(D.transformtype, 'TF', 2);
 
 if isTF && ~isequal(S.mode, 'write')
-    error('Online montages are not supported for TF data');
+    error('Online montages are not supported for TF data.');
 end
 
 switch S.mode
     case 'write'
-        %%
+
         %-Generate new MEEG object with new filenames
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         if ~isTF
             Dnew = clone(D, [S.prefix fname(D)], [m D.nsamples D.ntrials], 1);
             nblocksamples = floor(S.blocksize/max(D.nchannels, m));
@@ -305,11 +305,8 @@ switch S.mode
             Dnew = chantype(Dnew, ':', ctype);
         end
         
-
-                
-        
         %-Apply montage to sensors
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         sensortypes = {'MEG', 'EEG'};
         for i = 1:length(sensortypes)
             if S.keepsensors
@@ -372,20 +369,28 @@ switch S.mode
                     chanunitorig = sens.chanunit;
                     labelorg     = sens.label;
                     
-                    sens = ft_apply_montage(sens, sensmontage, 'keepunused', keepunused);
                     
-                    if isequal(sensortypes{i}, 'MEG')
-                        if isfield(sens, 'balance') && ~isequal(sens.balance.current, 'none')
-                            balance = ft_apply_montage(getfield(sens.balance, sens.balance.current), sensmontage, 'keepunused', keepunused);
-                        else
-                            balance = sensmontage;
+                    sw = warning('off','backtrace');
+                    
+                    try
+                        
+                        sens = ft_apply_montage(sens, sensmontage, 'keepunused', keepunused);
+                        
+                        if isequal(sensortypes{i}, 'MEG')
+                            if isfield(sens, 'balance') && ~isequal(sens.balance.current, 'none')
+                                balance = ft_apply_montage(getfield(sens.balance, sens.balance.current), sensmontage, 'keepunused', keepunused);
+                            else
+                                balance = sensmontage;
+                            end
+                            
+                            sens.balance.custom = balance;
+                            sens.balance.current = 'custom';
                         end
                         
-                        sens.balance.custom = balance;
-                        sens.balance.current = 'custom';
+                    catch
+                        warning(sw);
+                        rethrow(lasterror);
                     end
-                    
-                    
                   
                     if isfield(sens, 'chanunit')
                         chanunit = sens.chanunit;
@@ -432,7 +437,7 @@ switch S.mode
         %-Assign default EEG sensor positions if no positions are present or if
         % default locations had been assigned before but no longer cover all the
         % EEG channels.
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         if ~isempty(Dnew.indchantype('EEG')) && (isempty(Dnew.sensors('EEG')) ||...
                 (all(ismember({'spmnas', 'spmlpa', 'spmrpa'}, Dnew.fiducials.fid.label)) && ...
                 ~isempty(setdiff(Dnew.chanlabels(Dnew.indchantype('EEG')), getfield(Dnew.sensors('EEG'), 'label')))))
@@ -445,7 +450,7 @@ switch S.mode
         end
         
         %-Create 2D positions for EEG by projecting the 3D positions to 2D
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         if ~isempty(Dnew.indchantype('EEG')) && ~isempty(Dnew.sensors('EEG'))
             S1 = [];
             S1.task = 'project3D';
@@ -457,7 +462,7 @@ switch S.mode
         end
         
         %-Create 2D positions for MEG  by projecting the 3D positions to 2D
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         if ~isempty(Dnew.indchantype('MEG')) && ~isempty(Dnew.sensors('MEG'))
             S1 = [];
             S1.task = 'project3D';
@@ -469,7 +474,7 @@ switch S.mode
         end
         
         %-Transfer the properties of channels not involved in the montage
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         if ~isempty(add) && S.keepothers
             old_add_ind = D.indchannel(add);
             new_add_ind = Dnew.indchannel(add);
@@ -504,7 +509,7 @@ save(D);
 spm_progress_bar('Clear');
 spm('FigName','M/EEG montage: done'); spm('Pointer','Arrow');
 
-%% PROGRAMMER'S NOTES by CP
+% PROGRAMMER'S NOTES by CP
 % Observed a weird behaviour of the montage method for the @meeg object
 % under WinXP, matlab R2007b.
 % 'montage' is initialized as a variable at "compilation" and then all
