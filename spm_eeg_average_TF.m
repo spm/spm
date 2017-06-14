@@ -19,9 +19,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 7104 2017-06-13 14:34:52Z guillaume $
+% $Id: spm_eeg_average_TF.m 7107 2017-06-14 09:31:40Z guillaume $
 
-SVNrev = '$Rev: 7104 $';
+SVNrev = '$Rev: 7107 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -161,7 +161,7 @@ for j = 1:D.nsamples
             end
         end
     end
-    if ismember(j, Ibar) | 5, spm_progress_bar('Set', j); end
+    if ismember(j, Ibar), spm_progress_bar('Set', j); end
 end
 
 spm_progress_bar('Clear');
