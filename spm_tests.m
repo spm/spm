@@ -2,33 +2,34 @@ function results = spm_tests(varargin)
 % Unit Testing Framework
 % FORMAT results = spm_tests(name,value,...)
 % name,value  - pairs of optional parameter names and values:
-%     verbose:  verbosity level of test run progress report [default: 2]
-%     display:  display test results [default: false]
-%     coverage: display code coverage [default: false]
-%     tag:      test tag selector [default: '', ie all tests]
-%     tap:      save a Test Anything Protocol (TAP) file [default: false]
-%     test:     name of function to test [default: '', ie all tests]
+%     verbose:   verbosity level of test run progress report [default: 2]
+%     display:   display test results [default: false]
+%     coverage:  display code coverage [default: false]
+%     cobertura: save code coverage results in the Cobertura XML format [default: false]
+%     tag:       test tag selector [default: '', ie all tests]
+%     tap:       save a Test Anything Protocol (TAP) file [default: false]
+%     test:      name of function to test [default: '', ie all tests]
 % 
 % results     - TestResult array containing information describing the
 %               result of running the test suite.
 %__________________________________________________________________________
-% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_tests.m 6876 2016-09-15 10:27:19Z guillaume $
+% $Id: spm_tests.m 7109 2017-06-15 11:15:23Z guillaume $
 
 
 if spm_check_version('matlab','8.3') < 0
     error('Unit Tests require MATLAB R2014a or above.');
 end
 
-SVNid = '$Rev: 6876 $';
+SVNid = '$Rev: 7109 $';
 SPMid = spm('FnBanner',mfilename,SVNid);
 
 %-Input parameters
 %--------------------------------------------------------------------------
 options = struct('verbose',2, 'display',false, 'coverage',false, ...
-                 'tag', '', 'tap',false, 'test','');
+                 'cobertura',false, 'tag', '', 'tap',false, 'test','');
 if nargin
     if isstruct(varargin{1})
         fn = fieldnames(varargin{1});
@@ -66,7 +67,12 @@ else
                 'No tests found for %s',options.test{i});
             continue
         end
-        suite = [suite TestSuite.fromFile(mtest)];
+        suite = [suite, TestSuite.fromFile(mtest)];
+        % if i==1
+        %     suite = TestSuite.fromFile(mtest);
+        % else
+        %     suite(i) = TestSuite.fromFile(mtest);
+        % end
     end
 end
 if ~isempty(options.tag)
@@ -85,6 +91,15 @@ end
 
 if options.coverage
     plugin = CodeCoveragePlugin.forFolder(spm('Dir'));
+    runner.addPlugin(plugin);
+end
+
+if options.cobertura
+    d = getenv('WORKSPACE');
+    if isempty(d), d = spm('Dir'); end
+    coberturaFile = fullfile(d,'spm_CoverageResults.xml');
+    plugin = CodeCoveragePlugin.forFolder(spm('Dir'),...
+        'Producing',codecoverage.CoberturaFormat(coberturaFile));
     runner.addPlugin(plugin);
 end
 
