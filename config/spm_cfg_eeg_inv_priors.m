@@ -1,11 +1,10 @@
 function priors = spm_cfg_eeg_inv_priors
-% configuration file to set up priors for M/EEG source
-% reconstruction
-%_______________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Configuration file to set up priors for M/EEG source reconstruction
+%__________________________________________________________________________
+% Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_priors.m 6498 2015-07-15 19:13:31Z gareth $
+% $Id: spm_cfg_eeg_inv_priors.m 7110 2017-06-15 11:45:05Z guillaume $
 
 
 D = cfg_files;
@@ -234,26 +233,23 @@ priors.help = {'Set priors for source reconstruction'};
 priors.prog = @add_priors;
 priors.vout = @vout_priors;
 
-
+%==========================================================================
 function  out = add_priors(job)
-
-
-
 
 val=job.val;
 D = spm_eeg_load(job.D{val});
 
-if ~isfield(D.inv{job.val}.inverse,'L'),
+if ~isfield(D.inv{job.val}.inverse,'L')
     error('Need to set up spatial modes first');
 else
     UL=D.inv{val}.inverse.L; %% dimension reduced lead field matrix
-end;
+end
 
 
 [a1,b1,c1]=fileparts(D.fname);
 priordir=[D.path filesep job.priorname '_' b1];
 
-if ~isdir(priordir),
+if exist(priordir,'dir') ~= 7
     fprintf('Making directory for priors: %s\n',priordir);
     mkdir(priordir);
 else
@@ -263,16 +259,16 @@ else
     count=size(priorfiles,1);
     fprintf('Found %d existing priors in this directory\n',count);
     
-    if job.clean,
+    if job.clean
         fprintf('Deleting existing priors\n');
-        for f=1:count,
+        for f=1:count
             delete(deblank(priorfiles(f,:)));
-        end;
+        end
     else
         fprintf('Keeping existing priors\n');
-    end;
+    end
     
-end;
+end
 
 mesh=D.inv{val}.forward.mesh; %% assume this is in metres
 
@@ -280,21 +276,21 @@ mesh=D.inv{val}.forward.mesh; %% assume this is in metres
 Ns=size(mesh.vert,1);
 
 
-%% Set up sensor level prior
+% Set up sensor level prior
 Qe{1}=eye(size(UL,1)).*job.sensorlevel;
 Qp={}; %% source level covariance or svd components
 
 
-%% add in functional (from other modalities or experiment) hypotheses
+% add in functional (from other modalities or experiment) hypotheses
 
 
 
-for i=1:numel(job.priortype), %% move through different prior specifications
+for i=1:numel(job.priortype) %% move through different prior specifications
     allIp=[];
     Qp=[];
     
-    %% RANDOM PATCH CENTRES
-    if isfield(job.priortype{i},'randpatch'),
+    % RANDOM PATCH CENTRES
+    if isfield(job.priortype{i},'randpatch')
         
         base=job.priortype{i}.randpatch;
         
@@ -302,7 +298,7 @@ for i=1:numel(job.priortype), %% move through different prior specifications
         Npatchiter = base.niter;
         probfile=base.probfile;
         
-        if isempty(probfile),
+        if isempty(probfile)
             prob=ones(Ns,1)./Ns;
         else
             
@@ -312,23 +308,23 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             M0.vertices=probmesh.vertices;
             M0.faces=probmesh.faces;
             
-            if size(probmesh.vertices,1)==size(mesh.vert,1),
+            if size(probmesh.vertices,1)==size(mesh.vert,1)
             %    fprintf('NB smoothing prior with 20 iterations\n');
                 %prob=spm_mesh_smooth(M0,data',20);
                 prob=data;
             else
                 error('Gifti mesh size does not match');
-            end;
-        end;
-        if sum(prob)>1.01,
+            end
+        end
+        if sum(prob)>1.01
             warning('Rescaling bias file to unit sum');
-        end;
+        end
         
         prob=prob./sum(prob);
         Ip=[];
         
         
-        disp(sprintf('Using %d iterations of %d random patches',Npatchiter,Np));
+        fprintf('Using %d iterations of %d random patches\n',Npatchiter,Np);
         allIp=sparse(Npatchiter,Np);
         
         
@@ -338,23 +334,23 @@ for i=1:numel(job.priortype), %% move through different prior specifications
         figure;
         hold on;
         
-        for j=1:Npatchiter,
+        for j=1:Npatchiter
             
-            for k=1:Np,
+            for k=1:Np
                 pval=max(prob)*(k-1)./Np;
                 sind=find(prob>=pval);
                 randind=randperm(length(sind));
                 allIp(j,k)=sind(randind(1));
                 dum(allIp(j,k))=dum(allIp(j,k))+1;
-            end;
+            end
             %end; %% IF
             plot(1:length(prob),dum,'.');  drawnow;
-        end; % for j
+        end % for j
         fprintf('Sampled %3.2f percent of cortex (%d vertices) \n',100*length(find(dum>0))./length(dum),length(find(dum>0)));
         
-    end; % random patch
+    end % random patch
     
-    %% FIXED PATCH CENTRES FROM FILE
+    % FIXED PATCH CENTRES FROM FILE
     if isfield(job.priortype{i},'fixedpatch')
         
         base=job.priortype{i}.fixedpatch;
@@ -362,28 +358,28 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             dum=load(char(base.fixedfile));
         catch
             error('failed to load fixedpatch file');
-        end;
-        if ~isfield(dum,'Ip'),
+        end
+        if ~isfield(dum,'Ip')
             error('Need to have patch indices in structure Ip');
-        end;
+        end
         allIp=dum.Ip;
         rows=base.fixedrows;
         lastrow=min(rows(2),size(allIp,1));
         rowind=[rows(1):lastrow];
         allIp=allIp(rowind,:);
-    end; % fixed patch
+    end % fixed patch
     
     %%%%%%%%%%%%%%% FIXED OR RANDOM PATCHES
-    if isfield(job.priortype{i},'fixedpatch') || isfield(job.priortype{i},'randpatch'),
+    if isfield(job.priortype{i},'fixedpatch') || isfield(job.priortype{i},'randpatch')
         
-        %% Set up patches on cortical surface determined by indices of allIp
-        %% one prior files per row of Ip
+        % Set up patches on cortical surface determined by indices of allIp
+        % one prior files per row of Ip
         
         [Qp,Qe,allpriornames]=spm_eeg_invert_setuppatches(allIp,mesh,base,priordir,Qe,UL);
         
         
         
-    end; % if fixedpatch or randpatch
+    end % if fixedpatch or randpatch
     
     
     % figure;
@@ -437,27 +433,27 @@ for i=1:numel(job.priortype), %% move through different prior specifications
     
     %%%%%%%%%%% FUNCTIONALLY DEFINED PRIORS
     
-    if isfield(job.priortype{i},'funcpriors'),
+    if isfield(job.priortype{i},'funcpriors')
         base=job.priortype{i}.funcpriors;
         P = char(base.priorsmask);
         priors{i}.priortype='funcpriors';
         priors{i}.priorfname=P;
         
-        disp(sprintf('Using priors from file %s',P));
+        fprintf('Using priors from file %s\n',P);
         
         P=priors{i}.priorfname;
         [p,f,e] = fileparts(P);
         switch lower(e)
             case '.mat'
                 a=load(P);
-                if isfield(a,'Qp'),
+                if isfield(a,'Qp')
                     
-                    disp('REplacing sensor and source posterior distribution');
-                    for f=1:numel(a.Qp),
+                    disp('Replacing sensor and source posterior distribution');
+                    for f=1:numel(a.Qp)
                         Qp{end+1}=a.Qp{f};
-                    end;
+                    end
                     
-                    %% now need to compress the original Qe (say 275 channels) into reduced channel form
+                    % now need to compress the original Qe (say 275 channels) into reduced channel form
                     U=D.inv{val}.inverse.U{1}; %% get spatial modes definition
                     disp('NOT SURE IF WE NEED TO RESCALE FOR CHAN REDUCTION');
                     scaleU=size(a.Qe,1)./size(U,1); % white noise power pwer channel reduce with number of channels
@@ -470,7 +466,7 @@ for i=1:numel(job.priortype), %% move through different prior specifications
                 else
                     disp('loading just source level posterior');
                     Qp{end+1}=a.pQ;
-                end;
+                end
                 
                 
                 
@@ -493,7 +489,7 @@ for i=1:numel(job.priortype), %% move through different prior specifications
                 Qp{end+1} = a.pQ;
             otherwise
                 error('Unknown file type.');
-        end; % switch
+        end % switch
         
         idnum=randi(1e6);
         
@@ -501,19 +497,19 @@ for i=1:numel(job.priortype), %% move through different prior specifications
         fprintf('Saving %s\n',priorfname);
         F=[]; % no associated free energy value
         save(priorfname,'Qp','Qe','UL','F');
-    end; % func priors
+    end % func priors
     
-    %% POPULAR PRIORS
+    % POPULAR PRIORS
     
-    if isfield(job.priortype{i},'popularpars'),
+    if isfield(job.priortype{i},'popularpars')
         base=job.priortype{i}.popularpars;
         
-        disp(sprintf('Adding prior covariance matrix for %s algorithm',base.popular));
+        fprintf('Adding prior covariance matrix for %s algorithm\n',base.popular);
         
-        if strcmp(base.popular,'sparseEBB'),
+        if strcmp(base.popular,'sparseEBB')
             
-            %% calculate power on cortical surface
-            %% using beamformer assumptions
+            % calculate power on cortical surface
+            % using beamformer assumptions
             AYYA=D.inv{val}.inverse.AYYA;
             
             InvCov = spm_inv(AYYA);
@@ -524,11 +520,11 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             for bk = 1:Ns
                 normpower = 1/(UL(:,bk)'*UL(:,bk));
                 Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
-                %% normalise power by unit noise through lead fields
+                % normalise power by unit noise through lead fields
                 allsource(bk) = Sourcepower(bk)./normpower;
             end
             
-            %% now get local maxima on mesh
+            % now get local maxima on mesh
             M.vertices=mesh.vert;
             M.faces=mesh.face;
             
@@ -547,12 +543,12 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             [Qp,Qe,allpriornames]=spm_eeg_invert_setuppatches(Ip,mesh,base,priordir,Qe{1},UL);
             
             
-        end; % sparse EBB
+        end % sparse EBB
         
-        if strcmp(base.popular,'EBB'),
+        if strcmp(base.popular,'EBB')
             
-            %% calculate power on cortical surface
-            %% using beamformer assumptions
+            % calculate power on cortical surface
+            % using beamformer assumptions
             AYYA=D.inv{val}.inverse.AYYA;
             
             InvCov = spm_inv(AYYA);
@@ -563,7 +559,7 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             for bk = 1:Ns
                 normpower = 1/(UL(:,bk)'*UL(:,bk));
                 Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
-                %% normalise power by unit noise through lead fields
+                % normalise power by unit noise through lead fields
                 allsource(bk) = Sourcepower(bk)./normpower;
             end
             
@@ -571,7 +567,7 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             plot(allsource);
             legend('EBB');
             hold on;
-            %% now get local maxima on mesh
+            % now get local maxima on mesh
             M.vertices=mesh.vert;
             M.faces=mesh.face;
             warning('Smoothing not used');
@@ -585,9 +581,9 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             F=[];
             save(priorfname,'Qp','Qe','UL','F');
             
-        end; % EBB
+        end % EBB
         
-        if strcmp(base.popular,'COH'),
+        if strcmp(base.popular,'COH')
             
             % create minimum norm prior
             %------------------------------------------------------------------
@@ -597,7 +593,7 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             M=[];M.faces=mesh.face;M.vertices=mesh.vert;
             dist=spm_mesh_distmtx(M,1);
             ind2=find(dist>0);
-            ind=find(dist<base.FWHMmm./1000);;
+            ind=find(dist<base.FWHMmm./1000);
             ind=intersect(ind,ind2);
             Qp{1}(ind)=1;
             
@@ -609,9 +605,9 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             F=[]; % no associated free energy value
             
             save(priorfname,'Qp','Qe','UL','F');
-        end; % COH
+        end % COH
         
-        if strcmp(base.popular,'IID'),
+        if strcmp(base.popular,'IID')
             
             % create minimum norm prior
             %------------------------------------------------------------------
@@ -625,17 +621,17 @@ for i=1:numel(job.priortype), %% move through different prior specifications
             fprintf('Saving %s\n',priorfname);
             F=[]; % no associated free energy value
             save(priorfname,'Qp','Qe','UL','F');
-        end; % IID
+        end % IID
         
         
-    end; % popular priors
+    end % popular priors
     
-end; % for i (looping over priors)
+end % for i (looping over priors)
 
 
 
-%     %% NOW JUST WANT TO PLOT OUT THE CURRENT DENSITY PRIORS FOR A RANDOM SET OF PATCHES
-%%%%%%%%%%%% THIS SHOULD ALL GO IN A PREVIEW FUNCTION
+% NOW JUST WANT TO PLOT OUT THE CURRENT DENSITY PRIORS FOR A RANDOM SET OF PATCHES
+% THIS SHOULD ALL GO IN A PREVIEW FUNCTION
 
 [LCpL,Q,sumLCpL,QE,Cy,M,Cp,Cq,Lq]=spm_eeg_assemble_priors(UL,Qp,Qe);
 
@@ -652,13 +648,13 @@ colorbar;
 
 
 CHECKSMOOTH=0;
-if CHECKSMOOTH,
+if CHECKSMOOTH
     figure;
     r=randperm(length(Qp));
     
     sigma2=[];
-    for f=1:min(length(r),4),
-        if isfield(Qp{r(f)},'q'),
+    for f=1:min(length(r),4)
+        if isfield(Qp{r(f)},'q')
             q=Qp{r(f)}.q;
             [val,ind]=max(q);
             
@@ -671,23 +667,23 @@ if CHECKSMOOTH,
             B = regress(y,[x ones(size(x,1),1)] );
             sigma2(f)=1./(2*B(1)); %% sd squared of gaussian
             plot(dist(distind).*1000,q(distind),'r.',dist(distind).*1000,max(q).*exp(-(dist(distind).^2)/(2*sigma2(f))),'go'); %% plot in mm
-        end;
+        end
         
-    end;
+    end
     
-    if ~isempty(sigma2),
+    if ~isempty(sigma2)
         title(sprintf('Prior Profile of prior amplitude across cortex'));
         meanfwhm=mean(sqrt(sigma2))*2.355*1000; %% in mm
         stdfwhm=std(sqrt(sigma2))*2.355*1000;
         legend(sprintf('Mean FWHM=%3.2f mm,std FWHM= %3.2fmm',meanfwhm,stdfwhm));
         drawnow;
-    end;
+    end
     
-end; %% if CHECKSMOOTH
+end %% if CHECKSMOOTH
 
 out.D = job.D;
 
-
+%==========================================================================
 function dep = vout_priors(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;

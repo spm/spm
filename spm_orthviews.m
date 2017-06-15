@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 6991 2017-01-19 13:09:51Z guillaume $
+% $Id: spm_orthviews.m 7110 2017-06-15 11:45:05Z guillaume $
 
 
 % The basic fields of st are:
@@ -1566,7 +1566,7 @@ else
 end
 for k = 1:numel(pluginbase)
     pluginpath = fullfile(pluginbase{k},'spm_orthviews');
-    if isdir(pluginpath)
+    if exist(pluginpath,'dir') == 7
         pluginfiles = dir(fullfile(pluginpath,'spm_ov_*.m'));
         if ~isempty(pluginfiles)
             if ~isdeployed, addpath(pluginpath); end

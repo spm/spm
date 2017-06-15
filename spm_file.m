@@ -51,10 +51,10 @@ function str = spm_file(str,varargin)
 %
 % See also: spm_fileparts, spm_select, spm_file_ext, spm_existfile
 %__________________________________________________________________________
-% Copyright (C) 2011-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file.m 6962 2016-12-06 12:17:01Z guillaume $
+% $Id: spm_file.m 7110 2017-06-15 11:45:05Z guillaume $
 
 
 needchar = ischar(str);
@@ -173,7 +173,7 @@ while ~isempty(options)
                         case 'content'
                             [str{n}, sts] = urlread(str{n});
                         otherwise
-                            if isdir(options{2})
+                            if exist(options{2},'dir') == 7
                                 options{2} = fullfile(options{2},[nam ext]);
                             end
                             [str{n}, sts] = urlwrite(str{n},options{2});
