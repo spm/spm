@@ -20,7 +20,7 @@ function varargout = spm_jsonwrite(varargin)
 % Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 7053 2017-04-03 11:04:13Z guillaume $
+% $Id: spm_jsonwrite.m 7108 2017-06-15 10:36:29Z guillaume $
 
 
 %-Input parameters
@@ -198,6 +198,8 @@ elseif numel(json) > 1
 end
 if islogical(json)
     if json, S = 'true'; else S = 'false'; end
+elseif ~isfinite(json)
+    S = 'null';
 else
     S = num2str(json,16);
 end
