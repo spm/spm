@@ -10,7 +10,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 4818 2012-07-31 14:53:10Z guillaume $
+% $Id: spm_eeg_inv_visu3D_api.m 7111 2017-06-16 09:01:09Z guillaume $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
@@ -614,12 +614,20 @@ for t = 1:length(handles.pst)
     
     % record movie if requested
     %----------------------------------------------------------------------
-    if MOVIE, M(t) = getframe(handles.sources_axes); end;
+    if MOVIE, M(t) = getframe(handles.sources_axes); end
 end
 UpDate_Display_SENS(hObject,handles);
 try
     filename = fullfile(handles.D.path,'SourceMovie');
-    movie2avi(M,filename,'compression','Indeo3','FPS',24)
+    if spm_check_version('matlab','7.10') > 0
+        writerObj = VideoWriter(filename,'Uncompressed AVI');
+        writerObj.FrameRate = 24;
+        open(writerObj);
+        writeVideo(writerObj,M);
+        close(writerObj);
+    else
+        movie2avi(M,filename,'compression','Indeo3','FPS',24); %#ok
+    end
 end
 
 
@@ -636,13 +644,21 @@ for t = 1:length(handles.pst)
     
     % record movie if requested
     %----------------------------------------------------------------------
-    if MOVIE, M(t) = getframe(handles.sensors_axes); end;
+    if MOVIE, M(t) = getframe(handles.sensors_axes); end
     
 end
 UpDate_Display_SRCS(hObject,handles);
 try
     filename = fullfile(handles.D.path,'SensorMovie');
-    movie2avi(M,filename,'compression','Indeo3','FPS',24)
+    if spm_check_version('matlab','7.10') > 0
+        writerObj = VideoWriter(filename,'Uncompressed AVI');
+        writerObj.FrameRate = 24;
+        open(writerObj);
+        writeVideo(writerObj,M);
+        close(writerObj);
+    else
+        movie2avi(M,filename,'compression','Indeo3','FPS',24); %#ok
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

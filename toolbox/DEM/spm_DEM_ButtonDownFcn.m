@@ -8,7 +8,7 @@ function spm_DEM_ButtonDownFcn
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_ButtonDownFcn.m 6377 2015-03-13 20:16:44Z karl $
+% $Id: spm_DEM_ButtonDownFcn.m 7111 2017-06-16 09:01:09Z guillaume $
  
 % default
 %--------------------------------------------------------------------------
@@ -24,9 +24,18 @@ if isstruct(S{1})
     else
         % save avi file
         %------------------------------------------------------------------
-        [FILENAME, PATHNAME] = uiputfile('*.avi','movie file');
-        NAME = fullfile(PATHNAME,FILENAME);
-        movie2avi(S{1},NAME,'compression','none','fps',15)
+        [filename, pathname] = uiputfile('*.avi','movie file');
+        if isequal(filename,0) || isequal(pathname,0), return; end
+        fname = fullfile(pathname,filename);
+        if spm_check_version('matlab','7.10') > 0
+            writerObj = VideoWriter(fname,'Uncompressed AVI');
+            writerObj.FrameRate = 15;
+            open(writerObj);
+            writeVideo(writerObj,S{1});
+            close(writerObj);
+        else
+            movie2avi(S{1},fname,'compression','none','fps',15); %#ok
+        end
     end
     
 else
@@ -38,14 +47,16 @@ else
     if strcmp(get(gcf,'SelectionType'),'normal')
         return
     else
-        
         % save wav file
         %------------------------------------------------------------------
         [filename, pathname] = uiputfile('*.wav','wave file');
-        if ~(isequal(filename,0) || isequal(pathname,0))
-            name = fullfile(pathname,filename);
-            S{1} = S{1}/max(S{1}(:));
-            wavwrite(S{1},S{2},16,name);
+        if isequal(filename,0) || isequal(pathname,0), return; end
+        fname = fullfile(pathname,filename);
+        S{1} = S{1}/max(S{1}(:));
+        if spm_check_version('matlab','8.0') > 0
+            audiowrite(fname,S{1},S{2},'BitsPerSample',16);
+        else
+            wavwrite(S{1},S{2},16,fname); %#ok
         end
     end
 end

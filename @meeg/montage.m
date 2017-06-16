@@ -1,5 +1,4 @@
 function [res] = montage(this,action,varargin)
-
 % Method for specifying an online montage, or setting one to use
 % FORMAT
 %   res = montage(this, 'add', montage)
@@ -21,11 +20,11 @@ function [res] = montage(this,action,varargin)
 %                 depending on list provided (current one by default if 
 %                 no list passed).
 % _______________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2017 Wellcome Trust Centre for Neuroimaging
 
 % Remy Lehembre & Christophe Phillips
-% Cyclotron Research Centre, University of Liège, Belgium
-% $Id: montage.m 7000 2017-02-02 10:09:19Z vladimir $
+% Cyclotron Research Centre, University of Liege, Belgium
+% $Id: montage.m 7111 2017-06-16 09:01:09Z guillaume $
 
 % Montage definition in the object structure by simply adding a 'montage'
 % field in the object structure:
@@ -59,7 +58,7 @@ switch lower(action)
         %check that all info are consistent
         if size(mont.tra,1)~=length(mont.labelnew) || ...
                 size(mont.tra,2)~=length(mont.labelorg)
-            error('Montage Matrix inconsistent with original or new number of electrodes')
+            error('Montage Matrix inconsistent with original or new number of electrodes.')
         end
         if size(mont.labelorg,1)~=size(mont.tra,2)
             mont.labelorg = mont.labelorg';
@@ -103,7 +102,7 @@ switch lower(action)
             this.montage.M(ind).channels = mont.channels;
         else
             % try to derive it from object channel info
-            display('No new channels information : setting channels info automatically.')
+            disp('No new channels information : setting channels info automatically.')
             this = set_channels(this,mont);
         end
         res = meeg(this);
@@ -207,10 +206,8 @@ switch lower(action)
         error('Wrong use of the ''montage'' method.')
 end
 
-end
 
-%% Subfunction(s)
-
+%==========================================================================
 function S = set_channels(S,mont)
 
 % provided montage does not necessarily apply to all channels
@@ -285,5 +282,3 @@ for ii=1:length(S.montage.M(idx).channels)
         S.montage.M(idx).channels(ii).Y_plot2D = [];
     end
 end    
-    
-end

@@ -15,10 +15,10 @@ function ret = spm_ov_movie(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2017 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_ov_movie.m 6807 2016-06-10 12:58:35Z guillaume $
+% $Id: spm_ov_movie.m 7111 2017-06-16 09:01:09Z guillaume $
 
 global st;
 if isempty(st)
@@ -61,7 +61,7 @@ switch cmd
                 num2str(bb(dir,:), '%.1f %.1f'), 2);
             mstart(dir)=tmp(1);
             mend(dir)=tmp(2);
-        end;
+        end
         ds=spm_input('Step size (mm)', '!+1', 'e', '1', 1);
         d=mend-mstart;
         l=sqrt(d'*d);
@@ -82,15 +82,15 @@ switch cmd
             end
         else
             vh = [];
-        end;
+        end
         for k=1:numel(steps)
             spm_orthviews('reposition', mstart+steps(k)*d);
             for ci = 1:numel(vh)
                 for ca = 1:3
                     M{ci,ca}(k) = getframe(st.vols{vh(ci)}.ax{ca}.ax);
-                end;
-            end;
-        end;
+                end
+            end
+        end
         spm('pointer', 'watch');
         for ci = 1:numel(vh)
             for ca = 1:3
@@ -98,7 +98,7 @@ switch cmd
                     for cf = 1:numel(M{ci,ca})
                         fname = sprintf('%s-%02d-%1d-%03d.png',prefix,vh(ci),ca,cf);
                         imwrite(frame2im(M{ci,ca}(cf)), fname, 'png');
-                    end;
+                    end
                 elseif domovie == 2
                     fname = sprintf('%s-%02d-%1d.avi',prefix,vh(ci),ca);
                     if spm_check_version('matlab','7.10') > 0
@@ -108,19 +108,18 @@ switch cmd
                         close(writerObj);
                         fname = writerObj.Filename;
                     else
-                        movie2avi(M{ci,ca},fname, 'compression','None');
+                        movie2avi(M{ci,ca},fname, 'compression','None'); %#ok
                     end
                     if ispc, cmd = 'winopen(''%s'')'; else, cmd = 'open(''%s'')'; end
                     fprintf('Movie saved in %s\n',spm_file(fname,'link',cmd));
-                end;
-            end;
-        end;
+                end
+            end
+        end
         spm('pointer', 'arrow');
         spm_orthviews('reposition', opos);
         spm_input('!DeleteInputObj',Finter);
     otherwise
         fprintf('spm_orthviews(''movie'', ...): Unknown action %s', cmd);
-end;
-
+end
 
 spm('pointer','arrow');
