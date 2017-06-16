@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2016 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 7025 2017-02-22 10:03:58Z guillaume $
+% $Id: spm.m 7112 2017-06-16 11:30:37Z guillaume $
 
 
 %=======================================================================
@@ -594,6 +594,9 @@ Finter = figure('IntegerHandle','off',...
     'DefaultUicontrolInterruptible','on',...
     'Renderer','painters',...
     'Visible',Vis);
+if spm_check_version('matlab','8.3') < 0
+    set(Finter,'DoubleBuffer','on');
+end
 varargout = {Finter};
 
 %=======================================================================

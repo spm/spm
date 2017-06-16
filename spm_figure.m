@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 1994-2015 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 6862 2016-08-25 14:42:19Z guillaume $
+% $Id: spm_figure.m 7112 2017-06-16 11:30:37Z guillaume $
 
 
 %==========================================================================
@@ -1072,8 +1072,7 @@ h = figure('MenuBar','none',...
            'Tag','AboutSPM',...
            'WindowStyle','Modal',...
            'Color',[1 1 1],...
-           'Visible','off',...
-           'DoubleBuffer','on');
+           'Visible','off');
 pos = get(h,'Position');
 pos([3 4]) = [300 400];
 set(h,'Position',pos);
