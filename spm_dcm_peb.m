@@ -88,7 +88,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7071 2017-04-26 13:09:07Z peter $
+% $Id: spm_dcm_peb.m 7113 2017-06-17 10:02:53Z peter $
  
 
 % get filenames and set up
@@ -141,7 +141,21 @@ if isfield(M,'bC') && Ns > 1
 else
     q = spm_find_pC(DCM,field);                 % parameter indices
 end
-Pstr  = spm_fieldindices(DCM.M.pE,q);           % field names 
+try
+    Pstr  = spm_fieldindices(DCM.M.pE,q);       % field names 
+catch
+    if isfield(DCM,'Pnames')
+        % PEB given as input. Field names have form covariate:fieldname
+        Pstr = [];
+        for i = 1:length(DCM.Xnames)
+            str = strcat(DCM.Xnames{i}, ': ', DCM.Pnames);
+            Pstr = [Pstr; str];
+        end
+    else
+        % Generate field names
+        Pstr  = strcat('P', cellstr(num2str(q)));
+    end
+end
 Np    = numel(q);                               % number of parameters
 if Np == 1
     Pstr = {Pstr}; 
