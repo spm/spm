@@ -88,7 +88,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7113 2017-06-17 10:02:53Z peter $
+% $Id: spm_dcm_peb.m 7115 2017-06-19 15:11:00Z peter $
  
 
 % get filenames and set up
@@ -138,6 +138,8 @@ end
 Ns    = numel(P);                               % number of subjects
 if isfield(M,'bC') && Ns > 1
     q = spm_find_pC(M.bC,M.bE,field);           % parameter indices
+elseif isnumeric(field)
+    q = field;                                  % parameter indices
 else
     q = spm_find_pC(DCM,field);                 % parameter indices
 end
