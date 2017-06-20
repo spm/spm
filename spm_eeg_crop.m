@@ -1,26 +1,26 @@
 function D = spm_eeg_crop(S)
-% Reduce the data size by cutting in time and frequency.
+% Reduce the data size by cutting in time and frequency
 % FORMAT D = spm_eeg_crop(S)
 %
 % S        - optional input struct
 %  fields of S:
 %   D        - MEEG object or filename of M/EEG mat-file with epoched data
-%   timewin  - time window to retain (in PST ms)
+%   timewin  - time window to retain {in PST ms)}
 %   freqwin  - frequency window to retain
-%   channels - cell array of channel labels or 'all'.
-%   prefix   - prefix for the output file (default - 'p')
+%   channels - cell array of channel labels or 'all' [default]
+%   prefix   - prefix for the output file [default: 'p']
 %
 %
 % Output:
 % D        - MEEG object (also written on disk)
 %
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_crop.m 6437 2015-05-14 12:27:21Z vladimir $
+% $Id: spm_eeg_crop.m 7117 2017-06-20 09:40:24Z guillaume $
 
-SVNrev = '$Rev: 6437 $';
+SVNrev = '$Rev: 7117 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -71,30 +71,37 @@ if isequal(Dnew.type, 'continuous')
     ev = Dnew.events;
     if ~isempty(ev)
         ev = ev([ev.time]>=Dnew.time(1) & [ev.time]<=Dnew.time(end));
-        Dnew   = events(Dnew, 1, ev);
+        Dnew = events(Dnew, 1, ev);
     end
 end
 
 %-Copy data
 %--------------------------------------------------------------------------
+fprintf('%-40s: %30s\n','Channels',sprintf('%d/%d',numel(chanind),D.nchannels));%-#
+if isTF, fprintf('%-40s: %30s\n','Frequencies',sprintf('%d/%d',numel(freqind),D.nfrequencies)); end %-#
+fprintf('%-40s: %30s\n','Samples',sprintf('%d/%d',numel(timeind),D.nsamples)); %-#
 spm_progress_bar('Init', D.ntrials, 'Trials copied');
 if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials, 100));
 else Ibar = 1:D.ntrials; end
 
+onsets = zeros(1,D.ntrials);
+
 for i = 1:D.ntrials
     
     if isTF
-        Dnew(:, :, :, i) =  D(chanind, freqind, timeind, i);
+        Dnew(:, :, :, i) = D(chanind, freqind, timeind, i);
     else
-        Dnew(:, :, i) =  D(chanind, timeind, i);
+        Dnew(:, :, i) = D(chanind, timeind, i);
     end
     
     if D.trialonset(i) ~= 0
-        Dnew = trialonset(Dnew, i,  D.trialonset(i)+ D.time(timeind(1))-D.time(1));
+        onsets(i) = D.trialonset(i)+ D.time(timeind(1))-D.time(1);
     end
     
-    if ismember(i, Ibar), spm_progress_bar('Set', i); end
-end  %
+    if any(Ibar == i), spm_progress_bar('Set', i); end
+end
+
+Dnew = trialonset(Dnew, ':', onsets);
 
 spm_progress_bar('Clear');
 
@@ -107,4 +114,5 @@ D = Dnew;
 
 %-Cleanup
 %--------------------------------------------------------------------------
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','Crop M/EEG data: done'); spm('Pointer','Arrow');
