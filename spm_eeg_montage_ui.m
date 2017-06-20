@@ -9,10 +9,10 @@ function montage = spm_eeg_montage_ui(montage)
 %
 % Output is empty if the GUI is closed.
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_montage_ui.m 6072 2014-06-27 16:35:30Z guillaume $
+% $Id: spm_eeg_montage_ui.m 7119 2017-06-20 11:25:48Z guillaume $
 
 
 % Create the figure
@@ -81,8 +81,7 @@ table = cat(2,newLabels,num2cell(M));
 colnames = cat(2,'channel labels',ud.montage.labelorg(:)');
 pause(1) % This is weird, but fixes java troubles.
 ht = my_uitable(table,colnames);
-set(ht,'position',pos,...
-    'units','normalized');
+set(ht,'position',pos, 'units','normalized');
 ud.ht = ht;
 set(h,'userdata',ud);
 doCheck(obj,evd,h);
@@ -130,7 +129,11 @@ newLabels(ind)   = [];
 montage.tra      = M;
 montage.labelorg = ud.montage.labelorg;
 montage.labelnew = newLabels;
-uisave('montage','SPMeeg_montage.mat');
+[filename, pathname] = uiputfile({'*.mat','MAT-files (*.mat)'}, ...
+    'Save montage', 'SPMeeg_montage.mat');
+if ~isequal(filename, 0)
+	save(fullfile(pathname, filename), 'montage', spm_get_defaults('mat.format'));
+end
 
 %==========================================================================
 function doOK(obj,evd,h)
@@ -220,12 +223,20 @@ hCheck = uicontrol('style','pushbutton',...
 set(hCheck,'units','normalized');
 
 %==========================================================================
-function h = my_uitable(varargin)
+function [ht,hc] = my_uitable(varargin)
 %==========================================================================
 % conversion layer for various MATLAB versions
-if spm_check_version('matlab','8.4') >= 0
-    warning('Consider migrating to the new uitable component.');
-    h = uitable('v0',varargin{:});
-else
-    h = spm_uitable(varargin{:});
+persistent runOnce
+try
+    if spm_check_version('matlab','8.4') >= 0
+        if isempty(runOnce)
+            warning('Consider migrating to the new uitable component.');
+            runOnce = true;
+        end
+        [ht,hc] = uitable('v0',varargin{:});
+    else
+        [ht,hc] = spm_uitable(varargin{:});
+    end
+catch
+    [ht,hc]     = deal([]);
 end
