@@ -19,7 +19,7 @@ function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni
 %% Outputs
 %% Dnew- new dataset
 %% meshsourceind- vertex indices of sources on the mesh
-% $Id: spm_eeg_simulate.m 6424 2015-04-24 14:33:33Z gareth $
+% $Id: spm_eeg_simulate.m 7118 2017-06-20 10:33:27Z guillaume $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -363,7 +363,7 @@ YY=YY./n; %% NORMALIZE HERE
 
 F=[];
 UL=L;
-save(priorfname,'Qp','Qe','UL','F');
+save(priorfname,'Qp','Qe','UL','F', spm_get_defaults('mat.format'));
 
 figure;
 ploton=1;

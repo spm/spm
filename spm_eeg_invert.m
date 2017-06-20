@@ -1,6 +1,6 @@
 function [D] = spm_eeg_invert(D, val)
 % ReML inversion of multiple forward models for EEG-MEG
-% FORMAT [D] = spm_eeg_invert(D)
+% FORMAT [D] = spm_eeg_invert(D, val)
 % ReML estimation of regularisation hyperparameters using the
 % spatiotemporal hierarchy implicit in EEG/MEG data
 %
@@ -111,7 +111,7 @@ function [D] = spm_eeg_invert(D, val)
 % See: A Parametric Empirical Bayesian framework for fMRI-constrained
 % MEG/EEG source reconstruction.
 % Henson R, Flandin G, Friston K & Mattout J.
-% Human Brain Mapping (in press).
+% Human Brain Mapping. 2010. 1(10):1512-31.
 %__________________________________________________________________________
 %
 % The routine essentially consists of two steps:
@@ -119,11 +119,18 @@ function [D] = spm_eeg_invert(D, val)
 %   1. Optimisation of spatial source priors over subjects
 %   2. Re-inversion of each subject, fusing across all modalities
 %__________________________________________________________________________
-% Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
- 
+% Copyright (C) 2006-2017 Wellcome Trust Centre for Neuroimaging
+
 % Karl Friston
-% $Id: spm_eeg_invert.m 7082 2017-05-27 19:36:36Z karl $
- 
+% $Id: spm_eeg_invert.m 7118 2017-06-20 10:33:27Z guillaume $
+
+
+SVNid = '$Rev: 7118 $';
+
+%-Say hello
+%--------------------------------------------------------------------------
+spm('FnBanner',mfilename,SVNid);
+
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
 if ~iscell(D), D = {D}; end
@@ -196,12 +203,12 @@ for i = 1:Nl
         Nc(i,m)  = length(Ic{i,m});
         
         if isempty(Ic{i,m})
-            errordlg(['Modality ' modalities{m} 'is missing from file ' D{i}.fname]);
+            errordlg(['Modality ' modalities{m} ' is missing from file ' D{i}.fname]);
             return
         end
         
         if any(diff(Nd))
-            errordlg('Please ensure subjects have the same number of dipoles')
+            errordlg('Please ensure subjects have the same number of dipoles.')
             return
         end
         
@@ -221,9 +228,9 @@ fprintf(' - done\n')
 % Compute spatial coherence: Diffusion on a normalised graph Laplacian GL
 %==========================================================================
  
-fprintf('Computing Green function from graph Laplacian:')
-%--------------------------------------------------------------------------
-Nd    = Nd(1);                                     % number of dipoles
+fprintf('%-40s: %30s','Green function from graph Laplacian','...computing'); %-#
+
+Nd    = Nd(1);                                          % number of dipoles
 vert  = D{1}.inv{D{1}.val}.mesh.tess_mni.vert;
 face  = D{1}.inv{D{1}.val}.mesh.tess_mni.face;
 A     = spm_mesh_distmtx(struct('vertices',vert,'faces',face),0);
@@ -238,10 +245,11 @@ end
 QG    = QG.*(QG > exp(-8));
 QG    = QG*QG;
 clear Qi A GL
-fprintf(' - done\n')
+
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
  
  
-% check for (e.g., empty-room) sensor components (in Qe{1})
+% Check for (e.g., empty-room) sensor components (in Qe{1})
 %==========================================================================
 QE    = cell(Nl,Nmod);
 for i = 1:Nl
@@ -258,7 +266,6 @@ for i = 1:Nl
         % assume i.i.d. if not specified
         %------------------------------------------------------------------
         catch
-            
             QE{i,m} = 1; 
         end
     end
@@ -924,8 +931,8 @@ for i = 1:Nl
         
         % sum of squares
         %------------------------------------------------------------------
-        SSR  = SSR + sum(var((UY{i,j} - UL*J{j}),0,2));
-        SST  = SST + sum(var( UY{i,j},0,2));
+        SSR  = SSR + sum(var(full(UY{i,j} - UL*J{j}),0,2));
+        SST  = SST + sum(var(full(UY{i,j}),0,2));
         
     end
     
@@ -981,3 +988,5 @@ for i = 1:Nl
 end
  
 if length(D) == 1, D = D{1}; end
+
+fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#

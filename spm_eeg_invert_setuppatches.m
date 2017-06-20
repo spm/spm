@@ -18,7 +18,7 @@ function [Qp,Qe,allpriornames] = spm_eeg_invert_setuppatches(allIp,mesh,base,pri
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_invert_setuppatches.m 6498 2015-07-15 19:13:31Z gareth $
+% $Id: spm_eeg_invert_setuppatches.m 7118 2017-06-20 10:33:27Z guillaume $
 
 
 Npatchiter=size(allIp,1);
@@ -97,7 +97,7 @@ for k=1:Npatchiter,
     fprintf('Saving %s\n',priorfname);
     F=[]; % no associated free energy value
     allpriornames=strvcat(allpriornames,priorfname);
-    save(priorfname,'Qp','Qe','UL','F');
+    save(priorfname,'Qp','Qe','UL','F', spm_get_defaults('mat.format'));
 end; % for k
 
 

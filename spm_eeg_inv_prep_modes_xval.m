@@ -26,7 +26,7 @@ function [spatialmodename,Nmodes,newpctest,testchans]=spm_eeg_inv_prep_modes_xva
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_inv_prep_modes_xval.m 1 2016-09-12 15:02:25Z gareth $
+% $Id: spm_eeg_inv_prep_modes_xval.m 7118 2017-06-20 10:33:27Z guillaume $
 
 
 
@@ -124,4 +124,4 @@ for b=1:Nblocks,
 end; %for b
 
 fprintf('\n saving spatial mode file %s\n',spatialmodename);
-save(spatialmodename,'U','testchans','megind'); %%
+save(spatialmodename,'U','testchans','megind', spm_get_defaults('mat.format')); %%
