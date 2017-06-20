@@ -5,18 +5,18 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 %
 % DCM    - {N [x M]} structure array of DCMs from N subjects
 % -------------------------------------------------------------------------
-%     DCM{i}.M.pE	- prior expectation of parameters
-%     DCM{i}.M.pC	- prior covariances of parameters
-%     DCM{i}.Ep		- posterior expectations
-%     DCM{i}.Cp		- posterior covariance
-%     DCM{i}.F		- free energy
+%     DCM{i}.M.pE   - prior expectation of parameters
+%     DCM{i}.M.pC   - prior covariances of parameters
+%     DCM{i}.Ep     - posterior expectations
+%     DCM{i}.Cp     - posterior covariance
+%     DCM{i}.F      - free energy
 %
-% M.X	   - 2nd-level design matrix: X(:,1) = ones(N,1) [default]
-% M.bE	   - 3rd-level prior expectation [default: DCM{1}.M.pE]
-% M.bC	   - 3rd-level prior covariance  [default: DCM{1}.M.pC/M.alpha]
+% M.X      - 2nd-level design matrix: X(:,1) = ones(N,1) [default]
+% M.bE     - 3rd-level prior expectation [default: DCM{1}.M.pE]
+% M.bC     - 3rd-level prior covariance  [default: DCM{1}.M.pC/M.alpha]
 % M.pC     - 2nd-level prior covariance  [default: DCM{1}.M.pC/M.beta]
-% M.hE	   - 2nd-level prior expectation of log precisions [default: 0]
-% M.hC	   - 2nd-level prior covariances of log precisions [default: 1/16]
+% M.hE     - 2nd-level prior expectation of log precisions [default: 0]
+% M.hC     - 2nd-level prior covariances of log precisions [default: 1/16]
 %
 % M.Q      - covariance components: {'single','fields','all','none'}
 % M.alpha  - optional scaling to specify M.bC [default = 1]
@@ -34,31 +34,31 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % M.Xnames - cell array of names for second level parameters [default: {}]
 % 
 % field    - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
-%          	 'All' will invoke all fields. This argument effectively allows 
-%          	 one to specify the parameters that constitute random effects.     
+%            'All' will invoke all fields. This argument effectively allows 
+%            one to specify the parameters that constitute random effects.     
 % 
 % PEB      - hierarchical dynamic model
 % -------------------------------------------------------------------------
-%     PEB.Snames 	- string array of first level model names
-%     PEB.Pnames 	- string array of parameters of interest
-%     PEB.Pind   	- indices of parameters in spm_vec(DCM{i}.Ep) 
+%     PEB.Snames    - string array of first level model names
+%     PEB.Pnames    - string array of parameters of interest
+%     PEB.Pind      - indices of parameters in spm_vec(DCM{i}.Ep) 
 %     PEB.Xnames - names of second level parameters
 % 
-%     PEB.M.X  		- second level (between-subject) design matrix
-%     PEB.M.W  		- second level (within-subject) design matrix
-%     PEB.M.Q  		- precision [components] of second level random effects 
-%     PEB.M.pE 		- prior expectation of second level parameters
-%     PEB.M.pC 		- prior covariance of second level parameters
-%     PEB.M.hE 		- prior expectation of second level log-precisions
-%     PEB.M.hC 		- prior covariance of second level log-precisions
-%     PEB.Ep		- posterior expectation of second level parameters
-%     PEB.Eh   		- posterior expectation of second level log-precisions
-%     PEB.Cp  		- posterior covariance of second level parameters
-%     PEB.Ch   		- posterior covariance of second level log-precisions
-%     PEB.Ce   		- expected  covariance of second level random effects
-%     PEB.F    		- free energy of second level model
+%     PEB.M.X       - second level (between-subject) design matrix
+%     PEB.M.W       - second level (within-subject) design matrix
+%     PEB.M.Q       - precision [components] of second level random effects 
+%     PEB.M.pE      - prior expectation of second level parameters
+%     PEB.M.pC      - prior covariance of second level parameters
+%     PEB.M.hE      - prior expectation of second level log-precisions
+%     PEB.M.hC      - prior covariance of second level log-precisions
+%     PEB.Ep        - posterior expectation of second level parameters
+%     PEB.Eh        - posterior expectation of second level log-precisions
+%     PEB.Cp        - posterior covariance of second level parameters
+%     PEB.Ch        - posterior covariance of second level log-precisions
+%     PEB.Ce        - expected  covariance of second level random effects
+%     PEB.F         - free energy of second level model
 %
-% DCM    		- 1st level (reduced) DCM structures with empirical priors
+% DCM           - 1st level (reduced) DCM structures with empirical priors
 %
 %          If DCM is an an (N x M} array, hierarchical inversion will be
 %          applied to each model (i.e., each row) - and PEB will be a 
@@ -88,7 +88,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7115 2017-06-19 15:11:00Z peter $
+% $Id: spm_dcm_peb.m 7120 2017-06-20 11:30:30Z spm $
  
 
 % get filenames and set up

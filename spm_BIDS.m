@@ -18,7 +18,7 @@ function varargout = spm_BIDS(varargin)
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7100 2017-06-07 16:11:59Z guillaume $
+% $Id: spm_BIDS.m 7120 2017-06-20 11:30:30Z spm $
 
 
 %-Validate input arguments
@@ -64,11 +64,11 @@ end
 %==========================================================================
 try
     BIDS.description = spm_jsonread(fullfile(BIDS.dir,'dataset_description.json'));
-    if ~isfield(BIDS.description,'BIDSVersion') || ~isfield(BIDS.description,'Name')
-        error('BIDS dataset description not valid.');
-    end
 catch
     error('BIDS dataset description could not be read.');
+end
+if ~isfield(BIDS.description,'BIDSVersion') || ~isfield(BIDS.description,'Name')
+    error('BIDS dataset description not valid.');
 end
 % See also optional README and CHANGES files
 
@@ -239,8 +239,8 @@ if exist(pth,'dir')
             subject.fmap(j).type = 'phasediff';
             subject.fmap(j).filename = f{idx(i)};
             subject.fmap(j).magnitude = {...
-            	strrep(f{idx(i)},'_phasediff.nii','_magnitude1.nii'),...
-            	strrep(f{idx(i)},'_phasediff.nii','_magnitude2.nii')}; % optional
+                strrep(f{idx(i)},'_phasediff.nii','_magnitude1.nii'),...
+                strrep(f{idx(i)},'_phasediff.nii','_magnitude2.nii')}; % optional
             subject.fmap(j).ses = regexprep(labels{idx(i)}.ses,'^_[a-zA-Z0-9]+-','');
             subject.fmap(j).acq = regexprep(labels{idx(i)}.acq,'^_[a-zA-Z0-9]+-','');
             subject.fmap(j).run = regexprep(labels{idx(i)}.run,'^_[a-zA-Z0-9]+-','');
@@ -264,17 +264,17 @@ if exist(pth,'dir')
             metafile = fullfile(pth,spm_file(fb,'ext','json'));
             subject.fmap(j).type = 'phase12';
             subject.fmap(j).filename = {...
-            	f{idx(i)},...
-            	strrep(f{idx(i)},'_phase1.nii','_phase2.nii')};
+                f{idx(i)},...
+                strrep(f{idx(i)},'_phase1.nii','_phase2.nii')};
             subject.fmap(j).magnitude = {...
-            	strrep(f{idx(i)},'_phase1.nii','_magnitude1.nii'),...
-            	strrep(f{idx(i)},'_phase1.nii','_magnitude2.nii')};
+                strrep(f{idx(i)},'_phase1.nii','_magnitude1.nii'),...
+                strrep(f{idx(i)},'_phase1.nii','_magnitude2.nii')};
             subject.fmap(j).ses = regexprep(labels{idx(i)}.ses,'^_[a-zA-Z0-9]+-','');
             subject.fmap(j).acq = regexprep(labels{idx(i)}.acq,'^_[a-zA-Z0-9]+-','');
             subject.fmap(j).run = regexprep(labels{idx(i)}.run,'^_[a-zA-Z0-9]+-','');
             subject.fmap(j).meta = {...
-            	spm_jsonread(metafile),...
-            	spm_jsonread(strrep(metafile,'_phase1.json','_phase2.json'))};
+                spm_jsonread(metafile),...
+                spm_jsonread(strrep(metafile,'_phase1.json','_phase2.json'))};
             j = j + 1;
         end
     end

@@ -9,7 +9,7 @@ function D = pm_diff(V,dir)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: pm_diff.m 6656 2015-12-24 16:49:52Z guillaume $
+% $Id: pm_diff.m 7120 2017-06-20 11:30:30Z spm $
 
 if ischar(V)
    V   = spm_vol(V);
@@ -26,7 +26,7 @@ hold   = 1;
 [X,dX,dY,dZ] = spm_sample_vol(V,x,y,z,hold);
 
 switch dir
-	case 1
+    case 1
         D    = reshape(dX,dim(1),dim(2),dim(3));
     case 2
         D    = reshape(dY,dim(1),dim(2),dim(3));

@@ -11,7 +11,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % MDP.B{F}(NF,NF,MF)    - transitions among states under MF control states
 % MDP.C{G}(O,T)         - prior preferences over O outsomes in modality G
 % MDP.D{F}(NF,1)        - prior probabilities over initial states
-% MDP.E(P,1)      	    - prior probabilities over policies
+% MDP.E(P,1)            - prior probabilities over policies
 %
 % MDP.a{G}              - concentration parameters for A
 % MDP.b{F}              - concentration parameters for B
@@ -96,7 +96,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7017 2017-02-15 12:50:58Z karl $
+% $Id: spm_MDP_VB_X.m 7120 2017-06-20 11:30:30Z spm $
 
 
 % deal with a sequence of trials

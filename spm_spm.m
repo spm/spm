@@ -268,10 +268,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 6910 2016-10-24 16:20:03Z guillaume $
+% $Id: spm_spm.m 7120 2017-06-20 11:30:30Z spm $
 
 
-SVNid = '$Rev: 6910 $';
+SVNid = '$Rev: 7120 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -334,12 +334,12 @@ if spm_mesh_detect(VY)
         metadata = metadata(ismember(name,'SurfaceID'));
         metadata = {metadata.name, metadata.value};
     elseif isfield(g,'faces') && ~isempty(g.faces)
-    	metadata = {'SurfaceID', VY(1).fname};
+        metadata = {'SurfaceID', VY(1).fname};
     else
         error('SurfaceID not found in GIfTI''s metadata.');
     end
     if isempty(spm_file(metadata{2},'path'))
-    	metadata{2} = fullfile(spm_file(VY(1).fname,'path'),metadata{2});
+        metadata{2} = fullfile(spm_file(VY(1).fname,'path'),metadata{2});
     end
     SPM.xVol.G = metadata{2};
 else

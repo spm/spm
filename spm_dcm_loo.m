@@ -4,18 +4,18 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
 %
 % DCM   - {N [x M]} structure DCM array of (M) DCMs from (N) subjects
 % -------------------------------------------------------------------
-%     DCM{i}.M.pE	- prior expectation of parameters
-%     DCM{i}.M.pC	- prior covariances of parameters
-%     DCM{i}.Ep   	- posterior expectations
-%     DCM{i}.Cp   	- posterior covariance
+%     DCM{i}.M.pE   - prior expectation of parameters
+%     DCM{i}.M.pC   - prior covariances of parameters
+%     DCM{i}.Ep     - posterior expectations
+%     DCM{i}.Cp     - posterior covariance
 %
-% M.X   	- second level design matrix, where X(:,1) = ones(N,1) [default]
-% field 	- parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
+% M.X       - second level design matrix, where X(:,1) = ones(N,1) [default]
+% field     - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %             'All' will invoke all fields
 % 
-% qE    	- posterior predictive expectation (group effect)
-% qC    	- posterior predictive covariances (group effect)
-% Q     	- posterior probability over unique levels of X(:,2)
+% qE        - posterior predictive expectation (group effect)
+% qC        - posterior predictive covariances (group effect)
+% Q         - posterior probability over unique levels of X(:,2)
 % 
 % This routine uses the posterior predictive density over the coefficients
 % of between-subject effects encoded by a design matrix X. It is assumed
@@ -30,10 +30,10 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
 % 
 % See also: spm_dcm_peb.m and spm_dcm_ppd.m
 %__________________________________________________________________________
-% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_loo.m 6894 2016-09-30 16:48:46Z spm $
+% $Id: spm_dcm_loo.m 7120 2017-06-20 11:30:30Z spm $
 
 
 % Set up

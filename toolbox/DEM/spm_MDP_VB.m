@@ -2,47 +2,47 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % active inference and learning using variational Bayes
 % FORMAT [MDP] = spm_MDP_VB(MDP,OPTIONS)
 %
-% MDP.S(N,1)     	- true initial state
-% MDP.V(T - 1,P)  	- P allowable policies (control sequences)
+% MDP.S(N,1)        - true initial state
+% MDP.V(T - 1,P)    - P allowable policies (control sequences)
 %
-% MDP.A(O,N)      	- likelihood of O outcomes given N hidden states
-% MDP.B{M}(N,N)   	- transition probabilities among hidden states (priors)
-% MDP.C(N,1)      	- prior preferences   (prior over future outcomes)
-% MDP.D(N,1)      	- prior probabilities (prior over initial states)
+% MDP.A(O,N)        - likelihood of O outcomes given N hidden states
+% MDP.B{M}(N,N)     - transition probabilities among hidden states (priors)
+% MDP.C(N,1)        - prior preferences   (prior over future outcomes)
+% MDP.D(N,1)        - prior probabilities (prior over initial states)
 %
-% MDP.a(O,N)      	- concentration parameters for A
-% MDP.b{M}(N,N)   	- concentration parameters for B
-% MDP.c(N,N)      	- concentration parameters for habitual B
-% MDP.d(N,1)      	- concentration parameters for D
-% MDP.e(P,1)      	- concentration parameters for u
+% MDP.a(O,N)        - concentration parameters for A
+% MDP.b{M}(N,N)     - concentration parameters for B
+% MDP.c(N,N)        - concentration parameters for habitual B
+% MDP.d(N,1)        - concentration parameters for D
+% MDP.e(P,1)        - concentration parameters for u
 %
 % optional:
-% MDP.s(1,T)      	- vector of true states
-% MDP.o(1,T)      	- vector of observations 
-% MDP.u(1,T)      	- vector of actions
-% MDP.w(1,T)      	- vector of precisions
+% MDP.s(1,T)        - vector of true states
+% MDP.o(1,T)        - vector of observations 
+% MDP.u(1,T)        - vector of actions
+% MDP.w(1,T)        - vector of precisions
 %
-% MDP.alpha       	- upper bound on precision (Gamma hyperprior - shape [1])
-% MDP.beta        	- precision over precision (Gamma hyperprior - rate  [1])
+% MDP.alpha         - upper bound on precision (Gamma hyperprior - shape [1])
+% MDP.beta          - precision over precision (Gamma hyperprior - rate  [1])
 %
-% OPTIONS.plot    	- switch to suppress graphics: (default: [0])
-% OPTIONS.scheme  	- {'Free Energy' | 'KL Control' | 'Expected Utility'};
-% OPTIONS.habit   	- switch to suppress habit learning: (default: [1])
+% OPTIONS.plot      - switch to suppress graphics: (default: [0])
+% OPTIONS.scheme    - {'Free Energy' | 'KL Control' | 'Expected Utility'};
+% OPTIONS.habit     - switch to suppress habit learning: (default: [1])
 %
 %
 % produces:
 %
-% MDP.P(M,T)      	- probability of emitting action 1,...,M at time 1,...,T
-% MDP.Q(N,T)      	- an array of conditional (posterior) expectations over
-%                 		  N hidden states and time 1,...,T
-% MDP.X           	- and Bayesian model averages over policies
-% MDP.R           	- conditional expectations over policies
+% MDP.P(M,T)        - probability of emitting action 1,...,M at time 1,...,T
+% MDP.Q(N,T)        - an array of conditional (posterior) expectations over
+%                         N hidden states and time 1,...,T
+% MDP.X             - and Bayesian model averages over policies
+% MDP.R             - conditional expectations over policies
 %
-% MDP.un          	- simulated neuronal encoding of hidden states
-% MDP.xn          	- simulated neuronal encoding of policies
-% MDP.wn          	- simulated neuronal encoding of precision (tonic)
-% MDP.dn          	- simulated dopamine responses (phasic)
-% MDP.rt          	- simulated reaction times
+% MDP.un            - simulated neuronal encoding of hidden states
+% MDP.xn            - simulated neuronal encoding of policies
+% MDP.wn            - simulated neuronal encoding of precision (tonic)
+% MDP.dn            - simulated dopamine responses (phasic)
+% MDP.rt            - simulated reaction times
 %
 % This routine provides solutions of an active inference scheme
 % (minimisation of variational free energy) using a generative model based
@@ -100,7 +100,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 6751 2016-03-23 15:39:32Z guillaume $
+% $Id: spm_MDP_VB.m 7120 2017-06-20 11:30:30Z spm $
  
  
 % deal with a sequence of trials
