@@ -37,16 +37,16 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 %
 % hilbert (spm_eeg_specest_hilbert) - filtering + Hilbert transform
 %
-% ft_mtmconvol (spm_eeg_specest_ft_mtmconvol) - Fieldtrip implementation
+% ft_mtmconvol (spm_eeg_specest_mtmconvol) - Fieldtrip implementation
 %                                           of multi-taper spectral
 %                                           analysis
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_tf.m 6146 2014-09-02 11:27:43Z vladimir $
+% $Id: spm_eeg_tf.m 7122 2017-06-22 14:54:01Z guillaume $
 
-SVNrev = '$Rev: 6146 $';
+SVNrev = '$Rev: 7122 $';
 
 %-Startup
 %--------------------------------------------------------------------------

@@ -20,32 +20,36 @@ function M = spm_eeg_morlet(Rtf, ST, f, ff)
 % from the wavelet coefficients.
 %
 % [1] C. Tallon-Baudry, O. Bertrand, F. Peronnet and J. Pernier, 1998.
-% Induced \gamma-Band Activity during the Delay of a Visual Short-term
+% Induced gamma-Band Activity during the Delay of a Visual Short-term
 % memory Task in Humans. The Journal of Neuroscience (18): 4244-4254.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_morlet.m 5900 2014-02-27 21:54:51Z karl $
+% $Id: spm_eeg_morlet.m 7122 2017-06-22 14:54:01Z guillaume $
 
 
-M      = {};
-for f0 = f
+if nargin < 4
+    ff = f;
+else
+    ff = repmat(ff,1,numel(f));
+end
+
+M = cell(1,numel(f));
+
+for i = 1:numel(f)
     
     % fixed or scale-dependent window
     %----------------------------------------------------------------------
-    if nargin < 4
-        sigma_t = Rtf/(2*pi*f0);
-    else
-        sigma_t = Rtf/(2*pi*ff);
-    end
+    sigma_t = Rtf/(2*pi*ff(i));
     
-    % this scaling factor is proportional to (Tallon-Baudry 98): 
+    % this scaling factor is proportional to (Tallon-Baudry, 1998): 
     % (sigma_t*sqrt(pi))^(-1/2);
     %----------------------------------------------------------------------
     t = 0:ST*0.001:5*sigma_t;
     t = [-t(end:-1:2) t];
-    M{end+1} = exp(-t.^2/(2*sigma_t^2)) .* exp(2 * 1i * pi * f0 *t);    
-    M{end}   = M{end}./(sqrt(0.5*sum(real(M{end}).^2 + imag(M{end}).^2)));
-    M{end}   = M{end} - mean(M{end});
+    M{i} = exp(-t.^2/(2*sigma_t^2)) .* exp(2 * 1i * pi * f(i) *t);    
+    M{i} = M{i} ./ (sqrt(0.5*sum(real(M{i}).^2 + imag(M{i}).^2)));
+    M{i} = M{i} - mean(M{i});
+    
 end
