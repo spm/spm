@@ -20,7 +20,7 @@ end
 
 me='MNE:fiff_read_events';
 
-if nargin ~= 2 & nargin ~= 1
+if nargin ~= 2 && nargin ~= 1
     error(me,'Incorrect number of arguments');
 end
 

@@ -75,8 +75,8 @@ end
 if from > to
     error(me,'No data in this range');
 end
-fprintf(1,'Reading %d ... %d  =  %9.3f ... %9.3f secs...', ...
-    from,to,from/raw.info.sfreq,to/raw.info.sfreq);
+%fprintf(1,'Reading %d ... %d  =  %9.3f ... %9.3f secs...', ...
+%    from,to,from/raw.info.sfreq,to/raw.info.sfreq);
 %
 %  Initialize the data and calibration vector
 %
@@ -120,7 +120,7 @@ if ~isempty(mult)
     mult = sparse(mult);
 end
 
-if isempty(fopen(raw.fid))
+if raw.fid < 0 || isempty(fopen(raw.fid))
    fid = fopen(raw.info.filename,'rb','ieee-be');
    if (fid < 0)
       error(me,'Cannot open file %s',raw.info.filename);
@@ -219,7 +219,7 @@ for k = 1:length(raw.rawdir)
     %   Done?
     %
     if this.last >= to
-        fprintf(1,' [done]\n');
+        %fprintf(1,' [done]\n');
         break;
     end
 end

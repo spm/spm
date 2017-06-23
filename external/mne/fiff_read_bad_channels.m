@@ -36,7 +36,7 @@ end
 
 node = fiff_dir_tree_find(node,FIFF.FIFFB_MNE_BAD_CHANNELS);
 
-bads = [];
+bads = {};
 if ~isempty(node)
     tag = find_tag(node,FIFF.FIFF_MNE_CH_NAME_LIST);
     if ~isempty(tag)

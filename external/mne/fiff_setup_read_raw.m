@@ -67,7 +67,7 @@ end
 %
 %   Open the file
 %
-fprintf(1,'Opening raw data file %s...\n',fname);
+%fprintf(1,'Opening raw data file %s...\n',fname);
 [ fid, tree ] = fiff_open(fname);
 %
 %   Read the measurement info
@@ -212,7 +212,7 @@ fprintf(1,'\tRange : %d ... %d  =  %9.3f ... %9.3f secs\n',...
     data.first_samp,data.last_samp,...
     double(data.first_samp)/data.info.sfreq,...
     double(data.last_samp)/data.info.sfreq);
-fprintf(1,'Ready.\n');
+%fprintf(1,'Ready.\n');
 fclose(data.fid);
 data.fid = -1;
 return;
