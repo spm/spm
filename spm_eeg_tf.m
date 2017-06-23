@@ -44,9 +44,9 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_tf.m 7122 2017-06-22 14:54:01Z guillaume $
+% $Id: spm_eeg_tf.m 7125 2017-06-23 09:49:29Z guillaume $
 
-SVNrev = '$Rev: 7122 $';
+SVNrev = '$Rev: 7125 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -249,4 +249,5 @@ end
 
 %-Cleanup
 %--------------------------------------------------------------------------
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','M/EEG Time Frequency: done'); spm('Pointer','Arrow');

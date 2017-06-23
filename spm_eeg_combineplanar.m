@@ -19,12 +19,12 @@ function D = spm_eeg_combineplanar(S)
 % D        - MEEG object (also written on disk)
 %
 %__________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_combineplanar.m 7059 2017-04-18 10:59:54Z vladimir $
+% $Id: spm_eeg_combineplanar.m 7125 2017-06-23 09:49:29Z guillaume $
 
-SVNrev = '$Rev: 7059 $';
+SVNrev = '$Rev: 7125 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -214,4 +214,5 @@ D = Dnew;
 
 %-Cleanup
 %--------------------------------------------------------------------------
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','MEG Combine planar: done'); spm('Pointer','Arrow');

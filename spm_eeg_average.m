@@ -18,9 +18,9 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 7104 2017-06-13 14:34:52Z guillaume $
+% $Id: spm_eeg_average.m 7125 2017-06-23 09:49:29Z guillaume $
 
-SVNrev = '$Rev: 7104 $';
+SVNrev = '$Rev: 7125 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -251,4 +251,5 @@ D = Dnew;
 
 %-Cleanup
 %--------------------------------------------------------------------------
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','M/EEG averaging: done'); spm('Pointer','Arrow');

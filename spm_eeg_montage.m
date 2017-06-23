@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 7104 2017-06-13 14:34:52Z guillaume $
+% $Id: spm_eeg_montage.m 7125 2017-06-23 09:49:29Z guillaume $
 
-SVNrev = '$Rev: 7104 $';
+SVNrev = '$Rev: 7125 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -507,6 +507,7 @@ save(D);
 %-Cleanup
 %--------------------------------------------------------------------------
 spm_progress_bar('Clear');
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','M/EEG montage: done'); spm('Pointer','Arrow');
 
 % PROGRAMMER'S NOTES by CP

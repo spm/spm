@@ -19,9 +19,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 7107 2017-06-14 09:31:40Z guillaume $
+% $Id: spm_eeg_average_TF.m 7125 2017-06-23 09:49:29Z guillaume $
 
-SVNrev = '$Rev: 7107 $';
+SVNrev = '$Rev: 7125 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -194,4 +194,5 @@ D = Dnew;
 
 %-Cleanup
 %--------------------------------------------------------------------------
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','M/EEG TF averaging: done'); spm('Pointer', 'Arrow');

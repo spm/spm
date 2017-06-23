@@ -1,6 +1,6 @@
 function [images, outroot] = spm_eeg_convert2images(S)
 % Convert M/EEG data to images for statistical analysis
-% FORMAT images = spm_eeg_convert2images(S)
+% FORMAT [images, outroot] = spm_eeg_convert2images(S)
 %
 % S                   - input structure (optional)
 %  fields of S:
@@ -29,12 +29,12 @@ function [images, outroot] = spm_eeg_convert2images(S)
 % output:
 %   images     - list of generated image files or objects
 %__________________________________________________________________________
-% Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 6653 2015-12-22 09:32:06Z vladimir $
+% $Id: spm_eeg_convert2images.m 7125 2017-06-23 09:49:29Z guillaume $
 
-SVNrev = '$Rev: 6653 $';
+SVNrev = '$Rev: 7125 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -340,4 +340,5 @@ images = images(:);
 %-Cleanup
 %--------------------------------------------------------------------------
 spm_progress_bar('Clear');
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','M/EEG conversion: done'); spm('Pointer','Arrow');

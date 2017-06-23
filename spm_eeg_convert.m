@@ -44,12 +44,12 @@ function D = spm_eeg_convert(S)
 %
 % % D              - MEEG object (also written on disk)
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 6244 2014-10-15 11:15:09Z vladimir $
+% $Id: spm_eeg_convert.m 7125 2017-06-23 09:49:29Z guillaume $
 
-SVNrev = '$Rev: 6244 $';
+SVNrev = '$Rev: 7125 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -572,6 +572,7 @@ end
 
 %-Cleanup
 %--------------------------------------------------------------------------
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','M/EEG convert: done'); spm('Pointer', 'Arrow');
 
 

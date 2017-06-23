@@ -55,12 +55,12 @@ function Dout = spm_eeg_merge(S)
 % data (SPM displays data from only one file at a time), or merging
 % information that has been measured in multiple sessions.
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 6951 2016-11-25 12:33:23Z guillaume $
+% $Id: spm_eeg_merge.m 7125 2017-06-23 09:49:29Z guillaume $
 
-SVNrev = '$Rev: 6951 $';
+SVNrev = '$Rev: 7125 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -89,7 +89,7 @@ end
 Nfiles = length(D);
 
 if Nfiles < 2
-    error('Need at least two files for merging.');
+    %error('Need at least two files for merging.');
 end
 
 %-Check input and determine number of new number of trial types
@@ -361,4 +361,5 @@ save(Dout);
 %-Cleanup
 %--------------------------------------------------------------------------
 spm_progress_bar('Clear');
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','M/EEG merge: done'); spm('Pointer','Arrow');

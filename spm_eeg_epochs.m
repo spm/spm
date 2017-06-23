@@ -46,20 +46,17 @@ function D = spm_eeg_epochs(S)
 % Output:
 % D                     - MEEG object (also written on disk)
 %__________________________________________________________________________
-% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 6596 2015-11-10 15:52:16Z vladimir $
+% $Id: spm_eeg_epochs.m 7125 2017-06-23 09:49:29Z guillaume $
 
-SVNrev = '$Rev: 6596 $';
+SVNrev = '$Rev: 7125 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG epoching'); spm('Pointer','Watch');
-
-if ~isfield(S, 'prefix'),       S.prefix = 'e';     end
-if ~isfield(S, 'eventpadding'), S.eventpadding = 0; end
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
@@ -69,11 +66,15 @@ isTF = strncmpi(D.transformtype,'TF',2);
 
 if isTF && isfield(S, 'bc') && S.bc
     sw = warning('off','backtrace');
-    warning('Automatic baseline correction is not done for TF data. Use TF rescaling');
+    warning('Automatic baseline correction is not done for TF data. Use TF rescaling.');
     warning(sw);
-    S.bc = 0;
+    S.bc = false;
 end
-    
+
+%-Input parameters
+%--------------------------------------------------------------------------
+if ~isfield(S, 'prefix'),       S.prefix = 'e';     end
+if ~isfield(S, 'eventpadding'), S.eventpadding = 0; end
 if ~isfield(S, 'bc'),           S.bc = ~isTF;       end
 
 %-Check that the input file contains continuous data
@@ -127,7 +128,7 @@ elseif isfield(S, 'trialength')
         conditionlabels = 'Undefined';
     end
 else
-    error('Invalid trial definition');
+    error('Invalid trial definition.');
 end
    
 if ischar(conditionlabels)
@@ -167,7 +168,7 @@ rejected = rejected(:)';
 if ~isempty(rejected)
     trl = trl(inbounds, :);
     conditionlabels = conditionlabels(inbounds);
-    warning([D.fname ': Events ' num2str(rejected) ' not extracted - out of bounds']);
+    warning([D.fname ': Events ' num2str(rejected) ' not extracted - out of bounds.']);
 end
 
 ntrial = size(trl, 1);
@@ -193,13 +194,15 @@ if S.bc
         bc = Dnew.nsamples;
         chanbc = D.indchantype('Filtered');
     else
-       S.bc = 0;
-       warning('There was no baseline specified. The data is not baseline-corrected');
+       S.bc = false;
+       warning('There was no baseline specified. The data is not baseline-corrected.');
     end
 end
 
 %-Epoch data
 %--------------------------------------------------------------------------
+fprintf('%-40s: %30s\n','Baseline correction',num2str(S.bc));           %-#
+fprintf('%-40s: %30s\n','Number of trials',num2str(ntrial));            %-#
 spm_progress_bar('Init', ntrial, 'Trials completed');
 if ntrial > 100, Ibar = floor(linspace(1, ntrial, 100));
 else Ibar = [1:ntrial]; end
@@ -222,7 +225,7 @@ for i = 1:ntrial
     Dnew = events(Dnew, i, select_events(D.events, ...
         D.trialonset+[trl(i, 1)/D.fsample-S.eventpadding  trl(i, 2)/D.fsample+S.eventpadding]));
     
-    if ismember(i, Ibar), spm_progress_bar('Set', i); end
+    if any(Ibar == i), spm_progress_bar('Set', i); end
 end
 
 Dnew = conditions(Dnew, ':', conditionlabels);
@@ -246,6 +249,7 @@ save(D);
 %-Cleanup
 %--------------------------------------------------------------------------
 spm_progress_bar('Clear');
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','M/EEG epoching: done'); spm('Pointer','Arrow');
 
 

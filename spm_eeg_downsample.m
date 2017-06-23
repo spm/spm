@@ -5,10 +5,10 @@ function D = spm_eeg_downsample(S)
 % S               - optional input struct
 % (optional) fields of S:
 %   S.D           - MEEG object or filename of M/EEG mat-file
-%   S.method      - resampling method. Can be  'resample' (default), 'decimate',
-%                   'downsample', 'fft'
+%   S.method      - resampling method. Can be  'resample' [default],
+%                   'decimate', 'downsample', 'fft'
 %   S.fsample_new - new sampling rate, must be lower than the original one
-%   S.prefix     - prefix for the output file (default - 'd')
+%   S.prefix      - prefix for the output file [default: 'd']
 %
 % D               - MEEG object (also written on disk)
 %__________________________________________________________________________
@@ -17,12 +17,12 @@ function D = spm_eeg_downsample(S)
 %               http://www.mathworks.com/products/signal/
 % (function resample.m) if present and spm_timeseries_resample.m otherwise.
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 6614 2015-11-30 10:42:02Z vladimir $
+% $Id: spm_eeg_downsample.m 7125 2017-06-23 09:49:29Z guillaume $
 
-SVNrev = '$Rev: 6614 $';
+SVNrev = '$Rev: 7125 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -59,7 +59,8 @@ else
     fsample_new = round(10*fsample_new)/10; 
 end
 
-disp(['Resampling frequency is ',num2str(fsample_new), 'Hz'])
+fprintf('%-40s: %30s\n','Sampling frequency',[num2str(D.fsample),'Hz']); %-#
+fprintf('%-40s: %30s\n','Resampling frequency',[num2str(fsample_new),'Hz']); %-#
 
 %-Generate new meeg object with new filenames
 %--------------------------------------------------------------------------
@@ -81,13 +82,13 @@ if strcmp(D.type, 'continuous')
     blknum = ceil(nchannels(D)/blksz);
     
     % now downsample blocks of channels
-    chncnt=1;
+    chncnt = 1;
     for blk=1:blknum
         spm_progress_bar('Set','ylabel','reading...');
         % load old meeg object blockwise into workspace
-        blkchan=chncnt:(min(nchannels(D), chncnt+blksz-1));
-        Dtemp=D(blkchan,:,1);
-        chncnt=chncnt+blksz;
+        blkchan = chncnt:(min(nchannels(D), chncnt+blksz-1));
+        Dtemp = D(blkchan,:,1);
+        chncnt = chncnt+blksz;
         
         spm_progress_bar('Set','ylabel','writing...');
         
@@ -104,10 +105,10 @@ else
     for i = 1:D.ntrials
         Dnew(:, :, i) = ft_preproc_resample(spm_squeeze(D(:, :, i), 3), Q, P, S.method);
         
-        if ismember(i, Ibar), spm_progress_bar('Set', i); end
+        if any(Ibar == i), spm_progress_bar('Set', i); end
         
     end
-end;
+end
 
 spm_progress_bar('Clear');
 
@@ -120,4 +121,5 @@ save(D);
 
 %-Cleanup
 %--------------------------------------------------------------------------
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','M/EEG downsampling: done'); spm('Pointer','Arrow');

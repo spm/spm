@@ -15,19 +15,19 @@ function D = spm_eeg_filter(S)
 %                 'fir':         FIR filter (using MATLAB fir1 function)
 %   S.order   - filter order [default: 5 for Butterworth]
 %   S.dir     - filter direction [default: 'twopass']
-%                 'onepass'         forward filter only
-%                 'onepass-reverse' reverse filter only, i.e. backward in time
-%                 'twopass'         zero-phase forward and reverse filter
+%                 'onepass':         forward filter only
+%                 'onepass-reverse': reverse filter only, i.e. backward in time
+%                 'twopass':         zero-phase forward and reverse filter
 %   S.prefix  - prefix for the output file [default: 'f']
 %
 % D           - MEEG object (also written to disk)
 %__________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 5876 2014-02-11 15:53:28Z vladimir $
+% $Id: spm_eeg_filter.m 7125 2017-06-23 09:49:29Z guillaume $
 
-SVNrev = '$Rev: 5876 $';
+SVNrev = '$Rev: 7125 $';
 
 
 %-Startup
@@ -72,6 +72,10 @@ switch lower(S.band)
         error('Incorrect filter band.')
 end
 
+fprintf('%-40s: %30s\n',...
+    ['Filter ' S.band ' (' S.type ', ' S.dir ')'],...
+    ['[' num2str(S.freq) '] Hz']);                                      %-#
+
 %-Filter
 %==========================================================================
 
@@ -114,20 +118,20 @@ else
         blknum = ceil(nchannels(D)/blksz);
         
         % now filter blocks of channels
-        chncnt=1;
+        chncnt = 1;
         for blk=1:blknum
             % load meeg object blockwise into workspace
-            blkchan=chncnt:(min(length(Fchannels), chncnt+blksz-1));
+            blkchan = chncnt:(min(length(Fchannels), chncnt+blksz-1));
             if isempty(blkchan), break, end
             spm_progress_bar('Set','ylabel','reading...');
             if isTF
-                Dtemp=D(Fchannels(blkchan), :, :, 1);
+                Dtemp = D(Fchannels(blkchan), :, :, 1);
             else
-                Dtemp=D(Fchannels(blkchan), :, 1);
+                Dtemp = D(Fchannels(blkchan), :, 1);
             end
             spm_progress_bar('Set','ylabel','filtering...');
-            chncnt=chncnt+blksz;
-            %loop through channels
+            chncnt = chncnt + blksz;
+            % loop through channels
             for j = 1:numel(blkchan)
                 if isTF
                     Dtemp(j, :, :) = spm_eeg_preproc_filter(S, spm_squeeze(Dtemp(j, :, :), 1), Fs, ignoreWarnings);
@@ -144,9 +148,9 @@ else
             % write Dtemp to Dnew
             spm_progress_bar('Set','ylabel','writing...');
             if isTF
-                Dnew(Fchannels(blkchan),:,:,1)=Dtemp;
+                Dnew(Fchannels(blkchan),:,:,1) = Dtemp;
             else
-                Dnew(Fchannels(blkchan),:,1)=Dtemp;
+                Dnew(Fchannels(blkchan),:,1) = Dtemp;
             end
             clear Dtemp;
         end
@@ -187,6 +191,7 @@ save(D);
 
 %-Cleanup
 %--------------------------------------------------------------------------
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName',''); spm('Pointer', 'Arrow');
 
 
