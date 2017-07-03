@@ -13,10 +13,10 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 6965 2016-12-08 13:47:06Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 7128 2017-07-03 11:58:47Z vladimir $
 
 
-SVNrev = '$Rev: 6965 $';
+SVNrev = '$Rev: 7128 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -111,7 +111,7 @@ switch upper(S.mode)
     case 'BESA'       
         sconf = spm_eeg_read_bsa(S.conffile );
     case 'SVD'       
-        cl = D.condlist;
+        cl = S.conditions;
         svdinput = [];
         for i = 1:numel(cl)
             tmp      = D(D.indchantype('MEEG', 'GOOD'), D.indsample(1e-3*S.timewin(1)):D.indsample(1e-3*S.timewin(2)), D.indtrial(cl{i}));
