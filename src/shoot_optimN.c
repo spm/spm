@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 6999 2017-02-01 17:18:47Z john $ */
+/* $Id: shoot_optimN.c 7130 2017-07-04 17:43:49Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -14,9 +14,10 @@ static void choldc(int n, double a[], double p[])
     int i, j, k;
     double sm, sm0;
 
-    sm0  = 1e-16;
+    sm0  = 1e-32;
     for(i=0; i<n; i++) sm0 = sm0 + a[i*n+i];
     sm0 *= 1e-6;
+    sm0 *= sm0;
  /* for(i=0; i<n; i++) a[i*n+i] += sm0; */
 
     for(i=0; i<n; i++)
@@ -239,6 +240,54 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
     w110 = lam2*2*v0*v1;
     w101 = lam2*2*v0*v2;
     w011 = lam2*2*v1*v2;
+
+    if (dm[0]<=2)
+    {
+        w000 += 2*w200;
+        w200  = 0.0;
+    }
+    if (dm[1]<=2)
+    {
+        w000 += 2*w020;
+        w020  = 0.0;
+    }
+    if (dm[2]<=2)
+    {
+        w000 += 2*w002;
+        w002  = 0.0;
+    }
+
+    if (dm[0]==1)
+    {
+        w000 += 2*w100;
+        w100  = 0.0;
+        if (dm[1]==1)
+        {
+            w000 += 4*w110;
+            w110  = 0.0;
+        }
+        if (dm[2]==1)
+        {
+            w000 += 4*w101;
+            w101  = 0.0;
+        }
+    }
+    if (dm[1]==1)
+    {
+        w000 += 2*w010;
+        w010  = 0.0;
+        if (dm[2]==1)
+        {
+            w000 += 4*w011;
+            w011  = 0.0;
+        }
+    }
+    if (dm[2]==1)
+    {
+        w000 += 2*w001;
+        w001  = 0.0;
+    }
+    if (w000<0.0) w000=0.0;
 
     for(k=0; k<dm[2]; k++)
     {

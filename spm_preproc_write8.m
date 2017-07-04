@@ -5,7 +5,7 @@ function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 7068 2017-04-20 18:29:38Z john $
+% $Id: spm_preproc_write8.m 7130 2017-07-04 17:43:49Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -217,7 +217,7 @@ for z=1:length(x3)
 
         if do_cls
             % Generate variable Q if tissue classes are needed
-           %msk = any((f==0) | ~isfinite(f),3);
+            msk = any((f==0) | ~isfinite(f),3);
 
             if isfield(res,'mg')
                 % Parametric representation of intensity distributions
@@ -232,7 +232,9 @@ for z=1:length(x3)
                     s     = s + b{k1};
                 end
                 for k1=1:Kb
-                    q(:,:,k1) = sum(q1(:,:,lkp==k1),3).*(b{k1}./s);
+                    tmp       = sum(q1(:,:,lkp==k1),3);
+                    tmp(msk)  = 0;
+                    q(:,:,k1) = tmp.*(b{k1}./s);
                 end
             else
                 % Nonparametric representation of intensity distributions
@@ -289,7 +291,6 @@ if do_cls
         spm_progress_bar('init',nmrf_its,['MRF: Working on ' nam],'Iterations completed');
         G   = ones([Kb,1],'single')*mrf;
         vx2 = 1./single(sum(res.image(1).mat(1:3,1:3).^2));
-        %save PQG P Q G tiss Kb x3 ind
         for iter=1:nmrf_its
             spm_mrf(P,Q,G,vx2);
             spm_progress_bar('set',iter);
