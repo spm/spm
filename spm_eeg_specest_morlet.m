@@ -24,7 +24,7 @@ function res = spm_eeg_specest_morlet(S, data, time)
 % Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_specest_morlet.m 7122 2017-06-22 14:54:01Z guillaume $
+% $Id: spm_eeg_specest_morlet.m 7129 2017-07-04 16:24:53Z guillaume $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
@@ -102,10 +102,24 @@ res.fourier = zeros(Nchannels, Nfrequencies, length(res.time));
 
 %-Compute wavelet transform
 %--------------------------------------------------------------------------
-for i = 1:Nfrequencies
-    H = spm_convmtx(M{i}',Nsamples); % faster than conv for large Nchannels
-    tmp = data * H';
-    % subsample and time shift to remove delay
-    tmp = tmp(:,(1:S.subsample:Nsamples) + (length(M{i})-1)/2);
-    res.fourier(:,i,:) = tmp;
+for j = 1:Nchannels
+    for i = 1:Nfrequencies
+        tmp = conv(data(j, :), M{i});
+        
+        % time shift to remove delay
+        tmp = tmp([1:Nsamples] + (length(M{i})-1)/2);
+        
+        tmp = tmp(1:S.subsample:end);
+        
+        res.fourier(j, i, :) = tmp;
+    end
 end
+
+%% The following is often faster but requires more memory
+%for i = 1:Nfrequencies
+%    H = spm_convmtx(M{i}',Nsamples); % faster than conv for large Nchannels
+%    tmp = data * H';
+%    % subsample and time shift to remove delay
+%    tmp = tmp(:,(1:S.subsample:Nsamples) + (length(M{i})-1)/2);
+%    res.fourier(:,i,:) = tmp;
+%end
