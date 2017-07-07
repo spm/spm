@@ -56,12 +56,12 @@ elseif nargin<3
   z = 1:size(dat,3);
 elseif nargin>4
   if length(size(dat))==3
-    if length(x)~=size(dat,1), error('incorrect x-axis specification'), end
-    if length(y)~=size(dat,2), error('incorrect y-axis specification'), end
-    if length(z)~=size(dat,3), error('incorrect z-axis specification'), end
+    if length(x)~=size(dat,1), ft_error('incorrect x-axis specification'), end
+    if length(y)~=size(dat,2), ft_error('incorrect y-axis specification'), end
+    if length(z)~=size(dat,3), ft_error('incorrect z-axis specification'), end
   end
 else
-  error('incorrect number of input arguments');
+  ft_error('incorrect number of input arguments');
 end
 
 if nargin==6
@@ -202,6 +202,12 @@ elseif strcmp(sel, 'sumproject')
   % change not-a-number values to zero
   dat(find(isnan(dat(:)))) = 0;
 
+  % update cmin and cmax
+  cmin = 0; 
+  cmax = squeeze(max(max(sum(dat,1))));
+  cmax = max(cmax, squeeze(max(max(sum(dat,2)))));
+  cmax = max(cmax, squeeze(max(max(sum(dat,3)))));
+
   subplot(h1);
   imagesc(x, z, squeeze(sum(dat, 2))'); set(gca, 'ydir', 'normal')
   axis equal; axis tight;
@@ -221,7 +227,8 @@ elseif strcmp(sel, 'sumproject')
   caxis([cmin cmax]);
 
   subplot(h4);
-  colorbar(h4, 'peer', h1);
+  imagesc(cmin:cmax);
+  caxis([cmin cmax]);
   xlabel('colorscale')
 
 elseif strcmp(sel, 'maxproject')
@@ -257,7 +264,7 @@ elseif strcmp(sel, 'maxproject')
 else
   % make plot of three orthogonal slices intersecting at [xi yi zi]
   if ~exist('xi', 'var') || ~exist('yi', 'var') || ~exist('zi', 'var')
-    error('nothing to plot, no selection given')
+    ft_error('nothing to plot, no selection given')
   end
 
   fprintf('value of %f in voxel %d at [%.02f %.02f %.02f]\n', double(dat(xi, yi, zi)), sub2ind(dim, xi, yi, zi), x(xi), y(yi), z(zi));
@@ -292,7 +299,8 @@ else
   ft_plot_crosshair([x(xi) y(yi)], 'color', 'yellow');
 
   subplot(h4);
-  colorbar(h4, 'peer', h1);
+  imagesc(cmin:((cmax-cmin)./64):cmax);
+  caxis([cmin cmax]);
   xlabel('colorscale')
 end
 

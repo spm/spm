@@ -78,14 +78,6 @@ if strcmp(level, 'warning')
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% set the notification state according to the input
-
-if numel(varargin)>0 && isstruct(varargin{1})
-  ft_default.notification.(level) = varargin{1};
-  return
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% handle the defaults
 
 if isfield(ft_default, 'notification') && isfield(ft_default.notification, level)
@@ -95,6 +87,7 @@ else
   s = [];
 end
 
+% start with an empty state structure
 if isempty(s)
   s = struct('identifier', {}, 'state', {}, 'timestamp', {});
 end
@@ -106,7 +99,12 @@ end
 
 % set the default backtrace state
 if ~ismember('backtrace', {s.identifier})
-  s = setstate(s, 'backtrace', 'on');
+  switch level
+    case {'debug' 'info' 'notice'}
+      s = setstate(s, 'backtrace', 'off');
+    case {'warning' 'error'}
+      s = setstate(s, 'backtrace', 'on');
+  end % switch
 end
 
 % set the default verbose state
@@ -127,13 +125,9 @@ if ~ismember('last', {s.identifier})
   s = setstate(s, 'last', state);
 end
 
-if isempty(varargin)
-  varargin{1} = 'query';
-end
-
 if ~isempty(stack)
   % it is called from within a function
-  name = {stack.name};
+  name = fliplr({stack.name});
   defaultId = ['FieldTrip' sprintf(':%s', name{:}) ':line' num2str(stack(1).line)];
 else
   % it is called from the command line
@@ -141,7 +135,19 @@ else
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% set the notification state according to the input
+
+if numel(varargin)>0 && (isstruct(varargin{1}) || isempty(varargin{1}))
+  ft_default.notification.(level) = varargin{1};
+  return
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% act according to the first input argument
+
+if isempty(varargin)
+  varargin{1} = 'query';
+end
 
 switch varargin{1}
   case 'on'
@@ -149,9 +155,13 @@ switch varargin{1}
       % switch a specific item on
       msgId = varargin{2};
       s = setstate(s, msgId, 'on');
+      % return the message state of all
+      varargout{1} = getreturnstate(s, msgId);
     else
       % switch all on
       s = setstate(s, 'all', 'on');
+      % return the message state of all
+      varargout{1} = getreturnstate(s);
     end
     
   case 'off'
@@ -159,9 +169,13 @@ switch varargin{1}
       % switch a specific item off
       msgId = varargin{2};
       s = setstate(s, msgId, 'off');
+      % return the specific message state
+      varargout{1} = getreturnstate(s, msgId);
     else
       % switch all off
       s = setstate(s, 'all', 'off');
+      % return the message state of all
+      varargout{1} = getreturnstate(s);
     end
     
   case 'once'
@@ -169,9 +183,13 @@ switch varargin{1}
       % switch a specific item to once
       msgId = varargin{2};
       s = setstate(s, msgId, 'once');
+      % return the specific message state
+      varargout{1} = getreturnstate(s, msgId);
     else
       % switch all to once
       s = setstate(s, 'all', 'once');
+      % return the message state of all
+      varargout{1} = getreturnstate(s);
     end
     
   case 'timeout'
@@ -199,8 +217,7 @@ switch varargin{1}
       end
       msgState = getstate(s, msgId);
       if nargout
-        r = struct('identifier', msgId, 'state', msgState);
-        varargout{1} = r;
+        varargout{1} = getreturnstate(s, msgId);
       elseif strcmp(msgId, 'verbose')
         if istrue(msgState)
           fprintf('%s output is verbose.\n', level);
@@ -218,23 +235,19 @@ switch varargin{1}
       end
     else
       % return all items
-      r = s;
-      % don't return these
-      r(strcmp('backtrace', {r.identifier})) = [];
-      r(strcmp('verbose',   {r.identifier})) = [];
-      r(strcmp('timeout',   {r.identifier})) = [];
-      r(strcmp('last',      {r.identifier})) = [];
-      % don't return the timestamps
-      r = rmfield(r, 'timestamp');
+      r = getreturnstate(s);
       
       if nargout
-        % do not return the timestamp field
+        % return the state of all items
         varargout{1} = r;
       else
         % show the state of all items that are different from the default
         default = getstate(s, 'all');
         fprintf('The default %s state is ''%s''.', level, default);
         r = r(~strcmp({r.state}, default));
+        % don't show these
+        r(strcmp('verbose',   {r.identifier})) = [];
+        r(strcmp('backtrace', {r.identifier})) = [];
         if ~isempty(r)
           fprintf(' Items not set to the default are\n\n');
         end
@@ -248,19 +261,11 @@ switch varargin{1}
   otherwise
     
     if nargout
-      r = s;
-      % don't return these
-      r(strcmp('backtrace', {r.identifier})) = [];
-      r(strcmp('verbose',   {r.identifier})) = [];
-      r(strcmp('timeout',   {r.identifier})) = [];
-      r(strcmp('last',      {r.identifier})) = [];
-      % don't return the timestamps
-      r = rmfield(r, 'timestamp');
-      varargout{1} = r;
+      varargout{1} = getreturnstate(s);
     end
     
     % first input might be msgId
-    if any(varargin{1}==':') && numel(varargin)>1
+    if numel(varargin)>1 && ~isempty(regexp(varargin{1}, '^\w*:', 'once'))
       msgId = varargin{1};
       varargin = varargin(2:end); % shift them all by one
     else
@@ -367,6 +372,19 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function r = getreturnstate(s, msgId)
+if nargin<2
+  r = s;
+  % don't return these
+  r(strcmp('timeout',   {r.identifier})) = [];
+  r(strcmp('last',      {r.identifier})) = [];
+  % don't return the timestamps
+  r = rmfield(r, 'timestamp');
+else
+  msgState = getstate(s, msgId);
+  r = struct('identifier', msgId, 'state', msgState);
+end
 
 function state = getstate(s, msgId)
 identifier = {s.identifier};
