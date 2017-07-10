@@ -1,5 +1,5 @@
 function D = spm_eeg_combineplanar(S)
-% Combines data from MEGPLANAR sensors
+% Combine data from MEGPLANAR sensors
 % FORMAT D = spm_eeg_combineplanar(S)
 %
 % S        - optional input struct
@@ -7,13 +7,12 @@ function D = spm_eeg_combineplanar(S)
 %   D        - MEEG object or filename
 %   mode     -
 %              'append'     - add combined channels to the origal channels
-%              'replace'    - replace MEGPLANAR with combined (default)
+%              'replace'    - replace MEGPLANAR with combined [default]
 %              'replacemeg' - replace all MEG channels with combined but
 %                             keep non-MEG
 %              'keep'       - only write out the combined channels
 %
-%   prefix   - prefix for the output file (default - 'P')
-%
+%   prefix   - prefix for the output file [default: 'P']
 %
 % Output:
 % D        - MEEG object (also written on disk)
@@ -22,9 +21,9 @@ function D = spm_eeg_combineplanar(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_combineplanar.m 7125 2017-06-23 09:49:29Z guillaume $
+% $Id: spm_eeg_combineplanar.m 7132 2017-07-10 16:22:58Z guillaume $
 
-SVNrev = '$Rev: 7125 $';
+SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -95,10 +94,11 @@ else
 end
 
 if strcmp(D.type, 'continuous')
+    %-Continuous data
+    %----------------------------------------------------------------------
     blksz  = D.fsample;
     blknum = floor(D.nsamples/blksz);
     
-    %----------------------------------------------------------------------
     spm_progress_bar('Init', blknum, 'Data blocks processed');
     if blknum > 100, Ibar = floor(linspace(1, blknum,100));
     else Ibar = 1:blknum; end
@@ -140,7 +140,6 @@ if strcmp(D.type, 'continuous')
                 break;
             end
             
-            
             planar1 = D(chanind(1, :),  Iblock);
             planar2 = D(chanind(2, :),  Iblock);
             
@@ -155,7 +154,9 @@ if strcmp(D.type, 'continuous')
             i = i+1;
         end
     end
-else  %-------- Epoched data --------------------------------------------------
+else
+    %-Epoched data
+    %----------------------------------------------------------------------
     spm_progress_bar('Init', D.ntrials, 'Trials processed');
     if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials, 100));
     else Ibar = 1:D.ntrials; end

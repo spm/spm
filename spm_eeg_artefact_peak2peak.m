@@ -1,22 +1,23 @@
 function res = spm_eeg_artefact_peak2peak(S)
-% Plugin for spm_eeg_artefact doing artefact detection based on peak-to-peak amplitude.
-% S                     - input structure
+% Plugin for spm_eeg_artefact doing artefact detection based on peak-to-peak amplitude
+% S            - input structure
 % fields of S:
-%    S.D                - M/EEG object
-%    S.chanind          - vector of indices of channels that this plugin will look at.
+%    S.D       - M/EEG object
+%    S.chanind - vector of indices of channels that this plugin will look at.
 %                         
-%    Additional parameters can be defined specific for each plugin
-% Output:
-%  res - 
-%   If no input is provided the plugin returns a cfg branch for itself
+%    Additional parameters can be defined specific for each plugin.
 %
-%   If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials  
-%   with zeros for clean channel/trials and ones for artefacts.
+% Output:
+% res - 
+%    If no input is provided the plugin returns a cfg branch for itself.
+%
+%    If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials  
+%    with zeros for clean channel/trials and ones for artefacts.
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_peak2peak.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_eeg_artefact_peak2peak.m 7132 2017-07-10 16:22:58Z guillaume $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -24,17 +25,17 @@ function res = spm_eeg_artefact_peak2peak(S)
 % when it's called.
 %--------------------------------------------------------------------------
 if nargin == 0
-    threshold = cfg_entry;
-    threshold.tag = 'threshold';
-    threshold.name = 'Threshold';
+    threshold         = cfg_entry;
+    threshold.tag     = 'threshold';
+    threshold.name    = 'Threshold';
     threshold.strtype = 'r';
-    threshold.num = [1 1];
-    threshold.help = {'Threshold value to apply to all channels'};
+    threshold.num     = [1 1];
+    threshold.help    = {'Threshold value to apply to all channels.'};
 
-    peak2peak = cfg_branch;
-    peak2peak.tag = 'peak2peak';
+    peak2peak      = cfg_branch;
+    peak2peak.tag  = 'peak2peak';
     peak2peak.name = 'Peak to peak amplitude';
-    peak2peak.val = {threshold};
+    peak2peak.val  = {threshold};
     peak2peak.help = {''};
     
     res = peak2peak;
@@ -42,7 +43,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 6926 $';
+SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -50,12 +51,12 @@ spm('sFnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG peak to peak artefact detection');
 
 if isequal(S.mode, 'mark')
-    error('Only reject mode is supported by this plug-in');
+    error('Only reject mode is supported by this plug-in.');
 end
 
 D = spm_eeg_load(S.D);
 
-chanind  = S.chanind;
+chanind = S.chanind;
 threshold = S.threshold;
 res = zeros(D.nchannels, D.ntrials);
 
@@ -68,7 +69,7 @@ else Ibar = [1:D.ntrials]; end
 
 for i = 1:D.ntrials
     res(chanind, i) = (squeeze(max(D(chanind, :, i), [], 2) - min(D(chanind, :, i), [], 2)))>threshold;
-    if ismember(i, Ibar), spm_progress_bar('Set', i); end
+    if any(Ibar == i), spm_progress_bar('Set', i); end
 end
 
 spm_progress_bar('Clear');

@@ -1,31 +1,26 @@
 function D = spm_eeg_correct_sensor_data(S)
-% Function for removing artefacts from the data based on their topography
+% Remove artefacts from the data based on their topography
 % FORMAT D = spm_eeg_correct_sensor_data(S)
 %
-% S                    - input structure (optional)
+% S      - input structure (optional)
 % (optional) fields of S:
-%   S.D                - MEEG object or filename of M/EEG mat-file
-%   S.mode             - 'SSP' - simple projection
-%                      - 'Berg' - the method of Berg (see the reference below)
+%   S.D    - MEEG object or filename of M/EEG mat-file
+%   S.mode - 'SSP': simple projection
+%          - 'Berg': the method of Berg (see the reference below)
 % Output:
-% D                   - MEEG object (also written on disk)
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-%
-% Disclaimer: this code is provided as an example and is not guaranteed to work
-% with data on which it was not tested. If it does not work for you, feel
-% free to improve it and contribute your improvements to the MEEGtools toolbox
-% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
+% D      - MEEG object (also written on disk)
 %
 % Implements:
 %   Berg P, Scherg M.
 %   A multiple source approach to the correction of eye artifacts.
 %   Electroencephalogr Clin Neurophysiol. 1994 Mar;90(3):229-41.
-%
-% Vladimir Litvak
-% $Id: spm_eeg_correct_sensor_data.m 6054 2014-06-18 10:34:09Z vladimir $
+%__________________________________________________________________________
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
-SVNrev = '$Rev: 6054 $';
+% Vladimir Litvak
+% $Id: spm_eeg_correct_sensor_data.m 7132 2017-07-10 16:22:58Z guillaume $
+
+SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -34,6 +29,7 @@ spm('FigName','Correct sensor data');
 
 if ~isfield(S, 'mode') && isfield(S, 'correction'),  S.mode  = S.correction;  end
 if ~isfield(S, 'prefix'),                            S.prefix   = 'T';        end
+
 %-Get MEEG object
 %--------------------------------------------------------------------------
 D = spm_eeg_load(S.D);
@@ -84,7 +80,7 @@ for i = 1:numel(A)
     montage.chanunitnew  = montage.chanunitorg;
     
     if size(A{i}, 1)~=numel(label)
-        error('Spatial confound vector does not match the channels');
+        error('Spatial confound vector does not match the channels.');
     end
     
     if isequal(lower(S.mode), 'berg')
@@ -99,7 +95,8 @@ for i = 1:numel(A)
             end
         end
         
-        %% ============ Find or prepare head model
+        %-Find or prepare head model
+        %==================================================================
         
         if ~isfield(D, 'val')
             D.val = 1;
@@ -154,7 +151,8 @@ for i = 1:numel(A)
     D = Dnew;
 end
 
-%% ============  Change the channel order to the original order
+%-Change the channel order to the original order
+%==========================================================================
 tra = eye(D.nchannels);
 montage = [];
 montage.labelorg = D.chanlabels';
@@ -193,4 +191,3 @@ D = move(D, spm_file(inputfile, 'prefix', S.prefix));
 %-Cleanup
 %--------------------------------------------------------------------------
 spm('FigName', 'Correct sensor data: done');
-

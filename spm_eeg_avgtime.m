@@ -5,20 +5,20 @@ function D = spm_eeg_avgtime(S)
 % S        - input struct
 %  fields of S:
 %   D        - MEEG object or filename of M/EEG mat-file with epoched data  
-%   timewin  - time window to average over (in PST ms)
-%   prefix   - prefix for the output file (default - 'S')
+%   timewin  - time window to average over {in PST ms} [default: [-Inf,Inf]]
+%   prefix   - prefix for the output file [default: 'S']
 %
 %
 % Output:
 % D        - MEEG object 
 %
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_avgtime.m 5190 2013-01-17 15:32:45Z vladimir $
+% $Id: spm_eeg_avgtime.m 7132 2017-07-10 16:22:58Z guillaume $
 
-SVNrev = '$Rev: 5190 $';
+SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -30,8 +30,8 @@ if ~isfield(S, 'timewin'),      S.timewin  = [-Inf Inf];    end
 
 D = spm_eeg_load(S.D);
 
-if ~strncmpi(D.transformtype,'TF',2);
-    error('This function only works on TF datasets');
+if ~strncmpi(D.transformtype,'TF',2)
+    error('This function only works on TF datasets.');
 end
 
 timeind = D.indsample(1e-3*(min(S.timewin))):D.indsample(1e-3*(max(S.timewin)));
@@ -57,8 +57,8 @@ for i = 1:D.ntrials
         Dnew = trialonset(Dnew, i,  D.trialonset(i)+ mean(D.time([timeind(1) timeind(end)])));
     end
     
-    if ismember(i, Ibar), spm_progress_bar('Set', i); end
-end  %
+    if any(Ibar == i), spm_progress_bar('Set', i); end
+end
 
 Dnew = timeonset(Dnew, mean(D.time([timeind(1) timeind(end)])));
 
@@ -73,4 +73,5 @@ D = Dnew;
 
 %-Cleanup
 %--------------------------------------------------------------------------
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','Average over time: done'); spm('Pointer','Arrow');

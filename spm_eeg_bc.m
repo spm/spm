@@ -5,24 +5,24 @@ function D = spm_eeg_bc(S)
 % S        - optional input struct
 %      fields of S:
 %   S.D       - MEEG object or filename of M/EEG mat-file with epoched data
-%   S.timewin - 2-element vector with start and end of baseline period [ms]
-%               default: the negative times if present or the whole trial
-%               otherwise.
+%   S.timewin - 2-element vector with start and end of baseline period {ms}
+%               [default: the negative times if present or the whole trial
+%               otherwise]
 %   S.save    - save the baseline corrected data in a separate file [default: true]
 %   S.updatehistory - update history information [default: true]
-%   S.prefix     - prefix for the output file (default - 'b')
+%   S.prefix     - prefix for the output file [default: 'b']
 %
 % D        - MEEG object (also saved on disk if requested)
 %__________________________________________________________________________
 %
 % Subtract average baseline from all M/EEG and EOG channels
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_bc.m 5212 2013-01-26 13:16:36Z vladimir $
+% $Id: spm_eeg_bc.m 7132 2017-07-10 16:22:58Z guillaume $
 
-SVNrev = '$Rev: 5212 $';
+SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -49,7 +49,7 @@ else
 end
 
 if strncmpi(D.transformtype,'TF',2) % TF and TFphase
-    error('Use spm_eeg_tf_rescale for TF data.')
+    error('Use spm_eeg_tf_rescale for TF data.');
 end
 
 %-Baseline Correction
@@ -76,7 +76,7 @@ for k = 1: D.ntrials
     tmp = mean(D(indchannels, t(1):t(2), k), 2);
     D(indchannels, :, k) = D(indchannels, :, k) - repmat(tmp, 1, D.nsamples);
 
-    if ismember(k, Ibar), spm_progress_bar('Set', k); end
+    if any(Ibar == k), spm_progress_bar('Set', k); end
 end
 
 spm_progress_bar('Clear');

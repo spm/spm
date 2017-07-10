@@ -1,23 +1,25 @@
 function res = spm_eeg_artefact_heartbeat(S)
-% Detects eyeblinks in spm continuous data file
-% S                     - input structure
+% Detects heart beats in SPM continuous data file
+% S            - input structure
 % fields of S:
-%    S.D                - M/EEG object
-%    S.chanind          - vector of indices of channels that this plugin will look at.
+%    S.D       - M/EEG object
+%    S.chanind - vector of indices of channels that this plugin will look at
 %
-%    Additional parameters can be defined specific for each plugin
+%    Additional parameters can be defined specific for each plugin.
+%
 % Output:
-%  res -
-%   If no input is provided the plugin returns a cfg branch for itself
+% res -
+%    If no input is provided the plugin returns a cfg branch for itself.
 %
-%   If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials
-%   with zeros for clean channel/trials and ones for artefacts.
+%    If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials
+%    with zeros for clean channel/trials and ones for artefacts.
+%
+% See http://fsl.fmrib.ox.ac.uk/eeglab/fmribplugin/
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% see http://fsl.fmrib.ox.ac.uk/eeglab/fmribplugin/
-% $Id: spm_eeg_artefact_heartbeat.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_eeg_artefact_heartbeat.m 7132 2017-07-10 16:22:58Z guillaume $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -25,13 +27,13 @@ function res = spm_eeg_artefact_heartbeat(S)
 % when it's called.
 %--------------------------------------------------------------------------
 if nargin == 0           
-    excwin = cfg_entry;
-    excwin.tag = 'excwin';
-    excwin.name = 'Excision window';
+    excwin         = cfg_entry;
+    excwin.tag     = 'excwin';
+    excwin.name    = 'Excision window';
     excwin.strtype = 'r';
-    excwin.num = [1 1];
-    excwin.val = {0};
-    excwin.help = {'Window (in ms) to mark as bad around each heart beat, 0 to not mark data as bad.'};
+    excwin.num     = [1 1];
+    excwin.val     = {0};
+    excwin.help    = {'Window (in ms) to mark as bad around each heart beat, 0 to not mark data as bad.'};
     
     heartbeat      = cfg_branch;
     heartbeat.tag  = 'heartbeat';
@@ -44,7 +46,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 6926 $';
+SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -55,17 +57,16 @@ if exist('fmrib_qrsdetect', 'file')~=2
     error('This tool requires FMRIB plugin, see http://fsl.fmrib.ox.ac.uk/eeglab/fmribplugin/');
 end
 
-
 if isequal(S.mode, 'reject')
     error('Only mark mode is supported by this plug-in, use event-based rejection to reject.');
 end
 
 D = spm_eeg_load(S.D);
 
-chanind  =  S.chanind;
+chanind = S.chanind;
 
 if length(chanind)~=1
-    error('More than one channel - not currently supported')
+    error('More than one channel - not currently supported.')
 end
 
 % Detect QRS peaks using FMRIB plugin
@@ -74,7 +75,6 @@ EEG = [];
 EEG.data =  reshape(squeeze(D(chanind,:,:)), 1, []);
 EEG.srate = D.fsample;
 spikes = fmrib_qrsdetect(EEG,1);
-
 
 % Update the event structure
 %----------------------------------------------------------------------
@@ -90,7 +90,6 @@ if ~isempty(spikes)
             ev = ev{1};
         end
         
-        
         if ~isempty(ev) && ~S.append
             ind1 = strmatch('artefact_heartbeat', {ev.type}, 'exact');
             if ~isempty(ind1)
@@ -104,10 +103,11 @@ if ~isempty(spikes)
         Nevents = numel(ev);
         for i=1:numel(ctime)
             if ctime{i} == 0
-                continue; %likely to be trial border falsely detected as heartbeat
+                %likely to be trial border falsely detected as heartbeat
+                continue;
             end
-            ev(Nevents+i).type     = 'artefact_heartbeat';
-            ev(Nevents+i).value    = char(D.chanlabels(chanind));
+            ev(Nevents+i).type  = 'artefact_heartbeat';
+            ev(Nevents+i).value = char(D.chanlabels(chanind));
             if S.excwin == 0
                 ev(Nevents+i).duration = [];
                 ev(Nevents+i).time     = ctime{i};
@@ -125,7 +125,7 @@ if ~isempty(spikes)
         end
     end    
 else
-    warning(['No heartbeat events detected in the selected channel']);
+    warning('No heartbeat events detected in the selected channel.');
 end
 
 res = D;

@@ -10,27 +10,26 @@ function D = spm_eeg_contrast(S)
 %             number of rows in c
 % weighted  - flag whether average should be weighted by number of
 %             replications (yes (1), no (0))
-% prefix    - prefix for the output file (default - 'w')
+% prefix    - prefix for the output file [default: 'w']
 %
 % Output:
 % D         - EEG data struct (also written to disk)
 %__________________________________________________________________________
 %
 % spm_eeg_contrast computes contrasts of data, over epochs of data. The
-% input is a single MEEG file.
-% The argument c must have dimensions Ncontrasts X Nepochs, where Ncontrasts is
-% the number of contrasts and Nepochs the number of epochs, i.e. each row of c
-% contains one contrast vector. The output
-% is a M/EEG file with Ncontrasts epochs. The typical use is to compute,
-% for display purposes, contrasts like the difference or interaction
-% between trial types in channel space.
+% input is a single MEEG file. The argument c must have dimensions
+% Ncontrasts X Nepochs, where Ncontrasts is the number of contrasts and
+% Nepochs the number of epochs, i.e. each row of c contains one contrast
+% vector. The output is a M/EEG file with Ncontrasts epochs. The typical
+% use is to compute, for display purposes, contrasts like the difference or
+% interaction between trial types in channel space.
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_contrast.m 7058 2017-04-18 10:58:51Z vladimir $
+% $Id: spm_eeg_contrast.m 7132 2017-07-10 16:22:58Z guillaume $
 
-SVNrev = '$Rev: 7058 $';
+SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -48,7 +47,7 @@ end
 
 D = spm_eeg_load(S.D);
    
-
+%-Compute contrasts
 %--------------------------------------------------------------------------
 
 c          = S.c;
@@ -117,7 +116,7 @@ for i = 1:Ncontrasts
     
     newrepl(i) = sum(D.repl(find(c(i,:)~=0)));
 
-    if ismember(i, Ibar), spm_progress_bar('Set', i); end
+    if any(Ibar == i), spm_progress_bar('Set', i); end
 
 end
 

@@ -1,22 +1,23 @@
 function res = spm_eeg_artefact_zscore(S)
 % Plugin for spm_eeg_artefact doing z-score thresholding
-% S                     - input structure
+% S            - input structure
 % fields of S:
-%    S.D                - M/EEG object
-%    S.chanind          - vector of indices of channels that this plugin will look at.
+%    S.D       - M/EEG object
+%    S.chanind - vector of indices of channels that this plugin will look at
 %
-%    Additional parameters can be defined specific for each plugin
+%    Additional parameters can be defined specific for each plugin.
+%
 % Output:
-%  res -
-%   If no input is provided the plugin returns a cfg branch for itself
+% res -
+%    If no input is provided the plugin returns a cfg branch for itself.
 %
-%   If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials
-%   with zeros for clean channel/trials and ones for artefacts.
+%    If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials
+%    with zeros for clean channel/trials and ones for artefacts.
 %__________________________________________________________________________
-% Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_zscore.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_eeg_artefact_zscore.m 7132 2017-07-10 16:22:58Z guillaume $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -24,26 +25,26 @@ function res = spm_eeg_artefact_zscore(S)
 % when it's called.
 %--------------------------------------------------------------------------
 if nargin == 0
-    threshold = cfg_entry;
-    threshold.tag = 'threshold';
-    threshold.name = 'Threshold';
+    threshold         = cfg_entry;
+    threshold.tag     = 'threshold';
+    threshold.name    = 'Threshold';
     threshold.strtype = 'r';
-    threshold.num = [1 1];
-    threshold.val = {3};
-    threshold.help = {'Threshold value (in stdev)'};
+    threshold.num     = [1 1];
+    threshold.val     = {3};
+    threshold.help    = {'Threshold value (in stdev)'};
     
-    excwin = cfg_entry;
-    excwin.tag = 'excwin';
-    excwin.name = 'Excision window';
+    excwin         = cfg_entry;
+    excwin.tag     = 'excwin';
+    excwin.name    = 'Excision window';
     excwin.strtype = 'r';
-    excwin.num = [1 1];
-    excwin.val = {100};
-    excwin.help = {'Window (in ms) to mark as bad around each event (for mark mode only), 0 - do not mark data as bad'};
+    excwin.num     = [1 1];
+    excwin.val     = {100};
+    excwin.help    = {'Window (in ms) to mark as bad around each event (for mark mode only), 0 - do not mark data as bad.'};
     
-    zscore = cfg_branch;
-    zscore.tag = 'zscore';
+    zscore      = cfg_branch;
+    zscore.tag  = 'zscore';
     zscore.name = 'Threshold z-scored data';
-    zscore.val = {threshold, excwin};
+    zscore.val  = {threshold, excwin};
     zscore.help = {''};
     
     res = zscore;
@@ -51,7 +52,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 6926 $';
+SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -60,11 +61,11 @@ spm('FigName','M/EEG zscore thresholding');
 
 D = spm_eeg_load(S.D);
 
-chanind  = S.chanind;
+chanind = S.chanind;
 threshold = S.threshold;
 
 if isequal(S.mode, 'reject') && isequal(D.type, 'continuous')
-    error('Rejection mode not for continuous data');
+    error('Rejection mode not for continuous data.');
 end
 
 res = zeros(D.nchannels, D.ntrials);
@@ -87,16 +88,13 @@ for j = 1:length(chanind)
     
     zsdat = dat./repmat(std(dat), size(dat, 1), 1);
     
-    
     if isequal(S.mode, 'reject')
         res(chanind(j), :) = any(abs(zsdat)>threshold);
     elseif isequal(S.mode, 'mark')
-        
-        
         bad  = abs(zsdat)>threshold;
         if ~any(bad(:))
             if isequal(D.type, 'continuous')
-                if ismember(j, Ibar), spm_progress_bar('Set', j); end
+                if any(Ibar == j), spm_progress_bar('Set', j); end
             end
             continue;
         end
@@ -142,7 +140,7 @@ for j = 1:length(chanind)
         end
     end
     
-    if ismember(j, Ibar), spm_progress_bar('Set', j); end
+    if any(Ibar == j), spm_progress_bar('Set', j); end
 end
 
 spm_progress_bar('Clear');

@@ -4,21 +4,19 @@ function D = spm_eeg_avgfreq(S)
 %
 % S        - input struct
 %  fields of S:
-%   D        - MEEG object or filename of M/EEG mat-file with epoched data%   
-%   freqwin  - frequency window to average over
-%   prefix   - prefix for the output file (default - 'P')
-%
+%   D        - MEEG object or filename of M/EEG mat-file with epoched data
+%   freqwin  - frequency window to average over [default: [-Inf, Inf]]
+%   prefix   - prefix for the output file [default: 'P']
 %
 % Output:
-% D        - MEEG object 
-%
+% D        - MEEG object
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_avgfreq.m 5190 2013-01-17 15:32:45Z vladimir $
+% $Id: spm_eeg_avgfreq.m 7132 2017-07-10 16:22:58Z guillaume $
 
-SVNrev = '$Rev: 5190 $';
+SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -30,10 +28,9 @@ if ~isfield(S, 'freqwin'),      S.freqwin  = [-Inf Inf];    end
 
 D = spm_eeg_load(S.D);
 
-if ~strncmpi(D.transformtype,'TF',2);
-    error('This function only works on TF datasets');
+if ~strncmpi(D.transformtype,'TF',2)
+    error('This function only works on TF datasets.');
 end
-
 
 freqind = D.indfrequency(min(S.freqwin)):D.indfrequency(max(S.freqwin));
 if isempty(freqind) || any(isnan(freqind))
@@ -52,10 +49,10 @@ else Ibar = 1:D.ntrials; end
 
 for i = 1:D.ntrials
     
-    Dnew(:, :, i) =  spm_squeeze(mean(D(:, freqind, :, i), 2), 2);
+    Dnew(:, :, i) = spm_squeeze(mean(D(:, freqind, :, i), 2), 2);
     
-    if ismember(i, Ibar), spm_progress_bar('Set', i); end
-end  %
+    if any(Ibar == i), spm_progress_bar('Set', i); end
+end
 
 spm_progress_bar('Clear');
 
@@ -68,4 +65,5 @@ D = Dnew;
 
 %-Cleanup
 %--------------------------------------------------------------------------
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','Average over frequency: done'); spm('Pointer','Arrow');

@@ -2,19 +2,21 @@ function images = spm_eeg_collapse_timefreq(S)
 % Compute within-peristimulus time (or frequency) averages (contrasts) of M/EEG data in voxel-space
 % FORMAT images = spm_eeg_collapse_timefreq(S)
 %
-% S         - input structure 
+% S      - input structure 
 % fields of S:
 %    images  - list of file names containing M/EEG data in voxel-space
 %    timewin - C x 2 matrix of start(s) and end(s) of a window in peri-stimulus 
-%              time [ms] (or frequency (Hz))
+%              time {ms} (or frequency {Hz})
 %    prefix  - prefix for the averaged images
-%_____________________________________________________________________________________________
-% Copyright (C) 2006-2013 Wellcome Trust Centre for Neuroimaging
+%
+% images - cellstr of saved images file names
+%__________________________________________________________________________
+% Copyright (C) 2006-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_collapse_timefreq.m 5194 2013-01-18 15:04:19Z vladimir $
+% $Id: spm_eeg_collapse_timefreq.m 7132 2017-07-10 16:22:58Z guillaume $
 
-SVNrev = '$Rev: 5194 $';
+SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -31,11 +33,7 @@ spm('Pointer', 'Watch');
 Nf = size(S.images, 1);
 Nc = size(S.timewin, 1);
 
-if ischar(S.images)
-    fnames = cellstr(S.images);
-else
-    fnames = S.images;
-end
+fnames = cellstr(S.images);
 
 ind1   = find(S.timewin(:, 1) == -Inf);
 S.timewin(ind1, 1)   = 0;
@@ -86,7 +84,9 @@ for j = 1:Nf % over files
         Vcon               = Vbeta;
         Vcon.mat(3,3:4)    = [1.0 0.0];
         Vcon.mat0          = Vcon.mat;
-        Vcon.dat.fname     = spm_file(fnames{j}, 'basename', sprintf('%s%s_con_%04d', S.prefix, spm_file(fnames{j},'basename'), i), 'ext', spm_file_ext);
+        Vcon.dat.fname     = spm_file(fnames{j}, ...
+            'basename', sprintf('%s%s_con_%04d', S.prefix, spm_file(fnames{j},'basename'), i),...
+            'ext', spm_file_ext);
         Vcon.dat.scl_slope = 1.0;
         Vcon.dat.scl_inter = 0.0;
         Vcon.dat.dtype     = 'float32-le';
@@ -117,11 +117,12 @@ for j = 1:Nf % over files
 
     end
 
-    if ismember(j, Ibar), spm_progress_bar('Set', j); end
+    if any(Ibar == j), spm_progress_bar('Set', j); end
 
 end
 
 %-Cleanup
 %--------------------------------------------------------------------------
 spm_progress_bar('Clear');
+fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','M/EEG Collapse time: done'); spm('Pointer','Arrow');

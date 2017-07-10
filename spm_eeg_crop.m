@@ -5,22 +5,20 @@ function D = spm_eeg_crop(S)
 % S        - optional input struct
 %  fields of S:
 %   D        - MEEG object or filename of M/EEG mat-file with epoched data
-%   timewin  - time window to retain {in PST ms)}
+%   timewin  - time window to retain {in PST ms}
 %   freqwin  - frequency window to retain
 %   channels - cell array of channel labels or 'all' [default]
 %   prefix   - prefix for the output file [default: 'p']
 %
-%
 % Output:
 % D        - MEEG object (also written on disk)
-%
 %__________________________________________________________________________
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_crop.m 7117 2017-06-20 09:40:24Z guillaume $
+% $Id: spm_eeg_crop.m 7132 2017-07-10 16:22:58Z guillaume $
 
-SVNrev = '$Rev: 7117 $';
+SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------

@@ -4,27 +4,28 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % S                 - input structure (optional)
 % (optional) fields of S:
 %   S.D             - MEEG object or filename of M/EEG mat-file
-%   S.timewin       - time window (in PST ms)
+%   S.timewin       - time window {in PST ms}
 %   S.trialdef      - structure array for trial definition with fields (optional)
 %       S.trialdef.conditionlabel - string label for the condition
 %       S.trialdef.eventtype      - string
 %       S.trialdef.eventvalue     - string, numeric or empty
-%       S.trialdef.trlshift       - shift the triggers by a fixed amount (ms) 
+%       S.trialdef.trlshift       - shift the triggers by a fixed amount {ms} 
 %                                   (e.g. projector delay).
-%   S.reviewtrials  - review individual trials after selection (yes/no: 1/0)
-%   S.save          - save trial definition (yes/no: 1/0)
+%   S.reviewtrials  - review individual trials after selection [yes/no: 1/0]
+%   S.save          - save trial definition [yes/no: 1/0]
+%
 % OUTPUT:
 %   trl             - Nx3 matrix [start end offset]
 %   conditionlabels - Nx1 cell array of strings, label for each trial
 %   S               - modified configuration structure (for history)
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 6182 2014-09-18 12:03:18Z guillaume $
+% $Id: spm_eeg_definetrial.m 7132 2017-07-10 16:22:58Z guillaume $
 
 
-SVNrev = '$Rev: 6182 $';
+SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -46,14 +47,14 @@ D = spm_eeg_load(D);
 %-Get input parameters
 %--------------------------------------------------------------------------
 if ~isequal(D.type, 'continuous')
-    error('Trial definition requires continuous dataset as input');
+    error('Trial definition requires continuous dataset as input.');
 end
 
 event    = events(D, 1, 'samples');
 fsample  = D.fsample;
 
 if isempty(event)
-    error('No event information was found in the input');
+    error('No event information was found in the input.');
 end
 
 if ~isfield(S, 'timewin')
