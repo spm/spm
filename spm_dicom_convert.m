@@ -36,7 +36,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 6899 2016-10-07 08:23:34Z volkmar $
+% $Id: spm_dicom_convert.m 7136 2017-07-18 10:51:48Z john $
 
 
 %-Input parameters
@@ -1506,7 +1506,7 @@ for n=1:size(ord,2),
     R   = [reshape(ImageOrientationPatient,3,2)*diag(PixelSpacing); 0 0];
 
     % Determine the order of the slices by sorting their positions according to where they project
-    % on a vector orthogonal to the iamge plane
+    % on a vector orthogonal to the image plane
     orient      = reshape(this(1).ImageOrientationPatient,[3 2]);
     orient(:,3) = null(orient');
     if det(orient)<0, orient(:,3) = -orient(:,3); end

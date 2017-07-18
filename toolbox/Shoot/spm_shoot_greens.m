@@ -21,7 +21,7 @@ function varargout = spm_shoot_greens(varargin)
 % (c) Wellcome Trust Centre for NeuroImaging (2012)
 
 % John Ashburner
-% $Id: spm_shoot_greens.m 7054 2017-04-04 12:09:32Z john $
+% $Id: spm_shoot_greens.m 7136 2017-07-18 10:51:48Z john $
 
 spm_diffeo('boundary',0);
 
@@ -104,17 +104,12 @@ else
         for i=1:3,
             m(:,:,:,i) = fftn(m(:,:,:,i));
         end
-        for k=1:size(m,3),
-            a = m(:,:,k,:);
-            m(:,:,k,:) = 0;
-            for j=1:3,
-                for i=1:3,
-                    m(:,:,k,j) = m(:,:,k,j) + F(:,:,k,j,i).*a(:,:,:,i);
-                end
+        for j=1:3,
+            a = single(0);
+            for i=1:3,
+                a = a + F(:,:,:,j,i).*m(:,:,:,i);
             end
-        end
-        for i=1:3,
-            v(:,:,:,i) = ifftn(m(:,:,:,i),'symmetric');
+            v(:,:,:,j) = ifftn(a,'symmetric');
         end
     end
     varargout{1} = v;

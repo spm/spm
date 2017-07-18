@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 7130 2017-07-04 17:43:49Z john $ */
+/* $Id: shoot_optimN.c 7136 2017-07-18 10:51:48Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -14,9 +14,9 @@ static void choldc(int n, double a[], double p[])
     int i, j, k;
     double sm, sm0;
 
-    sm0  = 1e-32;
+    sm0  = 1e-40;
     for(i=0; i<n; i++) sm0 = sm0 + a[i*n+i];
-    sm0 *= 1e-6;
+    sm0 *= 1e-7;
     sm0 *= sm0;
  /* for(i=0; i<n; i++) a[i*n+i] += sm0; */
 
