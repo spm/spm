@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 7125 2017-06-23 09:49:29Z guillaume $
+% $Id: spm_eeg_montage.m 7134 2017-07-18 09:46:25Z guillaume $
 
-SVNrev = '$Rev: 7125 $';
+SVNrev = '$Rev: 7134 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -369,29 +369,20 @@ switch S.mode
                     chanunitorig = sens.chanunit;
                     labelorg     = sens.label;
                     
+                    sens = ft_apply_montage(sens, sensmontage, 'keepunused', keepunused, 'warning', false);
                     
-                    sw = warning('off','backtrace');
-                    
-                    try
-                        
-                        sens = ft_apply_montage(sens, sensmontage, 'keepunused', keepunused);
-                        
-                        if isequal(sensortypes{i}, 'MEG')
-                            if isfield(sens, 'balance') && ~isequal(sens.balance.current, 'none')
-                                balance = ft_apply_montage(getfield(sens.balance, sens.balance.current), sensmontage, 'keepunused', keepunused);
-                            else
-                                balance = sensmontage;
-                            end
-                            
-                            sens.balance.custom = balance;
-                            sens.balance.current = 'custom';
+                    if isequal(sensortypes{i}, 'MEG')
+                        if isfield(sens, 'balance') && ~isequal(sens.balance.current, 'none')
+                            balance = ft_apply_montage(getfield(sens.balance, sens.balance.current), sensmontage, 'keepunused', keepunused);
+                        else
+                            balance = sensmontage;
                         end
                         
-                    catch
-                        warning(sw);
-                        rethrow(lasterror);
+                        sens.balance.custom = balance;
+                        sens.balance.current = 'custom';
                     end
-                  
+                    
+                    
                     if isfield(sens, 'chanunit')
                         chanunit = sens.chanunit;
                     else
