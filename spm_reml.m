@@ -1,15 +1,15 @@
 function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,t,hE,hP)
 % ReML estimation of [improper] covariance components from y*y'
-% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,t,hE,hP);
+% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,t,hE,hP)
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
 % Q   - {1 x q} covariance components
 %
-% N   - number of samples                 (default 1)
-% t   - regularisation                    (default 4)
-% hE  - hyperprior                        (default 0)
-% hP  - hyperprecision                    (default 1e-8)
+% N   - number of samples                 [default: 1]
+% t   - regularisation                    [default: 4]
+% hE  - hyperprior                        [default: 0]
+% hP  - hyperprecision                    [default: exp(-8)]
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) posterior expectation of h
@@ -34,19 +34,19 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,t,hE,hP)
 %      spm_sp_reml: for sparse patterns (c.f., ARD)
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 6958 2016-12-03 12:30:53Z karl $
+% $Id: spm_reml.m 7137 2017-07-19 15:07:34Z guillaume $
 
 
 % check defaults
 %--------------------------------------------------------------------------
-try, N;  catch, N  = 1;        end       % assume a single sample if not specified
-try, K;  catch, K  = 32;       end       % default number of iterations
-try, t;  catch, t  = 4;        end       % default regularisation
-try, hE; catch, hE = 0;        end       % default hyperprior
-try, hP; catch, hP = exp(-8);  end       % default hyperprecision
+try, N;  catch, N  = 1;       end % assume a single sample if not specified
+try, K;  catch, K  = 32;      end % default number of iterations
+try, t;  catch, t  = 4;       end % default regularisation
+try, hE; catch, hE = 0;       end % default hyperprior
+try, hP; catch, hP = exp(-8); end % default hyperprecision
 
 % catch NaNs
 %--------------------------------------------------------------------------
@@ -149,15 +149,15 @@ for k = 1:K
     %----------------------------------------------------------------------
     pF    = dFdh'*dh;
     if pF > dF
-        t = t - 1;
+        t = max(t - 1, -8);
     else
-        t = t + 1/4;
+        t = min(t + 1/4,8);
     end
     
     % if near phase-transition start again with more precise priors
     %----------------------------------------------------------------------
-    if ~isfinite(pF) || abs(pF) > 1e6
-        [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,t - 2,0,hP(1)*2);
+    if ~isfinite(pF) || norm(dh,'inf') > 1e6
+        [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,t,0,hP(1)*2);
         return
     else
         dF = pF;
@@ -180,10 +180,10 @@ for i = 1:m
     V = V + W{i}*h(i);
 end
 
-% check V is positive semi-definite and paramters have been identified
+% check V is positive semi-definite and parameters have been identified
 %==========================================================================
 Ph    = -dFdhh;
-if (min(eig(full(V))) < 0) || log(condest(Ph)) > 16
+if ((min(eig(full(V))) < 0) || log(condest(Ph)) > 16) && t > -4
     
     % Bayesian model reduction (successive removal of parameters)
     %----------------------------------------------------------------------
@@ -208,9 +208,9 @@ if (min(eig(full(V))) < 0) || log(condest(Ph)) > 16
         end
     end
     if nargout > 3
-        [V,qE,qP,F,Fa,Fc] = spm_reml(YY,X,Q(iQ),N,t - 2,0,hP(1)*2);
+        [V,qE,qP,F,Fa,Fc] = spm_reml(YY,X,Q(iQ),N,t,0,hP(1)*2);
     else
-        [V,qE,qP]         = spm_reml(YY,X,Q(iQ),N,t - 2,0,hP(1)*2);
+        [V,qE,qP]         = spm_reml(YY,X,Q(iQ),N,t,0,hP(1)*2);
     end
     
     % Replace redundant covariance components
