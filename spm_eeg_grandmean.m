@@ -1,34 +1,34 @@
 function Do = spm_eeg_grandmean(S)
-% average over multiple data sets
+% Average over multiple M/EEG data sets
 % FORMAT Do = spm_eeg_grandmean(S)
 %
 % S         - struct (optional)
 %  fields of S:
-%   D         - filenames (char matrix) of EEG mat-file containing epoched
-%               data
+%   D         - filenames (char matrix) of M/EEG MAT-files containing
+%               epoched data
 %   weighted  - average weighted by number of replications in inputs (1)
-%               or not (0).
-%   outfile   - name of the output file (default - 'grand_mean')
+%               or not (0) [default: 0]
+%   outfile   - name of the output file [default: 'grand_mean']
 %
 % Output:
 % Do        - EEG data struct, result files are saved in the same
-%                 directory as first input file.
+%             directory as first input file.
 %__________________________________________________________________________
 %
 % spm_eeg_grandmean averages data over multiple files. The data must have
 % the same trialtype numbering and sampling rate. This function can be used
-% for grand mean averaging, i.e. computing the average over multiple subjects.
-% Missing event types and bad channels are taken into account properly.
-% The output is written to a user-specified new file. The default name is
-% the same name as the first selected input file, but prefixed with a 'g'.
-% The output file is written to the current working directory.
+% for grand mean averaging, i.e. computing the average over multiple
+% subjects. Missing event types and bad channels are taken into account
+% properly. The output is written to a user-specified new file. The default
+% name is the same name as the first selected input file, but prefixed with
+% a 'g'. The output file is written to the current working directory.
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 6625 2015-12-03 21:49:24Z vladimir $
+% $Id: spm_eeg_grandmean.m 7139 2017-07-24 10:54:11Z guillaume $
 
-SVNrev = '$Rev: 6625 $';
+SVNrev = '$Rev: 7139 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -51,7 +51,7 @@ if ischar(D)
         end
         D = F;
     catch
-        error('Trouble reading files');
+        error('Trouble reading files.');
     end
 end
 
@@ -59,11 +59,11 @@ Nfiles = length(D);
 
 %-Check dimension of the data files
 %--------------------------------------------------------------------------
-estr = [];
+estr = '';
 
 for i = 1:Nfiles
     flist = [];
-    if ~strcmp(D{i}.type, 'evoked');
+    if ~strcmp(D{i}.type, 'evoked')
         flist = [flist ' ' D{i}.fname];
     end
     if ~isempty(flist)
@@ -195,7 +195,6 @@ end
 % send message error (if any)
 if ~isempty(estr)
     error(estr)
-    return
 else
     fprintf('Ok: All data files have the same dimensions.\n')
 end
@@ -277,7 +276,7 @@ if strncmp(D{1}.transformtype, 'TF',2)
 
         Do(1:Do.nchannels, 1:Do.nfrequencies, 1:Do.nsamples, i) = d;
 
-        if ismember(i, Ibar), spm_progress_bar('Set', i); end
+        if any(Ibar==i), spm_progress_bar('Set', i); end
 
     end
 
@@ -306,7 +305,7 @@ else
 
         Do(1:Do.nchannels, 1:Do.nsamples, i) = d;
 
-        if ismember(i, Ibar), spm_progress_bar('Set', i); end
+        if any(Ibar==i), spm_progress_bar('Set', i); end
 
     end
 end
@@ -315,25 +314,27 @@ spm_progress_bar('Clear');
 
 %-Average sensor locations
 %--------------------------------------------------------------------------
+nograph = spm('CmdLine');
+h       = [];
 Ntrials = sum(nrepl, 2);
 if ~isempty(megsens)
-    spm_figure('GetWin','Graphics');clf;
+    if ~nograph, spm_figure('GetWin','Graphics');clf; end
     if ~isempty(eegsens)
-        h = subplot(2, 1, 1);
+        if ~nograph, h = subplot(2, 1, 1); end
         aeegsens = ft_average_sens(eegsens, 'weights', Ntrials, 'feedback', h);
         Do = sensors(Do, 'EEG', aeegsens);
-        
-        h = subplot(2, 1, 2);
+        if ~nograph, h = subplot(2, 1, 2); end
     else
-        h = axes;
+        if ~nograph, h = axes; end
     end
-    
     [amegsens,afid] = ft_average_sens(megsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
     Do = sensors(Do, 'MEG', amegsens);
     Do = fiducials(Do, afid);
 elseif ~isempty(eegsens)
-    spm_figure('GetWin','Graphics');clf;
-    h = axes;
+    if ~nograph
+        spm_figure('GetWin','Graphics');clf;
+        h = axes;
+    end
     [aeegsens,afid] = ft_average_sens(eegsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
     Do = sensors(Do, 'EEG', aeegsens);
     Do = fiducials(Do, afid);
