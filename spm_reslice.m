@@ -56,10 +56,10 @@ function spm_reslice(P,flags)
 % The routine uses information in their headers and writes the realigned 
 % image files to the same subdirectory with a prefix.
 %__________________________________________________________________________
-% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_reslice.m 5929 2014-03-27 14:47:40Z guillaume $
+% $Id: spm_reslice.m 7140 2017-07-25 08:53:35Z guillaume $
 
 %__________________________________________________________________________
 %
@@ -96,7 +96,7 @@ function spm_reslice(P,flags)
 %__________________________________________________________________________
 
 
-SVNid = '$Rev: 5929 $';
+SVNid = '$Rev: 7140 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -104,7 +104,7 @@ SPMid = spm('FnBanner',mfilename,SVNid);
 
 %-Parameters
 %--------------------------------------------------------------------------
-if ~nargin || isempty(P), P = spm_select([2 Inf],'image'); end
+if ~nargin,      P = spm_select([2 Inf],'image'); end
 if iscellstr(P), P = char(P);    end
 if ischar(P),    P = spm_vol(P); end
 
@@ -143,7 +143,7 @@ function reslice_images(P,flags)
 % FORMAT reslice_images(P,flags)
 % See main function for a description of the input parameters
 
-if ~isfinite(flags.interp), % Use Fourier method
+if ~isfinite(flags.interp) % Use Fourier method
     % Check for non-rigid transformations in the matrixes
     for i=1:numel(P)
         pp = P(1).mat\P(i).mat;
@@ -167,22 +167,22 @@ if flags.mask || flags.mean
         Count    = zeros(P(1).dim(1:3));
         Integral = zeros(P(1).dim(1:3));
     end
-    if flags.mask, msk = cell(P(1).dim(3),1);  end;
+    if flags.mask, msk = cell(P(1).dim(3),1);  end
     for x3 = 1:P(1).dim(3)
         tmp = zeros(P(1).dim(1:2));
         for i = 1:numel(P)
             tmp = tmp + getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap);
         end
-        if flags.mask, msk{x3} = find(tmp ~= numel(P)); end;
-        if flags.mean, Count(:,:,x3) = tmp; end;
+        if flags.mask, msk{x3} = find(tmp ~= numel(P)); end
+        if flags.mean, Count(:,:,x3) = tmp; end
         spm_progress_bar('Set',x3);
     end
 end
 
 nread = numel(P);
 if ~flags.mean
-    if flags.which == 1, nread = nread - 1; end;
-    if flags.which == 0, nread = 0; end;
+    if flags.which == 1, nread = nread - 1; end
+    if flags.which == 0, nread = 0; end
 end
 spm_progress_bar('Init',nread,'Reslicing','volumes completed');
 
@@ -339,7 +339,7 @@ function [S0,S1,S2,S3] = shear_decomp(A)
 % Magnetic Resonance in Medicine 42(6):1014-1018
 
 A0 = A(1:3,1:3);
-if any(abs(svd(A0)-1)>1e-7), error('Can''t decompose matrix'); end
+if any(abs(svd(A0)-1)>1e-7), error('Cannot decompose matrix.'); end
 
 t  = A0(2,3); if t==0, t=eps; end
 a0 = pinv(A0([1 2],[2 3])')*[(A0(3,2)-(A0(2,2)-1)/t) (A0(3,3)-1)]';
