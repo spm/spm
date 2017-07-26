@@ -84,14 +84,14 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 6953 2016-11-27 13:07:07Z karl $
+% $Id: spm_nlsi_N.m 7142 2017-07-26 20:38:45Z karl $
  
 % options
 %--------------------------------------------------------------------------
 try, M.nograph; catch, M.nograph = 0;  end
 try, M.Nmax;    catch, M.Nmax    = 64; end
 try, M.Gmax;    catch, M.Gmax    = 8;  end
-try, M.Hmax;    catch, M.Hmax    = 8;  end
+try, M.Hmax;    catch, M.Hmax    = 4;  end
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -321,6 +321,7 @@ dFdhh = zeros(nh,nh);
  
 % Optimize p: parameters of f(x,u,p)
 %==========================================================================
+EP     = [];
 for ip = 1:M.Nmax
  
     % time
@@ -338,7 +339,7 @@ for ip = 1:M.Nmax
         if ip < 8
             vg = -4;
         else
-            vg = v;
+            vg = 2;
         end
     else
         Gmax = 0;
@@ -427,7 +428,7 @@ for ip = 1:M.Nmax
  
             % convergence
             %--------------------------------------------------------------
-            if dFdh'*dh < 1e-2, break, end
+            if dFdh'*dh < exp(-2), break, end
  
         end
  
@@ -457,7 +458,7 @@ for ip = 1:M.Nmax
         % convergence
         %------------------------------------------------------------------
         dG    = dFdg'*dg;
-        if ig > 1 && dG < 1e-2, break, end
+        if ig > 1 && dG < exp(-2), break, end
         
     end
     
@@ -494,7 +495,7 @@ for ip = 1:M.Nmax
  
         % decrease regularization
         %------------------------------------------------------------------
-        v     = min(v + 1/2,8);
+        v     = min(v + 1/2,2);
         str   = 'EM(+)';
  
         % accept current estimates
@@ -528,8 +529,11 @@ for ip = 1:M.Nmax
     %======================================================================
     dp    = spm_dx(dFdpp,dFdp,{v});
     Ep    = spm_unvec(spm_vec(Ep) + Vp*dp,Ep);
- 
     
+    % diagnostic
+    %----------------------------------------------------------------------
+    % EP(:,end + 1) = spm_vec(Ep);
+ 
     
     % subplot times
     %----------------------------------------------------------------------
@@ -611,5 +615,9 @@ Cg     = Vg*C.Cb((1:ng) + np,(1:ng) + np)*Vg';
 F      = C.F;
 L      = C.L;
 warning(sw);
- 
+
+% diagnostic
+%--------------------------------------------------------------------------
+% save('spm_nlsi_N_Ep','EP');
+
 return

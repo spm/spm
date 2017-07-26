@@ -24,7 +24,16 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_diff.m 6836 2016-07-15 09:43:30Z karl $
+% $Id: spm_diff.m 7142 2017-07-26 20:38:45Z karl $
+
+% step size for numerical derivatives
+%--------------------------------------------------------------------------
+global GLOBAL_DX
+if ~isempty(GLOBAL_DX)
+    dx  = GLOBAL_DX;
+else
+    dx  = exp(-8);
+end
 
 % create inline object
 %--------------------------------------------------------------------------
@@ -68,7 +77,6 @@ end
 %--------------------------------------------------------------------------
 m     = n(end);
 xm    = spm_vec(x{m});
-dx    = exp(-8);
 J     = cell(1,size(V{m},2));
 
 % proceed to derivatives

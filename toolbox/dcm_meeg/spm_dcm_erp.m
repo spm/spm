@@ -36,7 +36,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 6725 2016-02-19 19:14:25Z karl $
+% $Id: spm_dcm_erp.m 7142 2017-07-26 20:38:45Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
@@ -44,7 +44,8 @@ drawnow
 clear spm_erp_L
 name = sprintf('DCM_%s',date);
 
-
+global GLOBAL_DX
+GLOBAL_DX = exp(-4);
 
 % Filename and options
 %--------------------------------------------------------------------------
@@ -237,7 +238,7 @@ M.ns   = Ns;
 M.Nmax = Nmax;
 
 % re-intialise states
-%-------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 M.x    = spm_dcm_neural_x(pE,M);
     
 

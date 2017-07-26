@@ -25,20 +25,12 @@ function [L] = spm_erp_L(P,dipfit)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_L.m 6976 2016-12-22 11:04:45Z vladimir $
+% $Id: spm_erp_L.m 7142 2017-07-26 20:38:45Z karl $
 
 % Create a persient variable that rembers the last locations
 %--------------------------------------------------------------------------
-persistent LastLpos LastL LastID 
+persistent LastLpos LastL 
 
-% clear persistent variables if the head model changes
-%----------------------------------------------------------------------
-if ~isequal(LastID, spm_data_id(dipfit))
-    LastLpos = [];
-    LastL    = [];
-    LastID   = spm_data_id(dipfit);
-end
-    
 
 % type of spatial model and modality
 %==========================================================================
