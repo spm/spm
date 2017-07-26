@@ -83,13 +83,13 @@ function P = spm_realign(P,flags)
 % RSJ (1995) Spatial registration and normalization of images Hum. Brain
 % Map. 2:165-189
 %__________________________________________________________________________
-% Copyright (C) 1994-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_realign.m 6999 2017-02-01 17:18:47Z john $
+% $Id: spm_realign.m 7141 2017-07-26 09:05:05Z guillaume $
 
 
-SVNid = '$Rev: 6999 $';
+SVNid = '$Rev: 7141 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -97,12 +97,6 @@ SPMid = spm('FnBanner',mfilename,SVNid);
 
 %-Parameters & Arguments
 %==========================================================================
-if ~nargin
-    error('Not enough input arguments.');
-end
-if nargin > 2
-    error('Too many input arguments.');
-end
 
 %-Flags
 %--------------------------------------------------------------------------
@@ -128,13 +122,13 @@ for i=1:numel(P), if ischar(P{i}), P{i} = spm_vol(P{i}); end; end
 P(cellfun(@isempty,P)) = [];
 if ~isempty(flags.PW) && ischar(flags.PW), flags.PW = spm_vol(flags.PW); end
 
-if isempty(P), warning('Nothing to do'); return; end
+if isempty(P), warning('Nothing to do.'); end
 
 %-Perform realignment
 %==========================================================================
 if numel(P)==1
     P{1} = realign_series(P{1}, flags);
-else
+elseif numel(P) > 1
     Ptmp = P{1}(1);
     for s=2:numel(P)
         Ptmp = [Ptmp ; P{s}(1)];

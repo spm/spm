@@ -59,7 +59,7 @@ function spm_reslice(P,flags)
 % Copyright (C) 1999-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_reslice.m 7140 2017-07-25 08:53:35Z guillaume $
+% $Id: spm_reslice.m 7141 2017-07-26 09:05:05Z guillaume $
 
 %__________________________________________________________________________
 %
@@ -96,7 +96,7 @@ function spm_reslice(P,flags)
 %__________________________________________________________________________
 
 
-SVNid = '$Rev: 7140 $';
+SVNid = '$Rev: 7141 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -104,7 +104,7 @@ SPMid = spm('FnBanner',mfilename,SVNid);
 
 %-Parameters
 %--------------------------------------------------------------------------
-if ~nargin,      P = spm_select([2 Inf],'image'); end
+if ~nargin,      P = spm_select([1 Inf],'image'); end
 if iscellstr(P), P = char(P);    end
 if ischar(P),    P = spm_vol(P); end
 
@@ -130,7 +130,11 @@ end
 
 %-Reslice
 %--------------------------------------------------------------------------
-reslice_images(P,flags);
+if isempty(P)
+    warning('Nothing to do.');
+else
+    reslice_images(P,flags);
+end
 
 fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
 

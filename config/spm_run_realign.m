@@ -7,9 +7,9 @@ function out = spm_run_realign(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_realign.m 6554 2015-09-11 17:21:23Z guillaume $
+% $Id: spm_run_realign.m 7141 2017-07-26 09:05:05Z guillaume $
 
 
 P = cell(size(job.data));
@@ -46,6 +46,7 @@ end
 
 %-Dependencies
 %--------------------------------------------------------------------------
+if isempty(P), out = struct([]); return; end
 if isfield(job,'eoptions')
     for i=1:numel(job.data)
         out.sess(i).cfiles = job.data{i};
@@ -54,7 +55,7 @@ if isfield(job,'eoptions')
 end
 
 if isfield(job,'roptions')
-    if job.roptions.which(1) == 1, s = 1; else s = 0; end
+    if job.roptions.which(1) == 1, s = 1; else, s = 0; end
     if ischar(job.data{1}), job.data = {job.data}; end
     for k=1:numel(job.data)
         rfiles = cell(numel(job.data{k})-s,1);
