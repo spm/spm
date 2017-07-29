@@ -1,5 +1,5 @@
-function [varargout] = spm_diff(varargin)
-% matrix high-order numerical differentiation
+function [varargout] = spm_ddiff(varargin)
+% matrix high-order numerical differentiation (double stencil)
 % FORMAT [dfdx] = spm_diff(f,x,...,n)
 % FORMAT [dfdx] = spm_diff(f,x,...,n,V)
 % FORMAT [dfdx] = spm_diff(f,x,...,n,'q')
@@ -19,16 +19,16 @@ function [varargout] = spm_diff(varargin)
 % dfdx{p}...{q} - df/dx{i}dx{j}(q)...dx{k}(p)  ; n = [i j ... k]
 %
 %
-% This routine has the same functionality as spm_ddiff, however it
-% uses one sample point to approximate gradients with numerical (finite)
-% differences:
+% This routine has the same functionality as spm_diff, however it
+% uses two sample points to provide more accurate numerical (finite)
+% differences that accommodate nonlinearities:
 %
-% dfdx  = (f(x + dx)- f(x))/dx
+% dfdx  = (4*f(x + dx) - f(x + 2*dx) - 3*f(x))/(2*dx)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_diff.m 7143 2017-07-29 18:50:38Z karl $
+% $Id: spm_ddiff.m 7143 2017-07-29 18:50:38Z karl $
 
 % step size for numerical derivatives
 %--------------------------------------------------------------------------
@@ -91,9 +91,11 @@ if length(n) == 1
     %----------------------------------------------------------------------
     f0    = f(x{:});
     for i = 1:length(J)
-        xi    = x;
-        xi{m} = spm_unvec(xm + V{m}(:,i)*dx,x{m});
-        J{i}  = spm_dfdx(f(xi{:}),f0,dx);
+        xi     = x;
+        xii    = x;
+        xi{m}  = spm_unvec(xm + V{m}(:,i)*dx,  x{m});
+        xii{m} = spm_unvec(xm + V{m}(:,i)*2*dx,x{m});
+        J{i}   = spm_dfdx(f(xi{:}),f(xii{:}),f0,dx);
     end
 
     
@@ -136,12 +138,16 @@ else
     p         = true;
     
     for i = 1:length(J)
-        xi    = x;
-        xmi   = xm + V{m}(:,i)*dx;
-        xi{m} = spm_unvec(xmi,x{m});
-        fi    = spm_diff(f,xi{:},n(1:end - 1),V);
-        J{i}  = spm_dfdx(fi,f0{1},dx);
-        p     = p & isnumeric(J{i});
+        xi     = x;
+        xii    = x;
+        xmi    = xm + V{m}(:,i)*dx;
+        xmii   = xm + V{m}(:,i)*2*dx;
+        xi{m}  = spm_unvec(xmi, x{m});
+        xii{m} = spm_unvec(xmii,x{m});
+        fi     = spm_diff(f,xi{:}, n(1:end - 1),V);
+        fii    = spm_diff(f,xii{:},n(1:end - 1),V);
+        J{i}   = spm_dfdx(fi,fii,f0{1},dx);
+        p      = p & isnumeric(J{i});
     end
     
     % or differentiation of a scalar or vector
@@ -153,18 +159,18 @@ else
 end
 
 
-function dfdx = spm_dfdx(f,f0,dx)
+function dfdx = spm_dfdx(f,ff,f0,dx)
 % cell subtraction
 %__________________________________________________________________________
 if iscell(f)
     dfdx  = f;
     for i = 1:length(f(:))
-        dfdx{i} = spm_dfdx(f{i},f0{i},dx);
+        dfdx{i} = spm_dfdx(f{i},ff{i},f0{i},dx);
     end
 elseif isstruct(f)
-    dfdx  = (spm_vec(f) - spm_vec(f0))/dx;
+    dfdx  = (4*spm_vec(f) - spm_vec(ff) - 3*spm_vec(f0))/(2*dx);
 else
-    dfdx  = (f - f0)/dx;
+    dfdx  = (4*f - ff - 3*f0)/(2*dx);
 end
 
 return

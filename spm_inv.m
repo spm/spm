@@ -12,7 +12,7 @@ function X = spm_inv(A,TOL)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_inv.m 4360 2011-06-14 16:46:37Z ged $
+% $Id: spm_inv.m 7143 2017-07-29 18:50:38Z karl $
  
 % check A 
 %--------------------------------------------------------------------------
@@ -22,7 +22,7 @@ if isempty(A), X = sparse(n,m); return, end
 % tolerance
 %--------------------------------------------------------------------------
 if nargin == 1
-    TOL  = max(eps(norm(A,'inf'))*max(m,n),exp(-32)); 
+    TOL  = max(eps(norm(A,'inf'))*max(m,n),exp(-32));
 end
 
 % inverse

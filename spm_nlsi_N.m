@@ -84,7 +84,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 7142 2017-07-26 20:38:45Z karl $
+% $Id: spm_nlsi_N.m 7143 2017-07-29 18:50:38Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -330,7 +330,7 @@ for ip = 1:M.Nmax
     
     % predicted hidden states (x) and dxdp
     %----------------------------------------------------------------------
-    [dxdp,x] = spm_diff(IS,Ep,M,U,1,{Vp}); 
+    [dxdp,x] = spm_diff(IS,Ep,M,U,1,{Vp});  
     
     % check for inital iterations and dissipative dynamics
     %----------------------------------------------------------------------
@@ -495,7 +495,7 @@ for ip = 1:M.Nmax
  
         % decrease regularization
         %------------------------------------------------------------------
-        v     = min(v + 1/2,2);
+        v     = min(v + 1/2,4);
         str   = 'EM(+)';
  
         % accept current estimates
@@ -618,6 +618,6 @@ warning(sw);
 
 % diagnostic
 %--------------------------------------------------------------------------
-% save('spm_nlsi_N_Ep','EP');
+% save('spm_nlsi_N_Ep','EP')
 
 return

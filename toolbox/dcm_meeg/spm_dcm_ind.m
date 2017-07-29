@@ -35,7 +35,7 @@ function DCM = spm_dcm_ind(DCM)
 % coupling; which correspond to within and between frequency coupling 
 % respectively.
 % 
-% the number of notes can be optimised using Bayesian model selection. The
+% The number of nodes can be optimised using Bayesian model selection. The
 % data are reduced to a fixed number of principal components that capture
 % the greatest variation inspection responses never peristimulus time. The
 % number of nodes specified by the user tries to reconstruct the response
@@ -52,7 +52,7 @@ function DCM = spm_dcm_ind(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 5894 2014-02-26 14:27:01Z karl $
+% $Id: spm_dcm_ind.m 7143 2017-07-29 18:50:38Z karl $
  
  
 % check options 

@@ -60,7 +60,7 @@ function [y] = spm_int_L(P,M,U,N)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 6931 2016-11-16 12:09:58Z karl $
+% $Id: spm_int_L.m 7143 2017-07-29 18:50:38Z karl $
  
  
 % convert U to U.u if necessary
@@ -123,7 +123,8 @@ end
 
 % local linear update operator Q = (expm(dt*J) - I)*inv(J)
 %--------------------------------------------------------------------------
-Q     = (spm_expm(dt*D*dfdx/N) - speye(n,n))*spm_inv(dfdx);
+dfdx  = dfdx - speye(n,n)*exp(-16);
+Q     = (spm_expm(dt*D*dfdx/N) - speye(n,n))/dfdx;
  
 % integrate
 %==========================================================================

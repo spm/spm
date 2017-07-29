@@ -1,5 +1,5 @@
 function DCM = spm_dcm_erp(DCM)
-% Estimate parameters of a DCM model (Newton's methods)
+% Estimate parameters of a DCM model (Variational Lapalce)
 % FORMAT DCM = spm_dcm_erp(DCM)
 %
 % DCM
@@ -36,7 +36,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 7142 2017-07-26 20:38:45Z karl $
+% $Id: spm_dcm_erp.m 7143 2017-07-29 18:50:38Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
@@ -44,8 +44,6 @@ drawnow
 clear spm_erp_L
 name = sprintf('DCM_%s',date);
 
-global GLOBAL_DX
-GLOBAL_DX = exp(-4);
 
 % Filename and options
 %--------------------------------------------------------------------------
