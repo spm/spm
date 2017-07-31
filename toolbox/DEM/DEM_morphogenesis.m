@@ -23,7 +23,7 @@ function DEM = DEM_morphogenesis
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_morphogenesis.m 6801 2016-05-29 19:18:06Z karl $
+% $Id: DEM_morphogenesis.m 7145 2017-07-31 13:57:39Z karl $
  
  
 % preliminaries
@@ -35,7 +35,7 @@ N        = 32;                             % length of process (bins)
  
 % generative process and model
 %==========================================================================
-M(1).E.d  = 2;                             % approximation order
+M(1).E.d  = 1;                             % approximation order
 M(1).E.n  = 2;                             % embedding order
 M(1).E.s  = 1;                             % smoothness
  

@@ -55,6 +55,9 @@ function [DEM] = spm_ADEM(DEM)
 %   G(i).V  = precision (input noise)
 %   G(i).W  = precision (state noise)
 %
+%   G(1).R  = restriction or rate matrix for action [default: 1];
+%   G(i).aP = precision (action)   [default: exp(-2)]
+%
 %   G(i).m  = number of inputs v(i + 1);
 %   G(i).n  = number of states x(i)
 %   G(i).l  = number of output v(i)
@@ -131,7 +134,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM.m 6901 2016-10-08 13:21:41Z karl $
+% $Id: spm_ADEM.m 7145 2017-07-31 13:57:39Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -248,14 +251,14 @@ nh    = length(Q);                           % number of hyperparameters
 iR    = [zeros(1,ny),ones(1,nv),ones(1,nx)]; % for empirical priors
 iR    = kron(speye(n,n),diag(iR)); 
 
-% restriction matrices - in terms of precision
+% restriction or rate matrices - in terms of precision
 %--------------------------------------------------------------------------
 q0{1} = G(1).U;
 Q0    = kron(iG,spm_cat(q0));
 R0    = kron(iG,spm_cat(r0));
 iG    = blkdiag(Q0,R0);
 
-% restriction matrices – in terms of dE/da
+% restriction or rate matrices – in terms of dE/da
 %--------------------------------------------------------------------------
 try
     R         = sparse(sum(spm_vec(G.l)),na);
@@ -265,13 +268,20 @@ catch
     R = 1;
 end
 
+% fixed priors on action (a)
+%--------------------------------------------------------------------------
+try
+    aP = G(1).aP;
+catch
+    aP = exp(-2);
+end
 
 % fixed priors on states (u)
 %--------------------------------------------------------------------------
 xP    = spm_cat(spm_diag({M.xP}));
 Px    = kron(iV(1:n,1:n),speye(nx,nx)*exp(-8) + xP);
 Pv    = kron(iV(1:d,1:d),speye(nv,nv)*exp(-8));
-Pa    = spm_speye(na,na)*exp(-2);
+Pa    = spm_speye(na,na)*aP;
 Pu    = spm_cat(spm_diag({Px Pv}));
  
 % hyperpriors
