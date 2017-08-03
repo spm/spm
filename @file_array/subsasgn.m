@@ -1,10 +1,10 @@
 function obj = subsasgn(obj,subs,dat)
 % Overloaded subsasgn function for file_array objects
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 6522 2015-08-14 18:55:42Z john $
+% $Id: subsasgn.m 7147 2017-08-03 14:07:01Z spm $
 
 
 if isempty(subs), return; end

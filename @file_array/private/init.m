@@ -9,11 +9,11 @@ function init(fname, nbytes, opts)
 %   .truncate - truncate file if larger than requested size [default: true]
 %
 % This function is normally called by file_array/initialise
-% _______________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: init.m 5458 2013-05-01 14:32:23Z guillaume $
+% $Id: init.m 7147 2017-08-03 14:07:01Z spm $
 
 %-This is merely the help file for the compiled routine
 error('init.c not compiled - see Makefile');

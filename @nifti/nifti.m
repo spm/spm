@@ -1,10 +1,10 @@
 function h = nifti(varargin)
 % Create a NIFTI-1 object
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: nifti.m 4986 2012-10-05 17:35:09Z guillaume $
+% $Id: nifti.m 7147 2017-08-03 14:07:01Z spm $
 
 
 switch nargin
@@ -62,7 +62,7 @@ case 1
 
         if ~vol.hdr.scl_slope && ~vol.hdr.scl_inter
             vol.hdr.scl_slope = 1;
-        end;
+        end
         slope = double(vol.hdr.scl_slope);
         inter = double(vol.hdr.scl_inter);
 

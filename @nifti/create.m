@@ -6,10 +6,10 @@ function create(obj,wrt)
 % FORMAT create(obj,wrt)
 % Also write out an empty image volume if wrt==1
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: create.m 5451 2013-04-26 14:03:05Z guillaume $
+% $Id: create.m 7147 2017-08-03 14:07:01Z spm $
 
 
 for i=1:numel(obj)

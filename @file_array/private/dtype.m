@@ -1,4 +1,5 @@
 function varargout = dtype(varargin)
+% file_array's dtype property
 % FORMAT varargout = dtype(varargin)
 % For getting the value
 % dat = dtype(obj)
@@ -6,15 +7,15 @@ function varargout = dtype(varargin)
 % For setting the value
 % obj = dtype(obj,dat)
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: dtype.m 6157 2014-09-05 18:17:54Z guillaume $
+% $Id: dtype.m 7147 2017-08-03 14:07:01Z spm $
 
 
-if nargin==2,
+if nargin==2
     varargout{1} = asgn(varargin{:});
-elseif nargin==1,
+elseif nargin==1
     varargout{1} = ref(varargin{:});
 else
     error('Wrong number of arguments.');

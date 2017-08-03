@@ -2,10 +2,10 @@ function varargout=subsref(obj,subs)
 % SUBSREF Subscripted reference
 % An overloaded function...
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsref.m 6991 2017-01-19 13:09:51Z guillaume $
+% $Id: subsref.m 7147 2017-08-03 14:07:01Z spm $
 
 
 if isempty(subs), return; end
@@ -18,7 +18,7 @@ switch subs(1).type
         return;
 end
 
-if numel(subs)~=1, error('Expression too complicated'); end;
+if numel(subs)~=1, error('Expression too complicated'); end
 
 dim  = [size(obj) ones(1,16)];
 nd   = find(dim>1,1,'last')-1;
@@ -111,7 +111,7 @@ if ~isempty(sobj.scl_slope) || ~isempty(sobj.scl_inter)
     end
     if numel(inter)>1
         inter = resize_scales(inter,sobj.dim,varargin);
-    end;
+    end
     t = t + inter;
 end
 

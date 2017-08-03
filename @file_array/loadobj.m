@@ -1,10 +1,11 @@
 function b = loadobj(a)
 % loadobj for file_array class
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: loadobj.m 1544 2008-05-06 10:34:36Z guillaume $
+% $Id: loadobj.m 7147 2017-08-03 14:07:01Z spm $
+
 
 if isa(a,'file_array')
     b = a;

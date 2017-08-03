@@ -4,14 +4,14 @@ function vol = read_hdr(fname)
 % fname      - filename of image
 % vol        - various bits of information
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: read_hdr.m 4967 2012-09-26 18:19:23Z guillaume $
+% $Id: read_hdr.m 7147 2017-08-03 14:07:01Z spm $
 
 
 persistent d
-if isempty(d), d = getdict; end;
+if isempty(d), d = getdict; end
 
 [pth,nam,ext] = spm_fileparts(fname);
 switch ext

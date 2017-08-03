@@ -1,18 +1,18 @@
 function entry = findindict(c,dcode)
 % Look up an entry in the dictionary
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: findindict.m 4986 2012-10-05 17:35:09Z guillaume $
+% $Id: findindict.m 7147 2017-08-03 14:07:01Z spm $
 
 
 entry = [];
 d = getdict;
 d = d.(dcode);
 if ischar(c)
-    for i=1:length(d),
-        if strcmpi(d(i).label,c),
+    for i=1:length(d)
+        if strcmpi(d(i).label,c)
             entry = d(i);
             break;
         end

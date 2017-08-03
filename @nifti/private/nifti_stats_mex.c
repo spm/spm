@@ -1,8 +1,8 @@
 #ifndef lint
-static char svnid[] = "$Id: nifti_stats_mex.c 253 2005-10-13 15:31:34Z guillaume $";
+static char svnid[] = "$Id: nifti_stats_mex.c 7147 2017-08-03 14:07:01Z spm $";
 #endif
 /* 
- * This is a Matlab mex interface for Bob Cox's extensive nifti_stats.c
+ * This is a MATLAB MEX interface for Bob Cox's extensive nifti_stats.c
  * functionality.  See nifti_stats.m for documentation.
  */
 
