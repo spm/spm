@@ -11,11 +11,11 @@ function [y] = spm_fs_csd(y,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fs_csd.m 7002 2017-02-02 18:22:04Z karl $
+% $Id: spm_fs_csd.m 7148 2017-08-04 15:27:29Z karl $
 
 % control the relative precision of (second-order) data features
 %--------------------------------------------------------------------------
-beta = [1 1/8 8];
+beta = [1 1/8 2];
 
 % return (scaled) cross-spectra, covariance functions MAR coefficients
 %--------------------------------------------------------------------------

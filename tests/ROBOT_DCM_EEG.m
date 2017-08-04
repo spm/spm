@@ -5,7 +5,7 @@ function E = ROBOT_DCM_EEG
 %   options.model        - 'ERP','SEP','CMC','LFP','NNM' or 'MFM'
 %   options.spatial      - 'ECD','LFP' or 'IMG'
 
-% $Id: ROBOT_DCM_EEG.m 6727 2016-02-20 18:06:47Z karl $
+% $Id: ROBOT_DCM_EEG.m 7148 2017-08-04 15:27:29Z karl $
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
@@ -14,11 +14,11 @@ try
 catch
     cd('C:\home\spm\DCM\DCM tests')
 end
-close all
-delete(get(0,'Children'))
 if exist('DEMO.ps','file')
     delete('DEMO.ps')
 end
+close all
+delete(get(0,'Children'))
 clc
 E = {};
 
@@ -290,6 +290,7 @@ load DCM_ERP_GEN
 DCM.options.analysis = 'ERP';
 DCM.name             = 'DCM_ERP_GEN';
 
+clear model
 for i = 1:3
     model(i).source  = 'ERP';
     model(i).B       = [1 2];
@@ -325,7 +326,6 @@ DCM.options.analysis = 'CSD';
 DCM.name             = 'DCM_CSD_GEN';
 
 clear model
-
 for i = 1:2
     model(i).source  = 'CMC';
 end
@@ -366,7 +366,7 @@ for j = 1:length(H);
     text(0,0.5,get(gcf,'Name'),'Fontsize',10,'Fontweight','Bold')
     axis off
     
-    spm_print('DEMO.pdf',gcf,'pdf')
+    spm_print('DEMO.ps',gcf)
     
 end
 delete(H)

@@ -28,7 +28,7 @@ function [Q,J] = spm_dcm_delay(P,M,J,N)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_delay.m 7026 2017-02-23 14:56:26Z bernadette $
+% $Id: spm_dcm_delay.m 7148 2017-08-04 15:27:29Z karl $
 
 % order of Taylor approximation
 %--------------------------------------------------------------------------
@@ -110,8 +110,8 @@ end
 % suppress delays between voltage and current
 %--------------------------------------------------------------------------
 if isfield(M,'nodelay')
-    if M.nodelay==1; D(J == 1) = 0;
-    elseif M.nodelay==2; D((J == 1) | (J' == 1)) = 0;
+    if M.nodelay == 1; D(J == 1) = 0;
+    elseif M.nodelay == 2; D((J == 1) | (J' == 1)) = 0;
     end
 end
 
