@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 31-Jul-2017 14:45:42
+% Last Modified by GUIDE v2.5 07-Aug-2017 21:50:24
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -640,3 +640,21 @@ run_demo_Callback(hObject, handles, 'DEM_cells_cells')
 function pushbutton218_Callback(hObject, eventdata, handles)
 handles.web = 'Knowing ones place';
 run_demo_Callback(hObject, handles, 'DEM_cells')
+
+
+% --- Executes on button press in pushbutton219.
+function pushbutton219_Callback(hObject, eventdata, handles)
+handles.web = 'Life as we know it';
+run_demo_Callback(hObject, handles, 'DEM_self_MI_a')
+
+
+% --- Executes on button press in pushbutton220.
+function pushbutton220_Callback(hObject, eventdata, handles)
+handles.web = 'Life as we know it';
+run_demo_Callback(hObject, handles, 'DEM_self_MI_c')
+
+
+% --- Executes on button press in pushbutton221.
+function pushbutton221_Callback(hObject, eventdata, handles)
+handles.web = 'Life as we know it';
+run_demo_Callback(hObject, handles, 'DEM_I3_and_TS')

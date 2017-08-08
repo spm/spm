@@ -3,9 +3,9 @@ function DEM = DEM_cells_cells
 % This demo is a hierarchical extension of DEM_cell.m, where we have 16
 % ensembles comprising 16 cells. Each cell has a generative model (i.e.,
 % prior beliefs) about its local and global cell type (i.e., internal,
-% active or sensory). Given posterior beliefs about what sort of self it is
-% at the local and global level, it can then predict the local and global
-% intracellular signals it would expect to receive. The ensemble of
+% active or sensory). Given posterior beliefs about its role at the local 
+% and global level, the cell (or ensmeble) can  predict the local and 
+% global intracellular signals it would expect to receive. The ensemble of
 % ensembles then converges to a point attractor; where the ensemble has a
 % Markov blanket and each element of the ensemble comprises a cell that is
 % itself a Markov blanket. The focus of this simulation is how the local
@@ -28,7 +28,7 @@ function DEM = DEM_cells_cells
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_cells_cells.m 7145 2017-07-31 13:57:39Z karl $
+% $Id: DEM_cells_cells.m 7150 2017-08-08 19:57:33Z karl $
 
 
 % preliminaries

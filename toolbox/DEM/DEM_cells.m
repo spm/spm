@@ -21,12 +21,12 @@ function DEM = DEM_cells
 % has a Markov blanket. In a DEM_cell_cell.m, we use this first-order
 % scheme to simulate hierarchical emergence of Markov blankets; i.e.,
 % ensembles of cells that can be one of three types at the local level;
-% independently of their time at the global level.
+% independently of their role at the global level.
 %__________________________________________________________________________
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_cells.m 7145 2017-07-31 13:57:39Z karl $
+% $Id: DEM_cells.m 7150 2017-08-08 19:57:33Z karl $
 
 % preliminaries
 %--------------------------------------------------------------------------
@@ -67,10 +67,10 @@ disp(P.sen)
 
 % initialise expectations and action
 %--------------------------------------------------------------------------
-v     = typ/2 + randn(size(typ))/8;          % states (identity)
-g     = Mg([],v,P);                          % predicted sensations
+v     = typ/2 + randn(size(typ))/8;          % states (identity)                          % predicted sensations
 a.pos = pos/2 + randn(size(pos))/8;          % chemotaxis
-a.sec = g.sec;                               % secretion
+a.sec = spm_softmax(v);                      % secretion
+g     = Mg([],v,P);
    
 n     = sum(n);                              % number of cells
 ns(1) = size(g.sec,1);                       % number of secretions
