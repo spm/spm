@@ -50,7 +50,7 @@ function DCM = spm_dcm_tfm(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm.m 6234 2014-10-12 09:59:10Z karl $
+% $Id: spm_dcm_tfm.m 7149 2017-08-08 13:14:36Z karl $
  
  
 % check options and preliminaries
@@ -87,15 +87,15 @@ DCM.M.N            = 2^8;
 DCM.M.ds           = 8;
 
  
-% Get posterior from event-related responses
+% Get posterior (and dipfit) from event-related responses
 %==========================================================================
 ERP            = DCM;
-[pth name]     = fileparts(DCM.name);
+[pth,name]     = fileparts(DCM.name);
 ERP.name       = fullfile(pth,[name '_erp']);
 ERP.M.ds       = 0;
-ERP.M.hE       = 8;
+ERP.M.hE       = 6;
 ERP.M.hC       = 1/128;
-ERP            = spm_dcm_erp(ERP);
+[ERP,dipfit]   = spm_dcm_erp(ERP);
 
 %-Feature selection using principal components (U) of lead-field
 %==========================================================================
@@ -103,8 +103,8 @@ try, DCM.M = rmfield(DCM.M,'TFM'); end
 clear functions
 
 DCM.xY         = ERP.xY;
-DCM.M.dipfit   = ERP.M.dipfit ;
 DCM.M.U        = ERP.M.U;
+DCM.M.dipfit   = dipfit;
 DCM            = spm_dcm_tfm_data(DCM);
  
 % Use posterior as the prior in a model of induced responses

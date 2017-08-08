@@ -1,11 +1,11 @@
 function E = ROBOT_DCM_EEG
-% test routine to check current implementations of DCM for electrophysiology
+% test routine to check current implementations of DCM (electrophysiology)
 %==========================================================================
 %   options.analysis     - 'ERP','CSD', 'IND' or 'TFM
-%   options.model        - 'ERP','SEP','CMC','LFP','NNM' or 'MFM'
+%   options.model        - 'ERP','SEP','LFP','CMC','CMM','NMM' or 'MFM'
 %   options.spatial      - 'ECD','LFP' or 'IMG'
 
-% $Id: ROBOT_DCM_EEG.m 7148 2017-08-04 15:27:29Z karl $
+% $Id: ROBOT_DCM_EEG.m 7149 2017-08-08 13:14:36Z karl $
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
@@ -67,7 +67,7 @@ for i = 1:length(model)
 end
 
 
-% Tests of neuronal models: 'ERP', 'SEP', 'CMC', 'NMM' or 'MFM'
+% Tests of neuronal models: 'ERP','SEP','LFP','CMC','CMM','NMM','MFM'
 %==========================================================================
 load DCM_MMN
 DCM.options.spatial  = 'ECD';
@@ -172,7 +172,7 @@ for i = 1:length(model)
         %------------------------------------------------------------------
         spm_demo_print
         
-        % evidence and cod
+        % evidence and model
         %------------------------------------------------------------------
         F(i)   = DCM.F;
         str{i} = model{i};
@@ -188,7 +188,6 @@ for i = 1:length(model)
     fprintf('\n\n     --------***--------   \n\n')
     
 end
-
 
 
 % compare CSD models
@@ -210,6 +209,7 @@ load DCM_FACES
 
 DCM.options.spatial  = 'ECD';
 DCM.options.analysis = 'IND';
+DCM.options.modes    = 4;
 DCM.name             = 'DCM_FACES';
 
 fprintf('\nChecking spm_dcm_ind\n')
@@ -236,6 +236,96 @@ catch
 end
 
 fprintf('\n\n     --------***--------   \n\n')
+
+% generic models: ERP
+%==========================================================================
+fprintf('\nChecking spm_fx_gen (ERP)\n')
+
+load DCM_ERP_GEN
+DCM.options.analysis = 'ERP';
+DCM.name             = 'DCM_ERP_GEN';
+
+clear model
+for i = 1:3
+    model(i).source  = 'ERP';
+    model(i).B       = [1 2];
+    model(i).J       = 9;
+end
+for i = 4:5
+    model(i).source  = 'CMC';
+    model(i).B       = 1;
+    model(i).J       = 3;
+    model(i).K       = [1 2 7];
+end
+DCM.options.model = model;
+
+try
+    % invert model
+    %------------------------------------------------------------------
+    if isfield(DCM,'M')
+        DCM  = rmfield(DCM,'M');
+    end
+    DCM  = spm_dcm_erp(DCM);
+    
+    spm_figure('GetWin','ERP (generic: CMC and ERP)');
+    spm_dcm_erp_results(DCM,'ERPs (mode)',gcf);
+    
+    % print graphics
+    %----------------------------------------------------------------------
+    spm_demo_print
+    
+catch
+    
+    % errors
+    %----------------------------------------------------------------------
+    E{end + 1} = lasterror;
+    
+end
+
+fprintf('\n\n     --------***--------   \n\n')
+
+% generic models: CSD
+%==========================================================================
+fprintf('\nChecking spm_fx_gen (CSD)\n')
+
+load DCM_CSD_GEN
+DCM.options.analysis = 'CSD';
+DCM.name             = 'DCM_CSD_GEN';
+
+clear model
+for i = 1:2
+    model(i).source  = 'CMC';
+end
+for i = 3:4
+    model(i).source  = 'ERP';
+end
+DCM.options.model = model;
+
+try
+    % invert model
+    %------------------------------------------------------------------
+    if isfield(DCM,'M')
+        DCM  = rmfield(DCM,'M');
+    end
+    DCM  = spm_dcm_csd(DCM);
+    
+    spm_figure('GetWin','CSD (generic: CMC and ERP)');
+    spm_dcm_csd_results(DCM,'Cross-spectra (channels)',gcf)
+    
+    % print graphics
+    %----------------------------------------------------------------------
+    spm_demo_print
+    
+catch
+    
+    % errors
+    %----------------------------------------------------------------------
+    E{end + 1} = lasterror;
+    
+end
+
+fprintf('\n\n     --------***--------   \n\n')
+
 
 % test of time-frequency models
 %==========================================================================
@@ -271,8 +361,9 @@ end
 
 fprintf('\n\n     --------***--------   \n\n')
 
-% Show failed routines
-%--------------------------------------------------------------------------
+
+% END TESTS: show failed routines
+%==========================================================================
 for i = 1:length(E)
     disp(E{i}.message)
     try
@@ -281,71 +372,6 @@ for i = 1:length(E)
     end
     disp('------------------------------------------------')
 end
-
-% generic models: ERP
-%==========================================================================
-fprintf('\nChecking spm_fx_gen (ERP)\n')
-
-load DCM_ERP_GEN
-DCM.options.analysis = 'ERP';
-DCM.name             = 'DCM_ERP_GEN';
-
-clear model
-for i = 1:3
-    model(i).source  = 'ERP';
-    model(i).B       = [1 2];
-    model(i).J       = 9;
-end
-for i = 4:5
-    model(i).source  = 'CMC';
-    model(i).B       = 1;
-    model(i).J       = 3;
-    model(i).K       = [1 2 7];
-end
-DCM.options.model = model;
-
-try
-    % invert model
-    %------------------------------------------------------------------
-    if isfield(DCM,'M')
-        DCM  = rmfield(DCM,'M');
-    end
-    DCM  = spm_dcm_erp(DCM);
-    
-end
-
-fprintf('\n\n     --------***--------   \n\n')
-
-
-% generic models: CSD
-%==========================================================================
-fprintf('\nChecking spm_fx_gen (CSD)\n')
-
-load DCM_CSD_GEN
-DCM.options.analysis = 'CSD';
-DCM.name             = 'DCM_CSD_GEN';
-
-clear model
-for i = 1:2
-    model(i).source  = 'CMC';
-end
-for i = 3:4
-    model(i).source  = 'ERP';
-end
-DCM.options.model = model;
-
-try
-    % invert model
-    %------------------------------------------------------------------
-    if isfield(DCM,'M')
-        DCM  = rmfield(DCM,'M');
-    end
-    DCM  = spm_dcm_csd(DCM);
-    
-end
-
-fprintf('\n\n     --------***--------   \n\n')
-
 
 
 return
