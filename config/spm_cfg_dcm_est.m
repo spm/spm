@@ -4,7 +4,7 @@ function estimate = spm_cfg_dcm_est
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_est.m 7021 2017-02-16 15:09:17Z peter $
+% $Id: spm_cfg_dcm_est.m 7151 2017-08-10 09:21:18Z peter $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -358,8 +358,8 @@ switch est_type
         % Do nothing
 end
 
-% Save individual DCM .mat files if provided
-if ~isempty(P) && (est_type ~= EST_NONE)
+% Save individual DCM .mat files if requested
+if ~isempty(P) && (est_type == OUTPUT_DCM)
     for s = 1:ns
         for m = 1:nm
             DCM = GCM{s,m};
