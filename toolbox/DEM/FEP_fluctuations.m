@@ -30,7 +30,7 @@ function FEP_fluctuations
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_fluctuations.m 7052 2017-04-02 21:28:52Z karl $
+% $Id: FEP_fluctuations.m 7154 2017-08-10 20:45:05Z karl $
  
  
 % default settings (GRAPHICS sets movies)
@@ -49,7 +49,7 @@ dt   = 1/32;                        % time interval
 P.k  = 1 - exp(-rand(1,N)*4);       % variations in temporal scale
 P.a  = rand(1,N) > 2/3;             % no out influences
 P.e  = exp(0);                      % energy parameter (well depth)
-P.d  = 1/8;                           % zero amplitude random fluctuations
+P.d  = 1/8;                         % amplitude of random fluctuations
  
 % states
 %--------------------------------------------------------------------------
