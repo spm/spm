@@ -4,7 +4,7 @@ function estimate = spm_cfg_dcm_est
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_est.m 7152 2017-08-10 09:32:47Z peter $
+% $Id: spm_cfg_dcm_est.m 7153 2017-08-10 10:18:14Z adeel $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -319,7 +319,7 @@ end
 for s = 1:ns
     for m = 1:nm
         if strcmpi(job.fmri.analysis,'CSD')
-            GCM{s,m}.optionse   = 'CSD';
+            GCM{s,m}.options            = 'CSD';
             GCM{s,m}.options.induced    = 1;
             GCM{s,m}.options.stochastic = 0;            
         else
