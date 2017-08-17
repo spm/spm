@@ -7,7 +7,7 @@ function out = spm_dartel_warp(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_warp.m 4064 2010-09-03 12:57:10Z john $
+% $Id: spm_dartel_warp.m 7155 2017-08-17 10:55:05Z john $
 
 code = 2;
 st = job.settings;
@@ -44,7 +44,6 @@ for i=1:n2,
         vn = NF(j,i).vn;
         f(:,:,:,j) = single(NF(j,i).NI.dat(:,:,:,vn(1),vn(2)));
     end
-    f(~isfinite(f)) = 0;
 
     [pth,nam,ext] = fileparts(NF(1,i).NI.dat.fname);
     fprintf('*** %s ***\n', nam);

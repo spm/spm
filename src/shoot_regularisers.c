@@ -1,4 +1,4 @@
-/* $Id: shoot_regularisers.c 6799 2016-05-20 16:50:25Z john $ */
+/* $Id: shoot_regularisers.c 7155 2017-08-17 10:55:05Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<mex.h>
@@ -521,9 +521,9 @@ void relax_le(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
     wz001 = -2*mu-lam;
     w2    = 0.25*mu+0.25*lam;
 
-    wx000 = wx000*1.00001 + 1e-6;
+/*  wx000 = wx000*1.00001 + 1e-6;
     wy000 = wy000*1.00001 + 1e-6;
-    wz000 = wz000*1.00001 + 1e-6;
+    wz000 = wz000*1.00001 + 1e-6; */
 
     if (dm[0]==1)
     {
@@ -1333,9 +1333,9 @@ void relax_all(mwSize dm[], float a[], float b[], double s[], int nit, float u[]
     wz001 = -2*mu-lam + w001/v2;
     w2    = 0.25*mu+0.25*lam;
 
-    wx000 = wx000*1.00001 + 1e-6;
+/*  wx000 = wx000*1.00001 + 1e-6;
     wy000 = wy000*1.00001 + 1e-6;
-    wz000 = wz000*1.00001 + 1e-6;
+    wz000 = wz000*1.00001 + 1e-6; */
 
     if (dm[0]<=2)
     {

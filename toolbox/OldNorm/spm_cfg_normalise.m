@@ -3,7 +3,7 @@ function normalise = spm_cfg_normalise
 %__________________________________________________________________________
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 4904 2012-09-06 15:08:56Z guillaume $
+% $Id: spm_cfg_normalise.m 7155 2017-08-17 10:55:05Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','OldNorm')); end
 
@@ -414,7 +414,7 @@ normalise         = cfg_choice;
 normalise.tag     = 'oldnorm';
 normalise.name    = 'Old Normalise';
 normalise.help    = {
-                     'This very ancient module spatially (stereotactically) normalises MRI, PET or SPECT images into a standard space defined by some ideal model or template image[s].  The template images supplied with SPM conform to the space defined by the ICBM, NIH P-20 project, and approximate that of the the space described in the atlas of Talairach and Tournoux (1988). The transformation can also be applied to any other image that has been coregistered with these scans. A few researchers may wish to continue using this strategy, but (when good quality anatomical MRI scans are available) the DARTEL approach is now generally recommended instead.'
+                     'This very ancient module /* \cite{ashburner97b,ashburner99a} */ spatially (stereotactically) normalises MRI, PET or SPECT images into a standard space defined by some ideal model or template image[s].  The template images supplied with SPM conform to the space defined by the ICBM, NIH P-20 project, and approximate that of the the space described in the atlas of Talairach and Tournoux (1988). The transformation can also be applied to any other image that has been coregistered with these scans. A few researchers may wish to continue using this strategy, but (when good quality anatomical MRI scans are available) the DARTEL approach is now generally recommended instead.'
                      ''
                      'Generally, the algorithms work by minimising the sum of squares difference between the image which is to be normalised, and a linear combination of one or more template images.  For the least squares registration to produce an unbiased estimate of the spatial transformation, the image contrast in the templates (or linear combination of templates) should be similar to that of the image from which the spatial normalisation is derived.  The registration simply searches for an optimum solution.  If the starting estimates are not good, then the optimum it finds may not find the global optimum.'
                      ''

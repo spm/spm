@@ -78,7 +78,7 @@ The \textsc{Check Reg} facility is useful here, to check the results of coregist
 
 \subsection{Segmentation}
 
-Press the \textsc{Segment} button. This will call up the specification of a segmentation job in the batch editor. Highlight the ``Volumes'' field and then select the subject's registered anatomical image eg. \texttt{sM00223\_002.img}. Highlight ``Save Bias Corrected'' and select ``Save Bias Corrected''. Highlight ``Deformation Fields'' \t the bottom of the list and select ``Forward''. Save the job file as \texttt{segment.mat} and then press \texttt{RUN}. SPM will segment the structural image using the default tissue probability maps as priors. 
+Press the \textsc{Segment} button. This will call up the specification of a segmentation job in the batch editor. Highlight the ``Volumes'' field and then select the subject's registered anatomical image eg. \texttt{sM00223\_002.img}. Highlight ``Save Bias Corrected'' and select ``Save Bias Corrected''. Highlight ``Deformation Fields'' \t the bottom of the list and select ``Forward''. Save the job file as \texttt{segment.mat} and then press \texttt{RUN}. SPM will segment the structural image using the default tissue probability maps as priors \cite{ashburner05}. 
 
 SPM will create gray and white matter images and bias-field corrected structural image. These can be viewed using the \textsc{CheckReg} facility as described in the previous section. Figure~\ref{aud_gray} shows the gray matter image, \texttt{c1sM0023\_002.nii} along with the original structural. Figure~\ref{aud_bias} shows the structural and bias-corrected image, \texttt{msM0023\_002.nii}.
 
