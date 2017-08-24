@@ -36,9 +36,9 @@ function DCM = spm_dcm_fmri_csd(P)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 6801 2016-05-29 19:18:06Z karl $
+% $Id: spm_dcm_fmri_csd.m 7159 2017-08-24 14:16:51Z adeel $
 
-SVNid = '$Rev: 6801 $';
+SVNid = '$Rev: 7159 $';
 
 % Load DCM structure
 %--------------------------------------------------------------------------
@@ -57,7 +57,6 @@ end
 try, DCM.options.two_state;  catch, DCM.options.two_state  = 0;     end
 try, DCM.options.stochastic; catch, DCM.options.stochastic = 0;     end
 try, DCM.options.centre;     catch, DCM.options.centre     = 0;     end
-try, DCM.options.nmax;       catch, DCM.options.nmax       = 8;     end
 try, DCM.options.analysis;   catch, DCM.options.analysis   = 'CSD'; end
 try, DCM.options.Fdcm;       catch, DCM.options.Fdcm       = [1/128 0.1]; end
 try, DCM.options.nograph;    catch, DCM.options.nograph    = spm('CmdLine');  end
@@ -66,7 +65,32 @@ try, DCM.options.nograph;    catch, DCM.options.nograph    = spm('CmdLine');  en
 % parameter initialisation
 %--------------------------------------------------------------------------
 try, DCM.M.P     = DCM.options.P;                            end
-try, DCM.M.Nmax  = DCM.options.Nmax; catch, DCM.M.Nmax = 128; end
+
+% check max iterations
+%--------------------------------------------------------------------------
+try
+    DCM.options.maxit;
+catch    
+    if isfield(DCM.options,'nN')
+        DCM.options.maxit = DCM.options.nN;
+        warning('options.nN is deprecated. Please use options.maxit');
+    else
+        DCM.options.maxit = 128;
+    end
+end
+ 
+% check max nodes
+%--------------------------------------------------------------------------
+try
+    DCM.options.maxnodes;
+catch
+    if isfield(DCM.options,'nmax')
+        DCM.options.maxnodes = DCM.options.nmax;
+        warning('options.nmax is deprecated. Please use options.maxnodes');
+    else
+        DCM.options.maxnodes = 8;
+    end
+end
 
 % sizes
 %--------------------------------------------------------------------------
@@ -102,7 +126,7 @@ n       = DCM.n;
 DCM.b   = DCM.b*0;
 DCM.d   = DCM.d*0;
 if isempty(DCM.c) || isempty(DCM.U.u)
-    DCM.c      = zeros(DCM.n,1);
+    DCM.c      = zeros(DCM.n,0);
     DCM.b      = zeros(DCM.n,DCM.n,0);
     DCM.U.u    = zeros(DCM.v,1);
     DCM.U.name = {'null'};
@@ -114,9 +138,9 @@ end
 
 % eigenvector constraints on pC for large models
 %--------------------------------------------------------------------------
-if n > DCM.options.nmax
+if n > DCM.options.maxnodes
     
-    % remove confounds and find principal (nmax) modes
+    % remove confounds and find principal (maxnodes) modes
     %----------------------------------------------------------------------
     try
         y   = DCM.Y.y - DCM.Y.X0*(pinv(DCM.Y.X0)*DCM.Y.y);
@@ -124,7 +148,7 @@ if n > DCM.options.nmax
         y   = spm_detrend(DCM.Y.y);
     end
     V       = spm_svd(y');
-    V       = V(:,1:DCM.options.nmax);
+    V       = V(:,1:DCM.options.maxnodes);
     
     % remove minor modes from priors on A
     %----------------------------------------------------------------------
