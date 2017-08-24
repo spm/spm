@@ -1069,8 +1069,11 @@ elseif any(strcmp('SCALE', layout.label)) && skipscale
   layout.height(sel) = [];
 end
 
-% the labels should be represented in a column vector (see bug 1909 -roevdmei)
+% these should be represented in a column vector (see bug 1909 -roevdmei)
 layout.label  = layout.label(:);
+% the width and height are not present in a 3D layout as used in SPM
+if isfield(layout, 'width'),  layout.width  = layout.width(:);  end
+if isfield(layout, 'height'), layout.height = layout.height(:); end
 
 % to plot the layout for debugging, you can use this code snippet
 if strcmp(cfg.feedback, 'yes') && ~strcmpi(cfg.style, '3d')
