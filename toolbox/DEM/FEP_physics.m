@@ -13,7 +13,7 @@ function FEP_physics
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_physics.m 7157 2017-08-18 11:31:31Z karl $
+% $Id: FEP_physics.m 7160 2017-08-25 08:11:30Z karl $
 
 
 % default settings (GRAPHICS sets movies)
@@ -73,12 +73,13 @@ v     = spm_svd(B*B',1);
 
 % get Markov blanket and divide into sensory and active states
 %--------------------------------------------------------------------------
-m     = j(1:8);                                   % internal cluster
-jj    = sparse(m,1,1,N,1);                        % internal states
+mm    = j(1:8);                                   % internal cluster
+jj    = sparse(mm,1,1,N,1);                        % internal states
 bb    = B*jj & (1 - jj);                          % Markov blanket
 ee    = 1 - bb - jj;                              % external states
 b     = find(bb);
 e     = find(ee);
+m     = find(mm);
 s     = b(find( any(L(b,e),2)));
 a     = b(find(~any(L(b,e),2)));
 
@@ -330,88 +331,159 @@ title('Ensemble density','FontSize',16), spm_axis tight
 
 % illustrate the thermodynamic perspective (stochastic mechanics)
 %==========================================================================
-spm_figure('GetWin','stochastic mechanics');clf
+spm_figure('GetWin','stochastic mechanics'); clf
 
-% get positions and velocities of all states
+%% get positions and velocities of all states
 %--------------------------------------------------------------------------
-i    = 1:T;
-b    = find(bb);                               % blanket particles
-e    = find(ee);                               % external particles
+bi    = find(logical(bb));               % blanket  particles
+ei    = find(logical(ee));               % external particles
+mi    = find(logical(jj));               % internal particles
 
 
 % evaluate surprise (NESS potential) with distribution over states and time
 %--------------------------------------------------------------------------
-nt    = 32;
-wt    = fix(T/32);
-for i = 1:nt
+nt    = 48;                              % number of evaluations
+wt    = 32;                              % interval between evaluations
+lt    = 256;                             % trajectory length
+n0    = 32;                              % intial evaluation
+
+ii    = {mi, bi, ei};
+col   = {'b','r','c'};
+
+% Stochastic dynamics of partitions
+%--------------------------------------------------------------------------
+for j = 1:3
     
-    
-    % Ion obility Coefficient of Air: 0.0002
+    % Stochastic dynamics of trajectories
     %----------------------------------------------------------------------
-    q    = squeeze(X(2,:,i))';                     % position
-    p    = squeeze(V(2,:,i))';                     % velocity
-    q    = spm_detrend(q);
-    p    = spm_detrend(p);
-    b    = max(abs(q(:)));
-    b    = linspace(-b,b,64);
-    db   = b(2) - b(1);
+    for i = 1:nt
+        
+        % Ion mobility Coefficient of Air: 0.0002
+        %------------------------------------------------------------------
+        mu    = 0.0002;
+        
+        % get trajectories (and stochastic flow)
+        %------------------------------------------------------------------
+        t     = (i - 1)*wt + (1:lt) + n0;
+        q     = squeeze(X(2,ii{j},t));
+        p     = gradient(q,dt);
+        
+        % stochastic density
+        %------------------------------------------------------------------
+        b     = linspace(min(q(:)),max(q(:)),64);      
+        [n,b] = hist(q(:),b(:));
+        n     = n + spm_hanning(64)'*sum(n)*exp(-8);
+        n     = n(:)/sum(n);
+        
+        
+        % estimate potential and amplitude of fluctuations
+        %------------------------------------------------------------------
+        In    = -log(n);
+        Wj    = diag(spm_softmax(-In));
+        Wv    = 1;
+        
+        Vx    = @(b)[b.^0 b.^1 b.^2 b.^3 b.^4];% b.^5 b.^6 b.^7 b.^8];
+        dVdx  = @(b)[0*b b.^0 2*b.^1 3*b.^2 4*b.^3];% 5*b.^4 6*b.^5 7*b.^6 8*b.^7];
+        XJ    = Vx(b);
+        XV    = -mu*dVdx(q(:));
+        BJ    = pinv(Wj*XJ)*Wj*In;    % polynomial coefficients - surprise
+        BV    = pinv(Wv*XV)*Wv*p(:);  % polynomial coefficients - potential
+        
+        
+        % evaluate gamma (temperature) by predicting flow
+        %------------------------------------------------------------------
+        G     = var(p(:) - XV*BV)/2;        % amplitude of random fluctuations
+        Ts    = G/mu;                       % temperature
+        
+        % BV  = G*BJ/mu;                    % NESS solution
+
+        
+        % evaluate free energy and entropies
+        %------------------------------------------------------------------
+        f     = -mu*dVdx(b)*BV;             % predicted flow
+        Fs    = f/mu;                       % thermodynamic force
+        Pi    = spm_softmax(-Vx(b)*BJ);     % ensemble density over b
+        Qi    = spm_softmax(-Vx(b)*BV/Ts);  % potential density over b
+
+        % evaluate entropy and heat production
+        %------------------------------------------------------------------
+        dJdx  = dVdx(b)*BJ;                 % gradient of surpise
+        dPdx  = -dJdx.*Pi;                  % gradient of ensemble density
+        jp    = f.*Pi - G*dPdx;             % probability current
+        
+        Fz(i)    = Pi'*(log(Pi) - log(Qi)); % thermodynamic free energy
+        S(i)     = Pi'*(-log(Pi));
+        Sflow(i) = f'*dPdx;                 % entropy - flow
+        Sfluc(i) = G*dPdx'*(dPdx./Pi);      % entropy - fluctuations
+        Stota(i) = jp'*(jp./Pi)/G;          % entropy - total
+        Sdiss(i) = jp'*Fs/Ts;               % entropy - dissipative
+        Qt(i)    = jp'*Fs;                  % heat dissipation
+        TS(i)    = Ts;                      % temperature
+        
+        
+        % heat maps
+        %------------------------------------------------------------------
+        Hm(j,i) = TS(i);
+        xi{j,i} = squeeze(X(2,ii{j},t(end)));
+        xj{j,i} = squeeze(X(1,ii{j},t(end)));
+        
+    end
+ 
+    % plot results
+    %----------------------------------------------------------------------     
+    tt  = (1:length(Fz))*wt*dt;
     
+    subplot(4,1,2), hold on
+    plot(tt,TS,col{j}), ylabel('(nats)')
+    title('Temperature','FontSize',16), spm_axis tight
     
-    mu    = 0.0002;                % Ion obility Coefficient of Air: 0.0002
+    subplot(4,1,3), hold on
+    plot(tt,Fz,col{j},tt,S,':','Color',col{j}), ylabel('(nats)')
+    title('Thermodynamic Free energy','FontSize',16), spm_axis tight
     
-    t     = (i - 1)*wt + (1:wt);
-    qi    = q(t,:);
-    pi    = p(t,:);
-    [n,b] = hist(qi(:),b(:));
-    n     = n + hanning(64)'*sum(n)*exp(-8);
-    n     = n(:)/sum(n)/db;
-    
-    % approximate NESS potential Vx (with a polynomial)
-    %----------------------------------------------------------------------
-    In    = -log(n);
-    W     = diag(ln < 8);
-    
-    Vx   = @(b)[b.^0 b.^1 b.^2 b.^3 b.^4 ];
-    dVdx = @(b)[0*b b.^0 2*b.^1 3*b.^2 4*b.^3   ];
-    
-    XJ    = Vx(b);
-    XV    = -mu*dVdx(qi(:));
-    
-    BJ    = pinv(W*XJ)*W*In;         % polynomial coefficients - surprise
-    BV    = pinv(XV)*pi(:);          % polynomial coefficients - potential
-    
-    
-    
-    % evaluate gamma (temperature) by predicting flow
-    %----------------------------------------------------------------------
-    J     = Vx(qi(:))*BJ;            % surprise or NESS potential
-    Vs    = Vx(qi(:))*BV;            % thermodynamic potential energy
-    dJdx  = dVdx(qi(:))*BJ;          % gradient of surpise
-    dVdx  = dVdx(qi(:))*BV;          % gradient of potential
-    
-    f     = XV*BV;                   % flow
-    G     = var(pi(:) - f);          % amplitude of random fluctuations
-    
-    % evaluate free energy and entropies
-    %----------------------------------------------------------------------
-    Ts    = G/mu;                    % temperature
-    Fs    = f/mu;                    % thermodynamic force
-    
-    Pi    = exp(-Vx(b)*BJ);          % equilibrium density over b
-    Pi    = Pi(:)/sum(Pi)/db;        % normalised
-    Qi    = exp(-Vx(b)*BV/Ts);       % equilibrium density over b
-    Qi    = Qi(:)/sum(Qi)/db;        % normalised
-    
-    
-    Fz    = Qi'*(log(Qi) - log(Pi)); % thermodynamic free energy
-    
+    subplot(4,1,4), hold on
+    plot(tt,Qt,col{j},tt,Sflow.*TS,':','Color',col{j})
+    xlabel('Heat dissipation per sec'), ylabel('(nats)')
+    title('Time (seconds)','FontSize',16), spm_axis tight
     
 end
 
+% heat maps (temperature)
+%--------------------------------------------------------------------------
+rgb   = colormap(hot);
+kk    = fix(linspace(1,nt,4));
+hm    = Hm; % hm(:) = hm(:) - min(hm(:)) + 1;
+hm(:) = ceil(64*hm/max(hm(:)));
+for k = 1:4
+    subplot(4,4,k)
+    i = kk(k);
+    for j = 1:size(Hm,1)
+        plot(xi{j,i},xj{j,i},'.','MarkerSize',8,'Color',rgb(hm(j,i),:))
+        hold on, axis square
+        axis([-1 1 -1 1]*8)
+    end
+    set(gca,'Color','k')
+end
 
+% plot results
+%--------------------------------------------------------------------------
+spm_figure('GetWin','stochastic graphs'); clf
+subplot(4,3,1)
+plot(b,n,b,Pi)
+xlabel('State (m)'), ylabel('(a.u)')
+title('ensemble density','FontSize',16), spm_axis tight
 
+subplot(4,3,2)
+plot(b,Qi,b,Pi)
+xlabel('State (m)'), ylabel('(a.u)')
+title('ensemble density','FontSize',16), spm_axis tight
 
-% illustrate the Lagrangian perspective (classical mechanics)
+subplot(4,3,3)
+plot(b,f)
+xlabel('State (m)'), ylabel('(a.u)')
+title('flow','FontSize',16), spm_axis tight
+
+%% illustrate the Lagrangian perspective (classical mechanics)
 %==========================================================================
 % (Classical Mechanics): this section illustrates a treatment of our
 % primordial soup under a classical (Hamiltonian or Lagrangian)

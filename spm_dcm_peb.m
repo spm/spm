@@ -88,7 +88,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7120 2017-06-20 11:30:30Z spm $
+% $Id: spm_dcm_peb.m 7160 2017-08-25 08:11:30Z karl $
  
 
 % get filenames and set up
@@ -219,8 +219,8 @@ end
 % second level model
 %--------------------------------------------------------------------------
 if  isfield(M,'alpha'), alpha  = M.alpha; else, alpha = 1;        end
-if  isfield(M,'beta'), beta   = M.beta;  else, beta  = 16;        end
-if ~isfield(M,'W'),    M.W    = speye(Np,Np);                     end
+if  isfield(M,'beta'),  beta   = M.beta;  else, beta  = 16;       end
+if ~isfield(M,'W'),     M.W    = speye(Np,Np);                    end
 
 % covariance component specification
 %--------------------------------------------------------------------------
@@ -396,7 +396,7 @@ for n = 1:64
     % compute prior precision (with a lower bound of pQ/4096)
     %----------------------------------------------------------------------
     if Ng > 0
-        rP   = pQ/4096;        
+        rP   = pQ*exp(-8);        
         for i = 1:Ng
             rP = rP + exp(g(i))*Q{i};
         end
