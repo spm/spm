@@ -1,5 +1,5 @@
 function [MVB] = spm_mvb_ui(xSPM,SPM,MVB)
-% multivariate Bayes (Bayesian decoding of a contrast)
+% Multivariate Bayes (Bayesian decoding of a contrast)
 % FORMAT [MVB] = spm_mvb_ui(xSPM,SPM,MVB)
 %
 % Sets up, evaluates and saves an MVB structure:
@@ -74,10 +74,10 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,MVB)
 % Friston KJ, Frith CD, Frackowiak RS, Turner R.
 % Neuroimage. 1995 Jun;2(2):166-72.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007-2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_ui.m 4770 2012-06-19 13:24:40Z guillaume $
+% $Id: spm_mvb_ui.m 7162 2017-08-30 11:47:07Z guillaume $
  
  
 %-Get figure handles and set title
@@ -86,8 +86,7 @@ Finter     = spm_figure('FindWin','Interactive');
 spm_results_ui('Clear');
 spm_input('!DeleteInputObj');
 header     = get(Finter,'Name');
-Fmvb       = spm_figure('GetWin','MVB');
-spm_clf(Fmvb);
+spm_clf(spm_figure('FindWin','MVB'));
  
 %-Get contrast: only the first line of F-contrast 
 %--------------------------------------------------------------------------
@@ -131,12 +130,12 @@ XYZmm    = SPM.xVol.M(1:3,:)*[SPM.xVol.XYZ; Q];
 
 [xY,XYZ,j] = spm_ROI(xY, XYZmm);
  
-% Get explanatory variables (data)
+%-Get explanatory variables (data)
 %--------------------------------------------------------------------------
 XYZ      = XYZmm(:,j);
 Y        = spm_get_data(SPM.xY.VY,SPM.xVol.XYZ(:,j));
  
-% Check there are intracranial voxels
+%-Check there are intracranial voxels
 %--------------------------------------------------------------------------
 if isempty(Y)
     spm('alert*',{'No voxels in this VOI';'Please use a larger volume'},...
@@ -162,7 +161,7 @@ catch
     sg     = spm_input(str,'!+1','e',.5);
 end
  
-% MVB is now specified
+%-MVB is now specified
 %==========================================================================
 spm('Pointer','Watch')
  
@@ -183,11 +182,11 @@ try
 end
 X   = X*c;
  
-% serial correlations
+%-Serial correlations
 %--------------------------------------------------------------------------
 V   = SPM.xVi.V;
  
-% invert
+%-Invert
 %==========================================================================
 VOX      = diag(abs(SPM.xVol.M));
 U        = spm_mvb_U(Y,priors,X0,XYZ,VOX);
@@ -200,7 +199,7 @@ end
 M        = spm_mvb(X,Y,X0,U,V,Ni,sg);
 M.priors = priors;
  
-% assemble results
+%-Assemble results
 %--------------------------------------------------------------------------
 MVB.contrast = contrast;                    % contrast of interest
 MVB.name     = name;                        % name
@@ -221,11 +220,11 @@ MVB.sg       = sg;                          % size of reedy search split
 MVB.priors   = priors;                      % model (spatial prior)
 MVB.fSPM     = fullfile(SPM.swd,'SPM.mat'); % SPM analysis (.mat file)
  
-% display
+%-Display
 %==========================================================================
-spm_mvb_display(MVB)
+if ~spm('CmdLine'), spm_mvb_display(MVB); end
  
-% save
+%-Save
 %--------------------------------------------------------------------------
 save(fullfile(SPM.swd,[name '.mat']),'MVB', spm_get_defaults('mat.format'))
 assignin('base','MVB',MVB)
