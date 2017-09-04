@@ -2,62 +2,108 @@ function FEP_MB_demo
 % This  routine illustrates a hierarchical decomposition of Markov blankets
 % (of Markov blankets). It rests upon the dual operators of finding a
 % partition (a Markov partition) and then using an adiabatic dimensional
-% reduction (using the eigensolution of the Markov blanket). In brief,
-% this means the states of particles at the next level become mixtures of
-% the Markov blanket of particles at the level below.
+% reduction (using the eigensolution of the Markov blanket). In brief, this
+% means the states of particles at the next level become mixtures of the
+% Markov blanket of particles at the level below.
 %
 % The ensuing hierarchical decomposition is illustrated in terms of
 % Jacobian is and locations in a scathing space (evaluated using the graph
-% Laplacian). This demonstration uses a fictive Jacobian that is created
-% by hand.
+% Laplacian). This demonstration uses a fictive Jacobian that is created by
+% hand.
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_MB_demo.m 7081 2017-05-27 19:36:09Z karl $
+% $Id: FEP_MB_demo.m 7163 2017-09-04 09:12:50Z karl $
 
-
-% default settings
-%--------------------------------------------------------------------------
-% rng('default')
-
-% create an adjacency matrix or Jacobian based upon a lattice
-%==========================================================================
-
-% within blanket coupling (intrinsic)
-%--------------------------------------------------------------------------
-n     = 2;
-m     = 3;
-Jii   = spm_cat({[], eye(n,n),  spm_speye(n,m);
-                 randn(n,n)/8, [], [];
-                 [], spm_speye(m,n), (randn(m,m)/8 - eye(m,m))});
-
-
-% between blanket coupling (extrinsic)
-%--------------------------------------------------------------------------
-Jij   = spm_cat({[], zeros(n,n),  zeros(n,m);
-                 randn(n,n),  [], [];
-                 [], zeros(m,n),  zeros(m,m)});
-
-
-% an ensemble of blankets
-%--------------------------------------------------------------------------
-D     = 2;                      % distance for seperation
-N     = 8;                      % size of lattice
-[I,J] = ndgrid(1:N,1:N);        % locations
-for i = 1:numel(I)
-    for j = 1:numel(J)
-        d = sqrt( (I(i) - I(j))^2 + (J(i) - J(j))^2 );
-        if i == j
-            A{i,j} = Jii;
-        elseif d < D
-            A{i,j} = Jij;
-        else
-            A{i,j} = zeros(size(Jij));
+SOUP = 1;
+if SOUP
+    % default settings
+    %----------------------------------------------------------------------
+    rng('default')
+    
+    % Demo of synchronization manifold using coupled Lorenz attractors
+    %======================================================================
+    N    = 128;                         % number of (Lorenz) oscillators
+    T    = 512;                         % number of time bins
+    dt   = 1/32;                        % time interval
+    
+    % parameters
+    %----------------------------------------------------------------------
+    P.k  = 1 - exp(-rand(1,N)*4);       % variations in temporal scale
+    P.d  = 1/8;                         % amplitude of random fluctuations
+    
+    % states
+    %----------------------------------------------------------------------
+    x.p  = randn(2,N)*4;                % microstates (position)
+    x.v  = zeros(2,N);                  % microstates (velocity)
+    x.q  = randn(3,N)/32;               % microstates (states)
+    u    = zeros(1,T);                  % exogenous fluctuations
+    
+    
+    % generate an dynamics from initial conditions
+    %======================================================================
+    spm_figure('GetWin','Markov blanket');clf, subplot(2,2,1)
+    
+    [Q,X,V,A,x] = spm_soup(x,u,P,T,dt,1);
+    j           = (N - 32:N);
+    J           = spm_soup(Q(:,:,j),X(:,:,j),V(:,:,j),P);
+    A           = mean(J,3);
+    
+    mm          = spm_zeros(x);
+    mm.q(3,:)   = 1;
+    
+    n     = [6 4 2 2];               % number of eigenvectors
+    m     = [1 8 4 2];               % number of internal states
+    jj    = cell(4,1);               % eligible internal states
+    jj{1} = spm_vec(mm);             % eligible internal states
+    
+else
+    
+    % create an adjacency matrix or Jacobian based upon a lattice
+    %======================================================================
+    
+    % within blanket coupling (intrinsic)
+    %----------------------------------------------------------------------
+    n     = 2;
+    m     = 3;
+    Jii   = spm_cat({[], eye(n,n),  spm_speye(n,m);
+                     randn(n,n)/8, [], [];
+                     [], spm_speye(m,n), (randn(m,m)/8 - eye(m,m))});
+    
+    
+    % between blanket coupling (extrinsic)
+    %----------------------------------------------------------------------
+    Jij   = spm_cat({[], zeros(n,n),  zeros(n,m);
+                     randn(n,n),  [], [];
+                     [], zeros(m,n),  zeros(m,m)});
+    
+    
+    % an ensemble of blankets
+    %----------------------------------------------------------------------
+    D     = 2;                      % distance for seperation
+    N     = 8;                      % size of lattice
+    [I,J] = ndgrid(1:N,1:N);        % locations
+    for i = 1:numel(I)
+        for j = 1:numel(J)
+            d = sqrt( (I(i) - I(j))^2 + (J(i) - J(j))^2 );
+            if i == j
+                A{i,j} = Jii;
+            elseif d < D
+                A{i,j} = Jij;
+            else
+                A{i,j} = zeros(size(Jij));
+            end
         end
     end
+    
+    n     = [4 4 4 4];               % number of eigenvectors
+    m     = [3 2 1 1];               % number of internal states
+    jj    = cell(4,1);               % eligible internal states
+    
 end
+
 clear J
 J{1}  = spm_cat(A);
 z{1}  = num2cell(1:length(J{1}));
@@ -66,15 +112,14 @@ z{1}  = num2cell(1:length(J{1}));
 % hierarchal decomposition
 %==========================================================================
 N     = 3;                       % number of hierarchies
-n     = [4 4 4 4];               % number of eigenvectors
-m     = [3 2 1 1];               % number of internal states
+x     = {};                      % indices of states of partitions
 for i = 1:N
     
     % Markov blanket partition
     %----------------------------------------------------------------------
     spm_figure('getwin',sprintf('Markov level %i',i));
     
-    x{i} = spm_Markov_blanket(J{i},z{i},m(i));
+    x{i} = spm_Markov_blanket(J{i},z{i},m(i),jj{i});
     
     % dimension reduction (eliminating internal states)
     %----------------------------------------------------------------------
@@ -85,6 +130,9 @@ for i = 1:N
 end
 
 return
+
+% subroutines
+%==========================================================================
 
 % Markov blanket - parents, children, and parents of children
 %==========================================================================
@@ -108,10 +156,10 @@ end
 %----------------------------------------------------------------------
 for i = 1:nx
     Jii   = full(J(spm_vec(x(1:2,i)),spm_vec(x(1:2,i))));
-    n     = min(N,size(Jii,1));
+    n(i)  = min(N,size(Jii,1));
     [e,s] = eig(Jii);
-    [s,j] = sort(real(diag(s)),'descend');
-    v{i}  = e(:,j(1:n));
+    [d,j] = sort(real(diag(s)),'descend');
+    v{i}  = e(:,j(1:n(i)));
     u{i}  = pinv(v{i});
 end
 for i = 1:nx
@@ -119,17 +167,20 @@ for i = 1:nx
         Jij    = full(J(spm_vec(x(1:2,i)),spm_vec(x(1:2,j))));
         A{i,j} = u{i}*Jij*v{j};
     end
-    z{i} = (1:n) + (i - 1)*n;
+    z{i}   = sum(n(1:(i - 1))) + (1:n(i));
 end
 J     = spm_cat(A);
 
 
-
-function [x,y] = spm_Markov_blanket(J,z,m)
+% Markovian partition
+%==========================================================================
+function [x,y] = spm_Markov_blanket(J,z,m,mj)
 % Markovian partition
 % J  - Jacobian
 % z  - {1 x N} indices of partition
 % m  - number of internal states [default: 3]
+%
+% jj - candidate internal states [optional]
 %
 % x  - {3 x N} indices of states of partitions
 %     x{1,j} - active states of j-th partition
@@ -148,17 +199,43 @@ nz    = length(z);                % number of partitions
 if nargin < 3
     m = 3;                        % maximum size of internal states
 end
+if nargin < 4
+   mj = ones(nz,1);               % eligible internal states
+end
+if isempty(mj)
+   mj = ones(nz,1);               % eligible internal states
+end
+
 
 % Adjacency matrix (over z)
 %--------------------------------------------------------------------------
 for i = 1:nz
     for j = 1:nz
         Lij    = J(z{i},z{j});
-        L(i,j) = any(abs(Lij(:)) > 1e-16);
+        if any(any(Lij))
+            L(i,j) = abs(norm(full(Lij)) > exp(-16));
+        else
+            L(i,j) = 0;
+        end
     end
 end
 L     = double(L);
 
+% Jacobian (over z)
+%--------------------------------------------------------------------------
+% for i = 1:nz
+%     [e,v] = eig(full(J(z{i},z{i})),'nobalance');
+%     [v,j] = sort(real(diag(v)),'descend');
+%     E{i}  = e(:,j(1));
+% end
+% for i = 1:nz
+%     for j = 1:nz
+%         L(i,j) = real(pinv(E{i})*J(z{i},z{j})*E{j});
+%     end
+% end
+
+% [e,v] = eig(full(L),'nobalance');
+% [v,j] = sort(real(diag(v)),'descend');
 
 % internal states (defined by graph Laplacian)
 %--------------------------------------------------------------------------
@@ -173,7 +250,7 @@ if GRAPHICS
     [e,v] = eig(G,'nobalance');
     [v,j] = sort(real(diag(v)),'descend');
     try
-        X = real(e(:,j(2:3)));
+        X = real(e(:,j(6:7)));
     catch
         try
             X = real(e(:,[1,2]));
@@ -185,7 +262,7 @@ end
 
 % get Markov blanket and divide into sensory and active states
 %--------------------------------------------------------------------------
-B     = L + L' + L*L';
+B     = L + L' + L'*L;
 B     = B - diag(diag(B));
 nn    = zeros(nz,1);
 
@@ -195,20 +272,23 @@ for i = 1:128
     
     % internal states (defined by graph Laplacian)
     %----------------------------------------------------------------------
-    j = ~(B*nn);
+    j = ~(B*nn) & ~nn & mj;
     if any(j)
         
-        % find internal states
+        % find densely coupled internal states (using the graph Laplacian)
         %------------------------------------------------------------------
-        [g,j] = max(max(G)'.*j);
-        g     = G(:,j);
-        [g,j] = sort(g,'descend');
-        try
-            j = j(1:m);                                 % internal states
+        [g,j] = max(diag(G).*j);
+        if m > 1
+            g     = G(:,j);
+            g(j)  = -Inf;
+            [g,k] = sort(g,'descend');
+            try
+                j = [j; k(1:m - 1)];
+            end
         end
-        
+
         jj    = sparse(j,1,1,size(L,1),1);              % internal states
-        bb    = B*jj & ~jj;                             % Markov blanket
+        bb    = B*jj & ~jj & ~nn;                       % Markov blanket
         ee    = ~bb & ~jj;                              % external states
         b     = find(bb);
         e     = find(ee);
@@ -257,8 +337,8 @@ for i = 1:128
             % sensory states connected with sensory states
             %--------------------------------------------------------------
             s  = find(~nn);
-            ss = sparse(s(1),1,1,size(L,1),1);
-            ss = (L*ss | L'*ss) & ~nn;
+            ss = sparse(s(1),1,1,nz,1);
+            ss = ss | B*ss & ~nn;
             s  = find(ss);
             a  = [];
             j  = [];
@@ -275,7 +355,7 @@ for i = 1:128
         end
     end
     
-    % induces for the i-th particle
+    % indices for the i-th particle
     %----------------------------------------------------------------------
     y{1,i} = a;
     y{2,i} = s;
@@ -301,7 +381,6 @@ for i = 1:128
             
             % plot different particles
             %--------------------------------------------------------------
-            
             subplot(3,2,1)
             for k = 1:nx
                 
@@ -319,8 +398,13 @@ for i = 1:128
             %--------------------------------------------------------------
             j = spm_vec(x');
             k = spm_vec(x );
-            subplot(3,2,3),imagesc(abs(J(k,k))),axis square, hold on
-            subplot(3,2,4),imagesc(abs(J(j,j))),axis square, hold on
+            if nz > 64
+                subplot(3,2,3),spy(abs(J(k,k)),'k'),axis square, hold on
+                subplot(3,2,4),spy(abs(J(j,j)),'k'),axis square, hold on
+            else
+                subplot(3,2,3),imagesc(1 - abs(J(k,k))),axis square, hold on
+                subplot(3,2,4),imagesc(1 - abs(J(j,j))),axis square, hold on
+            end
             
             % Colors
             %--------------------------------------------------------------
@@ -347,7 +431,7 @@ for i = 1:128
                 plot(k{1,q},zeros(size(x{1,q})) + nj,'.','color','r','MarkerSize',msz)
                 plot(k{2,q},zeros(size(x{2,q})) + nj,'.','color','m','MarkerSize',msz)
                 plot(k{3,q},zeros(size(x{3,q})) + nj,'.','color','b','MarkerSize',msz)
-            end   
+            end
             
         end
         break

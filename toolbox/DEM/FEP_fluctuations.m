@@ -30,7 +30,7 @@ function FEP_fluctuations
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_fluctuations.m 7154 2017-08-10 20:45:05Z karl $
+% $Id: FEP_fluctuations.m 7163 2017-09-04 09:12:50Z karl $
  
  
 % default settings (GRAPHICS sets movies)
@@ -47,8 +47,6 @@ dt   = 1/32;                        % time interval
 % parameters
 %--------------------------------------------------------------------------
 P.k  = 1 - exp(-rand(1,N)*4);       % variations in temporal scale
-P.a  = rand(1,N) > 2/3;             % no out influences
-P.e  = exp(0);                      % energy parameter (well depth)
 P.d  = 1/8;                         % amplitude of random fluctuations
  
 % states
@@ -67,7 +65,7 @@ if GRAPHICS
 else
     subplot(2,1,1)
 end
-[Q,X,V,A,x] = spm_Manifold_solve(x,u,P,T,dt,1);
+[Q,X,V,A,x] = spm_soup(x,u,P,T,dt,1);
 
 % States
 %--------------------------------------------------------------------------
@@ -89,23 +87,23 @@ L     = sparse(double(any(A(:,:,t),3)))';
  
 % internal states (defined by principle eigenvector of Markov blanket)
 %--------------------------------------------------------------------------
-B     = double((L + L' + L*L'));
+B     = double((L + L' + L'*L));
 B     = B - diag(diag(B));
 v     = spm_svd(B*B',1);
 [v,j] = sort(abs(v(:,1)),'descend');
  
 % get Markov blanket and divide into sensory and active states
 %--------------------------------------------------------------------------
-j     = j(1:8);                                   % internal cluster
-jj    = sparse(j,1,1,N,1);                        % internal states
-bb    = B*jj & (1 - jj);                          % Markov blanket
-ee    = 1 - bb - jj;                              % external states
+m     = j(1:8);                                   % internal cluster
+mm    = sparse(m,1,1,N,1);                        % internal states
+bb    = B*mm & (1 - mm);                          % Markov blanket
+ee    = 1 - bb - mm;                              % external states
 b     = find(bb);
 e     = find(ee);
+m     = find(mm);
 s     = b(find( any(L(b,e),2)));
 a     = b(find(~any(L(b,e),2)));
-m     = j;
- 
+
 % adjacency matrix - with partition underneath (LL)
 %--------------------------------------------------------------------------
 k       = [e; s; a; m];
@@ -121,7 +119,7 @@ LL      = LL(k,k);
 subplot(4,1,3)
 r    = 1:512;
 plot(r,squeeze(Q(1,e,r)),':c'), hold on
-plot(r,squeeze(Q(1,j,r)),' b'), hold off
+plot(r,squeeze(Q(1,m,r)),' b'), hold off
 axis([r(1) r(end) -32 32])
 xlabel('Time','FontSize',12)
 title('Electrochemical dynamics','FontSize',16)
@@ -129,7 +127,7 @@ title('Electrochemical dynamics','FontSize',16)
 subplot(4,1,4)
 r    = 1:T;
 plot(r,squeeze(V(1,e,r)),':c'), hold on
-plot(r,squeeze(V(1,j,r)),' b'), hold off
+plot(r,squeeze(V(1,m,r)),' b'), hold off
 axis([r(1) r(end) -32 32])
 xlabel('Time','FontSize',12)
 title('Newtonian dymanics','FontSize',16)
@@ -317,18 +315,17 @@ title('Inferred and real motion','FontSize',16), spm_axis tight
 %  identify points of interest using the external canonical variate
 %--------------------------------------------------------------------------
 u     = CVA.v(:,1);
+ue    = [];
 for i = 1:8
-    [d,j] = max(u(:,1));
-    % j   = fix(rand*T);                % random times
-    try
-        k       = (j - 32):(j + 64);    % perstimulus time (around j)
-        u((j - 8):(j + 8)) = -Inf;      % eliminate from next max(u(:,1))
-        ue(:,i) = Xe(k,:)*CVA.V(:,1);
-        um(:,i) = Xm(k,:)*CVA.W(:,1);
-        us(i)   = j;
-    catch
-        u(j)    = -Inf;
-    end
+    [d,j]   = max(u(33:end - 65));
+    j       = j + 32;
+    % j     = fix(rand*T);              % random times
+    k       = (j - 32):(j + 64);        % perstimulus time (around j)
+    u((j - 8):(j + 8)) = -Inf;          % eliminate from next max(u(:,1))
+    ue(:,i) = Xe(k,:)*CVA.V(:,1);
+    um(:,i) = Xm(k,:)*CVA.W(:,1);
+    us(i)   = j;
+    
 end
 j    = any(ue);
 us   = us(j);
@@ -375,7 +372,7 @@ xi    = spm_zeros(x); xi.q(:,m) = 1; iXm = find(spm_vec(xi));
 %--------------------------------------------------------------------------
 [d,j] = max(CVA.v(:,1));
 j     = j + (-8:8);
-J     = spm_Manifold_solve(Q(:,:,j),X(:,:,j),V(:,:,j),P);
+J     = spm_soup(Q(:,:,j),X(:,:,j),V(:,:,j),P);
 J     = mean(J,3);
 j     = [iXe;iXm];
 % q   = 8;

@@ -30,7 +30,7 @@ function FEP_Manifold
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_Manifold.m 6655 2015-12-23 20:21:27Z karl $
+% $Id: FEP_Manifold.m 7163 2017-09-04 09:12:50Z karl $
  
  
 % default settings (GRAPHICS sets movies)
@@ -89,7 +89,7 @@ L     = sparse(double(any(A(:,:,t),3)));
  
 % internal states (defined by principle eigenvector of Markov blanket)
 %--------------------------------------------------------------------------
-B     = double((L + L' + L*L'));
+B     = double((L + L' + L'*L));
 B     = B - diag(diag(B));
 v     = spm_svd(B*B',1);
 [v,j] = sort(abs(v(:,1)),'descend');
