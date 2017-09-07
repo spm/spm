@@ -15,9 +15,9 @@ function FEP_MB_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_MB_demo.m 7163 2017-09-04 09:12:50Z karl $
+% $Id: FEP_MB_demo.m 7164 2017-09-07 13:46:00Z karl $
 
-SOUP = 1;
+SOUP = 0;
 if SOUP
     % default settings
     %----------------------------------------------------------------------
@@ -44,10 +44,10 @@ if SOUP
     
     % generate an dynamics from initial conditions
     %======================================================================
-    spm_figure('GetWin','Markov blanket');clf, subplot(2,2,1)
+    spm_figure('GetWin','Markov blanket');clf, subplot(2,1,1)
     
     [Q,X,V,A,x] = spm_soup(x,u,P,T,dt,1);
-    j           = (N - 32:N);
+    j           = (T - 32:T);
     J           = spm_soup(Q(:,:,j),X(:,:,j),V(:,:,j),P);
     A           = mean(J,3);
     
@@ -55,7 +55,7 @@ if SOUP
     mm.q(3,:)   = 1;
     
     n     = [6 4 2 2];               % number of eigenvectors
-    m     = [1 8 4 2];               % number of internal states
+    m     = [1 2 1 1];               % number of internal states
     jj    = cell(4,1);               % eligible internal states
     jj{1} = spm_vec(mm);             % eligible internal states
     
@@ -98,7 +98,7 @@ else
         end
     end
     
-    n     = [4 4 4 4];               % number of eigenvectors
+    n     = [4 4 2 2];               % number of eigenvectors
     m     = [3 2 1 1];               % number of internal states
     jj    = cell(4,1);               % eligible internal states
     
@@ -113,20 +113,23 @@ z{1}  = num2cell(1:length(J{1}));
 %==========================================================================
 N     = 3;                       % number of hierarchies
 x     = {};                      % indices of states of partitions
+u{1}  = [];
+y{1}  = [];
 for i = 1:N
     
     % Markov blanket partition
     %----------------------------------------------------------------------
     spm_figure('getwin',sprintf('Markov level %i',i));
     
-    x{i} = spm_Markov_blanket(J{i},z{i},m(i),jj{i});
+    [x{i},u{i + 1}] = spm_Markov_blanket(J{i},z{i},m(i),u{i},y{i},jj{i});
     
-    % dimension reduction (eliminating internal states)
-    %----------------------------------------------------------------------
     if i < N
-        [J{i + 1},z{i + 1}] = spm_A_reduce(J{i},x{i},n(i));
+        
+        % dimension reduction (eliminating internal states)
+        %------------------------------------------------------------------
+        [J{i + 1},z{i + 1},y{i + 1}] = spm_A_reduce(J{i},x{i},n(i));
+        
     end
-    
 end
 
 return
@@ -136,13 +139,15 @@ return
 
 % Markov blanket - parents, children, and parents of children
 %==========================================================================
-function [J,z] = spm_A_reduce(J,x,N)
+function [J,z,y] = spm_A_reduce(J,x,N)
 % reduction of Markovian partition
-% J  - Jacobian
+% J  - Jacobian (x)
 % x  - {3 x N} indices of Markovian partition
 % N  - number of eigenvectors to retain [default: 2]
 %
-% z  - {1 x N} indices of partition for the next level
+% J  - Jacobian (z)
+% z  - {1 x n} indices of partition for the next level
+% y  - {1 x N} indices of partition for the current level
 %__________________________________________________________________________
 
 % preliminaries
@@ -155,12 +160,14 @@ end
 % reduction
 %----------------------------------------------------------------------
 for i = 1:nx
-    Jii   = full(J(spm_vec(x(1:2,i)),spm_vec(x(1:2,i))));
+    y{i}  = spm_vec(x(1:2,i));
+    Jii   = full(J(y{i},y{i}));
     n(i)  = min(N,size(Jii,1));
     [e,s] = eig(Jii);
     [d,j] = sort(real(diag(s)),'descend');
     v{i}  = e(:,j(1:n(i)));
     u{i}  = pinv(v{i});
+    
 end
 for i = 1:nx
     for j = 1:nx
@@ -174,13 +181,14 @@ J     = spm_cat(A);
 
 % Markovian partition
 %==========================================================================
-function [x,y] = spm_Markov_blanket(J,z,m,mj)
+function [x,u,y] = spm_Markov_blanket(J,z,m,uu,zz,mj)
 % Markovian partition
 % J  - Jacobian
 % z  - {1 x N} indices of partition
 % m  - number of internal states [default: 3]
 %
-% jj - candidate internal states [optional]
+% uu - embedding space 
+% mj - candidate internal states [optional]
 %
 % x  - {3 x N} indices of states of partitions
 %     x{1,j} - active states of j-th partition
@@ -200,6 +208,9 @@ if nargin < 3
     m = 3;                        % maximum size of internal states
 end
 if nargin < 4
+   uu = {};                       % embedding space of lower-level
+end
+if nargin < 5
    mj = ones(nz,1);               % eligible internal states
 end
 if isempty(mj)
@@ -221,22 +232,6 @@ for i = 1:nz
 end
 L     = double(L);
 
-% Jacobian (over z)
-%--------------------------------------------------------------------------
-% for i = 1:nz
-%     [e,v] = eig(full(J(z{i},z{i})),'nobalance');
-%     [v,j] = sort(real(diag(v)),'descend');
-%     E{i}  = e(:,j(1));
-% end
-% for i = 1:nz
-%     for j = 1:nz
-%         L(i,j) = real(pinv(E{i})*J(z{i},z{j})*E{j});
-%     end
-% end
-
-% [e,v] = eig(full(L),'nobalance');
-% [v,j] = sort(real(diag(v)),'descend');
-
 % internal states (defined by graph Laplacian)
 %--------------------------------------------------------------------------
 G     = L - diag(diag(L));
@@ -247,17 +242,19 @@ G     = expm(G);
 %--------------------------------------------------------------------------
 GRAPHICS = 1;
 if GRAPHICS
-    [e,v] = eig(G,'nobalance');
+    [u,v] = eig(G,'nobalance');
     [v,j] = sort(real(diag(v)),'descend');
-    try
-        X = real(e(:,j(6:7)));
-    catch
-        try
-            X = real(e(:,[1,2]));
-        catch
-            X = real(e(:,[1,1]));
-        end
+    u     = u(:,j);
+    nj    = min(32,size(u,2));
+    v     = v(1:nj);
+    for i = 1:nj
+        [p,h] = hist(real(u(:,i)),16);
+        dh    = h(2) - h(1);
+        p     = p(:)/sum(p)/dh;
+        v(i)  = log(v(i)) - p'*log(p + exp(-16))*dh;
     end
+    [v,j] = sort(real(v),'descend');
+    u     = real(u(:,j));
 end
 
 % get Markov blanket and divide into sensory and active states
@@ -366,54 +363,79 @@ for i = 1:128
     if all(nn)
         if GRAPHICS,clf
             
-            % plot different states
+            % colours for different politicians
             %--------------------------------------------------------------
-            subplot(3,2,2)
             nx    = size(x,2);
             msz   = fix(16 + 64/nx);
             for k = 1:nx
-                plot(X(y{1,k},1),X(y{1,k},2),'.r','MarkerSize',msz), hold on
-                plot(X(y{2,k},1),X(y{2,k},2),'.m','MarkerSize',msz), hold on
-                plot(X(y{3,k},1),X(y{3,k},2),'.b','MarkerSize',msz), hold on
+                bol{k} = spm_softmax(log(rand(3,1))*2);
+                col{k} = bol{k}*(1 - 1/2) + ones(3,1)/2;
+            end
+            
+            % plot different states
+            %--------------------------------------------------------------
+            subplot(3,2,4)
+            for k = 1:nx
+                plot(u(y{1,k},1),u(y{1,k},2),'.r','MarkerSize',msz), hold on
+                plot(u(y{2,k},1),u(y{2,k},2),'.m','MarkerSize',msz), hold on
+                plot(u(y{3,k},1),u(y{3,k},2),'.b','MarkerSize',msz), hold on
             end
             axis square
-            title('Markov partition','Fontsize',16)
+            title(sprintf('Markov partition [%i particles]',nx),'Fontsize',16)
+            
+            % plot different states (in lower embedding dimensions)
+            %--------------------------------------------------------------
+            if ~isempty(uu)
+                subplot(3,2,1)
+                for k = 1:nx
+                    plot(uu(x{1,k},1),uu(x{1,k},2),'.','color',bol{k},'MarkerSize',msz), hold on
+                    plot(uu(x{2,k},1),uu(x{2,k},2),'.','color',bol{k},'MarkerSize',msz), hold on
+                    plot(uu(x{3,k},1),uu(x{3,k},2),'.','color',col{k},'MarkerSize',msz), hold on
+                end
+                axis square
+                title('Partition','Fontsize',16)
+            end
+            
+            % plot different states (in three embedding dimensions)
+            %--------------------------------------------------------------
+            subplot(3,2,2)
+            for k = 1:nx
+                plot3(u(y{1,k},1),u(y{1,k},2),u(y{1,k},3),'.r','MarkerSize',msz), hold on
+                plot3(u(y{2,k},1),u(y{2,k},2),u(y{2,k},3),'.m','MarkerSize',msz), hold on
+                plot3(u(y{3,k},1),u(y{3,k},2),u(y{3,k},3),'.b','MarkerSize',msz), hold on
+            end
+            axis square
+            title('Embedding space','Fontsize',16)
+            rotate3d(gca,'on')
+            
             
             % plot different particles
             %--------------------------------------------------------------
-            subplot(3,2,1)
+            subplot(3,2,3)
             for k = 1:nx
-                
-                bol{k} = spm_softmax(log(rand(3,1))*2);
-                col{k} = bol{k}*(1 - 1/2) + ones(3,1)/2;
-                
-                plot(X(y{1,k},1),X(y{1,k},2),'.','color',bol{k},'MarkerSize',msz), hold on
-                plot(X(y{2,k},1),X(y{2,k},2),'.','color',bol{k},'MarkerSize',msz), hold on
-                plot(X(y{3,k},1),X(y{3,k},2),'.','color',col{k},'MarkerSize',msz), hold on
+                plot(u(y{1,k},1),u(y{1,k},2),'.','color',bol{k},'MarkerSize',msz), hold on
+                plot(u(y{2,k},1),u(y{2,k},2),'.','color',bol{k},'MarkerSize',msz), hold on
+                plot(u(y{3,k},1),u(y{3,k},2),'.','color',col{k},'MarkerSize',msz), hold on
             end
             axis square
-            title('Particles','Fontsize',16)
+            title(sprintf('Particles [%i n-states]',nz),'Fontsize',16)
             
             % Jacobian
             %--------------------------------------------------------------
             j = spm_vec(x');
             k = spm_vec(x );
-            if nz > 64
-                subplot(3,2,3),spy(abs(J(k,k)),'k'),axis square, hold on
-                subplot(3,2,4),spy(abs(J(j,j)),'k'),axis square, hold on
-            else
-                subplot(3,2,3),imagesc(1 - abs(J(k,k))),axis square, hold on
-                subplot(3,2,4),imagesc(1 - abs(J(j,j))),axis square, hold on
-            end
+            subplot(3,2,5),imagesc(log(abs(J(k,k)) + exp(-8))),axis square
+            subplot(3,2,6),imagesc(log(abs(J(j,j)) + exp(-8))),axis square
+            
             
             % Colors
             %--------------------------------------------------------------
             nj   = spm_length(x);
-            msz   = fix(16 + 128/nj);
+            msz  = fix(16 + 128/nj);
             j    = 1:nj;
             k    = spm_unvec(j,x')';
             j    = spm_unvec(j,x);
-            subplot(3,2,3),hold on
+            subplot(3,2,5),hold on
             for q = 1:nx
                 plot(j{1,q},ones(size(x{1,q})),'.','color',bol{q},   'MarkerSize',msz)
                 plot(j{2,q},ones(size(x{2,q})),'.','color',bol{q},   'MarkerSize',msz)
@@ -423,7 +445,7 @@ for i = 1:128
                 plot(j{3,q},zeros(size(x{3,q})) + nj,'.','color','b','MarkerSize',msz)
             end
             
-            subplot(3,2,4),hold on
+            subplot(3,2,6),hold on
             for q = 1:nx
                 plot(k{1,q},ones(size(x{1,q})),'.','color',bol{q},   'MarkerSize',msz)
                 plot(k{2,q},ones(size(x{2,q})),'.','color',bol{q},   'MarkerSize',msz)
@@ -439,10 +461,3 @@ for i = 1:128
     
 end
 return
-
-
-
-
-
-
-
