@@ -7,6 +7,8 @@ function [Q,X,V,A,x] = spm_Manifold_solve(x,u,P,T,dt,PLOT)
 % x - hidden states (3 x N)
 % u - exogenous input
 % P - parameter structure
+% 
+%   P.d - s.d. of random fluctuations
 %
 % PLOT = 0 - no graphics
 % PLOT = 1 - quick graphics
@@ -28,7 +30,7 @@ function [Q,X,V,A,x] = spm_Manifold_solve(x,u,P,T,dt,PLOT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Manifold_solve.m 7052 2017-04-02 21:28:52Z karl $
+% $Id: spm_Manifold_solve.m 7166 2017-09-08 19:07:09Z karl $
 
 % equations of motion
 %--------------------------------------------------------------------------
@@ -98,7 +100,7 @@ for i = 1:T
         
         % plus random fluctuations
         %------------------------------------------------------------------
-        f     = f + randn(size(f)).*P.d;
+        f     = f  + randn(size(f)).*P.d;
         xn    = xn + f*dt;
     end
     x        = spm_unvec(xn,x);
@@ -214,7 +216,7 @@ f     = x;
 % get distances (Euclidean)
 %--------------------------------------------------------------------------
 D     = 0;
-X     = cell(n);
+X     = cell(n,1);
 for i = 1:n
     d    = ones(N,1)*x.p(i,:);
     X{i} = (d' - d);
