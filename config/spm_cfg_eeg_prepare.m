@@ -4,9 +4,9 @@ function prepare = spm_cfg_eeg_prepare
 % Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_prepare.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_eeg_prepare.m 7169 2017-09-19 10:42:27Z vladimir $
 
-rev = '$Rev: 6926 $';
+rev = '$Rev: 7169 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -20,6 +20,13 @@ defaulttype.tag = 'defaulttype';
 defaulttype.name = 'Set channel types to default';
 defaulttype.val  = {1};
 defaulttype.help = {'Reset all channel types to default.'};
+
+bidschantype = cfg_files;
+bidschantype.tag = 'bidschantype';
+bidschantype.name = 'Set channel types from BIDS tsv';
+bidschantype.filter = '.*_channels.tsv$';
+bidschantype.num = [1 1];
+bidschantype.help = {'Select BIDS tsv file and set channel types based on it.'};
 
 newtype = cfg_menu;
 newtype.tag = 'newtype';
@@ -200,6 +207,14 @@ setbadchan.name = 'Set/unset bad channels';
 setbadchan.val = {spm_cfg_eeg_channel_selector, status};
 setbadchan.help = {'Set or clear bad flag for channels.'};
 
+bidschanstatus = cfg_files;
+bidschanstatus.tag = 'bidschanstatus';
+bidschanstatus.name = 'Set bad channels from BIDS tsv';
+bidschanstatus.filter = '.*_channels.tsv$';
+bidschanstatus.num = [1 1];
+bidschanstatus.help = {'Select BIDS tsv file and set channel status based on it.'};
+
+
 fname = cfg_entry;
 fname.tag = 'fname';
 fname.name = 'Output file name';
@@ -241,13 +256,34 @@ sortconditions.values = {condlist, condfile};
 sortconditions.val = {condlist};
 sortconditions.help = {'Specify conditions order.'};
 
+eventfile = cfg_files;
+eventfile.tag = 'eventfile';
+eventfile.name = 'BIDS tsv file';
+eventfile.filter = '.*_events.tsv$';
+eventfile.num = [1 1];
+eventfile.help = {'File to load events from'};
+
+replace = cfg_menu;
+replace.tag = 'replace';
+replace.name = 'Replace existing events';
+replace.labels = {'Replace', 'Add'};
+replace.val = {1};
+replace.values = {1, 0};
+replace.help = {'Replace exisitng events or add to them'};
+
+bidsevents = cfg_branch;
+bidsevents.tag = 'bidsevents';
+bidsevents.name = 'Load events from BIDS tsv file';
+bidsevents.help = {'Load events from BIDS tsv file.'};
+bidsevents.val  = {eventfile, replace};
+
 task = cfg_repeat;
 task.tag = 'task';
 task.name = 'Select task(s)';
 task.num = [1 Inf];
-task.values = {defaulttype, settype, loadmegsens, headshape,...
+task.values = {defaulttype, bidschantype, settype, loadmegsens, headshape,...
     defaulteegsens, loadeegsens, seteegref, project3dEEG, project3dMEG,...
-    loadtemplate, setbadchan, avref, sortconditions};
+    loadtemplate, setbadchan, bidschanstatus, avref, sortconditions, bidsevents};
 task.help = {'Select task(s).'};
 
 prepare = cfg_exbranch;
@@ -268,6 +304,10 @@ for i = 1:numel(job.task)
     switch  char(fieldnames(job.task{i}))
         case 'defaulttype'
             S.task = 'defaulttype';
+            D = spm_eeg_prep(S);
+        case 'bidschantype' 
+            S.task = 'bidschantype';
+            S.filename = char(job.task{i}.bidschantype);
             D = spm_eeg_prep(S);
         case 'settype'
             S.task = 'settype';
@@ -332,6 +372,10 @@ for i = 1:numel(job.task)
             S.task = 'setbadchan';
             S.channels = spm_cfg_eeg_channel_selector(job.task{i}.setbadchan.channels);
             S.status   =  job.task{i}.setbadchan.status;
+            D = spm_eeg_prep(S);            
+        case 'bidschanstatus'
+            S.task = 'bidschanstatus';
+            S.filename = char(job.task{i}.bidschanstatus);
             D = spm_eeg_prep(S);
         case 'avref'
             eegchan  = D.indchantype('EEG');
@@ -362,6 +406,12 @@ for i = 1:numel(job.task)
             else
                 S.condlist = char(job.task{i}.sortconditions.condfile);
             end
+            D = spm_eeg_prep(S);
+        case 'bidsevents'
+            S.task = 'loadbidsevents';
+            S.filename = char(job.task{i}.bidsevents.eventfile);
+            S.replace  = job.task{i}.bidsevents.replace; 
+            
             D = spm_eeg_prep(S);
     end
 end

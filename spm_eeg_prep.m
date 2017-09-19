@@ -17,7 +17,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 7062 2017-04-19 09:24:11Z vladimir $
+% $Id: spm_eeg_prep.m 7169 2017-09-19 10:42:27Z vladimir $
 
 D = spm_eeg_load(S.D);
 
@@ -78,6 +78,48 @@ switch lower(S.task)
         D = chantype(D, ind, spmtype);
         
         %----------------------------------------------------------------------
+        
+    case 'bidschantype'
+        
+        dictionary = { % Should be updates with updates to BIDS specification
+            'MEGMAG'   'MEGMAG'
+            'MEGGRAD'  'MEGGRAD'
+            'MEG'      'MEG'
+            'MEGREF'   'REF'
+            'EEG'      'EEG'
+            'EOG'      'EOG'
+            'ECG'      'ECG'
+            'EMG'      'EMG'
+            'TRIG'     'Other'
+            'AUDIO'    'Other'
+            'PD'       'Other'
+            'ET'       'Other'
+            'MISC'     'Other'
+            };
+        
+        bids_chan = spm_load(S.filename);
+        
+        [sel1, sel2] = spm_match_str(D.chanlabels, bids_chan.name);
+        
+        type = bids_chan.type(sel2);
+                              
+        [sel3, sel4] = spm_match_str(type, dictionary(:, 1));
+        
+        type(sel3) = dictionary(sel4, 2);
+        
+        D = chantype(D, sel1, type);  
+        
+    case 'bidschanstatus'
+        bids_chan = spm_load(S.filename);
+        
+        [sel1, sel2] = spm_match_str(D.chanlabels, bids_chan.name);
+        
+        sel3 = strmatch('bad', bids_chan.status(sel2));
+        
+        D = badchannels(D, sel1, 0);
+        
+        D = badchannels(D, sel1(sel3), 1);
+        
     case {'loadtemplate', 'setcoor2d', 'project3d'}
         %----------------------------------------------------------------------
         chanind = 1:D.nchannels;
@@ -108,6 +150,8 @@ switch lower(S.task)
                         chanind  = D.indchantype('EEG');
                     case 'MEG'
                         chanind  = D.indchantype('MEGANY');
+                    case 'MEGCOMB'
+                        chanind  = D.indchantype('MEGCOMB');
                 end
         end
         
@@ -486,6 +530,24 @@ switch lower(S.task)
         
         D = condlist(D, cl);
         %----------------------------------------------------------------------
+    case 'loadbidsevents'
+        if ~isequal(D.type, 'continuous')
+            error('This operation can only be applied to continuous datasets');
+        end
+        
+        ev_bids = spm_load(S.filename);
+        
+        ev_spm = struct('type', repmat({'BIDS'}, length(ev_bids.onset), 1), 'value', ev_bids.stim_type,...
+            'time', num2cell(ev_bids.onset), 'duration', num2cell(ev_bids.duration));
+        
+        if S.replace
+            D = events(D, 1, ev_spm);
+        else
+            D = events(D, 1, spm_cat_struct(D.events(1), ev_spm));
+        end
+        
+        D = D.check;
+        
     otherwise
         %----------------------------------------------------------------------
         fprintf('Unknown task ''%s'' to perform: Nothing done.\n',S.task);

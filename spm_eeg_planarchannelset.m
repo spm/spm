@@ -8,7 +8,7 @@ function planar = spm_eeg_planarchannelset(data)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_planarchannelset.m 6781 2016-04-27 10:01:38Z vladimir $
+% $Id: spm_eeg_planarchannelset.m 7169 2017-09-19 10:42:27Z vladimir $
 
 
 if isa(data, 'cell') && ~isempty(data) && isa(data{1}, 'char')
@@ -17,4 +17,8 @@ else
     input = data;
 end
 
-planar = ft_senslabel(lower(ft_senstype(input)), 'output', 'planarcombined');
+try
+    planar = ft_senslabel(lower(ft_senstype(input)), 'output', 'planarcombined');
+catch
+    planar = ft_senslabel([lower(ft_senstype(input)) '_planar'], 'output', 'planarcombined');
+end

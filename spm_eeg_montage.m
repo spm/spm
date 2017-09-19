@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 7134 2017-07-18 09:46:25Z guillaume $
+% $Id: spm_eeg_montage.m 7169 2017-09-19 10:42:27Z vladimir $
 
-SVNrev = '$Rev: 7134 $';
+SVNrev = '$Rev: 7169 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -114,6 +114,9 @@ if ~isnumeric(montage)
         error('Insufficient or illegal montage specification.');
     end
     
+    % There is inconsistent naming in FT functions.
+    % montage.labelold = montage.labelorg; 
+    
     % select and discard the columns that are empty if the corresponding
     % channels are not present in the data
     selempty   = find(all(montage.tra == 0, 1));
@@ -124,11 +127,11 @@ if ~isnumeric(montage)
     montage.tra(:, selempty)   = [];
     montage.labelorg(selempty) = [];
     
-    if isfield(montage, 'chantypeorg')
-        montage.chantypeorg(selempty) = [];
+    if isfield(montage, 'chantypeold')
+        montage.chantypeold(selempty) = [];
     end
-    if isfield(montage, 'chanunitorg')
-        montage.chanunitorg(selempty) = [];
+    if isfield(montage, 'chanunitold')
+        montage.chanunitold(selempty) = [];
     end
     
     % add columns for the channels that are not involved in the montage
@@ -155,11 +158,11 @@ if ~isnumeric(montage)
     end
     montage.labelorg = cat(1, montage.labelorg(:), add(:));
     
-    if isfield(montage, 'chantypeorg')
-        montage.chantypeorg = lower(cat(1, montage.chantypeorg(:), D.chantype(ind)'));
+    if isfield(montage, 'chantypeold')
+        montage.chantypeold = lower(cat(1, montage.chantypeold(:), D.chantype(ind)'));
     end
-    if isfield(montage, 'chanunitorg')
-        montage.chanunitorg = cat(1, montage.chanunitorg(:), D.units(ind)');
+    if isfield(montage, 'chanunitold')
+        montage.chanunitold = cat(1, montage.chanunitold(:), D.units(ind)');
     end    
     
     % determine whether all channels are unique
@@ -181,11 +184,11 @@ if ~isnumeric(montage)
     [selchan, selmont]  = spm_match_str(D.chanlabels, montage.labelorg);
     montage.tra         = montage.tra(:,selmont);
     montage.labelorg    = montage.labelorg(selmont);
-    if isfield(montage, 'chantypeorg')
-        montage.chantypeorg = montage.chantypeorg(selmont);
+    if isfield(montage, 'chantypeold')
+        montage.chantypeold = montage.chantypeold(selmont);
     end
-    if isfield(montage, 'chanunitorg')
-        montage.chanunitorg = montage.chanunitorg(selmont);
+    if isfield(montage, 'chanunitold')
+        montage.chanunitold = montage.chanunitold(selmont);
     end
 end
 
@@ -320,19 +323,19 @@ switch S.mode
                     sensmontage.tra(selempty, :) = [];
                     sensmontage.labelnew(selempty) = [];
                     
-                    if isfield(sensmontage, 'chantypeorg')
-                        sensmontage.chantypeorg = sensmontage.chantypeorg(sel2);
+                    if isfield(sensmontage, 'chantypeold')
+                        sensmontage.chantypeold = sensmontage.chantypeold(sel2);
                     end
-                    if isfield(sensmontage, 'chanunitorg')
-                        sensmontage.chanunitorg = sensmontage.chanunitorg(sel2);
+                    if isfield(sensmontage, 'chanunitold')
+                        sensmontage.chanunitold = sensmontage.chanunitold(sel2);
                         
-                        for c = 1:length(sensmontage.chanunitorg)
+                        for c = 1:length(sensmontage.chanunitold)
                             if isequal(sensortypes{i}, 'MEG')
-                                sensmontage.chanunitorg{c} = strrep(sensmontage.chanunitorg{c}, 'fT', 'T');
+                                sensmontage.chanunitold{c} = strrep(sensmontage.chanunitold{c}, 'fT', 'T');
                             else
-                                sensmontage.chanunitorg{c} = strrep(sensmontage.chanunitorg{c}, 'uV', 'V');
+                                sensmontage.chanunitold{c} = strrep(sensmontage.chanunitold{c}, 'uV', 'V');
                             end
-                            sensmontage.chanunitorg{c} = strrep(sensmontage.chanunitorg{c}, 'mm', 'm');
+                            sensmontage.chanunitold{c} = strrep(sensmontage.chanunitold{c}, 'mm', 'm');
                         end
                         
                     end
