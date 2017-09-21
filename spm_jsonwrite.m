@@ -13,6 +13,8 @@ function varargout = spm_jsonwrite(varargin)
 %              indent: string to use for indentation [Default: '']
 %              replacementStyle: string to control how non-alphanumeric
 %                characters are replaced [Default: 'underscore']
+%              convertinfandnan: encode NaN, Inf and -Inf as "null"
+%                [Default: true]
 % 
 % References:
 %   JSON Standard: http://www.json.org/
@@ -20,12 +22,15 @@ function varargout = spm_jsonwrite(varargin)
 % Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 7108 2017-06-15 10:36:29Z guillaume $
+% $Id: spm_jsonwrite.m 7170 2017-09-21 10:59:34Z guillaume $
 
 
 %-Input parameters
 %--------------------------------------------------------------------------
-opts         = struct('indent','','replacementstyle','underscore');
+opts         = struct(...
+    'indent','',...
+    'replacementstyle','underscore',...
+    'convertinfandnan',true);
 opt          = struct([]);
 if nargin > 1
     if ischar(varargin{1})
@@ -86,10 +91,14 @@ elseif isnumeric(json) || islogical(json)
     S = jsonwrite_numeric(json);
 elseif isa(json,'string')
     if numel(json) == 1
-        S = jsonwrite_char(char(json));
+        if ismissing(json)
+            S = 'null';
+        else
+            S = jsonwrite_char(char(json));
+        end
     else
         json = arrayfun(@(x)x,json,'UniformOutput',false);
-        json(cellfun(@(x) ismissing(x),json)) = {NaN}; % to be saved as null
+        json(cellfun(@(x) ismissing(x),json)) = {'null'};
         idx = find(size(json)~=1);
         if numel(idx) == 1 % vector
             S = jsonwrite_cell(json,tab);
@@ -105,7 +114,11 @@ elseif isa(json,'table')
     vn = json.Properties.VariableNames;
     for i=1:s(1)
         for j=1:s(2)
-            S(i).(vn{j}) = json{i,j};
+            if iscell(json{i,j})
+                S(i).(vn{j}) = json{i,j}{1};
+            else
+                S(i).(vn{j}) = json{i,j};
+            end
         end
     end
     S = jsonwrite_struct(S,tab);
@@ -199,7 +212,17 @@ end
 if islogical(json)
     if json, S = 'true'; else S = 'false'; end
 elseif ~isfinite(json)
-    S = 'null';
+    if optregistry('convertinfandnan')
+        S = 'null';
+    else
+        if isnan(json)
+            S = 'NaN';
+        elseif json > 0
+            S = 'Infinity';
+        else
+            S = '-Infinity';
+        end
+    end
 else
     S = num2str(json,16);
 end
