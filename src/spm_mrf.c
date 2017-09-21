@@ -1,4 +1,4 @@
-/* $Id: spm_mrf.c 4873 2012-08-30 19:06:26Z john $ */
+/* $Id: spm_mrf.c 7172 2017-09-21 16:31:30Z john $ */
 /* (c) John Ashburner (2010) */
 
 #include "mex.h"
@@ -42,7 +42,7 @@ static void mrf1(mwSize dm[], unsigned char q[], float p[], float G[], float w[]
 
                 for(i0=i0start; i0<dm[0]; i0+=2) /* Left -> Right */
                 {
-                    float se;
+                    float se, mx;
                     unsigned char *qq = NULL;
 
                     /* Pointers to current voxel in first volume */
@@ -101,41 +101,31 @@ static void mrf1(mwSize dm[], unsigned char q[], float p[], float G[], float w[]
                         /* Weights are in the form of a matrix,
                            shared among all voxels. */
                         float *g;
-                        se = 0.0;
                         for(k=0, g=G; k<dm[3]; k++)
                         {
                             e[k] = 0;
                             for(n=0; n<dm[3]; n++, g++)
                                 e[k] += (*g)*a[n];
-                            e[k] = exp((double)e[k])*p0[k*m];
-                            se  += e[k];
                         }
                     }
                     else if (code == 2)
                     {
                         /* Weights are assumed to be a diagonal matrix,
                            so only the diagonal elements are passed. */
-                        se = 0.0;
                         for(k=0; k<dm[3]; k++)
-                        {
-                            e[k] = exp((double)(G[k]*a[k]))*p0[k*m];
-                            se  += e[k];
-                        }
+                            e[k] = G[k]*a[k];
                     }
                     else if (code == 3)
                     {
                         /* Separate weights for each voxel, in the form of
                            the full matrix (loads of memory). */
                         float *g;
-                        se = 0.0;
                         g = G + i0+dm[0]*(i1+dm[1]*i2);
                         for(k=0; k<dm[3]; k++)
                         {
                             e[k] = 0.0;
                             for(n=0; n<dm[3]; n++, g+=m)
                                 e[k] += (*g)*a[n];
-                            e[k] = exp((double)e[k])*p0[k*m];
-                            se  += e[k];
                         }
                     }
                     else if (code == 4)
@@ -157,12 +147,6 @@ static void mrf1(mwSize dm[], unsigned char q[], float p[], float G[], float w[]
                                 e[k] += (*g)*a[n];
                                 e[n] += (*g)*a[k];
                             }
-                        }
-                        se = 0.0;
-                        for(k=0; k<dm[3]; k++)
-                        {
-                            e[k] = exp((double)e[k])*p0[k*m];
-                            se  += e[k];
                         }
                     }
                     else if (code == 5)
@@ -189,21 +173,27 @@ static void mrf1(mwSize dm[], unsigned char q[], float p[], float G[], float w[]
                                 e[n] += ((float)(*g))*a[k];
                             }
                         }
-                        se = 0.0;
                         for(k=0; k<dm[3]; k++)
-                        {
-                            e[k] = exp(-0.0625*e[k])*p0[k*m];
-                            se  += e[k];
-                        }
+                            e[k] = -0.0625*e[k];
                     }
 
+                    /* Prevent overflow by subtracting maximum value before computing exp - based on log-sum-exp trick */
+                    mx = -3.4028e+38;
+                    for(k=0; k<dm[3]; k++)
+                        if (e[k]>mx) mx = e[k];
+
+                    se = 0.0;
+                    for(k=0; k<dm[3]; k++)
+                    {
+                        e[k] = exp((double)(e[k]-mx))*p0[k*m];
+                        se  += e[k];
+                    }
 
                     /* Normalise responsibilities to sum to 1
                        and rescale for saving as uint8 data. */
                     se = 255.0/se;
                     for(k=0; k<dm[3]; k++)
                         q0[k*m] = (unsigned char)(e[k]*se+0.5);
-
                 }
             }
         }

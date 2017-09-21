@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 7136 2017-07-18 10:51:48Z john $ */
+/* $Id: shoot_optimN.c 7172 2017-09-21 16:31:30Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -482,13 +482,11 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                               + w011*((pm[    jm1+km1]-pm0) + (pm[    jp1+km1]-pm0) + (pm[    jm1+kp1]-pm0) + (pm[    jp1+kp1]-pm0)))*scal[m];
 
                         if (a)
-                        {
                             for(n=0; n<dm[3]; n++) su[m] -= a1[m*dm[3]+n]*pu[n][i];
-                            a1[m+dm[3]*m] += w000*scal[m];
-                        }
                     }
                     if (a)
                     {
+                        for(m=0; m<dm[3]; m++) a1[m+dm[3]*m] += w000*scal[m];
                         choldc(dm[3],a1,cp);
                         cholls(dm[3],a1,cp,su,su);
                         for(m=0; m<dm[3]; m++) pu[m][i] += su[m];
