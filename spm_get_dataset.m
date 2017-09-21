@@ -1,29 +1,34 @@
-function spm_get_dataset(store, name, outdir)
-% Download datasets
-% FORMAT spm_get_dataset(store, name, outdir)
-% store  - one of ['spm', 'openfmri']
+function spm_get_dataset(repo, name, rev, outdir)
+% Download a dataset from an online repository
+% FORMAT spm_get_dataset(repo, name, outdir)
+% repo   - name of repository, one of ['spm', 'openfmri']
 % name   - name of dataset, e.g. 'auditory' or 'ds000117'
+% rev    - revision of dataset [default: '']
 % outdir - output directory [default: pwd]
 %__________________________________________________________________________
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_get_dataset.m 7138 2017-07-21 10:57:37Z guillaume $
+% $Id: spm_get_dataset.m 7171 2017-09-21 11:11:00Z guillaume $
 
 
-SVNrev = '$Rev: 7138 $';
+SVNrev = '$Rev: 7171 $';
 
 spm('FnBanner', mfilename, SVNrev);
 
-if nargin < 3
-    outdir = pwd;
-end
+if nargin < 1, error('A repository name is mandatory.'); end
+if nargin < 2, error('A dataset name is mandatory.');    end
+if nargin < 3, rev = '';     end
+if nargin < 4, outdir = pwd; end
 
-timeout = [];
-
-%-Get download URL from datastore
+%-Options
 %--------------------------------------------------------------------------
-switch lower(store)
+timeout = [];
+delraw  = true;
+
+%-Get download URL from data repository
+%--------------------------------------------------------------------------
+switch lower(repo)
     case 'spm'
         base = 'http://www.fil.ion.ucl.ac.uk/spm/download/data/';
         switch lower(name)
@@ -39,7 +44,7 @@ switch lower(store)
                 url{1} = fullfile(base,'eeg_mmn','subject1.bdf');
                 url{2} = fullfile(base,'eeg_mmn','sensors.pol');
             otherwise
-                error('Unknown dataset "%s" in datastore "%s".',name,store);
+                error('Unknown dataset "%s" in datastore "%s".',name,repo);
         end
         url = strrep(url,'\','/');
         
@@ -51,10 +56,16 @@ switch lower(store)
         of = spm_jsonread(js);
         idx = find(ismember({of.accession_number},name));
         if isempty(idx)
-            error('Unknown dataset "%s" in datastore "%s".',name,store);
+            error('Unknown dataset "%s" in repository "%s".',name,repo);
         end
         revs = {of(idx).revision_set.revision_number};
-        rev = revs{end}; % choose revision
+        if isempty(rev)
+            rev = revs{end}; % use last revision, sort(revs)?
+        else
+            if ~ismember(rev,revs)
+                warning('Files with revision "%s" not found.',rev);
+            end
+        end
         lnk = of(idx).link_set;
         url = {};
         for i=1:numel(lnk)
@@ -68,7 +79,7 @@ switch lower(store)
         error('Work in progress.');
         
     otherwise
-        error('Unknown datastore "%s".',store);
+        error('Unknown repository "%s".',repo);
 end
 
 %-Download
@@ -76,8 +87,22 @@ end
 url = cellstr(url);
 F   = cell(numel(url),1);
 for i=1:numel(url)
-    [F{i}, sts] = urlwrite(url{i}, ...
-        fullfile(outdir,spm_file(url{i},'filename')), 'Timeout',timeout);
+    s = get_file_size(url{i});
+    f = spm_file(url{i},'filename');
+    if ~isnan(s)
+        f = [f, sprintf(' [%dM]',round(s/1024/1024))];
+    end
+    if exist(fullfile(outdir,spm_file(url{i},'filename')),'file') == 7
+        F{i} = fullfile(outdir,spm_file(url{i},'filename'));
+        sts = true;
+        fprintf('%-40s: %30s', f,'...cached');                          %-#
+    else
+        fprintf('%-40s: %30s', f,'...downloading');                     %-#
+        [F{i}, sts] = urlwrite(url{i}, ...
+            fullfile(outdir,spm_file(url{i},'filename')), 'Timeout',timeout);
+    end
+    if sts, msg = '...done'; else, msg = '...failed';end
+    fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),msg);                 %-#
     if ~sts, error('Download failed.'); end
 end
     
@@ -88,11 +113,11 @@ for i=1:numel(F)
     switch lower(spm_file(F{i},'ext'))
         case 'zip'
             f = unzip(F{i},spm_file(F{i},'path'));
-            spm_unlink(F{i});
+            if delraw, spm_unlink(F{i}); end
             filenames = [filenames; f(:)];
         case {'tar','gz','tgz'}
             f = untar(F{i},spm_file(F{i},'path'));
-            spm_unlink(F{i});
+            if delraw, spm_unlink(F{i}); end
             filenames = [filenames; f(:)];
         otherwise
             filenames = F;
@@ -100,3 +125,19 @@ for i=1:numel(F)
 end
 
 fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
+
+
+%==========================================================================
+% function s = get_file_size(url)
+%==========================================================================
+function s = get_file_size(url)
+try
+    uri    =  matlab.net.URI(url);
+    method = matlab.net.http.RequestMethod.HEAD;
+    req    = matlab.net.http.RequestMessage(method);
+    resp   = req.send(uri);
+    s      = convert(getFields(resp,'Content-Length'));
+    if isempty(s), s = NaN; end
+catch
+    s = NaN;
+end
