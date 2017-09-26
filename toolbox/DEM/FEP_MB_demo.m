@@ -16,7 +16,7 @@ function FEP_MB_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_MB_demo.m 7166 2017-09-08 19:07:09Z karl $
+% $Id: FEP_MB_demo.m 7176 2017-09-26 19:02:39Z karl $
 
 SOUP = 1;
 if SOUP
@@ -155,8 +155,8 @@ return
 
 % Adiabatic dimension reduction
 %==========================================================================
-function [J,z,y] = spm_A_reduce(J,x,N)
-% FORMAT [J,z,y] = spm_A_reduce(J,x,N)
+function [J,z,y] = spm_A_reduce(J,x,T)
+% FORMAT [J,z,y] = spm_A_reduce(J,x,T)
 % reduction of Markovian partition
 % J  - Jacobian (x)
 % x  - {3 x n}  particular partition of states
@@ -171,7 +171,7 @@ function [J,z,y] = spm_A_reduce(J,x,N)
 %--------------------------------------------------------------------------
 nx    = size(x,2);                % number of partitions
 if nargin < 3
-    N = 4;                        % adiabatic threshold
+    T = 8;                        % adiabatic threshold
 end
 
 % reduction
@@ -187,7 +187,6 @@ for i = 1:nx
     
     % Adiabatic threshold
     %----------------------------------------------------------------------
-    T     = abs(max(d(d < 0))*N);
     n(i)  = sum(d > -T);
     v{i}  = e(:,j(1:n(i)));
     u{i}  = pinv(v{i});
@@ -255,7 +254,8 @@ L     = double(L);
 
 % internal states (defined by graph Laplacian)
 %--------------------------------------------------------------------------
-G     = L - diag(diag(L));
+G     = L + L';
+G     = G - diag(diag(G));
 G     = G - diag(sum(G));
 G     = expm(G);
 
@@ -270,7 +270,7 @@ if GRAPHICS
     v     = v(1:nj);
     for i = 1:nj
         [p,h] = hist(real(u(:,i)));
-        dh    = h(2) - h(1);
+        dh    = h(2) - h(1) + exp(-16);
         p     = p(:)/sum(p)/dh;
         v(i)  = log(v(i)) - p'*log(p + exp(-16))*dh;
     end
@@ -280,29 +280,35 @@ end
 
 % get Markov blanket and divide into sensory and active states
 %--------------------------------------------------------------------------
-B     = L + L' + L'*L;
-B     = B - diag(diag(B));
+BL    = L  + L';
+B     = BL + L'*L;
+BL    = BL - diag(diag(BL));
+B     = B  - diag(diag(B));
 nn    = zeros(nz,1);
 
 % recursive partition
 %--------------------------------------------------------------------------
-for i = 1:128
+nm    = spm_find_internal(z,J);
+for i = 1:256
     
     % internal states (defined by graph Laplacian)
     %----------------------------------------------------------------------
-    j = ~(B*nn) & ~nn & mj;
-    if any(j)
+    jj = ~(B*nn) & ~nn & mj;
+    if any(jj)
         
         % find densely coupled internal states (using the graph Laplacian)
         %------------------------------------------------------------------
-        [g,j] = max(diag(G).*j);
+        j      = find(jj & any(L(logical(B*nn),:))');
+        if isempty(j)
+            j  = find(jj);
+        end
+        [g,ij] = min(nm(j));
+        j      = j(ij);
         if m > 1
-            g     = G(:,j);
-            g(j)  = -Inf;
-            [g,k] = sort(g,'descend');
-            try
-                j = [j; k(1:m - 1)];
-            end
+            k      = find(BL(:,j) & jj);
+            [d,ij] = sort(nm(k));
+            j      = [j;k(ij)];
+            try,j  = j(1:m); end
         end
 
         jj    = sparse(j,1,1,size(L,1),1);              % internal states
@@ -327,13 +333,13 @@ for i = 1:128
         
         % no internal states - find active states (not influenced by e)
         %------------------------------------------------------------------
-        j = ~any(L(~nn,nn),2);
-        if any(j)
+        jj = ~any(L(~nn,nn),2);
+        if any(jj)
             
             % sensory states connected with active states
             %--------------------------------------------------------------
             a  = find(~nn);
-            a  = a(find(j,1));
+            a  = a(find(jj,1));
             aa = sparse(a,1,1,size(L,1),1);
             ss = (L*aa | L'*aa) & ~aa & ~nn;
             a  = find(aa);
@@ -378,7 +384,7 @@ for i = 1:128
     y{1,i} = a;
     y{2,i} = s;
     y{3,i} = j;
-    
+        
     % plot
     %----------------------------------------------------------------------
     if all(nn)
@@ -467,12 +473,14 @@ for i = 1:128
         break
     end
     
-end
+end 
+    
+
 return
 
 
 function [bol,col,msz] = spm_MB_col(n)
-% FORNAT [bol,col,msz] = spm_MB_col(n)
+% FORMAT [bol,col,msz] = spm_MB_col(n)
 % returns colours and market size for number of partitions
 % n  - number of partitions
 %--------------------------------------------------------------------------

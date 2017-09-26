@@ -34,6 +34,10 @@ end
 A     = A/diag(sum(A));                % likelihood
 lnpH  = log(hanning(n))/2;             % hidden states)
 
+% subroutine to illustrate the decomposition of (relative) self entropy
+%--------------------------------------------------------------------------
+spm_G_check(A,lnpH);
+
 % progressively optimise mutual information w.r.t. hidden states
 %==========================================================================
 ni    = [1 7 8];                       % batches of iterations
@@ -245,5 +249,78 @@ pS    = A*pH;
 %--------------------------------------------------------------------------
 MI3   = - pS'*spm_G(A,lnpH);
 
+
+function [G,Gi,Ge] = spm_G_check(A,lnpH)
+% FORMAT [G,Gi,Ge] = spm_G(A,lnpH)
+% A    - likelihhod p(S|H)
+% pnpH - log prior log(p(H))
+%
+% G = Ge - Gi               % self entropy (extrinsic cost - intrinsic MI)
+% E[Gi] = I(H,S'|S)         % conditional MI
+% E[Ge] = I(H,S)            % (second-order) MI
+% E[G]  = I(H,S',S)         % (third order)  MI
+
+% evaluate marginal over hidden states
+%--------------------------------------------------------------------------
+n     = size(A,2);
+pH    = spm_softmax(lnpH);
+
+% evaluate joint density and posterior
+%--------------------------------------------------------------------------
+pSxH  = A*diag(pH);
+pSxH  = pSxH/sum(sum(pSxH));
+pHS   = pSxH'/diag(sum(pSxH,2) + eps);
+pS    = sum(pSxH,2);
+
+% entropies and probabilities
+%--------------------------------------------------------------------------
+for j = 1:n
+    ph            = pHS(:,j);
+    ps            = A*ph;
+    psxh          = A*diag(ph);
+    psxh          = psxh/sum(sum(psxh));
+    psxhxS(:,:,j) = psxh*pS(j);
+    
+    % intrinsic MI minus KL (extrinsic cost)
+    %----------------------------------------------------------------------
+    Gi(j,1) = psxh(:)'*log(psxh(:) + eps) - ps'*log(ps) - ph'*log(ph);
+    Ge(j,1) = ph'*(log(ph) - log(pH));
+    
+    Gp(j,1)   = ps'*log(ps) + ph'*log(ph) + ph'*log(ph)...
+              - psxh(:)'*log(psxh(:)) - ph'*log(pH);
+    Gp(j,1)   = ps'*log(ps) + ph'*log(ph) - psxh(:)'*log(pSxH(:));
+    
+    disp(psxh(:)'*log(pSxH(:)) - ph'*log(pH) - ...
+        (psxh(:)'*log(psxh(:)) - ph'*log(ph)) )
+    
+end
+
+% self entropy
+%--------------------------------------------------------------------------
+G      = Ge - Gi;
+
+IsHIS  = Gi'*pS;
+IHS    = Ge'*pS;
+IsHS   = G'*pS;
+
+psxh   = squeeze(sum(psxhxS,3));
+psxS   = squeeze(sum(psxhxS,2));
+pHxS   = squeeze(sum(psxhxS,1));
+ps     = sum(psxh,2);
+
+HsHS   = -psxhxS(:)'*log(psxhxS(:));
+HS     = -pS'*log(pS);
+Hs     = -ps'*log(ps);
+HH     = -pH'*log(pH);
+HsH    = -psxh(:)'*log(psxh(:));
+HsS    = -psxS(:)'*log(psxS(:));
+HHS    = -pHxS(:)'*log(pHxS(:));
+
+I3     = HsHS + Hs + HH + HS - HsH - HHS - HsS;
+I3     = Hs + HS - HsS;
+
+HsHS   =  HsH + HHS - HH;
+
+return
 
 
