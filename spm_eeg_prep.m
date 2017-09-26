@@ -17,7 +17,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 7169 2017-09-19 10:42:27Z vladimir $
+% $Id: spm_eeg_prep.m 7175 2017-09-26 14:50:54Z vladimir $
 
 D = spm_eeg_load(S.D);
 
@@ -83,7 +83,7 @@ switch lower(S.task)
         
         dictionary = { % Should be updates with updates to BIDS specification
             'MEGMAG'   'MEGMAG'
-            'MEGGRAD'  'MEGGRAD'
+            'MEGGRAD'  'MEGPLANAR'
             'MEG'      'MEG'
             'MEGREF'   'REF'
             'EEG'      'EEG'
