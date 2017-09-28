@@ -27,6 +27,10 @@ function varargout = spm_mesh_render(action,varargin)
 % FORMAT MAP = spm_mesh_render('ColourMap',AX)
 % Retrieves the current colourmap.
 %
+% FORMAT H = spm_mesh_render('View',AX, V)
+% AX       - axis handle or structure returned by spm_mesh_render('Disp',...)
+% V        - viewpoint specification (see view())
+%
 % FORMAT spm_mesh_render('Register',AX,hReg)
 % AX       - axis handle or structure returned by spm_mesh_render('Disp',...)
 % hReg     - Handle of HandleGraphics object to build registry in.
@@ -35,7 +39,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 7013 2017-02-09 18:41:14Z guillaume $
+% $Id: spm_mesh_render.m 7177 2017-09-28 09:52:56Z guillaume $
 
 
 %-Input parameters
@@ -323,6 +327,32 @@ switch lower(action)
             d = getappdata(H.patch,'data');
             updateTexture(H,d);
         end
+        
+    %-View
+    %======================================================================
+    case 'view'
+        if isempty(varargin), varargin{1} = gca; end
+        H = getHandles(varargin{1});
+        if numel(varargin) < 2, v = 'left'; else v = varargin{2}; end
+        if ischar(v)
+            switch lower(v)
+                case 'right'
+                    v = [90 0];
+                case 'left'
+                    v = [-90 0];
+                case 'top'
+                    v = [0 90];
+                case 'bottom'
+                    v = [-180 -90];
+                case 'front'
+                    v = [-180 0];
+                case 'back'
+                    v = [0 0];
+                otherwise
+                    error('Unknown view position.');
+            end
+        end
+        myView([],[],H,v);
         
     %-Register
     %======================================================================
