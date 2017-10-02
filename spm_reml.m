@@ -37,7 +37,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,t,hE,hP)
 % Copyright (C) 2002-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 7137 2017-07-19 15:07:34Z guillaume $
+% $Id: spm_reml.m 7178 2017-10-02 18:12:16Z karl $
 
 
 % check defaults
@@ -227,13 +227,13 @@ end
 %--------------------------------------------------------------------------
 if nargout > 3
     
-    % tr(hP*inv(Ph)) - nh + tr(pP*inv(Pp)) - np (pP = 0)
+    % tr(hP*inv(Ph)) - nh (complexity KL cost of parameters = 0)
     %----------------------------------------------------------------------
-    Ft = trace(hP/Ph) - length(Ph) - length(Cq);
+    Ft = trace(hP/Ph) - length(Ph);
     
     % complexity - KL(Ph,hP)
     %----------------------------------------------------------------------
-    Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph/hP)/2 - N*spm_logdet(Cq)/2;
+    Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph/hP)/2;
     
     % Accuracy - ln p(Y|h)
     %----------------------------------------------------------------------
