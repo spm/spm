@@ -35,8 +35,8 @@ A     = A/diag(sum(A));                % likelihood
 lnpH  = log(hanning(n))/2;             % hidden states)
 
 % subroutine to illustrate the decomposition of (relative) self entropy
-%--------------------------------------------------------------------------
-spm_G_check(A,lnpH);
+%==========================================================================
+% spm_G_check(A,lnpH);
 
 % progressively optimise mutual information w.r.t. hidden states
 %==========================================================================
@@ -58,10 +58,10 @@ for g = 1:3
         % mutual informations
         %------------------------------------------------------------------
         MIi(g) = pS'*Gi;
-        MI2(g) = pS'*Ge;
+        MIe(g) = pS'*Ge;
         MI3(g) = pS'*G ;
         H(g)   = pS'*(-log(pS));
-        
+        C(g)   = H(g) - MI3(g);
         
         % Optimise marginal w.r.t. second-order mutual information
         %------------------------------------------------------------------
@@ -82,10 +82,11 @@ for g = 1:3
         xlabel('Hidden states'), ylabel('Blanket states')
         axis square, axis xy
         
-        subplot(3,2,2),     bar([MIi;MI2;MI3;H]')
+        subplot(3,2,2),     bar([MIe;MIi;H;C;MI3]')
         title('Mutual information','FontSize',16)
         xlabel('Iteration'),ylabel('Mutual information')
-        axis square, axis xy, legend({'iMI','MI2','MI3','H'})
+        axis square, axis xy,
+        legend({'extrinsic','intrinsic','entropy','conditional','self-entropy'})
         set(gca,'XTickLabel',ni)
         
         subplot(3,3,g + 3), imagesc(1 - pSxH)
@@ -255,10 +256,10 @@ function [G,Gi,Ge] = spm_G_check(A,lnpH)
 % A    - likelihhod p(S|H)
 % pnpH - log prior log(p(H))
 %
-% G = Ge - Gi               % self entropy (extrinsic cost - intrinsic MI)
-% E[Gi] = I(H,S'|S)         % conditional MI
-% E[Ge] = I(H,S)            % (second-order) MI
-% E[G]  = I(H,S',S)         % (third order)  MI
+% G = Ge - Gi                 % self entropy (extrinsic cost - intrinsic MI)
+% E[Gi] = I(H,S'|S)           % conditional MI
+% E[Ge] = I(H,S)              % (second-order) MI
+% E[G]  = I(H,S',S) = I(S,S') % (third order)  MI = self entropy
 
 % evaluate marginal over hidden states
 %--------------------------------------------------------------------------
@@ -286,28 +287,31 @@ for j = 1:n
     Gi(j,1) = psxh(:)'*log(psxh(:) + eps) - ps'*log(ps) - ph'*log(ph);
     Ge(j,1) = ph'*(log(ph) - log(pH));
     
-    Gp(j,1)   = ps'*log(ps) + ph'*log(ph) + ph'*log(ph)...
+    Gp(j,1) = ps'*log(ps) + ph'*log(ph) + ph'*log(ph)...
               - psxh(:)'*log(psxh(:)) - ph'*log(pH);
-    Gp(j,1)   = ps'*log(ps) + ph'*log(ph) - psxh(:)'*log(pSxH(:));
-    
-    disp(psxh(:)'*log(pSxH(:)) - ph'*log(pH) - ...
-        (psxh(:)'*log(psxh(:)) - ph'*log(ph)) )
-    
+    Gp(j,1) = ps'*log(ps) + ph'*log(ph) - psxh(:)'*log(pSxH(:));
+       
 end
 
-% self entropy
+% self entropy and its various forms
 %--------------------------------------------------------------------------
 G      = Ge - Gi;
 
+% intrinsic and extrinsic expected surprises (and prior)
+%--------------------------------------------------------------------------
 IsHIS  = Gi'*pS;
 IHS    = Ge'*pS;
-IsHS   = G'*pS;
+IsHS   =  G'*pS;
 
+% underlying probability distributions
+%--------------------------------------------------------------------------
 psxh   = squeeze(sum(psxhxS,3));
 psxS   = squeeze(sum(psxhxS,2));
 pHxS   = squeeze(sum(psxhxS,1));
 ps     = sum(psxh,2);
 
+% and entropies
+%--------------------------------------------------------------------------
 HsHS   = -psxhxS(:)'*log(psxhxS(:));
 HS     = -pS'*log(pS);
 Hs     = -ps'*log(ps);
@@ -316,10 +320,17 @@ HsH    = -psxh(:)'*log(psxh(:));
 HsS    = -psxS(:)'*log(psxS(:));
 HHS    = -pHxS(:)'*log(pHxS(:));
 
+% equivalent formulation of self entropy in terms of entropy
+%--------------------------------------------------------------------------
 I3     = HsHS + Hs + HH + HS - HsH - HHS - HsS;
 I3     = Hs + HS - HsS;
+HsHS   = HsH + HHS - HH;
 
-HsHS   =  HsH + HHS - HH;
+subplot(3,1,1)
+bar([IsHIS IHS IsHS 0 HS (HsS - HS) I3])
+str  = {'I(H,s|S)','I(H,S)','I(S,s)',' ','H(s)','H(s|S)','I(S,s)'};
+set(gca,'XTickLabel',str)
+title('Self entropy and information')
 
 return
 
