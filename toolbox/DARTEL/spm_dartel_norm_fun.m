@@ -35,12 +35,18 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 5668 2013-10-03 18:34:18Z guillaume $
+% $Id: spm_dartel_norm_fun.m 7180 2017-10-03 10:26:43Z john $
 
-% Hard coded stuff, that should maybe be customisable
-K    = 6;
-tpm  = fullfile(spm('Dir'),'tpm','TPM.nii');
+% If there is no passed tpm field (ie the default behaviour), then use the default.
+if isfield(job,'tpm')
+    tpm  = job.tpm.fn;
+    K    = job.tpm.k;
+else
+    K    = 6;
+    tpm  = fullfile(spm('Dir'),'tpm','TPM.nii');
+end
 Mmni = spm_get_space(tpm);
+
 
 % Dartel template
 if ~isempty(job.template{1})
