@@ -5,7 +5,7 @@ function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 7180 2017-10-03 10:26:43Z john $
+% $Id: spm_preproc_write8.m 7181 2017-10-03 14:28:20Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -637,7 +637,7 @@ for i=1:size(b,3)
         cp        = ((cp>th).*(slices{1}+slices{2}+slices{3}))>th;
         slices{3} = slices{3}.*cp;
     end
-    slices{5} = slices{5}+1e-4; % Add a little to the soft tissue class
+    slices{5} = slices{5};
     tot       = zeros(size(bp))+eps;
     for k1=1:size(P,4)
         tot   = tot + slices{k1};
