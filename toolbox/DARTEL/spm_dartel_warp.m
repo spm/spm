@@ -7,7 +7,7 @@ function out = spm_dartel_warp(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_warp.m 7155 2017-08-17 10:55:05Z john $
+% $Id: spm_dartel_warp.m 7182 2017-10-06 10:37:31Z christophe $
 
 code = 2;
 st = job.settings;
@@ -15,6 +15,13 @@ n1 = numel(job.images);
 n2 = numel(job.images{1});
 NF = struct('NI',[],'vn',[1 1]);
 NF(n1,n2) = struct('NI',[],'vn',[1 1]);
+
+% Check if output path is specified
+if isfield(job,'output')
+    output = job.output;
+else
+    output = [];
+end
 
 for i=1:n1,
     if numel(job.images{i}) ~= n2,
@@ -50,6 +57,7 @@ for i=1:n2,
 
     NU = NF(1,i).NI;
     [pth,nam,ext]   = fileparts(NU.dat.fname);
+    pth = get_output_path(pth,output);
     NU.dat.fname = fullfile(pth,['u_' nam '.nii']);
     NU.dat.dim   = [dm 1 3];
     NU.dat.dtype = 'float32-le';
@@ -96,7 +104,38 @@ n2 = numel(job.images{1});
 out.files = cell(n2,1);
 for j=1:n2,
     [pth,nam,ext,num] = spm_fileparts(job.images{1}{j});
+    pth = get_output_path(pth,output);
     fname             = fullfile(pth,['u_' nam '.nii']);
     out.files{j}      = fname;
 end;
+end
+%__________________________________________________________________________
+
+%__________________________________________________________________________
+function pth = get_output_path(pth,output)
+
+% Generate desired output path.
+if ~isempty(output)
+    switch output.option
+        case 'same'
+            % no change to output path
+        case 'allin'
+            % put everythin the same predefined folder
+            pth = output.outDir;
+        case 'subjspec'
+            % keep per-subject organisation in predefined folder
+            % and create it if necessary
+            l_fsep = strfind(pth,filesep);
+            lp_fsep = [0 l_fsep length(pth)+1];
+            dn_subj = pth(lp_fsep(end-1)+1:lp_fsep(end)-1);
+            pth = fullfile(output.outDir,dn_subj);
+        otherwise
+            % inconsistent specification -> no change to output path
+            fprintf('\nWrong output path specification, use input data path.\n');
+    end
+    if ~exist(pth,'dir'), mkdir(pth); end
+end
+
+end
+%__________________________________________________________________________
 

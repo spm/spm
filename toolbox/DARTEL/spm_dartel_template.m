@@ -7,7 +7,7 @@ function out = spm_dartel_template(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_template.m 4064 2010-09-03 12:57:10Z john $
+% $Id: spm_dartel_template.m 7182 2017-10-06 10:37:31Z christophe $
 
 code = 2;
 st = job.settings;
@@ -16,6 +16,13 @@ n1 = numel(job.images);
 n2 = numel(job.images{1});
 NF = struct('NI',[],'vn',[1 1]);
 NF(n1,n2) = struct('NI',[],'vn',[1 1]);
+
+% Check if output path is specified
+if isfield(job,'output')
+    output = job.output;
+else
+    output = [];
+end
 
 for i=1:n1,
     if numel(job.images{i}) ~= n2,
@@ -37,6 +44,7 @@ t  = zeros([dm n1+1],'single');
 tname = deblank(job.settings.template);
 for i=1:n2,
     [pth,nam,ext]   = fileparts(NU(i).dat.fname);
+    pth = get_output_path(pth,output,'subject');
     if ~isempty(tname),
         NU(i).dat.fname = fullfile(pth,['u_' nam '_' tname '.nii']);
     else
@@ -127,6 +135,7 @@ if ~isempty(tname),
     NG = NF(1,1).NI;
     NG.descrip       = sprintf('Avg of %d', n2);
     [tdir,nam,ext]   = fileparts(job.images{1}{1});
+    tdir = get_output_path(tdir,output,'darteltemplates');
     NG.dat.fname     = fullfile(tdir,[tname, '_0.nii']);
     NG.dat.dim       = [dm n1];
     NG.dat.dtype     = 'float32-le';
@@ -210,6 +219,7 @@ end;
 n1 = numel(job.images);
 n2 = numel(job.images{1});
 [tdir,nam,ext] = fileparts(job.images{1}{1});
+tdir = get_output_path(tdir,output,'darteltemplates');
 tname = deblank(job.settings.template);
 out.template = cell(numel(job.settings.param),1);
 if ~isempty(tname),
@@ -221,6 +231,7 @@ end
 out.files = cell(n2,1);
 for j=1:n2,
     [pth,nam,ext,num] = spm_fileparts(job.images{1}{j});
+    pth = get_output_path(pth,output,'subject');
     if ~isempty(tname),
         fname             = fullfile(pth,['u_' nam '_' tname '.nii']);
     else
@@ -229,3 +240,39 @@ for j=1:n2,
     out.files{j} = fname;
 end;
 
+end
+%__________________________________________________________________________
+
+%__________________________________________________________________________
+function pth = get_output_path(pth,output,dtype)
+
+% Generate desired output path.
+
+if ~isempty(output)
+    switch output.option
+        case 'same'
+            % no change to output path
+        case 'allin'
+            % put everythin the same predefined folder
+            pth = output.outDir;
+        case 'subjspec'
+            % keep per-subject organisation in predefined folder
+            % and create it if necessary
+            switch dtype
+                case 'subject' % get subject's directory name
+                    l_fsep = strfind(pth,filesep);
+                    lp_fsep = [0 l_fsep length(pth)+1];
+                    dn_out = pth(lp_fsep(end-1)+1:lp_fsep(end)-1);
+                case 'darteltemplates'
+                    dn_out = 'DartelTemplates';
+            end
+            pth = fullfile(output.outDir,dn_out);
+        otherwise
+            % inconsistent specification -> no change to output path
+            fprintf('\nWrong output path specification, use input data path.\n');
+    end
+    if ~exist(pth,'dir'), mkdir(pth); end
+end
+
+end
+%__________________________________________________________________________
