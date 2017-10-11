@@ -19,6 +19,11 @@ function [f,J,Q] = spm_fx_bgc(x,u,P,M)
 % G(1,7) = stn -> gpi (+ve ext)
 % G(1,8) = gpi -> gpi (-ve self)
 % G(1,9) = gpi -> tha (-ve ext)
+%__________________________________________________________________________
+% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
+ 
+% Bernadette van Wijk
+% $Id: spm_fx_bgc.m 7185 2017-10-11 10:10:04Z spm $
 
 
 % check if intrinsic connections are free parameters
@@ -154,11 +159,3 @@ f(:,5) = x(:,6);
 f(:,7) = x(:,8);
 f(:,9) = x(:,10);
 f      = spm_vec(f);
-
-
-
-
-
-
-
-

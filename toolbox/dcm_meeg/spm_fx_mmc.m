@@ -28,10 +28,13 @@ function [f,J,Q] = spm_fx_mmc(x,u,P,M)
 % T  = synaptic time constants
 % S  = slope of sigmoid activation function
 %
+%__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
+ 
+% Bernadette van Wijk
+% $Id: spm_fx_mmc.m 7185 2017-10-11 10:10:04Z spm $
 
- 
- 
+
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
 x  = spm_unvec(x,M.x);            % neuronal states
