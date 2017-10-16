@@ -7,10 +7,10 @@ function [Nv, Nf] = spm_mesh_normals(M, unit)
 % Nv     - a [nx3] array of (unit) normals on vertices
 % Nf     - a [mx3] array of (unit) normals on faces
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_normals.m 6955 2016-11-30 11:40:52Z guillaume $
+% $Id: spm_mesh_normals.m 7186 2017-10-16 10:12:30Z guillaume $
 
 
 if nargin < 2, unit = false; end
@@ -21,7 +21,7 @@ if ishandle(M)
         Nf = double(get(M,'FaceNormals'));
     end
     if isempty(Nv)
-        M = struct('faces',get(M,'Faces'), 'vertices',get(N,'Vertices'));
+        M = struct('faces',get(M,'Faces'), 'vertices',get(M,'Vertices'));
         if nargout > 1
             [Nv, Nf] = spm_mesh_normals(M, unit);
         else
@@ -78,4 +78,3 @@ function N = normit(N)
 normN = sqrt(sum(N.^2,2));
 normN(normN < eps) = 1;
 N     = bsxfun(@rdivide,N,normN);
-    
