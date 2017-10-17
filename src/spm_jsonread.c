@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 7146 2017-08-02 09:30:25Z guillaume $
+ * $Id: spm_jsonread.c 7190 2017-10-17 11:22:43Z spm $
  * Guillaume Flandin
  */
 
@@ -30,6 +30,10 @@ mxArray *mexCallMATLABWithTrap(int nlhs, mxArray *plhs[], int nrhs, mxArray *prh
 }
 #endif
 */
+
+#if defined(_WIN32) || defined(_WIN64)
+  #define strcasecmp _stricmp
+#endif
 
 static enum jsonrepsty {
   JSON_REPLACEMENT_STYLE_NOP,
