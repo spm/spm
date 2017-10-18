@@ -1,6 +1,6 @@
 function  [C,h,Ph,F,Fa,Fc] = spm_reml_A(YY,X,Q,N,hE,hC,V)
 % ReML estimation of covariance components from y*y' - factored components
-% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml_A(YY,X,Q,N,[hE,hC,V]);
+% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml_A(YY,X,Q,N,[hE,hC,V])
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
@@ -32,10 +32,10 @@ function  [C,h,Ph,F,Fa,Fc] = spm_reml_A(YY,X,Q,N,hE,hC,V)
 %      spm_sp_reml: for sparse patterns (c.f., ARD)
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_reml_A.m 4805 2012-07-26 13:16:18Z karl $
+% $Id: spm_reml_A.m 7192 2017-10-18 14:59:01Z guillaume $
 
 
 % assume a single sample if not specified
@@ -171,13 +171,13 @@ end
 Ph    = -dFdhh;
 if nargout > 3
     
-    % tr(hP*inv(Ph)) - nh + tr(pP*inv(Pp)) - np (pP = 0)
+    % tr(hP*inv(Ph)) - nh (complexity KL cost of parameters = 0)
     %----------------------------------------------------------------------
-    Ft = trace(hP/Ph) - length(Ph) - length(Cq);
+    Ft = trace(hP/Ph) - length(Ph);
     
     % complexity - KL(Ph,hP)
     %----------------------------------------------------------------------
-    Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph/hP)/2 - N*spm_logdet(Cq)/2;
+    Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph/hP)/2;
     
     % Accuracy - ln p(Y|h)
     %----------------------------------------------------------------------
