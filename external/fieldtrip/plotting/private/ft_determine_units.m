@@ -39,8 +39,8 @@ function [obj] = ft_determine_units(obj)
 % $Id$
 
 % ensure the correct number of input and output arguments
-narginchk(1,1);
-nargoutchk(0,1);
+% narginchk(1,1);
+% nargoutchk(0,1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
