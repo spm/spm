@@ -36,9 +36,9 @@ function DCM = spm_dcm_fmri_csd(P)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 7159 2017-08-24 14:16:51Z adeel $
+% $Id: spm_dcm_fmri_csd.m 7196 2017-10-31 12:07:52Z adeel $
 
-SVNid = '$Rev: 7159 $';
+SVNid = '$Rev: 7196 $';
 
 % Load DCM structure
 %--------------------------------------------------------------------------
@@ -78,7 +78,9 @@ catch
         DCM.options.maxit = 128;
     end
 end
- 
+
+try DCM.M.Nmax; catch, DCM.M.Nmax = DCM.options.maxit; end
+
 % check max nodes
 %--------------------------------------------------------------------------
 try
