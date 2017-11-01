@@ -5,7 +5,7 @@ function res = badsamples(this, chanind, sampind, trialind)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: badsamples.m 7198 2017-11-01 12:47:36Z vladimir $
+% $Id: badsamples.m 7199 2017-11-01 16:42:12Z vladimir $
 
 if ischar(chanind) && isequal(chanind, ':')
     chanind = 1:nchannels(this);
@@ -19,7 +19,7 @@ if ischar(trialind) && isequal(trialind, ':')
     trialind = 1:ntrials(this);
 end
 
-if ~isequal(this(type), 'continuous') && ~any(trialonset(this))
+if ~isequal(type(this), 'continuous') && ~any(trialonset(this))
     error('Trial onset information is not available. Cannot map artefact events to samples.');
 end
 
