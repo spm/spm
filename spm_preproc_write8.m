@@ -1,11 +1,11 @@
-function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
+function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx,odir)
 % Write out VBM preprocessed data
-% FORMAT [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
+% FORMAT [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx,odir)
 %__________________________________________________________________________
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 7181 2017-10-03 14:28:20Z john $
+% $Id: spm_preproc_write8.m 7202 2017-11-08 12:30:01Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -29,6 +29,7 @@ if nargin<5, mrf = 1;         end % MRF parameter
 if nargin<6, cleanup = 1;     end % Run the ad hoc cleanup
 if nargin<7, bb = NaN(2,3);   end % Default to TPM bounding box
 if nargin<8, vx = NaN;        end % Default to TPM voxel size
+if nargin<9, odir = [];       end % Output directory
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -41,7 +42,7 @@ M1      = tpm.M;
 
 % Define orientation and field of view of any "normalised" space
 % data that may be generated (wc*.nii, mwc*.nii, rc*.nii & y_*.nii).
-if any(isfinite(bb(:))) || ~isfinite(vx)
+if any(isfinite(bb(:))) || any(isfinite(vx))
     % If a bounding box is supplied, combine this with the closest
     % bounding box derived from the dimensions and orientations of
     % the tissue priors.
@@ -78,6 +79,7 @@ end
 
 
 [pth,nam] = fileparts(res.image(1).fname);
+if ~isempty(odir) && ischar(odir), pth = odir; end
 ind  = res.image(1).n;
 d    = res.image(1).dim(1:3);
 
@@ -94,6 +96,7 @@ for n=1:N
 
     % Need to fix writing of bias fields or bias corrected images, when the data used are 4D.
     [pth1,nam1] = fileparts(res.image(n).fname);
+    if ~isempty(odir) && ischar(odir), pth1 = odir; end
     chan(n).ind = res.image(n).n;
 
     if bf(n,2)
@@ -151,7 +154,6 @@ do_defs = any(df);
 do_defs = do_cls | do_defs;
 if do_defs
     if df(1)
-        [pth,nam] =fileparts(res.image(1).fname);
         Ndef      = nifti;
         Ndef.dat  = file_array(fullfile(pth,['iy_', nam, '.nii']),...
                                [res.image(1).dim(1:3),1,3],...
@@ -200,12 +202,9 @@ for z=1:length(x3)
         if exist('Ndef','var')
             % Write out the deformation to file, adjusting it so mapping is
             % to voxels (voxels in image to mm in TPM)
-            tmp = M1(1,1)*t1 + M1(1,2)*t2 + M1(1,3)*t3 + M1(1,4);
-            Ndef.dat(:,:,z,1,1) = tmp;
-            tmp = M1(2,1)*t1 + M1(2,2)*t2 + M1(2,3)*t3 + M1(2,4);
-            Ndef.dat(:,:,z,1,2) = tmp;
-            tmp = M1(3,1)*t1 + M1(3,2)*t2 + M1(3,3)*t3 + M1(3,4);
-            Ndef.dat(:,:,z,1,3) = tmp;
+            Ndef.dat(:,:,z,1,1) = M1(1,1)*t1 + M1(1,2)*t2 + M1(1,3)*t3 + M1(1,4);
+            Ndef.dat(:,:,z,1,2) = M1(2,1)*t1 + M1(2,2)*t2 + M1(2,3)*t3 + M1(2,4);
+            Ndef.dat(:,:,z,1,3) = M1(3,1)*t1 + M1(3,2)*t2 + M1(3,3)*t3 + M1(3,4);
         end
 
         if exist('y','var')
@@ -259,14 +258,6 @@ for z=1:length(x3)
                     end
                 end
             end
-
-           %if any(msk(:))
-           %    for k=1:size(q,3)
-           %        tmp = q(:,:,k);
-           %        tmp(msk) = 0;
-           %        q(:,:,k) = tmp;
-           %    end
-           %end
             Q(:,:,z,:) = reshape(q,[d(1:2),1,Kb]);
         end
     end
@@ -300,7 +291,7 @@ if do_cls
 
     if cleanup
         % Use an ad hoc brain cleanup procedure
-        if size(P,4)>5
+        if size(P,4)>3
             P = clean_gwc(P,cleanup);
         else
             warning('Cleanup not done.');
@@ -348,7 +339,6 @@ if any(tc(:,2))
 
     mat0   = R\mat; % Voxel-to-world of original image space
 
-    [pth,nam] = fileparts(res.image(1).fname);
     fwhm   = max(vx./sqrt(sum(res.image(1).mat(1:3,1:3).^2))-1,0.01);
     for k1=1:size(tc,1)
         if tc(k1,2)
@@ -637,7 +627,6 @@ for i=1:size(b,3)
         cp        = ((cp>th).*(slices{1}+slices{2}+slices{3}))>th;
         slices{3} = slices{3}.*cp;
     end
-    slices{5} = slices{5};
     tot       = zeros(size(bp))+eps;
     for k1=1:size(P,4)
         tot   = tot + slices{k1};

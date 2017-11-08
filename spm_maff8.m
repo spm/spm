@@ -20,7 +20,7 @@ function [M,ll,h] = spm_maff8(varargin)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_maff8.m 6421 2015-04-23 16:54:25Z john $
+% $Id: spm_maff8.m 7202 2017-11-08 12:30:01Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,ll,h]      = affreg(buf, MG, x, ff, varargin{4:end});
@@ -189,7 +189,7 @@ for iter=1:200
                     h0(:,k) = h0(:,k) + accumarray(gm,q(:,k)./sq,[256 1]);
                 end
             end
-            h1  = conv2((h0+eps)/sum(h0(:)),krn,'same');
+            h1  = conv2((h0+eps)/sum(h0(:)+eps),krn,'same');
             h1  = h1./(sum(h1,2)*sum(h1,1));
             if ~rem(subit,4),
                 if (ll1-ll0)/sum(h0(:)) < 1e-5, break; end
