@@ -1,6 +1,6 @@
-function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
+function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir,meta)
 % Convert DICOM images into something that SPM can use (e.g. NIfTI)
-% FORMAT spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
+% FORMAT out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 % Inputs:
 % hdr      - a cell array of DICOM headers from spm_dicom_headers
 % opts     - options:
@@ -10,7 +10,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 %              'spect'    - SIEMENS Spectroscopy DICOMs (some formats only)
 %                           This will write out a 5D NIFTI containing real
 %                           and imaginary part of the spectroscopy time 
-%                           points at the position of spectroscopy voxel(s).
+%                           points at the position of spectroscopy voxel(s)
 %              'raw'      - convert raw FIDs (not implemented)
 % root_dir - 'flat'       - do not produce file tree [default]
 %              With all other options, files will be sorted into
@@ -26,17 +26,18 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
 %              'img'      - Two file (hdr+img) NIfTI format
 %            All images will contain a single 3D dataset, 4D images will
 %            not be created.
-% out_dir  - output directory name.
+% out_dir  - output directory name [default: pwd]
+% meta     - save metadata as sidecar JSON file [default: false]
 %
 % Output:
 % out      - a struct with a single field .files. out.files contains a
 %            cellstring with filenames of created files. If no files are
 %            created, a cell with an empty string {''} is returned.
 %__________________________________________________________________________
-% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7136 2017-07-18 10:51:48Z john $
+% $Id: spm_dicom_convert.m 7201 2017-11-08 11:13:25Z guillaume $
 
 
 %-Input parameters
@@ -45,6 +46,7 @@ if nargin<2, opts     = 'all';  end
 if nargin<3, root_dir = 'flat'; end
 if nargin<4, format   = spm_get_defaults('images.format'); end
 if nargin<5, out_dir  = pwd;    end
+if nargin<6, meta     = false;  end
 
 %-Select files
 %--------------------------------------------------------------------------
@@ -63,28 +65,29 @@ end
 fmos = {};
 fstd = {};
 fspe = {};
+fmul = {};
 if (strcmp(opts,'all') || strcmp(opts,'mosaic')) && ~isempty(mosaic)
-    fmos = convert_mosaic(mosaic,root_dir,format,out_dir);
+    fmos = convert_mosaic(mosaic,root_dir,format,out_dir,meta);
 end
 if (strcmp(opts,'all') || strcmp(opts,'standard')) && ~isempty(standard)
-    fstd = convert_standard(standard,root_dir,format,out_dir);
+    fstd = convert_standard(standard,root_dir,format,out_dir,meta);
 end
 if (strcmp(opts,'all') || strcmp(opts,'spect')) && ~isempty(spect)
-    fspe = convert_spectroscopy(spect,root_dir,format,out_dir);
+    fspe = convert_spectroscopy(spect,root_dir,format,out_dir,meta);
 end
 if (strcmp(opts,'all') || strcmp(opts,'multiframe')) && ~isempty(multiframe)
-    fspe = convert_multiframes(multiframe,root_dir,format,out_dir);
+    fmul = convert_multiframes(multiframe,root_dir,format,out_dir,meta);
 end
-out.files = [fmos(:); fstd(:); fspe(:)];
+out.files = [fmos(:); fstd(:); fspe(:); fmul(:)];
 if isempty(out.files)
     out.files = {''};
 end
 
 
 %==========================================================================
-% function fnames = convert_mosaic(hdr,root_dir,format,out_dir)
+% function fnames = convert_mosaic(hdr,root_dir,format,out_dir,meta)
 %==========================================================================
-function fnames = convert_mosaic(hdr,root_dir,format,out_dir)
+function fnames = convert_mosaic(hdr,root_dir,format,out_dir,meta)
 spm_progress_bar('Init',length(hdr),'Writing Mosaic', 'Files written');
 
 fnames = cell(length(hdr),1);
@@ -216,7 +219,7 @@ for i=1:length(hdr)
     RescaleSlope     = 1;
     RescaleIntercept = 0;
     if isfield(hdr{i},'RescaleSlope') && hdr{i}.RescaleSlope ~= 1
-        RescaleSlope     = hdr{i}.RescaleSlope;
+        RescaleSlope = hdr{i}.RescaleSlope;
     end
     if isfield(hdr{i},'RescaleIntercept') && hdr{i}.RescaleIntercept ~= 0
         RescaleIntercept = hdr{i}.RescaleIntercept;
@@ -230,6 +233,10 @@ for i=1:length(hdr)
     N.descrip     = descrip;
     create(N);
 
+    if meta
+        N = spm_dicom_metadata(N,hdr{i});
+    end
+    
     % Write the data unscaled
     dat           = N.dat;
     dat.scl_slope = [];
@@ -243,13 +250,13 @@ spm_progress_bar('Clear');
 
 
 %==========================================================================
-% function fnames = convert_standard(hdr,root_dir,format,out_dir)
+% function fnames = convert_standard(hdr,root_dir,format,out_dir,meta)
 %==========================================================================
-function fnames = convert_standard(hdr,root_dir,format,out_dir)
+function fnames = convert_standard(hdr,root_dir,format,out_dir,meta)
 hdr = sort_into_volumes(hdr);
 fnames = cell(length(hdr),1);
 for i=1:length(hdr)
-    fnames{i} = write_volume(hdr{i},root_dir,format,out_dir);
+    fnames{i} = write_volume(hdr{i},root_dir,format,out_dir,meta);
 end
 
 
@@ -510,9 +517,9 @@ end
 
 
 %==========================================================================
-% function fname = write_volume(hdr,root_dir,format,out_dir)
+% function fname = write_volume(hdr,root_dir,format,out_dir,meta)
 %==========================================================================
-function fname = write_volume(hdr,root_dir,format,out_dir)
+function fname = write_volume(hdr,root_dir,format,out_dir,meta)
 
 % Output filename
 %--------------------------------------------------------------------------
@@ -682,24 +689,29 @@ N.mat_intent  = 'Scanner';
 N.mat0_intent = 'Scanner';
 N.descrip     = descrip;
 create(N);
+
+if meta
+    N = spm_dicom_metadata(N,hdr{1});
+end
+
 N.dat(:,:,:) = volume;
 spm_progress_bar('Clear');
 
 
 %==========================================================================
-% function fnames = convert_spectroscopy(hdr,root_dir,format,out_dir)
+% function fnames = convert_spectroscopy(hdr,root_dir,format,out_dir,meta)
 %==========================================================================
-function fnames = convert_spectroscopy(hdr,root_dir,format,out_dir)
+function fnames = convert_spectroscopy(hdr,root_dir,format,out_dir,meta)
 fnames = cell(length(hdr),1);
 for i=1:length(hdr)
-    fnames{i} = write_spectroscopy_volume(hdr(i),root_dir,format,out_dir);
+    fnames{i} = write_spectroscopy_volume(hdr(i),root_dir,format,out_dir,meta);
 end
 
 
 %==========================================================================
-% function fname = write_spectroscopy_volume(hdr,root_dir,format,out_dir)
+% function fname = write_spectroscopy_volume(hdr,root_dir,format,out_dir,meta)
 %==========================================================================
-function fname = write_spectroscopy_volume(hdr,root_dir,format,out_dir)
+function fname = write_spectroscopy_volume(hdr,root_dir,format,out_dir,meta)
 % Output filename
 %-------------------------------------------------------------------
 fname = getfilelocation(hdr{1}, root_dir,'S',format,out_dir);
@@ -858,6 +870,10 @@ N.extras      = struct('MagneticFieldStrength',...
                        'RealDwellTime',...
                        get_numaris4_numval(privdat,'RealDwellTime'));
 create(N);
+
+if meta
+    N = spm_dicom_metadata(N,hdr{1});
+end
 
 % Read data, swap dimensions
 data = permute(reshape(read_spect_data(hdr{1},ntp),dim([4 5 1 2 3])), ...
@@ -1241,16 +1257,43 @@ if isfield(hdr,'GE_ImageType')
     end
 end
 
+% To use ICE Dims systematically in file names in order to avoid
+% overwriting uncombined coil images, which have identical file name
+% otherwise)
+try 
+    ICE_Dims = get_numaris4_val(hdr.CSAImageHeaderInfo,'ICE_Dims');
+    % extract ICE dims as an array of numbers (replace 'X' which is for
+    % combined images by '-1' first): 
+    CHA = sscanf(strrep(ICE_Dims,'X','-1'), '%i_%i_%i_%i_%i_%i_%i_%i_%i')';
+    if CHA(1)>0
+        CHA = sprintf('%.3d',CHA(1));
+    else 
+        CHA = '';
+    end
+catch
+    CHA = '';
+end
+
 if strcmp(root_dir, 'flat')
     % Standard SPM file conversion
     %----------------------------------------------------------------------
     if checkfields(hdr,'SeriesNumber','AcquisitionNumber')
         if checkfields(hdr,'EchoNumbers')
-            fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d%s.%s', prefix, strip_unwanted(PatientID),...
-                SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, ImTyp, format);
+if ~isempty(CHA)
+                fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d-%s%s.%s', prefix, strip_unwanted(PatientID),...
+                    SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, CHA, ImTyp, format);
+            else
+                fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d%s.%s', prefix, strip_unwanted(PatientID),...
+                    SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, ImTyp, format);
+            end
         else
-            fname = sprintf('%s%s-%.4d-%.5d-%.6d%s.%s', prefix, strip_unwanted(PatientID),...
-                SeriesNumber, AcquisitionNumber, InstanceNumber, ImTyp, format);
+            if ~isempty(CHA)
+                fname = sprintf('%s%s-%.4d-%.5d-%.6d-%s%s.%s', prefix, strip_unwanted(PatientID),...
+                    SeriesNumber, AcquisitionNumber, InstanceNumber, CHA, ImTyp, format);
+            else
+                fname = sprintf('%s%s-%.4d-%.5d-%.6d%s.%s', prefix, strip_unwanted(PatientID),...
+                    SeriesNumber, AcquisitionNumber, InstanceNumber, ImTyp, format);
+            end
         end
     else
         fname = sprintf('%s%s-%.6d%s.%s',prefix, ...
@@ -1414,20 +1457,20 @@ else
 end
 
 %==========================================================================
-% function fspe = convert_multiframes(hdr,root_dir,format,out_dir)
+% function fspe = convert_multiframes(hdr,root_dir,format,out_dir,meta)
 %==========================================================================
-function fspe = convert_multiframes(hdr,root_dir,format,out_dir)
+function fspe = convert_multiframes(hdr,root_dir,format,out_dir,meta)
 fspe = {};
 dict = load('spm_dicom_dict.mat');
 for i=1:numel(hdr)
-    out  = convert_multiframe(hdr{i}, dict, root_dir, format,out_dir);
+    out  = convert_multiframe(hdr{i}, dict, root_dir, format,out_dir,meta);
     fspe = [fspe(:); out(:)];
 end
 
 %==========================================================================
-% function out = convert_multiframe(H, dict, root_dir, format,out_dir)
+% function out = convert_multiframe(H, dict, root_dir, format,out_dir,meta)
 %==========================================================================
-function out = convert_multiframe(H, dict, root_dir, format,out_dir)
+function out = convert_multiframe(H, dict, root_dir, format,out_dir,meta)
 out      = {};
 diminfo  = read_DimOrg(H,dict);
 dat      = read_FGS(H,diminfo);
@@ -1673,6 +1716,11 @@ for n=1:size(ord,2),
     Nii.mat0_intent = 'Scanner';
     Nii.descrip     = descrip;
     create(Nii);
+    
+    if meta
+        Nii = spm_dicom_metadata(Nii,H);
+    end
+    
     Nii.dat(end,end,end,end,end) = 0;
 
     % Write the image volume
@@ -1820,5 +1868,3 @@ if isfield(H,'PerFrameFunctionalGroupsSequence'),
 else
     error('"%s" is not multiframe.', H.FileName);
 end
-
-
