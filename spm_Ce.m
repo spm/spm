@@ -24,7 +24,7 @@ function [C] = spm_Ce(t,v,a)
 % Copyright (C) 2000-2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Ce.m 7018 2017-02-15 13:36:48Z guillaume $
+% $Id: spm_Ce.m 7203 2017-11-08 12:49:15Z guillaume $
  
  
 %-Defaults (and backward compatibility with spm_Ce(v,a) == spm_Ce('ar',v,a))
@@ -84,7 +84,7 @@ switch lower(t)
         for m=1:length(v)
             T     = (0:(v(m) - 1))*dt;
             d     = 2.^(floor(log2(dt/4)):log2(64));
-            for i = 1:length(d)
+            for i = 1:min(6,length(d))
                 for j = 0:2
                     QQ = toeplitz((T.^j).*exp(-T/d(i)));
                     [x,y,q] = find(QQ);
