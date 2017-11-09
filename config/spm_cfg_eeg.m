@@ -3,7 +3,7 @@ function meeg = spm_cfg_eeg
 %__________________________________________________________________________
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg.m 7195 2017-10-30 16:49:44Z gareth $
+% $Id: spm_cfg_eeg.m 7206 2017-11-09 16:27:30Z gareth $
 
 %--------------------------------------------------------------------------
 % M/EEG preprocessing
@@ -53,7 +53,7 @@ source.tag    = 'source';
 source.name   = 'Source reconstruction';
 source.help   = {'M/EEG source reconstruction.'};
 %source.values = { spm_cfg_eeg_inv_headmodel, spm_cfg_eeg_inv_headmodelhelmet, spm_cfg_eeg_inv_invert, spm_cfg_eeg_inv_invertiter ,spm_cfg_eeg_inv_simulate,spm_cfg_eeg_inv_mix, spm_cfg_eeg_inv_results, spm_cfg_eeg_inv_extract,spm_cfg_eeg_inv_coregshift,spm_cfg_eeg_inv_sensorshift, spm_cfg_eeg_inv_post, spm_cfg_eeg_inv_patchdef, spm_cfg_eeg_inv_prepro, spm_cfg_eeg_inv_priors,spm_cfg_eeg_inv_optimize}; 
-source.values = { spm_cfg_eeg_inv_headmodel, spm_cfg_eeg_inv_headmodelhelmet, spm_cfg_eeg_inv_invert, spm_cfg_eeg_inv_invertiter ,spm_cfg_eeg_inv_simulate,spm_cfg_eeg_inv_mix, spm_cfg_eeg_inv_results, spm_cfg_eeg_inv_extract,spm_cfg_eeg_inv_coregshift,spm_cfg_eeg_inv_sensorshift}; 
+source.values = { spm_cfg_eeg_inv_headmodel, spm_cfg_eeg_inv_headmodelhelmet, spm_cfg_eeg_inv_invert, spm_cfg_eeg_inv_invertiter ,spm_cfg_eeg_inv_simulate,spm_cfg_eeg_inv_mix, spm_cfg_eeg_inv_results, spm_cfg_eeg_inv_extract,spm_cfg_eeg_inv_coregshift,spm_cfg_eeg_inv_sensorshift, spm_cfg_eeg_dipfit}; 
 
 %--------------------------------------------------------------------------
 % M/EEG Modelling
