@@ -1,10 +1,12 @@
 function setup = spm_cfg_eeg_opmsetup
 % Configuration file for M/EEG OPM set up
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_opmsetup.m 7200 2017-11-06 13:09:39Z spm $
+% $Id: spm_cfg_eeg_opmsetup.m 7207 2017-11-09 16:30:05Z gareth $
 % Tim Tierney's original code modified by Gareth Barnes
+
+
 
 
 R        = cfg_files;
@@ -65,10 +67,10 @@ binind.help    = {'Data channel indices in binary file'};
 % Trigger channels
 convert         = cfg_entry;
 convert.tag     = 'convert';
-convert.name    = 'Conversion from ADC units to fT';
+convert.name    = 'Conversion from ADC units to Tesla';
 convert.strtype = 'r';
 convert.num     = [1 1];
-convert.help    = {'Conversion from ADC units to fT (typically 1e6/2.7)'};
+convert.help    = {'Conversion from ADC units to T (typically 1e6/2.7)'};
 convert.val=    {1e6/2.7};
 
 % Trigger channels
@@ -106,7 +108,7 @@ ncan.tag     = 'ncan';
 ncan.name    = 'reference noise cancellation';
 ncan.strtype = 'r';
 ncan.num     = [2 1];
-ncan.val     = { [ 1 1] };
+ncan.val  = { [ 1 1] };
 ncan.help    = {'Flags (0 or 1) for reference noise cancellation. [1 0] use reference derivatives; [ 0 1] use global signal; [1 1] use both'};
 
 
@@ -118,12 +120,13 @@ setup.help     = {'Set up OPM data in spm format'};
 setup.prog     = @opmsetup;
 setup.vout     = @vout_opmsetup;
 
-
 %==========================================================================
 function out = opmsetup(job)
 
-% READ IN RECORDING SET UP FILE
-%==========================================================================
+
+
+
+%%%%%%%%%%%%%%%%%%%%% READ IN RECORDING SET UP FILE %%%%%%%%%%%%%%%%%%%%%%
 % this table has defines which OPM sensor names go to which ADC channels
 % format: adchan\t opmname\n
 % use some default like XX for no channel connected, or delete redundant
@@ -135,16 +138,14 @@ adcind=matLabel{:,1};
 fprintf('\nFound a total of %d listed connections\n',length(adcind));
 adcOPMs=table2array(matLabel(:,2)); %% OPM names attached to the ADC channels
 timeind=strmatch('Time',adcOPMs,'exact');
-if isempty(timeind)
+if isempty(timeind),
     warning('No time channel found, assuming it is channel 1');
 else
     fprintf('\n Found time channel on %d',timeind);
-end
-
-% READ IN SCANNER-CAST SPECIFYING FILE
-%==========================================================================
-% gives where the slots are in native space and which OPM channels were in these slots
-% each slot has position and orienttation columns 1:3 columns 4:6 plus a column 7
+end;
+%%%%%%%%%%%%% READ IN SCANNER-CAST SPECIFYING FILE %%%%%%%%%%%%%%%%%%%
+%% gives where the slots are in native space and which OPM channels were in these slots
+%% each slot has position and orienttation columns 1:3 columns 4:6 plus a column 7
 castsetup=cell2mat(job.C);
 fprintf('\n Reading scanner cast file %s ', castsetup);
 cast = readtable(castsetup,'ReadVariableNames',0,'Delimiter','\t'); %% this is a scanner-cast specific file
@@ -156,8 +157,7 @@ fprintf('\nFound %d OPM slots on headcast\n',Ncastslots);
 fprintf('\n Names ');
 
 
-% NOW READ IN OPM2SLOT FILE- this is the file that will change most often
-%==========================================================================
+%%% NOW READ IN OPM2SLOT FILE- this is the file that will change most often
 %%% and links the opms to specific slots in scanner-cast
 %%% format : opmname\t slotname\n
 %%% use REF in 2nc column to define a reference channel (i.e. used but not in cast)
@@ -166,7 +166,7 @@ opm2slot = readtable(opm2slotfile,'ReadVariableNames',0,'Delimiter','\t'); %% th
 opm2slot=table2array(opm2slot);
 fprintf('\n*****************************\n')
 fprintf('\nOPM\t\tSlot\tADC chan\n')
-for f=1:size(opm2slot,1)
+for f=1:size(opm2slot,1),
     fprintf('%s\t\t',opm2slot{f,1});
     
     if ~(strcmp(opm2slot{f,2},'REF')),
@@ -185,14 +185,15 @@ for f=1:size(opm2slot,1)
     end;
     opmadcind(f)=adcind(listind); %% adc channel corresponding to opm opm2slot(f,1)
     fprintf('%d\n',opmadcind(f));
-end
+end;
 fprintf('\n*****************************\n')
 megind=find(slotind>0); %% indices of OPM chans in headcast
 
 
-% READ IN LABVIEW BINARY FILE
-%==========================================================================
-% containing the actual recorded data for OPMs and trigger channels
+
+
+%%%%%%%%%%%% READ IN LABVIEW BINARY FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% containing the actual recorded data for OPMs and trigger channels
 labviewfile=cell2mat(job.lbv);
 [a1,b1,c1]=fileparts(labviewfile);
 fprintf('\nReading binary file %s', labviewfile);
@@ -201,67 +202,74 @@ srate=1./mean(diff(time));
 fprintf('\nRead %d samples of %d channels at %3.2fHz sampling rate\n',size(B,1),size(B,2),srate);
 % every second column is a radial sensor
 
-megData = B(:,opmadcind)'; %% get data from the adcchannels that the OPMs were connected to.
-
 alltrigs=round(job.trigind); %% the adc channels containing the triggers
+
+megData = B(:,[opmadcind alltrigs])'; %% get data from the adcchannels that the OPMs were connected to.
+
+
 outbase=sprintf('spm_%s_%s.dat',job.prefix,b1); %% name of output file
 
 
-% convert to SPM
-if exist(outbase)
+%% convert to SPM
+if exist(outbase),
     warning('SPM file already exists, OVERWRITING');
     D=spm_eeg_load(outbase);
     D.delete;
-end
+end;
 
 D = spm_opm_convert(megData,outbase,srate,job.convert);
 
 
-% set appropriate Channel labels and types
+%% set appropriate Channel labels and types
 Nopmchans=size(opm2slot,1);
 D = chanlabels(D,1:Nopmchans,opm2slot(:,1));
 D = chantype(D,megind,'MEG');
 D = chantype(D,find(slotind==-1),'Ref');
+D=chantype(D,length(opmadcind)+1:length(opmadcind)+length(alltrigs),'Trig')
+for f=1:length(alltrigs),
+    D=chanlabels(D,length(opmadcind)+1:length(opmadcind)+length(alltrigs),sprintf('tr%d',alltrigs(f)));
+end;
 save(D);
 
-% slot positions and orientation into MEG object
+%% slot positions and orientation into MEG object
 % this table maps positions/orientations to headcast numbers and sensor
 % labels
 
 if length(megind)~=size(posor,1)
     error('File size mismatch');
-end
+end;
 figure; hold on;
 grad.label = opm2slot(megind,1); %% names of the MEG channels in headcast
 megpos=[];meglabels=[];
-for f=1:length(megind) %% megind indexes into slotind which gives the index into posor
+for f=1:length(megind), %% megind indexes into slotind which gives the index into posor
     castind=slotind(megind(f));
     grad.coilpos(f,:) = posor(castind,1:3);
     grad.coilori(f,:) = posor(castind,4:6);
-    plot3(grad.coilpos(f,1),grad.coilpos(f,2),grad.coilpos(f,3),'r.');
-    
-    text(grad.coilpos(f,1),grad.coilpos(f,2),grad.coilpos(f,3),grad.label{f});
-    
-end
+    %plot3(grad.coilpos(f,1),grad.coilpos(f,2),grad.coilpos(f,3),'r.');
+    %text(grad.coilpos(f,1),grad.coilpos(f,2),grad.coilpos(f,3),grad.label{f});
+end;
 
 
 grad.tra = eye(numel(grad.label));
-grad.chanunit = repmat({'fT'}, numel(grad.label), 1);
+
+
+
+grad.chanunit = repmat({'T'}, numel(grad.label), 1); %% grad units always in Tesla (data units in fT)
 grad = ft_datatype_sens(grad, 'amplitude', 'T', 'distance', 'mm');
 
 D = sensors(D, 'MEG', grad);
 
-% ORIENT SENSORS IN 2D BASED ON MEAN ORIENTATION
+%% ORIENT SENSORS IN 2D BASED ON MEAN ORIENTATION
 n1=mean(grad.coilori); n1= n1./sqrt(dot(n1,n1));
 t1=cross(n1,[0 0 1]);
 t2=cross(t1,n1);
 
-for f=1:length(megind)
+for f=1:length(megind),
     pos2d(f,1)=dot(grad.coilpos(f,:),t1);
     pos2d(f,2)=dot(grad.coilpos(f,:),t2);
     plot(pos2d(f,1),pos2d(f,2),'r.');
     text(pos2d(f,1),pos2d(f,2),grad.label{f});
-end
+end;
 
 S=[]; %% SET SENSOR 2D POS
 S.D=D;
@@ -271,24 +279,22 @@ S.task='setcoor2d';
 D=spm_eeg_prep(S);
 D.save;
 pos=D.coor2D';
-for f=1:length(megind)
-    h=text(pos(f,1),pos(f,2)+10,grad.label{f});
-    set(h,'color','m');
-end
+% for f=1:length(megind),
+%     
+%     h=text(pos(f,1),pos(f,2)+10,grad.label{f});
+%     set(h,'color','m');
+% end;
 
 D.save;
 
-% NOW COREGISTER
-%==========================================================================
-% easiest to do this here as the opms and head are defined in same native mri space
-% working from native to native space so fiducials should give identity transform
+%%%%%%%%%%%%%% NOW COREGISTER - easiest to do this here as the opms and
+%%%%%%%%%%%%%% head are defined in same native mri space
+%% working from native to native space so fiducials should give identity transform
 
 newfid=[];
 newfid.fid.label = {'nas', 'lpa', 'rpa'}';
 newfid.fid.pnt=job.fid;
 
-%nas=[10.4 142.6 -8.9]; lpa=[-59.2 42.7 -50.9]; rpa=[89 58.7 -58.9]; %% coreg params- need to check where these are from
-%newfid.fid.pnt=[nas;lpa;rpa];
 mri_fids=newfid.fid.pnt; %%% the MRI fiducials will be the same as the MEG as everything is defined in native space for OPMs
 D = fiducials(D, newfid);
 save(D);
@@ -313,6 +319,7 @@ spm_jsonwrite(jsonname, json_fid);
 %test=spm_jsonread(jsonname);
 
 
+
 figure;
 
 plot3(posor(:,1),posor(:,2),posor(:,3),'ro'); hold on;
@@ -321,14 +328,13 @@ plot3(mri_fids(:,1),mri_fids(:,2),mri_fids(:,3),'m*');
 text(mri_fids(1,1),mri_fids(1,2),mri_fids(1,3),'nasion');
 text(mri_fids(2,1),mri_fids(2,2),mri_fids(2,3),'lpa');
 text(mri_fids(3,1),mri_fids(3,2),mri_fids(3,3),'rpa');
-fprintf('\n Will need to coregister later using same MRI names and same fiducial points..')
+fprintf('\n Will need to coregister later using the BIDS json file created here')
 
 figure;
 
 
 
-% Bandpass filter
-%==========================================================================
+%% bandpass filter
 fprintf('\n Filtering %d to %d Hz \n', job.band(1), job.band(2));
 S = [];
 S.D = D;
@@ -340,18 +346,26 @@ S.order = 2;
 nD = spm_eeg_filter(S);
 
 
-% Epoching
-%==========================================================================
+%%%%%%%%%%%%%%%%%epoching %%%%%%%%%%%%%%
+
 % this will be different for different datasets
 
 ev=[];cond={};
-for f=1:length(alltrigs)
-    trigs=find(diff(B(:,alltrigs(f))>1)==1)+1;
-    for j=1:length(trigs)
+
+figure; %% ASSUME ONE BIT PER TRIG CHANNEL FOR NOW AND THRESHOLD AT 2* std deviation
+
+for f=1:length(alltrigs),
+    subplot(length(alltrigs),1,f); 
+    thresh=std((B(:,alltrigs(f))))*2;
+    trigs=find(diff(B(:,alltrigs(f))>thresh)==1)+1;
+    plot(D.time,B(:,alltrigs(f))',D.time,ones(size(D.time))*thresh,':',D.time(trigs),ones(size(trigs))*thresh*2,'r*');
+    legend(num2str(alltrigs(f)),'thresh','events'); xlabel('time');ylabel('adc value')
+    title('trigger');
+    for j=1:length(trigs),
         cond{j+length(ev)}=num2str(alltrigs(f));
-    end
+    end;
     ev = [ev; trigs]; %% trigger samples
-end
+end;
 
 fprintf('\n Epoching');
 offsettime=job.epwin(1)/1000;
@@ -361,7 +375,7 @@ durationsamples=round(duration.*nD.fsample);
 begsample=ev+offsetsamples;
 offset=offsetsamples.*ones(size(begsample));
 endsample=begsample+durationsamples;
-% should be in format : begin sample, end sample, offset
+%% should be in format : begin sample, end sample, offset
 trl = round([begsample  endsample  offset]);
 S = [];
 S.D = nD;
@@ -372,7 +386,7 @@ S.prefix = 'e_';
 eD = spm_eeg_epochs(S);
 
 
-% reference noise cancellation
+%% reference noise cancellation
 refInd = selectchannels(eD,'Ref');
 %%spm_opm_denoise(D,refD,derivative,gs,update,prefix)
 fprintf('\n Reference noise cancellation with flags %d %d', job.ncan(1),job.ncan(2));
@@ -419,3 +433,4 @@ dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
 %     % this can be entered into any file selector
 %     dep(4).tgt_spec   = cfg_findspec({{'filter','mat'}});
 % end
+%
