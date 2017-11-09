@@ -13,7 +13,6 @@ function varargout=spm_platform(varargin)
 %        - 'user'    - returns username
 %        - 'host'    - returns system's host name
 %        - 'tempdir' - returns name of temp directory
-%        - 'drives'  - returns string containing valid drive letters
 %        - 'desktop' - returns whether or not the Desktop is in use
 %
 % FORMAT PlatFontNames = spm_platform('fonts')
@@ -50,10 +49,10 @@ function varargout=spm_platform(varargin)
 % Platform specific definitions are contained in the data structures at
 % the beginning of the init_platform subfunction at the end of this file.
 %__________________________________________________________________________
-% Copyright (C) 1999-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2017 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 6903 2016-10-12 11:36:41Z guillaume $
+% $Id: spm_platform.m 7205 2017-11-09 11:29:59Z guillaume $
 
 
 %-Initialise
@@ -92,8 +91,7 @@ varargout = {PLATFORM.host};
 
 case 'drives'                                               %-Return drives
 %==========================================================================
-warning('Use spm_select(''ListDrives'') instead.');
-varargout = {PLATFORM.drives};
+error('Use spm_select(''ListDrives'') instead.');
 
 case 'tempdir'                                 %-Return temporary directory
 %==========================================================================
@@ -224,15 +222,6 @@ switch PLATFORM.filesys
         PLATFORM.host = getenv('COMPUTERNAME');
 end
 PLATFORM.host = strtok(PLATFORM.host,'.');
-
-
-%-Drives
-%--------------------------------------------------------------------------
-PLATFORM.drives = '';
-if strcmp(PLATFORM.filesys,'win')
-    driveLett = spm_select('ListDrives');
-    PLATFORM.drives = strrep(strcat(driveLett{:}),':','');
-end
 
 
 %-Fonts
