@@ -10,7 +10,7 @@ function out = spm_run_voi(job)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_voi.m 7034 2017-03-09 17:26:10Z guillaume $
+% $Id: spm_run_voi.m 7210 2017-11-10 16:33:17Z guillaume $
 
 
 %-Load SPM.mat
@@ -71,24 +71,28 @@ if  ~isempty(xY(1).Ic), cd(cwd); end
 
 %-Save first eigenimage
 %--------------------------------------------------------------------------
-Ve = struct('fname', fullfile(odir, ['VOI_' job.name '_eigen' spm_file_ext]), ...
-     'dim',     SPM.xVol.DIM', ...
-     'dt',      [spm_type('float32') spm_platform('bigend')], ...
-     'mat',     SPM.xVol.M, ...
-     'pinfo',   [1 0 0]', ...
-     'descrip', 'VOI: first eigenimage');
-Ve = spm_create_vol(Ve);
-eigimg = double(voi);
-eigimg(voi) = xY.v;
-Ve = spm_write_vol(Ve,eigimg);
+sess = '';
+for s=1:numel(xY)
+    if isfield(SPM,'Sess'), sess = sprintf('_%i',xY(s).Sess); end
+    Ve = struct('fname', fullfile(odir, ['VOI_' job.name sess '_eigen' spm_file_ext]), ...
+        'dim',     SPM.xVol.DIM', ...
+        'dt',      [spm_type('float32') spm_platform('bigend')], ...
+        'mat',     SPM.xVol.M, ...
+        'pinfo',   [1 0 0]', ...
+        'descrip', 'VOI: first eigenimage');
+    Ve = spm_create_vol(Ve);
+    eigimg = double(voi);
+    eigimg(voi) = xY(s).v;
+    Ve = spm_write_vol(Ve,eigimg);
+end
 
 %-Export results
 %--------------------------------------------------------------------------
 assignin('base','Y',Y);
 assignin('base','xY',xY);
 
-if isfield(SPM,'Sess'), s = sprintf('_%i',xY(1).Sess); else s = ''; end
-out.voimat = cellstr(fullfile(odir,['VOI_' job.name s '.mat']));
+if isfield(SPM,'Sess'), sess = sprintf('_%i',xY(1).Sess); else sess = ''; end
+out.voimat = cellstr(fullfile(odir,['VOI_' job.name sess '.mat']));
 out.voiimg = cellstr(Vm.fname);
 out.voieig = cellstr(Ve.fname);
 
