@@ -5,7 +5,7 @@ function varargout=subsref(obj,subs)
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsref.m 7147 2017-08-03 14:07:01Z spm $
+% $Id: subsref.m 7209 2017-11-10 15:33:10Z guillaume $
 
 
 if isempty(subs), return; end
@@ -151,6 +151,7 @@ function val = multifile2mat(sobj,varargin)
 
 % Convert subscripts into linear index
 [indx2{1:length(varargin)}] = ndgrid(varargin{:},1);
+if numel(sobj.dim) == 1, sobj.dim = [sobj.dim 1]; end
 ind = sub2ind(sobj.dim,indx2{:});
 
 % Work out the partition
