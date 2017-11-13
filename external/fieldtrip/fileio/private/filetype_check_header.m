@@ -31,9 +31,9 @@ if nargin<3
   offset = 0;
 end
 
-%if isempty(cache)
+if isempty(cache)
   cache = false;
-%end
+end
 
 current_argin = {filename, head, offset};
 if isequal(current_argin, previous_argin) && cache
