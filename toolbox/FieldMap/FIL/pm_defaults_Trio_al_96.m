@@ -1,7 +1,6 @@
-% SPM5 UPDATE 23/11/07
-% Sets the default values for the FieldMap toolbox
+% Set the default values for the FieldMap toolbox
 %
-% FORMAT pm_defaults_Trio_eFoV
+% FORMAT pm_defaults_Trio_al_96
 %_______________________________________________________________________
 %
 % This file is intended for use with the Siemens fieldmap sequence
@@ -12,7 +11,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Trio_al_96.m 5265 2013-02-20 13:01:37Z guillaume $
+% $Id: pm_defaults_Trio_al_96.m 7211 2017-11-13 10:38:15Z guillaume $
 
 global pm_def
 
@@ -42,7 +41,7 @@ pm_def.WS = 1;                        % Weighted or normal smoothing.
 
 % Flags for brain extraction
 %=======================================================================
-pm_def.MFLAGS.TEMPLATE = fullfile(spm('Dir'),'templates','T1.nii');
+pm_def.MFLAGS.TEMPLATE = fullfile(spm('Dir'),'toolbox','FieldMap','T1.nii');
 pm_def.MFLAGS.FWHM = 5;     % In mm
 pm_def.MFLAGS.NERODE = 2;   % In voxels
 pm_def.MFLAGS.NDILATE = 4;  % In voxels
