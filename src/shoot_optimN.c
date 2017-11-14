@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 7172 2017-09-21 16:31:30Z john $ */
+/* $Id: shoot_optimN.c 7215 2017-11-14 15:57:55Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -365,6 +365,8 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
     w110 = lam2*2*v0*v1;
     w101 = lam2*2*v0*v2;
     w011 = lam2*2*v1*v2;
+
+    w000 = w000*1.00001;
 
     if (dm[0]<=2)
     {
