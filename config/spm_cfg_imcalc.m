@@ -3,7 +3,7 @@ function imcalc = spm_cfg_imcalc
 %__________________________________________________________________________
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 7012 2017-02-08 16:54:29Z guillaume $
+% $Id: spm_cfg_imcalc.m 7216 2017-11-15 12:25:28Z guillaume $
 
 %--------------------------------------------------------------------------
 % input Input Images
@@ -171,9 +171,13 @@ dtype.labels  = {
                  'INT32   - signed int'
                  'FLOAT32 - single prec. float'
                  'FLOAT64 - double prec. float'
+                 'INT8    - signed char'
+                 'UINT16  - unsigned short'
+                 'UINT32  - unsigned int'
 }';
 dtype.values  = {spm_type('uint8') spm_type('int16') spm_type('int32') ...
-                 spm_type('float32') spm_type('float64')};
+                 spm_type('float32') spm_type('float64') spm_type('int8') ...
+                 spm_type('uint16') spm_type('uint32')};
 dtype.val     = {spm_type('int16')};
 
 %--------------------------------------------------------------------------
