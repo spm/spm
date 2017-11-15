@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 6944 2016-11-22 10:16:09Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 7217 2017-11-15 14:33:10Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -1601,62 +1601,28 @@ end
 
 
 if length(cn) == 5  % channel info
-    if ~emptyTable
+    if ~emptyTable 
         nc = D.nchannels;
-        for i=1:nc
-            if ~isempty(table(i,1))
-                D = chanlabels(D,i,table(i,1));
-            end
-            if ~isempty(table(i,2))
-                switch lower(table(i,2))
-                    case 'eeg'
-                        D = chantype(D,i,'EEG');
-                    case 'meg'
-                        D = chantype(D,i,'MEG');
-                    case 'megplanar'
-                        D = chantype(D,i,'MEGPLANAR');
-                    case 'megcomb'
-                        D = chantype(D,i,'MEGCOMB');
-                    case 'megmag'
-                        D = chantype(D,i,'MEGMAG');
-                    case 'meggrad'
-                        D = chantype(D,i,'MEGGRAD');
-                    case 'refmag'
-                        D = chantype(D,i,'REFMAG');
-                    case 'refgrad'
-                        D = chantype(D,i,'REFGRAD');
-                    case 'lfp'
-                        D = chantype(D,i,'LFP');
-                    case 'eog'
-                        D = chantype(D,i,'EOG');
-                    case 'veog'
-                        D = chantype(D,i,'VEOG');
-                    case 'heog'
-                        D = chantype(D,i,'HEOG');
-                    case 'phys'
-                        D = chantype(D,i,'PHYS');
-                    case 'ilam'
-                        D = chantype(D,i,'ILAM');
-                    case 'src'
-                        D = chantype(D,i,'SRC'); 
-                    case 'other'
-                        D = chantype(D,i,'Other');
-                    otherwise
-                        D = chantype(D,i,'Other');
-                end
-            end
-            if ~isempty(table(i,3))
-                switch lower(table(i,3))
-                    case 'yes'
-                        D = badchannels(D,i,1);
-                    otherwise
-                        D = badchannels(D,i,0);
-                end
-            end
-            if ~isempty(table(i,5))
-                D = units(D,i,table(i,5));
-            end
-        end
+        
+        newlabels = cell(table(:, 1));
+        valid     = find(~cellfun(@isempty, newlabels));        
+        D = chanlabels(D, valid, newlabels(valid));
+        
+        newtypes  = cell(table(:, 2));
+        valid     = find(~cellfun(@isempty, newtypes));        
+        D = chantype(D, valid, newtypes(valid));
+                
+        newbad    = cell(table(:, 3));
+        valid     = find(~cellfun(@isempty, newbad));     
+        bad       = strmatch('yes', newbad(valid));    
+        good      = strmatch('no',  newbad(valid));    
+        D = badchannels(D, valid(bad), 1);
+        D = badchannels(D, valid(good), 0);
+        
+        newunits  = cell(table(:, 5));
+        valid     = find(~cellfun(@isempty, newunits));        
+        D = units(D, valid, newunits(valid));        
+        
         % Find indices of channel types (these might have been changed)
         D.PSD.EEG.I  = indchantype(D,'EEG');
         D.PSD.MEG.I  = sort(indchantype(D,'MEG'));
@@ -1737,10 +1703,21 @@ elseif length(cn) == 7
     else
         if ~emptyTable
             nt = D.ntrials;
-            for i=1:nt
-                if ~isempty(table(i,1))
-                    D = conditions(D,i,table(i,1));
-                end
+            newconditions = cell(table(:, 1));
+            valid     = find(~cellfun(@isempty, newconditions));
+            D = conditions(D, valid, newconditions(valid));
+        
+            newbad    = cell(table(:, 6));
+            valid     = find(~cellfun(@isempty, newbad));
+            bad       = strmatch('yes', newbad(valid));
+            good      = strmatch('no',  newbad(valid));
+            D = badtrials(D, valid(bad), 1);
+            D = badtrials(D, valid(good), 0);
+                              
+            
+            ind = [];
+            newevents = {};
+            for i=1:nt              
                 Events = events(D,i);
                 Events = [Events{:}];
                 ne = length(Events);
@@ -1751,16 +1728,11 @@ elseif length(cn) == 7
                     if ~isempty(table(i,3))
                         Events.value = table(i,3);%str2double(table(i,3));
                     end
-                    D = events(D,i,Events);
-                end
-                if ~isempty(table(i,6))
-                    switch lower(table(i,6))
-                        case 'yes'
-                            D = badtrials(D,i,1);
-                        otherwise
-                            D = badtrials(D,i,0);
-                    end
-                end
+                    
+                    ind = [ind i];
+                    newevents = [newevents {Events}];                   
+                end                                
+                                              
                 if badtrials(D,i)
                     str = ' (bad)';
                 else
@@ -1769,6 +1741,8 @@ elseif length(cn) == 7
                 D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),': ', ...
                     char(conditions(D,i)),str];
             end
+            
+            D = events(D,ind,newevents);
         else
         end
     end
