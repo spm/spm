@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 7221 2017-11-16 14:25:37Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 7222 2017-11-16 15:39:57Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -1642,23 +1642,40 @@ if length(cn) == 5  % channel info
     if ~emptyTable 
         nc = D.nchannels;
         
-        newlabels = cell(table(:, 1));
+        if isa(table(:, 1), 'char')
+            newlabels = {table(:, 1)};
+        else
+            newlabels = cell(table(:, 1));
+        end
+        
         valid     = find(~cellfun(@isempty, newlabels));        
         D = chanlabels(D, valid, newlabels(valid));
         
-        newtypes  = cell(table(:, 2));
+        if isa(table(:, 2), 'char')
+            newtypes = {table(:, 2)};
+        else
+            newtypes  = cell(table(:, 2));
+        end
         valid     = find(~cellfun(@isempty, newtypes));        
         D = chantype(D, valid, newtypes(valid));
-                
-        newbad    = cell(table(:, 3));
-        valid     = find(~cellfun(@isempty, newbad));     
-        bad       = strmatch('yes', newbad(valid));    
-        good      = strmatch('no',  newbad(valid));    
+            
+        if isa(table(:, 3), 'char')
+            newbad = {table(:, 3)};
+        else
+            newbad    = cell(table(:, 3));
+        end
+        valid     = find(~cellfun(@isempty, newbad));
+        bad       = strmatch('yes', newbad(valid));
+        good      = strmatch('no',  newbad(valid));
         D = badchannels(D, valid(bad), 1);
         D = badchannels(D, valid(good), 0);
         
-        newunits  = cell(table(:, 5));
-        valid     = find(~cellfun(@isempty, newunits));        
+        if isa(table(:, 5), 'char')
+            newunits  = {table(:, 5)};
+        else
+            newunits  = cell(table(:, 5));
+        end
+        valid     = find(~cellfun(@isempty, newunits));
         D = units(D, valid, newunits(valid));        
         
         % Find indices of channel types (these might have been changed)
@@ -1741,11 +1758,20 @@ elseif length(cn) == 7
     else
         if ~emptyTable
             nt = D.ntrials;
-            newconditions = cell(table(:, 1));
+            
+            if isa(table(:, 1), 'char')
+                newconditions = {table(:, 1)};
+            else
+                newconditions = cell(table(:, 1));
+            end
             valid     = find(~cellfun(@isempty, newconditions));
             D = conditions(D, valid, newconditions(valid));
         
-            newbad    = cell(table(:, 6));
+            if isa(table(:, 6), 'char')
+                newbad    = {table(:, 6)};
+            else
+                newbad    = cell(table(:, 6));
+            end
             valid     = find(~cellfun(@isempty, newbad));
             bad       = strmatch('yes', newbad(valid));
             good      = strmatch('no',  newbad(valid));
