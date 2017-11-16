@@ -20,7 +20,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 6157 2014-09-05 18:17:54Z guillaume $
+% $Id: spm_eeg_plotScalpData.m 7221 2017-11-16 14:25:37Z vladimir $
 
 
 ChanLabel  = char(ChanLabel);
@@ -186,9 +186,8 @@ if ~noButtons
         'position',[10    80    80    20],...
         'string','channel names');
 end
-if ~isempty(in) && isfield(in,'handles')
-    ud = get(in.handles.hfig,'userdata');
-    nT = ud.nsamples;
+if ~isempty(in) && isfield(in,'handles')  
+    nT = length(in.gridTime);
     d.hti = uicontrol(f,...
         'style','text',...
         'BackgroundColor',COLOR,...

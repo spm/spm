@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 7169 2017-09-19 10:42:27Z vladimir $
+% $Id: spm_eeg_review_switchDisplay.m 7221 2017-11-16 14:25:37Z vladimir $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -87,7 +87,7 @@ if isempty(I)
 
 else
 
-    if ~strcmp(transformtype(D),'time')
+    if ~(strcmp(transformtype(D),'time') || D.nsamples == 1)
 
         uicontrol('style','text',...
             'units','normalized','Position',[0.14 0.84 0.7 0.04],...
@@ -163,7 +163,7 @@ else
         % add buttons
         object.type = 'buttons';
         object.list = [5;7];
-        if strcmp(transformtype(D),'time') % only for time data!
+        if strcmp(transformtype(D),'time') || D.nsamples==1 
             object.options.multSelect = 1;
             object.list = [object.list;4;6;11];
         else
