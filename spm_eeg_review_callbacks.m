@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 7217 2017-11-15 14:33:10Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 7220 2017-11-16 11:07:46Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -677,12 +677,15 @@ switch varargin{1}
                 else
                     Events(Nevents+1).value = 0;
                 end
+                
+                [dum, ind] = sort([Events.time]);
+                
                 D = events(D,1,Events);
                 % Enable tools on selections
                 set(handles.BUTTONS.sb2,'enable','on');
                 set(handles.BUTTONS.sb3,'enable','on');
                 % Update display
-                updateDisp(D,2,Nevents+1)
+                updateDisp(D,2,find(ind==(Nevents+1)));
                 
                 
             %% scroll through data upto next event
