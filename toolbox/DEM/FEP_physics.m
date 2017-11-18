@@ -13,7 +13,7 @@ function FEP_physics
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_physics.m 7161 2017-08-26 19:29:24Z karl $
+% $Id: FEP_physics.m 7224 2017-11-18 18:10:09Z karl $
 
 
 % default settings (GRAPHICS sets movies)
@@ -52,8 +52,8 @@ subplot(2,2,1)
 % X    - history of microstates (position)
 % V    - history of microstates (velocity)
 %--------------------------------------------------------------------------
+% [Q,X,V,A] = spm_soup(x,u,P,T,dt,1);
 [Q,X,V,A] = spm_Manifold_solve(x,u,P,T,dt,1);
-
 
 
 % Markov blanket - parents, children, and parents of children

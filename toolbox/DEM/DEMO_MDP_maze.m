@@ -2,7 +2,7 @@ function MDP = DEMO_MDP_maze
 % Demo of mixed continuous and discrete state space modelling
 %__________________________________________________________________________
 %
-% this demonstration of active inference focuses on navigation and planning
+% This demonstration of active inference focuses on navigation and planning
 % in a fairly complicated maze. The idea is to demonstrate how epistemic
 % foraging and goal (target) directed behaviour are integrated in the
 % minimisation of expected free energy. In this illustration, and 8 x 8
@@ -16,26 +16,32 @@ function MDP = DEMO_MDP_maze
 % locations) contain the most paths from the target within the horizon of
 % the current policy.
 %
-% we will first illustrate the novelty driven epistemic foraging that
+% We will first illustrate the novelty driven epistemic foraging that
 % efficiently scans the maze to learn its structure. We then simulate
-% planning of(shortest path) trajectory to the targetunder the assumption
+% planning of (shortest path) trajectory to the target under the assumption
 % the maze has been previously learned. Finally, we consider exploration
-% under prior preferences to simulate bbehaviour when both epistemic and
+% under prior preferences to simulate behaviour when both epistemic and
 % goal directed imperatives are in play. The focus on this demo is on
-% behavioural responses and electrophysiological responses over moves.
+% behavioural and electrophysiological responses over moves.
 %
-% a key aspect of this formulation is the  hierarchical decomposition of
+% A key aspect of this formulation is the  hierarchical decomposition of
 % goal directed behaviour into subgoals that are within the horizon of a
 % limited policy – here, to moves that correspond to a trial. The prior
 % preferences then contextualise each policy or trial to ensure that the
 % ultimate goal is achieved.
+%
+% Empirically, this sort of construction suggests the existence of Path
+% cells; namely, cells who report the initial location of any subsequence
+% and continue firing until the end of the local path. This is illustrated
+% by plotting simulated activity as a function of trajectories during 
+% exploration.
 %
 % see also: spm_MPD_VB_X.m
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_MDP_maze.m 7003 2017-02-02 18:22:56Z karl $
+% $Id: DEMO_MDP_maze.m 7224 2017-11-18 18:10:09Z karl $
 
 % set up and preliminaries: first level
 %--------------------------------------------------------------------------
@@ -229,6 +235,95 @@ spm_figure('GetWin','Figure 4'); clf
 subplot(2,1,1), bar([M;N]'), xlabel('Exposure (seconds)'), axis square 
 title('Performance','FontSize',16),legend({'Mistakes','Latency'})
 
+% place and direction specific responses
+%==========================================================================
+spm_figure('GetWin','Figure 5'); clf
+
+% illustrate simulated responses (first eight subsequences)
+%--------------------------------------------------------------------------
+spm_MDP_VB_LFP(SDP(1:8))
+
+% extract simulated responses
+%--------------------------------------------------------------------------
+[u,v] = spm_MDP_VB_LFP(SDP);               % responses
+E     = kron(eye(32*3),pinv(ones(16,1)));  % expectation matrix
+v     = E*spm_cat(v);                      % firing rates (hidden states)
+u     = E*spm_cat({SDP.un})';              % firing rates (policies)
+s     = spm_cat({SDP.s})';                 % location
+
+% Position
+%--------------------------------------------------------------------------
+[X,Y] = ndgrid(1:8,1:8);
+L     = [X(:),Y(:)];
+X     = L(s,:);
+
+% accumulate responses at each location
+%--------------------------------------------------------------------------
+PC    = zeros(8,8,size(v,2));
+for i = 1:size(v,1)
+    for j = 1:size(v,2)
+       PC(X(i,1),X(i,2),j) = PC(X(i,1),X(i,2),j) + v(i,j);
+    end
+end
+QC    = zeros(8,8,size(u,2));
+for i = 1:size(u,1)
+    for j = 1:size(u,2)
+       QC(X(i,1),X(i,2),j) = QC(X(i,1),X(i,2),j) + u(i,j);
+    end
+end
+
+% identify path and place cells that fire above threshold (U)
+%--------------------------------------------------------------------------
+U     = .8;
+jpath = [];
+jplac = [];
+for i = 1:64
+    if sum(spm_vec(PC(:,:,i)) > U) > 2
+        jpath(end + 1) = i;
+    end
+end
+for i = (1:64) + 128;
+    if sum(spm_vec(PC(:,:,i)) > U) > 0
+        jplac(end + 1) = i;
+    end
+end
+
+% and plot as a function of trajectory in space
+%--------------------------------------------------------------------------
+x     = spm_conv(X + randn(size(X))/8,2,0);
+for i = 1:64
+    col{i} = spm_softmax(randn(3,1));
+end
+
+% path cells
+%--------------------------------------------------------------------------
+subplot(4,2,3)
+plot(x(:,2),x(:,1),'r:'), hold on
+for i = 1:size(x,1)
+    for j = 1:3:length(jpath)
+        if v(i,jpath(j)) > .80
+            plot(x(i,2),x(i,1),'.','MarkerSize',32,'Color',col{j})
+        end
+    end
+end
+axis([0 9 0 9]), axis ij square, hold off
+title('Path cell responses','fontsize',16)
+
+% please cells
+%--------------------------------------------------------------------------
+subplot(4,2,4)
+plot(x(:,2),x(:,1),'r:'), hold on
+for i = 1:size(x,1)
+    for j = 1:3:length(jpath)
+        if v(i,jplac(j)) > .80
+            plot(x(i,2),x(i,1),'.','MarkerSize',32,'Color',col{j})
+        end
+    end
+end
+axis([0 9 0 9]), axis ij square, hold off
+title('Place cell responses','fontsize',16)
+
+
 return
 
 
@@ -241,7 +336,7 @@ function MDP = spm_maze_search(mdp,N,START,END,alpha,beta)
 % END   - index of target state (default 1)
 % alpha - prior concentration parameter for likelihood (default 128)
 % beta  - precision of prior preference (default 0)
-%
+%the argument is
 % MDP   - MDP structure array
 
 % preliminaries
@@ -266,9 +361,8 @@ if ~isfield(mdp,'u')
 end
 mdp.s = START;
 
-% Evaluate a sequence of eye movements
+% Evaluate a sequence of moves – recomputing prior preferences at each move
 %==========================================================================
-
 for i = 1:N
     
     % Evaluate preferred states (subgoals) on the basis of current beliefs
@@ -290,7 +384,7 @@ return
 
 
 function C = spm_maze_cost(MDP,END)
-% Evaluate subgoals using
+% Evaluate subgoals using graph Laplacian
 %==========================================================================
 START = MDP.s(1);
 if isfield(MDP,'a')

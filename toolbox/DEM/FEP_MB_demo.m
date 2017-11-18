@@ -16,7 +16,7 @@ function FEP_MB_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_MB_demo.m 7176 2017-09-26 19:02:39Z karl $
+% $Id: FEP_MB_demo.m 7224 2017-11-18 18:10:09Z karl $
 
 SOUP = 1;
 if SOUP
@@ -110,10 +110,10 @@ z{1}  = num2cell(1:length(J{1}));
 
 % hierarchal decomposition
 %==========================================================================
-N     = 3;                       % number of  hierarchical scales
-x     = {};                      % indices of states of partitions
-u     = {};                      % locations of partitions 
-y     = {};                      % indices of partitions
+N     = 3;                          % number of  hierarchical scales
+x     = {};                         % indices of states of partitions
+u     = {};                         % locations of partitions 
+y     = {};                         % indices of partitions
 for i = 1:N
     
     % Markov blanket (particular) partition
@@ -160,7 +160,7 @@ function [J,z,y] = spm_A_reduce(J,x,T)
 % reduction of Markovian partition
 % J  - Jacobian (x)
 % x  - {3 x n}  particular partition of states
-% N  - relative eigenvalue threshold to retain eigenvectors [default: 4]
+% T  - relative eigenvalue threshold to retain eigenvectors [default: 8]
 %
 % J  - Jacobian (z)
 % z  - {1 x n} partition of states at the next level
@@ -169,9 +169,9 @@ function [J,z,y] = spm_A_reduce(J,x,T)
 
 % preliminaries
 %--------------------------------------------------------------------------
-nx    = size(x,2);                % number of partitions
+nx    = size(x,2);                  % number of partitions
 if nargin < 3
-    T = 8;                        % adiabatic threshold
+    T = 8;                          % adiabatic threshold
 end
 
 % reduction
@@ -226,15 +226,16 @@ function [x,u,y] = spm_Markov_blanket(J,z,m,mj)
 
 % preliminaries
 %--------------------------------------------------------------------------
-nz    = length(z);                % number of partitions
+GRAPHICS  = 1;                      % Graphics switch
+nz        = length(z);              % number of partitions
 if nargin < 3
-    m = 3;                        % maximum size of internal states
+    m = 3;                          % maximum size of internal states
 end
 if nargin < 4
-   mj = ones(nz,1);               % eligible internal states
+   mj = ones(nz,1);                 % eligible internal states
 end
 if isempty(mj)
-   mj = ones(nz,1);               % eligible internal states
+   mj = ones(nz,1);                 % eligible internal states
 end
 
 
@@ -252,24 +253,25 @@ for i = 1:nz
 end
 L     = double(L);
 
-% internal states (defined by graph Laplacian)
+% get Markov blanket
+%--------------------------------------------------------------------------
+B     = L + L' + L'*L;
+B     = B - diag(diag(B));
+
+% scaling space (defined by graph Laplacian)
 %--------------------------------------------------------------------------
 G     = L + L';
 G     = G - diag(diag(G));
 G     = G - diag(sum(G));
 G     = expm(G);
 
-% get principal dimensions of scaling space (X)
+% get principal dimensions of scaling space (u)
 %--------------------------------------------------------------------------
-GRAPHICS = 1;
 if GRAPHICS
     [u,v] = eig(G,'nobalance');
-    [v,j] = sort(real(diag(v)),'descend');
-    u     = u(:,j);
-    nj    = min(32,size(u,2));
-    v     = v(1:nj);
-    for i = 1:nj
-        [p,h] = hist(real(u(:,i)));
+    v     = abs(diag(v));
+    for i = 1:nz
+        [p,h] = hist(real(u(:,i)),16);
         dh    = h(2) - h(1) + exp(-16);
         p     = p(:)/sum(p)/dh;
         v(i)  = log(v(i)) - p'*log(p + exp(-16))*dh;
@@ -278,18 +280,11 @@ if GRAPHICS
     u     = real(u(:,j));
 end
 
-% get Markov blanket and divide into sensory and active states
-%--------------------------------------------------------------------------
-BL    = L  + L';
-B     = BL + L'*L;
-BL    = BL - diag(diag(BL));
-B     = B  - diag(diag(B));
-nn    = zeros(nz,1);
 
-% recursive partition
+% recursive (particular) partition into internal, sensory and active states
 %--------------------------------------------------------------------------
-nm    = spm_find_internal(z,J);
-for i = 1:256
+nn    = zeros(nz,1);
+for i = 1:128
     
     % internal states (defined by graph Laplacian)
     %----------------------------------------------------------------------
@@ -298,20 +293,18 @@ for i = 1:256
         
         % find densely coupled internal states (using the graph Laplacian)
         %------------------------------------------------------------------
-        j      = find(jj & any(L(logical(B*nn),:))');
-        if isempty(j)
-            j  = find(jj);
-        end
-        [g,ij] = min(nm(j));
-        j      = j(ij);
+        [g,j] = max(diag(G).*jj);
         if m > 1
-            k      = find(BL(:,j) & jj);
-            [d,ij] = sort(nm(k));
-            j      = [j;k(ij)];
-            try,j  = j(1:m); end
+            g      = G(:,j);
+            g(j)   = 0;
+            g(~jj) = 0;
+            [g,k]  = sort(g,'descend');
+            try
+                j = [j; k(1:m - 1)];
+            end
         end
 
-        jj    = sparse(j,1,1,size(L,1),1);              % internal states
+        jj    = sparse(j,1,1,size(L,1),1) & jj;         % internal states
         bb    = B*jj & ~jj & ~nn;                       % Markov blanket
         ee    =  ~bb & ~jj & ~nn;                       % external states
         b     = find(bb);
@@ -333,13 +326,13 @@ for i = 1:256
         
         % no internal states - find active states (not influenced by e)
         %------------------------------------------------------------------
-        jj = ~any(L(~nn,nn),2);
-        if any(jj)
+        j = ~any(L(~nn,nn),2);
+        if any(j)
             
             % sensory states connected with active states
             %--------------------------------------------------------------
             a  = find(~nn);
-            a  = a(find(jj,1));
+            a  = a(find(j,1));
             aa = sparse(a,1,1,size(L,1),1);
             ss = (L*aa | L'*aa) & ~aa & ~nn;
             a  = find(aa);
@@ -384,7 +377,7 @@ for i = 1:256
     y{1,i} = a;
     y{2,i} = s;
     y{3,i} = j;
-        
+    
     % plot
     %----------------------------------------------------------------------
     if all(nn)
@@ -456,7 +449,7 @@ for i = 1:256
                 plot(j{2,q},zeros(size(x{2,q})) + nj,'.','color','m','MarkerSize',msz)
                 plot(j{3,q},zeros(size(x{3,q})) + nj,'.','color','b','MarkerSize',msz)
             end
-            title('Jacobian (by partition)','Fontsize',16)
+            title('Jacobian (by particle)','Fontsize',16)
             
             subplot(3,2,6),hold on
             for q = 1:nx
@@ -473,14 +466,12 @@ for i = 1:256
         break
     end
     
-end 
-    
-
+end
 return
 
 
 function [bol,col,msz] = spm_MB_col(n)
-% FORMAT [bol,col,msz] = spm_MB_col(n)
+% FORNAT [bol,col,msz] = spm_MB_col(n)
 % returns colours and market size for number of partitions
 % n  - number of partitions
 %--------------------------------------------------------------------------

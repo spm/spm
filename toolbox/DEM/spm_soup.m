@@ -28,7 +28,7 @@ function [Q,X,V,A,x] = spm_soup(x,u,P,T,dt,PLOT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_soup.m 7163 2017-09-04 09:12:50Z karl $
+% $Id: spm_soup.m 7224 2017-11-18 18:10:09Z karl $
 
 % equations of motion
 %--------------------------------------------------------------------------
@@ -221,9 +221,9 @@ C        = sparse(i,j,1./sqrt(D(k)),N,N);
 
 % get electrochemical distances (Dynamic)
 %--------------------------------------------------------------------------
-d        = ones(N,1)*x.q(1,:);
+d        = ones(N,1)*x.q(2,:);
 D        = abs(d' - d);
-Q        = sparse(i,j,8*exp(-D(k)*2) - 4,N,N);
+Q        = sparse(i,j,8*exp(-D(k)) - 4,N,N);
  
 % Lorentz dynamics
 %==========================================================================
@@ -234,7 +234,7 @@ xq       = x.q(1,:)*A;
  
 % Lorentz dynamics (Prandtl number = 10)
 %--------------------------------------------------------------------------
-f.q(1,:) = 10*(x.q(2,:) - x.q(1,:)) + xq/8;
+f.q(1,:) = 10*(x.q(2,:) - x.q(1,:)) + xq;
 f.q(2,:) = 32.*x.q(1,:) - x.q(2,:)  - x.q(1,:).*x.q(3,:);
 f.q(3,:) =     x.q(2,:).*x.q(1,:)   - 8/3*x.q(3,:);
  

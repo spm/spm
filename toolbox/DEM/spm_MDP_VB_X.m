@@ -44,8 +44,8 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % MDP.dn          - simulated dopamine responses (phasic)
 % MDP.rt          - simulated reaction times
 %
-% MDP.F           - (Np x T) free energies over time
-% MDP.G           - (Np x T) expected free energies over time
+% MDP.F           - (Np x T) (negative) free energies over time
+% MDP.G           - (Np x T) (negative) expected free energies over time
 %
 % This routine provides solutions of active inference (minimisation of
 % variational free energy) using a generative model based upon a Markov
@@ -96,7 +96,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7223 2017-11-18 18:00:01Z karl $
+% $Id: spm_MDP_VB_X.m 7224 2017-11-18 18:10:09Z karl $
 
 
 % deal with a sequence of trials

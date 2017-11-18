@@ -2,6 +2,9 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR)
 % auxiliary routine for plotting simulated electrophysiological responses
 % FORMAT [u,v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR)
 %
+% UNITS(1,j) - hidden state
+% UNITS(2,j) - time step
+%
 % u - selected unit rate of change of firing (simulated voltage)
 % v - selected unit responses {number of trials, number of units}
 %
@@ -10,7 +13,7 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 6978 2017-01-03 10:42:09Z karl $
+% $Id: spm_MDP_VB_LFP.m 7224 2017-11-18 18:10:09Z karl $
  
  
 % defaults
