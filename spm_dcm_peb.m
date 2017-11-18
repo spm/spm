@@ -88,7 +88,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7160 2017-08-25 08:11:30Z karl $
+% $Id: spm_dcm_peb.m 7223 2017-11-18 18:00:01Z karl $
  
 
 % get filenames and set up
@@ -295,14 +295,16 @@ rP    = pQ;
 switch OPTION
     
     case{'single'}
+        
         % one between subject precision component
         %------------------------------------------------------------------
         Q = {pQ};
         
     case{'fields'}
+        
         % between subject precision components (one for each field)
         %------------------------------------------------------------------
-        pq = spm_inv(M.pC);
+        pq    = spm_inv(M.pC);
         for i = 1:length(field)
             j    = spm_fieldindices(DCM.M.pE,field{i});
             j    = find(ismember(q,j));            
@@ -312,20 +314,22 @@ switch OPTION
         end
         
     case{'all'}
+        
         % between subject precision components (one for each parameter)
         %------------------------------------------------------------------
-        pq = spm_inv(M.pC);
-        k = 1;
+        pq    = spm_inv(M.pC);
+        k     = 1;
         for i = 1:Np
             qk = sparse(i,i,pq(i,i),Np,Np);            
             qk = U'*qk*U;
             if any(qk(:))
                 Q{k} = qk;
-                k = k + 1;
+                k    = k + 1;
             end
         end
         
     case {'manual'}
+        
         % manually provided cell array of (binary) precision components
         %------------------------------------------------------------------
         pq = spm_inv(M.pC);

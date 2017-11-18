@@ -96,7 +96,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7120 2017-06-20 11:30:30Z spm $
+% $Id: spm_MDP_VB_X.m 7223 2017-11-18 18:00:01Z karl $
 
 
 % deal with a sequence of trials
@@ -632,8 +632,9 @@ for t = 1:T
     
     % record (negative) free energies
     %----------------------------------------------------------------------
-    MDP.F(:,t) = F;
-    MDP.G(:,t) = Q;
+    MDP.F(:,t) = sum(log(spm_softmax(F)),2);
+    MDP.G(:,t) = sum(log(spm_softmax(Q)),2);
+    MDP.H(1,t) = qu'*MDP.F(p,t) - qu'*(log(qu) - log(pu));
     
     
     % check for residual uncertainty in hierarchical schemes
@@ -722,6 +723,9 @@ for t = 1:T
             end
             da       = da.*(MDP.a{g} > 0);
             MDP.a{g} = MDP.a{g} + da*eta;
+            
+            % (positive) free energy (i.e., complexity)
+            %--------------------------------------------------------------
             MDP.Fa   = spm_vec(da)'*spm_vec(qA{g}) - sum(spm_vec(spm_betaln(MDP.a{g})));
         end
     end
