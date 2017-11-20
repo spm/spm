@@ -4,7 +4,7 @@ function fmri = spm_cfg_dcm_fmri
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_fmri.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_dcm_fmri.m 7226 2017-11-20 18:38:01Z peter $
 
 
 % -------------------------------------------------------------------------
@@ -19,6 +19,28 @@ dcmmat.ufilter = '^DCM_.*\.mat$';
 dcmmat.num     = [1 Inf];
 
 % -------------------------------------------------------------------------
+% dcmmat_full Select template full model
+% -------------------------------------------------------------------------
+dcmmat_full      = dcmmat;
+dcmmat_full.tag  = 'fulldcm';
+dcmmat_full.name = 'Full DCM';
+dcmmat_full.help = {['Select a DCM .mat file, specified using the GUI ' ...
+    'for a single subject. This should be a ''full'' model with all ' ...
+    'parameters of interest (e.g. connections) enabled.']};
+dcmmat_full.num     = [1 1];
+
+% -------------------------------------------------------------------------
+% dcmmat_alt Select alternative template models
+% -------------------------------------------------------------------------
+dcmmat_alt = dcmmat;
+dcmmat_alt.tag  = 'altdcm';
+dcmmat_alt.name = 'Alternative DCMs';
+dcmmat_alt.help = {['Select alternative DCMs, specified using the GUI ' ...
+    'for a single subject. These should be reduced or nested versions of the ' ...
+    'full template DCM, e.g. with some connections switched off (fixed ' ...
+    'at their priors).']};
+
+% -------------------------------------------------------------------------
 % voimat Select VOI_*.mat
 % -------------------------------------------------------------------------
 voimat         = cfg_files;
@@ -28,6 +50,27 @@ voimat.help    = {'Select VOI_*.mat files.'};
 voimat.filter  = 'mat';
 voimat.ufilter = '^VOI_.*\.mat$';
 voimat.num     = [1 Inf];
+
+% -------------------------------------------------------------------------
+% region Select VOI_*.mat (for a single region across subjects)
+% -------------------------------------------------------------------------
+region         = cfg_files;
+region.tag     = 'region';
+region.name    = 'Region (VOI files)';
+region.help    = {'Select all subjects'' VOI_*.mat for this region.'};
+region.filter  = 'mat';
+region.ufilter = '^VOI_.*\.mat$';
+region.num     = [1 Inf];
+
+% -------------------------------------------------------------------------
+% regions Create set of regions
+%--------------------------------------------------------------------------
+vois       = cfg_repeat;
+vois.tag    = 'vois';
+vois.name   = 'Regions of interest';
+vois.values = {region};
+vois.help   = {'Select the regions of interest (VOIs) for all subjects'};
+vois.num    = [1 Inf];
 
 % -------------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -40,37 +83,59 @@ spmmat.filter  = 'mat';
 spmmat.ufilter = '^SPM\.mat$';
 spmmat.num     = [1 1];
 
+
+% -------------------------------------------------------------------------
+% spmmat Select SPM.mat for each subject
+% -------------------------------------------------------------------------
+spmmats      = spmmat;
+spmmats.tag  = 'spmmats';
+spmmats.name = 'SPM.mat files';
+spmmats.help = {'Select all subjects'' SPM.mat files'};
+spmmats.num  = [1 Inf];
+
 % -------------------------------------------------------------------------
 % session Session index
 % -------------------------------------------------------------------------
 session         = cfg_entry;
 session.tag     = 'session';
 session.name    = 'Which session';
-session.help    = {'Enter the session number.'};
+session.help    = {'Enter the session (run) number.'};
 session.strtype = 'n';
 session.num     = [1 1];
+session.val     = {1};
 
 %--------------------------------------------------------------------------
 % dir Directory
 %--------------------------------------------------------------------------
 dir         = cfg_files;
 dir.tag     = 'dir';
-dir.name    = 'Directory';
+dir.name    = 'Output directory';
 dir.help    = {'Select the directory where the output will be written.'};
 dir.filter  = 'dir';
 dir.ufilter = '.*';
 dir.num     = [1 1];
 
 % -------------------------------------------------------------------------
+% name Model name
+%--------------------------------------------------------------------------
+name         = cfg_entry;
+name.tag     = 'name';
+name.name    = 'Output name';
+name.help    = {['Specify a name for the group DCM file. The prefix GCM_' ...
+                'and suffix .mat are automatically added']};
+name.strtype = 's';
+name.num     = [0 Inf];
+
+% -------------------------------------------------------------------------
 % val Val
 % -------------------------------------------------------------------------
 val         = cfg_entry;
 val.tag     = 'val';
-val.name    = 'Values';
-val.help    = {'Inputs to include for one condition. Enter ''1'' ' ...
+val.name    = 'Condition';
+val.help    = {['Values to include for this condition. Enter ''1'' ' ...
                'to include this condition (with no parameteric regressor). '...
                'Entering [1 0 1] would include this condition and '...
-               'its second parametric regressor.'};
+               'its second parametric regressor.']};
 val.strtype = 'w';
 val.num     = [1 Inf];
 
@@ -80,10 +145,14 @@ val.num     = [1 Inf];
 inp         = cfg_repeat;
 inp.tag     = 'inputs';
 inp.name    = 'Inputs';
-inp.help    = {'Inputs to include and their parametric modulations (PMs). '...
-               'You should click ''New: Values'' for each condition in '...
-               'your SPM (i.e. SPM.U), up to the last condition you wish  '...
-               'to include.'};
+inp.help    = {['Conditions to include and their parametric modulations (PMs). '...
+               'Click ''New: Condition'' for each condition in your '...
+               'SPM (i.e. SPM.U), up to the last condition you wish  '...
+               'to include. For each Condition, enter:'] ...
+               '1 (to include the condition in the DCM) or' ...
+               '[1 1] (the condition and its 1st parameteric regressor) or' ...
+               '[1 0 1] (the condition and its 2nd parameteric regressor)' ...
+               'etc'};
 inp.values  = { val };
 inp.num     = [1 Inf];
 
@@ -105,6 +174,49 @@ models.name   = 'Per model';
 models.values = {model};
 models.help   = {'Select DCM.mat files per model.'};
 models.num    = [1 Inf];
+
+% -------------------------------------------------------------------------
+% output Output branch (specify group batch)
+% -------------------------------------------------------------------------
+output         = cfg_branch;
+output.tag     = 'output';
+output.name    = 'Output';
+output.val     = {dir name};
+output.help    = {''};
+
+% -------------------------------------------------------------------------
+% templates Templates branch (specify group batch)
+% -------------------------------------------------------------------------
+template       = cfg_branch;
+template.tag   = 'template';
+template.name  = 'Template DCMs';
+template.val   = {dcmmat_full dcmmat_alt};
+template.help  = {'Template DCMs to replicate over subjects.'};
+
+% -------------------------------------------------------------------------
+% data Design & data branch (specify group batch)
+% -------------------------------------------------------------------------
+data       = cfg_branch;
+data.tag   = 'data';
+data.name  = 'Design & data';
+data.val   = {spmmats session inp vois};
+data.help  = {'Experimental timing and timeseries for the DCMs.'};
+
+% -------------------------------------------------------------------------
+% group Specify group model space
+% -------------------------------------------------------------------------
+group      = cfg_exbranch;
+group.tag  = 'group';
+group.name = 'Specify group';
+group.val  = {output template data};
+group.help = {'Duplicates template DCM(s) for each subject.'...
+    ['Before running this, create one or more example DCMs for one ' ...
+    'subject using the Dynamic Causal Modelling button in the main ' ...
+    'SPM window. Then use this batch to duplicate the DCM(s) for each ' ...
+    'subject. The output is a file containing a cell array, with one ' ...
+    'row per subject and one column per DCM (named GCM_<name>.mat).']};
+group.prog = @spm_run_create_gcm;
+group.vout = @vout_gcm_fmri;
 
 % -------------------------------------------------------------------------
 % regions Specify regions
@@ -145,8 +257,73 @@ fmri         = cfg_choice;
 fmri.tag     = 'fmri';
 fmri.name    = 'DCM for fMRI';
 fmri.help    = {'Dynamic Causal Modelling for fMRI'};
-fmri.values  = { regions inputs };
+fmri.values  = { group regions inputs };
 
+%==========================================================================
+function out = spm_run_create_gcm(job)
+%==========================================================================
+
+% Unpack
+out_dir  = job.output.dir;
+out_name = job.output.name;
+full_dcm = job.template.fulldcm;
+alt_dcm  = job.template.altdcm;
+spms     = job.data.spmmats;
+sess     = job.data.session;
+inputs   = job.data.val;
+regions  = job.data.region;
+
+nr = length(regions);     % number of regions
+ns = length(spms);        % number of subjects
+nm = length(alt_dcm) + 1; % number of models
+
+% Validate length of VOI arrays
+for r = 1:nr
+    if length(regions{r}) ~= ns
+        error('Pleasure ensure region %d has 1 VOI per subject',r);
+    end
+end
+
+% Load template DCM
+templates    = cell(1,nm);
+templates{1} = full_dcm{1};
+for m = 1:length(alt_dcm)
+    templates{m + 1} = alt_dcm{m};
+end
+
+GCM = cell(ns,nm);
+
+for s = 1:ns
+    % Get subject SPM dir
+    subject_spm     = spms{s};      
+    subject_spm_dir = fileparts(subject_spm);
+    
+    % Get subject VOIs
+    subject_vois = cell(nr,1);
+    for r = 1:nr
+        subject_vois{r} = regions{r}{s};
+    end
+    
+    for m = 1:nm
+        % Copy template to subject
+        new_dcm = fullfile(subject_spm_dir, sprintf('DCM_M%04d.mat',m));
+        copyfile(templates{m}, new_dcm);
+        GCM{s,m} = new_dcm;
+        
+        % Update regions
+        spm_dcm_U(new_dcm,subject_spm,sess,inputs);
+        
+        % Update timeseries
+        spm_dcm_voi(new_dcm,subject_vois);
+    end    
+    
+end
+
+% Save GCM
+out_file = fullfile(out_dir{1}, ['GCM_' out_name '.mat']);
+save(out_file,'GCM');
+
+out = out_file;
 
 %==========================================================================
 function out = spm_run_dcm_fmri_inputs(job)
@@ -170,4 +347,12 @@ function dep = vout_dcm_fmri(varargin)
 dep(1)            = cfg_dep;
 dep(1).sname      = 'DCM mat File(s)';
 dep(1).src_output = substruct('.','dcmmat');
+dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+
+%==========================================================================
+function dep = vout_gcm_fmri(varargin)
+%==========================================================================
+dep(1)            = cfg_dep;
+dep(1).sname      = 'GCM mat File(s)';
+dep(1).src_output = substruct('.','gcmmat');
 dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
