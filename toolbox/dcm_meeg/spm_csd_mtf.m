@@ -35,7 +35,7 @@ function [y,w,s,g] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 6481 2015-06-16 17:01:47Z karl $
+% $Id: spm_csd_mtf.m 7225 2017-11-20 18:34:17Z karl $
 
 
 
@@ -106,7 +106,8 @@ for  c = 1:size(X,1)
     %----------------------------------------------------------------------
     G     = zeros(nw,nc,nc);
     for i = 1:nw
-        G(i,:,:) = sq(S(i,:,:))*diag(Gu(i,:))*sq(S(i,:,:))';
+        Si       = shiftdim(S(i,:,:),1);
+        G(i,:,:) = Si*diag(Gu(i,:))*Si';
     end
     
     % save trial-specific frequencies of interest
@@ -170,10 +171,6 @@ if nargout > 3
     end
 end
 
-% squeeze but ensure second dimension is returned as a common vector
-%--------------------------------------------------------------------------
-function [x] = sq(x)
-if size(x,3) > 1, x = squeeze(x); else, x = x(:); end
 
 
 
