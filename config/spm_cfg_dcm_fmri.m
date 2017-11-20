@@ -4,7 +4,7 @@ function fmri = spm_cfg_dcm_fmri
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_fmri.m 7226 2017-11-20 18:38:01Z peter $
+% $Id: spm_cfg_dcm_fmri.m 7227 2017-11-20 18:53:26Z peter $
 
 
 % -------------------------------------------------------------------------
@@ -39,7 +39,8 @@ dcmmat_alt.help = {['Select alternative DCMs, specified using the GUI ' ...
     'for a single subject. These should be reduced or nested versions of the ' ...
     'full template DCM, e.g. with some connections switched off (fixed ' ...
     'at their priors).']};
-
+dcmmat_alt.num = [0 Inf];
+dcmmat_alt.val = {''};
 % -------------------------------------------------------------------------
 % voimat Select VOI_*.mat
 % -------------------------------------------------------------------------
