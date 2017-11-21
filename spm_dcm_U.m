@@ -23,7 +23,7 @@ function DCM = spm_dcm_U(DCM,SPM,sess,inputs)
 % Copyright (C) 2003-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_U.m 6613 2015-11-29 10:56:53Z peter $
+% $Id: spm_dcm_U.m 7228 2017-11-21 12:17:03Z peter $
 
 
 %-Load DCM and SPM files
@@ -59,6 +59,7 @@ end
 %--------------------------------------------------------------------------
 U.name = {};
 U.u    = [];
+U.idx  = [];
 try
     U.dt   = DCM.U.dt;
 catch
@@ -75,6 +76,7 @@ for i  = 1:numel(inputs)
         for j=mo
             U.u             = [U.u Sess.U(i).u(33:end,j)];
             U.name{end + 1} = Sess.U(i).name{j};
+            U.idx           = [U.idx; i j];   
         end
     end
 end

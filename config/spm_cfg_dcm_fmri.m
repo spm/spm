@@ -4,7 +4,7 @@ function fmri = spm_cfg_dcm_fmri
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_fmri.m 7227 2017-11-20 18:53:26Z peter $
+% $Id: spm_cfg_dcm_fmri.m 7228 2017-11-21 12:17:03Z peter $
 
 
 % -------------------------------------------------------------------------
@@ -122,8 +122,8 @@ dir.num     = [1 1];
 name         = cfg_entry;
 name.tag     = 'name';
 name.name    = 'Output name';
-name.help    = {['Specify a name for the group DCM file. The prefix GCM_' ...
-                'and suffix .mat are automatically added']};
+name.help    = {['Specify a name for the group DCM file. The prefix ''GCM_'' ' ...
+                'and suffix ''.mat'' are added automatically.']};
 name.strtype = 's';
 name.num     = [0 Inf];
 
@@ -183,7 +183,8 @@ output         = cfg_branch;
 output.tag     = 'output';
 output.name    = 'Output';
 output.val     = {dir name};
-output.help    = {''};
+output.help    = {['Select where the group DCM (GCM) file containg all ' ...
+                    'the DCMs'' filenames will be stored.']};
 
 % -------------------------------------------------------------------------
 % templates Templates branch (specify group batch)
@@ -200,7 +201,7 @@ template.help  = {'Template DCMs to replicate over subjects.'};
 data       = cfg_branch;
 data.tag   = 'data';
 data.name  = 'Design & data';
-data.val   = {spmmats session inp vois};
+data.val   = {spmmats session vois};
 data.help  = {'Experimental timing and timeseries for the DCMs.'};
 
 % -------------------------------------------------------------------------
@@ -271,7 +272,6 @@ full_dcm = job.template.fulldcm;
 alt_dcm  = job.template.altdcm;
 spms     = job.data.spmmats;
 sess     = job.data.session;
-inputs   = job.data.val;
 regions  = job.data.region;
 
 nr = length(regions);     % number of regions
@@ -285,11 +285,37 @@ for r = 1:nr
     end
 end
 
-% Load template DCM
+% Get template DCMs
 templates    = cell(1,nm);
 templates{1} = full_dcm{1};
 for m = 1:length(alt_dcm)
     templates{m + 1} = alt_dcm{m};
+end
+
+% Get indices in the SPM of experimental inputs
+DCM = load(templates{1});
+DCM = DCM.DCM;
+if isfield(DCM.U,'idx')
+    idx = DCM.U.idx;
+elseif isfield(DCM.U,'u') && size(DCM.U.u,2)==1 && ...
+        strcmp(DCM.U.name{1},'null') ...
+    % Resting state (backward compatibility)
+    idx = 0;
+else
+    % GUI (backward compatibility)
+    idx = get_conditions_from_ui(spms{1},sess); 
+end
+
+% Convert inputs to cell format for spm_dcm_U
+inputs = {};
+if ~isempty(idx) && (idx(1) ~= 0)
+    max_cond = max(idx(:,1));
+    inputs   = cell(1, max_cond);
+    for i = 1:size(idx,1)        
+        cond = idx(i,1);
+        col  = idx(i,2);
+        inputs{cond}(col) = 1;
+    end   
 end
 
 GCM = cell(ns,nm);
@@ -307,12 +333,15 @@ for s = 1:ns
     
     for m = 1:nm
         % Copy template to subject
-        new_dcm = fullfile(subject_spm_dir, sprintf('DCM_M%04d.mat',m));
+        new_dcm = fullfile(subject_spm_dir, ...
+            sprintf('DCM_%s_m%04d.mat',out_name,m));
         copyfile(templates{m}, new_dcm);
         GCM{s,m} = new_dcm;
         
         % Update regions
-        spm_dcm_U(new_dcm,subject_spm,sess,inputs);
+        if ~isempty(inputs)
+            spm_dcm_U(new_dcm,subject_spm,sess,inputs);
+        end
         
         % Update timeseries
         spm_dcm_voi(new_dcm,subject_vois);
@@ -325,6 +354,32 @@ out_file = fullfile(out_dir{1}, ['GCM_' out_name '.mat']);
 save(out_file,'GCM');
 
 out = out_file;
+
+%==========================================================================
+function idx = get_conditions_from_ui(spmmat,sess)
+%==========================================================================
+SPM = load(spmmat);
+SPM = SPM.SPM;
+
+Sess = SPM.Sess(sess);
+u    = length(Sess.U);
+
+if isempty(Sess.U)
+    idx = 0;
+    return;
+end
+
+idx  = [];
+for i = 1:u
+    for j = 1:length(Sess.U(i).name)
+        str = ['include ' Sess.U(i).name{j} '?'];
+        if spm_input(str,'+1','y/n',[1 0],1)
+            idx = [idx; i j];
+        end
+    end
+end
+
+if isempty(idx), idx = 0; end
 
 %==========================================================================
 function out = spm_run_dcm_fmri_inputs(job)

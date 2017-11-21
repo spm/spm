@@ -3,7 +3,7 @@ function tests = test_spm_cfg_dcm_fmri
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_cfg_dcm_fmri.m 7226 2017-11-20 18:38:01Z peter $
+% $Id: test_spm_cfg_dcm_fmri.m 7228 2017-11-21 12:17:03Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -55,7 +55,6 @@ matlabbatch{1}.spm.dcm.spec.fmri.group.template.fulldcm = cellstr(fullm);
 matlabbatch{1}.spm.dcm.spec.fmri.group.template.altdcm  = altm;
 matlabbatch{1}.spm.dcm.spec.fmri.group.data.spmmats      = spms;
 matlabbatch{1}.spm.dcm.spec.fmri.group.data.session      = 1;
-matlabbatch{1}.spm.dcm.spec.fmri.group.data.val = {1, 1}';
 matlabbatch{1}.spm.dcm.spec.fmri.group.data.region = {voi1
                                                       voi2}';
                                                   

@@ -10,7 +10,7 @@ function DCM = spm_dcm_specify_ui(SPM,xY)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify_ui.m 6735 2016-03-02 15:40:47Z peter $
+% $Id: spm_dcm_specify_ui.m 7228 2017-11-21 12:17:03Z peter $
 
 
 %-Interactive window
@@ -57,6 +57,7 @@ if isempty(Sess.U)
     %----------------------------------------------------------------------
     U.u    = zeros(length(xY(1).u),1);
     U.name = {'null'};
+    U.idx  = 0;
     
 else
     
@@ -66,12 +67,15 @@ else
     u      = length(Sess.U);
     U.name = {};
     U.u    = [];
-    for  i = 1:u
+    U.idx  = [];
+
+    for i = 1:u
         for j = 1:length(Sess.U(i).name)
             str = ['include ' Sess.U(i).name{j} '?'];
             if spm_input(str,'+1','y/n',[1 0],1)
                 U.u             = [U.u Sess.U(i).u(33:end,j)];
                 U.name{end + 1} = Sess.U(i).name{j};
+                U.idx           = [U.idx; i j];
             end
         end
     end
@@ -81,6 +85,7 @@ else
     if isempty(U.u)
         U.u    = zeros(length(xY(1).u),1);
         U.name = {'null'};
+        U.idx  = 0;
     end    
     
 end
