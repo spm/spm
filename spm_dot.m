@@ -15,9 +15,9 @@ function [X] = spm_dot(X,x,i)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dot.m 6856 2016-08-10 17:55:05Z karl $
+% $Id: spm_dot.m 7232 2017-11-26 21:17:04Z karl $
 
-% initialise X and vXthere
+% initialise X and x
 %--------------------------------------------------------------------------
 if nargin < 3
     DIM    = (1:numel(x)) + ndims(X) - numel(x);

@@ -96,7 +96,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7224 2017-11-18 18:10:09Z karl $
+% $Id: spm_MDP_VB_X.m 7232 2017-11-26 21:17:04Z karl $
 
 
 % deal with a sequence of trials
@@ -167,6 +167,12 @@ if size(V,1) > (T - 1)
     V = V(1:(T - 1),:,:);
 end
 
+% fill in missing likelihood if necessary
+%--------------------------------------------------------------------------
+if ~isfield(MDP,'A')
+    MDP.A = MDP.a;
+end
+
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
 Ng  = numel(MDP.A);                 % number of outcome factors
@@ -188,6 +194,8 @@ end
 p0    = exp(-16);
 for g = 1:Ng
     
+    % ensure true probabilities are normalised
+    %----------------------------------------------------------------------
     MDP.A{g}  = spm_norm(MDP.A{g});
     
     % parameters (concentration parameters): A
@@ -202,11 +210,6 @@ for g = 1:Ng
         A{g}  = spm_norm(MDP.A{g});
         rA{g} = spm_back(MDP.A{g});
     end
-    
-    % ensure true probabilities are normalised
-    %----------------------------------------------------------------------
-    MDP.A{g}  = spm_norm(MDP.A{g});
-    
 end
 
 % transition probabilities (priors)
@@ -539,37 +542,39 @@ for t = 1:T
     % accumulate expected free energy of policies (Q)
     %======================================================================
     Q     = zeros(Np,1);
-    for k = p
-        for j = 1:S
-            
-            % get expected states for this policy and time point
-            %--------------------------------------------------------------
-            for f = 1:Nf
-                xq{f} = x{f}(:,j,k);
-            end
-            
-            % (negative) expected free energy
-            %==============================================================
-            
-            % Bayesian surprise about states
-            %--------------------------------------------------------------
-            Q(k) = Q(k) + spm_MDP_G(A,xq);
-            
-            for g = 1:Ng
+    if Np > 1
+        for k = p
+            for j = 1:S
                 
-                % prior preferences about outcomes
+                % get expected states for this policy and time point
                 %----------------------------------------------------------
-                qo   = spm_dot(A{g},xq);
-                Q(k) = Q(k) + qo'*(Vo{g}(:,j));
+                for f = 1:Nf
+                    xq{f} = x{f}(:,j,k);
+                end
                 
-                % Bayesian surprise about parameters
+                % (negative) expected free energy
+                %==========================================================
+                
+                % Bayesian surprise about states
                 %----------------------------------------------------------
-                if isfield(MDP,'a')
-                    Q(k) = Q(k) - spm_dot(wA{g},[qo xq]);
+                Q(k) = Q(k) + spm_MDP_G(A,xq);
+                
+                for g = 1:Ng
+                    
+                    % prior preferences about outcomes
+                    %------------------------------------------------------
+                    qo   = spm_dot(A{g},xq);
+                    Q(k) = Q(k) + qo'*(Vo{g}(:,j));
+                    
+                    % Bayesian surprise about parameters
+                    %------------------------------------------------------
+                    if isfield(MDP,'a')
+                        Q(k) = Q(k) - spm_dot(wA{g},[qo xq]);
+                    end
+                    
                 end
                 
             end
-            
         end
     end
     
@@ -632,8 +637,8 @@ for t = 1:T
     
     % record (negative) free energies
     %----------------------------------------------------------------------
-    MDP.F(:,t) = sum(log(spm_softmax(F)),2);
-    MDP.G(:,t) = sum(log(spm_softmax(Q)),2);
+    MDP.F(:,t) = F;
+    MDP.G(:,t) = Q;
     MDP.H(1,t) = qu'*MDP.F(p,t) - qu'*(log(qu) - log(pu));
     
     
