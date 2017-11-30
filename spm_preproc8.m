@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 7172 2017-09-21 16:31:30Z john $
+% $Id: spm_preproc8.m 7234 2017-11-30 11:33:06Z john $
 
 wp_reg    = 1; % Bias wp towards 1
 
@@ -796,26 +796,10 @@ for iter=1:30
 
         % Heavy-to-light regularisation
         if ~isfield(obj,'Twarp')
-            switch iter
-            case 1
-                prm = [param(1:3) 256*param(4:8)];
-            case 2
-                prm = [param(1:3) 128*param(4:8)];
-            case 3
-                prm = [param(1:3)  64*param(4:8)];
-            case 4
-                prm = [param(1:3)  32*param(4:8)];
-            case 5
-                prm = [param(1:3)  16*param(4:8)];
-            case 6
-                prm = [param(1:3)  8*param(4:8)];
-            case 7
-                prm = [param(1:3)  4*param(4:8)];
-            case 8
-                prm = [param(1:3)  2*param(4:8)];
-            otherwise
-                prm = [param(1:3)    param(4:8)];
-            end
+            scal   = 2^max(10-iter,0);
+            prm    = param;
+           %prm([5 7 8]) = param([5 7 8])*scal;
+            prm(6)       = param(6)*scal^2;
         else
             prm = [param(1:3)   param(4:8)];
         end
@@ -831,7 +815,7 @@ for iter=1:30
         for line_search=1:12
             Twarp1 = Twarp - armijo*Update; % Backtrack if necessary
 
-            % Recompute objective funciton
+            % Recompute objective function
             llr1   = -0.5*sum(sum(sum(sum(Twarp1.*bsxfun(@times,spm_diffeo('vel2mom',bsxfun(@times,Twarp1,1./sk4),prm),1./sk4)))));
             ll1    = llr1+llrb+ll_const;
             for z=1:length(z0)
@@ -875,7 +859,7 @@ for iter=1:30
         oll = ll;
     end
 
-    if iter>9 && ~((ll-ooll)>2*tol1*nm)
+    if iter>=10 && ~((ll-ooll)>2*tol1*nm)
         % Finished
         break
     end
