@@ -160,6 +160,7 @@ megind=setdiff(megind,D.badchannels);
 
 usesamples=intersect(find(D.time>=job.woi(1)./1000),find(D.time<=job.woi(2)./1000));
 
+    
 condind=strmatch(job.whatconditions.condlabel,D.conditions)
 
 
@@ -311,6 +312,8 @@ plot(inverse.Pout.y,inverse.Pout.ypost,'o',inverse.Pout.y,inverse.Pout.y,':');
 xlabel('measured');ylabel('modelled');
 title(sprintf('Free energy=%3.2f',inverse.F));
 
+
+
 axesY = axes(...
     'Position',[0.1 0.4 0.3 0.2],...
     'hittest','off');
@@ -340,6 +343,7 @@ alpha(0.1)
 plot3(inverse.modelmniloc(:,1),inverse.modelmniloc(:,2),inverse.modelmniloc(:,3),'k*');
 view([0 0 1]);
 
+
 subplot(3,3,8);  hold on;
 M=D.inv{val}.mesh.tess_mni;
 h=trisurf(M.face,M.vert(:,1),M.vert(:,2),M.vert(:,3));
@@ -360,6 +364,13 @@ plot3(inverse.modelmniloc(:,1),inverse.modelmniloc(:,2),inverse.modelmniloc(:,3)
 
 view([1 0 0]);
 
+subplot(3,3,7);
+text(-50,-110,'MNI coord:');
+text(-50,-130,num2str(round(inverse.modelmniloc)));
+
+subplot(3,3,9);
+text(0,-190,-40,'MNI mom:');
+text(0,-140,-50,num2str(round(inverse.modelmnimom)));
 
 if ~iscell(D)
     D = {D};
