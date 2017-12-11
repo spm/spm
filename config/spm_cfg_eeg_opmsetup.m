@@ -3,7 +3,7 @@ function setup = spm_cfg_eeg_opmsetup
 %__________________________________________________________________________
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_opmsetup.m 7207 2017-11-09 16:30:05Z gareth $
+% $Id: spm_cfg_eeg_opmsetup.m 7236 2017-12-11 14:33:29Z tim $
 % Tim Tierney's original code modified by Gareth Barnes
 
 
@@ -340,7 +340,7 @@ S = [];
 S.D = D;
 S.type = 'butterworth';
 S.band = 'bandpass';
-S.freq = job.band;
+S.freq = [job.band(1) job.band(2)];
 S.dir = 'twopass';
 S.order = 2;
 nD = spm_eeg_filter(S);
