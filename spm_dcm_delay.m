@@ -1,10 +1,10 @@
 function [Q,J] = spm_dcm_delay(P,M,J,N)
-% returns the delay operator for flow and Jacobians of dynamical systems
-% FORMAT [Q,J] = spm_dcm_delay(P,M)
+% Delay operator for flow and Jacobians of dynamical systems
+% FORMAT [Q,J] = spm_dcm_delay(P,M,J,N)
 % P   - model parameters
 % M   - model specification structure
 % J   - optional: system Jacobian
-% N   - optional: auto Taylor expansion [default: 2^6]
+% N   - optional: auto Taylor expansion [default: 2^8]
 %
 % Required fields:
 %   M.f - dx/dt    = f(x,u,P,M)            {function string or m-file}
@@ -22,13 +22,14 @@ function [Q,J] = spm_dcm_delay(P,M,J,N)
 %                                 = Q(d)*f(x(t))
 % J     - Jacobian  = df/dt = (where delayed Jacobian = Q*J)
 %
-% If the delay martix is not specifed it is computed from its parameters in
-% P.D (and M.pF.D if specified)
+% If the delay matrix is not specifed it is computed from its parameters in
+% P.D (and M.pF.D if specified).
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_delay.m 7149 2017-08-08 13:14:36Z karl $
+% $Id: spm_dcm_delay.m 7238 2017-12-13 12:17:52Z guillaume $
+
 
 % order of Taylor approximation
 %--------------------------------------------------------------------------
@@ -38,7 +39,7 @@ if nargin < 4, N = 2^8; end
 %==========================================================================
 if nargin < 3
     
-    if isfield(M,'u'), u = spm_vec(M.u); else, u = sparse(M.m,1); end
+    if isfield(M,'u'), u = spm_vec(M.u); else u = sparse(M.m,1); end
     
     J = full(spm_diff(M.f,M.x,u,P,M,1));
     
@@ -49,7 +50,7 @@ end
 % evaluate delay matrix D from parameters
 %==========================================================================
 
-% paramterised delays
+% parameterised delays
 %--------------------------------------------------------------------------
 if isfield(P,'D')
     
@@ -127,12 +128,12 @@ if ~N
     return
 end
 
-% delay operator: estimated using a Robbins–Monro algorithm
+% delay operator: estimated using a Robbins-Monro algorithm
 %--------------------------------------------------------------------------
 D     = -D;
 QJ    = (eye(length(J)) - D.*J)\J;
 a     = 1/4;
-TOL   = norm(QJ,'inf')*1e-6;
+TOL   = norm(QJ,Inf)*1e-6;
 dn    = 1;
 Dn    = cell(N,1);
 for n = 1:N
@@ -159,15 +160,15 @@ for i = 1:N
         
         % break if convergence
         %------------------------------------------------------------------
-        if norm(dQ,'inf') < TOL; break, end
+        if norm(dQ,Inf) < TOL, break, end
         
     end
 
-    % Robbins–Monro update and break if convergence
+    % Robbins-Monro update and break if convergence
     %----------------------------------------------------------------------
     QJ = QJ*(1 - a) + Q*a;
     
-    if norm((QJ - Q),'inf') < TOL; break, end
+    if norm((QJ - Q),Inf) < TOL, break, end
     
 end
 Q      = Q*spm_inv(J,exp(-16));
