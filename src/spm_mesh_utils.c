@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mesh_utils.c 6694 2016-01-26 17:09:11Z guillaume $
+ * $Id: spm_mesh_utils.c 7239 2017-12-15 17:14:33Z guillaume $
  * Guillaume Flandin
  */
 
@@ -58,6 +58,7 @@ void mexFunctionVolume(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[
     if (nrhs > 1) mexErrMsgTxt("Too many input arguments.");
     if ((!mxIsStruct(prhs[0])) || (mxIsClass(prhs[0],"gifti")))
         mexErrMsgTxt("First argument must be a patch structure.");
+    if (nlhs > 1) mexErrMsgTxt("Too many output arguments.");
 
     array = mxGetField(prhs[0], 0, "vertices");
     if (!mxIsDouble(array))
@@ -127,6 +128,58 @@ void mexFunctionNeighbours(int nlhs, mxArray *plhs[], int nrhs, const mxArray *p
     if (nlhs > 1) { mxSetPr(plhs[1],D); mxSetN(plhs[1],d); }
 }
 
+/* Gateway Function for NeighbouringFaces */
+void mexFunctionNeighbouringFaces(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    mwSize nf;
+    mwIndex i, j, v1, v2, v3;
+    double *N, *F1, *F2, *F3;
+    int n, a, b, c;
+    
+    if (nrhs < 2) mexErrMsgTxt("Not enough input arguments.");
+    if (nrhs > 2) mexErrMsgTxt("Too many input arguments.");
+    if (nlhs > 1) mexErrMsgTxt("Too many output arguments.");
+    
+    if (!mxIsDouble(prhs[0]))
+        mexErrMsgTxt("Faces have to be stored as double.");
+    nf = mxGetM(prhs[0]);
+    F1 = mxGetPr(prhs[0]);
+    F2 = F1 + nf;
+    F3 = F2 + nf;
+    
+    i  = mxGetScalar(prhs[1]);
+    if ((i > nf) || (i < 1))
+        mexErrMsgTxt("Second argument must be a face index.");
+    v1 = F1[i-1];
+    v2 = F2[i-1];
+    v3 = F3[i-1];
+    
+    plhs[0] = mxCreateDoubleMatrix(1, 3, mxREAL);
+    N = mxGetPr(plhs[0]);
+    N[0] = mxGetNaN();
+    N[1] = mxGetNaN();
+    N[2] = mxGetNaN();
+    
+    for (j=0,n=0;j<nf;a=0,b=0,c=0,j++,F1++,F2++,F3++) {
+        if ((*F1 == v1) || (*F2 == v1) || (*F3 == v1)) a = 1;
+        if ((*F1 == v2) || (*F2 == v2) || (*F3 == v2)) b = 1;
+        if ((*F1 == v3) || (*F2 == v3) || (*F3 == v3)) c = 1;
+        if ((a) && (b) && (!c)) {
+            N[2] = j+1;
+            n++;
+        }
+        else if ((!a) && (b) && (c)) {
+            N[0] = j+1;
+            n++;
+        }
+        else if ((a) && (!b) && (c)) {
+            N[1] = j+1;
+            n++;
+        }
+        if (n == 3) break;
+    }
+}
+
 /* Gateway Function for Dijkstra */
 void mexFunctionDijkstra(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -141,6 +194,7 @@ void mexFunctionDijkstra(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
         mexErrMsgTxt("First argument must be a neighbour array.");
     if (!mxIsNumeric(prhs[1]))
         mexErrMsgTxt("Second argument must be a distance array.");
+    if (nlhs > 1) mexErrMsgTxt("Too many output arguments.");
     
     nv = mxGetM(prhs[0]);
     nb = mxGetN(prhs[0]);
@@ -182,6 +236,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (!strcmp(action,"volume")) {
         mexFunctionVolume(nlhs,plhs,nrhs-1,&prhs[1]);    
+    }
+    else if (!strcmp(action,"neighbouringfaces")) {
+        mexFunctionNeighbouringFaces(nlhs,plhs,nrhs-1,&prhs[1]);    
     }
     else {
         mexErrMsgTxt("Unknown action.");
