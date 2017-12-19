@@ -1,10 +1,15 @@
-function S = spm_mesh_contour(M,z)
+function S = spm_mesh_contour(M,mat)
 % Compute contour lines of a triangular mesh
 % FORMAT S = spm_mesh_contour(M,z)
-% M - a GIfTI object or patch structure
-% z - height of z-plane
+% M   - a GIfTI object or patch structure
+% z   - height of z-plane
 %
-% S - structure of contour levels
+% FORMAT S = spm_mesh_contour(M,mat)
+% mat - 4 x 4 transformation matrix
+%       (use z-plane at z = 0 after linear transformation according to mat)
+%
+% S   - struct array of contour lines with fields 'xdata', 'ydata',
+%       'zdata' and 'isopen'
 %__________________________________________________________________________
 %
 % figure, hold on, axis equal
@@ -12,18 +17,21 @@ function S = spm_mesh_contour(M,z)
 % z = linspace(min(M.vertices(:,3)),max(M.vertices(:,3)),20);
 % for i=1:numel(z)
 %   S = spm_mesh_contour(M,z(i));
-%   for i=1:numel(S)
-%     plot3(S(i).xdata,S(i).ydata,repmat(S(i).level,1,numel(S(i).xdata)));
+%   for j=1:numel(S)
+%     plot3(S(j).xdata,S(j).ydata,S(j).zdata);
 %   end
 % end
 %__________________________________________________________________________
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_contour.m 7239 2017-12-15 17:14:33Z guillaume $
+% $Id: spm_mesh_contour.m 7240 2017-12-19 12:06:59Z guillaume $
 
 
-%-Check inputs and initialise output
+%-Input and output arguments
+%==========================================================================
+
+%-Check input M
 %--------------------------------------------------------------------------
 if isa(M,'gifti')
     M = export(M,'patch');
@@ -33,17 +41,28 @@ if ~all(isfield(M,{'vertices','faces'}))
 end
 if isinteger(M.faces), M.faces = double(M.faces); end
 
-S = struct('xdata',{},'ydata',{},'level',{},'numel',{},'isopen',{});
-
-%-Only consider triangles intersecting the z-plane
+%-Check input mat
 %--------------------------------------------------------------------------
+if numel(mat) == 1
+    mat = spm_matrix([0 0 -mat]);
+end
+
+%-Initialise output
+%--------------------------------------------------------------------------
+S = struct('xdata',{},'ydata',{},'zdata',{},'isopen',{});
+
+
+%-Only consider triangles intersecting the z-plane at z = 0
+%==========================================================================
+M.vertices = (mat(1:3,:) * [M.vertices';ones(1,size(M.vertices,1))])';
 X = M.vertices(:,1);
 Y = M.vertices(:,2);
 Z = M.vertices(:,3);
-I = Z(M.faces) > z;
+I = Z(M.faces) > 0;
 J = sum(I,2);
 J = J > 0 & J < 3;
 M.faces = M.faces(J,:);
+
 
 %-Marching squares (https://en.wikipedia.org/wiki/Marching_squares)
 %==========================================================================
@@ -118,8 +137,9 @@ while ~isempty(F)
     %----------------------------------------------------------------------
     ed = ed(C(C>0),:);
     xe = X(ed); ye = Y(ed); ze = Z(ed);
-    a  = (z-ze(:,1))./(ze(:,2)-ze(:,1));
-    xc = a.*(xe(:,2)-xe(:,1))+xe(:,1);
-    yc = a.*(ye(:,2)-ye(:,1))+ye(:,1);
-    S(end+1) = struct('xdata',xc','ydata',yc','level',z,'numel',numel(xc),'isopen',isopen);
+    a  = ze(:,1) ./ diff(ze,1,2);
+    xc = xe(:,1) - a .* diff(xe,1,2);
+    yc = ye(:,1) - a .* diff(ye,1,2);
+    XYZ = mat\[xc,yc,zeros(size(xc)),ones(size(xc))]';
+    S(end+1) = struct('xdata',XYZ(1,:),'ydata',XYZ(2,:),'zdata',XYZ(3,:),'isopen',isopen);
 end
