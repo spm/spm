@@ -1,16 +1,21 @@
-function DEM_self_MI_a
+function DEM_self_entropy
 %--------------------------------------------------------------------------
-% Routine to produce graphics illustrating self relative entropy or mutual
-% information. A low self mutual information induces anomalous diffusion
-% and itinerancy with power law scaling (i.e., self similar dynamics). This
-% example uses a fixed form (quadratic) likelihood and optimises the density
-% over over hidden states to minimise self mutual information explicitly.
+% Routine to produce graphics illustrating self organisation in terms of
+% the entropy of blanket states and associated trajectories. A low blanket
+% entropy induces anomalous diffusion and itinerancy with power law scaling
+% (i.e., self similar dynamics). This example uses a fixed form (quadratic)
+% likelihood and optimises the density over over hidden states to minimise
+% blanket entropy explicitly.
 %
-% In this example where is just one Markov blanket states and one hidden
-% state to illustrate noise phase symmetry breaking as self mutual
-% information decreases. The subroutines illustrate the relationship
-% between self mutual information, intrinsic mutual information and
-% extrinsic cost.
+% In this example, there is just one active and sensory state and one
+% hidden state to illustrate noise-phase symmetry breaking as the
+% probability density over action reduces the entropy of sensory states
+% under a fixed density of hidden or external states.
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: DEM_self_entropy.m 7243 2018-01-04 20:24:29Z karl $
 
 
 % set up
@@ -18,21 +23,28 @@ function DEM_self_MI_a
 spm_figure('GetWin','Figure 1'); clf
 rng('default')
 
-n     = 128;                             % number of bins
-m     = 16;
+n     = 128;                            % number of (SxH) bins
+m     = 16;                             % numer of (A) active bins
 dt    = 1;                              % time step for solution
-N     = 20;                             % 2^N solution
+N     = 18;                             % 2^N solution
 
-% likelihood – mapping from hidden states to sensory states - A
+% likelihood – mapping from hidden states to sensory states - A = p(S|HxA)
 %--------------------------------------------------------------------------
+a     = zeros(n,n);
 for i = 1:n
     for j = 1:n
-        for k = 1:m
-            es       = j;
-            vs       = 8 + 2*n*(k - 1)^2/m;
-            A(i,j,k) = exp(-(i - es).^2/vs);
-        end
+        es     = (j - n/2).^2/32 + n/8;
+        vs     = (es/8)^2;
+        a(i,j) = exp(-(i - es).^2/vs);
     end
+end
+
+% reduce entropy for different levels of active states and normalise
+%--------------------------------------------------------------------------
+A     = zeros(n,n,m);
+for k = 1:m
+    s        = 1 + 8*(k - 1);
+    A(:,:,k) = spm_softmax(log(a)/s);
 end
 for j = 1:n
     for k = 1:m
@@ -40,26 +52,29 @@ for j = 1:n
     end
 end
 
-for i = 1:min(m,16)
-    subplot(4,4,i)
-    imagesc(1 - A(:,:,i)), axis square
-end
+% check marginal likehoods
+%--------------------------------------------------------------------------
+% for i = 1:min(m,16)
+%     subplot(4,4,i)
+%     imagesc(1 - A(:,:,i)), axis square, axis xy
+% end
+% return
 
 % hidden and active states
 %--------------------------------------------------------------------------
-pH    = exp(-((1:n) - n/2 - n/8).^2/n) + exp(-((1:n) - n/2 + n/8).^2/n);
+pH    = exp(-((1:n) - n/2 - n/8).^2/n*2)/2 + exp(-((1:n) - n/2 + n/8).^2/n);
 lnpH  = log(pH(:));
 lnpA  = ones(m,1);
 
 % progressively optimise mutual information w.r.t. hidden states
 %==========================================================================
-ni    = [1 3 4];                      % batches of iterations
+ni    = [1 3 4];                        % batches of iterations
 for g = 1:3
     for ii = 1:ni(g)
         
-        % evaluate self entropy for current hidden states
+        % evaluate entropy for current hidden states
         %------------------------------------------------------------------
-        [Gg,Gi,Ge] = spm_G(A,lnpH,lnpA);
+        [HB,Gi,Ge] = spm_G(A,lnpH,lnpA);
         
         % evaluate joint density and marginals
         %------------------------------------------------------------------
@@ -78,7 +93,7 @@ for g = 1:3
         
         % mutual informations
         %------------------------------------------------------------------
-        Hh(g,1) = Gg;
+        Hh(g,1) = HB;
         He(g,1) = Ge;
         Hi(g,1) = Gi;
         
@@ -89,26 +104,26 @@ for g = 1:3
         
         % update marginal over hidden states
         %------------------------------------------------------------------
-        lnpA = log(spm_softmax(lnpA - dp(:)*8))
+        lnpA = log(spm_softmax(lnpA - dp(:)*8));
         
         % graphics
         %------------------------------------------------------------------
         subplot(3,2,1),     imagesc(1 - sum(A,3))
         title('Likelihood','FontSize',16)
-        xlabel('Hidden states'), ylabel('Blanket states')
+        xlabel('Hidden states'), ylabel('Sensory states')
         axis square, axis xy
         
         subplot(3,2,2),     bar([Hh,He,Hi])
         title('Expected surpise','FontSize',16)
         xlabel('Iteration'),ylabel('Information (nats)')
         axis square, axis xy,
-        legend({'Expected','extrinsic','intrinsic'})
+        legend({'H(B)','H(B|E)','I(B,E)'})
         set(gca,'XTickLabel',ni)
         
         subplot(3,3,g + 3), imagesc(1 - pSxH)
         j  = sum(ni(1:(g - 1))) + ii;
         title(sprintf('Iteration %i',j),'FontSize',16)
-        xlabel('Hidden states'), ylabel('Blanket states')
+        xlabel('Hidden states'), ylabel('Sensory states')
         axis square, axis xy
         
         hold on
@@ -153,7 +168,7 @@ for g = 1:3
     
     % illustrate power law scaling (sensory states)
     %----------------------------------------------------------------------
-    s     = abs(fft(x(2,:)')).^2;
+    s     = abs(fft(x(1,:)')).^2;
     w     = (1:2^12)';
     W     = w;
     S     = s(w + 1);
@@ -195,12 +210,12 @@ return
 % subroutines
 %==========================================================================
 
-function [G,Gi,Ge] = spm_G(A,lnpH,lnpA)
-% FORMAT [G,Gi,Ge] = spm_G(A,lnpH,lnpA)
-% G = Ge + Gi               % self entropy (extrinsic + intrinsic cost)
-% E[Gi] = H(B|S)            % conditional entropy
-% E[Ge] = I(H,S)            % mutual information
-% E[G]  = H(B)              % self entropy
+function [HB,HBH,IBH] = spm_G(A,lnpH,lnpA)
+% FORMAT [HB,HBH,IBH] = spm_G(A,lnpH,lnpA)
+% HB  = H(B)              % self entropy
+% HBH = H(B|H)            % conditional entropy
+% IBH = I(H,B)            % mutual information
+
 
 % evaluate marginal over hidden states
 %--------------------------------------------------------------------------
@@ -225,9 +240,10 @@ end
 % marginal blanket
 %--------------------------------------------------------------------------
 pB    = spm_vec(sum(pSxHxA,2));
-G     = H(pB);
+HB    = H(pB);
 if nargout > 1
-    Ge = H(pB) + H(pH) - H(pSxHxA);
-    Gi = G - Ge;
+    IBH = H(pB) + H(pH) - H(pSxHxA);
+    HBH = HB - IBH;
 end
+
 return

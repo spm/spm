@@ -623,24 +623,20 @@ function pushbutton215_Callback(hObject, eventdata, handles)
 handles.web = 'Life as we know it';
 run_demo_Callback(hObject, handles, 'FEP_fluctuations')
 
-
 % --- Executes on button press in pushbutton216.
 function pushbutton216_Callback(hObject, eventdata, handles)
 handles.web = 'Life as we know it';
 run_demo_Callback(hObject, handles, 'FEP_MB_demo')
-
 
 % --- Executes on button press in pushbutton217.
 function pushbutton217_Callback(hObject, eventdata, handles)
 handles.web = 'Knowing ones place';
 run_demo_Callback(hObject, handles, 'DEM_cells_cells')
 
-
 % --- Executes on button press in pushbutton218.
 function pushbutton218_Callback(hObject, eventdata, handles)
 handles.web = 'Knowing ones place';
 run_demo_Callback(hObject, handles, 'DEM_cells')
-
 
 % --- Executes on button press in pushbutton219.
 function pushbutton219_Callback(hObject, eventdata, handles)
@@ -655,8 +651,7 @@ run_demo_Callback(hObject, handles, 'FEP_self_entropy')
 % --- Executes on button press in pushbutton221.
 function pushbutton221_Callback(hObject, eventdata, handles)
 handles.web = 'Life as we know it';
-run_demo_Callback(hObject, handles, 'DEM_I3_and_TS')
-
+run_demo_Callback(hObject, handles, 'DEM_HB_and_LE')
 
 % --- Executes on button press in pushbutton222.
 function pushbutton222_Callback(hObject, eventdata, handles)
