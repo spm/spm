@@ -15,10 +15,10 @@ function varargout = spm_BIDS(varargin)
 %   describing outputs of neuroimaging experiments.
 %   K. J. Gorgolewski et al, Scientific Data, 2016.
 %__________________________________________________________________________
-% Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2016-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7120 2017-06-20 11:30:30Z spm $
+% $Id: spm_BIDS.m 7242 2018-01-04 15:59:29Z guillaume $
 
 
 %-Validate input arguments
@@ -134,16 +134,16 @@ varargout = { BIDS };
 %==========================================================================
 function subject = parse_subject(p, subjname, sesname)
 
-subject.name = subjname;   % subject name ('sub-<participant_label>')
-subject.path = fullfile(p,subjname,sesname); % full path to subject directory
+subject.name    = subjname;   % subject name ('sub-<participant_label>')
+subject.path    = fullfile(p,subjname,sesname); % full path to subject directory
 subject.session = sesname; % session name ('' or 'ses-<label>')
-subject.anat = struct([]); % anatomy imaging data
-subject.func = struct([]); % task imaging data
-subject.fmap = struct([]); % fieldmap data
-subject.beh = struct([]);  % behavioral experiment data
-subject.dwi = struct([]);  % diffusion imaging data
-subject.meg = struct([]);  % MEG data
-subject.pet = struct([]);  % PET imaging data
+subject.anat    = struct([]); % anatomy imaging data
+subject.func    = struct([]); % task imaging data
+subject.fmap    = struct([]); % fieldmap data
+subject.beh     = struct([]); % behavioral experiment data
+subject.dwi     = struct([]); % diffusion imaging data
+subject.meg     = struct([]); % MEG data
+subject.pet     = struct([]); % PET imaging data
 
 
 %--------------------------------------------------------------------------
@@ -244,7 +244,12 @@ if exist(pth,'dir')
             subject.fmap(j).ses = regexprep(labels{idx(i)}.ses,'^_[a-zA-Z0-9]+-','');
             subject.fmap(j).acq = regexprep(labels{idx(i)}.acq,'^_[a-zA-Z0-9]+-','');
             subject.fmap(j).run = regexprep(labels{idx(i)}.run,'^_[a-zA-Z0-9]+-','');
-            subject.fmap(j).meta = spm_jsonread(metafile);
+            if spm_existfile(metafile)
+                subject.fmap(j).meta = spm_jsonread(metafile);
+            else
+                % (!) TODO: file can also be stored at higher levels (inheritance principle)
+                subject.fmap(j).meta = struct([]); % ?
+            end
             j = j + 1;
         end
     end
@@ -272,9 +277,14 @@ if exist(pth,'dir')
             subject.fmap(j).ses = regexprep(labels{idx(i)}.ses,'^_[a-zA-Z0-9]+-','');
             subject.fmap(j).acq = regexprep(labels{idx(i)}.acq,'^_[a-zA-Z0-9]+-','');
             subject.fmap(j).run = regexprep(labels{idx(i)}.run,'^_[a-zA-Z0-9]+-','');
-            subject.fmap(j).meta = {...
-                spm_jsonread(metafile),...
-                spm_jsonread(strrep(metafile,'_phase1.json','_phase2.json'))};
+            if spm_existfile(metafile)
+                subject.fmap(j).meta = {...
+                    spm_jsonread(metafile),...
+                    spm_jsonread(strrep(metafile,'_phase1.json','_phase2.json'))};
+            else
+                % (!) TODO: file can also be stored at higher levels (inheritance principle)
+                subject.fmap(j).meta = struct([]); % ?
+            end
             j = j + 1;
         end
     end
@@ -298,7 +308,12 @@ if exist(pth,'dir')
             subject.fmap(j).ses = regexprep(labels{idx(i)}.ses,'^_[a-zA-Z0-9]+-','');
             subject.fmap(j).acq = regexprep(labels{idx(i)}.acq,'^_[a-zA-Z0-9]+-','');
             subject.fmap(j).run = regexprep(labels{idx(i)}.run,'^_[a-zA-Z0-9]+-','');
-            subject.fmap(j).meta = spm_jsonread(metafile);
+            if spm_existfile(metafile)
+                subject.fmap(j).meta = spm_jsonread(metafile);
+            else
+                % (!) TODO: file can also be stored at higher levels (inheritance principle)
+                subject.fmap(j).meta = struct([]); % ?
+            end
             j = j + 1;
         end
     end
@@ -323,7 +338,12 @@ if exist(pth,'dir')
             subject.fmap(j).acq = regexprep(labels{idx(i)}.acq,'^_[a-zA-Z0-9]+-','');
             subject.fmap(j).dir = labels{idx(i)}.dir;
             subject.fmap(j).run = regexprep(labels{idx(i)}.run,'^_[a-zA-Z0-9]+-','');
-            subject.fmap(j).meta = spm_jsonread(metafile);
+            if spm_existfile(metafile)
+                subject.fmap(j).meta = spm_jsonread(metafile);
+            else
+                % (!) TODO: file can also be stored at higher levels (inheritance principle)
+                subject.fmap(j).meta = struct([]); % ?
+            end
             j = j + 1;
         end
     end
@@ -344,7 +364,7 @@ if exist(pth,'dir')
         
         p = parse_filename(f{i}, {'sub','ses','task','run','proc', 'meta'});
         subject.meg = [subject.meg p];
-        subject.meg(end).meta = struct(); % ?
+        subject.meg(end).meta = struct([]); % ?
         
     end
     
@@ -383,7 +403,7 @@ if exist(pth,'dir')
         
         p = parse_filename(f{i}, {'sub','ses','task','run','proc', 'meta'});
         subject.meg = [subject.meg p];
-        subject.meg(end).meta = struct(); % ?
+        subject.meg(end).meta = struct([]); % ?
         
     end
 
