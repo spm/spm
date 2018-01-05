@@ -5,29 +5,28 @@ function spm_dcm_display(varargin)
 % a     - connections of directed graph a(i,j,1) = p value; 
 %                                       a(i,j,2) = MAP estimate value
 % c     - node-specific inputs
-% h     - figure handle [default: Graphics window]
+% h     - axis handle [default: gca from 'Graphics' window]
 %__________________________________________________________________________
-% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_display.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_dcm_display.m 7244 2018-01-05 17:46:59Z guillaume $
  
- 
-% input arguments
-%--------------------------------------------------------------------------
-n = length(varargin);
- 
+  
 % get dimensions
 %--------------------------------------------------------------------------
-if n < 1, xY = [];  else xY = varargin{1}; end
-if n < 2, a  = [];  else a  = varargin{2}; end
-if n < 3, c  = [];  else c  = varargin{3}; end
-if n < 4
-    Fgraph  = spm_figure('GetWin','Graphics');
-    ha = gca;
+if nargin < 1, xY = []; else xY = varargin{1}; end
+if nargin < 2, a  = []; else a  = varargin{2}; end
+if nargin < 3, c  = []; else c  = varargin{3}; end
+if nargin < 4
+    spm_figure('GetWin','Graphics');
+    hA = gca;
 else
-    ha = varargin{4};
-    Fgraph = get(ha,'parent');
+    hA = varargin{4};
+    if ~strcmp(get(hA,'Type'),'axes')
+        spm_figure('Focus',hA);
+        hA = gca;
+    end
 end
 
 % graphics parameters
@@ -56,7 +55,7 @@ M1    = spm_matrix(-o(1:3)');
 for i = 1:3
     u{i}      = eye(4,3);
     u{i}(:,i) = [];
-    s(i)      = det(u{i}'*M1*L*L'*M'*u{i});
+    s(i)      = det(u{i}'*M1*L*L'*M1'*u{i});
 end
 [i,j]   = max(s);
 u       = u{j};
@@ -65,7 +64,7 @@ u       = u{j};
 %--------------------------------------------------------------------------
 M2      = u';
 M2(4,4) = 1;
-M1(j,4) = 0;
+%M1(j,4) = 0;
 L       = M2*M1*L;
  
 % coordinates
@@ -90,15 +89,14 @@ t1      = (64 - 16) + 16*t1/max(t1(:));
  
 % Watermark and regions
 %--------------------------------------------------------------------------
-str     = get(get(ha,'Title'),'String');
-image(rot90(reshape(t1,length(i),length(j))),'parent',ha)
-axis(ha,'image','off')
-title(ha,str)
- 
+str     = get(get(hA,'Title'),'String');
+image(rot90(reshape(t1,length(i),length(j))),'Parent',hA)
+axis(hA,'image','off')
+title(hA,str)
  
 % Connections
 %--------------------------------------------------------------------------
-Q     = [-pi:pi/32:pi];
+Q     = -pi:pi/32:pi;
 Q     = rad*[sin(Q); cos(Q)];
 q     = 1/3;
 for i = 1:length(a)
@@ -112,9 +110,11 @@ for i = 1:length(a)
                 % line
                 %----------------------------------------------------------
                 k = rem(j - 1,length(col)) + 1;
-                h = line(L(1,[i j]),L(2,[i j]),'Color',col{k},...
+                h = line(L(1,[i j]),L(2,[i j]),...
+                        'Color',col{k},...
                         'LineStyle',':',...
-                        'LineWidth',w);
+                        'LineWidth',w,...
+                        'Parent',hA);
  
                 % if significant
                 %----------------------------------------------------------
@@ -129,8 +129,10 @@ for i = 1:length(a)
                     for k = 1:size(a,3)
                         str{k} = sprintf('%0.2f ',a(i,j,k));
                     end
-                    h     = text(u,v,1,str(:),'FontSize',12,...
-                                'HorizontalAlignment','Center');
+                    h     = text(u,v,1,str(:),...
+                                'FontSize',12,...
+                                'HorizontalAlignment','Center',...
+                                'Parent',hA);
                 end
  
             % self-connection
@@ -144,7 +146,11 @@ for i = 1:length(a)
                 v     = L(2,i);
                 u     = Q(1,:) + u;
                 v     = Q(2,:) + v;
-                h     = line(u,v,'Color',col{k},'LineStyle',':','LineWidth',w);
+                h     = line(u,v,...
+                            'Color',col{k},...
+                            'LineStyle',':',...
+                            'LineWidth',w,...
+                            'Parent',hA);
  
                 % if significant
                 %----------------------------------------------------------
@@ -159,8 +165,10 @@ for i = 1:length(a)
                     for k = 1:size(a,3)
                         str{k} = sprintf('%0.2f ',a(i,j,k));
                     end
-                    h     = text(u,v,1,str(:),'FontSize',12,...
-                                'HorizontalAlignment','Center');
+                    h     = text(u,v,1,str(:),...
+                                'FontSize',12,...
+                                'HorizontalAlignment','Center',...
+                                'Parent',hA);
                 end
             end
         end
@@ -179,7 +187,11 @@ for i = 1:size(c,1)
         v     = L(2,i);
         u     = [u (rad + u)];
         v     = [v v];
-        h     = line(u,v,'Color',col{k},'LineStyle',':','LineWidth',w);
+        h     = line(u,v,...
+                    'Color',col{k},...
+                    'LineStyle',':',...
+                    'LineWidth',w,...
+                    'Parent',hA);
  
         % if significant
         %------------------------------------------------------------------
@@ -194,8 +206,10 @@ for i = 1:size(c,1)
             for k = 1:size(c,2)
                 str{k} = sprintf('%0.2f ',c(i,k));
             end
-            h     = text(u,v,str(:),'FontSize',12,...
-                                    'HorizontalAlignment','Center');
+            h     = text(u,v,str(:),...
+                        'FontSize',12,...
+                        'HorizontalAlignment','Center',...
+                        'Parent',hA);
         end
     end
 end
@@ -203,18 +217,18 @@ end
  
 % projected coordinates of voxels within region[s]
 %--------------------------------------------------------------------------
-hold on
 for i = 1:m
     k = rem(i - 1,length(col)) + 1;
     line(L(1,i),L(2,i),...
         'Color',col{k},...
         'Marker','.',...
         'LineStyle','none',...
-        'MarkerSize',98);
+        'MarkerSize',98,...
+        'Parent',hA);
  
     text(L(1,i),L(2,i),name{i},'FontSize',16,...
         'FontWeight','Bold',...
         'Color','w',...
-        'HorizontalAlignment','center')
+        'HorizontalAlignment','center',...
+        'Parent',hA)
 end
-hold off
