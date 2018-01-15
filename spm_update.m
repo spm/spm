@@ -18,10 +18,10 @@ function varargout = spm_update(update)
 %        n   - new revision <n> is available for download
 % msg  - string describing outcome, that would otherwise be displayed.
 %__________________________________________________________________________
-% Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_update.m 7218 2017-11-16 10:03:14Z guillaume $
+% $Id: spm_update.m 7245 2018-01-15 11:03:54Z guillaume $
 
 
 vspm = spm('Ver');
@@ -83,9 +83,10 @@ if n > r
     if ~nargout, fprintf(msg); else varargout = {sts, msg}; end
 else
     sts = 0;
-    msg = sprintf('Your version of %s is up to date.',vspm);
-    if ~nargout, fprintf([blanks(9) msg '\n']);
-    else varargout = {sts, msg}; end
+    msg1 = sprintf('Your version of %s is up to date.',vspm);
+    msg2 = sprintf('(Your version: %d - Online version: %d)',r,n);
+    if ~nargout, fprintf([blanks(9) msg1 '\n' blanks(5) msg2 '\n']);
+    else varargout = {sts, sprintf('%s\n%s',msg1,msg2)}; end
     return
 end
 
