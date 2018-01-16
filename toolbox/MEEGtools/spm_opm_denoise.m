@@ -28,7 +28,7 @@ function Dout= spm_opm_denoise(D,refD,derivative,gs,update,prefix)
 %__________________________________________________________________________
 
 
-% $Id: spm_opm_denoise.m 7231 2017-11-24 13:47:09Z gareth $
+% $Id: spm_opm_denoise.m 7246 2018-01-16 12:55:14Z gareth $
 % check to make sure dimensions match between reference and MEEG object
 ndim = size(D);
 ldim = size(refD);
@@ -66,7 +66,7 @@ for i =1:Ntrials
      
     % optionally add global signal 
     if(gs)
-        trial = D(:,:,i)';
+        trial = D(megind,:,i)';
         gsrefer =  mean(trial,2);
         reference=[gsrefer reference];
     end
