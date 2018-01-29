@@ -7,9 +7,9 @@ function out = spm_run_norm(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_norm.m 6578 2015-10-15 15:22:12Z volkmar $
+% $Id: spm_run_norm.m 7249 2018-01-29 12:02:33Z guillaume $
 
 
 for i=1:numel(job.subj)
@@ -38,7 +38,7 @@ for i=1:numel(job.subj)
     end
     
     if isfield(job,'woptions'),
-        out(i).files = spm_file(job.subj(i).resample, 'prefix','w');
+        out(i).files = spm_file(job.subj(i).resample, 'prefix',job.woptions.prefix);
     end
 end
 %==========================================================================
