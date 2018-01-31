@@ -21,7 +21,7 @@ function [p,F,K,theta] = spm_GPclass(XX,t,lab,cov_fun,fun_args)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_GPclass.m 6881 2016-09-19 09:48:54Z john $
+% $Id: spm_GPclass.m 7252 2018-01-31 15:56:56Z john $
 
 if nargin==3
     p = gp_pred_ep_binclass(XX,t,lab);
@@ -77,7 +77,7 @@ else
     [f,F]   = gp_lap_multiclass(K,t);
 end
 %fprintf('%g\n', F);
-E = -F + 1e-10*(theta'*theta);
+E = -F + 1e-8*(theta'*theta);
 %__________________________________________________________________________
 %__________________________________________________________________________
 function [f,F] = gp_lap_binclass(K,t,f)

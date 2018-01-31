@@ -20,7 +20,7 @@ function [sig,a] = spm_shoot_blur(t,prm,its,sig)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_blur.m 5485 2013-05-09 15:51:24Z john $
+% $Id: spm_shoot_blur.m 7252 2018-01-31 15:56:56Z john $
 
 d   = [size(t),1,1,1];
 if nargin<3, its = 16;                         end; % Maximum no. iterations
@@ -48,7 +48,7 @@ a     = zeros([d(1:3),d(4)-1],'single');
 if nargin>=4,
     for z=1:d(3), % Loop over planes
         sz = sig(:,:,z,:);
-        sz = min(max(sig,0),1);
+        sz = min(max(sz,0),1);
         sz(~isfinite(sz)) = 1/d(4);
         sz = squeeze(log(double(sz*(1-d(4)*1e-3)+1e-3)));
         for j1=1:(d(4)-1),

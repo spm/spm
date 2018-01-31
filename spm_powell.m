@@ -18,7 +18,7 @@ function [p,f] = spm_powell(p,xi,tolsc,func,varargin)
 % Copyright (C) 2001-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_powell.m 7112 2017-06-16 11:30:37Z guillaume $
+% $Id: spm_powell.m 7252 2018-01-31 15:56:56Z john $
 
 
 p = p(:);
@@ -37,7 +37,7 @@ for iter=1:512
             ibig = i;
         end
     end
-    if numel(p)==1 || sqrt(sum(((p(:)-pp(:))./tolsc(:)).^2))<1, return; end
+    if numel(p)==1 || sqrt(sum(((p(:)-pp(:))./tolsc(:)).^2))<1 || abs((f-fp)/(f+fp))<1e-6, return; end
     ft = feval(func,2.0*p-pp,varargin{:});
     if ft < f
         [p,xi(:,ibig),f] = min1d(p,p-pp,func,f,tolsc,varargin{:});
@@ -66,8 +66,8 @@ pi       = pi*pmin;
 p        = p + pi;
 
 %if length(p)<12,
-%    for i=1:length(p), fprintf('%-8.4g ', p(i)); end;                  %-#
-%    fprintf('| %.5g\n', f);                                            %-#
+%   for i=1:length(p), fprintf('%-8.4g ', p(i)); end;                  %-#
+%   fprintf('| %.5g\n', f);                                            %-#
 %else
 %    fprintf('%.5g\n', f);                                              %-#
 %end
