@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mapping.c 6549 2015-09-11 15:37:48Z guillaume $
+ * $Id: spm_mapping.c 7250 2018-01-31 12:12:39Z guillaume $
  * John Ashburner
  */
 
@@ -474,7 +474,8 @@ static MAPTYPE *get_maps_struct(const mxArray *ptr, int *n)
 
 static MAPTYPE *get_maps_3dvol(const mxArray *ptr, int *n)
 {
-    int num_dims, jj, t, dtype = 0;
+    int num_dims, jj, dtype = 0;
+    long long t;
     const mwSize *dims;
     MAPTYPE *maps;
     unsigned char *dptr;
