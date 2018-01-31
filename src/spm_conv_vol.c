@@ -1,5 +1,5 @@
 /*
- * $Id: spm_conv_vol.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_conv_vol.c 7251 2018-01-31 12:44:05Z guillaume $
  * John Ashburner
  */
 
@@ -299,8 +299,8 @@ static int convxyz(MAPTYPE *vol, double filtx[], double filty[], double filtz[],
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-        MAPTYPE *map, *get_maps();
-        int k, dtype = SPM_DOUBLE;
+    MAPTYPE *map, *get_maps();
+    int k, dtype = SPM_DOUBLE;
     double *offsets, *oVol = NULL;
     mxArray *wplane_args[3];
 
@@ -309,7 +309,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgTxt("Incorrect usage.");
     }
     
-    map=get_maps(prhs[0], &k);
+    map = get_maps(prhs[0], &k);
     if (k!=1)
     {
         free_maps(map, k);
@@ -326,12 +326,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else
     {
-        if (   mxIsComplex(prhs[1]) ||
+        if (mxIsComplex(prhs[1]) ||
             mxIsSparse(prhs[1]) ||
             mxGetM(prhs[1])*mxGetN(prhs[1]) != map->dim[0]*map->dim[1]*map->dim[2])
         {
             free_maps(map, 1);
-            mexErrMsgTxt("Bad output array");
+            mexErrMsgTxt("Bad output array.");
         }
         oVol = (double *)mxGetPr(prhs[1]);
 
@@ -346,13 +346,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         else mexErrMsgTxt("Unknown output datatype.");
     }
 
-        for(k=2; k<=5; k++)
+    for(k=2; k<=5; k++)
     {
-                if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
-                        mxIsSparse(prhs[k]) || !mxIsDouble(prhs[k]))
+        if (!mxIsNumeric(prhs[k]) || mxIsComplex(prhs[k]) ||
+            mxIsSparse(prhs[k]) || !mxIsDouble(prhs[k]))
         {
             free_maps(map, 1);
-                        mexErrMsgTxt("Functions must be numeric, real, full and double.");
+            mexErrMsgTxt("Functions must be numeric, real, full and double.");
         }
     }
 

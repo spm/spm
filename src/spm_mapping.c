@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mapping.c 7250 2018-01-31 12:12:39Z guillaume $
+ * $Id: spm_mapping.c 7251 2018-01-31 12:44:05Z guillaume $
  * John Ashburner
  */
 
@@ -71,7 +71,8 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
 {
     mxArray *tmp;
     double *pr;
-    int num_dims, j, t, dtype = 0;
+    int num_dims, j, dtype = 0;
+    long long t;
     const mwSize *dims;
     unsigned char *dptr;
 
