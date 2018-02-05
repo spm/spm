@@ -8,7 +8,7 @@ function this = gifti(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: gifti.m 7239 2017-12-15 17:14:33Z guillaume $
+% $Id: gifti.m 7254 2018-02-05 17:51:37Z guillaume $
 
 switch nargin
     
@@ -87,6 +87,9 @@ switch nargin
                 this = gifti(this);
             elseif strcmpi(e,'.ply')
                 this = ply_read(varargin{1});
+                this = gifti(this);
+            elseif strcmpi(e,'.stl')
+                this = stl_read(varargin{1});
                 this = gifti(this);
             else
                 this = read_gifti_file(varargin{1},giftistruct);
