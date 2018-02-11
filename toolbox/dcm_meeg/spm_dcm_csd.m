@@ -41,7 +41,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 7002 2017-02-02 18:22:04Z karl $
+% $Id: spm_dcm_csd.m 7256 2018-02-11 14:45:00Z karl $
  
  
 % check options
@@ -247,3 +247,33 @@ DCM.ID = ID;                   % data ID
 DCM.options.Nmodes = Nm;
  
 save(DCM.name, 'DCM', spm_get_defaults('mat.format'));
+
+return
+
+% NOTES: for population specific cross spectra
+%--------------------------------------------------------------------------
+M             = rmfield(DCM.M,'U'); 
+M.dipfit.type = 'LFP';
+M           = DCM.M;
+M.U         = 1; 
+M.l         = DCM.M.m;
+qp          = DCM.Ep;
+qp.L        = ones(1,M.l);              % set electrode gain to unity
+qp.b        = qp.b - 32;                % and suppress non-specific and
+qp.c        = qp.c - 32;                % specific channel noise
+
+% specifying the j-th population in the i-th source
+%--------------------------------------------------------------------------
+i           = 1;
+j           = 2;
+qp.J{i}     = spm_zeros(qp.J{i});
+qp.J{i}(j)  = 1;
+
+[Hs Hz dtf] = spm_csd_mtf(qp,M,DCM.xU); % conditional cross spectra
+[ccf pst]   = spm_csd2ccf(Hs,DCM.M.Hz); % conditional correlation functions
+[coh fsd]   = spm_csd2coh(Hs,DCM.M.Hz); % conditional covariance
+
+
+
+
+

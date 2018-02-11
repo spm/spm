@@ -15,7 +15,11 @@ function [L] = spm_lx_erp(P,dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lx_erp.m 6720 2016-02-15 21:06:55Z karl $
+% $Id: spm_lx_erp.m 7256 2018-02-11 14:45:00Z karl $
+
+% Check for explicit gain matrix (LG)
+%--------------------------------------------------------------------------
+if  isfield(P,'LG'), L = P.LG; return, end
 
 % extract dipfit from model if necessary
 %--------------------------------------------------------------------------

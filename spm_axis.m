@@ -14,7 +14,11 @@ if nargin == 1 && any(strcmpi(varargin{1},{'tight','scale'}))
 elseif nargin == 2 && allAxes(varargin{1}) && strcmpi(varargin{2},'tight')
     for i = 1:numel(varargin{1})
         lm = get(varargin{1}(i),'ylim');
-        set(varargin{1}(i),'ylim',lm + [-1 1]*diff(lm)/16);
+        if diff(lm) < 1e-12
+            set(varargin{1}(i),'ylim',lm + [-1 1]);
+        else
+            set(varargin{1}(i),'ylim',lm + [-1 1]*diff(lm)/16);
+        end
     end
 elseif nargin == 2 && allAxes(varargin{1}) && strcmpi(varargin{2},'scale')
     for i = 1:numel(varargin{1})
@@ -27,4 +31,4 @@ end
 function result = allAxes(h)
 
 result = all(ishghandle(h)) && ...
-         length(findobj(h,'type','axes','-depth',0)) == length(h);
+    length(findobj(h,'type','axes','-depth',0)) == length(h);
