@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 7190 2017-10-17 11:22:43Z spm $
+ * $Id: spm_jsonread.c 7257 2018-02-12 15:51:12Z guillaume $
  * Guillaume Flandin
  */
 
@@ -388,7 +388,9 @@ static int object(char *js, jsmntok_t *tok, mxArray **mx) {
         return 1;
     }
     for (i = 0, j = 0, k = 0; i < tok->size; i++) {
-        field = get_string(js, (tok+1+j)->start, (tok+1+j)->end); /* check it is a JSMN_STRING */
+        if ((tok+1+j)->type != JSMN_STRING)
+            mexErrMsgTxt("Ill-formatted JSON.");
+        field = get_string(js, (tok+1+j)->start, (tok+1+j)->end);
         field = valid_fieldname(field, &need_free);
         j++;
         if (i == 0) {
