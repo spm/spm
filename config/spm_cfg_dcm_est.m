@@ -4,7 +4,7 @@ function estimate = spm_cfg_dcm_est
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_est.m 7153 2017-08-10 10:18:14Z adeel $
+% $Id: spm_cfg_dcm_est.m 7261 2018-02-19 11:02:42Z peter $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -113,7 +113,7 @@ output_overwrite_gcm.help    = {['Overwrites existing group-level DCM file ' ...
 %--------------------------------------------------------------------------
 output_separate         = cfg_branch;
 output_separate.tag     = 'separate';
-output_separate.name    = 'Overwrite existing individual DCM files';
+output_separate.name    = 'Only save individual DCM files';
 output_separate.val     = {};
 output_separate.help    = {'Updated existing individual DCM.mat files'};
 
@@ -319,7 +319,7 @@ end
 for s = 1:ns
     for m = 1:nm
         if strcmpi(job.fmri.analysis,'CSD')
-            GCM{s,m}.options            = 'CSD';
+            GCM{s,m}.options.analysis   = 'CSD';
             GCM{s,m}.options.induced    = 1;
             GCM{s,m}.options.stochastic = 0;            
         else
@@ -362,7 +362,7 @@ switch est_type
 end
 
 % Save individual DCM .mat files if requested
-if ~isempty(P) && (est_type == OUTPUT_DCM)
+if ~isempty(P) && (est_type ~= EST_NONE)
     for s = 1:ns
         for m = 1:nm
             DCM = GCM{s,m};
