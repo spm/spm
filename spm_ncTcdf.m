@@ -16,45 +16,85 @@ function F = spm_ncTcdf(t,v,d)
 % Copyright (C) 2009-2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ncTcdf.m 7258 2018-02-14 13:09:46Z guillaume $
+% $Id: spm_ncTcdf.m 7260 2018-02-19 10:55:53Z guillaume $
 
 
-tn = t < 0;
-if any(tn)
-    F = t;
-    if ~all(tn), F(~tn) = spm_ncTcdf(t(~tn),v,d); end
-    F(tn)  = 1 - spm_ncTcdf(-t(tn),v,-d);
-    return;
+%-Format arguments, note & check sizes
+%--------------------------------------------------------------------------
+ad = [ndims(t);ndims(v);ndims(d)];
+rd = max(ad);
+as = [[size(t),ones(1,rd-ad(1))];...
+      [size(v),ones(1,rd-ad(2))];...
+      [size(d),ones(1,rd-ad(3))];];
+rs = max(as);
+xa = prod(as,2)>1;
+if all(xa) && any(any(diff(as(xa,:)),1))
+    error('non-scalar args must match in size');
 end
 
+
+%-Computation
+%--------------------------------------------------------------------------
+%-Initialise result to zeros
+F = zeros(rs);
+
+%-Only defined for strictly positive v. Return NaN if undefined.
+md = true(size(t)) & v>0;
+if any(~md(:))
+    F(~md) = NaN;
+    warning('Returning NaN for out of range arguments');
+end
+
+%-Compute where defined
+if ~any(md(:)), return, end
+
+%-Compute
+Q = md & t < 0;
+if any(Q(:))
+    if xa(1), Qt=Q; else Qt=1; end
+    if xa(2), Qv=Q; else Qv=1; end
+    if xa(3), Qd=Q; else Qd=1; end
+    F(Q) = 1 - sub_ncTcdf(-t(Qt),v(Qv),-d(Qd));
+end
+Q = md & t >= 0;
+if any(Q(:))
+    if xa(1), Qt=Q; else Qt=1; end
+    if xa(2), Qv=Q; else Qv=1; end
+    if xa(3), Qd=Q; else Qd=1; end
+    F(Q) = sub_ncTcdf(t(Qt),v(Qv),d(Qd));
+end
+
+
+%==========================================================================
+function F =  sub_ncTcdf(t,v,d)
 en     = 1;
 x      = t .* t ./ (t .* t + v);
-lambda = d * d;
+lambda = d .* d;
 p      = 1/2 * exp(-1/2 * lambda);
-q      = sqrt(2/pi) * p * d;
+q      = sqrt(2/pi) * p .* d;
 s      = 1/2 - p;
 a      = 1/2;
 b      = 1/2 * v;
 rxb    = (1 - x).^b;
 albeta = log(sqrt(pi)) + gammaln(b) - gammaln(a+b);
 xodd   = betainc(x,a,b);
-godd   = 2 * rxb .* exp(a * log(x) - albeta);
+godd   = 2 .* rxb .* exp(a * log(x) - albeta);
 xeven  = 1 - rxb;
-geven  = b * x .* rxb;
-F      = p * xodd + q * xeven;
+geven  = b .* x .* rxb;
+F      = p .* xodd + q .* xeven;
 
 while true
     a     = a + 1;
     xodd  = xodd - godd;
     xeven = xeven - geven;
-    godd  = godd .* x * (a + b - 1)/a;
-    geven = geven .* x * (a + b - 1/2) / (a + 1/2);
-    p     = p * lambda / (2 * en);
-    q     = q * lambda / (2 * en + 1);
+    godd  = godd .* x .* (a + b - 1) ./ a;
+    geven = geven .* x .* (a + b - 1/2) ./ (a + 1/2);
+    p     = p .* lambda ./ (2 * en);
+    q     = q .* lambda ./ (2 * en + 1);
     s     = s - p;
     en    = en + 1;
-    F     = F + p * xodd + q * xeven;
-    if en > 1024 || max(2 * s * (xodd - godd)) < 1e-12
+    F     = F + p .* xodd + q .* xeven;
+    if en > 1024 || max(2 * s .* (xodd - godd)) < 1e-12
         break;
     end
 end
