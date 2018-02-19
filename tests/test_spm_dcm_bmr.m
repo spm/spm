@@ -3,7 +3,7 @@ function tests = test_spm_dcm_bmr
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_bmr.m 6940 2016-11-20 18:08:06Z peter $
+% $Id: test_spm_dcm_bmr.m 7262 2018-02-19 17:55:27Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -32,6 +32,15 @@ GCM = GCM(1:3,:);
 assert(all(size(RCM) == size(GCM)));
 assert(all(size(BMC) == [1 ns]));
 assert(all(size(BMA) == [1 ns]));
+
+% Again with only two outputs
+[RCM,BMC] = spm_dcm_bmr(GCM,{'B'});
+
+% Check outputs have expected sizes
+[ns,nm] = size(GCM);
+assert(all(size(RCM) == size(GCM)));
+assert(all(size(BMC) == [1 ns]));
+
 
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
