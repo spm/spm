@@ -17,7 +17,7 @@ function f = spm_ncTpdf(x,v,d)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ncTpdf.m 7260 2018-02-19 10:55:53Z guillaume $
+% $Id: spm_ncTpdf.m 7263 2018-02-21 13:30:16Z guillaume $
 
 
 %-Format arguments, note & check sizes
@@ -32,6 +32,7 @@ xa = prod(as,2)>1;
 if all(xa) && any(any(diff(as(xa,:)),1))
     error('Non-scalar arguments must match in size.');
 end
+
 
 %-Computation
 %--------------------------------------------------------------------------
