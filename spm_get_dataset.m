@@ -6,13 +6,13 @@ function spm_get_dataset(repo, name, rev, outdir)
 % rev    - revision of dataset [default: '']
 % outdir - output directory [default: pwd]
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2017-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_get_dataset.m 7171 2017-09-21 11:11:00Z guillaume $
+% $Id: spm_get_dataset.m 7265 2018-02-22 15:34:59Z guillaume $
 
 
-SVNrev = '$Rev: 7171 $';
+SVNrev = '$Rev: 7265 $';
 
 spm('FnBanner', mfilename, SVNrev);
 
@@ -43,8 +43,10 @@ switch lower(repo)
             case 'eeg_mmn'
                 url{1} = fullfile(base,'eeg_mmn','subject1.bdf');
                 url{2} = fullfile(base,'eeg_mmn','sensors.pol');
+            case 'spdcm'
+                url = fullfile(base,'spDCM','spDCM.zip');
             otherwise
-                error('Unknown dataset "%s" in datastore "%s".',name,repo);
+                error('Unknown dataset "%s" in repository "%s".',name,repo);
         end
         url = strrep(url,'\','/');
         
