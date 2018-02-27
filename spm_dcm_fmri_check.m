@@ -47,7 +47,7 @@ function [DCM] = spm_dcm_fmri_check(P, varargin)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_check.m 7042 2017-03-16 10:35:41Z peter $
+% $Id: spm_dcm_fmri_check.m 7267 2018-02-27 10:13:43Z peter $
 
 
 %-Prepare inputs
@@ -141,7 +141,7 @@ if iscell(DCM)
         title('Free energy','FontSize',16)
         axis square
 
-        subplot(10,3,[26 29]), bar(DCM{1}.EEB(:),'b')
+        subplot(10,3,[26 29]), bar(cellfun(@mean,DCM{1}.EEB(:)),'b')
         xlabel('iteration','FontSize',12)
         title('Log precision','FontSize',16)
         axis square
@@ -200,7 +200,7 @@ D(2)  = max(max(abs(A - diag(diag(A)))));
 qE    = spm_vec(DCM.Ep);
 pE    = spm_vec(DCM.M.pE);
 qC    = DCM.Cp;
-pC    = DCM.M.pC;
+pC    = full(DCM.M.pC);
 k     = rank(full(pC));
 pC    = pinv(pC);
 
