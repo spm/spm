@@ -1,9 +1,9 @@
 function results = spm_cfg_results
 % SPM Configuration file for Results Report
 %__________________________________________________________________________
-% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_results.m 7268 2018-02-27 16:48:13Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -215,6 +215,37 @@ basename.strtype = 's';
 basename.num     = [1 Inf];
 
 %--------------------------------------------------------------------------
+% background Background image
+%--------------------------------------------------------------------------
+background         = cfg_files;
+background.tag     = 'background';
+background.name    = 'Background image';
+background.help    = {'Background image.'};
+background.filter  = {'image'};
+background.ufilter = '.*';
+background.num     = [1 1];
+
+%--------------------------------------------------------------------------
+% orientation Image orientation
+%--------------------------------------------------------------------------
+orientation        = cfg_menu;
+orientation.tag    = 'orientation';
+orientation.name   = 'Image orientation';
+orientation.help   = {'Image orientation.'};
+orientation.labels = {'Axial','Coronal','Sagittal'}';
+orientation.values = {'axial','coronal','sagittal'};
+
+%--------------------------------------------------------------------------
+% Slices Slices
+%--------------------------------------------------------------------------
+slices         = cfg_entry;
+slices.tag     = 'slices';
+slices.name    = 'Slices';
+slices.help    = {'Slices to display (mm).'};
+slices.strtype = 'r';
+slices.num     = [1 Inf];
+
+%--------------------------------------------------------------------------
 % nsubj Number of subjects
 %--------------------------------------------------------------------------
 nsubj         = cfg_entry;
@@ -330,6 +361,13 @@ if ispc
     exports{end}.val  = { true };
     exports{end}.help = {exports{end}.name};
 end
+
+exports{end+1}    = cfg_branch;
+exports{end}.tag  = 'montage';
+exports{end}.name = 'Montage';
+exports{end}.val  = { background orientation slices };
+exports{end}.help = {'Display montage.'};
+
 exports{end+1}    = cfg_branch;
 exports{end}.tag  = 'nidm';
 exports{end}.name = 'NIDM (Neuroimaging Data Model)';
