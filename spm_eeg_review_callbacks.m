@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 7222 2017-11-16 15:39:57Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 7269 2018-02-28 15:53:43Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -857,6 +857,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     Nevents = length(Events);
                     x1 = {Events(:).type}';
                     x2 = {Events(:).value}';
+                    x1(cellfun(@isempty, x1)) = {''};
                     x2(cellfun(@isempty, x2)) = {nan};
                     if ~iscellstr(x1)
                         [y1,i1,j1] = unique(cell2mat(x1));
