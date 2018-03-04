@@ -12,7 +12,7 @@ function [Gu,Gn,w, dt] = spm_csd_fmri_gu(P,dt)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_gu.m 6759 2016-03-27 19:45:17Z karl $
+% $Id: spm_csd_fmri_gu.m 7270 2018-03-04 13:08:10Z karl $
 
 
 % compute log-spectral density
@@ -46,7 +46,7 @@ for i = 1:nu
     if strcmp(form,'1/f')
         G     = w.^(-exp(P.a(2,1)));
     else
-        G     = spm_mar2csd(exp(P.a(2,1))/2,w);
+        G     = spm_mar2csd(exp(P.a(2,1)),w);
     end
     Gu(:,i,i) = Gu(:,i,i) + exp(P.a(1,1))*G/sum(G);
 end
@@ -55,9 +55,9 @@ end
 %--------------------------------------------------------------------------
 for i = 1:nn
     if strcmp(form,'1/f')
-        G     = w.^(-exp(P.c(2,i))/2);
+        G     = w.^(-exp(P.b(2,1))/2);
     else
-        G     = spm_mar2csd(exp(P.c(2,i))/2,w);
+        G     = spm_mar2csd(exp(P.b(2,1))/2,w);
     end
     Gn(:,i,i) = Gn(:,i,i) + exp(P.c(1,i))*G/sum(G);
 end

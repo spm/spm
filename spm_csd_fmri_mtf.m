@@ -28,7 +28,38 @@ function [y,w,S,Gu,Gn] = spm_csd_fmri_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 6759 2016-03-27 19:45:17Z karl $
+% $Id: spm_csd_fmri_mtf.m 7270 2018-03-04 13:08:10Z karl $
+
+% multiple sessions
+%==========================================================================
+[m,n,s] = size(P.B);
+if s > 1
+    
+    % centre session specific parameters
+    %----------------------------------------------------------------------
+    for i = 1:n
+        for j = 1:n
+            P.B(i,j,:) = P.B(i,j,:) - mean(P.B(i,j,:));
+        end
+    end
+     
+    % prediction for this session
+    %----------------------------------------------------------------------
+    for i = 1:s
+        
+        % session specific parameters
+        %------------------------------------------------------------------
+        Q    = P;
+        Q.A  = Q.A + Q.B(:,:,i);
+        Q.B  = zeros(n,n,0);
+        
+        % generate prediction
+        %------------------------------------------------------------------
+        y{i}  = spm_csd_fmri_mtf(Q,M,U);
+    end
+    return
+end
+
 
 
 % compute log-spectral density
@@ -69,7 +100,7 @@ for i = 1:nu
     if strcmp(form,'1/f')
         G     = w.^(-exp(P.a(2,1)));
     else
-        G     = spm_mar2csd(exp(P.a(2,1))/2,w);
+        G     = spm_mar2csd(exp(P.a(2,1)),w);
     end
     Gu(:,i,i) = Gu(:,i,i) + exp(P.a(1,1))*G/sum(G);
 end
@@ -78,9 +109,9 @@ end
 %--------------------------------------------------------------------------
 for i = 1:nn
     if strcmp(form,'1/f')
-        G     = w.^(-exp(P.c(2,i))/2);
+        G     = w.^(-exp(P.b(2,1))/2);
     else
-        G     = spm_mar2csd(exp(P.c(2,i))/2,w);
+        G     = spm_mar2csd(exp(P.b(2,1))/2,w);
     end
     Gn(:,i,i) = Gn(:,i,i) + exp(P.c(1,i))*G/sum(G);
 end
@@ -113,7 +144,6 @@ for i = 1:nw
     G(i,:,:) = reshape(S(i,:,:),nn,nn)*reshape(Gu(i,:,:),nn,nn)*reshape(S(i,:,:),nn,nn)';
 end
 
-
 % and channel noise
 %--------------------------------------------------------------------------
 if isfield(M,'g')
@@ -121,4 +151,9 @@ if isfield(M,'g')
 else
     y = G;
 end
+
+% autoregressive parameterisation
+%--------------------------------------------------------------------------
+y = spm_mar2csd(spm_csd2mar(y,M.Hz,M.p),M.Hz);
+
 

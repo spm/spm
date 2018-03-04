@@ -36,7 +36,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 6973 2016-12-15 12:34:20Z bernadette $
+% $Id: spm_dcm_neural_priors.m 7270 2018-03-04 13:08:10Z karl $
 
 % For generic schemes one can mix and match different types of sources;
 % furthermore, they can have different condition-specific modulation of
@@ -214,7 +214,7 @@ switch lower(model)
         
         % prior moments on parameters
         %------------------------------------------------------------------
-        [pE,pC] = spm_bgc_priors; %no (A,B,C);
+        [pE,pC] = spm_bgc_priors; % no (A,B,C);
         
         
         % Bhatt et al model (motor microcircuit)

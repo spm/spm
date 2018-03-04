@@ -34,7 +34,7 @@ function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 6855 2016-08-06 10:06:35Z karl $
+% $Id: spm_fx_fmri.m 7270 2018-03-04 13:08:10Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -245,7 +245,7 @@ dfdu{2,1} = sparse(n*(m - 1),length(u(:)));
 % Hemodynamic Jacobian
 %==========================================================================
 dfdx{2,1} = speye(n,n);
-dfdx{2,2} = diag(-sd);
+dfdx{2,2} = speye(n,n)*(-sd);
 dfdx{2,3} = diag(-H(2)*x(:,3));
 dfdx{3,2} = diag( 1./x(:,3));
 dfdx{3,3} = diag(-x(:,2)./x(:,3));

@@ -15,7 +15,34 @@ function DCM = spm_dcm_fmri_csd_data(DCM)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_data.m 6759 2016-03-27 19:45:17Z karl $
+% $Id: spm_dcm_fmri_csd_data.m 7270 2018-03-04 13:08:10Z karl $
+
+
+% check for cell array data
+%--------------------------------------------------------------------------
+if iscell(DCM.Y.y)
+    
+    % frequnecy ranges
+    %----------------------------------------------------------------------
+    dcm     = DCM;
+    dcm.Y.y = DCM.Y.y{1};
+    dcm     = spm_dcm_fmri_csd_data(dcm);
+    dcm.options.Fdcm = [dcm.Y.Hz(1), dcm.Y.Hz(end)];
+    
+    % session-specifc spectral data features
+    %----------------------------------------------------------------------
+    for i = 1:numel(DCM.Y.y)
+        dcm.Y.y = DCM.Y.y{i};
+        dcm = spm_dcm_fmri_csd_data(dcm);
+        DCM.Y.csd{i} = dcm.Y.csd;
+        DCM.Y.mar{i} = dcm.Y.mar;
+    end
+    DCM.Y.Hz  = dcm.Y.Hz;
+    DCM.Y.pst = dcm.Y.pst;
+    DCM.Y.p      = dcm.Y.p;
+    return
+end
+
 
 % add spectral toolbox
 %--------------------------------------------------------------------------
@@ -37,8 +64,8 @@ try
     Hz1   = DCM.options.Fdcm(1);          % lower frequency
     Hz2   = DCM.options.Fdcm(2);          % upper frequency
 catch
-    Hz1   = 1/128;
-    Hz2   = 1/(2*DCM.Y.dt);
+    Hz1   = 1/min(128,Nb*DCM.Y.dt);
+    Hz2   = 1/max(8,2*DCM.Y.dt);
 end
 
 % Frequencies

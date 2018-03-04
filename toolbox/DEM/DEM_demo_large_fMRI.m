@@ -13,7 +13,7 @@ function DEM_demo_large_fMRI
 % Copyright (C) 2010 Wellcome Trust Centrea for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_large_fMRI.m 5817 2013-12-23 19:01:36Z karl $
+% $Id: DEM_demo_large_fMRI.m 7270 2018-03-04 13:08:10Z karl $
 
 % Simulate timeseries
 %==========================================================================
@@ -24,12 +24,12 @@ rng('default')
 N  = 4;                               % number of runs
 T  = 512;                             % number of observations (scans)
 TR = 2;                               % repetition time or timing
-n  = 8;                               % number of regions or nodes
+n  = 6;                               % number of regions or nodes
 t  = (1:T)*TR;                        % observation times
 
 % priors
 % -------------------------------------------------------------------------
-options.nmax       = 8;               % effective number of notes
+options.maxnodes   = 4;               % effective number of nodes
 
 options.nonlinear  = 0;
 options.two_state  = 0;
