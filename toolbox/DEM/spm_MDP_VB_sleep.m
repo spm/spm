@@ -1,15 +1,15 @@
-function [MDP] = spm_MDP_VB_sleep(MDP,OPTIONS)
+function [MDP] = spm_MDP_VB_sleep(MDP,BMR)
 % Bayesian model reduction (sleep) for MDP models
-% FORMAT [MDP] = spm_MDP_VB_sleep(MDP,OPTIONS)
+% FORMAT [MDP] = spm_MDP_VB_sleep(MDP,BMR)
 %
 % MDP  - (inverted) MDP structure
 %
-% OPTIONS.g - modality [default: 1]
-% OPTIONS.o - outcomes – that induce REM [default: {}]
-% OPTIONS.x - increase in concentration parameters for BMR [default: 8]
-% OPTIONS.f - hearing factors to sum over [default: 0]
-% OPTIONS.T - log Bayes factor threshold [default: 1/4]
-% OPTIONS.m - indicator function to enable BMR [@(i,i1,i2,i3,i4)1]
+% BMR.g - modality [default: 1]
+% BMR.o - outcomes – that induce REM [default: {}]
+% BMR.x - increase in concentration parameters for BMR [default: 8]
+% BMR.f - hearing factors to sum over [default: 0]
+% BMR.T - log Bayes factor threshold [default: 1/4]
+% BMR.m - indicator function to enable BMR [@(i,i1,i2,i3,i4)1]
 %
 %
 % MDP  - (reduced) model structure: with reduced MDP.a
@@ -28,24 +28,24 @@ function [MDP] = spm_MDP_VB_sleep(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_sleep.m 6814 2016-06-19 10:24:46Z karl $
+% $Id: spm_MDP_VB_sleep.m 7273 2018-03-04 13:15:34Z karl $
 
 
 % deal with a sequence of trials
 %==========================================================================
 
-% options
+% BMR options
 %--------------------------------------------------------------------------
-try, g   = OPTIONS.g; catch, g = 1;   end
-try, o   = OPTIONS.o; catch, o = {};  end
-try, x   = OPTIONS.x; catch, x = 8;   end
-try, f   = OPTIONS.f; catch, f = 0;   end
-try, T   = OPTIONS.T; catch, T = 1/4; end
+try, g   = BMR.g; catch, g = 1;   end
+try, o   = BMR.o; catch, o = {};  end
+try, x   = BMR.x; catch, x = 8;   end
+try, f   = BMR.f; catch, f = 0;   end
+try, T   = BMR.T; catch, T = 1/4; end
 
 % model selection function
 %--------------------------------------------------------------------------
-if isfield(OPTIONS,'m')
-    m = OPTIONS.m;
+if isfield(BMR,'m')
+    m = BMR.m;
 else
     m = @(i,i1,i2,i3,i4)1;
 end

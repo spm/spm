@@ -22,7 +22,7 @@ function spm_MDP_VB_trial(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 6672 2016-01-12 12:28:31Z karl $
+% $Id: spm_MDP_VB_trial.m 7273 2018-03-04 13:15:34Z karl $
 
 % graphics
 %==========================================================================
@@ -113,9 +113,9 @@ end
 %--------------------------------------------------------------------------
 subplot(3,2,4)
 image(64*(1 - MDP.un))
-title('Posterior probability','FontSize',14)
-ylabel('policy','FontSize',12)
-xlabel('updates','FontSize',12)
+title('Posterior probability')
+ylabel('policy')
+xlabel('updates')
 
 % sample (observation) and preferences
 %--------------------------------------------------------------------------
@@ -130,7 +130,7 @@ for g  = 1:Ng
     try
         title(sprintf('Outcomes and preferences - %s',MDP.Aname{g}));
     catch
-        if f < 2, title('Outcomes and preferences'); end
+        if g < 2, title('Outcomes and preferences'); end
     end
     if g == Ng, xlabel('time'), end
     ylabel('outcome')
@@ -144,8 +144,8 @@ if size(MDP.dn,2) > 1
 else
     bar(MDP.dn,1.1,'k'),   plot(MDP.wn,'k'), hold off
 end
-title('Expected precision (dopamine)','FontSize',14)
-xlabel('updates','FontSize',12)
-ylabel('precision','FontSize',12)
+title('Expected precision (dopamine)')
+xlabel('updates')
+ylabel('precision')
 spm_axis tight
 drawnow

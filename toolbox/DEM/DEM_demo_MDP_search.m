@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_search
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_search.m 6938 2016-11-20 12:48:07Z karl $
+% $Id: DEM_demo_MDP_search.m 7273 2018-03-04 13:15:34Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -171,8 +171,6 @@ mdp.o = [1 1]';                 % initial outcome
 
 mdp.Aname = {'what','where'};
 mdp.Bname = {'what','where','flip','flip'};
-mdp.temp  = 2;
-mdp.alpha = 128;
  
 % illustrate a single trial
 %==========================================================================
