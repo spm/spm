@@ -1,271 +1,371 @@
 function DEM_demo_fMRI_HMM
-% Demonstration of PEB for multisession spectral DCM studies
+% Demonstration of Hidden Markov models for fMRI
 %__________________________________________________________________________
-% This demonstration routine illustrates the analysis of a multisession
-% fMRI study using spectral DCM. Crucially, the between session effects are
-% characterised using empirical Bayes and Bayesian model reduction. This
-% means that the original session data are only inverted once (at the
-% within session level). The resulting posterior estimates and then used to
-% make inferences about between session effects (e.g., time or drug
-% effects). The basic question addressed in this sort of analysis is where
-% between session effects are expressed in terms of connectivity or
-% parameters of neuronal fluctuations. These sorts of effects are specified
-% in a second level design matrix in the usual way and can be identified
-% using Bayesian model reduction.
-%
-% in this example, we analyse three sessions with a monotonic change in the
-% intrinsic (self) connectivity over three sessions. This involves
-% decreases in diagonal A parameters at the first two levels of a simple
-% three node hierarchy – and an increase at the highest (third) level.
-% Physiologically, this corresponds to a decrease in self-inhibition (or
-% increase in excitability) in the lower notes for regions, as time goes
-% on.
+%  This demonstration routine illustrates the modelling of state
+%  transitions generating resting state fMRI timeseries. The hidden states
+%  are modelled as a hidden Markov model, where each state corresponds to a
+%  particular  point in the parameter space of effective connectivity. This
+%  effective connectivity then generates complex cross spectral data
+%  features  of the observed timeseries. Model specification requires prior
+%  constraints on the probability transition matrix among hidden states,
+%  which implicitly specifies the number of hidden states. The user also
+%  has to specify the number of windows for epochs to apply to the
+%  timeseries, where each epoch  places a lower bound on the duration of
+%  each (discrete) state.
+%     We first generate synthetic data using regular transitions among
+%  three hidden states  (C.F., a discrete version of a heteroclinic
+%  cycle  for orbit). The data are then converted by a routine that
+%  combines a parametric empirical Bayesian model and a hidden Markov model
+%  (as implemented as a special case of a Markov decision process). This
+%  inversion is repeated for each model specified in terms of the
+%  transition matrices (as prior Dirichlet concentration parameters).
+%  Setting a prior transition parameter to 0 precludes that transition. In
+%  this way, several different models of transitions and number of hidden
+%  states can be  scored in terms of  the variational free energy.
+%     Following inversion, the results are plotted in terms of expected
+%  state transitions, fluctuations in connections that are allowed to
+%  change (specified in the usual way by DCM.b), the deviations in
+%  connectivity associated with each hidden state and the expected
+%  probability transition matrix.
+%     Finally, we consider Bayesian model comparison in terms of group
+%  differences (here, simply the difference between the first and second
+%  simulated subject).  Bayesian model comparison is simple to do in this
+%  context  by comparing the free energy of a hidden Markov model in which
+%  both groups share the same state dependent connections and transition
+%  probabilities, with two independent models. These can be evaluated
+%  efficiently using Bayesian model reduction implicit in PEB. in this
+%  example, we did not introduce any differences between the two groups
+%  (i.e., subjects) and therefore expected to infer no group effect.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: DEM_demo_fMRI_HMM.m 7248 2018-01-28 21:36:54Z karl $
- 
- 
- 
-% Simulate timeseries
+% $Id: DEM_demo_fMRI_HMM.m 7272 2018-03-04 13:12:31Z karl $
+
+
+
+% (I) Simulate fMRI timeseries
 %==========================================================================
 rng('default')
- 
-% assume we have 16 epochs of 64 scans with a TR of 1 seconds
+
+%  Assume we have P sessions with N epochs of T scans with a TR of 2 secs:
 % -------------------------------------------------------------------------
+%  These epochs could be from a single subject or result from the
+%  concatenation of multiple sessions (under the assumption that they share
+%  the same modes of connectivity).
+% -------------------------------------------------------------------------
+P  = 2;                               % number of sessions (e.g., subjects)
 S  = 3;                               % number of latent (hidden) states
-N  = 8;                              % number of epochs
-T  = 128;                              % number of observations (scans)
-TR = 1;                               % repetition time or timing
-t  = (1:T)*TR;                        % observation times
+N  = 9;                               % number of epochs or windows
+T  = 128;                             % number of observations (per epoch)
+TR = 2;                               % repetition time or timing
+t  = (1:(T*N))*TR;                    % observation times (seconds)
 n  = 3;                               % number of regions or nodes
- 
-% setup model
+
+% setup model for generating timeseries
 % -------------------------------------------------------------------------
 options.nonlinear  = 0;
 options.two_state  = 0;
 options.stochastic = 0;
-options.centre     = 1;
 options.induced    = 1;
- 
-A   = ones(n,n);
-B   = zeros(n,n,0);
-C   = zeros(n,n);
-D   = zeros(n,n,0);
-pP  = spm_dcm_fmri_priors(A,B,C,D,options);
- 
- 
-% true average parameters – a simple hierarchy of three nodes
+
+% get priors to generate simulated data
 % -------------------------------------------------------------------------
-pP.A = [  0    0    0;
-         .4    0  -.1
+a   = ones(n,n);
+b   = zeros(n,n,0);
+c   = zeros(n,n);
+d   = zeros(n,n,0);
+pP  = spm_dcm_fmri_priors(a,b,c,d,options);
+
+% average parameters – a simple hierarchy of three nodes
+% -------------------------------------------------------------------------
+pP.A = [  0  -.3    0;
+         .4    0  -.1;
           0   .3    0];
 pP.C = eye(n,n);
-pP.transit = randn(n,1)/16;
- 
-% spectral density of neuronal fluctuations and observation noise (eg)
+pP.transit = randn(n,1)/64;
+
+% generate spectral density of neuronal fluctuations and observation noise
 % -------------------------------------------------------------------------
 [Gu,Gn,Hz,dt] = spm_csd_fmri_gu(pP,TR);
-Gu            = Gu(:,1,1)*ones(1,n);
-Gn            = Gn(:,1,1)*ones(1,n);
- 
- 
-% hidden Markov model
+Gu    = Gu(:,1,1)*ones(1,n);
+Gn    = Gn(:,1,1)*ones(1,n);
+
+
+% specify and generate Markovian succession of hidden states
 %==========================================================================
 
-% parameters associated with hidden states: here, intrinsic connectivity
+% connections associated with hidden states: here, intrinsic connectivity
 % -------------------------------------------------------------------------
-A        = zeros(n,n,S);
-A(1,1,1) = 1/8;
-A(2,2,2) = 1/8;
-A(3,3,3) = 1/8;
+B        = zeros(n,n,S);
+B(1,1,1) = 1/2;
+B(2,2,2) = 1/2;
+B(3,3,3) = 1/2;
+pP.B     = any(B,3);                     % state-dependent connections
 
-% generate sequence of hidden states
+% generate sequence of hidden states: here, a simple orbit
 % -------------------------------------------------------------------------
-HMM.B      = spm_speye(S,S,-1);
-HMM.B(1,S) = 1;
+bb    = spm_speye(S,S,-1); bb(1,S) = 1;
+o     = kron(ones(1,N),1:S);
+o     = o(1:N);
 
-o     = 1;
-for s = 1:(N - 1)
-    o = [o find(rand < cumsum(HMM.B(:,o(s))),1)];
+% State-dependent deviations in connectivity from average
+% -------------------------------------------------------------------------
+for i = 1:N
+    tB(:,:,i) = B(:,:,o(i));
+end
+for i = 1:S
+    for j = 1:S
+        tB(i,j,:) = tB(i,j,:) - mean(tB(i,j,:));
+    end
 end
 
-% simulate epoch-specific responses to endogenous fluctuations 
+%% simulate epoch-specific responses to endogenous fluctuations
 %==========================================================================
-for s = 1:N
+M.x   = sparse(n,5);
+M.f   = 'spm_fx_fmri';
+X     = cell(N,1);
+Y     = cell(N,1);
+E     = cell(N,1);
+u     = cell(N,1);
+for p = 1:P
     
-    % parameters in this session
+    % parameters for this epoch, plus a small random effect
     % ---------------------------------------------------------------------
-    P    = pP;
-    P.A  = P.A + A(:,:,o(s)) + P.A.*randn(n,n)/32;
-    P.C  = eye(n,n);
-    
-    % integrate states with endogenous fluctuations (u)
-    % ---------------------------------------------------------------------
-    M.f  = 'spm_fx_fmri';
-    M.x  = sparse(n,5);
-    U.u  = spm_rand_power_law(Gu,Hz,dt,T);
-    U.dt = TR;
-    x    = spm_int_J(P,M,U);
-    
-    % haemodynamic observer
-    % ---------------------------------------------------------------------
-    for i = 1:T
-        y(i,:) = spm_gx_fmri(spm_unvec(x(i,:),M.x),[],P)';
+    gu    = spm_rand_power_law(Gu,Hz,dt,N*T);
+    ge    = spm_rand_power_law(Gn,Hz,dt,N*T);
+    for s = 1:N
+        
+        % parameters for this epoch, plus a small random effect
+        % -----------------------------------------------------------------
+        tP   = pP;
+        tP.A = tP.A + tB(:,:,s);
+        tP.A = tP.A.*(1 + randn(n,n)/64);
+        tP.C = eye(n,n);
+        
+        % integrate states with endogenous fluctuations (gu)
+        % -----------------------------------------------------------------
+        j    = (1:T) + (s - 1)*T;
+        M.f  = 'spm_fx_fmri';
+        U.u  = gu(j,:);
+        U.dt = TR;
+        x    = spm_int_J(tP,M,U);
+        M.x  = spm_unvec(x(end,:),M.x);
+        
+        % haemodynamic observer function to produce BOLD signal
+        % -----------------------------------------------------------------
+        for i = 1:T
+            y(i,:) = spm_gx_fmri(spm_unvec(x(i,:),M.x),[],tP)';
+        end
+        
+        % response with observation noise (ge)
+        % -----------------------------------------------------------------
+        e       = ge(j,:);
+        X{s}    = x;
+        Y{s}    = y + e;
+        E{s}    = e;
+        u{s}    = U.u;
+        TP(s,p) = tP;
+        
     end
     
-    % response with observation noise (e)
-    % ---------------------------------------------------------------------
-    e       = spm_rand_power_law(Gn,Hz,dt,T)/16;
-    Y(s).y  = y + e;
-    Y(s).dt = TR;
-    PP(s)   = P;
+    
+    % concatenate epochs into a single timeseries
+    %----------------------------------------------------------------------
+    xY.dt = TR;
+    xY.y  = spm_cat(Y);
+    xY.u  = spm_cat(u);
+    xY.X  = spm_cat(X);
+    xY.E  = spm_cat(E);
+    
+    % and create DCM cell array
+    %----------------------------------------------------------------------
+    DCM{1,p}.options = options;
+    DCM{1,p}.a = logical(pP.A);
+    DCM{1,p}.b = logical(pP.B);
+    DCM{1,p}.c = zeros(n,0);
+    DCM{1,p}.d = zeros(n,n,0);
+    DCM{1,p}.Y = xY;
     
 end
- 
- 
-% show simulated response (last session)
+
+%% show simulated responses and windows
 %--------------------------------------------------------------------------
 spm_figure('Getwin','Figure 1'); clf
-i   = 1:T;
-subplot(3,2,1)
-plot(t(i),U.u(i,:))
+
+subplot(3,2,1), plot(t,xY.u)
 title('Endogenous fluctuations','FontSize',16)
-xlabel('Time (seconds)')
-ylabel('Amplitude')
-axis square
- 
+xlabel('Time (seconds)'), ylabel('Amplitude'), axis square, spm_axis tight
+
 subplot(3,2,2), hold off
-plot(t(i),x(i,(n + 1):end),'c'), hold on
-plot(t(i),x(i,1:n)), hold off
+plot(t,xY.X(:,(n + 1):end),'c'), hold on
+plot(t,xY.X(:,1:n)),             hold off
 title('Hidden states','FontSize',16)
-xlabel('Time (seconds)')
-ylabel('Amplitude')
-axis square
- 
+xlabel('Time (seconds)'), ylabel('Amplitude'), axis square, spm_axis tight
+
 subplot(3,2,3)
-plot(t(i),y(i,:),t(i),e(i,:),':')
+plot(t,xY.y,t,xY.E,':')
 title('Hemodynamic response and noise','FontSize',16)
-xlabel('Time (seconds)')
-ylabel('Amplitude')
-axis square
- 
- 
-% nonlinear system identification (DCM for CSD)
+xlabel('Time (seconds)'), ylabel('Amplitude'), axis square, spm_axis tight
+
+
+%  This completes the simulation of the data. We now turn to inverting the
+%  data to see if one can recover the number of hidden states, the form of 
+%  the state transitions and the connectivity modes associated with each
+%  state:
+%--------------------------------------------------------------------------
+
+
+% (II) Inversion under a hidden Markov model
 %==========================================================================
-dcm.options = options;
- 
-dcm.a    = logical(pP.A);
-dcm.b    = zeros(n,n,0);
-dcm.c    = zeros(n,0);
-dcm.d    = zeros(n,n,0);
- 
-% add responsse to each session
-% -------------------------------------------------------------------------
-for s = 1:N
-    DCM{s,1}   = dcm;
-    DCM{s,1}.Y = Y(s);
+%  Specify model space as a cell array of probability transition matrices:
+%  here, the model space at the level of the HMM  will allow all
+%  transitions among one to 4 hidden states. These models are specified in
+%  terms of Dirichlet priors; starting with a small value of allowable
+%  transitions (1/16)
+%--------------------------------------------------------------------------
+for i = 1:4
+    b{i} = ones(i,i)/16;
 end
- 
-% first level inversion – spectral DCM
-% =========================================================================
-CSD = spm_dcm_peb_fit(DCM);
- 
+
+% invert hidden Markov model: this is the routine demonstrated
+%--------------------------------------------------------------------------
+[HMM,CSD] = spm_dcm_HMM(DCM,N,b);
+
+% This completes the inversion. We now just need to look at the results:
+%--------------------------------------------------------------------------
+
+
+
+%% (III) report analysis
+%==========================================================================
+spm_figure('Getwin','Figure 1');
+
+%  plot windows
+% -------------------------------------------------------------------------
+subplot(3,2,3), hold on
+for i = 1:N, plot(t,CSD{i,end}.W - 1), end, hold off
+
 % show estimates for a single session
 % -------------------------------------------------------------------------
-spm_figure('Getwin','Figure 1');
- 
-j  = 1:n^2;
-subplot(3,2,4); hold off
-spm_plot_ci(CSD{1}.Ep.A(:),CSD{1}.Cp(j,j)), hold on
-bar(PP(1).A(:),1/4), hold off
+subplot(3,2,4)
+spm_plot_ci(CSD{end}.Ep,CSD{end}.Cp), hold on
+bar(TP(end).A(:),1/4), hold off, axis square
 title('True and MAP connections (Deterministic)','FontSize',16)
-axis square
 
-for s = 1:N
-    pp(s,:) = spm_vec(PP(s).A);
-    qp(s,:) = spm_vec(CSD{s}.Ep.A);
+% show state-dependent changes in connectivity over sessions
+% -------------------------------------------------------------------------
+for i = 1:numel(CSD)
+    tp(i,:) = spm_vec(TP(i).A);
+    qp(i,:) = spm_vec(CSD{i}.Ep.A);
+    pp(i,:) = spm_vec(HMM(S).Ep{i}.A);
 end
-
-subplot(3,2,5); imagesc(pp)
+subplot(3,3,7); imagesc(tp)
 title('True connections','FontSize',16), axis square
-subplot(3,2,6); imagesc(qp)
-title('MAP connections' ,'FontSize',16), axis square
- 
+subplot(3,3,8); imagesc(qp)
+title('MAP estimates',   'FontSize',16), axis square
+subplot(3,3,9); imagesc(pp)
+title('PEB estimates',   'FontSize',16), axis square
 
+% report hidden Markov model
+%==========================================================================
+spm_dcm_HMM_plot(HMM,S)
 
-return
-
-
-% inversion of hierarchical (empirical) Bayesian model
+% And overlay true values, as cyan dots
 %==========================================================================
 
-% initialise
-% -------------------------------------------------------------------------
+% true state transitions
+%--------------------------------------------------------------------------
+x     = sparse(o,1:N,1,S,N);
+x     = kron(ones(1,P),x);
+N     = size(x,2);
 
-
-% prepare 
-% -------------------------------------------------------------------------
-
-for i = 1:32
-    
-    % update parameters of hidden states
-    %======================================================================
-    
-    M.X   = X;                         % expected states
-    PEB   = spm_dcm_peb(CSD,M,{'A'});  % empirical Bayesian inversion
-    
-    
-    % update expected hidden states
-    %======================================================================
-    [F,sE,sC] = spm_log_evidence(qE,qC,pE,pC,rE,rC)
-    MDP.O = F;
-    MDP   = spm_MDP_VB_X(MDP)
-    
-    % update transition probabilities
-    %======================================================================
-    MDP.B{1} = MDP.b{1};
-    
-    % record free energy and test for convergence
-    % ---------------------------------------------------------------------
-    
+% associate true and discovered states – and reorder
+%--------------------------------------------------------------------------
+r     = x*HMM(S).X';
+j     = zeros(S,1);
+for i = 1:S
+    [d,m]  = max(r(:,i));
+    j(i)   = m;
+    r(m,:) = 0;
 end
+[o,i] = find(x(j,:));
+B     = B(:,:,j);
+bb    = bb(j,j);
 
+% superimpose true values
+%--------------------------------------------------------------------------
+spm_figure('Getwin','HMM')
 
-% Parametric empirical Bayes
+%  hidden states
+%--------------------------------------------------------------------------
+subplot(4,1,1), hold on
+for i = 1:N, plot(i,o(i),'.c','MarkerSize',32), end, hold off
+
+% state-dependent parameters – fluctuations
+%--------------------------------------------------------------------------
+subplot(4,1,2), hold on
+for i = 1:N
+    [j,k] = max(spm_vec(TP(i).A - pP.A));
+    plot(i,k,'.c','MarkerSize',32)
+end, hold off
+
+subplot(4,1,3), hold on
+for i = 1:N, pA(:,i) = spm_vec(TP(i).A); end
+plot(1:N,pA(HMM(S).iP,:),'-.'), hold off, spm_axis tight
+
+% state-dependent parameters – expectations
+%--------------------------------------------------------------------------
+subplot(4,2,7), hold on
+for i = 1:S
+    c     = spm_vec(B(:,:,i));
+    [j,k] = max(c(HMM(S).iP));
+    plot(i,k,'.c','MarkerSize',32)
+end, hold off
+
+% expected transition probabilities
+%--------------------------------------------------------------------------
+subplot(4,2,8), hold on
+for i = 1:S, [j,k] = max(bb(:,i)); plot(i,k,'.c','MarkerSize',32), end
+hold off
+
+%% Bayesian model comparison in terms of group (i.e., subject) differences
 %==========================================================================
-% having inverted every session, we can construct a between session model
-% at the second level. We are interested in identifying which parameters
-% change according to the session specific effects encoded in the design
-% matrix. This design matrix is supplemented with a constant term, creating
-% two times the number of parameters at the second level. Using Bayesian
-% model reduction, we can then examine models with and without each
-% parameter for the  constant (first) and hypothesised (second) explanatory
-% variables in the design matrix. Crucially, we want to explain as much  as
-% possible using just between session differences. This can be implemented
-% by setting the between session covariance of random effects to a
-% relatively small value; here the original prior variance divided by 32.
+
+% model as a single group or two separate groups
 %--------------------------------------------------------------------------
-clear M;
-beta  = 32;
- 
-M.X   = [X.^0 X];                  % between session explanatory variables
-M.hE  = 0;                         % prior expectation of log precision
-M.hC  = 1/16;                      % prior covariance of precision
-M.bE  = CSD{1}.M.pE;               % prior expectations over sessions
-M.bC  = CSD{1}.M.pC;               % prior covariance over sessions
-M.pC  = CSD{1}.M.pC/beta;          % prior covariance between sessions
- 
-field = {'A','a'};                 % parameters of interest
-PEB   = spm_dcm_peb(CSD,M,field);  % empirical Bayesian inversion
-BMA   = spm_dcm_peb_bmc(PEB);      % Bayesian model reduction and averaging
- 
-% overlay true between session effects over BMA density over parameters
+hmm0 = HMM(S);
+
+hmm1 = spm_dcm_HMM(CSD(:,1),b(S));
+hmm2 = spm_dcm_HMM(CSD(:,2),b(S));
+
+% compare the free energy of the combined groups with the combined
+% free energy:
 %--------------------------------------------------------------------------
-j     = spm_find_pC(CSD{1},'A');
-p     = spm_vec(B); p = p(j);
-subplot(3,2,4), hold on, bar(p,1/4), hold off
- 
+F    = [hmm0.F; hmm1.F + hmm2.F];
+F    = F - min(F);
+
+% report model comparison in terms of free energy (i.e., log evidence)
+%--------------------------------------------------------------------------
+spm_figure('Getwin','HMM-F')
+subplot(2,2,3)
+bar(F,'c'),  title('Group difference','FontSize',16)
+xlabel('Effect'), ylabel('Log evidence'), axis square
+set(gca,'XTickLabel',{'None','Effect'})
+
+% and show the independent maximum a posteriori estimates of state
+% dependent connectivity
+%--------------------------------------------------------------------------
+subplot(4,2,6)
+bar(hmm1.qP),  title('Group 1','FontSize',16)
+xlabel('Parameter'), ylabel('Connectivity (log)'), axis square
+subplot(4,2,8)
+bar(hmm2.qP),  title('Group 2','FontSize',16)
+xlabel('Parameter'), ylabel('Connectivity (log)'), axis square
+
 return
- 
+
+
+
+
+
