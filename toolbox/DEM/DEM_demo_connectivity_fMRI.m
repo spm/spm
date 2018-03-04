@@ -7,7 +7,7 @@ function DEM_demo_connectivity_fMRI
 % (log) connectivity among nodes is a (radial basis) function of their
 % metric separation. This generative model of connectivity requires a
 % hierarchical constraint on the edges and therefore uses the expectation
-% and maximisation stepits of dynamic expectation maximisation. Here, the
+% and maximisation steps of dynamic expectation maximisation. Here, the
 % hidden causes at the first level are the effective connectivity and the
 % hidden causes at the second level are the Lyapunov exponents or 
 % eigenvalues of a symmetrical Jacobian or effective connectivity matrix:
@@ -31,7 +31,7 @@ function DEM_demo_connectivity_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 6290 2014-12-20 22:11:50Z karl $
+% $Id: DEM_demo_connectivity_fMRI.m 7274 2018-03-04 13:18:09Z karl $
 
 % Simulate timeseries
 %==========================================================================
