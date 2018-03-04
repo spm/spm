@@ -97,7 +97,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 6569 2015-10-14 08:53:24Z karl $
+% $Id: spm_nlsi_GN.m 7271 2018-03-04 13:11:54Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -414,7 +414,7 @@ for k = 1:M.Nmax
         d     = h     - hE;
         dFdh  = dFdh  - ihC*d;
         dFdhh = dFdhh - ihC;
-        Ch    = spm_inv(-dFdhh);
+        Ch    = spm_inv(real(-dFdhh));
         
         % update ReML estimate
         %------------------------------------------------------------------
@@ -517,7 +517,7 @@ for k = 1:M.Nmax
         xLab = 'time (seconds)';
         try
             if length(M.Hz) == ns
-                x    = Y.Hz;
+                x    = M.Hz;
                 xLab = 'Frequency (Hz)';
             end
         end

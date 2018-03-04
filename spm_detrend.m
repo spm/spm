@@ -13,8 +13,20 @@ function y = spm_detrend(x,p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_detrend.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_detrend.m 7271 2018-03-04 13:11:54Z karl $
 
+% Check for cell arrays
+%-------------------------------------------------------------------------
+if iscell(x)
+    if nargin == 1
+        p = 0;
+    end
+    y     = x;
+    for i = 1:numel(x)
+        y{i} = spm_detrend(x{i},p);
+    end
+    return
+end
 
 % defaults
 %--------------------------------------------------------------------------
@@ -36,7 +48,7 @@ end
 
 % polynomial adjustment
 %--------------------------------------------------------------------------
-G     = zeros(m,p+1);
+G     = zeros(m,p + 1);
 for i = 0:p
     d = (1:m).^i;
     G(:,i+1) = d(:);

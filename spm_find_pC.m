@@ -20,7 +20,7 @@ function [i,pC,pE,Np] = spm_find_pC(varargin)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_find_pC.m 7075 2017-05-10 15:08:31Z peter $
+% $Id: spm_find_pC.m 7271 2018-03-04 13:11:54Z karl $
 
 %-parse input arguments
 %--------------------------------------------------------------------------
@@ -92,15 +92,23 @@ try
 end
 
 % get priors from model specification
-%------------------------------------------------------------------
-if isfield(DCM.options,'analysis')
+%--------------------------------------------------------------------------
+if isfield(DCM.options,'spatial')
+    
+    % EEG or MEG
+    %----------------------------------------------------------------------
     if strcmpi(DCM.options.analysis,'IND')
         [pE,~,pC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,DCM.Nf);
-    elseif strcmpi(DCM.options.analysis,'CSD')        
-        [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
     else
-        [pE,pC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,DCM.options.model);
+        [pE,  pC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,DCM.options.model);
     end
+    
 else
-    [pE,pC] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
+    
+    % fMRI
+    %----------------------------------------------------------------------
+    if ~isfield(DCM,'d')
+        DCM.d = zeros(size(DCM.a,1),size(DCM.a,1),0);
+    end
+    [pE,pC]   = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
 end
