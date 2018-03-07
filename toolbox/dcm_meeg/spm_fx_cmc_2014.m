@@ -1,4 +1,4 @@
-function [f,J,Q] = spm_fx_cmc(x,u,P,M)
+function [f,J,Q] = spm_fx_cmc_2014(x,u,P,M)
 % state equations for a neural mass model (canonical microcircuit)
 % FORMAT [f,J,D] = spm_fx_cmc(x,u,P,M)
 % FORMAT [f,J]   = spm_fx_cmc(x,u,P,M)
@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_2014.m 5966 2014-04-25 14:37:59Z karl $
+% $Id: spm_fx_cmc_2014.m 7275 2018-03-07 22:36:34Z karl $
  
  
 % get dimensions and configure state variables
@@ -68,10 +68,14 @@ end
 % dp = deep pyramidal
 % ii = inhibitory interneurons
 %--------------------------------------------------------------------------
-A{1} = exp(P.A{1})*E(1);          % forward  connections (sp -> ss)
-A{2} = exp(P.A{2})*E(2);          % forward  connections (sp -> dp)
-A{3} = exp(P.A{3})*E(3);          % backward connections (dp -> sp)
-A{4} = exp(P.A{4})*E(4);          % backward connections (dp -> ii)
+if n > 1
+    A{1} = exp(P.A{1})*E(1);      % forward  connections (sp -> ss)
+    A{2} = exp(P.A{2})*E(2);      % forward  connections (sp -> dp)
+    A{3} = exp(P.A{3})*E(3);      % backward connections (dp -> sp)
+    A{4} = exp(P.A{4})*E(4);      % backward connections (dp -> ii)
+else
+    A    = {0,0,0,0};
+end
 
 % detect and reduce the strength of reciprocal (lateral) connections
 %--------------------------------------------------------------------------
@@ -146,9 +150,8 @@ G    = ones(n,1)*G;
 %   S(:,7) - voltage     (deep pyramidal cells)
 %   S(:,8) - conductance (deep pyramidal cells)
 %--------------------------------------------------------------------------
-j     = [1 2 3 4];
 for i = 1:size(P.T,2)
-    T(:,j(i)) = T(:,j(i)).*exp(P.T(:,i));
+    T(:,i) = T(:,i).*exp(P.T(:,i));
 end
 
 % intrinsic connections to be optimised (only the first is modulated)
@@ -156,10 +159,10 @@ end
 if isfield(M,'cmcj')
     j = M.cmcj;
 else
-    j = [12 9 7 4   1 2 3 5 6 8 10 11];
+    j = [12 9 7 4 1 2 3 5 6 8 10 11];
 end
 for i = 1:size(P.G,2)
-    G(:,j(i)) = G(:,j(i)).*exp(P.G(:,i));
+   G(:,j(i)) = G(:,j(i)).*exp(P.G(:,i));
 end
 
 % Modulatory effects of dp depolarisation on intrinsic connection

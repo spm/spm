@@ -29,11 +29,11 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 %__________________________________________________________________________
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
-%___________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 6720 2016-02-15 21:06:55Z karl $
+% $Id: spm_fx_cmc.m 7275 2018-03-07 22:36:34Z karl $
  
  
 % get dimensions and configure state variables
@@ -43,7 +43,8 @@ n  = size(x,1);                   % number of sources
 
 
 % [default] fixed parameters
-%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------    
+E  = [1 1/2 1 1/2]*200;           % extrinsic (forward and backward)
 G  = [4 4 8 4 4 2 4 4 2 1]*200;   % intrinsic connections
 T  = [2 2 16 28];                 % synaptic time constants
 
@@ -66,13 +67,12 @@ end
 % ii = inhibitory interneurons
 %--------------------------------------------------------------------------
 if n > 1
-    E    = [1 1/2 1 1/2]*200;     % extrinsic (forward and backward)
     A{1} = exp(P.A{1})*E(1);      % forward  connections (sp -> ss)
     A{2} = exp(P.A{2})*E(2);      % forward  connections (sp -> dp)
     A{3} = exp(P.A{3})*E(3);      % backward connections (dp -> sp)
     A{4} = exp(P.A{4})*E(4);      % backward connections (dp -> ii)
 else
-    A    = {0,0,0,0};
+    A    = {0,0,0,0};             % retain for single source models
 end
 
 % detect and reduce the strength of reciprocal (lateral) connections
@@ -146,11 +146,10 @@ G    = ones(n,1)*G;
 %   S(:,7) - voltage     (deep pyramidal cells)
 %   S(:,8) - conductance (deep pyramidal cells)
 %--------------------------------------------------------------------------
-j     = [1 2 3 4];
 for i = 1:size(P.T,2)
-    T(:,j(i)) = T(:,j(i)).*exp(P.T(:,i));
+    T(:,i) = T(:,i).*exp(P.T(:,i));
 end
-j     = [7 2 3 4];
+j     = [7 2 3 4 1 5 6 8 9 10];
 for i = 1:size(P.G,2)
     G(:,j(i)) = G(:,j(i)).*exp(P.G(:,i));
 end

@@ -41,7 +41,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 7256 2018-02-11 14:45:00Z karl $
+% $Id: spm_dcm_csd.m 7275 2018-03-07 22:36:34Z karl $
  
  
 % check options
@@ -116,19 +116,24 @@ end
 % initial states and equations of motion
 %--------------------------------------------------------------------------
 [x,f]    = spm_dcm_x_neural(pE,model);
+
+% check for pre-specified priors
+%--------------------------------------------------------------------------
+hE       = 8;
+hC       = 1/128;
+try, hE  = DCM.M.hE; hC  = DCM.M.hC; end
  
 % create DCM
 %--------------------------------------------------------------------------
 DCM.M.IS = 'spm_csd_mtf';
-DCM.M.FS = 'spm_fs_csd';
 DCM.M.g  = 'spm_gx_erp';
 DCM.M.f  = f;
 DCM.M.x  = x;
 DCM.M.n  = length(spm_vec(x));
 DCM.M.pE = pE;
 DCM.M.pC = pC;
-DCM.M.hE = 6;
-DCM.M.hC = 1/64;
+DCM.M.hE = hE;
+DCM.M.hC = hC;
 DCM.M.m  = Ns;
 
 % specify M.u - endogenous input (fluctuations) and intial states
@@ -164,15 +169,10 @@ DCM.M.l  = Nm;
 DCM.M.Hz = DCM.xY.Hz;
 DCM.M.dt = DCM.xY.dt;
  
-% precision of noise: AR(1/2)
+% normalised precision
 %--------------------------------------------------------------------------
-y     = spm_fs_csd(DCM.xY.y,DCM.M);
-for i = 1:length(y)
-    m      = spm_length(y{i});
-    Q{i,i} = speye(m,m);
-end
-DCM.xY.Q  = spm_cat(Q);
-DCM.xY.X0 = sparse(size(Q,1),0);
+DCM.xY.Q  = spm_dcm_csd_Q(DCM.xY.y);
+DCM.xY.X0 = sparse(size(DCM.xY.Q,1),0);
 
 
 % Variational Laplace: model inversion

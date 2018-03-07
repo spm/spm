@@ -28,7 +28,7 @@ function [Q,J] = spm_dcm_delay(P,M,J,N)
 % Copyright (C) 2011-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_delay.m 7238 2017-12-13 12:17:52Z guillaume $
+% $Id: spm_dcm_delay.m 7275 2018-03-07 22:36:34Z karl $
 
 
 % order of Taylor approximation
@@ -56,10 +56,10 @@ if isfield(P,'D')
     
     % get prior means (log-delays)
     %----------------------------------------------------------------------
-    if isfield(M,'pF')
+    try
         di = M.pF.D(1);                    % intrinsic delays (ms)
         de = M.pF.D(2);                    % extrinsic delays (ms)
-    else
+    catch
         di = 1;
         de = 8;
     end
