@@ -233,16 +233,16 @@ Notice that this file contains a single variable, \texttt{R}, which is a 360 x 3
 \item Under \textsc{Contrast Manager} click \textsc{Select \texttt{SPM.mat}} then click the \textsc{Dependency} button and choose \textsc{Model estimation: SPM.mat File}
 
 \item Click \textsc{Contrast Sessions} then click \textsc{New: F-contrast} once, and \textsc{New: T-contrast} twice from the \textsc{Current Item} box.
-\item Click \textsc{Contrast vectors} and then \textsc{New: F contrast}. 
-\item The F contrast vector (named ``effects of interest'') can be entered as [eye(3), zeros(3,4)], which will produce:
+\item Select \textsc{Weights matrix} underneath \textsc{F-contrast}. 
+\item The F weights matrix (named ``effects of interest'') can be entered as [eye(3), zeros(3,4)], which will produce:
 \begin{verbatim}
 1 0 0 0 0 0 0
 0 1 0 0 0 0 0
 0 0 1 0 0 0 0
 \end{verbatim}
 
-\item For the first T-contrast, \textsc{Name} is \texttt{Attention}, and the \textsc{T contrast vector} is \texttt{~0~-1~1~0~0~0~0} (Note the order of the conditions in the design matrix is: Stationary, NoAttMot and AttMot).
-\item For the second T-contrast \textsc{Name} is \texttt{Motion}, and the \textsc{T contrast vector} is: \texttt{-2~1~1~0~0~0~0}.
+\item For the first T-contrast, \textsc{Name} is \texttt{Attention}, and the \textsc{T weights vector} is \texttt{~0~-1~1~0~0~0~0} (Note the order of the conditions in the design matrix is: Stationary, NoAttMot and AttMot).
+\item For the second T-contrast \textsc{Name} is \texttt{Motion}, and the \textsc{T weights vector} is: \texttt{-2~1~1~0~0~0~0}.
 
 \item Click the \textsc{Save} icon on the toolbar and save the batch file.\\
 
