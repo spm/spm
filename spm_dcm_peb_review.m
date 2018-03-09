@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 6946 2016-11-23 15:26:29Z peter $
+% $Id: spm_dcm_peb_review.m 7277 2018-03-09 10:03:57Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -609,6 +609,9 @@ out = [parts.field '-matrix '];
 if isnan(parts.col)
     % Row only
     out = sprintf('%s %s', out, region_names{parts.row});
+elseif strcmp(parts.field,'C')
+    % Row and region
+    out = sprintf('%s %s',region_names{parts.row}, input_names{parts.col});
 else
     % Row and col
     out = sprintf('%s from %s to %s', ...
@@ -770,24 +773,41 @@ switch tag
                 idx2);
                 sprintf('Correlation: %2.2f',corr(idx2,idx1)); };
     case 'connectivity'   
-        
+                        
+        % Get selected DCM field (A or B etc)
         sel_field_idx = xPEB.sel_field_idx - 1;
+        dcm_field = xPEB.fields{sel_field_idx};
         
-        % Exclude for CMC
-        if strcmp(xPEB.fields{sel_field_idx},'G')
+        
+        if strcmp(dcm_field,'G')
+            % Exclude for CMC
             txt = '';
             return;
+        elseif strcmp(dcm_field,'C')
+            % Driving inputs
+            idx_region = idx2;
+            idx_input  = idx1;
+
+            r_from     = region_names{idx_region};
+            input_name = xPEB.input_names{idx_input};
+            Eq         = xPEB.Eq;
+
+            txt = {sprintf('Region: %s Input: %s',r_from,input_name);
+                   sprintf('%2.2f',Eq(idx_region,idx_input))};            
+        else
+            % Regular connectivity matrix
+            idx_from = idx1;
+            idx_to   = idx2;
+
+            r_from = region_names{idx_from};
+            r_to   = region_names{idx_to};
+            Eq     = xPEB.Eq;
+
+            txt = {sprintf('From %s to %s',r_from,r_to);
+                   sprintf('%2.2f',Eq(idx_to,idx_from))};
         end
                 
-        idx_from = idx1;
-        idx_to   = idx2;
-        
-        r_from = region_names{idx_from};
-        r_to   = region_names{idx_to};
-        Eq     = xPEB.Eq;
-        
-        txt = {sprintf('From %s to %s',r_from,r_to);
-               sprintf('%2.2f',Eq(idx_to,idx_from))};
+
     otherwise
         txt = '';
 end 
