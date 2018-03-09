@@ -18,7 +18,7 @@ function out = spm_shoot_scalmom(job)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_scalmom.m 6501 2015-07-17 14:32:09Z spm $
+% $Id: spm_shoot_scalmom.m 7278 2018-03-09 10:35:55Z john $
 
 Pt = strvcat(job.template);
 Nt = nifti(Pt);
@@ -86,17 +86,20 @@ for j=1:size(Py,1), % Loop over subjects
 
         % Loop over imported data
         for i=1:d(4)-1,
-            f  = spm_diffeo('samp',F{i},y);   % Warp the imported tissue
-            f(~isfinite(f)) = 0;              % Assume all values are zero outside FOV
-            fe = fe-f;                        % Subtract from background
-            t  = single(Nt.dat(:,:,z,i));     % Slice of template
-            x(:,:,i) = (f-t).*jd;             % Compute scalar momentum
+            f            = spm_diffeo('samp',F{i},y); % Warp the imported tissue
+            msk          = ~isfinite(f);              % Identify missing data
+            fe           = fe-f;                      % Subtract from background
+            t            = single(Nt.dat(:,:,z,i));   % Slice of template
+            scalmom      = (f-t).*jd;                 % Compute scalar momentum
+            scalmom(msk) = 0;                         % Assume all values are zero outside FOV
+            x(:,:,i)     = scalmom;                   % Compute scalar momentum
         end
 
         % Deal with background class (no imported background)
-        t = single(Nt.dat(:,:,z,d(4))); % Background slice of template
-        x(:,:,d(4))     = (fe-t).*jd;   % Compute scalar momentum (background)
-       %x(~isfinite(x)) = 0;            % Remove NaNs - should not be needed
+        t               = single(Nt.dat(:,:,z,d(4))); % Background slice of template
+        scalmom         = (fe-t).*jd;                 % Compute scalar momentum (background)
+        scalmom(msk)    = 0;                          % Assume all values are zero outside FOV
+        x(:,:,d(4))     = scalmom;                    % Compute scalar momentum (background)
 
         % There is redundancy in using all tissues because they sum to 1 at each
         % voxel. Reduce to N-1 tissues by projecting into the null space.

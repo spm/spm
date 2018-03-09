@@ -6,7 +6,7 @@ function [K1,lambda] = covLin(lambda0,settings,args,lab)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: covLin.m 6881 2016-09-19 09:48:54Z john $
+% $Id: covLin.m 7278 2018-03-09 10:35:55Z john $
 
 if ischar(lambda0) && strcmpi(lambda0,'init'),
     K            = settings;
@@ -17,11 +17,12 @@ if ischar(lambda0) && strcmpi(lambda0,'init'),
     else
         settings.lab = lab;
     end
-    lambda       = zeros(numel(K)+1,1);
-    for i=1:numel(K)
-        lambda(i) = -log(norm(K{i}));
-    end
-    lambda(end) = -log(norm(ones(size(K{1}))));
+    lambda = zeros(numel(K)+1,1);
+   %for i=1:numel(K)
+   %   %R         = eye(size(K{i})) - ones(size(K{i}))/size(K{i},1);
+   %   %lambda(i) = log(sqrt(size(K{i},1))/norm(R*K{i}*R))+log10(100);
+   %end
+    if isfield(settings,'lambda'), lambda = settings.lambda; end
 
     settings.K   = K;
     K1           = settings;
@@ -34,9 +35,11 @@ lab    = settings.lab;
 lambda = zeros(numel(K)+1,1);
 lambda(1:numel(lambda0)) = lambda0(:);
 lambda = max(min(lambda,27),-27);
+
 K1     = exp(lambda(end));
 for i=1:numel(K)
     K1 = K1 + exp(lambda(i))*K{i}(lab,lab);
 end
 
 %fprintf('\t%f',lambda); fprintf('\n');
+

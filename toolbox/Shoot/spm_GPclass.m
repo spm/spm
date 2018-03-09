@@ -1,6 +1,6 @@
-function [p,F,K,theta] = spm_GPclass(XX,t,lab,cov_fun,fun_args)
+function [varargout] = spm_GPclass(varargin)
 % Gaussian process classification
-% [p,F,K,theta] = spm_GPclass(XX,t,lab,cov_fun,fun_args)
+% [p,F,K,theta,bic] = spm_GPclass(XX,t,lab,cov_fun,fun_args)
 % Inputs:
 %     XX       - cell array of dot product matrices
 %                for training and testing data
@@ -10,8 +10,9 @@ function [p,F,K,theta] = spm_GPclass(XX,t,lab,cov_fun,fun_args)
 %     fun_args - additional arguments for covariance function
 % Outputs
 %     p     - Belonging probabilities
-%     F     - Objective function
+%     F     - Log-likelihood
 %     K     - Covariance matrix
+%     bic   - Adjustment to log-likelihood to account for hyper-parameter estimation
 %
 % See Chapter 3 of:
 % C. E. Rasmussen & C. K. I. Williams, Gaussian Processes for Machine Learning, the MIT Press, 2006,
@@ -21,17 +22,63 @@ function [p,F,K,theta] = spm_GPclass(XX,t,lab,cov_fun,fun_args)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_GPclass.m 7252 2018-01-31 15:56:56Z john $
+% $Id: spm_GPclass.m 7278 2018-03-09 10:35:55Z john $
 
-if nargin==3
-    p = gp_pred_ep_binclass(XX,t,lab);
+if nargin>1 && isa(varargin{1},'char')
+    switch lower(varargin{1})
+    case {'likelihood'}
+        if nargin >=2, theta    = varargin{2}; end
+        if nargin >=3, XX       = varargin{3}; end
+        if nargin >=4, t        = varargin{4}; end
+        if nargin >=5, lab      = varargin{5}; end
+        if nargin >=6, cov_fun  = varargin{6}; end
+        if nargin >=7, fun_args = varargin{7}; else fun_args=struct; end
+        [X,theta0] = cov_fun('init',XX,fun_args,lab);
+        E          = objfun(theta,t,X,cov_fun);
+        ll         = -E;
+        varargout  = {ll};
+    case {'hessian'}
+        if nargin >=2, theta    = varargin{2}; end
+        if nargin >=3, XX       = varargin{3}; end
+        if nargin >=4, t        = varargin{4}; end
+        if nargin >=5, lab      = varargin{5}; end
+        if nargin >=6, cov_fun  = varargin{6}; end
+        if nargin >=7, fun_args = varargin{7}; else fun_args=struct; end
+        [X,theta0] = cov_fun('init',XX,fun_args,lab);
+        [H,E0]     = Hessian(t,X,cov_fun,theta);
+        varargout  = {H, -E0};
+    case {'bic'}
+        if nargin >=2, theta    = varargin{2}; end
+        if nargin >=3, XX       = varargin{3}; end
+        if nargin >=4, t        = varargin{4}; end
+        if nargin >=5, lab      = varargin{5}; end
+        if nargin >=6, cov_fun  = varargin{6}; end
+        if nargin >=7, fun_args = varargin{7}; else fun_args=struct; end
+        [X,theta0] = cov_fun('init',XX,fun_args,lab);
+        bic        = LaplaceAdjustment(t,X,cov_fun,theta);
+        varargout  = {bic};
+    end
     return
 end
-if nargin<5,
-    fun_args=struct;
+
+if nargin >=1, XX       = varargin{1}; end
+if nargin >=2, t        = varargin{2}; end
+if nargin >=3, lab      = varargin{3}; end
+if nargin >=4, cov_fun  = varargin{4}; end
+if nargin >=5, fun_args = varargin{5}; else fun_args=struct; end
+
+if nargin==3
+    varargout{1} = gp_pred_ep_binclass(XX,t,lab);
+    return
 end
+
+% Optimise hyperparameters theta, and compute marginal log-likelihood F
 [X,theta] = cov_fun('init',XX,fun_args,lab);
 [theta,F] = GPtrain(t,X,cov_fun,theta);
+
+if nargout>=5, bic = LaplaceAdjustment(t,X,cov_fun,theta); end
+
+% Predictions of unknown targets
 X         = cov_fun('init',XX,fun_args);
 K         = cov_fun(theta,X);
 if size(t,2)>1
@@ -39,6 +86,54 @@ if size(t,2)>1
 else
 %   p = gp_pred_lap_binclass(K,t,lab);
     p = gp_pred_ep_binclass(K,t,lab);
+end
+varargout = {p, F, K, theta};
+if nargout>=5, varargout{5} = bic; end
+
+%__________________________________________________________________________
+%__________________________________________________________________________
+function bic = LaplaceAdjustment(t,X,cov_fun,theta)
+% Compute adjustment to marginal log-likelihood to account for uncertainty
+% of estimating theta
+H     = Hessian(t,X,cov_fun,theta);
+[V,D] = eig(H);
+d     = diag(D);
+lam   = 1e-6;  % Cross-check against later definition
+d     = max(d,lam);
+bic   = 0.5*(numel(d)*log(lam) - sum(log(d)));
+%__________________________________________________________________________
+%__________________________________________________________________________
+function [H,E0] = Hessian(t,X,cov_fun,theta)
+dtheta = 0.05;
+H      = zeros(numel(theta));
+E0     = objfun(theta,t,X,cov_fun);
+for i=1:numel(theta)
+    thetap    = theta;
+    thetap(i) = thetap(i)+dtheta;
+    thetan    = theta;
+    thetan(i) = thetan(i)-dtheta;
+    Ep        = objfun(thetap,t,X,cov_fun);
+    En        = objfun(thetan,t,X,cov_fun);
+    H(i,i)    = (Ep+En - 2*E0)/dtheta^2;
+    for j=(i+1):numel(theta)
+        thetapp    = thetap;
+        thetapp(j) = thetapp(j)+dtheta;
+        Epp        = objfun(thetapp,t,X,cov_fun);
+        thetapn    = thetap;
+        thetapn(j) = thetapn(j)-dtheta;
+        Epn        = objfun(thetapn,t,X,cov_fun);
+        gp         = (Epp-Epn)/2/dtheta;
+
+        thetanp    = thetan;
+        thetanp(j) = thetanp(j)+dtheta;
+        Enp        = objfun(thetanp,t,X,cov_fun);
+        thetann    = thetan;
+        thetann(j) = thetann(j)-dtheta;
+        Enn        = objfun(thetann,t,X,cov_fun);
+        gn         = (Enp-Enn)/2/dtheta;
+        H(i,j)     = (gp-gn)/2/dtheta;
+        H(j,i)     = H(i,j);
+    end
 end
 %__________________________________________________________________________
 %__________________________________________________________________________
@@ -49,7 +144,7 @@ function [theta,ll] = GPtrain(t,X,cov_fun,theta)
 % Currently only uses Powell's Method from Numerical Recipes
 % - needs to be implemented more efficiently
 m          = numel(theta);
-thetai     = eye(m)*0.1;
+thetai     = eye(m);
 tolsc      = ones(m,1)*0.01;
 objfun('reset');
 [theta,ll] = spm_powell(theta,thetai,tolsc,@objfun,t,X,cov_fun);
@@ -62,13 +157,13 @@ if nargin==1 && strcmp(theta,'reset'),
     a=[];
     b=[];
     return;
-end 
+end
 % Objective function to minimise
 K     = cov_fun(theta,X);
 if size(t,2)==1
     if true, %isempty(a)
-%      [a,F]   = gp_lap_binclass(K,t);
-       [a,b,F] = gp_ep_binclass(K,t);
+%     [a,F]   = gp_lap_binclass(K,t);
+      [a,b,F] = gp_ep_binclass(K,t);
     else
 %      [a,F]   = gp_lap_binclass(K,t,a);
        [a,b,F] = gp_ep_binclass(K,t,a,b);
@@ -76,8 +171,10 @@ if size(t,2)==1
 else
     [f,F]   = gp_lap_multiclass(K,t);
 end
-%fprintf('%g\n', F);
-E = -F + 1e-8*(theta'*theta);
+lam = 1e-6; % Cross-check against earlier definition
+E   = -F + 0.5*lam*(theta(:)'*theta(:)); % - 0.5*numel(theta)*log(lam/(2*pi));
+%fprintf(' %.8g',theta); fprintf(': %.8g\n', E);
+
 %__________________________________________________________________________
 %__________________________________________________________________________
 function [f,F] = gp_lap_binclass(K,t,f)
@@ -131,7 +228,7 @@ os = rng;
 p = zeros(sum(~o),1);
 j = 0;
 for i=find(~o)',
-    j = j + 1;
+    j    = j + 1;
     mu   = K(o,i)'*(t-sig);
     v    = M*K(o,i);
     vr   = K(i,i) - v'*v;
@@ -286,31 +383,31 @@ rng(0,'twister');
 for it=1:128
     prev_nut = nut;
     for i=randperm(N),
-       mui  = Sig(i,:)*nut;
+        mui  = Sig(i,:)*nut;
 
-       % Cavity parameters (eq 3.56)
-       taum = max(1/Sig(i,i) - taut(i),eps);
-       num  = mui/Sig(i,i) - nut(i);
+        % Cavity parameters (eq 3.56)
+        taum = max(1/Sig(i,i) - taut(i),eps);
+        num  = mui/Sig(i,i) - nut(i);
 
-       % Mean and variance
-       mum   = num/taum;
-       sigm  = 1/taum;
+        % Mean and variance
+        mum   = num/taum;
+        sigm  = 1/taum;
 
-       % Marginal moments (eq 3.58)
-       z     = y(i)*mum/sqrt(1+sigm);
+        % Marginal moments (eq 3.58)
+        z     = y(i)*mum/sqrt(1+sigm);
 
-      %NzZh  = Npdf(z)/Ncdf(z); would be unstable
-       NzZh  = sqrt(2/pi)./erfcx(-z/sqrt(2));
-       mom1  = y(i)*NzZh/sqrt(1+sigm);
-       mom2  = NzZh*(z+NzZh)/(1+sigm);
+       %NzZh  = Npdf(z)/Ncdf(z); would be unstable
+        NzZh  = sqrt(2/pi)./erfcx(-z/sqrt(2));
+        mom1  = y(i)*NzZh/sqrt(1+sigm);
+        mom2  = NzZh*(z+NzZh)/(1+sigm);
 
-       % Desired moments (eq 3.59)
-       tauto   = taut(i);
-       taut(i) = max(mom2/max(1-mom2/taum,eps),eps);
-       nut(i)  = (mom1 + mom2*num/taum)/max(1-mom2/taum,eps);
-       dtaut   = taut(i) - tauto;
-       s       = Sig(:,i);
-       Sig     = Sig - ((dtaut/(1+dtaut*s(i)))*s)*s'; % about 75% of the CPU time
+        % Desired moments (eq 3.59)
+        tauto   = taut(i);
+        taut(i) = max(mom2/max(1-mom2/taum,eps),eps);
+        nut(i)  = (mom1 + mom2*num/taum)/max(1-mom2/taum,eps);
+        dtaut   = taut(i) - tauto;
+        s       = Sig(:,i);
+        Sig     = Sig - ((dtaut/(1+dtaut*s(i)))*s)*s'; % about 75% of the CPU time
     end
 
     s   = sqrt(taut);             % (eq 3.66)
@@ -327,11 +424,18 @@ rng(os);
 if nargout>2
     mu   = Sig*nut;
     sig  = diag(Sig);
-    z    = (nut.*sig-mu)./((sig.*taut - 1).*sqrt(1 - 1./(taut-1./sig)));
-    F    = sum(log(erfcx(-y.*z/sqrt(2))) - log(2)-y.^2.*z.^2/2)... % sum(log(Ncdf(y.*z))) 3rd term
+    z    = y.*(nut.*sig-mu)./((sig.*taut - 1).*sqrt(1 - 1./(taut-1./sig)));
+    F    = sum(logNcdf(z))...                                      % 3rd term
           +sum(log(1+taut./(1./sig-taut)))/2 -sum(log(diag(L)))... % 1st & 4th terms (eq 3.73)
           +(nut'*Sig*nut)/2 -sum((taut.*mu.^2 - 2*mu.*nut + sig.*nut.^2)./(sig.*taut - 1))/2; % 2nd & 5th
 end
+%__________________________________________________________________________
+%__________________________________________________________________________
+function l = logNcdf(z)
+msk     = z<0;
+l       = zeros(size(z));
+l(msk)  = log(erfcx(-z( msk)/sqrt(2))) - log(2)-z(msk).^2/2;
+l(~msk) = log((1+erf(z(~msk)/sqrt(2)))/2);
 %__________________________________________________________________________
 %__________________________________________________________________________
 function p = gp_pred_ep_binclass(K,t,o,nut,taut)
@@ -350,11 +454,11 @@ z   = ss.*(L\(L'\(ss.*(K(o,o)*nut))));
 p   = zeros(sum(~o),1);
 j   = 0;
 for i=find(~o)',
-    j = j + 1;
+    j    = j + 1;
     fs   = K(o,i)'*(nut-z);
     v    = L'\(ss.*K(o,i));
     vf   = K(i,i)-v'*v;
-    p(j) = 0.5+erf(fs./sqrt(2+2*vf))/2;
+    p(j) = 0.5*(1+erf(fs./sqrt(2*(1+vf))));
 end
 %__________________________________________________________________________
 %__________________________________________________________________________
