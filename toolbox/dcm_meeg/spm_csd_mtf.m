@@ -35,7 +35,7 @@ function [y,w,s,g] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 7225 2017-11-20 18:34:17Z karl $
+% $Id: spm_csd_mtf.m 7279 2018-03-10 21:22:44Z karl $
 
 
 
@@ -159,6 +159,20 @@ if isfield(M,'p')
     for c  = 1:length(y)
         mar  = spm_csd2mar(y{c},w,p,dt);
         y{c} = spm_mar2csd(mar,w,1/dt);
+    end
+end
+
+% model the effect of filtering during preprocessing
+%==========================================================================
+if isfield(M,'f')
+    for c  = 1:length(y)
+        f     = (1:nw)'; 
+        f     = exp(P.f(1) + P.f(2)*f/nw);
+        for i = 1:nc
+            for j = 1:nc
+                y{c}(:,i,j) = y{c}(:,i,j).*f;
+            end
+        end
     end
 end
 

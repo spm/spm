@@ -35,7 +35,7 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_erp.m 6720 2016-02-15 21:06:55Z karl $
+% $Id: spm_fx_erp.m 7279 2018-03-10 21:22:44Z karl $
 
 
 % get dimensions and configure state variables
@@ -55,12 +55,12 @@ R = [2 1]/3;                % parameters of static nonlinearity
 % [specified] fixed parameters
 %--------------------------------------------------------------------------
 if isfield(M,'pF')
-    try, E = M.pF.E; end
-    try, G = M.pF.H; end
-    try, D = M.pF.D; end
-    try, H = M.pF.G; end
-    try, T = M.pF.T; end
-    try, R = M.pF.R; end
+    if isfield(M.pF,'E'), E = M.pF.E; end
+    if isfield(M.pF,'G'), G = M.pF.G; end
+    if isfield(M.pF,'T'), T = M.pF.T; end
+    if isfield(M.pF,'R'), R = M.pF.R; end
+    if isfield(M.pF,'H'), H = M.pF.H; end
+    if isfield(M.pF,'D'), D = M.pF.D; end
 end
 
 

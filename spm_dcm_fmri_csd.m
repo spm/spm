@@ -40,9 +40,9 @@ function DCM = spm_dcm_fmri_csd(P)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 7275 2018-03-07 22:36:34Z karl $
+% $Id: spm_dcm_fmri_csd.m 7279 2018-03-10 21:22:44Z karl $
 
-SVNid = '$Rev: 7275 $';
+SVNid = '$Rev: 7279 $';
 
 % Load DCM structure
 %--------------------------------------------------------------------------
@@ -62,6 +62,7 @@ try, DCM.options.two_state;  catch, DCM.options.two_state  = 0;     end
 try, DCM.options.stochastic; catch, DCM.options.stochastic = 0;     end
 try, DCM.options.centre;     catch, DCM.options.centre     = 0;     end
 try, DCM.options.analysis;   catch, DCM.options.analysis   = 'CSD'; end
+try, DCM.options.order;      catch, DCM.options.order      = 8;     end
 try, DCM.options.nograph;    catch, DCM.options.nograph    = spm('CmdLine');  end
 
 
@@ -189,7 +190,6 @@ try, hE  = DCM.M.hE; hC  = DCM.M.hC; end
 
 % create DCM
 %--------------------------------------------------------------------------
-p        = 4;
 DCM.M.IS = 'spm_csd_fmri_mtf';
 DCM.M.g  = @spm_gx_fmri;
 DCM.M.f  = @spm_fx_fmri;
@@ -201,15 +201,15 @@ DCM.M.hC = hC;
 DCM.M.n  = length(spm_vec(x));
 DCM.M.m  = size(DCM.U.u,2);
 DCM.M.l  = n;
-DCM.M.p  = p;
-DCM.Y.p  = p;
+DCM.M.p  = DCM.options.order;
 
 % specify M.u - endogenous input (fluctuations) and intial states
 %--------------------------------------------------------------------------
 DCM.M.u  = sparse(n,1);
 
-% get data-features (MAR(4) model)
+% get data-features (MAR(p) model)
 %==========================================================================
+DCM.Y.p  = DCM.M.p;
 DCM      = spm_dcm_fmri_csd_data(DCM);
 DCM.M.Hz = DCM.Y.Hz;
 DCM.M.dt = 1/2;

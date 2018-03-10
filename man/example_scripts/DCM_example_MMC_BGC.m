@@ -18,7 +18,7 @@ DCM.options.model(1).source = 'MMC';    % specify name of the first model (in sa
 DCM.options.model(1).B      = 1:14;     % all intrinsic synaptic modulations can be modulated between conditions
 DCM.options.model(2).source = 'BGC';    % specify name of the first model (in same order as data)
 DCM.options.model(2).J      = 5;        % specify state that contributes to observed data: 1=Striatum, 3=GPe; 5=STN; 7=GPi; 9=Thalamus
-DCM.options.model(2).B      = [1:9];    % all intrinsic synaptic modulations can be modulated between conditions
+DCM.options.model(2).B      = 1:9;      % all intrinsic synaptic modulations can be modulated between conditions
 
 DCM.xY.modality = 'LFP';
 DCM.xY.Ic       = 1:2;

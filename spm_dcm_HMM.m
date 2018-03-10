@@ -48,7 +48,7 @@ function [HMM,csd] = spm_dcm_HMM(GCM,N,b)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_HMM.m 7272 2018-03-04 13:12:31Z karl $
+% $Id: spm_dcm_HMM.m 7279 2018-03-10 21:22:44Z karl $
 
 
 %  get windowed cross spectra if necessary
@@ -225,6 +225,7 @@ for p = 1:P
     
     % invert each window
     %----------------------------------------------------------------------
+    DCM.options.order = 6;
     Y.y   = DCM.Y.y;
     for t = 1:N
         w          = diag(W(:,t));           % get windowing matrix

@@ -18,7 +18,7 @@ function [Q] = spm_gen_Q(P,X)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_Q.m 6725 2016-02-19 19:14:25Z karl $
+% $Id: spm_gen_Q.m 7279 2018-03-10 21:22:44Z karl $
 
 
 % condition or trial specific parameters
@@ -70,7 +70,7 @@ for i = 1:length(X)
     %----------------------------------------------------------------------
     if isfield(Q,'int')
         for j = 1:numel(Q.int)
-            if isfield(Q.int{j},'B')
+            if isfield(Q.int{j},'B') && ~isempty(Q.int{j}.B)
                 Q.int{j}.G = Q.int{j}.G + X(i)*Q.int{j}.B;
             else
                 Q.int{j}.G(:,1) = Q.int{j}.G(:,1) + X(i)*P.B{i}(j,j);

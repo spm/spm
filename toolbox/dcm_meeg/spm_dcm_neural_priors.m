@@ -36,7 +36,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 7270 2018-03-04 13:08:10Z karl $
+% $Id: spm_dcm_neural_priors.m 7279 2018-03-10 21:22:44Z karl $
 
 % For generic schemes one can mix and match different types of sources;
 % furthermore, they can have different condition-specific modulation of
@@ -86,9 +86,14 @@ if isstruct(model)
         % add condition-specific intrinsic effects (if specified)
         %------------------------------------------------------------------
         if isfield(model(i),'B') && numel(B)
-            iE.B = spm_zeros(iE.G);
-            iC.B = spm_zeros(iE.G);
             iC.B(model(i).B) = 1/16;
+            iE.B = spm_zeros(iC.B(model(i).B));
+            
+            if numel(iE.B) > numel(iE.G)
+                iE.G = iE.B;
+                iC.G = iE.G + iC.G(1);
+            end
+            
         end
         pE.int{i} = iE;
         pC.int{i} = iC;

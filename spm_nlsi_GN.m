@@ -97,7 +97,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 7271 2018-03-04 13:11:54Z karl $
+% $Id: spm_nlsi_GN.m 7279 2018-03-10 21:22:44Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -227,7 +227,7 @@ pE       = M.pE;
 try
     pC   = M.pC;
 catch
-    np   = numel(spm_vec(M.pE));
+    np   = spm_length(M.pE);
     pC   = speye(np,np)*exp(16);
 end
 
@@ -453,7 +453,7 @@ for k = 1:M.Nmax
     
     % if F has increased, update gradients and curvatures for E-Step
     %----------------------------------------------------------------------
-    if F > C.F || k < 4
+    if F > C.F || k < 3
         
         % accept current estimates
         %------------------------------------------------------------------

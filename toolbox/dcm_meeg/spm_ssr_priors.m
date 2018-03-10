@@ -11,7 +11,8 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 %    pE.a - neuronal innovations         - amplitude and exponent
 %    pE.b - channel noise (non-specific) - amplitude and exponent
 %    pE.c - channel noise (specific)     - amplitude and exponent
-%    pE.d - neuronal innovations         - basis set coefficients
+%    pE.d - neuronal innovations         - basis set  coefficients
+%    pE.f - filtering                    - polynomial coefficients
 %
 %--------------------------------------------------------------------------
 %
@@ -30,7 +31,7 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 7275 2018-03-07 22:36:34Z karl $
+% $Id: spm_ssr_priors.m 7279 2018-03-10 21:22:44Z karl $
  
 % catch
 %--------------------------------------------------------------------------
@@ -50,7 +51,12 @@ pE.c = sparse(2,n); pC.c = sparse(2,n) + 1/128; % channel noise specific
 % neuronal innovations (DCT coefficients for structured spectra)
 %--------------------------------------------------------------------------
 d    = 4;
-pE.d = sparse(d,m); pC.d = sparse(d,m) + 1/128; 
+pE.d = sparse(d,m); pC.d = sparse(d,m) + 1/128;
+
+% coefficients for (unknown) filtering
+%--------------------------------------------------------------------------
+d    = 2;
+pE.f = sparse(d,1); pC.f = sparse(d,1) + 1/64;
 
 
 

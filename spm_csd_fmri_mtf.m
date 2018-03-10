@@ -28,7 +28,7 @@ function [y,w,S,Gu,Gn] = spm_csd_fmri_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 7270 2018-03-04 13:08:10Z karl $
+% $Id: spm_csd_fmri_mtf.m 7279 2018-03-10 21:22:44Z karl $
 
 % multiple sessions
 %==========================================================================
@@ -154,6 +154,6 @@ end
 
 % autoregressive parameterisation
 %--------------------------------------------------------------------------
-y = spm_mar2csd(spm_csd2mar(y,M.Hz,M.p),M.Hz);
+y = spm_mar2csd(spm_csd2mar(y,M.Hz,M.p - 1),M.Hz);
 
 

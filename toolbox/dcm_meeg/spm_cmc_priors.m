@@ -39,7 +39,7 @@ function [E,V] = spm_cmc_priors(A,B,C)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmc_priors.m 7275 2018-03-07 22:36:34Z karl $
+% $Id: spm_cmc_priors.m 7279 2018-03-10 21:22:44Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -125,7 +125,7 @@ E.S  = 0;             V.S  = 1/64;                % slope of sigmoid
 
 % fix intrinsic delays
 %--------------------------------------------------------------------------
-V.D  = V.D - diag(diag(V.D));
+% V.D  = V.D - diag(diag(V.D));
 
  
 % set stimulus parameters: onset and dispersion

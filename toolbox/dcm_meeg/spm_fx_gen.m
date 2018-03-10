@@ -40,7 +40,7 @@ function [f,J,Q] = spm_fx_gen(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_gen.m 7275 2018-03-07 22:36:34Z karl $
+% $Id: spm_fx_gen.m 7279 2018-03-10 21:22:44Z karl $
  
  
 % model-specific parameters
@@ -48,10 +48,10 @@ function [f,J,Q] = spm_fx_gen(x,u,P,M)
 
 % model or node-specific state equations of motions
 %--------------------------------------------------------------------------
-fx{1} = @spm_fx_erp;                                    % ERP model
-fx{2} = @spm_fx_cmc;                                    % CMC model
-fx{3} = @spm_fx_bgc;                                    % basal ganglia circuit
-fx{4} = @spm_fx_mmc;                                    % motor micro circuit
+fx{1} = @spm_fx_erp;                     % ERP model
+fx{2} = @spm_fx_cmc;                     % CMC model
+fx{3} = @spm_fx_bgc;                     % basal ganglia circuit
+fx{4} = @spm_fx_mmc;                     % motor micro circuit
 
 % indices of extrinsically coupled hidden states
 %--------------------------------------------------------------------------
@@ -70,10 +70,10 @@ afferent(4,:) = [2 4 8 0];               % targets of MMC connections
 
 % scaling of afferent extrinsic connectivity (Hz)
 %--------------------------------------------------------------------------
-E(1,:) = [64 2 32 8]*1000;                 % ERP connections      
-E(2,:) = [64 4 64 8]*1000;                 % CMC connections
-E(3,:) = [1.8 1.2 1.8 1.2]*100000;         % BGC connections 
-E(4,:) = [.9 .9 .11 0]*100000;             % MMC connections 
+E(1,:) = [64 2 32 8]*1000;               % ERP connections      
+E(2,:) = [64 4 64 8]*1000;               % CMC connections
+E(3,:) = [1.8 1.2 1.8 1.2]*100000;       % BGC connections 
+E(4,:) = [.9 .9 .11 0]*100000;           % MMC connections 
 
 if isfield(M,'ERP_E'); E(1,:)= M.ERP_E; end
 if isfield(M,'CMC_E'); E(2,:)= M.CMC_E; end
@@ -81,7 +81,7 @@ if isfield(M,'BGC_E'); E(3,:)= M.BGC_E; end
 if isfield(M,'MMC_E'); E(4,:)= M.MMC_E; end
 
 
-% intrinsic delays ms
+% intrinsic delays ms (scaling)
 %--------------------------------------------------------------------------
 D(1) = 2;                                % ERP connections      
 D(2) = 1;                                % CMC connections
@@ -114,11 +114,11 @@ end
 %--------------------------------------------------------------------------
 R     = 2/3;                      % gain of sigmoid activation function
 B     = 0;                        % bias or background (sigmoid)
-R     = R.*exp(P.S);
+R     = R.*exp(P.S);              % posterior gain
 S     = @(x,R,B)1./(1 + exp(-R*x(:) + B)) - 1/(1 + exp(B));
 dSdx  = @(x,R,B)(R*exp(B - R*x(:)))./(exp(B - R*x(:)) + 1).^2;
 for i = 1:n
-    Sx{i} = S(x{i},R,B);
+    Sx{i} = S(x{i},R,B);          % sigmod firing rate function
 end
 
 % Extrinsic connections

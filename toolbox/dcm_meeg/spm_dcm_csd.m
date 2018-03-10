@@ -41,7 +41,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 7275 2018-03-07 22:36:34Z karl $
+% $Id: spm_dcm_csd.m 7279 2018-03-10 21:22:44Z karl $
  
  
 % check options
@@ -99,11 +99,11 @@ end
  
 % augment with priors on spatial model
 %--------------------------------------------------------------------------
-[pE,pC]  = spm_L_priors(DCM.M.dipfit,pE,pC);
+[pE,pC] = spm_L_priors(DCM.M.dipfit,pE,pC);
  
 % augment with priors on endogenous inputs (neuronal) and noise
 %--------------------------------------------------------------------------
-[pE,pC]  = spm_ssr_priors(pE,pC);
+[pE,pC] = spm_ssr_priors(pE,pC);
 
 try
     if spm_length(DCM.M.pE) == spm_length(pE);
@@ -146,7 +146,7 @@ DCM.M.u  = sparse(Ns,1);
 % Spatial modes
 %--------------------------------------------------------------------------
 try
-    DCM.M.U  = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
+    DCM.M.U = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
 end
  
 % get data-features (in reduced eigenspace)
