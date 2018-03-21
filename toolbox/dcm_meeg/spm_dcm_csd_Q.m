@@ -1,25 +1,23 @@
-function Q  = spm_dcm_csd_Q(csd)
+function Q = spm_dcm_csd_Q(csd)
 % Precision of cross spectral density
-% FORMAT Q  = spm_dcm_csd_Q(csd)
+% FORMAT Q = spm_dcm_csd_Q(csd)
 % 
 % csd{i}   - [cell] Array of complex cross spectra
 % Q        - normalised precision
 %--------------------------------------------------------------------------
-%  This routine returns the precision of complex cross spectra based upon
-%  the asymptotic results described in: 
-%  Camba-Mendez, G., & Kapetanios, G. (2005). Estimating the Rank of the
-%  Spectral Density Matrix. Journal of Time Series Analysis, 26(1), 37-48.
-%  doi: 10.1111/j.1467-9892.2005.00389.x
-%
-% NB:  Although a very simple routine, it can be very slow for large
-% matrices – and may benefit from coding in C.
+% This routine returns the precision of complex cross spectra based upon
+% the asymptotic results described in: 
+% Camba-Mendez, G., & Kapetanios, G. (2005). Estimating the Rank of the
+% Spectral Density Matrix. Journal of Time Series Analysis, 26(1), 37-48.
+% doi: 10.1111/j.1467-9892.2005.00389.x
 %__________________________________________________________________________
-% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_csd_Q.m 7275 2018-03-07 22:36:34Z karl $
+% $Id: spm_dcm_csd_Q.m 7280 2018-03-21 12:07:11Z guillaume $
 
-% check for cell arrays
+
+%-Check for cell arrays
 %--------------------------------------------------------------------------
 if iscell(csd)
     CSD   = spm_zeros(csd{1});
@@ -32,18 +30,24 @@ if iscell(csd)
     return
 end
 
-% get precision
+%-Get precision
 %--------------------------------------------------------------------------
-SIZ    = size(csd);
-Qn     = spm_length(csd);
-Q      = sparse(Qn,Qn);
-for Qi = 1:Qn
+SIZ     = size(csd);
+Qn      = spm_length(csd);
+[w,i,j] = ind2sub(SIZ,1:Qn);
+u       = zeros(SIZ(1)*prod(SIZ(2:end))^2,1);
+v       = zeros(size(u));
+s       = zeros(size(u));
+t       = 1;
+for Qi  = 1:Qn
     for Qj = 1:Qn
-        [wi,i,j] = ind2sub(SIZ,Qi);
-        [wj,u,v] = ind2sub(SIZ,Qj);
-        if wi == wj
-            Q(Qi,Qj) = csd(wi,i,u)*csd(wi,j,v);
+        if w(Qi) == w(Qj)
+            u(t) = Qi;
+            v(t) = Qj;
+            s(t) = csd(w(Qi),i(Qi),i(Qj))*csd(w(Qi),j(Qi),j(Qj));
+            t    = t + 1;
         end
     end
 end
-Q      = inv(Q + norm(Q,1)*speye(size(Q))/32);
+Q       = sparse(u,v,s,Qn,Qn);
+Q       = inv(Q + norm(Q,1)*speye(size(Q))/32);
