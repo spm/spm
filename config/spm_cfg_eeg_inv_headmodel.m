@@ -4,7 +4,7 @@ function headmodel = spm_cfg_eeg_inv_headmodel
 % Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 7169 2017-09-19 10:42:27Z vladimir $
+% $Id: spm_cfg_eeg_inv_headmodel.m 7281 2018-03-23 13:03:52Z vladimir $
 
 
 D = cfg_files;
@@ -173,10 +173,10 @@ coregdefault.val  = {1};
 
 fidjson = cfg_files;
 fidjson.tag = 'fidjson';
-fidjson.name = 'BIDS json file';
-fidjson.filter = '.*_fid.json$';
+fidjson.name = 'MRI BIDS json file';
+fidjson.filter = '.*.json$';
 fidjson.num = [1 1];
-fidjson.help = {'Select BIDS json file with fiducials.'};
+fidjson.help = {'Select MRI BIDS json file with fiducials.'};
 
 coregbids      = cfg_branch;
 coregbids.tag  = 'coregbids';
@@ -305,13 +305,14 @@ for i = 1:numel(job.D)
     elseif isfield(job.coregistration, 'coregbids')
         meegfid = D.fiducials;
         
-        fidbids   = spm_jsonread(char(job.coregistration.coregbids.fidjson));
+        fidbids   = spm_jsonread(char(job.coregistration.coregbids.fidjson));                
         
-        if ~(isa(sMRI, 'char') && isequal(spm_file(sMRI, 'basename'), spm_file(fidbids.IntendedFor, 'basename')))
-            warning('The BIDS fiducials might be intended for a different structural image than used here.');
+        if ~(strcmpi(fidbids.AnatomicalMRICoordinateSystem, 'NIfTI') && ...
+                strcmpi(fidbids.AnatomicalMRICoordinateUnits, 'voxels'))
+            error('Only NIfTI coordinate system in voxels is supported at the moment.');
         end
         
-        fidlabel  = fieldnames(fidbids.CoilCoordinates);
+        fidlabel  = fieldnames(fidbids.AnatomicalLandmarkCoordinates);
         selection = spm_match_str(meegfid.fid.label, fidlabel);
         meegfid.fid.pnt = meegfid.fid.pnt(selection, :);
         meegfid.fid.label = meegfid.fid.label(selection);
@@ -321,9 +322,16 @@ for i = 1:numel(job.D)
         mrifid.fid.pnt = [];
         mrifid.fid.label = fidlabel;
         
+        
+        pnt = [];
         for j = 1:numel(fidlabel)
-            mrifid.fid.pnt(j, :)   = reshape(fidbids.CoilCoordinates.(fidlabel{j}), 1, 3);
+            pnt(j, :)   = reshape(fidbids.AnatomicalLandmarkCoordinates.(fidlabel{j}), 1, 3);
         end
+        
+        M = getfield(nifti(D.inv{val}.mesh.sMRI), 'mat');
+        
+        % In the convention used in BIDS the voxel indices start at 0
+        mrifid.fid.pnt = spm_eeg_inv_transform_points(M, pnt+1);           
        
         D = spm_eeg_inv_datareg_ui(D, D.val, meegfid, mrifid, job.coregistration.coregbids.useheadshape);
     else
