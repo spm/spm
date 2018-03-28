@@ -114,7 +114,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7273 2018-03-04 13:15:34Z karl $
+% $Id: spm_MDP_VB_X.m 7283 2018-03-28 13:23:49Z thomas $
 
 
 % deal with a sequence of trials
@@ -600,7 +600,7 @@ for t = 1:T
                             if j < 2, v = v - qx + spm_log(D{f});                                    end
                             if j > 1, v = v - qx + spm_log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
                             if j < S, v = v - qx + spm_log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
-                            
+                            if j < S && j > 1, v = v + qx; end
                             % (negative) expected free energy
                             %----------------------------------------------
                             F(k) = F(k) + sx'*v/Nf;
@@ -741,7 +741,7 @@ for t = 1:T
         %------------------------------------------------------------------
         if isfield(MDP,'factor')
             
-            for f = MDP.factor
+            for f = MDP.factor(:)'
                 qx   = X{f}(:,1);
                 H(f) = qx'*spm_log(qx);
             end
@@ -854,25 +854,29 @@ end
 
 % (negative) free energy of parameters (i.e., complexity)
 %--------------------------------------------------------------
-if isfield(MDP,'a')
-    da        = MDP.a{f} - pA{f};
-    MDP.Fa(g) = sum(spm_vec(spm_betaln(MDP.a{g}))) - ...
-                sum(spm_vec(spm_betaln(pA{g})))    - ...
-                spm_vec(da)'*spm_vec(qA{g});
+for g = 1:Ng
+    if isfield(MDP,'a')
+        da        = MDP.a{g} - pA{g};
+        MDP.Fa(g) = sum(spm_vec(spm_betaln(MDP.a{g}))) - ...
+            sum(spm_vec(spm_betaln(pA{g})))    - ...
+            spm_vec(da)'*spm_vec(qA{g});
+    end
 end
 
-if isfield(MDP,'b')
-    db        = MDP.b{f} - pB{f};
-    MDP.Fb(f) = sum(spm_vec(spm_betaln(MDP.b{f}))) - ...
-                sum(spm_vec(spm_betaln(pB{f})))    - ...
-                spm_vec(db)'*spm_vec(qB{f});
-end
-
-if isfield(MDP,'d')
-    dd        = MDP.d{f} - pD{f};
-    MDP.Fd(f) = sum(spm_vec(spm_betaln(MDP.d{f}))) - ...
-                sum(spm_vec(spm_betaln(pD{f})))    - ...
-                spm_vec(dd)'*spm_vec(qD{f});
+for f = 1:Nf
+    if isfield(MDP,'b')
+        db        = MDP.b{f} - pB{f};
+        MDP.Fb(f) = sum(spm_vec(spm_betaln(MDP.b{f}))) - ...
+            sum(spm_vec(spm_betaln(pB{f})))    - ...
+            spm_vec(db)'*spm_vec(qB{f});
+    end
+    
+    if isfield(MDP,'d')
+        dd        = MDP.d{f} - pD{f};
+        MDP.Fd(f) = sum(spm_vec(spm_betaln(MDP.d{f}))) - ...
+            sum(spm_vec(spm_betaln(pD{f})))    - ...
+            spm_vec(dd)'*spm_vec(qD{f});
+    end
 end
 
 % simulated dopamine (or cholinergic) responses
@@ -901,7 +905,7 @@ end
 %--------------------------------------------------------------------------
 if isfield(MDP,'U')
     u(:,T)  = [];
-    un(:,(end - Ni + 1):end) = [];
+    try un(:,(end - Ni + 1):end) = []; catch, end
 end
 
 % assemble results and place in NDP structure
