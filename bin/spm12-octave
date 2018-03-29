@@ -6,7 +6,7 @@
 # Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: spm12-octave 7053 2017-04-03 11:04:13Z guillaume $ 
+# $Id: spm12-octave 7284 2018-03-29 09:42:26Z guillaume $ 
 
 
 spm_dir = getenv ("SPM_HOME");
@@ -37,5 +37,7 @@ end
 
 spm_standalone (argv (){:});
 
-H = get (0, "CurrentFigure");
-if ! (isempty (H)), waitfor (H); endif
+while (! isempty (get (0, "CurrentFigure")))
+  waitfor (get (0, "CurrentFigure"));
+endwhile
+exit (0);
