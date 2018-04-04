@@ -99,6 +99,13 @@ function varargout = spm_diffeo(varargin)
 % F   - The differential operator encoded as an image (or images).
 %       Convolving a velocity field by this will give the momentum.
 %
+%       Note that a smaller (3D) kernel is obtained when the linear
+%       elasticity settings are all zero.  If any of the linear
+%       elasticity settings are non-zero, the resulting kernel is
+%       represented by a 5D array. For the 3D form, the voxel sizes
+%       need to be incorporated as an additional scaling of the kernel.
+%       See the code in spm_shoot_greens.m for an illustration.
+%
 %_______________________________________________________________________
 %
 % FORMAT y3 = spm_diffeo('comp',y1,y2)
@@ -411,7 +418,7 @@ function varargout = spm_diffeo(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_diffeo.m 6799 2016-05-20 16:50:25Z john $
+% $Id: spm_diffeo.m 7286 2018-04-04 11:24:36Z john $
 
 
 %-This is merely the help file for the compiled routine
