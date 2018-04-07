@@ -8,9 +8,9 @@ function [f,J,Q] = spm_fx_gen(x,u,P,M)
 % P  - model parameters
 % M  - model structure
 %
-% This routine compiles equations of motion is for multiple nodes or neural
+% This routine compiles equations of motion for multiple nodes or neural
 % masses in the cell array of hidden states. To include a new sort of node,
-% it is necessary to updatethe following routines:
+% it is necessary to update the following routines:
 % 
 % spm_dcm_neural_priors: to specify the intrinsic parameters of a new model
 % spm_dcm_x_neural:      to specify its initial states
@@ -20,7 +20,7 @@ function [f,J,Q] = spm_fx_gen(x,u,P,M)
 % This routine deal separately with the coupling between nodes (that depend
 % upon extrinsic connectivity, sigmoid activation functions and delays -
 % and coupling within nodes (that calls on the model specific equations of
-% motion.
+% motion).
 %
 % In generic schemes one can mix and match different types of sources;
 % furthermore, they can have different condition-specific modulation of
@@ -40,7 +40,7 @@ function [f,J,Q] = spm_fx_gen(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_gen.m 7279 2018-03-10 21:22:44Z karl $
+% $Id: spm_fx_gen.m 7288 2018-04-07 13:18:54Z karl $
  
  
 % model-specific parameters

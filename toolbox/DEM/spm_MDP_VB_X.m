@@ -114,7 +114,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7283 2018-03-28 13:23:49Z thomas $
+% $Id: spm_MDP_VB_X.m 7288 2018-04-07 13:18:54Z karl $
 
 
 % deal with a sequence of trials
@@ -600,7 +600,7 @@ for t = 1:T
                             if j < 2, v = v - qx + spm_log(D{f});                                    end
                             if j > 1, v = v - qx + spm_log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
                             if j < S, v = v - qx + spm_log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
-                            if j < S && j > 1, v = v + qx; end
+                        
                             % (negative) expected free energy
                             %----------------------------------------------
                             F(k) = F(k) + sx'*v/Nf;
@@ -858,8 +858,8 @@ for g = 1:Ng
     if isfield(MDP,'a')
         da        = MDP.a{g} - pA{g};
         MDP.Fa(g) = sum(spm_vec(spm_betaln(MDP.a{g}))) - ...
-            sum(spm_vec(spm_betaln(pA{g})))    - ...
-            spm_vec(da)'*spm_vec(qA{g});
+                    sum(spm_vec(spm_betaln(pA{g})))    - ...
+                    spm_vec(da)'*spm_vec(qA{g});
     end
 end
 
@@ -867,15 +867,14 @@ for f = 1:Nf
     if isfield(MDP,'b')
         db        = MDP.b{f} - pB{f};
         MDP.Fb(f) = sum(spm_vec(spm_betaln(MDP.b{f}))) - ...
-            sum(spm_vec(spm_betaln(pB{f})))    - ...
-            spm_vec(db)'*spm_vec(qB{f});
+                    sum(spm_vec(spm_betaln(pB{f})))    - ...
+                    spm_vec(db)'*spm_vec(qB{f});
     end
-    
     if isfield(MDP,'d')
         dd        = MDP.d{f} - pD{f};
         MDP.Fd(f) = sum(spm_vec(spm_betaln(MDP.d{f}))) - ...
-            sum(spm_vec(spm_betaln(pD{f})))    - ...
-            spm_vec(dd)'*spm_vec(qD{f});
+                    sum(spm_vec(spm_betaln(pD{f})))    - ...
+                    spm_vec(dd)'*spm_vec(qD{f});
     end
 end
 
