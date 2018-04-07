@@ -55,7 +55,7 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_PEB.m 7287 2018-04-07 13:15:09Z karl $
 
 % set default
 %--------------------------------------------------------------------------
@@ -298,7 +298,7 @@ for k = 1:M
     %======================================================================
     w     = norm(dh,1);
     
-    fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(w));
+    fprintf('%-30s: %i %30s%e\n','  PEB Iteration',k,'...',full(dFdh'*dh));
     
     % if dF < 0.01
     %----------------------------------------------------------------------

@@ -84,13 +84,13 @@ function [Ep] = spm_nlsi_AI(M,Y,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7282 2018-03-25 12:39:27Z karl $
+% $Id: spm_nlsi_AI.m 7287 2018-04-07 13:15:09Z karl $
  
 
 % setup and initialise
 %==========================================================================
 GRAPH = 1;
-n     = 3;
+n     = 4;
 
 
 % sufficient statistics of model (P) and functional parameters (B)
@@ -103,7 +103,7 @@ Cp.h  = M.hC;
 % priors and posteriors of vectorised model parameters
 %--------------------------------------------------------------------------
 EP    = spm_vec(Ep);
-CP    = diag(spm_vec(Cp));
+CP    = spm_cat(spm_diag({Cp.p,Cp.h}));
 
 % initial functional parameters
 %--------------------------------------------------------------------------
@@ -111,54 +111,64 @@ np    = spm_length(EP);
 d     = {1};
 for i = 1:n   
    bE{i} = zeros(d{:});
-   bC{i} = eye(spm_length(bE{i}))*norm(CP,1);
+   bC{i} = eye(spm_length(bE{i}));
    d     = [{np} d];
 end
 
 % functional priors
 %--------------------------------------------------------------------------
 PP    = spm_inv(CP);
-bE{2} = -PP*EP;
-bE{3} = PP;
+bE{1} = zeros(1,1);
+bE{2} = zeros(np,1);
+bE{3} = speye(np,np);
+bC{1} = exp(16);
+bC{2} = speye(np,np)*2;
+bC{3} = diag(spm_vec(speye(np,np)) + 1)*2;
 
 % priors and posteriors of vectorised functional parameters
 %--------------------------------------------------------------------------
 BE    = spm_vec(bE);
 BC    = spm_cat(spm_diag(bC));
-iBC   = spm_inv(BC);
 EB    = BE;
 CB    = BC;
+eB    = bE;
 
 % amplitude of higher order terms and expected free energy functional
 %--------------------------------------------------------------------------
-spm_Q = @(p,p0,P) (p - p0)'*P*(p - p0)/2 + exp(-8);
-spm_E = @(G,EB,CP,Q) G'*EB + log(Q)/2 - log(G'*CB*G + Q)/2;
+spm_Q = @(p) p'*p + exp(-4);
+spm_E = @(G,CB,Q) log(Q)/2 - log(G'*CB*G + Q)/2;
+spm_F = @(p,b,W) spm_G(p,numel(b))'*spm_vec(b) - spm_logdet(W'*spm_H(p,b)*W)/2;
+
 
 % sample
 %--------------------------------------------------------------------------
-nc    = 128;                                 % number of samples
-for i = 1:32
+nc    = 1024;                                 % number of samples
+h     = 1;
+TL    = - M.L(spm_unvec(EP,Ep),Y,M);
+for i = 1:64
     
     % get candidate sample from model posterior
     %======================================================================
     
     % sample points
     %----------------------------------------------------------------------
+    W     = spm_sqrtm(PP);
+    U     = spm_inv(W);
     for j = 1:nc
-        pj(:,j) = EP + spm_sqrtm(CP)*randn(np,1);
+        q(:,j) = rand(np,1) - 1/2;
     end
     
     % expected free energy E (with distance from current sample Q)
     %----------------------------------------------------------------------
     for j = 1:nc
-        q(j) = spm_Q(pj(:,j),EP,PP);
-        E(j) = spm_E(spm_G(pj(:,j),n),EB,CB,q(j));
+        F(i) = spm_F(q(:,j),eB,W);
+        E(j) = spm_E(spm_G(q(:,j),n),CB,h*spm_Q(q(:,j)));
     end
     
     % select and evaluate sample
     %----------------------------------------------------------------------
     [E,j]  = min(E);
-    p(:,i) = pj(:,j);
+    p(:,i) = EP + U*q(:,j);    
     L(i,1) = - M.L(spm_unvec(p(:,i),Ep),Y,M);
     
     % invert functional model
@@ -167,40 +177,143 @@ for i = 1:32
     % variance component (higher order terms)
     %----------------------------------------------------------------------
     for j = 1:i
-        Q(j,j) = spm_Q(p(:,j),EP,PP);
-        X(:,j) = spm_G(p(:,j),n);
-    end
+        qj     = W*(p(:,j) - EP);
+        Q(j,j) = spm_Q(qj);
+        X(:,j) = spm_G(qj,n);
+    end   
     
     % parametric empirical Bayes
     %----------------------------------------------------------------------
-    iQ   = spm_inv(Q);
-    CB   = spm_inv(X*iQ*X' + iBC);
-    EB   = CB*(X*iQ*L + iBC*BE);
+    P{1}.X = X';
+    P{2}.X = BE;
+    P{1}.C = {Q};
+    P{2}.C = BC;
+    
+    C     = spm_PEB(L,P);
+    EB    = C{2}.E;
+    CB    = C{2}.C;
+    h     = C{1}.h
+    eB    = spm_unvec(EB,bE);
     
     % model parameters
     %----------------------------------------------------------------------
-    eB   = spm_unvec(EB,bE);    
-    PP   = eB{3};
-    CP   = spm_inv(PP);
-    EP   = -CP*eB{2};
+    H     = spm_H(EP,eB);
+    PP    = W'*spm_sqrtm(H'*H)*W;
+    CP    = spm_inv(PP);
+    EP    = EP - U*eB{2};
+    EP    = q*spm_softmax(-F(:));
+%     tL    = - M.L(spm_unvec(TP,Ep),Y,M);
+%     if tL < TL
+%         EP = TP;
+%         TL = tL;
+%     end
+
+    % ensure predicted location is better than the current sampling
+    %----------------------------------------------------------------------
+%     if L(i,1) < TL
+%         EP = p(:,i);
+%         TL = L(i,1);
+%     end
     
     
     % evaluate (positive) free energy and convergence
     %----------------------------------------------------------------------
-    F(i) = spm_logdet(CP)/2 - M.L(spm_unvec(EP,Ep),Y,M)
+    FE(i) = spm_logdet(CP)/2 - M.L(spm_unvec(EP,Ep),Y,M);
     
     % graphics if requested
     %======================================================================
     if GRAPH
         
+        % get range of selected parameter space
+        %------------------------------------------------------------------
+        s     = 3;
+        r     = 64;
+        j     = 1;
+        x     = linspace((EP(j) - s*sqrt(CP(j,j))),(EP(j) + s*sqrt(CP(j,j))),r);
+        jE(i) = EP(j);
+        jC(i) = CP(j,j);
         
+        % true energy
+        %------------------------------------------------------------------
+        for k = 1:r
+            kp    = EP;
+            kp(j) = x(k);
+            pk    = W*(kp - EP);
+            G     = spm_G(pk,n);
+            Q     = spm_Q(pk)*h;
+            kL(k) = -M.L(spm_unvec(kp,Ep),Y,M);
+            kF(k) = spm_E(G,CB,Q);
+            kE(k) = G'*EB;
+            kC(k) = G'*CB*G + Q;
+        end
+        kE        = kE - min(kL);
+        kL        = kL - min(kL);
+        
+        % plot
+        %------------------------------------------------------------------
+        spm_figure('GetWin','AI (convergence)'); clf
+        subplot(2,2,1)
+        spm_plot_ci(kE,kC,x), hold on
+        plot(x,kL,'r',p(j,:),zeros(1,i),'.g','MarkerSize',8), hold off
+        set(gca,'YLim',[-8 64]),axis square
+        
+        subplot(2,2,2)
+        plot(x,spm_softmax(-kL(:)),'r'), hold on
+        plot(x,spm_softmax(-kE(:)),'b'), hold on
+        plot(x,spm_softmax(-kF(:)),'g'), hold off
+        axis square
+        
+        subplot(2,2,3)
+        spm_plot_ci(jE(:),jC(:),1:i)
+        axis square
+        
+        subplot(2,2,4)
+        plot(L,X'*EB,'o',L,L,':')
+        axis square
+        
+        disp(full(eB{3}))
+        disp(full(eB{2}))
+
         
     end
         
 end
 
-subplot(2,2,1), plot(F), axis square
-subplot(2,2,2), plot(1:i,L,1:i,X'*EB), axis square
+if GRAPH
+    
+    % get range of selected parameter space
+    %------------------------------------------------------------------
+    i     = 1;
+    j     = np;
+    xi    = linspace((EP(i) - s*sqrt(CP(i,i))),(EP(i) + s*sqrt(CP(i,i))),r);
+    xj    = linspace((EP(j) - s*sqrt(CP(j,j))),(EP(j) + s*sqrt(CP(j,j))),r);
+
+    
+    % true energy
+    %------------------------------------------------------------------
+    for u = 1:r
+        for v = 1:r
+            kp      = EP;
+            kp(i)   = xi(u);
+            kp(j)   = xj(v);
+            kL(u,v) = -M.L(spm_unvec(kp,Ep),Y,M);
+            kE(u,v) = spm_G(W*(kp - EP),n)'*EB;
+        end
+    end
+    sL    = reshape(spm_softmax(-kL(:)),r,r);
+    sE    = reshape(spm_softmax(-kE(:)),r,r);
+    
+    % plot
+    %------------------------------------------------------------------
+    spm_figure('GetWin','AI (bivariate)'); clf
+    subplot(2,2,1), imagesc(xj,xi,kL), title('Energy'),    axis square
+    subplot(2,2,2), imagesc(xj,xi,kE), title('Estimate'),  axis square
+    subplot(2,2,3), imagesc(xj,xi,sL), title('Posterior'), axis square
+    subplot(2,2,4), imagesc(xj,xi,sE), title('Estimate'),  axis square
+    
+    
+    
+end
 
 return
 
@@ -217,42 +330,51 @@ function G  = spm_G(p,n)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7282 2018-03-25 12:39:27Z karl $
+% $Id: spm_nlsi_AI.m 7287 2018-04-07 13:15:09Z karl $
 %--------------------------------------------------------------------------
 G{1}  = 1;
 for i = 2:n
-    G{i} = spm_cross(G{i - 1},p);
+    G{i} = spm_cross(G{i - 1},p)/factorial(i - 1);
 end
 G     = spm_vec(G);
 
 return
 
-function Q  = spm_C_dot_C(C)
-% C_dot_C
-% FORMAT Q  = spm_C_dot_C(C)
+% auxiliary functions
+%==========================================================================
+function H  = spm_H(p,B)
+% Hessian of expansion
+% FORMAT H  = spm_H(p,b)
 % 
-% C   - matrix
-% Q   - C dot C
-%--------------------------------------------------------------------------
-%  Camba-Mendez, G., & Kapetanios, G. (2005). Estimating the Rank of the
-%  Spectral Density Matrix. Journal of Time Series Analysis, 26(1), 37-48.
-%  doi: 10.1111/j.1467-9892.2005.00389.x
+% p   - parameter vector
+% b   - functional parameters (cell)
 %__________________________________________________________________________
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7282 2018-03-25 12:39:27Z karl $
+% $Id: spm_nlsi_AI.m 7287 2018-04-07 13:15:09Z karl $
 %--------------------------------------------------------------------------
-SIZ = size(C);
-Qn  = spm_length(C);
-Q   = zeros(Qn,Qn);
-for Qi = 1:Qn
-    for Qj = 1:Qn
-        [i,j]    = ind2sub(SIZ,Qi);
-        [u,v]    = ind2sub(SIZ,Qj);
-        Q(Qi,Qj) = C(i,u)*C(j,v);
-    end
+H     = B{3};
+x     = {p};
+for i = 4:numel(B)
+    H = H + spm_dot(B{i},x)/factorial(i - 3);
+    x = [x{:},{p}];
 end
+
+return
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
