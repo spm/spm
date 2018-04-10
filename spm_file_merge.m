@@ -1,4 +1,4 @@
-function V4 = spm_file_merge(V,fname,dt)
+function V4 = spm_file_merge(V,fname,dt,RT)
 % Concatenate 3D volumes into a single 4D volume
 % FUNCTION V4 = spm_file_merge(V,fname,dt)
 % V      - images to concatenate (char array or spm_vol struct)
@@ -6,6 +6,7 @@ function V4 = spm_file_merge(V,fname,dt)
 %          Unless explicit, output folder is the one containing first image
 % dt     - datatype (see spm_type) [defaults: 0]
 %          0 means same datatype than first input volume
+% RT     - Interscan interval {seconds} [defaults: NaN]
 %
 % V4     - spm_vol struct of the 4D volume
 %__________________________________________________________________________
@@ -14,10 +15,10 @@ function V4 = spm_file_merge(V,fname,dt)
 % the range of admissible values. This may lead to quantization error
 % differences between the input and output images values.
 %__________________________________________________________________________
-% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_file_merge.m 5040 2012-11-07 12:36:23Z guillaume $
+% $Id: spm_file_merge.m 7290 2018-04-10 16:43:01Z guillaume $
 
 %-Input: V
 %--------------------------------------------------------------------------
@@ -53,6 +54,16 @@ if nargin < 3
 end
 if dt == 0
     dt = V(1).dt(1);
+end
+
+%-Input: RT
+%--------------------------------------------------------------------------
+if nargin < 4
+    RT = NaN;
+end
+if isnan(RT) && ...
+   isfield(V(1).private,'timing') && isfield(V(1).private.timing,'tspace')
+     RT = V(1).private.timing.tspace;
 end
 
 %-Set scalefactors and offsets
@@ -123,6 +134,9 @@ ni.dat     = file_array(fname,...
 ni.mat     = N(1).mat;
 ni.mat0    = N(1).mat;
 ni.descrip = '4D image';
+if ~isnan(RT)
+    ni.timing = struct('toffset',0, 'tspace',RT);
+end
 
 create(ni);
 spm_progress_bar('Init',size(ni.dat,4),'Saving 4D image','Volumes Complete');

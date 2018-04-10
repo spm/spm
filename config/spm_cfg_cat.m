@@ -1,10 +1,10 @@
 function cat = spm_cfg_cat
 % SPM Configuration file for 3D to 4D volumes conversion
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_cat.m 6918 2016-11-02 14:33:11Z guillaume $
+% $Id: spm_cfg_cat.m 7290 2018-04-10 16:43:01Z guillaume $
 
 %--------------------------------------------------------------------------
 % vols 3D Volumes
@@ -47,12 +47,24 @@ name.num     = [1 Inf];
 name.val     = {'4D.nii'};
 
 %--------------------------------------------------------------------------
+% RT Interscan interval
+%--------------------------------------------------------------------------
+RT         = cfg_entry;
+RT.tag     = 'RT';
+RT.name    = 'Interscan interval';
+RT.help    = {'Interscan interval, TR, (specified in seconds).'
+    'This is the time between acquiring a plane of one volume and the same plane in the next volume. It is assumed to be constant throughout.'};
+RT.strtype = 'r';
+RT.num     = [1 1];
+RT.val     = {NaN};
+
+%--------------------------------------------------------------------------
 % cat 3D to 4D File Conversion
 %--------------------------------------------------------------------------
 cat      = cfg_exbranch;
 cat.tag  = 'cat';
 cat.name = '3D to 4D File Conversion';
-cat.val  = {vols name dtype};
+cat.val  = {vols name dtype RT};
 cat.help = {'Concatenate a number of 3D volumes into a single 4D file.'};
 cat.prog = @(job)spm_run_cat('run',job);
 cat.vout = @(job)spm_run_cat('vout',job);
@@ -66,7 +78,8 @@ switch lower(cmd)
         V                 = char(job.vols{:});
         dt                = job.dtype;
         fname             = job.name;
-        V4                = spm_file_merge(V,fname,dt);
+        RT                = job.RT;
+        V4                = spm_file_merge(V,fname,dt,RT);
         out.mergedfile    = {V4(1).fname};
         
     case 'vout'
