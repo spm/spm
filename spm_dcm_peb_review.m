@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 7277 2018-03-09 10:03:57Z peter $
+% $Id: spm_dcm_peb_review.m 7292 2018-04-12 10:24:55Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -217,6 +217,11 @@ if display_threshold
         Ep = Ep .* (Pp(:) > threshold);
         Cp = Cp .* (Pp(:) > threshold);
     end
+    
+    % Warn if Pp couldn't be calculated 
+    if xPEB.threshold_method_idx == 2 && isempty(Pp)
+        warn_no_pp = true;
+    end    
 else
     xPEB.Pp = [];
 end
@@ -417,6 +422,13 @@ elseif view <= (nc+1)
     set(gca,'Tag','parameters');
     xlabel('Parameter','FontSize',12); ylabel('Posterior','FontSize',12);
     title('Estimated Parameters','FontSize',16);
+    
+    if exist('warn_no_pp','var')
+        minmax = ylim();
+        text(0.5,minmax(2)-0.01,...
+            'Threshold only available for commonalities and first group difference. Showing all effects.',...
+            'Color','r');
+    end
     
     % Plot connectivity matrix
     if display_connectivity
