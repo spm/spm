@@ -116,7 +116,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7293 2018-04-16 15:22:15Z thomas $
+% $Id: spm_MDP_VB_X.m 7294 2018-04-16 15:48:57Z thomas $
 
 
 % deal with a sequence of trials
@@ -341,7 +341,10 @@ end
 % prior preferences (log probabilities) : C
 %--------------------------------------------------------------------------
 for g = 1:Ng
-    if isfield(MDP,'C')
+    if isfield(MDP,'c')
+        Vo{g} = spm_psi(MDP.c{g} + 1/16);
+        pC{g} = MDP.c{g};
+    elseif isfield(MDP,'C')
         Vo{g} = MDP.C{g};
     else
         Vo{g} = zeros(No(g),1);
@@ -856,6 +859,20 @@ for t = 1:T
         end
     end
     
+    % accumulation of prior preferences: (c)
+    %----------------------------------------------------------------------
+    if isfield(MDP,'c')
+        for g = 1:Ng
+            dc = sparse(o(g,t),1,1,No(g),1);
+            if size(MDP.c{g},2)>1
+                dc = dc.*(MDP.c{g}(:,t)>0);
+                MDP.c{g}(:,t) = MDP.c{g}(:,t) + dc*eta;
+            else
+                dc = dc.*(MDP.c{g}>0);
+                MDP.c{g} = MDP.c{g} + dc*eta;
+            end
+        end
+    end
 end
 
 % initial hidden states:
@@ -882,6 +899,13 @@ for g = 1:Ng
                     sum(spm_vec(spm_betaln(pA{g})))    - ...
                     spm_vec(da)'*spm_vec(qA{g});
     end
+    
+    if isfield(MDP,'c')
+        dc        = MDP.c{g} - pC{g};
+        MDP.Fc(g) = sum(spm_vec(spm_betaln(MDP.c{g}))) - ...
+                    sum(spm_vec(spm_betaln(pC{g})))    - ...
+                    spm_vec(dc)'*spm_vec(Vo{g});
+    end
 end
 
 for f = 1:Nf
@@ -897,7 +921,7 @@ for f = 1:Nf
                     sum(spm_vec(spm_betaln(pD{f})))    - ...
                     spm_vec(dd)'*spm_vec(qD{f});
     end
-end
+end    
 
 if isfield(MDP,'e')
     de     = MDP.e - pE;
