@@ -15,7 +15,9 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %
 % MDP.a{G}              - concentration parameters for A
 % MDP.b{F}              - concentration parameters for B
+% MDP.c{G}              - concentration parameters for C
 % MDP.d{F}              - concentration parameters for D
+% MDP.e                 - concentration parameters for E
 %
 % optional:
 % MDP.s(F,T)            - vector of true states - for each hidden factor
@@ -114,7 +116,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7288 2018-04-07 13:18:54Z karl $
+% $Id: spm_MDP_VB_X.m 7293 2018-04-16 15:22:15Z thomas $
 
 
 % deal with a sequence of trials
@@ -139,6 +141,8 @@ if length(MDP) > 1
             try,  MDP(i).a = OUT(i - 1).a; end
             try,  MDP(i).b = OUT(i - 1).b; end
             try,  MDP(i).d = OUT(i - 1).d; end
+            try,  MDP(i).c = OUT(i - 1).c; end
+            try,  MDP(i).e = OUT(i - 1).e; end
         end
         
         % solve this trial
@@ -315,12 +319,23 @@ end
 
 % priors over policies - concentration parameters
 %--------------------------------------------------------------------------
-if isfield(MDP,'E')
+if isfield(MDP,'e')
+    E = spm_norm(MDP.e);
+elseif isfield(MDP,'E')
     E = spm_norm(MDP.E);
 else
     E = spm_norm(ones(Np,1));
 end
-qE    = spm_log(E);
+
+% (polygamma) function for complexity
+%------------------------------------------------------------------
+if isfield(MDP,'e')
+    qE = spm_psi(MDP.e + 1/16);
+    pE = MDP.e;
+else
+    qE    = spm_log(E);
+end
+
 
 
 % prior preferences (log probabilities) : C
@@ -852,6 +867,12 @@ if isfield(MDP,'d')
     end
 end
 
+% policies
+%--------------------------------------------------------------------------
+if isfield(MDP,'e')
+    MDP.e = MDP.e + u(:,T);
+end
+
 % (negative) free energy of parameters (i.e., complexity)
 %--------------------------------------------------------------
 for g = 1:Ng
@@ -876,6 +897,13 @@ for f = 1:Nf
                     sum(spm_vec(spm_betaln(pD{f})))    - ...
                     spm_vec(dd)'*spm_vec(qD{f});
     end
+end
+
+if isfield(MDP,'e')
+    de     = MDP.e - pE;
+    MDP.Fe = sum(spm_vec(spm_betaln(MDP.e))) - ...
+             sum(spm_vec(spm_betaln(pE)))    - ...
+             spm_vec(de)'*spm_vec(qE);
 end
 
 % simulated dopamine (or cholinergic) responses
