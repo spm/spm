@@ -50,10 +50,10 @@ function varargout=spm(varargin)
 % FORMAT & help in the main body of spm.m
 %
 %_______________________________________________________________________
-% Copyright (C) 1991,1994-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 7134 2017-07-18 09:46:25Z guillaume $
+% $Id: spm.m 7295 2018-04-18 10:32:20Z guillaume $
 
 
 %=======================================================================
@@ -501,8 +501,14 @@ if nargin<2, Vis='on'; else Vis=varargin{2}; end
 
 %-Close any existing 'Menu' 'Tag'ged windows
 %-----------------------------------------------------------------------
-delete(spm_figure('FindWin','Menu'))
-Fmenu = openfig(fullfile(spm('Dir'),'spm_Menu.fig'),'new','invisible');
+delete(spm_figure('FindWin','Menu'));
+if ~isempty(which('openfig'))
+    Fmenu = openfig(fullfile(spm('Dir'),'spm_Menu.fig'),'new','invisible');
+else
+    fprintf('\nFunction openfig.m is missing. Download it from:\n');
+    fprintf(' https://savannah.gnu.org/bugs/download.php?file_id=33499\n');
+    Fmenu = [];
+end
 set(Fmenu,'name',[spm('Version') ': Menu']);
 S0 = spm('WinSize','0',1);
 SM = spm('WinSize','M');
