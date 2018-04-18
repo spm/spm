@@ -16,10 +16,10 @@ function spm_dcm_review(DCM,action)
 %          'estimates of precisions'
 %          ['   hidden states: ' DCM.Y.name{i}]
 %__________________________________________________________________________
-% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 6931 2016-11-16 12:09:58Z karl $
+% $Id: spm_dcm_review.m 7296 2018-04-18 10:36:49Z guillaume $
 
 
 %-Get DCM structure
@@ -137,7 +137,6 @@ end
 %--------------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
 spm_figure('Clear',Fgraph);
-set(Fgraph,'Renderer','zbuffer')
 
 switch action
 

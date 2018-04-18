@@ -20,10 +20,10 @@ function spm_defaults
 %
 %                 ** This file should not be edited **
 %__________________________________________________________________________
-% Copyright (C) 1994-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 7173 2017-09-22 11:26:31Z guillaume $
+% $Id: spm_defaults.m 7296 2018-04-18 10:36:49Z guillaume $
 
 
 global defaults
@@ -38,7 +38,7 @@ defaults.ui.monitor = NaN;
 defaults.ui.colour  = [0.58 0.77 0.57];
 defaults.ui.fs      = 14;  % unused
 defaults.ui.print   = 'ps';
-defaults.renderer   = 'zbuffer';
+defaults.renderer   = 'opengl';
 
 % File format specific
 %==========================================================================

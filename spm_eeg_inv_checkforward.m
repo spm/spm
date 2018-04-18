@@ -2,10 +2,10 @@ function spm_eeg_inv_checkforward(varargin)
 % Check M/EEG forward model
 % FORMAT spm_eeg_inv_checkforward(D, val, ind)
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_checkforward.m 7169 2017-09-19 10:42:27Z vladimir $
+% $Id: spm_eeg_inv_checkforward.m 7296 2018-04-18 10:36:49Z guillaume $
 
 
 %-SPM data structure
@@ -39,13 +39,9 @@ end
 
 %-Display
 %--------------------------------------------------------------------------
-Fgraph  = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
-
-if ismac
-    set(Fgraph,'renderer','zbuffer');
-else
-    set(Fgraph,'renderer','OpenGL');
-end
+Fgraph  = spm_figure('GetWin','Graphics');
+spm_figure('Focus',Fgraph);
+spm_figure('Clear',Fgraph);
 
 spm('Pointer', 'Watch');
 

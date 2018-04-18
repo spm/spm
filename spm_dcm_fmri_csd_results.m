@@ -17,10 +17,10 @@ function spm_dcm_fmri_csd_results(DCM,action,fig)
 %     'Location of regions'
 %     'Quit'
 %__________________________________________________________________________
-% Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_results.m 6673 2016-01-12 17:23:32Z guillaume $
+% $Id: spm_dcm_fmri_csd_results.m 7296 2018-04-18 10:36:49Z guillaume $
 
 
 %-Input arguments
@@ -64,7 +64,6 @@ else
     Fgraph = fig;
     spm_figure('Focus',Fgraph);
 end
-set(Fgraph,'Renderer','zbuffer');
 colormap(gray)
 if ~strcmpi(action,'Quit')
     spm_figure('Clear',Fgraph);

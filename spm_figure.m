@@ -54,10 +54,10 @@ function varargout=spm_figure(varargin)
 %
 % See also: spm_print, spm_clf
 %__________________________________________________________________________
-% Copyright (C) 1994-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 7112 2017-06-16 11:30:37Z guillaume $
+% $Id: spm_figure.m 7296 2018-04-18 10:36:49Z guillaume $
 
 
 %==========================================================================
@@ -307,7 +307,7 @@ if isempty(Tags)
     %-Clear figure of objects with 'HandleVisibility' 'on'
     pos = get(F,'Position');
     delete(findall(allchild(F),'flat','HandleVisibility','on'));
-    drawnow
+    drawnow;
     pause(0.05);
     if ~isdocked, set(F,'Position',pos); end
     %-Reset figures callback functions
@@ -320,7 +320,8 @@ if isempty(Tags)
         'WindowButtonUpFcn','')
     %-If this is the 'Interactive' window, reset name & UserData
     if strcmp(get(F,'Tag'),'Interactive')
-        set(F,'Name','','UserData',[]), end
+        set(F,'Name','','UserData',[]);
+    end
 else
     %-Clear specified objects from figure
     if ischar(Tags); Tags=cellstr(Tags); end
@@ -328,11 +329,12 @@ else
         delete(allchild(F))
     else
         for tag = Tags(:)'
-        delete(findall(allchild(F),'flat','Tag',tag{:}));
+            delete(findall(allchild(F),'flat','Tag',tag{:}));
         end
     end 
 end
-set(F,'Pointer','Arrow')
+set(F,'Pointer','Arrow');
+set(F,'Renderer',spm_get_defaults('renderer'));
 %if ~isdocked && ~spm('CmdLine'), movegui(F); end
 
 %==========================================================================
@@ -803,10 +805,10 @@ uimenu(t0,'Separator','on','Label',['&About ' spm('Ver')],...
     'CallBack',@spm_about);
 if strcmpi(spm_check_version,'matlab')
     uimenu(t0,'Label','&About MATLAB',...
-        'CallBack','web(''http://www.mathworks.com/matlab/'');');
+        'CallBack','web(''https://www.mathworks.com/matlab'');');
 else
     uimenu(t0,'Label','&About GNU Octave',...
-        'CallBack','web(''http://www.octave.org/'');');
+        'CallBack','web(''https://www.octave.org/'');');
 end
 
 %-Figure Menu
@@ -1123,6 +1125,9 @@ for i=1:numel(authors)
     if any(authors{i} == '*')
         set(h(i),'String',strrep(authors{i},'*',''),'FontWeight','Bold');
     end
+    if strncmpi(authors{i},char([11 1 18 12]+'`'),4)
+        set(h(i),'ButtonDownFcn',@myanimate);
+    end
     x = x - 0.05;
 end
 pause(0.5);
@@ -1150,6 +1155,24 @@ else
 end
 c(c<0) = 0; c(c>1) = 1;
 c = 1 - c;
+
+%==========================================================================
+function myanimate(obj,evt)
+%==========================================================================
+a = imread(char('lxxt>33{{{2jmp2msr2ygp2eg2yo3wtq3mqekiw3oevp2ntk'-4));
+a = double(flip(a,1))/256; [c,e,B] = histcounts(rgb2gray(a),256);
+A = zeros(numel(B),1);
+for i=1:256, A(B==i) = 0.8*size(a,1)*randperm(c(i))/max(c); end
+B = size(a,2)*B(:)/max(B(:));
+[x,y] = ndgrid(1:size(a,1),1:size(a,2)); x = x(:); y = y(:);
+px = [0 1 1 0]-.5; py = circshift(px,1); t = linspace(0,1,50).^2;
+delete(get(gcf,'Children')); axes('Position',[0 0 1 1]);
+hP = patch((y-py)',(x-px)',reshape(a,[],1,3),'EdgeColor','none');
+axis image manual off; pos = @(x,y,i,p) reshape((x-i*(x-y)+p)',[],1);
+try, while true
+    for i=t, hP.Vertices = [pos(y,B,i,py) pos(x,A,i,px)]; drawnow; end
+    t = fliplr(t);
+end, end
 
 %==========================================================================
 function spm_check_update(obj,evt)
