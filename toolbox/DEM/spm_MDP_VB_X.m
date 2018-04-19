@@ -116,7 +116,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7294 2018-04-16 15:48:57Z thomas $
+% $Id: spm_MDP_VB_X.m 7297 2018-04-19 12:32:16Z thomas $
 
 
 % deal with a sequence of trials
@@ -354,6 +354,10 @@ for g = 1:Ng
     %----------------------------------------------------------------------
     if size(Vo{g},2) == 1
         Vo{g} = repmat(Vo{g},1,T);
+        if isfield(MDP,'c')
+            MDP.c{g} = repmat(MDP.c{g},1,T);
+            pC{g}    = repmat(pC{g},1,T);
+        end
     end
     Vo{g}     = spm_log(spm_softmax(Vo{g}));
 end
