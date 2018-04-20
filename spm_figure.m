@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 7296 2018-04-18 10:36:49Z guillaume $
+% $Id: spm_figure.m 7298 2018-04-20 10:50:51Z guillaume $
 
 
 %==========================================================================
@@ -780,11 +780,12 @@ t0 = findall(allchild(F),'Flat','Label','&Help');
 if isempty(t0) || isdeployed, t0 = uimenu( F,'Label','&Help'); end
 set(t0,'Callback',''); set(t0,'Tag','');
 if ~isempty(allchild(t0)), delete(allchild(t0)); end
+if strcmpi(spm_check_version,'octave'), pause(0.01); end % bug #49734
 pos = get(t0,'Position');
 uimenu(t0,'Label','SPM Help','CallBack','spm_help');
 uimenu(t0,'Label','SPM Manual (PDF)',...
     'CallBack','try,open(fullfile(spm(''dir''),''man'',''manual.pdf''));end');
-t1=uimenu(t0,'Label','SPM &Web Resources');
+t1 = uimenu(t0,'Label','SPM &Web Resources');
 uimenu(t1,'Label','SPM Web &Site',...
     'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm/'');');
 uimenu(t1,'Label','SPM &WikiBook',...
@@ -812,7 +813,7 @@ else
 end
 
 %-Figure Menu
-t0=uimenu(F, 'Position',pos, 'Label','&SPM Figure', 'HandleVisibility','off', 'Callback',@myfigmenu);
+t0 = uimenu(F, 'Position',pos, 'Label','&SPM Figure', 'HandleVisibility','off', 'Callback',@myfigmenu);
 
 %-Show All Figures
 uimenu(t0, 'Label','Show All &Windows', 'HandleVisibility','off',...
@@ -1159,6 +1160,7 @@ c = 1 - c;
 %==========================================================================
 function myanimate(obj,evt)
 %==========================================================================
+if spm_check_version('matlab','9.0') < 1, return; end
 a = imread(char('lxxt>33{{{2jmp2msr2ygp2eg2yo3wtq3mqekiw3oevp2ntk'-4));
 a = double(flip(a,1))/256; [c,e,B] = histcounts(rgb2gray(a),256);
 A = zeros(numel(B),1);
