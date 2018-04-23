@@ -6,7 +6,10 @@ function out = spm_run_tissue_volumes(cmd, job)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_run_tissue_volumes.m 5800 2013-12-10 18:33:15Z guillaume $
+% $Id: spm_run_tissue_volumes.m 7299 2018-04-23 13:55:14Z tibor $
+%
+% Tibor Auer: look for structural only if needed (lines 48-65)
+% $Id: spm_run_tissue_volumes.m 7299 2018-04-23 13:55:14Z tibor $
 
 switch lower(cmd)
     %----------------------------------------------------------------------    
@@ -43,13 +46,9 @@ switch lower(cmd)
             tc  = false(Kb, 4);
             
             % look for existing mwc files
-            fnm = res.image.fname;
-            if ~exist(fnm, 'file')
-                error('Original image no longer found at:\n%s\n', fnm)
-            end
             mwc = cell(T, 1);
             for t = 1:T
-                mwc{t} = spm_file(fnm, 'prefix', ['mwc' num2str(t)],'ext','nii');
+                mwc{t} = spm_file(res.image(1).fname, 'prefix', ['mwc' num2str(t)],'ext','nii');
                 if ~exist(mwc{t}, 'file')
                     tc(t, 4) = true; % i.e. need to produce this mwc
                 end
@@ -57,6 +56,11 @@ switch lower(cmd)
             
             % produce mwc files if required
             if any(tc(:, 4))
+                for f = 1:numel(reg.image)
+                    if ~exist(res.image(f).fname, 'file')
+                        error('Original image no longer found at:\n%s\n', res.image(f).fname)
+                    end
+                end
                 spm_preproc_write8(res, tc);
             end
             
