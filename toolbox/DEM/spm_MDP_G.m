@@ -9,7 +9,7 @@ function [G] = spm_MDP_G(A,x)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_G.m 6812 2016-06-18 11:16:21Z karl $
+% $Id: spm_MDP_G.m 7300 2018-04-25 21:14:07Z karl $
 
 
 % get Bayesian surprise or mutual information
@@ -17,39 +17,32 @@ function [G] = spm_MDP_G(A,x)
 
 % normalisation of a probability transition matrix (columns)
 %--------------------------------------------------------------------------
-p0   = exp(-16);
-G    = 0;
-qo   = 0;
-qx   = 1;
+spm_log = @(x)log(x + exp(-16));
 
-% probability distribution over the hidden causes
+% probability distribution over the hidden causes: i.e., Q(x)
 %--------------------------------------------------------------------------
-for f = 1:numel(x)
-    qx = spm_cross(qx,x{f});
-end
+qx    = spm_cross(x);
 
-% accumulate expectation of entropy
+% accumulate expectation of entropy: i.e., E[lnP(o|x)]
 %--------------------------------------------------------------------------
-for i = 1:size(A{1},2)
-    for j = 1:size(A{1},3)
-        for k = 1:size(A{1},4)
-            for l = 1:size(A{1},5)
-                
-                % probability over outcomes for this combination causes
-                %----------------------------------------------------------
-                po   = 1;
-                for g = 1:numel(A)
-                    po = spm_cross(po,A{g}(:,i,j,k,l));
-                end
-                po = po(:);
-                qo = qo + qx(i,j,k,l)*po;
-                G  = G  + qx(i,j,k,l)*po'*(log(po + p0));
-                
-            end
-        end
+G     = 0;
+qo    = 0;
+for i = find(qx > exp(-16))'
+    
+    % probability over outcomes for this combination of causes
+    %----------------------------------------------------------------------
+    po   = 1;
+    for g = 1:numel(A)
+        po = spm_cross(po,A{g}(:,i));
     end
+    po = po(:);
+    qo = qo + qx(i)*po;
+    G  = G  + qx(i)*po'*spm_log(po);
+    
 end
 
-% subtract entropy of expectations
+% subtract entropy of expectations: i.e., E[lnQ(o)]
 %--------------------------------------------------------------------------
-G  = G - qo'*(log(qo + p0));
+G  = G - qo'*spm_log(qo);
+
+

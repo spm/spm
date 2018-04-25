@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 09-Apr-2018 17:45:41
+% Last Modified by GUIDE v2.5 20-Apr-2018 16:49:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -663,8 +663,11 @@ function pushbutton224_Callback(hObject, eventdata, handles)
 handles.web = 'Post hoc Bayesian model selection';
 run_demo_Callback(hObject, handles, 'DEMO_AI_NLSI')
 
-
 % --- Executes on button press in pushbutton225.
 function pushbutton225_Callback(hObject, eventdata, handles)
 handles.web = 'Decisions to movements';
 run_demo_Callback(hObject, handles, 'MDP_DEM_Oculomotion_demo')
+% --- Executes on button press in pushbutton226.
+function pushbutton226_Callback(hObject, eventdata, handles)
+handles.web = 'Deep temporal models and active inference';
+run_demo_Callback(hObject, handles, 'DEMO_MDP_questions')

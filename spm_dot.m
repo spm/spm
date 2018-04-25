@@ -1,5 +1,5 @@
 function [X] = spm_dot(X,x,i)
-% Multidimensional dot (inner) preoduct
+% Multidimensional dot (inner) product
 % FORMAT [Y] = spm_dot(X,x,[DIM])
 %
 % X   - numeric array
@@ -15,20 +15,21 @@ function [X] = spm_dot(X,x,i)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dot.m 7232 2017-11-26 21:17:04Z karl $
+% $Id: spm_dot.m 7300 2018-04-25 21:14:07Z karl $
 
-% initialise X and x
+% initialise dimensions
 %--------------------------------------------------------------------------
-if nargin < 3
-    DIM    = (1:numel(x)) + ndims(X) - numel(x);
-else
-    DIM    = (1:numel(x)) + ndims(X) - numel(x);
+DIM = (1:numel(x)) + ndims(X) - numel(x);
+
+% omit dimensions specified
+%--------------------------------------------------------------------------
+if nargin > 2
     DIM(i) = [];
     x(i)   = [];
 end
 
-% inner product using bsxfun
-%----------------------------------------------------------------------
+% inner product using recursive summation (and bsxfun)
+%--------------------------------------------------------------------------
 for d = 1:numel(x)
     s         = ones(1,ndims(X));
     s(DIM(d)) = numel(x{d});
@@ -36,9 +37,24 @@ for d = 1:numel(x)
     X         = sum(X,DIM(d));
 end
 
-% eliminate Singleton dimensions
-%----------------------------------------------------------------------
+% eliminate singleton dimensions
+%--------------------------------------------------------------------------
 X = squeeze(X);
 
+return
 
+% NB: alternative scheme using outer product
+%==========================================================================
 
+% outer product and sum
+%--------------------------------------------------------------------------
+x      = spm_cross(x);
+s      = ones(1,ndims(X));
+S      = size(X);
+s(DIM) = S(DIM);
+x      = reshape(full(x),s);
+X      = bsxfun(@times,X,x);
+for d  = 1:numel(DIM)
+    X  = sum(X,DIM(d));
+end
+X      = squeeze(X);

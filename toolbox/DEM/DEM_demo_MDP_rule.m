@@ -32,7 +32,7 @@ function MDP = DEM_demo_MDP_rule
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 6814 2016-06-19 10:24:46Z karl $
+% $Id: DEM_demo_MDP_rule.m 7300 2018-04-25 21:14:07Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -486,7 +486,7 @@ for m = 1:Ns
         RDP(i).s  = RDP(i).s(:,1);
     end
     rng(m)
-    RDP   = spm_MDP_VB_X(RDP,OPT);
+    RDP      = spm_MDP_VB_X(RDP,OPT);
     [F,Fu]   = spm_MDP_F(RDP);
     Rm(:,m)  = F(:);
     Rum(:,m) = Fu(:);

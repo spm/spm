@@ -13,7 +13,7 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 7224 2017-11-18 18:10:09Z karl $
+% $Id: spm_MDP_VB_LFP.m 7300 2018-04-25 21:14:07Z karl $
  
  
 % defaults
@@ -151,6 +151,8 @@ if Nt == 1, subplot(3,2,2)
     xlabel('time (seconds)','FontSize',12)
     ylabel('response','FontSize',12)
     axis square
+    
+    try, legend(MDP.label.name{f}(unique(UNITS(1,:)))), end
 end
 
 % simulated dopamine responses

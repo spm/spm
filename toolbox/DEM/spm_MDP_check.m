@@ -30,7 +30,7 @@ function [MDP] = spm_MDP_check(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_check.m 6977 2016-12-24 17:48:44Z karl $
+% $Id: spm_MDP_check.m 7300 2018-04-25 21:14:07Z karl $
  
  
 % deal with a sequence of trials
@@ -181,13 +181,21 @@ for i = 1:Nf
     try
         MDP.label.factor{i};
     catch
+        try
+            MDP.label.factor{i} = MDP.Bname{i};
+        catch
         MDP.label.factor{i} = sprintf('factor %i',i);
+        end
     end
     for j = 1:Ns(i)
         try
             MDP.label.name{i}{j};
         catch
+            try
+                MDP.label.name{i}{j} = MDP.Sname{i}{j};
+            catch
             MDP.label.name{i}{j} = sprintf('state %i(%i)',j,i);
+            end
         end
     end
 end
@@ -195,11 +203,15 @@ for i = 1:Ng
     try
         MDP.label.modality(i);
     catch
+        try
+            MDP.label.modality{i} = MDP.Bname{i};
+        catch
         MDP.label.modality{i} = sprintf('modality %i',i);
+        end
     end
     for j = 1:No(i)
         try
-            MDP.label.outcome{i}{j};
+            MDP.label.outcome{i}{j} = MDP.Oname{i}{j};
         catch
             MDP.label.outcome{i}{j} = sprintf('outcome %i(%i)',j,i);
         end

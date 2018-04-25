@@ -116,7 +116,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7297 2018-04-19 12:32:16Z thomas $
+% $Id: spm_MDP_VB_X.m 7300 2018-04-25 21:14:07Z karl $
 
 
 % deal with a sequence of trials
@@ -574,6 +574,14 @@ for t = 1:T
         
         % Variational updates (hidden states) under sequential policies
         %==================================================================
+        
+        % likelihood (for multiple modalities)
+        %------------------------------------------------------------------
+        Ao{t} = 1;
+        for g = 1:Ng
+            Ao{t} = Ao{t}.*spm_dot(A{g},[O(g,t) x],(1:Nf) + 1);
+        end
+        
         S     = size(V,1) + 1;
         F     = zeros(Np,1);
         for k = p                       % loop over plausible policies
@@ -582,14 +590,11 @@ for t = 1:T
                 F(k)  = 0;              % reset free energy for this policy
                 for j = 1:S             % loop over future time points
                     
-                    % marginal likelihood over outcome factors
+                    % curent posterior over outcome factors
                     %------------------------------------------------------
                     if j <= t
                         for f = 1:Nf
-                            xq{f} = x{f}(:,j,k);
-                        end
-                        for g = 1:Ng
-                            Ao{g} = spm_dot(A{g},[O(g,j) xq],(1:Nf) + 1);
+                            xq{f} = full(x{f}(:,j,k));
                         end
                     end
                     
@@ -597,8 +602,8 @@ for t = 1:T
                         
                         % hidden states for this time and policy
                         %--------------------------------------------------
-                        sx = x{f}(:,j,k);
-                        v  = spm_zeros(sx);
+                        sx = full(x{f}(:,j,k));
+                        v  = zeros(Ns(f),1);
                         
                         % evaluate free energy and gradients (v = dFdx)
                         %--------------------------------------------------
@@ -607,22 +612,21 @@ for t = 1:T
                             % marginal likelihood over outcome factors
                             %----------------------------------------------
                             if j <= t
-                                for g = 1:Ng
-                                    Aq = spm_dot(Ao{g},xq,f);
-                                    v  = v + spm_log(Aq(:));
-                                end
+                                Aq = spm_dot(Ao{j},xq,f);
+                                v  = v + spm_log(Aq(:));
                             end
                             
                             % entropy
                             %----------------------------------------------
                             qx  = spm_log(sx);
+                            v   = v - qx;
                             
                             % emprical priors
                             %----------------------------------------------
-                            if j < 2, v = v - qx + spm_log(D{f});                                    end
-                            if j > 1, v = v - qx + spm_log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
-                            if j < S, v = v - qx + spm_log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
-                        
+                            if j < 2, v = v + spm_log(D{f});                                    end
+                            if j > 1, v = v + spm_log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
+                            if j < S, v = v + spm_log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
+
                             % (negative) expected free energy
                             %----------------------------------------------
                             F(k) = F(k) + sx'*v/Nf;
@@ -638,8 +642,9 @@ for t = 1:T
                         % store update neuronal activity
                         %--------------------------------------------------
                         x{f}(:,j,k)      = sx;
+                        xq{f}            = sx;
                         xn{f}(i,:,j,t,k) = sx;
-                        vn{f}(i,:,j,t,k) = v - mean(v);
+                        vn{f}(i,:,j,t,k) = v; % - mean(v);
                         
                     end
                 end
@@ -999,72 +1004,38 @@ if OPTIONS.plot
     spm_MDP_VB_trial(MDP)
 end
 
+
+% auxillary functions
+%==========================================================================
+
 function A = spm_log(A)
 % log of numeric array plus a small constant
 %--------------------------------------------------------------------------
 A  = log(A + 1e-16);
 
-
 function A = spm_norm(A)
 % normalisation of a probability transition matrix (columns)
 %--------------------------------------------------------------------------
-for i = 1:size(A,2)
-    for j = 1:size(A,3)
-        for k = 1:size(A,4)
-            for l = 1:size(A,5)
-                S = sum(A(:,i,j,k,l),1);
-                if S > 0
-                    A(:,i,j,k,l) = A(:,i,j,k,l)/S;
-                else
-                    A(:,i,j,k,l) = 1/size(A,1);
-                end
-            end
-        end
-    end
-end
+A           = bsxfun(@rdivide,A,sum(A,1));
+A(isnan(A)) = 1/size(A,1);
 
 function A = spm_back(A)
 % normalisation of a probability transition matrix (columns)
 %--------------------------------------------------------------------------
 for i = 1:size(A,1)
-    A(i,:,:,:,:) = A(i,:,:,:,:)/sum(A(i,:));
+    S = sum(A(i,:));
+    if S
+        A(i,:,:,:,:,:,:,:,:,:,:,:,:) = A(i,:,:,:,:,:,:,:,:,:,:,:,:)/S;
+    else
+        S = size(A);
+        A(i,:,:,:,:,:,:,:,:,:,:,:,:) = 1/prod(S(2:end));
+    end
 end
 
 function A = spm_cum(A)
 % summation of a probability transition matrix (columns)
 %--------------------------------------------------------------------------
-for i = 1:size(A,2)
-    for j = 1:size(A,3)
-        for k = 1:size(A,4)
-            for l = 1:size(A,5)
-                A(:,i,j,k,l) = sum(A(:,i,j,k,l),1);
-            end
-        end
-    end
-end
-
-function A = spm_psi(A)
-% normalisation of a probability transition rate matrix (columns)
-%--------------------------------------------------------------------------
-for i = 1:size(A,2)
-    for j = 1:size(A,3)
-        for k = 1:size(A,4)
-            for l = 1:size(A,5)
-                A(:,i,j,k,l) = psi(A(:,i,j,k,l)) - psi(sum(A(:,i,j,k,l)));
-            end
-        end
-    end
-end
-
-function C = spm_joint(A,B)
-% subscripts from linear index
-%--------------------------------------------------------------------------
-C = zeros(size(A,1),size(A,2),size(B,2));
-for i = 1:size(A,1)
-    C(i,:,:) = spm_cross(A(i,:),B(:,i));
-end
-C = spm_norm(C);
-
+A     = spm_cross(ones(size(A,1),1),sum(A));
 
 function sub = spm_ind2sub(siz,ndx)
 % subscripts from linear index

@@ -7,14 +7,14 @@ function [y] = spm_softmax(x,k)
 %
 % y   = exp(k*x)/sum(exp(k*x))
 %
-% NB: If supplied with a matric this rotine will return the softmax
+% NB: If supplied with a matrix this rotine will return the softmax
 % function over colums - so that spm_softmax([x1,x2,..]) = [1,1,...]
  
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_softmax.m 6655 2015-12-23 20:21:27Z karl $
+% $Id: spm_softmax.m 7300 2018-04-25 21:14:07Z karl $
  
 % apply
 %--------------------------------------------------------------------------
