@@ -240,7 +240,7 @@ V = (theta(1,:));
 
 x = 0:pi/16:pi/2;
 y = -pi/2:pi/4:pi/2;
-xf = flip(x) - pi/2;
+xf = fliplr(x) - pi/2;
 for j = 1:length(theta)
     
     subplot(2,2,4)
