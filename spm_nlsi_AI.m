@@ -84,7 +84,7 @@ function [Ep] = spm_nlsi_AI(M,Y,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7287 2018-04-07 13:15:09Z karl $
+% $Id: spm_nlsi_AI.m 7303 2018-04-28 16:00:22Z karl $
  
 
 % setup and initialise
@@ -137,7 +137,7 @@ eB    = bE;
 %--------------------------------------------------------------------------
 spm_Q = @(p) p'*p + exp(-4);
 spm_E = @(G,CB,Q) log(Q)/2 - log(G'*CB*G + Q)/2;
-spm_F = @(p,b,W) spm_G(p,numel(b))'*spm_vec(b) - spm_logdet(W'*spm_H(p,b)*W)/2;
+spm_F = @(p,b,W) spm_G(p,numel(b))'*spm_vec(b); % + spm_logdet(W'*spm_H(p,b)*W)/2;
 
 
 % sample
@@ -145,7 +145,7 @@ spm_F = @(p,b,W) spm_G(p,numel(b))'*spm_vec(b) - spm_logdet(W'*spm_H(p,b)*W)/2;
 nc    = 1024;                                 % number of samples
 h     = 1;
 TL    = - M.L(spm_unvec(EP,Ep),Y,M);
-for i = 1:64
+for i = 1:128
     
     % get candidate sample from model posterior
     %======================================================================
@@ -157,11 +157,14 @@ for i = 1:64
     for j = 1:nc
         q(:,j) = rand(np,1) - 1/2;
     end
+    q   = kron([1/32,1/3,1/2],spm_en(spm_sigma(np)));
+    nc  = size(q,2);
+    
     
     % expected free energy E (with distance from current sample Q)
     %----------------------------------------------------------------------
     for j = 1:nc
-        F(i) = spm_F(q(:,j),eB,W);
+%         F(j) = spm_F(q(:,j),eB,W);
         E(j) = spm_E(spm_G(q(:,j),n),CB,h*spm_Q(q(:,j)));
     end
     
@@ -200,25 +203,26 @@ for i = 1:64
     H     = spm_H(EP,eB);
     PP    = W'*spm_sqrtm(H'*H)*W;
     CP    = spm_inv(PP);
-    EP    = EP - U*eB{2};
-    EP    = q*spm_softmax(-F(:));
-%     tL    = - M.L(spm_unvec(TP,Ep),Y,M);
-%     if tL < TL
-%         EP = TP;
-%         TL = tL;
-%     end
+    TP    = EP - U*eB{2};
+%     [E,j] = min(F);
+%     EP    = EP + U*(q(:,j));
+    tL    = - M.L(spm_unvec(TP,Ep),Y,M);
+    if tL < TL
+        EP = TP;
+        TL = tL;
+    end
 
     % ensure predicted location is better than the current sampling
     %----------------------------------------------------------------------
-%     if L(i,1) < TL
-%         EP = p(:,i);
-%         TL = L(i,1);
-%     end
+    if L(i,1) < TL
+        EP = p(:,i);
+        TL = L(i,1);
+    end
     
     
     % evaluate (positive) free energy and convergence
     %----------------------------------------------------------------------
-    FE(i) = spm_logdet(CP)/2 - M.L(spm_unvec(EP,Ep),Y,M);
+    FE(i) = - spm_logdet(CP)/2 - M.L(spm_unvec(EP,Ep),Y,M);
     
     % graphics if requested
     %======================================================================
@@ -330,7 +334,7 @@ function G  = spm_G(p,n)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7287 2018-04-07 13:15:09Z karl $
+% $Id: spm_nlsi_AI.m 7303 2018-04-28 16:00:22Z karl $
 %--------------------------------------------------------------------------
 G{1}  = 1;
 for i = 2:n
@@ -347,12 +351,12 @@ function H  = spm_H(p,B)
 % FORMAT H  = spm_H(p,b)
 % 
 % p   - parameter vector
-% b   - functional parameters (cell)
+% b   - functional parameters (cell format)
 %__________________________________________________________________________
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7287 2018-04-07 13:15:09Z karl $
+% $Id: spm_nlsi_AI.m 7303 2018-04-28 16:00:22Z karl $
 %--------------------------------------------------------------------------
 H     = B{3};
 x     = {p};
@@ -363,6 +367,28 @@ end
 
 return
 
+
+
+
+% auxiliary functions
+%==========================================================================
+function K  = spm_sigma(n)
+% Sigma points for sampling
+% FORMAT K  = spm_sigma(n)
+% 
+% n   - number of parameters
+%__________________________________________________________________________
+% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_nlsi_AI.m 7303 2018-04-28 16:00:22Z karl $
+%--------------------------------------------------------------------------
+k     = [0 1 -1];
+K     = k;
+for i = 2:n
+    K = [kron(K,ones(1,n));kron(ones(1,n^(i - 1)),k)];
+end
+return
 
 
 

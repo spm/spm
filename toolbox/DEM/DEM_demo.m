@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 20-Apr-2018 16:49:13
+% Last Modified by GUIDE v2.5 28-Apr-2018 11:42:18
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -672,3 +672,9 @@ run_demo_Callback(hObject, handles, 'MDP_DEM_Oculomotion_demo')
 function pushbutton226_Callback(hObject, eventdata, handles)
 handles.web = 'Deep temporal models and active inference';
 run_demo_Callback(hObject, handles, 'DEMO_MDP_questions')
+
+
+% --- Executes on button press in pushbutton227.
+function pushbutton227_Callback(hObject, eventdata, handles)
+handles.web = 'A Multivariate Analysis of PET Activation Studies';
+run_demo_Callback(hObject, handles, 'DEMO_CVA_RSA')
