@@ -4,7 +4,7 @@ function headmodel = spm_cfg_eeg_inv_headmodel
 % Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 7281 2018-03-23 13:03:52Z vladimir $
+% $Id: spm_cfg_eeg_inv_headmodel.m 7304 2018-05-02 12:09:35Z guillaume $
 
 
 D = cfg_files;
@@ -306,11 +306,7 @@ for i = 1:numel(job.D)
         meegfid = D.fiducials;
         
         fidbids   = spm_jsonread(char(job.coregistration.coregbids.fidjson));                
-        
-        if ~(strcmpi(fidbids.AnatomicalMRICoordinateSystem, 'NIfTI') && ...
-                strcmpi(fidbids.AnatomicalMRICoordinateUnits, 'voxels'))
-            error('Only NIfTI coordinate system in voxels is supported at the moment.');
-        end
+        % Coordinates are always in voxel units
         
         fidlabel  = fieldnames(fidbids.AnatomicalLandmarkCoordinates);
         selection = spm_match_str(meegfid.fid.label, fidlabel);
