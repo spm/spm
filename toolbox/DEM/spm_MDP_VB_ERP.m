@@ -1,5 +1,5 @@
 function [x,y,ind] = spm_MDP_VB_ERP(MDP,FACTOR,T)
-% auxiliary routine for plotting hierarchical electrophysiological responses
+% auxiliary routine for hierarchical electrophysiological responses
 % FORMAT [x,y] = spm_MDP_VB_ERP(MDP,FACTOR,T)
 %
 % MDP    - structure (see spm_MDP_VB)
@@ -29,7 +29,7 @@ function [x,y,ind] = spm_MDP_VB_ERP(MDP,FACTOR,T)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_ERP.m 7003 2017-02-02 18:22:56Z karl $
+% $Id: spm_MDP_VB_ERP.m 7306 2018-05-07 13:42:02Z karl $
  
  
 % defaults: assume the first factor is of interest

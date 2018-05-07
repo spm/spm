@@ -1,6 +1,6 @@
-function spm_MDP_VB_trial(MDP)
+function spm_MDP_VB_trial(MDP,gf,gg)
 % auxiliary plotting routine for spm_MDP_VB - single trial
-% FORMAT spm_MDP_VB_trial(MDP)
+% FORMAT spm_MDP_VB_trial(MDP,[f,g])
 %
 % MDP.P(M,T)      - probability of emitting action 1,...,M at time 1,...,T
 % MDP.Q(N,T)      - an array of conditional (posterior) expectations over
@@ -17,15 +17,18 @@ function spm_MDP_VB_trial(MDP)
 % MDP.da  = dn;   - simulated dopamine responses (deconvolved)
 % MDP.rt  = rt;   - simulated reaction times
 %
+% [f,g]           - factors and outcomes to plot [Default: first 3]
+%
 % please see spm_MDP_VB
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 7273 2018-03-04 13:15:34Z karl $
+% $Id: spm_MDP_VB_trial.m 7306 2018-05-07 13:42:02Z karl $
 
 % graphics
 %==========================================================================
+MDP   = spm_MDP_check(MDP); clf
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
@@ -45,24 +48,33 @@ else
     C  = {MDP.C};
 end
 
-
+% factors and outcomes to plot
+%--------------------------------------------------------------------------
+maxg  = 3;
+if nargin < 2, gf = 1:min(Nf,maxg); end
+if nargin < 3, gg = 1:min(Ng,maxg); end
+nf    = numel(gf);
+ng    = numel(gg);
 
 % posterior beliefs about hidden states
 %--------------------------------------------------------------------------
-for f  = 1:Nf
-    subplot(3*Nf,2,(f - 1)*2 + 1)
-    image(64*(1 - X{f})), hold on
-    if size(X{f},1) > 128
-        spm_spy(X{f},16,1)
+for f = 1:nf
+    subplot(3*nf,2,(f - 1)*2 + 1)
+    image(64*(1 - X{gf(f)})), hold on
+    if size(X{gf(f)},1) > 128
+        spm_spy(X{gf(f)},16,1)
     end
-    plot(MDP.s(f,:),'.c','MarkerSize',16), hold off
-    try
-        title(sprintf('Hidden states - %s',MDP.Bname{f}));
-    catch
-        if f < 2, title('Hidden states'); end
+    plot(MDP.s(gf(f),:),'.c','MarkerSize',16), hold off
+    if f < 2
+        title(sprintf('Hidden states - %s',MDP.label.factor{gf(f)}));
+    else
+        title(MDP.label.factor{gf(f)});
     end
-    if f == Nf, xlabel('time'), end
-    ylabel('hidden state')
+    
+    set(gca,'XTickLabel',{});
+    set(gca,'XTick',1:MDP.T);
+    set(gca,'YTick',1:numel(MDP.label.name{gf(f)}));
+    set(gca,'YTickLabel',MDP.label.name{gf(f)});
 end
 
 % posterior beliefs about control states
@@ -86,27 +98,32 @@ for f  = 1:Np
     %----------------------------------------------------------------------
     image(64*(1 - P)), hold on
     plot(MDP.u(Nu(f),:),'.c','MarkerSize',16), hold off
-    try
-        title(sprintf('Inferred and selected action - %s',MDP.Bname{Nu(f)}));
-    catch
-        if f < 2, title('Inferred and selected action'); end
+    if f < 2
+        title(sprintf('Action - %s',MDP.label.factor{Nu(f)}));
+    else
+        title(MDP.label.factor{Nu(f)});
     end
-    if f == Np, xlabel('time'), end
-    ylabel('action')
-end
-
-% policies
-%--------------------------------------------------------------------------
-for f  = 1:Np
+    set(gca,'XTickLabel',{});
+    set(gca,'XTick',1:MDP.T);
+    set(gca,'YTick',1:numel(MDP.label.name{Nu(f)}));
+    set(gca,'YTickLabel',MDP.label.name{Nu(f)});
+    
+    % policies
+    %--------------------------------------------------------------------------
     subplot(3*Np,2,(Np + f - 1)*2 + 1)
     imagesc(MDP.V(:,:,Nu(f))')
-    try
-        title(sprintf('Allowable policies - %s',MDP.Bname{Nu(f)}));
-    catch
-        if f < 2, title('Allowable policies'); end
+    if f < 2
+    title(sprintf('Allowable policies - %s',MDP.label.factor{Nu(f)}));
+    else
+        title(MDP.label.factor{Nu(f)});
     end
-    if Np == 1, xlabel('time'), end
+    if f < Np
+        set(gca,'XTickLabel',{});
+    end
+    set(gca,'XTick',1:MDP.T - 1);
+    set(gca,'YTickLabel',{});
     ylabel('policy')
+    
 end
 
 % expectations over policies
@@ -119,33 +136,38 @@ xlabel('updates')
 
 % sample (observation) and preferences
 %--------------------------------------------------------------------------
-for g  = 1:Ng
-    subplot(3*Ng,2,(2*Ng + g - 1)*2 + 1)
-    if size(C{g},1) > 128
-        spm_spy(C{g},16,1), hold on
+for g  = 1:ng
+    
+    subplot(3*ng,2,(2*ng + g - 1)*2 + 1), hold off
+    if size(C{gg(g)},1) > 128
+        spm_spy(C{gg(g)},16,1), hold on
     else
-        imagesc(1 - C{g}), hold on
+        imagesc(1 - C{gg(g)}),  hold on
     end
-    plot(MDP.o(g,:),'.c','MarkerSize',16), hold off
-    try
-        title(sprintf('Outcomes and preferences - %s',MDP.Aname{g}));
-    catch
-        if g < 2, title('Outcomes and preferences'); end
+    plot(MDP.o(gg(g),:),'.c','MarkerSize',16), hold off
+    if g < 2
+        title(sprintf('Outcomes and preferences - %s',MDP.label.modality{gg(g)}));
+    else
+        title(MDP.label.modality{gg(g)});
     end
-    if g == Ng, xlabel('time'), end
-    ylabel('outcome')
+    if g == ng
+        xlabel('time');
+    else
+        set(gca,'XTickLabel',{});
+    end
+    set(gca,'XTick',1:MDP.T)
+    set(gca,'YTick',1:numel(MDP.label.outcome{gg(g)}));
+    set(gca,'YTickLabel',MDP.label.outcome{gg(g)});
 end
 
 % expected precision
 %--------------------------------------------------------------------------
-subplot(3,2,6), hold on
+subplot(3,2,6)
 if size(MDP.dn,2) > 1
-    plot(MDP.dn,'r:'), plot(MDP.wn,'k'), hold off
+    plot(MDP.dn,'r:'),   hold on, plot(MDP.wn,'k'), hold off
 else
-    bar(MDP.dn,1.1,'k'),   plot(MDP.wn,'k'), hold off
+    bar(MDP.dn,1.1,'k'), hold on, plot(MDP.wn,'k'), hold off
 end
 title('Expected precision (dopamine)')
-xlabel('updates')
-ylabel('precision')
-spm_axis tight
+xlabel('updates'), ylabel('precision'), spm_axis tight
 drawnow

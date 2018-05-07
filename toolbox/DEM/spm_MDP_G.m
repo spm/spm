@@ -9,13 +9,13 @@ function [G] = spm_MDP_G(A,x)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_G.m 7300 2018-04-25 21:14:07Z karl $
+% $Id: spm_MDP_G.m 7306 2018-05-07 13:42:02Z karl $
 
 
 % get Bayesian surprise or mutual information
 %==========================================================================
 
-% normalisation of a probability transition matrix (columns)
+% preclude numerical overflow
 %--------------------------------------------------------------------------
 spm_log = @(x)log(x + exp(-16));
 

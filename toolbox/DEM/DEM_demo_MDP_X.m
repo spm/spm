@@ -38,7 +38,7 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 7300 2018-04-25 21:14:07Z karl $
+% $Id: DEM_demo_MDP_X.m 7306 2018-05-07 13:42:02Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -125,12 +125,12 @@ V(:,:,2) = 1;
  
 % MDP Structure - this will be used to generate arrays for multiple trials
 %==========================================================================
-mdp.V = V;                    % allowable policies
-mdp.A = A;                    % observation model
-mdp.B = B;                    % transition probabilities
-mdp.C = C;                    % preferred outcomes
-mdp.d = d;                    % prior over initial states
-mdp.s = [1 1]';               % true initial state
+mdp.V = V;                       % allowable policies
+mdp.A = A;                       % observation model
+mdp.B = B;                       % transition probabilities
+mdp.C = C;                       % preferred outcomes
+mdp.d = d;                       % prior over initial states
+mdp.s = [1 1]';                  % true initial state
 
 mdp.Aname = {'exteroceptive','interoceptive'};
 mdp.Bname = {'position','context'};

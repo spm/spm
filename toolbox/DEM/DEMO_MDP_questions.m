@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7300 2018-04-25 21:14:07Z karl $
+% $Id: DEMO_MDP_questions.m 7306 2018-05-07 13:42:02Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -123,8 +123,8 @@ mdp.A = A;                      % observation model
 mdp.B = B;                      % transition probabilities
 mdp.D = D;                      % prior over initial states
  
-mdp.Aname = {'what','where'};
-mdp.Bname = {'what','where','flip','flip'};
+mdp.label.modality = {'what','where'};
+mdp.label.factor = {'what','where','flip','flip'};
 mdp.alpha = 4;
 mdp.chi   = 1/64;
  
@@ -143,41 +143,38 @@ clear mdp
 % the agent prefers to solicit correct feedback.
 %--------------------------------------------------------------------------
  
-%% second level (semantic)
+%% second level (narrative)
 %==========================================================================
-Bname{1}  = 'narrative';    Sname{1}  = {'ready','question','answer'};
-Bname{2}  = 'question';     Sname{2}  = {'1','2','3'};
-Bname{3}  = 'upper colour'; Sname{3}  = {'green','red'};
-Bname{4}  = 'lower colour'; Sname{4}  = {'green','red'};
-Bname{5}  = 'upper shape';  Sname{5}  = {'square','triangle'};
-Bname{6}  = 'lower shape';  Sname{6}  = {'square','triangle'};
-Bname{7}  = 'noun';         Sname{7}  = {'square','triangle'};
-Bname{8}  = 'adjective';    Sname{8}  = {'green','red'};
-Bname{9}  = 'adverb';       Sname{9}  = {'above','below'};
-
-
-% prior beliefs about initial states (in terms of counts_: D and d
-%--------------------------------------------------------------------------
-D{1} = [1 0 0]';    % narrative:    {'ready','question','answer'}
-D{2} = [1 0 0]';    % question:     {'1','2','3'}
-D{3} = [1 0]';      % upper colour: {'green','red'}
-D{4} = [1 0]';      % lower colour: {'green','red'}
-D{5} = [1 0]';      % upper shape:  {'square','triangle'}
-D{6} = [1 0]';      % lower shape:  {'square','triangle'}
-D{7} = [1 0]';      % noun:         {'square','triangle'}
-D{8} = [1 0]';      % adjective:    {'green','red'}
-D{9} = [1 0]';      % adverb:       {'above','below'}
-
 % question 1: {'noun (7)'}
 % question 2: {'noun (7)','adverb (9)'}
 % question 3: {'adjective (8)','noun (7)','adverb (9)'}
+%--------------------------------------------------------------------------
+label.factor{1}  = 'narrative';    label.name{1}  = {'ready','question','answer'};
+label.factor{2}  = 'question';     label.name{2}  = {'1','2','3'};
+label.factor{3}  = 'upper colour'; label.name{3}  = {'green','red'};
+label.factor{4}  = 'lower colour'; label.name{4}  = {'green','red'};
+label.factor{5}  = 'upper shape';  label.name{5}  = {'square','triangle'};
+label.factor{6}  = 'lower shape';  label.name{6}  = {'square','triangle'};
+label.factor{7}  = 'noun';         label.name{7}  = {'square','triangle'};
+label.factor{8}  = 'adjective';    label.name{8}  = {'green','red'};
+label.factor{9}  = 'adverb';       label.name{9}  = {'above','below'};
+
+% prior beliefs about initial states D 
+%--------------------------------------------------------------------------
+for i = 1:numel(label.factor)
+    D{i} = ones(numel(label.name{i}),1)/32;
+end
+
+% known initial states
+%--------------------------------------------------------------------------
+D{1}(1)  = 128;
 
 % probabilistic mapping from hidden states to outcomes: A
 %--------------------------------------------------------------------------
-Aname{1} = 'noun';   Oname{1}  = {'square','triangle'};
-Aname{2} = 'adj.';   Oname{2}  = {'green','red'};
-Aname{3} = 'adverb'; Oname{3}  = {'above','below'};
-Aname{4} = 'syntax'; Oname{4}  = {'1','2','3','Y','N','Sil.'};
+label.modality{1} = 'noun';   label.outcome{1}  = {'square','triangle'};
+label.modality{2} = 'adj.';   label.outcome{2}  = {'green','red'};
+label.modality{3} = 'adverb'; label.outcome{3}  = {'above','below'};
+label.modality{4} = 'syntax'; label.outcome{4}  = {'1','2','3','Y','N','Sil.'};
 
 Nf    = numel(D);
 for f = 1:Nf
@@ -261,7 +258,7 @@ for g = 1:Ng
     No(g) = size(A{g},1);
 end
  
-%% controlled transitions: B{f} for each factor
+% controlled transitions: B{f} for each factor
 %--------------------------------------------------------------------------
 for f = 1:Nf
     B{f} = eye(Ns(f));
@@ -290,11 +287,11 @@ for i = [7 8 9]
     end
 end
 
+% allowable policies (time x polcy x factor)
+%--------------------------------------------------------------------------
 % question 1: {'noun (7)'}
 % question 2: {'noun (7)','adverb (9)'}
 % question 3: {'adjective (8)','noun (7)','adverb (9)'}
-
-% allowable policies (time x polcy x factor)
 %--------------------------------------------------------------------------
 V         = ones(2,14,Nf);
 V(:,:,2)  = kron([1;1],[1 1 2 2 2 2 3 3 3 3 3 3 3 3]);
@@ -308,47 +305,60 @@ V(:,:,9)  = kron([1;1],[1 1 1 2 1 2 1 2 1 2 1 2 1 2]);
 for g = 1:Ng
     C{g}  = zeros(No(g),1);
 end
-C{4}(1,:) = -1;                 % the agent expects
-C{4}(3,:) =  1;                 % long questions
-C{4}(5,:) = -2;                 % and affirmative answers
+% C{4}(1,:) = -1;                 % the agent expects
+% C{4}(3,:) =  1;                 % long questions
+% C{4}(5,:) = -2;                 % and affirmative answers
 
 
 % MDP Structure
 %--------------------------------------------------------------------------
 % mdp.MDP  = MDP;
 % mdp.link = sparse(1,1,1,numel(MDP.D),Ng);
- 
+mdp.label  = label;             % names of factors and outcomes
+
 mdp.V = V;                      % allowable policies
 mdp.A = A;                      % observation model
 mdp.B = B;                      % transition probabilities
 mdp.C = C;                      % preferred outcomes
-mdp.D = D;                      % prior over initial states
+mdp.d = D;                      % prior over initial states (context)
 mdp.s = ones(Nf,1);             % initial state
- 
-mdp.Aname   = Aname;
-mdp.Bname   = Bname;
-mdp.Sname   = Sname;
-mdp.Oname   = Oname;
-mdp         = spm_MDP_check(mdp);
+mdp.o = [];                     % outcomes
+mdp   = spm_MDP_check(mdp);
  
  
-%% illustrate a single trial
+%% illustrate an exchange
 %==========================================================================
-MDP  = spm_MDP_VB_X(mdp);
+clear MDP
+[MDP(1:8)] = deal(mdp);
 
-return
- 
+% Ask questions after a few answers
+%--------------------------------------------------------------------------
+for i = 4:length(MDP)
+    MDP(i).o = [  ceil(rand(3,1)*2)*[1 1 1] ;
+                6 ceil(rand*3) -1];
+end
+MDP   = spm_MDP_VB_X(MDP);
+
 % show belief updates (and behaviour)
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1'); clf
-spm_MDP_VB_trial(MDP);
- 
+spm_MDP_VB_trial(MDP(1),[1 2 4],[1 3 4]);
+
 % illustrate phase-precession and responses
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2'); clf
-spm_MDP_VB_LFP(MDP,[],1); subplot(3,1,3)
-spm_MDP_search_plot(MDP)
+spm_MDP_VB_LFP(MDP,[],4);
 
+spm_figure('GetWin','Figure 3'); clf
+spm_MDP_VB_game(MDP);
+
+spm_figure('GetWin','Figure 4'); clf
+for i = 1:length(MDP)
+    subplot(4,2,i)
+    spm_questions_plot(MDP(i))
+end
+
+return
  
 % illustrate evidence accumulation and perceptual synthesis (movie)
 %--------------------------------------------------------------------------
@@ -361,31 +371,31 @@ spm_figure('GetWin','Figure 4'); clf
 spm_MDP_VB_ERP(MDP,1);
 subplot(4,1,4)
 spm_MDP_search_plot(MDP)
- 
- 
+
+
 % illustrate global and local violations
 %==========================================================================
- 
+
 % local violation (flipping is now highly likely)
 %--------------------------------------------------------------------------
 MDL = MDP;
 MDL.mdp(4).D{3} = [1;8];
 MDL = spm_MDP_VB_X(MDL);
- 
+
 % Global violation (the first sentence is surprising)
 %--------------------------------------------------------------------------
 MDG = MDP;
 MDG.D{1}(1,1)   = 1/8;
 MDG = spm_MDP_VB_X(MDG);
- 
+
 % Global and local violation
 %--------------------------------------------------------------------------
 MDB = MDP;
 MDB.D{1}(1,1)   = 1/8;
 MDB.mdp(4).D{3} = [1;8];
 MDB = spm_MDP_VB_X(MDB);
- 
- 
+
+
 % extract simulated responses to the last letter (in the last worked)
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 5'); clf
@@ -393,7 +403,7 @@ spm_figure('GetWin','Figure 5'); clf
 [ul,vl,ind] = spm_MDP_VB_ERP(MDL,1);
 [ug,vg,ind] = spm_MDP_VB_ERP(MDG,1);
 [ub,vb,ind] = spm_MDP_VB_ERP(MDB,1);
- 
+
 i   = cumsum(ind);
 i   = i(4) + (-32:-1);
 u   = u(i,:);
@@ -404,256 +414,124 @@ ug  = ug(i,:);
 vg  = vg(i,:);
 ub  = ub(i,:);
 vb  = vb(i,:);
- 
- 
+
+
 % peristimulus time and plot responses (and difference waveforms)
 %--------------------------------------------------------------------------
 pst = (1:length(i))*1000/64;
- 
+
 subplot(3,2,1)
 plot(pst,u,':r',pst,v,':b'), hold on
 plot(pst,ul,'r',pst,vl,'b'), hold off, axis square
 xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
 title('Local deviation','Fontsize',16)
- 
+
 subplot(3,2,2)
 plot(pst,ul - u,'r',pst,vl - v,'b'),   axis square ij
 xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
 title('Difference waveform','Fontsize',16)
- 
+
 subplot(3,2,3)
 plot(pst,u,'r:',pst,v ,'b:'), hold on
 plot(pst,ug,'r',pst,vg,'b'), hold off, axis square
 xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
 title('Global deviation','Fontsize',16)
- 
+
 subplot(3,2,4)
 plot(pst,ug - u,'r',pst,vg - v,'b'),   axis square ij
 xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
 title('Difference waveform','Fontsize',16)
- 
+
 subplot(3,2,5)
 plot(pst,u,':r',pst,v ,':b'), hold on
 plot(pst,ub,'r',pst,vb,'b'), hold off, axis square
 xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
 title('Local and global','Fontsize',16)
- 
+
 subplot(3,2,6)
 plot(pst,(ug - u) - (ub - ul),'r',pst,(vg - v) - (vb - vl),'b'),   axis square ij
 xlabel('Peristimulus time (ms)'), ylabel('Depolarisation')
 title('Difference of differences','Fontsize',16)
- 
- 
+
+
 return
- 
- 
- 
- 
-function spm_MDP_search_plot(MDP)
-% illustrate visual search graphically
+
+
+
+
+function spm_questions_plot(MDP)
+%% illustrate beliefs
 %--------------------------------------------------------------------------
- 
-% locations on page and of page
+
+% probabilistic mapping from hidden states to outcomes: A
 %--------------------------------------------------------------------------
-x = [0 0;0 1;1 0;1 1];
-y = [1 0;2 0;3 0;4 0]*3;
-r = [-1,1]/2;
- 
-% load images
-%--------------------------------------------------------------------------
-load MDP_search_graphics
-null = zeros(size(bird)) + 1;
- 
- 
-% plot cues
-%--------------------------------------------------------------------------
+% label.modality{1} = 'noun';   label.outcome{1}  = {'square','triangle'};
+% label.modality{2} = 'adj.';   label.outcome{2}  = {'green','red'};
+% label.modality{3} = 'adverb'; label.outcome{3}  = {'above','below'};
+% label.modality{4} = 'syntax'; label.outcome{4}  = {'1','2','3','Y','N','Sil.'};
+
+% plot question, answer and posterior beliefs
+%==========================================================================
 cla;
-X     = [];
-for p = 1:length(MDP.mdp)
-    
-    % latent cues for this hidden state
-    %----------------------------------------------------------------------
-    f    = MDP.mdp(p).s(:,1);
-    
-    if f(1) == 1, a = {'bird','cats';'null','null'}; end
-    if f(1) == 2, a = {'bird','seed';'null','null'}; end
-    if f(1) == 3, a = {'bird','null';'null','seed'}; end
-    
-    % flip cues according to hidden (invariants) states
-    %----------------------------------------------------------------------
-    if f(3) == 2, a = flipud(a); end
-    if f(4) == 2, a = fliplr(a); end
-    
-    j     = MDP.s(2,p);
-    for i = 1:numel(a)
-        image(r + y(j,1) + x(i,1),r + y(j,2) + x(i,2), eval(a{i})), hold on
-    end
-    axis image ij, axis([2 14 -1 2])
-    
-    % Extract eye movements
-    %----------------------------------------------------------------------
-    for i = 1:numel(MDP.mdp(p).o(2,:))
-        X(end + 1,:) = y(MDP.o(2,p),:) + x(MDP.mdp(p).o(2,i),:);
-    end
+
+% Assemble question-and-answer
+%--------------------------------------------------------------------------
+question = MDP.o(4,2);
+answer   = MDP.o(4,3);
+noun     = {'square','triangle'};
+adj      = {'green','red'};
+adverb   = {'above','below'};
+if question == 1
+    qstr = ['Is there a ' noun{MDP.o(1,2)} ' ?'];
+elseif question == 2
+    qstr = ['Is there a ' noun{MDP.o(1,2)} ' ' adverb{MDP.o(3,2)} ' ?'];
+elseif question == 3
+    qstr = ['Is there a ' adj{MDP.o(2,2)} ' ' noun{MDP.o(1,2)} ' ' adverb{MDP.o(3,2)} ' ?'];
+else
+    qstr = '!';
 end
- 
-% Smooth and plot eye movements
-%--------------------------------------------------------------------------
-for j = 1:2
-    T(:,j) = interp(X(:,j),8,2);
-    T(:,j) = T(:,j) + spm_conv(randn(size(T(:,j))),2)/16;
+if answer == 4
+    astr = 'Yes there is !';
+elseif answer == 5
+    astr = 'No !';
+else
+    astr = '!';
 end
-i   = 1:(size(T,1) - 8);
-plot(T(i,1),T(i,2),'b ','LineWidth',1)
-plot(X(:,1),X(:,2),'r.','MarkerSize',16)
- 
- 
-function spm_MDP_search_percept(MDP)
-% illustrates visual expectations with a movie
+
+%  plot posterior beliefs
 %--------------------------------------------------------------------------
-clf;
-subplot(4,1,1), spm_MDP_search_plot(MDP)
-axis image ij, axis([2 14 -2 2]),
-subplot(4,1,2)
-axis image ij, axis([2 14 -2 2]), hold on
- 
-% locations on page and of page
+% label.factor{3}  = 'upper colour'; label.name{3}  = {'green','red'};
+% label.factor{4}  = 'lower colour'; label.name{4}  = {'green','red'};
+% label.factor{5}  = 'upper shape';  label.name{5}  = {'square','triangle'};
+% label.factor{6}  = 'lower shape';  label.name{6}  = {'square','triangle'};
+
+% upper and lower object
 %--------------------------------------------------------------------------
-x = [0 0;0 1;1 0;1 1];
-y = [1 0;2 0;3 0;4 0]*3;
-r = [-1,1]/2;
-s = r*(1 + 1/4);
- 
- 
-% load images
+col{1}  = [MDP.X{3}(2,3) MDP.X{3}(1,3) 0];
+col{1}  = col{1}*MDP.X{5}(1,3) + (1 - MDP.X{5}(1,3));
+col{2}  = [MDP.X{3}(2,3) MDP.X{3}(1,3) 0];
+col{2}  = col{2}*MDP.X{5}(2,3) + (1 - MDP.X{5}(2,3));
+col{3}  = [MDP.X{4}(2,3) MDP.X{4}(1,3) 0];
+col{3}  = col{3}*MDP.X{6}(1,3) + (1 - MDP.X{6}(1,3));
+col{4}  = [MDP.X{4}(2,3) MDP.X{4}(1,3) 0];
+col{4}  = col{4}*MDP.X{6}(2,3) + (1 - MDP.X{6}(2,3));
+
+plot(0,0,'^','MarkerSize',24,'LineWidth',4,'Color',col{4}), hold on
+plot(0,0,'s','MarkerSize',24,'LineWidth',4,'Color',col{3})
+plot(0,1,'^','MarkerSize',24,'LineWidth',4,'Color',col{2})
+plot(0,1,'s','MarkerSize',24,'LineWidth',4,'Color',col{1})
+
+% upper and lower object
 %--------------------------------------------------------------------------
-load MDP_search_graphics
-null = zeros(size(bird)) + 1;
+rgb     = {[0 1 0],[1 0 0]};
+shape   = {'s','^'};
+plot(1/2,1,shape{MDP.s(5)},'MarkerSize',8,'LineWidth',1,'Color',rgb{MDP.s(3)})
+plot(1/2,0,shape{MDP.s(6)},'MarkerSize',8,'LineWidth',1,'Color',rgb{MDP.s(4)})
+
+text(0,2,qstr,'HorizontalAlignment','Center')
+text(0,-1,astr,'HorizontalAlignment','Center')
+axis([-1 1 -1.5 2.5]), axis off, axis square
+
+
+
  
-mdp = MDP.mdp(1);
-try
-    d = mdp.D;
-catch
-    d = mdp.d;
-end
-Nf    = numel(d);
-for f = 1:Nf
-    Ns(f) = numel(d{f});
-end
- 
-% plot posterior beliefs
-%--------------------------------------------------------------------------
-M     = [];
-for p = 1:numel(MDP.mdp)
-    mdp   = MDP.mdp(p);
-    for k = 1:size(mdp.xn{1},4)
-        for i = 1:size(mdp.xn{1},1)
-            
-            % movie over peristimulus time: first level expectations
-            %--------------------------------------------------------------
-            for j = 1:4
-                S{j} = zeros(size(bird));
-            end
-            for f1 = 1:Ns(1)
-                for f2 = 1:Ns(2)
-                    for f3 = 1:Ns(3)
-                        for f4 = 1:Ns(4)
-                            
-                            % latent cues for this hidden state
-                            %----------------------------------------------
-                            if f1 == 1, a = {'bird','cats';'null','null'}; end
-                            if f1 == 2, a = {'bird','seed';'null','null'}; end
-                            if f1 == 3, a = {'bird','null';'null','seed'}; end
-                            
-                            % flip cues according to hidden (invariants) states
-                            %----------------------------------------------
-                            if f3 == 2, a = flipud(a); end
-                            if f4 == 2, a = fliplr(a); end
-                            
-                            % mixture
-                            %----------------------------------------------
-                            q     = mdp.xn{1}(i,f1,1,k)*mdp.xn{3}(i,f3,1,k)*mdp.xn{4}(i,f4,1,k);
-                            for j = 1:4
-                                S{j} = S{j} + eval(a{j})*q;
-                            end
-                        end
-                    end
-                end
-            end
-            
-            % image
-            %--------------------------------------------------------------
-            if i > 1
-                delete(hl);
-            end
-            for j = 1:numel(S)
-                hl(j) = imagesc(r + y(MDP.o(2,p),1) + x(j,1),r + y(MDP.o(2,p),2) + x(j,2),S{j}/max(S{j}(:)));
-            end
-            
-            
-            % saccade
-            %--------------------------------------------------------------
-            X = y(MDP.o(2,p),:) + x(MDP.mdp(p).o(2,k),:);
-            plot(X(:,1),X(:,2),'r.','MarkerSize',32)
-            
-            
-            % movie over peristimulus time: second level expectations
-            %--------------------------------------------------------------
-            for j = 1:4
-                S{j} = zeros(size(bird));
-            end
-            for f1 = 1:6
-                
-                % sequence of pictures for each story
-                %----------------------------------------------------------
-                if f1 == 1, a = {'cats','null','seed','null'}; end  % happy
-                if f1 == 2, a = {'null','null','null','seed'}; end  % happy
-                if f1 == 3, a = {'null','cats','null','seed'}; end  % happy
-                if f1 == 4, a = {'cats','null','seed','cats'}; end  % sad
-                if f1 == 5, a = {'null','null','null','cats'}; end  % sad
-                if f1 == 6, a = {'null','cats','null','cats'}; end  % sad
-                
-                % mixture
-                %----------------------------------------------------------
-                for j = 1:numel(a)
-                    S{j} = S{j} + eval(a{j})*MDP.xn{1}(end,f1,p,p);
-                end
-                
-            end
-            
-            % image
-            %--------------------------------------------------------------
-            if i > 1
-                delete(hh);
-            end
-            for j = 1:numel(S)
-                hh(j) = imagesc(s + y(j,1) + 1/2,s + y(j,2) - 1 - 1/4,S{j}/max(S{j}(:)));
-            end
-            
-            % categorisation
-            %--------------------------------------------------------------
-            if i > 1
-                delete(ht);
-            end
-            pt    = MDP.xn{3}(end,2,p,p);
-            ht(1) = text(12,-2.5,'happy','Color',[1,[1,1]*(1 - pt)],'FontSize',16);
-            pt    = MDP.xn{3}(end,3,p,p);
-            ht(2) = text(12,-2.0,'sad','Color',[[1,1]*(1 - pt),1],'FontSize',16);
-            
-            % save
-            %--------------------------------------------------------------
-            axis image ij, axis([2 14 -2 2]), drawnow
-            if numel(M)
-                M(end + 1) = getframe(gca);
-            else
-                M = getframe(gca);
-            end
-        end
-    end
-end
- 
-% save movie
-%--------------------------------------------------------------------------
-set(gca,'Userdata',{M,16})
-set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
-title('Narrative construction','FontSize',16)

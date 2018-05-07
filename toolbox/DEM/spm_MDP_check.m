@@ -30,7 +30,7 @@ function [MDP] = spm_MDP_check(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_check.m 7300 2018-04-25 21:14:07Z karl $
+% $Id: spm_MDP_check.m 7306 2018-05-07 13:42:02Z karl $
  
  
 % deal with a sequence of trials
@@ -40,8 +40,9 @@ function [MDP] = spm_MDP_check(MDP)
 %--------------------------------------------------------------------------
 if length(MDP) > 1
     for i = 1:length(MDP)
-        MDP(i) = spm_MDP_check(MDP(i));
-    end    
+        mdp(i) = spm_MDP_check(MDP(i));
+    end
+    MDP   = mdp;
     return
 end
  
@@ -167,19 +168,21 @@ end
 % check outcomes if specified
 %--------------------------------------------------------------------------
 if isfield(MDP,'o')
-    if size(MDP.o,1) ~= Ng
-        error('please specify an outcomes MDP.o for each modality')
+    if numel(MDP.o)
+        if size(MDP.o,1) ~= Ng
+            error('please specify an outcomes MDP.o for each modality')
+        end
+        if any(max(MDP.o,[],2) > No(:))
+            error('please ensure outcomes MDP.o are consistent with MDP.A')
+        end
     end
-    if any(max(MDP.o,[],2) > No(:))
-        error('please ensure outcomes MDP.o are consistent with MDP.A')
-    end 
 end
- 
+
 % check factors and outcome modalities have proper labels
 %--------------------------------------------------------------------------
 for i = 1:Nf
     try
-        MDP.label.factor{i};
+        MDP.label.factor(i);
     catch
         try
             MDP.label.factor{i} = MDP.Bname{i};
@@ -189,7 +192,7 @@ for i = 1:Nf
     end
     for j = 1:Ns(i)
         try
-            MDP.label.name{i}{j};
+            MDP.label.name{i}(j);
         catch
             try
                 MDP.label.name{i}{j} = MDP.Sname{i}{j};
@@ -206,14 +209,18 @@ for i = 1:Ng
         try
             MDP.label.modality{i} = MDP.Bname{i};
         catch
-        MDP.label.modality{i} = sprintf('modality %i',i);
+            MDP.label.modality{i} = sprintf('modality %i',i);
         end
     end
     for j = 1:No(i)
         try
-            MDP.label.outcome{i}{j} = MDP.Oname{i}{j};
+            MDP.label.outcome{i}(j);
         catch
-            MDP.label.outcome{i}{j} = sprintf('outcome %i(%i)',j,i);
+            try
+                MDP.label.outcome{i}{j} = MDP.Oname{i}{j};
+            catch
+                MDP.label.outcome{i}{j} = sprintf('outcome %i(%i)',j,i);
+            end
         end
     end
 end

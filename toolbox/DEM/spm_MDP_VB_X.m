@@ -116,7 +116,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7300 2018-04-25 21:14:07Z karl $
+% $Id: spm_MDP_VB_X.m 7306 2018-05-07 13:42:02Z karl $
 
 
 % deal with a sequence of trials
@@ -249,10 +249,8 @@ for g = 1:Ng
     %----------------------------------------------------------------------
     if isfield(MDP,'a')
         A{g}  = spm_norm(MDP.a{g});
-        rA{g} = spm_back(MDP.a{g});
     else
         A{g}  = spm_norm(MDP.A{g});
-        rA{g} = spm_back(MDP.A{g});
     end
     
     % (polygamma) function for complexity (and novelty)
@@ -260,7 +258,7 @@ for g = 1:Ng
     if isfield(MDP,'a')
         qA{g} = spm_psi(MDP.a{g} + 1/16);
         pA{g} = MDP.a{g};
-        wA{g} = 1./spm_cum(MDP.a{g}) - 1./(MDP.a{g} + p0);
+        wA{g} = spm_wnorm(MDP.a{g} + p0);
         wA{g} = wA{g}.*(MDP.a{g} > 0);
     end
     
@@ -333,10 +331,8 @@ if isfield(MDP,'e')
     qE = spm_psi(MDP.e + 1/16);
     pE = MDP.e;
 else
-    qE    = spm_log(E);
+    qE = spm_log(E);
 end
-
-
 
 % prior preferences (log probabilities) : C
 %--------------------------------------------------------------------------
@@ -364,11 +360,17 @@ end
 
 % precision defaults
 %--------------------------------------------------------------------------
-try, alpha = MDP.alpha; catch, alpha = 16;   end
+try, alpha = MDP.alpha; catch, alpha = 128;   end
 try, beta  = MDP.beta;  catch, beta  = 1;    end
 try, eta   = MDP.eta;   catch, eta   = 1;    end
 try, tau   = MDP.tau;   catch, tau   = 4;    end
 try, chi   = MDP.chi;   catch, chi   = 1/64; end
+
+% preclude precision updates for mving policies
+%--------------------------------------------------------------------------
+if isfield(MDP,'U')
+    OPTIONS.gamma = 1;
+end
 
 % initialise  posterior expectations of hidden states
 %--------------------------------------------------------------------------
@@ -396,11 +398,19 @@ if Np == 1
     u = ones(Np,T);
 end
 
+% If outcomes have not been specified set to 0
+%--------------------------------------------------------------------------
+if ~isfield(MDP,'o') || isempty(MDP.o)
+    MDP.o = zeros(Ng,T);
+end
+
+
 % expected rate parameter
 %--------------------------------------------------------------------------
-p     = 1:Np;                       % allowable policies
-qbeta = beta;                       % initialise rate parameters
-gu    = 1/qbeta;                    % posterior precision (policy)
+p         = 1:Np;                       % allowable policies
+qbeta     = beta;                       % initialise rate parameters
+gu        = 1/qbeta;                    % posterior precision (policy)
+%[Ao{1:T}] = deal(ones(Ns));             % initialise multimodal likelihood
 
 % solve
 %==========================================================================
@@ -425,27 +435,41 @@ for t = 1:T
             end
         end
         
-        % sample outcome from hidden state (ind), if not specified
+        % posterior predictive density
         %------------------------------------------------------------------
-        ind   = num2cell(s(:,t));
-        for g = 1:Ng
-            try
-                o(g,t) = MDP.o(g,t);
-            catch
-                po     = MDP.A{g}(:,ind{:});
-                o(g,t) = find(rand < cumsum(po),1);
+        for f = 1:Nf
+            if t > 1
+                xq{f} = sB{f}(:,:,a(f,t - 1))*X{f}(:,t - 1);
+            else
+                xq{f} = X{f}(:,t);
             end
         end
-        
-        % posterior predictive density (prior for suborinate level)
+
+        % sample outcome
         %------------------------------------------------------------------
-        if isfield(MDP,'link') || isfield(MDP,'demi')
-            for f = 1:Nf
-                if t > 1
-                    xq{f} = sB{f}(:,:,a(f,t - 1))*X{f}(:,t - 1);
-                else
-                    xq{f} = X{f}(:,t);
-                end
+        for g = 1:Ng
+
+            if MDP.o(g,t) > 0
+                
+                % specified outcome
+                %----------------------------------------------------------
+                o(g,t) = MDP.o(g,t);
+                
+            elseif MDP.o(g,t) < 0
+                
+                % sample outcome from posterior predictive density
+                %----------------------------------------------------------
+                po     = spm_dot(A{g},xq);
+                o(g,t) = find(rand < cumsum(po),1);
+                
+            else
+                
+                % sample outcome from generative process (i.e., A)
+                %----------------------------------------------------------
+                ind    = num2cell(s(:,t));
+                po     = MDP.A{g}(:,ind{:});
+                o(g,t) = find(rand < cumsum(po),1);
+                
             end
         end
         
@@ -468,8 +492,8 @@ for t = 1:T
         if isfield(MDP,'link') || isfield(MDP,'demi')
             O{g,t} = spm_dot(A{g},xq);
             
-            % specified as a likelihood or observation
-            %------------------------------------------------------------------
+        % specified as a likelihood or observation
+        %------------------------------------------------------------------
         elseif isfield(MDP,'O')
             O{g,t} = MDP.O{g}(:,t);
         else
@@ -565,6 +589,13 @@ for t = 1:T
     %======================================================================
     if ~HMM || T == t                   % skip accumulation if in HMM mode
         
+        % eliminate unlikely policies
+        %--------------------------------------------------------------
+        if ~isfield(MDP,'U') && t > 1
+            F = log(qu);
+            p = p((F - max(F)) > -3);
+        end
+        
         % processing time and reset
         %------------------------------------------------------------------
         tstart = tic;
@@ -577,7 +608,7 @@ for t = 1:T
         
         % likelihood (for multiple modalities)
         %------------------------------------------------------------------
-        Ao{t} = 1;
+        Ao{t} = ones(Ns);
         for g = 1:Ng
             Ao{t} = Ao{t}.*spm_dot(A{g},[O(g,t) x],(1:Nf) + 1);
         end
@@ -607,7 +638,7 @@ for t = 1:T
                         
                         % evaluate free energy and gradients (v = dFdx)
                         %--------------------------------------------------
-                        if dF > 0
+                        if dF > exp(-8)
                             
                             % marginal likelihood over outcome factors
                             %----------------------------------------------
@@ -644,7 +675,7 @@ for t = 1:T
                         x{f}(:,j,k)      = sx;
                         xq{f}            = sx;
                         xn{f}(i,:,j,t,k) = sx;
-                        vn{f}(i,:,j,t,k) = v; % - mean(v);
+                        vn{f}(i,:,j,t,k) = v - mean(v);
                         
                     end
                 end
@@ -695,18 +726,15 @@ for t = 1:T
                 end
             end
             
-            
-            % eliminate unlikely policies
-            %--------------------------------------------------------------
-            if ~isfield(MDP,'U')
-                p = p((F(p) - max(F(p))) > -3);
-            else
-                OPTIONS.gamma = 1;
-            end
-            
             % variational updates - policies and precision
             %==============================================================
             
+            % eliminate very unlikely policies
+            %--------------------------------------------------------------
+            if ~isfield(MDP,'U')
+                p = p((F(p) - max(F(p))) > -8);
+            end
+
             % previous expected precision
             %--------------------------------------------------------------
             if t > 1
@@ -1008,34 +1036,21 @@ end
 % auxillary functions
 %==========================================================================
 
-function A = spm_log(A)
+function A  = spm_log(A)
 % log of numeric array plus a small constant
 %--------------------------------------------------------------------------
 A  = log(A + 1e-16);
 
-function A = spm_norm(A)
+function A  = spm_norm(A)
 % normalisation of a probability transition matrix (columns)
 %--------------------------------------------------------------------------
 A           = bsxfun(@rdivide,A,sum(A,1));
 A(isnan(A)) = 1/size(A,1);
 
-function A = spm_back(A)
-% normalisation of a probability transition matrix (columns)
-%--------------------------------------------------------------------------
-for i = 1:size(A,1)
-    S = sum(A(i,:));
-    if S
-        A(i,:,:,:,:,:,:,:,:,:,:,:,:) = A(i,:,:,:,:,:,:,:,:,:,:,:,:)/S;
-    else
-        S = size(A);
-        A(i,:,:,:,:,:,:,:,:,:,:,:,:) = 1/prod(S(2:end));
-    end
-end
-
-function A = spm_cum(A)
+function A  = spm_wnorm(A)
 % summation of a probability transition matrix (columns)
 %--------------------------------------------------------------------------
-A     = spm_cross(ones(size(A,1),1),sum(A));
+A   = bsxfun(@minus,1./sum(A,1),1./A);
 
 function sub = spm_ind2sub(siz,ndx)
 % subscripts from linear index

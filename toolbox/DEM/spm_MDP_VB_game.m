@@ -32,7 +32,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 6978 2017-01-03 10:42:09Z karl $
+% $Id: spm_MDP_VB_game.m 7306 2018-05-07 13:42:02Z karl $
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
@@ -166,7 +166,7 @@ ylabel('Expected utility'), spm_axis tight, hold off
 % Initial states (context)
 %--------------------------------------------------------------------------
 subplot(6,1,3)
-col   = {'r','b','g','c','m','k'};
+col   = {'r','b','g','c','m','k','r','b','g','c','m','k'};
 for f = 1:Nf
     if Nf > 1
         plot(spm_cat(x{f}),col{f}), hold on
@@ -199,9 +199,19 @@ for f = 1:Nf
     if f < 2
         title('Context Learning')
     end
-    try
-        ylabel(MDP(1).Bname{f})
+    set(gca,'XTick',1:Ne);
+    if f < Nf
+        set(gca,'XTickLabel',{});
     end
+    set(gca,'YTick',1);
+    try
+        set(gca,'YTickLabel',MDP(1).label.factor{f});
+    end
+    try
+        set(gca,'YTickLabel',MDP(1).Bname{f});
+    end
+    
+    
 end
 if isfield(MDP(1),'c')
     title('Learning (C and D)')
