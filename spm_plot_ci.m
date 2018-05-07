@@ -13,14 +13,14 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 6856 2016-08-10 17:55:05Z karl $
+% $Id: spm_plot_ci.m 7305 2018-05-07 13:35:06Z karl $
 
 
 % get axis
 %--------------------------------------------------------------------------
 ax = gca;
 
-% confidence region plotting
+% confidence region (CR) plotting
 %--------------------------------------------------------------------------
 if size(E,1) == 1 && size(E,2) == 2
     E  = E';
@@ -186,17 +186,36 @@ else
         
     else
         
-        % conditional means
-        %------------------------------------------------------------------
-        h = bar(ax,E); hold(ax,'on');
-        
-        % conditional variances
-        %------------------------------------------------------------------
-        for m = 1:N
-            x = mean(get(get(h(m),'Children'),'Xdata'));
-            for k = 1:n
-                line([x(k) x(k)],[-1 1]*c(k,m) + E(k,m),'LineWidth',4,'Color',col,'Parent',ax);
+        if strcmpi(s,'exp')
+            
+            % conditional means (exponential)
+            %------------------------------------------------------------------
+            h = bar(ax,exp(E)'); hold(ax,'on');
+            
+            % conditional variances
+            %------------------------------------------------------------------
+            for m = 1:n
+                x = mean(get(get(h(m),'Children'),'Xdata'));
+                for k = 1:N
+                    line([x(k) x(k)],exp([-1 1]*c(m,k) + E(m,k)),'LineWidth',1,'Color',col,'Parent',ax);
+                end
             end
+            
+        else
+            
+            % conditional means
+            %------------------------------------------------------------------
+            h = bar(ax,E); hold(ax,'on');
+            
+            % conditional variances
+            %------------------------------------------------------------------
+            for m = 1:N
+                x = mean(get(get(h(m),'Children'),'Xdata'));
+                for k = 1:n
+                    line([x(k) x(k)],[-1 1]*c(k,m) + E(k,m),'LineWidth',4,'Color',col,'Parent',ax);
+                end
+            end
+            
         end
     end
     

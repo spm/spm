@@ -55,7 +55,7 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 7287 2018-04-07 13:15:09Z karl $
+% $Id: spm_PEB.m 7305 2018-05-07 13:35:06Z karl $
 
 % set default
 %--------------------------------------------------------------------------
@@ -128,7 +128,7 @@ if ~iscell(P{end}.C)
 
     % Full Bayes: (i.e. Cov(b) = 0, <b> = 1)
     %----------------------------------------------------------------------
-    y( I{end})        = sparse(1:n,1,1);
+    y(I{end})         = sparse(1:n,1,1);
 else
 
     % Empirical Bayes: uniform priors (i.e. Cov(b) = Inf, <b> = 0)

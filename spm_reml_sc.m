@@ -1,6 +1,6 @@
-function [C,h,Ph,F,Fa,Fc,Eh,Ch,hE,hC] = spm_reml_sc(YY,X,Q,N,hE,hC,V)
+function [C,h,Ph,F,Fa,Fc,Eh,Ch,hE,hC,Q] = spm_reml_sc(YY,X,Q,N,hE,hC,V)
 % ReML estimation of covariance components from y*y' - proper components
-% FORMAT [C,h,Ph,F,Fa,Fc,Eh,Ch,hE,hC] = spm_reml_sc(YY,X,Q,N,[hE,hC,V])
+% FORMAT [C,h,Ph,F,Fa,Fc,Eh,Ch,hE,hC,Q] = spm_reml_sc(YY,X,Q,N,[hE,hC,V])
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
@@ -19,6 +19,8 @@ function [C,h,Ph,F,Fa,Fc,Eh,Ch,hE,hC] = spm_reml_sc(YY,X,Q,N,hE,hC,V)
 % hC  - prior covariances of log scale parameters
 % Eh  - posterior expectation of log scale parameters
 % Ch  - posterior covariances of log scale parameters
+%
+% Q   - scaled covariance components
 %
 % F   - [-ve] free energy F = log evidence = p(Y|X,Q) = ReML objective
 %
@@ -42,7 +44,7 @@ function [C,h,Ph,F,Fa,Fc,Eh,Ch,hE,hC] = spm_reml_sc(YY,X,Q,N,hE,hC,V)
 % Copyright (C) 2007-2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_reml_sc.m 7192 2017-10-18 14:59:01Z guillaume $
+% $Id: spm_reml_sc.m 7305 2018-05-07 13:35:06Z karl $
 
  
 % assume a single sample if not specified
