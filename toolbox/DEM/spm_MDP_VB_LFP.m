@@ -1,9 +1,12 @@
-function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR)
+function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % auxiliary routine for plotting simulated electrophysiological responses
-% FORMAT [u,v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR)
+% FORMAT [u,v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR,SPECTRAL)
 %
-% UNITS(1,j) - hidden state
+% UNITS(1,j) - hidden state                           [default: all]
 % UNITS(2,j) - time step
+%
+% FACTOR     - hidden factor to plot                    [default: 1]
+% SPECTRAL   - replace unifying with spectral responses [default: 0]
 %
 % u - selected unit rate of change of firing (simulated voltage)
 % v - selected unit responses {number of trials, number of units}
@@ -13,15 +16,15 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 7306 2018-05-07 13:42:02Z karl $
+% $Id: spm_MDP_VB_LFP.m 7307 2018-05-08 09:44:04Z karl $
  
  
 % defaults
 %==========================================================================
 MDP    = spm_MDP_check(MDP); clf
-try, f = FACTOR; catch, f = 1;      end
-try, UNITS;      catch, UNITS = []; end
-
+try, f;          catch, f        = 1;  end
+try, UNITS;      catch, UNITS    = []; end
+try, SPECTRAL;   catch, SPECTRAL = 0;  end
 
 % dimensions
 %--------------------------------------------------------------------------
@@ -128,6 +131,35 @@ grid on, set(gca,'XTick',(1:(Ne*Nt))*Nb*dt)
 title('Time-frequency response','FontSize',16)
 xlabel('time (sec)','FontSize',12), ylabel('frequency (Hz)','FontSize',12)
 if Nt == 1, axis square, end
+
+% spectral responses
+%--------------------------------------------------------------------------
+if SPECTRAL
+    
+    % spectral responses (for each unit)
+    %--------------------------------------------------------------------------
+    if Nt == 1, subplot(3,2,1), else subplot(4,2,1),end
+    csd = squeeze(sum(abs(wft),2));
+    plot(Hz,log(squeeze(csd)))
+    title('Spectral response','FontSize',16)
+    xlabel('frequency (Hz)','FontSize',12),
+    ylabel('log power','FontSize',12)
+    spm_axis tight, box off, axis square
+    
+    % amplitude-to-amplitude coupling (average over units)
+    %--------------------------------------------------------------------------
+    if Nt == 1, subplot(3,2,2), else subplot(4,2,2),end
+    cfc   = 0;
+    for i = 1:size(wft,3)
+        cfc = cfc + corr((abs(wft(:,:,i)))');
+    end
+    imagesc(Hz,Hz,cfc)
+    title('Cross-frequency coupling','FontSize',16)
+    xlabel('frequency (Hz)','FontSize',12),
+    ylabel('frequency (Hz)','FontSize',12)
+    box off, axis square
+
+end
  
 % local field potentials
 %==========================================================================
@@ -143,7 +175,7 @@ end
 title('Local field potentials','FontSize',16)
 xlabel('time (sec)','FontSize',12)
 ylabel('response','FontSize',12)
-if Nt == 1, axis square, end
+if Nt == 1, axis square, end, box off
 
 % firing rates
 %==========================================================================
@@ -167,7 +199,7 @@ dn    = dn.*(dn > 0);
 dn    = dn + (dn + 1/16).*rand(size(dn))/8;
 bar(dn,1,'k'), title('Dopamine responses','FontSize',16)
 xlabel('time (updates)','FontSize',12)
-ylabel('change in precision','FontSize',12), spm_axis tight
+ylabel('change in precision','FontSize',12), spm_axis tight, box off
 YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
 if Nt == 1, axis square, end
 

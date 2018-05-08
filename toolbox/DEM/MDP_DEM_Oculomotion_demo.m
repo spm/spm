@@ -35,34 +35,49 @@ O{2}  = spm_softmax(sparse(3,1,3,nl,1));
 
 % generative model (Continuous)
 %==========================================================================
-
-DEM = DEM_MDP_oculomotion_GM;
-DEM    = spm_MDP_DEM(DEM,demi,O,o);
+DEM      = DEM_MDP_oculomotion_GM;
+DEM      = spm_MDP_DEM(DEM,demi,O,o);
 
 % generative model (Discrete)
 %==========================================================================
-mdp = MDP_DEM_oculomotion_GM;
+mdp      = MDP_DEM_oculomotion_GM;
 mdp.demi = demi;
-mdp.DEM = DEM;
+mdp.DEM  = DEM;
 
-MDP = spm_MDP_check(mdp);
+% invert or solve
+%--------------------------------------------------------------------------
+MDP  = spm_MDP_check(mdp);
 MDP  = spm_MDP_VB_X(MDP);
 
-spm_figure('GetWin','Figure 1');
+% illustrate belief updating - discrete
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 1'); clf
+spm_MDP_VB_LFP(MDP);
 
+% illustrate belief updating - continuous (last eye movement)
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 2'); clf;
+spm_DEM_qU(MDP.dem(end).qU)
+
+% show oculomotor responses
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 3');
 for i = 1:length(MDP.dem)
     dem = MDP.dem(i);
-    thetal(1,:) =  dem.pU.x{1}(1,:);
-    thetal(2,:) =  dem.pU.x{1}(2,:);
-    thetal(3,:) =  zeros(1,length(thetal));
-    thetar(1,:) =  dem.pU.x{1}(5,:);
-    thetar(2,:) =  dem.pU.x{1}(6,:);
-    thetar(3,:) =  zeros(1,length(thetar));
+    thetal(1,:) = dem.pU.x{1}(1,:);
+    thetal(2,:) = dem.pU.x{1}(2,:);
+    thetal(3,:) = zeros(1,length(thetal));
+    thetar(1,:) = dem.pU.x{1}(5,:);
+    thetar(2,:) = dem.pU.x{1}(6,:);
+    thetar(3,:) = zeros(1,length(thetar));
+    
     subplot(2,1,1)
     MDP_plot_eyes(thetal,thetar);
     MDP_plot_collicular_map(full(dem.qU.z{2}))
 end
 
+
+return
 
 function MDP = MDP_DEM_oculomotion_GM
 
@@ -90,8 +105,8 @@ end
 %--------------------------------------------------------------------------
 C{1} = zeros(2,T);
 C{2} = [0 0 1 0;
-        1 0 0 1;
-        0 1 0 0];
+    1 0 0 1;
+    0 1 0 0];
 
 MDP.A = A;
 MDP.B = B;
@@ -119,7 +134,7 @@ P.kv = 1;              % viscocity of orbit
 P.a = a;
 P.j = 1.5;
 
-M(1).pE = P;           
+M(1).pE = P;
 
 % recognition model
 %==========================================================================
@@ -129,10 +144,10 @@ M(1).E.d = 2;                                 % generalised motion
 
 % level 1
 %--------------------------------------------------------------------------
-M(1).f  = @(x,v,P) Mf1(x,v,P);              % plant dynamics
-M(1).g  = @(x,v,P) Mg1(x,v,P);              % prediction
+M(1).f  = @(x,v,P) Mf1(x,v,P);                % plant dynamics
+M(1).g  = @(x,v,P) Mg1(x,v,P);                % prediction
 
-M(1).x  = x.l;                                  % hidden states
+M(1).x  = x.l;                                % hidden states
 M(1).V  = exp([4*ones(1,4) 4*ones(1,4) 16*ones(1,2) 16*ones(1,2)]);   % error precision (g)
 M(1).W  = exp(8);                             % error precision (f)
 
@@ -170,14 +185,14 @@ f = [v(1)-x(1); v(2) - x(2); - x(3); - x(4)];
 
 function g = Mg1(x,v,~)
 g.l = x;
-g.r = x; 
-g.v = [v(1:2); v(1:2)]; 
+g.r = x;
+g.v = [v(1:2); v(1:2)];
 
 function f = Gf1(x,~,a,P)
 ke = P.ke;
 kv = P.kv;
 j  = P.j;
-a = spm_unvec(a,P.a); 
+a = spm_unvec(a,P.a);
 
 F.l = a.l - ke*x.l(1:2) - kv*x.l(3:4);
 F.r = a.r - ke*x.r(1:2) - kv*x.r(3:4);
@@ -186,7 +201,7 @@ f.l = [x.l(3) ; x.l(4); (1/j)*F.l(1); (1/j)*F.l(2)];
 
 function g = Gg1(x,~,~,~)
 g.l = x.l;
-g.r = x.r; 
+g.r = x.r;
 g.v = [x.l(1:2) ; x.r(1:2)];
 
 % Plotting routines
@@ -224,7 +239,7 @@ for i = 1:size(thetal,2)
     Rza = makehgtform('zrotate',thetal(3,i));
     Rzb = makehgtform('zrotate',thetar(3,i));
     Rt = makehgtform('translate', [3 0 0]);
-
+    
     
     set(a,'Matrix',Rxa*Rya*Rza);
     set(b,'Matrix',Rt*Rxb*Ryb*Rzb);
@@ -266,9 +281,7 @@ for j = 1:length(theta)
     else
         subplot(2,2,3)
     end
-        plot(H(j),V(j)*log(50*H(j)+1),'.r','MarkerSize',50), hold off
-
-        
+    plot(H(j),V(j)*log(50*H(j)+1),'.r','MarkerSize',50), hold off
     axis square
     axis off
     pause(0.05)

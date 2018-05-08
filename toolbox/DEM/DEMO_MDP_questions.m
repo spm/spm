@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7306 2018-05-07 13:42:02Z karl $
+% $Id: DEMO_MDP_questions.m 7307 2018-05-08 09:44:04Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -329,14 +329,23 @@ mdp   = spm_MDP_check(mdp);
 %% illustrate an exchange
 %==========================================================================
 clear MDP
-[MDP(1:8)] = deal(mdp);
+[MDP(1:6)] = deal(mdp);
 
 % Ask questions after a few answers
 %--------------------------------------------------------------------------
-for i = 4:length(MDP)
-    MDP(i).o = [  ceil(rand(3,1)*2)*[1 1 1] ;
-                6 ceil(rand*3) -1];
-end
+% for i = 1:length(MDP)
+%     if i < 5
+%         % ask question
+%         %------------------------------------------------------------------
+%         MDP(i).o(1:3,:) = -ones(3,3);
+%         MDP(i).o(4,:)   = [-1 -1 0];
+%     else
+%         % answer question
+%         %------------------------------------------------------------------
+%         MDP(i).o(1:3,:) = ceil(2*rand(3,1))*[1 1 1];
+%         MDP(i).o(4,:)   = [6 ceil(rand*3) -1];
+%     end
+% end
 MDP   = spm_MDP_VB_X(MDP);
 
 % show belief updates (and behaviour)
@@ -350,31 +359,38 @@ spm_figure('GetWin','Figure 2'); clf
 spm_MDP_VB_LFP(MDP,[],4);
 
 spm_figure('GetWin','Figure 3'); clf
-spm_MDP_VB_game(MDP);
+spm_MDP_VB_LFP(MDP,[],4,1);
 
 spm_figure('GetWin','Figure 4'); clf
 for i = 1:length(MDP)
-    subplot(4,2,i)
+    subplot(4,3,i)
     spm_questions_plot(MDP(i))
 end
 
 return
  
-% illustrate evidence accumulation and perceptual synthesis (movie)
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 3'); clf
-spm_MDP_search_percept(MDP)
- 
-% electrophysiological responses
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 4'); clf
-spm_MDP_VB_ERP(MDP,1);
-subplot(4,1,4)
-spm_MDP_search_plot(MDP)
-
-
-% illustrate global and local violations
+% illustrate violations
 %==========================================================================
+NDP      = MDP;                            % get states and outcomes
+NDP(1).d = mdp(1).d;                       % reinstate initial priors
+if NDP(5).o(4,3) == 4                      % switch the answer
+    NDP(5).o(4,3) = 5;
+else
+    NDP(5).o(4,3) = 4;
+end
+NDP   = spm_MDP_VB_X(NDP(1:5));
+
+% responses to appropriate and inappropriate answers
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 6'); clf, spm_MDP_VB_LFP(MDP(3:5),[],3);
+spm_figure('GetWin','Figure 7'); clf, spm_MDP_VB_LFP(NDP(3:5),[],3);
+
+
+
+
+
+
+
 
 % local violation (flipping is now highly likely)
 %--------------------------------------------------------------------------
@@ -394,6 +410,8 @@ MDB = MDP;
 MDB.D{1}(1,1)   = 1/8;
 MDB.mdp(4).D{3} = [1;8];
 MDB = spm_MDP_VB_X(MDB);
+
+spm_MDP_VB_LFP(NDP(2:5),[],3);
 
 
 % extract simulated responses to the last letter (in the last worked)
@@ -498,6 +516,16 @@ else
     astr = '!';
 end
 
+% is the answer right?
+%--------------------------------------------------------------------------
+ind      = num2cell(MDP.s(:,3));
+if answer == find(MDP.A{4}(:,ind{:}))
+    cor = spm_softmax(2*[0;1;0]);
+else
+    cor = spm_softmax(2*[1;0;0]);
+end
+
+
 %  plot posterior beliefs
 %--------------------------------------------------------------------------
 % label.factor{3}  = 'upper colour'; label.name{3}  = {'green','red'};
@@ -528,8 +556,8 @@ shape   = {'s','^'};
 plot(1/2,1,shape{MDP.s(5)},'MarkerSize',8,'LineWidth',1,'Color',rgb{MDP.s(3)})
 plot(1/2,0,shape{MDP.s(6)},'MarkerSize',8,'LineWidth',1,'Color',rgb{MDP.s(4)})
 
-text(0,2,qstr,'HorizontalAlignment','Center')
-text(0,-1,astr,'HorizontalAlignment','Center')
+text(0, 2,qstr,'HorizontalAlignment','Center')
+text(0,-1,astr,'HorizontalAlignment','Center','FontWeight','bold','Color',cor)
 axis([-1 1 -1.5 2.5]), axis off, axis square
 
 

@@ -32,7 +32,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 7306 2018-05-07 13:42:02Z karl $
+% $Id: spm_MDP_VB_game.m 7307 2018-05-08 09:44:04Z karl $
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
@@ -161,7 +161,7 @@ for g = 1:Ng
     end
 end
 title('Final outcome, performance and reaction times')
-ylabel('Expected utility'), spm_axis tight, hold off
+ylabel('Expected utility'), spm_axis tight, hold off, box off
 
 % Initial states (context)
 %--------------------------------------------------------------------------
@@ -174,8 +174,8 @@ for f = 1:Nf
         plot(spm_cat(x{f}))
     end
 end
-title('State estimation (ERPs)')
-ylabel('Response'), spm_axis tight, hold off
+title('State estimation (ERPs)'), ylabel('Response'), 
+spm_axis tight, hold off, box off
 
 % Precision (dopamine)
 %--------------------------------------------------------------------------
@@ -188,9 +188,9 @@ else
     bar(w,1.1,'k')
 end
 title('Precision (dopamine)')
-ylabel('Precision','FontSize',12), spm_axis tight
+ylabel('Precision','FontSize',12), spm_axis tight, box off
 YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
-
+set(gca,'XTickLabel',{});
 
 % learning - D
 %--------------------------------------------------------------------------
@@ -199,7 +199,7 @@ for f = 1:Nf
     if f < 2
         title('Context Learning')
     end
-    set(gca,'XTick',1:Ne);
+    set(gca,'XTick',1:Nt);
     if f < Nf
         set(gca,'XTickLabel',{});
     end

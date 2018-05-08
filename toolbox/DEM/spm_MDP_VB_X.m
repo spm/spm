@@ -116,7 +116,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7306 2018-05-07 13:42:02Z karl $
+% $Id: spm_MDP_VB_X.m 7307 2018-05-08 09:44:04Z karl $
 
 
 % deal with a sequence of trials
@@ -608,7 +608,7 @@ for t = 1:T
         
         % likelihood (for multiple modalities)
         %------------------------------------------------------------------
-        Ao{t} = ones(Ns);
+        Ao{t} = 1;
         for g = 1:Ng
             Ao{t} = Ao{t}.*spm_dot(A{g},[O(g,t) x],(1:Nf) + 1);
         end
@@ -650,13 +650,12 @@ for t = 1:T
                             % entropy
                             %----------------------------------------------
                             qx  = spm_log(sx);
-                            v   = v - qx;
                             
                             % emprical priors
                             %----------------------------------------------
-                            if j < 2, v = v + spm_log(D{f});                                    end
-                            if j > 1, v = v + spm_log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
-                            if j < S, v = v + spm_log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
+                            if j < 2, v = v - qx + spm_log(D{f});                                    end
+                            if j > 1, v = v - qx + spm_log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
+                            if j < S, v = v - qx + spm_log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
 
                             % (negative) expected free energy
                             %----------------------------------------------
