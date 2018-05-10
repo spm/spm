@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7307 2018-05-08 09:44:04Z karl $
+% $Id: DEMO_MDP_questions.m 7308 2018-05-10 08:16:07Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -162,7 +162,8 @@ label.factor{9}  = 'adverb';       label.name{9}  = {'above','below'};
 % prior beliefs about initial states D 
 %--------------------------------------------------------------------------
 for i = 1:numel(label.factor)
-    D{i} = ones(numel(label.name{i}),1)/32;
+    n    = numel(label.name{i});
+    D{i} = ones(n,1)/n;
 end
 
 % known initial states
@@ -194,7 +195,7 @@ for f1 = 1:Ns(1)
                                     %--------------------------------------
                                     j = {f1,f2,f3,f4,f5,f6,f7,f8,f9};
                                     
-                                    % answer: depending on question and belifs
+                                    % answer: depending on question and beliefs
                                     %--------------------------------------
                                     Y  = 0;
                                     if f1 == 3
@@ -315,20 +316,24 @@ end
 % mdp.MDP  = MDP;
 % mdp.link = sparse(1,1,1,numel(MDP.D),Ng);
 mdp.label  = label;             % names of factors and outcomes
+mdp.tau    = 8;                % rate 
 
 mdp.V = V;                      % allowable policies
 mdp.A = A;                      % observation model
 mdp.B = B;                      % transition probabilities
 mdp.C = C;                      % preferred outcomes
-mdp.d = D;                      % prior over initial states (context)
+mdp.D = D;                      % prior over initial states (context)
 mdp.s = ones(Nf,1);             % initial state
 mdp.o = [];                     % outcomes
+
 mdp   = spm_MDP_check(mdp);
+
  
  
 %% illustrate an exchange
 %==========================================================================
 clear MDP
+OPTIONS.D  = 1;
 [MDP(1:6)] = deal(mdp);
 
 % Ask questions after a few answers
@@ -346,7 +351,7 @@ clear MDP
 %         MDP(i).o(4,:)   = [6 ceil(rand*3) -1];
 %     end
 % end
-MDP   = spm_MDP_VB_X(MDP);
+MDP   = spm_MDP_VB_X(MDP,OPTIONS);
 
 % show belief updates (and behaviour)
 %--------------------------------------------------------------------------

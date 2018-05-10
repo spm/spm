@@ -16,7 +16,7 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 7307 2018-05-08 09:44:04Z karl $
+% $Id: spm_MDP_VB_LFP.m 7308 2018-05-10 08:16:07Z karl $
  
  
 % defaults
@@ -104,7 +104,7 @@ w   = Hz*(dt*n);                         % cycles per window
 LFP = spm_cat(x);
 
 if Nt == 1, subplot(3,2,1), else subplot(4,1,1),end
-imagesc(t,1:(Nx*Ne),1 - spm_cat(z)')
+image(t,1:(Nx*Ne),64*(1 - spm_cat(z)'))
 title(MDP(1).label.factor{f},'FontSize',16)
 xlabel('time (sec)','FontSize',12)
 

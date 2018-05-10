@@ -37,6 +37,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %
 % OPTIONS.plot          - switch to suppress graphics:  (default: [0])
 % OPTIONS.gamma         - switch to suppress precision: (default: [0])
+% OPTIONS.D             - switch to update initial expectations
 % OPTIONS.BMR           - Bayesian model reduction for multiple trials
 %                         see: spm_MDP_VB_sleep(MDP,BMR)
 % produces:
@@ -116,7 +117,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7307 2018-05-08 09:44:04Z karl $
+% $Id: spm_MDP_VB_X.m 7308 2018-05-10 08:16:07Z karl $
 
 
 % deal with a sequence of trials
@@ -126,6 +127,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %--------------------------------------------------------------------------
 try, OPTIONS.plot;  catch, OPTIONS.plot  = 0; end
 try, OPTIONS.gamma; catch, OPTIONS.gamma = 0; end
+try, OPTIONS.D;     catch, OPTIONS.D     = 0; end
 
 % if there are multiple trials ensure that parameters are updated
 %--------------------------------------------------------------------------
@@ -143,6 +145,14 @@ if length(MDP) > 1
             try,  MDP(i).d = OUT(i - 1).d; end
             try,  MDP(i).c = OUT(i - 1).c; end
             try,  MDP(i).e = OUT(i - 1).e; end
+            
+            % update initial states (post-diction)
+            %------------------------------------------------------------------
+            if OPTIONS.D
+                for f = 1:numel(MDP(i).D)
+                    MDP(i).D{f} = OUT(i - 1).X{f}(:,1);
+                end
+            end
         end
         
         % solve this trial
@@ -638,7 +648,7 @@ for t = 1:T
                         
                         % evaluate free energy and gradients (v = dFdx)
                         %--------------------------------------------------
-                        if dF > exp(-8)
+                        if dF > exp(-4)
                             
                             % marginal likelihood over outcome factors
                             %----------------------------------------------
@@ -650,12 +660,13 @@ for t = 1:T
                             % entropy
                             %----------------------------------------------
                             qx  = spm_log(sx);
+                            v   = v - qx;
                             
                             % emprical priors
                             %----------------------------------------------
-                            if j < 2, v = v - qx + spm_log(D{f});                                    end
-                            if j > 1, v = v - qx + spm_log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
-                            if j < S, v = v - qx + spm_log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
+                            if j < 2, v = v + spm_log(D{f});                                    end
+                            if j > 1, v = v + spm_log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
+                            if j < S, v = v + spm_log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
 
                             % (negative) expected free energy
                             %----------------------------------------------
