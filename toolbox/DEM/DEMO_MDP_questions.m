@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7308 2018-05-10 08:16:07Z karl $
+% $Id: DEMO_MDP_questions.m 7310 2018-05-11 19:24:09Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -269,19 +269,13 @@ end
 %--------------------------------------------------------------------------
 B{1}(:,:,1) = spm_speye(Ns(1),Ns(1),-1); B{1}(1,Ns(1),1) = 1;
 
-% control states B(2): question {'1','2' or '3'}
+% control states B(2): question {'1','2' or '3'} & control states B(7):B{9} 
 %--------------------------------------------------------------------------
-for k = 1:Ns(2)
-    B{2}(:,:,k) = 0;
-    B{2}(k,:,k) = 1;
-end
- 
 % D{7} = [1 0]';      % noun:         {'square','triangle'}
 % D{8} = [1 0]';      % adjective:    {'green','red'}
 % D{9} = [1 0]';      % adverb:       {'above','below'}
-% control states B(7):B{9} 
 %--------------------------------------------------------------------------
-for i = [7 8 9]
+for i = [2 7 8 9]
     for k = 1:Ns(i)
         B{i}(:,:,k) = 0;
         B{i}(k,:,k) = 1;
@@ -310,20 +304,24 @@ end
 % C{4}(3,:) =  1;                 % long questions
 % C{4}(5,:) = -2;                 % and affirmative answers
 
+% actual state of the world
+%--------------------------------------------------------------------------
+s    = ones(Nf,1);
+s(4) = 2;
 
 % MDP Structure
 %--------------------------------------------------------------------------
 % mdp.MDP  = MDP;
 % mdp.link = sparse(1,1,1,numel(MDP.D),Ng);
 mdp.label  = label;             % names of factors and outcomes
-mdp.tau    = 8;                % rate 
+mdp.tau    = 8;                 % rate 
 
 mdp.V = V;                      % allowable policies
 mdp.A = A;                      % observation model
 mdp.B = B;                      % transition probabilities
 mdp.C = C;                      % preferred outcomes
 mdp.D = D;                      % prior over initial states (context)
-mdp.s = ones(Nf,1);             % initial state
+mdp.s = s;                      % initial state
 mdp.o = [];                     % outcomes
 
 mdp   = spm_MDP_check(mdp);
@@ -338,19 +336,19 @@ OPTIONS.D  = 1;
 
 % Ask questions after a few answers
 %--------------------------------------------------------------------------
-% for i = 1:length(MDP)
-%     if i < 5
-%         % ask question
-%         %------------------------------------------------------------------
-%         MDP(i).o(1:3,:) = -ones(3,3);
-%         MDP(i).o(4,:)   = [-1 -1 0];
-%     else
-%         % answer question
-%         %------------------------------------------------------------------
-%         MDP(i).o(1:3,:) = ceil(2*rand(3,1))*[1 1 1];
-%         MDP(i).o(4,:)   = [6 ceil(rand*3) -1];
-%     end
-% end
+for i = 1:length(MDP)
+    if i < 5
+        % ask question
+        %------------------------------------------------------------------
+        MDP(i).o(1:3,:) = -ones(3,3);
+        MDP(i).o(4,:)   = [-1 -1 0];
+    else
+        % answer question
+        %------------------------------------------------------------------
+        MDP(i).o(1:3,:) = ceil(2*rand(3,1))*[1 1 1];
+        MDP(i).o(4,:)   = [6 ceil(rand*3) -1];
+    end
+end
 MDP   = spm_MDP_VB_X(MDP,OPTIONS);
 
 % show belief updates (and behaviour)
@@ -376,14 +374,13 @@ return
  
 % illustrate violations
 %==========================================================================
-NDP      = MDP;                            % get states and outcomes
-NDP(1).d = mdp(1).d;                       % reinstate initial priors
+NDP    = MDP;                              % get states and outcomes
 if NDP(5).o(4,3) == 4                      % switch the answer
     NDP(5).o(4,3) = 5;
 else
     NDP(5).o(4,3) = 4;
 end
-NDP   = spm_MDP_VB_X(NDP(1:5));
+NDP(5) = spm_MDP_VB_X(NDP(5));
 
 % responses to appropriate and inappropriate answers
 %--------------------------------------------------------------------------
@@ -391,8 +388,33 @@ spm_figure('GetWin','Figure 6'); clf, spm_MDP_VB_LFP(MDP(3:5),[],3);
 spm_figure('GetWin','Figure 7'); clf, spm_MDP_VB_LFP(NDP(3:5),[],3);
 
 
+% illustrate 'who's talking'
+%==========================================================================
+o{1} = [-ones(3,3); -1 -1 0];                           % ask
+o{2} = [ceil(2*rand(3,1))*[1 1 1]; 6 ceil(rand*3) -1];  % answer
+o{3} = [-ones(3,3); -1 -1 -1];                          % answer yourself
+o{3} = [ceil(2*rand(3,1))*[1 1 1]; 6 ceil(rand*3) 0];   % just listen
 
+clear MDP
+OPTIONS.D  = 1;
+[MDP(1:6)] = deal(mdp);
 
+% Ask questions after a few answers
+%--------------------------------------------------------------------------
+for i = 1:length(MDP)
+    if i < 5
+        % ask question
+        %------------------------------------------------------------------
+        MDP(i).o(1:3,:) = -ones(3,3);
+        MDP(i).o(4,:)   = [-1 -1 0];
+    else
+        % answer question
+        %------------------------------------------------------------------
+        MDP(i).o(1:3,:) = ceil(2*rand(3,1))*[1 1 1];
+        MDP(i).o(4,:)   = [6 ceil(rand*3) -1];
+    end
+end
+MDP   = spm_MDP_VB_X(MDP,OPTIONS);
 
 
 

@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_reading
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_reading.m 6866 2016-09-05 09:19:42Z karl $
+% $Id: DEM_demo_MDP_reading.m 7310 2018-05-11 19:24:09Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -127,6 +127,7 @@ mdp.Aname = {'what','where'};
 mdp.Bname = {'what','where','flip','flip'};
 mdp.alpha = 4;
 mdp.chi   = 1/64;
+mdp.tau   = 2;
  
 clear A B D
  
@@ -242,7 +243,9 @@ mdp.B = B;                      % transition probabilities
 mdp.C = C;                      % preferred outcomes
 mdp.D = D;                      % prior over initial states
 mdp.s = [1 1 1]';               % initial state
- 
+
+
+mdp.tau     = 2;
 mdp.Aname   = {'picture','where','feedback'};
 mdp.Bname   = {'story','where','decision'};
 mdp         = spm_MDP_check(mdp);

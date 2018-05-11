@@ -117,7 +117,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7308 2018-05-10 08:16:07Z karl $
+% $Id: spm_MDP_VB_X.m 7310 2018-05-11 19:24:09Z karl $
 
 
 % deal with a sequence of trials
@@ -248,7 +248,6 @@ end
 
 % likelihood model (for a partially observed MDP)
 %--------------------------------------------------------------------------
-p0    = exp(-16);
 for g = 1:Ng
     
     % ensure probabilities are normalised : A
@@ -268,7 +267,7 @@ for g = 1:Ng
     if isfield(MDP,'a')
         qA{g} = spm_psi(MDP.a{g} + 1/16);
         pA{g} = MDP.a{g};
-        wA{g} = spm_wnorm(MDP.a{g} + p0);
+        wA{g} = spm_wnorm(MDP.a{g} + exp(-16));
         wA{g} = wA{g}.*(MDP.a{g} > 0);
     end
     
@@ -286,11 +285,11 @@ for f = 1:Nf
         % parameters (concentration parameters): b
         %------------------------------------------------------------------
         if isfield(MDP,'b') && ~HMM
-            sB{f}(:,:,j) = spm_norm(MDP.b{f}(:,:,j)  + p0);
-            rB{f}(:,:,j) = spm_norm(MDP.b{f}(:,:,j)' + p0);
+            sB{f}(:,:,j) = spm_norm(MDP.b{f}(:,:,j) );
+            rB{f}(:,:,j) = spm_norm(MDP.b{f}(:,:,j)');
         else
-            sB{f}(:,:,j) = spm_norm(MDP.B{f}(:,:,j)  + p0);
-            rB{f}(:,:,j) = spm_norm(MDP.B{f}(:,:,j)' + p0);
+            sB{f}(:,:,j) = spm_norm(MDP.B{f}(:,:,j) );
+            rB{f}(:,:,j) = spm_norm(MDP.B{f}(:,:,j)');
         end
 
     end
@@ -410,17 +409,18 @@ end
 
 % If outcomes have not been specified set to 0
 %--------------------------------------------------------------------------
-if ~isfield(MDP,'o') || isempty(MDP.o)
-    MDP.o = zeros(Ng,T);
+o     = zeros(Ng,T);
+try
+    i    = find(MDP.o);
+    o(i) = MDP.o(i);
 end
-
+MDP.o = o;
 
 % expected rate parameter
 %--------------------------------------------------------------------------
-p         = 1:Np;                       % allowable policies
-qbeta     = beta;                       % initialise rate parameters
-gu        = 1/qbeta;                    % posterior precision (policy)
-%[Ao{1:T}] = deal(ones(Ns));             % initialise multimodal likelihood
+p     = 1:Np;                           % allowable policies
+qbeta = beta;                           % initialise rate parameters
+gu    = 1/qbeta;                        % posterior precision (policy)
 
 % solve
 %==========================================================================
@@ -623,6 +623,8 @@ for t = 1:T
             Ao{t} = Ao{t}.*spm_dot(A{g},[O(g,t) x],(1:Nf) + 1);
         end
         
+        % variational message passing (VMP)
+        %------------------------------------------------------------------
         S     = size(V,1) + 1;
         F     = zeros(Np,1);
         for k = p                       % loop over plausible policies
@@ -648,7 +650,7 @@ for t = 1:T
                         
                         % evaluate free energy and gradients (v = dFdx)
                         %--------------------------------------------------
-                        if dF > exp(-4)
+                        if dF > exp(-8)
                             
                             % marginal likelihood over outcome factors
                             %----------------------------------------------
@@ -667,7 +669,7 @@ for t = 1:T
                             if j < 2, v = v + spm_log(D{f});                                    end
                             if j > 1, v = v + spm_log(sB{f}(:,:,V(j - 1,k,f))*x{f}(:,j - 1,k)); end
                             if j < S, v = v + spm_log(rB{f}(:,:,V(j    ,k,f))*x{f}(:,j + 1,k)); end
-
+ 
                             % (negative) expected free energy
                             %----------------------------------------------
                             F(k) = F(k) + sx'*v/Nf;
@@ -1018,8 +1020,8 @@ MDP.C   = Vo;             % utility
 
 if HMM, return, end
 
-MDP.o   = o;              % outcomes at 1,...,T
-MDP.s   = s;              % states   at 1,...,T
+MDP.o   = o(:,1:T);       % outcomes at 1,...,T
+MDP.s   = s(:,1:T);       % states   at 1,...,T
 MDP.u   = a;              % action   at 1,...,T - 1
 MDP.w   = gu;             % posterior expectations of precision (policy)
 

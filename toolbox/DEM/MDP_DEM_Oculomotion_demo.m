@@ -16,7 +16,7 @@ L{3} = [0;  0.2*pi];
 
 % MDP outcomes to DEM causes
 %--------------------------------------------------------------------------
-N = 24;
+N  = 24;
 nl = length(L);
 nh = 2;
 
@@ -114,7 +114,8 @@ MDP.C = C;
 MDP.D = D;
 MDP.T = T;
 
-MDP = spm_MDP_check(MDP);
+MDP.tau = 32;
+MDP     = spm_MDP_check(MDP);
 
 function DEM = DEM_MDP_oculomotion_GM
 % hidden states

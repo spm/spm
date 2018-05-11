@@ -38,7 +38,7 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 7306 2018-05-07 13:42:02Z karl $
+% $Id: DEM_demo_MDP_X.m 7310 2018-05-11 19:24:09Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -134,7 +134,7 @@ mdp.s = [1 1]';                  % true initial state
 
 mdp.Aname = {'exteroceptive','interoceptive'};
 mdp.Bname = {'position','context'};
-mdp.tau   = 8;
+mdp.tau   = 16;
 
 % true initial states – with context change at trial 12
 %--------------------------------------------------------------------------

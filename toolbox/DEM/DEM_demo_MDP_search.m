@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_search
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_search.m 7273 2018-03-04 13:15:34Z karl $
+% $Id: DEM_demo_MDP_search.m 7310 2018-05-11 19:24:09Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -155,7 +155,7 @@ C{1}      = zeros(No(1),T);
 C{2}      = zeros(No(2),T);
 C{1}(5,:) =  2;                 % the agent expects to be right
 C{1}(6,:) = -4;                 % and not wrong
-C{2}(1:5,4:end) = -4;           % make tardy sampling costly
+C{2}(1:5,5:end) = -4;           % make tardy sampling costly
 
 
 % MDP Structure - this will be used to generate arrays for multiple trials
@@ -522,7 +522,7 @@ for k = 1:Ne
     for j = 1:k
         X(j,:) = x(MDP.o(2,j),:);
     end
-    plot(X(:,1),X(:,2),'b.','MarkerSize',8)
+    plot(X(:,1),X(:,2),'b.','MarkerSize',16)
     
     % save
     %------------------------------------------------------------------

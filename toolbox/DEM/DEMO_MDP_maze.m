@@ -41,7 +41,7 @@ function MDP = DEMO_MDP_maze
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_MDP_maze.m 7224 2017-11-18 18:10:09Z karl $
+% $Id: DEMO_MDP_maze.m 7310 2018-05-11 19:24:09Z karl $
 
 % set up and preliminaries: first level
 %--------------------------------------------------------------------------
@@ -138,8 +138,6 @@ mdp.C = C;                      % preferred outcomes
 mdp.D = D;                      % prior over initial states
 
 mdp.label = label;
-mdp.alpha = 64;
-mdp.tau   = 8;
 mdp       = spm_MDP_check(mdp);
 
 
@@ -208,7 +206,7 @@ end
 % of experience by asking the subject to execute a path to target. The
 % behaviour is then assessed in terms of the latency with which the target
 % will go is required  – and the number of mistakes or exploratory
-% excursions into  closed locations.
+% excursions into closed locations.
 %--------------------------------------------------------------------------
 N     = [];
 M     = [];

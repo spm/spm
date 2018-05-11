@@ -16,7 +16,7 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 7308 2018-05-10 08:16:07Z karl $
+% $Id: spm_MDP_VB_LFP.m 7310 2018-05-11 19:24:09Z karl $
  
  
 % defaults
@@ -99,23 +99,24 @@ Hz  = 4:32;                              % frequency range
 n   = 1/(4*dt);                          % window length
 w   = Hz*(dt*n);                         % cycles per window
  
-% simulated local field potential
+% simulated firing rates and local field potential
 %--------------------------------------------------------------------------
-LFP = spm_cat(x);
-
 if Nt == 1, subplot(3,2,1), else subplot(4,1,1),end
 image(t,1:(Nx*Ne),64*(1 - spm_cat(z)'))
 title(MDP(1).label.factor{f},'FontSize',16)
 xlabel('time (sec)','FontSize',12)
 
+if numel(str) < 16
+   grid on, set(gca,'YTick',1:(Ne*Nx))
+   set(gca,'YTickLabel',str)
+end
 grid on, set(gca,'XTick',(1:(Ne*Nt))*Nb*dt)
-grid on, set(gca,'YTick',1:(Ne*Nx))
-set(gca,'YTickLabel',str)
 if Ne*Nt > 32, set(gca,'XTickLabel',{}), end
 if Nt == 1,    axis square,              end
  
 % time frequency analysis and theta phase
 %--------------------------------------------------------------------------
+LFP = spm_cat(x);
 wft = spm_wft(LFP,w,n);
 csd = sum(abs(wft),3);
 lfp = sum(LFP,2);
@@ -191,17 +192,19 @@ if Nt == 1, subplot(3,2,2)
     axis square
 end
 
-% simulated dopamine responses
+% simulated dopamine responses (if not a moving policy)
 %==========================================================================
-if Nt == 1, subplot(3,2,6), else subplot(4,1,4),end
-dn    = spm_vec(dn);
-dn    = dn.*(dn > 0);
-dn    = dn + (dn + 1/16).*rand(size(dn))/8;
-bar(dn,1,'k'), title('Dopamine responses','FontSize',16)
-xlabel('time (updates)','FontSize',12)
-ylabel('change in precision','FontSize',12), spm_axis tight, box off
-YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
-if Nt == 1, axis square, end
+if ~isfield(MDP,'U')
+    if Nt == 1, subplot(3,2,6), else subplot(4,1,4),end
+    dn    = spm_vec(dn);
+    dn    = dn.*(dn > 0);
+    dn    = dn + (dn + 1/16).*rand(size(dn))/8;
+    bar(dn,1,'k'), title('Dopamine responses','FontSize',16)
+    xlabel('time (updates)','FontSize',12)
+    ylabel('change in precision','FontSize',12), spm_axis tight, box off
+    YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
+    if Nt == 1, axis square, end
+end
 
 % simulated rasters
 %==========================================================================
