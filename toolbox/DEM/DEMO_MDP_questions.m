@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7310 2018-05-11 19:24:09Z karl $
+% $Id: DEMO_MDP_questions.m 7311 2018-05-13 21:15:07Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -271,14 +271,15 @@ B{1}(:,:,1) = spm_speye(Ns(1),Ns(1),-1); B{1}(1,Ns(1),1) = 1;
 
 % control states B(2): question {'1','2' or '3'} & control states B(7):B{9} 
 %--------------------------------------------------------------------------
-% D{7} = [1 0]';      % noun:         {'square','triangle'}
-% D{8} = [1 0]';      % adjective:    {'green','red'}
-% D{9} = [1 0]';      % adverb:       {'above','below'}
+% D{2} ;      % question;     {'1','2','3'};
+% D{7} ;      % noun:         {'square','triangle'}
+% D{8} ;      % adjective:    {'green','red'}
+% D{9} ;      % adverb:       {'above','below'}
 %--------------------------------------------------------------------------
 for i = [2 7 8 9]
     for k = 1:Ns(i)
-        B{i}(:,:,k) = 0;
-        B{i}(k,:,k) = 1;
+        B{i}(:,:,k + 1) = 0;
+        B{i}(k,:,k + 1) = 1;
     end
 end
 
@@ -289,10 +290,11 @@ end
 % question 3: {'adjective (8)','noun (7)','adverb (9)'}
 %--------------------------------------------------------------------------
 V         = ones(2,14,Nf);
-V(:,:,2)  = kron([1;1],[1 1 2 2 2 2 3 3 3 3 3 3 3 3]);
-V(:,:,7)  = kron([1;1],[1 2 1 1 2 2 1 1 1 1 2 2 2 2]);
-V(:,:,8)  = kron([1;1],[1 1 1 1 1 1 1 1 2 2 1 1 2 2]);
-V(:,:,9)  = kron([1;1],[1 1 1 2 1 2 1 2 1 2 1 2 1 2]);
+V(1,:,2)  = 1 + [1 1 2 2 2 2 3 3 3 3 3 3 3 3];
+V(1,:,7)  = 1 + [1 2 1 1 2 2 1 1 1 1 2 2 2 2];
+V(1,:,8)  = 1 + [1 1 1 1 1 1 1 1 2 2 1 1 2 2];
+V(1,:,9)  = 1 + [1 1 1 2 1 2 1 2 1 2 1 2 1 2];
+V(2,:,:)  = 1;
 
  
 % priors: (utility) C: A{4} syntax: {'1','2','3','Y','N','S'}
@@ -314,7 +316,8 @@ s(4) = 2;
 % mdp.MDP  = MDP;
 % mdp.link = sparse(1,1,1,numel(MDP.D),Ng);
 mdp.label  = label;             % names of factors and outcomes
-mdp.tau    = 8;                 % rate 
+mdp.tau    = 8;                 % rate
+mdp.zeta   = 16;                % threhsold for pecision 
 
 mdp.V = V;                      % allowable policies
 mdp.A = A;                      % observation model
@@ -332,23 +335,23 @@ mdp   = spm_MDP_check(mdp);
 %==========================================================================
 clear MDP
 OPTIONS.D  = 1;
-[MDP(1:6)] = deal(mdp);
+[MDP(1,1:6)] = deal(mdp);
 
 % Ask questions after a few answers
 %--------------------------------------------------------------------------
-for i = 1:length(MDP)
-    if i < 5
-        % ask question
-        %------------------------------------------------------------------
-        MDP(i).o(1:3,:) = -ones(3,3);
-        MDP(i).o(4,:)   = [-1 -1 0];
-    else
-        % answer question
-        %------------------------------------------------------------------
-        MDP(i).o(1:3,:) = ceil(2*rand(3,1))*[1 1 1];
-        MDP(i).o(4,:)   = [6 ceil(rand*3) -1];
-    end
-end
+% for i = 1:length(MDP)
+%     if i < 5
+%         % ask question
+%         %------------------------------------------------------------------
+%         MDP(i).o(1:3,:) = -ones(3,3);
+%         MDP(i).o(4,:)   = [-1 -1 0];
+%     else
+%         % answer question
+%         %------------------------------------------------------------------
+%         MDP(i).o(1:3,:) = ceil(2*rand(3,1))*[1 1 1];
+%         MDP(i).o(4,:)   = [6 ceil(rand*3) -1];
+%     end
+% end
 MDP   = spm_MDP_VB_X(MDP,OPTIONS);
 
 % show belief updates (and behaviour)
@@ -365,31 +368,57 @@ spm_figure('GetWin','Figure 3'); clf
 spm_MDP_VB_LFP(MDP,[],4,1);
 
 spm_figure('GetWin','Figure 4'); clf
-for i = 1:length(MDP)
+for i = 1:size(MDP,2)
     subplot(4,3,i)
-    spm_questions_plot(MDP(i))
+    spm_questions_plot(MDP(1,i))
+end
+
+
+% illustrate violations
+%==========================================================================
+% NDP    = MDP;                              % get states and outcomes
+% if NDP(5).o(4,3) == 4                      % switch the answer
+%     NDP(5).o(4,3) = 5;
+% else
+%     NDP(5).o(4,3) = 4;
+% end
+% NDP(5) = spm_MDP_VB_X(NDP(5));
+% 
+% % responses to appropriate and inappropriate answers
+% %--------------------------------------------------------------------------
+% spm_figure('GetWin','Figure 6'); clf, spm_MDP_VB_LFP(MDP(3:5),[],3);
+% spm_figure('GetWin','Figure 7'); clf, spm_MDP_VB_LFP(NDP(3:5),[],3);
+
+
+% illustrate 'communication'
+%==========================================================================
+
+% create two agents
+%--------------------------------------------------------------------------
+clear MDP
+OPTIONS.D  = 1;
+[MDP(1:2,1:6)] = deal(mdp);
+
+% give a second subject veridical beliefs about the scene
+%--------------------------------------------------------------------------
+for i = [3 4 5 6]
+    MDP(2,1).D{i} = sparse(s(i),1,1,Ns(i),1);
+end
+
+
+MDP   = spm_MDP_VB_X(MDP,OPTIONS);
+
+spm_figure('GetWin','Figure 2'); clf
+spm_MDP_VB_LFP(MDP(1,:),[],4);
+
+spm_figure('GetWin','Figure 4'); clf
+for i = 1:size(MDP,2)
+    subplot(4,3,i)
+    spm_questions_plot(MDP(1,i))
 end
 
 return
- 
-% illustrate violations
-%==========================================================================
-NDP    = MDP;                              % get states and outcomes
-if NDP(5).o(4,3) == 4                      % switch the answer
-    NDP(5).o(4,3) = 5;
-else
-    NDP(5).o(4,3) = 4;
-end
-NDP(5) = spm_MDP_VB_X(NDP(5));
 
-% responses to appropriate and inappropriate answers
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 6'); clf, spm_MDP_VB_LFP(MDP(3:5),[],3);
-spm_figure('GetWin','Figure 7'); clf, spm_MDP_VB_LFP(NDP(3:5),[],3);
-
-
-% illustrate 'who's talking'
-%==========================================================================
 o{1} = [-ones(3,3); -1 -1 0];                           % ask
 o{2} = [ceil(2*rand(3,1))*[1 1 1]; 6 ceil(rand*3) -1];  % answer
 o{3} = [-ones(3,3); -1 -1 -1];                          % answer yourself

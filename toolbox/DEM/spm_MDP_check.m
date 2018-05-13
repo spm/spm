@@ -30,7 +30,7 @@ function [MDP] = spm_MDP_check(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_check.m 7306 2018-05-07 13:42:02Z karl $
+% $Id: spm_MDP_check.m 7311 2018-05-13 21:15:07Z karl $
  
  
 % deal with a sequence of trials
@@ -38,14 +38,16 @@ function [MDP] = spm_MDP_check(MDP)
  
 % if there are multiple structures check each separately
 %--------------------------------------------------------------------------
-if length(MDP) > 1
-    for i = 1:length(MDP)
-        mdp(i) = spm_MDP_check(MDP(i));
+if numel(MDP) > 1
+    for m = 1:size(MDP,1)
+        for i = 1:size(MDP,2)
+            mdp(m,i) = spm_MDP_check(MDP(m,i));
+        end
     end
     MDP   = mdp;
     return
 end
- 
+
 % check dimensions and orders
 %==========================================================================
  

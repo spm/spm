@@ -43,7 +43,7 @@ function MDP = DEM_demo_MDP_DEM
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_DEM.m 7003 2017-02-02 18:22:56Z karl $
+% $Id: DEM_demo_MDP_DEM.m 7311 2018-05-13 21:15:07Z karl $
 
 % set up and preliminaries: first level
 %--------------------------------------------------------------------------
@@ -68,7 +68,7 @@ pth = fileparts(mfilename('fullpath'));
 global STIM
 str   = {'null','bird','seed','cats'};
 for i = 1:numel(str)
-    STIM.H{i}   = spm_vol(fullfile(pth,[str{i},'.nii']));
+    STIM.H{i} = spm_vol(fullfile(pth,[str{i},'.nii']));
 end
 
 % set-up:
