@@ -17,7 +17,7 @@ classdef spm_file_template
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file_template.m 4834 2012-08-09 15:15:19Z guillaume $
+% $Id: spm_file_template.m 7312 2018-05-16 11:22:53Z guillaume $
 
 
 %-Properties
@@ -28,11 +28,11 @@ properties
 end
 
 properties (SetAccess='private', GetAccess='private')
-    filekeys;
-    filenames;
+    filekeys = {};
+    filenames = {};
     
-    varkeys;
-    varvals;
+    varkeys = {};
+    varvals = {};
 end
 
 %-Constructor
