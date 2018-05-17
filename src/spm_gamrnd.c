@@ -1,5 +1,5 @@
 /*
- * $Id: spm_gamrnd.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: spm_gamrnd.c 7313 2018-05-17 13:25:51Z guillaume $
  * Guillaume Flandin
  */
 
@@ -99,17 +99,46 @@ void mexFunction(int nlhs, mxArray *plhs[],
   if (nrhs < 2)
     mexErrMsgTxt("Requires at least two input arguments.");
 
-  ndims = (nrhs == 2) ? 1 : nrhs-2;
-  dims = (mwSize*)mxMalloc(ndims*sizeof(mwSize));
-  
-  len = 1;
-  for (i=0;i<ndims;i++) {
-    dims[i] = (nrhs == 2) ? 1 : (mwSize)mxGetScalar(prhs[i+2]);
-    len *= dims[i];
+  if (nrhs == 2) {
+    ndims = 1;
+    dims = (mwSize*)mxMalloc(ndims*sizeof(mwSize));
+    len = dims[0] = 1;
+  }
+  else if (nrhs == 3) {
+    if (mxGetNumberOfElements(prhs[2]) == 1) {
+      ndims = 2;
+      dims = (mwSize*)mxMalloc(ndims*sizeof(mwSize));
+      dims[0] = dims[1] = (mwSize)mxGetScalar(prhs[2]);
+      len = dims[0] * dims[1];
+    }
+    else {
+      ndims = mxGetNumberOfElements(prhs[2]);
+      dims = (mwSize*)mxMalloc(ndims*sizeof(mwSize));
+      len = 1;
+      for (i=0;i<ndims;i++) {
+        dims[i] = (mwSize)mxGetPr(prhs[2])[i];
+        len *= dims[i];
+      }
+    }
+  }
+  else {
+    ndims = nrhs-2;
+    dims = (mwSize*)mxMalloc(ndims*sizeof(mwSize));
+    len = 1;
+    for (i=0;i<ndims;i++) {
+      dims[i] = (mwSize)mxGetScalar(prhs[i+2]);
+      len *= dims[i];
+    }
   }
   
-  a = mxGetScalar(prhs[0]);
-  b = mxGetScalar(prhs[1]);
+  if (mxGetNumberOfElements(prhs[0]) == 1)
+    a = mxGetScalar(prhs[0]);
+  else
+    mexErrMsgTxt("Shape parameter not scalar.");
+  if (mxGetNumberOfElements(prhs[1]) == 1)
+    b = mxGetScalar(prhs[1]);
+  else
+    mexErrMsgTxt("Scale parameter not scalar.");
   
   plhs[0] = mxCreateNumericArray(ndims, dims, mxDOUBLE_CLASS, mxREAL);
   o = mxGetPr(plhs[0]);
