@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7311 2018-05-13 21:15:07Z karl $
+% $Id: DEMO_MDP_questions.m 7314 2018-05-19 10:13:25Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -317,7 +317,6 @@ s(4) = 2;
 % mdp.link = sparse(1,1,1,numel(MDP.D),Ng);
 mdp.label  = label;             % names of factors and outcomes
 mdp.tau    = 8;                 % rate
-mdp.zeta   = 16;                % threhsold for pecision 
 
 mdp.V = V;                      % allowable policies
 mdp.A = A;                      % observation model

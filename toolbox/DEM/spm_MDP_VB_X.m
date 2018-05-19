@@ -130,7 +130,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7311 2018-05-13 21:15:07Z karl $
+% $Id: spm_MDP_VB_X.m 7314 2018-05-19 10:13:25Z karl $
 
 
 % deal with a sequence of trials
@@ -239,12 +239,20 @@ end
 %--------------------------------------------------------------------------
 try, alpha = MDP(1).alpha; catch, alpha = 128;  end
 try, beta  = MDP(1).beta;  catch, beta  = 1;    end
-try, zeta  = MDP(1).zeta;  catch, zeta  = 8;    end
+try, zeta  = MDP(1).zeta;  catch, zeta  = 16;    end
 try, eta   = MDP(1).eta;   catch, eta   = 1;    end
 try, tau   = MDP(1).tau;   catch, tau   = 4;    end
 try, chi   = MDP(1).chi;   catch, chi   = 1/64; end
 
-T     = T(1);
+
+% preclude precision updates for mving policies
+%--------------------------------------------------------------------------
+if isfield(MDP,'U'), OPTIONS.gamma = 1;         end
+
+% initialise model-specific variables
+%--------------------------------------------------------------------------
+T     = T(1);                       % number time steps
+Ni    = 16;                         % number of VB iterations
 for m = 1:size(MDP,1)
     
     % ensure policy length is less than the number of updates
@@ -403,11 +411,8 @@ for m = 1:size(MDP,1)
         C{m,g} = spm_log(spm_softmax(C{m,g}));
     end
     
-    
-    
     % initialise  posterior expectations of hidden states
     %----------------------------------------------------------------------
-    Ni    = 16;                         % number of VB iterations
     for f = 1:Nf(m)
         xn{m,f} = zeros(Ni,Ns(m,f),1,1,Np(m)) + 1/Ns(m,f);
         vn{m,f} = zeros(Ni,Ns(m,f),1,1,Np(m));
@@ -445,18 +450,12 @@ for m = 1:size(MDP,1)
     p{m}  = 1:Np(m);
     
     % expected rate parameter
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     qb{m} = beta;                          % initialise rate parameters
     w{m}  = 1/qb{m};                       % posterior precision (policy)
     
 end
 
-
-% preclude precision updates for mving policies
-%--------------------------------------------------------------------------
-if isfield(MDP,'U')
-    OPTIONS.gamma = 1;
-end
 
 % belief updating over successive time points
 %==========================================================================
@@ -542,8 +541,8 @@ for t = 1:T
             if isfield(MDP,'link') || isfield(MDP,'demi')
                 O{m}{g,t} = spm_dot(A{m,g},xq(m,:));
                 
-                % specified as a likelihood or observation
-                %----------------------------------------------------------
+            % specified as a likelihood or observation
+            %--------------------------------------------------------------
             elseif isfield(MDP,'O')
                 O{m}{g,t} = MDP(m).O{g}(:,t);
             else
@@ -636,7 +635,14 @@ for t = 1:T
             end
         end
         
+        % likelihood (for multiple modalities)
+        %--------------------------------------------------------------
+        L{m,t} = 1;
+        for g = 1:Ng(m)
+            L{m,t} = L{m,t}.*spm_dot(A{m,g},O{m}{g,t});
+        end
         
+            
         % Variational updates (skip to t = T in HMM mode)
         %==================================================================
         if ~HMM || T == t
@@ -658,13 +664,7 @@ for t = 1:T
             % Variational updates (hidden states) under sequential policies
             %==============================================================
             
-            % likelihood (for multiple modalities)
-            %--------------------------------------------------------------
-            Ao{t} = 1;
-            for g = 1:Ng(m)
-                Ao{t} = Ao{t}.*spm_dot(A{m,g},[O{m}(g,t) x{m,:}],(1:Nf(m)) + 1);
-            end
-            
+
             % variational message passing (VMP)
             %--------------------------------------------------------------
             S     = size(V{m},1) + 1;
@@ -697,8 +697,8 @@ for t = 1:T
                                 % marginal likelihood over outcome factors
                                 %------------------------------------------
                                 if j <= t
-                                    Aq = spm_dot(Ao{j},xq(m,:),f);
-                                    v  = v + spm_log(Aq(:));
+                                    qL = spm_dot(L{m,j},xq(m,:),f);
+                                    v  = v + spm_log(qL(:));
                                 end
                                 
                                 % entropy
@@ -937,7 +937,7 @@ for m = 1:size(MDP,1)
         %------------------------------------------------------------------
         if isfield(MDP,'a')
             for g = 1:Ng(m)
-                da     = sparse(o{m}(g,t),1,1,No(m,g),1);
+                da     = O{m}(g,t);
                 for  f = 1:Nf(m)
                     da = spm_cross(da,X{m,f}(:,t));
                 end
@@ -963,9 +963,9 @@ for m = 1:size(MDP,1)
         %------------------------------------------------------------------
         if isfield(MDP,'c')
             for g = 1:Ng(m)
-                dc = sparse(o{m}(g,t),1,1,No(m,g),1);
-                if size(MDP(m).c{g},2)>1
-                    dc = dc.*(MDP(m).c{g}(:,t)>0);
+                dc = O{m}(g,t);
+                if size(MDP(m).c{g},2) > 1
+                    dc = dc.*(MDP(m).c{g}(:,t) > 0);
                     MDP(m).c{g}(:,t) = MDP(m).c{g}(:,t) + dc*eta;
                 else
                     dc = dc.*(MDP(m).c{g}>0);
@@ -1061,27 +1061,27 @@ for m = 1:size(MDP,1)
     
     % assemble results and place in NDP structure
     %----------------------------------------------------------------------
-    MDP(m).T   = T;             % number of belief updates
-    MDP(m).V   = V{m};          % policies
-    MDP(m).P   = P{m};          % probability of action at time 1,...,T - 1
-    MDP(m).R   = u{m};          % conditional expectations over policies
-    MDP(m).Q   = x(m,:);        % conditional expectations over N states
-    MDP(m).X   = X(m,:);        % Bayesian model averages over T outcomes
-    MDP(m).C   = C(m,:);        % utility
+    MDP(m).T  = T;            % number of belief updates
+    MDP(m).V  = V{m};         % policies
+    MDP(m).P  = P{m};         % probability of action at time 1,...,T - 1
+    MDP(m).R  = u{m};         % conditional expectations over policies
+    MDP(m).Q  = x(m,:);       % conditional expectations over N states
+    MDP(m).X  = X(m,:);       % Bayesian model averages over T outcomes
+    MDP(m).C  = C(m,:);       % utility
     
     if HMM, return, end
     
-    MDP(m).o   = o{m}(:,1:T);   % outcomes at 1,...,T
-    MDP(m).s   = s{m}(:,1:T);   % states   at 1,...,T
-    MDP(m).u   = a{m};          % action   at 1,...,T - 1
-    MDP(m).w   = w{m};          % posterior expectations of precision (policy)
+    MDP(m).o  = o{m}(:,1:T);  % outcomes at 1,...,T
+    MDP(m).s  = s{m}(:,1:T);  % states   at 1,...,T
+    MDP(m).u  = a{m};         % action   at 1,...,T - 1
+    MDP(m).w  = w{m};         % posterior expectations of precision (policy)
     
-    MDP(m).vn  = Vn(m,:);       % simulated neuronal prediction error
-    MDP(m).xn  = Xn(m,:);       % simulated neuronal encoding of hidden states
-    MDP(m).un  = un{m};         % simulated neuronal encoding of policies
-    MDP(m).wn  = wn{m};         % simulated neuronal encoding of precision
-    MDP(m).dn  = dn{m};         % simulated dopamine responses (deconvolved)
-    MDP(m).rt  = rt{m};         % simulated reaction time (seconds)
+    MDP(m).vn = Vn(m,:);      % simulated neuronal prediction error
+    MDP(m).xn = Xn(m,:);      % simulated neuronal encoding of hidden states
+    MDP(m).un = un{m};        % simulated neuronal encoding of policies
+    MDP(m).wn = wn{m};        % simulated neuronal encoding of precision
+    MDP(m).dn = dn{m};        % simulated dopamine responses (deconvolved)
+    MDP(m).rt = rt{m};        % simulated reaction time (seconds)
     
 end
 
