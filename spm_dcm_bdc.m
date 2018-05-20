@@ -1,5 +1,5 @@
-function [d,BMA,PEBs] = spm_dcm_compare_data(GCMs,field,M,ynames)
-% Compare datasets using DCM and PEB
+function [d,BMA,PEBs] = spm_dcm_bdc(GCMs,field,M,ynames)
+% Compare datasets using DCM and PEB (Bayesian data comparison)
 %
 % Performs the following procedure:
 %
@@ -32,7 +32,7 @@ function [d,BMA,PEBs] = spm_dcm_compare_data(GCMs,field,M,ynames)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
  
 % Peter Zeidman & Samira Kazan
-% $Id: spm_dcm_compare_data.m 7247 2018-01-23 17:18:51Z peter $
+% $Id: spm_dcm_bdc.m 7315 2018-05-20 10:42:51Z peter $
  
 % Load and concatenate models across datasets
 % -------------------------------------------------------------------------
