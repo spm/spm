@@ -20,9 +20,9 @@ function spm_eeg_cfc(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Bernadette van Wijk, Vladimir Litvak
-% $Id: spm_eeg_cfc.m 6830 2016-07-07 11:29:16Z bernadette $
+% $Id: spm_eeg_cfc.m 7316 2018-05-22 11:21:34Z bernadette $
 
-SVNrev = '$Rev: 6830 $';
+SVNrev = '$Rev: 7316 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -87,7 +87,7 @@ if size(data,3)>1
 else
     datatype     = 'continuous';
     totalsamples = size(data, 2)-2*cut+1;
-    trialsamples = round(window*D.fsample);
+    trialsamples = round((S.window/1000)*D.fsample);
     nepochs      = floor(totalsamples/trialsamples);
     disp(['number of epochs used for statistics: ', num2str(nepochs)]);
 end
@@ -128,6 +128,7 @@ if strcmp(datatype,'trials')
     for k = 1:size(bad, 2)
         BAD((k-1)*trialsamples+1:k*trialsamples) = bad(:, k);
     end
+    bad = bad';
 elseif strcmp(datatype,'continuous')
     BAD  = spm_squeeze(any(D.badsamples(D.selectchannels(S.channels), ':', 1), 1), 1);
     BAD  = BAD(cut:end-cut);
@@ -137,7 +138,6 @@ elseif strcmp(datatype,'continuous')
         bad(k, :)  = BAD((k-1)*trialsamples+1:k*trialsamples);
     end
 end
-bad = bad';
 
 %-Get phase time series
 %--------------------------------------------------------------------------
@@ -179,8 +179,8 @@ for i = 1:numel(allphase)
             phase_low = PHASE(:, j+nphase) ;
             COSINE{i}(j,:) = phase_low(cut:end-cut);
             for k = 1:nepochs
-                sine{i}(j, k,:)   = SINE(j,(k-1)*trialsamples+1:k*trialsamples);
-                cosine{i}(j, k,:) = COSINE(j,(k-1)*trialsamples+1:k*trialsamples);
+                sine{i}(j, k,:)   = SINE{i}(j,(k-1)*trialsamples+1:k*trialsamples);
+                cosine{i}(j, k,:) = COSINE{i}(j,(k-1)*trialsamples+1:k*trialsamples);
                 sine{i}(j,k,:)   = (sine{i}(j,k,:)-mean(sine{i}(j,k,:)))./std(sine{i}(j,k,:));
                 cosine{i}(j,k,:) = (cosine{i}(j,k,:)-mean(cosine{i}(j,k,:)))./std(cosine{i}(j,k,:));
             end
