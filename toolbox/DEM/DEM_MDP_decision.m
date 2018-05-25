@@ -25,7 +25,7 @@ function MDP = DEM_MDP_decision
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_MDP_decision.m 7310 2018-05-11 19:24:09Z karl $
+% $Id: DEM_MDP_decision.m 7317 2018-05-25 12:12:22Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -121,7 +121,7 @@ mdp.u = [1 3]'*ones(1,T);
 mdp.Aname = {'cue', 'feedback'};
 mdp.Bname = {'rule','decision'};
 mdp.alpha = 2;
-mdp.tau   = 4;
+mdp.tau   = 2;
 
 mdp  = spm_MDP_check(mdp);
 

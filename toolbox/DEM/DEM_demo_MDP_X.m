@@ -38,7 +38,7 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 7310 2018-05-11 19:24:09Z karl $
+% $Id: DEM_demo_MDP_X.m 7317 2018-05-25 12:12:22Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -112,7 +112,7 @@ C{2}  = [0  0  0;
 % the hidden states are factorised into location and context:
 %--------------------------------------------------------------------------
 d{1} = [1 0 0 0]';
-d{2} = [4 4]';
+d{2} = [2 2]';
  
  
 % allowable policies (of depth T).  These are just sequences of actions
@@ -134,7 +134,7 @@ mdp.s = [1 1]';                  % true initial state
 
 mdp.Aname = {'exteroceptive','interoceptive'};
 mdp.Bname = {'position','context'};
-mdp.tau   = 16;
+mdp.tau   = 12;
 
 % true initial states – with context change at trial 12
 %--------------------------------------------------------------------------

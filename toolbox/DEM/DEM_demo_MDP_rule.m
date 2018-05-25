@@ -15,9 +15,9 @@ function MDP = DEM_demo_MDP_rule
 % the colour of the Centre cue is red, the correct colour is on the left
 % (and on the right if the queue is blue). Simulations are provided when
 % the agent knows the rules. This is then repeated in the absence
-% (nescience) of any knowledge about the rules to see if the agent can learn
-% causal structure through Bayesian belief updating of the likelihood array
-% (A).
+% (nescience) of any knowledge about the rules to see if the agent can
+% learn causal structure through Bayesian belief updating of the likelihood
+% array (A).
 %
 % We then consider the improvement in performance (in terms of variational
 % free energy, its constituent parts and performance) following Bayesian
@@ -32,7 +32,7 @@ function MDP = DEM_demo_MDP_rule
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 7300 2018-04-25 21:14:07Z karl $
+% $Id: DEM_demo_MDP_rule.m 7317 2018-05-25 12:12:22Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -157,13 +157,11 @@ mdp.D = D;                      % prior over initial states
 
 mdp.Aname = {'what','where','feedback'};
 mdp.Bname = {'rule','colour','where','decision'};
-mdp.temp  = 1;
-
-mdp  = spm_MDP_check(mdp);
 
 
 % illustrate a single trial
 %==========================================================================
+mdp  = spm_MDP_check(mdp);
 MDP  = spm_MDP_VB_X(mdp);
 
 % show belief updates (and behaviour)

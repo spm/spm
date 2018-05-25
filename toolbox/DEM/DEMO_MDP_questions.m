@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7314 2018-05-19 10:13:25Z karl $
+% $Id: DEMO_MDP_questions.m 7317 2018-05-25 12:12:22Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -163,7 +163,7 @@ label.factor{9}  = 'adverb';       label.name{9}  = {'above','below'};
 %--------------------------------------------------------------------------
 for i = 1:numel(label.factor)
     n    = numel(label.name{i});
-    D{i} = ones(n,1)/n;
+    D{i} = ones(n,1)/n + rand(n,1)/n/8;
 end
 
 % known initial states
@@ -316,7 +316,8 @@ s(4) = 2;
 % mdp.MDP  = MDP;
 % mdp.link = sparse(1,1,1,numel(MDP.D),Ng);
 mdp.label  = label;             % names of factors and outcomes
-mdp.tau    = 8;                 % rate
+mdp.tau    = 4;                 % rate
+mdp.erp    = 2;                 % rate
 
 mdp.V = V;                      % allowable policies
 mdp.A = A;                      % observation model
@@ -372,6 +373,7 @@ for i = 1:size(MDP,2)
     spm_questions_plot(MDP(1,i))
 end
 
+% return
 
 % illustrate violations
 %==========================================================================
@@ -404,45 +406,32 @@ for i = [3 4 5 6]
     MDP(2,1).D{i} = sparse(s(i),1,1,Ns(i),1);
 end
 
+for i = 1:length(MDP)
+    if i < 5
+        % first model asks and the second ounces
+        %------------------------------------------------------------------
+        MDP(1,i).o = -ones(Ng,1)*[1 1 2];
+        MDP(2,i).o = -ones(Ng,1)*[1 1 2];
+    else
+        % switch roles
+        %------------------------------------------------------------------
+        MDP(1,i).o = -ones(Ng,1)*[2 2 1];
+        MDP(2,i).o = -ones(Ng,1)*[2 2 1];
+    end
+end
 
 MDP   = spm_MDP_VB_X(MDP,OPTIONS);
-
 spm_figure('GetWin','Figure 2'); clf
 spm_MDP_VB_LFP(MDP(1,:),[],4);
 
 spm_figure('GetWin','Figure 4'); clf
 for i = 1:size(MDP,2)
     subplot(4,3,i)
-    spm_questions_plot(MDP(1,i))
+    spm_questions_plot(MDP(:,i))
 end
 
 return
 
-o{1} = [-ones(3,3); -1 -1 0];                           % ask
-o{2} = [ceil(2*rand(3,1))*[1 1 1]; 6 ceil(rand*3) -1];  % answer
-o{3} = [-ones(3,3); -1 -1 -1];                          % answer yourself
-o{3} = [ceil(2*rand(3,1))*[1 1 1]; 6 ceil(rand*3) 0];   % just listen
-
-clear MDP
-OPTIONS.D  = 1;
-[MDP(1:6)] = deal(mdp);
-
-% Ask questions after a few answers
-%--------------------------------------------------------------------------
-for i = 1:length(MDP)
-    if i < 5
-        % ask question
-        %------------------------------------------------------------------
-        MDP(i).o(1:3,:) = -ones(3,3);
-        MDP(i).o(4,:)   = [-1 -1 0];
-    else
-        % answer question
-        %------------------------------------------------------------------
-        MDP(i).o(1:3,:) = ceil(2*rand(3,1))*[1 1 1];
-        MDP(i).o(4,:)   = [6 ceil(rand*3) -1];
-    end
-end
-MDP   = spm_MDP_VB_X(MDP,OPTIONS);
 
 
 
@@ -547,73 +536,86 @@ function spm_questions_plot(MDP)
 %==========================================================================
 cla;
 
-% Assemble question-and-answer
-%--------------------------------------------------------------------------
-question = MDP.o(4,2);
-answer   = MDP.o(4,3);
-noun     = {'square','triangle'};
-adj      = {'green','red'};
-adverb   = {'above','below'};
-if question == 1
-    qstr = ['Is there a ' noun{MDP.o(1,2)} ' ?'];
-elseif question == 2
-    qstr = ['Is there a ' noun{MDP.o(1,2)} ' ' adverb{MDP.o(3,2)} ' ?'];
-elseif question == 3
-    qstr = ['Is there a ' adj{MDP.o(2,2)} ' ' noun{MDP.o(1,2)} ' ' adverb{MDP.o(3,2)} ' ?'];
-else
-    qstr = '!';
+for m = 1:numel(MDP)
+    
+    % Assemble question-and-answer
+    %----------------------------------------------------------------------
+    question = MDP(m).o(4,2);
+    answer   = MDP(m).o(4,3);
+    noun     = {'square','triangle'};
+    adj      = {'green','red'};
+    adverb   = {'above','below'};
+    if question == 1
+        qstr = ['Is there a ' noun{MDP(m).o(1,2)} ' ?'];
+    elseif question == 2
+        qstr = ['Is there a ' noun{MDP(m).o(1,2)} ' ' adverb{MDP(m).o(3,2)} ' ?'];
+    elseif question == 3
+        qstr = ['Is there a ' adj{MDP(m).o(2,2)} ' ' noun{MDP(m).o(1,2)} ' ' adverb{MDP(m).o(3,2)} ' ?'];
+    else
+        qstr = '!';
+    end
+    if answer == 4
+        astr = 'Yes there is !';
+    elseif answer == 5
+        astr = 'No !';
+    else
+        astr = '!';
+    end
+    
+    % is the answer right?
+    %----------------------------------------------------------------------
+    ind      = num2cell(MDP(m).s(:,3));
+    if answer == find(MDP(m).A{4}(:,ind{:}))
+        cor = spm_softmax(2*[0;1;0]);
+    else
+        cor = spm_softmax(2*[1;0;0]);
+    end
+    
+    
+    %  plot posterior beliefs
+    %----------------------------------------------------------------------
+    % label.factor{3}  = 'upper colour'; label.name{3}  = {'green','red'};
+    % label.factor{4}  = 'lower colour'; label.name{4}  = {'green','red'};
+    % label.factor{5}  = 'upper shape';  label.name{5}  = {'square','triangle'};
+    % label.factor{6}  = 'lower shape';  label.name{6}  = {'square','triangle'};
+    
+    % upper and lower object
+    %----------------------------------------------------------------------
+    col{1}  = [MDP(m).X{3}(2,3) MDP(m).X{3}(1,3) 0];
+    col{1}  = col{1}*MDP(m).X{5}(1,3) + (1 - MDP(m).X{5}(1,3));
+    col{2}  = [MDP(m).X{3}(2,3) MDP(m).X{3}(1,3) 0];
+    col{2}  = col{2}*MDP(m).X{5}(2,3) + (1 - MDP(m).X{5}(2,3));
+    col{3}  = [MDP(m).X{4}(2,3) MDP(m).X{4}(1,3) 0];
+    col{3}  = col{3}*MDP(m).X{6}(1,3) + (1 - MDP(m).X{6}(1,3));
+    col{4}  = [MDP(m).X{4}(2,3) MDP(m).X{4}(1,3) 0];
+    col{4}  = col{4}*MDP(m).X{6}(2,3) + (1 - MDP(m).X{6}(2,3));
+    
+    plot(m,0,'^','MarkerSize',24,'LineWidth',4,'Color',col{4}), hold on
+    plot(m,0,'s','MarkerSize',24,'LineWidth',4,'Color',col{3})
+    plot(m,1,'^','MarkerSize',24,'LineWidth',4,'Color',col{2})
+    plot(m,1,'s','MarkerSize',24,'LineWidth',4,'Color',col{1})
+    
 end
-if answer == 4
-    astr = 'Yes there is !';
-elseif answer == 5
-    astr = 'No !';
-else
-    astr = '!';
-end
 
-% is the answer right?
+try, nq = MDP(1).n(4,2); catch, nq = 1; end
+try, na = MDP(1).n(4,3); catch, na = 1; end
+text(nq, 2,qstr,'HorizontalAlignment','Center')
+text(na,-1,astr,'HorizontalAlignment','Center','FontWeight','bold','Color',cor)
+axis([0 (m + 1) -1.5 2.5]), axis off, axis square
+
+
+% return if multiple agents
 %--------------------------------------------------------------------------
-ind      = num2cell(MDP.s(:,3));
-if answer == find(MDP.A{4}(:,ind{:}))
-    cor = spm_softmax(2*[0;1;0]);
-else
-    cor = spm_softmax(2*[1;0;0]);
-end
-
-
-%  plot posterior beliefs
-%--------------------------------------------------------------------------
-% label.factor{3}  = 'upper colour'; label.name{3}  = {'green','red'};
-% label.factor{4}  = 'lower colour'; label.name{4}  = {'green','red'};
-% label.factor{5}  = 'upper shape';  label.name{5}  = {'square','triangle'};
-% label.factor{6}  = 'lower shape';  label.name{6}  = {'square','triangle'};
-
-% upper and lower object
-%--------------------------------------------------------------------------
-col{1}  = [MDP.X{3}(2,3) MDP.X{3}(1,3) 0];
-col{1}  = col{1}*MDP.X{5}(1,3) + (1 - MDP.X{5}(1,3));
-col{2}  = [MDP.X{3}(2,3) MDP.X{3}(1,3) 0];
-col{2}  = col{2}*MDP.X{5}(2,3) + (1 - MDP.X{5}(2,3));
-col{3}  = [MDP.X{4}(2,3) MDP.X{4}(1,3) 0];
-col{3}  = col{3}*MDP.X{6}(1,3) + (1 - MDP.X{6}(1,3));
-col{4}  = [MDP.X{4}(2,3) MDP.X{4}(1,3) 0];
-col{4}  = col{4}*MDP.X{6}(2,3) + (1 - MDP.X{6}(2,3));
-
-plot(0,0,'^','MarkerSize',24,'LineWidth',4,'Color',col{4}), hold on
-plot(0,0,'s','MarkerSize',24,'LineWidth',4,'Color',col{3})
-plot(0,1,'^','MarkerSize',24,'LineWidth',4,'Color',col{2})
-plot(0,1,'s','MarkerSize',24,'LineWidth',4,'Color',col{1})
+if numel(MDP) > 1, return, end
 
 % upper and lower object
 %--------------------------------------------------------------------------
 rgb     = {[0 1 0],[1 0 0]};
 shape   = {'s','^'};
-plot(1/2,1,shape{MDP.s(5)},'MarkerSize',8,'LineWidth',1,'Color',rgb{MDP.s(3)})
-plot(1/2,0,shape{MDP.s(6)},'MarkerSize',8,'LineWidth',1,'Color',rgb{MDP.s(4)})
+plot(1 + 1/2,1,shape{MDP.s(5)},'MarkerSize',8,'LineWidth',1,'Color',rgb{MDP.s(3)})
+plot(1 + 1/2,0,shape{MDP.s(6)},'MarkerSize',8,'LineWidth',1,'Color',rgb{MDP.s(4)})
 
-text(0, 2,qstr,'HorizontalAlignment','Center')
-text(0,-1,astr,'HorizontalAlignment','Center','FontWeight','bold','Color',cor)
-axis([-1 1 -1.5 2.5]), axis off, axis square
+
 
 
 
