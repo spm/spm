@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7317 2018-05-25 12:12:22Z karl $
+% $Id: DEMO_MDP_questions.m 7318 2018-05-26 15:46:53Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -316,8 +316,8 @@ s(4) = 2;
 % mdp.MDP  = MDP;
 % mdp.link = sparse(1,1,1,numel(MDP.D),Ng);
 mdp.label  = label;             % names of factors and outcomes
-mdp.tau    = 4;                 % rate
-mdp.erp    = 2;                 % rate
+mdp.tau    = 4;                 % rate of belief updating
+mdp.erp    = 2;                 % initialization
 
 mdp.V = V;                      % allowable policies
 mdp.A = A;                      % observation model

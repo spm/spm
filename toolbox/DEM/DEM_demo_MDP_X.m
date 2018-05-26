@@ -38,7 +38,7 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 7317 2018-05-25 12:12:22Z karl $
+% $Id: DEM_demo_MDP_X.m 7318 2018-05-26 15:46:53Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -95,23 +95,22 @@ B{2}  = eye(2);
 %--------------------------------------------------------------------------
 % Finally, we have to specify the prior preferences in terms of log
 % probabilities over outcomes. Here, the agent prefers rewards to losses -
-% and has no prior preferences about where it is:
+% and does not like to be exposed
 %--------------------------------------------------------------------------
-c     = 4;
-C{1}  = [0  0  0;
-         0  0  0;
-         0  0  0;
-         0  0  0;
-         0  0  0];
- 
-C{2}  = [0  0  0;
-         c  c  c;
-        -3 -3 -3];
+C{1}  = [-1 -1 -1;
+          0  0  0;
+          0  0  0;
+          0  0  0;
+          0  0  0];
+c     = 5;
+C{2}  = [ 0  0  0;
+          c  c  c;
+         -c -c -c];
  
 % now specify prior beliefs about initial states, in terms of counts. Here
 % the hidden states are factorised into location and context:
 %--------------------------------------------------------------------------
-d{1} = [1 0 0 0]';
+d{1} = [128 1 1 1]';
 d{2} = [2 2]';
  
  
@@ -172,15 +171,21 @@ spm_MDP_VB_LFP(MDP(1:8));
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 5'); clf
 i = find(ismember(spm_cat({MDP.u}'),[4 2],'rows')); i = (i + 1)/2;
-spm_MDP_VB_LFP(MDP([i(1),i(end)]),[2;3]);
+spm_MDP_VB_LFP(MDP([i(1),i(end)]),[1;1],2)
 subplot(4,1,1), title('Repetition suppression and DA transfer','FontSize',16)
  
 spm_figure('GetWin','Figure 6'); clf
 n  = size(MDP(1).xn{1},1);
-v  = spm_MDP_VB_LFP(MDP([i(1),i(end)]),[2;3]);
+v  = spm_MDP_VB_LFP(MDP([i(1),i(end)]),[1;1],2);
 t  = ((1:n)*16 + 80)*16/n;
-subplot(2,1,1),plot(t,v{1}{1,1},'b-.',t,v{2}{1,1},'b:',t,v{2}{1,1} - v{1}{1,1})
+subplot(2,1,1),plot(t,v{1}{2,1},'b-.',t,v{2}{2,1},'b:',t,v{2}{2,1} - v{1}{2,1})
 xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',16)
 legend({'oddball','standard','MMN'}), grid on, axis square
+
+w  = [MDP(i(1)).dn MDP(i(end)).dn];
+
+subplot(2,1,2),bar(w)
+xlabel('Time (bins)'),ylabel(''),title('Phasic DA responses','FontSize',16)
+legend({'oddball','standard'}), grid on
 
 

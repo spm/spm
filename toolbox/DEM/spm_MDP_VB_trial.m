@@ -24,7 +24,7 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 7306 2018-05-07 13:42:02Z karl $
+% $Id: spm_MDP_VB_trial.m 7318 2018-05-26 15:46:53Z karl $
 
 % graphics
 %==========================================================================
@@ -164,10 +164,10 @@ end
 %--------------------------------------------------------------------------
 subplot(3,2,6)
 if size(MDP.dn,2) > 1
-    plot(MDP.dn,'r:'),   hold on, plot(MDP.wn,'k'), hold off
+    plot(MDP.dn,'r:'),   hold on, plot(MDP.wn,'c','LineWidth',2), hold off
 else
-    bar(MDP.dn,1.1,'k'), hold on, plot(MDP.wn,'k'), hold off
+    bar(MDP.dn,1.1,'k'), hold on, plot(MDP.wn,'c','LineWidth',2), hold off
 end
 title('Expected precision (dopamine)')
-xlabel('updates'), ylabel('precision'), spm_axis tight
+xlabel('updates'), ylabel('precision'), spm_axis tight, box off
 drawnow

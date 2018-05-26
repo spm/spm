@@ -31,7 +31,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % MDP.beta              - precision over precision (Gamma hyperprior - [1])
 % MDP.tau               - time constant for gradient descent [4]
 % MDP.eta               - learning rate for model parameters
-% MDP.zeta              - Occam's window for precision
+% MDP.zeta              - Occam's window for polcies [3]
 % MDP.erp               - resetting of initial statesto simulate ERPs
 %
 % MDP.demi.C            - Mixed model: cell array of true causes (DEM.C)
@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7317 2018-05-25 12:12:22Z karl $
+% $Id: spm_MDP_VB_X.m 7318 2018-05-26 15:46:53Z karl $
 
 
 % deal with a sequence of trials
@@ -241,7 +241,7 @@ end
 %--------------------------------------------------------------------------
 try, alpha = MDP(1).alpha; catch, alpha = 128;  end
 try, beta  = MDP(1).beta;  catch, beta  = 1;    end
-try, zeta  = MDP(1).zeta;  catch, zeta  = 16;   end
+try, zeta  = MDP(1).zeta;  catch, zeta  = 3;    end
 try, eta   = MDP(1).eta;   catch, eta   = 1;    end
 try, tau   = MDP(1).tau;   catch, tau   = 4;    end
 try, chi   = MDP(1).chi;   catch, chi   = 1/64; end
@@ -313,7 +313,7 @@ for m = 1:size(MDP,1)
         if isfield(MDP,'a')
             qA{m,g} = spm_psi(MDP(m).a{g} + 1/16);
             pA{m,g} = MDP(m).a{g};
-            wA{m,g} = spm_wnorm(MDP(m).a{g} + exp(-16));
+            wA{m,g} = spm_wnorm(MDP(m).a{g});
             wA{m,g} = wA{m,g}.*(MDP(m).a{g} > 0);
         end
         
@@ -366,6 +366,7 @@ for m = 1:size(MDP,1)
         if isfield(MDP,'d')
             qD{m,f} = spm_psi(MDP(m).d{f} + 1/16);
             pD{m,f} = MDP(m).d{f};
+            wD{m,f} = spm_wnorm(MDP(m).d{f});
         end
     end
     
@@ -675,7 +676,7 @@ for t = 1:T
             %--------------------------------------------------------------
             if ~isfield(MDP,'U') && t > 1
                 F    = log(u{m}(p{m},t - 1));
-                p{m} = p{m}((F - max(F)) > -3);
+                p{m} = p{m}((F - max(F)) > -zeta);
             end
             
             % processing time and reset
@@ -712,28 +713,40 @@ for t = 1:T
                             % hidden states for this time and policy
                             %----------------------------------------------
                             sx = full(x{m,f}(:,j,k));
+                            qL = zeros(Ns(m,f),1);
                             v  = zeros(Ns(m,f),1);
                             
                             % evaluate free energy and gradients (v = dFdx)
                             %----------------------------------------------
-                            if abs(dF) > exp(-8)
+                            if dF > exp(-8)
                                 
                                 % marginal likelihood over outcome factors
                                 %------------------------------------------
                                 if j <= t
                                     qL = spm_dot(L{m,j},xq(m,:),f);
-                                    v  = v + spm_log(qL(:));
+                                    qL = spm_log(qL(:));
                                 end
-                                
+ 
                                 % entropy
                                 %------------------------------------------
                                 qx  = spm_log(sx);
                                                                
-                                % emprical priors
+                                % emprical priors (forward messages)
                                 %------------------------------------------
-                                if j < 2, v = v - qx + spm_log(D{m,f});                                         end
-                                if j > 1, v = v - qx + spm_log(sB{m,f}(:,:,V{m}(j - 1,k,f))*x{m,f}(:,j - 1,k)); end
-                                if j < S, v = v - qx + spm_log(rB{m,f}(:,:,V{m}(j    ,k,f))*x{m,f}(:,j + 1,k)); end
+                                if j < 2
+                                    px = spm_log(D{m,f});
+                                    v  = v + px + qL - qx;
+                                else
+                                    px = spm_log(sB{m,f}(:,:,V{m}(j - 1,k,f))*x{m,f}(:,j - 1,k));
+                                    v  = v + px + qL - qx;
+                                end
+                                
+                                % emprical priors (backward messages)
+                                %------------------------------------------
+                                if j < S
+                                    px = spm_log(rB{m,f}(:,:,V{m}(j    ,k,f))*x{m,f}(:,j + 1,k));
+                                    v  = v + px + qL - qx;
+                                end
                                 
                                 % (negative) expected free energy
                                 %------------------------------------------
@@ -771,9 +784,19 @@ for t = 1:T
             % accumulate expected free energy of policies (Q)
             %==============================================================
             Q     = zeros(Np(m),1);
+            QQ    = Q;
             if Np(m) > 1
                 for k = p{m}
-                    for j = 1:S
+                    
+                    % Bayesian surprise about inital conditions
+                    %------------------------------------------------------
+                    if isfield(MDP,'d')
+                        for f = 1:Nf(m)
+                            Q(k) = Q(k) - spm_dot(wD{m,f},x{m,f}(:,1,k));
+                        end
+                    end
+                        
+                    for j = t:S
                         
                         % get expected states for this policy and time
                         %--------------------------------------------------
@@ -804,15 +827,9 @@ for t = 1:T
                     end
                 end
                 
+                
                 % variational updates - policies and precision
-                %==========================================================
-                
-                % eliminate very unlikely policies
-                %----------------------------------------------------------
-                if ~isfield(MDP,'U')
-                    p{m} = p{m}((F(p{m}) - max(F(p{m}))) > -zeta);
-                end
-                
+                %==========================================================             
                 
                 % previous expected precision
                 %----------------------------------------------------------
@@ -1139,6 +1156,7 @@ A(isnan(A)) = 1/size(A,1);
 function A  = spm_wnorm(A)
 % summation of a probability transition matrix (columns)
 %--------------------------------------------------------------------------
+A   = A + 1e-16;
 A   = bsxfun(@minus,1./sum(A,1),1./A);
 
 function sub = spm_ind2sub(siz,ndx)
