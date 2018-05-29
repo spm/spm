@@ -37,7 +37,7 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 % Copyright (C) 2002-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7320 2018-05-29 10:19:49Z john $
+% $Id: spm_dicom_convert.m 7321 2018-05-29 16:38:58Z mikael $
 
 
 %-Input parameters
@@ -243,17 +243,17 @@ spm_progress_bar('Clear');
 % function fnames = ConvertStandard(Headers,RootDirectory,format,OutputDirectory,meta)
 %==========================================================================
 function fnames = ConvertStandard(Headers,RootDirectory,format,OutputDirectory,meta)
-Headers = SortIntoVolumes(Headers);
-fnames = cell(length(Headers),1);
+[Headers,dist] = SortIntoVolumes(Headers);
+fnames         = cell(length(Headers),1);
 for i=1:length(Headers)
-    fnames{i} = WriteVolume(Headers{i},RootDirectory,format,OutputDirectory,meta);
+    fnames{i} = WriteVolume(Headers{i},RootDirectory,format,OutputDirectory,dist{i},meta);
 end
 
 
 %==========================================================================
-% function SortedHeaders = SortIntoVolumes(Headers)
+% function [SortedHeaders,dist] = SortIntoVolumes(Headers)
 %==========================================================================
-function SortedHeaders = SortIntoVolumes(Headers)
+function [SortedHeaders,dist] = SortIntoVolumes(Headers)
 %
 % First of all, sort into volumes based on relevant
 % fields in the header.
@@ -368,6 +368,7 @@ for j=1:length(SortedHeaders)
     end
 end
 SortedHeaders = {SortedHeaders{:} SortedHeaders2{:}};
+dist          = cell(length(SortedHeaders),1);
 for j=1:length(SortedHeaders)
     if length(SortedHeaders{j})>1
         orient = reshape(SortedHeaders{j}{1}.ImageOrientationPatient,[3 2]);
@@ -377,8 +378,8 @@ for j=1:length(SortedHeaders)
         for i=1:length(SortedHeaders{j})
             z(i)  = SortedHeaders{j}{i}.ImagePositionPatient(:)'*proj;
         end
-        dist = diff(sort(z));
-        if sum((dist-mean(dist)).^2)/length(dist)>1e-4
+        dist{j} = diff(sort(z));
+        if sum((dist{j}-mean(dist{j})).^2)/length(dist{j})>1e-4
             fprintf('***************************************************\n');
             fprintf('* VARIABLE SLICE SPACING                          *\n');
             fprintf('* This may be due to missing DICOM files.         *\n');
@@ -390,7 +391,7 @@ for j=1:length(SortedHeaders)
                     SortedHeaders{j}{1}.AcquisitionNumber, SortedHeaders{j}{1}.InstanceNumber);
                 fprintf('*                                                 *\n');
             end
-            fprintf('*  %20.4g                           *\n', dist);
+            fprintf('*  %20.4g                           *\n', dist{j});
             fprintf('***************************************************\n');
         end
     end
@@ -503,9 +504,9 @@ end
 
 
 %==========================================================================
-% function fname = WriteVolume(Headers, RootDirectory, format, OutputDirectory, meta)
+% function fname = WriteVolume(Headers, RootDirectory, format, OutputDirectory, dist, meta)
 %==========================================================================
-function fname = WriteVolume(Headers, RootDirectory, format, OutputDirectory, meta)
+function fname = WriteVolume(Headers, RootDirectory, format, OutputDirectory, dist, meta)
 
 % Output filename
 %--------------------------------------------------------------------------
@@ -683,6 +684,65 @@ end
 Nii.dat(:,:,:) = volume;
 spm_progress_bar('Clear');
 
+if sum((dist-mean(dist)).^2)/length(dist)>1e-4
+    % Adjusting for variable slice thickness
+    % This is sometimes required for CT data because these scans are often 
+    % acquired with a gantry tilt and thinner slices near the brain stem. 
+    % If uncorrected, the resulting NIfTI image can appear distorted. Here, 
+    % the image is resampled to compensate for this effect.
+    %----------------------------------------------------------------------
+    
+    fprintf('***************************************************\n');
+    fprintf('* Adjusting for variable slice thickness.         *\n');
+    fprintf('***************************************************\n');
+
+    ovx = sqrt(sum(mat(1:3,1:3).^2));  
+    nvx = [ovx(1:2) max(min(dist),1)]; % Set new slice thickness in thick-slice direction to minimum of dist
+    
+    Nii = nifti(fname);
+    img = Nii.dat(:,:,:);
+    d   = size(img);    
+    
+    csdist = cumsum(dist);  
+    csdist = [1; 1 + csdist];
+    
+    x       = zeros([d(1:3) 3],'single');
+    [x1,x2] = meshgrid(single(1:d(2)),single(1:d(1)));
+    for i=1:d(3)
+        x(:,:,i,1) = x1;
+        x(:,:,i,2) = x2;
+        x(:,:,i,3) = csdist(i);
+    end
+
+    X = x(:,:,:,1);
+    Y = x(:,:,:,2);
+    Z = x(:,:,:,3);
+    clear x
+    
+    if ~(csdist(end) == floor(csdist(end)))
+        [Xq,Yq,Zq] = meshgrid(single(1:d(2)),single(1:d(1)),single([1:nvx(3):csdist(end) csdist(end)]));
+    else
+        [Xq,Yq,Zq] = meshgrid(single(1:d(2)),single(1:d(1)),single(1:nvx(3):csdist(end)));
+    end
+
+    img = interp3(X,Y,Z,img,Xq,Yq,Zq,'linear'); 
+    
+    ndim = size(img);   
+    
+    % Adjust orientation matrix
+    D   = diag([ovx./nvx 1]);
+    mat = mat/D;    
+    
+    N             = nifti;
+    N.dat         = file_array(fname,ndim,dt,0,pinfo(1),pinfo(2));
+    N.mat         = mat;
+    N.mat0        = mat;
+    N.mat_intent  = 'Scanner';
+    N.mat0_intent = 'Scanner';
+    N.descrip     = descrip;
+    create(N);
+    N.dat(:,:,:) = img;
+end
 
 %==========================================================================
 % function fnames = ConvertSpectroscopy(Headers, RootDirectory, format, OutputDirectory, meta)
