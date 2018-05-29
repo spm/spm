@@ -32,7 +32,7 @@ function MDP = DEM_demo_MDP_rule
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 7317 2018-05-25 12:12:22Z karl $
+% $Id: DEM_demo_MDP_rule.m 7319 2018-05-29 09:33:01Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -157,7 +157,6 @@ mdp.D = D;                      % prior over initial states
 
 mdp.Aname = {'what','where','feedback'};
 mdp.Bname = {'rule','colour','where','decision'};
-
 
 % illustrate a single trial
 %==========================================================================

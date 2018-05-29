@@ -38,7 +38,7 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 7318 2018-05-26 15:46:53Z karl $
+% $Id: DEM_demo_MDP_X.m 7319 2018-05-29 09:33:01Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -102,7 +102,7 @@ C{1}  = [-1 -1 -1;
           0  0  0;
           0  0  0;
           0  0  0];
-c     = 5;
+c     = 6;
 C{2}  = [ 0  0  0;
           c  c  c;
          -c -c -c];

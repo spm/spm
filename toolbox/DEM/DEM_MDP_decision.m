@@ -25,7 +25,7 @@ function MDP = DEM_MDP_decision
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_MDP_decision.m 7317 2018-05-25 12:12:22Z karl $
+% $Id: DEM_MDP_decision.m 7319 2018-05-29 09:33:01Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -154,7 +154,7 @@ title('Expected behaviour','FontSize',16)
 
 % illustrate choice behaviour over different levels ambiguity and reward
 %==========================================================================
-a = (1:32)/64;                      % range of perceptual ambiguity
+a = (0:16)/128;                     % range of perceptual ambiguity
 c = [1 2];                          % levels of reward
 t = (2:T)/4;                        % time (250 ms bins)
 for i = 1:numel(a)

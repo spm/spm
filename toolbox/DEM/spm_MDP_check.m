@@ -30,7 +30,7 @@ function [MDP] = spm_MDP_check(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_check.m 7311 2018-05-13 21:15:07Z karl $
+% $Id: spm_MDP_check.m 7319 2018-05-29 09:33:01Z karl $
  
  
 % deal with a sequence of trials
@@ -183,6 +183,9 @@ end
 % check factors and outcome modalities have proper labels
 %--------------------------------------------------------------------------
 for i = 1:Nf
+    
+    % name of factors
+    %----------------------------------------------------------------------
     try
         MDP.label.factor(i);
     catch
@@ -192,6 +195,9 @@ for i = 1:Nf
         MDP.label.factor{i} = sprintf('factor %i',i);
         end
     end
+    
+    % name of levels of each factor
+    %----------------------------------------------------------------------
     for j = 1:Ns(i)
         try
             MDP.label.name{i}(j);
@@ -203,7 +209,20 @@ for i = 1:Nf
             end
         end
     end
+    
+    % name of actions under each factor
+    %----------------------------------------------------------------------
+    for j = 1:Ns(i)
+        try
+            MDP.label.action{i}(j);
+        catch
+            MDP.label.action{i}{j} = sprintf('act %i(%i)',j,i);
+        end
+    end
 end
+
+% name of outcomes under each modality
+%--------------------------------------------------------------------------
 for i = 1:Ng
     try
         MDP.label.modality(i);

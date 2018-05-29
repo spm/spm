@@ -24,7 +24,7 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 7318 2018-05-26 15:46:53Z karl $
+% $Id: spm_MDP_VB_trial.m 7319 2018-05-29 09:33:01Z karl $
 
 % graphics
 %==========================================================================
@@ -105,8 +105,8 @@ for f  = 1:Np
     end
     set(gca,'XTickLabel',{});
     set(gca,'XTick',1:MDP.T);
-    set(gca,'YTick',1:numel(MDP.label.name{Nu(f)}));
-    set(gca,'YTickLabel',MDP.label.name{Nu(f)});
+    set(gca,'YTick',1:numel(MDP.label.action{Nu(f)}));
+    set(gca,'YTickLabel',MDP.label.action{Nu(f)});
     
     % policies
     %--------------------------------------------------------------------------
