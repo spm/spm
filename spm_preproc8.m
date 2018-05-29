@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 7234 2017-11-30 11:33:06Z john $
+% $Id: spm_preproc8.m 7320 2018-05-29 10:19:49Z john $
 
 wp_reg    = 1; % Bias wp towards 1
 
@@ -207,6 +207,8 @@ end
 %-----------------------------------------------------------------------
 nm      = 0; % Number of voxels
 
+% For integer data types, add a tiny amount of random noise to prevent aliasing
+% effects due to "bias" correction.
 scrand = zeros(N,1);
 for n=1:N
     if spm_type(V(n).dt(1),'intt')
@@ -273,11 +275,6 @@ end
 
 % Construct a ``Wishart-style prior'' (vr0)
 vr0 = diag(mom2./mom0 - (mom1./mom0).^2)/Kb^2;
-%for n=1:N
-%    if spm_type(V(n).dt(1),'intt')
-%        vr0(n,n) = vr0(n,n) + 0.083*V(n).pinfo(1,1);
-%    end
-%end
 
 
 % Create initial bias field
@@ -357,8 +354,7 @@ for iter=1:30
                 vr1 = zeros(N,N);
                 for k1=1:Kb
                     mn(:,k1)   = mm1(:,k1)/(mm0(k1)+tiny);
-                   %vr(:,:,k1) = (mm2(:,:,k1) - mm1(:,k1)*mm1(:,k1)'/mm0(k1))/(mm0(k1)+tiny);
-                    vr1 = vr1 + (mm2(:,:,k1) - mm1(:,k1)*mm1(:,k1)'/mm0(k1));
+                    vr1        = vr1 + (mm2(:,:,k1) - mm1(:,k1)*mm1(:,k1)'/mm0(k1));
                 end
                 vr1 = (vr1+N*vr0)/(sum(mm0)+N);
                 for k1=1:Kb
@@ -590,7 +586,7 @@ for iter=1:30
                         clear wt1 wt2 b3
                     end
 
-                    oll     = ll;
+                    oll     = ll;        % Previous log-likelihood - for checking improvements
                     C       = chan(n).C; % Inverse covariance of priors
                     oldT    = chan(n).T;
 
@@ -613,7 +609,7 @@ for iter=1:30
                         end
                         llrb = 0;
                         for n1=1:N, llrb = llrb + chan(n1).ll; end
-                        ll    = llr+llrb;
+                        ll   = llr+llrb;
                         for z=1:length(z0)
                             if ~buf(z).nm, continue; end
                             if use_mog
@@ -625,6 +621,8 @@ for iter=1:30
                             end
                             clear q
                         end
+
+                        % Decide whether to accept new estimates
                         if ll>=oll
                             spm_plot_convergence('Set',ll);
                             my_fprintf('Bias-%d:\t%g\t%g\t%g :o)\n', n, ll, llr,llrb);

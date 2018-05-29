@@ -1,8 +1,8 @@
-function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir,meta)
+function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirectory,meta)
 % Convert DICOM images into something that SPM can use (e.g. NIfTI)
-% FORMAT out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir)
+% FORMAT out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirectory)
 % Inputs:
-% hdr      - a cell array of DICOM headers from spm_dicom_headers
+% Headers      - a cell array of DICOM headers from spm_dicom_headers
 % opts     - options:
 %              'all'      - all DICOM files [default]
 %              'mosaic'   - the mosaic images
@@ -12,7 +12,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir,meta)
 %                           and imaginary part of the spectroscopy time 
 %                           points at the position of spectroscopy voxel(s)
 %              'raw'      - convert raw FIDs (not implemented)
-% root_dir - 'flat'       - do not produce file tree [default]
+% RootDirectory - 'flat'       - do not produce file tree [default]
 %              With all other options, files will be sorted into
 %              directories according to their sequence/protocol names:
 %            'date_time'  - Place files under ./<StudyDate-StudyTime>
@@ -23,10 +23,10 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir,meta)
 %                           creating patient folders
 % format   - output format:
 %              'nii'      - Single file NIfTI format [default]
-%              'img'      - Two file (hdr+img) NIfTI format
+%              'img'      - Two file (Headers+img) NIfTI format
 %            All images will contain a single 3D dataset, 4D images will
 %            not be created.
-% out_dir  - output directory name [default: pwd]
+% OutputDirectory  - output directory name [default: pwd]
 % meta     - save metadata as sidecar JSON file [default: false]
 %
 % Output:
@@ -37,24 +37,24 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format,out_dir,meta)
 % Copyright (C) 2002-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7201 2017-11-08 11:13:25Z guillaume $
+% $Id: spm_dicom_convert.m 7320 2018-05-29 10:19:49Z john $
 
 
 %-Input parameters
 %--------------------------------------------------------------------------
 if nargin<2, opts     = 'all';  end
-if nargin<3, root_dir = 'flat'; end
+if nargin<3, RootDirectory = 'flat'; end
 if nargin<4, format   = spm_get_defaults('images.format'); end
-if nargin<5, out_dir  = pwd;    end
+if nargin<5, OutputDirectory  = pwd;    end
 if nargin<6, meta     = false;  end
 
 %-Select files
 %--------------------------------------------------------------------------
-[images, other]     = select_tomographic_images(hdr);
-[multiframe,images] = select_multiframe(images);
-[spect, guff]       = select_spectroscopy_images(other);
-[mosaic, standard]  = select_mosaic_images(images);
-[standard, guff]    = select_last_guff(standard, guff);
+[images, other]     = SelectTomographicImages(Headers);
+[multiframe,images] = SelectMultiframe(images);
+[spect, guff]       = SelectSpectroscopyImages(other);
+[mosaic, standard]  = SelectMosaicImages(images);
+[standard, guff]    = SelectLastGuff(standard, guff);
 
 if ~isempty(guff)
     warning('spm:dicom','%d files could not be converted from DICOM.', numel(guff));
@@ -67,16 +67,16 @@ fstd = {};
 fspe = {};
 fmul = {};
 if (strcmp(opts,'all') || strcmp(opts,'mosaic')) && ~isempty(mosaic)
-    fmos = convert_mosaic(mosaic,root_dir,format,out_dir,meta);
+    fmos = ConvertMosaic(mosaic,RootDirectory,format,OutputDirectory,meta);
 end
 if (strcmp(opts,'all') || strcmp(opts,'standard')) && ~isempty(standard)
-    fstd = convert_standard(standard,root_dir,format,out_dir,meta);
+    fstd = ConvertStandard(standard,RootDirectory,format,OutputDirectory,meta);
 end
 if (strcmp(opts,'all') || strcmp(opts,'spect')) && ~isempty(spect)
-    fspe = convert_spectroscopy(spect,root_dir,format,out_dir,meta);
+    fspe = ConvertSpectroscopy(spect,RootDirectory,format,OutputDirectory,meta);
 end
 if (strcmp(opts,'all') || strcmp(opts,'multiframe')) && ~isempty(multiframe)
-    fmul = convert_multiframes(multiframe,root_dir,format,out_dir,meta);
+    fmul = ConvertMultiframes(multiframe,RootDirectory,format,OutputDirectory,meta);
 end
 out.files = [fmos(:); fstd(:); fspe(:); fmul(:)];
 if isempty(out.files)
@@ -85,43 +85,43 @@ end
 
 
 %==========================================================================
-% function fnames = convert_mosaic(hdr,root_dir,format,out_dir,meta)
+% function fnames = ConvertMosaic(Headers,RootDirectory,format,OutputDirectory,meta)
 %==========================================================================
-function fnames = convert_mosaic(hdr,root_dir,format,out_dir,meta)
-spm_progress_bar('Init',length(hdr),'Writing Mosaic', 'Files written');
+function fnames = ConvertMosaic(Headers,RootDirectory,format,OutputDirectory,meta)
+spm_progress_bar('Init',length(Headers),'Writing Mosaic', 'Files written');
 
-fnames = cell(length(hdr),1);
-for i=1:length(hdr)
+fnames = cell(length(Headers),1);
+for i=1:length(Headers)
 
     % Output filename
     %----------------------------------------------------------------------
-    fnames{i} = getfilelocation(hdr{i},root_dir,'f',format,out_dir);
+    fnames{i} = getfilelocation(Headers{i}, RootDirectory, 'f', format, OutputDirectory);
 
     % Image dimensions and data
     %----------------------------------------------------------------------
-    nc = hdr{i}.Columns;
-    nr = hdr{i}.Rows;
+    nc = Headers{i}.Columns;
+    nr = Headers{i}.Rows;
 
     dim      = [0 0 0];
-    dim(3)   = read_NumberOfImagesInMosaic(hdr{i});
+    dim(3)   = ReadNumberOfImagesInMosaic(Headers{i});
     np       = [nc nr]/ceil(sqrt(dim(3)));
     dim(1:2) = np;
     if ~all(np==floor(np))
         warning('spm:dicom','%s: dimension problem [Num Images=%d, Num Cols=%d, Num Rows=%d].',...
-            hdr{i}.Filename,dim(3), nc,nr);
+            Headers{i}.Filename,dim(3), nc,nr);
         continue
     end
 
     % Apparently, this is not the right way of doing it.
-    %np = read_AcquisitionMatrixText(hdr{i});
+    %np = ReadAcquisitionMatrixText(Headers{i});
     %if rem(nc, np(1)) || rem(nr, np(2)),
-    %   warning('spm:dicom','%s: %dx%d wont fit into %dx%d.',hdr{i}.Filename,...
+    %   warning('spm:dicom','%s: %dx%d wont fit into %dx%d.',Headers{i}.Filename,...
     %       np(1), np(2), nc,nr);
     %   return;
     %end;
-    %dim    = [np read_NumberOfImagesInMosaic(hdr{i})];
+    %dim    = [np ReadNumberOfImagesInMosaic(Headers{i})];
 
-    mosaic = read_image_data(hdr{i});
+    mosaic = ReadImageData(Headers{i});
     volume = zeros(dim);
     snnz   = zeros(dim(3), 1);
     for j=1:dim(3)
@@ -134,7 +134,7 @@ for i=1:length(hdr)
         dim(3) = d3;
         volume = volume(:,:,1:dim(3));
     end
-    dt  = determine_datatype(hdr{1});
+    dt  = DetermineDatatype(Headers{1});
 
     % Orientation information
     %----------------------------------------------------------------------
@@ -153,11 +153,11 @@ for i=1:length(hdr)
     % y increases posterior to anterior
     % z increases  inferior to superior
 
-    analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)-1) 0]'; 0 0 0 1]*[eye(4,3) [-1 -1 -1 1]'];
+    AnalyzeToDicom = [diag([1 -1 1]) [0 (dim(2)-1) 0]'; 0 0 0 1]*[eye(4,3) [-1 -1 -1 1]'];
 
-    vox    = [hdr{i}.PixelSpacing(:); hdr{i}.SpacingBetweenSlices];
-    pos    = hdr{i}.ImagePositionPatient(:);
-    orient = reshape(hdr{i}.ImageOrientationPatient,[3 2]);
+    vox    = [Headers{i}.PixelSpacing(:); Headers{i}.SpacingBetweenSlices];
+    pos    = Headers{i}.ImagePositionPatient(:);
+    orient = reshape(Headers{i}.ImageOrientationPatient,[3 2]);
     orient(:,3) = null(orient');
     if det(orient)<0, orient(:,3) = -orient(:,3); end;
 
@@ -165,18 +165,17 @@ for i=1:length(hdr)
     % the upper left corner of the image. Perhaps it is unlucky that this is
     % calculated in the syngo software from the vector pointing to the center of
     % the slice (keep in mind: upper left slice) with the enlarged FoV.
-    dicom_to_patient = [orient*diag(vox) pos ; 0 0 0 1];
-    truepos          = dicom_to_patient *[(size(mosaic)-dim(1:2))/2 0 1]';
-    dicom_to_patient = [orient*diag(vox) truepos(1:3) ; 0 0 0 1];
-    patient_to_tal   = diag([-1 -1 1 1]);
-    mat              = patient_to_tal*dicom_to_patient*analyze_to_dicom;
-
+    DicomToPatient = [orient*diag(vox) pos ; 0 0 0 1];
+    truepos        = DicomToPatient *[(size(mosaic)-dim(1:2))/2 0 1]';
+    DicomToPatient = [orient*diag(vox) truepos(1:3) ; 0 0 0 1];
+    PatientToTal   = diag([-1 -1 1 1]);
+    mat            = PatientToTal*DicomToPatient*AnalyzeToDicom;
 
 
     % Maybe flip the image depending on SliceNormalVector from 0029,1010
     %----------------------------------------------------------------------
-    SliceNormalVector = read_SliceNormalVector(hdr{i});
-    if det([reshape(hdr{i}.ImageOrientationPatient,[3 2]) SliceNormalVector(:)])<0
+    SliceNormalVector = ReadSliceNormalVector(Headers{i});
+    if det([reshape(Headers{i}.ImageOrientationPatient,[3 2]) SliceNormalVector(:)])<0
         volume = volume(:,:,end:-1:1);
         mat    = mat*[eye(3) [0 0 -(dim(3)-1)]'; 0 0 0 1];
     end
@@ -184,61 +183,52 @@ for i=1:length(hdr)
 
     % Possibly useful information
     %----------------------------------------------------------------------
-    if checkfields(hdr{i},'AcquisitionTime','MagneticFieldStrength',...
+    if CheckFields(Headers{i},'AcquisitionTime','MagneticFieldStrength',...
             'MRAcquisitionType','ScanningSequence','RepetitionTime',...
             'EchoTime','FlipAngle','AcquisitionDate')
-        tim = datevec(hdr{i}.AcquisitionTime/(24*60*60));
+        tim = datevec(Headers{i}.AcquisitionTime/(24*60*60));
         descrip = sprintf('%gT %s %s TR=%gms/TE=%gms/FA=%gdeg %s %d:%d:%.5g Mosaic',...
-            hdr{i}.MagneticFieldStrength, hdr{i}.MRAcquisitionType,...
-            deblank(hdr{i}.ScanningSequence),...
-            hdr{i}.RepetitionTime,hdr{i}.EchoTime,hdr{i}.FlipAngle,...
-            datestr(hdr{i}.AcquisitionDate),tim(4),tim(5),tim(6));
+            Headers{i}.MagneticFieldStrength, Headers{i}.MRAcquisitionType,...
+            deblank(Headers{i}.ScanningSequence),...
+            Headers{i}.RepetitionTime,Headers{i}.EchoTime,Headers{i}.FlipAngle,...
+            datestr(Headers{i}.AcquisitionDate),tim(4),tim(5),tim(6));
     else
-        descrip = hdr{1}.Modality;
+        descrip = Headers{1}.Modality;
     end
 
-    % descrip = [deblank(descrip) '   ' hdr{i}.PatientsName];
+    % descrip = [deblank(descrip) '   ' Headers{i}.PatientsName];
 
     if ~true % LEFT-HANDED STORAGE
         mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
         volume = flipud(volume);
     end
 
-    %if isfield(hdr{i},'RescaleSlope') && hdr{i}.RescaleSlope ~= 1,
-    %   volume = volume*hdr{i}.RescaleSlope;
-    %end;
-    %if isfield(hdr{i},'RescaleIntercept') && hdr{i}.RescaleIntercept ~= 0,
-    %   volume = volume + hdr{i}.RescaleIntercept;
-    %end;
-    %V = struct('fname',fname, 'dim',dim, 'dt',dt, 'mat',mat, 'descrip',descrip);
-    %spm_write_vol(V,volume);
-
     % Note that data are no longer scaled by the maximum amount.
     % This may lead to rounding errors in smoothed data, but it
     % will get around other problems.
     RescaleSlope     = 1;
     RescaleIntercept = 0;
-    if isfield(hdr{i},'RescaleSlope') && hdr{i}.RescaleSlope ~= 1
-        RescaleSlope = hdr{i}.RescaleSlope;
+    if isfield(Headers{i},'RescaleSlope')
+        RescaleSlope = Headers{i}.RescaleSlope;
     end
-    if isfield(hdr{i},'RescaleIntercept') && hdr{i}.RescaleIntercept ~= 0
-        RescaleIntercept = hdr{i}.RescaleIntercept;
+    if isfield(Headers{i},'RescaleIntercept')
+        RescaleIntercept = Headers{i}.RescaleIntercept;
     end
-    N      = nifti;
-    N.dat  = file_array(fnames{i},dim,dt,0,RescaleSlope,RescaleIntercept);
-    N.mat  = mat;
-    N.mat0 = mat;
-    N.mat_intent  = 'Scanner';
-    N.mat0_intent = 'Scanner';
-    N.descrip     = descrip;
-    create(N);
+    Nii      = nifti;
+    Nii.dat  = file_array(fnames{i},dim,dt,0,RescaleSlope,RescaleIntercept);
+    Nii.mat  = mat;
+    Nii.mat0 = mat;
+    Nii.mat_intent  = 'Scanner';
+    Nii.mat0_intent = 'Scanner';
+    Nii.descrip     = descrip;
+    create(Nii);
 
     if meta
-        N = spm_dicom_metadata(N,hdr{i});
+        Nii = spm_dicom_metadata(Nii,Headers{i});
     end
     
     % Write the data unscaled
-    dat           = N.dat;
+    dat           = Nii.dat;
     dat.scl_slope = [];
     dat.scl_inter = [];
     % write out volume at once - see spm_write_plane.m for performance comments
@@ -250,42 +240,41 @@ spm_progress_bar('Clear');
 
 
 %==========================================================================
-% function fnames = convert_standard(hdr,root_dir,format,out_dir,meta)
+% function fnames = ConvertStandard(Headers,RootDirectory,format,OutputDirectory,meta)
 %==========================================================================
-function fnames = convert_standard(hdr,root_dir,format,out_dir,meta)
-hdr = sort_into_volumes(hdr);
-fnames = cell(length(hdr),1);
-for i=1:length(hdr)
-    fnames{i} = write_volume(hdr{i},root_dir,format,out_dir,meta);
+function fnames = ConvertStandard(Headers,RootDirectory,format,OutputDirectory,meta)
+Headers = SortIntoVolumes(Headers);
+fnames = cell(length(Headers),1);
+for i=1:length(Headers)
+    fnames{i} = WriteVolume(Headers{i},RootDirectory,format,OutputDirectory,meta);
 end
 
 
 %==========================================================================
-% function vol = sort_into_volumes(hdr)
+% function SortedHeaders = SortIntoVolumes(Headers)
 %==========================================================================
-function vol = sort_into_volumes(hdr)
-
+function SortedHeaders = SortIntoVolumes(Headers)
 %
 % First of all, sort into volumes based on relevant
 % fields in the header.
 %
 
-vol{1}{1} = hdr{1};
-for i=2:length(hdr)
-   %orient = reshape(hdr{i}.ImageOrientationPatient,[3 2]);
-   %xy1    = hdr{i}.ImagePositionPatient(:)*orient;
+SortedHeaders{1}{1} = Headers{1};
+for i=2:length(Headers)
+   %orient = reshape(Headers{i}.ImageOrientationPatient,[3 2]);
+   %xy1    = Headers{i}.ImagePositionPatient(:)*orient;
     match  = 0;
-    if isfield(hdr{i},'CSAImageHeaderInfo') && isfield(hdr{i}.CSAImageHeaderInfo,'name')
+    if isfield(Headers{i},'CSAImageHeaderInfo') && isfield(Headers{i}.CSAImageHeaderInfo,'name')
         ice1 = sscanf( ...
-            strrep(get_numaris4_val(hdr{i}.CSAImageHeaderInfo,'ICE_Dims'), ...
+            strrep(GetNumaris4Val(Headers{i}.CSAImageHeaderInfo,'ICE_Dims'), ...
             'X', '-1'), '%i_%i_%i_%i_%i_%i_%i_%i_%i')';
         dimsel = logical([1 1 1 1 1 1 0 0 1]);
     else
         ice1 = [];
     end
-    for j=1:length(vol)
-       %orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
-       %xy2    = vol{j}{1}.ImagePositionPatient(:)*orient;
+    for j=1:length(SortedHeaders)
+       %orient = reshape(SortedHeaders{j}{1}.ImageOrientationPatient,[3 2]);
+       %xy2    = SortedHeaders{j}{1}.ImagePositionPatient(:)*orient;
         
         % This line is a fudge because of some problematic data that Bogdan,
         % Cynthia and Stefan were trying to convert.  I hope it won't cause
@@ -293,14 +282,14 @@ for i=2:length(hdr)
         % dist2  = sum((xy1-xy2).^2);
         dist2 = 0;
         
-        if strcmp(hdr{i}.Modality,'CT') && ...
-                strcmp(vol{j}{1}.Modality,'CT') % Our CT seems to have shears in slice positions
+        if strcmp(Headers{i}.Modality,'CT') && ...
+                strcmp(SortedHeaders{j}{1}.Modality,'CT') % Our CT seems to have shears in slice positions
             dist2 = 0;
         end
-        if ~isempty(ice1) && isfield(vol{j}{1},'CSAImageHeaderInfo') && numel(vol{j}{1}.CSAImageHeaderInfo)>=1 && isfield(vol{j}{1}.CSAImageHeaderInfo(1),'name')
+        if ~isempty(ice1) && isfield(SortedHeaders{j}{1},'CSAImageHeaderInfo') && numel(SortedHeaders{j}{1}.CSAImageHeaderInfo)>=1 && isfield(SortedHeaders{j}{1}.CSAImageHeaderInfo(1),'name')
             % Replace 'X' in ICE_Dims by '-1'
             ice2 = sscanf( ...
-                strrep(get_numaris4_val(vol{j}{1}.CSAImageHeaderInfo,'ICE_Dims'), ...
+                strrep(GetNumaris4Val(SortedHeaders{j}{1}.CSAImageHeaderInfo,'ICE_Dims'), ...
                 'X', '-1'), '%i_%i_%i_%i_%i_%i_%i_%i_%i')';
             if ~isempty(ice2)
                 identical_ice_dims=all(ice1(dimsel)==ice2(dimsel));
@@ -312,84 +301,81 @@ for i=2:length(hdr)
             identical_ice_dims = 1; % No way of knowing if there is no CSAImageHeaderInfo
         end
         try
-            match = hdr{i}.SeriesNumber            == vol{j}{1}.SeriesNumber &&...
-                hdr{i}.Rows                        == vol{j}{1}.Rows &&...
-                hdr{i}.Columns                     == vol{j}{1}.Columns &&...
-                sum((hdr{i}.ImageOrientationPatient - vol{j}{1}.ImageOrientationPatient).^2)<1e-4 &&...
-                sum((hdr{i}.PixelSpacing            - vol{j}{1}.PixelSpacing).^2)<1e-4 && ...
+            match = Headers{i}.SeriesNumber            == SortedHeaders{j}{1}.SeriesNumber &&...
+                Headers{i}.Rows                        == SortedHeaders{j}{1}.Rows &&...
+                Headers{i}.Columns                     == SortedHeaders{j}{1}.Columns &&...
+                sum((Headers{i}.ImageOrientationPatient - SortedHeaders{j}{1}.ImageOrientationPatient).^2)<1e-4 &&...
+                sum((Headers{i}.PixelSpacing            - SortedHeaders{j}{1}.PixelSpacing).^2)<1e-4 && ...
                 identical_ice_dims && dist2<1e-3;
-            %if (hdr{i}.AcquisitionNumber ~= hdr{i}.InstanceNumber) || ...
-            %   (vol{j}{1}.AcquisitionNumber ~= vol{j}{1}.InstanceNumber)
-            %    match = match && (hdr{i}.AcquisitionNumber == vol{j}{1}.AcquisitionNumber)
+            %if (Headers{i}.AcquisitionNumber ~= Headers{i}.InstanceNumber) || ...
+            %   (SortedHeaders{j}{1}.AcquisitionNumber ~= SortedHeaders{j}{1}.InstanceNumber)
+            %    match = match && (Headers{i}.AcquisitionNumber == SortedHeaders{j}{1}.AcquisitionNumber)
             %end
             % For raw image data, tell apart real/complex or phase/magnitude
-            if isfield(hdr{i},'ImageType') && isfield(vol{j}{1}, 'ImageType')
-                match = match && strcmp(hdr{i}.ImageType, vol{j}{1}.ImageType);
+            if isfield(Headers{i},'ImageType') && isfield(SortedHeaders{j}{1}, 'ImageType')
+                match = match && strcmp(Headers{i}.ImageType, SortedHeaders{j}{1}.ImageType);
             end
-            if isfield(hdr{i},'SequenceName') && isfield(vol{j}{1}, 'SequenceName')
-                match = match && strcmp(hdr{i}.SequenceName,vol{j}{1}.SequenceName);
+            if isfield(Headers{i},'SequenceName') && isfield(SortedHeaders{j}{1}, 'SequenceName')
+                match = match && strcmp(Headers{i}.SequenceName, SortedHeaders{j}{1}.SequenceName);
             end
-            if isfield(hdr{i},'SeriesInstanceUID') && isfield(vol{j}{1}, 'SeriesInstanceUID')
-                match = match && strcmp(hdr{i}.SeriesInstanceUID,vol{j}{1}.SeriesInstanceUID);
+            if isfield(Headers{i},'SeriesInstanceUID') && isfield(SortedHeaders{j}{1}, 'SeriesInstanceUID')
+                match = match && strcmp(Headers{i}.SeriesInstanceUID, SortedHeaders{j}{1}.SeriesInstanceUID);
             end
-            if isfield(hdr{i},'EchoNumbers')  && isfield(vol{j}{1}, 'EchoNumbers')
-                match = match && hdr{i}.EchoNumbers == vol{j}{1}.EchoNumbers;
+            if isfield(Headers{i},'EchoNumbers')  && isfield(SortedHeaders{j}{1}, 'EchoNumbers')
+                match = match && Headers{i}.EchoNumbers == SortedHeaders{j}{1}.EchoNumbers;
             end
-            if isfield(hdr{i},    'GE_ImageType') && numel(   hdr{i}.GE_ImageType)==1 && ...
-               isfield(vol{j}{1}, 'GE_ImageType') && numel(vol{j}{1}.GE_ImageType)==1
-                match = match && hdr{i}.GE_ImageType == vol{j}{1}.GE_ImageType;
+            if isfield(Headers{i},    'GE_ImageType') && numel(   Headers{i}.GE_ImageType)==1 && ...
+               isfield(SortedHeaders{j}{1}, 'GE_ImageType') && numel(SortedHeaders{j}{1}.GE_ImageType)==1
+                match = match && Headers{i}.GE_ImageType == SortedHeaders{j}{1}.GE_ImageType;
             end
         catch
             match = 0;
         end
         if match
-            vol{j}{end+1} = hdr{i};
+            SortedHeaders{j}{end+1} = Headers{i};
             break;
         end
     end
     if ~match
-        vol{end+1}{1} = hdr{i};
+        SortedHeaders{end+1}{1} = Headers{i};
     end
 end
-
-%dcm = vol;
-%save('dicom_headers.mat','dcm');
 
 %
 % Secondly, sort volumes into ascending/descending
 % slices depending on .ImageOrientationPatient field.
 %
 
-vol2 = {};
-for j=1:length(vol)
-    orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
+SortedHeaders2 = {};
+for j=1:length(SortedHeaders)
+    orient = reshape(SortedHeaders{j}{1}.ImageOrientationPatient,[3 2]);
     proj   = null(orient');
     if det([orient proj])<0, proj = -proj; end
 
-    z      = zeros(length(vol{j}),1);
-    for i=1:length(vol{j})
-        z(i)  = vol{j}{i}.ImagePositionPatient(:)'*proj;
+    z      = zeros(length(SortedHeaders{j}),1);
+    for i=1:length(SortedHeaders{j})
+        z(i)  = SortedHeaders{j}{i}.ImagePositionPatient(:)'*proj;
     end
-    [z,index] = sort(z);
-    vol{j}    = vol{j}(index);
-    if length(vol{j})>1
+    [z,index]        = sort(z);
+    SortedHeaders{j} = SortedHeaders{j}(index);
+    if length(SortedHeaders{j})>1
         % dist      = diff(z);
         if any(diff(z)==0)
-            tmp = sort_into_vols_again(vol{j});
-            vol{j} = tmp{1};
-            vol2 = {vol2{:} tmp{2:end}};
+            tmp = SortIntoVolumesAgain(SortedHeaders{j});
+            SortedHeaders{j} = tmp{1};
+            SortedHeaders2 = {SortedHeaders2{:} tmp{2:end}};
         end
     end
 end
-vol = {vol{:} vol2{:}};
-for j=1:length(vol)
-    if length(vol{j})>1
-        orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
+SortedHeaders = {SortedHeaders{:} SortedHeaders2{:}};
+for j=1:length(SortedHeaders)
+    if length(SortedHeaders{j})>1
+        orient = reshape(SortedHeaders{j}{1}.ImageOrientationPatient,[3 2]);
         proj   = null(orient');
         if det([orient proj])<0, proj = -proj; end
-        z      = zeros(length(vol{j}),1);
-        for i=1:length(vol{j})
-            z(i)  = vol{j}{i}.ImagePositionPatient(:)'*proj;
+        z      = zeros(length(SortedHeaders{j}),1);
+        for i=1:length(SortedHeaders{j})
+            z(i)  = SortedHeaders{j}{i}.ImagePositionPatient(:)'*proj;
         end
         dist = diff(sort(z));
         if sum((dist-mean(dist)).^2)/length(dist)>1e-4
@@ -397,11 +383,11 @@ for j=1:length(vol)
             fprintf('* VARIABLE SLICE SPACING                          *\n');
             fprintf('* This may be due to missing DICOM files.         *\n');
             PatientID = 'anon';
-            if checkfields(vol{j}{1},'PatientID'), PatientID = deblank(vol{j}{1}.PatientID); end
-            if checkfields(vol{j}{1},'SeriesNumber','AcquisitionNumber','InstanceNumber')
+            if CheckFields(SortedHeaders{j}{1}, 'PatientID'), PatientID = deblank(SortedHeaders{j}{1}.PatientID); end
+            if CheckFields(SortedHeaders{j}{1}, 'SeriesNumber', 'AcquisitionNumber', 'InstanceNumber')
                 fprintf('*    %s / %d / %d / %d \n',...
-                    PatientID, vol{j}{1}.SeriesNumber, ...
-                    vol{j}{1}.AcquisitionNumber, vol{j}{1}.InstanceNumber);
+                    PatientID, SortedHeaders{j}{1}.SeriesNumber, ...
+                    SortedHeaders{j}{1}.AcquisitionNumber, SortedHeaders{j}{1}.InstanceNumber);
                 fprintf('*                                                 *\n');
             end
             fprintf('*  %20.4g                           *\n', dist);
@@ -412,16 +398,16 @@ end
 
 
 %==========================================================================
-% function vol2 = sort_into_vols_again(volj)
+% function SortedHeaders = SortIntoVolumesAgain(Headers)
 %==========================================================================
-function vol2 = sort_into_vols_again(volj)
-if ~isfield(volj{1},'InstanceNumber'),
+function SortedHeaders = SortIntoVolumesAgain(Headers)
+if ~isfield(Headers{1},'InstanceNumber'),
     fprintf('***************************************************\n');
     fprintf('* The slices may be all mixed up and the data     *\n');
     fprintf('* not really usable.  Talk to your physicists     *\n');
     fprintf('* about this.                                     *\n');
     fprintf('***************************************************\n');
-    vol2 = {volj};
+    SortedHeaders = {Headers};
     return;
 end
 
@@ -435,68 +421,68 @@ fprintf('* DICOM slices are used multiple times.           *\n');
 fprintf('* The conversion is having to guess how slices    *\n');
 fprintf('* should be arranged into volumes.                *\n');
 PatientID = 'anon';
-if checkfields(volj{1},'PatientID'), PatientID = deblank(volj{1}.PatientID); end
-if checkfields(volj{1},'SeriesNumber','AcquisitionNumber')
+if CheckFields(Headers{1},'PatientID'), PatientID = deblank(Headers{1}.PatientID); end
+if CheckFields(Headers{1},'SeriesNumber','AcquisitionNumber')
     fprintf('*    %s / %d / %d\n',...
-        PatientID, volj{1}.SeriesNumber, ...
-        volj{1}.AcquisitionNumber);
+        PatientID, Headers{1}.SeriesNumber, ...
+        Headers{1}.AcquisitionNumber);
 end
 fprintf('***************************************************\n');
 
-z      = zeros(length(volj),1);
-t      = zeros(length(volj),1);
-d      = zeros(length(volj),1);
-orient = reshape(volj{1}.ImageOrientationPatient,[3 2]);
+z      = zeros(length(Headers),1);
+t      = zeros(length(Headers),1);
+d      = zeros(length(Headers),1);
+orient = reshape(Headers{1}.ImageOrientationPatient,[3 2]);
 proj   = null(orient');
 if det([orient proj])<0, proj = -proj; end
 
-for i=1:length(volj),
-    z(i)  = volj{i}.ImagePositionPatient(:)'*proj;
-    t(i)  = volj{i}.InstanceNumber;
+for i=1:length(Headers),
+    z(i)  = Headers{i}.ImagePositionPatient(:)'*proj;
+    t(i)  = Headers{i}.InstanceNumber;
 end
 % msg = 0;
-[t,index] = sort(t);
-volj      = volj(index);
-z         = z(index);
-msk       = find(diff(t)==0);
+[t,index]      = sort(t);
+Headers = Headers(index);
+z              = z(index);
+msk            = find(diff(t)==0);
 if any(msk)
     % fprintf('***************************************************\n');
     % fprintf('* These files have the same InstanceNumber:       *\n');
     % for i=1:length(msk),
-    %    [tmp,nam1,ext1] = fileparts(volj{msk(i)}.Filename);
-    %    [tmp,nam2,ext2] = fileparts(volj{msk(i)+1}.Filename);
-    %    fprintf('* %s%s = %s%s (%d)\n', nam1,ext1,nam2,ext2, volj{msk(i)}.InstanceNumber);
+    %    [tmp,nam1,ext1] = fileparts(Headers{msk(i)}.Filename);
+    %    [tmp,nam2,ext2] = fileparts(Headers{msk(i)+1}.Filename);
+    %    fprintf('* %s%s = %s%s (%d)\n', nam1,ext1,nam2,ext2, Headers{msk(i)}.InstanceNumber);
     % end;
     % fprintf('***************************************************\n');
     index = [true ; diff(t)~=0];
     t     = t(index);
     z     = z(index);
     d     = d(index);
-    volj  = volj(index);
+    Headers  = Headers(index);
 end
 
 %if any(diff(sort(t))~=1), msg = 1; end;
-[z,index] = sort(z);
-volj      = volj(index);
-t         = t(index);
-vol2      = {};
+[z,index]     = sort(z);
+Headers       = Headers(index);
+t             = t(index);
+SortedHeaders = {};
 while ~all(d)
     i  = find(~d);
     i  = i(1);
     i  = find(z==z(i));
     [t(i),si] = sort(t(i));
-    volj(i)   = volj(i(si));
+    Headers(i)   = Headers(i(si));
     for i1=1:length(i)
-        if length(vol2)<i1, vol2{i1} = {}; end;
-        vol2{i1} = {vol2{i1}{:} volj{i(i1)}};
+        if length(SortedHeaders)<i1, SortedHeaders{i1} = {}; end;
+        SortedHeaders{i1} = {SortedHeaders{i1}{:} Headers{i(i1)}};
     end
     d(i) = 1;
 end
 
 msg = 0;
-len = length(vol2{1});
-for i=2:length(vol2)
-    if length(vol2{i}) ~= len
+len = length(SortedHeaders{1});
+for i=2:length(SortedHeaders)
+    if length(SortedHeaders{i}) ~= len
         msg = 1;
         break;
     end
@@ -506,59 +492,59 @@ if msg
     fprintf('* There are missing DICOM files, so the the       *\n');
     fprintf('* resulting volumes may be messed up.             *\n');
     PatientID = 'anon';
-    if checkfields(volj{1},'PatientID'), PatientID = deblank(volj{1}.PatientID); end
-    if checkfields(volj{1},'SeriesNumber','AcquisitionNumber'),
+    if CheckFields(Headers{1},'PatientID'), PatientID = deblank(Headers{1}.PatientID); end
+    if CheckFields(Headers{1},'SeriesNumber','AcquisitionNumber'),
         fprintf('*    %s / %d / %d\n',...
-            PatientID, volj{1}.SeriesNumber, ...
-            volj{1}.AcquisitionNumber);
+            PatientID, Headers{1}.SeriesNumber, ...
+            Headers{1}.AcquisitionNumber);
     end;
     fprintf('***************************************************\n');
 end
 
 
 %==========================================================================
-% function fname = write_volume(hdr,root_dir,format,out_dir,meta)
+% function fname = WriteVolume(Headers, RootDirectory, format, OutputDirectory, meta)
 %==========================================================================
-function fname = write_volume(hdr,root_dir,format,out_dir,meta)
+function fname = WriteVolume(Headers, RootDirectory, format, OutputDirectory, meta)
 
 % Output filename
 %--------------------------------------------------------------------------
-fname = getfilelocation(hdr{1}, root_dir,'s',format,out_dir);
+fname = getfilelocation(Headers{1}, RootDirectory,'s',format,OutputDirectory);
 
 % Image dimensions
 %--------------------------------------------------------------------------
-nc = hdr{1}.Columns;
-nr = hdr{1}.Rows;
+nc = Headers{1}.Columns;
+nr = Headers{1}.Rows;
 
-if length(hdr) == 1 && isfield(hdr{1},'NumberOfFrames') && hdr{1}.NumberOfFrames > 1
-    if isfield(hdr{1},'ImagePositionPatient') &&...
-       isfield(hdr{1},'ImageOrientationPatient') &&...
-       isfield(hdr{1},'SliceThickness') &&...
-       isfield(hdr{1},'StartOfPixelData') &&...
-       isfield(hdr{1},'SizeOfPixelData')
+if length(Headers) == 1 && isfield(Headers{1},'NumberOfFrames') && Headers{1}.NumberOfFrames > 1
+    if isfield(Headers{1},'ImagePositionPatient') &&...
+       isfield(Headers{1},'ImageOrientationPatient') &&...
+       isfield(Headers{1},'SliceThickness') &&...
+       isfield(Headers{1},'StartOfPixelData') &&...
+       isfield(Headers{1},'SizeOfPixelData')
 
-       orient           = reshape(hdr{1}.ImageOrientationPatient,[3 2]);
+       orient           = reshape(Headers{1}.ImageOrientationPatient,[3 2]);
        orient(:,3)      = null(orient');
        if det(orient)<0, orient(:,3) = -orient(:,3); end
        slicevec         = orient(:,3);
    
-       hdr_temp = cell(1,hdr{1}.NumberOfFrames); % alternative: NumberofSlices
-       hdr_temp{1} = hdr{1};
-       hdr_temp{1}.SizeOfPixelData           = hdr{1}.SizeOfPixelData / hdr{1}.NumberOfFrames;
-       for sn = 2 : hdr{1}.NumberOfFrames
-           hdr_temp{sn}                      = hdr{1};
-           hdr_temp{sn}.ImagePositionPatient = hdr{1}.ImagePositionPatient + (sn-1) * hdr{1}.SliceThickness * slicevec;
-           hdr_temp{sn}.SizeOfPixelData      = hdr_temp{1}.SizeOfPixelData;
-           hdr_temp{sn}.StartOfPixelData     = hdr{1}.StartOfPixelData + (sn-1) * hdr_temp{1}.SizeOfPixelData;
+       Headers_temp = cell(1,Headers{1}.NumberOfFrames); % alternative: NumberofSlices
+       Headers_temp{1} = Headers{1};
+       Headers_temp{1}.SizeOfPixelData           = Headers{1}.SizeOfPixelData / Headers{1}.NumberOfFrames;
+       for sn = 2 : Headers{1}.NumberOfFrames
+           Headers_temp{sn}                      = Headers{1};
+           Headers_temp{sn}.ImagePositionPatient = Headers{1}.ImagePositionPatient + (sn-1) * Headers{1}.SliceThickness * slicevec;
+           Headers_temp{sn}.SizeOfPixelData      = Headers_temp{1}.SizeOfPixelData;
+           Headers_temp{sn}.StartOfPixelData     = Headers{1}.StartOfPixelData + (sn-1) * Headers_temp{1}.SizeOfPixelData;
        end
-       hdr = hdr_temp;
+       Headers = Headers_temp;
    else
-       error('spm_dicom_convert:write_volume','TAGS missing in DICOM file.');
+       error('spm_dicom_convert:WriteVolume','TAGS missing in DICOM file.');
    end
 end
 
-dim    = [nc nr length(hdr)];
-dt     = determine_datatype(hdr{1});
+dim    = [nc nr length(Headers)];
+dt     = DetermineDatatype(Headers{1});
 
 % Orientation information
 %--------------------------------------------------------------------------
@@ -577,50 +563,50 @@ dt     = determine_datatype(hdr{1});
 % y increases posterior to anterior
 % z increases  inferior to superior
 
-analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]; % Flip voxels in y
-patient_to_tal   = diag([-1 -1 1 1]); % Flip mm coords in x and y directions
+AnalyzeToDicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]; % Flip voxels in y
+PatientToTal   = diag([-1 -1 1 1]); % Flip mm coords in x and y directions
 
-R  = [reshape(hdr{1}.ImageOrientationPatient,3,2)*diag(hdr{1}.PixelSpacing); 0 0];
+R  = [reshape(Headers{1}.ImageOrientationPatient,3,2)*diag(Headers{1}.PixelSpacing); 0 0];
 x1 = [1;1;1;1];
-y1 = [hdr{1}.ImagePositionPatient(:); 1];
+y1 = [Headers{1}.ImagePositionPatient(:); 1];
 
-if length(hdr)>1
+if length(Headers)>1
     x2 = [1;1;dim(3); 1];
-    y2 = [hdr{end}.ImagePositionPatient(:); 1];
+    y2 = [Headers{end}.ImagePositionPatient(:); 1];
 else
-    orient           = reshape(hdr{1}.ImageOrientationPatient,[3 2]);
+    orient           = reshape(Headers{1}.ImageOrientationPatient,[3 2]);
     orient(:,3)      = null(orient');
     if det(orient)<0, orient(:,3) = -orient(:,3); end
-    if checkfields(hdr{1},'SliceThickness')
-        z = hdr{1}.SliceThickness;
+    if CheckFields(Headers{1},'SliceThickness')
+        z = Headers{1}.SliceThickness;
     else
         z = 1;
     end
     x2 = [0;0;1;0];
     y2 = [orient*[0;0;z];0];
 end
-dicom_to_patient = [y1 y2 R]/[x1 x2 eye(4,2)];
-mat              = patient_to_tal*dicom_to_patient*analyze_to_dicom;
+DicomToPatient = [y1 y2 R]/[x1 x2 eye(4,2)];
+mat            = PatientToTal*DicomToPatient*AnalyzeToDicom;
 
 % Possibly useful information
 %--------------------------------------------------------------------------
-if checkfields(hdr{1},'AcquisitionTime','MagneticFieldStrength','MRAcquisitionType',...
+if CheckFields(Headers{1},'AcquisitionTime','MagneticFieldStrength','MRAcquisitionType',...
         'ScanningSequence','RepetitionTime','EchoTime','FlipAngle',...
         'AcquisitionDate')
-    if isfield(hdr{1},'ScanOptions')
-        ScanOptions = hdr{1}.ScanOptions;
+    if isfield(Headers{1},'ScanOptions')
+        ScanOptions = Headers{1}.ScanOptions;
     else
         ScanOptions = 'no';
     end
-    tim = datevec(hdr{1}.AcquisitionTime/(24*60*60));
+    tim = datevec(Headers{1}.AcquisitionTime/(24*60*60));
     descrip = sprintf('%gT %s %s TR=%gms/TE=%gms/FA=%gdeg/SO=%s %s %d:%d:%.5g',...
-        hdr{1}.MagneticFieldStrength, hdr{1}.MRAcquisitionType,...
-        deblank(hdr{1}.ScanningSequence),...
-        hdr{1}.RepetitionTime,hdr{1}.EchoTime,hdr{1}.FlipAngle,...
+        Headers{1}.MagneticFieldStrength, Headers{1}.MRAcquisitionType,...
+        deblank(Headers{1}.ScanningSequence),...
+        Headers{1}.RepetitionTime,Headers{1}.EchoTime,Headers{1}.FlipAngle,...
         ScanOptions,...
-        datestr(hdr{1}.AcquisitionDate),tim(4),tim(5),tim(6));
+        datestr(Headers{1}.AcquisitionDate),tim(4),tim(5),tim(6));
 else
-    descrip = hdr{1}.Modality;
+    descrip = Headers{1}.Modality;
 end
 
 if ~true, % LEFT-HANDED STORAGE
@@ -629,11 +615,11 @@ end
 
 % Write the image volume
 %--------------------------------------------------------------------------
-spm_progress_bar('Init',length(hdr),['Writing ' fname], 'Planes written');
-pinfos = [ones(length(hdr),1) zeros(length(hdr),1)];
-for i=1:length(hdr)
-    if isfield(hdr{i},'RescaleSlope'),     pinfos(i,1) = hdr{i}.RescaleSlope;     end 
-    if isfield(hdr{i},'RescaleIntercept'), pinfos(i,2) = hdr{i}.RescaleIntercept; end
+spm_progress_bar('Init',length(Headers),['Writing ' fname], 'Planes written');
+pinfos = [ones(length(Headers),1) zeros(length(Headers),1)];
+for i=1:length(Headers)
+    if isfield(Headers{i},'RescaleSlope'),     pinfos(i,1) = Headers{i}.RescaleSlope;     end 
+    if isfield(Headers{i},'RescaleIntercept'), pinfos(i,2) = Headers{i}.RescaleIntercept; end
 end
 
 if any(any(diff(pinfos,1)))
@@ -643,8 +629,8 @@ if any(any(diff(pinfos,1)))
 end
 
 volume = zeros(dim);
-for i=1:length(hdr)
-    plane = read_image_data(hdr{i});
+for i=1:length(Headers)
+    plane = ReadImageData(Headers{i});
 
     if any(any(diff(pinfos,1)))
         % This is to prevent aliasing effects in any subsequent histograms
@@ -681,46 +667,46 @@ else
     pinfo = [max(mx/32767,-mn/32768) 0];
 end
 
-N      = nifti;
-N.dat  = file_array(fname,dim,dt,0,pinfo(1),pinfo(2));
-N.mat  = mat;
-N.mat0 = mat;
-N.mat_intent  = 'Scanner';
-N.mat0_intent = 'Scanner';
-N.descrip     = descrip;
-create(N);
+Nii      = nifti;
+Nii.dat  = file_array(fname,dim,dt,0,pinfo(1),pinfo(2));
+Nii.mat  = mat;
+Nii.mat0 = mat;
+Nii.mat_intent  = 'Scanner';
+Nii.mat0_intent = 'Scanner';
+Nii.descrip     = descrip;
+create(Nii);
 
 if meta
-    N = spm_dicom_metadata(N,hdr{1});
+    Nii = spm_dicom_metadata(Nii, Headers{1});
 end
 
-N.dat(:,:,:) = volume;
+Nii.dat(:,:,:) = volume;
 spm_progress_bar('Clear');
 
 
 %==========================================================================
-% function fnames = convert_spectroscopy(hdr,root_dir,format,out_dir,meta)
+% function fnames = ConvertSpectroscopy(Headers, RootDirectory, format, OutputDirectory, meta)
 %==========================================================================
-function fnames = convert_spectroscopy(hdr,root_dir,format,out_dir,meta)
-fnames = cell(length(hdr),1);
-for i=1:length(hdr)
-    fnames{i} = write_spectroscopy_volume(hdr(i),root_dir,format,out_dir,meta);
+function fnames = ConvertSpectroscopy(Headers, RootDirectory, format, OutputDirectory, meta)
+fnames = cell(length(Headers),1);
+for i=1:length(Headers)
+    fnames{i} = WriteSpectroscopyVolume(Headers(i), RootDirectory, format, OutputDirectory, meta);
 end
 
 
 %==========================================================================
-% function fname = write_spectroscopy_volume(hdr,root_dir,format,out_dir,meta)
+% function fname = WriteSpectroscopyVolume(Headers, RootDirectory, format, OutputDirectory, meta)
 %==========================================================================
-function fname = write_spectroscopy_volume(hdr,root_dir,format,out_dir,meta)
+function fname = WriteSpectroscopyVolume(Headers, RootDirectory, format, OutputDirectory, meta)
 % Output filename
 %-------------------------------------------------------------------
-fname = getfilelocation(hdr{1}, root_dir,'S',format,out_dir);
+fname = getfilelocation(Headers{1}, RootDirectory,'S',format,OutputDirectory);
 
 % private field to use - depends on SIEMENS software version
-if isfield(hdr{1}, 'CSANonImageHeaderInfoVA')
-    privdat = hdr{1}.CSANonImageHeaderInfoVA;
-elseif isfield(hdr{1}, 'CSANonImageHeaderInfoVB')
-    privdat = hdr{1}.CSANonImageHeaderInfoVB;
+if isfield(Headers{1}, 'CSANonImageHeaderInfoVA')
+    privdat = Headers{1}.CSANonImageHeaderInfoVA;
+elseif isfield(Headers{1}, 'CSANonImageHeaderInfoVB')
+    privdat = Headers{1}.CSANonImageHeaderInfoVB;
 else
     disp('Don''t know how to handle these spectroscopy data');
     fname = '';
@@ -729,13 +715,13 @@ end
 
 % Image dimensions
 %--------------------------------------------------------------------------
-nc = get_numaris4_numval(privdat,'Columns');
-nr = get_numaris4_numval(privdat,'Rows');
+nc = GetNumaris4NumVal(privdat,'Columns');
+nr = GetNumaris4NumVal(privdat,'Rows');
 % Guess number of timepoints in file - I don't know for sure whether this should be
 % 'DataPointRows'-by-'DataPointColumns', 'SpectroscopyAcquisitionDataColumns'
 % or sSpecPara.lVectorSize from SIEMENS ASCII header
-% ntp = get_numaris4_numval(privdat,'DataPointRows')*get_numaris4_numval(privdat,'DataPointColumns');
-ac = read_ascconv(hdr{1});
+% ntp = GetNumaris4NumVal(privdat,'DataPointRows')*GetNumaris4NumVal(privdat,'DataPointColumns');
+ac = ReadAscconv(Headers{1});
 try
     ntp = ac.sSpecPara.lVectorSize;
 catch
@@ -743,7 +729,7 @@ catch
     fname = '';
     return;
 end
-dim    = [nc nr numel(hdr) 2 ntp];
+dim    = [nc nr numel(Headers) 2 ntp];
 dt     = spm_type('float32'); % Fixed datatype
 
 % Orientation information
@@ -763,13 +749,12 @@ dt     = spm_type('float32'); % Fixed datatype
 % y increases posterior to anterior
 % z increases  inferior to superior
 
-analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]; % Flip voxels in y
-patient_to_tal   = diag([-1 -1 1 1]); % Flip mm coords in x and y directions
-shift_vx         = [eye(4,3) [.5; .5; 0; 1]];
+AnalyzeToDicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]; % Flip voxels in y
+PatientToTal   = diag([-1 -1 1 1]); % Flip mm coords in x and y directions
+shift_vx       = [eye(4,3) [.5; .5; 0; 1]];
 
-orient           = reshape(get_numaris4_numval(privdat,...
-                                               'ImageOrientationPatient'),[3 2]);
-ps               = get_numaris4_numval(privdat,'PixelSpacing');
+orient         = reshape(GetNumaris4NumVal(privdat, 'ImageOrientationPatient'), [3 2]);
+ps             = GetNumaris4NumVal(privdat, 'PixelSpacing');
 if nc*nr == 1
     % Single Voxel Spectroscopy (based on the following information from SIEMENS)
     %----------------------------------------------------------------------
@@ -788,32 +773,30 @@ if nc*nr == 1
     % non-zero. This may indicate more fundamental problems with
     % orientation decoding.
     if ps(1) == 0 % row
-        ps(1) = get_numaris4_numval(privdat,...
-                                    'VoiPhaseFoV');
+        ps(1) = GetNumaris4NumVal(privdat, 'VoiPhaseFoV');
         shift_vx(1,4) = 0;
     end
     if ps(2) == 0 % col
-        ps(2) = get_numaris4_numval(privdat,...
-                                    'VoiReadoutFoV');
+        ps(2) = GetNumaris4NumVal(privdat, 'VoiReadoutFoV');
         shift_vx(2,4) = 0;
     end
 end
-pos = get_numaris4_numval(privdat,'ImagePositionPatient');
+pos = GetNumaris4NumVal(privdat, 'ImagePositionPatient');
 % for some reason, pixel spacing needs to be swapped
 R  = [orient*diag(ps([2 1])); 0 0];
 x1 = [1;1;1;1];
 y1 = [pos; 1];
 
-if length(hdr)>1
+if length(Headers)>1
     error('spm_dicom_convert:spectroscopy',...
         'Don''t know how to handle multislice spectroscopy data.');
 else
     orient(:,3)      = null(orient');
     if det(orient)<0, orient(:,3) = -orient(:,3); end
-    z = get_numaris4_numval(privdat,...
+    z = GetNumaris4NumVal(privdat,...
         'VoiThickness');
     if isempty(z)
-        z = get_numaris4_numval(privdat,...
+        z = GetNumaris4NumVal(privdat,...
             'SliceThickness');
     end
     if isempty(z)
@@ -824,22 +807,22 @@ else
     x2 = [0;0;1;0];
     y2 = [orient*[0;0;z];0];
 end
-dicom_to_patient = [y1 y2 R]/[x1 x2 eye(4,2)];
-mat              = patient_to_tal*dicom_to_patient*shift_vx*analyze_to_dicom;
+DicomToPatient = [y1 y2 R]/[x1 x2 eye(4,2)];
+mat              = patient_to_tal*DicomToPatient*shift_vx*AnalyzeToDicom;
 
 % Possibly useful information
 %--------------------------------------------------------------------------
-if checkfields(hdr{1},'AcquisitionTime','MagneticFieldStrength','MRAcquisitionType',...
+if CheckFields(Headers{1},'AcquisitionTime','MagneticFieldStrength','MRAcquisitionType',...
         'ScanningSequence','RepetitionTime','EchoTime','FlipAngle',...
         'AcquisitionDate')
-    tim = datevec(hdr{1}.AcquisitionTime/(24*60*60));
+    tim = datevec(Headers{1}.AcquisitionTime/(24*60*60));
     descrip = sprintf('%gT %s %s TR=%gms/TE=%gms/FA=%gdeg %s %d:%d:%.5g',...
-        hdr{1}.MagneticFieldStrength, hdr{1}.MRAcquisitionType,...
-        deblank(hdr{1}.ScanningSequence),...
-        hdr{1}.RepetitionTime,hdr{1}.EchoTime,hdr{1}.FlipAngle,...
-        datestr(hdr{1}.AcquisitionDate),tim(4),tim(5),tim(6));
+        Headers{1}.MagneticFieldStrength, Headers{1}.MRAcquisitionType,...
+        deblank(Headers{1}.ScanningSequence),...
+        Headers{1}.RepetitionTime,Headers{1}.EchoTime,Headers{1}.FlipAngle,...
+        datestr(Headers{1}.AcquisitionDate),tim(4),tim(5),tim(6));
 else
-    descrip = hdr{1}.Modality;
+    descrip = Headers{1}.Modality;
 end
 
 if ~true % LEFT-HANDED STORAGE
@@ -850,170 +833,166 @@ end
 %--------------------------------------------------------------------------
 N      = nifti;
 pinfo  = [1 0];
-if isfield(hdr{1},'RescaleSlope'),      pinfo(1) = hdr{1}.RescaleSlope;     end;
-if isfield(hdr{1},'RescaleIntercept'),  pinfo(2) = hdr{1}.RescaleIntercept; end;
-N.dat  = file_array(fname,dim,dt,0,pinfo(1),pinfo(2));
-N.mat  = mat;
-N.mat0 = mat;
-N.mat_intent  = 'Scanner';
-N.mat0_intent = 'Scanner';
-N.descrip     = descrip;
-% Store LCMODEL control/raw info in N.extras
-N.extras      = struct('MagneticFieldStrength',...
-                       get_numaris4_numval(privdat,'MagneticFieldStrength'),...
-                       'TransmitterReferenceAmplitude',...
-                       get_numaris4_numval(privdat,'TransmitterReferenceAmplitude'),...
-                       'ImagingFrequency',...
-                       get_numaris4_numval(privdat,'ImagingFrequency'),...
-                       'EchoTime',...
-                       get_numaris4_numval(privdat,'EchoTime'),...
-                       'RealDwellTime',...
-                       get_numaris4_numval(privdat,'RealDwellTime'));
-create(N);
+if isfield(Headers{1},'RescaleSlope'),      pinfo(1) = Headers{1}.RescaleSlope;     end;
+if isfield(Headers{1},'RescaleIntercept'),  pinfo(2) = Headers{1}.RescaleIntercept; end;
+Nii.dat  = file_array(fname,dim,dt,0,pinfo(1),pinfo(2));
+Nii.mat  = mat;
+Nii.mat0 = mat;
+Nii.mat_intent  = 'Scanner';
+Nii.mat0_intent = 'Scanner';
+Nii.descrip     = descrip;
+% Store LCMODEL control/raw info in Nii.extras
+Nii.extras      = struct('MagneticFieldStrength', GetNumaris4NumVal(privdat,'MagneticFieldStrength'),...
+                         'TransmitterReferenceAmplitude', GetNumaris4NumVal(privdat,'TransmitterReferenceAmplitude'),...
+                         'ImagingFrequency', GetNumaris4NumVal(privdat,'ImagingFrequency'),...
+                         'EchoTime', GetNumaris4NumVal(privdat,'EchoTime'),...
+                         'RealDwellTime', GetNumaris4NumVal(privdat,'RealDwellTime'));
+create(Nii);
 
 if meta
-    N = spm_dicom_metadata(N,hdr{1});
+    Nii = spm_dicom_metadata(Nii,Headers{1});
 end
 
 % Read data, swap dimensions
-data = permute(reshape(read_spect_data(hdr{1},ntp),dim([4 5 1 2 3])), ...
+data = permute(reshape(ReadSpectData(Headers{1},ntp),dim([4 5 1 2 3])), ...
                 [3 4 5 1 2]);
 % plane = fliplr(plane);
 
-N.dat(:,:,:,:,:) = data;
+Nii.dat(:,:,:,:,:) = data;
 
 
 %==========================================================================
-% function [images,guff] = select_tomographic_images(hdr)
+% function [images,guff] = SelectTomographicImages(Headers)
 %==========================================================================
-function [images,guff] = select_tomographic_images(hdr)
+function [images,guff] = SelectTomographicImages(Headers)
 images = {};
 guff   = {};
-for i=1:length(hdr)
-    if ~checkfields(hdr{i},'Modality') || ...
-            ~(strcmp(hdr{i}.Modality,'MR') || ...
-              strcmp(hdr{i}.Modality,'PT') || ...
-              strcmp(hdr{i}.Modality,'NM') || ...
-              strcmp(hdr{i}.Modality,'CT'))
-        if checkfields(hdr{i},'Modality')
-            fprintf('File "%s" can not be converted because it is of type "%s", which is not MRI, CT, NM or PET.\n', hdr{i}.Filename, hdr{i}.Modality);
+for i=1:length(Headers)
+    if ~CheckFields(Headers{i},'Modality') || ...
+            ~(strcmp(Headers{i}.Modality,'MR') || ...
+              strcmp(Headers{i}.Modality,'PT') || ...
+              strcmp(Headers{i}.Modality,'NM') || ...
+              strcmp(Headers{i}.Modality,'CT'))
+        if CheckFields(Headers{i},'Modality')
+            fprintf('File "%s" can not be converted because it is of type "%s", which is not MRI, CT, NM or PET.\n', ...
+                    Headers{i}.Filename, Headers{i}.Modality);
         else
-            fprintf('File "%s" can not be converted because it does not encode an image.\n', hdr{i}.Filename);
+            fprintf('File "%s" can not be converted because it does not encode an image.\n', Headers{i}.Filename);
         end
-        guff = [guff(:)',hdr(i)];
+        guff = [guff(:)',Headers(i)];
  
-    elseif ~checkfields(hdr{i},'StartOfPixelData','SamplesPerPixel',...
+    elseif ~CheckFields(Headers{i},'StartOfPixelData','SamplesPerPixel',...
             'Rows','Columns','BitsAllocated','BitsStored','HighBit','PixelRepresentation')
-        fprintf('Cant find "Image Pixel" information for "%s".\n',hdr{i}.Filename);
-        guff = [guff(:)',hdr(i)];
+        fprintf('Cant find "Image Pixel" information for "%s".\n',Headers{i}.Filename);
+        guff = [guff(:)',Headers(i)];
         
-    elseif ~(checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient') ...
-            || isfield(hdr{i},'CSANonImageHeaderInfoVA') || isfield(hdr{i},'CSANonImageHeaderInfoVB'))
-        if isfield(hdr{i},'SharedFunctionalGroupsSequence') || isfield(hdr{i},'PerFrameFunctionalGroupsSequence'),
+    elseif ~(CheckFields(Headers{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient') ...
+            || isfield(Headers{i},'CSANonImageHeaderInfoVA') || isfield(Headers{i},'CSANonImageHeaderInfoVB'))
+        if isfield(Headers{i},'SharedFunctionalGroupsSequence') || isfield(Headers{i},'PerFrameFunctionalGroupsSequence'),
             fprintf(['\n"%s" appears to be multi-frame DICOM.\n'...
                      'Converting these data is still experimental and has only been tested on a very small number of\n'...
                      'multiframe DICOM files. Feedback about problems would be appreciated - particularly if you can\n'...
-                     'give us examples of problematic data (providing there are no subject confidentiality issues).\n\n'], hdr{i}.Filename);
-            images = [images(:)',hdr(i)];
+                     'give us examples of problematic data (providing there are no subject confidentiality issues).\n\n'], Headers{i}.Filename);
+            images = [images(:)',Headers(i)];
         else
-            fprintf('Can''t find "Image Plane" information for "%s".\n',hdr{i}.Filename);
-            guff = [guff(:)',hdr(i)];
+            fprintf('No "Image Plane" information for "%s".\n',Headers{i}.Filename);
+            guff = [guff(:)',Headers(i)];
         end
 
-    elseif ~checkfields(hdr{i},'SeriesNumber','AcquisitionNumber','InstanceNumber')
-       %disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
-        if ~isfield(hdr{i},'SeriesNumber')
+    elseif ~CheckFields(Headers{i},'SeriesNumber','AcquisitionNumber','InstanceNumber')
+       %disp(['Cant find suitable filename info for "' Headers{i}.Filename '".']);
+        if ~isfield(Headers{i},'SeriesNumber')
             fprintf('Setting SeriesNumber to 1.\n');
-            hdr{i}.SeriesNumber = 1;
-            images = [images(:)',hdr(i)];
+            Headers{i}.SeriesNumber = 1;
+            images = [images(:)',Headers(i)];
         end
-        if ~isfield(hdr{i},'AcquisitionNumber')
-            if isfield(hdr{i},'Manufacturer') && ~isempty(strfind(upper(hdr{1}.Manufacturer), 'PHILIPS'))
+        if ~isfield(Headers{i},'AcquisitionNumber')
+            if isfield(Headers{i},'Manufacturer') && ~isempty(strfind(upper(Headers{1}.Manufacturer), 'PHILIPS'))
                 % Philips oddity
-                if isfield(hdr{i},'InstanceNumber')
-                    hdr{i}.AcquisitionNumber = hdr{i}.InstanceNumber;
+                if isfield(Headers{i},'InstanceNumber')
+                    Headers{i}.AcquisitionNumber = Headers{i}.InstanceNumber;
                 else
                     fprintf('Setting AcquisitionNumber to 1.\n');
-                    hdr{i}.AcquisitionNumber = 1;
+                    Headers{i}.AcquisitionNumber = 1;
                 end
             else
                 fprintf('Setting AcquisitionNumber to 1.\n');
-                hdr{i}.AcquisitionNumber = 1;
+                Headers{i}.AcquisitionNumber = 1;
             end
-            images = [images(:)',hdr(i)];
+            images = [images(:)',Headers(i)];
         end
-        if ~isfield(hdr{i},'InstanceNumber')
+        if ~isfield(Headers{i},'InstanceNumber')
             fprintf('Setting InstanceNumber to 1.\n');
-            hdr{i}.InstanceNumber = 1;
-            images = [images(:)',hdr(i)];
+            Headers{i}.InstanceNumber = 1;
+            images = [images(:)',Headers(i)];
         end
-    %elseif isfield(hdr{i},'Private_2001_105f'),
+    %elseif isfield(Headers{i},'Private_2001_105f'),
     %    % This field corresponds to: > Stack Sequence 2001,105F SQ VNAP, COPY
     %    % http://www.medical.philips.com/main/company/connectivity/mri/index.html
     %    % No documentation about this private field is yet available.
     %    disp('Cant yet convert Philips Intera DICOM.');
-    %    guff = {guff{:},hdr{i}};
+    %    guff = {guff{:},Headers{i}};
     else
-        images = [images(:)',hdr(i)];
+        images = [images(:)',Headers(i)];
     end
 end
 
 
 %==========================================================================
-% function [multiframe,other] = select_multiframe(hdr)
+% function [multiframe,other] = SelectMultiframe(Headers)
 %==========================================================================
-function [multiframe,other] = select_multiframe(hdr)
+function [multiframe,other] = SelectMultiframe(Headers)
 multiframe = {};
 other      = {};
-for i=1:length(hdr)
-    if isfield(hdr{i},'SharedFunctionalGroupsSequence') || isfield(hdr{i},'PerFrameFunctionalGroupsSequence'),
-        multiframe = [multiframe(:)',hdr(i)];
+for i=1:length(Headers)
+    if isfield(Headers{i},'SharedFunctionalGroupsSequence') || isfield(Headers{i},'PerFrameFunctionalGroupsSequence'),
+        multiframe = [multiframe(:)',Headers(i)];
     else
-        other      = [other(:)',hdr(i)];
+        other      = [other(:)',Headers(i)];
     end
 end
 
 
 %==========================================================================
-% function [mosaic,standard] = select_mosaic_images(hdr)
+% function [mosaic,standard] = SelectMosaicImages(Headers)
 %==========================================================================
-function [mosaic,standard] = select_mosaic_images(hdr)
+function [mosaic,standard] = SelectMosaicImages(Headers)
 mosaic   = {};
 standard = {};
-for i=1:length(hdr)
-    if ~checkfields(hdr{i},'ImageType','CSAImageHeaderInfo') ||...
-            isfield(hdr{i}.CSAImageHeaderInfo,'junk') ||...
-            isempty(read_AcquisitionMatrixText(hdr{i})) ||...
-            isempty(read_NumberOfImagesInMosaic(hdr{i})) ||...
-            read_NumberOfImagesInMosaic(hdr{i}) == 0
+for i=1:length(Headers)
+    if ~CheckFields(Headers{i},'ImageType','CSAImageHeaderInfo') ||...
+            isfield(Headers{i}.CSAImageHeaderInfo,'junk') ||...
+            isempty(ReadAcquisitionMatrixText(Headers{i})) ||...
+            isempty(ReadNumberOfImagesInMosaic(Headers{i})) ||...
+            ReadNumberOfImagesInMosaic(Headers{i}) == 0
         % NumberOfImagesInMosaic seems to be set to zero for pseudo images
         % containing e.g. online-fMRI design matrices, don't treat them as
         % mosaics
-        standard = [standard, hdr(i)];
+        standard = [standard, Headers(i)];
     else
-        mosaic   = [mosaic,   hdr(i)];
+        mosaic   = [mosaic,   Headers(i)];
     end
 end
 
 
 %==========================================================================
-% function [spect,images] = select_spectroscopy_images(hdr)
+% function [spect,images] = SelectSpectroscopyImages(Headers)
 %==========================================================================
-function [spect,images] = select_spectroscopy_images(hdr)
-spectsel = false(1,numel(hdr));
-for i=1:numel(hdr)
-    if isfield(hdr{i},'SOPClassUID')
-        spectsel(i) = strcmp(hdr{i}.SOPClassUID,'1.3.12.2.1107.5.9.1');
+function [spect,images] = SelectSpectroscopyImages(Headers)
+spectsel = false(1,numel(Headers));
+for i=1:numel(Headers)
+    if isfield(Headers{i},'SOPClassUID')
+        spectsel(i) = strcmp(Headers{i}.SOPClassUID,'1.3.12.2.1107.5.9.1');
     end
 end
-spect  = hdr(spectsel);
-images = hdr(~spectsel);
+spect  = Headers(spectsel);
+images = Headers(~spectsel);
 
 
 %==========================================================================
-% function [standard, guff] = select_last_guff(standard, guff)
+% function [standard, guff] = SelectLastGuff(standard, guff)
 %==========================================================================
-function [standard, guff] = select_last_guff(standard, guff)
+function [standard, guff] = SelectLastGuff(standard, guff)
 % See https://www.jiscmail.ac.uk/cgi-bin/webadmin?A2=spm;5b69d495.1108
 i = find(cellfun(@(x) ~isfield(x,'ImageOrientationPatient'),standard));
 guff = [guff, standard(i)];
@@ -1021,12 +1000,12 @@ standard(i) = [];
 
 
 %==========================================================================
-% function ok = checkfields(hdr,varargin)
+% function ok = CheckFields(Headers,varargin)
 %==========================================================================
-function ok = checkfields(hdr,varargin)
+function ok = CheckFields(Headers,varargin)
 ok = 1;
 for i=1:(nargin-1)
-    if ~isfield(hdr,varargin{i})
+    if ~isfield(Headers,varargin{i})
         ok = 0;
         break;
     end
@@ -1034,45 +1013,45 @@ end
 
 
 %==========================================================================
-% function clean = strip_unwanted(dirty)
+% function clean = StripUnwantedChars(dirty)
 %==========================================================================
-function clean = strip_unwanted(dirty)
+function clean = StripUnwantedChars(dirty)
 msk = (dirty>='a'&dirty<='z') | (dirty>='A'&dirty<='Z') |...
       (dirty>='0'&dirty<='9') | dirty=='_';
 clean = dirty(msk);
 
 
 %==========================================================================
-% function img = read_image_data(hdr)
+% function img = ReadImageData(Header)
 %==========================================================================
-function img = read_image_data(hdr)
+function img = ReadImageData(Header)
 img = [];
 
-if hdr.SamplesPerPixel ~= 1,
-    warning('spm:dicom','%s: SamplesPerPixel = %d - cant be an MRI.', hdr.Filename, hdr.SamplesPerPixel);
+if Header.SamplesPerPixel ~= 1,
+    warning('spm:dicom','%s: SamplesPerPixel = %d - cant be an MRI.', Header.Filename, Header.SamplesPerPixel);
     return;
 end;
 
-prec = ['ubit' num2str(hdr.BitsAllocated) '=>' 'uint32'];
+prec = ['ubit' num2str(Header.BitsAllocated) '=>' 'uint32'];
 
-if isfield(hdr,'TransferSyntaxUID') && strcmp(hdr.TransferSyntaxUID,'1.2.840.10008.1.2.2') && strcmp(hdr.VROfPixelData,'OW'),
-    fp = fopen(hdr.Filename,'r','ieee-be');
+if isfield(Header,'TransferSyntaxUID') && strcmp(Header.TransferSyntaxUID,'1.2.840.10008.1.2.2') && strcmp(Header.VROfPixelData,'OW'),
+    fp = fopen(Header.Filename,'r','ieee-be');
 else
-    fp = fopen(hdr.Filename,'r','ieee-le');
+    fp = fopen(Header.Filename,'r','ieee-le');
 end;
 if fp==-1,
-    warning('spm:dicom','%s: Cant open file.', hdr.Filename);
+    warning('spm:dicom','%s: Cant open file.', Header.Filename);
     return;
 end;
 
-if isfield(hdr,'NumberOfFrames'),
-    NFrames = hdr.NumberOfFrames;
+if isfield(Header,'NumberOfFrames'),
+    NFrames = Header.NumberOfFrames;
 else
     NFrames = 1;
 end
 
-if isfield(hdr,'TransferSyntaxUID')
-    switch(hdr.TransferSyntaxUID)
+if isfield(Header,'TransferSyntaxUID')
+    switch(Header.TransferSyntaxUID)
     case {'1.2.840.10008.1.2.4.50','1.2.840.10008.1.2.4.51',... % 8 bit JPEG & 12 bit JPEG
           '1.2.840.10008.1.2.4.57','1.2.840.10008.1.2.4.70',... % lossless NH JPEG & lossless NH, 1st order
           '1.2.840.10008.1.2.4.80','1.2.840.10008.1.2.4.81',... % lossless JPEG-LS & near lossless JPEG-LS
@@ -1080,7 +1059,7 @@ if isfield(hdr,'TransferSyntaxUID')
           '1.2.840.10008.1.2.4.92','1.2.840.10008.1.2.4.93' ... % lossless JPEG 2000 & possibly lossy JPEG 2000, Part 2
          },
         % try to read PixelData as JPEG image
-        fseek(fp,hdr.StartOfPixelData,'bof');
+        fseek(fp,Header.StartOfPixelData,'bof');
         fread(fp,2,'uint16'); % uint16 encoding 65534/57344 (Item)
         offset = double(fread(fp,1,'uint32')); % followed by 4 0 0 0
         fread(fp,2,'uint16'); % uint16 encoding 65534/57344 (Item)
@@ -1105,81 +1084,81 @@ if isfield(hdr,'TransferSyntaxUID')
           '1.2.840.10008.1.2.4.100','1.2.840.10008.1.2.4.101',... % MPEG2 MP@ML & MPEG2 MP@HL
           '1.2.840.10008.1.2.4.102',                          ... % MPEG-4 AVC/H.264 High Profile and BD-compatible
          }
-         warning('spm:dicom',[hdr.Filename ': cant deal with JPIP/MPEG data (' hdr.TransferSyntaxUID ')']);
+         warning('spm:dicom',[Header.Filename ': cant deal with JPIP/MPEG data (' Header.TransferSyntaxUID ')']);
     otherwise
-        fseek(fp,hdr.StartOfPixelData,'bof');
-        img = fread(fp,hdr.Rows*hdr.Columns*NFrames,prec);
+        fseek(fp,Header.StartOfPixelData,'bof');
+        img = fread(fp,Header.Rows*Header.Columns*NFrames,prec);
     end
 else
-    fseek(fp,hdr.StartOfPixelData,'bof');
-    img = fread(fp,hdr.Rows*hdr.Columns*NFrames,prec);
+    fseek(fp,Header.StartOfPixelData,'bof');
+    img = fread(fp,Header.Rows*Header.Columns*NFrames,prec);
 end
 fclose(fp);
-if numel(img)~=hdr.Rows*hdr.Columns*NFrames,
-    error([hdr.Filename ': cant read whole image']);
+if numel(img)~=Header.Rows*Header.Columns*NFrames,
+    error([Header.Filename ': cant read whole image']);
 end;
 
-img = bitshift(img,hdr.BitsStored-hdr.HighBit-1);
+img = bitshift(img,Header.BitsStored-Header.HighBit-1);
 
-if hdr.PixelRepresentation,
+if Header.PixelRepresentation,
     % Signed data - done this way because bitshift only
     % works with signed data.  Negative values are stored
     % as 2s complement.
-    neg      = logical(bitshift(bitand(img,uint32(2^hdr.HighBit)),-hdr.HighBit));
-    msk      = (2^hdr.HighBit - 1);
+    neg      = logical(bitshift(bitand(img,uint32(2^Header.HighBit)), -Header.HighBit));
+    msk      = (2^Header.HighBit - 1);
     img      = double(bitand(img,msk));
-    img(neg) = img(neg)-2^(hdr.HighBit);
+    img(neg) = img(neg)-2^(Header.HighBit);
 else
     % Unsigned data
-    msk      = (2^(hdr.HighBit+1) - 1);
+    msk      = (2^(Header.HighBit+1) - 1);
     img      = double(bitand(img,msk));
 end;
 
-img = reshape(img,[hdr.Columns,hdr.Rows,NFrames]);
+img = reshape(img,[Header.Columns,Header.Rows,NFrames]);
 
 
 %==========================================================================
-% function img = read_spect_data(hdr,privdat)
+% function img = ReadSpectData(Header,privdat)
 %==========================================================================
-function img = read_spect_data(hdr,ntp)
+function img = ReadSpectData(Header,ntp)
 % Data is stored as complex float32 values, timepoint by timepoint, voxel
-% by voxel. Reshaping is done in write_spectroscopy_volume.
-if ntp*2*4 ~= hdr.SizeOfCSAData
-    warning('spm:dicom', [hdr.Filename,': Data size mismatch.']);
+% by voxel. Reshaping is done in WriteSpectroscopyVolume.
+if ntp*2*4 ~= Header.SizeOfCSAData
+    warning('spm:dicom', [Header.Filename,': Data size mismatch.']);
 end
-fp = fopen(hdr.Filename,'r','ieee-le');
-fseek(fp,hdr.StartOfCSAData,'bof');
+fp = fopen(Header.Filename,'r','ieee-le');
+fseek(fp,Header.StartOfCSAData,'bof');
 img = fread(fp,2*ntp,'float32');
 fclose(fp);
 
 
 %==========================================================================
-% function nrm = read_SliceNormalVector(hdr)
+% function nrm = ReadSliceNormalVector(Header)
 %==========================================================================
-function nrm = read_SliceNormalVector(hdr)
-str = hdr.CSAImageHeaderInfo;
-val = get_numaris4_val(str,'SliceNormalVector');
+function nrm = ReadSliceNormalVector(Header)
+str = Header.CSAImageHeaderInfo;
+val = GetNumaris4Val(str,'SliceNormalVector');
 for i=1:3,
     nrm(i,1) = sscanf(val(i,:),'%g');
 end
 
 
 %==========================================================================
-% function n = read_NumberOfImagesInMosaic(hdr)
+% function n = ReadNumberOfImagesInMosaic(Header)
 %==========================================================================
-function n = read_NumberOfImagesInMosaic(hdr)
-str = hdr.CSAImageHeaderInfo;
-val = get_numaris4_val(str,'NumberOfImagesInMosaic');
+function n = ReadNumberOfImagesInMosaic(Header)
+str = Header.CSAImageHeaderInfo;
+val = GetNumaris4Val(str,'NumberOfImagesInMosaic');
 n   = sscanf(val','%d');
-if isempty(n), n=[]; end
+if isempty(n), n = []; end
 
 
 %==========================================================================
-% function dim = read_AcquisitionMatrixText(hdr)
+% function dim = ReadAcquisitionMatrixText(Header)
 %==========================================================================
-function dim = read_AcquisitionMatrixText(hdr)
-str = hdr.CSAImageHeaderInfo;
-val = get_numaris4_val(str,'AcquisitionMatrixText');
+function dim = ReadAcquisitionMatrixText(Header)
+str = Header.CSAImageHeaderInfo;
+val = GetNumaris4Val(str,'AcquisitionMatrixText');
 dim = sscanf(val','%d*%d')';
 if length(dim)==1
     dim = sscanf(val','%dp*%d')';
@@ -1188,9 +1167,9 @@ if isempty(dim), dim=[]; end
 
 
 %==========================================================================
-% function val = get_numaris4_val(str,name)
+% function val = GetNumaris4Val(str,name)
 %==========================================================================
-function val = get_numaris4_val(str,name)
+function val = GetNumaris4Val(str,name)
 name = deblank(name);
 val  = {};
 for i=1:length(str)
@@ -1207,10 +1186,10 @@ val = strvcat(val{:});
 
 
 %==========================================================================
-% function val = get_numaris4_numval(str,name)
+% function val = GetNumaris4NumVal(str,name)
 %==========================================================================
-function val = get_numaris4_numval(str,name)
-val1 = get_numaris4_val(str,name);
+function val = GetNumaris4NumVal(str,name)
+val1 = GetNumaris4Val(str,name);
 val  = zeros(size(val1,1),1);
 for k = 1:size(val1,1)
     val(k)=str2num(val1(k,:));
@@ -1218,35 +1197,35 @@ end
 
 
 %==========================================================================
-% function fname = getfilelocation(hdr,root_dir,prefix,format,out_dir)
+% function fname = getfilelocation(Header,RootDirectory,prefix,format,OutputDirectory)
 %==========================================================================
-function fname = getfilelocation(hdr,root_dir,prefix,format,out_dir)
+function fname = getfilelocation(Header,RootDirectory,prefix,format,OutputDirectory)
 
 if nargin < 3
     prefix = 'f';
 end
 
-if strncmp(root_dir,'ice',3)
-    root_dir = root_dir(4:end);
-    imtype = textscan(hdr.ImageType,'%s','delimiter','\\');
+if strncmp(RootDirectory,'ice',3)
+    RootDirectory = RootDirectory(4:end);
+    imtype = textscan(Header.ImageType,'%s','delimiter','\\');
     try
         imtype = imtype{1}{3};
     catch
         imtype = '';
     end
-    prefix = [prefix imtype get_numaris4_val(hdr.CSAImageHeaderInfo,'ICE_Dims')];
+    prefix = [prefix imtype GetNumaris4Val(Header.CSAImageHeaderInfo,'ICE_Dims')];
 end
 
-if isfield(hdr,'PatientID'),         PatientID         = deblank(hdr.PatientID); else PatientID         = 'anon'; end
-if isfield(hdr,'EchoNumbers'),       EchoNumbers       = hdr.EchoNumbers;        else EchoNumbers       = 0;      end
-if isfield(hdr,'SeriesNumber'),      SeriesNumber      = hdr.SeriesNumber;       else SeriesNumber      = 0;      end
-if isfield(hdr,'AcquisitionNumber'), AcquisitionNumber = hdr.AcquisitionNumber;  else AcquisitionNumber = 0;      end
-if isfield(hdr,'InstanceNumber'),    InstanceNumber    = hdr.InstanceNumber;     else InstanceNumber    = 0;      end
+if isfield(Header,'PatientID'),         PatientID         = deblank(Header.PatientID); else PatientID         = 'anon'; end
+if isfield(Header,'EchoNumbers'),       EchoNumbers       = Header.EchoNumbers;        else EchoNumbers       = 0;      end
+if isfield(Header,'SeriesNumber'),      SeriesNumber      = Header.SeriesNumber;       else SeriesNumber      = 0;      end
+if isfield(Header,'AcquisitionNumber'), AcquisitionNumber = Header.AcquisitionNumber;  else AcquisitionNumber = 0;      end
+if isfield(Header,'InstanceNumber'),    InstanceNumber    = Header.InstanceNumber;     else InstanceNumber    = 0;      end
 
 ImTyp = '';
-if isfield(hdr,'GE_ImageType')
-    if numel(hdr.GE_ImageType)==1
-        switch hdr.GE_ImageType
+if isfield(Header,'GE_ImageType')
+    if numel(Header.GE_ImageType)==1
+        switch Header.GE_ImageType
         case 1
             ImTyp = '-Phase';
         case 2
@@ -1261,7 +1240,7 @@ end
 % overwriting uncombined coil images, which have identical file name
 % otherwise)
 try 
-    ICE_Dims = get_numaris4_val(hdr.CSAImageHeaderInfo,'ICE_Dims');
+    ICE_Dims = GetNumaris4Val(Header.CSAImageHeaderInfo,'ICE_Dims');
     % extract ICE dims as an array of numbers (replace 'X' which is for
     % combined images by '-1' first): 
     CHA = sscanf(strrep(ICE_Dims,'X','-1'), '%i_%i_%i_%i_%i_%i_%i_%i_%i')';
@@ -1274,78 +1253,78 @@ catch
     CHA = '';
 end
 
-if strcmp(root_dir, 'flat')
+if strcmp(RootDirectory, 'flat')
     % Standard SPM file conversion
     %----------------------------------------------------------------------
-    if checkfields(hdr,'SeriesNumber','AcquisitionNumber')
-        if checkfields(hdr,'EchoNumbers')
-if ~isempty(CHA)
-                fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d-%s%s.%s', prefix, strip_unwanted(PatientID),...
-                    SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, CHA, ImTyp, format);
+    if CheckFields(Header,'SeriesNumber','AcquisitionNumber')
+        if CheckFields(Header,'EchoNumbers')
+            if ~isempty(CHA)
+                fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d-%s%s.%s', prefix, StripUnwantedChars(PatientID),...
+                                SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, CHA, ImTyp, format);
             else
-                fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d%s.%s', prefix, strip_unwanted(PatientID),...
-                    SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, ImTyp, format);
+                fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d%s.%s', prefix, StripUnwantedChars(PatientID),...
+                                SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, ImTyp, format);
             end
         else
             if ~isempty(CHA)
-                fname = sprintf('%s%s-%.4d-%.5d-%.6d-%s%s.%s', prefix, strip_unwanted(PatientID),...
-                    SeriesNumber, AcquisitionNumber, InstanceNumber, CHA, ImTyp, format);
+                fname = sprintf('%s%s-%.4d-%.5d-%.6d-%s%s.%s', prefix, StripUnwantedChars(PatientID),...
+                                SeriesNumber, AcquisitionNumber, InstanceNumber, CHA, ImTyp, format);
             else
-                fname = sprintf('%s%s-%.4d-%.5d-%.6d%s.%s', prefix, strip_unwanted(PatientID),...
-                    SeriesNumber, AcquisitionNumber, InstanceNumber, ImTyp, format);
+                fname = sprintf('%s%s-%.4d-%.5d-%.6d%s.%s', prefix, StripUnwantedChars(PatientID),...
+                                SeriesNumber, AcquisitionNumber, InstanceNumber, ImTyp, format);
             end
         end
     else
         fname = sprintf('%s%s-%.6d%s.%s',prefix, ...
-            strip_unwanted(PatientID), InstanceNumber, ImTyp, format);
+                        StripUnwantedChars(PatientID), InstanceNumber, ImTyp, format);
     end
 
-    fname = fullfile(out_dir,fname);
+    fname = fullfile(OutputDirectory,fname);
     return;
 end
 
 % more fancy stuff - sort images into subdirectories
-if isfield(hdr,'StudyTime')
-    m = sprintf('%02d', floor(rem(hdr.StudyTime/60,60)));
-    h = sprintf('%02d', floor(hdr.StudyTime/3600));
+if isfield(Header,'StudyTime')
+    m = sprintf('%02d', floor(rem(Header.StudyTime/60,60)));
+    h = sprintf('%02d', floor(Header.StudyTime/3600));
 else
     m = '00';
     h = '00';
 end
-if isfield(hdr,'AcquisitionTime'),   AcquisitionTime   = hdr.AcquisitionTime;            else AcquisitionTime   = 100;       end;
-if isfield(hdr,'StudyDate'),         StudyDate         = hdr.StudyDate;                  else StudyDate         = 100;       end; % Obscure Easter Egg
-if isfield(hdr,'PatientsName'),      PatientsName      = deblank(hdr.PatientsName);      else PatientsName      = 'anon';    end
-if isfield(hdr,'SeriesDescription'), SeriesDescription = deblank(hdr.SeriesDescription); else SeriesDescription = 'unknown'; end
-if isfield(hdr,'ProtocolName'),
-    ProtocolName = deblank(hdr.ProtocolName);
+if isfield(Header,'AcquisitionTime'),   AcquisitionTime   = Header.AcquisitionTime;            else AcquisitionTime   = 100;       end;
+if isfield(Header,'StudyDate'),         StudyDate         = Header.StudyDate;                  else StudyDate         = 100;       end; % Obscure Easter Egg
+if isfield(Header,'PatientsName'),      PatientsName      = deblank(Header.PatientsName);      else PatientsName      = 'anon';    end
+if isfield(Header,'SeriesDescription'), SeriesDescription = deblank(Header.SeriesDescription); else SeriesDescription = 'unknown'; end
+if isfield(Header,'ProtocolName'),
+    ProtocolName = deblank(Header.ProtocolName);
 else
-    if isfield(hdr,'SequenceName')
-        ProtocolName = deblank(hdr.SequenceName);
+    if isfield(Header,'SequenceName')
+        ProtocolName = deblank(Header.SequenceName);
     else
         ProtocolName='unknown';
     end
 end
 
 studydate = sprintf('%s_%s-%s', datestr(StudyDate,'yyyy-mm-dd'), h,m);
-switch root_dir
+switch RootDirectory
     case {'date_time','series'}
         id = studydate;
     case {'patid', 'patid_date', 'patname'},
-        id = strip_unwanted(PatientID);
+        id = StripUnwantedChars(PatientID);
 end
-serdes   = strrep(strip_unwanted(SeriesDescription), strip_unwanted(ProtocolName),'');
-protname = sprintf('%s%s_%.4d',strip_unwanted(ProtocolName), serdes, SeriesNumber);
-switch root_dir
+serdes   = strrep(StripUnwantedChars(SeriesDescription), StripUnwantedChars(ProtocolName),'');
+protname = sprintf('%s%s_%.4d', StripUnwantedChars(ProtocolName), serdes, SeriesNumber);
+switch RootDirectory
     case 'date_time',
-        dname = fullfile(out_dir, id, protname);
+        dname = fullfile(OutputDirectory, id, protname);
     case 'patid',
-        dname = fullfile(out_dir, id, protname);
+        dname = fullfile(OutputDirectory, id, protname);
     case 'patid_date',
-        dname = fullfile(out_dir, id, studydate, protname);
+        dname = fullfile(OutputDirectory, id, studydate, protname);
     case 'patname',
-        dname = fullfile(out_dir, strip_unwanted(PatientsName), id, protname);
+        dname = fullfile(OutputDirectory, StripUnwantedChars(PatientsName), id, protname);
     case 'series',
-        dname = fullfile(out_dir, protname);
+        dname = fullfile(OutputDirectory, protname);
     otherwise
         error('unknown file root specification');
 end
@@ -1380,9 +1359,9 @@ end
 
 
 %==========================================================================
-% function ret = read_ascconv(hdr)
+% function ret = ReadAscconv(Header)
 %==========================================================================
-function ret = read_ascconv(hdr)
+function ret = ReadAscconv(Header)
 % In SIEMENS data, there is an ASCII text section with
 % additional information items. This section starts with a code
 % ### ASCCONV BEGIN <some version string> ###
@@ -1402,12 +1381,12 @@ function ret = read_ascconv(hdr)
 ret=struct;
 
 % get ascconv data
-if isfield(hdr, 'CSAMiscProtocolHeaderInfoVA')
-    X = get_numaris4_val(hdr.CSAMiscProtocolHeaderInfoVA,'MrProtocol');
-elseif isfield(hdr, 'CSAMiscProtocolHeaderInfoVB')
-    X = get_numaris4_val(hdr.CSAMiscProtocolHeaderInfoVB,'MrPhoenixProtocol');
-elseif isfield(hdr, 'CSASeriesHeaderInfo')
-    X = get_numaris4_val(hdr.CSASeriesHeaderInfo,'MrProtocol');
+if isfield(Header, 'CSAMiscProtocolHeaderInfoVA')
+    X = GetNumaris4Val(Header.CSAMiscProtocolHeaderInfoVA,'MrProtocol');
+elseif isfield(Header, 'CSAMiscProtocolHeaderInfoVB')
+    X = GetNumaris4Val(Header.CSAMiscProtocolHeaderInfoVB,'MrPhoenixProtocol');
+elseif isfield(Header, 'CSASeriesHeaderInfo')
+    X = GetNumaris4Val(Header.CSASeriesHeaderInfo,'MrProtocol');
 else
     return;
 end
@@ -1423,8 +1402,8 @@ if ~isempty(X)
     for k = 1:numel(tokens{1})
         if ~isempty(tokens{1}{k})
             try
-                [tlhrh, un] = regexp(tokens{1}{k}, '(?:=)+', 'split', 'match');
-                [tlh, un]   = regexp(tlhrh{1}, '(?:\.)+', 'split', 'match');
+                [tlhrh, ~] = regexp(tokens{1}{k}, '(?:=)+', 'split', 'match');
+                [tlh, ~]   = regexp(tlhrh{1}, '(?:\.)+', 'split', 'match');
                 tlh = cellfun(@genvarname, tlh, 'UniformOutput',false);
                 tlh = sprintf('.%s', tlh{:});
                 eval(sprintf('ret%s = %s;', tlh, tlhrh{2}));
@@ -1437,64 +1416,66 @@ end
 
 
 %==========================================================================
-% function dt = determine_datatype(hdr)
+% function Datatype = DetermineDatatype(Header)
 %==========================================================================
-function dt = determine_datatype(hdr)
+function Datatype = DetermineDatatype(Header)
 % Determine what datatype to use for NIfTI images
-be = spm_platform('bigend');
-if hdr.BitsStored>16
-    if hdr.PixelRepresentation
-        dt  = [spm_type( 'int32') be];
+BigEndian = spm_platform('bigend');
+if Header.BitsStored>16
+    if Header.PixelRepresentation
+        Datatype = [spm_type( 'int32') BigEndian];
     else
-        dt  = [spm_type('uint32') be];
+        Datatype = [spm_type('uint32') BigEndian];
     end
 else
-    if hdr.PixelRepresentation 
-        dt  = [spm_type( 'int16') be];
+    if Header.PixelRepresentation 
+        Datatype = [spm_type( 'int16') BigEndian];
     else
-        dt  = [spm_type('uint16') be];
+        Datatype = [spm_type('uint16') BigEndian];
     end
 end
 
+
 %==========================================================================
-% function fspe = convert_multiframes(hdr,root_dir,format,out_dir,meta)
+% function fspe = ConvertMultiframes(Headers, RootDirectory, format, OutputDirectory, meta)
 %==========================================================================
-function fspe = convert_multiframes(hdr,root_dir,format,out_dir,meta)
+function fspe = ConvertMultiframes(Headers, RootDirectory, format, OutputDirectory, meta)
 fspe = {};
-dict = load('spm_dicom_dict.mat');
-for i=1:numel(hdr)
-    out  = convert_multiframe(hdr{i}, dict, root_dir, format,out_dir,meta);
+DicomDictionary = ReadDicomDictionary;
+for i=1:numel(Headers)
+    out  = ConvertMultiframe(Headers{i}, DicomDictionary, RootDirectory, format,OutputDirectory,meta);
     fspe = [fspe(:); out(:)];
 end
 
+
 %==========================================================================
-% function out = convert_multiframe(H, dict, root_dir, format,out_dir,meta)
+% function out = ConvertMultiframe(Header, DicomDictionary, RootDirectory, format, OutputDirectory, meta)
 %==========================================================================
-function out = convert_multiframe(H, dict, root_dir, format,out_dir,meta)
+function out = ConvertMultiframe(Header, DicomDictionary, RootDirectory, format, OutputDirectory, meta)
 out      = {};
-diminfo  = read_DimOrg(H,dict);
-dat      = read_FGS(H,diminfo);
-N        = numel(dat);
-fname0   = getfilelocation(H, root_dir,'MF',format,out_dir);
+DimOrg   = GetDimOrg(Header, DicomDictionary);
+FGS      = GetFGS(Header, DimOrg);
+N        = numel(FGS);
+fname0   = getfilelocation(Header, RootDirectory,'MF',format,OutputDirectory);
 [pth,nam,ext0] = fileparts(fname0);
 fname0   = fullfile(pth,nam);
 
-if ~isfield(dat,'ImageOrientationPatient') || ~isfield(dat,'PixelSpacing') || ~isfield(dat,'ImagePositionPatient'),
-    fprintf('"%s" does not seem to have positional information.\n', H.Filename);
+if ~isfield(FGS,'ImageOrientationPatient') || ~isfield(FGS,'PixelSpacing') || ~isfield(FGS,'ImagePositionPatient'),
+    fprintf('"%s" does not seem to have positional information.\n', Header.Filename);
     return;
 end
 
-%if isfield(dat,'DimensionIndexValues')
-%    disp(cat(1,dat.DimensionIndexValues))
+%if isfield(FGS, 'DimensionIndexValues')
+%    disp(cat(1, FGS.DimensionIndexValues))
 %end
 
-% Read the atual image data
-volume = read_image_data(H);
+% Read the actual image data
+volume = ReadImageData(Header);
 
 % Sort into unique files according to image orientations etc
-stuff = [cat(2,dat.ImageOrientationPatient); cat(2,dat.PixelSpacing)]';
-if isfield(dat,'StackID')
-    stuff = [stuff double(cat(1,dat.StackID))];
+stuff = [cat(2, FGS.ImageOrientationPatient); cat(2, FGS.PixelSpacing)]';
+if isfield(FGS, 'StackID')
+    stuff = [stuff double(cat(1, FGS.StackID))];
 end
 ds    = find(any(diff(stuff,1,1)~=0,2));
 ord   = sparse([],[],[],N,numel(ds)+1);
@@ -1508,7 +1489,7 @@ for n=1:size(ord,2),
     % Identify all slices that should go into the same output file
     %ind  = find(all(bsxfun(@eq,stuff,u(n,:)),2));
     ind = find(ord(:,n));
-    this = dat(ind); 
+    this = FGS(ind); 
     if size(ord,2)>1,
         fname = sprintf('%s_%-.3d',fname0,n);
     else
@@ -1535,13 +1516,13 @@ for n=1:size(ord,2),
 
 
     if any(sum(diff(cat(2,this.ImageOrientationPatient),1,2).^2,1)>0.001),
-        fprintf('"%s" contains irregularly oriented slices.\n', H.Filename);
+        fprintf('"%s" contains irregularly oriented slices.\n', Header.Filename);
         % break % Option to skip writing out the NIfTI image
     end
     ImageOrientationPatient = this(1).ImageOrientationPatient(:);
 
     if any(sum(diff(cat(2,this.PixelSpacing),1,2).^2,1)>0.001),
-        fprintf('"%s" contains slices with irregularly spaced pixels.\n', H.Filename);
+        fprintf('"%s" contains slices with irregularly spaced pixels.\n', Header.Filename);
         % break % Option to skip writing out the NIfTI image
     end
     PixelSpacing            = this(1).PixelSpacing(:);
@@ -1571,7 +1552,7 @@ for n=1:size(ord,2),
             else
                 sort_on = ind;
             end
-            [unused,tsort]      = sort(sort_on);
+            [~, tsort]          = sort(sort_on);
             inv_time_order(ind) = tsort';
         end
     end
@@ -1579,8 +1560,8 @@ for n=1:size(ord,2),
     
     % Image dimensions
     %--------------------------------------------------------------------------
-    nc   = H.Columns;
-    nr   = H.Rows;
+    nc   = Header.Columns;
+    nr   = Header.Rows;
     dim  = [nc nr 1 1];
     dim(3) = max(inv_slice_order);
     dim(4) = max(inv_time_order);
@@ -1595,37 +1576,37 @@ for n=1:size(ord,2),
         fname = [fname '-problem'];
     end
     if problem1
-        fprintf('"%s" contains irregularly spaced slices with the following spacings:\n', H.Filename);
+        fprintf('"%s" contains irregularly spaced slices with the following spacings:\n', Header.Filename);
         spaces = unique(round(diff(proj)*100)/100);
         fprintf(' %g', spaces);
         fprintf('\nSee %s%s\n\n',fname,ext0);
         % break % Option to skip writing out the NIfTI image
     end
     if problem2
-        fprintf('"%s" contains missing slices.\nSee %s%s\n\n', H.Filename,fname,ext0);
+        fprintf('"%s" has slices missing.\nSee the result in %s%s\n\n', Header.Filename,fname,ext0);
         % break % Option to skip writing out the NIfTI image
     end
  
     if dim(3)>1
         y1 = [this(slice_order(  1)).ImagePositionPatient(:); 1];
         y2 = [this(slice_order(end)).ImagePositionPatient(:); 1];
-        x2 = [1;1;dim(3); 1];
+        x2 = [1; 1; dim(3); 1];
     else
         orient      = reshape(ImageOrientationPatient,[3 2]);
         orient(:,3) = null(orient');
         if det(orient)<0, orient(:,3) = -orient(:,3); end
-        if isfield(H,'SliceThickness'), z = H.SliceThickness; else z = 1; end
+        if isfield(Header,'SliceThickness'), z = Header.SliceThickness; else z = 1; end
         y1 = [this(1).ImagePositionPatient(:); 1];
         y2 = [orient*[0;0;z];0];
         x2 = [0;0;1;0];
     end
 
-    x1               = [1;1;1;1];
-    dicom_to_patient = [y1 y2 R]/[x1 x2 eye(4,2)];
-    analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]; % Flip voxels in y
-    patient_to_tal   = diag([-1 -1 1 1]); % Flip mm coords in x and y directions
-    mat              = patient_to_tal*dicom_to_patient*analyze_to_dicom;
-    flip_lr          = det(mat(1:3,1:3))>0;
+    x1             = [1;1;1;1];
+    DicomToPatient = [y1 y2 R]/[x1 x2 eye(4,2)];
+    AnalyzeToDicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]; % Flip voxels in y
+    PatientToTal   = diag([-1 -1 1 1]); % Flip mm coords in x and y directions
+    mat            = PatientToTal*DicomToPatient*AnalyzeToDicom;
+    flip_lr        = det(mat(1:3,1:3))>0;
 
     if flip_lr,
         mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
@@ -1633,42 +1614,42 @@ for n=1:size(ord,2),
 
     % Possibly useful information for descrip field
     %--------------------------------------------------------------------------
-    if isfield(H,'AcquisitionTime')
-        tim = datevec(H.AcquisitionTime/(24*60*60));
-    elseif isfield(H,'StudyTime')
-        tim = datevec(H.StudyTime/(24*60*60));
-    elseif isfield(H,'ContentTime') 
-        tim = datevec(H.ContentTime/(24*60*60));      
+    if isfield(Header,'AcquisitionTime')
+        tim = datevec(Header.AcquisitionTime/(24*60*60));
+    elseif isfield(Header,'StudyTime')
+        tim = datevec(Header.StudyTime/(24*60*60));
+    elseif isfield(Header,'ContentTime') 
+        tim = datevec(Header.ContentTime/(24*60*60));      
     else
         tim = '';
     end
     if ~isempty(tim), tim = sprintf(' %d:%d:%.5g', tim(4),tim(5),tim(6)); end
 
-    if isfield(H,'AcquisitionDate') 
-        day = datestr(H.AcquisitionDate);
-    elseif isfield(H,'StudyDate')
-        day = datestr(H.StudyDate);
-    elseif isfield(H,'ContentDate')
-        day = datestr(H.ContentDate);
+    if isfield(Header,'AcquisitionDate') 
+        day = datestr(Header.AcquisitionDate);
+    elseif isfield(Header,'StudyDate')
+        day = datestr(Header.StudyDate);
+    elseif isfield(Header,'ContentDate')
+        day = datestr(Header.ContentDate);
     else
         day = '';
     end
     when = [day tim]; 
 
-    if checkfields(H,'MagneticFieldStrength','MRAcquisitionType',...
-                     'ScanningSequence','RepetitionTime','EchoTime','FlipAngle')
-        if isfield(H,'ScanOptions')
-            ScanOptions = H.ScanOptions;
+    if CheckFields(Header,'MagneticFieldStrength','MRAcquisitionType',...
+                   'ScanningSequence','RepetitionTime','EchoTime','FlipAngle')
+        if isfield(Header,'ScanOptions')
+            ScanOptions = Header.ScanOptions;
         else
             ScanOptions = 'no';
         end
         modality = sprintf('%gT %s %s TR=%gms/TE=%gms/FA=%gdeg/SO=%s',...
-            H.MagneticFieldStrength, H.MRAcquisitionType,...
-            deblank(H.ScanningSequence),...
-            H.RepetitionTime,H.EchoTime,H.FlipAngle,...
-            ScanOptions);
+                           Header.MagneticFieldStrength, Header.MRAcquisitionType,...
+                           deblank(Header.ScanningSequence),...
+                           Header.RepetitionTime, Header.EchoTime, Header.FlipAngle,...
+                           ScanOptions);
     else
-         modality = [H.Modality ' ' H.ImageType];
+         modality = [Header.Modality ' ' Header.ImageType];
     end
     descrip = [modality ' ' when];
 
@@ -1683,7 +1664,7 @@ for n=1:size(ord,2),
     end
     if ~any(any(diff(pinfos,1)))
         % Same slopes and intercepts for all slices
-        dt    = determine_datatype(H);
+        dt    = DetermineDatatype(Header);
         pinfo = pinfos(1,:);
     else
         % Variable slopes and intercept (maybe PET/SPECT)
@@ -1708,8 +1689,8 @@ for n=1:size(ord,2),
     % Create the header
     %--------------------------------------------------------------------------
     Nii      = nifti;
-    fname    = sprintf('%s%s',fname,ext0);
-    Nii.dat  = file_array(fname,dim,dt,0,pinfo(1),pinfo(2));
+    fname    = sprintf('%s%s', fname, ext0);
+    Nii.dat  = file_array(fname, dim, dt, 0, pinfo(1), pinfo(2));
     Nii.mat  = mat;
     Nii.mat0 = mat;
     Nii.mat_intent  = 'Scanner';
@@ -1718,7 +1699,7 @@ for n=1:size(ord,2),
     create(Nii);
     
     if meta
-        Nii = spm_dicom_metadata(Nii,H);
+        Nii = spm_dicom_metadata(Nii, Header);
     end
     
     Nii.dat(end,end,end,end,end) = 0;
@@ -1756,60 +1737,59 @@ for n=1:size(ord,2),
 end
 
 
-
-
 %==========================================================================
-% function dim = read_DimOrg(H,dict)
+% function DimOrg = GetDimOrg(Header, DicomDictionary)
 %==========================================================================
-function dim = read_DimOrg(H,dict)
-% This is only sometimes used.
-dim = struct('DimensionIndexPointer',{},'FunctionalGroupPointer',{});
+function DimOrg = GetDimOrg(Header, DicomDictionary)
+DimOrg = struct('DimensionIndexPointer',{},'FunctionalGroupPointer',{});
 
-if isfield(H,'DimensionIndexSequence'),
-    for i=1:numel(H.DimensionIndexSequence),
-        DIP = H.DimensionIndexSequence{i}.DimensionIndexPointer;
-        ind = find(dict.group==DIP(1) & dict.element == DIP(2));
+if isfield(Header,'DimensionIndexSequence'),
+    for i=1:numel(Header.DimensionIndexSequence),
+        DIP = Header.DimensionIndexSequence{i}.DimensionIndexPointer;
+        ind = find(DicomDictionary.group==DIP(1) & DicomDictionary.element == DIP(2));
         if numel(ind)==1,
-            dim(i).DimensionIndexPointer = dict.values(ind).name;
+            DimOrg(i).DimensionIndexPointer = DicomDictionary.values(ind).name;
         else
             if rem(DIP(1),2)
-                dim(i).DimensionIndexPointer = sprintf('Private_%.4x_%.4x',DIP);
+                DimOrg(i).DimensionIndexPointer = sprintf('Private_%.4x_%.4x',DIP);
             else
-                dim(i).DimensionIndexPointer = sprintf('Tag_%.4x_%.4x',DIP);
+                DimOrg(i).DimensionIndexPointer = sprintf('Tag_%.4x_%.4x',DIP);
             end
         end
 
-        FGP = H.DimensionIndexSequence{i}.FunctionalGroupPointer;
-        ind = find(dict.group==FGP(1) & dict.element == FGP(2));
+        FGP = Header.DimensionIndexSequence{i}.FunctionalGroupPointer;
+        ind = find(DicomDictionary.group==FGP(1) & DicomDictionary.element == FGP(2));
         if numel(ind)==1,
-            dim(i).FunctionalGroupPointer     = dict.values(ind).name;
+            DimOrg(i).FunctionalGroupPointer     = DicomDictionary.values(ind).name;
         else
             if rem(DIP(1),2)
-                dim(i).FunctionalGroupPointer = sprintf('Private_%.4x_%.4x',DIP);
+                DimOrg(i).FunctionalGroupPointer = sprintf('Private_%.4x_%.4x',DIP);
             else
-                dim(i).FunctionalGroupPointer = sprintf('Tag_%.4x_%.4x',DIP);
+                DimOrg(i).FunctionalGroupPointer = sprintf('Tag_%.4x_%.4x',DIP);
             end
         end
     end
 end
 return
 
+
 %==========================================================================
-% dat = read_FGS(H,dim)
+% FGS = GetFGS(Header, DimOrg)
 %==========================================================================
-function dat = read_FGS(H,dim)
-dat = struct;
-if isfield(H,'PerFrameFunctionalGroupsSequence'),
+function FGS = GetFGS(Header, DimOrg)
+FGS = struct;
+if isfield(Header,'PerFrameFunctionalGroupsSequence'),
     % For documentation, see C.7.6.16 "Multi-frame Functional Groups Module"
     % of DICOM Standard PS 3.3 - 2003, Page 261.
 
     % Multiframe DICOM
-    N = numel(H.PerFrameFunctionalGroupsSequence);
-    if isfield(H,'NumberOfFrames') && H.NumberOfFrames ~= N,
-        fprintf('"%s" has incompatible numbers of frames.', dat.Filename);
+    N = numel(Header.PerFrameFunctionalGroupsSequence);
+    if isfield(Header,'NumberOfFrames') && Header.NumberOfFrames ~= N,
+        fprintf('"%s" has incompatible numbers of frames.', FGS.Filename);
     end
 
-    macros = {'PixelMeasuresSequence',{'PixelSpacing','SliceThickness'}
+    % List of fields and subfields of those fields to retrieve information from.
+    Macros = {'PixelMeasuresSequence',{'PixelSpacing','SliceThickness'}
               'FrameContentSequence',{'Frame Acquisition Number','FrameReferenceDatetime',...
                                       'FrameAcquisitionDatetime','FrameAcquisitionDuration',...
                                       'CardiacCyclePosition','RespiratoryCyclePosition',...
@@ -1821,23 +1801,23 @@ if isfield(H,'PerFrameFunctionalGroupsSequence'),
                                          'ReferencedFrameNumber','PurposeOfReferenceCode'}
               'PixelValueTransformationSequence',{'RescaleIntercept','RescaleSlope','RescaleType'}};
 
-    if isfield(H,'SharedFunctionalGroupsSequence')
-        for d=1:numel(dim),
-            if isfield(H.SharedFunctionalGroupsSequence{1},dim(d).FunctionalGroupPointer) && ...
-               isfield(H.SharedFunctionalGroupsSequence{1}.(dim(d).FunctionalGroupPointer){1},dim(d).DimensionIndexPointer),
+    if isfield(Header,'SharedFunctionalGroupsSequence')
+        for d=1:numel(DimOrg),
+            if isfield(Header.SharedFunctionalGroupsSequence{1}, DimOrg(d).FunctionalGroupPointer) && ...
+               isfield(Header.SharedFunctionalGroupsSequence{1}.(DimOrg(d).FunctionalGroupPointer){1}, DimOrg(d).DimensionIndexPointer),
                 for n=N:-1:1
-                    dat(n).(dim(d).DimensionIndexPointer) = H.SharedFunctionalGroupsSequence{1}.(dim(d).FunctionalGroupPointer){1}.(dim(d).DimensionIndexPointer);
+                    FGS(n).(DimOrg(d).DimensionIndexPointer) = Header.SharedFunctionalGroupsSequence{1}.(DimOrg(d).FunctionalGroupPointer){1}.(DimOrg(d).DimensionIndexPointer);
                 end
             end
         end
 
-        for k1=1:size(macros,1)
-            if isfield(H.SharedFunctionalGroupsSequence{1},macros{k1,1})
-                for k2=1:numel(macros{k1,2})
-                    if (numel(H.SharedFunctionalGroupsSequence{1}.(macros{k1,1}))>0) &&...
-                            isfield(H.SharedFunctionalGroupsSequence{1}.(macros{k1,1}){1},macros{k1,2}{k2})
+        for k1=1:size(Macros,1)
+            if isfield(Header.SharedFunctionalGroupsSequence{1}, Macros{k1,1})
+                for k2=1:numel(Macros{k1,2})
+                    if (numel(Header.SharedFunctionalGroupsSequence{1}.(Macros{k1,1}))>0) &&...
+                            isfield(Header.SharedFunctionalGroupsSequence{1}.(Macros{k1,1}){1}, Macros{k1,2}{k2})
                         for n=N:-1:1
-                            dat(n).(macros{k1,2}{k2}) = H.SharedFunctionalGroupsSequence{1}.(macros{k1,1}){1}.(macros{k1,2}{k2});
+                            FGS(n).(Macros{k1,2}{k2}) = Header.SharedFunctionalGroupsSequence{1}.(Macros{k1,1}){1}.(Macros{k1,2}{k2});
                         end
                     end
                 end
@@ -1846,25 +1826,39 @@ if isfield(H,'PerFrameFunctionalGroupsSequence'),
     end
 
     for n=1:N,
-        dat(n).number = n;
-        F = H.PerFrameFunctionalGroupsSequence{n};
-        for d=1:numel(dim),
-            if isfield(F,dim(d).FunctionalGroupPointer) && ...
-               isfield(F.(dim(d).FunctionalGroupPointer){1},dim(d).DimensionIndexPointer)
-                dat(n).(dim(d).DimensionIndexPointer) = F.(dim(d).FunctionalGroupPointer){1}.(dim(d).DimensionIndexPointer);
+        FGS(n).number = n;
+        F = Header.PerFrameFunctionalGroupsSequence{n};
+        for d=1:numel(DimOrg),
+            if isfield(F,DimOrg(d).FunctionalGroupPointer) && ...
+               isfield(F.(DimOrg(d).FunctionalGroupPointer){1}, DimOrg(d).DimensionIndexPointer)
+                FGS(n).(DimOrg(d).DimensionIndexPointer) = F.(DimOrg(d).FunctionalGroupPointer){1}.(DimOrg(d).DimensionIndexPointer);
             end
         end
 
-        for k1=1:size(macros,1)
-            if isfield(F,macros{k1,1}) && (numel(F.(macros{k1,1}))>0)
-                for k2=1:numel(macros{k1,2})
-                    if isfield(F.(macros{k1,1}){1},macros{k1,2}{k2})
-                        dat(n).(macros{k1,2}{k2}) = F.(macros{k1,1}){1}.(macros{k1,2}{k2});
+        for k1=1:size(Macros,1)
+            if isfield(F,Macros{k1,1}) && (numel(F.(Macros{k1,1}))>0)
+                for k2=1:numel(Macros{k1,2})
+                    if isfield(F.(Macros{k1,1}){1},Macros{k1,2}{k2})
+                        FGS(n).(Macros{k1,2}{k2}) = F.(Macros{k1,1}){1}.(Macros{k1,2}{k2});
                     end
                 end
             end
         end
     end
 else
-    error('"%s" is not multiframe.', H.FileName);
+    error('"%s" is not multiframe.', Header.Filename);
 end
+
+
+%==========================================================================
+% function DicomDictionary = ReadDicomDictionary(DictionaryFile)
+%==========================================================================
+function DicomDictionary = ReadDicomDictionary(DictionaryFile)
+if nargin<1, DictionaryFile = 'spm_dicom_dict.mat'; end
+try
+    DicomDictionary = load(DictionaryFile);
+catch Problem
+    fprintf('\nUnable to load the file "%s".\n', DictionaryFile);
+    rethrow(Problem);
+end
+

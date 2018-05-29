@@ -47,7 +47,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_coreg.m 6435 2015-05-14 09:59:54Z guillaume $
+% $Id: spm_coreg.m 7320 2018-05-29 10:19:49Z john $
 
 %--------------------------------------------------------------------------
 % References
@@ -84,7 +84,7 @@ function x = spm_coreg(varargin)
 % Published by Cambridge.
 %--------------------------------------------------------------------------
 
-SVNid = '$Rev: 6435 $';
+SVNid = '$Rev: 7320 $';
 
 if nargin >= 4
     x = optfun(varargin{:});
@@ -369,7 +369,7 @@ ylabel(spm_file(VF.fname,'short22'),'Parent',ax,'Interpreter','none');
 %--------------------------------------------------------------------------
 spm_orthviews('Reset');
      spm_orthviews('Image',VG,[0.01 0.01 .48 .49]);
-h2 = spm_orthviews('Image',VF,[.51 0.01 .48 .49]);
+h2 = spm_orthviews('Image',VF,[0.51 0.01 .48 .49]);
 global st
 st.vols{h2}.premul = inv(spm_matrix(x(:)'));
 spm_orthviews('Space');

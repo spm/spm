@@ -25,7 +25,7 @@ function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 % Copyright (C) 2010-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin, Ged Ridgway
-% $Id: spm_summarise.m 6490 2015-06-26 11:51:46Z guillaume $
+% $Id: spm_summarise.m 7320 2018-05-29 10:19:49Z john $
 
 %-Argument checks
 %--------------------------------------------------------------------------
@@ -58,6 +58,10 @@ elseif isstruct(xY) && isfield(xY,'fname')
 elseif ~isstruct(xY)
     error('Incorrect xY specified')
 end
+if ~strcmpi(xY.def, 'all')
+    spm_check_orientations(V);
+end
+
 if ~isfield(xY,'XYZmm'), [xY, xY.XYZmm] = spm_ROI(xY,V(1)); end
 
 if nargin < 3 || isempty(fhandle), fhandle = @(x) x; end

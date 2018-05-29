@@ -1,10 +1,10 @@
-function hdr = spm_dicom_headers(P, essentials)
+function Headers = spm_dicom_headers(DicomFilenames, Essentials)
 % Read header information from DICOM files
-% FORMAT hdr = spm_dicom_headers(P [,essentials])
-% P          - array of filenames
-% essentials - if true, then only save the essential parts of the header
+% FORMAT Headers = spm_dicom_headers(DicomFilenames [,Essentials])
+% DicomFilenames - array of filenames
+% Essentials     - if true, then only save the essential parts of the header
 %
-% hdr        - cell array of headers, one element for each file.
+% Headers        - cell array of headers, one element for each file.
 %
 % Contents of headers are approximately explained in:
 % http://medical.nema.org/standard.html
@@ -15,41 +15,41 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 6431 2015-05-08 18:24:28Z john $
+% $Id: spm_dicom_headers.m 7320 2018-05-29 10:19:49Z john $
 
-if nargin<2, essentials = false; end
+if nargin<2, Essentials = false; end
 
-dict = readdict;
-j    = 0;
-hdr  = {};
-if size(P,1)>1, spm_progress_bar('Init',size(P,1),'Reading DICOM headers','Files complete'); end
-for i=1:size(P,1)
-    tmp = spm_dicom_header(P(i,:),dict);
-    if ~isempty(tmp)
-        if isa(essentials,'function_handle')
-            tmp = feval(essentials,tmp);
-        elseif essentials
-            tmp = spm_dicom_essentials(tmp);
+DicomDictionary = ReadDicomDictionary;
+j        = 0;
+Headers  = {};
+if size(DicomFilenames, 1)>1, spm_progress_bar('Init',size(DicomFilenames, 1), 'Reading DICOM headers', 'Files complete'); end
+for i=1:size(DicomFilenames,1)
+    Header = spm_dicom_header(DicomFilenames(i,:), DicomDictionary);
+    if ~isempty(Header)
+        if isa(Essentials,'function_handle')
+            Header = feval(Essentials, Header);
+        elseif Essentials
+            Header = spm_dicom_essentials(Header);
         end
-        if ~isempty(tmp)
-            j      = j + 1;
-            hdr{j} = tmp;
+        if ~isempty(Header)
+            j          = j + 1;
+            Headers{j} = Header;
         end
     end
-    if size(P,1)>1, spm_progress_bar('Set',i); end
+    if size(DicomFilenames, 1)>1, spm_progress_bar('Set',i); end
 end
-if size(P,1)>1, spm_progress_bar('Clear'); end
+if size(DicomFilenames, 1)>1, spm_progress_bar('Clear'); end
 
 
 %==========================================================================
-% function dict = readdict(P)
+% function DicomDictionary = ReadDicomDictionary(DictionaryFile)
 %==========================================================================
-function dict = readdict(P)
-if nargin<1, P = 'spm_dicom_dict.mat'; end
+function DicomDictionary = ReadDicomDictionary(DictionaryFile)
+if nargin<1, DictionaryFile = 'spm_dicom_dict.mat'; end
 try
-    dict = load(P);
-catch
-    fprintf('\nUnable to load the file "%s".\n', P);
-    rethrow(lasterror);
+    DicomDictionary = load(DictionaryFile);
+catch problem
+    fprintf('\nUnable to load the file "%s".\n', DictionaryFile);
+    rethrow(problem);
 end
 
