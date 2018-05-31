@@ -18,7 +18,7 @@ function varargout = spm_BIDS(varargin)
 % Copyright (C) 2016-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7242 2018-01-04 15:59:29Z guillaume $
+% $Id: spm_BIDS.m 7323 2018-05-31 16:42:43Z guillaume $
 
 
 %-Validate input arguments
@@ -142,6 +142,7 @@ subject.func    = struct([]); % task imaging data
 subject.fmap    = struct([]); % fieldmap data
 subject.beh     = struct([]); % behavioral experiment data
 subject.dwi     = struct([]); % diffusion imaging data
+subject.eeg     = struct([]); % EEG data
 subject.meg     = struct([]); % MEG data
 subject.pet     = struct([]); % PET imaging data
 
@@ -347,6 +348,66 @@ if exist(pth,'dir')
             j = j + 1;
         end
     end
+end
+
+%--------------------------------------------------------------------------
+%-EEG data
+%--------------------------------------------------------------------------
+pth = fullfile(subject.path,'eeg');
+if exist(pth,'dir')
+    
+    %-EEG data file
+    %----------------------------------------------------------------------
+    f = spm_select('List',pth,...
+        sprintf('^%s.*_task-.*_eeg\\..*[^json]$',subject.name));
+    if isempty(f), f = {}; else f = cellstr(f); end
+    for i=1:numel(f)
+        
+        p = parse_filename(f{i}, {'sub','ses','task','acq','run','meta'});
+        subject.eeg = [subject.eeg p];
+        subject.eeg(end).meta = struct([]); % ?
+        
+    end
+    
+    %-EEG events file
+    %----------------------------------------------------------------------
+    f = spm_select('List',pth,...
+        sprintf('^%s.*_task-.*_events\\.tsv$',subject.name));
+    if isempty(f), f = {}; else f = cellstr(f); end
+    for i=1:numel(f)
+        
+        p = parse_filename(f{i}, {'sub','ses','task','acq','run','meta'});
+        subject.eeg = [subject.eeg p];
+        subject.eeg(end).meta = spm_load(fullfile(pth,f{i})); % ?
+       
+    end
+    
+    %-Channel description table
+    %----------------------------------------------------------------------
+    f = spm_select('List',pth,...
+        sprintf('^%s.*_task-.*_channels\\.tsv$',subject.name));
+    if isempty(f), f = {}; else f = cellstr(f); end
+    for i=1:numel(f)
+        
+        p = parse_filename(f{i}, {'sub','ses','task','acq','run','meta'});
+        subject.eeg = [subject.eeg p];
+        subject.eeg(end).meta = spm_load(fullfile(pth,f{i})); % ?
+        
+    end
+    
+    %-Session-specific file
+    %----------------------------------------------------------------------
+    f = spm_select('List',pth,...
+        sprintf('^%s(_ses-[a-zA-Z0-9]+)?.*_(electrodes\\.tsv|photo\\.jpg|coordsystem\\.json|headshape\\..*)$',subject.name));
+    if isempty(f), f = {}; else f = cellstr(f); end
+    for i=1:numel(f)
+        
+        p = parse_filename(f{i}, {'sub','ses','acq','meta'});
+        subject.eeg = [subject.eeg p];
+        subject.eeg(end).meta = struct([]); % ?
+        
+    end
+    
 end
 
 %--------------------------------------------------------------------------

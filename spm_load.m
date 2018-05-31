@@ -7,10 +7,10 @@ function x = spm_load(f,v)
 %
 % x  - corresponding data array or structure
 %__________________________________________________________________________
-% Copyright (C) 1995-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1995-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_load.m 7097 2017-06-07 13:53:55Z guillaume $
+% $Id: spm_load.m 7323 2018-05-31 16:42:43Z guillaume $
 
 
 %-Get a filename if none was passed
@@ -154,7 +154,11 @@ if strcmpi(spm_check_version,'octave') % bug #51093
     S = strrep(S,delim,'#');
     delim = '#';
 end
-d = textscan(S,'%s','Delimiter',delim);
+if ~isempty(S)
+    d = textscan(S,'%s','Delimiter',delim);
+else
+    d = {[]};
+end
 if rem(numel(d{1}),N), error('Varying number of delimiters per line.'); end
 d = reshape(d{1},N,[])';
 allnum = true;
