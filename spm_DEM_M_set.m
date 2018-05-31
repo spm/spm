@@ -48,7 +48,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 5708 2013-10-22 09:20:59Z karl $
+% $Id: spm_DEM_M_set.m 7322 2018-05-31 09:47:15Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -136,13 +136,13 @@ for i = 1:g
  
     % convert variances to covariances if necessary
     %----------------------------------------------------------------------
-    if isvector(M(i).pC)
-        M(i).pC = sparse(diag(M(i).pC));
+    if isvector(M(i).pC) || isstruct(M(i).pC)
+        M(i).pC = sparse(diag(spm_vec(M(i).pC)));
     end
     
     % convert variance to covariances if necessary
     %----------------------------------------------------------------------
-    if isscalar(M(i).pC)
+    if isscalar(M(i).pC) 
         M(i).pC = speye(np,np)*M(i).pC;
     end
  

@@ -14,7 +14,7 @@ function DEM_demo_lorenz_LAP
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_lorenz_LAP.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: DEM_demo_lorenz_LAP.m 7322 2018-05-31 09:47:15Z karl $
  
  
 % get model
@@ -119,12 +119,12 @@ subplot(2,2,3)
 bar([pP1 qP2 qP3 qP4])
 axis square
 legend('True','LAP','DEM','SCK')
-title('parameters (minus true)','FontSize',16)
+title('parameters','FontSize',16)
  
 subplot(2,2,4)
 bar([dP1 dP2 dP3 dP4])
 axis square
 legend('Prior','LAP','DEM','SCK')
-title('difference from true value','FontSize',16)
+title('deviations from true value','FontSize',16)
 
 

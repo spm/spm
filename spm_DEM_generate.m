@@ -19,12 +19,24 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % DEM.pU.e
 % DEM.pP.P
 % DEM.pH.h
+%
+% NB: [lower bound on] random fluctuations will default to unit variance if
+% not specified in M(i).V and M(i).W
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_generate.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_DEM_generate.m 7322 2018-05-31 09:47:15Z karl $
  
+% please parametric form in model if necessary
+%--------------------------------------------------------------------------
+% m     = numel(M);
+% for i = 1:m
+%     if ~isfield(M(i),'pE')
+%         try, M(i).pE = P{i}; end
+%     end
+% end
+
 % sequence length specified by priors on causes
 %--------------------------------------------------------------------------
 M     = spm_DEM_M_set(M);
@@ -49,7 +61,7 @@ try, g; if ~iscell(P), g = {g}; end, catch, g = {}; end
  
 % transcribe parameters and hyperparameters into prior expectations
 %--------------------------------------------------------------------------
-m     = length(M);
+m     = numel(M);
 for i = 1:m
     try
         M(i).pE = spm_unvec(P{i},M(i).pE);

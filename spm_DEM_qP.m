@@ -10,7 +10,7 @@ function spm_DEM_qP(qP,pP)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qP.m 6508 2015-07-25 15:23:25Z karl $
+% $Id: spm_DEM_qP.m 7322 2018-05-31 09:47:15Z karl $
 
 
 % unpack conditional covariances
@@ -21,6 +21,7 @@ ci    = spm_invNcdf(1 - 0.05);
 % loop over levels
 %--------------------------------------------------------------------------
 Label = {};
+col   = [1 3/4 3/4];
 for i = 1:g
     
     % check for last level
@@ -71,7 +72,7 @@ for i = 1:g
         % conditional variances
         %------------------------------------------------------------------
         for k = 1:np
-            line([k k], [-1 1]*c(k) + qi(k),'LineWidth',4,'Color','r');
+            line([k k], [-1 1]*c(k) + qi(k),'LineWidth',4,'Color',col);
         end
 
         % prior or true means
@@ -83,7 +84,7 @@ for i = 1:g
         % labels
         %------------------------------------------------------------------
         for k = 1:length(label)
-            text(k + 1/4,qi(k),label{k},'FontSize',12,'FontWeight','Bold','Color','g');
+            text(k + 1/4,qi(k),label{k},'FontWeight','Bold','Color','r');
         end
         Label = [Label, label];
     end

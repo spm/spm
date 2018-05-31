@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 6290 2014-12-20 22:11:50Z karl $
+% $Id: spm_DEM_qU.m 7322 2018-05-31 09:47:15Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -115,7 +115,7 @@ for i = 1:g
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
         try
-            plot(t,pV{i}','-.k','linewidth',2)
+            plot(t,pV{i}','-.k')
         end
         hold on
         try
@@ -144,7 +144,7 @@ for i = 1:g
                     [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
             end
             try
-                plot(t,pV{i}','-.k','linewidth',2)
+                plot(t,pV{i}','-.k')
             end
             try
                 plot(t,full(E{i}'),':')
@@ -165,7 +165,7 @@ for i = 1:g
             title('hidden causes','FontSize',16);
             try
                 hold on
-                plot(t,pV{i}','-.k','linewidth',2),box off
+                plot(t,pV{i}','-.k'),box off
             end
             hold off
         end
@@ -180,7 +180,7 @@ for i = 1:g
             subplot(g,2,2*i)
             try
                 hold on
-                plot(t,full(pX{i}'),'-.k','linewidth',1)
+                plot(t,full(pX{i}'),'-.k')
                 box off, hold off
             end
             plot(t,full(X{i}')),box off
@@ -195,7 +195,7 @@ for i = 1:g
                 fill([t fliplr(t)],[full(X{i} + y) fliplr(full(X{i} - y))],...
                         [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
                 try
-                    plot(t,full(pX{i}'),'-.k','linewidth',1),box off
+                    plot(t,full(pX{i}'),'-.k'),box off
                 end
                 plot(t,full(X{i}')),box off
                 hold off
@@ -222,7 +222,7 @@ if isfield(qU,'a')
         plot(t,full(qU.a{end})');
         str = 'action'; hold on
         try
-            plot(t,full(pU.v{2})','-.k','Linewidth',1)
+            plot(t,full(pU.v{2})','-.k')
             box off, 
             str = 'perturbation and action';
         end
