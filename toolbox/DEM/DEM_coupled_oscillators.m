@@ -1,135 +1,206 @@
 function DEM_coupled_oscillators
 % Dual estimation of the Lorenz system: Cross-validation of Laplace schemes
 %__________________________________________________________________________
-% Inversion of the Lorenz attractor with DEM, LAP and SCKS schemes: This
-% demo tackles the difficult problem of deconvolving (chaotic) hidden states
-% from a single response variable, while estimating the parameters of the
-% underlying equations of motion. It calls generalised filtering, DEM and
-% a state-of-the-art Bayesian smoother (SCKS).  This example is chosen to
-% show that it is, in principle, possible to perform dual estimation in the
-% context of chaotic dynamics (although small variations in this problem
-% will cause the schemes to fail due it its inherently nonlinear nature and
-% non-identifiability); however, the results are imperfect.
+% This routine illustrates the inversion of a loosely coupled oscillator
+% model using generalised filtering. In this example, three regions are
+% coupled in terms of their amplitude and phase in a hierarchical fashion.
+% Data are generated under a particular set of parameters. The timeseries
+% are then transformed using a Hilbert transform into the corresponding
+% analytic signal. This then constitutes the data feature for subsequent
+% inversion using generalised filtering; here, in four generalised
+% coordinates of motion. By assuming fairly precise priors on the amplitude
+% of random fluctuations one can recover the parameters and use the
+% posterior density for subsequent Bayesian model comparison. In this
+% example, we used Bayesian model reduction to assess the evidence for
+% models with and without amplitude or phase coupling.
+%
+% The parameters and orders of this example have been optimised to provide
+% proof of principle this sort of  model can be inverted using generalised
+% filtering.  The sensitivity to these parameters and orders can be
+% assessed numerically by editing the code.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_coupled_oscillators.m 7322 2018-05-31 09:47:15Z karl $
+% $Id: DEM_coupled_oscillators.m 7324 2018-06-02 12:12:20Z karl $
  
  
 % specify states and parameters
 %==========================================================================
-n     = 2;                               % number of sources (oscillators)
+N     = 128;                             % number of time points
+n     = 3;                               % number of sources (oscillators)
+Hz    = 8;                               % characteristic frequency (Hz)
+dt    = 1/64;                            % sampling interval (sec)
+
+% model states (where hidden states comprise phase differences)
+%--------------------------------------------------------------------------
 x.r   = zeros(n,1);                      % amplitude
-x.p   = zeros(n,1);                      % phase differential
-x.w   = zeros(1,1);                      % phase
+x.p   = zeros(n,1);                      % phase  differences
+x.w   = zeros(1,1);                      % phase (common to sources)
 
 % model parameters
 %--------------------------------------------------------------------------
-P.L   = eye(n,n);                        % lead field (measurement mapping)
-P.Ap  = ones(n,n)/64 - eye(n,n)/16;          % amplitude coupling
-P.Ar  = spm_speye(n,n,-1); 
-P.Ar  = P.Ar/16 + P.Ar'/4;        % phase coupling
-P.C   = [1; 0]/32;                          % exogenous input
-P.r   = 1/32;                             % weak amplitude
-P.w   = 2*pi/32;                          % intrinsic frequency
+A     = spm_speye(n,n,-1);               % form of adjacency matrix
+P.L   = diag(ones(n,1));                 % lead field (measurement mapping)
+P.Ap  = A/16 - A'/32 - eye(n,n)/16;      % amplitude coupling
+P.Ar  = A/16 + A'/4;                     % phase coupling
+P.C   = sparse(1,1,1,n,1)/8;             % exogenous input to first source
+P.r   = 1/8;                             % weak amplitude
+P.w   = 2*pi*Hz*dt;                      % intrinsic frequency
 
-% % observation function
+% observation function (to generate timeseries)
 %--------------------------------------------------------------------------
 g = @(x,v,P) P.L*((x.r).*cos(x.p + x.w));
-g = @(x,v,P) [x.r; x.p];
 
-% equations of motion
+% equations of motion (simplified coupled oscillator model)
 %--------------------------------------------------------------------------
 f = @(x,v,P) [P.Ap*(x.r - P.r) + P.C*v;
               sum(P.Ar.*sin(bsxfun(@minus,x.p,x.p')),2) - P.C*v; ...
               P.w];
 
-% causes or exogenous input
+% causes or exogenous input (a Gaussian function of peristimulus time)
 %--------------------------------------------------------------------------
-N = 256;                                 % number of time points
-U = exp(-((1:N) - N/4).^2/(2*(N/8)^2));             % exogenous input
+U = exp(-((1:N) - N/2).^2/((N/8)^2));    % exogenous input
+T = (1:N)*dt;                            % sample times (seconds)
 
-
-E.n     = 4;
-E.d     = 1;
-E.nN    = 8;
-E.s     = 1;
-
-% first level dynamics
+% parameters for generalised filtering (see spm_LAP)
 %--------------------------------------------------------------------------
-M(1).E  = E;
-M(1).x  = x;
-M(1).f  = f;
-M(1).g  = g;
-M(1).pE = P;
-M(1).V  = exp(12);
-M(1).W  = exp(16);
+E.n     = 4;                             % embedding dimension          
+E.d     = 1;                             % data embedding 
+E.nN    = 8;                             % number of iterations
+E.s     = 1/2;                           % smoothness of fluctuations
+
+% first level state space model
+%--------------------------------------------------------------------------
+M(1).E  = E;                             % filtering parameters
+M(1).x  = x;                             % initial states 
+M(1).f  = f;                             % equations of motion
+M(1).g  = g;                             % observation mapping
+M(1).pE = P;                             % model parameters
+M(1).V  = exp(12);                       % precision of observation noise
+M(1).W  = exp(16);                       % precision of state noise
 
 % second level – causes or exogenous forcing term
 %--------------------------------------------------------------------------
-M(2).v = 0;
-M(2).V = exp(16);
+M(2).v  = 0;                             % initial causes
+M(2).V  = exp(16);                       % precision of exogenous causes
 
-% create data
+% create data with known parameters (P)
 %==========================================================================
-DEM    = spm_DEM_generate(M,U,P);
- 
-% show data
+DEM = spm_DEM_generate(M,U,P);
+
+% transform analytic signal to create a new data feature
+%==========================================================================
+
+% analytic signal (via Hilbert transform)
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1');
+Y  = spm_hilbert(full(DEM.Y)');          % analytic signal
+Yr = abs(Y)';                            % amplitude
+Yp = unwrap(angle(Y));                   % phase
+Yp = Yp' - ones(n,1)*(1:N)*P.w;          % phase difference
+Y  = [Yr; Yp];                           % analytic data feature
+
+
+% show synthetic data,latent states and exogenous input
+%--------------------------------------------------------------------------
+spm_figure('GetWin','synthetic data');
 spm_DEM_qU(DEM.pU);
 
-T  = (1:N);
-
-subplot(4,2,2), plot(T,DEM.pU.x{1}(1:2,:)')
+subplot(4,2,2), plot(T,DEM.pU.x{1}(1:n,:)')
 title('hidden amplitude','FontSize',16)
 xlabel('time (seconds)'), spm_axis tight, box off
 
-subplot(4,2,4), plot(T,DEM.pU.x{1}(3:4,:)')
+subplot(4,2,4), plot(T,DEM.pU.x{1}((1:n) + n,:)')
 title('phase difference','FontSize',16)
 xlabel('time (seconds)'), spm_axis tight, box off
 
-subplot(4,2,6), plot(T,abs(hilbert(full(DEM.Y)')))
+subplot(4,2,6), plot(T,Yr)
 title('response amplitude','FontSize',16)
 xlabel('time (seconds)'), spm_axis tight, box off
 
-subplot(4,2,8), plot(T,unwrap(angle(hilbert(full(DEM.Y)'))))
+subplot(4,2,8), plot(T,Yp)
 title('unwrapped phase','FontSize',16)
 xlabel('time (seconds)'), spm_axis tight, box off
 drawnow
 
-% initialization of parameters (True values: pE =[18;-4;46.92])
-%--------------------------------------------------------------------------
-pE       = P;                          % prior parameters
-pC       = spm_zeros(P);               % prior variance 
+% Now try to recover model parameters from data features
+%==========================================================================
 
-pE.Ar    = zeros(n,n);
-pE.Ap    = -speye(n,n)/16;
-pC.Ar    = (P.Ar ~= 0);
+% change observation function (g) to generate analytic signal
+%--------------------------------------------------------------------------
+g = @(x,v,P) [P.L*x.r; x.p];
+
+% initialization of priors over parameters
+%--------------------------------------------------------------------------
+pE       = P;                            % prior parameters
+pC       = spm_zeros(P);                 % prior variance 
+
+pE.Ar    = zeros(n,n);                   % set prior phase and amplitude 
+pE.Ap    = -speye(n,n)/16;               % coupling parameters to 0
+pC.Ar    = (P.Ar ~= 0);                  % and set the prior variance to 1
 pC.Ap    = (P.Ap ~= 0);
 
+Vr       = ones(1,n)*8;                  % log precision of sampling noise
+Vp       = ones(1,n)*8;                  % use precise beliefs about time
+
+% place new observation function and priors in generative model
+%--------------------------------------------------------------------------
+DEM.M(1).g  = g;
 DEM.M(1).pE = pE;
-DEM.M(1).pC = sparse(diag(spm_vec(pC)));
-DEM.M(1).V  = exp(4);
-DEM.M(1).W  = diag(exp([4 4 4 4 32]));
+DEM.M(1).pC = pC;
+DEM.M(1).V  = exp([Vr Vp]);   
+DEM.M(1).W  = exp([Vr Vp 32]);
 
-DEM.U  = U;
- 
- 
-% Inversion: 
+% data and known input; removing initial time points to suppress artefacts
+%--------------------------------------------------------------------------
+DEM.Y = Y(:,8:end);
+DEM.U = U(:,8:end);
+  
+% Inversion using generalised filtering 
 %==========================================================================
-LAP     = spm_LAP(DEM);
+LAP   = spm_LAP(DEM);
 
-% Show estimates of states
+% Show parameters
 %--------------------------------------------------------------------------
-spm_figure('GetWin','spm_LAP'); spm_DEM_qU(LAP.qU,LAP.pU)
-
-
-% and parameters
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Parameters'); spm_DEM_qP(LAP.qP,LAP.pP)
-subplot(2,1,1),legend('mean','90% CI')
+spm_figure('GetWin','Parameters'); clf; spm_DEM_qP(LAP.qP,LAP.pP)
+subplot(2,1,1),legend('mean','90% CI','Location','North'), legend(gca,'boxoff')
 title('Estimated and true (black) parameters','FontSize',16)
 
+% use Bayesian model reduction to test different hypotheses
+%==========================================================================
+model{1} = 'no coupling';
+model{2} = 'no amplitude coupling';
+model{3} = 'no phase coupling';
+model{4} = 'Full model';
+
+% apply precise shrinkage priors to of diagonal coupling elements
+%--------------------------------------------------------------------------
+PC{1} = pC; PC{1}.Ar = diag(diag(pC.Ar)); PC{1}.Ap = diag(diag(pC.Ap));
+PC{2} = pC; PC{2}.Ap = diag(diag(pC.Ap));
+PC{3} = pC; PC{3}.Ar = diag(diag(pC.Ar));
+PC{4} = pC;
+
+%  evaluate the evidence for these new models or prior constraints
+%--------------------------------------------------------------------------
+qE    = LAP.qP.P{1};
+qC    = LAP.qP.C;
+pE    = LAP.M(1).pE;
+pC    = LAP.M(1).pC;
+for m = 1:numel(PC)
+    rC     = diag(spm_vec(PC{m}));
+    F(m,1) = spm_log_evidence(qE,qC,pE,pC,pE,rC);
+end
+
+% report marginal log likelihood or evidence
+%--------------------------------------------------------------------------
+F = F - min(F);
+
+spm_figure('GetWin','Model Comparison');clf;
+subplot(2,2,1), bar(F,'c')
+title('Log evidence','FontSize',16)
+xlabel(model), axis square, box off
+
+subplot(2,2,2), bar(spm_softmax(F(:)),'c')
+title('Probability','FontSize',16)
+xlabel(model), axis square, box off
 
