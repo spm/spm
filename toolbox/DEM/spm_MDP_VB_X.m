@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7319 2018-05-29 09:33:01Z karl $
+% $Id: spm_MDP_VB_X.m 7325 2018-06-03 21:52:21Z karl $
 
 
 % deal with a sequence of trials
@@ -513,14 +513,38 @@ for t = 1:T
                     po        = spm_dot(A{m,g},xq(m,:));
                     o{m}(g,t) = find(rand < cumsum(po),1);
                     
+                    
+                    % and find outcome that minimises expected free energy
+                    %------------------------------------------------------
+                    px    = spm_vec(spm_cross(xq(m,:)));
+                    F     = zeros(No(m,g),1);
+                    for i = 1:No(m,g)
+                        xp    = MDP(m).A{g}(i,:);
+                        xp    = spm_norm(spm_vec(xp));
+                        F(i)  = spm_vec(px)'*spm_log(xp) + spm_log(po(i));
+                    end
+                    po        = spm_softmax(F*512);
+                    o{m}(g,t) = find(rand < cumsum(po),1);
+                    
                 else
                     
                     % sample outcome from generative process (i.e., A)
                     %------------------------------------------------------
                     ind       = num2cell(s{m}(:,t));
                     po        = MDP(m).A{g}(:,ind{:});
+
+                    % or least surprising outcome
+                    %------------------------------------------------------
+%                   j     = sub2ind(Ns(m,:),ind{:});                 
+%                   F     = zeros(No(m,g),1);
+%                   for i = 1:No(m,g)
+%                       po    = MDP(m).A{g}(i,:);
+%                       po    = spm_norm(spm_vec(po));
+%                       F(i)  = spm_log(po(j));
+%                   end
+%                   po        = spm_softmax(F*512);
+
                     o{m}(g,t) = find(rand < cumsum(po),1);
-                    
                 end
             end
             
