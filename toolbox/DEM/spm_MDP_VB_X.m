@@ -11,7 +11,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %
 % MDP.A{G}(O,N1,...,NF) - likelihood of O outcomes given hidden states
 % MDP.B{F}(NF,NF,MF)    - transitions among states under MF control states
-% MDP.C{G}(O,T)         - prior preferences over O outcomes in modality G
+% MDP.C{G}(O,T)         - (log) prior preferences for outcomes (modality G)
 % MDP.D{F}(NF,1)        - prior probabilities over initial states
 % MDP.E(P,1)            - prior probabilities over policies
 %
@@ -24,15 +24,15 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % optional:
 % MDP.s(F,T)            - matrix of true states - for each hidden factor
 % MDP.o(G,T)            - matrix of outcomes    - for each outcome modality
-% or .O{G}(O,T)         - likelihood matrix of  - for each outcome modality
+% or .O{G}(O,T)         - likelihood matrix     - for each outcome modality
 % MDP.u(F,T - 1)        - vector of actions     - for each hidden factor
 %
-% MDP.alpha             - precision – action selection [512]
+% MDP.alpha             - precision - action selection [512]
 % MDP.beta              - precision over precision (Gamma hyperprior - [1])
 % MDP.tau               - time constant for gradient descent [4]
 % MDP.eta               - learning rate for model parameters
 % MDP.zeta              - Occam's window for polcies [3]
-% MDP.erp               - resetting of initial statesto simulate ERPs
+% MDP.erp               - resetting of initial states, to simulate ERPs [4]
 %
 % MDP.demi.C            - Mixed model: cell array of true causes (DEM.C)
 % MDP.demi.U            - Bayesian model average (DEM.U) see: spm_MDP_DEM
@@ -49,7 +49,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % MDP.P(M1,...,MF,T)    - probability of emitting action M1,.. over time
 % MDP.Q{F}(NF,T,P)      - expected hidden states under each policy
 % MDP.X{F}(NF,T)        - and Bayesian model averages over policies
-% MDP.R(P,T)            - conditional expectations over policies
+% MDP.R(P,T)            - response: conditional expectations over policies
 %
 % MDP.un          - simulated neuronal encoding of hidden states
 % MDP.vn          - simulated neuronal prediction error
@@ -66,14 +66,14 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %
 % This routine provides solutions of active inference (minimisation of
 % variational free energy) using a generative model based upon a Markov
-% decision process(or a hidden Markov model, in the absence of action). The
+% decision process (or hidden Markov model, in the absence of action). The
 % model and inference scheme is formulated in discrete space and time. This
 % means that the generative model (and process) are  finite state machines
 % or hidden Markov models whose dynamics are given by transition
 % probabilities among states and the likelihood corresponds to a particular
 % outcome conditioned upon hidden states.
 %
-% When supplied with outcomes (in terms of their likelihood (O) in the
+% When supplied with outcomes, in terms of their likelihood (O) in the
 % absence of any policy specification, this scheme will use variational
 % message passing to optimise expectations about latent or hidden states
 % (and likelihood (A) and prior (B) probabilities). In other words, it will
@@ -82,9 +82,9 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % inference.
 %
 % This implementation equips agents with the prior beliefs that they will
-% maximise expected free energy: expected free energy is the free energy
-% of future outcomes under the posterior predictive distribution. This can
-% be interpreted in several ways – most intuitively as minimising the KL
+% maximise expected free energy: expected free energy is the free energy of
+% future outcomes under the posterior predictive distribution. This can be
+% interpreted in several ways – most intuitively as minimising the KL
 % divergence between predicted and preferred outcomes (specified as prior
 % beliefs) – while simultaneously minimising ambiguity.
 %
@@ -110,20 +110,20 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % mapping to outcomes and the initial state. This is useful for learning
 % the context. Likelihood and prior probabilities can be specified in terms
 % of concentration parameters (of a Dirichlet distribution (a,b,c,..). If
-% the corresponding (A,B,C,..) are supplied  they will be used to generate
+% the corresponding (A,B,C,..) are supplied, they will be used to generate
 % outcomes; unless called without policies (in hidden Markov model mode).
 % In this case, the (A,B,C,..) are treated as posterior estimates.
 %
-% If supplied with a structur array, this routine will automatically step
+% If supplied with a structure array, this routine will automatically step
 % through the implicit sequence of epochs (implicit in the number of
-% columns of the array). if the array has multiple rows, each row will be
-% created as a separate model or agent. This enables agents to communicate
+% columns of the array). If the array has multiple rows, each row will be
+% treated as a separate model or agent. This enables agents to communicate
 % through acting upon a common set of hidden factors, or indeed sharing the
 % same outcomes.
 %
 % See also: spm_MDP, which uses multiple future states and a mean field
-% approximation for control states – but allows for different actions
-% at all times (as in control problems).
+% approximation for control states – but allows for different actions at
+% all times (as in control problems).
 %
 % See also: spm_MDP_game_KL, which uses a very similar formulation but just
 % maximises the KL divergence between the posterior predictive distribution
@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7325 2018-06-03 21:52:21Z karl $
+% $Id: spm_MDP_VB_X.m 7326 2018-06-06 12:16:40Z karl $
 
 
 % deal with a sequence of trials
@@ -149,7 +149,7 @@ try, OPTIONS.D;     catch, OPTIONS.D     = 0; end
 if size(MDP,2) > 1
     
     % plotting options
-    %--------------------------------------------------------------
+    %----------------------------------------------------------------------
     GRAPH        = OPTIONS.plot;
     OPTIONS.plot = 0;
     
@@ -175,7 +175,7 @@ if size(MDP,2) > 1
             end
         end
         
-        % solve this trial
+        % solve this trial (for all models synchronously)
         %------------------------------------------------------------------
         OUT(:,i) = spm_MDP_VB_X(MDP(:,i),OPTIONS);
         
@@ -313,8 +313,7 @@ for m = 1:size(MDP,1)
         if isfield(MDP,'a')
             qA{m,g} = spm_psi(MDP(m).a{g} + 1/16);
             pA{m,g} = MDP(m).a{g};
-            wA{m,g} = spm_wnorm(MDP(m).a{g});
-            wA{m,g} = wA{m,g}.*(MDP(m).a{g} > 0);
+            wA{m,g} = spm_wnorm(MDP(m).a{g}).*(pA{m,g} > 0);
         end
         
     end
@@ -447,11 +446,11 @@ for m = 1:size(MDP,1)
     end
     MDP(m).o = o{m};
     
-    % allowable policies
+    % (indices of) plausible (allowable) policies
     %----------------------------------------------------------------------
     p{m}  = 1:Np(m);
     
-    % expected rate parameter
+    % expected rate parameter (precision of posterior over policies)
     %----------------------------------------------------------------------
     qb{m} = beta;                          % initialise rate parameters
     w{m}  = 1/qb{m};                       % posterior precision (policy)
@@ -508,14 +507,9 @@ for t = 1:T
                     
                 elseif MDP(m).o(g,t) < 0
                     
-                    % sample outcome from posterior predictive density
-                    %------------------------------------------------------
-                    po        = spm_dot(A{m,g},xq(m,:));
-                    o{m}(g,t) = find(rand < cumsum(po),1);
-                    
-                    
-                    % and find outcome that minimises expected free energy
-                    %------------------------------------------------------
+                    % outcome that minimises expected free energy
+                    %------------------------------------------------------                    
+                    po    = spm_dot(A{m,g},xq(m,:));
                     px    = spm_vec(spm_cross(xq(m,:)));
                     F     = zeros(No(m,g),1);
                     for i = 1:No(m,g)
