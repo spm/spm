@@ -24,7 +24,7 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 7319 2018-05-29 09:33:01Z karl $
+% $Id: spm_MDP_VB_trial.m 7329 2018-06-10 21:12:02Z karl $
 
 % graphics
 %==========================================================================
@@ -109,7 +109,7 @@ for f  = 1:Np
     set(gca,'YTickLabel',MDP.label.action{Nu(f)});
     
     % policies
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     subplot(3*Np,2,(Np + f - 1)*2 + 1)
     imagesc(MDP.V(:,:,Nu(f))')
     if f < 2
@@ -128,11 +128,13 @@ end
 
 % expectations over policies
 %--------------------------------------------------------------------------
-subplot(3,2,4)
-image(64*(1 - MDP.un))
-title('Posterior probability')
-ylabel('policy')
-xlabel('updates')
+if Np > 1
+    subplot(3,2,4)
+    image(64*(1 - MDP.un))
+    title('Posterior probability')
+    ylabel('policy')
+    xlabel('updates')
+end
 
 % sample (observation) and preferences
 %--------------------------------------------------------------------------
@@ -162,12 +164,14 @@ end
 
 % expected precision
 %--------------------------------------------------------------------------
-subplot(3,2,6)
-if size(MDP.dn,2) > 1
-    plot(MDP.dn,'r:'),   hold on, plot(MDP.wn,'c','LineWidth',2), hold off
-else
-    bar(MDP.dn,1.1,'k'), hold on, plot(MDP.wn,'c','LineWidth',2), hold off
+if size(MDP.dn,2) > 0
+    subplot(3,2,6)
+    if size(MDP.dn,2) > 1
+        plot(MDP.dn,'r:'),   hold on, plot(MDP.wn,'c','LineWidth',2), hold off
+    else
+        bar(MDP.dn,1.1,'k'), hold on, plot(MDP.wn,'c','LineWidth',2), hold off
+    end
+    title('Expected precision (dopamine)')
+    xlabel('updates'), ylabel('precision'), spm_axis tight, box off
 end
-title('Expected precision (dopamine)')
-xlabel('updates'), ylabel('precision'), spm_axis tight, box off
 drawnow

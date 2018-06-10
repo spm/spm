@@ -71,19 +71,26 @@ function RSA = DEMO_CVA_RSA
 % Copyright (C) 2006-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_CVA_RSA.m 7305 2018-05-07 13:35:06Z karl $
+% $Id: DEMO_CVA_RSA.m 7329 2018-06-10 21:12:02Z karl $
 
 
 % preliminaries
 %--------------------------------------------------------------------------
+rng('default')
+
 Nn   = 8;       % number of subjects
 Nv   = 32;      % number of voxels in the volume of interest
 Ns   = 16;      % number of stimuli objects
 Np   = 24;      % number of presentations (per subject)
 
 CV   = [1 1 0]; % true effects (main effect of interaction)
-sn   = 1/2;     % standard deviation of noise
+s    = 1/2;     % standard deviation of noise
+k    = 1/8;     % spatial correlations of noise
 
+% special convolution kernel
+%--------------------------------------------------------------------------
+K    = toeplitz(exp(-(0:(Nv - 1)).^2/k^2/2));
+K    = K/mean(diag(K*K'));
 
 % canonical contrasts
 %==========================================================================
@@ -134,11 +141,11 @@ for i = 1:Nn
     
     % functionally specialised responses, randomly distributed over voxels
     %----------------------------------------------------------------------
-    B    = c*diag(CV)*randn(Nc,Nv);
+    B    = c*diag(CV)*randn(Nc,Nv)*K;
     
     % observation error
     %----------------------------------------------------------------------
-    e    = randn(size(X,1),Nv)*sn;
+    e    = randn(size(X,1),Nv)*K*s;
     
     % known confounds
     %----------------------------------------------------------------------
@@ -364,7 +371,7 @@ end
 
 subplot(3,3,7), spm_plot_ci(EP',CP',[],[],'exp'), xlabel('Component')
 ylabel('Contribution'), title('Subject-specific effects','Fontsize',14)
-axis square tight
+axis square tight, set(gca,'YLim',[0 6])
 
 % show the results of Bayesian model comparison
 %--------------------------------------------------------------------------

@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7325 2018-06-03 21:52:21Z karl $
+% $Id: DEMO_MDP_questions.m 7329 2018-06-10 21:12:02Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -52,89 +52,168 @@ rng('default')
  
 % first level (lexical)
 %==========================================================================
- 
-% prior beliefs about initial states
+% question 1: {'noun (7)'}
+% question 2: {'noun (7)','adverb (9)'}
+% question 3: {'adjective (8)','noun (7)','adverb (9)'}
 %--------------------------------------------------------------------------
-D{1} = [1 1 1]';           % what:     {'flee','feed','wait'}
-D{2} = [1 0 0 0]';         % where:    {'1',...,'4'}
-D{3} = [1 1]';             % flip(ud): {'no','yes'}
-D{4} = [8 1]';             % flip(rl): {'no','yes'}
- 
- 
+% probabilistic mapping from hidden states to outcomes: A
+%--------------------------------------------------------------------------
+sentence{1} = {'Are there any ','&1_1','s','?'};
+sentence{2} = {'Is there a ','&2_1','&2_3','?'};
+sentence{3} = {'Is a ','&3_2','&3_1','&3_3','?'};
+sentence{4} = {'Yes','!'};
+sentence{5} = {'No','!'};
+sentence{6} = {'Not sure','!'};
+sentence{7} = {'Ready','?'};
+
+syn{1}      = {'Ready','OK','please begin'};
+syn{2}      = {'Not sure','I dont know','Cannot say'};
+syn{3}      = {'No','Sorry, no','There is not'};
+syn{4}      = {'Yes','Yes there is','Well done'};
+
+% assemble hidden states and transition probabilities
+%--------------------------------------------------------------------------
+name  = {};
+for i = 1:numel(sentence)
+    for j = 1:numel(sentence{i})
+        phrase = sentence{i}(j);
+        if ~any(ismember(name,phrase))
+        name(end + 1) = phrase;
+        end
+    end
+end
+
+label.factor{1} = 'noun';   label.name{1}  = {'square ','triangle '};
+label.factor{2} = 'adj.';   label.name{2}  = {'green ','red '};
+label.factor{3} = 'adverb'; label.name{3}  = {'above','below'};
+label.factor{4} = 'syntax'; label.name{4}  = name;
+
+% prior beliefs about initial states D 
+%--------------------------------------------------------------------------
+for i = 1:numel(label.factor)
+    n    = numel(label.name{i});
+    D{i} = ones(n,1)/n;
+end
+
+% restricted initial states to the beginning of a sentence
+%--------------------------------------------------------------------------
+state = label.name{4};
+D{4}  = spm_zeros(D{4});
+for i = 1:numel(sentence)
+    j = ismember(state,sentence{i}(1));
+    D{4}(j) = 1;
+end
+
 % probabilistic mapping from hidden states to outcomes: A
 %--------------------------------------------------------------------------
 Nf    = numel(D);
 for f = 1:Nf
     Ns(f) = numel(D{f});
 end
+
+
+outcome = {};
+for i = 1:numel(label.name)
+    outcome = [outcome,label.name{i}];
+end
+for i = 1:numel(syn)
+    outcome = [outcome,syn{i}];
+end
+outcome = unique(outcome);
+j     = [];
+for i = 1:numel(outcome)
+    if outcome{i}(1) ~= '&';
+        j = [j,i];
+    end
+end
+outcome = outcome(j);
+
+% single outcome modality with multiple phrases
+%--------------------------------------------------------------------------
+label.modality{1} = 'phrase';   label.outcome{1} = outcome;
+
+
 for f1 = 1:Ns(1)
     for f2 = 1:Ns(2)
         for f3 = 1:Ns(3)
             for f4 = 1:Ns(4)
                 
-                % location of cues for this hidden state
+                % indices of the state
                 %----------------------------------------------------------
-                if f1 == 1, a = {'bird','cat' ;'null','null'}; end
-                if f1 == 2, a = {'bird','seed';'null','null'}; end
-                if f1 == 3, a = {'bird','null';'null','seed'}; end
+                j = {f1,f2,f3,f4};
                 
-                % flip cues according to hidden (invariants) states
+                % assemble phrases under this state
                 %----------------------------------------------------------
-                if f3 == 2, a = flipud(a); end
-                if f4 == 2, a = fliplr(a); end
+                name = label.name{4}{f4};
+                if name(1) == '&'
+                    p   = eval(name(end));
+                    q   = eval(['f' name(end)]);
+                    out = label.name{p}(q);
+                else
+                    out = name;
+                    for i = 1:numel(syn)
+                        if any(ismember(syn{i},name))
+                            out = syn{i};
+                        end
+                    end
+                end
                 
-                % A{1} what: {'null','bird,'seed','cat'}
-                %==========================================================
-                
-                % saccade to cue location
+                % placing likelihood matrix
                 %----------------------------------------------------------
-                A{1}(1,f1,f2,f3,f4) = strcmp(a{f2},'null');
-                A{1}(2,f1,f2,f3,f4) = strcmp(a{f2},'bird');
-                A{1}(3,f1,f2,f3,f4) = strcmp(a{f2},'seed');
-                A{1}(4,f1,f2,f3,f4) = strcmp(a{f2},'cat');
-                
-                % A{2} where: {'1',...,'4'}
-                %----------------------------------------------------------
-                A{2}(f2,f1,f2,f3,f4) = 1;
-                
+                i = ismember(outcome,out);
+                A{1}(i,j{:}) = 1/sum(i);
+
             end
         end
     end
 end
- 
-% controlled transitions: B{f} for each factor
+
+% transitions: B{f} for each factor
 %--------------------------------------------------------------------------
 for f = 1:Nf
     B{f} = eye(Ns(f));
 end
  
-% controllable fixation points: move to the k-th location
+% specifies syntax
 %--------------------------------------------------------------------------
-for k = 1:Ns(2)
-    B{2}(:,:,k) = 0;
-    B{2}(k,:,k) = 1;
+B{4}  = spm_zeros(B{4});
+for s = 1:numel(sentence)
+    for t = 2:numel(sentence{s})
+        i = find(ismember(state,sentence{s}(t - 1)));
+        j = find(ismember(state,sentence{s}(t)));
+        B{4}(j,i) = 1;
+    end
+    B{4}(j,j) = 1;
 end
- 
+
  
 % MDP Structure
 %--------------------------------------------------------------------------
-mdp.T = 3;                      % number of updates
+mdp.T = 5;                      % number of updates
 mdp.A = A;                      % observation model
 mdp.B = B;                      % transition probabilities
 mdp.D = D;                      % prior over initial states
  
-mdp.label.modality = {'what','where'};
-mdp.label.factor = {'what','where','flip','flip'};
-mdp.alpha = 4;
+mdp.label = label;
 mdp.chi   = 1/64;
  
 clear A B D
  
-MDP = spm_MDP_check(mdp);
-clear mdp
- 
+MDP   = spm_MDP_check(mdp);
+MDP.s = [1 2 1 8]';
+MDP   = spm_MDP_VB_X(MDP);
 
+% show belief updates (and behaviour)
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 1'); clf
+spm_MDP_VB_trial(MDP,[3 4],1);
 
+% illustrate phase-precession and responses
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 2'); clf
+spm_MDP_VB_LFP(MDP,[],4);
+
+cell2mat(MDP.label.outcome{1}(MDP.o))
 
 
 % set up and preliminaries: first level
@@ -176,10 +255,10 @@ D{1}(1)  = 128;
 
 % probabilistic mapping from hidden states to outcomes: A
 %--------------------------------------------------------------------------
-label.modality{1} = 'noun';   label.outcome{1}  = {'square','triangle'};
-label.modality{2} = 'adj.';   label.outcome{2}  = {'green','red'};
-label.modality{3} = 'adverb'; label.outcome{3}  = {'above','below'};
-label.modality{4} = 'syntax'; label.outcome{4}  = {'is?','where?','what?','Y','N','?'};
+label.modality{1} = 'noun';   label.outcome{1}  = MDP.label.name{1};
+label.modality{2} = 'adj.';   label.outcome{2}  = MDP.label.name{2};
+label.modality{3} = 'adverb'; label.outcome{3}  = MDP.label.name{3};
+label.modality{4} = 'syntax'; label.outcome{4}  = MDP.label.name{4}(find(MDP.D{4}));
 
 Nf    = numel(D);
 for f = 1:Nf
@@ -235,7 +314,7 @@ for f1 = 1:Ns(1)
                                     % A{4} syntax: {'1','2','3','Y','N','?'}
                                     %======================================
                                     if f1 == 1
-                                        A{4}(6,j{:})     = 1;
+                                        A{4}(7,j{:})     = 1;
                                     elseif f1 == 2
                                         A{4}(f2,j{:})    = 1;
                                     elseif f1 == 3
@@ -322,8 +401,7 @@ s(4) = 2;
 
 % MDP Structure
 %--------------------------------------------------------------------------
-% mdp.MDP  = MDP;
-% mdp.link = sparse(1,1,1,numel(MDP.D),Ng);
+mdp.MDP    = MDP;
 mdp.label  = label;             % names of factors and outcomes
 mdp.tau    = 4;                 % time constant of belief updating
 mdp.erp    = 2;                 % initialization
@@ -336,7 +414,10 @@ mdp.D = D;                      % prior over initial states (context)
 mdp.s = s;                      % initial state
 mdp.o = [];                     % outcomes
 
-mdp   = spm_MDP_check(mdp);
+mdp      = spm_MDP_check(mdp);
+[L,J]    = spm_MDP_link(mdp);
+MDP.link = L;
+MDP.LINK = J;
 
  
  
@@ -462,7 +543,7 @@ end
 spm_figure('GetWin','Figure 9'); clf
 for i = 1:length(MDP)
     
-    if i < 5
+    if i < 7
         % first model asks and the second answers
         %------------------------------------------------------------------
         MDP(1,i).o = -ones(Ng,1)*[1 2 2];
