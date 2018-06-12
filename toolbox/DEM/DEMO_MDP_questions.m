@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7329 2018-06-10 21:12:02Z karl $
+% $Id: DEMO_MDP_questions.m 7330 2018-06-12 19:19:24Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -416,7 +416,7 @@ mdp.o = [];                     % outcomes
 
 mdp      = spm_MDP_check(mdp);
 [L,J]    = spm_MDP_link(mdp);
-MDP.link = L;
+% MDP.link = L;
 MDP.LINK = J;
 
  
