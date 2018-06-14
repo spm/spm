@@ -423,9 +423,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 7295 2018-04-18 10:32:20Z guillaume $
+% $Id: cfg_util.m 7331 2018-06-14 09:51:37Z guillaume $
 
-rev = '$Rev: 7295 $';
+rev = '$Rev: 7331 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -791,7 +791,11 @@ switch lower(cmd),
                             jobdedup(k) = cu;
                             % look for similar jobs under remaining candidates
                             csel = find(isnan(jobdedup));
-                            eqind = cellfun(@(cjob)isequalwithequalnans(cjob,job{k}),job(csel));
+                            if exist('isequalwithequalnans','builtin')
+                                eqind = cellfun(@(cjob)isequalwithequalnans(cjob,job{k}),job(csel));
+                            else
+                                eqind = cellfun(@(cjob)isequaln(cjob,job{k}),job(csel));
+                            end
                             jobdedup(csel(eqind)) = cu;
                         end
                     end
