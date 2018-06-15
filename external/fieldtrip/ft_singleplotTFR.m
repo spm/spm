@@ -11,12 +11,14 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %
 % The configuration can have the following parameters:
 %   cfg.parameter      = field to be plotted on z-axis, e.g. 'powspcrtrm' (default depends on data.dimord)
-%   cfg.maskparameter  = field in the data to be used for masking of data
+%   cfg.maskparameter  = field in the data to be used for masking of data, can be logical (e.g. significant data points) or numerical (e.g. t-values).
 %                        (not possible for mean over multiple channels, or when input contains multiple subjects
 %                        or trials)
-%   cfg.maskstyle      = style used to masking, 'opacity', 'saturation', 'outline' or 'colormix' (default = 'opacity')
+%   cfg.maskstyle      = style used to masking, 'opacity', 'saturation', or 'outline' (default = 'opacity')
+%                        'outline' can only be used with a logical cfg.maskparameter
 %                        use 'saturation' or 'outline' when saving to vector-format (like *.eps) to avoid all sorts of image-problems
-%   cfg.maskalpha      = alpha value between 0 (transparant) and 1 (opaque) used for masking areas dictated by cfg.maskparameter (default = 1)
+%   cfg.maskalpha      = alpha value between 0 (transparent) and 1 (opaque) used for masking areas dictated by cfg.maskparameter (default = 1)
+%                        (will be ignored in case of numeric cfg.maskparameter or if cfg.maskstyle = 'outline')   
 %   cfg.masknans       = 'yes' or 'no' (default = 'yes')
 %   cfg.xlim           = 'maxmin' or [xmin xmax] (default = 'maxmin')
 %   cfg.ylim           = 'maxmin' or [ymin ymax] (default = 'maxmin')
@@ -124,7 +126,6 @@ cfg = ft_checkconfig(cfg, 'renamed',     {'channelindex',   'channel'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'channelname',    'channel'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'cohrefchannel',  'refchannel'});
 cfg = ft_checkconfig(cfg, 'renamed',	   {'zparam',         'parameter'});
-cfg = ft_checkconfig(cfg, 'deprecated',  {'xparam',         'yparam'});
 
 % Set the defaults
 cfg.baseline       = ft_getopt(cfg, 'baseline',      'no');
@@ -175,8 +176,8 @@ hasfreq = isfield(data, 'freq');
 
 assert((hastime && hasfreq), 'please use ft_singleplotER for time-only or frequency-only data');
 
-xparam = 'time';
-yparam = 'freq';
+xparam = ft_getopt(cfg, 'xparam', 'time');
+yparam = ft_getopt(cfg, 'yparam', 'freq');
 
 % check whether rpt/subj is present and remove if necessary
 dimord = getdimord(data, cfg.parameter);
@@ -325,15 +326,26 @@ end
 % the usual data is chan_freq_time, but other dimords should also work
 dimtok = tokenize(dimord, '_');
 datamatrix = data.(cfg.parameter);
-[c, ia, ib] = intersect(dimtok, {'chan', yparam, xparam});
-datamatrix = permute(datamatrix, ia);
+[c, ia, ib] = intersect({'chan', yparam, xparam}, dimtok, 'stable');
+datamatrix = permute(datamatrix, ib);
 datamatrix = datamatrix(selchan, sely, selx);
 
 if ~isempty(cfg.maskparameter)
   maskmatrix = data.(cfg.maskparameter)(selchan, sely, selx);
-  if cfg.maskalpha ~= 1
-    maskmatrix( maskmatrix) = 1;
+  if islogical(maskmatrix) && any(strcmp(cfg.maskstyle, {'saturation', 'opacity'}))
+    maskmatrix = double(maskmatrix);
     maskmatrix(~maskmatrix) = cfg.maskalpha;
+  elseif isnumeric(maskmatrix)
+    if strcmp(cfg.maskstyle, 'outline')
+      error('Outline masking with a numeric cfg.maskparameter is not supported. Please use a logical mask instead.')
+    end
+    if cfg.maskalpha ~= 1
+      warning(sprintf('Using field "%s" for masking, cfg.maskalpha is ignored.', cfg.maskparameter))
+    end
+    % scale mask between 0 and 1
+    minval = min(maskmatrix(:));
+    maxval = max(maskmatrix(:));
+    maskmatrix = (maskmatrix - minval) / (maxval-minval);
   end
 else
   % create an Nx0x0 matrix

@@ -30,7 +30,7 @@ function s1 = appendstruct(varargin)
 %
 % $Id$
 
-% narginchk(2,inf);
+narginchk(2,inf);
 
 if nargin>2
   % use recursion to append a whole list of structures

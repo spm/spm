@@ -149,7 +149,7 @@ if isfield(cfg, 'grid')
     cfg.grid.template = ft_checkconfig(cfg.grid.template, 'renamed',  {'pnt' 'pos'});
   end
 end
-cfg = ft_checkconfig(cfg, 'index2logical', 'yes');
+cfg = ft_checkconfig(cfg, 'inside2logical', 'yes');
 
 if ~isfield(cfg, 'headmodel') && nargin>1
   % put it in the configuration structure
@@ -628,7 +628,7 @@ if basedonmni
   mnigrid = fixinside(mnigrid);
 
   % spatial normalisation of mri and construction of subject specific dipole grid positions
-  tmpcfg           = [];
+  tmpcfg           = keepfields(cfg, {'spmversion', 'spmmethod'});
   tmpcfg.nonlinear = cfg.grid.nonlinear;
   if isfield(cfg.grid, 'templatemri')
     tmpcfg.template = cfg.grid.templatemri;
