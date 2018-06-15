@@ -10,9 +10,9 @@ function str = showdoc(item, indent)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: showdoc.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: showdoc.m 7334 2018-06-15 12:44:37Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 7334 $'; %#ok
 
 str = showdoc(item.cfg_item, indent);
 switch item.strtype
@@ -29,7 +29,7 @@ switch item.strtype
         str{end+1} = 'Whole numbers are entered.';
         str{end+1} = shownum(item.num);
     case {'s'},
-        str{end+1} = 'A String is entered.';
+        str{end+1} = 'A string is entered.';
         if isempty(item.num)
             str{end+1} = 'The character array may have arbitrary size.';
         elseif isfinite(item.num(2))
