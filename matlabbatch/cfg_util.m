@@ -423,9 +423,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 7338 2018-06-15 12:44:41Z volkmar $
+% $Id: cfg_util.m 7340 2018-06-15 12:44:42Z volkmar $
 
-rev = '$Rev: 7338 $';
+rev = '$Rev: 7340 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -1643,23 +1643,34 @@ if cfg_get_defaults('cfg_util.run_diary')
     diary(tempname);
     dname = get(0, 'DiaryFile');
 end
+tdsubs = substruct('.','tdeps');
+chsubs = substruct('.','chk');
 cfg_message('matlabbatch:run:jobstart', ...
             ['\n\n------------------------------------------------------------------------\n',...
              '%s - Running job #%d\n', ...
              '------------------------------------------------------------------------'], datestr(now), cjob);
-if cflag && ~isempty(job.cjrun)
-    [u1, mlbch] = harvest(job.cjrun, job.cjrun, false, true);
-else
-    job1 = local_compactjob(job);
-    job.cjid2subsrun = job1.cjid2subs;
-    [u1, mlbch, u3, u4, u5, job.cjrun] = harvest(job1.cj, job1.cj, false, true);
+try
+    if cflag && ~isempty(job.cjrun)
+        [u1, mlbch] = harvest(job.cjrun, job.cjrun, false, true);
+    else
+        job1 = local_compactjob(job);
+        job.cjid2subsrun = job1.cjid2subs;
+        [u1, mlbch, u3, u4, u5, job.cjrun] = harvest(job1.cj, job1.cj, false, true);
+    end
+    % copy cjid2subs, it will be modified for each module that is run
+    cjid2subs = job.cjid2subsrun;
+    cjid2subsfailed = {};
+    cjid2subsskipped = {};
+catch
+    cjid2subs = {};
+    cjid2subsfailed = {};
+    cjid2subsskipped = job.cjid2subsrun;
+    le = lasterror;
+    le.stack = le.stack(1);
+    str = cfg_disp_error(le);
+    cfg_message('matlabbatch:run:modfailed', '%s - Failed to update inputs for some modules.', datestr(now));
+    cfg_message('matlabbatch:run:modfailed', '%s\n', str{:});
 end
-% copy cjid2subs, it will be modified for each module that is run
-cjid2subs = job.cjid2subsrun;
-cjid2subsfailed = {};
-cjid2subsskipped = {};
-tdsubs = substruct('.','tdeps');
-chsubs = substruct('.','chk');
 while ~isempty(cjid2subs)
     % find mlbch that can run
     cand = false(size(cjid2subs));
@@ -1729,10 +1740,18 @@ while ~isempty(cjid2subs)
         [un, ind] = unique(ctgt_exbranch_id);
         for k = 1:numel(ind)
             cm = subsref(job.cjrun, ctgt_exbranch{ind(k)});
-            [u1, cmlbch, u3, u4, u5, job.cjrun] = harvest(cm, job.cjrun, false, ...
-                                                     true);
-            mlbch = subsasgn(mlbch, cfg2jobsubs(job.cjrun, ctgt_exbranch{ind(k)}), ...
-                             cmlbch);
+            try
+                [u1, cmlbch, u3, u4, u5, job.cjrun] = harvest(cm, job.cjrun, false, ...
+                    true);
+                mlbch = subsasgn(mlbch, cfg2jobsubs(job.cjrun, ctgt_exbranch{ind(k)}), ...
+                    cmlbch);
+            catch
+                le = lasterror;
+                le.stack = le.stack(1);
+                str = cfg_disp_error(le);
+                cfg_message('matlabbatch:run:modfailed', '%s - Failed to update inputs for ''%s''', datestr(now), cm.name);
+                cfg_message('matlabbatch:run:modfailed', '%s\n', str{:});
+            end
         end
     end
 end
