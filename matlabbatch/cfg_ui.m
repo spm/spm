@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 6515 2015-08-06 10:07:55Z volkmar $
+% $Id: cfg_ui.m 7346 2018-06-15 12:44:47Z volkmar $
 
-rev = '$Rev: 6515 $'; %#ok
+rev = '$Rev: 7346 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -629,7 +629,9 @@ function MenuFileSave_Callback(hObject, eventdata, handles)
 udmodlist = get(handles.modlist, 'userdata');
 opwd = pwd;
 if ~isempty(udmodlist.wd)
-    cd(udmodlist.wd);
+    try
+        cd(udmodlist.wd);
+    end
 end;
 [file, pth, idx] = uiputfile({'*.mat','Matlab .mat File';...
                     '*.m','Matlab .m Script File'}, 'Save Job');
@@ -668,7 +670,9 @@ function MenuFileScript_Callback(hObject, eventdata, handles)
 udmodlist = get(handles.modlist, 'userdata');
 opwd = pwd;
 if ~isempty(udmodlist.wd)
-    cd(udmodlist.wd);
+    try
+        cd(udmodlist.wd);
+    end
 end;
 [file, pth, idx] = uiputfile({'*.m','Matlab .m Script File'},...
     'Script File name');
@@ -706,7 +710,9 @@ catch
     if strcmpi(questdlg(sprintf('An error occured during job execution. Please see the MATLAB command window for details.\n\nSave error information?'),'Error in job execution', 'Yes','No','Yes'), 'yes')
         opwd = pwd;
         if ~isempty(udmodlist.wd)
-            cd(udmodlist.wd);
+            try
+                cd(udmodlist.wd);
+            end
         end;
         [file, pth, idx] = uiputfile({'*.mat','Matlab .mat File'},...
             'Error .mat File name');
