@@ -28,9 +28,9 @@ function [str, sts] = gencode_rvalue(item, cflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_rvalue.m 6640 2015-12-11 10:17:09Z volkmar $
+% $Id: gencode_rvalue.m 7344 2018-06-15 12:44:46Z volkmar $
 
-rev = '$Rev: 6640 $'; %#ok
+rev = '$Rev: 7344 $'; %#ok
 
 if nargin < 2
     cflag = false;
@@ -178,7 +178,8 @@ for k = 1:numel(str)
             '\', '\\'; ...
             char(0), '\0'; ...
             char(9), '\t'; ...
-            char(10), '\n'};
+            char(10), '\n'; ...
+            char(13), '\r'};
         for cr = 1:size(replacements, 1)
             str{k} = strrep(str{k}, replacements{cr,:});
         end
