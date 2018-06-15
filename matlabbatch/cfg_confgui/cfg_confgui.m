@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 7336 2018-06-15 12:44:39Z volkmar $
+% $Id: cfg_confgui.m 7337 2018-06-15 12:44:40Z volkmar $
 
-rev = '$Rev: 7336 $'; %#ok
+rev = '$Rev: 7337 $'; %#ok
 
 %% Declaration of fields
 
@@ -453,9 +453,9 @@ conf_files.vout = @cfg_cfg_vout;
 %-----------------------------------------------------------------------
 conf_mchoice      = cfg_exbranch;
 conf_mchoice.name = 'Mchoice';
-conf_mchoice.tag  = 'conf_choice';
+conf_mchoice.tag  = 'conf_mchoice';
 conf_mchoice.val  = {conf_class_mchoice, conf_name, conf_tag, conf_values, conf_check, conf_rewrite_job, conf_help};
-conf_mchoice.help = help2cell('cfg_choice');
+conf_mchoice.help = help2cell('cfg_mchoice');
 conf_mchoice.prog = @cfg_cfg_pass;
 conf_mchoice.vout = @cfg_cfg_vout;
 
