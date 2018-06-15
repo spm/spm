@@ -423,9 +423,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 7343 2018-06-15 12:44:45Z volkmar $
+% $Id: cfg_util.m 7345 2018-06-15 12:44:47Z volkmar $
 
-rev = '$Rev: 7343 $';
+rev = '$Rev: 7345 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -760,21 +760,21 @@ switch lower(cmd),
             varargout{1} = cjob;
             varargout{2} = {};
         else
-            if ischar(varargin{1}) || iscellstr(varargin{1})
+            if ischar(varargin{1}) 
+                % assume single job filename
                 [job, jobdedup] = cfg_load_jobs(varargin{1});
-            elseif iscell(varargin{1})
-                % try to initialise cell array of jobs
-                job = cell(size(varargin{1}));
-                jobdedup = NaN*ones(size(varargin{1})); % Postpone duplicate detection
-                jfiles = cellfun(@ischar, varargin{1});
-                [job(jfiles), jobdedup(jfiles)] = cfg_load_jobs(varargin{1}(jfiles));
-                for cj = find(~jfiles)
-                    job{cj} = varargin{1}(cj);
-                end
-            else
-                % try to initialise single job
+            elseif iscell(varargin{1}) && all(cellfun('isclass', varargin{1}, 'struct'))
+                % try to initialise single job variable
                 job{1} = varargin{1};
                 jobdedup = 1;
+            else
+                % try to initialise cell array of jobs - a mix of file
+                % names and job variables is allowed
+                job = cell(size(varargin{1}));
+                jobdedup = NaN*ones(size(varargin{1}));
+                jfiles = cellfun(@ischar, varargin{1});
+                [job(jfiles), jobdedup(jfiles)] = cfg_load_jobs(varargin{1}(jfiles));
+                job(~jfiles) = varargin{1}(~jfiles);
             end
             % job should be a cell array of job structures
             isjob = true(size(job));
