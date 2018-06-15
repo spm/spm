@@ -373,7 +373,7 @@ function varargout = cfg_util(cmd, varargin)
 % Same as cfg_util('showdoc', but use handle or width to determine the
 % width of the returned strings.
 %
-%  [mod_job_idlist, str, sts, dep sout] = cfg_util('showjob', job_id[, mod_job_idlist])
+%  [mod_job_idlist, str, sts, dep, sout] = cfg_util('showjob', job_id[, mod_job_idlist])
 %
 % Return information about the current job (or the part referenced by the
 % input cell array mod_job_idlist). Output arguments
@@ -423,9 +423,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 7340 2018-06-15 12:44:42Z volkmar $
+% $Id: cfg_util.m 7341 2018-06-15 12:44:43Z volkmar $
 
-rev = '$Rev: 7340 $';
+rev = '$Rev: 7341 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
