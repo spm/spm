@@ -11,9 +11,9 @@ function varargout = cfg_ui_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui_util.m 7335 2018-06-15 12:44:38Z volkmar $
+% $Id: cfg_ui_util.m 7336 2018-06-15 12:44:39Z volkmar $
 
-rev = '$Rev: 7335 $';  %#ok<NASGU>
+rev = '$Rev: 7336 $';  %#ok<NASGU>
 
 switch lower(cmd)
     case {'preview'}
@@ -201,7 +201,7 @@ switch lower(cmd)
                     end;
                     str = strcat(mrk(:), str(:));
                 end;
-            case {'cfg_repeat'}
+            case {'cfg_repeat', 'cfg_mchoice'}
                 if ~dflag
                     % Already selected items
                     ncitems = numel(contents{2});
@@ -318,7 +318,7 @@ switch lower(cmd)
                     set(findobj(fig,'-regexp','Tag','.*ClearVal$'), ...
                         'Visible','on', 'Enable','on');
                 end;
-            case {'cfg_repeat'}
+            case {'cfg_repeat', 'cfg_mchoice'}
                 if ~dflag
                     udvalshow.cval = -1;
                     % Already selected items
@@ -340,36 +340,50 @@ switch lower(cmd)
                     end
                     % Add/Replicate callbacks will be shown only if max number of
                     % items not yet reached
-                    if ncitems < contents{9}(2)
+                    if (strcmp(contents{5}, 'cfg_repeat') && ncitems < contents{9}(2)) ...
+                            || (strcmp(contents{5}, 'cfg_mchoice') && ncitems < numel(contents{4}))
                         % Available items
-                        naitems = numel(contents{4});
+                        aitems = contents{4};
+                        if strcmp(contents{5}, 'cfg_mchoice')
+                            unsel = true(size(aitems));
+                            for k = 1:numel(contents{2})
+                                unsel(k) = ~any(cellfun(@(citem)isequal(contents{2}(k), citem), aitems));
+                            end
+                            aitems = aitems(unsel);
+                        end
+                        naitems = numel(aitems);
                         str1 = cell(naitems,1);
                         cmd1 = cell(naitems,1);
                         for k = 1:naitems
-                            str1{k} = sprintf('New: %s', contents{4}{k}.name);
+                            str1{k} = sprintf('New: %s', aitems{k}.name);
                             cmd1{k} = [k Inf];
                             madd = findobj(fig,'-regexp','Tag','.*ValAddItem$');
                             for cm = 1:numel(madd)
                                 uimenu(madd(cm), ...
-                                    'Label',contents{4}{k}.name, ...
+                                    'Label',aitems{k}.name, ...
                                     'Callback',@(ob,ev)local_setvaledit(ciid, cmd1{k}, false, updatecb, ob, ev), ...
                                     'Tag','ValAddItemDyn');
                             end
                         end;
-                        str2 = cell(ncitems,1);
-                        cmd2 = cell(ncitems,1);
-                        for k = 1:ncitems
-                            str2{k} = sprintf('Replicate: %s (%d)',...
-                                contents{2}{k}.name, k);
-                            cmd2{k} = [-1 k];
-                            mrepl = findobj(fig,'-regexp','Tag','.*ValReplItem$');
-                            for cm = 1:numel(mrepl)
-                                uimenu(mrepl(cm), ...
-                                    'Label',sprintf('%s (%d)', ...
-                                    contents{2}{k}.name, k), ...
-                                    'Callback',@(ob,ev)local_setvaledit(ciid, cmd2{k}, false, updatecb, ob, ev), ...
-                                    'Tag','ValReplItemDyn');
+                        if strcmp(contents{5}, 'cfg_repeat')
+                            str2 = cell(ncitems,1);
+                            cmd2 = cell(ncitems,1);
+                            for k = 1:ncitems
+                                str2{k} = sprintf('Replicate: %s (%d)',...
+                                    contents{2}{k}.name, k);
+                                cmd2{k} = [-1 k];
+                                mrepl = findobj(fig,'-regexp','Tag','.*ValReplItem$');
+                                for cm = 1:numel(mrepl)
+                                    uimenu(mrepl(cm), ...
+                                        'Label',sprintf('%s (%d)', ...
+                                        contents{2}{k}.name, k), ...
+                                        'Callback',@(ob,ev)local_setvaledit(ciid, cmd2{k}, false, updatecb, ob, ev), ...
+                                        'Tag','ValReplItemDyn');
+                                end
                             end
+                        else
+                            str2 = {};
+                            cmd2 = {};
                         end
                         set(findobj(fig,'-regexp','Tag','.*AddItem$'), ...
                             'Visible','on', 'Enable','on');
@@ -417,7 +431,7 @@ switch lower(cmd)
                 [val, sts] = local_valedit_edit(ciid, itemname, val);
             case { 'cfg_files'},
                 [val, sts] = local_valedit_files(ciid, itemname, val);
-            case {'cfg_choice', 'cfg_menu', 'cfg_repeat'},
+            case {'cfg_choice', 'cfg_mchoice', 'cfg_menu', 'cfg_repeat'},
                 % does not return value - use udvalshow.updatecb inside
                 % local_valedit_repeat as callback to update ui.
                 sts = false;

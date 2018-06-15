@@ -18,9 +18,9 @@ function cc = cfg_struct2cfg(co, indent)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_struct2cfg.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: cfg_struct2cfg.m 7336 2018-06-15 12:44:39Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 7336 $'; %#ok
 
 if nargin < 2
     indent = '';
@@ -61,7 +61,7 @@ switch typ
             val{k} = cfg_struct2cfg(co.val{k}, [indent ' ']);
         end;
         co.val = val;
-    case {'cfg_repeat', 'cfg_choice'}
+    case {'cfg_repeat', 'cfg_choice', 'cfg_mchoice'}
         if isfield(co, 'val')
             val = cell(size(co.val));
             for k = 1:numel(co.val)

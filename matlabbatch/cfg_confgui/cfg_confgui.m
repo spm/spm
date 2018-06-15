@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 7335 2018-06-15 12:44:38Z volkmar $
+% $Id: cfg_confgui.m 7336 2018-06-15 12:44:39Z volkmar $
 
-rev = '$Rev: 7335 $'; %#ok
+rev = '$Rev: 7336 $'; %#ok
 
 %% Declaration of fields
 
@@ -356,6 +356,15 @@ conf_class_files.val    = {'cfg_files'};
 conf_class_files.hidden = true;
 conf_class_files.help   = {'Hidden field that gives the hint to cfg_struct2cfg which class to create.'};
 
+% Mchoice
+%-----------------------------------------------------------------------
+conf_class_mchoice        = cfg_const;
+conf_class_mchoice.name   = 'Mchoice';
+conf_class_mchoice.tag    = 'type';
+conf_class_mchoice.val    = {'cfg_mchoice'};
+conf_class_mchoice.hidden = true;
+conf_class_mchoice.help   = {'Hidden field that gives the hint to cfg_struct2cfg which class to create.'};
+
 % Menu
 %-----------------------------------------------------------------------
 conf_class_menu        = cfg_const;
@@ -439,6 +448,16 @@ conf_files.val  = {conf_class_files, conf_name, conf_tag, conf_filter, ...
 conf_files.help = help2cell('cfg_files');
 conf_files.prog = @cfg_cfg_pass;
 conf_files.vout = @cfg_cfg_vout;
+
+% Mchoice
+%-----------------------------------------------------------------------
+conf_mchoice      = cfg_exbranch;
+conf_mchoice.name = 'Mchoice';
+conf_mchoice.tag  = 'conf_choice';
+conf_mchoice.val  = {conf_class_mchoice, conf_name, conf_tag, conf_values, conf_check, conf_rewrite_job, conf_help};
+conf_mchoice.help = help2cell('cfg_choice');
+conf_mchoice.prog = @cfg_cfg_pass;
+conf_mchoice.vout = @cfg_cfg_vout;
 
 % Menu
 %-----------------------------------------------------------------------
@@ -566,7 +585,7 @@ menu_entry.help   = {'These items are used to enter data that will be passed to 
 menu_struct        = cfg_choice;
 menu_struct.name   = 'Tree structuring items';
 menu_struct.tag    = 'menu_struct';
-menu_struct.values = {conf_branch, conf_exbranch, conf_choice, conf_repeat};
+menu_struct.values = {conf_branch, conf_exbranch, conf_choice, conf_mchoice, conf_repeat};
 menu_struct.help   = {'These items collect data entry items and build a menu structure.'};
 
 % Root node
