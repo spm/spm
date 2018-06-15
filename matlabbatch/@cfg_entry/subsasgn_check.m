@@ -11,9 +11,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 7335 2018-06-15 12:44:38Z volkmar $
+% $Id: subsasgn_check.m 7339 2018-06-15 12:44:42Z volkmar $
 
-rev = '$Rev: 7335 $'; %#ok
+rev = '$Rev: 7339 $'; %#ok
 
 sts = true;
 switch subs(1).subs
@@ -96,7 +96,7 @@ else
         case {'s+'}
             if ~iscellstr(val)
                 cfg_message('matlabbatch:checkval:strtype', ...
-                    '%s: FAILURE: Cant do s+ yet', subsasgn_checkstr(item,substruct('.','val')));
+                    '%s: Item must be a cell array of strings.', subsasgn_checkstr(item,substruct('.','val')));
                 sts = false;
             else
                 [sts, val] = numcheck(item,val);
