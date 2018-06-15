@@ -423,9 +423,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 7331 2018-06-14 09:51:37Z guillaume $
+% $Id: cfg_util.m 7338 2018-06-15 12:44:41Z volkmar $
 
-rev = '$Rev: 7331 $';
+rev = '$Rev: 7338 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -1645,8 +1645,8 @@ if cfg_get_defaults('cfg_util.run_diary')
 end
 cfg_message('matlabbatch:run:jobstart', ...
             ['\n\n------------------------------------------------------------------------\n',...
-             'Running job #%d\n', ...
-             '------------------------------------------------------------------------'], cjob);
+             '%s - Running job #%d\n', ...
+             '------------------------------------------------------------------------'], datestr(now), cjob);
 if cflag && ~isempty(job.cjrun)
     [u1, mlbch] = harvest(job.cjrun, job.cjrun, false, true);
 else
@@ -1692,11 +1692,11 @@ while ~isempty(cjid2subs)
         if isa(cm.jout,'cfg_inv_out')
             % no cached outputs (module did not run or it does not return
             % outputs) - run job
-            cfg_message('matlabbatch:run:modstart', 'Running ''%s''', cm.name);
+            cfg_message('matlabbatch:run:modstart', '%s - Running ''%s''', datestr(now), cm.name);
             try
                 cm = cfg_run_cm(cm, subsref(mlbch, cfg2jobsubs(job.cjrun, cjid2subsrun{k})));
                 csdeps{k} = cm.sdeps;
-                cfg_message('matlabbatch:run:moddone', 'Done    ''%s''', cm.name);
+                cfg_message('matlabbatch:run:moddone', '%s - Done    ''%s''', datestr(now), cm.name);
             catch
                 cjid2subsfailed = [cjid2subsfailed cjid2subsrun(k)];
                 le = lasterror;
@@ -1706,7 +1706,7 @@ while ~isempty(cjid2subs)
                     le.stack = le.stack(1:runind-1);
                 end
                 str = cfg_disp_error(le);
-                cfg_message('matlabbatch:run:modfailed', 'Failed  ''%s''', cm.name);
+                cfg_message('matlabbatch:run:modfailed', '%s - Failed  ''%s''', datestr(now), cm.name);
                 cfg_message('matlabbatch:run:modfailed', '%s\n', str{:});
             end
             % save results (if any) into job tree
@@ -1737,7 +1737,7 @@ while ~isempty(cjid2subs)
     end
 end
 if isempty(cjid2subsfailed) && isempty(cjid2subsskipped)
-    cfg_message('matlabbatch:run:jobdone', 'Done\n');
+    cfg_message('matlabbatch:run:jobdone', '%s - Done\n', datestr(now));
     err = [];
 else
     str = cell(numel(cjid2subsfailed)+numel(cjid2subsskipped)+1,1);
