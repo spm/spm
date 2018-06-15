@@ -10,9 +10,9 @@ function str = showdoc(item, indent)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: showdoc.m 7334 2018-06-15 12:44:37Z volkmar $
+% $Id: showdoc.m 7335 2018-06-15 12:44:38Z volkmar $
 
-rev = '$Rev: 7334 $'; %#ok
+rev = '$Rev: 7335 $'; %#ok
 
 str = showdoc(item.cfg_item, indent);
 switch item.strtype
@@ -40,6 +40,18 @@ switch item.strtype
             str{end+1} = sprintf(['The string must have at least %d ' ...
                                 'characters.'], item.num(1));
         end;
+    case {'s+'},
+        str{end+1} = 'A multi-line string is entered as cellstr.';
+        if isempty(item.num)
+            str{end+1} = 'The string array may have arbitrary size.';
+        elseif isfinite(item.num(2))
+            str{end+1} = sprintf(['The string array must have between %d and %d ' ...
+                                'lines.'], item.num(1), ...
+                                 item.num(2));
+        else
+            str{end+1} = sprintf(['The string array must have at least %d ' ...
+                                'lines.'], item.num(1));
+        end;  
 end;
 
 function numstr = shownum(num)

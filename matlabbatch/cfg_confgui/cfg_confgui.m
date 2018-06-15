@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 6460 2015-05-28 08:30:28Z volkmar $
+% $Id: cfg_confgui.m 7335 2018-06-15 12:44:38Z volkmar $
 
-rev = '$Rev: 6460 $'; %#ok
+rev = '$Rev: 7335 $'; %#ok
 
 %% Declaration of fields
 
@@ -260,6 +260,7 @@ conf_strtype        = cfg_menu;
 conf_strtype.name   = 'Strtype';
 conf_strtype.tag    = 'strtype';
 conf_strtype.labels = {'String (s)', ...
+                    'Multiline string (s+)', ...
                     'Evaluated (e)', ...
                     'Natural number (1..n) (n)', ...
                     'Whole number (0..n) (w)', ...
@@ -269,7 +270,7 @@ conf_strtype.labels = {'String (s)', ...
                     'Condition vector (c)', ...
                     'Contrast matrix (x)', ...
                     'Permutation (p)'}; 
-conf_strtype.values = {'s','e','n','w','i','r','f','c','x','p'};
+conf_strtype.values = {'s','s+','e','n','w','i','r','f','c','x','p'};
 conf_strtype.help   = {'Strtype field.', 'This type describes how an evaluated input should be treated. Type checking against this type will be performed during subscript assignment.'};
 
 % Extras

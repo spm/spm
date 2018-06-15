@@ -11,9 +11,9 @@ function varargout = cfg_ui_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui_util.m 6136 2014-08-07 10:35:12Z volkmar $
+% $Id: cfg_ui_util.m 7335 2018-06-15 12:44:38Z volkmar $
 
-rev = '$Rev: 6136 $';  %#ok<NASGU>
+rev = '$Rev: 7335 $';  %#ok<NASGU>
 
 switch lower(cmd)
     case {'preview'}
@@ -460,13 +460,15 @@ if isempty(val) || isa(val{1}, 'cfg_dep')
     % silently clear cfg_deps
     if strtype{1}{1} == 's'
         val = {''};
+    elseif strcmp(strtype{1}{1}, 's+')
+        val = {{''}};
     else
         val = {[]};
     end;
 end;
 % If requested or we can't handle this, use expert mode
 expmode = strcmp(cfg_get_defaults([mfilename '.ExpertEdit']), 'on') ||...
-    ndims(val{1}) > 2 || ~(ischar(val{1}) || isnumeric(val{1}) || islogical(val{1}));
+    ndims(val{1}) > 2 || ~(ischar(val{1}) || iscellstr(val{1}) || isnumeric(val{1}) || islogical(val{1}));
 % Generate code for current value, if not empty
 % Set dialog texts
 if expmode
@@ -481,7 +483,8 @@ if expmode
     hlptxt = char({'Enter a valid MATLAB expression.', ...
         ' ', ...
         ['Strings must be enclosed in single quotes ' ...
-        '(''A''), multiline arrays in brackets ([ ]).'], ...
+        '(''A''), multiline string arrays in curly braces {} ' ...
+        'and multiline arrays in brackets ([ ]).'], ...
         ' ', ...
         'To clear a value, enter an empty cell ''{}''.', ...
         ' ', ...
@@ -489,11 +492,15 @@ if expmode
     failtxt = {'Input could not be evaluated. Possible reasons are:',...
         '1) Input should be a vector or matrix, but is not enclosed in ''['' and '']'' brackets.',...
         '2) Input should be a character or string, but is not enclosed in '' single quotes.',...
+        '3) Input should be a multiline string, but is not enclosed in ''{'' and ''}'' braces or strings not in '' single quotes.',...
         '3) Input should be a MATLAB variable, but is misspelled.',...
         '4) Input should be a MATLAB expression, but has syntax errors.'};
 else
     if strtype{1}{1} == 's'
         instr = val;
+        encl  = {'''' ''''};
+    elseif strcmp(strtype{1}{1}, 's+')
+        instr = {char(val{1})};
         encl  = {'''' ''''};
     else
         try
@@ -542,26 +549,33 @@ while ~sts
     cfg_ui_restore(hv);
     % for strtype 's', val must be a string
     sts = sts && (~strcmp(strtype{1}{1},'s') || ischar(val));
+    % for strtype 's+', val must be a cellstr
+    sts = sts && (~strcmp(strtype{1}{1},'s+') || iscellstr(val));
     if ~sts
         if ~expmode
-            % try with matching value enclosure
-            if strtype{1}{1} == 's'
-                if ishandle(val) % delete accidentally created objects
-                    delete(val);
-                end
-                % escape single quotes and place the whole string in single quotes
-                str = strcat(encl(1), strrep(cstr,'''',''''''), encl(2), {char(10)});
+            if strcmp(strtype{1}{1}, 's+')
+                val = cstr;
+                sts = true;
             else
-                cestr = [encl(1); cstr(:); encl(2)]';
-                str = strcat(cestr, {char(10)});
+                % try with matching value enclosure
+                if strtype{1}{1} == 's'
+                    if ishandle(val) % delete accidentally created objects
+                        delete(val);
+                    end
+                    % escape single quotes and place the whole string in single quotes
+                    str = strcat(encl(1), strrep(cstr,'''',''''''), encl(2), {char(10)});
+                else
+                    cestr = [encl(1); cstr(:); encl(2)]';
+                    str = strcat(cestr, {char(10)});
+                end;
+                str = cat(2, str{:});
+                % Evaluation is encapsulated to avoid users compromising this function
+                % context - graphics handles are made invisible to avoid accidental
+                % damage
+                hv = cfg_ui_disable(0, 'HandleVisibility');
+                [val, sts] = cfg_eval_valedit(str);
+                cfg_ui_restore(hv);
             end;
-            str = cat(2, str{:});
-            % Evaluation is encapsulated to avoid users compromising this function
-            % context - graphics handles are made invisible to avoid accidental
-            % damage
-            hv = cfg_ui_disable(0, 'HandleVisibility');
-            [val, sts] = cfg_eval_valedit(str);
-            cfg_ui_restore(hv);
         end;
         if ~sts % (Still) no valid input
             uiwait(msgbox(failtxt,'Evaluation error','modal'));

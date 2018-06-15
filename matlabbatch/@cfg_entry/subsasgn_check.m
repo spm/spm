@@ -11,9 +11,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 7334 2018-06-15 12:44:37Z volkmar $
+% $Id: subsasgn_check.m 7335 2018-06-15 12:44:38Z volkmar $
 
-rev = '$Rev: 7334 $'; %#ok
+rev = '$Rev: 7335 $'; %#ok
 
 sts = true;
 switch subs(1).subs
@@ -43,7 +43,7 @@ switch subs(1).subs
             val = {vtmp};
         end
     case {'strtype'}
-        strtypes = {'s','e','f','n','w','i','r','c','x','p'};
+        strtypes = {'s','s+','e','f','n','w','i','r','c','x','p'};
         sts = isempty(val) || (ischar(val) && ...
                                any(strcmp(val, strtypes)));
         if ~sts
@@ -94,8 +94,14 @@ else
                 end
             end
         case {'s+'}
-            cfg_message('matlabbatch:checkval:strtype', ...
+            if ~iscellstr(val)
+                cfg_message('matlabbatch:checkval:strtype', ...
                     '%s: FAILURE: Cant do s+ yet', subsasgn_checkstr(item,substruct('.','val')));
+                sts = false;
+            else
+                [sts, val] = numcheck(item,val);
+                val = val(:);
+            end
         case {'f'}
             % test whether val is a function handle or a name of an
             % existing function
@@ -160,7 +166,7 @@ function [sts, val] = numcheck(item,val)
 sts = true;
 csz = size(val);
 if ~isempty(item.num)
-    if item.strtype == 's' && numel(item.num) == 2
+    if any(strcmp(item.strtype, {'s','s+'})) && numel(item.num) == 2
         % interpret num field as [min max] # elements
         sts = item.num(1) <= numel(val) && numel(val) <= item.num(2);
         if ~sts
