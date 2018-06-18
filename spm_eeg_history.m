@@ -22,7 +22,7 @@ function H = spm_eeg_history(S)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_history.m 6890 2016-09-28 13:34:47Z vladimir $
+% $Id: spm_eeg_history.m 7351 2018-06-18 15:10:01Z vladimir $
 
 try
     h = S.history;
@@ -201,6 +201,8 @@ for i=1:numel(h)
             hh{i} = 'Merge';
         case 'spm_eeg_tf'
             hh{i} = 'Compute time-frequency';
+        case 'spm_eeg_tf_rescale'
+            hh{i} = 'Rescale time-frequency';            
         case {'spm_eeg_weight_epochs', 'spm_eeg_contrast'}
             hh{i} = 'Compute contrast';        
         case 'spm_eeg_sort_conditions'
