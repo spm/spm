@@ -18,7 +18,7 @@ function V4 = spm_file_merge(V,fname,dt,RT)
 % Copyright (C) 2009-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_file_merge.m 7290 2018-04-10 16:43:01Z guillaume $
+% $Id: spm_file_merge.m 7352 2018-06-19 10:32:05Z guillaume $
 
 %-Input: V
 %--------------------------------------------------------------------------
@@ -147,6 +147,11 @@ for i=1:size(ni.dat,4)
 end
 spm_progress_bar('Clear');
 
+ni = nifti(fname);
+ni.mat_intent  = N(1).mat_intent;
+ni.mat0_intent = N(1).mat0_intent;
+create(ni); % mat_intent is changed by spm_get_space above
+
 if nargout
-    V4 = spm_vol(ni.dat.fname);
+    V4 = spm_vol(fname);
 end
