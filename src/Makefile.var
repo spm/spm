@@ -2,7 +2,7 @@
 #
 # Copyright (C) 1991-2014 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 6099 2014-07-11 12:21:35Z guillaume $
+# $Id: Makefile.var 7353 2018-06-19 10:39:55Z guillaume $
 #
 ###############################################################################
 #
@@ -47,35 +47,15 @@ ifndef SUF
   endif
   ##### Linux #####
   ifeq (Linux,$(PLATFORM))
-    HARDWARE   = $(shell $(UNAME) -m)
-    ifeq (i386,$(HARDWARE))
-      SUF      = mexglx
-    endif
-    ifeq (i686,$(HARDWARE))
-      SUF      = mexglx
-    endif
-    ifeq (x86_64,$(HARDWARE))
-      SUF      = mexa64
-    endif
-    ifndef SUF
-      $(error Unknowm platform $(PLATFORM)-$(HARDWARE))
-    endif
+    SUF        = mexa64
   endif
   ##### MacOS #####
   ifeq (Darwin,$(PLATFORM))
-    HARDWARE   = $(shell $(UNAME) -p)
-    ifeq (i386,$(HARDWARE))
-      SUF      = mexmaci64
-    endif
-    ifndef SUF
-      $(error Unknowm platform $(PLATFORM)-$(HARDWARE))
-    endif
+    SUF        = mexmaci64
   endif
   ##### Windows #####
-  ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM))))
-    override PLATFORM = windows
-  endif
-  ifeq (windows,$(PLATFORM))
+  ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM)))) # MSC
+    override PLATFORM = windows # used in Makefile re. AR
     ifeq (x86,$(PROCESSOR_ARCHITECTURE))
       SUF      = mexw32
     else
@@ -87,6 +67,11 @@ ifndef SUF
     MOSUF      = obj
     AR         = lib.exe /out:
   endif
+  ifeq (MSYS,$(word 1,$(subst _, ,$(PLATFORM)))) # GCC
+    SUF        = mexw64
+    MEXOPTS   += -DSPM_WIN32
+    MOSUF      = obj
+  endif
   #### Octave ####
   ifeq (octave,$(PLATFORM))
     MEXBIN     = mkoctfile
@@ -94,6 +79,7 @@ ifndef SUF
     SUF        = mex
     override PLATFORM = $(shell $(UNAME))
   endif
+  #### Otherwise ####
   ifndef SUF
     $(error Unknowm platform $(PLATFORM))
   endif

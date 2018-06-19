@@ -1,5 +1,5 @@
 /*
- * $Id: spm_vol_access.c 6552 2015-09-11 16:47:52Z spm $
+ * $Id: spm_vol_access.c 7353 2018-06-19 10:39:55Z guillaume $
  * John Ashburner
  */
 
@@ -44,7 +44,7 @@ int resample(int m, MAPTYPE *vol, double *out, double *x, double *y, double *z, 
     extern void resample_float_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_double_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
 
-#ifdef SPM_WIN32
+#ifdef _MSC_VER_
     /* https://msdn.microsoft.com/en-us/library/windows/desktop/aa366801.aspx */
     __try
     {
@@ -96,7 +96,7 @@ int resample(int m, MAPTYPE *vol, double *out, double *x, double *y, double *z, 
         (void)fprintf(stderr,"%d: Unknown datatype.\n", vol->dtype);
         return(1);
     }
-#ifdef SPM_WIN32
+#ifdef _MSC_VER_
     }
     __except(GetExceptionCode()==EXCEPTION_IN_PAGE_ERROR ?
         EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
@@ -125,7 +125,7 @@ int resample_d(int m, MAPTYPE *vol, double *out, double *gradx, double *grady, d
     extern void resample_d_float_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_d_double_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
 
-#ifdef SPM_WIN32
+#ifdef _MSC_VER_
     /* https://msdn.microsoft.com/en-us/library/windows/desktop/aa366801.aspx */
     __try
     {
@@ -177,7 +177,7 @@ int resample_d(int m, MAPTYPE *vol, double *out, double *gradx, double *grady, d
         (void)fprintf(stderr,"%d: Unknown datatype.\n", vol->dtype);
         return(1);
     }
-#ifdef SPM_WIN32
+#ifdef _MSC_VER_
     }
     __except(GetExceptionCode()==EXCEPTION_IN_PAGE_ERROR ?
         EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
@@ -207,7 +207,7 @@ int slice(double *mat, double *image, int xdim1, int ydim1, MAPTYPE *vol, int ho
     extern int slice_double_s(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
     
     int sts = 1;
-#ifdef SPM_WIN32
+#ifdef _MSC_VER_
     /* https://msdn.microsoft.com/en-us/library/windows/desktop/aa366801.aspx */
     __try
     {
@@ -259,7 +259,7 @@ int slice(double *mat, double *image, int xdim1, int ydim1, MAPTYPE *vol, int ho
         (void)fprintf(stderr,"%d: Unknown datatype.\n", vol->dtype);
         sts = 1;
     }
-#ifdef SPM_WIN32
+#ifdef _MSC_VER_
     }
     __except(GetExceptionCode()==EXCEPTION_IN_PAGE_ERROR ?
         EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
