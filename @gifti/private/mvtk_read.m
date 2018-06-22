@@ -14,7 +14,7 @@ function M = mvtk_read(filename)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: mvtk_read.m 6601 2015-11-19 13:55:32Z guillaume $
+% $Id: mvtk_read.m 7354 2018-06-22 10:44:22Z guillaume $
 
 
 [pth,name,ext] = fileparts(filename);
@@ -123,6 +123,7 @@ switch F
                     [N,l] = strtok(l(2:end));
                     N = str2double(N);
                     break;
+                case ''
                 otherwise
                     error('Invalid VTK file.');
             end
@@ -138,14 +139,16 @@ if data_attributes
     %l = fgetl(fid); % {POINT_DATA,CELL_DATA} N
     l = fgetl(fid); % SCALARS dataName dataType numComp
     [P,l] = strtok(l);
-    [S,l] = strtok(l(2:end));
-    [S,l] = strtok(l(2:end));
-    S = strtok(l(2:end)); S = str2double(S);
-    l = fgetl(fid); % LOOKUP_TABLE default
-    fmt = repmat('%f ',1,S);
-    fmt = [fmt(1:end-1) '\n'];
-    M.cdata = textscan(fid,fmt,N,'CollectOutput',true);
-    M.cdata = M.cdata{1};
+    if strcmp(P,'SCALARS')
+        [S,l] = strtok(l(2:end));
+        [S,l] = strtok(l(2:end));
+        S = strtok(l(2:end)); S = str2double(S);
+        l = fgetl(fid); % LOOKUP_TABLE default
+        fmt = repmat('%f ',1,S);
+        fmt = [fmt(1:end-1) '\n'];
+        M.cdata = textscan(fid,fmt,N,'CollectOutput',true);
+        M.cdata = M.cdata{1};
+    end
 end
 
 fclose(fid);

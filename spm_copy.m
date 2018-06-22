@@ -5,7 +5,7 @@ function spm_copy(source, dest, varargin)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_copy.m 7121 2017-06-21 16:35:40Z guillaume $
+% $Id: spm_copy.m 7354 2018-06-22 10:44:22Z guillaume $
 
 
 %-Source and destination
@@ -57,13 +57,16 @@ for i=1:numel(source)
     end
     if opts.nifti
         if strcmp(spm_file(source{i},'ext'),'img')
-            s = copyfile(spm_file(source{i},'ext','hdr'), dest{i}, opts.mode{:});
-            s = copyfile(spm_file(source{i},'ext','mat'), dest{i}, opts.mode{:});
+            sts = copyfile(spm_file(source{i},'ext','hdr'), dest{i}, opts.mode{:});
+            sts = copyfile(spm_file(source{i},'ext','mat'), dest{i}, opts.mode{:});
+            sts = copyfile(spm_file(source{i},'ext','json'), dest{i}, opts.mode{:});
         elseif strcmp(spm_file(source{i},'ext'),'hdr')
-            s = copyfile(spm_file(source{i},'ext','img'), dest{i}, opts.mode{:});
-            s = copyfile(spm_file(source{i},'ext','mat'), dest{i}, opts.mode{:});
+            sts = copyfile(spm_file(source{i},'ext','img'), dest{i}, opts.mode{:});
+            sts = copyfile(spm_file(source{i},'ext','mat'), dest{i}, opts.mode{:});
+            sts = copyfile(spm_file(source{i},'ext','json'), dest{i}, opts.mode{:});
         elseif strcmp(spm_file(source{i},'ext'),'nii')
-            s = copyfile(spm_file(source{i},'ext','mat'), dest{i}, opts.mode{:});
+            sts = copyfile(spm_file(source{i},'ext','mat'), dest{i}, opts.mode{:});
+            sts = copyfile(spm_file(source{i},'ext','json'), dest{i}, opts.mode{:});
         end
     end
     if opts.gzip && ~strcmp(spm_file(source{i},'ext'),'gz')

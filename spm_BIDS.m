@@ -1,13 +1,14 @@
 function varargout = spm_BIDS(varargin)
-% Parse directory structure formated according to the BIDS standard
+% Parse and query a directory structure formated according to the BIDS standard
 % FORMAT BIDS = spm_BIDS(root)
 % root   - directory formated according to BIDS [Default: pwd]
 % BIDS   - structure containing the BIDS file layout
 %
 % FORMAT result = spm_BIDS(BIDS,query,...)
-% BIDS   - BIDS directory name or structure containing the BIDS file layout
-% query  - type of query
-% result - query's result
+% BIDS   - BIDS directory name or BIDS structure (from spm_BIDS)
+% query  - type of query: {'data', 'metadata', 'sessions', 'subjects',
+%          'runs', 'tasks', 'runs', 'types', 'modalities'}
+% result - outcome of query
 %__________________________________________________________________________
 %
 % BIDS (Brain Imaging Data Structure): http://bids.neuroimaging.io/
@@ -18,7 +19,7 @@ function varargout = spm_BIDS(varargin)
 % Copyright (C) 2016-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7323 2018-05-31 16:42:43Z guillaume $
+% $Id: spm_BIDS.m 7354 2018-06-22 10:44:22Z guillaume $
 
 
 %-Validate input arguments
@@ -431,6 +432,7 @@ if exist(pth,'dir')
     
     %-MEG events file
     %----------------------------------------------------------------------
+    % (!) TODO: events file can also be stored at higher levels (inheritance principle)
     f = spm_select('List',pth,...
         sprintf('^%s.*_task-.*_events\\.tsv$',subject.name));
     if isempty(f), f = {}; else f = cellstr(f); end
@@ -442,8 +444,9 @@ if exist(pth,'dir')
         
     end
         
-    %-Channel description table
+    %-Channels description table
     %----------------------------------------------------------------------
+    % (!) TODO: channels file can also be stored at higher levels (inheritance principle)
     f = spm_select('List',pth,...
         sprintf('^%s.*_task-.*_channels\\.tsv$',subject.name));
     if isempty(f), f = {}; else f = cellstr(f); end
@@ -506,6 +509,7 @@ if exist(pth,'dir')
 
         %-bval file
         %------------------------------------------------------------------
+        % bval file can also be stored at higher levels (inheritance principle)
         bvalfile = get_metadata(f{i},'^.*%s\\.bval$');
         if isfield(bvalfile,'filename')
             subject.dwi(end).bval = spm_load(bvalfile.filename); % ?
@@ -513,6 +517,7 @@ if exist(pth,'dir')
 
         %-bvec file
         %------------------------------------------------------------------
+        % bvec file can also be stored at higher levels (inheritance principle)
         bvecfile = get_metadata(f{i},'^.*%s\\.bvec$');
         if isfield(bvalfile,'filename')
             subject.dwi(end).bvec = spm_load(bvecfile.filename); % ?
@@ -552,6 +557,8 @@ switch query
     case 'sessions'
         result = unique({BIDS.subjects.session});
         result = regexprep(result,'^[a-zA-Z0-9]+-','');
+        result = unique(result);
+        result(cellfun('isempty',result)) = [];
     case 'modalities'
         hasmod = arrayfun(@(y) structfun(@(x) isstruct(x) & ~isempty(x),y),...
             BIDS.subjects,'UniformOutput',false);

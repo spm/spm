@@ -10,13 +10,15 @@ function out = spm_run_fmri_est(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 7057 2017-04-13 16:45:49Z guillaume $
+% $Id: spm_run_fmri_est.m 7354 2018-06-22 10:44:22Z guillaume $
 
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
-SPM = [];
-load(job.spmmat{:});
+load(job.spmmat{1},'SPM');
+if ~exist('SPM','var')
+    error('The MAT-file does not contain an SPM variable.');
+end
 out.spmmat = job.spmmat;
 
 %-Move to the directory where the SPM.mat file is

@@ -8,7 +8,7 @@ function spm_save(f,var,varargin)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_save.m 7328 2018-06-08 16:30:42Z guillaume $
+% $Id: spm_save.m 7354 2018-06-22 10:44:22Z guillaume $
 
 
 ext = lower(spm_file(f,'ext'));
@@ -41,6 +41,7 @@ switch ext
                 var = num2cell(var);
                 var = cellfun(@(x) num2str(x,16), var, 'UniformOutput',false);
             end
+            try, var = strtrim(var); end
             
             fid = fopen(f,'Wt');
             if fid == -1

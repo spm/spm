@@ -25,7 +25,7 @@ function S = spm_mesh_contour(M,mat)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_contour.m 7240 2017-12-19 12:06:59Z guillaume $
+% $Id: spm_mesh_contour.m 7354 2018-06-22 10:44:22Z guillaume $
 
 
 %-Input and output arguments
@@ -100,10 +100,7 @@ while ~isempty(F)
             i = ii(Ei);
         catch
             % non-MEX implementation
-            if Ei == 1,     f = [2 3];
-            elseif Ei == 2, f = [1 3];
-            else            f = [1 2];
-            end
+            f = [1 2 3]; f(Ei) = [];
             ii = find(sum(M.faces == M.faces(i,f(1)) | ...
                           M.faces == M.faces(i,f(2)),2)==2);
             ii(ii==i) = []; i = ii;

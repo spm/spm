@@ -3,13 +3,11 @@ function out = spm_run_tissue_volumes(cmd, job)
 %
 % See also: spm_cfg_tissue_volumes, spm_summarise
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2018 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_run_tissue_volumes.m 7299 2018-04-23 13:55:14Z tibor $
-%
-% Tibor Auer: look for structural only if needed (lines 48-65)
-% $Id: spm_run_tissue_volumes.m 7299 2018-04-23 13:55:14Z tibor $
+% $Id: spm_run_tissue_volumes.m 7354 2018-06-22 10:44:22Z guillaume $
+
 
 switch lower(cmd)
     %----------------------------------------------------------------------    

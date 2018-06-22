@@ -10,7 +10,7 @@ function x = spm_load(f,v)
 % Copyright (C) 1995-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_load.m 7323 2018-05-31 16:42:43Z guillaume $
+% $Id: spm_load.m 7354 2018-06-22 10:44:22Z guillaume $
 
 
 %-Get a filename if none was passed
@@ -118,7 +118,7 @@ eol   = sprintf('\n');
 
 %-Read file
 %--------------------------------------------------------------------------
-S   = fileread(f);
+S   = fileread(f); % spm_file(f,'local','content');
 if isempty(S), x = []; return; end
 if S(end) ~= eol, S = [S eol]; end
 S   = regexprep(S,{'\r\n','\r','(\n)\1+'},{'\n','\n','$1'});
@@ -142,10 +142,8 @@ if any(n1 & ~n2)
     S       = S(h+1:end);
 else
     hdr     = false;
-    var     = cell(N,1);
-    for i=1:N
-        var{i} = sprintf(['var%0' num2str(floor(log10(N))+1) 'd'],i);
-    end
+    fmt     = ['var%0' num2str(floor(log10(N))+1) 'd'];
+    var     = arrayfun(@(x) sprintf(fmt,x),(1:N)','UniformOutput',false);
 end
 
 %-Parse file

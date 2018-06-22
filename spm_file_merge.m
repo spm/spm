@@ -18,7 +18,7 @@ function V4 = spm_file_merge(V,fname,dt,RT)
 % Copyright (C) 2009-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_file_merge.m 7352 2018-06-19 10:32:05Z guillaume $
+% $Id: spm_file_merge.m 7354 2018-06-22 10:44:22Z guillaume $
 
 %-Input: V
 %--------------------------------------------------------------------------
@@ -124,6 +124,8 @@ end
 %==========================================================================
 spm_unlink(fname);
 
+%-Create NifTI header
+%--------------------------------------------------------------------------
 ni         = nifti;
 ni.dat     = file_array(fname,...
                         [V(1).dim numel(V)],...
@@ -137,8 +139,10 @@ ni.descrip = '4D image';
 if ~isnan(RT)
     ni.timing = struct('toffset',0, 'tspace',RT);
 end
-
 create(ni);
+
+%-Write 4D data
+%--------------------------------------------------------------------------
 spm_progress_bar('Init',size(ni.dat,4),'Saving 4D image','Volumes Complete');
 for i=1:size(ni.dat,4)
     ni.dat(:,:,:,i) = N(i).dat(:,:,:,ind(i,1),ind(i,2));
@@ -147,11 +151,30 @@ for i=1:size(ni.dat,4)
 end
 spm_progress_bar('Clear');
 
+%-Fix ?form_code in header (mat_intent is changed by spm_get_space above)
+%--------------------------------------------------------------------------
 ni = nifti(fname);
 ni.mat_intent  = N(1).mat_intent;
 ni.mat0_intent = N(1).mat0_intent;
-create(ni); % mat_intent is changed by spm_get_space above
+create(ni);
 
+%-Remove .mat file if present and not necessary
+%--------------------------------------------------------------------------
+matfname = spm_file(fname,'ext','mat');
+if spm_existfile(matfname)
+    M = load(matfname);
+    if isequal(fieldnames(M),{'mat'}) % contains only 'mat'
+        if sum(sum(M.mat(:,:,1).^2))==0
+            M.mat(:,:,1) = N(1).mat;
+        end
+        if sum(sum(diff(M.mat,1,3).^2))<1e-8
+            spm_unlink(matfname);
+        end
+    end
+end
+
+%-Return spm_vol structure
+%--------------------------------------------------------------------------
 if nargout
     V4 = spm_vol(fname);
 end
