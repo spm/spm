@@ -3,7 +3,7 @@ function dicom = spm_cfg_dicom
 %__________________________________________________________________________
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_dicom.m 7201 2017-11-08 11:13:25Z guillaume $
+% $Id: spm_cfg_dicom.m 7355 2018-06-22 11:40:55Z john $
 
 %-------------------------------------------------------------------------
 % data DICOM files
@@ -48,7 +48,6 @@ root.labels  = {'Output directory: ./<StudyDate-StudyTime>/<ProtocolName>'
                 'Output directory: ./<PatientID>/<StudyDate-StudyTime>/<ProtocolName>'
                 'Output directory: ./<ProtocolName>'
                 'No directory hierarchy'}';
-% removed 'Output directory: ./<PatientName>/<ProtocolName>' for anonymity purposes
 root.values  = {'date_time'
                 'patid'
                 'patid_date'

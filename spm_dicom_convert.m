@@ -37,7 +37,7 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 % Copyright (C) 2002-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7321 2018-05-29 16:38:58Z mikael $
+% $Id: spm_dicom_convert.m 7355 2018-06-22 11:40:55Z john $
 
 
 %-Input parameters
@@ -195,8 +195,6 @@ for i=1:length(Headers)
     else
         descrip = Headers{1}.Modality;
     end
-
-    % descrip = [deblank(descrip) '   ' Headers{i}.PatientsName];
 
     if ~true % LEFT-HANDED STORAGE
         mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
@@ -1353,7 +1351,6 @@ else
 end
 if isfield(Header,'AcquisitionTime'),   AcquisitionTime   = Header.AcquisitionTime;            else AcquisitionTime   = 100;       end;
 if isfield(Header,'StudyDate'),         StudyDate         = Header.StudyDate;                  else StudyDate         = 100;       end; % Obscure Easter Egg
-if isfield(Header,'PatientsName'),      PatientsName      = deblank(Header.PatientsName);      else PatientsName      = 'anon';    end
 if isfield(Header,'SeriesDescription'), SeriesDescription = deblank(Header.SeriesDescription); else SeriesDescription = 'unknown'; end
 if isfield(Header,'ProtocolName'),
     ProtocolName = deblank(Header.ProtocolName);
@@ -1381,8 +1378,6 @@ switch RootDirectory
         dname = fullfile(OutputDirectory, id, protname);
     case 'patid_date',
         dname = fullfile(OutputDirectory, id, studydate, protname);
-    case 'patname',
-        dname = fullfile(OutputDirectory, StripUnwantedChars(PatientsName), id, protname);
     case 'series',
         dname = fullfile(OutputDirectory, protname);
     otherwise
