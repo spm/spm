@@ -1,9 +1,9 @@
 #!/usr/bin/env make -f
 # General Makefile to compile SPM C-MEX files
 #
-# Copyright (C) 1991-2015 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 1991-2018 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 6761 2016-03-30 15:11:20Z guillaume $
+# $Id: Makefile 7356 2018-06-26 08:55:33Z guillaume $
 #
 ###############################################################################
 #
@@ -18,10 +18,10 @@
 #
 # You can specify a particular platform with the following syntax:
 # >  make PLATFORM=Your_Platform
-# The standard targets are 'all', 'clean', 'distclean' and 'install'.
+# The standard targets are 'all', 'clean', 'distclean', 'doc' and 'install'.
 #
 # For a list of compatible compilers, see
-#    http://www.mathworks.com/support/compilers/current_release/
+#    https://www.mathworks.com/support/compilers.html
 #
 ###############################################################################
 
@@ -92,9 +92,6 @@ main-all: $(SPMMEX)
 
 main-clean:
 	$(DEL) $(OBS)
-ifeq (mex,$(SUF))
-	$(DEL) $(subst .$(SUF),.o,$(SPMMEX)) spm_matfuns.o bsplines.o
-endif
 
 main-distclean:
 	$(DEL) $(SPMMEX) spm_vol_utils.$(SUF).a
@@ -334,7 +331,7 @@ verb.mexmaci64:
 	$(call verb, "MacOS compilation (Intel 64 bit)")
 
 verb.mex:
-	$(call verb, "${PLATFORM} compilation (`octave -v | head -n 1`)")
+	$(call verb, "${PLATFORM} compilation (`${MEXBIN} -v | head -n 1`)")
 
 verb.all.end:
 	$(call verb, "Compilation: done")

@@ -1,8 +1,8 @@
 # Makefile default variables
 #
-# Copyright (C) 1991-2014 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 1991-2018 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 7353 2018-06-19 10:39:55Z guillaume $
+# $Id: Makefile.var 7356 2018-06-26 08:55:33Z guillaume $
 #
 ###############################################################################
 #
