@@ -37,7 +37,7 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 % Copyright (C) 2002-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7355 2018-06-22 11:40:55Z john $
+% $Id: spm_dicom_convert.m 7357 2018-06-27 10:28:50Z john $
 
 
 %-Input parameters
@@ -617,8 +617,15 @@ end
 spm_progress_bar('Init',length(Headers),['Writing ' fname], 'Planes written');
 pinfos = [ones(length(Headers),1) zeros(length(Headers),1)];
 for i=1:length(Headers)
-    if isfield(Headers{i},'RescaleSlope'),     pinfos(i,1) = Headers{i}.RescaleSlope;     end 
-    if isfield(Headers{i},'RescaleIntercept'), pinfos(i,2) = Headers{i}.RescaleIntercept; end
+    if isfield(Headers{i},'RescaleSlope'),      pinfos(i,1) = Headers{i}.RescaleSlope;      end 
+    if isfield(Headers{i},'RescaleIntercept'),  pinfos(i,2) = Headers{i}.RescaleIntercept;  end
+
+    % Philips do things differently. The following is for using their scales instead.
+    %     Chenevert, Thomas L., et al. "Errors in quantitative image analysis due to
+    %     platform-dependent image scaling." Translational oncology 7.1 (2014): 65-71.
+    if isfield(Headers{i},'Private_2005_100e'), pinfos(i,1) = 1/Headers{i}.Private_2005_100e; end
+    if isfield(Headers{i},'Private_2005_100d'), pinfos(i,2) =  -Headers{i}.Private_2005_100d/pinfos(i,1); end
+
 end
 
 if any(any(diff(pinfos,1)))
@@ -893,6 +900,14 @@ N      = nifti;
 pinfo  = [1 0];
 if isfield(Headers{1},'RescaleSlope'),      pinfo(1) = Headers{1}.RescaleSlope;     end;
 if isfield(Headers{1},'RescaleIntercept'),  pinfo(2) = Headers{1}.RescaleIntercept; end;
+
+% Philips do things differently. The following is for using their scales instead.
+%     Chenevert, Thomas L., et al. "Errors in quantitative image analysis due to
+%     platform-dependent image scaling." Translational oncology 7.1 (2014): 65-71.
+if isfield(Headers{i},'Private_2005_100e'), pinfo(1) = 1/Headers{i}.Private_2005_100e; end
+if isfield(Headers{i},'Private_2005_100d'), pinfo(2) =  -Headers{i}.Private_2005_100d*pinfo(1); end
+
+
 Nii.dat  = file_array(fname,dim,dt,0,pinfo(1),pinfo(2));
 Nii.mat  = mat;
 Nii.mat0 = mat;
@@ -1716,6 +1731,13 @@ for n=1:size(ord,2),
     for i=1:length(this)
         if isfield(this(i),'RescaleSlope'),     pinfos(i,1) = this(i).RescaleSlope;     end
         if isfield(this(i),'RescaleIntercept'), pinfos(i,2) = this(i).RescaleIntercept; end
+
+        % Philips do things differently. The following is for using their scales instead.
+        %     Chenevert, Thomas L., et al. "Errors in quantitative image analysis due to
+        %     platform-dependent image scaling." Translational oncology 7.1 (2014): 65-71.
+        if isfield(Headers{i},'Private_2005_100e'), pinfos(i,1) = 1/Headers{i}.Private_2005_100e; end
+        if isfield(Headers{i},'Private_2005_100d'), pinfos(i,2) =  -Headers{i}.Private_2005_100d*pinfos(i,1); end
+
     end
     if ~any(any(diff(pinfos,1)))
         % Same slopes and intercepts for all slices
