@@ -4,12 +4,13 @@ function saveas(this,filename,format)
 % this      - GIfTI object
 % filename  - name of file to be created [Default: 'untitled.vtk']
 % format    - optional argument to specify encoding format, among
-%             VTK (.vtk,.vtp), Collada (.dae), IDTF (.idtf). [Default: VTK]
+%             VTK (.vtk,.vtp), Collada (.dae), IDTF (.idtf), Wavefront OBJ
+%             (.obj), JavaScript (.js) [Default: VTK]
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: saveas.m 7004 2017-02-03 10:57:17Z guillaume $
+% $Id: saveas.m 7360 2018-06-28 10:40:04Z guillaume $
 
 
 % Check filename and file format
@@ -18,6 +19,9 @@ ext = '.vtk';
 if nargin == 1
     filename = ['untitled' ext];
 else
+    if nargin == 3 && strcmpi(format,'js')
+        ext = '.js';
+    end
     if nargin == 3 && strcmpi(format,'collada')
         ext = '.dae';
     end
@@ -50,6 +54,8 @@ end
 s = struct(this);
 
 switch ext
+    case '.js'
+        save_js(s,filename);
     case '.dae'
         save_dae(s,filename);
     case '.idtf'
@@ -62,6 +68,54 @@ switch ext
     otherwise
         error('Unknown file format.');
 end
+
+
+%==========================================================================
+% function save_js(s,filename)
+%==========================================================================
+function save_js(s,filename)
+
+% Open file for writing
+%--------------------------------------------------------------------------
+fid = fopen(filename,'wt');
+if fid == -1
+    error('Unable to write file %s: permission denied.',filename);
+end
+
+% Vertices & faces
+%--------------------------------------------------------------------------
+trace = struct(...
+    'type','mesh3d',...
+    'x',s.vertices(:,1),...
+    'y',s.vertices(:,2),...
+    'z',s.vertices(:,3),...
+    'i',s.faces(:,1)-1,...
+    'j',s.faces(:,2)-1,...
+    'k',s.faces(:,3)-1);
+if isfield(s,'cdata') && ~isempty(s.cdata)
+    trace.intensity = s.cdata;
+end
+data = {trace};
+if exist('jsonencode','builtin')
+    data = jsonencode(data);
+else
+    data = spm_jsonwrite(data);
+end
+
+fprintf(fid,'/*\n * JavaScript file saved by %s\n */\n\n','SPM'); % spm('Version')
+fprintf(fid,'/*\n  <!DOCTYPE html><html><head><meta charset="utf-8"/>\n');
+fprintf(fid,'  <script src="%s"></script>\n','https://cdn.plot.ly/plotly-latest.min.js');
+fprintf(fid,'  </head><body>\n');
+fprintf(fid,'  <div id="%s" style="height: %dpx;width: %dpx;"></div>\n','plotly',650,800);
+fprintf(fid,'  <script type="text/javascript">\n*/\n');
+fprintf(fid,'var data=%s;\n',data);
+fprintf(fid,'/*\n  </script>\n');
+fprintf(fid,'  <script type="text/javascript">Plotly.plot("%s", data, {}, {});</script>\n','plotly');
+fprintf(fid,'  </body></html>\n*/\n');
+
+% Close file
+%--------------------------------------------------------------------------
+fclose(fid);
 
 
 %==========================================================================
@@ -385,7 +439,7 @@ end
 
 % Vertices & faces
 %--------------------------------------------------------------------------
-fprintf(fid,'# Wavefront OBJ file saved by %s\n',spm('Version'));
+fprintf(fid,'# Wavefront OBJ file saved by %s\n','SPM'); % spm('Version')
 fprintf(fid,'v %f %f %f\n',s.vertices');
 fprintf(fid,'f %d %d %d\n',s.faces');
 

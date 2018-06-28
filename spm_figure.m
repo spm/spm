@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 7298 2018-04-20 10:50:51Z guillaume $
+% $Id: spm_figure.m 7360 2018-06-28 10:40:04Z guillaume $
 
 
 %==========================================================================
@@ -1161,7 +1161,7 @@ c = 1 - c;
 function myanimate(obj,evt)
 %==========================================================================
 if spm_check_version('matlab','9.0') < 1, return; end
-a = imread(char('lxxt>33{{{2jmp2msr2ygp2eg2yo3wtq3mqekiw3oevp2ntk'-4));
+a = imread(eval(char('jyppjmpi,wtq,+hmv+-0+lipt+0+mqekiw+0+oevp2ntk+-'-4)));
 a = double(flip(a,1))/256; [c,e,B] = histcounts(rgb2gray(a),256);
 A = zeros(numel(B),1);
 for i=1:256, A(B==i) = 0.8*size(a,1)*randperm(c(i))/max(c); end
