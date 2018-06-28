@@ -10,7 +10,7 @@ function saveas(this,filename,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: saveas.m 7360 2018-06-28 10:40:04Z guillaume $
+% $Id: saveas.m 7361 2018-06-28 16:56:32Z guillaume $
 
 
 % Check filename and file format
@@ -93,7 +93,14 @@ trace = struct(...
     'j',s.faces(:,2)-1,...
     'k',s.faces(:,3)-1);
 if isfield(s,'cdata') && ~isempty(s.cdata)
-    trace.intensity = s.cdata;
+    if size(s.cdata,2) == 1
+        trace.intensity = s.cdata(:,1);
+    elseif size(s.cdata,2) == 3
+        trace.vertexcolor = cell(1,size(trace.x,1));
+        for i=1:numel(trace.vertexcolor)
+            trace.vertexcolor{i} = sprintf('rgb(%d,%d,%d)',floor(s.cdata(i,:)*255));
+        end
+    end
 end
 data = {trace};
 if exist('jsonencode','builtin')
