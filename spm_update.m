@@ -21,11 +21,11 @@ function varargout = spm_update(update)
 % Copyright (C) 2010-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_update.m 7245 2018-01-15 11:03:54Z guillaume $
+% $Id: spm_update.m 7363 2018-07-03 11:30:49Z guillaume $
 
 
 vspm = spm('Ver');
-url  = ['http://www.fil.ion.ucl.ac.uk/spm/download/' lower(vspm) '_updates/'];
+url  = ['https://www.fil.ion.ucl.ac.uk/spm/download/' lower(vspm) '_updates/'];
 
 if ~nargin
     update = false;
