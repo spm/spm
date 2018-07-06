@@ -9,12 +9,12 @@ function A = spm_mesh_area(M,PF)
 %__________________________________________________________________________
 %
 % Computed using numerically stable version of Heron's formula:
-% See http://en.wikipedia.org/wiki/Heron%27s_formula
+% See https://www.wikipedia.org/wiki/Heron%27s_formula
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_area.m 4139 2010-12-15 18:31:49Z guillaume $
+% $Id: spm_mesh_area.m 7367 2018-07-06 16:04:27Z guillaume $
 
 if isnumeric(M)
     A = M;
@@ -24,10 +24,12 @@ else
     A = squeeze(sqrt(sum((A([1 2 3],:,:) - A([2 3 1],:,:)).^2,2)));
 end
 A = sort(A,1,'descend');
-A = 1/4 * sqrt(( A(1,:) + ( A(2,:) + A(3,:) ) ) .* ...
-               ( A(3,:) - ( A(1,:) - A(2,:) ) ) .* ...
-               ( A(3,:) + ( A(1,:) - A(2,:) ) ) .* ...
-               ( A(1,:) + ( A(2,:) - A(3,:) ) ));
+A = ( A(1,:) + ( A(2,:) + A(3,:) ) ) .* ...
+    ( A(3,:) - ( A(1,:) - A(2,:) ) ) .* ...
+    ( A(3,:) + ( A(1,:) - A(2,:) ) ) .* ...
+    ( A(1,:) + ( A(2,:) - A(3,:) ) );
+A(A<0) = 0;
+A = 1/4 * sqrt(A);
 
 if nargin < 2 || ~PF
     A = sum(A);
