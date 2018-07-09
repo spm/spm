@@ -11,7 +11,7 @@ function varargout = spm_BIDS(varargin)
 % result - outcome of query
 %__________________________________________________________________________
 %
-% BIDS (Brain Imaging Data Structure): http://bids.neuroimaging.io/
+% BIDS (Brain Imaging Data Structure): https://bids.neuroimaging.io/
 %   The brain imaging data structure, a format for organizing and
 %   describing outputs of neuroimaging experiments.
 %   K. J. Gorgolewski et al, Scientific Data, 2016.
@@ -19,7 +19,7 @@ function varargout = spm_BIDS(varargin)
 % Copyright (C) 2016-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7354 2018-06-22 10:44:22Z guillaume $
+% $Id: spm_BIDS.m 7372 2018-07-09 16:50:44Z guillaume $
 
 
 %-Validate input arguments

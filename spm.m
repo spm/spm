@@ -4,7 +4,7 @@ function varargout=spm(varargin)
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  
 % \__ \ )___/ )    (   Statistical Parametric Mapping
-% (___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm/
+% (___/(__)  (_/\/\_)  SPM - https://www.fil.ion.ucl.ac.uk/spm/
 %_______________________________________________________________________
 %
 % SPM (Statistical Parametric Mapping) is a package for the analysis
@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 7362 2018-07-02 11:32:39Z guillaume $
+% $Id: spm.m 7372 2018-07-09 16:50:44Z guillaume $
 
 
 %=======================================================================
@@ -306,7 +306,7 @@ case 'asciiwelcome'                           %-ASCII SPM banner welcome
 disp( ' ___  ____  __  __                                            ');
 disp( '/ __)(  _ \(  \/  )                                           ');
 disp( '\__ \ )___/ )    (   Statistical Parametric Mapping           ');
-disp(['(___/(__)  (_/\/\_)  ',spm('Ver'),' - http://www.fil.ion.ucl.ac.uk/spm/']);
+disp(['(___/(__)  (_/\/\_)  ',spm('Ver'),' - https://www.fil.ion.ucl.ac.uk/spm/']);
 fprintf('\n');
 
 

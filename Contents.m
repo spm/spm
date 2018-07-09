@@ -4,7 +4,7 @@
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  
 % \__ \ )___/ )    (   Statistical Parametric Mapping
-% (___/(__)  (_/\/\_)  SPM - http://www.fil.ion.ucl.ac.uk/spm/
+% (___/(__)  (_/\/\_)  SPM - https://www.fil.ion.ucl.ac.uk/spm/
 %__________________________________________________________________________
 %
 % This Contents.m file holds the version ID for this release of SPM.
@@ -31,13 +31,13 @@
 % FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
 % details.
 % You should have received a copy of the GNU General Public License along
-% with SPM, in LICENCE.txt. If not, see <http://www.gnu.org/licenses/>.
+% with SPM, in LICENCE.txt. If not, see <https://www.gnu.org/licenses/>.
 %
 % See README.txt for details of this release.
 %__________________________________________________________________________
 % Copyright (C) 1991,1994-2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id: Contents.m 7241 2018-01-03 17:45:42Z guillaume $
+% $Id: Contents.m 7372 2018-07-09 16:50:44Z guillaume $
 
 %==========================================================================
 % PROGRAMMERS NOTE:

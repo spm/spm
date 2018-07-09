@@ -3,12 +3,12 @@ function varargout = spm_toolbox(action,varargin)
 % FORMAT spm_toolbox
 % FORMAT spm_toolbox install <tbxname>
 %
-% See http://www.fil.ion.ucl.ac.uk/spm/ext/
+% See https://www.fil.ion.ucl.ac.uk/spm/ext/
 %__________________________________________________________________________
 % Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_toolbox.m 6245 2014-10-15 11:22:15Z guillaume $
+% $Id: spm_toolbox.m 7372 2018-07-09 16:50:44Z guillaume $
 
 
 if ~nargin, action = 'Display'; end

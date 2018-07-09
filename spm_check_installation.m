@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 7363 2018-07-03 11:30:49Z guillaume $
+% $Id: spm_check_installation.m 7372 2018-07-09 16:50:44Z guillaume $
 
 if isdeployed, return; end
 
@@ -352,7 +352,7 @@ fprintf('%s %40s\n','Parsing local installation...','...done');
 %-Get file details for most recent public version
 %--------------------------------------------------------------------------
 fprintf('Downloading SPM information...');
-url = sprintf('https://www.fil.ion.ucl.ac.uk/spm/software/%s/%s.xml',...
+url = sprintf('http://www.fil.ion.ucl.ac.uk/spm/software/%s/%s.xml',...
     lower(v.Release),lower(v.Release));
 try
     p = [tempname '.xml'];

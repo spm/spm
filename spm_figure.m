@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 7360 2018-06-28 10:40:04Z guillaume $
+% $Id: spm_figure.m 7372 2018-07-09 16:50:44Z guillaume $
 
 
 %==========================================================================
@@ -787,11 +787,11 @@ uimenu(t0,'Label','SPM Manual (PDF)',...
     'CallBack','try,open(fullfile(spm(''dir''),''man'',''manual.pdf''));end');
 t1 = uimenu(t0,'Label','SPM &Web Resources');
 uimenu(t1,'Label','SPM Web &Site',...
-    'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm/'');');
+    'CallBack','web(''https://www.fil.ion.ucl.ac.uk/spm/'');');
 uimenu(t1,'Label','SPM &WikiBook',...
-    'CallBack','web(''http://en.wikibooks.org/wiki/SPM'');');
+    'CallBack','web(''https://www.wikibooks.org/wiki/SPM'');');
 uimenu(t1,'Separator','on','Label','SPM &Extensions',...
-    'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm/ext/'');');
+    'CallBack','web(''https://www.fil.ion.ucl.ac.uk/spm/ext/'');');
 
 %-Check Menu
 if ~isdeployed
@@ -1096,9 +1096,9 @@ text(0.5,0.30,'Wellcome Trust Centre for Neuroimaging','Parent',a,...
     'HorizontalAlignment','center','Color',[0 0 0],'FontWeight','Bold');
 text(0.5,0.25,['Copyright (C) 1991,1994-' datestr(now,'yyyy')],...
     'Parent',a,'HorizontalAlignment','center','Color',[0 0 0]);
-text(0.5,0.20,'http://www.fil.ion.ucl.ac.uk/spm/','Parent',a,...
+text(0.5,0.20,'https://www.fil.ion.ucl.ac.uk/spm/','Parent',a,...
     'HorizontalAlignment','center','Color',[0 0 0],...
-    'ButtonDownFcn','web(''http://www.fil.ion.ucl.ac.uk/spm/'');');
+    'ButtonDownFcn','web(''https://www.fil.ion.ucl.ac.uk/spm/'');');
 if isdeployed
     text(0.5,0.15,['MATLAB(r). (c) 1984-' datestr(now,'yyyy') ' The MathWorks, Inc.'],...
     'Parent',a,'HorizontalAlignment','center','Color',[0 0 0]);

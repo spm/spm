@@ -8,7 +8,7 @@ function varargout = spm_help(varargin)
 % user is referred to these sources. An intermediate theoretical exposition
 % is given in the SPM course notes. This and other resources are available
 % via the SPM Web site.
-% Visit http://www.fil.ion.ucl.ac.uk/spm/, or press the "SPMweb" button.
+% Visit https://www.fil.ion.ucl.ac.uk/spm/, or press the "SPMweb" button.
 %
 %--------------------------------------------------------------------------
 %
@@ -56,7 +56,7 @@ function varargout = spm_help(varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston
-% $Id: spm_help.m 6157 2014-09-05 18:17:54Z guillaume $
+% $Id: spm_help.m 7372 2018-07-09 16:50:44Z guillaume $
 
 
 %__________________________________________________________________________
