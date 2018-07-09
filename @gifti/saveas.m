@@ -5,12 +5,12 @@ function saveas(this,filename,format)
 % filename  - name of file to be created [Default: 'untitled.vtk']
 % format    - optional argument to specify encoding format, among
 %             VTK (.vtk,.vtp), Collada (.dae), IDTF (.idtf), Wavefront OBJ
-%             (.obj), JavaScript (.js) [Default: VTK]
+%             (.obj), JavaScript (.js), JSON (.json) [Default: VTK]
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: saveas.m 7361 2018-06-28 16:56:32Z guillaume $
+% $Id: saveas.m 7373 2018-07-09 16:57:21Z guillaume $
 
 
 % Check filename and file format
@@ -21,6 +21,9 @@ if nargin == 1
 else
     if nargin == 3 && strcmpi(format,'js')
         ext = '.js';
+    end
+    if nargin == 3 && strcmpi(format,'json')
+        ext = '.json';
     end
     if nargin == 3 && strcmpi(format,'collada')
         ext = '.dae';
@@ -54,7 +57,7 @@ end
 s = struct(this);
 
 switch ext
-    case '.js'
+    case {'.js','.json'}
         save_js(s,filename);
     case '.dae'
         save_dae(s,filename);
@@ -74,13 +77,6 @@ end
 % function save_js(s,filename)
 %==========================================================================
 function save_js(s,filename)
-
-% Open file for writing
-%--------------------------------------------------------------------------
-fid = fopen(filename,'wt');
-if fid == -1
-    error('Unable to write file %s: permission denied.',filename);
-end
 
 % Vertices & faces
 %--------------------------------------------------------------------------
@@ -103,26 +99,42 @@ if isfield(s,'cdata') && ~isempty(s.cdata)
     end
 end
 data = {trace};
-if exist('jsonencode','builtin')
-    data = jsonencode(data);
-else
-    data = spm_jsonwrite(data);
-end
 
-fprintf(fid,'/*\n * JavaScript file saved by %s\n */\n\n','SPM'); % spm('Version')
-fprintf(fid,'/*\n  <!DOCTYPE html><html><head><meta charset="utf-8"/>\n');
-fprintf(fid,'  <script src="%s"></script>\n','https://cdn.plot.ly/plotly-latest.min.js');
-fprintf(fid,'  </head><body>\n');
-fprintf(fid,'  <div id="%s" style="height: %dpx;width: %dpx;"></div>\n','plotly',650,800);
-fprintf(fid,'  <script type="text/javascript">\n*/\n');
-fprintf(fid,'var data=%s;\n',data);
-fprintf(fid,'/*\n  </script>\n');
-fprintf(fid,'  <script type="text/javascript">Plotly.plot("%s", data, {}, {});</script>\n','plotly');
-fprintf(fid,'  </body></html>\n*/\n');
-
-% Close file
+%-Save as JS variable or JSON file
 %--------------------------------------------------------------------------
-fclose(fid);
+if filename(end) == 's' % JS
+    if exist('jsonencode','builtin')
+        data = jsonencode(data);
+    else
+        data = spm_jsonwrite(data);
+    end
+    fid = fopen(filename,'wt');
+    if fid == -1
+        error('Unable to write file %s: permission denied.',filename);
+    end
+    fprintf(fid,'/*\n * JavaScript file saved by %s\n */\n\n','SPM'); % spm('Version')
+    fprintf(fid,'/*\n  <!DOCTYPE html><html><head><meta charset="utf-8"/>\n');
+    fprintf(fid,'  <script src="%s"></script>\n','https://cdn.plot.ly/plotly-latest.min.js');
+    fprintf(fid,'  </head><body>\n');
+    fprintf(fid,'  <div id="%s" style="height: %dpx;width: %dpx;"></div>\n','plotly',650,800);
+    fprintf(fid,'  <script type="text/javascript">\n*/\n');
+    fprintf(fid,'var data=%s;\n',data);
+    fprintf(fid,'/*\n  </script>\n');
+    fprintf(fid,'  <script type="text/javascript">Plotly.plot("%s", data, {}, {});</script>\n','plotly');
+    fprintf(fid,'  </body></html>\n*/\n');
+    fclose(fid);
+else % JSON
+    if exist('jsonencode','builtin')
+        fid = fopen(filename,'wt');
+        if fid == -1
+            error('Unable to write file %s: permission denied.',filename);
+        end
+        fprintf(fid,'%s',jsonencode(struct('data',{data},'layout',struct())));
+        fclose(fid);
+    else
+        spm_jsonwrite(filename,struct('data',{data},'layout',struct()),struct('indent',' '));
+    end
+end
 
 
 %==========================================================================

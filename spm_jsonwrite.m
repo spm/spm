@@ -19,10 +19,10 @@ function varargout = spm_jsonwrite(varargin)
 % References:
 %   JSON Standard: http://www.json.org/
 %__________________________________________________________________________
-% Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 7170 2017-09-21 10:59:34Z guillaume $
+% $Id: spm_jsonwrite.m 7373 2018-07-09 16:57:21Z guillaume $
 
 
 %-Input parameters
@@ -203,7 +203,12 @@ if numel(json) == 0
 elseif numel(json) > 1
     idx = find(size(json)~=1);
     if numel(idx) == 1 % vector
-        S = jsonwrite_cell(num2cell(json),'');
+        if any(islogical(json)) || any(~isfinite(json))
+            S = jsonwrite_cell(num2cell(json),'');
+        else
+            S = ['[' sprintf('%23.16g,',json) ']']; % eq to num2str(json,16)
+            S(S==' ') = [];
+        end
     else % array
         S = jsonwrite_cell(num2cell(json,setdiff(1:ndims(json),idx(1))),'');
     end

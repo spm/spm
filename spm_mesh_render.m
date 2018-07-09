@@ -39,7 +39,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 7361 2018-06-28 16:56:32Z guillaume $
+% $Id: spm_mesh_render.m 7373 2018-07-09 16:57:21Z guillaume $
 
 
 %-Input parameters
@@ -629,7 +629,8 @@ function mySave(obj,evt,H)
     '*.idtf' 'IDTF files (*.idtf)';...
     '*.vtk' 'VTK files (*.vtk)';...
     '*.obj' 'OBJ files (*.obj)';...
-    '*.js'  'JS files (*.js)'}, 'Save as');
+    '*.js'  'JS files (*.js)';...
+    '*.json'  'JSON files (*.json)'}, 'Save as');
 if ~isequal(filename,0) && ~isequal(pathname,0)
     [pth,nam,ext] = fileparts(filename);
     switch ext
@@ -647,6 +648,8 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
             filterindex = 6;
         case '.js'
             filterindex = 7;
+        case '.json'
+            filterindex = 8;
         otherwise
             switch filterindex
                 case 1
@@ -663,6 +666,8 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
                     filename = [filename '.obj'];
                 case 7
                     filename = [filename '.js'];
+                case 8
+                    filename = [filename '.json'];
             end
     end
     switch filterindex
@@ -715,6 +720,8 @@ if ~isequal(filename,0) && ~isequal(pathname,0)
             saveas(gifti(H.patch),fullfile(pathname, filename),'obj');
         case 7
             saveas(gifti(H.patch),fullfile(pathname, filename),'js');
+        case 8
+            saveas(gifti(H.patch),fullfile(pathname, filename),'json');
     end
 end
 
