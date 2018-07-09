@@ -1,18 +1,20 @@
 function Header = spm_dicom_header(DicomFilename, DicomDictionary, Options)
 % Read header information from a DICOM file
-% FORMAT Header = spm_dicom_header(DicomFilename,DicomDictionary, Options)
+% FORMAT Header = spm_dicom_header(DicomFilename, DicomDictionary, Options)
 % DicomFilename   - DICOM filename
-% DicomDictionary - DICOM dictionary loaded from file
+% DicomDictionary - DICOM dictionary (see spm_dicom_headers)
 % Options         - an (optional) structure containing fields
 %                   abort      - if this is a function handle, it will
 %                                be called with field name and value
 %                                arguments.  If this function returns true,
 %                                then reading the header will be aborted.
+%                                [Default: false]
 %                   all_fields - binary true/false, indicating what to do
-%                                with fields thatare not included in the
+%                                with fields that are not included in the
 %                                DICOM dictionary.
+%                                [Default: true]
 %
-% Header          - Contents of DICOM header.
+% Header          - Contents of DICOM header
 %
 % Contents of headers are approximately explained in:
 % http://medical.nema.org/standard.html
@@ -20,19 +22,23 @@ function Header = spm_dicom_header(DicomFilename, DicomDictionary, Options)
 % This code may not work for all cases of DICOM data, as DICOM is an
 % extremely complicated "standard".
 %__________________________________________________________________________
-% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_header.m 7320 2018-05-29 10:19:49Z john $
+% $Id: spm_dicom_header.m 7374 2018-07-09 17:09:46Z guillaume $
 
-if nargin<3,
-    Options = struct('abort',false,'all_fields',true);
+
+if nargin < 3
+    Options = struct('abort',false, 'all_fields',true);
 end
 
 Header = [];
 DicomFilename = deblank(DicomFilename);
 FID  = fopen(DicomFilename,'r','ieee-le');
-if FID==-1, warning('spm:dicom','%s: Cant open file.', DicomFilename); return; end
+if FID == -1
+    warning('spm:dicom','%s: Cant open file.', DicomFilename);
+    return;
+end
 
 fseek(FID,128,'bof');
 dcm = char(fread(FID,4,'uint8')');
@@ -47,7 +53,7 @@ if ~strcmp(dcm,'DICM')
         return;
     end
     if isempty(find(DicomDictionary.group==Tag.Group & DicomDictionary.element==Tag.Element,1)) && ~(Tag.Group==8 && Tag.Element==0)
-        % entry not found in DICOM dictionary and not from a GE Twin+excite
+        % Entry not found in DICOM dictionary and not from a GE Twin+excite
         % that starts with with an 8/0 Tag that I can't find any
         % documentation for.
         fclose(FID);
@@ -57,6 +63,7 @@ if ~strcmp(dcm,'DICM')
         fseek(FID,0,'bof');
     end
 end
+
 try
     Header = ReadDicom(FID, 'il', DicomDictionary, Options);
     if isempty(Header)
@@ -64,9 +71,11 @@ try
         return;
     end
     Header.Filename = fopen(FID);
-catch Problem
-    fprintf('%s: Trouble reading DICOM file (%s), skipping.\n', fopen(FID), Problem.message);
+catch
+    le = lasterror;
+    fprintf('%s: Trouble reading DICOM file (%s), skipping.\n', fopen(FID), le.message);
 end
+
 fclose(FID);
 
 
@@ -74,7 +83,7 @@ fclose(FID);
 % function [Header, BytesRead] = ReadDicom(FID, TransferSyntax, DicomDictionary, Options, NumBytes)
 %==========================================================================
 function [Header, BytesRead] = ReadDicom(FID, TransferSyntax, DicomDictionary, Options, NumBytes)
-if nargin<5, NumBytes=4294967295; end % FFFFFFFF
+if nargin<5, NumBytes = 4294967295; end % FFFFFFFF
 BytesRead = 0;
 Header    = [];
 while BytesRead < NumBytes
@@ -89,61 +98,61 @@ while BytesRead < NumBytes
     if Tag.Length>0
         % Handle particular fields as special cases, otherwise just use default treatment
         switch Tag.Name
-            case {'GroupLength'},
+            case {'GroupLength'}
                 % Ignore it
                 fseek(FID,Tag.Length,'cof');
-            case {'PixelData'},
+            case {'PixelData'}
                 Header.StartOfPixelData = ftell(FID);
                 Header.SizeOfPixelData  = Tag.Length;
                 Header.VROfPixelData    = Tag.VR;
                 fseek(FID,Tag.Length,'cof');
-            case {'CSAData'}, % raw data
+            case {'CSAData'} % raw data
                 Header.StartOfCSAData = ftell(FID);
                 Header.SizeOfCSAData  = Tag.Length;
                 fseek(FID,Tag.Length,'cof');
             case {'CSAImageHeaderInfo', 'CSASeriesHeaderInfo','CSANonImageHeaderInfoVA',...
-                  'CSAMiscProtocolHeaderInfoVA','CSANonImageHeaderInfoVB','CSAMiscProtocolHeaderInfoVB'},
+                  'CSAMiscProtocolHeaderInfoVA','CSANonImageHeaderInfoVB','CSAMiscProtocolHeaderInfoVB'}
                 Content  = DecodeCSA(FID,Tag.Length);
                 Header.(Tag.Name) = Content;
-            case {'TransferSyntaxUID'},
+            case {'TransferSyntaxUID'}
                 Content = deblank(char(fread(FID,Tag.Length,'uint8')'));
                 Header.(Tag.Name) = Content;
                 switch Content
-                    case {'1.2.840.10008.1.2'},      % Implicit VR Little Endian
+                    case {'1.2.840.10008.1.2'}      % Implicit VR Little Endian
                         TransferSyntax = 'il';
-                    case {'1.2.840.10008.1.2.1'},    % Explicit VR Little Endian
+                    case {'1.2.840.10008.1.2.1'}    % Explicit VR Little Endian
                         TransferSyntax = 'el';
-                    case {'1.2.840.10008.1.2.1.99'}, % Deflated Explicit VR Little Endian
+                    case {'1.2.840.10008.1.2.1.99'} % Deflated Explicit VR Little Endian
                         warning('spm:dicom','%s: Cant read Deflated Explicit VR Little Endian file.', fopen(FID));
                        %TransferSyntax = 'dl';
                         return;
-                    case {'1.2.840.10008.1.2.2'},    % Explicit VR Big Endian
+                    case {'1.2.840.10008.1.2.2'}    % Explicit VR Big Endian
                         %warning('spm:dicom','%s: Cant read Explicit VR Big Endian file',fopen(FID));
                         TransferSyntax = 'eb'; % Unused
                     case {'1.2.840.10008.1.2.4.50','1.2.840.10008.1.2.4.51','1.2.840.10008.1.2.4.70',...
-                          '1.2.840.10008.1.2.4.80','1.2.840.10008.1.2.4.90','1.2.840.10008.1.2.4.91'}, % JPEG Explicit VR
+                          '1.2.840.10008.1.2.4.80','1.2.840.10008.1.2.4.90','1.2.840.10008.1.2.4.91'} % JPEG Explicit VR
                         TransferSyntax = 'el';
                         %warning('spm:dicom',['Cant read JPEG Encoded file "' fopen(FID) '".']);
-                    otherwise,
+                    otherwise
                        %TransferSyntax = 'el';
                         warning('spm:dicom','%s: Unknown Transfer Syntax UID (%s).',fopen(FID), Content);
                         return;
                 end
             otherwise
                 % Default treatment
-                switch Tag.VR,
-                    case {'UN'},
+                switch Tag.VR
+                    case {'UN'}
                         % Unknown - read as char
                         Content = fread(FID,Tag.Length,'uint8')';
                     case {'AE', 'AS', 'CS', 'DA', 'DS', 'DT', 'IS', 'LO', 'LT',...
-                            'PN', 'SH', 'ST', 'TM', 'UI', 'UT'},
+                            'PN', 'SH', 'ST', 'TM', 'UI', 'UT'}
                         % Character strings
                         Content = char(fread(FID,Tag.Length,'uint8')');
 
-                        switch Tag.VR,
-                            case {'UI','ST'},
+                        switch Tag.VR
+                            case {'UI','ST'}
                                 Content = deblank(Content);
-                            case {'DS'},
+                            case {'DS'}
                                 try
                                     Content = textscan(Content,'%f','delimiter','\\')';
                                     Content = Content{1};
@@ -151,16 +160,16 @@ while BytesRead < NumBytes
                                     Content = textscan(Content,'%f','delimiter','/')';
                                     Content = Content{1};
                                 end
-                            case {'IS'},
+                            case {'IS'}
                                 Content = textscan(Content,'%d','delimiter','\\')';
                                 Content = double(Content{1});
-                            case {'DA'},
+                            case {'DA'}
                                 Content = strrep(Content,'.',' ');
                                 Content = textscan(Content,'%4d%2d%2d');
                                 [y,m,d] = deal(Content{:});
                                 Content = datenum(double(y),double(m),double(d));
-                            case {'TM'},
-                                if any(Content==':'),
+                            case {'TM'}
+                                if any(Content==':')
                                     Content = textscan(Content,'%d:%d:%f');
                                     [h,m,s] = deal(Content{:});
                                     h       = double(h);
@@ -171,30 +180,30 @@ while BytesRead < NumBytes
                                     h       = double(h);
                                     m       = double(m);
                                 end
-                                if isempty(h), h = 0; end;
-                                if isempty(m), m = 0; end;
-                                if isempty(s), s = 0; end;
+                                if isempty(h), h = 0; end
+                                if isempty(m), m = 0; end
+                                if isempty(s), s = 0; end
                                 Content = s+60*(m+60*h);
-                            case {'LO'},
-                                Content = SubstituteUnderscores(Content);
-                            otherwise,
-                        end;
-                    case {'OB'},
+                            case {'LO'}
+                                Content = strrep(Content,'+AF8-','_');
+                            otherwise
+                        end
+                    case {'OB'}
                         % dont know if this should be signed or unsigned
                         Content = fread(FID,Tag.Length,'uint8')';
-                    case {'US', 'AT', 'OW'},
+                    case {'US', 'AT', 'OW'}
                         Content = fread(FID,Tag.Length/2,'uint16')';
-                    case {'SS'},
+                    case {'SS'}
                         Content = fread(FID,Tag.Length/2,'int16')';
-                    case {'UL'},
+                    case {'UL'}
                         Content = fread(FID,Tag.Length/4,'uint32')';
-                    case {'SL'},
+                    case {'SL'}
                         Content = fread(FID,Tag.Length/4,'int32')';
-                    case {'FL','OF'},
+                    case {'FL','OF'}
                         Content = fread(FID,Tag.Length/4,'float')';
-                    case {'FD','OD'},
+                    case {'FD','OD'}
                         Content = fread(FID,Tag.Length/8,'double')';
-                    case {'SQ'},
+                    case {'SQ'}
                         [Content, BytesJustRead] = ReadSQ(FID, TransferSyntax, DicomDictionary, Options, Tag.Length);
                         if BytesJustRead==-1 && isempty(Content)
                             Header    = [];
@@ -202,7 +211,7 @@ while BytesRead < NumBytes
                             return;
                         end
                         Tag.Length = BytesJustRead;
-                    otherwise,
+                    otherwise
                         Content = fread(FID,Tag.Length,'uint8')';
                 end
                 if ~isempty(Tag.Name)
@@ -329,16 +338,16 @@ if TransferSyntax(1) =='e'
     Tag.ExtraBytes = Tag.ExtraBytes + 2;
     switch Tag.VR
         case {'OB','OW','OF','OD','SQ','UN','UT'}
-            if ~strcmp(Tag.VR,'UN') || Tag.Group~=65534,
+            if ~strcmp(Tag.VR,'UN') || Tag.Group~=65534
                 fread(FID,1,'ushort');
                 Tag.ExtraBytes = Tag.ExtraBytes + 2;
             else
                 warning('spm:dicom','%s: Possible problem with %s Tag (VR="%s").', fopen(FID), Tag.Name, Tag.VR);
-            end;
+            end
             Tag.Length     = double(fread(FID,1,'uint'));
             Tag.ExtraBytes = Tag.ExtraBytes + 4;
 
-        case {'AE','AS','AT','CS','DA','DS','DT','FD','FL','IS','LO','LT','PN','SH','SL','SS','ST','TM','UI','UL','US'},
+        case {'AE','AS','AT','CS','DA','DS','DT','FD','FL','IS','LO','LT','PN','SH','SL','SS','ST','TM','UI','UL','US'}
             Tag.Length     = double(fread(FID,1,'ushort'));
             Tag.ExtraBytes = Tag.ExtraBytes + 2;
 
@@ -518,16 +527,3 @@ for i=1:n
         fread(FID,rem(4-rem(BytesToRead, 4), 4), 'uint8');
     end
 end
-
-
-%==========================================================================
-% function str_out = SubstituteUnderscores(str_in)
-%==========================================================================
-function str_out = SubstituteUnderscores(str_in)
-str_out  = str_in;
-Position = strfind(str_in, '+AF8-');
-if ~isempty(Position)
-    str_out(Position) = '_';
-    str_out(repmat(Position, 4, 1)+repmat((1:4)', 1, numel(Position))) = [];
-end
-

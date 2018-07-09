@@ -12,44 +12,36 @@ function Headers = spm_dicom_headers(DicomFilenames, Essentials)
 % This code may not work for all cases of DICOM data, as DICOM is an
 % extremely complicated "standard".
 %__________________________________________________________________________
-% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 7320 2018-05-29 10:19:49Z john $
+% $Id: spm_dicom_headers.m 7374 2018-07-09 17:09:46Z guillaume $
+
+
+DicomFilenames = cellstr(DicomFilenames);
 
 if nargin<2, Essentials = false; end
-
-DicomDictionary = ReadDicomDictionary;
-j        = 0;
-Headers  = {};
-if size(DicomFilenames, 1)>1, spm_progress_bar('Init',size(DicomFilenames, 1), 'Reading DICOM headers', 'Files complete'); end
-for i=1:size(DicomFilenames,1)
-    Header = spm_dicom_header(DicomFilenames(i,:), DicomDictionary);
-    if ~isempty(Header)
-        if isa(Essentials,'function_handle')
-            Header = feval(Essentials, Header);
-        elseif Essentials
-            Header = spm_dicom_essentials(Header);
-        end
-        if ~isempty(Header)
-            j          = j + 1;
-            Headers{j} = Header;
-        end
+if ~isa(Essentials,'function_handle')
+    if Essentials
+        Essentials = @spm_dicom_essentials;
+    else
+        Essentials = @(x) x;
     end
-    if size(DicomFilenames, 1)>1, spm_progress_bar('Set',i); end
-end
-if size(DicomFilenames, 1)>1, spm_progress_bar('Clear'); end
-
-
-%==========================================================================
-% function DicomDictionary = ReadDicomDictionary(DictionaryFile)
-%==========================================================================
-function DicomDictionary = ReadDicomDictionary(DictionaryFile)
-if nargin<1, DictionaryFile = 'spm_dicom_dict.mat'; end
-try
-    DicomDictionary = load(DictionaryFile);
-catch problem
-    fprintf('\nUnable to load the file "%s".\n', DictionaryFile);
-    rethrow(problem);
 end
 
+DicomDictionary = load(fullfile(spm('Dir'),'spm_dicom_dict.mat'));
+
+Headers  = {};
+if numel(DicomFilenames)>1
+    spm_progress_bar('Init',numel(DicomFilenames), ...
+        'Reading DICOM headers', 'Files complete');
+end
+for i=1:numel(DicomFilenames)
+    Header = spm_dicom_header(DicomFilenames{i}, DicomDictionary);
+    Header = Essentials(Header);
+    if ~isempty(Header)
+    	Headers{end+1} = Header;
+    end
+    if numel(DicomFilenames)>1, spm_progress_bar('Set',i); end
+end
+if numel(DicomFilenames)>1, spm_progress_bar('Clear'); end
