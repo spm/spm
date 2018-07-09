@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 7007 2017-02-07 10:15:24Z guillaume $
+% $Id: spm_cfg_dcm_peb.m 7371 2018-07-09 15:34:19Z peter $
 
 
 %==========================================================================
@@ -93,7 +93,7 @@ cov_design.name    = 'Design matrix';
 cov_design.help    = {['Enter or paste the N x C design matrix for N ' ...
                       'subjects and C covariates. Note that a column of '...
                       'ones will automatically be added to the start of the '...
-                      'matrix, to model the group mean.']};
+                      'matrix, to model the group mean, if one is not found.']};
 cov_design.strtype = 'r';
 cov_design.num     = [Inf Inf];
 
@@ -157,7 +157,7 @@ regressors.values  = { regressor };
 regressors.help    = {'Specify the second-level design matrix one '...
                      'covariate (regressor) at a time. Note that a ' ...
                      'column of ones to model the mean across subjects ' ...
-                     'is added automatically.'};
+                     'is added automatically if one is not found.'};
 regressors.num     = [1 Inf];
 
 %--------------------------------------------------------------------------
@@ -280,6 +280,23 @@ dcm_idx.val    = {dcm_idx_1};
 %==========================================================================
 
 %--------------------------------------------------------------------------
+% show_review Select whether to review results
+%--------------------------------------------------------------------------
+components = cfg_menu;
+components.tag    = 'components';
+components.name   = 'Precision components';
+components.labels = {'Single','Fields','All','None'};
+components.values = {'Single','Fields','All','None'};
+components.val    = {'All'};
+components.help   = {['The precision components to include. By default, ' ...
+                     'the between-subjects variability is separately ' ...
+                     'estimated for each DCM connectivity parameter.'], ...
+                     'Single: a single component for all DCM parameters. ', ...
+                     'Fields: one component per field (e.g. A,B,C)' ...
+                     'All (default): one component per DCM parameter', ...
+                     'None: all DCM parameters are treated as fixed effects.'};
+
+%--------------------------------------------------------------------------
 % priors_log_precision_mu Priors on log precision expectation
 %--------------------------------------------------------------------------
 priors_log_precision_mu      = cfg_entry;
@@ -347,7 +364,8 @@ priors_parameters_ratio.val     = {16};
 priors_between      = cfg_branch;
 priors_between.tag  = 'priors_between';
 priors_between.name = 'Between-subjects variability';
-priors_between.val  = { priors_parameters_ratio ...
+priors_between.val  = { components ...
+                        priors_parameters_ratio ...
                         priors_log_precision_mu ...
                         priors_log_precision_var};
 priors_between.help = {['Between-subjects variability over second-' ...
@@ -596,14 +614,12 @@ else
     field = job.fields.custom;
 end
 
-Xnames = {'Group mean'};
-
-X = ones(ns,1);
-
 % Covariates
 if isfield(job.cov, 'none')
-    % Do nothing
-        
+    % No covariates (except the mean, added later)
+    Xnames = {};
+    X = [];
+           
 elseif isfield(job.cov, 'design_mtx')
     % Whole design matrix entered
     x = job.cov.design_mtx.cov_design;
@@ -612,14 +628,17 @@ elseif isfield(job.cov, 'design_mtx')
         error('Please ensure design matrix has one row per subject.');
     end
     
-    X = [X x];
-    
-    Xnames = [Xnames job.cov.design_mtx.name];
+    X = x;
+    Xnames = job.cov.design_mtx.name;    
+                
 elseif isfield(job.cov, 'regressor')
     % Design matrix entered per-regressor
     
     regressors = job.cov.regressor;
-       
+    
+    X = [];
+    Xnames = {};
+    
     for r = 1:length(regressors)
         regressor = regressors(r).value;
         name      = regressors(r).name;
@@ -627,13 +646,24 @@ elseif isfield(job.cov, 'regressor')
         if size(regressor,1) ~= ns
             error('Please ensure regressor %d has one row per subject.',r);
         end
-        
+                
         X = [X regressor];
         Xnames = [Xnames name];
     end
 end
 
-% Ensure a mean column wasn't entered accidently
+% Ensure there's a constant column
+if isempty(X)
+    has_constant = false;
+else
+    has_constant = ~any(diff(X(:,1)));
+end
+if ~has_constant
+    Xnames = ['Commonalities' Xnames];
+    X = [ones(ns,1) X];
+end
+
+% Ensure a column colinear with the mean wasn't entered accidently
 if size(X,2) > 1
     bad = find(~any(diff(X(:,2:end))));
     if ~isempty(bad)
@@ -645,13 +675,21 @@ if size(X,2) ~= length(Xnames)
     error('Please ensure there is one covariate name per covariate.');
 end
 
+% Option for precision components
+Q = job.priors_between.components;
+if isempty(Q)
+    Q = 'all';
+else
+    Q = lower(Q);
+end
+
 % Priors / covariance components
 M = struct();
 M.alpha  = job.priors_glm.group_ratio;
 M.beta   = job.priors_between.ratio;
 M.hE     = job.priors_between.expectation;
 M.hC     = job.priors_between.var;
-M.Q      = 'single';
+M.Q      = Q;
 M.X      = X;
 M.Xnames = Xnames;
 
@@ -738,6 +776,11 @@ if ~isfield(GCM,'GCM')
     error('Provided file is not a valid model space.');
 end
 GCM = GCM.GCM;
+
+% If a GCM of character arrays was provided, load the DCMs
+if ischar(GCM{1})
+    GCM = spm_dcm_load(GCM);
+end
 
 % Limit to specific model(s) if requested
 if isfield(job,'dcm') && isfield(job.dcm,'index')
