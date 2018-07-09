@@ -7,13 +7,17 @@ function vol = read_hdr(fname)
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: read_hdr.m 7147 2017-08-03 14:07:01Z spm $
+% $Id: read_hdr.m 7370 2018-07-09 10:44:51Z guillaume $
 
 
 persistent d
 if isempty(d), d = getdict; end
 
-[pth,nam,ext] = spm_fileparts(fname);
+try
+    [pth,nam,ext] = spm_fileparts(fname);
+catch
+    [pth,nam,ext] = fileparts(fname);
+end
 switch ext
     case {'.hdr','.img'}
         hname = fullfile(pth,[nam '.hdr']);

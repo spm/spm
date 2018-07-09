@@ -1,10 +1,10 @@
 function extras = read_extras(fname)
 % Read extra bits of information
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2018 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: read_extras.m 7147 2017-08-03 14:07:01Z spm $
+% $Id: read_extras.m 7370 2018-07-09 10:44:51Z guillaume $
 
 
 extras = struct;
@@ -18,7 +18,13 @@ switch ext
         mname = fullfile(pth,[nam '.mat']);
 end
 
-if spm_existfile(mname)
+try
+    is_extra = spm_existfile(mname);
+catch
+    is_extra = exist(mname,'file') > 0;
+end
+
+if is_extra
     try
         extras = load(mname);
     catch

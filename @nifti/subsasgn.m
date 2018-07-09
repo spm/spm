@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 7147 2017-08-03 14:07:01Z spm $
+% $Id: subsasgn.m 7370 2018-07-09 10:44:51Z guillaume $
 
 
 switch subs(1).type
@@ -351,7 +351,7 @@ if isa(val,'file_array')
     sz = [sz 1 1 1 1 1 1 1];
     sz = sz(1:7);
     use_nifti2 = obj.hdr.sizeof_hdr ~= 348; % i.e. == 540
-    if any(sz > spm_type('int16','maxval')) && ~use_nifti2
+    if any(sz > 32767) && ~use_nifti2 % spm_type('int16','maxval') = 32767
         warning('Image dimensions are too large for NIfTI-1 format.');
         obj.hdr = empty_hdr('nifti2'); % should also copy modified fields
         use_nifti2 = true;

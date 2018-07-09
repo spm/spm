@@ -10,7 +10,7 @@ function sts = write_hdr_raw(fname,hdr,be)
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: write_hdr_raw.m 7147 2017-08-03 14:07:01Z spm $
+% $Id: write_hdr_raw.m 7370 2018-07-09 10:44:51Z guillaume $
 
 
 [pth,nam] = fileparts(fname);
@@ -46,7 +46,12 @@ else       mach = 'native';
 end
 
 sts = true;
-if spm_existfile(hname)
+try
+    is_file = spm_existfile(hname);
+catch
+    is_file = exist(hname,'file') > 0;
+end
+if is_file
     [fp,msg] = fopen(hname,'r+',mach);
 else
     [fp,msg] = fopen(hname,'w+',mach);
