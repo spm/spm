@@ -36,7 +36,7 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 % Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7374 2018-07-09 17:09:46Z guillaume $
+% $Id: spm_dicom_convert.m 7375 2018-07-11 14:51:50Z guillaume $
 
 
 %-Input parameters
@@ -616,8 +616,15 @@ end
 spm_progress_bar('Init',length(Headers),['Writing ' fname], 'Planes written');
 pinfos = [ones(length(Headers),1) zeros(length(Headers),1)];
 for i=1:length(Headers)
-    if isfield(Headers{i},'RescaleSlope'),     pinfos(i,1) = Headers{i}.RescaleSlope;     end 
-    if isfield(Headers{i},'RescaleIntercept'), pinfos(i,2) = Headers{i}.RescaleIntercept; end
+    if isfield(Headers{i},'RescaleSlope'),      pinfos(i,1) = Headers{i}.RescaleSlope;      end 
+    if isfield(Headers{i},'RescaleIntercept'),  pinfos(i,2) = Headers{i}.RescaleIntercept;  end
+
+    % Philips do things differently. The following is for using their scales instead.
+    %     Chenevert, Thomas L., et al. "Errors in quantitative image analysis due to
+    %     platform-dependent image scaling." Translational oncology 7.1 (2014): 65-71.
+    if isfield(Headers{i},'Private_2005_100e'), pinfos(i,1) = 1/Headers{i}.Private_2005_100e; end
+    if isfield(Headers{i},'Private_2005_100d'), pinfos(i,2) =  -Headers{i}.Private_2005_100d/pinfos(i,1); end
+
 end
 
 if any(any(diff(pinfos,1)))
@@ -888,10 +895,18 @@ end
 
 % Write the image volume
 %--------------------------------------------------------------------------
-N      = nifti;
+Nii    = nifti;
 pinfo  = [1 0];
 if isfield(Headers{1},'RescaleSlope'),      pinfo(1) = Headers{1}.RescaleSlope;     end
 if isfield(Headers{1},'RescaleIntercept'),  pinfo(2) = Headers{1}.RescaleIntercept; end
+
+% Philips do things differently. The following is for using their scales instead.
+%     Chenevert, Thomas L., et al. "Errors in quantitative image analysis due to
+%     platform-dependent image scaling." Translational oncology 7.1 (2014): 65-71.
+if isfield(Headers{1},'Private_2005_100e'), pinfo(1) = 1/Headers{1}.Private_2005_100e; end
+if isfield(Headers{1},'Private_2005_100d'), pinfo(2) =  -Headers{1}.Private_2005_100d*pinfo(1); end
+
+
 Nii.dat  = file_array(fname,dim,dt,0,pinfo(1),pinfo(2));
 Nii.mat  = mat;
 Nii.mat0 = mat;
@@ -1002,7 +1017,7 @@ function [multiframe,other] = SelectMultiframe(Headers)
 multiframe = {};
 other      = {};
 for i=1:length(Headers)
-    if isfield(Headers{i},'SharedFunctionalGroupsSequence') || isfield(Headers{i},'PerFrameFunctionalGroupsSequence'),
+    if isfield(Headers{i},'SharedFunctionalGroupsSequence') || isfield(Headers{i},'PerFrameFunctionalGroupsSequence')
         multiframe = [multiframe(:)',Headers(i)];
     else
         other      = [other(:)',Headers(i)];
@@ -1552,7 +1567,7 @@ for n=1:size(ord,2)
 
 
     % Orientation information
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     % Axial Analyze voxel co-ordinate system:
     % x increases     right to left
     % y increases posterior to anterior
@@ -1613,7 +1628,7 @@ for n=1:size(ord,2)
 
     
     % Image dimensions
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     nc   = Header.Columns;
     nr   = Header.Rows;
     dim  = [nc nr 1 1];
@@ -1667,7 +1682,7 @@ for n=1:size(ord,2)
     end
 
     % Possibly useful information for descrip field
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if isfield(Header,'AcquisitionTime')
         tim = datevec(Header.AcquisitionTime/(24*60*60));
     elseif isfield(Header,'StudyTime')
@@ -1710,11 +1725,18 @@ for n=1:size(ord,2)
 
 
     % Sort out datatype, as well as any scalefactors or intercepts
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     pinfos = [ones(length(this),1) zeros(length(this),1)];
     for i=1:length(this)
         if isfield(this(i),'RescaleSlope'),     pinfos(i,1) = this(i).RescaleSlope;     end
         if isfield(this(i),'RescaleIntercept'), pinfos(i,2) = this(i).RescaleIntercept; end
+
+        % Philips do things differently. The following is for using their scales instead.
+        %     Chenevert, Thomas L., et al. "Errors in quantitative image analysis due to
+        %     platform-dependent image scaling." Translational oncology 7.1 (2014): 65-71.
+        if isfield(Headers{i},'Private_2005_100e'), pinfos(i,1) = 1/Headers{i}.Private_2005_100e; end
+        if isfield(Headers{i},'Private_2005_100d'), pinfos(i,2) =  -Headers{i}.Private_2005_100d*pinfos(i,1); end
+
     end
     if ~any(any(diff(pinfos,1)))
         % Same slopes and intercepts for all slices
@@ -1741,7 +1763,7 @@ for n=1:size(ord,2)
 
 
     % Create the header
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     Nii      = nifti;
     fname    = sprintf('%s%s', fname, ext0);
     Nii.dat  = file_array(fname, dim, dt, 0, pinfo(1), pinfo(2));
@@ -1759,7 +1781,7 @@ for n=1:size(ord,2)
     Nii.dat(end,end,end,end,end) = 0;
 
     % Write the image volume
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     spm_progress_bar('Init',length(this),['Writing ' fname], 'Planes written');
 
     for i=1:length(this)
