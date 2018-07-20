@@ -32,10 +32,10 @@ function spm_transverse(varargin)
 % Although the SPM{.} adopts the neurological convention (left = left)
 % the rendered images follow the same convention as the original data.
 %__________________________________________________________________________
-% Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & John Ashburner
-% $Id: spm_transverse.m 5906 2014-03-04 18:03:44Z guillaume $
+% $Id: spm_transverse.m 7376 2018-07-20 10:30:59Z guillaume $
 
 
 switch lower(varargin{1})
@@ -149,9 +149,9 @@ end;
 %--------------------------------------------------------------------------
 cmap   = get(Fgraph,'Colormap');
 if size(cmap,1) ~= 128
-    figure(Fgraph)
-    spm_figure('Colormap','gray-hot')
-    cmap   = get(Fgraph,'Colormap');
+    figure(Fgraph);
+    spm_colourmap('gray-hot');
+    cmap = get(Fgraph,'Colormap');
 end
 
 D      = length(cmap)/2;
@@ -342,9 +342,9 @@ end;
 %--------------------------------------------------------------------------
 cmap   = get(transv.fig,'Colormap');
 if size(cmap,1) ~= 128
-    figure(transv.fig)
-    spm_figure('Colormap','gray-hot')
-    cmap   = get(transv.fig,'Colormap');
+    figure(transv.fig);
+    spm_colourmap('gray-hot');
+    cmap = get(transv.fig,'Colormap');
 end
 
 D      = length(cmap)/2;

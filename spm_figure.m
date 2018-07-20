@@ -1,6 +1,6 @@
-function varargout=spm_figure(varargin)
+function varargout = spm_figure(varargin)
 % Setup and callback functions for Graphics window
-% FORMAT varargout=spm_figure(varargin)
+% FORMAT varargout = spm_figure(varargin)
 %
 % spm_figure provides utility routines for using the SPM Graphics 
 % interface. Most used syntaxes are listed here, see the embedded callback
@@ -30,34 +30,22 @@ function varargout=spm_figure(varargin)
 %
 % The Graphics window is provided with a menu bar at the top that
 % facilitates editing and printing of the current graphic display.
-% (This menu is also provided as a figure background "ContextMenu" - 
-% right-clicking on the figure background should bring up the menu).
 %
 % "Print": Graphics windows with multi-page axes are printed page by page.
 %
 % "Clear": Clears the Graphics window. If in SPM usage (figure 'Tag'ed as
 % 'Graphics') then all SPM windows are cleared and reset.
 %
-% "Colours":
-% * gray, hot, pink, jet: Sets the colormap to selected item.
-% * gray-hot, etc: Creates a 'split' colormap {128 x 3 matrix}.
-%      The lower half is a gray scale and the upper half is selected
-%      colormap  This colormap is used for viewing 'rendered' SPMs on a 
-%      PET, MRI or other background images.
-% Colormap effects:
-% * Invert: Inverts (flips) the current color map.
-% * Brighten and Darken: Brighten and Darken the current colourmap
-%      using the MATLAB BRIGHTEN command, with  beta's of +0.2 and -0.2
-%      respectively.
+% "Colours": Sets or adjusts the colormap.
 %
 % For SPM usage, the figure should be 'Tag'ed as 'Graphics'.
 %
-% See also: spm_print, spm_clf
+% See also: spm_print, spm_clf, spm_colourmap
 %__________________________________________________________________________
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 7372 2018-07-09 16:50:44Z guillaume $
+% $Id: spm_figure.m 7376 2018-07-20 10:30:59Z guillaume $
 
 
 %==========================================================================
@@ -165,9 +153,6 @@ function varargout=spm_figure(varargin)
 %
 % FORMAT spm_figure('CreateBar',F)
 % Creates toolbar in figure F (defaults to gcf). F can be a 'Tag'
-%
-% FORMAT spm_figure('ColorMap')
-% Callback for "ColorMap" menu
 %
 % FORMAT spm_figure('FontSize')
 % Callback for "FontSize" menu
@@ -852,19 +837,19 @@ uimenu(t0,    'Label','C&lose non-SPM Figures', 'HandleVisibility','off', ...
 
 %-Colour Menu
 t1=uimenu(t0, 'Label','C&olours',  'HandleVisibility','off','Separator','on');
-t2=uimenu(t1, 'Label','Colormap');
-uimenu(t2,    'Label','Gray',      'CallBack','spm_figure(''ColorMap'',''gray'')');
-uimenu(t2,    'Label','Hot',       'CallBack','spm_figure(''ColorMap'',''hot'')');
-uimenu(t2,    'Label','Pink',      'CallBack','spm_figure(''ColorMap'',''pink'')');
-uimenu(t2,    'Label','Jet',       'CallBack','spm_figure(''ColorMap'',''jet'')');
-uimenu(t2,    'Label','Gray-Hot',  'CallBack','spm_figure(''ColorMap'',''gray-hot'')');
-uimenu(t2,    'Label','Gray-Cool', 'CallBack','spm_figure(''ColorMap'',''gray-cool'')');
-uimenu(t2,    'Label','Gray-Pink', 'CallBack','spm_figure(''ColorMap'',''gray-pink'')');
-uimenu(t2,    'Label','Gray-Jet',  'CallBack','spm_figure(''ColorMap'',''gray-jet'')');
+t2=uimenu(t1, 'Label','Colourmap');
+uimenu(t2,    'Label','Gray',      'CallBack','spm_colourmap(''gray'')');
+uimenu(t2,    'Label','Hot',       'CallBack','spm_colourmap(''hot'')');
+uimenu(t2,    'Label','Pink',      'CallBack','spm_colourmap(''pink'')');
+uimenu(t2,    'Label','Jet',       'CallBack','spm_colourmap(''jet'')');
+uimenu(t2,    'Label','Gray-Hot',  'CallBack','spm_colourmap(''gray-hot'')');
+uimenu(t2,    'Label','Gray-Cool', 'CallBack','spm_colourmap(''gray-cool'')');
+uimenu(t2,    'Label','Gray-Pink', 'CallBack','spm_colourmap(''gray-pink'')');
+uimenu(t2,    'Label','Gray-Jet',  'CallBack','spm_colourmap(''gray-jet'')');
 t2=uimenu(t1, 'Label','Effects');
-uimenu(t2,    'Label','Invert',    'CallBack','spm_figure(''ColorMap'',''invert'')');
-uimenu(t2,    'Label','Brighten',  'CallBack','spm_figure(''ColorMap'',''brighten'')');
-uimenu(t2,    'Label','Darken',    'CallBack','spm_figure(''ColorMap'',''darken'')');
+uimenu(t2,    'Label','Invert',    'CallBack','spm_colourmap(''invert'')');
+uimenu(t2,    'Label','Brighten',  'CallBack','spm_colourmap(''brighten'')');
+uimenu(t2,    'Label','Darken',    'CallBack','spm_colourmap(''darken'')');
 
 %-Font Size Menu
 t1=uimenu(t0, 'Label','&Font Size', 'HandleVisibility','off');
@@ -899,42 +884,13 @@ set(F,'UIContextMenu',h)
 varargout = {h};
 
 %==========================================================================
-case 'colormap'
+case 'colormap'                                                % deprecated
 %==========================================================================
 % spm_figure('ColorMap',ColAction)
 
 if nargin<2, ColAction='gray'; else ColAction=varargin{2}; end
 
-switch lower(ColAction), case 'gray'
-    colormap(gray(64))
-case 'hot'
-    colormap(hot(64))
-case 'pink'
-    colormap(pink(64))
-case 'jet'
-    colormap(jet(64))
-case 'gray-hot'
-    tmp = hot(64 + 16);  tmp = tmp((1:64) + 16,:);
-    colormap([gray(64); tmp]);
-case 'gray-cool'
-    cool = [zeros(10,1) zeros(10,1) linspace(0.5,1,10)';
-            zeros(31,1) linspace(0,1,31)' ones(31,1);
-            linspace(0,1,23)' ones(23,1) ones(23,1) ];
-    colormap([gray(64); cool]);
-case 'gray-pink'
-    tmp = pink(64 + 16); tmp = tmp((1:64) + 16,:);
-    colormap([gray(64); tmp]);
-case 'gray-jet'
-    colormap([gray(64); jet(64)]);
-case 'invert'
-    colormap(flipud(colormap));
-case 'brighten'
-    colormap(brighten(colormap, 0.2));
-case 'darken'
-    colormap(brighten(colormap, -0.2));
-otherwise
-    error('Illegal ColAction specification');
-end
+spm_colourmap(ColAction);
 
 %==========================================================================
 case 'fontsize'
@@ -950,7 +906,6 @@ if ~iscell(fs), fs = {fs}; end
 if ~isempty(fs)
     set(h,{'fontsize'},cellfun(@(x) max(x+sz,eps),fs,'UniformOutput',false));
 end
-
 
 %==========================================================================
 otherwise
@@ -986,7 +941,6 @@ function myisresults(obj,evt)
 return;
 function mysatfig(obj,evt)
 return;
-
 
 %==========================================================================
 function mydockspm(obj,evt)

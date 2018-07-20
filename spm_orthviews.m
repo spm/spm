@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 7168 2017-09-19 10:24:02Z guillaume $
+% $Id: spm_orthviews.m 7376 2018-07-20 10:30:59Z guillaume $
 
 
 % The basic fields of st are:
@@ -1245,7 +1245,7 @@ for i = valid_handles(arg1)
             cmap = get(st.fig,'Colormap');
             if size(cmap,1)~=128
                 figure(st.fig)
-                spm_figure('Colormap','gray-hot')
+                spm_colourmap('gray-hot')
             end
             redraw_colourbar(i,1,[mn mx],(1:64)'+64);
         elseif isstruct(st.vols{i}.blobs{1}.colour)
