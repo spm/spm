@@ -6,15 +6,14 @@ function ret = spm_ov_browser(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 6750 2016-03-21 12:36:08Z guillaume $
+% $Id: spm_ov_browser.m 7377 2018-07-23 13:56:24Z guillaume $
 
 
 if ~nargin, varargin = {'ui'}; end
-cmd = lower(varargin{1});
-switch cmd
+switch lower(varargin{1})
     % Context menu and callbacks
     case 'context_menu'
         ret = uimenu(varargin{3}, ...
@@ -27,6 +26,12 @@ switch cmd
         else
             browser_ui([],[],varargin{2:end});
         end
+    case 'movie'
+        browser_movie([],[],varargin{2:end});
+    case 'play'
+        browser_play_button([],[],varargin{2:end});
+    case 'quit'
+        browser_quit_button([],[]);
     case 'redraw'
         browser_redraw(varargin{2:end});
     otherwise
@@ -149,6 +154,10 @@ setappdata(hS,'hM',findobj(st.fig,'Type','uimenu','Tag','orthviews_browser'));
 
 %==========================================================================
 function browser_play_button(hObj,event)
+if isempty(hObj)
+    hObj = getappdata(slider_handle,'hB');
+    set(hObj,'Value',1);
+end
 hS = getappdata(hObj,'hS');
 f  = getappdata(hS,'f');
 j  = round(get(hS,'Value'));
@@ -173,6 +182,9 @@ set(hObj,'Value',0);
 %==========================================================================
 function browser_quit_button(hObj,event)
 global st
+if isempty(hObj)
+    hObj = getappdata(slider_handle,'hP');
+end
 hS = getappdata(hObj,'hS');
 hC = getappdata(hS,'hC');
 delete(getappdata(hS,'hT'));
@@ -272,39 +284,56 @@ st.vols{hC}.browser.h = hObj;
 
 
 %==========================================================================
-function browser_movie(hObj,event)
+function browser_movie(hObj,event,opt)
 global st
-hS = getappdata(hObj,'hS');
+if nargin && ~isempty(hObj)
+    hS = getappdata(hObj,'hS');
+else
+    hS = slider_handle;
+end
+if nargin < 3, opt = struct(); end
 hC = getappdata(hS,'hC');
-hS = getappdata(hObj,'hS');
 f  = getappdata(hS,'f');
 
-[filename, pathname] = uiputfile(...
-    {'*.gif' 'GIF files (*.gif)';...
-    '*.png' 'PNG files (*.png)'; ...
-    '*.avi' 'AVI files (*.avi)';...
-    }, 'Save as');
-if isequal(filename,0) || isequal(pathname,0), return; end
-
-file = fullfile(pathname,filename);
+if ~isfield(opt,'file')
+    [filename, pathname] = uiputfile(...
+        {'*.gif' 'GIF files (*.gif)';...
+        '*.png' 'PNG files (*.png)'; ...
+        '*.avi' 'AVI files (*.avi)';...
+        }, 'Save as');
+    if isequal(filename,0) || isequal(pathname,0), return; end
+    
+    file = fullfile(pathname,filename);
+else
+    file = opt.file;
+end
 
 p1 = get(st.vols{hC}.ax{1}.ax,'Position');
 p2 = get(st.vols{hC}.ax{3}.ax,'Position');
 a  = [p1(1) p1(2)  p2(1)+p2(3)-p1(1) p2(2)+p2(4)-p1(2)] + 0.005*[-1 -1 2 2];
 a  = max(min(a,1),0);
 
-if strcmp(spm_file(file,'ext'),'avi')
-    outputtype = 1;
-    writerObj  = VideoWriter(file);
-    open(writerObj);
-elseif strcmp(spm_file(file,'ext'),'gif')
-    outputtype = 2;
-    delay = spm_input('Delay','+0','r',0.05,1,[0,Inf]);
-    loop = spm_input('Loop','+1','r',0,1,[0,Inf]);
-elseif strcmp(spm_file(file,'ext'),'png')
-    outputtype = 3;
-else
-    error('Unknown output file type.');
+switch spm_file(file,'ext')
+    case 'avi'
+        outputtype = 1;
+        writerObj  = VideoWriter(file);
+        open(writerObj);
+    case 'gif'
+        outputtype = 2;
+        if ~isfield(opt,'delay')
+            delay = spm_input('Delay','+0','r',0.05,1,[0,Inf]);
+        else
+            delay = opt.delay;
+        end
+        if ~isfield(opt,'loop')
+            loop = spm_input('Loop','+1','r',0,1,[0,Inf]);
+        else
+            loop = opt.loop;
+        end
+    case 'png'
+        outputtype = 3;
+    otherwise
+        error('Unknown output file type.');
 end
 
 for i=1:numel(f)
@@ -353,6 +382,7 @@ Y = SPM.xX.X*(pinv(spm_filter(SPM.xX.K,SPM.xX.X))*Y);
 hold(hAx,'on');
 plot(Y,'g');
 
+
 %==========================================================================
 function h = current_handle
 global st
@@ -365,4 +395,13 @@ try
     h  = find(hs==hc);
 catch
     h  = 1;
+end
+
+
+%==========================================================================
+function hS = slider_handle
+global st
+hS = findobj(st.fig,'Style','slider');
+if numel(hS) ~= 1
+    error('Not in browser mode.');
 end
