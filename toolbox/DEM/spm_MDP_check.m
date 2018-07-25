@@ -30,7 +30,7 @@ function [MDP] = spm_MDP_check(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_check.m 7319 2018-05-29 09:33:01Z karl $
+% $Id: spm_MDP_check.m 7382 2018-07-25 13:58:04Z karl $
  
  
 % deal with a sequence of trials
@@ -48,6 +48,20 @@ if numel(MDP) > 1
     return
 end
 
+% fill in (posterior or  process) likelihood and priors
+%--------------------------------------------------------------------------
+if ~isfield(MDP,'A'), MDP.A = MDP.a; end
+if ~isfield(MDP,'B'), MDP.B = MDP.b; end
+
+% check format of likelihood and priors
+%--------------------------------------------------------------------------
+if ~iscell(MDP.A), MDP.A = {full(MDP.A)}; end
+if ~iscell(MDP.B), MDP.B = {full(MDP.B)}; end
+
+if isfield(MDP,'a'), if ~iscell(MDP.a), MDP.a = {full(MDP.a)}; end; end
+if isfield(MDP,'b'), if ~iscell(MDP.b), MDP.b = {full(MDP.b)}; end; end
+
+    
 % check dimensions and orders
 %==========================================================================
  
@@ -65,7 +79,7 @@ for g = 1:Ng
     MDP.A{g} = double(MDP.A{g});
 end
  
-% check policy specification
+% check policy specification (create default moving policy U, if necessary)
 %--------------------------------------------------------------------------
 try
     V = MDP.U;                      % allowable actions (1,Np)
@@ -74,7 +88,7 @@ catch
         V = MDP.V;                  % allowable policies (T - 1,Np)
     catch
         
-        % components allowable policies from allowable actions
+        % allowable (moving) policies using all allowable actions
         %------------------------------------------------------------------
         for f = 1:Nf
             u = 1;
@@ -85,9 +99,8 @@ catch
                     u = kron(ones(1,Nu(i)),u);
                 end
             end
-            U(1,:,f)  = u;
+            MDP.U(1,:,f)  = u;
         end
-        MDP.U = U;
         V = MDP.U;
     end
 end
@@ -159,10 +172,11 @@ end
 % check initial states
 %--------------------------------------------------------------------------
 if isfield(MDP,'s')
-    if size(MDP.s,1) ~= Nf
-        error('please specify an initial state MDP.s for every factor')
+    if size(MDP.s,1) > Nf
+        error('please specify an initial state MDP.s for %i factors',Nf)
     end
-    if any(max(MDP.s,[],2) > Ns(:))
+    f  = max(MDP.s,[],2)';
+    if any(f > Ns(1:numel(f)))
         error('please ensure initial states MDP.s are consistent with MDP.B')
     end
 end
@@ -172,13 +186,61 @@ end
 if isfield(MDP,'o')
     if numel(MDP.o)
         if size(MDP.o,1) ~= Ng
-            error('please specify an outcomes MDP.o for each modality')
+            error('please specify an outcomes MDP.o for %i modalities',Ng)
         end
         if any(max(MDP.o,[],2) > No(:))
             error('please ensure outcomes MDP.o are consistent with MDP.A')
         end
     end
 end
+
+% check (primary link array if necessary)
+%--------------------------------------------------------------------------
+if isfield(MDP,'link')
+    
+    % cardinality of subordinate level
+    %----------------------------------------------------------------------
+    nf    = numel(MDP.MDP.B);            % number of hidden state factors
+    for f = 1:nf
+        ns(f)    = size(MDP.MDP.B{f},1); % number of hidden states
+    end
+
+    % check the size of link
+    %----------------------------------------------------------------------
+    if ~all(size(MDP.link) == [nf,Ng]);
+        error('please check the size of link {%i,%i}',nf,Ng)
+    end
+        
+    % convert matrix to cell array if necessary
+    %----------------------------------------------------------------------
+    if isnumeric(MDP.link)
+        link  = cell(nf,Ng);
+        for f = 1:size(MDP.link,1)
+            for g = 1:size(MDP.link,2)
+                if MDP.link(f,g)
+                    link{f,g} = spm_speye(ns(f),No(g),0);
+                end
+            end
+        end
+        MDP.link = link;
+    end
+    
+    % check sizes of cell array
+    %----------------------------------------------------------------------
+    for f = 1:size(MDP.link,1)
+        for g = 1:size(MDP.link,2)
+            if ~isempty(MDP.link{f,g})
+                if ~all(size(MDP.link{f,g}) == [ns(f),No(g)]);
+                    error('please check link{%i,%i}',f,g)
+                end
+            end
+        end
+    end
+    
+end
+
+
+
 
 % check factors and outcome modalities have proper labels
 %--------------------------------------------------------------------------

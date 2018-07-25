@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7378 2018-07-24 15:18:47Z thomas $
+% $Id: spm_MDP_VB_X.m 7382 2018-07-25 13:58:04Z karl $
 
 
 % deal with a sequence of trials
@@ -143,6 +143,10 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 try, OPTIONS.plot;  catch, OPTIONS.plot  = 0; end
 try, OPTIONS.gamma; catch, OPTIONS.gamma = 0; end
 try, OPTIONS.D;     catch, OPTIONS.D     = 0; end
+
+% check MDP specification
+%--------------------------------------------------------------------------
+MDP = spm_MDP_check(MDP);
 
 % if there are multiple trials ensure that parameters are updated
 %--------------------------------------------------------------------------
@@ -224,7 +228,15 @@ if isfield(MDP,'U'), OPTIONS.gamma = 1;         end
 
 for m = 1:size(MDP,1)
     
-    if isfield(MDP,'U')
+    if isfield(MDP(m),'O') && size(MDP(m).U,2) < 2
+        
+        % no policies – assume hidden Markov model (HMM)
+        %------------------------------------------------------------------
+        T(m) = size(MDP(m).O{1},2);         % HMM mode
+        V{m} = ones(T - 1,1);               % single 'policy'
+        HMM  = 1;
+        
+    elseif isfield(MDP(m),'U')
         
         % called with repeatable actions (U,T)
         %------------------------------------------------------------------
@@ -232,7 +244,7 @@ for m = 1:size(MDP,1)
         V{m} = MDP(m).U;                    % allowable actions (1,Np)
         HMM  = 0;
         
-    elseif isfield(MDP,'V')
+    elseif isfield(MDP(m),'V')
         
         % full sequential policies (V)
         %------------------------------------------------------------------
@@ -240,15 +252,6 @@ for m = 1:size(MDP,1)
         T(m) = size(MDP(m).V,1) + 1;        % number of transitions
         HMM  = 0;
         
-    elseif isfield(MDP,'O')
-        
-        % no policies – assume hidden Markov model (HMM)
-        %------------------------------------------------------------------
-        T(m) = size(MDP.O{1},2);            % HMM mode
-        V{m} = ones(T - 1,1);               % single 'policy'
-        HMM  = 1;
-        MDP(m).u = ones(1,T - 1);
-                
     else
         sprintf('Please specify MDP(%d).U, MDP(%i).V or MDP(%d).O',m), return
     end
@@ -257,8 +260,8 @@ end
 
 % initialise model-specific variables
 %--------------------------------------------------------------------------
-T     = T(1);                       % number of time steps
-Ni    = 16;                         % number of VB iterations
+T     = T(1);                              % number of time steps
+Ni    = 16;                                % number of VB iterations
 for m = 1:size(MDP,1)
     
     % ensure policy length is less than the number of updates
@@ -266,19 +269,6 @@ for m = 1:size(MDP,1)
     if size(V{m},1) > (T - 1)
         V{m} = V{m}(1:(T - 1),:,:);
     end
-    
-    % fill in (posterior or  process) likelihood and priors
-    %----------------------------------------------------------------------
-    if ~isfield(MDP(m),'A'), MDP(m).A = MDP(m).a; end
-    if ~isfield(MDP(m),'B'), MDP(m).B = MDP(m).b; end
-    
-    % check format of likelihood and priors
-    %----------------------------------------------------------------------
-    if ~iscell(MDP(m).A), MDP(m).A = {full(MDP(m).A)}; end
-    if ~iscell(MDP(m).B), MDP(m).B = {full(MDP(m).B)}; end
-    
-    if isfield(MDP(m),'a'), if ~iscell(MDP(m).a), MDP(m).a = {full(MDP(m).a)}; end; end
-    if isfield(MDP(m),'b'), if ~iscell(MDP(m).b), MDP(m).b = {full(MDP(m).b)}; end; end
     
     % numbers of transitions, policies and states
     %----------------------------------------------------------------------
@@ -312,10 +302,9 @@ for m = 1:size(MDP,1)
             A{m,g}  = spm_norm(MDP(m).A{g});
         end
         
-        % (polygamma) function for complexity (and novelty)
+        % prior concentration paramters for complexity (and novelty)
         %------------------------------------------------------------------
         if isfield(MDP,'a')
-            qA{m,g} = spm_psi(MDP(m).a{g} + 1/16);
             pA{m,g} = MDP(m).a{g};
             wA{m,g} = spm_wnorm(MDP(m).a{g}).*(pA{m,g} > 0);
         end
@@ -343,10 +332,9 @@ for m = 1:size(MDP,1)
             
         end
         
-        % (polygamma) function for complexity
+        % prior concentration paramters for complexity
         %------------------------------------------------------------------
         if isfield(MDP,'b')
-            qB{m,f} = spm_psi(MDP(m).b{f} + 1/16);
             pB{m,f} = MDP(m).b{f};
         end
         
@@ -364,10 +352,9 @@ for m = 1:size(MDP,1)
             MDP(m).D{f} = D{m,f};
         end
         
-        % (polygamma) function for complexity
+        % prior concentration paramters for complexity
         %------------------------------------------------------------------
         if isfield(MDP,'d')
-            qD{m,f} = spm_psi(MDP(m).d{f} + 1/16);
             pD{m,f} = MDP(m).d{f};
             wD{m,f} = spm_wnorm(MDP(m).d{f});
         end
@@ -382,21 +369,19 @@ for m = 1:size(MDP,1)
     else
         E{m} = spm_norm(ones(Np(m),1));
     end
+    qE{m}    = spm_log(E{m});
     
-    % (polygamma) function for complexity
+    % prior concentration paramters for complexity
     %----------------------------------------------------------------------
     if isfield(MDP,'e')
-        qE{m} = spm_psi(MDP(m).e + 1/16);
         pE{m} = MDP(m).e;
-    else
-        qE{m} = spm_log(E{m});
     end
     
     % prior preferences (log probabilities) : C
     %----------------------------------------------------------------------
     for g = 1:Ng(m)
         if isfield(MDP,'c')
-            C{m,g}  = spm_psi(MDP(m).c{g} + 1/16);
+            C{m,g}  = spm_psi(MDP(m).c{g} + 1/32);
             pC{m,g} = MDP(m).c{g};
         elseif isfield(MDP,'C')
             C{m,g}  = MDP(m).C{g};
@@ -496,22 +481,14 @@ for t = 1:T
     %======================================================================
     for m = M(t,:)
         
-        if ~HMM
+        if ~HMM % not required for HMM
             
-            % posterior predictive density over states
-            %------------------------------------------------------------------
+            % sample state, if not specified
+            %--------------------------------------------------------------
             for f = 1:Nf(m)
                 
-                % posterior predictive density
-                %--------------------------------------------------------------
-                if t > 1
-                    xq{m,f} = sB{m,f}(:,:,MDP(m).u(f,t - 1))*X{m,f}(:,t - 1);
-                else
-                    xq{m,f} = X{m,f}(:,t);
-                end
-                
-                % sample a state generated by action
-                %--------------------------------------------------------------
+                % the next state is generated by action
+                %----------------------------------------------------------
                 if MDP(m).s(f,t) == 0
                     if t > 1
                         ps = MDP(m).B{f}(:,MDP(m).s(f,t - 1),MDP(m).u(f,t - 1));
@@ -523,21 +500,40 @@ for t = 1:T
                 
             end
             
+            % posterior predictive density
+            %--------------------------------------------------------------
+            for f = 1:Nf(m)
+                
+                % under selected action (xqq)
+                %----------------------------------------------------------
+                if t > 1
+                    xqq{m,f} = sB{m,f}(:,:,MDP(m).u(f,t - 1))*X{m,f}(:,t - 1);
+                else
+                    xqq{m,f} = X{m,f}(:,t);
+                end
+                
+                % Bayesian model average (xq)
+                %----------------------------------------------------------
+                xq{m,f} = X{m,f}(:,t);
+                
+            end
+            
             % sample outcome, if not specified
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             for g = 1:Ng(m)
                 
                 if MDP(m).o(g,t) < 0
                     
                     % outcome is generated by model n
-                    %----------------------------------------------------------
-                    n  = -MDP(m).o(g,t);
+                    %------------------------------------------------------
+                    n = -MDP(m).o(g,t);
+                    MDP(m).n(g,t) = n;
                     if n == m
                         
                         % outcome that minimises expected free energy
-                        %------------------------------------------------------
-                        po    = spm_dot(A{m,g},xq(m,:));
-                        px    = spm_vec(spm_cross(xq(m,:)));
+                        %--------------------------------------------------
+                        po    = spm_dot(A{m,g},xqq(m,:));
+                        px    = spm_vec(spm_cross(xqq(m,:)));
                         F     = zeros(No(m,g),1);
                         for i = 1:No(m,g)
                             xp   = MDP(m).A{g}(i,:);
@@ -546,24 +542,27 @@ for t = 1:T
                         end
                         po            = spm_softmax(F*512);
                         MDP(m).o(g,t) = find(rand < cumsum(po),1);
-                        MDP(m).n(g,t) = n;
                         
                     else
+                        
+                        % outcome from model n
+                        %--------------------------------------------------
                         MDP(m).o(g,t) = MDP(n).o(g,t);
-                        MDP(m).n(g,t) = n;
+                        
                     end
                     
                 elseif MDP(m).o(g,t) == 0
                     
-                    % sample outcome from the generative process (i.e., A)
-                    %----------------------------------------------------------
+                    % sample outcome from the generative process
+                    %------------------------------------------------------
                     ind           = num2cell(MDP(m).s(:,t));
                     po            = MDP(m).A{g}(:,ind{:});
                     MDP(m).o(g,t) = find(rand < cumsum(po),1);
+                    
                 end
-                
             end
-        end
+            
+        end % HMM
         
         % get probabilistic outcomes from samples or subordinate level
         %==================================================================
@@ -572,14 +571,9 @@ for t = 1:T
         %------------------------------------------------------------------
         for g = 1:Ng(m)
             
-            % from posterior predictive density
-            %--------------------------------------------------------------
-            if isfield(MDP,'link') || isfield(MDP,'demi')
-                O{m}{g,t} = spm_dot(A{m,g},xq(m,:));
-                
             % specified as a likelihood or observation (HMM)
             %--------------------------------------------------------------
-            elseif HMM
+            if HMM
                 O{m}{g,t} = MDP(m).O{g}(:,t);
             else
                 O{m}{g,t} = sparse(MDP(m).o(g,t),1,1,No(m,g),1);
@@ -589,7 +583,7 @@ for t = 1:T
         % generate outcomes from a subordinate MDP
         %==================================================================
         if isfield(MDP,'link')
-            
+
             % use previous inversions (if available) to reproduce outcomes
             %--------------------------------------------------------------
             try
@@ -597,40 +591,44 @@ for t = 1:T
             catch
                 mdp = MDP(m).MDP;
             end
-            link       = MDP(m).link;
-            mdp.factor = find(any(link,2));
-            
+
             % priors over states (of subordinate level)
             %--------------------------------------------------------------
-            for f = 1:size(link,1)
-                i = find(link(f,:));
-                if numel(i)
-                    
-                    % empirical priors
-                    %------------------------------------------------------
-                    mdp.D{m,f} = O{m}{i,t};
-                    
-                    % hidden state for lower level is the outcome
-                    %------------------------------------------------------
-                    try
-                        mdp.s(f,1) = mdp.s(f,1);
-                    catch
-                        mdp.s(f,1) = MDP(m).o(i,t);
-                    end
-                    
-                else
-                    
-                    % otherwise use subordinate priors over states
-                    %------------------------------------------------------
-                    try
-                        mdp.s(f,1) = mdp.s(f,1);
-                    catch
-                        if isfield(mdp,'D')
-                            ps = spm_norm(mdp.D{f});
-                        else
-                            ps = spm_norm(ones(Ns(m,f),1));
+            mdp.factor = [];
+            for f = 1:size(MDP(m).link,1)
+                for g = 1:size(MDP(m).link,2)
+                    if ~isempty(MDP(m).link{f,g})
+                        
+                        % subiordinate state has hierarchical constraints
+                        %--------------------------------------------------
+                        mdp.factor(end + 1) = f;
+                                                
+                        % empirical priors
+                        %--------------------------------------------------
+                        O{m}{g,t} = spm_dot(A{m,g},xq(m,:));
+                        mdp.D{f}  = MDP(m).link{f,g}*O{m}{g,t};
+                        
+                        % outcomes (i.e., states) are generated by model n
+                        %--------------------------------------------------
+                        if isfield(MDP(m),'n')
+                            n    = MDP(m).n(g,t);
+                            if m == n
+                                ps         = MDP(m).link{f,g}(:,MDP(m).o(g,t));
+                                mdp.s(f,1) = find(ps);
+                            else
+                                mdp.s(f,1) = MDP(n).mdp(t).s(f,1);
+                            end
                         end
-                        mdp.s(f,1) = find(rand < cumsum(ps),1);
+                        
+                        % hidden state for lower level is the outcome
+                        %--------------------------------------------------
+                        try
+                            mdp.s(f,1) = mdp.s(f,1);
+                        catch
+                            ps         = MDP(m).link{f,g}(:,MDP(m).o(g,t));
+                            mdp.s(f,1) = find(ps);
+                        end
+
                     end
                 end
             end
@@ -641,10 +639,11 @@ for t = 1:T
             
             % get inferred outcomes from subordinate MDP
             %--------------------------------------------------------------
-            for g = 1:Ng(m)
-                i = find(link(:,g));
-                if numel(i)
-                    O{m}{g,t} = MDP(m).mdp(t).X{i}(:,1);
+            for f = 1:size(MDP(m).link,1)
+                for g = 1:size(MDP(m).link,2)
+                    if ~isempty(MDP(m).link{f,g})
+                        O{m}{g,t} = MDP(m).link{f,g}'*MDP(m).mdp(t).X{f}(:,1);
+                    end
                 end
             end
             
@@ -663,7 +662,13 @@ for t = 1:T
                 MDP(m).dem(t) = MDP(m).DEM;
             end
             
-            % get inferred outcome (from Bayesian filtering)
+            % get prior over outcomes
+            %--------------------------------------------------------------
+            for g = 1:Ng(m)
+                O{m}{g,t} = spm_dot(A{m,g},xqq(m,:));
+            end
+            
+            % get posterior outcome from Bayesian filtering
             %--------------------------------------------------------------
             MDP(m).dem(t) = spm_MDP_DEM(MDP(m).dem(t),MDP(m).demi,O{m}(:,t),MDP(m).o(:,t));
             for g = 1:Ng(m)
@@ -734,7 +739,7 @@ for t = 1:T
                             
                             % evaluate free energy and gradients (v = dFdx)
                             %----------------------------------------------
-                            if dF > exp(-8)
+                            if dF > exp(-8) || i > 4
                                 
                                 % marginal likelihood over outcome factors
                                 %------------------------------------------
@@ -938,10 +943,10 @@ for t = 1:T
                 % next action - sampled from marginal posterior
                 %----------------------------------------------------------
                 try
-                    MDP(m).u(:,t)  = MDP(m).u(:,t);
+                    MDP(m).u(:,t) = MDP(m).u(:,t);
                 catch
-                    ind        = find(rand < cumsum(Pu(:)),1);
-                    MDP(m).u(:,t)  = spm_ind2sub(Nu(m,:),ind);
+                    ind           = find(rand < cumsum(Pu(:)),1);
+                    MDP(m).u(:,t) = spm_ind2sub(Nu(m,:),ind);
                 end
                 
                 % update policy and states for moving policies
@@ -976,9 +981,11 @@ for t = 1:T
         if T == 1
             MDP(m).u = zeros(Nf(m),0);
         end
-        MDP(m).o  = MDP(m).o(:,1:T);      % outcomes at 1,...,T
-        MDP(m).s  = MDP(m).s(:,1:T);      % states   at 1,...,T
-        MDP(m).u  = MDP(m).u(:,1:T - 1);  % actions  at 1,...,T - 1
+        if ~HMM
+            MDP(m).o  = MDP(m).o(:,1:T);        % outcomes at 1,...,T
+            MDP(m).s  = MDP(m).s(:,1:T);        % states   at 1,...,T
+            MDP(m).u  = MDP(m).u(:,1:T - 1);    % actions  at 1,...,T - 1
+        end
         break;
     end
     
@@ -1051,16 +1058,10 @@ for m = 1:size(MDP,1)
     %----------------------------------------------------------------------
     for g = 1:Ng(m)
         if isfield(MDP,'a')
-            da           = MDP(m).a{g} - pA{m,g};
-            MDP(m).Fa(g) = -(sum(spm_vec(spm_betaln(MDP(m).a{g}))) - ...
-                             sum(spm_vec(spm_betaln(pA{m,g})))    - ...
-                             spm_vec(da)'*spm_vec(qA{m,g}));
+            MDP(m).Fa(g) = - spm_KL_dir(MDP(m).a{g},pA{m,g});
         end
         if isfield(MDP,'c')
-            dc           = MDP(m).c{g} - pC{g};
-            MDP(m).Fc(g) = -(sum(spm_vec(spm_betaln(MDP(m).c{g}))) - ...
-                             sum(spm_vec(spm_betaln(pC{m,g})))    - ...
-                             spm_vec(dc)'*spm_vec(C{m,g}));
+            MDP(m).Fc(f) = - spm_KL_dir(MDP(m).c{g},pC{g});
         end
     end
     
@@ -1068,26 +1069,17 @@ for m = 1:size(MDP,1)
     %----------------------------------------------------------------------
     for f = 1:Nf(m)
         if isfield(MDP,'b')
-            db           = MDP(m).b{f} - pB{m,f};
-            MDP(m).Fb(f) = -(sum(spm_vec(spm_betaln(MDP(m).b{f}))) - ...
-                             sum(spm_vec(spm_betaln(pB{m,f})))    - ...
-                             spm_vec(db)'*spm_vec(qB{m,f}));
+            MDP(m).Fb(f) = - spm_KL_dir(MDP(m).b{f},pB{m,f});
         end
         if isfield(MDP,'d')
-            dd        = MDP(m).d{f} - pD{m,f};
-            MDP(m).Fd(f) = -(sum(spm_vec(spm_betaln(MDP(m).d{f}))) - ...
-                             sum(spm_vec(spm_betaln(pD{m,f})))    - ...
-                             spm_vec(dd)'*spm_vec(qD{m,f}));
+            MDP(m).Fd(f) = - spm_KL_dir(MDP(m).d{f},pD{m,f});
         end
     end
     
     % (negative) free energy of parameters: policy specific
     %----------------------------------------------------------------------
     if isfield(MDP,'e')
-        de     = MDP(m).e - pE{m};
-        MDP(m).Fe = -(sum(spm_vec(spm_betaln(MDP(m).e))) - ...
-                      sum(spm_vec(spm_betaln(pE{m})))    - ...
-                      spm_vec(de)'*spm_vec(qE{m}));
+        MDP(m).Fe = - spm_KL_dir(MDP(m).e,pE{m});
     end
     
     % simulated dopamine (or cholinergic) responses
@@ -1123,6 +1115,7 @@ for m = 1:size(MDP,1)
     %----------------------------------------------------------------------
     MDP(m).T  = T;            % number of belief updates
     MDP(m).V  = V{m};         % policies
+    MDP(m).O  = O{m};         % policies
     MDP(m).P  = P{m};         % probability of action at time 1,...,T - 1
     MDP(m).R  = u{m};         % conditional expectations over policies
     MDP(m).Q  = x(m,:);       % conditional expectations over N states
@@ -1206,5 +1199,4 @@ end
 %     F(i)  = spm_log(po(j));
 % end
 % po        = spm_softmax(F*512);
-
 

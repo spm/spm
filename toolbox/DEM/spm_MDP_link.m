@@ -1,18 +1,18 @@
-function [link,LINK] = spm_MDP_link(MDP)
+function [LINK,link] = spm_MDP_link(MDP)
 % auxiliary function to create link (cell array)
-% FORMAT [link,LINK] = spm_MDP_link(MDP)
+% FORMAT [LINK,link] = spm_MDP_link(MDP)
 %
 % MDP.MDP  - hierarchical MDP structure
 %
-% link  - matrix of links
-% LINK  - cell array of matrices linking outputs to states
+% LINK  - cell array of (binary) matrices linking outputs to states
+% link  - (binary) matrix of non-empty links
 %
 % this routine assumes unique names in MDP.labels
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_link.m 7329 2018-06-10 21:12:02Z karl $
+% $Id: spm_MDP_link.m 7382 2018-07-25 13:58:04Z karl $
 
 % search for matching strings identifying outcomes at the higher level with
 % states at the lower level

@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7330 2018-06-12 19:19:24Z karl $
+% $Id: DEMO_MDP_questions.m 7382 2018-07-25 13:58:04Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -195,25 +195,26 @@ mdp.B = B;                      % transition probabilities
 mdp.D = D;                      % prior over initial states
  
 mdp.label = label;
-mdp.chi   = 1/64;
+mdp.chi   = 1/32;
  
 clear A B D
  
 MDP   = spm_MDP_check(mdp);
-MDP.s = [1 2 1 8]';
-MDP   = spm_MDP_VB_X(MDP);
 
-% show belief updates (and behaviour)
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1'); clf
-spm_MDP_VB_trial(MDP,[3 4],1);
-
-% illustrate phase-precession and responses
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2'); clf
-spm_MDP_VB_LFP(MDP,[],4);
-
-cell2mat(MDP.label.outcome{1}(MDP.o))
+% MDP.s = [1 2 1 8]';
+% MDP   = spm_MDP_VB_X(MDP);
+% 
+% % show belief updates (and behaviour)
+% %------------------------------------------------------------------------
+% spm_figure('GetWin','Figure 1'); clf
+% spm_MDP_VB_trial(MDP,[3 4],1);
+% 
+% % illustrate phase-precession and responses
+% %------------------------------------------------------------------------
+% spm_figure('GetWin','Figure 2'); clf
+% spm_MDP_VB_LFP(MDP,[],4);
+% 
+% cell2mat(MDP.label.outcome{1}(MDP.o))
 
 
 % set up and preliminaries: first level
@@ -404,7 +405,7 @@ s(4) = 2;
 mdp.MDP    = MDP;
 mdp.label  = label;             % names of factors and outcomes
 mdp.tau    = 4;                 % time constant of belief updating
-mdp.erp    = 2;                 % initialization
+mdp.erp    = 4;                 % initialization
 
 mdp.V = V;                      % allowable policies
 mdp.A = A;                      % observation model
@@ -414,10 +415,8 @@ mdp.D = D;                      % prior over initial states (context)
 mdp.s = s;                      % initial state
 mdp.o = [];                     % outcomes
 
-mdp      = spm_MDP_check(mdp);
-[L,J]    = spm_MDP_link(mdp);
-% MDP.link = L;
-MDP.LINK = J;
+mdp.link = spm_MDP_link(mdp);
+MDP      = spm_MDP_check(mdp);
 
  
  
@@ -439,14 +438,19 @@ spm_MDP_VB_trial(MDP(1),[1 2 4],[1 3 4]);
 spm_figure('GetWin','Figure 2'); clf
 spm_MDP_VB_LFP(MDP,[],4);
 
-spm_figure('GetWin','Figure 3'); clf
+spm_figure('GetWin','Figure 2A'); clf
 spm_MDP_VB_LFP(MDP,[],4,1);
+
+spm_figure('GetWin','Figure 3'); clf
+spm_MDP_VB_ERP(MDP(4:6),[4,3]);
 
 spm_figure('GetWin','Figure 4'); clf
 for i = 1:size(MDP,2)
     subplot(4,3,i)
     spm_questions_plot(MDP(1,i))
 end
+
+return
 
 % illustrate violations
 %==========================================================================
@@ -732,25 +736,32 @@ for m = 1:numel(MDP)
     %----------------------------------------------------------------------
     question = MDP(m).o(4,2);
     answer   = MDP(m).o(4,3);
-    noun     = {'square','triangle'};
-    adj      = {'green','red'};
-    adverb   = {'above','below'};
-    if question == 1
-        qstr = ['Is there a ' noun{MDP(m).o(1,2)} ' ?'];
-    elseif question == 2
-        qstr = ['Is there a ' noun{MDP(m).o(1,2)} ' ' adverb{MDP(m).o(3,2)} ' ?'];
-    elseif question == 3
-        qstr = ['Is there a ' adj{MDP(m).o(2,2)} ' ' noun{MDP(m).o(1,2)} ' ' adverb{MDP(m).o(3,2)} ' ?'];
-    else
-        qstr = '!';
+    
+    try
+        qstr = cell2mat(MDP(m).MDP.label.outcome{1}(MDP(m).mdp(2).o));
+        astr = cell2mat(MDP(m).MDP.label.outcome{1}(MDP(m).mdp(3).o));
+    catch
+        noun     = {'square','triangle'};
+        adj      = {'green','red'};
+        adverb   = {'above','below'};
+        if question == 1
+            qstr = ['Is there a ' noun{MDP(m).o(1,2)} ' ?'];
+        elseif question == 2
+            qstr = ['Is there a ' noun{MDP(m).o(1,2)} ' ' adverb{MDP(m).o(3,2)} ' ?'];
+        elseif question == 3
+            qstr = ['Is there a ' adj{MDP(m).o(2,2)} ' ' noun{MDP(m).o(1,2)} ' ' adverb{MDP(m).o(3,2)} ' ?'];
+        else
+            qstr = '!';
+        end
+        if answer == 4
+            astr = 'Yes there is !';
+        elseif answer == 5
+            astr = 'No !';
+        else
+            astr = 'I''m not sure';
+        end
     end
-    if answer == 4
-        astr = 'Yes there is !';
-    elseif answer == 5
-        astr = 'No !';
-    else
-        astr = 'I''m not sure';
-    end
+
     
     % is the answer right (for a single player)?
     %----------------------------------------------------------------------
