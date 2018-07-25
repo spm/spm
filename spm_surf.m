@@ -23,7 +23,7 @@ function varargout = spm_surf(P,mode,thresh)
 %    p  = patch(FV, 'Parent',ax,...
 %           'FaceColor', [0.8 0.7 0.7], 'FaceVertexCData', [],...
 %           'EdgeColor', 'none',...
-%           'FaceLighting', 'phong',...
+%           'FaceLighting', 'gouraud',...
 %           'SpecularStrength' ,0.7, 'AmbientStrength', 0.1,...
 %           'DiffuseStrength', 0.7, 'SpecularExponent', 10);
 %    set(0,'CurrentFigure',fg);
@@ -50,12 +50,12 @@ function varargout = spm_surf(P,mode,thresh)
 % 0.5. The input segmentation images can be manually cleaned up first using
 % e.g., MRIcron.
 %__________________________________________________________________________
-% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_surf.m 6520 2015-08-13 16:13:06Z guillaume $
+% $Id: spm_surf.m 7381 2018-07-25 10:27:54Z guillaume $
 
-SVNrev = '$Rev: 6520 $';
+SVNrev = '$Rev: 7381 $';
 
 spm('FnBanner',mfilename,SVNrev);
 spm('FigName','Surface');

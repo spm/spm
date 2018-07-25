@@ -4,7 +4,7 @@ function varargout = plot(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: plot.m 7380 2018-07-25 09:49:27Z guillaume $
+% $Id: plot.m 7381 2018-07-25 10:27:54Z guillaume $
 
 % if ishandle(varargin{1})
 %     h = figure(varargin{1});
@@ -14,9 +14,9 @@ function varargout = plot(varargin)
 %     %axis off;
 %     %camlight;
 %     %camlight(-80,-10);
-%     %lighting phong;
+%     %lighting gouraud;
 % end
-% cameramenu;
+% cameratoolbar;
 
 
 cdata = [];
@@ -57,7 +57,7 @@ end
 
 camlight(ax);
 camlight(ax,-80,-10);
-lighting(ax,'phong');
+lighting(ax,'gouraud');
 cameratoolbar(h);
 
 if nargout

@@ -33,9 +33,9 @@ function varargout = spm_render(dat,brt,rendfile)
 % Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 6510 2015-07-31 14:49:33Z guillaume $
+% $Id: spm_render.m 7381 2018-07-25 10:27:54Z guillaume $
 
-SVNrev = '$Rev: 6510 $';
+SVNrev = '$Rev: 7381 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -427,7 +427,7 @@ switch lower(varargin{1})
     Z = Z*vx(3) + xyz(3);
     hold(ax,'on');
     hs = surf(X,Y,Z,'parent',ax,...
-        'EdgeColor','none','FaceColor',[1 0 0],'FaceLighting', 'phong');
+        'EdgeColor','none','FaceColor',[1 0 0],'FaceLighting', 'gouraud');
     set(hs,'UserData',xyz);
     
     varargout = {hs};

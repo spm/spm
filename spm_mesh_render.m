@@ -36,10 +36,10 @@ function varargout = spm_mesh_render(action,varargin)
 % hReg     - Handle of HandleGraphics object to build registry in.
 % See spm_XYZreg for more information.
 %__________________________________________________________________________
-% Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 7373 2018-07-09 16:57:21Z guillaume $
+% $Id: spm_mesh_render.m 7381 2018-07-25 10:27:54Z guillaume $
 
 
 %-Input parameters
@@ -100,7 +100,7 @@ switch lower(action)
         H.patch = patch(P,...
             'FaceColor',        [0.6 0.6 0.6],...
             'EdgeColor',        'none',...
-            'FaceLighting',     'phong',...
+            'FaceLighting',     'gouraud',...
             'SpecularStrength', 0.7,...
             'AmbientStrength',  0.1,...
             'DiffuseStrength',  0.7,...
@@ -141,7 +141,7 @@ switch lower(action)
         material(H.figure,'dull');
         H.light = camlight; set(H.light,'Parent',H.axis);
         
-        H.rotate3d = rotate3d(H.axis);
+        try, H.rotate3d = rotate3d(H.axis); catch, H.rotate3d = []; end % bug #49747
         set(H.rotate3d,'Enable','on');
         set(H.rotate3d,'ActionPostCallback',{@myPostCallback, H});
         %try
