@@ -7,12 +7,12 @@ function M = spm_mesh_polyhedron(name)
 % M        - patch structure
 %__________________________________________________________________________
 %
-% See http://en.wikipedia.org/wiki/Platonic_solid
+% See https://www.wikipedia.org/wiki/Platonic_solid
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_polyhedron.m 6694 2016-01-26 17:09:11Z guillaume $
+% $Id: spm_mesh_polyhedron.m 7383 2018-07-31 10:53:37Z guillaume $
 
 
 switch lower(name)

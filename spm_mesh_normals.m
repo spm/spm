@@ -7,10 +7,10 @@ function [Nv, Nf] = spm_mesh_normals(M, unit)
 % Nv     - a [nx3] array of (unit) normals on vertices
 % Nf     - a [mx3] array of (unit) normals on faces
 %__________________________________________________________________________
-% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_normals.m 7186 2017-10-16 10:12:30Z guillaume $
+% $Id: spm_mesh_normals.m 7383 2018-07-31 10:53:37Z guillaume $
 
 
 if nargin < 2, unit = false; end
@@ -30,7 +30,9 @@ if ishandle(M)
     end
 else
     try
+        ws = warning('off','MATLAB:triangulation:PtsNotInTriWarnId');
         t = triangulation(double(M.faces),double(M.vertices));
+        warning(ws);
         Nv = -double(t.vertexNormal);   % unit norm
         if nargout > 1
             Nf = -double(t.faceNormal); % unit norm

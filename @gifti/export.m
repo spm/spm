@@ -8,11 +8,16 @@ function s = export(this,target)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: export.m 6401 2015-04-09 17:21:33Z guillaume $
-
-if numel(this) > 1, warning('Only handle scalar objects yet.'); end
+% $Id: export.m 7383 2018-07-31 10:53:37Z guillaume $
 
 if nargin <= 1, target = 'MATLAB'; end
+
+if numel(this) > 1
+    for i=1:numel(this)
+        s(i) = export(this(i),target);
+    end
+    return;
+end
 
 switch lower(target)
     case 'matlab'

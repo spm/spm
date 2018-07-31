@@ -8,7 +8,7 @@ function this = gifti(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: gifti.m 7366 2018-07-03 16:02:11Z guillaume $
+% $Id: gifti.m 7383 2018-07-31 10:53:37Z guillaume $
 
 switch nargin
     
@@ -41,7 +41,7 @@ switch nargin
         elseif ishandle(varargin{1})
             this = struct('vertices',get(varargin{1},'Vertices'), ...
                           'faces',   get(varargin{1},'Faces'));
-            if ~isempty(get(varargin{1},'FaceVertexCData'));
+            if ~isempty(get(varargin{1},'FaceVertexCData'))
                   this.cdata = get(varargin{1},'FaceVertexCData');
             end
             this = gifti(this);
