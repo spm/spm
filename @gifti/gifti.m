@@ -8,7 +8,7 @@ function this = gifti(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: gifti.m 7383 2018-07-31 10:53:37Z guillaume $
+% $Id: gifti.m 7386 2018-08-02 15:30:17Z guillaume $
 
 switch nargin
     
@@ -78,7 +78,7 @@ switch nargin
                 end
             elseif ismember(lower(e),{'.asc','.srf','.mgh','.pial',...
                     '.white','.inflated','.nofix','.orig','.smoothwm',...
-                    '.sphere','.reg','.surf'})
+                    '.sphere','.reg','.surf','.curv','.area','.sulc'})
                 this = read_freesurfer_file(varargin{1});
                 this = gifti(this);
             elseif strcmpi(e,'.vtk')

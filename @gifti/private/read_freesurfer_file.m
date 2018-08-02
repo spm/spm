@@ -9,7 +9,7 @@ function this = read_freesurfer_file(filename)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: read_freesurfer_file.m 7366 2018-07-03 16:02:11Z guillaume $
+% $Id: read_freesurfer_file.m 7386 2018-08-02 15:30:17Z guillaume $
 
 
 [p,n,e] = fileparts(filename);
@@ -21,6 +21,8 @@ switch lower(e)
     case {'.pial','.white','.inflated','.nofix','.orig','.smoothwm',...
             '.sphere','.reg','.surf'}
         this = read_fs_file_mesh(filename);
+    case {'.curv','.area','.sulc'}
+        this = read_fs_file_cdata(filename);
     otherwise
         error('Unknown file format.');
 end
@@ -125,3 +127,22 @@ this.faces = fread(fid,3*nf,'int32');
 this.faces = reshape(this.faces,3,nf)' + 1;
 
 fclose(fid);
+
+
+function this = read_fs_file_cdata(filename)
+fid = fopen(filename,'r','ieee-be');
+if fid == -1, error('Cannot open "%s".',filename); end
+
+magic = fread(fid,3,'uchar');
+magic = [65536 256 1]*magic;
+if magic ~= 16777215
+    fclose(fid);
+    error('File format not supported.');
+end
+
+nv = fread(fid,1,'int32');
+nf = fread(fid,1,'int32');
+n  = fread(fid,1,'int32');
+this.cdata = fread(fid,[n nv],'float32')';
+
+fclose(fid) ;
