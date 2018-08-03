@@ -22,7 +22,7 @@ function [varargout] = spm_GPclass(varargin)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_GPclass.m 7278 2018-03-09 10:35:55Z john $
+% $Id: spm_GPclass.m 7387 2018-08-03 15:13:57Z john $
 
 if nargin>1 && isa(varargin{1},'char')
     switch lower(varargin{1})
@@ -32,7 +32,8 @@ if nargin>1 && isa(varargin{1},'char')
         if nargin >=4, t        = varargin{4}; end
         if nargin >=5, lab      = varargin{5}; end
         if nargin >=6, cov_fun  = varargin{6}; end
-        if nargin >=7, fun_args = varargin{7}; else fun_args=struct; end
+        if nargin >=7, fun_args = varargin{7}; else
+                       fun_args = struct;      end
         [X,theta0] = cov_fun('init',XX,fun_args,lab);
         E          = objfun(theta,t,X,cov_fun);
         ll         = -E;
@@ -43,7 +44,8 @@ if nargin>1 && isa(varargin{1},'char')
         if nargin >=4, t        = varargin{4}; end
         if nargin >=5, lab      = varargin{5}; end
         if nargin >=6, cov_fun  = varargin{6}; end
-        if nargin >=7, fun_args = varargin{7}; else fun_args=struct; end
+        if nargin >=7, fun_args = varargin{7}; else
+                       fun_args = struct;      end
         [X,theta0] = cov_fun('init',XX,fun_args,lab);
         [H,E0]     = Hessian(t,X,cov_fun,theta);
         varargout  = {H, -E0};
@@ -53,7 +55,8 @@ if nargin>1 && isa(varargin{1},'char')
         if nargin >=4, t        = varargin{4}; end
         if nargin >=5, lab      = varargin{5}; end
         if nargin >=6, cov_fun  = varargin{6}; end
-        if nargin >=7, fun_args = varargin{7}; else fun_args=struct; end
+        if nargin >=7, fun_args = varargin{7}; else
+                       fun_args = struct;      end
         [X,theta0] = cov_fun('init',XX,fun_args,lab);
         bic        = LaplaceAdjustment(t,X,cov_fun,theta);
         varargout  = {bic};
@@ -65,7 +68,8 @@ if nargin >=1, XX       = varargin{1}; end
 if nargin >=2, t        = varargin{2}; end
 if nargin >=3, lab      = varargin{3}; end
 if nargin >=4, cov_fun  = varargin{4}; end
-if nargin >=5, fun_args = varargin{5}; else fun_args=struct; end
+if nargin >=5, fun_args = varargin{5}; else
+               fun_args = struct; end
 
 if nargin==3
     varargout{1} = gp_pred_ep_binclass(XX,t,lab);
@@ -146,28 +150,16 @@ function [theta,ll] = GPtrain(t,X,cov_fun,theta)
 m          = numel(theta);
 thetai     = eye(m);
 tolsc      = ones(m,1)*0.01;
-objfun('reset');
 [theta,ll] = spm_powell(theta,thetai,tolsc,@objfun,t,X,cov_fun);
 ll         = -ll;
 %__________________________________________________________________________
 %__________________________________________________________________________
 function E = objfun(theta,t,X,cov_fun)
-persistent a b
-if nargin==1 && strcmp(theta,'reset'),
-    a=[];
-    b=[];
-    return;
-end
 % Objective function to minimise
 K     = cov_fun(theta,X);
 if size(t,2)==1
-    if true, %isempty(a)
-%     [a,F]   = gp_lap_binclass(K,t);
-      [a,b,F] = gp_ep_binclass(K,t);
-    else
-%      [a,F]   = gp_lap_binclass(K,t,a);
-       [a,b,F] = gp_ep_binclass(K,t,a,b);
-    end
+%   [a,F]   = gp_lap_binclass(K,t);
+    [a,b,F] = gp_ep_binclass(K,t);
 else
     [f,F]   = gp_lap_multiclass(K,t);
 end
@@ -182,8 +174,8 @@ function [f,F] = gp_lap_binclass(K,t,f)
 % Entirely derived from Rasmussen & Williams
 % Algorithm 3.1 (page 46).
 N = numel(t);
-if nargin<3, f = zeros(N,1); end;
-for i=1:256,
+if nargin<3, f = zeros(N,1); end
+for i=1:256
     sig = 1./(1+exp(-f));
     sig = min(max(sig,eps),1-eps);
     %figure(3); plot([t'; t'+1],[sig'; sig'],'-'); drawnow
@@ -208,12 +200,12 @@ function p = gp_pred_lap_binclass(K,t,o,f)
 % Entirely derived from Rasmussen & Williams
 % Algorithm 3.2 (page 47).
 N = size(t,1);
-if nargin<3,
+if nargin<3
     o = false(size(K,1),1);
     o(1:size(t,1)) = true;
 end
 
-if nargin<4,
+if nargin<4
     f = gp_lap_binclass(K(o,o),t);
 end
 sig = 1./(1+exp(-f));
@@ -221,13 +213,12 @@ W   = sig.*(1-sig);
 sW  = sqrt(W);
 L   = chol(eye(N) + K(o,o).*(sW*sW'));
 M   = L'\diag(sW);
-p   = zeros(size(K,1),1);
 %os = RandStream.getDefaultStream;
 os = rng;
 
 p = zeros(sum(~o),1);
 j = 0;
-for i=find(~o)',
+for i=find(~o)'
     j    = j + 1;
     mu   = K(o,i)'*(t-sig);
     v    = M*K(o,i);
@@ -253,10 +244,10 @@ function [f,F] = gp_lap_multiclass(K,t,f)
 % Derived mostly from Rasmussen & Williams
 % Algorithm 3.3 (page 50).
 [N,C] = size(t);
-if nargin<3, f = zeros(N,C); end;
+if nargin<3, f = zeros(N,C); end
 %if norm(K)>1e8, F=-1e10; return; end
 
-for i=1:32,
+for i=1:32
     f   = f - repmat(max(f,[],2),1,size(f,2));
     sig = exp(f)+eps;
     sig = sig./repmat(sum(sig,2),1,C);
@@ -271,19 +262,19 @@ for i=1:32,
     M = chol(sum(E,3));
 
     b = t-sig+sig.*f;
-    for c1=1:C,
-        for c2=1:C,
+    for c1=1:C
+        for c2=1:C
             b(:,c1) = b(:,c1) - sig(:,c1).*sig(:,c2).*f(:,c2);
         end
     end
 
     c   = zeros(size(t));
-    for c1=1:C,
+    for c1=1:C
         c(:,c1) = E(:,:,c1)*K*b(:,c1);
     end
     tmp = M\(M'\sum(c,2));
     a   = b-c;
-    for c1=1:C,
+    for c1=1:C
         a(:,c1) = a(:,c1) + E(:,:,c1)*tmp;
     end
     of = f;
@@ -297,7 +288,7 @@ if nargout>1
 
     R  = null(ones(1,C));
     sW = sparse([],[],[],N*(C-1),N*(C-1));
-    for i=1:N,
+    for i=1:N
         ind         = (0:(C-2))*N+i;
         P           = sig(i,:)';
         D           = diag(P);
@@ -314,12 +305,12 @@ function p = gp_pred_lap_multiclass(K,t,o,f)
 % Derived mostly from Rasmussen & Williams
 % Algorithm 3.4 (page 51).
 [N,C] = size(t);
-if nargin<3,
+if nargin<3
     o = false(size(K,1),1);
     o(1:size(t,1)) = true;
 end
 
-if nargin<4,
+if nargin<4
     f = gp_lap_multiclass(K(o,o),t);
 end
 
@@ -337,16 +328,16 @@ M   = chol(sum(E,3));
 os  = rng;
 p   = zeros(sum(~o),C);
 j   = 0;
-for i=find(~o)',
+for i=find(~o)'
     j = j + 1;
 
     mu = zeros(C,1);
     S  = zeros(C,C);
-    for c1=1:C,
+    for c1=1:C
         mu(c1) = (t(:,c1)-sig(:,c1))'*K(o,i);
         b      = E(:,:,c1)*K(o,i);
         c      = (M\(M'\b));
-        for c2=1:C,
+        for c2=1:C
             S(c1,c2) = K(o,i)'*E(:,:,c2)*c;
         end
         S(c1,c1) = S(c1,c1) - b'*K(o,i) + K(i,i);
@@ -368,7 +359,7 @@ function [nut,taut,F] = gp_ep_binclass(K,t, nut,taut)
 %fprintf('norm(K)=%g\n', norm(K));
 N    = size(t,1);
 y    = t*2-1;
-if nargin<3,
+if nargin<3
     nut  = zeros(N,1);
     taut = zeros(N,1)+eps;
 end
@@ -382,7 +373,7 @@ rng(0,'twister');
 
 for it=1:128
     prev_nut = nut;
-    for i=randperm(N),
+    for i=randperm(N)
         mui  = Sig(i,:)*nut;
 
         % Cavity parameters (eq 3.56)
@@ -440,11 +431,11 @@ l(~msk) = log((1+erf(z(~msk)/sqrt(2)))/2);
 %__________________________________________________________________________
 function p = gp_pred_ep_binclass(K,t,o,nut,taut)
 N = size(t,1);
-if nargin<3,
+if nargin<3
     o = false(size(K,1),1);
     o(1:size(t,1)) = true;
 end
-if nargin<4,
+if nargin<4
     [nut,taut] = gp_ep_binclass(K(o,o),t);
 end
 
@@ -453,7 +444,7 @@ L   = chol(eye(N)+K(o,o).*(ss*ss')); % (eq 3.67)
 z   = ss.*(L\(L'\(ss.*(K(o,o)*nut))));
 p   = zeros(sum(~o),1);
 j   = 0;
-for i=find(~o)',
+for i=find(~o)'
     j    = j + 1;
     fs   = K(o,i)'*(nut-z);
     v    = L'\(ss.*K(o,i));

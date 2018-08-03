@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 6798 2016-05-20 11:53:33Z john $
+% $Id: spm_shoot_template.m 7387 2018-08-03 15:13:57Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -42,17 +42,17 @@ NF = struct('NI',[],'vn',[1 1]);
 NF(n1,n2) = struct('NI',[],'vn',[1 1]);
 
 % Pick out individual volumes within NIfTI files
-for i=1:n1,
-    if numel(job.images{i}) ~= n2,
+for i=1:n1
+    if numel(job.images{i}) ~= n2
         error('Incompatible number of images');
-    end;
-    for j=1:n2,
+    end
+    for j=1:n2
         [pth,nam,ext,num] = spm_fileparts(job.images{i}{j});
         NF(i,j).NI        = nifti(fullfile(pth,[nam ext]));
         num               = [str2num(num) 1 1];
         NF(i,j).vn        = num(1:2);
-    end;
-end;
+    end
+end
 
 spm_progress_bar('Init',n2,'Initial mean','Subjects done');
 dm = [size(NF(1,1).NI.dat) 1];
@@ -66,7 +66,7 @@ NJ     = nifti;
 NJ(n2) = nifti;
 
 t  = zeros([dm n1+1],'single');
-for i=1:n2,
+for i=1:n2
     % Generate files for flow fields, deformations and Jacobian determinants.
     [pth,nam,ext]   = fileparts(NF(1,i).NI.dat.fname);
 
@@ -74,8 +74,7 @@ for i=1:n2,
     NY(i) = nifti;
     NJ(i) = nifti;
 
-    offs  = 352;
-    if ~isempty(tname),
+    if ~isempty(tname)
         NU(i).dat = file_array(fullfile(pth,['v_' nam '_' tname '.nii']),...
                                [dm 1 3], 'float32-le', 352, 1, 0);
         NY(i).dat = file_array(fullfile(pth,['y_' nam '_' tname '.nii']),...
@@ -108,17 +107,17 @@ for i=1:n2,
     create(NJ(i)); NJ(i).dat(:,:,:)     = 1;
 
     % Add to sufficient statistics for generating initial template
-    for j=1:n1,
+    for j=1:n1
         vn         = NF(j,i).vn;
         dat        = NF(j,i).NI.dat(:,:,:,vn(1),vn(2));
         msk        = isfinite(dat);
         dat(~msk)  = 0;
         t(:,:,:,j) = t(:,:,:,j) + dat;
-    end;
+    end
     t(:,:,:,end) = t(:,:,:,end) + msk;
     clear tmp msk
     spm_progress_bar('Set',i);
-end;
+end
 spm_progress_bar('Clear');
 
 % Make symmetric (if necessary)
@@ -127,20 +126,15 @@ if issym, t = t + t(end:-1:1,:,:,:); end
 % Generate template from sufficient statistics
 tmp = t(:,:,:,end);
 msk = tmp<=0;
-for j=1:n1,
+for j=1:n1
     tmp = tmp - t(:,:,:,j);
 end
 tmp(msk) = 0.01; % Most NaNs are likely to be background
 t(:,:,:,end) = tmp;
 clear tmp msk
 M  = NF(1,1).NI.mat;
-vx = sqrt(sum(M(1:3,1:3).^2));
 t  = max(t,0);
 g  = cell(n1+1,1);
-
-%%%%%%%%%%%%%%%
-% save SuffStats0.mat t sparam vx sched smits
-%%%%%%%%%%%%%%%
 
 % Write template
 NG = NF(1,1).NI;
@@ -154,23 +148,23 @@ NG.dat.scl_inter = 0;
 NG.mat0          = NG.mat;
 vx               = sqrt(sum(NG.mat(1:3,1:3).^2));
 
-if ~isempty(sparam) && smits~=0,
+if ~isempty(sparam) && smits~=0
     g0 = spm_shoot_blur(t,[vx, prod(vx)*[sparam(1:2) sched(1)*sparam(3)]],smits); % FIX THIS
-    for j=1:n1+1,
+    for j=1:n1+1
         g{j} = max(g0(:,:,:,j),1e-4);
     end
     clear g0
 else
     sumt = max(sum(t,4),0)+eps;
-    for j=1:n1+1,
+    for j=1:n1+1
         g{j} = (t(:,:,:,j)+0.01)./(sumt+0.01*(n1+1));
     end
     clear sumt
 end
 
-if ~isempty(tname),
+if ~isempty(tname)
     create(NG);
-    for j=1:n1+1,
+    for j=1:n1+1
         NG.dat(:,:,:,j)  = g{j};
     end
 end
@@ -179,7 +173,7 @@ for j=1:n1+1, g{j} = spm_bsplinc(log(g{j}), bs_args); end
 ok = true(n2,1);
 
 % The actual work
-for it=1:nits,
+for it=1:nits
 
     % More regularisation in the early iterations, as well as a
     % a less accurate approximation in the integration.
@@ -192,7 +186,7 @@ for it=1:nits,
 
     % Update velocities
     spm_progress_bar('Init',n2,sprintf('Update velocities (%d)',it),'Subjects done');
-    for i=1:n2, % Loop over subjects
+    for i=1:n2 % Loop over subjects
 
         if ok(i)
             fprintf('%3d %5d | ',it,i);
@@ -232,7 +226,7 @@ for it=1:nits,
  
     % Update template sufficient statistics
     spm_progress_bar('Init',n2,sprintf('Update deformations and template (%d)',it),'Subjects done');
-    for i=1:n2, % Loop over subjects
+    for i=1:n2 % Loop over subjects
 
         if ok(i)
             % Load velocity, mean adjust and re-save
@@ -263,11 +257,11 @@ for it=1:nits,
             f = loadimage(NF(:,i));
 
             % Increment sufficient statistic for template
-            for j=1:n1+1,
+            for j=1:n1+1
                 tmp        = spm_diffeo('samp',f{j},y);
                 t(:,:,:,j) = t(:,:,:,j) + tmp.*dt;
                 drawnow
-            end;
+            end
 
             clear f y dt
             fprintf('.');
@@ -282,22 +276,18 @@ for it=1:nits,
     % Make left-right symmetric (if necessary)
     if issym, t = t + t(end:-1:1,:,:,:); end
 
-    %%%%%%%%%%%%%%%
-    % save(['SuffStats' num2str(it) '.mat'],'t', 'sparam', 'vx', 'sched', 'smits', 'g');
-    %%%%%%%%%%%%%%%
-
     % Re-generate template data from sufficient statistics
-    if ~isempty(sparam) && smits~=0,
+    if ~isempty(sparam) && smits~=0
         g0 = reconv(g,bs_args);
         g0 = spm_shoot_blur(t,[vx, prod(vx)*[sparam(1:2) sched(it+1)*sparam(3)]],smits,g0); % FIX THIS
         g  = cell(n1+1,1);
-        for j=1:n1+1,
+        for j=1:n1+1
             g{j} = max(g0(:,:,:,j),1e-4);
         end
         clear g0
     else
         sumt = max(sum(t,4),0)+eps;
-        for j=1:n1+1,
+        for j=1:n1+1
             g{j} = (t(:,:,:,j)+0.01)./(sumt+0.01*(n1+1));
         end
         clear sumt
@@ -305,10 +295,10 @@ for it=1:nits,
     clear t
 
     % Write template
-    if ~isempty(tname),
+    if ~isempty(tname)
         NG.dat.fname    = fullfile(tdir,[tname '_' num2str(ceil(it/6)) '.nii']);
         create(NG);
-        for j=1:n1+1,
+        for j=1:n1+1
             NG.dat(:,:,:,j) = g{j};
         end
     end
@@ -320,15 +310,15 @@ end
 
 if any(~ok)
     fprintf('Problems with:\n');
-    for i=find(~ok)',
+    for i=find(~ok)'
         fprintf('\t%s\n', NU(i).dat.fname);
     end
 end
 
 % Finish off
 out.template = cell(1+ceil(nits/6),1);
-if ~isempty(tname),
-    for it=0:ceil(nits/6),
+if ~isempty(tname)
+    for it=0:ceil(nits/6)
         fname    = fullfile(tdir,[tname '_' num2str(it) '.nii']);
         out.template{it+1} = fname;
     end
@@ -336,7 +326,7 @@ end
 out.vel = cell(n2,1);
 out.def = cell(n2,1);
 out.jac = cell(n2,1);
-for i=1:n2,
+for i=1:n2
     out.vel{i} = NU(i).dat.fname;
     out.def{i} = NY(i).dat.fname;
     out.jac{i} = NJ(i).dat.fname;
@@ -347,7 +337,7 @@ end
 function y1 = affind(y0,M)
 % Affine transform of deformation
 y1 = zeros(size(y0),'single');
-for d=1:3,
+for d=1:3
     y1(:,:,:,d) = y0(:,:,:,1)*M(d,1) + y0(:,:,:,2)*M(d,2) + y0(:,:,:,3)*M(d,3) + M(d,4);
 end
 %=======================================================================
@@ -357,7 +347,7 @@ function g0 = reconv(g,bs_args)
 d = [size(g{1}), 1];
 [i1,i2,i3]=ndgrid(1:d(1),1:d(2),1:d(3));
 g0 = zeros([d,numel(g)],'single');
-for k=1:numel(g),
+for k=1:numel(g)
     g0(:,:,:,k) = max(exp(spm_bsplins(g{k},i1,i2,i3,bs_args)),1e-4);
 end
 %=======================================================================
@@ -369,7 +359,7 @@ f       = cell(n1+1,1);
 dm      = [NF(1).NI.dat.dim 1 1 1];
 dm      = dm(1:3);
 f{n1+1} = ones(dm,'single');
-for j=1:n1,
+for j=1:n1
     vn      = NF(j,1).vn;
     f{j}    = single(NF(j,1).NI.dat(:,:,:,vn(1),vn(2)));
     msk     = ~isfinite(f{j});

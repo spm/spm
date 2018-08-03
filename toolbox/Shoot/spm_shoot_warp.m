@@ -14,7 +14,7 @@ function out = spm_shoot_warp(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_warp.m 6024 2014-05-29 11:41:32Z john $
+% $Id: spm_shoot_warp.m 7387 2018-08-03 15:13:57Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -39,17 +39,17 @@ NF = struct('NI',[],'vn',[1 1]);
 NF(n1,n2) = struct('NI',[],'vn',[1 1]);
 
 % Pick out individual volumes within NIfTI files
-for i=1:n1,
-    if numel(job.images{i}) ~= n2,
+for i=1:n1
+    if numel(job.images{i}) ~= n2
         error('Incompatible number of images');
-    end;
-    for j=1:n2,
+    end
+    for j=1:n2
         [pth,nam,ext,num] = spm_fileparts(job.images{i}{j});
         NF(i,j).NI        = nifti(fullfile(pth,[nam ext]));
         num               = [str2num(num) 1 1];
         NF(i,j).vn        = num(1:2);
-    end;
-end;
+    end
+end
 
 dm = [size(NF(1,1).NI.dat) 1];
 dm = dm(1:3);
@@ -66,7 +66,7 @@ NY(n2) = nifti;
 NJ     = nifti;
 NJ(n2) = nifti;
 
-for i=1:n2, % Loop over subjects
+for i=1:n2 % Loop over subjects
     % Load image data for this subject
     f = loadimage(NF(:,i));
 
@@ -100,15 +100,15 @@ for i=1:n2, % Loop over subjects
     drawnow
 
     % Re-load first template (if necessary)
-    if (i==1) || ~all(tmpl_no==1),
+    if (i==1) || ~all(tmpl_no==1)
         [g,vx] = load_template(job.templates{tmpl_no(1)}, n1, bs_args);
     end
 
     % The actual work
-    for it=1:nits,
+    for it=1:nits
 
         % Load template appropriate for this iteration
-        if (it>1) && (tmpl_no(it)~=tmpl_no(it-1)),
+        if (it>1) && (tmpl_no(it)~=tmpl_no(it-1))
             [g,vx] = load_template(job.templates{tmpl_no(it)}, n1, bs_args);
         end
 
@@ -146,7 +146,7 @@ end
 
 if any(~ok)
     fprintf('Problems with:\n');
-    for i=find(~ok)',
+    for i=find(~ok)'
         fprintf('\t%s\n', NU(i).dat.fname);
     end
 end
@@ -155,7 +155,7 @@ end
 out.vel = cell(n2,1);
 out.def = cell(n2,1);
 out.jac = cell(n2,1);
-for i=1:n2,
+for i=1:n2
     out.vel{i} = NU(i).dat.fname;
     out.def{i} = NY(i).dat.fname;
     out.jac{i} = NJ(i).dat.fname;
@@ -166,7 +166,7 @@ end
 function y1 = affind(y0,M)
 % Affine transform of deformation
 y1 = zeros(size(y0),'single');
-for d=1:3,
+for d=1:3
     y1(:,:,:,d) = y0(:,:,:,1)*M(d,1) + y0(:,:,:,2)*M(d,2) + y0(:,:,:,3)*M(d,3) + M(d,4);
 end
 %=======================================================================
@@ -178,7 +178,7 @@ f       = cell(n1+1,1);
 dm      = [NF(1).NI.dat.dim 1 1 1];
 dm      = dm(1:3);
 f{n1+1} = ones(dm,'single');
-for j=1:n1,
+for j=1:n1
     vn      = NF(j,1).vn;
     f{j}    = single(NF(j,1).NI.dat(:,:,:,vn(1),vn(2)));
     msk     = ~isfinite(f{j});
@@ -193,12 +193,12 @@ f{n1+1}(msk) = 0.00001;
 function [g,vx] = load_template(template, n1, bs_args)
 g  = cell(n1+1,1);
 NG = nifti(template);
-if size(NG.dat,4) < n1+1,
+if size(NG.dat,4) < n1+1
     error('Not enough tissues in template (%d < %d+1).', size(NG.dat,4),n1);
 end
 
 bg = ones([size(NG.dat,1), size(NG.dat,2), size(NG.dat,3)]);
-for j=1:n1,
+for j=1:n1
     tmp  = NG.dat(:,:,:,j);
     g{j} = spm_bsplinc(log(tmp), bs_args);
     bg   = bg - tmp;

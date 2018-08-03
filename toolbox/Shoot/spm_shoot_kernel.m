@@ -18,7 +18,7 @@ function out = spm_shoot_kernel(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_kernel.m 6798 2016-05-20 11:53:33Z john $
+% $Id: spm_shoot_kernel.m 7387 2018-08-03 15:13:57Z john $
 
 defs   = spm_shoot_defaults;
 rparam = defs.rparam;
@@ -34,10 +34,10 @@ prm = [vx rparam*prod(vx)]; % FIX THIS
 n   = numel(N);
 K   = zeros(n,n);
 spm_progress_bar('Init',n*n,'Generating matrix','Elements done');
-for i=1:n,
+for i=1:n
     x1 = single(squeeze(N(i).dat(:,:,:,end,:)));
     x1 = spm_diffeo('vel2mom',x1,prm);
-    for j=i:n,
+    for j=i:n
         x2       =squeeze(N(j).dat(:,:,:,end,:,:));
         d        = x1(:)'*x2(:);
         K(i,j)   = d;

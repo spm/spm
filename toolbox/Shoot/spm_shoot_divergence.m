@@ -6,7 +6,7 @@ function out = spm_shoot_divergence(job)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_divergence.m 4573 2011-11-25 23:01:01Z john $
+% $Id: spm_shoot_divergence.m 7387 2018-08-03 15:13:57Z john $
 
 P = strvcat(job.velocities);
 out = cell(size(P,1),1);
@@ -15,7 +15,7 @@ for i=1:size(P,1)
     d     = size(Nii.dat);
     krn   = {[-1;0;1]/2,[-1,0,1]/2,reshape([-1,0,1],[1 1 3])/2};
     dv    = zeros(d(1:3));
-    for dm=1:3,
+    for dm=1:3
         dv = dv - convn(Nii.dat(:,:,:,1,dm),krn{dm},'same');
     end
     dv(:,:,1)=0; dv(:,:,end)=0;

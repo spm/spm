@@ -57,14 +57,14 @@ function varargout = spm_shoot3d(v0,prm,args, F)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot3d.m 6008 2014-05-22 12:08:01Z john $
+% $Id: spm_shoot3d.m 7387 2018-08-03 15:13:57Z john $
 
 spm_diffeo('boundary',0); % Set boundary condition
 args0 = [8 4 4];
-if nargin<3,
+if nargin<3
     args = args0;
 else
-    if numel(args)<numel(args0),
+    if numel(args)<numel(args0)
         args = [args args0((numel(args)+1):end)];
     end
 end
@@ -74,12 +74,12 @@ d        = size(v0);
 d        = d(1:3);
 vt       = v0;
 
-if ~isfinite(N),
+if ~isfinite(N)
     % Number of time steps from an educated guess about how far to move
     N = double(floor(sqrt(max(max(max(v0(:,:,:,1).^2+v0(:,:,:,2).^2+v0(:,:,:,3).^2)))))+1);
 end
 
-if nargin<4,
+if nargin<4
     F = spm_shoot_greens('kernel',d,prm);
 end
 
@@ -96,13 +96,13 @@ if verb, fprintf('\t%g', 0.5*sum(v0(:).*m0(:))/prod(d)); end
 % If required, also compute the forward and possibly also its Jacobian
 % tensor field. Note that the order of the compositions will be the
 % reverse of those for building the forward deformation.
-if nargout>=5,
+if nargout>=5
     [theta,Jtheta] = spm_diffeo('smalldef', vt,-1/N);
-elseif nargout>=4,
+elseif nargout>=4
     theta          = spm_diffeo('smalldef', vt,-1/N);
 end
 
-for t=2:abs(N),
+for t=2:abs(N)
     mt             = spm_diffeo('pushg',m0,phi,Jphi);
     %vt            = spm_diffeo('mom2vel', mt, [prm 2 2],vt); % Solve via V-cycles
     vt             = spm_shoot_greens(mt,F,prm);
@@ -120,11 +120,11 @@ for t=2:abs(N),
 
     % If required, build up forward deformation and its Jacobian tensor field from
     % small deformations
-    if nargout>=5,
+    if nargout>=5
         [   dp,    dJ] = spm_diffeo('smalldef',  vt,-1/N);        % Small deformation
         [theta,Jtheta] = spm_diffeo('comp', theta,dp, Jtheta,dJ); % Build up large def. from small defs
         clear dp dJ
-    elseif nargout>=4,
+    elseif nargout>=4
         dp             = spm_diffeo('smalldef',  vt,-1/N);        % Small deformation
         theta          = spm_diffeo('comp', theta, dp);           % Build up large def. from small defs
         clear dp
@@ -136,7 +136,7 @@ if verb, fprintf('\n'); end
 
 varargout{1} = phi;
 varargout{2} = Jphi;
-if nargout>=3,
+if nargout>=3
     mt           = spm_diffeo('pushg',m0,phi,Jphi);
     varargout{3} = spm_shoot_greens(mt,F,prm);
 end

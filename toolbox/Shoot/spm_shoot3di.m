@@ -51,24 +51,23 @@ function varargout = spm_shoot3di(v0,prm,args)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot3di.m 4883 2012-09-03 12:34:55Z john $
+% $Id: spm_shoot3di.m 7387 2018-08-03 15:13:57Z john $
 
 args0 = [8 4 4];
-if nargin<3,
+if nargin<3
     args = args0;
 else
-    if numel(args)<numel(args0),
+    if numel(args)<numel(args0)
         args = [args args0((numel(args)+1):end)];
     end
 end
 verb     = false;
 N        = args(1);   % # Time steps
-fmg_args = args(2:3); % Multigrid params
 d        = size(v0);
 d        = d(1:3);
 vt       = v0;
 
-if ~isfinite(N),
+if ~isfinite(N)
     % Number of time steps from an educated guess about how far to move
     N = double(floor(sqrt(max(max(max(v0(:,:,:,1).^2+v0(:,:,:,2).^2+v0(:,:,:,3).^2)))))+1);
 end
@@ -88,13 +87,13 @@ if verb, fprintf('\t%g', 0.5*sum(v0(:).*m0(:))/prod(d)); end
 % If required, also compute the forward and possibly also its Jacobian
 % tensor field. Note that the order of the compositions will be the
 % reverse of those for building the forward deformation.
-if nargout>=5,
+if nargout>=5
     [ phi, Jphi]  = spm_diffeo('smalldef', vt,1/N);
-elseif nargout>=4,
+elseif nargout>=4
     phi           = spm_diffeo('smalldef', vt,1/N);
 end
 
-for t=2:abs(N),
+for t=2:abs(N)
     mt        = pullg(m0,theta,Jtheta);
     %vt       = spm_diffeo('mom2vel', mt, [prm 2 2],vt); Solve via V-cycles
     vt        = spm_shoot_greens(mt,F,prm);
@@ -106,11 +105,11 @@ for t=2:abs(N),
 
     % If required, build up forward deformation and its Jacobian tensor field from
     % small deformations
-    if nargout>=5,
+    if nargout>=5
         [ dp,dJ]    = spm_diffeo('smalldef',  vt,1/N);    % Small deformation
         [phi, Jphi] = spm_diffeo('comp', dp, phi, dJ, Jphi); % Build up large def. from small defs
         clear dp dJ
-    elseif nargout>=4,
+    elseif nargout>=4
         dp          = spm_diffeo('smalldef',  vt,1/N);    % Small deformation
         phi         = spm_diffeo('comp', dp, phi);        % Build up large def. from small defs
         clear dp
@@ -122,7 +121,7 @@ if verb, fprintf('\n'); end
 
 varargout{1} = theta;
 varargout{2} = Jtheta;
-if nargout>=3,
+if nargout>=3
     mt           = pullg(m0,theta,Jtheta);
     varargout{3} = spm_shoot_greens(mt,F,prm);
 end
@@ -134,7 +133,7 @@ if nargout>=5, varargout{5} = Jphi; end
 function mt = pullg(m0,phi,J)
 % The Ad* operation
 mt = zeros(size(m0),'single');
-for i=1:size(m0,3),
+for i=1:size(m0,3)
     phii        = phi(:,:,i,:);
     mr1         = spm_diffeo('samp',m0(:,:,:,1), phii);
     mr2         = spm_diffeo('samp',m0(:,:,:,2), phii);

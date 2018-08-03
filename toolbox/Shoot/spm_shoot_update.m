@@ -20,7 +20,7 @@ function [u0,ll1,ll2,grad_norm] = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args,sc
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_update.m 5829 2014-01-06 20:02:09Z john $
+% $Id: spm_shoot_update.m 7387 2018-08-03 15:13:57Z john $
 
 if nargin<8, scale = 1.0; end
 scale = max(min(scale,1.0),0.0);
@@ -65,7 +65,7 @@ function [ll,b,A] = mnom_derivs(g,f,phi,dt, bs_args)
 %_______________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
-if nargin<4,
+if nargin<4
     bs_args = [2 2 2  1 1 1];
 end
 
@@ -78,12 +78,12 @@ A  = zeros([d,6],'single');
 
 [id{1},id{2},id{3}] = ndgrid(1:d(1),1:d(2),ceil(bs_args(3)/2)+1);
 
-for z=1:d(3),
+for z=1:d(3)
     ind = z+(-ceil(bs_args(3)/2):ceil(bs_args(3)/2));
     if bs_args(6), ind = rem(ind-1+d(3),d(3))+1; end
 
     f1  = cell(size(f));
-    for k=1:numel(g),
+    for k=1:numel(g)
         % Note the fudge with the indexing because spm_bsplins only works for double.
         [g1,d1,d2,d3] = spm_bsplins(double(g{k}(:,:,ind)),id{:},bs_args);
         slice(k) = struct('mu',exp(g1),'d1',d1,'d2',d2,'d3',d3);
@@ -99,7 +99,7 @@ for z=1:d(3),
 
     b(:,:,z,:)  = 0;
     A(:,:,z,:)  = 0;
-    for k=1:numel(g),
+    for k=1:numel(g)
         tmp      = f1{k}.*log(slice(k).mu);
         ll       = ll - sum(tmp(:));
         tmp      = f1{k} - slice(k).mu.*dt(:,:,z);
@@ -107,8 +107,8 @@ for z=1:d(3),
         b(:,:,z,1) = b(:,:,z,1) + tmp.*slice(k).d1;
         b(:,:,z,2) = b(:,:,z,2) + tmp.*slice(k).d2;
         b(:,:,z,3) = b(:,:,z,3) + tmp.*slice(k).d3;
-        for k1=1:numel(g),
-            if k1~=k,
+        for k1=1:numel(g)
+            if k1~=k
                 tmp = -slice(k).mu.*slice(k1).mu.*dt(:,:,z);
             else
                 tmp = max(slice(k).mu.*(1-slice(k1).mu),0).*dt(:,:,z);
