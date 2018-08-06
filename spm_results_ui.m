@@ -121,10 +121,10 @@ function varargout = spm_results_ui(varargin)
 % specifications for embedded CallBack functions are given in the main
 % body of the code.
 %__________________________________________________________________________
-% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2018 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 7204 2017-11-08 17:26:52Z guillaume $
+% $Id: spm_results_ui.m 7388 2018-08-06 12:04:26Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 7204 $'; 
+SVNid = '$Rev: 7388 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -999,18 +999,18 @@ switch lower(Action), case 'setup'                         %-Set up results
     case 'setcoords'                       % Set co-ordinates to XYZ widget
     %======================================================================
         % [xyz,d] = spm_results_ui('SetCoords',xyz,hFxyz,hC)
-        if nargin<4, hC=0; else hC=varargin{4}; end
+        if nargin<4, hC=NaN; else hC=varargin{4}; end
         if nargin<3, hFxyz=spm_results_ui('FindXYZframe'); else hFxyz=varargin{3}; end
         if nargin<2, error('Set co-ords to what!'); else xyz=varargin{2}; end
  
         %-If this is an internal call, then don't do anything
-        if hFxyz==hC, return, end
+        if isequal(hFxyz,hC), return, end
  
         UD = get(hFxyz,'UserData');
  
         %-Check validity of coords only when called without a caller handle
         %------------------------------------------------------------------
-        if hC <= 0
+        if ~ishandle(hC)
             [xyz,d] = spm_XYZreg('RoundCoords',xyz,UD.M,UD.DIM);
             if d>0 && nargout<2, warning(sprintf(...
                 '%s: Co-ords rounded to nearest voxel centre: Discrepancy %.2f',...
@@ -1030,7 +1030,7 @@ switch lower(Action), case 'setup'                         %-Set up results
  
         %-Tell the registry, if we've not been called by the registry...
         %------------------------------------------------------------------
-        if (~isempty(UD.hReg) && UD.hReg~=hC)
+        if (~isempty(UD.hReg) && ~isequal(UD.hReg,hC))
             spm_XYZreg('SetCoords',xyz,UD.hReg,hFxyz);
         end
  

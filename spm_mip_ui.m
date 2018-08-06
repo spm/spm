@@ -66,10 +66,10 @@ function varargout = spm_mip_ui(varargin)
 % main body of the function.
 %
 %__________________________________________________________________________
-% Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 6445 2015-05-21 17:38:59Z guillaume $
+% $Id: spm_mip_ui.m 7388 2018-08-06 12:04:26Z guillaume $
 
 
 %==========================================================================
@@ -391,7 +391,7 @@ switch lower(varargin{1}), case 'display'
     case 'setcoords'
     %======================================================================
         % [xyz,d] = spm_mip_ui('SetCoords',xyz,h,hC)
-        if nargin<4, hC=0; else hC=varargin{4}; end
+        if nargin<4, hC=NaN; else hC=varargin{4}; end
         if nargin<3, h=spm_mip_ui('FindMIPax'); else h=varargin{3}; end
         if nargin<2, error('Set coords to what?'), else xyz=varargin{2}; end
 
@@ -399,7 +399,7 @@ switch lower(varargin{1}), case 'display'
 
         %-Check validity of coords only when called without a caller handle
         %------------------------------------------------------------------
-        if hC<=0
+        if ~ishandle(hC)
             [xyz,d] = spm_XYZreg('RoundCoords',xyz,MD.M,MD.DIM);
             if d>0 && nargout<2, warning(sprintf(...
                     '%s: Co-ords rounded to nearest voxel center: Discrepancy %.2f',...
@@ -417,7 +417,7 @@ switch lower(varargin{1}), case 'display'
 
         %-Tell the registry, if we've not been called by the registry...
         %------------------------------------------------------------------
-        if ~isempty(MD.hReg) && MD.hReg~=hC, spm_XYZreg('SetCoords',xyz,MD.hReg,h); end
+        if ~isempty(MD.hReg) && ~isequal(MD.hReg,hC), spm_XYZreg('SetCoords',xyz,MD.hReg,h); end
 
         %-Return arguments
         %------------------------------------------------------------------

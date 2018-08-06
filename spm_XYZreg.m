@@ -164,10 +164,10 @@ function varargout = spm_XYZreg(varargin)
 % and rounding in voxel coordinates.
 % Concept and examples can be found in the body of the function.
 %__________________________________________________________________________
-% Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Chloe Hutton
-% $Id: spm_XYZreg.m 5903 2014-03-03 14:56:10Z guillaume $
+% $Id: spm_XYZreg.m 7388 2018-08-06 12:04:26Z guillaume $
 
 
 
@@ -463,9 +463,9 @@ case 'setcoords'            % Set coordinates & update registered functions
 % d returned empty if didn't check, warning printed if d not asked for & round
 % Don't check if callerhandle specified (speed)
 % If Registry cell array Reg is specified, then only these handles are updated
-hC=0; mfn='';
+hC = NaN;
 if nargin>=4
-    if ~ischar(varargin{4}), hC=varargin{4}; else mfn=varargin{4}; end
+    if ~ischar(varargin{4}), hC=varargin{4}; end
 end
 hReg = varargin{3};
 
@@ -476,7 +476,7 @@ if isempty(hReg), return, end
 %-Check validity of hReg registry handle, correct calling objects if necc.
 if ~ishandle(hReg)
     str = sprintf('%s: Invalid registry handle (%.4f)',mfilename,hReg);
-    if hC>0
+    if ishandle(hC)
         %-Remove hReg from caller
         spm_XYZreg('SetReg',hC,[])
         str = [str,sprintf('\n\t\t\t...removed from caller (%.4f)',hC)];
@@ -490,7 +490,7 @@ RD  = get(hReg,'UserData');
 
 %-Check validity of coords only when called without a caller handle
 %--------------------------------------------------------------------------
-if hC<=0
+if ~ishandle(hC)
     [xyz,d] = spm_XYZreg('RoundCoords',xyz,RD.M,RD.D);
     if d>0 && nargout<2
         warning('Coordinates rounded to nearest voxel center: Discrepancy %.2f',d);
@@ -508,7 +508,7 @@ if nargin<5
 else
     Reg = spm_XYZreg('VReg',varargin{5});
 end
-if hC>0 && ~isempty(Reg), Reg([Reg{:,1}]==varargin{4},:) = []; end
+if ishandle(hC) && ~isempty(Reg), Reg([Reg{:,1}]==varargin{4},:) = []; end
 for i = 1:size(Reg,1)
     feval(Reg{i,2},'SetCoords',xyz,Reg{i,1},hReg);
 end
