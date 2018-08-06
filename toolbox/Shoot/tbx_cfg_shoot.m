@@ -1,7 +1,7 @@
 function shoot = tbx_cfg_shoot
 % MATLABBATCH Configuration file for toolbox 'Shoot Tools'
 
-% $Id: tbx_cfg_shoot.m 7387 2018-08-03 15:13:57Z john $
+% $Id: tbx_cfg_shoot.m 7389 2018-08-06 13:35:48Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Shoot')); end
 
@@ -305,7 +305,7 @@ template.help   = {...
 fwhm         = cfg_entry;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'Gaussian FWHM';
-fwhm.val     = {[0]};
+fwhm.val     = {0};
 fwhm.strtype = 'e';
 fwhm.num     = [1 1];
 fwhm.help    = {'Specify the full width at half maximum (FWHM) of the isotropic Gaussian blurring kernel in mm.'};

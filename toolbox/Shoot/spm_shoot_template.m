@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 7387 2018-08-03 15:13:57Z john $
+% $Id: spm_shoot_template.m 7389 2018-08-06 13:35:48Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -66,6 +66,7 @@ NJ     = nifti;
 NJ(n2) = nifti;
 
 t  = zeros([dm n1+1],'single');
+
 for i=1:n2
     % Generate files for flow fields, deformations and Jacobian determinants.
     [pth,nam,ext]   = fileparts(NF(1,i).NI.dat.fname);
@@ -105,17 +106,21 @@ for i=1:n2
     create(NU(i)); NU(i).dat(:,:,:,:,:) = 0;
     create(NY(i)); NY(i).dat(:,:,:,:,:) = reshape(affind(spm_diffeo('Exp',zeros([dm,3],'single'),[0 1]),NU(i).mat0),[dm,1,3]);
     create(NJ(i)); NJ(i).dat(:,:,:)     = 1;
+end
+
+for i=1:n2, % Loop over subjects. Can replace FOR with PARFOR.
 
     % Add to sufficient statistics for generating initial template
+    tmp = zeros([dm n1+1],'single');
     for j=1:n1
-        vn         = NF(j,i).vn;
-        dat        = NF(j,i).NI.dat(:,:,:,vn(1),vn(2));
-        msk        = isfinite(dat);
-        dat(~msk)  = 0;
-        t(:,:,:,j) = t(:,:,:,j) + dat;
+        vn             = NF(j,i).vn;
+        dat            = NF(j,i).NI.dat(:,:,:,vn(1),vn(2));
+        msk            = isfinite(dat);
+        dat(~msk)      = 0;
+        tmp(:,:,:,j)   = dat;
+        if j==1, tmp(:,:,:,end) = msk; end
     end
-    t(:,:,:,end) = t(:,:,:,end) + msk;
-    clear tmp msk
+    t = t + tmp;
     spm_progress_bar('Set',i);
 end
 spm_progress_bar('Clear');
@@ -186,7 +191,7 @@ for it=1:nits
 
     % Update velocities
     spm_progress_bar('Init',n2,sprintf('Update velocities (%d)',it),'Subjects done');
-    for i=1:n2 % Loop over subjects
+    for i=1:n2 % Loop over subjects. Can replace FOR with PARFOR.
 
         if ok(i)
             fprintf('%3d %5d | ',it,i);
@@ -202,12 +207,12 @@ for it=1:nits
 
             % Gauss-Newton iteration to re-estimate deformations for this subject
             u = spm_shoot_update(g,f,u,y,dt,prm,bs_args,scale);
-            clear f y
+            %clear f y
 
             drawnow
             NU(i).dat(:,:,:,:,:) = reshape(u,[dm 1 3]);
             su = su + u;
-            clear u
+            %clear u
             spm_progress_bar('Set',i);
         end
 
@@ -226,7 +231,7 @@ for it=1:nits
  
     % Update template sufficient statistics
     spm_progress_bar('Init',n2,sprintf('Update deformations and template (%d)',it),'Subjects done');
-    for i=1:n2 % Loop over subjects
+    for i=1:n2 % Loop over subjects. Can replace FOR with PARFOR.
 
         if ok(i)
             % Load velocity, mean adjust and re-save
@@ -236,19 +241,14 @@ for it=1:nits
             end
             NU(i).dat(:,:,:,:,:) = reshape(u,[dm 1 3]);
 
-            % Generate inverse deformation and save
-            [y,J] = spm_shoot3d(u,prm,int_args, K);
-            clear u
-            dt    = spm_diffeo('det',J); clear J
+            [y,dt] = defdet(u,prm,int_args, K);
 
             if any(~isfinite(dt(:)) | dt(:)>100 | dt(:)<1/100)
                 ok(i) = false;
                 fprintf('Problem with %s (dets: %g .. %g)\n', NU(i).dat.fname, min(dt(:)), max(dt(:)));
-                clear dt
+                %clear dt
             end
-        end
 
-        if ok(i)
             NY(i).dat(:,:,:,:,:) = reshape(affind(y,NU(i).mat0),[dm 1 3]);
             NJ(i).dat(:,:,:)     = dt;
             drawnow;
@@ -256,14 +256,16 @@ for it=1:nits
             % Load image data for this subject
             f = loadimage(NF(:,i));
 
-            % Increment sufficient statistic for template
+            tmp = zeros([dm n1+1],'single');
             for j=1:n1+1
-                tmp        = spm_diffeo('samp',f{j},y);
-                t(:,:,:,j) = t(:,:,:,j) + tmp.*dt;
-                drawnow
+                tmp(:,:,:,j) = spm_diffeo('samp',f{j},y).*dt;
             end
+            %clear f y dt
 
-            clear f y dt
+            % Increment sufficient statistic for template
+            t = t + tmp;
+            %clear tmp
+
             fprintf('.');
             spm_progress_bar('Set',i);
         end
@@ -368,6 +370,13 @@ for j=1:n1
     drawnow
 end
 f{n1+1}(msk) = 0.00001;
+%=======================================================================
+
+%=======================================================================
+function [y,dt] = defdet(u,prm,int_args, K)
+% Generate deformation
+[y,J] = spm_shoot3d(u,prm,int_args, K);
+dt    = spm_diffeo('det',J);
 %=======================================================================
 
 %=======================================================================

@@ -14,7 +14,7 @@ function out = spm_shoot_warp(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_warp.m 7387 2018-08-03 15:13:57Z john $
+% $Id: spm_shoot_warp.m 7389 2018-08-06 13:35:48Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -67,8 +67,6 @@ NJ     = nifti;
 NJ(n2) = nifti;
 
 for i=1:n2 % Loop over subjects
-    % Load image data for this subject
-    f = loadimage(NF(:,i));
 
     % Generate files for flow fields, deformations and Jacobian determinants.
     [pth,nam,ext]   = fileparts(NF(1,i).NI.dat.fname);
@@ -81,28 +79,32 @@ for i=1:n2 % Loop over subjects
     NU(i).mat     = NF(1,i).NI.mat;
     NU(i).mat0    = NF(1,i).NI.mat0;
     create(NU(i)); NU(i).dat(:,:,:,:,:) = 0;
-    u  = squeeze(single(NU(i).dat(:,:,:,:,:)));
 
     NY(i) = nifti;
     NY(i).dat = file_array(fullfile(pth,['y_' nam '.nii']),[dm 1 3], 'float32-le', offs, 1, 0);
     NY(i).descrip = 'Deformation (templ. to. ind.)';
     NY(i).mat     = NF(1,i).NI.mat;
     create(NY(i)); NY(i).dat(:,:,:,:,:) = reshape(affind(spm_diffeo('Exp',zeros([dm,3],'single'),[0 1]),NU(i).mat0),[dm,1,3]);
-    y  = affind(squeeze(single(NY(i).dat(:,:,:,:,:))),inv(NU(i).mat0));
 
     NJ(i) = nifti;
     NJ(i).dat = file_array(fullfile(pth,['j_' nam '.nii']),[dm 1 1], 'float32-le', offs, 1, 0);
     NJ(i).descrip = 'Jacobian det (templ. to. ind.)';
     NJ(i).mat     = NF(1,i).NI.mat;
     create(NJ(i)); NJ(i).dat(:,:,:)     = 1;
-    dt = squeeze(single(NJ(i).dat(:,:,:)));
 
     drawnow
+end
 
-    % Re-load first template (if necessary)
-    if (i==1) || ~all(tmpl_no==1)
-        [g,vx] = load_template(job.templates{tmpl_no(1)}, n1, bs_args);
-    end
+for i=1:n2 % Loop over subjects. Can replace FOR with PARFOR.
+
+    % Load image data for this subject
+    f  = loadimage(NF(:,i));
+    u  = squeeze(single(NU(i).dat(:,:,:,:,:)));
+    y  = affind(squeeze(single(NY(i).dat(:,:,:,:,:))),inv(NU(i).mat0));
+    dt = squeeze(single(NJ(i).dat(:,:,:)));
+
+    % Re-load first template
+    [g,vx] = load_template(job.templates{tmpl_no(1)}, n1, bs_args);
 
     % The actual work
     for it=1:nits
@@ -121,15 +123,13 @@ for i=1:n2 % Loop over subjects
         fprintf(' %-5d %-3d\t| ',i,it);
 
         % Gauss-Newton iteration to re-estimate deformations for this subject
-        u     = spm_shoot_update(g,f,u,y,dt,prm,bs_args,scale); drawnow
-        [y,J] = spm_shoot3d(u,prm,int_args); drawnow
-        dt    = spm_diffeo('det',J); clear J
-        clear J
+        u      = spm_shoot_update(g,f,u,y,dt,prm,bs_args,scale); drawnow
+        [y,dt] = defdet(u,prm,int_args);
 
         if any(~isfinite(dt(:)) | dt(:)>100 | dt(:)<1/100)
             ok(i) = false;
             fprintf('Problem with %s (dets: %g .. %g)\n', NU(i).dat.fname, min(dt(:)), max(dt(:)));
-            clear dt
+           %clear dt
             break
         end
 
@@ -208,4 +208,14 @@ g{n1+1}  = log(max(bg,eps));
 clear bg
 
 vx = sqrt(sum(NG.mat(1:3,1:3).^2));
+%=======================================================================
+
+%=======================================================================
+function [y,dt] = defdet(u,prm,int_args)
+% Generate deformation
+[y,J] = spm_shoot3d(u,prm,int_args);
+dt    = spm_diffeo('det',J);
+%=======================================================================
+
+%=======================================================================
 
