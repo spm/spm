@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 7346 2018-06-15 12:44:47Z volkmar $
+% $Id: cfg_ui.m 7394 2018-08-13 16:24:53Z spm $
 
-rev = '$Rev: 7346 $'; %#ok
+rev = '$Rev: 7394 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -186,7 +186,10 @@ set(handles.helpbox, fs{:});
 function local_pointer(ptr)
 shh = get(0,'showhiddenhandles');
 set(0,'showhiddenhandles','on');
-set(get(0,'Children'),'Pointer',ptr);
+C = get(0,'Children');
+for i = 1:numel(C)
+    try, set(C(i),'Pointer',ptr); end
+end
 drawnow;
 set(0,'showhiddenhandles',shh);
 
