@@ -25,7 +25,7 @@ function S = spm_mesh_contour(M,mat)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_contour.m 7354 2018-06-22 10:44:22Z guillaume $
+% $Id: spm_mesh_contour.m 7392 2018-08-13 11:50:28Z guillaume $
 
 
 %-Input and output arguments
@@ -106,6 +106,7 @@ while ~isempty(F)
             ii(ii==i) = []; i = ii;
             if isempty(i), i = NaN; end
         end
+        if ~isnan(i) && i ~= 1 && ~F(i), i = NaN; end
 
         %-Detect dead end or loop
         %------------------------------------------------------------------
