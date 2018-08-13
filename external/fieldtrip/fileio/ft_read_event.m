@@ -1541,7 +1541,17 @@ switch eventformat
       end
 
     elseif isepoched
-      ft_error('Support for epoched *.fif data is not yet implemented.')
+        begsample = cumsum([1 repmat(hdr.nSamples, hdr.nTrials-1, 1)']);
+        events_id = split(split(hdr.orig.epochs.event_id, ';'), ':');
+        events_label = cell2mat(events_id(:, 1));
+        events_code = str2num(cell2mat(events_id(:, 2)));
+        for i=1:hdr.nTrials 
+            event(end+1).type      = 'trial';
+            event(end  ).sample    = begsample(i);
+            event(end  ).value     = events_label(events_code == hdr.orig.epochs.events(i, 3), :);
+            event(end  ).offset    = -hdr.nSamplesPre;
+            event(end  ).duration  = hdr.nSamples;
+        end
     end
 
     % check whether the *.fif file is accompanied by an *.eve file
@@ -1890,6 +1900,10 @@ switch eventformat
       event(end  ).sample = offset(j) + begsample - 1;        % assign the sample at which the trigger has gone down
       event(end  ).value  = value;                            % assign the trigger value just _before_ going down
     end
+    
+  case 'nihonkohden_eeg'  
+    ft_hastoolbox('brainstorm', 1);
+    event = read_brainstorm_event(filename);
 
   case 'nimh_cortex'
     if isempty(hdr)
