@@ -12,7 +12,7 @@ function M = obj_read(filename)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: obj_read.m 7383 2018-07-31 10:53:37Z guillaume $
+% $Id: obj_read.m 7390 2018-08-13 09:51:20Z guillaume $
 
 
 fid = fopen(filename,'rt');
@@ -74,7 +74,7 @@ while true
         case 's'
             fprintf('Ignoring smooth shading.\n');
         otherwise
-            if ~isempty(strmatch('mtllib',l)) || ~isempty(strmatch('usemtl',l))
+            if strncmp('mtllib',l,6) || strncmp('usemtl',l,6)
                 fprintf('Ignoring materials.\n');
             else
                 fprintf('Ignoring line starting with %c.\n',l(1));

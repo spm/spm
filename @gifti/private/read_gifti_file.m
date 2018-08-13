@@ -7,7 +7,7 @@ function this = read_gifti_file(filename, this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: read_gifti_file.m 7366 2018-07-03 16:02:11Z guillaume $
+% $Id: read_gifti_file.m 7390 2018-08-13 09:51:20Z guillaume $
 
 % Import XML-based GIfTI file
 %--------------------------------------------------------------------------
@@ -160,8 +160,8 @@ end
 [unused,unused,mach] = fopen(1);
 sb = @(x) x;
 try
-    if (strcmp(s.Endian,'LittleEndian') && ~isempty(strmatch('ieee-be',mach))) ...
-        || (strcmp(s.Endian,'BigEndian') && ~isempty(strmatch('ieee-le',mach)))
+    if (strcmp(s.Endian,'LittleEndian') && strncmp('ieee-be',mach,7)) ...
+        || (strcmp(s.Endian,'BigEndian') && strncmp('ieee-le',mach,7))
         sb = @swapbyte;
     end
 catch
