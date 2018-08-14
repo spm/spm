@@ -12,7 +12,7 @@ function M = spm_mesh_sphere(N,M)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id$
+% $Id: spm_mesh_sphere.m 7395 2018-08-14 14:09:21Z guillaume $
 
 
 %-Check input arguments
@@ -26,39 +26,7 @@ if ischar(M),  M = spm_mesh_polyhedron(M); end
 %==========================================================================
 for i=1:N
     
-    Nv = size(M.vertices,1);
-    Nf = size(M.faces,1);
-    
-    F  = zeros(4*Nf,3);
-    A  = spm_mesh_adjacency(M);
-        
-    for f=1:Nf
-        
-        T0 = M.faces(f,:);
-        T1 = T0([2 3 1]);
-        V  = (M.vertices(T0,:) + M.vertices(T1,:)) / 2;
-        
-        s = 1:3;
-        b = [false false false];
-        for j=1:3
-            if A(T0(j),T1(j)) == 1
-                s(j) = Nv + 1;
-                A(T0(j),T1(j)) = s(j);
-                A(T1(j),T0(j)) = s(j);
-                Nv = s(j);
-                b(j) = true;
-            else
-                s(j) = A(T0(j),T1(j));
-            end
-        end
-        M.vertices(end+1:end+nnz(b),:) = V(b,:);
-        T0(4:6) = s;
-        
-        F(4*f+(-3:0),:) = T0([1 4 6;4 2 5;6 5 3;4 5 6]);
-        
-    end
-
-    M.faces = F;
+    M = spm_mesh_refine(M);
     
 end
 

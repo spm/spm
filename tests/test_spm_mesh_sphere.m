@@ -3,7 +3,7 @@ function tests = test_spm_mesh_sphere
 %__________________________________________________________________________
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id$
+% $Id: test_spm_mesh_sphere.m 7395 2018-08-14 14:09:21Z guillaume $
 
 tests = functiontests(localfunctions);
 
