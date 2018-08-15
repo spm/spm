@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7382 2018-07-25 13:58:04Z karl $
+% $Id: spm_MDP_VB_X.m 7398 2018-08-15 14:50:27Z thomas $
 
 
 % deal with a sequence of trials
@@ -1051,7 +1051,7 @@ for m = 1:size(MDP,1)
     % policies
     %----------------------------------------------------------------------
     if isfield(MDP,'e')
-        MDP(m).e = MDP(m).e + u{m}(:,T);
+        MDP(m).e = MDP(m).e + eta*u{m}(:,T);
     end
     
     % (negative) free energy of parameters (complexity): outcome specific
