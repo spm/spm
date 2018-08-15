@@ -47,10 +47,10 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % be extracted from xY.y, and will be the same as the [adjusted] data 
 % returned by the plotting routine (spm_graph.m) for the same contrast.
 %__________________________________________________________________________
-% Copyright (C) 1999-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2018 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_regions.m 6923 2016-11-04 15:35:12Z guillaume $
+% $Id: spm_regions.m 7396 2018-08-15 10:30:31Z guillaume $
 
 
 %-Shortcut for VOI display
@@ -231,6 +231,9 @@ xY.X0     = xY.X0(:,any(xY.X0));
  
 %-Compute regional response in terms of first eigenvariate
 %--------------------------------------------------------------------------
+if any(~isfinite(y(:)))
+    error('Data contain NaN or Inf. Check the VOI definition.');
+end
 [m,n]   = size(y);
 if m > n
     [v,s,v] = svd(y'*y);
