@@ -6,19 +6,23 @@ function Z = zstream(action,D)
 % FORMAT D = zstream('D',Z)
 % Z        - data stream to decompress (uint8 vector)
 % D        - decompressed data stream (uint8 vector)
+%
+% If action is upper case ('C','D'), a zlib stream is used (zlib header
+% with an adler32 checksum). Otherwise, if action is lower case ('c','d'),
+% a raw deflate stream is assumed.
 %__________________________________________________________________________
 %
 % This C-MEX file relies on:
 % * miniz, by Rich Geldreich
-%   http://code.google.com/p/miniz/
+%   https://github.com/richgel999/miniz
 % Fallback Java implementation is adapted from:
 % * dzip/dunzip, by Michael Kleder
-%   http://www.mathworks.com/matlabcentral/fileexchange/8899
+%   https://www.mathworks.com/matlabcentral/fileexchange/8899
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: zstream.m 6417 2015-04-21 16:03:44Z guillaume $
+% $Id: zstream.m 7399 2018-08-16 12:04:14Z guillaume $
 
 
 if exist('OCTAVE_VERSION','builtin')
@@ -29,7 +33,7 @@ switch upper(action)
     case 'C'
         D = typecast(D(:),'uint8');
         f = java.io.ByteArrayOutputStream();
-        g = java.util.zip.DeflaterOutputStream(f);
+        g = java.util.zip.DeflaterOutputStream(f,java.util.zip.Inflater(action~='C'));
         g.write(D);
         g.close;
         Z = typecast(f.toByteArray,'uint8');
@@ -38,7 +42,7 @@ switch upper(action)
     case 'D'
         import com.mathworks.mlwidgets.io.InterruptibleStreamCopier
         a   = java.io.ByteArrayInputStream(D);
-        b   = java.util.zip.InflaterInputStream(a);
+        b   = java.util.zip.InflaterInputStream(a,java.util.zip.Inflater(action~='D'));
         isc = InterruptibleStreamCopier.getInterruptibleStreamCopier;
         c   = java.io.ByteArrayOutputStream;
         isc.copyStream(b,c);

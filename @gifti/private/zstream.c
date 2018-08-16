@@ -1,5 +1,5 @@
 /*
- * $Id: zstream.c 6417 2015-04-21 16:03:44Z guillaume $
+ * $Id: zstream.c 7399 2018-08-16 12:04:14Z guillaume $
  * Guillaume Flandin
  */
 
@@ -24,6 +24,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 char *action;
 unsigned char *IN = NULL, *OUT = NULL;
 size_t INlen, OUTlen;
+int flag = 0;
 
 /* Check for proper number of arguments */
 if (nrhs < 2)
@@ -45,17 +46,25 @@ if (!mxIsUint8(prhs[1]) || mxIsComplex(prhs[1]))
 INlen = mxGetNumberOfElements(prhs[1]);
 IN = mxGetData(prhs[1]);
 
+/* zlib stream (zlib header with adler32 checksum) or raw deflate stream */
 if (!strcmp(action,"D")) {
+    flag = TINFL_FLAG_PARSE_ZLIB_HEADER;
+}
+else if (!strcmp(action,"C")) {
+    flag = TDEFL_WRITE_ZLIB_HEADER;
+}
+    
+if (!strcmp(action,"D") || !strcmp(action,"d")) {
 
     /* Decompress data */
-    OUT = tinfl_decompress_mem_to_heap(IN, INlen, &OUTlen, TINFL_FLAG_PARSE_ZLIB_HEADER);
+    OUT = tinfl_decompress_mem_to_heap(IN, INlen, &OUTlen, flag);
 
     if (OUT == NULL)
         mexErrMsgTxt("Error when decompressing data.");
 }
-else if (!strcmp(action,"C")) {
+else if (!strcmp(action,"C") || !strcmp(action,"c")) {
     /* Compress data */
-    OUT = tdefl_compress_mem_to_heap(IN, INlen, &OUTlen, TDEFL_WRITE_ZLIB_HEADER);
+    OUT = tdefl_compress_mem_to_heap(IN, INlen, &OUTlen, flag);
     
     if (OUT == NULL)
         mexErrMsgTxt("Error when compressing data.");
@@ -64,7 +73,7 @@ else {
     mexErrMsgTxt("Unknown ACTION type.");
 }
 
-/*  */
+/* Store output */
 plhs[0] = mxCreateNumericMatrix(OUTlen,1,mxUINT8_CLASS,mxREAL);
 if (plhs[0] == NULL)
     mexErrMsgTxt("Error when creating output variable.");
