@@ -1,5 +1,5 @@
 /*
- * $Id: zstream.c 7399 2018-08-16 12:04:14Z guillaume $
+ * $Id: zstream.c 7400 2018-08-17 13:53:33Z guillaume $
  * Guillaume Flandin
  */
 
@@ -8,7 +8,7 @@
 /* setenv CFLAGS "`mkoctfile -p CFLAGS` -std=c99" */
 /* mkoctfile --mex zstream.c */
 
-/* miniz: http://code.google.com/p/miniz/ */
+/* miniz: https://github.com/richgel999/miniz */
 #define MINIZ_NO_STDIO
 #define MINIZ_NO_ARCHIVE_APIS
 #define MINIZ_NO_TIME

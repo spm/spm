@@ -12,7 +12,7 @@ function M = mz3_read(filename)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: mz3_read.m 7399 2018-08-16 12:04:14Z guillaume $
+% $Id: mz3_read.m 7400 2018-08-17 13:53:33Z guillaume $
 
 
 M = struct();
@@ -26,11 +26,11 @@ end
 
 %-Load (uncompressed) data
 %--------------------------------------------------------------------------
-magic = fread(fid,[1 2],'uint8');
-if isequal(magic,[77 90]) % uncompressed 0x4D5A, 23117, 'MZ'
+magic = fread(fid,1,'uint16');
+if magic == 23117 % uncompressed 0x4D5A, 23117, [77 90], 'MZ'
     frewind(fid);
     D = fread(fid,Inf,'*uint8');
-elseif isequal(magic,[31 139]) % GZipped compressed 0x1F8B
+elseif magic == 35615 % GZipped compressed 0x1F8B, 35615, [31 139]
     % Read gzip file
     % http://zlib.org/rfc-gzip.html
     member = fread(fid,8,'uint8'); % |CM |FLG|     MTIME     |XFL|OS |
@@ -39,25 +39,25 @@ elseif isequal(magic,[31 139]) % GZipped compressed 0x1F8B
         error('Unknown compression method.');
     end
     flag = uint8(member(2));
-    if bitget(flag,2) % (if FLG.FEXTRA set)
+    if bitget(flag,3) % (if FLG.FEXTRA set)
         xlen = fread(fid,1,'uint16'); % | XLEN  |
         fread(fid,xlen,'uint8'); % |...XLEN bytes of "extra field"...| 
     end
-    if bitget(flag,3) % (if FLG.FNAME set)
+    if bitget(flag,4) % (if FLG.FNAME set)
         while true
             if fread(fid,1,'uint8') == 0
                 break; % |...original file name, zero-terminated...|
             end
         end
     end
-    if bitget(flag,4) % (if FLG.FCOMMENT set)
+    if bitget(flag,5) % (if FLG.FCOMMENT set)
         while true
             if fread(fid,1,'uint8') == 0
                 break; % |...file comment, zero-terminated...|
             end
         end
     end
-    if bitget(flag,1) % (if FLG.FHCRC set)
+    if bitget(flag,2) % (if FLG.FHCRC set)
         fread(fid,2,'uint8'); % | CRC16 |
     end
     % |...compressed blocks...|     CRC32     |     ISIZE     |
