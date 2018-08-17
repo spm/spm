@@ -19,7 +19,7 @@ function varargout = spm_BIDS(varargin)
 % Copyright (C) 2016-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7372 2018-07-09 16:50:44Z guillaume $
+% $Id: spm_BIDS.m 7401 2018-08-17 14:41:08Z guillaume $
 
 
 %-Validate input arguments
@@ -419,8 +419,9 @@ if exist(pth,'dir')
     
     %-MEG data file
     %----------------------------------------------------------------------
-    f = spm_select('List',pth,...
+    [f,d] = spm_select('List',pth,...
         sprintf('^%s.*_task-.*_meg\\..*[^json]$',subject.name));
+    if isempty(f), f = d; end
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
         
