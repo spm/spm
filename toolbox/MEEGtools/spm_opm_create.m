@@ -31,6 +31,7 @@ function [D,L] = spm_opm_create(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
+
 % $Id$
 
 %-Initialise
