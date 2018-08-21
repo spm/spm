@@ -9,7 +9,7 @@ function out = spm_run_norm(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_norm.m 7249 2018-01-29 12:02:33Z guillaume $
+% $Id: spm_run_norm.m 7406 2018-08-21 17:29:53Z john $
 
 
 for i=1:numel(job.subj)
@@ -97,6 +97,8 @@ for i=1:numel(job.subj)
 
     Nii = nifti(defs.comp{1}.def);
     vx  = sqrt(sum(Nii.mat(1:3,1:3).^2));
+    if det(Nii.mat(1:3,1:3))<0, vx(1) = -vx(1); end
+
     o   = Nii.mat\[0 0 0 1]';
     o   = o(1:3)';
     dm  = size(Nii.dat);
