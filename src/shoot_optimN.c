@@ -1,28 +1,28 @@
-/* $Id: shoot_optimN.c 7215 2017-11-14 15:57:55Z john $ */
+/* $Id: shoot_optimN.c 7408 2018-08-24 14:54:57Z john $ */
 /* (c) John Ashburner (2007) */
 
-#include<mex.h>
 #include<math.h>
 extern double log(double x);
 #define MAXD3 128
 
+#include "mex.h"
 #include "shoot_boundary.h"
 #include "shoot_multiscale.h"
 
-static void choldc(int n, double a[], double p[])
+static void choldc(mwSize n, double a[], /*@out@*/ double p[])
 {
-    int i, j, k;
+    mwSignedIndex i, j, k;
     double sm, sm0;
 
     sm0  = 1e-40;
-    for(i=0; i<n; i++) sm0 = sm0 + a[i*n+i];
+    for(i=0; i<(mwSignedIndex)n; i++) sm0 = sm0 + a[i*n+i];
     sm0 *= 1e-7;
     sm0 *= sm0;
  /* for(i=0; i<n; i++) a[i*n+i] += sm0; */
 
-    for(i=0; i<n; i++)
+    for(i=0; i<(mwSignedIndex)n; i++)
     {
-        for(j=i; j<n; j++)
+        for(j=i; j<(mwSignedIndex)n; j++)
         {
             sm = a[i*n+j];
             for(k=i-1; k>=0; k--)
@@ -38,22 +38,22 @@ static void choldc(int n, double a[], double p[])
     }
 }
 
-static void cholls(int n, double a[], double p[], double b[], double x[])
+static void cholls(mwSize n, double a[], double p[], /*@out@*/ double b[], /*@out@*/ double x[])
 {
-    int i, k;
+    mwSignedIndex i, k;
     double sm;
 
-    for(i=0; i<n; i++)
+    for(i=0; i<(mwSignedIndex)n; i++)
     {
         sm = b[i];
         for(k=i-1; k>=0; k--)
             sm -= a[i*n+k]*x[k];
         x[i] = sm/p[i];
     }
-    for(i=n-1; i>=0; i--)
+    for(i=(mwSignedIndex)n-1; i>=0; i--)
     {
         sm = x[i];
-        for(k=i+1; k<n; k++)
+        for(k=i+1; k<(mwSignedIndex)n; k++)
             sm -= a[k*n+i]*x[k];
         x[i] = sm/p[i];
     }
@@ -90,19 +90,22 @@ static void Atimesp1(mwSize dm[], float A[], float p[], float Ap[])
     }
 }
 
-static void get_a(mwSize dm3, mwSize i, float *pa[],  double a[])
+static void get_a(mwSize dm3, mwSignedIndex i, /*@out@*/ float *pa[], /*@out@*/ double a[])
 {
-    mwSignedIndex m, n;
-    mwSignedIndex o = dm3;
+    mwSize m, n;
+    mwSignedIndex o = (mwSignedIndex)dm3;
     for(m=0; m<dm3; m++)
     {
         a[m+dm3*m] = pa[m][i];
         for(n=m+1; n<dm3; n++,o++)
-            a[n+dm3*m] = a[m+dm3*n] = pa[o][i];
+        {
+            a[m+dm3*n] = pa[o][i];
+            a[n+dm3*m] = pa[o][i];
+        }
     }
 }
 
-static double sumsq(mwSize dm[], float a[], float b[], double s[], double scal[], float u[])
+/*@unused@*/ static double sumsq(mwSize dm[], float a[], float b[], double s[], double scal[], float u[])
 {
     double w000,w100,w200,
            w010,w110,
@@ -127,7 +130,7 @@ static double sumsq(mwSize dm[], float a[], float b[], double s[], double scal[]
     w101 = lam2*2*v0*v2;
     w011 = lam2*2*v1*v2;
 
-    for(k=0; k<dm[2]; k++)
+    for(k=0; k<(mwSignedIndex)dm[2]; k++)
     {
         mwSignedIndex j, km2,km1,kp1,kp2;
         km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
@@ -135,21 +138,21 @@ static double sumsq(mwSize dm[], float a[], float b[], double s[], double scal[]
         kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
         kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
 
-        for(j=0; j<dm[1]; j++)
+        for(j=0; j<(mwSignedIndex)dm[1]; j++)
         {
             mwSignedIndex i,m, jm2,jm1,jp1,jp2;
             float *p[MAXD3], *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
             double a1[MAXD3*MAXD3];
 
-            for(m=0; m<dm[3]; m++)
+            for(m=0; m<(mwSignedIndex)dm[3]; m++)
             {
                 pu[m]  = u+dm[0]*(j+dm[1]*(k+dm[2]*m));
                 pb[m]  = b+dm[0]*(j+dm[1]*(k+dm[2]*m));
             }
 
-            if (a)
+            if (a!=0)
             {
-                for(m=0; m<(dm[3]*(dm[3]+1))/2; m++)
+                for(m=0; m<(mwSignedIndex)(dm[3]*(dm[3]+1))/2; m++)
                     pa[m]  = a+dm[0]*(j+dm[1]*(k+dm[2]*m));
             }
 
@@ -158,9 +161,9 @@ static double sumsq(mwSize dm[], float a[], float b[], double s[], double scal[]
             jp1 = (bound(j+1,dm[1])-j)*dm[0];
             jp2 = (bound(j+2,dm[1])-j)*dm[0];
 
-            for(i=0; i<dm[0]; i++)
+            for(i=0; i<(mwSignedIndex)dm[0]; i++)
             {
-                mwSignedIndex m, im2,im1,ip1,ip2;
+                mwSignedIndex im2,im1,ip1,ip2;
                 double tmp;
 
                 im2 = bound(i-2,dm[0])-i;
@@ -168,16 +171,16 @@ static double sumsq(mwSize dm[], float a[], float b[], double s[], double scal[]
                 ip1 = bound(i+1,dm[0])-i;
                 ip2 = bound(i+2,dm[0])-i;
 
-                for(m=0; m<dm[3]; m++) p[m] = &(pu[m][i]);
+                for(m=0; m<(mwSignedIndex)dm[3]; m++) p[m] = &(pu[m][i]);
 
-                if (a) get_a(dm[3], i, pa, a1);
+                if (a!=0) get_a(dm[3], i, pa, a1);
 
-                for(m=0; m<dm[3]; m++)
+                for(m=0; m<(mwSignedIndex)dm[3]; m++)
                 {
                     mwSignedIndex n;
                     float *pm =  p[m];
                     double pm0 = pm[0];
-                    tmp =  (lam0*  pm0 +
+                    tmp =  (lam0*  pm0
                           + w100*((pm[im1        ]-pm0) + (pm[ip1        ]-pm0))
                           + w010*((pm[    jm1    ]-pm0) + (pm[    jp1    ]-pm0))
                           + w001*((pm[        km1]-pm0) + (pm[        kp1]-pm0))
@@ -204,10 +207,10 @@ Note that there are numerical precision problems with this.
                           - pb[m][i];
 */
 
-                    if (a)
+                    if (a!=0)
                     {
                         double *a11 = a1 + dm[3]*m;
-                        for(n=0; n<dm[3]; n++) tmp += a11[n]*p[n][0];
+                        for(n=0; n<(mwSignedIndex)dm[3]; n++) tmp += a11[n]*p[n][0];
                     }
                     ss += tmp*tmp;
                 }
@@ -289,7 +292,7 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
     }
     if (w000<0.0) w000=0.0;
 
-    for(k=0; k<dm[2]; k++)
+    for(k=0; k<(mwSignedIndex)dm[2]; k++)
     {
         mwSignedIndex j, km2,km1,kp1,kp2;
         km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
@@ -297,12 +300,12 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
         kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
         kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
 
-        for(j=0; j<dm[1]; j++)
+        for(j=0; j<(mwSignedIndex)dm[1]; j++)
         {
             mwSignedIndex i,m, jm2,jm1,jp1,jp2;
             float *pf[MAXD3], *pg[MAXD3];
 
-            for(m=0; m<dm[3]; m++)
+            for(m=0; m<(mwSignedIndex)dm[3]; m++)
             {
                 pf[m]  = f+dm[0]*(j+dm[1]*(k+dm[2]*m));
                 pg[m]  = g+dm[0]*(j+dm[1]*(k+dm[2]*m));
@@ -313,11 +316,11 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
             jp1 = (bound(j+1,dm[1])-j)*dm[0];
             jp2 = (bound(j+2,dm[1])-j)*dm[0];
 
-            for(m=0; m<dm[3]; m++)
+            for(m=0; m<(mwSignedIndex)dm[3]; m++)
             {
                 mwSignedIndex im2,im1,ip1,ip2;
                 float *pf1 = pf[m], *pg1 = pg[m];
-                for(i=0; i<dm[0]; i++)
+                for(i=0; i<(mwSignedIndex)dm[0]; i++)
                 {
                     float *p = &pf1[i];
                     double p0 = p[0];
@@ -326,16 +329,16 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
                     im1 = bound(i-1,dm[0])-i;
                     ip1 = bound(i+1,dm[0])-i;
                     ip2 = bound(i+2,dm[0])-i;
-                    pg1[i] =(lam0*  p0 +
-                           + w100*((p[im1        ]-p0) + (p[ip1        ]-p0))
-                           + w010*((p[    jm1    ]-p0) + (p[    jp1    ]-p0))
-                           + w001*((p[        km1]-p0) + (p[        kp1]-p0))
-                           + w200*((p[im2        ]-p0) + (p[ip2        ]-p0))
-                           + w020*((p[    jm2    ]-p0) + (p[    jp2    ]-p0))
-                           + w002*((p[        km2]-p0) + (p[        kp2]-p0))
-                           + w110*((p[im1+jm1    ]-p0) + (p[ip1+jm1    ]-p0) + (p[im1+jp1    ]-p0) + (p[ip1+jp1    ]-p0))
-                           + w101*((p[im1    +km1]-p0) + (p[ip1    +km1]-p0) + (p[im1    +kp1]-p0) + (p[ip1    +kp1]-p0))
-                           + w011*((p[    jm1+km1]-p0) + (p[    jp1+km1]-p0) + (p[    jm1+kp1]-p0) + (p[    jp1+kp1]-p0)))*scal[m];
+                    pg1[i] =(float)((lam0*  p0 
+                                   + w100*((p[im1        ]-p0) + (p[ip1        ]-p0))
+                                   + w010*((p[    jm1    ]-p0) + (p[    jp1    ]-p0))
+                                   + w001*((p[        km1]-p0) + (p[        kp1]-p0))
+                                   + w200*((p[im2        ]-p0) + (p[ip2        ]-p0))
+                                   + w020*((p[    jm2    ]-p0) + (p[    jp2    ]-p0))
+                                   + w002*((p[        km2]-p0) + (p[        kp2]-p0))
+                                   + w110*((p[im1+jm1    ]-p0) + (p[ip1+jm1    ]-p0) + (p[im1+jp1    ]-p0) + (p[ip1+jp1    ]-p0))
+                                   + w101*((p[im1    +km1]-p0) + (p[ip1    +km1]-p0) + (p[im1    +kp1]-p0) + (p[ip1    +kp1]-p0))
+                                   + w011*((p[    jm1+km1]-p0) + (p[    jp1+km1]-p0) + (p[    jm1+kp1]-p0) + (p[    jp1+kp1]-p0)))*scal[m]);
                 }
             }
         }
@@ -424,7 +427,7 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
     for(it=0; it<27*nit; it++)
     {
         mwSignedIndex i, j, k;
-        for(k=(it/9)%3; k<dm[2]; k+=3)
+        for(k=(it/9)%3; k<(mwSignedIndex)dm[2]; k+=3)
         {
             mwSignedIndex km2, km1, kp1, kp2;
             km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
@@ -432,21 +435,21 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
             kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
             kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
 
-            for(j=(it/3)%3; j<dm[1]; j+=3)
+            for(j=(it/3)%3; j<(mwSignedIndex)dm[1]; j+=3)
             {
                 float *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
                 double a1[MAXD3*MAXD3], cp[MAXD3], su[MAXD3];
                 mwSignedIndex m, jm2,jm1,jp1,jp2;
 
-                for(m=0; m<dm[3]; m++)
+                for(m=0; m<(mwSignedIndex)dm[3]; m++)
                 {
                     pu[m]  = u+dm[0]*(j+dm[1]*(k+dm[2]*m));
                     pb[m]  = b+dm[0]*(j+dm[1]*(k+dm[2]*m));
                 }
 
-                if (a)
+                if (a!=0)
                 {
-                    for(m=0; m<(dm[3]*(dm[3]+1))/2; m++)
+                    for(m=0; m<(mwSignedIndex)(dm[3]*(dm[3]+1))/2; m++)
                         pa[m]  = a+dm[0]*(j+dm[1]*(k+dm[2]*m));
                 }
 
@@ -455,7 +458,7 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                 jp1 = (bound(j+1,dm[1])-j)*dm[0];
                 jp2 = (bound(j+2,dm[1])-j)*dm[0];
 
-                for(i=it%3; i<dm[0]; i+=3)
+                for(i=it%3; i<(mwSignedIndex)dm[0]; i+=3)
                 {
                     mwSignedIndex im2,im1,ip1,ip2;
 
@@ -464,38 +467,38 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                     ip1 = bound(i+1,dm[0])-i;
                     ip2 = bound(i+2,dm[0])-i;
 
-                    if (a) get_a(dm[3], i, pa, a1);
+                    if (a!=0) get_a(dm[3], i, pa, a1);
 
-                    for(m=0; m<dm[3]; m++)
+                    for(m=0; m<(mwSignedIndex)dm[3]; m++)
                     {
                         mwSignedIndex n;
                         float *pm  = &pu[m][i];
                         double pm0 = pm[0];
-                        su[m] = pb[m][i]-
-                               (lam0* pm0 
-                              + w100*((pm[im1        ]-pm0) + (pm[ip1        ]-pm0))
-                              + w010*((pm[    jm1    ]-pm0) + (pm[    jp1    ]-pm0))
-                              + w001*((pm[        km1]-pm0) + (pm[        kp1]-pm0))
-                              + w200*((pm[im2        ]-pm0) + (pm[ip2        ]-pm0))
-                              + w020*((pm[    jm2    ]-pm0) + (pm[    jp2    ]-pm0))
-                              + w002*((pm[        km2]-pm0) + (pm[        kp2]-pm0))
-                              + w110*((pm[im1+jm1    ]-pm0) + (pm[ip1+jm1    ]-pm0) + (pm[im1+jp1    ]-pm0) + (pm[ip1+jp1    ]-pm0))
-                              + w101*((pm[im1    +km1]-pm0) + (pm[ip1    +km1]-pm0) + (pm[im1    +kp1]-pm0) + (pm[ip1    +kp1]-pm0))
-                              + w011*((pm[    jm1+km1]-pm0) + (pm[    jp1+km1]-pm0) + (pm[    jm1+kp1]-pm0) + (pm[    jp1+kp1]-pm0)))*scal[m];
+                        su[m] = (float)(pb[m][i]-
+                                       (lam0* pm0 
+                                      + w100*((pm[im1        ]-pm0) + (pm[ip1        ]-pm0))
+                                      + w010*((pm[    jm1    ]-pm0) + (pm[    jp1    ]-pm0))
+                                      + w001*((pm[        km1]-pm0) + (pm[        kp1]-pm0))
+                                      + w200*((pm[im2        ]-pm0) + (pm[ip2        ]-pm0))
+                                      + w020*((pm[    jm2    ]-pm0) + (pm[    jp2    ]-pm0))
+                                      + w002*((pm[        km2]-pm0) + (pm[        kp2]-pm0))
+                                      + w110*((pm[im1+jm1    ]-pm0) + (pm[ip1+jm1    ]-pm0) + (pm[im1+jp1    ]-pm0) + (pm[ip1+jp1    ]-pm0))
+                                      + w101*((pm[im1    +km1]-pm0) + (pm[ip1    +km1]-pm0) + (pm[im1    +kp1]-pm0) + (pm[ip1    +kp1]-pm0))
+                                      + w011*((pm[    jm1+km1]-pm0) + (pm[    jp1+km1]-pm0) + (pm[    jm1+kp1]-pm0) + (pm[    jp1+kp1]-pm0)))*scal[m]);
 
-                        if (a)
-                            for(n=0; n<dm[3]; n++) su[m] -= a1[m*dm[3]+n]*pu[n][i];
+                        if (a!=0)
+                            for(n=0; n<(mwSignedIndex)dm[3]; n++) su[m] -= a1[m*dm[3]+n]*pu[n][i];
                     }
-                    if (a)
+                    if (a!=0)
                     {
-                        for(m=0; m<dm[3]; m++) a1[m+dm[3]*m] += w000*scal[m];
+                        for(m=0; m<(mwSignedIndex)dm[3]; m++) a1[m+dm[3]*m] += w000*scal[m];
                         choldc(dm[3],a1,cp);
                         cholls(dm[3],a1,cp,su,su);
-                        for(m=0; m<dm[3]; m++) pu[m][i] += su[m];
+                        for(m=0; m<(mwSignedIndex)dm[3]; m++) pu[m][i] += su[m];
                     }
                     else
                     {
-                        for(m=0; m<dm[3]; m++) pu[m][i] += su[m]/(w000*scal[m]);
+                        for(m=0; m<(mwSignedIndex)dm[3]; m++) pu[m][i] += su[m]/(w000*scal[m]);
                     }
                 }
             }
@@ -523,7 +526,7 @@ static void Atimesp(mwSize dm[], float A[], double param[], double scal[], float
 static void restrictfcn(mwSize n,  mwSize na[], float *a,  mwSize nc[], float *c, float *b)
 {
     mwSignedIndex i;
-    for(i=0; i<n; i++)
+    for(i=0; i<(mwSignedIndex)n; i++)
     {
         restrict_vol(na, a+i*na[0]*na[1]*na[2], nc, c+i*nc[0]*nc[1]*nc[2], b);
     }
@@ -532,34 +535,34 @@ static void restrictfcn(mwSize n,  mwSize na[], float *a,  mwSize nc[], float *c
 static void prolong(mwSize n,  mwSize na[], float *a,  mwSize nc[], float *c, float *b)
 {
     mwSignedIndex i;
-    for(i=0; i<n; i++)
+    for(i=0; i<(mwSignedIndex)n; i++)
         resize_vol(na, a+i*na[0]*na[1]*na[2], nc, c+i*nc[0]*nc[1]*nc[2], b);
 }
 
 static void zeros(mwSize n, float *a)
 {
     mwSignedIndex i;
-    for(i=0; i<n; i++)
+    for(i=0; i<(mwSignedIndex)n; i++)
         a[i] = 0.0;
 }
 
 static void copy(mwSize n, float *a, float *b)
 {
     mwSignedIndex i;
-    for(i=0; i<n; i++)
+    for(i=0; i<(mwSignedIndex)n; i++)
         b[i] = a[i];
 }
 
 static void addto(mwSize n, float *a, float *b)
 {
     mwSignedIndex i;
-    for(i=0; i<n; i++)
+    for(i=0; i<(mwSignedIndex)n; i++)
         a[i] += b[i];
 }
 
 mwSignedIndex fmg_scratchsize(mwSize n0[])
 {
-    mwSignedIndex    n[32][3], m[32], bs, j;
+    mwIndex    n[32][3], m[32], bs, j;
     bs = 0;
     n[0][0] = n0[0];
     n[0][1] = n0[1];
@@ -567,15 +570,15 @@ mwSignedIndex fmg_scratchsize(mwSize n0[])
 
     for(j=1; j<16; j++)
     {
-        n[j][0] = ceil(n[j-1][0]/2.0);
-        n[j][1] = ceil(n[j-1][1]/2.0);
-        n[j][2] = ceil(n[j-1][2]/2.0);
+        n[j][0] = (mwIndex)ceil((double)n[j-1][0]/2.0);
+        n[j][1] = (mwIndex)ceil((double)n[j-1][1]/2.0);
+        n[j][2] = (mwIndex)ceil((double)n[j-1][2]/2.0);
         m[j]    = n[j][0]*n[j][1]*n[j][2];
         bs += m[j];
         if ((n[j][0]<2) && (n[j][1]<2) && (n[j][2]<2))
             break;
     }
-    return((n0[3]*n0[0]*n0[1]*n0[2] + n[0][0]*n[1][1]+3*n[0][0]*n[0][1] + (n0[3]*3+(n0[3]*(n0[3]+1))/2)*bs));
+    return((mwSignedIndex)(n0[3]*n0[0]*n0[1]*n0[2] + n[0][0]*n[1][1]+3*n[0][0]*n[0][1] + (n0[3]*3+(n0[3]*(n0[3]+1))/2)*bs));
 }
 
 /*
@@ -614,9 +617,9 @@ void fmg(mwSize n0[], float *a0, float *b0, double param0[], double scal[], int 
     bs = 0;
     for(j=1; j<16; j++)
     {
-        n[j][0] = ceil(n[j-1][0]/2.0);
-        n[j][1] = ceil(n[j-1][1]/2.0);
-        n[j][2] = ceil(n[j-1][2]/2.0);
+        n[j][0] = (mwSize)ceil((double)n[j-1][0]/2.0);
+        n[j][1] = (mwSize)ceil((double)n[j-1][1]/2.0);
+        n[j][2] = (mwSize)ceil((double)n[j-1][2]/2.0);
         n[j][3] = n0[3];
         m[j]    = n[j][0]*n[j][1]*n[j][2];
         ng ++;
@@ -660,12 +663,12 @@ void fmg(mwSize n0[], float *a0, float *b0, double param0[], double scal[], int 
         if(j>0) copy(n0[3]*m[j],bo[j],b[j]);
         for(jc=0; jc<c; jc++)
         {
-            int jj;
+            mwSignedIndex jj;
             for(jj=j; jj<ng-1; jj++)
             {
                 relax(n[jj], a[jj], b[jj], param[jj], scal, nit, u[jj]);
                 Atimesp(n[jj], a[jj], param[jj], scal, u[jj], res);
-                for(i=0; i<n0[3]*m[jj]; i++)
+                for(i=0; i<(mwSignedIndex)n0[3]*m[jj]; i++)
                     res[i] = b[jj][i] - res[i];
 
                 restrictfcn(n0[3],n[jj],res,n[jj+1],b[jj+1],rbuf);

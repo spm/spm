@@ -1,7 +1,7 @@
-/* $Id: shoot_expm3.c 4875 2012-08-30 20:04:30Z john $ */
+/* $Id: shoot_expm3.c 7408 2018-08-24 14:54:57Z john $ */
 /* (c) John Ashburner (2011) */
 
-#include <mex.h>
+#include "mex.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -26,31 +26,28 @@ static int pow2(int k)
    C = A\B;
    C = C(:)
 */
-static float *sub33(float *a, float *b, float *c)
+static void sub33(float *a, float *b, /*@out@*/float *c)
 {
     int i;
     for(i=0; i<9; i++)
         c[i] = a[i] - b[i];
-    return(c);
 }
 
-static float *add33(float *a, float *b, float *c)
+static void add33(float *a, float *b, /*@out@*/float *c)
 {
     int i;
     for(i=0; i<9; i++)
         c[i] = a[i] + b[i];
-    return(c);
 }
 
-static float *scale33(float *a, float s, float *b)
+static void scale33(float *a, float s, /*@out@*/float *b)
 {
     int i;
     for(i=0; i<9; i++)
         b[i] = a[i]*s;
-    return(b);
 }
 
-static float *eye33(float *a)
+static void eye33(/*@out@*/float *a)
 {
     a[0] = 1.0;
     a[1] = 0.0;
@@ -61,10 +58,9 @@ static float *eye33(float *a)
     a[6] = 0.0;
     a[7] = 0.0;
     a[8] = 1.0;
-    return(a);
 }
 
-static float *mul33(float *a, float *b, float *c)
+static void mul33(float *a, float *b, /*@out@*/float *c)
 {
     c[0] = a[0]*b[0] + a[3]*b[1] + a[6]*b[2];
     c[1] = a[1]*b[0] + a[4]*b[1] + a[7]*b[2];
@@ -75,10 +71,9 @@ static float *mul33(float *a, float *b, float *c)
     c[6] = a[0]*b[6] + a[3]*b[7] + a[6]*b[8];
     c[7] = a[1]*b[6] + a[4]*b[7] + a[7]*b[8];
     c[8] = a[2]*b[6] + a[5]*b[7] + a[8]*b[8];
-    return(c);
 }
 
-static float *div33(float *a, float *b, float *c)
+static void div33(float *a, float *b, /*@out@*/float *c)
 {
     float d = a[0]*(a[4]*a[8] - a[5]*a[7]) + a[1]*(a[5]*a[6] - a[3]*a[8]) + a[2]*(a[3]*a[7] - a[4]*a[6]);
     c[0] =   (a[3]*(a[7]*b[2] - a[8]*b[1]) + a[4]*(a[8]*b[0] - a[6]*b[2]) + a[5]*(a[6]*b[1] - a[7]*b[0]))/d;
@@ -90,10 +85,9 @@ static float *div33(float *a, float *b, float *c)
     c[6] =   (a[3]*(a[7]*b[8] - a[8]*b[7]) + a[4]*(a[8]*b[6] - a[6]*b[8]) + a[5]*(a[6]*b[7] - a[7]*b[6]))/d;
     c[7] =  -(a[0]*(a[7]*b[8] - a[8]*b[7]) + a[1]*(a[8]*b[6] - a[6]*b[8]) + a[2]*(a[6]*b[7] - a[7]*b[6]))/d;
     c[8] =   (a[0]*(a[4]*b[8] - a[5]*b[7]) + a[1]*(a[5]*b[6] - a[3]*b[8]) + a[2]*(a[3]*b[7] - a[4]*b[6]))/d;
-    return(c);
 }
 
-static void pade33(float *a, float *l)
+static void pade33(float *a, /*@out@*/ float *l)
 {
     float u[9], v[9], num[9], den[9], a0[9], a2[9], a3[9];
     
@@ -111,7 +105,7 @@ static void pade33(float *a, float *l)
     div33(den,num,l);
 }
 
-static void pade22(float *a, float *l)
+static void pade22(float *a, /*@out@*/ float *l)
 {
     float u[9], v[9], num[9], den[9], a0[9], a2[9];
     
@@ -129,23 +123,22 @@ static void pade22(float *a, float *l)
 static float norm1(float *a)
 {
     float r, rm;
-    rm = fabs(a[0]) + fabs(a[1]) + fabs(a[2]);
-    r  = fabs(a[3]) + fabs(a[4]) + fabs(a[5]);
+    rm = (float)fabs(a[0]) + (float)fabs(a[1]) + (float)fabs(a[2]);
+    r  = (float)fabs(a[3]) + (float)fabs(a[4]) + (float)fabs(a[5]);
     if (r>rm) rm = r;
-    r  = fabs(a[6]) + fabs(a[7]) + fabs(a[8]);
+    r  = (float)fabs(a[6]) + (float)fabs(a[7]) + (float)fabs(a[8]);
     if (r>rm) rm = r;
     return(rm);
 }
 
-static float *assign33(float *a, float *b)
+static  void assign33(float *a, float *b)
 {
     int i;
     for(i=0; i<9; i++)
         b[i] = a[i];
-    return(b);
 }
 
-void expm33(float *a, float *l)
+void expm33(float *a, /*@out@*/ float *l)
 {
     /* See expm.m in MATLAB or http://mathworld.wolfram.com/PadeApproximant.html */
     int K;
@@ -153,7 +146,7 @@ void expm33(float *a, float *l)
     if (K>0)
     {
         float b[9];
-        float s = 1.0/pow2(K);
+        float s = 1.0f/(float)pow2(K);
         int i;
         scale33(a,s,b);
         pade33(b, l);
@@ -167,7 +160,7 @@ void expm33(float *a, float *l)
         pade33(a, l);
 }
 
-void expm22(float *a, float *l)
+void expm22(float *a, /*@out@*/ float *l)
 {
     /* See expm.m in MATLAB or http://mathworld.wolfram.com/PadeApproximant.html */
     int K;
@@ -175,7 +168,7 @@ void expm22(float *a, float *l)
     if (K>0)
     {
         float b[9];
-        float s = 1.0/pow2(K);
+        float s = 1.0f/(float)pow2(K);
         int i;
         scale33(a,s,b);
         pade22(b, l);

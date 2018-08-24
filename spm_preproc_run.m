@@ -28,10 +28,10 @@ function varargout = spm_preproc_run(job,action)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 6365 2015-03-06 18:59:55Z guillaume $
+% $Id: spm_preproc_run.m 7408 2018-08-24 14:54:57Z john $
 
 
-SVNid = '$Rev: 6365 $';
+SVNid = '$Rev: 7408 $';
 
 if nargin == 1, action = 'run'; end
 
@@ -60,8 +60,10 @@ vout = vout_job(job);
 tpm  = strvcat(cat(1,job.tissue(:).tpm));
 tpm  = spm_load_priors8(tpm);
 
-if ~isfield(job,'iterations'),   nit              =  1; else nit   = job.iterations; end
-if ~isfield(job,'alpha'),        alpha            = 12; else alpha = job.alpha;      end
+if ~isfield(job,'iterations'),   nit              =  1; else
+                                 nit              = job.iterations; end
+if ~isfield(job,'alpha'),        alpha            = 12; else
+                                 alpha            = job.alpha;      end
 if ~isfield(job.warp,'fwhm'),    job.warp.fwhm    =  1; end
 if ~isfield(job.warp,'bb'),      job.warp.bb      =  NaN(2,3); end
 if ~isfield(job.warp,'vox'),     job.warp.vox     =  1.5; end
@@ -90,9 +92,9 @@ for iter=1:nit
         obj.tpm      = tpm;
         obj.lkp      = [];
         if all(isfinite(cat(1,job.tissue.ngaus)))
-            for k=1:numel(job.tissue),
+            for k=1:numel(job.tissue)
                 obj.lkp = [obj.lkp ones(1,job.tissue(k).ngaus)*k];
-            end;
+            end
         end
         obj.reg      = job.warp.reg;
         obj.samp     = job.warp.samp;
@@ -225,7 +227,7 @@ parts = cell(n,4);
 
 channel = struct('biasfield',{},'biascorr',{});
 for i=1:numel(job.channel)
-    for j=1:n,
+    for j=1:n
         [parts{j,:}] = spm_fileparts(job.channel(i).vols{j});
     end
     if job.channel(i).write(1)

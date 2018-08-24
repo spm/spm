@@ -1,4 +1,4 @@
-/* $Id: shoot_boundary.c 4875 2012-08-30 20:04:30Z john $ */
+/* $Id: shoot_boundary.c 7408 2018-08-24 14:54:57Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -7,9 +7,9 @@
 /* Neumann boundary condition */
 static mwSignedIndex neumann_boundary(mwSignedIndex i, mwSize m)
 {
-    mwSignedIndex m2 = m*2;
+    mwSignedIndex m2 = (mwSignedIndex)m*2;
     i = (i<0) ? m2-((-i-1)%m2)-1 : (i%m2);
-    return((m<=i)? m2-i-1: i);
+    return(((mwSignedIndex)m<=i)? m2-i-1: i);
 }
 
 static mwSignedIndex circulant_boundary(mwSignedIndex i, mwSize m)

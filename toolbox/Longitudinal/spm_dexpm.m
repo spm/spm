@@ -13,15 +13,15 @@ function [E,dE] = spm_dexpm(A,dA)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dexpm.m 6024 2014-05-29 11:41:32Z john $
+% $Id: spm_dexpm.m 7408 2018-08-24 14:54:57Z john $
 
-if nargin<2,
+if nargin<2
     dA = zeros([size(A) 0]);
 else
-    if (size(A,1)==1 && size(A,2)==size(dA,3)) || (size(A,2)==1 && size(A,1)==size(dA,3)),
+    if (size(A,1)==1 && size(A,2)==size(dA,3)) || (size(A,2)==1 && size(A,1)==size(dA,3))
         p = A(:);
         A = zeros(size(dA,1),size(dA,2));
-        for m=1:size(dA,3),
+        for m=1:size(dA,3)
             A = A + p(m)*dA(:,:,m);
         end
     end
@@ -33,9 +33,9 @@ if nargout>1
     dAn = dA;
     dE  = dA;
 end
-for k=2:10000,
+for k=2:10000
     if nargout>1
-        for m=1:size(dA,3),
+        for m=1:size(dA,3)
             dAn(:,:,m) = (dAn(:,:,m)*A + An*dA(:,:,m))/k;
         end
         dE  = dE + dAn;

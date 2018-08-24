@@ -1,9 +1,9 @@
-/* $Id: shoot_dartel.c 4875 2012-08-30 20:04:30Z john $ */
+/* $Id: shoot_dartel.c 7408 2018-08-24 14:54:57Z john $ */
 /* (c) John Ashburner (2011) */
 
-#include <mex.h>
 #include <math.h>
 #include <stdio.h>
+#include "mex.h"
 #include "shoot_optim3d.h"
 #include "shoot_diffeo3d.h"
 #include "shoot_regularisers.h"
@@ -1089,7 +1089,7 @@ static void squaring(mwSize dm[], int k, int save_transf, float b[], float A[], 
             dt  = j00*(j11*j22-j12*j21)+j10*(j02*j21-j01*j22)+j20*(j01*j12-j02*j11);
 
             /* J'*b */
-            sampn(dm, b, 3, m, x, y, z, bs);
+            sampn_vox(dm, b, 3, m, x, y, z, bs);
             b0 = bs[0];
             b1 = bs[1];
             b2 = bs[2];
@@ -1099,7 +1099,7 @@ static void squaring(mwSize dm[], int k, int save_transf, float b[], float A[], 
             buf1[j+m*2] = dt*(b0*j02+b1*j12+b2*j22);
 
             /* J'*A*J */
-            sampn(dm, A, 6, m, x, y, z, as);
+            sampn_vox(dm, A, 6, m, x, y, z, as);
             a00 = as[0];
             a11 = as[1];
             a22 = as[2];
@@ -1179,8 +1179,8 @@ void iteration(mwSize dm[], int k, float v[], float g[], float f[], float jd[],
                float ov[], double ll[], float *buf)
 {
     float *sbuf;
-    float *b, *A;
-    double ssl, ssp, sc;
+    float *b, *A, sc;
+    double ssl, ssp;
     static double param[] = {1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0};
     mwSignedIndex m = dm[0]*dm[1]*dm[2];
     mwSignedIndex j;

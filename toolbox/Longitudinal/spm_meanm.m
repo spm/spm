@@ -11,14 +11,14 @@ function M = spm_meanm(A)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_meanm.m 4906 2012-09-06 17:30:56Z john $
+% $Id: spm_meanm.m 7408 2018-08-24 14:54:57Z john $
 
 N = size(A,3);
 M = eye(size(A,1),size(A,2));
 
-for iter = 1:1024,
+for iter = 1:1024
     S = zeros(size(M));
-    for i=1:N,
+    for i=1:N
         L = real(logm(M\A(:,:,i)));
         S = S + L;
     end
@@ -26,7 +26,7 @@ for iter = 1:1024,
     M = M*expm(S);
     %imagesc(M); drawnow
     %fprintf('%d\t%g\n', iter,sum(S(:).^2));
-    if sum(S(:).^2)<1e-20,
+    if sum(S(:).^2)<1e-20
         break;
     end
 end

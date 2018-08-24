@@ -1,5 +1,5 @@
 /*
- * $Id: shoot_invdef.c 4875 2012-08-30 20:04:30Z john $
+ * $Id: shoot_invdef.c 7408 2018-08-24 14:54:57Z john $
  * John Ashburner
  */
 
@@ -18,18 +18,17 @@
 #include "mex.h"
 
 #define MAXV 16384
-#define REAL double
 
-static void invertX(REAL X[4][3], REAL IX[4][4])
+static void invertX(float X[][3], float IX[][4])
 /* X is a matrix containing the co-ordinates of the four vertices of a tetrahedron.
    IX = inv([X ; 1 1 1 1]);  */
 {
-    REAL id;
+    float id;
     id = X[0][0]*(X[3][1]*(X[1][2]-X[2][2])+X[1][1]*(X[2][2]-X[3][2])+X[2][1]*(X[3][2]-X[1][2]))+
          X[1][0]*(X[3][2]*(X[0][1]-X[2][1])+X[0][2]*(X[2][1]-X[3][1])+X[2][2]*(X[3][1]-X[0][1]))+
          X[2][0]*(X[0][1]*(X[1][2]-X[3][2])+X[3][1]*(X[0][2]-X[1][2])+X[1][1]*(X[3][2]-X[0][2]))+
          X[3][0]*(X[1][2]*(X[2][1]-X[0][1])+X[0][2]*(X[1][1]-X[2][1])+X[2][2]*(X[0][1]-X[1][1]));
-    id = 1/id;
+    id = 1.0f/id;
     IX[0][0] = id*(X[1][1]*(X[2][2]-X[3][2])+X[2][1]*(X[3][2]-X[1][2])+X[3][1]*(X[1][2]-X[2][2]));
     IX[0][1] = id*(X[0][1]*(X[3][2]-X[2][2])+X[2][1]*(X[0][2]-X[3][2])+X[3][1]*(X[2][2]-X[0][2]));
     IX[0][2] = id*(X[0][1]*(X[1][2]-X[3][2])+X[1][1]*(X[3][2]-X[0][2])+X[3][1]*(X[0][2]-X[1][2]));
@@ -56,7 +55,7 @@ static void invertX(REAL X[4][3], REAL IX[4][4])
                X[2][0]*(X[1][2]*X[0][1]-X[0][2]*X[1][1]));
 }
 
-static void getM(REAL Y[4][3], REAL IX[4][4], REAL M[4][3], int i, int j, int k)
+static void getM(float Y[][3], float IX[][4], /*@out@*/ float M[][3], mwSignedIndex i, mwSignedIndex j, mwSignedIndex k)
 /* Determines the affine transform (M) mapping from
    [X+repmat([i j k]', 1,4) ; 1 1 1 1] to [Y ; 1 1 1 1], where IX = inv([X ; 1 1 1 1]);
    This is given by:
@@ -64,12 +63,12 @@ static void getM(REAL Y[4][3], REAL IX[4][4], REAL M[4][3], int i, int j, int k)
    or more efficiently by:
         M = Y*(IX - IX(:,1:3)*[i j k]'); */
 {
-    REAL ix30, ix31, ix32, ix33;
+    float ix30, ix31, ix32, ix33;
 
-    ix30 = IX[3][0] - (i*IX[0][0] + j*IX[1][0] + k*IX[2][0]);
-    ix31 = IX[3][1] - (i*IX[0][1] + j*IX[1][1] + k*IX[2][1]);
-    ix32 = IX[3][2] - (i*IX[0][2] + j*IX[1][2] + k*IX[2][2]);
-    ix33 = IX[3][3] - (i*IX[0][3] + j*IX[1][3] + k*IX[2][3]);
+    ix30 = IX[3][0] - ((float)i*IX[0][0] + (float)j*IX[1][0] + (float)k*IX[2][0]);
+    ix31 = IX[3][1] - ((float)i*IX[0][1] + (float)j*IX[1][1] + (float)k*IX[2][1]);
+    ix32 = IX[3][2] - ((float)i*IX[0][2] + (float)j*IX[1][2] + (float)k*IX[2][2]);
+    ix33 = IX[3][3] - ((float)i*IX[0][3] + (float)j*IX[1][3] + (float)k*IX[2][3]);
 
     M[0][0] = Y[0][0]*IX[0][0] + Y[1][0]*IX[0][1] + Y[2][0]*IX[0][2] + Y[3][0]*IX[0][3];
     M[0][1] = Y[0][1]*IX[0][0] + Y[1][1]*IX[0][1] + Y[2][1]*IX[0][2] + Y[3][1]*IX[0][3];
@@ -88,7 +87,7 @@ static void getM(REAL Y[4][3], REAL IX[4][4], REAL M[4][3], int i, int j, int k)
     M[3][2] = Y[0][2]*ix30     + Y[1][2]*ix31     + Y[2][2]*ix32     + Y[3][2]*ix33;
 }
 
-static void mulMM(REAL A[4][3], REAL B[4][3], REAL C[4][3])
+static void mulMM(float A[][3], float B[][3], float C[][3])
 /* [A ; 0 0 0 1] = [B ; 0 0 0 1]*[C ; 0 0 0 1]; */
 {
     A[0][0] = B[0][0]*C[0][0] + B[1][0]*C[0][1] + B[2][0]*C[0][2];
@@ -108,7 +107,7 @@ static void mulMM(REAL A[4][3], REAL B[4][3], REAL C[4][3])
     A[3][2] = B[0][2]*C[3][0] + B[1][2]*C[3][1] + B[2][2]*C[3][2] + B[3][2];
 }
 
-static void mulMX(REAL A[4][3], REAL B[4][3], REAL C[4][3])
+static void mulMX(/*@out@*/ float A[][3], float B[][3], float C[][3])
 /* [A ; 1 1 1 1] = [B ; 0 0 0 1]*[C ; 1 1 1 1]; */
 {
     A[0][0] = B[0][0]*C[0][0] + B[1][0]*C[0][1] + B[2][0]*C[0][2] + B[3][0];
@@ -128,15 +127,15 @@ static void mulMX(REAL A[4][3], REAL B[4][3], REAL C[4][3])
     A[3][2] = B[0][2]*C[3][0] + B[1][2]*C[3][1] + B[2][2]*C[3][2] + B[3][2];
 }
 
-static void invertM(REAL M[4][3], REAL IM[4][3])
+static void invertM(float M[][3], /*@out@*/ float IM[][3])
 /* [IM ; 0 0 0 1] = inv([M ; 0 0 0 1]); */
 {
-    REAL id;
+    float id;
     id = M[0][0]*(M[1][1]*M[2][2]-M[1][2]*M[2][1])+
          M[0][1]*(M[1][2]*M[2][0]-M[1][0]*M[2][2])+
          M[0][2]*(M[1][0]*M[2][1]-M[1][1]*M[2][0]);
 
-    id = 1.0/id;
+    id = 1.0f/id;
     IM[0][0] = (M[1][1]*M[2][2]-M[1][2]*M[2][1])*id;
     IM[0][1] = (M[0][2]*M[2][1]-M[0][1]*M[2][2])*id;
     IM[0][2] = (M[0][1]*M[1][2]-M[0][2]*M[1][1])*id;
@@ -166,17 +165,17 @@ static void invertM(REAL M[4][3], REAL IM[4][3])
     "Image Registration using a Symmetric Prior - in Three-Dimensions".
     Human Brain Mapping 9(4):212-225. */
 
-static void scan_line(REAL lin[2], int y, int z, int *n, int vox[][3], int maxv)
+static void scan_line(float lin[], mwSignedIndex y, mwSignedIndex z, mwSize *n, /*@out@*/ mwSignedIndex vox[][3], mwSize maxv)
 {
-    REAL p[2], t;
-    int x, xe;
+    float p[2], t;
+    mwSignedIndex x, xe;
 
     /* sort p into ascending order of x */
     p[0] = lin[0]; p[1] = lin[1];
     if (p[1]<p[0]) {t = p[1]; p[1] = p[0]; p[0] = t;}
 
     /* find voxels where x is integer */
-    for(x=ceil(p[0]), xe=floor(p[1]); x<=xe; x++)
+    for(x=(mwSignedIndex)ceil((double)p[0]), xe=(mwSignedIndex)floor((double)p[1]); x<=xe; x++)
     {
         if ((*n)>=maxv-1)
             mexErrMsgTxt("Too many voxels inside a tetrahedron");
@@ -187,11 +186,11 @@ static void scan_line(REAL lin[2], int y, int z, int *n, int vox[][3], int maxv)
     }
 }
 
-static void scan_triangle(REAL tri[][2], int z, int *n, int vox[][3], int maxv)
+static void scan_triangle(float tri[][2], mwSignedIndex z, mwSize *n, /*@out@*/ mwSignedIndex vox[][3], mwSize maxv)
 {
-    REAL *p[3], *t, lin[2];
-    REAL x1, x2, y1, y2;
-    int y, ye, i;
+    float *p[3], *t, lin[2];
+    float x1, x2, y1, y2;
+    mwSignedIndex y, ye, i;
 
     /* sort p into ascending order of y */
     p[0] = tri[0]; p[1] = tri[1]; p[2] = tri[2];
@@ -200,46 +199,44 @@ static void scan_triangle(REAL tri[][2], int z, int *n, int vox[][3], int maxv)
     if (p[1][1]<p[0][1]) {t = p[1]; p[1] = p[0]; p[0] = t;}
 
     /* find lower lines cutting triangle where y is integer */
-    for(y=ceil(p[0][1]), ye=floor(p[1][1]); y<=ye; y++)
+    for(y=(mwSignedIndex)ceil((double)p[0][1]), ye=(mwSignedIndex)floor((double)p[1][1]); y<=ye; y++)
     {
         x1 = p[0][0]; y1 = p[0][1];
         for(i=0; i<2; i++)
         {
             x2 = p[i+1][0]; y2 = p[i+1][1];
             if (y2-y1<=0)
-                lin[i] = (x1+x2)/2.0;
+                lin[i] = (x1+x2)/2.0f;
             else
-                lin[i] = (x1*(y2-y)+x2*(y-y1))/(y2-y1);
+                lin[i] = (x1*(y2-(float)y)+x2*((float)y-y1))/(y2-y1);
         }
         scan_line(lin,y,z, n,vox,maxv);
     }
 
     /* find upper lines cutting triangle where y is integer */
-    for(y=ceil(p[1][1]), ye=floor(p[2][1]); y<=ye; y++)
+    for(y=(mwSignedIndex)ceil((double)p[1][1]), ye=(mwSignedIndex)floor((double)p[2][1]); y<=ye; y++)
     {
         x2 = p[2][0]; y2 = p[2][1];
         for(i=0; i<2; i++)
         {
             x1 = p[i][0]; y1 = p[i][1];
             if (y2-y1<=0)
-                lin[i] = (x1+x2)/2.0;
+                lin[i] = (x1+x2)/2.0f;
             else
-                lin[i] = (x1*(y2-y)+x2*(y-y1))/(y2-y1);
+                lin[i] = (x1*(y2-(float)y)+x2*((float)y-y1))/(y2-y1);
         }
         scan_line(lin,y,z, n,vox,maxv);
     }
 }
 
 
-static void scan_tetrahedron(REAL Y[4][3], int *n, int vox[][3], int maxv)
+static void scan_tetrahedron(float Y[][3], /*@out@*/ mwSize *n, /*@out@*/ mwSignedIndex vox[][3], mwSize maxv)
 /* Y are the vertices of the tetrahedron.  n are the number of located
    integer co-ordinates, vox are the co-ordinates found and maxv are the
    maximum number of co-ordinates allowed. */
 {
-    REAL *p[4], *t;
-    REAL tri[4][2];
-    REAL x1, x2, y1, y2, z1, z2;
-    int z, ze, i;
+    float *p[4], *t, tri[4][2], x1, x2, y1, y2, z1, z2;
+    mwSignedIndex z, ze, i;
 
     *n = 0;
 
@@ -253,7 +250,7 @@ static void scan_tetrahedron(REAL Y[4][3], int *n, int vox[][3], int maxv)
     if (p[1][2]<p[0][2]) {t = p[1]; p[1] = p[0]; p[0] = t;}
 
     /* find lower triangles that intersect tetrahedron where z is integer */
-    for(z=ceil(p[0][2]), ze=floor(p[1][2]); z<=ze; z++)
+    for(z=(mwSignedIndex)ceil((double)p[0][2]), ze=(mwSignedIndex)floor((double)p[1][2]); z<=ze; z++)
     {
         x1 = p[0][0]; y1 = p[0][1]; z1 = p[0][2];
         for(i=0; i<3; i++)
@@ -261,14 +258,14 @@ static void scan_tetrahedron(REAL Y[4][3], int *n, int vox[][3], int maxv)
             x2 = p[i+1][0]; y2 = p[i+1][1]; z2 = p[i+1][2];
             if (z2-z1<=0)
             {
-                tri[i][0] = (x1+x2)/2.0;
-                tri[i][1] = (y1+y2)/2.0;
+                tri[i][0] = (x1+x2)/2.0f;
+                tri[i][1] = (y1+y2)/2.0f;
             }
             else
             {
-                REAL t2 = z2-z, t1 = z-z1, t = z2-z1;
-                tri[i][0] = (x1*t2+x2*t1)/t;
-                tri[i][1] = (y1*t2+y2*t1)/t;
+                float  t2 = z2-(float)z, t1 = (float)z-z1, tmp = z2-z1;
+                tri[i][0] = (x1*t2+x2*t1)/tmp;
+                tri[i][1] = (y1*t2+y2*t1)/tmp;
             }
         }
         scan_triangle(tri,z, n,vox,maxv);
@@ -276,7 +273,7 @@ static void scan_tetrahedron(REAL Y[4][3], int *n, int vox[][3], int maxv)
 
     /* find quadrilaterals that intersect tetrahedron where z is integer */
     /* each quadrilateral divided into two triangles */
-    for(z=ceil(p[1][2]), ze=floor(p[2][2]); z<=ze; z++)
+    for(z=(mwSignedIndex)ceil((double)p[1][2]), ze=(mwSignedIndex)floor((double)p[2][2]); z<=ze; z++)
     {
         static int ii[] = {0,1,1,0}, jj[] = {3,3,2,2};
 
@@ -286,14 +283,14 @@ static void scan_tetrahedron(REAL Y[4][3], int *n, int vox[][3], int maxv)
             x2 = p[jj[i]][0]; y2 = p[jj[i]][1]; z2 = p[jj[i]][2];
             if (z2-z1<=0)
             {
-                tri[i][0] = (x1+x2)/2.0;
-                tri[i][1] = (y1+y2)/2.0;
+                tri[i][0] = (x1+x2)/2.0f;
+                tri[i][1] = (y1+y2)/2.0f;
             }
             else
             {
-                REAL t2 = z2-z, t1 = z-z1, t = z2-z1;
-                tri[i][0] = (x1*t2+x2*t1)/t;
-                tri[i][1] = (y1*t2+y2*t1)/t;
+                float  t2 = z2-(float)z, t1 = (float)z-z1, tmp = z2-z1;
+                tri[i][0] = (x1*t2+x2*t1)/tmp;
+                tri[i][1] = (y1*t2+y2*t1)/tmp;
             }
         }
         scan_triangle(tri,z, n,vox,maxv);
@@ -303,7 +300,7 @@ static void scan_tetrahedron(REAL Y[4][3], int *n, int vox[][3], int maxv)
     }
 
     /* find upper triangles that intersect tetrahedron where z is integer */
-    for(z=ceil(p[2][2]), ze=floor(p[3][2]); z<=ze; z++)
+    for(z=(mwSignedIndex)ceil((double)p[2][2]), ze=(mwSignedIndex)floor((double)p[3][2]); z<=ze; z++)
     {
         x2 = p[3][0]; y2 = p[3][1]; z2 = p[3][2];
         for(i=0; i<3; i++)
@@ -311,14 +308,14 @@ static void scan_tetrahedron(REAL Y[4][3], int *n, int vox[][3], int maxv)
             x1 = p[i][0]; y1 = p[i][1]; z1 = p[i][2];
             if (z2-z1<=0)
             {
-                tri[i][0] = (x1+x2)/2.0;
-                tri[i][1] = (y1+y2)/2.0;
+                tri[i][0] = (x1+x2)/2.0f;
+                tri[i][1] = (y1+y2)/2.0f;
             }
             else
             {
-                REAL t2 = z2-z, t1 = z-z1, t = z2-z1;
-                tri[i][0] = (x1*t2+x2*t1)/t;
-                tri[i][1] = (y1*t2+y2*t1)/t;
+                float t2 = z2-(float)z, t1 = (float)z-z1, tmp = z2-z1;
+                tri[i][0] = (x1*t2+x2*t1)/tmp;
+                tri[i][1] = (y1*t2+y2*t1)/tmp;
             }
         }
         scan_triangle(tri,z, n,vox,maxv);
@@ -330,7 +327,7 @@ static void scan_tetrahedron(REAL Y[4][3], int *n, int vox[][3], int maxv)
 /* Division of a cube into two alternating patterns of tetrahedra.
   This pattern is repeated in a 3D checkerboard pattern, such that
   the whole volume is covered. */
-static REAL x[2][5][4][3] = {
+static float x[2][5][4][3] = {
 {{{ 0,0,0},{ 1,0,1},{ 1,0,0},{ 1,1,0}},
  {{ 0,0,0},{ 1,0,1},{ 0,1,1},{ 0,0,1}},
  {{ 0,0,0},{ 0,1,0},{ 0,1,1},{ 1,1,0}},
@@ -347,30 +344,32 @@ static REAL x[2][5][4][3] = {
 
 /* Set up matrices (IX) for each tetrahedron, so that future computations can be
    made faster.  Also set up a few relative file offsets. */
-static REAL ix[2][5][4][4];
-static int off[2][4][5];
-static void setup_consts(mwSize dim[3])
+static float ix[2][5][4][4];
+static mwSignedIndex off[2][4][5];
+static void setup_consts(mwSize dim[])
 {
-    int i, j, k;
+    mwSignedIndex i, j, k;
     for(k=0; k<2; k++)
         for(i=0; i<5; i++)
         {
             invertX(x[k][i], ix[k][i]);
             for(j=0; j<4; j++)
-                off[k][j][i] = x[k][i][j][0]+dim[0]*(x[k][i][j][1]+dim[1]*x[k][i][j][2]);
+                off[k][j][i] = (mwSignedIndex)(x[k][i][j][0]+dim[0]*(x[k][i][j][1]+dim[1]*x[k][i][j][2]));
         }
 }
 
 /* Compute the inverse deformation field within a single cube */
-static void invert_it(int x0, int x1, int x2, float *y0, float *y1, float *y2,
-    mwSize dim_iy[3], float *iy0, float *iy1, float *iy2, REAL M1[4][3], REAL M2[4][3], int pass)
+static void invert_it(mwSignedIndex x0, mwSignedIndex x1, mwSignedIndex x2, float *y0, float *y1, float *y2,
+    mwSize dim_iy[], float *iy0, float *iy1, float *iy2, float M1[][3], float M2[][3], int pass)
 {
-    int i, j, k, vox[MAXV][3], nvox;
-    REAL Y0[4][3], Y[4][3], M[4][3], IM[4][3];
+    mwSignedIndex i, j, vox[MAXV][3];
+    float  Y0[4][3], Y[4][3], M[4][3], IM[4][3];
+    mwSize nvox;
+    int k;
 
     /* Determine tetrahedral arrangement */
-    k = (x0%2)==((x1%2)==(x2%2));
-    if (pass==1) k = !k;
+    k = (int)((x0%2)==(mwSignedIndex)((x1%2)==(x2%2)));
+    if (pass==1) k = (int)(k==0);
  
     for(i=0; i<5; i++) /* Five tetrahedra within a cube */
     {
@@ -402,34 +401,34 @@ static void invert_it(int x0, int x1, int x2, float *y0, float *y1, float *y2,
                 if (pass==0)
                 {
                     /* Insert the new mappings into each voxel within the tetrahedron */
-                    for(j=0; j<nvox; j++)
+                    for(j=0; j<(mwSignedIndex)nvox; j++)
                     {
-                        if ((vox[j][0]>=1) && (vox[j][0]<=dim_iy[0]) &&
-                            (vox[j][1]>=1) && (vox[j][1]<=dim_iy[1]) &&
-                            (vox[j][2]>=1) && (vox[j][2]<=dim_iy[2]))
+                        if ((vox[j][0]>=1) && (vox[j][0]<=(mwSignedIndex)dim_iy[0]) &&
+                            (vox[j][1]>=1) && (vox[j][1]<=(mwSignedIndex)dim_iy[1]) &&
+                            (vox[j][2]>=1) && (vox[j][2]<=(mwSignedIndex)dim_iy[2]))
                         {
-                            int o  = vox[j][0]+dim_iy[0]*(vox[j][1]+dim_iy[1]*vox[j][2]);
+                            mwSignedIndex o  = vox[j][0]+dim_iy[0]*(vox[j][1]+dim_iy[1]*vox[j][2]);
 
-                            iy0[o] = M[0][0]*vox[j][0] + M[1][0]*vox[j][1] + M[2][0]*vox[j][2] + M[3][0];
-                            iy1[o] = M[0][1]*vox[j][0] + M[1][1]*vox[j][1] + M[2][1]*vox[j][2] + M[3][1];
-                            iy2[o] = M[0][2]*vox[j][0] + M[1][2]*vox[j][1] + M[2][2]*vox[j][2] + M[3][2];
+                            iy0[o] = M[0][0]*(float)vox[j][0] + M[1][0]*(float)vox[j][1] + M[2][0]*(float)vox[j][2] + M[3][0];
+                            iy1[o] = M[0][1]*(float)vox[j][0] + M[1][1]*(float)vox[j][1] + M[2][1]*(float)vox[j][2] + M[3][1];
+                            iy2[o] = M[0][2]*(float)vox[j][0] + M[1][2]*(float)vox[j][1] + M[2][2]*(float)vox[j][2] + M[3][2];
                         }
                     }
                 }
                 else
                 {
                     /* Average the new mappings with those from the 0th pass */
-                    for(j=0; j<nvox; j++)
+                    for(j=0; j<(mwSignedIndex)nvox; j++)
                     {
-                        if ((vox[j][0]>=1) && (vox[j][0]<=dim_iy[0]) &&
-                            (vox[j][1]>=1) && (vox[j][1]<=dim_iy[1]) &&
-                            (vox[j][2]>=1) && (vox[j][2]<=dim_iy[2]))
+                        if ((vox[j][0]>=1) && (vox[j][0]<=(mwSignedIndex)dim_iy[0]) &&
+                            (vox[j][1]>=1) && (vox[j][1]<=(mwSignedIndex)dim_iy[1]) &&
+                            (vox[j][2]>=1) && (vox[j][2]<=(mwSignedIndex)dim_iy[2]))
                         {
-                            int o  = vox[j][0]+dim_iy[0]*(vox[j][1]+dim_iy[1]*vox[j][2]);
+                            mwSignedIndex o  = vox[j][0]+dim_iy[0]*(vox[j][1]+dim_iy[1]*vox[j][2]);
 
-                            iy0[o] = (iy0[o] + M[0][0]*vox[j][0] + M[1][0]*vox[j][1] + M[2][0]*vox[j][2] + M[3][0])/2.0;
-                            iy1[o] = (iy1[o] + M[0][1]*vox[j][0] + M[1][1]*vox[j][1] + M[2][1]*vox[j][2] + M[3][1])/2.0;
-                            iy2[o] = (iy2[o] + M[0][2]*vox[j][0] + M[1][2]*vox[j][1] + M[2][2]*vox[j][2] + M[3][2])/2.0;
+                            iy0[o] = (iy0[o] + M[0][0]*(float)vox[j][0] + M[1][0]*(float)vox[j][1] + M[2][0]*(float)vox[j][2] + M[3][0])/2.0f;
+                            iy1[o] = (iy1[o] + M[0][1]*(float)vox[j][0] + M[1][1]*(float)vox[j][1] + M[2][1]*(float)vox[j][2] + M[3][1])/2.0f;
+                            iy2[o] = (iy2[o] + M[0][2]*(float)vox[j][0] + M[1][2]*(float)vox[j][1] + M[2][2]*(float)vox[j][2] + M[3][2])/2.0f;
                         }
                     }
                 }
@@ -448,10 +447,10 @@ static void setnan(float *dat, mwSize n)
     for (j=0; j<n; j++) dat[j] = NaN;
 }
 
-void invdef(mwSize dim_y[3],  float  y0[],
-                   mwSize dim_iy[3], float iy0[],  REAL M1[4][3],  REAL M2[4][3])
+void invdef(mwSize *dim_y,  float  y0[],
+                   mwSize *dim_iy, float iy0[],  float M1[][3],  float M2[][3])
 {
-    mwIndex x2, x1, x0;
+    mwSignedIndex x2, x1, x0;
     int pass;
     float *y1=0, *y2=0, *iy1=0, *iy2=0;
 
@@ -472,13 +471,13 @@ void invdef(mwSize dim_y[3],  float  y0[],
     for (pass=0; pass<=1; pass++)
     {
         /* Loop over all cubes in the deformation field. */
-        for(x2=1; x2<dim_y[2]; x2++)
+        for(x2=1; x2<(mwSignedIndex)dim_y[2]; x2++)
         {
-            for(x1=1; x1<dim_y[1]; x1++)
+            for(x1=1; x1<(mwSignedIndex)dim_y[1]; x1++)
             {
-                for(x0=1; x0<dim_y[0]; x0++)
+                for(x0=1; x0<(mwSignedIndex)dim_y[0]; x0++)
                 {
-                    int o = x0 + dim_y[0]*(x1 + x2*dim_y[1]);
+                    mwSignedIndex o = x0 + dim_y[0]*(x1 + x2*dim_y[1]);
                     invert_it(x0, x1, x2, y0+o, y1+o, y2+o, dim_iy, iy0, iy1, iy2, M1, M2, pass);
                 }
             }

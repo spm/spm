@@ -4,9 +4,9 @@ function cfg = tbx_cfg_longitudinal
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 7234 2017-11-30 11:33:06Z john $
+% $Id: tbx_cfg_longitudinal.m 7408 2018-08-24 14:54:57Z john $
 
-if ~isdeployed,
+if ~isdeployed
     addpath(fullfile(spm('Dir'),'toolbox','Longitudinal'));
     addpath(fullfile(spm('dir'),'toolbox','Shoot'));
 end
@@ -186,28 +186,28 @@ function cdep = vout_pairwise(job)
 % outputs are calculated.
 
 ind  = 1;
-if job.write_avg,
+if job.write_avg
     cdep(ind)          = cfg_dep;
     cdep(ind).sname      = 'Midpoint Average';
     cdep(ind).src_output = substruct('.','avg','()',{':'});
     cdep(ind).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     ind = ind + 1;
 end
-if job.write_jac,
+if job.write_jac
     cdep(ind)          = cfg_dep;
     cdep(ind).sname      = 'Jacobian Diff';
     cdep(ind).src_output = substruct('.','jac','()',{':'});
     cdep(ind).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     ind = ind + 1;
 end
-if job.write_div,
+if job.write_div
     cdep(ind)          = cfg_dep;
     cdep(ind).sname      = 'Divergence';
     cdep(ind).src_output = substruct('.','div','()',{':'});
     cdep(ind).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     ind = ind + 1;
 end
-if job.write_def,
+if job.write_def
     cdep(ind)            = cfg_dep;
     cdep(ind).sname      = 'Deformation (1)';
     cdep(ind).src_output = substruct('.','def1','()',{':'});

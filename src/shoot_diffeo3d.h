@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.h 4875 2012-08-30 20:04:30Z john $ */
+/* $Id: shoot_diffeo3d.h 7408 2018-08-24 14:54:57Z john $ */
 /* (c) John Ashburner (2007) */
 extern void composition(mwSize ma[], mwSize mm, float *A, float *B, float *C);
 extern void composition_jacobian(mwSize ma[], mwSize mm,
@@ -7,15 +7,16 @@ extern void composition_jacobian(mwSize ma[], mwSize mm,
 extern void composition_jacdet(mwSize dm[], mwSize mm,
                                float *A, float * JA, float *B, float *JB,
                                float *C, float *JC);
-extern void smalldef(mwSize dm[], double sc, float v[], float t[]);
-extern void smalldef_jac(mwSize dm[], double sc, float v0[], float t0[], float J0[]);
-extern void smalldef_jac1(mwSize dm[], double sc, float v[], float t[], float J[]);
-extern double samp(mwSize dm[], float f[], double x, double y, double z);
-extern void sampn(mwSize dm[], float f[], mwSize n, mwSize mm, double x, double y, double z, double v[]);
+extern void smalldef(mwSize dm[], float sc, float v[], float t[]);
+extern void smalldef_jac(mwSize dm[], float sc, float v0[], float t0[], float J0[]);
+extern void smalldef_jac1(mwSize dm[], float sc, float v[], float t[], float J[]);
+extern void sampn_vox(mwSize dm[], float f[], mwSize n, mwSize mm, double x, double y, double z, double v[]);
 extern void unwrap(mwSize dm[], float f[]);
 extern void bracket(mwSize dm[], float *A, float *B, float *C);
-extern void push(mwSize dm[], mwSize m, mwSize n, float def[], float pf[], float po[], float so[]);
-extern void pushc(mwSize dm[], mwSize m, mwSize n, float def[], float pf[], float po[], float so[]);
+extern void push(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F1[], /*@out@*/ float F0[], /*@null@@out@*/ float S0[]);
+extern void pushc(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F1[], /*@out@*/ float F0[], /*@null@@out@*/ float S0[]);
+extern void pull(mwSize dm0[], mwSize m1, mwSize n, float Psi[],  float F0[], /*@out@*/ float F1[]);
+extern void pullc(mwSize dm0[], mwSize m1, mwSize n, float Psi[],  float F0[], /*@out@*/ float F1[]);
 extern void pushc_grads(mwSize dmo[], mwSize dmy[], float def[], float J[], float pf[], float po[]);
 extern void determinant(mwSize dm[], float J0[], float d[]);
 extern void minmax_div(mwSize dm[], float v0[], double mnmx[]);

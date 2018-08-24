@@ -17,7 +17,7 @@ function [mg,nu,sig] = spm_rice_mixture(h,x,K)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_rice_mixture.m 6844 2016-07-28 20:02:34Z john $
+% $Id: spm_rice_mixture.m 7408 2018-08-24 14:54:57Z john $
 
 mg  = ones(K,1)/K;
 nu  = (0:(K-1))'*max(x)/(K+1);
@@ -27,9 +27,9 @@ m0 = zeros(K,1);
 m1 = zeros(K,1);
 m2 = zeros(K,1);
 ll = -Inf;
-for iter=1:10000,
+for iter=1:10000
     p  = zeros(numel(x),K);
-    for k=1:K,
+    for k=1:K
         % Product Rule
         % p(class=k, x | mg, nu, sig) = p(class=k|mg) p(x | nu, sig, class=k)
         p(:,k) = mg(k)*ricepdf(x(:),nu(k),sig(k)^2);
@@ -52,14 +52,14 @@ for iter=1:10000,
 
 
     % Compute moments from the histograms, weighted by the responsibilities (p).
-    for k=1:K,
+    for k=1:K
         m0(k) = sum(p(:,k).*h(:));              % Number of voxels in class k
         m1(k) = sum(p(:,k).*h(:).*x(:));        % Sum of the intensities in class k
         m2(k) = sum(p(:,k).*h(:).*x(:).*x(:));  % Sum of squares of intensities in class k
     end
 
     mg = m0/sum(m0); % Mixing proportions
-    for k=1:K,
+    for k=1:K
         mu1 = m1(k)./m0(k);                                % Mean 
         mu2 = (m2(k)-m1(k)*m1(k)/m0(k)+1e-6)/(m0(k)+1e-6); % Variance
 
@@ -84,8 +84,8 @@ function [nu,sig] = moments2param(mu1,mu2)
 
 r     = mu1/sqrt(mu2);
 theta = sqrt(pi/(4-pi));
-if r>theta,
-    for i=1:256,
+if r>theta
+    for i=1:256
         xi    = 2+theta^2-pi/8*exp(-theta^2/2)*((2+theta^2)*besseli(0,theta^2/4)+theta^2*besseli(1,theta^2/4))^2;
         g     = sqrt(xi*(1+r^2)-2);
         if abs(theta-g)<1e-6, break; end

@@ -5,25 +5,25 @@ function out = spm_series_align(job)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_series_align.m 5044 2012-11-09 13:40:35Z john $
+% $Id: spm_series_align.m 7408 2018-08-24 14:54:57Z john $
 
 N = numel(job.vols);
 tim = job.times(:);
-if numel(tim) ~= N,
+if numel(tim) ~= N
     error('Incompatible numbers of times and scans.');
 end
-if any(abs(diff(tim)) > 50),
+if any(abs(diff(tim)) > 50)
     error('Time differences should be in years.');
-end;
+end
 
-if numel(job.noise)==1,
+if numel(job.noise)==1
     noise = repmat(job.noise,[N,1]);
-elseif numel(job.noise) ~= N,
+elseif numel(job.noise) ~= N
     error('Incompatible numbers of noise estimates and scans.');
 else
     noise = job.noise(:);
 end
-for i=find(~isfinite(noise(:)))',
+for i=find(~isfinite(noise(:)))'
     % Make an estimate of the scanner noise
     noise(i,1) = spm_noise_estimate(job.vols{i});
     fprintf('Estimated noise sd for "%s" = %g\n', job.vols{i}, noise(i,1));

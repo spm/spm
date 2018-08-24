@@ -1,5 +1,5 @@
 /*
- * $Id: shoot_bsplines.c 4884 2012-09-03 13:33:17Z guillaume $
+ * $Id: shoot_bsplines.c 7408 2018-08-24 14:54:57Z john $
  * John Ashburner
  */
  
@@ -42,7 +42,7 @@ static int vol_coeffs(mwSize vdim[], float vol[], float c[], int d[], void (*spl
     double  p[4];
     float *cp;
     int np;
-    int i, j, k, n;
+    mwSize i, j, k, n;
     float f[10240];
 
     /* Check that dimensions don't exceed size of f */
@@ -61,7 +61,7 @@ static int vol_coeffs(mwSize vdim[], float vol[], float c[], int d[], void (*spl
     /* Deconvolve along the fastest dimension (X) */
     if (d[0]>1 && vdim[0]>1)
     {
-        if (get_poles(d[0], &np, p)) return(1);
+        if (get_poles(d[0], &np, p)!=0) return(1);
         for(k=0; k<vdim[2]; k++)
         {
             /* double dk = k+1; */
@@ -76,7 +76,7 @@ static int vol_coeffs(mwSize vdim[], float vol[], float c[], int d[], void (*spl
     /* Deconvolve along the middle dimension (Y) */
     if (d[1]>1 && vdim[1]>1)
     {
-        if (get_poles(d[1], &np, p)) return(1);
+        if (get_poles(d[1], &np, p)!=0) return(1);
         n =vdim[0];
         for(k=0; k<vdim[2]; k++)
         {
@@ -94,7 +94,7 @@ static int vol_coeffs(mwSize vdim[], float vol[], float c[], int d[], void (*spl
     /* Deconvolve along the slowest dimension (Z) */
     if (d[2]>1 && vdim[2]>1)
     {
-        if (get_poles(d[2], &np, p)) return(1);
+        if (get_poles(d[2], &np, p)!=0) return(1);
         n = vdim[0]*vdim[1];
         for(j=0; j<vdim[1]; j++)
         {

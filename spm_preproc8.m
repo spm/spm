@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 7320 2018-05-29 10:19:49Z john $
+% $Id: spm_preproc8.m 7408 2018-08-24 14:54:57Z john $
 
 wp_reg    = 1; % Bias wp towards 1
 
@@ -338,7 +338,7 @@ for iter=1:30
                     for n=1:N
                         cr(:,n)  = double(buf(z).f{n}.*buf(z).bf{n});
                     end
-                    for k1=1:Kb, % Moments
+                    for k1=1:Kb % Moments
                         b           = double(buf(z).dat(:,k1));
                         mm0(k1)     = mm0(k1)     + sum(b);
                         mm1(:,k1)   = mm1(:,k1)   + (b'*cr)';
@@ -414,7 +414,7 @@ for iter=1:30
                     for n=1:N
                         cr(:,n)  = double(buf(z).f{n}.*buf(z).bf{n});
                     end
-                    for k=1:K, % Update moments
+                    for k=1:K % Update moments
                         q(:,k)      = q(:,k);
                         mom0(k)     = mom0(k)     + sum(q(:,k));
                         mom1(:,k)   = mom1(:,k)   + (q(:,k)'*cr)';

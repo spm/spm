@@ -1,8 +1,8 @@
-/* $Id: shoot_multiscale.c 4875 2012-08-30 20:04:30Z john $ */
+/* $Id: shoot_multiscale.c 7408 2018-08-24 14:54:57Z john $ */
 /* (c) John Ashburner (2011) */
 
-#include<mex.h>
 #include<math.h>
+#include "mex.h"
 #include "shoot_boundary.h"
 
 /* 2nd degree B-spline basis */
@@ -43,7 +43,7 @@ static void restrict_plane(mwSize na[], float *a,  mwSize nc[], float *c, float 
      */
     if (na[1]==1)
     {
-        for(j=0; j<nc[1]*na[0]; j++)
+        for(j=0; j<(mwSignedIndex)nc[1]*na[0]; j++)
             b[j] = a[j];
     }
     /*
@@ -64,29 +64,29 @@ static void restrict_plane(mwSize na[], float *a,  mwSize nc[], float *c, float 
     else
     {
         s = (double)na[1]/(double)nc[1];
-        for(j=0; j<nc[1]; j++)
+        for(j=0; j<(mwSignedIndex)nc[1]; j++)
         {
             double w0, w1, w2, w3;
             mwSignedIndex o0, o1, o2, o3;
             /* loc = s*j; */
-            loc = (j+0.5)*s-0.5;
-            o   = floor(loc);
+            loc = ((double)j+0.5)*s-0.5;
+            o   = (mwSignedIndex)floor(loc);
             o0  = bound(o-1,na[1])*na[0];
             o1  = bound(o  ,na[1])*na[0];
             o2  = bound(o+1,na[1])*na[0];
             o3  = bound(o+2,na[1])*na[0];
-            w0  = wt1(((o-1)-loc)/2.0)/2.0;
-            w1  = wt1(((o  )-loc)/2.0)/2.0;
-            w2  = wt1(((o+1)-loc)/2.0)/2.0;
-            w3  = wt1(((o+2)-loc)/2.0)/2.0;
+            w0  = wt1(((double)(o-1)-loc)/2.0)/2.0;
+            w1  = wt1(((double)(o  )-loc)/2.0)/2.0;
+            w2  = wt1(((double)(o+1)-loc)/2.0)/2.0;
+            w3  = wt1(((double)(o+2)-loc)/2.0)/2.0;
             for(ap=a, bp=b+j*na[0], cp=ap+na[0]; ap<cp; ap++, bp++)
-                *bp = w0*ap[o0]+w1*ap[o1]+w2*ap[o2]+w3*ap[o3];
+                *bp = (float)(w0*ap[o0]+w1*ap[o1]+w2*ap[o2]+w3*ap[o3]);
         }
     }
 
     if (na[0]==1)
     {
-        for(j=0; j<nc[0]*nc[1]; j++)
+        for(j=0; j<(mwSignedIndex)nc[0]*nc[1]; j++)
             c[j] = b[j];
     }
     /*
@@ -106,30 +106,31 @@ static void restrict_plane(mwSize na[], float *a,  mwSize nc[], float *c, float 
     else
     {
         s = (double)na[0]/(double)nc[0];
-        for(i=0; i<nc[0]; i++)
+        for(i=0; i<(mwSignedIndex)nc[0]; i++)
         {
             double w0, w1, w2, w3;
             mwSignedIndex o0, o1, o2, o3;
             /* loc = s*i; */
-            loc = (i+0.5)*s-0.5;
-            o   = floor(loc);
+            loc = ((double)i+0.5)*s-0.5;
+            o   = (mwSignedIndex)floor(loc);
             o0  = bound(o-1,na[0]); 
             o1  = bound(o  ,na[0]); 
             o2  = bound(o+1,na[0]); 
             o3  = bound(o+2,na[0]); 
-            w0  = wt1(((o-1)-loc)/2.0)/2.0;
-            w1  = wt1(((o  )-loc)/2.0)/2.0;
-            w2  = wt1(((o+1)-loc)/2.0)/2.0;
-            w3  = wt1(((o+2)-loc)/2.0)/2.0;
+            w0  = wt1(((double)(o-1)-loc)/2.0)/2.0;
+            w1  = wt1(((double)(o  )-loc)/2.0)/2.0;
+            w2  = wt1(((double)(o+1)-loc)/2.0)/2.0;
+            w3  = wt1(((double)(o+2)-loc)/2.0)/2.0;
             for(bp=b, cp=c+i, ap=bp+na[0]*nc[1]; bp<ap; bp+=na[0], cp+=nc[0])
-                *cp = w0*bp[o0]+w1*bp[o1]+w2*bp[o2]+w3*bp[o3];
+                *cp = (float)(w0*bp[o0]+w1*bp[o1]+w2*bp[o2]+w3*bp[o3]);
         }
     }
 }
 
 void restrict_vol(mwSize na[], float *a, mwSize nc[], float *c, float *b)
 {
-    mwSignedIndex j, k, o=-999999, m, oo;
+    mwSignedIndex j, k, o=-999999, oo;
+    mwSize m;
     double loc, s;
     float *bp, *cp, *pl[4];
 
@@ -174,23 +175,23 @@ void restrict_vol(mwSize na[], float *a, mwSize nc[], float *c, float *b)
     */
     {
         s      = (double)na[2]/(double)nc[2];
-        for(k=0; k<nc[2]; k++)
+        for(k=0; k<(mwSignedIndex)nc[2]; k++)
         {
             double w0, w1, w2, w3;
             mwSignedIndex o0, o1, o2, o3;
             /* loc = s*k; */
-            loc = (k+0.5)*s-0.5;
+            loc = ((double)k+0.5)*s-0.5;
             oo  = o;
-            o   = floor(loc);
+            o   = (mwSignedIndex)floor(loc);
 
             o0  = bound(o-1,na[2]);
             o1  = bound(o  ,na[2]);
             o2  = bound(o+1,na[2]);
             o3  = bound(o+2,na[2]);
-            w0  = wt1(((o-1)-loc)/2.0)/2.0;
-            w1  = wt1(((o  )-loc)/2.0)/2.0;
-            w2  = wt1(((o+1)-loc)/2.0)/2.0;
-            w3  = wt1(((o+2)-loc)/2.0)/2.0;
+            w0  = wt1(((double)(o-1)-loc)/2.0)/2.0;
+            w1  = wt1(((double)(o  )-loc)/2.0)/2.0;
+            w2  = wt1(((double)(o+1)-loc)/2.0)/2.0;
+            w3  = wt1(((double)(o+2)-loc)/2.0)/2.0;
 
             if (o==oo)
             {   /* do nothing */
@@ -235,9 +236,9 @@ void restrict_vol(mwSize na[], float *a, mwSize nc[], float *c, float *b)
                 restrict_plane(na, a+na[0]*na[1]*o3,nc,pl[3],bp);
             }
             cp  = c+nc[0]*nc[1]*k;
-            for(j=0; j<nc[0]*nc[1]; j++)
+            for(j=0; j<(mwSignedIndex)nc[0]*nc[1]; j++)
             {
-                cp[j] = w0*pl[0][j]+w1*pl[1][j]+w2*pl[2][j]+w3*pl[3][j];
+                cp[j] = (float)(w0*pl[0][j]+w1*pl[1][j]+w2*pl[2][j]+w3*pl[3][j]);
             }
         }
     }
@@ -254,40 +255,41 @@ static void resized_plane(mwSize na[], float *a,  mwSize nc[], float *c, float *
      */
 
     s = (double)na[1]/(double)nc[1];
-    for(j=0; j<nc[1]; j++)
+    for(j=0; j<(mwSignedIndex)nc[1]; j++)
     {
         /* loc = j*s; */
-        loc = (j+0.5)*s-0.5;
-        o   = floor(loc+0.5);
+        loc = ((double)j+0.5)*s-0.5;
+        o   = (mwSignedIndex)floor(loc+0.5);
         oc  = bound(o  ,na[1])*na[0];
         om  = bound(o-1,na[1])*na[0];
         op  = bound(o+1,na[1])*na[0];
-        w   = wt2( o   -loc);
-        wp  = wt2((o+1)-loc);
-        wm  = wt2((o-1)-loc);
+        w   = wt2((double) o   -loc);
+        wp  = wt2((double)(o+1)-loc);
+        wm  = wt2((double)(o-1)-loc);
         for(ap=a, bp=b+j*na[0], cp=ap+na[0]; ap<cp; ap++, bp++)
-            *bp = wm*ap[om]+w*ap[oc]+wp*ap[op];
+            *bp = (float)(wm*ap[om]+w*ap[oc]+wp*ap[op]);
     }
     s = (double)na[0]/(double)nc[0];
-    for(i=0; i<nc[0]; i++)
+    for(i=0; i<(mwSignedIndex)nc[0]; i++)
     {
         /* loc = i*s; */
-        loc = (i+0.5)*s-0.5;
-        o   = floor(loc+0.5);
+        loc = ((double)i+0.5)*s-0.5;
+        o   = (mwSignedIndex)floor(loc+0.5);
         oc  = bound(o  ,na[0]);
         om  = bound(o-1,na[0]);
         op  = bound(o+1,na[0]);
-        w   = wt2( o   -loc);
-        wp  = wt2((o+1)-loc);
-        wm  = wt2((o-1)-loc);
+        w   = wt2((double) o   -loc);
+        wp  = wt2((double)(o+1)-loc);
+        wm  = wt2((double)(o-1)-loc);
         for(bp=b, cp=c+i, ap=bp+na[0]*nc[1]; bp<ap; bp+=na[0], cp+=nc[0])
-            *cp = wm*bp[om]+w*bp[oc]+wp*bp[op];
+            *cp = (float)(wm*bp[om]+w*bp[oc]+wp*bp[op]);
     }
 }
 
 void resize_vol(mwSize na[], float *a, mwSize nc[], float *c, float *b)
 {
-    mwSignedIndex j, k, o=-999999,oc,om,op, m, oo;
+    mwSignedIndex j, k, o=-999999,oc,om,op, oo;
+    mwSize m;
     double loc, s, w, wm, wp;
     float *bp, *cp, *pl[3];
 
@@ -303,13 +305,13 @@ void resize_vol(mwSize na[], float *a, mwSize nc[], float *c, float *b)
     pl[2] = b + m*2;
     bp    = b + m*3;
 
-    for(k=0; k<nc[2]; k++)
+    for(k=0; k<(mwSignedIndex)nc[2]; k++)
     {
         s   = (double)na[2]/(double)nc[2];
         /* loc = k*s; */
-        loc = (k+0.5)*s-0.5;
+        loc = ((double)k+0.5)*s-0.5;
         oo  = o;
-        o   = floor(loc+0.5);
+        o   = (mwSignedIndex)floor(loc+0.5);
         oc  = bound(o  ,na[2]);
         om  = bound(o-1,na[2]);
         op  = bound(o+1,na[2]);
@@ -341,13 +343,13 @@ void resize_vol(mwSize na[], float *a, mwSize nc[], float *c, float *b)
             resized_plane(na, a+na[0]*na[1]*oc,nc,pl[1],bp);
             resized_plane(na, a+na[0]*na[1]*op,nc,pl[2],bp);
         }
-        w   = wt2( o   -loc);
-        wp  = wt2((o+1)-loc);
-        wm  = wt2((o-1)-loc);
+        w   = wt2((double) o   -loc);
+        wp  = wt2((double)(o+1)-loc);
+        wm  = wt2((double)(o-1)-loc);
         cp  = c+nc[0]*nc[1]*k;
-        for(j=0; j<nc[0]*nc[1]; j++)
+        for(j=0; j<(mwSignedIndex)nc[0]*nc[1]; j++)
         {
-            cp[j] = wm*pl[0][j]+w*pl[1][j]+wp*pl[2][j];
+            cp[j] = (float)(wm*pl[0][j]+w*pl[1][j]+wp*pl[2][j]);
         }
     }
 }

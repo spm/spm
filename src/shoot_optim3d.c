@@ -1,10 +1,9 @@
-/* $Id: shoot_optim3d.c 4875 2012-08-30 20:04:30Z john $ */
+/* $Id: shoot_optim3d.c 7408 2018-08-24 14:54:57Z john $ */
 /* (c) John Ashburner (2011) */
 
-#include<mex.h>
 #include<math.h>
 extern double log(double x);
-
+#include "mex.h"
 #include "shoot_optim3d.h"
 #include "shoot_multiscale.h"
 #include "shoot_regularisers.h"
@@ -25,7 +24,7 @@ static void addscaled(mwSize m, float a[], float b[], double s)
         a[i] += s*b[i];
 }
 
-float norm(mwSize m, float a[])
+double norm(mwSize m, float a[])
 {
     mwSize i;
     double dp = 0.0;
@@ -103,7 +102,7 @@ void cgs3(mwSize dm[], float A[], float b[], double param[], double tol, int nit
     beta    = 0.0;
 
     /* for it=1:nit, */
-    for(it=0; it<nit; it++)
+    for(it=0; it<(mwIndex)nit; it++)
     {
         /* if norm(r) < tol*norm(b), break; end; */
         if (norm(m,r) < nb)
@@ -111,7 +110,7 @@ void cgs3(mwSize dm[], float A[], float b[], double param[], double tol, int nit
 
         /* p      = r + beta*p; */
         for(i=0; i<m; i++)
-            p[i]  = r[i] + beta*p[i];
+            p[i]  = (float)(r[i] + beta*p[i]);
 
         /* Ap     = A*p; */
         Atimesp(dm, A, param, p, Ap);
@@ -151,7 +150,7 @@ static void restrict_g(mwSize na[], float *a, float *c, float *b)
 {
     mwSize i, nc[3], m;
     for(i=0; i<3; i++)
-        nc[i] = ceil(na[i]/2.0);
+        nc[i] = (mwSize)ceil((double)na[i]/2.0);
     m = nc[0]*nc[1]*nc[2];
     for(i=0; i<3; i++)
     {
@@ -166,7 +165,7 @@ static void restrict_h(mwSize na[], float *a, float *c, float *b)
     double s[3];
     for(i=0; i<3; i++)
     {
-        nc[i] = ceil(na[i]/2.0);
+        nc[i] = (mwSize)ceil((double)na[i]/2.0);
         s[i]  = (double)na[i]/(double)nc[i];
     }
     m = nc[0]*nc[1]*nc[2];
@@ -215,7 +214,7 @@ static void addto(mwSize n, float *a, float *b)
 mwSize fmg3_scratchsize(mwSize n0[], int use_hessian)
 {
     mwSize n[64][3], m[64], bs, j, num_blocks;
-    if (use_hessian)
+    if (use_hessian!=0)
         num_blocks = 15; /* Uses a further 6 volumes to represent a symmetric tensor field */
     else
         num_blocks = 9;
@@ -228,9 +227,9 @@ mwSize fmg3_scratchsize(mwSize n0[], int use_hessian)
     n[0][2] = n0[2];
     for(j=1; j<64; j++)
     {
-        n[j][0] = ceil(n[j-1][0]/2.0);
-        n[j][1] = ceil(n[j-1][1]/2.0);
-        n[j][2] = ceil(n[j-1][2]/2.0);
+        n[j][0] = (mwSize)ceil((double)n[j-1][0]/2.0);
+        n[j][1] = (mwSize)ceil((double)n[j-1][1]/2.0);
+        n[j][2] = (mwSize)ceil((double)n[j-1][2]/2.0);
         m[j]    = n[j][0]*n[j][1]*n[j][2];
         bs += m[j];
         if ((n[j][0]<2) && (n[j][1]<2) && (n[j][2]<2))
@@ -262,9 +261,9 @@ void fmg3(mwSize n0[], float *a0, float *b0, double param0[], int c, int nit,
     bs = 0;
     for(j=1; j<16; j++)
     {
-        n[j][0] = ceil(n[j-1][0]/2.0);
-        n[j][1] = ceil(n[j-1][1]/2.0);
-        n[j][2] = ceil(n[j-1][2]/2.0);
+        n[j][0] = (mwSize)ceil((double)n[j-1][0]/2.0);
+        n[j][1] = (mwSize)ceil((double)n[j-1][1]/2.0);
+        n[j][2] = (mwSize)ceil((double)n[j-1][2]/2.0);
         m[j]    = n[j][0]*n[j][1]*n[j][2];
         ng ++;
         bs += m[j];
@@ -341,7 +340,7 @@ void fmg3(mwSize n0[], float *a0, float *b0, double param0[], int c, int nit,
                 {
                     relax(n[jj], a[jj], b[jj], param[jj], nit, u[jj]);
                     Atimesp(n[jj], a[jj], param[jj], u[jj], res);
-                    for(i=0; i<3*m[jj]; i++)
+                    for(i=0; i<3*(mwSignedIndex)m[jj]; i++)
                         res[i] = b[jj][i] - res[i];
                     restrict_g(n[jj],res,b[jj+1],rbuf);
                     zeros(3*m[jj+1],u[jj+1]);
@@ -369,7 +368,7 @@ void fmg3(mwSize n0[], float *a0, float *b0, double param0[], int c, int nit,
             {
                 relax(n[jj], a[jj], b[jj], param[jj], nit, u[jj]);
                 Atimesp(n[jj], a[jj], param[jj], u[jj], res);
-                for(i=0; i<3*m[jj]; i++)
+                for(i=0; i<3*(mwSignedIndex)m[jj]; i++)
                     res[i] = b[jj][i] - res[i];
                 restrict_g(n[jj],res,b[jj+1],rbuf);
                 zeros(3*m[jj+1],u[jj+1]);
