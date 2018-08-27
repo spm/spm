@@ -40,7 +40,7 @@ function [f,J,Q] = spm_fx_gen(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_gen.m 7288 2018-04-07 13:18:54Z karl $
+% $Id: spm_fx_gen.m 7409 2018-08-27 11:39:00Z bernadette $
  
  
 % model-specific parameters
@@ -50,7 +50,7 @@ function [f,J,Q] = spm_fx_gen(x,u,P,M)
 %--------------------------------------------------------------------------
 fx{1} = @spm_fx_erp;                     % ERP model
 fx{2} = @spm_fx_cmc;                     % CMC model
-fx{3} = @spm_fx_bgc;                     % basal ganglia circuit
+fx{3} = @spm_fx_bgt;                     % basal ganglia circuit
 fx{4} = @spm_fx_mmc;                     % motor micro circuit
 
 % indices of extrinsically coupled hidden states
@@ -61,8 +61,8 @@ afferent(1,:) = [4 8 5 8];               % targets of ERP connections
 efferent(2,:) = [3 3 7 7];               % sources of CMC connections
 afferent(2,:) = [2 8 4 6];               % targets of CMC connections
 
-efferent(3,:) = [9 9 9 9];               % sources of BGC connections (thalamus)
-afferent(3,:) = [2 6 2 6];               % targets of BGC connections (striatum & STN)
+efferent(3,:) = [9 9 9 9];               % sources of BGT connections (thalamus)
+afferent(3,:) = [2 6 2 6];               % targets of BGT connections (striatum & STN)
 
 efferent(4,:) = [3 3 7 7];               % sources of MMC connections
 afferent(4,:) = [2 4 8 0];               % targets of MMC connections
@@ -77,7 +77,7 @@ E(4,:) = [.9 .9 .11 0]*100000;           % MMC connections
 
 if isfield(M,'ERP_E'); E(1,:)= M.ERP_E; end
 if isfield(M,'CMC_E'); E(2,:)= M.CMC_E; end
-if isfield(M,'BGC_E'); E(3,:)= M.BGC_E; end
+if isfield(M,'BGT_E'); E(3,:)= M.BGT_E; end
 if isfield(M,'MMC_E'); E(4,:)= M.MMC_E; end
 
 
@@ -85,7 +85,7 @@ if isfield(M,'MMC_E'); E(4,:)= M.MMC_E; end
 %--------------------------------------------------------------------------
 D(1) = 2;                                % ERP connections      
 D(2) = 1;                                % CMC connections
-D(3) = 4;                                % BGC connections 
+D(3) = 4;                                % BGT connections 
 D(4) = 1;                                % MMC connections
             
 % get model specific operators
@@ -103,7 +103,7 @@ for i = 1:n
         nmm(i) = 1;
     elseif strcmp(model(i).source,'CMC')
         nmm(i) = 2;
-    elseif strcmp(model(i).source,'BGC')
+    elseif strcmp(model(i).source,'BGT')
         nmm(i) = 3;
     elseif strcmp(model(i).source,'MMC')
         nmm(i) = 4;

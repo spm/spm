@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 6971 2016-12-14 18:49:19Z bernadette $
+% $Id: spm_L_priors.m 7409 2018-08-27 11:39:00Z bernadette $
 
 
 
@@ -143,7 +143,7 @@ for i = 1:numel(model)
             pE.J{end + 1} = [];                              % null
             pC.J{end + 1} = [];
             
-        case{'BGC'}
+        case{'BGT'}
             %--------------------------------------------------------------
             %assuming data are from STN
             pE.J{end + 1} = sparse(1,5,1,1,10);               % 10 states

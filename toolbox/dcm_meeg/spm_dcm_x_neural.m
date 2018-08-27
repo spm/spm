@@ -12,7 +12,7 @@ function [x,f,h] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 6971 2016-12-14 18:49:19Z bernadette $
+% $Id: spm_dcm_x_neural.m 7409 2018-08-27 11:39:00Z bernadette $
 
 % paramteric state equation
 %--------------------------------------------------------------------------
@@ -163,7 +163,7 @@ switch lower(model)
     
     % Basal ganglia circuit (linear in states) - with covariance
     %======================================================================
-    case{'bgc'}
+    case{'bgt'}
         
         % inital states and model
         %------------------------------------------------------------------
@@ -171,7 +171,7 @@ switch lower(model)
         m = 10;
         x = sparse(n,m);
         
-        f = 'spm_fx_bgc';        
+        f = 'spm_fx_bgt';        
         
     % Linear in states – motor microcircuit
     %======================================================================
