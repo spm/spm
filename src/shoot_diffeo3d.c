@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 7408 2018-08-24 14:54:57Z john $ */
+/* $Id: shoot_diffeo3d.c 7410 2018-09-04 15:32:54Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -587,7 +587,7 @@ void sampn_vox(mwSize dm[], float F[], mwSize n, mwSize mm, double x, double y, 
 
 static void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@null@@out@*/float S0[], float F1[], unsigned int code)
 {
-    mwSize i, m0;
+    mwSize i, j, m0;
     float  *px, *py, *pz;
     float  NaN = 0.0f/0.0f;
 
