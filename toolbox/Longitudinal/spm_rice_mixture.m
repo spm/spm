@@ -17,7 +17,7 @@ function [mg,nu,sig] = spm_rice_mixture(h,x,K)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_rice_mixture.m 7408 2018-08-24 14:54:57Z john $
+% $Id: spm_rice_mixture.m 7411 2018-09-04 16:48:09Z john $
 
 mg  = ones(K,1)/K;
 nu  = (0:(K-1))'*max(x)/(K+1);
@@ -71,7 +71,6 @@ end
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-
 function [nu,sig] = moments2param(mu1,mu2)
 % Rician parameter estimation (nu & sig) from mean (mu1) and variance
 % (mu2) via the Koay inversion technique.
@@ -100,12 +99,13 @@ end
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-
 function p = ricepdf(x,nu,sig2)
 % Rician PDF
 % p = ricepdf(x,nu,sig2)
 % https://en.wikipedia.org/wiki/Rice_distribution#Characterization
-p      = x./sig2.*exp(-(x.^2+nu.^2)/(2*sig2));
-msk    = find(p>0); % Done this way to prevent division of 0 by Inf
-p(msk) = p(msk).*besseli(0,x(msk)*nu/sig2);
+p       = zeros(size(x));
+tmp     = -(x.^2+nu.^2)./(2*sig2);
+msk     = (tmp > -95) & (x*(nu/sig2) < 85) ; % Identify where Rice probability can be computed
+p(msk)  = (x(msk)./sig2).*exp(tmp(msk)).*besseli(0,x(msk)*(nu/sig2)); % Use Rician distribution
+p(~msk) = (1./sqrt(2*pi*sig2))*exp((-0.5/sig2)*(x(~msk)-nu).^2);      % Use Gaussian distribution
 
