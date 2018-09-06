@@ -1,6 +1,6 @@
-function [f,J,Q] = spm_fx_bgc(x,u,P,M)
-% state equations for a neural mass model of the basal ganglia circuit
-% models the circuit between striatum, gpe, stn, gpi, and thalamus as a
+function [f,J,Q] = spm_fx_bgt(x,u,P,M)
+% state equations for a neural mass model of the basal ganglia & thalamus
+% [striatum, gpe, stn, gpi, and thalamus] as a
 % single source (no extrinsic connections)
 %
 % order           cells     states
@@ -23,7 +23,7 @@ function [f,J,Q] = spm_fx_bgc(x,u,P,M)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
  
 % Bernadette van Wijk
-% $Id: spm_fx_bgc.m 7185 2017-10-11 10:10:04Z spm $
+% $Id: spm_fx_bgt.m 7412 2018-09-06 10:12:18Z guillaume $
 
 
 % check if intrinsic connections are free parameters
@@ -42,8 +42,8 @@ T  = [8 8 4 8 8];               % synaptic time constants [str,gpe,stn,gpi,tha];
 R  = 2/3;                       % slope of sigmoid activation function
 % NB for more pronounced state dependent transfer functions use R  = 3/2;
 
-if isfield(M,'BGC_G'); G = M.BGC_G; end
-if isfield(M,'BGC_T'); T = M.BGC_T; end
+if isfield(M,'BGT_G'); G = M.BGT_G; end
+if isfield(M,'BGT_T'); T = M.BGT_T; end
 
 
 % [specified] fixed parameters

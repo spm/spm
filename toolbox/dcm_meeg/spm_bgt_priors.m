@@ -1,13 +1,13 @@
-function [pE,pC] = spm_bgc_priors
+function [pE,pC] = spm_bgt_priors
 % Prior moments for a basal ganglia circuit
-% FORMAT [pE,pC] = spm_bgc_priors
+% FORMAT [pE,pC] = spm_bgt_priors
 % only contains priors for intrinsic parameters
 % priors for extrinsic parameters are defined in spm_cmc_priors
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
  
 % Bernadette van Wijk
-% $Id: spm_bgc_priors.m 7185 2017-10-11 10:10:04Z spm $
+% $Id: spm_bgt_priors.m 7412 2018-09-06 10:12:18Z guillaume $
 
 
 % synaptic parameters
