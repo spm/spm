@@ -1,4 +1,5 @@
 function [lbv] = spm_opm_read_lvm(S)
+% Read LVM file
 % FORMAT [lbv] = spm_opm_read_lvm(S)
 %   S               - input structure
 % Optional fields of S:
@@ -18,15 +19,16 @@ function [lbv] = spm_opm_read_lvm(S)
 %   lbv.decimalTrigs       - Trigger Channels
 %   lbv.binaryTrigs        - Trigger Channels
 %   lbv.pinout             - pinout of lbv file(coming soon)
-% _________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id$
+% $Id: spm_opm_read_lvm.m 7414 2018-09-07 11:00:29Z spm $
+
 
 %-Set default values
 %--------------------------------------------------------------------------
-msg= 'filename needs to be provided';
+msg = 'filename needs to be provided.';
 if ~isfield(S, 'filename'),            error(msg); end
 if ~isfield(S, 'headerlength'),        S.headerlength = 23; end
 if ~isfield(S, 'timeind'),             S.timeind = 1; end
@@ -45,8 +47,8 @@ end
 zipped = strmatch(ext,'.zip');
 
 if(zipped)
-    cellFile=unzip(S.filename,fold);
-    S.filename= cellFile{1};
+    cellFile   = unzip(S.filename,fold);
+    S.filename = cellFile{1};
 end
 
 data = dlmread(S.filename, '\t',S.headerlength,0);
@@ -95,21 +97,22 @@ dBefore= tTrigsDecimal;
     end
  err= sum(sum(abs(dBefore-tTrigsDecimal)));
  if(err>0)
- warning(msg)
+     warning(msg)
  end
-%-convert triggers
+ 
+%-Convert triggers
 %--------------------------------------------------------------------------
 S.nbits = length(S.decimalTriggerInds);
-    cFactor = repmat([2.^(0:S.nbits-1)],size(tTrigsDecimal,1),1);
-    aTrigs = sum(cFactor.*tTrigsDecimal,2);
-    uTrigs = unique(aTrigs);
-    nTrigs = length(uTrigs)-1;
-    
-    outTrigs = zeros(length(aTrigs),nTrigs);
-    
-    for i =1:nTrigs
-        outTrigs(:,i)= (aTrigs==uTrigs(i+1))*uTrigs(i+1);
-    end
+cFactor = repmat([2.^(0:S.nbits-1)],size(tTrigsDecimal,1),1);
+aTrigs  = sum(cFactor.*tTrigsDecimal,2);
+uTrigs  = unique(aTrigs);
+nTrigs  = length(uTrigs)-1;
+
+outTrigs = zeros(length(aTrigs),nTrigs);
+
+for i =1:nTrigs
+    outTrigs(:,i)= (aTrigs==uTrigs(i+1))*uTrigs(i+1);
+end
 
 %-Output Struct
 %--------------------------------------------------------------------------
@@ -118,5 +121,3 @@ lbv.B= B;
 lbv.time= time;
 lbv.decimalTrigs= outTrigs;
 lbv.binaryTrigs= tTrigsBinary;
-
-end

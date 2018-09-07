@@ -1,5 +1,5 @@
 function D = spm_opm_BIDS(S)
-% create a BIDS compatible file structure from an OPM M/EEG object
+% Create a BIDS compatible file structure from an OPM M/EEG object
 % FORMAT D = spm_opm_BIDS(S)
 %   S               - input structure
 %  fields of S:
@@ -17,24 +17,24 @@ function D = spm_opm_BIDS(S)
 %   S.subHandedness - subject handedness              - Default: 'n/a'
 % Output:
 %  D           - The copied datafile is returned
-% _________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id$
+% $Id: spm_opm_BIDS.m 7414 2018-09-07 11:00:29Z spm $
 
 %-Set default values
 %--------------------------------------------------------------------------
-errorMsg= 'an MEEG object must be supplied';
+errorMsg = 'an MEEG object must be supplied.';
 if ~isfield(S, 'D'),            error(errorMsg); end
 if ~isfield(S, 'studyFolder'),  S.studyFolder = 'study'; end
-errorMsg= 'subLabel must be supplied';
+errorMsg = 'subLabel must be supplied.';
 if ~isfield(S, 'subLabel'),     error(errorMsg); end
-errorMsg= 'sesLabel must be supplied';
+errorMsg = 'sesLabel must be supplied.';
 if ~isfield(S, 'sesLabel'),     error(errorMsg); end
-errorMsg= 'taskLabel must be supplied';
+errorMsg = 'taskLabel must be supplied.';
 if ~isfield(S, 'taskLabel'),     error(errorMsg); end
-errorMsg= 'runLabel must be supplied';
+errorMsg= 'runLabel must be supplied.';
 if ~isfield(S, 'runLabel'),     error(errorMsg); end
 if ~isfield(S, 'powerLineF'),   S.powerLineF  = 50; end
 if ~isfield(S, 'subAge'),       S.subAge = 'n/a'; end
@@ -188,5 +188,3 @@ dStruct.Name = S.studyFolder;
 dStruct.BIDSVersion = '1.0.0-rc2';
 dFilePath = fullfile(stFold,'dataset_description.json');
 spm_save(dFilePath,dStruct);
-
-end

@@ -27,12 +27,12 @@ function [D,L] = spm_opm_create(S)
 % Output:
 %  D           - MEEG object (also written to disk)
 %  L           - Lead field (also written on disk)
-% _________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
+% $Id: spm_opm_create.m 7414 2018-09-07 11:00:29Z spm $
 
-% $Id$
 
 %-Initialise
 %--------------------------------------------------------------------------
@@ -336,7 +336,7 @@ if(forward)
     for i=1:size(grad.coilpos,1)
         pos2d(i,1)=dot(grad.coilpos(i,:),t1);
         pos2d(i,2)=dot(grad.coilpos(i,:),t2);
-    end;
+    end
     
     
     args=[];
@@ -359,7 +359,7 @@ if forward
     spm_eeg_inv_checkforward(D,1,1)
 end
 save(D)
-end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                           OPM CONVERT                                   %                          
@@ -429,7 +429,6 @@ end
 Dout = fname(Dout,outMat);
 Dout = path(Dout,a);
 Dout.save;
-end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -502,7 +501,7 @@ end
 end
 ind = sum(abs(outs),2)>0;
 outsny = outs(ind,:);
-display('Negative Y')
+disp('Negative Y')
 
 % py
 %--------------------------------------------------------------------------
@@ -542,7 +541,7 @@ end
 end
 ind = sum(abs(outs),2)>0;
 outspy = outs(ind,:);
-display('Positive Y')
+disp('Positive Y')
 
 % nx
 %--------------------------------------------------------------------------
@@ -582,7 +581,7 @@ end
 end
 ind = sum(abs(outs),2)>0;
 outsnx = outs(ind,:);
-display('Negative X');
+disp('Negative X');
 
 % px
 %--------------------------------------------------------------------------
@@ -622,7 +621,7 @@ end
 end
 ind = sum(abs(outs),2)>0;
 outspx = outs(ind,:);
-display('Postive X')
+disp('Postive X')
 
 % nz
 %--------------------------------------------------------------------------
@@ -663,7 +662,7 @@ end
 ind = sum(abs(outs),2)>0;
 outsnz = outs(ind,:);
 
-display('Negative Z');
+disp('Negative Z');
 
 % pz
 %--------------------------------------------------------------------------
@@ -704,7 +703,8 @@ end
 ind = sum(abs(outs),2)>0;
 outspz = outs(ind,:);
 
-display('Positive Z');
+disp('Positive Z');
+
 % Initial Points
 %--------------------------------------------------------------------------
 uspz = unique(round(outsnz,3),'rows');
@@ -760,7 +760,6 @@ end
 %--------------------------------------------------------------------------     
 outs = us;
 
-end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                     Line Surface Intersection                           %                          
@@ -777,55 +776,51 @@ posi = zeros(size(surface.faces));
 for i = 1:length(posi)
     whichVerts = surface.faces(i,:);
     cos = surface.vertices(whichVerts,:);
-    posi(i,:) = mean(cos);   
+    posi(i,:) = mean(cos);
 end
 
 
 for j = 1:length(points)
-Ia = points(j,:);
-Ib = points(j,:)+dist.*normals(j,:);
-
-m = zeros(3,3);
-m(:,1) = Ia-Ib;
-
-di = sqrt(sum(bsxfun(@minus,posi,Ia).^2,2));
-faceInd = find(di<dist);
-
-
-smallFaces = surface.faces(faceInd,:);
-nfaces = length(smallFaces);
-
-tuv = zeros(nfaces,3);
-verts = double(zeros(3,3));
-Y = zeros(3,1);
-
-for i = 1:nfaces
-verts = surface.vertices(smallFaces(i,:),:);
-m(:,2) = verts(2,:)-verts(1,:);
-m(:,3) = verts(3,:)-verts(1,:);
-Y = (Ia-verts(1,:))';
-tuv(i,:) = m\Y;
-end
-
-a = tuv(:,1)< 1 & tuv(:,1)>0;
-b = tuv(:,2)< 1 & tuv(:,2)>0;
-c = tuv(:,3)< 1 & tuv(:,3)>0;
-d = (tuv(:,2)+tuv(:,3))<=1;
-e = a&b&c&d;
-mul =min(tuv(e,1));
-
-if(~isempty(mul))
-outs(j,:) = Ia+(Ib-Ia)*mul;
-end
-
+    Ia = points(j,:);
+    Ib = points(j,:)+dist.*normals(j,:);
+    
+    m = zeros(3,3);
+    m(:,1) = Ia-Ib;
+    
+    di = sqrt(sum(bsxfun(@minus,posi,Ia).^2,2));
+    faceInd = find(di<dist);
+    
+    
+    smallFaces = surface.faces(faceInd,:);
+    nfaces = length(smallFaces);
+    
+    tuv = zeros(nfaces,3);
+    verts = double(zeros(3,3));
+    Y = zeros(3,1);
+    
+    for i = 1:nfaces
+        verts = surface.vertices(smallFaces(i,:),:);
+        m(:,2) = verts(2,:)-verts(1,:);
+        m(:,3) = verts(3,:)-verts(1,:);
+        Y = (Ia-verts(1,:))';
+        tuv(i,:) = m\Y;
+    end
+    
+    a = tuv(:,1)< 1 & tuv(:,1)>0;
+    b = tuv(:,2)< 1 & tuv(:,2)>0;
+    c = tuv(:,3)< 1 & tuv(:,3)>0;
+    d = (tuv(:,2)+tuv(:,3))<=1;
+    e = a&b&c&d;
+    mul =min(tuv(e,1));
+    
+    if(~isempty(mul))
+        outs(j,:) = Ia+(Ib-Ia)*mul;
+    end
+    
 end
 ind = sum(abs(outs),2)>0;
 outs = outs(ind,:);
-display('Positive Y')
 
-
-
-end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                     Create Sensor Array                                 %                          
@@ -977,7 +972,7 @@ end
 
 ori = ori(faceInd,:);
 pos = pos+ori*offset;
-end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                           Custom Meshes                                 %                          
@@ -1025,7 +1020,7 @@ if ~isempty(S.iskull)
     D.inv{1}.mesh.tess_iskull = S.iskull;
 end
 
-%- add custom cortex and repalce MNI cortex with warped cortex
+%- add custom cortex and replace MNI cortex with warped cortex
 %--------------------------------------------------------------------------
 if ~isempty(S.cortex)
     D.inv{1}.mesh.tess_ctx = S.cortex;
@@ -1041,5 +1036,4 @@ if ~isempty(S.cortex)
     end
 end
 save(D);
-
-end   
+ 

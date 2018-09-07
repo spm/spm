@@ -7,32 +7,28 @@ function labels = createLabels(S)
 %   S.n         - number of labels    - Default:  1 
 %
 % Output:
-%  labels      - MEEG object (also written to disk)
+%  labels       - cell array of labels
 %
 % Example:
-%       S =[];
+%       S = [];
 %       S.base = 'TRIG';
-%       S.n =100;
+%       S.n = 100;
 %       labels = createLabels(S);
 %__________________________________________________________________________
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id$
+% $Id: createLabels.m 7414 2018-09-07 11:00:29Z spm $
 
 
 %-Set default values
 %--------------------------------------------------------------------------
-if ~isfield(S, 'base'),        S.base   = 'T'; end
-if ~isfield(S, 'n'),           S.n   = 1; end
+if ~nargin, S = struct(); end
+if ~isfield(S, 'base'), S.base = 'T'; end
+if ~isfield(S, 'n'),    S.n    = 1;   end
 
-%- Create labels
+%-Create labels
 %--------------------------------------------------------------------------
-
-    pad = numel(num2str(S.n));
-    cmd = [S.base,'%0',num2str(pad),'d'];
-    labels = {};
-    for i = 1:S.n
-        labels{i} = sprintf(cmd,i);
-    end
-end
+pad = numel(num2str(S.n));
+fmt = [S.base,'%0',num2str(pad),'d'];
+labels = arrayfun(@(x) sprintf(fmt,x), 1:S.n, 'UniformOutput',false);

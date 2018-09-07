@@ -1,5 +1,5 @@
-function Dout= spm_opm_denoise(D,refD,derivative,gs,update,prefix)
-% Denoises OPM data with specified regressors, optionally with derivatives
+function Dout = spm_opm_denoise(D,refD,derivative,gs,update,prefix)
+% Denoise OPM data with specified regressors, optionally with derivatives
 % and global signal.
 % FORMAT Dout - spm_opm_denoise(D,refD,derivative,gs,update,prefix)
 %
@@ -9,32 +9,18 @@ function Dout= spm_opm_denoise(D,refD,derivative,gs,update,prefix)
 % gs           - boolean indicating whether to use Global Signal or not.
 % update       - boolean indicating whether to create MEEG object.
 % prefix       - string to prefix file path with if update is TRUE.
-%% modfied by GRB to only denoise MEG channels
-% _________________________________________________________________________
-% Copyright (C) <2017>  <Tim Tierney>
-%     This program is free software; you can redistribute it and/or modify
-%     it under the terms of the GNU General Public License as published by
-%     the Free Software Foundation; either version 2 of the License, or
-%     (at your option) any later version.
-%
-%     This program is distributed in the hope that it will be useful,
-%     but WITHOUT ANY WARRANTY; without even the implied warranty of
-%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-%     GNU General Public License for more details.
-%
-%     You should have received a copy of the GNU General Public License
-%     along with this program; if not, write to the Free Software
-%     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 %__________________________________________________________________________
+% Copyright (C) 2017-2018 Wellcome Trust Centre for Neuroimaging
+
+% Tim Tierney
+% $Id: spm_opm_denoise.m 7414 2018-09-07 11:00:29Z spm $
 
 
-% $Id: spm_opm_denoise.m 7246 2018-01-16 12:55:14Z gareth $
 % check to make sure dimensions match between reference and MEEG object
 ndim = size(D);
 ldim = size(refD);
 if (~all(ndim(2:3)==ldim(2:3)))
-    ME = MException('Dimensions of D and refD should be equal');
-    throw(ME)
+    error('Dimensions of D and refD should be equal.');
 end
 
 
@@ -46,7 +32,7 @@ sensors = D;
 % need to loop over Ntrials of size winSize
 Ntrials = size(sensors,3);
 winSize = size(sensors,2);
-%% only want to denoise MEG channels (not trigs or references)
+% only want to denoise MEG channels (not trigs or references)
 megind=D.indchantype('MEG');
 megres = zeros(size(sensors(megind,:,:)));
 
@@ -89,12 +75,10 @@ end
 if(update)
     % name, clone and fill with residual data 
     inFile = fnamedat(D);
-    [a b]=fileparts(inFile);
+    [a, b]=fileparts(inFile);
     outfile = fullfile(a,[prefix b '.dat']);
     Dout = clone(D,outfile,outsize);
     Dout(:,:,:) = res;
 else
     Dout = res;
-end
-
 end

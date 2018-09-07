@@ -7,10 +7,10 @@ function Dout = spm_opm_convert(array,fnamedat,fs,scale)
 % fs          - sampling frequency
 % scale       - scale factor to convert to fT [default: 1]
 %__________________________________________________________________________
-% Copyright (C) 2017 Tim Tierney
+% Copyright (C) 2017-2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_convert.m 7184 2017-10-10 10:12:38Z guillaume $
+% $Id: spm_opm_convert.m 7414 2018-09-07 11:00:29Z spm $
 
 % determine output filename
 [a, b] = fileparts(fnamedat);
@@ -57,7 +57,7 @@ elseif L == 2
     Dout(1:dim(1),1:dim(2),1) = array;
 else
     % throw exception if I really don't know what to do
-    error('Array must have between 2 and  4 dimensions.');
+    error('Array must have between 2 and 4 dimensions.');
 end
 
 % set the filename and save
