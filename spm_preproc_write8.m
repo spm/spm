@@ -5,7 +5,7 @@ function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx,odir)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 7202 2017-11-08 12:30:01Z john $
+% $Id: spm_preproc_write8.m 7415 2018-09-10 18:24:16Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -334,7 +334,7 @@ if any(tc(:,2))
     % transformation to the deformation, weighted by the
     % interesting tissue classes.
     ind    = find(tc(:,2)); % Saved tissue classes
-    [dummy,R]  = spm_get_closest_affine(x,y1,single(cls{ind(1)})/255);
+    [dummy,R] = spm_get_closest_affine(x,y1,single(cls{ind(1)})/255);
     clear x y1
 
     mat0   = R\mat; % Voxel-to-world of original image space

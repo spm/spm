@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 7410 2018-09-04 15:32:54Z john $ */
+/* $Id: shoot_diffeo3d.c 7415 2018-09-10 18:24:16Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -605,9 +605,9 @@ static void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[],
         z    = pz[i]-1.0f;
 
 	if (((code & 2)==2 && mxIsFinite(x) && mxIsFinite(y) && mxIsFinite(z))
-	                    || ((x>=-TINY) && (x<=(float)(dm0[0])-1.0f+TINY)
-	                     && (y>=-TINY) && (y<=(float)(dm0[1])-1.0f+TINY)
-			     && (z>=-TINY) && (z<=(float)(dm0[2])-1.0f+TINY)))
+	                   && ((x>=-TINY) && (x<=(float)(dm0[0])-1.0f+TINY)
+	                   &&  (y>=-TINY) && (y<=(float)(dm0[1])-1.0f+TINY)
+			   &&  (z>=-TINY) && (z<=(float)(dm0[2])-1.0f+TINY)))
         {
 	    mwSignedIndex ix, iy, iz, ix1, iy1, iz1;
             mwSize j, o000, o100, o010, o110, o001, o101, o011, o111;
@@ -642,7 +642,7 @@ static void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[],
             if ((code&1)==1)
             {
 	        float *pf0 = F0;
-                for(j=0, pf0; j<n; j++, pf0 += m0)
+                for(j=0; j<n; j++, pf0 += m0)
                 {
                     F1[i+j*m1] = ((pf0[o000]*dx2 + pf0[o100]*dx1)*dy2 + (pf0[o010]*dx2 + pf0[o110]*dx1)*dy1)*dz2
                                + ((pf0[o001]*dx2 + pf0[o101]*dx1)*dy2 + (pf0[o011]*dx2 + pf0[o111]*dx1)*dy1)*dz1;

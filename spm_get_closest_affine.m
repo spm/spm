@@ -26,8 +26,8 @@ function [M,R] = spm_get_closest_affine(x,y,w1,w2)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_get_closest_affine.m 6137 2014-08-19 12:43:11Z john $
- 
+% $Id: spm_get_closest_affine.m 7415 2018-09-10 18:24:16Z john $
+
 XX = zeros(4);
 XY = zeros(4);
 d  = size(x);
@@ -52,7 +52,7 @@ for k=1:size(x,3),
         xk(:,3) = xk(:,3).*ox;
     end
     yk  = reshape(y(:,:,k,:),[d(1)*d(2),3]);
-    msk = find(all(isfinite(xk),2) & all(isfinite(yk),2));
+    msk = find(all(isfinite(xk),2) & all(isfinite(yk),2) & isfinite(ox) & isfinite(oy));
     X   = [xk(msk,:), ox(msk)];
     Y   = [yk(msk,:), oy(msk)];
     XX  = XX + double(X'*X);
