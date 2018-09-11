@@ -36,7 +36,7 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 % Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7407 2018-08-24 10:17:21Z john $
+% $Id: spm_dicom_convert.m 7416 2018-09-11 13:55:13Z john $
 
 
 %-Input parameters
@@ -622,8 +622,8 @@ for i=1:length(Headers)
     % Philips do things differently. The following is for using their scales instead.
     %     Chenevert, Thomas L., et al. "Errors in quantitative image analysis due to
     %     platform-dependent image scaling." Translational oncology 7.1 (2014): 65-71.
-    if isfield(Headers{i},'Private_2005_100e'), pinfos(i,1) = 1/Headers{i}.Private_2005_100e; end
-    if isfield(Headers{i},'Private_2005_100d'), pinfos(i,2) =  -Headers{i}.Private_2005_100d*pinfos(i,1); end
+    if isfield(Headers{i},'MRScaleSlope'), pinfos(i,1)     = 1/Headers{i}.MRScaleSlope;                 end
+    if isfield(Headers{i},'MRScaleIntercept'), pinfos(i,2) =  -Headers{i}.MRScaleIntercept*pinfos(i,1); end
 
 end
 
@@ -903,8 +903,8 @@ if isfield(Headers{1},'RescaleIntercept'),  pinfo(2) = Headers{1}.RescaleInterce
 % Philips do things differently. The following is for using their scales instead.
 %     Chenevert, Thomas L., et al. "Errors in quantitative image analysis due to
 %     platform-dependent image scaling." Translational oncology 7.1 (2014): 65-71.
-if isfield(Headers{1},'Private_2005_100e'), pinfo(1) = 1/Headers{1}.Private_2005_100e; end
-if isfield(Headers{1},'Private_2005_100d'), pinfo(2) =  -Headers{1}.Private_2005_100d*pinfo(1); end
+if isfield(Headers{1},'MRScaleSlope'),     pinfo(1) = 1/Headers{1}.MRScaleSlope;              end
+if isfield(Headers{1},'MRScaleIntercept'), pinfo(2) =  -Headers{1}.MRScaleIntercept*pinfo(1); end
 
 
 Nii.dat  = file_array(fname,dim,dt,0,pinfo(1),pinfo(2));
@@ -1734,8 +1734,8 @@ for n=1:size(ord,2)
         % Philips do things differently. The following is for using their scales instead.
         %     Chenevert, Thomas L., et al. "Errors in quantitative image analysis due to
         %     platform-dependent image scaling." Translational oncology 7.1 (2014): 65-71.
-        if isfield(this(i),'Private_2005_100e'), pinfos(i,1) = 1/this(i).Private_2005_100e; end
-        if isfield(this(i),'Private_2005_100d'), pinfos(i,2) =  -this(i).Private_2005_100d*pinfos(i,1); end
+        if isfield(this(i),'MRScaleSlope'),     pinfos(i,1) = 1/this(i).MRScaleSlope;                 end
+        if isfield(this(i),'MRScaleIntercept'), pinfos(i,2) =  -this(i).MRScaleIntercept*pinfos(i,1); end
 
     end
     if ~any(any(diff(pinfos,1)))
