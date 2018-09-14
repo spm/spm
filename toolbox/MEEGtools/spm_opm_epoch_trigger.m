@@ -16,7 +16,7 @@ function D = spm_opm_epoch_trigger(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_epoch_trigger.m 7414 2018-09-07 11:00:29Z spm $
+% $Id: spm_opm_epoch_trigger.m 7419 2018-09-14 13:17:03Z tim $
 
 
 %-Set Defaults
@@ -31,7 +31,7 @@ if ~isfield(S, 'condLabels')
     args =[];
     args.base='Cond';
     args.n=nTrigs;
-    S.condLabels=createLabels(args);
+    S.condLabels=spm_create_labels(args);
 end
 
 if(size(S.timewin,1)<nTrigs)
