@@ -1,16 +1,17 @@
-function x = spm_load(f,v)
+function x = spm_load(f,v,hdr)
 % Load text and numeric data from file
-% FORMAT x = spm_load(f,v)
-% f  - filename (can be gzipped) {txt,mat,csv,tsv,json}
-% v  - name of field to return if data stored in a structure [default: '']
-%      or index of column if data stored as an array
+% FORMAT x = spm_load(f,v,hdr)
+% f   - filename (can be gzipped) {txt,mat,csv,tsv,json}
+% v   - name of field to return if data stored in a structure [default: '']
+%       or index of column if data stored as an array
+% hdr - detect the presence of a header row for csv/tsv [default: true]
 %
-% x  - corresponding data array or structure
+% x   - corresponding data array or structure
 %__________________________________________________________________________
 % Copyright (C) 1995-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_load.m 7354 2018-06-22 10:44:22Z guillaume $
+% $Id: spm_load.m 7417 2018-09-14 08:53:46Z guillaume $
 
 
 %-Get a filename if none was passed
@@ -30,6 +31,7 @@ if ~exist(f,'file')
 end
 
 if nargin < 2, v = ''; end
+if nargin < 3, hdr = true; end % Detect
 
 %-Load the data file
 %--------------------------------------------------------------------------
@@ -40,10 +42,10 @@ switch spm_file(f,'ext')
         x  = load(f,'-mat');
     case 'csv'
         % x = csvread(f); % numeric data only
-        x = dsvread(f,',');
+        x = dsvread(f,',',hdr);
     case 'tsv'
         % x = dlmread(f,'\t'); % numeric data only
-        x = dsvread(f,'\t');
+        x = dsvread(f,'\t',hdr);
     case 'json'
         x = spm_jsonread(f);
     case 'gz'
@@ -105,7 +107,7 @@ end
 %==========================================================================
 % function x = dsvread(f,delim)
 %==========================================================================
-function x = dsvread(f,delim)
+function x = dsvread(f,delim,header)
 % Read delimiter-separated values file into a structure array
 %  * header line of column names will be used if detected
 %  * 'n/a' fields are replaced with NaN
@@ -113,6 +115,7 @@ function x = dsvread(f,delim)
 %-Input arguments
 %--------------------------------------------------------------------------
 if nargin < 2, delim = '\t'; end
+if nargin < 3, header = true; end % true: detect, false: no
 delim = sprintf(delim);
 eol   = sprintf('\n');
 
@@ -131,7 +134,7 @@ var = regexp(hdr,delim,'split');
 N   = numel(var);
 n1  = isnan(cellfun(@str2double,var));
 n2  = cellfun(@(x) strcmpi(x,'NaN'),var);
-if any(n1 & ~n2)
+if header && any(n1 & ~n2)
     hdr     = true;
     try
         var = genvarname(var);
@@ -142,7 +145,7 @@ if any(n1 & ~n2)
     S       = S(h+1:end);
 else
     hdr     = false;
-    fmt     = ['var%0' num2str(floor(log10(N))+1) 'd'];
+    fmt     = ['Var%0' num2str(floor(log10(N))+1) 'd'];
     var     = arrayfun(@(x) sprintf(fmt,x),(1:N)','UniformOutput',false);
 end
 
