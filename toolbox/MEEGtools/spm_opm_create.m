@@ -31,7 +31,7 @@ function [D,L] = spm_opm_create(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_create.m 7414 2018-09-07 11:00:29Z spm $
+% $Id: spm_opm_create.m 7418 2018-09-14 13:16:33Z tim $
 
 
 %-Initialise
@@ -56,14 +56,10 @@ else
 end
 
 % labeled data
-if (isfield(S,'pinout') && isfield(S,'data'))
-    
+if (isfield(S,'pinout') && isfield(S,'data'))    
     % read the pinout and opm2cast file
-    pinout = readtable(S.pinout,...
-        'ReadVariableNames',false,'Delimiter','\t');
-    sensorsUsed = readtable(S.sensorsUsed,...
-        'ReadVariableNames',false,'Delimiter','\t');
-  
+    pinout = spm_load(S.pinout,'',false);
+    sensorsUsed = spm_load(S.sensorsUsed,'',false);  
     labeledData = 1;
 else
     labeledData = 0;
@@ -106,7 +102,7 @@ end
 %--------------------------------------------------------------------------
 % labelled data of different types(MEG, REF)
 if labeledData
-    used = zeros(size(sensorsUsed,1),1);
+    used = zeros(size(sensorsUsed.Var1,1),1);
     for i = 1:length(used)
         used(i) = find(strcmp(sensorsUsed.Var1{i},pinout.Var2));
     end
@@ -132,7 +128,7 @@ if isfield(S ,'trig')
     St = [];
     St.base='TRIG';
     St.n=size(binTrig,1);
-    triglabs = createLabels(St);
+    triglabs = spm_create_labels(St);
 else
     binTrig = [];
     triglabs={};
@@ -145,7 +141,7 @@ if isfield(S ,'other')
     St = [];
     St.base='PHYS';
     St.n=size(S.other,1);
-    physlabs = createLabels(St);
+    physlabs = spm_create_labels(St);
 else
     physlabs={};
 end
@@ -213,7 +209,7 @@ end
 if forward
     % if user supplies postions and orientations
     if isfield(S, 'pos')
-        posOri = readtable(S.pos,'Delimiter','\t','ReadVariableNames',false);
+        posOri = spm_load(S.pos,'',false);
         
         % if its labelled data subset the postions and orientaitons
         if(labeledData)
@@ -271,7 +267,7 @@ if ~labeledData
     St= [];
     St.base ='Sensor';
     St.n = nSensors;
-    labs = createLabels(St);
+    labs = spm_create_labels(St);
 end
 
 % now we know how many sensors we have we can set units labels and types
