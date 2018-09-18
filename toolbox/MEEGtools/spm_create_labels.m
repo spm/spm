@@ -1,6 +1,6 @@
-function labels = createLabels(S)
+function labels = spm_create_labels(S)
 % Create n  numbered labels using a base string as template
-% FORMAT labels = createLabels(S)
+% FORMAT labels = spm_create_labels(S)
 %   S           - input structure
 %   Fields of S:
 %   S.base      - Template string     - Default: 'T'
@@ -13,12 +13,12 @@ function labels = createLabels(S)
 %       S = [];
 %       S.base = 'TRIG';
 %       S.n = 100;
-%       labels = createLabels(S);
+%       labels = spm_create_labels(S);
 %__________________________________________________________________________
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: createLabels.m 7414 2018-09-07 11:00:29Z spm $
+% $Id: spm_create_labels.m 7420 2018-09-18 11:16:50Z spm $
 
 
 %-Set default values
