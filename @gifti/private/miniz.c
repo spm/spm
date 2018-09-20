@@ -495,7 +495,6 @@ typedef void *const voidpc;
 #endif
 #pragma once
 #include <assert.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -505,8 +504,8 @@ typedef signed short mz_int16;
 typedef unsigned short mz_uint16;
 typedef unsigned int mz_uint32;
 typedef unsigned int mz_uint;
-typedef int64_t mz_int64;
-typedef uint64_t mz_uint64;
+typedef long long mz_int64;
+typedef unsigned long long mz_uint64;
 typedef int mz_bool;
 
 #define MZ_FALSE (0)
