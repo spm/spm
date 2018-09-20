@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2018 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 7356 2018-06-26 08:55:33Z guillaume $
+# $Id: Makefile 7426 2018-09-20 16:17:04Z guillaume $
 #
 ###############################################################################
 #
@@ -51,7 +51,7 @@ SPMMEX  =\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_voronoi.$(SUF) spm_mesh_utils.$(SUF) \
 	spm_mrf.$(SUF) spm_diffeo.$(SUF) spm_field.$(SUF) \
-	spm_cat.$(SUF) spm_jsonread.$(SUF)
+	spm_cat.$(SUF) spm_jsonread.$(SUF) spm_mesh_reduce.$(SUF)
 
 SUBDIRS =\
 	@file_array/private \
@@ -295,6 +295,9 @@ spm_field.$(SUF): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_boundary.
 
 spm_jsonread.$(SUF): spm_jsonread.c jsmn.h jsmn.c
 	$(MEX) spm_jsonread.c jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)
+        
+spm_mesh_reduce.$(SUF): spm_mesh_reduce.cpp Simplify.h
+	$(MEX) spm_mesh_reduce.cpp $(MEXEND)
 
 ###############################################################################
 # Display Messages
