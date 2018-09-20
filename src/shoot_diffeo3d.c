@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 7415 2018-09-10 18:24:16Z john $ */
+/* $Id: shoot_diffeo3d.c 7423 2018-09-20 13:58:15Z spm $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -589,7 +589,7 @@ static void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[],
 {
     mwSize i, j, m0;
     float  *px, *py, *pz;
-    float  NaN = 0.0f/0.0f;
+    float  NaN = mxGetNaN();
 
     px = Psi;
     py = Psi+m1;

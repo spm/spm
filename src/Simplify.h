@@ -241,7 +241,7 @@ vec3f interpolate(const vec3f &p, const vec3f &a, const vec3f &b, const vec3f &c
 }
 
 double min(double v1, double v2) {
-	return fmin(v1,v2);
+	return (v1 < v2) ? v1 : v2;
 }
 
 

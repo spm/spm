@@ -2,7 +2,7 @@
 #
 # Copyright (C) 1991-2018 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 7356 2018-06-26 08:55:33Z guillaume $
+# $Id: Makefile.var 7423 2018-09-20 13:58:15Z spm $
 #
 ###############################################################################
 #
@@ -55,7 +55,7 @@ ifndef SUF
   endif
   ##### Windows #####
   ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM)))) # MSC
-    override PLATFORM = windows # used in Makefile re. AR
+    override PLATFORM = windows
     ifeq (x86,$(PROCESSOR_ARCHITECTURE))
       SUF      = mexw32
     else
