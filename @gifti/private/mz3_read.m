@@ -12,7 +12,7 @@ function M = mz3_read(filename)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: mz3_read.m 7400 2018-08-17 13:53:33Z guillaume $
+% $Id: mz3_read.m 7428 2018-09-25 13:25:13Z guillaume $
 
 
 M = struct();
@@ -64,7 +64,8 @@ elseif magic == 35615 % GZipped compressed 0x1F8B, 35615, [31 139]
     d = fread(fid,Inf,'*uint8');
     isize = typecast(d(end-3:end),'uint32');
     D = zstream('d',d);
-    if numel(D) ~= isize % size of the uncompressed input data modulo 2^32
+    if isize ~= mod(numel(D),2^32)
+        % size of the uncompressed input data modulo 2^32
         warning('Decompression failed.');
     end
 else
@@ -79,10 +80,18 @@ fclose(fid);
 
 %-Parse data
 %==========================================================================
+if ~isequal(D(1:2),[77;90]) % 'MZ'
+    error('Invalid file %s.',filename);
+end
+
 attr  = typecast(D(3:4),'uint16');
 Nf    = typecast(D(5:8),'uint32');
 Nv    = typecast(D(9:12),'uint32');
 Nskip = typecast(D(13:16),'uint32') + 16; % total header size
+
+ if attr > 15
+    warning('Unsupported MZ3 format.');
+end
 
 if bitget(attr,1) % isFace
     M.faces = reshape(typecast(D(Nskip+(1:Nf*3*4)),'uint32'),3,[])' + 1;
@@ -97,6 +106,9 @@ if bitget(attr,3) % isRGBA
     Nskip = Nskip + Nv*4;
 end
 if bitget(attr,4) % isScalar
-    M.cdata = typecast(D(Nskip+(1:Nv*4)),'single');
-    Nskip = Nskip + Nv*4;
+    %Ns = 1;
+    %M.cdata = reshape(typecast(D(Nskip+(1:Nv*Ns*4)),'single'),Nv,Ns);
+    M.cdata = reshape(typecast(D(Nskip+1:end),'single'),Nv,[]);
+    Ns = size(M.cdata,2);
+    Nskip = Nskip + Nv*Ns*4;
 end

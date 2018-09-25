@@ -29,10 +29,14 @@ function varargout = spm_colourmap(varargin)
 % FORMAT spm_colourmap('save',fname[,map])
 % Save a colourmap to file (format according to file extension).
 %__________________________________________________________________________
+%
+% A repository of colourmaps with linearised luminance is available at:
+%   https://github.com/CPernet/brain_colours
+%__________________________________________________________________________
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_colourmap.m 7376 2018-07-20 10:30:59Z guillaume $
+% $Id: spm_colourmap.m 7428 2018-09-25 13:25:13Z guillaume $
 
 
 %-FORMAT map = spm_colourmap([map])
