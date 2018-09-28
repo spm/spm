@@ -108,7 +108,7 @@ for i=1:length(funname)
 end
 
 % create the desired output directory
-if ~isfolder(outdir)
+if ~isdir(outdir)
   mkdir(outdir);
 end
 

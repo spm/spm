@@ -129,7 +129,7 @@ switch format
     headerfile = fullfile(path, [file '.mat']);
     datafile   = fullfile(path, [file '.bin']);
   case 'fcdc_buffer_offline'
-    if isfolder(filename)
+    if isdir(filename)
       path = filename;
     else
       [path, file, ext] = fileparts(filename);
@@ -141,7 +141,7 @@ switch format
     headerfile = fullfile(path, [file '.tsq']);
     datafile   = fullfile(path, [file '.tev']);
   case 'egi_mff'
-    if ~isfolder(filename);
+    if ~isdir(filename);
       [path, file, ext] = fileparts(filename);
       headerfile = path;
       datafile   = path;

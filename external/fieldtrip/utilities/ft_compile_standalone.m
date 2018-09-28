@@ -58,7 +58,7 @@ fprintf(fid, 'function s = buildtimestamp\n');
 fprintf(fid, 's = ''%s'';\n', datestr(now));
 fclose(fid);
 
-if ~isfolder(bindir)
+if ~isdir(bindir)
   mkdir(bindir);
 end
 cd(bindir);

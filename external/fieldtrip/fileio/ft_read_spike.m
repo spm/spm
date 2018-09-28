@@ -224,7 +224,7 @@ switch spikeformat
     % x.spk.y (containing the waveform info)
     % x.fet.y (containing features: do we need this?)
     
-    if isfolder(filename),
+    if isdir(filename),
       tmp = dir(filename);
       filenames = {tmp.name}';
     end

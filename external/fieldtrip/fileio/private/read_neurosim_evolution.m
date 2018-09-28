@@ -32,7 +32,7 @@ function [hdr, dat] = read_neurosim_evolution(filename, varargin)
 %
 % $Id$
 
-if isfolder(filename)
+if isdir(filename)
   filename = fullfile(filename, 'evolution');
 end
 

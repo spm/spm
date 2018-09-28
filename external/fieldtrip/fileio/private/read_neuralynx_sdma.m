@@ -42,7 +42,7 @@ function [dat] = read_neuralynx_sdma(dataset, begsample, endsample, chanindx)
 needhdr = (nargin==1);
 needdat = (nargin>=2);
 
-if ~isfolder(dataset)
+if ~isdir(dataset)
   ft_error('dataset should be a directory');
 end
 
