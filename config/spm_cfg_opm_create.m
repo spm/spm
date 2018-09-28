@@ -4,7 +4,7 @@ function create = spm_cfg_opm_create
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id$
+% $Id: spm_cfg_opm_create.m 7429 2018-09-28 09:29:20Z spm $
 
 %--------------------------------------------------------------------------
 % Output Directory
@@ -251,7 +251,8 @@ create.help     = {'Create/simulate OPM data. All arguments for this function ar
 create.prog     = @opm_create;
 create.vout     = @vout_opm_create;
 create.modality = {'EEG'};
-end
+
+
 %==========================================================================
 function out = opm_create(job)
 % construct the S struct
@@ -306,7 +307,7 @@ if(isfield(S, 'data'))
     S.data= data.B';
     trigs = (size(data.decimalTrigs,2)+size(data.binaryTrigs,2))>0;
     if(trigs)
-    S.trig= [data.decimalTrigs,data.binaryTrigs]';
+        S.trig= [data.decimalTrigs,data.binaryTrigs]';
     end
     [a,b,c]=fileparts(job.dataset.data{1});
     outfile= fullfile(a,['SPM_',b,'.dat']);
@@ -316,7 +317,8 @@ end
 % run the main function 
 out.D= spm_opm_create(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
-end
+
+
 %==========================================================================
 function dep = vout_opm_create(job)
 % return dependencies
@@ -333,4 +335,3 @@ dep(2).sname = 'OPM Datafile';
 dep(2).src_output = substruct('.','Dfname');
 % this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
-end

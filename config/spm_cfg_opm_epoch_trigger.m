@@ -4,7 +4,7 @@ function epoch = spm_cfg_opm_epoch_trigger
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id$
+% $Id: spm_cfg_opm_epoch_trigger.m 7429 2018-09-28 09:29:20Z spm $
 
 %--------------------------------------------------------------------------
 % Output Directory
@@ -49,7 +49,8 @@ epoch.help     = {'Epoch M/EEG data at the rise of every trigger in the dataset'
 epoch.prog     = @epoch_trigger;
 epoch.vout     = @vout_epoch_trigger;
 epoch.modality = {'EEG'};
-end
+
+
 %==========================================================================
 function out = epoch_trigger(job)
 % construct the S struct
@@ -68,12 +69,11 @@ if(defaultLabels)
 S = rmfield(S,'condLabels');
 end
 
-
-
 % run the main function 
 out.D= spm_opm_epoch_trigger(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
-end
+
+
 %==========================================================================
 function dep = vout_epoch_trigger(job)
 % return dependencies
@@ -90,4 +90,3 @@ dep(2).sname = 'Epoched Datafile';
 dep(2).src_output = substruct('.','Dfname');
 % this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
-end

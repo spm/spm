@@ -4,7 +4,7 @@ function denoise = spm_cfg_opm_synth_gradiometer
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id$
+% $Id: spm_cfg_opm_synth_gradiometer.m 7429 2018-09-28 09:29:20Z spm $
 
 %--------------------------------------------------------------------------
 % Input Dataset
@@ -49,7 +49,8 @@ denoise.help     = {'Denoise will regress all channels of the selected type(s) f
 denoise.prog     = @synth_gradiometer;
 denoise.vout     = @vout_synth_gradiometer;
 denoise.modality = {'EEG'};
-end
+
+
 %==========================================================================
 function out = synth_gradiometer(job)
 % construct the S struct
@@ -63,7 +64,8 @@ S.derivative = job.derivative;
 % run the main function 
 out.D= spm_opm_synth_gradiometer(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
-end
+
+
 %==========================================================================
 function dep = vout_synth_gradiometer(job)
 % return dependencies
@@ -80,4 +82,3 @@ dep(2).sname = 'Denoised Datafile';
 dep(2).src_output = substruct('.','Dfname');
 % this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
-end

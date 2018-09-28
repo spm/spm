@@ -4,7 +4,7 @@ function labview = spm_cfg_opm_read_lvm
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id$
+% $Id: spm_cfg_opm_read_lvm.m 7429 2018-09-28 09:29:20Z spm $
 
 %--------------------------------------------------------------------------
 % labview file
@@ -85,21 +85,18 @@ labview.help     = {'Reading LabView data'}';
 labview.prog     = @lbv_read;
 labview.vout     = @vout_lbv_read;
 labview.modality = {'EEG'};
-end
+
+
 %==========================================================================
 function labview = lbv_read(job)
-% construct the S struct
-S=job;
-[a,b,~]=fileparts(S.filename{1});
-outfile= fullfile(a,[ b, '.mat']);
+data = spm_opm_read_lvm(job);
 
-data    = spm_opm_read_lvm(S);
+outfile = spm_file(job.filename{1},'ext','.mat');
 save(outfile,'data');
 
-labview.data= {outfile};
+labview.data = {outfile};
 
 
-end
 %==========================================================================
 function dep = vout_lbv_read(job)
 % return dependencies
@@ -107,4 +104,3 @@ dep = cfg_dep;
 dep.sname = 'Prepared Labview Data';
 dep.src_output = substruct('.','data');
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-end
