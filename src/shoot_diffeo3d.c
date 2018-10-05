@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 7423 2018-09-20 13:58:15Z spm $ */
+/* $Id: shoot_diffeo3d.c 7434 2018-10-05 14:05:21Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -605,7 +605,7 @@ static void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[],
         z    = pz[i]-1.0f;
 
 	if (((code & 2)==2 && mxIsFinite(x) && mxIsFinite(y) && mxIsFinite(z))
-	                   && ((x>=-TINY) && (x<=(float)(dm0[0])-1.0f+TINY)
+	                   || ((x>=-TINY) && (x<=(float)(dm0[0])-1.0f+TINY)
 	                   &&  (y>=-TINY) && (y<=(float)(dm0[1])-1.0f+TINY)
 			   &&  (z>=-TINY) && (z<=(float)(dm0[2])-1.0f+TINY)))
         {

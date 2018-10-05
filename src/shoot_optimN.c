@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 7408 2018-08-24 14:54:57Z john $ */
+/* $Id: shoot_optimN.c 7434 2018-10-05 14:05:21Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<math.h>
@@ -474,7 +474,7 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                         mwSignedIndex n;
                         float *pm  = &pu[m][i];
                         double pm0 = pm[0];
-                        su[m] = (float)(pb[m][i]-
+                        su[m] = (pb[m][i]-
                                        (lam0* pm0 
                                       + w100*((pm[im1        ]-pm0) + (pm[ip1        ]-pm0))
                                       + w010*((pm[    jm1    ]-pm0) + (pm[    jp1    ]-pm0))

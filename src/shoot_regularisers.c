@@ -1,4 +1,4 @@
-/* $Id: shoot_regularisers.c 7408 2018-08-24 14:54:57Z john $ */
+/* $Id: shoot_regularisers.c 7434 2018-10-05 14:05:21Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -566,18 +566,18 @@ static void relax_le(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
     double lam0 = s[3], mu = s[6], lam = s[7];
 
-    wx000 =  2*mu*(2*v0+v1+v2)/v0+2*lam + lam0/v0;
-    wx100 = -2*mu-lam;
+    wx000 =  2.0*mu*(2*v0+v1+v2)/v0+2.0*lam + lam0/v0;
+    wx100 = -2.0*mu-lam;
     wx010 = -mu*v1/v0;
     wx001 = -mu*v2/v0;
-    wy000 =  2*mu*(v0+2*v1+v2)/v1+2*lam + lam0/v1;
+    wy000 =  2.0*mu*(v0+2*v1+v2)/v1+2.0*lam + lam0/v1;
     wy100 = -mu*v0/v1;
-    wy010 = -2*mu-lam;
+    wy010 = -2.0*mu-lam;
     wy001 = -mu*v2/v1;
-    wz000 =  2*mu*(v0+v1+2*v2)/v2+2*lam + lam0/v2;
+    wz000 =  2.0*mu*(v0+v1+2*v2)/v2+2.0*lam + lam0/v2;
     wz100 = -mu*v0/v2;
     wz010 = -mu*v1/v2;
-    wz001 = -2*mu-lam;
+    wz001 = -2.0*mu-lam;
     w2    = 0.25*mu+0.25*lam;
 
 /*  wx000 = wx000*1.00001 + 1e-6;
@@ -586,21 +586,21 @@ static void relax_le(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
 
     if (dm[0]==1)
     {
-        wx000 += 2*wx100 + 2*wy100 + 2*wz100;
+        wx000 += 2.0*wx100 + 2.0*wy100 + 2.0*wz100;
         wx100  = 0.0;
         wy100  = 0.0;
         wz100  = 0.0;
     }
     if (dm[1]==1)
     {
-        wx000 += 2*wx010 + 2*wy010 + 2*wz010;
+        wx000 += 2.0*wx010 + 2.0*wy010 + 2.0*wz010;
         wx010  = 0.0;
         wy010  = 0.0;
         wz010  = 0.0;
     }
     if (dm[2]==1)
     {
-        wx000 += 2*wx001 + 2*wy001 + 2*wz001;
+        wx000 += 2.0*wx001 + 2.0*wy001 + 2.0*wz001;
         wx001  = 0.0;
         wy001  = 0.0;
         wz001  = 0.0;
@@ -710,7 +710,7 @@ static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
     double w000,w001,w010,w100;
     double lam0 = s[3], lam1 = s[4];
 
-    w000 = lam1*(2*s[0]*s[0]+2*s[1]*s[1]+2*s[2]*s[2]) + lam0;
+    w000 = lam1*(2.0*s[0]*s[0]+2.0*s[1]*s[1]+2.0*s[2]*s[2]) + lam0;
     w001 = lam1*(-s[2]*s[2]);
     w010 = lam1*(-s[1]*s[1]);
     w100 = lam1*(-s[0]*s[0]);
@@ -719,17 +719,17 @@ static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
 
     if (dm[0]==1)
     {
-        w000 += 2*w100;
+        w000 += 2.0*w100;
         w100  = 0.0;
     }
     if (dm[1]==1)
     {
-        w000 += 2*w010;
+        w000 += 2.0*w010;
         w010  = 0.0;
     }
     if (dm[2]==1)
     {
-        w000 += 2*w001;
+        w000 += 2.0*w001;
         w001  = 0.0;
     }
 
@@ -843,64 +843,64 @@ static void relax_be(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
     double lam0 = s[3], lam1 = s[4], lam2 = s[5];
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
 
-    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
-    w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
-    w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
-    w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
+    w000 = lam2*(6.0*(v0*v0+v1*v1+v2*v2) +8.0*(v0*v1+v0*v2+v1*v2)) +lam1*2.0*(v0+v1+v2) + lam0;
+    w100 = lam2*(-4.0*v0*(v0+v1+v2)) -lam1*v0;
+    w010 = lam2*(-4.0*v1*(v0+v1+v2)) -lam1*v1;
+    w001 = lam2*(-4.0*v2*(v0+v1+v2)) -lam1*v2;
     w200 = lam2*v0*v0;
     w020 = lam2*v1*v1;
     w002 = lam2*v2*v2;
-    w110 = lam2*2*v0*v1;
-    w101 = lam2*2*v0*v2;
-    w011 = lam2*2*v1*v2;
+    w110 = lam2*2.0*v0*v1;
+    w101 = lam2*2.0*v0*v2;
+    w011 = lam2*2.0*v1*v2;
 
     w000 = w000*1.00001 + 1e-6;
 
     if (dm[0]<=2)
     {
-        w000 += 2.0f*w200;
-        w200  = 0.0f;
+        w000 += 2.0*w200;
+        w200  = 0.0;
     }
     if (dm[1]<=2)
     {
-        w000 += 2.0f*w020;
-        w020  = 0.0f;
+        w000 += 2.0*w020;
+        w020  = 0.0;
     }
     if (dm[2]<=2)
     {
-        w000 += 2.0f*w002;
-        w002  = 0.0f;
+        w000 += 2.0*w002;
+        w002  = 0.0;
     }
 
     if (dm[0]==1)
     {
-        w000 += 2.0f*w100;
-        w100  = 0.0f;
+        w000 += 2.0*w100;
+        w100  = 0.0;
         if (dm[1]==1)
         {
-            w000 += 4.0f*w110;
-            w110  = 0.0f;
+            w000 += 4.0*w110;
+            w110  = 0.0;
         }
         if (dm[2]==1)
         {
-            w000 += 4.0f*w101;
-            w101  = 0.0f;
+            w000 += 4.0*w101;
+            w101  = 0.0;
         }
     }
     if (dm[1]==1)
     {
-        w000 += 2.0f*w010;
-        w010  = 0.0f;
+        w000 += 2.0*w010;
+        w010  = 0.0;
         if (dm[2]==1)
         {
-            w000 += 4.0f*w011;
-            w011  = 0.0f;
+            w000 += 4.0*w011;
+            w011  = 0.0;
         }
     }
     if (dm[2]==1)
     {
-        w000 += 2.0f*w001;
-        w001  = 0.0f;
+        w000 += 2.0*w001;
+        w001  = 0.0;
     }
 
 #   ifdef VERBOSE
@@ -1047,92 +1047,92 @@ static void relax_all(mwSize dm[], /*@null@*/ float a[], float b[], double s[], 
     double lam0 = s[3], lam1 = s[4], lam2 = s[5], mu = s[6], lam = s[7];
     double wx000, wx100, wx010, wx001, wy000, wy100, wy010, wy001, wz000, wz100, wz010, wz001, w2;
 
-    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
-    w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
-    w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
-    w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
+    w000 = lam2*(6.0*(v0*v0+v1*v1+v2*v2) +8.0*(v0*v1+v0*v2+v1*v2)) +lam1*2.0*(v0+v1+v2) + lam0;
+    w100 = lam2*(-4.0*v0*(v0+v1+v2)) -lam1*v0;
+    w010 = lam2*(-4.0*v1*(v0+v1+v2)) -lam1*v1;
+    w001 = lam2*(-4.0*v2*(v0+v1+v2)) -lam1*v2;
     w200 = lam2*v0*v0;
     w020 = lam2*v1*v1;
     w002 = lam2*v2*v2;
-    w110 = lam2*2*v0*v1;
-    w101 = lam2*2*v0*v2;
-    w011 = lam2*2*v1*v2;
+    w110 = lam2*2.0*v0*v1;
+    w101 = lam2*2.0*v0*v2;
+    w011 = lam2*2.0*v1*v2;
 
-    wx000 =  2*mu*(2*v0+v1+v2)/v0+2*lam + w000/v0;
-    wx100 = -2*mu-lam + w100/v0;
+    wx000 =  2.0*mu*(2*v0+v1+v2)/v0+2.0*lam + w000/v0;
+    wx100 = -2.0*mu-lam + w100/v0;
     wx010 = -mu*v1/v0 + w010/v0;
     wx001 = -mu*v2/v0 + w001/v0;
-    wy000 =  2*mu*(v0+2*v1+v2)/v1+2*lam + w000/v1;
+    wy000 =  2.0*mu*(v0+2.0*v1+v2)/v1+2.0*lam + w000/v1;
     wy100 = -mu*v0/v1 + w100/v1;
-    wy010 = -2*mu-lam + w010/v1;
+    wy010 = -2.0*mu-lam + w010/v1;
     wy001 = -mu*v2/v1 + w001/v1;
-    wz000 =  2*mu*(v0+v1+2*v2)/v2+2*lam + w000/v2;
+    wz000 =  2.0*mu*(v0+v1+2.0*v2)/v2+2.0*lam + w000/v2;
     wz100 = -mu*v0/v2 + w100/v2;
     wz010 = -mu*v1/v2 + w010/v2;
-    wz001 = -2*mu-lam + w001/v2;
+    wz001 = -2.0*mu-lam + w001/v2;
     w2    = 0.25*mu+0.25*lam;
 
     if (dm[0]<=2)
     {
-        wx000 += 2*w200/v0;
-        wy000 += 2*w200/v1;
-        wz000 += 2*w200/v2;
+        wx000 += 2.0*w200/v0;
+        wy000 += 2.0*w200/v1;
+        wz000 += 2.0*w200/v2;
         w200   = 0.0;
     }
     if (dm[1]<=2)
     {
-        wx000 += 2*w020/v0;
-        wy000 += 2*w020/v1;
-        wz000 += 2*w020/v2;
+        wx000 += 2.0*w020/v0;
+        wy000 += 2.0*w020/v1;
+        wz000 += 2.0*w020/v2;
         w020   = 0.0;
     }
     if (dm[2]<=2)
     {
-        wx000 += 2*w002/v0;
-        wy000 += 2*w002/v1;
-        wz000 += 2*w002/v2; 
+        wx000 += 2.0*w002/v0;
+        wy000 += 2.0*w002/v1;
+        wz000 += 2.0*w002/v2; 
         w002   = 0.0;
     }
 
     if (dm[0]==1)
     {
-        wx000 += 2*wx100; wx100  = 0.0;
-        wy000 += 2*wy100; wy100  = 0.0;
-        wz000 += 2*wz100; wz100  = 0.0;
+        wx000 += 2.0*wx100; wx100  = 0.0;
+        wy000 += 2.0*wy100; wy100  = 0.0;
+        wz000 += 2.0*wz100; wz100  = 0.0;
         if (dm[1]==1)
         {
-            wx000 += 4*w110/v0;
-            wy000 += 4*w110/v1;
-            wz000 += 4*w110/v2;
+            wx000 += 4.0*w110/v0;
+            wy000 += 4.0*w110/v1;
+            wz000 += 4.0*w110/v2;
             w110   = 0.0;
         }
         if (dm[2]==1)
         {
-            wx000 += 4*w101/v0;
-            wy000 += 4*w101/v1;
-            wz000 += 4*w101/v2;
+            wx000 += 4.0*w101/v0;
+            wy000 += 4.0*w101/v1;
+            wz000 += 4.0*w101/v2;
             w101   = 0.0;
         }
 
     }
     if (dm[1]==1)
     {
-        wx000 += 2*wx010; wx010  = 0.0;
-        wy000 += 2*wy010; wy010  = 0.0;
-        wz000 += 2*wz010; wz010  = 0.0;
+        wx000 += 2.0*wx010; wx010  = 0.0;
+        wy000 += 2.0*wy010; wy010  = 0.0;
+        wz000 += 2.0*wz010; wz010  = 0.0;
         if (dm[2]==1)
         {
-            wx000 += 4*w011/v0;
-            wy000 += 4*w011/v1;
-            wz000 += 4*w011/v2;
+            wx000 += 4.0*w011/v0;
+            wy000 += 4.0*w011/v1;
+            wz000 += 4.0*w011/v2;
             w011   = 0.0;
         }
     }
     if (dm[2]==1)
     {
-        wx000 += 2*wx001; wx001  = 0.0;
-        wy000 += 2*wy001; wy001  = 0.0;
-        wz000 += 2*wz001; wz001  = 0.0;
+        wx000 += 2.0*wx001; wx001  = 0.0;
+        wy000 += 2.0*wy001; wy001  = 0.0;
+        wz000 += 2.0*wz001; wz001  = 0.0;
     }
     if (wx000<0.0) wx000 = 0.0;
     if (wy000<0.0) wy000 = 0.0;
