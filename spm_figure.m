@@ -45,7 +45,7 @@ function varargout = spm_figure(varargin)
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 7376 2018-07-20 10:30:59Z guillaume $
+% $Id: spm_figure.m 7435 2018-10-08 10:09:11Z guillaume $
 
 
 %==========================================================================
@@ -242,7 +242,11 @@ if isempty(F)
         end
     end
 else
-    figure(F);
+    if strcmpi(get(F,'Visible'),'on')
+        spm_figure('Focus',F);
+    else
+        spm_figure('Select',F);
+    end
 end
 varargout = {F};
 
@@ -250,7 +254,7 @@ varargout = {F};
 case 'select'
 %==========================================================================
 % spm_figure('Select',F)
-F=varargin{2};
+F = varargin{2};
 if ishandle(F)
     set(0, 'CurrentFigure', F)
 end
@@ -263,7 +267,6 @@ if nargin<2, F=get(0,'CurrentFigure'); else F=varargin{2}; end
 if ishandle(F)
     figure(F);
 end
-
 
 %==========================================================================
 case 'parentfig'
@@ -765,8 +768,8 @@ t0 = findall(allchild(F),'Flat','Label','&Help');
 if isempty(t0) || isdeployed, t0 = uimenu( F,'Label','&Help'); end
 set(t0,'Callback',''); set(t0,'Tag','');
 if ~isempty(allchild(t0)), delete(allchild(t0)); end
-if strcmpi(spm_check_version,'octave'), pause(0.01); end % bug #49734
 pos = get(t0,'Position');
+if strcmpi(spm_check_version,'octave') && ~pos, return; end % bug #49734
 uimenu(t0,'Label','SPM Help','CallBack','spm_help');
 uimenu(t0,'Label','SPM Manual (PDF)',...
     'CallBack','try,open(fullfile(spm(''dir''),''man'',''manual.pdf''));end');
@@ -805,9 +808,11 @@ uimenu(t0, 'Label','Show All &Windows', 'HandleVisibility','off',...
     'CallBack','spm(''Show'');');
 
 if strcmpi(spm_check_version,'matlab')
-    %-Show MATLAB Command Window
-    uimenu(t0, 'Label','Show &MATLAB Window', 'HandleVisibility','off',...
-        'CallBack','commandwindow;');
+    if ~isdeployed
+        %-Show MATLAB Command Window
+        uimenu(t0, 'Label','Show &MATLAB Window', 'HandleVisibility','off',...
+            'CallBack','commandwindow;');
+    end
 
     %-Dock SPM Figures
     uimenu(t0, 'Label','&Dock SPM Windows', 'HandleVisibility','off',...
@@ -982,7 +987,7 @@ close(h,'force');
 function copy_menu(F,G)
 %==========================================================================
 handles = findall(allchild(F),'Flat','Type','uimenu','Visible','on');
-if isempty(handles), return; end;
+if isempty(handles), return; end
 for F1=handles(:)'
     if ~ismember(get(F1,'Label'),{'&Window' '&Desktop'})
         G1 = uimenu(G,'Label',get(F1,'Label'),...
