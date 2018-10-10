@@ -4,7 +4,7 @@ function d = size(a,varargin)
 % Copyright (C) 2005-2017-2012 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: size.m 7147 2017-08-03 14:07:01Z spm $
+% $Id: size.m 7440 2018-10-10 17:28:26Z john $
 
 
 sa  = struct(a);
@@ -35,9 +35,8 @@ lim = max(max(find(d~=1)),2);
 d   = d(1:lim);
 
 if nargin > 1
-    if varargin{1} <= length(d)
-        d = d(varargin{1});
-    else
-        d = 1;
-    end
+    d_tmp  = d;
+    d      = ones(size(varargin{1}));
+    msk    = varargin{1}<=length(d_tmp);
+    d(msk) = d_tmp(varargin{1}(msk));
 end
