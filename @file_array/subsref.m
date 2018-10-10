@@ -5,7 +5,7 @@ function varargout=subsref(obj,subs)
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsref.m 7209 2017-11-10 15:33:10Z guillaume $
+% $Id: subsref.m 7437 2018-10-10 16:59:16Z john $
 
 
 if isempty(subs), return; end
@@ -130,7 +130,7 @@ for i=1:numel(sobj)
         case 'fname',      t = fname(obj);
         case 'dtype',      t = dtype(obj);
         case 'offset',     t = offset(obj);
-        case 'dim',        t = dim(obj);
+        case 'dim',        t = [dim(obj) ones(1,16)];
         case 'scl_slope',  t = scl_slope(obj);
         case 'scl_inter',  t = scl_inter(obj);
         case 'permission', t = permission(obj);
