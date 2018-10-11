@@ -45,7 +45,7 @@ function varargout = spm_figure(varargin)
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 7435 2018-10-08 10:09:11Z guillaume $
+% $Id: spm_figure.m 7442 2018-10-11 10:31:38Z guillaume $
 
 
 %==========================================================================
@@ -322,7 +322,9 @@ else
     end 
 end
 set(F,'Pointer','Arrow');
+sw = warning('off','MATLAB:Figure:UnableToSetRendererToOpenGL');
 set(F,'Renderer',spm_get_defaults('renderer'));
+warning(sw);
 %if ~isdocked && ~spm('CmdLine'), movegui(F); end
 
 %==========================================================================
@@ -662,6 +664,7 @@ PF   = spm_platform('fonts');     %-Font names (for this platform)
 Rect = spm('WinSize','Graphics'); %-Graphics window rectangle
 S0   = spm('WinSize','0',1);      %-Screen size (of the current monitor)
 
+sw = warning('off','MATLAB:Figure:UnableToSetRendererToOpenGL');
 F    = figure(...
     'Tag',Tag,...
     'Position',[S0(1) S0(2) 0 0] + Rect,...
@@ -691,6 +694,7 @@ F    = figure(...
     'Renderer',spm_get_defaults('renderer'),...
     'Visible','off',...
     'Toolbar','none');
+warning(sw);
 if ~isempty(Name)
     set(F,'Name',sprintf('%s: %s',spm('Version'),Name),'NumberTitle','off');
 end
@@ -719,6 +723,7 @@ else
     PF   = spm_platform('fonts');        %-Font names
     WS   = spm('WinSize','0','raw');     %-Screen size (of current monitor)
     Rect = [WS(1)+5 WS(4)*.40 WS(3)*.49 WS(4)*.57];
+    sw = warning('off','MATLAB:Figure:UnableToSetRendererToOpenGL');
     F = figure(...
         'Tag','Satellite',...
         'Position',Rect,...
@@ -750,6 +755,7 @@ else
         'InvertHardcopy','off',...
         'Renderer',spm_get_defaults('renderer'),...
         'Visible','on');
+    warning(sw);
 end
 varargout = {F};
 
