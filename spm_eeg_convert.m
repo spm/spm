@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 7309 2018-05-10 09:13:02Z vladimir $
+% $Id: spm_eeg_convert.m 7443 2018-10-11 10:41:42Z vladimir $
 
-SVNrev = '$Rev: 7309 $';
+SVNrev = '$Rev: 7443 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -137,7 +137,23 @@ else
                 [fil_ctf_events(:).type] = deal('FIL_UPPT002_down');
                 event = cat(1, event(:), fil_ctf_events(:));
             end
-        end            
+        end
+        
+        
+        % This is another FIL-specific fix that will hopefully not affect other sites
+        if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && isequal(uint8(hdr.orig.VERSION),uint8([255 'BIOSEMI']))
+            ind = strcmp('STATUS', {event(:).type});
+            val = [event(ind).value];
+            if ~isempty(val)
+                bytes  = dec2bin(val);
+                bytes  = bytes(:, end:-1:end-7);
+                nval   = bin2dec(bytes);
+                if (sum(val(:)>nval(:))/length(val))>0.5
+                    nval    = num2cell(nval);
+                    [event(ind).value] = deal(nval{:});
+                end
+            end
+        end
         
     catch
         warning(['Could not read events from file ' S.dataset]);
@@ -505,7 +521,7 @@ D = spm_eeg_prep(S1);
 
 % Assign default EEG sensor positions if possible
 if ~isempty(strmatch('EEG', D.chantype, 'exact'))
-    if 1%isempty(D.sensors('EEG'))
+    if isempty(D.sensors('EEG'))
         S1 = [];
         S1.task = 'defaulteegsens';
         S1.updatehistory = 0;
