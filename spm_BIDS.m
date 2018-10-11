@@ -19,7 +19,7 @@ function varargout = spm_BIDS(varargin)
 % Copyright (C) 2016-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7401 2018-08-17 14:41:08Z guillaume $
+% $Id: spm_BIDS.m 7441 2018-10-11 08:56:40Z guillaume $
 
 
 %-Validate input arguments
@@ -425,7 +425,7 @@ if exist(pth,'dir')
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
         
-        p = parse_filename(f{i}, {'sub','ses','task','run','proc', 'meta'});
+        p = parse_filename(f{i}, {'sub','ses','task','acq','run','proc', 'meta'});
         subject.meg = [subject.meg p];
         subject.meg(end).meta = struct([]); % ?
         
@@ -439,7 +439,7 @@ if exist(pth,'dir')
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
         
-        p = parse_filename(f{i}, {'sub','ses','task','run','proc', 'meta'});
+        p = parse_filename(f{i}, {'sub','ses','task','acq','run','proc', 'meta'});
         subject.meg = [subject.meg p];
         subject.meg(end).meta = spm_load(fullfile(pth,f{i})); % ?
         
@@ -453,7 +453,7 @@ if exist(pth,'dir')
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
         
-        p = parse_filename(f{i}, {'sub','ses','task','run','proc', 'meta'});
+        p = parse_filename(f{i}, {'sub','ses','task','acq','run','proc', 'meta'});
         subject.meg = [subject.meg p];
         subject.meg(end).meta = spm_load(fullfile(pth,f{i})); % ?
         
@@ -462,11 +462,11 @@ if exist(pth,'dir')
     %-Session-specific file
     %----------------------------------------------------------------------
     f = spm_select('List',pth,...
-        sprintf('^%s(_ses-[a-zA-Z0-9]+)?.*_(photo\\.jpg|fid\\.json|fidinfo\\.txt|headshape\\..*)$',subject.name));
+        sprintf('^%s(_ses-[a-zA-Z0-9]+)?.*_(photo\\.jpg|coordsystem\\.json|headshape\\..*)$',subject.name));
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
         
-        p = parse_filename(f{i}, {'sub','ses','task','run','proc', 'meta'});
+        p = parse_filename(f{i}, {'sub','ses','task','acq','run','proc', 'meta'});
         subject.meg = [subject.meg p];
         subject.meg(end).meta = struct([]); % ?
         
