@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 7443 2018-10-11 10:41:42Z vladimir $
+% $Id: spm_eeg_convert.m 7444 2018-10-12 13:24:04Z vladimir $
 
-SVNrev = '$Rev: 7443 $';
+SVNrev = '$Rev: 7444 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -146,7 +146,12 @@ else
             val = [event(ind).value];
             if ~isempty(val)
                 bytes  = dec2bin(val);
-                bytes  = bytes(:, end:-1:end-7);
+                bytes  = bytes(:, end-7:end);
+                % This is a very specific criterion that assumes that
+                % trigger code 1 is always used. 
+                if ~ismember('00000001', bytes, 'rows') && ismember('10000000', bytes, 'rows')
+                    bytes = fliplr(bytes);
+                end
                 nval   = bin2dec(bytes);
                 if (sum(val(:)>nval(:))/length(val))>0.5
                     nval    = num2cell(nval);
