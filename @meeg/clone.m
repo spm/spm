@@ -11,7 +11,7 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 6829 2016-07-07 10:16:46Z vladimir $
+% $Id: clone.m 7445 2018-10-12 13:24:48Z vladimir $
 
 if nargin < 4
     reset = 0;
@@ -88,6 +88,16 @@ if (dim(1) ~= nchannels(this)) || ismember(reset, [1 3])
     for i = 1:dim(1)
         new.channels(i).label = ['Ch' num2str(i)];
     end
+elseif montage(this, 'getindex')
+    new.channels = [];
+    lbl = chanlabels(this);
+    for i = 1:dim(1)
+        new.channels(i).label = lbl{i};
+    end
+    new = chantype(new, ':', chantype(this));
+    new = units(new, ':', units(this));
+    new = badchannels(new, ':', badchannels(this));
+    new = coor2D(new, ':', coor2D(this));
 end
 
 if ntrial ~= ntrials(this) || ismember(reset, [2 3])

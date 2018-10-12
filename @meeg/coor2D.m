@@ -5,7 +5,7 @@ function [res, plotind] = coor2D(this, ind, val, mindist)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Laurence Hunt
-% $Id: coor2D.m 5933 2014-03-28 13:22:28Z vladimir $
+% $Id: coor2D.m 7445 2018-10-12 13:24:48Z vladimir $
 
 
 megind = indchantype(this, {'MEG', 'MEGPLANAR', 'MEGCOMB'});
@@ -39,12 +39,26 @@ end
 
 if nargin < 3 || isempty(val)
     if ~isempty(intersect(ind, megind))
-        if ~any(cellfun('isempty', {this.channels(megind).X_plot2D this.channels(megind).Y_plot2D}))
-            meg_xy = [this.channels(megind).X_plot2D; this.channels(megind).Y_plot2D];
-        elseif all(cellfun('isempty', {this.channels(megind).X_plot2D this.channels(megind).Y_plot2D}))
-            meg_xy = grid(length(megind));
+        
+        if this.montage.Mind==0
+            if ~any(cellfun('isempty', {this.channels(megind).X_plot2D this.channels(megind).Y_plot2D}))
+                meg_xy = [this.channels(megind).X_plot2D; this.channels(megind).Y_plot2D];
+            elseif all(cellfun('isempty', {this.channels(megind).X_plot2D this.channels(megind).Y_plot2D}))
+                meg_xy = grid(length(megind));
+            else
+                error('Either all or none of MEG channels should have 2D coordinates defined.');
+            end
         else
-            error('Either all or none of MEG channels should have 2D coordinates defined.');
+            if ~any(cellfun('isempty', {this.montage.M(this.montage.Mind).channels(megind).X_plot2D ...
+                    this.montage.M(this.montage.Mind).channels(megind).Y_plot2D}))
+                meg_xy = [this.montage.M(this.montage.Mind).channels(megind).X_plot2D; ...
+                    this.montage.M(this.montage.Mind).channels(megind).Y_plot2D];
+            elseif all(cellfun('isempty', {this.montage.M(this.montage.Mind).channels(megind).X_plot2D...
+                    this.montage.M(this.montage.Mind).channels(megind).Y_plot2D}))
+                meg_xy = grid(length(megind));
+            else
+                error('Either all or none of EEG channels should have 2D coordinates defined.');
+            end
         end
     end
     
