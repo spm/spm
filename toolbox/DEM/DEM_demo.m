@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 30-May-2018 13:25:47
+% Last Modified by GUIDE v2.5 13-Oct-2018 16:23:00
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -688,3 +688,9 @@ run_demo_Callback(hObject, handles, 'DEMO_niche_construction')
 function pushbutton229_Callback(hObject, eventdata, handles)
 handles.web = 'Generalised Filtering';
 run_demo_Callback(hObject, handles, 'DEM_coupled_oscillators')
+
+
+% --- Executes on button press in pushbutton230.
+function pushbutton230_Callback(hObject, eventdata, handles)
+handles.web = 'Generalised Filtering';
+run_demo_Callback(hObject, handles, 'KLDemo')

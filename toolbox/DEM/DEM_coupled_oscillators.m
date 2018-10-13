@@ -22,7 +22,7 @@ function DEM_coupled_oscillators
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_coupled_oscillators.m 7324 2018-06-02 12:12:20Z karl $
+% $Id: DEM_coupled_oscillators.m 7446 2018-10-13 15:28:42Z karl $
  
  
 % specify states and parameters
@@ -78,7 +78,7 @@ M(1).f  = f;                             % equations of motion
 M(1).g  = g;                             % observation mapping
 M(1).pE = P;                             % model parameters
 M(1).V  = exp(12);                       % precision of observation noise
-M(1).W  = exp(16);                       % precision of state noise
+M(1).W  = exp(12);                       % precision of state noise
 
 % second level – causes or exogenous forcing term
 %--------------------------------------------------------------------------
@@ -141,7 +141,7 @@ pC.Ar    = (P.Ar ~= 0);                  % and set the prior variance to 1
 pC.Ap    = (P.Ap ~= 0);
 
 Vr       = ones(1,n)*8;                  % log precision of sampling noise
-Vp       = ones(1,n)*8;                  % use precise beliefs about time
+Vp       = ones(1,n)*8;                  % and state noise
 
 % place new observation function and priors in generative model
 %--------------------------------------------------------------------------
@@ -149,7 +149,7 @@ DEM.M(1).g  = g;
 DEM.M(1).pE = pE;
 DEM.M(1).pC = pC;
 DEM.M(1).V  = exp([Vr Vp]);   
-DEM.M(1).W  = exp([Vr Vp 32]);
+DEM.M(1).W  = exp([Vr Vp 32]);           % use precise beliefs about time
 
 % data and known input; removing initial time points to suppress artefacts
 %--------------------------------------------------------------------------
@@ -158,7 +158,7 @@ DEM.U = U(:,8:end);
   
 % Inversion using generalised filtering 
 %==========================================================================
-LAP   = spm_LAP(DEM);
+LAP   = spm_DEM(DEM);
 
 % Show parameters
 %--------------------------------------------------------------------------
@@ -173,7 +173,7 @@ model{2} = 'no amplitude coupling';
 model{3} = 'no phase coupling';
 model{4} = 'Full model';
 
-% apply precise shrinkage priors to of diagonal coupling elements
+% apply precise shrinkage priors to off-diagonal coupling elements
 %--------------------------------------------------------------------------
 PC{1} = pC; PC{1}.Ar = diag(diag(pC.Ar)); PC{1}.Ap = diag(diag(pC.Ap));
 PC{2} = pC; PC{2}.Ap = diag(diag(pC.Ap));

@@ -5,7 +5,7 @@ function DEM_self_entropy
 % entropy induces anomalous diffusion and itinerancy with power law scaling
 % (i.e., self similar dynamics). This example uses a fixed form (quadratic)
 % likelihood and optimises the density over over hidden states to minimise
-% blanket entropy explicitly.
+% blanket (i.e., self) entropy explicitly.
 %
 % In this example, there is just one active and sensory state and one
 % hidden state to illustrate noise-phase symmetry breaking as the
@@ -15,7 +15,7 @@ function DEM_self_entropy
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_self_entropy.m 7243 2018-01-04 20:24:29Z karl $
+% $Id: DEM_self_entropy.m 7446 2018-10-13 15:28:42Z karl $
 
 
 % set up
@@ -98,7 +98,7 @@ for g = 1:3
         Hi(g,1) = Gi;
         
         
-        % Optimise self-entropy w.r.t. distribution (states
+        % Optimise self-entropy w.r.t. distribution over hidden states
         %------------------------------------------------------------------
         dp   = spm_diff(@spm_G,A,lnpH,lnpA,3);
         
