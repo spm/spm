@@ -1,23 +1,22 @@
 function DEM = DEM_cells_cells
 
-% This demo is a hierarchical extension of DEM_cell.m, where we have 16
+% This demo is a hierarchical extension of DEM_cells.m, where we have 16
 % ensembles comprising 16 cells. Each cell has a generative model (i.e.,
-% prior beliefs) about its local and global cell type (i.e., internal,
-% active or sensory). Given posterior beliefs about its role at the local 
-% and global level, the cell (or ensmeble) can  predict the local and 
-% global intracellular signals it would expect to receive. The ensemble of
-% ensembles then converges to a point attractor; where the ensemble has a
-% Markov blanket and each element of the ensemble comprises a cell that is
-% itself a Markov blanket. The focus of this simulation is how the local
+% prior beliefs) about its possible local and global cell types (i.e.,
+% internal, active or sensory). Given posterior beliefs about what sort of
+% self it is at the local and global level, it can then predict the local
+% and global intracellular signals it would expect to receive. The ensemble
+% of ensembles then converges to a point attractor; where the ensemble has
+% a Markov blanket and each element of the ensemble comprises a cell – that
+% is itself a Markov blanket. The focus of this simulation is how the local
 % level couples to the global level and vice versa. For simplicity (and
 % computational expediency) we only model one ensemble at the local level
 % and assume that the remaining ensembles conform to the same (local)
-% dynamics. This is effectively a mean field approximation where
+% dynamics. This is effectively a mean field approximation, where
 % expectations of a cell in the first ensemble about its global type are
 % coupled to the corresponding expectations and the ensemble level, and
 % vice versa. The results of this simulation are provided in the form of a
-% movie and graphs. The figure legend for which is included in the code
-% below.m.
+% movie and graphs.The figure legend is included in the code below.
 %
 % In this example, we have used the same generative model at both levels to
 % exploit the self similar hierarchical structure that emerges. However, we
@@ -28,7 +27,7 @@ function DEM = DEM_cells_cells
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_cells_cells.m 7150 2017-08-08 19:57:33Z karl $
+% $Id: DEM_cells_cells.m 7447 2018-10-13 15:32:10Z karl $
 
 
 % preliminaries
