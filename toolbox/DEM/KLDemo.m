@@ -1,4 +1,4 @@
-% function KLDemo
+function KLDemo
 % Illustration of information gains with Bayesian fusion
 % FORMAT KLDemo)
 %
