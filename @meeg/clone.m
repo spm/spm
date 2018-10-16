@@ -1,9 +1,12 @@
-function new = clone(this, fnamedat, dim, reset)
+function new = clone(this, fnamedat, dim, reset, forcefloat)
 % Creates a copy of the object with a new, empty data file,
 % possibly changing dimensions
 % FORMAT new = clone(this, fnamedat, dim, reset)
 % reset - 0 (default) do not reset channel or trial info unless dimensions
 %          change, 1 - reset channels only, 2 - trials only, 3 both
+% forcefloat - force the new data file to be float (0 by default)
+%          this is to fix an issue with TF analysis of files using int16
+%          for the raw data
 % Note that when fnamedat comes with a path, the cloned meeg object uses
 % it. Otherwise, its path is by definition that of the meeg object to be
 % cloned.
@@ -11,7 +14,11 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 7445 2018-10-12 13:24:48Z vladimir $
+% $Id: clone.m 7449 2018-10-16 13:52:04Z vladimir $
+
+if nargin < 5
+    forcefloat = 0;
+end
 
 if nargin < 4
     reset = 0;
@@ -43,18 +50,26 @@ d = this.data; %
 d.fname = newFileName;
 dim_o = d.dim;
 
-% This takes care of an issue specific to int data files which are not
-% officially supported in SPM8/12.
-if dim(1)>dim_o(1) && length(d.scl_slope)>1
-    % adding channel to montage and scl_slope defined for old montage
-    %       -> need to increase scl_slope
-    v_slope = mode(d.scl_slope);
-    if length(v_slope)>1
-        warning(['Trying to guess the scaling factor for new channels.',...
-                ' This might be not exact.']);        
+if forcefloat
+    d.dtype = 'FLOAT32-LE';
+    d.offset = 0;
+    d.scl_slope =[];
+    d.scl_inter =[];
+else
+    % This takes care of an issue specific to int data files which are not
+    % officially supported in SPM8/12.
+    if dim(1)>dim_o(1) && length(d.scl_slope)>1
+        % adding channel to montage and scl_slope defined for old montage
+        %       -> need to increase scl_slope
+        v_slope = mode(d.scl_slope);
+        if length(v_slope)>1
+            warning(['Trying to guess the scaling factor for new channels.',...
+                ' This might be not exact.']);
+        end
+        d.scl_slope = [d.scl_slope' ones(1,dim(1)-dim_o(1))*v_slope]';
     end
-    d.scl_slope = [d.scl_slope' ones(1,dim(1)-dim_o(1))*v_slope]';
 end
+
 d.dim = dim;
 
 % physically initialise file

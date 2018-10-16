@@ -44,9 +44,9 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_tf.m 7125 2017-06-23 09:49:29Z guillaume $
+% $Id: spm_eeg_tf.m 7449 2018-10-16 13:52:04Z vladimir $
 
-SVNrev = '$Rev: 7125 $';
+SVNrev = '$Rev: 7449 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -122,7 +122,7 @@ if ~isequal(D.type, 'continuous')
             
             %-Generate output datasets
             %--------------------------------------------------------------------------
-            Dtf = clone(D, [S.prefix 'tf_' D.fname], [Nchannels Nfrequencies Nsamples D.ntrials]);
+            Dtf = clone(D, [S.prefix 'tf_' D.fname], [Nchannels Nfrequencies Nsamples D.ntrials], 0, 1);
             Dtf = Dtf.frequencies(':', trial.freq);
             Dtf = timeonset(Dtf, trial.time(1));
             Dtf = fsample(Dtf, 1/diff(trial.time(1:2)));
