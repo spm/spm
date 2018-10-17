@@ -18,8 +18,7 @@ function labels = spm_create_labels(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_create_labels.m 7420 2018-09-18 11:16:50Z spm $
-
+% $Id: spm_create_labels.m 7452 2018-10-17 15:29:54Z tim $
 
 %-Set default values
 %--------------------------------------------------------------------------
