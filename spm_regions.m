@@ -50,7 +50,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 1999-2018 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_regions.m 7396 2018-08-15 10:30:31Z guillaume $
+% $Id: spm_regions.m 7450 2018-10-17 09:39:32Z guillaume $
 
 
 %-Shortcut for VOI display
@@ -209,7 +209,7 @@ xY.X0     = SPM.xX.xKXs.X(:,[SPM.xX.iB SPM.xX.iG]);
  
 %-Extract session-specific rows from data and confounds
 %--------------------------------------------------------------------------
-try
+if isfield(SPM,'Sess') && isfield(xY,'Sess')
     i     = SPM.Sess(xY.Sess).row;
     y     = y(i,:);
     xY.X0 = xY.X0(i,:);
@@ -217,11 +217,12 @@ end
  
 % and add session-specific filter confounds
 %--------------------------------------------------------------------------
-try
-    xY.X0 = [xY.X0 SPM.xX.K(xY.Sess).X0];
-end
-try
-    xY.X0 = [xY.X0 SPM.xX.K(xY.Sess).KH]; % Compatibility check
+if isfield(SPM,'Sess') && isfield(xY,'Sess')
+    if numel(SPM.Sess) == 1 && numel(SPM.xX.K) > 1
+        xY.X0 = [xY.X0 blkdiag(SPM.xX.K.X0)]; % concatenated
+    else
+        xY.X0 = [xY.X0 SPM.xX.K(xY.Sess).X0];
+    end
 end
  
 %-Remove null space of X0
@@ -305,7 +306,7 @@ if fullsize, title(['Region: ' xY.name]); end
 if fullsize, subplot(2,1,2); else subplot(2,2,4); end
 if nargin == 2
     plot(TR*[1:length(xY.u)],xY.u);
-    str = 'time \{seconds\}';
+    str = 'time {seconds}';
 else
     plot(xY.u);
     str = 'scan';
@@ -319,5 +320,5 @@ end
 str = { str;' ';...
     sprintf('%d voxels in VOI %s',size(xY.y,2),posstr);...
     sprintf('Variance: %0.2f%%',100*xY.s(1)/sum(xY.s))};
-xlabel(str)
+xlabel(str,'Interpreter','none');
 axis tight square
