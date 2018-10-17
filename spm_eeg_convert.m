@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 7444 2018-10-12 13:24:04Z vladimir $
+% $Id: spm_eeg_convert.m 7451 2018-10-17 14:48:56Z vladimir $
 
-SVNrev = '$Rev: 7444 $';
+SVNrev = '$Rev: 7451 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -389,7 +389,7 @@ end
 %--------- Prepare for reading the data
 outpath = spm_file(S.outfile,'fpath');
 outfile = spm_file(S.outfile,'basename');
-if isempty(outfile), outfile = 'spm8'; end
+if isempty(outfile), outfile = 'spmeeg'; end
 
 D.path = outpath;
 D.fname = [outfile '.mat'];
