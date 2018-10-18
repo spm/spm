@@ -6,7 +6,7 @@ function tvol = spm_cfg_tissue_volumes
 % Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_cfg_tissue_volumes.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_tissue_volumes.m 7453 2018-10-18 15:42:33Z christophe $
 
 
 mat         = cfg_files;
@@ -21,12 +21,12 @@ mat.help    = {
 
 T           = cfg_entry;
 T.tag       = 'tmax';
-T.name      = 'Maximum tissue class';
+T.name      = 'Maximum tissue class index';
 T.strtype   = 'n';
 T.num       = [1 1];
 T.val       = {3};
 T.help      = {
-    ['Specify the maximum tissue class, T, where tissues 1:T will be ' ...
+    ['Specify the maximum tissue class index, T, where tissues [1:T] will be ' ...
     'measured.']
     ['The default of 3 corresponds to GM, WM and CSF for the ' ...
     'default tissue prior probability maps ''TPM.nii,1'' to ''TPM.nii,3''']
