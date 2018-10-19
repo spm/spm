@@ -23,7 +23,7 @@ function RCM = spm_sparse_regression(y,X,X0)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sparse_regression.m 6247 2014-10-15 13:58:56Z guillaume $
+% $Id: spm_sparse_regression.m 7454 2018-10-19 19:38:50Z karl $
 
 
 % Logit transform
@@ -52,7 +52,7 @@ M.hC   = 1/64;
 try, Y.X0 = X0; end
 Y.y       = y;
     
-% Model inversion for this region
+% Model inversion using variational Laplace
 %--------------------------------------------------------------------------
 [Ep,Cp] = spm_nlsi_GN(M,X,Y);
  
@@ -65,11 +65,9 @@ DCM.Cp  = Cp;
 
 % Bayesian model reduction
 %==========================================================================
-RCM     = spm_dcm_post_hoc(DCM);
+RCM     = spm_dcm_bmr(DCM);
 
 % Reorganise output structures
 %--------------------------------------------------------------------------
 RCM.Ep  = RCM.Ep.A;
 RCM.Pp  = RCM.Pp.A;
-RCM.Vp  = RCM.Vp.A;
-RCM     = rmfield(RCM,'qP');
