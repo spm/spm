@@ -3,10 +3,10 @@ function V = spm_create_vol(V)
 % FORMAT V = spm_create_vol(V)
 % V        - image volume information (see spm_vol.m)
 %__________________________________________________________________________
-% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_create_vol.m 6908 2016-10-21 11:29:25Z guillaume $
+% $Id: spm_create_vol.m 7455 2018-10-22 12:34:12Z guillaume $
 
 
 if ~isstruct(V)
@@ -110,7 +110,7 @@ N.mat0 = V.mat;
 N.mat_intent  = 'Aligned';
 N.mat0_intent = 'Aligned';
 N.descrip = V.descrip;
-%try, N.timing = V.private.timing; end
+try, N.timing = V.private.timing; end
 
 try
     N0  = nifti(V.fname);
