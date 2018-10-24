@@ -17,11 +17,11 @@ function [mg,nu,sig] = spm_rice_mixture(h,x,K)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_rice_mixture.m 7411 2018-09-04 16:48:09Z john $
+% $Id: spm_rice_mixture.m 7458 2018-10-24 15:30:12Z john $
 
 mg  = ones(K,1)/K;
 nu  = (0:(K-1))'*max(x)/(K+1);
-sig = ones(K,1)*max(x)/K;
+sig = ones(K,1)*max(x)/K/10;
 
 m0 = zeros(K,1);
 m1 = zeros(K,1);
@@ -32,12 +32,12 @@ for iter=1:10000
     for k=1:K
         % Product Rule
         % p(class=k, x | mg, nu, sig) = p(class=k|mg) p(x | nu, sig, class=k)
-        p(:,k) = mg(k)*ricepdf(x(:),nu(k),sig(k)^2);
+        p(:,k) = mg(k)*ricepdf(x(:),nu(k),sig(k)^2) + eps;
     end
 
     % Sum Rule
     % p(x | mg, nu, sig) = \sum_k p(class=k, x | mg, nu, sig)
-    sp  = sum(p,2)+eps;
+    sp  = sum(p,2);
     oll = ll;
     ll  = sum(log(sp).*h(:)); % Log-likelihood
     if ll-oll<1e-8*sum(h), break; end
@@ -61,7 +61,7 @@ for iter=1:10000
     mg = m0/sum(m0); % Mixing proportions
     for k=1:K
         mu1 = m1(k)./m0(k);                                % Mean 
-        mu2 = (m2(k)-m1(k)*m1(k)/m0(k)+1e-6)/(m0(k)+1e-6); % Variance
+        mu2 = (m2(k)-m1(k)*m1(k)/m0(k)+1e-3)/(m0(k)+1e-3); % Variance
 
         % Compute nu & sig from mean and variance
         [nu(k),sig(k)] = moments2param(mu1,mu2);
@@ -90,6 +90,7 @@ if r>theta
         if abs(theta-g)<1e-6, break; end
         theta = g;
     end
+    if ~isfinite(xi), xi = 1; end
     sig = sqrt(mu2)/sqrt(xi);
     nu  = sqrt(mu1^2+(xi-2)*sig^2);
 else
