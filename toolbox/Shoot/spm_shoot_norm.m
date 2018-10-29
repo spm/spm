@@ -34,7 +34,7 @@ function out = spm_shoot_norm(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_norm.m 7387 2018-08-03 15:13:57Z john $
+% $Id: spm_shoot_norm.m 7460 2018-10-29 15:55:12Z john $
 
 % Hard coded stuff, that should maybe be customisable
 tpm  = fullfile(spm('Dir'),'tpm','TPM.nii');
@@ -273,7 +273,7 @@ for m=1:numel(PI)
                 f  = single(NI.dat(:,:,:,j,k,l));
                 if ~jactransf
                     % Unmodulated 
-                    f = spm_diffeo('samp',f,y).*c;
+                    f = spm_diffeo('pull',f,y).*c;
                     if fwhm>0
                         spm_smooth(f,f,krn); % Side effects
                         cs = zeros(size(c),'like',c);
@@ -284,7 +284,7 @@ for m=1:numel(PI)
                     end
                 else
                     % Modulated, by pushing
-                    f = spm_diffeo('samp',f,y).*c;
+                    f = spm_diffeo('pull',f,y).*c;
                     spm_smooth(f,f,krn); % Side effects
                 end
                 NO.dat(:,:,:,j,k,l) = f;

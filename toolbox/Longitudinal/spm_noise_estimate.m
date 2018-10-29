@@ -7,7 +7,7 @@ function [noise,mu_val] = spm_noise_estimate(Scans)
 % _______________________________________________________________________
 %  Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_noise_estimate.m 7458 2018-10-24 15:30:12Z john $
+% $Id: spm_noise_estimate.m 7460 2018-10-29 15:55:12Z john $
 
 if ~isa(Scans,'nifti'), Scans = nifti(Scans); end
 
@@ -32,6 +32,7 @@ for i=1:numel(Scans)
         x          = -nu.^2./(2*sd.^2);
         msk        = x>-20;
         Laguerre   = exp(x(msk)/2).*((1-x(msk)).*besseli(0,-x(msk)/2)-x(msk).*besseli(1,-x(msk)/2));
+        Ey         = zeros(size(sd));
         Ey( msk)   = sqrt(pi*sd(msk).^2/2).*Laguerre;
         Ey(~msk)   = nu(~msk);
         mu_val(i)  = max(Ey);

@@ -1,4 +1,4 @@
-function [u0,ll1,ll2,grad_norm] = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args,scale)
+function [u0,ll1,ll2] = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args,scale)
 % Shooting Of Diffeomorphisms (Spawn Of Dartel).
 % FORMAT u0 = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args)
 % g        - template
@@ -13,14 +13,13 @@ function [u0,ll1,ll2,grad_norm] = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args,sc
 % u0       - updated initial velocity
 % ll1      - matching part of objective function
 % ll2      - regularisation part of objective function
-% grad_norm - Norm of the 1st derivatives
 %
 % The easiest way to figure out what this function does is to read the code.
 %________________________________________________________
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_update.m 7387 2018-08-03 15:13:57Z john $
+% $Id: spm_shoot_update.m 7460 2018-10-29 15:55:12Z john $
 
 if nargin<8, scale = 1.0; end
 scale = max(min(scale,1.0),0.0);
@@ -39,10 +38,9 @@ ll2      = 0.5*sum(sum(sum(sum(m0.*u0))));
 var1     = sum(sum(sum(sum(b.^2))));
 b        = b + m0;
 var2     = sum(sum(sum(sum(b.^2))));
-grad_norm = sqrt(var2/prod(d));
-fprintf('%-10.5g %-10.5g %-10.5g %-10.5g %-10.5g\n',...
-                            ll1/prod(d), ll2/prod(d), (ll1+ll2)/prod(d),...
-                            var2/(var1+eps), grad_norm);
+%grad_norm = sqrt(var2/prod(d));
+fprintf('%-10.5g %-10.5g %-10.5g %-10.5g\n',...
+        ll1/prod(d), ll2/prod(d), (ll1+ll2)/prod(d), var2/(var1+eps));
 u0      = u0 - scale*spm_diffeo('fmg',A, b, [prm 3 2]);
 clear A b
 %=======================================================================

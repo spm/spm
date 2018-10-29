@@ -6,7 +6,7 @@ function out = spm_run_tissue_volumes(cmd, job)
 % Copyright (C) 2013-2018 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_run_tissue_volumes.m 7354 2018-06-22 10:44:22Z guillaume $
+% $Id: spm_run_tissue_volumes.m 7460 2018-10-29 15:55:12Z john $
 
 
 switch lower(cmd)
@@ -54,7 +54,7 @@ switch lower(cmd)
             
             % produce mwc files if required
             if any(tc(:, 4))
-                for f = 1:numel(reg.image)
+                for f = 1:numel(res.image)
                     if ~exist(res.image(f).fname, 'file')
                         error('Original image no longer found at:\n%s\n', res.image(f).fname)
                     end

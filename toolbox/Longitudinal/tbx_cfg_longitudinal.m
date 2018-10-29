@@ -4,7 +4,7 @@ function cfg = tbx_cfg_longitudinal
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 7408 2018-08-24 14:54:57Z john $
+% $Id: tbx_cfg_longitudinal.m 7460 2018-10-29 15:55:12Z john $
 
 if ~isdeployed
     addpath(fullfile(spm('Dir'),'toolbox','Longitudinal'));
@@ -218,6 +218,6 @@ if job.write_def
     cdep(ind).sname      = 'Deformation (2)';
     cdep(ind).src_output = substruct('.','def2','()',{':'});
     cdep(ind).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-    ind = ind + 1;
+   %ind = ind + 1;
 end
 

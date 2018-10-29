@@ -1,4 +1,4 @@
-/* $Id: spm_diffeo.c 7415 2018-09-10 18:24:16Z john $ */
+/* $Id: spm_diffeo.c 7460 2018-10-29 15:55:12Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -1045,7 +1045,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             mxFree(fnc_str);
             smalldef_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
-        else if (!strcmp(fnc_str,"pull") || !strcmp(fnc_str,"samp"))
+        else if (!strcmp(fnc_str,"pull"))
         {
             mxFree(fnc_str);
             pull_mexFunction(2, nlhs, plhs, nrhs-1, &prhs[1]);

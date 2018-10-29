@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 7408 2018-08-24 14:54:57Z john $
+% $Id: spm_groupwise_ls.m 7460 2018-10-29 15:55:12Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -271,7 +271,7 @@ for level=nlevels:-1:1 % Loop over resolutions, starting with the lowest
                     f     = spm_diffeo('bsplins',img(i).f,y,ord);
 
                     if all(isfinite(b_settings(i,:)))
-                        ebias = exp(spm_diffeo('samp',param(i).bias,y));
+                        ebias = exp(spm_diffeo('pullc',param(i).bias,y));
                     else
                         ebias = ones(size(f),'single');
                     end
@@ -422,7 +422,7 @@ for level=nlevels:-1:1 % Loop over resolutions, starting with the lowest
                         end
 
                         f           = spm_diffeo('bsplins',img(i).f,y,ord);
-                        ebias       = exp(spm_diffeo('samp',param(i).bias,y));
+                        ebias       = exp(spm_diffeo('pullc',param(i).bias,y));
 
                         msk         = isfinite(f) & isfinite(ebias);
                         smu         = mu(:,:,m).*ebias;
@@ -493,7 +493,7 @@ for level=nlevels:-1:1 % Loop over resolutions, starting with the lowest
                         f     = spm_diffeo('bsplins',img(i).f,y,ord);
 
                         if all(isfinite(b_settings(i,:)))
-                            ebias = exp(spm_diffeo('samp',param(i).bias,y));
+                            ebias = exp(spm_diffeo('pullc',param(i).bias,y));
                         else
                             ebias = ones(size(f),'single');
                         end
@@ -637,7 +637,7 @@ if need_mom
                 dt    = spm_diffeo('det',param(i).J(:,:,m,:,:));
                 y     = transform_warp(M,param(i).y(:,:,m,:));
                 f     = spm_diffeo('bsplins',img(i).f,y,ord);
-                ebias = exp(spm_diffeo('samp',param(i).bias,y));
+                ebias = exp(spm_diffeo('pullc',param(i).bias,y));
                 b     = (f-mu(:,:,m).*ebias).*ebias.*dt;
                 b(~isfinite(b)) = 0;
                 mom(:,:,m) = b;

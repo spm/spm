@@ -212,6 +212,34 @@ function varargout = spm_diffeo(varargin)
 % Sample a function according to a deformation using trilinear interp.
 % f2 = f1(y)
 % f1, f2 and y are single precision floating point.
+% Uses boundary condiditions that wrap around (circulant - identical to
+% the 'pullc' option - but retained for backward compatibility).
+%
+%_______________________________________________________________________
+%
+% FORMAT f2 = spm_diffeo('pull', f1, y)
+% f1 - input image(s) n1*n2*n3*n4
+% y  - points to sample n1*n2*n3*3
+% f2 - output image n1*n2*n3*n4
+%
+% Sample a function according to a deformation using trilinear interp.
+% f2 = f1(y)
+% f1, f2 and y are single precision floating point.
+% Values sampled outside the field of view of f1 are assigned a value
+% of NaN.
+%
+%_______________________________________________________________________
+%
+% FORMAT f2 = spm_diffeo('pullc', f1, y)
+% f1 - input image(s) n1*n2*n3*n4
+% y  - points to sample n1*n2*n3*3
+% f2 - output image n1*n2*n3*n4
+%
+% Sample a function according to a deformation using trilinear interp.
+% f2 = f1(y)
+% f1, f2 and y are single precision floating point.
+% Uses boundary condiditions that wrap around (circulant - identical to
+% the 'samp' option).
 %
 %_______________________________________________________________________
 %
@@ -221,8 +249,10 @@ function varargout = spm_diffeo(varargin)
 % f2 - output image n1*n2*n3*n4
 %
 % Push values of a function according to a deformation.  Note that the
-% deformation should be the inverse of the one used with 'samp' or 'bsplins'.
-% f1, f2 and y are single precision floating point.
+% deformation should be the inverse of the one used with 'samp' or
+% 'bsplins'. f1, f2 and y are single precision floating point.
+% Voxels in f1 that would be pushed outside the field of view of f2 
+% are ignored.
 %
 %_______________________________________________________________________
 %
@@ -232,7 +262,7 @@ function varargout = spm_diffeo(varargin)
 % f2 - output image n1*n2*n3*n4
 %
 % Push values of a function according to a deformation, but using
-% circulant boundary conditions.  Data wraps around.
+% circulant boundary conditions.  Data wraps around (circulant).
 % f1, f2 and y are single precision floating point.
 %
 %_______________________________________________________________________
@@ -418,7 +448,7 @@ function varargout = spm_diffeo(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_diffeo.m 7286 2018-04-04 11:24:36Z john $
+% $Id: spm_diffeo.m 7460 2018-10-29 15:55:12Z john $
 
 
 %-This is merely the help file for the compiled routine
