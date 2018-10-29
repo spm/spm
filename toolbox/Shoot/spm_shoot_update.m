@@ -19,7 +19,7 @@ function [u0,ll1,ll2] = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args,scale)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_update.m 7460 2018-10-29 15:55:12Z john $
+% $Id: spm_shoot_update.m 7461 2018-10-29 15:59:58Z john $
 
 if nargin<8, scale = 1.0; end
 scale = max(min(scale,1.0),0.0);
@@ -88,7 +88,7 @@ for z=1:d(3)
         if isempty(phi)
             f1{k} = f{k}(:,:,z);
         else
-            f1{k} = spm_diffeo('samp',f{k},phi(:,:,z,:)).*dt(:,:,z);
+            f1{k} = spm_diffeo('pullc',f{k},phi(:,:,z,:)).*dt(:,:,z);
         end
     end
     s = zeros(d(1:2));

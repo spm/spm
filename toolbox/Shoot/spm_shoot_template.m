@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 7389 2018-08-06 13:35:48Z john $
+% $Id: spm_shoot_template.m 7461 2018-10-29 15:59:58Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -258,7 +258,7 @@ for it=1:nits
 
             tmp = zeros([dm n1+1],'single');
             for j=1:n1+1
-                tmp(:,:,:,j) = spm_diffeo('samp',f{j},y).*dt;
+                tmp(:,:,:,j) = spm_diffeo('pullc',f{j},y).*dt;
             end
             %clear f y dt
 

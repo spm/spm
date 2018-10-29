@@ -51,7 +51,7 @@ function varargout = spm_shoot3di(v0,prm,args)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot3di.m 7387 2018-08-03 15:13:57Z john $
+% $Id: spm_shoot3di.m 7461 2018-10-29 15:59:58Z john $
 
 args0 = [8 4 4];
 if nargin<3
@@ -135,9 +135,9 @@ function mt = pullg(m0,phi,J)
 mt = zeros(size(m0),'single');
 for i=1:size(m0,3)
     phii        = phi(:,:,i,:);
-    mr1         = spm_diffeo('samp',m0(:,:,:,1), phii);
-    mr2         = spm_diffeo('samp',m0(:,:,:,2), phii);
-    mr3         = spm_diffeo('samp',m0(:,:,:,3), phii);
+    mr1         = spm_diffeo('pullc',m0(:,:,:,1), phii);
+    mr2         = spm_diffeo('pullc',m0(:,:,:,2), phii);
+    mr3         = spm_diffeo('pullc',m0(:,:,:,3), phii);
 
     dj          = J(:,:,i,1,1).*(J(:,:,i,2,2).*J(:,:,i,3,3)-J(:,:,i,2,3).*J(:,:,i,3,2))...
                  +J(:,:,i,2,1).*(J(:,:,i,1,3).*J(:,:,i,3,2)-J(:,:,i,1,2).*J(:,:,i,3,3))...

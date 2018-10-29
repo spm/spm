@@ -18,7 +18,7 @@ function out = spm_shoot_scalmom(job)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_scalmom.m 7387 2018-08-03 15:13:57Z john $
+% $Id: spm_shoot_scalmom.m 7461 2018-10-29 15:59:58Z john $
 
 Pt = strvcat(job.template);
 Nt = nifti(Pt);
@@ -86,7 +86,7 @@ for j=1:size(Py,1) % Loop over subjects
 
         % Loop over imported data
         for i=1:d(4)-1
-            f            = spm_diffeo('samp',F{i},y); % Warp the imported tissue
+            f            = spm_diffeo('pullc',F{i},y); % Warp the imported tissue
             msk          = ~isfinite(f);              % Identify missing data
             fe           = fe-f;                      % Subtract from background
             t            = single(Nt.dat(:,:,z,i));   % Slice of template
