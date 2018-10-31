@@ -1,4 +1,4 @@
-/* $Id: spm_field.c 7130 2017-07-04 17:43:49Z john $ */
+/* $Id: spm_field.c 7464 2018-10-31 16:57:27Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"
@@ -26,12 +26,12 @@ static void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
 {
     int nd, i;
     mwSize dm[4];
-    int   cyc=1, nit=1;
-    float *A, *b, *x, *scratch;
-    static double param[6] = {1.0, 1.0, 1.0, 1.0, 0.0, 0.0};
+    int   cyc=2, nit=2, nparam;
+    float *A, *b, *x;
+    static double param[6] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0};
     double scal[256], t[3];
 
-    if ((nrhs!=3 && nrhs!=4) || nlhs>1)
+    if ((nrhs!=2 && nrhs!=3 && nrhs!=4) || nlhs>1)
         mexErrMsgTxt("Incorrect usage");
     if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
         mexErrMsgTxt("Data must be numeric, real, full and single");
@@ -50,19 +50,26 @@ static void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
     if (nd>3) nd=3;
     for(i=0; i<nd; i++) if (mxGetDimensions(prhs[0])[i] != dm[i]) mexErrMsgTxt("Incompatible dimensions.");
     for(i=nd; i<3; i++) if (dm[i] != 1) mexErrMsgTxt("Incompatible dimensions.");
- 
-    if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
-        mexErrMsgTxt("Third argument must be numeric, real, full and double");
-    if (mxGetNumberOfElements(prhs[2]) != 8)
+
+    if (nrhs>=3)
+    { 
+        if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
+            mexErrMsgTxt("Third argument must be numeric, real, full and double");
+        nparam = mxGetNumberOfElements(prhs[2]);
+    }
+    else
+        nparam = 0;
+
+    if (nparam > 8)
         mexErrMsgTxt("Third argument should contain vox1, vox2, vox3, param1, param2, param3, ncycles and relax-its.");
-    param[0] = 1/mxGetPr(prhs[2])[0];
-    param[1] = 1/mxGetPr(prhs[2])[1];
-    param[2] = 1/mxGetPr(prhs[2])[2];
-    param[3] = mxGetPr(prhs[2])[3];
-    param[4] = mxGetPr(prhs[2])[4];
-    param[5] = mxGetPr(prhs[2])[5];
-    cyc      = mxGetPr(prhs[2])[6];
-    nit      = (int)(mxGetPr(prhs[2])[7]);
+    if (nparam>=1) param[0] = 1/mxGetPr(prhs[2])[0]; else param[0] = 1.0;
+    if (nparam>=2) param[1] = 1/mxGetPr(prhs[2])[1]; else param[1] = 1.0;
+    if (nparam>=3) param[2] = 1/mxGetPr(prhs[2])[2]; else param[2] = 1.0;
+    if (nparam>=4) param[3] = mxGetPr(prhs[2])[3];   else param[3] = 0.0;
+    if (nparam>=5) param[4] = mxGetPr(prhs[2])[4];   else param[4] = 0.0;
+    if (nparam>=6) param[5] = mxGetPr(prhs[2])[5];   else param[5] = 0.0;
+    if (nparam>=7) cyc      = (int)(mxGetPr(prhs[2])[6]); else cyc = 2;
+    if (nparam>=8) nit      = (int)(mxGetPr(prhs[2])[7]); else nit = 2;
 
     /* Penalise absolute displacements slightly in case supplied Hessian is too small.
        Extra penalty based on value in centre of difference operator, scaled by some
@@ -99,9 +106,16 @@ static void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
     A       = (float *)mxGetPr(prhs[0]);
     b       = (float *)mxGetPr(prhs[1]);
     x       = (float *)mxGetPr(plhs[0]);
-    scratch = (float *)mxCalloc(fmg_scratchsize(dm),sizeof(float));
-    fmg(dm, A, b, param, scal, cyc, nit, x, scratch);
-    mxFree((void *)scratch);
+    if (param[4]>0.0 || param[5]>0.0)
+    {
+        float *scratch;
+        scratch = (float *)mxCalloc(fmg_scratchsize(dm),sizeof(float));
+        fmg(dm, A, b, param, scal, cyc, nit, x, scratch);
+        mxFree((void *)scratch);
+    }
+    else
+        solve(dm, A, b, param, scal, x);
+
 }
 
 static void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])

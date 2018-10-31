@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 7434 2018-10-05 14:05:21Z john $ */
+/* $Id: shoot_optimN.c 7464 2018-10-31 16:57:27Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<math.h>
@@ -344,6 +344,48 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
         }
     }
 }
+
+void solve(mwSize dm[], float a[], float b[], double s[], double scal[], float u[])
+{
+    int it;
+    double lam0 = s[3], lam1 = s[4], lam2 = s[5];
+    mwSignedIndex i, j, k, m;
+    float *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
+    double a1[MAXD3*MAXD3], cp[MAXD3], su[MAXD3];
+
+    for(m=0; m<(mwSignedIndex)dm[3]; m++)
+    {
+        pu[m] = u+dm[0]*dm[1]*dm[2]*m;
+        pb[m] = b+dm[0]*dm[1]*dm[2]*m;
+    }
+    if (a!=0)
+    {
+        for(m=0; m<(mwSignedIndex)(dm[3]*(dm[3]+1))/2; m++)
+           pa[m] = a+dm[0]*dm[1]*dm[2]*m;
+    }
+
+    for(i=0; i<(mwSignedIndex)dm[0]*dm[1]*dm[2]; i++)
+    {
+        if (a!=0)
+        {
+            get_a(dm[3], i, pa, a1);
+            for(m=0; m<(mwSignedIndex)dm[3]; m++)
+            {
+                su[m] = pb[m][i];
+                a1[m+dm[3]*m] += lam0*scal[m];
+            }
+            choldc(dm[3],a1,cp);
+            cholls(dm[3],a1,cp,su,su);
+            for(m=0; m<(mwSignedIndex)dm[3]; m++) pu[m][i] = su[m];
+        }
+        else
+        {
+            for(m=0; m<(mwSignedIndex)dm[3]; m++) pu[m][i] = pb[m][i]/(lam0*scal[m]);
+        }
+    }
+}
+
+
 
 static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], int nit, float u[])
 {
