@@ -29,37 +29,42 @@ function out = cfg_justify(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: cfg_justify.m 3944 2010-06-23 08:53:40Z volkmar $
+% $Id: cfg_justify.m 7462 2018-10-31 15:43:31Z spm $
 
 out = {};
 
+if exist('OCTAVE_VERSION','builtin')
+	out = char(varargin(2:end));
+    return;
+end
+
 if nargin < 2
-    cfg_message('matlabbatch:usage','Incorrect usage of cfg_justify.')
+    cfg_message('matlabbatch:usage','Incorrect usage of cfg_justify.');
 end
 n = varargin{1};
 if ishandle(n)
     % estimate extent of a space char and scrollbar width
-    TempObj=copyobj(n,get(n,'Parent'));
+    TempObj = copyobj(n,get(n,'Parent'));
     set(TempObj,'Visible','off','Max',100);
-    spext = cfg_maxextent(TempObj,{repmat(' ',1,100)})/100;
+    spext   = cfg_maxextent(TempObj,{repmat(' ',1,100)})/100;
     % try to work out slider size
-    pos = get(TempObj,'Position');
-    oldun = get(TempObj,'units');
+    pos     = get(TempObj,'Position');
+    oldun   = get(TempObj,'units');
     set(TempObj,'units','points');
-    ppos = get(TempObj,'Position');
+    ppos    = get(TempObj,'Position');
     set(TempObj,'units',oldun);
-    sc = pos(3)/ppos(3);
+    sc      = pos(3)/ppos(3);
     % assume slider width of 15 points
-    swidth=15*sc;
+    swidth  = 15*sc;
 else
     % dummy constants
-    spext = 1;
-    swidth = 0;
+    spext   = 1;
+    swidth  = 0;
     TempObj = n;
 end
-for i=2:nargin,
-    if iscell(varargin{i}),
-        for j=1:numel(varargin{i}),
+for i=2:nargin
+    if iscell(varargin{i})
+        for j=1:numel(varargin{i})
             para = justify_paragraph(TempObj,spext,swidth,varargin{i}{j});
             out  = [out(:);para(:)]';
         end
@@ -71,58 +76,60 @@ end
 if ishandle(TempObj)
     delete(TempObj);
 end
+
+
 function out = justify_paragraph(n,spext,swidth,txt)
-if numel(txt)>1 && txt(1)=='%',
+if numel(txt)>1 && txt(1)=='%'
     txt = txt(2:end);
-end;
+end
 %txt = regexprep(txt,'/\*([^(/\*)]*)\*/','');
 st1  = strfind(txt,'/*');
 en1  = strfind(txt,'*/');
-st = [];
-en = [];
-for i=1:numel(st1),
+st = '';
+en = '';
+for i=1:numel(st1)
     en1  = en1(en1>st1(i));
-    if ~isempty(en1),
+    if ~isempty(en1)
         st  = [st st1(i)];
         en  = [en en1(1)];
         en1 = en1(2:end);
-    end;
-end;
+    end
+end
 
-str = [];
+str = '';
 pen = 1;
-for i=1:numel(st),
+for i=1:numel(st)
     str = [str txt(pen:st(i)-1)];
     pen = en(i)+2;
-end;
+end
 str = [str txt(pen:numel(txt))];
 txt = str;
 
 off = find((txt'>='a' & txt'<='z') | (txt'>='A' & txt'<='Z'));
-if isempty(off),
+if isempty(off)
     out{1} = txt;
 else
     off  = off(1);
     para = justify_para(n,off,spext,swidth,txt(off:end));
     out = cell(numel(para),1);
-    if numel(para)>1,
+    if numel(para)>1
         out{1} = [txt(1:(off-1)) para{1}];
-        for j=2:numel(para),
+        for j=2:numel(para)
             out{j} = [repmat(' ',1,off-1) para{j}];
-        end;
+        end
     else
         out{1} = txt;
-    end;
-end;
-return;
+    end
+end
+
 
 function out = justify_para(n,off,spext,swidth,varargin)
 % Collect varargs into a single string
 str = varargin{1};
-for i=2:length(varargin),
+for i=2:length(varargin)
     str = [str ' ' varargin{i}];
-end;
-if isempty(str), out = {''}; return; end;
+end
+if isempty(str), out = {''}; return; end
 if ishandle(n)
     % new size: at least 20 spaces wide, max widget width less offset
     % space and scrollbar width
@@ -136,7 +143,7 @@ if ishandle(n)
     % fill with spaces to produce (roughly) block output
     for k = 1:numel(out)-1
         out{k} = justify_line(out{k}, pos(3), cext(k), spext);
-    end;
+    end
     % reset position
     set(n,'Position',opos);
 else
@@ -144,8 +151,9 @@ else
     out = textwrap({str},cols);
     for k = 1:numel(out)-1
         out{k} = justify_line(out{k}, cols, length(out{k}), 1);
-    end;
-end;
+    end
+end
+
 
 function out = justify_line(str, width, cext, spext)
 ind = strfind(str,' ');
@@ -160,6 +168,6 @@ else
     % insert spaces beginning at the end of the string
     for k = numel(ind):-1:1
         str = [str(1:ind(k)) repmat(' ',1,ins(k)) str(ind(k)+1:end)];
-    end;
+    end
     out = str;
-end; 
+end
