@@ -5,12 +5,13 @@ function saveas(this,filename,format)
 % filename  - name of file to be created [Default: 'untitled.vtk']
 % format    - optional argument to specify encoding format, among
 %             VTK (.vtk,.vtp), Collada (.dae), IDTF (.idtf), Wavefront OBJ
-%             (.obj), JavaScript (.js), JSON (.json) [Default: VTK]
+%             (.obj), JavaScript (.js), JSON (.json), FreeSurfer
+%             (.surf,.curv) [Default: VTK]
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: saveas.m 7373 2018-07-09 16:57:21Z guillaume $
+% $Id: saveas.m 7465 2018-11-01 12:15:59Z guillaume $
 
 
 % Check filename and file format
@@ -35,9 +36,14 @@ else
         format = lower(format(5:end));
         ext = '.vtk';
     end
-    if nargin == 3 && strncmpi(format,'obj',3)
-        format = lower(format(5:end));
+    if nargin == 3 && strcmpi(format,'obj')
         ext = '.obj';
+    end
+    if nargin == 3 && strcmpi(format,'curv')
+        ext = '.curv';
+    end
+    if nargin == 3 && strcmpi(format,'surf')
+        ext = '.surf';
     end
     [p,f,e] = fileparts(filename);
     if strcmpi(e,'.gii')
@@ -68,6 +74,8 @@ switch ext
         mvtk_write(s,filename,format);
     case '.obj'
         save_obj(s,filename);
+    case {'.curv','.surf'}
+        write_freesurfer_file(s,filename,format);
     otherwise
         error('Unknown file format.');
 end
@@ -465,3 +473,39 @@ fprintf(fid,'f %d %d %d\n',s.faces');
 % Close file
 %--------------------------------------------------------------------------
 fclose(fid);
+
+
+%==========================================================================
+% function write_freesurfer_file(s,filename,format)
+%==========================================================================
+function write_freesurfer_file(s,filename,format)
+
+switch lower(format)
+    case 'surf'
+        fid = fopen(filename,'wb','ieee-be');
+        if fid == -1, error('Cannot open "%s".',filename); end
+        fwrite(fid,[255 255 254],'uchar');
+        fprintf(fid,'created by @gifti on %s\n\n',...
+            datestr(now,'ddd mmm dd HH:MM:SS yyyy'));
+        fwrite(fid,size(s.vertices,1),'int32'); % nv
+        fwrite(fid,size(s.faces,1),'int32'); % nf
+        fwrite(fid,s.vertices','float32');
+        fwrite(fid,s.faces'-1,'int32');
+        fclose(fid);
+    case 'curv'
+        fid = fopen(filename,'wb','ieee-be');
+        if fid == -1, error('Cannot open "%s".',filename); end
+        fwrite(fid,[255 255 255],'uchar');
+        fwrite(fid,size(s.cdata,1),'int32'); % nv
+        if isfield(s,'faces')
+            nf = size(s.faces,1);
+        else
+            nf = 0;
+        end
+        fwrite(fid,nf,'int32'); % nf
+        fwrite(fid,size(s.cdata,2),'int32'); % n
+        fwrite(fid,s.cdata','float32');
+        fclose(fid);
+    otherwise
+        error('File format not supported.');
+end
