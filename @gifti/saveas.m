@@ -6,12 +6,12 @@ function saveas(this,filename,format)
 % format    - optional argument to specify encoding format, among
 %             VTK (.vtk,.vtp), Collada (.dae), IDTF (.idtf), Wavefront OBJ
 %             (.obj), JavaScript (.js), JSON (.json), FreeSurfer
-%             (.surf,.curv) [Default: VTK]
+%             (.surf,.curv), MZ3 (.mz3) [Default: VTK]
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: saveas.m 7465 2018-11-01 12:15:59Z guillaume $
+% $Id: saveas.m 7470 2018-11-01 17:40:18Z guillaume $
 
 
 % Check filename and file format
@@ -45,6 +45,9 @@ else
     if nargin == 3 && strcmpi(format,'surf')
         ext = '.surf';
     end
+    if nargin == 3 && strcmpi(format,'mz3')
+        ext = '.mz3';
+    end
     [p,f,e] = fileparts(filename);
     if strcmpi(e,'.gii')
         warning('Use save instead of saveas.');
@@ -76,6 +79,8 @@ switch ext
         save_obj(s,filename);
     case {'.curv','.surf'}
         write_freesurfer_file(s,filename,format);
+    case '.mz3'
+        mz3_write(s,filename,true);
     otherwise
         error('Unknown file format.');
 end
