@@ -8,7 +8,7 @@ function this = gifti(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: gifti.m 7399 2018-08-16 12:04:14Z guillaume $
+% $Id: gifti.m 7471 2018-11-02 11:14:39Z guillaume $
 
 switch nargin
     
@@ -76,7 +76,7 @@ switch nargin
                 catch
                     error('[GIFTI] Loading of file %s failed.', varargin{1});
                 end
-            elseif ismember(lower(e),{'.asc','.srf','.mgh','.pial',...
+            elseif ismember(lower(e),{'.asc','.srf','.mgh','.mgz','.pial',...
                     '.white','.inflated','.nofix','.orig','.smoothwm',...
                     '.sphere','.reg','.surf','.curv','.area','.sulc'})
                 this = read_freesurfer_file(varargin{1});

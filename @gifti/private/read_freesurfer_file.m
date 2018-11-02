@@ -9,15 +9,15 @@ function this = read_freesurfer_file(filename)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: read_freesurfer_file.m 7386 2018-08-02 15:30:17Z guillaume $
+% $Id: read_freesurfer_file.m 7471 2018-11-02 11:14:39Z guillaume $
 
 
 [p,n,e] = fileparts(filename);
 switch lower(e)
     case {'.asc','.srf'}
         this = read_fs_file_ascii(filename);
-    case '.mgh'
-        this = read_fs_file_mgh(filename);
+    case {'.mgh','.mgz'}
+        this.cdata = read_fs_file_mgh(filename);
     case {'.pial','.white','.inflated','.nofix','.orig','.smoothwm',...
             '.sphere','.reg','.surf'}
         this = read_fs_file_mesh(filename);
@@ -43,7 +43,12 @@ this.vertices = this.vertices(:,1:3);
 this.faces    = this.faces(:,1:3) + 1;
 
 
-function this = read_fs_file_mgh(filename)
+function [dat,hdr] = read_fs_file_mgh(filename)
+[p,n,e] = fileparts(filename);
+if strcmpi(e,'.mgz')
+    filename = char(gunzip(filename,tempname));
+    c = onCleanup(@()rmdir(fileparts(filename),'s'));
+end
 
 fid = fopen(filename,'r','ieee-be');
 if fid == -1, error('Cannot open "%s".',filename); end
@@ -89,8 +94,8 @@ end
 % which is currently byte 284 (bytes 0-283 are header)
 fseek(fid,284,'bof');
 dt = {'uchar', 'int32', NaN, 'float32', 'int16'};
-this.cdata = fread(fid,prod(hdr.dim),dt{hdr.type+1});
-this.cdata = reshape(this.cdata,hdr.dim);
+dat = fread(fid,prod(hdr.dim),dt{hdr.type+1});
+dat = reshape(dat,hdr.dim);
 
 % Immediately after the data buffer can be found optional data structures
 % TR float milliseconds
