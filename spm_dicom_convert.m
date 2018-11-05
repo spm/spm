@@ -36,7 +36,7 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 % Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7416 2018-09-11 13:55:13Z john $
+% $Id: spm_dicom_convert.m 7472 2018-11-05 13:54:50Z john $
 
 
 %-Input parameters
@@ -1875,7 +1875,9 @@ if isfield(Header,'PerFrameFunctionalGroupsSequence')
               'PlaneOrientationSequence',{'ImageOrientationPatient'}
               'ReferencedImageSequence',{'ReferencedSOPClassUID','ReferencedSOPInstanceUID',...
                                          'ReferencedFrameNumber','PurposeOfReferenceCode'}
-              'PixelValueTransformationSequence',{'RescaleIntercept','RescaleSlope','RescaleType'}};
+              'PixelValueTransformationSequence',{'RescaleIntercept','RescaleSlope','RescaleType'}
+              % for specific PHILIPS rescaling
+              'PhilipsSequence_2005_140f',{'MRScaleSlope','MRScaleIntercept'}};
 
     if isfield(Header,'SharedFunctionalGroupsSequence')
         for d=1:numel(DimOrg)
