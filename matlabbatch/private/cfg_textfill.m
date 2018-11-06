@@ -12,9 +12,9 @@ function str = cfg_textfill(obj, left, right, tflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_textfill.m 2138 2008-09-22 13:27:44Z volkmar $
+% $Id: cfg_textfill.m 7473 2018-11-06 10:26:44Z guillaume $
 
-rev = '$Rev: 2138 $'; %#ok
+rev = '$Rev: 7473 $'; %#ok
 
 if ~ishandle(obj)
     cfg_message('matlabbatch:usage',...
@@ -48,8 +48,9 @@ end;
 if numel(left) ~= numel(right)
     cfg_message('matlabbatch:usage',...
           'Second and third input must have the same number of lines.');
-end;    
+end;  
 
+if exist('OCTAVE_VERSION', 'builtin'), set(0,'currentfigure',ancestor(obj,'figure')); end
 TempObj=copyobj(obj,get(obj,'Parent'));
 set(TempObj,'Visible','off','Max',100);
 

@@ -52,7 +52,12 @@ maxFieldWidth = 12;
 floatWidthOffset = 4;
 	
 % Compose sprintf format string of numeric array.
-if nargin < 2 && ~isempty(x) && isequalwithequalnans(x, fix(x))
+if exist('isequalwithequalnans','builtin')
+    iseqn = isequalwithequalnans(x, fix(x));
+else
+    iseqn = isequaln(x, fix(x));
+end
+if nargin < 2 && ~isempty(x) && iseqn
 	if isreal(x)
 	    % The precision is unspecified; the numeric array contains whole numbers.
 		s = int2str(x);

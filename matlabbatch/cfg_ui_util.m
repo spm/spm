@@ -11,9 +11,9 @@ function varargout = cfg_ui_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui_util.m 7336 2018-06-15 12:44:39Z volkmar $
+% $Id: cfg_ui_util.m 7473 2018-11-06 10:26:44Z guillaume $
 
-rev = '$Rev: 7336 $';  %#ok<NASGU>
+rev = '$Rev: 7473 $';  %#ok<NASGU>
 
 switch lower(cmd)
     case {'preview'}
@@ -41,27 +41,32 @@ switch lower(cmd)
                     datastr = sprintf('DEP %s', contents{2}{1}.sname);
                 else
                     datastr = sprintf('DEP (%d outputs)', numel(contents{2}{1}));
-                end;
+                end
             else
                 switch contents{5}
-                    case 'cfg_menu',
+                    case 'cfg_menu'
                         datastr = 'Unknown selection';
                         for l = 1:numel(contents{4})
-                            if isequalwithequalnans(contents{2}{1}, contents{4}{l})
+                            if exist('isequalwithequalnans','builtin')
+                                iseqn = isequalwithequalnans(contents{2}{1}, contents{4}{l});
+                            else
+                                iseqn = isequaln(contents{2}{1}, contents{4}{l});
+                            end
+                            if iseqn
                                 datastr = contents{3}{l};
                                 break;
-                            end;
-                        end;
-                    case 'cfg_files',
+                            end
+                        end
+                    case 'cfg_files'
                         if numel(contents{2}{1}) == 1
                             if isempty(contents{2}{1}{1})
                                 datastr = ' ';
                             else
                                 datastr = contents{2}{1}{1};
-                            end;
+                            end
                         else
                             datastr = sprintf('%d files', numel(contents{2}{1}));
-                        end;
+                        end
                     case 'cfg_entry'
                         csz = size(contents{2}{1});
                         % TODO use gencode like string formatting
@@ -76,26 +81,26 @@ switch lower(cmd)
                             datastr = mat2str(contents{2}{1}(:)');
                         elseif any(csz == 0)
                             switch class(contents{2}{1})
-                                case 'char',
+                                case 'char'
                                     datastr = '''''';
-                                case 'double',
+                                case 'double'
                                     datastr = '[]';
                                 otherwise
                                     datastr = sprintf('%s([])', ...
                                         class(contents{2}{1}));
-                            end;
+                            end
                         else
                             szstr = sprintf('%dx', csz);
                             datastr = sprintf('%s %s', ...
                                 szstr(1:end-1), class(contents{2}{1}));
-                        end;
+                        end
                     otherwise
                         datastr = ' ';
-                end;
-            end;
+                end
+            end
         else
             datastr = '<-X';
-        end;
+        end
         namestr = sprintf('%s%s  ', indent, contents{1});
         varargout{1} = namestr;
         varargout{2} = datastr;
@@ -131,7 +136,7 @@ switch lower(cmd)
                 cfg_tropts({{'hidden', true}},1,1,1,1,dflag), ...
                 {'name','val','labels','values','class','level', ...
                 'all_set','all_set_item','preview'});
-        end;
+        end
         namestr = cell(1,numel(id));
         datastr = cell(1,numel(id));
         namestr{1} = sprintf('Help on: %s',contents{1}{1});
@@ -153,7 +158,7 @@ switch lower(cmd)
                     str = {'Reference from'};
                     for k = 1:numel(contents{2}{1}) % we may have multiple dependencies
                         str{k+1} = contents{2}{1}(k).sname; % return something to be printed
-                    end;
+                    end
                 elseif ~isempty(contents{2})
                     if ndims(contents{2}{1}) <= 2
                         if ischar(contents{2}{1})
@@ -165,13 +170,13 @@ switch lower(cmd)
                             str = cellstr(num2str(contents{2}{1}));
                         else
                             str = gencode(contents{2}{1},'val');
-                        end;
+                        end
                     else
                         str = gencode(contents{2}{1},'val');
-                    end;
+                    end
                 else
                     str = '';
-                end;
+                end
             case {'cfg_menu','cfg_choice'}
                 if strcmp(contents{5},'cfg_menu') || ~dflag
                     if strcmp(contents{5},'cfg_choice')
@@ -179,7 +184,7 @@ switch lower(cmd)
                         cmpsubs = substruct('.','tag');
                     else
                         cmpsubs = struct('type',{},'subs',{});
-                    end;
+                    end
                     valsubs = substruct('{}',{1});
                     nitem = numel(contents{4});
                     mrk = cell(1,nitem);
@@ -189,18 +194,18 @@ switch lower(cmd)
                             mrk{l} = '*';
                         else
                             mrk{l} = ' ';
-                        end;
-                    end;
+                        end
+                    end
                     if strcmp(contents{5},'cfg_choice')
                         str = cell(1,nitem);
                         for k = 1:nitem
                             str{k} = contents{4}{k}.name;
-                        end;
+                        end
                     else
                         str = contents{3};
-                    end;
+                    end
                     str = strcat(mrk(:), str(:));
-                end;
+                end
             case {'cfg_repeat', 'cfg_mchoice'}
                 if ~dflag
                     % Already selected items
@@ -209,10 +214,10 @@ switch lower(cmd)
                     for k = 1:ncitems
                         str{k} = contents{2}{k}.name;
                     end
-                end;
+                end
             otherwise
                 str = {};
-        end;
+        end
         varargout{1} = str;
     case 'showvaldeps'
         % List matching dependencies
@@ -221,7 +226,7 @@ switch lower(cmd)
         % loop over sout to find whether there are dependencies that match the current item
         for k = 1:numel(sout)
             smatch(k) = cfg_util('match', job_id, mod_job_id, item_mod_id, sout(k).tgt_spec);
-        end;
+        end
         varargout{1} = sout(smatch);
     case 'showvaledit'
         % Fill value display boxes in a GUI, set up callbacks if necessary
@@ -279,8 +284,8 @@ switch lower(cmd)
                     if ~isempty(sout)
                         set(findobj(fig,'-regexp','Tag','.*AddDep$'), ...
                             'Visible','on', 'Enable','on');
-                    end;
-                end;
+                    end
+                end
                 set(findobj(fig,'-regexp','Tag','.*EditVal$'), ...
                     'Visible','on', 'Enable','on');
                 set(findobj(fig,'-regexp','Tag','.*ClearVal$'), ...
@@ -293,19 +298,19 @@ switch lower(cmd)
                         cmpsubs = substruct('.','tag');
                     else
                         cmpsubs = struct('type',{},'subs',{});
-                    end;
+                    end
                     valsubs = substruct('{}',{1});
                     nitem = numel(contents{4});
                     for l = 1:nitem
                         valuesubs = substruct('{}',{l});
                         if ~isempty(contents{2}) && isequal(subsref(contents{2},[valsubs cmpsubs]), subsref(contents{4},[valuesubs cmpsubs]))
                             cval = l;
-                        end;
-                    end;
+                        end
+                    end
                     udvalshow.cval = cval;
                     if cval == -1
                         cval = 1;
-                    end;
+                    end
                     udvalshow.cmd = num2cell(1:nitem);
                     ltop = cfg_ui_getListboxTop(handles.valshow, cval, numel(str));
                     set(findobj(fig,'-regexp', 'Tag','^valshow.*'), 'Visible','on');
@@ -317,7 +322,7 @@ switch lower(cmd)
                         'Visible','on', 'Enable','on');
                     set(findobj(fig,'-regexp','Tag','.*ClearVal$'), ...
                         'Visible','on', 'Enable','on');
-                end;
+                end
             case {'cfg_repeat', 'cfg_mchoice'}
                 if ~dflag
                     udvalshow.cval = -1;
@@ -364,7 +369,7 @@ switch lower(cmd)
                                     'Callback',@(ob,ev)local_setvaledit(ciid, cmd1{k}, false, updatecb, ob, ev), ...
                                     'Tag','ValAddItemDyn');
                             end
-                        end;
+                        end
                         if strcmp(contents{5}, 'cfg_repeat')
                             str2 = cell(ncitems,1);
                             cmd2 = cell(ncitems,1);
@@ -409,11 +414,11 @@ switch lower(cmd)
                     if ncitems > 0
                         set(findobj(fig,'-regexp','Tag','.*DelItem$'), ...
                             'Visible','on', 'Enable','on');
-                    end;
+                    end
                     set(findobj(fig,'-regexp','Tag','.*ClearVal$'), ...
                         'Visible','on', 'Enable','on');
-                end;
-        end;
+                end
+        end
         [id, stop, help] = cfg_util('listmod', ciid{:}, cfg_findspec, ...
             cfg_tropts(cfg_findspec,1,1,1,1,false), {'showdoc'});
         set(handles.helpbox, 'Value',1, 'ListboxTop',1, 'string',cfg_justify(handles.helpbox, help{1}{1}));
@@ -427,24 +432,28 @@ switch lower(cmd)
         [unused, unused, itemclass] = cfg_util('listmod', ciid{:}, cfg_findspec, ...
             cfg_tropts(cfg_findspec,1,1,1,1,false), {'class'});
         switch itemclass{1}{1}
-            case {'cfg_entry'},
+            case {'cfg_entry'}
                 [val, sts] = local_valedit_edit(ciid, itemname, val);
-            case { 'cfg_files'},
+            case { 'cfg_files'}
                 [val, sts] = local_valedit_files(ciid, itemname, val);
-            case {'cfg_choice', 'cfg_mchoice', 'cfg_menu', 'cfg_repeat'},
+            case {'cfg_choice', 'cfg_mchoice', 'cfg_menu', 'cfg_repeat'}
                 % does not return value - use udvalshow.updatecb inside
                 % local_valedit_repeat as callback to update ui.
                 sts = false;
                 local_valedit_repeat(gcbf);
             otherwise
                 sts = false;
-        end;
+        end
         if sts
-            handles = guidata(gcbf);
+            h = gcbf;
+            if isempty(h) && exist('OCTAVE_VERSION', 'builtin')
+                h = findall(0,'tag','cfg_ui');
+            end
+            handles = guidata(h);
             udvalshow = get(handles.valshow, 'Userdata');
             feval(udvalshow.setvalcb, val);
             feval(udvalshow.updatecb);
-        end;
+        end
     case 'setvaledit'
         local_setvaledit(varargin{:});
 end
@@ -478,8 +487,8 @@ if isempty(val) || isa(val{1}, 'cfg_dep')
         val = {{''}};
     else
         val = {[]};
-    end;
-end;
+    end
+end
 % If requested or we can't handle this, use expert mode
 expmode = strcmp(cfg_get_defaults([mfilename '.ExpertEdit']), 'on') ||...
     ndims(val{1}) > 2 || ~(ischar(val{1}) || iscellstr(val{1}) || isnumeric(val{1}) || islogical(val{1}));
@@ -521,9 +530,9 @@ else
             instr = {num2str(val{1})};
         catch
             instr = {''};
-        end;
+        end
         encl  = {'[' ']'};
-    end;
+    end
     hlptxt = char({'Enter a value.', ...
         ' ', ...
         'To clear a value, clear the input field and accept.', ...
@@ -545,7 +554,7 @@ while ~sts
     if iscell(str) && isempty(str)
         % User has hit cancel button
         return;
-    end;
+    end
     % save instr in case of evaluation error
     instr = str;
     % str{1} is a multiline char array
@@ -581,7 +590,7 @@ while ~sts
                 else
                     cestr = [encl(1); cstr(:); encl(2)]';
                     str = strcat(cestr, {char(10)});
-                end;
+                end
                 str = cat(2, str{:});
                 % Evaluation is encapsulated to avoid users compromising this function
                 % context - graphics handles are made invisible to avoid accidental
@@ -589,12 +598,12 @@ while ~sts
                 hv = cfg_ui_disable(0, 'HandleVisibility');
                 [val, sts] = cfg_eval_valedit(str);
                 cfg_ui_restore(hv);
-            end;
-        end;
+            end
+        end
         if ~sts % (Still) no valid input
             uiwait(msgbox(failtxt,'Evaluation error','modal'));
-        end;
-    end;
+        end
+    end
 end
 % End of function will be reached with sts == true and new val
 
@@ -605,7 +614,7 @@ if isempty(val) || isa(val{1}, 'cfg_dep')
     inifile = '';
 else
     inifile = val{1};
-end;
+end
 [val, sts] = cfg_getfile(contents{1}{1}, contents{2}{1}, itemname, inifile, contents{3}{1}, contents{4}{1});
 
 % --------------------------------------------------------------------
@@ -621,7 +630,7 @@ if ((isempty(udvalshow.key) || ...
     if ccmd ~= udvalshow.cval
         feval(udvalshow.setvalcb, udvalshow.cmd{ccmd});
         feval(udvalshow.updatecb);
-    end;
+    end
 elseif (~isempty(udvalshow.key) && strcmpi(udvalshow.key.Key,'escape') && ...
         isequal(hObject, handles.valshow))
     % callback called from handles.valshow, finish editing
@@ -641,7 +650,7 @@ elseif ~isequal(hObject, handles.valshow)
 else
     udvalshow.key = [];
     set(handles.valshow, 'Userdata',udvalshow);
-end;
+end
 
 % --------------------------------------------------------------------
 function local_setvaledit(ciid, val, dflag, varargin)
@@ -650,7 +659,7 @@ if dflag
 else
     cfg_util('setval', ciid{:}, val);
     cfg_util('harvest', ciid{1:end-1});
-end;
+end
 if nargin > 3 && subsasgn_check_funhandle(varargin{1})
     % update GUI
     feval(varargin{1});
