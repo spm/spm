@@ -12,7 +12,9 @@
     x = w.innerWidth || e.clientWidth || g.clientWidth,
     y = w.innerHeight || e.clientHeight || g.clientHeight;
     target = document.getElementById('logo');
-    target.style.width=(0.75*x)+'px';
+    sz = 0.75*x;
+    if (sz < 1) {sz = 400;};
+    target.style.width=(sz)+'px';
   }
 </script>
 </head>

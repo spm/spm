@@ -19,7 +19,7 @@ function varargout=spm(varargin)
 % command line using the command `spm_help`.
 %
 % Details of this release are available via the "About SPM" help topic
-% accessible from the SPM splash screen. See also README.txt.
+% accessible from the SPM splash screen. See also README.md.
 % 
 % This spm function initialises the default parameters, and displays a
 % splash screen with buttons leading to the PET, fMRI and M/EEG
@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 7432 2018-09-28 14:35:27Z guillaume $
+% $Id: spm.m 7475 2018-11-07 13:03:49Z guillaume $
 
 
 %=======================================================================
@@ -348,7 +348,7 @@ Fgraph = spm_figure('Create','Graphics','Graphics','off'); fprintf('.');
 spm_figure('WaterMark',Finter,spm('Ver'),'',45);
 
 url = fullfile(spm('Dir'),'help','index.html');
-%url = fullfile(spm('Dir'),'README.txt');
+%url = fullfile(spm('Dir'),'README.md');
 spm_help('!Disp',url,'',Fgraph);                           fprintf('.');
 
 %-Setup for current modality
