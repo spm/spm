@@ -61,7 +61,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 7081 2017-05-27 19:36:09Z karl $
+% $Id: spm_dcm_bmr_all.m 7476 2018-11-07 15:17:39Z peter $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -82,7 +82,7 @@ if ischar(field)
     field = {field};
 end
 
-%-dela with filenames stucture
+%-deal with filenames structure
 %--------------------------------------------------------------------------
 if ischar(DCM)
     DCM = load(DCM,'DCM');
@@ -366,10 +366,5 @@ end
 DCM.Pp    = Pp;        % Model posterior over parameters (with and without)
 DCM.Ep    = Ep;        % Bayesian model averages
 DCM.Cp    = Cp;        % Bayesian model variance
-try
-    DCM.F = DCM.F + F; % reduced free energy
-catch
-    DCM.F = F;
-end
 
 

@@ -36,7 +36,10 @@ function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models)
 %     BMA.P    - posterior probability over models
 %     BMA.Px   - posterior probability over parameters (differences)
 %     BMA.Pw   - posterior probability over parameters (common)
-%     BMA.K    - model space
+%
+%     BMA.K     - [models x parameters] model space (0 = off, 1 = on)
+%     BMA.Kind  - indices of DCM parameters which varied across models
+%     BMA.Kname - names of DCM parameters which varied across models
 %
 % or for automatic model search, see spm_dcm_bmr_all.m (output: DCM)
 %
@@ -91,7 +94,7 @@ function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 7081 2017-05-27 19:36:09Z karl $
+% $Id: spm_dcm_peb_bmc.m 7476 2018-11-07 15:17:39Z peter $
 
 % checks
 %--------------------------------------------------------------------------
@@ -321,6 +324,7 @@ BMA.Snames = PEB.Snames;
 BMA.Pnames = PEB.Pnames;
 BMA.Pind   = PEB.Pind;
 BMA.Kname  = Kname;
+BMA.Kind   = PEB.Pind(k);
 try BMA.Xnames = PEB.Xnames; catch, BMA.Xnames = {}; end
 
 BMA.F     = G;

@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 7474 2018-11-07 12:45:06Z peter $
+% $Id: spm_dcm_peb_review.m 7476 2018-11-07 15:17:39Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -451,8 +451,9 @@ elseif view <= (nc+1)
     % Plot parameters
     axes('Parent',xPEB.panels(2));
     spm_plot_ci(Ep,Cp);
+    set(gca,'XTickLabel',peb_param_idx,'XTick',1:length(peb_param_idx));
     set(gca,'Tag','parameters');
-    xlabel('Parameter','FontSize',12); ylabel('Posterior','FontSize',12);
+    xlabel('PEB Parameter','FontSize',12); ylabel('Posterior','FontSize',12);
     title('Estimated Parameters','FontSize',16);
 
     % Show warnings related to thresholding

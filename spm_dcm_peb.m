@@ -17,6 +17,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % M.pC     - 2nd-level prior covariance  [default: DCM{1}.M.pC/M.beta]
 % M.hE     - 2nd-level prior expectation of log precisions [default: 0]
 % M.hC     - 2nd-level prior covariances of log precisions [default: 1/16]
+% M.maxit  - maximum iterations [default: 64]
 %
 % M.Q      - covariance components: {'single','fields','all','none'}
 % M.alpha  - optional scaling to specify M.bC [default = 1]
@@ -89,7 +90,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7271 2018-03-04 13:11:54Z karl $
+% $Id: spm_dcm_peb.m 7476 2018-11-07 15:17:39Z peter $
  
 
 % get filenames and set up
@@ -121,6 +122,8 @@ if isempty(M.X),    M.X = ones(length(P),1); end
 if nargin < 3; field = {'A','B'};  end
 if strcmpi(field,'all');  field = fieldnames(DCM.M.pE);end
 if ischar(field), field = {field}; end
+
+try, maxit = M.maxit; catch, maxit = 64; end
 
 % repeat for each model (column) if P is an array
 %==========================================================================
@@ -413,7 +416,7 @@ ipC   = spm_cat({bP [];
 % variational Laplace
 %--------------------------------------------------------------------------
 t     = -4;                         % Fisher scoring parameter
-for n = 1:64
+for n = 1:maxit
 
     % compute prior precision (with a lower bound of pQ/exp(8))
     %----------------------------------------------------------------------
