@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 7292 2018-04-12 10:24:55Z peter $
+% $Id: spm_dcm_peb_review.m 7474 2018-11-07 12:45:06Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -41,10 +41,11 @@ if ~isfield(PEB,'Ep')
     error('Please estimate this PEB model before reviewing');
 end
 
-% Load / validate DCM
+% Ensure DCM is a cell array
 if isempty(DCM) || (iscell(DCM) && isempty(DCM{1})), DCM = {}; end
 if ~iscell(DCM), DCM = {DCM}; end
 
+% If DCM is a cell containing a filename, load the DCM/GCM
 if ~isempty(DCM) && ischar(DCM{1})
     DCM{1} = load(DCM{1});
     if isfield(DCM{1},'DCM')
@@ -52,7 +53,7 @@ if ~isempty(DCM) && ischar(DCM{1})
     elseif isfield(DCM{1},'GCM')
         DCM = DCM{1}.GCM;
     else
-        DCM = [];
+        error('The provided DCM/GCM file does not contain DCMs');
     end
 end
 
@@ -72,14 +73,14 @@ end
 xPEB = struct();
 xPEB.PEB           = PEB;
 xPEB.DCM           = DCM;
-xPEB.view          = 1;     % Selected view
-xPEB.sel_field_idx = 1;     % Selected first-level DCM field
-xPEB.sel_input     = 1;     % Selected first-level DCM input (U)
-xPEB.region_names  = {};    % First level region names
-xPEB.input_names   = {};    % First level input names
-xPEB.mtx_fig       = [];    % Figure handle for connectivity matrix
-xPEB.threshold_idx = 1;     % P-threshold following model comparison
-xPEB.threshold_method_idx=1;% Method for thresholding parameters
+xPEB.view          = 1;       % Selected view (1=blank,2=commonalities,etc)
+xPEB.sel_field_idx = 1;       % Selected first-level DCM field
+xPEB.sel_input     = 1;       % Selected first-level DCM input (U)
+xPEB.region_names  = {};      % First level region names
+xPEB.input_names   = {};      % First level input names
+xPEB.mtx_fig       = [];      % Figure handle for connectivity matrix
+xPEB.threshold_idx = 1;       % P-threshold following model comparison
+xPEB.threshold_method_idx=[]; % Method for thresholding parameters
 
 % Get first-level DCM metadata
 if ~isempty(DCM) 
@@ -162,8 +163,14 @@ end
 threshold_methods_str = {'Probability that parameter > 0';
                          'Free energy (with vs without)'};
 
-% If there's no BMA posterior probability, disable free energy thresholding
-if ~has_Pp
+
+if has_Pp    
+    % If there are posterior probabilities, set free energy by default
+    if isempty(threshold_method_idx)
+        xPEB.threshold_method_idx = 2;
+    end
+else    
+    % If there's no posterior probability, disable free energy thresholding
     xPEB.threshold_method_idx = 1;
     threshold_methods_str = threshold_methods_str(1);
 end
@@ -187,6 +194,9 @@ end
 
 % Apply threshold
 % -------------------------------------------------------------------------
+warn_no_pp         = false;
+warn_incomplete_pp = false;
+
 if display_threshold
     
     % BMA from spm_dcm_peb_bmc only has probabilities for parameters which
@@ -196,32 +206,50 @@ if display_threshold
     end
     
     if threshold_method_idx == 1
-        % Threshold on posterior probability
+        % Threshold using marginal variance
         T  = 0;
         Pp = 1 - spm_Ncdf(T,abs(Ep),Cp);
     elseif isfield(PEB,'Pw') && effect == 1
-        Pp    = zeros(size(Ep,1),1);
+        % Threshold selected commonalities parameters
+        Pp    = nan(size(Ep,1),1);
         Pp(k) = PEB.Pw(:);
     elseif isfield(PEB,'Px') && effect == 2
-        Pp    = zeros(size(Ep,1),1);
+        % Threshold selected group difference parameters
+        Pp    = nan(size(Ep,1),1);
         Pp(k) = PEB.Px;
     elseif isfield(PEB,'Pp')
+        % Threshold on posterior probability (all parameters)
         Pp = PEB.Pp(peb_param_idx);
+    elseif (isfield(PEB,'Pw') || isfield(PEB,'Px')) && effect > 2
+        % Requested effect had no probability computed - return NaN
+        Pp = nan(size(Ep,1),1);        
     else
+        % No threshold
         Pp = [];
     end
     
     xPEB.Pp = Pp;
     
+    % Apply threshold
     if ~isempty(Pp) && threshold > 0
         Ep = Ep .* (Pp(:) > threshold);
         Cp = Cp .* (Pp(:) > threshold);
     end
+        
+    % Determine if this is a BMA resulting from a custom model comparison
+    % (in terms of commonalities and first group difference)
+    is_custom_model_bma = (isfield(PEB,'Pw') || isfield(PEB,'Pw')) ...
+                          && ~isfield(PEB,'Pp');
     
-    % Warn if Pp couldn't be calculated 
-    if xPEB.threshold_method_idx == 2 && isempty(Pp)
+    % Display caveats
+    if xPEB.threshold_method_idx == 2 ...
+            && is_custom_model_bma && effect > 2 && threshold > 0
+        % Warn that Pp was only calculated for the 1st and 2nd covariates
         warn_no_pp = true;
-    end    
+    elseif xPEB.threshold_method_idx == 2 && any(isnan(Pp)) && threshold > 0
+        % Warn that some parameters didn't get a Pp
+        warn_incomplete_pp = true;
+    end          
 else
     xPEB.Pp = [];
 end
@@ -337,9 +365,13 @@ end
 h = create_panel('Position',[0 0.26 1 0.30]);
 xPEB.panels(2) = h;
 
-% Panel for reshaped parameters plot
+% Panel for launching reshaped parameters plot
 h = create_panel('Position',[0.05 0 0.55 0.22]);
 xPEB.panels(3) = h;
+
+% Panel for warnings & messages
+h = create_panel('Position',[0 0.22 1 0.04]);
+xPEB.panels(4) = h;
 
 if display_connectivity_selector
     
@@ -422,13 +454,22 @@ elseif view <= (nc+1)
     set(gca,'Tag','parameters');
     xlabel('Parameter','FontSize',12); ylabel('Posterior','FontSize',12);
     title('Estimated Parameters','FontSize',16);
+
+    % Show warnings related to thresholding
+    has_warning = warn_no_pp | warn_incomplete_pp;
     
-    if exist('warn_no_pp','var')
-        minmax = ylim();
-        text(0.5,minmax(2)-0.01,...
-            'Threshold only available for commonalities and first group difference. Showing all effects.',...
-            'Color','r');
-    end
+    if has_warning
+        if warn_no_pp
+            str = 'Threshold only available for commonalities and first group difference.';
+        elseif warn_incomplete_pp
+            str = 'Threshold only computed for parameters which varied across models. Others not shown.';
+        end
+        
+        axes('Parent',xPEB.panels(4));
+        text(0,0,str,...
+            'HorizontalAlignment','Left','FontSize',14,'Color','r');
+        axis off;
+    end             
     
     % Plot connectivity matrix
     if display_connectivity
