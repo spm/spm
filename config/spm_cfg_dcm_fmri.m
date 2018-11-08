@@ -4,7 +4,7 @@ function fmri = spm_cfg_dcm_fmri
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_fmri.m 7228 2017-11-21 12:17:03Z peter $
+% $Id: spm_cfg_dcm_fmri.m 7477 2018-11-08 12:49:27Z peter $
 
 
 % -------------------------------------------------------------------------
@@ -263,7 +263,7 @@ fmri.values  = { group regions inputs };
 
 %==========================================================================
 function out = spm_run_create_gcm(job)
-%==========================================================================
+% Replicates template DCM(s) across subjects and creates a GCM file
 
 % Unpack
 out_dir  = job.output.dir;
@@ -357,7 +357,12 @@ out = out_file;
 
 %==========================================================================
 function idx = get_conditions_from_ui(spmmat,sess)
-%==========================================================================
+% Prompts for condition names. Provides backward compatibility for DCMs
+% specified prior to the introduction of DCM.U.idx 
+% 
+% idx - [n x 2] matrix for n conditions. The first column is the index in
+%       SPM.U and the second is the regressor within the condition.
+
 SPM = load(spmmat);
 SPM = SPM.SPM;
 

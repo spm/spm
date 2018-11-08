@@ -4,7 +4,7 @@ function estimate = spm_cfg_dcm_est
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_est.m 7261 2018-02-19 11:02:42Z peter $
+% $Id: spm_cfg_dcm_est.m 7477 2018-11-08 12:49:27Z peter $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -103,7 +103,7 @@ output_single.help    = {['Creates a single group-level DCM file ' ...
 %--------------------------------------------------------------------------
 output_overwrite_gcm         = cfg_branch;
 output_overwrite_gcm.tag     = 'overwrite_gcm';
-output_overwrite_gcm.name    = 'Overwrite existing GCM_*.mat file';
+output_overwrite_gcm.name    = 'Overwrite existing GCM/DCM files';
 output_overwrite_gcm.val     = {};
 output_overwrite_gcm.help    = {['Overwrites existing group-level DCM file ' ...
                                  'with estimated models.']};
@@ -125,10 +125,20 @@ output.tag     = 'output';
 output.name    = 'Output';
 output.values  = { output_single output_overwrite_gcm output_separate };
 output.val     = { output_single };
-output.help    = {['Whether to create a single DCM file across all ' ...
-                       'subjects / models (default, required for second ' ...
-                       'level analysis) or just update the separate' ...
-                       'first-level DCM files.']};
+output.help    = {'How to store the estimated DCMs. The options are: ' ...
+                  ['1. Create group GCM_*.mat file - this will create a single '...
+                   'file containing a cell array, with one row per subject ' ...
+                   'and one column per DCM, containing the filenames of ' ...
+                   'the DCMs. The original DCM files will be overwritten ' ...
+                   'with the outcome of the estimation. ' ...
+                   '(Alternatively, if the input is a GCM file containing ' ...
+                   'DCM structures rather than filenames, then the output ' ...
+                   'will also be an array containing DCM structures.)'] ...
+                  ['2. Overwrite existing GCM/DCM files - as above but with ' ...
+                   'with an existing GCM filename.'] ...
+                  ['3. Only save individual DCM files - does not change the ' ...
+                   'GCM file and simply overwrites each subject''s DCM ' ...
+                   'with estimated values.']};
 
 % -------------------------------------------------------------------------
 % way Choice of ways to select DCMs (nested models)
@@ -258,11 +268,6 @@ else
     error('Unknown output type');
 end
 
-% Validate options
-if (input_type == INPUT_GCM && output_type == OUTPUT_DCM)
-    error('If the input is a single GCM file, the output must be too');
-end
-
 if (output_type == OUTPUT_GCM_OVERWRITE && input_type ~= INPUT_GCM)
     error('To overwrite an existing GCM file, the input must be a GCM');
 end
@@ -308,6 +313,12 @@ switch input_type
         else
             P = '';
         end
+end
+
+% Validate
+if output_type == OUTPUT_DCM && isempty(P)
+    error(['Cannot save individual DCM files when the input is a GCM ' ...
+           'array of DCM structures']);
 end
 
 % Load all models into memory
@@ -402,15 +413,15 @@ end
 %==========================================================================
 function dep = vout_dcm(job)
 %==========================================================================
+dep(1)            = cfg_dep;
+dep(1).sname      = 'DCM mat File(s)';
+dep(1).src_output = substruct('.','dcmmat');
+dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+
 if isfield(job.output,'single') || ...
         isfield(job.output,'overwrite_gcm')
-    dep(1)            = cfg_dep;
-    dep(1).sname      = 'GCM mat File(s)';
-    dep(1).src_output = substruct('.','gcmmat');
-    dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
-else
-    dep(1)            = cfg_dep;
-    dep(1).sname      = 'DCM mat File(s)';
-    dep(1).src_output = substruct('.','dcmmat');
-    dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+    dep(2)            = cfg_dep;
+    dep(2).sname      = 'GCM mat File(s)';
+    dep(2).src_output = substruct('.','gcmmat');
+    dep(2).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
 end

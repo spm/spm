@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 7371 2018-07-09 15:34:19Z peter $
+% $Id: spm_cfg_dcm_peb.m 7477 2018-11-08 12:49:27Z peter $
 
 
 %==========================================================================
@@ -391,6 +391,28 @@ priors_glm.help    = {['Priors on the expected values of the second ' ...
                        'level General Linear Model (GLM) parameters.']};
 
 %--------------------------------------------------------------------------
+% maxit Maximum VL iterations
+%--------------------------------------------------------------------------
+maxit      = cfg_entry;
+maxit.name = 'Max iterations';
+maxit.tag  = 'maxit';
+maxit.help = {'Maximum iterations of the VL estimation procedure.'
+              ['Only change this if you find the free energy is still ' ...
+               'increasing non-trivially up to the default limit of 64.']};
+maxit.strtype = 'r';
+maxit.num     = [1 1];
+maxit.val     = {64};
+
+%--------------------------------------------------------------------------
+% estimation Model estimation settings
+%--------------------------------------------------------------------------
+estimation         = cfg_branch;
+estimation.tag     = 'estimation';
+estimation.name    = 'Estimation';
+estimation.val     = { maxit };
+estimation.help    = {'Settings for estimating the PEB model'};
+
+%--------------------------------------------------------------------------
 % show_review Select whether to review results
 %--------------------------------------------------------------------------
 show_review        = cfg_menu;
@@ -412,7 +434,7 @@ specify      = cfg_exbranch;
 specify.tag  = 'specify';
 specify.name = 'Specify / Estimate PEB';
 specify.val  = { name model_space_mat dcm_idx covariates fields ...
-                 priors_between priors_glm sr };
+                 priors_between priors_glm estimation sr };
 specify.help = {['Specifies and estimates a second-level DCM (PEB) model. ' ...
                  'A PEB model will be created for each first level DCM.' ]};
             
@@ -427,9 +449,14 @@ model_space_mat_op.num = [0 Inf];
 model_space_mat_op.val = {''};
 
 null_prior_covariance  = cfg_entry;
-null_prior_covariance.name = 'Null prior covariance';
+null_prior_covariance.name = 'Null prior variance';
 null_prior_covariance.tag  = 'nullpcov';
-null_prior_covariance.help = {'gamma'};
+null_prior_covariance.help = {['This is the prior variance for any ''switched ' ...
+    'off'' parameter. Setting this to 0 (zero) tests the point null ' ...
+    'hypothesis that parameters are present vs absent. Setting this to a ' ...
+    'small positive number tests the null hypothesis that the parameter is ' ...
+    'trivially small. The smaller this setting, the fewer parameters will ' ...
+    'survive the model search. (See setting gamma in spm_dcm_bmr_all.m)']};
 null_prior_covariance.strtype = 'r';
 null_prior_covariance.num     = [1 1];
 null_prior_covariance.val     = {1/16};
@@ -437,7 +464,7 @@ null_prior_covariance.val     = {1/16};
 peb_compare      = cfg_exbranch;
 peb_compare.tag  = 'compare';
 peb_compare.name = 'Compare / Average PEB models';
-peb_compare.val  = { peb_mat model_space_mat_op null_prior_covariance show_review};
+peb_compare.val  = { peb_mat model_space_mat_op show_review};
 peb_compare.help = {['Addresses the question: which combination of ' ...
     'connections best explains the commonalities across subjects and ' ...
     'the group differences between subjects?'] '' ...
@@ -495,7 +522,7 @@ predict      = cfg_exbranch;
 predict.tag  = 'predict';
 predict.name = 'Predict (cross-validation)';
 predict.val  = { name model_space_mat dcm_idx covariates_min1 fields ...
-                 priors_between priors_glm };
+                 priors_between priors_glm estimation};
 predict.help = {['Builds a PEB model on all but one subjects, and uses ' ...
                  'it to predict a between-subjects effect, such as ' ...
                  'group membership, in the remaining subject. This process ' ...
@@ -692,6 +719,7 @@ M.hC     = job.priors_between.var;
 M.Q      = Q;
 M.X      = X;
 M.Xnames = Xnames;
+M.maxit  = job.estimation.maxit;
 
 %==========================================================================
 function out = spm_run_bmr_all(job)
@@ -731,7 +759,9 @@ function out = run_peb_bmc_internal(job, GCM)
 PEB = load(job.peb_mat{1});
 PEB = PEB.PEB;
 
-PEB.gamma = job.nullpcov;
+if isfield(job,'nullpcov')
+    PEB.gamma = job.nullpcov;
+end
 
 nm  = size(GCM,2);
 
