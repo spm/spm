@@ -56,7 +56,7 @@ function varargout = spm_help(varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston
-% $Id: spm_help.m 7475 2018-11-07 13:03:49Z guillaume $
+% $Id: spm_help.m 7478 2018-11-08 14:51:54Z guillaume $
 
 
 %__________________________________________________________________________
@@ -170,8 +170,7 @@ switch lower(spm_file(topic,'ext'))
         H = strrep(H,char([10 37]),char(10));
         if numel(H) && H(1)=='%', H(1)=''; end
     case 'md'
-        try, H = fileread(topic); catch, H = ''; end
-        H = strrep(H,char([10 37]),char(10));
+        url = topic;
     otherwise
         if exist([topic '.m'],'file')
             url = get_content([topic '.m']);

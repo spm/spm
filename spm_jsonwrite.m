@@ -22,7 +22,7 @@ function varargout = spm_jsonwrite(varargin)
 % Copyright (C) 2015-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 7373 2018-07-09 16:57:21Z guillaume $
+% $Id: spm_jsonwrite.m 7478 2018-11-08 14:51:54Z guillaume $
 
 
 %-Input parameters
@@ -207,6 +207,7 @@ elseif numel(json) > 1
             S = jsonwrite_cell(num2cell(json),'');
         else
             S = ['[' sprintf('%23.16g,',json) ']']; % eq to num2str(json,16)
+            S(end-1) = ''; % remove last ","
             S(S==' ') = [];
         end
     else % array

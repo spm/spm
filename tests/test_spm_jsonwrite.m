@@ -3,7 +3,7 @@ function tests = test_spm_jsonwrite
 %__________________________________________________________________________
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_jsonwrite.m 7108 2017-06-15 10:36:29Z guillaume $
+% $Id: test_spm_jsonwrite.m 7478 2018-11-08 14:51:54Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -11,6 +11,10 @@ tests = functiontests(localfunctions);
 function test_jsonwrite_array(testCase)
 exp = {'one';'two';'three'};
 act = spm_jsonread(spm_jsonwrite(exp));
+testCase.verifyTrue(isequal(exp, act));
+
+exp = 2;
+act = nnz(spm_jsonwrite(1:3) == ',');
 testCase.verifyTrue(isequal(exp, act));
 
 function test_jsonwrite_object(testCase)

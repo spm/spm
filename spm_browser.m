@@ -6,22 +6,23 @@ function [H, HC] = spm_browser(url,F,pos,format)
 % F      - figure handle or Tag [Default: Graphics]
 % pos    - position within figure in pixel units with the format [left,
 %          bottom, width, height]. [Default: full window with 10px margin]
-% format - data format {['html'],'wiki'}
-%          'wiki' option uses Wikipedia wiki markup:
-%          http://en.wikipedia.org/wiki/Wikipedia:Cheatsheet
+% format - data format {['html'],'md'}
+%          'md' option uses Markdown:
+%            https://www.wikipedia.org/wiki/Markdown
+%            http://showdownjs.com/
 % 
 % H      - handle to the Java component
 % HC     - handle to the HG container
 %__________________________________________________________________________
-% Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_browser.m 6409 2015-04-16 16:19:38Z guillaume $
+% $Id: spm_browser.m 7478 2018-11-08 14:51:54Z guillaume $
 
 %-Input arguments
 %--------------------------------------------------------------------------
 if nargin < 1
-    url  = 'http://www.fil.ion.ucl.ac.uk/spm/';
+    url  = ['file://' fullfile(spm('Dir'),'help','index.html')];
 end
 
 if nargin < 2 || isempty(F)
@@ -39,7 +40,11 @@ if (nargin < 3 || isempty(pos)) && ~isUpdate
 end
 
 if nargin < 4 || isempty(format)
-    format = 'html';
+    if numel(url) > 1 && strcmp(url(end-2:end),'.md')
+        format = 'md';
+    else
+        format = 'html';
+    end
 end
 
 %-Display
@@ -58,73 +63,55 @@ try
     
     %-Set content
     %----------------------------------------------------------------------
-    if strcmpi(format,'html') && any(strncmp(url,{'file','http','ftp:'},4))
+    if strcmpi(format,'html') && any(strncmp(url,{'file','http'},4))
         H.setCurrentLocation(strrep(url,'\','/'))
-    elseif strcmpi(format,'wiki')
-        H.setHtmlText(wiki2html(url));
-    elseif all(~strncmp(url,{'file','http','ftp:'},4))
+    elseif strcmpi(format,'md')
+        H.setHtmlText(md2html(url));
+    else
         H.setHtmlText(url);
     end
-    drawnow
+    drawnow;
 catch
     H  = [];
     HC = [];
 end
 
+
 %==========================================================================
-function html = wiki2html(wiki)
-% Convert Wiki markup document into HTML
+function html = md2html(md)
+% Convert Markdown document into HTML (using Showdown.js)
 
-fid = fopen(wiki);
-if fid~=-1
-    wiki = fscanf(fid,'%c');
-    fclose(fid);
-else
-    html = [sprintf('<html>\n<head>\n<title>wiki2html</title>\n</head>\n'), ...
-            sprintf('<body>\n'), ...
-            sprintf('<p>Cannot read %s</p>',wiki), ...
-            sprintf('\n</body>\n</html>')];
-    return;
+if exist(md,'file')
+	md = fileread(md);
+elseif any(strncmp(md,{'file','http'},4))
+    md = urlread(md);
 end
+md = strrep(md,'\','\\');
+md = strrep(md,'"','\"');
+md = strrep(md,char(13),'');
+md = strrep(md,char(10),'\n');
 
-% Section headings
-wiki = regexprep(wiki,'======[\s]*?([0-9A-Za-z].[^=\[]*)[\s]*?======','<h6>$1</h6>');
-wiki = regexprep(wiki,'=====[\s]*?([0-9A-Za-z].[^=\[]*)[\s]*?=====','<h5>$1</h5>');
-wiki = regexprep(wiki,'====[\s]*?([0-9A-Za-z].[^=\[]*)[\s]*?====','<h4>$1</h4>');
-wiki = regexprep(wiki,'===[\s]*?([0-9A-Za-z].[^=\[]*)[\s]*?===','<h3>$1</h3>');
-wiki = regexprep(wiki,'==[\s]*?([0-9A-Za-z].[^=\[]*)[\s]*?==','<h2>$1</h2>');
-wiki = regexprep(wiki,'=[\s]*?([0-9A-Za-z].[^=\[]*)[\s]*?=','<h1>$1</h1>');
+showdownjs = ['file://' fullfile(spm('Dir'),'help','js','showdown.min.js')];
 
-% Horizontal line
-wiki = regexprep(wiki,'----','<hr>');
-
-% Inline elements
-wiki = regexprep(wiki,'''''''''''([0-9A-Za-z].*)''''''''''',...
-    '<strong><em>$1</em></strong>');
-wiki = regexprep(wiki,'''''''([0-9A-Za-z].*)''''''','<strong>$1</strong>');
-wiki = regexprep(wiki,'''''([0-9A-Za-z].*)''''','<em>$1</em>');
-
-% Paragraphs
-wiki = regexprep(wiki,'\n([^#\*=].*)','<p>$1</p>');
-
-% unordered list
-wiki = regexprep(wiki,'\*([^*]*)','<li>$1</li>');
-wiki = regexprep(wiki,'([^</li>])<li>','$1<ul><li>');
-wiki = regexprep(wiki,'<\/li>(?!<li>)','</li></ul>');
-
-% ordered list
-wiki = regexprep(wiki,'^#[:]?[#]* (.*)','<li>$1</li>');
-wiki = regexprep(wiki,'([^</li>][>]?[\n])<li>','$1<ol><li>');
-wiki = regexprep(wiki,'<\/li>\n(?!<li>)','</li></ol>');
-
-% tables
-wiki = regexprep(wiki,'^{\|\n\|-','<table><tr>');
-wiki = regexprep(wiki,'^\|-','</tr><tr>');
-wiki = regexprep(wiki,'^!\s(.*)','<th>$1</th>');
-wiki = regexprep(wiki,'^\|\s(.*)','<td>$1</td>');
-wiki = regexprep(wiki,'^\|}','</tr></table>');
-
-html = [sprintf('<html>\n<head>\n<title>wiki2html</title>\n</head>\n'), ...
-        sprintf('<body>\n'), ...
-        wiki, ...
-        sprintf('\n</body>\n</html>')];
+html = {...
+    '<!DOCTYPE html>', ....
+    '<html>', ....
+      '<head>', ....
+        '<meta charset="utf-8"/>', ....
+        '<title>SPM</title>', ....
+        ['<script src="', showdownjs,'"></script>'], ....
+      '</head>', ....
+      '<body>', ....
+        '<div id="display">Loading...</div>', ....
+        '<script>', ....
+          'var converter = new showdown.Converter();', ....
+          'converter.setFlavor("github");', ...
+          'converter.setOption("simpleLineBreaks", false);', ...
+          ['var text   = "', md,'";'], ....
+          'var html    = converter.makeHtml(text);', ....
+          'var display = document.getElementById("display");', ....
+          'display.innerHTML = html;', ....
+        '</script>', ....
+      '</body>', ....
+    '</html>'};
+html = sprintf('%s\n', html{:});
