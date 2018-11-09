@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 7476 2018-11-07 15:17:39Z peter $
+% $Id: spm_dcm_peb_review.m 7479 2018-11-09 14:17:33Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -375,7 +375,7 @@ xPEB.panels(4) = h;
 
 if display_connectivity_selector
     
-    create_text('Display as matrix','Position',[0.13 0.8 0.6 0.10],...
+    create_text('Display as matrix','Position',[0.13 0.75 0.6 0.14],...
                 'FontSize',16,'Parent',xPEB.panels(3) );
     
     % Drop-down menu for controlling reshaped parameter plot
@@ -419,16 +419,20 @@ imagesc(PEB.M.X);
 set(gca,'XTick',1:nc);
 xlabel('Covariate','FontSize',12); ylabel('Subject','FontSize',12);
 axis square;
+v = get(gca,'Position');
+set(gca,'Position',[v(1) v(2)*1.25 v(3:4)])
 
 % Random effects variance
 subplot(3,7,[4:7 11:14 18:21],'Parent',xPEB.panels(1));
 imagesc(Ce);
 set(gca,'Tag','rfx');
 xlabel('First-Level Parameter','FontSize',12);
-text(np,1,'Random effects variance','FontSize',16,...
+text(np,1,'Random effects variance','FontSize',14,...
         'Color','white','HorizontalAlignment','right',...
         'VerticalAlignment','top');
 axis square;
+v = get(gca,'Position');
+set(gca,'Position',[v(1) v(2)*1.25 v(3:4)])
 
 % Add plots (lower panel) and render pop-up plots
 % -------------------------------------------------------------------------
@@ -461,15 +465,17 @@ elseif view <= (nc+1)
     
     if has_warning
         if warn_no_pp
-            str = 'Threshold only available for commonalities and first group difference.';
+            str = 'Threshold only computed for commonalities and first group difference. None shown.';
         elseif warn_incomplete_pp
             str = 'Threshold only computed for parameters which varied across models. Others not shown.';
         end
         
-        axes('Parent',xPEB.panels(4));
-        text(0,0,str,...
-            'HorizontalAlignment','Left','FontSize',14,'Color','r');
+        axes('Parent',xPEB.panels(4),'Position',[0 0 1 1]);
+        text(0.5,0.5,str,...
+            'HorizontalAlignment','Center','FontSize',12,'Color','r');
+        xlim([0 1]);
         axis off;
+
     end             
     
     % Plot connectivity matrix

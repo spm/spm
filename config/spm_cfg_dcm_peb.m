@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 7477 2018-11-08 12:49:27Z peter $
+% $Id: spm_cfg_dcm_peb.m 7479 2018-11-09 14:17:33Z peter $
 
 
 %==========================================================================
@@ -583,10 +583,9 @@ function out = spm_run_create_peb(job)
 %==========================================================================
 % Run the PEB specification / estimation batch
 
-[GCM,M,field,gcm_file] = prepare_peb_inputs(job);
+[GCM,M,field,dir_out] = prepare_peb_inputs(job);
     
 % Specify / estimate PEB on full model only
-dir_out = fileparts(gcm_file);
 name    = job.name;    
 PEB     = spm_dcm_peb(GCM,M,field);
 
@@ -594,24 +593,23 @@ PEB     = spm_dcm_peb(GCM,M,field);
 peb_filename = fullfile(dir_out,['PEB_' name '.mat']);
 save(peb_filename,'PEB', spm_get_defaults('mat.format'));
 
+out.peb_mat = {peb_filename};
+
 % Review PEB
 if job.show_review == 1
     spm_dcm_peb_review(peb_filename,GCM);
 end
-
-out.peb_mat = {peb_filename};
 
 %==========================================================================
 function out = spm_run_dcm_loo(job)
 %==========================================================================
 % Run leave-one-out cross validation
 
-[GCM,M,field,gcm_file] = prepare_peb_inputs(job);
+[GCM,M,field,dir_out] = prepare_peb_inputs(job);
 
 [qE,qC,Q] = spm_dcm_loo(GCM,M,field);
 
 % Write output
-dir_out      = fileparts(gcm_file);
 name         = job.name;    
 loo_filename = fullfile(dir_out,['LOO_' name '.mat']);
 
@@ -620,11 +618,11 @@ save(loo_filename,'qE','qC','Q', spm_get_defaults('mat.format'));
 out.loo_mat = {loo_filename};
 
 %==========================================================================
-function [GCM,M,field,gcm_file] = prepare_peb_inputs(job)
+function [GCM,M,field,dir_out] = prepare_peb_inputs(job)
 %==========================================================================
 % Prepare the inputs needed to specify a PEB or run LOO
 
-[GCM,gcm_file] = load_dcm(job);
+[GCM,dir_out] = load_dcm(job);
 
 ns = size(GCM,1);
 
@@ -774,10 +772,13 @@ end
 
 % Write BMA
 [dir_out, name] = fileparts(job.peb_mat{1});
+if nm == 1
+    name = ['search_' name];
+end
 filename = fullfile(dir_out, ['BMA_' name '.mat']);
 save(filename,'BMA', spm_get_defaults('mat.format'));
 
-out.bmamat = filename;
+out.bmamat = {filename};
 
 % Review BMA
 if job.show_review == 1
@@ -796,18 +797,27 @@ if job.show_review == 1
 end
 
 %==========================================================================
-function [GCM,gcm_file] = load_dcm(job)
+function [GCM,dir_out] = load_dcm(job)
 %==========================================================================
 % Load and validate selected model space
 
-gcm_file = char(job.model_space_mat);
-GCM      = load(gcm_file);
-if ~isfield(GCM,'GCM')
-    error('Provided file is not a valid model space.');
+if iscell(job.model_space_mat) && ischar(job.model_space_mat{1}) ...
+        && numel(job.model_space_mat) > 1
+    % An array of DCM filenames was provided (via the dependency system)    
+    GCM     = job.model_space_mat;    
+    dir_out = fileparts(GCM{1});
+else
+    % The filename of a single GCM mat file was provided
+    gcm_file = char(job.model_space_mat);
+    dir_out  = fileparts(gcm_file);
+    GCM      = load(gcm_file);
+    if ~isfield(GCM,'GCM')
+        error('Provided file is not a valid model space.');
+    end
+    GCM = GCM.GCM;
 end
-GCM = GCM.GCM;
 
-% If a GCM of character arrays was provided, load the DCMs
+% If a GCM of filenames was provided, load the DCMs
 if ischar(GCM{1})
     GCM = spm_dcm_load(GCM);
 end

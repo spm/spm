@@ -3,7 +3,7 @@ function tests = test_spm_cfg_dcm_est
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_cfg_dcm_est.m 6735 2016-03-02 15:40:47Z peter $
+% $Id: test_spm_cfg_dcm_est.m 7479 2018-11-09 14:17:33Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -157,12 +157,13 @@ out = spm_jobman('run',matlabbatch);
 
 % Check output created
 actual   = out{1}.dcmmat;
-expected = P;
+expected = P(:,1);
 testCase.assertEqual(actual,expected);
 
 % Check output contents is correct
 gcm_file = fullfile(input_path,'GCM_simulated.mat'); 
-assert_gcms_match(actual,gcm_file,testCase);
+GCM = spm_dcm_load(gcm_file);
+assert_gcms_match(actual,GCM(:,1),testCase);
 
 % -------------------------------------------------------------------------
 function data_path = get_data_path()

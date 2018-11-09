@@ -3,7 +3,7 @@ function tests = test_spm_dcm_identify
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_identify.m 6716 2016-02-08 18:21:37Z peter $
+% $Id: test_spm_dcm_identify.m 7479 2018-11-09 14:17:33Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -54,6 +54,18 @@ DCM = DCM.DCM;
 model = spm_dcm_identify(DCM);
 
 testCase.assertEqual(model,'CSD');
+
+% -------------------------------------------------------------------------
+function test_identify_ind(testCase)
+
+data_path = get_data_path();
+
+DCM = load(fullfile(data_path,'DCM_IND.mat'));
+DCM = DCM.DCM;
+
+model = spm_dcm_identify(DCM);
+
+testCase.assertEqual(model,'IND');
 
 % -------------------------------------------------------------------------
 function data_path = get_data_path()

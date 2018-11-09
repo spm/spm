@@ -55,10 +55,10 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 6755 2016-03-25 09:48:34Z karl $
+% $Id: spm_dcm_estimate.m 7479 2018-11-09 14:17:33Z peter $
  
  
-SVNid = '$Rev: 6755 $';
+SVNid = '$Rev: 7479 $';
  
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -80,7 +80,6 @@ end
  
 if isstruct(P)
     DCM = P;
-    P   = ['DCM-' date '.mat'];
 else
     load(P)
 end
@@ -198,7 +197,6 @@ if ~any(spm_vec(U.u)) || ~any(spm_vec(DCM.c))
     DCM.options.stochastic = 1;
 end
  
- 
 % priors (and initial states)
 %--------------------------------------------------------------------------
 [pE,pC,x]  = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
@@ -255,8 +253,7 @@ M.l  = size(x,1);
 M.N  = 64;
 M.dt = 32/M.N;
 M.ns = v;
- 
- 
+
 % nonlinear system identification (nlsi)
 %==========================================================================
 if ~DCM.options.stochastic

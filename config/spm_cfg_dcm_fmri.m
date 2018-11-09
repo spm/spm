@@ -4,7 +4,7 @@ function fmri = spm_cfg_dcm_fmri
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_fmri.m 7477 2018-11-08 12:49:27Z peter $
+% $Id: spm_cfg_dcm_fmri.m 7479 2018-11-09 14:17:33Z peter $
 
 
 % -------------------------------------------------------------------------
@@ -353,7 +353,7 @@ end
 out_file = fullfile(out_dir{1}, ['GCM_' out_name '.mat']);
 save(out_file,'GCM');
 
-out = out_file;
+out.gcmmat = {out_file};
 
 %==========================================================================
 function idx = get_conditions_from_ui(spmmat,sess)

@@ -3,7 +3,7 @@ function tests = test_spm_dcm_peb
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_peb.m 7050 2017-03-29 15:44:54Z peter $
+% $Id: test_spm_dcm_peb.m 7479 2018-11-09 14:17:33Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -89,6 +89,38 @@ M.Q = Q;
 PEB = spm_dcm_peb(GCM(:,1), M);
 testCase.assertEqual(length(PEB.Eh), 2);
 testCase.assertEqual(length(PEB.Ch), 2);
+
+% -------------------------------------------------------------------------
+function test_peb_of_pebs(testCase)
+% Tests hierarchical models with PEB as the input to other PEBs
+
+data_path = get_data_path();
+
+% Load first level DCMs
+GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
+GCM = GCM.GCM;
+
+% Prepare group level design matrix
+X = load(fullfile(data_path,'design_matrix.mat'));
+X = X.X;
+ns = size(X,1);
+X  = [ones(ns,1) X];
+
+% Assign subjects to groups
+g1 = (X(:,2) == -1);
+g2 = (X(:,2) == 1);
+
+% Estimate PEB
+M = struct();
+M.Q = 'all';
+PEB1 = spm_dcm_peb(GCM(g1,1),M);
+PEB2 = spm_dcm_peb(GCM(g2,1),M);
+
+% Group model
+M = struct();
+M.X = [1 1; 1 -1];
+M.Q = 'none';
+PEB  = spm_dcm_peb({PEB1;PEB2},M);
 
 % -------------------------------------------------------------------------
 function data_path = get_data_path()

@@ -4,7 +4,7 @@ function estimate = spm_cfg_dcm_est
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_est.m 7477 2018-11-08 12:49:27Z peter $
+% $Id: spm_cfg_dcm_est.m 7479 2018-11-09 14:17:33Z peter $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -406,15 +406,17 @@ elseif output_type == OUTPUT_GCM_OVERWRITE
     save(filename,'GCM', spm_get_defaults('mat.format'));
     
     out.gcmmat = {filename};
-else
-    out.dcmmat = P;
+end
+
+if ~isempty(P)
+    out.dcmmat = P(:,1);
 end
 
 %==========================================================================
 function dep = vout_dcm(job)
 %==========================================================================
 dep(1)            = cfg_dep;
-dep(1).sname      = 'DCM mat File(s)';
+dep(1).sname      = 'DCM mat File(s) - full models';
 dep(1).src_output = substruct('.','dcmmat');
 dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
 

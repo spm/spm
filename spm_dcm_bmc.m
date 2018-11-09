@@ -1,4 +1,4 @@
-function [post,exp_r,xp,pxp,bor] = spm_dcm_bmc(DCM)
+function [post,exp_r,xp,pxp,bor,F] = spm_dcm_bmc(DCM)
 % Bayesian model comparison
 % FORMAT [post,exp_r,xp,pxp,bor] = spm_dcm_bmc(DCM)
 %
@@ -14,6 +14,7 @@ function [post,exp_r,xp,pxp,bor] = spm_dcm_bmc(DCM)
 % pxp     - RFX protected exceedance probabilities
 % bor     - RFX Bayes Omnibus Risk (probability that model frequencies 
 %           are equal)
+% F       - matrix of free energies (subjects x models)
 %
 % This routine computes fixed and random effects posterior probabilities
 % over models. It also returns exceedance  probabilities and protected
@@ -34,7 +35,7 @@ function [post,exp_r,xp,pxp,bor] = spm_dcm_bmc(DCM)
 % Copyright (C) 2009-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bmc.m 6343 2015-02-18 16:46:00Z spm $
+% $Id: spm_dcm_bmc.m 7479 2018-11-09 14:17:33Z peter $
 
 
 % assemble log evidence

@@ -13,7 +13,7 @@ function DCM = spm_dcm_load(P, save_mem)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_load.m 7264 2018-02-22 14:43:47Z peter $
+% $Id: spm_dcm_load.m 7479 2018-11-09 14:17:33Z peter $
 
 if ischar(P)    
     if size(P,1) > 1
@@ -38,8 +38,8 @@ end
 
 DCM = cell(size(P));
 
+fprintf('Loading DCMs...');
 for s = 1:size(P,1)
-    fprintf('Loading subject %d\n',s);
     for m = 1:size(P,2)                
         
         if isstruct(P{s,m})
@@ -78,3 +78,4 @@ for s = 1:size(P,1)
                
     end
 end
+fprintf('Done\n');

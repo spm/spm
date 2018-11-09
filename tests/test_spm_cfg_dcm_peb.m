@@ -3,7 +3,7 @@ function tests = test_spm_cfg_dcm_peb
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_cfg_dcm_peb.m 7371 2018-07-09 15:34:19Z peter $
+% $Id: test_spm_cfg_dcm_peb.m 7479 2018-11-09 14:17:33Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -193,6 +193,7 @@ spm_jobman('run',matlabbatch);
 expected_output = fullfile(model_dir,'BMA_PEB_test.mat');
 testCase.assertTrue(exist(expected_output,'file') > 0);
 
+close all;
 % -------------------------------------------------------------------------
 function test_search_reduced_models(testCase)
 
@@ -238,9 +239,10 @@ matlabbatch{2}.spm.dcm.peb.reduce_all.show_review = 0;
 spm_jobman('run',matlabbatch);
 
 % Check BMA created
-expected_output = fullfile(model_dir,'BMA_PEB_test.mat');
+expected_output = fullfile(model_dir,'BMA_search_PEB_test.mat');
 testCase.assertTrue(exist(expected_output,'file') > 0);
 
+close all;
 % -------------------------------------------------------------------------
 function test_loo(testCase)
 
@@ -285,6 +287,7 @@ spm_jobman('run',matlabbatch);
 expected_output = fullfile(model_dir,'LOO_test.mat');
 testCase.assertTrue(exist(expected_output,'file') > 0);
 
+close all;
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
 

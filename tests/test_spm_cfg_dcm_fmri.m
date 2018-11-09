@@ -3,7 +3,7 @@ function tests = test_spm_cfg_dcm_fmri
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_cfg_dcm_fmri.m 7228 2017-11-21 12:17:03Z peter $
+% $Id: test_spm_cfg_dcm_fmri.m 7479 2018-11-09 14:17:33Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -58,10 +58,10 @@ matlabbatch{1}.spm.dcm.spec.fmri.group.data.session      = 1;
 matlabbatch{1}.spm.dcm.spec.fmri.group.data.region = {voi1
                                                       voi2}';
                                                   
-GCM = spm_jobman('run',matlabbatch);
+out = spm_jobman('run',matlabbatch);
 
 % Load output
-GCM = load(GCM{1});
+GCM = load(out{1}.gcmmat{1});
 GCM = GCM.GCM;
 GCM = spm_dcm_load(GCM);
 
