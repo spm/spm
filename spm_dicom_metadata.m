@@ -2,29 +2,24 @@ function N = spm_dicom_metadata(N,hdr)
 % Export image metadata as side-car JSON file
 % FORMAT N = spm_dicom_metadata(N,hdr)
 % N(input)  - nifti object
-% hdr       - a single header as output by spm_dicom_headers
-% N(output) - unchanged nifti object (unless header extension is used)
+% hdr       - a single header from spm_dicom_headers
+% N(output) - unchanged nifti object (for potential future use)
 %
-% PURPOSE: To create JSON-encoded metadata during DICOM to NIfTI
-% conversion, including all acquisition parameters, and saved as a JSON
-% side-car file (or, in the future, as NIfTI header extension).
+% This function creates JSON-encoded metadata during DICOM to NIfTI
+% conversion, including all acquisition parameters, and saves them as a
+% JSON side-car file.
 %
 % See also: spm_dicom_convert
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2017-2018 Wellcome Trust Centre for Neuroimaging
 
-% Evelyne Balteau
-% Cyclotron Research Centre, University of Liege, Belgium
-% $Id: spm_dicom_metadata.m 7201 2017-11-08 11:13:25Z guillaume $
+% Evelyne Balteau, Cyclotron Research Centre, University of Liege, Belgium
+% $Id: spm_dicom_metadata.m 7480 2018-11-09 14:54:45Z guillaume $
 
 
-%-Provenance and general description of the image
-if ~isdeployed
-    version = sprintf('spm_dicom_convert.m - version %s - %s', spm('Ver','spm_dicom_convert.m',true), spm('Version'));
-else
-    version = sprintf('spm_dicom_convert.m - %s', spm('Version'));
-end
-metadata.history.procstep = struct('descrip','dicom to nifti import', 'version', version, 'procpar', []);
+%-Provenance and general description of the image (hMRI toolbox)
+dicom_convert_version = {sprintf('%s %s', spm_check_version, version),sprintf('spm_dicom_convert.m - %s', spm('Version'))};
+metadata.history.procstep = struct('descrip','dicom to nifti import', 'version', dicom_convert_version, 'procpar', []);
 metadata.history.input(1) = struct('filename','AnonymousFileName', 'history',[]);
 if isfield(hdr,'ImageType')
     metadata.history.output = struct('imtype',hdr.ImageType, 'units','a.u.');
@@ -32,7 +27,7 @@ else
     metadata.history.output = struct('imtype','Unprocessed MR image', 'units','a.u.');
 end
 
-%-Acquisition parameters with complete DICOM header
+%-Acquisition parameters with complete DICOM header (hMRI toolbox)
 hdr = reformat_spm_dicom_header(hdr);
 hdr = anonymise_metadata(hdr); % default is basic anonymisation
 metadata.acqpar = hdr;
@@ -44,7 +39,7 @@ spm_jsonwrite(spm_file(N.dat.fname,'ext','json'), metadata, struct('indent','\t'
 %==========================================================================
 function hdr = reformat_spm_dicom_header(hdr)
 % To tidy up and rearrange CSA fields in the header, including formatting
-% the ASCII part into a proper Matlab structure (Note: this is specific to
+% the ASCII part into a proper MATLAB structure (Note: this is specific to
 % Siemens DICOM format but could be extended to other cases where needed)
 %
 % FORMAT hdr = reformat_spm_dicom_header(hdr)
@@ -162,7 +157,7 @@ for ccsa = 1:length(csahdr)
                     end
                     val = tmp;
                 catch
-                    fprintf(1,'Trouble reading CSA header %s (%s) = %s\n',csahdr(ccsa).name, deblank(csahdr(ccsa).vr), val(1,:));
+                    fprintf('Trouble reading CSA header %s (%s) = %s\n',csahdr(ccsa).name, deblank(csahdr(ccsa).vr), val(1,:));
                     val = [];
                 end
             otherwise
