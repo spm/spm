@@ -14,7 +14,7 @@ function Q = spm_dcm_csd_Q(csd)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_csd_Q.m 7280 2018-03-21 12:07:11Z guillaume $
+% $Id: spm_dcm_csd_Q.m 7481 2018-11-09 15:36:57Z peter $
 
 
 %-Check for cell arrays

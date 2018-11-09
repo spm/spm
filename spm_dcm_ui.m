@@ -67,10 +67,10 @@ function varargout = spm_dcm_ui(Action)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 6005 2014-05-21 16:46:26Z guillaume $
+% $Id: spm_dcm_ui.m 7481 2018-11-09 15:36:57Z peter $
 
 
-DCMversion = 'DCM12';
+DCMversion = 'DCM12.5';
 
 if nargin == 1 && strcmpi(Action,'version')
     varargout = {DCMversion};

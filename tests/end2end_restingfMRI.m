@@ -3,7 +3,7 @@ function tests = end2end_restingfMRI
 %__________________________________________________________________________
 % Copyright (C) 2018 Wellcome Centre for Human Neuroimaging
 
-% $Id: end2end_restingfMRI.m 7266 2018-02-23 17:28:48Z peter $
+% $Id: end2end_restingfMRI.m 7481 2018-11-09 15:36:57Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -34,6 +34,8 @@ spm_get_dataset('spm', 'spdcm', '', data_path);
 
 % -------------------------------------------------------------------------
 function test_CSD(testCase)
+
+spm('defaults','fmri')
 
 % Run GLM
 run_glm();
