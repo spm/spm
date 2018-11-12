@@ -27,7 +27,7 @@ function spm_make_standalone(outdir, gateway, contentsver)
 % Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_make_standalone.m 7457 2018-10-24 15:12:05Z guillaume $
+% $Id: spm_make_standalone.m 7483 2018-11-12 13:19:31Z guillaume $
 
 
 %-Check startup.m
@@ -97,13 +97,16 @@ end
 %==========================================================================
 %-Compilation
 %==========================================================================
-opts = {'-p',fullfile(matlabroot,'toolbox','signal')};
-if ~exist(opts{2},'dir'), opts = {}; end
+Nopts = {'-p',fullfile(matlabroot,'toolbox','signal')};
+if ~exist(Nopts{2},'dir'), Nopts = {}; end
+Ropts = {'-R','-singleCompThread'} ;
+if spm_check_version('matlab','8.4') >= 0
+    Ropts = [Ropts, {'-R','-softwareopengl'}];
+end
 mcc('-m', '-C', '-v',...
     '-o',lower(spm('Ver')),...
     '-d',outdir,...
-    '-N',opts{:},...
-    '-R','-singleCompThread',...
-    '-R','-softwareopengl',...
+    '-N',Nopts{:},...
+    Ropts{:},...
     '-a',spm('Dir'),...
     gateway);
