@@ -14,12 +14,12 @@ function N = spm_dicom_metadata(N,hdr)
 % Copyright (C) 2017-2018 Wellcome Trust Centre for Neuroimaging
 
 % Evelyne Balteau, Cyclotron Research Centre, University of Liege, Belgium
-% $Id: spm_dicom_metadata.m 7480 2018-11-09 14:54:45Z guillaume $
+% $Id: spm_dicom_metadata.m 7482 2018-11-12 12:18:08Z guillaume $
 
 
 %-Provenance and general description of the image (hMRI toolbox)
 dicom_convert_version = {sprintf('%s %s', spm_check_version, version),sprintf('spm_dicom_convert.m - %s', spm('Version'))};
-metadata.history.procstep = struct('descrip','dicom to nifti import', 'version', dicom_convert_version, 'procpar', []);
+metadata.history.procstep = struct('descrip','dicom to nifti import', 'version', {dicom_convert_version}, 'procpar', []);
 metadata.history.input(1) = struct('filename','AnonymousFileName', 'history',[]);
 if isfield(hdr,'ImageType')
     metadata.history.output = struct('imtype',hdr.ImageType, 'units','a.u.');
