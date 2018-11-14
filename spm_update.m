@@ -21,7 +21,7 @@ function varargout = spm_update(update)
 % Copyright (C) 2010-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_update.m 7372 2018-07-09 16:50:44Z guillaume $
+% $Id: spm_update.m 7486 2018-11-14 11:10:29Z guillaume $
 
 
 vspm = spm('Ver');
@@ -63,7 +63,7 @@ catch
     error('SPM cannot be found in MATLAB path.');
 end
 if ~strcmp(v,vspm), error('Your SPM version is %s and not %s',v,vspm); end
-rs = [6225 6470 6685 6906 7219];
+rs = [6225 6470 6685 6906 7219 7487];
 if isnan(r), r = rs(1); end 
 if floor(r) == str2double(vspm(4:end))
     try

@@ -1,5 +1,5 @@
 % Statistical Parametric Mapping
-% Version 12.4 (SPM12) 16-Nov-2017
+% Version 12.5 (SPM12) 14-Nov-2018
 %__________________________________________________________________________
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  
@@ -33,11 +33,11 @@
 % You should have received a copy of the GNU General Public License along
 % with SPM, in LICENCE.txt. If not, see <https://www.gnu.org/licenses/>.
 %
-% See README.txt for details of this release.
+% See README.md for details of this release.
 %__________________________________________________________________________
 % Copyright (C) 1991,1994-2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id: Contents.m 7372 2018-07-09 16:50:44Z guillaume $
+% $Id: Contents.m 7486 2018-11-14 11:10:29Z guillaume $
 
 %==========================================================================
 % PROGRAMMERS NOTE:
