@@ -1,9 +1,9 @@
 #!/usr/bin/env make -f
 # Manual Makefile called by {SPM}/src/Makefile
 #
-# Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 2016-2018 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 7019 2017-02-16 10:49:48Z guillaume $
+# $Id: Makefile 7485 2018-11-14 10:31:57Z guillaume $
 
 include ../src/Makefile.var
 
@@ -37,7 +37,7 @@ manual.pdf: manual.tex spm_manual.tex
 
 spm_manual.tex:
 	$(call verb, "Creating TEX files")
-	@ ${SPMEXE} eval "spm_jobman('initcfg');spm_make_manual;"
+	@ ${SPMEXE} eval "spm_jobman initcfg;spm_make_manual;"
 	$(call verb, "TEX files: done")
 
 define makepdf
