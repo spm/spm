@@ -39,7 +39,7 @@ function [d,BMA,PEBs] = spm_dcm_bdc(GCMs,field,M,ynames,models,noplot)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
  
 % Peter Zeidman & Samira Kazan
-% $Id: spm_dcm_bdc.m 7488 2018-11-15 09:12:25Z peter $
+% $Id: spm_dcm_bdc.m 7489 2018-11-15 09:58:51Z peter $
  
 if nargin < 5
     models = [];
@@ -286,27 +286,27 @@ legend(ynames,'Location','South','Orientation','horizontal','FontSize',12);
 subplot(rows,cols,3);
 y = d.dcm_negent - min(d.dcm_negent);
 bar(y);
-hold on; p = scatter(1:length(y),y); lsline;set(p,'visible','off'); hold off
+hold on; p = scatter(1:length(y),y); set(p,'visible','off'); hold off
 title('Parameter certainty','FontSize',16);
 xlabel('Dataset','FontSize',12); ylabel('Relative neg entropy (nats)','FontSize',12);
 
 subplot(rows,cols,4);
 y = d.rfx_negent - min(d.rfx_negent);
 bar(y);
-hold on; p = scatter(1:length(y),y); lsline;set(p,'visible','off'); hold off
+hold on; p = scatter(1:length(y),y); set(p,'visible','off'); hold off
 title('RFX certainty','FontSize',16);
 xlabel('Dataset','FontSize',12); ylabel('Relative neg entropy (nats)','FontSize',12);
 
 subplot(rows,cols,5);
 y = d.complexity-min(d.complexity);
 bar(y);
-hold on; p = scatter(1:length(y),y); lsline;set(p,'visible','off'); hold off
+hold on; p = scatter(1:length(y),y); set(p,'visible','off'); hold off
 title('Information gain (parameters)','FontSize',14);
 xlabel('Dataset','FontSize',12); ylabel('Relative neg entropy (nats)','FontSize',12);
 
 subplot(rows,cols,6);
 y = d.model_KL;
 bar(y); 
-hold on; p = scatter(1:length(y),y); lsline;set(p,'visible','off'); hold off
+hold on; p = scatter(1:length(y),y); set(p,'visible','off'); hold off
 title(sprintf('Information gain (%d models)',nr),'FontSize',14);
 xlabel('Dataset','FontSize',12); ylabel('Entropy (nats)','FontSize',12);
