@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7491 2018-11-21 10:32:54Z thomas $
+% $Id: spm_MDP_VB_X.m 7494 2018-11-21 13:39:35Z thomas $
 
 
 % deal with a sequence of trials
@@ -1225,7 +1225,7 @@ function A  = spm_wnorm(A)
 % summation of a probability transition matrix (columns)
 %--------------------------------------------------------------------------
 A   = A + 1e-16;
-A   = bsxfun(@minus,1./sum(A,1),1./A);
+A   = bsxfun(@minus,1./sum(A,1),1./A)/2;
 
 function sub = spm_ind2sub(siz,ndx)
 % subscripts from linear index
