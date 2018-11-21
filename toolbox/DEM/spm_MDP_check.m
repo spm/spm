@@ -30,7 +30,7 @@ function [MDP] = spm_MDP_check(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_check.m 7382 2018-07-25 13:58:04Z karl $
+% $Id: spm_MDP_check.m 7490 2018-11-21 10:32:09Z thomas $
  
  
 % deal with a sequence of trials
@@ -239,8 +239,35 @@ if isfield(MDP,'link')
     
 end
 
+% Empirical prior preferences
+%--------------------------------------------------------------------------
+if isfield(MDP,'linkC')
+    if isnumeric(MDP.linkC)
+        linkC  = cell(numel(MDP.MDP.C),Ng);
+        for f = 1:size(MDP.linkC,1)
+            for g = 1:size(MDP.linkC,2)
+                if MDP.linkC(f,g)
+                    linkC{f,g} = spm_speye(size(MDP.MDP.C{f},1),No(g),0);
+                end
+            end
+        end
+        MDP.linkC = linkC;
+    end
+end
 
-
+% Empirical priors over policies
+%--------------------------------------------------------------------------
+if isfield(MDP,'linkE')
+    if isnumeric(MDP.linkE)
+        linkE  = cell(1,Ng);
+        for g = 1:size(MDP.linkE,2)
+            if MDP.linkE(g)
+                linkE{g} = spm_speye(size(MDP.MDP.E,1),No(g),0);
+            end
+        end
+        MDP.linkE = linkE;
+    end
+end
 
 % check factors and outcome modalities have proper labels
 %--------------------------------------------------------------------------
