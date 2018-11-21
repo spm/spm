@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7398 2018-08-15 14:50:27Z thomas $
+% $Id: spm_MDP_VB_X.m 7491 2018-11-21 10:32:54Z thomas $
 
 
 % deal with a sequence of trials
@@ -633,6 +633,36 @@ for t = 1:T
                 end
             end
             
+            
+            % Empirical prior preferences
+            %--------------------------------------------------------------
+            if isfield(MDP,'linkC')
+                for f = 1:size(MDP(m).linkC,1)
+                    for g = 1:size(MDP(m).linkC,2)
+                        if ~isempty(MDP(m).linkC{f,g})
+                            % empirical priors
+                            %--------------------------------------------------
+                            mdp.C{f} = spm_log(MDP(m).linkC{f,g}*O{m}{g,t});
+                        end
+                    end
+                end
+            end
+            
+            % Empirical priors over policies
+            %--------------------------------------------------------------
+            if isfield(MDP,'linkE')
+
+                mdp.factorE = [];
+                for g = 1:size(MDP(m).linkE,2)
+                    if ~isempty(MDP(m).linkE{g})
+                        
+                        % empirical priors
+                        %--------------------------------------------------
+                        mdp.E = MDP(m).linkE{g}*O{m}{g,t};
+                    end
+                end
+            end
+            
             % infer hidden states at lower level (outcomes at this level)
             %==============================================================
             MDP(m).mdp(t) = spm_MDP_VB_X(mdp);
@@ -646,6 +676,31 @@ for t = 1:T
                     end
                 end
             end
+            
+            % if hierarchical preferences, these contribute to outcomes ...
+            %--------------------------------------------------------------
+            if isfield(MDP,'linkC')
+                for f = 1:size(MDP(m).linkC,1)
+                    for g = 1:size(MDP(m).linkC,2)
+                        if ~isempty(MDP(m).linkC{f,g})
+                            indC = sparse(MDP(m).mdp(t).o(f,:)',1:length(MDP(m).mdp(t).o(f,:)),ones(length(MDP(m).mdp(t).o(f,:)),1),size(MDP(m).mdp(t).C{f},1),size(MDP(m).mdp(t).C{f},2));
+                            O{m}{g,t} = spm_softmax(spm_log(O{m}{g,t}) +...
+                                MDP(m).linkC{f,g}'*sum((indC.*(MDP(m).mdp(t).C{f})),2));
+                        end
+                    end
+                end
+            end
+            % ... and the same for policies
+            %--------------------------------------------------------------
+            if isfield(MDP,'linkE')
+                for g = 1:size(MDP(m).linkE,2)
+                    if ~isempty(MDP(m).linkE{g})
+                        O{m}{g,t} = spm_softmax(spm_log(O{m}{g,t}) +...
+                            spm_log(MDP(m).linkE{g}'*MDP(m).mdp(t).R(:,end)));
+                    end
+                end
+            end
+            
             
         end % end of hierarchical mode
         
