@@ -19,6 +19,11 @@ function [d,BMA,PEBs] = spm_dcm_bdc(GCMs,field,M,ynames,models,noplot)
 %          datasets before performing BDC. If false, all parameters from
 %          the DCM are included. [default: true];
 % ynames - (Optional) {1 x ny} cell array of names for each dataset
+% models - (Optional) model space to use for computing the information gain
+%          over models. Accepts a nested cell array of parameter names, or
+%          a binary matrix (models x parameters) with which parameters
+%          to switch on or off in each model.
+% noplot - (Optional) if true, does not show plots.
 %
 % ny = number of datasets, nf = number of DCM fields, nm = number of models
 % 
@@ -39,7 +44,7 @@ function [d,BMA,PEBs] = spm_dcm_bdc(GCMs,field,M,ynames,models,noplot)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
  
 % Peter Zeidman & Samira Kazan
-% $Id: spm_dcm_bdc.m 7489 2018-11-15 09:58:51Z peter $
+% $Id: spm_dcm_bdc.m 7495 2018-11-22 15:52:07Z peter $
  
 if nargin < 5
     models = [];
