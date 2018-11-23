@@ -34,7 +34,7 @@ function out = spm_shoot_norm(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_norm.m 7460 2018-10-29 15:55:12Z john $
+% $Id: spm_shoot_norm.m 7496 2018-11-23 11:14:43Z john $
 
 % Hard coded stuff, that should maybe be customisable
 tpm  = fullfile(spm('Dir'),'tpm','TPM.nii');
@@ -258,7 +258,7 @@ for m=1:numel(PI)
             y(:,:,:,3) = M(3,1)*y0(:,:,:,1) + M(3,2)*y0(:,:,:,2) + M(3,3)*y0(:,:,:,3) + M(3,4);
 
             % Generate Jacobian determinants.
-            c          = spm_diffeo('jacdet',y)*abs(det(NI.mat(1:3,1:3))/det(NO.mat(1:3,1:3)));
+            c          = abs(spm_diffeo('jacdet',y)*(det(NI.mat(1:3,1:3))/det(NO.mat(1:3,1:3))));
             c(:,:,[1 end]) = NaN; % Boundary voxels are not handled well - so remove
             c(:,[1 end],:) = NaN;
             c([1 end],:,:) = NaN;
