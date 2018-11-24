@@ -14,13 +14,14 @@ function spm_dcm_fmri_csd_results(DCM,action,fig)
 %     'Coherence (neural)'
 %     'Covariance (neural)'
 %     'Kernels'
+%     'Functional connectivity'
 %     'Location of regions'
 %     'Quit'
 %__________________________________________________________________________
 % Copyright (C) 2013-2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_results.m 7296 2018-04-18 10:36:49Z guillaume $
+% $Id: spm_dcm_fmri_csd_results.m 7497 2018-11-24 17:00:25Z karl $
 
 
 %-Input arguments
@@ -50,6 +51,7 @@ if nargin < 2 || isempty(action)
         'Coherence (neural)',...
         'Covariance (neural)',...
         'Kernels',...
+        'Functional connectivity',...
         'Location of regions',...
         'Quit'};
     
@@ -146,10 +148,10 @@ switch lower(action)
         xlabel('Frequency (Hz)')
         ylabel('CSD')
         axis square, spm_axis tight
-        legend(name)
+        legend(name),legend('boxoff')
         
         subplot(ns,ns,ns)
-        legend('real','imag')
+        legend('real','imag'),legend('boxoff')
     
     %======================================================================
     % Location of regions
@@ -230,7 +232,7 @@ switch lower(action)
         set(gca,'XTick',(1:ns),'XTickLabel',name)
         xlabel('target region')
         ylabel('strength (Hz)')
-        legend(name)
+        legend(name),legend('boxoff')
         
         
         % intrinsic interactions - probabilities
@@ -249,34 +251,38 @@ switch lower(action)
     %======================================================================
     case lower('Coupling (C)')
         
-        % intrinsic effects
-        %------------------------------------------------------------------
-        subplot(2,1,1)
-        c(:,:,1) = DCM.Pp.C;
-        c(:,:,2) = Ep.C;
-        spm_dcm_display(DCM.xY,[],c)
-        title(sprintf('%s P(coupling > 0)','fixed'),'FontSize',16)
-        
-        
-        % intrinsic interactions
-        %------------------------------------------------------------------
-        subplot(2,2,3)
-        bar(c(:,:,2))
-        title('C - exogenous effects','FontSize',16)
-        set(gca,'XTick',(1:ns),'XTickLabel',name)
-        xlabel('target region')
-        ylabel('strength (Hz)')
-        legend(DCM.U.name)
-        
-        
-        % intrinsic interactions - probabilities
-        %------------------------------------------------------------------
-        subplot(2,2,4)
-        bar(c(:,:,1))
-        title('C - probability','FontSize',16)
-        set(gca,'XTick',(1:ns),'XTickLabel',name)
-        xlabel('target region')
-        ylabel(sprintf('P(C > %0.2f)',0))
+        if spm_length(Ep.C)
+            
+            % intrinsic effects
+            %--------------------------------------------------------------
+            subplot(2,1,1)
+            c(:,:,1) = DCM.Pp.C;
+            c(:,:,2) = Ep.C;
+            spm_dcm_display(DCM.xY,[],c)
+            title(sprintf('%s P(coupling > 0)','fixed'),'FontSize',16)
+            
+            
+            % intrinsic interactions
+            %--------------------------------------------------------------
+            subplot(2,2,3)
+            bar(c(:,:,2))
+            title('C - exogenous effects','FontSize',16)
+            set(gca,'XTick',(1:ns),'XTickLabel',name)
+            xlabel('target region')
+            ylabel('strength (Hz)')
+            legend(DCM.U.name),legend('boxoff')
+            
+            
+            % intrinsic interactions - probabilities
+            %--------------------------------------------------------------
+            subplot(2,2,4)
+            bar(c(:,:,1))
+            title('C - probability','FontSize',16)
+            set(gca,'XTick',(1:ns),'XTickLabel',name)
+            xlabel('target region')
+            ylabel(sprintf('P(C > %0.2f)',0))
+            
+        end
         
         
     %======================================================================
@@ -303,25 +309,30 @@ switch lower(action)
     %======================================================================
     case lower('Cross-spectra (BOLD)')
         
-        
+        Gc    = DCM.Hc;                     % predicted
+        Rc    = Gc + DCM.Rc;                % observed
         for i = 1:ns
             for j = i:ns
-                
                 subplot(ns,ns,(i - 1)*ns + j)
-                plot(Hz,abs(DCM.Hc(:,i,j))), hold on
-                plot(Hz,abs(DCM.Hc(:,i,j) + DCM.Rc(:,i,j)),':'), hold off
+                plot(Hz,real(Gc(:,i,j)),'r'),  hold on
+                plot(Hz,imag(Gc(:,i,j)),'c')
+                plot(Hz,real(Rc(:,i,j)),'r:') 
+                plot(Hz,imag(Rc(:,i,j)),'c:'), hold off
                 title(sprintf('CSD: %s to %s',name{j},name{i}))
                 xlabel('frequency Hz')
                 axis square, spm_axis tight
-                
             end
             
             % spectral density
             %--------------------------------------------------------------
-            Hc(:,i) = abs(DCM.Hc(:,i,i));
-            Yc(:,i) = abs(DCM.Hc(:,i,i) + DCM.Rc(:,i,i));
+            Hc(:,i) = abs(Gc(:,i,i));
+            Yc(:,i) = abs(Rc(:,i,i));
             
         end
+        
+        subplot(ns,ns,ns)
+        legend({'pred - real','pred - imag','obs - real','obs - imag'})
+        legend('boxoff')
         
         subplot(2,2,3)
         plot(Hz,Hc), hold on
@@ -330,7 +341,7 @@ switch lower(action)
         xlabel('frequency (Hz)')
         ylabel('abs(CSD)')
         axis square, spm_axis tight
-        legend(name)
+        legend(name),legend('boxoff')
         
         
         
@@ -339,12 +350,11 @@ switch lower(action)
     %====================================================================== 
     case lower('Cross-spectra (neural)')
         
-        
         for i = 1:ns
             for j = i:ns
-                
                 subplot(ns,ns,(i - 1)*ns + j) 
-                plot(Hz,abs(DCM.Hs(:,i,j))), hold on
+                plot(Hz,real(DCM.Hs(:,i,j)),'r'), hold on
+                plot(Hz,imag(DCM.Hs(:,i,j)),'c'), hold off
                 title(sprintf('CSD: %s to %s',name{j},name{i}))
                 xlabel('frequency Hz')
                 axis square, spm_axis tight
@@ -356,6 +366,9 @@ switch lower(action)
             Hs(:,i) = abs(DCM.Hs(:,i,i));
             
         end
+        subplot(ns,ns,ns)
+        legend({'real','imag'})
+        legend('boxoff')
         
         subplot(2,2,3)
         plot(Hz,Hs), hold on
@@ -363,7 +376,7 @@ switch lower(action)
         xlabel('frequency (Hz)')
         ylabel('abs(CSD)')
         axis square, spm_axis tight
-        legend(name)
+        legend(name),legend('boxoff')
         
         
     %======================================================================
@@ -400,7 +413,7 @@ switch lower(action)
         
         
     %======================================================================
-    % Cross correlations and kernels
+    % Cross covariance functions
     %======================================================================
     case lower('Covariance (neural)')
         
@@ -415,13 +428,13 @@ switch lower(action)
                 
             end
             
-            % spectral density
+            % cross covariance functions
             %--------------------------------------------------------------
             ccf(:,i) = DCM.ccf(:,i,i);
             
         end
         
-        % spectral density
+        % cross covariance functions
         %--------------------------------------------------------------
         subplot(2,2,3)
         plot(DCM.pst,ccf)
@@ -430,6 +443,68 @@ switch lower(action)
         ylabel('auto-covariance')
         axis square
         
+    %======================================================================
+    % Functional connectivity
+    %======================================================================
+    case lower('Functional connectivity')
+        
+        % predicted responses
+        %------------------------------------------------------------------
+        [Gy,Hz,S,Gu,Gn] = spm_csd_fmri_mtf(DCM.Ep,DCM.M,DCM.U);
+        
+        % spectral density
+        %------------------------------------------------------------------
+        for i = 1:ns   
+            Yc(:,i) = abs(DCM.Y.csd(:,i,i));          % observed
+            Hc(:,i) = abs(Gy(:,i,i));                 % predicted
+            Nn(:,i) = abs(Gn(:,i,i));                 % Non-neuronal
+            Gc(:,i) = abs(Gy(:,i,i) - Gn(:,i,i));     % Neuronal
+        end
+        
+        
+        % zero-lag correlations (functional connectivity)
+        %------------------------------------------------------------------
+        subplot(2,4,1)
+        ccf = spm_csd2ccf(DCM.Y.csd,Hz,DCM.Y.dt);
+        ccf = ccf((size(ccf,1) + 1)/2,:,:);
+        cc  = spm_cov2corr(squeeze(ccf));
+        image(cc*64), title('Correlations','FontSize',16), axis square
+        
+        subplot(2,4,2)
+        ccf = spm_csd2ccf(Gy,Hz,DCM.Y.dt);
+        ccf = ccf((size(ccf,1) + 1)/2,:,:);
+        cc  = spm_cov2corr(squeeze(ccf));
+        image(cc*64), title('Predicted','FontSize',16), axis square
+        
+        subplot(2,4,3)
+        ccf = spm_csd2ccf(Gn,Hz,DCM.Y.dt);
+        ccf = ccf((size(ccf,1) + 1)/2,:,:);
+        cc  = spm_cov2corr(squeeze(ccf));
+        image(cc*64), title('Non-neuronal','FontSize',16), axis square
+        
+        subplot(2,4,4)
+        ccf = spm_csd2ccf(Gy - Gn,Hz,DCM.Y.dt);
+        ccf = ccf((size(ccf,1) + 1)/2,:,:);
+        cc  = spm_cov2corr(squeeze(ccf));
+        image(cc*64), title('Neuronal','FontSize',16), axis square
+        
+        % spectral decomposition
+        %------------------------------------------------------------------
+        subplot(2,2,3)
+        plot(Hz,Hc),    hold on
+        plot(Hz,Yc,':'),hold off
+        title('Predicted and observed spectra','FontSize',16)
+        axis square, spm_axis tight
+        legend(name),legend('boxoff')
+        
+        subplot(2,2,4)
+        plot(Hz,Hc,':'), hold on
+        plot(Hz,Gc),     hold on
+        plot(Hz,Nn,'-.'), hold off
+        title('Neuronal and non-neuronal part','FontSize',16)
+        axis square, spm_axis tight
+        legend(name),legend('boxoff')
+
         
     %======================================================================
     % Kernels
@@ -464,7 +539,7 @@ switch lower(action)
             title('BOLD responses','FontSize',12)
             
         end
-        legend(name)
+        legend(name),legend('boxoff')
         
         
         

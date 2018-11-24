@@ -40,9 +40,9 @@ function DCM = spm_dcm_fmri_csd(P)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 7279 2018-03-10 21:22:44Z karl $
+% $Id: spm_dcm_fmri_csd.m 7497 2018-11-24 17:00:25Z karl $
 
-SVNid = '$Rev: 7279 $';
+SVNid = '$Rev: 7497 $';
 
 % Load DCM structure
 %--------------------------------------------------------------------------
@@ -68,7 +68,7 @@ try, DCM.options.nograph;    catch, DCM.options.nograph    = spm('CmdLine');  en
 
 % parameter initialisation
 %--------------------------------------------------------------------------
-try, DCM.M.P     = DCM.options.P;                            end
+try, DCM.M.P = DCM.options.P; end
 
 % check max iterations
 %--------------------------------------------------------------------------

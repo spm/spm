@@ -12,7 +12,9 @@ function DEM_HB_and_LE
 % prior to the Hopf bifurcation and implicit exponential divergence of
 % trajectories. This is scored by the maximal Lyapunov exponent crossing
 % zero. Here, the form of the Lorenz attractor defines the three states as
-% active, sensory and hidden.
+% active, sensory and hidden. Note that there are no internal states in
+% this example and blanket states become the particular states (i.e., the
+% states of a particle).
 
 
 % generative model
@@ -154,10 +156,14 @@ return
 
 function [HB,HBH,IBH] = spm_self_entropy(pHxB)
 % FORMAT [HB,HBH,IBH] = spm_self_entropy(pHxB)
-% mutual informations
+% Entropies
 % HS  = H(B)              % self entropy
 % HBH = H(B|H)            % conditional entropy
 % IBH = I(B,H)            % mutual information
+%
+% This subroutine assumes that the first dimension of the joint density
+% corresponds to a hidden or external state and the rest are particular
+% or blanket states
 
 % evaluate joint density and posterior
 %--------------------------------------------------------------------------

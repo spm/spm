@@ -10,7 +10,7 @@ function spm_dcm_display(varargin)
 % Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_display.m 7244 2018-01-05 17:46:59Z guillaume $
+% $Id: spm_dcm_display.m 7497 2018-11-24 17:00:25Z karl $
  
   
 % get dimensions
@@ -177,39 +177,41 @@ end
  
 % Exogenous inputs
 %--------------------------------------------------------------------------
-for i = 1:size(c,1)
-    if ~isnan(c(i,1))
- 
-        % line
-        %------------------------------------------------------------------
-        k     = rem(i - 1,length(col)) + 1;
-        u     = L(1,i);
-        v     = L(2,i);
-        u     = [u (rad + u)];
-        v     = [v v];
-        h     = line(u,v,...
-                    'Color',col{k},...
-                    'LineStyle',':',...
-                    'LineWidth',w,...
-                    'Parent',hA);
- 
-        % if significant
-        %------------------------------------------------------------------
-        if c(i,1) > U
-            set(h,'LineStyle','-','LineWidth',w)
- 
-            % patch
+if spm_length(c)
+    for i = 1:size(c,1)
+        if ~isnan(c(i,1))
+            
+            % line
             %--------------------------------------------------------------
-            u     = u(2);
-            v     = v(2);
-            str   = {};
-            for k = 1:size(c,2)
-                str{k} = sprintf('%0.2f ',c(i,k));
+            k     = rem(i - 1,length(col)) + 1;
+            u     = L(1,i);
+            v     = L(2,i);
+            u     = [u (rad + u)];
+            v     = [v v];
+            h     = line(u,v,...
+                'Color',col{k},...
+                'LineStyle',':',...
+                'LineWidth',w,...
+                'Parent',hA);
+            
+            % if significant
+            %--------------------------------------------------------------
+            if c(i,1) > U
+                set(h,'LineStyle','-','LineWidth',w)
+                
+                % patch
+                %----------------------------------------------------------
+                u     = u(2);
+                v     = v(2);
+                str   = {};
+                for k = 1:size(c,2)
+                    str{k} = sprintf('%0.2f ',c(i,k));
+                end
+                h     = text(u,v,str(:),...
+                    'FontSize',12,...
+                    'HorizontalAlignment','Center',...
+                    'Parent',hA);
             end
-            h     = text(u,v,str(:),...
-                        'FontSize',12,...
-                        'HorizontalAlignment','Center',...
-                        'Parent',hA);
         end
     end
 end
