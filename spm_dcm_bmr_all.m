@@ -61,7 +61,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 7476 2018-11-07 15:17:39Z peter $
+% $Id: spm_dcm_bmr_all.m 7498 2018-11-24 17:07:36Z karl $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -353,7 +353,7 @@ xlabel('parameter'), title(' posterior','FontSize',16)
 axis square, drawnow, axis([0 (Np + 1) 0 1])
 
 
-%-Save Bayesian parameter average and family-wise model inference
+%-Save Bayesian parameter average (Ep,Cp) and family-wise inference (Pp)
 %==========================================================================
 if isstruct(DCM.Ep)
     if length(i) < 32
