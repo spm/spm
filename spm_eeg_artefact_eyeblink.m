@@ -18,7 +18,7 @@ function res = spm_eeg_artefact_eyeblink(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Laurence Hunt
-% $Id: spm_eeg_artefact_eyeblink.m 7132 2017-07-10 16:22:58Z guillaume $
+% $Id: spm_eeg_artefact_eyeblink.m 7500 2018-11-28 14:42:14Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -53,7 +53,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 7132 $';
+SVNrev = '$Rev: 7500 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -173,7 +173,7 @@ if ~isempty(spikes)
             ev(Nevents+i).type  = 'artefact_eyeblink';
             ev(Nevents+i).value = char(D.chanlabels(chanind));
             if S.excwin == 0
-                ev(Nevents+i).duration = [];
+                ev(Nevents+i).duration = 0;
                 ev(Nevents+i).time     = ctime{i};
             else
                 ev(Nevents+i).time     = max(D.trialonset(n), ctime{i} - 5e-4*S.excwin);
