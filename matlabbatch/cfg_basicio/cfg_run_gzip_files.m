@@ -8,14 +8,12 @@ function out = cfg_run_gzip_files(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_gzip_files.m 6840 2016-07-25 12:21:25Z guillaume $
+% $Id: cfg_run_gzip_files.m 7499 2018-11-28 11:57:34Z guillaume $
 
-rev = '$Rev: 6840 $'; %#ok
+rev = '$Rev: 7499 $'; %#ok
 
 if isempty(job.outdir) || isempty(job.outdir{1})
-    for i=1:numel(job.files)
-        out = gzip(job.files{i});
-    end
+    out = gzip(job.files);
 else
     out = gzip(job.files, job.outdir{1});
 end
