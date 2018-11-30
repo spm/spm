@@ -3,11 +3,10 @@ function out = numeric(fa)
 % FORMAT numeric(fa)
 % fa - a file_array
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2018 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: numeric.m 7147 2017-08-03 14:07:01Z spm $
+% $Id: numeric.m 7501 2018-11-30 12:16:58Z guillaume $
 
 
-[vo{1:ndims(fa)}] = deal(':');
-out = subsref(fa,struct('type','()','subs',{vo}));
+out = full(fa);

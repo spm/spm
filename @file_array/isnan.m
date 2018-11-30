@@ -1,12 +1,12 @@
 function out = isnan(fa)
-% Convert to numeric form
+% Logical array containing true where the elements of file_array are NaN's
 % FORMAT isnan(fa)
 % fa - a file_array
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2018 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: isnan.m 7147 2017-08-03 14:07:01Z spm $
+% $Id: isnan.m 7501 2018-11-30 12:16:58Z guillaume $
 
 
 bs  = 10240;
