@@ -4,10 +4,10 @@ function vol = read_hdr(fname)
 % fname      - filename of image
 % vol        - various bits of information
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2018 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: read_hdr.m 7370 2018-07-09 10:44:51Z guillaume $
+% $Id: read_hdr.m 7504 2018-12-03 13:17:49Z guillaume $
 
 
 persistent d
@@ -17,6 +17,9 @@ try
     [pth,nam,ext] = spm_fileparts(fname);
 catch
     [pth,nam,ext] = fileparts(fname);
+end
+if isempty(pth) && ~exist(fullfile(pwd,[nam, ext]),'file')
+    error('file "%s" does not exist.',fname);
 end
 switch ext
     case {'.hdr','.img'}
