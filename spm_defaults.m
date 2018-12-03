@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 7296 2018-04-18 10:36:49Z guillaume $
+% $Id: spm_defaults.m 7503 2018-12-03 12:20:12Z guillaume $
 
 
 global defaults
@@ -70,7 +70,7 @@ defaults.mask.thresh    = 0.8;
 
 % Stats defaults
 %==========================================================================
-defaults.stats.maxmem      = 2^29;
+defaults.stats.maxmem      = 2^30;
 defaults.stats.maxres      = 64;
 defaults.stats.resmem      = false;
 defaults.stats.fmri.ufp    = 0.001;  % Upper tail F-probability
