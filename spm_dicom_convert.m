@@ -36,7 +36,7 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 % Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7472 2018-11-05 13:54:50Z john $
+% $Id: spm_dicom_convert.m 7507 2018-12-12 10:51:32Z john $
 
 
 %-Input parameters
@@ -1738,47 +1738,82 @@ for n=1:size(ord,2)
         if isfield(this(i),'MRScaleIntercept'), pinfos(i,2) =  -this(i).MRScaleIntercept*pinfos(i,1); end
 
     end
+    
+    % The following requires more testing. Only tested on the following 
+    % multiframe datasets (all Philips MRI data):
+    % - EPI series (either GRE-EPI (fMRI) or SE-EPI (DWI)),
+    % - structural mono-volume images (FLAIR, T1FFE),
+    % - structural multi-echo images (MPM protocol)
+    % - B0 mapping (two volumes including magnitude and phase in
+    %   milliradians).
+    % The first three cases above correspond to 
+    % any(any(diff(pinfos,1))) == false (identical scaling for all frames,
+    % no problem there), while the latter corresponds to
+    % any(any(diff(pinfos,1))) == true (variable scaling and problems).  
     if ~any(any(diff(pinfos,1)))
         % Same slopes and intercepts for all slices
         dt    = DetermineDatatype(Header);
         pinfo = pinfos(1,:);
     else
-        % Variable slopes and intercept (maybe PET/SPECT)
-        mx = max(volume(:));
-        mn = min(volume(:));
+        % Variable slopes and intercept (maybe PET/SPECT) - or
+        % magnitude/phase data, or...?
 
-        %  Slope and Intercept
-        %  32767*pinfo(1) + pinfo(2) = mx
-        % -32768*pinfo(1) + pinfo(2) = mn
-        % pinfo = ([32767 1; -32768 1]\[mx; mn])';
-
-        % Slope only
+        % If variable slopes and intercepts in the multiframe dataset, 
+        % each volume is saved as a separate NIfTI file with appropriate
+        % slope and intercept. NB: we assume that the same pinfo is used
+        % for all frames in a given volume - might not be the case?
+        dt = DetermineDatatype(Header); 
         dt    = 'int16-be';
-        pinfo = [max(mx/32767,-mn/32768) 0];
-
+        pinfo = [];
+        for cv = 1:max(inv_time_order)
+            ind = find(inv_time_order==cv);
+            pinfo = [pinfo; pinfos(ind(1),:)]; 
+        end
+        
         % Ensure random numbers are reproducible (see later)
         % when intensities are dithered to prevent aliasing effects.
         rand('state',0);
     end
 
-
-    % Create the header
+    % Define output NIfTI files
     %----------------------------------------------------------------------
-    Nii      = nifti;
-    fname    = sprintf('%s%s', fname, ext0);
-    Nii.dat  = file_array(fname, dim, dt, 0, pinfo(1), pinfo(2));
-    Nii.mat  = mat;
-    Nii.mat0 = mat;
-    Nii.mat_intent  = 'Scanner';
-    Nii.mat0_intent = 'Scanner';
-    Nii.descrip     = descrip;
-    create(Nii);
+    fname0 = fname;
+    for cNii = 1:size(pinfo,1)
+        % Define output file name
+        if size(pinfo,1)>1
+            fname = sprintf('%s-%.4d',fname0,cNii);
+            dim = dim(1:3);
+        end
+        
+        % Create nifti file
+        Nii{cNii}      = nifti; %#ok<*AGROW>
+        fname          = sprintf('%s%s', fname, ext0);
+        Nii{cNii}.dat  = file_array(fname, dim, dt, 0, pinfo(cNii,1), pinfo(cNii,2));
+        Nii{cNii}.mat  = mat;
+        Nii{cNii}.mat0 = mat;
+        Nii{cNii}.mat_intent  = 'Scanner';
+        Nii{cNii}.mat0_intent = 'Scanner';
+        Nii{cNii}.descrip     = descrip;
+        create(Nii{cNii});
     
-    if meta
-        Nii = spm_dicom_metadata(Nii, Header);
+        % for json metadata, need to sort out the portion of the Header
+        % that corresponds to the current Nii volume (if multiscale &
+        % multiframe data -> 3D volumes): 
+        if meta
+            cHeader{cNii} = Header;
+            if size(pinfo,1)>1
+                cHeader{cNii} = rmfield(cHeader{cNii},'PerFrameFunctionalGroupsSequence');
+                ind = find(inv_time_order==cNii);
+                cHeader{cNii}.NumberOfFrames = length(ind);
+                for cF = 1:length(ind)
+                    cHeader{cNii}.PerFrameFunctionalGroupsSequence{cF} = Header.PerFrameFunctionalGroupsSequence{ind(cF)};
+                end
+            end
+            Nii{cNii} = spm_dicom_metadata(Nii{cNii},cHeader{cNii});
+        end
+        
+        Nii{cNii}.dat(end,end,end,end,end) = 0;
     end
-    
-    Nii.dat(end,end,end,end,end) = 0;
 
     % Write the image volume
     %----------------------------------------------------------------------
@@ -1804,11 +1839,17 @@ for n=1:size(ord,2)
 
         z = inv_slice_order(i);
         t = inv_time_order(i);
-        Nii.dat(:,:,z,t) = plane;
+        if size(pinfo,1)>1
+            Nii{t}.dat(:,:,z) = plane;
+        else
+            Nii{1}.dat(:,:,z,t) = plane;
+        end
         spm_progress_bar('Set',i);
     end
 
-    out = [out; {Nii.dat.fname}];
+    for cNii = 1:size(pinfo,1)
+        out = [out; {Nii{cNii}.dat.fname}];
+    end
     spm_progress_bar('Clear');
 end
 
