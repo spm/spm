@@ -14,7 +14,7 @@ function y = spm_betaln(z)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_betaln.m 6741 2016-03-07 10:32:29Z karl $
+% $Id: spm_betaln.m 7508 2018-12-21 09:49:44Z thomas $
 
 % log the multivariate beta function of a vector
 %--------------------------------------------------------------------------
@@ -26,7 +26,9 @@ else
         for j = 1:size(z,3)
             for k = 1:size(z,4)
                 for l = 1:size(z,5)
-                    y(1,i,j,k,l) = spm_betaln(z(:,i,j,k,l));
+                    for m = 1:size(z,6)
+                        y(1,i,j,k,l,m) = spm_betaln(z(:,i,j,k,l,m));
+                    end
                 end
             end
         end
