@@ -359,7 +359,7 @@
 % library.  If this is what you want to do, use the GNU Library General
 % Public License instead of this License.
 %__________________________________________________________________________
-% Copyright (C) 1991,1994-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % The FIL Methods Group
-% $Id: LICENCE.txt 7241 2018-01-03 17:45:42Z guillaume $
+% $Id: LICENCE.txt 7509 2019-01-02 14:54:14Z guillaume $
