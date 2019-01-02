@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 7353 2018-06-19 10:39:55Z guillaume $
+ * $Id: file2mat.c 7510 2019-01-02 15:06:12Z guillaume $
  * John Ashburner
  */
 
@@ -49,7 +49,7 @@ typedef char *caddr_t;
 http://en.wikipedia.org/wiki/Page_(computing)#Determining_the_page_size_in_a_program
 http://msdn.microsoft.com/en-us/library/aa366763(VS.85).aspx
 */
-int page_size()
+static int page_size()
 {
 int size = 0;
 
@@ -89,13 +89,13 @@ static void get_1_sat(mwSize ndim, mwSize idim[], unsigned long long *iptr[], un
     }
 }
 
-void get_1(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned char idat[],
+static void get_1(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned char idat[],
            mwSize odim[], unsigned char odat[])
 {
     get_1_sat(ndim, idim, iptr, idat, odim, odat, 0, 0);
 }
 
-void get_8(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned char idat[],
+static void get_8(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned char idat[],
            mwSize odim[], unsigned char odat[])
 {
     mwIndex i;
@@ -112,7 +112,7 @@ void get_8(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned char
     }
 }
 
-void get_16(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned short idat[],
+static void get_16(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned short idat[],
             mwSize odim[], unsigned short odat[])
 {
     mwIndex i;
@@ -129,7 +129,7 @@ void get_16(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned sho
     }
 }
 
-void get_32(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned int idat[],
+static void get_32(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned int idat[],
             mwSize odim[], unsigned int odat[])
 {
     mwIndex i;
@@ -146,7 +146,7 @@ void get_32(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned int
     }
 }
 
-void get_64(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned long long idat[],
+static void get_64(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned long long idat[],
             mwSize odim[], unsigned long long odat[])
 {
     mwSize i;
@@ -163,7 +163,7 @@ void get_64(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned lon
     }
 }
 
-void get_w8(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned char idat[],
+static void get_w8(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned char idat[],
             mwSize odim[], unsigned char odat_r[], unsigned char odat_i[])
 {
     mwIndex i;
@@ -185,7 +185,7 @@ void get_w8(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned cha
     }
 }
 
-void get_w16(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned short idat[],
+static void get_w16(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned short idat[],
              mwSize odim[], unsigned short odat_r[], unsigned short odat_i[])
 {
     mwIndex i;
@@ -207,7 +207,7 @@ void get_w16(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned sh
     }
 }
 
-void get_w32(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned int idat[],
+static void get_w32(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned int idat[],
              mwSize odim[], unsigned int odat_r[], unsigned int odat_i[])
 {
     mwIndex i;
@@ -229,7 +229,7 @@ void get_w32(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned in
     }
 }
 
-void get_w64(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned long long idat[],
+static void get_w64(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned long long idat[],
              mwSize odim[], unsigned long long odat_r[], unsigned long long odat_i[])
 {
     mwIndex i;
@@ -251,10 +251,10 @@ void get_w64(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned lo
     }
 }
 
-void swap8(long long n, unsigned char d[])
+static void swap8(long long n, unsigned char d[])
 { /* DO NOTHING */}
 
-void swap16(long long n, unsigned char d[])
+static void swap16(long long n, unsigned char d[])
 {
     unsigned char tmp, *de;
     for(de=d+2*n; d<de; d+=2)
@@ -263,7 +263,7 @@ void swap16(long long n, unsigned char d[])
     }
 }
 
-void swap32(long long n, unsigned char d[])
+static void swap32(long long n, unsigned char d[])
 {
     unsigned char tmp, *de;
     for(de=d+4*n; d<de; d+=4)
@@ -273,7 +273,7 @@ void swap32(long long n, unsigned char d[])
     }
 }
 
-void swap64(long long n, unsigned char d[])
+static void swap64(long long n, unsigned char d[])
 {
     unsigned char tmp, *de;
     for(de=d+8*n; d<de; d+=8)
@@ -294,7 +294,7 @@ typedef struct dtype {
     int channels;
 } Dtype;
 
-Dtype table[] = {
+static Dtype table[] = {
 {   1,get_1  , swap8 , mxLOGICAL_CLASS, 1,1},
 {   2,get_8  , swap8 , mxUINT8_CLASS  , 8,1},
 {   4,get_16 , swap16, mxINT16_CLASS  ,16,1},
@@ -324,7 +324,7 @@ typedef struct mtype {
 } MTYPE;
 
 #ifdef SPM_WIN32
-void werror(char *where, DWORD last_error)
+static void werror(char *where, DWORD last_error)
 {
     char buf[512];
     char s[1024];
@@ -342,7 +342,7 @@ void werror(char *where, DWORD last_error)
     return;
 }
 #else
-void werror(char *where, int last_error)
+static void werror(char *where, int last_error)
 {
     char s[1024];
     
@@ -352,7 +352,7 @@ void werror(char *where, int last_error)
 }
 #endif
 
-void do_unmap_file(MTYPE *map)
+static void do_unmap_file(MTYPE *map)
 {
     int sts;
     if (map->addr)
@@ -370,7 +370,7 @@ void do_unmap_file(MTYPE *map)
     }
 }
 
-const double *getpr(const mxArray *ptr, const char nam[], int len, int *n)
+static const double *getpr(const mxArray *ptr, const char nam[], int len, int *n)
 {
     char s[128];
     mxArray *arr;
@@ -412,7 +412,7 @@ const double *getpr(const mxArray *ptr, const char nam[], int len, int *n)
     return (double *)mxGetData(arr);
 }
 
-void do_map_file(const mxArray *ptr, MTYPE *map)
+static void do_map_file(const mxArray *ptr, MTYPE *map)
 {
     int n;
     int i, dtype;

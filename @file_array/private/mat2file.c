@@ -1,5 +1,5 @@
 /*
- * $Id: mat2file.c 7038 2017-03-15 12:43:51Z guillaume $
+ * $Id: mat2file.c 7510 2019-01-02 15:06:12Z guillaume $
  * John Ashburner
  */
 
@@ -41,7 +41,7 @@ typedef struct dtype {
 
 #define copy swap8
 
-void swap8(int n, unsigned char id[], unsigned char od[])
+static void swap8(int n, unsigned char id[], unsigned char od[])
 {
     unsigned char *de;
     for(de=id+n; id<de; id++, od++)
@@ -50,7 +50,7 @@ void swap8(int n, unsigned char id[], unsigned char od[])
     }
 }
 
-void swap16(int n, unsigned char id[], unsigned char od[])
+static void swap16(int n, unsigned char id[], unsigned char od[])
 {
     unsigned char tmp, *de;
     for(de=id+n; id<de; id+=2, od+=2)
@@ -59,7 +59,7 @@ void swap16(int n, unsigned char id[], unsigned char od[])
     }
 }
 
-void swap32(int n, unsigned char id[], unsigned char od[])
+static void swap32(int n, unsigned char id[], unsigned char od[])
 {
     unsigned char tmp, *de;
     for(de=id+n; id<de; id+=4, od+=4)
@@ -69,7 +69,7 @@ void swap32(int n, unsigned char id[], unsigned char od[])
     }
 }
 
-void swap64(int n, unsigned char id[], unsigned char od[])
+static void swap64(int n, unsigned char id[], unsigned char od[])
 {
     unsigned char tmp, *de;
     for(de=id+n; id<de; id+=8, od+=8)
@@ -82,7 +82,7 @@ void swap64(int n, unsigned char id[], unsigned char od[])
 }
 
 
-Dtype table[] = {
+static Dtype table[] = {
 {   1, swap8 , mxLOGICAL_CLASS, 1,1},
 {   2, swap8 , mxUINT8_CLASS  , 8,1},
 {   4, swap16, mxINT16_CLASS  ,16,1},
@@ -105,13 +105,13 @@ typedef struct ftype {
     off_t   off;
 } FTYPE;
 
-off_t icumprod[MXDIMS], ocumprod[MXDIMS];
-off_t poff;
-long len;
+static off_t icumprod[MXDIMS], ocumprod[MXDIMS];
+static off_t poff;
+static long len;
 #define BLEN 131072
-unsigned char wbuf[BLEN], *dptr;
+static unsigned char wbuf[BLEN], *dptr;
 
-void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[], off_t indo, off_t indi, void (*swap)())
+static void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[], off_t indo, off_t indi, void (*swap)())
 {
     int i;
     off_t nb = ocumprod[ndim];
@@ -154,7 +154,7 @@ void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[],
     }
 }
 
-void put(FTYPE map, int *ptr[], int idim[], void *idat)
+static void put(FTYPE map, int *ptr[], int idim[], void *idat)
 {
     int i, nbytes;
     void (*swap)();
@@ -187,7 +187,7 @@ void put(FTYPE map, int *ptr[], int idim[], void *idat)
     }
 }
 
-const double *getpr(const mxArray *ptr, const char nam[], int len, int *n)
+static const double *getpr(const mxArray *ptr, const char nam[], int len, int *n)
 {
     char s[256];
     mxArray *arr;
@@ -230,7 +230,7 @@ const double *getpr(const mxArray *ptr, const char nam[], int len, int *n)
 }
 
 
-void open_file(const mxArray *ptr, FTYPE *map)
+static void open_file(const mxArray *ptr, FTYPE *map)
 {
     int n;
     int i, dtype;
@@ -299,7 +299,7 @@ void open_file(const mxArray *ptr, FTYPE *map)
 }
 
 
-void close_file(FTYPE map)
+static void close_file(FTYPE map)
 {
     (void)fclose(map.fp);
 }
