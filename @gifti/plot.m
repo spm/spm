@@ -4,7 +4,7 @@ function varargout = plot(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: plot.m 7381 2018-07-25 10:27:54Z guillaume $
+% $Id: plot.m 7513 2019-01-15 15:17:29Z guillaume $
 
 % if ishandle(varargin{1})
 %     h = figure(varargin{1});
@@ -55,10 +55,13 @@ if ~isempty(cdata)
     set(hp,'FaceVertexCData',cdata(:,indc), 'FaceColor','interp')
 end
 
-camlight(ax);
-camlight(ax,-80,-10);
+axes(ax);
+camlight;
+camlight(-80,-10);
 lighting(ax,'gouraud');
-cameratoolbar(h);
+if strcmp(spm_check_version,'matlab')
+    cameratoolbar(h);
+end
 
 if nargout
     varargout{1} = hp;
