@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 7506 2018-12-11 15:30:56Z guillaume $
+% $Id: spm_input.m 7515 2019-01-17 17:13:03Z guillaume $
 
 
 %=======================================================================
@@ -782,9 +782,9 @@ else                                             %-Use GUI to get answer
     %-Default button surrounding edit widget (if a DefStr given)
     %-Callback sets hPrmpt UserData, and EditWidget string, to DefStr
     % (Buttons UserData holds handles [hPrmpt,hEditWidget], set later)
-    cb = ['set(subsref(get(gcbo,''UserData''),substruct(''()'',{1}),',...
+    cb = ['set(subsref(get(gcbo,''UserData''),substruct(''()'',{1})),',...
           '''UserData'',get(gcbo,''String'')),',...
-          'set(subsref(get(gcbo,''UserData''),substruct(''()'',{2}),',...
+          'set(subsref(get(gcbo,''UserData''),substruct(''()'',{2})),',...
           '''String'',get(gcbo,''String''))'];
     if ~isempty(DefStr)
         if iscellstr(DefStr), str=[DefStr{1},'...'];
