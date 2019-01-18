@@ -1,9 +1,9 @@
 #!/usr/bin/env make -f
 # General Makefile to compile SPM C-MEX files
 #
-# Copyright (C) 1991-2018 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 7426 2018-09-20 16:17:04Z guillaume $
+# $Id: Makefile 7516 2019-01-18 10:55:51Z guillaume $
 #
 ###############################################################################
 #
@@ -110,6 +110,8 @@ tbx tbx-all tbx-clean tbx-distclean tbx-install tbx-tarball:
 .PHONY: toolbox toolbox-all toolbox-clean toolbox-distclean toolbox-install toolbox-tarball
 toolbox toolbox-all toolbox-clean toolbox-distclean toolbox-install toolbox-tarball:
 	$(warning Target "toolbox" is deprecated.)
+
+.NOTPARALLEL:
 
 ###############################################################################
 # Compile spm_vol_utils.c with various flags
