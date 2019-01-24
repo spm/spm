@@ -45,7 +45,7 @@ function varargout = spm_figure(varargin)
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 7442 2018-10-11 10:31:38Z guillaume $
+% $Id: spm_figure.m 7518 2019-01-24 11:14:40Z guillaume $
 
 
 %==========================================================================
@@ -771,7 +771,7 @@ if isempty(F), return, end
 
 %-Help Menu
 t0 = findall(allchild(F),'Flat','Label','&Help');
-if isempty(t0) || isdeployed, t0 = uimenu( F,'Label','&Help'); end
+if isempty(t0) || isdeployed, t0 = uimenu( F,'Label','&Help', 'HandleVisibility','off'); end
 set(t0,'Callback',''); set(t0,'Tag','');
 if ~isempty(allchild(t0)), delete(allchild(t0)); end
 pos = get(t0,'Position');
@@ -779,7 +779,7 @@ if strcmpi(spm_check_version,'octave') && ~pos, return; end % bug #49734
 uimenu(t0,'Label','SPM Help','CallBack','spm_help');
 uimenu(t0,'Label','SPM Manual (PDF)',...
     'CallBack','try,open(fullfile(spm(''dir''),''man'',''manual.pdf''));end');
-t1 = uimenu(t0,'Label','SPM &Web Resources');
+t1 = uimenu(t0,'Label','SPM &Web Resources', 'HandleVisibility','off');
 uimenu(t1,'Label','SPM Web &Site',...
     'CallBack','web(''https://www.fil.ion.ucl.ac.uk/spm/'');');
 uimenu(t1,'Label','SPM &WikiBook',...

@@ -13,10 +13,10 @@ function varargout = spm_check_installation(action)
 % Build signature of SPM distribution as used by 'full' option.
 % (for developers)
 %__________________________________________________________________________
-% Copyright (C) 2009-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 7372 2018-07-09 16:50:44Z guillaume $
+% $Id: spm_check_installation.m 7518 2019-01-24 11:14:40Z guillaume $
 
 if isdeployed, return; end
 
@@ -318,14 +318,21 @@ end
 %--------------------------------------------------------------------------
 fprintf('MEX extension: %s\n',mexext);
 try
-    cc = mex.getCompilerConfigurations('C','Selected');
-    if ~isempty(cc)
-        cc = cc(1); % can be C or C++
-        fprintf('C Compiler: %s (%s).\n', cc.Name, cc.Version);
-        fprintf('C Compiler settings: %s (''%s'')\n', ...
-            cc.Details.CompilerExecutable, cc.Details.OptimizationFlags);
+    if ~exist('OCTAVE_VERSION','builtin')
+        cc = mex.getCompilerConfigurations('C','Selected');
+        if ~isempty(cc)
+            cc = cc(1); % can be C or C++
+            fprintf('C Compiler: %s (%s).\n', cc.Name, cc.Version);
+            fprintf('C Compiler settings: %s (''%s'')\n', ...
+                cc.Details.CompilerExecutable, cc.Details.OptimizationFlags);
+        else
+            fprintf('No C compiler is selected (see mex -setup)\n');
+        end
     else
-        fprintf('No C compiler is selected (see mex -setup)\n');
+        mkoctfile('--version');
+        fprintf('C Compiler: %s.\n', deblank(mkoctfile('--print','CC')));
+        fprintf('ALL_CFLAGS: %s.\n', deblank(mkoctfile('--print','ALL_CFLAGS')));
+        fprintf('ALL_LDFLAGS: %s.\n', deblank(mkoctfile('--print','ALL_LDFLAGS')));
     end
 end
 try
