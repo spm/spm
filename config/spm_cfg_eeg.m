@@ -3,8 +3,7 @@ function meeg = spm_cfg_eeg
 %__________________________________________________________________________
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg.m 7402 2018-08-17 16:18:12Z tim $
-% $Id: spm_cfg_eeg.m 7402 2018-08-17 16:18:12Z tim $
+% $Id: spm_cfg_eeg.m 7522 2019-01-30 18:16:40Z tim $
 
 %--------------------------------------------------------------------------
 % M/EEG preprocessing
@@ -79,7 +78,7 @@ meegopm        = cfg_choice;
 meegopm.tag    = 'OPM';
 meegopm.name   = 'OPM Preprocessing';
 meegopm.help   = {'OPM Preprocessing'};
-meegopm.values = {spm_cfg_eeg_opmsetup,spm_cfg_opm_read_lvm, spm_cfg_opm_create,spm_cfg_opm_epoch_trigger,spm_cfg_opm_synth_gradiometer}; 
+meegopm.values = {spm_cfg_opm_create,spm_cfg_opm_synth_gradiometer,spm_cfg_opm_epoch_trigger}; 
 
 %--------------------------------------------------------------------------
 % M/EEG
