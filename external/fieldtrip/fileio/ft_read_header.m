@@ -210,7 +210,7 @@ else
   checkmaxfilter = ft_getopt(varargin, 'checkmaxfilter', true);
   
   if isempty(cache)
-    if any(strcmp(headerformat, {'bci2000_dat', 'eyelink_asc', 'gtec_mat', 'gtec_hdf5', 'mega_neurone', 'smi_txt', 'biosig'}))
+    if any(strcmp(headerformat, {'bci2000_dat', 'eyelink_asc', 'gtec_mat', 'gtec_hdf5', 'mega_neurone', 'nihonkohden_m00', 'smi_txt', 'biosig'}))
       cache = true;
     else
       cache = false;
@@ -738,6 +738,18 @@ switch headerformat
     % read the header information from shared memory
     hdr = read_shm_header(filename);
     
+    
+  case {'curry_dat', 'curry_cdt'}
+    orig            = load_curry_data_file(filename);
+    hdr             = [];
+    hdr.Fs          = orig.fFrequency;
+    hdr.nChans      = orig.nChannels;
+    hdr.nSamples    = orig.nSamples;
+    hdr.nSamplesPre = sum(orig.time<0);
+    hdr.nTrials     = orig.nTrials;
+    hdr.label       = orig.labels(:);
+    hdr.orig        = orig;
+    
   case 'dataq_wdq'
     orig            = read_wdq_header(filename);
     hdr             = [];
@@ -977,7 +989,7 @@ switch headerformat
     end
     
     % get hdr info from xml files
-    ws = warning('off', 'MATLAB:REGEXP:deprecated'); % due to some small code xml2struct
+    ws = ft_warning('off', 'MATLAB:REGEXP:deprecated'); % due to some small code xml2struct
     xmlfiles = dir( fullfile(filename, '*.xml'));
     disp('reading xml files to obtain header info...')
     for i = 1:numel(xmlfiles)
@@ -989,7 +1001,7 @@ switch headerformat
         orig.xml.(fieldname) = xml2struct(filename_xml);
       end
     end
-    warning(ws); % revert the warning state
+    ft_warning(ws); % revert the warning state
     
     % epochs.xml seems the most common version, but epoch.xml might also
     % occur, so use only one name
@@ -1171,10 +1183,9 @@ switch headerformat
     hdr.orig = orig;
     
   case 'egi_mff_v2'
-    % ensure that the EGI_MFF toolbox is on the path
-    ft_hastoolbox('egi_mff', 1);
-    % ensure that the JVM is running and the jar file is on the path
-    
+    % ensure that the EGI_MFF_V2 toolbox is on the path
+    ft_hastoolbox('egi_mff_v2', 1);
+
     %%%%%%%%%%%%%%%%%%%%%%
     %workaround for MATLAB bug resulting in global variables being cleared
     globalTemp=cell(0);
@@ -1186,6 +1197,7 @@ switch headerformat
     end
     %%%%%%%%%%%%%%%%%%%%%%
     
+    % ensure that the JVM is running and the jar file is on the path
     mff_setup;
     
     %%%%%%%%%%%%%%%%%%%%%%
@@ -1200,7 +1212,7 @@ switch headerformat
     end
     clear globalTemp globalList varNames varList;
     %%%%%%%%%%%%%%%%%%%%%%
-    
+
     if isunix && filename(1)~=filesep
       % add the full path to the dataset directory
       filename = fullfile(pwd, filename);
@@ -1208,6 +1220,7 @@ switch headerformat
       % add the full path, including drive letter or slashes as needed.
       filename = fullfile(pwd, filename);
     end
+
     hdr = read_mff_header(filename);
     
   case {'egi_mff_v3' 'egi_mff'} % this is the default
@@ -2161,7 +2174,15 @@ switch headerformat
     hdr = read_neurosim_spikes(filename, headerOnly);
     
   case 'nihonkohden_m00'
-    hdr = read_nihonkohden_hdr(filename);
+    % this is an ASCII file format which is rather inefficient to read
+    if cache
+      % read it once and store the data along with the header
+      [hdr, dat] = read_nihonkohden_m00(filename);
+      hdr.orig.dat = dat;
+    else
+      % read only the header
+      hdr = read_nihonkohden_m00(filename);
+    end
     
   case 'nihonkohden_eeg'
     ft_hastoolbox('brainstorm', 1);
@@ -2551,8 +2572,8 @@ switch headerformat
     % attempt to run headerformat as a function
     % in case using an external read function was desired, this is where it is executed
     % if it fails, the regular unsupported error message is thrown
-    hdr = feval(headerformat,filename);
     try
+      hdr = feval(headerformat,filename);
     catch
       if strcmp(fallback, 'biosig') && ft_hastoolbox('BIOSIG', 1)
         hdr = read_biosig_header(filename);
@@ -2654,7 +2675,7 @@ end
 if cache && exist(headerfile, 'file')
   % put the header in the cache
   cacheheader = hdr;
-  % update the header details (including time stampp, size and name)
+  % update the header details (including time stamp, size and name)
   cacheheader.details = dir(headerfile);
   % fprintf('added header to cache\n');
 end

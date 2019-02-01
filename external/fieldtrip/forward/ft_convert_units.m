@@ -143,6 +143,8 @@ if isfield(obj, 'tra') && isfield(obj, 'chanunit')
       % assume that it is T or V, don't do anything
     elseif strcmp(obj.chanunit{i}, 'unknown')
       % assume that it is T or V, don't do anything
+    elseif strcmp(obj.chanunit{i}, 'snr')
+      %
     else
       ft_error('unexpected units %s', obj.chanunit{i});
     end
@@ -170,6 +172,17 @@ end
 if isfield(obj, 'transformorig')
   H = diag([scale scale scale 1]);
   obj.transformorig = H * obj.transformorig;
+end
+
+% remove initial and params structure if they exist
+if isfield(obj, 'initial') && ~strcmp(target, 'mm')
+  obj = rmfield(obj, 'initial');
+  ft_warning('Removing field "initial" because potential transformations of normalised volumes only work if geometrical values are expressed in "mm"');
+end
+
+if isfield(obj, 'params') && ~strcmp(target, 'mm')
+  ft_warning('Removing field "params" because potential transformations of normalised volumes only work if geometrical values are expressed in "mm"');
+  obj = rmfield(obj, 'params');
 end
 
 % sourcemodel obtained through mne also has a orig-field with the high
