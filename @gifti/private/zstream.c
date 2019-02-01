@@ -1,5 +1,5 @@
 /*
- * $Id: zstream.c 7400 2018-08-17 13:53:33Z guillaume $
+ * $Id: zstream.c 7523 2019-02-01 11:31:08Z guillaume $
  * Guillaume Flandin
  */
 
@@ -21,7 +21,7 @@
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 
-char *action;
+char *action = NULL;
 unsigned char *IN = NULL, *OUT = NULL;
 size_t INlen, OUTlen;
 int flag = 0;

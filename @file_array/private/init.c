@@ -1,5 +1,5 @@
 /*
- * $Id: init.c 6428 2015-05-06 14:09:04Z guillaume $
+ * $Id: init.c 7523 2019-02-01 11:31:08Z guillaume $
  * Guillaume Flandin
  */
 
@@ -11,6 +11,12 @@
 # if defined(__APPLE__)
 #  define structStat struct stat
 #  define getFileFstat fstat
+#  define getFilePos fgetpos
+#  define setFilePos fsetpos
+#  define fpos_T fpos_t
+# elif defined(SPM_WIN32)
+#  define structStat struct _stati64
+#  define getFileFstat _fstati64
 #  define getFilePos fgetpos
 #  define setFilePos fsetpos
 #  define fpos_T fpos_t

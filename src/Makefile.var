@@ -1,8 +1,8 @@
 # Makefile default variables
 #
-# Copyright (C) 1991-2018 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 7423 2018-09-20 13:58:15Z spm $
+# $Id: Makefile.var 7523 2019-02-01 11:31:08Z guillaume $
 #
 ###############################################################################
 #
@@ -15,15 +15,15 @@
 #
 # You can find some more help online on the SPM wikibook:
 #  * Linux:
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_Linux
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Linux 
+#      https://en.wikibooks.org/wiki/SPM/Installation_on_Linux
+#      https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Linux 
 #  * Windows:
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_Windows
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Windows
+#      https://en.wikibooks.org/wiki/SPM/Installation_on_Windows
+#      https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Windows
 #      MinGW: http://www.mingw.org/
 #  * MacOS:
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_Mac_OS_(Intel)
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Mac_OS_(Intel)
+#      https://en.wikibooks.org/wiki/SPM/Installation_on_Mac_OS_(Intel)
+#      https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Mac_OS_(Intel)
 #
 ###############################################################################
 
@@ -78,6 +78,9 @@ ifndef SUF
     MEXOPTS    = --mex
     SUF        = mex
     override PLATFORM = $(shell $(UNAME))
+    ifeq (MINGW64,$(word 1,$(subst _, ,$(PLATFORM))))
+      MEXOPTS   += -DSPM_WIN32
+    endif
   endif
   #### Otherwise ####
   ifndef SUF
