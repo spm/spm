@@ -9,44 +9,54 @@ function varargout = spm_jsonwrite(varargin)
 % S        - serialized JSON structure (string)
 %
 % FORMAT [...] = spm_jsonwrite(...,opts)
-% opts     - structure of optional parameters:
+% opts     - structure or list of name/value pairs of optional parameters:
 %              indent: string to use for indentation [Default: '']
 %              replacementStyle: string to control how non-alphanumeric
-%                characters are replaced [Default: 'underscore']
-%              convertinfandnan: encode NaN, Inf and -Inf as "null"
+%                characters are replaced {'underscore','hex','delete','nop'}
+%                [Default: 'underscore']
+%              convertInfAndNaN: encode NaN, Inf and -Inf as "null"
 %                [Default: true]
 % 
 % References:
-%   JSON Standard: http://www.json.org/
+%   JSON Standard: https://www.json.org/
+%   jsonencode: https://www.mathworks.com/help/matlab/ref/jsonencode.html
 %__________________________________________________________________________
-% Copyright (C) 2015-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 7478 2018-11-08 14:51:54Z guillaume $
+% $Id: spm_jsonwrite.m 7526 2019-02-06 14:33:18Z guillaume $
 
 
 %-Input parameters
 %--------------------------------------------------------------------------
-opts         = struct(...
+opts = struct(...
     'indent','',...
     'replacementstyle','underscore',...
     'convertinfandnan',true);
-opt          = struct([]);
-if nargin > 1
+opt  = {struct([])};
+
+if ~nargin
+    error('Not enough input arguments.');
+elseif nargin == 1
+    filename     = '';
+    json         = varargin{1};
+else
     if ischar(varargin{1})
         filename = varargin{1};
         json     = varargin{2};
+        opt      = varargin(3:end);
     else
         filename = '';
-        json = varargin{1};
-        opt  = varargin{2};
+        json     = varargin{1};
+        opt      = varargin(2:end);
     end
-    if nargin > 2
-        opt  = varargin{3};
-    end
+end
+if numel(opt) == 1 && isstruct(opt{1})
+    opt = opt{1};
+elseif mod(numel(opt),2) == 0
+    opt = cell2struct(opt(2:2:end),opt(1:2:end),2);
 else
-    filename = '';
-    json     = varargin{1};
+    error('Invalid syntax.');
 end
 fn = fieldnames(opt);
 for i=1:numel(fn)

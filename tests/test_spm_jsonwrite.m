@@ -1,9 +1,9 @@
 function tests = test_spm_jsonwrite
 % Unit Tests for spm_jsonwrite
 %__________________________________________________________________________
-% Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2016-2019 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_jsonwrite.m 7478 2018-11-08 14:51:54Z guillaume $
+% $Id: test_spm_jsonwrite.m 7526 2019-02-06 14:33:18Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -44,3 +44,21 @@ str = [1,2,NaN,3,Inf];
 exp = spm_jsonread('[1,2,null,3,null]');
 act = spm_jsonread(spm_jsonwrite(str));
 testCase.verifyTrue(isequaln(act, exp));
+
+%function test_jsonwrite_chararray(testCase)
+%str = char('one','two','three');
+%exp = {'one  ';'two  ';'three'};
+%act = spm_jsonread(spm_jsonwrite(str));
+%testCase.verifyTrue(isequal(exp, act));
+
+function test_options(testCase)
+exp = struct('Width',800,'Height',NaN,'Title','View','Bool',true);
+spm_jsonwrite(exp,'indent','');
+spm_jsonwrite(exp,'indent','  ');
+spm_jsonwrite(exp,'replacementStyle','underscore');
+spm_jsonwrite(exp,'replacementStyle','hex');
+spm_jsonwrite(exp,'convertInfAndNaN',true);
+spm_jsonwrite(exp,'convertInfAndNaN',false);
+spm_jsonwrite(exp,'indent',' ','replacementStyle','hex','convertInfAndNaN',false);
+spm_jsonwrite(exp,struct('indent','\t'));
+spm_jsonwrite(exp,struct('indent','\t','convertInfAndNaN',false));
