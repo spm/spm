@@ -44,7 +44,7 @@ function [E,V] = spm_tfm_priors(A,B,C)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_tfm_priors.m 6856 2016-08-10 17:55:05Z karl $
+% $Id: spm_tfm_priors.m 7527 2019-02-06 19:12:56Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -147,7 +147,7 @@ return
 % demo for log-normal pdf
 %==========================================================================
 x  = (1:64)/16;
-for i = [2 16 32 128]
+for i = [2 16 32 128 256]
     v = 1/i;
     p = 1./x.*exp(-log(x).^2/(2*v))/sqrt(2*pi*v);
     plot(x,p)

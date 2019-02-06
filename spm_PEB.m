@@ -24,16 +24,17 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 %
 % F       - [-ve] free energy F = log evidence = p(y|X,C)
 %
-% If P{i}.C is not a cell the covariance at that level is assumed to be kown
-% and Cov{e{i}} = P{i}.C (i.e. the hyperparameter is fixed at 1)
+% If P{i}.C is not a cell the covariance at that level is assumed to be
+% known and Cov{e{i}} = P{i}.C (i.e. the hyperparameter is fixed at 1)
 %
 % If P{n}.C is not a cell this is taken to indicate that a full Bayesian
 % estimate is required where P{n}.X is the prior expectation and P{n}.C is
-% the known prior covariance.  For consistency, with PEB, this is implemented
-% by setting b{n} = 1 through appropriate constraints at level {n + 1}.
+% the known prior covariance.  For consistency, with PEB, this is
+% implemented by setting b{n} = 1 through appropriate constraints at level
+% {n + 1}.
 %
-% To implement non-hierarchical Bayes with priors on the parameters use
-% a two level model setting the second level design matrix to zeros.
+% To implement non-hierarchical Bayes with priors on the parameters use a
+% two level model setting the second level design matrix to zeros.
 %__________________________________________________________________________
 %
 % Returns the moments of the posterior p.d.f. of the parameters of a
@@ -55,7 +56,7 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 7305 2018-05-07 13:35:06Z karl $
+% $Id: spm_PEB.m 7527 2019-02-06 19:12:56Z karl $
 
 % set default
 %--------------------------------------------------------------------------

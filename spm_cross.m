@@ -1,6 +1,7 @@
 function [Y] = spm_cross(X,x,varargin)
 % Multidimensional cross (outer) product
 % FORMAT [Y] = spm_cross(X,x)
+% FORMAT [Y] = spm_cross(X)
 %
 % X  - numeric array
 % x  - numeric array
@@ -12,7 +13,7 @@ function [Y] = spm_cross(X,x,varargin)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cross.m 7300 2018-04-25 21:14:07Z karl $
+% $Id: spm_cross.m 7527 2019-02-06 19:12:56Z karl $
 
 % handle single inputs
 %--------------------------------------------------------------------------
