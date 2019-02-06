@@ -35,7 +35,7 @@ function [y,w,s,g] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 7279 2018-03-10 21:22:44Z karl $
+% $Id: spm_csd_mtf.m 7529 2019-02-06 19:21:38Z karl $
 
 
 
@@ -164,7 +164,7 @@ end
 
 % model the effect of filtering during preprocessing
 %==========================================================================
-if isfield(M,'f')
+if isfield(P,'f')
     for c  = 1:length(y)
         f     = (1:nw)'; 
         f     = exp(P.f(1) + P.f(2)*f/nw);
