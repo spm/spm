@@ -1,118 +1,157 @@
-function [xY] = spm_voice_ff(Y,FS)
+function [xY] = spm_voice_ff(Y,FS,F0)
 % decomposition at fundamental frequency
-% FORMAT [xY] = spm_voice_ff(Y,FS)
+% FORMAT [xY] = spm_voice_ff(Y,FS,F0)
 %
-% file  - .wav file
+% Y    - timeseries
+% FS   - sampling frequency
+% F0   - fundamental frequency (glottal pulse rate)
 %
-% xY.Y  - timeseries
-% xY.i  - timing
-% xY.y  - unwrapped timeseries
-% xY.FS - sampling frequency
-% xY.ni - number of samples
-% xY.ti - last sample (seconds)
-% xY.ci - coefficients
+% output structure
+%--------------------------------------------------------------------------
+% xY.Y  -   timeseries
+% xY.Q  -   parameters - lexical
+% xY.P  -   parameters - prosidy
+% 
+% xY.P.amp -   amplitude
+% xY.P.dur -   duration (seconds)
+% xY.P.ff0 -   fundamental frequency (Hz)
+% xY.P.ff1 -   format frequency (Hz)
+% xY.P.tim -   timbre
+% xY.P.inf -   inflection
 %
-% This routine decomposes a timeseries into a temporal basis set at the
-% fundamental frequency
+% This routine transforms a timeseries using a series of discrete cosine
+% transforms and segmentations into a set of lexical and prosody
+% parameters. Effectively, this is a rather complicated sequence of
+% straightforward operations that constitute a parameterised nonlinear
+% mapping from a parameter space to a timeseries corresponding to a spoken
+% word. In brief, the transform involves identifying the interval
+% containing the words spectral energy and dividing it up into a sequence
+% of  fundamental segments (at the fundamental frequency or glottal pulse
+% rate). The spectral content (or form of transient) for each segment is
+% characterised in terms of the cross covariance function whose length is
+% determined by the fundamental format frequency. The resulting matrix  its
+% parameterised with even functions based upon a discrete cosine transform.
+% Because the basis functions are even (i.e. symmetrical) the resulting
+% coefficients nonnegative. In turn, this allows a log transform  and
+% subsequent normalisation, by a scaling (timbre) parameter. The normalised
+% log format coefficients are finally parameterised using two discrete
+% cosine transforms over time, within and between segments, respectively.
+% This provides a sufficiently rich parameterisation to generate reasonably
+% realistic timeseries. The  fluctuations in the fundamental frequency
+% between segments are parameterised with another discrete cosine
+% transform. This has two key parameters that model inflection. Please see
+% the annotated code below for further details.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7512 2019-01-05 21:15:16Z karl $
+% $Id: spm_voice_ff.m 7528 2019-02-06 19:19:49Z karl $
 
-% find Sigma points (maxima of Hilbert transform)
+
+% defaults
+%--------------------------------------------------------------------------
+if nargin < 3, F0 = 100; end
+
+% find periods of spectral energy, extract and normalise
+%--------------------------------------------------------------------------
+i     = spm_voice_onset(Y,FS);                % interval containing word
+Y     = Y(i);
+A     = max(abs(Y));
+Y     = Y/A;
+ny    = length(i);
+
+% parameterise fundamental frequency modulations
 %==========================================================================
+[I,DJ] = spm_voice_frequency(Y,FS,F0);        % get intervals
 
-% cross-correlation function of Hilbert transform
+DI    = mean(I);                              % average interval
+I     = I/DI;                                 % normalised intervals
+nI    = length(I);                            % number of intervals
+D     = spm_dctmtx(nI,3);                     % inflection basis set
+p     = I*D;                                  % fluctuations
+dI    = p*D'*DI;                              % parameterised intervals
+I     = round([1 cumsum(dI)]);                % starting from one
+
+% unwrap fundamental segments using cross covariance functions (ccf)
 %--------------------------------------------------------------------------
-H     = abs(hilbert(Y));
-ccf   = fftshift(xcorr(H,FS/32,'coeff'));
-k     = 1:numel(ccf);
-[d,i] = max(ccf'.*(k > FS/128 & k < FS/64));
-
-% find successive maxima
-%--------------------------------------------------------------------------
-dI    = i;
-I     = 1;
-for i = 1:256
-    di    = (1:(2*dI))';                      % search range
-    s     = (dI/8)^2;                         % window s.d.
-    g     = exp(-(di - dI).^2/(2*s));         % Gaussian search window
-    try
-        [d,j] = max((H(di + I(i))).*g);       % local maximum
-    catch
-        break                                 % break if no maxima
-    end
-    dI       = min(max(j,FS/128),FS/64);      % interval
-    I(i + 1) = I(i) + round(dI);              % next interval
-end
-
-% great sampling disease
-%--------------------------------------------------------------------------
-I     = round((I(1:end - 1) + I(2:end))/2);
-s0    = 16*FS/1000;                           % smoothing (milliseconds)
-sY    = spm_conv(abs(Y),s0);                  % smoothed power
-i     = find(sY/max(sY) > 1/16,1,'last');     % power offset
-
-J     = I(I < i);                             % indices of extrema
-nJ    = length(J);                            % number of sample points
-tJ    = J(end);                               % time length
-J0    = linspace(1,tJ,nJ);                    % uniform increments
-D     = spm_dctmtx(nJ,8);                     % basis set
-cJ    = (J0 - J)*D;                           % fluctuations
-tJ    = tJ/FS;                                % time in seconds
-
-
-% unwrap fundamental segments
-%--------------------------------------------------------------------------
-N     = 32;
-M     = 8;
-i     = J;
-ni    = numel(i) - 1;
-y     = zeros(N,ni);
+N     = 64;                                   % order of basis set
+ni    = numel(I) - 4;                         % number of intervals
+nj    = round(DJ);                            % interval length
+D     = spm_dctmtx(2*nj + 1,N*4);             % discrete cosine transform
+D     = D*kron(speye(N,N),[1 0 -1 0]');       % retain even functions
+Q     = zeros(N,ni);
 for j = 1:ni
-    ii     = i(j):(i(j + 1) - 1);
-    nii    = numel(ii);
-    H      = spm_hanning(nii);
-    [d,k]  = max(H.*Y(ii));
-    k      = k - numel(ii)/2;
-    jj     = max(1,ii + round(k));
-    D      = spm_dctmtx(length(jj),N*4);
-    D      = D*kron(speye(N,N),[1 0 -1 0]');
-    Yj     = H.*(Y(jj) + flipud(Y(jj)));
-    y(:,j) = D'*Yj;
+    ii     = I(j) + (0:2*nj);
+    ccf    = xcov(Y(ii),nj);
+    Q(:,j) = D'*ccf;
 end
 
-% temporal smoothing (within epoch)
+% log transform (nonnegative) coefficients  and parameterise with a pair
+% of discrete cosine transforms over time, within and between intervals
+% respectively to create formant parameters (Q)
 %--------------------------------------------------------------------------
-D     = spm_dctmtx(ni,M);
-y     = y*D;
-y     = y/sum(y(:).^2);
+Q    = abs(Q/mean(Q(:)));
+Q    = log(Q + exp(-8));
+Q    = Q - mean(Q(:));
+U    = spm_dctmtx(N,16);
+V    = spm_dctmtx(ni,8);
+Q    = U'*Q*V;
+Q    = Q - mean(Q(:));
+S    = std(Q(:));
+Q    = Q/S;
+ 
+% assemble prosody parameters
+%--------------------------------------------------------------------------
+P.amp = log(A);                              % amplitude
+P.dur = log(ny/FS);                          % duration (seconds)
+P.ff0 = log(FS/DI);                          % fundamental frequency (Hz)
+P.ff1 = log(FS/DJ);                          % format frequency (Hz)
+P.tim = log(S);                              % timbre
+P.inf = p/p(1);                              % inflection
 
 % output structure
 %--------------------------------------------------------------------------
-xY.Y  = Y;                                   % timeseries
-xY.y  = y;                                   % unwrapped timeseries
-xY.i  = i;                                   % timing
-xY.FS = FS;                                  % sampling frequency
-xY.ni = nJ;                                  % number of samples
-xY.ti = tJ;                                  % last sample
-xY.ci = cJ;                                  % coefficients
+xY.Y = Y;                                    % timeseries
+xY.Q = Q;                                    % parameters - lexical
+xY.P = P;                                    % parameters - prosidy
 
 
 return
 
-% graphics
+% uncomment 'return' for graphics
+%==========================================================================
+pst = (1:ny)/FS;
+subplot(2,2,1), plot(pst,Y), axis square, spm_axis tight
+xlabel('time (sec)'), ylabel('amplitude')
+title('Timeseries','FontSize',16)
+
+subplot(2,2,2), imagesc(D*exp(S*U*Q*V')), axis square
+xlabel('time (seconds)'), ylabel('time (bins)'), title('transients')
+
+subplot(4,2,6), imagesc(U*Q*V')
+xlabel('time (intervals)'), ylabel('time (bins)')
+title('Spectral decomposition','FontSize',16)
+
+subplot(4,2,8), imagesc(Q)
+xlabel('coefficients'), ylabel('coefficients')
+title('Parameters','FontSize',16)
+
+subplot(2,2,3), plot(FS./dI), axis square, spm_axis tight
+xlabel('time (intervals)'), ylabel('fundamental frequency')
+title('Inflection','FontSize',16), drawnow
+
+return
+
+% auxiliary code
+%==========================================================================
+
+% snap-to grid
 %--------------------------------------------------------------------------
-subplot(2,1,1)
-j    = (1:5000);
-b    = spm_zeros(Y);
-b(I) = max(Y);
-pst  = 1000*j/FS;
-plot(pst,Y(j),pst,b(j),':')
-
-
-
+Qi   = std(Q,[],2);
+Qj   = std(Q,[],1);
+i    = spm_voice_warp(Qi,6);
+j    = spm_voice_warp(Qj,3);
+Q    = Q(i,j);
 
 
 
