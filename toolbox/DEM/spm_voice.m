@@ -26,7 +26,7 @@ function [LEX,PRO] = spm_voice(path)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7528 2019-02-06 19:19:49Z karl $
+% $Id: spm_voice.m 7530 2019-02-07 10:41:59Z karl $
 
 
 
@@ -278,6 +278,8 @@ PRO(1).J = J/sum(J(:));
 
 % show results
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Accuracy'); clf
+
 subplot(2,1,1); imagesc(q)
 a     = 1 - sum((p(:) - q(:)) > 1/8)/sum(p(:));
 str   = sprintf('Lexical classification accuracy %-2.0f p.c.',100*a);

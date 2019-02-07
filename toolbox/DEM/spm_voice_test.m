@@ -15,7 +15,7 @@ function spm_voice_test(wfile,sfile,LEX,PRO)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7528 2019-02-06 19:19:49Z karl $
+% $Id: spm_voice_test.m 7530 2019-02-07 10:41:59Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -53,7 +53,7 @@ I     = sort(I(j(1:ns)));
 %% run through sound file and evaluate likelihoods
 %==========================================================================
 R     = [];                                    % lexical likelihood
-dI    = (-1:1)*FS/32;                          % sampling latencies
+dI    = (0)*FS/32;                          % sampling latencies
 for s = 1:ns
 
     % retrieve epoch and decompose at fundamental frequency
@@ -70,7 +70,9 @@ for s = 1:ns
     M      = spm_softmax(M);                   % likelihoods
     m      = squeeze(sum(sum(L,1),2));         % marginalise over lexicon
     L      = squeeze(sum(sum(L,2),3));         % marginalise over sampling
-    M      = spm_dot(M,{m});                   % marginalise prosody
+    if ndims(M) > 2
+        M  = spm_dot(M,{m});                   % marginalise prosody
+    end
     
     % identify the most likely word and prosody
     %----------------------------------------------------------------------
@@ -86,6 +88,7 @@ end
 
 %% illustrate classification accuracy
 %==========================================================================
+spm_figure('GetWin','Accuracy (test)'); clf
 
 % display true and inferred strings
 %--------------------------------------------------------------------------
@@ -122,7 +125,7 @@ titlestr = sprintf('Classification accuracy %-2.0f p.c.',100*(1 - a));
 title(titlestr,'FontSize',16), axis square
 subplot(2,2,4), imagesc(P)
 title('Prosody','FontSize',16), axis square
-set(gca,'YTick',1:size(P,2))
+set(gca,'YTick',1:size(P,1))
 xlabel('word'), ylabel('mode')
 
 
