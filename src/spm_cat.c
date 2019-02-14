@@ -1,5 +1,5 @@
 /*
- * $Id: spm_cat.c 5720 2013-10-31 13:46:05Z guillaume $
+ * $Id: spm_cat.c 7532 2019-02-14 12:03:24Z guillaume $
  * Copyright 2012 Eduardo Aponte <aponteeduardo@gmail.com>
  */
 
@@ -242,13 +242,12 @@ void full2sparse( const mxArray *ia, struct s_m *osm )
 {
     /* Convert an array into a sparse matrix */
     
-    mwSize nzmax,dn;
+    mwSize nzmax;
     const mwSize *ds;
     mwIndex i, j, k;
     double *pr, *pi = NULL, percent_sparse;
     int cf = (int ) mxIsComplex( ia );
     
-    dn = mxGetNumberOfDimensions( ia );
     ds = mxGetDimensions( ia );
     
     if ( mxIsDouble ( ia ) ){

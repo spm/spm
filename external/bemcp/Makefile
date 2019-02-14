@@ -2,14 +2,14 @@
 # EEG-BEM Makefile called by {SPM}/external/Makefile
 #
 # Christophe Phillips
-# $Id: Makefile 4793 2012-07-19 11:35:24Z spm $
+# $Id: Makefile 7532 2019-02-14 12:03:24Z guillaume $
 
 include ../../src/Makefile.var
 
 BEMCPMEX = \
-	bem_Cii_cog.$(SUF) bem_Cii_cst.$(SUF) bem_Cii_lin.$(SUF) \
-	bem_Cij_cog.$(SUF) bem_Cij_cst.$(SUF) bem_Cij_lin.$(SUF) \
-	bem_Gi_cog.$(SUF) bem_Gi_vert.$(SUF)
+	bem_Cii_cog.$(MEXEXT) bem_Cii_cst.$(MEXEXT) bem_Cii_lin.$(MEXEXT) \
+	bem_Cij_cog.$(MEXEXT) bem_Cij_cst.$(MEXEXT) bem_Cij_lin.$(MEXEXT) \
+	bem_Gi_cog.$(MEXEXT) bem_Gi_vert.$(MEXEXT)
 
 all: $(BEMCPMEX)
 
@@ -23,5 +23,5 @@ install:
 tarball: all
 	$(TAR) -cf spm_mex.tar --transform='s,^,bemcp/,g' $(BEMCPMEX)
 
-%.$(SUF) : %.c
+%.$(MEXEXT) : %.c
 	$(MEX) $< $(MEXEND)

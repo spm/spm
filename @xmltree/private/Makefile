@@ -3,11 +3,11 @@
 #
 # Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 5459 2013-05-01 17:51:59Z guillaume $
+# $Id: Makefile 7532 2019-02-14 12:03:24Z guillaume $
 
 include ../../src/Makefile.var
 
-SPMMEX = xml_findstr.$(SUF)
+SPMMEX = xml_findstr.$(MEXEXT)
 
 all: $(SPMMEX)
 	@:
@@ -24,5 +24,5 @@ install:
 tarball: all
 	$(TAR) cf spm_mex.tar $(SPMMEX)
 
-%.$(SUF) : %.c
+%.$(MEXEXT) : %.c
 	$(MEX) $< $(MEXEND)

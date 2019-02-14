@@ -41,7 +41,7 @@ unsigned int make_vectors(double        *rima,
         {
             for (r=0; r<dim[0]; r++)
             {
-                if (cr = rima[cri = index(r,c,sl,dim)])
+                if ( (cr = rima[cri = index(r,c,sl,dim)]) )
                 {
                     if (i > (size-4))
                     {

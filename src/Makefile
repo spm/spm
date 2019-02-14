@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 7516 2019-01-18 10:55:51Z guillaume $
+# $Id: Makefile 7532 2019-02-14 12:03:24Z guillaume $
 #
 ###############################################################################
 #
@@ -32,26 +32,26 @@ include Makefile.var
 ###############################################################################
 
 OBS     =\
-	utils_uchar.$(SUF).o utils_short.$(SUF).o utils_int.$(SUF).o \
-	utils_schar.$(SUF).o utils_ushort.$(SUF).o utils_uint.$(SUF).o\
-	utils_float.$(SUF).o utils_double.$(SUF).o\
-	utils_short_s.$(SUF).o utils_int_s.$(SUF).o\
-	utils_ushort_s.$(SUF).o utils_uint_s.$(SUF).o\
-	utils_float_s.$(SUF).o utils_double_s.$(SUF).o\
-	spm_make_lookup.$(SUF).o spm_getdata.$(SUF).o spm_vol_access.$(SUF).o\
-	spm_mapping.$(SUF).o
+	utils_uchar.$(MEXEXT).o utils_short.$(MEXEXT).o utils_int.$(MEXEXT).o \
+	utils_schar.$(MEXEXT).o utils_ushort.$(MEXEXT).o utils_uint.$(MEXEXT).o\
+	utils_float.$(MEXEXT).o utils_double.$(MEXEXT).o\
+	utils_short_s.$(MEXEXT).o utils_int_s.$(MEXEXT).o\
+	utils_ushort_s.$(MEXEXT).o utils_uint_s.$(MEXEXT).o\
+	utils_float_s.$(MEXEXT).o utils_double_s.$(MEXEXT).o\
+	spm_make_lookup.$(MEXEXT).o spm_getdata.$(MEXEXT).o spm_vol_access.$(MEXEXT).o\
+	spm_mapping.$(MEXEXT).o
 
 SPMMEX  =\
-	spm_sample_vol.$(SUF) spm_slice_vol.$(SUF) spm_brainwarp.$(SUF)\
-	spm_add.$(SUF) spm_conv_vol.$(SUF) spm_render_vol.$(SUF)\
-	spm_global.$(SUF) spm_resels_vol.$(SUF)\
-	spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
-	spm_unlink.$(SUF) spm_existfile.$(SUF) spm_gamrnd.$(SUF)\
-	spm_hist.$(SUF) spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
-	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
-	spm_voronoi.$(SUF) spm_mesh_utils.$(SUF) \
-	spm_mrf.$(SUF) spm_diffeo.$(SUF) spm_field.$(SUF) \
-	spm_cat.$(SUF) spm_jsonread.$(SUF) spm_mesh_reduce.$(SUF)
+	spm_sample_vol.$(MEXEXT) spm_slice_vol.$(MEXEXT) spm_brainwarp.$(MEXEXT)\
+	spm_add.$(MEXEXT) spm_conv_vol.$(MEXEXT) spm_render_vol.$(MEXEXT)\
+	spm_global.$(MEXEXT) spm_resels_vol.$(MEXEXT)\
+	spm_bsplinc.$(MEXEXT) spm_bsplins.$(MEXEXT)\
+	spm_unlink.$(MEXEXT) spm_existfile.$(MEXEXT) spm_gamrnd.$(MEXEXT)\
+	spm_hist.$(MEXEXT) spm_krutil.$(MEXEXT) spm_project.$(MEXEXT) spm_hist2.$(MEXEXT)\
+	spm_dilate_erode.$(MEXEXT) spm_bwlabel.$(MEXEXT) spm_get_lm.$(MEXEXT)\
+	spm_voronoi.$(MEXEXT) spm_mesh_utils.$(MEXEXT) \
+	spm_mrf.$(MEXEXT) spm_diffeo.$(MEXEXT) spm_field.$(MEXEXT) \
+	spm_cat.$(MEXEXT) spm_jsonread.$(MEXEXT) spm_mesh_reduce.$(MEXEXT)
 
 SUBDIRS =\
 	@file_array/private \
@@ -63,7 +63,7 @@ SUBDIRS =\
 # Public make targets
 ###############################################################################
 
-all: verb.$(SUF) main-all tbx-all verb.all.end
+all: verb.$(MEXEXT) main-all tbx-all verb.all.end
 
 clean: verb.clean main-clean tbx-clean
 
@@ -94,13 +94,13 @@ main-clean:
 	$(DEL) $(OBS)
 
 main-distclean:
-	$(DEL) $(SPMMEX) spm_vol_utils.$(SUF).a
+	$(DEL) $(SPMMEX) spm_vol_utils.$(MEXEXT).a
 
 main-install:
 	$(COPY) $(SPMMEX) ..
-	$(MOVE) ../spm_brainwarp.$(SUF) ../toolbox/OldNorm
+	$(MOVE) ../spm_brainwarp.$(MEXEXT) ../toolbox/OldNorm
 
-archive: spm_vol_utils.$(SUF).a
+archive: spm_vol_utils.$(MEXEXT).a
 
 tbx tbx-all tbx-clean tbx-distclean tbx-install tbx-tarball:
 	@@for p in $(SUBDIRS); do \
@@ -117,7 +117,7 @@ toolbox toolbox-all toolbox-clean toolbox-distclean toolbox-install toolbox-tarb
 # Compile spm_vol_utils.c with various flags
 ###############################################################################
 
-spm_vol_utils.$(SUF).a: $(OBS)
+spm_vol_utils.$(MEXEXT).a: $(OBS)
 	$(DEL) $@
 ifeq (windows,$(PLATFORM))
 	$(AR)$@ $(OBS)
@@ -127,59 +127,59 @@ endif
 
 UTILS = spm_vol_utils.c spm_make_lookup.h spm_getdata.h
 
-utils_uchar.$(SUF).o: $(UTILS)
+utils_uchar.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_UNSIGNED_CHAR $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
-utils_short.$(SUF).o: $(UTILS)
+utils_short.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_SIGNED_SHORT $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
-utils_int.$(SUF).o: $(UTILS)
+utils_int.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_SIGNED_INT $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
-utils_schar.$(SUF).o: $(UTILS)
+utils_schar.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_SIGNED_CHAR $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
-utils_ushort.$(SUF).o: $(UTILS)
+utils_ushort.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_UNSIGNED_SHORT $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
-utils_uint.$(SUF).o: $(UTILS)
+utils_uint.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_UNSIGNED_INT $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
-utils_float.$(SUF).o: $(UTILS)
+utils_float.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_FLOAT $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
-utils_double.$(SUF).o: $(UTILS)
+utils_double.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_DOUBLE $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
-utils_short_s.$(SUF).o: $(UTILS)
+utils_short_s.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_SIGNED_SHORT -DSPM_BYTESWAP $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
-utils_int_s.$(SUF).o: $(UTILS)
+utils_int_s.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_SIGNED_INT -DSPM_BYTESWAP $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
-utils_ushort_s.$(SUF).o: $(UTILS)
+utils_ushort_s.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_UNSIGNED_SHORT -DSPM_BYTESWAP $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
-utils_uint_s.$(SUF).o: $(UTILS)
+utils_uint_s.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_UNSIGNED_INT -DSPM_BYTESWAP $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
-utils_float_s.$(SUF).o: $(UTILS)
+utils_float_s.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_FLOAT -DSPM_BYTESWAP $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
-utils_double_s.$(SUF).o: $(UTILS)
+utils_double_s.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_DOUBLE -DSPM_BYTESWAP $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
@@ -187,23 +187,23 @@ utils_double_s.$(SUF).o: $(UTILS)
 # Compile a few additional C routines for linking
 ###############################################################################
 
-%.$(SUF).o : %.c
+%.$(MEXEXT).o : %.c
 	$(MEX) -c $< $(MEXEND)
 	$(MOVE) %.$(MOSUF) $@
 
-spm_getdata.$(SUF).o: spm_getdata.c spm_getdata.h
+spm_getdata.$(MEXEXT).o: spm_getdata.c spm_getdata.h
 	$(MEX) -c spm_getdata.c $(MEXEND)
 	$(MOVE) spm_getdata.$(MOSUF) $@
 	
-spm_vol_access.$(SUF).o: spm_vol_access.c spm_vol_access.h spm_datatypes.h
+spm_vol_access.$(MEXEXT).o: spm_vol_access.c spm_vol_access.h spm_datatypes.h
 	$(MEX) -c spm_vol_access.c $(MEXEND)
 	$(MOVE) spm_vol_access.$(MOSUF) $@
 
-spm_make_lookup.$(SUF).o: spm_make_lookup.c spm_make_lookup.h
+spm_make_lookup.$(MEXEXT).o: spm_make_lookup.c spm_make_lookup.h
 	$(MEX) -c spm_make_lookup.c $(MEXEND)
 	$(MOVE) spm_make_lookup.$(MOSUF) $@
 	
-spm_mapping.$(SUF).o: spm_mapping.c spm_mapping.h spm_vol_access.h spm_datatypes.h
+spm_mapping.$(MEXEXT).o: spm_mapping.c spm_mapping.h spm_vol_access.h spm_datatypes.h
 	$(MEX) -c spm_mapping.c $(MEXEND)
 	$(MOVE) spm_mapping.$(MOSUF) $@
 
@@ -211,94 +211,94 @@ spm_mapping.$(SUF).o: spm_mapping.c spm_mapping.h spm_vol_access.h spm_datatypes
 # Compile the mex files themselves
 ###############################################################################
 
-%.$(SUF) : %.c
+%.$(MEXEXT) : %.c
 	$(MEX) $< $(MEXEND)
 
-spm_add.$(SUF): spm_add.c spm_vol_utils.$(SUF).a\
+spm_add.$(MEXEXT): spm_add.c spm_vol_utils.$(MEXEXT).a\
 		spm_mapping.h spm_vol_access.h
-	$(MEX) spm_add.c spm_vol_utils.$(SUF).a $(MEXEND)
+	$(MEX) spm_add.c spm_vol_utils.$(MEXEXT).a $(MEXEND)
 
-spm_brainwarp.$(SUF): spm_brainwarp.c spm_matfuns.c spm_vol_utils.$(SUF).a\
+spm_brainwarp.$(MEXEXT): spm_brainwarp.c spm_matfuns.c spm_vol_utils.$(MEXEXT).a\
 		spm_mapping.h spm_vol_access.h
-	$(MEX) spm_brainwarp.c spm_vol_utils.$(SUF).a spm_matfuns.c $(MEXEND)
+	$(MEX) spm_brainwarp.c spm_vol_utils.$(MEXEXT).a spm_matfuns.c $(MEXEND)
 
-spm_bsplinc.$(SUF): spm_bsplinc.c bsplines.c spm_vol_utils.$(SUF).a\
+spm_bsplinc.$(MEXEXT): spm_bsplinc.c bsplines.c spm_vol_utils.$(MEXEXT).a\
 		spm_mapping.h spm_vol_access.h bsplines.h
-	$(MEX) spm_bsplinc.c bsplines.c spm_vol_utils.$(SUF).a $(MEXEND)
+	$(MEX) spm_bsplinc.c bsplines.c spm_vol_utils.$(MEXEXT).a $(MEXEND)
 
-spm_conv_vol.$(SUF): spm_conv_vol.c spm_vol_utils.$(SUF).a\
+spm_conv_vol.$(MEXEXT): spm_conv_vol.c spm_vol_utils.$(MEXEXT).a\
 		spm_mapping.h spm_vol_access.h spm_datatypes.h
-	$(MEX) spm_conv_vol.c spm_vol_utils.$(SUF).a $(MEXEND)
+	$(MEX) spm_conv_vol.c spm_vol_utils.$(MEXEXT).a $(MEXEND)
 
-spm_global.$(SUF): spm_global.c spm_vol_utils.$(SUF).a\
+spm_global.$(MEXEXT): spm_global.c spm_vol_utils.$(MEXEXT).a\
 		spm_mapping.h spm_vol_access.h
-	$(MEX) spm_global.c spm_vol_utils.$(SUF).a $(MEXEND)
+	$(MEX) spm_global.c spm_vol_utils.$(MEXEXT).a $(MEXEND)
 
-spm_render_vol.$(SUF): spm_render_vol.c spm_vol_utils.$(SUF).a\
+spm_render_vol.$(MEXEXT): spm_render_vol.c spm_vol_utils.$(MEXEXT).a\
 		spm_mapping.h spm_vol_access.h
-	$(MEX) spm_render_vol.c spm_vol_utils.$(SUF).a $(MEXEND)
+	$(MEX) spm_render_vol.c spm_vol_utils.$(MEXEXT).a $(MEXEND)
 
-spm_resels_vol.$(SUF): spm_resels_vol.c spm_vol_utils.$(SUF).a\
+spm_resels_vol.$(MEXEXT): spm_resels_vol.c spm_vol_utils.$(MEXEXT).a\
 		spm_mapping.h spm_vol_access.h
-	$(MEX) spm_resels_vol.c spm_vol_utils.$(SUF).a $(MEXEND)
+	$(MEX) spm_resels_vol.c spm_vol_utils.$(MEXEXT).a $(MEXEND)
 
-spm_sample_vol.$(SUF): spm_sample_vol.c spm_vol_utils.$(SUF).a\
+spm_sample_vol.$(MEXEXT): spm_sample_vol.c spm_vol_utils.$(MEXEXT).a\
 		spm_mapping.h spm_vol_access.h
-	$(MEX) spm_sample_vol.c spm_vol_utils.$(SUF).a $(MEXEND)
+	$(MEX) spm_sample_vol.c spm_vol_utils.$(MEXEXT).a $(MEXEND)
 
-spm_slice_vol.$(SUF): spm_slice_vol.c  spm_vol_utils.$(SUF).a\
+spm_slice_vol.$(MEXEXT): spm_slice_vol.c  spm_vol_utils.$(MEXEXT).a\
 		spm_mapping.h spm_vol_access.h
-	$(MEX) spm_slice_vol.c  spm_vol_utils.$(SUF).a $(MEXEND)
+	$(MEX) spm_slice_vol.c  spm_vol_utils.$(MEXEXT).a $(MEXEND)
 
-spm_bsplins.$(SUF): spm_bsplins.c bsplines.c bsplines.h
+spm_bsplins.$(MEXEXT): spm_bsplins.c bsplines.c bsplines.h
 	$(MEX) spm_bsplins.c bsplines.c $(MEXEND)
 	
-spm_bwlabel.$(SUF): spm_bwlabel.c
+spm_bwlabel.$(MEXEXT): spm_bwlabel.c
 	$(MEX) spm_bwlabel.c $(MEXEND)
 
-spm_dilate_erode.$(SUF): spm_dilate_erode.c
+spm_dilate_erode.$(MEXEXT): spm_dilate_erode.c
 	$(MEX) spm_dilate_erode.c $(MEXEND)
 
-spm_existfile.$(SUF): spm_existfile.c
+spm_existfile.$(MEXEXT): spm_existfile.c
 	$(MEX) spm_existfile.c $(MEXEND)
 
-spm_gamrnd.$(SUF): spm_gamrnd.c
+spm_gamrnd.$(MEXEXT): spm_gamrnd.c
 	$(MEX) spm_gamrnd.c $(MEXEND)
 
-spm_get_lm.$(SUF): spm_get_lm.c
+spm_get_lm.$(MEXEXT): spm_get_lm.c
 	$(MEX) spm_get_lm.c $(MEXEND)
 
-spm_hist.$(SUF): spm_hist.c
+spm_hist.$(MEXEXT): spm_hist.c
 	$(MEX) spm_hist.c $(MEXEND)
 
-spm_hist2.$(SUF): spm_hist2.c
+spm_hist2.$(MEXEXT): spm_hist2.c
 	$(MEX) spm_hist2.c $(MEXEND)
 
-spm_krutil.$(SUF): spm_krutil.c
+spm_krutil.$(MEXEXT): spm_krutil.c
 	$(MEX) spm_krutil.c $(MEXEND)
 
-spm_project.$(SUF): spm_project.c
+spm_project.$(MEXEXT): spm_project.c
 	$(MEX) spm_project.c $(MEXEND)
 
-spm_unlink.$(SUF): spm_unlink.c
+spm_unlink.$(MEXEXT): spm_unlink.c
 	$(MEX) spm_unlink.c $(MEXEND)
 
-spm_voronoi.$(SUF): spm_voronoi.c
+spm_voronoi.$(MEXEXT): spm_voronoi.c
 	$(MEX) spm_voronoi.c $(MEXEND)
 
-spm_mrf.$(SUF): spm_mrf.c
+spm_mrf.$(MEXEXT): spm_mrf.c
 	$(MEX) spm_mrf.c $(MEXEND)
 
-spm_diffeo.$(SUF): spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_bsplines.c bsplines.c
+spm_diffeo.$(MEXEXT): spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_bsplines.c bsplines.c
 	$(MEX) spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_bsplines.c bsplines.c -DIMAGE_SINGLE $(MEXEND)
 
-spm_field.$(SUF): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_boundary.c
+spm_field.$(MEXEXT): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_boundary.c
 	$(MEX) spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c $(MEXEND)
 
-spm_jsonread.$(SUF): spm_jsonread.c jsmn.h jsmn.c
+spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c
 	$(MEX) spm_jsonread.c jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)
         
-spm_mesh_reduce.$(SUF): spm_mesh_reduce.cpp Simplify.h
+spm_mesh_reduce.$(MEXEXT): spm_mesh_reduce.cpp Simplify.h
 	$(MEX) spm_mesh_reduce.cpp $(MEXEND)
 
 ###############################################################################
@@ -309,7 +309,7 @@ verb.clean:
 	$(call verb, "Deleting object (.o) files")
 
 verb.distclean:
-	$(call verb, "Deleting MEX (.$(SUF)) and archive (.a) files")
+	$(call verb, "Deleting MEX (.$(MEXEXT)) and archive (.a) files")
 
 verb.install:
 	$(call verb, "Installing MEX files")

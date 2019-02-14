@@ -3,13 +3,13 @@
 #
 # Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 6704 2016-01-29 17:23:13Z guillaume $
+# $Id: Makefile 7532 2019-02-14 12:03:24Z guillaume $
 
 include ../../src/Makefile.var
 
-SPMMEX = zstream.$(SUF)
+SPMMEX = zstream.$(MEXEXT)
 
-ifeq (mex,$(SUF))
+ifeq (mex,$(MEXEXT))
   export CFLAGS = $(shell $(MEX) -p CFLAGS) -std=c99
 else
   ifeq (windows,$(PLATFORM))
@@ -34,5 +34,5 @@ install:
 tarball: all
 	$(TAR) cf spm_mex.tar $(SPMMEX)
 
-%.$(SUF) : %.c
+%.$(MEXEXT) : %.c
 	$(MEX) $< $(MEXEND)

@@ -2,7 +2,7 @@
 #
 # Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 7523 2019-02-01 11:31:08Z guillaume $
+# $Id: Makefile.var 7532 2019-02-14 12:03:24Z guillaume $
 #
 ###############################################################################
 #
@@ -27,70 +27,78 @@
 #
 ###############################################################################
 
-SHELL          = /bin/sh
-MAKE           = make
-MEXBIN         = mex
-MEXOPTS        = -O -largeArrayDims
-MEXEND         = 
-MOSUF          = o # mex output object suffix
-UNAME          = uname
-AR             = ar rcs
-COPY           = cp -f
-DEL            = rm -f
-MOVE           = mv -f
-TAR            = tar
-ZIP            = gzip -f
+SHELL        = /bin/sh
+MAKE         = make
+MEXOPTS      = -O -largeArrayDims
+MEXEND       = 
+MOSUF        = o # mex output object suffix
+UNAME        = uname
+AR           = ar rcs
+COPY         = cp -f
+DEL          = rm -f
+MOVE         = mv -f
+TAR          = tar
+ZIP          = gzip -f
 
-ifndef SUF
-  ifndef PLATFORM
-    PLATFORM   = $(shell $(UNAME))
+ifndef PLATFORM
+  PLATFORM   = $(shell $(UNAME))
+endif
+
+##### Linux #####
+ifeq (Linux,$(PLATFORM))
+  MEXEXT     = mexa64
+  MEXBIN    ?= mex
+  #MEXOPTS   += CFLAGS='$$CFLAGS -Wall'
+endif
+
+##### MacOS #####
+ifeq (Darwin,$(PLATFORM))
+  MEXEXT     = mexmaci64
+  MEXBIN    ?= mex
+endif
+
+##### Windows #####
+ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM)))) # MSVC
+  override PLATFORM = windows
+  ifeq (x86,$(PROCESSOR_ARCHITECTURE))
+    MEXEXT   = mexw32
+  else
+    MEXEXT   = mexw64
   endif
-  ##### Linux #####
-  ifeq (Linux,$(PLATFORM))
-    SUF        = mexa64
-  endif
-  ##### MacOS #####
-  ifeq (Darwin,$(PLATFORM))
-    SUF        = mexmaci64
-  endif
-  ##### Windows #####
-  ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM)))) # MSC
-    override PLATFORM = windows
-    ifeq (x86,$(PROCESSOR_ARCHITECTURE))
-      SUF      = mexw32
-    else
-      SUF      = mexw64
-    endif
-    MEXBIN     = cmd /c "mex.bat
-    MEXOPTS   += -DSPM_WIN32
-    MEXEND     = "
-    MOSUF      = obj
-    AR         = lib.exe /out:
-  endif
-  ifeq (MSYS,$(word 1,$(subst _, ,$(PLATFORM)))) # GCC
-    SUF        = mexw64
-    MEXOPTS   += -DSPM_WIN32
-    MOSUF      = obj
-  endif
-  #### Octave ####
-  ifeq (octave,$(PLATFORM))
-    MEXBIN     = mkoctfile
-    MEXOPTS    = --mex
-    SUF        = mex
-    override PLATFORM = $(shell $(UNAME))
-    ifeq (MINGW64,$(word 1,$(subst _, ,$(PLATFORM))))
-      MEXOPTS   += -DSPM_WIN32
-    endif
-  endif
-  #### Otherwise ####
-  ifndef SUF
-    $(error Unknowm platform $(PLATFORM))
+  MEXBIN    ?= cmd /c "mex.bat
+  MEXOPTS   += -DSPM_WIN32
+  MEXEND     = "
+  MOSUF      = obj
+  AR         = lib.exe /out:
+endif
+ifeq (MSYS,$(word 1,$(subst _, ,$(PLATFORM)))) # GCC
+  MEXEXT     = mexw64
+  MEXBIN    ?= mex
+  MEXOPTS   += -DSPM_WIN32
+  MOSUF      = obj
+endif
+
+#### Octave ####
+ifeq (octave,$(PLATFORM))
+  MEXEXT     = mex
+  MEXBIN    ?= mkoctfile
+  MEXOPTS    = --mex
+  #MEXOPTS   += -Wall
+  override PLATFORM = $(shell $(UNAME))
+  ifeq (MINGW64,$(word 1,$(subst _, ,$(PLATFORM))))
+    MEXOPTS += -DSPM_WIN32
   endif
 endif
 
-MEX            = $(MEXBIN) $(MEXOPTS)
+#### Otherwise ####
+ifndef MEXEXT
+  $(error Unknowm platform $(PLATFORM))
+endif
+SUF          = $(MEXEXT)
 
-MATLABROOT     = $(realpath $(shell which $(firstword $(MEXBIN))))
+MEX          = $(MEXBIN) $(MEXOPTS)
+
+MATLABROOT   = $(realpath $(shell which $(firstword $(MEXBIN))))
 
 define verb
 	@ echo "_____________________________________________________________"

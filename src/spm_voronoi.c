@@ -1,5 +1,5 @@
 /*
- * $Id: spm_voronoi.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: spm_voronoi.c 7532 2019-02-14 12:03:24Z guillaume $
  * Guillaume Flandin
  */
 
@@ -207,7 +207,7 @@ void geodesic_voronoi(double *img,         /* domain image mask */
                       double *dmap,        /* geodesic distance map */
                       char *dist) {        /* type of distance */
     mwIndex i, j, a;
-    int k = 1, l = 1, p = 1, s = 1;
+    int s = 1;
     mwSize m = size[0], n = size[1], o = size[2];
     
     mask *cmask = NULL;
@@ -220,22 +220,18 @@ void geodesic_voronoi(double *img,         /* domain image mask */
     /* --- CHAMFER MASK INITIALIZATION --- */
     if (!strcmp(dist,"d4")) {
         cmask = maskd4;
-        k = l = p = 1;
         s = 6;
     }
     else if (!strcmp(dist,"d8")) {
         cmask = maskd8;
-        k = l = p = 1;
         s = 18;
     }
     else if (!strcmp(dist,"d34")) {
         cmask = maskd34;
-        k = l = p = 1;
         s = 26;
     }
     else if (!strcmp(dist,"d5711")) {
         cmask = maskd5711;
-        k = l = p = 2;
         s = 100;
         /* mexWarnMsgTxt("Geodesic distances may be underestimated with d5711."); */
     }

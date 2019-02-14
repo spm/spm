@@ -3,15 +3,15 @@
 #
 # Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 6791 2016-04-28 14:47:20Z john $
+# $Id: Makefile 7532 2019-02-14 12:03:24Z guillaume $
 
 include ../../src/Makefile.var
 
 SPMMEX =\
-	pm_invert_phasemap_dtj.$(SUF) pm_merge_regions.$(SUF) \
-	pm_create_connectogram_dtj.$(SUF) pm_pad.$(SUF) \
-	pm_estimate_ramp.$(SUF) pm_restore_ramp.$(SUF) \
-	pm_ff_unwrap.$(SUF) 
+	pm_invert_phasemap_dtj.$(MEXEXT) pm_merge_regions.$(MEXEXT) \
+	pm_create_connectogram_dtj.$(MEXEXT) pm_pad.$(MEXEXT) \
+	pm_estimate_ramp.$(MEXEXT) pm_restore_ramp.$(MEXEXT) \
+	pm_ff_unwrap.$(MEXEXT) 
 
 all: $(SPMMEX)
 	@:
@@ -28,5 +28,5 @@ install:
 tarball: all
 	$(TAR) cf spm_mex.tar $(SPMMEX)
 
-%.$(SUF) : %.c
+%.$(MEXEXT) : %.c
 	$(MEX) $< $(MEXEND)

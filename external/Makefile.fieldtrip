@@ -4,22 +4,22 @@
 # Copyright (C) 2009-2016 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: Makefile.fieldtrip 7053 2017-04-03 11:04:13Z guillaume $
+# $Id: Makefile.fieldtrip 7532 2019-02-14 12:03:24Z guillaume $
 
 include ../src/Makefile.var
 
 FIELDTRIP =\
-	fieldtrip/src/read_24bit.$(SUF) fieldtrip/src/read_16bit.$(SUF) \
-	fieldtrip/src/ft_getopt.$(SUF) \
+	fieldtrip/src/read_24bit.$(MEXEXT) fieldtrip/src/read_16bit.$(MEXEXT) \
+	fieldtrip/src/ft_getopt.$(MEXEXT) \
 	\
-	fieldtrip/src/nanmean.$(SUF) fieldtrip/src/nanstd.$(SUF) \
-	fieldtrip/src/nansum.$(SUF) fieldtrip/src/nanvar.$(SUF) \
+	fieldtrip/src/nanmean.$(MEXEXT) fieldtrip/src/nanstd.$(MEXEXT) \
+	fieldtrip/src/nansum.$(MEXEXT) fieldtrip/src/nanvar.$(MEXEXT) \
 	\
-	fieldtrip/src/meg_leadfield1.$(SUF) fieldtrip/src/ptriproj.$(SUF) \
-	fieldtrip/src/lmoutr.$(SUF) fieldtrip/src/plgndr.$(SUF) \
-	fieldtrip/src/solid_angle.$(SUF) fieldtrip/src/routlm.$(SUF) \
-	fieldtrip/src/ltrisect.$(SUF) fieldtrip/src/plinproj.$(SUF) \
-	fieldtrip/src/splint_gh.$(SUF)
+	fieldtrip/src/meg_leadfield1.$(MEXEXT) fieldtrip/src/ptriproj.$(MEXEXT) \
+	fieldtrip/src/lmoutr.$(MEXEXT) fieldtrip/src/plgndr.$(MEXEXT) \
+	fieldtrip/src/solid_angle.$(MEXEXT) fieldtrip/src/routlm.$(MEXEXT) \
+	fieldtrip/src/ltrisect.$(MEXEXT) fieldtrip/src/plinproj.$(MEXEXT) \
+	fieldtrip/src/splint_gh.$(MEXEXT)
 
 all: $(FIELDTRIP)
 
@@ -29,66 +29,66 @@ distclean: clean
 	$(DEL) $(FIELDTRIP)
         
 install:
-	$(COPY) fieldtrip/src/read_24bit.$(SUF) fieldtrip/fileio/private/
-	$(COPY) fieldtrip/src/read_16bit.$(SUF) fieldtrip/fileio/private/
-	$(COPY) fieldtrip/src/ft_getopt.$(SUF) fieldtrip/fileio/private/
-	$(COPY) fieldtrip/src/solid_angle.$(SUF) fieldtrip/fileio/private/
+	$(COPY) fieldtrip/src/read_24bit.$(MEXEXT) fieldtrip/fileio/private/
+	$(COPY) fieldtrip/src/read_16bit.$(MEXEXT) fieldtrip/fileio/private/
+	$(COPY) fieldtrip/src/ft_getopt.$(MEXEXT) fieldtrip/fileio/private/
+	$(COPY) fieldtrip/src/solid_angle.$(MEXEXT) fieldtrip/fileio/private/
 
-	$(COPY) fieldtrip/src/meg_leadfield1.$(SUF) fieldtrip/forward/private/
-	$(COPY) fieldtrip/src/ptriproj.$(SUF) fieldtrip/forward/private/
-	$(COPY) fieldtrip/src/lmoutr.$(SUF) fieldtrip/forward/private/
-	$(COPY) fieldtrip/src/plgndr.$(SUF) fieldtrip/forward/private/
-	$(COPY) fieldtrip/src/solid_angle.$(SUF) fieldtrip/forward/private/
-	$(COPY) fieldtrip/src/routlm.$(SUF) fieldtrip/forward/private/
-	$(COPY) fieldtrip/src/ft_getopt.$(SUF) fieldtrip/forward/private/
+	$(COPY) fieldtrip/src/meg_leadfield1.$(MEXEXT) fieldtrip/forward/private/
+	$(COPY) fieldtrip/src/ptriproj.$(MEXEXT) fieldtrip/forward/private/
+	$(COPY) fieldtrip/src/lmoutr.$(MEXEXT) fieldtrip/forward/private/
+	$(COPY) fieldtrip/src/plgndr.$(MEXEXT) fieldtrip/forward/private/
+	$(COPY) fieldtrip/src/solid_angle.$(MEXEXT) fieldtrip/forward/private/
+	$(COPY) fieldtrip/src/routlm.$(MEXEXT) fieldtrip/forward/private/
+	$(COPY) fieldtrip/src/ft_getopt.$(MEXEXT) fieldtrip/forward/private/
 	
-	$(COPY) fieldtrip/src/solid_angle.$(SUF) fieldtrip/inverse/private/
-	$(COPY) fieldtrip/src/ft_getopt.$(SUF) fieldtrip/inverse/private/
+	$(COPY) fieldtrip/src/solid_angle.$(MEXEXT) fieldtrip/inverse/private/
+	$(COPY) fieldtrip/src/ft_getopt.$(MEXEXT) fieldtrip/inverse/private/
 	
-	$(COPY) fieldtrip/src/ptriproj.$(SUF) fieldtrip/private/
-	$(COPY) fieldtrip/src/lmoutr.$(SUF) fieldtrip/private/
-	$(COPY) fieldtrip/src/plgndr.$(SUF) fieldtrip/private/
-	$(COPY) fieldtrip/src/routlm.$(SUF) fieldtrip/private/
-	$(COPY) fieldtrip/src/solid_angle.$(SUF) fieldtrip/private/
+	$(COPY) fieldtrip/src/ptriproj.$(MEXEXT) fieldtrip/private/
+	$(COPY) fieldtrip/src/lmoutr.$(MEXEXT) fieldtrip/private/
+	$(COPY) fieldtrip/src/plgndr.$(MEXEXT) fieldtrip/private/
+	$(COPY) fieldtrip/src/routlm.$(MEXEXT) fieldtrip/private/
+	$(COPY) fieldtrip/src/solid_angle.$(MEXEXT) fieldtrip/private/
 
-	$(COPY) fieldtrip/src/ft_getopt.$(SUF) fieldtrip/utilities/
-	$(COPY) fieldtrip/src/ptriproj.$(SUF) fieldtrip/utilities/private/
-	$(COPY) fieldtrip/src/lmoutr.$(SUF) fieldtrip/utilities/private/
+	$(COPY) fieldtrip/src/ft_getopt.$(MEXEXT) fieldtrip/utilities/
+	$(COPY) fieldtrip/src/ptriproj.$(MEXEXT) fieldtrip/utilities/private/
+	$(COPY) fieldtrip/src/lmoutr.$(MEXEXT) fieldtrip/utilities/private/
 
-	$(COPY) fieldtrip/src/ft_getopt.$(SUF) fieldtrip/connectivity/private/
+	$(COPY) fieldtrip/src/ft_getopt.$(MEXEXT) fieldtrip/connectivity/private/
 
-	$(COPY) fieldtrip/src/nanmean.$(SUF) fieldtrip/external/stats/
-	$(COPY) fieldtrip/src/nansum.$(SUF) fieldtrip/external/stats/
-	$(COPY) fieldtrip/src/nanstd.$(SUF) fieldtrip/external/stats/
-	$(COPY) fieldtrip/src/nanvar.$(SUF) fieldtrip/external/stats/
+	$(COPY) fieldtrip/src/nanmean.$(MEXEXT) fieldtrip/external/stats/
+	$(COPY) fieldtrip/src/nansum.$(MEXEXT) fieldtrip/external/stats/
+	$(COPY) fieldtrip/src/nanstd.$(MEXEXT) fieldtrip/external/stats/
+	$(COPY) fieldtrip/src/nanvar.$(MEXEXT) fieldtrip/external/stats/
 
 tarball: all
 	$(TAR) -cf fieldtrip_mex.tar $(FIELDTRIP)
 
-fieldtrip/src/%.$(SUF) : fieldtrip/src/%.c
+fieldtrip/src/%.$(MEXEXT) : fieldtrip/src/%.c
 	$(MEX) $< $(MEXEND)
-	$(MOVE) $*.$(SUF) $(dir $<)
+	$(MOVE) $*.$(MEXEXT) $(dir $<)
 
-fieldtrip/src/lmoutr.$(SUF): fieldtrip/src/lmoutr.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
+fieldtrip/src/lmoutr.$(MEXEXT): fieldtrip/src/lmoutr.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
 	$(MEX) $< fieldtrip/src/geometry.c $(MEXEND)
-	$(MOVE) lmoutr.$(SUF) $(dir $<)
+	$(MOVE) lmoutr.$(MEXEXT) $(dir $<)
 
-fieldtrip/src/routlm.$(SUF): fieldtrip/src/routlm.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
+fieldtrip/src/routlm.$(MEXEXT): fieldtrip/src/routlm.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
 	$(MEX) $< fieldtrip/src/geometry.c $(MEXEND)
-	$(MOVE) routlm.$(SUF) $(dir $<)
+	$(MOVE) routlm.$(MEXEXT) $(dir $<)
 
-fieldtrip/src/ptriproj.$(SUF): fieldtrip/src/ptriproj.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
+fieldtrip/src/ptriproj.$(MEXEXT): fieldtrip/src/ptriproj.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
 	$(MEX) $< fieldtrip/src/geometry.c $(MEXEND)
-	$(MOVE) ptriproj.$(SUF) $(dir $<)
+	$(MOVE) ptriproj.$(MEXEXT) $(dir $<)
 
-fieldtrip/src/solid_angle.$(SUF): fieldtrip/src/solid_angle.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
+fieldtrip/src/solid_angle.$(MEXEXT): fieldtrip/src/solid_angle.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
 	$(MEX) $< fieldtrip/src/geometry.c $(MEXEND)
-	$(MOVE) solid_angle.$(SUF) $(dir $<)
+	$(MOVE) solid_angle.$(MEXEXT) $(dir $<)
 
-fieldtrip/src/ltrisect.$(SUF): fieldtrip/src/ltrisect.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
+fieldtrip/src/ltrisect.$(MEXEXT): fieldtrip/src/ltrisect.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
 	$(MEX) $< fieldtrip/src/geometry.c $(MEXEND)
-	$(MOVE) ltrisect.$(SUF) $(dir $<)
+	$(MOVE) ltrisect.$(MEXEXT) $(dir $<)
 
-fieldtrip/src/plinproj.$(SUF): fieldtrip/src/plinproj.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
+fieldtrip/src/plinproj.$(MEXEXT): fieldtrip/src/plinproj.c fieldtrip/src/geometry.c fieldtrip/src/geometry.h
 	$(MEX) $< fieldtrip/src/geometry.c $(MEXEND)
-	$(MOVE) plinproj.$(SUF) $(dir $<)
+	$(MOVE) plinproj.$(MEXEXT) $(dir $<)

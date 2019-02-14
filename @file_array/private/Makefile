@@ -3,19 +3,19 @@
 #
 # Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 5459 2013-05-01 17:51:59Z guillaume $
+# $Id: Makefile 7532 2019-02-14 12:03:24Z guillaume $
 
 include ../../src/Makefile.var
 
-SPMMEX = file2mat.$(SUF) mat2file.$(SUF) init.$(SUF)
+SPMMEX = file2mat.$(MEXEXT) mat2file.$(MEXEXT) init.$(MEXEXT)
 
 all: $(SPMMEX)
 	@:
 
 clean:
 	@:
-ifeq (mex,$(SUF))
-	$(DEL) $(subst .$(SUF),.o,$(SPMMEX))
+ifeq (mex,$(MEXEXT))
+	$(DEL) $(subst .$(MEXEXT),.o,$(SPMMEX))
 endif
 
 distclean: clean
@@ -27,5 +27,5 @@ install:
 tarball: all
 	$(TAR) cf spm_mex.tar $(SPMMEX)
 
-%.$(SUF) : %.c
+%.$(MEXEXT) : %.c
 	$(MEX) $< $(MEXEND)

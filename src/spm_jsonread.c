@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 7257 2018-02-12 15:51:12Z guillaume $
+ * $Id: spm_jsonread.c 7532 2019-02-14 12:03:24Z guillaume $
  * Guillaume Flandin
  */
 
@@ -108,7 +108,7 @@ static int should_convert_to_array(const mxArray *pm) {
 }
 
 static int setup_for_cell2mat(mxArray *pm) {
-    size_t i, n, a, b;
+    size_t i, n;
     mxClassID cat;
     mxArray *cell;
     mwSize d, *olddim = NULL, *newdim = NULL;
