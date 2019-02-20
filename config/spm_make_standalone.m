@@ -1,17 +1,17 @@
 function spm_make_standalone(outdir, gateway, contentsver)
-% Compile SPM as a standalone executable using the MATLAB compiler
-%   http://www.mathworks.com/products/compiler/
+% Compile SPM as a standalone executable using the MATLAB Compiler
+%   https://www.mathworks.com/products/compiler.html
 %
 % This will generate a standalone application, which can be run outside
 % MATLAB, and therefore does not require a MATLAB licence.
 %
 % On Windows:
 %   spm12.exe <modality>
-%   spm12.exe run <batch.m(at)>
+%   spm12.exe batch <batch.m(at)>
 %
 % On Linux/Mac:
 %   ./run_spm12.sh <MCRroot> <modality>
-%   ./run_spm12.sh <MCRroot> run <batch.m(at)>
+%   ./run_spm12.sh <MCRroot> batch <batch.m(at)>
 %
 % The first command starts SPM in interactive mode with GUI. The second
 % executes a batch file or starts the Batch Editor if none is provided.
@@ -20,14 +20,14 @@ function spm_make_standalone(outdir, gateway, contentsver)
 %   ./run_spm12.sh <MCRroot> --help
 %
 % When deployed, compiled applications will require the MATLAB Runtime:
-%   http://www.mathworks.com/products/compiler/mcr/
+%   https://www.mathworks.com/products/compiler/matlab-runtime.html
 % 
-% See spm_standalone.m
+% See spm_standalone.m and https://en.wikibooks.org/wiki/SPM/Standalone
 %__________________________________________________________________________
-% Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_make_standalone.m 7483 2018-11-12 13:19:31Z guillaume $
+% $Id: spm_make_standalone.m 7534 2019-02-20 17:09:45Z guillaume $
 
 
 %-Check startup.m
@@ -95,12 +95,29 @@ if ~isempty(contentsver)
 end
 
 %==========================================================================
+%-Trim FieldTrip
+%==========================================================================
+d = fullfile(spm('Dir'),'external','fieldtrip','compat');
+d = cellstr(spm_select('FPList',d,'dir'));
+for i=1:numel(d)
+    f = spm_file(d{i},'basename');
+    nrmv = strncmp(f,'matlablt',8);
+    if nrmv
+        [dummy,I] = sort({f(9:end),version('-release')});
+        nrmv = I(1) == 2;
+    end
+    if ~nrmv
+        [sts, msg] = rmdir(d{i},'s');
+    end
+end
+
+%==========================================================================
 %-Compilation
 %==========================================================================
 Nopts = {'-p',fullfile(matlabroot,'toolbox','signal')};
 if ~exist(Nopts{2},'dir'), Nopts = {}; end
 Ropts = {'-R','-singleCompThread'} ;
-if spm_check_version('matlab','8.4') >= 0
+if ~ismac && spm_check_version('matlab','8.4') >= 0
     Ropts = [Ropts, {'-R','-softwareopengl'}];
 end
 mcc('-m', '-C', '-v',...
