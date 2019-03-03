@@ -15,7 +15,7 @@ function [I] = spm_voice_warp(Y,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_warp.m 7528 2019-02-06 19:19:49Z karl $
+% $Id: spm_voice_warp.m 7535 2019-03-03 20:27:09Z karl $
 
 
 % find Sigma points (maxima of Hilbert transform)
@@ -38,6 +38,7 @@ I     = I*n/N;                                   % converted into bins
 
 % check for overflow
 %--------------------------------------------------------------------------
+I     = I - I(1) + 1;
 I     = round(max(min(I,n),1));
 
 return

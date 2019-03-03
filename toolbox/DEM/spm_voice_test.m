@@ -1,11 +1,14 @@
-function spm_voice_test(wfile,sfile,LEX,PRO)
+function [L] = spm_voice_test(wfile,sfile,LEX,PRO,WHO)
 % Reads and translates a sound file to assess recognition accuracy
-% FORMAT spm_voice_test(wfile,sfile,LEX,PRO)
+% FORMAT [L] = spm_voice_test(wfile,sfile,LEX,PRO,WHO)
 %
 % wfile  - .wav file
 % sfile  - .txt file
 % LEX    - lexical structure array
 % PRO    - prodidy structure array
+% WHO    - speaker structure array
+%
+% L      - accuracy (log likelihood)
 %
 %  This routine tests, recognition on a small test corpus specified in
 %  terms of a sound file and text file of successive words. It assesses
@@ -15,57 +18,90 @@ function spm_voice_test(wfile,sfile,LEX,PRO)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7530 2019-02-07 10:41:59Z karl $
+% $Id: spm_voice_test.m 7535 2019-03-03 20:27:09Z karl $
 
 
 % create lexical structures for subsequent word recognition
 %==========================================================================
 str   = textread(sfile,'%s');                 % word string to test
+word  = {LEX(:,1).word};                      % words in lexicon
 ns    = numel(str);                           % number of words to test
 
 % get sampling frequency (FS)
 %--------------------------------------------------------------------------
 try
-    [Y,FS] = audioread(wfile,[1,128]);
+    [Y,FS] = audioread(wfile,[1,1]);
     read   = @audioread;
 catch
-    [Y,FS] = wavread(wfile,[1,128]);
+    [Y,FS] = wavread(wfile,[1,1]);
     read   = @wavread;
 end
 
 %% get data features from a wav file
 %==========================================================================
 
-% get fundamental frequency
-%--------------------------------------------------------------------------
-Y     = read(wfile);
-I     = spm_voice_frequency(Y(abs(Y) > 1/32),FS);
-F0    = FS/mean(I);
-
-% identify the midpoints of ns words in terms of spectral maxima
-%--------------------------------------------------------------------------
-Y     = spm_conv(abs(Y),FS/4);
-I     = find(diff(diff(Y,1) > 0) < 0);
-[d,j] = sort(Y(I),'descend');
-I     = sort(I(j(1:ns)));
+% get F0 and the midpoint of words (maxima of acoutics power)
+%-------------------------------------------------------------------------
+Y      = read(wfile);
+G      = spm_voice_filter(Y,FS);
+G      = spm_conv(G,FS/4);
+I      = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
+[i,j]  = sort(G(I),'descend');
+I      = sort(I(j(1:ns)));
 
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================
-R     = [];                                    % lexical likelihood
-dI    = (0)*FS/32;                          % sampling latencies
+dI    = (0)*FS/32;                                         % durations
 for s = 1:ns
 
     % retrieve epoch and decompose at fundamental frequency
     %----------------------------------------------------------------------
     for i = 1:numel(dI)
         Y     = read(wfile,round([-1/2 1/2]*FS + I(s) + dI(i)));
-        xy(i) = spm_voice_ff(Y,FS,F0);
+        xy(i) = spm_voice_ff(Y,FS);
     end
+    xY(s) = xy;
+    
+end
+
+%% grid search to maximise classication accuracy
+%==========================================================================
+global voice_options
+nu    = 4:size(xY(1).Q,1);                                 % order (Hz)
+nv    = 4:size(xY(1).Q,2);                                 % order (ms)
+LL    = zeros(numel(nu),numel(nv));
+for i = 1:numel(nu)
+    for j = 1:numel(nv);
+        voice_options.nu = nu(i);
+        voice_options.nv = nv(j);
+        for s = 1:ns
+            
+            % evaluate the log likelihood of correct word
+            %----------------------------------------------------------------------
+            L       = spm_voice_likelihood(xY(s),LEX,PRO); % log likelihoods
+            L(:)    = spm_softmax(L(:));                   % likelihoods
+            L       = squeeze(sum(sum(L,2),3));            % marginal
+            w       = strmatch(str{s,1},word,'exact');     % correct word
+            LL(i,j) = LL(i,j) + log(L(w) + exp(-8));       % log likelihood
+        end
+        
+    end
+end
+
+% point best
+[i,j] = find(LL == max(LL(:)),1);
+voice_options.nu = nu(i);
+voice_options.nv = nv(j);
+
+%% illustrate classification accuracy
+%==========================================================================
+R     = [];                                    % lexical likelihood
+for s = 1:ns
     
     % identify the most likely word and place in structure
     %----------------------------------------------------------------------
-    [L,M]  = spm_voice_likelihood(xy,LEX,PRO); % log likelihoods
+    [L,M]  = spm_voice_likelihood(xY(s),LEX,PRO); % log likelihoods
     L(:)   = spm_softmax(L(:));                % likelihoods
     M      = spm_softmax(M);                   % likelihoods
     m      = squeeze(sum(sum(L,1),2));         % marginalise over lexicon
@@ -82,7 +118,7 @@ for s = 1:ns
     W(1,s)   = w(:);                           % lexical class
     P(:,s)   = p(:);                           % prosody classes
     str{s,2} = LEX(w,1).word;                  % lexical string
-
+    
 end
 
 
@@ -102,45 +138,53 @@ nw    = length(word);
 c     = zeros(nw,nw);
 q     = zeros(nw,ns);
 p     = zeros(nw,ns);
+L     = 0;
 for s = 1:ns
     w      = strmatch(str{s,2},word,'exact');
     q(w,s) = 1;
     w      = strmatch(str{s,1},word,'exact');
     p(w,s) = 1;
     c(:,w) = c(:,w) + log(R(:,s) + exp(-6));
+    L      = L + log(R(w,s) + exp(-6));
 end
 
 % graphics
 %--------------------------------------------------------------------------
 a  = (sum(p(:) ~= q(:))/2)/ns;
+a  = ceil(100*(1 - a));
 subplot(4,1,1), imagesc(1 - p), title('True','FontSize',16),
 set(gca,'YTick',1:nw,'YTickLabel',word)
 subplot(4,1,2), imagesc(1 - R), title('Inferred','FontSize',16)
 set(gca,'YTick',1:nw,'YTickLabel',word)
 xlabel('word')
-subplot(2,2,3), imagesc(spm_softmax(c))
-set(gca,'XTick',1:nw,'XTickLabel',word)
+subplot(2,3,4), imagesc(spm_softmax(c))
+set(gca,'XTick',1:nw)
 set(gca,'YTick',1:nw,'YTickLabel',word)
-titlestr = sprintf('Classification accuracy %-2.0f p.c.',100*(1 - a));
+titlestr = sprintf('%-2.0f p.c. accuracy: %-2.1f',a,L);
 title(titlestr,'FontSize',16), axis square
-subplot(2,2,4), imagesc(P)
-title('Prosody','FontSize',16), axis square
-set(gca,'YTick',1:size(P,1))
-xlabel('word'), ylabel('mode')
+subplot(2,3,5), imagesc(P)
+title('Prosody','FontSize',16)
+set(gca,'YTick',1:size(P,1)),set(gca,'YTickLabel',{PRO.str})
+xlabel('word'), ylabel('mode'), axis square
+subplot(2,3,6), imagesc(nv,nu,LL), title('Accuracy','FontSize',16)
+xlabel('order (intervals)'), ylabel('order (formants)'), axis square
+drawnow
+
+return
 
 
 %% articulate: prosody without lexical content
 %--------------------------------------------------------------------------
-DT     = diff([1;I]/FS) - 2/3;
-spm_voice_speak([],P,LEX,PRO,DT);
+spm_voice_speak([],P,1,LEX,PRO,WHO);
+
 
 %% articulate: with no prosody
 %--------------------------------------------------------------------------
-spm_voice_speak(W,[],LEX,PRO,DT);
+spm_voice_speak(W,[],1,LEX,PRO,WHO);
 
 
 %% articulate: with lexical content and prosody
 %--------------------------------------------------------------------------
-spm_voice_speak(W,P,LEX,PRO,DT);
+spm_voice_speak(W,P,[1;2],LEX,PRO,WHO);
 
 

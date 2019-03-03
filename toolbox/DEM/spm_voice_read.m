@@ -1,105 +1,76 @@
-function spm_voice_read(LEX,PRO)
-% Reads and translates a wav file
-% FORMAT [S] = DEM_birdsong(file)
+function spm_voice_read(wfile)
+% Reads and translates a sound file 
+% FORMAT spm_voice_read(wfile)
 %
-% wfile  - .wav file
-% LEX    - lexical dictionary array
-% ns     -  number of word samples
+% wfile  - .wav file or audio object
+
+% requires the following in the global variable voice_options:
+% LEX    - lexical structure array
+% PRO    - prodidy structure array
+% WHO    - speaker structure array
 %
+%  This routine takes a sound file has an input and infers the lexical
+%  content, prosody and speaker. In then particulates the phrase or
+%  sequence of words
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7528 2019-02-06 19:19:49Z karl $
+% $Id: spm_voice_read.m 7535 2019-03-03 20:27:09Z karl $
 
-
-% create lexical structures for subsequent word recognition
-%==========================================================================
-wfile = '../test.wav';
-
-% get sampling frequency (FS)
+% get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
-try
-    [Y,FS] = audioread(wfile,[1,128]);
-    read   = @audioread;
-catch
-    [Y,FS] = wavread(wfile,[1,128]);
-    read   = @wavread;
+
+
+%% get data features from a wav file or audiorecorder object
+%==========================================================================
+if isa(wfile,'audiorecorder')
+    stop(wfile);
+    record(wfile,8);
+    pause(1);
 end
 
-%% get data features from a wav file
+
+%% run through sound file and evaluate likelihoods
 %==========================================================================
-
-% get fundamental frequency
-%--------------------------------------------------------------------------
-Y     = read(wfile);
-I     = spm_voice_frequency(Y(abs(Y) > 1/32),FS);
-F0    = FS/mean(I);
-
-%% get data features from a succession (1 Hz) exemplars
-%--------------------------------------------------------------------------
-r     = [];
-I     = 1;
-dI    = (-1:1)*FS/16;
-for s = 1:ns
-    % find next initial time point
-    %----------------------------------------------------------------------
-    c = 1;
-    while c
-        try
-            Y = read(wfile,round([0 1/2]*FS + I(s)));
-        catch
-            break
-        end
-        [y,i] = max(abs(Y));
-        if y > 1/16 && i > FS/4
-            I(s) = I(s);
-            c    = 0;
-        else
-            I(s) = I(s) + FS/8;
-        end
-    end
+global voice_options
+voice_options.I0 = 1;
+str   = {};
+for s = 1:5
     
-    % retrieve epoch and decompose at fundamental frequency
+    % find next word
     %----------------------------------------------------------------------
-    for i = 1:numel(dI)
-        Y     = read(wfile,round([-1/2 1/2]*FS + I(s) + dI(i)));
-        xy(i) = spm_voice_ff(Y,FS,F0);
+    L   = spm_voice_get_word(wfile);
+        
+    % break if EOF
+    %----------------------------------------------------------------------
+    if isempty(L)
+        return
     end
-    
-    % identify the most likely word and place in structure
-    %----------------------------------------------------------------------
-    [L,M]  = spm_voice_likelihood(xy,LEX,PRO); % log likelihoods
-    L(:)   = spm_softmax(L(:));                % likelihoods
-    M      = spm_softmax(M);                   % likelihoods
-    m      = squeeze(sum(sum(L,1),2));         % marginalise over lexicon
-    L      = squeeze(sum(sum(L,2),3));         % marginalise over sampling
-    M      = spm_dot(M,{m});                   % marginalise prosody
     
     % identify the most likely word and prosody
     %----------------------------------------------------------------------
-    [d,w]    = max(L);                         % most likely word
-    [d,p]    = max(M);                         % most likely  prosodies
-    R(:,s)   = L;                              % lexical likelihoods
-    W(1,s)   = w(:);                           % lexical class
-    P(:,s)   = p(:);                           % prosody classes
-    str{s,2} = LEX(w,1).word;                  % lexical string
+    [d,w]  = max(L{1});                        % most likely word
+    [d,p]  = max(L{2});                        % most likely prosody
+    [d,r]  = max(L{3});                        % most likely identity
+    W(1,s) = w(:);                             % lexical class
+    P(:,s) = p(:);                             % prosody classes
+    R(:,s) = r(:);                             % speaker classes
     
-    % identify the most likely word and place in structure
+    % string
     %----------------------------------------------------------------------
-    %     DT       = exp(xy(i).P(:,2)) + exp(xy(i).P(:,3)) + dI(i)/FS;
-    %     I(s + 1) = I(s) + FS*DT;
-    
-    
-    % if ~strcmp(STR{s},str{s}), break, end
-    %     spm_voice_iff(xy(i),FS,1/32);
-    %     disp(str{s}),pause(1)
+    str{s} = voice_options.LEX(w,1).word       % lexical string
     
 end
 
+% stop recording audiorecorder object
+%--------------------------------------------------------------------------
+if isa(wfile,'audiorecorder')
+    stop(wfile);
+end
 
 %% articulate: with lexical content and prosody
 %--------------------------------------------------------------------------
-DT     = diff([1;I]/FS) - 2/3;
-spm_voice_speak(W,P,LEX,PRO,DT);
+spm_voice_speak(W,P,R);
+
 
