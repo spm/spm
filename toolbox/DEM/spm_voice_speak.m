@@ -22,7 +22,7 @@ function [xY] = spm_voice_speak(w,p,q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7535 2019-03-03 20:27:09Z karl $
+% $Id: spm_voice_speak.m 7536 2019-03-03 21:38:19Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -49,7 +49,7 @@ for s = 1:n
     %----------------------------------------------------------------------
     Q     = 0;
     for i = 1:size(w,1)
-        Q = Q + LEX(w(1,s),1).qE;
+        Q = Q + LEX(w(1,s),1).rE;
     end
     xY(s).Q = spm_unvec(spm_vec(LEX(1).Q) + Q,LEX(1).Q);
     

@@ -1,22 +1,18 @@
-function spm_voice_read(wfile)
-% Reads and translates a sound file 
-% FORMAT spm_voice_read(wfile)
+function [wfile] = spm_voice_listen
+% starts recording for subsequent voice recognition 
+% FORMAT [wfile] = spm_voice_listen
 %
-% wfile  - .wav file or audio object
-
-% requires the following in the global variable voice_options:
-% LEX    - lexical structure array
-% PRO    - prodidy structure array
-% WHO    - speaker structure array
+% wfile  - audio object
 %
-%  This routine takes a sound file has an input and infers the lexical
-%  content, prosody and speaker. In then particulates the phrase or
-%  sequence of words
+%  This routine creates an audio recorder object and starts recording for
+%  eight seconds. This is the use with spm_voice_get_wordthat can retrieve
+%  successive words following an index or pointer in the global variable
+%  called voice_options (voice_options.I0)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7536 2019-03-03 21:38:19Z karl $
+% $Id: spm_voice_listen.m 7536 2019-03-03 21:38:19Z karl $
 
 % get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
@@ -26,9 +22,10 @@ function spm_voice_read(wfile)
 %==========================================================================
 if isa(wfile,'audiorecorder')
     stop(wfile);
-    record(wfile,16);
+    record(wfile,8);
     pause(1);
 end
+
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================
@@ -43,7 +40,9 @@ for s = 1:5
         
     % break if EOF
     %----------------------------------------------------------------------
-    if isempty(L), break, end
+    if isempty(L)
+        return
+    end
     
     % identify the most likely word and prosody
     %----------------------------------------------------------------------

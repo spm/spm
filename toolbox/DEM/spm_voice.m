@@ -26,7 +26,7 @@ function [LEX,PRO,WHO] = spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7535 2019-03-03 20:27:09Z karl $
+% $Id: spm_voice.m 7536 2019-03-03 21:38:19Z karl $
 
 
 
@@ -42,9 +42,9 @@ end
 
 global voice_options
 voice_options.graphics    = 1;
-voice_options.mute        = 0;
+voice_options.mute        = 1;
 voice_options.onsets      = 0;
-voice_options.F0          = 128;
+
 
 %% get corpus
 %==========================================================================
@@ -53,15 +53,16 @@ voice_options.F0          = 128;
 
 %% get structures
 %==========================================================================
-[LEX,PRO,WHO]     = spm_voice_get_LEX(xY,word);
+[LEX,PRO,WHO,PP]  = spm_voice_get_LEX(xY,word);
 voice_options.LEX = LEX;
 voice_options.PRO = PRO;
 voice_options.WHO = WHO;
 
+voice_options.F0  = exp(mean(PP(:,1)));
 
 %% articulate every word under all combinations of (5 levels) of prosody
 %--------------------------------------------------------------------------
-voice_options.mute     = 0;
+voice_options.mute = 0;
 nw    = numel(LEX);                           % number of words
 k     = [2 6];                                % number of prosody features
 for w = 1:nw
@@ -78,16 +79,52 @@ end
 spm_voice_test('../test.wav','../test.txt',LEX,PRO,WHO);
 
 
-%%  apply to test narrative of 87 words
+%% read the first few words of a test file
 %--------------------------------------------------------------------------
 spm_voice_read('../test.wav');
 
 
-%%  apply to test narrative of 87 words
+%% record and repeat some dictation
 %--------------------------------------------------------------------------
-FS     = 22050;
-wfile  = audiorecorder(FS,16,1);
+wfile  = audiorecorder(22050,16,1);
 spm_voice_read(wfile);
+
+
+%% illustrate word by word recognition
+%--------------------------------------------------------------------------
+wfile = spm_voice_listen;
+for s = 1:5
+    
+    % find next word
+    %----------------------------------------------------------------------
+    L   = spm_voice_get_word(wfile);
+        
+    % break if EOF
+    %----------------------------------------------------------------------
+    if isempty(L), break, end
+    
+    % identify the most likely word and prosody
+    %----------------------------------------------------------------------
+    [d,w]  = max(L{1});                        % most likely word
+    [d,p]  = max(L{2});                        % most likely prosody
+    [d,r]  = max(L{3});                        % most likely identity
+    W(1,s) = w(:);                             % lexical class
+    P(:,s) = p(:);                             % prosody classes
+    R(:,s) = r(:);                             % speaker classes
+    
+    % string
+    %----------------------------------------------------------------------
+    str{s} = voice_options.LEX(w,1).word       % lexical string
+    
+end
+
+% stop recording audiorecorder object
+%--------------------------------------------------------------------------
+stop(wfile);
+
+% articulate: with lexical content and prosody
+%--------------------------------------------------------------------------
+spm_voice_speak(W,P,R);
 
 
 

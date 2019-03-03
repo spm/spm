@@ -19,7 +19,7 @@ function [xY,word] = spm_voice_get_xY(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_xY.m 7535 2019-03-03 20:27:09Z karl $
+% $Id: spm_voice_get_xY.m 7536 2019-03-03 21:38:19Z karl $
 
 
 %% get corpus
@@ -31,6 +31,7 @@ spm_figure('GetWin','voice'); clf
 cd(PATH)
 wfile    = dir('*.wav');
 try
+    audioread(wfile(1).name,[1,1]);
     read = @audioread;
 catch
     read = @wavread;

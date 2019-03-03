@@ -28,7 +28,7 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7535 2019-03-03 20:27:09Z karl $
+% $Id: spm_voice_get_word.m 7536 2019-03-03 21:38:19Z karl $
 
 % get source (recorder) and FS
 %--------------------------------------------------------------------------
@@ -95,7 +95,7 @@ end
 % break if EOF
 %--------------------------------------------------------------------------
 if isempty(I)
-    L = {};
+    O = {};
     return
 end
 

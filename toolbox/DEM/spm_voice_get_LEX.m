@@ -1,6 +1,6 @@
-function [LEX,PRO,WHO] = spm_voice_get_LEX(xY,word)
+function [LEX,PRO,WHO,PP] = spm_voice_get_LEX(xY,word)
 % Creates lexical, prosody and identity structures from word structures
-% FORMAT [LEX,PRO,WHO] = spm_voice_get_LEX(xY,word)
+% FORMAT [LEX,PRO,WHO,PP] = spm_voice_get_LEX(xY,word)
 %
 % xY(nw,ns) -  structure array for ns samples of nw words
 % word(nw)  -  cell array of word names
@@ -23,7 +23,7 @@ function [LEX,PRO,WHO] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7535 2019-03-03 20:27:09Z karl $
+% $Id: spm_voice_get_LEX.m 7536 2019-03-03 21:38:19Z karl $
 
 
 % defaults
