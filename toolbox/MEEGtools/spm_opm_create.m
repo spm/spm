@@ -12,7 +12,7 @@ function [D,L] = spm_opm_create(S)
 %   S.wholehead     - whole head coverage flag     - Deafult: 0
 %   S.space         - space between sensors(mm)    - Default: 25
 %   S.offset        - scalp to sensor distance(mm) - Default: 6.5
-%   S.nSamples      - number of samples            - Default: 1
+%   S.nSamples      - number of samples            - Default: 1000
 % SOURCE LEVEL INFO
 %   S.coordsystem   - coordsystem.json file        - Default: 
 %   S.positions     - positions.tsv file           - Default:
@@ -31,7 +31,7 @@ function [D,L] = spm_opm_create(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_create.m 7519 2019-01-30 18:15:01Z tim $
+% $Id: spm_opm_create.m 7538 2019-03-07 16:46:26Z tim $
 spm('FnBanner', mfilename);
 
 %-Set default values
@@ -44,11 +44,12 @@ if ~isfield(S, 'iskull'),      S.iskull = []; end
 if ~isfield(S, 'oskull'),      S.oskull = []; end
 if ~isfield(S, 'lead'),        S.lead = 0; end
 if ~isfield(S, 'fs'),          S.fs   = 1000; end
-if ~isfield(S, 'nSamples'),    S.nSamples   = 1; end
+if ~isfield(S, 'nSamples'),    S.nSamples   = 1000; end
 if ~isfield(S, 'space'),       S.space  = 25; end
 if ~isfield(S, 'offset'),      S.offset  = 6.5; end
 if ~isfield(S, 'data'),        S.data = zeros(1,S.nSamples); end
 if ~isfield(S, 'wholehead'),   S.wholehead = 1; end
+if ~isfield(S, 'fname'),       S.fname = 'sim_opm'; end
      
 %-Simulate or read
 %--------------------------------------------------------------------------
@@ -125,7 +126,7 @@ else
     %----------------------------------------------------------------------
     
     a=pwd();
-    b='sim_OPM';
+    b=S.fname;
     
     args=[];
     args.base='Chan';
@@ -430,11 +431,11 @@ scalp = spm_mesh_transform(scalp,T);
 % Create the sensor array 
 %--------------------------------------------------------------------------
 args= [];
-args.division=4;
+args.division=3;
 args.space=S.space;
 args.niter=10000;
 args.g=scalp;
-args.nDens=5;
+args.nDens=10;
 [pos, ms2s1, ims2s1] = spm_mesh_pack_points(args);
 
 
