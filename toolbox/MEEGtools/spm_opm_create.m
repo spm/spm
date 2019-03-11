@@ -31,7 +31,7 @@ function [D,L] = spm_opm_create(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_create.m 7538 2019-03-07 16:46:26Z tim $
+% $Id: spm_opm_create.m 7542 2019-03-11 15:25:52Z tim $
 spm('FnBanner', mfilename);
 
 %-Set default values
@@ -170,7 +170,7 @@ if(ae)
 end
 Dtemp.save();
 % create data file and insert data
-D= blank(Dtemp,[[b,'.dat']]);
+D= blank(Dtemp,[b,'.dat']);
 dim=size(D);
 D(1:dim(1),1:dim(2),1:dim(3)) = S.data;
 D.save();
@@ -324,7 +324,7 @@ if(forward)
     n1=mean(grad.coilori); n1= n1./sqrt(dot(n1,n1));
     t1=cross(n1,[0 0 1]);
     t2=cross(t1,n1);
-    
+    pos2d =zeros(size(grad.coilpos,1),2);
     for i=1:size(grad.coilpos,1)
         pos2d(i,1)=dot(grad.coilpos(i,:),t1);
         pos2d(i,2)=dot(grad.coilpos(i,:),t2);
@@ -373,8 +373,6 @@ function [pos,ori] = opm_createSensorArray(S)
 % Args
 %--------------------------------------------------------------------------
 D = S.D;
-offset = S.offset;       
-space = S.space;
 wholehead = S.wholehead;
 
 % Meshes
@@ -385,11 +383,11 @@ lp = min(cortex.vertices(:,3));
 
 % create convex hull of mesh
 %--------------------------------------------------------------------------
-[tri,V1] = convhull(double(scalp.vertices));
+[~,V1] = convhull(double(scalp.vertices));
 
 % outward facing vertx normals of convex hull
 %--------------------------------------------------------------------------
-[Nv,Nf] = spm_mesh_normals(scalp,true);
+[Nv,~] = spm_mesh_normals(scalp,true);
 ns = Nv;
 vs = scalp.vertices;
 cog1=mean(vs);
@@ -411,7 +409,7 @@ end
 % add an offset to the convex hull
 %--------------------------------------------------------------------------
 offVertices=vs+ns*S.offset;
-[tri,V2] = convhull(double(offVertices));
+[~,V2] = convhull(double(offVertices));
 
 
 % Expand solution space by ratio of Volumes
@@ -431,17 +429,14 @@ scalp = spm_mesh_transform(scalp,T);
 % Create the sensor array 
 %--------------------------------------------------------------------------
 args= [];
-args.division=3;
 args.space=S.space;
-args.niter=10000;
 args.g=scalp;
-args.nDens=10;
-[pos, ms2s1, ims2s1] = spm_mesh_pack_points(args);
+[pos, ~, ~] = spm_mesh_pack_points(args);
 
 
 % get orientation of scalp
 %--------------------------------------------------------------------------
-[Nv,Nf] = spm_mesh_normals(scalp,true);
+[~,Nf] = spm_mesh_normals(scalp,true);
 cog=mean(scalp.vertices);
 
 v=scalp.vertices;
