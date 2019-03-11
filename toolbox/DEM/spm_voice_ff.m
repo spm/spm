@@ -44,7 +44,7 @@ function [xY] = spm_voice_ff(Y,FS,F0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7535 2019-03-03 20:27:09Z karl $
+% $Id: spm_voice_ff.m 7540 2019-03-11 10:44:51Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -56,7 +56,12 @@ try, Tv = voice_options.Tv; catch, Tv  = 1;     end  % log scaling (interval)
 try, F1 = voice_options.F1; catch, F1  = 32;    end  % fundamental formant
 try, F2 = voice_options.F2; catch, F2  = 1024;  end  % minimum formant
 if nargin < 3
-     F0 = voice_options.F0;
+    try
+        F0 = voice_options.F0;
+    catch
+        F0 = 128;
+        voice_options.F0 = F0;
+    end
 end
 
 % find periods of spectral energy an F0 (fundamental frequency)

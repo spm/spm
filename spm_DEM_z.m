@@ -14,7 +14,7 @@ function [z,w] = spm_DEM_z(M,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_z.m 5047 2012-11-09 20:48:20Z karl $
+% $Id: spm_DEM_z.m 7540 2019-03-11 10:44:51Z karl $
 
 % temporal convolution matrix (with unit variance)
 %--------------------------------------------------------------------------
@@ -22,7 +22,7 @@ s  = M(1).E.s + exp(-16);
 dt = M(1).E.dt;
 t  = ((1:N) - 1)*dt;
 K  = toeplitz(exp(-t.^2/(2*s^2)));
-K  = diag(1./sqrt(diag(K*K')))*K;
+K  = K*diag(1./sqrt(diag(K*K')));
 
 % create innovations z{i} and w{i}
 %--------------------------------------------------------------------------

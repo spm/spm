@@ -28,19 +28,34 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7536 2019-03-03 21:38:19Z karl $
+% $Id: spm_voice_get_word.m 7540 2019-03-11 10:44:51Z karl $
+
+%% get  parameters from voice_options
+%==========================================================================
+global voice_options
+voice_options.onsets = 1;
+
+LEX = voice_options.LEX;
+PRO = voice_options.PRO;
+WHO = voice_options.WHO;
+I0  = voice_options.I0;
+
 
 % get source (recorder) and FS
 %--------------------------------------------------------------------------
 if isa(wfile,'audiorecorder')
+    FS    = get(wfile,'SampleRate');
+    read  = @getaudiodata;
     
-    FS     = get(wfile,'SampleRate');
-    read   = @getaudiodata;
-    
+    % ensure 2 second of data has been accumulated
+    %----------------------------------------------------------------------
+    dt    = (get(wfile,'TotalSamples') - I0)/FS;
+    pause(2 - dt);
+
 else
     
     % sound file (read)
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     try
         xI     = audioinfo(wfile);
         FS     = xI.SampleRate;
@@ -52,36 +67,23 @@ else
 end
 
 
-%% get  parameters from voice_options
-%==========================================================================
-global voice_options
-voice_options.onsets = 0;
-
-LEX = voice_options.LEX;
-PRO = voice_options.PRO;
-WHO = voice_options.WHO;
-I0  = voice_options.I0;
-
-
 %% find word and evaluate likelihoods
 %==========================================================================
-try
-    Y = read(wfile,round([1 FS*8]));
-catch
-    Y = read(wfile);
-end
+Y     = read(wfile);
 
 % find next word
 %--------------------------------------------------------------------------
-DI    = FS/2;
+DI    = FS/4;
 IS    = numel(Y);
+I     = [];
 for i = 1:4
     
     % check for content
     %----------------------------------------------------------------------
     j = (0:FS) + I0;
-    y = Y(j(j < IS));
-    I = spm_voice_check(y,FS);
+    try
+        I = spm_voice_check(Y(j(j < IS)),FS);
+    end
     
     % advance pointer if silence
     %----------------------------------------------------------------------
@@ -103,12 +105,10 @@ end
 %--------------------------------------------------------------------------
 I0     = I0 + I(1);
 j      = (0:FS) + I0;
-y      = Y(j(j < IS));
-I      = spm_voice_onset(y,FS);
+I      = spm_voice_onset(Y(j(j < IS)),FS);
 I0     = I0 + I(1);
 j      = (0:FS) + I0;
-y      = Y(j(j < IS));
-[I,dI] = spm_voice_onset(y,FS);
+[I,dI] = spm_voice_onset(Y(j(j < IS)),FS);
 I0     = I0 + I(1);
 dI     = [dI;I(end)] - I(1);
 

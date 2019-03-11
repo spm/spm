@@ -16,7 +16,7 @@ function spm_voice_read(wfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7536 2019-03-03 21:38:19Z karl $
+% $Id: spm_voice_read.m 7540 2019-03-11 10:44:51Z karl $
 
 % get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
@@ -26,16 +26,17 @@ function spm_voice_read(wfile)
 %==========================================================================
 if isa(wfile,'audiorecorder')
     stop(wfile);
-    record(wfile,16);
-    pause(1);
+    record(wfile,8);
+
 end
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================
 global voice_options
 voice_options.I0 = 1;
+
 str   = {};
-for s = 1:5
+for s = 1:8
     
     % find next word
     %----------------------------------------------------------------------

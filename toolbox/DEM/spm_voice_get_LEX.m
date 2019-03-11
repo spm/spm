@@ -23,7 +23,7 @@ function [LEX,PRO,WHO,PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7536 2019-03-03 21:38:19Z karl $
+% $Id: spm_voice_get_LEX.m 7540 2019-03-11 10:44:51Z karl $
 
 
 % defaults
@@ -89,7 +89,7 @@ legend(Pstr)
 %--------------------------------------------------------------------------
 R(1,:)   = log([96  350]);                           % ff0
 R(2,:)   = log([24   64]);                           % ff1
-R(3,:)   = log([1/4 3/4]);                           % dur
+R(3,:)   = log([1/8 7/8]);                           % dur
 R(4,:)   = log([1.8 2.8]);                           % timbre
 R(5,:)   = [1 1];                                    % const
 R(6,:)   = [-1/4 1/4];                               % inf

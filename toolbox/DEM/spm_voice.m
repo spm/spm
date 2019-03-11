@@ -26,7 +26,7 @@ function [LEX,PRO,WHO] = spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7536 2019-03-03 21:38:19Z karl $
+% $Id: spm_voice.m 7540 2019-03-11 10:44:51Z karl $
 
 
 
@@ -46,8 +46,10 @@ voice_options.mute        = 1;
 voice_options.onsets      = 0;
 
 
+
 %% get corpus
 %==========================================================================
+voice_options.F0 = 108;
 [xY,word] = spm_voice_get_xY(PATH);
 
 
@@ -74,7 +76,7 @@ for w = 1:nw
 end
 
 
-%%  apply to test narrative of 87 words
+%%  apply to test narrative of 87 words (this will search over the basis)
 %--------------------------------------------------------------------------
 spm_voice_test('../test.wav','../test.txt',LEX,PRO,WHO);
 

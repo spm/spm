@@ -21,7 +21,7 @@ function [L,M,N] = spm_voice_likelihood(xY,LEX,PRO,WHO)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7535 2019-03-03 20:27:09Z karl $
+% $Id: spm_voice_likelihood.m 7540 2019-03-11 10:44:51Z karl $
 
 
 % handle arrays
@@ -66,7 +66,7 @@ for w = 1:size(LEX,1)
         % add log prior, if specified
         %------------------------------------------------------------------
         try
-            L(w,k) = L(w,k) + LEX(w,k).pL(w,k); % log posterior
+            L(w,k) = L(w,k) + LEX(w,k).pL(w,k);   % log posterior
         end
     end
 end
