@@ -1,4 +1,4 @@
-function varargout=spm_platform(varargin)
+function varargout = spm_platform(varargin)
 % Platform specific configuration parameters for SPM
 %
 % FORMAT ans = spm_platform(arg)
@@ -49,10 +49,10 @@ function varargout=spm_platform(varargin)
 % Platform specific definitions are contained in the data structures at
 % the beginning of the init_platform subfunction at the end of this file.
 %__________________________________________________________________________
-% Copyright (C) 1999-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2019 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 7205 2017-11-09 11:29:59Z guillaume $
+% $Id: spm_platform.m 7541 2019-03-11 12:20:27Z spm $
 
 
 %-Initialise
@@ -139,16 +139,17 @@ end
 function PLATFORM = init_platform(comp)     %-Initialise platform variables
 %==========================================================================
 if nargin<1
-    if ~strcmpi(spm_check_version,'octave')
+    if strcmpi(spm_check_version,'matlab')
         comp = computer;
     else
         if isunix
-            switch uname.machine
+            comp = uname.machine;
+            switch comp
                 case {'x86_64'}
                     comp = 'GLNXA64';
                 case {'i586','i686'}
                     comp = 'GLNX86';
-                case {'armv6l','armv7l','armv8l'}
+                case {'armv6l','armv7l','armv8l','aarch64'}
                     comp = 'ARM';
                 otherwise
                     error('%s is not supported.',comp);
