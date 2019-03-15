@@ -17,7 +17,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 7175 2017-09-26 14:50:54Z vladimir $
+% $Id: spm_eeg_prep.m 7544 2019-03-15 16:20:16Z vladimir $
 
 D = spm_eeg_load(S.D);
 
@@ -279,7 +279,7 @@ switch lower(S.task)
         if isequal(D.modality(1, 0), 'Multimodal')
             if ~isempty(D.fiducials) && isfield(S, 'regfid') && ~isempty(S.regfid)
                 M1 = coreg(D.fiducials, shape, S.regfid);
-                elec = ft_transform_sens(M1, elec);
+                elec = ft_transform_geometry(M1, elec);
             else
                 error(['MEG fiducials matched to EEG fiducials are required '...
                     'to add EEG sensors to a multimodal dataset.']);
@@ -388,7 +388,7 @@ switch lower(S.task)
                 if strcmp(D.modality(1, 0), 'Multimodal') && ~isempty(D.fiducials)...
                         && isfield(S, 'regfid') && ~isempty(S.regfid)
                     M1 = coreg(D.fiducials, fid, S.regfid);
-                    D = sensors(D, 'EEG', ft_transform_sens(M1, D.sensors('EEG')));
+                    D = sensors(D, 'EEG', ft_transform_geometry(M1, D.sensors('EEG')));
                 else
                     D = fiducials(D, fid);
                 end
@@ -497,7 +497,7 @@ switch lower(S.task)
         
         if ~isempty(fid) && isfield(S, 'regfid') && ~isempty(S.regfid)
             M1 = coreg(fid, shape, S.regfid);
-            shape = ft_transform_headshape(M1, shape);
+            shape = ft_transform_geometry(M1, shape);
         end
         
         D = fiducials(D, shape);

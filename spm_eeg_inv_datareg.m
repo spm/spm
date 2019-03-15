@@ -33,7 +33,7 @@ function M1 = spm_eeg_inv_datareg(S)
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 7112 2017-06-16 11:30:37Z guillaume $
+% $Id: spm_eeg_inv_datareg.m 7544 2019-03-15 16:20:16Z vladimir $
 
 
 if ~isfield(S, 'targetfid')
@@ -63,7 +63,7 @@ end
 %--------------------------------------------------------------------------
 M1 = spm_eeg_inv_rigidreg(targetfid.fid.pnt', sourcefid.fid.pnt');
 
-sourcefid = ft_transform_headshape(M1, sourcefid);
+sourcefid = ft_transform_geometry(M1, sourcefid);
 
 if S.template
 
@@ -77,7 +77,7 @@ if S.template
         M       = pinv(sourcefid.fid.pnt(:))*targetfid.fid.pnt(:);
         M       = sparse(1:4,1:4,[M M M 1]);
 
-        sourcefid = ft_transform_headshape(M, sourcefid);
+        sourcefid = ft_transform_geometry(M, sourcefid);
 
         M1      = M*M1;
 
@@ -85,7 +85,7 @@ if S.template
         %----------------------------------------------------------------------
         M       = spm_eeg_inv_rigidreg(targetfid.fid.pnt', sourcefid.fid.pnt');
 
-        sourcefid = ft_transform_headshape(M, sourcefid);
+        sourcefid = ft_transform_geometry(M, sourcefid);
 
         M1      = M*M1;
   
@@ -137,6 +137,6 @@ if ~isempty(sourcefid.pnt) && S.useheadshape
 
     % transform headshape and eeg fiducials
     %----------------------------------------------------------------------
-    sourcefid = ft_transform_headshape(M, sourcefid);
+    sourcefid = ft_transform_geometry(M, sourcefid);
     M1        = M*M1;
 end

@@ -5,7 +5,7 @@ function spm_eeg_inv_checkforward(varargin)
 % Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_checkforward.m 7296 2018-04-18 10:36:49Z guillaume $
+% $Id: spm_eeg_inv_checkforward.m 7544 2019-03-15 16:20:16Z vladimir $
 
 
 %-SPM data structure
@@ -63,7 +63,7 @@ hold on
 
 [volp, sens] = ft_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
 
-ft_plot_vol(vol, 'edgecolor', [0 0 0], 'facealpha', 0);
+ft_plot_headmodel(vol, 'edgecolor', [0 0 0], 'facealpha', 0);
 
 hold on
 

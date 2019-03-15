@@ -12,7 +12,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 7098 2017-06-07 15:00:03Z guillaume $
+% $Id: spm_eeg_inv_datareg_ui.m 7544 2019-03-15 16:20:16Z vladimir $
 
 
 %-Initialisation
@@ -153,8 +153,8 @@ if ismember('EEG', modalities) && ~isempty(D.sensors('EEG'))
         M1 = spm_eeg_inv_datareg(S);
     end
     
-    D.inv{val}.datareg(ind).sensors = ft_transform_sens(M1, D.sensors('EEG'));
-    D.inv{val}.datareg(ind).fid_eeg = ft_transform_headshape(M1, S.sourcefid);
+    D.inv{val}.datareg(ind).sensors = ft_transform_geometry(M1, D.sensors('EEG'));
+    D.inv{val}.datareg(ind).fid_eeg = ft_transform_geometry(M1, S.sourcefid);
     D.inv{val}.datareg(ind).fid_mri = S.targetfid;
     D.inv{val}.datareg(ind).toMNI = D.inv{val}.mesh.Affine;
     D.inv{val}.datareg(ind).fromMNI = inv(D.inv{val}.datareg(ind).toMNI);
@@ -173,7 +173,7 @@ if ismember('MEG', modalities) && ~isempty(D.sensors('MEG'))
     
     D.inv{val}.datareg(ind).sensors = D.sensors('MEG');
     D.inv{val}.datareg(ind).fid_eeg = S.sourcefid;
-    D.inv{val}.datareg(ind).fid_mri = ft_transform_headshape(inv(M1), S.targetfid);
+    D.inv{val}.datareg(ind).fid_mri = ft_transform_geometry(inv(M1), S.targetfid);
     D.inv{val}.datareg(ind).toMNI = D.inv{val}.mesh.Affine*M1;
     D.inv{val}.datareg(ind).fromMNI = inv(D.inv{val}.datareg(ind).toMNI);
     D.inv{val}.datareg(ind).modality = 'MEG';

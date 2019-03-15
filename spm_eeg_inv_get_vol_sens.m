@@ -12,7 +12,7 @@ function data = spm_eeg_inv_get_vol_sens(D, val, space, gradsource, modality)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_get_vol_sens.m 5803 2013-12-11 16:18:12Z vladimir $
+% $Id: spm_eeg_inv_get_vol_sens.m 7544 2019-03-15 16:20:16Z vladimir $
 
 data   = [];
 
@@ -107,8 +107,8 @@ if megind > 0 && ~isequal(modality, 'EEG')
     
     switch space
         case 'MNI-aligned'            
-            data.MEG.vol  = ft_transform_vol(M, vol);
-            data.MEG.sens = ft_transform_sens(M, sens);            
+            data.MEG.vol  = ft_transform_geometry(M, vol);
+            data.MEG.sens = ft_transform_geometry(M, sens);            
             
             data.transforms.toMNI         = toMNI/M;
             data.transforms.toMNI_aligned = to_mm;
@@ -166,8 +166,8 @@ if eegind > 0 && ~strncmp(modality, 'MEG', 3)
             
             fromNative = data.transforms.toNative\to_mm;
             
-            data.EEG.vol  = ft_transform_vol(fromNative, vol);
-            data.EEG.sens = ft_transform_sens(fromNative, sens);
+            data.EEG.vol  = ft_transform_geometry(fromNative, vol);
+            data.EEG.sens = ft_transform_geometry(fromNative, sens);
         end
     else                             % EEG only        
         M          = to_mm\toMNI;
@@ -192,8 +192,8 @@ if eegind > 0 && ~strncmp(modality, 'MEG', 3)
                     vol = ft_read_vol(vol);
                 end
                 
-                data.EEG.vol  = ft_transform_vol(M, vol);
-                data.EEG.sens = ft_transform_sens(M, sens);
+                data.EEG.vol  = ft_transform_geometry(M, vol);
+                data.EEG.sens = ft_transform_geometry(M, sens);
                 
                 data.transforms.toMNI         = toMNI/M;
                 data.transforms.toMNI_aligned = to_mm;

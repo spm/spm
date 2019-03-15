@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 5777 2013-12-04 16:18:12Z vladimir $
+% $Id: spm_eeg_inv_vbecd_gui.m 7544 2019-03-15 16:20:16Z vladimir $
 
 %%
 % Load data, if necessary
@@ -250,7 +250,7 @@ while adding_dips
             while 1
                 s0mni = spm_input(str, 1+tr_q+dip_q+2,'e',[0 0 0])';
                 
-                %outside = ~ft_inside_vol(s0mni',mnivol);
+                %outside = ~ft_inside_headmodel(s0mni',mnivol);
                 
                 distcentre=sqrt(dot(s0mni'-mean(D.inv{D.val}.mesh.tess_mni.vert),s0mni'-mean(D.inv{D.val}.mesh.tess_mni.vert))); %% 
                 outside=(distcentre>DISTTHRESH);
