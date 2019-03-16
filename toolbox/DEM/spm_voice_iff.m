@@ -24,22 +24,22 @@ function [Y] = spm_voice_iff(xY,L)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7535 2019-03-03 20:27:09Z karl $
+% $Id: spm_voice_iff.m 7545 2019-03-16 11:57:13Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
-global voice_options
-if voice_options.mute && ~nargout && ~voice_options.graphics
+global VOX
+if VOX.mute && ~nargout && ~VOX.graphics
     return
 end
-try, FS = voice_options.FS; catch, FS  = 22050; end  % sampling frequency
-try, Tu = voice_options.Tu; catch, Tu  = 4;     end  % log scaling (formants)
-try, Tv = voice_options.Tv; catch, Tv  = 1;     end  % log scaling (interval)
+try, FS = VOX.FS; catch, FS  = 22050; end  % sampling frequency
+try, Tu = VOX.Tu; catch, Tu  = 4;     end  % log scaling (formants)
+try, Tv = VOX.Tv; catch, Tv  = 1;     end  % log scaling (interval)
 
 % check for structure arrays
 %--------------------------------------------------------------------------
 ns = numel(xY);
-if nargin   < 3,  L = 1/4;               end
+if nargin   < 2,  L = 1/4;               end
 if numel(L) < ns, L = repmat(L(1),ns,1); end
 
 % recompose and play
@@ -102,13 +102,13 @@ Y  = Y/sum(std(Q));
 
 % play timeseries if requested
 %--------------------------------------------------------------------------
-if ~ voice_options.mute && ~ nargout
+if ~ VOX.mute && ~ nargout
     pause(L),sound(Y,FS);
 end
 
 % graphics  if requested
 %--------------------------------------------------------------------------
-if voice_options.graphics
+if VOX.graphics
     
     % peristimulus time (seconds) and plot
     %--------------------------------------------------------------------------

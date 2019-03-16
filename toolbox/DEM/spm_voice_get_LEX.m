@@ -1,35 +1,40 @@
-function [LEX,PRO,WHO,PP] = spm_voice_get_LEX(xY,word)
-% Creates lexical, prosody and identity structures from word structures
-% FORMAT [LEX,PRO,WHO,PP] = spm_voice_get_LEX(xY,word)
+function [PP] = spm_voice_get_LEX(xY,word)
+% Creates lexical, prosody and speaker structures from word structures
+% FORMAT [P] = spm_voice_get_LEX(xY,word)
 %
-% xY(nw,ns) -  structure array for ns samples of nw words
-% word(nw)  -  cell array of word names
+% xY(nw,ns)      -  structure array for ns samples of nw words
+% word(nw)       -  cell array of word names
 %
-% LEX(nw,nk) -  structure array for nk variants of nw words
-% PRO(np)    -  structure array for np aspects of prosody
-% WHO(nq)    -  structure array for nq aspects of idenity
+% VOX.LEX(nw,nk) -  structure array for nk variants of nw words
+% VOX.PRO(np)    -  structure array for np aspects of prosody
+% VOX.WHO(nq)    -  structure array for nq aspects of speaker
+%
+% P              -  lexical parameters for exemplar (training) words
 %
 %  This routine creates a triplet of structure arrays used to infer the
 %  lexical content and prosody of a word -  and the identity of the person
 %  talking. It uses  exemplar word files, each containing 32 words spoken
-%  with varying prosody.  each structure contains the expectations and
+%  with varying prosody. Each structure contains the expectations and
 %  precisions of lexical and prosody parameters (Q and P respectively) -
 %  and associated eigenbases. This allows the likelihood of any given word
 %  (summarised in a word structure xY)  to be evaluated  under Gaussian
 %  assumptions about random fluctuations in parametric space. The identity
 %  and prosody likelihoods are based upon the prosody parameters, while the
-%  lexical likelihood is based upon the lexical parameters.
+%  lexical likelihood is based upon the lexical parameters. These (LEX,
+%  PRO, and WHO)structures are placed in the VOX structure, which is a
+%  global variable. In addition, the expected value of various coefficients
+%  are stored in VOX.Q and VOX.P.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7540 2019-03-11 10:44:51Z karl $
+% $Id: spm_voice_get_LEX.m 7545 2019-03-16 11:57:13Z karl $
 
 
 % defaults
 %--------------------------------------------------------------------------
-global voice_options
-try, E = voice_options.E; catch, E  = 64; end     % regularisation
+global VOX
+try, E = VOX.E; catch, E  = 64; end     % regularisation
 
 
 %% assemble parameters for subsequent analysis
@@ -97,11 +102,11 @@ R(7,:)   = [-1/4 1/4];                               % bif
 
 % select prosidy features and specify prior precision
 %--------------------------------------------------------------------------
-i        = [3,4,6,7];
-ni       = numel(i);
-p0       = mean(R,2);
-PRO(1).P = spm_unvec(p0(:),xY(1).P);
-PRO(1).i = i;
+i     = [3,4,6,7];
+ni    = numel(i);
+p0    = mean(R,2);
+VOX.P = spm_unvec(p0(:),xY(1).P);
+VOX.i = i;
 
 % mixture of Gaussians
 %--------------------------------------------------------------------------
@@ -123,14 +128,14 @@ for p = 1:ni
    
 end
 
-%% identity
+%% speaker
 %==========================================================================
 
-% select identity features and specify prior precision
+% select speaker features and specify prior precision
 %--------------------------------------------------------------------------
-i        = [1 2];
-ni       = numel(i);
-WHO(1).i = i;
+i     = [1 2];
+ni    = numel(i);
+VOX.j = i;
 
 % mixture of Gaussians
 %--------------------------------------------------------------------------
@@ -160,7 +165,6 @@ end
 %--------------------------------------------------------------------------
 N     = 1;                                     % number of variants
 q0    = mean(spm_cat(Q),2);                    % average word
-Q0    = spm_unvec(q0,xY(1).Q);
 for w = 1:nw
     
     % lexical coefficients
@@ -175,9 +179,12 @@ for w = 1:nw
     for i = k
         LEX(w,i).qE = pE(i,:)';
         LEX(w,i).qC = pC(:,:,i);
-        LEX(w,i).Q  = Q0;
     end
 end
+
+% save mean in voice structure
+%--------------------------------------------------------------------------
+VOX.Q = spm_unvec(q0,xY(1).Q);
 
 % covariance normalisation; based on within word covariance
 %--------------------------------------------------------------------------
@@ -201,16 +208,22 @@ for w = 1:nw
     end
 end
 
-% find most likely exemplar
+% place lexical and other structures voice structure
+%--------------------------------------------------------------------------
+VOX.LEX = LEX;
+VOX.PRO = PRO;
+VOX.WHO = WHO;
+
+% find most likely exemplar for word generation
 %--------------------------------------------------------------------------
 for w = 1:nw
     for k = 1:N
         
         % likelihood
         %------------------------------------------------------------------
-        L           = spm_voice_likelihood(xY(w,:),LEX(w,:),PRO,WHO);
-        [L,i]       = max(spm_vec(L));
-        LEX(w,k).rE = spm_vec(xY(w,i).Q) - spm_vec(LEX(1).Q);
+        L               = spm_voice_likelihood(xY(w,:),w);
+        [L,i]           = max(spm_vec(L));
+        VOX.LEX(w,k).rE = spm_vec(xY(w,i).Q) - spm_vec(VOX.Q);
         
     end
 end

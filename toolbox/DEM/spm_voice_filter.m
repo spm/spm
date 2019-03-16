@@ -18,12 +18,12 @@ function [G,F0] = spm_voice_filter(Y,FS,F1,F2)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_filter.m 7535 2019-03-03 20:27:09Z karl $
+% $Id: spm_voice_filter.m 7545 2019-03-16 11:57:13Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
 if nargin < 3; F1 = 512;  end
-if nargin < 4; F2 = 4096; end
+if nargin < 4; F2 = 8096; end
 
 
 % find acoutic energy using spm_wft
@@ -57,8 +57,8 @@ return
 
 % graphics
 %==========================================================================
-global voice_options
-if ~voice_options.fundamental, return, end
+global VOX
+if ~VOX.fundamental, return, end
 
 % time-frequency analysis
 %--------------------------------------------------------------------------  

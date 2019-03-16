@@ -26,7 +26,7 @@ function [LEX,PRO,WHO] = spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7540 2019-03-11 10:44:51Z karl $
+% $Id: spm_voice.m 7545 2019-03-16 11:57:13Z karl $
 
 
 
@@ -35,36 +35,33 @@ function [LEX,PRO,WHO] = spm_voice(PATH)
 
 % directory of sound files if necessary
 %--------------------------------------------------------------------------
-clear global voice_options
+clear global VOX
 if ~nargin
     PATH = 'C:\Users\karl\Dropbox\Papers\Voice recognition\Sound files';
 end
 
-global voice_options
-voice_options.graphics    = 1;
-voice_options.mute        = 1;
-voice_options.onsets      = 0;
+global VOX
+VOX.graphics  = 1;
+VOX.mute      = 1;
+VOX.onsets    = 0;
 
 
 
 %% get corpus
 %==========================================================================
-voice_options.F0 = 108;
+VOX.F0    = 100;
 [xY,word] = spm_voice_get_xY(PATH);
 
 
-%% get structures
+%% place LEX, PRO and WHO structures in VOX and get parameters
+% e.g., VOX.F0  = exp(mean(P(:,1)));
 %==========================================================================
-[LEX,PRO,WHO,PP]  = spm_voice_get_LEX(xY,word);
-voice_options.LEX = LEX;
-voice_options.PRO = PRO;
-voice_options.WHO = WHO;
+P         = spm_voice_get_LEX(xY,word);
 
-voice_options.F0  = exp(mean(PP(:,1)));
 
 %% articulate every word under all combinations of (5 levels) of prosody
 %--------------------------------------------------------------------------
-voice_options.mute = 0;
+VOX.mute = 0;
 nw    = numel(LEX);                           % number of words
 k     = [2 6];                                % number of prosody features
 for w = 1:nw
@@ -78,7 +75,7 @@ end
 
 %%  apply to test narrative of 87 words (this will search over the basis)
 %--------------------------------------------------------------------------
-spm_voice_test('../test.wav','../test.txt',LEX,PRO,WHO);
+spm_voice_test('../test.wav','../test.txt');
 
 
 %% read the first few words of a test file
@@ -116,7 +113,7 @@ for s = 1:5
     
     % string
     %----------------------------------------------------------------------
-    str{s} = voice_options.LEX(w,1).word       % lexical string
+    str{s} = VOX.LEX(w,1).word       % lexical string
     
 end
 
@@ -146,7 +143,7 @@ for i = 1:nw
         
         % evaluate lexical (L) and prosody (M) likelihoods
         %------------------------------------------------------------------
-        [L,M] = spm_voice_likelihood(xY(i,j),LEX,PRO,WHO);
+        [L,M] = spm_voice_likelihood(xY(i,j));
         L(:)  = spm_softmax(L(:));
         M     = spm_softmax(M);
         L     = sum(L,2);
@@ -187,7 +184,7 @@ set(gca,'Xtick',1:k),set(gca,'Ytick',1:j),set(gca,'YtickLabel',{PRO.str})
 
 %% save lexical and prosody arrays in sound file directory
 %--------------------------------------------------------------------------
-save voice_options voice_options
+save VOX VOX
 
 return
 
@@ -197,20 +194,20 @@ return
 
 %% optmise spectral defaultswith respect to classification accuracy
 %==========================================================================
-global voice_options
-voice_options.graphics = 1;
-voice_options.mute     = 1;
-voice_options.onsets   = 0;
+global VOX
+VOX.graphics = 1;
+VOX.mute     = 1;
+VOX.onsets   = 0;
 
 % expansion point (i.e., defaults
 %--------------------------------------------------------------------------
-voice_options.Nu  = 16;
-voice_options.Nv  = 8;
-voice_options.Tu  = 4;
-voice_options.Tv  = 2;
-voice_options.E   = 64;
-voice_options.F1  = 32;
-voice_options.F2  = 256;
+VOX.Nu  = 16;
+VOX.Nv  = 8;
+VOX.Tu  = 4;
+VOX.Tv  = 2;
+VOX.E   = 64;
+VOX.F1  = 32;
+VOX.F2  = 256;
 
 % great search over variables
 %--------------------------------------------------------------------------
@@ -219,8 +216,8 @@ Pu    = [32 36];
 Pv    = [256 512];
 for i = 1:numel(Pu)
     for j = 1:numel(Pv);
-         voice_options.F1 = Pu(i);
-         voice_options.F2 = Pv(j);
+         VOX.F1 = Pu(i);
+         VOX.F2 = Pv(j);
         
         [xY,word]     = spm_voice_get_xY(PATH);
         [LEX,PRO,WHO] = spm_voice_get_LEX(xY,word);

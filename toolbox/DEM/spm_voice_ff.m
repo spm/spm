@@ -44,23 +44,23 @@ function [xY] = spm_voice_ff(Y,FS,F0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7540 2019-03-11 10:44:51Z karl $
+% $Id: spm_voice_ff.m 7545 2019-03-16 11:57:13Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
-global voice_options
-try, Nu = voice_options.Nu; catch, Nu  = 32;    end  % DCT order   (formants)
-try, Nv = voice_options.Nv; catch, Nv  = 16;    end  % DCT order   (interval)
-try, Tu = voice_options.Tu; catch, Tu  = 4;     end  % log scaling (formants)
-try, Tv = voice_options.Tv; catch, Tv  = 1;     end  % log scaling (interval)
-try, F1 = voice_options.F1; catch, F1  = 32;    end  % fundamental formant
-try, F2 = voice_options.F2; catch, F2  = 1024;  end  % minimum formant
+global VOX
+try, Nu = VOX.Nu; catch, Nu  = 32;    end    % DCT order   (formants)
+try, Nv = VOX.Nv; catch, Nv  = 8;     end    % DCT order   (interval)
+try, Tu = VOX.Tu; catch, Tu  = 4;     end    % log scaling (formants)
+try, Tv = VOX.Tv; catch, Tv  = 1;     end    % log scaling (interval)
+try, F1 = VOX.F1; catch, F1  = 32;    end    % fundamental formant
+try, F2 = VOX.F2; catch, F2  = 1024;  end    % minimum formant
 if nargin < 3
     try
-        F0 = voice_options.F0;
+        F0     = VOX.F0;
     catch
-        F0 = 128;
-        voice_options.F0 = F0;
+        F0     = 128;
+        VOX.F0 = F0;
     end
 end
 

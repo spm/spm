@@ -9,7 +9,7 @@ function [O] = spm_voice_get_word(wfile,P)
 % O{2}   - prosody likelihood
 % O{3}   - speaker likelihood
 %
-% requires the following in the global variable voice_options:
+% requires the following in the global variable VOX:
 % LEX    - lexical structure array
 % PRO    - prodidy structure array
 % WHO    - speaker structure array
@@ -28,17 +28,17 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7540 2019-03-11 10:44:51Z karl $
+% $Id: spm_voice_get_word.m 7545 2019-03-16 11:57:13Z karl $
 
-%% get  parameters from voice_options
+%% get  parameters from VOX
 %==========================================================================
-global voice_options
-voice_options.onsets = 1;
+global VOX
+VOX.onsets = 1;
 
-LEX = voice_options.LEX;
-PRO = voice_options.PRO;
-WHO = voice_options.WHO;
-I0  = voice_options.I0;
+LEX = VOX.LEX;
+PRO = VOX.PRO;
+WHO = VOX.WHO;
+I0  = VOX.I0;
 
 
 % get source (recorder) and FS
@@ -69,27 +69,41 @@ end
 
 %% find word and evaluate likelihoods
 %==========================================================================
-Y     = read(wfile);
 
 % find next word
 %--------------------------------------------------------------------------
-DI    = FS/4;
-IS    = numel(Y);
-I     = [];
-for i = 1:4
+for i = 1:16
     
     % check for content
     %----------------------------------------------------------------------
-    j = (0:FS) + I0;
-    try
-        I = spm_voice_check(Y(j(j < IS)),FS);
-    end
+    Y = read(wfile);
+    n = numel(Y);
+    j = round(0:2*FS) + I0;
+    G = spm_voice_filter(Y(j(j < n)),FS);
+    G = spm_conv(G,FS/4);
+    I = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
+    I = I(I > FS/16 & G(I) > 1/128);
     
     % advance pointer if silence
     %----------------------------------------------------------------------
-    if isempty(I) && (I0 + DI + FS) < IS
-        I0 = I0 + DI;
+    if isempty(I)
+        
+        % advance pointer one second
+        %------------------------------------------------------------------
+        I0 = I0 + FS;
+        
+        % ensure 2 second of data has been accumulated
+        %------------------------------------------------------------------
+        if isa(wfile,'audiorecorder')
+            dt = (get(wfile,'TotalSamples') - I0)/FS;
+            pause(2 - dt);
+        end
+        
     else
+        
+        % move to centre of next word
+        %------------------------------------------------------------------
+        I0 = I0 + I(1);
         break
     end
 end
@@ -97,51 +111,36 @@ end
 % break if EOF
 %--------------------------------------------------------------------------
 if isempty(I)
-    O = {};
+    O      = {};
+    VOX.I0 = I0;
     return
 end
 
-% get sampling epoch
-%--------------------------------------------------------------------------
-I0     = I0 + I(1);
-j      = (0:FS) + I0;
-I      = spm_voice_onset(Y(j(j < IS)),FS);
-I0     = I0 + I(1);
-j      = (0:FS) + I0;
-[I,dI] = spm_voice_onset(Y(j(j < IS)),FS);
-I0     = I0 + I(1);
-dI     = [dI;I(end)] - I(1);
-
-
 % retrieve epoch and decompose at fundamental frequency
 %--------------------------------------------------------------------------
-clear xy
-for i = 1:numel(dI)
-    y     = Y(round((0:dI(i)) + I0));
-    xy(i) = spm_voice_ff(y,FS);
-end
+j  = round(-FS/2:FS/2) + I0;
+xy = spm_voice_ff(Y(j(j < n)),FS);
 
 % identify the most likely word
 %==========================================================================
-[L,M,N] = spm_voice_likelihood(xy,LEX,PRO,WHO);
+[L,M,N] = spm_voice_likelihood(xy);
 L(:)    = spm_softmax(L(:));                % likelihoods
 M       = spm_softmax(M);                   % likelihoods
 N       = spm_softmax(N);                   % likelihoods
 m       = squeeze(sum(sum(L,1),2));         % marginalise over lexicon
 L       = squeeze(sum(sum(L,2),3));         % marginalise over sampling
-if numel(dI) > 1
+if size(M,3) > 1
     M   = spm_dot(M,{m});                   % marginalise prosody
     N   = spm_dot(N,{m});                   % marginalise identity
 end
 
 % advance pointer based on marginal over samples
 %--------------------------------------------------------------------------
-[m,i] = max(m);
-O{1}  = L;
-O{2}  = M;
-O{3}  = N;
-
-voice_options.I0 = I0 + xy(i).i(end);
+[m,i]  = max(m);
+O{1}   = L;
+O{2}   = M;
+O{3}   = N;
+VOX.I0 = I0;
 
 return
 

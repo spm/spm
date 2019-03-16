@@ -1,5 +1,5 @@
 function [i,j] = spm_voice_onset(Y,FS,U)
-% decomposition at fundamental frequency
+% identifies intervals containing acoustic energy and post onset minima
 % FORMAT [i,j] = spm_voice_onset(Y,FS,U)
 %
 % Y    - timeseries
@@ -9,12 +9,15 @@ function [i,j] = spm_voice_onset(Y,FS,U)
 % i    - intervals (time bins) containing spectral energy
 % j    - indices of post onset minima
 %
-% This routine identifies epochs constaining spectral energy
+% This routine identifies epochs constaining spectral energy of the power
+% envelope, defined as the law root mean square (RMS) power.the onset and
+% offset of words is evaluated in terms of threshold crossings before and
+% after the interquartile range (or the minimum if these do not exist).
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onset.m 7535 2019-03-03 20:27:09Z karl $
+% $Id: spm_voice_onset.m 7545 2019-03-16 11:57:13Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
@@ -24,28 +27,29 @@ function [i,j] = spm_voice_onset(Y,FS,U)
 try
     u = 0 - U;
 catch
-    u = 0 - 3;
+    u = 0 - 4;
 end
-    
-% find interquartile range of spectral energy
-%--------------------------------------------------------------------------
-n     = length(Y);                           % Length of time series
-aY    = abs(Y);                              % root power
-sY    = cumsum(hanning(n).*sqrt(aY));        % cumulative (root) power
-w0    = find(sY > sY(n)/4,  1);              % first quartile
-wT    = find(sY > sY(n)*3/4,1);              % third quartile
-aY    = spm_conv(aY,FS/16);                  % smooth and normalise
-aY    = aY - min(aY);
-Ymax  = max(aY);
-aY    = aY/Ymax;
 
 % fit fluctuations with a DCT and identify threshold crossings
 %--------------------------------------------------------------------------
+n     = length(Y);                           % length of time series
 D     = spm_dctmtx(n,8);                     % discrete cosine transform 
-lY    = log(aY + exp(-4));                   % log transformed
-fY    = D*(D'*lY);                           % fit
-i0    = find((fY(1:w0 - 1) < u) & (fY(2:w0)     > u),1,'last' );
-iT    = find((fY(wT:n - 1) > u) & (fY(wT + 1:n) < u),1,'first');
+fY    = D*(D'*log(abs(Y) + eps));            % fit log RMS
+fY    = fY + hanning(n);                     % prior hanning 
+fY    = fY - max(fY);                        % normalise to maximum
+fY    = -6*fY/min(fY);                       % normalise range
+
+% find interquartile range of spectral energy
+%--------------------------------------------------------------------------
+fY    = fY + hanning(n);                     % post hanning
+sY    = cumsum(exp(fY));                     % cumulative RMS
+w0    = find(sY > sY(n)/4,  1);              % first quartile
+wT    = find(sY > sY(n)*3/4,1);              % third quartile
+
+% identify threshold crossings
+%--------------------------------------------------------------------------
+i0    = find(fY(1:w0 - 1) < u,1,'last' );
+iT    = find(fY(wT + 1:n) < u,1,'first');
 iT    = iT + wT;
 
 % use the minima before and after interquartile range, if necessary
@@ -60,7 +64,7 @@ end
 
 % indices of interval containing spectral energy
 %--------------------------------------------------------------------------
-i     = i0:iT;                                       % interval
+i     = i0:iT;
 
 % post onset minima if requested
 %--------------------------------------------------------------------------
@@ -73,8 +77,8 @@ end
 
 % graphics
 %--------------------------------------------------------------------------
-global voice_options
-if ~voice_options.onsets; return, end
+global VOX
+if ~VOX.onsets; return, end
 
 pst   = (1:n)/FS;
 Ymax  = max(abs(Y));
@@ -86,7 +90,7 @@ plot([wT,wT]/FS,[-1,1]*Ymax,'g'), hold off
 title('Onsets and offsets','FontSize',16)
 xlabel('peristimulus time (seconds)'), spm_axis tight
 
-subplot(2,1,2), plot(pst,lY,'c',pst,fY,'b'), hold on
+subplot(2,1,2), plot(pst,fY,'b'), hold on
 plot(pst(j),fY(j),'or'),          hold on
 plot(pst,u + spm_zeros(pst),':'), hold off
 title('Log energy','FontSize',16)

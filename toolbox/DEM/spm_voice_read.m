@@ -4,7 +4,7 @@ function spm_voice_read(wfile)
 %
 % wfile  - .wav file or audio object
 
-% requires the following in the global variable voice_options:
+% requires the following in the global variable VOX:
 % LEX    - lexical structure array
 % PRO    - prodidy structure array
 % WHO    - speaker structure array
@@ -16,7 +16,7 @@ function spm_voice_read(wfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7540 2019-03-11 10:44:51Z karl $
+% $Id: spm_voice_read.m 7545 2019-03-16 11:57:13Z karl $
 
 % get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
@@ -32,11 +32,11 @@ end
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================
-global voice_options
-voice_options.I0 = 1;
+global VOX
+VOX.I0 = 1;
 
 str   = {};
-for s = 1:8
+for s = 1:16
     
     % find next word
     %----------------------------------------------------------------------
@@ -57,7 +57,7 @@ for s = 1:8
     
     % string
     %----------------------------------------------------------------------
-    str{s} = voice_options.LEX(w,1).word       % lexical string
+    str{s} = VOX.LEX(w,1).word                 % lexical string
     
 end
 

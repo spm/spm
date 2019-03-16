@@ -7,12 +7,12 @@ function [wfile] = spm_voice_listen
 %  This routine creates an audio recorder object and starts recording for
 %  eight seconds. This is the use with spm_voice_get_wordthat can retrieve
 %  successive words following an index or pointer in the global variable
-%  called voice_options (voice_options.I0)
+%  called VOX (VOX.I0)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_listen.m 7536 2019-03-03 21:38:19Z karl $
+% $Id: spm_voice_listen.m 7545 2019-03-16 11:57:13Z karl $
 
 % get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
@@ -29,8 +29,8 @@ end
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================
-global voice_options
-voice_options.I0 = 1;
+global VOX
+VOX.I0 = 1;
 str   = {};
 for s = 1:5
     
@@ -55,7 +55,7 @@ for s = 1:5
     
     % string
     %----------------------------------------------------------------------
-    str{s} = voice_options.LEX(w,1).word       % lexical string
+    str{s} = VOX.LEX(w,1).word       % lexical string
     
 end
 

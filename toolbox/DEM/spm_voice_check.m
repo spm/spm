@@ -14,14 +14,14 @@ function [i] = spm_voice_check(Y,FS,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_check.m 7540 2019-03-11 10:44:51Z karl $
+% $Id: spm_voice_check.m 7545 2019-03-16 11:57:13Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
 
 % threshold - log ratio, relative to log(1) = 0;
 %--------------------------------------------------------------------------
-global voice_options
+global VOX
 if nargin < 3, U = 3; end
 
 % find periods of acoutic spectal energy > 200 ms
@@ -35,7 +35,7 @@ if sum(G > U) < FS/8
     
     % graphics
     %----------------------------------------------------------------------
-    if voice_options.onsets > 1
+    if VOX.onsets > 1
         clf, subplot(2,1,1), plot(G),    hold on
         plot(U + spm_zeros(G),':'), hold off
         title('Log energy','FontSize',16)
