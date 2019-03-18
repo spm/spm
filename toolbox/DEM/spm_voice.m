@@ -26,7 +26,7 @@ function [LEX,PRO,WHO] = spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7545 2019-03-16 11:57:13Z karl $
+% $Id: spm_voice.m 7546 2019-03-18 11:02:22Z karl $
 
 
 
@@ -41,9 +41,9 @@ if ~nargin
 end
 
 global VOX
-VOX.graphics  = 1;
-VOX.mute      = 1;
-VOX.onsets    = 0;
+VOX.graphics = 1;
+VOX.mute     = 1;
+VOX.onsets   = 0;
 
 
 
@@ -58,11 +58,10 @@ VOX.F0    = 100;
 %==========================================================================
 P         = spm_voice_get_LEX(xY,word);
 
-
 %% articulate every word under all combinations of (5 levels) of prosody
 %--------------------------------------------------------------------------
 VOX.mute = 0;
-nw    = numel(LEX);                           % number of words
+nw    = numel(VOX.LEX);                       % number of words
 k     = [2 6];                                % number of prosody features
 for w = 1:nw
     for i = k
@@ -73,10 +72,13 @@ for w = 1:nw
 end
 
 
-%%  apply to test narrative of 87 words (this will search over the basis)
+%%  apply to test narrative of 87 words (this will search over the bases)
 %--------------------------------------------------------------------------
 spm_voice_test('../test.wav','../test.txt');
 
+%% save lexical and prosody arrays in sound file directory
+%--------------------------------------------------------------------------
+save VOX VOX
 
 %% read the first few words of a test file
 %--------------------------------------------------------------------------
@@ -173,18 +175,13 @@ subplot(2,1,1); imagesc(q)
 a     = 1 - sum((p(:) - q(:)) > 1/8)/sum(p(:));
 str   = sprintf('Lexical classification accuracy %-2.0f p.c.',100*a);
 title(str,'FontSize',16), xlabel('exemplars'), ylabel('words')
-set(gca,'Ytick',1:nw),set(gca,'YtickLabel',{LEX.word})
+set(gca,'Ytick',1:nw),set(gca,'YtickLabel',{VOX.LEX.word})
 
 subplot(3,1,3); imagesc(r'), axis image
-j     = numel(PRO);
-k     = numel(PRO(1).pE);
+j     = numel(VOX.PRO);
+k     = numel(VOX.PRO(1).pE);
 xlabel('level'), ylabel('attribute'), title('Prosody','FontSize',16)
-set(gca,'Xtick',1:k),set(gca,'Ytick',1:j),set(gca,'YtickLabel',{PRO.str})
-
-
-%% save lexical and prosody arrays in sound file directory
-%--------------------------------------------------------------------------
-save VOX VOX
+set(gca,'Xtick',1:k),set(gca,'Ytick',1:j),set(gca,'YtickLabel',{VOX.PRO.str})
 
 return
 

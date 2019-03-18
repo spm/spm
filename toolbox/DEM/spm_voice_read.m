@@ -16,7 +16,7 @@ function spm_voice_read(wfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7545 2019-03-16 11:57:13Z karl $
+% $Id: spm_voice_read.m 7546 2019-03-18 11:02:22Z karl $
 
 % get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
@@ -27,16 +27,14 @@ function spm_voice_read(wfile)
 if isa(wfile,'audiorecorder')
     stop(wfile);
     record(wfile,8);
-
 end
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================
 global VOX
 VOX.I0 = 1;
-
-str   = {};
-for s = 1:16
+VOX.IT = [1,1];
+for s  = 1:8
     
     % find next word
     %----------------------------------------------------------------------
@@ -57,7 +55,11 @@ for s = 1:16
     
     % string
     %----------------------------------------------------------------------
-    str{s} = VOX.LEX(w,1).word                 % lexical string
+    SEG(s).str = VOX.LEX(w,1).word;            % lexical string
+    SEG(s).I0  = VOX.I0;                       % centre
+    SEG(s).IT  = VOX.IT;                       % range
+    
+   disp({SEG.str})
     
 end
 
@@ -70,5 +72,17 @@ end
 %% articulate: with lexical content and prosody
 %--------------------------------------------------------------------------
 spm_voice_speak(W,P,R);
+
+
+%% segmentation graphics
+%--------------------------------------------------------------------------
+spm_voice_segmentation(wfile,SEG)
+
+
+
+
+
+
+
 
 

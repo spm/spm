@@ -24,7 +24,7 @@ function [L,M,N] = spm_voice_likelihood(xY,W)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7545 2019-03-16 11:57:13Z karl $
+% $Id: spm_voice_likelihood.m 7546 2019-03-18 11:02:22Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -34,11 +34,13 @@ if nargin < 2, W = 1:size(VOX.LEX,1); end
 % handle arrays
 %==========================================================================
 if numel(xY) > 1
-    for i = 1:numel(xY)
-        [Li,Mi,Ni] = spm_voice_likelihood(xY(i),W);
-        L(:,:,i)   = Li;
-        M(:,:,i)   = Mi;
-        N(:,:,i)   = Ni;
+    for i = 1:size(xY,1)
+        for j = 1:size(xY,2)
+            [Li,Mi,Ni] = spm_voice_likelihood(xY(i,j),W);
+            L(:,:,i,j) = Li;
+            M(:,:,i,j) = Mi;
+            N(:,:,i,j) = Ni;
+        end
     end
     return
 end

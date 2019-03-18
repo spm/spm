@@ -44,7 +44,7 @@ function [xY] = spm_voice_ff(Y,FS,F0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7545 2019-03-16 11:57:13Z karl $
+% $Id: spm_voice_ff.m 7546 2019-03-18 11:02:22Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -59,17 +59,10 @@ if nargin < 3
     try
         F0     = VOX.F0;
     catch
-        F0     = 128;
+        F0     = 100;
         VOX.F0 = F0;
     end
 end
-
-% find periods of spectral energy an F0 (fundamental frequency)
-%--------------------------------------------------------------------------
-i      = spm_voice_onset(Y,FS);              % interval containing word
-Y      = Y(i);
-ny     = length(i);
-xY.i   = i;
 
 % parameterise fundamental frequency modulations
 %==========================================================================
@@ -81,12 +74,14 @@ p     = DI\I*D;                              % fluctuations around mean
 dI    = DI*p*D';                             % parameterised intervals
 I     = round([1 cumsum(dI)]);               % starting from one
 
+
 % unwrap fundamental segments using cross covariance functions (ccf) and
 % apply DCT to formant frequency modulation
 %--------------------------------------------------------------------------
+Ny    = numel(Y);                            % number of samples
 Ni    = round(8192/F1);                      % basis set to 8000 Hz
 nj    = round(FS/F1);                        % formant interval length
-ni    = numel(find((I + nj) < ny));          % number of intervals
+ni    = numel(find((I + nj) < Ny));          % number of intervals
 D     = spm_dctmtx(2*nj + 1,Ni*4);           % discrete cosine transform
 D     = D*kron(speye(Ni,Ni),[1 0 -1 0]');    % retain even functions
 Q     = zeros(Ni,ni);
@@ -120,21 +115,22 @@ Q  = U\Q/V';                                 % coeficients
 %--------------------------------------------------------------------------
 P.ff0 = log(FS/DI);                          % fundamental frequency (Hz)
 P.ff1 = log(F1);                             % format frequency (Hz)
-P.dur = log(ny/FS);                          % duration (seconds)
+P.dur = log(Ny/FS);                          % duration (seconds)
 P.tim = log(S);                              % timbre
 P.inf = p/p(1);                              % inflection
 
 % output structure
 %--------------------------------------------------------------------------
-xY.Y = Y;                                    % timeseries
-xY.Q = Q;                                    % parameters - lexical
-xY.P = P;                                    % parameters - prosidy
+xY.Y  = Y;                                   % timeseries
+xY.Q  = Q;                                   % parameters - lexical
+xY.P  = P;                                   % parameters - prosidy
+xY.i  = [1,Ny];                              % range – indices      
 
 return
 
 % uncomment 'return' for graphics
 %==========================================================================
-subplot(2,2,1), plot((1:ny)/FS,Y), axis square, spm_axis tight
+subplot(2,2,1), plot((1:Ny)/FS,Y), axis square, spm_axis tight
 xlabel('time (sec)'), ylabel('amplitude')
 title('Timeseries','FontSize',16)
 

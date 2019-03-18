@@ -20,7 +20,7 @@ function [L] = spm_voice_test(wfile,sfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7545 2019-03-16 11:57:13Z karl $
+% $Id: spm_voice_test.m 7546 2019-03-18 11:02:22Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -44,7 +44,7 @@ end
 %==========================================================================
 
 % get F0 and the midpoint of words (maxima of acoutics power)
-%-------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Y      = read(wfile);
 G      = spm_voice_filter(Y,FS);
 G      = spm_conv(G,FS/4);
@@ -52,50 +52,65 @@ I      = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
 [i,j]  = sort(G(I),'descend');
 I      = sort(I(j(1:ns)));
 
+% have orders been optimised with respect to the likelihood?
+%--------------------------------------------------------------------------
+OPT    = ~isfield(VOX,'nu');
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================
-dI    = (0)*FS/16;                                         % durations
+xY    = {};
 for s = 1:ns
-
+    
     % retrieve epoch and decompose at fundamental frequency
     %----------------------------------------------------------------------
-    for i = 1:numel(dI)
-        Y     = read(wfile,round([-1/2 1/2]*FS + I(s) + dI(i)));
-        xy(i) = spm_voice_ff(Y,FS);
+    if OPT
+        Y  = read(wfile,round([-1/2 1/2]*FS + I(s)));
+        j  = spm_voice_onset(Y,FS);
+        xy = spm_voice_ff(Y(j),FS);
+    else
+        for i = 1:size(VOX.I,1)
+            Y       = read(wfile,round(VOX.I(i,:)*FS + I(s)));
+            xy(i,1) = spm_voice_ff(Y,FS);
+        end
     end
-    xY(s,:) = xy;
+    
+    % store in xY
+    %----------------------------------------------------------------------
+    xY{s} = xy;
     
 end
 
 %% grid search to maximise classication accuracy
 %==========================================================================
-nu    = 4:size(xY(1).Q,1);                                 % order (Hz)
-nv    = 4:size(xY(1).Q,2);                                 % order (ms)
-LL    = zeros(numel(nu),numel(nv));
-for i = 1:numel(nu)
-    for j = 1:numel(nv);
-        VOX.nu = nu(i);
-        VOX.nv = nv(j);
-        for s = 1:ns
+if OPT
+    nu    = 4:size(xY{1}(1).Q,1);                              % order (Hz)
+    nv    = 4:size(xY{1}(1).Q,2);                              % order (ms)
+    LL    = zeros(numel(nu),numel(nv));
+    for i = 1:numel(nu)
+        for j = 1:numel(nv);
+            VOX.nu = nu(i);
+            VOX.nv = nv(j);
             
             % evaluate the log likelihood of correct word
             %--------------------------------------------------------------
-            L       = spm_voice_likelihood(xY(s,:));       % log likelihoods
-            L(:)    = spm_softmax(L(:));                   % likelihoods
-            L       = squeeze(sum(sum(L,2),3));            % marginal
-            w       = strmatch(str{s,1},word,'exact');     % correct word
-            LL(i,j) = LL(i,j) + log(L(w) + exp(-8));       % log likelihood
+            for s = 1:ns
+                L       = spm_voice_likelihood(xY{s});     % log likelihoods
+                L(:)    = spm_softmax(L(:));               % likelihoods
+                L       = squeeze(sum(sum(L,2),3));        % marginal
+                w       = strmatch(str{s,1},word,'exact'); % correct word
+                LL(i,j) = LL(i,j) + log(L(w) + exp(-8));   % log likelihood
+            end
+            
         end
-        
     end
+    
+    % optimal order of DCT basis functions
+    %----------------------------------------------------------------------
+    [i,j]  = find(LL == max(LL(:)),1);
+    VOX.nu = nu(i);
+    VOX.nv = nv(j);
+    
 end
-
-% point best
-%--------------------------------------------------------------------------
-[i,j]  = find(LL == max(LL(:)),1);
-VOX.nu = nu(i);
-VOX.nv = nv(j);
 
 %% illustrate classification accuracy
 %==========================================================================
@@ -104,14 +119,14 @@ for s = 1:ns
     
     % identify the most likely word and place in structure
     %----------------------------------------------------------------------
-    [L,M]  = spm_voice_likelihood(xY(s,:));    % log likelihoods
+    [L,M]  = spm_voice_likelihood(xY{s});      % log likelihoods
     L(:)   = spm_softmax(L(:));                % likelihoods
     M      = spm_softmax(M);                   % likelihoods
-    m      = squeeze(sum(sum(L,1),2));         % marginalise over lexicon
-    L      = squeeze(sum(sum(L,2),3));         % marginalise over sampling
     if ndims(M) > 2
+        m  = squeeze(sum(sum(L,1),2));         % marginalise over lexicon
         M  = spm_dot(M,{m});                   % marginalise prosody
     end
+    L      = squeeze(sum(sum(L,2),3));         % marginalise over sampling
     
     % identify the most likely word and prosody
     %----------------------------------------------------------------------
@@ -169,6 +184,9 @@ subplot(2,3,5), imagesc(P)
 title('Prosody','FontSize',16)
 set(gca,'YTick',1:size(P,1)),set(gca,'YTickLabel',{VOX.PRO.str})
 xlabel('word'), ylabel('mode'), axis square
+
+if ~OPT, return, end
+
 subplot(2,3,6), imagesc(nv,nu,LL), title('Accuracy','FontSize',16)
 xlabel('order (intervals)'), ylabel('order (formants)'), axis square
 drawnow

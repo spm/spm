@@ -28,17 +28,15 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7545 2019-03-16 11:57:13Z karl $
+% $Id: spm_voice_get_word.m 7546 2019-03-18 11:02:22Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
 global VOX
 VOX.onsets = 1;
 
-LEX = VOX.LEX;
-PRO = VOX.PRO;
-WHO = VOX.WHO;
 I0  = VOX.I0;
+IT  = VOX.IT;
 
 
 % get source (recorder) and FS
@@ -72,7 +70,7 @@ end
 
 % find next word
 %--------------------------------------------------------------------------
-for i = 1:16
+for i = 1:2
     
     % check for content
     %----------------------------------------------------------------------
@@ -80,9 +78,9 @@ for i = 1:16
     n = numel(Y);
     j = round(0:2*FS) + I0;
     G = spm_voice_filter(Y(j(j < n)),FS);
-    G = spm_conv(G,FS/4);
+    G = spm_conv(G,FS/6);
     I = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
-    I = I(I > FS/16 & G(I) > 1/128);
+    I = I(I > IT(2) & G(I) > 1/128);
     
     % advance pointer if silence
     %----------------------------------------------------------------------
@@ -111,15 +109,19 @@ end
 % break if EOF
 %--------------------------------------------------------------------------
 if isempty(I)
-    O      = {};
-    VOX.I0 = I0;
+    O       = {};
+    VOX.I0  = I0;
     return
 end
 
 % retrieve epoch and decompose at fundamental frequency
 %--------------------------------------------------------------------------
-j  = round(-FS/2:FS/2) + I0;
-xy = spm_voice_ff(Y(j(j < n)),FS);
+for i = 1:size(VOX.I,1)
+    j       = VOX.I(i,1)*FS:VOX.I(i,2)*FS;
+    j       = round(j) + I0;
+    xy(i,1) = spm_voice_ff(Y(j(j < n)),FS);
+end
+
 
 % identify the most likely word
 %==========================================================================
@@ -134,13 +136,19 @@ if size(M,3) > 1
     N   = spm_dot(N,{m});                   % marginalise identity
 end
 
+% expected sampling interval
+%--------------------------------------------------------------------------
+IT      = m'*VOX.I*FS;
+
+
 % advance pointer based on marginal over samples
 %--------------------------------------------------------------------------
-[m,i]  = max(m);
-O{1}   = L;
-O{2}   = M;
-O{3}   = N;
-VOX.I0 = I0;
+[m,i]   = max(m);
+O{1}    = L;
+O{2}    = M;
+O{3}    = N;
+VOX.I0  = I0;
+VOX.IT  = IT;
 
 return
 

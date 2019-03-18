@@ -28,7 +28,7 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7545 2019-03-16 11:57:13Z karl $
+% $Id: spm_voice_get_LEX.m 7546 2019-03-18 11:02:22Z karl $
 
 
 % defaults
@@ -44,6 +44,7 @@ for w   = 1:nw
     for s = 1:ns
         Q{w}(:,s) = spm_vec(xY(w,s).Q);
         P{w}(:,s) = spm_vec(xY(w,s).P);
+        I{w}(:,s) = spm_vec(xY(w,s).i);
     end
 end
 
@@ -57,6 +58,38 @@ for i = 1:size(PP,2)
     hist(exp(PP(:,i)),32), axis square
     title(sprintf('%s mean: %.2f',Pstr{i},mean(exp(PP(:,i)))))
 end
+
+% onsets and offsets
+%--------------------------------------------------------------------------
+i    = full(spm_cat(I));
+subplot(3,3,8), hist(i(1,:),32,'Color','c'), axis square
+title(sprintf('%s mean (sd): %.2f (%.2f)','onset',mean(i(1,:)),std(i(1,:))))
+subplot(3,3,9), hist(i(2,:),32,'c'), axis square
+title(sprintf('%s mean (sd): %.2f (%.2f)','onset',mean(i(2,:)),std(i(2,:))))
+
+
+% joint distribution
+%--------------------------------------------------------------------------
+[ni,xi] = hist(i(1,:),6);
+[nj,xj] = hist(i(2,:),6);
+
+ni    = numel(xi);
+nj    = numel(xj);
+J     = zeros(ni,nj);
+for w = 1:length(i)
+    [d,ii]   = min(abs(i(1,w) - xi));
+    [d,jj]   = min(abs(i(2,w) - xj));
+    J(ii,jj) = J(ii,jj) + 1;
+end
+I     = [];
+for i = 1:ni
+    for j = 1:nj
+        I(end + 1,:) = [xi(i),xj(j),J(i,j)];
+    end
+end
+[d,i] = sort(I(:,3),'descend');
+I     = I(i,1:2);
+VOX.I = I(1:16,:);
 
 
 %% Eigenmodes of lexical (U) and prosody (V) parameters
@@ -94,7 +127,7 @@ legend(Pstr)
 %--------------------------------------------------------------------------
 R(1,:)   = log([96  350]);                           % ff0
 R(2,:)   = log([24   64]);                           % ff1
-R(3,:)   = log([1/8 7/8]);                           % dur
+R(3,:)   = log([1/4 3/4]);                           % dur
 R(4,:)   = log([1.8 2.8]);                           % timbre
 R(5,:)   = [1 1];                                    % const
 R(6,:)   = [-1/4 1/4];                               % inf

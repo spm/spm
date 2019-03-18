@@ -17,7 +17,7 @@ function [i,j] = spm_voice_onset(Y,FS,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onset.m 7545 2019-03-16 11:57:13Z karl $
+% $Id: spm_voice_onset.m 7546 2019-03-18 11:02:22Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
@@ -79,6 +79,8 @@ end
 %--------------------------------------------------------------------------
 global VOX
 if ~VOX.onsets; return, end
+
+spm_figure('GetWin','onsets'); clf;
 
 pst   = (1:n)/FS;
 Ymax  = max(abs(Y));
