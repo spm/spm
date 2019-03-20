@@ -1,17 +1,18 @@
 function spm_save(f,var,varargin)
 % Save text and numeric data to file
 % FORMAT spm_save(f,var,opts,...)
-% f     - filename (can be gzipped) {csv,tsv,json}
+% f     - filename (can be gzipped) {csv,tsv,json,txt}
 % var   - data array or structure
 % opts  - optional inputs to be passed on to lower level function
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2018-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_save.m 7354 2018-06-22 10:44:22Z guillaume $
+% $Id: spm_save.m 7549 2019-03-20 12:45:59Z guillaume $
 
 
 ext = lower(spm_file(f,'ext'));
+if isempty(ext), ext = ''; end
 switch ext
     
     case 'gz'
@@ -69,6 +70,17 @@ switch ext
     case 'json'
         if nargin < 3, varargin = {struct([])}; end
         spm_jsonwrite(f,var,varargin{:});
+        
+    case {'','txt','md'}
+        var = cellstr(var);
+        fid = fopen(f,'Wt');
+        if fid == -1
+            error('Unble to write file %s.', f);
+        end
+        for i=1:numel(var)
+            fprintf(fid,'%s\n',var{i});
+        end
+        fclose(fid);
         
     otherwise
         error('Unknown file format.');
