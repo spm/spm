@@ -48,10 +48,10 @@ function F = spm_Ncdf(x,u,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 1995-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1995-2019 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Ncdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% $Id: spm_Ncdf.m 7548 2019-03-20 10:08:49Z guillaume $
 
 
 %-Format arguments, note & check sizes
@@ -91,3 +91,5 @@ if xa(3), Qv=Q; else Qv=1; end
 
 %-Compute
 F(Q) = 0.5 + 0.5*erf((x(Qx)-u(Qu))./sqrt(2*v(Qv)));
+%-Compute using \Phi(z) = erfc(-z/sqrt(2))/2
+%F(Q) = 0.5 * erfc(-(x(Qx)-u(Qu))./sqrt(2*v(Qv)));

@@ -13,17 +13,17 @@ function results = spm_tests(varargin)
 % results     - TestResult array containing information describing the
 %               result of running the test suite.
 %__________________________________________________________________________
-% Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_tests.m 7109 2017-06-15 11:15:23Z guillaume $
+% $Id: spm_tests.m 7548 2019-03-20 10:08:49Z guillaume $
 
 
 if spm_check_version('matlab','8.3') < 0
     error('Unit Tests require MATLAB R2014a or above.');
 end
 
-SVNid = '$Rev: 7109 $';
+SVNid = '$Rev: 7548 $';
 SPMid = spm('FnBanner',mfilename,SVNid);
 
 %-Input parameters
@@ -113,7 +113,11 @@ end
 
 %-Run tests
 %--------------------------------------------------------------------------
-results = runner.run(suite);
+if ~isempty(suite)
+    results = runner.run(suite);
+else
+    results = struct('Passed',{},'Failed',{},'Incomplete',{},'Duration',{});
+end
 
 %-Display test results
 %--------------------------------------------------------------------------
