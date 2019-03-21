@@ -10,13 +10,13 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 % sand are expressed in world coordinates.
 %
 % Use as
+%   bnd = ft_prepare_mesh(cfg)
 %   bnd = ft_prepare_mesh(cfg, mri)
 %   bnd = ft_prepare_mesh(cfg, seg)
-%   bnd = ft_prepare_mesh(cfg)  # for cortexhull
 %
 % Configuration options:
 %   cfg.method      = string, can be 'interactive', 'projectmesh', 'iso2mesh', 'isosurface',
-%                     'headshape', 'hexahedral', 'tetrahedral', 'cortexhull'
+%                     'headshape', 'hexahedral', 'tetrahedral','cortexhull', 'fittemplate'
 %   cfg.tissue      = cell-array with tissue types or numeric vector with integer values
 %   cfg.numvertices = numeric vector, should have same number of elements as cfg.tissue
 %   cfg.downsample  = integer number (default = 1, i.e. no downsampling), see FT_VOLUMEDOWNSAMPLE
@@ -26,7 +26,7 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 %   cfg.headshape   = a filename containing headshape, a Nx3 matrix with surface
 %                     points, or a structure with a single or multiple boundaries
 %
-% For method 'cortexhull' you should specify
+% For method 'cortexhull' you should not give input data, but specify
 %   cfg.headshape   = sting, filename containing the pial surface computed by freesurfer recon-all
 %
 % To facilitate data-handling and distributed computing you can use
@@ -180,7 +180,13 @@ switch cfg.method
 
   case 'cortexhull'
     bnd = prepare_mesh_cortexhull(cfg);
-
+  
+  case 'fittemplate'  
+    M   = prepare_mesh_fittemplate(cfg.headshape.pos,cfg.template.pos);
+    orig.mri = mri;
+    orig = ft_transform_geometry(M,orig);
+    bnd = orig.mri;
+    
   otherwise
     ft_error('unsupported cfg.method')
 end
