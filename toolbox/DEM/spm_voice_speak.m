@@ -22,7 +22,7 @@ function [xY] = spm_voice_speak(w,p,q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7545 2019-03-16 11:57:13Z karl $
+% $Id: spm_voice_speak.m 7551 2019-03-21 15:10:05Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -90,7 +90,7 @@ if n > 1
         ni    = numel(y{s});
         ii    = i0 + (1:ni)';
         Y(ii) = Y(ii) + y{s};
-        i0    = ii(end) - round(ni/4);
+        i0    = ii(end) - round(ni/3);
     end
     Y   = Y(1:ii(end));
     

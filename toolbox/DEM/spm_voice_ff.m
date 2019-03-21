@@ -2,21 +2,22 @@ function [xY] = spm_voice_ff(Y,FS,F0)
 % decomposition at fundamental frequency
 % FORMAT [xY] = spm_voice_ff(Y,FS,[F0])
 %
-% Y    - timeseries
-% FS   - sampling frequency
-% F0   - fundamental frequency (glottal pulse rate) [optional]
+% Y     - timeseries
+% FS    - sampling frequency
+% F0    - fundamental frequency (glottal pulse rate) [optional]
 %
 % output structure
 %--------------------------------------------------------------------------
-% xY.Y  -   timeseries
-% xY.Q  -   parameters - lexical
-% xY.P  -   parameters - prosidy
+% xY.Y  - timeseries
+% xY.Q  - parameters - lexical
+% xY.P  - parameters - prosidy
 % 
-% xY.P.ff0 -   fundamental frequency (Hz)
-% xY.P.ff1 -   format frequency (Hz)
-% xY.P.dur -   duration (seconds)
-% xY.P.tim -   timbre
-% xY.P.inf -   inflection
+% xY.P.amp - amplitude
+% xY.P.ff0 - fundamental frequency (Hz)
+% xY.P.ff1 - format frequency (Hz)
+% xY.P.dur - duration (seconds)
+% xY.P.tim - timbre
+% xY.P.inf - inflection
 %
 % This routine transforms a timeseries using a series of discrete cosine
 % transforms and segmentations into a set of lexical and prosody
@@ -44,7 +45,7 @@ function [xY] = spm_voice_ff(Y,FS,F0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7546 2019-03-18 11:02:22Z karl $
+% $Id: spm_voice_ff.m 7551 2019-03-21 15:10:05Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -113,6 +114,7 @@ Q  = U\Q/V';                                 % coeficients
 
 % assemble prosody parameters
 %--------------------------------------------------------------------------
+P.amp = log(max(abs(Y)));                    % amplitude
 P.ff0 = log(FS/DI);                          % fundamental frequency (Hz)
 P.ff1 = log(F1);                             % format frequency (Hz)
 P.dur = log(Ny/FS);                          % duration (seconds)

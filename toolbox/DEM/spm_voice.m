@@ -26,7 +26,7 @@ function [LEX,PRO,WHO] = spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7546 2019-03-18 11:02:22Z karl $
+% $Id: spm_voice.m 7551 2019-03-21 15:10:05Z karl $
 
 
 
@@ -54,9 +54,10 @@ VOX.F0    = 100;
 
 
 %% place LEX, PRO and WHO structures in VOX and get parameters
-% e.g., VOX.F0  = exp(mean(P(:,1)));
+% e.g., VOX.F0  = exp(mean(P(:,2)));
 %==========================================================================
 P         = spm_voice_get_LEX(xY,word);
+
 
 %% articulate every word under all combinations of (5 levels) of prosody
 %--------------------------------------------------------------------------
@@ -66,7 +67,7 @@ k     = [2 6];                                % number of prosody features
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[6;4;i;j],[2;3]);
+            spm_voice_speak(w,[8;6;4;i;j],[2;3]);
         end
     end
 end
@@ -75,6 +76,7 @@ end
 %%  apply to test narrative of 87 words (this will search over the bases)
 %--------------------------------------------------------------------------
 spm_voice_test('../test.wav','../test.txt');
+
 
 %% save lexical and prosody arrays in sound file directory
 %--------------------------------------------------------------------------
@@ -87,8 +89,7 @@ spm_voice_read('../test.wav');
 
 %% record and repeat some dictation
 %--------------------------------------------------------------------------
-wfile  = audiorecorder(22050,16,1);
-spm_voice_read(wfile);
+spm_voice_read
 
 
 %% illustrate word by word recognition

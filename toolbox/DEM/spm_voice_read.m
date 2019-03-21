@@ -16,7 +16,7 @@ function spm_voice_read(wfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7546 2019-03-18 11:02:22Z karl $
+% $Id: spm_voice_read.m 7551 2019-03-21 15:10:05Z karl $
 
 % get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
@@ -24,6 +24,10 @@ function spm_voice_read(wfile)
 
 %% get data features from a wav file or audiorecorder object
 %==========================================================================
+if ~nargin
+    wfile  = audiorecorder(22050,16,1);
+end
+
 if isa(wfile,'audiorecorder')
     stop(wfile);
     record(wfile,8);
@@ -33,7 +37,8 @@ end
 %==========================================================================
 global VOX
 VOX.I0 = 1;
-VOX.IT = [1,1];
+VOX.IT = 0;
+W      = [];
 for s  = 1:8
     
     % find next word
@@ -58,15 +63,19 @@ for s  = 1:8
     SEG(s).str = VOX.LEX(w,1).word;            % lexical string
     SEG(s).I0  = VOX.I0;                       % centre
     SEG(s).IT  = VOX.IT;                       % range
+    SEG(s).P   = P(:,s);                       % prosody
     
    disp({SEG.str})
     
 end
 
-% stop recording audiorecorder object
+% stop recording audiorecorder object and return if silence
 %--------------------------------------------------------------------------
 if isa(wfile,'audiorecorder')
     stop(wfile);
+end
+if isempty(W)
+    return
 end
 
 %% articulate: with lexical content and prosody

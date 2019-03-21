@@ -18,11 +18,11 @@ function [G,F0] = spm_voice_filter(Y,FS,F1,F2)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_filter.m 7545 2019-03-16 11:57:13Z karl $
+% $Id: spm_voice_filter.m 7551 2019-03-21 15:10:05Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin < 3; F1 = 512;  end
+if nargin < 3; F1 = 1024;  end
 if nargin < 4; F2 = 8096; end
 
 

@@ -24,7 +24,7 @@ function [Y] = spm_voice_iff(xY,L)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7545 2019-03-16 11:57:13Z karl $
+% $Id: spm_voice_iff.m 7551 2019-03-21 15:10:05Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -53,6 +53,7 @@ end
 
 % reconstitute sample points
 %--------------------------------------------------------------------------
+M  = exp(xY.P.amp);                          % amplitude
 F0 = exp(xY.P.ff0);                          % fundamental frequency (Hz)
 F1 = exp(xY.P.ff1);                          % formant frequency (Hz)
 T  = exp(xY.P.dur);                          % duration (seconds)
@@ -98,7 +99,7 @@ end
 
 % scale amplitude
 %--------------------------------------------------------------------------
-Y  = Y/sum(std(Q));
+Y  = M*Y/sum(std(Q));
 
 % play timeseries if requested
 %--------------------------------------------------------------------------
