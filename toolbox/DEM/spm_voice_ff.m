@@ -45,7 +45,7 @@ function [xY] = spm_voice_ff(Y,FS,F0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7551 2019-03-21 15:10:05Z karl $
+% $Id: spm_voice_ff.m 7552 2019-03-25 10:46:03Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -92,6 +92,10 @@ for j = 1:ni
     Q(:,j) = D'*ccf;
 end
 
+% remove noise
+%--------------------------------------------------------------------------
+% Q = bsxfun(@minus,Q,Q(:,1));
+
 % log transform (nonnegative) coefficients  and parameterise with a pair of
 % discrete cosine transforms over formant frequnecies and intervals
 % respectively to create formant parameters (Q)
@@ -114,7 +118,7 @@ Q  = U\Q/V';                                 % coeficients
 
 % assemble prosody parameters
 %--------------------------------------------------------------------------
-P.amp = log(max(abs(Y)));                    % amplitude
+P.amp = log(std(Y));                         % amplitude
 P.ff0 = log(FS/DI);                          % fundamental frequency (Hz)
 P.ff1 = log(F1);                             % format frequency (Hz)
 P.dur = log(Ny/FS);                          % duration (seconds)

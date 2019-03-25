@@ -12,7 +12,7 @@ function spm_voice_segmentation(wfile,SEG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_segmentation.m 7551 2019-03-21 15:10:05Z karl $
+% $Id: spm_voice_segmentation.m 7552 2019-03-25 10:46:03Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -22,7 +22,7 @@ VOX.onsets = 0;
 % get source (recorder) and FS
 %--------------------------------------------------------------------------
 if isa(wfile,'audiorecorder')
-    
+
     FS    = get(wfile,'SampleRate');
     read  = @getaudiodata;
     
@@ -52,7 +52,7 @@ G   = spm_conv(G,FS/6);
 pst = (1:numel(Y))/FS;
 
 subplot(3,1,1)
-plot(pst,Y,':k'), spm_axis tight
+plot(pst,Y,'c'), spm_axis tight
 xlabel('time (sec)'), ylabel('amplitude')
 title('Timeseries','FontSize',16),hold on
 
@@ -77,7 +77,7 @@ for w = 1:numel(SEG)
     
     % retrieve epoch 
     %----------------------------------------------------------------------
-    i      = round(SEG(w).I0:(SEG(w).IT + SEG(w).I0));
+    i      = round(SEG(w).I0:SEG(w).IT);
  
     % plot and label
     %----------------------------------------------------------------------

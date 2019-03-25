@@ -1,10 +1,9 @@
-function [i] = spm_voice_onset(Y,FS,u,v)
+function [I] = spm_voice_onsets(Y,FS)
 % identifies intervals containing acoustic energy and post onset minima
-% FORMAT [i] = spm_voice_onset(Y,FS,u,v)
+% FORMAT [I] = spm_voice_onsets(Y,FS)
 %
 % Y    - timeseries
 % FS   - sampling frequency
-% u,v  - thresholds [default: 1/16]
 %
 % i    - intervals (time bins) containing spectral energy
 %
@@ -16,31 +15,37 @@ function [i] = spm_voice_onset(Y,FS,u,v)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onset.m 7552 2019-03-25 10:46:03Z karl $
+% $Id: spm_voice_onsets.m 7552 2019-03-25 10:46:03Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
 
-% thresholds for onsets and offsets
-%--------------------------------------------------------------------------
-if nargin < 3, u = 1/16; v = 1/16; end
-
 % identify threshold crossings in power
 %--------------------------------------------------------------------------
-n   = length(Y);                                  % length of time series
-aY  = hanning(n).*abs(Y);                         % window absolute value
+n   = length(Y);
+aY  = abs(Y);                                     % window absolute value
 aY  = spm_conv(aY,FS/16);                         % smooth
 aY  = aY - min(aY);                               % and normalise
 aY  = aY/max(aY);
+w   = ((1:n)'*2/n - 1).^2;
+aY  = aY + w/8;
 
-i0  = find(aY > u,1,'first');                     % onset
-iT  = find(aY > v,1,'last');                      % offsets
-
-
+% find successive minima
+%--------------------------------------------------------------------------
+j   = find(diff(aY(1:end - 1)) < 0 & diff(aY(2:end)) > 0);
+j   = j(j > FS/8);
 
 % indices of interval containing spectral energy
 %--------------------------------------------------------------------------
-i   = i0:iT;
+I     = {};
+for i = 2:numel(j)
+    k   = j(1):j(i);
+    ni  = numel(k);
+    if ni < 3*FS/4 && ni > FS/4;
+        I{end + 1} = k;
+    end
+end
+
 
 % graphics
 %--------------------------------------------------------------------------
@@ -51,19 +56,18 @@ spm_figure('GetWin','onsets'); clf;
 
 pst   = (1:n)/FS;
 Ymax  = max(abs(Y));
-subplot(2,1,1), plot(pst,Y),      hold on
-plot([i0,i0]/FS,[-1,1]*Ymax,'g'), hold on
-plot([iT,iT]/FS,[-1,1]*Ymax,'r'), hold on
+subplot(2,1,1), plot(pst,Y), hold on
+for i = 1:numel(j)
+    plot([j(i),j(i)]/FS,[-1,1]*Ymax,'r')
+end
 title('Onsets and offsets','FontSize',16)
 xlabel('peristimulus time (seconds)'), spm_axis tight, hold off
-
-subplot(2,1,2), plot(pst,aY,'b'),  hold on
-plot(pst(iT),aY(iT),'or'),         hold on
-plot(pst(i0),aY(i0),'og'),         hold on
-plot(pst,u + spm_zeros(pst),':g'), hold on
-plot(pst,v + spm_zeros(pst),':r'), hold off
+subplot(2,1,2), plot(pst,aY,'b'), hold on
+for i = 1:numel(j)
+    plot(pst(j(i)),aY(j(i)),'or')
+end
 title('Log energy','FontSize',16)
-xlabel('peristimulus time (secs)'), spm_axis tight
+xlabel('peristimulus time (secs)'), spm_axis tight, hold off
 drawnow
 
 % uncomment to play interval

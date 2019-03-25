@@ -24,7 +24,7 @@ function [Y] = spm_voice_iff(xY,L)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7551 2019-03-21 15:10:05Z karl $
+% $Id: spm_voice_iff.m 7552 2019-03-25 10:46:03Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -120,13 +120,13 @@ if VOX.graphics
     
     subplot(2,2,2), imagesc((1:ni)/F0,1000*[-nj,nj]/FS,D*Q)
     axis square, xlabel('time (seconds)'), ylabel('time (ms)')
-    title('transients'), set(gca,'YLim',[-16 16])
+    title('Transients','FontSize',16), set(gca,'YLim',[-16 16])
     
-    subplot(4,2,6), imagesc((1:ni)/F0,(1:Ni)*F1,log(Q + eps))
+    subplot(4,2,6), imagesc((1:ni)/F0,(1:Ni)*F1,log(Q))
     xlabel('time (seconds)'), ylabel('Formants (Hz)')
     title('Spectral decomposition','FontSize',16)
     
-    subplot(4,2,5), imagesc(xY.Q)
+    subplot(4,2,5), imagesc(xY.Q), axis square, 
     xlabel('coefficients'), ylabel('coefficients')
     title('Parameters','FontSize',16)
     

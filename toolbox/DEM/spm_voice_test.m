@@ -20,7 +20,7 @@ function [L] = spm_voice_test(wfile,sfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7551 2019-03-21 15:10:05Z karl $
+% $Id: spm_voice_test.m 7552 2019-03-25 10:46:03Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -60,21 +60,17 @@ OPT    = 1;
 %% run through sound file and evaluate likelihoods
 %==========================================================================
 xY    = {};
+u     = [1/8,1/16];
 for s = 1:ns
     
     % retrieve epoch and decompose at fundamental frequency
     %----------------------------------------------------------------------
-    if OPT
-        Y  = read(wfile,round([-1/2 1/2]*FS + I(s)));
-        j  = spm_voice_onset(Y,FS);
-        xy = spm_voice_ff(Y(j),FS);
-    else
-        for i = 1:size(VOX.I,1)
-            Y       = read(wfile,round(VOX.I(i,:)*FS + I(s)));
-            xy(i,1) = spm_voice_ff(Y,FS);
-        end
+    for i = 1:numel(u)
+        Y       = read(wfile,round([-1/2 1/2]*FS + I(s)));
+        j       = spm_voice_onset(Y,FS,u(i),u(i));
+        xy(i,1) = spm_voice_ff(Y(j),FS);
     end
-    
+
     % store in xY
     %----------------------------------------------------------------------
     xY{s} = xy;

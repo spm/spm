@@ -16,7 +16,7 @@ function spm_voice_read(wfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7551 2019-03-21 15:10:05Z karl $
+% $Id: spm_voice_read.m 7552 2019-03-25 10:46:03Z karl $
 
 % get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
@@ -37,7 +37,7 @@ end
 %==========================================================================
 global VOX
 VOX.I0 = 1;
-VOX.IT = 0;
+VOX.IT = 1;
 W      = [];
 for s  = 1:8
     

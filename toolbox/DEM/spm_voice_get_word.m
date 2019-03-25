@@ -28,16 +28,12 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7551 2019-03-21 15:10:05Z karl $
+% $Id: spm_voice_get_word.m 7552 2019-03-25 10:46:03Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
 global VOX
 VOX.onsets = 1;
-
-I0  = VOX.I0;
-IT  = VOX.IT;
-
 
 % get source (recorder) and FS
 %--------------------------------------------------------------------------
@@ -47,8 +43,8 @@ if isa(wfile,'audiorecorder')
     
     % ensure 2 second of data has been accumulated
     %----------------------------------------------------------------------
-    dt    = (get(wfile,'TotalSamples') - I0)/FS;
-    pause(2 - dt);
+    dt    = (get(wfile,'TotalSamples') - VOX.IT)/FS;
+    pause(1 - dt);
 
 else
     
@@ -70,15 +66,15 @@ end
 
 % find next word
 %--------------------------------------------------------------------------
-for i = 1:2
+for i = 1:4
     
-    % check for content
+    % find next spectral peak (I)
     %----------------------------------------------------------------------
     Y = read(wfile);
     n = numel(Y);
-    j = round((0:(2*FS)) + I0 + IT);
+    j = fix((0:FS) + VOX.IT);
     G = abs(Y(j(j < n)));
-    G = spm_conv(G,FS/4);
+    G = spm_conv(G,FS/6);
     I = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
     I = I(G(I) > 1/128);
     
@@ -86,22 +82,22 @@ for i = 1:2
     %----------------------------------------------------------------------
     if isempty(I)
         
-        % advance pointer one second
+        % advance pointer 500 ms
         %------------------------------------------------------------------
-        I0 = I0 + FS;
+        VOX.IT = VOX.IT + FS/2;
         
         % ensure 2 second of data has been accumulated
         %------------------------------------------------------------------
         if isa(wfile,'audiorecorder')
-            dt = (get(wfile,'TotalSamples') - I0)/FS;
-            pause(2 - dt);
+            dt = (get(wfile,'TotalSamples') - VOX.IT)/FS;
+            pause(1 - dt);
         end
         
     else
         
-        % move to next word
+        % move pointer to 300ms before peak
         %------------------------------------------------------------------
-        I0 = I0 + IT + max(0,I(1) - FS/2);
+        I  = VOX.IT + I(1) - FS/2;
         break
     end
 end
@@ -109,23 +105,24 @@ end
 % break if EOF
 %--------------------------------------------------------------------------
 if isempty(I)
-    O       = {};
-    VOX.I0  = I0;
+    O  = {};
     return
 end
 
-% get onset and candidate offsets
+% get 1 second segment and remove previous word
 %--------------------------------------------------------------------------
-j   = round(0:FS) + I0;
-I   = spm_voice_onset(Y(j(j < n)),FS);
-dI  = I(end);
+j    = fix((0:FS) + I);
+y    = Y(j(j < n));
+j    = logical(j < VOX.IT);
+y(j) = 1/1024;
 
 % retrieve epoch and decompose at fundamental frequency
 %--------------------------------------------------------------------------
 clear xy
-for i = 1:numel(dI)
-    j       = round((I(1):dI(i)) + I0);
-    xy(i,1) = spm_voice_ff(Y(j(j < n)),FS);
+j     = spm_voice_onsets(y,FS);
+for i = 1:numel(j)
+    xy(i,1) = spm_voice_ff(y(j{i}),FS);
+    J(i,:)  = I + [j{i}(1),j{i}(end)];
 end
 
 
@@ -144,11 +141,12 @@ end
 
 % advance pointer based on marginal over samples
 %--------------------------------------------------------------------------
+I       = m'*J;
 O{1}    = L;
 O{2}    = M;
 O{3}    = N;
-VOX.I0  = I0 + I(1);
-VOX.IT  = round(m'*dI);
+VOX.I0  = fix(I(1));
+VOX.IT  = fix(I(2));
 
 return
 
