@@ -17,11 +17,12 @@ function [mg,nu,sig] = spm_rice_mixture(h,x,K)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_rice_mixture.m 7458 2018-10-24 15:30:12Z john $
+% $Id: spm_rice_mixture.m 7553 2019-03-25 12:13:46Z john $
 
 mg  = ones(K,1)/K;
 nu  = (0:(K-1))'*max(x)/(K+1);
 sig = ones(K,1)*max(x)/K/10;
+lam = (sum(x.*h)/sum(h)/K).^2;
 
 m0 = zeros(K,1);
 m1 = zeros(K,1);
@@ -61,7 +62,7 @@ for iter=1:10000
     mg = m0/sum(m0); % Mixing proportions
     for k=1:K
         mu1 = m1(k)./m0(k);                                % Mean 
-        mu2 = (m2(k)-m1(k)*m1(k)/m0(k)+1e-3)/(m0(k)+1e-3); % Variance
+        mu2 = (m2(k)-m1(k)*m1(k)/m0(k)+lam*1e-3)/(m0(k)+1e-3); % Variance
 
         % Compute nu & sig from mean and variance
         [nu(k),sig(k)] = moments2param(mu1,mu2);
