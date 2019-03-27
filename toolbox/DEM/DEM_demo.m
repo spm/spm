@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 06-Feb-2019 19:09:12
+% Last Modified by GUIDE v2.5 27-Mar-2019 13:35:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -707,3 +707,9 @@ run_demo_Callback(hObject, handles, 'DEM_FEP_Least_Action')
 function pushbutton233_Callback(hObject, eventdata, handles)
 handles.web = 'Deep temporal models and active inference';
 run_demo_Callback(hObject, handles, 'spm_voice')
+
+
+% --- Executes on button press in pushbutton234.
+function pushbutton234_Callback(hObject, eventdata, handles)
+handles.web = 'Interoceptive inference';
+run_demo_Callback(hObject, handles, 'MDP_Heart_Beat')
