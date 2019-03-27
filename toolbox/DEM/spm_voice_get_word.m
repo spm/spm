@@ -28,7 +28,7 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7552 2019-03-25 10:46:03Z karl $
+% $Id: spm_voice_get_word.m 7557 2019-03-27 17:11:16Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -73,8 +73,7 @@ for i = 1:4
     Y = read(wfile);
     n = numel(Y);
     j = fix((0:FS) + VOX.IT);
-    G = abs(Y(j(j < n)));
-    G = spm_conv(G,FS/6);
+    G = spm_conv(abs(Y(j(j < n))),FS/4);
     I = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
     I = I(G(I) > 1/128);
     
@@ -120,7 +119,8 @@ y(j) = 1/1024;
 %--------------------------------------------------------------------------
 clear xy
 j     = spm_voice_onsets(y,FS);
-for i = 1:numel(j)
+nj    = numel(j);
+for i = 1:nj
     xy(i,1) = spm_voice_ff(y(j{i}),FS);
     J(i,:)  = I + [j{i}(1),j{i}(end)];
 end

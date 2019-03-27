@@ -28,7 +28,7 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7551 2019-03-21 15:10:05Z karl $
+% $Id: spm_voice_get_LEX.m 7557 2019-03-27 17:11:16Z karl $
 
 
 % defaults
@@ -64,9 +64,9 @@ end
 %--------------------------------------------------------------------------
 i    = full(spm_cat(I));
 subplot(3,2,5), hist(i(1,:),32,'Color','c'), axis square
-title(sprintf('%s mean (sd): %.2f (%.2f)','onset',mean(i(1,:)),std(i(1,:))))
+title(sprintf('%s mean (sd): %.2f (%.3f)','onset',mean(i(1,:)),std(i(1,:))))
 subplot(3,2,6), hist(i(2,:),32,'c'), axis square
-title(sprintf('%s mean (sd): %.2f (%.2f)','onset',mean(i(2,:)),std(i(2,:))))
+title(sprintf('%s mean (sd): %.2f (%.3f)','offset',mean(i(2,:)),std(i(2,:))))
 
 
 % joint distribution
@@ -126,11 +126,11 @@ legend(Pstr)
 
 % prosidy ranges
 %--------------------------------------------------------------------------
-R(1,:)   = log([1/4   1]);                           % amp
-R(2,:)   = log([96  350]);                           % ff0
-R(3,:)   = log([24   64]);                           % ff1
-R(4,:)   = log([1/4 3/4]);                           % dur
-R(5,:)   = log([1.8 2.8]);                           % timbre
+R(1,:)   = log([1/32   1]);                          % amp
+R(2,:)   = log([96   350]);                          % ff0
+R(3,:)   = log([24    64]);                          % ff1
+R(4,:)   = log([1/4  3/4]);                          % dur
+R(5,:)   = log([1.8  2.8]);                          % timbre
 R(6,:)   = [1 1];                                    % const
 R(7,:)   = [-1/4 1/4];                               % inf
 R(8,:)   = [-1/4 1/4];                               % bif

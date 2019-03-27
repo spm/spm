@@ -20,7 +20,7 @@ function [L] = spm_voice_test(wfile,sfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7552 2019-03-25 10:46:03Z karl $
+% $Id: spm_voice_test.m 7557 2019-03-27 17:11:16Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -45,9 +45,7 @@ end
 
 % get F0 and the midpoint of words (maxima of acoutics power)
 %--------------------------------------------------------------------------
-Y      = read(wfile);
-G      = spm_voice_filter(Y,FS);
-G      = spm_conv(G,FS/4);
+G      = spm_conv(abs(read(wfile)),FS/4);
 I      = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
 [i,j]  = sort(G(I),'descend');
 I      = sort(I(j(1:ns)));
@@ -60,15 +58,16 @@ OPT    = 1;
 %% run through sound file and evaluate likelihoods
 %==========================================================================
 xY    = {};
-u     = [1/8,1/16];
 for s = 1:ns
     
     % retrieve epoch and decompose at fundamental frequency
     %----------------------------------------------------------------------
-    for i = 1:numel(u)
-        Y       = read(wfile,round([-1/2 1/2]*FS + I(s)));
-        j       = spm_voice_onset(Y,FS,u(i),u(i));
-        xy(i,1) = spm_voice_ff(Y(j),FS);
+    clear xy
+    Y     = read(wfile,round([-1/2 1/2]*FS + I(s)));
+    j     = spm_voice_onsets(Y,FS);
+    nj    = numel(j);
+    for i = 1:nj
+        xy(i,1) = spm_voice_ff(Y(j{i}),FS);
     end
 
     % store in xY

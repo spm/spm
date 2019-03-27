@@ -45,7 +45,7 @@ function [xY] = spm_voice_ff(Y,FS,F0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7552 2019-03-25 10:46:03Z karl $
+% $Id: spm_voice_ff.m 7557 2019-03-27 17:11:16Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -118,7 +118,7 @@ Q  = U\Q/V';                                 % coeficients
 
 % assemble prosody parameters
 %--------------------------------------------------------------------------
-P.amp = log(std(Y));                         % amplitude
+P.amp = log(max(Y));                         % amplitude
 P.ff0 = log(FS/DI);                          % fundamental frequency (Hz)
 P.ff1 = log(F1);                             % format frequency (Hz)
 P.dur = log(Ny/FS);                          % duration (seconds)

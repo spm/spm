@@ -24,7 +24,7 @@ function [Y] = spm_voice_iff(xY,L)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7552 2019-03-25 10:46:03Z karl $
+% $Id: spm_voice_iff.m 7557 2019-03-27 17:11:16Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -99,7 +99,7 @@ end
 
 % scale amplitude
 %--------------------------------------------------------------------------
-Y  = M*Y/sum(std(Q));
+Y  = 4*M*Y/sum(std(Q));
 
 % play timeseries if requested
 %--------------------------------------------------------------------------
