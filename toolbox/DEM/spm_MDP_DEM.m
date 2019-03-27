@@ -28,7 +28,7 @@ function DEM = spm_MDP_DEM(DEM,demi,O,o)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_DEM.m 6932 2016-11-16 12:11:01Z karl $
+% $Id: spm_MDP_DEM.m 7554 2019-03-27 09:28:57Z thomas $
 
 
 % evaluate true values and priors over causes given discrete states
@@ -79,8 +79,12 @@ for t = 1:nt
     for i = 1:size(po,1)
         for j = 1:size(po,2)
             for k = 1:size(po,3)
-                rE       = demi.U{i,j,k}(:,t);
-                F(i,j,k) = F(i,j,k) + gt*spm_log_evidence(qE,qC,pE,pC,rE,pC);
+                if po(i,j,k) < exp(-3)
+                    F(i,j,k) = -Inf;
+                else
+                    rE       = demi.U{i,j,k}(:,t);
+                    F(i,j,k) = F(i,j,k) + gt*spm_log_evidence(qE,qC,pE,pC,rE,pC);
+                end
             end
         end
     end
