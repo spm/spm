@@ -1,12 +1,14 @@
-function [LEX,PRO,WHO] = spm_voice(PATH)
+function spm_voice(PATH)
 % Creates lexical and prosody cell arrays from sound file exemplars
-% FORMAT [LEX,PRO,WHO] = spm_voice(PATH)
+% FORMAT spm_voice(PATH)
 %
-% PATH     -  directory containing sound files of exemplar words
+% PATH         -  directory containing sound files of exemplar words
 %
-% LEX(w,k) -  structure array for k variants of w words
-% PRO(p)   -  structure array for p aspects of prosody
-% WHO(w)   -  structure array for w aspects of idenity
+% saves VOX.mat
+%
+% VOX.LEX(w,k) -  structure array for k variants of w words
+% VOX.PRO(p)   -  structure array for p aspects of prosody
+% VOX.WHO(w)   -  structure array for w aspects of idenity
 %
 %  This routine creates structure arrays used to infer the lexical and
 %  prosody of a word. It uses a library of sound files, each containing 32
@@ -26,7 +28,7 @@ function [LEX,PRO,WHO] = spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7551 2019-03-21 15:10:05Z karl $
+% $Id: spm_voice.m 7558 2019-03-28 12:39:16Z karl $
 
 
 
@@ -41,9 +43,9 @@ if ~nargin
 end
 
 global VOX
-VOX.graphics = 1;
+VOX.graphics = 0;
 VOX.mute     = 1;
-VOX.onsets   = 0;
+VOX.onsets   = 1;
 
 
 
@@ -75,6 +77,7 @@ end
 
 %%  apply to test narrative of 87 words (this will search over the bases)
 %--------------------------------------------------------------------------
+VOX.onsets = 1;
 spm_voice_test('../test.wav','../test.txt');
 
 
@@ -84,6 +87,8 @@ save VOX VOX
 
 %% read the first few words of a test file
 %--------------------------------------------------------------------------
+VOX.C = 1/8;
+VOX.U = 1/256;
 spm_voice_read('../test.wav');
 
 
@@ -93,13 +98,37 @@ spm_voice_read
 
 
 %% illustrate word by word recognition
+%==========================================================================
+
+% prior words
 %--------------------------------------------------------------------------
-wfile = spm_voice_listen;
-for s = 1:5
+str{1} = {'is'};
+str{2} = {'there'};
+str{3} = {'a'};
+str{4} = {'triangle','square'};
+str{5} = {'below','above','there'};
+
+% get priors
+%--------------------------------------------------------------------------
+try
+    wfile     = VOX.audio;
+catch
+    wfile     = audiorecorder(22050,16,1);
+    VOX.audio = wfile;
+end
+stop(wfile);
+record(wfile,8);
+
+
+%% run through sound file and evaluate likelihoods
+%==========================================================================
+VOX.I0 = 1;
+VOX.IT = 1;
+for s  = 1:numel(str)
     
     % find next word
     %----------------------------------------------------------------------
-    L   = spm_voice_get_word(wfile);
+    L   = spm_voice_get_word(wfile,P);
         
     % break if EOF
     %----------------------------------------------------------------------

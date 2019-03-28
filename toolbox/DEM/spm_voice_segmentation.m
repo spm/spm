@@ -12,7 +12,7 @@ function spm_voice_segmentation(wfile,SEG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_segmentation.m 7552 2019-03-25 10:46:03Z karl $
+% $Id: spm_voice_segmentation.m 7558 2019-03-28 12:39:16Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -46,9 +46,8 @@ end
 spm_figure('GetWin','Segmentation'); clf;
 
 Y   = read(wfile);
-Y   = Y(round(1:(FS + SEG(end).I0)));
-G   = spm_voice_filter(Y,FS);
-G   = spm_conv(G,FS/6);
+Y   = Y(round(1:(SEG(end).IT + FS/2)));
+G   = spm_conv(abs(Y),FS*VOX.C);
 pst = (1:numel(Y))/FS;
 
 subplot(3,1,1)
@@ -57,15 +56,19 @@ xlabel('time (sec)'), ylabel('amplitude')
 title('Timeseries','FontSize',16),hold on
 
 subplot(3,1,2)
-plot(pst,G,'k',pst,spm_zeros(pst) + 1/128,':r'), spm_axis tight
+plot(pst,G,'k',pst,spm_zeros(pst) + VOX.U,':r'), spm_axis tight
 xlabel('time (sec)'), ylabel('power')
 title('Envelope','FontSize',16)
 
-subplot(3,1,3), imagesc(full(spm_cat({SEG.P})))
+subplot(6,1,5), imagesc(full(spm_cat({SEG.P})))
 set(gca,'YTickLabel',{VOX.PRO.str})
 xlabel('word'), ylabel('prodisy')
 title('Prodisy','FontSize',16)
 
+subplot(12,1,12), imagesc(full(spm_cat({SEG.R})))
+set(gca,'YTickLabel',{VOX.WHO.str})
+xlabel('word'), ylabel('frequency')
+title('Identity','FontSize',16)
 
 % scan through words
 %--------------------------------------------------------------------------
@@ -77,12 +80,14 @@ for w = 1:numel(SEG)
     
     % retrieve epoch 
     %----------------------------------------------------------------------
-    i      = round(SEG(w).I0:SEG(w).IT);
+    i    = round(SEG(w).I0:SEG(w).IT);
+    j    = round(SEG(w).I0 + FS/4); 
  
     % plot and label
     %----------------------------------------------------------------------
     subplot(3,1,1), plot(i/FS,Y(i),'Color',col)
-    subplot(3,1,2), text(SEG(w).I0/FS,G(SEG(w).I0) + 1/256,SEG(w).str,'Color',col,'FontWeight','bold')
+    
+    subplot(3,1,2), text(j/FS,G(j) + VOX.U,SEG(w).str,'Color',col,'FontWeight','bold')
 
 end
 

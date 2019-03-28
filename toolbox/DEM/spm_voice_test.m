@@ -20,7 +20,7 @@ function [L] = spm_voice_test(wfile,sfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7557 2019-03-27 17:11:16Z karl $
+% $Id: spm_voice_test.m 7558 2019-03-28 12:39:16Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -53,7 +53,6 @@ I      = sort(I(j(1:ns)));
 % have orders been optimised with respect to the likelihood?
 %--------------------------------------------------------------------------
 OPT    = ~isfield(VOX,'nu');
-OPT    = 1;
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================

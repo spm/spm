@@ -28,7 +28,7 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7557 2019-03-27 17:11:16Z karl $
+% $Id: spm_voice_get_word.m 7558 2019-03-28 12:39:16Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -44,7 +44,7 @@ if isa(wfile,'audiorecorder')
     % ensure 2 second of data has been accumulated
     %----------------------------------------------------------------------
     dt    = (get(wfile,'TotalSamples') - VOX.IT)/FS;
-    pause(1 - dt);
+    pause(2 - dt);
 
 else
     
@@ -73,9 +73,9 @@ for i = 1:4
     Y = read(wfile);
     n = numel(Y);
     j = fix((0:FS) + VOX.IT);
-    G = spm_conv(abs(Y(j(j < n))),FS/4);
+    G = spm_conv(abs(Y(j(j < n))),FS*VOX.C);
     I = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
-    I = I(G(I) > 1/128);
+    I = I(G(I) > VOX.U);
     
     % advance pointer if silence
     %----------------------------------------------------------------------
@@ -89,14 +89,15 @@ for i = 1:4
         %------------------------------------------------------------------
         if isa(wfile,'audiorecorder')
             dt = (get(wfile,'TotalSamples') - VOX.IT)/FS;
-            pause(1 - dt);
+            pause(2 - dt);
         end
         
     else
         
-        % move pointer to 300ms before peak
+        % move pointer to 500ms before peak
         %------------------------------------------------------------------
         I  = VOX.IT + I(1) - FS/2;
+        I  = max(I,1);
         break
     end
 end
@@ -113,11 +114,11 @@ end
 j    = fix((0:FS) + I);
 y    = Y(j(j < n));
 j    = logical(j < VOX.IT);
-y(j) = 1/1024;
+y(j) = 1/512;
 
 % retrieve epoch and decompose at fundamental frequency
 %--------------------------------------------------------------------------
-clear xy
+clear xy J
 j     = spm_voice_onsets(y,FS);
 nj    = numel(j);
 for i = 1:nj
@@ -125,6 +126,28 @@ for i = 1:nj
     J(i,:)  = I + [j{i}(1),j{i}(end)];
 end
 
+
+% identify the most likely word
+%==========================================================================
+% [L,M,N] = spm_voice_likelihood(xy);
+% L       = spm_softmax(L);                   % likelihoods
+% M       = spm_softmax(M);                   % likelihoods
+% N       = spm_softmax(N);                   % likelihoods
+% F       = sum(L.*log(L));
+% [F,m]   = max(F(1,1,:));
+% 
+% L       = L(:,1,m);                         % marginalise over sampling
+% M       = M(:,:,m);                         % marginalise prosody
+% N       = N(:,:,m);                         % marginalise identity
+% I       = J(m,:);
+% 
+% % advance pointer based on marginal over samples
+% %--------------------------------------------------------------------------
+% O{1}    = L;
+% O{2}    = M;
+% O{3}    = N;
+% VOX.I0  = fix(I(1));
+% VOX.IT  = fix(I(2));
 
 % identify the most likely word
 %==========================================================================

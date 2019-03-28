@@ -16,7 +16,7 @@ function spm_voice_read(wfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7552 2019-03-25 10:46:03Z karl $
+% $Id: spm_voice_read.m 7558 2019-03-28 12:39:16Z karl $
 
 % get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
@@ -24,8 +24,10 @@ function spm_voice_read(wfile)
 
 %% get data features from a wav file or audiorecorder object
 %==========================================================================
+global VOX
 if ~nargin
-    wfile  = audiorecorder(22050,16,1);
+    wfile     = audiorecorder(22050,16,1);
+    VOX.audio = wfile;
 end
 
 if isa(wfile,'audiorecorder')
@@ -35,7 +37,6 @@ end
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================
-global VOX
 VOX.I0 = 1;
 VOX.IT = 1;
 W      = [];
@@ -64,6 +65,7 @@ for s  = 1:8
     SEG(s).I0  = VOX.I0;                       % centre
     SEG(s).IT  = VOX.IT;                       % range
     SEG(s).P   = P(:,s);                       % prosody
+    SEG(s).R   = R(:,s);                       % speaker
     
    disp({SEG.str})
     
