@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7494 2018-11-21 13:39:35Z thomas $
+% $Id: spm_MDP_VB_X.m 7559 2019-03-28 17:10:21Z thomas $
 
 
 % deal with a sequence of trials
@@ -641,7 +641,8 @@ for t = 1:T
                     for g = 1:size(MDP(m).linkC,2)
                         if ~isempty(MDP(m).linkC{f,g})
                             % empirical priors
-                            %--------------------------------------------------
+                            %----------------------------------------------
+                            O{m}{g,t} = spm_dot(A{m,g},xq(m,:));           
                             mdp.C{f} = spm_log(MDP(m).linkC{f,g}*O{m}{g,t});
                         end
                     end
@@ -658,6 +659,7 @@ for t = 1:T
                         
                         % empirical priors
                         %--------------------------------------------------
+                        O{m}{g,t} = spm_dot(A{m,g},xq(m,:));               
                         mdp.E = MDP(m).linkE{g}*O{m}{g,t};
                     end
                 end
@@ -666,6 +668,14 @@ for t = 1:T
             % infer hidden states at lower level (outcomes at this level)
             %==============================================================
             MDP(m).mdp(t) = spm_MDP_VB_X(mdp);
+            
+            if isfield(MDP(m).MDP,'demi')                                  
+                % Ensure DEM generative process starts with final states
+                % from previous inversion
+                %----------------------------------------------------------
+                MDP(m).MDP.DEM.G(1).x = MDP(m).mdp(t).dem(end).pU.x{1}(:,end);
+                MDP(m).MDP.DEM.M(1).x = MDP(m).mdp(t).dem(end).qU.x{1}(:,end);
+            end
             
             % get inferred outcomes from subordinate MDP
             %--------------------------------------------------------------
