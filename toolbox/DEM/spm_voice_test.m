@@ -20,7 +20,7 @@ function [L] = spm_voice_test(wfile,sfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7558 2019-03-28 12:39:16Z karl $
+% $Id: spm_voice_test.m 7561 2019-03-30 10:39:07Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -47,12 +47,9 @@ end
 %--------------------------------------------------------------------------
 G      = spm_conv(abs(read(wfile)),FS/4);
 I      = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
-[i,j]  = sort(G(I),'descend');
+[d,j]  = sort(G(I),'descend');
 I      = sort(I(j(1:ns)));
 
-% have orders been optimised with respect to the likelihood?
-%--------------------------------------------------------------------------
-OPT    = ~isfield(VOX,'nu');
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================
@@ -77,7 +74,7 @@ end
 
 %% grid search to maximise classication accuracy
 %==========================================================================
-if OPT
+if ~isfield(VOX,'nu');
     nu    = 4:size(xY{1}(1).Q,1);                              % order (Hz)
     nv    = 4:size(xY{1}(1).Q,2);                              % order (ms)
     LL    = zeros(numel(nu),numel(nv));
@@ -104,9 +101,6 @@ if OPT
     [i,j]  = find(LL == max(LL(:)),1);
     VOX.nu = nu(i);
     VOX.nv = nv(j);
-else
-    VOX.nu = 8;
-    VOX.nv = 8;
 end
 
 %% illustrate classification accuracy

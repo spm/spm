@@ -28,7 +28,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7558 2019-03-28 12:39:16Z karl $
+% $Id: spm_voice.m 7561 2019-03-30 10:39:07Z karl $
 
 
 
@@ -45,8 +45,7 @@ end
 global VOX
 VOX.graphics = 0;
 VOX.mute     = 1;
-VOX.onsets   = 1;
-
+VOX.onsets   = 0;
 
 
 %% get corpus
@@ -77,7 +76,6 @@ end
 
 %%  apply to test narrative of 87 words (this will search over the bases)
 %--------------------------------------------------------------------------
-VOX.onsets = 1;
 spm_voice_test('../test.wav','../test.txt');
 
 
@@ -87,8 +85,6 @@ save VOX VOX
 
 %% read the first few words of a test file
 %--------------------------------------------------------------------------
-VOX.C = 1/8;
-VOX.U = 1/256;
 spm_voice_read('../test.wav');
 
 

@@ -12,7 +12,7 @@ function spm_voice_segmentation(wfile,SEG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_segmentation.m 7558 2019-03-28 12:39:16Z karl $
+% $Id: spm_voice_segmentation.m 7561 2019-03-30 10:39:07Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -48,6 +48,7 @@ spm_figure('GetWin','Segmentation'); clf;
 Y   = read(wfile);
 Y   = Y(round(1:(SEG(end).IT + FS/2)));
 G   = spm_conv(abs(Y),FS*VOX.C);
+G   = G - min(G);
 pst = (1:numel(Y))/FS;
 
 subplot(3,1,1)

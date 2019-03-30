@@ -71,7 +71,7 @@ function RSA = DEMO_CVA_RSA
 % Copyright (C) 2006-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_CVA_RSA.m 7329 2018-06-10 21:12:02Z karl $
+% $Id: DEMO_CVA_RSA.m 7561 2019-03-30 10:39:07Z karl $
 
 
 % preliminaries
@@ -80,10 +80,10 @@ rng('default')
 
 Nn   = 8;       % number of subjects
 Nv   = 32;      % number of voxels in the volume of interest
-Ns   = 16;      % number of stimuli objects
+Ns   = 16;      % number of stimuli (i.e., objects)
 Np   = 24;      % number of presentations (per subject)
 
-CV   = [1 1 0]; % true effects (main effect of interaction)
+CV   = [1 1 0]; % true effects (main effects and interaction)
 s    = 1/2;     % standard deviation of noise
 k    = 1/8;     % spatial correlations of noise
 
@@ -129,7 +129,7 @@ end
 
 % synthetic data
 %==========================================================================
-% Let us now creates an synthetic data from a region that encodes the main
+% Let us now create synthetic data from a region that encodes the main
 % effect of the parametric attribute and the context (but not the
 % interaction). This functional specialisation can be specified in terms of
 % canonical values as follows (assuming each stimulus is presented Np times
@@ -151,7 +151,7 @@ for i = 1:Nn
     %----------------------------------------------------------------------
     B0   = randn(size(X0,2),Nv)/16;
     
-    % known confounds
+    % response variable
     %----------------------------------------------------------------------
     Y{i} = X*B + X0*B0 + e;
     
@@ -195,7 +195,7 @@ for i = 1:Nn
     %----------------------------------------------------------------------
     W(:,:,i)  = cc*CVA.W*CVA.W'*cc';
     
-    %  and accumulate the log evidence for each contrast
+    % and accumulate the log evidence for each contrast
     %----------------------------------------------------------------------
     for j = 1:Nc
         CVA    = spm_cva(Y{i},X,X0,c{j});
@@ -244,7 +244,7 @@ ylabel('Posterior probability'), title('Model comparison'), axis square
 % variational Bayes (i.e. representational similarity analysis)
 %==========================================================================
 % We will now repeat the analysis using a covariance component approach
-% (C.F.P component modelling).
+% (c.f., pattern component modelling).
 %--------------------------------------------------------------------------
 
 % get contrasts from hypothesis matrices
@@ -254,15 +254,15 @@ for i = 1:Nc
     c{i} = full(spm_svd(C{i}));
 end
 
-% create covariance components
+% create covariance components (in the space of pinv(X))
 %--------------------------------------------------------------------------
-iX    = pinv(X);
 for i = 1:Nc
-    Q{i}  = C{i};
+    Q{i}  = C{i};                                  % components of interest
 end
-Q{Nc + 1} = iX*iX';
-R         = eye(size(X,1)) - [X X0]*pinv([X X0]);
-X0        = iX*X0;
+iX        = pinv(X);                               % projector
+Q{Nc + 1} = iX*iX';                                % i.i.d. error
+R         = eye(size(X,1)) - [X X0]*pinv([X X0]);  % residual projector
+X0        = iX*X0;                                 % projected confounds
 
 % component analysis
 %--------------------------------------------------------------------------
@@ -286,8 +286,8 @@ for i = 1:Nn
     
     % accumulate
     %----------------------------------------------------------------------
-    RSA{i}.M.pE = hE;         % prior expectation of parameters
-    RSA{i}.M.pC = hC;         % prior covariances of parameters
+    RSA{i}.M.pE = hE;         % prior expectation of hyperparameters
+    RSA{i}.M.pC = hC;         % prior covariances of hyperparameters
     RSA{i}.Ep   = Eh;         % posterior expectations
     RSA{i}.Cp   = Ch;         % posterior covariance
     RSA{i}.Q    = Qh;         % scaled covariance components
@@ -298,8 +298,8 @@ end
 
 % parametric empirical Bayes
 %==========================================================================
-% now used parametric empirical Bayes to compute group average covariance
-% hyper parameters
+% now use parametric empirical Bayes to compute group average covariance
+% hyperparameters
 %--------------------------------------------------------------------------
 M.X       = ones(Nn,1);
 [PEB,RSA] = spm_dcm_peb(RSA(:),M);
@@ -331,7 +331,7 @@ for i = 1:Nc
     rC      = pC;
     j       = 1:Nc; j(i) = [];
     rC(j,j) = 1/128;
-    Fs(i,1)    = spm_log_evidence(qE,qC,pE,pC,pE,rC);
+    Fs(i,1) = spm_log_evidence(qE,qC,pE,pC,pE,rC);
     
 end
 

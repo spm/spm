@@ -1,6 +1,6 @@
 function [i] = spm_voice_check(Y,FS,U)
 % decomposition at fundamental frequency
-% FORMAT [i] = spm_voice_onset(Y,FS,U)
+% FORMAT [i] = spm_voice_check(Y,FS,U)
 %
 % Y    - timeseries
 % FS   - sampling frequency
@@ -14,7 +14,7 @@ function [i] = spm_voice_check(Y,FS,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_check.m 7545 2019-03-16 11:57:13Z karl $
+% $Id: spm_voice_check.m 7561 2019-03-30 10:39:07Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================

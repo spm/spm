@@ -1,12 +1,12 @@
-function [I] = spm_voice_onsets(Y,FS,U,u,C)
+function [I] = spm_voice_onsets(Y,FS,T,U,C)
 % identifies intervals containing acoustic energy and post onset minima
-% FORMAT [I] = spm_voice_onsets(Y,FS,U,u,C)
+% FORMAT [I] = spm_voice_onsets(Y,FS,T,U,C)
 %
 % Y    - timeseries
 % FS   - sampling frequency
-% U    - onsets   threshold [Defult: 1/16 sec]
-% u    - crossing threshold [Defult: 1/16 a.u]
-% C    - Convolution kernel [Defult: 1/32 sec]
+% T    - onset    threshold [Default: 1/16 sec]
+% U    - crossing threshold [Default: 1/16 a.u]
+% C    - Convolution kernel [Default: 1/32 sec]
 %
 % I{i} - cell array of intervals (time bins) containing spectral energy
 %
@@ -18,51 +18,48 @@ function [I] = spm_voice_onsets(Y,FS,U,u,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7558 2019-03-28 12:39:16Z karl $
+% $Id: spm_voice_onsets.m 7561 2019-03-30 10:39:07Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
 global VOX
 
-if nargin < 3, U = 1/16; end                          % onset  threshold
-if nargin < 4, u = 1/16; end                          % height threshold
-if nargin < 5, C = 1/32; end                          % height threshold
+if nargin < 3, T = 1/16; end                          % onset  threshold
+if nargin < 4, U = 1/16; end                          % height threshold
+if nargin < 5, C = 1/32; end                          % smoothing
 
 % identify threshold crossings in power
 %--------------------------------------------------------------------------
 aY  = spm_conv(abs(Y),FS*C);                          % smooth RMS
 n   = length(aY);                                     % number of time bins
-y0  = aY - min(aY(fix(FS*U:FS/2)));                   % normalise
+y0  = aY - min(aY(fix(FS*T:FS/2)));                   % normalise
 yT  = aY - min(aY(fix(FS/2:n)));                      % normalise
 y0  = y0/max(y0);
 yT  = yT/max(yT);
 
-% find zero crossings (of u) or offset minima if in audio mode
+% find zero crossings (of U) or offset minima if in audio mode
 %--------------------------------------------------------------------------
-j0 = find(y0(1:end - 1) < u & y0(2:end) > u);
-jT = find(yT(1:end - 1) > u & yT(2:end) < u);
+j0 = find(y0(1:end - 1) < U & y0(2:end) > U);
+jT = find(yT(1:end - 1) > U & yT(2:end) < U);
 
-% and supplement offse twith minima if in audio mode
+% and supplement offsets with minima (if in audio mode)
 %--------------------------------------------------------------------------
 if isfield(VOX,'audio')
     jt = find(diff(yT(1:end - 1)) < 0 & diff(yT(2:end)) > 0);
-    jt = jt(yT(jt) < 1/4);
+    jt = jt(yT(jt) < 1/2 & yT(jt) > U);
     jT = [jT;jt];
-else
-
-    
 end
 
 % boundary conditions
 %--------------------------------------------------------------------------
 if numel(j0) > 1
-    j0 = j0(j0 > FS*U & j0 < FS/2);
+    j0 = j0(j0 > FS*T & j0 < FS/2);
 end
 if numel(j0) > 1
     j0 = j0(1);
 end
 if numel(jT) > 1
-    jT = jT(jT > FS/2 + FS/16);
+    jT = jT(jT > FS/2);
 end
 if numel(jT) < 1
     jT = n;
@@ -92,7 +89,7 @@ end
 for i = 1:numel(I)
     ni(i) = numel(I{i});
 end
-[i,j] = sort(ni,'descend');
+[d,j] = sort(ni,'descend');
 I     = I(j);
 
 % graphics(if requested)
@@ -112,9 +109,9 @@ plot(pst,Y,'b'),             hold on
 plot(pst,aY/max(aY),':b'),   hold on
 plot(pst,Y,'b'),             hold on
 plot(pst,aY,':b'),           hold on
-plot(pst,0*pst + u,'-.'),    hold on
+plot(pst,0*pst + U,'-.'),    hold on
 plot([1 1]/2,[-1 1],'b'),    hold on
-plot([1 1]*U,[-1 1],'--g'),  hold on
+plot([1 1]*T,[-1 1],'--g'),  hold on
 for i = 1:numel(I)
     x = [I{i}(1),I{i}(end),I{i}(end),I{i}(1)]/FS;
     y = [-1,-1,1,1];
@@ -129,9 +126,9 @@ xlabel('peristimulus time (seconds)'), spm_axis tight, hold off
 %--------------------------------------------------------------------------
 subplot(2,1,2)
 plot(pst,y0,'g',pst,yT,'r'), hold on
-plot(pst,0*pst + u,'-.'),    hold on
+plot(pst,0*pst + U,'-.'),    hold on
 plot([1 1]/2,[0 1],'b'),     hold on
-plot([1 1]*U,[0 1],'--g'),   hold on
+plot([1 1]*T,[0 1],'--g'),   hold on
 for i = 1:numel(j0), plot(pst(j0(i)),y0(j0(i)),'og'), end
 for i = 1:numel(jT), plot(pst(jT(i)),yT(jT(i)),'or'), end
 title('Log energy','FontSize',16)
