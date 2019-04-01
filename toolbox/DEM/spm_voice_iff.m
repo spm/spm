@@ -1,6 +1,6 @@
-function [Y] = spm_voice_iff(xY,L)
+function [Y] = spm_voice_iff(xY)
 % inverse decomposition at fundamental frequency
-% FORMAT [Y] = spm_voice_iff(xY,[DT])
+% FORMAT [Y] = spm_voice_iff(xY)
 %
 % xY    -  cell array of word structures
 % xY.Q  -   parameters - lexical
@@ -12,9 +12,6 @@ function [Y] = spm_voice_iff(xY,L)
 % xY.P.tim  -   timbre
 % xY.P.inf  -   inflection
 %
-% FS    - sampling frequency
-% DT    - latency or pause (seconds) [optional]
-%
 % Y     - reconstructed timeseries
 %
 % This routine recomposes a timeseries from temporal basis sets at the
@@ -24,7 +21,7 @@ function [Y] = spm_voice_iff(xY,L)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7557 2019-03-27 17:11:16Z karl $
+% $Id: spm_voice_iff.m 7562 2019-04-01 09:49:28Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -36,17 +33,12 @@ try, FS = VOX.FS; catch, FS  = 22050; end  % sampling frequency
 try, Tu = VOX.Tu; catch, Tu  = 4;     end  % log scaling (formants)
 try, Tv = VOX.Tv; catch, Tv  = 1;     end  % log scaling (interval)
 
-% check for structure arrays
-%--------------------------------------------------------------------------
-ns = numel(xY);
-if nargin   < 2,  L = 1/4;               end
-if numel(L) < ns, L = repmat(L(1),ns,1); end
 
 % recompose and play
 %--------------------------------------------------------------------------
-if ns > 1
+if numel(xY) > 1
     for s = 1:numel(xY)
-        spm_voice_iff(xY(s),L(s));
+        spm_voice_iff(xY(s));
     end
     return
 end
@@ -54,7 +46,7 @@ end
 % reconstitute sample points
 %--------------------------------------------------------------------------
 M  = exp(xY.P.amp);                          % amplitude
-F0 = exp(xY.P.ff0);                          % fundamental frequency (Hz)
+L  = exp(xY.P.lat);                          % latency (sec)
 F1 = exp(xY.P.ff1);                          % formant frequency (Hz)
 T  = exp(xY.P.dur);                          % duration (seconds)
 S  = exp(xY.P.tim);                          % timbre
@@ -62,12 +54,11 @@ P  = xY.P.inf;                               % inflection
 
 % reconstitute intervals
 %--------------------------------------------------------------------------
-DI = round(FS/F0);                           % average fundamental interval
+F0 = 1/P(1);                                 % fundamental frequency
 nI = round(T*F0);                            % number of intervals
 D  = spm_dctmtx(nI - 1,numel(P));            % basis set for inflection
-dI = D*P(:);                                 % fluctuations
-dI = DI*dI/mean(dI);                         % scaled fluctuations
-I  = round([1; cumsum(dI)]);                 % cumulative intervals
+dI = D*P(:)*sqrt(nI);                        % fluctuations
+I  = round([1; FS*cumsum(dI)]);              % cumulative intervals
 
 % reconstitute format coefficients
 %--------------------------------------------------------------------------
@@ -130,7 +121,7 @@ if VOX.graphics
     xlabel('coefficients'), ylabel('coefficients')
     title('Parameters','FontSize',16)
     
-    subplot(4,2,7), plot(FS./dI), axis square, spm_axis tight
+    subplot(4,2,7), plot(1./dI), axis square, spm_axis tight
     xlabel('time (intervals)'), ylabel('fundamental frequency')
     title('Inflection','FontSize',16), drawnow
     

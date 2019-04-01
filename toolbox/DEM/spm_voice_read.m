@@ -16,7 +16,7 @@ function spm_voice_read(wfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7561 2019-03-30 10:39:07Z karl $
+% $Id: spm_voice_read.m 7562 2019-04-01 09:49:28Z karl $
 
 % get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
@@ -37,8 +37,6 @@ end
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================
-VOX.C  = 1/8;                                  % smoothing for peaks
-VOX.U  = 1/256;                                % threshold for peaks
 VOX.I0 = 1;                                    % first index
 VOX.IT = 1;                                    % final index
 W      = [];                                   % posterior over words

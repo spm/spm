@@ -28,7 +28,7 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7561 2019-03-30 10:39:07Z karl $
+% $Id: spm_voice_get_LEX.m 7562 2019-04-01 09:49:28Z karl $
 
 
 % defaults
@@ -52,12 +52,18 @@ end
 %==========================================================================
 spm_figure('GetWin','Parameter distributions'); clf
 PP    = full(spm_cat(P)');
-Pstr  = {'amp','ff0','ff1','dur','timbre','const','inf','bif'};
-ii    = [1 2 4 5 7 8];
+Pstr  = {'amp','lat','ff1','dur','timbre','ff0','inf','bif'};
+ii    = [1 4 5 6 7 8];
 for i = 1:numel(ii);
     subplot(3,3,i)
-    hist(exp(PP(:,ii(i))),32), axis square
-    title(sprintf('%s mean: %.2f',Pstr{ii(i)},mean(exp(PP(:,ii(i))))))
+    
+    if ii(i) > 5
+        hist(PP(:,ii(i)),32), axis square
+        title(sprintf('%s mean: %.2f',Pstr{ii(i)},mean(PP(:,ii(i)))))
+    else
+        hist(exp(PP(:,ii(i))),32), axis square
+        title(sprintf('%s mean: %.2f',Pstr{ii(i)},mean(exp(PP(:,ii(i))))))
+    end
 end
 
 % onsets and offsets
@@ -109,7 +115,7 @@ xlabel(sprintf('eigenbasis (%i)',s)), axis square
 
 % prosody (based on correlation)
 %--------------------------------------------------------------------------
-[V,S] = spm_svd(cov(PP));
+[V,S] = spm_svd(corr(PP));
 S     = diag(S);
 subplot(2,2,2), bar(S)
 title('Eigenvalues - prosidy','FontSize',16)
@@ -126,18 +132,15 @@ legend(Pstr)
 
 % prosidy ranges
 %--------------------------------------------------------------------------
-R(1,:)   = log([1/32   1]);                          % amp
-R(2,:)   = log([82   156]);                          % ff0
-R(3,:)   = log([24    64]);                          % ff1
-R(4,:)   = log([1/4  3/4]);                          % dur
-R(5,:)   = log([1.8  2.8]);                          % timbre
-R(6,:)   = [1 1];                                    % const
-R(7,:)   = [-1/4 1/4];                               % inf
-R(8,:)   = [-1/4 1/4];                               % bif
+R      = [min(PP); max(PP)]';
+R(1,:) = log([1/32   1]);                          % amp
+R(2,:) = log([1/64   1]);                          % lat
+R(3,:) = log([24    48]);                          % ff1
+
 
 % select prosidy features and specify prior precision
 %--------------------------------------------------------------------------
-i     = [1,4,5,7,8];
+i     = [1,2,4,5,6,7,8];
 ni    = numel(i);
 p0    = mean(R,2);
 VOX.P = spm_unvec(p0(:),xY(1).P);
@@ -168,7 +171,7 @@ end
 
 % select speaker features and specify prior precision
 %--------------------------------------------------------------------------
-i     = [2,3];
+i     = [3];
 ni    = numel(i);
 VOX.j = i;
 
@@ -257,7 +260,7 @@ for w = 1:nw
         % likelihood
         %------------------------------------------------------------------
         L               = spm_voice_likelihood(xY(w,:),w);
-        [L,i]           = max(spm_vec(L));
+        [L,i]           = max(L(w,1,1,:));
         VOX.LEX(w,k).rE = spm_vec(xY(w,i).Q) - spm_vec(VOX.Q);
         
     end

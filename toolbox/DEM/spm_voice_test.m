@@ -20,7 +20,7 @@ function [L] = spm_voice_test(wfile,sfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7561 2019-03-30 10:39:07Z karl $
+% $Id: spm_voice_test.m 7562 2019-04-01 09:49:28Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -61,11 +61,10 @@ for s = 1:ns
     clear xy
     Y     = read(wfile,round([-1/2 1/2]*FS + I(s)));
     j     = spm_voice_onsets(Y,FS);
-    nj    = numel(j);
-    for i = 1:nj
+    for i = 1 % :numel(j) - for all intervals
         xy(i,1) = spm_voice_ff(Y(j{i}),FS);
     end
-
+    
     % store in xY
     %----------------------------------------------------------------------
     xY{s} = xy;
@@ -87,8 +86,13 @@ if ~isfield(VOX,'nu');
             %--------------------------------------------------------------
             for s = 1:ns
                 L       = spm_voice_likelihood(xY{s});     % log likelihoods
-                L(:)    = spm_softmax(L(:));               % likelihoods
-                L       = squeeze(sum(sum(L,2),3));        % marginal
+                Q       = spm_softmax(L);
+                F       = sum(Q.*(L - log(Q + exp(-8))));
+                [d,m]   = max(F(1,1,:));
+                
+                % posteriors
+                %--------------------------------------------------------------------------
+                L       = spm_softmax(L(:,:,m));           % posteriors
                 w       = strmatch(str{s,1},word,'exact'); % correct word
                 LL(i,j) = LL(i,j) + log(L(w) + exp(-8));   % log likelihood
             end
@@ -110,19 +114,20 @@ for s = 1:ns
     
     % identify the most likely word and place in structure
     %----------------------------------------------------------------------
-    [L,M]  = spm_voice_likelihood(xY{s});      % log likelihoods
-    L(:)   = spm_softmax(L(:));                % likelihoods
-    M      = spm_softmax(M);                   % likelihoods
-    if ndims(M) > 2
-        m  = squeeze(sum(sum(L,1),2));         % marginalise over lexicon
-        M  = spm_dot(M,{m});                   % marginalise prosody
-    end
-    L      = squeeze(sum(sum(L,2),3));         % marginalise over sampling
+    [L,M]    = spm_voice_likelihood(xY{s});    % log likelihoods
+    Q        = spm_softmax(L);
+    F        = sum(Q.*(L - log(Q + exp(-8))));
+    [d,m]    = max(F(1,1,:));
+    
+    % posteriors and pointer
+    %--------------------------------------------------------------------------
+    L        = spm_softmax(L(:,:,m));          % posteriors
+    M        = spm_softmax(M(:,:,m));          % likelihood
     
     % identify the most likely word and prosody
     %----------------------------------------------------------------------
     [d,w]    = max(L);                         % most likely word
-    [d,p]    = max(M);                         % most likely  prosodies
+    [d,p]    = max(M);                         % most likely prosodies
     R(:,s)   = L;                              % lexical likelihoods
     W(1,s)   = w(:);                           % lexical class
     P(:,s)   = p(:);                           % prosody classes
@@ -176,10 +181,10 @@ title('Prosody','FontSize',16)
 set(gca,'YTick',1:size(P,1)),set(gca,'YTickLabel',{VOX.PRO.str})
 xlabel('word'), ylabel('mode'), axis square
 
-if ~OPT, return, end
-
-subplot(2,3,6), imagesc(nv,nu,LL), title('Accuracy','FontSize',16)
-xlabel('order (intervals)'), ylabel('order (formants)'), axis square
+if exist('nu','var')
+    subplot(2,3,6), imagesc(nv,nu,LL), title('Accuracy','FontSize',16)
+    xlabel('order (intervals)'), ylabel('order (formants)'), axis square
+end
 drawnow
 
 return

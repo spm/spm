@@ -11,14 +11,15 @@ function [I] = spm_voice_onsets(Y,FS,T,U,C)
 % I{i} - cell array of intervals (time bins) containing spectral energy
 %
 % This routine identifies epochs constaining spectral energy of the power
-% envelope, defined as the root mean square (RMS) power. the onset and
+% envelope, defined as the root mean square (RMS) power. The onset and
 % offset of words is evaluated in terms of threshold crossings before and
-% after the midpoint of a one second epoch.
+% after the midpoint of a one second epoch. These are supplemented with
+% internal minima (after the spectral peak).
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7561 2019-03-30 10:39:07Z karl $
+% $Id: spm_voice_onsets.m 7562 2019-04-01 09:49:28Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
@@ -42,27 +43,25 @@ yT  = yT/max(yT);
 j0 = find(y0(1:end - 1) < U & y0(2:end) > U);
 jT = find(yT(1:end - 1) > U & yT(2:end) < U);
 
-% and supplement offsets with minima (if in audio mode)
+% boundary conditions
 %--------------------------------------------------------------------------
-if isfield(VOX,'audio')
-    jt = find(diff(yT(1:end - 1)) < 0 & diff(yT(2:end)) > 0);
-    jt = jt(yT(jt) < 1/2 & yT(jt) > U);
-    jT = [jT;jt];
-end
+if numel(j0) < 1,  j0 = FS*T; end
+if j0(1)   > FS/2, j0 = FS*T; end
+if jT(end) < FS/2, jT = n;    end
+
+% and supplement offsets with (internal) minima
+%--------------------------------------------------------------------------
+i  = find(diff(yT(1:end - 1)) < 0 & diff(yT(2:end)) > 0);
+i  = i(yT(i) < 1/2 & i < jT(end));
+jT = sort(unique([jT; i]));
 
 % boundary conditions
 %--------------------------------------------------------------------------
 if numel(j0) > 1
-    j0 = j0(j0 > FS*T & j0 < FS/2);
-end
-if numel(j0) > 1
-    j0 = j0(1);
+    j0 = j0(j0 < FS/2 & j0 > FS*T);
 end
 if numel(jT) > 1
     jT = jT(jT > FS/2);
-end
-if numel(jT) < 1
-    jT = n;
 end
 
 % indices of interval containing spectral energy
@@ -78,7 +77,7 @@ for i = 1:numel(j0)
         
         % retain intervals of plausible length
         %------------------------------------------------------------------
-        if ni < 3*FS/4 && ni > FS/8;
+        if ni > FS/32
             I{end + 1} = k;
         end
     end

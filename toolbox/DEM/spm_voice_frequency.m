@@ -18,7 +18,7 @@ function [I,DJ] = spm_voice_frequency(Y,FS,F0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_frequency.m 7535 2019-03-03 20:27:09Z karl $
+% $Id: spm_voice_frequency.m 7562 2019-04-01 09:49:28Z karl $
 
 
 
@@ -33,7 +33,7 @@ w     = (1:nf)/(nf/FS);
 
 % find fundamental frequency (f0 and fundamental epochs)
 %--------------------------------------------------------------------------
-R0    = F0/8;                                % standard deviation of F0(Hz)
+R0    = F0/4;                                % standard deviation of F0(Hz)
 bY    = fY.*exp(-(w(:) - F0).^2/(2*(R0)^2)); % bandpass filter (at F0)
 sY    = real(ifft(bY));                      % filter timeseries
 iY    = imag(hilbert(sY));                   % Hilbert transform

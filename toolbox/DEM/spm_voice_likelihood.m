@@ -24,12 +24,16 @@ function [L,M,N] = spm_voice_likelihood(xY,W)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7546 2019-03-18 11:02:22Z karl $
+% $Id: spm_voice_likelihood.m 7562 2019-04-01 09:49:28Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
 global VOX
-if nargin < 2, W = 1:size(VOX.LEX,1); end
+if nargin < 2
+    W = 1:size(VOX.LEX,1);
+else
+    W = W(:)';
+end
 
 % handle arrays
 %==========================================================================
@@ -63,13 +67,14 @@ i     = find(kron(wv,wu));
 % log likelihood over lexical outcomes
 %==========================================================================
 Q     = spm_vec(xY.Q) - spm_vec(VOX.Q);
+L     = zeros(size(VOX.LEX)) - 1024;
 for w = W
     for k = 1:size(VOX.LEX,2)
         
         % log likelihood - lexical
         %------------------------------------------------------------------
         E      = (Q(i) - VOX.LEX(w,k).qE(i));           % error
-        L(w,k) = - E'*VOX.LEX(w,k).qP(i,i)*E/2;         % log likelihood
+        L(w,k) = - E'*VOX.LEX(w,k).qP(i,i)*E/2;      % log likelihood
         
         % add log prior, if specified
         %------------------------------------------------------------------

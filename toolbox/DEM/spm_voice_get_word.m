@@ -28,12 +28,14 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7561 2019-03-30 10:39:07Z karl $
+% $Id: spm_voice_get_word.m 7562 2019-04-01 09:49:28Z karl $
 
-%% get  parameters from VOX
+%% get peak identification parameters from VOX
 %==========================================================================
 global VOX
-VOX.onsets = 1;
+
+try, VOX.C; catch, VOX.C  = 1/16; end               % smoothing for peaks
+try, VOX.U; catch, VOX.U  = 1/256; end              % threshold for peaks
 
 % get source (recorder) and FS
 %--------------------------------------------------------------------------
@@ -60,6 +62,15 @@ else
     end
 end
 
+%% log prior over lexical content (and indices within Ockham's window W)
+%==========================================================================
+if nargin < 2
+    nw = numel(VOX.LEX);
+    LP = ones(nw,1)/nw;
+else
+    LP = log(P + exp(-8));
+end
+W      = find(LP > (max(LP) - 3));
 
 %% find word and evaluate likelihoods
 %==========================================================================
@@ -75,8 +86,7 @@ for i = 1:4
     j = fix((0:FS) + VOX.IT);
     G = spm_conv(abs(Y(j(j < n))),FS*VOX.C);
     I = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
-    I = I(G(I) > (VOX.U + min(G)));
-    
+    I = I(G(I) > (VOX.U + min(G)) & I > FS/8);
     
     % advance pointer if silence
     %----------------------------------------------------------------------
@@ -97,107 +107,52 @@ for i = 1:4
         
         % move pointer to 500ms before peak
         %------------------------------------------------------------------
-        I  = VOX.IT + I - FS/2;
-        I  = I(I < (I(1) + FS/2));
-        I  = max(I,1);
+        I  = VOX.IT + I(1) - FS/2;
         break
     end
 end
 
 % break if EOF
 %--------------------------------------------------------------------------
-if isempty(I)
-    O  = {};
-    return
-end
+if isempty(I), O  = {}; return, end
+
 
 %% get 1 second segment and remove previous word
+%==========================================================================
+
+% get intervals (j) for this peak
+%----------------------------------------------------------------------
+j    = fix((0:FS + FS/4) + I);
+y    = Y(j(j < n & j > 1));
+j    = logical(j < VOX.IT);
+y(j) = VOX.U/2;
+j    = spm_voice_onsets(y,FS);
+
+% retrieve epochs and decompose at fundamental frequency
 %--------------------------------------------------------------------------
-for w = 1:numel(I)
-    
-    % get intervals (j) for this peak
-    %----------------------------------------------------------------------
-    for i = 1:8
-        try
-            j    = fix((0:FS) + I(w));
-            y    = Y(j(j < n));
-            j    = logical(j < VOX.IT);
-            y(j) = 1/512;
-            j    = spm_voice_onsets(y,FS);
-            break
-        catch
-            I(w) + I(w) + FS/64;
-        end
-    end
-    
-    % retrieve epochs and decompose at fundamental frequency
-    %----------------------------------------------------------------------
-    nj    = numel(j);
-    J     = zeros(2,0);
-    xy    = struct('Y',[],'Q',[],'P',struct([]),'i',[]);
-    for i = 1:nj
-        xy(i,1) = spm_voice_ff(y(j{i}),FS);
-        J(:,i)  = I(w) + [j{i}(1);j{i}(end)];
-    end
-    
-    
-    % identify the most likely word
-    %======================================================================
-    [L,M,N] = spm_voice_likelihood(xy);
-    L(:)    = spm_softmax(L(:));                % likelihoods
-    M       = spm_softmax(M);                   % likelihoods
-    N       = spm_softmax(N);                   % likelihoods
-    m       = squeeze(sum(sum(L,1),2));         % marginalise over lexicon
-    L       = squeeze(sum(sum(L,2),3));         % marginalise over sampling
-    if size(M,3) > 1
-        M   = spm_dot(M,{m});                   % marginalise prosody
-        N   = spm_dot(N,{m});                   % marginalise identity
-    end
-    
-    % posteriors and pointer averaged under lexical marginal
-    %----------------------------------------------------------------------
-    O{1,w} = L;
-    O{2,w} = M;
-    O{3,w} = N;
-    q(:,w) = J*m;
-    p(:,w) = L;
-    
+clear xy J
+for i = 1:numel(j)
+    xy(i,1) = spm_voice_ff(y(j{i}),FS);
+    J(i,:)  = I + [j{i}(1),j{i}(end)];
 end
 
-%% Ambiguity
-%--------------------------------------------------------------------------
-[d,m]  = max(sum(p.*log(p)));
+% identify the most likely action (interval)
+%==========================================================================
+[L,M,N] = spm_voice_likelihood(xy,W);
+L       = bsxfun(@plus,L,LP);
+Q       = spm_softmax(L);
+F       = sum(Q.*(L - log(Q + exp(-8))));
+[d,m]   = max(F(1,1,:));
 
-
-%% return posteriors and advance pointer
+% posteriors and pointer
 %--------------------------------------------------------------------------
-O      = O(:,m);
-VOX.I0 = fix(q(1,m));
-VOX.IT = fix(q(2,m));
+O{1}    = spm_softmax(L(:,:,m));            % posteriors
+O{2}    = spm_softmax(M(:,:,m));            % likelihood
+O{3}    = spm_softmax(N(:,:,m));            % likelihood
+
+VOX.I0  = fix(J(m,1));
+VOX.IT  = fix(J(m,2));
 
 return
-
-
-%% identify the most likely word
-%==========================================================================
-% [L,M,N] = spm_voice_likelihood(xy);
-% L       = spm_softmax(L);                   % likelihoods
-% M       = spm_softmax(M);                   % likelihoods
-% N       = spm_softmax(N);                   % likelihoods
-% F       = sum(L.*log(L));
-% [F,m]   = max(F(1,1,:));
-%
-% L       = L(:,1,m);                         % marginalise over sampling
-% M       = M(:,:,m);                         % marginalise prosody
-% N       = N(:,:,m);                         % marginalise identity
-% I       = J(m,:);
-%
-% % advance pointer based on marginal over samples
-% %--------------------------------------------------------------------------
-% O{1}    = L;
-% O{2}    = M;
-% O{3}    = N;
-% VOX.I0  = fix(I(1));
-% VOX.IT  = fix(I(2));
 
 

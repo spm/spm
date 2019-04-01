@@ -1,10 +1,13 @@
-function [xY] = spm_voice_ff(Y,FS,F0)
+function [xY] = spm_voice_ff(Y,FS)
 % decomposition at fundamental frequency
-% FORMAT [xY] = spm_voice_ff(Y,FS,[F0])
+% FORMAT [xY] = spm_voice_ff(Y,FS)
 %
 % Y     - timeseries
 % FS    - sampling frequency
-% F0    - fundamental frequency (glottal pulse rate) [optional]
+%
+% expects
+% VOX.F0 - fundamental frequency (glottal pulse rate)
+% VOX.F1 - format frequency
 %
 % output structure
 %--------------------------------------------------------------------------
@@ -45,7 +48,7 @@ function [xY] = spm_voice_ff(Y,FS,F0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7557 2019-03-27 17:11:16Z karl $
+% $Id: spm_voice_ff.m 7562 2019-04-01 09:49:28Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -54,26 +57,18 @@ try, Nu = VOX.Nu; catch, Nu  = 32;    end    % DCT order   (formants)
 try, Nv = VOX.Nv; catch, Nv  = 8;     end    % DCT order   (interval)
 try, Tu = VOX.Tu; catch, Tu  = 4;     end    % log scaling (formants)
 try, Tv = VOX.Tv; catch, Tv  = 1;     end    % log scaling (interval)
-try, F1 = VOX.F1; catch, F1  = 32;    end    % fundamental formant
+try, F0 = VOX.F0; catch, F0  = 96;    end    % fundamental frequency
+try, F1 = VOX.F1; catch, F1  = 32;    end    % formant frequency
 try, F2 = VOX.F2; catch, F2  = 1024;  end    % minimum formant
-if nargin < 3
-    try
-        F0     = VOX.F0;
-    catch
-        F0     = 100;
-        VOX.F0 = F0;
-    end
-end
 
 % parameterise fundamental frequency modulations
 %==========================================================================
-I     = spm_voice_frequency(Y,FS,F0);        % get intervals
-DI    = mean(I);                             % mean interval
+I     = spm_voice_frequency(Y,FS,F0)/FS;     % get intervals
 nI    = length(I);                           % number of intervals
 D     = spm_dctmtx(nI,3);                    % inflection basis set
-p     = DI\I*D;                              % fluctuations around mean
-dI    = DI*p*D';                             % parameterised intervals
-I     = round([1 cumsum(dI)]);               % starting from one
+p     = sqrt(nI)\I*D;                        % fluctuations around mean
+dI    = sqrt(nI)*p*D';                       % parameterised intervals
+I     = round([1 FS*cumsum(dI)]);            % starting from one
 
 
 % unwrap fundamental segments using cross covariance functions (ccf) and
@@ -106,7 +101,6 @@ B  = 1 - exp(-(1:Ni)*F1/F2);                 % auditory range
 Q  = bsxfun(@times,Q,B(:));                  % balance
 S  = std(Q(:));                              % timbre
 Q  = Q/std(Q(:));                            % normalise
-%C = Q;                                      % copy for display
 
 nu = exp(-Tu*(0:(Ni - 1))/Ni);               % log spacing
 nv = exp(-Tv*(0:(ni - 1))/ni);               % log spacing
@@ -118,12 +112,12 @@ Q  = U\Q/V';                                 % coeficients
 
 % assemble prosody parameters
 %--------------------------------------------------------------------------
-P.amp = log(max(Y));                         % amplitude
-P.ff0 = log(FS/DI);                          % fundamental frequency (Hz)
+P.amp = log(max(Y));                         % amplitude (a.u.)
+P.lat = log(1/32);                           % latency (sec)
 P.ff1 = log(F1);                             % format frequency (Hz)
 P.dur = log(Ny/FS);                          % duration (seconds)
 P.tim = log(S);                              % timbre
-P.inf = p/p(1);                              % inflection
+P.inf = p;                                   % inflection
 
 % output structure
 %--------------------------------------------------------------------------
@@ -148,7 +142,7 @@ subplot(4,2,6), imagesc((1:ni)/F0,(1:Ni)*F1,U*Q*V')
 xlabel('time (seconds)'), ylabel('Formants (Hz)')
 title('Spectral decomposition','FontSize',16)
 
-subplot(4,2,8), imagesc((1:ni)/F0,(1:Ni)*F1,C)
+subplot(4,2,8), imagesc((1:ni)/F0,(1:Ni)*F1,U*Q*V')
 xlabel('time (seconds)'), ylabel('Formants (Hz)')
 title('Spectral decomposition','FontSize',16)
 
@@ -156,7 +150,7 @@ subplot(4,2,5), imagesc(Q)
 xlabel('coefficients'), ylabel('coefficients')
 title('Parameters','FontSize',16)
 
-subplot(4,2,7), plot(FS./dI), axis square, spm_axis tight
+subplot(4,2,7), plot(1./dI), axis square, spm_axis tight
 xlabel('time (intervals)'), ylabel('fundamental frequency')
 title('Inflection','FontSize',16), drawnow
 

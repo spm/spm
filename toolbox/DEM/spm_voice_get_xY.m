@@ -19,7 +19,7 @@ function [xY,word] = spm_voice_get_xY(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_xY.m 7561 2019-03-30 10:39:07Z karl $
+% $Id: spm_voice_get_xY.m 7562 2019-04-01 09:49:28Z karl $
 
 
 %% get corpus
@@ -48,7 +48,7 @@ for w = 1:nw
     %----------------------------------------------------------------------
     wname   = wfile(w).name;                  %  name of word
     [d,str] = fileparts(wname);
-    word{w} = str;
+    word{w} = str; disp(str)
     
     % get the midpoint of words from the (maxima) of successive exemplars
     %----------------------------------------------------------------------
@@ -68,12 +68,12 @@ for w = 1:nw
         % retrieve (one second) epoch around midpoint and transform
         %------------------------------------------------------------------
         Y       = read(wname,round([-1/2 1/2]*FS + I(s)));
-        i       = spm_voice_onsets(Y,FS);
+        i       = spm_voice_onsets(Y,FS,1/8);
         xY(w,s) = spm_voice_ff(Y(i{1}),FS);
         
         %  apply inverse transform and play, if requested
         %------------------------------------------------------------------
-        spm_voice_iff(xY(w,s),1/4);
+        spm_voice_iff(xY(w,s));
         xY(w,s).i(1) = i{1}(1)/FS   - 1/2;
         xY(w,s).i(2) = i{1}(end)/FS - 1/2;
         

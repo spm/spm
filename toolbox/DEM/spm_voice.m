@@ -28,7 +28,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7561 2019-03-30 10:39:07Z karl $
+% $Id: spm_voice.m 7562 2019-04-01 09:49:28Z karl $
 
 
 
@@ -50,25 +50,22 @@ VOX.onsets   = 0;
 
 %% get corpus
 %==========================================================================
-VOX.F0    = 100;
 [xY,word] = spm_voice_get_xY(PATH);
 
-
-%% place LEX, PRO and WHO structures in VOX and get parameters
-% e.g., VOX.F0  = exp(mean(P(:,2)));
+%% get VOX (LEX, PRO and WHO) and parameters; e.g., 1/F0  = mean(P(:,6));
 %==========================================================================
-P         = spm_voice_get_LEX(xY,word);
+P     = spm_voice_get_LEX(xY,word);
 
 
 %% articulate every word under all combinations of (5 levels) of prosody
 %--------------------------------------------------------------------------
 VOX.mute = 0;
 nw    = numel(VOX.LEX);                       % number of words
-k     = [2 6];                                % number of prosody features
+k     = [3 6];                                % number of prosody features
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[8;6;4;i;j],[2;3]);
+            spm_voice_speak(w,[8;3;4;i;j;4],3);
         end
     end
 end
@@ -77,7 +74,6 @@ end
 %%  apply to test narrative of 87 words (this will search over the bases)
 %--------------------------------------------------------------------------
 spm_voice_test('../test.wav','../test.txt');
-
 
 %% save lexical and prosody arrays in sound file directory
 %--------------------------------------------------------------------------
@@ -98,33 +94,41 @@ spm_voice_read
 
 % prior words
 %--------------------------------------------------------------------------
+clear str
 str{1} = {'is'};
 str{2} = {'there'};
 str{3} = {'a'};
 str{4} = {'triangle','square'};
 str{5} = {'below','above','there'};
 
+P     = zeros(numel(VOX.LEX),0);
+for w = 1:numel(str)
+    i      = spm_voice_i(str{w});
+    P(i,w) = 1;
+end
+P     = bsxfun(@rdivide,P,sum(P));
+
 % get priors
 %--------------------------------------------------------------------------
-try
-    wfile     = VOX.audio;
-catch
-    wfile     = audiorecorder(22050,16,1);
-    VOX.audio = wfile;
-end
-stop(wfile);
-record(wfile,8);
+wfile     = audiorecorder(22050,16,1);
+VOX.audio = wfile;
 
+
+%% record
+%==========================================================================
+stop(wfile);
+record(wfile,4);
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================
-VOX.I0 = 1;
-VOX.IT = 1;
+clear W Q R SEG
+VOX.I0 = 1;                                    % first index
+VOX.IT = 1;                                    % final index
 for s  = 1:numel(str)
     
     % find next word
     %----------------------------------------------------------------------
-    L   = spm_voice_get_word(wfile,P);
+    L   = spm_voice_get_word(wfile,P(:,s));
         
     % break if EOF
     %----------------------------------------------------------------------
@@ -133,25 +137,31 @@ for s  = 1:numel(str)
     % identify the most likely word and prosody
     %----------------------------------------------------------------------
     [d,w]  = max(L{1});                        % most likely word
-    [d,p]  = max(L{2});                        % most likely prosody
+    [d,q]  = max(L{2});                        % most likely prosody
     [d,r]  = max(L{3});                        % most likely identity
     W(1,s) = w(:);                             % lexical class
-    P(:,s) = p(:);                             % prosody classes
+    Q(:,s) = q(:);                             % prosody classes
     R(:,s) = r(:);                             % speaker classes
     
     % string
     %----------------------------------------------------------------------
-    str{s} = VOX.LEX(w,1).word       % lexical string
+    SEG(s).str = VOX.LEX(w,1).word;            % lexical string
+    SEG(s).I0  = VOX.I0;                       % centre
+    SEG(s).IT  = VOX.IT;                       % range
+    SEG(s).P   = Q(:,s);                       % prosody
+    SEG(s).R   = R(:,s);                       % speaker
+    
+    disp({SEG.str})
     
 end
 
-% stop recording audiorecorder object
-%--------------------------------------------------------------------------
-stop(wfile);
-
 % articulate: with lexical content and prosody
 %--------------------------------------------------------------------------
-spm_voice_speak(W,P,R);
+spm_voice_speak(W,Q,R);
+
+%% segmentation graphics
+%--------------------------------------------------------------------------
+spm_voice_segmentation(wfile,SEG)
 
 
 
@@ -181,22 +191,12 @@ for i = 1:nw
         q(:,end + 1) = L;
         p(i,end + 1) = 1;
         r            = r + M;
-        
-        % joint distibution of lexical and prosody outcomes
-        %------------------------------------------------------------------
-        J  = J + spm_cross({L},num2cell(M,1));
-        
     end
 end
-
-% normalise joint distibution
-%--------------------------------------------------------------------------
-J = J/sum(J(:));
 
 % show results
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Accuracy'); clf
-
 subplot(2,1,1); imagesc(q)
 a     = 1 - sum((p(:) - q(:)) > 1/8)/sum(p(:));
 str   = sprintf('Lexical classification accuracy %-2.0f p.c.',100*a);
@@ -224,13 +224,14 @@ VOX.onsets   = 0;
 
 % expansion point (i.e., defaults
 %--------------------------------------------------------------------------
-VOX.Nu  = 16;
+VOX.Nu  = 32;
 VOX.Nv  = 8;
 VOX.Tu  = 4;
-VOX.Tv  = 2;
+VOX.Tv  = 1;
 VOX.E   = 64;
+VOX.F0  = 96;
 VOX.F1  = 32;
-VOX.F2  = 256;
+VOX.F2  = 1024;
 
 % great search over variables
 %--------------------------------------------------------------------------
@@ -240,11 +241,11 @@ Pv    = [256 512];
 for i = 1:numel(Pu)
     for j = 1:numel(Pv);
          VOX.F1 = Pu(i);
-         VOX.F2 = Pv(j);
+         VOX.F0 = Pv(j);
         
         [xY,word]     = spm_voice_get_xY(PATH);
         [LEX,PRO,WHO] = spm_voice_get_LEX(xY,word);
-        A(i,j)        = spm_voice_test('../test.wav','../test.txt',LEX,PRO,WHO)
+        A(i,j)        = spm_voice_test('../test.wav','../test.txt')
     end
 end
 

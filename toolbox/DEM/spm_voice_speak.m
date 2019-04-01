@@ -22,7 +22,7 @@ function [xY] = spm_voice_speak(w,p,q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7551 2019-03-21 15:10:05Z karl $
+% $Id: spm_voice_speak.m 7562 2019-04-01 09:49:28Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -104,7 +104,7 @@ else
     
     % and send to spm_voice_iff
     %----------------------------------------------------------------------
-    spm_voice_iff(xY,1/2);
+    spm_voice_iff(xY);
     
 end
 
