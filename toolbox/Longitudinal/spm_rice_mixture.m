@@ -1,6 +1,6 @@
 function [mg,nu,sig] = spm_rice_mixture(h,x,K)
 % Fit a mixture of Ricians to a histogram
-% FORMAT [mg,nu,sig] = rice_mixture(h,x,K)
+% FORMAT [mg,nu,sig] = spm_rice_mixture(h,x,K)
 % h   - histogram counts
 % x   - bin positions (plot(x,h) to see the histogram)
 % K   - number of Ricians
@@ -12,12 +12,12 @@ function [mg,nu,sig] = spm_rice_mixture(h,x,K)
 % belonging probabilities, and then the parameters of the Ricians.
 % The Koay inversion technique is used to compute the Rician parameters
 % from the sample means and standard deviations. This is described at
-% http://en.wikipedia.org/wiki/Rician_distribution
-%_______________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% https://en.wikipedia.org/wiki/Rician_distribution
+%__________________________________________________________________________
+% Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_rice_mixture.m 7553 2019-03-25 12:13:46Z john $
+% $Id: spm_rice_mixture.m 7563 2019-04-01 10:39:24Z guillaume $
 
 mg  = ones(K,1)/K;
 nu  = (0:(K-1))'*max(x)/(K+1);
@@ -69,9 +69,9 @@ for iter=1:10000
     end
     %disp([nu'; sig'])
 end
-%_______________________________________________________________________
+%__________________________________________________________________________
 
-%_______________________________________________________________________
+%__________________________________________________________________________
 function [nu,sig] = moments2param(mu1,mu2)
 % Rician parameter estimation (nu & sig) from mean (mu1) and variance
 % (mu2) via the Koay inversion technique.
@@ -98,9 +98,9 @@ else
     nu  = 0;
     sig = (2^(1/2)*(mu1^2 + mu2)^(1/2))/2;
 end
-%_______________________________________________________________________
+%__________________________________________________________________________
 
-%_______________________________________________________________________
+%__________________________________________________________________________
 function p = ricepdf(x,nu,sig2)
 % Rician PDF
 % p = ricepdf(x,nu,sig2)
@@ -110,4 +110,3 @@ tmp     = -(x.^2+nu.^2)./(2*sig2);
 msk     = (tmp > -95) & (x*(nu/sig2) < 85) ; % Identify where Rice probability can be computed
 p(msk)  = (x(msk)./sig2).*exp(tmp(msk)).*besseli(0,x(msk)*(nu/sig2)); % Use Rician distribution
 p(~msk) = (1./sqrt(2*pi*sig2))*exp((-0.5/sig2)*(x(~msk)-nu).^2);      % Use Gaussian distribution
-

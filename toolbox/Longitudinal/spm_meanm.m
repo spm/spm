@@ -7,11 +7,12 @@ function M = spm_meanm(A)
 % Note that matrices should not be too dissimilar to each other or the
 % procedure fails.
 % See http://hal.archives-ouvertes.fr/hal-00699361/
-%_______________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_meanm.m 7408 2018-08-24 14:54:57Z john $
+% $Id: spm_meanm.m 7563 2019-04-01 10:39:24Z guillaume $
+
 
 N = size(A,3);
 M = eye(size(A,1),size(A,2));
@@ -30,4 +31,3 @@ for iter = 1:1024
         break;
     end
 end
-

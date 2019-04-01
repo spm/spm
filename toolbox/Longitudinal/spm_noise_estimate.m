@@ -1,13 +1,14 @@
 function [noise,mu_val] = spm_noise_estimate(Scans)
-% Estimate avarage noise from a series of images
-% FORMAT noise = spm_noise_estimate(Scans)
+% Estimate average noise from a series of images
+% FORMAT [noise,mu_val] = spm_noise_estimate(Scans)
 % Scans  - nifti structures or filenames of images
 % noise  - standard deviation estimate
 % mu_val - expectation of more intense Rician
-% _______________________________________________________________________
-%  Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% _________________________________________________________________________
+%  Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_noise_estimate.m 7460 2018-10-29 15:55:12Z john $
+% John Ashburner
+% $Id: spm_noise_estimate.m 7563 2019-04-01 10:39:24Z guillaume $
 
 if ~isa(Scans,'nifti'), Scans = nifti(Scans); end
 
@@ -38,4 +39,3 @@ for i=1:numel(Scans)
         mu_val(i)  = max(Ey);
     end
 end
-

@@ -2,11 +2,12 @@ function out = spm_pairwise(job)
 % Longitudinal registration of image pairs
 % FORMAT out = spm_pairwise(job)
 % See tbx_cfg_longitudinal.m for a description of the various fields. 
-%_______________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_pairwise.m 7408 2018-08-24 14:54:57Z john $
+% $Id: spm_pairwise.m 7563 2019-04-01 10:39:24Z guillaume $
+
 
 N = numel(job.vols1);
 if numel(job.vols2) ~= N, error('Incompatible numbers of scans.'); end
@@ -44,8 +45,8 @@ wparam0 = job.wparam;
 
 output = {};
 if job.write_avg, output = [output, {'wavg'}]; end
-if job.write_jac, output = [output, {'jac'} ];  end
-if job.write_div, output = [output, {'div'} ];  end
+if job.write_jac, output = [output, {'jac'} ]; end
+if job.write_div, output = [output, {'div'} ]; end
 if job.write_def, output = [output, {'wdef'}]; end
 
 for i=1:numel(tdif)
@@ -99,5 +100,3 @@ for i=1:numel(tdif)
 
     clear dat
 end
-return
-

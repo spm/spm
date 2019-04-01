@@ -1,11 +1,12 @@
 function out = spm_series_align(job)
 % Longitudinal registration of image series
 % FORMAT out = spm_series_align(job)
-%_______________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_series_align.m 7408 2018-08-24 14:54:57Z john $
+% $Id: spm_series_align.m 7563 2019-04-01 10:39:24Z guillaume $
+
 
 N = numel(job.vols);
 tim = job.times(:);
@@ -42,10 +43,8 @@ Nii    = nifti(strvcat(job.vols));
 
 output = {};
 if job.write_avg, output = [output, {'wavg'}]; end
-if job.write_jac, output = [output, {'wjac'} ];  end
-if job.write_div, output = [output, {'wdiv'} ];  end
+if job.write_jac, output = [output, {'wjac'}]; end
+if job.write_div, output = [output, {'wdiv'}]; end
 if job.write_def, output = [output, {'wdef'}]; end
 
-out    = spm_groupwise_ls(Nii, output, prec, wparam, bparam, sparam);
-return
-
+out = spm_groupwise_ls(Nii, output, prec, wparam, bparam, sparam);
