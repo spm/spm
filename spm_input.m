@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 7515 2019-01-17 17:13:03Z guillaume $
+% $Id: spm_input.m 7564 2019-04-02 10:50:42Z guillaume $
 
 
 %=======================================================================
@@ -1892,7 +1892,7 @@ case '!deleteinputobj'
 % spm_input('!DeleteInputObj',F)
 if nargin<2, F='Interactive'; else F=varargin{2}; end
 h = spm_input('!FindInputObj',F);
-delete(h(h>0))
+delete(h);
 
 
 case {'!currentpos','!findinputobj'}
