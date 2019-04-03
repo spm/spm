@@ -48,10 +48,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 6425 2015-04-29 18:24:51Z guillaume $
+% $Id: spm_image.m 7565 2019-04-03 09:36:23Z guillaume $
 
 
-SVNid = '$Rev: 6425 $';
+SVNid = '$Rev: 7565 $';
 
 global st
 
@@ -423,10 +423,10 @@ uicontrol('Parent',u1,'Style','Text', 'Position',[10 25 35 020].*WS,'String','vx
 uicontrol('Parent',u1,'Style','Text', 'Position',[10  1 65 020].*WS,'String','Intensity:');
 
 uicontrol('Parent',u1,'Style','Edit', 'Position',[50 45 135 020].*WS,...
-    'String','', 'Tag','spm_image:mm',...
+    'String','', 'Tag','spm_image:mm', 'BackgroundColor',[1 1 1],...
     'Callback','spm_image(''setposmm'')','ToolTipString','Move crosshair to mm coordinates');
 uicontrol('Parent',u1,'Style','Edit', 'Position',[50 25 135 020].*WS,...
-    'String','', 'Tag','spm_image:vx',...
+    'String','', 'Tag','spm_image:vx','BackgroundColor',[1 1 1], ...
     'Callback','spm_image(''setposvx'')','ToolTipString','Move crosshair to voxel coordinates');
 uicontrol('Parent',u1,'Style','Text', 'Position',[80 1  85 020].*WS,...
     'String','', 'Tag','spm_image:intensity');
@@ -446,15 +446,15 @@ uicontrol('Parent',u2,'Style','Text', 'Position',[5  70 100 016].*WS,'String','r
 uicontrol('Parent',u2,'Style','Text', 'Position',[5  50 100 016].*WS,'String','resize  {y}');
 uicontrol('Parent',u2,'Style','Text', 'Position',[5  30 100 016].*WS,'String','resize  {z}');
 
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105 190 065 020].*WS,'String','0','Callback','spm_image(''repos'',1)','ToolTipString','Translation','Tag','spm_image:reorient:t1');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105 170 065 020].*WS,'String','0','Callback','spm_image(''repos'',2)','ToolTipString','Translation','Tag','spm_image:reorient:t2');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105 150 065 020].*WS,'String','0','Callback','spm_image(''repos'',3)','ToolTipString','Translation','Tag','spm_image:reorient:t3');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105 130 065 020].*WS,'String','0','Callback','spm_image(''repos'',4)','ToolTipString','Rotation','Tag','spm_image:reorient:r1');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105 110 065 020].*WS,'String','0','Callback','spm_image(''repos'',5)','ToolTipString','Rotation','Tag','spm_image:reorient:r2');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105  90 065 020].*WS,'String','0','Callback','spm_image(''repos'',6)','ToolTipString','Rotation','Tag','spm_image:reorient:r3');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105  70 065 020].*WS,'String','1','Callback','spm_image(''repos'',7)','ToolTipString','Zoom','Tag','spm_image:reorient:z1');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105  50 065 020].*WS,'String','1','Callback','spm_image(''repos'',8)','ToolTipString','Zoom','Tag','spm_image:reorient:z2');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105  30 065 020].*WS,'String','1','Callback','spm_image(''repos'',9)','ToolTipString','Zoom','Tag','spm_image:reorient:z3');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 190 065 020].*WS,'String','0','Callback','spm_image(''repos'',1)','ToolTipString','Translation','Tag','spm_image:reorient:t1','BackgroundColor',[1 1 1]);
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 170 065 020].*WS,'String','0','Callback','spm_image(''repos'',2)','ToolTipString','Translation','Tag','spm_image:reorient:t2','BackgroundColor',[1 1 1]);
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 150 065 020].*WS,'String','0','Callback','spm_image(''repos'',3)','ToolTipString','Translation','Tag','spm_image:reorient:t3','BackgroundColor',[1 1 1]);
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 130 065 020].*WS,'String','0','Callback','spm_image(''repos'',4)','ToolTipString','Rotation','Tag','spm_image:reorient:r1','BackgroundColor',[1 1 1]);
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 110 065 020].*WS,'String','0','Callback','spm_image(''repos'',5)','ToolTipString','Rotation','Tag','spm_image:reorient:r2','BackgroundColor',[1 1 1]);
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105  90 065 020].*WS,'String','0','Callback','spm_image(''repos'',6)','ToolTipString','Rotation','Tag','spm_image:reorient:r3','BackgroundColor',[1 1 1]);
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105  70 065 020].*WS,'String','1','Callback','spm_image(''repos'',7)','ToolTipString','Zoom','Tag','spm_image:reorient:z1','BackgroundColor',[1 1 1]);
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105  50 065 020].*WS,'String','1','Callback','spm_image(''repos'',8)','ToolTipString','Zoom','Tag','spm_image:reorient:z2','BackgroundColor',[1 1 1]);
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105  30 065 020].*WS,'String','1','Callback','spm_image(''repos'',9)','ToolTipString','Zoom','Tag','spm_image:reorient:z3','BackgroundColor',[1 1 1]);
 
 uicontrol('Parent',u2,'Style','Pushbutton','Position',[5 5 90 020].*WS,'String','Set Origin',...
     'Callback','spm_image(''setorigin'')','ToolTipString','Set origin to crosshair position');
