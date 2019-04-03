@@ -24,7 +24,7 @@ function [L,M,N] = spm_voice_likelihood(xY,W)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7562 2019-04-01 09:49:28Z karl $
+% $Id: spm_voice_likelihood.m 7566 2019-04-03 12:15:50Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -63,24 +63,35 @@ nv    = min(nv,Nv);
 wu    = sparse(1:nu,1,1,Nu,1);
 wv    = sparse(1:nv,1,1,Nv,1);
 i     = find(kron(wv,wu));
+ni    = numel(i);
 
 % log likelihood over lexical outcomes
 %==========================================================================
 Q     = spm_vec(xY.Q) - spm_vec(VOX.Q);
 L     = zeros(size(VOX.LEX)) - 1024;
+
+
+pE      = zeros(ni,1);
+pC      = speye(ni,ni)*128;
+P{1}.X  = speye(ni,ni);
+P{1}.C  = {speye(ni,ni)};
+P{2}.X  = pE;
+P{2}.C  = pC;
+C       = spm_PEB(Q(i),P,1);
+qE      = C{2}.E;
+qC      = C{2}.C;
+
 for w = W
     for k = 1:size(VOX.LEX,2)
         
         % log likelihood - lexical
         %------------------------------------------------------------------
-        E      = (Q(i) - VOX.LEX(w,k).qE(i));           % error
-        L(w,k) = - E'*VOX.LEX(w,k).qP(i,i)*E/2;      % log likelihood
+%         E      = (Q(i) - VOX.LEX(w,k).qE(i));           % error
+%         L(w,k) = - E'*VOX.LEX(w,k).qP(i,i)*E/2;      % log likelihood
+        rE     = VOX.LEX(w,k).qE(i);
+        rC     = spm_inv(VOX.LEX(w,k).qP(i,i));
+        L(w,k) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
         
-        % add log prior, if specified
-        %------------------------------------------------------------------
-        try
-            L(w,k) = L(w,k) + VOX.LEX(w,k).pL(w,k);     % log posterior
-        end
     end
 end
 
@@ -99,11 +110,6 @@ for p = 1:numel(VOX.PRO)
         E      = P(p) - VOX.PRO(p).pE(k);              % error
         M(k,p) = - E'*VOX.PRO(p).pP(k)*E/2;            % log likelihood
         
-        % add log prior ,if specified
-        %------------------------------------------------------------------
-        try
-            M(k,p) = M(k,p) + VOX.PRO(p).pL(k);        % log posterior
-        end
     end
 end
 
@@ -121,11 +127,6 @@ for p = 1:numel(VOX.WHO)
         E      = P(p) - VOX.WHO(p).pE(k);             % error
         N(k,p) = - E'*VOX.WHO(p).pP(k)*E/2;           % log likelihood
         
-        % add log prior ,if specified
-        %------------------------------------------------------------------
-        try
-            N(k,p) = N(k,p) + VOX.WHO(p).pL(k);       % log posterior
-        end
     end
 end
 

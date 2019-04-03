@@ -19,7 +19,7 @@ function [I] = spm_voice_onsets(Y,FS,T,U,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7562 2019-04-01 09:49:28Z karl $
+% $Id: spm_voice_onsets.m 7566 2019-04-03 12:15:50Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
@@ -27,16 +27,18 @@ global VOX
 
 if nargin < 3, T = 1/16; end                          % onset  threshold
 if nargin < 4, U = 1/16; end                          % height threshold
-if nargin < 5, C = 1/32; end                          % smoothing
+if nargin < 5, C = 1/16; end                          % smoothing
 
 % identify threshold crossings in power
 %--------------------------------------------------------------------------
-aY  = spm_conv(abs(Y),FS*C);                          % smooth RMS
-n   = length(aY);                                     % number of time bins
-y0  = aY - min(aY(fix(FS*T:FS/2)));                   % normalise
-yT  = aY - min(aY(fix(FS/2:n)));                      % normalise
-y0  = y0/max(y0);
-yT  = yT/max(yT);
+G   = spm_voice_check(Y,FS,C);                        % smooth RMS
+n   = length(G);                                      % number of time bins
+j   = fix(FS*T:FS/2);                                 % pre-peak
+y0  = G - min(G(j(logical(G(j)))));                   % minimum
+j   = fix(FS/2:n);                                    % post-peak
+yT  = G - min(G(j(logical(G(j)))));                   % minimum
+y0  = y0/max(y0);                                     % normalise
+yT  = yT/max(yT);                                     % normalise
 
 % find zero crossings (of U) or offset minima if in audio mode
 %--------------------------------------------------------------------------
@@ -52,7 +54,7 @@ if jT(end) < FS/2, jT = n;    end
 % and supplement offsets with (internal) minima
 %--------------------------------------------------------------------------
 i  = find(diff(yT(1:end - 1)) < 0 & diff(yT(2:end)) > 0);
-i  = i(yT(i) < 1/2 & i < jT(end));
+i  = i(yT(i) < 1/2 & yT(i) > U & i < jT(end));
 jT = sort(unique([jT; i]));
 
 % boundary conditions
@@ -105,9 +107,9 @@ pst   = (1:n)/FS;
 Y     = Y/max(Y);
 subplot(2,1,1)
 plot(pst,Y,'b'),             hold on
-plot(pst,aY/max(aY),':b'),   hold on
+plot(pst,G/max(G),':b'),     hold on
 plot(pst,Y,'b'),             hold on
-plot(pst,aY,':b'),           hold on
+plot(pst,G,':b'),             hold on
 plot(pst,0*pst + U,'-.'),    hold on
 plot([1 1]/2,[-1 1],'b'),    hold on
 plot([1 1]*T,[-1 1],'--g'),  hold on

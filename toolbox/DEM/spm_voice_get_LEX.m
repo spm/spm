@@ -28,7 +28,7 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7562 2019-04-01 09:49:28Z karl $
+% $Id: spm_voice_get_LEX.m 7566 2019-04-03 12:15:50Z karl $
 
 
 % defaults
@@ -75,33 +75,9 @@ subplot(3,2,6), hist(i(2,:),32,'c'), axis square
 title(sprintf('%s mean (sd): %.2f (%.3f)','offset',mean(i(2,:)),std(i(2,:))))
 
 
-% joint distribution
-%--------------------------------------------------------------------------
-[ni,xi] = hist(i(1,:),6);
-[nj,xj] = hist(i(2,:),6);
-
-ni    = numel(xi);
-nj    = numel(xj);
-J     = zeros(ni,nj);
-for w = 1:length(i)
-    [d,ii]   = min(abs(i(1,w) - xi));
-    [d,jj]   = min(abs(i(2,w) - xj));
-    J(ii,jj) = J(ii,jj) + 1;
-end
-I     = [];
-for i = 1:ni
-    for j = 1:nj
-        I(end + 1,:) = [xi(i),xj(j),J(i,j)];
-    end
-end
-[d,i] = sort(I(:,3),'descend');
-I     = I(i,1:2);
-VOX.I = I(1:16,:);
-
-
 %% Eigenmodes of lexical (U) and prosody (V) parameters
 %==========================================================================
-spm_figure('GetWin','Eigen reduction'); clf
+spm_figure('GetWin','Eigen-reduction'); clf
 
 % lexical
 %--------------------------------------------------------------------------
@@ -127,7 +103,7 @@ xlabel('prosody mode'), ylabel('amplitude'), axis square
 legend(Pstr)
 
 
-%% prosody {'ff0','ff1','dur','timbre','const','inf','bif'};
+%% prosody {'amp','lat','ff1','dur','timbre','ff0','inf','bif'}
 %==========================================================================
 
 % prosidy ranges

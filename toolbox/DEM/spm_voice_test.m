@@ -20,7 +20,7 @@ function [L] = spm_voice_test(wfile,sfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7562 2019-04-01 09:49:28Z karl $
+% $Id: spm_voice_test.m 7566 2019-04-03 12:15:50Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -45,7 +45,7 @@ end
 
 % get F0 and the midpoint of words (maxima of acoutics power)
 %--------------------------------------------------------------------------
-G      = spm_conv(abs(read(wfile)),FS/4);
+G      = spm_voice_check(read(wfile),FS,1/4);
 I      = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
 [d,j]  = sort(G(I),'descend');
 I      = sort(I(j(1:ns)));

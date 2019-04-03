@@ -19,7 +19,7 @@ function [xY,word] = spm_voice_get_xY(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_xY.m 7562 2019-04-01 09:49:28Z karl $
+% $Id: spm_voice_get_xY.m 7566 2019-04-03 12:15:50Z karl $
 
 
 %% get corpus
@@ -52,7 +52,7 @@ for w = 1:nw
     
     % get the midpoint of words from the (maxima) of successive exemplars
     %----------------------------------------------------------------------
-    G     = spm_conv(abs(read(wname)),FS/4);
+    G     = spm_voice_check(read(wname),FS,1/4);
     I     = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
     [i,j] = sort(G(I),'descend');
     I     = sort(I(j(1:ns)));

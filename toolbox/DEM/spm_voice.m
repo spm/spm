@@ -28,7 +28,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7562 2019-04-01 09:49:28Z karl $
+% $Id: spm_voice.m 7566 2019-04-03 12:15:50Z karl $
 
 
 
@@ -45,7 +45,7 @@ end
 global VOX
 VOX.graphics = 0;
 VOX.mute     = 1;
-VOX.onsets   = 0;
+VOX.onsets   = 1;
 
 
 %% get corpus
@@ -65,7 +65,8 @@ k     = [3 6];                                % number of prosody features
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[8;3;4;i;j;4],3);
+            spm_voice_speak(w,[8;5;5;5;i;j;4],4);
+            pause(1/4)
         end
     end
 end
@@ -75,13 +76,16 @@ end
 %--------------------------------------------------------------------------
 spm_voice_test('../test.wav','../test.txt');
 
+
 %% save lexical and prosody arrays in sound file directory
 %--------------------------------------------------------------------------
 save VOX VOX
 
+
 %% read the first few words of a test file
 %--------------------------------------------------------------------------
 spm_voice_read('../test.wav');
+
 
 
 %% record and repeat some dictation
@@ -190,7 +194,7 @@ for i = 1:nw
         %------------------------------------------------------------------
         q(:,end + 1) = L;
         p(i,end + 1) = 1;
-        r            = r + M;
+        r        = r + M;
     end
 end
 
@@ -217,12 +221,17 @@ return
 
 %% optmise spectral defaultswith respect to classification accuracy
 %==========================================================================
+clear all
 global VOX
-VOX.graphics = 1;
+PATH = 'C:\Users\karl\Dropbox\Papers\Voice recognition\Sound files';
+
+% reporting options
+%--------------------------------------------------------------------------
+VOX.graphics = 0;
 VOX.mute     = 1;
 VOX.onsets   = 0;
 
-% expansion point (i.e., defaults
+% expansion point (i.e., defaults)
 %--------------------------------------------------------------------------
 VOX.Nu  = 32;
 VOX.Nv  = 8;
@@ -233,19 +242,23 @@ VOX.F0  = 96;
 VOX.F1  = 32;
 VOX.F2  = 1024;
 
-% great search over variables
+% search over variables
 %--------------------------------------------------------------------------
-clear A
-Pu    = [32 36];
-Pv    = [256 512];
+Pu    = 16:4:64;
+Pv    = 82:4:128;
 for i = 1:numel(Pu)
     for j = 1:numel(Pv);
-         VOX.F1 = Pu(i);
-         VOX.F0 = Pv(j);
+        try
+            VOX = rmfield(VOX,'nu');
+            VOX = rmfield(VOX,'nv');
+        end
+            
+        VOX.F1 = Pu(i);
+        VOX.F0 = Pv(j);
         
-        [xY,word]     = spm_voice_get_xY(PATH);
-        [LEX,PRO,WHO] = spm_voice_get_LEX(xY,word);
-        A(i,j)        = spm_voice_test('../test.wav','../test.txt')
+        [xY,word] = spm_voice_get_xY(PATH);
+        P         = spm_voice_get_LEX(xY,word);
+        A(i,j)    = spm_voice_test('../test.wav','../test.txt')
     end
 end
 

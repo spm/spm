@@ -28,7 +28,7 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7562 2019-04-01 09:49:28Z karl $
+% $Id: spm_voice_get_word.m 7566 2019-04-03 12:15:50Z karl $
 
 %% get peak identification parameters from VOX
 %==========================================================================
@@ -84,9 +84,9 @@ for i = 1:4
     Y = read(wfile);
     n = numel(Y);
     j = fix((0:FS) + VOX.IT);
-    G = spm_conv(abs(Y(j(j < n))),FS*VOX.C);
+    G = spm_voice_check(Y(j(j < n)),FS,VOX.C);
     I = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
-    I = I(G(I) > (VOX.U + min(G)) & I > FS/8);
+    I = I(G(I) > VOX.U & I > FS/8);
     
     % advance pointer if silence
     %----------------------------------------------------------------------
@@ -125,7 +125,7 @@ if isempty(I), O  = {}; return, end
 j    = fix((0:FS + FS/4) + I);
 y    = Y(j(j < n & j > 1));
 j    = logical(j < VOX.IT);
-y(j) = VOX.U/2;
+y(j) = 0;
 j    = spm_voice_onsets(y,FS);
 
 % retrieve epochs and decompose at fundamental frequency
