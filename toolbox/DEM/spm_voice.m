@@ -28,7 +28,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7566 2019-04-03 12:15:50Z karl $
+% $Id: spm_voice.m 7567 2019-04-04 10:41:15Z karl $
 
 
 
@@ -45,7 +45,7 @@ end
 global VOX
 VOX.graphics = 0;
 VOX.mute     = 1;
-VOX.onsets   = 1;
+VOX.onsets   = 0;
 
 
 %% get corpus
@@ -65,8 +65,7 @@ k     = [3 6];                                % number of prosody features
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[8;5;5;5;i;j;4],4);
-            pause(1/4)
+            spm_voice_speak(w,[8;6;5;5;i;j;4],4);
         end
     end
 end
@@ -74,6 +73,10 @@ end
 
 %%  apply to test narrative of 87 words (this will search over the bases)
 %--------------------------------------------------------------------------
+try
+    VOX = rmfield(VOX,'nu');
+    VOX = rmfield(VOX,'nv');
+end
 spm_voice_test('../test.wav','../test.txt');
 
 

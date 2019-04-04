@@ -4,7 +4,7 @@ function [L,M,N] = spm_voice_likelihood(xY,W)
 %
 % xY   - word    structure array
 % W    - indices of words in VOX.LEX to consider
-% 
+%
 % assumes the following structures are in the global structure VOX
 % VOX.LEX  - lexical structure array
 % VOX.PRO  - prosody structure array
@@ -24,7 +24,7 @@ function [L,M,N] = spm_voice_likelihood(xY,W)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7566 2019-04-03 12:15:50Z karl $
+% $Id: spm_voice_likelihood.m 7567 2019-04-04 10:41:15Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -67,32 +67,72 @@ ni    = numel(i);
 
 % log likelihood over lexical outcomes
 %==========================================================================
-Q     = spm_vec(xY.Q) - spm_vec(VOX.Q);
-L     = zeros(size(VOX.LEX)) - 1024;
+Q      = spm_vec(xY.Q) - spm_vec(VOX.Q);
+L      = zeros(size(VOX.LEX)) - 1024;
+method = 'likelihood';
 
-
-pE      = zeros(ni,1);
-pC      = speye(ni,ni)*128;
-P{1}.X  = speye(ni,ni);
-P{1}.C  = {speye(ni,ni)};
-P{2}.X  = pE;
-P{2}.C  = pC;
-C       = spm_PEB(Q(i),P,1);
-qE      = C{2}.E;
-qC      = C{2}.C;
-
-for w = W
-    for k = 1:size(VOX.LEX,2)
+switch method
+    
+    case {'likelihood'}
         
         % log likelihood - lexical
         %------------------------------------------------------------------
-%         E      = (Q(i) - VOX.LEX(w,k).qE(i));           % error
-%         L(w,k) = - E'*VOX.LEX(w,k).qP(i,i)*E/2;      % log likelihood
-        rE     = VOX.LEX(w,k).qE(i);
-        rC     = spm_inv(VOX.LEX(w,k).qP(i,i));
-        L(w,k) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
+        for w = W
+            for k = 1:size(VOX.LEX,2)
+                E      = (Q(i) - VOX.LEX(w,k).qE(i));      % error
+                L(w,k) = - E'*VOX.LEX(w,k).qP(i,i)*E/2;    % log likelihood
+            end
+        end
         
-    end
+    case {'BMR'}
+        
+        % full posterior
+        %------------------------------------------------------------------
+        pE      = zeros(ni,1);
+        pC      = speye(ni,ni)*16;
+        P{1}.X  = speye(ni,ni);
+        P{1}.C  = {speye(ni,ni)};
+        P{2}.X  = pE;
+        P{2}.C  = pC;
+        C       = spm_PEB(Q(i),P,16,1);
+        qE      = C{2}.E;
+        qC      = C{2}.C;
+        
+        % Bayesian model reduction
+        %------------------------------------------------------------------
+        for w = W
+            for k = 1:size(VOX.LEX,2)
+                rE     = VOX.LEX(w,k).qE(i);
+                rC     = spm_inv(VOX.LEX(w,k).qP(i,i));
+                L(w,k) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
+            end
+        end
+        
+    case {'neuronal'}
+        
+        % gradient descent free energy
+        %==================================================================
+        ni    = 128;
+        nw    = numel(VOX.LEX);
+        for w = W
+            E(:,w) = VOX.LEX(w).qP*(Q - VOX.LEX(w).qE);
+        end
+        
+        
+        % evidence accumulation
+        %------------------------------------------------------------------
+        v   = zeros(nw,1);
+        s   = spm_softmax(v);
+        tau = 1/4;
+        for i = 1:ni
+            qx = log(s);
+            v  = E'*Q/2 - log(s);
+            v  = v - mean(v);
+            s  = spm_softmax(qx + v/tau);
+            
+            e(:,i) = v;
+        end
+
 end
 
 

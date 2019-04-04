@@ -19,7 +19,7 @@ function [xY,word] = spm_voice_get_xY(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_xY.m 7566 2019-04-03 12:15:50Z karl $
+% $Id: spm_voice_get_xY.m 7567 2019-04-04 10:41:15Z karl $
 
 
 %% get corpus
@@ -68,7 +68,7 @@ for w = 1:nw
         % retrieve (one second) epoch around midpoint and transform
         %------------------------------------------------------------------
         Y       = read(wname,round([-1/2 1/2]*FS + I(s)));
-        i       = spm_voice_onsets(Y,FS,1/8);
+        i       = spm_voice_onsets(Y,FS);
         xY(w,s) = spm_voice_ff(Y(i{1}),FS);
         
         %  apply inverse transform and play, if requested
