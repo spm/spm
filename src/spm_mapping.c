@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mapping.c 7532 2019-02-14 12:03:24Z guillaume $
+ * $Id: spm_mapping.c 7568 2019-04-09 11:03:59Z guillaume $
  * John Ashburner
  */
 
@@ -17,7 +17,7 @@
 #include <windows.h>
 #include <memory.h>
 #if defined _FILE_OFFSET_BITS && _FILE_OFFSET_BITS == 64
-#ifdef _MSC_VER_
+#ifdef _MSC_VER
 #define stat _stati64
 #define fstat _fstati64
 #endif

@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 7510 2019-01-02 15:06:12Z guillaume $
+ * $Id: file2mat.c 7568 2019-04-09 11:03:59Z guillaume $
  * John Ashburner
  */
 
@@ -26,7 +26,7 @@ http://www.mathworks.com/company/newsletters/digest/mar04/memory_map.html
 HANDLE hFile, hMapping;
 typedef char *caddr_t;
 #if defined _FILE_OFFSET_BITS && _FILE_OFFSET_BITS == 64
-#ifdef _MSC_VER_
+#ifdef _MSC_VER
 #define stat _stati64
 #define fstat _fstati64
 #endif
@@ -627,13 +627,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (map.dtype->channels == 1)
     {
         plhs[0] = mxCreateNumericArray(ndim,odim,map.dtype->clss,mxREAL);
-#ifdef _MSC_VER_
+#ifdef _MSC_VER
         /* https://msdn.microsoft.com/en-us/library/windows/desktop/aa366801.aspx */
         __try
         {
 #endif
             map.dtype->func(ndim-1, idim, iptr, idat, odim, mxGetData(plhs[0]));
-#ifdef _MSC_VER_
+#ifdef _MSC_VER
         }
         __except(GetExceptionCode()==EXCEPTION_IN_PAGE_ERROR ?
             EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
