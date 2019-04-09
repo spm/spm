@@ -4,7 +4,7 @@
 Details about the algorithms used for data processing are given in the other
 sections of this manual. This section explains how a sequence of processing
 steps can be run at once without \matlab\ programming. SPM12 includes
-\texttt{matlabbatch}\footnote{\url{http://sourceforge.net/projects/matlabbatch}}
+\texttt{matlabbatch}\footnote{\url{https://sourceforge.net/projects/matlabbatch}}
 which has been derived from the SPM5 batch system, but is also available as a
 separate package.
 
@@ -75,9 +75,9 @@ created for statistics. The ``BasicIO'' menu provides a collection of modules
 which are useful to organise a batch. We will need the following modules:
 
 \begin{itemize}
-\item Named directory selector
-\item Change directory
-\item Make directory
+\item Named directory selector (\texttt{BasicIO > File/Dir Operations > Dir Operations > Named Directory Selector})
+\item Change directory (\texttt{BasicIO > File/Dir Operations > Dir Operations > Change Directory})
+\item Make directory (\texttt{BasicIO > File/Dir Operations > Dir Operations > Make Directory})
 \end{itemize}
 
 \subsubsection{SPM processing}
@@ -85,22 +85,24 @@ which are useful to organise a batch. We will need the following modules:
 For a classical SPM analysis, the following processing steps are necessary:
 
 \begin{itemize}
-\item Realignment
-\item Slice timing correction
-\item Coregistration
-\item Segmentation
-\item Normalisation
-\item Smoothing
-\item fMRI design
-\item Model estimation
-\item Contrasts
-\item Results report
+\item Realignment (\texttt{SPM > Spatial > Realign > Realign: Estimate \& Reslice})
+\item Slice timing correction (\texttt{SPM > Temporal > Slice Timing})
+\item Coregistration (\texttt{SPM > Spatial > Coregister > Coregister: Estimate})
+\item Segmentation (\texttt{SPM > Tools > Old Segment})
+\item Normalisation (\texttt{SPM > Tools > Old Normalise > Old Normalise: Write})
+\item Smoothing (\texttt{SPM > Spatial > Smooth})
+\item fMRI design (\texttt{SPM > SPM > Stats > fMRI model specification})
+\item Model estimation (\texttt{SPM > Stats > Model estimation})
+\item Contrasts (\texttt{SPM > Stats > Contrast Manager})
+\item Results report (\texttt{SPM > Stats > Results Report})
 \end{itemize}
+
+Note that this examplar analysis pipeline is ancient and the \texttt{SPM > Tools > Old Segment} and \texttt{SPM > Tools > Old Normalise > Old Normalise: Write} modules could be replaced by a single \texttt{SPM > Spatial > Normalise: Estimate \& Write} one.
 
 \subsection{Add modules to the batch}
 
 The helper modules and the SPM processing modules can be assembled using the
-GUI. Click the ``BATCH'' button in the SPM Menu window. First, add the helper
+GUI. Click the ``Batch'' button in the SPM Menu window. First, add the helper
 modules, followed by the SPM modules in the order listed above. Do not configure
 any details until you have selected all modules.
 
@@ -109,7 +111,7 @@ any details until you have selected all modules.
   \includegraphics[width=.49\linewidth]{batch/batch_spm}
   \hfill
   \includegraphics[width=.49\linewidth]{batch/batch_basicio}      
-  \caption{SPM and BasicIOapplication menus}
+  \caption{SPM and BasicIO application menus}
   \label{fig:basicio_spm}
 \end{figure}
 
@@ -367,7 +369,7 @@ Now, only 4 modules should have open inputs left (marked with \verb|<-X|). These
 inputs correspond to data which vary over the subjects in your study:
 \begin{description}
 \item[Named Directory Selector] Subject directory
-\item[Realign: Estimate \& Reslice] Raw EPI data for the fMRT session
+\item[Realign: Estimate \& Reslice] Raw EPI data for the fMRI session
 \item[Coreg: Estimate] Anatomical image to be coregistered to mean EPI
 \item[fMRI model specification] Names, conditions and onsets of your
   experimental conditions, specified in a multiple conditions .mat file.
