@@ -18,9 +18,9 @@
 % different cohorts, or time-series from the same subject.  The current 
 % release is designed for the analysis of fMRI, PET, SPECT, EEG and MEG.
 %
-% SPM is developed under the auspices of Functional Imaging Laboratory
-% (FIL) The Wellcome Trust Centre for Neuroimaging, in the Institute of
-% Neurology at University College London (UCL), UK.
+% SPM is developed under the auspices of the Functional Imaging Laboratory
+% (FIL) at the Wellcome Centre for Human Neuroimaging, in the Queen Square
+% Institute of Neurology at University College London (UCL), UK.
 %
 % SPM is free software: you can redistribute it and/or modify it under the 
 % terms of the GNU General Public License as published by the Free Software
@@ -37,7 +37,7 @@
 %__________________________________________________________________________
 % Copyright (C) 1991,1994-2019 Wellcome Trust Centre for Neuroimaging
 
-% $Id: Contents.m 7509 2019-01-02 14:54:14Z guillaume $
+% $Id: Contents.m 7571 2019-04-10 15:23:16Z guillaume $
 
 %==========================================================================
 % PROGRAMMERS NOTE:

@@ -45,7 +45,7 @@ function varargout = spm_figure(varargin)
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 7518 2019-01-24 11:14:40Z guillaume $
+% $Id: spm_figure.m 7571 2019-04-10 15:23:16Z guillaume $
 
 
 %==========================================================================
@@ -1057,7 +1057,7 @@ text(0.5,0.45,'Statistical Parametric Mapping','Parent',a,...
     'HorizontalAlignment','center','Color',[0 0 0],'FontWeight','Bold');
 text(0.5,0.40,spm('Version'),'Parent',a,'HorizontalAlignment','center',...
     'Color',[1 1 1]);
-text(0.5,0.30,'Wellcome Trust Centre for Neuroimaging','Parent',a,...
+text(0.5,0.30,'Wellcome Centre for Human Neuroimaging','Parent',a,...
     'HorizontalAlignment','center','Color',[0 0 0],'FontWeight','Bold');
 text(0.5,0.25,['Copyright (C) 1991,1994-' datestr(now,'yyyy')],...
     'Parent',a,'HorizontalAlignment','center','Color',[0 0 0]);

@@ -9,7 +9,7 @@ function varargout=spm(varargin)
 %
 % SPM (Statistical Parametric Mapping) is a package for the analysis
 % functional brain mapping experiments. It is the in-house package of
-% the Wellcome Trust Centre for Neuroimaging, and is available to the
+% the Wellcome Centre for Human Neuroimaging, and is available to the
 % scientific community as copyright freeware under the terms of the
 % GNU General Public Licence.
 % 
@@ -50,10 +50,10 @@ function varargout=spm(varargin)
 % FORMAT & help in the main body of spm.m
 %
 %_______________________________________________________________________
-% Copyright (C) 1991,1994-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 7475 2018-11-07 13:03:49Z guillaume $
+% $Id: spm.m 7571 2019-04-10 15:23:16Z guillaume $
 
 
 %=======================================================================
@@ -1143,6 +1143,7 @@ for i=1:numel(mscript)
             rethrow(lasterror);
         end
     else
+        try, inputs = evalin('base','inputs'); end
         try
             run(mscript{i});
         catch
