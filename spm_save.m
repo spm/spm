@@ -1,14 +1,14 @@
 function spm_save(f,var,varargin)
 % Save text and numeric data to file
 % FORMAT spm_save(f,var,opts,...)
-% f     - filename (can be gzipped) {csv,tsv,json,txt}
+% f     - filename (can be gzipped) {csv,tsv,json,txt,mat,npy}
 % var   - data array or structure
 % opts  - optional inputs to be passed on to lower level function
 %__________________________________________________________________________
 % Copyright (C) 2018-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_save.m 7549 2019-03-20 12:45:59Z guillaume $
+% $Id: spm_save.m 7572 2019-04-12 16:16:32Z guillaume $
 
 
 ext = lower(spm_file(f,'ext'));
@@ -75,11 +75,36 @@ switch ext
         var = cellstr(var);
         fid = fopen(f,'Wt');
         if fid == -1
-            error('Unble to write file %s.', f);
+            error('Unable to write file %s.', f);
         end
         for i=1:numel(var)
             fprintf(fid,'%s\n',var{i});
         end
+        fclose(fid);
+        
+    case 'mat'
+        if nargin < 3, varargin = {spm_get_defaults('mat.format')}; end
+        if isstruct(var)
+            save(f,'-struct','var',varargin{:});
+        else
+            error('Unable to write file %s.', f);
+        end
+        
+    case 'npy'
+        fid = fopen(f,'W');
+        fwrite(fid,[147 'NUMPY'],'uint8');
+        fwrite(fid,[2 0],'uint8');
+        dt  = containers.Map(...
+            {'logical','uint8','uint16','uint32','uint64','int8','int16','int32','int64','single','double'},...
+            {'b1','u1','u2','u4','u8','i1','i2','i4','i8','f4','f8'});
+        hdr = ['{''descr'': ''<' dt(class(var)) ''', ' ...
+            '''fortran_order'': True, ' ...
+            '''shape'': (' sprintf('%d, ',size(var)) '), }' sprintf('\n')];
+        len = 6+2+4+numel(hdr);
+        hdr = [hdr blanks(ceil(len/8)*8 - len)];
+        fwrite(fid,numel(hdr),'uint32');
+        fwrite(fid,hdr,'uint8');
+        fwrite(fid,var,class(var));
         fclose(fid);
         
     otherwise
