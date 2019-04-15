@@ -45,13 +45,13 @@ function spm_image(action,varargin)
 % or images can be superimposed and the intensity windowing can also be
 % changed.
 %__________________________________________________________________________
-% Copyright (C) 1994-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 7565 2019-04-03 09:36:23Z guillaume $
+% $Id: spm_image.m 7573 2019-04-15 08:49:56Z guillaume $
 
 
-SVNid = '$Rev: 7565 $';
+SVNid = '$Rev: 7573 $';
 
 global st
 
@@ -180,7 +180,6 @@ switch lower(action)
         end
     end
     set(h,'String','Remove Overlay','Callback','spm_image(''RemoveBlobs'');');
-    spm_orthviews('AddContext',1);
     spm_orthviews('Redraw');
 
     
@@ -190,7 +189,6 @@ switch lower(action)
     spm_orthviews('RemoveBlobs',1);
     h = findobj(st.fig,'Tag','spm_image:overlay'); if isempty(h), spm_image('Reset'); end
     set(h,'String','Add Overlay...','Callback','spm_image(''AddBlobs'');');
-    spm_orthviews('RemoveContext',1); 
     spm_orthviews('Redraw');
 
     
@@ -401,6 +399,7 @@ spm_image('Reset');
 spm_orthviews('Image', P, [0.0 0.45 1 0.55]);
 if isempty(st.vols{1}), return; end
 
+spm_orthviews('AddContext',1);
 spm_orthviews('MaxBB');
 st.callback = 'spm_image(''shopos'');';
 
