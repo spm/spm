@@ -6,7 +6,7 @@ function [I] = spm_voice_onsets(Y,FS,T,U,C)
 % FS   - sampling frequency
 % T    - onset    threshold [Default: 1/16 sec]
 % U    - crossing threshold [Default: 1/16 a.u]
-% C    - spectral smoothing [Default: 1/32 sec]
+% C    - Convolution kernel [Default: 1/16 sec]
 %
 % I{i} - cell array of intervals (time bins) containing spectral energy
 %
@@ -19,7 +19,7 @@ function [I] = spm_voice_onsets(Y,FS,T,U,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7567 2019-04-04 10:41:15Z karl $
+% $Id: spm_voice_onsets.m 7574 2019-04-19 20:38:15Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
@@ -31,40 +31,33 @@ if nargin < 5, C = 1/16; end                          % smoothing
 
 % identify threshold crossings in power
 %--------------------------------------------------------------------------
-G   = spm_voice_check(Y,FS,C);                        % smooth RMS
-n   = length(G);                                      % number of time bins
-j   = fix(FS*T:FS/2);                                 % pre-peak
-y0  = G - min(G(j(logical(G(j)))));                   % minimum
-j   = fix(FS/2:n);                                    % post-peak
-yT  = G - min(G(j(logical(G(j)))));                   % minimum
-y0  = y0/max(y0);                                     % normalise
-yT  = yT/max(yT);                                     % normalise
+[G,Y] = spm_voice_check(Y,FS,C);                      % smooth RMS
+n     = length(G);                                    % number of time bins
+j     = fix(FS*T:FS/2);                               % pre-peak
+y0    = G - min(G(j(logical(G(j)))));                 % minimum
+j     = fix(FS/2:n);                                  % post-peak
+yT    = G - min(G(j(logical(G(j)))));                 % minimum
+y0    = y0/max(y0);                                   % normalise
+yT    = yT/max(yT);                                   % normalise
 
-% find zero crossings (of U) or offset minima if in audio mode
+% find zero crossings (of U)
 %--------------------------------------------------------------------------
-j0 = find(y0(1:end - 1) < U & y0(2:end) > U);
-jT = find(yT(1:end - 1) > U & yT(2:end) < U);
+j0    = find(y0(1:end - 1) < U & y0(2:end) > U);
+jT    = find(yT(1:end - 1) > U & yT(2:end) < U);
 
 % boundary conditions
 %--------------------------------------------------------------------------
+j0    = j0(j0 > FS*T & j0 < FS/2);
+jT    = jT(jT > FS/2);
+
 if numel(j0) < 1,  j0 = FS*T; end
-if j0(1)   > FS/2, j0 = FS*T; end
-if jT(end) < FS/2, jT = n;    end
+if numel(jT) < 1,  jT = n;    end
 
 % and supplement offsets with (internal) minima
 %--------------------------------------------------------------------------
 i  = find(diff(yT(1:end - 1)) < 0 & diff(yT(2:end)) > 0);
 i  = i(yT(i) < 1/2 & yT(i) > U & i < jT(end));
 jT = sort(unique([jT; i]));
-
-% boundary conditions
-%--------------------------------------------------------------------------
-if numel(j0) > 1
-    j0 = j0(j0 < FS/2 & j0 > FS*T);
-end
-if numel(jT) > 1
-    jT = jT(jT > FS/2);
-end
 
 % indices of interval containing spectral energy
 %--------------------------------------------------------------------------
@@ -79,7 +72,7 @@ for i = 1:numel(j0)
         
         % retain intervals of plausible length
         %------------------------------------------------------------------
-        if ni > FS/32
+        if ni > FS/16
             I{end + 1} = k;
         end
     end
@@ -109,7 +102,7 @@ subplot(2,1,1)
 plot(pst,Y,'b'),             hold on
 plot(pst,G/max(G),':b'),     hold on
 plot(pst,Y,'b'),             hold on
-plot(pst,G,':b'),             hold on
+plot(pst,G,':b'),            hold on
 plot(pst,0*pst + U,'-.'),    hold on
 plot([1 1]/2,[-1 1],'b'),    hold on
 plot([1 1]*T,[-1 1],'--g'),  hold on

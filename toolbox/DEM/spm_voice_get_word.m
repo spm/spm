@@ -2,7 +2,7 @@ function [O] = spm_voice_get_word(wfile,P)
 % Retrieves likelihoods from an audio device or file
 % FORMAT [O] = spm_voice_get_word(wfile,P)
 %
-% wfile  - .wav file or audiorecorder object
+% wfile  - .wav file or audiorecorder object or (double) time series
 % P      - lexical  prior [optional]
 %
 % O{1}   - lexical likelihood (or posterior if priors are specified)
@@ -28,38 +28,24 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7566 2019-04-03 12:15:50Z karl $
+% $Id: spm_voice_get_word.m 7574 2019-04-19 20:38:15Z karl $
 
 %% get peak identification parameters from VOX
 %==========================================================================
 global VOX
 
 try, VOX.C; catch, VOX.C  = 1/16; end               % smoothing for peaks
-try, VOX.U; catch, VOX.U  = 1/256; end              % threshold for peaks
+try, VOX.U; catch, VOX.U  = 1/128; end              % threshold for peaks
 
 % get source (recorder) and FS
 %--------------------------------------------------------------------------
+[FS,read] = spm_voice_FS(wfile);
+
+% ensure 2 second of data has been accumulated
+%--------------------------------------------------------------------------
 if isa(wfile,'audiorecorder')
-    FS    = get(wfile,'SampleRate');
-    read  = @getaudiodata;
-    
-    % ensure 2 second of data has been accumulated
-    %----------------------------------------------------------------------
-    dt    = (get(wfile,'TotalSamples') - VOX.IT)/FS;
+    dt     = (get(wfile,'TotalSamples') - VOX.IT)/FS;
     pause(2 - dt);
-    
-else
-    
-    % sound file (read)
-    %----------------------------------------------------------------------
-    try
-        xI     = audioinfo(wfile);
-        FS     = xI.SampleRate;
-        read   = @audioread;
-    catch
-        [Y,FS] = wavread(wfile,[1 1]);
-        read   = @wavread;
-    end
 end
 
 %% log prior over lexical content (and indices within Ockham's window W)
@@ -86,7 +72,7 @@ for i = 1:4
     j = fix((0:FS) + VOX.IT);
     G = spm_voice_check(Y(j(j < n)),FS,VOX.C);
     I = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
-    I = I(G(I) > VOX.U & I > FS/8);
+    I = I(G(I) > VOX.U & I > FS/16);
     
     % advance pointer if silence
     %----------------------------------------------------------------------
@@ -132,8 +118,9 @@ j    = spm_voice_onsets(y,FS);
 %--------------------------------------------------------------------------
 clear xy J
 for i = 1:numel(j)
-    xy(i,1) = spm_voice_ff(y(j{i}),FS);
-    J(i,:)  = I + [j{i}(1),j{i}(end)];
+    xy(i,1)       = spm_voice_ff(y(j{i}),FS);
+    xy(i,1).P.lat = log((I + j{i}(1) - VOX.IT)/FS);
+    J(i,:)        = I + [j{i}(1),j{i}(end)];
 end
 
 % identify the most likely action (interval)

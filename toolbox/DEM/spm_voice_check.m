@@ -1,12 +1,13 @@
-function [G] = spm_voice_check(Y,FS,C)
+function [G,Y] = spm_voice_check(Y,FS,C)
 % returns normalised spectral energy in acoustic range
-% FORMAT [G] = spm_voice_check(Y,FS,C)
+% FORMAT [G,Y]  = spm_voice_check(Y,FS,C)
 %
 % Y    - timeseries
 % FS   - sampling frequency
 % C    - threshold [default: 1/16]
 %
-% i    - intervals (time bins) containing spectral energy
+% Y    - high pass ( > 256 Hz) time series
+% G    - root mean square energy of Y
 %
 % This routine identifies epochs constaining spectral energy in the
 % acoustic range above of threshold for more than 200ms
@@ -16,7 +17,7 @@ function [G] = spm_voice_check(Y,FS,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_check.m 7566 2019-04-03 12:15:50Z karl $
+% $Id: spm_voice_check.m 7574 2019-04-19 20:38:15Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
@@ -27,7 +28,7 @@ if nargin < 3, C = 1/16; end
 
 % find periods of acoutic spectal energy > 200 ms
 %--------------------------------------------------------------------------
-Y  = Y - spm_conv(Y,FS/256);
+Y  = Y - spm_conv(Y,FS/512);
 G  = spm_conv(abs(Y),FS*C);
 G  = G - min(G);
 

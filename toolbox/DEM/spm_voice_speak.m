@@ -22,7 +22,7 @@ function [xY] = spm_voice_speak(w,p,q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7562 2019-04-01 09:49:28Z karl $
+% $Id: spm_voice_speak.m 7574 2019-04-19 20:38:15Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -72,41 +72,28 @@ for s = 1:n
 end
 
 % assemble sequence
+%==========================================================================
+
+% turn off graphics, get FS and convert into audio signal
 %--------------------------------------------------------------------------
-if n > 1
-    
-    % turn off graphics, get FS and convert into audio signal 
-    %----------------------------------------------------------------------
-    g = VOX.graphics;
-    VOX.graphics = 0;
-    try, FS = VOX.FS; catch, FS  = 22050; end
-    
-    for s = 1:n
-        y{s} = spm_voice_iff(xY(s));
-    end
-    Y   = zeros(spm_length(y),1);
-    i0  = 0;
-    for s = 1:n
-        ni    = numel(y{s});
-        ii    = i0 + (1:ni)';
-        Y(ii) = Y(ii) + y{s};
-        i0    = ii(end) - round(ni/3);
-    end
-    Y   = Y(1:ii(end));
-    
-    
-    % send to speaker
-    %----------------------------------------------------------------------
-    sound(full(Y),FS);
-    VOX.graphics = g;
-    
-else
-    
-    % and send to spm_voice_iff
-    %----------------------------------------------------------------------
-    spm_voice_iff(xY);
-    
+try, FS = VOX.FS; catch, FS  = 22050; end
+
+for s = 1:n
+    y{s} = spm_voice_iff(xY(s));
 end
+Y   = zeros(spm_length(y),1);
+i0  = 0;
+for s = 1:n
+    ni    = numel(y{s});
+    ii    = i0 + (1:ni)';
+    Y(ii) = Y(ii) + y{s};
+    i0    = ii(end) - round(ni/8);
+end
+Y   = Y(1:ii(end));
+
+% send to speaker
+%--------------------------------------------------------------------------
+sound(full(Y),FS);
 
 return
 

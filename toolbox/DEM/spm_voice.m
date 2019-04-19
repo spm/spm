@@ -28,7 +28,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7567 2019-04-04 10:41:15Z karl $
+% $Id: spm_voice.m 7574 2019-04-19 20:38:15Z karl $
 
 
 
@@ -65,7 +65,8 @@ k     = [3 6];                                % number of prosody features
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[8;6;5;5;i;j;4],4);
+            spm_voice_speak(w,[8;2;4;5;i;j;4],4);
+            pause(1/4)
         end
     end
 end
@@ -87,17 +88,6 @@ save VOX VOX
 
 %% read the first few words of a test file
 %--------------------------------------------------------------------------
-spm_voice_read('../test.wav');
-
-
-
-%% record and repeat some dictation
-%--------------------------------------------------------------------------
-spm_voice_read
-
-
-%% illustrate word by word recognition
-%==========================================================================
 
 % prior words
 %--------------------------------------------------------------------------
@@ -107,13 +97,37 @@ str{2} = {'there'};
 str{3} = {'a'};
 str{4} = {'triangle','square'};
 str{5} = {'below','above','there'};
+str{6} = {'no','yes'};
+str{7} = {'is','there'};
+[i,P]  = spm_voice_i(str);
 
-P     = zeros(numel(VOX.LEX),0);
-for w = 1:numel(str)
-    i      = spm_voice_i(str{w});
-    P(i,w) = 1;
-end
-P     = bsxfun(@rdivide,P,sum(P));
+spm_voice_read('../test.wav',P);
+
+
+%% record and repeat some dictation
+%==========================================================================
+
+% record a sentence and save
+%--------------------------------------------------------------------------
+spm_voice_read
+Y = getaudiodata(VOX.audio);
+save sentence Y
+
+% segment with priors
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Segmentation: with priors'); clf; 
+SEG1 = spm_voice_read(Y,P);
+EEG1 = spm_voice_segmentation(Y,SEG1);
+
+% segment without priors
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Segmentation: no priors'); clf; 
+SEG0 = spm_voice_read(Y);
+EEG0 = spm_voice_segmentation(Y,SEG0);
+
+
+%% illustrate word by word recognition
+%==========================================================================
 
 % get priors
 %--------------------------------------------------------------------------
@@ -153,11 +167,12 @@ for s  = 1:numel(str)
     % string
     %----------------------------------------------------------------------
     SEG(s).str = VOX.LEX(w,1).word;            % lexical string
-    SEG(s).I0  = VOX.I0;                       % centre
-    SEG(s).IT  = VOX.IT;                       % range
+    SEG(s).L   = L;                       % log posteriors
     SEG(s).P   = Q(:,s);                       % prosody
     SEG(s).R   = R(:,s);                       % speaker
-    
+    SEG(s).I0  = VOX.I0;                       % first index
+    SEG(s).IT  = VOX.IT;                       % final index
+
     disp({SEG.str})
     
 end

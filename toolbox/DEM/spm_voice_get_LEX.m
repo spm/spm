@@ -28,7 +28,7 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7566 2019-04-03 12:15:50Z karl $
+% $Id: spm_voice_get_LEX.m 7574 2019-04-19 20:38:15Z karl $
 
 
 % defaults
@@ -110,7 +110,7 @@ legend(Pstr)
 %--------------------------------------------------------------------------
 R      = [min(PP); max(PP)]';
 R(1,:) = log([1/32   1]);                          % amp
-R(2,:) = log([1/64   1]);                          % lat
+R(2,:) = log([1/32   1]);                          % lat
 R(3,:) = log([24    48]);                          % ff1
 
 
@@ -196,9 +196,7 @@ for w = 1:nw
     end
 end
 
-% save mean in voice structure
-%--------------------------------------------------------------------------
-VOX.Q = spm_unvec(q0,xY(1).Q);
+
 
 % covariance normalisation; based on within word covariance
 %--------------------------------------------------------------------------
@@ -209,18 +207,24 @@ for w = 1:nw
     end
 end
 QC    = QC/(nw*N);
-q0    = trace(QC)*eye(size(QC))/E;
+c0    = trace(QC)*eye(size(QC))/E;
 for w = 1:nw
     for k = 1:N
         qC          = LEX(w,k).qC;
         qC          = trace(QC)*qC/trace(qC);
-        qC          = qC + q0;
+        qC          = qC + c0;
         qP          = spm_inv(qC);
         
         LEX(w,k).qC = qC;
         LEX(w,k).qP = qP;
     end
 end
+
+
+% save mean and precision in voice structure
+%--------------------------------------------------------------------------
+VOX.Q  = spm_unvec(q0,xY(1).Q);
+VOX.qP = spm_inv(QC + c0);
 
 % place lexical and other structures voice structure
 %--------------------------------------------------------------------------

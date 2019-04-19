@@ -21,7 +21,7 @@ function [Y] = spm_voice_iff(xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7562 2019-04-01 09:49:28Z karl $
+% $Id: spm_voice_iff.m 7574 2019-04-19 20:38:15Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -92,10 +92,14 @@ end
 %--------------------------------------------------------------------------
 Y  = 4*M*Y/sum(std(Q));
 
+% add latency
+%--------------------------------------------------------------------------
+Y  = [zeros(fix(L*FS),1); Y];
+
 % play timeseries if requested
 %--------------------------------------------------------------------------
 if ~ VOX.mute && ~ nargout
-    pause(L),sound(Y,FS);
+    sound(Y,FS);
 end
 
 % graphics  if requested
@@ -105,9 +109,9 @@ if VOX.graphics
     % peristimulus time (seconds) and plot
     %--------------------------------------------------------------------------
     pst = (1:numel(Y))/FS;
-    subplot(2,2,1), plot(pst,Y), axis square, spm_axis tight
+    subplot(2,2,1), plot(pst,Y,[L,L],[-M M],':')
     xlabel('time (sec)'), ylabel('amplitude')
-    title('Timeseries','FontSize',16)
+    title('Timeseries','FontSize',16), axis square, spm_axis tight
     
     subplot(2,2,2), imagesc((1:ni)/F0,1000*[-nj,nj]/FS,D*Q)
     axis square, xlabel('time (seconds)'), ylabel('time (ms)')

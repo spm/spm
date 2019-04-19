@@ -24,7 +24,7 @@ function [L,M,N] = spm_voice_likelihood(xY,W)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7567 2019-04-04 10:41:15Z karl $
+% $Id: spm_voice_likelihood.m 7574 2019-04-19 20:38:15Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -33,7 +33,7 @@ if nargin < 2
     W = 1:size(VOX.LEX,1);
 else
     W = W(:)';
-end
+end  
 
 % handle arrays
 %==========================================================================
@@ -68,7 +68,7 @@ ni    = numel(i);
 % log likelihood over lexical outcomes
 %==========================================================================
 Q      = spm_vec(xY.Q) - spm_vec(VOX.Q);
-L      = zeros(size(VOX.LEX)) - 1024;
+L      = zeros(size(VOX.LEX)) - 256;
 method = 'likelihood';
 
 switch method
@@ -79,8 +79,15 @@ switch method
         %------------------------------------------------------------------
         for w = W
             for k = 1:size(VOX.LEX,2)
-                E      = (Q(i) - VOX.LEX(w,k).qE(i));      % error
+                E      = Q(i) - VOX.LEX(w,k).qE(i);        % error
                 L(w,k) = - E'*VOX.LEX(w,k).qP(i,i)*E/2;    % log likelihood
+                
+                % shrink estimators in proportion to noise
+                %----------------------------------------------------------
+                if isfield(VOX,'noise')
+                    L(w,k) = L(w,k)/VOX.noise;
+                end
+                
             end
         end
         
@@ -108,31 +115,8 @@ switch method
             end
         end
         
-    case {'neuronal'}
-        
-        % gradient descent free energy
-        %==================================================================
-        ni    = 128;
-        nw    = numel(VOX.LEX);
-        for w = W
-            E(:,w) = VOX.LEX(w).qP*(Q - VOX.LEX(w).qE);
-        end
-        
-        
-        % evidence accumulation
-        %------------------------------------------------------------------
-        v   = zeros(nw,1);
-        s   = spm_softmax(v);
-        tau = 1/4;
-        for i = 1:ni
-            qx = log(s);
-            v  = E'*Q/2 - log(s);
-            v  = v - mean(v);
-            s  = spm_softmax(qx + v/tau);
-            
-            e(:,i) = v;
-        end
-
+    otherwise
+        disp('unknown method')
 end
 
 
