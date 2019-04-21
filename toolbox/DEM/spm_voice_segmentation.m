@@ -1,16 +1,33 @@
-function [E,PST] = spm_voice_segmentation(wfile,SEG)
-% Retrieves likelihoods from an audio device or file
+function [E,  PST] = spm_voice_segmentation(wfile,SEG)
+% Plos the results of a segmented sound fileor audio stream
 % FORMAT [EEG,PST] = spm_voice_segmentation(wfile,SEG)
 %
-% wfile  - .wav file or audiorecorder object
+% wfile      - (double) timeseries, .wav file or audiorecorder object
+%
+% SEG(s).str - lexical class
+% SEG(s).p   - prior
+% SEG(s).L   - posterior
+% SEG(s).P   - prosody class
+% SEG(s).R   - speaker class
+% SEG(s).I0  - first index
+% SEG(s).IT  - final index
+%
+% EEG        - simulated EEG for each lexical entry
+% PST        - corresponding peristimulus times for plotting
 %
 % This routine plots the timeseries after segmentation and word recognition
-% as implemented by spm_voice_read
+% as implemented by spm_voice_read. It also returns simulated belief
+% updating in the form of local field potentials or EEG for simulation
+% purposes.
+%
+% EEG and PST are also placed in the global VOX structure.
+%
+% see also: spm_voice_read.m
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_segmentation.m 7574 2019-04-19 20:38:15Z karl $
+% $Id: spm_voice_segmentation.m 7575 2019-04-21 16:47:39Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -51,7 +68,7 @@ for w = 1:numel(SEG)
     
     % colour 
     %----------------------------------------------------------------------
-    col = spm_softmax(randn(3,1));
+    col  = spm_softmax(randn(3,1));
     
     % retrieve epoch 
     %----------------------------------------------------------------------
@@ -65,7 +82,6 @@ for w = 1:numel(SEG)
 
 end
 
-% return
 
 %% simulated EEG (i.e. prediction error) responses - discrete updating
 %==========================================================================
@@ -88,7 +104,7 @@ for w = 1:numel(SEG)
         s   = spm_softmax(v);
         for i = 1:ni
             v      = L - log(s);
-            v      = v - mean(v)*(1 - 1/8);
+            v      = v - mean(v);
             s      = spm_softmax(log(s) + 4*v/ni);
             e(:,i) = v;
             q(:,i) = s;
@@ -119,7 +135,7 @@ title('Simulated neuronal firing','FontSize',16)
 
 subplot(4,1,4), plot(PST,E) %,':',PST,std(E,[],2))
 xlabel('time (seconds)'), ylabel('a.u.'), spm_axis tight
-title('Simulated EEG','FontSize',16), box off, set(gca,'YLim',[-1/4,1])
+title('Simulated EEG','FontSize',16), box off, set(gca,'YLim',[-1/2,1])
 
 % place EEG in VOX
 %--------------------------------------------------------------------------

@@ -20,11 +20,19 @@ function [L,M,N] = spm_voice_likelihood(xY,W)
 % several  dimensions (i.e., eigenmodes).  For both lexical and prosody,
 % likelihoods are evaluated based upon the deviations from the expected
 % parameters, over all words and prosody dimensions.
+%
+% The likelihood can be estimated directly under the assumption of
+% negligible random fluctuations on acoustic samples. Alternatively,
+% parametric empirical Bayes (PEB) can be used to estimate observation
+% noise, followed by Bayesian model reduction (BMR) to evaluate the
+% (marginal) likelihood. In normal operation, the explicit likelihood
+% scheme is used, with the opportunity to model the effects of (speech) in
+% noise with an additional variable: VOX.noise (see main body of script).
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7574 2019-04-19 20:38:15Z karl $
+% $Id: spm_voice_likelihood.m 7575 2019-04-21 16:47:39Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -54,7 +62,7 @@ end
 try, nu = VOX.nu; catch, nu  = 8;   end  % order (formants)
 try, nv = VOX.nv; catch, nv  = 8;   end  % order (interval)
 
-% precision wieghting
+% precision wieghting, in terms of basis function coefficients to include
 %--------------------------------------------------------------------------
 Nu    = size(VOX.Q,1);
 Nv    = size(VOX.Q,2);

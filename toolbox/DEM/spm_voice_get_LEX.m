@@ -5,6 +5,8 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % xY(nw,ns)      -  structure array for ns samples of nw words
 % word(nw)       -  cell array of word names
 %
+% updates or completes the global structure VOX:
+%
 % VOX.LEX(nw,nk) -  structure array for nk variants of nw words
 % VOX.PRO(np)    -  structure array for np aspects of prosody
 % VOX.WHO(nq)    -  structure array for nq aspects of speaker
@@ -12,23 +14,24 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % P              -  lexical parameters for exemplar (training) words
 %
 %  This routine creates a triplet of structure arrays used to infer the
-%  lexical content and prosody of a word -  and the identity of the person
-%  talking. It uses  exemplar word files, each containing 32 words spoken
-%  with varying prosody. Each structure contains the expectations and
-%  precisions of lexical and prosody parameters (Q and P respectively) -
-%  and associated eigenbases. This allows the likelihood of any given word
-%  (summarised in a word structure xY)  to be evaluated  under Gaussian
-%  assumptions about random fluctuations in parametric space. The identity
-%  and prosody likelihoods are based upon the prosody parameters, while the
-%  lexical likelihood is based upon the lexical parameters. These (LEX,
-%  PRO, and WHO)structures are placed in the VOX structure, which is a
-%  global variable. In addition, the expected value of various coefficients
-%  are stored in VOX.Q and VOX.P.
+%  lexical content and prosody of a word - and the identity of the person
+%  talking (in terms of the vocal tract, which determines F1). It uses
+%  exemplar word files, each containing 32 words spoken with varying
+%  prosody. Each structure contains the expectations and precisions of
+%  lexical and prosody parameters (Q and P respectively) - and associated
+%  eigenbases. This allows the likelihood of any given word (summarised in
+%  a word structure xY)  to be evaluated  under Gaussian assumptions about
+%  random fluctuations in parametric space. The identity and prosody
+%  likelihoods are based upon the prosody parameters, while the lexical
+%  likelihood is based upon the lexical parameters. These (LEX, PRO, and
+%  WHO)structures are placed in the VOX structure, which is a global
+%  variable. In addition, the expected value of various coefficients are
+%  stored in VOX.Q and VOX.P.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7574 2019-04-19 20:38:15Z karl $
+% $Id: spm_voice_get_LEX.m 7575 2019-04-21 16:47:39Z karl $
 
 
 % defaults
@@ -51,8 +54,14 @@ end
 % concatenate and illustrate distribution of prosody parameters
 %==========================================================================
 spm_figure('GetWin','Parameter distributions'); clf
+
+%       {'amp','lat','ff1','dur','tim','ff0','inf','bif'}
+%--------------------------------------------------------------------------
+Pstr  = {'amp','lat','ff1','dur','tim','ff0','inf','bif'};
 PP    = full(spm_cat(P)');
-Pstr  = {'amp','lat','ff1','dur','timbre','ff0','inf','bif'};
+
+% indices for plotting
+%--------------------------------------------------------------------------
 ii    = [1 4 5 6 7 8];
 for i = 1:numel(ii);
     subplot(3,3,i)
@@ -108,10 +117,10 @@ legend(Pstr)
 
 % prosidy ranges
 %--------------------------------------------------------------------------
-R      = [min(PP); max(PP)]';
-R(1,:) = log([1/32   1]);                          % amp
-R(2,:) = log([1/32   1]);                          % lat
-R(3,:) = log([24    48]);                          % ff1
+R      = [min(PP); max(PP)]';                    % all prosody parameters
+R(1,:) = log([1/32 1]);                          % amp
+R(2,:) = log([1/32 1]);                          % lat
+R(3,:) = log([24  48]);                          % ff1
 
 
 % select prosidy features and specify prior precision
@@ -145,7 +154,7 @@ end
 %% speaker
 %==========================================================================
 
-% select speaker features and specify prior precision
+% select speaker features (F1) and specify prior precision
 %--------------------------------------------------------------------------
 i     = [3];
 ni    = numel(i);

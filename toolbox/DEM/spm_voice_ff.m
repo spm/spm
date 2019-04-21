@@ -2,18 +2,18 @@ function [xY] = spm_voice_ff(Y,FS)
 % decomposition at fundamental frequency
 % FORMAT [xY] = spm_voice_ff(Y,FS)
 %
-% Y     - timeseries
-% FS    - sampling frequency
+% Y      - timeseries
+% FS     - sampling frequency
 %
-% expects
+% requires the following in the global VOX structure:
 % VOX.F0 - fundamental frequency (glottal pulse rate)
 % VOX.F1 - format frequency
 %
 % output structure
 %--------------------------------------------------------------------------
-% xY.Y  - timeseries
-% xY.Q  - parameters - lexical
-% xY.P  - parameters - prosidy
+% xY.Y   - timeseries
+% xY.Q   - parameters - lexical
+% xY.P   - parameters - prosidy
 % 
 % xY.P.amp - amplitude
 % xY.P.ff0 - fundamental frequency (Hz)
@@ -34,8 +34,8 @@ function [xY] = spm_voice_ff(Y,FS)
 % characterised in terms of the cross covariance function whose length is
 % determined by the fundamental format frequency. The resulting matrix  its
 % parameterised with even functions based upon a discrete cosine transform.
-% Because the basis functions are even (i.e. symmetrical) the resulting
-% coefficients nonnegative. In turn, this allows a log transform  and
+% Because the basis functions are even (i.e., symmetrical) the resulting
+% coefficients are nonnegative. In turn, this allows a log transform  and
 % subsequent normalisation, by a scaling (timbre) parameter. The normalised
 % log format coefficients are finally parameterised using two discrete
 % cosine transforms over time, within and between segments, respectively.
@@ -48,7 +48,7 @@ function [xY] = spm_voice_ff(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7562 2019-04-01 09:49:28Z karl $
+% $Id: spm_voice_ff.m 7575 2019-04-21 16:47:39Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -70,12 +70,11 @@ p     = sqrt(nI)\I*D;                        % fluctuations around mean
 dI    = sqrt(nI)*p*D';                       % parameterised intervals
 I     = round([1 FS*cumsum(dI)]);            % starting from one
 
-
 % unwrap fundamental segments using cross covariance functions (ccf) and
 % apply DCT to formant frequency modulation
 %--------------------------------------------------------------------------
 Ny    = numel(Y);                            % number of samples
-Ni    = round(8192/F1);                      % basis set to 8000 Hz
+Ni    = round(8192/32);                      % basis set to 8000 Hz
 nj    = round(FS/F1);                        % formant interval length
 ni    = numel(find((I + nj) < Ny));          % number of intervals
 D     = spm_dctmtx(2*nj + 1,Ni*4);           % discrete cosine transform
@@ -86,10 +85,6 @@ for j = 1:ni
     ccf    = xcov(Y(ii));
     Q(:,j) = D'*ccf;
 end
-
-% remove noise
-%--------------------------------------------------------------------------
-% Q = bsxfun(@minus,Q,Q(:,1));
 
 % log transform (nonnegative) coefficients  and parameterise with a pair of
 % discrete cosine transforms over formant frequnecies and intervals
@@ -126,37 +121,44 @@ xY.Q  = Q;                                   % parameters - lexical
 xY.P  = P;                                   % parameters - prosidy
 xY.i  = [1,Ny];                              % range – indices      
 
-return
 
 % uncomment 'return' for graphics
 %==========================================================================
-subplot(2,2,1), plot((1:Ny)/FS,Y), axis square, spm_axis tight
-xlabel('time (sec)'), ylabel('amplitude')
-title('Timeseries','FontSize',16)
-
-subplot(2,2,2), imagesc((1:ni)/F0,1000*[-nj,nj]/FS,D*exp(S*U*Q*V'))
-axis square, xlabel('time (seconds)'), ylabel('time (ms)')
-title('transients'), set(gca,'YLim',[-16 16])
-
-subplot(4,2,6), imagesc((1:ni)/F0,(1:Ni)*F1,U*Q*V')
-xlabel('time (seconds)'), ylabel('Formants (Hz)')
-title('Spectral decomposition','FontSize',16)
-
-subplot(4,2,8), imagesc((1:ni)/F0,(1:Ni)*F1,U*Q*V')
-xlabel('time (seconds)'), ylabel('Formants (Hz)')
-title('Spectral decomposition','FontSize',16)
-
-subplot(4,2,5), imagesc(Q)
-xlabel('coefficients'), ylabel('coefficients')
-title('Parameters','FontSize',16)
-
-subplot(4,2,7), plot(1./dI), axis square, spm_axis tight
-xlabel('time (intervals)'), ylabel('fundamental frequency')
-title('Inflection','FontSize',16), drawnow
+if VOX.analysis
+    
+    % figure
+    %----------------------------------------------------------------------
+    spm_figure('GetWin','voice'); clf;
+    
+    subplot(2,2,1), plot((1:Ny)/FS,Y), axis square, spm_axis tight
+    xlabel('time (sec)'), ylabel('amplitude')
+    title('Timeseries','FontSize',16)
+    
+    subplot(2,2,2), imagesc((1:ni)/F0,1000*[-nj,nj]/FS,D*exp(S*U*Q*V'))
+    axis square, xlabel('time (seconds)'), ylabel('time (ms)')
+    title('transients'), set(gca,'YLim',[-16 16])
+    
+    subplot(4,2,6), imagesc((1:ni)/F0,(1:Ni)*F1,exp(S*U*Q*V'))
+    xlabel('time (seconds)'), ylabel('Formants (Hz)')
+    title('Spectral decomposition','FontSize',16)
+    
+    subplot(4,2,8), imagesc((1:ni)/F0,(1:Ni)*F1,U*Q*V')
+    xlabel('time (seconds)'), ylabel('Formants (Hz)')
+    title('Spectral (log) energy','FontSize',16)
+    
+    subplot(4,2,5), imagesc(Q)
+    xlabel('coefficients'), ylabel('coefficients')
+    title('Parameters','FontSize',16)
+    
+    subplot(4,2,7), plot(1./dI), axis square, spm_axis tight
+    xlabel('time (intervals)'), ylabel('fundamental frequency')
+    title('Inflection','FontSize',16), drawnow
+    
+end
 
 return
 
-% auxiliary code
+% auxiliary code (not used)
 %==========================================================================
 
 % snap-to grid

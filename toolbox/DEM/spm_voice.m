@@ -3,6 +3,7 @@ function spm_voice(PATH)
 % FORMAT spm_voice(PATH)
 %
 % PATH         -  directory containing sound files of exemplar words
+%                 (and a test.wav file in a subdirectory /test)
 %
 % saves VOX.mat
 %
@@ -10,26 +11,30 @@ function spm_voice(PATH)
 % VOX.PRO(p)   -  structure array for p aspects of prosody
 % VOX.WHO(w)   -  structure array for w aspects of idenity
 %
-%  This routine creates structure arrays used to infer the lexical and
-%  prosody of a word. It uses a library of sound files, each containing 32
-%  words spoken with varying prosody. The name of the sound file labels the
-%  word in question. These exemplars are then transformed (using a series
-%  of discrete cosine and Hilbert transforms) into a set of parameters,
-%  which summarise the lexical content and prosody. The inverse transform
-%  generates  timeseries that can be played to articulate a word. The
-%  transform operates on a word structure xY to create lexical and prosody
-%  parameters (Q and P respectively). The accuracy of  lexical inference
-%  (i.e., voice the word recognition) is assessed  using the exemplar
-%  (training) set and a narrative sound file called '../test.wav' (and
-%  associated '../test.txt'). The operation of each subroutine can be
+%  This routine creates structure arrays used to infer the lexical class,
+%  prosody and speaker identity of a word. It uses a library of sound
+%  files, each containing 32 words spoken with varying prosody. The name of
+%  the sound file labels the word in question. These exemplars are then
+%  transformed (using a series of discrete cosine transforms) into a set of
+%  parameters, which summarise the lexical content and prosody. The inverse
+%  transform generates  timeseries that can be played to articulate a word.
+%  The transform operates on a word structure xY to create lexical and
+%  prosody parameters (Q and P respectively). The accuracy of  lexical
+%  inference (i.e., voice the word recognition) is assessed  using the
+%  exemplar (training) set and a narrative sound file called '../test.wav'
+%  (and associated '../test.txt'). The operation of each subroutine can be
 %  examined using graphical outputs by selecting the appropriate options in
-%  a voice recognition specific global variable.
+%  a voice recognition specific global variable VOX. this structure is
+%  saved in the sound file for subsequent use.
+%
+%  Auxiliary routines will be found at the end of the script. These include
+%  various optimisation schemes and illustrations of online voice
+%  recognition
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7574 2019-04-19 20:38:15Z karl $
-
+% $Id: spm_voice.m 7575 2019-04-21 16:47:39Z karl $
 
 
 %% setup options and files
@@ -43,12 +48,13 @@ if ~nargin
 end
 
 global VOX
-VOX.graphics = 0;
-VOX.mute     = 1;
+VOX.analysis = 0;
+VOX.graphics = 1;
+VOX.mute     = 0;
 VOX.onsets   = 0;
 
 
-%% get corpus
+%% get training corpus
 %==========================================================================
 [xY,word] = spm_voice_get_xY(PATH);
 
@@ -59,7 +65,6 @@ P     = spm_voice_get_LEX(xY,word);
 
 %% articulate every word under all combinations of (5 levels) of prosody
 %--------------------------------------------------------------------------
-VOX.mute = 0;
 nw    = numel(VOX.LEX);                       % number of words
 k     = [3 6];                                % number of prosody features
 for w = 1:nw
@@ -72,22 +77,25 @@ for w = 1:nw
 end
 
 
-%%  apply to test narrative of 87 words (this will search over the bases)
-%--------------------------------------------------------------------------
+%% invert a test file of 87 words & optimise basis function order (ny,nv)
+%==========================================================================
 try
     VOX = rmfield(VOX,'nu');
     VOX = rmfield(VOX,'nv');
 end
-spm_voice_test('../test.wav','../test.txt');
+wtest   = fullfile(PATH,'test','test.wav');
+ttest   = fullfile(PATH,'test','test.txt');
+spm_voice_test(wtest,ttest);
 
-
-%% save lexical and prosody arrays in sound file directory
+%% save structure arrays in sound file directory
 %--------------------------------------------------------------------------
-save VOX VOX
+DIR   = fileparts(which('spm_voice.m'));
+save(fullfile(DIR,'VOX'),'VOX')
 
 
 %% read the first few words of a test file
-%--------------------------------------------------------------------------
+%==========================================================================
+VOX.graphics = 0;
 
 % prior words
 %--------------------------------------------------------------------------
@@ -101,93 +109,12 @@ str{6} = {'no','yes'};
 str{7} = {'is','there'};
 [i,P]  = spm_voice_i(str);
 
-spm_voice_read('../test.wav',P);
-
-
-%% record and repeat some dictation
-%==========================================================================
-
-% record a sentence and save
+% Read test file
 %--------------------------------------------------------------------------
-spm_voice_read
-Y = getaudiodata(VOX.audio);
-save sentence Y
-
-% segment with priors
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Segmentation: with priors'); clf; 
-SEG1 = spm_voice_read(Y,P);
-EEG1 = spm_voice_segmentation(Y,SEG1);
-
-% segment without priors
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Segmentation: no priors'); clf; 
-SEG0 = spm_voice_read(Y);
-EEG0 = spm_voice_segmentation(Y,SEG0);
+spm_voice_read(wtest,P);
 
 
-%% illustrate word by word recognition
-%==========================================================================
-
-% get priors
-%--------------------------------------------------------------------------
-wfile     = audiorecorder(22050,16,1);
-VOX.audio = wfile;
-
-
-%% record
-%==========================================================================
-stop(wfile);
-record(wfile,4);
-
-%% run through sound file and evaluate likelihoods
-%==========================================================================
-clear W Q R SEG
-VOX.I0 = 1;                                    % first index
-VOX.IT = 1;                                    % final index
-for s  = 1:numel(str)
-    
-    % find next word
-    %----------------------------------------------------------------------
-    L   = spm_voice_get_word(wfile,P(:,s));
-        
-    % break if EOF
-    %----------------------------------------------------------------------
-    if isempty(L), break, end
-    
-    % identify the most likely word and prosody
-    %----------------------------------------------------------------------
-    [d,w]  = max(L{1});                        % most likely word
-    [d,q]  = max(L{2});                        % most likely prosody
-    [d,r]  = max(L{3});                        % most likely identity
-    W(1,s) = w(:);                             % lexical class
-    Q(:,s) = q(:);                             % prosody classes
-    R(:,s) = r(:);                             % speaker classes
-    
-    % string
-    %----------------------------------------------------------------------
-    SEG(s).str = VOX.LEX(w,1).word;            % lexical string
-    SEG(s).L   = L;                       % log posteriors
-    SEG(s).P   = Q(:,s);                       % prosody
-    SEG(s).R   = R(:,s);                       % speaker
-    SEG(s).I0  = VOX.I0;                       % first index
-    SEG(s).IT  = VOX.IT;                       % final index
-
-    disp({SEG.str})
-    
-end
-
-% articulate: with lexical content and prosody
-%--------------------------------------------------------------------------
-spm_voice_speak(W,Q,R);
-
-%% segmentation graphics
-%--------------------------------------------------------------------------
-spm_voice_segmentation(wfile,SEG)
-
-
-
-%%  illustrate voice recognition (i.e., inference) based upon eigenmodes
+%% illustrate accuracy (i.e., inference) using training corpus
 %==========================================================================
 
 % likelihood of training set
@@ -218,7 +145,7 @@ end
 
 % show results
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Accuracy'); clf
+spm_figure('GetWin','Accuracy (training)'); clf
 subplot(2,1,1); imagesc(q)
 a     = 1 - sum((p(:) - q(:)) > 1/8)/sum(p(:));
 str   = sprintf('Lexical classification accuracy %-2.0f p.c.',100*a);
@@ -237,11 +164,76 @@ return
 %% auxiliary code
 %==========================================================================
 
-%% optmise spectral defaultswith respect to classification accuracy
+% record a sentence and segment with active listening
+%--------------------------------------------------------------------------
+% SAY: "Square Square Square Square"
+%--------------------------------------------------------------------------
+VOX.audio = audiorecorder(22050,16,1);
+spm_voice_read
+
+
+%% record for four seconds and illustrate recognition using priors
+%==========================================================================
+% SAY: "Is there a square below?"
+%--------------------------------------------------------------------------
+stop(VOX.audio);
+record(VOX.audio,4);
+
+
+%% run through sound file and evaluate likelihoods
+%==========================================================================
+clear W Q R SEG
+VOX.IT = 1;                                    % current index
+for s  = 1:size(P,2)
+    
+    % find next word
+    %----------------------------------------------------------------------
+    L   = spm_voice_get_word(VOX.audio,P(:,s));
+        
+    % break if EOF
+    %----------------------------------------------------------------------
+    if isempty(L), break, end
+    
+    % identify the most likely word and prosody
+    %----------------------------------------------------------------------
+    [d,w]  = max(L{1});                        % most likely word
+    [d,c]  = max(L{2});                        % most likely prosody
+    [d,r]  = max(L{3});                        % most likely identity
+    W(1,s) = w(:);                             % lexical class
+    Q(:,s) = c(:);                             % prosody classes
+    R(:,s) = r(:);                             % speaker classes
+    
+    % string
+    %----------------------------------------------------------------------
+    SEG(s).str = VOX.LEX(w,1).word;            % lexical string
+    SEG(s).p   = P(:,s);                       % prior
+    SEG(s).L   = L;                            % posteriors
+    SEG(s).P   = Q(:,s);                       % prosody
+    SEG(s).R   = R(:,s);                       % speaker
+    SEG(s).I0  = VOX.I0;                       % first
+    SEG(s).IT  = VOX.IT;                       % final
+    
+    disp({SEG.str})
+    
+end
+
+% articulate: with lexical content and prosody
+%--------------------------------------------------------------------------
+spm_voice_speak(W,Q,R);
+
+%% segmentation graphics
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Segmentation'); clf;
+spm_voice_segmentation(VOX.audio,SEG)
+
+
+%% optmise spectral defaults with respect to classification accuracy
 %==========================================================================
 clear all
 global VOX
-PATH = 'C:\Users\karl\Dropbox\Papers\Voice recognition\Sound files';
+PATH  = 'C:\Users\karl\Dropbox\Papers\Voice recognition\Sound files';
+wtest = fullfile(PATH,'test','test.wav');
+ttest = fullfile(PATH,'test','test.txt');
 
 % reporting options
 %--------------------------------------------------------------------------
@@ -276,7 +268,7 @@ for i = 1:numel(Pu)
         
         [xY,word] = spm_voice_get_xY(PATH);
         P         = spm_voice_get_LEX(xY,word);
-        A(i,j)    = spm_voice_test('../test.wav','../test.txt')
+        A(i,j)    = spm_voice_test(wtest,ttest)
     end
 end
 
@@ -288,8 +280,7 @@ imagesc(Pv,Pu,A), axis square, title('Accuracy','FontSize',16),drawnow
 
 % load script and prompt for audio file: 32 words, at one word per second
 %--------------------------------------------------------------------------
-tfile = '../test.txt';
-str   = textread(tfile,'%s');
+str   = textread(ttest,'%s');
 str   = unique(str);
 for s = 1:numel(str)
     clc,  disp([str(s) 'new file']), pause

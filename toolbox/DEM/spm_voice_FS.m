@@ -1,5 +1,5 @@
 function [FS,read] = spm_voice_FS(wfile)
-% Gets indices or word strings from lexicon 
+% sampling frequency and function handle for handling sound signals
 % FORMAT [FS,read] = spm_voice_FS(wfile)
 %
 % wfile  - .wav file, audio object or (double) timeseries
@@ -13,7 +13,7 @@ function [FS,read] = spm_voice_FS(wfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_FS.m 7574 2019-04-19 20:38:15Z karl $
+% $Id: spm_voice_FS.m 7575 2019-04-21 16:47:39Z karl $
 
 % get timeseries from audio recorder(or from a file)
 %--------------------------------------------------------------------------
@@ -25,8 +25,7 @@ if isa(wfile,'audiorecorder')
     
     FS     = get(wfile,'SampleRate');
     read   = @getaudiodata;
-    VOX.FS = FS;
-    
+
 elseif isnumeric(wfile)
     
     % timeseries
@@ -34,7 +33,11 @@ elseif isnumeric(wfile)
     try
         FS = get(VOX.audio,'SampleRate');
     catch
-        FS = VOX.FS;
+        try
+            FS = VOX.FS;
+        catch
+            FS = 22050;
+        end
     end
     read   = @(Y)Y;
     
@@ -47,13 +50,15 @@ else
         FS     = xI.SampleRate;
         read   = @audioread;
     catch
-        [Y,FS] = wavread(wfile,[1 1]);
+        [~,FS] = wavread(wfile,[1 1]);
         read   = @wavread;
     end
     
 end
 
-
+% place sampling frequency in global VOX structure
+%----------------------------------------------------------------------
+VOX.FS = FS;
 
 
 

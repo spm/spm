@@ -19,7 +19,7 @@ function [xY,word] = spm_voice_get_xY(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_xY.m 7567 2019-04-04 10:41:15Z karl $
+% $Id: spm_voice_get_xY.m 7575 2019-04-21 16:47:39Z karl $
 
 
 %% get corpus
@@ -46,7 +46,7 @@ for w = 1:nw
     
     % get lexicon name and create structure
     %----------------------------------------------------------------------
-    wname   = wfile(w).name;                  %  name of word
+    wname   = wfile(w).name;                        %  name of word
     [d,str] = fileparts(wname);
     word{w} = str; disp(str)
     
@@ -71,7 +71,7 @@ for w = 1:nw
         i       = spm_voice_onsets(Y,FS);
         xY(w,s) = spm_voice_ff(Y(i{1}),FS);
         
-        %  apply inverse transform and play, if requested
+        % apply inverse transform and play, if requested
         %------------------------------------------------------------------
         spm_voice_iff(xY(w,s));
         xY(w,s).i(1) = i{1}(1)/FS   - 1/2;

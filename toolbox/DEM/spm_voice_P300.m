@@ -1,86 +1,82 @@
 function spm_voice_P300
-% Creates lexical and prosody cell arrays from sound file exemplars
+% illustrates voice recognition with lexical priors
 % FORMAT spm_voice_P300
 %
-% PATH         -  directory containing sound files of exemplar words
-%
-% saves VOX.mat
+% loads the global variable VOX.mat
 %
 % VOX.LEX(w,k) -  structure array for k variants of w words
 % VOX.PRO(p)   -  structure array for p aspects of prosody
 % VOX.WHO(w)   -  structure array for w aspects of idenity
 %
-%  This routine creates structure arrays used to infer the lexical and
-%  prosody of a word. It uses a library of sound files, each containing 32
-%  words spoken with varying prosody. The name of the sound file labels the
-%  word in question. These exemplars are then transformed (using a series
-%  of discrete cosine and Hilbert transforms) into a set of parameters,
-%  which summarise the lexical content and prosody. The inverse transform
-%  generates  timeseries that can be played to articulate a word. The
-%  transform operates on a word structure xY to create lexical and prosody
-%  parameters (Q and P respectively). The accuracy of  lexical inference
-%  (i.e., voice the word recognition) is assessed  using the exemplar
-%  (training) set and a narrative sound file called '../test.wav' (and
-%  associated '../test.txt'). The operation of each subroutine can be
-%  examined using graphical outputs by selecting the appropriate options in
-%  a voice recognition specific global variable.
+% This routine demonstrates the basic functionality of voice recognition or
+% active listening with a special focus on segmentation and the simulated
+% neurophysiological correlates of belief updating. It starts by
+% demonstrating segmentation; either in response to some spoken sentences
+% (read from prompts in the script or by loading exemplar sentences). It
+% then moves on to demonstrating the effect of changing the precision of
+% prior beliefs about lexical content and how this is expressed in terms of
+% simulated belief updating via the minimisation of variational free
+% energy.
+%
+% This routine assumes the necessary files are located in a particular
+% (Sound files) directory; that can be specified by editing the script
+% below.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7574 2019-04-19 20:38:15Z karl $
+% $Id: spm_voice_P300.m 7575 2019-04-21 16:47:39Z karl $
 
 
-
-%% setup options and files
+%% demo mode loads sentence (.mat) files
 %==========================================================================
+DEMO = 1;                      
 
-% directory of sound files if necessary
+% get lexical and prosody arrays in sound file directory
 %--------------------------------------------------------------------------
-if ~nargin
-    PATH = 'C:\Users\karl\Dropbox\Papers\Voice recognition\Sound files';
-end
-
 global VOX
+
+NAME  = which('VOX.mat');
+PATH  = fileparts(NAME);
+load(NAME)
+
+VOX.analysis = 0;
 VOX.graphics = 0;
-VOX.mute     = 1;
+VOX.mute     = 0;
 VOX.onsets   = 0;
 
 
-%% get lexical and prosody arrays in sound file directory
-%--------------------------------------------------------------------------
-load VOX
-
-
-%% read the first few words of a test file
-%--------------------------------------------------------------------------
-
-% prior words
-%--------------------------------------------------------------------------
-clear str
-str{1} = {'is'};
-str{2} = {'there'};
-str{3} = {'a'};
-str{4} = {'triangle','square'};
-str{5} = {'below','above','there'};
-str{6} = {'no','yes'};
-str{7} = {'is','there'};
-[i,P]  = spm_voice_i(str);
-
-%% record and repeat some dictation
+%% set up priors a succession of 'triangle' or 'square'
 %==========================================================================
+nw     = numel(VOX.LEX);                           % number of words
+i      = spm_voice_i({'triangle','square'});       % prior words   
+P      = zeros(nw,8) + 1/32;                       % baseline probability
+P(i,:) = 1;                                        % prior words
+P      = bsxfun(@rdivide,P,sum(P));                % sum to on constraint
 
-% record a sentence and save
+% record corresponding sequence and save - or load a preprepared sentence
 %--------------------------------------------------------------------------
-spm_voice_read
-Y = getaudiodata(VOX.audio);
-save sentence Y
+if DEMO
+    
+    load(fullfile(PATH,'triangle_square.mat'))
+    
+else
+    
+    % SAY: {'triangle','square','triangle','square','triangle','square'};
+    %----------------------------------------------------------------------
+    spm_voice_read
+    Y  = getaudiodata(VOX.audio);
+    save(fullfile(PATH,'triangle_square.mat'),'Y');
+    
+end
 
-% segment with priors
+% illustrate candidate intervals for the first word
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Segmentation: with priors'); clf; 
-SEG1 = spm_voice_read(Y,P);
-EEG1 = spm_voice_segmentation(Y,SEG1);
+VOX.IO     = 1;
+VOX.IT     = 1;
+VOX.onsets = 1;
+spm_voice_get_word(Y);
+VOX.onsets = 0;
 
 % segment without priors
 %--------------------------------------------------------------------------
@@ -88,24 +84,54 @@ spm_figure('GetWin','Segmentation: no priors'); clf;
 SEG0 = spm_voice_read(Y);
 EEG0 = spm_voice_segmentation(Y,SEG0);
 
-% repeat 
+% segment with priors
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Segmentation: with priors'); clf; 
+SEG1 = spm_voice_read(Y,P);
+EEG1 = spm_voice_segmentation(Y,SEG1);
+
+
+
+% illustrate the role of prior precision
 %==========================================================================
 
-% record a sentence and save
+%% lexical priors; i.e., plausible sequence of words
 %--------------------------------------------------------------------------
-spm_voice_read
-Y = getaudiodata(VOX.audio);
-save sentence Y
+str{1} = {'is'};
+str{2} = {'there'};
+str{3} = {'a'};
+str{4} = {'triangle','square'};
+str{5} = {'below','above','there'};
+str{6} = {'no','yes'};
+str{7} = {'is','there'};
+[i,P]  = spm_voice_i(str);                   % get priors
+P      = spm_softmax(log(P)*2);              % and double their precision
+
+
+% record corresponding sequence and save - or load a preprepared sentence
+%--------------------------------------------------------------------------
+if DEMO
+    
+    load(fullfile(PATH,'sentence.mat'))
+    
+else
+    
+    % SAY: {'is','there','a','square','above'};
+    %----------------------------------------------------------------------
+    spm_voice_read
+    Y  = getaudiodata(VOX.audio);
+    save(fullfile(PATH,'sentence.mat'),'Y');
+    
+end
+
+%% change VOX.noise to simulate speech in noise (e.g., VOX.noise = 2)
+%--------------------------------------------------------------------------
+VOX.noise = 1;                                  % noise level (default: 1)
+s         = 3;                                  % index of surprising word
 
 %% segment with priors
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Segmentation: with priors'); clf;
-
-% VOX.noise = 1.4;
-
-SEG1  = spm_voice_read(Y);
-[i,P] = spm_voice_i({SEG1.str}');
-s     = 5;
 SEG1  = spm_voice_read(Y,P);
 EEG1  = spm_voice_segmentation(Y,SEG1);
 
@@ -115,27 +141,23 @@ spm_figure('GetWin','Segmentation: no priors'); clf;
 SEG0  = spm_voice_read(Y,spm_softmax(log(P)/8));
 EEG0  = spm_voice_segmentation(Y,SEG0);
 
-% add evoked responses with priors to show more exuberant ERPs
+% add evoked responses with priors, to highlight more exuberant ERPs
 %--------------------------------------------------------------------------
 subplot(4,1,4), hold on
 plot(VOX.PST,EEG1,'-.');
 
-% segment with incongruent priors
+% remove priors from a single word (s)
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Segmentation: bad priors'); clf;
-Q     = P; Q(:,s) = spm_softmax(-log(P(:,s))/2);
+spm_figure('GetWin','Segmentation: suprise'); clf;
+Q     = P; Q(:,s) = ones(nw,1)/nw;
 SEG2  = spm_voice_read(Y,Q);
 EEG2  = spm_voice_segmentation(Y,SEG2);
 
-% with priors
-%--------------------------------------------------------------------------
-try, VOX = rmfield(VOX,'noise'); end
 
-
-% P300 
+% illustrate surprise responses (e.g.,P300)
 %==========================================================================
 
-% simulations of P300
+% simulations of P300: responses to a single word (s)
 %--------------------------------------------------------------------------
 spm_figure('GetWin','P300'); clf;
 i   = spm_voice_i(SEG1(s).str);
@@ -143,31 +165,58 @@ E0  = EEG0(:,i);
 E1  = EEG1(:,i);
 E2  = EEG2(:,i);
 
+% peristimulus time for plotting (250 ms before and after offset)
+%--------------------------------------------------------------------------
+t   = SEG2(s).IT/VOX.FS - 1/4;
+x   = [t,t + 1/2,t + 1/2,t];
+y   = [-1,-1,1,1];
+c   = spm_softmax(rand(3,1))';
+
+% responses with and without priors – all words
+%--------------------------------------------------------------------------
 subplot(3,2,1), plot(VOX.PST,E0,'-.',VOX.PST,E1) 
 xlabel('time (sec)'), ylabel('amplitude'), title('Waveforms','FontSize',16)
-set(gca,'YLim',[-2 2]), axis square, spm_axis tight, box off
+axis square, spm_axis tight, set(gca,'YLim',[-1 1]), box off
 
+% response differentials – all words
+%--------------------------------------------------------------------------
 subplot(3,2,3), plot(VOX.PST,E0 - E1) 
 xlabel('time (sec)'), ylabel('amplitude'), title('Differences','FontSize',16)
-set(gca,'YLim',[-1 1]), axis square, spm_axis tight, box off
+axis square, spm_axis tight, set(gca,'YLim',[-1 1]/3), box off
 
+% responses with and without priors – one word
+%--------------------------------------------------------------------------
 subplot(3,2,2), plot(VOX.PST,E2,'-.',VOX.PST,E1) 
 xlabel('time (sec)'), ylabel('amplitude'), title('Waveforms','FontSize',16)
-set(gca,'YLim',[-2 2]), axis square, spm_axis tight, box off
+axis square, spm_axis tight, set(gca,'YLim',[-1 1]), box off
 
+% show peristimulus time
+%--------------------------------------------------------------------------
+hold on, h = fill(x,y,c); hold off
+set(h,'Facealpha',1/8,'EdgeAlpha',1/8);
+
+% response differentials – one word
+%--------------------------------------------------------------------------
 subplot(3,2,4), plot(VOX.PST,E2 - E1) 
 xlabel('time (sec)'), ylabel('amplitude'), title('Differences','FontSize',16)
-set(gca,'YLim',[-1 1]), axis square, spm_axis tight, box off
+axis square, spm_axis tight, set(gca,'YLim',[-1 1]/3), box off
 
-%%
+% show peristimulus time
 %--------------------------------------------------------------------------
-for s = 1:numel(SEG2)
-    q     = SEG2(s).L{1};
-    p     = SEG2(s).p;
-    KL(s) = q'*(log(q) - log(p));
+hold on, h = fill(x,y/3,c); hold off
+set(h,'Facealpha',1/8,'EdgeAlpha',1/8);
+
+%% illustrate the relationship between belief updating and RMS responses
+%==========================================================================
+for i = 1:numel(SEG2)
+    q     = SEG2(i).L{1};
+    p     = SEG2(i).p;
+    KL(i) = q'*(log(q) - log(p));
 end
 
-spm_figure('GetWin','Segmentation: bad priors')
+% show RMS responses as a function of time
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Segmentation: suprise');
 RMS  = std(EEG2,[],2);
 RMS  = max(KL)*RMS/max(RMS);
 subplot(4,1,2), hold off, plot(VOX.PST,RMS), hold on
@@ -175,7 +224,11 @@ xlabel('time (sec)'), ylabel('RMS/KL (nats)')
 title('Belief updating','FontSize',16)
 spm_axis tight
 
-for s = 1:numel(SEG2)
-    t = SEG2(s).IT/VOX.FS;
-    plot(t,KL(s),'.','MarkerSize',32)
+% and overlay associated belief updating in terms of KL divergence
+%--------------------------------------------------------------------------
+for i = 1:numel(SEG2)
+    t = SEG2(i).IT/VOX.FS;
+    plot(t,KL(i),'.r','MarkerSize',32)
 end
+
+return

@@ -15,11 +15,13 @@ function [I] = spm_voice_onsets(Y,FS,T,U,C)
 % offset of words is evaluated in terms of threshold crossings before and
 % after the midpoint of a one second epoch. These are supplemented with
 % internal minima (after the spectral peak).
+%
+% see also: spm_voice_onset.m
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7574 2019-04-19 20:38:15Z karl $
+% $Id: spm_voice_onsets.m 7575 2019-04-21 16:47:39Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================

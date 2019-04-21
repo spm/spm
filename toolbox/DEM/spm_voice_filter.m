@@ -1,24 +1,29 @@
 function [G,F0] = spm_voice_filter(Y,FS,F1,F2)
-% segmentation of timeseries at fundamental frequency
+% Time frequency decomposition to characterise acoustic spectral envelope
 % FORMAT [G,F0] = spm_voice_filter(Y,FS)
 %
 % Y    - timeseries
 % FS   - sampling frequency
-% F1   - lower frequency bound [default: 512  Hz]
-% F2   - upper frequency bound [default: 4096 Hz]
+% F1   - lower frequency bound [default: 1024  Hz]
+% F2   - upper frequency bound [default: 16096 Hz]
 %
 % G    - power at acoutic frequencies
 % F0   - fundamental frequency
 %
-% This routine uses a simple wavelet decomposition (complex
-% Gaussian wavelets) to assess the power frequency range (250 - 5000 Hz).
-% This can be used to identify the onset of a word or fast modulations of
-% spectral energy aat the fundamental frequency F0 (100 - 300Hz).
+% This auxiliary routine uses a wavelet decomposition (complex Gaussian wavelets) to
+% assess the power frequency range (F1 - F2 Hz). This can be used to
+% identify the onset of a word or fast modulations of spectral energy at a
+% fundamental frequency F0 of 256 Hz.
+%
+% This routine is not used for voice recognition but can be useful for
+% diagnostics and plotting spectral envelope
+%
+% see also: spm_voice_check.m
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_filter.m 7558 2019-03-28 12:39:16Z karl $
+% $Id: spm_voice_filter.m 7575 2019-04-21 16:47:39Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -30,7 +35,7 @@ if nargin < 4; F2 = 16096; end
 %==========================================================================
 F0    = 256;
 k     = 1:2:round(F2/F0);                    % cycles per window                                % Hz
-k     = k(k > F1/F0 & k < F2/F0);            % Acoustic range
+k     = k(k > F1/F0 & k < F2/F0);            % acoustic range
 n     = round(FS/(F0/2))*2;                  % window length (F0 Hz)
 g     = abs(spm_wft(Y,k,n));                 % wavlet transform
 
@@ -38,8 +43,6 @@ g     = abs(spm_wft(Y,k,n));                 % wavlet transform
 %--------------------------------------------------------------------------
 G     = sum(g)';
 
-if nargout < 2, return, end
-    
 % find fundamental frequencies
 %==========================================================================
 
@@ -49,16 +52,11 @@ fG    = abs(fft(G(:)));
 nf    = length(fG);
 w     = (1:nf)/(nf/FS);
 i     = find(w > 64 & w < 300);
-[d,j] = max(fG(i));
+[~,j] = max(fG(i));
 F0    = w(i(1) + j - 1);
-
-
-return
 
 % graphics
 %==========================================================================
-global VOX
-if ~VOX.fundamental, return, end
 
 % time-frequency analysis
 %--------------------------------------------------------------------------  

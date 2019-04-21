@@ -7,15 +7,17 @@ function [I] = spm_voice_warp(Y,N)
 %
 % I    - resampling indices
 %
-% This routine returns the indices of a vector that realigns the phase,
+% This auxiliary routine returns the indices of a vector that realigns the phase,
 % following a Hilbert transform at a frequency of N cycles per vector
 % length; i.e., warps the vector to normalise the phase at a specified
 % scalable frequency
+% 
+% This routine is not actually used but is retained for reference
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_warp.m 7535 2019-03-03 20:27:09Z karl $
+% $Id: spm_voice_warp.m 7575 2019-04-21 16:47:39Z karl $
 
 
 % find Sigma points (maxima of Hilbert transform)

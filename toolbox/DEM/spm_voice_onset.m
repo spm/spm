@@ -4,19 +4,24 @@ function [i] = spm_voice_onset(Y,FS,u,v)
 %
 % Y    - timeseries
 % FS   - sampling frequency
-% u,v  - thresholds [default: 1/16]
+% u,v  - thresholds for onset and offset [default: 1/16]
 %
 % i    - intervals (time bins) containing spectral energy
 %
-% This routine identifies epochs constaining spectral energy of the power
-% envelope, defined as the law root mean square (RMS) power.the onset and
-% offset of words is evaluated in terms of threshold crossings before and
-% after the interquartile range (or the minimum if these do not exist).
+% This routine identifies epochs constaining spectral energy in the power
+% envelope, defined as the root mean square (RMS) power. The onset and
+% offset of words is evaluated in terms of the first and last threshold
+% crossings.
+%
+% This routine is a simple version of spm_voice_onset and is retained for
+% diagnostic purposes.
+%
+% see also: spm_voice_onsets.m
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onset.m 7552 2019-03-25 10:46:03Z karl $
+% $Id: spm_voice_onset.m 7575 2019-04-21 16:47:39Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
@@ -35,8 +40,6 @@ aY  = aY/max(aY);
 
 i0  = find(aY > u,1,'first');                     % onset
 iT  = find(aY > v,1,'last');                      % offsets
-
-
 
 % indices of interval containing spectral energy
 %--------------------------------------------------------------------------

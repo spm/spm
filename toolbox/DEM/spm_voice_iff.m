@@ -3,14 +3,14 @@ function [Y] = spm_voice_iff(xY)
 % FORMAT [Y] = spm_voice_iff(xY)
 %
 % xY    -  cell array of word structures
-% xY.Q  -   parameters - lexical
-% xY.P  -   parameters - prosidy
+% xY.Q  -  parameters - lexical
+% xY.P  -  parameters - prosidy
 %
-% xY.P.ff0  -   fundamental frequency (Hz)
-% xY.P.ff1  -   format frequency (Hz)
-% xY.P.dur  -   duration (seconds)
-% xY.P.tim  -   timbre
-% xY.P.inf  -   inflection
+% xY.P.ff0  -  fundamental frequency (Hz)
+% xY.P.ff1  -  format frequency (Hz)
+% xY.P.dur  -  duration (seconds)
+% xY.P.tim  -  timbre
+% xY.P.inf  -  inflection (f0,f1,f2)
 %
 % Y     - reconstructed timeseries
 %
@@ -21,7 +21,7 @@ function [Y] = spm_voice_iff(xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7574 2019-04-19 20:38:15Z karl $
+% $Id: spm_voice_iff.m 7575 2019-04-21 16:47:39Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -106,8 +106,13 @@ end
 %--------------------------------------------------------------------------
 if VOX.graphics
     
+    % figure
+    %----------------------------------------------------------------------
+    spm_figure('GetWin','voice'); clf;
+    
+    
     % peristimulus time (seconds) and plot
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     pst = (1:numel(Y))/FS;
     subplot(2,2,1), plot(pst,Y,[L,L],[-M M],':')
     xlabel('time (sec)'), ylabel('amplitude')
@@ -131,7 +136,7 @@ if VOX.graphics
     
     subplot(4,2,8), imagesc((1:ni)/F0,(1:Ni)*F1,Q)
     xlabel('time (seconds)'), ylabel('Formants (Hz)')
-    title('Spectral decomposition','FontSize',16)
+    title('Spectral (log) energy','FontSize',16), drawnow
 
 end
 

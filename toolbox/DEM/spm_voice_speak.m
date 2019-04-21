@@ -1,15 +1,18 @@
 function [xY] = spm_voice_speak(w,p,q)
-% inverse decomposition at fundamental frequency
-% FORMAT spm_voice_speak(w,p,q)
+% Generates a continuous state space word discrete causes
+% FORMAT [xY] = spm_voice_speak(w,p,q)
 %
 % w      - lexcial index (1 x number of words)
 % p      - prosody index (k x number of words)
-% q      - prosody index (2 x number of words)
-
+% q      - prosody index (1 x number of words)
+%
 % requires the following in the global variable VOX:
 % LEX    - lexical structure array
 % PRO    - prodidy structure array
 % WHO    - speaker structure array
+%
+% xY.Q  -  parameters - lexical
+% xY.P  -  parameters - prosidy
 %
 % This routine recomposes and plays a timeseries, specified as a sequence
 % of words that can be articulated with a particular prosody.  This routine
@@ -18,11 +21,13 @@ function [xY] = spm_voice_speak(w,p,q)
 % specification of a spoken phrase. In other words, it allows one to map
 % from discrete state space of lexical content and prosody to continuous
 % time outcomes.
+%
+% see also: spm_voice_iff.m
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7574 2019-04-19 20:38:15Z karl $
+% $Id: spm_voice_speak.m 7575 2019-04-21 16:47:39Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -74,22 +79,22 @@ end
 % assemble sequence
 %==========================================================================
 
-% turn off graphics, get FS and convert into audio signal
+% convert into audio signal
 %--------------------------------------------------------------------------
 try, FS = VOX.FS; catch, FS  = 22050; end
 
 for s = 1:n
     y{s} = spm_voice_iff(xY(s));
 end
-Y   = zeros(spm_length(y),1);
-i0  = 0;
+Y     = zeros(spm_length(y),1);
+i0    = 0;
 for s = 1:n
     ni    = numel(y{s});
     ii    = i0 + (1:ni)';
     Y(ii) = Y(ii) + y{s};
     i0    = ii(end) - round(ni/8);
 end
-Y   = Y(1:ii(end));
+Y     = Y(1:ii(end));
 
 % send to speaker
 %--------------------------------------------------------------------------

@@ -20,7 +20,7 @@ function [L] = spm_voice_test(wfile,sfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7566 2019-04-03 12:15:50Z karl $
+% $Id: spm_voice_test.m 7575 2019-04-21 16:47:39Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -189,6 +189,8 @@ drawnow
 
 return
 
+%% auxiliary code to articulate with and without prosody
+%==========================================================================
 
 %% articulate: prosody without lexical content
 %--------------------------------------------------------------------------
@@ -202,6 +204,6 @@ spm_voice_speak(W,[],1,LEX,PRO,WHO);
 
 %% articulate: with lexical content and prosody
 %--------------------------------------------------------------------------
-spm_voice_speak(W,P,[1;2],LEX,PRO,WHO);
+spm_voice_speak(W,P,1,LEX,PRO,WHO);
 
 

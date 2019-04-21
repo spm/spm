@@ -1,5 +1,5 @@
 function SEG = spm_voice_read(wfile,L)
-% Reads and translates a sound file 
+% Reads and translates a sound file or audio source
 % FORMAT spm_voice_read(wfile,[L])
 %
 % wfile  - .wav file or audio object or (double) timeseries
@@ -10,6 +10,7 @@ function SEG = spm_voice_read(wfile,L)
 % PRO    - prodidy structure array
 % WHO    - speaker structure array
 %
+% for each (s-th) word:
 %
 % SEG(s).str - lexical class
 % SEG(s).p   - prior
@@ -21,31 +22,51 @@ function SEG = spm_voice_read(wfile,L)
 %     
 % This routine takes a sound file has an input and infers the lexical
 % content, prosody and speaker. In then articulates the phrase or
-% sequence of word segments (SEG)
+% sequence of word segments (SEG). If called with no output arguments it
+% generates graphics detailing the segmentation.
+%
+% see also: spm_voice_speak.m and spm_voice_segmentation.m
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7574 2019-04-19 20:38:15Z karl $
-
-% get timeseries from audio recorder(or from a path
-%--------------------------------------------------------------------------
+% $Id: spm_voice_read.m 7575 2019-04-21 16:47:39Z karl $
 
 
-%% get data features from a wav file or audiorecorder object
+%% setup
 %==========================================================================
 global VOX
-if ~nargin
-    wfile     = audiorecorder(22050,16,1);
-    VOX.audio = wfile;
+if ~isfield(VOX,'LEX')
+    try
+        load VOX
+        VOX.analysis = 1;
+        VOX.graphics = 0;
+        VOX.mute     = 0;
+    catch
+        error('please create VOX.mat and place in path')
+    end
 end
 
+
+% if audio sources is not provided, assume a new recording
+%--------------------------------------------------------------------------
+if ~nargin
+    try
+        wfile     = VOX.audio;
+    catch
+        wfile     = audiorecorder(22050,16,1);
+        VOX.audio = wfile;
+    end
+end
+
+% record timeseries from audio recorder, for 8 seconds
+%--------------------------------------------------------------------------
 if isa(wfile,'audiorecorder')
     stop(wfile);
     record(wfile,8);
 end
 
-%% priors
+%% priors, assuming at most eight words
 %--------------------------------------------------------------------------
 ns    = 8;
 nw    = numel(VOX.LEX);
@@ -109,5 +130,13 @@ end
 if ~VOX.mute
     spm_voice_speak(W,P,R);
 end
+
+%% articulate: with lexical content and prosody
+%--------------------------------------------------------------------------
+if ~nargout
+    spm_figure('GetWin','Segmentation'); clf;
+    spm_voice_segmentation(wfile,SEG);
+end
+
 
 
