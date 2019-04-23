@@ -21,7 +21,7 @@ function [Y] = spm_voice_iff(xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_iff.m 7576 2019-04-23 09:22:44Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -29,9 +29,9 @@ global VOX
 if VOX.mute && ~nargout && ~VOX.graphics
     return
 end
-try, FS = VOX.FS; catch, FS  = 22050; end  % sampling frequency
-try, Tu = VOX.Tu; catch, Tu  = 4;     end  % log scaling (formants)
-try, Tv = VOX.Tv; catch, Tv  = 1;     end  % log scaling (interval)
+try, FS = VOX.FS; catch, FS  = 22050; end    % sampling frequency
+try, Tu = VOX.Tu; catch, Tu  = 4;     end    % log scaling (formants)
+try, Tv = VOX.Tv; catch, Tv  = 1;     end    % log scaling (interval)
 
 
 % recompose and play
@@ -62,7 +62,7 @@ I  = round([1; FS*cumsum(dI)]);              % cumulative intervals
 
 % reconstitute format coefficients
 %--------------------------------------------------------------------------
-Ni = round(8192/32);                         % number of formant bins
+Ni = 256;                                    % number of formant bins
 ni = numel(I) - 1;                           % number of intervals
 nj = round(FS/F1);                           % interval length
 
@@ -104,12 +104,13 @@ end
 
 % graphics  if requested
 %--------------------------------------------------------------------------
+if ~ isfield(VOX,'graphics'), return, end
+
 if VOX.graphics
     
     % figure
     %----------------------------------------------------------------------
-    spm_figure('GetWin','voice'); clf;
-    
+    spm_figure('GetWin','Voice (graphics)'); clf;
     
     % peristimulus time (seconds) and plot
     %----------------------------------------------------------------------
@@ -120,24 +121,24 @@ if VOX.graphics
     
     subplot(2,2,2), imagesc((1:ni)/F0,1000*[-nj,nj]/FS,D*Q)
     axis square, xlabel('time (seconds)'), ylabel('time (ms)')
-    title('Transients','FontSize',16), set(gca,'YLim',[-16 16])
+    title('Transients','FontSize',16), set(gca,'YLim',[-8 8])
     
-    subplot(4,2,6), imagesc((1:ni)/F0,(1:Ni)*F1,log(Q))
-    xlabel('time (seconds)'), ylabel('Formants (Hz)')
-    title('Spectral decomposition','FontSize',16)
-    
-    subplot(4,2,5), imagesc(xY.Q), axis square, 
+    subplot(4,2,5), imagesc(xY.Q), axis square
     xlabel('coefficients'), ylabel('coefficients')
     title('Parameters','FontSize',16)
-    
-    subplot(4,2,7), plot(1./dI), axis square, spm_axis tight
-    xlabel('time (intervals)'), ylabel('fundamental frequency')
-    title('Inflection','FontSize',16), drawnow
-    
-    subplot(4,2,8), imagesc((1:ni)/F0,(1:Ni)*F1,Q)
+
+    subplot(4,2,6), imagesc((1:ni)/F0,(1:Ni)*F1,Q)
     xlabel('time (seconds)'), ylabel('Formants (Hz)')
     title('Spectral (log) energy','FontSize',16), drawnow
 
+    subplot(4,2,7), plot(1./dI), axis square, spm_axis tight
+    xlabel('time (intervals)'), ylabel('fundamental frequency')
+    title('Inflection','FontSize',16)
+    
+    subplot(4,2,8), imagesc((1:ni)/F0,(1:Ni)*F1,log(Q))
+    xlabel('time (seconds)'), ylabel('Formants (Hz)')
+    title('Spectral decomposition','FontSize',16), drawnow
+    
 end
 
 

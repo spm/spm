@@ -48,7 +48,8 @@ function [xY] = spm_voice_ff(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_ff.m 7576 2019-04-23 09:22:44Z karl $
+
 
 % defaults
 %--------------------------------------------------------------------------
@@ -60,6 +61,13 @@ try, Tv = VOX.Tv; catch, Tv  = 1;     end    % log scaling (interval)
 try, F0 = VOX.F0; catch, F0  = 96;    end    % fundamental frequency
 try, F1 = VOX.F1; catch, F1  = 32;    end    % formant frequency
 try, F2 = VOX.F2; catch, F2  = 1024;  end    % minimum formant
+
+% sampling frequency
+%--------------------------------------------------------------------------
+if nargin < 2
+    try, FS = VOX.FS; catch, FS = 22050; end
+end
+
 
 % parameterise fundamental frequency modulations
 %==========================================================================
@@ -74,7 +82,7 @@ I     = round([1 FS*cumsum(dI)]);            % starting from one
 % apply DCT to formant frequency modulation
 %--------------------------------------------------------------------------
 Ny    = numel(Y);                            % number of samples
-Ni    = round(8192/32);                      % basis set to 8000 Hz
+Ni    = 256;                                 % number of format bins
 nj    = round(FS/F1);                        % formant interval length
 ni    = numel(find((I + nj) < Ny));          % number of intervals
 D     = spm_dctmtx(2*nj + 1,Ni*4);           % discrete cosine transform
@@ -124,11 +132,12 @@ xY.i  = [1,Ny];                              % range – indices
 
 % uncomment 'return' for graphics
 %==========================================================================
+if ~ isfield(VOX,'analysis'), return, end
 if VOX.analysis
     
     % figure
     %----------------------------------------------------------------------
-    spm_figure('GetWin','voice'); clf;
+    spm_figure('GetWin','Voice (analysis)'); clf;
     
     subplot(2,2,1), plot((1:Ny)/FS,Y), axis square, spm_axis tight
     xlabel('time (sec)'), ylabel('amplitude')
@@ -136,23 +145,23 @@ if VOX.analysis
     
     subplot(2,2,2), imagesc((1:ni)/F0,1000*[-nj,nj]/FS,D*exp(S*U*Q*V'))
     axis square, xlabel('time (seconds)'), ylabel('time (ms)')
-    title('transients'), set(gca,'YLim',[-16 16])
+    title('transients'), set(gca,'YLim',[-8 8])
+    
+    subplot(4,2,5), imagesc(Q), axis square
+    xlabel('coefficients'), ylabel('coefficients')
+    title('Parameters','FontSize',16)
     
     subplot(4,2,6), imagesc((1:ni)/F0,(1:Ni)*F1,exp(S*U*Q*V'))
     xlabel('time (seconds)'), ylabel('Formants (Hz)')
     title('Spectral decomposition','FontSize',16)
     
-    subplot(4,2,8), imagesc((1:ni)/F0,(1:Ni)*F1,U*Q*V')
-    xlabel('time (seconds)'), ylabel('Formants (Hz)')
-    title('Spectral (log) energy','FontSize',16)
-    
-    subplot(4,2,5), imagesc(Q)
-    xlabel('coefficients'), ylabel('coefficients')
-    title('Parameters','FontSize',16)
-    
     subplot(4,2,7), plot(1./dI), axis square, spm_axis tight
     xlabel('time (intervals)'), ylabel('fundamental frequency')
-    title('Inflection','FontSize',16), drawnow
+    title('Inflection','FontSize',16)
+    
+    subplot(4,2,8), imagesc((1:ni)/F0,(1:Ni)*F1,U*Q*V')
+    xlabel('time (seconds)'), ylabel('Formants (Hz)')
+    title('Spectral (log) energy','FontSize',16), drawnow
     
 end
 

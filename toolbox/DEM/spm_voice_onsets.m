@@ -21,15 +21,16 @@ function [I] = spm_voice_onsets(Y,FS,T,U,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_onsets.m 7576 2019-04-23 09:22:44Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
 global VOX
 
-if nargin < 3, T = 1/16; end                          % onset  threshold
-if nargin < 4, U = 1/16; end                          % height threshold
-if nargin < 5, C = 1/16; end                          % smoothing
+if nargin < 2, FS = VOX.FS; end                       % onset  threshold
+if nargin < 3, T  = 1/16;   end                       % onset  threshold
+if nargin < 4, U  = 1/16;   end                       % height threshold
+if nargin < 5, C  = 1/16;   end                       % smoothing
 
 % identify threshold crossings in power
 %--------------------------------------------------------------------------
@@ -52,8 +53,8 @@ jT    = find(yT(1:end - 1) > U & yT(2:end) < U);
 j0    = j0(j0 > FS*T & j0 < FS/2);
 jT    = jT(jT > FS/2);
 
-if numel(j0) < 1,  j0 = FS*T; end
-if numel(jT) < 1,  jT = n;    end
+if numel(j0) < 1,  j0 = fix(FS*T); end
+if numel(jT) < 1,  jT = n;         end
 
 % and supplement offsets with (internal) minima
 %--------------------------------------------------------------------------

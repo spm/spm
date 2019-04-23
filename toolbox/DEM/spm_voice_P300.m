@@ -25,7 +25,7 @@ function spm_voice_P300
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_P300.m 7576 2019-04-23 09:22:44Z karl $
 
 
 %% demo mode loads sentence (.mat) files
@@ -42,6 +42,7 @@ load(NAME)
 
 VOX.analysis = 0;
 VOX.graphics = 0;
+VOX.interval = 0;
 VOX.mute     = 0;
 VOX.onsets   = 0;
 
@@ -72,11 +73,13 @@ end
 
 % illustrate candidate intervals for the first word
 %--------------------------------------------------------------------------
-VOX.IO     = 1;
-VOX.IT     = 1;
-VOX.onsets = 1;
+VOX.IO       = 1;
+VOX.IT       = 1;
+VOX.onsets   = 1;
+VOX.interval = 1;
 spm_voice_get_word(Y);
-VOX.onsets = 0;
+VOX.interval = 0;
+VOX.onsets   = 0;
 
 % segment without priors
 %--------------------------------------------------------------------------
@@ -211,7 +214,7 @@ set(h,'Facealpha',1/8,'EdgeAlpha',1/8);
 for i = 1:numel(SEG2)
     q     = SEG2(i).L{1};
     p     = SEG2(i).p;
-    KL(i) = q'*(log(q) - log(p));
+    KL(i) = q'*(log(q + exp(-8)) - log(p + exp(-8)));
 end
 
 % show RMS responses as a function of time

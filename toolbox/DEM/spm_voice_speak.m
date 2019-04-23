@@ -27,7 +27,7 @@ function [xY] = spm_voice_speak(w,p,q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_speak.m 7576 2019-04-23 09:22:44Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -36,9 +36,9 @@ LEX = VOX.LEX;
 PRO = VOX.PRO;
 WHO = VOX.WHO;
 
-if isempty(w), w = zeros(0,1); end
-if isempty(p), p = zeros(0,1); end
-if isempty(q), q = zeros(0,1); end
+if nargin < 1, w = zeros(0,1); end
+if nargin < 2, p = zeros(0,1); end
+if nargin < 3, q = zeros(0,1); end
 
 n  = max([size(w,2),size(p,2),size(q,2)]);
 
@@ -98,7 +98,7 @@ Y     = Y(1:ii(end));
 
 % send to speaker
 %--------------------------------------------------------------------------
-sound(full(Y),FS);
+if ~ VOX.mute, sound(full(Y),FS); end
 
 return
 

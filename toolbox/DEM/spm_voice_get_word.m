@@ -33,7 +33,7 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_get_word.m 7576 2019-04-23 09:22:44Z karl $
 
 %% get peak identification parameters from VOX
 %==========================================================================
@@ -48,7 +48,6 @@ global VOX
 try, VOX.C;  catch, VOX.C  = 1/16;  end              % smoothing for peaks
 try, VOX.U;  catch, VOX.U  = 1/128; end              % threshold for peaks
 try, VOX.IT; catch, VOX.IT = 1;     end              % final index
-try, VOX.FS; catch, VOX.FS = FS;    end              % sampling frequency
 
 % ensure 2 second of data has been accumulated
 %--------------------------------------------------------------------------
@@ -57,7 +56,7 @@ if isa(wfile,'audiorecorder')
     pause(2 - dt);
 end
 
-%% log prior over lexical content (and indices within Ockham's window W)
+%% log prior over lexical content 
 %==========================================================================
 if nargin < 2
     nw = numel(VOX.LEX);
@@ -65,6 +64,9 @@ if nargin < 2
 else
     LP = log(P + exp(-8));
 end
+
+% within Ockham's window W
+%--------------------------------------------------------------------------
 W      = find(LP > (max(LP) - 3));
 
 %% find word and evaluate likelihoods
@@ -81,7 +83,7 @@ for i = 1:4
     j = fix((0:FS) + VOX.IT);
     G = spm_voice_check(Y(j(j < n)),FS,VOX.C);
     I = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
-    I = I(G(I) > VOX.U & I > FS/16);
+    I = I(G(I) > VOX.U & I > FS/8);
     
     % advance pointer if silence
     %----------------------------------------------------------------------

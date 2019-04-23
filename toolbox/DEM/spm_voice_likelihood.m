@@ -32,7 +32,7 @@ function [L,M,N] = spm_voice_likelihood(xY,W)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_likelihood.m 7576 2019-04-23 09:22:44Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -76,7 +76,7 @@ ni    = numel(i);
 % log likelihood over lexical outcomes
 %==========================================================================
 Q      = spm_vec(xY.Q) - spm_vec(VOX.Q);
-L      = zeros(size(VOX.LEX)) - 256;
+L      = zeros(size(VOX.LEX)) - exp(8);
 method = 'likelihood';
 
 switch method

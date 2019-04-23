@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice.m 7576 2019-04-23 09:22:44Z karl $
 
 
 %% setup options and files
@@ -50,6 +50,7 @@ end
 global VOX
 VOX.analysis = 0;
 VOX.graphics = 1;
+VOX.interval = 0;
 VOX.mute     = 0;
 VOX.onsets   = 0;
 
@@ -70,8 +71,7 @@ k     = [3 6];                                % number of prosody features
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[8;2;4;5;i;j;4],4);
-            pause(1/4)
+            spm_voice_speak(w,[8;1;5;5;7;i;j],4);
         end
     end
 end
@@ -273,6 +273,142 @@ for i = 1:numel(Pu)
 end
 
 imagesc(Pv,Pu,A), axis square, title('Accuracy','FontSize',16),drawnow
+
+
+%% iterative inversion
+%==========================================================================
+VOX.analysis = 1;
+VOX.graphics = 1;
+VOX.interval = 0;
+VOX.mute     = 0;
+VOX.F2       = 1;
+
+% get parameters for a particular word
+%--------------------------------------------------------------------------
+xY          = spm_voice_speak(14);
+xY.P.amp    = 0;
+xY.P.lat    = -8;
+xY.P.ff1    = log(32);
+xY.P.inf(1) = 1/100;
+
+% composine and decompose iteratively
+%--------------------------------------------------------------------------
+for i = 1:8
+    
+    % generate timeseries and play
+    %----------------------------------------------------------------------
+    Y  = spm_voice_iff(xY);
+    sound(Y,VOX.FS)
+    
+    % map back to parameters by inverting
+    %----------------------------------------------------------------------
+    VOX.F1   = exp(xY.P.ff1);
+    xY       = spm_voice_ff(Y);
+    xY.P.amp = 0;
+    xY.P.lat = -8;
+  
+end
+
+
+
+%% estimate formant frequency via maximum likelihood
+%==========================================================================
+global VOX
+load VOX
+load Ann
+VOX.analysis = 0;
+VOX.graphics = 0;
+VOX.interval = 0;
+VOX.onsets   = 0;
+VOX.mute     = 1;
+VOX.F2       = 1024;
+VOX.FS       = 22050;
+
+sound(Y,VOX.FS)
+str   = {'yes','yes','yes','yes'};
+w     = spm_voice_i(str);
+[i,P] = spm_voice_i(str);
+P     = spm_softmax(log(P)/2);
+
+% search over variables
+%--------------------------------------------------------------------------
+clear A
+F1    = linspace(32,48,8);
+F0    = linspace(200,400,8);
+for i = 1:numel(F1)
+    for j = 1:numel(F0);
+        
+        VOX.F1 = F1(i);
+        VOX.F0 = F0(j);
+        VOX.IT = 1;
+        
+        if 0
+            % first word
+            %--------------------------------------------------------------
+            L      = spm_voice_get_word(Y,P(:,1));
+            A(i,j) = log(L{1}(w(1)) + exp(-16))
+        else
+
+            % sentence
+            %--------------------------------------------------------------
+            SEG   = spm_voice_read(Y,P);
+            L     = 0;
+            for s = 1:numel(w)
+                L = L + log(SEG(s).L{1}(w(s)) + exp(-16));
+            end
+            A(i,j) = L
+        end
+    end
+end
+
+
+% P     = spm_softmax(log(P)*2);
+% SEG   = spm_voice_read(Y,P);
+% spm_voice_segmentation(Y,SEG);
+% 
+% % search over variables
+% %------------------------------------------------------------------------
+% clear A
+% F1    = linspace(24,48,8);
+% F0    = linspace(200,350,8);
+% for i = 1:numel(F1)
+%     for j = 1:numel(F0);
+%         
+%         VOX.F1 = F1(i);
+%         VOX.F0 = F0(j);
+%         
+%         % sentence
+%         %----------------------------------------------------------------
+%         L     = 0;
+%         for s = 1:numel(w)
+%             xy = spm_voice_ff(Y(SEG(s).I0:SEG(s).IT));
+%             O  = spm_voice_likelihood(xy,w(s));
+%             L  = L + O(w(s));
+%         end
+%         A(i,j) = L
+%         
+%     end
+% end
+
+
+% results over search
+%--------------------------------------------------------------------------
+imagesc(F0,F1,A), axis square, title('Accuracy','FontSize',16),drawnow
+xlabel('Fundamental frequency'),ylabel(' formant frequency')
+
+% segment using expected weaknesses
+%--------------------------------------------------------------------------
+A(:)   = spm_softmax(A(:));
+F1     = F1*spm_vec(sum(A,2));
+F0     = F0*spm_vec(sum(A,1));
+VOX.F1 = F1;
+VOX.F0 = F0;
+
+VOX.mute     = 0;
+VOX.analysis = 0;
+VOX.graphics = 0;
+
+spm_voice_read(Y,P);
 
 
 %% auxiliary code

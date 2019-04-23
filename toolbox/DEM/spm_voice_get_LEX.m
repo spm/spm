@@ -31,7 +31,7 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_get_LEX.m 7576 2019-04-23 09:22:44Z karl $
 
 
 % defaults
@@ -120,7 +120,8 @@ legend(Pstr)
 R      = [min(PP); max(PP)]';                    % all prosody parameters
 R(1,:) = log([1/32 1]);                          % amp
 R(2,:) = log([1/32 1]);                          % lat
-R(3,:) = log([24  48]);                          % ff1
+R(3,:) = log([25  50]);                          % ff1
+R(6,:) = 1./([100 350]);                         % ff0
 
 
 % select prosidy features and specify prior precision
@@ -156,7 +157,7 @@ end
 
 % select speaker features (F1) and specify prior precision
 %--------------------------------------------------------------------------
-i     = [3];
+i     = 3;
 ni    = numel(i);
 VOX.j = i;
 

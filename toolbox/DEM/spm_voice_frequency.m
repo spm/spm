@@ -8,21 +8,21 @@ function [I] = spm_voice_frequency(Y,FS,F0)
 %
 % I    - intervals (time bins): mean(I) = DI = FS/F0
 %
-% This routine  identifies the fundamental formant frequency that captures
-% the greatest variability in power upto 6 kHz. It then estimates the
-% fundamental frequency using a Hilbert transform and returns the sampling
-% intervals at the fundamental frequency; i.e., inflection or fluctuations
-% in fundamental wavelength (i.e., glottal pulse rate).
+% This routine  identifies the the sampling intervals at the fundamental
+% frequency, based upon the maxima after band-pass filtering around F0;
+% namely, inflection or fluctuations in fundamental wavelength (i.e.,
+% glottal pulse rate).
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_frequency.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_frequency.m 7576 2019-04-23 09:22:44Z karl $
 
 
 
 %% find fundamental frequencies
 %==========================================================================
+global VOX
 
 % Fourier transform
 %--------------------------------------------------------------------------
@@ -34,44 +34,64 @@ w     = (1:nf)/(nf/FS);
 %--------------------------------------------------------------------------
 R0    = F0/4;                                % standard deviation of F0(Hz)
 bY    = fY.*exp(-(w(:) - F0).^2/(2*(R0)^2)); % bandpass filter (at F0)
-sY    = real(ifft(bY));                      % filter timeseries
-iY    = imag(hilbert(sY));                   % Hilbert transform
-I     = diff(find(diff(iY < 0) > 0))';       % intervals (bins)
+[m,i] = max(abs(bY));                        % peak frequency
+bY(i) = bY(i) + m/32;                        % add fundamental frequency
+sY    = imag(ifft(bY));                      % filter timeseries
 
-return
+% intervals between maxima
+%--------------------------------------------------------------------------
+i     = find(diff(sY(1:end - 1)) > 0 & diff(sY(2:end)) < 0);
+I     = diff(i)';
 
-%% auxiliary graphics
+
+if ~ isfield(VOX,'interval'), return, end
+
+%% graphics
 %==========================================================================
-subplot(4,1,1)
-i    = cumsum(I);
-j    = 1:min(numel(sY),FS/2);
-b    = spm_zeros(sY);
-b(i) = max(sY);
-pst  = 1000*j/FS;
-plot(pst,sY(j),pst,b(j),':')
-title(sprintf('Fundamental intervals (F0 = %.0f Hz)',FS/mean(I)),'FontSize',16)
-xlabel('time (seconds)')
+if VOX.interval
+    
+    % figure
+    %----------------------------------------------------------------------
+    spm_figure('GetWin','Voice (interval)'); clf;
+    
+    j    = 1:min(numel(sY),FS/2);
+    b    = spm_zeros(sY);
+    Y    =  Y/max(abs(Y(j)));
+    sY   = sY/max(abs(sY(j)));
+    b(i) = max(sY);
+    pst  = 1000*j/FS;
+    f0   = FS/mean(I);
 
-% graphics
-%--------------------------------------------------------------------------
-subplot(4,2,3)
-plot(i/FS,FS./I), hold on
-plot([0 i(end)/FS],[F0 F0],'r'), hold off
-title(sprintf('Instantaneous frequency',F0),'FontSize',16)
-xlabel('time (seconds)')
-
-% graphics - F0
-%--------------------------------------------------------------------------
-subplot(4,2,4)
-i     = find(w > 64 & w < 300);
-f0    = FS/mean(I);
-plot(w(i),abs(fY(i))),                  hold on
-plot([F0 F0],[0 max(abs(fY(i)))],'r'),  hold on
-plot([f0 f0],[0 max(abs(fY(i)))],'r:'), hold off
-title(sprintf('Fundamental frequency',F0),'FontSize',16)
-xlabel('time (seconds)')
-
-
+    subplot(4,1,1)
+    plot(pst,Y(j),pst,b(j),':r')
+    str  = sprintf('Fundamental intervals (F0 = %.0f Hz)',f0);
+    title(str,'FontSize',16), xlabel('time (ms)'), ylabel('amplitude')
+    
+    subplot(4,1,2)
+    plot(pst,sY(j),pst,b(j),':r')
+    str  = sprintf('Band pass filtering around %.0f Hz',F0);
+    title(str,'FontSize',16), xlabel('time (ms)'), ylabel('amplitude')
+    
+    % graphics
+    %--------------------------------------------------------------------------
+    subplot(4,2,5)
+    plot(i(2:end)/FS,FS./I),          hold on
+    plot([0 i(end)/FS],[F0 F0],'r:'), hold on
+    plot([0 i(end)/FS],[f0 f0],'r '), hold off
+    title('Instantaneous frequency','FontSize',16)
+    xlabel('time (seconds)'), ylabel('Hz')
+    
+    % graphics - F0
+    %--------------------------------------------------------------------------
+    subplot(4,2,6)
+    i     = find(w > 64 & w < 300);
+    plot(w(i),abs(fY(i))),                  hold on
+    plot([F0 F0],[0 max(abs(fY(i)))],'r:'),  hold on
+    plot([f0 f0],[0 max(abs(fY(i)))],'r '), hold off
+    title('Fundamental frequency','FontSize',16)
+    xlabel('frequency (Hz)'), ylabel('spectral energy'), drawnow
+    
+end
 
 
 
