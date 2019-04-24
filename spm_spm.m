@@ -265,13 +265,13 @@ function SPM = spm_spm(SPM)
 % Analysis of fMRI Time-Series Revisited - Again. Worsley KJ, Friston KJ.
 % (1995) NeuroImage 2:173-181.
 %__________________________________________________________________________
-% Copyright (C) 1994-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 7120 2017-06-20 11:30:30Z spm $
+% $Id: spm_spm.m 7577 2019-04-24 08:59:56Z guillaume $
 
 
-SVNid = '$Rev: 7120 $';
+SVNid = '$Rev: 7577 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -553,7 +553,7 @@ for i = 1:numel(xM.VM)
         clear C v x1 x2 x3 M2 y1 y2 y3
     else
         if spm_mesh_detect(xM.VM(i))
-            v = xM.VM(i).private.cdata() > 0;
+            v = full(xM.VM(i).private.cdata) > 0;
         else
             v = spm_mesh_project(gifti(SPM.xVol.G), xM.VM(i)) > 0;
         end

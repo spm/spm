@@ -36,10 +36,10 @@ function varargout = spm_mesh_render(action,varargin)
 % hReg     - Handle of HandleGraphics object to build registry in.
 % See spm_XYZreg for more information.
 %__________________________________________________________________________
-% Copyright (C) 2010-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 7381 2018-07-25 10:27:54Z guillaume $
+% $Id: spm_mesh_render.m 7577 2019-04-24 08:59:56Z guillaume $
 
 
 %-Input parameters
@@ -72,7 +72,7 @@ switch lower(action)
             try
                 MM = M;
                 M  = gifti(MM.private.metadata(1).value);
-                try, M.cdata = MM.cdata(); end
+                try, M.cdata = full(MM.cdata); end
             catch
                 error('Cannot find a surface mesh to be displayed.');
             end
@@ -806,7 +806,7 @@ if ischar(v)
     end
 end
 if isa(v,'gifti'), v = v.cdata; end
-if isa(v,'file_array'), v = v(); end
+if isa(v,'file_array'), v = full(v); end
 if isempty(v)
     v = zeros(size(curv))';
 elseif ischar(v) || iscellstr(v) || isstruct(v)

@@ -10,10 +10,10 @@ function Mo = spm_mesh_calc(Mi,Mo,f,varargin)
 % opts - optional list of pairs of property names and values
 %        dmtx - read images into data matrix X [default: false]
 %__________________________________________________________________________
-% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_calc.m 6752 2016-03-24 16:17:25Z guillaume $
+% $Id: spm_mesh_calc.m 7577 2019-04-24 08:59:56Z guillaume $
 
 
 %-Check input arguments
@@ -46,7 +46,7 @@ for i=1:numel(Mi)
     if ~isfield(g,'cdata')
         error('File %s does not contain data.',Mi{i});
     end
-    D = g.cdata();
+    D = full(g.cdata);
     if i==1
         nv = size(D);
     else

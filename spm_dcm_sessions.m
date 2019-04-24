@@ -1,6 +1,6 @@
-function [] = spm_dcm_sessions ()
+function spm_dcm_sessions
 % Apply contrast vector to multiple DCM models
-% FORMAT [] = spm_dcm_sessions ()
+% FORMAT spm_dcm_sessions
 %
 % Contrasts are specified interactively and applied to a
 % number of DCM models. This routine can be used, for example,
@@ -23,10 +23,10 @@ function [] = spm_dcm_sessions ()
 % you to make an inference about the population from which the 
 % data (eg. subjects) are drawn.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2004-2019 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_sessions.m 3705 2010-02-01 20:51:28Z karl $
+% $Id: spm_dcm_sessions.m 7577 2019-04-24 08:59:56Z guillaume $
 
 
 Finter = spm_figure('GetWin','Interactive');

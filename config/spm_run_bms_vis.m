@@ -13,7 +13,7 @@ function spm_run_bms_vis(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_vis.m 5997 2014-05-20 14:51:07Z will $
+% $Id: spm_run_bms_vis.m 7577 2019-04-24 08:59:56Z guillaume $
 
 % Input
 % -------------------------------------------------------------------------
@@ -232,7 +232,7 @@ else
     if do_results  
         
         % Return to display routine 
-        spm_run_bms_vis();
+        spm_run_bms_vis;
         
     else
         

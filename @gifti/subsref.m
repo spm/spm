@@ -4,7 +4,7 @@ function varargout = subsref(this,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: subsref.m 7291 2018-04-12 08:43:08Z guillaume $
+% $Id: subsref.m 7577 2019-04-24 08:59:56Z guillaume $
 
 if length(this) > 1 && ~strcmp(subs(1).type,'()')
     warning('Not implemented.');
@@ -42,7 +42,7 @@ switch subs(1).type
             end
         end
         if strcmp(subs(1).subs,'faces') || strcmp(subs(1).subs,'indices')
-            varargout{1} = varargout{1}() + 1; % indices start at 1
+            varargout{1} = full(varargout{1}) + 1; % indices start at 1
         end
         if length(subs) > 1
             varargout{1} = subsref(varargout{1},subs(2:end));

@@ -9,10 +9,10 @@ function varargout = spm_bms_display(BMS,action)
 %          'save' (save results as NIfTI image)
 %          'overlays' (options overlays menu)
 %__________________________________________________________________________
-% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2019 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display.m 6038 2014-06-04 15:22:42Z will $
+% $Id: spm_bms_display.m 7577 2019-04-24 08:59:56Z guillaume $
 
 
 % Main options (action)
@@ -576,7 +576,7 @@ uicontrol(Finter,'Style','Text',...
         user_data   = get(fig,'UserData');
         BMS         = user_data.BMS;
         
-        con_image   = spm_bms_compare_groups();
+        con_image   = spm_bms_compare_groups;
         
         job.img{1}  = con_image;
         job.file{1} = user_data.BMS.fname;

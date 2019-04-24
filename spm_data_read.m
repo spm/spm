@@ -19,10 +19,10 @@ function Y = spm_data_read(V,varargin)
 % I1,I2,...- subscript arrays
 % Y        - an array of data values with dimensions (v,m)
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_data_read.m 6486 2015-06-24 16:27:17Z guillaume $
+% $Id: spm_data_read.m 7577 2019-04-24 08:59:56Z guillaume $
 
 
 if ~isstruct(V)
@@ -35,7 +35,7 @@ if isfield(V(1),'dat') && ~isequal(cl,'gifti'), cl = 'nifti'; end
 switch cl
     case 'nifti'
         if isempty(varargin)
-            % Y = V.private.dat(); % if numel(V)==1, is faster
+            % Y = full(V.private.dat); % if numel(V)==1, is faster
             Y = spm_read_vols(V);
         elseif ischar(varargin{1}) && ~isequal(varargin{1},':')
             switch lower(varargin{1})

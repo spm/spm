@@ -1,6 +1,6 @@
 function con_image = spm_bms_compare_groups(BMSfiles,name,contrast)
 % Compare BMS maps for different groups
-% FORMAT spm_bms_compare_groups()
+% FORMAT con_image = spm_bms_compare_groups(BMSfiles,name,contrast)
 %
 % Input (interactive):
 % BMS             - BMS.mat files for the two groups to compare
@@ -13,10 +13,10 @@ function con_image = spm_bms_compare_groups(BMSfiles,name,contrast)
 %
 % Output: contrast image (path)
 %__________________________________________________________________________
-% Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2019 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_compare_groups.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_bms_compare_groups.m 7577 2019-04-24 08:59:56Z guillaume $
 
 %-Parameters
 %--------------------------------------------------------------------------
