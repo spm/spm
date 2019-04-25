@@ -17,7 +17,7 @@ function ret = spm_ov_reorient(varargin)
 % Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_ov_reorient.m 7565 2019-04-03 09:36:23Z guillaume $
+% $Id: spm_ov_reorient.m 7578 2019-04-25 10:25:26Z guillaume $
 
 
 global st
@@ -177,7 +177,7 @@ switch cmd
         p = spm_fileparts(st.vols{volhandle}.fname);
         [P, sts] = spm_select(Inf, 'image', {'Image(s) to reorient'}, P, p);
         if ~sts
-            disp('''Set origin to corsshair'' cancelled.');
+            disp('''Set origin to crosshair'' cancelled.');
             return;
         end
         sv = questdlg('Save reorientation matrix for future reference?',...

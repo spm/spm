@@ -9,7 +9,7 @@ function ret = spm_ov_mesh(varargin)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % Torben Lund, Guillaume Flandin & Christian Gaser
-% $Id: spm_ov_mesh.m 7183 2017-10-09 15:26:47Z guillaume $
+% $Id: spm_ov_mesh.m 7578 2019-04-25 10:25:26Z guillaume $
 
 
 switch lower(varargin{1})
@@ -98,7 +98,7 @@ if nargin < 2
     [g,sts] = spm_select([1 Inf],'mesh','Select mesh(es)...');
     if ~sts, st.vols{i}.mesh.meshes = m; return; end
 end
-g = gifti(g);
+g = export(gifti(g),'patch');
 for j=1:numel(g)
     if ~isfield(g(j),'vertices') || ~isfield(g(j),'faces')
         error('Selected file must contain triangular meshes.');
