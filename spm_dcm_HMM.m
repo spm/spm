@@ -48,7 +48,7 @@ function [HMM,csd] = spm_dcm_HMM(GCM,N,b)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_HMM.m 7279 2018-03-10 21:22:44Z karl $
+% $Id: spm_dcm_HMM.m 7580 2019-05-01 12:48:04Z karl $
 
 
 %  get windowed cross spectra if necessary
@@ -221,7 +221,7 @@ for p = 1:P
     DCM.M.pE = CSD.Ep;                 % prior expectation of parameters
     DCM.M.pC = diag(spm_vec(pC));      % prior covariances of parameters
     DCM.M.hE = 0;                      % expected log degrees of freedom
-    DCM.M.hC = 1/64;                   % intermediate covariance
+    DCM.M.hC = 1/8;                    % intermediate covariance
     
     % invert each window
     %----------------------------------------------------------------------

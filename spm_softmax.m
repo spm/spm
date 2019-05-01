@@ -7,18 +7,21 @@ function [y] = spm_softmax(x,k)
 %
 % y  = exp(k*x)/sum(exp(k*x))
 %
-% NB: If supplied with a matrix this rotine will return the softmax
+% NB: If supplied with a matrix this routine will return the softmax
 % function over colums - so that spm_softmax([x1,x2,..]) = [1,1,...]
  
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_softmax.m 7306 2018-05-07 13:42:02Z karl $
+% $Id: spm_softmax.m 7580 2019-05-01 12:48:04Z karl $
  
 % apply
 %--------------------------------------------------------------------------
-if nargin > 1, x = k*x; end
+if nargin > 1,    x = k*x; end
+if size(x,1) < 2; y = ones(size(x)); return, end
 
+% exponentiate and normalise
+%--------------------------------------------------------------------------
 x  = exp(bsxfun(@minus,x,max(x)));
-y  = bsxfun(@rdivide,x,sum(x));
+y  = bsxfun(@rdivide,x,sum(x) + eps);

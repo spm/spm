@@ -21,7 +21,7 @@ function spm_dcm_HMM_plot(HMM,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_HMM_plot.m 7272 2018-03-04 13:12:31Z karl $
+% $Id: spm_dcm_HMM_plot.m 7580 2019-05-01 12:48:04Z karl $
 
 %  preliminaries: get the hidden Markov model to report
 %--------------------------------------------------------------------------
@@ -34,9 +34,6 @@ hmm = HMM(s);
 N     = numel(hmm.Ep);                          % number of epochs
 for t = 1:N
     qp(:,t) = spm_vec(hmm.Ep{t}.A);             % expected connectivity
-end
-for i = 1:size(hmm.L,1)
-    L(i,:)  = hmm.L(i,:) - min(hmm.L(i,:));     % free energy terms
 end
 
 % plot sequence of expected states
@@ -69,29 +66,32 @@ subplot(4,2,8),imagesc(hmm.qB);axis square
 title('State transition matrix','FontSize',16)
 xlabel('Hidden state'), ylabel('State')
 
-% lower bound on model evidence (DCM, PEB and HMM components)
-%--------------------------------------------------------------------------
-spm_figure('Getwin','HMM-F'); clf
-
-subplot(2,2,1)
-plot([L' sum(L)']);axis square
-title('Log-likelihood','FontSize',16)
-xlabel('Iteration'), ylabel('(negative) free energy')
-legend({'Hidden states (HMM)',...
-        'State parameters (HMM)',...
-        'Connectivity (DCM)',...
-        'Total'},'Location','Best')
-    
-% and log evidence, if there is more than one model
-%----------------------------------------------------------------------    
+% if there are several hidden Markov models, report complexity costs
+%==========================================================================
 if length(HMM) > 1
     
-    subplot(2,2,2)
-    F = spm_cat({HMM.F});
-    bar(spm_softmax(F(:)),'c')
+    % lower bound on model evidence (DCM, PEB and HMM components)
+    %----------------------------------------------------------------------
+    spm_figure('Getwin','HMM-F'); clf;
+    for i = 1:numel(HMM)
+        F(i,:)  = HMM(i).L(:,end);
+    end
+    F   = F - ones(numel(HMM),1)*min(F);
+    
+    subplot(2,2,1)
+    bar([F sum(F,2)])
     title('Log-evidence','FontSize',16), axis square
     xlabel('Number of states'), ylabel('Log-likehood')
-  
+    legend({'Hidden states (HMM)',...
+        'State parameters (HMM)',...
+        'Connectivity (DCM)',...
+        'Total'},'location','north')
+    
+    subplot(2,2,2)
+    bar(spm_softmax(spm_cat({HMM.F})'),'c')
+    title('Evidence','FontSize',16), axis square
+    xlabel('Number of states'), ylabel('likehood')
+    
 end
 
 drawnow
