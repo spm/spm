@@ -12,7 +12,7 @@ function data = spm_eeg_inv_get_vol_sens(D, val, space, gradsource, modality)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_get_vol_sens.m 7544 2019-03-15 16:20:16Z vladimir $
+% $Id: spm_eeg_inv_get_vol_sens.m 7579 2019-05-01 11:32:17Z vladimir $
 
 data   = [];
 
@@ -137,6 +137,10 @@ if eegind > 0 && ~strncmp(modality, 'MEG', 3)
     
     vol      = forward.vol;
     
+    if isa(vol, 'char')
+        vol = ft_read_vol(vol);
+    end
+    
     if siunits
         sens     = forward.sensors;
         toMNI    = forward.toMNI;
@@ -159,11 +163,7 @@ if eegind > 0 && ~strncmp(modality, 'MEG', 3)
     if isfield(data, 'transforms')  % With MEG
         if istemplate
             error('Combining EEG and MEG cannot be done with template head for now.');
-        else
-            if isa(vol, 'char')
-                vol = ft_read_vol(vol);
-            end
-            
+        else                        
             fromNative = data.transforms.toNative\to_mm;
             
             data.EEG.vol  = ft_transform_geometry(fromNative, vol);
@@ -187,11 +187,7 @@ if eegind > 0 && ~strncmp(modality, 'MEG', 3)
                 data.transforms.toMNI_aligned = to_mm*M;
                 data.transforms.toHead        = eye(4); 
                 data.transforms.toNative      = to_mm; 
-            case {'MNI-aligned'}
-                if isa(vol, 'char')
-                    vol = ft_read_vol(vol);
-                end
-                
+            case {'MNI-aligned'}               
                 data.EEG.vol  = ft_transform_geometry(M, vol);
                 data.EEG.sens = ft_transform_geometry(M, sens);
                 

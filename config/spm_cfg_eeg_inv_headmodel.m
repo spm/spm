@@ -4,7 +4,7 @@ function headmodel = spm_cfg_eeg_inv_headmodel
 % Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 7304 2018-05-02 12:09:35Z guillaume $
+% $Id: spm_cfg_eeg_inv_headmodel.m 7579 2019-05-01 11:32:17Z vladimir $
 
 
 D = cfg_files;
@@ -235,7 +235,7 @@ for i = 1:numel(job.D)
     [D, ok] = check(D, '3d');
     
     if ~ok
-        error(['The dataset ' D.fname ' does not have preperly defined sensors and fiducials.']);
+        error(['The dataset ' D.fname ' does not have properly defined sensors and fiducials.']);
     end
     
     if ~isfield(D,'inv')

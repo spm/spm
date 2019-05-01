@@ -26,7 +26,7 @@ function D = spm_eeg_fix_ctf_headloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_fix_ctf_headloc.m 6942 2016-11-21 13:17:44Z guillaume $
+% $Id: spm_eeg_fix_ctf_headloc.m 7579 2019-05-01 11:32:17Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Fix CTF head locations',0);
@@ -197,7 +197,7 @@ dewargrad = ctf2grad(D.origheader, 1);
 
 M = spm_eeg_inv_headcoordinates(dewarfid(:, 1), dewarfid(:, 2), dewarfid(:, 3));
 
-grad = ft_convert_units(ft_transform_sens(M, dewargrad), 'mm');
+grad = ft_convert_units(ft_transform_geometry(M, dewargrad), 'mm');
 
 D = sensors(D, 'MEG', grad);
 
@@ -206,7 +206,7 @@ fid.pnt = [];
 fid.fid.pnt = dewarfid';
 fid.unit = 'cm';
 
-fid = ft_convert_units(ft_transform_headshape(M, fid), 'mm');
+fid = ft_convert_units(ft_transform_geometry(M, fid), 'mm');
 
 D = fiducials(D, fid);
 
