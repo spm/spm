@@ -23,7 +23,7 @@ function [G,F0] = spm_voice_filter(Y,FS,F1,F2)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_filter.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_filter.m 7581 2019-05-01 12:50:13Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ if nargin < 4; F2 = 16096; end
 % find acoutic energy using spm_wft
 %==========================================================================
 F0    = 256;
-k     = 1:2:round(F2/F0);                    % cycles per window                                % Hz
+k     = 1:round(F2/F0);                      % cycles per window                                % Hz
 k     = k(k > F1/F0 & k < F2/F0);            % acoustic range
 n     = round(FS/(F0/2))*2;                  % window length (F0 Hz)
 g     = abs(spm_wft(Y,k,n));                 % wavlet transform

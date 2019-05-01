@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7559 2019-03-28 17:10:21Z thomas $
+% $Id: spm_MDP_VB_X.m 7581 2019-05-01 12:50:13Z karl $
 
 
 % deal with a sequence of trials
@@ -1180,7 +1180,7 @@ for m = 1:size(MDP,1)
     %----------------------------------------------------------------------
     MDP(m).T  = T;            % number of belief updates
     MDP(m).V  = V{m};         % policies
-    MDP(m).O  = O{m};         % policies
+    MDP(m).O  = O{m};         % outcomes
     MDP(m).P  = P{m};         % probability of action at time 1,...,T - 1
     MDP(m).R  = u{m};         % conditional expectations over policies
     MDP(m).Q  = x(m,:);       % conditional expectations over N states

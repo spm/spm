@@ -20,7 +20,7 @@ function [F0,F1] = spm_voice_fundamental(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_fundamental.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_fundamental.m 7581 2019-05-01 12:50:13Z karl $
 
 
 % find fundamental frequencies
@@ -35,11 +35,13 @@ w     = (1:nf)/(nf/FS);
 
 % find fundamental frequency (F0)
 %--------------------------------------------------------------------------
-i     = find(w > 60 & w < 340);                 % range of F0
+i     = find(w > 100 & w < 300);                 % range of F0
 sY    = spm_conv(fY(i),32);
 j     = find(diff(diff(sY,1) > 0) < 0);
 k     = find(sY(j) > max(sY(j))/2,1,'first');
 F0    = w(i(1) + j(k));
+
+if nargout == 1, return, end
 
 % find fundamental formant frequency (F1)
 %--------------------------------------------------------------------------
@@ -48,13 +50,15 @@ sF    = spm_conv(hamming(numel(i)).*fY(i),F0);
 [~,j] = max(sF);
 F1    = w(i(1) + j);
 
+if nargout > 0, return, end
+
 % graphics
 %--------------------------------------------------------------------------
 subplot(3,1,1);
 i    = find(w < 512);
 plot(w(i),fY(i),'r'),   hold on
 plot([F0 F0],[0 max(fY(i))]), hold off
-title('Fundamental frequency (F0))','FontSize',16)
+title('Fundamental frequency (F0)','FontSize',16)
 xlabel('frequency (hertz)')
 
 % graphics

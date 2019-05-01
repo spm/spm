@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7576 2019-04-23 09:22:44Z karl $
+% $Id: spm_voice.m 7581 2019-05-01 12:50:13Z karl $
 
 
 %% setup options and files
@@ -323,18 +323,32 @@ VOX.onsets   = 0;
 VOX.mute     = 1;
 VOX.F2       = 1024;
 VOX.FS       = 22050;
+VOX.IT       = 1;
 
 sound(Y,VOX.FS)
-str   = {'yes','yes','yes','yes'};
-w     = spm_voice_i(str);
-[i,P] = spm_voice_i(str);
-P     = spm_softmax(log(P)/2);
+str       = {'yes','yes','yes','yes'};
+w         = spm_voice_i(str);
+[i,P]     = spm_voice_i(str);
+P         = spm_softmax(log(P));
+[L,F0,F1] = spm_voice_identity(Y,P(:,1));
+
+
+VOX.F1       = F1;
+VOX.F0       = F0;
+VOX.mute     = 0;
+VOX.analysis = 0;
+VOX.graphics = 0;
+
+spm_voice_read(Y,P);
+
 
 % search over variables
 %--------------------------------------------------------------------------
+P     = spm_softmax(log(P)/2);
+
 clear A
 F1    = linspace(32,48,8);
-F0    = linspace(200,400,8);
+F0    = linspace(200,300,4);
 for i = 1:numel(F1)
     for j = 1:numel(F0);
         
@@ -362,35 +376,6 @@ for i = 1:numel(F1)
 end
 
 
-% P     = spm_softmax(log(P)*2);
-% SEG   = spm_voice_read(Y,P);
-% spm_voice_segmentation(Y,SEG);
-% 
-% % search over variables
-% %------------------------------------------------------------------------
-% clear A
-% F1    = linspace(24,48,8);
-% F0    = linspace(200,350,8);
-% for i = 1:numel(F1)
-%     for j = 1:numel(F0);
-%         
-%         VOX.F1 = F1(i);
-%         VOX.F0 = F0(j);
-%         
-%         % sentence
-%         %----------------------------------------------------------------
-%         L     = 0;
-%         for s = 1:numel(w)
-%             xy = spm_voice_ff(Y(SEG(s).I0:SEG(s).IT));
-%             O  = spm_voice_likelihood(xy,w(s));
-%             L  = L + O(w(s));
-%         end
-%         A(i,j) = L
-%         
-%     end
-% end
-
-
 % results over search
 %--------------------------------------------------------------------------
 imagesc(F0,F1,A), axis square, title('Accuracy','FontSize',16),drawnow
@@ -408,7 +393,7 @@ VOX.mute     = 0;
 VOX.analysis = 0;
 VOX.graphics = 0;
 
-spm_voice_read(Y,P);
+spm_voice_read(Y);
 
 
 %% auxiliary code

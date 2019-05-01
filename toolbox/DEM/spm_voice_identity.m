@@ -1,13 +1,13 @@
-function [O] = spm_voice_get_word(wfile,P)
+function [L,F0,F1] = spm_voice_identity(wfile,P)
 % Evaluates the likelihood of the next word in a file or object
-% FORMAT [O] = spm_voice_get_word(wfile,P)
+% FORMAT [L,F0,F1] = spm_voice_identity(wfile,P)
 %
 % wfile  - .wav file, audiorecorder object or (double) time series
 % P      - lexical prior [optional]
 %
-% O{1}   - lexical likelihood (or posterior if priors are specified)
-% O{2}   - prosody likelihood
-% O{3}   - speaker likelihood
+% L      - joint likelihood over F0 and F1 ( identity attributes)
+% F0     - fundamental frequency
+% F1     - format frequency
 %
 % requires the following in the global variable VOX:
 %
@@ -18,22 +18,14 @@ function [O] = spm_voice_get_word(wfile,P)
 % F0     - fundamental frequency (Hz)
 % IT     - index or pointer to offset of last word (i.e., CurrentSample)
 %
-% and updates:
-% I0     - index or pointer to onset  of current word
-% IT     - index or pointer to offset of current word
-%
-% This routine evaluates the likelihood of a word, prosody and identity by
-% inverting successive epochs of data from an audiofile or device starting
-% at VOX.IT.  Based on the word with the least variational free energy , it
-% updates the index, ready for the next word. Priors over the words can be
-% specified to implement an Occam's window (of three nats); thereby
-% restricting the number of lexical entries evaluated - and augmenting the
-% likelihoods to give the posterior probability over words.
+% this routine estimates the joint probability over fundamental and formant
+% frequencies based upon a spoken word source, using the average spectral
+% content of a spoken word.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7581 2019-05-01 12:50:13Z karl $
+% $Id: spm_voice_identity.m 7581 2019-05-01 12:50:13Z karl $
 
 %% get peak identification parameters from VOX
 %==========================================================================
@@ -111,7 +103,7 @@ end
 
 % break if EOF
 %--------------------------------------------------------------------------
-if isempty(I), O  = {}; return, end
+if isempty(I), L  = {}; return, end
 
 
 %% get 1 second segment and remove previous word
@@ -123,36 +115,49 @@ j    = fix((0:FS + FS/4) + I);
 y    = Y(j(j < n & j > 1));
 j    = logical(j < VOX.IT);
 y(j) = 0;
-j    = spm_voice_onsets(y,FS);
+J    = spm_voice_onsets(y,FS);
 
-% retrieve epochs and decompose at fundamental frequency
+% get F0
 %--------------------------------------------------------------------------
-clear xy J
-for i = 1:1%numel(j)
-    xy(i,1)       = spm_voice_ff(y(j{i}),FS);
-    xy(i,1).P.lat = log((I + j{i}(1) - VOX.IT)/FS);
-    J(i,:)        = I + [j{i}(1),j{i}(end)];
+F0    = spm_voice_fundamental(Y,FS);
+
+
+% likelihood search over fundamental and formant frequencies
+%--------------------------------------------------------------------------
+F1    = linspace(24,48,16);
+F     = zeros(numel(F1),1);
+for i = 1:numel(F1)
+    
+    VOX.F0 = F0;
+    VOX.F1 = F1(i);
+
+    % sentence
+    %------------------------------------------------------------------
+    clear xy
+    for k = 1:1 % numel(J)
+        xy(k,1) = spm_voice_ff(y(J{k}),FS);
+    end
+    
+    % free energy
+    %------------------------------------------------------------------
+    L    = spm_voice_likelihood(xy,W);
+    L    = bsxfun(@plus,L,LP);
+    Q    = spm_softmax(L);
+    Fi   = sum(Q.*(L - log(Q + exp(-8))));
+    F(i) = spm_softmax(Fi(:))'*Fi(:);
+
+    
 end
 
-% select the most likely action (interval)
-%==========================================================================
-[L,M,N] = spm_voice_likelihood(xy,W);
-L       = bsxfun(@plus,L,LP);
-Q       = spm_softmax(L);
-F       = sum(Q.*(L - log(Q + exp(-16))));
-[d,m]   = max(F(1,1,:));
-
+% plot(F1,F)
 % posteriors
 %--------------------------------------------------------------------------
-O{1}    = spm_softmax(L(:,:,m));            % posteriors
-O{2}    = spm_softmax(M(:,:,m));            % likelihood
-O{3}    = spm_softmax(N(:,:,m));            % likelihood
-
-% update pointers based upon selected word
-%--------------------------------------------------------------------------
-VOX.I0  = fix(J(m,1));
-VOX.IT  = fix(J(m,2));
+L      = F;
+L(:)   = spm_softmax(F(:));
+F1     = F1*spm_vec(sum(L,2));
 
 return
+
+
 
 
