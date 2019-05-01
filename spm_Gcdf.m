@@ -1,11 +1,13 @@
-function F = spm_Gcdf(x,h,l)
+function F = spm_Gcdf(x,h,l,tail)
 % Cumulative Distribution Function (CDF) of Gamma distribution
-% FORMAT F = spm_Gcdf(x,h,l)
+% FORMAT F = spm_Gcdf(x,h,l,tail)
 %
-% x - Gamma-variate   (Gamma has range [0,Inf) )
-% h - Shape parameter (h>0)
-% l - Scale parameter (l>0)
-% F - CDF of Gamma-distribution with shape & scale parameters h & l
+% x    - Gamma-variate   (Gamma has range [0,Inf) )
+% h    - Shape parameter (h>0)
+% l    - Scale parameter (l>0)
+% tail - if 'upper', return the upper tail probability of the Gamma
+%        distribution [Default: 'lower']
+% F    - CDF of Gamma-distribution with shape & scale parameters h & l
 %__________________________________________________________________________
 %
 % spm_Gcdf implements the Cumulative Distribution of the Gamma-distribution.
@@ -56,25 +58,30 @@ function F = spm_Gcdf(x,h,l)
 %       "Numerical Recipes in C"
 %        Cambridge
 %__________________________________________________________________________
-% Copyright (C) 1992-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1992-2019 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Gcdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% $Id: spm_Gcdf.m 7582 2019-05-01 15:37:16Z guillaume $
 
 
 %-Format arguments, note & check sizes
 %--------------------------------------------------------------------------
-if nargin<3, error('Insufficient arguments'), end
+if nargin<3, error('Insufficient arguments.'), end
 
 ad = [ndims(x);ndims(h);ndims(l)];
 rd = max(ad);
-as = [  [size(x),ones(1,rd-ad(1))];...
-    [size(h),ones(1,rd-ad(2))];...
-    [size(l),ones(1,rd-ad(3))]     ];
+as = [[size(x),ones(1,rd-ad(1))];...
+      [size(h),ones(1,rd-ad(2))];...
+      [size(l),ones(1,rd-ad(3))]];
 rs = max(as);
 xa = prod(as,2)>1;
 if sum(xa)>1 && any(any(diff(as(xa,:)),1))
-    error('non-scalar args must match in size');
+    error('Non-scalar arguments must match in size.');
+end
+
+if nargin<4, tail='lower'; end
+if ~strcmpi(tail,'lower') && ~strcmpi(tail,'upper')
+    error('Tail must be ''lower'' or ''upper''.');
 end
 
 %-Computation
@@ -86,7 +93,7 @@ F = zeros(rs);
 md = ( ones(size(x))  &  h>0  &  l>0 );
 if any(~md(:))
     F(~md) = NaN;
-    warning('Returning NaN for out of range arguments');
+    warning('Returning NaN for out of range arguments.');
 end
 
 %-Non-zero where defined and x>0
@@ -97,4 +104,4 @@ if xa(2), Qh=Q; else Qh=1; end
 if xa(3), Ql=Q; else Ql=1; end
 
 %-Compute
-F(Q) = gammainc(l(Ql).*x(Qx),h(Qh));
+F(Q) = gammainc(l(Ql).*x(Qx),h(Qh),tail);

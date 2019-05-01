@@ -1,10 +1,12 @@
-function F = spm_Xcdf(x,v)
+function F = spm_Xcdf(x,v,tail)
 % Cumulative Distribution Function (CDF) of Chi-squared distribution
 % FORMAT F = spm_Xcdf(x,v)
 %
-% x - Chi-squared variate
-% v - degrees of freedom (v>0, non-integer d.f. accepted)
-% F - CDF at x of Chi-squared distribution with v degrees of freedom
+% x    - Chi-squared variate
+% v    - degrees of freedom (v>0, non-integer d.f. accepted)
+% tail - if 'upper', return the upper tail probability of the Chi-squared
+%        distribution
+% F    - CDF at x of Chi-squared distribution with v degrees of freedom
 %__________________________________________________________________________
 %
 % spm_Xcdf implements the Cumulative Distribution of Chi-squared
@@ -45,16 +47,17 @@ function F = spm_Xcdf(x,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 1992-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1992-2019 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Xcdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% $Id: spm_Xcdf.m 7582 2019-05-01 15:37:16Z guillaume $
 
 
 %-Check enough arguments
 %--------------------------------------------------------------------------
 if nargin<2, error('Insufficient arguments'), end
+if nargin<3, tail = 'lower'; end
 
 %-Computation
 %--------------------------------------------------------------------------
-F = spm_Gcdf(x,v/2,1/2);
+F = spm_Gcdf(x,v/2,1/2,tail);
