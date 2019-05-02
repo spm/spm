@@ -31,7 +31,7 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7576 2019-04-23 09:22:44Z karl $
+% $Id: spm_voice_get_LEX.m 7583 2019-05-02 12:10:08Z karl $
 
 
 % defaults
@@ -233,8 +233,8 @@ end
 
 % save mean and precision in voice structure
 %--------------------------------------------------------------------------
-VOX.Q  = spm_unvec(q0,xY(1).Q);
-VOX.qP = spm_inv(QC + c0);
+VOX.Q   = spm_unvec(q0,xY(1).Q);
+VOX.qP  = spm_inv(QC + c0);
 
 % place lexical and other structures voice structure
 %--------------------------------------------------------------------------

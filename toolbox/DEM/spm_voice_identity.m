@@ -25,7 +25,7 @@ function [L,F0,F1] = spm_voice_identity(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_identity.m 7581 2019-05-01 12:50:13Z karl $
+% $Id: spm_voice_identity.m 7583 2019-05-02 12:10:08Z karl $
 
 %% get peak identification parameters from VOX
 %==========================================================================
@@ -119,7 +119,7 @@ J    = spm_voice_onsets(y,FS);
 
 % get F0
 %--------------------------------------------------------------------------
-F0    = spm_voice_fundamental(Y,FS);
+F0   = spm_voice_fundamental(Y,FS);
 
 
 % likelihood search over fundamental and formant frequencies
@@ -134,7 +134,7 @@ for i = 1:numel(F1)
     % sentence
     %------------------------------------------------------------------
     clear xy
-    for k = 1:1 % numel(J)
+    for k = 1:numel(J)
         xy(k,1) = spm_voice_ff(y(J{k}),FS);
     end
     

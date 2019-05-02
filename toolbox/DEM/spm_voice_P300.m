@@ -25,7 +25,7 @@ function spm_voice_P300
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7581 2019-05-01 12:50:13Z karl $
+% $Id: spm_voice_P300.m 7583 2019-05-02 12:10:08Z karl $
 
 
 %% demo mode loads sentence (.mat) files
@@ -135,13 +135,13 @@ s         = 3;                                  % index of surprising word
 
 %% segment with priors
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Segmentation: with priors'); clf;
+spm_figure('GetWin','Segmentation (P300): with priors'); clf;
 SEG1  = spm_voice_read(Y,P);
 EEG1  = spm_voice_segmentation(Y,SEG1);
 
 % segment without priors
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Segmentation: no priors'); clf; 
+spm_figure('GetWin','Segmentation (P300): no priors'); clf; 
 SEG0  = spm_voice_read(Y,spm_softmax(log(P)/8));
 EEG0  = spm_voice_segmentation(Y,SEG0);
 

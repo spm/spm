@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7581 2019-05-01 12:50:13Z karl $
+% $Id: spm_voice.m 7583 2019-05-02 12:10:08Z karl $
 
 
 %% setup options and files
@@ -49,10 +49,10 @@ end
 
 global VOX
 VOX.analysis = 0;
-VOX.graphics = 1;
+VOX.graphics = 0;
 VOX.interval = 0;
-VOX.mute     = 0;
-VOX.onsets   = 0;
+VOX.mute     = 1;
+VOX.onsets   = 1;
 
 
 %% get training corpus
@@ -65,13 +65,16 @@ P     = spm_voice_get_LEX(xY,word);
 
 
 %% articulate every word under all combinations of (5 levels) of prosody
+VOX.mute  = 0;
+% {VOX.PRO.str}: 'amp'  'lat'  'dur'  'tim'  'ff0'  'inf'  'bif'
+% {VOX.WHO.str}: 'ff1'
 %--------------------------------------------------------------------------
 nw    = numel(VOX.LEX);                       % number of words
 k     = [3 6];                                % number of prosody features
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[8;1;5;5;7;i;j],4);
+            spm_voice_speak(w,[8;1;5;5;1;i;j],3);
         end
     end
 end
@@ -104,7 +107,7 @@ str{1} = {'is'};
 str{2} = {'there'};
 str{3} = {'a'};
 str{4} = {'triangle','square'};
-str{5} = {'below','above','there'};
+str{5} = {'below','above'};
 str{6} = {'no','yes'};
 str{7} = {'is','there'};
 [i,P]  = spm_voice_i(str);
@@ -291,7 +294,7 @@ xY.P.lat    = -8;
 xY.P.ff1    = log(32);
 xY.P.inf(1) = 1/100;
 
-% composine and decompose iteratively
+% compose and decompose iteratively
 %--------------------------------------------------------------------------
 for i = 1:8
     
@@ -316,10 +319,10 @@ end
 global VOX
 load VOX
 load Ann
-VOX.analysis = 0;
-VOX.graphics = 0;
+VOX.analysis = 1;
+VOX.graphics = 1;
 VOX.interval = 0;
-VOX.onsets   = 0;
+VOX.onsets   = 1;
 VOX.mute     = 1;
 VOX.F2       = 1024;
 VOX.FS       = 22050;

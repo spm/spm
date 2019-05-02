@@ -32,7 +32,7 @@ function [L,M,N] = spm_voice_likelihood(xY,W)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7576 2019-04-23 09:22:44Z karl $
+% $Id: spm_voice_likelihood.m 7583 2019-05-02 12:10:08Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -88,8 +88,9 @@ switch method
         for w = W
             for k = 1:size(VOX.LEX,2)
                 E      = Q(i) - VOX.LEX(w,k).qE(i);        % error
-                L(w,k) = - E'*VOX.LEX(w,k).qP(i,i)*E/2;    % log likelihood
-                
+              % L(w,k) = - E'*VOX.LEX(w,k).qP(i,i)*E/2;    % log likelihood
+                L(w,k) = - E'*VOX.qP(i,i)*E/2;             % log likelihood
+
                 % shrink estimators in proportion to noise
                 %----------------------------------------------------------
                 if isfield(VOX,'noise')

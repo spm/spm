@@ -33,7 +33,7 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7581 2019-05-01 12:50:13Z karl $
+% $Id: spm_voice_get_word.m 7583 2019-05-02 12:10:08Z karl $
 
 %% get peak identification parameters from VOX
 %==========================================================================
@@ -128,7 +128,7 @@ j    = spm_voice_onsets(y,FS);
 % retrieve epochs and decompose at fundamental frequency
 %--------------------------------------------------------------------------
 clear xy J
-for i = 1:1%numel(j)
+for i = 1:numel(j)
     xy(i,1)       = spm_voice_ff(y(j{i}),FS);
     xy(i,1).P.lat = log((I + j{i}(1) - VOX.IT)/FS);
     J(i,:)        = I + [j{i}(1),j{i}(end)];
