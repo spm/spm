@@ -14,7 +14,7 @@ function [y] = spm_softmax(x,k)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_softmax.m 7580 2019-05-01 12:48:04Z karl $
+% $Id: spm_softmax.m 7584 2019-05-02 12:10:56Z karl $
  
 % apply
 %--------------------------------------------------------------------------
@@ -24,4 +24,4 @@ if size(x,1) < 2; y = ones(size(x)); return, end
 % exponentiate and normalise
 %--------------------------------------------------------------------------
 x  = exp(bsxfun(@minus,x,max(x)));
-y  = bsxfun(@rdivide,x,sum(x) + eps);
+y  = bsxfun(@rdivide,x,sum(x));
