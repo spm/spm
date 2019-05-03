@@ -1,14 +1,13 @@
-function [pos, tri] = icosahedron642()
+function [pos, tri] = mesh_tetrahedron
 
-% ICOSAHEDRON642 creates a 3-fold refined icosahedron with the vertices on a unit
-% sphere
+% MESH_TETRAHEDRON returns the vertices and triangles of a tetrahedron.
 %
 % Use as
-%   [pos, tri] = icosahedron642;
+%   [pos, tri] = mesh_tetrahedron;
 %
-% See also ICOSAHEDRON
+% See also MESH_ICOSAHEDRON, MESH_OCTAHEDRON, MESH_SPHERE
 
-% Copyright (C) 2003, Robert Oostenveld
+% Copyright (C) 2018-2019, Robert Oostenveld and Jan-Mathijs Schoffelen
 %
 % This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
@@ -25,8 +24,25 @@ function [pos, tri] = icosahedron642()
 %
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
-%
-% $Id$
 
-[pos, tri] = icosahedron(3);
+v1 = [ 0, 0, 1 ];
+v2 = [  sqrt(8/9),          0, -1/3 ];
+v3 = [ -sqrt(2/9),  sqrt(2/3), -1/3 ];
+v4 = [ -sqrt(2/9), -sqrt(2/3), -1/3 ];
 
+pos = [
+  v1
+  v2
+  v3
+  v4
+  ];
+
+tri = [
+  1 2 3
+  1 3 4
+  1 4 2
+  2 4 3
+  ];
+
+  % scale all vertices to the unit sphere
+  pos = pos ./ repmat(sqrt(sum(pos.^2,2)), 1,3);

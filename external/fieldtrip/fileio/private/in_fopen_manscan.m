@@ -38,7 +38,7 @@ hdr.epoch(iEpoch).Channel = [];
 hdr.Events = [];
 curBlock = '';
 % Read file line by line
-fid = fopen(MbiFile,'r');
+fid = fopen_or_error(MbiFile,'r');
 while(1)
     % Reached the end of the file: exit the loop
     if feof(fid)
@@ -252,7 +252,7 @@ function splStr = str_split( str, delimiters, isCollapse )
 %    - isCollapse : If 1, remove all the empty entries
 % 
 % OUTPUT: 
-%    - splStr : cell array of blocks found between separators
+%    - splStr : cell-array of blocks found between separators
 
 % @=============================================================================
 % This software is part of the Brainstorm software:

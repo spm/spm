@@ -1,13 +1,15 @@
-function [pos, tri] = icosahedron(varargin)
+function [pos, tri] = mesh_icosahedron
 
-% ICOSAHEDRON creates an icosahedron with 12 vertices and 20 triangles
+% MESH_ICOSAHEDRON returns the vertices and triangle of a 12-vertex icosahedral
+% mesh.
 %
 % Use as
-%   [pos, tri] = icosahedron
+%   [pos, tri] = mesh_icosahedron
 %
-% See also TETRAHEDRON, OCTAHEDRON, ICOSAHEDRON42, ICOSAHEDRON162, ICOSAHEDRON642, ICOSAHEDRON2562
+% See also MESH_TETRAHEDRON, MESH_OCTAHEDRON, MESH_SPHERE
 
 % Copyright (C) 2002, Robert Oostenveld
+% Copyright (C) 2019, Robert Oostenveld and Jan-Mathijs Schoffelen
 %
 % This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
@@ -25,6 +27,7 @@ function [pos, tri] = icosahedron(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
+
 
 tri = [
   1   2   3
@@ -51,8 +54,8 @@ tri = [
 
 pos = zeros(12, 3);
 
-rho=0.4*sqrt(5);
-phi=2*pi*(0:4)/5;
+rho = 0.4*sqrt(5);
+phi = 2*pi*(0:4)/5;
 
 pos( 1, :) = [0 0  1];          % top point
 
@@ -66,13 +69,5 @@ pos(7:11, 3) = -rho/2;
 
 pos(12, :) = [0 0 -1];          % bottom point
 
-if nargin>0
-  n = varargin{1};
-  % perform an n-fold refinement
-  for i=1:n
-    [pos, tri] = refine(pos, tri);
-    % scale all vertices to the unit sphere
-    pos = pos ./ repmat(sqrt(sum(pos.^2,2)), 1, 3);
-  end
-end
-
+% scale all vertices to the unit sphere
+pos = pos ./ repmat(sqrt(sum(pos.^2,2)), 1,3);

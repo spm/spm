@@ -33,12 +33,12 @@ function [hdr, dat] = read_nihonkohden_m00(filename)
 % $Id$
 
 % open the ascii file
-fid = fopen(filename, 'r');
+fid = fopen_or_error(filename, 'r');
 
 %header line 1: acquisition information
 hline1 = fgets(fid);
 
-% get the six different fields in the header, store in cell array
+% get the six different fields in the header, store in cell-array
 hd = textscan(hline1, '%s %s %s %s %s %s');
 fprintf('\nNihon Kohden ASCII EEG header fields:');
 fprintf('\n-------------------------------------');
@@ -71,7 +71,7 @@ fprintf('\nStart Time is %s\n', start_time);
 % header line 2: names of recording channels
 hline2 = fgets(fid);
 
-% channel names as cell array
+% channel names as cell-array
 ch_names = textscan(hline2, '%s');
 
 % convert it into a FieldTrip header
