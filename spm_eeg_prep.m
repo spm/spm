@@ -14,10 +14,10 @@ function D = spm_eeg_prep(S)
 %
 % D                 - MEEG object
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2019 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 7544 2019-03-15 16:20:16Z vladimir $
+% $Id: spm_eeg_prep.m 7586 2019-05-03 14:57:34Z guillaume $
 
 D = spm_eeg_load(S.D);
 
@@ -537,8 +537,17 @@ switch lower(S.task)
         
         ev_bids = spm_load(S.filename);
         
-        ev_spm = struct('type', repmat({'BIDS'}, length(ev_bids.onset), 1), 'value', ev_bids.stim_type,...
-            'time', num2cell(ev_bids.onset), 'duration', num2cell(ev_bids.duration));
+        if isfield(ev_bids,'trial_type')
+            trial_type = 'trial_type';
+        else
+            % Compatibility with old BIDS-formatted datasets
+            trial_type = 'stim_type';
+        end
+        ev_spm = struct(...
+            'type',     repmat({'BIDS'}, length(ev_bids.onset), 1),...
+            'value',    ev_bids.(trial_type),...
+            'time',     num2cell(ev_bids.onset),...
+            'duration', num2cell(ev_bids.duration));
         
         if S.replace
             D = events(D, 1, ev_spm);
