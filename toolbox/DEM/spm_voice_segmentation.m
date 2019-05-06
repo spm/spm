@@ -27,7 +27,7 @@ function [E,  PST] = spm_voice_segmentation(wfile,SEG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_segmentation.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_segmentation.m 7588 2019-05-06 21:26:32Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -48,12 +48,12 @@ pst = (1:numel(Y))/FS;
 
 subplot(4,1,1)
 plot(pst,Y,'c'), spm_axis tight
-xlabel('time (sec)'), ylabel('amplitude')
+xlabel('time (seconds)'), ylabel('amplitude')
 title('Acoustic signal','FontSize',16),hold on, box off
 
 subplot(4,1,2)
 plot(pst,G,'k',pst,spm_zeros(pst) + VOX.U,':r'), spm_axis tight
-xlabel('time (sec)'), ylabel('power')
+xlabel('time (seconds)'), ylabel('power')
 title('Spectral envelope','FontSize',16), box off
 
 subplot(4,1,3), imagesc(full(spm_cat({SEG.P})))
@@ -82,6 +82,9 @@ for w = 1:numel(SEG)
 
 end
 
+% return if just prosody is requested, otherwise…
+%----------------------------------------------------------------------
+if ~nargout, return, end
 
 %% simulated EEG (i.e. prediction error) responses - discrete updating
 %==========================================================================
@@ -125,7 +128,7 @@ E = E(1:d:end,:);
 E = E - spm_conv(E,FS/d,0);
 E = spm_conv(E,FS/d/16,0);
 
-% plot click
+% plot simulated belief updating
 %--------------------------------------------------------------------------
 PST = pst(1:d:end);
 subplot(4,1,3), imagesc(PST,1:nw,(1 - Q'))

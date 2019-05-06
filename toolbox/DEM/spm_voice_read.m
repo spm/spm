@@ -1,6 +1,6 @@
-function SEG = spm_voice_read(wfile,L,N)
+function [SEG,W,P,R] = spm_voice_read(wfile,L,N)
 % Reads and translates a sound file or audio source
-% FORMAT spm_voice_read(wfile,[L],[N])
+% FORMAT [SEG,W,P,R] = spm_voice_read(wfile,[L],[N])
 %
 % wfile  - .wav file or audio object or (double) timeseries
 % L      - prior likelihood of lexical content
@@ -16,6 +16,7 @@ function SEG = spm_voice_read(wfile,L,N)
 % SEG(s).str - lexical class
 % SEG(s).p   - prior
 % SEG(s).L   - posterior
+% SEG(s).W   - lexical class
 % SEG(s).P   - prosody class
 % SEG(s).R   - speaker class
 % SEG(s).I0  - first index
@@ -31,7 +32,7 @@ function SEG = spm_voice_read(wfile,L,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7587 2019-05-06 16:47:53Z karl $
+% $Id: spm_voice_read.m 7588 2019-05-06 21:26:32Z karl $
 
 
 %% setup
@@ -84,7 +85,6 @@ end
 %==========================================================================
 VOX.I0 = 1;                                    % first index
 VOX.IT = 1;                                    % final index
-W      = [];                                   % posterior over words
 for s  = 1:ns
     
     % find next word
@@ -100,20 +100,18 @@ for s  = 1:ns
     [d,w]  = max(L{1});                        % most likely word
     [d,c]  = max(L{2});                        % most likely prosody
     [d,r]  = max(L{3});                        % most likely identity
-    W(1,s) = w(:);                             % lexical class
-    P(:,s) = c(:);                             % prosody classes
-    R(:,s) = r(:);                             % speaker classes
     
     % string
     %----------------------------------------------------------------------
     SEG(s).str = VOX.LEX(w,1).word;            % lexical string
-    SEG(s).p   = p(:,s);                       % prior
-    SEG(s).L   = L;                            % posteriors
-    SEG(s).P   = P(:,s);                       % prosody
-    SEG(s).R   = R(:,s);                       % speaker
     SEG(s).I0  = VOX.I0;                       % first
     SEG(s).IT  = VOX.IT;                       % final
-    
+    SEG(s).p   = p(:,s);                       % prior
+    SEG(s).L   = L;                            % posteriors
+    SEG(s).W   = w(:);                         % lexical class
+    SEG(s).P   = c(:);                         % prosody classes
+    SEG(s).R   = r(:);                         % speaker class
+
     disp({SEG.str})
     
 end
@@ -123,7 +121,15 @@ end
 if isa(wfile,'audiorecorder')
     stop(wfile);
 end
-if isempty(W)
+if exist('SEG','var')
+    W   = full(spm_cat({SEG.W}));
+    P   = full(spm_cat({SEG.P}));
+    R   = full(spm_cat({SEG.R}));
+else
+    SEG = [];
+    W   = [];
+    P   = [];
+    R   = [];
     return
 end
 

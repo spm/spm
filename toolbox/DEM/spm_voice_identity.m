@@ -5,9 +5,9 @@ function [L,F0,F1] = spm_voice_identity(wfile,P)
 % wfile  - .wav file, audiorecorder object or (double) time series
 % P      - lexical prior [optional]
 %
-% L      - joint likelihood over F0 and F1 ( identity attributes)
+% L      - log-likelihood over F1 (identity attribute)
 % F0     - fundamental frequency
-% F1     - format frequency
+% F1     - expected format frequency
 %
 % requires the following in the global variable VOX:
 %
@@ -25,7 +25,7 @@ function [L,F0,F1] = spm_voice_identity(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_identity.m 7587 2019-05-06 16:47:53Z karl $
+% $Id: spm_voice_identity.m 7588 2019-05-06 21:26:32Z karl $
 
 
 %% log prior over lexical content 
@@ -43,8 +43,9 @@ end
 W = find(LP > (max(LP) - 3));
 
 
-%% get onset of next word 
+%% get onset of first word 
 %==========================================================================
+VOX.IT   = 1;
 [Y,I,FS] = spm_voice_get_next(wfile);
 
 % break if EOF

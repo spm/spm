@@ -29,7 +29,7 @@ function [xY,Y] = spm_voice_speak(w,p,q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7587 2019-05-06 16:47:53Z karl $
+% $Id: spm_voice_speak.m 7588 2019-05-06 21:26:32Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -44,9 +44,9 @@ if nargin < 3, q = zeros(0,1); end
 
 n  = max([size(w,2),size(p,2),size(q,2)]);
 
-if size(w,2) < n, w = repmat(w(:,1),1,n); end
-if size(p,2) < n, p = repmat(p(:,1),1,n); end
-if size(q,2) < n, q = repmat(q(:,1),1,n); end
+if size(w,2) < n && size(w,1), w = repmat(w(:,1),1,n); end
+if size(p,2) < n && size(p,1), p = repmat(p(:,1),1,n); end
+if size(q,2) < n && size(q,1), q = repmat(q(:,1),1,n); end
 
 % level of random fluctuations in formants
 %--------------------------------------------------------------------------
@@ -58,13 +58,13 @@ for s = 1:n
     
     % lexical parameters
     %----------------------------------------------------------------------
-    Q     = 0;
+    Q     = spm_vec(spm_zeros(VOX.Q));
     for i = 1:size(w,1)
         Q = Q + LEX(w(1,s),1).qE;
         E = sqrtm(LEX(w(1,s),1).qC)*randn(numel(VOX.Q),1)*R;
         Q = Q + E;
     end
-    xY(s).Q = VOX.Q +reshape(Q,size(VOX.Q));
+    xY(s).Q = VOX.Q + reshape(Q,size(VOX.Q));
 
     
     % prosody parameters
@@ -93,9 +93,10 @@ end
 try, FS = VOX.FS; catch, FS  = 22050; end
 for s = 1:n
     
-    % increase timbre for auditory display
+    % increase volume and timbre for audio display
     %----------------------------------------------------------------------
-    xY(s).P.tim = sqrt(2)*xY(s).P.tim;
+    xY(s).P.amp = xY(s).P.amp + sqrt(2);
+    xY(s).P.tim = xY(s).P.tim * sqrt(2);
     y{s} = spm_voice_iff(xY(s));
     
 end
@@ -114,7 +115,7 @@ Y     = Y(1:ii(end));
 
 % send to speaker (at an accelerated sampling rate, depending upon F1)
 %--------------------------------------------------------------------------
-if ~ VOX.mute, sound(full(Y),FS); end
+if ~nargout, sound(full(Y),FS); end
 
 return
 

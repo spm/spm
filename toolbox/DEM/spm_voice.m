@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7587 2019-05-06 16:47:53Z karl $
+% $Id: spm_voice.m 7588 2019-05-06 21:26:32Z karl $
 
 
 %% setup options and files
@@ -366,12 +366,8 @@ VOX.mute     = 1;
 VOX.FS       = 22050;
 VOX.IT       = 1;
 
-
 sound(Y,VOX.FS)
-str       = {'yes'};
-w         = spm_voice_i(str);
-[i,P]     = spm_voice_i(str);
-P         = spm_softmax(log(P));
+[i,P]     = spm_voice_i({'yes'});
 [L,F0,F1] = spm_voice_identity(Y,P);
 
 VOX.F1       = F1;

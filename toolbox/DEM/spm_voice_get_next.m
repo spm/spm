@@ -17,7 +17,7 @@ function [Y,I,FS] = spm_voice_get_next(wfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_next.m 7587 2019-05-06 16:47:53Z karl $
+% $Id: spm_voice_get_next.m 7588 2019-05-06 21:26:32Z karl $
 
 %% get peak identification parameters from VOX
 %==========================================================================
@@ -36,8 +36,15 @@ try, VOX.IT; catch, VOX.IT = 1;     end              % current index
 % ensure 2 second of data has been accumulated
 %--------------------------------------------------------------------------
 if isa(wfile,'audiorecorder')
-    dt     = (get(wfile,'TotalSamples') - VOX.IT)/FS;
-    pause(2 - dt);
+    IS = get(wfile,'TotalSamples');
+    if ~IS
+        stop(VOX.audio);
+        record(VOX.audio,8);
+        pause(2);
+    else
+        dt = (IS - VOX.IT)/FS;
+        pause(2 - dt);
+    end
 end
 
 
