@@ -1,6 +1,6 @@
-function [Y] = spm_voice_iff(xY)
+function [Y,W,U,V] = spm_voice_iff(xY)
 % inverse decomposition at fundamental frequency
-% FORMAT [Y] = spm_voice_iff(xY)
+% FORMAT [Y,W,U,V] = spm_voice_iff(xY)
 %
 % xY    -  cell array of word structures
 % xY.Q  -  parameters - lexical
@@ -13,6 +13,10 @@ function [Y] = spm_voice_iff(xY)
 % xY.P.inf  -  inflection (f0,f1,f2)
 %
 % Y     - reconstructed timeseries
+% W     - formants (time-frequency representation): W = U*xY.Q*V'
+% U     - DCT over frequency
+% V     - DCT over intervals
+%      
 %
 % This routine recomposes a timeseries from temporal basis sets at the
 % fundamental frequency. In other words, it applies the reverse sequence
@@ -21,7 +25,7 @@ function [Y] = spm_voice_iff(xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7576 2019-04-23 09:22:44Z karl $
+% $Id: spm_voice_iff.m 7587 2019-05-06 16:47:53Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -74,8 +78,8 @@ nu = nu - min(nu); nu = Ni - (Ni - 1)*nu/max(nu);
 nv = nv - min(nv); nv = ni - (ni - 1)*nv/max(nv);
 U  = spm_dctmtx(Ni,Nu,nu);                   % DCT over formants
 V  = spm_dctmtx(ni,Nv,nv);                   % DCT over intervals
-Q  = U*xY.Q*V';                              % formants
-Q  = exp(S*Q/std(Q(:)));                     % timbre
+W  = U*xY.Q*V';                              % formants
+Q  = exp(S*W/std(W(:)));                     % timbre
 
 % reconstitute timeseries
 %--------------------------------------------------------------------------
@@ -135,7 +139,7 @@ if VOX.graphics
     xlabel('time (intervals)'), ylabel('fundamental frequency')
     title('Inflection','FontSize',16)
     
-    subplot(4,2,8), imagesc((1:ni)/F0,(1:Ni)*F1,log(Q))
+    subplot(4,2,8), imagesc((1:ni)/F0,(1:Ni)*F1,W)
     xlabel('time (seconds)'), ylabel('Formants (Hz)')
     title('Spectral decomposition','FontSize',16), drawnow
     

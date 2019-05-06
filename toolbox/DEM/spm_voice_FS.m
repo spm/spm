@@ -13,11 +13,22 @@ function [FS,read] = spm_voice_FS(wfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_FS.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_FS.m 7587 2019-05-06 16:47:53Z karl $
 
 % get timeseries from audio recorder(or from a file)
 %--------------------------------------------------------------------------
 global VOX
+
+% default
+%--------------------------------------------------------------------------
+if ~nargin
+    try
+        FS = get(audiorecorder,'SampleRate');
+    catch
+        FS = 22050;
+    end
+    return
+end
 
 % get source (recorder) and FS
 %--------------------------------------------------------------------------
@@ -58,7 +69,7 @@ end
 
 % place sampling frequency in global VOX structure
 %----------------------------------------------------------------------
-VOX.FS = FS;
+% VOX.FS = FS;
 
 
 

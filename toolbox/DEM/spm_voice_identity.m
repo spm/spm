@@ -25,31 +25,12 @@ function [L,F0,F1] = spm_voice_identity(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_identity.m 7583 2019-05-02 12:10:08Z karl $
+% $Id: spm_voice_identity.m 7587 2019-05-06 16:47:53Z karl $
 
-%% get peak identification parameters from VOX
-%==========================================================================
-
-% get source (recorder) and FS
-%--------------------------------------------------------------------------
-[FS,read] = spm_voice_FS(wfile);
-
-% defaults
-%--------------------------------------------------------------------------
-global VOX
-try, VOX.C;  catch, VOX.C  = 1/16;  end              % smoothing for peaks
-try, VOX.U;  catch, VOX.U  = 1/128; end              % threshold for peaks
-try, VOX.IT; catch, VOX.IT = 1;     end              % final index
-
-% ensure 2 second of data has been accumulated
-%--------------------------------------------------------------------------
-if isa(wfile,'audiorecorder')
-    dt     = (get(wfile,'TotalSamples') - VOX.IT)/FS;
-    pause(2 - dt);
-end
 
 %% log prior over lexical content 
 %==========================================================================
+global VOX
 if nargin < 2
     nw = numel(VOX.LEX);
     LP = ones(nw,1)/nw;
@@ -59,58 +40,24 @@ end
 
 % within Ockham's window W
 %--------------------------------------------------------------------------
-W      = find(LP > (max(LP) - 3));
+W = find(LP > (max(LP) - 3));
 
-%% find word and evaluate likelihoods
+
+%% get onset of next word 
 %==========================================================================
-
-% find next word (waiting for a couple of seconds if necessary)
-%--------------------------------------------------------------------------
-for i = 1:4
-    
-    % find next spectral peak (I)
-    %----------------------------------------------------------------------
-    Y = read(wfile);
-    n = numel(Y);
-    j = fix((0:FS) + VOX.IT);
-    G = spm_voice_check(Y(j(j < n)),FS,VOX.C);
-    I = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
-    I = I(G(I) > VOX.U & I > FS/8);
-    
-    % advance pointer if silence
-    %----------------------------------------------------------------------
-    if isempty(I)
-        
-        % advance pointer 500 ms
-        %------------------------------------------------------------------
-        VOX.IT = VOX.IT + FS/2;
-        
-        % ensure 2 second of data has been accumulated
-        %------------------------------------------------------------------
-        if isa(wfile,'audiorecorder')
-            dt = (get(wfile,'TotalSamples') - VOX.IT)/FS;
-            pause(2 - dt);
-        end
-        
-    else
-        
-        % move pointer to 500ms before peak
-        %------------------------------------------------------------------
-        I  = VOX.IT + I(1) - FS/2;
-        break
-    end
-end
+[Y,I,FS] = spm_voice_get_next(wfile);
 
 % break if EOF
 %--------------------------------------------------------------------------
-if isempty(I), L  = {}; return, end
+if isempty(I), error('Please repeat'); end
 
 
-%% get 1 second segment and remove previous word
+%% get 1 second segment and fundamental frequency
 %==========================================================================
 
 % get intervals (j) for this peak
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
+n    = numel(Y);
 j    = fix((0:FS + FS/4) + I);
 y    = Y(j(j < n & j > 1));
 j    = logical(j < VOX.IT);
@@ -121,10 +68,9 @@ J    = spm_voice_onsets(y,FS);
 %--------------------------------------------------------------------------
 F0   = spm_voice_fundamental(Y,FS);
 
-
 % likelihood search over fundamental and formant frequencies
-%--------------------------------------------------------------------------
-F1    = linspace(24,48,16);
+%==========================================================================
+F1    = exp(VOX.WHO.pE + VOX.P.ff1);
 F     = zeros(numel(F1),1);
 for i = 1:numel(F1)
     
@@ -145,19 +91,30 @@ for i = 1:numel(F1)
     Q    = spm_softmax(L);
     Fi   = sum(Q.*(L - log(Q + exp(-8))));
     F(i) = spm_softmax(Fi(:))'*Fi(:);
-
     
 end
 
-% plot(F1,F)
 % posteriors
 %--------------------------------------------------------------------------
-L      = F;
-L(:)   = spm_softmax(F(:));
-F1     = F1*spm_vec(sum(L,2));
+F     = F - max(F);
+L     = F(:);
+L1    = F1(:);
+L(:)  = spm_softmax(F);
+F1    = L1'*spm_vec(sum(L,2));
 
-return
-
-
+% graphics if requested
+%--------------------------------------------------------------------------
+try VOX.formant;
+    
+    % plot
+    %----------------------------------------------------------------------
+    spm_figure('GetWin','Frequencies');
+    subplot(3,1,3)
+    plot(L1,F,'or',L1,F,':r',[F1 F1],[min(F) 0],'b')
+    xlabel('frequency (Hz)'), ylabel('log likelihood')
+    title('Formant frequency (F1)','FontSize',16), axis square, spm_axis tight
+    drawnow
+    
+end
 
 

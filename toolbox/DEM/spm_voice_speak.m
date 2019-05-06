@@ -1,6 +1,6 @@
-function [xY] = spm_voice_speak(w,p,q)
+function [xY,Y] = spm_voice_speak(w,p,q)
 % Generates a continuous state space word discrete causes
-% FORMAT [xY] = spm_voice_speak(w,p,q)
+% FORMAT [xY,Y] = spm_voice_speak(w,p,q)
 %
 % w      - lexcial index (1 x number of words)
 % p      - prosody index (k x number of words)
@@ -13,6 +13,8 @@ function [xY] = spm_voice_speak(w,p,q)
 %
 % xY.Q  -  parameters - lexical
 % xY.P  -  parameters - prosidy
+%
+% Y     -  corresponding timeseries
 %
 % This routine recomposes and plays a timeseries, specified as a sequence
 % of words that can be articulated with a particular prosody.  This routine
@@ -27,7 +29,7 @@ function [xY] = spm_voice_speak(w,p,q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7576 2019-04-23 09:22:44Z karl $
+% $Id: spm_voice_speak.m 7587 2019-05-06 16:47:53Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -46,6 +48,10 @@ if size(w,2) < n, w = repmat(w(:,1),1,n); end
 if size(p,2) < n, p = repmat(p(:,1),1,n); end
 if size(q,2) < n, q = repmat(q(:,1),1,n); end
 
+% level of random fluctuations in formants
+%--------------------------------------------------------------------------
+if isfield(VOX,'R'), R = VOX.R; else R = 0; end
+
 % assemble word structure arrays
 %==========================================================================
 for s = 1:n
@@ -55,8 +61,11 @@ for s = 1:n
     Q     = 0;
     for i = 1:size(w,1)
         Q = Q + LEX(w(1,s),1).qE;
+        E = sqrtm(LEX(w(1,s),1).qC)*randn(numel(VOX.Q),1)*R;
+        Q = Q + E;
     end
-    xY(s).Q = spm_unvec(spm_vec(VOX.Q) + Q,VOX.Q);
+    xY(s).Q = VOX.Q +reshape(Q,size(VOX.Q));
+
     
     % prosody parameters
     %----------------------------------------------------------------------
@@ -82,10 +91,17 @@ end
 % convert into audio signal
 %--------------------------------------------------------------------------
 try, FS = VOX.FS; catch, FS  = 22050; end
-
 for s = 1:n
+    
+    % increase timbre for auditory display
+    %----------------------------------------------------------------------
+    xY(s).P.tim = sqrt(2)*xY(s).P.tim;
     y{s} = spm_voice_iff(xY(s));
+    
 end
+
+% assemble into audio stream
+%--------------------------------------------------------------------------
 Y     = zeros(spm_length(y),1);
 i0    = 0;
 for s = 1:n
@@ -96,7 +112,7 @@ for s = 1:n
 end
 Y     = Y(1:ii(end));
 
-% send to speaker
+% send to speaker (at an accelerated sampling rate, depending upon F1)
 %--------------------------------------------------------------------------
 if ~ VOX.mute, sound(full(Y),FS); end
 

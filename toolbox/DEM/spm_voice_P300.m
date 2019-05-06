@@ -25,7 +25,7 @@ function spm_voice_P300
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7583 2019-05-02 12:10:08Z karl $
+% $Id: spm_voice_P300.m 7587 2019-05-06 16:47:53Z karl $
 
 
 %% demo mode loads sentence (.mat) files
@@ -68,11 +68,13 @@ else
     spm_voice_read
     Y  = getaudiodata(VOX.audio);
     save(fullfile(PATH,'triangle_square.mat'),'Y');
+    [FS,read] = spm_voice_FS(wfile)
     
 end
 
 % illustrate candidate  intervals (and F0) for the first word
 %--------------------------------------------------------------------------
+VOX.FS       = spm_voice_FS;
 VOX.IO       = 1;
 VOX.IT       = 1;
 VOX.onsets   = 1;

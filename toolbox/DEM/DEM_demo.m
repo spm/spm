@@ -726,4 +726,4 @@ run_demo_Callback(hObject, handles, 'spm_voice_P300')
 % --- Executes on button press in pushbutton241.
 function pushbutton241_Callback(hObject, eventdata, handles)
 handles.web = 'Deep temporal models and active inference';
-run_demo_Callback(hObject, handles, 'spm_voice_read')
+run_demo_Callback(hObject, handles, 'spm_voice_repeat')

@@ -1,11 +1,10 @@
-function [I] = spm_voice_onsets(Y,FS,T,U,C)
+function [I] = spm_voice_onsets(Y,FS,U,C)
 % identifies intervals containing acoustic energy and post onset minima
 % FORMAT [I] = spm_voice_onsets(Y,FS,T,U,C)
 %
 % Y    - timeseries
 % FS   - sampling frequency
-% T    - onset    threshold [Default: 1/16 sec]
-% U    - crossing threshold [Default: 1/16 a.u]
+% U    - crossing threshold [Default: 1/4  a.u]
 % C    - Convolution kernel [Default: 1/16 sec]
 %
 % I{i} - cell array of intervals (time bins) containing spectral energy
@@ -21,44 +20,90 @@ function [I] = spm_voice_onsets(Y,FS,T,U,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7583 2019-05-02 12:10:08Z karl $
+% $Id: spm_voice_onsets.m 7587 2019-05-06 16:47:53Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
 global VOX
 
 if nargin < 2, FS = VOX.FS; end                       % onset  threshold
-if nargin < 3, T  = 1/8;    end                       % onset  threshold
-if nargin < 4, U  = 1/1024; end                       % height threshold
-if nargin < 5, C  = 1/16;   end                       % smoothing
+if nargin < 3, U  = 1/8;    end                       % height threshold
+if nargin < 4, C  = 1/16;   end                       % smoothing
 
 % identify threshold crossings in power
 %--------------------------------------------------------------------------
-[G,Y] = spm_voice_check(Y,FS,C);                      % smooth RMS
+[G,Y] = spm_voice_check(Y,FS,C);                % smooth RMS
+G     = G/mean(G);                               % normalise
+n     = length(G);                                    % number of bins
 
-% find zero crossings (of U)
+% find zero crossings (of U), for isolated words
 %--------------------------------------------------------------------------
-j0    = find(G(1:end - 1) < U & G(2:end) > U,1);
+j0    = find(G(1:end - 1) < U & G(2:end) > U);
 jT    = find(G(1:end - 1) > U & G(2:end) < U);
 
-% boundary conditions
+% find minima
 %--------------------------------------------------------------------------
-j0    = j0(j0 > FS*T & j0 < FS/2);
-jT    = jT(jT > FS/2);
+j     = find(diff(G(1:end - 1)) < 0 & diff(G(2:end)) > 0);
 
-if numel(j0) < 1,  j0 = fix(FS*T); end
-if numel(jT) < 1,  jT = length(G); end
-
-
-% and supplement offsets with (internal) minima
+% find onsets preceded by silence
 %--------------------------------------------------------------------------
-i     = find(diff(G(1:end - 1)) < 0 & diff(G(2:end)) > 0);
-i     = i(G(i) < max(G)/2 & i < jT(end) & i > FS/2);
-jT    = sort(unique([jT; i]));
+k0    = [];
+for k = 1:numel(j0)
+    i = (j0(k) - FS/8):(j0(k) - 1);
+    i = fix(i(i < n & i > 1));
+    if all(G(i) < U) && j0(k) < FS/2
+        k0(end + 1) = j0(k);
+    end
+end
 
-% check for silence after offset (and remove internal minima)
+% find the last onset preceded by silence
 %--------------------------------------------------------------------------
+if isempty(k0), j0 = []; else j0 = k0(end); end
 
+% find offsets followed by silence
+%--------------------------------------------------------------------------
+kT    = [];
+for k = 1:numel(jT)
+    i = (jT(k) + 1):(jT(k) + FS/8);
+    i = fix(i(i < n & i > 1));
+    if all(G(i) < U) && jT(k) > FS/2
+        kT(end + 1) = jT(k);
+    end
+end
+
+% find the first offset followed by silence
+%--------------------------------------------------------------------------
+if isempty(kT), jT = []; else jT = kT(1); end
+
+
+% use the first minima in the absence of zero crossings
+%--------------------------------------------------------------------------
+if isempty(j0)
+    try
+        j0 = j(1);
+    catch
+        j0 = 1;
+    end
+end
+
+% use the last minima in the absence of zero crossings
+%--------------------------------------------------------------------------
+if isempty(jT)
+    try
+        jT = j(end);
+    catch
+        jT = n;
+    end
+end
+
+% add internal minima in the absense of post-offset silence
+%--------------------------------------------------------------------------
+i = (jT + 1):(jT + FS/8);
+i = fix(i(i < n & i > 1));
+if sum(G(i) < U) < FS/16
+    i  = j(G(j) < max(G)/2 & j < jT(end) & j > (j0 + FS/8));
+    jT = sort(unique([jT; i]));
+end
 
 % indices of interval containing spectral energy
 %--------------------------------------------------------------------------
@@ -73,7 +118,7 @@ for i = 1:numel(j0)
         
         % retain intervals of plausible length
         %------------------------------------------------------------------
-        if ni > FS/16
+        if ni > FS/8 && ni < FS
             I{end + 1} = k;
         end
     end
@@ -97,12 +142,11 @@ end
 
 % timeseries
 %--------------------------------------------------------------------------
-pst   = (1:length(G))/FS;
+pst   = (1:n)/FS;
 subplot(2,1,1)
 plot(pst,Y/max(Y), 'b'),     hold on
 plot(pst,G/max(G),':b'),     hold on
 plot([1 1]/2,[-1 1],'b'),    hold on
-plot([1 1]*T,[-1 1],'--g'),  hold on
 for i = 1:numel(I)
     x = [I{i}(1),I{i}(end),I{i}(end),I{i}(1)]/FS;
     y = [-1,-1,1,1];
@@ -119,7 +163,6 @@ subplot(2,1,2)
 plot(pst,G,'r'), hold on
 plot(pst,0*pst + U,'-.'),         hold on
 plot([1 1]/2,[0 max(G)],'b'),     hold on
-plot([1 1]*T,[0 max(G)],'--g'),   hold on
 for i = 1:numel(j0), plot(pst(j0(i)),G(j0(i)),'og'), end
 for i = 1:numel(jT), plot(pst(jT(i)),G(jT(i)),'or'), end
 title('Spectral envelope','FontSize',16)

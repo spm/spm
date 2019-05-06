@@ -1,9 +1,10 @@
-function SEG = spm_voice_read(wfile,L)
+function SEG = spm_voice_read(wfile,L,N)
 % Reads and translates a sound file or audio source
-% FORMAT spm_voice_read(wfile,[L])
+% FORMAT spm_voice_read(wfile,[L],[N])
 %
 % wfile  - .wav file or audio object or (double) timeseries
 % L      - prior likelihood of lexical content
+% N      - number of words to read
 %
 % requires the following in the global variable VOX:
 % LEX    - lexical structure array
@@ -30,7 +31,7 @@ function SEG = spm_voice_read(wfile,L)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_read.m 7587 2019-05-06 16:47:53Z karl $
 
 
 %% setup
@@ -68,7 +69,8 @@ end
 
 %% priors, assuming at most eight words
 %--------------------------------------------------------------------------
-ns    = 8;
+try ns = N; catch, ns = 8; end
+
 nw    = numel(VOX.LEX);
 for s = 1:ns
     try
@@ -83,7 +85,7 @@ end
 VOX.I0 = 1;                                    % first index
 VOX.IT = 1;                                    % final index
 W      = [];                                   % posterior over words
-for s  = 1:8
+for s  = 1:ns
     
     % find next word
     %----------------------------------------------------------------------

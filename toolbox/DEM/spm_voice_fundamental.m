@@ -20,11 +20,12 @@ function [F0,F1] = spm_voice_fundamental(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_fundamental.m 7583 2019-05-02 12:10:08Z karl $
+% $Id: spm_voice_fundamental.m 7587 2019-05-06 16:47:53Z karl $
 
 
 % find fundamental frequencies
 %==========================================================================
+global VOX, try VOX.formant; catch, VOX.formant = 0; end
 i     = 1:min(FS*8,numel(Y));                   % analyse first 8 seconds
 
 % Fourier transform
@@ -41,7 +42,7 @@ j     = find(diff(diff(sY,1) > 0) < 0);
 k     = find(sY(j) > max(sY(j))/2,1,'first');
 F0    = w(i(1) + j(k));
 
-if nargout == 1, return, end
+if nargout == 1 && ~VOX.formant, return, end
 
 % find fundamental formant frequency (F1)
 %--------------------------------------------------------------------------
@@ -50,10 +51,12 @@ sF    = spm_conv(hamming(numel(i)).*fY(i),F0);
 [~,j] = max(sF);
 F1    = w(i(1) + j);
 
-if nargout > 0, return, end
+if nargout > 0 && ~VOX.formant, return, end
 
 % graphics
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Frequencies');
+
 subplot(3,1,1);
 i    = find(w < 512);
 j    = find(w > 80 & w < 300);                 % range of F0

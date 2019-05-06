@@ -20,7 +20,7 @@ function [L] = spm_voice_test(wfile,sfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_test.m 7587 2019-05-06 16:47:53Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -74,8 +74,8 @@ end
 %% grid search to maximise classication accuracy
 %==========================================================================
 if ~isfield(VOX,'nu');
-    nu    = 4:size(xY{1}(1).Q,1);                              % order (Hz)
-    nv    = 4:size(xY{1}(1).Q,2);                              % order (ms)
+    nu    = 4:min(16,size(xY{1}(1).Q,1));                  % order (Hz)
+    nv    = 4:min(16,size(xY{1}(1).Q,2));                  % order (ms)
     LL    = zeros(numel(nu),numel(nv));
     for i = 1:numel(nu)
         for j = 1:numel(nv);
@@ -188,22 +188,4 @@ end
 drawnow
 
 return
-
-%% auxiliary code to articulate with and without prosody
-%==========================================================================
-
-%% articulate: prosody without lexical content
-%--------------------------------------------------------------------------
-spm_voice_speak([],P,1,LEX,PRO,WHO);
-
-
-%% articulate: with no prosody
-%--------------------------------------------------------------------------
-spm_voice_speak(W,[],1,LEX,PRO,WHO);
-
-
-%% articulate: with lexical content and prosody
-%--------------------------------------------------------------------------
-spm_voice_speak(W,P,1,LEX,PRO,WHO);
-
 

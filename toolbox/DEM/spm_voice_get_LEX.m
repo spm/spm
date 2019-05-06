@@ -31,13 +31,18 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7583 2019-05-02 12:10:08Z karl $
+% $Id: spm_voice_get_LEX.m 7587 2019-05-06 16:47:53Z karl $
 
 
 % defaults
 %--------------------------------------------------------------------------
 global VOX
-try, E = VOX.E; catch, E  = 64; end     % regularisation
+try, E       = VOX.E; catch, E  = 4; end                % regularisation
+VOX.analysis = 0;
+VOX.graphics = 0;
+VOX.interval = 0;
+VOX.mute     = 0;
+VOX.onsets   = 0;
 
 
 %% assemble parameters for subsequent analysis
@@ -121,7 +126,7 @@ R      = [min(PP); max(PP)]';                    % all prosody parameters
 R(1,:) = log([1/32 1]);                          % amp
 R(2,:) = log([1/32 1]);                          % lat
 R(3,:) = log([25  50]);                          % ff1
-R(6,:) = 1./([100 350]);                         % ff0
+R(6,:) = 1./([80 300]);                          % ff0
 
 
 % select prosidy features and specify prior precision
@@ -148,7 +153,6 @@ for p = 1:ni
     PRO(p).str = Pstr{i(p)};
     PRO(p).pE  = pE(:);
     PRO(p).pC  = ones(k,1)*pC;
-    PRO(p).pP  = ones(k,1)/pC;
    
 end
 
@@ -163,7 +167,7 @@ VOX.j = i;
 
 % mixture of Gaussians
 %--------------------------------------------------------------------------
-k     = 8;
+k     = 16;
 for p = 1:ni
     
     % prior densities
@@ -177,17 +181,17 @@ for p = 1:ni
     WHO(p).str = Pstr{i(p)};
     WHO(p).pE  = pE(:);
     WHO(p).pC  = ones(k,1)*pC;
-    WHO(p).pP  = ones(k,1)/pC;
-   
+
 end
 
 
 %% lexical
 %==========================================================================
 
-% evaluate word specific means and covariances in eigenmode space
+% evaluate word specific means and covariances
 %--------------------------------------------------------------------------
 N     = 1;                                     % number of variants
+np    = size(Q{1},1);                          % number of parameters
 q0    = mean(spm_cat(Q),2);                    % average word
 for w = 1:nw
     
@@ -197,36 +201,43 @@ for w = 1:nw
     Qw              = bsxfun(@minus,Q{w},q0)';
     [pL,pE,pC]      = spm_kmeans(Qw,N,'fixed-points');
     [j,k]           = sort(pL,'descend');
-  
+    
+    
+    % mean and precision of duration
+    %----------------------------------------------------------------------
+    dE    = mean(P{w}(4,:));
+    dC    =  var(P{w}(4,:));
+    
     % word variants: mean and variance
     %----------------------------------------------------------------------
     for i = k
         LEX(w,i).qE = pE(i,:)';
         LEX(w,i).qC = pC(:,:,i);
+        
+        % duration priors
+        %----------------------------------------------------------------------
+        LEX(w,i).dE = dE;
+        LEX(w,i).dC = dC;
     end
 end
 
 
-
-% covariance normalisation; based on within word covariance
+% precision normalisation; ensuring trace(qP*QC) = np
 %--------------------------------------------------------------------------
 QC    = 0;
 for w = 1:nw
-    for i = N
-        QC = QC + LEX(w,i).qC;
+    for k = N
+        QC = QC + LEX(w,k).qC;
     end
 end
 QC    = QC/(nw*N);
-c0    = trace(QC)*eye(size(QC))/E;
+c0    = trace(QC)*eye(size(QC))/np/E;
 for w = 1:nw
     for k = 1:N
         qC          = LEX(w,k).qC;
-        qC          = trace(QC)*qC/trace(qC);
         qC          = qC + c0;
-        qP          = spm_inv(qC);
-        
+        qC          = qC*trace(qC\QC)/np;
         LEX(w,k).qC = qC;
-        LEX(w,k).qP = qP;
     end
 end
 
@@ -234,7 +245,7 @@ end
 % save mean and precision in voice structure
 %--------------------------------------------------------------------------
 VOX.Q   = spm_unvec(q0,xY(1).Q);
-VOX.qP  = spm_inv(QC + c0);
+VOX.qC  = QC + c0;
 
 % place lexical and other structures voice structure
 %--------------------------------------------------------------------------
@@ -242,18 +253,5 @@ VOX.LEX = LEX;
 VOX.PRO = PRO;
 VOX.WHO = WHO;
 
-% find most likely exemplar for word generation
-%--------------------------------------------------------------------------
-for w = 1:nw
-    for k = 1:N
-        
-        % likelihood
-        %------------------------------------------------------------------
-        L               = spm_voice_likelihood(xY(w,:),w);
-        [L,i]           = max(L(w,1,1,:));
-        VOX.LEX(w,k).rE = spm_vec(xY(w,i).Q) - spm_vec(VOX.Q);
-        
-    end
-end
 
 return

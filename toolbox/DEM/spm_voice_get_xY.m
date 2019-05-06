@@ -19,11 +19,12 @@ function [xY,word] = spm_voice_get_xY(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_xY.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_get_xY.m 7587 2019-05-06 16:47:53Z karl $
 
 
 %% get corpus
 %==========================================================================
+rng('default')
 
 % get the list of words and sampling frequency (FS)
 %--------------------------------------------------------------------------
@@ -40,13 +41,15 @@ end
 
 %% assemble cell array of word structures for subsequent characterisation
 %==========================================================================
-nw    = numel(wfile);                               %  number of words
-ns    = 32;                                         %  number of samples
+nw    = numel(wfile);                               % number of words
+ns    = 32;                                         % number of samples
+nj    = 16;                                         % number of jitters
+sj    = FS/64;                                      % s.d. of jitter
 for w = 1:nw
     
     % get lexicon name and create structure
     %----------------------------------------------------------------------
-    wname   = wfile(w).name;                        %  name of word
+    wname   = wfile(w).name;                        % name of word
     [d,str] = fileparts(wname);
     word{w} = str; disp(str)
     
@@ -67,15 +70,24 @@ for w = 1:nw
         
         % retrieve (one second) epoch around midpoint and transform
         %------------------------------------------------------------------
-        Y       = read(wname,round([-1/2 1/2]*FS + I(s)));
-        i       = spm_voice_onsets(Y,FS);
-        xY(w,s) = spm_voice_ff(Y(i{1}),FS);
-        
-        % apply inverse transform and play, if requested
-        %------------------------------------------------------------------
-        spm_voice_iff(xY(w,s));
-        xY(w,s).i(1) = i{1}(1)/FS   - 1/2;
-        xY(w,s).i(2) = i{1}(end)/FS - 1/2;
+        Y     = read(wname,round([-1/2 1/2]*FS + I(s)));
+        i     = spm_voice_onsets(Y,FS);
+        ni    = numel(Y);
+        for j = 1:nj
+            
+            % jitter interval
+            %--------------------------------------------------------------
+            k       = (s - 1)*nj + j;
+            ik      = fix((i{1}(1) + sj*randn):(i{1}(end) + sj*randn));
+            ik      = ik(ik < ni & ik > 1);
+            xY(w,k) = spm_voice_ff(Y(ik),FS);
+            
+            % apply inverse transform and play, if requested
+            %--------------------------------------------------------------
+            spm_voice_iff(xY(w,k));
+            xY(w,k).i(1) = ik(1)/FS   - 1/2;
+            xY(w,k).i(2) = ik(end)/FS - 1/2;
+        end
         
     end
     

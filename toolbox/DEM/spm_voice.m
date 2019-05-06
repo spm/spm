@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7583 2019-05-02 12:10:08Z karl $
+% $Id: spm_voice.m 7587 2019-05-06 16:47:53Z karl $
 
 
 %% setup options and files
@@ -51,13 +51,13 @@ global VOX
 VOX.analysis = 0;
 VOX.graphics = 0;
 VOX.interval = 0;
+VOX.onsets   = 0;
 VOX.mute     = 1;
-VOX.onsets   = 1;
-
 
 %% get training corpus
 %==========================================================================
-[xY,word] = spm_voice_get_xY(PATH);
+[xY,word] = spm_voice_get_xY(PATH); save xY xY word
+
 
 %% get VOX (LEX, PRO and WHO) and parameters; e.g., 1/F0  = mean(P(:,6));
 %==========================================================================
@@ -65,16 +65,19 @@ P     = spm_voice_get_LEX(xY,word);
 
 
 %% articulate every word under all combinations of (5 levels) of prosody
-VOX.mute  = 0;
 % {VOX.PRO.str}: 'amp'  'lat'  'dur'  'tim'  'ff0'  'inf'  'bif'
 % {VOX.WHO.str}: 'ff1'
 %--------------------------------------------------------------------------
+VOX.mute     = 0;
+VOX.graphics = 1;
+VOX.R        = 1/2;
+
 nw    = numel(VOX.LEX);                       % number of words
-k     = [3 6];                                % number of prosody features
+k     = [3 7];                                % number of prosody features
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[8;1;5;5;1;i;j],3);
+            spm_voice_speak(w,[5;1;5;5;5;i;j],6); pause(1/2)
         end
     end
 end
@@ -100,21 +103,21 @@ save(fullfile(DIR,'VOX'),'VOX')
 %==========================================================================
 VOX.graphics = 0;
 
-% prior words
+% prior words (first words are the spoken words)
 %--------------------------------------------------------------------------
 clear str
 str{1} = {'is'};
 str{2} = {'there'};
 str{3} = {'a'};
 str{4} = {'triangle','square'};
-str{5} = {'below','above'};
+str{5} = {'below','above','there'};
 str{6} = {'no','yes'};
 str{7} = {'is','there'};
 [i,P]  = spm_voice_i(str);
 
 % Read test file
 %--------------------------------------------------------------------------
-spm_voice_read(wtest,P);
+spm_voice_read(wtest,P,12);
 
 
 %% illustrate accuracy (i.e., inference) using training corpus
@@ -161,6 +164,10 @@ k     = numel(VOX.PRO(1).pE);
 xlabel('level'), ylabel('attribute'), title('Prosody','FontSize',16)
 set(gca,'Xtick',1:k),set(gca,'Ytick',1:j),set(gca,'YtickLabel',{VOX.PRO.str})
 
+
+
+%% auxiliary code
+%==========================================================================
 return
 
 
@@ -281,122 +288,100 @@ imagesc(Pv,Pu,A), axis square, title('Accuracy','FontSize',16),drawnow
 %% iterative inversion
 %==========================================================================
 VOX.analysis = 1;
-VOX.graphics = 1;
+VOX.graphics = 0;
 VOX.interval = 0;
-VOX.mute     = 0;
-VOX.F2       = 1;
+VOX.mute     = 1;
+VOX.F2       = 128;
 
 % get parameters for a particular word
 %--------------------------------------------------------------------------
-xY          = spm_voice_speak(14);
-xY.P.amp    = 0;
-xY.P.lat    = -8;
-xY.P.ff1    = log(32);
-xY.P.inf(1) = 1/100;
+xY       = spm_voice_speak(14);
+xY.P.lat = -8;
+P        = xY.P;
+
 
 % compose and decompose iteratively
 %--------------------------------------------------------------------------
-for i = 1:8
+for i = 1:4
     
     % generate timeseries and play
     %----------------------------------------------------------------------
-    Y  = spm_voice_iff(xY);
-    sound(Y,VOX.FS)
+    Y        = spm_voice_iff(xY);
+    sound(Y,spm_voice_FS)
     
     % map back to parameters by inverting
     %----------------------------------------------------------------------
-    VOX.F1   = exp(xY.P.ff1);
     xY       = spm_voice_ff(Y);
-    xY.P.amp = 0;
-    xY.P.lat = -8;
-  
+    xY.P.amp = P.amp;
+    xY.P.lat = P.lat;
+   
+end
+
+
+
+%% Illustrate precisions and expectations in formant space
+%==========================================================================
+spm_figure('GetWin','Formant priors')
+for w = 1:4
+    
+    % Expectations for this word
+    %----------------------------------------------------------------------
+    xy        = spm_voice_speak(w);    
+    [Y,Q,U,V] = spm_voice_iff(xy);
+    
+    subplot(4,2,2*w - 1), imagesc(Q)
+    xlabel('time (seconds)'), ylabel('Formants (Hz)')
+    title(sprintf('Mean (%s)',VOX.LEX(w).word),'FontSize',16)
+    
+    % Expectations for this word
+    %----------------------------------------------------------------------
+    L     = Q;
+    for i = 1:numel(Q)
+        dQ    = Q;
+        dQ(i) = dQ(i) + 1/128;
+        xy.Q  = U\dQ/V';
+        dL    = spm_voice_likelihood(xy,w);
+        L(i)  = dL(w);
+    end
+    
+    subplot(4,2,2*w), imagesc(L)
+    xlabel('time (seconds)'), ylabel('Formants (Hz)')
+    title('Sensitivity','FontSize',16), drawnow
+    
 end
 
 
 
 %% estimate formant frequency via maximum likelihood
 %==========================================================================
-global VOX
-load VOX
+% global VOX
+% load VOX
 load Ann
 VOX.analysis = 1;
 VOX.graphics = 1;
-VOX.interval = 0;
-VOX.onsets   = 1;
+VOX.formant  = 1;
+VOX.onsets   = 0;
 VOX.mute     = 1;
-VOX.F2       = 1024;
+
 VOX.FS       = 22050;
 VOX.IT       = 1;
 
+
 sound(Y,VOX.FS)
-str       = {'yes','yes','yes','yes'};
+str       = {'yes'};
 w         = spm_voice_i(str);
 [i,P]     = spm_voice_i(str);
 P         = spm_softmax(log(P));
-[L,F0,F1] = spm_voice_identity(Y,P(:,1));
-
+[L,F0,F1] = spm_voice_identity(Y,P);
 
 VOX.F1       = F1;
 VOX.F0       = F0;
 VOX.mute     = 0;
-VOX.analysis = 0;
-VOX.graphics = 0;
-
-spm_voice_read(Y,P);
-
-
-% search over variables
-%--------------------------------------------------------------------------
-P     = spm_softmax(log(P)/2);
-
-clear A
-F1    = linspace(32,48,8);
-F0    = linspace(200,300,4);
-for i = 1:numel(F1)
-    for j = 1:numel(F0);
-        
-        VOX.F1 = F1(i);
-        VOX.F0 = F0(j);
-        VOX.IT = 1;
-        
-        if 0
-            % first word
-            %--------------------------------------------------------------
-            L      = spm_voice_get_word(Y,P(:,1));
-            A(i,j) = log(L{1}(w(1)) + exp(-16))
-        else
-
-            % sentence
-            %--------------------------------------------------------------
-            SEG   = spm_voice_read(Y,P);
-            L     = 0;
-            for s = 1:numel(w)
-                L = L + log(SEG(s).L{1}(w(s)) + exp(-16));
-            end
-            A(i,j) = L
-        end
-    end
-end
-
-
-% results over search
-%--------------------------------------------------------------------------
-imagesc(F0,F1,A), axis square, title('Accuracy','FontSize',16),drawnow
-xlabel('Fundamental frequency'),ylabel(' formant frequency')
-
-% segment using expected weaknesses
-%--------------------------------------------------------------------------
-A(:)   = spm_softmax(A(:));
-F1     = F1*spm_vec(sum(A,2));
-F0     = F0*spm_vec(sum(A,1));
-VOX.F1 = F1;
-VOX.F0 = F0;
-
-VOX.mute     = 0;
-VOX.analysis = 0;
-VOX.graphics = 0;
-
+VOX.onsets   = 0;
+VOX.formant  = 0;
 spm_voice_read(Y);
+
+VOX = rmfield(VOX,{'F0','F1','FS'});
 
 
 %% auxiliary code

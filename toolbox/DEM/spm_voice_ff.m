@@ -48,7 +48,7 @@ function [xY] = spm_voice_ff(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7576 2019-04-23 09:22:44Z karl $
+% $Id: spm_voice_ff.m 7587 2019-05-06 16:47:53Z karl $
 
 
 % defaults
@@ -60,7 +60,7 @@ try, Tu = VOX.Tu; catch, Tu  = 4;     end    % log scaling (formants)
 try, Tv = VOX.Tv; catch, Tv  = 1;     end    % log scaling (interval)
 try, F0 = VOX.F0; catch, F0  = 96;    end    % fundamental frequency
 try, F1 = VOX.F1; catch, F1  = 32;    end    % formant frequency
-try, F2 = VOX.F2; catch, F2  = 1024;  end    % minimum formant
+try, F2 = VOX.F2; catch, F2  = 256;   end    % minimum formant
 
 % sampling frequency
 %--------------------------------------------------------------------------
@@ -71,7 +71,7 @@ end
 
 % parameterise fundamental frequency modulations
 %==========================================================================
-I     = spm_voice_frequency(Y,FS,F0)/FS;     % get intervals
+I     = spm_voice_frequency(Y,FS,F0)/FS;     % get intervals (seconds)
 nI    = length(I);                           % number of intervals
 D     = spm_dctmtx(nI,3);                    % inflection basis set
 p     = sqrt(nI)\I*D;                        % fluctuations around mean
@@ -103,7 +103,7 @@ Q  = Q - mean(Q(:));                         % detrend
 B  = 1 - exp(-(1:Ni)*F1/F2);                 % auditory range
 Q  = bsxfun(@times,Q,B(:));                  % balance
 S  = std(Q(:));                              % timbre
-Q  = Q/std(Q(:));                            % normalise
+Q  = Q/S;                                    % normalise
 
 nu = exp(-Tu*(0:(Ni - 1))/Ni);               % log spacing
 nv = exp(-Tv*(0:(ni - 1))/ni);               % log spacing
@@ -119,7 +119,7 @@ P.amp = log(max(Y));                         % amplitude (a.u.)
 P.lat = log(1/32);                           % latency (sec)
 P.ff1 = log(F1);                             % format frequency (Hz)
 P.dur = log(Ny/FS);                          % duration (seconds)
-P.tim = log(S);                              % timbre
+P.tim = log(S)/2;                            % timbre
 P.inf = p;                                   % inflection
 
 % output structure

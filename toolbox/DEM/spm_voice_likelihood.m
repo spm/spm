@@ -32,7 +32,7 @@ function [L,M,N] = spm_voice_likelihood(xY,W)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7583 2019-05-02 12:10:08Z karl $
+% $Id: spm_voice_likelihood.m 7587 2019-05-06 16:47:53Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -82,21 +82,26 @@ method = 'likelihood';
 switch method
     
     case {'likelihood'}
-        
-        % log likelihood - lexical
-        %------------------------------------------------------------------
+
         for w = W
             for k = 1:size(VOX.LEX,2)
+                
+                % log likelihood - lexical
+                %----------------------------------------------------------
                 E      = Q(i) - VOX.LEX(w,k).qE(i);        % error
-              % L(w,k) = - E'*VOX.LEX(w,k).qP(i,i)*E/2;    % log likelihood
-                L(w,k) = - E'*VOX.qP(i,i)*E/2;             % log likelihood
-
+                L(w,k) = -  E'*(VOX.LEX(w,k).qC(i,i)\E)/2; % log likelihood
+                
                 % shrink estimators in proportion to noise
                 %----------------------------------------------------------
                 if isfield(VOX,'noise')
                     L(w,k) = L(w,k)/VOX.noise;
                 end
                 
+                % supplement with the likelihood of duration
+                %----------------------------------------------------------
+                E      = xY.P.dur - VOX.LEX(w,k).dE;
+                D      = - E'*(VOX.LEX(w,k).dC\E)/2;
+                L(w,k) = L(w,k) + D;
             end
         end
         
@@ -118,9 +123,19 @@ switch method
         %------------------------------------------------------------------
         for w = W
             for k = 1:size(VOX.LEX,2)
+                
+                % log likelihood - lexical
+                %----------------------------------------------------------
                 rE     = VOX.LEX(w,k).qE(i);
-                rC     = spm_inv(VOX.LEX(w,k).qP(i,i));
+                rC     = VOX.LEX(w,k).qC(i,i);
                 L(w,k) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
+                
+                % supplement with the likelihood of duration
+                %----------------------------------------------------------
+                E      = xY.P.dur - VOX.LEX(w,k).dE;
+                D      = - E'*(VOX.LEX(w,k).dC\E)/2;
+                L(w,k) = L(w,k) + D;
+                
             end
         end
         
@@ -140,8 +155,8 @@ for p = 1:numel(VOX.PRO)
         
         % log likelihood
         %------------------------------------------------------------------
-        E      = P(p) - VOX.PRO(p).pE(k);              % error
-        M(k,p) = - E'*VOX.PRO(p).pP(k)*E/2;            % log likelihood
+        E      = P(p) - VOX.PRO(p).pE(k);                  % error
+        M(k,p) = -  E'*(VOX.PRO(p).pC(k)\E)/2;             % log likelihood
         
     end
 end
@@ -157,8 +172,8 @@ for p = 1:numel(VOX.WHO)
         
         % log likelihood
         %------------------------------------------------------------------
-        E      = P(p) - VOX.WHO(p).pE(k);             % error
-        N(k,p) = - E'*VOX.WHO(p).pP(k)*E/2;           % log likelihood
+        E      = P(p) - VOX.WHO(p).pE(k);                  % error
+        N(k,p) = -  E'*(VOX.WHO(p).pC(k)\E)/2;             % log likelihood
         
     end
 end
