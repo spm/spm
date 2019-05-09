@@ -27,7 +27,7 @@ function [E,  PST] = spm_voice_segmentation(wfile,SEG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_segmentation.m 7588 2019-05-06 21:26:32Z karl $
+% $Id: spm_voice_segmentation.m 7589 2019-05-09 12:57:23Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -41,29 +41,34 @@ global VOX
 %% read file and plot timeseries (and envelope)
 %==========================================================================
 Y   = read(wfile);
+n   = numel(Y);
 j   = fix((1:(SEG(end).IT) + FS/2));
-Y   = Y(j(j < numel(Y)));
-G   = spm_voice_check(Y,FS,VOX.C);
+Y   = Y(j(j < n));
+g   = spm_voice_check(Y,FS,VOX.C);
+G   = spm_voice_check(Y,FS,1/16);
 pst = (1:numel(Y))/FS;
 
 subplot(4,1,1)
 plot(pst,Y,'c'), spm_axis tight
 xlabel('time (seconds)'), ylabel('amplitude')
-title('Acoustic signal','FontSize',16),hold on, box off
+title('Acoustic signal','FontSize',16),  hold on, box off
 
 subplot(4,1,2)
-plot(pst,G,'k',pst,spm_zeros(pst) + VOX.U,':r'), spm_axis tight
-xlabel('time (seconds)'), ylabel('power')
-title('Spectral envelope','FontSize',16), box off
+plot(pst,g,':k',pst,spm_zeros(pst) + VOX.U,':r'), hold on
+plot(pst,G, 'k'), hold on
+xlabel('time (seconds)'), ylabel('power'), 
+title('Spectral envelope','FontSize',16), spm_axis tight, box off
 
-subplot(4,1,3), imagesc(full(spm_cat({SEG.P})))
-set(gca,'YTickLabel',{VOX.PRO.str})
-xlabel('word'), ylabel('prodisy')
+subplot(6,1,5), imagesc(full(spm_cat({SEG.P})))
+str = {VOX.PRO.str};
+set(gca,'YTick',1:numel(str),'YTickLabel',str)
+xlabel('word'), ylabel('prodisy'), colorbar
 title('Prodisy','FontSize',16), box off
 
 % scan through words
 %--------------------------------------------------------------------------
 rng('default')
+M     = max(G);
 for w = 1:numel(SEG)
     
     % colour 
@@ -72,13 +77,25 @@ for w = 1:numel(SEG)
     
     % retrieve epoch 
     %----------------------------------------------------------------------
-    i    = round(SEG(w).I0:SEG(w).IT);
-    j    = round(SEG(w).I0); 
+    i    = ceil(SEG(w).I0:SEG(w).IT);
+    j    = ceil(SEG(w).I0); 
+    i    = i(i < n & i > 1);
  
-    % plot and label
+    % plot and label spectral segmentation
     %----------------------------------------------------------------------
     subplot(4,1,1), plot(i/FS,Y(i),'Color',col)
-    subplot(4,1,2), text(j/FS,G(j) + VOX.U,SEG(w).str,'Color',col,'FontWeight','bold')
+    subplot(4,1,2), text(j/FS,M,SEG(w).str,'Color',col,'FontWeight','bold')
+    
+    % plot boundaries and peaks
+    %----------------------------------------------------------------------
+    i     = fix(SEG(w).I + FS/2);
+    subplot(4,1,2), plot(pst(i),g(i),'.', 'Color',col,'MarkerSize',24)
+    for i = 1:numel(SEG(w).J)
+        j = fix(SEG(w).J{i}(1)   + SEG(w).I); j = max(j,1);
+        plot([1,1]*pst(j),[0 M],'--','Color',col)
+        j = fix(SEG(w).J{i}(end) + SEG(w).I); j = max(j,1);
+        plot([1,1]*pst(j),[0 M],'-.','Color',col)
+    end
 
 end
 

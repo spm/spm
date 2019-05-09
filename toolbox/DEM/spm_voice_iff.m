@@ -5,12 +5,16 @@ function [Y,W,U,V] = spm_voice_iff(xY)
 % xY    -  cell array of word structures
 % xY.Q  -  parameters - lexical
 % xY.P  -  parameters - prosidy
-%
-% xY.P.ff0  -  fundamental frequency (Hz)
-% xY.P.ff1  -  format frequency (Hz)
-% xY.P.dur  -  duration (seconds)
-% xY.P.tim  -  timbre
-% xY.P.inf  -  inflection (f0,f1,f2)
+% xY.R  -  parameters - speaker
+% 
+% xY.P.amp - log amplitude
+% xY.P.dur - log duration (seconds)
+% xY.P.lat - log latency (sec)
+% xY.P.tim - log timbre (a.u.)
+% xY.P.inf - inflection (a.u.)
+
+% xY.R.F0  - fundamental frequency (Hz)
+% xY.R.F1  - format frequency (Hz
 %
 % Y     - reconstructed timeseries
 % W     - formants (time-frequency representation): W = U*xY.Q*V'
@@ -25,7 +29,7 @@ function [Y,W,U,V] = spm_voice_iff(xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7587 2019-05-06 16:47:53Z karl $
+% $Id: spm_voice_iff.m 7589 2019-05-09 12:57:23Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -51,18 +55,19 @@ end
 %--------------------------------------------------------------------------
 M  = exp(xY.P.amp);                          % amplitude
 L  = exp(xY.P.lat);                          % latency (sec)
-F1 = exp(xY.P.ff1);                          % formant frequency (Hz)
 T  = exp(xY.P.dur);                          % duration (seconds)
 S  = exp(xY.P.tim);                          % timbre
 P  = xY.P.inf;                               % inflection
 
+F0 = exp(xY.R.F0);                           % fundamental frequency (Hz)
+F1 = exp(xY.R.F1);                           % formant frequency (Hz)
+
 % reconstitute intervals
 %--------------------------------------------------------------------------
-F0 = 1/P(1);                                 % fundamental frequency
-nI = round(T*F0);                            % number of intervals
+nI = fix(T*F0);                              % number of intervals
 D  = spm_dctmtx(nI - 1,numel(P));            % basis set for inflection
-dI = D*P(:)*sqrt(nI);                        % fluctuations
-I  = round([1; FS*cumsum(dI)]);              % cumulative intervals
+dI = D*P(:)*sqrt(nI)/F0;                     % fluctuations
+I  = fix([1; FS*cumsum(dI)]);                % cumulative intervals
 
 % reconstitute format coefficients
 %--------------------------------------------------------------------------

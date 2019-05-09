@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7588 2019-05-06 21:26:32Z karl $
+% $Id: spm_voice.m 7589 2019-05-09 12:57:23Z karl $
 
 
 %% setup options and files
@@ -43,6 +43,9 @@ function spm_voice(PATH)
 % directory of sound files if necessary
 %--------------------------------------------------------------------------
 clear global VOX
+close all
+clear all
+clc
 if ~nargin
     PATH = 'C:\Users\karl\Dropbox\Papers\Voice recognition\Sound files';
 end
@@ -65,26 +68,26 @@ P     = spm_voice_get_LEX(xY,word);
 
 
 %% articulate every word under all combinations of (5 levels) of prosody
-% {VOX.PRO.str}: 'amp'  'lat'  'dur'  'tim'  'ff0'  'inf'  'bif'
-% {VOX.WHO.str}: 'ff1'
+% {VOX.PRO.str}: {'amp','lat','dur','tim','p0','p1','p2','p3'}
+% {VOX.WHO.str}: {'ff0','ff1'}
 %--------------------------------------------------------------------------
 VOX.mute     = 0;
 VOX.graphics = 1;
-VOX.R        = 1/2;
+VOX.RAND     = 1/2;
 
 nw    = numel(VOX.LEX);                       % number of words
 k     = [3 7];                                % number of prosody features
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[5;1;5;5;5;i;j],6); pause(1/2)
+            spm_voice_speak(w,[5;1;5;5;5;i;j],[6;4]); pause(1/2)
         end
     end
 end
 
-
 %% invert a test file of 87 words & optimise basis function order (ny,nv)
 %==========================================================================
+VOX.RAND     = 0;
 try
     VOX = rmfield(VOX,'nu');
     VOX = rmfield(VOX,'nv');
@@ -95,6 +98,11 @@ spm_voice_test(wtest,ttest);
 
 %% save structure arrays in sound file directory
 %--------------------------------------------------------------------------
+VOX.analysis = 0;
+VOX.graphics = 0;
+VOX.interval = 0;
+VOX.onsets   = 0;
+VOX.mute     = 1;
 DIR   = fileparts(which('spm_voice.m'));
 save(fullfile(DIR,'VOX'),'VOX')
 
@@ -110,14 +118,14 @@ str{1} = {'is'};
 str{2} = {'there'};
 str{3} = {'a'};
 str{4} = {'triangle','square'};
-str{5} = {'below','above','there'};
+str{5} = {'below','above'};
 str{6} = {'no','yes'};
 str{7} = {'is','there'};
 [i,P]  = spm_voice_i(str);
 
 % Read test file
 %--------------------------------------------------------------------------
-spm_voice_read(wtest,P,12);
+spm_voice_read(wtest,P,8);
 
 
 %% illustrate accuracy (i.e., inference) using training corpus
@@ -357,8 +365,21 @@ end
 % global VOX
 % load VOX
 load Ann
+str = {'yes'}
+
+load Annagain
+clear str
+str{1} = {'is'};
+str{2} = {'there'};
+str{3} = {'a'};
+str{4} = {'square'};
+str{5} = {'below','above','there'};
+str{6} = {'no','yes'};
+str{7} = {'is','there'};
+
+
 VOX.analysis = 1;
-VOX.graphics = 1;
+VOX.graphics = 0;
 VOX.formant  = 1;
 VOX.onsets   = 0;
 VOX.mute     = 1;
@@ -367,7 +388,7 @@ VOX.FS       = 22050;
 VOX.IT       = 1;
 
 sound(Y,VOX.FS)
-[i,P]     = spm_voice_i({'yes'});
+[i,P]     = spm_voice_i(str);
 [L,F0,F1] = spm_voice_identity(Y,P);
 
 VOX.F1       = F1;
@@ -375,9 +396,27 @@ VOX.F0       = F0;
 VOX.mute     = 0;
 VOX.onsets   = 0;
 VOX.formant  = 0;
-spm_voice_read(Y);
+VOX.graphics = 0;
+VOX.analysis = 0;
+
+spm_voice_read(Y,P);but he is
 
 VOX = rmfield(VOX,{'F0','F1','FS'});
+
+%% pitch analysis
+%==========================================================================
+VOX.graphics = 1;
+VOX.mute     = 0;
+VOX.Tu       = 4;
+VOX.Tv       = 1;
+
+Tu    = [-1 0 1 1 0 -1];
+for i = 1:numel(Tu)
+    VOX.Tu = Tu(i)/2 + 4;
+    spm_voice_speak(5,[5,1,4,4,4,4,4,4]',[4;6]);
+end
+
+
 
 
 %% auxiliary code

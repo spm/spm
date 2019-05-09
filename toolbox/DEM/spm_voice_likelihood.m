@@ -32,7 +32,7 @@ function [L,M,N] = spm_voice_likelihood(xY,W)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7587 2019-05-06 16:47:53Z karl $
+% $Id: spm_voice_likelihood.m 7589 2019-05-09 12:57:23Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -70,12 +70,14 @@ nu    = min(nu,Nu);
 nv    = min(nv,Nv);
 wu    = sparse(1:nu,1,1,Nu,1);
 wv    = sparse(1:nv,1,1,Nv,1);
-i     = find(kron(wv,wu));
+i     = find(kron(wv,wu));                    % indices for lexical
+j     = 3:8;                                  % indices for prosidy
 ni    = numel(i);
 
 % log likelihood over lexical outcomes
 %==========================================================================
 Q      = spm_vec(xY.Q) - spm_vec(VOX.Q);
+P      = spm_vec(xY.P);
 L      = zeros(size(VOX.LEX)) - exp(8);
 method = 'likelihood';
 
@@ -99,8 +101,8 @@ switch method
                 
                 % supplement with the likelihood of duration
                 %----------------------------------------------------------
-                E      = xY.P.dur - VOX.LEX(w,k).dE;
-                D      = - E'*(VOX.LEX(w,k).dC\E)/2;
+                E      = P(j) - VOX.LEX(w,k).dE(j);
+                D      = - E'*(VOX.LEX(w,k).dC(j,j)\E)/2;
                 L(w,k) = L(w,k) + D;
             end
         end
@@ -132,7 +134,7 @@ switch method
                 
                 % supplement with the likelihood of duration
                 %----------------------------------------------------------
-                E      = xY.P.dur - VOX.LEX(w,k).dE;
+                E      = P - VOX.LEX(w,k).dE;
                 D      = - E'*(VOX.LEX(w,k).dC\E)/2;
                 L(w,k) = L(w,k) + D;
                 
@@ -149,7 +151,6 @@ if nargout < 2, return, end
 % log likelihood over prosody outcomes
 %==========================================================================
 P     = spm_vec(xY.P) - spm_vec(VOX.P);
-P     = P(VOX.i);
 for p = 1:numel(VOX.PRO)
     for k = 1:numel(VOX.PRO(p).pE)
         
@@ -165,14 +166,13 @@ if nargout < 3, return, end
 
 % log likelihood over identity outcomes
 %==========================================================================
-P     = spm_vec(xY.P) - spm_vec(VOX.P);
-P     = P(VOX.j);
+R     = spm_vec(xY.R) - spm_vec(VOX.R);
 for p = 1:numel(VOX.WHO)
     for k = 1:numel(VOX.WHO(p).pE)
         
         % log likelihood
         %------------------------------------------------------------------
-        E      = P(p) - VOX.WHO(p).pE(k);                  % error
+        E      = R(p) - VOX.WHO(p).pE(k);                  % error
         N(k,p) = -  E'*(VOX.WHO(p).pC(k)\E)/2;             % log likelihood
         
     end

@@ -32,7 +32,7 @@ function [SEG,W,P,R] = spm_voice_read(wfile,L,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7588 2019-05-06 21:26:32Z karl $
+% $Id: spm_voice_read.m 7589 2019-05-09 12:57:23Z karl $
 
 
 %% setup
@@ -41,7 +41,7 @@ global VOX
 if ~isfield(VOX,'LEX')
     try
         load VOX
-        VOX.analysis = 1;
+        VOX.analysis = 0;
         VOX.graphics = 0;
         VOX.mute     = 0;
     catch
@@ -70,7 +70,7 @@ end
 
 %% priors, assuming at most eight words
 %--------------------------------------------------------------------------
-try ns = N; catch, ns = 8; end
+try ns = N; catch, ns = 16; end
 
 nw    = numel(VOX.LEX);
 for s = 1:ns
@@ -93,12 +93,14 @@ for s  = 1:ns
         
     % break if EOF
     %----------------------------------------------------------------------
-    if isempty(L), break, end
+    if isempty(L)
+        break
+    end
     
     % identify the most likely word and prosody
     %----------------------------------------------------------------------
     [d,w]  = max(L{1});                        % most likely word
-    [d,c]  = max(L{2});                        % most likely prosody
+    [d,q]  = max(L{2});                        % most likely prosody
     [d,r]  = max(L{3});                        % most likely identity
     
     % string
@@ -106,10 +108,12 @@ for s  = 1:ns
     SEG(s).str = VOX.LEX(w,1).word;            % lexical string
     SEG(s).I0  = VOX.I0;                       % first
     SEG(s).IT  = VOX.IT;                       % final
+    SEG(s).J   = VOX.J;                        % intervals
+    SEG(s).I   = VOX.I;                        % peaks
     SEG(s).p   = p(:,s);                       % prior
     SEG(s).L   = L;                            % posteriors
     SEG(s).W   = w(:);                         % lexical class
-    SEG(s).P   = c(:);                         % prosody classes
+    SEG(s).P   = q(:);                         % prosody classes
     SEG(s).R   = r(:);                         % speaker class
 
     disp({SEG.str})

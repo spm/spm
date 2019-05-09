@@ -1,9 +1,9 @@
 function [L,F0,F1] = spm_voice_identity(wfile,P)
-% Evaluates the likelihood of the next word in a file or object
+% Evaluates the fundamental and formant frequencies of a word
 % FORMAT [L,F0,F1] = spm_voice_identity(wfile,P)
 %
 % wfile  - .wav file, audiorecorder object or (double) time series
-% P      - lexical prior [optional]
+% P      - prior probability of first word
 %
 % L      - log-likelihood over F1 (identity attribute)
 % F0     - fundamental frequency
@@ -18,43 +18,36 @@ function [L,F0,F1] = spm_voice_identity(wfile,P)
 % F0     - fundamental frequency (Hz)
 % IT     - index or pointer to offset of last word (i.e., CurrentSample)
 %
-% this routine estimates the joint probability over fundamental and formant
-% frequencies based upon a spoken word source, using the average spectral
-% content of a spoken word.
+% This routine estimates the fundamental and formant frequencies based upon
+% a spoken word source.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_identity.m 7588 2019-05-06 21:26:32Z karl $
+% $Id: spm_voice_identity.m 7589 2019-05-09 12:57:23Z karl $
 
 
-%% log prior over lexical content 
+%% log prior over lexical content
 %==========================================================================
 global VOX
-if nargin < 2
-    nw = numel(VOX.LEX);
-    LP = ones(nw,1)/nw;
-else
-    LP = log(P + exp(-8));
-end
+VOX.IT = 1;                               % reset index
 
-% within Ockham's window W
-%--------------------------------------------------------------------------
-W = find(LP > (max(LP) - 3));
-
-
-%% get onset of first word 
-%==========================================================================
-VOX.IT   = 1;
+% get the onset of the next word
+%----------------------------------------------------------------------
 [Y,I,FS] = spm_voice_get_next(wfile);
 
 % break if EOF
-%--------------------------------------------------------------------------
+%----------------------------------------------------------------------
 if isempty(I), error('Please repeat'); end
 
 
 %% get 1 second segment and fundamental frequency
-%==========================================================================
+%======================================================================
+
+% within Ockham's window W
+%----------------------------------------------------------------------
+LP   = log(P(:,1) + exp(-8));
+W    = find(LP > (max(LP) - 3));
 
 % get intervals (j) for this peak
 %--------------------------------------------------------------------------
@@ -71,22 +64,25 @@ F0   = spm_voice_fundamental(Y,FS);
 
 % likelihood search over fundamental and formant frequencies
 %==========================================================================
-F1    = exp(VOX.WHO.pE + VOX.P.ff1);
+F1    = exp(VOX.WHO(2).pE + VOX.R.F1);       % range of  formant frequencies
 F     = zeros(numel(F1),1);
 for i = 1:numel(F1)
     
+    
+    % set fundamental and formant frequencies
+    %----------------------------------------------------------------------
     VOX.F0 = F0;
     VOX.F1 = F1(i);
-
+    
     % sentence
-    %------------------------------------------------------------------
+    %----------------------------------------------------------------------
     clear xy
-    for k = 1:numel(J)
+    for k = 1:1 % numel(J)
         xy(k,1) = spm_voice_ff(y(J{k}),FS);
     end
     
     % free energy
-    %------------------------------------------------------------------
+    %----------------------------------------------------------------------
     L    = spm_voice_likelihood(xy,W);
     L    = bsxfun(@plus,L,LP);
     Q    = spm_softmax(L);
@@ -95,7 +91,7 @@ for i = 1:numel(F1)
     
 end
 
-% posteriors
+% posterior over F1
 %--------------------------------------------------------------------------
 F     = F - max(F);
 L     = F(:);

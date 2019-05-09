@@ -31,7 +31,7 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7587 2019-05-06 16:47:53Z karl $
+% $Id: spm_voice_get_LEX.m 7589 2019-05-09 12:57:23Z karl $
 
 
 % defaults
@@ -52,6 +52,7 @@ for w   = 1:nw
     for s = 1:ns
         Q{w}(:,s) = spm_vec(xY(w,s).Q);
         P{w}(:,s) = spm_vec(xY(w,s).P);
+        R{w}(:,s) = spm_vec(xY(w,s).R);
         I{w}(:,s) = spm_vec(xY(w,s).i);
     end
 end
@@ -60,23 +61,23 @@ end
 %==========================================================================
 spm_figure('GetWin','Parameter distributions'); clf
 
-%       {'amp','lat','ff1','dur','tim','ff0','inf','bif'}
+%       {'amp','lat','dur','tim','p0','p1','p2','p3'}
 %--------------------------------------------------------------------------
-Pstr  = {'amp','lat','ff1','dur','tim','ff0','inf','bif'};
+Pstr  = {'amp','lat','dur','tim','p0','p1','p2','p3'};
+Rstr  = {'F0','F1',};
 PP    = full(spm_cat(P)');
 
 % indices for plotting
 %--------------------------------------------------------------------------
-ii    = [1 4 5 6 7 8];
-for i = 1:numel(ii);
+for i = 1:numel(Pstr);
     subplot(3,3,i)
     
-    if ii(i) > 5
-        hist(PP(:,ii(i)),32), axis square
-        title(sprintf('%s mean: %.2f',Pstr{ii(i)},mean(PP(:,ii(i)))))
+    if i > 4
+        hist(PP(:,i),32), axis square
+        title(sprintf('%s mean: %.2f',Pstr{i},mean(PP(:,i))))
     else
-        hist(exp(PP(:,ii(i))),32), axis square
-        title(sprintf('%s mean: %.2f',Pstr{ii(i)},mean(exp(PP(:,ii(i))))))
+        hist(exp(PP(:,i)),32), axis square
+        title(sprintf('%s mean: %.2f',Pstr{i},mean(exp(PP(:,i)))))
     end
 end
 
@@ -117,40 +118,36 @@ xlabel('prosody mode'), ylabel('amplitude'), axis square
 legend(Pstr)
 
 
-%% prosody {'amp','lat','ff1','dur','timbre','ff0','inf','bif'}
+%% prosody {'amp','lat','dur','tim','p0','p1','p2','p3'}
 %==========================================================================
 
 % prosidy ranges
 %--------------------------------------------------------------------------
-R      = [min(PP); max(PP)]';                    % all prosody parameters
-R(1,:) = log([1/32 1]);                          % amp
-R(2,:) = log([1/32 1]);                          % lat
-R(3,:) = log([25  50]);                          % ff1
-R(6,:) = 1./([80 300]);                          % ff0
-
+D      = mean(PP);
+sd     = std(PP);
+D      = [D - 4*sd; D + 4*sd]';                  % all prosody parameters
+D(1,:) = log([1/32 1]);                          % amp
+D(2,:) = log([1/32 1]);                          % lat
 
 % select prosidy features and specify prior precision
 %--------------------------------------------------------------------------
-i     = [1,2,4,5,6,7,8];
-ni    = numel(i);
-p0    = mean(R,2);
+p0    = mean(D,2);
 VOX.P = spm_unvec(p0(:),xY(1).P);
-VOX.i = i;
 
 % mixture of Gaussians
 %--------------------------------------------------------------------------
 k     = 8;      
-for p = 1:ni
+for p = 1:size(P{1},1)
     
     % prior densities
     %----------------------------------------------------------------------
-    pE  = linspace(R(i(p),1),R(i(p),2),k) - p0(i(p));
-    pC  = diff(R(i(p),:))/(k - 1)/4;
+    pE  = linspace(D(p,1),D(p,2),k) - p0(p);
+    pC  = diff(D(p,:))/(k - 1)/4;
     pC  = pC^2;
    
     % save prior densities
     %----------------------------------------------------------------------
-    PRO(p).str = Pstr{i(p)};
+    PRO(p).str = Pstr{p};
     PRO(p).pE  = pE(:);
     PRO(p).pC  = ones(k,1)*pC;
    
@@ -158,27 +155,29 @@ end
 
 %% speaker
 %==========================================================================
+clear D
+D(1,:) = log([80 300]);                          % ff0
+D(2,:) = log([25  50]);                          % ff1
 
-% select speaker features (F1) and specify prior precision
+% select prosidy features and specify prior precision
 %--------------------------------------------------------------------------
-i     = 3;
-ni    = numel(i);
-VOX.j = i;
+p0    = mean(D,2);
+VOX.R = spm_unvec(p0(:),xY(1).R);
 
 % mixture of Gaussians
 %--------------------------------------------------------------------------
 k     = 16;
-for p = 1:ni
+for p = 1:size(R{1},1)
     
     % prior densities
     %----------------------------------------------------------------------
-    pE  = linspace(R(i(p),1),R(i(p),2),k) - p0(i(p));
-    pC  = diff(R(i(p),:))/(k - 1)/4;
+    pE  = linspace(D(p,1),D(p,2),k) - p0(p);
+    pC  = diff(D(p,:))/(k - 1)/4;
     pC  = pC^2;
    
     % save prior densities
     %----------------------------------------------------------------------
-    WHO(p).str = Pstr{i(p)};
+    WHO(p).str = Rstr{p};
     WHO(p).pE  = pE(:);
     WHO(p).pC  = ones(k,1)*pC;
 
@@ -205,8 +204,8 @@ for w = 1:nw
     
     % mean and precision of duration
     %----------------------------------------------------------------------
-    dE    = mean(P{w}(4,:));
-    dC    =  var(P{w}(4,:));
+    dE    = mean(P{w},2);
+    dC    = cov(P{w}')/8;
     
     % word variants: mean and variance
     %----------------------------------------------------------------------

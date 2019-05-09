@@ -33,7 +33,7 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7587 2019-05-06 16:47:53Z karl $
+% $Id: spm_voice_get_word.m 7589 2019-05-09 12:57:23Z karl $
 
 
 %% log prior over lexical content 
@@ -98,6 +98,8 @@ O{3}    = spm_softmax(N(:,:,m));            % likelihood
 %--------------------------------------------------------------------------
 VOX.I0  = fix(J(m,1));
 VOX.IT  = fix(J(m,2));
+VOX.J   = j;
+VOX.I   = I;
 
 return
 

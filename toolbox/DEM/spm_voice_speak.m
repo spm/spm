@@ -1,10 +1,10 @@
-function [xY,Y] = spm_voice_speak(w,p,q)
+function [xY,Y] = spm_voice_speak(q,p,r)
 % Generates a continuous state space word discrete causes
-% FORMAT [xY,Y] = spm_voice_speak(w,p,q)
+% FORMAT [xY,Y] = spm_voice_speak(q,p,r)
 %
-% w      - lexcial index (1 x number of words)
+% q      - lexcial index (1 x number of words)
 % p      - prosody index (k x number of words)
-% q      - prosody index (1 x number of words)
+% r      - prosody index (1 x number of words)
 %
 % requires the following in the global variable VOX:
 % LEX    - lexical structure array
@@ -13,6 +13,7 @@ function [xY,Y] = spm_voice_speak(w,p,q)
 %
 % xY.Q  -  parameters - lexical
 % xY.P  -  parameters - prosidy
+% xY.R  -  parameters - speaker
 %
 % Y     -  corresponding timeseries
 %
@@ -29,7 +30,7 @@ function [xY,Y] = spm_voice_speak(w,p,q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7588 2019-05-06 21:26:32Z karl $
+% $Id: spm_voice_speak.m 7589 2019-05-09 12:57:23Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -38,19 +39,19 @@ LEX = VOX.LEX;
 PRO = VOX.PRO;
 WHO = VOX.WHO;
 
-if nargin < 1, w = zeros(0,1); end
+if nargin < 1, q = zeros(0,1); end
 if nargin < 2, p = zeros(0,1); end
-if nargin < 3, q = zeros(0,1); end
+if nargin < 3, r = zeros(0,1); end
 
-n  = max([size(w,2),size(p,2),size(q,2)]);
+n  = max([size(q,2),size(p,2),size(r,2)]);
 
-if size(w,2) < n && size(w,1), w = repmat(w(:,1),1,n); end
-if size(p,2) < n && size(p,1), p = repmat(p(:,1),1,n); end
 if size(q,2) < n && size(q,1), q = repmat(q(:,1),1,n); end
+if size(p,2) < n && size(p,1), p = repmat(p(:,1),1,n); end
+if size(r,2) < n && size(r,1), q = repmat(r(:,1),1,n); end
 
 % level of random fluctuations in formants
 %--------------------------------------------------------------------------
-if isfield(VOX,'R'), R = VOX.R; else R = 0; end
+if isfield(VOX,'RAND'), RAND = VOX.RAND; else RAND = 0; end
 
 % assemble word structure arrays
 %==========================================================================
@@ -59,9 +60,9 @@ for s = 1:n
     % lexical parameters
     %----------------------------------------------------------------------
     Q     = spm_vec(spm_zeros(VOX.Q));
-    for i = 1:size(w,1)
-        Q = Q + LEX(w(1,s),1).qE;
-        E = sqrtm(LEX(w(1,s),1).qC)*randn(numel(VOX.Q),1)*R;
+    for i = 1:size(q,1)
+        Q = Q + LEX(q(i,s),1).qE;
+        E = sqrtm(LEX(q(i,s),1).qC)*randn(numel(VOX.Q),1)*RAND;
         Q = Q + E;
     end
     xY(s).Q = VOX.Q + reshape(Q,size(VOX.Q));
@@ -71,17 +72,17 @@ for s = 1:n
     %----------------------------------------------------------------------
     P     = spm_vec(spm_zeros(VOX.P));
     for i = 1:size(p,1)
-        j    = VOX.i(i);
-        P(j) = P(j) + PRO(i).pE(p(i,s));
+        P(i) = P(i) + PRO(i).pE(p(i,s));
     end
+    xY(s).P  = spm_unvec(spm_vec(VOX.P) + P,VOX.P);
     
     % and identity
     %----------------------------------------------------------------------
-    for i = 1:size(q,1)
-        j    = VOX.j(i);
-        P(j) = P(j) + WHO(i).pE(q(i,s));
+    R      = spm_vec(spm_zeros(VOX.R));
+    for i  = 1:size(r,1)
+        R(i) = R(i) + WHO(i).pE(r(i,s));
     end
-    xY(s).P = spm_unvec(spm_vec(VOX.P) + P,VOX.P);
+    xY(s).R  = spm_unvec(spm_vec(VOX.R) + R,VOX.R);
     
 end
 
@@ -97,7 +98,7 @@ for s = 1:n
     %----------------------------------------------------------------------
     xY(s).P.amp = xY(s).P.amp + sqrt(2);
     xY(s).P.tim = xY(s).P.tim * sqrt(2);
-    y{s} = spm_voice_iff(xY(s));
+    y{s}        = spm_voice_iff(xY(s));
     
 end
 
