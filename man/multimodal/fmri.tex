@@ -15,7 +15,7 @@ Press the \textsc{Batch} button and then:
 
 \item Add a \textsc{Spatial: Segment} module, and select the \texttt{smri.img} image as the ``Data''.
 
-\item Add a \textsc{Spatial: Normalise: Write} module, make a ``New: Subject'', and for the ``Parameter File'', select a ``Dependency'' of the ``Norm Params Subj-$>$MNI'' (from the prior segmentation module). For the ``Images to Write'', select a ``Dependency'' of the ``Coreg: Estimate: Coregistered Images'' (which will be all the coregistered EPI images) and ``Segment: Bias Corr Images'' (which will be the bias-corrected structural image). Also, change the ``Voxel sizes'' to [3 3 3], to save diskspace.
+\item Add a \textsc{Spatial: Normalise: Write} module, make a ``New: Subject'', and for the ``Parameter File'', select a ``Dependency'' of the ``Deformation Field Subj-$>$MNI'' (from the prior segmentation module). For the ``Images to Write'', select a ``Dependency'' of the ``Coreg: Estimate: Coregistered Images'' (which will be all the coregistered EPI images) and ``Segment: Bias Corr Images'' (which will be the bias-corrected structural image). Also, change the ``Voxel sizes'' to [3 3 3], to save diskspace.
 
 \item Add a \textsc{Spatial: Smooth} module, and for ``Images to Smooth'', select a ``Dependency'' of ``Normalise: Write: Normalised Images (Subj 1)''.
 
