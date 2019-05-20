@@ -329,6 +329,16 @@ function varargout = spm_diffeo(varargin)
 %
 %_______________________________________________________________________
 %
+% FORMAT g = spm_diffeo('grad',v)
+% v  - velocity field
+% g  - gradient of velocity field
+%
+% The grad option can be applied to any collection of 3D volumes. If
+% the input has dimensions d1 x d2 x d3 x d4 x d5..., then the output
+% has dimensions d1 x d2 x d3 x (d4xd5...) x 3.
+%
+%_______________________________________________________________________
+%
 % FORMAT dv = spm_diffeo('div',v)
 % v  - velocity field
 % dv - divergences of velocity field
@@ -348,20 +358,6 @@ function varargout = spm_diffeo(varargin)
 % This function is used for each time step of geodesic shooting.  It may
 % change in future to use some form of Pade approximation of the
 % small deformation.
-%
-%_______________________________________________________________________
-%
-% FORMAT v3 = spm_diffeo('brc', v1, v2)
-% v1, v2, v3 - flow fields n1*n2*n3*3
-%
-% Lie Bracket.  Useful for many things
-% e.g. Baker-Campbell-Haussdorf series expansion.
-% The Lie bracket is denoted by
-% v3 = [v1,v2]
-% and on scalar fields, is computed by
-% v3 = J1*v2 - J2*v1, where J1 and J2 are the Jacobian
-% tensor fields. For matrices, the Lie bracket is simply
-% [A,B] = A*B-B*A
 %
 %_______________________________________________________________________
 %
@@ -448,7 +444,7 @@ function varargout = spm_diffeo(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_diffeo.m 7460 2018-10-29 15:55:12Z john $
+% $Id: spm_diffeo.m 7593 2019-05-20 18:58:16Z john $
 
 
 %-This is merely the help file for the compiled routine

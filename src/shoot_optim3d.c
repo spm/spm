@@ -1,4 +1,4 @@
-/* $Id: shoot_optim3d.c 7408 2018-08-24 14:54:57Z john $ */
+/* $Id: shoot_optim3d.c 7593 2019-05-20 18:58:16Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<math.h>
@@ -379,7 +379,6 @@ void fmg3(mwSize n0[], float *a0, float *b0, double param0[], int c, int nit,
                 prolong(n[jj+1],u[jj+1],n[jj],res,rbuf);
                 addto(3*m[jj], u[jj], res);
                 relax(n[jj], a[jj], b[jj], param[jj], nit, u[jj]);
-
             }
         }
     }

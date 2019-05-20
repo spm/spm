@@ -1,4 +1,4 @@
-/* $Id: shoot_regularisers.c 7434 2018-10-05 14:05:21Z john $ */
+/* $Id: shoot_regularisers.c 7593 2019-05-20 18:58:16Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -92,10 +92,10 @@ double trapprox(mwSize dm[], float a[], double s[])
     double tr = 0.0;
     mwSignedIndex i, j, k;
 
-    w000  =  lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
-    wx000 =  2*mu*(2*v0+v1+v2)/v0+2*lam + w000/v0;
-    wy000 =  2*mu*(v0+2*v1+v2)/v1+2*lam + w000/v1;
-    wz000 =  2*mu*(v0+v1+2*v2)/v2+2*lam + w000/v2;
+    w000  =  lam2*(6.0*(v0*v0+v1*v1+v2*v2) +8.0*(v0*v1+v0*v2+v1*v2)) +lam1*2.0*(v0+v1+v2) + lam0;
+    wx000 =  2.0*mu*(2.0*v0+v1+v2)/v0+2.0*lam + w000/v0;
+    wy000 =  2.0*mu*(v0+2.0*v1+v2)/v1+2.0*lam + w000/v1;
+    wz000 =  2.0*mu*(v0+v1+2.0*v2)/v2+2.0*lam + w000/v2;
 
     for(k=0; k<(mwSignedIndex)dm[2]; k++)
     {
@@ -119,7 +119,7 @@ double trapprox(mwSize dm[], float a[], double s[])
                 axy  = paxy[i];
                 axz  = paxz[i];
                 ayz  = payz[i];
-                dt   = axx*ayy*azz -axx*ayz*ayz-ayy*axz*axz-azz*axy*axy +2*axy*axz*ayz;
+                dt   = axx*ayy*azz -axx*ayz*ayz-ayy*axz*axz-azz*axy*axy +2.0*axy*axz*ayz;
                 tr  += (wx000*(ayy*azz - ayz*ayz) 
                        +wy000*(axx*azz - axz*axz)
                        +wz000*(axx*ayy - axy*axy))/dt;
@@ -160,19 +160,20 @@ void kernel(mwSize dm[], double s[], float f[])
     ip1 = bound((mwSignedIndex) 1,dm[0]);
     ip2 = bound((mwSignedIndex) 2,dm[0]);
 
-    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
-    w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
-    w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
-    w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
+    w000 = lam2*(6.0*(v0*v0+v1*v1+v2*v2) +8.0*(v0*v1+v0*v2+v1*v2)) +lam1*2.0*(v0+v1+v2) + lam0;
+    w100 = lam2*(-4.0*v0*(v0+v1+v2)) -lam1*v0;
+    w010 = lam2*(-4.0*v1*(v0+v1+v2)) -lam1*v1;
+    w001 = lam2*(-4.0*v2*(v0+v1+v2)) -lam1*v2;
     w200 = lam2*v0*v0;
     w020 = lam2*v1*v1;
     w002 = lam2*v2*v2;
-    w110 = lam2*2*v0*v1;
-    w101 = lam2*2*v0*v2;
-    w011 = lam2*2*v1*v2;
+    w110 = lam2*2.0*v0*v1;
+    w101 = lam2*2.0*v0*v2;
+    w011 = lam2*2.0*v1*v2;
 
     if (mu==0.0 && lam==0.0)
     {
+        w000 *= 1.000001;
         f[0]           += w000;
         f[im1        ] += w100; f[ip1        ] += w100;
         f[    jm1    ] += w010; f[    jp1    ] += w010;
@@ -190,19 +191,22 @@ void kernel(mwSize dm[], double s[], float f[])
         float *pxx, *pxy, *pxz, *pyx, *pyy, *pyz, *pzx, *pzy, *pzz;
         mwSize m = dm[0]*dm[1]*dm[2];
 
-        wx000 =  2*mu*(2*v0+v1+v2)/v0+2*lam + w000/v0;
-        wx100 = -2*mu-lam + w100/v0;
+        wx000 =  2.0*mu*(2.0*v0+v1+v2)/v0+2.0*lam + w000/v0;
+        wx100 = -2.0*mu-lam + w100/v0;
         wx010 = -mu*v1/v0 + w010/v0;
         wx001 = -mu*v2/v0 + w001/v0;
-        wy000 =  2*mu*(v0+2*v1+v2)/v1+2*lam + w000/v1;
+        wy000 =  2.0*mu*(v0+2.0*v1+v2)/v1+2.0*lam + w000/v1;
         wy100 = -mu*v0/v1 + w100/v1;
-        wy010 = -2*mu-lam + w010/v1;
+        wy010 = -2.0*mu-lam + w010/v1;
         wy001 = -mu*v2/v1 + w001/v1;
-        wz000 =  2*mu*(v0+v1+2*v2)/v2+2*lam + w000/v2;
+        wz000 =  2.0*mu*(v0+v1+2.0*v2)/v2+2.0*lam + w000/v2;
         wz100 = -mu*v0/v2 + w100/v2;
         wz010 = -mu*v1/v2 + w010/v2;
-        wz001 = -2*mu-lam + w001/v2;
+        wz001 = -2.0*mu-lam + w001/v2;
         w2    = 0.25*mu+0.25*lam;
+        wx000 *= 1.000001;
+        wy000 *= 1.000001;
+        wz000 *= 1.000001;
 
         pxx = f;
         pyx = f + m;
@@ -218,8 +222,6 @@ void kernel(mwSize dm[], double s[], float f[])
         pxx[im1        ] += wx100;   pxx[ip1        ] += wx100;
         pxx[    jm1    ] += wx010;   pxx[    jp1    ] += wx010;
         pxx[        km1] += wx001;   pxx[        kp1] += wx001;
-        pxy[ip1+jm1    ] += w2;      pxy[ip1+jp1    ] -= w2;      pxy[im1+jm1    ] -= w2;      pxy[im1+jp1    ] += w2;
-        pxz[ip1    +km1] += w2;      pxz[ip1    +kp1] -= w2;      pxz[im1    +km1] -= w2;      pxz[im1    +kp1] += w2;
         pxx[im1+jm1    ] += w110/v0; pxx[ip1+jm1    ] += w110/v0; pxx[im1+jp1    ] += w110/v0; pxx[ip1+jp1    ] += w110/v0;
         pxx[im1    +km1] += w101/v0; pxx[ip1    +km1] += w101/v0; pxx[im1    +kp1] += w101/v0; pxx[ip1    +kp1] += w101/v0;
         pxx[    jm1+km1] += w011/v0; pxx[    jp1+km1] += w011/v0; pxx[    jm1+kp1] += w011/v0; pxx[    jp1+kp1] += w011/v0;
@@ -231,8 +233,6 @@ void kernel(mwSize dm[], double s[], float f[])
         pyy[im1        ] += wy100;   pyy[ip1        ] += wy100;
         pyy[    jm1    ] += wy010;   pyy[    jp1    ] += wy010;
         pyy[        km1] += wy001;   pyy[        kp1] += wy001;
-        pyx[ip1+jm1    ] += w2;      pyx[ip1+jp1    ] -= w2;      pyx[im1+jm1    ] -= w2;      pyx[im1+jp1    ] += w2;
-        pyz[    jp1+km1] += w2;      pyz[    jp1+kp1] -= w2;      pyz[    jm1+km1] -= w2;      pyz[    jm1+kp1] += w2;
         pyy[im1+jm1    ] += w110/v1; pyy[ip1+jm1    ] += w110/v1; pyy[im1+jp1    ] += w110/v1; pyy[ip1+jp1    ] += w110/v1;
         pyy[im1    +km1] += w101/v1; pyy[ip1    +km1] += w101/v1; pyy[im1    +kp1] += w101/v1; pyy[ip1    +kp1] += w101/v1;
         pyy[    jm1+km1] += w011/v1; pyy[    jp1+km1] += w011/v1; pyy[    jm1+kp1] += w011/v1; pyy[    jp1+kp1] += w011/v1;
@@ -244,14 +244,20 @@ void kernel(mwSize dm[], double s[], float f[])
         pzz[im1        ] += wz100;   pzz[ip1        ] += wz100;
         pzz[    jm1    ] += wz010;   pzz[    jp1    ] += wz010;
         pzz[        km1] += wz001;   pzz[        kp1] += wz001;
-        pzx[im1    +kp1] += w2;      pzx[ip1    +kp1] -= w2;      pzx[im1    +km1] -= w2;      pzx[ip1    +km1] += w2;
-        pzy[jm1    +kp1] += w2;      pzy[    jp1+kp1] -= w2;      pzy[    jm1+km1] -= w2;      pzy[    jp1+km1] += w2;
         pzz[im1+jm1    ] += w110/v2; pzz[ip1+jm1    ] += w110/v2; pzz[im1+jp1    ] += w110/v2; pzz[ip1+jp1    ] += w110/v2;
         pzz[im1    +km1] += w101/v2; pzz[ip1    +km1] += w101/v2; pzz[im1    +kp1] += w101/v2; pzz[ip1    +kp1] += w101/v2;
         pzz[    jm1+km1] += w011/v2; pzz[    jp1+km1] += w011/v2; pzz[    jm1+kp1] += w011/v2; pzz[    jp1+kp1] += w011/v2;
         pzz[im2        ] += w200/v2; pzz[ip2        ] += w200/v2;
         pzz[    jm2    ] += w020/v2; pzz[    jp2    ] += w020/v2;
         pzz[        km2] += w002/v2; pzz[        kp2] += w002/v2;
+
+        pxy[ip1+jm1    ] += w2;      pxy[ip1+jp1    ] -= w2;      pxy[im1+jm1    ] -= w2;      pxy[im1+jp1    ] += w2;
+        pyx[ip1+jm1    ] += w2;      pyx[ip1+jp1    ] -= w2;      pyx[im1+jm1    ] -= w2;      pyx[im1+jp1    ] += w2;
+        pxz[ip1    +km1] += w2;      pxz[ip1    +kp1] -= w2;      pxz[im1    +km1] -= w2;      pxz[im1    +kp1] += w2;
+        pzx[ip1    +km1] += w2;      pzx[ip1    +kp1] -= w2;      pzx[im1    +km1] -= w2;      pzx[im1    +kp1] += w2;
+        pyz[    jp1+km1] += w2;      pyz[    jp1+kp1] -= w2;      pyz[    jm1+km1] -= w2;      pyz[    jm1+kp1] += w2;
+        pzy[    jp1+km1] += w2;      pzy[    jp1+kp1] -= w2;      pzy[    jm1+km1] -= w2;      pzy[    jm1+kp1] += w2;
+
     }
 }
 /************************************************************************************************/
@@ -272,30 +278,96 @@ void kernel(mwSize dm[], double s[], float f[])
     double lam0 = s[3], lam1 = s[4], lam2 = s[5], mu = s[6], lam = s[7];
     double wx000, wx100, wx010, wx001, wy000, wy100, wy010, wy001, wz000, wz100, wz010, wz001, w2;
 
-    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
-    w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
-    w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
-    w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
+    w000 = lam2*(6.0*(v0*v0+v1*v1+v2*v2) +8.0*(v0*v1+v0*v2+v1*v2)) +lam1*2.0*(v0+v1+v2) + lam0;
+    w100 = lam2*(-4.0*v0*(v0+v1+v2)) -lam1*v0;
+    w010 = lam2*(-4.0*v1*(v0+v1+v2)) -lam1*v1;
+    w001 = lam2*(-4.0*v2*(v0+v1+v2)) -lam1*v2;
     w200 = lam2*v0*v0;
     w020 = lam2*v1*v1;
     w002 = lam2*v2*v2;
-    w110 = lam2*2*v0*v1;
-    w101 = lam2*2*v0*v2;
-    w011 = lam2*2*v1*v2;
+    w110 = lam2*2.0*v0*v1;
+    w101 = lam2*2.0*v0*v2;
+    w011 = lam2*2.0*v1*v2;
 
-    wx000 =  2*mu*(2*v0+v1+v2)/v0+2*lam + w000/v0;
-    wx100 = -2*mu-lam + w100/v0;
+    wx000 =  2.0*mu*(2.0*v0+v1+v2)/v0+2.0*lam + w000/v0;
+    wx100 = -2.0*mu-lam + w100/v0;
     wx010 = -mu*v1/v0 + w010/v0;
     wx001 = -mu*v2/v0 + w001/v0;
-    wy000 =  2*mu*(v0+2*v1+v2)/v1+2*lam + w000/v1;
+    wy000 =  2.0*mu*(v0+2.0*v1+v2)/v1+2.0*lam + w000/v1;
     wy100 = -mu*v0/v1 + w100/v1;
-    wy010 = -2*mu-lam + w010/v1;
+    wy010 = -2.0*mu-lam + w010/v1;
     wy001 = -mu*v2/v1 + w001/v1;
-    wz000 =  2*mu*(v0+v1+2*v2)/v2+2*lam + w000/v2;
+    wz000 =  2.0*mu*(v0+v1+2.0*v2)/v2+2.0*lam + w000/v2;
     wz100 = -mu*v0/v2 + w100/v2;
     wz010 = -mu*v1/v2 + w010/v2;
-    wz001 = -2*mu-lam + w001/v2;
+    wz001 = -2.0*mu-lam + w001/v2;
     w2    = 0.25*mu+0.25*lam;
+
+    if (dm[0]<=2)
+    {
+        wx000 += 2.0*w200/v0;
+        wy000 += 2.0*w200/v1;
+        wz000 += 2.0*w200/v2;
+        w200   = 0.0;
+    }
+    if (dm[1]<=2)
+    {
+        wx000 += 2.0*w020/v0;
+        wy000 += 2.0*w020/v1;
+        wz000 += 2.0*w020/v2;
+        w020   = 0.0;
+    }
+    if (dm[2]<=2)
+    {
+        wx000 += 2.0*w002/v0;
+        wy000 += 2.0*w002/v1;
+        wz000 += 2.0*w002/v2;
+        w002   = 0.0;
+    }
+
+    if (dm[0]==1)
+    {
+        wx000 += 2.0*wx100; wx100  = 0.0;
+        wy000 += 2.0*wy100; wy100  = 0.0;
+        wz000 += 2.0*wz100; wz100  = 0.0;
+        if (dm[1]==1)
+        {
+            wx000 += 4.0*w110/v0;
+            wy000 += 4.0*w110/v1;
+            wz000 += 4.0*w110/v2;
+            w110   = 0.0;
+        }
+        if (dm[2]==1)
+        {
+            wx000 += 4.0*w101/v0;
+            wy000 += 4.0*w101/v1;
+            wz000 += 4.0*w101/v2;
+            w101   = 0.0;
+        }
+
+    }
+    if (dm[1]==1)
+    {
+        wx000 += 2.0*wx010; wx010  = 0.0;
+        wy000 += 2.0*wy010; wy010  = 0.0;
+        wz000 += 2.0*wz010; wz010  = 0.0;
+        if (dm[2]==1)
+        {
+            wx000 += 4.0*w011/v0;
+            wy000 += 4.0*w011/v1;
+            wz000 += 4.0*w011/v2;
+            w011   = 0.0;
+        }
+    }
+    if (dm[2]==1)
+    {
+        wx000 += 2.0*wx001; wx001  = 0.0;
+        wy000 += 2.0*wy001; wy001  = 0.0;
+        wz000 += 2.0*wz001; wz001  = 0.0;
+    }
+    wx000 *= 1.000001;
+    wy000 *= 1.000001;
+    wz000 *= 1.000001;
 
     for(k=0; k<(mwSignedIndex)dm[2]; k++)
     {
@@ -442,30 +514,74 @@ void vel2mom(mwSize dm[], float f[], double s[], float g[])
     double lam0 = s[3], lam1 = s[4], lam2 = s[5], mu = s[6], lam = s[7];
     double wx000, wx100, wx010, wx001, wy000, wy100, wy010, wy001, wz000, wz100, wz010, wz001, w2;
 
-    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
-    w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
-    w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
-    w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
+    w000 = lam2*(6.0*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
+    w100 = lam2*(-4.0*v0*(v0+v1+v2)) -lam1*v0;
+    w010 = lam2*(-4.0*v1*(v0+v1+v2)) -lam1*v1;
+    w001 = lam2*(-4.0*v2*(v0+v1+v2)) -lam1*v2;
     w200 = lam2*v0*v0;
     w020 = lam2*v1*v1;
     w002 = lam2*v2*v2;
-    w110 = lam2*2*v0*v1;
-    w101 = lam2*2*v0*v2;
-    w011 = lam2*2*v1*v2;
+    w110 = lam2*2.0*v0*v1;
+    w101 = lam2*2.0*v0*v2;
+    w011 = lam2*2.0*v1*v2;
 
-    wx000 =  2*mu*(2*v0+v1+v2)/v0+2*lam + w000/v0;
-    wx100 = -2*mu-lam + w100/v0;
+    wx000 =  2.0*mu*(2.0*v0+v1+v2)/v0+2.0*lam + w000/v0;
+    wx100 = -2.0*mu-lam + w100/v0;
     wx010 = -mu*v1/v0 + w010/v0;
     wx001 = -mu*v2/v0 + w001/v0;
-    wy000 =  2*mu*(v0+2*v1+v2)/v1+2*lam + w000/v1;
+    wy000 =  2.0*mu*(v0+2.0*v1+v2)/v1+2.0*lam + w000/v1;
     wy100 = -mu*v0/v1 + w100/v1;
-    wy010 = -2*mu-lam + w010/v1;
+    wy010 = -2.0*mu-lam + w010/v1;
     wy001 = -mu*v2/v1 + w001/v1;
-    wz000 =  2*mu*(v0+v1+2*v2)/v2+2*lam + w000/v2;
+    wz000 =  2.0*mu*(v0+v1+2.0*v2)/v2+2.0*lam + w000/v2;
     wz100 = -mu*v0/v2 + w100/v2;
     wz010 = -mu*v1/v2 + w010/v2;
-    wz001 = -2*mu-lam + w001/v2;
+    wz001 = -2.0*mu-lam + w001/v2;
     w2    = 0.25*mu+0.25*lam;
+
+    if (dm[0]<=2)
+    {
+        wx000 += 2.0*w200/v0;
+        wy000 += 2.0*w200/v1;
+        wz000 += 2.0*w200/v2;
+        w200   = 0.0;
+    }
+    if (dm[1]<=2)
+    {
+        wx000 += 2.0*w020/v0;
+        wy000 += 2.0*w020/v1;
+        wz000 += 2.0*w020/v2;
+        w020   = 0.0;
+    }
+    if (dm[2]<=2)
+    {
+        wx000 += 2.0*w002/v0;
+        wy000 += 2.0*w002/v1;
+        wz000 += 2.0*w002/v2;
+        w002   = 0.0;
+    }
+    if (dm[1]==1)
+    {
+        wx000 += 2.0*wx010; wx010  = 0.0;
+        wy000 += 2.0*wy010; wy010  = 0.0;
+        wz000 += 2.0*wz010; wz010  = 0.0;
+        if (dm[2]==1)
+        {
+            wx000 += 4.0*w011/v0;
+            wy000 += 4.0*w011/v1;
+            wz000 += 4.0*w011/v2;
+            w011   = 0.0;
+        }
+    }
+    if (dm[2]==1)
+    {
+        wx000 += 2.0*wx001; wx001  = 0.0;
+        wy000 += 2.0*wy001; wy001  = 0.0;
+        wz000 += 2.0*wz001; wz001  = 0.0;
+    }
+    wx000 *= 1.000001;
+    wy000 *= 1.000001;
+    wz000 *= 1.000001;
 
     for(k=0; k<(mwSignedIndex)dm[2]; k++)
     {
@@ -566,45 +682,41 @@ static void relax_le(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
     double lam0 = s[3], mu = s[6], lam = s[7];
 
-    wx000 =  2.0*mu*(2*v0+v1+v2)/v0+2.0*lam + lam0/v0;
+    wx000 =  2.0*mu*(2.0*v0+v1+v2)/v0+2.0*lam + lam0/v0;
     wx100 = -2.0*mu-lam;
     wx010 = -mu*v1/v0;
     wx001 = -mu*v2/v0;
-    wy000 =  2.0*mu*(v0+2*v1+v2)/v1+2.0*lam + lam0/v1;
+    wy000 =  2.0*mu*(v0+2.0*v1+v2)/v1+2.0*lam + lam0/v1;
     wy100 = -mu*v0/v1;
     wy010 = -2.0*mu-lam;
     wy001 = -mu*v2/v1;
-    wz000 =  2.0*mu*(v0+v1+2*v2)/v2+2.0*lam + lam0/v2;
+    wz000 =  2.0*mu*(v0+v1+2.0*v2)/v2+2.0*lam + lam0/v2;
     wz100 = -mu*v0/v2;
     wz010 = -mu*v1/v2;
     wz001 = -2.0*mu-lam;
     w2    = 0.25*mu+0.25*lam;
 
-/*  wx000 = wx000*1.00001 + 1e-6;
-    wy000 = wy000*1.00001 + 1e-6;
-    wz000 = wz000*1.00001 + 1e-6; */
-
     if (dm[0]==1)
     {
-        wx000 += 2.0*wx100 + 2.0*wy100 + 2.0*wz100;
-        wx100  = 0.0;
-        wy100  = 0.0;
-        wz100  = 0.0;
+        wx000 += 2.0*wx100; wx100  = 0.0;
+        wy000 += 2.0*wy100; wy100  = 0.0;
+        wz000 += 2.0*wz100; wz100  = 0.0;
     }
     if (dm[1]==1)
     {
-        wx000 += 2.0*wx010 + 2.0*wy010 + 2.0*wz010;
-        wx010  = 0.0;
-        wy010  = 0.0;
-        wz010  = 0.0;
+        wx000 += 2.0*wx010; wx010  = 0.0;
+        wy000 += 2.0*wy010; wy010  = 0.0;
+        wz000 += 2.0*wz010; wz010  = 0.0;
     }
     if (dm[2]==1)
     {
-        wx000 += 2.0*wx001 + 2.0*wy001 + 2.0*wz001;
-        wx001  = 0.0;
-        wy001  = 0.0;
-        wz001  = 0.0;
+        wx000 += 2.0*wx001; wx001  = 0.0;
+        wy000 += 2.0*wy001; wy001  = 0.0;
+        wz000 += 2.0*wz001; wz001  = 0.0;
     }
+    wx000 *= 1.000001;
+    wy000 *= 1.000001;
+    wz000 *= 1.000001;
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
@@ -679,7 +791,7 @@ static void relax_le(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
                         axy  = paxy[i];
                         axz  = paxz[i];
                         ayz  = payz[i];
-                        idt  = 1.0/(axx*ayy*azz -axx*ayz*ayz-ayy*axz*axz-azz*axy*axy +2*axy*axz*ayz);
+                        idt  = 1.0/(axx*ayy*azz -axx*ayz*ayz-ayy*axz*axz-azz*axy*axy +2.0*axy*axz*ayz);
 
                         *px = (float)(idt*(sux*(ayy*azz-ayz*ayz)+suy*(axz*ayz-axy*azz)+suz*(axy*ayz-axz*ayy)));
                         *py = (float)(idt*(sux*(axz*ayz-axy*azz)+suy*(axx*azz-axz*axz)+suz*(axy*axz-axx*ayz)));
@@ -715,8 +827,6 @@ static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
     w010 = lam1*(-s[1]*s[1]);
     w100 = lam1*(-s[0]*s[0]);
 
-    w000 = w000*1.00001 + 1e-6;
-
     if (dm[0]==1)
     {
         w000 += 2.0*w100;
@@ -732,6 +842,7 @@ static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
         w000 += 2.0*w001;
         w001  = 0.0;
     }
+    w000 = w000*1.000001;
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
@@ -806,7 +917,7 @@ static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
                         axy = paxy[i];
                         axz = paxz[i];
                         ayz = payz[i];
-                        idt = 1.0/(axx*ayy*azz -axx*ayz*ayz-ayy*axz*axz-azz*axy*axy +2*axy*axz*ayz);
+                        idt = 1.0/(axx*ayy*azz -axx*ayz*ayz-ayy*axz*axz-azz*axy*axy +2.0*axy*axz*ayz);
                         *px = (float)(idt*(sux*(ayy*azz-ayz*ayz)+suy*(axz*ayz-axy*azz)+suz*(axy*ayz-axz*ayy)));
                         *py = (float)(idt*(sux*(axz*ayz-axy*azz)+suy*(axx*azz-axz*axz)+suz*(axy*axz-axx*ayz)));
                         *pz = (float)(idt*(sux*(axy*ayz-axz*ayy)+suy*(axy*axz-axx*ayz)+suz*(axx*ayy-axy*axy)));
@@ -854,8 +965,6 @@ static void relax_be(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
     w101 = lam2*2.0*v0*v2;
     w011 = lam2*2.0*v1*v2;
 
-    w000 = w000*1.00001 + 1e-6;
-
     if (dm[0]<=2)
     {
         w000 += 2.0*w200;
@@ -902,6 +1011,7 @@ static void relax_be(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
         w000 += 2.0*w001;
         w001  = 0.0;
     }
+    w000 = w000*1.000001;
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
@@ -1009,7 +1119,7 @@ static void relax_be(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
                         axy  = paxy[i];
                         axz  = paxz[i];
                         ayz  = payz[i];
-                        idt  = 1.0/(axx*ayy*azz -axx*ayz*ayz-ayy*axz*axz-azz*axy*axy +2*axy*axz*ayz);
+                        idt  = 1.0/(axx*ayy*azz -axx*ayz*ayz-ayy*axz*axz-azz*axy*axy +2.0*axy*axz*ayz);
                         *px += idt*(sux*(ayy*azz-ayz*ayz)+suy*(axz*ayz-axy*azz)+suz*(axy*ayz-axz*ayy));
                         *py += idt*(sux*(axz*ayz-axy*azz)+suy*(axx*azz-axz*axz)+suz*(axy*axz-axx*ayz));
                         *pz += idt*(sux*(axy*ayz-axz*ayy)+suy*(axy*axz-axx*ayz)+suz*(axx*ayy-axy*axy));
@@ -1058,7 +1168,7 @@ static void relax_all(mwSize dm[], /*@null@*/ float a[], float b[], double s[], 
     w101 = lam2*2.0*v0*v2;
     w011 = lam2*2.0*v1*v2;
 
-    wx000 =  2.0*mu*(2*v0+v1+v2)/v0+2.0*lam + w000/v0;
+    wx000 =  2.0*mu*(2.0*v0+v1+v2)/v0+2.0*lam + w000/v0;
     wx100 = -2.0*mu-lam + w100/v0;
     wx010 = -mu*v1/v0 + w010/v0;
     wx001 = -mu*v2/v0 + w001/v0;
@@ -1071,6 +1181,8 @@ static void relax_all(mwSize dm[], /*@null@*/ float a[], float b[], double s[], 
     wz010 = -mu*v1/v2 + w010/v2;
     wz001 = -2.0*mu-lam + w001/v2;
     w2    = 0.25*mu+0.25*lam;
+
+/*printf("%g %g %g  -> %g %g %g (%g %g %g)\n", s[0],s[1],s[2],wx000,wy000,wz000,lam0/v0,lam0/v1,lam0/v2); */
 
     if (dm[0]<=2)
     {
@@ -1134,9 +1246,9 @@ static void relax_all(mwSize dm[], /*@null@*/ float a[], float b[], double s[], 
         wy000 += 2.0*wy001; wy001  = 0.0;
         wz000 += 2.0*wz001; wz001  = 0.0;
     }
-    if (wx000<0.0) wx000 = 0.0;
-    if (wy000<0.0) wy000 = 0.0;
-    if (wz000<0.0) wz000 = 0.0;
+    wx000 *= 1.000001;
+    wy000 *= 1.000001;
+    wz000 *= 1.000001;
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");

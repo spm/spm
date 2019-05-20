@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 7434 2018-10-05 14:05:21Z john $ */
+/* $Id: shoot_diffeo3d.c 7593 2019-05-20 18:58:16Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -12,12 +12,76 @@ extern double   log(double x);
 extern double   exp(double x);
 #define LOG(x) (((x)>0) ? log(x+0.001): -6.9078)
 
+
+static void grad1(mwSize d0, mwSize d1, mwSize d2, mwSize N, int boundary_code, float F[], float D[])
+{
+    mwSize k, n;
+    float *fp = F, *dp = D, *Dend;
+
+    if (d1>1)
+    {
+        for(n=0; n<N; n++)
+        {
+            for(k=0;k<d2; k++)
+            {
+                /* element 0 */
+                switch(boundary_code)
+                {
+                    case BOUND_CIRCULANT:
+                        for(Dend = dp+d0; dp<Dend; *(dp++) = (*(fp+d0) - *(fp+d0*(d1-1)))/2.0f, fp++);
+                        break;
+                    case BOUND_NEUMANN:
+                        for(Dend = dp+d0; dp<Dend; *(dp++) = (*(fp+d0) - *fp)/2.0f, fp++);
+                        break;
+                    case BOUND_DIRICHLET:
+                        for(Dend = dp+d0; dp<Dend; *(dp++) = (*(fp+d0))/2.0f, fp++);
+                        break;
+                }
+
+                /* elements 1..d1-2 */
+                for(Dend = dp+d0*(d1-2); dp<Dend; *(dp++) = (*(fp+d0) - *(fp-d0))/2.0f, fp++);
+
+                /* element d1-1 */
+                switch(boundary_code)
+                {
+                    case BOUND_CIRCULANT:
+                        for(Dend = dp+d0; dp<Dend; *(dp++) = (*(fp-d0*(d1-1)) - *(fp-d0))/2.0f, fp++);
+                        break;
+                    case BOUND_NEUMANN:
+                        for(Dend = dp+d0; dp<Dend; *(dp++) = (*fp - *(fp-d0))/2.0f, fp++);
+                        break;
+                    case BOUND_DIRICHLET:
+                        for(Dend = dp+d0; dp<Dend; *(dp++) = -(*(fp-d0))/2.0f, fp++);
+                        break;
+                }
+            }
+        }
+    }
+    else
+        for(Dend = D+N*d2*d1*d0; dp<Dend; *(dp++) = 0.0);
+}
+
+void grad(mwSize dm[], mwSize N, float F[], float D[])
+{
+    int boundary_code = get_bound();
+    mwSize M = N*dm[0]*dm[1]*dm[2];
+    grad1(1,           dm[0], dm[1]*dm[2], N, boundary_code, F, D+M*0); /* x-gradient */
+    grad1(dm[0],       dm[1],       dm[2], N, boundary_code, F, D+M*1); /* y-gradient */
+    grad1(dm[0]*dm[1], dm[2],           1, N, boundary_code, F, D+M*2); /* z-gradient */
+}
+
+
+
 /*
  * Lie Bracket
  * C = [A,B]
  *
  * See https://en.wikipedia.org/wiki/Lie_bracket_of_vector_fields
- */
+ *
+ * This code is not used anywhere, but retained for reference in
+ * case it is needed in future. Note that effects at the boundaries
+ * may need fixing.
+*/
 void bracket(mwSize dm[], float *A, float *B, float *C)
 {
     float *A1, *A2, *A3;
@@ -124,7 +188,8 @@ void bracket(mwSize dm[], float *A, float *B, float *C)
 }
 
 /*
- * Composition operations, possibly along with Jacobian matrices
+ * Composition operations, possibly along with Jacobian matrices.
+ * Done using B(A) = U(A) + A, where B = Id+U.
  */
 static void composition_stuff(mwSize dm[], mwSize mm,
                               float *B, /*@null@*/ float *JB, float *A, /*@null@*/ float *JA,
@@ -133,10 +198,8 @@ static void composition_stuff(mwSize dm[], mwSize mm,
     float *A1, *A2, *A3, *JA00, *JA01, *JA02,  *JA10, *JA11, *JA12,  *JA20, *JA21, *JA22;
     float *B1, *B2, *B3, *JB00, *JB01, *JB02,  *JB10, *JB11, *JB12,  *JB20, *JB21, *JB22;
     float *C1, *C2, *C3, *JC00, *JC01, *JC02,  *JC10, *JC11, *JC12,  *JC20, *JC21, *JC22;
+    float  NaN = (float)mxGetNaN();
     mwSize i, mmb = dm[0]*dm[1]*dm[2];
-
-    /* Does not yet work properly if dimensions of A and B are not identical.
-       Still need to figure out why not. */
 
     A1   =  A;
     A2   =  A+mm;
@@ -148,7 +211,9 @@ static void composition_stuff(mwSize dm[], mwSize mm,
     C2   =  C+mm;
     C3   =  C+mm*2;
 
-    /* Only relevant if (JC!=0 && flag==0) */
+    /* Only relevant if (JC!=0 && flag==0)
+     * Note that tensors are transposed, which was not deliberate.
+     * Maybe refactor this to add some clarity. */
     JA00 = JA+mm*0; JA01 = JA+mm*1; JA02 = JA+mm*2;
     JA10 = JA+mm*3; JA11 = JA+mm*4; JA12 = JA+mm*5;
     JA20 = JA+mm*6; JA21 = JA+mm*7; JA22 = JA+mm*8;
@@ -166,165 +231,170 @@ static void composition_stuff(mwSize dm[], mwSize mm,
         float x, y, z;
         float k000, k100, k010, k110, k001, k101, k011, k111;
         float dx1, dx2, dy1, dy2, dz1, dz2;
-        mwSignedIndex ix, iy, iz, ix1, iy1, iz1;
+        mwSignedIndex ix, iy, iz, ix0, iy0, iz0, ix1, iy1, iz1;
         mwSize o000, o100, o010, o110, o001, o101, o011, o111;
         mwSize tmpz, tmpy, n;
 
         x    = A1[i]-1.0f;
         y    = A2[i]-1.0f;
         z    = A3[i]-1.0f;
-        ix   = (mwSignedIndex)floor((double)x); dx1=x-(float)ix; dx2=1.0f-dx1;
-        iy   = (mwSignedIndex)floor((double)y); dy1=y-(float)iy; dy2=1.0f-dy1;
-        iz   = (mwSignedIndex)floor((double)z); dz1=z-(float)iz; dz2=1.0f-dz1;
-        ix   = bound(ix  ,dm[0]);
-        iy   = bound(iy  ,dm[1]);
-        iz   = bound(iz  ,dm[2]);
-        ix1  = bound(ix+1,dm[0]);
-        iy1  = bound(iy+1,dm[1]);
-        iz1  = bound(iz+1,dm[2]);
 
-        tmpz  = dm[1]*iz;
-        tmpy  = dm[0]*(iy + tmpz);
-        o000  = (mwSize)(ix +tmpy);
-        o100  = (mwSize)(ix1+tmpy);
-        tmpy  = dm[0]*(iy1 + tmpz);
-        o010  = (mwSize)(ix +tmpy);
-        o110  = (mwSize)(ix1+tmpy);
-        tmpz  = dm[1]*iz1;
-        tmpy  = dm[0]*(iy + tmpz);
-        o001  = (mwSize)(ix +tmpy);
-        o101  = (mwSize)(ix1+tmpy);
-        tmpy  = dm[0]*(iy1 + tmpz);
-        o011  = (mwSize)(ix +tmpy);
-        o111  = (mwSize)(ix1+tmpy);
-
-        k000  = B1[o000]-1.0f;
-        k100  = B1[o100]-1.0f;
-        k010  = B1[o010]-1.0f;
-        k110  = B1[o110]-1.0f;
-        k001  = B1[o001]-1.0f;
-        k101  = B1[o101]-1.0f;
-        k011  = B1[o011]-1.0f;
-        k111  = B1[o111]-1.0f;
-
-        n     = dm[0];
-        k100 -= floor((k100-k000)/(double)n+0.5)*n;
-        k010 -= floor((k010-k000)/(double)n+0.5)*n;
-        k110 -= floor((k110-k000)/(double)n+0.5)*n;
-        k001 -= floor((k001-k000)/(double)n+0.5)*n;
-        k101 -= floor((k101-k000)/(double)n+0.5)*n;
-        k011 -= floor((k011-k000)/(double)n+0.5)*n;
-        k111 -= floor((k111-k000)/(double)n+0.5)*n;
-        C1[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
-              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + 1.0f;
-
-        k000  = B2[o000]-1.0f;
-        k100  = B2[o100]-1.0f;
-        k010  = B2[o010]-1.0f;
-        k110  = B2[o110]-1.0f;
-        k001  = B2[o001]-1.0f;
-        k101  = B2[o101]-1.0f;
-        k011  = B2[o011]-1.0f;
-        k111  = B2[o111]-1.0f;
-
-        n     = dm[1];
-        k100 -= floor((k100-k000)/(double)n+0.5)*n;
-        k010 -= floor((k010-k000)/(double)n+0.5)*n;
-        k110 -= floor((k110-k000)/(double)n+0.5)*n;
-        k001 -= floor((k001-k000)/(double)n+0.5)*n;
-        k101 -= floor((k101-k000)/(double)n+0.5)*n;
-        k011 -= floor((k011-k000)/(double)n+0.5)*n;
-        k111 -= floor((k111-k000)/(double)n+0.5)*n;
-        C2[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
-              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + 1.0f;
-
-        k000  = B3[o000]-1.0f;
-        k100  = B3[o100]-1.0f;
-        k010  = B3[o010]-1.0f;
-        k110  = B3[o110]-1.0f;
-        k001  = B3[o001]-1.0f;
-        k101  = B3[o101]-1.0f;
-        k011  = B3[o011]-1.0f;
-        k111  = B3[o111]-1.0f;
-
-        n     = dm[2];
-        k100 -= floor((k100-k000)/(double)n+0.5)*n;
-        k010 -= floor((k010-k000)/(double)n+0.5)*n;
-        k110 -= floor((k110-k000)/(double)n+0.5)*n;
-        k001 -= floor((k001-k000)/(double)n+0.5)*n;
-        k101 -= floor((k101-k000)/(double)n+0.5)*n;
-        k011 -= floor((k011-k000)/(double)n+0.5)*n;
-        k111 -= floor((k111-k000)/(double)n+0.5)*n;
-        C3[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
-              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + 1.0f;
-
-        if (JC!=0 && JB!=0 && JA!=0)
+        if (mxIsFinite(x) && mxIsFinite(y) && mxIsFinite(z))
         {
-            if (flag==0)
+            ix   = (mwSignedIndex)floor((double)x); dx1=x-(float)ix; dx2=1.0f-dx1;
+            iy   = (mwSignedIndex)floor((double)y); dy1=y-(float)iy; dy2=1.0f-dy1;
+            iz   = (mwSignedIndex)floor((double)z); dz1=z-(float)iz; dz2=1.0f-dz1;
+            ix0  = bound(ix  ,dm[0]);
+            iy0  = bound(iy  ,dm[1]);
+            iz0  = bound(iz  ,dm[2]);
+            ix1  = bound(ix+1,dm[0]);
+            iy1  = bound(iy+1,dm[1]);
+            iz1  = bound(iz+1,dm[2]);
+
+            tmpz  = dm[1]*iz0;
+            tmpy  = dm[0]*(iy0 + tmpz);
+            o000  = (mwSize)(ix0 +tmpy);
+            o100  = (mwSize)(ix1+tmpy);
+            tmpy  = dm[0]*(iy1 + tmpz);
+            o010  = (mwSize)(ix0 +tmpy);
+            o110  = (mwSize)(ix1+tmpy);
+            tmpz  = dm[1]*iz1;
+            tmpy  = dm[0]*(iy0 + tmpz);
+            o001  = (mwSize)(ix0 +tmpy);
+            o101  = (mwSize)(ix1+tmpy);
+            tmpy  = dm[0]*(iy1 + tmpz);
+            o011  = (mwSize)(ix0 +tmpy);
+            o111  = (mwSize)(ix1+tmpy);
+
+            /* Sample from x-displacement field - subtract x coordinates of sampled points */
+            k000  = B1[o000] - (float)(ix0+1);
+            k100  = B1[o100] - (float)(ix1+1);
+            k010  = B1[o010] - (float)(ix0+1);
+            k110  = B1[o110] - (float)(ix1+1);
+            k001  = B1[o001] - (float)(ix0+1);
+            k101  = B1[o101] - (float)(ix1+1);
+            k011  = B1[o011] - (float)(ix0+1);
+            k111  = B1[o111] - (float)(ix1+1);
+            C1[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+                  + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + x + 1.0f;
+
+            /* sample from y-displacement field */
+            k000  = B2[o000] - (float)(iy0+1);
+            k100  = B2[o100] - (float)(iy0+1);
+            k010  = B2[o010] - (float)(iy1+1);
+            k110  = B2[o110] - (float)(iy1+1);
+            k001  = B2[o001] - (float)(iy0+1);
+            k101  = B2[o101] - (float)(iy0+1);
+            k011  = B2[o011] - (float)(iy1+1);
+            k111  = B2[o111] - (float)(iy1+1);
+            C2[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+                  + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + y + 1.0f;
+
+            /* sample from z-displacement field */
+            k000  = B3[o000] - (float)(iz0+1);
+            k100  = B3[o100] - (float)(iz0+1);
+            k010  = B3[o010] - (float)(iz0+1);
+            k110  = B3[o110] - (float)(iz0+1);
+            k001  = B3[o001] - (float)(iz1+1);
+            k101  = B3[o101] - (float)(iz1+1);
+            k011  = B3[o011] - (float)(iz1+1);
+            k111  = B3[o111] - (float)(iz1+1);
+            C3[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+                  + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + z + 1.0f;
+
+            if (JC!=0 && JB!=0 && JA!=0)
             {
-                float *ptr;
-                float ja0, ja1, ja2;
-                float jb[3][3];
+                if (flag==0)
+                {
+                    float *ptr;
+                    float ja0, ja1, ja2;
+                    float jb[3][3];
 
-                ptr      = JB00;
-                jb[0][0] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
-                         + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
-                ptr      = JB10;
-                jb[1][0] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
-                         + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
-                ptr      = JB20;
-                jb[2][0] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
-                         + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+                    ptr      = JB00;
+                    jb[0][0] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                             + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+                    ptr      = JB10;
+                    jb[1][0] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                             + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+                    ptr      = JB20;
+                    jb[2][0] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                             + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
 
-                ptr      = JB01;
-                jb[0][1] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
-                         + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
-                ptr      = JB11;
-                jb[1][1] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
-                         + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
-                ptr      = JB21;
-                jb[2][1] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
-                         + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+                    ptr      = JB01;
+                    jb[0][1] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                             + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+                    ptr      = JB11;
+                    jb[1][1] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                             + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+                    ptr      = JB21;
+                    jb[2][1] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                             + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
 
-                ptr      = JB02;
-                jb[0][2] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
-                         + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+                    ptr      = JB02;
+                    jb[0][2] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                             + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
 
-                ptr      = JB12;
-                jb[1][2] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
-                         + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+                    ptr      = JB12;
+                    jb[1][2] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                             + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
 
-                ptr      = JB22;
-                jb[2][2] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
-                         + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
+                    ptr      = JB22;
+                    jb[2][2] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
+                             + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
 
-                ja0     = JA00[i];
-                ja1     = JA01[i];
-                ja2     = JA02[i];
-                JC00[i] = jb[0][0]*ja0 + jb[1][0]*ja1 + jb[2][0]*ja2;
-                JC01[i] = jb[0][1]*ja0 + jb[1][1]*ja1 + jb[2][1]*ja2;
-                JC02[i] = jb[0][2]*ja0 + jb[1][2]*ja1 + jb[2][2]*ja2;
+                    ja0     = JA00[i];
+                    ja1     = JA01[i];
+                    ja2     = JA02[i];
+                    JC00[i] = jb[0][0]*ja0 + jb[1][0]*ja1 + jb[2][0]*ja2;
+                    JC01[i] = jb[0][1]*ja0 + jb[1][1]*ja1 + jb[2][1]*ja2;
+                    JC02[i] = jb[0][2]*ja0 + jb[1][2]*ja1 + jb[2][2]*ja2;
 
-                ja0     = JA10[i];
-                ja1     = JA11[i];
-                ja2     = JA12[i];
-                JC10[i] = jb[0][0]*ja0 + jb[1][0]*ja1 + jb[2][0]*ja2;
-                JC11[i] = jb[0][1]*ja0 + jb[1][1]*ja1 + jb[2][1]*ja2;
-                JC12[i] = jb[0][2]*ja0 + jb[1][2]*ja1 + jb[2][2]*ja2;
+                    ja0     = JA10[i];
+                    ja1     = JA11[i];
+                    ja2     = JA12[i];
+                    JC10[i] = jb[0][0]*ja0 + jb[1][0]*ja1 + jb[2][0]*ja2;
+                    JC11[i] = jb[0][1]*ja0 + jb[1][1]*ja1 + jb[2][1]*ja2;
+                    JC12[i] = jb[0][2]*ja0 + jb[1][2]*ja1 + jb[2][2]*ja2;
 
-                ja0     = JA20[i];
-                ja1     = JA21[i];
-                ja2     = JA22[i];
-                JC20[i] = jb[0][0]*ja0 + jb[1][0]*ja1 + jb[2][0]*ja2;
-                JC21[i] = jb[0][1]*ja0 + jb[1][1]*ja1 + jb[2][1]*ja2;
-                JC22[i] = jb[0][2]*ja0 + jb[1][2]*ja1 + jb[2][2]*ja2;
+                    ja0     = JA20[i];
+                    ja1     = JA21[i];
+                    ja2     = JA22[i];
+                    JC20[i] = jb[0][0]*ja0 + jb[1][0]*ja1 + jb[2][0]*ja2;
+                    JC21[i] = jb[0][1]*ja0 + jb[1][1]*ja1 + jb[2][1]*ja2;
+                    JC22[i] = jb[0][2]*ja0 + jb[1][2]*ja1 + jb[2][2]*ja2;
+                }
+                else
+                {
+                    float jb;
+                    jb    = ((JB[o000]*dx2 + JB[o100]*dx1)*dy2 + (JB[o010]*dx2 + JB[o110]*dx1)*dy1)*dz2
+                          + ((JB[o001]*dx2 + JB[o101]*dx1)*dy2 + (JB[o011]*dx2 + JB[o111]*dx1)*dy1)*dz1;
+                    JC[i] = jb * JA[i];
+                }
             }
-            else
+        }
+        else
+        {
+            C1[i] = NaN;
+            C2[i] = NaN;
+            C3[i] = NaN;
+            if (JC!=0 && JB!=0 && JA!=0)
             {
-                float jb;
-                jb    = ((JB[o000]*dx2 + JB[o100]*dx1)*dy2 + (JB[o010]*dx2 + JB[o110]*dx1)*dy1)*dz2
-                      + ((JB[o001]*dx2 + JB[o101]*dx1)*dy2 + (JB[o011]*dx2 + JB[o111]*dx1)*dy1)*dz1;
-                JC[i] = jb * JA[i];
+                if (flag==0)
+                {
+                    JC00[i] = NaN;
+                    JC01[i] = NaN;
+                    JC02[i] = NaN;
+                    JC10[i] = NaN;
+                    JC11[i] = NaN;
+                    JC12[i] = NaN;
+                    JC20[i] = NaN;
+                    JC21[i] = NaN;
+                    JC22[i] = NaN;
+                }
+                else
+                {
+                    JC[i] = NaN;
+                }
             }
         }
     }
@@ -363,10 +433,10 @@ static void def2jac_wrap(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s, 
 {
     mwSize i, j, k, k0, k2, mm;
 
-    if (s>=0 && s<(mwSignedIndex)dm[2])
+    if (s!=-1)
     {
-        k0 = (mwSize)s;
-        k2 = (mwSize)s+1;
+        k0 = (mwSize)(s-1);
+        k2 = (mwSize)s;
     }
     else
     {
@@ -440,9 +510,9 @@ static void def2jac_neuman(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s
 {
     mwSize mm, k, k0, k2;
 
-    if (s>=0 && s<(mwSignedIndex)dm[2])
+    if (s!=-1)
     {
-        k0 = (mwSize)s;
+        k0 = (mwSize)(s-1);
         k2 = (mwSize)s;
     }
     else
@@ -540,56 +610,13 @@ void def2jac(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s)
         def2jac_wrap(dm, Psi, Jpsi, s, 1);
 }
 
-/* Sample n points
- * s1 = f1(x,y,z)
- * s2 = f2(x,y,z)
- */
-void sampn_vox(mwSize dm[], float F[], mwSize n, mwSize mm, double x, double y, double z, double v[])
-{
-    mwSignedIndex ix, iy, iz, ix1, iy1, iz1;
-    mwSize j, o000, o100, o010, o110, o001, o101, o011, o111;
-    mwSize tmpz, tmpy;
-    double dx1, dx2, dy1, dy2, dz1, dz2;
-
-    ix   = (mwSignedIndex)floor(x); dx1=x-ix; dx2=1.0-dx1;
-    iy   = (mwSignedIndex)floor(y); dy1=y-iy; dy2=1.0-dy1;
-    iz   = (mwSignedIndex)floor(z); dz1=z-iz; dz2=1.0-dz1;
-    ix   = bound(ix  ,dm[0]);
-    iy   = bound(iy  ,dm[1]);
-    iz   = bound(iz  ,dm[2]);
-    ix1  = bound(ix+1,dm[0]);
-    iy1  = bound(iy+1,dm[1]);
-    iz1  = bound(iz+1,dm[2]);
-
-    tmpz  = dm[1]*iz;
-    tmpy  = dm[0]*(iy + tmpz);
-    o000  = (mwSize)(ix +tmpy);
-    o100  = (mwSize)(ix1+tmpy);
-    tmpy  = dm[0]*(iy1 + tmpz);
-    o010  = (mwSize)(ix +tmpy);
-    o110  = (mwSize)(ix1+tmpy);
-    tmpz  = dm[1]*iz1;
-    tmpy  = dm[0]*(iy + tmpz);
-    o001  = (mwSize)(ix +tmpy);
-    o101  = (mwSize)(ix1+tmpy);
-    tmpy  = dm[0]*(iy1 + tmpz);
-    o011  = (mwSize)(ix +tmpy);
-    o111  = (mwSize)(ix1+tmpy);
-
-    for(j=0; j<n; j++, F += mm)
-    {
-        v[j] = ((F[o000]*dx2 + F[o100]*dx1)*dy2 + (F[o010]*dx2 + F[o110]*dx1)*dy1)*dz2
-             + ((F[o001]*dx2 + F[o101]*dx1)*dy2 + (F[o011]*dx2 + F[o111]*dx1)*dy1)*dz1;
-    }
-}
-
 #define TINY 5e-2f
 
 static void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@null@@out@*/float S0[], float F1[], unsigned int code)
 {
     mwSize i, j, m0;
     float  *px, *py, *pz;
-    float  NaN = mxGetNaN();
+    float  NaN = (float)mxGetNaN();
 
     px = Psi;
     py = Psi+m1;
@@ -610,7 +637,7 @@ static void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[],
 			   &&  (z>=-TINY) && (z<=(float)(dm0[2])-1.0f+TINY)))
         {
 	    mwSignedIndex ix, iy, iz, ix1, iy1, iz1;
-            mwSize j, o000, o100, o010, o110, o001, o101, o011, o111;
+            mwSize o000, o100, o010, o110, o001, o101, o011, o111;
             mwSize tmpz, tmpy;
             float  dx1, dx2, dy1, dy2, dz1, dz2;
 
@@ -706,7 +733,6 @@ static void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[],
     }
 }
 
-
 void pullc(mwSize dm0[], mwSize m1, mwSize n, float Psi[],  float F0[], /*@out@*/ float F1[])
 {
     pushpull(dm0, m1, n, Psi, F0, 0, F1, 3);
@@ -735,7 +761,7 @@ void  push(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F1[], /*@out@*/
 }
 
 
-
+/* This should perhaps be tidied up and generalised in line with the pushpull function */
 void pushc_grads(mwSize dmo[], mwSize dm[], float Psi[], float Jpsi[], float pf[], float po[])
 {
     mwSignedIndex ix, iy, iz, ix1, iy1, iz1;
@@ -961,7 +987,7 @@ void pushc_grads(mwSize dmo[], mwSize dm[], float Psi[], float Jpsi[], float pf[
 
 
 /*
- * Psi0 = Id + V0*sc
+ * Psi0 = Id + V0 sc
  */
 void smalldef(mwSize dm[], float sc, float V[], float Psi[])
 {
@@ -985,8 +1011,8 @@ void smalldef(mwSize dm[], float sc, float V[], float Psi[])
 }
 
 /*
- * Psi0 = Id + V0*sc
- * Jpsi0 = Id + I+diag(V0)*sc
+ * Psi0  = Id + V0 sc
+ * Jpsi0 = Id + I+D V0 sc
  */
 void smalldef_jac(mwSize dm[], float sc, float V[], float Psi[], float Jpsi[])
 {
@@ -1038,8 +1064,8 @@ void smalldef_jac(mwSize dm[], float sc, float V[], float Psi[], float Jpsi[])
 }
 
 /*
- * Psi0 = Id + V0*sc
- * Jpsi0 = Id + expm(D V0)
+ * Psi0  = Id + V0 sc
+ * Jpsi0 = Id + expm(D V0 sc)
  */
 void smalldef_jac1(mwSize dm[], float sc, float V[], float Psi[], float Jpsi[])
 {
@@ -1216,84 +1242,6 @@ void determinant(mwSize dm[], float Jpsi[], float d[])
         j10  = Jpsi[j+m  ]; j11 = Jpsi[j+m*4]; j12 = Jpsi[j+m*7];
         j20  = Jpsi[j+m*2]; j21 = Jpsi[j+m*5]; j22 = Jpsi[j+m*8];
         d[j] = (float)(j00*(j11*j22-j12*j21)+j10*(j02*j21-j01*j22)+j20*(j01*j12-j02*j11));
-    }
-}
-
-/*
- * Attempt to unwrap the deformations.
- * Note: this is not always guaranteed to work,
- * but it should for most cases.
- */
-void unwrap(mwSize dm[], float f[])
-{
-    mwSize i0, i1, i2;
-
-    if (get_bound()!=0)
-        return;
-
-    for(i2=0; i2<dm[2]; i2++)
-    {
-        float *pt = f + (i2+2*dm[2])*dm[0]*dm[1];
-        if (i2==0)
-        {
-            for(i1=0; i1<dm[1]*dm[0]; i1++)
-                pt[i1] = pt[i1]-(float)floor((double)(pt[i1]/dm[2])+0.5)*(float)dm[2];
-        }
-        else
-        {
-            for(i1=0; i1<dm[1]*dm[0]; i1++)
-                pt[i1] = pt[i1]-(float)floor((double)((pt[i1]-pt[i1-dm[0]*dm[1]])/dm[2])+0.5)*(float)dm[2];
-        }
-    }
-
-    for(i1=0; i1<dm[1]; i1++)
-    {
-        float *pt = f + (i1+dm[2]*dm[1])*dm[0];
-        if (i1==0)
-        {
-            for(i2=0; i2<dm[2]; i2++)
-            {
-                float *pPsi1 = pt+i2*dm[0]*dm[1];
-                for(i0=0; i0<dm[0]; i0++)
-                {
-                    pPsi1[i0] = pPsi1[i0]-(float)floor((double)(pPsi1[i0]/dm[1])+0.5)*(float)dm[1];
-                }
-            }
-        }
-        else
-        {
-            for(i2=0; i2<dm[2]; i2++)
-            {
-                float *pPsi1 = pt+i2*dm[0]*dm[1];
-                for(i0=0; i0<dm[0]; i0++)
-                {
-                    pPsi1[i0] = pPsi1[i0]-(float)floor((double)((pPsi1[i0]-pPsi1[i0-dm[0]])/dm[1])+0.5)*(float)dm[1];
-                }
-            }
-        }
-    }
-
-    for(i0=0; i0<dm[0]; i0++)
-    {
-        float *pt = f+i0;
-        if (i0==0)
-        {
-            for(i2=0; i2<dm[2]; i2++)
-            {
-                float *pPsi1 = pt + i2*dm[0]*dm[1];
-                for(i1=0; i1<dm[0]*dm[1]; i1+=dm[0])
-                    pPsi1[i1] = pPsi1[i1]-(float)floor((double)(pPsi1[i1]/dm[0])+0.5)*(float)dm[0];
-            }
-        }
-        else
-        {
-            for(i2=0; i2<dm[2]; i2++)
-            {
-                float *pPsi1 = pt + i2*dm[0]*dm[1];
-                for(i1=0; i1<dm[0]*dm[1]; i1+=dm[0])
-                    pPsi1[i1] = pPsi1[i1]-(float)floor((double)((pPsi1[i1]-pPsi1[i1-1])/dm[0])+0.5)*(float)dm[0];
-            }
-        }
     }
 }
 

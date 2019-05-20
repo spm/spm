@@ -21,19 +21,22 @@ function varargout = spm_shoot_greens(varargin)
 % (c) Wellcome Trust Centre for NeuroImaging (2012)
 
 % John Ashburner
-% $Id: spm_shoot_greens.m 7387 2018-08-03 15:13:57Z john $
-
-spm_diffeo('boundary',0);
+% $Id: spm_shoot_greens.m 7593 2019-05-20 18:58:16Z john $
 
 if nargin==3 && isa(varargin{1},'char') && strcmp(varargin{1},'kernel')
     d   = varargin{2};
     prm = varargin{3};
 
+    bnd = spm_diffeo('bound');
+    spm_diffeo('bound',0);
     F = spm_diffeo('kernel',d,prm);
+    spm_diffeo('bound',bnd);
+
     if size(F,4) == 1
         % The differential operator is symmetric, so the Fourier transform should be real
-        F  = 1./real(fftn(F));
-        sm = numel(F);
+        F      = single(max(real(fftn(double(F))),0));
+        F      = 1./F;
+        sm     = numel(F);
         if nargout >=2
             ld = log(F);
             if prm(4)==0, ld(1,1,1) = 0; end
@@ -50,24 +53,21 @@ if nargin==3 && isa(varargin{1},'char') && strcmp(varargin{1},'kernel')
         for j=1:size(F,5)
             for i=1:size(F,4)
                 % The differential operator is symmetric, so the Fourier transform should be real
-                F(:,:,:,i,j) = real(fftn(F(:,:,:,i,j)));
+                F(:,:,:,i,j) = single(real(fftn(double(F(:,:,:,i,j)))));
             end
         end
         ld = 0;
-        sm = 0;
+        sm = size(F,1)*size(F,2)*size(F,3);
         for k=1:size(F,3)
             % Compare the following with inverting a 3x3 matrix...
-            A   = F(:,:,k,:,:);
+            A   = double(F(:,:,k,:,:));
             dt  = A(:,:,:,1,1).*(A(:,:,:,2,2).*A(:,:,:,3,3) - A(:,:,:,2,3).*A(:,:,:,3,2)) +...
                   A(:,:,:,1,2).*(A(:,:,:,2,3).*A(:,:,:,3,1) - A(:,:,:,2,1).*A(:,:,:,3,3)) +...
                   A(:,:,:,1,3).*(A(:,:,:,2,1).*A(:,:,:,3,2) - A(:,:,:,2,2).*A(:,:,:,3,1));
-            msk     = dt<=0;
-            if prm(4)==0 && k==1, msk(1,1,1) = true; end
             dt      = 1./dt;
-            dt(msk) = 0;
-            if nargout>=2
-                sm      = sm + sum(sum(~msk));
-                ld      = ld - sum(log(dt(~msk)));
+            if nargout>=2 && k==1
+                msk     = dt>0 & isfinite(dt);
+                ld      = ld - sum(log(dt(msk)));
             end
             F(:,:,k,1,1) = (A(:,:,:,2,2).*A(:,:,:,3,3) - A(:,:,:,2,3).*A(:,:,:,3,2)).*dt;
             F(:,:,k,2,1) = (A(:,:,:,2,3).*A(:,:,:,3,1) - A(:,:,:,2,1).*A(:,:,:,3,3)).*dt;
@@ -81,6 +81,10 @@ if nargin==3 && isa(varargin{1},'char') && strcmp(varargin{1},'kernel')
             F(:,:,k,2,3) = (A(:,:,:,1,3).*A(:,:,:,2,1) - A(:,:,:,1,1).*A(:,:,:,2,3)).*dt;
             F(:,:,k,3,3) = (A(:,:,:,1,1).*A(:,:,:,2,2) - A(:,:,:,1,2).*A(:,:,:,2,1)).*dt;
         end
+    end
+    if prm(4)==0
+        F(1,1,1,:,:) = 0;
+        sm           = sm - 1;
     end
     varargout{1} = F;
     if nargout>=2
@@ -96,7 +100,7 @@ else
         % Simple case where convolution is done one field at a time
         prm = varargin{3};
         for i=1:3
-            v(:,:,:,i) = ifftn(F.*fftn(m(:,:,:,i))*prm(i)^2,'symmetric');
+            v(:,:,:,i) = ifftn(F.*fftn(m(:,:,:,i))./prm(i)^2,'symmetric');
         end
     else
         % More complicated case for dealing with linear elasticity, where
