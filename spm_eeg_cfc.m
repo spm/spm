@@ -20,9 +20,9 @@ function spm_eeg_cfc(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Bernadette van Wijk, Vladimir Litvak
-% $Id: spm_eeg_cfc.m 7316 2018-05-22 11:21:34Z bernadette $
+% $Id: spm_eeg_cfc.m 7594 2019-05-21 09:56:41Z bernadette $
 
-SVNrev = '$Rev: 7316 $';
+SVNrev = '$Rev: 7594 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -309,21 +309,13 @@ for j=1:length(Flow)
             X=[X;CONFOUNDS{ncf}(j,:)];
         end
         
-        nreg=size(X,1);
-        
         X = X*W;
-        
         y = AMP(N,:)*W;
         
-        V=[];
-        c=ones(nreg,1);
-        
         all_Beta(N,j,:)=y*pinv(X);
-        
         all_SSy(N,j)=sum((y-mean(y)).^2);
         
         cnt=1;
-        
         for nph=1:numel(allphase)
             all_residuals=y-(all_Beta(N,j,cnt).*X(cnt,:)+all_Beta(N,j,cnt+1).*X(cnt+1,:));
             all_SSe=sum((all_residuals-mean(all_residuals)).^2);
@@ -378,13 +370,7 @@ for j=1:length(Flow)
                 end
                 
                 Xk = Xk*Wk;
-                
-                nreg=size(Xk,1);
-                
                 yk = Wk*squeeze(amp(N,k,:));
-                
-                V=[];
-                c=ones(nreg,1);
                 
                 Beta(:,k_good)=(yk'*pinv(Xk));
                
@@ -416,14 +402,14 @@ for j=1:length(Flow)
         %-Test for significance
         %------------------------------------------------------------------
         
+        V=[];
         cnt=1;
         for nph=1:numel(allphase)
             Xb=[];
             Xb(1:k_good,1)=ones(k_good,1);Xb(k_good+1:2*k_good,2)=ones(k_good,1);
             yb=[Beta(cnt,:),Beta(cnt+1,:)];
-            c=[1;1];
-            [Tb,df,Beta_b,xX,xCon]=spm_ancova(Xb,V,yb',c);
-            F=Tb^2;
+            c=eye(2);
+            [F,df,Beta_b,xX,xCon]=spm_ancova(Xb,V,yb',c);
             p_pac{nph}(N,j)=1-spm_Fcdf(F,df(1),df(2));
             cnt=cnt+2;
         end
@@ -438,6 +424,7 @@ for j=1:length(Flow)
             cnt=cnt+1;
         end
         
+        nreg=size(X,1);
         Xb=[];
         yb=[];
         for i=1:nreg
@@ -445,13 +432,12 @@ for j=1:length(Flow)
             yb=[yb,Beta(i,:)];
         end
         
-        c=ones(nreg,1);
+        c=eye(nreg);
         
-        [Tb,df,Beta_b,xX,xCon]=spm_ancova(Xb,V,yb',c);
-        F_total=Tb^2;
+        [F_total,df,Beta_b,xX,xCon]=spm_ancova(Xb,V,yb',c);
         p_total(N,j)=1-spm_Fcdf(F_total,df(1),df(2));
         
-        
+         
     end %N
     
     spm_progress_bar('Set', j);
