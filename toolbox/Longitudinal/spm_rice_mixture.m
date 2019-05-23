@@ -1,12 +1,16 @@
-function [mg,nu,sig] = spm_rice_mixture(h,x,K)
+function [mg,nu,sig,info] = spm_rice_mixture(h,x,K)
 % Fit a mixture of Ricians to a histogram
 % FORMAT [mg,nu,sig] = spm_rice_mixture(h,x,K)
-% h   - histogram counts
-% x   - bin positions (plot(x,h) to see the histogram)
-% K   - number of Ricians
-% mg  - integral under each Rician
-% nu  - "mean" parameter of each Rician
-% sig - "standard deviation" parameter of each Rician
+% h    - histogram counts
+% x    - bin positions (plot(x,h) to see the histogram)
+% K    - number of Ricians
+% mg   - integral under each Rician
+% nu   - "mean" parameter of each Rician
+% sig  - "standard deviation" parameter of each Rician
+% info - This struct can be used for plotting the fit as:
+%            plot(info.x(:),info.p,'--',info.x(:), ...
+%                 info.h/sum(info.h)/info.md,'b.', ...
+%                 info.x(:),info.sp,'r');
 %
 % An EM algorithm is used, which involves alternating between computing
 % belonging probabilities, and then the parameters of the Ricians.
@@ -17,7 +21,7 @@ function [mg,nu,sig] = spm_rice_mixture(h,x,K)
 % Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_rice_mixture.m 7563 2019-04-01 10:39:24Z guillaume $
+% $Id: spm_rice_mixture.m 7595 2019-05-23 13:48:53Z mikael $
 
 mg  = ones(K,1)/K;
 nu  = (0:(K-1))'*max(x)/(K+1);
@@ -68,6 +72,16 @@ for iter=1:10000
         [nu(k),sig(k)] = moments2param(mu1,mu2);
     end
     %disp([nu'; sig'])
+end
+
+if nargout >= 4
+    % This info can be used for plotting the fit
+    info    = struct;
+    info.x  = x;    
+    info.h  = h;
+    info.p  = p;
+    info.sp = sp;
+    info.md = mean(diff(x));
 end
 %__________________________________________________________________________
 
