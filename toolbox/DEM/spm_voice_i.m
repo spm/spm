@@ -20,7 +20,7 @@ function [i,P] = spm_voice_i(str)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_i.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_i.m 7597 2019-05-23 18:42:38Z karl $
 
 % get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
@@ -29,7 +29,7 @@ function [i,P] = spm_voice_i(str)
 % words in lexicon
 %==========================================================================
 global VOX
-word  = {VOX.LEX(:,1).word};                  % words in lexicon
+word  = {VOX.LEX.word};                  % words in lexicon
 
 % return cell array of indexed words
 %--------------------------------------------------------------------------

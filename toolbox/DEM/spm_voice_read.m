@@ -32,7 +32,7 @@ function [SEG,W,P,R] = spm_voice_read(wfile,L,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7589 2019-05-09 12:57:23Z karl $
+% $Id: spm_voice_read.m 7597 2019-05-23 18:42:38Z karl $
 
 
 %% setup
@@ -105,7 +105,7 @@ for s  = 1:ns
     
     % string
     %----------------------------------------------------------------------
-    SEG(s).str = VOX.LEX(w,1).word;            % lexical string
+    SEG(s).str = VOX.LEX(w).word;              % lexical string
     SEG(s).I0  = VOX.I0;                       % first
     SEG(s).IT  = VOX.IT;                       % final
     SEG(s).J   = VOX.J;                        % intervals

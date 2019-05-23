@@ -12,15 +12,16 @@ function [xY] = spm_voice_ff(Y,FS)
 % output structure
 %--------------------------------------------------------------------------
 % xY.Y   - timeseries
-% xY.Q   - parameters - lexical
+% xY.W   - parameters - lexical
 % xY.P   - parameters - prosidy
 % 
 % xY.P.amp - log amplitude
-% xY.P.dur - log duration (seconds)
-% xY.P.lat - log latency (sec)
+% xY.P.dur - log duration (sec)
+% xY.P.lat - log latency  (sec)
 % xY.P.tim - log timbre (a.u.)
+% xY.P.pch - log pitch  (a.u.)
 % xY.P.inf - inflection (a.u.)
-
+%
 % xY.R.F0  - fundamental frequency (Hz)
 % xY.R.F1  - format frequency (Hz
 %
@@ -50,7 +51,7 @@ function [xY] = spm_voice_ff(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7589 2019-05-09 12:57:23Z karl $
+% $Id: spm_voice_ff.m 7597 2019-05-23 18:42:38Z karl $
 
 
 % defaults
@@ -62,7 +63,6 @@ try, Tu = VOX.Tu; catch, Tu  = 4;     end    % log scaling (formants)
 try, Tv = VOX.Tv; catch, Tv  = 1;     end    % log scaling (interval)
 try, F0 = VOX.F0; catch, F0  = 96;    end    % fundamental frequency
 try, F1 = VOX.F1; catch, F1  = 32;    end    % formant frequency
-try, F2 = VOX.F2; catch, F2  = 256;   end    % minimum formant
 
 % sampling frequency
 %--------------------------------------------------------------------------
@@ -75,10 +75,10 @@ end
 %==========================================================================
 I     = spm_voice_frequency(Y,FS,F0)/FS;     % get intervals (seconds)
 nI    = length(I);                           % number of intervals
-D     = spm_dctmtx(nI,4);                    % inflection basis set
+D     = spm_dctmtx(nI,3);                    % inflection basis set
 I     = I*F0;                                % normalise to fundamental
-p     = sqrt(nI)\I*D;                        % fluctuations around mean
-pI    = sqrt(nI)*p*D';                       % parameterised intervals
+S     = sqrt(nI)\I*D;                        % fluctuations around mean
+pI    = sqrt(nI)*S*D';                       % parameterised intervals
 I     = fix([1 FS*cumsum(pI/F0)]);           % starting from one
 
 % unwrap fundamental segments using cross covariance functions (ccf) and
@@ -101,28 +101,20 @@ end
 % discrete cosine transforms over formant frequnecies and intervals
 % respectively to create formant parameters (Q)
 %--------------------------------------------------------------------------
-Q  = log(abs(Q) + eps);                      % log transform
-Q  = Q - mean(Q(:));                         % detrend
-B  = 1 - exp(-(1:Ni)*F1/F2);                 % auditory range
-Q  = bsxfun(@times,Q,B(:));                  % balance
-S  = std(Q(:));                              % timbre
-Q  = Q/S;                                    % normalise
-
-nu = exp(-Tu*(0:(Ni - 1))/Ni);               % log spacing
-nv = exp(-Tv*(0:(ni - 1))/ni);               % log spacing
-nu = nu - min(nu); nu = Ni - (Ni - 1)*nu/max(nu);
-nv = nv - min(nv); nv = ni - (ni - 1)*nv/max(nv);
-U  = spm_dctmtx(Ni,Nu,nu);                   % DCT over formants
-V  = spm_dctmtx(ni,Nv,nv);                   % DCT over intervals
-Q  = U\Q/V';                                 % coeficients
+Q     = log(abs(Q) + eps);                   % log transform
+Q     = Q - mean(Q(:));                      % detrend
+T     = std(Q(:));                           % timbre
+G     = log([Tu,Tv,1]);                      % pitch
+W     = spm_voice_iQ(Q,G,Nu,Nv);             % DCT transform
 
 % assemble prosody parameters
 %--------------------------------------------------------------------------
 P.amp = log(max(Y));                         % amplitude (a.u.)
 P.lat = log(1/32);                           % latency (sec)
 P.dur = log(Ny/FS);                          % duration (seconds)
-P.tim = log(S)/2;                            % timbre
-P.inf = p;                                   % inflection
+P.tim = log(T)/2;                            % log timbre
+P.pch = G;                                   % log pitch
+P.inf = S;                                   % inflection
 
 % assemble speaker parameters
 %--------------------------------------------------------------------------
@@ -132,7 +124,7 @@ R.F1  = log(F1);                             % format frequency (Hz)
 % output structure
 %--------------------------------------------------------------------------
 xY.Y  = Y;                                   % timeseries
-xY.Q  = Q;                                   % parameters - lexical
+xY.W  = W;                                   % parameters - lexical
 xY.P  = P;                                   % parameters - prosidy
 xY.R  = R;                                   % parameters - speaker
 xY.i  = [1,Ny];                              % range – indices      
@@ -151,15 +143,15 @@ if VOX.analysis
     xlabel('time (sec)'), ylabel('amplitude')
     title('Timeseries','FontSize',16)
     
-    subplot(2,2,2), imagesc((1:ni)/F0,1000*[-nj,nj]/FS,D*exp(S*U*Q*V'))
+    subplot(2,2,2), imagesc((1:ni)/F0,1000*[-nj,nj]/FS,D*exp(Q))
     axis square, xlabel('time (seconds)'), ylabel('time (ms)')
     title('transients'), set(gca,'YLim',[-8 8])
     
-    subplot(4,2,5), imagesc(Q), axis square
+    subplot(4,2,5), imagesc(W), axis square
     xlabel('coefficients'), ylabel('coefficients')
     title('Parameters','FontSize',16)
     
-    subplot(4,2,6), imagesc((1:ni)/F0,(1:Ni)*F1,exp(S*U*Q*V'))
+    subplot(4,2,6), imagesc((1:ni)/F0,(1:Ni)*F1,exp(Q))
     xlabel('time (seconds)'), ylabel('Formants (Hz)')
     title('Spectral decomposition','FontSize',16)
     
@@ -167,7 +159,7 @@ if VOX.analysis
     xlabel('time (intervals)'), ylabel('fundamental frequency')
     title('Inflection','FontSize',16)
     
-    subplot(4,2,8), imagesc((1:ni)/F0,(1:Ni)*F1,U*Q*V')
+    subplot(4,2,8), imagesc((1:ni)/F0,(1:Ni)*F1,Q/T)
     xlabel('time (seconds)'), ylabel('Formants (Hz)')
     title('Spectral (log) energy','FontSize',16), drawnow
     

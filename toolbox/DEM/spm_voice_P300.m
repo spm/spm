@@ -25,7 +25,7 @@ function spm_voice_P300
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7587 2019-05-06 16:47:53Z karl $
+% $Id: spm_voice_P300.m 7597 2019-05-23 18:42:38Z karl $
 
 
 %% demo mode loads sentence (.mat) files
@@ -154,7 +154,7 @@ plot(VOX.PST,EEG1,'-.');
 
 % remove priors from a single word (s)
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Segmentation: suprise'); clf;
+spm_figure('GetWin','Segmentation: Bayesian surprise'); clf;
 Q     = P; Q(:,s) = ones(nw,1)/nw;
 SEG2  = spm_voice_read(Y,Q);
 EEG2  = spm_voice_segmentation(Y,SEG2);
@@ -222,19 +222,34 @@ end
 
 % show RMS responses as a function of time
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Segmentation: suprise');
-RMS  = std(EEG2,[],2);
-RMS  = max(KL)*RMS/max(RMS);
-subplot(4,1,2), hold off, plot(VOX.PST,RMS), hold on
-xlabel('time (sec)'), ylabel('RMS/KL (nats)')
-title('Belief updating','FontSize',16)
+spm_figure('GetWin','Segmentation: Bayesian surprise');
+RMS  = var(EEG2,[],2);
+RMS  = 4*RMS/max(RMS);
+subplot(4,2,3), hold off, plot(VOX.PST,RMS), hold on
+xlabel('time (sec)'), ylabel('Power/KL (nats)')
+title('Evoked power','FontSize',16)
 spm_axis tight
 
 % and overlay associated belief updating in terms of KL divergence
 %--------------------------------------------------------------------------
 for i = 1:numel(SEG2)
-    t = SEG2(i).IT/VOX.FS;
-    plot(t,KL(i),'.r','MarkerSize',32)
+    t = SEG2(i).IT/VOX.FS + 1/8;
+    plot([t,t],[0 KL(i)],'r','LineWidth',4)
 end
+
+i     = find(diff(RMS(1:end - 1)) > 0 & diff(RMS(2:end)) < 0);
+[R,i] = sort(RMS(i),'descend');
+R     = R(1:numel(KL));
+KL    = sort(KL,'descend');
+B     = [ones(numel(KL),1) KL(:)]\R;
+
+subplot(4,2,4), plot(KL,R,'.r','MarkerSize',16), hold on
+kl    = -1:4;
+plot(kl,B(1) + kl*B(2),':r','MarkerSize',16)
+xlabel('Bayesian suprise (KL - nats)'), ylabel('Evoked power')
+title('Belief updating','FontSize',16)
+spm_axis square
+
+
 
 return

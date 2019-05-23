@@ -20,7 +20,7 @@ function [L] = spm_voice_test(wfile,sfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7587 2019-05-06 16:47:53Z karl $
+% $Id: spm_voice_test.m 7597 2019-05-23 18:42:38Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -58,24 +58,19 @@ for s = 1:ns
     
     % retrieve epoch and decompose at fundamental frequency
     %----------------------------------------------------------------------
-    clear xy
-    Y     = read(wfile,round([-1/2 1/2]*FS + I(s)));
-    j     = spm_voice_onsets(Y,FS);
-    for i = 1 % :numel(j) - for all intervals
-        xy(i,1) = spm_voice_ff(Y(j{i}),FS);
-    end
-    
-    % store in xY
-    %----------------------------------------------------------------------
-    xY{s} = xy;
+    Y      = read(wfile,round([-1/2 1/2]*FS + I(s)));
+    j      = spm_voice_onsets(Y,FS);
+    xY{s}  = spm_voice_ff(Y(j{1}),FS);
+
+
     
 end
 
 %% grid search to maximise classication accuracy
 %==========================================================================
 if ~isfield(VOX,'nu');
-    nu    = 4:min(16,size(xY{1}(1).Q,1));                  % order (Hz)
-    nv    = 4:min(16,size(xY{1}(1).Q,2));                  % order (ms)
+    nu    = 8:min(16,size(xY{1}(1).W,1));                  % order (Hz)
+    nv    = 4:min(16,size(xY{1}(1).W,2));                  % order (ms)
     LL    = zeros(numel(nu),numel(nv));
     for i = 1:numel(nu)
         for j = 1:numel(nv);
@@ -86,14 +81,8 @@ if ~isfield(VOX,'nu');
             %--------------------------------------------------------------
             for s = 1:ns
                 L       = spm_voice_likelihood(xY{s});     % log likelihoods
-                Q       = spm_softmax(L);
-                F       = sum(Q.*(L - log(Q + exp(-8))));
-                [d,m]   = max(F(1,1,:));
-                
-                % posteriors
-                %--------------------------------------------------------------------------
-                L       = spm_softmax(L(:,:,m));           % posteriors
-                w       = strmatch(str{s,1},word,'exact'); % correct word
+                L       = spm_softmax(L(:));               % posteriors
+                w       = spm_voice_i(str{s});             % correct word
                 LL(i,j) = LL(i,j) + log(L(w) + exp(-8));   % log likelihood
             end
             
@@ -115,14 +104,11 @@ for s = 1:ns
     % identify the most likely word and place in structure
     %----------------------------------------------------------------------
     [L,M]    = spm_voice_likelihood(xY{s});    % log likelihoods
-    Q        = spm_softmax(L);
-    F        = sum(Q.*(L - log(Q + exp(-8))));
-    [d,m]    = max(F(1,1,:));
-    
+
     % posteriors and pointer
     %--------------------------------------------------------------------------
-    L        = spm_softmax(L(:,:,m));          % posteriors
-    M        = spm_softmax(M(:,:,m));          % likelihood
+    L        = spm_softmax(L);                 % posteriors
+    M        = spm_softmax(M);                 % likelihood
     
     % identify the most likely word and prosody
     %----------------------------------------------------------------------
@@ -131,7 +117,7 @@ for s = 1:ns
     R(:,s)   = L;                              % lexical likelihoods
     W(1,s)   = w(:);                           % lexical class
     P(:,s)   = p(:);                           % prosody classes
-    str{s,2} = VOX.LEX(w,1).word;              % lexical string
+    str{s,2} = VOX.LEX(w).word;                % lexical string
     
 end
 
@@ -147,7 +133,7 @@ disp(str)
 % assess classification accuracy
 %--------------------------------------------------------------------------
 clear q p
-word  = {VOX.LEX(:,1).word};
+word  = {VOX.LEX.word};
 nw    = length(word);
 c     = zeros(nw,nw);
 q     = zeros(nw,ns);
@@ -158,8 +144,8 @@ for s = 1:ns
     q(w,s) = 1;
     w      = strmatch(str{s,1},word,'exact');
     p(w,s) = 1;
-    c(:,w) = c(:,w) + log(R(:,s) + exp(-6));
-    L      = L + log(R(w,s) + exp(-6));
+    c(:,w) = c(:,w) + log(R(:,s) + exp(-16));
+    L      = L + log(R(w,s) + exp(-16));
 end
 
 % graphics
@@ -184,6 +170,7 @@ xlabel('word'), ylabel('mode'), axis square
 if exist('nu','var')
     subplot(2,3,6), imagesc(nv,nu,LL), title('Accuracy','FontSize',16)
     xlabel('order (intervals)'), ylabel('order (formants)'), axis square
+    colorbar
 end
 drawnow
 

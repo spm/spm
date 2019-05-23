@@ -2,16 +2,16 @@ function [xY,Y] = spm_voice_speak(q,p,r)
 % Generates a continuous state space word discrete causes
 % FORMAT [xY,Y] = spm_voice_speak(q,p,r)
 %
-% q      - lexcial index (1 x number of words)
-% p      - prosody index (k x number of words)
-% r      - prosody index (1 x number of words)
+% q      - lexcial index (2 x number of words)
+% p      - prosody index (8 x number of words)
+% r      - speaker index (2 x number of words)
 %
 % requires the following in the global variable VOX:
 % LEX    - lexical structure array
 % PRO    - prodidy structure array
 % WHO    - speaker structure array
 %
-% xY.Q  -  parameters - lexical
+% xY.W  -  parameters - lexical
 % xY.P  -  parameters - prosidy
 % xY.R  -  parameters - speaker
 %
@@ -30,7 +30,7 @@ function [xY,Y] = spm_voice_speak(q,p,r)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7589 2019-05-09 12:57:23Z karl $
+% $Id: spm_voice_speak.m 7597 2019-05-23 18:42:38Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -39,10 +39,14 @@ LEX = VOX.LEX;
 PRO = VOX.PRO;
 WHO = VOX.WHO;
 
+% replace empty inputs with zero dimensional arrays
+%--------------------------------------------------------------------------
 if nargin < 1, q = zeros(0,1); end
 if nargin < 2, p = zeros(0,1); end
 if nargin < 3, r = zeros(0,1); end
 
+% ensure states are on a consistent size
+%--------------------------------------------------------------------------
 n  = max([size(q,2),size(p,2),size(r,2)]);
 
 if size(q,2) < n && size(q,1), q = repmat(q(:,1),1,n); end
@@ -58,16 +62,11 @@ if isfield(VOX,'RAND'), RAND = VOX.RAND; else RAND = 0; end
 for s = 1:n
     
     % lexical parameters
-    %----------------------------------------------------------------------
-    Q     = spm_vec(spm_zeros(VOX.Q));
-    for i = 1:size(q,1)
-        Q = Q + LEX(q(i,s),1).qE;
-        E = sqrtm(LEX(q(i,s),1).qC)*randn(numel(VOX.Q),1)*RAND;
-        Q = Q + E;
-    end
-    xY(s).Q = VOX.Q + reshape(Q,size(VOX.Q));
+    %----------------------------------------------------------------------   
+    W       = LEX(q(s)).qE;
+    E       = sqrtm(LEX(q(s)).qC)*randn(numel(VOX.W),1)*RAND;
+    xY(s).W = VOX.W + reshape(W + E,size(VOX.W));
 
-    
     % prosody parameters
     %----------------------------------------------------------------------
     P     = spm_vec(spm_zeros(VOX.P));
@@ -96,9 +95,7 @@ for s = 1:n
     
     % increase volume and timbre for audio display
     %----------------------------------------------------------------------
-    xY(s).P.amp = xY(s).P.amp + sqrt(2);
-    xY(s).P.tim = xY(s).P.tim * sqrt(2);
-    y{s}        = spm_voice_iff(xY(s));
+    y{s} = spm_voice_iff(xY(s));
     
 end
 

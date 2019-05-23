@@ -7,11 +7,11 @@ function [PP] = spm_voice_get_LEX(xY,word)
 %
 % updates or completes the global structure VOX:
 %
-% VOX.LEX(nw,nk) -  structure array for nk variants of nw words
-% VOX.PRO(np)    -  structure array for np aspects of prosody
-% VOX.WHO(nq)    -  structure array for nq aspects of speaker
+% VOX.LEX(nw)    -  structure array for nw words (lexical features)
+% VOX.PRO(np)    -  structure array for np features of prosody
+% VOX.WHO(nq)    -  structure array for nq features of speaker
 %
-% P              -  lexical parameters for exemplar (training) words
+% P              -  prosidy parameters for exemplar (training) words
 %
 %  This routine creates a triplet of structure arrays used to infer the
 %  lexical content and prosody of a word - and the identity of the person
@@ -26,18 +26,18 @@ function [PP] = spm_voice_get_LEX(xY,word)
 %  likelihood is based upon the lexical parameters. These (LEX, PRO, and
 %  WHO)structures are placed in the VOX structure, which is a global
 %  variable. In addition, the expected value of various coefficients are
-%  stored in VOX.Q and VOX.P.
+%  stored in VOX.W and VOX.P.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7589 2019-05-09 12:57:23Z karl $
+% $Id: spm_voice_get_LEX.m 7597 2019-05-23 18:42:38Z karl $
 
 
 % defaults
 %--------------------------------------------------------------------------
 global VOX
-try, E       = VOX.E; catch, E  = 4; end                % regularisation
+try, E       = VOX.E; catch, E = 2; end    % regularisation
 VOX.analysis = 0;
 VOX.graphics = 0;
 VOX.interval = 0;
@@ -47,46 +47,232 @@ VOX.onsets   = 0;
 
 %% assemble parameters for subsequent analysis
 %==========================================================================
-[nw,ns] = size(xY);
+[nw,ns] = size(xY);                        % number of words and exemplars
+[Nu,Nv] = size(xY(1).W);                   % fifth order of basis functions
 for w   = 1:nw
     for s = 1:ns
-        Q{w}(:,s) = spm_vec(xY(w,s).Q);
+        Q{w}(:,s) = spm_vec(xY(w,s).W);
         P{w}(:,s) = spm_vec(xY(w,s).P);
         R{w}(:,s) = spm_vec(xY(w,s).R);
         I{w}(:,s) = spm_vec(xY(w,s).i);
     end
 end
 
-% concatenate and illustrate distribution of prosody parameters
+% label strings
+%--------------------------------------------------------------------------
+Pstr  = {'amp','lat','dur','tim','Tu','Tv','Tw','p0','p1','p2'};
+Rstr  = {'F0','F1',};
+
+
+%% lexical
+%==========================================================================
+
+% evaluate word specific means and covariances
+%--------------------------------------------------------------------------
+nq    = size(Q{1},1);                      % number of lexical parameters
+np    = size(P{1},1);                      % number of prosody parameters
+nr    = size(R{1},1);                      % number of speaker parameters
+for w = 1:nw
+    
+    % lexical label
+    %----------------------------------------------------------------------
+    LEX(w).word = word{w};
+    
+    % moments of lexical parameters
+    %----------------------------------------------------------------------
+    LEX(w).qE   = mean(Q{w},2);
+    LEX(w).qC   =  cov(Q{w}');
+    
+    % moments of prosody parameters
+    %----------------------------------------------------------------------
+    LEX(w).dE   = mean(P{w},2);
+    LEX(w).dC   =  cov(P{w}')/8;
+    
+end
+
+% condition covariances – ensuring trace(qP*QC) = nq
+%--------------------------------------------------------------------------
+QC    = 0;
+for w = 1:nw
+    QC = QC + LEX(w).qC;
+end
+QC    = QC/nw;
+c0    = E*trace(QC)*eye(size(QC))/nq;
+for w = 1:nw
+    qC        = LEX(w).qC;
+    qC        = qC + c0;
+    qC        = qC*trace(qC\QC)/nq;
+    LEX(w).qC = qC;
+end
+
+% save mean and precision in voice structure
+%--------------------------------------------------------------------------
+VOX.W   = spm_zeros(xY(1).W);
+VOX.qC  = QC;
+
+
+%% estimate timbre parameters
+%==========================================================================
+fS    = @(Q,G) spm_vec(spm_voice_iQ(spm_voice_Q(Q,G)));
+G     = xY(1).P.pch;                                    % expansion point
+j     = find(ismember(Pstr,{'Tu','Tv','Tw'}));          % pitch indices
+for w = 1:nw
+    
+    % setup Taylor approximation to variations in timbre
+    %----------------------------------------------------------------------
+    X     = spm_diff(fS,reshape(LEX(w).qE,Nu,Nv),G,2);
+
+    % save MAP projector in LEX
+    %----------------------------------------------------------------------
+    LEX(w).dWdP  = X;
+    
+    % set up PEB
+    %----------------------------------------------------------------------
+    for s = 1:ns
+        
+        % esimate variations in pitch from expansion point
+        %------------------------------------------------------------------
+        qC   = LEX(w).qC;                    % covariance
+        dW   = xY(w,s).W(:) - LEX(w).qE;      % residuals
+        dP   = (X'*(qC\X))\X'*(qC\dW);
+        
+        % add to timbre parameters
+        %------------------------------------------------------------------
+        P{w}(j,s) = P{w}(j,s) + dP;
+        
+    end
+    
+    % moments of pitch
+    %----------------------------------------------------------------------
+    LEX(w).pE  = mean(P{w}(j,:),2) - G(:);
+    LEX(w).pC  =  cov(P{w}(j,:)');
+    
+    
+    % graphics
+    %----------------------------------------------------------------------
+    if w < 5
+        spm_figure('GetWin','Basis functions');
+        qX    = [LEX(w).qE(:) X];
+        nx    = size(qX,2);
+        for i = 1:nx
+            subplot(4,nx,nx*(w - 1) + i)
+            imagesc(spm_voice_Q(reshape(qX(:,i),Nu,Nv),G))
+        end
+    end
+end
+
+
+%% prosody {'amp','lat','dur','tim','Tu','Tv','Tw','p0','p1','p2'}
+%==========================================================================
+PP     = full(spm_cat(P)');
+RR     = full(spm_cat(R)');
+
+% prosidy ranges
+%--------------------------------------------------------------------------
+D      = mean(PP);                               % mean
+sd     = std(PP);                                % and standard deviation
+D      = [D - 3*sd; D + 3*sd]';                  % ranges of prosody
+D(1,:) = log([1/32  1]);                         % amplitude
+D(2,:) = log([1/32  1]);                         % latency
+D(5,:) = log([3.5 4.5]);                         % pitch (Tu)
+
+% select prosidy features and specify prior precision
+%--------------------------------------------------------------------------
+p0    = mean(D,2);
+VOX.P = spm_unvec(p0(:),xY(1).P);
+
+% mixture of Gaussians
+%--------------------------------------------------------------------------
+k     = 8;
+for p = 1:np
+    
+    % prior densities
+    %----------------------------------------------------------------------
+    pE  = linspace(D(p,1),D(p,2),k) - p0(p);
+    pC  = diff(D(p,:))/(k - 1)/4;
+    pC  = pC^2;
+    
+    % save prior densities
+    %----------------------------------------------------------------------
+    PRO(p).str = Pstr{p};
+    PRO(p).pE  = pE(:);
+    PRO(p).pC  = ones(k,1)*pC;
+    
+end
+
+
+%% identity
+%==========================================================================
+clear D
+D(1,:) = log([80 300]);                          % ff0
+D(2,:) = log([30  45]);                          % ff1
+
+% select prosidy features and specify prior precision
+%--------------------------------------------------------------------------
+p0    = mean(D,2);
+VOX.R = spm_unvec(p0(:),xY(1).R);
+
+% mixture of Gaussians
+%--------------------------------------------------------------------------
+k     = 16;
+for p = 1:nr
+    
+    % prior densities
+    %----------------------------------------------------------------------
+    pE  = linspace(D(p,1),D(p,2),k) - p0(p);
+    pC  = diff(D(p,:))/(k - 1)/4;
+    pC  = pC^2;
+    
+    % save prior densities
+    %----------------------------------------------------------------------
+    WHO(p).str = Rstr{p};
+    WHO(p).pE  = pE(:);
+    WHO(p).pC  = ones(k,1)*pC;
+    
+end
+
+
+% place lexical and other structures voice structure
+%--------------------------------------------------------------------------
+VOX.LEX = LEX;
+VOX.PRO = PRO;
+VOX.WHO = WHO;
+
+
+% illustrate distribution of lexical and prosody parameters
 %==========================================================================
 spm_figure('GetWin','Parameter distributions'); clf
-
-%       {'amp','lat','dur','tim','p0','p1','p2','p3'}
-%--------------------------------------------------------------------------
-Pstr  = {'amp','lat','dur','tim','p0','p1','p2','p3'};
-Rstr  = {'F0','F1',};
-PP    = full(spm_cat(P)');
 
 % indices for plotting
 %--------------------------------------------------------------------------
 for i = 1:numel(Pstr);
-    subplot(3,3,i)
-    
-    if i > 4
+    subplot(4,3,i)
+    if i > 6
         hist(PP(:,i),32), axis square
-        title(sprintf('%s mean: %.2f',Pstr{i},mean(PP(:,i))))
+        str = sprintf('%s mean: %.2f (%.2f)',Pstr{i},mean(PP(:,i)),std(PP(:,i)));
+        title(str)
     else
         hist(exp(PP(:,i)),32), axis square
-        title(sprintf('%s mean: %.2f',Pstr{i},mean(exp(PP(:,i)))))
+        str = sprintf('%s mean: %.2f (%.2f)',Pstr{i},mean(exp(PP(:,i))),std(exp(PP(:,i))));
+        title(str)
     end
 end
 
-% onsets and offsets
+%% frequencies, onsets and offsets
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Durations and frequencies');
+
+for i = 1:numel(Rstr);
+    subplot(4,2,i)
+    hist(exp(RR(:,i)),32), axis square
+    str = sprintf('%s mean: %.2f (%.2f)',Rstr{i},mean(exp(RR(:,i))),std(exp(RR(:,i))));
+    title(str)
+end
+
 i    = full(spm_cat(I));
-subplot(3,2,5), hist(i(1,:),32,'Color','c'), axis square
+subplot(4,2,3), hist(i(1,:),32,'Color','c'), axis square
 title(sprintf('%s mean (sd): %.2f (%.3f)','onset',mean(i(1,:)),std(i(1,:))))
-subplot(3,2,6), hist(i(2,:),32,'c'), axis square
+subplot(4,2,4), hist(i(2,:),32,'c'), axis square
 title(sprintf('%s mean (sd): %.2f (%.3f)','offset',mean(i(2,:)),std(i(2,:))))
 
 
@@ -117,140 +303,6 @@ title('Eigenmodes - prosidy','FontSize',16)
 xlabel('prosody mode'), ylabel('amplitude'), axis square
 legend(Pstr)
 
-
-%% prosody {'amp','lat','dur','tim','p0','p1','p2','p3'}
-%==========================================================================
-
-% prosidy ranges
-%--------------------------------------------------------------------------
-D      = mean(PP);
-sd     = std(PP);
-D      = [D - 4*sd; D + 4*sd]';                  % all prosody parameters
-D(1,:) = log([1/32 1]);                          % amp
-D(2,:) = log([1/32 1]);                          % lat
-
-% select prosidy features and specify prior precision
-%--------------------------------------------------------------------------
-p0    = mean(D,2);
-VOX.P = spm_unvec(p0(:),xY(1).P);
-
-% mixture of Gaussians
-%--------------------------------------------------------------------------
-k     = 8;      
-for p = 1:size(P{1},1)
-    
-    % prior densities
-    %----------------------------------------------------------------------
-    pE  = linspace(D(p,1),D(p,2),k) - p0(p);
-    pC  = diff(D(p,:))/(k - 1)/4;
-    pC  = pC^2;
-   
-    % save prior densities
-    %----------------------------------------------------------------------
-    PRO(p).str = Pstr{p};
-    PRO(p).pE  = pE(:);
-    PRO(p).pC  = ones(k,1)*pC;
-   
-end
-
-%% speaker
-%==========================================================================
-clear D
-D(1,:) = log([80 300]);                          % ff0
-D(2,:) = log([25  50]);                          % ff1
-
-% select prosidy features and specify prior precision
-%--------------------------------------------------------------------------
-p0    = mean(D,2);
-VOX.R = spm_unvec(p0(:),xY(1).R);
-
-% mixture of Gaussians
-%--------------------------------------------------------------------------
-k     = 16;
-for p = 1:size(R{1},1)
-    
-    % prior densities
-    %----------------------------------------------------------------------
-    pE  = linspace(D(p,1),D(p,2),k) - p0(p);
-    pC  = diff(D(p,:))/(k - 1)/4;
-    pC  = pC^2;
-   
-    % save prior densities
-    %----------------------------------------------------------------------
-    WHO(p).str = Rstr{p};
-    WHO(p).pE  = pE(:);
-    WHO(p).pC  = ones(k,1)*pC;
-
-end
-
-
-%% lexical
-%==========================================================================
-
-% evaluate word specific means and covariances
-%--------------------------------------------------------------------------
-N     = 1;                                     % number of variants
-np    = size(Q{1},1);                          % number of parameters
-q0    = mean(spm_cat(Q),2);                    % average word
-for w = 1:nw
-    
-    % lexical coefficients
-    %----------------------------------------------------------------------
-    LEX(w,1).word   = word{w};
-    Qw              = bsxfun(@minus,Q{w},q0)';
-    [pL,pE,pC]      = spm_kmeans(Qw,N,'fixed-points');
-    [j,k]           = sort(pL,'descend');
-    
-    
-    % mean and precision of duration
-    %----------------------------------------------------------------------
-    dE    = mean(P{w},2);
-    dC    = cov(P{w}')/8;
-    
-    % word variants: mean and variance
-    %----------------------------------------------------------------------
-    for i = k
-        LEX(w,i).qE = pE(i,:)';
-        LEX(w,i).qC = pC(:,:,i);
-        
-        % duration priors
-        %----------------------------------------------------------------------
-        LEX(w,i).dE = dE;
-        LEX(w,i).dC = dC;
-    end
-end
-
-
-% precision normalisation; ensuring trace(qP*QC) = np
-%--------------------------------------------------------------------------
-QC    = 0;
-for w = 1:nw
-    for k = N
-        QC = QC + LEX(w,k).qC;
-    end
-end
-QC    = QC/(nw*N);
-c0    = trace(QC)*eye(size(QC))/np/E;
-for w = 1:nw
-    for k = 1:N
-        qC          = LEX(w,k).qC;
-        qC          = qC + c0;
-        qC          = qC*trace(qC\QC)/np;
-        LEX(w,k).qC = qC;
-    end
-end
-
-
-% save mean and precision in voice structure
-%--------------------------------------------------------------------------
-VOX.Q   = spm_unvec(q0,xY(1).Q);
-VOX.qC  = QC + c0;
-
-% place lexical and other structures voice structure
-%--------------------------------------------------------------------------
-VOX.LEX = LEX;
-VOX.PRO = PRO;
-VOX.WHO = WHO;
 
 
 return

@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7589 2019-05-09 12:57:23Z karl $
+% $Id: spm_voice.m 7597 2019-05-23 18:42:38Z karl $
 
 
 %% setup options and files
@@ -62,32 +62,36 @@ VOX.mute     = 1;
 [xY,word] = spm_voice_get_xY(PATH); save xY xY word
 
 
-%% get VOX (LEX, PRO and WHO) and parameters; e.g., 1/F0  = mean(P(:,6));
+%% set VOX (LEX, PRO and WHO) and parameters; e.g., timbre  = mean(P(:,4));
 %==========================================================================
-P     = spm_voice_get_LEX(xY,word);
+spm_voice_get_LEX(xY,word);
 
 
 %% articulate every word under all combinations of (5 levels) of prosody
-% {VOX.PRO.str}: {'amp','lat','dur','tim','p0','p1','p2','p3'}
+% {VOX.PRO.str}: {'amp','lat','dur','tim','Tu','Tv',Tw','p0','p1','p2'}
 % {VOX.WHO.str}: {'ff0','ff1'}
 %--------------------------------------------------------------------------
 VOX.mute     = 0;
 VOX.graphics = 1;
 VOX.RAND     = 1/2;
 
-nw    = numel(VOX.LEX);                       % number of words
-k     = [3 7];                                % number of prosody features
+nw    = numel(VOX.LEX);                       % number of lexical features
+np    = numel(VOX.PRO);                       % number of prosody features
+k     = fix(np*([-1 1]/5 + 1/2));
+f     = fix(np/2);
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[5;1;5;5;5;i;j],[6;4]); pause(1/2)
+            spm_voice_speak(w,[f;1;f;f;j;f;f;i;f],[4;6]); pause(1/2)
         end
     end
 end
 
+VOX.RAND = 0;
+
+
 %% invert a test file of 87 words & optimise basis function order (ny,nv)
 %==========================================================================
-VOX.RAND     = 0;
 try
     VOX = rmfield(VOX,'nu');
     VOX = rmfield(VOX,'nv');
@@ -95,6 +99,7 @@ end
 wtest   = fullfile(PATH,'test','test.wav');
 ttest   = fullfile(PATH,'test','test.txt');
 spm_voice_test(wtest,ttest);
+
 
 %% save structure arrays in sound file directory
 %--------------------------------------------------------------------------
@@ -138,7 +143,6 @@ spm_voice_read(wtest,P,8);
 q     = [];
 p     = [];
 r     = 0;
-J     = 0;
 for i = 1:nw
     for j = 1:ns
         
@@ -223,7 +227,7 @@ for s  = 1:size(P,2)
     
     % string
     %----------------------------------------------------------------------
-    SEG(s).str = VOX.LEX(w,1).word;            % lexical string
+    SEG(s).str = VOX.LEX(w).word;              % lexical string
     SEG(s).p   = P(:,s);                       % prior
     SEG(s).L   = L;                            % posteriors
     SEG(s).P   = Q(:,s);                       % prosody
@@ -268,7 +272,6 @@ VOX.Tv  = 1;
 VOX.E   = 64;
 VOX.F0  = 96;
 VOX.F1  = 32;
-VOX.F2  = 1024;
 
 % search over variables
 %--------------------------------------------------------------------------
@@ -293,20 +296,57 @@ end
 imagesc(Pv,Pu,A), axis square, title('Accuracy','FontSize',16),drawnow
 
 
+%% optmise regularization with respect to classification accuracy
+%==========================================================================
+clear all
+global VOX
+load VOX
+PATH  = 'C:\Users\karl\Dropbox\Papers\Voice recognition\Sound files';
+wtest = fullfile(PATH,'test','test.wav');
+ttest = fullfile(PATH,'test','test.txt');
+load xY
+
+% reporting options
+%--------------------------------------------------------------------------
+VOX.graphics = 0;
+VOX.mute     = 1;
+VOX.onsets   = 0;
+
+% search over variables
+%--------------------------------------------------------------------------
+E     = exp(linspace(-2,2,16));
+for i = 1:numel(E)
+    try
+        VOX = rmfield(VOX,'nu');
+        VOX = rmfield(VOX,'nv');
+    end
+    
+    VOX.E = E(i);
+    P     = spm_voice_get_LEX(xY,word);
+    A(i)  = spm_voice_test(wtest,ttest)
+    VOX
+    
+end
+VOX   = rmfield(VOX,'E');
+   
+plot(log(E),A,'.','MarkerSize',16), axis square
+title('Accuracy (E)','FontSize',16),drawnow
+
+
+
 %% iterative inversion
 %==========================================================================
 VOX.analysis = 1;
-VOX.graphics = 0;
+VOX.graphics = 1;
 VOX.interval = 0;
 VOX.mute     = 1;
-VOX.F2       = 128;
+VOX.RF       = 1/8;
 
 % get parameters for a particular word
 %--------------------------------------------------------------------------
-xY       = spm_voice_speak(14);
+xY       = spm_voice_speak(10);
 xY.P.lat = -8;
 P        = xY.P;
-
 
 % compose and decompose iteratively
 %--------------------------------------------------------------------------
@@ -322,20 +362,25 @@ for i = 1:4
     xY       = spm_voice_ff(Y);
     xY.P.amp = P.amp;
     xY.P.lat = P.lat;
-   
+    xY.P.dur = P.dur;
+    disp(xY.P)
+
 end
 
 
 
-%% Illustrate precisions and expectations in formant space
+%% Illustrate mapping from formant space to coeficients
 %==========================================================================
-spm_figure('GetWin','Formant priors')
+spm_figure('GetWin','Formant priors'); clf
+VOX.analysis = 0;
+VOX.graphics = 0;
+VOX.interval = 0;
 for w = 1:4
     
     % Expectations for this word
     %----------------------------------------------------------------------
-    xy        = spm_voice_speak(w);    
-    [Y,Q,U,V] = spm_voice_iff(xy);
+    xy      = spm_voice_speak(w);    
+    [Q,U,V] = spm_voice_Q(xy.W,xy.P.pch);
     
     subplot(4,2,2*w - 1), imagesc(Q)
     xlabel('time (seconds)'), ylabel('Formants (Hz)')
@@ -347,7 +392,7 @@ for w = 1:4
     for i = 1:numel(Q)
         dQ    = Q;
         dQ(i) = dQ(i) + 1/128;
-        xy.Q  = U\dQ/V';
+        xy.W  = U\dQ/V';
         dL    = spm_voice_likelihood(xy,w);
         L(i)  = dL(w);
     end
@@ -362,10 +407,10 @@ end
 
 %% estimate formant frequency via maximum likelihood
 %==========================================================================
-% global VOX
-% load VOX
+global VOX
+load VOX
 load Ann
-str = {'yes'}
+str = {'yes','yes'};
 
 load Annagain
 clear str
@@ -378,7 +423,7 @@ str{6} = {'no','yes'};
 str{7} = {'is','there'};
 
 
-VOX.analysis = 1;
+VOX.analysis = 0;
 VOX.graphics = 0;
 VOX.formant  = 1;
 VOX.onsets   = 0;
@@ -386,37 +431,72 @@ VOX.mute     = 1;
 
 VOX.FS       = 22050;
 VOX.IT       = 1;
+VOX.nu       = 8;
+VOX.nv       = 8;
 
 sound(Y,VOX.FS)
-[i,P]     = spm_voice_i(str);
-[L,F0,F1] = spm_voice_identity(Y,P);
+[i,P]        = spm_voice_i(str);
+[L,F0,F1]    = spm_voice_identity(Y,P);
 
 VOX.F1       = F1;
 VOX.F0       = F0;
 VOX.mute     = 0;
 VOX.onsets   = 0;
 VOX.formant  = 0;
-VOX.graphics = 0;
-VOX.analysis = 0;
+VOX.graphics = 1;
+VOX.analysis = 1;
+VOX.RF       = 1/32;
 
-spm_voice_read(Y,P);but he is
+spm_voice_read(Y,P);
 
-VOX = rmfield(VOX,{'F0','F1','FS'});
+load VOX
+
 
 %% pitch analysis
 %==========================================================================
+global VOX
+load VOX
 VOX.graphics = 1;
 VOX.mute     = 0;
-VOX.Tu       = 4;
-VOX.Tv       = 1;
 
-Tu    = [-1 0 1 1 0 -1];
-for i = 1:numel(Tu)
-    VOX.Tu = Tu(i)/2 + 4;
-    spm_voice_speak(5,[5,1,4,4,4,4,4,4]',[4;6]);
+F0 = exp(VOX.WHO(1).pE + VOX.R.F0);  % range of fundamental frequency
+F1 = exp(VOX.WHO(2).pE + VOX.R.F1);  % range of formant frequency
+w  = 14;                             % spoken word
+spm_voice_speak(w);
+
+% collect points over F0 and F1
+%--------------------------------------------------------------------------
+clear ff0 ff1
+for i = 1:128
+    subplot(4,2,6), imagesc(ones(numel(F0),numel(F1)))
+    xlabel('F0'),ylabel('F1')
+    [f0,f1] = ginput(1);
+    ff0(i)  = fix(f0);
+    ff1(i)  = fix(f1);
+    try
+        spm_voice_speak(w,8,[ff0(i);ff1(i)]);
+    catch
+        ff0(i)  = [];
+        ff1(i)  = [];
+        break
+    end
 end
 
+% linear regression and graphics
+%--------------------------------------------------------------------------
+Y   = F1(ff1(:));
+X   = [ones(numel(ff0),1) F0(ff0(:))];
+B   = X\Y;
+disp('coefficients: F1 = B(1) + B tF0*B(2)'); disp(B)
+disp('standard deviation'); disp(std(Y - X*B))
 
+subplot(4,2,6)
+plot(F0(ff0),F1(ff1),'.',F0,F1,':',F0,B(1) + F0*B(2),'-.')
+xlabel('F0'),ylabel('F1'),title('selected points')
+
+subplot(4,2,5)
+plot(ff0,ff1,'.',1:numel(F0),1:numel(F1),':')
+xlabel('F0'),ylabel('F1'),title('relationship between F1 and F2')
 
 
 %% auxiliary code

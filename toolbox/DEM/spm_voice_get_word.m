@@ -33,7 +33,7 @@ function [O] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7589 2019-05-09 12:57:23Z karl $
+% $Id: spm_voice_get_word.m 7597 2019-05-23 18:42:38Z karl $
 
 
 %% log prior over lexical content 
@@ -86,11 +86,11 @@ end
 L       = bsxfun(@plus,L,LP);
 Q       = spm_softmax(L);
 F       = sum(Q.*(L - log(Q + exp(-16))));
-[d,m]   = max(F(1,1,:));
+[n,m]   = max(F);
 
 % posteriors
 %--------------------------------------------------------------------------
-O{1}    = spm_softmax(L(:,:,m));            % posteriors
+O{1}    = spm_softmax(L(:,m));              % posteriors
 O{2}    = spm_softmax(M(:,:,m));            % likelihood
 O{3}    = spm_softmax(N(:,:,m));            % likelihood
 

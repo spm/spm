@@ -1,9 +1,9 @@
-function [L,M,N] = spm_voice_likelihood(xY,W)
+function [L,M,N] = spm_voice_likelihood(xY,w)
 % returns the lexical likelihood
-% FORMAT [L,M,N] = spm_voice_likelihood(xY,W)
+% FORMAT [L,M,N] = spm_voice_likelihood(xY,w)
 %
 % xY   - word    structure array
-% W    - indices of words in VOX.LEX to consider
+% w    - indices of words in VOX.LEX to consider
 %
 % assumes the following structures are in the global structure VOX
 % VOX.LEX  - lexical structure array
@@ -32,24 +32,25 @@ function [L,M,N] = spm_voice_likelihood(xY,W)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7589 2019-05-09 12:57:23Z karl $
+% $Id: spm_voice_likelihood.m 7597 2019-05-23 18:42:38Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
 global VOX
+nw    = numel(VOX.LEX);
 if nargin < 2
-    W = 1:size(VOX.LEX,1);
+    k = 1:nw;
 else
-    W = W(:)';
-end  
+    k = w(:)';
+end
 
 % handle arrays
 %==========================================================================
 if numel(xY) > 1
     for i = 1:size(xY,1)
         for j = 1:size(xY,2)
-            [Li,Mi,Ni] = spm_voice_likelihood(xY(i,j),W);
-            L(:,:,i,j) = Li;
+            [Li,Mi,Ni] = spm_voice_likelihood(xY(i,j),k);
+            L(:,i,j) = Li;
             M(:,:,i,j) = Mi;
             N(:,:,i,j) = Ni;
         end
@@ -64,48 +65,66 @@ try, nv = VOX.nv; catch, nv  = 8;   end  % order (interval)
 
 % precision wieghting, in terms of basis function coefficients to include
 %--------------------------------------------------------------------------
-Nu    = size(VOX.Q,1);
-Nv    = size(VOX.Q,2);
+Nu    = size(VOX.W,1);
+Nv    = size(VOX.W,2);
 nu    = min(nu,Nu);
 nv    = min(nv,Nv);
 wu    = sparse(1:nu,1,1,Nu,1);
 wv    = sparse(1:nv,1,1,Nv,1);
-i     = find(kron(wv,wu));                    % indices for lexical
-j     = 3:8;                                  % indices for prosidy
+jstr  = {'dur','p0','p1','p2'};                     % for lexical inference
+pstr  = {'Tu','Tv','Tw'};                           % for prosody inference
+i     = find(kron(wv,wu));                          % indices for lexical
+j     = find(ismember({VOX.PRO.str},jstr));         % indices for prosidy
 ni    = numel(i);
+
+% means and method
+%--------------------------------------------------------------------------
+W      = spm_vec(xY.W);
+P      = spm_vec(xY.P);
+L      = zeros(numel(VOX.LEX),1) - exp(16);
+dP     = zeros(size(VOX.LEX(1).dWdP,2),nw);
+method = 'likelihood';
 
 % log likelihood over lexical outcomes
 %==========================================================================
-Q      = spm_vec(xY.Q) - spm_vec(VOX.Q);
-P      = spm_vec(xY.P);
-L      = zeros(size(VOX.LEX)) - exp(8);
-method = 'likelihood';
-
 switch method
     
     case {'likelihood'}
-
-        for w = W
-            for k = 1:size(VOX.LEX,2)
-                
-                % log likelihood - lexical
-                %----------------------------------------------------------
-                E      = Q(i) - VOX.LEX(w,k).qE(i);        % error
-                L(w,k) = -  E'*(VOX.LEX(w,k).qC(i,i)\E)/2; % log likelihood
-                
-                % shrink estimators in proportion to noise
-                %----------------------------------------------------------
-                if isfield(VOX,'noise')
-                    L(w,k) = L(w,k)/VOX.noise;
-                end
-                
-                % supplement with the likelihood of duration
-                %----------------------------------------------------------
-                E      = P(j) - VOX.LEX(w,k).dE(j);
-                D      = - E'*(VOX.LEX(w,k).dC(j,j)\E)/2;
-                L(w,k) = L(w,k) + D;
+        
+        % loop over words and variants
+        %------------------------------------------------------------------
+        for w = k
+             
+            % general linear model
+            %--------------------------------------------------------------
+            X    = [VOX.LEX(w).qE VOX.LEX(w).dWdP];  % GLM
+            qC   =  VOX.LEX(w).qC;                   % covariance (lexical)
+            pC   =  VOX.LEX(w).pC;                   % covariance (pitch)
+            pP   = (X'*(qC\X))\X'*(qC\W);            % parameters
+            E    = W - X*pP;                         % residuals
+         
+            % save pitch parameters
+            %--------------------------------------------------------------
+            pP      = pP(2:end);
+            dP(:,w) = pP;
+            
+            % log likelihood - lexical
+            %--------------------------------------------------------------
+            L(w) = - E(i)'*(qC(i,i)\E(i))/2 - pP'*(pC\pP)/2;
+            
+            % shrink estimators in proportion to noise
+            %--------------------------------------------------------------
+            if isfield(VOX,'noise')
+                L(w) = L(w)/VOX.noise;
             end
+            
+            % supplement with the likelihood of (j) prodidy features
+            %--------------------------------------------------------------
+            E    = P(j) - VOX.LEX(w).dE(j);
+            D    = -  E'*(VOX.LEX(w).dC(j,j)\E)/2;
+            L(w) = L(w) + D;
         end
+        
         
     case {'BMR'}
         
@@ -123,22 +142,20 @@ switch method
         
         % Bayesian model reduction
         %------------------------------------------------------------------
-        for w = W
-            for k = 1:size(VOX.LEX,2)
-                
-                % log likelihood - lexical
-                %----------------------------------------------------------
-                rE     = VOX.LEX(w,k).qE(i);
-                rC     = VOX.LEX(w,k).qC(i,i);
-                L(w,k) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
-                
-                % supplement with the likelihood of duration
-                %----------------------------------------------------------
-                E      = P - VOX.LEX(w,k).dE;
-                D      = - E'*(VOX.LEX(w,k).dC\E)/2;
-                L(w,k) = L(w,k) + D;
-                
-            end
+        for w = k
+            
+            % log likelihood - lexical
+            %--------------------------------------------------------------
+            rE   = VOX.LEX(w).qE(i);
+            rC   = VOX.LEX(w).qC(i,i);
+            L(w) = spm_log_evidence(qE,qC,pE,pC,rE,rC);
+            
+            % supplement with the likelihood of duration
+            %--------------------------------------------------------------
+            E    = P -  VOX.LEX(w).dE;
+            D    = -E'*(VOX.LEX(w).dC\E)/2;
+            L(w) = L(w) + D;
+            
         end
         
     otherwise
@@ -148,9 +165,16 @@ end
 
 if nargout < 2, return, end
 
+
+% update pitch parameters
+%--------------------------------------------------------------------------
+j     = find(ismember({VOX.PRO.str},pstr));
+dP    = dP*spm_softmax(L);
+P(j)  = P(j) + dP;
+
 % log likelihood over prosody outcomes
 %==========================================================================
-P     = spm_vec(xY.P) - spm_vec(VOX.P);
+P     = P - spm_vec(VOX.P);
 for p = 1:numel(VOX.PRO)
     for k = 1:numel(VOX.PRO(p).pE)
         
