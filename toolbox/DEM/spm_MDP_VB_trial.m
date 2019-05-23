@@ -24,7 +24,7 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 7329 2018-06-10 21:12:02Z karl $
+% $Id: spm_MDP_VB_trial.m 7596 2019-05-23 18:42:23Z karl $
 
 % graphics
 %==========================================================================
@@ -72,7 +72,7 @@ for f = 1:nf
     end
     
     set(gca,'XTickLabel',{});
-    set(gca,'XTick',1:MDP.T);
+    set(gca,'XTick',1:size(X{1},2));
     set(gca,'YTick',1:numel(MDP.label.name{gf(f)}));
     set(gca,'YTickLabel',MDP.label.name{gf(f)});
 end
@@ -104,7 +104,7 @@ for f  = 1:Np
         title(MDP.label.factor{Nu(f)});
     end
     set(gca,'XTickLabel',{});
-    set(gca,'XTick',1:MDP.T);
+    set(gca,'XTick',1:size(X{1},2));
     set(gca,'YTick',1:numel(MDP.label.action{Nu(f)}));
     set(gca,'YTickLabel',MDP.label.action{Nu(f)});
     
@@ -120,7 +120,7 @@ for f  = 1:Np
     if f < Np
         set(gca,'XTickLabel',{});
     end
-    set(gca,'XTick',1:MDP.T - 1);
+    set(gca,'XTick',1:size(X{1},2) - 1);
     set(gca,'YTickLabel',{});
     ylabel('policy')
     
@@ -157,7 +157,7 @@ for g  = 1:ng
     else
         set(gca,'XTickLabel',{});
     end
-    set(gca,'XTick',1:MDP.T)
+    set(gca,'XTick',1:size(X{1},2))
     set(gca,'YTick',1:numel(MDP.label.outcome{gg(g)}));
     set(gca,'YTickLabel',MDP.label.outcome{gg(g)});
 end

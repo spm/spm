@@ -10,7 +10,7 @@ function [C,P,F] = spm_PEB(y,P,HP,OPT)
 % P{i}.C  - {q}(n x n)  ith level contraints on Cov{e{i}} = Cov{b{i - 1}}
 %
 % hP      - enforces positively constraints on the covariance hyperparameters
-%          by adopting a log-normal hyperprior, with precision hP
+%           by adopting a log-normal hyperprior, with precision hP
 % OPT     - suppress reporting
 % 
 %
@@ -58,7 +58,7 @@ function [C,P,F] = spm_PEB(y,P,HP,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 7567 2019-04-04 10:41:15Z karl $
+% $Id: spm_PEB.m 7596 2019-05-23 18:42:23Z karl $
 
 % set defaults
 %--------------------------------------------------------------------------

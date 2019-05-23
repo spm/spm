@@ -24,18 +24,18 @@ function [MDP] = spm_MDP_check(MDP)
 %
 % if C or D are not specified, they will be set to default values (of no
 % preferences and uniform priors over initial steps).  If there are no
-% policies, it will be assumed that I = 1 and all policies (for each 
+% policies, it will be assumed that I = 1 and all policies (for each
 % marginal hidden state) are allowed.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_MDP_check.m 7490 2018-11-21 10:32:09Z thomas $
- 
- 
+% $Id: spm_MDP_check.m 7596 2019-05-23 18:42:23Z karl $
+
+
 % deal with a sequence of trials
 %==========================================================================
- 
+
 % if there are multiple structures check each separately
 %--------------------------------------------------------------------------
 if numel(MDP) > 1
@@ -61,10 +61,10 @@ if ~iscell(MDP.B), MDP.B = {full(MDP.B)}; end
 if isfield(MDP,'a'), if ~iscell(MDP.a), MDP.a = {full(MDP.a)}; end; end
 if isfield(MDP,'b'), if ~iscell(MDP.b), MDP.b = {full(MDP.b)}; end; end
 
-    
+
 % check dimensions and orders
 %==========================================================================
- 
+
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
 Nf  = numel(MDP.B);                 % number of hidden state factors
@@ -78,7 +78,7 @@ for g = 1:Ng
     No(g)    = size(MDP.A{g},1);    % number of outcomes
     MDP.A{g} = double(MDP.A{g});
 end
- 
+
 % check policy specification (create default moving policy U, if necessary)
 %--------------------------------------------------------------------------
 try
@@ -104,13 +104,13 @@ catch
         V = MDP.U;
     end
 end
- 
+
 % check policy specification
 %--------------------------------------------------------------------------
-if Nf  ~= size(V,3);
+if Nf ~= size(V,3) && size(V,3) > 1;
     error('please ensure V(:,:,1:Nf) is consistent with MDP.B{1:Nf}')
 end
- 
+
 % check preferences
 %--------------------------------------------------------------------------
 if ~isfield(MDP,'C')
@@ -119,11 +119,13 @@ if ~isfield(MDP,'C')
     end
 end
 for g = 1:Ng
-    if No(g) ~= size(MDP.C{g},1);
-        error(['please ensure A{' num2str(g) '} and C{' num2str(g) '} are consistent'])
+    if iscell(MDP.C)
+        if No(g) ~= size(MDP.C{g},1)
+            error(['please ensure A{' num2str(g) '} and C{' num2str(g) '} are consistent'])
+        end
     end
 end
- 
+
 % check iinitial states
 %--------------------------------------------------------------------------
 if ~isfield(MDP,'D')
@@ -134,8 +136,8 @@ end
 if Nf  ~= numel(MDP.D);
     error('please ensure V(:,:,1:Nf) is consistent with MDP.D{1:Nf}')
 end
- 
- 
+
+
 % check iinitial states and internal consistency
 %--------------------------------------------------------------------------
 if Nf  ~= numel(MDP.D);
@@ -145,8 +147,10 @@ for f = 1:Nf
     if Ns(f) ~= size(MDP.D{f},1);
         error(['please ensure B{' num2str(f) '} and D{' num2str(f) '} are consistent'])
     end
-    if Nu(f) < max(spm_vec(V(:,:,f)));
-        error(['please check V(:,:,' num2str(f) ') or U(:,:,' num2str(f) ')'])
+    if size(V,3) > 1
+        if Nu(f) < max(spm_vec(V(:,:,f)));
+            error(['please check V(:,:,' num2str(f) ') or U(:,:,' num2str(f) ')'])
+        end
     end
     for g = 1:Ng
         Na  = size(MDP.A{g});
@@ -155,20 +159,20 @@ for f = 1:Nf
         end
     end
 end
- 
+
 % check probability matrices are properly specified
 %--------------------------------------------------------------------------
 for f = 1:Nf
     if ~all(spm_vec(any(MDP.B{f},1)))
-         error(['please check B{' num2str(f) '} for missing entries'])
+        error(['please check B{' num2str(f) '} for missing entries'])
     end
 end
 for g = 1:Ng
     if ~all(spm_vec(any(MDP.A{g},1)))
-         error(['please check A{' num2str(g) '} for missing entries'])
+        error(['please check A{' num2str(g) '} for missing entries'])
     end
 end
- 
+
 % check initial states
 %--------------------------------------------------------------------------
 if isfield(MDP,'s')
@@ -180,7 +184,7 @@ if isfield(MDP,'s')
         error('please ensure initial states MDP.s are consistent with MDP.B')
     end
 end
- 
+
 % check outcomes if specified
 %--------------------------------------------------------------------------
 if isfield(MDP,'o')
@@ -204,13 +208,13 @@ if isfield(MDP,'link')
     for f = 1:nf
         ns(f)    = size(MDP.MDP.B{f},1); % number of hidden states
     end
-
+    
     % check the size of link
     %----------------------------------------------------------------------
     if ~all(size(MDP.link) == [nf,Ng]);
         error('please check the size of link {%i,%i}',nf,Ng)
     end
-        
+    
     % convert matrix to cell array if necessary
     %----------------------------------------------------------------------
     if isnumeric(MDP.link)
@@ -281,7 +285,7 @@ for i = 1:Nf
         try
             MDP.label.factor{i} = MDP.Bname{i};
         catch
-        MDP.label.factor{i} = sprintf('factor %i',i);
+            MDP.label.factor{i} = sprintf('factor %i',i);
         end
     end
     
@@ -294,7 +298,7 @@ for i = 1:Nf
             try
                 MDP.label.name{i}{j} = MDP.Sname{i}{j};
             catch
-            MDP.label.name{i}{j} = sprintf('state %i(%i)',j,i);
+                MDP.label.name{i}{j} = sprintf('state %i(%i)',j,i);
             end
         end
     end
