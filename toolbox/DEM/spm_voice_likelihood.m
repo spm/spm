@@ -32,7 +32,7 @@ function [L,M,N] = spm_voice_likelihood(xY,w)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7597 2019-05-23 18:42:38Z karl $
+% $Id: spm_voice_likelihood.m 7598 2019-05-25 13:09:47Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -72,7 +72,7 @@ nv    = min(nv,Nv);
 wu    = sparse(1:nu,1,1,Nu,1);
 wv    = sparse(1:nv,1,1,Nv,1);
 jstr  = {'dur','p0','p1','p2'};                     % for lexical inference
-pstr  = {'Tu','Tv','Tw'};                           % for prosody inference
+pstr  = {'Tu', 'Tv','Tf','Tw'};                     % for prosody inference
 i     = find(kron(wv,wu));                          % indices for lexical
 j     = find(ismember({VOX.PRO.str},jstr));         % indices for prosidy
 ni    = numel(i);
@@ -81,6 +81,7 @@ ni    = numel(i);
 %--------------------------------------------------------------------------
 W      = spm_vec(xY.W);
 P      = spm_vec(xY.P);
+R      = spm_vec(xY.R);
 L      = zeros(numel(VOX.LEX),1) - exp(16);
 dP     = zeros(size(VOX.LEX(1).dWdP,2),nw);
 method = 'likelihood';
@@ -97,11 +98,11 @@ switch method
              
             % general linear model
             %--------------------------------------------------------------
-            X    = [VOX.LEX(w).qE VOX.LEX(w).dWdP];  % GLM
-            qC   =  VOX.LEX(w).qC;                   % covariance (lexical)
-            pC   =  VOX.LEX(w).pC;                   % covariance (pitch)
-            pP   = (X'*(qC\X))\X'*(qC\W);            % parameters
-            E    = W - X*pP;                         % residuals
+            X    = [VOX.LEX(w).qE(:) VOX.LEX(w).dWdP];
+            qC   =  VOX.LEX(w).qC;                  % covariance (lexical)
+            pC   =  VOX.LEX(w).pC;                  % covariance (pitch)
+            pP   = (X'*(qC\X))\X'*(qC\W);           % parameters
+            E    = W - X*pP;                        % residuals
          
             % save pitch parameters
             %--------------------------------------------------------------
@@ -180,24 +181,29 @@ for p = 1:numel(VOX.PRO)
         
         % log likelihood
         %------------------------------------------------------------------
-        E      = P(p) - VOX.PRO(p).pE(k);                  % error
-        M(k,p) = -  E'*(VOX.PRO(p).pC(k)\E)/2;             % log likelihood
+        E      = P(p) - VOX.PRO(p).pE(k);           % error
+        M(k,p) = -  E'*(VOX.PRO(p).pC(k)\E)/2;      % log likelihood
         
     end
 end
 
 if nargout < 3, return, end
 
+% update identity parameters
+%--------------------------------------------------------------------------
+R(1)  = R(1) - log(xY.P.inf(1));                    % ff0
+R(2)  = R(2) + dP(3);                               % ff1
+
 % log likelihood over identity outcomes
 %==========================================================================
-R     = spm_vec(xY.R) - spm_vec(VOX.R);
+R     = R - spm_vec(VOX.R);
 for p = 1:numel(VOX.WHO)
     for k = 1:numel(VOX.WHO(p).pE)
         
         % log likelihood
         %------------------------------------------------------------------
-        E      = R(p) - VOX.WHO(p).pE(k);                  % error
-        N(k,p) = -  E'*(VOX.WHO(p).pC(k)\E)/2;             % log likelihood
+        E      = R(p) - VOX.WHO(p).pE(k);            % error
+        N(k,p) = -  E'*(VOX.WHO(p).pC(k)\E)/2;       % log likelihood
         
     end
 end

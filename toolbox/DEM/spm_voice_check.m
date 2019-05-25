@@ -12,7 +12,7 @@ function [G,Y] = spm_voice_check(Y,FS,C)
 % This routine applies a high pass filter by subtracting a smoothed version
 % of the timeseries (to suppress frequencies of lesson 512 Hz). The
 % absolute value of the resulting timeseriesis then convolved with a
-% Gaussian kernel, specified by C.this returns the spectral envelope in
+% Gaussian kernel, specified by C. This returns the spectral envelope in
 % terms of the root mean square energy (normalised to a minimum of zero).
 % 
 % see also: spm_voice_filter.m
@@ -20,7 +20,7 @@ function [G,Y] = spm_voice_check(Y,FS,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_check.m 7588 2019-05-06 21:26:32Z karl $
+% $Id: spm_voice_check.m 7598 2019-05-25 13:09:47Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================

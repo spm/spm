@@ -27,7 +27,7 @@ function [Y,W] = spm_voice_iff(xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7597 2019-05-23 18:42:38Z karl $
+% $Id: spm_voice_iff.m 7598 2019-05-25 13:09:47Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -35,8 +35,9 @@ global VOX
 if VOX.mute && ~nargout && ~VOX.graphics,
     return
 end
-try, FS = VOX.FS; catch, FS  = 22050; end    % sampling frequency
-try, RF = VOX.RF; catch, RF  = 0;     end    % random fluctuations
+try, FS = VOX.FS; catch, FS  = spm_voice_FS; end    % sampling frequency
+try, RF = VOX.RF; catch, RF  = 0;            end    % random fluctuations
+try, rf = VOX.rf; catch, rf  = 0;            end    % random fluctuations
 
 
 % recompose and play
@@ -65,6 +66,7 @@ F1 = exp(xY.R.F1);                           % formant frequency (Hz)
 ni = fix(T*F0);                              % number of intervals
 D  = spm_dctmtx(ni,numel(P));                % basis set for inflection
 dI = D*P(:)*sqrt(ni)/F0;                     % fluctuations
+dI = dI + rf*randn(ni,1)/F0;
 I  = fix([1; FS*cumsum(dI)]);                % cumulative intervals
 
 % reconstitute format coefficients
@@ -140,6 +142,18 @@ if VOX.graphics
 end
 
 
+return
+
+%% graphics for illustrations
+%--------------------------------------------------------------------------
+subplot(2,1,1), hold off
+for j = 1:4
+    ii    = I(j)  + jj;
+    plot(ii,D*Q(:,j),'Color',spm_softmax(randn(3,1))), hold on
+end
+xlabel('time (bins)'), ylabel('transients')
+title('Fundamental and first formant intervals','FontSize',16), drawnow
+spm_axis tight, box off
 
 
 

@@ -30,7 +30,7 @@ function [xY,Y] = spm_voice_speak(q,p,r)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7597 2019-05-23 18:42:38Z karl $
+% $Id: spm_voice_speak.m 7598 2019-05-25 13:09:47Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -63,9 +63,8 @@ for s = 1:n
     
     % lexical parameters
     %----------------------------------------------------------------------   
-    W       = LEX(q(s)).qE;
     E       = sqrtm(LEX(q(s)).qC)*randn(numel(VOX.W),1)*RAND;
-    xY(s).W = VOX.W + reshape(W + E,size(VOX.W));
+    xY(s).W = VOX.W + reshape(LEX(q(s)).qE(:) + E, size(VOX.W));
 
     % prosody parameters
     %----------------------------------------------------------------------

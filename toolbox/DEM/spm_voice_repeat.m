@@ -16,7 +16,7 @@ function spm_voice_repeat
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_repeat.m 7589 2019-05-09 12:57:23Z karl $
+% $Id: spm_voice_repeat.m 7598 2019-05-25 13:09:47Z karl $
 
 
 %% setup
@@ -34,27 +34,24 @@ end
 % SAY: "Is there a ...
 %--------------------------------------------------------------------------
 VOX.audio    = audiorecorder(22050,16,1);
-VOX.analysis = 0;
-VOX.graphics = 0;
 VOX.mute     = 0;
 VOX.formant  = 1;
 
 % get source (recorder) and FS
 %--------------------------------------------------------------------------
-str{1} = {'is'};
-str{2} = {'there'};
-str{3} = {'a'};
-str{4} = {'triangle','square'};
-str{5} = {'below','above'};
+str{1}  = {'is'};
+str{2}  = {'there'};
+str{3}  = {'a'};
+str{4}  = {'triangle','square'};
+str{5}  = {'below','above'};
 
-[i,P]        = spm_voice_i(str);
-[L,F0,F1]    = spm_voice_identity(VOX.audio,P(:,1));
+[i,P]   = spm_voice_i(str);
+[F0,F1] = spm_voice_identity(VOX.audio,P);
 
-pause(2)
+VOX.F1  = F1;
+VOX.F0  = F0;
 
-VOX.F1       = F1;
-VOX.F0       = F0;
-[SEG,W,P,R]  = spm_voice_read(getaudiodata(VOX.audio),P);
+[SEG,W,P,R] = spm_voice_read(getaudiodata(VOX.audio),P);
 
 spm_figure('GetWin','Segmentation'); clf;
 spm_voice_segmentation(VOX.audio,SEG);
@@ -68,7 +65,7 @@ return
 
 % articulate: prosody without lexical content
 %--------------------------------------------------------------------------
-spm_voice_speak([],P,R);
+spm_voice_speak(1,P,R);
 
 % articulate: with no prosody
 %--------------------------------------------------------------------------

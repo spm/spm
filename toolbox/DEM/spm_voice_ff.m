@@ -51,24 +51,18 @@ function [xY] = spm_voice_ff(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7597 2019-05-23 18:42:38Z karl $
+% $Id: spm_voice_ff.m 7598 2019-05-25 13:09:47Z karl $
 
 
 % defaults
 %--------------------------------------------------------------------------
 global VOX
-try, Nu = VOX.Nu; catch, Nu  = 32;    end    % DCT order   (formants)
-try, Nv = VOX.Nv; catch, Nv  = 8;     end    % DCT order   (interval)
-try, Tu = VOX.Tu; catch, Tu  = 4;     end    % log scaling (formants)
-try, Tv = VOX.Tv; catch, Tv  = 1;     end    % log scaling (interval)
-try, F0 = VOX.F0; catch, F0  = 96;    end    % fundamental frequency
-try, F1 = VOX.F1; catch, F1  = 32;    end    % formant frequency
+try, F0 = VOX.F0; catch, F0  = 96;         end    % fundamental frequency
+try, F1 = VOX.F1; catch, F1  = 26 + F0/16; end    % formant frequency
 
 % sampling frequency
 %--------------------------------------------------------------------------
-if nargin < 2
-    try, FS = VOX.FS; catch, FS = 22050; end
-end
+if nargin < 2, FS = spm_voice_FS; end
 
 
 % parameterise fundamental frequency modulations
@@ -104,8 +98,7 @@ end
 Q     = log(abs(Q) + eps);                   % log transform
 Q     = Q - mean(Q(:));                      % detrend
 T     = std(Q(:));                           % timbre
-G     = log([Tu,Tv,1]);                      % pitch
-W     = spm_voice_iQ(Q,G,Nu,Nv);             % DCT transform
+W     = spm_voice_iQ(Q);                     % DCT transform
 
 % assemble prosody parameters
 %--------------------------------------------------------------------------
@@ -113,7 +106,7 @@ P.amp = log(max(Y));                         % amplitude (a.u.)
 P.lat = log(1/32);                           % latency (sec)
 P.dur = log(Ny/FS);                          % duration (seconds)
 P.tim = log(T)/2;                            % log timbre
-P.pch = G;                                   % log pitch
+P.pch = zeros(4,1);                          % log pitch
 P.inf = S;                                   % inflection
 
 % assemble speaker parameters

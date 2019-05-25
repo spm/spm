@@ -31,7 +31,7 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7597 2019-05-23 18:42:38Z karl $
+% $Id: spm_voice_get_LEX.m 7598 2019-05-25 13:09:47Z karl $
 
 
 % defaults
@@ -60,7 +60,7 @@ end
 
 % label strings
 %--------------------------------------------------------------------------
-Pstr  = {'amp','lat','dur','tim','Tu','Tv','Tw','p0','p1','p2'};
+Pstr  = {'amp','lat','dur','tim','Tu','Tv','Tf','Tw','p0','p1','p2'};
 Rstr  = {'F0','F1',};
 
 
@@ -111,58 +111,63 @@ VOX.W   = spm_zeros(xY(1).W);
 VOX.qC  = QC;
 
 
-%% estimate timbre parameters
+%% estimate prosidy parameters
 %==========================================================================
 fS    = @(Q,G) spm_vec(spm_voice_iQ(spm_voice_Q(Q,G)));
 G     = xY(1).P.pch;                                    % expansion point
-j     = find(ismember(Pstr,{'Tu','Tv','Tw'}));          % pitch indices
+j     = find(ismember(Pstr,{'Tu','Tv','Tw','Tf'}));     % pitch indices
 for w = 1:nw
     
-    % setup Taylor approximation to variations in timbre
+    % setup Taylor approximation to variations prosidy
     %----------------------------------------------------------------------
-    X     = spm_diff(fS,reshape(LEX(w).qE,Nu,Nv),G,2);
-
-    % save MAP projector in LEX
-    %----------------------------------------------------------------------
-    LEX(w).dWdP  = X;
+    LEX(w).dWdP = spm_diff(fS,reshape(LEX(w).qE,Nu,Nv),G,2);
     
-    % set up PEB
+    % setup MAP projector
+    %------------------------------------------------------------------
+    qP  = inv(LEX(w).qC);                               % precision
+    X   = [LEX(w).qE LEX(w).dWdP];                      % GLM
+    MAP = (X'*qP*X)\X'*qP;                              % MAP
+    
+    % prosidy parameters
     %----------------------------------------------------------------------
+    qW    = 0;
     for s = 1:ns
         
-        % esimate variations in pitch from expansion point
+        % esimate variations in prosidy from expansion point
         %------------------------------------------------------------------
-        qC   = LEX(w).qC;                    % covariance
-        dW   = xY(w,s).W(:) - LEX(w).qE;      % residuals
-        dP   = (X'*(qC\X))\X'*(qC\dW);
+        dP        = MAP*xY(w,s).W(:);
         
-        % add to timbre parameters
+        % add to prosidy parameters
         %------------------------------------------------------------------
+        dP        = dP(2:end);
         P{w}(j,s) = P{w}(j,s) + dP;
+        
+        % predicted formant frequencies
+        %------------------------------------------------------------------
+        qW  = qW + spm_voice_Q(xY(w,s).W,-dP);
         
     end
     
-    % moments of pitch
+    % expected formant coeficients and moments of pitch
     %----------------------------------------------------------------------
+    LEX(w).qE  = spm_voice_iQ(qW);
     LEX(w).pE  = mean(P{w}(j,:),2) - G(:);
     LEX(w).pC  =  cov(P{w}(j,:)');
-    
     
     % graphics
     %----------------------------------------------------------------------
     if w < 5
         spm_figure('GetWin','Basis functions');
-        qX    = [LEX(w).qE(:) X];
-        nx    = size(qX,2);
+        nx    = size(X,2);
         for i = 1:nx
             subplot(4,nx,nx*(w - 1) + i)
-            imagesc(spm_voice_Q(reshape(qX(:,i),Nu,Nv),G))
+            imagesc(spm_voice_Q(reshape(X(:,i),Nu,Nv),G))
         end
     end
 end
 
 
-%% prosody {'amp','lat','dur','tim','Tu','Tv','Tw','p0','p1','p2'}
+%% prosody {'amp','lat','dur','tim','Tu','Tv','Tf','Tw','p0','p1','p2'}
 %==========================================================================
 PP     = full(spm_cat(P)');
 RR     = full(spm_cat(R)');
@@ -173,8 +178,9 @@ D      = mean(PP);                               % mean
 sd     = std(PP);                                % and standard deviation
 D      = [D - 3*sd; D + 3*sd]';                  % ranges of prosody
 D(1,:) = log([1/32  1]);                         % amplitude
-D(2,:) = log([1/32  1]);                         % latency
-D(5,:) = log([3.5 4.5]);                         % pitch (Tu)
+D(2,:) = log([1/32  1]);                         % latency (sec)
+D(5,:) = [-1 1]/16;                              % formant scsling
+D(7,:) = [-1 1]/16;                              % formant scsling
 
 % select prosidy features and specify prior precision
 %--------------------------------------------------------------------------
@@ -204,8 +210,8 @@ end
 %% identity
 %==========================================================================
 clear D
-D(1,:) = log([80 300]);                          % ff0
-D(2,:) = log([30  45]);                          % ff1
+D(1,:) = log([100 300]);                          % ff0
+D(2,:) = log([30  45]);                           % ff1
 
 % select prosidy features and specify prior precision
 %--------------------------------------------------------------------------
@@ -247,7 +253,7 @@ spm_figure('GetWin','Parameter distributions'); clf
 %--------------------------------------------------------------------------
 for i = 1:numel(Pstr);
     subplot(4,3,i)
-    if i > 6
+    if i > 7
         hist(PP(:,i),32), axis square
         str = sprintf('%s mean: %.2f (%.2f)',Pstr{i},mean(PP(:,i)),std(PP(:,i)));
         title(str)

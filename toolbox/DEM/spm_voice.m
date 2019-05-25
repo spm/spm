@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7597 2019-05-23 18:42:38Z karl $
+% $Id: spm_voice.m 7598 2019-05-25 13:09:47Z karl $
 
 
 %% setup options and files
@@ -68,12 +68,12 @@ spm_voice_get_LEX(xY,word);
 
 
 %% articulate every word under all combinations of (5 levels) of prosody
-% {VOX.PRO.str}: {'amp','lat','dur','tim','Tu','Tv',Tw','p0','p1','p2'}
+% {VOX.PRO.str}: {'amp','lat','dur','tim','Tu','Tv''Tf',Tw','p0','p1','p2'}
 % {VOX.WHO.str}: {'ff0','ff1'}
 %--------------------------------------------------------------------------
 VOX.mute     = 0;
 VOX.graphics = 1;
-VOX.RAND     = 1/2;
+VOX.RAND     = 1;
 
 nw    = numel(VOX.LEX);                       % number of lexical features
 np    = numel(VOX.PRO);                       % number of prosody features
@@ -82,7 +82,7 @@ f     = fix(np/2);
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[f;1;f;f;j;f;f;i;f],[4;6]); pause(1/2)
+            spm_voice_speak(w,[f;1;f;f;j;f;f;f;i;f;f],[3;4]); pause(1/2)
         end
     end
 end
@@ -131,6 +131,12 @@ str{7} = {'is','there'};
 % Read test file
 %--------------------------------------------------------------------------
 spm_voice_read(wtest,P,8);
+
+try
+    VOX = rmfield(VOX,{'F0','F1'});
+end
+
+[F0,F1] = spm_voice_identity(wtest,P);
 
 
 %% illustrate accuracy (i.e., inference) using training corpus
@@ -336,11 +342,14 @@ title('Accuracy (E)','FontSize',16),drawnow
 
 %% iterative inversion
 %==========================================================================
+global VOX
+load VOX
 VOX.analysis = 1;
 VOX.graphics = 1;
 VOX.interval = 0;
 VOX.mute     = 1;
-VOX.RF       = 1/8;
+VOX.rf       = 1/256;
+VOX.RF       = 1/16;
 
 % get parameters for a particular word
 %--------------------------------------------------------------------------
@@ -363,6 +372,7 @@ for i = 1:4
     xY.P.amp = P.amp;
     xY.P.lat = P.lat;
     xY.P.dur = P.dur;
+    xY.P.tim = P.tim;
     disp(xY.P)
 
 end
@@ -410,7 +420,7 @@ end
 global VOX
 load VOX
 load Ann
-str = {'yes','yes'};
+str = {'yes','yes','yes'};
 
 load Annagain
 clear str
@@ -422,30 +432,19 @@ str{5} = {'below','above','there'};
 str{6} = {'no','yes'};
 str{7} = {'is','there'};
 
-
-VOX.analysis = 0;
-VOX.graphics = 0;
 VOX.formant  = 1;
-VOX.onsets   = 0;
-VOX.mute     = 1;
-
 VOX.FS       = 22050;
-VOX.IT       = 1;
-VOX.nu       = 8;
-VOX.nv       = 8;
 
 sound(Y,VOX.FS)
+
 [i,P]        = spm_voice_i(str);
-[L,F0,F1]    = spm_voice_identity(Y,P);
+[F0,F1]      = spm_voice_identity(Y,P);
 
 VOX.F1       = F1;
 VOX.F0       = F0;
 VOX.mute     = 0;
-VOX.onsets   = 0;
-VOX.formant  = 0;
-VOX.graphics = 1;
-VOX.analysis = 1;
-VOX.RF       = 1/32;
+VOX.rf       = 1/128;
+VOX.RAND     = 1/4;
 
 spm_voice_read(Y,P);
 

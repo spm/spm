@@ -19,19 +19,23 @@ function [Q,U,V] = spm_voice_Q(W,G,Ni,ni)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_Q.m 7597 2019-05-23 18:42:38Z karl $
+% $Id: spm_voice_Q.m 7598 2019-05-25 13:09:47Z karl $
 
 % defaults and (logarithmic) scaling
 %--------------------------------------------------------------------------
+try, Tu = VOX.Tu; catch, Tu  = 4; end    % log scaling (formants)
+try, Tv = VOX.Tv; catch, Tv  = 1; end    % log scaling (interval)
+try, Tf = VOX.Tf; catch, Tf  = 1; end    % lin scaling (formants)
+try, Tw = VOX.Tv; catch, Tw  = 1; end    % lin scaling (amplitude)
+
 if nargin < 3, Ni = 256; end
 if nargin < 4, ni = 64;  end
-if nargin < 2
-    Tu = 4;
-    Tv = 1;
-else
-    Tu = exp(G(1));
-    Tv = exp(G(2));
-    Tw =     G(3);
+if nargin > 1
+    Tu = Tu*exp(G(1));
+    Tv = Tv*exp(G(2));
+    Tf = Tf*exp(G(3));
+    Tw =     Tw*G(4);
+
 end
 
 
@@ -41,7 +45,7 @@ end
 
 %  inverse transform
 %--------------------------------------------------------------------------
-U  = spm_voice_dct(Ni,Nu,Tu);                % DCT over formants
+U  = spm_voice_dct(Ni,Nu,Tu,Tf);             % DCT over formants
 V  = spm_voice_dct(ni,Nv,Tv);                % DCT over intervals
 Q  = U*W*V';                                 % log formants
 A  = 1 - exp(-(1:Ni)*8/Ni)*Tw;               % amplitude modulation

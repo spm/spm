@@ -1,14 +1,18 @@
-function [W] = spm_voice_iQ(Q,G,Nu,Nv)
+function [W] = spm_voice_iQ(Q)
 % discrete cosine transform of formant coefficients
-% FORMAT [W] = spm_voice_iQ(Q,G,Nu,Nv)
+% FORMAT [W] = spm_voice_iQ(Q)
 %
 % Q     - log formant frequencies
 % G(1)  - log formant (pitch) Tu
 % G(2)  - log timing  (pitch) Tv
-% Nu    - number of formant coefficients
-% Nv    - number of timing  coefficients
+
 %
-% W     - log formant coeficients (weights)
+% W     - (Nu x Nv) log formant coeficients (weights)
+%
+%   Nu  - number of formant coefficients
+%   Nv  - number of timing  coefficients
+%   Tu  - log formant (pitch)
+%   Tv  - log timing  (pitch) 
 %
 % This  auxiliary routine scales and transforms log formant coefficients
 % using a pair of discrete cosine transforms with logarithmic scaling
@@ -16,20 +20,15 @@ function [W] = spm_voice_iQ(Q,G,Nu,Nv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iQ.m 7597 2019-05-23 18:42:38Z karl $
+% $Id: spm_voice_iQ.m 7598 2019-05-25 13:09:47Z karl $
 
 
 % defaults and (logarithmic) scaling
 %--------------------------------------------------------------------------
-if nargin < 3, Nu = 32; end
-if nargin < 4, Nv = 8;  end
-if nargin < 2
-    Tu = 4;
-    Tv = 1;
-else
-    Tu = exp(G(1));
-    Tv = exp(G(2));
-end
+try, Nu = VOX.Nu; catch, Nu  = 32;         end    % DCT order   (formants)
+try, Nv = VOX.Nv; catch, Nv  = 8;          end    % DCT order   (interval)
+try, Tu = VOX.Tu; catch, Tu  = 4;          end    % log scaling (formants)
+try, Tv = VOX.Tv; catch, Tv  = 1;          end    % log scaling (interval)
 
 % sizes 
 %--------------------------------------------------------------------------
