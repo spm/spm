@@ -20,7 +20,7 @@ function [F0,F1] = spm_voice_fundamental(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_fundamental.m 7598 2019-05-25 13:09:47Z karl $
+% $Id: spm_voice_fundamental.m 7600 2019-06-01 09:30:30Z karl $
 
 
 % find fundamental frequencies
@@ -63,7 +63,7 @@ G     = var(G,1,2);
 [~,j] = max(G);
 F1    = W(j);
 
-if nargout > 0 && ~VOX.formant, return, end
+if ~VOX.formant, return, end
 
 % graphics
 %--------------------------------------------------------------------------

@@ -32,7 +32,7 @@ function [L,M,N] = spm_voice_likelihood(xY,w)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7598 2019-05-25 13:09:47Z karl $
+% $Id: spm_voice_likelihood.m 7600 2019-06-01 09:30:30Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -82,8 +82,8 @@ ni    = numel(i);
 W      = spm_vec(xY.W);
 P      = spm_vec(xY.P);
 R      = spm_vec(xY.R);
-L      = zeros(numel(VOX.LEX),1) - exp(16);
-dP     = zeros(size(VOX.LEX(1).dWdP,2),nw);
+L      = zeros(numel(VOX.LEX),1)  - exp(16);
+dP     = zeros(size(VOX.LEX(1).X,2) - 1,nw);
 method = 'likelihood';
 
 % log likelihood over lexical outcomes
@@ -98,18 +98,17 @@ switch method
              
             % general linear model
             %--------------------------------------------------------------
-            X    = [VOX.LEX(w).qE(:) VOX.LEX(w).dWdP];
-            qC   =  VOX.LEX(w).qC;                  % covariance (lexical)
-            pC   =  VOX.LEX(w).pC;                  % covariance (pitch)
-            pP   = (X'*(qC\X))\X'*(qC\W);           % parameters
-            E    = W - X*pP;                        % residuals
+            qC   = VOX.LEX(w).qC;                  % covariance (lexical)
+            pC   = VOX.LEX(w).pC;                  % covariance (pitch)
+            pP   = VOX.LEX(w).MAP*W;               % parameters (pitch)
+            E    = VOX.LEX(w).X*pP - W;            % residuals
          
             % save pitch parameters
             %--------------------------------------------------------------
             pP      = pP(2:end);
             dP(:,w) = pP;
             
-            % log likelihood - lexical
+            % log posterior - lexical
             %--------------------------------------------------------------
             L(w) = - E(i)'*(qC(i,i)\E(i))/2 - pP'*(pC\pP)/2;
             

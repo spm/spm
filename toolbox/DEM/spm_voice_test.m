@@ -20,7 +20,7 @@ function [L] = spm_voice_test(wfile,sfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7597 2019-05-23 18:42:38Z karl $
+% $Id: spm_voice_test.m 7600 2019-06-01 09:30:30Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -62,14 +62,13 @@ for s = 1:ns
     j      = spm_voice_onsets(Y,FS);
     xY{s}  = spm_voice_ff(Y(j{1}),FS);
 
-
-    
 end
+
 
 %% grid search to maximise classication accuracy
 %==========================================================================
 if ~isfield(VOX,'nu');
-    nu    = 8:min(16,size(xY{1}(1).W,1));                  % order (Hz)
+    nu    = 8:min(32,size(xY{1}(1).W,1));                  % order (Hz)
     nv    = 4:min(16,size(xY{1}(1).W,2));                  % order (ms)
     LL    = zeros(numel(nu),numel(nv));
     for i = 1:numel(nu)

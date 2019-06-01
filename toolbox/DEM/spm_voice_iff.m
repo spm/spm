@@ -27,7 +27,7 @@ function [Y,W] = spm_voice_iff(xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7598 2019-05-25 13:09:47Z karl $
+% $Id: spm_voice_iff.m 7600 2019-06-01 09:30:30Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -65,8 +65,8 @@ F1 = exp(xY.R.F1);                           % formant frequency (Hz)
 %--------------------------------------------------------------------------
 ni = fix(T*F0);                              % number of intervals
 D  = spm_dctmtx(ni,numel(P));                % basis set for inflection
-dI = D*P(:)*sqrt(ni)/F0;                     % fluctuations
-dI = dI + rf*randn(ni,1)/F0;
+dI = D*P(:)*sqrt(ni)/F0;                     % systemic fluctuations
+dI = dI + rf*randn(ni,1)/F0;                 % random   fluctuations
 I  = fix([1; FS*cumsum(dI)]);                % cumulative intervals
 
 % reconstitute format coefficients
@@ -80,7 +80,8 @@ Q  = exp(S*W);                               % formants
 % reconstitute timeseries
 %--------------------------------------------------------------------------
 jj = 0:(2*nj);
-D  = spm_dctmtx(numel(jj),Ni*4);
+Nj = numel(jj);
+D  = spm_dctmtx(Nj,Ni*4);
 D  = D*kron(speye(Ni,Ni),[1 0 -1 0]');
 Y  = zeros(I(end) + 2*nj,1);
 for j = 1:ni

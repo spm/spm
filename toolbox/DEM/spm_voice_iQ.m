@@ -20,7 +20,7 @@ function [W] = spm_voice_iQ(Q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iQ.m 7598 2019-05-25 13:09:47Z karl $
+% $Id: spm_voice_iQ.m 7600 2019-06-01 09:30:30Z karl $
 
 
 % defaults and (logarithmic) scaling
@@ -36,9 +36,9 @@ try, Tv = VOX.Tv; catch, Tv  = 1;          end    % log scaling (interval)
 
 %  inverse transform
 %--------------------------------------------------------------------------
-Q  = Q/std(Q(:));                            % normalise
 U  = spm_voice_dct(Ni,Nu,Tu);                % DCT over formants
 V  = spm_voice_dct(ni,Nv,Tv);                % DCT over intervals
 W  = U\Q/V';                                 % coeficients
+W  = W/std(W(:));                            % normalise
 
 

@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7598 2019-05-25 13:09:47Z karl $
+% $Id: spm_voice.m 7600 2019-06-01 09:30:30Z karl $
 
 
 %% setup options and files
@@ -76,13 +76,13 @@ VOX.graphics = 1;
 VOX.RAND     = 1;
 
 nw    = numel(VOX.LEX);                       % number of lexical features
-np    = numel(VOX.PRO);                       % number of prosody features
-k     = fix(np*([-1 1]/5 + 1/2));
+np    = numel(VOX.PRO(1).pE);                       % number of prosody features
+k     = [1 np];
 f     = fix(np/2);
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[f;1;f;f;j;f;f;f;i;f;f],[3;4]); pause(1/2)
+            spm_voice_speak(w,[f;1;f;f;j;f;f;f;i;f;f],[2;3]); pause(1/2)
         end
     end
 end
@@ -90,7 +90,7 @@ end
 VOX.RAND = 0;
 
 
-%% invert a test file of 87 words & optimise basis function order (ny,nv)
+%% invert a test file of 87 words & optimise basis function order (nu,nv)
 %==========================================================================
 try
     VOX = rmfield(VOX,'nu');
@@ -136,7 +136,10 @@ try
     VOX = rmfield(VOX,{'F0','F1'});
 end
 
-[F0,F1] = spm_voice_identity(wtest,P);
+% recover funcdamental and forst formant frequencies
+%--------------------------------------------------------------------------
+VOX.formant = 1;
+spm_voice_identity(wtest,P);
 
 
 %% illustrate accuracy (i.e., inference) using training corpus
@@ -335,7 +338,7 @@ for i = 1:numel(E)
 end
 VOX   = rmfield(VOX,'E');
    
-plot(log(E),A,'.','MarkerSize',16), axis square
+plot(E,A,'.','MarkerSize',16), axis square
 title('Accuracy (E)','FontSize',16),drawnow
 
 
@@ -344,16 +347,17 @@ title('Accuracy (E)','FontSize',16),drawnow
 %==========================================================================
 global VOX
 load VOX
-VOX.analysis = 1;
+VOX.analysis = 0;
 VOX.graphics = 1;
 VOX.interval = 0;
+VOX.formant  = 0;
 VOX.mute     = 1;
-VOX.rf       = 1/256;
-VOX.RF       = 1/16;
+VOX.rf       = 0;
+VOX.RF       = 0;
 
 % get parameters for a particular word
 %--------------------------------------------------------------------------
-xY       = spm_voice_speak(10);
+xY       = spm_voice_speak(14);
 xY.P.lat = -8;
 P        = xY.P;
 
@@ -365,6 +369,7 @@ for i = 1:4
     %----------------------------------------------------------------------
     Y        = spm_voice_iff(xY);
     sound(Y,spm_voice_FS)
+    spm_voice_fundamental(Y,spm_voice_FS);
     
     % map back to parameters by inverting
     %----------------------------------------------------------------------
@@ -372,7 +377,7 @@ for i = 1:4
     xY.P.amp = P.amp;
     xY.P.lat = P.lat;
     xY.P.dur = P.dur;
-    xY.P.tim = P.tim;
+
     disp(xY.P)
 
 end
@@ -434,16 +439,33 @@ str{7} = {'is','there'};
 
 VOX.formant  = 1;
 VOX.FS       = 22050;
-
 sound(Y,VOX.FS)
 
-[i,P]        = spm_voice_i(str);
-[F0,F1]      = spm_voice_identity(Y,P);
 
-VOX.F1       = F1;
-VOX.F0       = F0;
+% estimate fundamental and formant frequencies
+%--------------------------------------------------------------------------
+[i,P] = spm_voice_i(str);
+clear f0 f1
+for i = 1:1
+    [F0,F1] = spm_voice_identity(Y,P);
+    VOX.F1  = F1;
+    VOX.F0  = F0;
+    f0(i)   = F0;
+    f1(i)   = F1;
+    
+    % plot convergence
+    %----------------------------------------------------------------------
+    if i > 1
+        subplot(2,2,3),bar(f0 - f0(1)), title('fundamental'), box off, axis square
+        subplot(2,2,4),bar(f1 - f1(1)), title('1st formant'), box off, axis square
+        drawnow
+    end
+end
+
+% mimic speaker
+%--------------------------------------------------------------------------
 VOX.mute     = 0;
-VOX.rf       = 1/128;
+VOX.rf       = 0;
 VOX.RAND     = 1/4;
 
 spm_voice_read(Y,P);
@@ -451,7 +473,7 @@ spm_voice_read(Y,P);
 load VOX
 
 
-%% pitch analysis
+%% interactive pitch analysis
 %==========================================================================
 global VOX
 load VOX

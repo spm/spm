@@ -51,7 +51,7 @@ function [xY] = spm_voice_ff(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7598 2019-05-25 13:09:47Z karl $
+% $Id: spm_voice_ff.m 7600 2019-06-01 09:30:30Z karl $
 
 
 % defaults
@@ -85,6 +85,7 @@ ni    = numel(find((I + nj) < Ny));          % number of intervals
 D     = spm_dctmtx(2*nj + 1,Ni*4);           % discrete cosine transform
 D     = D*kron(speye(Ni,Ni),[1 0 -1 0]');    % retain even functions
 Q     = zeros(Ni,ni);
+H     = hanning(nj + nj + 1);
 for j = 1:ni
     ii     = I(j) + (0:nj);
     ccf    = xcov(Y(ii));
@@ -95,7 +96,7 @@ end
 % discrete cosine transforms over formant frequnecies and intervals
 % respectively to create formant parameters (Q)
 %--------------------------------------------------------------------------
-Q     = log(abs(Q) + eps);                   % log transform
+Q     = log(abs(Q) + eps)/2;                 % log transform
 Q     = Q - mean(Q(:));                      % detrend
 T     = std(Q(:));                           % timbre
 W     = spm_voice_iQ(Q);                     % DCT transform
@@ -105,7 +106,7 @@ W     = spm_voice_iQ(Q);                     % DCT transform
 P.amp = log(max(Y));                         % amplitude (a.u.)
 P.lat = log(1/32);                           % latency (sec)
 P.dur = log(Ny/FS);                          % duration (seconds)
-P.tim = log(T)/2;                            % log timbre
+P.tim = log(T);                              % log timbre
 P.pch = zeros(4,1);                          % log pitch
 P.inf = S;                                   % inflection
 

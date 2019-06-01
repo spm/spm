@@ -20,7 +20,7 @@ function [I] = spm_voice_onsets(Y,FS,U,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7589 2019-05-09 12:57:23Z karl $
+% $Id: spm_voice_onsets.m 7600 2019-06-01 09:30:30Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
@@ -96,12 +96,12 @@ if isempty(jT)
     end
 end
 
-% add internal minima (% in the absense of post-offset silence)
+% use the last sample if offset precedes onset
 %--------------------------------------------------------------------------
-% i = (jT + 1):(jT + FS/8);
-% i = fix(i(i < n & i > 1));
-% if sum(G(i) < U) < FS/16
-    
+if (jT - j0) < 1, jT = n; end
+
+% add internal minima
+%--------------------------------------------------------------------------   
 i   = j(G(j) < max(G)/2 & j < jT(end) & j > (j0 + FS/8));
 jT  = sort(unique([jT; i]));
 

@@ -31,13 +31,13 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7598 2019-05-25 13:09:47Z karl $
+% $Id: spm_voice_get_LEX.m 7600 2019-06-01 09:30:30Z karl $
 
 
 % defaults
 %--------------------------------------------------------------------------
 global VOX
-try, E       = VOX.E; catch, E = 2; end    % regularisation
+try, E       = VOX.E; catch, E = 8; end    % regularisation
 VOX.analysis = 0;
 VOX.graphics = 0;
 VOX.interval = 0;
@@ -114,44 +114,44 @@ VOX.qC  = QC;
 %% estimate prosidy parameters
 %==========================================================================
 fS    = @(Q,G) spm_vec(spm_voice_iQ(spm_voice_Q(Q,G)));
-G     = xY(1).P.pch;                                    % expansion point
-j     = find(ismember(Pstr,{'Tu','Tv','Tw','Tf'}));     % pitch indices
+G     = xY(1).P.pch;                                  % expansion point
+j     = find(ismember(Pstr,{'Tu','Tv','Tw','Tf'}));   % pitch indices
+pG    = diag([1,16,16,16,16]);                         % pitch precision
 for w = 1:nw
     
     % setup Taylor approximation to variations prosidy
     %----------------------------------------------------------------------
-    LEX(w).dWdP = spm_diff(fS,reshape(LEX(w).qE,Nu,Nv),G,2);
+    W    = LEX(w).qE/std(LEX(w).qE(:));               % expansion point
+    dWdP = spm_diff(fS,reshape(W,Nu,Nv),G,2);         % partial derivatives
+    
     
     % setup MAP projector
-    %------------------------------------------------------------------
-    qP  = inv(LEX(w).qC);                               % precision
-    X   = [LEX(w).qE LEX(w).dWdP];                      % GLM
-    MAP = (X'*qP*X)\X'*qP;                              % MAP
-    
-    % prosidy parameters
     %----------------------------------------------------------------------
-    qW    = 0;
+    qP   = inv(LEX(w).qC);                            % precision
+    X    = [W(:) dWdP];                               % design matrix (GLM)
+    MAP  = (X'*qP*X + pG)\X'*qP;                      % MAP projector
+    
+    % pitch parameters
+    %----------------------------------------------------------------------
     for s = 1:ns
         
         % esimate variations in prosidy from expansion point
         %------------------------------------------------------------------
         dP        = MAP*xY(w,s).W(:);
         
-        % add to prosidy parameters
+        % augment pitch parameters
         %------------------------------------------------------------------
         dP        = dP(2:end);
         P{w}(j,s) = P{w}(j,s) + dP;
-        
-        % predicted formant frequencies
-        %------------------------------------------------------------------
-        qW  = qW + spm_voice_Q(xY(w,s).W,-dP);
         
     end
     
     % expected formant coeficients and moments of pitch
     %----------------------------------------------------------------------
-    LEX(w).qE  = spm_voice_iQ(qW);
-    LEX(w).pE  = mean(P{w}(j,:),2) - G(:);
+    LEX(w).X   = X;
+    LEX(w).MAP = MAP;
+    LEX(w).qE  = W;
+    LEX(w).pE  = mean(P{w}(j,:),2);
     LEX(w).pC  =  cov(P{w}(j,:)');
     
     % graphics
@@ -290,7 +290,7 @@ spm_figure('GetWin','Eigen-reduction'); clf
 %--------------------------------------------------------------------------
 [U,S] = spm_svd(cov(spm_cat(Q)'));
 S     = log(diag(S));
-s     = find([S;1] > (max(S) - 4),1,'last');
+s     = find(S > (max(S) - 4),1,'last');
 subplot(2,2,1), bar(S)
 title('Eigenvalues - lexical','FontSize',16), ylabel('log value')
 hold on, plot([s,s],[0,max(S)],'r:'), hold off

@@ -27,7 +27,7 @@ function [E,  PST] = spm_voice_segmentation(wfile,SEG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_segmentation.m 7589 2019-05-09 12:57:23Z karl $
+% $Id: spm_voice_segmentation.m 7600 2019-06-01 09:30:30Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -91,9 +91,9 @@ for w = 1:numel(SEG)
     i     = fix(SEG(w).I + FS/2);
     subplot(4,1,2), plot(pst(i),g(i),'.', 'Color',col,'MarkerSize',24)
     for i = 1:numel(SEG(w).J)
-        j = fix(SEG(w).J{i}(1)   + SEG(w).I); j = max(j,1);
+        j = fix(SEG(w).J{i}(1)   + SEG(w).I); j = max(j - 1,1);
         plot([1,1]*pst(j),[0 M],'--','Color',col)
-        j = fix(SEG(w).J{i}(end) + SEG(w).I); j = max(j,1);
+        j = fix(SEG(w).J{i}(end) + SEG(w).I); j = max(j - 1,1);
         plot([1,1]*pst(j),[0 M],'-.','Color',col)
     end
 
