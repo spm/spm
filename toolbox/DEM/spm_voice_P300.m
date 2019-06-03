@@ -25,7 +25,7 @@ function spm_voice_P300
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7597 2019-05-23 18:42:38Z karl $
+% $Id: spm_voice_P300.m 7601 2019-06-03 09:41:06Z karl $
 
 
 %% demo mode loads sentence (.mat) files
@@ -72,7 +72,7 @@ else
     
 end
 
-% illustrate candidate  intervals (and F0) for the first word
+% illustrate candidate intervals (and F0) for the first word
 %--------------------------------------------------------------------------
 VOX.FS       = spm_voice_FS;
 VOX.IO       = 1;
@@ -80,8 +80,8 @@ VOX.IT       = 1;
 VOX.onsets   = 1;
 VOX.interval = 1;
 spm_voice_get_word(Y);
-spm_voice_fundamental(Y,VOX.FS);
 VOX.interval = 0;
+spm_voice_fundamental(Y,VOX.FS);
 VOX.onsets   = 0;
 
 % segment without priors

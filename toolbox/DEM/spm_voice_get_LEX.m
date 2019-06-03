@@ -31,7 +31,7 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7600 2019-06-01 09:30:30Z karl $
+% $Id: spm_voice_get_LEX.m 7601 2019-06-03 09:41:06Z karl $
 
 
 % defaults
@@ -210,7 +210,7 @@ end
 %% identity
 %==========================================================================
 clear D
-D(1,:) = log([100 300]);                          % ff0
+D(1,:) = log([85 300]);                           % ff0
 D(2,:) = log([30  45]);                           % ff1
 
 % select prosidy features and specify prior precision

@@ -27,7 +27,7 @@ function [E,  PST] = spm_voice_segmentation(wfile,SEG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_segmentation.m 7600 2019-06-01 09:30:30Z karl $
+% $Id: spm_voice_segmentation.m 7601 2019-06-03 09:41:06Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -65,6 +65,12 @@ set(gca,'YTick',1:numel(str),'YTickLabel',str)
 xlabel('word'), ylabel('prodisy'), colorbar
 title('Prodisy','FontSize',16), box off
 
+subplot(8,1,8), imagesc(full(spm_cat({SEG.R})))
+str = {VOX.WHO.str};
+set(gca,'YTick',1:numel(str),'YTickLabel',str)
+xlabel('word'), ylabel('idenity'), colorbar
+title('Idenity','FontSize',16), box off
+
 % scan through words
 %--------------------------------------------------------------------------
 rng('default')
@@ -99,7 +105,7 @@ for w = 1:numel(SEG)
 
 end
 
-% return if just prosody is requested, otherwise…
+% return if just prosody is requested…
 %----------------------------------------------------------------------
 if ~nargout, return, end
 

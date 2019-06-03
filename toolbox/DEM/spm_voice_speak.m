@@ -30,7 +30,7 @@ function [xY,Y] = spm_voice_speak(q,p,r)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7598 2019-05-25 13:09:47Z karl $
+% $Id: spm_voice_speak.m 7601 2019-06-03 09:41:06Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -51,7 +51,7 @@ n  = max([size(q,2),size(p,2),size(r,2)]);
 
 if size(q,2) < n && size(q,1), q = repmat(q(:,1),1,n); end
 if size(p,2) < n && size(p,1), p = repmat(p(:,1),1,n); end
-if size(r,2) < n && size(r,1), q = repmat(r(:,1),1,n); end
+if size(r,2) < n && size(r,1), r = repmat(r(:,1),1,n); end
 
 % level of random fluctuations in formants
 %--------------------------------------------------------------------------

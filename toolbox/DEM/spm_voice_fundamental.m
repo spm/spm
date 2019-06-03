@@ -10,9 +10,11 @@ function [F0,F1] = spm_voice_fundamental(Y,FS)
 %
 % This auxiliary routine identifies the fundamental and formant
 % frequencies. The fundamental frequency is the lowest frequency (between
-% 100 Hz and 300 Hz) that corresponds to the glottal pulse rate. The first
-% format frequency is the average frequency (usually around 1000 Hz) that
-% contains the spectral energy of the first formant.
+% 85 Hz and 300 Hz) that corresponds to the glottal pulse rate. the
+% fundamental frequency is identified as the frequency containing the
+% greatest spectral energy over the first few harmonics. The first format
+% frequency is based upon the frequency with the maximum spectral energy of
+% transients, centred on the fundamental intervals.
 %
 % This routine is not used for voice recognition but can be useful for
 % diagnostic purposes.
@@ -20,7 +22,7 @@ function [F0,F1] = spm_voice_fundamental(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_fundamental.m 7600 2019-06-01 09:30:30Z karl $
+% $Id: spm_voice_fundamental.m 7601 2019-06-03 09:41:06Z karl $
 
 
 % find fundamental frequencies
@@ -40,14 +42,21 @@ w     = (1:nf)*dw;
 
 % find fundamental frequency (F0)
 %--------------------------------------------------------------------------
-R0    = 96:300;                                 % range of F0
+R0    = 85:300;                                 % range of F0
 for i = 1:numel(R0)
     DF   = R0(i)/dw;
     j    = (1:nw)*fix(DF);
-    S(i) = sum(sY(j));
+    S(i) = exp(-(1:nw)/2)*sY(j);
 end
-[j,i] = max(S);
+
+% first threshold crossing (half Max)
+%--------------------------------------------------------------------------
+i     = find(S > max(S)/2,1);
 F0    = R0(i);
+for i = 1:8
+    I  = spm_voice_frequency(Y,FS,F0)/FS;
+    F0 = 1/mean(I);
+end
 
 if nargout == 1 && ~VOX.formant, return, end
 

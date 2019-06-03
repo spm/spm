@@ -1,5 +1,5 @@
-function MDP = DEMO_MDP_questions
-% Demo of active inference for visual salience
+function MDP = DEMO_MDP_voice
+% Active inference in conversation
 %__________________________________________________________________________
 %
 % This routine provide simulations of reading to demonstrate deep temporal
@@ -37,12 +37,8 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: DEMO_MDP_voice.m 7601 2019-06-03 09:41:06Z karl $
  
-% set up and preliminaries: first level
-%==========================================================================
-%
-%--------------------------------------------------------------------------
  
 rng('default')
  
@@ -107,6 +103,7 @@ for f = 1:Nf
     Ns(f) = numel(D{f});
 end
 
+
 outcome = {};
 for i = 1:numel(label.name)
     outcome = [outcome,label.name{i}];
@@ -126,6 +123,7 @@ outcome = outcome(j);
 % single outcome modality with multiple phrases
 %--------------------------------------------------------------------------
 label.modality{1} = 'phrase';   label.outcome{1} = outcome;
+
 
 for f1 = 1:Ns(1)
     for f2 = 1:Ns(2)
@@ -152,7 +150,7 @@ for f1 = 1:Ns(1)
                     end
                 end
                 
-                % placing likelihood matrix
+                % place in likelihood matrix
                 %----------------------------------------------------------
                 i = ismember(outcome,out);
                 A{1}(i,j{:}) = 1/sum(i);
@@ -168,7 +166,7 @@ for f = 1:Nf
     B{f} = eye(Ns(f));
 end
  
-% specifies syntax
+% specify syntax
 %--------------------------------------------------------------------------
 B{4}  = spm_zeros(B{4});
 for s = 1:numel(sentence)
@@ -187,13 +185,14 @@ mdp.T = 5;                      % number of updates
 mdp.A = A;                      % observation model
 mdp.B = B;                      % transition probabilities
 mdp.D = D;                      % prior over initial states
+mdp.o = [];
  
 mdp.label = label;
 mdp.chi   = 1/32;
- 
-clear A B D
- 
-MDP   = spm_MDP_check(mdp);
+MDP       = spm_MDP_check(mdp);
+
+
+clear A B D mdp
 
 % MDP.s = [1 2 1 8]';
 % MDP   = spm_MDP_VB_X(MDP);
@@ -207,15 +206,9 @@ MDP   = spm_MDP_check(mdp);
 % %------------------------------------------------------------------------
 % spm_figure('GetWin','Figure 2'); clf
 % spm_MDP_VB_LFP(MDP,[],4);
-% 
-% cell2mat(MDP.label.outcome{1}(MDP.o))
 
+% return
 
-% set up and preliminaries: first level
-%==========================================================================
-% 
-%--------------------------------------------------------------------------
- 
 %% second level (narrative)
 %==========================================================================
 % question 1: {'noun (7)'}
@@ -360,7 +353,7 @@ for f = [2 7 8 9]
     label.action{f} = ['stay', label.name{f}];
 end
 
-% allowable policies (time x polcy x factor)
+% allowable policies (time x polcy x factor): ready, question and answer
 %--------------------------------------------------------------------------
 % question 1: {'noun (7)'}
 % question 2: {'noun (7)','adverb (9)'}
@@ -373,22 +366,20 @@ V(1,:,8)  = 1 + [1 1 1 1 1 1 1 1 2 2 1 1 2 2];
 V(1,:,9)  = 1 + [1 1 1 2 1 2 1 2 1 2 1 2 1 2];
 V(2,:,:)  = 1;
 
-
+ 
 % priors: (utility) C: A{4} syntax: {'1','2','3','Y','N','S'}
 %--------------------------------------------------------------------------
 for g = 1:Ng
     C{g}  = zeros(No(g),1);
 end
-
-% the agent expects affirmative answers
-%--------------------------------------------------------------------------
-C{4}(4,:) =  1/4;
-C{4}(5,:) = -1/4;
-
+C{4}(4,:) =  1/4;              % and affirmative answers
+C{4}(5,:) = -1/4;              % and affirmative answers
+ 
 % actual state of the world
 %--------------------------------------------------------------------------
 s    = ones(Nf,1);
 s(4) = 2;
+
 
 % MDP Structure
 %--------------------------------------------------------------------------
@@ -397,6 +388,7 @@ mdp.label  = label;             % names of factors and outcomes
 mdp.tau    = 4;                 % time constant of belief updating
 mdp.erp    = 4;                 % initialization
 
+mdp.T = 3;                      % ready, question, answer
 mdp.V = V;                      % allowable policies
 mdp.A = A;                      % observation model
 mdp.B = B;                      % transition probabilities
@@ -415,6 +407,29 @@ MDP      = spm_MDP_check(mdp);
 clear MDP
 OPTIONS.D    = 1;
 [MDP(1,1:6)] = deal(mdp);
+
+% agent asks (by setting outomes to [0 1 0]
+%--------------------------------------------------------------------------
+% for i = 1:size(MDP,2)
+%     m     = [0, 1, 0];
+%     n     = ones(numel(MDP(1).MDP(1).A),MDP(1,i).MDP(1).T);
+%     for t = 1:numel(m)
+%         MDP(1,i).m{t} = n*m(t);
+%     end
+% end
+
+% % agent asks (by setting outomes to [0 1 0]
+% %--------------------------------------------------------------------------
+% for i = 1:size(MDP,2)
+%     MDP(1,i).n = [1, 0, 1];
+% end
+% 
+% % give agent veridical beliefs about the scene
+% %--------------------------------------------------------------------------
+% for i = [3 4 5 6]
+%     MDP(1,1).D{i} = sparse(s(i),1,1,Ns(i),1);
+% end
+
 
 MDP   = spm_MDP_VB_X(MDP,OPTIONS);
 
@@ -440,177 +455,8 @@ for i = 1:size(MDP,2)
     spm_questions_plot(MDP(1,i))
 end
 
-% illustrate violations
-%==========================================================================
-NDP    = MDP;                              % get states and outcomes
-if NDP(5).o(4,3) == 4                      % switch the answer
-    NDP(5).o(4,3) = 5;
-else
-    NDP(5).o(4,3) = 4;
-end
-NDP(5) = spm_MDP_VB_X(NDP(5));
-
-% find greatest effect on belief updating (about the scene)
-%--------------------------------------------------------------------------
-for f = 3:6
-    v(f) =  norm(spm_vec(MDP(5).X{f}) - spm_vec(NDP(5).X{f}),'inf');
-end
-[v,f] = max(v);
-
-% responses to appropriate and inappropriate answers
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 6 expected' ); clf, spm_MDP_VB_LFP(MDP(5),[],f);
-spm_figure('GetWin','Figure 7 violation'); clf, spm_MDP_VB_LFP(NDP(5),[],f);
-
-
-% illustrate 'communication'
-%==========================================================================
-
-% increase efficiency (i.e., suppress neurophysiological correlates)
-%--------------------------------------------------------------------------
-mdp.tau    = 3;                 % time constant of belief updating
-mdp.erp    = 1;                 % initialization
-
-% create two agents
-%--------------------------------------------------------------------------
-clear MDP
-OPTIONS.D  = 1;
-[MDP(1:2,1:6)] = deal(mdp);
-
-% give a second subject veridical beliefs about the scene
-%--------------------------------------------------------------------------
-for i = [3 4 5 6]
-    MDP(2,1).D{i} = sparse(s(i),1,1,Ns(i),1);
-end
-
-% confident player answers then asks
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 8'); clf
-for i = 1:length(MDP)
-    
-    if i < 5
-        % first model asks and the second answers
-        %------------------------------------------------------------------
-        MDP(1,i).n = ones(Ng,1)*[2 1 2];
-        MDP(2,i).n = ones(Ng,1)*[2 1 2];
-    else
-        % switch roles
-        %------------------------------------------------------------------
-        MDP(1,i).n = ones(Ng,1)*[1 2 1];
-        MDP(2,i).n = ones(Ng,1)*[1 2 1];
-    end
-end
-
-TDP   = spm_MDP_VB_X(MDP,OPTIONS);
-for i = 1:size(TDP,2)
-    subplot(4,3,i), spm_questions_plot(TDP(:,i))
-end
-
-% confident player asks then answers
-%--------------------------------------------------------------------------
-for i = 1:length(MDP)
-    
-    if i < 5
-        % first model asks and the second answers
-        %------------------------------------------------------------------
-        MDP(1,i).n = ones(Ng,1)*[1 2 1];
-        MDP(2,i).n = ones(Ng,1)*[1 2 1];
-    else
-        % switch roles
-        %------------------------------------------------------------------
-        MDP(1,i).n = ones(Ng,1)*[2 1 2];
-        MDP(2,i).n = ones(Ng,1)*[2 1 2];
-    end
-end
-
-TDP   = spm_MDP_VB_X(MDP,OPTIONS);
-for i = 1:size(TDP,2)
-    subplot(4,3,i + 6)
-    spm_questions_plot(TDP(:,i))
-end
-
-
-% confident player tells then asks
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 9'); clf
-for i = 1:length(MDP)
-    
-    if i < 7
-        % first model asks and the second answers
-        %------------------------------------------------------------------
-        MDP(1,i).n = ones(Ng,1)*[1 2 2];
-        MDP(2,i).n = ones(Ng,1)*[1 2 2];
-    else
-        % switch roles
-        %------------------------------------------------------------------
-        MDP(1,i).n = ones(Ng,1)*[1 2 1];
-        MDP(2,i).n = ones(Ng,1)*[1 2 1];
-    end
-end
-
-TDP   = spm_MDP_VB_X(MDP,OPTIONS);
-for i = 1:size(TDP,2)
-    subplot(4,3,i)
-    spm_questions_plot(TDP(:,i))
-end
-
-% building fantasies
-%==========================================================================
-spm_figure('GetWin','Figure 10'); clf
-
-% make both players uncertain about the scene at hand
-%--------------------------------------------------------------------------
-MDP(2,1).D = MDP(1,1).D;
-
-for i = 1:length(MDP)
-    
-    if i < 3
-        % first model asks and the second answers
-        %------------------------------------------------------------------
-        MDP(1,i).n = ones(Ng,1)*[1 2 1];
-        MDP(2,i).n = ones(Ng,1)*[1 2 1];
-    else
-        % switch roles
-        %------------------------------------------------------------------
-        MDP(1,i).n = ones(Ng,1)*[2 1 2];
-        MDP(2,i).n = ones(Ng,1)*[2 1 2];
-    end
-end
-
-TDP   = spm_MDP_VB_X(MDP,OPTIONS);
-for i = 1:size(TDP,2)
-    subplot(4,3,i)
-    spm_questions_plot(TDP(:,i))
-end
-
-% now repeat when precluding uncertain responses
-%--------------------------------------------------------------------------
-for i = 1:length(MDP)
-    
-    MDP(1,i).A{4} = MDP(1,i).A{4} > 1/2;
-    MDP(2,i).A{4} = MDP(2,i).A{4} > 1/2;
-
-    if i < 3
-        % first model asks and the second answers
-        %------------------------------------------------------------------
-        MDP(1,i).n = ones(Ng,1)*[1 2 1];
-        MDP(2,i).n = ones(Ng,1)*[1 2 1];
-    else
-        % switch roles
-        %------------------------------------------------------------------
-        MDP(1,i).n = ones(Ng,1)*[2 1 2];
-        MDP(2,i).n = ones(Ng,1)*[2 1 2];
-    end
-end
-
-TDP   = spm_MDP_VB_X(MDP,OPTIONS);
-for i = 1:size(TDP,2)
-    subplot(4,3,6 + i)
-    spm_questions_plot(TDP(:,i))
-end
-
-
 return
+
 
 
 function spm_questions_plot(MDP)
@@ -632,38 +478,14 @@ for m = 1:numel(MDP)
     
     % Assemble question-and-answer
     %----------------------------------------------------------------------
-    question = MDP(m).o(4,2);
-    answer   = MDP(m).o(4,3);
-    
-    try
-        qstr = cell2mat(MDP(m).MDP.label.outcome{1}(MDP(m).mdp(2).o));
-        astr = cell2mat(MDP(m).MDP.label.outcome{1}(MDP(m).mdp(3).o));
-    catch
-        noun     = {'square','triangle'};
-        adj      = {'green','red'};
-        adverb   = {'above','below'};
-        if question == 1
-            qstr = ['Is there a ' noun{MDP(m).o(1,2)} ' ?'];
-        elseif question == 2
-            qstr = ['Is there a ' noun{MDP(m).o(1,2)} ' ' adverb{MDP(m).o(3,2)} ' ?'];
-        elseif question == 3
-            qstr = ['Is there a ' adj{MDP(m).o(2,2)} ' ' noun{MDP(m).o(1,2)} ' ' adverb{MDP(m).o(3,2)} ' ?'];
-        else
-            qstr = '!';
-        end
-        if answer == 4
-            astr = 'Yes there is !';
-        elseif answer == 5
-            astr = 'No !';
-        else
-            astr = 'I''m not sure';
-        end
-    end
-
+    answer = MDP(m).o(4,3);   
+    qstr   = cell2mat(MDP(m).MDP.label.outcome{1}(MDP(m).mdp(2).o));
+    astr   = cell2mat(MDP(m).MDP.label.outcome{1}(MDP(m).mdp(3).o));
+   
     
     % is the answer right (for a single player)?
     %----------------------------------------------------------------------
-    ind      = num2cell(MDP(m).s(:,3));
+    ind    = num2cell(MDP(m).s(:,3));
     if answer == find(MDP(m).A{4}(:,ind{:}),1) || m > 1
         cor = spm_softmax(2*[0;1;0]);
     else

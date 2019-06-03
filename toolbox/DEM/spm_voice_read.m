@@ -22,17 +22,21 @@ function [SEG,W,P,R] = spm_voice_read(wfile,L,N)
 % SEG(s).I0  - first index
 % SEG(s).IT  - final index
 %     
-% This routine takes a sound file has an input and infers the lexical
-% content, prosody and speaker. In then articulates the phrase or
+% This routine takes a sound file or audio stream as an input and infers the lexical
+% content and prosody. In then articulates the phrase or
 % sequence of word segments (SEG). If called with no output arguments it
-% generates graphics detailing the segmentation.
+% generates graphics detailing the segmentation. This routine assumes that
+% all the variables in the VOX structure are set appropriately;
+% especially, the fundamental and first formant frequencies (F0 and F1)
+% appropriate for speaker identity. If called with no inputs, it will
+% create an audio recorder object and record dictation for a few seconds.
 %
 % see also: spm_voice_speak.m and spm_voice_segmentation.m
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7597 2019-05-23 18:42:38Z karl $
+% $Id: spm_voice_read.m 7601 2019-06-03 09:41:06Z karl $
 
 
 %% setup
@@ -43,14 +47,13 @@ if ~isfield(VOX,'LEX')
         load VOX
         VOX.analysis = 0;
         VOX.graphics = 0;
-        VOX.mute     = 0;
     catch
         error('please create VOX.mat and place in path')
     end
 end
+if ~isfield(VOX,'disp'), VOX.disp = 1; end
 
-
-% if audio sources is not provided, assume a new recording
+% if audio source is not provided, assume a new recording
 %--------------------------------------------------------------------------
 if ~nargin
     try
@@ -68,7 +71,7 @@ if isa(wfile,'audiorecorder')
     record(wfile,8);
 end
 
-%% priors, assuming at most eight words
+%% priors, if specified (uninformative priors otherwise)
 %--------------------------------------------------------------------------
 try ns = N; catch, ns = 16; end
 
@@ -116,7 +119,7 @@ for s  = 1:ns
     SEG(s).P   = q(:);                         % prosody classes
     SEG(s).R   = r(:);                         % speaker class
 
-    disp({SEG.str})
+    if VOX.disp, disp({SEG.str}), end
     
 end
 
@@ -139,7 +142,7 @@ end
 
 %% articulate: with lexical content and prosody
 %--------------------------------------------------------------------------
-if ~VOX.mute
+if ~nargout || ~VOX.mute
     spm_voice_speak(W,P,R);
 end
 

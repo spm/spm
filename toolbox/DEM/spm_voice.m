@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7600 2019-06-01 09:30:30Z karl $
+% $Id: spm_voice.m 7601 2019-06-03 09:41:06Z karl $
 
 
 %% setup options and files
@@ -82,7 +82,7 @@ f     = fix(np/2);
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[f;1;f;f;j;f;f;f;i;f;f],[2;3]); pause(1/2)
+            spm_voice_speak(w,[f;1;f;f;j;f;f;f;i;f;f],[2;2]); pause(1/2)
         end
     end
 end
@@ -439,6 +439,7 @@ str{7} = {'is','there'};
 
 VOX.formant  = 1;
 VOX.FS       = 22050;
+VOX          = rmfield(VOX,'F0');
 sound(Y,VOX.FS)
 
 
@@ -446,20 +447,12 @@ sound(Y,VOX.FS)
 %--------------------------------------------------------------------------
 [i,P] = spm_voice_i(str);
 clear f0 f1
-for i = 1:1
+for i = 1:4
     [F0,F1] = spm_voice_identity(Y,P);
     VOX.F1  = F1;
     VOX.F0  = F0;
     f0(i)   = F0;
     f1(i)   = F1;
-    
-    % plot convergence
-    %----------------------------------------------------------------------
-    if i > 1
-        subplot(2,2,3),bar(f0 - f0(1)), title('fundamental'), box off, axis square
-        subplot(2,2,4),bar(f1 - f1(1)), title('1st formant'), box off, axis square
-        drawnow
-    end
 end
 
 % mimic speaker

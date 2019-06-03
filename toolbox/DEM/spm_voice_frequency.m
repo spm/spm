@@ -16,7 +16,7 @@ function [I] = spm_voice_frequency(Y,FS,F0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_frequency.m 7589 2019-05-09 12:57:23Z karl $
+% $Id: spm_voice_frequency.m 7601 2019-06-03 09:41:06Z karl $
 
 
 
@@ -44,7 +44,7 @@ i     = find(diff(sY(1:end - 1)) > 0 & diff(sY(2:end)) < 0);
 I     = diff(i)';
 
 
-if ~ isfield(VOX,'interval'), return, end
+if ~isfield(VOX,'interval'), return, end
 
 %% graphics
 %==========================================================================

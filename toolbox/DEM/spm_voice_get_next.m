@@ -17,7 +17,7 @@ function [Y,I,FS] = spm_voice_get_next(wfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_next.m 7589 2019-05-09 12:57:23Z karl $
+% $Id: spm_voice_get_next.m 7601 2019-06-03 09:41:06Z karl $
 
 %% get peak identification parameters from VOX
 %==========================================================================
@@ -30,7 +30,7 @@ function [Y,I,FS] = spm_voice_get_next(wfile)
 %--------------------------------------------------------------------------
 global VOX
 try, VOX.C;  catch, VOX.C  = 1/16;  end              % smoothing for peaks
-try, VOX.U;  catch, VOX.U  = 1/128; end              % threshold for peaks
+try, VOX.U;  catch, VOX.U  = 1/256; end              % threshold for peaks
 try, VOX.IT; catch, VOX.IT = 1;     end              % current index
 
 % ensure 2 second of data has been accumulated

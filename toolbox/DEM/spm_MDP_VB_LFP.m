@@ -16,18 +16,18 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 7596 2019-05-23 18:42:23Z karl $
+% $Id: spm_MDP_VB_LFP.m 7601 2019-06-03 09:41:06Z karl $
  
  
 % defaults
 %==========================================================================
-MDP    = spm_MDP_check(MDP)
 try, f;          catch, f        = 1;  end
 try, UNITS;      catch, UNITS    = []; end
 try, SPECTRAL;   catch, SPECTRAL = 0;  end
 
 % dimensions
 %--------------------------------------------------------------------------
+MDP    = spm_MDP_check(MDP);
 Nt     = length(MDP);               % number of trials
 try
     Ne = size(MDP(1).xn{f},4);      % number of epochs

@@ -9,12 +9,15 @@ function [F0,F1] = spm_voice_identity(wfile,P)
 % F1     - expected format frequency
 %
 % This routine estimates the fundamental and formant frequencies based upon
-% a spoken word source.
+% a spoken word source. This routine is used in conjunction with
+% spm_voice_fundamental to provide a more refined estimate of fundamental
+% and first formant frequencies based upon speech with known lexical
+% content.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_identity.m 7600 2019-06-01 09:30:30Z karl $
+% $Id: spm_voice_identity.m 7601 2019-06-03 09:41:06Z karl $
 
 
 % global VOX
@@ -34,7 +37,7 @@ if isa(wfile,'audiorecorder')
         record(VOX.audio,8);
         pause(4);
     else
-        dt = (IS - VOX.IT)/spm_voice_FS;
+        dt = (IS - VOX.IT)/FS;
         pause(4 - dt);
     end
 end
@@ -80,25 +83,41 @@ if VOX.formant
     
     % fundamental frequency
     %----------------------------------------------------------------------
-    spm_figure('GetWin','Formants');
+    spm_figure('GetWin','Frequencies');
     
     FF0 = exp(ff0);
     FF1 = exp(ff1);
     
-    subplot(2,2,1)
-    plot(FF0,L(:,1),'or',FF0,L(:,1),':r',[F0 F0],[0 1],'b')
+    subplot(3,2,5)
+    plot(FF0,L(:,1),'og',FF0,L(:,1),':r',[F0 F0],[0 1],'b')
     xlabel('frequency (Hz)'), ylabel('likelihood')
     title(sprintf('Fundamental frequency (F0 = %0.0f)',F0),'FontSize',16)
     axis square, spm_axis tight, box off
     
     % first formant
     %----------------------------------------------------------------------
-    
-    subplot(2,2,2)
-    plot(FF1,L(:,2),'or',FF1,L(:,2),':r',[F1 F1],[0 1],'b')
+    subplot(3,2,6)
+    plot(FF1,L(:,2),'og',FF1,L(:,2),':r',[F1 F1],[0 1],'b')
     xlabel('frequency (Hz)'), ylabel('likelihood')
     title(sprintf('1st formant frequency (F1 = %0.0f)',F1),'FontSize',16)
     axis square, spm_axis tight, box off, drawnow
+    
+    % supplement spectral plots
+    %----------------------------------------------------------------------
+    subplot(3,1,1), hold on
+    a  = get(gca,'YLim'); a = a(2);
+    plot([F0 F0],[0 a],'g')
+    for j = 1:4
+        plot([F0 F0]*j,[0 a],'-.g')
+    end, hold off
+    
+    subplot(3,1,2), hold on
+    for j = 1:8
+        plot(16*[F1 F1]*j,[0 a],'g')
+        for k = 1:8
+            plot(16*[F1 F1]*(j - 1 + (k - 1)/8),[0 a],':g')
+        end
+    end, hold off
     
 end
 
