@@ -1,5 +1,5 @@
 /*
- * $Id: spm_add.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_add.c 7602 2019-06-05 14:34:18Z guillaume $
  */
  
 /*
@@ -42,7 +42,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     int mask0flag = 0, floatflag = 0;
     double NaN = mxGetNaN();
     mxArray *wplane_args[3];
-    int maxval = 0, minval = 0;
+    int maxval = 0;
+    /* int minval = 0; */
     int dtype;
 
     if ((nrhs != 2 && nrhs != 3) || nlhs > 1)
@@ -91,19 +92,19 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (dtype == 2)
     {
         maxval = 255;
-        minval = 0;
+        /* minval = 0; */
         floatflag = 0;
     }
     else if (dtype == 4)
     {
         maxval = 32767;
-        minval = -32768;
+        /* minval = -32768; */
         floatflag = 0;
     }
     else if (dtype == 8)
     {
         maxval = 2147483647;
-        minval = -2147483647;
+        /* minval = -2147483647; */
         floatflag = 0;
     }
     else
@@ -114,8 +115,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     nj = maps[0].dim[2];
     nk = maps[0].dim[0]*maps[0].dim[1];
 
-    /* The compiler doesn't like this line - but I think it's OK */
-    wplane_args[0] = (struct mxArray_tag *)prhs[1];
+    wplane_args[0] = (mxArray *)prhs[1];
     wplane_args[1] = mxCreateDoubleMatrix(maps[0].dim[0],maps[0].dim[1],mxREAL);
     wplane_args[2] = mxCreateDoubleMatrix(1,1,mxREAL);
 

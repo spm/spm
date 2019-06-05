@@ -1,5 +1,5 @@
 /*
- * $Id: spm_conv_vol.c 7251 2018-01-31 12:44:05Z guillaume $
+ * $Id: spm_conv_vol.c 7602 2019-06-05 14:34:18Z guillaume $
  * John Ashburner
  */
 
@@ -318,8 +318,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     if (!mxIsNumeric(prhs[1]))
     {
-        /* The compiler doesn't like this line - but I think it's OK */
-        wplane_args[0] = (struct mxArray_tag *)prhs[1];
+        wplane_args[0] = (mxArray *)prhs[1];
         wplane_args[1] = mxCreateDoubleMatrix(map->dim[0],map->dim[1],mxREAL);
         wplane_args[2] = mxCreateDoubleMatrix(1,1,mxREAL);
         oVol = (double *)0;
