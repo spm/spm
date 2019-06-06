@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 7571 2019-04-10 15:23:16Z guillaume $
+% $Id: spm.m 7606 2019-06-06 10:52:30Z guillaume $
 
 
 %=======================================================================
@@ -400,25 +400,32 @@ spm_get_defaults('modality',Modality);
 %-Addpath (modality-specific) toolboxes
 %-----------------------------------------------------------------------
 if ~isdeployed
+    ws = warning('off','MATLAB:mpath:nameNonexistentOrNotADirectory');
     addpath(fullfile(spm('Dir'),'toolbox','DEM'));
+    warning(ws);
 end
 
 if strcmpi(Modality,'EEG')
-    if ~isdeployed
-        addpath(fullfile(spm('Dir'),'external','fieldtrip'));
+    if exist(fullfile(spm('Dir'),'external','fieldtrip'),'dir') ~= 7
+        warning('FieldTrip not available: some features will be missing.');
+    else
+        if ~isdeployed
+            addpath(fullfile(spm('Dir'),'external','fieldtrip'));
+        end
+        clear ft_defaults
+        clear global ft_default
+        global ft_default
+        ft_default.trackcallinfo = 'no';
+        ft_default.showcallinfo = 'no';
+        ft_default.trackusage = 'no';
+        ft_defaults;
+        ft_default.trackcallinfo = 'no';
+        ft_default.showcallinfo = 'no';
+        ft_default.trackusage = 'no';
+        ft_warning('off','backtrace');
     end
-    clear ft_defaults
-    clear global ft_default
-    global ft_default
-    ft_default.trackcallinfo = 'no';
-    ft_default.showcallinfo = 'no';
-    ft_default.trackusage = 'no';
-    ft_defaults;
-    ft_default.trackcallinfo = 'no';
-    ft_default.showcallinfo = 'no';
-    ft_default.trackusage = 'no';
-    ft_warning('off','backtrace');
     if ~isdeployed
+        ws = warning('off','MATLAB:mpath:nameNonexistentOrNotADirectory');
         addpath(...
             fullfile(spm('Dir'),'external','bemcp'),...
             fullfile(spm('Dir'),'external','ctf'),...
@@ -430,6 +437,7 @@ if strcmpi(Modality,'EEG')
             fullfile(spm('Dir'),'toolbox', 'spectral'),...
             fullfile(spm('Dir'),'toolbox', 'Neural_Models'),...
             fullfile(spm('Dir'),'toolbox', 'MEEGtools'));
+        warning(ws);
     end
 end
 

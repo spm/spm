@@ -10,11 +10,11 @@ function Fmenu = spm_Menu(action, varargin)
 %
 % FORMAT spm_Menu('Close')
 % Close the SPM Menu window
-%_________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2018-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_Menu.m 7432 2018-09-28 14:35:27Z guillaume $
+% $Id: spm_Menu.m 7606 2019-06-06 10:52:30Z guillaume $
 
 
 if nargin < 1, action = 'Create'; end
@@ -147,6 +147,6 @@ if ~isempty(xTB)
     set(findobj(Fmenu,'Tag', 'Toolbox'),'String',{'Toolbox:' xTB.name });
     set(findobj(Fmenu,'Tag', 'Toolbox'),'UserData',xTB);
 else
-    set(findobj(Fmenu,'Tag', 'Toolbox'),'Visible','off')
+    set(findobj(Fmenu,'Tag', 'Toolbox'),'Enable','off');
 end
 set(Fmenu,'Visible',Vis);
