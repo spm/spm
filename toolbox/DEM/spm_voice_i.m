@@ -12,15 +12,17 @@ function [i,P] = spm_voice_i(str)
 % LEX  - lexical structure array
 %
 %  This routine returns the index or indices of a word if supplied with a
-%  string or cell array. Alternatively, it returns the string
-%  corresponding to an index or vector of indices. if called with the
-%  second argument, it returns a prior probability matrix where the
-%  specified words (for strings) have a prior odds ratio of 32.
+%  string or cell array. Alternatively, it returns the string corresponding
+%  to an index or vector of indices. if called with the second argument, it
+%  returns a prior probability matrix where the specified words (for
+%  strings) have a prior odds ratio of 32.
+%
+%  NB: If a string is not in the lexicon, 0 is returned.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_i.m 7597 2019-05-23 18:42:38Z karl $
+% $Id: spm_voice_i.m 7610 2019-06-09 16:38:16Z karl $
 
 % get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
@@ -67,6 +69,7 @@ end
 % get indices
 %--------------------------------------------------------------------------
 i    = find(strcmp(str,word));
+if isempty(i), i = 0; end
 
 
 

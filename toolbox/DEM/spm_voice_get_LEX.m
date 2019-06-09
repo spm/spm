@@ -31,7 +31,7 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: spm_voice_get_LEX.m 7610 2019-06-09 16:38:16Z karl $
 
 
 % defaults
@@ -236,6 +236,20 @@ for p = 1:nr
     WHO(p).pC  = ones(k,1)*pC;
     
 end
+
+% Create a default prosody states for each word
+%--------------------------------------------------------------------------
+p0     = spm_vec(VOX.P);
+pros   = zeros(np,nw);
+for w  = 1:nw
+    for p = 1:np
+        d         = abs(LEX(w).dE(p) - (PRO(p).pE + p0(p)));
+        [d,i]     = min(d);
+        pros(p,w) = i;
+    end
+end
+VOX.prosidy = pros;
+
 
 
 % place lexical and other structures voice structure

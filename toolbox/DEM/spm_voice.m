@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: spm_voice.m 7610 2019-06-09 16:38:16Z karl $
 
 
 %% setup options and files
@@ -52,10 +52,10 @@ end
 
 global VOX
 VOX.analysis = 0;
-VOX.graphics = 0;
+VOX.graphics = 1;
 VOX.interval = 0;
 VOX.onsets   = 0;
-VOX.mute     = 1;
+VOX.mute     = 0;
 
 %% get training corpus
 %==========================================================================
@@ -425,21 +425,28 @@ end
 global VOX
 load VOX
 load Ann
-str = {'yes','yes','yes'};
 
-load Annagain
-clear str
-str{1} = {'is'};
-str{2} = {'there'};
-str{3} = {'a'};
-str{4} = {'square'};
-str{5} = {'below','above','there'};
-str{6} = {'no','yes'};
-str{7} = {'is','there'};
+if 0
+    
+    % Series of single words
+    %----------------------------------------------------------------------
+    str = {'yes','yes','yes'};
+else
+    %  spoken sentence
+    %----------------------------------------------------------------------
+    load Annagain
+    clear str
+    str{1} = {'is'};
+    str{2} = {'there'};
+    str{3} = {'a'};
+    str{4} = {'square'};
+    str{5} = {'below','above','there'};
+    str{6} = {'no','yes'};
+    str{7} = {'is','there'};
+end
 
 VOX.formant  = 1;
 VOX.FS       = 22050;
-VOX          = rmfield(VOX,'F0');
 sound(Y,VOX.FS)
 
 
@@ -458,12 +465,17 @@ end
 % mimic speaker
 %--------------------------------------------------------------------------
 VOX.mute     = 0;
-VOX.rf       = 0;
+VOX.rf       = 1/32;
 VOX.RAND     = 1/4;
 
-spm_voice_read(Y,P);
+[SEG,p,q,r] = spm_voice_read(Y,P);
+spm_voice_segmentation(Y,SEG);
 
-load VOX
+% Now segment the synthetic speech
+%--------------------------------------------------------------------------
+[xY,y] = spm_voice_speak(p,q,r);
+spm_voice_read(y,P)
+
 
 
 %% interactive pitch analysis
@@ -516,7 +528,11 @@ xlabel('F0'),ylabel('F1'),title('relationship between F1 and F2')
 %% auxiliary code
 %==========================================================================
 
-% load script and prompt for audio file: 32 words, at one word per second
+%% load script and prompt for audio file: 32 words, at one word per second
+%--------------------------------------------------------------------------
+sorry sorry sorry sorry sorry
+
+%% load script and prompt for audio file: 32 words, at one word per second
 %--------------------------------------------------------------------------
 str   = textread(ttest,'%s');
 str   = unique(str);

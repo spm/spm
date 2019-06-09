@@ -30,7 +30,7 @@ function [xY,Y] = spm_voice_speak(q,p,r)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: spm_voice_speak.m 7610 2019-06-09 16:38:16Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -106,7 +106,7 @@ for s = 1:n
     ni    = numel(y{s});
     ii    = i0 + (1:ni)';
     Y(ii) = Y(ii) + y{s};
-    i0    = ii(end) - round(ni/8);
+    i0    = ii(end) - round(ni/4);
 end
 Y     = Y(1:ii(end));
 

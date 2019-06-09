@@ -77,7 +77,7 @@ for j = 1:size(MDP.xn{2},4)
     x(1,end+1:end+size(MDP.xn{2},1)) = MDP.xn{2}(:,1,j,j);
 end
 
-ecg = [0.3*sin(0:0.5:pi) zeros(1,10) -0.5 0:3:5 7:-3:-3 zeros(1,10)];
+ecg   = [0.3*sin(0:0.5:pi) zeros(1,10) -0.5 0:3:5 7:-3:-3 zeros(1,10)];
 trace = [];
 H = MDP.s(1,:)==3;
 
@@ -85,7 +85,7 @@ H = MDP.s(1,:)==3;
 for i = 1:length(H)
     if H(i)
         trace(end+1:end+length(ecg)) = ecg;
-    elseif i>1
+    elseif i > 1
         if H(i-1)
             trace(end+1:end+length(ecg)) = [0.8*sin(0:0.1:pi) zeros(1,length(ecg)-32)];
         else
@@ -96,23 +96,22 @@ for i = 1:length(H)
     end
 end
 
-c = length(x)/length(trace);
+c     = length(x)/length(trace);
 for i = 1:length(trace)
-    subplot(2,1,1)
-    if i<151
-        plot(trace(1:i),'r','LineWidth',5)
+    subplot(2,2,1)
+    if i < 151
+        plot(trace(1:i),'r','LineWidth',3)
     else
-        plot(trace(i-150:i),'r','LineWidth',5)
+        plot(trace(i-150:i),'r','LineWidth',3)
     end
-    axis off
+    axis square, axis off
     axis([0 150 -3 8])
     
-    subplot(2,1,2)
+    subplot(2,2,2)
     ind = max(round(i*c),1);
     I = A.s*x(ind)+A.f*(1-x(ind));
     imagesc(I)
-    axis square
-    axis off
+    axis square, axis off
     pause(0.001)
 end
 

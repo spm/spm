@@ -37,10 +37,10 @@ function MDP = DEMO_MDP_voice
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_voice.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: DEMO_MDP_voice.m 7610 2019-06-09 16:38:16Z karl $
  
  
-rng('default')
+% rng('default')
  
 % first level (lexical)
 %==========================================================================
@@ -50,35 +50,45 @@ rng('default')
 %--------------------------------------------------------------------------
 % probabilistic mapping from hidden states to outcomes: A
 %--------------------------------------------------------------------------
-sentence{1} = {'Are there any ','&1_1','s','?'};
-sentence{2} = {'Is there a ','&2_1','&2_3','?'};
-sentence{3} = {'Is a ','&3_2','&3_1','&3_3','?'};
-sentence{4} = {'Yes','!'};
-sentence{5} = {'No','!'};
-sentence{6} = {'Not sure','!'};
-sentence{7} = {'Ready','?'};
 
-syn{1}      = {'Ready','OK','please begin'};
-syn{2}      = {'Not sure','I dont know','Cannot say'};
-syn{3}      = {'No','Sorry, no','There is not'};
-syn{4}      = {'Yes','Yes there is','Well done'};
+% setup lexicon and syntactic (sentence) structures
+%==========================================================================
+% note each sequence ends in the same (space) outcome: s010 = ' '
+syn{1}      = {'is'};
+syn{2}      = {'there'};
+syn{3}      = {'a'};
+syn{4}      = {'yes','OK'};
+syn{5}      = {'no','sorry'};
+syn{6}      = {'Iam'};
+syn{7}      = {'not'};
+syn{8}      = {'sure'};
+syn{9}      = {'ready','OK','go'};
+syn{10}     = {' '};
 
-% assemble hidden states and transition probabilities
+noun        = {'square','triangle'};
+adjective   = {'green','red'};
+adverb      = {'above','below'};
+
+% allowable outcomes (words)
 %--------------------------------------------------------------------------
-name  = {};
-for i = 1:numel(sentence)
-    for j = 1:numel(sentence{i})
-        phrase = sentence{i}(j);
-        if ~any(ismember(name,phrase))
-        name(end + 1) = phrase;
-        end
-    end
-end
+outcome     = unique([syn{:} noun{:} adjective{:} adverb{:}]);
 
-label.factor{1} = 'noun';   label.name{1}  = {'square ','triangle '};
-label.factor{2} = 'adj.';   label.name{2}  = {'green ','red '};
-label.factor{3} = 'adverb'; label.name{3}  = {'above','below'};
-label.factor{4} = 'syntax'; label.name{4}  = name;
+% allowable sentences
+%--------------------------------------------------------------------------
+sentence{1} = {'s11','s12','s13','&1f1','s010'};
+sentence{2} = {'s21','s22','s23','&2f1','&2f3','s010'};
+sentence{3} = {'s31' 's33','&3f2','&3f1','&3f3','s010'};
+sentence{4} = {'s44','s010'};
+sentence{5} = {'s55','s010'};
+sentence{6} = {'s66','s67','s68','s010'};
+sentence{7} = {'s79','s010'};
+
+% assemble hidden (syntax) states
+%--------------------------------------------------------------------------
+label.factor{1} = 'noun';   label.name{1}  = noun;
+label.factor{2} = 'adj.';   label.name{2}  = adjective;
+label.factor{3} = 'adverb'; label.name{3}  = adverb;
+label.factor{4} = 'syntax'; label.name{4}  = unique([sentence{:}]);
 
 % prior beliefs about initial states D 
 %--------------------------------------------------------------------------
@@ -87,7 +97,7 @@ for i = 1:numel(label.factor)
     D{i} = ones(n,1)/n;
 end
 
-% restricted initial states to the beginning of a sentence
+% restrict initial states to the beginning of a sentence
 %--------------------------------------------------------------------------
 state = label.name{4};
 D{4}  = spm_zeros(D{4});
@@ -96,34 +106,16 @@ for i = 1:numel(sentence)
     D{4}(j) = 1;
 end
 
-% probabilistic mapping from hidden states to outcomes: A
+% hidden factors
 %--------------------------------------------------------------------------
 Nf    = numel(D);
 for f = 1:Nf
     Ns(f) = numel(D{f});
 end
 
-
-outcome = {};
-for i = 1:numel(label.name)
-    outcome = [outcome,label.name{i}];
-end
-for i = 1:numel(syn)
-    outcome = [outcome,syn{i}];
-end
-outcome = unique(outcome);
-j     = [];
-for i = 1:numel(outcome)
-    if outcome{i}(1) ~= '&';
-        j = [j,i];
-    end
-end
-outcome = outcome(j);
-
 % single outcome modality with multiple phrases
 %--------------------------------------------------------------------------
-label.modality{1} = 'phrase';   label.outcome{1} = outcome;
-
+label.modality{1} = 'word';   label.outcome{1} = outcome;
 
 for f1 = 1:Ns(1)
     for f2 = 1:Ns(2)
@@ -134,26 +126,35 @@ for f1 = 1:Ns(1)
                 %----------------------------------------------------------
                 j = {f1,f2,f3,f4};
                 
-                % assemble phrases under this state
-                %----------------------------------------------------------
+                % words under this state
+                %==========================================================
                 name = label.name{4}{f4};
                 if name(1) == '&'
+                    
+                    % get noun, adverb or adjective
+                    %------------------------------------------------------
                     p   = eval(name(end));
-                    q   = eval(['f' name(end)]);
+                    q   = eval(name(3:end));
                     out = label.name{p}(q);
-                else
-                    out = name;
-                    for i = 1:numel(syn)
-                        if any(ismember(syn{i},name))
-                            out = syn{i};
-                        end
-                    end
+                    
+                elseif name(1) == 's'
+                    
+                    % otherwise get synonyms
+                    %------------------------------------------------------
+                    q   = eval(name(3:end));
+                    out = syn{q};
                 end
                 
-                % place in likelihood matrix
+                % place words in likelihood matrix
                 %----------------------------------------------------------
                 i = ismember(outcome,out);
                 A{1}(i,j{:}) = 1/sum(i);
+                
+                % prosidy under this state
+                %==========================================================
+                for p = 2:4
+                    A{p}(:,j{:}) = full(sparse(3:6,1,1,8,1));
+                end
 
             end
         end
@@ -166,7 +167,7 @@ for f = 1:Nf
     B{f} = eye(Ns(f));
 end
  
-% specify syntax
+% specify syntax; i.e., the sequence of syntactic (sentence) states
 %--------------------------------------------------------------------------
 B{4}  = spm_zeros(B{4});
 for s = 1:numel(sentence)
@@ -181,33 +182,18 @@ end
  
 % MDP Structure
 %--------------------------------------------------------------------------
-mdp.T = 5;                      % number of updates
+mdp.T = 6;                      % number of updates
 mdp.A = A;                      % observation model
 mdp.B = B;                      % transition probabilities
 mdp.D = D;                      % prior over initial states
 mdp.o = [];
- 
-mdp.label = label;
-mdp.chi   = 1/32;
-MDP       = spm_MDP_check(mdp);
 
+mdp.VOX   = [0,0,0];
+mdp.label = label;
+MDP       = spm_MDP_check(mdp);
 
 clear A B D mdp
 
-% MDP.s = [1 2 1 8]';
-% MDP   = spm_MDP_VB_X(MDP);
-% 
-% % show belief updates (and behaviour)
-% %------------------------------------------------------------------------
-% spm_figure('GetWin','Figure 1'); clf
-% spm_MDP_VB_trial(MDP,[3 4],1);
-% 
-% % illustrate phase-precession and responses
-% %------------------------------------------------------------------------
-% spm_figure('GetWin','Figure 2'); clf
-% spm_MDP_VB_LFP(MDP,[],4);
-
-% return
 
 %% second level (narrative)
 %==========================================================================
@@ -247,15 +233,15 @@ Nf    = numel(D);
 for f = 1:Nf
     Ns(f) = numel(D{f});
 end
-for f1 = 1:Ns(1)
-    for f2 = 1:Ns(2)
-        for f3 = 1:Ns(3)
-            for f4 = 1:Ns(4)
-                for f5 = 1:Ns(5)
-                    for f6 = 1:Ns(6)
-                        for f7 = 1:Ns(7)
-                            for f8 = 1:Ns(8)
-                                for f9 = 1:Ns(9)
+for f1 = 1:Ns(1) % narrative {'ready','question','answer'}
+    for f2 = 1:Ns(2) % question {'is?','where?','what?'}
+        for f3 = 1:Ns(3) % upper colour {'green','red'}
+            for f4 = 1:Ns(4) % lower colour {'green','red'}
+                for f5 = 1:Ns(5) % upper shape {'square','triangle'}
+                    for f6 = 1:Ns(6) % lower shape {'square','triangle'}
+                        for f7 = 1:Ns(7) % noun {'square','triangle'}
+                            for f8 = 1:Ns(8) % adjective {'green','red'}
+                                for f9 = 1:Ns(9) % adverb {'above','below'}
                                     
                                     % indices
                                     %--------------------------------------
@@ -294,7 +280,7 @@ for f1 = 1:Ns(1)
                                     %======================================
                                     A{3}(f9,j{:}) = 1;
                                     
-                                    % A{4} syntax: {'1','2','3','Y','N','?'}
+                                    % A{4} syntax: {Q1,Q2,Q3,Y,N,?,Go}
                                     %======================================
                                     if f1 == 1
                                         A{4}(7,j{:})     = 1;
@@ -306,9 +292,9 @@ for f1 = 1:Ns(1)
                                         else
                                             A{4}(5,j{:}) = .98;
                                         end
-                                         A{4}(6,j{:})    = .02;
+                                        A{4}(6,j{:})     = .02;
                                     end
-         
+                                    
                                 end
                             end
                         end
@@ -324,7 +310,6 @@ end
 Ng    = numel(A);
 for g = 1:Ng
     No(g) = size(A{g},1);
-    if any(spm_vec(sum(A{g})) ~= 1), disp('check A'), return, end
 end
  
 % controlled transitions: B{f} for each factor
@@ -367,7 +352,7 @@ V(1,:,9)  = 1 + [1 1 1 2 1 2 1 2 1 2 1 2 1 2];
 V(2,:,:)  = 1;
 
  
-% priors: (utility) C: A{4} syntax: {'1','2','3','Y','N','S'}
+% priors: (utility) C: A{4} syntax: {'1','2','3','Y','N','?'}
 %--------------------------------------------------------------------------
 for g = 1:Ng
     C{g}  = zeros(No(g),1);
@@ -383,6 +368,7 @@ s(4) = 2;
 
 % MDP Structure
 %--------------------------------------------------------------------------
+mdp.FCN    = @spm_questions_plot;
 mdp.MDP    = MDP;
 mdp.label  = label;             % names of factors and outcomes
 mdp.tau    = 4;                 % time constant of belief updating
@@ -397,40 +383,30 @@ mdp.D = D;                      % prior over initial states (context)
 mdp.s = s;                      % initial state
 mdp.o = [];                     % outcomes
 
-mdp.link = spm_MDP_link(mdp);
-MDP      = spm_MDP_check(mdp);
+mdp.link = spm_MDP_link(mdp);   % map outputs to initial (lower) states
 
- 
  
 %% illustrate questioning
 %==========================================================================
 clear MDP
+[mdp.MDP(1,1:3)] = deal(mdp.MDP);
+
+% agent asks (by setting VOX to [0 1 0]
+%--------------------------------------------------------------------------
+VOX   = [0, 1, 0];
+for t = 1:mdp.T
+    mdp.MDP(t).VOX = VOX(t);
+end
 OPTIONS.D    = 1;
 [MDP(1,1:6)] = deal(mdp);
 
+
 % agent asks (by setting outomes to [0 1 0]
 %--------------------------------------------------------------------------
-% for i = 1:size(MDP,2)
-%     m     = [0, 1, 0];
-%     n     = ones(numel(MDP(1).MDP(1).A),MDP(1,i).MDP(1).T);
-%     for t = 1:numel(m)
-%         MDP(1,i).m{t} = n*m(t);
-%     end
-% end
 
-% % agent asks (by setting outomes to [0 1 0]
-% %--------------------------------------------------------------------------
-% for i = 1:size(MDP,2)
-%     MDP(1,i).n = [1, 0, 1];
-% end
-% 
-% % give agent veridical beliefs about the scene
-% %--------------------------------------------------------------------------
-% for i = [3 4 5 6]
-%     MDP(1,1).D{i} = sparse(s(i),1,1,Ns(i),1);
-% end
-
-
+% belief updating
+%==========================================================================
+spm_figure('GetWin','20 Questions'),clf; subplot(4,3,2); axis off
 MDP   = spm_MDP_VB_X(MDP,OPTIONS);
 
 % show belief updates (and behaviour)
@@ -449,7 +425,7 @@ spm_MDP_VB_LFP(MDP,[],4,1);
 spm_figure('GetWin','Figure 3'); clf
 spm_MDP_VB_ERP(MDP(4:6),[4,3]);
 
-spm_figure('GetWin','Figure 4'); clf
+spm_figure('GetWin','20 Questions'); clf
 for i = 1:size(MDP,2)
     subplot(4,3,i)
     spm_questions_plot(MDP(1,i))
@@ -459,7 +435,7 @@ return
 
 
 
-function spm_questions_plot(MDP)
+function spm_questions_plot(MDP,X)
 %% illustrate beliefs
 %--------------------------------------------------------------------------
 
@@ -470,67 +446,60 @@ function spm_questions_plot(MDP)
 % label.modality{3} = 'adverb'; label.outcome{3}  = {'above','below'};
 % label.modality{4} = 'syntax'; label.outcome{4}  = {'1','2','3','Y','N','Sil.'};
 
-% plot question, answer and posterior beliefs
+% plot question, answer and posterior belief
 %==========================================================================
-cla;
+spm_figure('GetWin','20 Questions'); hold off
+if nargin < 2; X = MDP.X; end
 
-for m = 1:numel(MDP)
-    
-    % Assemble question-and-answer
-    %----------------------------------------------------------------------
-    answer = MDP(m).o(4,3);   
-    qstr   = cell2mat(MDP(m).MDP.label.outcome{1}(MDP(m).mdp(2).o));
-    astr   = cell2mat(MDP(m).MDP.label.outcome{1}(MDP(m).mdp(3).o));
-   
-    
-    % is the answer right (for a single player)?
-    %----------------------------------------------------------------------
-    ind    = num2cell(MDP(m).s(:,3));
-    if answer == find(MDP(m).A{4}(:,ind{:}),1) || m > 1
-        cor = spm_softmax(2*[0;1;0]);
-    else
-        cor = spm_softmax(2*[1;0;0]);
-    end
-    
-    
-    %  plot posterior beliefs
-    %----------------------------------------------------------------------
-    % label.factor{3}  = 'upper colour'; label.name{3}  = {'green','red'};
-    % label.factor{4}  = 'lower colour'; label.name{4}  = {'green','red'};
-    % label.factor{5}  = 'upper shape';  label.name{5}  = {'square','triangle'};
-    % label.factor{6}  = 'lower shape';  label.name{6}  = {'square','triangle'};
-    
-    % upper and lower object
-    %----------------------------------------------------------------------
-    T       = 2;
-    col{1}  = [MDP(m).X{3}(2,T) MDP(m).X{3}(1,T) 0];
-    col{1}  = col{1}*MDP(m).X{5}(1,T) + (1 - MDP(m).X{5}(1,T));
-    col{2}  = [MDP(m).X{3}(2,T) MDP(m).X{3}(1,T) 0];
-    col{2}  = col{2}*MDP(m).X{5}(2,T) + (1 - MDP(m).X{5}(2,T));
-    col{3}  = [MDP(m).X{4}(2,T) MDP(m).X{4}(1,T) 0];
-    col{3}  = col{3}*MDP(m).X{6}(1,T) + (1 - MDP(m).X{6}(1,T));
-    col{4}  = [MDP(m).X{4}(2,T) MDP(m).X{4}(1,T) 0];
-    col{4}  = col{4}*MDP(m).X{6}(2,T) + (1 - MDP(m).X{6}(2,T));
-    
-    plot(m,0,'^','MarkerSize',24,'LineWidth',4,'Color',col{4}), hold on
-    plot(m,0,'s','MarkerSize',24,'LineWidth',4,'Color',col{3})
-    plot(m,1,'^','MarkerSize',24,'LineWidth',4,'Color',col{2})
-    plot(m,1,'s','MarkerSize',24,'LineWidth',4,'Color',col{1})
-    
+% Assemble question-and-answer
+%----------------------------------------------------------------------
+answer    = MDP.o(4,3);
+if ~answer
+    return
 end
 
-try, nq = MDP(1).n(4,2); catch, nq = 1; end
-try, na = MDP(1).n(4,3); catch, na = 1; end
-if ~nq, nq = 1; end
-if ~na, na = 1; end
-text(nq, 2,qstr,'HorizontalAlignment','Center')
-text(na,-1,astr,'HorizontalAlignment','Center','FontWeight','bold','Color',cor)
-axis([0 (m + 1) -1.5 2.5]), axis off, axis square
+qstr      = MDP.MDP(1).label.outcome{1}(MDP.mdp(2).o(1,:));
+qstr(2,:) = {' '}; qstr = cell2mat(qstr(:)');
+astr      = MDP.MDP(1).label.outcome{1}(MDP.mdp(3).o(1,:));
+astr(2,:) = {' '}; astr = cell2mat(astr(:)');
 
 
-% return if multiple agents
-%--------------------------------------------------------------------------
-if numel(MDP) > 1, return, end
+% is the answer right (for a single player)?
+%----------------------------------------------------------------------
+ind    = num2cell(MDP.s(:,3));
+if answer == find(MDP.A{4}(:,ind{:}),1)
+    cor = spm_softmax(2*[0;1;0]);
+else
+    cor = spm_softmax(2*[1;0;0]);
+end
+
+%  plot posterior beliefs
+%----------------------------------------------------------------------
+% label.factor{3}  = 'upper colour'; label.name{3}  = {'green','red'};
+% label.factor{4}  = 'lower colour'; label.name{4}  = {'green','red'};
+% label.factor{5}  = 'upper shape';  label.name{5}  = {'square','triangle'};
+% label.factor{6}  = 'lower shape';  label.name{6}  = {'square','triangle'};
+
+% upper and lower object
+%----------------------------------------------------------------------
+T       = 2;
+col{1}  = [X{3}(2,T) X{3}(1,T) 0];
+col{1}  = col{1}*X{5}(1,T) + (1 - X{5}(1,T));
+col{2}  = [X{3}(2,T) X{3}(1,T) 0];
+col{2}  = col{2}*X{5}(2,T) + (1 - X{5}(2,T));
+col{3}  = [X{4}(2,T) X{4}(1,T) 0];
+col{3}  = col{3}*X{6}(1,T) + (1 - X{6}(1,T));
+col{4}  = [X{4}(2,T) X{4}(1,T) 0];
+col{4}  = col{4}*X{6}(2,T) + (1 - X{6}(2,T));
+
+plot(1,0,'^','MarkerSize',24,'LineWidth',4,'Color',col{4}), hold on
+plot(1,0,'s','MarkerSize',24,'LineWidth',4,'Color',col{3})
+plot(1,1,'^','MarkerSize',24,'LineWidth',4,'Color',col{2})
+plot(1,1,'s','MarkerSize',24,'LineWidth',4,'Color',col{1})
+
+text(1, 2,qstr,'HorizontalAlignment','Center')
+text(1,-1,astr,'HorizontalAlignment','Center','FontWeight','bold','Color',cor)
+axis([0 2 -1.5 2.5]), axis off, axis square
 
 % upper and lower object
 %--------------------------------------------------------------------------
@@ -538,9 +507,9 @@ rgb     = {[0 1 0],[1 0 0]};
 shape   = {'s','^'};
 plot(1 + 1/2,1,shape{MDP.s(5)},'MarkerSize',8,'LineWidth',1,'Color',rgb{MDP.s(3)})
 plot(1 + 1/2,0,shape{MDP.s(6)},'MarkerSize',8,'LineWidth',1,'Color',rgb{MDP.s(4)})
+drawnow
 
 
 
 
 
- 

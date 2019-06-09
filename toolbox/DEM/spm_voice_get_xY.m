@@ -19,7 +19,7 @@ function [xY,word] = spm_voice_get_xY(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_xY.m 7587 2019-05-06 16:47:53Z karl $
+% $Id: spm_voice_get_xY.m 7610 2019-06-09 16:38:16Z karl $
 
 
 %% get corpus
@@ -82,12 +82,15 @@ for w = 1:nw
             ik      = ik(ik < ni & ik > 1);
             xY(w,k) = spm_voice_ff(Y(ik),FS);
             
-            % apply inverse transform and play, if requested
+            % record interval
             %--------------------------------------------------------------
-            spm_voice_iff(xY(w,k));
             xY(w,k).i(1) = ik(1)/FS   - 1/2;
             xY(w,k).i(2) = ik(end)/FS - 1/2;
         end
+        
+        % apply inverse transform and play, if requested
+        %------------------------------------------------------------------
+        spm_voice_iff(xY(w,k));
         
     end
     

@@ -30,7 +30,7 @@ function [MDP] = spm_MDP_check(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_check.m 7596 2019-05-23 18:42:23Z karl $
+% $Id: spm_MDP_check.m 7610 2019-06-09 16:38:16Z karl $
 
 
 % deal with a sequence of trials
@@ -204,9 +204,9 @@ if isfield(MDP,'link')
     
     % cardinality of subordinate level
     %----------------------------------------------------------------------
-    nf    = numel(MDP.MDP.B);            % number of hidden state factors
+    nf    = numel(MDP.MDP(1).B);               % number of hidden factors
     for f = 1:nf
-        ns(f)    = size(MDP.MDP.B{f},1); % number of hidden states
+        ns(f)    = size(MDP.MDP(1).B{f},1);    % number of hidden states
     end
     
     % check the size of link
@@ -305,7 +305,7 @@ for i = 1:Nf
     
     % name of actions under each factor
     %----------------------------------------------------------------------
-    for j = 1:Ns(i)
+    for j = 1:Nu(i)
         try
             MDP.label.action{i}(j);
         catch
