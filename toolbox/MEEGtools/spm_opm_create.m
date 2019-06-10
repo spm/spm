@@ -31,7 +31,7 @@ function [D,L] = spm_opm_create(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_create.m 7542 2019-03-11 15:25:52Z tim $
+% $Id: spm_opm_create.m 7612 2019-06-10 16:24:05Z tim $
 spm('FnBanner', mfilename);
 
 %-Set default values
@@ -329,15 +329,25 @@ if(forward)
         pos2d(i,1)=dot(grad.coilpos(i,:),t1);
         pos2d(i,2)=dot(grad.coilpos(i,:),t2);
     end
-    
-    
-    args=[];
-    args.D=D;
-    args.xy= pos2d';
-    args.label=grad.label;
-    args.task='setcoor2d';
-    D=spm_eeg_prep(args);
-    D.save;
+     
+ nMEG = length(indchantype(D,'MEG'));
+    if nMEG~=size(pos2d,1)
+        m1 = '2D positions could not be set as there are ';
+        m2 =num2str(nMEG);
+        m3 = ' channels but only ';
+        m4 = num2str(size(pos2d,1));
+        m5 =  ' channels with position information.';
+        message = [m1,m2,m3,m4,m5];
+        warning(message);
+    else
+        args=[];
+        args.D=D;
+        args.xy= pos2d';
+        args.label=grad.label;
+        args.task='setcoor2d';
+        D=spm_eeg_prep(args);
+        D.save;
+    end
 end
 %- Foward  model specification
 %--------------------------------------------------------------------------
