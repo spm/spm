@@ -31,7 +31,7 @@ function [D,L] = spm_opm_create(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_create.m 7612 2019-06-10 16:24:05Z tim $
+% $Id: spm_opm_create.m 7614 2019-06-10 17:07:55Z tim $
 spm('FnBanner', mfilename);
 
 %-Set default values
@@ -287,14 +287,23 @@ if forward
         f1=coord.HeadCoilCoordinates.coil1;
         f2=coord.HeadCoilCoordinates.coil2;
         f3=coord.HeadCoilCoordinates.coil3;
-        fid.fid.pnt =[f1';f2';f3'];
+        fiMat = zeros(3,3);
+        fiMat(1,:) = f1;
+        fiMat(2,:) = f2;
+        fiMat(3,:) = f3;
+        fid.fid.pnt =fiMat;
         fid.pos= []; % headshape field that is left blank (GRB)
        
         m1=coord.AnatomicalLandmarkCoordinates.coil1;
         m2=coord.AnatomicalLandmarkCoordinates.coil2;
         m3=coord.AnatomicalLandmarkCoordinates.coil3;
+        miMat = zeros(3,3);
+        miMat(1,:) = m1;
+        miMat(2,:) = m2;
+        miMat(3,:) = m3;
+        
         M = fid;
-        M.fid.pnt=[m1';m2';m3'];
+        M.fid.pnt=miMat;
         M.pnt = D.inv{1}.mesh.fid.pnt;
         
     elseif(template)
