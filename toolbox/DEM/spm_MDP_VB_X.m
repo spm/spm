@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7610 2019-06-09 16:38:16Z karl $
+% $Id: spm_MDP_VB_X.m 7615 2019-06-12 13:35:41Z thomas $
 
 
 % deal with a sequence of trials
@@ -908,9 +908,9 @@ for t = 1:T
                                     v  = v + px + qL - qx;
                                 end
                                 
-                                % (negative) expected free energy
+                                % (negative) free energy
                                 %------------------------------------------
-                                F(k) = F(k) + sx'*v;
+                                F(k) = F(k) + sx'*(0.5*v - (Nf(m)-1)*qL/Nf(m));
                                 
                                 % update
                                 %------------------------------------------
