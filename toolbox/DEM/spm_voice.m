@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7610 2019-06-09 16:38:16Z karl $
+% $Id: spm_voice.m 7616 2019-06-12 13:51:03Z karl $
 
 
 %% setup options and files
@@ -52,19 +52,19 @@ end
 
 global VOX
 VOX.analysis = 0;
-VOX.graphics = 1;
+VOX.graphics = 0;
 VOX.interval = 0;
 VOX.onsets   = 0;
-VOX.mute     = 0;
+VOX.mute     = 1;
 
 %% get training corpus
 %==========================================================================
-[xY,word] = spm_voice_get_xY(PATH); save xY xY word
+[xY,word,NI] = spm_voice_get_xY(PATH); save xY xY word NI
 
 
 %% set VOX (LEX, PRO and WHO) and parameters; e.g., timbre  = mean(P(:,4));
 %==========================================================================
-spm_voice_get_LEX(xY,word);
+spm_voice_get_LEX(xY,word,NI);
 
 
 %% articulate every word under all combinations of (5 levels) of prosody
@@ -130,13 +130,13 @@ str{7} = {'is','there'};
 
 % Read test file
 %--------------------------------------------------------------------------
-spm_voice_read(wtest,P,8);
+spm_voice_read(wtest,P,16);
 
 try
     VOX = rmfield(VOX,{'F0','F1'});
 end
 
-% recover funcdamental and forst formant frequencies
+%% recover funcdamental and formant formant frequencies
 %--------------------------------------------------------------------------
 VOX.formant = 1;
 spm_voice_identity(wtest,P);
@@ -199,8 +199,22 @@ return
 %--------------------------------------------------------------------------
 % SAY: "Square Square Square Square"
 %--------------------------------------------------------------------------
+global VOX
+load VOX
 VOX.audio = audiorecorder(22050,16,1);
-spm_voice_read
+clear str
+str{1} = {'is'};
+str{2} = {'there'};
+str{3} = {'a'};
+str{4} = {'triangle','square'};
+str{5} = {'below','above'};
+str{6} = {'no','yes'};
+str{7} = {'is','there'};
+[i,P]  = spm_voice_i(str);
+
+% Read test file
+%--------------------------------------------------------------------------
+spm_voice_read(VOX.audio,P);
 
 
 %% record for four seconds and illustrate recognition using priors
@@ -424,12 +438,12 @@ end
 %==========================================================================
 global VOX
 load VOX
-load Ann
 
 if 0
     
     % Series of single words
     %----------------------------------------------------------------------
+    load Ann
     str = {'yes','yes','yes'};
 else
     %  spoken sentence
@@ -465,7 +479,7 @@ end
 % mimic speaker
 %--------------------------------------------------------------------------
 VOX.mute     = 0;
-VOX.rf       = 1/32;
+VOX.rf       = 0;
 VOX.RAND     = 1/4;
 
 [SEG,p,q,r] = spm_voice_read(Y,P);

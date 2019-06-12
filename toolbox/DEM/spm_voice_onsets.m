@@ -20,7 +20,7 @@ function [I] = spm_voice_onsets(Y,FS,U,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: spm_voice_onsets.m 7616 2019-06-12 13:51:03Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
@@ -125,13 +125,13 @@ for i = 1:numel(j0)
     end
 end
 
-% sort lengths (longest first)
+% sort lengths (longest last), with 3 minima or less
 %--------------------------------------------------------------------------
 for i = 1:numel(I)
     ni(i) = numel(I{i});
 end
-[d,j] = sort(ni,'descend');
-I     = I(j);
+[d,j] = sort(ni,'ascend');
+I     = I(j(1:min(3,end)));
 
 % graphics(if requested)
 %==========================================================================

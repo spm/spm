@@ -1,11 +1,12 @@
-function [xY,word] = spm_voice_get_xY(PATH)
+function [xY,word,NI] = spm_voice_get_xY(PATH)
 % Creates word arrays from sound file exemplars
-% FORMAT [xY,word] = spm_voice_get_xY(PATH)
+% FORMAT [xY,word,NI] = spm_voice_get_xY(PATH)
 %
 % PATH      -  directory containing sound files of exemplar words
 %
 % xY(nw,ns) -  structure array for ns samples of nw words
 % word(nw)  -  cell array of word names
+% NI(nw,ns) -  numeric array of number of minima
 %
 %  This routine uses a library of sound files, each containing 32 words
 %  spoken with varying prosody. The name of the sound file labels the word
@@ -19,7 +20,7 @@ function [xY,word] = spm_voice_get_xY(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_xY.m 7610 2019-06-09 16:38:16Z karl $
+% $Id: spm_voice_get_xY.m 7616 2019-06-12 13:51:03Z karl $
 
 
 %% get corpus
@@ -72,13 +73,14 @@ for w = 1:nw
         %------------------------------------------------------------------
         Y     = read(wname,round([-1/2 1/2]*FS + I(s)));
         i     = spm_voice_onsets(Y,FS);
+        i     = i{end};
         ni    = numel(Y);
         for j = 1:nj
             
             % jitter interval
             %--------------------------------------------------------------
             k       = (s - 1)*nj + j;
-            ik      = fix((i{1}(1) + sj*randn):(i{1}(end) + sj*randn));
+            ik      = fix((i(1) + sj*randn):(i(end) + sj*randn));
             ik      = ik(ik < ni & ik > 1);
             xY(w,k) = spm_voice_ff(Y(ik),FS);
             
@@ -91,6 +93,13 @@ for w = 1:nw
         % apply inverse transform and play, if requested
         %------------------------------------------------------------------
         spm_voice_iff(xY(w,k));
+        
+        % record number of spectral minima intervals
+        %------------------------------------------------------------------
+        [Y,IS]  = spm_voice_get_next(Y);
+        j       = fix((0:FS + FS/4) + IS);
+        j       = j(j < ni & j > 1);
+        NI(w,s) = numel(spm_voice_onsets(Y(j),FS));
         
     end
     

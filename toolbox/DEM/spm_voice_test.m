@@ -20,7 +20,7 @@ function [L] = spm_voice_test(wfile,sfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7600 2019-06-01 09:30:30Z karl $
+% $Id: spm_voice_test.m 7616 2019-06-12 13:51:03Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -60,7 +60,7 @@ for s = 1:ns
     %----------------------------------------------------------------------
     Y      = read(wfile,round([-1/2 1/2]*FS + I(s)));
     j      = spm_voice_onsets(Y,FS);
-    xY{s}  = spm_voice_ff(Y(j{1}),FS);
+    xY{s}  = spm_voice_ff(Y(j{end}),FS);
 
 end
 

@@ -1,17 +1,18 @@
-function [PP] = spm_voice_get_LEX(xY,word)
+function [PP] = spm_voice_get_LEX(xY,word,NI)
 % Creates lexical, prosody and speaker structures from word structures
 % FORMAT [P] = spm_voice_get_LEX(xY,word)
 %
-% xY(nw,ns)      -  structure array for ns samples of nw words
-% word(nw)       -  cell array of word names
+% xY(nw,ns) -  structure array for ns samples of nw words
+% word(nw)  -  cell array of word names
+% NI(nw,ns) -  numeric array of number of minima
 %
 % updates or completes the global structure VOX:
 %
-% VOX.LEX(nw)    -  structure array for nw words (lexical features)
-% VOX.PRO(np)    -  structure array for np features of prosody
-% VOX.WHO(nq)    -  structure array for nq features of speaker
+% VOX.LEX(nw) -  structure array for nw words (lexical features)
+% VOX.PRO(np) -  structure array for np features of prosody
+% VOX.WHO(nq) -  structure array for nq features of speaker
 %
-% P              -  prosidy parameters for exemplar (training) words
+% P           -  prosidy parameters for exemplar (training) words
 %
 %  This routine creates a triplet of structure arrays used to infer the
 %  lexical content and prosody of a word - and the identity of the person
@@ -31,7 +32,7 @@ function [PP] = spm_voice_get_LEX(xY,word)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7610 2019-06-09 16:38:16Z karl $
+% $Id: spm_voice_get_LEX.m 7616 2019-06-12 13:51:03Z karl $
 
 
 % defaults
@@ -258,6 +259,17 @@ VOX.LEX = LEX;
 VOX.PRO = PRO;
 VOX.WHO = WHO;
 
+% number of minima for each word
+%--------------------------------------------------------------------------
+FI    = zeros(3,nw);
+for w = 1:nw
+    for s = 1:size(NI,2)
+        i       = NI(w,s);
+        FI(i,w) = FI(i,w) + 1;
+    end
+end
+FI     = bsxfun(@rdivide,FI,sum(FI));
+VOX.FI = FI;
 
 % illustrate distribution of lexical and prosody parameters
 %==========================================================================

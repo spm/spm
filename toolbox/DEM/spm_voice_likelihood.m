@@ -32,7 +32,7 @@ function [L,M,N] = spm_voice_likelihood(xY,w)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7600 2019-06-01 09:30:30Z karl $
+% $Id: spm_voice_likelihood.m 7616 2019-06-12 13:51:03Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ if numel(xY) > 1
     for i = 1:size(xY,1)
         for j = 1:size(xY,2)
             [Li,Mi,Ni] = spm_voice_likelihood(xY(i,j),k);
-            L(:,i,j) = Li;
+            L(:,i,j)   = Li;
             M(:,:,i,j) = Mi;
             N(:,:,i,j) = Ni;
         end
@@ -201,8 +201,8 @@ for p = 1:numel(VOX.WHO)
         
         % log likelihood
         %------------------------------------------------------------------
-        E      = R(p) - VOX.WHO(p).pE(k);            % error
-        N(k,p) = -  E'*(VOX.WHO(p).pC(k)\E)/2;       % log likelihood
+        E      = R(p) - VOX.WHO(p).pE(k);           % error
+        N(k,p) = -  E'*(VOX.WHO(p).pC(k)\E)/2;      % log likelihood
         
     end
 end

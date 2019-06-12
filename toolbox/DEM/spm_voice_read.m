@@ -36,7 +36,7 @@ function [SEG,W,P,R] = spm_voice_read(wfile,L,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: spm_voice_read.m 7616 2019-06-12 13:51:03Z karl $
 
 
 %% setup
@@ -51,7 +51,8 @@ if ~isfield(VOX,'LEX')
         error('please create VOX.mat and place in path')
     end
 end
-if ~isfield(VOX,'disp'), VOX.disp = 1; end
+if ~isfield(VOX,'disp '), VOX.disp  = 1; end
+if ~isfield(VOX,'depth'), VOX.depth = 0; end
 
 % if audio source is not provided, assume a new recording
 %--------------------------------------------------------------------------
@@ -92,7 +93,7 @@ for s  = 1:ns
     
     % find next word
     %----------------------------------------------------------------------
-    L   = spm_voice_get_word(wfile,p(:,s));
+    L   = spm_voice_get_word(wfile,p(:,s:min(s + VOX.depth,end)));
         
     % break if EOF
     %----------------------------------------------------------------------

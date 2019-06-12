@@ -27,7 +27,7 @@ function [E,  PST] = spm_voice_segmentation(wfile,SEG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_segmentation.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: spm_voice_segmentation.m 7616 2019-06-12 13:51:03Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -44,7 +44,6 @@ Y   = read(wfile);
 n   = numel(Y);
 j   = fix((1:(SEG(end).IT) + FS/2));
 Y   = Y(j(j < n));
-g   = spm_voice_check(Y,FS,VOX.C);
 G   = spm_voice_check(Y,FS,1/16);
 pst = (1:numel(Y))/FS;
 
@@ -54,8 +53,7 @@ xlabel('time (seconds)'), ylabel('amplitude')
 title('Acoustic signal','FontSize',16),  hold on, box off
 
 subplot(4,1,2)
-plot(pst,g,':k',pst,spm_zeros(pst) + VOX.U,':r'), hold on
-plot(pst,G, 'k'), hold on
+plot(pst,G,'k',pst,spm_zeros(pst) + VOX.U,':r'), hold on
 xlabel('time (seconds)'), ylabel('power'), 
 title('Spectral envelope','FontSize',16), spm_axis tight, box off
 
@@ -95,13 +93,14 @@ for w = 1:numel(SEG)
     % plot boundaries and peaks
     %----------------------------------------------------------------------
     i     = fix(SEG(w).I + FS/2);
-    subplot(4,1,2), plot(pst(i),g(i),'.', 'Color',col,'MarkerSize',24)
+    subplot(4,1,2), plot(pst(i),G(i),'.', 'Color',col,'MarkerSize',24)
     for i = 1:numel(SEG(w).J)
         j = fix(SEG(w).J{i}(1)   + SEG(w).I); j = max(j - 1,1);
-        plot([1,1]*pst(j),[0 M],'--','Color',col)
+        plot([1,1]*pst(j),[0 M],'-','Color',col)
         j = fix(SEG(w).J{i}(end) + SEG(w).I); j = max(j - 1,1);
-        plot([1,1]*pst(j),[0 M],'-.','Color',col)
+        plot([1,1]*pst(j),[0 M],':','Color',col)
     end
+    plot([1,1]*pst(j),[0 M],'-.','Color',col)
 
 end
 
