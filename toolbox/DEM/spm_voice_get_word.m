@@ -35,7 +35,7 @@ function [O,F] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7616 2019-06-12 13:51:03Z karl $
+% $Id: spm_voice_get_word.m 7617 2019-06-13 12:01:17Z karl $
 
 
 %% log prior over lexical content 
@@ -102,11 +102,11 @@ if size(P,2) > 1 && nj > 1
         [O,Fi] = spm_voice_get_word(wfile,P);
         G(i)   = Fi;
     end
-end
-if all(G)
-    F = F + G;
-elseif size(P,2) < VOX.depth
-    F = 0;
+    if all(G)
+        F = F + G;
+    elseif size(P,2) < VOX.depth
+        F = 0;
+    end
 end
 [F,m] = max(F);
 

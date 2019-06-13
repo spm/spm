@@ -8,6 +8,8 @@ function [F0,F1] = spm_voice_identity(wfile,P)
 % F0     - fundamental frequency
 % F1     - expected format frequency
 %
+% NB: automatically updates VOX.F0 and VOX.F1 when called
+%
 % This routine estimates the fundamental and formant frequencies based upon
 % a spoken word source. This routine is used in conjunction with
 % spm_voice_fundamental to provide a more refined estimate of fundamental
@@ -17,7 +19,7 @@ function [F0,F1] = spm_voice_identity(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_identity.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: spm_voice_identity.m 7617 2019-06-13 12:01:17Z karl $
 
 
 % global VOX
@@ -74,6 +76,11 @@ Pf    = 256;                                  % prior precision
 PL    = -(ff1 - Ef).^2*Pf;                    % prior potential
 PL    = spm_softmax(PL + log(L(:,2)));        % posterior probability
 F1    = exp(ff1'*PL);                         % posterior expectation
+
+% update VOX structure
+%--------------------------------------------------------------------------
+VOX.F0 = F0;
+VOX.F1 = F1;
 
 if ~isfield(VOX,'formant'), return, end
 

@@ -25,7 +25,7 @@ function spm_voice_P300
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: spm_voice_P300.m 7617 2019-06-13 12:01:17Z karl $
 
 
 %% demo mode loads sentence (.mat) files
@@ -46,14 +46,10 @@ VOX.interval = 0;
 VOX.mute     = 0;
 VOX.onsets   = 0;
 
-
 %% set up priors a succession of 'triangle' or 'square'
 %==========================================================================
-nw     = numel(VOX.LEX);                           % number of words
-i      = spm_voice_i({'triangle','square'});       % prior words   
-P      = zeros(nw,8) + 1/32;                       % baseline probability
-P(i,:) = 1;                                        % prior words
-P      = bsxfun(@rdivide,P,sum(P));                % sum to on constraint
+nw    = numel(VOX.LEX);                                   % number of words
+[i,P] = spm_voice_i(repmat({{'triangle','square'}},1,8)); % prior words   
 
 % record corresponding sequence and save - or load a preprepared sentence
 %--------------------------------------------------------------------------

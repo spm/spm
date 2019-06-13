@@ -32,13 +32,13 @@ function [PP] = spm_voice_get_LEX(xY,word,NI)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7616 2019-06-12 13:51:03Z karl $
+% $Id: spm_voice_get_LEX.m 7617 2019-06-13 12:01:17Z karl $
 
 
 % defaults
 %--------------------------------------------------------------------------
 global VOX
-try, E       = VOX.E; catch, E = 8; end    % regularisation
+try, E       = VOX.E; catch, E = 4; end    % regularisation
 VOX.analysis = 0;
 VOX.graphics = 0;
 VOX.interval = 0;

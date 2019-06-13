@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7616 2019-06-12 13:51:03Z karl $
+% $Id: spm_voice.m 7617 2019-06-13 12:01:17Z karl $
 
 
 %% setup options and files
@@ -130,7 +130,7 @@ str{7} = {'is','there'};
 
 % Read test file
 %--------------------------------------------------------------------------
-spm_voice_read(wtest,P,16);
+spm_voice_read(wtest,P,8);
 
 try
     VOX = rmfield(VOX,{'F0','F1'});
@@ -153,7 +153,7 @@ q     = [];
 p     = [];
 r     = 0;
 for i = 1:nw
-    for j = 1:ns
+    for j = 1:16:ns
         
         % evaluate lexical (L) and prosody (M) likelihoods
         %------------------------------------------------------------------
@@ -202,6 +202,8 @@ return
 global VOX
 load VOX
 VOX.audio = audiorecorder(22050,16,1);
+[FS,read] = spm_voice_FS(VOX.audio);
+
 clear str
 str{1} = {'is'};
 str{2} = {'there'};
@@ -215,6 +217,17 @@ str{7} = {'is','there'};
 % Read test file
 %--------------------------------------------------------------------------
 spm_voice_read(VOX.audio,P);
+
+str{1} = {'is',};
+str{2} = {'there','a'};
+str{3} = {'a','triangle','square'};
+str{4} = {'triangle','square','below','above'};
+str{5} = {'below','above','no','yes'};
+str{6} = {'no','yes','is','there'};
+str{7} = {'is','there'};
+[i,P]  = spm_voice_i(str);
+spm_voice_read(read(VOX.audio),P);
+
 
 
 %% record for four seconds and illustrate recognition using priors
@@ -345,7 +358,7 @@ for i = 1:numel(E)
     end
     
     VOX.E = E(i);
-    P     = spm_voice_get_LEX(xY,word);
+    P     = spm_voice_get_LEX(xY,word,NI);
     A(i)  = spm_voice_test(wtest,ttest)
     VOX
     
@@ -446,6 +459,7 @@ if 0
     load Ann
     str = {'yes','yes','yes'};
 else
+    
     %  spoken sentence
     %----------------------------------------------------------------------
     load Annagain
@@ -469,18 +483,14 @@ sound(Y,VOX.FS)
 [i,P] = spm_voice_i(str);
 clear f0 f1
 for i = 1:4
-    [F0,F1] = spm_voice_identity(Y,P);
-    VOX.F1  = F1;
-    VOX.F0  = F0;
-    f0(i)   = F0;
-    f1(i)   = F1;
+   spm_voice_identity(Y,P);
 end
 
 % mimic speaker
 %--------------------------------------------------------------------------
 VOX.mute     = 0;
 VOX.rf       = 0;
-VOX.RAND     = 1/4;
+VOX.RAND     = 1;
 
 [SEG,p,q,r] = spm_voice_read(Y,P);
 spm_voice_segmentation(Y,SEG);
@@ -541,10 +551,6 @@ xlabel('F0'),ylabel('F1'),title('relationship between F1 and F2')
 
 %% auxiliary code
 %==========================================================================
-
-%% load script and prompt for audio file: 32 words, at one word per second
-%--------------------------------------------------------------------------
-sorry sorry sorry sorry sorry
 
 %% load script and prompt for audio file: 32 words, at one word per second
 %--------------------------------------------------------------------------
