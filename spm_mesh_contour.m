@@ -22,10 +22,10 @@ function S = spm_mesh_contour(M,mat)
 %   end
 % end
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2017-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_contour.m 7392 2018-08-13 11:50:28Z guillaume $
+% $Id: spm_mesh_contour.m 7618 2019-06-17 12:29:46Z guillaume $
 
 
 %-Input and output arguments
@@ -43,7 +43,13 @@ if isinteger(M.faces), M.faces = double(M.faces); end
 
 %-Check input mat
 %--------------------------------------------------------------------------
-if numel(mat) == 1
+isoline = false;
+if isstruct(mat)
+    isoline = true;
+    T = mat.T;
+    if isfield(mat,'t'),T = T - mat.t; end
+    mat = eye(4);
+elseif numel(mat) == 1
     mat = spm_matrix([0 0 -mat]);
 end
 
@@ -52,15 +58,21 @@ end
 S = struct('xdata',{},'ydata',{},'zdata',{},'isopen',{});
 
 
-%-Only consider triangles intersecting the z-plane at z = 0
+%-Only consider triangles intersecting the z-plane at z = 0 or the isoline
 %==========================================================================
 M.vertices = (mat(1:3,:) * [M.vertices';ones(1,size(M.vertices,1))])';
 X = M.vertices(:,1);
 Y = M.vertices(:,2);
 Z = M.vertices(:,3);
-I = Z(M.faces) > 0;
-J = sum(I,2);
-J = J > 0 & J < 3;
+if isoline
+    Tf = T(M.faces);
+    I  = Tf >= 0;
+    J  = any(Tf < 0,2) & any(Tf >= 0,2);
+else
+    I = Z(M.faces) > 0;
+    J = sum(I,2);
+    J = J > 0 & J < 3;
+end
 M.faces = M.faces(J,:);
 
 
@@ -135,9 +147,16 @@ while ~isempty(F)
     %----------------------------------------------------------------------
     ed = ed(C(C>0),:);
     xe = X(ed); ye = Y(ed); ze = Z(ed);
-    a  = ze(:,1) ./ diff(ze,1,2);
-    xc = xe(:,1) - a .* diff(xe,1,2);
-    yc = ye(:,1) - a .* diff(ye,1,2);
-    XYZ = mat\[xc,yc,zeros(size(xc)),ones(size(xc))]';
+    if isoline
+        Te  = T(ed);
+        Te  = 1 ./ (1 - Te ./ fliplr(Te));
+        Te(Te < 0 | Te > 1) = -1;
+        XYZ = mat\[sum(Te.*xe,2)'; sum(Te.*ye,2)'; sum(Te.*ze,2)'; ones(1,size(Te,1))];
+    else
+        a   = ze(:,1) ./ diff(ze,1,2);
+        xc  = xe(:,1) - a .* diff(xe,1,2);
+        yc  = ye(:,1) - a .* diff(ye,1,2);
+        XYZ = mat\[xc,yc,zeros(size(xc)),ones(size(xc))]';
+    end
     S(end+1) = struct('xdata',XYZ(1,:),'ydata',XYZ(2,:),'zdata',XYZ(3,:),'isopen',isopen);
 end
