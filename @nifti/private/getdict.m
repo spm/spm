@@ -1,10 +1,10 @@
 function d = getdict
 % Dictionary of NIFTI stuff
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2019 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: getdict.m 7147 2017-08-03 14:07:01Z spm $
+% $Id: getdict.m 7620 2019-06-19 15:44:39Z guillaume $
 
 
 persistent dict;
@@ -101,11 +101,19 @@ table = {...
     2003,'RGB_VECTOR'   ,'RGB triplet',{}
     2004,'RGBA_VECTOR'  ,'RGBA vector',{}
     2005,'SHAPE'        ,'Shape',{}
-    3001,'CONNECTIVITY_DENSE'                  ,'Dense connectivity',{}
-    3002,'CONNECTIVITY_DENSE_TIME'             ,'Dense time series',{}
-    3003,'CONNECTIVITY_PARCELLATED'            ,'Parcellated connectivity',{}
-    3004,'CONNECTIVITY_PARCELLATED_TIME'       ,'Parcellated time series',{}
-    3005,'CONNECTIVITY_CONNECTIVITY_TRAJECTORY','Trajectory connectivity',{}
+    3000,'CONNECTIVITY_UNKNOWN'                ,'ConnUnknown',{}
+    3001,'CONNECTIVITY_DENSE'                  ,'ConnDense',{}
+    3002,'CONNECTIVITY_DENSE_SERIES'           ,'ConnDenseSeries',{}
+    3003,'CONNECTIVITY_PARCELLATED'            ,'ConnParcels',{}
+    3004,'CONNECTIVITY_PARCELLATED_SERIES'     ,'ConnParcelSries',{}
+    3005,'CONNECTIVITY_DENSE_TRAJECTORY'       ,'ConnDenseTraj',{}
+    3006,'CONNECTIVITY_DENSE_SCALARS'          ,'ConnDenseScalar',{}
+    3007,'CONNECTIVITY_DENSE_LABELS'           ,'ConnDenseLabel',{}
+    3008,'CONNECTIVITY_PARCELLATED_SCALAR'     ,'ConnParcelScalr',{}
+    3009,'CONNECTIVITY_PARCELLATED_DENSE'      ,'ConnParcelDense',{}
+    3010,'CONNECTIVITY_DENSE_PARCELLATED'      ,'ConnDenseParcel',{}
+    3011,'CONNECTIVITY_PARCELLATED_PARCELLATED_SERIES','ConnPPSr',{}
+    3012,'CONNECTIVITY_PARCELLATED_PARCELLATED_SCALAR','ConnPPSc',{}
 };
 intent = struct('code',table(:,1),'label',table(:,2),...
     'fullname',table(:,3),'param',table(:,4));
