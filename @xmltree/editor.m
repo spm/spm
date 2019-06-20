@@ -10,7 +10,7 @@ function editor(tree)
 % Copyright (C) 2002-2015  http://www.artefact.tk/
 
 % Guillaume Flandin
-% $Id: editor.m 6524 2015-08-18 10:09:01Z guillaume $
+% $Id: editor.m 7621 2019-06-20 16:58:59Z guillaume $
 
 
 %error(nargchk(1,1,nargin));
@@ -291,6 +291,10 @@ function doAttributes(fig,evd,h)
     attr = attributes(tree,'get',uid);
     if ~isempty(attr)
         fprintf('This element has %d attributes.\n',length(attr));
+        if isstruct(attr), attr = {attr}; end
+        for i=1:numel(attr)
+            fprintf('  %s\t%s\n',attr{i}.key,attr{i}.val);
+        end
         %%%
         %%% Do what you want with 'attr'
         %%% to modify them, use:

@@ -7,7 +7,7 @@ function this = read_gifti_file(filename, this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: read_gifti_file.m 7390 2018-08-13 09:51:20Z guillaume $
+% $Id: read_gifti_file.m 7621 2019-06-20 16:58:59Z guillaume $
 
 % Import XML-based GIfTI file
 %--------------------------------------------------------------------------
@@ -203,7 +203,12 @@ end
 if length(s.Dim) == 1, s.Dim(end+1) = 1; end
 switch s.ArrayIndexingOrder
     case 'RowMajorOrder'
-        d = permute(reshape(d,fliplr(s.Dim)),length(s.Dim):-1:1);
+        if length(s.Dim) == 2 && any(s.Dim==1)
+            % special case that does not require permuting
+            d = reshape(d,s.Dim);
+        else
+            d = permute(reshape(d,fliplr(s.Dim)),length(s.Dim):-1:1);
+        end
     case 'ColumnMajorOrder'
         d = reshape(d,s.Dim);
     otherwise
