@@ -32,7 +32,7 @@ function [L,M,N] = spm_voice_likelihood(xY,w)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7616 2019-06-12 13:51:03Z karl $
+% $Id: spm_voice_likelihood.m 7622 2019-06-23 19:52:33Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -44,8 +44,11 @@ else
     k = w(:)';
 end
 
-% handle arrays
+% handle arrays and cells
 %==========================================================================
+
+% many intervals, one contraint
+%--------------------------------------------------------------------------
 if numel(xY) > 1
     for i = 1:size(xY,1)
         for j = 1:size(xY,2)
@@ -57,6 +60,19 @@ if numel(xY) > 1
     end
     return
 end
+
+% many contraints, one interval
+%--------------------------------------------------------------------------
+if iscell(k)
+    for i = 1:numel(k)
+        [Li,Mi,Ni] = spm_voice_likelihood(xY,k{i});
+        L(:,i)     = Li;
+        M(:,:,i)   = Mi;
+        N(:,:,i)   = Ni;
+    end
+    return
+end
+
 
 % defaults
 %--------------------------------------------------------------------------

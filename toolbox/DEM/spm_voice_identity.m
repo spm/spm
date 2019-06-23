@@ -19,7 +19,7 @@ function [F0,F1] = spm_voice_identity(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_identity.m 7617 2019-06-13 12:01:17Z karl $
+% $Id: spm_voice_identity.m 7622 2019-06-23 19:52:33Z karl $
 
 
 % global VOX
@@ -53,7 +53,7 @@ end
 
 % estimate lexical and identity parameters under priors
 %==========================================================================
-SEG   = spm_voice_read(read(wfile),P,size(P,2));
+SEG   = spm_voice_read(read(wfile),P);
 
 % accumulate evidence for reconsiders (assuming a Dirichlet distribution)
 %--------------------------------------------------------------------------

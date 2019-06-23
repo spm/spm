@@ -27,7 +27,7 @@ function [Y,W] = spm_voice_iff(xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7600 2019-06-01 09:30:30Z karl $
+% $Id: spm_voice_iff.m 7622 2019-06-23 19:52:33Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -76,6 +76,8 @@ nj = round(FS/F1);                           % interval length
 W  = spm_voice_Q(xY.W,G,Ni,ni);              % log formant frequencies
 W  = W + randn(Ni,ni)*RF;                    % add random fluctuations
 Q  = exp(S*W);                               % formants
+Q  = bsxfun(@rdivide,Q,hamming(ni)');        % unwindow
+Q  = bsxfun(@minus,Q,min(Q));                % supress white noise
 
 % reconstitute timeseries
 %--------------------------------------------------------------------------

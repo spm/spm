@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7617 2019-06-13 12:01:17Z karl $
+% $Id: spm_voice.m 7622 2019-06-23 19:52:33Z karl $
 
 
 %% setup options and files
@@ -126,18 +126,21 @@ str{4} = {'triangle','square'};
 str{5} = {'below','above'};
 str{6} = {'no','yes'};
 str{7} = {'is','there'};
+str{8} = {'is','there'};
 [i,P]  = spm_voice_i(str);
 
 % Read test file
 %--------------------------------------------------------------------------
-spm_voice_read(wtest,P,8);
+spm_voice_read(wtest,P);
 
+
+
+%% recover funcdamental and formant formant frequencies
+%--------------------------------------------------------------------------
 try
     VOX = rmfield(VOX,{'F0','F1'});
 end
 
-%% recover funcdamental and formant formant frequencies
-%--------------------------------------------------------------------------
 VOX.formant = 1;
 spm_voice_identity(wtest,P);
 
@@ -191,6 +194,10 @@ set(gca,'Xtick',1:k),set(gca,'Ytick',1:j),set(gca,'YtickLabel',{VOX.PRO.str})
 %==========================================================================
 return
 
+%% auxiliary code - P300 demonstration
+%==========================================================================
+spm_voice_P300
+
 
 %% auxiliary code
 %==========================================================================
@@ -218,7 +225,7 @@ str{7} = {'is','there'};
 %--------------------------------------------------------------------------
 spm_voice_read(VOX.audio,P);
 
-str{1} = {'is',};
+str{1} = {'is','there'};
 str{2} = {'there','a'};
 str{3} = {'a','triangle','square'};
 str{4} = {'triangle','square','below','above'};
@@ -227,62 +234,6 @@ str{6} = {'no','yes','is','there'};
 str{7} = {'is','there'};
 [i,P]  = spm_voice_i(str);
 spm_voice_read(read(VOX.audio),P);
-
-
-
-%% record for four seconds and illustrate recognition using priors
-%==========================================================================
-% SAY: "Is there a square below?"
-%--------------------------------------------------------------------------
-stop(VOX.audio);
-record(VOX.audio,4);
-
-
-%% run through sound file and evaluate likelihoods
-%==========================================================================
-clear W Q R SEG
-VOX.IT = 1;                                    % current index
-for s  = 1:size(P,2)
-    
-    % find next word
-    %----------------------------------------------------------------------
-    L   = spm_voice_get_word(VOX.audio,P(:,s));
-        
-    % break if EOF
-    %----------------------------------------------------------------------
-    if isempty(L), break, end
-    
-    % identify the most likely word and prosody
-    %----------------------------------------------------------------------
-    [d,w]  = max(L{1});                        % most likely word
-    [d,c]  = max(L{2});                        % most likely prosody
-    [d,r]  = max(L{3});                        % most likely identity
-    W(1,s) = w(:);                             % lexical class
-    Q(:,s) = c(:);                             % prosody classes
-    R(:,s) = r(:);                             % speaker classes
-    
-    % string
-    %----------------------------------------------------------------------
-    SEG(s).str = VOX.LEX(w).word;              % lexical string
-    SEG(s).p   = P(:,s);                       % prior
-    SEG(s).L   = L;                            % posteriors
-    SEG(s).P   = Q(:,s);                       % prosody
-    SEG(s).R   = R(:,s);                       % speaker
-    SEG(s).I0  = VOX.I0;                       % first
-    SEG(s).IT  = VOX.IT;                       % final
-    
-    disp({SEG.str})
-    
-end
-
-% articulate: with lexical content and prosody
-%--------------------------------------------------------------------------
-spm_voice_speak(W,Q,R);
-
-%% segmentation graphics
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Segmentation'); clf;
-spm_voice_segmentation(VOX.audio,SEG)
 
 
 %% optmise spectral defaults with respect to classification accuracy
@@ -457,7 +408,7 @@ if 0
     % Series of single words
     %----------------------------------------------------------------------
     load Ann
-    str = {'yes','yes','yes'};
+    str = {'yes','yes','yes','yes'};
 else
     
     %  spoken sentence
@@ -469,14 +420,11 @@ else
     str{3} = {'a'};
     str{4} = {'square'};
     str{5} = {'below','above','there'};
-    str{6} = {'no','yes'};
-    str{7} = {'is','there'};
 end
 
 VOX.formant  = 1;
 VOX.FS       = 22050;
 sound(Y,VOX.FS)
-
 
 % estimate fundamental and formant frequencies
 %--------------------------------------------------------------------------
@@ -488,16 +436,17 @@ end
 
 % mimic speaker
 %--------------------------------------------------------------------------
-VOX.mute     = 0;
-VOX.rf       = 0;
-VOX.RAND     = 1;
+VOX.mute    = 0;
+VOX.rf      = 0;
+VOX.RAND    = 1;
 
 [SEG,p,q,r] = spm_voice_read(Y,P);
 spm_voice_segmentation(Y,SEG);
 
 % Now segment the synthetic speech
 %--------------------------------------------------------------------------
-[xY,y] = spm_voice_speak(p,q,r);
+VOX.depth   = 1;
+[xY,y]      = spm_voice_speak(p,q,r);
 spm_voice_read(y,P)
 
 

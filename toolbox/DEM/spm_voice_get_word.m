@@ -1,6 +1,6 @@
-function [O,F] = spm_voice_get_word(wfile,P)
+function [O,I,J,F] = spm_voice_get_word(wfile,P)
 % Evaluates the likelihood of the next word in a file or object
-% FORMAT [O,F] = spm_voice_get_word(wfile,P)
+% FORMAT [O,I,J,F] = spm_voice_get_word(wfile,P)
 %
 % wfile  - .wav file, audiorecorder object or (double) time series
 % P      - lexical prior probability [optional]
@@ -9,7 +9,9 @@ function [O,F] = spm_voice_get_word(wfile,P)
 % O{2}   - prosody likelihood
 % O{3}   - speaker likelihood
 %
-% F      - maximum free energy (i.e., log evidence)
+% I      - interval index (1/2 sec. before spectral peak)
+% J      - interval onset and offset
+% F      - maxmium F (log evidence)
 %
 % requires the following in the global variable VOX:
 %
@@ -28,101 +30,160 @@ function [O,F] = spm_voice_get_word(wfile,P)
 % inverting successive epochs of data from an audiofile or device starting
 % at VOX.IT.  Based on the word with the least variational free energy , it
 % updates the index, ready for the next word. Priors over the words can be
-% specified to implement an Occam's window (of three nats); thereby
+% specified to implement an Occam's window (of 3 nats); thereby
 % restricting the number of lexical entries evaluated - and augmenting the
 % likelihoods to give the posterior probability over words.
+% If called with more than one prior over lexical content,  this routine
+% will perform a tree search and return the likelihoods (and intervals)
+% with the path of greatest log evidence (i.e., free energy)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7617 2019-06-13 12:01:17Z karl $
+% $Id: spm_voice_get_word.m 7622 2019-06-23 19:52:33Z karl $
 
 
-%% log prior over lexical content 
+%% log prior over lexical content
 %==========================================================================
 global VOX
-if nargin < 2;
+if nargin < 2 || size(P,2) < 1;
     nw = numel(VOX.LEX);
     P  = ones(nw,1)/nw;
 end
 LP = log(P + eps);
 
-% within Ockham's window W
-%--------------------------------------------------------------------------
-W  = find(LP(:,1) > (max(LP(:,1)) - 3));
 
-
-%% get onset of next word 
+%% get onset of next word
 %==========================================================================
 [Y,I,FS] = spm_voice_get_next(wfile);
 
-% break if EOF
+% specify output arguments and break if EOF
 %--------------------------------------------------------------------------
-if isempty(I), O  = {}; F = 0; return, end
+if isempty(I)
+    O = {};
+    J = [];
+    j = {};
+    F = -exp(16);
+    return
+end
 
 
-%% get 1 second segment and remove previous word
+
+%% get 1.25 second segment and remove previous word
 %==========================================================================
 
 % get intervals (j) for this peak
 %--------------------------------------------------------------------------
-n    = numel(Y);
-j    = fix((0:FS + FS/4) + I);
-y    = Y(j(j < n & j > 1));
-j    = logical(j < VOX.IT);
-y(j) = 0;
-j    = spm_voice_onsets(y,FS);
-nj   = numel(j);
+n  = numel(Y);
+j  = fix((0:FS + FS/4) + I);
+m  = j(1);
 
-% retrieve epochs and decompose at fundamental frequency
+% deal with negative onsets (before the beginning of the sound file)
 %--------------------------------------------------------------------------
-clear xy J
+if m < 1
+    j = j - m + 1;
+    y = [zeros(m,1);Y(j(j < n))];
+else
+    y = Y(j(j < n));
+    m = 0;
+end
+j     = logical(j < VOX.IT);
+y(j)  = 0;
+
+% get intervals for this segment
+%--------------------------------------------------------------------------
+j     = spm_voice_onsets(y,FS);
+nj    = numel(j);
 for i = 1:nj
-    xy(i,1)       = spm_voice_ff(y(j{i}),FS);
-    xy(i,1).P.lat = log((I + j{i}(1) - VOX.IT)/FS);
-    J(i,:)        = I + [j{i}(1),j{i}(end)];
+    j{i} = j{i} - m;
 end
 
-% select the most likely action (interval)
+% (deep) search
 %==========================================================================
-[L,M,N] = spm_voice_likelihood(xy,W);
-LI      = log(VOX.FI*P(:,1) + eps)';
-L       = L + repmat(LP(:,1), 1,size(L,2));
-L       = L + repmat(LI(1:nj),size(L,1),1);
-Q       = spm_softmax(L);
-F       = sum(Q.*(L - log(Q + eps)));
 
-% if priors over the next word, accumulate free energy for each interval
+% loop over intervals
 %--------------------------------------------------------------------------
-G       = spm_zeros(F);
-if size(P,2) > 1 && nj > 1
-    for i = 1:nj
+np    = size(P,2);                                  % number of priors
+for i = 1:nj
+    
+    % retrieve epoch and decompose
+    %----------------------------------------------------------------------
+    xy       = spm_voice_ff(y(j{i}),FS);            % transform
+    lat      = I + j{i}(1) - VOX.IT;                % latency
+    xy.P.lat = log(max(lat/FS,1/32));               % log latency
+    J(i,:)   = I + [j{i}(1),j{i}(end)];             % onsets and offsets
+    
+    % Ockham's window (W)
+    %------------------------------------------------------------------
+    W        = find(LP(:,1) > (max(LP(:,1)) - 3));
+    
+    % select the most likely action (interval)
+    %==================================================================
+    [L,M,N]  = spm_voice_likelihood(xy,W);          % likelihoods 
+    G        = L + LP(:,1);                         % prior (lexical
+    G        = G + log(VOX.FI(i,:)*P(:,1) + eps);   % prior (peaks)
+    Q        = spm_softmax(G);                      % posterior
+    F        = sum(Q.*(G - log(Q + eps)));          % free energy
+    
+    % posteriors
+    %----------------------------------------------------------------------
+    q{1} = spm_softmax(L);                          % lexical
+    q{2} = spm_softmax(M);                          % prosody
+    q{3} = spm_softmax(N);                          % speaker
+    O{i} = q;                                       % likelihoods
+    
+    %  deep search if there are priors over future words
+    %----------------------------------------------------------------------
+    if np > 1
+        
+        % move the pointer to end of current interval
+        %------------------------------------------------------------------
         VOX.IT = fix(J(i,2));
-        P      = spm_softmax(LP(:,2:end));
-        [O,Fi] = spm_voice_get_word(wfile,P);
-        G(i)   = Fi;
+        Pi     = spm_softmax(LP(:,2:end));
+
+        [Oii,Iii,Jii,Fii] = spm_voice_get_word(wfile,Pi);
+        
+        % posteriors
+        %------------------------------------------------------------------
+        Fi(i)  = Fii + F;                           % free energy integral
+        Oi{i}  = Oii;                               % likelihoods
+        Ii{i}  = Iii;                               % initial index
+        Ji{i}  = Jii;                               % onsets and offsets
+        
+    else
+        
+        % free energy for this interval
+        %------------------------------------------------------------------
+        Fi(i) = F;
+        
     end
-    if all(G)
-        F = F + G;
-    elseif size(P,2) < VOX.depth
-        F = 0;
-    end
+    
 end
-[F,m] = max(F);
 
-% posteriors
-%--------------------------------------------------------------------------
-O{1}    = spm_softmax(L(:,m));              % posteriors
-O{2}    = spm_softmax(M(:,:,m));            % likelihood
-O{3}    = spm_softmax(N(:,:,m));            % likelihood
-
-% update pointers based upon selected word
-%--------------------------------------------------------------------------
-VOX.I0  = fix(J(m,1));
-VOX.IT  = fix(J(m,2));
-VOX.J   = j;
-VOX.I   = I;
+% retain interval with the greatest free energy
+%==========================================================================
+[F,i] = max(Fi(1:nj));
+if np > 1
+    
+    % prepend likelihood and intervals to path 
+    %----------------------------------------------------------------------
+    O      = [O{i};  Oi{i}];
+    I      = [I;     Ii{i}];
+    J      = [J(i,:);Ji{i}];
+    
+else
+    
+    % likelihood and pointer based upon selected interval
+    %----------------------------------------------------------------------
+    O      = O{i};
+    J      = fix(J(i,:));
+    VOX.IT = fix(J(2));
+    
+end
 
 return
+
+
+
 
 

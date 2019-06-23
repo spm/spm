@@ -25,7 +25,7 @@ function spm_voice_P300
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7617 2019-06-13 12:01:17Z karl $
+% $Id: spm_voice_P300.m 7622 2019-06-23 19:52:33Z karl $
 
 
 %% demo mode loads sentence (.mat) files
@@ -45,11 +45,12 @@ VOX.graphics = 0;
 VOX.interval = 0;
 VOX.mute     = 0;
 VOX.onsets   = 0;
+VOX.depth    = 0;
 
 %% set up priors a succession of 'triangle' or 'square'
 %==========================================================================
 nw    = numel(VOX.LEX);                                   % number of words
-[i,P] = spm_voice_i(repmat({{'triangle','square'}},1,8)); % prior words   
+[i,P] = spm_voice_i(repmat({{'triangle','square'}},1,6)); % prior words   
 
 % record corresponding sequence and save - or load a preprepared sentence
 %--------------------------------------------------------------------------
@@ -80,18 +81,21 @@ VOX.interval = 0;
 spm_voice_fundamental(Y,VOX.FS);
 VOX.onsets   = 0;
 
+
 % segment without priors
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Segmentation: no priors'); clf; 
+VOX.depth    = 0;
+spm_figure('GetWin','Segmentation: no priors');  clf;
 SEG0 = spm_voice_read(Y);
 EEG0 = spm_voice_segmentation(Y,SEG0);
 
 % segment with priors
 %--------------------------------------------------------------------------
+VOX.depth    = 1;
 spm_figure('GetWin','Segmentation: with priors'); clf; 
 SEG1 = spm_voice_read(Y,P);
 EEG1 = spm_voice_segmentation(Y,SEG1);
-
+VOX.depth    = 0;
 
 
 % illustrate the role of prior precision
@@ -104,10 +108,8 @@ str{2} = {'there'};
 str{3} = {'a'};
 str{4} = {'triangle','square'};
 str{5} = {'below','above','there'};
-str{6} = {'no','yes'};
-str{7} = {'is','there'};
 [i,P]  = spm_voice_i(str);                   % get priors
-P      = spm_softmax(log(P)*2);              % and double their precision
+P      = spm_softmax(log(P));                % and double their precision
 
 
 % record corresponding sequence and save - or load a preprepared sentence
@@ -140,7 +142,7 @@ EEG1  = spm_voice_segmentation(Y,SEG1);
 % segment without priors
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Segmentation (P300): no priors'); clf; 
-SEG0  = spm_voice_read(Y,spm_softmax(log(P)/8));
+SEG0  = spm_voice_read(Y,spm_softmax(log(P)/16));
 EEG0  = spm_voice_segmentation(Y,SEG0);
 
 % add evoked responses with priors, to highlight more exuberant ERPs
@@ -207,6 +209,8 @@ axis square, spm_axis tight, set(gca,'YLim',[-1 1]/3), box off
 %--------------------------------------------------------------------------
 hold on, h = fill(x,y/3,c); hold off
 set(h,'Facealpha',1/8,'EdgeAlpha',1/8);
+
+
 
 %% illustrate the relationship between belief updating and RMS responses
 %==========================================================================

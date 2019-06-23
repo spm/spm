@@ -1,10 +1,10 @@
-function [SEG,W,P,R] = spm_voice_read(wfile,L,N)
+function [SEG,W,P,R] = spm_voice_read(wfile,p)
 % Reads and translates a sound file or audio source
-% FORMAT [SEG,W,P,R] = spm_voice_read(wfile,[L],[N])
+% FORMAT [SEG,W,P,R] = spm_voice_read(wfile,[p])
 %
 % wfile  - .wav file or audio object or (double) timeseries
-% L      - prior likelihood of lexical content
-% N      - number of words to read
+% p      - prior likelihood of lexical content or
+%        - number of words to read (N or size(P,2))
 %
 % requires the following in the global variable VOX:
 % LEX    - lexical structure array
@@ -21,7 +21,7 @@ function [SEG,W,P,R] = spm_voice_read(wfile,L,N)
 % SEG(s).R   - speaker class
 % SEG(s).I0  - first index
 % SEG(s).IT  - final index
-%     
+%
 % This routine takes a sound file or audio stream as an input and infers the lexical
 % content and prosody. In then articulates the phrase or
 % sequence of word segments (SEG). If called with no output arguments it
@@ -36,7 +36,7 @@ function [SEG,W,P,R] = spm_voice_read(wfile,L,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7616 2019-06-12 13:51:03Z karl $
+% $Id: spm_voice_read.m 7622 2019-06-23 19:52:33Z karl $
 
 
 %% setup
@@ -74,55 +74,104 @@ end
 
 %% priors, if specified (uninformative priors otherwise)
 %--------------------------------------------------------------------------
-try ns = N; catch, ns = 16; end
-
-nw    = numel(VOX.LEX);
-for s = 1:ns
-    try
-        p(:,s) = L(:,s);
-    catch
-        p(:,s) = ones(nw,1)/nw;
-    end
+nw      = numel(VOX.LEX);
+if nargin < 2
+    ns  = 8;
+    p   = ones(nw,ns)/nw;
+elseif isscalar(p)
+    ns  = p;
+    p   = ones(nw,ns)/nw;
+else
+    ns  = size(p,2);
 end
+
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================
-VOX.I0 = 1;                                    % first index
 VOX.IT = 1;                                    % final index
-for s  = 1:ns
+
+if VOX.depth
+    ds = 1;                                    % search depth
+    nc = 2;                                    % kernel size
+else
+    ds = 0;                                    % search depth
+    nc = 1;                                    % kernel size
+end
+
+% deep deconvolution (tree search)
+%======================================================================
+
+% convolve priors
+%----------------------------------------------------------------------
+% C     = 0;
+% for i = 1:nc
+%     C = C + full(spm_speye(ns,ns,1 - i));
+% end
+% P     = p*bsxfun(@rdivide,C,sum(C));
+P     = p;
+
+% unpack into segments
+%----------------------------------------------------------------------
+for s = 1:ns
     
-    % find next word
+    % deep research
     %----------------------------------------------------------------------
-    L   = spm_voice_get_word(wfile,p(:,s:min(s + VOX.depth,end)));
-        
+    j         = s:min(size(P,2),s + ds);
+    [L,I,J,F] = spm_voice_get_word(wfile,P(:,j));
+
+    
     % break if EOF
-    %----------------------------------------------------------------------
+    %------------------------------------------------------------------
     if isempty(L)
         break
     end
     
-    % identify the most likely word and prosody
+    % deconvolve
     %----------------------------------------------------------------------
-    [d,w]  = max(L{1});                        % most likely word
-    [d,q]  = max(L{2});                        % most likely prosody
-    [d,r]  = max(L{3});                        % most likely identity
+%    nr    = size(L,1);
+%     while nr < numel(j)
+%         
+%         for k = 1:numel(j)
+%             jk       = j;
+%             jk(k)    = [];
+%             G        = L{1,1} + p(:,jk);                    % prior
+%             Q        = spm_softmax(G);                      % posterior
+%             F(k)     = sum(Q.*(G - log(Q + eps)));
+%         end
+%         
+%     end
     
-    % string
+    L{1,1} = spm_softmax(log(L{1,1} + eps) + log(p(:,s) + eps));
+
+    
+    % most likely word and prosody
+    %----------------------------------------------------------------------
+    [d,w]  = max(L{1,1});                      % most likely word
+    [d,q]  = max(L{1,2});                      % most likely prosody
+    [d,r]  = max(L{1,3});                      % most likely identity
+    
+    % string and intervals
     %----------------------------------------------------------------------
     SEG(s).str = VOX.LEX(w).word;              % lexical string
-    SEG(s).I0  = VOX.I0;                       % first
-    SEG(s).IT  = VOX.IT;                       % final
-    SEG(s).J   = VOX.J;                        % intervals
-    SEG(s).I   = VOX.I;                        % peaks
+    SEG(s).I0  = J(1,1);                       % first
+    SEG(s).IT  = J(1,2);                       % final
+    SEG(s).I   = I(1);                         % peaks
     SEG(s).p   = p(:,s);                       % prior
-    SEG(s).L   = L;                            % posteriors
+    SEG(s).L   = L(1,:);                       % posteriors
     SEG(s).W   = w(:);                         % lexical class
     SEG(s).P   = q(:);                         % prosody classes
     SEG(s).R   = r(:);                         % speaker class
-
+    
+    % display string
+    %----------------------------------------------------------------------
     if VOX.disp, disp({SEG.str}), end
     
+    % move to end of word
+    %----------------------------------------------------------------------
+    VOX.IT = J(1,2);                           % final index
+    
 end
+
 
 % stop recording audiorecorder object and return if silence
 %--------------------------------------------------------------------------

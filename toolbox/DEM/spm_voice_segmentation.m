@@ -27,7 +27,7 @@ function [E,  PST] = spm_voice_segmentation(wfile,SEG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_segmentation.m 7616 2019-06-12 13:51:03Z karl $
+% $Id: spm_voice_segmentation.m 7622 2019-06-23 19:52:33Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -73,7 +73,8 @@ title('Idenity','FontSize',16), box off
 %--------------------------------------------------------------------------
 rng('default')
 M     = max(G);
-for w = 1:numel(SEG)
+ns    = numel(SEG);
+for w = 1:ns
     
     % colour 
     %----------------------------------------------------------------------
@@ -81,26 +82,21 @@ for w = 1:numel(SEG)
     
     % retrieve epoch 
     %----------------------------------------------------------------------
-    i    = ceil(SEG(w).I0:SEG(w).IT);
-    j    = ceil(SEG(w).I0); 
+    i    = SEG(w).I0:SEG(w).IT;
+    j    = SEG(w).I0; 
     i    = i(i < n & i > 1);
  
     % plot and label spectral segmentation
     %----------------------------------------------------------------------
     subplot(4,1,1), plot(i/FS,Y(i),'Color',col)
-    subplot(4,1,2), text(j/FS,M,SEG(w).str,'Color',col,'FontWeight','bold')
+    subplot(4,1,2), text(j/FS,M*w/ns,SEG(w).str,'Color',col,'FontWeight','bold')
     
     % plot boundaries and peaks
     %----------------------------------------------------------------------
     i     = fix(SEG(w).I + FS/2);
     subplot(4,1,2), plot(pst(i),G(i),'.', 'Color',col,'MarkerSize',24)
-    for i = 1:numel(SEG(w).J)
-        j = fix(SEG(w).J{i}(1)   + SEG(w).I); j = max(j - 1,1);
-        plot([1,1]*pst(j),[0 M],'-','Color',col)
-        j = fix(SEG(w).J{i}(end) + SEG(w).I); j = max(j - 1,1);
-        plot([1,1]*pst(j),[0 M],':','Color',col)
-    end
-    plot([1,1]*pst(j),[0 M],'-.','Color',col)
+    plot([1,1]*pst(max(0 + 1,SEG(w).I0)),[0 M],'-', 'Color',col)
+    plot([1,1]*pst(min(n - 1,SEG(w).IT)),[0 M],'-.','Color',col)
 
 end
 
@@ -117,7 +113,7 @@ E     = zeros(numel(Y),nw);                   % length of time series
 Q     = zeros(numel(Y),nw);                   % length of time series
 D     = spm_dctmtx(di,ni);
 D     = D*spm_dctmtx(ni,ni)';
-for w = 1:numel(SEG)
+for w = 1:ns
     
         % gradient descent free energy
         %==================================================================

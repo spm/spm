@@ -15,14 +15,14 @@ function [i,P] = spm_voice_i(str)
 %  string or cell array. Alternatively, it returns the string corresponding
 %  to an index or vector of indices. if called with the second argument, it
 %  returns a prior probability matrix where the specified words (for
-%  strings) have a prior odds ratio of 32.
+%  strings) have a prior odds ratio of 64.
 %
 %  NB: If a string is not in the lexicon, 0 is returned.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_i.m 7610 2019-06-09 16:38:16Z karl $
+% $Id: spm_voice_i.m 7622 2019-06-23 19:52:33Z karl $
 
 % get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
@@ -53,7 +53,7 @@ if iscell(str)
         % return indices and prior probabilities
         %------------------------------------------------------------------
         nw    = numel(str);
-        P     = zeros(numel(VOX.LEX),nw) + 1/32;
+        P     = zeros(numel(VOX.LEX),nw) + 1/64;
         for w = 1:nw
             i      = spm_voice_i(str{w});
             P(i,w) = 1;
