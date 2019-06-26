@@ -1,65 +1,129 @@
-function C = cifti(obj)
-% Extract CIFTI-2 extension from a NIfTI-2 file
+function [C,OutputFiles] = cifti(obj)
+% Extract CIFTI-2 extension from a NIfTI-2 file and export data
 %__________________________________________________________________________
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 
+%-Check input is a CIFTI file
+%--------------------------------------------------------------------------
 C = [];
-if isfield(obj.hdr,'ext') && ~isempty(obj.hdr.ext) && obj.hdr.ext.ecode == 32
-    xml = char(obj.hdr.ext.edata(:)');
-else
+OutputFiles = {};
+if ~isfield(obj.hdr,'ext') || isempty(obj.hdr.ext) || obj.hdr.ext.ecode ~= 32
     return;
 end
-C.xml = xml;
-xml = xmltree(xml);
-C.hdr = xml2struct(xml,struct(),root(xml),{});
-s = size(obj.dat);
-try, s = s(5:7); catch, s = s(5:6); end
+
+%-Parse CIFTI extension
+%--------------------------------------------------------------------------
+C.xml = char(obj.hdr.ext.edata(:)');
+C.hdr = convert(xmltree(C.xml),[],'attributes',true);
+s     = size(obj.dat); s = s(5:end);
 C.dat = reshape(obj.dat,s);
 
+%-Check input is a CIFTI-2 file
+%--------------------------------------------------------------------------
+switch C.hdr.attributes.Version
+    case {'2'}
+        % noop
+    case {'1','1.0'}
+        warning('CIFTI-1 file not supported.');
+        return;
+    otherwise
+        warning('Unknown CIFTI version: %s.',C.hdr.attributes.Version);
+        return;
+end
 
+%-Standard CIFTI Mapping Combinations
 %==========================================================================
-function s = xml2struct(tree,s,uid,arg)
-    switch get(tree,uid,'type')
-        case 'element'
-            child = children(tree,uid);
-            l = {};
-            ll = get(tree,child(isfield(tree,child,'name')),'name');
-            for i=1:length(child)
-                arg2 = arg;
-                if isfield(tree,child(i),'name')
-                    name = get(tree,child(i),'name');
-                    nboccur = sum(ismember(l,name));
-                    nboccur2 = sum(ismember(ll,name));
-                    l = [l, name];
-                    arg2 = [arg2, name];
-                    if nboccur || nboccur2 > 1
-                        arg2 = [arg2, {{nboccur+1}}];
+
+%-Dense Scalar (.dscalar.nii) or Dense Data Series (.dtseries.nii)
+%--------------------------------------------------------------------------
+if ismember(obj.hdr.intent_code,[3002, 3006]) % CONNECTIVITY_DENSE_SCALARS
+                                              % CONNECTIVITY_DENSE_SERIES
+    MapNames = {};
+    Surfaces = {};
+    Volumes  = {};
+    vol      = struct;
+    
+    %-Read mapping information for each dimension
+    %----------------------------------------------------------------------
+    for i=1:numel(C.hdr.Matrix.MatrixIndicesMap)
+        map = C.hdr.Matrix.MatrixIndicesMap{i};
+        switch map.attributes.AppliesToMatrixDimension
+            case '0'
+                switch map.attributes.IndicesMapToDataType
+                    case 'CIFTI_INDEX_TYPE_SCALARS'
+                        MapNames = map.NamedMap;
+                        if isstruct(MapNames), MapNames = {MapNames}; end
+                        MapNames = cellfun(@(x) x.MapName,MapNames,'UniformOutput',false);
+                    case 'CIFTI_INDEX_TYPE_SERIES'
+                        MapNames = str2double(map.attributes.NumberOfSeriesPoints);
+                        MapNames = arrayfun(@(x) sprintf('%04d',x),1:MapNames,'UniformOutput',false);
+                    otherwise
+                        error('Mismatch between NIfTI intent code and CIFTI index type.');
+                end
+            case '1'
+                if ~strcmp(map.attributes.IndicesMapToDataType,'CIFTI_INDEX_TYPE_BRAIN_MODELS')
+                    error('Mismatch between NIfTI intent code and CIFTI index type.');
+                end
+                if isstruct(map.BrainModel), map.BrainModel = {map.BrainModel}; end
+                for j=1:numel(map.BrainModel)
+                    switch map.BrainModel{j}.attributes.ModelType
+                        case 'CIFTI_MODEL_TYPE_SURFACE'
+                            nV  = str2double(map.BrainModel{j}.attributes.SurfaceNumberOfVertices);
+                            off = str2double(map.BrainModel{j}.attributes.IndexOffset);
+                            iV  = str2num(map.BrainModel{j}.VertexIndices) + 1;
+                            if numel(iV) ~= str2double(map.BrainModel{j}.attributes.IndexCount)
+                                error('Problem with number of vertices.');
+                            end
+                            BrainStructure = map.BrainModel{j}.attributes.BrainStructure(17:end);
+                            Surfaces{end+1} = struct('nV',nV,'off',off,'iV',iV,'brain',BrainStructure);
+                        case 'CIFTI_MODEL_TYPE_VOXELS'
+                            off = str2double(map.BrainModel{j}.attributes.IndexOffset);
+                            BrainStructure = map.BrainModel{j}.attributes.BrainStructure(17:end);
+                            iV  = str2num(map.BrainModel{j}.VoxelIndicesIJK) + 1;
+                            iV  = reshape(iV,3,[]);
+                            if size(iV,2) ~= str2double(map.BrainModel{j}.attributes.IndexCount)
+                                error('Problem with number of voxels.');
+                            end
+                            Volumes{end+1} = struct('off',off,'iV',iV,'brain',BrainStructure);
                     end
                 end
-                s = xml2struct(tree,s,child(i),arg2);
-            end
-            if isempty(child)
-                s = xmlsetfield(s,arg{:},'');
-            end
-            %-Storing attributes (when possible)
-            attrb = attributes(tree,'get',uid);
-            if ~isempty(attrb)
-                arg2 = [arg, 'attributes'];
-                if ~isstruct(attrb), attrb = [attrb{:}]; end
-                try, s = xmlsetfield(s,arg2{:},cell2struct({attrb.val},{attrb.key},2)); end
-            end
-        case {'chardata','cdata'}
-            s = xmlsetfield(s,arg{:},get(tree,uid,'value'));
-        case {'comment','pi'}
-            % Processing instructions and comments are ignored
+                if ~isempty(Volumes)
+                    vol.dim = str2num(map.Volume.attributes.VolumeDimensions);
+                    vol.mat = str2num(map.Volume.TransformationMatrixVoxelIndicesIJKtoXYZ);
+                    vol.mat = reshape(vol.mat,[4 4])' * [eye(4,3) [-1 -1 -1 1]'];
+                    % assumes MeterExponent is -3
+                end
+            otherwise
+                error('Data have to be dense scalars or series.');
+        end
     end
     
-%==========================================================================
-function s = xmlsetfield(s,varargin)
-% Same as setfield but using '{}' rather than '()'
-
-subs = varargin(1:end-1);
-types = repmat({'{}'},1,numel(subs));
-types(cellfun(@ischar,subs)) = {'.'};
-s = builtin('subsasgn', s, struct('type',types,'subs',subs), varargin{end});
+    %-Export as GIfTI and NIfTI
+    %----------------------------------------------------------------------
+    for i=1:numel(MapNames)
+        for j=1:numel(Surfaces)
+            D = NaN(Surfaces{j}.nV,1);
+            D(Surfaces{j}.iV) = C.dat(i,Surfaces{j}.off+(1:numel(Surfaces{j}.iV)));
+            g = gifti(D);
+            OutputFiles{end+1} = sprintf('%s_%s.gii',MapNames{i},Surfaces{j}.brain);
+            save(g,OutputFiles{end},'ExternalFileBinary');
+        end
+        if ~isempty(Volumes)
+            OutputFiles{end+1} = sprintf('%s.nii',MapNames{i});
+            N = nifti; % using subsasgn as being used within the @nifti class
+            N = subsasgn(N,substruct('.','dat'),file_array(OutputFiles{end},vol.dim,'float32-le',352));
+            N = subsasgn(N,substruct('.','mat'),vol.mat);
+            N = subsasgn(N,substruct('.','mat0'),vol.mat);
+            N = subsasgn(N,substruct('.','mat_intent'),'Aligned');
+            N = subsasgn(N,substruct('.','mat0_intent'),'Aligned');
+            create(N);
+            dat = NaN(vol.dim);
+            for j=1:numel(Volumes)
+                ind = sub2ind(vol.dim,Volumes{j}.iV(1,:),Volumes{j}.iV(2,:),Volumes{j}.iV(3,:));
+                dat(ind) = C.dat(i,Volumes{j}.off+(1:numel(ind)));
+            end
+            N.dat = subsasgn(N.dat,substruct('()',repmat({':'},1,numel(vol.dim))),dat);
+        end
+    end
+end
