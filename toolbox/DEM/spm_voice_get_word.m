@@ -23,7 +23,6 @@ function [O,I,J,F] = spm_voice_get_word(wfile,P)
 % IT     - index or pointer to offset of last word (i.e., CurrentSample)
 %
 % and updates:
-% I0     - index or pointer to onset  of current word
 % IT     - index or pointer to offset of current word
 %
 % This routine evaluates the likelihood of a word, prosody and identity by
@@ -40,7 +39,7 @@ function [O,I,J,F] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7622 2019-06-23 19:52:33Z karl $
+% $Id: spm_voice_get_word.m 7624 2019-06-26 12:10:25Z karl $
 
 
 %% log prior over lexical content
@@ -62,7 +61,6 @@ LP = log(P + eps);
 if isempty(I)
     O = {};
     J = [];
-    j = {};
     F = -exp(16);
     return
 end
@@ -104,6 +102,8 @@ end
 % loop over intervals
 %--------------------------------------------------------------------------
 np    = size(P,2);                                  % number of priors
+F     = zeros(nj,1);                                % free energy
+J     = zeros(nj,2);                                % onsets and offsets
 for i = 1:nj
     
     % retrieve epoch and decompose
@@ -120,17 +120,14 @@ for i = 1:nj
     % select the most likely action (interval)
     %==================================================================
     [L,M,N]  = spm_voice_likelihood(xy,W);          % likelihoods 
-    G        = L + LP(:,1);                         % prior (lexical
-    G        = G + log(VOX.FI(i,:)*P(:,1) + eps);   % prior (peaks)
-    Q        = spm_softmax(G);                      % posterior
-    F        = sum(Q.*(G - log(Q + eps)));          % free energy
+    L        = L + LP(:,1);                         % prior (lexical
+    L        = L + log(VOX.FI(i,:)*P(:,1) + eps);   % prior (peaks)
+    Q        = spm_softmax(L);                      % posterior
+    F(i)     = sum(Q.*(L - log(Q + eps)));          % free energy
     
     % posteriors
     %----------------------------------------------------------------------
-    q{1} = spm_softmax(L);                          % lexical
-    q{2} = spm_softmax(M);                          % prosody
-    q{3} = spm_softmax(N);                          % speaker
-    O{i} = q;                                       % likelihoods
+    O{i}     = {L,M,N};                             % log-likelihoods
     
     %  deep search if there are priors over future words
     %----------------------------------------------------------------------
@@ -141,20 +138,11 @@ for i = 1:nj
         VOX.IT = fix(J(i,2));
         Pi     = spm_softmax(LP(:,2:end));
 
-        [Oii,Iii,Jii,Fii] = spm_voice_get_word(wfile,Pi);
+        [Oi,Ii,Ji,Fi] = spm_voice_get_word(wfile,Pi);
         
-        % posteriors
+        % accumulate free energy
         %------------------------------------------------------------------
-        Fi(i)  = Fii + F;                           % free energy integral
-        Oi{i}  = Oii;                               % likelihoods
-        Ii{i}  = Iii;                               % initial index
-        Ji{i}  = Jii;                               % onsets and offsets
-        
-    else
-        
-        % free energy for this interval
-        %------------------------------------------------------------------
-        Fi(i) = F;
+        F(i) = Fi + F(i);                           
         
     end
     
@@ -162,24 +150,14 @@ end
 
 % retain interval with the greatest free energy
 %==========================================================================
-[F,i] = max(Fi(1:nj));
-if np > 1
-    
-    % prepend likelihood and intervals to path 
-    %----------------------------------------------------------------------
-    O      = [O{i};  Oi{i}];
-    I      = [I;     Ii{i}];
-    J      = [J(i,:);Ji{i}];
-    
-else
-    
-    % likelihood and pointer based upon selected interval
-    %----------------------------------------------------------------------
-    O      = O{i};
-    J      = fix(J(i,:));
-    VOX.IT = fix(J(2));
-    
-end
+[F,i] = max(F);
+
+% likelihood and pointer based upon selected interval
+%----------------------------------------------------------------------
+O     = O{i};
+I     = [I; J(:,2)];
+J     = fix(J(i,:));
+
 
 return
 

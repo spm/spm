@@ -27,7 +27,7 @@ function [E,  PST] = spm_voice_segmentation(wfile,SEG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_segmentation.m 7622 2019-06-23 19:52:33Z karl $
+% $Id: spm_voice_segmentation.m 7624 2019-06-26 12:10:25Z karl $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -44,7 +44,7 @@ Y   = read(wfile);
 n   = numel(Y);
 j   = fix((1:(SEG(end).IT) + FS/2));
 Y   = Y(j(j < n));
-G   = spm_voice_check(Y,FS,1/16);
+G   = spm_voice_check(Y,FS,1/32);
 pst = (1:numel(Y))/FS;
 
 subplot(4,1,1)
@@ -93,10 +93,14 @@ for w = 1:ns
     
     % plot boundaries and peaks
     %----------------------------------------------------------------------
-    i     = fix(SEG(w).I + FS/2);
+    i     = fix(SEG(w).I(1) + FS/2);
     subplot(4,1,2), plot(pst(i),G(i),'.', 'Color',col,'MarkerSize',24)
     plot([1,1]*pst(max(0 + 1,SEG(w).I0)),[0 M],'-', 'Color',col)
     plot([1,1]*pst(min(n - 1,SEG(w).IT)),[0 M],'-.','Color',col)
+    for j = 2:numel(SEG(w).I)
+        i = SEG(w).I(j);
+        plot(pst(i),G(i),'.', 'Color',col,'MarkerSize',16)
+    end
 
 end
 
@@ -117,8 +121,9 @@ for w = 1:ns
     
         % gradient descent free energy
         %==================================================================
-        L   = log(SEG(w).L{1} + exp(-16));    % posterior
-        v   = log(SEG(w).p    + exp(-16));    % prior
+        L   = spm_softmax(SEG(w).L{1});
+        L   = log(L        + exp(-16));       % posterior
+        v   = log(SEG(w).p + exp(-16));       % prior
         
         % evidence accumulation
         %------------------------------------------------------------------

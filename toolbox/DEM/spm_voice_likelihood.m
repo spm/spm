@@ -32,7 +32,7 @@ function [L,M,N] = spm_voice_likelihood(xY,w)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7622 2019-06-23 19:52:33Z karl $
+% $Id: spm_voice_likelihood.m 7624 2019-06-26 12:10:25Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -138,7 +138,7 @@ switch method
             %--------------------------------------------------------------
             E    = P(j) - VOX.LEX(w).dE(j);
             D    = -  E'*(VOX.LEX(w).dC(j,j)\E)/2;
-            L(w) = L(w) + D;
+            L(w) = L(w) + D/2;
         end
         
         

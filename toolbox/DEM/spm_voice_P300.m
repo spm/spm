@@ -25,7 +25,7 @@ function spm_voice_P300
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7622 2019-06-23 19:52:33Z karl $
+% $Id: spm_voice_P300.m 7624 2019-06-26 12:10:25Z karl $
 
 
 %% demo mode loads sentence (.mat) files
@@ -72,7 +72,6 @@ end
 % illustrate candidate intervals (and F0) for the first word
 %--------------------------------------------------------------------------
 VOX.FS       = spm_voice_FS;
-VOX.IO       = 1;
 VOX.IT       = 1;
 VOX.onsets   = 1;
 VOX.interval = 1;
@@ -215,7 +214,7 @@ set(h,'Facealpha',1/8,'EdgeAlpha',1/8);
 %% illustrate the relationship between belief updating and RMS responses
 %==========================================================================
 for i = 1:numel(SEG2)
-    q     = SEG2(i).L{1};
+    q     = spm_softmax(SEG2(i).L{1});
     p     = SEG2(i).p;
     KL(i) = q'*(log(q + exp(-8)) - log(p + exp(-8)));
 end
