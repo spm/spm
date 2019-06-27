@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7622 2019-06-23 19:52:33Z karl $
+% $Id: spm_voice.m 7625 2019-06-27 09:44:02Z karl $
 
 
 %% setup options and files
@@ -217,8 +217,6 @@ str{2} = {'there'};
 str{3} = {'a'};
 str{4} = {'triangle','square'};
 str{5} = {'below','above'};
-str{6} = {'no','yes'};
-str{7} = {'is','there'};
 [i,P]  = spm_voice_i(str);
 
 % Read test file

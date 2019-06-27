@@ -32,7 +32,7 @@ function [L,M,N] = spm_voice_likelihood(xY,w)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7624 2019-06-26 12:10:25Z karl $
+% $Id: spm_voice_likelihood.m 7625 2019-06-27 09:44:02Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -138,7 +138,7 @@ switch method
             %--------------------------------------------------------------
             E    = P(j) - VOX.LEX(w).dE(j);
             D    = -  E'*(VOX.LEX(w).dC(j,j)\E)/2;
-            L(w) = L(w) + D/2;
+            L(w) = L(w) + D;
         end
         
         
@@ -148,11 +148,11 @@ switch method
         %------------------------------------------------------------------
         pE      = zeros(ni,1);
         pC      = speye(ni,ni)*16;
-        P{1}.X  = speye(ni,ni);
-        P{1}.C  = {speye(ni,ni)};
-        P{2}.X  = pE;
-        P{2}.C  = pC;
-        C       = spm_PEB(Q(i),P,16,1);
+        B{1}.X  = speye(ni,ni);
+        B{1}.C  = {speye(ni,ni)};
+        B{2}.X  = pE;
+        B{2}.C  = pC;
+        C       = spm_PEB(W(i),B,16,1);
         qE      = C{2}.E;
         qC      = C{2}.C;
         
@@ -168,8 +168,8 @@ switch method
             
             % supplement with the likelihood of duration
             %--------------------------------------------------------------
-            E    = P -  VOX.LEX(w).dE;
-            D    = -E'*(VOX.LEX(w).dC\E)/2;
+            E    = P(j) - VOX.LEX(w).dE(j);
+            D    = -  E'*(VOX.LEX(w).dC(j,j)\E)/2;
             L(w) = L(w) + D;
             
         end

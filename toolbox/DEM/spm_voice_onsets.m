@@ -1,6 +1,6 @@
-function [I] = spm_voice_onsets(Y,FS,U,C)
+function [I] = spm_voice_onsets(Y,FS,C,U)
 % identifies intervals containing acoustic energy and post onset minima
-% FORMAT [I] = spm_voice_onsets(Y,FS,T,U,C)
+% FORMAT [I] = spm_voice_onsets(Y,FS,C,U)
 %
 % Y    - timeseries
 % FS   - sampling frequency
@@ -20,15 +20,15 @@ function [I] = spm_voice_onsets(Y,FS,U,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7616 2019-06-12 13:51:03Z karl $
+% $Id: spm_voice_onsets.m 7625 2019-06-27 09:44:02Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
 global VOX
 
 if nargin < 2, FS = VOX.FS; end                       % onset  threshold
-if nargin < 3, U  = 1/8;    end                       % height threshold
-if nargin < 4, C  = 1/16;   end                       % smoothing
+if nargin < 4, U  = 1/8;    end                       % height threshold
+if nargin < 3, C  = 1/16;   end                       % smoothing
 
 % identify threshold crossings in power
 %--------------------------------------------------------------------------
@@ -102,7 +102,7 @@ if (jT - j0) < 1, jT = n; end
 
 % add internal minima
 %--------------------------------------------------------------------------   
-i   = j(G(j) < max(G)/2 & j < jT(end) & j > (j0 + FS/16));
+i   = j(j < jT(end) & j > (j0 + FS/16));
 jT  = sort(unique([jT; i]));
 
 

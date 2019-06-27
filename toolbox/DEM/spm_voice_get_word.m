@@ -39,7 +39,7 @@ function [O,I,J,F] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7624 2019-06-26 12:10:25Z karl $
+% $Id: spm_voice_get_word.m 7625 2019-06-27 09:44:02Z karl $
 
 
 %% log prior over lexical content
@@ -63,6 +63,15 @@ if isempty(I)
     J = [];
     F = -exp(16);
     return
+    
+elseif I < 1
+    
+    % deal with negative I (inital index)
+    %----------------------------------------------------------------------
+    i    = 1:FS/32;
+    Y(i) = 0;
+    I    = 1;
+    
 end
 
 
@@ -72,19 +81,9 @@ end
 
 % get intervals (j) for this peak
 %--------------------------------------------------------------------------
-n  = numel(Y);
-j  = fix((0:FS + FS/4) + I);
-m  = j(1);
-
-% deal with negative onsets (before the beginning of the sound file)
-%--------------------------------------------------------------------------
-if m < 1
-    j = j - m + 1;
-    y = [zeros(m,1);Y(j(j < n))];
-else
-    y = Y(j(j < n));
-    m = 0;
-end
+n     = numel(Y);
+j     = fix((0:FS + FS/2) + I);
+y     = Y(j(j < n));
 j     = logical(j < VOX.IT);
 y(j)  = 0;
 
@@ -92,9 +91,6 @@ y(j)  = 0;
 %--------------------------------------------------------------------------
 j     = spm_voice_onsets(y,FS);
 nj    = numel(j);
-for i = 1:nj
-    j{i} = j{i} - m;
-end
 
 % (deep) search
 %==========================================================================

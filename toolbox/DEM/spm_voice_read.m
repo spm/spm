@@ -36,7 +36,7 @@ function [SEG,W,P,R] = spm_voice_read(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7624 2019-06-26 12:10:25Z karl $
+% $Id: spm_voice_read.m 7625 2019-06-27 09:44:02Z karl $
 
 
 %% setup
@@ -65,6 +65,7 @@ if ~nargin
     end
 end
 
+
 % record timeseries from audio recorder, for 8 seconds
 %--------------------------------------------------------------------------
 if isa(wfile,'audiorecorder')
@@ -74,21 +75,23 @@ end
 
 %% priors, if specified (uninformative priors otherwise)
 %--------------------------------------------------------------------------
-nw      = numel(VOX.LEX);
+FS  = spm_voice_FS(wfile);
+nw  = numel(VOX.LEX);
 if nargin < 2
-    ns  = 8;
-    P   = ones(nw,ns)/nw;
+    ns = 8;
+    P  = ones(nw,ns)/nw;
 elseif isscalar(P)
-    ns  = P;
-    P   = ones(nw,ns)/nw;
+    ns = P;
+    P  = ones(nw,ns)/nw;
 else
-    ns  = size(P,2);
+    ns = size(P,2);
 end
 
 
 %% run through sound file and evaluate likelihoods
 %==========================================================================
 VOX.IT = 1;                                     % final index
+
 for s  = 1:ns
     
     % (deep) search
@@ -96,8 +99,7 @@ for s  = 1:ns
     IT        = VOX.IT;
     j         = s:min(size(P,2),s + VOX.depth);
     [L,I,J,F] = spm_voice_get_word(wfile,P(:,j));
-    
-    
+ 
     % break if EOF
     %----------------------------------------------------------------------
     if isempty(L)
@@ -106,7 +108,7 @@ for s  = 1:ns
     
     % Check for missed words
     %----------------------------------------------------------------------
-    if F < -1024 && j(end) < ns
+    if F < -256 && j(end) < ns && s > 1
         
         VOX.IT        = IT;
         [Li,Ii,Ji,Fi] = spm_voice_get_word(wfile,P(:,j + 1));
@@ -114,11 +116,9 @@ for s  = 1:ns
         % revert to start of word
         %--------------------------------------------------------------
         if Fi > F
-            if I(2) < J(2)
-                J(2) = fix(I(2));
-            else
-                J(2) = J(1) + fix((J(2) - J(1))/2);
-            end
+            J           = [J(1) - fix(FS/16), J(1)];
+            L{2}(:,1:3) = -128;
+            L{2}(1,1:3) = 0;
         end
     end
     
