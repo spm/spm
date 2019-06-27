@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.h 7593 2019-05-20 18:58:16Z john $ */
+/* $Id: shoot_diffeo3d.h 7629 2019-06-27 12:35:45Z john $ */
 /* (c) John Ashburner (2007) */
 extern void composition(mwSize ma[], mwSize mm, float *A, float *B, float *C);
 extern void composition_jacobian(mwSize ma[], mwSize mm,
@@ -14,6 +14,7 @@ extern void push(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F1[], /*@
 extern void pushc(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F1[], /*@out@*/ float F0[], /*@null@@out@*/ float S0[]);
 extern void pull(mwSize dm0[], mwSize m1, mwSize n, float Psi[],  float F0[], /*@out@*/ float F1[]);
 extern void pullc(mwSize dm0[], mwSize m1, mwSize n, float Psi[],  float F0[], /*@out@*/ float F1[]);
+extern void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@null@@out@*/float S0[], float F1[], unsigned int code);
 extern void pushc_grads(mwSize dmo[], mwSize dmy[], float def[], float J[], float pf[], float po[]);
 extern void determinant(mwSize dm[], float J0[], float d[]);
 extern void minmax_div(mwSize dm[], float v0[], double mnmx[]);

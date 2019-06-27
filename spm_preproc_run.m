@@ -28,10 +28,10 @@ function varargout = spm_preproc_run(job,action)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 7408 2018-08-24 14:54:57Z john $
+% $Id: spm_preproc_run.m 7629 2019-06-27 12:35:45Z john $
 
 
-SVNid = '$Rev: 7408 $';
+SVNid = '$Rev: 7629 $';
 
 if nargin == 1, action = 'run'; end
 
@@ -66,7 +66,7 @@ if ~isfield(job,'alpha'),        alpha            = 12; else
                                  alpha            = job.alpha;      end
 if ~isfield(job.warp,'fwhm'),    job.warp.fwhm    =  1; end
 if ~isfield(job.warp,'bb'),      job.warp.bb      =  NaN(2,3); end
-if ~isfield(job.warp,'vox'),     job.warp.vox     =  1.5; end
+if ~isfield(job.warp,'vox'),     job.warp.vox     =  NaN; end
 if ~isfield(job.warp,'cleanup'), job.warp.cleanup =  0; end
 if ~isfield(job.warp,'mrf'),     job.warp.mrf     =  0; end
 

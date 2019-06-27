@@ -1,4 +1,4 @@
-/* $Id: spm_diffeo.c 7602 2019-06-05 14:34:18Z guillaume $ */
+/* $Id: spm_diffeo.c 7629 2019-06-27 12:35:45Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -259,7 +259,6 @@ static void mom2vel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArr
 static void trapprox_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     const mwSize *dm;
-    /* int          cyc=1, nit=1; */
     float        *H;
     static double param[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     double *t;

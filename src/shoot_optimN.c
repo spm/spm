@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 7464 2018-10-31 16:57:27Z john $ */
+/* $Id: shoot_optimN.c 7629 2019-06-27 12:35:45Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<math.h>
@@ -347,9 +347,8 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
 
 void solve(mwSize dm[], float a[], float b[], double s[], double scal[], float u[])
 {
-    int it;
-    double lam0 = s[3], lam1 = s[4], lam2 = s[5];
-    mwSignedIndex i, j, k, m;
+    double lam0 = s[3]; /* lam1 = s[4], lam2 = s[5]; */
+    mwSignedIndex i, m;
     float *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
     double a1[MAXD3*MAXD3], cp[MAXD3], su[MAXD3];
 

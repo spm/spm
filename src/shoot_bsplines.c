@@ -1,5 +1,5 @@
 /*
- * $Id: shoot_bsplines.c 7408 2018-08-24 14:54:57Z john $
+ * $Id: shoot_bsplines.c 7629 2019-06-27 12:35:45Z john $
  * John Ashburner
  */
  
@@ -116,7 +116,7 @@ static int vol_coeffs(mwSize vdim[], float vol[], float c[], int d[], void (*spl
 void bsplinc_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     mwSize vdim[3];
-    int k, sts, nd, d[3];
+    int k, nd, d[3];
     float *c, *f;
     void (*splinc[3])();
 
@@ -153,7 +153,7 @@ void bsplinc_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
     plhs[0] = mxCreateNumericArray(3,vdim, mxSINGLE_CLASS, mxREAL);
     c = (float *)mxGetPr(plhs[0]);
 
-    sts = vol_coeffs(vdim, f, c, d, splinc);
+    vol_coeffs(vdim, f, c, d, splinc);
 }
 
 /***************************************************************************************

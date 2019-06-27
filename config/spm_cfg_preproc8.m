@@ -4,7 +4,7 @@ function preproc = spm_cfg_preproc8
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_preproc8.m 7629 2019-06-27 12:35:45Z john $
 
 
 %--------------------------------------------------------------------------
@@ -414,12 +414,36 @@ write.values = {
 write.val    = {[0 0]};
 
 %--------------------------------------------------------------------------
+% bb Bounding box
+%--------------------------------------------------------------------------
+bb         = cfg_entry;
+bb.tag     = 'bb';
+bb.name    = 'Bounding box';
+bb.help    = {'The bounding box (in mm) of the volume which is to be written (relative to the anterior commissure).'};
+bb.strtype = 'r';
+bb.num     = [2 3];
+bb.val     = {[NaN NaN NaN; NaN NaN NaN]};
+bb.hidden  = true;
+
+%--------------------------------------------------------------------------
+% vox Voxel sizes
+%--------------------------------------------------------------------------
+vox         = cfg_entry;
+vox.tag     = 'vox';
+vox.name    = 'Voxel sizes';
+vox.help    = {'The voxel size (isotropic, in mm) of the written normalised or imported images.'};
+vox.strtype = 'r';
+vox.num     = [1 1];
+vox.val     = {NaN};
+vox.hidden  = true;
+
+%--------------------------------------------------------------------------
 % warp Warping
 %--------------------------------------------------------------------------
 warp         = cfg_branch;
 warp.tag     = 'warp';
 warp.name    = 'Warping & MRF';
-warp.val     = {mrf cleanup reg affreg smo samp write};
+warp.val     = {mrf cleanup reg affreg smo samp write vox bb};
 warp.help    = {
     'A number of warping options.'
     'The main one that you could consider changing is the one for specifying whether deformation fields or inverse deformation fields should be generated.'

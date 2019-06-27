@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 7593 2019-05-20 18:58:16Z john $ */
+/* $Id: shoot_diffeo3d.c 7629 2019-06-27 12:35:45Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -233,7 +233,7 @@ static void composition_stuff(mwSize dm[], mwSize mm,
         float dx1, dx2, dy1, dy2, dz1, dz2;
         mwSignedIndex ix, iy, iz, ix0, iy0, iz0, ix1, iy1, iz1;
         mwSize o000, o100, o010, o110, o001, o101, o011, o111;
-        mwSize tmpz, tmpy, n;
+        mwSize tmpz, tmpy;
 
         x    = A1[i]-1.0f;
         y    = A2[i]-1.0f;
@@ -612,7 +612,7 @@ void def2jac(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s)
 
 #define TINY 5e-2f
 
-static void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@null@@out@*/float S0[], float F1[], unsigned int code)
+void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@null@@out@*/float S0[], float F1[], unsigned int code)
 {
     mwSize i, j, m0;
     float  *px, *py, *pz;
@@ -679,6 +679,7 @@ static void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[],
             {
 	        float  w000, w100, w010, w110, w001, w101, w011, w111;
 		float *pf0=F0;
+
 	        /* Weights for trilinear interpolation */
                 w000 = dx2*dy2*dz2;
                 w100 = dx1*dy2*dz2;
@@ -708,7 +709,8 @@ static void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[],
 
                 if (S0!=0)
                 {
-                    /* Increment an image containing the number of voxels added - based on finite values in the 1st image */
+                    /* Increment an image containing the number of voxels added
+                       - based on finite values in the 1st image */
 		    if (mxIsFinite((double)F1[i]))
 		    {
                         S0[o000] += w000;

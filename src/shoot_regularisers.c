@@ -1,4 +1,4 @@
-/* $Id: shoot_regularisers.c 7602 2019-06-05 14:34:18Z guillaume $ */
+/* $Id: shoot_regularisers.c 7629 2019-06-27 12:35:45Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -101,7 +101,8 @@ double trapprox(mwSize dm[], float a[], double s[])
     {
         for(j=0; j<(mwSignedIndex)dm[1]; j++)
         {
-           float *paxx, *payy, *pazz, *paxy, *paxz, *payz;
+            float *paxx=NULL, *payy=NULL, *pazz=NULL,
+                  *paxy=NULL, *paxz=NULL, *payz=NULL;
 
             paxx = a+dm[0]*(j+dm[1]* k);
             payy = a+dm[0]*(j+dm[1]*(k+dm[2]));
@@ -734,10 +735,10 @@ static void relax_le(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
 
             for(j=(it/2)&1; j<(mwSignedIndex)dm[1]; j+=2)
             {
-                float *pux = NULL, *puy = NULL, *puz = NULL,
-                 *pbx = NULL, *pby = NULL, *pbz = NULL,
-                 *paxx = NULL, *payy = NULL, *pazz = NULL,
-                 *paxy = NULL, *paxz = NULL, *payz = NULL;
+                float *pux  = NULL, *puy  = NULL, *puz  = NULL,
+                      *pbx  = NULL, *pby  = NULL, *pbz  = NULL,
+                      *paxx = NULL, *payy = NULL, *pazz = NULL,
+                      *paxy = NULL, *paxz = NULL, *payz = NULL;
                 mwSignedIndex i, jm1,jp1;
 
                 pux  = u+dm[0]*(j+dm[1]* k);
@@ -868,7 +869,11 @@ static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
             jstart = (mwSignedIndex)(kstart == (k%2));
             for(j=0; j<(mwSignedIndex)dm[1]; j++)
             {
-                float *pux, *puy, *puz, *pbx, *pby, *pbz, *paxx, *paxy, *payy, *paxz, *payz, *pazz;
+                float *pux  = NULL, *puy  = NULL, *puz  = NULL,
+                      *pbx  = NULL, *pby  = NULL, *pbz  = NULL,
+                      *paxx = NULL, *payy = NULL, *pazz = NULL,
+                      *paxy = NULL, *paxz = NULL, *payz = NULL;
+
                 mwSignedIndex jm1,jp1, im1,ip1;
 
                 pux  = u+dm[0]*(j+dm[1]*k);
@@ -1034,10 +1039,10 @@ static void relax_be(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
 
             for(j=(it/3)%3; j<(mwSignedIndex)dm[1]; j+=3)
             {
-                float *pux = NULL, *puy = NULL, *puz = NULL,
-                 *pbx = NULL, *pby = NULL, *pbz = NULL,
-                 *paxx = NULL, *payy = NULL, *pazz = NULL,
-                 *paxy = NULL, *paxz = NULL, *payz = NULL;
+                float *pux  = NULL, *puy  = NULL, *puz  = NULL,
+                      *pbx  = NULL, *pby  = NULL, *pbz  = NULL,
+                      *paxx = NULL, *payy = NULL, *pazz = NULL,
+                      *paxy = NULL, *paxz = NULL, *payz = NULL;
                 mwSignedIndex jm2,jm1,jp1,jp2;
 
                 pux  = u+dm[0]*(j+dm[1]* k);
@@ -1274,10 +1279,10 @@ static void relax_all(mwSize dm[], /*@null@*/ float a[], float b[], double s[], 
 
             for(j=(it/3)%3; j<(mwSignedIndex)dm[1]; j+=3)
             {
-                float *pux = NULL, *puy = NULL, *puz = NULL,
-                 *pbx = NULL, *pby = NULL, *pbz = NULL,
-                 *paxx = NULL, *payy = NULL, *pazz = NULL,
-                 *paxy = NULL, *paxz = NULL, *payz = NULL;
+                float *pux  = NULL, *puy  = NULL, *puz  = NULL,
+                      *pbx  = NULL, *pby  = NULL, *pbz  = NULL,
+                      *paxx = NULL, *payy = NULL, *pazz = NULL,
+                      *paxy = NULL, *paxz = NULL, *payz = NULL;
                 mwSignedIndex jm2,jm1,jp1,jp2;
 
                 pux  = u+dm[0]*(j+dm[1]* k);

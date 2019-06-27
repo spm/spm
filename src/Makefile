@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 7532 2019-02-14 12:03:24Z guillaume $
+# $Id: Makefile 7629 2019-06-27 12:35:45Z john $
 #
 ###############################################################################
 #
@@ -271,8 +271,8 @@ spm_get_lm.$(MEXEXT): spm_get_lm.c
 spm_hist.$(MEXEXT): spm_hist.c
 	$(MEX) spm_hist.c $(MEXEND)
 
-spm_hist2.$(MEXEXT): spm_hist2.c
-	$(MEX) spm_hist2.c $(MEXEND)
+spm_hist2.$(MEXEXT): spm_hist2.c hist2.c hist2.h
+	$(MEX) spm_hist2.c hist2.c $(MEXEND)
 
 spm_krutil.$(MEXEXT): spm_krutil.c
 	$(MEX) spm_krutil.c $(MEXEND)
