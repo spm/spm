@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_voice
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_voice.m 7630 2019-06-28 08:52:59Z karl $
+% $Id: DEMO_MDP_voice.m 7631 2019-06-28 12:25:34Z karl $
  
  
 % rng('default')
@@ -393,7 +393,7 @@ clear MDP
 
 % agent asks (by setting VOX to [0 1 0]
 %--------------------------------------------------------------------------
-VOX   = [0, 1, 0];
+VOX   = [2, 1, 0];
 for t = 1:mdp.T
     mdp.MDP(t).VOX = VOX(t);
 end

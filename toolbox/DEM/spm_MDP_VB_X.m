@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7615 2019-06-12 13:35:41Z thomas $
+% $Id: spm_MDP_VB_X.m 7631 2019-06-28 12:25:34Z karl $
 
 
 % deal with a sequence of trials
@@ -704,111 +704,19 @@ for t = 1:T
         % or generate outcome likelihoods from voice recognition
         %==================================================================
         if isfield(MDP,'VOX')
-            global VOX, if ~isstruct(VOX), load VOX, end
             
-            if MDP(m).VOX == 1
-                
-                % computer
-                %----------------------------------------------------------
-                str = MDP(m).label.outcome{1}(MDP(m).o(1,t));
-                disp(['A:',str])
-                
-                if ismember(str,' ')
-                    
-                    % if this is the end of a sentence
-                    %------------------------------------------------------
-                    if diff(MDP(m).o(1,(t - 1):t))
-                        
-                        % get lexical and prosidy
-                        %--------------------------------------------------
-                        iw      = MDP(m).o(1,1:(t - 1));
-                        ip      = ismember({VOX.PRO.str},{'Tf','p0','p1'});
-                        str     = MDP(m).label.outcome{1}(iw);
-                        lexical = spm_voice_i(str);
-                        prosidy = VOX.prosidy(:,lexical);
-                        speaker = [3;3];
-                        
-                        % add prosidy and articulate
-                        %--------------------------------------------------
-                        prosidy(ip,:) = MDP(m).o(2:end,1:(t - 1));
-                        prosidy(1,:)  = min(8,prosidy(1,:) + 2);
-                        spm_voice_speak(lexical,prosidy,speaker);
-                        
-                    end
-                end
-                
-                
-            elseif MDP(m).VOX == 2
-                
-                % check for audio recorder
-                %----------------------------------------------------------
-                if ~isfield(VOX,'audio')
-                    try
-                        VOX.audio  = audiorecorder(22050,16,1);
-                    catch
-                        break
-                    end
-                end
-                
-                % user
-                %----------------------------------------------------------
-                if t == 1
-                    VOX.IT = 1;
-                    stop(VOX.audio)
-                end
-                
-                % get prior over outcomes
-                %----------------------------------------------------------
+            % get prior over outcomes
+            %--------------------------------------------------------------
+            if MDP(m).VOX == 2
                 for g = 1:Ng(m)
-                    L{m}  = spm_dot(A{m,g},xqq(m,:));
+                    O{m}{g,t} = spm_dot(A{m,g},xqq(m,:));
                 end
-                
-                % find next word
-                %----------------------------------------------------------
-                L   = spm_voice_get_word(VOX.audio,L);
-                
-                % break if EOF
-                %----------------------------------------------------------
-                if isempty(L), break, end
-                
-                % get posterior outcome from voice recognition
-                %----------------------------------------------------------
-                for g = 1:Ng(m)
-                    O{m}{g,t} = L{1};
-                end
-                
-            else
-                
-                % genertive process
-                %----------------------------------------------------------
-                str = MDP(m).label.outcome{1}(MDP(m).o(1,t));
-                disp(['W:',str])
-                
-                if ismember(str,' ')
-                    
-                    % if this is the end of a sentence
-                    %------------------------------------------------------
-                    if diff(MDP(m).o(1,(t - 1):t))
-                        
-                        % get lexical and prosidy
-                        %--------------------------------------------------
-                        iw      = MDP(m).o(1,1:(t - 1));
-                        ip      = ismember({VOX.PRO.str},{'Tf','p0','p1'});
-                        str     = MDP(m).label.outcome{1}(iw);
-                        lexical = spm_voice_i(str);
-                        prosidy = VOX.prosidy(:,lexical);
-                        speaker = [12;12];
-                        
-                        % add prosidy and articulate
-                        %--------------------------------------------------
-                        prosidy(ip,:) = MDP(m).o(2:end,1:(t - 1));
-                        prosidy(1,:)  = min(8,prosidy(1,:) + 2);
-                        spm_voice_speak(lexical,prosidy,speaker);
-                        
-                    end
-                end
-                
             end
+            
+            % get likelihhod over outcomes
+            %--------------------------------------------------------------
+            O{m}(:,t) = spm_MDP_VB_VOX(MDP(m),O{m}(:,t),t);
+            
             
         end % end outcomes from voice recognition
         
@@ -1443,3 +1351,150 @@ for t = 1:T
         M(t,:) = 1;
     end
 end
+
+
+return
+
+
+function L = spm_MDP_VB_VOX(MDP,L,t)
+% FORMAT L = spm_MDP_VB_VOX(MDP,L,t)
+% returns likelihoods from voice recognition (and articulates responses)
+% MDP - structure array
+% L   - predictive prior over outcomes
+% t   - current trial
+%
+% L   - likelihood of lexical and prosody outcomes
+%
+% this subroutine determines who is currently generating auditory output
+% and produces synthetic speech – or uses the current audio recorder object
+% to evaluate the likelihood of the next word
+%__________________________________________________________________________
+
+
+% check for box structure
+%--------------------------------------------------------------------------
+global VOX, if ~isstruct(VOX), load VOX, end
+
+if MDP.VOX == 1
+    
+    % computer
+    %----------------------------------------------------------------------
+    str = MDP.label.outcome{1}(MDP.o(1,t));
+    disp(['A:',str])
+    
+    if ismember(str,' ')
+        
+        % if this is the end of a sentence
+        %------------------------------------------------------------------
+        if diff(MDP.o(1,(t - 1):t))
+            
+            % get lexical and prosidy
+            %--------------------------------------------------------------
+            iw      = MDP.o(1,1:(t - 1));
+            ip      = ismember({VOX.PRO.str},{'Tf','p0','p1'});
+            str     = MDP.label.outcome{1}(iw);
+            lexical = spm_voice_i(str);
+            prosidy = VOX.prosidy(:,lexical);
+            speaker = [3;3];
+            
+            % add prosidy and articulate
+            %--------------------------------------------------------------
+            prosidy(ip,:) = MDP.o(2:end,1:(t - 1));
+            prosidy(1,:)  = min(8,prosidy(1,:) + 2);
+            spm_voice_speak(lexical,prosidy,speaker);
+            
+        end
+    end
+    
+    
+elseif MDP.VOX == 2
+    
+    % check for audio recorder
+    %----------------------------------------------------------------------
+    if ~isfield(VOX,'audio')
+        VOX.audio  = audiorecorder(22050,16,1);
+    end
+    
+    % user
+    %----------------------------------------------------------------------
+    if t == 1
+        VOX.IT = 1;
+        stop(VOX.audio)
+        beep
+    end
+    
+    % get prior over lexcial outcomes
+    %----------------------------------------------------------------------
+    i   = spm_voice_i(MDP.label.outcome{1});
+    ip  = ismember({VOX.PRO.str},{'Tf','p0','p1'});
+    ip  = find(ip);
+    P0  = sum(L{1}(~i));
+    
+    % get likelihood of discernible words
+    %----------------------------------------------------------------------
+    if P0 < 1/128
+        
+        % log likelihoods
+        %------------------------------------------------------------------
+        PW  = spm_softmax(log(L{1}(i(~~i)) + eps));
+        OW  = spm_voice_get_word(VOX.audio,PW);
+        
+        if isempty(OW)
+            
+            % break if EOF
+            %--------------------------------------------------------------
+            L{1}( ~i) = 1;
+            L{1}(~~i) = 0;
+            L{1}      = L{1}/sum(L{1});
+            
+        else
+            
+            % lexical likelihoods
+            %--------------------------------------------------------------
+            L{1}(i(~~i)) = spm_softmax(OW{1} - log(PW));
+            
+            % prosody likelihoods
+            %--------------------------------------------------------------
+            for g = 2:numel(L)
+                L{g} = spm_softmax(OW{2}(:,ip(g - 1)));
+            end
+        end
+    end
+    
+    [d,w]  = max(OW{1});
+    disp(spm_voice_i(w))
+    
+    
+else
+    
+    % genertive process
+    %----------------------------------------------------------------------
+    str = MDP.label.outcome{1}(MDP.o(1,t));
+    disp(['W:',str])
+    
+    if ismember(str,' ')
+        
+        % if this is the end of a sentence
+        %------------------------------------------------------------------
+        if diff(MDP.o(1,(t - 1):t))
+            
+            % get lexical and prosidy
+            %--------------------------------------------------------------
+            iw      = MDP.o(1,1:(t - 1));
+            ip      = ismember({VOX.PRO.str},{'Tf','p0','p1'});
+            str     = MDP.label.outcome{1}(iw);
+            lexical = spm_voice_i(str);
+            prosidy = VOX.prosidy(:,lexical);
+            speaker = [12;12];
+            
+            % add prosidy and articulate
+            %--------------------------------------------------------------
+            prosidy(ip,:) = MDP.o(2:end,1:(t - 1));
+            prosidy(1,:)  = min(8,prosidy(1,:) + 2);
+            spm_voice_speak(lexical,prosidy,speaker);
+            
+        end
+    end
+end
+
+
