@@ -39,7 +39,7 @@ function [O,I,J,F] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7625 2019-06-27 09:44:02Z karl $
+% $Id: spm_voice_get_word.m 7630 2019-06-28 08:52:59Z karl $
 
 
 %% log prior over lexical content
@@ -89,7 +89,7 @@ y(j)  = 0;
 
 % get intervals for this segment
 %--------------------------------------------------------------------------
-j     = spm_voice_onsets(y,FS);
+j     = spm_voice_onsets(y,FS,1/24);
 nj    = numel(j);
 
 % (deep) search

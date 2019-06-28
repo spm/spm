@@ -19,7 +19,7 @@ function [F0,F1] = spm_voice_identity(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_identity.m 7622 2019-06-23 19:52:33Z karl $
+% $Id: spm_voice_identity.m 7630 2019-06-28 08:52:59Z karl $
 
 
 % global VOX
@@ -60,8 +60,9 @@ SEG   = spm_voice_read(read(wfile),P);
 L     = 0;
 nw    = numel(SEG);
 for w = 1:nw;
-    L = L + SEG(w).L{3}/nw;
+    L = L + SEG(w).L{3};
 end
+L     = spm_softmax(L);
 
 % posterior fundamental frequencies
 %==========================================================================

@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_voice
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_voice.m 7610 2019-06-09 16:38:16Z karl $
+% $Id: DEMO_MDP_voice.m 7630 2019-06-28 08:52:59Z karl $
  
  
 % rng('default')
@@ -358,7 +358,7 @@ for g = 1:Ng
     C{g}  = zeros(No(g),1);
 end
 C{4}(4,:) =  1/4;              % and affirmative answers
-C{4}(5,:) = -1/4;              % and affirmative answers
+C{4}(5,:) = -1/4;              % and negative answers
  
 % actual state of the world
 %--------------------------------------------------------------------------
@@ -406,7 +406,7 @@ OPTIONS.D    = 1;
 
 % belief updating
 %==========================================================================
-spm_figure('GetWin','20 Questions'),clf; subplot(4,3,2); axis off
+spm_figure('GetWin','20 Questions'); clf; subplot(4,3,2); axis off
 MDP   = spm_MDP_VB_X(MDP,OPTIONS);
 
 % show belief updates (and behaviour)

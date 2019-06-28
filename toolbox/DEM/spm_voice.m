@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7625 2019-06-27 09:44:02Z karl $
+% $Id: spm_voice.m 7630 2019-06-28 08:52:59Z karl $
 
 
 %% setup options and files
@@ -401,7 +401,7 @@ end
 global VOX
 load VOX
 
-if 0
+if 1
     
     % Series of single words
     %----------------------------------------------------------------------
@@ -443,7 +443,7 @@ spm_voice_segmentation(Y,SEG);
 
 % Now segment the synthetic speech
 %--------------------------------------------------------------------------
-VOX.depth   = 1;
+VOX.depth   = 0;
 [xY,y]      = spm_voice_speak(p,q,r);
 spm_voice_read(y,P)
 
