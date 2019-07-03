@@ -7,14 +7,15 @@ function this = read_gifti_file(filename, this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: read_gifti_file.m 7621 2019-06-20 16:58:59Z guillaume $
+% $Id: read_gifti_file.m 7632 2019-07-03 09:05:24Z guillaume $
 
 % Import XML-based GIfTI file
 %--------------------------------------------------------------------------
 try
     t = xmltree(filename);
 catch
-    error('[GIFTI] Loading of XML file %s failed.', filename);
+    warning('[GIFTI] Parsing of XML file %s failed.', filename);
+    rethrow(lasterror);
 end
 
 % Root element of a GIFTI file
