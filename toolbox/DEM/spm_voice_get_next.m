@@ -17,7 +17,7 @@ function [Y,I,FS] = spm_voice_get_next(wfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_next.m 7622 2019-06-23 19:52:33Z karl $
+% $Id: spm_voice_get_next.m 7633 2019-07-10 11:55:28Z karl $
 
 %% get peak identification parameters from VOX
 %==========================================================================
@@ -62,7 +62,7 @@ for i = 1:4
     j = fix((0:FS) + VOX.IT);
     G = spm_voice_check(Y(j(j < n)),FS,VOX.C);
     I = find((diff(G(1:end - 1)) > 0) & (diff(G(2:end)) < 0));
-    I = I(G(I) > VOX.U);
+    I = I(G(I) > max(VOX.U,max(Y)/32));
     
     % advance pointer if silence
     %----------------------------------------------------------------------

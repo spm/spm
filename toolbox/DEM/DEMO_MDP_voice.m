@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_voice
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_voice.m 7631 2019-06-28 12:25:34Z karl $
+% $Id: DEMO_MDP_voice.m 7633 2019-07-10 11:55:28Z karl $
  
  
 % rng('default')
@@ -51,9 +51,8 @@ function MDP = DEMO_MDP_voice
 % probabilistic mapping from hidden states to outcomes: A
 %--------------------------------------------------------------------------
 
-% setup lexicon and syntactic (sentence) structures
+% setup lexicon (synonyms) and syntactic (sentence) structures
 %==========================================================================
-% note each sequence ends in the same (space) outcome: s010 = ' '
 syn{1}      = {'is'};
 syn{2}      = {'there'};
 syn{3}      = {'a'};
@@ -73,22 +72,38 @@ adverb      = {'above','below'};
 %--------------------------------------------------------------------------
 outcome     = unique([syn{:} noun{:} adjective{:} adverb{:}]);
 
-% allowable sentences
+% allowable sentences: ending in the same (space) outcome: s10 = ' '
+%==========================================================================
+
+% allowable sentences f1 = noun, f2 = adjective and f3 = adverb
+% syntax    = {Q1,Q2,Q3,yes,no,??,go};
 %--------------------------------------------------------------------------
-sentence{1} = {'s11','s12','s13','&1f1','s010'};
-sentence{2} = {'s21','s22','s23','&2f1','&2f3','s010'};
-sentence{3} = {'s31' 's33','&3f2','&3f1','&3f3','s010'};
-sentence{4} = {'s44','s010'};
-sentence{5} = {'s55','s010'};
-sentence{6} = {'s66','s67','s68','s010'};
-sentence{7} = {'s79','s010'};
+sentence{1} = {{'s1','s2','s3','f1','s10'} {'s1','s2','f1','s10'}};
+sentence{2} = {{'s1','s2','s3','f1','f3','s10'} {'s1','s2','f1','f3','s10'}};
+sentence{3} = {{'s1' 's3','f2','f1','f3','s10'} {'s1' 's3','f2','f1','f3','s10'}};
+sentence{4} = {{'s4','s10'} {'s4','s2','s1','s10'}};
+sentence{5} = {{'s5','s10'}};
+sentence{6} = {{'s6','s7','s8','s10'}};
+sentence{7} = {{'s9','s10'}};
+
+% create semantic (lexical x syntax) labels
+%--------------------------------------------------------------------------
+for i = 1:numel(sentence)
+    for j = 1:numel(sentence{i})
+        for k = 1:numel(sentence{i}{j})
+            sentence{i}{j}{k} = sprintf('s%-3.0d%s',i,sentence{i}{j}{k});
+        end
+    end
+end
+semantics = [sentence{:}];
+semantics = unique([semantics{:}]);
 
 % assemble hidden (syntax) states
 %--------------------------------------------------------------------------
 label.factor{1} = 'noun';   label.name{1}  = noun;
 label.factor{2} = 'adj.';   label.name{2}  = adjective;
 label.factor{3} = 'adverb'; label.name{3}  = adverb;
-label.factor{4} = 'syntax'; label.name{4}  = unique([sentence{:}]);
+label.factor{4} = 'syntax'; label.name{4}  = semantics;
 
 % prior beliefs about initial states D 
 %--------------------------------------------------------------------------
@@ -97,12 +112,12 @@ for i = 1:numel(label.factor)
     D{i} = ones(n,1)/n;
 end
 
-% restrict initial states to the beginning of a sentence
+% initial states: syntax = semantics(find(D{4})) := {Q1,Q2,Q3,yes,no,??,go}
 %--------------------------------------------------------------------------
 state = label.name{4};
 D{4}  = spm_zeros(D{4});
 for i = 1:numel(sentence)
-    j = ismember(state,sentence{i}(1));
+    j = ismember(state,sentence{i}{1}(1));
     D{4}(j) = 1;
 end
 
@@ -116,6 +131,10 @@ end
 % single outcome modality with multiple phrases
 %--------------------------------------------------------------------------
 label.modality{1} = 'word';   label.outcome{1} = outcome;
+label.modality{2} = 'amplitude';
+label.modality{3} = 'duration';
+label.modality{4} = 'pitch';
+label.modality{5} = 'inflexion';
 
 for f1 = 1:Ns(1)
     for f2 = 1:Ns(2)
@@ -128,20 +147,20 @@ for f1 = 1:Ns(1)
                 
                 % words under this state
                 %==========================================================
-                name = label.name{4}{f4};
-                if name(1) == '&'
+                name = label.name{4}{f4}(5:end);
+                if name(1) == 'f'
                     
                     % get noun, adverb or adjective
                     %------------------------------------------------------
                     p   = eval(name(end));
-                    q   = eval(name(3:end));
+                    q   = eval(name);
                     out = label.name{p}(q);
                     
                 elseif name(1) == 's'
                     
                     % otherwise get synonyms
                     %------------------------------------------------------
-                    q   = eval(name(3:end));
+                    q   = eval(name(2:end));
                     out = syn{q};
                 end
                 
@@ -152,7 +171,7 @@ for f1 = 1:Ns(1)
                 
                 % prosidy under this state
                 %==========================================================
-                for p = 2:4
+                for p = 2:5
                     A{p}(:,j{:}) = full(sparse(3:6,1,1,8,1));
                 end
 
@@ -171,12 +190,14 @@ end
 %--------------------------------------------------------------------------
 B{4}  = spm_zeros(B{4});
 for s = 1:numel(sentence)
-    for t = 2:numel(sentence{s})
-        i = find(ismember(state,sentence{s}(t - 1)));
-        j = find(ismember(state,sentence{s}(t)));
-        B{4}(j,i) = 1;
+    for k = 1:numel(sentence{s})
+        for t = 2:numel(sentence{s}{k})
+            i = find(ismember(state,sentence{s}{k}(t - 1)));
+            j = find(ismember(state,sentence{s}{k}(t)));
+            B{4}(j,i) = 1;
+        end
+        B{4}(j,j) = 1;
     end
-    B{4}(j,j) = 1;
 end
 
  
@@ -192,7 +213,7 @@ mdp.VOX   = [0,0,0];
 mdp.label = label;
 MDP       = spm_MDP_check(mdp);
 
-clear A B D mdp
+clear A B D mdp label
 
 
 %% second level (narrative)
@@ -211,7 +232,7 @@ label.factor{7}  = 'noun';         label.name{7}  = {'square','triangle'};
 label.factor{8}  = 'adjective';    label.name{8}  = {'green','red'};
 label.factor{9}  = 'adverb';       label.name{9}  = {'above','below'};
 
-% prior beliefs about initial states D 
+% prior beliefs about initial states D - forming the basis of syntax
 %--------------------------------------------------------------------------
 for i = 1:numel(label.factor)
     n    = numel(label.name{i});
@@ -280,7 +301,7 @@ for f1 = 1:Ns(1) % narrative {'ready','question','answer'}
                                     %======================================
                                     A{3}(f9,j{:}) = 1;
                                     
-                                    % A{4} syntax: {Q1,Q2,Q3,Y,N,?,Go}
+                                    % A{4} syntax: {Q1,Q2,Q3,yes,no,??,go}
                                     %======================================
                                     if f1 == 1
                                         A{4}(7,j{:})     = 1;
@@ -352,13 +373,13 @@ V(1,:,9)  = 1 + [1 1 1 2 1 2 1 2 1 2 1 2 1 2];
 V(2,:,:)  = 1;
 
  
-% priors: (utility) C: A{4} syntax: {'1','2','3','Y','N','?'}
+% priors: (utility) C: A{4} syntax: {Q1,Q2,Q3,yes,no,??,go}
 %--------------------------------------------------------------------------
 for g = 1:Ng
     C{g}  = zeros(No(g),1);
 end
-C{4}(4,:) =  1/4;              % and affirmative answers
-C{4}(5,:) = -1/4;              % and negative answers
+C{4}(4,:) =  1/4;               % and affirmative answers
+C{4}(5,:) = -1/4;               % and negative answers
  
 % actual state of the world
 %--------------------------------------------------------------------------
@@ -368,11 +389,11 @@ s(4) = 2;
 
 % MDP Structure
 %--------------------------------------------------------------------------
-mdp.FCN    = @spm_questions_plot;
-mdp.MDP    = MDP;
-mdp.label  = label;             % names of factors and outcomes
-mdp.tau    = 4;                 % time constant of belief updating
-mdp.erp    = 4;                 % initialization
+mdp.FCN   = @spm_questions_plot;
+mdp.MDP   = MDP;
+mdp.label = label;              % names of factors and outcomes
+mdp.tau   = 4;                  % time constant of belief updating
+mdp.erp   = 4;                  % initialization
 
 mdp.T = 3;                      % ready, question, answer
 mdp.V = V;                      % allowable policies
@@ -385,7 +406,11 @@ mdp.o = [];                     % outcomes
 
 mdp.link = spm_MDP_link(mdp);   % map outputs to initial (lower) states
 
- 
+% factor graph
+%==========================================================================
+% spm_MDP_factor_graph(mdp);
+
+
 %% illustrate questioning
 %==========================================================================
 clear MDP
@@ -393,7 +418,7 @@ clear MDP
 
 % agent asks (by setting VOX to [0 1 0]
 %--------------------------------------------------------------------------
-VOX   = [2, 1, 0];
+VOX   = [0, 1, 2];
 for t = 1:mdp.T
     mdp.MDP(t).VOX = VOX(t);
 end

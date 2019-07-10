@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7631 2019-06-28 12:25:34Z karl $
+% $Id: spm_MDP_VB_X.m 7633 2019-07-10 11:55:28Z karl $
 
 
 % deal with a sequence of trials
@@ -231,7 +231,7 @@ if isfield(MDP,'U'), OPTIONS.gamma = 1;         end
 [T,V,HMM] = spm_MDP_get_T(MDP);
 
 % initialise model-specific variables
-%==========================================================================you
+%==========================================================================
 Ni    = 16;                                % number of VB iterations
 for m = 1:size(MDP,1)
     
@@ -705,7 +705,7 @@ for t = 1:T
         %==================================================================
         if isfield(MDP,'VOX')
             
-            % get prior over outcomes
+            % get predictive prior over outcomes if MDP.VOX = 2
             %--------------------------------------------------------------
             if MDP(m).VOX == 2
                 for g = 1:Ng(m)
@@ -717,6 +717,12 @@ for t = 1:T
             %--------------------------------------------------------------
             O{m}(:,t) = spm_MDP_VB_VOX(MDP(m),O{m}(:,t),t);
             
+            % save outcomes
+            %--------------------------------------------------------------
+            for g = 1:Ng(m)
+                po            = spm_softmax(O{m}{g,t}*512);
+                MDP(m).o(g,t) = find(rand < cumsum(po),1);
+            end
             
         end % end outcomes from voice recognition
         
@@ -1373,7 +1379,14 @@ function L = spm_MDP_VB_VOX(MDP,L,t)
 
 % check for box structure
 %--------------------------------------------------------------------------
-global VOX, if ~isstruct(VOX), load VOX, end
+global VOX
+if ~isstruct(VOX), load VOX, end
+if t == 1,         pause(1); end
+if ~isfield(VOX,'msg')
+        Data    = imread('recording','png');
+        VOX.msg = msgbox('Recording','','custom',Data);
+        set(VOX.msg,'Visible','off'), drawnow
+end
 
 if MDP.VOX == 1
     
@@ -1391,7 +1404,7 @@ if MDP.VOX == 1
             % get lexical and prosidy
             %--------------------------------------------------------------
             iw      = MDP.o(1,1:(t - 1));
-            ip      = ismember({VOX.PRO.str},{'Tf','p0','p1'});
+            ip      = ismember({VOX.PRO.str},{'amp','dur','Tf','p1'});
             str     = MDP.label.outcome{1}(iw);
             lexical = spm_voice_i(str);
             prosidy = VOX.prosidy(:,lexical);
@@ -1420,50 +1433,73 @@ elseif MDP.VOX == 2
     if t == 1
         VOX.IT = 1;
         stop(VOX.audio)
-        beep
+        record(VOX.audio,8);
+        set(VOX.msg,'Visible','on')
+        pause(2);
+        set(VOX.msg,'Visible','off')
+        
+        VOX.onsets = 1;
     end
     
-    % get prior over lexcial outcomes
+    % get prior over outcomes and synchronise with Lexicon
     %----------------------------------------------------------------------
-    i   = spm_voice_i(MDP.label.outcome{1});
-    ip  = ismember({VOX.PRO.str},{'Tf','p0','p1'});
+    io  = spm_voice_i(MDP.label.outcome{1});
+    ip  = ismember({VOX.PRO.str},{'amp','dur','Tf','p1'});
     ip  = find(ip);
-    P0  = sum(L{1}(~i));
+    
+    no  = numel(io);                         % number of outcomes
+    nw  = numel(VOX.LEX);                    % number of words in lexicon
+    P0  = sum(L{1}(~io));                    % unrecognisable outcomes
+    P   = zeros(nw,1);                       % prior to the lexicon
+    for i = 1:no
+        j = io(i);
+        if j
+            P(j) = L{1}(i);
+        end
+    end
     
     % get likelihood of discernible words
     %----------------------------------------------------------------------
-    if P0 < 1/128
+    H    = -L{1}'*(log(L{1} + eps));         % entropy (prior uncertainty)
+    if H > 1/32
         
         % log likelihoods
         %------------------------------------------------------------------
-        PW  = spm_softmax(log(L{1}(i(~~i)) + eps));
-        OW  = spm_voice_get_word(VOX.audio,PW);
+        O  = spm_voice_get_word(VOX.audio,P/sum(P));
         
-        if isempty(OW)
+        if isempty(O)
             
             % break if EOF
             %--------------------------------------------------------------
-            L{1}( ~i) = 1;
-            L{1}(~~i) = 0;
-            L{1}      = L{1}/sum(L{1});
+            L{1}( ~io) = 1;
+            L{1}(~~io) = 0;
+            L{1}       = L{1}/sum(L{1});
             
         else
             
             % lexical likelihoods
             %--------------------------------------------------------------
-            L{1}(i(~~i)) = spm_softmax(OW{1} - log(PW));
+            LL    = zeros(no,1) - exp(16);
+            for i = 1:no
+                j = io(i);
+                if j
+                    LL(i) = O{1}(j) - log(P(j) + eps);
+                end
+            end
+            L{1}  = spm_softmax(LL);
             
             % prosody likelihoods
             %--------------------------------------------------------------
             for g = 2:numel(L)
-                L{g} = spm_softmax(OW{2}(:,ip(g - 1)));
+                L{g} = spm_softmax(O{2}(:,ip(g - 1)));
             end
+            
         end
-    end
+
+    end % discernible words
     
-    [d,w]  = max(OW{1});
-    disp(spm_voice_i(w))
-    
+    [d,w]  = max(L{1});
+    disp(MDP.label.outcome{1}(w))
     
 else
     
@@ -1481,7 +1517,7 @@ else
             % get lexical and prosidy
             %--------------------------------------------------------------
             iw      = MDP.o(1,1:(t - 1));
-            ip      = ismember({VOX.PRO.str},{'Tf','p0','p1'});
+            ip      = ismember({VOX.PRO.str},{'amp','dur','Tf','p1'});
             str     = MDP.label.outcome{1}(iw);
             lexical = spm_voice_i(str);
             prosidy = VOX.prosidy(:,lexical);
