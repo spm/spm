@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 01-Jun-2019 18:11:11
+% Last Modified by GUIDE v2.5 11-Jul-2019 10:02:37
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -737,3 +737,12 @@ run_demo_Callback(hObject, handles, 'spm_voice_read')
 function pushbutton243_Callback(hObject, eventdata, handles)
 handles.web = 'Deep temporal models and active inference';
 run_demo_Callback(hObject, handles, 'DEMO_MDP_voice')
+
+
+% --- Executes on button press in pushbutton244.
+function pushbutton244_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton244 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.web = 'Deep temporal models and active inference';
+run_demo_Callback(hObject, handles, 'MDP_DEM_Mixed_Models_Movement')
