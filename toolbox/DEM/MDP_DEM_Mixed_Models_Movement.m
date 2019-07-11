@@ -14,8 +14,6 @@ function MDP_DEM_Mixed_Models_Movement
 % (contextual) level of the model.
 %__________________________________________________________________________
 
-% Thomas Parr
-% $Id: MDP_DEM_Mixed_Models_Movement.m $
 
 rng default
 
