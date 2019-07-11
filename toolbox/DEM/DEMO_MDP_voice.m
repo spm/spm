@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_voice
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_voice.m 7633 2019-07-10 11:55:28Z karl $
+% $Id: DEMO_MDP_voice.m 7638 2019-07-11 09:42:10Z karl $
  
  
 % rng('default')
@@ -211,6 +211,9 @@ mdp.o = [];
 
 mdp.VOX   = [0,0,0];
 mdp.label = label;
+mdp.tau   = 2;                  % time constant of belief updating
+mdp.erp   = 1;                  % initialization
+
 MDP       = spm_MDP_check(mdp);
 
 clear A B D mdp label
@@ -359,11 +362,13 @@ for f = [2 7 8 9]
     label.action{f} = ['stay', label.name{f}];
 end
 
-% allowable policies (time x polcy x factor): ready, question and answer
+% allowable policies (time x policy x factor): ready, question and answer
 %--------------------------------------------------------------------------
 % question 1: {'noun (7)'}
 % question 2: {'noun (7)','adverb (9)'}
 % question 3: {'adjective (8)','noun (7)','adverb (9)'}
+%
+% note the final move is to 'stay' V(2,:,:) = 1 (i.e., concepts persist)
 %--------------------------------------------------------------------------
 V         = ones(2,14,Nf);
 V(1,:,2)  = 1 + [1 1 2 2 2 2 3 3 3 3 3 3 3 3];
@@ -372,14 +377,15 @@ V(1,:,8)  = 1 + [1 1 1 1 1 1 1 1 2 2 1 1 2 2];
 V(1,:,9)  = 1 + [1 1 1 2 1 2 1 2 1 2 1 2 1 2];
 V(2,:,:)  = 1;
 
+
  
 % priors: (utility) C: A{4} syntax: {Q1,Q2,Q3,yes,no,??,go}
 %--------------------------------------------------------------------------
 for g = 1:Ng
     C{g}  = zeros(No(g),1);
 end
-C{4}(4,:) =  1/4;               % and affirmative answers
-C{4}(5,:) = -1/4;               % and negative answers
+% C{4}(4,:) =  1/4;               % and affirmative answers
+% C{4}(5,:) = -1/4;               % and negative answers
  
 % actual state of the world
 %--------------------------------------------------------------------------
@@ -393,7 +399,8 @@ mdp.FCN   = @spm_questions_plot;
 mdp.MDP   = MDP;
 mdp.label = label;              % names of factors and outcomes
 mdp.tau   = 4;                  % time constant of belief updating
-mdp.erp   = 4;                  % initialization
+mdp.erp   = 1;                  % initialization
+
 
 mdp.T = 3;                      % ready, question, answer
 mdp.V = V;                      % allowable policies
@@ -419,11 +426,30 @@ clear MDP
 % agent asks (by setting VOX to [0 1 0]
 %--------------------------------------------------------------------------
 VOX   = [0, 1, 2];
-for t = 1:mdp.T
-    mdp.MDP(t).VOX = VOX(t);
+M     = mdp;
+for t = 1:M.T
+    M.MDP(t).VOX = VOX(t);
 end
 OPTIONS.D    = 1;
-[MDP(1,1:6)] = deal(mdp);
+[MDP(1,1:6)] = deal(M);
+MDP   = spm_MDP_VB_X(MDP,OPTIONS);
+
+
+clear MDP
+VOX   = [0, 2, 1];
+M     = mdp;
+for t = 1:M.T
+    M.MDP(t).VOX = VOX(t);
+end
+OPTIONS.D    = 1;
+[MDP(1,1:6)] = deal(M);
+
+% give subject veridical beliefs about the scene
+%--------------------------------------------------------------------------
+for i = [3 4 5 6]
+    MDP(1).D{i} = sparse(s(i),1,1,Ns(i),1);
+end
+MDP   = spm_MDP_VB_X(MDP(1),OPTIONS);
 
 
 % agent asks (by setting outomes to [0 1 0]
@@ -431,7 +457,7 @@ OPTIONS.D    = 1;
 
 % belief updating
 %==========================================================================
-spm_figure('GetWin','20 Questions'); clf; subplot(4,3,2); axis off
+spm_figure('GetWin','20 Questions'); clf; 
 MDP   = spm_MDP_VB_X(MDP,OPTIONS);
 
 % show belief updates (and behaviour)
@@ -447,14 +473,8 @@ spm_MDP_VB_LFP(MDP,[],4);
 spm_figure('GetWin','Figure 2A'); clf
 spm_MDP_VB_LFP(MDP,[],4,1);
 
-spm_figure('GetWin','Figure 3'); clf
-spm_MDP_VB_ERP(MDP(4:6),[4,3]);
+spm_figure('GetWin','20 Questions')
 
-spm_figure('GetWin','20 Questions'); clf
-for i = 1:size(MDP,2)
-    subplot(4,3,i)
-    spm_questions_plot(MDP(1,i))
-end
 
 return
 
@@ -473,16 +493,23 @@ function spm_questions_plot(MDP,X)
 
 % plot question, answer and posterior belief
 %==========================================================================
-spm_figure('GetWin','20 Questions'); hold off
+spm_figure('GetWin','20 Questions'); 
 if nargin < 2; X = MDP.X; end
 
-% Assemble question-and-answer
-%----------------------------------------------------------------------
-answer    = MDP.o(4,3);
+% return unless an answer has been supplied
+%--------------------------------------------------------------------------
+answer = MDP.o(4,3);
 if ~answer
     return
+else
+    % plot belief updating for this exchange (epoch)– first factor (noun)
+    %--------------------------------------------------------------------------
+    spm_MDP_VB_LFP(MDP.mdp);
+    
 end
 
+% Assemble question-and-answer (if supplied)
+%--------------------------------------------------------------------------
 qstr      = MDP.MDP(1).label.outcome{1}(MDP.mdp(2).o(1,:));
 qstr(2,:) = {' '}; qstr = cell2mat(qstr(:)');
 astr      = MDP.MDP(1).label.outcome{1}(MDP.mdp(3).o(1,:));
@@ -490,8 +517,8 @@ astr(2,:) = {' '}; astr = cell2mat(astr(:)');
 
 
 % is the answer right (for a single player)?
-%----------------------------------------------------------------------
-ind    = num2cell(MDP.s(:,3));
+%--------------------------------------------------------------------------
+ind     = num2cell(MDP.s(:,3));
 if answer == find(MDP.A{4}(:,ind{:}),1)
     cor = spm_softmax(2*[0;1;0]);
 else
@@ -499,14 +526,15 @@ else
 end
 
 %  plot posterior beliefs
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % label.factor{3}  = 'upper colour'; label.name{3}  = {'green','red'};
 % label.factor{4}  = 'lower colour'; label.name{4}  = {'green','red'};
 % label.factor{5}  = 'upper shape';  label.name{5}  = {'square','triangle'};
 % label.factor{6}  = 'lower shape';  label.name{6}  = {'square','triangle'};
 
 % upper and lower object
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
+subplot(4,1,4); axis off, hold off
 T       = 2;
 col{1}  = [X{3}(2,T) X{3}(1,T) 0];
 col{1}  = col{1}*X{5}(1,T) + (1 - X{5}(1,T));
@@ -516,6 +544,8 @@ col{3}  = [X{4}(2,T) X{4}(1,T) 0];
 col{3}  = col{3}*X{6}(1,T) + (1 - X{6}(1,T));
 col{4}  = [X{4}(2,T) X{4}(1,T) 0];
 col{4}  = col{4}*X{6}(2,T) + (1 - X{6}(2,T));
+
+subplot(4,1,4); axis off, hold off
 
 plot(1,0,'^','MarkerSize',24,'LineWidth',4,'Color',col{4}), hold on
 plot(1,0,'s','MarkerSize',24,'LineWidth',4,'Color',col{3})

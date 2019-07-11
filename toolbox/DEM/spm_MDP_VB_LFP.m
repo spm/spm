@@ -5,8 +5,8 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % UNITS(1,j) - hidden state                           [default: all]
 % UNITS(2,j) - time step
 %
-% FACTOR     - hidden factor to plot                    [default: 1]
-% SPECTRAL   - replace unifying with spectral responses [default: 0]
+% FACTOR     - hidden factor to plot                  [default: 1]
+% SPECTRAL   - replace raster with spectral responses [default: 0]
 %
 % u - selected unit rate of change of firing (simulated voltage)
 % v - selected unit responses {number of trials, number of units}
@@ -16,7 +16,7 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: spm_MDP_VB_LFP.m 7638 2019-07-11 09:42:10Z karl $
  
  
 % defaults
