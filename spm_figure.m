@@ -45,7 +45,7 @@ function varargout = spm_figure(varargin)
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 7571 2019-04-10 15:23:16Z guillaume $
+% $Id: spm_figure.m 7640 2019-07-16 16:03:57Z guillaume $
 
 
 %==========================================================================
@@ -911,12 +911,17 @@ case 'fontsize'
 if nargin<2, sz=0; else sz=varargin{2}; end
 
 h  = [get(0,'CurrentFigure') spm_figure('FindWin','Satellite')];
-h  = [findall(h,'type','text'); findall(h,'type','uicontrol')];
-fs = get(h,'fontsize');
-if ~iscell(fs), fs = {fs}; end
-if ~isempty(fs)
+h  = [findall(h,'Type','text'); findall(h,'Type','uicontrol')];
+if ~isempty(h)
+    fu = get(h,'FontUnits');
+    if ~iscell(fu), fu = {fu}; end
+    set(h,'FontUnits','points');
+    fs = get(h,'FontSize');
+    if ~iscell(fs), fs = {fs}; end
     set(h,{'fontsize'},cellfun(@(x) max(x+sz,eps),fs,'UniformOutput',false));
+    set(h,{'FontUnits'},fu);
 end
+
 
 %==========================================================================
 otherwise
