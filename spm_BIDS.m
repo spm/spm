@@ -19,7 +19,7 @@ function varargout = spm_BIDS(varargin)
 % Copyright (C) 2016-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 7441 2018-10-11 08:56:40Z guillaume $
+% $Id: spm_BIDS.m 7642 2019-07-19 15:04:40Z guillaume $
 
 
 %-Validate input arguments
@@ -577,6 +577,28 @@ switch query
             subs = unique({BIDS.subjects.name});
             subs = regexprep(subs,'^[a-zA-Z0-9]+-','');
         end
+        %-Filter subjects according to participants.tsv
+        if any(ismember(opts(:,1),'participants'))
+            p = find(ismember(opts(:,1),'participants'));
+            for i=1:numel(p)
+                q = opts{p(i),2};
+                fn = fieldnames(q);
+                for j=1:numel(fn)
+                    if iscell(BIDS.participants.(fn{j}))
+                        idx = ismember(BIDS.participants.(fn{j}),q.(fn{j}));
+                    else
+                        if isa(q.(fn{j}),'function_handle')
+                            idx = feval(q.(fn{j}),BIDS.participants.(fn{j}));
+                        else
+                            idx = BIDS.participants.(fn{j}) == q.(fn{j});
+                        end
+                    end
+                    s = regexprep(BIDS.participants.participant_id(idx),'^[a-zA-Z0-9]+-','');
+                    subs = intersect(subs, s);
+                end
+            end
+            opts(p,:) = [];
+        end
         %-Filter according to modality
         if any(ismember(opts(:,1),'modality'))
             mods = opts{ismember(opts(:,1),'modality'),2};
@@ -722,7 +744,7 @@ end
 %-Get metadata
 %==========================================================================
 function meta = get_metadata(filename, pattern)
-if nargin == 1, pattern = '^.*_%s\\.json$'; end
+if nargin == 1, pattern = '^.*%s\\.json$'; end
 pth = fileparts(filename);
 p = parse_filename(filename);
 
