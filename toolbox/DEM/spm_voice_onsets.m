@@ -4,8 +4,9 @@ function [I] = spm_voice_onsets(Y,FS,C,U)
 %
 % Y    - timeseries
 % FS   - sampling frequency
-% U    - crossing threshold [Default: 1/8  a.u]
 % C    - Convolution kernel [Default: 1/16 sec]
+% U    - crossing threshold [Default: 1/8  a.u]
+
 %
 % I{i} - cell array of intervals (time bins) containing spectral energy
 %
@@ -20,7 +21,7 @@ function [I] = spm_voice_onsets(Y,FS,C,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7625 2019-06-27 09:44:02Z karl $
+% $Id: spm_voice_onsets.m 7644 2019-07-24 18:47:56Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================

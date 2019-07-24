@@ -20,7 +20,7 @@ function [L] = spm_voice_test(wfile,sfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7616 2019-06-12 13:51:03Z karl $
+% $Id: spm_voice_test.m 7644 2019-07-24 18:47:56Z karl $
 
 
 % create lexical structures for subsequent word recognition
@@ -64,36 +64,6 @@ for s = 1:ns
 
 end
 
-
-%% grid search to maximise classication accuracy
-%==========================================================================
-if ~isfield(VOX,'nu');
-    nu    = 8:min(32,size(xY{1}(1).W,1));                  % order (Hz)
-    nv    = 4:min(16,size(xY{1}(1).W,2));                  % order (ms)
-    LL    = zeros(numel(nu),numel(nv));
-    for i = 1:numel(nu)
-        for j = 1:numel(nv);
-            VOX.nu = nu(i);
-            VOX.nv = nv(j);
-            
-            % evaluate the log likelihood of correct word
-            %--------------------------------------------------------------
-            for s = 1:ns
-                L       = spm_voice_likelihood(xY{s});     % log likelihoods
-                L       = spm_softmax(L(:));               % posteriors
-                w       = spm_voice_i(str{s});             % correct word
-                LL(i,j) = LL(i,j) + log(L(w) + exp(-8));   % log likelihood
-            end
-            
-        end
-    end
-    
-    % optimal order of DCT basis functions
-    %----------------------------------------------------------------------
-    [i,j]  = find(LL == max(LL(:)),1);
-    VOX.nu = nu(i);
-    VOX.nv = nv(j);
-end
 
 %% illustrate classification accuracy
 %==========================================================================

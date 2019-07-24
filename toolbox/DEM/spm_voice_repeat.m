@@ -14,7 +14,7 @@ function spm_voice_repeat
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_repeat.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: spm_voice_repeat.m 7644 2019-07-24 18:47:56Z karl $
 
 
 %% setup
@@ -46,9 +46,10 @@ end
 %--------------------------------------------------------------------------
 prompt  = 'please say "is there a square above" after the beep';
 uiwait(msgbox(prompt,'modal'))
-pause(1/2), beep
+beep, pause(1/2), 
 stop(VOX.audio)
 
+VOX.F0  = 200;
 str     = {'is','there','a','square','above'};
 [W,L]   = spm_voice_i(str);
 [F0,F1] = spm_voice_identity(VOX.audio,L);

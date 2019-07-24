@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_voice
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_voice.m 7638 2019-07-11 09:42:10Z karl $
+% $Id: DEMO_MDP_voice.m 7644 2019-07-24 18:47:56Z karl $
  
  
 % rng('default')
@@ -211,7 +211,7 @@ mdp.o = [];
 
 mdp.VOX   = [0,0,0];
 mdp.label = label;
-mdp.tau   = 2;                  % time constant of belief updating
+mdp.tau   = 4;                  % time constant of belief updating
 mdp.erp   = 1;                  % initialization
 
 MDP       = spm_MDP_check(mdp);
@@ -421,27 +421,29 @@ mdp.link = spm_MDP_link(mdp);   % map outputs to initial (lower) states
 %% illustrate questioning
 %==========================================================================
 clear MDP
+OPTIONS.D    = 1;
 [mdp.MDP(1,1:3)] = deal(mdp.MDP);
 
-% agent asks (by setting VOX to [0 1 0]
+% agent asks (by setting VOX to [0 1 2]
 %--------------------------------------------------------------------------
-VOX   = [0, 1, 2];
-M     = mdp;
-for t = 1:M.T
-    M.MDP(t).VOX = VOX(t);
-end
-OPTIONS.D    = 1;
-[MDP(1,1:6)] = deal(M);
-MDP   = spm_MDP_VB_X(MDP,OPTIONS);
+% VOX   = [0, 1, 2];
+% M     = mdp;
+% for t = 1:M.T
+%     M.MDP(t).VOX = VOX(t);
+% end
+% 
+% [MDP(1,1:6)] = deal(M);
+% MDP   = spm_MDP_VB_X(MDP,OPTIONS);
+% clear MDP
 
-
-clear MDP
+% agent answers by setting VOX to  [0 2 1]
+%--------------------------------------------------------------------------
 VOX   = [0, 2, 1];
 M     = mdp;
 for t = 1:M.T
     M.MDP(t).VOX = VOX(t);
 end
-OPTIONS.D    = 1;
+
 [MDP(1,1:6)] = deal(M);
 
 % give subject veridical beliefs about the scene
@@ -452,8 +454,7 @@ end
 MDP   = spm_MDP_VB_X(MDP(1),OPTIONS);
 
 
-% agent asks (by setting outomes to [0 1 0]
-%--------------------------------------------------------------------------
+
 
 % belief updating
 %==========================================================================
@@ -470,8 +471,6 @@ spm_MDP_VB_trial(MDP(1),[1 2 4],[1 3 4]);
 spm_figure('GetWin','Figure 2'); clf
 spm_MDP_VB_LFP(MDP,[],4);
 
-spm_figure('GetWin','Figure 2A'); clf
-spm_MDP_VB_LFP(MDP,[],4,1);
 
 spm_figure('GetWin','20 Questions')
 
@@ -502,9 +501,9 @@ answer = MDP.o(4,3);
 if ~answer
     return
 else
-    % plot belief updating for this exchange (epoch)– first factor (noun)
+    % plot belief updating for this exchange (epoch)– first factor (shape)
     %--------------------------------------------------------------------------
-    spm_MDP_VB_LFP(MDP.mdp);
+    spm_MDP_VB_LFP(MDP.mdp,[],1);
     
 end
 

@@ -51,13 +51,13 @@ function [xY] = spm_voice_ff(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7622 2019-06-23 19:52:33Z karl $
+% $Id: spm_voice_ff.m 7644 2019-07-24 18:47:56Z karl $
 
 
 % defaults
 %--------------------------------------------------------------------------
 global VOX
-try, F0 = VOX.F0; catch, F0  = 96;         end    % fundamental frequency
+try, F0 = VOX.F0; catch, F0  = 110;        end    % fundamental frequency
 try, F1 = VOX.F1; catch, F1  = 26 + F0/16; end    % formant frequency
 
 % sampling frequency

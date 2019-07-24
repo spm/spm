@@ -19,7 +19,7 @@ function [F0,F1] = spm_voice_identity(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_identity.m 7630 2019-06-28 08:52:59Z karl $
+% $Id: spm_voice_identity.m 7644 2019-07-24 18:47:56Z karl $
 
 
 % global VOX
@@ -62,7 +62,7 @@ nw    = numel(SEG);
 for w = 1:nw;
     L = L + SEG(w).L{3};
 end
-L     = spm_softmax(L);
+L     = spm_softmax(L/8);
 
 % posterior fundamental frequencies
 %==========================================================================
@@ -99,7 +99,7 @@ if VOX.formant
     subplot(3,2,5)
     plot(FF0,L(:,1),'og',FF0,L(:,1),':r',[F0 F0],[0 1],'b')
     xlabel('frequency (Hz)'), ylabel('likelihood')
-    title(sprintf('Fundamental frequency (F0 = %0.0f)',F0),'FontSize',16)
+    title(sprintf('Fundamental (F0 = %0.0f Hz)',F0),'FontSize',16)
     axis square, spm_axis tight, box off
     
     % first formant
@@ -107,7 +107,7 @@ if VOX.formant
     subplot(3,2,6)
     plot(FF1,L(:,2),'og',FF1,L(:,2),':r',[F1 F1],[0 1],'b')
     xlabel('frequency (Hz)'), ylabel('likelihood')
-    title(sprintf('1st formant frequency (F1 = %0.0f)',F1),'FontSize',16)
+    title(sprintf('1st formant  (F1 = %0.0f (%0.0f) Hz)',F1,F1*32),'FontSize',16)
     axis square, spm_axis tight, box off, drawnow
     
     % supplement spectral plots

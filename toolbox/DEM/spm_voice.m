@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7630 2019-06-28 08:52:59Z karl $
+% $Id: spm_voice.m 7644 2019-07-24 18:47:56Z karl $
 
 
 %% setup options and files
@@ -73,7 +73,7 @@ spm_voice_get_LEX(xY,word,NI);
 %--------------------------------------------------------------------------
 VOX.mute     = 0;
 VOX.graphics = 1;
-VOX.RAND     = 1;
+VOX.RAND     = 1/4;
 
 nw    = numel(VOX.LEX);                       % number of lexical features
 np    = numel(VOX.PRO(1).pE);                       % number of prosody features
@@ -82,7 +82,7 @@ f     = fix(np/2);
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[f;1;f;f;j;f;f;f;i;f;f],[2;2]); pause(1/2)
+            spm_voice_speak(w,[f;1;f;f;j;f;f;f;i;f;f],[3;3]); pause(1/2)
         end
     end
 end
@@ -92,10 +92,6 @@ VOX.RAND = 0;
 
 %% invert a test file of 87 words & optimise basis function order (nu,nv)
 %==========================================================================
-try
-    VOX = rmfield(VOX,'nu');
-    VOX = rmfield(VOX,'nv');
-end
 wtest   = fullfile(PATH,'test','test.wav');
 ttest   = fullfile(PATH,'test','test.txt');
 spm_voice_test(wtest,ttest);
@@ -142,7 +138,9 @@ try
 end
 
 VOX.formant = 1;
-spm_voice_identity(wtest,P);
+for i = 1:4
+   spm_voice_identity(wtest,P);
+end
 
 
 %% illustrate accuracy (i.e., inference) using training corpus
@@ -206,6 +204,7 @@ spm_voice_P300
 %--------------------------------------------------------------------------
 % SAY: "Square Square Square Square"
 %--------------------------------------------------------------------------
+clear VOX
 global VOX
 load VOX
 VOX.audio = audiorecorder(22050,16,1);
@@ -215,6 +214,14 @@ clear str
 str{1} = {'is'};
 str{2} = {'there'};
 str{3} = {'a'};
+str{4} = {'triangle','square'};
+str{5} = {'below','above'};
+[i,P]  = spm_voice_i(str);
+
+clear str
+str{1} = {'is'};
+str{2} = {'a'};
+str{3} = {'red','green'};
 str{4} = {'triangle','square'};
 str{5} = {'below','above'};
 [i,P]  = spm_voice_i(str);
@@ -264,14 +271,8 @@ Pu    = 16:4:64;
 Pv    = 82:4:128;
 for i = 1:numel(Pu)
     for j = 1:numel(Pv);
-        try
-            VOX = rmfield(VOX,'nu');
-            VOX = rmfield(VOX,'nv');
-        end
-            
-        VOX.F1 = Pu(i);
-        VOX.F0 = Pv(j);
-        
+        VOX.F1    = Pu(i);
+        VOX.F0    = Pv(j);
         [xY,word] = spm_voice_get_xY(PATH);
         P         = spm_voice_get_LEX(xY,word);
         A(i,j)    = spm_voice_test(wtest,ttest)
@@ -299,22 +300,14 @@ VOX.onsets   = 0;
 
 % search over variables
 %--------------------------------------------------------------------------
-E     = exp(linspace(-2,2,16));
+E     = [1 2 4 8 16]/2;
 for i = 1:numel(E)
-    try
-        VOX = rmfield(VOX,'nu');
-        VOX = rmfield(VOX,'nv');
-    end
-    
-    VOX.E = E(i);
+    VOX.G = E(i);
     P     = spm_voice_get_LEX(xY,word,NI);
-    A(i)  = spm_voice_test(wtest,ttest)
-    VOX
-    
+    A(i)  = spm_voice_test(wtest,ttest)   
 end
-VOX   = rmfield(VOX,'E');
-   
-plot(E,A,'.','MarkerSize',16), axis square
+
+subplot(2,3,6), plot(E,A,'.','MarkerSize',16), axis square
 title('Accuracy (E)','FontSize',16),drawnow
 
 
@@ -398,10 +391,11 @@ end
 
 %% estimate formant frequency via maximum likelihood
 %==========================================================================
+clear VOX
 global VOX
 load VOX
 
-if 1
+if 0
     
     % Series of single words
     %----------------------------------------------------------------------
@@ -432,11 +426,11 @@ for i = 1:4
    spm_voice_identity(Y,P);
 end
 
-% mimic speaker
+%% mimic speaker
 %--------------------------------------------------------------------------
 VOX.mute    = 0;
 VOX.rf      = 0;
-VOX.RAND    = 1;
+VOX.RAND    = 1/8;
 
 [SEG,p,q,r] = spm_voice_read(Y,P);
 spm_voice_segmentation(Y,SEG);

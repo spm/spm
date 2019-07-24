@@ -32,13 +32,15 @@ function [PP] = spm_voice_get_LEX(xY,word,NI)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7617 2019-06-13 12:01:17Z karl $
+% $Id: spm_voice_get_LEX.m 7644 2019-07-24 18:47:56Z karl $
 
 
 % defaults
 %--------------------------------------------------------------------------
 global VOX
-try, E       = VOX.E; catch, E = 4; end    % regularisation
+try, VOX.E; catch, VOX.E = 64; end    % regularisation (lexical)
+try, VOX.G; catch, VOX.G = 2;  end    % regularisation (pitch)
+
 VOX.analysis = 0;
 VOX.graphics = 0;
 VOX.interval = 0;
@@ -87,7 +89,7 @@ for w = 1:nw
     % moments of prosody parameters
     %----------------------------------------------------------------------
     LEX(w).dE   = mean(P{w},2);
-    LEX(w).dC   =  cov(P{w}')/8;
+    LEX(w).dC   =   cov(P{w}');
     
 end
 
@@ -98,18 +100,18 @@ for w = 1:nw
     QC = QC + LEX(w).qC;
 end
 QC    = QC/nw;
-c0    = E*trace(QC)*eye(size(QC))/nq;
+c0    = trace(QC)*eye(size(QC))/nq/VOX.E;
 for w = 1:nw
     qC        = LEX(w).qC;
     qC        = qC + c0;
     qC        = qC*trace(qC\QC)/nq;
-    LEX(w).qC = qC;
+    LEX(w).qC = VOX.G*qC;
 end
 
 % save mean and precision in voice structure
 %--------------------------------------------------------------------------
-VOX.W   = spm_zeros(xY(1).W);
-VOX.qC  = QC;
+VOX.W  = spm_zeros(xY(1).W);
+VOX.qC = QC;
 
 
 %% estimate prosidy parameters
@@ -117,56 +119,86 @@ VOX.qC  = QC;
 fS    = @(Q,G) spm_vec(spm_voice_iQ(spm_voice_Q(Q,G)));
 G     = xY(1).P.pch;                                  % expansion point
 j     = find(ismember(Pstr,{'Tu','Tv','Tw','Tf'}));   % pitch indices
-pG    = diag([1,16,16,16,16]);                         % pitch precision
+nP    = numel(G) + 2;
+
 for w = 1:nw
     
     % setup Taylor approximation to variations prosidy
     %----------------------------------------------------------------------
-    W    = LEX(w).qE/std(LEX(w).qE(:));               % expansion point
-    dWdP = spm_diff(fS,reshape(W,Nu,Nv),G,2);         % partial derivatives
+    W         = LEX(w).qE/std(LEX(w).qE(:));        % expansion point
+    dWdP      = spm_diff(fS,reshape(W,Nu,Nv),G,2);  % partial derivatives
+    LEX(w).qE = W;                                  
+    LEX(w).X  = [ones(numel(W),1) W(:) dWdP];       % design matrix (GLM)
+    LEX(w).pE = [0 1 0 0 0 0]';                     % pitch expectation
+    LEX(w).pC = diag([1 1 1 1 1 1]/512);            % pitch covariance
     
-    
-    % setup MAP projector
-    %----------------------------------------------------------------------
-    qP   = inv(LEX(w).qC);                            % precision
-    X    = [W(:) dWdP];                               % design matrix (GLM)
-    MAP  = (X'*qP*X + pG)\X'*qP;                      % MAP projector
-    
-    % pitch parameters
-    %----------------------------------------------------------------------
-    for s = 1:ns
+end
+
+for i = 1:4
+    for w = 1:nw
         
-        % esimate variations in prosidy from expansion point
+        % general linear model
         %------------------------------------------------------------------
-        dP        = MAP*xY(w,s).W(:);
+        X    = LEX(w).X;                            % GLM
+        qC   = LEX(w).qC;                           % covariance (lexical)
+        pE   = LEX(w).pE;                           % expectation (pitch)
+        pC   = LEX(w).pC;                           % covariance  (pitch)
         
-        % augment pitch parameters
+        iqC  = spm_inv(qC);                         % precision (W)
+        ipC  = spm_inv(pC);                         % precision (P)
+        Cp   = (X'*iqC*X + ipC);                    % conditional precision
+        
+        % pitch parameters
         %------------------------------------------------------------------
-        dP        = dP(2:end);
-        P{w}(j,s) = P{w}(j,s) + dP;
+        for s = 1:ns
+            
+            % esimate variations in prosidy from expansion point
+            %--------------------------------------------------------------
+            dP(:,s)  = Cp\(X'*iqC*xY(w,s).W(:) + ipC*pE);
+            
+            % augment pitch parameters
+            %--------------------------------------------------------------
+            P{w}(j,s) = P{w}(j,s) + dP(3:end,s);
+            
+        end
         
-    end
-    
-    % expected formant coeficients and moments of pitch
-    %----------------------------------------------------------------------
-    LEX(w).X   = X;
-    LEX(w).MAP = MAP;
-    LEX(w).qE  = W;
-    LEX(w).pE  = mean(P{w}(j,:),2);
-    LEX(w).pC  =  cov(P{w}(j,:)');
-    
-    % graphics
-    %----------------------------------------------------------------------
-    if w < 5
-        spm_figure('GetWin','Basis functions');
-        nx    = size(X,2);
-        for i = 1:nx
-            subplot(4,nx,nx*(w - 1) + i)
-            imagesc(spm_voice_Q(reshape(X(:,i),Nu,Nv),G))
+        % expected formant coeficients and moments of pitch
+        %------------------------------------------------------------------
+        LEX(w).pE  = LEX(w).pE/2 + mean(dP,2)/2;
+        LEX(w).pC  = LEX(w).pC/2 + cov(dP')/2;
+               
+        % graphics
+        %------------------------------------------------------------------
+        if w < 5 && i < 2
+            spm_figure('GetWin','Basis functions');
+            nx    = size(X,2);
+            for ii = 1:nx
+                subplot(4,nx,nx*(w - 1) + ii)
+                imagesc(spm_voice_Q(reshape(X(:,ii),Nu,Nv),G))
+            end
         end
     end
 end
 
+% precompute projectors and entropy terms
+%--------------------------------------------------------------------------
+for w = 1:nw
+    
+    X    = LEX(w).X;                            % GLM
+    qC   = LEX(w).qC;                           % covariance (lexical)
+    pE   = LEX(w).pE;                           % expectation (pitch)
+    pC   = LEX(w).pC;                           % covariance  (pitch)
+    
+    iqC  = spm_inv(qC);                         % precision (W)
+    ipC  = spm_inv(pC);                         % precision (P)
+    Cp   = (X'*iqC*X + ipC);                    % conditional precision
+    
+    LEX(w).pP = Cp\(ipC*pE);
+    LEX(w).M  = Cp\(X'*iqC);
+    LEX(w).L  = - spm_logdet(qC)/2 ...           % precision
+                - spm_logdet(pC*Cp)/2;           % entropy
+    
+end
 
 %% prosody {'amp','lat','dur','tim','Tu','Tv','Tf','Tw','p0','p1','p2'}
 %==========================================================================

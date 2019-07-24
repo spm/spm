@@ -25,7 +25,7 @@ function spm_voice_P300
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7624 2019-06-26 12:10:25Z karl $
+% $Id: spm_voice_P300.m 7644 2019-07-24 18:47:56Z karl $
 
 
 %% demo mode loads sentence (.mat) files
@@ -141,7 +141,7 @@ EEG1  = spm_voice_segmentation(Y,SEG1);
 % segment without priors
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Segmentation (P300): no priors'); clf; 
-SEG0  = spm_voice_read(Y,spm_softmax(log(P)/16));
+SEG0  = spm_voice_read(Y);
 EEG0  = spm_voice_segmentation(Y,SEG0);
 
 % add evoked responses with priors, to highlight more exuberant ERPs
