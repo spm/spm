@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 7169 2017-09-19 10:42:27Z vladimir $
+% $Id: spm_eeg_montage.m 7643 2019-07-24 14:02:23Z vladimir $
 
-SVNrev = '$Rev: 7169 $';
+SVNrev = '$Rev: 7643 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -190,6 +190,8 @@ if ~isnumeric(montage)
     if isfield(montage, 'chanunitold')
         montage.chanunitold = montage.chanunitold(selmont);
     end
+    
+    montage.labelold = montage.labelorg;
 end
 
 isTF = strncmp(D.transformtype, 'TF', 2);
@@ -371,6 +373,8 @@ switch S.mode
                     
                     chanunitorig = sens.chanunit;
                     labelorg     = sens.label;
+                    
+                    sensmontage.labelold = sensmontage.labelorg;
                     
                     sens = ft_apply_montage(sens, sensmontage, 'keepunused', keepunused, 'warning', false);
                     
