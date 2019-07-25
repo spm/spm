@@ -17,7 +17,7 @@ function [po,freq] = spm_opm_psd(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_psd.m 7611 2019-06-10 11:53:54Z tim $
+% $Id: spm_opm_psd.m 7647 2019-07-25 13:58:53Z tim $
 
 %-ArgCheck
 %--------------------------------------------------------------------------
@@ -30,20 +30,41 @@ if ~isfield(S, 'channels'),      S.channels = 'ALL'; end
 if ~isfield(S, 'plot'),          S.plot = 0; end
 if ~isfield(S, 'D'),             error('D is required'); end
 
+
+%-channel Selection
+%--------------------------------------------------------------------------
+ 
+    labs = S.channels;
+    regex = {};
+    
+    for i = 1:length(labs)
+        if isa(labs,'cell')
+        regex{i} = ['regexp_(',labs{i},')'];
+        else
+            regex{i} = ['regexp_(',labs,')'];
+        end
+    end
+    chans = [S.D.selectchannels(regex), indchantype(S.D,labs)];
 %-epoch dataset
 %--------------------------------------------------------------------------
 if size(S.D,3)>1
     eD=S.D;
 else
-    args =[];
-    args.D= S.D;
-    args.trialength=S.triallength;
-    args.bc=S.bc;
-    eD = spm_eeg_epochs(args);
+    nsamps = S.triallength/1000*S.D.fsample;
+    beg = 1:nsamps:size(S.D,2);
+    endsamp =  beg+(nsamps-1);
+    inRange = ~(beg>size(S.D,2)|endsamp>size(S.D,2));
+    eD = zeros(length(chans),nsamps,sum(inRange));
+    for i =1:length(inRange)
+        if(inRange(i))
+            eD(:,:,i)=S.D(chans,beg(i):endsamp(i),:);
+        end
+    end
+    
 end
 %- set window
 %--------------------------------------------------------------------------
-fs = eD.fsample();
+fs = S.D.fsample();
 N =size(eD,2);
 Nf= ceil((N+1)/2);
 nepochs=size(eD,3);
@@ -81,11 +102,7 @@ end
 
 %- plot
 %--------------------------------------------------------------------------
-labs = S.channels;
-chans = [indchannel(eD,labs) indchantype(eD,labs)];
-labs= chanlabels(eD,chans);
-po = median(pow(:,chans,:),3);
-delete(eD);
+po = median(pow(:,:,:),3);
 if(S.plot)
     figure()
     semilogy(freq,po,'LineWidth',2);
@@ -103,9 +120,7 @@ if(S.plot)
     ax.TickLength = [0.02 0.02];
     fig= gcf;
     fig.Color=[1,1,1];
-    leg = labs;
-    leg{end+1}= [num2str(S.constant),S.units];
-    legend(leg);
+
 end
 
 end
