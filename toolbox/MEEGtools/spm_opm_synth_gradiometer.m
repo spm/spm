@@ -14,14 +14,14 @@ function D = spm_opm_synth_gradiometer(S)
 %   S.hp            -  n x 1 vector with highpass cutoff    - Default: no filter
 %                      (applied to confounds only)
 %   S.Y             - m x 1 cell array containing           - Deafualt: 'MEG' 
-%                     channel types(or names:regex allowed)
+%                     channel types
 % Output:
 %   D               - denoised MEEG object (also written to disk)
 %__________________________________________________________________________
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_synth_gradiometer.m 7613 2019-06-10 16:24:45Z tim $
+% $Id: spm_opm_synth_gradiometer.m 7646 2019-07-25 13:58:46Z tim $
 
 
 %-Set default values
@@ -43,25 +43,23 @@ filthp = [];
 refInd = [];
 
 for j = 1:length(S.confounds)
-
-% Check if any confounds refer to channel types.
-tempReftype = S.D.indchantype(S.confounds{j});
-% now check if any confounds refer to channel labels
-tempRefChan = S.D.indchannel(S.confounds{j});
-tempRefInd = [tempReftype tempRefChan];
-
-nRef = length(tempRefInd);
-
-if nRef>0
-    filtlp = [filtlp repmat(S.lp(j),1,nRef)];
-    filthp = [filthp repmat(S.hp(j),1,nRef)];
-else
-    filtlp= filtlp;
-    filthp= filthp;
+    % Check if any confounds refer to channel types.
+    tempReftype = S.D.indchantype(S.confounds{j});
+    % now check if any confounds refer to channel labels(regex allowed)
+    regex = ['regexp_(',S.confounds{j},')'];
+    tempRefChan = S.D.selectchannels(regex);
+    tempRefInd = [tempReftype tempRefChan];
+    nRef = length(tempRefInd);
+    
+    if nRef>0
+        filtlp = [filtlp repmat(S.lp(j),1,nRef)];
+        filthp = [filthp repmat(S.hp(j),1,nRef)];
+    else
+        filtlp= filtlp;
+        filthp= filthp;
+    end
+    refInd= [refInd tempRefInd];
 end
-refInd= [refInd tempRefInd];
-end
-
 
 % now select channeltypes to denoise
 megind=S.D.indchantype(S.Y);
