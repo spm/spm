@@ -8,11 +8,14 @@ function [D,L] = spm_opm_create(S)
 %   S.channels      - channels.tsv file            - Default: REQUIRED  
 %   S.fs            - Sampling frequency (Hz)      - Default: REQUIRED if S.meg is empty
 %   S.meg           - meg.json file                - Default: REQUIRED if S.fs is empty
+%   S.precision     - 'single' or 'double'         - Default: 'single'
 % SIMULATION
 %   S.wholehead     - whole head coverage flag     - Deafult: 0
 %   S.space         - space between sensors(mm)    - Default: 25
 %   S.offset        - scalp to sensor distance(mm) - Default: 6.5
 %   S.nSamples      - number of samples            - Default: 1000
+%   S.Dens          - number of density checks     - Default: 40
+
 % SOURCE LEVEL INFO
 %   S.coordsystem   - coordsystem.json file        - Default: 
 %   S.positions     - positions.tsv file           - Default:
@@ -31,7 +34,7 @@ function [D,L] = spm_opm_create(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_create.m 7614 2019-06-10 17:07:55Z tim $
+% $Id: spm_opm_create.m 7645 2019-07-25 13:58:25Z tim $
 spm('FnBanner', mfilename);
 
 %-Set default values
@@ -45,123 +48,140 @@ if ~isfield(S, 'oskull'),      S.oskull = []; end
 if ~isfield(S, 'lead'),        S.lead = 0; end
 if ~isfield(S, 'fs'),          S.fs   = 1000; end
 if ~isfield(S, 'nSamples'),    S.nSamples   = 1000; end
-if ~isfield(S, 'space'),       S.space  = 25; end
+if ~isfield(S, 'nDens'),       S.nDens   = 40; end
+if ~isfield(S, 'space'),       S.space  = 30; end
 if ~isfield(S, 'offset'),      S.offset  = 6.5; end
 if ~isfield(S, 'data'),        S.data = zeros(1,S.nSamples); end
 if ~isfield(S, 'wholehead'),   S.wholehead = 1; end
 if ~isfield(S, 'fname'),       S.fname = 'sim_opm'; end
+if ~isfield(S, 'precision'),   S.precision = 'single'; end
      
-%-Simulate or read
-%--------------------------------------------------------------------------
-readData= isa(S.data,'char');
 
-if readData
-    [a,b,~] = fileparts(S.data);
-    
-    %- Check for channel Info
-    %----------------------------------------------------------------------
-    if ~isfield(S,'channels')
-        base = strsplit(b,'meg');
-        chanFile= fullfile(a,[base{1},'channels.tsv']);
-        if exist(chanFile,'file')==2
-            channels = spm_load(chanFile);
-        else
-            error('A channels.tsv file is necessray to read the data');
-        end
-    else
-        if exist(S.channels,'file')==2
-            channels = spm_load(S.channels);
-        else
-            error('The file in S.channels deos not exist');
-        end
+%- Read Binary File
+%----------------------------------------------------------------------
+try % to read data 
+    [direc, dataFile] = fileparts(S.data);
+    dat = fopen(S.data);
+    S.data = fread(dat,Inf,S.precision,0,'b');
+    fclose(dat);
+    binData=1;
+catch % if not readable check if it is numeric 
+    if ~isa(S.data,'numeric') % if not numeric throw error
+        error('A valid dataest or file was not supplied')
     end
-    
-    %- Check for MEG Info
-    %----------------------------------------------------------------------
-    if ~isfield(S,'meg')
-        base = strsplit(b,'meg');
-        megFile= fullfile(a,[base{1},'meg.json']);
-        if exist(megFile,'file')==2
-            meg = spm_load(megFile);
-        else
-            if isfield(S,'fs')
-                meg=[];
-                meg.SamplingFrequecny=S.fs;
-            else
-                error('Either S.fs or S.meg should be specified')
+    binData=0;
+    direc = pwd();
+    dataFile=S.fname;
+end
+%- identify potential BIDS Files
+%----------------------------------------------------------------------
+base = strsplit(dataFile,'meg');
+chanFile= fullfile(direc,[base{1},'channels.tsv']);
+megFile= fullfile(direc,[base{1},'meg.json']);
+posFile= spm_select('FPList',direc,[base{1},'positions.tsv']);
+coordFile= fullfile(direc,[base{1},'coordsystem.json']);
+
+%- Check for channel Info
+%--------------------------------------------------------------------------
+try % to load a channels file
+    channels = spm_load(S.channels);
+catch 
+    try % to load a BIDS channel file 
+       channels = spm_load(chanFile);
+    catch
+        try  % use channel struct if supplied
+           channels = S.channels;
+        catch % create channel struct  
+            args=[];
+            args.base='Chan';
+            args.n= size(S.data,1);
+            labs= spm_create_labels(args);
+            channels = [];
+            channels.name=labs;
+            channels.type=repmat({'MEG'},size(S.data,1),1);
+            channels.units= repmat({'fT'},size(S.data,1),1);
+        end
+    end      
+end
+
+%- reformat data according to channel info
+%--------------------------------------------------------------------------
+nc = size(channels.name,1);
+
+if binData
+    S.data = reshape(S.data,nc,numel(S.data)/nc);
+elseif nc~=size(S.data,1)
+    error('numer of channels in S.data different to S.channels')
+else
+    S.data =S.data;
+end
+
+%- Check for MEG Info
+%--------------------------------------------------------------------------
+try % to load a meg file
+    meg = spm_load(S.meg);
+catch 
+    try % to load a BIDS meg file 
+       meg = spm_load(megFile);
+    catch
+        try % to use meg struct  
+           meg = S.meg;
+        catch 
+            try % to use S.fs argument to get sampling frequency
+                meg =[];
+                meg.SamplingFrequency=S.fs;
+            catch
+                ('A valid meg.json file is required if S.fs is empty');
             end
         end
-    else
-        if exist(S.meg,'file')==2
-            meg = spm_load(S.meg);
-        else
-            error('The file in S.meg deos not exist');
-        end
-    end
-    
-    %- Read Binary File
-    %----------------------------------------------------------------------
-    if exist(S.data,'file')==2
-        dat = fopen(S.data);
-        bytes = fread(dat,Inf,'double',0,'b');
-        fclose(dat);
-        nc = size(channels.name,1);
-        S.data = reshape(bytes,nc,length(bytes)/nc);
-    else
-        error('The file in S.data deos not exist');
-    end
-    
-    %- Forward model Check
-    %----------------------------------------------------------------------
-    if ~isfield(S, 'sMRI')
-        forward=0;
-    elseif ~exist(S.sMRI,'file')==2
-        error('S.sMRI file does not exist.')
-    else 
-        forward =1;
-        template=0;
-    end
+    end      
+end
+
+%- Position File check 
+%----------------------------------------------------------------------
+try % to load a channels file
+    posOri = spm_load(S.positions);
+    positions =1;
+catch 
+    try % to load a BIDS channel file 
+       posOri = spm_load(posFile);
+       positions =1;
+    catch
+       positions =0;
+    end      
+end
+
+%- Forward model Check
+%----------------------------------------------------------------------
+subjectSource  = (positions|isfield(S,'space')) & isfield(S,'sMRI');
+subjectSensor = ~subjectSource;
+
+if subjectSource
+    forward =1;
+    template =0;
+elseif subjectSensor
+    forward =0;
+    template =0;
 else
-    %- Simulation Defaults
-    %----------------------------------------------------------------------
-    
-    a=pwd();
-    b=S.fname;
-    
-    args=[];
-    args.base='Chan';
-    args.n= size(S.data,1);
-    labs= spm_create_labels(args);
-    channels = [];
-    channels.name=labs;
-    channels.type=repmat({'MEG'},size(S.data,1),1);
-    channels.units= repmat({'fT'},size(S.data,1),1);
-    meg=[];
-    meg.SamplingFrequency=S.fs;
-    
-    forward=1;
-    if ~isfield(S, 'sMRI')
-        S.sMRI   = 1;
-        template = 1;
-    else
-        template = 0;
-    end
-end 
+    forward =1;
+    template =1;
+end
+   
 
 %- Create SPM object of simulated or real data
 %--------------------------------------------------------------------------
 Dtemp = meeg(size(S.data,1),size(S.data,2),size(S.data,3));
 Dtemp = fsample(Dtemp,meg.SamplingFrequency);
-Dtemp = fname(Dtemp,[b,'.mat']);
-Dtemp = path(Dtemp,a);
+Dtemp = fname(Dtemp,[dataFile,'.mat']);
+Dtemp = path(Dtemp,direc);
 Dtemp = chanlabels(Dtemp,1:size(Dtemp,1),channels.name);
 Dtemp = units(Dtemp,1:size(Dtemp,1),channels.units);
 Dtemp = chantype(Dtemp,1:size(Dtemp,1),channels.type);
 
 %- Overwrite and Save
 %--------------------------------------------------------------------------
-ma = fullfile(a,[b,'.mat']);
-da = fullfile(a,[b,'.dat']);
+ma = fullfile(direc,[dataFile,'.mat']);
+da = fullfile(direc,[dataFile,'.dat']);
 
 ae = exist(fname(Dtemp),'file')==2;
 if(ae)
@@ -170,7 +190,7 @@ if(ae)
 end
 Dtemp.save();
 % create data file and insert data
-D= blank(Dtemp,[b,'.dat']);
+D= blank(Dtemp,[dataFile,'.dat']);
 dim=size(D);
 D(1:dim(1),1:dim(2),1:dim(3)) = S.data;
 D.save();
@@ -196,23 +216,22 @@ end
 %- Create the Sensor Array
 %--------------------------------------------------------------------------
 if forward
-    if ~readData
-        if isfield(S, 'positions')
-            posOri = spm_load(S.positions,'',true);
-            pos = [posOri.Px,posOri.Py,posOri.Pz];
-            ori = [posOri.Ox,posOri.Oy,posOri.Oz];
-            
-        else
-            % if no postions and orientations provided then create them
-            args = [];
-            args.D =D;
-            args.offset = S.offset;
-            args.space = S.space;
-            args.wholehead = S.wholehead;
-            [pos,ori] = opm_createSensorArray(args);
-        end
-        
-        nSensors=size(pos,1);
+    try % create positions and orientations
+        pos = [posOri.Px,posOri.Py,posOri.Pz];
+        ori = [posOri.Ox,posOri.Oy,posOri.Oz];
+        cl = posOri.name;
+    catch % if no postions and orientations provided then create them
+        args = [];
+        args.D =D;
+        args.offset = S.offset;
+        args.space = S.space;
+        args.wholehead = S.wholehead;
+        args.nDens = S.nDens;
+        [pos,ori] = opm_createSensorArray(args);
+    end
+  
+    nSensors=size(pos,1);
+    if nSensors>size(S.data,1) % 
         args=[];
         args.base='Chan';
         args.n= nSensors;
@@ -224,28 +243,12 @@ if forward
         D = clone(D,fnamedat(D),[nSensors,S.nSamples,1],1);
         D = chanlabels(D,1:size(D,1),channels.name);
         D = units(D,1:size(D,1),channels.units);
-        D = chantype(D,1:size(D,1),channels.type);
+        D = chantype(D,1:size(D,1),channels.type);    
         cl=chanlabels(D)';
-    else
-        if ~isfield(S,'positions')
-            base = strsplit(b,'meg');
-            posFile= spm_select('FPList',a,[base{1},'positions.tsv']);
-            posOri = spm_load(posFile);
-            pos = [posOri.Px,posOri.Py,posOri.Pz];
-            ori = [posOri.Ox,posOri.Oy,posOri.Oz];
-            cl=posOri.name;
-        else
-            if exist(S.positions,'file')==2
-               posOri = spm_load(S.positions);
-                pos = [posOri.Px,posOri.Py,posOri.Pz];
-                ori = [posOri.Ox,posOri.Oy,posOri.Oz];
-                cl=posOri.name;
-            else
-                error('The file in S.meg deos not exist');
-            end
-        end
     end
 end
+        
+
 
 %-Place Sensors  in object
 %--------------------------------------------------------------------------
@@ -265,68 +268,66 @@ end
 
 %- fiducial settings
 %--------------------------------------------------------------------------
-if forward
-    if readData
-        if ~isfield(S,'coordsystem')
-            base = strsplit(b,'meg');
-            coordFile= fullfile(a,[base{1},'coordsystem.json']);
-            if exist(coordFile,'file')==2
-                coord = spm_load(coordFile);
-            else
-                error('A coordsystem.json file is required for forward modelling')
-            end
-        else
-            if exist(S.coordsystem,'file')==2
-                coord = spm_load(S.coordsystem);
-            else
-                error('The file in S.coordsystem deos not exist');
-            end
-        end
-        
+if subjectSource
+    miMat = zeros(3,3);
+    fiMat = zeros(3,3);
+    fid=[];
+    try % to read the coordsystem.json
+        coord = spm_load(S.coordsystem);
+        fiMat(1,:) = coord.HeadCoilCoordinates.coil1;
+        fiMat(2,:) = coord.HeadCoilCoordinates.coil2;
+        fiMat(3,:) = coord.HeadCoilCoordinates.coil3;
+        miMat(1,:) = coord.AnatomicalLandmarkCoordinates.coil1;
+        miMat(2,:) = coord.AnatomicalLandmarkCoordinates.coil2;
+        miMat(3,:) = coord.AnatomicalLandmarkCoordinates.coil3;
         fid.fid.label = fieldnames(coord.HeadCoilCoordinates);
-        f1=coord.HeadCoilCoordinates.coil1;
-        f2=coord.HeadCoilCoordinates.coil2;
-        f3=coord.HeadCoilCoordinates.coil3;
-        fiMat = zeros(3,3);
-        fiMat(1,:) = f1;
-        fiMat(2,:) = f2;
-        fiMat(3,:) = f3;
         fid.fid.pnt =fiMat;
         fid.pos= []; % headshape field that is left blank (GRB)
-       
-        m1=coord.AnatomicalLandmarkCoordinates.coil1;
-        m2=coord.AnatomicalLandmarkCoordinates.coil2;
-        m3=coord.AnatomicalLandmarkCoordinates.coil3;
-        miMat = zeros(3,3);
-        miMat(1,:) = m1;
-        miMat(2,:) = m2;
-        miMat(3,:) = m3;
-        
         M = fid;
         M.fid.pnt=miMat;
         M.pnt = D.inv{1}.mesh.fid.pnt;
-        
-    elseif(template)
-        fid.fid.label = {'nas', 'lpa', 'rpa'}';
-        fid.fid.pnt = D.inv{1}.mesh.fid.fid.pnt(1:3,:);
-        fid.pos= []; % headshape field that is left blank (GRB)
-        M = fid;
-        M.pnt = D.inv{1}.mesh.fid.pnt;
-    else
-        fid.fid.label = {'nas', 'lpa', 'rpa'}';
-        fid.fid.pnt = [0 0 0; -1 0 0; 1 0 0];
-        fid.pos= [];
-        M = fid;
-        M.pnt = D.inv{1}.mesh.fid.pnt;
+    catch
+        try % to find the BIDS coordsystem.json
+            coord = spm_load(coordFile);
+            fiMat(1,:) = coord.HeadCoilCoordinates.coil1;
+            fiMat(2,:) = coord.HeadCoilCoordinates.coil2;
+            fiMat(3,:) = coord.HeadCoilCoordinates.coil3;
+            miMat(1,:) = coord.AnatomicalLandmarkCoordinates.coil1;
+            miMat(2,:) = coord.AnatomicalLandmarkCoordinates.coil2;
+            miMat(3,:) = coord.AnatomicalLandmarkCoordinates.coil3;
+            fid.fid.label = fieldnames(coord.HeadCoilCoordinates);
+            fid.fid.pnt =fiMat;
+            fid.pos= []; % headshape field that is left blank (GRB)
+            M = fid;
+            M.fid.pnt=miMat;
+            M.pnt = D.inv{1}.mesh.fid.pnt;
+        catch % DEFAULT: transform between fiducials and anatomy is identity
+            fid.fid.label = {'nas', 'lpa', 'rpa'}';
+            fid.fid.pnt = [0 0 0; -1 0 0; 1 0 0];
+            fid.pos= [];
+            M = fid;
+            M.pnt = D.inv{1}.mesh.fid.pnt;
+        end
     end
-    
+end
+
+if(template) %make 
+    fid.fid.label = {'nas', 'lpa', 'rpa'}';
+    fid.fid.pnt = D.inv{1}.mesh.fid.fid.pnt(1:3,:);
+    fid.pos= []; % headshape field that is left blank (GRB)
+    M = fid;
+    M.pnt = D.inv{1}.mesh.fid.pnt;
+end
+
+%- Coregistration
+%--------------------------------------------------------------------------
+if(subjectSource)
     D = fiducials(D, fid);
     save(D);
     f=fiducials(D);
     f.pnt =zeros(0,3);
     D = spm_eeg_inv_datareg_ui(D,1,f,M,0);
 end
-
 %- 2D view based on mean orientation of sensors 
 %--------------------------------------------------------------------------
 if(forward)
@@ -387,6 +388,7 @@ function [pos,ori] = opm_createSensorArray(S)
 %   S.offset       - distance to place sensors(mm) from scalp surface
 %   S.space        - distance between sensors(mm) 
 %   S.wholehead    - boolean: Should whole scalp surface should be covered?
+%   S.nDens        - number of density optimisations
 % _________________________________________________________________________
 
 % Args
@@ -450,6 +452,7 @@ scalp = spm_mesh_transform(scalp,T);
 args= [];
 args.space=S.space;
 args.g=scalp;
+args.nDens=S.nDens;
 [pos, ~, ~] = spm_mesh_pack_points(args);
 
 
