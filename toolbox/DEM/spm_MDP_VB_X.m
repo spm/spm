@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7644 2019-07-24 18:47:56Z karl $
+% $Id: spm_MDP_VB_X.m 7648 2019-07-29 11:58:51Z karl $
 
 
 % deal with a sequence of trials
@@ -714,14 +714,29 @@ for t = 1:T
             % get predictive prior over outcomes if MDP.VOX = 2
             %--------------------------------------------------------------
             if MDP(m).VOX == 2
+                
+                % current outcome
+                %----------------------------------------------------------
                 for g = 1:Ng(m)
                     O{m}{g,t} = spm_dot(A{m,g},xqq(m,:));
                 end
+                
+                % and next outcome if available
+                %----------------------------------------------------------
+                try
+                    for f = 1:Nf(m)
+                        pq{f} = sB{m,f}(:,:)*xqq{m,f};
+                    end
+                    for g = 1:Ng(m)
+                      %  O{m}{g,t + 1} = spm_dot(A{m,g},pq);
+                    end
+                end
+            
             end
             
-            % get likelihood over outcomes
+            % get likelihood over outcomes - or articulate phrase
             %--------------------------------------------------------------
-            O{m}(:,t) = spm_MDP_VB_VOX(MDP(m),O{m}(:,t),t);
+            O{m}(:,t) = spm_MDP_VB_VOX(MDP(m),O{m},t);
             
             % update outcomes
             %--------------------------------------------------------------
@@ -1396,8 +1411,9 @@ function L = spm_MDP_VB_VOX(MDP,L,t)
 % check for VOX structure
 %--------------------------------------------------------------------------
 global VOX
-if ~isstruct(VOX), load VOX, end
+if ~isstruct(VOX), load VOX; end
 if t == 1,         pause(1); end
+
 if ~isfield(VOX,'msg')
     
     % prepare useful fields in (global) VOX structure
@@ -1418,6 +1434,7 @@ if MDP.VOX == 1
     % Agent: computer
     %----------------------------------------------------------------------
     str = MDP.label.outcome{1}(MDP.o(1,t));
+    L   = L(:,t);
     disp(['A:',str])
     
     if ismember(str,' ')
@@ -1471,21 +1488,26 @@ elseif MDP.VOX == 2
     ip  = VOX.ip;                            % indices of prosody
     no  = numel(io);                         % number of outcomes
     nw  = numel(VOX.LEX);                    % number of words in lexicon
-    P   = zeros(nw,1);                       % prior over lexicon
-    for i = 1:no
-        j = io(i);
-        if j
-            P(j) = L{1}(i);
+    nk  = size(L,2) - t + 1;                 % number of predictions
+    P   = zeros(nw,nk);                      % prior over lexicon
+    for k = 1:nk
+        for i = 1:no
+            j = io(i);
+            if j
+                P(j,k) = L{1,t + k - 1}(i);
+            end
         end
     end
+    L   = L(:,t);
     
     % get likelihood of discernible words
     %----------------------------------------------------------------------
-    if sum(P) > exp(-3)
+    
+    if sum(P(:,1)) > exp(-3)
         
         % log likelihoods
         %------------------------------------------------------------------
-        O  = spm_voice_get_word(VOX.audio,P/sum(P));
+        O  = spm_voice_get_word(VOX.audio,bsxfun(@rdivide,P,sum(P)));
         
         if isempty(O)
             
@@ -1503,7 +1525,7 @@ elseif MDP.VOX == 2
             for i = 1:no
                 j = io(i);
                 if j
-                    LL(i) = O{1}(j) - log(P(j) + eps);
+                    LL(i) = O{1}(j) - log(P(j,1) + eps);
                 end
             end
             L{1}  = spm_softmax(LL);
@@ -1528,6 +1550,7 @@ else
     % World: generative process
     %----------------------------------------------------------------------
     str = MDP.label.outcome{1}(MDP.o(1,t));
+    L   = L(:,t);
     disp(['W:',str])
     
     if ismember(str,' ')

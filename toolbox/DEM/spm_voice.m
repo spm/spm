@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7644 2019-07-24 18:47:56Z karl $
+% $Id: spm_voice.m 7648 2019-07-29 11:58:51Z karl $
 
 
 %% setup options and files
@@ -212,14 +212,6 @@ VOX.audio = audiorecorder(22050,16,1);
 
 clear str
 str{1} = {'is'};
-str{2} = {'there'};
-str{3} = {'a'};
-str{4} = {'triangle','square'};
-str{5} = {'below','above'};
-[i,P]  = spm_voice_i(str);
-
-clear str
-str{1} = {'is'};
 str{2} = {'a'};
 str{3} = {'red','green'};
 str{4} = {'triangle','square'};
@@ -230,15 +222,10 @@ str{5} = {'below','above'};
 %--------------------------------------------------------------------------
 spm_voice_read(VOX.audio,P);
 
-str{1} = {'is','there'};
-str{2} = {'there','a'};
-str{3} = {'a','triangle','square'};
-str{4} = {'triangle','square','below','above'};
-str{5} = {'below','above','no','yes'};
-str{6} = {'no','yes','is','there'};
-str{7} = {'is','there'};
-[i,P]  = spm_voice_i(str);
+VOX.depth = 1;
 spm_voice_read(read(VOX.audio),P);
+
+
 
 
 %% optmise spectral defaults with respect to classification accuracy

@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_voice
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_voice.m 7644 2019-07-24 18:47:56Z karl $
+% $Id: DEMO_MDP_voice.m 7648 2019-07-29 11:58:51Z karl $
  
  
 % rng('default')
@@ -451,15 +451,15 @@ end
 for i = [3 4 5 6]
     MDP(1).D{i} = sparse(s(i),1,1,Ns(i),1);
 end
-MDP   = spm_MDP_VB_X(MDP(1),OPTIONS);
-
-
 
 
 % belief updating
 %==========================================================================
 spm_figure('GetWin','20 Questions'); clf; 
 MDP   = spm_MDP_VB_X(MDP,OPTIONS);
+
+return
+
 
 % show belief updates (and behaviour)
 %--------------------------------------------------------------------------
@@ -472,10 +472,6 @@ spm_figure('GetWin','Figure 2'); clf
 spm_MDP_VB_LFP(MDP,[],4);
 
 
-spm_figure('GetWin','20 Questions')
-
-
-return
 
 
 

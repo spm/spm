@@ -39,7 +39,7 @@ function [O,I,J,F] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7633 2019-07-10 11:55:28Z karl $
+% $Id: spm_voice_get_word.m 7648 2019-07-29 11:58:51Z karl $
 
 
 %% log prior over lexical content
@@ -61,7 +61,7 @@ LP = log(P + eps);
 if isempty(I)
     O = {};
     J = [];
-    F = -exp(16);
+    F = -512;
     return
     
 elseif I < 1

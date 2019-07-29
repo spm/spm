@@ -36,7 +36,7 @@ function [SEG,W,P,R] = spm_voice_read(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7630 2019-06-28 08:52:59Z karl $
+% $Id: spm_voice_read.m 7648 2019-07-29 11:58:51Z karl $
 
 
 %% setup
@@ -106,21 +106,21 @@ for s  = 1:ns
         break
     end
     
-    % Check for missed words
-    %----------------------------------------------------------------------
-    if F < -256 && j(end) < ns && s > 10
-        
-        VOX.IT        = IT;
-        [Li,Ii,Ji,Fi] = spm_voice_get_word(wfile,P(:,j + 1));
-        
-        % revert to start of word
-        %--------------------------------------------------------------
-        if Fi > F
-            J           = [J(1) - fix(FS/16), J(1)];
-            L{2}(:,1:3) = -128;
-            L{2}(1,1:3) = 0;
-        end
-    end
+%     % Check for missed words
+%     %----------------------------------------------------------------------
+%     if F < -256 && j(end) < ns && s > 10
+%         
+%         VOX.IT        = IT;
+%         [Li,Ii,Ji,Fi] = spm_voice_get_word(wfile,P(:,j + 1));
+%         
+%         % revert to start of word
+%         %--------------------------------------------------------------
+%         if Fi > F
+%             J           = [J(1) - fix(FS/16), J(1)];
+%             L{2}(:,1:3) = -128;
+%             L{2}(1,1:3) = 0;
+%         end
+%     end
     
     % move to end of word
     %----------------------------------------------------------------------
