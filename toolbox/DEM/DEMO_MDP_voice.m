@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_voice
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_voice.m 7648 2019-07-29 11:58:51Z karl $
+% $Id: DEMO_MDP_voice.m 7651 2019-08-03 12:35:15Z karl $
  
  
 % rng('default')
@@ -78,9 +78,9 @@ outcome     = unique([syn{:} noun{:} adjective{:} adverb{:}]);
 % allowable sentences f1 = noun, f2 = adjective and f3 = adverb
 % syntax    = {Q1,Q2,Q3,yes,no,??,go};
 %--------------------------------------------------------------------------
-sentence{1} = {{'s1','s2','s3','f1','s10'} {'s1','s2','f1','s10'}};
-sentence{2} = {{'s1','s2','s3','f1','f3','s10'} {'s1','s2','f1','f3','s10'}};
-sentence{3} = {{'s1' 's3','f2','f1','f3','s10'} {'s1' 's3','f2','f1','f3','s10'}};
+sentence{1} = {{'s1','s2','s3','f1','s10'}};
+sentence{2} = {{'s1','s2','s3','f1','f3','s10'} {'s1','s3','f1','f3','s10'}};
+sentence{3} = {{'s1','s3','f2','f1','f3','s10'}};
 sentence{4} = {{'s4','s10'} {'s4','s2','s1','s10'}};
 sentence{5} = {{'s5','s10'}};
 sentence{6} = {{'s6','s7','s8','s10'}};
@@ -117,7 +117,7 @@ end
 state = label.name{4};
 D{4}  = spm_zeros(D{4});
 for i = 1:numel(sentence)
-    j = ismember(state,sentence{i}{1}(1));
+    j       = ismember(state,sentence{i}{1}(1));
     D{4}(j) = 1;
 end
 
@@ -130,11 +130,12 @@ end
 
 % single outcome modality with multiple phrases
 %--------------------------------------------------------------------------
-label.modality{1} = 'word';   label.outcome{1} = outcome;
-label.modality{2} = 'amplitude';
-label.modality{3} = 'duration';
-label.modality{4} = 'pitch';
-label.modality{5} = 'inflexion';
+levels = {'1','2','3','4','5','6','7','8'};
+label.modality{1} = 'word';       label.outcome{1} = outcome;
+label.modality{2} = 'amplitude';  label.outcome{2} = levels;
+label.modality{3} = 'duration';   label.outcome{3} = levels;
+label.modality{4} = 'pitch';      label.outcome{4} = levels;
+label.modality{5} = 'inflexion';  label.outcome{5} = levels;
 
 for f1 = 1:Ns(1)
     for f2 = 1:Ns(2)
@@ -196,7 +197,7 @@ for s = 1:numel(sentence)
             j = find(ismember(state,sentence{s}{k}(t)));
             B{4}(j,i) = 1;
         end
-        B{4}(j,j) = 1;
+        B{4}(j,j) = 1;          % end of phrase: ' '
     end
 end
 
@@ -384,8 +385,8 @@ V(2,:,:)  = 1;
 for g = 1:Ng
     C{g}  = zeros(No(g),1);
 end
-% C{4}(4,:) =  1/4;               % and affirmative answers
-% C{4}(5,:) = -1/4;               % and negative answers
+C{4}(4,:) =  1/4;               % and affirmative answers
+C{4}(5,:) = -1/4;               % and negative answers
  
 % actual state of the world
 %--------------------------------------------------------------------------
@@ -415,7 +416,7 @@ mdp.link = spm_MDP_link(mdp);   % map outputs to initial (lower) states
 
 % factor graph
 %==========================================================================
-% spm_MDP_factor_graph(mdp);
+ spm_MDP_factor_graph(mdp);
 
 
 %% illustrate questioning
@@ -438,7 +439,7 @@ OPTIONS.D    = 1;
 
 % agent answers by setting VOX to  [0 2 1]
 %--------------------------------------------------------------------------
-VOX   = [0, 2, 1];
+VOX   = [0, 0, 1];
 M     = mdp;
 for t = 1:M.T
     M.MDP(t).VOX = VOX(t);
@@ -498,7 +499,7 @@ if ~answer
     return
 else
     % plot belief updating for this exchange (epoch)– first factor (shape)
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     spm_MDP_VB_LFP(MDP.mdp,[],1);
     
 end
@@ -529,7 +530,7 @@ end
 
 % upper and lower object
 %--------------------------------------------------------------------------
-subplot(4,1,4); axis off, hold off
+subplot(4,2,7); axis off, hold off
 T       = 2;
 col{1}  = [X{3}(2,T) X{3}(1,T) 0];
 col{1}  = col{1}*X{5}(1,T) + (1 - X{5}(1,T));
@@ -540,15 +541,13 @@ col{3}  = col{3}*X{6}(1,T) + (1 - X{6}(1,T));
 col{4}  = [X{4}(2,T) X{4}(1,T) 0];
 col{4}  = col{4}*X{6}(2,T) + (1 - X{6}(2,T));
 
-subplot(4,1,4); axis off, hold off
-
 plot(1,0,'^','MarkerSize',24,'LineWidth',4,'Color',col{4}), hold on
 plot(1,0,'s','MarkerSize',24,'LineWidth',4,'Color',col{3})
 plot(1,1,'^','MarkerSize',24,'LineWidth',4,'Color',col{2})
 plot(1,1,'s','MarkerSize',24,'LineWidth',4,'Color',col{1})
 
-text(1, 2,qstr,'HorizontalAlignment','Center')
-text(1,-1,astr,'HorizontalAlignment','Center','FontWeight','bold','Color',cor)
+text(0, 2.5,qstr,'HorizontalAlignment','Left','FontWeight','bold','FontSize',16)
+text(0,-1.5,astr,'HorizontalAlignment','Center','FontWeight','bold','FontSize',16,'Color',cor)
 axis([0 2 -1.5 2.5]), axis off, axis square
 
 % upper and lower object
@@ -557,6 +556,20 @@ rgb     = {[0 1 0],[1 0 0]};
 shape   = {'s','^'};
 plot(1 + 1/2,1,shape{MDP.s(5)},'MarkerSize',8,'LineWidth',1,'Color',rgb{MDP.s(3)})
 plot(1 + 1/2,0,shape{MDP.s(6)},'MarkerSize',8,'LineWidth',1,'Color',rgb{MDP.s(4)})
+
+% belif updating factors 1 & 2
+%--------------------------------------------------------------------------
+f       = 1; 
+subplot(4,4,15), image(64*(1 - X{f})), axis square
+title(MDP.label.factor{f},'FontSize',16)
+name = MDP.label.name{f};
+set(gca,'YTick',1:numel(name),'YTickLabel',name)
+
+f       = 2; 
+subplot(4,4,16), image(64*(1 - X{f})), axis square
+title(MDP.label.factor{f},'FontSize',16)
+name = MDP.label.name{f};
+set(gca,'YTick',1:numel(name),'YTickLabel',name)
 drawnow
 
 

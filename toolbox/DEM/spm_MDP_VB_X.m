@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7648 2019-07-29 11:58:51Z karl $
+% $Id: spm_MDP_VB_X.m 7651 2019-08-03 12:35:15Z karl $
 
 
 % deal with a sequence of trials
@@ -728,7 +728,7 @@ for t = 1:T
                         pq{f} = sB{m,f}(:,:)*xqq{m,f};
                     end
                     for g = 1:Ng(m)
-                      %  O{m}{g,t + 1} = spm_dot(A{m,g},pq);
+                        O{m}{g,t + 1} = spm_dot(A{m,g},pq);
                     end
                 end
             
@@ -1411,8 +1411,9 @@ function L = spm_MDP_VB_VOX(MDP,L,t)
 % check for VOX structure
 %--------------------------------------------------------------------------
 global VOX
-if ~isstruct(VOX), load VOX; end
-if t == 1,         pause(1); end
+if ~isstruct(VOX), load VOX; VOX.RAND = 0; end
+if t == 1,         pause(1);               end
+
 
 if ~isfield(VOX,'msg')
     
@@ -1500,9 +1501,14 @@ elseif MDP.VOX == 2
     end
     L   = L(:,t);
     
+    % check for end of sentence
+    %----------------------------------------------------------------------
+    if any(sum(P) < 1 - exp(-3))
+        P  = P(:,1);
+    end
+    
     % get likelihood of discernible words
     %----------------------------------------------------------------------
-    
     if sum(P(:,1)) > exp(-3)
         
         % log likelihoods
@@ -1536,6 +1542,16 @@ elseif MDP.VOX == 2
                 L{g} = spm_softmax(O{2}(:,ip(g - 1)));
             end
             
+            % check for end of sentence (based on amplitude)
+            %--------------------------------------------------------------
+            if sum(P(:,1)) < 1 - exp(-3)
+                A    = spm_softmax(O{2}(:,1));          
+                if A(1) > 1/2
+                    L{1}( ~io) = 1;
+                    L{1}(~~io) = 0;
+                    L{1}       = L{1}/sum(L{1});
+                end
+            end
         end
 
     end % discernible words

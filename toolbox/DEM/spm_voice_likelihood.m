@@ -2,7 +2,7 @@ function [L,M,N] = spm_voice_likelihood(xY,w)
 % returns the lexical likelihood
 % FORMAT [L,M,N] = spm_voice_likelihood(xY,w)
 %
-% xY   - word    structure array
+% xY   - word structure array
 % w    - indices of words in VOX.LEX to consider
 %
 % assumes the following structures are in the global structure VOX
@@ -32,7 +32,7 @@ function [L,M,N] = spm_voice_likelihood(xY,w)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7644 2019-07-24 18:47:56Z karl $
+% $Id: spm_voice_likelihood.m 7651 2019-08-03 12:35:15Z karl $
 
 % defaults
 %--------------------------------------------------------------------------

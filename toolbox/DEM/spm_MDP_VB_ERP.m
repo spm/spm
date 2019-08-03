@@ -3,7 +3,7 @@ function [x,y,ind] = spm_MDP_VB_ERP(MDP,FACTOR,T)
 % FORMAT [x,y] = spm_MDP_VB_ERP(MDP,FACTOR,T)
 %
 % MDP    - structure (see spm_MDP_VB)
-% FACTOR - the hidden factors (at the second alevel) to plot
+% FACTOR - the hidden factors (at the second level) to plot
 % T      - flag to return cell of expectations (at time T; usually 1)
 %
 % x      - simulated ERPs (high-level)
@@ -25,11 +25,13 @@ function [x,y,ind] = spm_MDP_VB_ERP(MDP,FACTOR,T)
 % At the lower level, only expectations about hidden states in the first
 % epoch are returned (because the number of epochs can differ from trial
 % to trial).
+%
+% see also: spm_MDP_VB_LFP (for single level belief updating)
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_ERP.m 7382 2018-07-25 13:58:04Z karl $
+% $Id: spm_MDP_VB_ERP.m 7651 2019-08-03 12:35:15Z karl $
 
 
 % defaults: assume the first factor is of interest

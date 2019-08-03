@@ -22,7 +22,7 @@ function spm_MDP_factor_graph(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_factor_graph.m 7634 2019-07-10 11:55:55Z karl $
+% $Id: spm_MDP_factor_graph.m 7651 2019-08-03 12:35:15Z karl $
 
 
 % deal with a sequence of trials
@@ -118,6 +118,17 @@ for t = fliplr(1:2)
                 'FontWeight','bold',...
                 'LineStyle','none',...
                 'FontSize',10,'Color','m');
+            str = MDP.label.outcome{g};
+            if numel(str) > 4
+                str = str(1:4);
+                str{end + 1} = '...';
+            end
+            annotation('textbox',[x+1/32+1/16 y-1/64 1/8 dy],...
+                'String',str,...
+                'FontWeight','Normal',...
+                'LineStyle','none',...
+                'FontSize',8,'Color','m');
+            
         end
         pos = [x y+1/16 dx dy];
         annotation('rectangle',pos,'FaceColor','w');
@@ -164,14 +175,29 @@ for t = fliplr(1:2)
         % names
         %------------------------------------------------------------------
         if t == 2
-           h = annotation('textbox',[x+3/16 y+dy/2 1/8 dy],...
+            h = annotation('textbox',[x+3/16 y+dy/2 1/8 dy],...
                 'String',MDP.label.factor{f},...
                 'FontWeight','bold',...
                 'LineStyle','none',...
                 'FontSize',10,'Color','c');
             if Nu(f) > 1
-                set(h,'FontWeight','bold','Color','b');
+                set(h,'Color','b');
             end
+            
+            str = MDP.label.name{f};
+            if numel(str) > 4
+                str = str(1:4);
+                str{end + 1} = '...';
+            end
+            h = annotation('textbox',[x+3/16+1/16 y+dy/2-1/64 1/8 dy],...
+                'String',str,...
+                'FontWeight','Normal',...
+                'LineStyle','none',...
+                'FontSize',8,'Color','c');
+            if Nu(f) > 1
+                set(h,'Color','b');
+            end
+            
         end
         if t == 1
             

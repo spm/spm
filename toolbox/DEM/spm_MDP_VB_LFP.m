@@ -2,6 +2,7 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % auxiliary routine for plotting simulated electrophysiological responses
 % FORMAT [u,v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR,SPECTRAL)
 %
+% MDP        - structure (see spm_MDP_VB_X.m)
 % UNITS(1,j) - hidden state                           [default: all]
 % UNITS(2,j) - time step
 %
@@ -11,12 +12,15 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % u - selected unit rate of change of firing (simulated voltage)
 % v - selected unit responses {number of trials, number of units}
 %
-% MDP - structure (see spm_MDP_VB_X.m)
+% This routine plots simulated electrophysiological responses. Graphics are
+% provided in terms of simulated spike rates (posterior expectations).
+%
+% see also: spm_MDP_VB_ERP (for hierarchical belief updating)
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 7644 2019-07-24 18:47:56Z karl $
+% $Id: spm_MDP_VB_LFP.m 7651 2019-08-03 12:35:15Z karl $
  
  
 % defaults

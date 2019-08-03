@@ -32,7 +32,7 @@ function [PP] = spm_voice_get_LEX(xY,word,NI)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7644 2019-07-24 18:47:56Z karl $
+% $Id: spm_voice_get_LEX.m 7651 2019-08-03 12:35:15Z karl $
 
 
 % defaults
@@ -210,7 +210,7 @@ RR     = full(spm_cat(R)');
 D      = mean(PP);                               % mean
 sd     = std(PP);                                % and standard deviation
 D      = [D - 3*sd; D + 3*sd]';                  % ranges of prosody
-D(1,:) = log([1/32  1]);                         % amplitude
+D(1,:) = log([1/64  1]);                         % amplitude
 D(2,:) = log([1/32  1]);                         % latency (sec)
 D(5,:) = [-1 1]/16;                              % formant scsling
 D(7,:) = [-1 1]/16;                              % formant scsling
@@ -269,21 +269,6 @@ for p = 1:nr
     WHO(p).pC  = ones(k,1)*pC;
     
 end
-
-% Create a default prosody states for each word
-%--------------------------------------------------------------------------
-p0     = spm_vec(VOX.P);
-pros   = zeros(np,nw);
-for w  = 1:nw
-    for p = 1:np
-        d         = abs(LEX(w).dE(p) - (PRO(p).pE + p0(p)));
-        [d,i]     = min(d);
-        pros(p,w) = i;
-    end
-end
-VOX.prosidy = pros;
-
-
 
 % place lexical and other structures voice structure
 %--------------------------------------------------------------------------

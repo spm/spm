@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7648 2019-07-29 11:58:51Z karl $
+% $Id: spm_voice.m 7651 2019-08-03 12:35:15Z karl $
 
 
 %% setup options and files
@@ -226,49 +226,6 @@ VOX.depth = 1;
 spm_voice_read(read(VOX.audio),P);
 
 
-
-
-%% optmise spectral defaults with respect to classification accuracy
-%==========================================================================
-clear all
-global VOX
-PATH  = 'C:\Users\karl\Dropbox\Papers\Voice recognition\Sound files';
-wtest = fullfile(PATH,'test','test.wav');
-ttest = fullfile(PATH,'test','test.txt');
-
-% reporting options
-%--------------------------------------------------------------------------
-VOX.graphics = 0;
-VOX.mute     = 1;
-VOX.onsets   = 0;
-
-% expansion point (i.e., defaults)
-%--------------------------------------------------------------------------
-VOX.Nu  = 32;
-VOX.Nv  = 8;
-VOX.Tu  = 4;
-VOX.Tv  = 1;
-VOX.E   = 64;
-VOX.F0  = 96;
-VOX.F1  = 32;
-
-% search over variables
-%--------------------------------------------------------------------------
-Pu    = 16:4:64;
-Pv    = 82:4:128;
-for i = 1:numel(Pu)
-    for j = 1:numel(Pv);
-        VOX.F1    = Pu(i);
-        VOX.F0    = Pv(j);
-        [xY,word] = spm_voice_get_xY(PATH);
-        P         = spm_voice_get_LEX(xY,word);
-        A(i,j)    = spm_voice_test(wtest,ttest)
-    end
-end
-
-imagesc(Pv,Pu,A), axis square, title('Accuracy','FontSize',16),drawnow
-
-
 %% optmise regularization with respect to classification accuracy
 %==========================================================================
 clear all
@@ -277,7 +234,7 @@ load VOX
 PATH  = 'C:\Users\karl\Dropbox\Papers\Voice recognition\Sound files';
 wtest = fullfile(PATH,'test','test.wav');
 ttest = fullfile(PATH,'test','test.txt');
-load xY
+load(fullfile(PATH,'xY.mat'));
 
 % reporting options
 %--------------------------------------------------------------------------
