@@ -1,4 +1,4 @@
-/* $Id: spm_diffeo.c 7629 2019-06-27 12:35:45Z john $ */
+/* $Id: spm_diffeo.c 7652 2019-08-07 11:30:35Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -10,6 +10,7 @@
 #include "shoot_dartel.h"
 #include "shoot_bsplines.h"
 #include "shoot_boundary.h"
+#define eps 1.1921e-7
 
 static void boundary_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -91,6 +92,7 @@ static void cgs3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
     mxFree((void *)scratch1);
 }
 
+
 static void fmg3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     const mwSize *dm;
@@ -151,7 +153,7 @@ static void fmg3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
         wx000     =  2*mu*(2*v0+v1+v2)/v0+2*lam + w000/v0;
         wy000     =  2*mu*(v0+2*v1+v2)/v1+2*lam + w000/v1;
         wz000     =  2*mu*(v0+v1+2*v2)/v2+2*lam + w000/v2;
-        param[3] += (wx000 + wy000 + wz000)*1.1921e-7;
+        param[3] += (wx000 + wy000 + wz000)*eps*0.0001;
     }
 
     if (nrhs>=4)

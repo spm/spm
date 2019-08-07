@@ -4,7 +4,7 @@ function out = spm_sextract(job)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_sextract.m 6960 2016-12-05 17:05:09Z guillaume $
+% $Id: spm_sextract.m 7652 2019-08-07 11:30:35Z john $
 
 
 images = job.images;
@@ -57,3 +57,4 @@ for i=1:numel(im)
     eval(['i' num2str(i) '= im{i};']);
 end
 y = eval(f);
+

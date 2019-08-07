@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 7629 2019-06-27 12:35:45Z john $ */
+/* $Id: shoot_optimN.c 7652 2019-08-07 11:30:35Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<math.h>
@@ -96,7 +96,7 @@ static void get_a(mwSize dm3, mwSignedIndex i, /*@out@*/ float *pa[], /*@out@*/ 
     mwSignedIndex o = (mwSignedIndex)dm3;
     for(m=0; m<dm3; m++)
     {
-        a[m+dm3*m] = pa[m][i];
+        a[m+dm3*m] = pa[m][i]*1.000001;
         for(n=m+1; n<dm3; n++,o++)
         {
             a[m+dm3*n] = pa[o][i];
@@ -410,7 +410,7 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
     w101 = lam2*2*v0*v2;
     w011 = lam2*2*v1*v2;
 
-    w000 = w000*1.00001;
+    w000 = w000*1.000001;
 
     if (dm[0]<=2)
     {

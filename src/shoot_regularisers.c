@@ -1,10 +1,12 @@
-/* $Id: shoot_regularisers.c 7629 2019-06-27 12:35:45Z john $ */
+/* $Id: shoot_regularisers.c 7652 2019-08-07 11:30:35Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
 extern double log(double x);
 #include "mex.h"
 #include "shoot_boundary.h"
+#define OnePlusTiny 1.000001 /* Required for stability. Value is currently about 1+8*eps. */
+
 /*
 % MATLAB code (requiring Symbolic Toolbox) for computing the
 % regulariser for linear elasticity.
@@ -174,7 +176,7 @@ void kernel(mwSize dm[], double s[], float f[])
 
     if (mu==0.0 && lam==0.0)
     {
-        w000 *= 1.000001;
+        w000 *= OnePlusTiny;
         f[0]           += w000;
         f[im1        ] += w100; f[ip1        ] += w100;
         f[    jm1    ] += w010; f[    jp1    ] += w010;
@@ -205,9 +207,9 @@ void kernel(mwSize dm[], double s[], float f[])
         wz010 = -mu*v1/v2 + w010/v2;
         wz001 = -2.0*mu-lam + w001/v2;
         w2    = 0.25*mu+0.25*lam;
-        wx000 *= 1.000001;
-        wy000 *= 1.000001;
-        wz000 *= 1.000001;
+        wx000 *= OnePlusTiny;
+        wy000 *= OnePlusTiny;
+        wz000 *= OnePlusTiny;
 
         pxx = f;
         pyx = f + m;
@@ -366,9 +368,9 @@ void kernel(mwSize dm[], double s[], float f[])
         wy000 += 2.0*wy001; wy001  = 0.0;
         wz000 += 2.0*wz001; wz001  = 0.0;
     }
-    wx000 *= 1.000001;
-    wy000 *= 1.000001;
-    wz000 *= 1.000001;
+    wx000 *= OnePlusTiny;
+    wy000 *= OnePlusTiny;
+    wz000 *= OnePlusTiny;
 
     for(k=0; k<(mwSignedIndex)dm[2]; k++)
     {
@@ -580,9 +582,9 @@ void vel2mom(mwSize dm[], float f[], double s[], float g[])
         wy000 += 2.0*wy001; wy001  = 0.0;
         wz000 += 2.0*wz001; wz001  = 0.0;
     }
-    wx000 *= 1.000001;
-    wy000 *= 1.000001;
-    wz000 *= 1.000001;
+    wx000 *= OnePlusTiny;
+    wy000 *= OnePlusTiny;
+    wz000 *= OnePlusTiny;
 
     for(k=0; k<(mwSignedIndex)dm[2]; k++)
     {
@@ -715,9 +717,15 @@ static void relax_le(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
         wy000 += 2.0*wy001; wy001  = 0.0;
         wz000 += 2.0*wz001; wz001  = 0.0;
     }
-    wx000 *= 1.000001;
-    wy000 *= 1.000001;
-    wz000 *= 1.000001;
+    if (dm[0]==1 && dm[2]==1 && dm[3]==1)
+    {
+        wx000 = lam0/v0;
+        wy000 = lam0/v1;
+        wz000 = lam0/v2;
+    }
+    wx000 *= OnePlusTiny;
+    wy000 *= OnePlusTiny;
+    wz000 *= OnePlusTiny;
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
@@ -789,9 +797,9 @@ static void relax_le(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
                     {
                         double axx, ayy, azz, axy, axz, ayz, idt;
 
-                        axx  = paxx[i] + wx000;
-                        ayy  = payy[i] + wy000;
-                        azz  = pazz[i] + wz000;
+                        axx  = paxx[i]*OnePlusTiny + wx000;
+                        ayy  = payy[i]*OnePlusTiny + wy000;
+                        azz  = pazz[i]*OnePlusTiny + wz000;
                         axy  = paxy[i];
                         axz  = paxz[i];
                         ayz  = payz[i];
@@ -846,7 +854,9 @@ static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
         w000 += 2.0*w001;
         w001  = 0.0;
     }
-    w000 = w000*1.000001;
+    if (dm[0]==1 && dm[2]==1 && dm[3]==1) w000 = lam0;
+
+    w000 = w000*OnePlusTiny;
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
@@ -919,9 +929,9 @@ static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
                            su = [sux ; suy; suz]
                            simplify(inv(A)*su)
                         */
-                        axx = paxx[i] + w000/(s[0]*s[0]);
-                        ayy = payy[i] + w000/(s[1]*s[1]);
-                        azz = pazz[i] + w000/(s[2]*s[2]);
+                        axx = paxx[i]*OnePlusTiny + w000/(s[0]*s[0]);
+                        ayy = payy[i]*OnePlusTiny + w000/(s[1]*s[1]);
+                        azz = pazz[i]*OnePlusTiny + w000/(s[2]*s[2]);
                         axy = paxy[i];
                         axz = paxz[i];
                         ayz = payz[i];
@@ -1019,7 +1029,9 @@ static void relax_be(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
         w000 += 2.0*w001;
         w001  = 0.0;
     }
-    w000 = w000*1.000001;
+    if (dm[0]==1 && dm[2]==1 && dm[3]==1) w000 = lam0;
+
+    w000 = w000*OnePlusTiny;
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
@@ -1124,9 +1136,9 @@ static void relax_be(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
                         suy -= (paxy[i]*px[0] + payy[i]*py[0] + payz[i]*pz[0]);
                         suz -= (paxz[i]*px[0] + payz[i]*py[0] + pazz[i]*pz[0]);
 
-                        axx  = paxx[i] + w000/v0;
-                        ayy  = payy[i] + w000/v1;
-                        azz  = pazz[i] + w000/v2;
+                        axx  = paxx[i]*OnePlusTiny + w000/v0;
+                        ayy  = payy[i]*OnePlusTiny + w000/v1;
+                        azz  = pazz[i]*OnePlusTiny + w000/v2;
                         axy  = paxy[i];
                         axz  = paxz[i];
                         ayz  = payz[i];
@@ -1257,9 +1269,15 @@ static void relax_all(mwSize dm[], /*@null@*/ float a[], float b[], double s[], 
         wy000 += 2.0*wy001; wy001  = 0.0;
         wz000 += 2.0*wz001; wz001  = 0.0;
     }
-    wx000 *= 1.000001;
-    wy000 *= 1.000001;
-    wz000 *= 1.000001;
+    if (dm[0]==1 && dm[2]==1 && dm[3]==1)
+    {
+        wx000 = lam0/v0;
+        wy000 = lam0/v1;
+        wz000 = lam0/v2;
+    }
+    wx000 *= OnePlusTiny;
+    wy000 *= OnePlusTiny;
+    wz000 *= OnePlusTiny;
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
@@ -1370,9 +1388,9 @@ static void relax_all(mwSize dm[], /*@null@*/ float a[], float b[], double s[], 
                         suy -= (paxy[i]*px[0] + payy[i]*py[0] + payz[i]*pz[0]);
                         suz -= (paxz[i]*px[0] + payz[i]*py[0] + pazz[i]*pz[0]);
 
-                        axx  = paxx[i] + wx000;
-                        ayy  = payy[i] + wy000;
-                        azz  = pazz[i] + wz000;
+                        axx  = paxx[i]*OnePlusTiny + wx000;
+                        ayy  = payy[i]*OnePlusTiny + wy000;
+                        azz  = pazz[i]*OnePlusTiny + wz000;
                         axy  = paxy[i];
                         axz  = paxz[i];
                         ayz  = payz[i];
