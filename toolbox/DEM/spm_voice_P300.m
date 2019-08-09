@@ -25,7 +25,7 @@ function spm_voice_P300
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7644 2019-07-24 18:47:56Z karl $
+% $Id: spm_voice_P300.m 7653 2019-08-09 09:56:25Z karl $
 
 
 %% demo mode loads sentence (.mat) files
@@ -34,6 +34,7 @@ DEMO = 1;
 
 % get lexical and prosody arrays in sound file directory
 %--------------------------------------------------------------------------
+clear global VOX
 global VOX
 
 NAME  = which('VOX.mat');

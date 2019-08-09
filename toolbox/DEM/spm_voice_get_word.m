@@ -39,29 +39,32 @@ function [O,I,J,F] = spm_voice_get_word(wfile,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7648 2019-07-29 11:58:51Z karl $
+% $Id: spm_voice_get_word.m 7653 2019-08-09 09:56:25Z karl $
 
 
 %% log prior over lexical content
 %==========================================================================
 global VOX
-if nargin < 2 || size(P,2) < 1;
+if nargin < 2 || size(P,2) < 1
     nw = numel(VOX.LEX);
     P  = ones(nw,1)/nw;
 end
-LP = log(P + eps);
-
+LP     = log(P + eps);                        % log prior for lexcicon
+try LL = VOX.LL; catch, LL = -512; end        % log prior for empty segment
+try LW = VOX.LW; catch, LW = 0;    end        % flag for last word
 
 %% get onset of next word
 %==========================================================================
 [Y,I,FS] = spm_voice_get_next(wfile);
 
+
 % specify output arguments and break if EOF
 %--------------------------------------------------------------------------
 if isempty(I)
+    
     O = {};
     J = [];
-    F = -512;
+    F = LL;
     return
     
 elseif I < 1
@@ -76,7 +79,7 @@ end
 
 
 
-%% get 1.25 second segment and remove previous word
+%% get 1.5 second segment and remove previous word
 %==========================================================================
 
 % get intervals (j) for this peak
@@ -90,6 +93,9 @@ y(j)  = 0;
 % get intervals for this segment
 %--------------------------------------------------------------------------
 j     = spm_voice_onsets(y,FS,1/16);
+if LW 
+    j = j(end);                                     % last word
+end
 nj    = numel(j);
 
 % (deep) search

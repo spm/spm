@@ -17,7 +17,7 @@ function [Y,I,FS] = spm_voice_get_next(wfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_next.m 7633 2019-07-10 11:55:28Z karl $
+% $Id: spm_voice_get_next.m 7653 2019-08-09 09:56:25Z karl $
 
 %% get peak identification parameters from VOX
 %==========================================================================
@@ -29,22 +29,34 @@ function [Y,I,FS] = spm_voice_get_next(wfile)
 % defaults
 %--------------------------------------------------------------------------
 global VOX
-try, VOX.C;  catch, VOX.C  = 1/16;  end              % smoothing for peaks
-try, VOX.U;  catch, VOX.U  = 1/256; end              % threshold for peaks
-try, VOX.IT; catch, VOX.IT = 1;     end              % current index
+try, VOX.C;  catch, VOX.C  = 1/16;  end          % smoothing for peaks
+try, VOX.U;  catch, VOX.U  = 1/256; end          % threshold for peaks
+try, VOX.IT; catch, VOX.IT = 1;     end          % current index
+try, VOX.I0; catch, VOX.I0 = 1;     end          % current onset
 
-% ensure 2 second of data has been accumulated
+if VOX.IT == 1, VOX.I0 = 1; end
+
+
+% online audio object
 %--------------------------------------------------------------------------
 if isa(wfile,'audiorecorder')
+    
+    % start recording for 8 seconds
+    %----------------------------------------------------------------------
     IS = get(wfile,'TotalSamples');
-    if ~IS
+    if (IS/FS < 2) && strcmp(get(wfile,'Running'),'off')
         stop(VOX.audio);
         record(VOX.audio,8);
         pause(2);
-    else
+    end
+    
+    % ensure 2 second of data has been accumulated
+    %----------------------------------------------------------------------
+    if strcmp(get(wfile,'Running'),'on')
         dt = (IS - VOX.IT)/FS;
         pause(2 - dt);
     end
+    
 end
 
 
@@ -53,9 +65,9 @@ end
 
 % find next word (waiting for a couple of seconds if necessary)
 %--------------------------------------------------------------------------
-for i = 1:4
+for i = 1:8
     
-    % find next spectral peak (I)
+    % find next spectral peak (I) in next second
     %----------------------------------------------------------------------
     Y = read(wfile);
     n = numel(Y);
@@ -68,7 +80,13 @@ for i = 1:4
     %----------------------------------------------------------------------
     if isempty(I)
         
-        % advance pointer 500 ms
+        % break if end of phrase
+        %------------------------------------------------------------------
+        if (VOX.I0 > 1) && (VOX.IT - VOX.I0)/FS > 2
+            break
+        end
+        
+        % advance pointer 500 ms.
         %------------------------------------------------------------------
         VOX.IT = VOX.IT + FS/2;
         
@@ -78,7 +96,7 @@ for i = 1:4
             dt = (get(wfile,'TotalSamples') - VOX.IT)/FS;
             pause(2 - dt);
         end
-        
+
     else
         
         % move pointer to 500ms before peak
@@ -92,7 +110,11 @@ for i = 1:4
             pause(2 - dt);
         end
         
+        % indicate a peak has been identified
+        %------------------------------------------------------------------
+        VOX.I0 = I + FS/2;
         break
+        
     end
 end
 

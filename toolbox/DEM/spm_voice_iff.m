@@ -4,7 +4,7 @@ function [Y,W] = spm_voice_iff(xY)
 %
 % xY    -  cell array of word structures
 % xY.W  -  parameters - lexical
-% xY.P  -  parameters - prosidy
+% xY.P  -  parameters - prosody
 % xY.R  -  parameters - speaker
 % 
 % xY.P.amp - log amplitude
@@ -27,7 +27,7 @@ function [Y,W] = spm_voice_iff(xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7622 2019-06-23 19:52:33Z karl $
+% $Id: spm_voice_iff.m 7653 2019-08-09 09:56:25Z karl $
 
 % defaults
 %--------------------------------------------------------------------------

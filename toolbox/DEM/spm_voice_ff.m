@@ -13,7 +13,7 @@ function [xY] = spm_voice_ff(Y,FS)
 %--------------------------------------------------------------------------
 % xY.Y   - timeseries
 % xY.W   - parameters - lexical
-% xY.P   - parameters - prosidy
+% xY.P   - parameters - prosody
 % 
 % xY.P.amp - log amplitude
 % xY.P.dur - log duration (sec)
@@ -51,7 +51,7 @@ function [xY] = spm_voice_ff(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7644 2019-07-24 18:47:56Z karl $
+% $Id: spm_voice_ff.m 7653 2019-08-09 09:56:25Z karl $
 
 
 % defaults
@@ -119,7 +119,7 @@ R.F1  = log(F1);                             % format frequency (Hz)
 %--------------------------------------------------------------------------
 xY.Y  = Y;                                   % timeseries
 xY.W  = W;                                   % parameters - lexical
-xY.P  = P;                                   % parameters - prosidy
+xY.P  = P;                                   % parameters - prosody
 xY.R  = R;                                   % parameters - speaker
 xY.i  = [1,Ny];                              % range – indices      
 

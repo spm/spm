@@ -21,7 +21,7 @@ function [i] = spm_voice_onset(Y,FS,u,v)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onset.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_onset.m 7653 2019-08-09 09:56:25Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
@@ -34,7 +34,7 @@ if nargin < 3, u = 1/16; v = 1/16; end
 %--------------------------------------------------------------------------
 n   = length(Y);                                  % length of time series
 aY  = hanning(n).*abs(Y);                         % window absolute value
-aY  = spm_conv(aY,FS/16);                         % smooth
+aY  = spm_conv_full(aY,FS/16);                    % smooth
 aY  = aY - min(aY);                               % and normalise
 aY  = aY/max(aY);
 

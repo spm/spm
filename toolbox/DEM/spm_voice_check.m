@@ -20,7 +20,7 @@ function [G,Y] = spm_voice_check(Y,FS,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_check.m 7598 2019-05-25 13:09:47Z karl $
+% $Id: spm_voice_check.m 7653 2019-08-09 09:56:25Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
@@ -33,8 +33,8 @@ if nargin < 3, C = 1/16; end
 %--------------------------------------------------------------------------
 i = find(Y,1) + fix(FS*C);                 % deal with zero padding
 i = min(i,numel(Y));                       % check for length
-Y = Y - spm_conv(Y,FS/512);                % high pass filter
-G = spm_conv(abs(Y),FS*C);                 % root mean square power
+Y = Y - spm_conv_full(Y,FS/512);           % high pass filter
+G = spm_conv_full(abs(Y),FS*C);            % root mean square power
 G = G - min(G(i:end));                     % remove baseline power
 
 return

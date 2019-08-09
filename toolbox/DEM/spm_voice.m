@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7651 2019-08-03 12:35:15Z karl $
+% $Id: spm_voice.m 7653 2019-08-09 09:56:25Z karl $
 
 
 %% setup options and files
@@ -73,16 +73,16 @@ spm_voice_get_LEX(xY,word,NI);
 %--------------------------------------------------------------------------
 VOX.mute     = 0;
 VOX.graphics = 1;
-VOX.RAND     = 1/4;
+VOX.RAND     = 1/8;
 
 nw    = numel(VOX.LEX);                       % number of lexical features
-np    = numel(VOX.PRO(1).pE);                       % number of prosody features
+np    = numel(VOX.PRO(1).pE);                 % number of prosody features
 k     = [1 np];
 f     = fix(np/2);
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[f;1;f;f;j;f;f;f;i;f;f],[3;3]); pause(1/2)
+            spm_voice_speak(w,[8;1;f;8;j;f;f;f;i;f;f],[3;3]); pause(1/2)
         end
     end
 end
@@ -187,7 +187,7 @@ xlabel('level'), ylabel('attribute'), title('Prosody','FontSize',16)
 set(gca,'Xtick',1:k),set(gca,'Ytick',1:j),set(gca,'YtickLabel',{VOX.PRO.str})
 
 
-
+thanks so
 %% auxiliary code
 %==========================================================================
 return
@@ -212,17 +212,19 @@ VOX.audio = audiorecorder(22050,16,1);
 
 clear str
 str{1} = {'is'};
-str{2} = {'a'};
-str{3} = {'red','green'};
-str{4} = {'triangle','square'};
+str{2} = {'there a'};
+str{3} = {'square','triangle','red','green'};
+str{4} = {'triangle','square','below','above'};
 str{5} = {'below','above'};
 [i,P]  = spm_voice_i(str);
 
 % Read test file
 %--------------------------------------------------------------------------
+VOX.depth = 1;
+VOX.LL    = 4;
 spm_voice_read(VOX.audio,P);
 
-VOX.depth = 1;
+
 spm_voice_read(read(VOX.audio),P);
 
 
@@ -244,9 +246,14 @@ VOX.onsets   = 0;
 
 % search over variables
 %--------------------------------------------------------------------------
-E     = [1 2 4 8 16]/2;
+E     = [1 2 4 8 16]*2;
+G     = [1 2 4 8 16]/2;
 for i = 1:numel(E)
-    VOX.G = E(i);
+    
+    try VOX = rmfield(VOX,'E'); end
+    try VOX = rmfield(VOX,'G'); end
+    % VOX.E = E(i);
+    VOX.G = G(i);
     P     = spm_voice_get_LEX(xY,word,NI);
     A(i)  = spm_voice_test(wtest,ttest)   
 end
@@ -366,24 +373,25 @@ sound(Y,VOX.FS)
 %--------------------------------------------------------------------------
 [i,P] = spm_voice_i(str);
 clear f0 f1
-for i = 1:4
+for i = 1:2
    spm_voice_identity(Y,P);
 end
 
-%% mimic speaker
+% mimic speaker
 %--------------------------------------------------------------------------
 VOX.mute    = 0;
 VOX.rf      = 0;
 VOX.RAND    = 1/8;
+VOX.DT      = 1/32;
+VOX.depth   = 0;
 
 [SEG,p,q,r] = spm_voice_read(Y,P);
 spm_voice_segmentation(Y,SEG);
 
 % Now segment the synthetic speech
 %--------------------------------------------------------------------------
-VOX.depth   = 0;
 [xY,y]      = spm_voice_speak(p,q,r);
-spm_voice_read(y,P)
+spm_voice_read(y,P);
 
 
 
@@ -449,3 +457,40 @@ for s = 1:numel(str)
     end
 end
 
+%% add word
+%==========================================================================
+
+%% prompt for audio file: 32 words, at one word per second
+%--------------------------------------------------------------------------
+str   = 'red';
+audio = audiorecorder(16000,16,1);
+[FS,read] = spm_voice_FS(audio);
+stop(audio);
+
+% countdown
+%--------------------------------------------------------------------------
+for i = 3:-1:1
+    clc,disp(i);          pause(0.5)
+    clc,disp('    -*- '); pause(0.5)
+end
+
+% record
+%--------------------------------------------------------------------------
+record(audio,34);
+for i = 1:33
+    clc,disp(str);        pause(0.5)
+    clc,disp('    -*- '); pause(0.5)
+end
+
+% save
+%--------------------------------------------------------------------------
+PATH  = 'C:\Users\karl\Dropbox\Papers\Voice recognition\Sound files';
+Y     = read(audio);
+try
+    delete(fullfile(PATH,[str '.wav']))
+end
+audiowrite(fullfile(PATH,[str '.wav']),Y,FS)
+
+
+
+    

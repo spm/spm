@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7651 2019-08-03 12:35:15Z karl $
+% $Id: spm_MDP_VB_X.m 7653 2019-08-09 09:56:25Z karl $
 
 
 % deal with a sequence of trials
@@ -159,21 +159,23 @@ if size(MDP,2) > 1
     
     for i = 1:size(MDP,2)                  % number of MDPs
         for m = 1:size(MDP,1)              % number of trials
-            
-            % update concentration parameters
-            %--------------------------------------------------------------
-            if i > 1
-                try,  MDP(m,i).a = OUT(m,i - 1).a; end
-                try,  MDP(m,i).b = OUT(m,i - 1).b; end
-                try,  MDP(m,i).d = OUT(m,i - 1).d; end
-                try,  MDP(m,i).c = OUT(m,i - 1).c; end
-                try,  MDP(m,i).e = OUT(m,i - 1).e; end
+            if i > 1                       % if previous inversions
+                
+                % update concentration parameters
+                %----------------------------------------------------------
+                MDP(m,i)  = spm_MDP_update(MDP(m,i),OUT(m,i - 1));
                 
                 % update initial states (post-diction)
                 %----------------------------------------------------------
-                if OPTIONS.D
-                    for f = 1:numel(MDP(m,i).D)
-                        MDP(m,i).D{f} = OUT(m,i - 1).X{f}(:,1);
+                if any(OPTIONS.D)
+                    nD = numel(MDP(m,i).D);
+                    if numel(OPTIONS.D) ~= nD
+                        OPTIONS.D = ones(nD,1);
+                    end
+                    for f = 1:nD
+                        if OPTIONS.D(f)
+                            MDP(m,i).D{f} = OUT(m,i - 1).X{f}(:,1);
+                        end
                     end
                 end
             end
@@ -213,13 +215,13 @@ end
 
 % defaults
 %--------------------------------------------------------------------------
-try, alpha = MDP(1).alpha; catch, alpha = 512;  end
-try, beta  = MDP(1).beta;  catch, beta  = 1;    end
-try, zeta  = MDP(1).zeta;  catch, zeta  = 3;    end
-try, eta   = MDP(1).eta;   catch, eta   = 1;    end
-try, tau   = MDP(1).tau;   catch, tau   = 4;    end
-try, chi   = MDP(1).chi;   catch, chi   = 1/64; end
-try, erp   = MDP(1).erp;   catch, erp   = 4;    end
+try, alpha = MDP(1).alpha; catch, alpha = 512;  end % action precision
+try, beta  = MDP(1).beta;  catch, beta  = 1;    end % policy precision
+try, zeta  = MDP(1).zeta;  catch, zeta  = 3;    end % Occam window policies
+try, eta   = MDP(1).eta;   catch, eta   = 1;    end % learning rate
+try, tau   = MDP(1).tau;   catch, tau   = 4;    end % update time constant
+try, chi   = MDP(1).chi;   catch, chi   = 1/64; end % Occam window updates
+try, erp   = MDP(1).erp;   catch, erp   = 4;    end % update reset
 
 % preclude precision updates for moving policies
 %--------------------------------------------------------------------------
@@ -551,12 +553,16 @@ for t = 1:T
             % use previous inversions (if available) to reproduce outcomes
             %--------------------------------------------------------------
             try
-                mdp     = MDP(m).mdp(t);
+                mdp = MDP(m).mdp(t);
             catch
                 try
-                    mdp = MDP(m).MDP(t);
+                    mdp     = spm_MDP_update(MDP(m).MDP(t),MDP(m).mdp(t - 1));
                 catch
-                    mdp = MDP(m).MDP(1);
+                    try
+                        mdp = spm_MDP_update(MDP(m).MDP(1),MDP(m).mdp(t - 1));
+                    catch
+                        mdp = MDP(m).MDP(1);
+                    end
                 end
             end
             
@@ -736,7 +742,7 @@ for t = 1:T
             
             % get likelihood over outcomes - or articulate phrase
             %--------------------------------------------------------------
-            O{m}(:,t) = spm_MDP_VB_VOX(MDP(m),O{m},t);
+            O{m}  = spm_MDP_VB_VOX(MDP(m),O{m},t);
             
             % update outcomes
             %--------------------------------------------------------------
@@ -995,6 +1001,19 @@ for t = 1:T
                 end
             end
             
+            % check for end of sentence (' ') if in VOX mode
+            %--------------------------------------------------------------
+            XVOX = 0;
+            if isfield(MDP,'VOX') && t > 1
+                if strcmp(MDP.label.outcome{1}{MDP(m).o(1,t)},' ')
+                    for f = 1:Nf(m)
+                        Xn{m,f} = zeros(Ni,Ns(m,f),T,T);
+                        Vn{m,f} = zeros(Ni,Ns(m,f),T,T);
+                    end
+                    T    = t;
+                    XVOX = 1;
+                end
+            end
             
             % action selection
             %==============================================================
@@ -1053,14 +1072,16 @@ for t = 1:T
     % Evaluate reporting function specified
     %======================================================================
     if isfield(MDP,'FCN')
-        MDP.FCN(MDP,X);
+        try
+            MDP.FCN(MDP,X);
+        end
     end
     
     % terminate evidence accumulation
     %----------------------------------------------------------------------
     if t == T
         if T == 1
-            MDP(m).u = zeros(Nf(m),0);
+            MDP(m).u  = zeros(Nf(m),0);
         end
         if ~HMM
             MDP(m).o  = MDP(m).o(:,1:T);        % outcomes at 1,...,T
@@ -1175,12 +1196,14 @@ for m = 1:size(MDP,1)
     % Bayesian model averaging of expected hidden states over policies
     %----------------------------------------------------------------------
     for f = 1:Nf(m)
-        Xn{m,f} = zeros(Ni,Ns(m,f),T,T);
-        Vn{m,f} = zeros(Ni,Ns(m,f),T,T);
+        if ~XVOX
+            Xn{m,f} = zeros(Ni,Ns(m,f),T,T);
+            Vn{m,f} = zeros(Ni,Ns(m,f),T,T);
+        end
         for i = 1:T
             for k = 1:Np(m)
-                Xn{m,f}(:,:,:,i) = Xn{m,f}(:,:,:,i) + xn{m,f}(:,:,1:T,i,k)*u{m}(k,i);
-                Vn{m,f}(:,:,:,i) = Vn{m,f}(:,:,:,i) + vn{m,f}(:,:,1:T,i,k)*u{m}(k,i);
+                Xn{m,f}(:,:,1:T,i) = Xn{m,f}(:,:,1:T,i) + xn{m,f}(:,:,1:T,i,k)*u{m}(k,i);
+                Vn{m,f}(:,:,1:T,i) = Vn{m,f}(:,:,1:T,i) + vn{m,f}(:,:,1:T,i,k)*u{m}(k,i);
             end
         end
     end
@@ -1294,7 +1317,7 @@ for m = 1:size(MDP,1)
         HMM = 1;
     end
     
-    if isfield(MDP(m),'O') && HMM
+    if isfield(MDP(m),'O') && ~any(MDP(m).o(:)) && HMM
         
         % probabilistic outcomes – assume hidden Markov model (HMM)
         %------------------------------------------------------------------
@@ -1392,6 +1415,31 @@ end
 
 return
 
+function MDP = spm_MDP_update(MDP,OUT)
+% FORMAT MDP = spm_MDP_update(MDP,OUT)
+% moves Dirichlet parameters from OUT to MDP
+% MDP - structure array (new)
+% OUT - structure array (old)
+%__________________________________________________________________________
+
+% check for concentration parameters at this level
+%--------------------------------------------------------------------------
+try,  MDP.a = OUT.a; end
+try,  MDP.b = OUT.b; end
+try,  MDP.c = OUT.c; end
+try,  MDP.d = OUT.d; end
+try,  MDP.e = OUT.e; end
+
+% check for concentration parameters at nested levels
+%--------------------------------------------------------------------------
+try,  MDP.MDP(1).a = OUT.mdp(end).a; end
+try,  MDP.MDP(1).b = OUT.mdp(end).b; end
+try,  MDP.MDP(1).c = OUT.mdp(end).c; end
+try,  MDP.MDP(1).d = OUT.mdp(end).d; end
+try,  MDP.MDP(1).e = OUT.mdp(end).e; end
+
+return
+
 
 function L = spm_MDP_VB_VOX(MDP,L,t)
 % FORMAT L = spm_MDP_VB_VOX(MDP,L,t)
@@ -1411,7 +1459,9 @@ function L = spm_MDP_VB_VOX(MDP,L,t)
 % check for VOX structure
 %--------------------------------------------------------------------------
 global VOX
+global TRAIN
 if ~isstruct(VOX), load VOX; VOX.RAND = 0; end
+if isempty(TRAIN), TRAIN = 0;              end
 if t == 1,         pause(1);               end
 
 
@@ -1426,49 +1476,80 @@ if ~isfield(VOX,'msg')
     % indices of words in lexicon and inferred prosody states
     %----------------------------------------------------------------------
     VOX.io  = spm_voice_i(MDP.label.outcome{1});
-    VOX.ip  = find(ismember({VOX.PRO.str},{'amp','dur','Tf','p1'}));
+    VOX.ip  = find(ismember({VOX.PRO.str},{'amp','dur','Tf','p0','p1','p2'}));
     
-end
-
-if MDP.VOX == 1
-    
-    % Agent: computer
-    %----------------------------------------------------------------------
-    str = MDP.label.outcome{1}(MDP.o(1,t));
-    L   = L(:,t);
-    disp(['A:',str])
-    
-    if ismember(str,' ')
-        
-        % if this is the end of a sentence
-        %------------------------------------------------------------------
-        if diff(MDP.o(1,(t - 1):t))
-            
-            % get lexical and prosidy
-            %--------------------------------------------------------------
-            iw      = MDP.o(1,1:(t - 1));
-            str     = MDP.label.outcome{1}(iw);
-            lexical = spm_voice_i(str);
-            prosidy = VOX.prosidy(:,lexical);
-            speaker = [3;3];
-            
-            % add prosidy and articulate
-            %--------------------------------------------------------------
-            prosidy(VOX.ip,:) = MDP.o(2:end,1:(t - 1));
-            prosidy(1,:)  = min(8,prosidy(1,:) + 2);
-            spm_voice_speak(lexical,prosidy,speaker);
-            
-        end
-    end
-    
-    
-elseif MDP.VOX == 2
-    
-    % Me: check for audio recorder
+    % check for audio recorder
     %----------------------------------------------------------------------
     if ~isfield(VOX,'audio')
         VOX.audio  = audiorecorder(22050,16,1);
     end
+    
+end
+
+if MDP.VOX == 0 || MDP.VOX == 1
+    
+    % Agent: computer
+    %----------------------------------------------------------------------
+    str = MDP.label.outcome{1}(MDP.o(1,1:t));
+    fprintf('%i: %s\n',MDP.VOX, str{t});
+    i   = ismember(str,' ');
+    str = str(~i);
+    eof = sum(i);
+    
+    % if this is the end of a sentence
+    %----------------------------------------------------------------------
+    if eof == 1 || (~eof && t == MDP.T)
+        
+        % get lexical and prosody
+        %------------------------------------------------------------------
+        lexical = spm_voice_i(str);
+        prosody = VOX.prosody(:,lexical);
+        if MDP.VOX == 0
+            speaker = [12;12];
+        else
+            speaker = [3; 3 ];
+        end
+        
+        % add prosody and articulate
+        %------------------------------------------------------------------
+        prosody(VOX.ip,:) = MDP.o(2:end,1:numel(str));
+        prosody(1,:)      = min(8,prosody(1,:) + 2);
+        spm_voice_speak(lexical,prosody,speaker);
+        
+        
+        % TRAIN: prompt for prosody
+        %------------------------------------------------------------------
+        if TRAIN
+            VOX.mute  = 0;
+            VOX.depth = 1;
+            [i,P]     = spm_voice_i(str);
+            prosody   = [];
+            while size(prosody,2) ~= numel(str)
+                clc
+                disp('Please repeat:'), disp(str)
+                [SEG,W,prosody] = spm_voice_read(VOX.audio,P);
+            end
+            clc, disp('Thank you')
+            
+            % prompt for prosody
+            %--------------------------------------------------------------
+            for i = 1:numel(VOX.ip)
+                for j = 1:size(P,2)
+                    L{i + 1,j} = sparse(prosody(VOX.ip(i),j),1,1,8,1);
+                end
+            end
+            
+            % uniform priors for spce  (' ')
+            %--------------------------------------------------------------
+            L{i + 1,t} = ones(8,1)/8;
+            
+        end
+        
+        
+    end
+
+    
+elseif MDP.VOX == 2
     
     % user
     %----------------------------------------------------------------------
@@ -1480,7 +1561,10 @@ elseif MDP.VOX == 2
         pause(1);
         set(VOX.msg,'Visible','off')
         
-        VOX.onsets = 1;
+        % toggle to see spectral envelope
+        %----------------------------------------------------------------------
+        VOX.onsets = 0;
+        
     end
     
     % get prior over outcomes and synchronise with Lexicon
@@ -1499,99 +1583,89 @@ elseif MDP.VOX == 2
             end
         end
     end
-    L   = L(:,t);
-    
-    % check for end of sentence
+      
+    % deep segmentation: check for last word (P(:,2) = 0)
     %----------------------------------------------------------------------
-    if any(sum(P) < 1 - exp(-3))
-        P  = P(:,1);
+    VOX.LL = -128;
+    VOX.LW = 0;
+    if size(P,2) > 1
+        if any(P(:,2))
+            if any(P(:,2) < (1 - 1/8))
+                VOX.LL = 4;                  % there may be no next word
+                VOX.LW = 0;
+            else
+                VOX.LL = -128;               % there is a subsequent word
+                VOX.LW = 0;                  % and this is not the last
+            end
+        else
+            P      = P(:,1);
+            VOX.LW = 1;                      % this is the last word
+        end
     end
+    
+    % or direct segmentation (comment out to suppress)
+    %----------------------------------------------------------------------
+    P  = P(:,1);
     
     % get likelihood of discernible words
     %----------------------------------------------------------------------
-    if sum(P(:,1)) > exp(-3)
+    P      = P > 1/128;
+    if any(P(:,1))
         
         % log likelihoods
         %------------------------------------------------------------------
         O  = spm_voice_get_word(VOX.audio,bsxfun(@rdivide,P,sum(P)));
         
-        if isempty(O)
+        % check for end of sentence 
+        %------------------------------------------------------------------
+        try
+            A = spm_softmax(O{2}(:,1));    % P(lowest amplitude)
+        catch
+            A = 1;
+        end
+        if isempty(O) || A(1) > 1/2
             
-            % break if EOF
+            % end of sentence or indiscernible word
             %--------------------------------------------------------------
-            L{1}( ~io) = 1;
-            L{1}(~~io) = 0;
-            L{1}       = L{1}/sum(L{1});
+            L{1,t}( ~io) = 1;
+            L{1,t}(~~io) = 0;
+            L{1,t}       = L{1,t}/sum(L{1,t});
+            
+            % prosody likelihoods
+            %--------------------------------------------------------------
+            for g = 2:numel(L)
+                L{g,t} = spm_softmax(spm_zeros(L{g,t}));
+            end
             
         else
             
             % lexical likelihoods
             %--------------------------------------------------------------
-            LL    = zeros(no,1) - exp(16);
+            LL    = zeros(no,1);
             for i = 1:no
                 j = io(i);
                 if j
-                    LL(i) = O{1}(j) - log(P(j,1) + eps);
+                    LL(i) = O{1}(j);
                 end
             end
-            L{1}  = spm_softmax(LL);
-            
+            L{1,t}  = spm_softmax(LL);
+                        
             % prosody likelihoods
             %--------------------------------------------------------------
             for g = 2:numel(L)
-                L{g} = spm_softmax(O{2}(:,ip(g - 1)));
+                L{g,t} = spm_softmax(O{2}(:,ip(g - 1)));
             end
-            
-            % check for end of sentence (based on amplitude)
-            %--------------------------------------------------------------
-            if sum(P(:,1)) < 1 - exp(-3)
-                A    = spm_softmax(O{2}(:,1));          
-                if A(1) > 1/2
-                    L{1}( ~io) = 1;
-                    L{1}(~~io) = 0;
-                    L{1}       = L{1}/sum(L{1});
-                end
-            end
+
         end
 
     end % discernible words
     
     % display word
     %----------------------------------------------------------------------
-    [d,w]  = max(L{1});
-    disp(['M:', MDP.label.outcome{1}(w)])
-    
-else
-    
-    % World: generative process
-    %----------------------------------------------------------------------
-    str = MDP.label.outcome{1}(MDP.o(1,t));
-    L   = L(:,t);
-    disp(['W:',str])
-    
-    if ismember(str,' ')
+    [d,w]  = max(L{1,t});
+    fprintf('%i: %s\n',MDP.VOX, MDP.label.outcome{1}{w});
         
-        % if this is the end of a sentence
-        %------------------------------------------------------------------
-        if diff(MDP.o(1,(t - 1):t))
-            
-            % get lexical and prosidy
-            %--------------------------------------------------------------
-            iw      = MDP.o(1,1:(t - 1));
-            ip      = VOX.ip;
-            str     = MDP.label.outcome{1}(iw);
-            lexical = spm_voice_i(str);
-            prosidy = VOX.prosidy(:,lexical);
-            speaker = [12;12];
-            
-            % add prosidy and articulate
-            %--------------------------------------------------------------
-            prosidy(ip,:) = MDP.o(2:end,1:(t - 1));
-            prosidy(1,:)  = min(8,prosidy(1,:) + 2);
-            spm_voice_speak(lexical,prosidy,speaker);
-            
-        end
-    end
+
 end
 
 

@@ -12,7 +12,7 @@ function [PP] = spm_voice_get_LEX(xY,word,NI)
 % VOX.PRO(np) -  structure array for np features of prosody
 % VOX.WHO(nq) -  structure array for nq features of speaker
 %
-% P           -  prosidy parameters for exemplar (training) words
+% P           -  prosody parameters for exemplar (training) words
 %
 %  This routine creates a triplet of structure arrays used to infer the
 %  lexical content and prosody of a word - and the identity of the person
@@ -32,14 +32,14 @@ function [PP] = spm_voice_get_LEX(xY,word,NI)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7651 2019-08-03 12:35:15Z karl $
+% $Id: spm_voice_get_LEX.m 7653 2019-08-09 09:56:25Z karl $
 
 
 % defaults
 %--------------------------------------------------------------------------
 global VOX
-try, VOX.E; catch, VOX.E = 64; end    % regularisation (lexical)
-try, VOX.G; catch, VOX.G = 2;  end    % regularisation (pitch)
+try, VOX.E; catch, VOX.E = 32; end    % regularisation (lexical)
+try, VOX.G; catch, VOX.G = 8;  end    % covariance scaling (lexical)
 
 VOX.analysis = 0;
 VOX.graphics = 0;
@@ -114,23 +114,22 @@ VOX.W  = spm_zeros(xY(1).W);
 VOX.qC = QC;
 
 
-%% estimate prosidy parameters
+%% estimate prosody parameters
 %==========================================================================
 fS    = @(Q,G) spm_vec(spm_voice_iQ(spm_voice_Q(Q,G)));
 G     = xY(1).P.pch;                                  % expansion point
-j     = find(ismember(Pstr,{'Tu','Tv','Tw','Tf'}));   % pitch indices
-nP    = numel(G) + 2;
-
+j     = find(ismember(Pstr,{'Tu','Tv','Tf','Tw'}));   % pitch indices
+jstr  = {'Const','W','Tu','Tv','Tf','Tw'};
 for w = 1:nw
     
-    % setup Taylor approximation to variations prosidy
+    % setup Taylor approximation to variations prosody
     %----------------------------------------------------------------------
     W         = LEX(w).qE/std(LEX(w).qE(:));        % expansion point
     dWdP      = spm_diff(fS,reshape(W,Nu,Nv),G,2);  % partial derivatives
     LEX(w).qE = W;                                  
     LEX(w).X  = [ones(numel(W),1) W(:) dWdP];       % design matrix (GLM)
     LEX(w).pE = [0 1 0 0 0 0]';                     % pitch expectation
-    LEX(w).pC = diag([1 1 1 1 1 1]/512);            % pitch covariance
+    LEX(w).pC = diag([1 1 1 1 1 1]/8);              % pitch covariance
     
 end
 
@@ -152,7 +151,7 @@ for i = 1:4
         %------------------------------------------------------------------
         for s = 1:ns
             
-            % esimate variations in prosidy from expansion point
+            % esimate variations in prosody from expansion point
             %--------------------------------------------------------------
             dP(:,s)  = Cp\(X'*iqC*xY(w,s).W(:) + ipC*pE);
             
@@ -175,6 +174,7 @@ for i = 1:4
             for ii = 1:nx
                 subplot(4,nx,nx*(w - 1) + ii)
                 imagesc(spm_voice_Q(reshape(X(:,ii),Nu,Nv),G))
+                title(jstr{ii})
             end
         end
     end
@@ -205,17 +205,15 @@ end
 PP     = full(spm_cat(P)');
 RR     = full(spm_cat(R)');
 
-% prosidy ranges
+% prosody ranges
 %--------------------------------------------------------------------------
 D      = mean(PP);                               % mean
 sd     = std(PP);                                % and standard deviation
 D      = [D - 3*sd; D + 3*sd]';                  % ranges of prosody
 D(1,:) = log([1/64  1]);                         % amplitude
 D(2,:) = log([1/32  1]);                         % latency (sec)
-D(5,:) = [-1 1]/16;                              % formant scsling
-D(7,:) = [-1 1]/16;                              % formant scsling
 
-% select prosidy features and specify prior precision
+% select prosody features and specify prior precision
 %--------------------------------------------------------------------------
 p0    = mean(D,2);
 VOX.P = spm_unvec(p0(:),xY(1).P);
@@ -246,7 +244,7 @@ clear D
 D(1,:) = log([85 300]);                           % ff0
 D(2,:) = log([30  45]);                           % ff1
 
-% select prosidy features and specify prior precision
+% select prosody features and specify prior precision
 %--------------------------------------------------------------------------
 p0    = mean(D,2);
 VOX.R = spm_unvec(p0(:),xY(1).R);
@@ -288,13 +286,28 @@ end
 FI     = bsxfun(@rdivide,FI,sum(FI));
 VOX.FI = FI;
 
+% Create a default prosody states for each word
+%--------------------------------------------------------------------------
+p0     = spm_vec(VOX.P);
+pros   = zeros(np,nw);
+for w  = 1:nw
+    for p = 1:np
+        d         = abs(LEX(w).dE(p) - (PRO(p).pE + p0(p)));
+        [d,i]     = min(d);
+        pros(p,w) = i;
+    end
+end
+VOX.prosody = pros;
+
+
+
 % illustrate distribution of lexical and prosody parameters
 %==========================================================================
 spm_figure('GetWin','Parameter distributions'); clf
 
 % indices for plotting
 %--------------------------------------------------------------------------
-for i = 1:numel(Pstr);
+for i = 1:numel(Pstr)
     subplot(4,3,i)
     if i > 7
         hist(PP(:,i),32), axis square
@@ -311,7 +324,7 @@ end
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Durations and frequencies');
 
-for i = 1:numel(Rstr);
+for i = 1:numel(Rstr)
     subplot(4,2,i)
     hist(exp(RR(:,i)),32), axis square
     str = sprintf('%s mean: %.2f (%.2f)',Rstr{i},mean(exp(RR(:,i))),std(exp(RR(:,i))));
@@ -344,11 +357,11 @@ xlabel(sprintf('eigenbasis (%i)',s)), axis square
 [V,S] = spm_svd(corr(PP));
 S     = diag(S);
 subplot(2,2,2), bar(S)
-title('Eigenvalues - prosidy','FontSize',16)
+title('Eigenvalues - prosody','FontSize',16)
 xlabel('eigenbasis'), ylabel('eigenvalue'), axis square
 
 subplot(2,1,2), bar(abs(V)')
-title('Eigenmodes - prosidy','FontSize',16)
+title('Eigenmodes - prosody','FontSize',16)
 xlabel('prosody mode'), ylabel('amplitude'), axis square
 legend(Pstr)
 

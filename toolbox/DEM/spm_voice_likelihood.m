@@ -32,7 +32,7 @@ function [L,M,N] = spm_voice_likelihood(xY,w)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7651 2019-08-03 12:35:15Z karl $
+% $Id: spm_voice_likelihood.m 7653 2019-08-09 09:56:25Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -77,9 +77,8 @@ end
 % precision wieghting, in terms of basis function coefficients to include
 %--------------------------------------------------------------------------
 jstr   = {'dur'};                                  % for lexical inference
-pstr   = {'Tu','Tv','Tf','Tw'};                   % for prosody inference
-j      = find(ismember({VOX.PRO.str},jstr));       % indices for prosidy
-ni     = numel(xY.W);
+pstr   = {'Tu','Tv','Tf','Tw'};                    % for prosody inference
+j      = find(ismember({VOX.PRO.str},jstr));       % indices for prosody
 
 % means and method
 %--------------------------------------------------------------------------
@@ -129,7 +128,7 @@ switch method
                 L(w) = L(w)/VOX.noise;
             end
             
-            % supplement with the likelihood of (j) prodidy features
+            % supplement with the likelihood of (duration) prodidy features
             %--------------------------------------------------------------
             E    = P(j) - VOX.LEX(w).dE(j);
             L(w) = L(w) - E'*(VOX.LEX(w).dC(j,j)\E)/2;

@@ -3,6 +3,9 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % FORMAT [u,v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR,SPECTRAL)
 %
 % MDP        - structure (see spm_MDP_VB_X.m)
+%  .xn       - neuronal firing
+%  .dn       - phasic dopamine responses
+%
 % UNITS(1,j) - hidden state                           [default: all]
 % UNITS(2,j) - time step
 %
@@ -20,7 +23,7 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 7651 2019-08-03 12:35:15Z karl $
+% $Id: spm_MDP_VB_LFP.m 7653 2019-08-09 09:56:25Z karl $
  
  
 % defaults
@@ -91,7 +94,7 @@ for i = 1:Nt
     % dopamine or changes in precision
     %----------------------------------------------------------------------
     dn(:,i) = mean(MDP(i).dn,2);
-    
+
 end
 
 if nargout, return, end
@@ -129,7 +132,7 @@ phi = spm_iwft(sum(wft(1,:,:),3),w(1),n);
 lfp = 4*lfp/std(lfp) + 16;
 phi = 4*phi/std(phi) + 16;
  
-if Nt == 1, subplot(3,2,3), else subplot(4,1,2),end
+if Nt == 1, subplot(3,2,3), else, subplot(4,1,2),end
 imagesc(t,Hz,csd), axis xy, hold on
 plot(t,lfp,'w:',t,phi,'w'), hold off
 grid on, set(gca,'XTick',(1:(Ne*Nt))*Nb*dt)
@@ -144,7 +147,7 @@ if SPECTRAL
     
     % spectral responses (for each unit)
     %--------------------------------------------------------------------------
-    if Nt == 1, subplot(3,2,1), else subplot(4,2,1),end
+    if Nt == 1, subplot(3,2,1), else, subplot(4,2,1),end
     csd = squeeze(sum(abs(wft),2));
     plot(Hz,log(squeeze(csd)))
     title('Spectral response','FontSize',16)
@@ -154,7 +157,7 @@ if SPECTRAL
     
     % amplitude-to-amplitude coupling (average over units)
     %--------------------------------------------------------------------------
-    if Nt == 1, subplot(3,2,2), else subplot(4,2,2),end
+    if Nt == 1, subplot(3,2,2), else, subplot(4,2,2),end
     cfc   = 0;
     for i = 1:size(wft,3)
         cfc = cfc + corr((abs(wft(:,:,i)))');
@@ -200,7 +203,7 @@ end
 % simulated dopamine responses (if not a moving policy)
 %==========================================================================
 if ~isfield(MDP,'U')
-    if Nt == 1, subplot(3,2,6), else subplot(4,1,4),end
+    if Nt == 1, subplot(3,2,6), else, subplot(4,1,4),end
     dn    = spm_vec(dn);
     dn    = dn.*(dn > 0);
     dn    = dn + (dn + 1/16).*rand(size(dn))/8;

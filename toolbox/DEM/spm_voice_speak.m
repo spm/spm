@@ -12,7 +12,7 @@ function [xY,Y] = spm_voice_speak(q,p,r)
 % WHO    - speaker structure array
 %
 % xY.W  -  parameters - lexical
-% xY.P  -  parameters - prosidy
+% xY.P  -  parameters - prosody
 % xY.R  -  parameters - speaker
 %
 % Y     -  corresponding timeseries
@@ -30,7 +30,7 @@ function [xY,Y] = spm_voice_speak(q,p,r)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7617 2019-06-13 12:01:17Z karl $
+% $Id: spm_voice_speak.m 7653 2019-08-09 09:56:25Z karl $
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -90,6 +90,7 @@ end
 % convert into audio signal
 %--------------------------------------------------------------------------
 try, FS = VOX.FS; catch, FS  = 22050; end
+try, DT = VOX.DT; catch, DT  = 1/8;   end
 for s = 1:n
     
     % increase volume and timbre for audio display
@@ -106,7 +107,7 @@ for s = 1:n
     ni    = numel(y{s});
     ii    = i0 + (1:ni)';
     Y(ii) = Y(ii) + y{s};
-    i0    = ii(end) - round(ni/8);
+    i0    = ii(end) - fix(FS*DT);
 end
 Y     = Y(1:ii(end));
 

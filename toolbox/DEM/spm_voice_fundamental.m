@@ -22,7 +22,7 @@ function [F0,F1] = spm_voice_fundamental(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_fundamental.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: spm_voice_fundamental.m 7653 2019-08-09 09:56:25Z karl $
 
 
 % find fundamental frequencies
@@ -32,12 +32,12 @@ i     = 1:min(FS*8,numel(Y));                   % analyse first 8 seconds
 
 % Fourier transform
 %--------------------------------------------------------------------------
-Y     = Y(i) - spm_conv(Y(i),FS/64);            % high pass filter
+Y     = Y(i) - spm_conv_full(Y(i),FS/64);       % high pass filter
 fY    = abs(fft(Y));                            % Fourier transform
 nf    = length(fY);
 dw    = FS/nf;
 nw    = 4;
-sY    = spm_conv(fY,8/dw);
+sY    = spm_conv_full(fY,8/dw);
 w     = (1:nf)*dw;
 
 % find fundamental frequency (F0)

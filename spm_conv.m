@@ -15,7 +15,7 @@ function [X] = spm_conv(X,sx,sy)
 % Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_conv.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_conv.m 7653 2019-08-09 09:56:25Z karl $
 
 
 % assume isomorphic smoothing
@@ -32,12 +32,12 @@ sy    = sy/sqrt(8*log(2)) + eps;
 
 % kernels
 %--------------------------------------------------------------------------
-Ex    = min([round(6*sx) lx]);
-x     = [-Ex:Ex];
+Ex    = min([fix(6*sx) lx]);
+x     = -Ex:Ex;
 kx    = exp(-x.^2/(2*sx^2));
 kx    = kx/sum(kx);
-Ey    = min([round(6*sy) ly]);
-y     = [-Ey:Ey];
+Ey    = min([fix(6*sy) ly]);
+y     = -Ey:Ey;
 ky    = exp(-y.^2/(2*sy^2));
 ky    = ky/sum(ky);
 
@@ -46,16 +46,14 @@ ky    = ky/sum(ky);
 if lx > 1
     for i = 1:ly
         u      = X(:,i);
-        u      = [flipud(u(1:Ex)); u; flipud(u([1:Ex] + lx - Ex))];
-        U      = sparse(conv(full(u),kx));
-        X(:,i) = U([1:lx] + 2*Ex);
+        v      = [flipud(u(1:Ex)); u; flipud(u((1:Ex) + lx - Ex))];
+        X(:,i) = sparse(conv(full(v),kx,'valid'));
     end
 end
 if ly > 1
     for i = 1:lx
         u      = X(i,:);
-        u      = [fliplr(u(1:Ey)) u fliplr(u([1:Ey] + ly - Ey))];
-        U      = sparse(conv(full(u),ky));
-        X(i,:) = U([1:ly] + 2*Ey);
+        v      = [fliplr(u(1:Ey)) u fliplr(u((1:Ey) + ly - Ey))];
+        X(i,:) = sparse(conv(full(v),ky,'valid'));
     end
 end

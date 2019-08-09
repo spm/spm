@@ -21,21 +21,21 @@ function [I] = spm_voice_onsets(Y,FS,C,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7644 2019-07-24 18:47:56Z karl $
+% $Id: spm_voice_onsets.m 7653 2019-08-09 09:56:25Z karl $
 
 % find the interval that contains spectral energy
 %==========================================================================
 global VOX
 
-if nargin < 2, FS = VOX.FS; end                       % onset  threshold
-if nargin < 4, U  = 1/8;    end                       % height threshold
-if nargin < 3, C  = 1/16;   end                       % smoothing
+if nargin < 2, FS = VOX.FS; end                  % onset  threshold
+if nargin < 4, U  = 1/8;    end                  % height threshold
+if nargin < 3, C  = 1/16;   end                  % smoothing
 
 % identify threshold crossings in power
 %--------------------------------------------------------------------------
-[G,Y] = spm_voice_check(Y,FS,C);                      % smooth RMS
-G     = G/mean(G);                                    % normalise
-n     = length(G);                                    % number of bins
+[G,Y] = spm_voice_check(Y,FS,C);                 % smooth envelope
+G     = G/mean(G);                               % normalise to mean
+n     = length(G);                               % number of bins
 
 % find zero crossings (of U), for isolated words
 %--------------------------------------------------------------------------
@@ -45,6 +45,10 @@ jT    = find(G(1:end - 1) > U & G(2:end) < U);
 % find minima
 %--------------------------------------------------------------------------
 j     = find(diff(G(1:end - 1)) < 0 & diff(G(2:end)) > 0);
+if numel(j)
+    j = j([FS; diff(j)] > FS/32);                % remove minima < 1/32
+    j = j(G(j) < 2);                             % remove minima > 2*mean
+end
 
 % find onsets preceded by silence
 %--------------------------------------------------------------------------
@@ -59,7 +63,7 @@ end
 
 % find the last onset preceded by silence
 %--------------------------------------------------------------------------
-if isempty(k0), j0 = []; else j0 = k0(end); end
+if isempty(k0), j0 = []; else, j0 = k0(end); end
 
 % find offsets followed by silence
 %--------------------------------------------------------------------------
@@ -74,7 +78,7 @@ end
 
 % find the first offset followed by silence
 %--------------------------------------------------------------------------
-if isempty(kT), jT = []; else jT = kT(1); end
+if isempty(kT), jT = []; else, jT = kT(1); end
 
 
 % use the first minima in the absence of zero crossings
