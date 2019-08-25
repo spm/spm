@@ -1,6 +1,6 @@
-function U = spm_mvb_U(Y,priors,X0,xyz,vox)
+function U = spm_mvb_U(Y,priors,X0,xyz,vox,nu)
 % Constructs patterns U for Multivariate Bayesian inversion of a linear model
-% FORMAT U = spm_mvb_U(Y,priors,X0,xyz,vox)
+% FORMAT U = spm_mvb_U(Y,priors,X0,xyz,vox,nu)
 % Y      - data-feature matrix
 % priors - 'null'      % no patterns
 %        - 'compact'   % reduced (ns/3); using SVD on local compact support
@@ -11,12 +11,15 @@ function U = spm_mvb_U(Y,priors,X0,xyz,vox)
 %
 % X0     - confounds
 % xyz    - location in mm
-% vox    - voxel size
+% vox    - voxel size in mm
+% nu     - number of patterns (for 'compact')
+%
+% U      - pattern or mode weights
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_U.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_mvb_U.m 7654 2019-08-25 20:09:35Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -25,8 +28,11 @@ try, xyz; catch, xyz = [];   end
  
 % get orders
 %--------------------------------------------------------------------------
-ns     = size(Y,1);                 % number of samples
-nv     = size(Y,2);                 % number of voxels
+ns     = size(Y,1);                      % number of samples
+nv     = size(Y,2);                      % number of voxels
+if nargin < 6
+    nu = min(ceil(ns/3),nv);             % number of patterns
+end
  
 % confounds
 %--------------------------------------------------------------------------
@@ -101,9 +107,8 @@ switch priors
  
         % get kernel (compact vectors)
         %------------------------------------------------------------------
-        nu    = min(ceil(ns/3),nv);          % number of patterns
         nc    = max(fix(nv/nu),1);           % voxels in compact support
-        X0    = spm_svd(X0);
+        X0    = spm_svd(X0);                 % confounds
         Y     = Y - X0*(X0'*Y);              % remove confounds
         C     = sum(Y.^2);                   % variance of Y
         U     = spalloc(nv,nu,nc*nu);

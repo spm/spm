@@ -23,7 +23,7 @@ function spm_dcm_create(syn_model,source_model,SNR)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan & Peter Zeidman
-% $Id: spm_dcm_create.m 6037 2014-06-04 09:01:16Z peter $
+% $Id: spm_dcm_create.m 7654 2019-08-25 20:09:35Z karl $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -174,8 +174,8 @@ end
 X0    = ones(DCM.v,1);
 switch upper(source_model)
     case 'GUI'
-        Y        = DCM.Y;
-        DCM.Ep.decay = sparse(DCM.n,1);
+        Y              = DCM.Y;
+        DCM.Ep.decay   = sparse(DCM.n,1);
         DCM.Ep.transit = sparse(DCM.n,1);
         DCM.Ep.epsilon = sparse(1,1);
     otherwise

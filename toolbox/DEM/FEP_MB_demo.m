@@ -16,9 +16,9 @@ function FEP_MB_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_MB_demo.m 7224 2017-11-18 18:10:09Z karl $
+% $Id: FEP_MB_demo.m 7654 2019-08-25 20:09:35Z karl $
 
-SOUP = 1;
+SOUP = 0;
 if SOUP
     % default settings
     %----------------------------------------------------------------------

@@ -28,7 +28,7 @@ function [xBF] = spm_get_bf(xBF)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_get_bf.m 4473 2011-09-08 18:07:45Z guillaume $
+% $Id: spm_get_bf.m 7654 2019-08-25 20:09:35Z karl $
  
  
 %-Length of time bin
@@ -117,48 +117,49 @@ switch xBF.name
     %----------------------------------------------------------------------
     bf    = 1;
  
-otherwise
-    %-Microtime resolution
-    %----------------------------------------------------------------------
-    try
-        fMRI_T   = xBF.T;
-    catch
-        fMRI_T   = spm_get_defaults('stats.fmri.t');
-    end
-    
-    %-Canonical hemodynamic response function
-    %----------------------------------------------------------------------
-    [bf, p]      = spm_hrf(dt,[],fMRI_T);
- 
-    %-Add time derivative
-    %----------------------------------------------------------------------
-    if strfind(xBF.name,'time')
-
-        dp       = 1;
-        p(6)     = p(6) + dp;
-        D        = (bf(:,1) - spm_hrf(dt,p,fMRI_T))/dp;
-        bf       = [bf D(:)];
-        p(6)     = p(6) - dp;
- 
-        %-Add dispersion derivative
+    otherwise
+        
+        %-Microtime resolution
         %------------------------------------------------------------------
-        if strfind(xBF.name,'dispersion')
- 
-            dp   = 0.01;
-            p(3) = p(3) + dp;
-            D    = (bf(:,1) - spm_hrf(dt,p,fMRI_T))/dp;
-            bf   = [bf D(:)];
+        try
+            fMRI_T   = xBF.T;
+        catch
+            fMRI_T   = spm_get_defaults('stats.fmri.t');
         end
-    end
- 
-    %-Length and order
-    %----------------------------------------------------------------------
-    xBF.length   = size(bf,1)*dt;
-    xBF.order    = size(bf,2);
- 
+        
+        %-Canonical hemodynamic response function
+        %------------------------------------------------------------------
+        [bf, p]      = spm_hrf(dt,[],fMRI_T);
+        
+        %-Add time derivative
+        %------------------------------------------------------------------
+        if strfind(xBF.name,'time')
+            
+            dp       = 1;
+            p(6)     = p(6) + dp;
+            D        = (bf(:,1) - spm_hrf(dt,p,fMRI_T))/dp;
+            bf       = [bf D(:)];
+            p(6)     = p(6) - dp;
+            
+            %-Add dispersion derivative
+            %--------------------------------------------------------------
+            if strfind(xBF.name,'dispersion')
+                
+                dp   = 0.01;
+                p(3) = p(3) + dp;
+                D    = (bf(:,1) - spm_hrf(dt,p,fMRI_T))/dp;
+                bf   = [bf D(:)];
+            end
+        end
+        
+        %-Length and order
+        %------------------------------------------------------------------
+        xBF.length   = size(bf,1)*dt;
+        xBF.order    = size(bf,2);
+        
 end
- 
- 
+
+
 %-Orthogonalise and fill in basis function structure
 %--------------------------------------------------------------------------
 xBF.bf = spm_orth(bf);

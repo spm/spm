@@ -36,7 +36,7 @@ function mip = spm_mip(Z,XYZ,M,units)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mip.m 5245 2013-02-06 17:28:06Z guillaume $
+% $Id: spm_mip.m 7654 2019-08-25 20:09:35Z karl $
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------
@@ -46,9 +46,10 @@ Grid = 0.4;
 
 %-Transpose locations if necessary
 %--------------------------------------------------------------------------
-if size(XYZ,1) ~= 3, XYZ = XYZ';         end
-if size(Z,1)   ~= 1, Z   = Z';           end
-if size(M,1)   == 1, M   = speye(4,4)*M; end
+if size(XYZ,1) ~= 3, XYZ = XYZ';                end
+if size(Z,1)   ~= 1, Z   = Z';                  end
+if size(Z,2)   == 1, Z   = ones(1,size(XYZ,2)); end
+if size(M,1)   == 1, M   = speye(4,4)*M;        end
 
 %-Scale & offset point list values to fit in [1/(1+Scal),1]
 %--------------------------------------------------------------------------

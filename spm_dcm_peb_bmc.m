@@ -56,7 +56,6 @@ function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models)
 %     BMR.F      - free energy relative to full model
 %     BMR.P      - and posterior (model) probabilities
 %     BMR.K      - [models x parameters] model space (1 = off, 2 = on)
-%     BMR.bma{i} - Model i which contributed to the BMA (Ep,Cp,F)
 %
 %--------------------------------------------------------------------------
 % This routine performs Bayesian model comparison and averaging of second
@@ -94,7 +93,7 @@ function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 7476 2018-11-07 15:17:39Z peter $
+% $Id: spm_dcm_peb_bmc.m 7654 2019-08-25 20:09:35Z karl $
 
 % checks
 %--------------------------------------------------------------------------

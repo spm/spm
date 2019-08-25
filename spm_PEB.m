@@ -58,7 +58,7 @@ function [C,P,F] = spm_PEB(y,P,HP,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 7596 2019-05-23 18:42:23Z karl $
+% $Id: spm_PEB.m 7654 2019-08-25 20:09:35Z karl $
 
 % set defaults
 %--------------------------------------------------------------------------
@@ -67,7 +67,7 @@ try, OPT; catch, OPT = 0; end
 
 % number of levels (p)
 %--------------------------------------------------------------------------
-M     = 32;                                  % maximum number of iterations
+M     = 64;                                  % maximum number of iterations
 p     = length(P);
 
 % check covariance constraints - assume i.i.d. errors conforming to X{i}
