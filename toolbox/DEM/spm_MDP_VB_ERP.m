@@ -3,11 +3,11 @@ function [x,y,ind] = spm_MDP_VB_ERP(MDP,FACTOR,T)
 % FORMAT [x,y] = spm_MDP_VB_ERP(MDP,FACTOR,T)
 %
 % MDP    - structure (see spm_MDP_VB)
-% FACTOR - the hidden factors (at the second level) to plot
+% FACTOR - hidden factors (at high and low level) to plot
 % T      - flag to return cell of expectations (at time T; usually 1)
 %
-% x      - simulated ERPs (high-level)
-% y      - simulated ERPs (low level)
+% x      - simulated ERPs (high-level) (full lines)
+% y      - simulated ERPs (low level)  (dotted lines)
 % ind    - indices or bins at the end of each (synchronised) epoch
 %
 % This routine combines first and second level hidden expectations by
@@ -31,7 +31,7 @@ function [x,y,ind] = spm_MDP_VB_ERP(MDP,FACTOR,T)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_ERP.m 7651 2019-08-03 12:35:15Z karl $
+% $Id: spm_MDP_VB_ERP.m 7656 2019-08-26 14:00:36Z karl $
 
 
 % defaults: assume the first factor is of interest
@@ -157,5 +157,5 @@ end
 subplot(4,1,3), plot(t,x',t,y','-.')
 title('Local field potentials','FontSize',16)
 ylabel('Depolarisation'),spm_axis tight
-grid on, set(gca,'XTick',(1:(length(t)/Nb))*Nb*dt)
+grid on, xlabel('time (seconds)')
 

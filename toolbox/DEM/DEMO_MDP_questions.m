@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7601 2019-06-03 09:41:06Z karl $
+% $Id: DEMO_MDP_questions.m 7656 2019-08-26 14:00:36Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -195,11 +195,11 @@ clear A B D
  
 MDP   = spm_MDP_check(mdp);
 
+% % check belief updates (and behaviour)
+% %------------------------------------------------------------------------
 % MDP.s = [1 2 1 8]';
 % MDP   = spm_MDP_VB_X(MDP);
-% 
-% % show belief updates (and behaviour)
-% %------------------------------------------------------------------------
+%
 % spm_figure('GetWin','Figure 1'); clf
 % spm_MDP_VB_trial(MDP,[3 4],1);
 % 
@@ -396,6 +396,7 @@ mdp.MDP    = MDP;
 mdp.label  = label;             % names of factors and outcomes
 mdp.tau    = 4;                 % time constant of belief updating
 mdp.erp    = 4;                 % initialization
+mdp.chi    = 0;                 % initialization
 
 mdp.V = V;                      % allowable policies
 mdp.A = A;                      % observation model
@@ -407,7 +408,7 @@ mdp.o = [];                     % outcomes
 
 mdp.link = spm_MDP_link(mdp);
 MDP      = spm_MDP_check(mdp);
-
+%   spm_MDP_factor_graph(mdp);
  
  
 %% illustrate questioning
@@ -432,7 +433,7 @@ spm_figure('GetWin','Figure 2A'); clf
 spm_MDP_VB_LFP(MDP,[],4,1);
 
 spm_figure('GetWin','Figure 3'); clf
-spm_MDP_VB_ERP(MDP(4:6),[4,3]);
+spm_MDP_VB_ERP(MDP(4:6),[3,2]);
 
 spm_figure('GetWin','Figure 4'); clf
 for i = 1:size(MDP,2)
@@ -442,25 +443,26 @@ end
 
 % illustrate violations
 %==========================================================================
-NDP    = MDP;                              % get states and outcomes
-if NDP(5).o(4,3) == 4                      % switch the answer
-    NDP(5).o(4,3) = 5;
+NDP    = MDP(5);                          % get states and outcomes
+if NDP.o(4,3) == 4                        % switch the answer
+    NDP.o(4,3) = 5;
 else
-    NDP(5).o(4,3) = 4;
+    NDP.o(4,3) = 4;
 end
-NDP(5) = spm_MDP_VB_X(NDP(5));
+NDP = rmfield(NDP,'link');                % remove link (outomes are given)
+NDP = spm_MDP_VB_X(NDP);
 
 % find greatest effect on belief updating (about the scene)
 %--------------------------------------------------------------------------
 for f = 3:6
-    v(f) =  norm(spm_vec(MDP(5).X{f}) - spm_vec(NDP(5).X{f}),'inf');
+    v(f) =  norm(spm_vec(MDP.X{f}) - spm_vec(NDP.X{f}),'inf');
 end
 [v,f] = max(v);
 
 % responses to appropriate and inappropriate answers
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 6 expected' ); clf, spm_MDP_VB_LFP(MDP(5),[],f);
-spm_figure('GetWin','Figure 7 violation'); clf, spm_MDP_VB_LFP(NDP(5),[],f);
+spm_figure('GetWin','Figure 7 violation'); clf, spm_MDP_VB_LFP(NDP   ,[],f);
 
 
 % illustrate 'communication'
@@ -468,13 +470,13 @@ spm_figure('GetWin','Figure 7 violation'); clf, spm_MDP_VB_LFP(NDP(5),[],f);
 
 % increase efficiency (i.e., suppress neurophysiological correlates)
 %--------------------------------------------------------------------------
-mdp.tau    = 3;                 % time constant of belief updating
-mdp.erp    = 1;                 % initialization
+mdp.tau    = 3;                         % time constant of belief updating
+mdp.erp    = 1;                         % initialization
+mdp.chi    = 1/64;                      % initialization
 
 % create two agents
 %--------------------------------------------------------------------------
 clear MDP
-OPTIONS.D  = 1;
 [MDP(1:2,1:6)] = deal(mdp);
 
 % give a second subject veridical beliefs about the scene
