@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7656 2019-08-26 14:00:36Z karl $
+% $Id: spm_MDP_VB_X.m 7657 2019-08-30 13:15:39Z thomas $
 
 
 % deal with a sequence of trials
@@ -857,7 +857,11 @@ for t = 1:T
                                 
                                 % (negative) free energy
                                 %------------------------------------------
-                                F(k) = F(k) + sx'*(0.5*v - (Nf(m)-1)*qL/Nf(m));
+                                if j == 1 || j == S
+                                    F(k) = F(k) + sx'*0.5*v;
+                                else
+                                    F(k) = F(k) + sx'*(0.5*v - (Nf(m)-1)*qL/Nf(m));
+                                end
                                 
                                 % update
                                 %------------------------------------------
@@ -989,7 +993,7 @@ for t = 1:T
             %--------------------------------------------------------------
             MDP(m).F(:,t) = F;
             MDP(m).G(:,t) = Q;
-            MDP(m).H(1,t) = qu'*MDP(m).F(p{m},t) - qu'*(log(qu) - log(pu));
+            MDP(m).H(1,t) = qu'*MDP(m).F(p{m},t) - qu'*(spm_log(qu) - spm_log(pu));
             
             % check for residual uncertainty (in hierarchical schemes)
             %--------------------------------------------------------------
