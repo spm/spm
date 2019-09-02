@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7656 2019-08-26 14:00:36Z karl $
+% $Id: DEMO_MDP_questions.m 7658 2019-09-02 08:28:45Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -54,8 +54,8 @@ rng('default')
 %--------------------------------------------------------------------------
 % probabilistic mapping from hidden states to outcomes: A
 %--------------------------------------------------------------------------
-sentence{1} = {'Are there any ','&1_1','s','?'};
-sentence{2} = {'Is there a ','&2_1','&2_3','?'};
+sentence{1} = {'Is there a ','&1_1','?'};
+sentence{2} = {'Is any ','&2_1','&2_3','?'};
 sentence{3} = {'Is a ','&3_2','&3_1','&3_3','?'};
 sentence{4} = {'Yes','!'};
 sentence{5} = {'No','!'};
@@ -117,7 +117,7 @@ end
 outcome = unique(outcome);
 j     = [];
 for i = 1:numel(outcome)
-    if outcome{i}(1) ~= '&';
+    if outcome{i}(1) ~= '&'
         j = [j,i];
     end
 end
@@ -443,7 +443,8 @@ end
 
 % illustrate violations
 %==========================================================================
-NDP    = MDP(5);                          % get states and outcomes
+j      = 5;                               % which answer
+NDP    = MDP(j);                          % get states and outcomes
 if NDP.o(4,3) == 4                        % switch the answer
     NDP.o(4,3) = 5;
 else
@@ -455,7 +456,7 @@ NDP = spm_MDP_VB_X(NDP);
 % find greatest effect on belief updating (about the scene)
 %--------------------------------------------------------------------------
 for f = 3:6
-    v(f) =  norm(spm_vec(MDP.X{f}) - spm_vec(NDP.X{f}),'inf');
+    v(f) =  norm(spm_vec(MDP(j).X{f}) - spm_vec(NDP.X{f}),'inf');
 end
 [v,f] = max(v);
 
@@ -645,16 +646,16 @@ for m = 1:numel(MDP)
         adj      = {'green','red'};
         adverb   = {'above','below'};
         if question == 1
-            qstr = ['Is there a ' noun{MDP(m).o(1,2)} ' ?'];
+            qstr = ['is there a ' noun{MDP(m).o(1,2)} ' ?'];
         elseif question == 2
-            qstr = ['Is there a ' noun{MDP(m).o(1,2)} ' ' adverb{MDP(m).o(3,2)} ' ?'];
+            qstr = ['Is any ' noun{MDP(m).o(1,2)} ' ' adverb{MDP(m).o(3,2)} ' ?'];
         elseif question == 3
-            qstr = ['Is there a ' adj{MDP(m).o(2,2)} ' ' noun{MDP(m).o(1,2)} ' ' adverb{MDP(m).o(3,2)} ' ?'];
+            qstr = ['Is a ' adj{MDP(m).o(2,2)} ' ' noun{MDP(m).o(1,2)} ' ' adverb{MDP(m).o(3,2)} ' ?'];
         else
             qstr = '!';
         end
         if answer == 4
-            astr = 'Yes there is !';
+            astr = 'Yes !';
         elseif answer == 5
             astr = 'No !';
         else

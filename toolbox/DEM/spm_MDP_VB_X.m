@@ -132,7 +132,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7657 2019-08-30 13:15:39Z thomas $
+% $Id: spm_MDP_VB_X.m 7658 2019-09-02 08:28:45Z karl $
 
 
 % deal with a sequence of trials
@@ -498,8 +498,7 @@ for t = 1:T
                             px    = spm_vec(spm_cross(xqq(m,:)));
                             F     = zeros(No(m,g),1);
                             for i = 1:No(m,g)
-                                xp   = MDP(m).A{g}(i,:);
-                                xp   = spm_norm(spm_vec(xp));
+                                xp   = spm_vec(MDP(m).A{g}(i,:));
                                 F(i) = spm_vec(px)'*spm_log(xp)...
                                      + spm_log(po(i));
                             end
