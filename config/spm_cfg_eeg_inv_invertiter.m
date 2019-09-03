@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 7127 2017-06-29 09:25:24Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 7660 2019-09-03 12:52:52Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -361,7 +361,7 @@ if isfield(job.isstandard, 'custom')
     end;
     inverse.smooth=job.isstandard.custom.patchfwhm;
     testchans=[];
-    crossU={};
+    crossU{1}={};
     a=[];
     if ~isempty(job.isstandard.custom.umodes),
         disp('Loading spatial modes from file');
