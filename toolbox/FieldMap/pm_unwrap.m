@@ -75,7 +75,7 @@ function varargout = pm_unwrap(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_unwrap.m 5659 2013-09-27 12:38:24Z guillaume $
+% $Id: pm_unwrap.m 7661 2019-09-04 13:57:39Z guillaume $
 
 %
 % The following are a set of parameters that
@@ -207,22 +207,44 @@ switch lower(method)
       % limited angular span.
       %
       [irima,cn] = pm_initial_regions(opm,mask,nstep);
-      %
-      % Added this little bug fix which prevents pm_merge_regions crashing
-      % because it has too many regions to merge. 
-      while cn>1800 && nstep > 2
-          nstep=nstep-1;
-          [irima,cn] = pm_initial_regions(opm,mask,nstep);
+      
+      if isempty(getenv('SPM_PM_UNWRAP_FIX'))
+         %
+         % Added this little bug fix which prevents pm_merge_regions crashing
+         % because it has too many regions to merge. 
+         while cn > 1800 && nstep > 2
+            nstep=nstep-1;
+            [irima,cn] = pm_initial_regions(opm,mask,nstep);
+         end
+         %
+         % Get connectogram
+         %
+         [ii,jj,nn,pp] = pm_create_connectogram(irima,opm);
+         %
+         % Merge regions while updating connectogram
+         %
+         rs = histc(irima(:),[0:max(irima(:))]+0.5);
+         rs = rs(1:end-1); 
+         upm = pm_merge_regions(opm,irima,ii,jj,nn,pp,rs);
+      else
+         if cn > 1000 && nstep > 2
+            % nw: use matlab function to avoid crash
+            [N,P] = pm_create_connectogram(irima,opm);
+            upm = pm_merge_regions_m(opm,N,P,irima);
+         else
+            %
+            % Get connectogram
+            %
+            [ii,jj,nn,pp] = pm_create_connectogram(irima,opm);
+            %
+            % Merge regions while updating connectogram
+            %
+            rs = histc(irima(:),[0:max(irima(:))]+0.5);
+            rs = rs(1:end-1);
+            upm = pm_merge_regions(opm,irima,ii,jj,nn,pp,rs);
+         end
       end
-      % Get connectogram
-      %
-      [ii,jj,nn,pp] = pm_create_connectogram(irima,opm);
-      %
-      % Merge regions while updating connectogram
-      %
-      rs = histc(irima(:),[0:max(irima(:))]+0.5);
-      rs = rs(1:end-1); 
-      upm = pm_merge_regions(opm,irima,ii,jj,nn,pp,rs);
+      
       wmap = mask;
    case 'mark2d'
       upm = zeros(size(opm));
