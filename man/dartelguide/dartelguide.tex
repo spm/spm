@@ -377,4 +377,37 @@ Bottom-right: B.nii warped to match A.nii.
 \label{Fig:AtoB}}
 \end{figure}
 
+\section{Warping the Dartel template to match an individual}
+Sometimes the aim is to warp one of the templates created by Dartel, or some other image that is in alignment with this template, to match one of the scans of an individual.
+This can be achieved using \emph{SPM$\rightarrow$Utils$\rightarrow$Deformations} by:
+\begin{itemize}
+\item {\bf Deformations}
+  \begin{itemize}
+  \item {\bf Composition}
+    \begin{itemize}
+    \item {\bf Dartel flow}
+      \begin{itemize}
+      \item {\bf Flow field}: Specify the u\_rc1\*\_Template.nii flow field.
+      \item {\bf Forward/Backwards}: Forward.
+      \item {\bf Time Steps}: Usually 64.
+      \item {\bf Dartel template}: leave this field empty.
+      \end{itemize}
+    \item {\bf Identity}
+      \begin{itemize}
+      \item {\bf Image to base Id on}: Specify a NIfTI image in order to have the deformed image(s) written out at this resolution, and with the same orientations etc (ie so there is a voxel-for-voxel alignment, rather than having the images only aligned according to their ``voxel-to-world'' mappings).
+      \end{itemize}
+    \end{itemize}
+  \item {\bf Output}
+    \begin{itemize}
+    \item {\bf Pullback}
+      \begin{itemize}
+      \item {\bf Apply to}: Specify the Dartel template or any other images that are in alignment with the Dartel template, such as label maps etc, that you would like warped to match the individual. You can use \emph{Check Reg} to assess this alignment.
+      \item {\bf Output destination}: Specify where you want to write the images.
+      \item {\bf Interpolation}: Specify the form of interpolation.
+      \item {\bf Mask images}: Say whether you want to mask the images.
+      \item {\bf Gaussian FWHM}: The images can be smoothed when they are written.  If you do not want this, then enter 0 0 0.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
 
