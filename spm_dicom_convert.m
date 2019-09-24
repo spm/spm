@@ -36,7 +36,7 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 % Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7507 2018-12-12 10:51:32Z john $
+% $Id: spm_dicom_convert.m 7666 2019-09-24 16:30:13Z john $
 
 
 %-Input parameters
@@ -1169,8 +1169,6 @@ fclose(fp);
 if numel(img)~=Header.Rows*Header.Columns*NFrames
     error([Header.Filename ': cant read whole image']);
 end
-
-img = bitshift(img,Header.BitsStored-Header.HighBit-1);
 
 if Header.PixelRepresentation
     % Signed data - done this way because bitshift only
