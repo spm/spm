@@ -39,7 +39,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 7577 2019-04-24 08:59:56Z guillaume $
+% $Id: spm_mesh_render.m 7667 2019-09-25 12:05:13Z guillaume $
 
 
 %-Input parameters
@@ -280,6 +280,13 @@ switch lower(action)
         end
         c(1:size(col,1),1,1:size(col,2)) = col;
         ic = findobj(H.colourbar,'Type','image');
+        if isempty(ic)
+            cb = H.colourbar;
+            H.colourbar = axes('Position',get(H.colourbar,'Position'));
+            ic = image(H.colourbar,1);
+            set(H.colourbar,'XTick',[],'YDir','normal','YAxisLocation','right');
+            delete(cb);
+        end
         if size(d,1) > 1
             set(ic,'CData',c(1:size(d,1),:,:));
             set(ic,'YData',[1 size(d,1)]);
