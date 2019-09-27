@@ -8,7 +8,7 @@ function spm_save(f,var,varargin)
 % Copyright (C) 2018-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_save.m 7572 2019-04-12 16:16:32Z guillaume $
+% $Id: spm_save.m 7668 2019-09-27 10:44:45Z guillaume $
 
 
 ext = lower(spm_file(f,'ext'));
@@ -33,7 +33,10 @@ switch ext
                 var = struct2cell(var)';
                 for i=1:numel(var)
                     var{i} = var{i}(:);
-                    if ~iscell(var{i}), var{i} = cellstr(num2str(var{i},16)); end
+                    if ~iscell(var{i})
+                        var{i} = cellstr(num2str(var{i},16));
+                        var{i}(cellfun(@(x) strcmp(x,'NaN'),var{i})) = {'n/a'};
+                    end
                 end
                 var = [fn'; var{:}];
             elseif iscell(var)
