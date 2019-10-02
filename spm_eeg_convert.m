@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 7451 2018-10-17 14:48:56Z vladimir $
+% $Id: spm_eeg_convert.m 7671 2019-10-02 12:34:50Z vladimir $
 
-SVNrev = '$Rev: 7451 $';
+SVNrev = '$Rev: 7671 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -145,7 +145,7 @@ else
             ind = strcmp('STATUS', {event(:).type});
             val = [event(ind).value];
             if ~isempty(val)
-                bytes  = dec2bin(val);
+                bytes  = dec2bin(val, 8);
                 bytes  = bytes(:, end-7:end);
                 % This is a very specific criterion that assumes that
                 % trigger code 1 is always used. 
