@@ -589,7 +589,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % checkinside, i.e. inside2logical
 %
-% Converts indexed cfg.inside/outside into logical representation if neccessary.
+% Converts indexed cfg.inside/outside into logical representation if necessary.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if istrue(checkinside)
   if isfield(cfg, 'inside') && any(cfg.inside>1)
@@ -612,7 +612,7 @@ end % if checkinside
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % checkfilenames, i.e. dataset2files
 %
-% Converts cfg.dataset into cfg.headerfile and cfg.datafile if neccessary.
+% Converts cfg.dataset into cfg.headerfile and cfg.datafile if necessary.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if istrue(checkfilenames)
 
@@ -653,12 +653,12 @@ if istrue(checkfilenames)
     % this requires correct autodetection of the format of the data set
     [cfg.dataset, cfg.headerfile, cfg.datafile] = dataset2files(cfg.dataset, []);
 
-  elseif ~isempty(cfg.datafile) && isempty(cfg.headerfile);
+  elseif ~isempty(cfg.datafile) && isempty(cfg.headerfile)
     % assume that the datafile also contains the header information
     cfg.dataset    = cfg.datafile;
     cfg.headerfile = cfg.datafile;
 
-  elseif isempty(cfg.datafile) && ~isempty(cfg.headerfile);
+  elseif isempty(cfg.datafile) && ~isempty(cfg.headerfile)
     % assume that the headerfile also contains the data
     cfg.dataset  = cfg.headerfile;
     cfg.datafile = cfg.headerfile;

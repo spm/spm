@@ -58,14 +58,16 @@ function [type] = ft_filetype(filename, desired, varargin)
 %  - Tobii *.tsv
 %  - Stanford *.ply
 %  - Tucker Davis Technology
-%  - VSM-Medtech/CTF
+%  - CTF
 %  - Yokogawa & Ricoh
 %  - nifti, gifti
 %  - Nicolet *.e (currently from Natus, formerly Carefusion, Viasys and Taugagreining. Also known as Oxford/Teca/Medelec Valor Nervus)
 %  - Biopac *.acq
 %  - AnyWave *.ades
+%  - Qualisys *.tsv
+%  - Mrtrix *.mif
 
-% Copyright (C) 2003-2018 Robert Oostenveld
+% Copyright (C) 2003-2019 Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
@@ -1111,9 +1113,13 @@ elseif filetype_check_extension(filename, '.sd') && filetype_check_header(filena
   manufacturer = 'Homer';
   content = 'source detector information';
   
-  % known Artinis file format
+  % known Artinis file formats
 elseif filetype_check_extension(filename, '.oxy3')
   type = 'artinis_oxy3';
+  manufacturer = 'Artinis Medical Systems';
+  content = '(f)NIRS data';
+elseif filetype_check_extension(filename, '.oxy4')
+  type = 'artinis_oxy4';
   manufacturer = 'Artinis Medical Systems';
   content = '(f)NIRS data';
 elseif filetype_check_extension(filename, '.oxyproj')
@@ -1251,17 +1257,21 @@ elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filen
   manufacturer = 'MATLAB';
   content = 'MATLAB binary data';
 elseif filetype_check_header(filename, 'RIFF', 0) && filetype_check_header(filename, 'WAVE', 8)
-  type = 'riff_wave';
+  type = 'audio_wav';
   manufacturer = 'Microsoft';
   content = 'audio';
-elseif filetype_check_extension(filename, '.m4a')
-  type = 'audio_m4a';
-  manufacturer = 'Apple';
+elseif any(filetype_check_extension(filename, {'.wav', '.ogg', '.flac', '.au', '.aiff', '.aif', '.aifc', '.mp3', '.m4a', '.mp4'}))
+  type = ['audio_' x(2:end)];
+  manufacturer = 'Various';
   content = 'audio';
 elseif filetype_check_extension(filename, '.txt') && filetype_check_header(filename, 'Site')
   type = 'easycap_txt';
   manufacturer = 'Easycap';
   content = 'electrode positions';
+elseif filetype_check_extension(filename, '.txt') && filetype_check_header(filename, '# OpenSignals Text File Format')
+  type = 'opensignals_txt';
+  manufacturer = 'Bitalino';
+  content = '';
 elseif filetype_check_extension(filename, '.txt')
   type = 'ascii_txt';
   manufacturer = '';
@@ -1397,8 +1407,34 @@ elseif contains(filename, '_events.tsv')
   type = 'events_tsv';
   manufacturer = 'BIDS';
   content = 'events';
+elseif filetype_check_extension(filename, '.xdf') && filetype_check_header(filename, 'XDF')
+  type = 'sccn_xdf';
+  manufacturer = 'SCCN / Lab Streaming Layer';
+  content = 'multiple streams';
+elseif filetype_check_extension(filename, '.tsv') && filetype_check_header(filename, 'NO_OF_')
+  type = 'qualisys_tsv';
+  manufacturer = 'Qualisys';
+  content = 'motion capture data';
+elseif filetype_check_extension(filename, '.c3d') && filetype_check_header(filename, [2, 80])
+  type = 'motion_c3d';
+  manufacturer = 'https://www.c3d.org';
+  content = 'motion capture data';
+elseif filetype_check_extension(filename, '.mif')
+  % this could be a mrtrix compatible image file
+  type = 'mrtrix_mif';
+  manufacturer = 'Mrtrix';
+  content = 'image data';
+elseif filetype_check_extension(filename, '.tck')
+  % this could be a mrtrix compatible tractography file
+  type = 'mrtrix_tck';
+  manufacturer = 'Mrtrix';
+  content = 'tractography data';
+elseif exist(fullfile(p, [f '.tsv']), 'file') && exist(fullfile(p, [f '.json']), 'file')
+  % BIDS uses tsv and json file pairs for behavioral and physiological data
+  type = 'bids_tsv';
+  manufacturer = 'BIDS';
+  content = 'timeseries data';
 end
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % finished determining the filetype

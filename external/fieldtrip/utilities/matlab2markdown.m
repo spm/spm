@@ -17,7 +17,7 @@ function matlab2markdown(infile, outfile, varargin)
 % Optional input arguments can be specified as key-value pairs and can include
 %   imagestyle = 'none|inline|jekyll'
 %   pageheader = 'none|jekyll'
-%   overwrite  = true/false, allow overwriting of the .md file
+%   overwrite  = true/false, allow overwriting of the .md file (default = false)
 %   highlight  = string, 'matlab', 'plaintext' or '' (default = '')
 %   ...
 %
@@ -163,15 +163,14 @@ while ~feof(infid)
     
   elseif match(line, '^%%')
     % heading
-    [~,endIndex] = regexp(line, '^%% ');
+    [dum,endIndex] = regexp(line, '^%% ');
     remainder = reformat(line((endIndex+1):end));
     fprintf(outfid, '# %s\n', remainder);
     
   elseif match(line, '^% *\* ')
     % unordered list
-    [~,endIndex] = regexp(line, '^% *\* ');
-    
-    [~,level] = regexp(line, '^% *');
+    [dum,endIndex] = regexp(line, '^% *\* ');
+    [dum,level] = regexp(line, '^% *');
     if isempty(level)
       level = 0;
     else
@@ -183,7 +182,7 @@ while ~feof(infid)
     
   elseif match(line, '^% *# ')
     % ordered list
-    [~,endIndex] = regexp(line, '^% *# ');
+    [dum,endIndex] = regexp(line, '^% *# ');
     remainder = reformat(line((endIndex+1):end));
     index = index + 1;
     fprintf(outfid, '%d. %s\n', index, remainder);
@@ -192,7 +191,7 @@ while ~feof(infid)
     
   elseif match(line, '^% *')
     % normal text
-    [~,endIndex] = regexp(line, '^% *');
+    [dum,endIndex] = regexp(line, '^% *');
     remainder = reformat(line((endIndex+1):end));
     fprintf(outfid, '%s\n', remainder);
     
@@ -201,7 +200,7 @@ while ~feof(infid)
     fprintf(outfid, '    %s\n', line);
     [startIndex,endIndex] = regexp(line, '[!-~]*.png$');
     image = line(startIndex:endIndex);
-    [~, f] = fileparts(image);
+    [dum, f] = fileparts(image);
     if strcmp(imagestyle, 'inline')
       % include a default Markdown inline image
       fprintf(outfid, '![%s](%s)\n', f, image);
