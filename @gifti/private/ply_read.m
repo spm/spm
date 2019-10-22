@@ -9,10 +9,10 @@ function M = ply_read(filename)
 % Stanford Triangle Format Specification:
 % https://en.wikipedia.org/wiki/PLY_%28file_format%29
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2017-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: ply_read.m 7239 2017-12-15 17:14:33Z guillaume $
+% $Id: ply_read.m 7676 2019-10-22 10:19:29Z guillaume $
 
 
 fid = fopen(filename,'rt');
@@ -23,6 +23,8 @@ end
 M = struct('vertices',[],'faces',[]);
 
 %-Read header
+isvertex = false;
+nval = 0;
 while true
     l = fgetl(fid);
     if strcmp(l,'end_header'), break; end
@@ -32,15 +34,22 @@ while true
         switch l
             case 'vertex'
                 nv = str2double(r);
+                isvertex = true;
             case 'face'
                 nf = str2double(r);
+                isvertex = false;
+        end
+    elseif strcmp(l,'property')
+        if isvertex
+            nval = nval + 1;
         end
     end
 end
 
 %-Read data
-M.vertices = fscanf(fid,'%f %f %f',[3 nv])';
-M.faces    = fscanf(fid,'%d %d %d %d',[4 nf])';
+M.vertices = fscanf(fid,'%f',[nval nv])';
+M.vertices = M.vertices(:,1:3);
+M.faces    = fscanf(fid,'%d',[4 nf])';
 M.faces    = M.faces(:,2:4) + 1;
 
 fclose(fid);

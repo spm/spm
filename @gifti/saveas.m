@@ -11,7 +11,7 @@ function saveas(this,filename,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: saveas.m 7470 2018-11-01 17:40:18Z guillaume $
+% $Id: saveas.m 7676 2019-10-22 10:19:29Z guillaume $
 
 
 % Check filename and file format
@@ -38,6 +38,9 @@ else
     end
     if nargin == 3 && strcmpi(format,'obj')
         ext = '.obj';
+    end
+    if nargin == 3 && strcmpi(format,'ply')
+        ext = '.ply';
     end
     if nargin == 3 && strcmpi(format,'curv')
         ext = '.curv';
@@ -77,6 +80,8 @@ switch ext
         mvtk_write(s,filename,format);
     case '.obj'
         save_obj(s,filename);
+    case '.ply'
+        save_ply(s,filename);
     case {'.curv','.surf'}
         write_freesurfer_file(s,filename,format);
     case '.mz3'
@@ -474,6 +479,40 @@ end
 fprintf(fid,'# Wavefront OBJ file saved by %s\n','SPM'); % spm('Version')
 fprintf(fid,'v %f %f %f\n',s.vertices');
 fprintf(fid,'f %d %d %d\n',s.faces');
+
+% Close file
+%--------------------------------------------------------------------------
+fclose(fid);
+
+
+%==========================================================================
+% function save_ply(s,filename)
+%==========================================================================
+function save_ply(s,filename)
+
+% Open file for writing
+%--------------------------------------------------------------------------
+fid = fopen(filename,'wt');
+if fid == -1
+    error('Unable to write file %s: permission denied.',filename);
+end
+
+% Header
+%--------------------------------------------------------------------------
+fprintf(fid,'ply\n');
+fprintf(fid,'format ascii 1.0\n');
+fprintf(fid,'element vertex %d\n',size(s.vertices,1));
+fprintf(fid,'property float32 x\n');
+fprintf(fid,'property float32 y\n');
+fprintf(fid,'property float32 z\n');
+fprintf(fid,'element face %d\n',size(s.faces,1));
+fprintf(fid,'property list uint8 int32 vertex_indices\n');
+fprintf(fid,'end_header\n');
+
+% Vertices & faces
+%--------------------------------------------------------------------------
+fprintf(fid,'%f %f %f\n',s.vertices');
+fprintf(fid,'3 %d %d %d\n',s.faces'-1);
 
 % Close file
 %--------------------------------------------------------------------------
