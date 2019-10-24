@@ -117,12 +117,10 @@ end
 
 
 function A = Spider_Flower
-A.s = imread('spider images.png');
-A.f = imread('flower images.png');
+pth = fileparts(mfilename('fullpath'));
+A.s = imread(fullfile(pth,'spider.png'));
+A.f = imread(fullfile(pth,'flower.png'));
 
 A.f(end+1,:) = 225;
 A.f(:,end+1:end+10,:) = 255;
 A.f = [255*ones(size(A.f,1),10,size(A.f,3)) A.f];
-
-
- 
