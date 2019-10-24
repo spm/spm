@@ -13,7 +13,7 @@ function FEP_physics
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_physics.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: FEP_physics.m 7681 2019-10-24 16:22:40Z spm $
 
 
 % default settings (GRAPHICS sets movies)
@@ -672,4 +672,121 @@ title('Flow','FontSize',16), spm_axis tight
 % macromolecular scale). Then the effective mass, given Planck's constant,
 % is 136 femtograms. This corresponds to an extremely heavy virus - or a
 % rather lightweight bacterium. For example, a typical E. coli would have a
-% m
+% mass of 630 fg. Had we assumed that the velocity was expressed in terms
+% of metres per millisecond, the mass would have been in excess of 2 tonnes
+% (assuming a classical Planck's constant of unity).
+%--------------------------------------------------------------------------
+spm_figure('GetWin','classical mechanics');clf
+
+% recover the expected state and velocity of the Markov blanket
+%--------------------------------------------------------------------------
+i    = 512:T;
+t    = length(i);
+b    = find(bb);                               % blanket particles
+e    = find(ee);                               % external particles
+q    = mean(squeeze(X(2,b,i)))';               % mean position
+p    = mean(squeeze(V(2,b,i)))';               % mean velocity
+q1   = squeeze(X(2,b(1),i));                   % first position
+p1   = squeeze(V(2,b(1),i));                   % first velocity
+qx   =     squeeze(X(1,e,i))';                 % external states
+qx   = [qx squeeze(X(2,e,i))'];
+
+
+% period of oscillations
+%--------------------------------------------------------------------------
+[~,j]= max(abs(fft(p)));
+sig  = 2*t/j/2;
+sig  = 32;
+
+% find canonical loads of external states
+%--------------------------------------------------------------------------
+q    = spm_conv(spm_detrend(q),sig,0);
+p    = spm_conv(p,sig,0);
+q1   = spm_conv(spm_detrend(q1),sig,0);
+p1   = spm_conv(p1,sig,0);
+w    = spm_conv(spm_detrend(qx),sig,0);
+
+Qp   = var(p);                 % inverse mass or dispersion flow
+
+% estimates (external) state-dependent NESS potential
+%--------------------------------------------------------------------------
+clear XB
+pw    = @(w)[w.^0 w.^1];
+dVdB  = @(q,w)  [q^0*pw(w) 2*q^1];
+phiB  = @(B,q,w)[q^1*pw(w)   q^2]*B;
+for i = 1:t
+    XB(i,:) = -Qp * dVdB( q(i),w(i,:));
+    X1(i,:) = -Qp * dVdB(q1(i),w(i,:));
+end
+
+% coefficients of polynomial expansion of gradients - and plot
+%--------------------------------------------------------------------------
+B     = pinv(XB)*p;
+
+subplot(3,2,1)
+plot(p,q)
+xlabel('Average velocity (nm/ms)', 'FontSize',12)
+ylabel('Average position (nm)','FontSize',12)
+title('Phase portrait','FontSize',16)
+
+subplot(3,2,2)
+p0  = [min(p),max(p)]*(1 + 1/8);
+plot(p,XB*B,'b.',p0,p0,'b--',p1/32,X1*B/32,'r:')
+xlabel('Hamiltonian prediction', 'FontSize',12)
+ylabel('State of motion (nm/ms)','FontSize',12)
+title('Conservative dynamics','FontSize',16), spm_axis tight
+
+% recover state dependent density
+%--------------------------------------------------------------------------
+qq    = linspace(min(q)*1.2,max(q)*1.2,64);
+tt    = 1:4:t;
+for i = 1:length(tt)
+    for j = 1:64
+        phi(i,j) = phiB(B,qq(j),w(tt(i),:));
+    end
+end
+
+pd    = spm_softmax(-phi');
+
+subplot(3,1,2)
+imagesc(tt*dt,qq,(1 - pd)), hold on
+plot(tt*dt,q(tt),'w',tt*dt,p(tt),'k'), hold off,    axis xy
+xlabel('Time (ms)', 'FontSize',12)
+ylabel('Position','FontSize',12)
+title('Conditional density','FontSize',16)
+
+% marginal density over time
+%--------------------------------------------------------------------------
+subplot(3,2,5)
+nq  = hist(q,qq);
+dq  = qq(2) - qq(1);
+nq  = nq/sum(nq)/dq;
+pq  = mean(pd,2)/dq;
+
+plot(qq,pq,qq,nq,':')
+xlabel('Position (nm)', 'FontSize',12)
+ylabel('Probability density (a.u.)','FontSize',12)
+title('Marginal density over state','FontSize',16), spm_axis tight
+
+subplot(3,2,6)
+[np,pp]  = hist(p,64);
+dp  = pp(2) - pp(1);
+np  = np/sum(np)/dp;
+qp  = exp(-pp.^2/2/Qp);
+qp  = qp/sum(qp)/dp;
+
+plot(pp,qp,pp,np,':')
+xlabel('Motion (nm/ms)', 'FontSize',12)
+ylabel('Probability density (a.u.)','FontSize',12)
+title('Marginal density over motion','FontSize',16), spm_axis tight
+
+
+% marginal density over time (in femtograms)
+%--------------------------------------------------------------------------
+h     = 6.62607004*1e-34/(2*pi);                    % m*m*kg/s
+h     = h *1e33;                                    % nm * nm * fg/ms
+mass  = h/Qp;
+text(0,20,sprintf('mass %-.0f fg',mass))
+
+return
+
