@@ -6,10 +6,10 @@ function ret = spm_ov_mesh(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2017-2019 Wellcome Trust Centre for Neuroimaging
 
 % Torben Lund, Guillaume Flandin & Christian Gaser
-% $Id: spm_ov_mesh.m 7578 2019-04-25 10:25:26Z guillaume $
+% $Id: spm_ov_mesh.m 7678 2019-10-24 14:08:03Z guillaume $
 
 
 switch lower(varargin{1})
@@ -79,8 +79,17 @@ function mesh_menu(hObj,event,i,varargin)
 global st
 
 mesh_add(i);
-mesh_delete(i);
-mesh_display(i);
+mesh_redraw(i);
+
+%-Display extra information in the presence of multiple meshes
+if numel(st.vols{i}.mesh.meshes) > 1
+    hM = findobj(st.vols{i}.ax{1}.cm,'Label','Mesh');
+    UD = get(hM,'UserData');
+    fprintf('\n');
+    for j=1:numel(st.vols{i}.mesh.meshes)
+        fprintf('%s: %s\n',UD.style{j},st.vols{i}.mesh.fname{j});
+    end
+end
 
 
 %==========================================================================
@@ -90,14 +99,17 @@ global st
 
 try
     m = st.vols{i}.mesh.meshes;
+    f = st.vols{i}.mesh.fname;
 catch
     m = [];
+    f = {};
 end
 
 if nargin < 2
     [g,sts] = spm_select([1 Inf],'mesh','Select mesh(es)...');
     if ~sts, st.vols{i}.mesh.meshes = m; return; end
 end
+if ischar(g), fname = cellstr(g); else fname = repmat({''},1,numel(g)); end
 g = export(gifti(g),'patch');
 for j=1:numel(g)
     if ~isfield(g(j),'vertices') || ~isfield(g(j),'faces')
@@ -106,6 +118,7 @@ for j=1:numel(g)
 end
 
 st.vols{i}.mesh.meshes = [m, g];
+st.vols{i}.mesh.fname = [f; fname];
 
 hM = findobj(st.vols{i}.ax{1}.cm,'Label','Mesh');
 if numel(get(hM,'children')) < 3
@@ -142,27 +155,20 @@ if nargin < 1
 end
 o = st.vols{i}.mesh.meshes;
 
-try
-    hM = findobj(st.vols{i}.ax{1}.cm,'Label','Mesh');
-    set(findobj(hM,'Tag','menu'),'Label','Add mesh(es)');
-    UD = get(hM,'UserData');
-    linespec  = UD.style;
-    linewidth = UD.width;
-    set(hM,'UserData',UD);
-end
+hM = findobj(st.vols{i}.ax{1}.cm,'Label','Mesh');
+set(findobj(hM,'Tag','menu'),'Label','Add mesh(es)');
+UD = get(hM,'UserData');
+linespec  = UD.style;
+linewidth = UD.width;
 if ~iscell(linespec)
     if ~isempty(linespec)
         disp('Wrong Linestyle format please use {''linestyle1'',''linestyle2'',...}.');
-        UD.style = '';
-        set(hM,'UserData',UD);
     end
     
     linespec = {'b-' 'g-' 'r-' 'c-' 'm-' 'y-' 'k-' 'w-' ...
         'b-.' 'g-.' 'r-.' 'c-.' 'm-.' 'y-.' 'k-.' 'w-.' ...
         'b--' 'g--' 'r--' 'c--' 'm--' 'y--' 'k--' 'w--' };
-    if numel(o) <= 24
-        linespec = linespec(1:numel(o));
-    else
+    if numel(o) > numel(linespec)
         % If there are more than 24 surfaces plot them all in red
         linespec = repmat({'r-'},1,numel(o));
     end
@@ -170,14 +176,13 @@ end
 if numel(linespec) < numel(o)
     disp('Meshes with unspecified line style are displayed in black.')
     linespec(end+1:numel(o)) = {'k-'};
-    UD.style = linespec;
-    set(hM,'UserData',UD);
 end
 if numel(linewidth) < numel(o)
     linewidth(end+1:numel(o)) = linewidth(end);
-    UD.width  = linewidth;
-    set(hM,'UserData',UD);
 end
+UD.style = linespec;
+UD.width  = linewidth;
+set(hM,'UserData',UD);
 
 % This requires more work: does not work in voxel space, ie handling of
 % st.Space is incomplete
@@ -186,6 +191,7 @@ is = inv(st.Space);
 lh = {};
 for n=1:numel(o)
     vert = (st.vols{i}.premul(1:3,:)*[o(n).vertices';ones(1,size(o(n).vertices,1))])';
+    
     % 1
     set(st.vols{i}.ax{1}.ax,'NextPlot','add');
     s = spm_mesh_contour(...
@@ -198,6 +204,7 @@ for n=1:numel(o)
         lh{end+1} = plot(st.vols{i}.ax{1}.ax,c(1,:),c(2,:),...
             linespec{n},'LineWidth',linewidth(n));
     end
+    
     % 2
     set(st.vols{i}.ax{2}.ax,'NextPlot','add');
     s = spm_mesh_contour(...
@@ -210,6 +217,7 @@ for n=1:numel(o)
         lh{end+1} = plot(st.vols{i}.ax{2}.ax,c(3,:),c(1,:),...
             linespec{n},'LineWidth',linewidth(n));
     end
+    
     % 3
     if st.mode == 0
         warning('Not handled.');
@@ -226,6 +234,7 @@ for n=1:numel(o)
                 linespec{n},'LineWidth',linewidth(n));
         end
     end
+    
 end
 
 set(cat(1,lh{:}),'HitTest','off');
@@ -255,7 +264,8 @@ global st
 
 m = st.vols{i}.mesh.meshes;
 for j=1:numel(m)
-    spm_mesh_render(m(j));
+    H = spm_mesh_render(m(j));
+    set(H.figure,'Name',spm_str_manip(st.vols{i}.mesh.fname{j},'a60'))
 end
 % data cursor should be linked to orthviews through spm_XYZreg
 % see spm_ovhelper_3Dreg.m
