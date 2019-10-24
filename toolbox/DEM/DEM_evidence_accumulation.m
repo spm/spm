@@ -3,7 +3,7 @@ function DEM = DEM_evidence_accumulation
 %__________________________________________________________________________
 % This demo illustrates evidence accumulation (and responses) using a very
 % simple generative model. In this model, there are three hidden states
-% corresponding to right motion, no motion and left motion – as registered
+% corresponding to right motion, no motion and left motion - as registered
 % uniformly over 16 visual channels. Motion is slowly introduced, which
 % moves the hidden states to one of the unstable fixed points; thereby
 % inducing proprioceptive predictions that cause a motor response. The
@@ -20,7 +20,7 @@ function DEM = DEM_evidence_accumulation
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_evidence_accumulation.m 7176 2017-09-26 19:02:39Z karl $
+% $Id: DEM_evidence_accumulation.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % hidden causes and states

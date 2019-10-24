@@ -1,5 +1,5 @@
 function DEM_demo_connectivity_fMRI
-% Demonstration of DCM for fMRI–CSD with hierarchical constraints
+% Demonstration of DCM for fMRI-CSD with hierarchical constraints
 %__________________________________________________________________________
 % This demonstration routine illustrates the inversion of resting state
 % fMRI timeseries using a generative model of the adjacency matrix. This
@@ -31,7 +31,7 @@ function DEM_demo_connectivity_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 7274 2018-03-04 13:18:09Z karl $
+% $Id: DEM_demo_connectivity_fMRI.m 7679 2019-10-24 15:54:07Z spm $
 
 % Simulate timeseries
 %==========================================================================

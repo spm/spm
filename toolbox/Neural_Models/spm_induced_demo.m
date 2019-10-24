@@ -12,27 +12,27 @@
 % The ensuing spectra (induced complex cross spectra) are then convolved
 % with a wavelet window to generate predictions of a conventional time
 % frequency (wavelet) transform. Crucially, these predictions are complex
-% and can be used to characterise delays – in terms of cross covariance
+% and can be used to characterise delays - in terms of cross covariance
 % functions. Nonlinearities in the neural mass model mean that the spectral
 % responses caused by random neuronal fluctuations are state dependent and
 % therefore change with the expected hidden states over peristimulus time.
 %
-% This routine first creates a simple – two source – generative model using
+% This routine first creates a simple - two source - generative model using
 % a canonical microcircuit architecture and convolution based dynamics. It
 % then produces predictions of induced responses to a short and sustained
-% input to the first source – as measured by two local field potential
+% input to the first source - as measured by two local field potential
 % recordings at each source. Exactly the same model is then integrated in
 % time,  using (serially correlated) random fluctuations to drive each
 % source (in addition to the exogenous input). This is repeated over 16
 % trials and the simulated responses are characterised in terms of a
-% wavelet transform – to produce complex cross spectral  data features. 
+% wavelet transform - to produce complex cross spectral  data features. 
 % These are shown graphically with their analytic predictions from the 
 % generative model.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 6254 2014-11-04 18:24:21Z karl $
+% $Id: spm_induced_demo.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % Model specification
@@ -114,7 +114,7 @@ pst   = ((1:N)' - N/4)*U.dt;
 U.u   = sparse(N,M.m);
  
 
-% exogenous input – a sustained input of about 128 seconds
+% exogenous input - a sustained input of about 128 seconds
 %--------------------------------------------------------------------------
 M.ons    = 64;
 U.u(:,1) = spm_erp_u(pst,pE,M);
@@ -136,7 +136,7 @@ xlabel('peristimulus time (ms)')
 title('Exogenous input','FontSize',16)
 spm_axis tight
  
-% LFP – expectation
+% LFP - expectation
 %--------------------------------------------------------------------------
 subplot(4,2,2)
 j   = find(kron(sparse(1,[3 1 5],1,1,8),ones(Ns,1)));
@@ -151,7 +151,7 @@ xlabel('peristimulus time (ms)')
 title('Evoked response','FontSize',16)
 spm_axis tight
  
-% LFP – expectation
+% LFP - expectation
 %--------------------------------------------------------------------------
 subplot(4,2,4)
 plot(pst,dP{1})
@@ -209,7 +209,7 @@ for j = 1:Nt
     end
     D(:,:,j) = full(real(y{1}));
     
-    % LFP – random fluctuations
+    % LFP - random fluctuations
     %----------------------------------------------------------------------
     subplot(2,2,1)
     plot(pst,D(:,:,j)), hold on
@@ -220,13 +220,13 @@ for j = 1:Nt
 end
 hold off
 
-% LFP – expectations
+% LFP - expectations
 %--------------------------------------------------------------------------
 subplot(2,2,2)
 plot(pst*1000,erp{1},'-.'), hold on
 plot(pst*1000,mean(D,3)), hold off
 xlabel('time (s)')
-title('LFP response – expectation','FontSize',16)
+title('LFP response - expectation','FontSize',16)
 spm_axis tight, axis square
 
 

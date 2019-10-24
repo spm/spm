@@ -1,6 +1,6 @@
 function DCM = spm_dcm_diagnose(DCM,varargin)
 % Post hoc diagnosis of DCMs (under the Laplace approximation)
-% FORMAT spm_dcm_diagnose(DCM,’field,’field’,…)
+% FORMAT spm_dcm_diagnose(DCM,'field','field',...)
 %
 % DCM        - DCM stricture (inverted)
 % field      - field name(s) of parameters to consider
@@ -34,7 +34,7 @@ function DCM = spm_dcm_diagnose(DCM,varargin)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_diagnose.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_dcm_diagnose.m 7679 2019-10-24 15:54:07Z spm $
  
  
  

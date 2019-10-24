@@ -27,7 +27,7 @@ t=sort(U.t2);
 r=mean(U.r2);
 hold on
 plot(t,r./(1+k*t),'r.');
-ylabel('Mean Reward, £');
+ylabel('Mean Reward, Â£');
 grid on
 
 disp(sprintf('Average prob of choosing first option = %1.2f',mean(g)));

@@ -4,8 +4,8 @@ function spm_dcm_prior_responses(Ep)
 %
 % This routine provides a survey of responses under stationarity
 % assumptions for the suite of neural mass and mean field models used in
-% DCM. It characterises the steady-state responses – under prior
-% expectations – using spectral density and autocovariance functions
+% DCM. It characterises the steady-state responses - under prior
+% expectations - using spectral density and autocovariance functions
 % with and with out channel noise. it then proceeds to evaluate evoked
 % responses to a canonical input.
 %
@@ -17,7 +17,7 @@ function spm_dcm_prior_responses(Ep)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_prior_responses.m 6917 2016-11-02 14:25:08Z karl $
+% $Id: spm_dcm_prior_responses.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % Model specification

@@ -15,7 +15,7 @@ function FEP_self_entropy
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_self_entropy.m 7498 2018-11-24 17:07:36Z karl $
+% $Id: FEP_self_entropy.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % default settings (GRAPHICS sets movies)
@@ -47,7 +47,7 @@ spm_figure('GetWin','Markov blanket');clf
 
 [Q,X,V]  = spm_soup(x,u,P,T,dt,1);
 
-% blanket states – noting the third state is an internal state
+% blanket states - noting the third state is an internal state
 %--------------------------------------------------------------------------
 % Q    - history of microstates (states)
 % X    - history of microstates (position)

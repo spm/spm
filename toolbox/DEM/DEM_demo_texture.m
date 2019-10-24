@@ -1,17 +1,17 @@
 function LAP = DEM_demo_texture
 % This demonstration considers the figure-ground segregation problem where, 
-% crucially, a figure is defined texturally – in terms of its second order 
+% crucially, a figure is defined texturally - in terms of its second order 
 % statistics; in other words, a visual object is manifest in terms of its 
 % texture or spectral power density in the spatial domain. This definition 
 % precludes any first-order attributes; such as increased luminance. This 
 % sort of problem is common in the inverse literature and is usually solved 
 % using a prior on the [co]variance of random fluctuations generating data. 
 % Here, we simulate a contiguous object, whose texture is determined by the 
-% variance of random fluctuations in luminance – and the variance (or 
+% variance of random fluctuations in luminance - and the variance (or 
 % precision) is modulated by Gaussian basis functions. The resulting signal 
 % is mixed with uniform Gaussian noise to produce sensory data. These 
 % (one-dimensional) data are then subject to Bayesian inversion using 
-% generalized predictive coding – (as implemented in spm_LAP) – to recover 
+% generalized predictive coding - (as implemented in spm_LAP) - to recover 
 % the underlying object.
 % 
 % Technically, this scheme optimizes expectations of the hidden causes of 
@@ -35,7 +35,7 @@ function LAP = DEM_demo_texture
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_texture.m 6235 2014-10-12 10:03:05Z karl $
+% $Id: DEM_demo_texture.m 7679 2019-10-24 15:54:07Z spm $
  
 
 % Create a generative model:

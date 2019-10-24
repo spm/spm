@@ -7,7 +7,7 @@ function DEM = DEM_cells_cells
 % self it is at the local and global level, it can then predict the local
 % and global intracellular signals it would expect to receive. The ensemble
 % of ensembles then converges to a point attractor; where the ensemble has
-% a Markov blanket and each element of the ensemble comprises a cell – that
+% a Markov blanket and each element of the ensemble comprises a cell - that
 % is itself a Markov blanket. The focus of this simulation is how the local
 % level couples to the global level and vice versa. For simplicity (and
 % computational expediency) we only model one ensemble at the local level
@@ -27,7 +27,7 @@ function DEM = DEM_cells_cells
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_cells_cells.m 7447 2018-10-13 15:32:10Z karl $
+% $Id: DEM_cells_cells.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % preliminaries
@@ -229,8 +229,8 @@ xlabel('cell'), ylabel('time'), box off, hold off
 % ensemble. In this example, there are 16 cells at both the global (higher)
 % and local (lower) level. The upper panel shows the final disposition of
 % the ensemble (of ensembles) in terms of the location of cells, and their
-% differentiation (shown in colour: internal – red, active – green and
-% sensory – blue). Note that there are no external states because the
+% differentiation (shown in colour: internal - red, active - green and
+% sensory - blue). Note that there are no external states because the
 % external states comprise the Markov blankets of other ensembles. Here,
 % each cell is coded with two colours. The central colour corresponds to
 % expectations about the type of cell in question at the local level, while
@@ -246,7 +246,7 @@ xlabel('cell'), ylabel('time'), box off, hold off
 % global (middle) level. The lower right panel shows the expectations of a
 % single ensemble (the first) about its role at the global level. Here, the
 % first ensemble is the internal state. Note the differentiation on both a
-% local and global level; while local expectations about the cells’ role
+% local and global level; while local expectations about the cells' role
 % the global level converge to the same (in general) type. In these
 % simulations, we used a time step of two units (of arbitrary time) and a
 % second order variational filtering scheme (heuristically, this is a

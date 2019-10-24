@@ -16,7 +16,7 @@ function [u] = spm_erp_u(t,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_u.m 5964 2014-04-20 09:48:58Z karl $
+% $Id: spm_erp_u.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % preliminaries - check durations (ms)
@@ -39,7 +39,7 @@ catch
     M.sus = 0 + M.ons - M.ons;
 end
 
-% stimulus – Gaussian (subcortical) impulse
+% stimulus - Gaussian (subcortical) impulse
 %--------------------------------------------------------------------------
 nu    = length(M.ons);
 u     = sparse(length(t),nu);

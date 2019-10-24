@@ -13,7 +13,7 @@ function DEMO_Lindley_paradox(pC,hE,hC)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_Lindley_paradox.m 6737 2016-03-03 12:05:51Z karl $
+% $Id: DEMO_Lindley_paradox.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % set up
@@ -24,7 +24,7 @@ try, pC; catch, pC = 1/4;  end
 try, hE; catch, hE = 0;    end
 try, hC; catch, hC = 1/8;  end
 
-sigma_a = 1/8;               % weak effect size – alternative hypothesis
+sigma_a = 1/8;               % weak effect size - alternative hypothesis
 sigma_r = 1/64;              % reduced (null) effect size
 epsilon = 1/16;
 

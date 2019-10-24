@@ -25,7 +25,7 @@ function spm_voice_P300
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_voice_P300.m 7679 2019-10-24 15:54:07Z spm $
 
 
 %% demo mode loads sentence (.mat) files
@@ -176,19 +176,19 @@ x   = [t,t + 1/2,t + 1/2,t];
 y   = [-1,-1,1,1];
 c   = spm_softmax(rand(3,1))';
 
-% responses with and without priors – all words
+% responses with and without priors - all words
 %--------------------------------------------------------------------------
 subplot(3,2,1), plot(VOX.PST,E0,'-.',VOX.PST,E1) 
 xlabel('time (sec)'), ylabel('amplitude'), title('Waveforms','FontSize',16)
 axis square, spm_axis tight, set(gca,'YLim',[-1 1]), box off
 
-% response differentials – all words
+% response differentials - all words
 %--------------------------------------------------------------------------
 subplot(3,2,3), plot(VOX.PST,E0 - E1) 
 xlabel('time (sec)'), ylabel('amplitude'), title('Differences','FontSize',16)
 axis square, spm_axis tight, set(gca,'YLim',[-1 1]/3), box off
 
-% responses with and without priors – one word
+% responses with and without priors - one word
 %--------------------------------------------------------------------------
 subplot(3,2,2), plot(VOX.PST,E2,'-.',VOX.PST,E1) 
 xlabel('time (sec)'), ylabel('amplitude'), title('Waveforms','FontSize',16)
@@ -199,7 +199,7 @@ axis square, spm_axis tight, set(gca,'YLim',[-1 1]), box off
 hold on, h = fill(x,y,c); hold off
 set(h,'Facealpha',1/8,'EdgeAlpha',1/8);
 
-% response differentials – one word
+% response differentials - one word
 %--------------------------------------------------------------------------
 subplot(3,2,4), plot(VOX.PST,E2 - E1) 
 xlabel('time (sec)'), ylabel('amplitude'), title('Differences','FontSize',16)

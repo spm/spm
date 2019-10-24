@@ -16,13 +16,13 @@ function ADEM_occlusion
 % however have beneficial effects when motion is itself unpredicted
 % (as shown with differential pursuit performance under a reversal of 
 % the trajectory towards the end of motion). Finally, we look at how prior 
-% beliefs are acquired during exposure to the target – in terms of 
+% beliefs are acquired during exposure to the target - in terms of 
 % cumulative inference on the hidden causes encoding the frequency of 
 % periodic motion. This can be regarded as a high order form of evidence 
 % accumulation. Importantly, this (experience-dependent) inference is
 % markedly impaired by the simulated lesion to precision above. In other 
 % words, a single failure of inference in modelling the motion of hidden 
-% states can have secondary consequences – such as a failure to even 
+% states can have secondary consequences - such as a failure to even 
 % register and remember regularities. All these simulations are based upon 
 % active inference; with the prior belief that the centre of gaze is 
 % attracted to the same point responsible for target motion.
@@ -30,7 +30,7 @@ function ADEM_occlusion
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_occlusion.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: ADEM_occlusion.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % hidden causes and states

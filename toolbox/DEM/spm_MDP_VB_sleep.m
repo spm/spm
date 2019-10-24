@@ -5,7 +5,7 @@ function [MDP] = spm_MDP_VB_sleep(MDP,BMR)
 % MDP  - (inverted) MDP structure
 %
 % BMR.g - modality [default: 1]
-% BMR.o - outcomes – that induce REM [default: {}]
+% BMR.o - outcomes - that induce REM [default: {}]
 % BMR.x - increase in concentration parameters for BMR [default: 8]
 % BMR.f - hearing factors to sum over [default: 0]
 % BMR.T - log Bayes factor threshold [default: 1/4]
@@ -28,7 +28,7 @@ function [MDP] = spm_MDP_VB_sleep(MDP,BMR)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_sleep.m 7273 2018-03-04 13:15:34Z karl $
+% $Id: spm_MDP_VB_sleep.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % deal with a sequence of trials

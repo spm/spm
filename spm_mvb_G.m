@@ -23,7 +23,7 @@ function model = spm_mvb_G(X,L,X0,G,V)
 % See spm_mvb and:
 %
 % Bayesian decoding of brain images.
-% Friston K, Chu C, Mour„o-Miranda J, Hulme O, Rees G, Penny W, Ashburner J.
+% Friston K, Chu C, Mour√£o-Miranda J, Hulme O, Rees G, Penny W, Ashburner J.
 % Neuroimage. 2008 Jan 1;39(1):181-205
 % 
 % Multiple sparse priors for the M/EEG inverse problem.
@@ -38,7 +38,7 @@ function model = spm_mvb_G(X,L,X0,G,V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_G.m 3813 2010-04-07 19:21:49Z karl $
+% $Id: spm_mvb_G.m 7679 2019-10-24 15:54:07Z spm $
  
 % defaults
 %--------------------------------------------------------------------------

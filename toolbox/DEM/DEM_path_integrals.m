@@ -13,7 +13,7 @@ function DEM_path_integrals
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_path_integrals.m 7448 2018-10-15 09:30:10Z karl $
+% $Id: DEM_path_integrals.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % set up (ignoring Stratonovich term; i.e., divergence)
@@ -26,7 +26,7 @@ G     = 256;                                     % random fluctuations
 P     = inv([8,0;0,1]);                         % precision of NESS density
 Q     = [0 -1; 1 0]*G/8;                        % solenoidal flow
 J     = @(x,P) (1/2)*sum(P*(x.^2));             % surprisal
-V     = @(x,P) sum((1/2)*(P*x).^2);             % Schrödinger potential
+V     = @(x,P) sum((1/2)*(P*x).^2);             % SchrÃ¶dinger potential
 f     = @(x,G,Q,P) (Q - G*eye(2))*P*x;          % flow
 xt    = [0;0];                                  % initial state
 

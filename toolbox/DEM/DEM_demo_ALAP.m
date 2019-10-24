@@ -1,5 +1,5 @@
 function DEM_demo_ALAP
-% This demonstration is essentially the same as DEM_demo_LAP – however
+% This demonstration is essentially the same as DEM_demo_LAP - however
 % here, we compare two generalised filtering schemes that are implemented
 % very differently: the first integrates the generative process in
 % parallel with the inversion, while the standard spm_LAP scheme inverts a
@@ -11,7 +11,7 @@ function DEM_demo_ALAP
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_ALAP.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: DEM_demo_ALAP.m 7679 2019-10-24 15:54:07Z spm $
  
 % get basic convolution model
 %==========================================================================
@@ -108,7 +108,7 @@ tP    = tP(ip);
 subplot(2,2,4)
 bar([tP qP])
 axis square
-legend('true','GF – standard')
+legend('true','GF - standard')
 title('parameters','FontSize',16)
  
 cq    = 1.64*sqrt(diag(DEM.qP.C(ip,ip)));
@@ -119,7 +119,7 @@ end, hold off
  
 % Show results for ALAP (parallel scheme)
 %==========================================================================
-spm_figure('GetWin','Figure 2: Generalised filtering – parallel scheme');
+spm_figure('GetWin','Figure 2: Generalised filtering - parallel scheme');
  
 % overlay true values
 %--------------------------------------------------------------------------
@@ -135,7 +135,7 @@ tP    = tP(ip);
 subplot(2,2,4)
 bar([tP qP])
 axis square
-legend('true','GF – parallel')
+legend('true','GF - parallel')
 title('parameters','FontSize',16)
  
 cq    = 1.64*sqrt(diag(LAP.qP.C(ip,ip)));

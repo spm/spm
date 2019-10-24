@@ -24,12 +24,12 @@ function [stats] = spm_mci_mvntest (X,df)
 %
 % Royston, J.P. (1992). Approximating the Shapiro-Wilk W-Test for non-
 %      normality. Statistics and Computing, 2:117-119.
-%      121–133.
+%      121-133.
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mci_mvntest.m 6548 2015-09-11 12:39:47Z will $
+% $Id: spm_mci_mvntest.m 7679 2019-10-24 15:54:07Z spm $
 
 alpha = 0.05;
 

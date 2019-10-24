@@ -19,14 +19,14 @@ function MDP = DEMO_MDP_voice
 % level policy entails one of four saccadic eye movements to each quadrant
 % of the current page, where it will sample a particular grapheme.
 %
-% This provides a rough simulation of reading – that can be made more
+% This provides a rough simulation of reading - that can be made more
 % realistic by terminating first level active inference, when there can be
 % no further increase in expected free energy (i.e., all uncertainty about
 % the current word has been resolved). The subsequent inferred hidden
 % states then become the outcome for the level above.
 %
 % To illustrate the schemes biological plausibility, one can change the
-% agent’s prior beliefs and repeat the reading sequence under violations of
+% agent's prior beliefs and repeat the reading sequence under violations of
 % either local (whether the graphemes are flipped vertically) or globally
 % (whether the sentence is surprising) expectations. This produces a
 % mismatch negativity (MMN) under local violations) and a MMN with a
@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_voice
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_voice.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: DEMO_MDP_voice.m 7679 2019-10-24 15:54:07Z spm $
 
 clear global VOX TRAIN
 rng('default')
@@ -610,7 +610,7 @@ answer = MDP.o(4,3);
 if ~answer
     return
 else
-    % plot belief updating for this exchange (epoch)– first factor (shape)
+    % plot belief updating for this exchange (epoch)- first factor (shape)
     %----------------------------------------------------------------------
     spm_MDP_VB_LFP(MDP.mdp,[],1);
     

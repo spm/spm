@@ -26,7 +26,7 @@ function [MDP] = spm_MDP_game_KL(MDP,varargin)
 %                   (default: MDP.G{T,M} = MDP.G{M} = MDP.B{M})
 %
 % MDP.plot        - switch to suppress graphics: (default: [0])
-% MDP.alpha       - upper bound on precision (Gamma hyperprior – shape [8])
+% MDP.alpha       - upper bound on precision (Gamma hyperprior - shape [8])
 % MDP.beta        - precision over precision (Gamma hyperprior - rate  [1])
 %
 % produces:
@@ -56,9 +56,9 @@ function [MDP] = spm_MDP_game_KL(MDP,varargin)
 % sequences specified in MDP.V. Constraints on allowable policies can limit 
 % the numerics or combinatorics considerable. For example, situations in 
 % which one action can be selected at one time can be reduced to T polices
-% – with one (shift) control being emitted at all possible time points.
+% - with one (shift) control being emitted at all possible time points.
 % This specification of polices simplifies the generative model, allowing a
-% fairly exhaustive model of potential outcomes – eschewing a mean field 
+% fairly exhaustive model of potential outcomes - eschewing a mean field 
 % approximation over successive control states. In brief, the agent simply
 % represents the current state and states in the immediate and distant 
 % future.
@@ -78,7 +78,7 @@ function [MDP] = spm_MDP_game_KL(MDP,varargin)
 % into the transition probabilities G.
 %
 % See also: spm_MDP, which uses multiple future states and a mean field 
-% approximation for control states – but allows for different actions
+% approximation for control states - but allows for different actions
 % at all times (as in control problems).
 %
 % See also: spm_MDP_game, which generalises this scheme and replaces prior
@@ -87,7 +87,7 @@ function [MDP] = spm_MDP_game_KL(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game_KL.m 6329 2015-02-05 19:25:52Z karl $
+% $Id: spm_MDP_game_KL.m 7679 2019-10-24 15:54:07Z spm $
 
 % set up and preliminaries
 %==========================================================================

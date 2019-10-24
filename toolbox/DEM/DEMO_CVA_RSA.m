@@ -51,7 +51,7 @@ function RSA = DEMO_CVA_RSA
 % of covariance components of second-order responses) using variational
 % Laplace to estimate the contributions of each component of pattern
 % explicitly. This has the advantage of enabling parametric empirical Bayes
-% at the between subject level – and subsequent Bayesian model reduction.
+% at the between subject level - and subsequent Bayesian model reduction.
 %
 % References:
 %
@@ -71,7 +71,7 @@ function RSA = DEMO_CVA_RSA
 % Copyright (C) 2006-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_CVA_RSA.m 7561 2019-03-30 10:39:07Z karl $
+% $Id: DEMO_CVA_RSA.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % preliminaries
@@ -162,7 +162,7 @@ end
 % We can now recover the canonical effects using CVA and accumulate the
 % evidence for different contrasts or hypothesis matrices over subjects.
 % Crucially, this analysis can either be specified directly in terms of the
-% first-order contrasts – or the second order contrast matrices; i.e., the
+% first-order contrasts - or the second order contrast matrices; i.e., the
 % hypothesis matrices. Here the implicit contrasts are recovered using SVD:
 %--------------------------------------------------------------------------
 

@@ -134,7 +134,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM.m 7145 2017-07-31 13:57:39Z karl $
+% $Id: spm_ADEM.m 7679 2019-10-24 15:54:07Z spm $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -258,7 +258,7 @@ Q0    = kron(iG,spm_cat(q0));
 R0    = kron(iG,spm_cat(r0));
 iG    = blkdiag(Q0,R0);
 
-% restriction or rate matrices – in terms of dE/da
+% restriction or rate matrices - in terms of dE/da
 %--------------------------------------------------------------------------
 try
     R         = sparse(sum(spm_vec(G.l)),na);

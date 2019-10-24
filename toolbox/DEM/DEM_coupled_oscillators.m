@@ -22,7 +22,7 @@ function DEM_coupled_oscillators
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_coupled_oscillators.m 7446 2018-10-13 15:28:42Z karl $
+% $Id: DEM_coupled_oscillators.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % specify states and parameters
@@ -80,7 +80,7 @@ M(1).pE = P;                             % model parameters
 M(1).V  = exp(12);                       % precision of observation noise
 M(1).W  = exp(12);                       % precision of state noise
 
-% second level – causes or exogenous forcing term
+% second level - causes or exogenous forcing term
 %--------------------------------------------------------------------------
 M(2).v  = 0;                             % initial causes
 M(2).V  = exp(16);                       % precision of exogenous causes

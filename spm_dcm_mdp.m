@@ -35,13 +35,13 @@ function [DCM] = spm_dcm_mdp(DCM)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mdp.m 7120 2017-06-20 11:30:30Z spm $
+% $Id: spm_dcm_mdp.m 7679 2019-10-24 15:54:07Z spm $
 
 % OPTIONS
 %--------------------------------------------------------------------------
 ALL = false;
 
-% set default for precision: (inference – beta and action - alpha)
+% set default for precision: (inference - beta and action - alpha)
 %--------------------------------------------------------------------------
 if ~isfield(DCM.MDP,'alpha'), DCM.MDP.alpha = 4; end
 if ~isfield(DCM.MDP,'beta' ), DCM.MDP.beta  = 1; end

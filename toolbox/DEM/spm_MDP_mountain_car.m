@@ -18,7 +18,7 @@ function spm_MDP_mountain_car(X,V,T)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_mountain_car.m 6061 2014-06-21 09:02:42Z karl $
+% $Id: spm_MDP_mountain_car.m 7679 2019-10-24 15:54:07Z spm $
  
 % set up and preliminaries
 %==========================================================================
@@ -105,7 +105,7 @@ for i = 1:Nu
     P{i} = P{i}^dt;
 end
  
-% Generative MDP model – transition probabilities (empirical priors)
+% Generative MDP model - transition probabilities (empirical priors)
 %--------------------------------------------------------------------------
 for i = 1:Nu
     B{i}   = P{i}';                                 % transition priors

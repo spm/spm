@@ -33,7 +33,7 @@ function spm_dcm_csd_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_results.m 6112 2014-07-21 09:39:53Z karl $
+% $Id: spm_dcm_csd_results.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % get figure
@@ -516,7 +516,7 @@ case{lower('Coherence (sources)')}
     %----------------------------------------------------------------------
     [coh fsd] = spm_csd2coh(DCM.Hs,DCM.Hz);
     
-    % spm_dcm_csd_results(DCM, 'Coherence (sources)’);
+    % spm_dcm_csd_results(DCM, 'Coherence (sources)');
     %----------------------------------------------------------------------
     co    = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
     Hz    = DCM.Hz;
@@ -569,7 +569,7 @@ case{lower('Coherence (channels)')}
     [COH FSD] = spm_csd2coh(DCM.xY.y,DCM.Hz);
  
     
-    % spm_dcm_csd_results(DCM,'Coherence (channels)’);
+    % spm_dcm_csd_results(DCM,'Coherence (channels)');
     %----------------------------------------------------------------------
     co    = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
     nm    = min(nm,4);

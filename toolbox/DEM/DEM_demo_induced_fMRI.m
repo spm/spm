@@ -6,12 +6,12 @@ function DEM_demo_induced_fMRI
 % convolution (fMRI) model using simulated data. Here, the dynamic
 % convolution model for fMRI responses is converted into a static
 % non-linear model by generating not the timeseries per se but their
-% second-order statistics – in the form of cross spectra and covariance
+% second-order statistics - in the form of cross spectra and covariance
 % functions. This enables model parameters to the estimated using the
 % second order data features through minimisation of variational free
 % energy. For comparison, the same data are inverted (in timeseries form)
 % using generalised filtering. This example uses a particularly difficult
-% problem – with limited data - to emphasise the differences.
+% problem - with limited data - to emphasise the differences.
 %
 % NB - the generalised filtering trakes much longer than the deterministic
 % scheme
@@ -19,7 +19,7 @@ function DEM_demo_induced_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_induced_fMRI.m 7270 2018-03-04 13:08:10Z karl $
+% $Id: DEM_demo_induced_fMRI.m 7679 2019-10-24 15:54:07Z spm $
  
 % Simulate timeseries
 %==========================================================================

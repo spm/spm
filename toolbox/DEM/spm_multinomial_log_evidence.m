@@ -16,6 +16,9 @@ function [F,sA] = spm_multinomial_log_evidence(qA,pA,rA)
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
+% Thomas Parr
+% $Id: spm_multinomial_log_evidence.m 7679 2019-10-24 15:54:07Z spm $
+
 % reduced posteriors
 %--------------------------------------------------------------------------
 sA = spm_softmax(qA + rA - pA);

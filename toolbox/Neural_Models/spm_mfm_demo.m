@@ -29,7 +29,7 @@ function spm_mfm_demo
 % densities considered.  The particular form for the population density we
 % adopt is a Gaussian density (c.f., a Laplace assumption). This means
 % population dynamics are described completely by equations governing the
-% evolution of the population’s mean and covariance.  We derive these
+% evolution of the population's mean and covariance.  We derive these
 % equations from the Fokker-Planck formalism and illustrate their
 % application to a reasonably simple conductance-based model of neuronal
 % exchanges.  One interesting aspect of this formulation is that we can
@@ -43,7 +43,7 @@ function spm_mfm_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mfm_demo.m 5939 2014-04-06 17:13:50Z karl $
+% $Id: spm_mfm_demo.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % number of regions in coupled map lattice

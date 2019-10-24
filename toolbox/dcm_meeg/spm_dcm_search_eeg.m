@@ -18,8 +18,8 @@ function [DCM,RCM]   = spm_dcm_search_eeg(P,SAVE_DCM)
 %
 %--------------------------------------------------------------------------
 % spm_dcm_search_eeg operates on different DCMs of the same data to find
-% the best model. It assumes the full model – whose free-parameters are
-% the union (superset) of all free parameters in each model – has been
+% the best model. It assumes the full model - whose free-parameters are
+% the union (superset) of all free parameters in each model - has been
 % inverted. A post hoc selection procedure is used to evaluate the log-
 % evidence and conditional density over free-parameters of each model
 % specified.
@@ -53,7 +53,7 @@ function [DCM,RCM]   = spm_dcm_search_eeg(P,SAVE_DCM)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_search_eeg.m 6305 2015-01-17 12:40:51Z karl $
+% $Id: spm_dcm_search_eeg.m 7679 2019-10-24 15:54:07Z spm $
 
 % get filenames and set up
 %--------------------------------------------------------------------------

@@ -27,7 +27,7 @@ function [E,  PST] = spm_voice_segmentation(wfile,SEG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_segmentation.m 7624 2019-06-26 12:10:25Z karl $
+% $Id: spm_voice_segmentation.m 7679 2019-10-24 15:54:07Z spm $
 
 %% get  parameters from VOX
 %==========================================================================
@@ -104,7 +104,7 @@ for w = 1:ns
 
 end
 
-% return if just prosody is requested…
+% return if just prosody is requested
 %----------------------------------------------------------------------
 if ~nargout, return, end
 

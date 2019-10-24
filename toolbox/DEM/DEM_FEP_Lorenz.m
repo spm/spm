@@ -8,7 +8,7 @@ function DEM_FEP_Lorenz
 % solution and yet the final density over the autonomous (i.e., active)
 % state converges to the non-equilibrium steady-state density over time.
 % This is apparent in the collapse of the divergence between the sample
-% densities (over all states) and the final (NESS) density – as evaluated
+% densities (over all states) and the final (NESS) density - as evaluated
 % simply using a Gaussian approximation to the ensemble densities at each
 % point in time. The upper plots show the propagated states at four points
 % in time. As time progresses, this density comes to assume the familiar
@@ -20,13 +20,13 @@ function DEM_FEP_Lorenz
 % the role of an external or hidden state. This designation is based upon
 % the fact that the first state is not influenced by the first. In short,
 % this numerical example shows how uncertainty about external states is
-% propagated over time to induce uncertainty about a particle’s state; even
+% propagated over time to induce uncertainty about a particle's state; even
 % when the initial (particular) state is known.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_FEP_Lorenz.m 7511 2019-01-05 21:13:16Z karl $
+% $Id: DEM_FEP_Lorenz.m 7679 2019-10-24 15:54:07Z spm $
 
 % generative model
 %==========================================================================                       % switch for demo

@@ -9,7 +9,7 @@ function f = spm_fx_mountaincar(x,v,a,P)
 %
 % P.a  - 0th order coefficients of force
 % P.b  - 1st order coefficients of force
-% P.c  – 2nd order coefficients of force
+% P.c  - 2nd order coefficients of force
 % P.d  - action coefficient
 %
 % M    - model structure
@@ -20,13 +20,13 @@ function f = spm_fx_mountaincar(x,v,a,P)
 % Gaussian Processes in Reinforcement Learning
 % Carl Edward Rasmussen and Malte Kuss
 % Max Planck Institute for Biological Cybernetics
-% Spemannstraße 38, 72076 T¨ubingen, Germany
+% SpemannstraÃŸe 38, 72076 TÂ¨ubingen, Germany
 % {carl,malte.kuss}@tuebingen.mpg.de
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mountaincar.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: spm_fx_mountaincar.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % determine controlled forces (a)

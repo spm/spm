@@ -32,7 +32,7 @@ function MDP = DEM_demo_MDP_rule
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 7497 2018-11-24 17:00:25Z karl $
+% $Id: DEM_demo_MDP_rule.m 7679 2019-10-24 15:54:07Z spm $
 
 % set up and preliminaries
 %==========================================================================
@@ -562,7 +562,7 @@ end
 return
 
 
-% confidence – negatively over policies
+% confidence - negatively over policies
 %--------------------------------------------------------------------------
 for i = 1:numel(MDP)
     p     = MDP(i).R;

@@ -4,7 +4,7 @@ function ADEM_observe
 % both cause and consequence of observed action (of self and others 
 % respectively). We first illustrate the generation of behaviour using a 
 % Lotka-Volterra form stable heteroclinic orbit. We then reproduce the 
-% same forces on the agent’s arm but switching off the precision of 
+% same forces on the agent's arm but switching off the precision of 
 % proprioceptive inputs. This can be seen as attending selectively to 
 % visual inputs. The resulting inference calls upon the same hidden-states 
 % and implicit predictions (in a generalised or dynamic sense). These 
@@ -13,7 +13,7 @@ function ADEM_observe
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_observe.m 6290 2014-12-20 22:11:50Z karl $
+% $Id: ADEM_observe.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % hidden causes and states

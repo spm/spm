@@ -14,7 +14,7 @@ function DEM = ADEM_eyeblink(OPTION)
 %
 % This demonstration routine illustrates Pavlovian learning under active
 % inference. It uses the eyeblink conditioning paradigm to model startle
-% responses and the subsequent acquisition of an eyeblink – under delay and
+% responses and the subsequent acquisition of an eyeblink - under delay and
 % trace learning. The various options above determine the nature of the
 % simulation (or edit the OPTION below). The generative model, in this
 % example, starts with a heteroclinic cycle with an inset. The cycle per se
@@ -47,7 +47,7 @@ function DEM = ADEM_eyeblink(OPTION)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_eyeblink.m 6655 2015-12-23 20:21:27Z karl $
+% $Id: ADEM_eyeblink.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % paradigm and stimuli

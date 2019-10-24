@@ -22,7 +22,7 @@ function Q = spm_dcm_csd_Q(csd)
 % hyperparameter (h) plays the role of the degrees of freedom (e.g., the
 % number of averages comprising the estimate). In this routine, we use the
 % sample spectral density to create a frequency specific precision matrix
-% for the vectorised spectral densities – under the assumption that the
+% for the vectorised spectral densities - under the assumption that the
 % former of this sample spectral density resembles the predicted spectral
 % density (which will become increasingly plausible with convergence).
 %
@@ -33,7 +33,7 @@ function Q = spm_dcm_csd_Q(csd)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_csd_Q.m 7497 2018-11-24 17:00:25Z karl $
+% $Id: spm_dcm_csd_Q.m 7679 2019-10-24 15:54:07Z spm $
 
 
 %-Check for cell arrays

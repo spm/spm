@@ -15,7 +15,7 @@ function spm_erp2csd_demo
 % are then compared with the true values, under the selected model.
 %
 % The key aspects of this demonstration are to show that cross spectral
-% density data features can be used to summarise evoked responses – and
+% density data features can be used to summarise evoked responses - and
 % that trial to trial (or condition to condition) variations in model
 % parameters can be identified using model selection, under a parametric
 % random effect or empirical Bayesian model, which furnishes posterior
@@ -25,7 +25,7 @@ function spm_erp2csd_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp2csd_demo.m 6759 2016-03-27 19:45:17Z karl $
+% $Id: spm_erp2csd_demo.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % Model specification
@@ -204,7 +204,7 @@ for i = 1:length(G)
         subplot(3,2,1), plot(pst(t),u(t),'Color',col), spm_axis tight
         xlabel('time (s)'), title(' neuronal input','FontSize',16)
         
-        % LFP – random fluctuations
+        % LFP - random fluctuations
         %----------------------------------------------------------------------
         subplot(3,2,2), plot(pst(t),y(t),'Color',col), hold on
         plot(pst(t),n(t),':','Color',col), hold off, spm_axis tight
@@ -216,7 +216,7 @@ for i = 1:length(G)
         subplot(3,2,3), plot(pst(t),u(t),'Color',col), spm_axis tight
         xlabel('time (s)'), title(' neuronal input','FontSize',16)
         
-        % LFP – random fluctuations
+        % LFP - random fluctuations
         %----------------------------------------------------------------------
         subplot(3,2,4), plot(pst(t),y(t),'Color',col), hold on
         plot(pst(t),n(t),':','Color',col), hold on, spm_axis tight

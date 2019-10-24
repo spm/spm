@@ -20,9 +20,9 @@ function MDP = DEM_demo_MDP_search
 %
 % This demonstration uses a factorised version of the MDP scheme. In
 % other words, we assume a mean field approximation to the posterior over
-% different hidden states (context, location, scene reflection) – and over
+% different hidden states (context, location, scene reflection) - and over
 % multiple modalities (what versus where).  This provides a parsimonious
-% representation of posterior beliefs over hidden states – but does induce
+% representation of posterior beliefs over hidden states - but does induce
 % degree of overconfidence associated with approximate Bayesian inference.
 %
 % see also: DEM_demo_MDP_habits.m and spm_MPD_VB_X.m
@@ -30,7 +30,7 @@ function MDP = DEM_demo_MDP_search
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_search.m 7310 2018-05-11 19:24:09Z karl $
+% $Id: DEM_demo_MDP_search.m 7679 2019-10-24 15:54:07Z spm $
  
 % set up and preliminaries
 %==========================================================================
@@ -199,7 +199,7 @@ return
 % illustrate a sequence of trials
 %==========================================================================
  
-% true initial states – with context change at trial 12
+% true initial states - with context change at trial 12
 %--------------------------------------------------------------------------
 clear MDP
 N      = 32;

@@ -6,7 +6,7 @@ function f = spm_fx_mountaincar_Q(x,v,P)
 %
 % P.a  - 0th order coefficients of Q
 % P.b  - 1st order coefficients of Q
-% P.c  ñ 2nd order coefficients of Q
+% P.c  - 2nd order coefficients of Q
 %
 % M    - model structure
 %
@@ -16,13 +16,13 @@ function f = spm_fx_mountaincar_Q(x,v,P)
 % Gaussian Processes in Reinforcement Learning
 % Carl Edward Rasmussen and Malte Kuss
 % Max Planck Institute for Biological Cybernetics
-% Spemannstraﬂe 38, 72076 Tubingen, Germany
+% Spemannstra√üe 38, 72076 Tubingen, Germany
 % {carl,malte.kuss}@tuebingen.mpg.de
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mountaincar_Q.m 4516 2011-10-07 19:18:32Z karl $
+% $Id: spm_fx_mountaincar_Q.m 7679 2019-10-24 15:54:07Z spm $
  
 % f = (D + Q(x))*grad(V)
 %==========================================================================

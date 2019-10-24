@@ -21,7 +21,7 @@ function spm_nested_oscillations_demo
 % densities considered.  The particular form for the population density we
 % adopt is a Gaussian density (c.f., a Laplace assumption). This means
 % population dynamics are described completely by equations governing the
-% evolution of the population’s mean and covariance.  We derive these
+% evolution of the population's mean and covariance.  We derive these
 % equations from the Fokker-Planck formalism and illustrate their
 % application to a reasonably simple conductance-based model of neuronal
 % exchanges.  One interesting aspect of this formulation is that we can
@@ -35,7 +35,7 @@ function spm_nested_oscillations_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nested_oscillations_demo.m 5934 2014-03-28 15:03:00Z karl $
+% $Id: spm_nested_oscillations_demo.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % number of regions in coupled map lattice

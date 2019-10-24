@@ -28,19 +28,19 @@ function [DCM,dipfit] = spm_dcm_erp(DCM)
 %
 % dipfit - Dipole structure (for electromagnetic forward model)
 %        See spm_dcm_erp_dipfit:  this field is removed from DCM.M to save
-%        memory – and is offered as an output argument if needed
+%        memory - and is offered as an output argument if needed
 %
 % The scheme can be initialised with parameters for the neuronal model
 % and spatial (observer) model by specifying the fields DCM.P and DCM.Q, 
 % respectively. If previous priors (DCM.M.pE and pC or DCM.M.gE and gC or 
 % DCM.M.hE and hC) are specified, they will be used. Explicit priors can be
-% useful for Bayesian parameter averaging – but would not normally be
-% called upon – because prior constraints are specified by DCM.A, DCM.B,...
+% useful for Bayesian parameter averaging - but would not normally be
+% called upon - because prior constraints are specified by DCM.A, DCM.B,...
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 7149 2017-08-08 13:14:36Z karl $
+% $Id: spm_dcm_erp.m 7679 2019-10-24 15:54:07Z spm $
 
 % check options (and clear persistent variables)
 %==========================================================================

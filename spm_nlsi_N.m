@@ -21,8 +21,8 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 %
 % M.x  - The expansion point for the states (i.e., the fixed point)
 %
-% M.P  - starting estimates for model parameters [ states – optional]
-% M.Q  - starting estimates for model parameters [ observer – optional]
+% M.P  - starting estimates for model parameters [ states - optional]
+% M.Q  - starting estimates for model parameters [ observer - optional]
 %
 % M.pE - prior expectation  - of model parameters - f(x,u,p,M)
 % M.pC - prior covariance   - of model parameters - f(x,u,p,M)
@@ -84,7 +84,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 7143 2017-07-29 18:50:38Z karl $
+% $Id: spm_nlsi_N.m 7679 2019-10-24 15:54:07Z spm $
  
 % options
 %--------------------------------------------------------------------------

@@ -51,7 +51,7 @@ function [xY] = spm_voice_ff(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_voice_ff.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % defaults
@@ -121,7 +121,7 @@ xY.Y  = Y;                                   % timeseries
 xY.W  = W;                                   % parameters - lexical
 xY.P  = P;                                   % parameters - prosody
 xY.R  = R;                                   % parameters - speaker
-xY.i  = [1,Ny];                              % range – indices      
+xY.i  = [1,Ny];                              % range - indices      
 
 
 % uncomment 'return' for graphics

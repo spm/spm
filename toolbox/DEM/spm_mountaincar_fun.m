@@ -19,13 +19,13 @@ function [f] = spm_mountaincar_fun(P,G)
 % Gaussian Processes in Reinforcement Learning
 % Carl Edward Rasmussen and Malte Kuss
 % Max Planck Institute for Biological Cybernetics
-% Spemannstraße 38, 72076 T¨ubingen, Germany
+% SpemannstraÃŸe 38, 72076 TÂ¨ubingen, Germany
 % {carl,malte.kuss}@tuebingen.mpg.de
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mountaincar_fun.m 2033 2008-09-02 18:32:14Z karl $
+% $Id: spm_mountaincar_fun.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % place paramters in model

@@ -32,7 +32,7 @@ function [HMM,csd] = spm_dcm_HMM(GCM,N,b)
 %  then subject to Bayesian model reduction to provide evidence for
 %  sequences of state transitions under a hidden Markov model. Effectively,
 %  this involves supplying the evidence that the brain is in a particular
-%  connectivity state at each epoch – using the reduced free energy -  to a
+%  connectivity state at each epoch - using the reduced free energy -  to a
 %  variational message passing scheme based upon a Markov decision process.
 %  The higher (discrete state space for hidden Markov model) level that
 %  returns the Bayesian model average for iterative optimisation of the
@@ -48,7 +48,7 @@ function [HMM,csd] = spm_dcm_HMM(GCM,N,b)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_HMM.m 7580 2019-05-01 12:48:04Z karl $
+% $Id: spm_dcm_HMM.m 7679 2019-10-24 15:54:07Z spm $
 
 
 %  get windowed cross spectra if necessary

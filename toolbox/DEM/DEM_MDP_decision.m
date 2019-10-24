@@ -10,14 +10,14 @@ function MDP = DEM_MDP_decision
 % instanceen codes ambiguity (perceptual noise), while the B matrix encodes
 % the behaviour-dependent transitions among decision states. Finally,
 % the C matrix  encodes  prior costs or preferences. In this instance, the
-% agent does not want to be wrong – and prefers to be right.
+% agent does not want to be wrong - and prefers to be right.
 %
 % in what follows, we simulate a single trial to illustrate the underlying
 % Bayesian belief updating and associated behavioural and physiological
 % responses. We then consider multiple trials under different levels of
 % ambiguity and cost. The dependent measures in this instance include the
 % behavioural accuracy, reaction times (assuming 250 ms time bins) and the
-% uncertainty about the cause of sensory cues and control – as measured by
+% uncertainty about the cause of sensory cues and control - as measured by
 % the entropy of posterior beliefs prior to making a choice.
 %
 % see also: DEM_demo_MDP_rule.m and spm_MPD_VB_X.m
@@ -25,7 +25,7 @@ function MDP = DEM_MDP_decision
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_MDP_decision.m 7319 2018-05-29 09:33:01Z karl $
+% $Id: DEM_MDP_decision.m 7679 2019-10-24 15:54:07Z spm $
 
 % set up and preliminaries
 %==========================================================================

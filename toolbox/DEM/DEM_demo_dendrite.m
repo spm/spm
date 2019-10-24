@@ -8,7 +8,7 @@ function DEM_demo_dendrite
 % sampled.  We model this as a selective pruning of post-synaptic spines 
 % that are expressed on the dendritic tree.  This pruning occurs when the 
 % (optimised) post-synaptic gain falls to small values.  Crucially, post-
-% synaptic gain (encoding the precision of the neuron’s prediction errors 
+% synaptic gain (encoding the precision of the neuron's prediction errors 
 % about its pre-synaptic inputs) is itself optimised with respect to free-
 % energy.  Furthermore, the pruning itself suppresses free-energy as the 
 % neuron selects post-synaptic specialisations that conform to its 
@@ -24,7 +24,7 @@ function DEM_demo_dendrite
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_dendrite.m 6290 2014-12-20 22:11:50Z karl $
+% $Id: DEM_demo_dendrite.m 7679 2019-10-24 15:54:07Z spm $
  
 % preliminaries
 %==========================================================================

@@ -7,7 +7,7 @@ function ADEM_cued_response
 % contexts; these correspond to the sequential appearance of targets in a
 % clockwise direction. The other context has no sequential aspect. The
 % first level model is contextually modulated to produce the appropriate
-% sequence of (location – specific) affordances, which predict both
+% sequence of (location - specific) affordances, which predict both
 % visual and proprioceptive consequences. This is sufficient to engender
 % cued reaching movements, which are slightly anticipatory if the agent
 % infers the correct probabilistic context. However, if we reverse the
@@ -17,7 +17,7 @@ function ADEM_cued_response
 % are inferred. This provides a simple but very rich model of cued reaching
 % movements and set switching that is consistent with notions of salience
 % and affordance. Furthermore, we can simulate Parkinsonism by
-% reducing the precision of affordance – based cues. These are the visual
+% reducing the precision of affordance - based cues. These are the visual
 % attributes that confer saliency on the current target. Reducing this
 % precision (for example, dopamine) delays and can even preclude set
 % switching, with associated costs in pointing accuracy. By completely
@@ -30,7 +30,7 @@ function ADEM_cued_response
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cued_response.m 6290 2014-12-20 22:11:50Z karl $
+% $Id: ADEM_cued_response.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % hidden causes and states

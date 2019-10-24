@@ -21,14 +21,14 @@ function [Q,X,V,A,x] = spm_soup(x,u,P,T,dt,PLOT)
 % A    - adjacency matrix
 % x    - state structure
 %
-% This auxiliary routine integrates a system – or returns the Jacobian for
+% This auxiliary routine integrates a system - or returns the Jacobian for
 % specified states. It deals with the special case of within and between
 % particle coupling.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_soup.m 7224 2017-11-18 18:10:09Z karl $
+% $Id: spm_soup.m 7679 2019-10-24 15:54:07Z spm $
 
 % equations of motion
 %--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ if isnumeric(x)
     x.q   = Q(:,:,1);
     J     = zeros(spm_length(x),spm_length(x),size(Q,3));
     
-    %  evaluate Jacobian is for the states provided – and return
+    %  evaluate Jacobian is for the states provided - and return
     %----------------------------------------------------------------------
     for i = 1:size(Q,3)
         x.p = X(:,:,i);

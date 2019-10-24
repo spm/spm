@@ -2,7 +2,7 @@ function DEM_demo_song_inference
 % Perceptual categorisation of bird songs: The generative model of 
 % birdsong used in this simulation comprises a Lorenz attractor with two 
 % control parameters (or hidden causes), which, in turn, delivers two 
-% control parameters to a synthetic syrinx to produce ‘chirps’ that are 
+% control parameters to a synthetic syrinx to produce 'chirps' that are 
 % modulated in amplitude and frequency.  The chirps were then presented 
 % as a stimulus to a synthetic bird to see if it could infer the 
 % underlying causal states and thereby categorise the song. This entails 
@@ -23,7 +23,7 @@ function DEM_demo_song_inference
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_inference.m 5168 2013-01-03 11:02:15Z karl $
+% $Id: DEM_demo_song_inference.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)

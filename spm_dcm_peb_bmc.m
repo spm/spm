@@ -93,7 +93,7 @@ function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 7654 2019-08-25 20:09:35Z karl $
+% $Id: spm_dcm_peb_bmc.m 7679 2019-10-24 15:54:07Z spm $
 
 % checks
 %--------------------------------------------------------------------------
@@ -186,7 +186,7 @@ if ischar(models)
     
 elseif iscell(models)
     
-    % (RFX) BMA – define the model space in terms of a matrix
+    % (RFX) BMA - define the model space in terms of a matrix
     %----------------------------------------------------------------------
     Nm    = length(models);
     Np    = length(PEB.Pind);

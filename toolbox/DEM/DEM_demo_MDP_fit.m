@@ -5,7 +5,7 @@ function BMA = DEM_demo_MDP_fit
 % This routine uses a Markov decision process formulation of active
 % inference (with variational Bayes) to model foraging for information in a
 % three arm maze.  This demo illustrates the inversion of single-subject
-% and group data to make inferences about subject-specific parameters –
+% and group data to make inferences about subject-specific parameters -
 % such as their prior beliefs about precision and utility. We first
 % generate some synthetic data for a single subject and illustrate the
 % recovery of key parameters using variational Laplace. We then consider
@@ -33,7 +33,7 @@ function BMA = DEM_demo_MDP_fit
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_fit.m 6706 2016-01-31 13:10:08Z karl $
+% $Id: DEM_demo_MDP_fit.m 7679 2019-10-24 15:54:07Z spm $
  
 % set up and preliminaries: first generate synthetic (single subject) data
 %==========================================================================
@@ -118,7 +118,7 @@ MDP.beta  = mdp.beta*exp(P.beta);
 %==========================================================================
 MDP  = spm_MDP_VB(MDP);
  
-% illustrate behavioural responses – single trial
+% illustrate behavioural responses - single trial
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1a'); clf
 spm_MDP_VB_trial(MDP(1));

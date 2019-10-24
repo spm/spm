@@ -16,7 +16,7 @@ function DEM_demo_fMRI_PEB
 % in this example, we analyse three sessions with a monotonic change in the
 % intrinsic (self) connectivity over three sessions. This involves
 % decreases in diagonal A parameters at the first two levels of a simple
-% three node hierarchy – and an increase at the highest (third) level.
+% three node hierarchy - and an increase at the highest (third) level.
 % Physiologically, this corresponds to a decrease in self-inhibition (or
 % increase in excitability) in the lower notes for regions, as time goes
 % on.
@@ -24,7 +24,7 @@ function DEM_demo_fMRI_PEB
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_fMRI_PEB.m 6759 2016-03-27 19:45:17Z karl $
+% $Id: DEM_demo_fMRI_PEB.m 7679 2019-10-24 15:54:07Z spm $
  
  
  
@@ -54,7 +54,7 @@ D   = zeros(n,n,0);
 pP  = spm_dcm_fmri_priors(A,B,C,D,options);
  
  
-% true parameters – a simple hierarchy of three nodes
+% true parameters - a simple hierarchy of three nodes
 % -------------------------------------------------------------------------
 pP.A = [  0  -.2    0;
          .2    0  -.1
@@ -154,7 +154,7 @@ for s = 1:numel(X)
     DCM{s,1}.Y = Y(s);
 end
  
-% first level inversion – spectral DCM
+% first level inversion - spectral DCM
 % =========================================================================
 CSD = spm_dcm_peb_fit(DCM);
  

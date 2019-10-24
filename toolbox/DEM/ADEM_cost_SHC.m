@@ -8,7 +8,7 @@ function ADEM_cost_SHC
 % rewards). This can be exploited to by formal priors to ensure regions of
 % physiological state-space are avoided.
 % We look at this scheme using simulated pathology; first, we simulate a
-% (neurodegenerative) reduction in log-precision (cf Parkinson’s disease) on
+% (neurodegenerative) reduction in log-precision (cf Parkinson's disease) on
 % the motion of physical states.  This results in active inference with
 % a loss of precise volitional movement and subsequent failure to optimise 
 % physiological states. Second, we look at the effects of precision on 
@@ -19,7 +19,7 @@ function ADEM_cost_SHC
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cost_SHC.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: ADEM_cost_SHC.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % switch for demo
@@ -136,7 +136,7 @@ axis square, box off, axis([-.1 1.2 -.1 1.2])
  
  
  
-% look at the effect of precision on inference (cf Parkinson’s disease)
+% look at the effect of precision on inference (cf Parkinson's disease)
 %==========================================================================
  
 % initialize states

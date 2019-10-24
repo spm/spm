@@ -88,7 +88,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 7081 2017-05-27 19:36:09Z karl $
+% $Id: spm_dcm_bma.m 7679 2019-10-24 15:54:07Z spm $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -99,7 +99,7 @@ if nargin < 5 || isempty(oddsr)
     oddsr = 0;
 end
 
-% inputs are DCMs – assemble input arguments
+% inputs are DCMs - assemble input arguments
 %--------------------------------------------------------------------------
 if nargin == 1
     

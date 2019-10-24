@@ -10,12 +10,12 @@ function DEM_demo_contact_lens
 %
 % See: X. Tian, Y. Bar-Shalom, Coordinate Conversion and Tracking for 
 % Very Long Range Radars. IEEE Transactions on Aerospace and Electronic
-% Systems, AES-45(3):1073–1088, July 2009.
+% Systems, AES-45(3):1073-1088, July 2009.
 %__________________________________________________________________________
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_contact_lens.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: DEM_demo_contact_lens.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % non-linear generative model

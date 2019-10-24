@@ -9,7 +9,7 @@ function spm_sigmoid_demo
 %
 % Population dynamics: variance and the sigmoid activation function
 %
-% André C. Marreiros, Jean Daunizeau, Stefan J. Kiebel, Karl J. Friston
+% Andre C. Marreiros, Jean Daunizeau, Stefan J. Kiebel, Karl J. Friston
 %
 % Wellcome Trust Centre for Neuroimaging, University College London, United
 % Kingdom
@@ -29,7 +29,7 @@ function spm_sigmoid_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_sigmoid_demo.m 6931 2016-11-16 12:09:58Z karl $
+% $Id: spm_sigmoid_demo.m 7679 2019-10-24 15:54:07Z spm $
 
 % relating R amd the variance
 %==========================================================================

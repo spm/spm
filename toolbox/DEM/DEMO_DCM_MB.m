@@ -7,13 +7,13 @@ function [MB] = DEMO_DCM_MB
 % and a requirement that the operation does not change the functional form
 % of the Lagrangian. In our case, the random variables are neuronal states;
 % the course graining operation corresponds to the grouping (G) into a
-% particular partition and adiabatic reduction (R) – that leaves the
+% particular partition and adiabatic reduction (R) - that leaves the
 % functional form of the dynamics unchanged.
 %
 % Here, the grouping operator (G) is based upon coupling among states as
 % measured by the Jacobian. In brief, the sparsity structure of the
 % Jacobian is used to recursively identify Markov blankets around internal
-% states to create a partition of states – at any level – into particles;
+% states to create a partition of states - at any level - into particles;
 % where each particle comprises external and blanket states. The ensuing
 % reduction operator (R) eliminates the internal states and retains the slow
 % eigenmodes of the blanket states. These then constitute the (vector)
@@ -34,7 +34,7 @@ function [MB] = DEMO_DCM_MB
 % is then reduced by eliminating internal states and retaining slow
 % eigenmodes with the largest (real) eigenvalues (spm_A_reduce). The
 % Jacobian of the reduced states is then used to repeat the process -
-% recording the locations of recursively coarse-grained particles – until
+% recording the locations of recursively coarse-grained particles - until
 % there is a single particle.
 %
 % The result of this recursive decomposition (i.e., renormalisation)
@@ -49,7 +49,7 @@ function [MB] = DEMO_DCM_MB
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_DCM_MB.m 7655 2019-08-25 20:10:20Z karl $
+% $Id: DEMO_DCM_MB.m 7679 2019-10-24 15:54:07Z spm $
 
 
 SPM = load('C:\home\spm\SPM\analysis_set9\SPM.mat','SPM');

@@ -15,15 +15,15 @@ function DEMO_model_reduction_ERP
 % to 0). Crucially, we compare and contrast the estimates of the free
 % energy (and parameter estimates) using an explicit inversion of the
 % reduced models (with tighter shrinkage priors) and a post-hoc model
-% reduction procedure – that is computationally more efficient and
+% reduction procedure - that is computationally more efficient and
 % robust to local minima.
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_model_reduction_ERP.m 5790 2013-12-08 14:42:01Z karl $
+% $Id: DEMO_model_reduction_ERP.m 7679 2019-10-24 15:54:07Z spm $
 
-% model specification – a simple two source model with two electrodes
+% model specification - a simple two source model with two electrodes
 % =========================================================================
 rng('default')
 
@@ -38,7 +38,7 @@ M.dipfit.type    = options.spatial;
 M.dipfit.Nc      = Nc;
 M.dipfit.Ns      = Ns;
 
-% sspecify connectivity – reciprocal connections with condition specific
+% sspecify connectivity - reciprocal connections with condition specific
 % changes in intrinsic and extrinsic connectivity
 %--------------------------------------------------------------------------
 A{1}    = [0 0; 1 0];
@@ -82,7 +82,7 @@ M.dur  = 16;
 U.dt   = dt;
 U.X    = [0; 1];
 
-% specified true connectivity (P) and spatial parameters (G) – with
+% specified true connectivity (P) and spatial parameters (G) - with
 % condition specific effects on the intrinsic connectivity of the first
 % source and its forward extrinsic connection
 %--------------------------------------------------------------------------
@@ -161,7 +161,7 @@ end
 
 % Post-hoc reduction for the full (complex) model: this evaluates the free
 % energy and posterior distribution over the parameters, given just the
-% full prior and posterior – for any required reduced prior.
+% full prior and posterior - for any required reduced prior.
 % -------------------------------------------------------------------------
 for i = 1:length(alpha)
     
@@ -258,7 +258,7 @@ FF    = FF - max(FF(:));
 F     = max(FF,-64)
 
 % Free energy landscape and associated conditional covariance: the
-% conditional covariance  is the inverse precision – which is proportional
+% conditional covariance  is the inverse precision - which is proportional
 % to the curvature of the variational energy (equivalent to the curvature
 % of the free energy functional of posterior or conditional expectations)
 % -------------------------------------------------------------------------

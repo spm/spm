@@ -14,7 +14,7 @@ function spm_epileptor_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_epileptor_demo.m 6937 2016-11-20 12:30:40Z karl $ 
+% $Id: spm_epileptor_demo.m 7679 2019-10-24 15:54:07Z spm $ 
  
 
 % Model specification
@@ -155,7 +155,7 @@ xlabel('time (s)')
 title('Exogenous input','FontSize',16)
 spm_axis tight
 
-% LFP – random fluctuations
+% LFP - random fluctuations
 %--------------------------------------------------------------------------
 subplot(4,1,2)
 plot(t,LFP)

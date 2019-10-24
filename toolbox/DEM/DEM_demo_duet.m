@@ -17,13 +17,13 @@ function DEM_demo_duet
 % are shown in red, while the second bird's are shown in cyan.
 %
 % To simulate learning of each other's (high-level) attractor, set LEARN to
-% one in the  main script.. To separate the birds – and preclude
+% one in the  main script.. To separate the birds - and preclude
 % communication (or synchronisation chaos) set NULL to 1.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_duet.m 6282 2014-12-05 21:57:47Z karl $
+% $Id: DEM_demo_duet.m 7679 2019-10-24 15:54:07Z spm $
  
 
 % preliminaries

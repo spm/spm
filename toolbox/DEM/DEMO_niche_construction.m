@@ -5,9 +5,9 @@ function DEMO_niche_construction
 % The free-energy principle is an attempt to explain the structure of the
 % agent and its brain, starting from the fact that an agent exists (Friston
 % and Stephan, 2007; Friston et al., 2010). More specifically, it can be
-% regarded as a systematic attempt to understand the ‘fit’ between an
+% regarded as a systematic attempt to understand the 'fit' between an
 % embodied agent and its niche, where the quantity of free-energy is a
-% measure for the ‘misfit’ or disattunement (Bruineberg and Rietveld, 2014)
+% measure for the 'misfit' or disattunement (Bruineberg and Rietveld, 2014)
 % between agent and environment. This paper offers a proof-of-principle
 % simulation of niche construction under the free-energy principle. The key
 % point of this paper is that the minimum of free-energy is not at a point
@@ -32,7 +32,7 @@ function DEMO_niche_construction
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_niche_construction.m 7310 2018-05-11 19:24:09Z karl $
+% $Id: DEMO_niche_construction.m 7679 2019-10-24 15:54:07Z spm $
 
 
 %% Set up and preliminaries

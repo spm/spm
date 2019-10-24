@@ -28,7 +28,7 @@ function MDP = DEM_demo_MDP_habits
 %
 % This version  focuses on learning by optimising the parameters of the
 % generative model. In particular, it looks at the acquisition of epistemic
-% habits  – and how they relate to optimal policies under dynamic
+% habits  - and how they relate to optimal policies under dynamic
 % programming. We start with a series of simulations to illustrate various
 % phenomena in electrophysiology and then move on to learning per se.
 %
@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 6707 2016-01-31 13:16:28Z karl $
+% $Id: DEM_demo_MDP_habits.m 7679 2019-10-24 15:54:07Z spm $
  
 % set up and preliminaries
 %==========================================================================
@@ -108,7 +108,7 @@ mdp.C = C;                    % preferred states
 mdp.d = d;                    % prior over initial states
 mdp.s = 1;                    % true initial state
  
-% true initial states – with context change at trial 12
+% true initial states - with context change at trial 12
 %--------------------------------------------------------------------------
 i           = [1,3];          % change context in a couple of trials
 [MDP(1:32)] = deal(mdp);      % create structure array
@@ -122,7 +122,7 @@ MDP(12).o   = [1 6 7];        % unexpected outcome
 %==========================================================================
 MDP  = spm_MDP_VB(MDP);
  
-% illustrate behavioural responses – single trial
+% illustrate behavioural responses - single trial
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1a'); clf
 spm_MDP_VB_trial(MDP(1));

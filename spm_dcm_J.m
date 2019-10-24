@@ -17,7 +17,7 @@ function [J] = spm_dcm_J(Y,U,X0,dt,R)
 % (y) is a linear convolution (K) of some hidden states (x) subject to
 % observation and system noise (r and e) respectively, we have:
 %
-% D*x = x*J' + e  => K*D*x = K*x*J' + K*e = D*y = y*J' + K*e + D*r ñ r*J'
+% D*x = x*J' + e  => K*D*x = K*x*J' + K*e = D*y = y*J' + K*e + D*r - r*J'
 % y   = K*x  + r  =>   D*y = K*D*x  + D*r
 %
 % This means we can approximate the system with a general linear model:
@@ -30,7 +30,7 @@ function [J] = spm_dcm_J(Y,U,X0,dt,R)
 % system can be expressed as:
 %
 % K = k(1)*K{1} + k(2)*K{2} + ...
-%   => K*Kí = k(1)*k(1)*K{1}*K{1}í + k(1)*k(2)*K{1}*K{2}í ...
+%   => K*K' = k(1)*k(1)*K{1}*K{1}' + k(1)*k(2)*K{1}*K{2}' ...
 %
 % Where k(i)*k(j) replaces the [hyper]parameter h(1) above. This linearized
 % system can be solved using parametric empirical Bayes (PEB) for each
@@ -44,14 +44,14 @@ function [J] = spm_dcm_J(Y,U,X0,dt,R)
 % to the coupling among hidden states that generate observed double
 % responses, to first-order.
 %
-% See: Fr‰ssle S, Lomakina EI, Kasper L, Manjaly ZM, Leff A, Pruessmann KP,
+% See: Fr√§ssle S, Lomakina EI, Kasper L, Manjaly ZM, Leff A, Pruessmann KP,
 % Buhmann JM, Stephan KE. A generative model of whole-brain effective
 % connectivity.Neuroimage. 2018 Oct 1;179:505-529.
 %__________________________________________________________________________
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_J.m 7655 2019-08-25 20:10:20Z karl $
+% $Id: spm_dcm_J.m 7679 2019-10-24 15:54:07Z spm $
 
 % first order Jacobian
 %==========================================================================

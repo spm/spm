@@ -20,13 +20,13 @@ function spm_MDP_offer
 % We run an exemplar game, examine the distribution of time to acceptance
 % as a function of different beliefs (encoded by parameters of the
 % underlying Markov process) and demonstrate how the model can be used to
-% produce trial-specific changes in uncertainty – or how one can use
+% produce trial-specific changes in uncertainty - or how one can use
 % behaviour to identify the parameters used by a subject.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 6062 2014-06-21 11:00:15Z karl $
+% $Id: spm_MDP_offer.m 7679 2019-10-24 15:54:07Z spm $
  
 % set up and preliminaries
 %==========================================================================

@@ -40,7 +40,7 @@ function DEM_demo_fMRI_HMM
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_fMRI_HMM.m 7272 2018-03-04 13:12:31Z karl $
+% $Id: DEM_demo_fMRI_HMM.m 7679 2019-10-24 15:54:07Z spm $
 
 
 
@@ -77,7 +77,7 @@ c   = zeros(n,n);
 d   = zeros(n,n,0);
 pP  = spm_dcm_fmri_priors(a,b,c,d,options);
 
-% average parameters – a simple hierarchy of three nodes
+% average parameters - a simple hierarchy of three nodes
 % -------------------------------------------------------------------------
 pP.A = [  0  -.3    0;
          .4    0  -.1;
@@ -280,7 +280,7 @@ x     = sparse(o,1:N,1,S,N);
 x     = kron(ones(1,P),x);
 N     = size(x,2);
 
-% associate true and discovered states – and reorder
+% associate true and discovered states - and reorder
 %--------------------------------------------------------------------------
 r     = x*HMM(S).X';
 j     = zeros(S,1);
@@ -302,7 +302,7 @@ spm_figure('Getwin','HMM')
 subplot(4,1,1), hold on
 for i = 1:N, plot(i,o(i),'.c','MarkerSize',32), end, hold off
 
-% state-dependent parameters – fluctuations
+% state-dependent parameters - fluctuations
 %--------------------------------------------------------------------------
 subplot(4,1,2), hold on
 for i = 1:N
@@ -314,7 +314,7 @@ subplot(4,1,3), hold on
 for i = 1:N, pA(:,i) = spm_vec(TP(i).A); end
 plot(1:N,pA(HMM(S).iP,:),'-.'), hold off, spm_axis tight
 
-% state-dependent parameters – expectations
+% state-dependent parameters - expectations
 %--------------------------------------------------------------------------
 subplot(4,2,7), hold on
 for i = 1:S

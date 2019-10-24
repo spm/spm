@@ -21,8 +21,8 @@ function [Ep] = spm_nlsi_AI(M,Y,U)
 %
 % M.x  - The expansion point for the states (i.e., the fixed point)
 %
-% M.P  - starting estimates for model parameters [ states – optional]
-% M.Q  - starting estimates for model parameters [ observer – optional]
+% M.P  - starting estimates for model parameters [ states - optional]
+% M.Q  - starting estimates for model parameters [ observer - optional]
 %
 % M.pE - prior expectation  - of model parameters - f(x,u,p,M)
 % M.pC - prior covariance   - of model parameters - f(x,u,p,M)
@@ -84,7 +84,7 @@ function [Ep] = spm_nlsi_AI(M,Y,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7303 2018-04-28 16:00:22Z karl $
+% $Id: spm_nlsi_AI.m 7679 2019-10-24 15:54:07Z spm $
  
 
 % setup and initialise
@@ -334,7 +334,7 @@ function G  = spm_G(p,n)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7303 2018-04-28 16:00:22Z karl $
+% $Id: spm_nlsi_AI.m 7679 2019-10-24 15:54:07Z spm $
 %--------------------------------------------------------------------------
 G{1}  = 1;
 for i = 2:n
@@ -356,7 +356,7 @@ function H  = spm_H(p,B)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7303 2018-04-28 16:00:22Z karl $
+% $Id: spm_nlsi_AI.m 7679 2019-10-24 15:54:07Z spm $
 %--------------------------------------------------------------------------
 H     = B{3};
 x     = {p};
@@ -381,7 +381,7 @@ function K  = spm_sigma(n)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7303 2018-04-28 16:00:22Z karl $
+% $Id: spm_nlsi_AI.m 7679 2019-10-24 15:54:07Z spm $
 %--------------------------------------------------------------------------
 k     = [0 1 -1];
 K     = k;

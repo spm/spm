@@ -15,7 +15,7 @@ function DEM_self_entropy
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_self_entropy.m 7446 2018-10-13 15:28:42Z karl $
+% $Id: DEM_self_entropy.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % set up
@@ -28,7 +28,7 @@ m     = 16;                             % numer of (A) active bins
 dt    = 1;                              % time step for solution
 N     = 18;                             % 2^N solution
 
-% likelihood – mapping from hidden states to sensory states - A = p(S|HxA)
+% likelihood - mapping from hidden states to sensory states - A = p(S|HxA)
 %--------------------------------------------------------------------------
 a     = zeros(n,n);
 for i = 1:n

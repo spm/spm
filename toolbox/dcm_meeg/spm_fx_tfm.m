@@ -10,7 +10,7 @@ function [f,J,Q] = spm_fx_tfm(x,u,P,M)
 %                                    = D(d)*f(x(t))
 %
 % This routine is essentially a rapper for the equations of motion
-% specified in M.h – it updates the input dependent parameters and then
+% specified in M.h - it updates the input dependent parameters and then
 % calls the appropriate equations of motion in the usual way.
 %
 %__________________________________________________________________________
@@ -20,7 +20,7 @@ function [f,J,Q] = spm_fx_tfm(x,u,P,M)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_tfm.m 5951 2014-04-12 11:38:44Z karl $
+% $Id: spm_fx_tfm.m 7679 2019-10-24 15:54:07Z spm $
  
 % input and state-dependent parameters
 %==========================================================================

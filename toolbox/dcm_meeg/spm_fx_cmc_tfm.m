@@ -40,7 +40,7 @@ function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M,OPT)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_tfm.m 6922 2016-11-02 17:28:23Z karl $
+% $Id: spm_fx_cmc_tfm.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % get dimensions and configure state variables
@@ -152,9 +152,9 @@ end
 
 % Afferents
 %==========================================================================
-u      = zeros(n,4);             % intrinsic – inhibitory
-v      = zeros(n,4);             % intrinsic – excitatory
-w      = zeros(n,4);             % extrinsic – excitatory
+u      = zeros(n,4);             % intrinsic - inhibitory
+v      = zeros(n,4);             % intrinsic - excitatory
+w      = zeros(n,4);             % extrinsic - excitatory
  
 % Granular layer (excitatory interneurons): spiny stellate: Hidden causes
 %--------------------------------------------------------------------------

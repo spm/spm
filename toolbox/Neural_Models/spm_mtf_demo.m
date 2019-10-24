@@ -8,7 +8,7 @@ function spm_mtf_demo
 % 
 % Bayesian estimation of synaptic physiology from the spectral responses of
 % neural masses
-% Moran, R.J.1, Stephan K.E.,  Kiebel S.J., Rombach N., O’Connor
+% Moran, R.J.1, Stephan K.E.,  Kiebel S.J., Rombach N., O'Connor
 % W.T., Murphy K.J., Reilly R.B., Friston K.J.
 % 
 % Abstract
@@ -41,7 +41,7 @@ function spm_mtf_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mtf_demo.m 6856 2016-08-10 17:55:05Z karl $
+% $Id: spm_mtf_demo.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % empirical data - sort and decimate

@@ -3,7 +3,7 @@ function ADEM_occulomotor_delays
 %__________________________________________________________________________
 % This demo illustrates oculomotor following and slow pursuit. The focus
 % here is on oculomotor delays and their compensation in generalised
-% coordinates of motion. This is illustrates using a ‘sweep’ of motion to
+% coordinates of motion. This is illustrates using a 'sweep' of motion to
 % examine the effects of motor delays, sensory delays and their interaction
 % under active inference. We then move on to oculomotor following of sine
 % wave motion, in which the trajectory entrains following under compensated
@@ -19,7 +19,7 @@ function ADEM_occulomotor_delays
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_occulomotor_delays.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: ADEM_occulomotor_delays.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % hidden causes and states

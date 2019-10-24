@@ -10,7 +10,7 @@ function DEM_demo_song_omission
 % with and without the last chirps missing.  The sonograms displayed
 % can be played by a mouse click on the image.  Subsequent plots show
 % simulated event-related potential to show that there is a marked
-% responses (prediction error) of the system when an expected ‘syllable’ is
+% responses (prediction error) of the system when an expected 'syllable' is
 % omitted. This demonstrates the implicit sequence-decoding of input
 % streams, using generative models based upon attractors.
 % Having simulated normal omission-related responses, we then reduce the
@@ -19,12 +19,12 @@ function DEM_demo_song_omission
 % related response or mismatch negativity. If we try to compensate by
 % reducing the sensory precision, then the autonomous dynamics predicting
 % the sequence of chirps supervenes, producing false inference. This
-% can be thought of as a – crude - model of hallucinosis.
+% can be thought of as a - crude - model of hallucinosis.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_omission.m 5371 2013-03-28 20:10:54Z karl $
+% $Id: DEM_demo_song_omission.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)

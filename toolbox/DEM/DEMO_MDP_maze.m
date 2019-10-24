@@ -6,7 +6,7 @@ function MDP = DEMO_MDP_maze
 % in a fairly complicated maze. The idea is to demonstrate how epistemic
 % foraging and goal (target) directed behaviour are integrated in the
 % minimisation of expected free energy. In this illustration, and 8 x 8
-% maze is learned through novelty driven evidence accumulation – to learn
+% maze is learned through novelty driven evidence accumulation - to learn
 % the likelihood mapping between hidden states (locations in the maze) and
 % outcomes (whether the current location is open or closed). This
 % accumulated experience is then used to plan a path from a start to an end
@@ -26,7 +26,7 @@ function MDP = DEMO_MDP_maze
 %
 % A key aspect of this formulation is the  hierarchical decomposition of
 % goal directed behaviour into subgoals that are within the horizon of a
-% limited policy – here, to moves that correspond to a trial. The prior
+% limited policy - here, to moves that correspond to a trial. The prior
 % preferences then contextualise each policy or trial to ensure that the
 % ultimate goal is achieved.
 %
@@ -41,7 +41,7 @@ function MDP = DEMO_MDP_maze
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_MDP_maze.m 7310 2018-05-11 19:24:09Z karl $
+% $Id: DEMO_MDP_maze.m 7679 2019-10-24 15:54:07Z spm $
 
 % set up and preliminaries: first level
 %--------------------------------------------------------------------------
@@ -205,7 +205,7 @@ end
 % Here, we return to the exploratory simulation above and probe each level
 % of experience by asking the subject to execute a path to target. The
 % behaviour is then assessed in terms of the latency with which the target
-% will go is required  – and the number of mistakes or exploratory
+% will go is required  - and the number of mistakes or exploratory
 % excursions into closed locations.
 %--------------------------------------------------------------------------
 N     = [];
@@ -359,7 +359,7 @@ if ~isfield(mdp,'u')
 end
 mdp.s = START;
 
-% Evaluate a sequence of moves – recomputing prior preferences at each move
+% Evaluate a sequence of moves - recomputing prior preferences at each move
 %==========================================================================
 for i = 1:N
     

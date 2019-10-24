@@ -12,7 +12,7 @@ function [x,f,h] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 7409 2018-08-27 11:39:00Z bernadette $
+% $Id: spm_dcm_x_neural.m 7679 2019-10-24 15:54:07Z spm $
 
 % paramteric state equation
 %--------------------------------------------------------------------------
@@ -65,7 +65,7 @@ switch lower(model)
         
         f  = 'spm_fx_sep';
         
-    % Linear in states – canonical microcircuit
+    % Linear in states - canonical microcircuit
     %======================================================================
     case{'cmc'}
         
@@ -78,7 +78,7 @@ switch lower(model)
         f  = 'spm_fx_cmc';
         %%% f  = 'spm_fx_cmc_2014'; %%%
         
-    % Linear in states – canonical microcircuit with plasticity
+    % Linear in states - canonical microcircuit with plasticity
     %======================================================================
     case{'tfm'}
         
@@ -173,7 +173,7 @@ switch lower(model)
         
         f = 'spm_fx_bgt';        
         
-    % Linear in states – motor microcircuit
+    % Linear in states - motor microcircuit
     %======================================================================
     case{'mmc'}
         

@@ -24,7 +24,7 @@ function [MDP] = spm_MDP_game_optimism(MDP,OPTION)
 %                   (default: MDP.G{T,M} = MDP.G{M} = MDP.B{M})
 %
 % MDP.plot        - switch to suppress graphics: (default: [0])
-% MDP.alpha       - upper bound on precision (Gamma hyperprior – shape [8])
+% MDP.alpha       - upper bound on precision (Gamma hyperprior - shape [8])
 % MDP.beta        - precision over precision (Gamma hyperprior - rate  [1])
 %
 % produces:
@@ -55,9 +55,9 @@ function [MDP] = spm_MDP_game_optimism(MDP,OPTION)
 % This implementation equips agents with the prior beliefs that they will
 % maximise expected free energy: expected free energy is the free energy
 % of future outcomes under the posterior predictive distribution. This can
-% be interpreted in several ways – most intuitively as minimising the KL
+% be interpreted in several ways - most intuitively as minimising the KL
 % divergence between predicted and preferred outcomes (specified as prior
-% beliefs) – while simultaneously minimising the (predicted) entropy of 
+% beliefs) - while simultaneously minimising the (predicted) entropy of 
 % outcomes conditioned upon hidden states. Expected free energy therefore
 % combines KL optimality based upon preferences or utility functions with
 % epistemic value or information gain.
@@ -66,9 +66,9 @@ function [MDP] = spm_MDP_game_optimism(MDP,OPTION)
 % sequences specified in MDP.V. Constraints on allowable policies can limit
 % the numerics or combinatorics considerable. For example, situations in
 % which one action can be selected at one time can be reduced to T polices
-% – with one (shift) control being emitted at all possible time points.
+% - with one (shift) control being emitted at all possible time points.
 % This specification of polices simplifies the generative model, allowing a
-% fairly exhaustive model of potential outcomes – eschewing a mean field
+% fairly exhaustive model of potential outcomes - eschewing a mean field
 % approximation over successive control states. In brief, the agent simply
 % represents the current state and states in the immediate and distant
 % future.
@@ -88,7 +88,7 @@ function [MDP] = spm_MDP_game_optimism(MDP,OPTION)
 % into the transition probabilities G.
 %
 % See also:spm_MDP, which uses multiple future states and a mean field
-% approximation for control states – but allows for different actions
+% approximation for control states - but allows for different actions
 % at all times (as in control problems).
 %
 % See also: spm_MDP_game_KL, which uses a very similar formulation but just
@@ -98,7 +98,7 @@ function [MDP] = spm_MDP_game_optimism(MDP,OPTION)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game_optimism.m 6077 2014-06-30 16:55:03Z spm $
+% $Id: spm_MDP_game_optimism.m 7679 2019-10-24 15:54:07Z spm $
 
 % set up and preliminaries
 %==========================================================================

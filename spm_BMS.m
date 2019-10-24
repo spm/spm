@@ -27,13 +27,13 @@ function [alpha,exp_r,xp,pxp,bor] = spm_BMS (lme, Nsamp, do_plot, sampling, ecp,
 % Bayesian Model Selection for Group Studies. NeuroImage 46:1004-1017
 %
 % Rigoux, L, Stephan, KE, Friston, KJ and Daunizeau, J. (2014)
-% Bayesian model selection for group studies—Revisited. 
+% Bayesian model selection for group studies - Revisited. 
 % NeuroImage 84:971-85. doi: 10.1016/j.neuroimage.2013.08.065
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan, Will Penny
-% $Id: spm_BMS.m 6442 2015-05-21 09:13:44Z will $
+% $Id: spm_BMS.m 7679 2019-10-24 15:54:07Z spm $
 
 if nargin < 2 || isempty(Nsamp)
     Nsamp = 1e6;

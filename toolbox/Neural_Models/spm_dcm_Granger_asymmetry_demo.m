@@ -14,7 +14,7 @@ function spm_dcm_Granger_asymmetry_demo
 % or cortical excitability can induce correlations between forward and
 % backward Granger causality in distinct frequency bounds. This routine
 % will then return unless edited to demonstrate how to simulate timeseries
-% – and how spectral estimators converge on their expected values under
+% - and how spectral estimators converge on their expected values under
 % the neural mass or dynamic causal model used here.
 % 
 % See also:
@@ -26,7 +26,7 @@ function spm_dcm_Granger_asymmetry_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_Granger_asymmetry_demo.m 6077 2014-06-30 16:55:03Z spm $
+% $Id: spm_dcm_Granger_asymmetry_demo.m 7679 2019-10-24 15:54:07Z spm $
  
  
 % Model specification

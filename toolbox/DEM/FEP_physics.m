@@ -13,7 +13,7 @@ function FEP_physics
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_physics.m 7224 2017-11-18 18:10:09Z karl $
+% $Id: FEP_physics.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % default settings (GRAPHICS sets movies)
@@ -170,40 +170,40 @@ end
 
 %% illustrate the quantum perspective (quantum mechanics)
 %==========================================================================
-% This section illustrates the quantum treatment of a single state – a
+% This section illustrates the quantum treatment of a single state - a
 % microstate from the second external particle of the synthetic soup. The
 % aim of this example is to show how one can characterise the dynamics of
-% the state in terms of the Schrödinger potential and ensuing kinetic
+% the state in terms of the SchrÃ¶dinger potential and ensuing kinetic
 % energy. Furthermore, this example illustrates how one can eschew the
-% solution of the Schrödinger equation using the NESS lemma. Here, we will
+% solution of the SchrÃ¶dinger equation using the NESS lemma. Here, we will
 % consider a single (micro) state in isolation by assuming its flow is a
 % (linear) mixture of the marginal or expected flow under all other states
 % and some fast random fluctuations. Although we know a lot about how these
 % fluctuations are generated, we will treat them as stochastic and
 % sufficiently fast that the only interesting behaviour can be captured by
-% the Schrödinger potential. The timeseries is shown in the upper panel in
-% terms of the state (solid line – arbitrarily assigned units of metres)
+% the SchrÃ¶dinger potential. The timeseries is shown in the upper panel in
+% terms of the state (solid line - arbitrarily assigned units of metres)
 % and flow (dotted line). The sample distribution of states over time was
 % evaluated in terms of the NESS potential using a six order polynomial fit
 % to the negative logarithm of the sample density over 64 bins. The
 % resulting estimate and its derivatives are shown in the left middle
-% panel. From these, Equation (5.4) specifies the Schrödinger potential
-% (left lower panel). One can then solve the Schrödinger equation to
+% panel. From these, Equation (5.4) specifies the SchrÃ¶dinger potential
+% (left lower panel). One can then solve the SchrÃ¶dinger equation to
 % evaluate the wave function over position in state-space (middle panel)
 % and its Fourier transform, over momentum (lower middle panel). The
 % corresponding ensemble densities over position and momentum are shown in
 % the right panels, superimposed upon the corresponding sample densities.
 % Finally, the density over momentum specifies the kinetic energy via
 % Equation (5.9). Here, the kinetic (and potential) energy was 2.29 ^
-% 10-33. To quantify this energy (and the Schrödinger potential) one needs
-% the amplitude of the random fluctuations – or, equivalently, the reduced
+% 10-33. To quantify this energy (and the SchrÃ¶dinger potential) one needs
+% the amplitude of the random fluctuations - or, equivalently, the reduced
 % mass. This can be simply computed from the residuals of the flow having
 % removed its expectation or marginal flow. The reduced mass of this
 % quantum system was 5.52 ^ 10-38. This concludes a description of how the
-% Schrödinger equation can be applied to characterise nonequilibrium
+% SchrÃ¶dinger equation can be applied to characterise nonequilibrium
 % steady-state dynamics. However, this is not how the results in this
 % figure were generated: they were derived directly from the NESS potential
-% without solving the Schrödinger equation. In other words, the ensemble
+% without solving the SchrÃ¶dinger equation. In other words, the ensemble
 % density is specified directly by the NESS potential, which means that the
 % wave function (and its Fourier transform) can be specified directly from
 % the ensemble density. Here, we somewhat arbitrarily split the ensemble
@@ -212,8 +212,8 @@ end
 % to the real and imaginary parts of the wave function. This complementary
 % derivation of the wave function illustrates the point made in the main
 % text; namely, that one can either generate the wave function directly
-% from ensemble density or one can start from the Schrödinger potential and
-% solve the Schrödinger equation.
+% from ensemble density or one can start from the SchrÃ¶dinger potential and
+% solve the SchrÃ¶dinger equation.
 %--------------------------------------------------------------------------
 spm_figure('GetWin','quantum mechanics');clf
 
@@ -262,7 +262,7 @@ dVdb  = dV(B,q)/db;                                 % /m
 gam   = var(dqdt - dVdb*pinv(dVdb)*dqdt)/2;         % m*m/s
 m     = h/(2*gam);                                  % kg
 
-% combine to evaluate Schrödinger potential and kinetic energy
+% combine to evaluate SchrÃ¶dinger potential and kinetic energy
 %--------------------------------------------------------------------------
 VS    = h^2/(4*m)*(dV(B,b).^2/(db^2)/2 - ddV(B,b)/(db^2));
                                                     % kg.m.m/s/s (Joule)
@@ -314,7 +314,7 @@ subplot(3,3,7)
 plot(b,VS)
 xlabel('State space (m)', 'FontSize',12)
 ylabel('Potential (kg.m.m/s/s (Joules)','FontSize',12)
-title('Schrödinger potential','FontSize',16), spm_axis tight
+title('SchrÃ¶dinger potential','FontSize',16), spm_axis tight
 
 subplot(3,3,8)
 plot(k,real(fftshift(PSI)),k,imag(fftshift(PSI)),':')
@@ -389,11 +389,11 @@ spm_figure('GetWin','stochastic mechanics'); clf
 % within the system. This is reflected in the bottom panel that shows the
 % corresponding heat dissipation, which is most marked for the external
 % states, as might be guessed from the changes in the thermodynamic free
-% energy. Although heat dissipation can fall to low levels – as
-% nonequilibrium steady-state is approached – the temperature of our
+% energy. Although heat dissipation can fall to low levels - as
+% nonequilibrium steady-state is approached - the temperature of our
 % synthetic virus remains relatively high (here, the temperature reached
-% about 300° Kelvin, which is roughly body temperature). This follows from
-% the fact that random fluctuations are still in play – arising from
+% about 300Â° Kelvin, which is roughly body temperature). This follows from
+% the fact that random fluctuations are still in play - arising from
 % intrinsic fluctuations of the internal states of each internal particle
 % (at the underlying hierarchical level). These fluctuations disperse
 % states over the thermodynamic potential, while flow down potential energy
@@ -632,7 +632,7 @@ title('Flow','FontSize',16), spm_axis tight
 % this corresponds to characterising the average behaviour of the Markov
 % blanket as the motion of a marble (or ball) in a quadratic well (or bowl)
 % that moves with the external states. The resulting behaviour can then be
-% characterised in terms of the ball’s mass that corresponds to the
+% characterised in terms of the ball's mass that corresponds to the
 % precision (i.e., inverse variance) of motion. Upper left panel: this
 % phase portrait summarises the behaviour we are trying to explain by
 % plotting the position (state) against velocity (motion). In the absence
@@ -646,11 +646,11 @@ title('Flow','FontSize',16), spm_axis tight
 % shows the trajectory of the position of the Markov blanket. The black
 % line is the corresponding motion of the Markov blanket. This is a
 % nontrivial solution, in the sense that the external states are not simply
-% moving the Markov blanket states – they are inducing Hamiltonian motion
+% moving the Markov blanket states - they are inducing Hamiltonian motion
 % by moving the potential energy well. Upper right panel: the resulting
 % predictions of the blanket motion account almost exactly for its
 % (generalised) motion (blue dots). The red line is the corresponding
-% prediction for a single particle of the Markov blanket – and illustrates
+% prediction for a single particle of the Markov blanket - and illustrates
 % that the states of motion only becomes the motion of states when
 % intrinsic fluctuations are suppressed. In other words, each member of the
 % blanket ensemble is moving somewhat erratically and actively; however,
@@ -670,123 +670,6 @@ title('Flow','FontSize',16), spm_axis tight
 % effective mass of the Markov blanket. In this example, if we assume that
 % motion is expressed in nanometres per millisecond (i.e., slow motion at a
 % macromolecular scale). Then the effective mass, given Planck's constant,
-% is 136 femtograms. This corresponds to an extremely heavy virus – or a
+% is 136 femtograms. This corresponds to an extremely heavy virus - or a
 % rather lightweight bacterium. For example, a typical E. coli would have a
-% mass of 630 fg. Had we assumed that the velocity was expressed in terms
-% of metres per millisecond, the mass would have been in excess of 2 tonnes
-% (assuming a classical Planck's constant of unity).
-%--------------------------------------------------------------------------
-spm_figure('GetWin','classical mechanics');clf
-
-% recover the expected state and velocity of the Markov blanket
-%--------------------------------------------------------------------------
-i    = 512:T;
-t    = length(i);
-b    = find(bb);                               % blanket particles
-e    = find(ee);                               % external particles
-q    = mean(squeeze(X(2,b,i)))';               % mean position
-p    = mean(squeeze(V(2,b,i)))';               % mean velocity
-q1   = squeeze(X(2,b(1),i));                   % first position
-p1   = squeeze(V(2,b(1),i));                   % first velocity
-qx   =     squeeze(X(1,e,i))';                 % external states
-qx   = [qx squeeze(X(2,e,i))'];
-
-
-% period of oscillations
-%--------------------------------------------------------------------------
-[~,j]= max(abs(fft(p)));
-sig  = 2*t/j/2;
-sig  = 32;
-
-% find canonical loads of external states
-%--------------------------------------------------------------------------
-q    = spm_conv(spm_detrend(q),sig,0);
-p    = spm_conv(p,sig,0);
-q1   = spm_conv(spm_detrend(q1),sig,0);
-p1   = spm_conv(p1,sig,0);
-w    = spm_conv(spm_detrend(qx),sig,0);
-
-Qp   = var(p);                 % inverse mass or dispersion flow
-
-% estimates (external) state-dependent NESS potential
-%--------------------------------------------------------------------------
-clear XB
-pw    = @(w)[w.^0 w.^1];
-dVdB  = @(q,w)  [q^0*pw(w) 2*q^1];
-phiB  = @(B,q,w)[q^1*pw(w)   q^2]*B;
-for i = 1:t
-    XB(i,:) = -Qp * dVdB( q(i),w(i,:));
-    X1(i,:) = -Qp * dVdB(q1(i),w(i,:));
-end
-
-% coefficients of polynomial expansion of gradients - and plot
-%--------------------------------------------------------------------------
-B     = pinv(XB)*p;
-
-subplot(3,2,1)
-plot(p,q)
-xlabel('Average velocity (nm/ms)', 'FontSize',12)
-ylabel('Average position (nm)','FontSize',12)
-title('Phase portrait','FontSize',16)
-
-subplot(3,2,2)
-p0  = [min(p),max(p)]*(1 + 1/8);
-plot(p,XB*B,'b.',p0,p0,'b--',p1/32,X1*B/32,'r:')
-xlabel('Hamiltonian prediction', 'FontSize',12)
-ylabel('State of motion (nm/ms)','FontSize',12)
-title('Conservative dynamics','FontSize',16), spm_axis tight
-
-% recover state dependent density
-%--------------------------------------------------------------------------
-qq    = linspace(min(q)*1.2,max(q)*1.2,64);
-tt    = 1:4:t;
-for i = 1:length(tt)
-    for j = 1:64
-        phi(i,j) = phiB(B,qq(j),w(tt(i),:));
-    end
-end
-
-pd    = spm_softmax(-phi');
-
-subplot(3,1,2)
-imagesc(tt*dt,qq,(1 - pd)), hold on
-plot(tt*dt,q(tt),'w',tt*dt,p(tt),'k'), hold off,    axis xy
-xlabel('Time (ms)', 'FontSize',12)
-ylabel('Position','FontSize',12)
-title('Conditional density','FontSize',16)
-
-% marginal density over time
-%--------------------------------------------------------------------------
-subplot(3,2,5)
-nq  = hist(q,qq);
-dq  = qq(2) - qq(1);
-nq  = nq/sum(nq)/dq;
-pq  = mean(pd,2)/dq;
-
-plot(qq,pq,qq,nq,':')
-xlabel('Position (nm)', 'FontSize',12)
-ylabel('Probability density (a.u.)','FontSize',12)
-title('Marginal density over state','FontSize',16), spm_axis tight
-
-subplot(3,2,6)
-[np,pp]  = hist(p,64);
-dp  = pp(2) - pp(1);
-np  = np/sum(np)/dp;
-qp  = exp(-pp.^2/2/Qp);
-qp  = qp/sum(qp)/dp;
-
-plot(pp,qp,pp,np,':')
-xlabel('Motion (nm/ms)', 'FontSize',12)
-ylabel('Probability density (a.u.)','FontSize',12)
-title('Marginal density over motion','FontSize',16), spm_axis tight
-
-
-% marginal density over time (in femtograms)
-%--------------------------------------------------------------------------
-h     = 6.62607004*1e-34/(2*pi);                    % m*m*kg/s
-h     = h *1e33;                                    % nm * nm * fg/ms
-mass  = h/Qp;
-text(0,20,sprintf('mass %-.0f fg',mass))
-
-return
-
+% m

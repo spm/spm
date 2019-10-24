@@ -43,7 +43,7 @@ function MDP = DEM_demo_MDP_DEM
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_DEM.m 7326 2018-06-06 12:16:40Z karl $
+% $Id: DEM_demo_MDP_DEM.m 7679 2019-10-24 15:54:07Z spm $
 
 % set up and preliminaries: first level
 %--------------------------------------------------------------------------
@@ -56,7 +56,7 @@ pth = fileparts(mfilename('fullpath'));
 % This level of model specification concerns the sampling of continuous
 % data; here, visual stimuli encoded in a global structure (STIM). This is
 % a generic specification that allows one to place various stimuli in the
-% visual field – with user-specified parameters for sampling. The hidden
+% visual field - with user-specified parameters for sampling. The hidden
 % causes of this generative model correspond to one attracting location
 % and the content or stimulus that will be sampled at that location. The
 % dynamics or hidden states in this level of the model are simple: the

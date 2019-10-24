@@ -32,7 +32,7 @@ function [PP] = spm_voice_get_LEX(xY,word,NI)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_voice_get_LEX.m 7679 2019-10-24 15:54:07Z spm $
 
 
 % defaults
@@ -93,7 +93,7 @@ for w = 1:nw
     
 end
 
-% condition covariances – ensuring trace(qP*QC) = nq
+% condition covariances - ensuring trace(qP*QC) = nq
 %--------------------------------------------------------------------------
 QC    = 0;
 for w = 1:nw
