@@ -1,4 +1,3 @@
-#include "mex.h"
 #include "shoot_openmp.h"
 #ifdef _OPENMP
 #   include <omp.h>

@@ -1,5 +1,5 @@
 /*
- * $Id: bsplines.c 4624 2012-01-13 13:27:08Z john $
+ * $Id: bsplines.c 7684 2019-10-30 14:21:34Z john $
  * John Ashburner
  */
  
@@ -24,7 +24,6 @@
  *  IEEE Signal Processing Magazine 16(6):22-38 (1999).
  *
 */
-#include "mex.h"
 #include <stdlib.h>
 #include <math.h>
 #ifdef IMAGE_SINGLE

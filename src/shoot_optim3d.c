@@ -1,9 +1,9 @@
-/* $Id: shoot_optim3d.c 7593 2019-05-20 18:58:16Z john $ */
+/* $Id: shoot_optim3d.c 7684 2019-10-30 14:21:34Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<math.h>
 extern double log(double x);
-#include "mex.h"
+#include "spm_mex.h"
 #include "shoot_optim3d.h"
 #include "shoot_multiscale.h"
 #include "shoot_regularisers.h"

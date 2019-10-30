@@ -1,10 +1,10 @@
 /*
- * $Id: hist2.c 7629 2019-06-27 12:35:45Z john $
+ * $Id: hist2.c 7684 2019-10-30 14:21:34Z john $
  * John Ashburner
  */
 
 #include <math.h>
-#include "mex.h"
+#include "spm_mex.h"
 
 static float samp(const mwSize d[3], unsigned char f[], float x, float y, float z)
 {

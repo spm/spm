@@ -1,7 +1,7 @@
-/* $Id: shoot_boundary.c 7408 2018-08-24 14:54:57Z john $ */
+/* $Id: shoot_boundary.c 7684 2019-10-30 14:21:34Z john $ */
 /* (c) John Ashburner (2011) */
 
-#include "mex.h"
+#include "spm_mex.h"
 #include "shoot_boundary.h"
 
 /* Neumann boundary condition */

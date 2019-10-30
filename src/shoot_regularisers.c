@@ -1,9 +1,9 @@
-/* $Id: shoot_regularisers.c 7652 2019-08-07 11:30:35Z john $ */
+/* $Id: shoot_regularisers.c 7684 2019-10-30 14:21:34Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
 extern double log(double x);
-#include "mex.h"
+#include "spm_mex.h"
 #include "shoot_boundary.h"
 #define OnePlusTiny 1.000001 /* Required for stability. Value is currently about 1+8*eps. */
 

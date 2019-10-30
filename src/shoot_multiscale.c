@@ -1,8 +1,8 @@
-/* $Id: shoot_multiscale.c 7408 2018-08-24 14:54:57Z john $ */
+/* $Id: shoot_multiscale.c 7684 2019-10-30 14:21:34Z john $ */
 /* (c) John Ashburner (2011) */
 
-#include<math.h>
-#include "mex.h"
+#include <math.h>
+#include "spm_mex.h"
 #include "shoot_boundary.h"
 
 /* 2nd degree B-spline basis */

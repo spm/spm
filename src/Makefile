@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 7682 2019-10-30 11:56:47Z john $
+# $Id: Makefile 7684 2019-10-30 14:21:34Z john $
 #
 ###############################################################################
 #
@@ -300,6 +300,11 @@ spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c
         
 spm_mesh_reduce.$(MEXEXT): spm_mesh_reduce.cpp Simplify.h
 	$(MEX) spm_mesh_reduce.cpp $(MEXEND)
+
+libSPM.so: shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c shoot_regularisers.c shoot_optim3d.c hist2.c shoot_openmp.c\
+	   shoot_diffeo3d.h shoot_optimN.h shoot_boundary.h shoot_multiscale.h shoot_regularisers.h shoot_optim3d.h hist2.h shoot_openmp.h
+	gcc -O4 --shared -I. shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c shoot_regularisers.c shoot_optim3d.c\
+		shoot_openmp.c hist2.c  -o libSPM.so -lm -fPIC -DIMAGE_SINGLE
 
 ###############################################################################
 # Display Messages

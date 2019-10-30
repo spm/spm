@@ -1,11 +1,11 @@
-/* $Id: shoot_optimN.c 7682 2019-10-30 11:56:47Z john $ */
+/* $Id: shoot_optimN.c 7684 2019-10-30 14:21:34Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<math.h>
 extern double log(double x);
 #define MAXD3 128
 
-#include "mex.h"
+#include "spm_mex.h"
 #include "shoot_boundary.h"
 #include "shoot_multiscale.h"
 
