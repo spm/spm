@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 7629 2019-06-27 12:35:45Z john $
+# $Id: Makefile 7682 2019-10-30 11:56:47Z john $
 #
 ###############################################################################
 #
@@ -292,8 +292,8 @@ spm_mrf.$(MEXEXT): spm_mrf.c
 spm_diffeo.$(MEXEXT): spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_bsplines.c bsplines.c
 	$(MEX) spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_bsplines.c bsplines.c -DIMAGE_SINGLE $(MEXEND)
 
-spm_field.$(MEXEXT): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_boundary.c
-	$(MEX) spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c $(MEXEND)
+spm_field.$(MEXEXT): spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c shoot_openmp.c shoot_openmp.h
+	$(MEX) spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c shoot_openmp.c $(MEXEND)
 
 spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c
 	$(MEX) spm_jsonread.c jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)

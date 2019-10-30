@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 7652 2019-08-07 11:30:35Z john $ */
+/* $Id: shoot_optimN.c 7682 2019-10-30 11:56:47Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<math.h>
@@ -72,6 +72,7 @@ static void Atimesp1(mwSize dm[], float A[], float p[], float Ap[])
     for(i=0; i<(dm[3]*(dm[3]+1))/2; i++)
         pA[i] = &A[m*i];
 
+#   pragma omp parallel for private(i)
     for(j=0; j<m; j++)
     {
         mwSize k, o;
@@ -292,6 +293,7 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
     }
     if (w000<0.0) w000=0.0;
 
+#   pragma omp parallel for
     for(k=0; k<(mwSignedIndex)dm[2]; k++)
     {
         mwSignedIndex j, km2,km1,kp1,kp2;
@@ -300,6 +302,7 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
         kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
         kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
 
+#       pragma omp parallel for
         for(j=0; j<(mwSignedIndex)dm[1]; j++)
         {
             mwSignedIndex i,m, jm2,jm1,jp1,jp2;
@@ -320,6 +323,7 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
             {
                 mwSignedIndex im2,im1,ip1,ip2;
                 float *pf1 = pf[m], *pg1 = pg[m];
+#               pragma omp parallel for private(im2,im1,ip2,ip1)
                 for(i=0; i<(mwSignedIndex)dm[0]; i++)
                 {
                     float *p = &pf1[i];
@@ -363,6 +367,7 @@ void solve(mwSize dm[], float a[], float b[], double s[], double scal[], float u
            pa[m] = a+dm[0]*dm[1]*dm[2]*m;
     }
 
+#   pragma omp parallel for private(a1,cp,su)
     for(i=0; i<(mwSignedIndex)dm[0]*dm[1]*dm[2]; i++)
     {
         if (a!=0)
@@ -468,6 +473,7 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
     for(it=0; it<27*nit; it++)
     {
         mwSignedIndex i, j, k;
+#       pragma omp parallel for private(i,j)
         for(k=(it/9)%3; k<(mwSignedIndex)dm[2]; k+=3)
         {
             mwSignedIndex km2, km1, kp1, kp2;
@@ -476,6 +482,7 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
             kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
             kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
 
+#           pragma omp parallel for private(i)
             for(j=(it/3)%3; j<(mwSignedIndex)dm[1]; j+=3)
             {
                 float *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
@@ -499,6 +506,7 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                 jp1 = (bound(j+1,dm[1])-j)*dm[0];
                 jp2 = (bound(j+2,dm[1])-j)*dm[0];
 
+#               pragma omp parallel for private(a1,cp,su)
                 for(i=it%3; i<(mwSignedIndex)dm[0]; i+=3)
                 {
                     mwSignedIndex im2,im1,ip1,ip2;
@@ -509,7 +517,7 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                     ip2 = bound(i+2,dm[0])-i;
 
                     if (a!=0) get_a(dm[3], i, pa, a1);
-
+ 
                     for(m=0; m<(mwSignedIndex)dm[3]; m++)
                     {
                         mwSignedIndex n;
