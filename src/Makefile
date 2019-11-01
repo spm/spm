@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 7684 2019-10-30 14:21:34Z john $
+# $Id: Makefile 7685 2019-11-01 12:56:19Z john $
 #
 ###############################################################################
 #
@@ -289,10 +289,10 @@ spm_voronoi.$(MEXEXT): spm_voronoi.c
 spm_mrf.$(MEXEXT): spm_mrf.c
 	$(MEX) spm_mrf.c $(MEXEND)
 
-spm_diffeo.$(MEXEXT): spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_bsplines.c bsplines.c
-	$(MEX) spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_bsplines.c bsplines.c -DIMAGE_SINGLE $(MEXEND)
+spm_diffeo.$(MEXEXT): spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_openmp.c shoot_bsplines.c bsplines.c
+	$(MEX) spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_openmp.c shoot_bsplines.c bsplines.c -DIMAGE_SINGLE $(MEXEND)
 
-spm_field.$(MEXEXT): spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c shoot_openmp.c shoot_openmp.h
+spm_field.$(MEXEXT): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_boundary.c shoot_openmp.c
 	$(MEX) spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c shoot_openmp.c $(MEXEND)
 
 spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c

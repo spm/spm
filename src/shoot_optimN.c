@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 7684 2019-10-30 14:21:34Z john $ */
+/* $Id: shoot_optimN.c 7685 2019-11-01 12:56:19Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<math.h>
@@ -61,7 +61,7 @@ static void cholls(mwSize n, double a[], double p[], /*@out@*/ double b[], /*@ou
 
 static void Atimesp1(mwSize dm[], float A[], float p[], float Ap[])
 {
-    mwSize i,j, m = dm[0]*dm[1]*dm[2];
+    mwSize i, j, m = dm[0]*dm[1]*dm[2];
     float *pp[MAXD3], *pap[MAXD3], *pA[(MAXD3*(MAXD3+1))/2];
 
     for(i=0; i<dm[3]; i++)
@@ -117,7 +117,7 @@ static void get_a(mwSize dm3, mwSignedIndex i, /*@out@*/ float *pa[], /*@out@*/ 
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
     double lam0 = s[3], lam1 = s[4], lam2 = s[5];
     double ss = 0.0;
-    mwSignedIndex k;
+    mwSignedIndex j, k;
 
     w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2);
     w000 = w000 + lam0;
@@ -131,17 +131,27 @@ static void get_a(mwSize dm3, mwSignedIndex i, /*@out@*/ float *pa[], /*@out@*/ 
     w101 = lam2*2*v0*v2;
     w011 = lam2*2*v1*v2;
 
+#   pragma omp parallel for collapse(2) reduction(+: ss)
     for(k=0; k<(mwSignedIndex)dm[2]; k++)
     {
-        mwSignedIndex j, km2,km1,kp1,kp2;
-        km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
-        km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
-        kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#       ifndef _OPENMP
+            mwSignedIndex km2,km1,kp1,kp2;
+            km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+            kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#       endif
 
         for(j=0; j<(mwSignedIndex)dm[1]; j++)
         {
-            mwSignedIndex i,m, jm2,jm1,jp1,jp2;
+#           ifdef _OPENMP
+                mwSignedIndex km2,km1,kp1,kp2;
+                km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+                km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+                kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#           endif
+            mwSignedIndex i, m, jm2,jm1,jp1,jp2;
             float *p[MAXD3], *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
             double a1[MAXD3*MAXD3];
 
@@ -223,7 +233,7 @@ Note that there are numerical precision problems with this.
 
 void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
 {
-    mwSignedIndex k;
+    mwSignedIndex j, k;
     double w000,w100,w200,
            w010,w110,
            w020,
@@ -293,19 +303,28 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
     }
     if (w000<0.0) w000=0.0;
 
-#   pragma omp parallel for
+#   pragma omp parallel for collapse(2)
     for(k=0; k<(mwSignedIndex)dm[2]; k++)
     {
-        mwSignedIndex j, km2,km1,kp1,kp2;
-        km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
-        km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
-        kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#       ifndef _OPENMP
+            mwSignedIndex km2,km1,kp1,kp2;
+            km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+            kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#       endif
 
-#       pragma omp parallel for
         for(j=0; j<(mwSignedIndex)dm[1]; j++)
         {
-            mwSignedIndex i,m, jm2,jm1,jp1,jp2;
+#           ifdef _OPENMP
+                mwSignedIndex km2,km1,kp1,kp2;
+                km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+                km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+                kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#           endif
+
+            mwSignedIndex i,m,jm2,jm1,jp1,jp2;
             float *pf[MAXD3], *pg[MAXD3];
 
             for(m=0; m<(mwSignedIndex)dm[3]; m++)
@@ -321,19 +340,19 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
 
             for(m=0; m<(mwSignedIndex)dm[3]; m++)
             {
-                mwSignedIndex im2,im1,ip1,ip2;
                 float *pf1 = pf[m], *pg1 = pg[m];
-#               pragma omp parallel for private(im2,im1,ip2,ip1)
                 for(i=0; i<(mwSignedIndex)dm[0]; i++)
                 {
                     float *p = &pf1[i];
                     double p0 = p[0];
 
+                    mwSignedIndex im2,im1,ip1,ip2;
+
                     im2 = bound(i-2,dm[0])-i;
                     im1 = bound(i-1,dm[0])-i;
                     ip1 = bound(i+1,dm[0])-i;
                     ip2 = bound(i+2,dm[0])-i;
-                    pg1[i] =(float)((lam0*  p0 
+                    pg1[i] =(float)((lam0*  p0
                                    + w100*((p[im1        ]-p0) + (p[ip1        ]-p0))
                                    + w010*((p[    jm1    ]-p0) + (p[    jp1    ]-p0))
                                    + w001*((p[        km1]-p0) + (p[        kp1]-p0))
@@ -393,6 +412,7 @@ void solve(mwSize dm[], float a[], float b[], double s[], double scal[], float u
 
 static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], int nit, float u[])
 {
+    mwSignedIndex j, k;
     int it;
     double w000,w100,w200,
            w010,w110,
@@ -472,22 +492,28 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
 
     for(it=0; it<27*nit; it++)
     {
-        mwSignedIndex i, j, k;
-#       pragma omp parallel for private(i,j)
+#       pragma omp parallel for collapse(2)
         for(k=(it/9)%3; k<(mwSignedIndex)dm[2]; k+=3)
         {
-            mwSignedIndex km2, km1, kp1, kp2;
-            km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
-            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
-            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
-            kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#           ifndef _OPENMP
+                mwSignedIndex km2, km1, kp1, kp2;
+                km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+                km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+                kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#           endif
 
-#           pragma omp parallel for private(i)
             for(j=(it/3)%3; j<(mwSignedIndex)dm[1]; j+=3)
             {
+#               ifdef _OPENMP
+                    mwSignedIndex km2, km1, kp1, kp2;
+                    km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+                    km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                    kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+                    kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#               endif
                 float *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
-                double a1[MAXD3*MAXD3], cp[MAXD3], su[MAXD3];
-                mwSignedIndex m, jm2,jm1,jp1,jp2;
+                mwSignedIndex i, m, jm2,jm1,jp1,jp2;
 
                 for(m=0; m<(mwSignedIndex)dm[3]; m++)
                 {
@@ -506,9 +532,9 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                 jp1 = (bound(j+1,dm[1])-j)*dm[0];
                 jp2 = (bound(j+2,dm[1])-j)*dm[0];
 
-#               pragma omp parallel for private(a1,cp,su)
                 for(i=it%3; i<(mwSignedIndex)dm[0]; i+=3)
                 {
+                    double a1[MAXD3*MAXD3], cp[MAXD3], su[MAXD3];
                     mwSignedIndex im2,im1,ip1,ip2;
 
                     im2 = bound(i-2,dm[0])-i;
@@ -524,7 +550,7 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                         float *pm  = &pu[m][i];
                         double pm0 = pm[0];
                         su[m] = (pb[m][i]-
-                                       (lam0* pm0 
+                                       (lam0* pm0
                                       + w100*((pm[im1        ]-pm0) + (pm[ip1        ]-pm0))
                                       + w010*((pm[    jm1    ]-pm0) + (pm[    jp1    ]-pm0))
                                       + w001*((pm[        km1]-pm0) + (pm[        kp1]-pm0))
@@ -543,11 +569,13 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                         for(m=0; m<(mwSignedIndex)dm[3]; m++) a1[m+dm[3]*m] += w000*scal[m];
                         choldc(dm[3],a1,cp);
                         cholls(dm[3],a1,cp,su,su);
-                        for(m=0; m<(mwSignedIndex)dm[3]; m++) pu[m][i] += su[m];
+                        for(m=0; m<(mwSignedIndex)dm[3]; m++)
+                            pu[m][i] += su[m];
                     }
                     else
                     {
-                        for(m=0; m<(mwSignedIndex)dm[3]; m++) pu[m][i] += su[m]/(w000*scal[m]);
+                        for(m=0; m<(mwSignedIndex)dm[3]; m++)
+                            pu[m][i] += su[m]/(w000*scal[m]);
                     }
                 }
             }

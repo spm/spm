@@ -1,4 +1,4 @@
-/* $Id: spm_field.c 7682 2019-10-30 11:56:47Z john $ */
+/* $Id: spm_field.c 7685 2019-11-01 12:56:19Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"
@@ -37,7 +37,7 @@ static void threads_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArr
             mexErrMsgTxt("Data must be numeric, real, full and double");
         set_num_threads(mxGetPr(prhs[0])[0]);
     }
-    mexPrintf("Number of threads: %d\n", get_num_threads());
+    /* mexPrintf("Number of threads: %d\n", get_num_threads()); */
 }
 
 static void procs_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])

@@ -1,4 +1,4 @@
-/* $Id: shoot_regularisers.c 7684 2019-10-30 14:21:34Z john $ */
+/* $Id: shoot_regularisers.c 7685 2019-11-01 12:56:19Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -99,6 +99,8 @@ double trapprox(mwSize dm[], float a[], double s[])
     wy000 =  2.0*mu*(v0+2.0*v1+v2)/v1+2.0*lam + w000/v1;
     wz000 =  2.0*mu*(v0+v1+2.0*v2)/v2+2.0*lam + w000/v2;
 
+
+#   pragma omp parallel for collapse(2) reduction(+: tr)
     for(k=0; k<(mwSignedIndex)dm[2]; k++)
     {
         for(j=0; j<(mwSignedIndex)dm[1]; j++)
@@ -112,7 +114,6 @@ double trapprox(mwSize dm[], float a[], double s[])
             paxy = a+dm[0]*(j+dm[1]*(k+dm[2]*3));
             paxz = a+dm[0]*(j+dm[1]*(k+dm[2]*4));
             payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
-
             for(i=0; i<(mwSignedIndex)dm[0]; i++)
             {
                 double axx, ayy, azz, axy, axz, ayz, dt;
@@ -123,7 +124,7 @@ double trapprox(mwSize dm[], float a[], double s[])
                 axz  = paxz[i];
                 ayz  = payz[i];
                 dt   = axx*ayy*azz -axx*ayz*ayz-ayy*axz*axz-azz*axy*axy +2.0*axy*axz*ayz;
-                tr  += (wx000*(ayy*azz - ayz*ayz) 
+                tr  += (wx000*(ayy*azz - ayz*ayz)
                        +wy000*(axx*azz - axz*axz)
                        +wz000*(axx*ayy - axy*axy))/dt;
 
@@ -276,7 +277,7 @@ void kernel(mwSize dm[], double s[], float f[])
            w011,
            w002;
     double ss = 0.0;
-    mwSignedIndex k;
+    mwSignedIndex j, k;
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
     double lam0 = s[3], lam1 = s[4], lam2 = s[5], mu = s[6], lam = s[7];
     double wx000, wx100, wx010, wx001, wy000, wy100, wy010, wy001, wz000, wz100, wz010, wz001, w2;
@@ -372,16 +373,26 @@ void kernel(mwSize dm[], double s[], float f[])
     wy000 *= OnePlusTiny;
     wz000 *= OnePlusTiny;
 
+#   pragma omp parallel for collapse(2) reduction(+: ss)
     for(k=0; k<(mwSignedIndex)dm[2]; k++)
     {
-        mwSignedIndex j, km2,km1,kp1,kp2;
-        km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
-        km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
-        kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#       ifndef _OPENMP
+            mwSignedIndex km2,km1,kp1,kp2;
+            km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+            kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#       endif
 
         for(j=0; j<(mwSignedIndex)dm[1]; j++)
         {
+#           ifdef _OPENMP
+                mwSignedIndex km2,km1,kp1,kp2;
+                km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+                km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+                kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#           endif
             float *pux, *puy, *puz, *pbx, *pby, *pbz, *paxx, *payy, *pazz, *paxy, *paxz, *payz;
             mwSignedIndex i, jm2,jm1,jp1,jp2;
 
@@ -449,8 +460,8 @@ void kernel(mwSize dm[], double s[], float f[])
                 c   = py[0];
                 tmp = aby - pby[i]
                         + wy100*((py[im1        ]-c) + (py[ip1        ]-c))
-                        + wy010*((py[    jm1    ]-c) + (py[    jp1    ]-c))   
-                        + wy001*((py[        km1]-c) + (py[        kp1]-c))   
+                        + wy010*((py[    jm1    ]-c) + (py[    jp1    ]-c))
+                        + wy001*((py[        km1]-c) + (py[        kp1]-c))
                         + w2   *( px[jp1+im1] - px[jp1+ip1] + px[jm1+ip1] - px[jm1+im1] + pz[jp1+km1] - pz[jp1+kp1] + pz[jm1+kp1] - pz[jm1+km1])
                         + (lam0*c
                         +  w110*((py[im1+jm1    ]-c) + (py[ip1+jm1    ]-c) + (py[im1+jp1    ]-c) + (py[ip1+jp1    ]-c))
@@ -464,8 +475,8 @@ void kernel(mwSize dm[], double s[], float f[])
                 c   = pz[0];
                 tmp = abz - pbz[i]
                         + wz100*((pz[im1        ]-c) + (pz[ip1        ]-c))
-                        + wz010*((pz[    jm1    ]-c) + (pz[    jp1    ]-c))   
-                        + wz001*((pz[        km1]-c) + (pz[        kp1]-c))   
+                        + wz010*((pz[    jm1    ]-c) + (pz[    jp1    ]-c))
+                        + wz001*((pz[        km1]-c) + (pz[        kp1]-c))
                         + w2   *( px[kp1+im1] - px[kp1+ip1] + px[km1+ip1] - px[km1+im1] + py[kp1+jm1] - py[kp1+jp1] + py[km1+jp1] - py[km1+jm1])
                         + (lam0*c
                         +  w110*((pz[im1+jm1    ]-c) + (pz[ip1+jm1    ]-c) + (pz[im1+jp1    ]-c) + (pz[ip1+jp1    ]-c))
@@ -495,6 +506,7 @@ static void Atimesp1(mwSize dm[], /*@null@*/ float A[], float p[], float Ap[])
 
     if (A==0) return;
 
+#   pragma omp parallel for
     for(i=0; i<(mwSignedIndex)m; i++)
     {
         pap1[i] += pa11[i]*pp1[i] + pa12[i]*pp2[i] + pa13[i]*pp3[i];
@@ -506,7 +518,7 @@ static void Atimesp1(mwSize dm[], /*@null@*/ float A[], float p[], float Ap[])
 
 void vel2mom(mwSize dm[], float f[], double s[], float g[])
 {
-    mwSignedIndex k;
+    mwSignedIndex j, k;
     double w000,w100,w200,
            w010,w110,
            w020,
@@ -586,16 +598,26 @@ void vel2mom(mwSize dm[], float f[], double s[], float g[])
     wy000 *= OnePlusTiny;
     wz000 *= OnePlusTiny;
 
+#   pragma omp parallel for collapse(2)
     for(k=0; k<(mwSignedIndex)dm[2]; k++)
     {
-        mwSignedIndex j, km2,km1,kp1,kp2;
-        km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
-        km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
-        kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#       ifndef _OPENMP
+            mwSignedIndex km2,km1,kp1,kp2;
+            km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+            kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#       endif
 
         for(j=0; j<(mwSignedIndex)dm[1]; j++)
         {
+#           ifdef _OPENMP
+                mwSignedIndex km2,km1,kp1,kp2;
+                km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+                km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+                kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#           endif
             mwSignedIndex i, jm2,jm1,jp1,jp2;
             float *pgx, *pgy, *pgz, *pfx, *pfy, *pfz;
 
@@ -680,6 +702,7 @@ void Atimesp(mwSize dm[], /*@null@*/ float a[], double param[], float p[], float
 /************************************************************************************************/
 static void relax_le(mwSize dm[], /*@null@*/ float a[], float b[], double s[], int nit, float u[])
 {
+    mwSignedIndex j, k;
     int it;
     double wx000, wx100, wx010, wx001, wy000, wy100, wy010, wy001, wz000, wz100, wz010, wz001, w2;
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
@@ -734,15 +757,22 @@ static void relax_le(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
 
     for(it=0; it<8*nit; it++)
     {
-        mwSignedIndex k;
+#       pragma omp parallel for collapse(2)
         for(k=it&1; k<(mwSignedIndex)dm[2]; k+=2)
         {
-            mwSignedIndex j, km1, kp1;
-            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
-            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+#           ifndef _OPENMP
+                mwSignedIndex km1, kp1;
+                km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+#           endif
 
             for(j=(it/2)&1; j<(mwSignedIndex)dm[1]; j+=2)
             {
+#               ifdef _OPENMP
+                    mwSignedIndex km1, kp1;
+                    km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                    kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+#               endif
                 float *pux  = NULL, *puy  = NULL, *puz  = NULL,
                       *pbx  = NULL, *pby  = NULL, *pbz  = NULL,
                       *paxx = NULL, *payy = NULL, *pazz = NULL,
@@ -817,7 +847,7 @@ static void relax_le(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
                     }
                 }
             }
-        } 
+        }
 #       ifdef VERBOSE
             if ((it%8)==7) printf(" %g", sumsq(dm, a, b, s, u));
 #       endif
@@ -830,6 +860,7 @@ static void relax_le(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
 
 static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], int nit, float u[])
 {
+    mwSignedIndex j, k;
     int it;
     double w000,w001,w010,w100;
     double lam0 = s[3], lam1 = s[4];
@@ -865,26 +896,37 @@ static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
 
     for(it=0; it<2*nit; it++)
     {
-        mwSignedIndex k, kstart;
-        mwSignedIndex j, jstart;
-        mwSignedIndex i, istart;
-
+        mwSignedIndex kstart;
         kstart = (mwSignedIndex)(it%2);
+
+#       pragma omp parallel for collapse(2)
         for(k=0; k<(mwSignedIndex)dm[2]; k++)
         {
-            mwSignedIndex km1, kp1;
-            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
-            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+#           ifndef _OPENMP
+                mwSignedIndex jstart;
+                mwSignedIndex km1, kp1;
+                km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
 
-            jstart = (mwSignedIndex)(kstart == (k%2));
+                jstart = (mwSignedIndex)(kstart == (k%2));
+#           endif
             for(j=0; j<(mwSignedIndex)dm[1]; j++)
             {
+#               ifdef _OPENMP
+                    mwSignedIndex jstart;
+                    mwSignedIndex km1, kp1;
+                    km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                    kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+
+                    jstart = (mwSignedIndex)(kstart == (k%2));
+#               endif
                 float *pux  = NULL, *puy  = NULL, *puz  = NULL,
                       *pbx  = NULL, *pby  = NULL, *pbz  = NULL,
                       *paxx = NULL, *payy = NULL, *pazz = NULL,
                       *paxy = NULL, *paxz = NULL, *payz = NULL;
 
-                mwSignedIndex jm1,jp1, im1,ip1;
+                mwSignedIndex jm1,jp1;
+                mwSignedIndex i, istart;
 
                 pux  = u+dm[0]*(j+dm[1]*k);
                 puy  = u+dm[0]*(j+dm[1]*(k+dm[2]));
@@ -912,6 +954,8 @@ static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
                 {
                     double sux, suy, suz;
                     float *px = pux+i, *py = puy+i, *pz = puz+i;
+
+                    mwSignedIndex im1,ip1;
 
                     im1 = bound(i-1,dm[0])-i;
                     ip1 = bound(i+1,dm[0])-i;
@@ -962,6 +1006,7 @@ static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
 
 static void relax_be(mwSize dm[], /*@null@*/ float a[], float b[], double s[], int nit, float u[])
 {
+    mwSignedIndex j, k;
     int it;
     double w000,w100,w200,
            w010,w110,
@@ -1040,22 +1085,31 @@ static void relax_be(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
 
     for(it=0; it<27*nit; it++)
     {
-        mwSignedIndex i, j, k;
+#       pragma omp parallel for collapse(2)
         for(k=(it/9)%3; k<(mwSignedIndex)dm[2]; k+=3)
         {
-            mwSignedIndex km2, km1, kp1, kp2;
-            km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
-            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
-            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
-            kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#           ifndef _OPENMP
+                mwSignedIndex km2, km1, kp1, kp2;
+                km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+                km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+                kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#           endif
 
             for(j=(it/3)%3; j<(mwSignedIndex)dm[1]; j+=3)
             {
+#               ifdef _OPENMP
+                    mwSignedIndex km2, km1, kp1, kp2;
+                    km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+                    km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                    kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+                    kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#               endif
                 float *pux  = NULL, *puy  = NULL, *puz  = NULL,
                       *pbx  = NULL, *pby  = NULL, *pbz  = NULL,
                       *paxx = NULL, *payy = NULL, *pazz = NULL,
                       *paxy = NULL, *paxz = NULL, *payz = NULL;
-                mwSignedIndex jm2,jm1,jp1,jp2;
+                mwSignedIndex i,jm2,jm1,jp1,jp2;
 
                 pux  = u+dm[0]*(j+dm[1]* k);
                 puy  = u+dm[0]*(j+dm[1]*(k+dm[2]));
@@ -1169,6 +1223,7 @@ static void relax_be(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
 
 static void relax_all(mwSize dm[], /*@null@*/ float a[], float b[], double s[], int nit, float u[])
 {
+    mwSignedIndex j, k;
     int it;
     double w000,w100,w200,
            w010,w110,
@@ -1225,7 +1280,7 @@ static void relax_all(mwSize dm[], /*@null@*/ float a[], float b[], double s[], 
     {
         wx000 += 2.0*w002/v0;
         wy000 += 2.0*w002/v1;
-        wz000 += 2.0*w002/v2; 
+        wz000 += 2.0*w002/v2;
         w002   = 0.0;
     }
 
@@ -1286,22 +1341,31 @@ static void relax_all(mwSize dm[], /*@null@*/ float a[], float b[], double s[], 
 
     for(it=0; it<27*nit; it++)
     {
-        mwSignedIndex i, j, k;
+#       pragma omp parallel for collapse(2)
         for(k=(it/9)%3; k<(mwSignedIndex)dm[2]; k+=3)
         {
-            mwSignedIndex km2, km1, kp1, kp2;
-            km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
-            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
-            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
-            kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#           ifndef _OPENMP
+                mwSignedIndex km2, km1, kp1, kp2;
+                km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+                km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+                kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#           endif
 
             for(j=(it/3)%3; j<(mwSignedIndex)dm[1]; j+=3)
             {
+#               ifdef _OPENMP
+                    mwSignedIndex km2, km1, kp1, kp2;
+                    km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+                    km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                    kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+                    kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+#               endif
                 float *pux  = NULL, *puy  = NULL, *puz  = NULL,
                       *pbx  = NULL, *pby  = NULL, *pbz  = NULL,
                       *paxx = NULL, *payy = NULL, *pazz = NULL,
                       *paxy = NULL, *paxz = NULL, *payz = NULL;
-                mwSignedIndex jm2,jm1,jp1,jp2;
+                mwSignedIndex i, jm2,jm1,jp1,jp2;
 
                 pux  = u+dm[0]*(j+dm[1]* k);
                 puy  = u+dm[0]*(j+dm[1]*(k+dm[2]));

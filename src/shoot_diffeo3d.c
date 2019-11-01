@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 7684 2019-10-30 14:21:34Z john $ */
+/* $Id: shoot_diffeo3d.c 7685 2019-11-01 12:56:19Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -574,7 +574,7 @@ static void def2jac_neuman(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s
                 else
                 {
                     mwSignedIndex op = (mwSignedIndex)i+dm[0]*dm[1], om = (mwSignedIndex)i-dm[0]*dm[1];
-                    j13 = (y1[op]-y1[om])*0.5f; 
+                    j13 = (y1[op]-y1[om])*0.5f;
                     j23 = (y2[op]-y2[om])*0.5f;
                     j33 = (y3[op]-y3[om])*0.5f;
                 }
@@ -623,6 +623,7 @@ void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@nul
     pz = Psi+m1*2;
     m0 = dm0[0]*dm0[1]*dm0[2];
 
+#   pragma omp parallel for
     for (i=0; i<m1; i++)
     {
         float  x, y, z;
@@ -636,7 +637,7 @@ void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@nul
 	                   &&  (y>=-TINY) && (y<=(float)(dm0[1])-1.0f+TINY)
 			   &&  (z>=-TINY) && (z<=(float)(dm0[2])-1.0f+TINY)))
         {
-	    mwSignedIndex ix, iy, iz, ix1, iy1, iz1;
+            mwSignedIndex ix, iy, iz, ix1, iy1, iz1;
             mwSize o000, o100, o010, o110, o001, o101, o011, o111;
             mwSize tmpz, tmpy;
             float  dx1, dx2, dy1, dy2, dz1, dz2;
@@ -668,7 +669,7 @@ void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@nul
 
             if ((code&1)==1)
             {
-	        float *pf0 = F0;
+                float *pf0 = F0;
                 for(j=0; j<n; j++, pf0 += m0)
                 {
                     F1[i+j*m1] = ((pf0[o000]*dx2 + pf0[o100]*dx1)*dy2 + (pf0[o010]*dx2 + pf0[o110]*dx1)*dy1)*dz2
@@ -677,10 +678,10 @@ void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@nul
             }
             else
             {
-	        float  w000, w100, w010, w110, w001, w101, w011, w111;
-		float *pf0=F0;
+                float  w000, w100, w010, w110, w001, w101, w011, w111;
+                float *pf0=F0;
 
-	        /* Weights for trilinear interpolation */
+                /* Weights for trilinear interpolation */
                 w000 = dx2*dy2*dz2;
                 w100 = dx1*dy2*dz2;
                 w010 = dx2*dy1*dz2;
@@ -694,34 +695,50 @@ void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@nul
                 {
                     /* Increment the images themselves */
                     float  f1 = F1[i+j*m1];
-		    if (mxIsFinite((double)f1))
-		    {
+                    if (mxIsFinite((double)f1))
+                    {
+#                       pragma omp atomic
                         pf0[o000] += f1*w000;
+#                       pragma omp atomic
                         pf0[o100] += f1*w100;
+#                       pragma omp atomic
                         pf0[o010] += f1*w010;
+#                       pragma omp atomic
                         pf0[o110] += f1*w110;
+#                       pragma omp atomic
                         pf0[o001] += f1*w001;
+#                       pragma omp atomic
                         pf0[o101] += f1*w101;
+#                       pragma omp atomic
                         pf0[o011] += f1*w011;
+#                       pragma omp atomic
                         pf0[o111] += f1*w111;
-		    }
+                    }
                 }
 
                 if (S0!=0)
                 {
                     /* Increment an image containing the number of voxels added
                        - based on finite values in the 1st image */
-		    if (mxIsFinite((double)F1[i]))
-		    {
+                    if (mxIsFinite((double)F1[i]))
+                    {
+#                       pragma omp atomic
                         S0[o000] += w000;
+#                       pragma omp atomic
                         S0[o100] += w100;
+#                       pragma omp atomic
                         S0[o010] += w010;
+#                       pragma omp atomic
                         S0[o110] += w110;
+#                       pragma omp atomic
                         S0[o001] += w001;
+#                       pragma omp atomic
                         S0[o101] += w101;
+#                       pragma omp atomic
                         S0[o011] += w011;
+#                       pragma omp atomic
                         S0[o111] += w111;
-		    }
+                    }
                 }
             }
         }
@@ -1115,7 +1132,7 @@ void smalldef_jac1(mwSize dm[], float sc, float V[], float Psi[], float Jpsi[])
                 A[7] = (V1[op1]-V1[om1])*sc2;
                 A[8] = (V2[op1]-V2[om1])*sc2;
 
-                expm22(A, E); 
+                expm22(A, E);
 
                 Jpsi[o    ] = E[0];
                 Jpsi[o+  m] = E[1];

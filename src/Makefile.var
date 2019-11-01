@@ -2,21 +2,21 @@
 #
 # Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 7532 2019-02-14 12:03:24Z guillaume $
+# $Id: Makefile.var 7685 2019-11-01 12:56:19Z john $
 #
 ###############################################################################
 #
-# This file defines variables used in Makefile and has been tested under 
+# This file defines variables used in Makefile and has been tested under
 # Linux, Windows and MacOS.
-# 
-# If you have to tweak this file to compile the SPM MEX-files for your 
-# platform, please send the details to <fil.spm@ucl.ac.uk> so they can be 
-# included here. 
+#
+# If you have to tweak this file to compile the SPM MEX-files for your
+# platform, please send the details to <fil.spm@ucl.ac.uk> so they can be
+# included here.
 #
 # You can find some more help online on the SPM wikibook:
 #  * Linux:
 #      https://en.wikibooks.org/wiki/SPM/Installation_on_Linux
-#      https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Linux 
+#      https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Linux
 #  * Windows:
 #      https://en.wikibooks.org/wiki/SPM/Installation_on_Windows
 #      https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Windows
@@ -30,7 +30,7 @@
 SHELL        = /bin/sh
 MAKE         = make
 MEXOPTS      = -O -largeArrayDims
-MEXEND       = 
+MEXEND       =
 MOSUF        = o # mex output object suffix
 UNAME        = uname
 AR           = ar rcs
@@ -40,6 +40,16 @@ MOVE         = mv -f
 TAR          = tar
 ZIP          = gzip -f
 
+USE_OPENMP   = 0
+# 1 for true, 0 for false
+NUMTHREADS   = 1
+# Default number of threads (positive integer)
+# Set 'NUMTHREADS = -1' to use the number of available processors (as returned
+# by omp_get_num_procs()) as the default number of threads.
+
+ifeq (1,$(USE_OPENMP))
+endif
+
 ifndef PLATFORM
   PLATFORM   = $(shell $(UNAME))
 endif
@@ -47,14 +57,25 @@ endif
 ##### Linux #####
 ifeq (Linux,$(PLATFORM))
   MEXEXT     = mexa64
-  MEXBIN    ?= mex
+  MEXBIN     = /usr/local/MATLAB/R2018b/bin/mex
   #MEXOPTS   += CFLAGS='$$CFLAGS -Wall'
+  ifeq (1,$(USE_OPENMP))
+    MEXOPTS += CFLAGS='$$CFLAGS -fopenmp' LDFLAGS='$$LDFLAGS -fopenmp'
+    MEXOPTS += -DSPM_NUMTHREADS_DEFAULT=$(NUMTHREADS)
+  endif
 endif
 
 ##### MacOS #####
 ifeq (Darwin,$(PLATFORM))
   MEXEXT     = mexmaci64
   MEXBIN    ?= mex
+  ifeq (1,$(USE_OPENMP))
+    # WARNING: openmp is not supported by the native clang on MacOS
+    # You can use the homebrew version by following these instructions:
+    # https://stackoverflow.com/questions/37362414/openmp-with-mex-in-matlab-on-mac
+    MEXOPTS += CFLAGS='$$CFLAGS -fopenmp=libiomp5' LDFLAGS='$$LDFLAGS -fopenmp=libiomp5'
+    MEXOPTS += -DSPM_NUMTHREADS_DEFAULT=$(NUMTHREADS)
+  endif
 endif
 
 ##### Windows #####
@@ -70,12 +91,22 @@ ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM)))) # MSVC
   MEXEND     = "
   MOSUF      = obj
   AR         = lib.exe /out:
+  ifeq (1,$(USE_OPENMP))
+    # WARNING: not tested
+    MEXOPTS += CFLAGS='$$CFLAGS /openmp' LDFLAGS='$$LDFLAGS /openmp'
+    MEXOPTS += -DSPM_NUMTHREADS_DEFAULT=$(NUMTHREADS)
+  endif
 endif
 ifeq (MSYS,$(word 1,$(subst _, ,$(PLATFORM)))) # GCC
   MEXEXT     = mexw64
   MEXBIN    ?= mex
   MEXOPTS   += -DSPM_WIN32
   MOSUF      = obj
+  ifeq (1,$(USE_OPENMP))
+    # WARNING: not tested
+    MEXOPTS += CFLAGS='$$CFLAGS -fopenmp' LDFLAGS='$$LDFLAGS -fopenmp'
+    MEXOPTS += -DSPM_NUMTHREADS_DEFAULT=$(NUMTHREADS)
+  endif
 endif
 
 #### Octave ####

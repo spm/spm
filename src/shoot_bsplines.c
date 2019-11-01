@@ -1,5 +1,5 @@
 /*
- * $Id: shoot_bsplines.c 7629 2019-06-27 12:35:45Z john $
+ * $Id: shoot_bsplines.c 7685 2019-11-01 12:56:19Z john $
  * John Ashburner
  */
  
@@ -62,6 +62,7 @@ static int vol_coeffs(mwSize vdim[], float vol[], float c[], int d[], void (*spl
     if (d[0]>1 && vdim[0]>1)
     {
         if (get_poles(d[0], &np, p)!=0) return(1);
+#       pragma omp parallel for collapse(2) private(cp)
         for(k=0; k<vdim[2]; k++)
         {
             /* double dk = k+1; */
@@ -78,6 +79,7 @@ static int vol_coeffs(mwSize vdim[], float vol[], float c[], int d[], void (*spl
     {
         if (get_poles(d[1], &np, p)!=0) return(1);
         n =vdim[0];
+#       pragma omp parallel for collapse(2) private(cp,f)
         for(k=0; k<vdim[2]; k++)
         {
             for(i=0;i<vdim[0];i++)
@@ -96,6 +98,7 @@ static int vol_coeffs(mwSize vdim[], float vol[], float c[], int d[], void (*spl
     {
         if (get_poles(d[2], &np, p)!=0) return(1);
         n = vdim[0]*vdim[1];
+#       pragma omp parallel for collapse(2) private(cp,f)
         for(j=0; j<vdim[1]; j++)
         {
             for(i=0;i<vdim[0];i++)
@@ -176,6 +179,7 @@ static void fun(float c[], int m0, int m1, int m2,
     mwSize j;
     double NaN = mxGetNaN();
 
+#   pragma omp parallel for
     for(j=0; j<n; j++)
     {
         if (((cond&1) | (x0[j]>=1-TINY && x0[j]<=m0+TINY)) &&
