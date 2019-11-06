@@ -1,4 +1,8 @@
-#include "shoot_openmp.h"
+/*
+ * $Id: spm_openmp.c 7686 2019-11-06 13:18:06Z guillaume $
+ */
+
+#include "spm_openmp.h"
 #ifdef _OPENMP
 #   include <omp.h>
 #endif

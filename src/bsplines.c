@@ -1,5 +1,5 @@
 /*
- * $Id: bsplines.c 7684 2019-10-30 14:21:34Z john $
+ * $Id: bsplines.c 7686 2019-11-06 13:18:06Z guillaume $
  * John Ashburner
  */
  
@@ -24,6 +24,7 @@
  *  IEEE Signal Processing Magazine 16(6):22-38 (1999).
  *
 */
+
 #include <stdlib.h>
 #include <math.h>
 #ifdef IMAGE_SINGLE

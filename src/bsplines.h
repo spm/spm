@@ -1,7 +1,8 @@
 /*
- * $Id: bsplines.h 7408 2018-08-24 14:54:57Z john $
+ * $Id: bsplines.h 7686 2019-11-06 13:18:06Z guillaume $
  * John Ashburner
  */
+ 
 #ifdef IMAGE_SINGLE
 #define IMAGE_DTYPE float
 #else

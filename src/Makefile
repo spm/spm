@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 7685 2019-11-01 12:56:19Z john $
+# $Id: Makefile 7686 2019-11-06 13:18:06Z guillaume $
 #
 ###############################################################################
 #
@@ -289,11 +289,11 @@ spm_voronoi.$(MEXEXT): spm_voronoi.c
 spm_mrf.$(MEXEXT): spm_mrf.c
 	$(MEX) spm_mrf.c $(MEXEND)
 
-spm_diffeo.$(MEXEXT): spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_openmp.c shoot_bsplines.c bsplines.c
-	$(MEX) spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_openmp.c shoot_bsplines.c bsplines.c -DIMAGE_SINGLE $(MEXEND)
+spm_diffeo.$(MEXEXT): spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c spm_openmp.c shoot_bsplines.c bsplines.c
+	$(MEX) spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c spm_openmp.c shoot_bsplines.c bsplines.c -DIMAGE_SINGLE $(MEXEND)
 
-spm_field.$(MEXEXT): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_boundary.c shoot_openmp.c
-	$(MEX) spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c shoot_openmp.c $(MEXEND)
+spm_field.$(MEXEXT): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_boundary.c spm_openmp.c
+	$(MEX) spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c spm_openmp.c $(MEXEND)
 
 spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c
 	$(MEX) spm_jsonread.c jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)
@@ -301,10 +301,10 @@ spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c
 spm_mesh_reduce.$(MEXEXT): spm_mesh_reduce.cpp Simplify.h
 	$(MEX) spm_mesh_reduce.cpp $(MEXEND)
 
-libSPM.so: shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c shoot_regularisers.c shoot_optim3d.c hist2.c shoot_openmp.c\
-	   shoot_diffeo3d.h shoot_optimN.h shoot_boundary.h shoot_multiscale.h shoot_regularisers.h shoot_optim3d.h hist2.h shoot_openmp.h
+libSPM.so: shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c shoot_regularisers.c shoot_optim3d.c hist2.c spm_openmp.c\
+	   shoot_diffeo3d.h shoot_optimN.h shoot_boundary.h shoot_multiscale.h shoot_regularisers.h shoot_optim3d.h hist2.h spm_openmp.h
 	gcc -O4 --shared -I. shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c shoot_regularisers.c shoot_optim3d.c\
-		shoot_openmp.c hist2.c  -o libSPM.so -lm -fPIC -DIMAGE_SINGLE
+		spm_openmp.c hist2.c  -o libSPM.so -lm -fPIC -DIMAGE_SINGLE
 
 ###############################################################################
 # Display Messages

@@ -1,11 +1,11 @@
-/* $Id: spm_field.c 7685 2019-11-01 12:56:19Z john $ */
+/* $Id: spm_field.c 7686 2019-11-06 13:18:06Z guillaume $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"
 #include <math.h>
 #include "shoot_optimN.h"
 #include "shoot_boundary.h"
-#include "shoot_openmp.h"
+#include "spm_openmp.h"
 
 static void boundary_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {

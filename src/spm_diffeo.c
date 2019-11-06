@@ -1,4 +1,4 @@
-/* $Id: spm_diffeo.c 7685 2019-11-01 12:56:19Z john $ */
+/* $Id: spm_diffeo.c 7686 2019-11-06 13:18:06Z guillaume $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -10,7 +10,7 @@
 #include "shoot_dartel.h"
 #include "shoot_bsplines.h"
 #include "shoot_boundary.h"
-#include "shoot_openmp.h"
+#include "spm_openmp.h"
 #define eps 1.1921e-7
 
 static void boundary_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
