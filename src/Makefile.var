@@ -2,7 +2,7 @@
 #
 # Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 7685 2019-11-01 12:56:19Z john $
+# $Id: Makefile.var 7687 2019-11-07 11:26:02Z guillaume $
 #
 ###############################################################################
 #
@@ -39,16 +39,8 @@ DEL          = rm -f
 MOVE         = mv -f
 TAR          = tar
 ZIP          = gzip -f
-
-USE_OPENMP   = 0
-# 1 for true, 0 for false
-NUMTHREADS   = 1
-# Default number of threads (positive integer)
-# Set 'NUMTHREADS = -1' to use the number of available processors (as returned
-# by omp_get_num_procs()) as the default number of threads.
-
-ifeq (1,$(USE_OPENMP))
-endif
+OMPFLAG      = -fopenmp
+USE_OPENMP  ?= 0
 
 ifndef PLATFORM
   PLATFORM   = $(shell $(UNAME))
@@ -57,25 +49,16 @@ endif
 ##### Linux #####
 ifeq (Linux,$(PLATFORM))
   MEXEXT     = mexa64
-  MEXBIN     = /usr/local/MATLAB/R2018b/bin/mex
+  MEXBIN    ?= mex
   #MEXOPTS   += CFLAGS='$$CFLAGS -Wall'
-  ifeq (1,$(USE_OPENMP))
-    MEXOPTS += CFLAGS='$$CFLAGS -fopenmp' LDFLAGS='$$LDFLAGS -fopenmp'
-    MEXOPTS += -DSPM_NUMTHREADS_DEFAULT=$(NUMTHREADS)
-  endif
 endif
 
 ##### MacOS #####
 ifeq (Darwin,$(PLATFORM))
   MEXEXT     = mexmaci64
   MEXBIN    ?= mex
-  ifeq (1,$(USE_OPENMP))
-    # WARNING: openmp is not supported by the native clang on MacOS
-    # You can use the homebrew version by following these instructions:
-    # https://stackoverflow.com/questions/37362414/openmp-with-mex-in-matlab-on-mac
-    MEXOPTS += CFLAGS='$$CFLAGS -fopenmp=libiomp5' LDFLAGS='$$LDFLAGS -fopenmp=libiomp5'
-    MEXOPTS += -DSPM_NUMTHREADS_DEFAULT=$(NUMTHREADS)
-  endif
+  # https://stackoverflow.com/questions/37362414/
+  OMPFLAG    = -fopenmp=libiomp5
 endif
 
 ##### Windows #####
@@ -91,45 +74,41 @@ ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM)))) # MSVC
   MEXEND     = "
   MOSUF      = obj
   AR         = lib.exe /out:
-  ifeq (1,$(USE_OPENMP))
-    # WARNING: not tested
-    MEXOPTS += CFLAGS='$$CFLAGS /openmp' LDFLAGS='$$LDFLAGS /openmp'
-    MEXOPTS += -DSPM_NUMTHREADS_DEFAULT=$(NUMTHREADS)
-  endif
+  OMPFLAG    = /openmp
 endif
 ifeq (MSYS,$(word 1,$(subst _, ,$(PLATFORM)))) # GCC
   MEXEXT     = mexw64
   MEXBIN    ?= mex
   MEXOPTS   += -DSPM_WIN32
   MOSUF      = obj
-  ifeq (1,$(USE_OPENMP))
-    # WARNING: not tested
-    MEXOPTS += CFLAGS='$$CFLAGS -fopenmp' LDFLAGS='$$LDFLAGS -fopenmp'
-    MEXOPTS += -DSPM_NUMTHREADS_DEFAULT=$(NUMTHREADS)
-  endif
 endif
 
 #### Octave ####
 ifeq (octave,$(PLATFORM))
   MEXEXT     = mex
   MEXBIN    ?= mkoctfile
-  MEXOPTS    = --mex
+  MEXOPTS    = --mex -DOCTAVE_MEX_FILE
   #MEXOPTS   += -Wall
   override PLATFORM = $(shell $(UNAME))
   ifeq (MINGW64,$(word 1,$(subst _, ,$(PLATFORM))))
     MEXOPTS += -DSPM_WIN32
   endif
+  OMPFLAG    =
 endif
 
 #### Otherwise ####
 ifndef MEXEXT
   $(error Unknowm platform $(PLATFORM))
 endif
-SUF          = $(MEXEXT)
-
-MEX          = $(MEXBIN) $(MEXOPTS)
 
 MATLABROOT   = $(realpath $(shell which $(firstword $(MEXBIN))))
+ifeq (1,$(USE_OPENMP))
+  ifneq ($(OMPFLAG),)
+    MEXOPTS += CFLAGS='$$CFLAGS $(OMPFLAG)' LDFLAGS='$$LDFLAGS $(OMPFLAG)'
+  endif
+endif
+MEX          = $(MEXBIN) $(MEXOPTS)
+SUF          = $(MEXEXT)
 
 define verb
 	@ echo "_____________________________________________________________"

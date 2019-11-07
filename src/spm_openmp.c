@@ -1,51 +1,44 @@
 /*
- * $Id: spm_openmp.c 7686 2019-11-06 13:18:06Z guillaume $
+ * $Id: spm_openmp.c 7687 2019-11-07 11:26:02Z guillaume $
  */
 
 #include "spm_openmp.h"
+#include <stdio.h>
+#include <stdlib.h>
 #ifdef _OPENMP
-#   include <omp.h>
-#endif
-#ifndef SPM_NUMTHREADS_DEFAULT
-#   ifdef _OPENMP
-#       define SPM_NUMTHREADS_DEFAULT 1
-#   else
-#       define SPM_NUMTHREADS_DEFAULT 0
-#   endif
+#include <omp.h>
 #endif
 
-static int num_threads = SPM_NUMTHREADS_DEFAULT;
+static char SPM_NUM_THREADS[] = "SPM_NUM_THREADS";
 
-void set_num_threads(int t)
+void spm_set_num_threads(int t)
 {
-#   ifdef _OPENMP
-        if(t == 0)
-            num_threads = 1;
-        else if(t > 0)
-            num_threads = t;
-        else
-            num_threads = -t * get_num_procs();
-        omp_set_num_threads(num_threads);
-#   else
-        num_threads = 0;
-#   endif
-}
-
-int get_num_threads()
-{
+    int num_threads;
+    char spm_num_threads[8];
 #ifdef _OPENMP
-    return(num_threads);
+    if(t == 0)
+        num_threads = 1;
+    else if(t > 0)
+        num_threads = t;
+    else
+        num_threads = -t * omp_get_num_procs();
+    omp_set_num_threads(num_threads);
 #else
-    return(0);
+    num_threads = 1;
 #endif
+    sprintf(spm_num_threads,"%d",num_threads);
+    setenv(SPM_NUM_THREADS,spm_num_threads,1);
 }
 
-int get_num_procs()
+int spm_get_num_threads()
 {
 #ifdef _OPENMP
-    return(omp_get_num_procs());
+    char *num_threads = getenv(SPM_NUM_THREADS);
+    if (num_threads == NULL)
+        return(1); /* default: alternative is -1 */
+    else
+        return(atoi(num_threads));
 #else
-    return(0);
+    return(1);
 #endif
 }
-

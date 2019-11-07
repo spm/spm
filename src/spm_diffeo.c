@@ -1,4 +1,4 @@
-/* $Id: spm_diffeo.c 7686 2019-11-06 13:18:06Z guillaume $ */
+/* $Id: spm_diffeo.c 7687 2019-11-07 11:26:02Z guillaume $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -29,37 +29,6 @@ static void boundary_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
     }
 }
 
-
-static void threads_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    if ((nlhs<=1) && (nrhs==0))
-    {
-        mwSize nout[] = {1,1,1};
-        plhs[0] = mxCreateNumericArray(2,nout, mxDOUBLE_CLASS, mxREAL);
-        mxGetPr(plhs[0])[0] = get_num_threads();
-    }
-    else if ((nrhs==1) && (nlhs==0))
-    {
-        if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
-            mexErrMsgTxt("Data must be numeric, real, full and double");
-        set_num_threads(mxGetPr(prhs[0])[0]);
-    }
-    // mexPrintf("Number of threads: %d\n", get_num_threads());
-}
-
-static void procs_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    if ((nlhs<=1) && (nrhs==0))
-    {
-        mwSize nout[] = {1,1,1};
-        plhs[0] = mxCreateNumericArray(2,nout, mxDOUBLE_CLASS, mxREAL);
-        mxGetPr(plhs[0])[0] = get_num_procs();
-    }
-    else
-    {
-        mexErrMsgTxt("Wrong number of arguments");
-    }
-}
 
 static void cgs3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -1050,7 +1019,7 @@ void invdef_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     set_bound(get_bound());
-    set_num_threads(get_num_threads());
+    spm_set_num_threads(spm_get_num_threads());
 
     if ((nrhs>=1) && mxIsChar(prhs[0]))
     {
@@ -1155,16 +1124,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         {
             mxFree(fnc_str);
             boundary_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
-        }
-        else if (!strcmp(fnc_str,"num_threads")  || !strcmp(fnc_str,"threads"))
-        {
-            mxFree(fnc_str);
-            threads_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
-        }
-        else if (!strcmp(fnc_str,"num_procs")  || !strcmp(fnc_str,"procs"))
-        {
-            mxFree(fnc_str);
-            procs_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
         else if (!strcmp(fnc_str,"bsplinc"))
         {

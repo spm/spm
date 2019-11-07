@@ -1,8 +1,8 @@
 /*
- * $Id: spm_mex.h 7686 2019-11-06 13:18:06Z guillaume $
+ * $Id: spm_mex.h 7687 2019-11-07 11:26:02Z guillaume $
  */
 
-#if defined (MATLAB_MEX_FILE) || defined (HAVE_OCTAVE)
+#if defined (MATLAB_MEX_FILE) || defined (OCTAVE_MEX_FILE)
 #   include "mex.h"
 #else
 #   if ! defined (__SPM_MEX_H_)

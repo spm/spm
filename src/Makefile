@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 7686 2019-11-06 13:18:06Z guillaume $
+# $Id: Makefile 7687 2019-11-07 11:26:02Z guillaume $
 #
 ###############################################################################
 #
@@ -301,10 +301,17 @@ spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c
 spm_mesh_reduce.$(MEXEXT): spm_mesh_reduce.cpp Simplify.h
 	$(MEX) spm_mesh_reduce.cpp $(MEXEND)
 
-libSPM.so: shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c shoot_regularisers.c shoot_optim3d.c hist2.c spm_openmp.c\
-	   shoot_diffeo3d.h shoot_optimN.h shoot_boundary.h shoot_multiscale.h shoot_regularisers.h shoot_optim3d.h hist2.h spm_openmp.h
-	gcc -O4 --shared -I. shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c shoot_regularisers.c shoot_optim3d.c\
-		spm_openmp.c hist2.c  -o libSPM.so -lm -fPIC -DIMAGE_SINGLE
+###############################################################################
+# Compile shared library libSPM
+###############################################################################
+
+libSPM.so: shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c\
+	   shoot_regularisers.c shoot_optim3d.c hist2.c spm_openmp.c\
+	   shoot_diffeo3d.h shoot_optimN.h shoot_boundary.h shoot_multiscale.h\
+	   shoot_regularisers.h shoot_optim3d.h hist2.h spm_openmp.h
+	$(CC) -O4 -shared -fPIC -Wl,-soname,$@ -o $@ -lm -DIMAGE_SINGLE\
+	   shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c\
+	   shoot_regularisers.c shoot_optim3d.c hist2.c spm_openmp.c $(OMPFLAG)
 
 ###############################################################################
 # Display Messages

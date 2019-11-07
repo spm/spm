@@ -1,7 +1,6 @@
 /*
- * $Id: spm_openmp.h 7686 2019-11-06 13:18:06Z guillaume $
+ * $Id: spm_openmp.h 7687 2019-11-07 11:26:02Z guillaume $
  */
 
-extern void set_num_threads(int t);
-extern int  get_num_threads();
-extern int  get_num_procs();
+extern void spm_set_num_threads(int t);
+extern int  spm_get_num_threads();
