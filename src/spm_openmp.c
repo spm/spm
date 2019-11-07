@@ -1,10 +1,13 @@
 /*
- * $Id: spm_openmp.c 7688 2019-11-07 12:24:42Z guillaume $
+ * $Id: spm_openmp.c 7689 2019-11-07 13:25:47Z guillaume $
  */
 
 #include "spm_openmp.h"
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef SPM_WIN32
+#include <windows.h>
+#endif
 
 static char SPM_NUM_THREADS[] = "SPM_NUM_THREADS";
 
@@ -34,11 +37,20 @@ void spm_set_num_threads(int t)
 int spm_get_num_threads()
 {
 #ifdef _OPENMP
+    
+#ifdef SPM_WIN32
+    static char num_threads[MAX_PATH];
+    const DWORD ret = GetEnvironmentVariable(SPM_NUM_THREADS,num_threads,MAX_PATH);
+    int sts = (ret == 0) | (ret > MAX_PATH);
+#else
     char *num_threads = getenv(SPM_NUM_THREADS);
-    if (num_threads == NULL)
+    int sts = num_threads == NULL;
+#endif
+    if (sts)
         return(1); /* default: alternative is -1 */
     else
         return(atoi(num_threads));
+    
 #else
     return(1);
 #endif
