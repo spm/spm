@@ -1,13 +1,10 @@
 /*
- * $Id: spm_openmp.c 7687 2019-11-07 11:26:02Z guillaume $
+ * $Id: spm_openmp.c 7688 2019-11-07 12:24:42Z guillaume $
  */
 
 #include "spm_openmp.h"
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 static char SPM_NUM_THREADS[] = "SPM_NUM_THREADS";
 
@@ -27,7 +24,11 @@ void spm_set_num_threads(int t)
     num_threads = 1;
 #endif
     sprintf(spm_num_threads,"%d",num_threads);
+#ifdef SPM_WIN32
+    _putenv_s(SPM_NUM_THREADS,spm_num_threads);
+#else
     setenv(SPM_NUM_THREADS,spm_num_threads,1);
+#endif
 }
 
 int spm_get_num_threads()
