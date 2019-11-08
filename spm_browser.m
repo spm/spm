@@ -17,7 +17,7 @@ function [H, HC] = spm_browser(url,F,pos,format)
 % Copyright (C) 2011-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_browser.m 7478 2018-11-08 14:51:54Z guillaume $
+% $Id: spm_browser.m 7691 2019-11-08 17:08:21Z guillaume $
 
 %-Input arguments
 %--------------------------------------------------------------------------
@@ -49,6 +49,7 @@ end
 
 %-Display
 %--------------------------------------------------------------------------
+ws = warning('off');
 try
     % if usejava('awt') && spm_check_version('matlab','7.4') >= 0
     %-Create HTML browser panel
@@ -75,6 +76,7 @@ catch
     H  = [];
     HC = [];
 end
+warning(ws);
 
 
 %==========================================================================
