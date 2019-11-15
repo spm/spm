@@ -142,11 +142,7 @@ elseif isequal(regexp(ftpath, ['.*' filesep 'fieldtrip-20[0-9]{6}']), 1)
 else
   % get it from the Contents.m file in the FieldTrip release
   a = ver(ftpath);
-  if isempty(a)                                                                                                     
-    ftver = 'unknown';
-  else
-    ftver = a.Version;
-  end
+  ftver = a.Version;
   
 end % if issvn, isgit or otherwise
 
