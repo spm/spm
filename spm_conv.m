@@ -6,16 +6,16 @@ function [X] = spm_conv(X,sx,sy)
 % sy   - optional non-isomorphic smoothing
 %__________________________________________________________________________
 %
-% spm_conv is a one or two dimensional convolution of a matrix variable
-% in working memory.  It capitalizes on the sparsity structure of the
-% problem and the separablity of multidimensional convolution with a Gaussian
+% spm_conv is a one or two dimensional convolution of a matrix variable in
+% working memory.  It capitalizes on the sparsity structure of the problem
+% and the separablity of multidimensional convolution with a Gaussian
 % kernel by using one-dimensional convolutions and kernels that are
 % restricted to non near-zero values.
 %__________________________________________________________________________
-% Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_conv.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_conv.m 7698 2019-11-19 15:37:09Z guillaume $
 
 
 % assume isomorphic smoothing
@@ -43,17 +43,22 @@ ky    = ky/sum(ky);
 
 % convolve
 %--------------------------------------------------------------------------
+if spm_check_version('matlab','7.5') > 0
+    shape = {'valid'};
+else
+    shape = {};
+end
 if lx > 1
     for i = 1:ly
         u      = X(:,i);
         v      = [flipud(u(1:Ex)); u; flipud(u((1:Ex) + lx - Ex))];
-        X(:,i) = sparse(conv(full(v),kx,'valid'));
+        X(:,i) = sparse(conv(full(v),kx,shape{:}));
     end
 end
 if ly > 1
     for i = 1:lx
         u      = X(i,:);
         v      = [fliplr(u(1:Ey)) u fliplr(u((1:Ey) + ly - Ey))];
-        X(i,:) = sparse(conv(full(v),ky,'valid'));
+        X(i,:) = sparse(conv(full(v),ky,shape{:}));
     end
 end
