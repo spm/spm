@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 7685 2019-11-01 12:56:19Z john $ */
+/* $Id: shoot_diffeo3d.c 7699 2019-11-20 16:00:03Z yael $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -614,7 +614,7 @@ void def2jac(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s)
 
 void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@null@@out@*/float S0[], float F1[], unsigned int code)
 {
-    mwSize i, j, m0;
+    mwSize i, m0;
     float  *px, *py, *pz;
     float  NaN = (float)mxGetNaN();
 
@@ -627,6 +627,7 @@ void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@nul
     for (i=0; i<m1; i++)
     {
         float  x, y, z;
+        mwSize j;
 
         x    = px[i]-1.0f; /* Subtract 1 because of MATLAB indexing */
         y    = py[i]-1.0f;
