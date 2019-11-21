@@ -18,9 +18,9 @@ function D = spm_eeg_correct_sensor_data(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_correct_sensor_data.m 7132 2017-07-10 16:22:58Z guillaume $
+% $Id: spm_eeg_correct_sensor_data.m 7701 2019-11-21 21:50:17Z vladimir $
 
-SVNrev = '$Rev: 7132 $';
+SVNrev = '$Rev: 7701 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -73,17 +73,39 @@ for i = 1:numel(A)
     montage.labelorg = label;
     montage.labelnew = label;
     
-    montage.chantypeorg = lower(D.chantype(D.indchannel(label)))';
-    montage.chantypenew  = lower(montage.chantypeorg);
+    montage.chantypeold = lower(D.chantype(D.indchannel(label)))';
+    montage.chantypenew  = lower(montage.chantypeold);
    
-    montage.chanunitorg = D.units(D.indchannel(label))';
-    montage.chanunitnew  = montage.chanunitorg;
+    montage.chanunitold = D.units(D.indchannel(label))';
+    montage.chanunitnew  = montage.chanunitold;
     
     if size(A{i}, 1)~=numel(label)
         error('Spatial confound vector does not match the channels.');
     end
     
     if isequal(lower(S.mode), 'berg')
+        % These are the locations taken from the file BR_Brain Regions_LR.bsa
+        % in BESA distribution, transformed to Tailarach coordinates using
+        % BESA simulator and then to MNI template space using tal2icbm_spm 
+        % from http://brainmap.org/icbm2tal/
+        sources = [
+            -47.3124    6.4922  -10.3381
+            -49.1870  -38.7590   -4.3574
+            -35.2804   38.7888   21.0944
+            -41.0574  -16.4018   46.0553
+            -34.9993  -70.8348   20.8450
+            0.8786   60.5733   -5.2797
+            1.5716   38.5344   44.5853
+            1.9792  -16.5380   65.3503
+            1.8525  -71.0130   44.3363
+            1.2689  -91.6233   -5.6259
+            49.1987    6.8326  -12.0156
+            51.4597  -38.4040   -6.1068
+            37.8063   39.0466   19.8240
+            44.5032  -16.1000   44.5681
+            38.0874  -70.5770   19.5747
+            ];
+        
         [D, ok] = check(D, 'sensfid');
         
         if ~ok
@@ -112,9 +134,15 @@ for i = 1:numel(A)
             save(D);
         end
         
-        [L, D] = spm_eeg_lgainmat(D, [], label);
+        fwd = spm_eeg_inv_get_vol_sens(D, D.val, 'MNI-aligned', 'inv', list{i});
         
-        B = spm_svd(L*L', 0.1);
+        [vol, sens] = ft_prepare_vol_sens(fwd.(list{i}).vol, fwd.(list{i}).sens, 'channel', label);
+        
+        
+        L = ft_compute_leadfield(spm_eeg_inv_transform_points(inv(fwd.transforms.toMNI), sources), sens, vol);
+        %[L, D] = spm_eeg_lgainmat(D, [], label);
+        
+        B = spm_svd(L*L', 0.01);
         
         lim = min(0.5*size(L, 1), 45); % 45 is the number of dipoles BESA would use.
         
@@ -158,10 +186,10 @@ montage = [];
 montage.labelorg = D.chanlabels';
 montage.labelnew = Dorig.chanlabels';
 
-montage.chantypeorg  = lower(D.chantype)';
+montage.chantypeold  = lower(D.chantype)';
 montage.chantypenew  = lower(Dorig.chantype)';
 
-montage.chanunitorg  = D.units';
+montage.chanunitold  = D.units';
 montage.chanunitnew  = Dorig.units';
 
 [sel1, sel2]  = spm_match_str(montage.labelnew, montage.labelorg);
