@@ -1,7 +1,7 @@
-/* $Id: shoot_expm3.c 7408 2018-08-24 14:54:57Z john $ */
+/* $Id: shoot_expm3.c 7700 2019-11-21 17:09:15Z john $ */
 /* (c) John Ashburner (2011) */
 
-#include "mex.h"
+#include "spm_mex.h"
 #include <math.h>
 #include <stdio.h>
 

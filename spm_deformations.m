@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 6577 2015-10-15 15:22:11Z volkmar $
+% $Id: spm_deformations.m 7700 2019-11-21 17:09:15Z john $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -437,10 +437,18 @@ for m=1:numel(PI)
 
     if sum(job.fwhm.^2)==0
         newprefix  = spm_get_defaults('normalise.write.prefix');
-        NO.descrip = sprintf('Warped');
+        if job.interp>=0
+            NO.descrip = sprintf('Warped');
+        else
+            NO.descrip = sprintf('Warped categorical');
+        end
     else
         newprefix  = [spm_get_defaults('smooth.prefix') spm_get_defaults('normalise.write.prefix')];
-        NO.descrip = sprintf('Smoothed (%gx%gx%g subopt) warped',job.fwhm);
+        if job.interp>=0
+            NO.descrip = sprintf('Smoothed (%gx%gx%g subopt) warped',job.fwhm);
+        else
+            NO.descrip = sprintf('Smoothed (%gx%gx%g subopt) warped categorical',job.fwhm); % A bit pointless really
+        end
     end
     if isfield(job,'prefix') && ~isempty(job.prefix)
         NO.dat.fname = fullfile(wd,[job.prefix nam ext]);
@@ -489,15 +497,37 @@ for m=1:numel(PI)
         %------------------------------------------------------------------
         for k=k_range
             for l=l_range
-                C   = spm_diffeo('bsplinc',single(NI.dat(:,:,:,j,k,l)),intrp);
-                dat = spm_diffeo('bsplins',C,Y,intrp);
+                f0  = single(NI.dat(:,:,:,j,k,l));
+                if job.interp>=0
+                    c  = spm_diffeo('bsplinc',f0,intrp);
+                    f1 = spm_diffeo('bsplins',c,Y,intrp);
+                else
+                    % Warp labels
+                    U  = unique(f0(:));
+                    if numel(U)>255
+                        error('Too many label values.');
+                    end
+                    f1   = zeros(dim(1:3),class(f0));
+                    p1   = zeros(size(f1),'single');
+                    filt = [0.125 0.75 0.125];
+                    for u=U'
+                        g0       = single(f0==u);
+                        g0       = convn(g0,reshape(filt,[3,1,1]),'same');
+                        g0       = convn(g0,reshape(filt,[1,3,1]),'same');
+                        g0       = convn(g0,reshape(filt,[1,1,3]),'same');
+                        tmp      = spm_diffeo('bsplins',g0,Y,[abs(intrp(1:3)) intrp(4:end)]);
+                        msk1     = (tmp>p1);
+                        p1(msk1) = tmp(msk1);
+                        f1(msk1) = u;
+                    end
+                end
                 if job.mask
-                    dat(~msk) = NaN;
+                    f1(~msk) = NaN;
                 end
                 if sum(job.fwhm.^2)~=0
-                    spm_smooth(dat,dat,krn); % Side effects
+                    spm_smooth(f1,f1,krn); % Side effects
                 end
-                NO.dat(:,:,:,j,k,l) = dat;
+                NO.dat(:,:,:,j,k,l) = f1;
                 %fprintf('\t%d,%d,%d', j,k,l);
             end
         end
@@ -534,12 +564,21 @@ M   = inv(mat0);
 y0  = affine(Def,M);
 
 if isfield(job,'weight') && ~isempty(job.weight) && ~isempty(job.weight{1})
-    wfile = job.weight{1};
-    Nw    = nifti(wfile);
-    Mw    = Nw.mat;
-    wt    = Nw.dat(:,:,:,1,1,1);
+    if job.preserve==2
+        warning('Ignoring weighting image for "preserve labels".');
+        wt    = [];
+    else
+        wfile = job.weight{1};
+        Nw    = nifti(wfile);
+        Mw    = Nw.mat;
+        wt    = Nw.dat(:,:,:,1,1,1);
+    end
 else
     wt    = [];
+end
+
+if sum(job.fwhm.^2)>0 && job.preserve==2
+    warning('Ignoring smoothing fwhm for "preserve labels".');
 end
 
 odm = zeros(1,3);
@@ -573,7 +612,7 @@ for m=1:numel(PI)
     end
 
     NO = NI;
-    if job.preserve
+    if job.preserve==1
         NO.dat.scl_slope = 1.0;
         NO.dat.scl_inter = 0.0;
         NO.dat.dtype     = 'float32-le';
@@ -584,7 +623,7 @@ for m=1:numel(PI)
             newprefix  = [spm_get_defaults('smooth.prefix') spm_get_defaults('deformations.modulate.prefix') spm_get_defaults('normalise.write.prefix')];
             NO.descrip = sprintf('Smoothed (%gx%gx%g) warped Jac scaled',job.fwhm);
         end
-    else
+    elseif job.preserve==0
         if sum(job.fwhm.^2)==0
             newprefix  = spm_get_defaults('normalise.write.prefix');
             NO.descrip = sprintf('Warped');
@@ -592,7 +631,11 @@ for m=1:numel(PI)
             newprefix  = [spm_get_defaults('smooth.prefix') spm_get_defaults('normalise.write.prefix')];
             NO.descrip = sprintf('Smoothed (%gx%gx%g opt) warped',job.fwhm);
         end
+    elseif job.preserve==2
+        newprefix  = spm_get_defaults('normalise.write.prefix');
+        NO.descrip = sprintf('Warped categorical');
     end
+
     if isfield(job,'prefix') && ~isempty(job.prefix)
         NO.dat.fname = fullfile(wd,[job.prefix nam ext]);
     else
@@ -655,18 +698,38 @@ for m=1:numel(PI)
         for k=k_range
             for l=l_range
                 f  = single(NI.dat(:,:,:,j,k,l));
-                if isempty(wt)
-                    if ~job.preserve
+                if isempty(wt) || job.preserve==2
+                    if job.preserve==0
                         % Unmodulated - note the slightly novel procedure
                         [f,c] = spm_diffeo('push',f,y,dim);
                         spm_smooth(f,f,krn); % Side effects
                         spm_smooth(c,c,krn); % Side effects
                         f = f./(c+0.001);
-                    else
+                    elseif job.preserve==1
                         % Modulated, by pushing
                         scal = abs(det(NI.mat(1:3,1:3))/det(NO.mat(1:3,1:3))); % Account for vox sizes
                         f    = spm_diffeo('push',f,y,dim)*scal;
                         spm_smooth(f,f,krn); % Side effects
+                    elseif job.preserve==2
+                        % Warp labels
+                        U  = unique(f(:));
+                        if numel(U)>255
+                            error('Too many label values.');
+                        end
+                        f1   = zeros(dim(1:3),class(f))+NaN;
+                        p1   = zeros(size(f1),'single');
+                        filt = [0.125 0.75 0.125];
+                        for u=U'
+                            g0       = single(f==u);
+                            g0       = spm_diffeo('push',g0,y,dim);
+                            g0       = convn(g0,reshape(filt,[3,1,1]),'same');
+                            g0       = convn(g0,reshape(filt,[1,3,1]),'same');
+                            g0       = convn(g0,reshape(filt,[1,1,3]),'same');
+                            msk1     = (g0>p1);
+                            p1(msk1) = g0(msk1);
+                            f1(msk1) = u;
+                        end
+                        f    = f1;
                     end
                 else
                     if isequal(size(wt),size(f)) && sum((Mw(:)-M0(:)).^2)<1e-6
@@ -679,14 +742,14 @@ for m=1:numel(PI)
                             wtw(:,:,z) = single(spm_slice_vol(wt,Mz,[size(f,1),size(f,2)],1));
                         end
                     end
-                    if ~job.preserve
+                    if job.preserve==0
                         % Unmodulated - note the slightly novel procedure
                         f = spm_diffeo('push',f.*wtw,y,dim);
                         c = spm_diffeo('push',wtw,y,dim);
                         spm_smooth(f,f,krn); % Side effects
                         spm_smooth(c,c,krn); % Side effects
                         f = f./(c+0.001);
-                    else
+                    elseif job.preserve==1
                         % Modulated, by pushing
                         scal = abs(det(NI.mat(1:3,1:3))/det(NO.mat(1:3,1:3))); % Account for vox sizes
                         f    = spm_diffeo('push',f.*wtw,y,dim)*scal;

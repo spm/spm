@@ -1,5 +1,5 @@
 /*
- * $Id: shoot_invdef.c 7408 2018-08-24 14:54:57Z john $
+ * $Id: shoot_invdef.c 7700 2019-11-21 17:09:15Z john $
  * John Ashburner
  */
 
@@ -15,7 +15,7 @@
 */
 
 #include <math.h>
-#include "mex.h"
+#include "spm_mex.h"
 
 #define MAXV 16384
 

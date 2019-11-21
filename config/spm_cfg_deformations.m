@@ -4,7 +4,7 @@ function conf = spm_cfg_deformations
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_deformations.m 7700 2019-11-21 17:09:15Z john $
 
 hsummary = {
 'Utility for working with deformation fields.',...
@@ -248,8 +248,8 @@ interp.name = 'Interpolation';
 interp.tag  = 'interp';
 interp.labels = {'Nearest neighbour','Trilinear','2nd Degree B-spline',...
 '3rd Degree B-Spline ','4th Degree B-Spline ','5th Degree B-Spline',...
-'6th Degree B-Spline','7th Degree B-Spline'};
-interp.values = {0,1,2,3,4,5,6,7};
+'6th Degree B-Spline','7th Degree B-Spline','Categorical'};
+interp.values = {0,1,2,3,4,5,6,7,-1};
 interp.def  = @(val)spm_get_defaults('normalise.write.interp',val{:});
 interp.help    = {
                   ['The method by which the images are sampled when ' ...
@@ -266,6 +266,10 @@ interp.help    = {
                   'degree splines. Can produce values outside the ' ...
                   'original range (e.g. small negative values from an ' ...
                   'originally all positive image).']
+                  '    Categorical:'
+                  ['       - Slow (particularly when there are lots of '...
+                  'categories). This is intended to warp categorical images ' ...
+                  'such as label maps.']
 }';
 
 % ---------------------------------------------------------------------
@@ -308,13 +312,16 @@ preserve.name    = 'Preserve';
 preserve.help    = {
 'Preserve Concentrations: Smoothed spatially normalised images (sw*) represent weighted averages of the signal under the smoothing kernel, approximately preserving the intensities of the original images. This option is currently suggested for eg fMRI.'
 ''
-'Preserve Total: Smoothed and spatially normalised images preserve the total amount of signal from each region in the images (smw*). Areas that are expanded during warping are correspondingly reduced in intensity. This option is suggested for VBM.'
+'Preserve Amount: Smoothed and spatially normalised images preserve the total amount of signal from each region in the images (smw*). Areas that are expanded during warping are correspondingly reduced in intensity. This option is suggested for VBM.'
+''
+'Preserve Labels: This is intended for warping label images. While it is quite slow to run, it is intended to give more accurately warped categorical data.'
 }';
 preserve.labels = {
                    'Preserve Concentrations (no "modulation")'
                    'Preserve Amount ("modulation")'
+                   'Preserve Labels (categorical data)'
 }';
-preserve.values = {0 1};
+preserve.values = {0 1 2};
 preserve.val    = {0};
 % ---------------------------------------------------------------------
 

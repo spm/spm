@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 7687 2019-11-07 11:26:02Z guillaume $
+# $Id: Makefile 7700 2019-11-21 17:09:15Z john $
 #
 ###############################################################################
 #
@@ -306,12 +306,13 @@ spm_mesh_reduce.$(MEXEXT): spm_mesh_reduce.cpp Simplify.h
 ###############################################################################
 
 libSPM.so: shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c\
-	   shoot_regularisers.c shoot_optim3d.c hist2.c spm_openmp.c\
+	   shoot_regularisers.c shoot_optim3d.c hist2.c shoot_invdef.c shoot_expm3.c\
+	   spm_openmp.c\
 	   shoot_diffeo3d.h shoot_optimN.h shoot_boundary.h shoot_multiscale.h\
-	   shoot_regularisers.h shoot_optim3d.h hist2.h spm_openmp.h
+	   shoot_regularisers.h shoot_optim3d.h hist2.h shoot_expm3.h spm_openmp.h
 	$(CC) -O4 -shared -fPIC -Wl,-soname,$@ -o $@ -lm -DIMAGE_SINGLE\
 	   shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c\
-	   shoot_regularisers.c shoot_optim3d.c hist2.c spm_openmp.c $(OMPFLAG)
+	   shoot_regularisers.c shoot_optim3d.c hist2.c shoot_invdef.c spm_openmp.c shoot_expm3.c $(OMPFLAG)
 
 ###############################################################################
 # Display Messages
