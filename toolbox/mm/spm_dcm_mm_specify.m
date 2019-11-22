@@ -1,6 +1,6 @@
-function  [DCM]= spm_dcm_mm_specify(SPM,xY_fMRI, MEEG, Model,N_exclude,Sess_exclude,options)
-% Specify un-estimated structure for (multimodal) DCM for fMRI and M/EEG
-% FORMAT DCM = spm_dcm_specify(SPM,xY_fMRI, MEEG, Model, N_exclude, Sess_exclude)
+function DCM = spm_dcm_mm_specify(SPM,xY_fMRI, MEEG, Model,N_exclude,Sess_exclude,options)
+% Specify unestimated structure for (multimodal) DCM for fMRI and M/EEG
+% FORMAT DCM = spm_dcm_mm_specify(SPM,xY_fMRI, MEEG, Model,N_exclude,Sess_exclude,options)
 %
 %Input
 %--------------------------------------------------------------------------
@@ -12,8 +12,8 @@ function  [DCM]= spm_dcm_mm_specify(SPM,xY_fMRI, MEEG, Model,N_exclude,Sess_excl
 % Sess_exclude -  Excluding any sessions from SPM.mat (optional)
 %Output
 %--------------------------------------------------------------------------
-
-% DCM          -  unestiamted DCM
+%
+% DCM          -  unestimated DCM
 %__________________________________________________________________________
 % Jafarian, A., Litvak, V., Cagnan, H., Friston, K.J. and Zeidman, P., 2019.
 % Neurovascular coupling: insights from multi-modal dynamic causal modelling
@@ -56,6 +56,7 @@ if ischar(MEEG)
 else
     EEG_DCM    = MEEG;
 end
+
 %------------------------------------------------------------------------
 P     = xY_fMRI ;
 m     = numel(P);
@@ -67,8 +68,10 @@ for i = 1:m
     p  = load(P{i},'xY');
     xY = spm_cat_struct(xY,p.xY);
 end
+
 % Inputs
 %==========================================================================
+
 % Experimental fMRI inputs U
 %--------------------------------------------------------------------------
 Sess   = SPM.Sess(xY(1).Sess);
@@ -90,8 +93,10 @@ for i = u
         U.idx           = [U.idx; i j];
     end
 end
+
 % Timings
 %==========================================================================
+
 %-VOI timings
 %--------------------------------------------------------------------------
 RT     = SPM.xY.RT;
@@ -103,6 +108,7 @@ DCM.delays = repmat(SPM.xY.RT/2,m,1);
 %-Echo time (TE) of data acquisition
 %--------------------------------------------------------------------------
 TE    = 0.04;
+
 %==========================================================================
 % Response
 %==========================================================================
@@ -118,9 +124,11 @@ end
 %-Error precision components (one for each region) - i.i.d. (because of W)
 %--------------------------------------------------------------------------
 Y.Q        = spm_Ce(ones(1,n)*v);
+
 %==========================================================================
 % DCM structure
 %==========================================================================
+
 %-Store all variables in DCM structure
 %--------------------------------------------------------------------------
 DCM.U                   =  U;
@@ -137,6 +145,3 @@ DCM.options.maxit       =  options.maxit;
 DCM.model               =  Model;
 DCM.N                   =  N_exclude;
 DCM.MEEG                =  EEG_DCM.DCM ;
-end
-
-

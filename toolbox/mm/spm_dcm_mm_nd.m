@@ -1,5 +1,5 @@
 function neuronal_drive = spm_dcm_mm_nd(DCM)
-% Generates neuronal drive signals for multimodal DCM for fMRI and M/EEG
+% Generate neuronal drive signals for multimodal DCM for fMRI and M/EEG
 % FORMAT neuronal_drive = spm_dcm_mm_nd(DCM)
 %
 %------------------------------Inputs--------------------------------------
@@ -13,10 +13,11 @@ function neuronal_drive = spm_dcm_mm_nd(DCM)
 % of fMRI and MEG. arXiv preprint arXiv:1903.07478.
 %__________________________________________________________________________
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
-%
+
 % Amirhossein Jafarian
-% $Id $
-%
+% $Id: spm_dcm_mm_nd.m 7705 2019-11-22 15:06:38Z spm $
+
+
 % DCM for MEG simualtion
 %--------------------------------------------------------------------------
 rng('default')
@@ -25,6 +26,7 @@ Model          = DCM.model;
 Model{1,4}     = DCM.N    ;
 Uf             = DCM.U    ;
 DCM            = DCM.MEEG ;
+
 %--------------------------------------------------------------------------
 Nc               =  size(DCM.C,1);
 Ns               =  Nc;
@@ -33,6 +35,7 @@ options.model    = 'TFM';
 if (strcmp(options.model, 'TFM'))
     num_pop      = 4;
 end
+
 %--------------------------------------------------------------------------
 pE       = DCM.Ep;
 [x1]     = spm_dcm_x_neural(pE,options.model);
@@ -40,6 +43,7 @@ f        = DCM.M.f ;
 xx       = DCM.x{1,1}(1,:);
 x        = spm_unvec(xx,x1);
 B        = DCM.B{1,1};
+
 % Integrator
 %--------------------------------------------------------------------------
 M.IS   = 'spm_gen_erp';
@@ -52,6 +56,7 @@ M.n    = length(spm_vec(M.x));
 M.l    = Nc;
 M.ns   = DCM.M.ns;
 Num_condition = size(DCM.xY.y,2);
+
 %--------------------------------------------------------------------------
 dt          = DCM.xU.dt;
 pst         = (1:M.ns)*dt;
@@ -65,6 +70,7 @@ S           = full(Uf.u);
 U_fMRI      =  S ;
 time_fMRI   = length(S)*Uf.dt ;
 in.u        = feval('spm_erp_u',(1:M.ns)*U.dt,P,M);
+
 % Simulation of post-synaptic signals
 %--------------------------------------------------------------------------
 if (strcmp(Model{1}, 'post'))
@@ -98,7 +104,7 @@ if (strcmp(Model{1}, 'post'))
     for  j =1:Ns
         BSS = zeros(size(R_SS{1,1}));
         ASS=BSS ; ASP=BSS ;BSP=BSS ;AINH =BSS ; BINH = BSS ; ADP=BSS ; BDP=BSS ;
-        for  i = 1:Num_condition;
+        for  i = 1:Num_condition
             ASS(:)  =  R_SS{i,j};
             BSS(:)  =  BSS(:)+ASS(:);
             ASP(:)  =  R_SP{i,j};
@@ -115,7 +121,8 @@ if (strcmp(Model{1}, 'post'))
     end
     neuronal_drive.num = 4;
 end
-%Simulation of pre-synaptic signals
+
+% Simulation of pre-synaptic signals
 %--------------------------------------------------------------------------
 if (strcmp(Model{1}, 'pre'))
     sig = {};
@@ -165,7 +172,7 @@ if (strcmp(Model{1}, 'pre'))
     BS = zeros(size(Rep_sig{1,1}));
     for  region =1:Ns
         for pop = 1:num_pop
-            for  i = 1:Num_condition;
+            for  i = 1:Num_condition
                 Dr(region,pop,:) =  Rep_sig{1,i}(region,pop,:);
                 BS(region,pop,:) =  BS(region,pop,:)+ Dr(region,pop,:);
                 Dr=[];
@@ -175,7 +182,8 @@ if (strcmp(Model{1}, 'pre'))
     end
     neuronal_drive.num = 1;
 end
-%Simulation of decomposed pre-synaptic signals
+
+% Simulation of decomposed pre-synaptic signals
 %--------------------------------------------------------------------------
 if (strcmp(Model{1}, 'de'))
     sig = {};
@@ -246,7 +254,7 @@ if (strcmp(Model{1}, 'de'))
     Dr2 = Dr1 ;  Dr3 = Dr1 ;  BS1 = Dr1 ; BS2 = Dr1 ;BS3 = Dr1 ;
     for  region =1:Ns
         for pop = 1:num_pop
-            for  i = 1:Num_condition;
+            for  i = 1:Num_condition
                 Dr1(region,pop,:)     =  Rep_sig{1,i}(region,pop,:);
                 BS1(region,pop,:)     =  BS1(region,pop,:)+ Dr1(region,pop,:);
                 Dr1 = [];
@@ -276,8 +284,8 @@ if (strcmp(Model{1}, 'de'))
 end
 
 end
-function y = rms(x)
-%      Root mean squared value.
-y = sqrt(mean(x .* conj(x)));
-end
 
+function y = rms(x)
+% Root mean squared value.
+    y = sqrt(mean(x .* conj(x)));
+end

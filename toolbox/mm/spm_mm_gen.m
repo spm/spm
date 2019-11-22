@@ -1,13 +1,13 @@
 function [y] = spm_mm_gen(P,M,U)
-% Generates a BOLD signal prediction from scaled summed of neuronal drives 
+% Generate a BOLD signal prediction from scaled summed of neuronal drives 
 % (neurovascular coupling).
-% FORMAT [y] = spm_mm_gen (P,M,U)
+% FORMAT [y] = spm_mm_gen(P,M,U)
 %
 %------------------------------------Input---------------------------------
-%  P – parameters of neurovascular coupling and Extended Balloon model
-%  M - Neural mass model structure (M.input – neuronal drive functions)
-%  U – Inputs
-%-----------------------------------Output---------------------------
+%  P - parameters of neurovascular coupling and Extended Balloon model
+%  M - Neural mass model structure (M.input - neuronal drive functions)
+%  U - Inputs
+%-----------------------------------Output---------------------------------
 %  y - BOLD predictions
 %
 % This code scaled neuronal drive signals by neurovascular coupling parameters
@@ -28,6 +28,7 @@ function [y] = spm_mm_gen(P,M,U)
 pf = M.input.input;
 n = M.l;
 a = [];
+
 %--------------------------------------------------------------------------
 if (strcmp(M.Model(1), 'pre'))
     if (M.input.num == 1  && size(M.pE.J,2) == n)
@@ -40,6 +41,7 @@ if (strcmp(M.Model(1), 'pre'))
         end
     end
 end
+
 %--------------------------------------------------------------------------
 if (strcmp(M.Model(1), 'de'))
     if (M.input.num == 3  && size(M.pE.J,2)== 3 && numel(size(M.pE.J))==2)
@@ -68,6 +70,7 @@ if (strcmp(M.Model(1), 'de'))
         end
     end
 end
+
 %--------------------------------------------------------------------------
 if (strcmp(M.Model(1), 'post'))
     if (M.input.num == 4  && size(M.pE.J,2)== n)

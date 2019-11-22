@@ -11,11 +11,11 @@ function DCM  = spm_dcm_mm(P)
 %  P{1,4}(2) - NVC has the same ('s') or different ('d') parameters for all
 %              regions. 
 %  P{1,4}(3) - extrinsic ('ext') or intrinsic ('int') neuronal activity
-%              contribute to regional BOLD (for `post’, this should be 'na').
+%              contribute to regional BOLD (for 'post', this should be 'na').
 %  {'pre','d','int'},{'pre','s','int'}, {'pre','d','ext'},{'pre','s','ext'},
 %  {'de','d', 'int'},{'de','d','exc'}, {'de','s','int'},{'de','s','exc'},
 %  {'post','d','na'},  {'post','s','na'};
-%        - Example: P{1,3} = {‘pre’, ‘s’, ‘int’} means  presynaptic neuronal drive
+%        - Example: P{1,3} = {'pre', 's', 'int'} means  presynaptic neuronal drive
 %       (excluded extrinsic neuronal drives) inputs to a model of neurovascular
 %        coupling that has the same parameters for all regions.
 % P{1,5}  - Excluding some neuronal drives from DCM for fMRI, by setting
@@ -61,8 +61,9 @@ function DCM  = spm_dcm_mm(P)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
  
 % Amirhossein Jafarian
-% $Id $
-%
+% $Id: spm_dcm_mm.m 7705 2019-11-22 15:06:38Z spm $
+
+
 % Input
 %--------------------------------------------------------------------------
 SPM                 =  P{1,1};
@@ -78,7 +79,6 @@ try options.maxit   =   P{1,7}.maxit;  catch, options.maxit       =  128      ;e
 try name            =   P{1,7}.name;   catch, name = sprintf('DCM_%s',date)   ;end
 
 %--------------------------------------------------------------------------
-
 if (size(P,2) <5 || isempty(P{1,5}))
     N_exclude     = ones (1,4)   ;
 end
@@ -101,6 +101,7 @@ end
  v      = DCM.v;         
  U.dt   = DCM.U.dt; 
  U.u    = [];
+ 
 % fMRI signals 
 %--------------------------------------------------------------------------
 Y       = DCM.Y;         
@@ -111,6 +112,7 @@ Y.y     = Y.y*scale;
 Y.scale = scale;
 if ~isfield(Y,'X0'),Y.X0 = ones(v,1); end
 if ~size(Y.X0,2),   Y.X0 = ones(v,1); end
+
 % fMRI slice time sampling
 %--------------------------------------------------------------------------
 try M.delays = DCM.delays; catch, M.delays = ones(n,1); end
@@ -215,8 +217,3 @@ DCM.BIC    = evidence.bic_overall;
 %--------------------------------------------------------------------------
 DCM.name = name; 
 save(DCM.name, 'DCM', spm_get_defaults('mat.format'));
-end
-
-
-
-

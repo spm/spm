@@ -1,5 +1,5 @@
 function Q = spm_gen_par(P,M,U)
-% Generates condition specific parameters using DCM for M/EEG
+% Generate condition specific parameters using DCM for M/EEG
 % FORMAT Q = spm_gen_erp(P,M,U)
 %
 % P - parameters
@@ -8,15 +8,17 @@ function Q = spm_gen_par(P,M,U)
 %   U.X  - between-trial effects (encodes the number of trials)
 %   U.dt - time bins for within-trial effects
 %
-% Q   - Condition specific parameters 
+% Q - Condition specific parameters 
 %__________________________________________________________________________
 % Jafarian, A., Litvak, V., Cagnan, H., Friston, K.J. and Zeidman, P., 2019.
 % Neurovascular coupling: insights from multi-modal dynamic causal modelling
 % of fMRI and MEG. arXiv preprint arXiv:1903.07478.
 %__________________________________________________________________________
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
+
 % Amirhossein Jafarian
 % $Id $
+
 %--------------------------------------------------------------------------
 if nargin < 3, U.X = sparse(1,0); end
 
@@ -70,4 +72,3 @@ c = P.xc ;
 % condition-specific parameters
 %----------------------------------------------------------------------
 Q   = spm_gen_Q(P,X(c,:));
-

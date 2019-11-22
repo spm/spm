@@ -1,8 +1,8 @@
 function [ux, vx, wx] = spm_fx_cmc_tfm_gen(x,u,P,M,option)
 % Generates pre synaptic signals for multimodal DCM for fMRI and M/EEG
-% FORMAT [u,v,w]  = spm_fx_cmc_tfm(x,u,P,M)
-% FORMAT [u,v]    = spm_fx_cmc_tfm(x,u,P,M)
-% FORMAT [u]      = spm_fx_cmc_tfm(x,u,P,M)
+% FORMAT [u,v,w]  = spm_fx_cmc_tfm_gen(x,u,P,M)
+% FORMAT [u,v]    = spm_fx_cmc_tfm_gen(x,u,P,M)
+% FORMAT [u]      = spm_fx_cmc_tfm_gen(x,u,P,M)
 %Input
 % -------------------------------------------------------------------------
 % x      - state vector
@@ -14,7 +14,7 @@ function [ux, vx, wx] = spm_fx_cmc_tfm_gen(x,u,P,M,option)
 %   x(:,6) - conductance (inhibitory interneurons)
 %   x(:,7) - voltage     (deep pyramidal cells)
 %   x(:,8) - conductance (deep pyramidal cells)
-% P        – parameters of canonical micro circuits
+% P        - parameters of canonical micro circuits
 % u        - exogenous input
 % M        - neural-mass model structure
 % options  - options for calculation pre synaptic signals:
@@ -65,8 +65,8 @@ function [ux, vx, wx] = spm_fx_cmc_tfm_gen(x,u,P,M,option)
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
-% Amirhossein Jafrain, and Karl Friston
-% $Id $
+% Amirhossein Jafarian, and Karl Friston
+% $Id: spm_fx_cmc_tfm_gen.m 7705 2019-11-22 15:06:38Z spm $
 
 persistent in1 in2 in3 ;
 
@@ -178,9 +178,9 @@ end
 %--------------------------------------------------------------------------
 % Afferents
 %==========================================================================
-u      = zeros(n,4);                % intrinsic – inhibitory
-v      = zeros(n,4);                % intrinsic – excitatory
-w      = zeros(n,4);                % extrinsic – excitatory
+u      = zeros(n,4);                % intrinsic - inhibitory
+v      = zeros(n,4);                % intrinsic - excitatory
+w      = zeros(n,4);                % extrinsic - excitatory
 Pre_ext    = zeros(n,4); % pre-synaptics with extrinsic input;
 Pre_no_ext = zeros(n,4); % pre-synaptics without extrinsic input;
 
@@ -213,6 +213,7 @@ if option{1,4}(2)== 0
     Pre_ext(:,2)    = 0;
     Pre_no_ext(:,2) = 0;
 end
+
 % Supra-granular layer (inhibitory interneurons): Hidden states - error
 %--------------------------------------------------------------------------
 u(:,3) = G(:,3).*S(:,3);
@@ -242,6 +243,7 @@ if option{1,4}(4)==0
     Pre_ext(:,4)    = 0;
     Pre_no_ext(:,4) = 0;
 end
+
 % output
 %--------------------------------------------------------------------------
 t = 1 ;
@@ -260,5 +262,4 @@ if(strcmp(option{1}, 'de'))
     ux(:,:,t)  = in1;
     vx(:,:,t)  = in2;
     wx(:,:,t)  = in3;
-end
 end
