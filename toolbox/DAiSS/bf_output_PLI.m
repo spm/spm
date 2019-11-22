@@ -10,10 +10,10 @@ function mont = bf_output_PLI(BF, S)
 % Dominik R Bach
 % PLI computation using code published by Gerald Cooray (2010) Karolinska 
 % Institutet: EFFECT OF DIABETES MELLITUS ON HUMAN BRAIN FUNCTION 
-% (https://openarchive.ki.se/xmlui/bitstream/handle/10616/40241/ram_berättelse.pdf?sequence=1)
+% (https://openarchive.ki.se/xmlui/bitstream/handle/10616/40241/ram_ber%C3%A4ttelse.pdf)
 % with a method based on Stam CJ, Nolte G, Daffertshofer A (Hum Brain Mapp 2007)
 % 
-% $Id: bf_output_PLI.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_output_PLI.m 7706 2019-11-22 16:30:29Z spm $
 %--------------------------------------------------------------------------
 if nargin == 0
     label = cfg_entry;

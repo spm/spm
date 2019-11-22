@@ -16,8 +16,8 @@ function A=mkfilt_eloreta_v2(L,regu);
 % 
 % code implemented by Guido Nolte
 % please cite
-% “R.D. Pascual-Marqui: Discrete, 3D distributed, linear imaging methods of electric neuronal activity. Part 1: exact, zero
-% error localization. arXiv:0710.3341 [math-ph], 2007-October-17, http://arxiv.org/pdf/0710.3341 ”
+% R.D. Pascual-Marqui: Discrete, 3D distributed, linear imaging methods of electric neuronal activity. Part 1: exact, zero
+% error localization. arXiv:0710.3341 [math-ph], 2007-October-17, http://arxiv.org/pdf/0710.3341
 
 if nargin<2;regu=.05;end
 

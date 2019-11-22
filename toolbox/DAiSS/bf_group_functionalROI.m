@@ -1,4 +1,4 @@
-function res = bf_functional_voi_localmax(BF, S)
+function res = bf_group_functionalROI(BF, S)
 % Computes Minimum Norm projectors
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
@@ -9,7 +9,7 @@ function res = bf_functional_voi_localmax(BF, S)
 % Hauk O, Stenroos M.
 % A framework for the design of flexible cross-talk functions for spatial filtering of EEG/MEG data: DeFleCT.
 % Human Brain Mapping 2013
-% $Id: bf_group_functionalROI.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_group_functionalROI.m 7706 2019-11-22 16:30:29Z spm $
 
 %--------------------------------------------------------------------------
 if nargin == 0
