@@ -23,7 +23,7 @@ function sD = spm_eeg_dipole_waveforms(S)
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_dipole_waveforms.m 6438 2015-05-18 11:50:42Z vladimir $
+% $Id: spm_eeg_dipole_waveforms.m 7702 2019-11-22 11:32:26Z guillaume $
 
 [Finter,Fgraph] = spm('FnUIsetup','Dipole waveform extraction', 0);
 %%
@@ -88,7 +88,7 @@ vol  = data.(modality).vol;
 sens = data.(modality).sens;
 
 if isa(vol, 'char')
-    vol = ft_read_vol(vol);
+    vol = ft_read_headmodel(vol);
 end
 
 chanind = indchantype(D, modality, 'GOOD');

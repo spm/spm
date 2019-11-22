@@ -34,7 +34,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2007-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 6360 2015-03-04 19:24:56Z spm $
+% $Id: spm_dcm_erp_dipfit.m 7702 2019-11-22 11:32:26Z guillaume $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -145,7 +145,7 @@ end
 %--------------------------------------------------------------------------
 if save_vol_sens
     if ischar(DCM.M.dipfit.vol)
-        DCM.M.dipfit.vol = ft_read_vol(DCM.M.dipfit.vol);
+        DCM.M.dipfit.vol = ft_read_headmodel(DCM.M.dipfit.vol);
     end
 
     [DCM.M.dipfit.vol, DCM.M.dipfit.sens] = ft_prepare_vol_sens(DCM.M.dipfit.vol, ...

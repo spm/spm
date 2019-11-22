@@ -9,7 +9,7 @@
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 6035 2014-06-03 22:32:20Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 7702 2019-11-22 11:32:26Z guillaume $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -56,7 +56,7 @@ vol  = volsens.(modality).vol;
 sens = volsens.(modality).sens;
 
 if isa(vol, 'char')
-    vol = ft_read_vol(vol);
+    vol = ft_read_headmodel(vol);
 end
 
 

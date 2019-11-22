@@ -5,7 +5,7 @@ function spm_eeg_inv_checkforward(varargin)
 % Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_checkforward.m 7544 2019-03-15 16:20:16Z vladimir $
+% $Id: spm_eeg_inv_checkforward.m 7702 2019-11-22 11:32:26Z guillaume $
 
 
 %-SPM data structure
@@ -52,7 +52,7 @@ if isempty(chanind)
 end
 
 if ischar(vol)
-    vol = ft_read_vol(vol);
+    vol = ft_read_headmodel(vol);
 end
 
 face    = Mcortex.face;

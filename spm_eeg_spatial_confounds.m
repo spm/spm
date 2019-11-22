@@ -13,10 +13,10 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 7128 2017-07-03 11:58:47Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 7702 2019-11-22 11:32:26Z guillaume $
 
 
-SVNrev = '$Rev: 7128 $';
+SVNrev = '$Rev: 7702 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -89,7 +89,7 @@ switch upper(S.mode)
             sens = data.(modalities{k}).sens;
             
             if isa(vol, 'char')
-                vol = ft_read_vol(vol);
+                vol = ft_read_headmodel(vol);
             end            
             
             [vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));

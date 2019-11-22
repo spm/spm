@@ -12,10 +12,10 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 7354 2018-06-22 10:44:22Z guillaume $
+% $Id: spm_eeg_inv_forward.m 7702 2019-11-22 11:32:26Z guillaume $
 
 
-SVNrev = '$Rev: 7354 $';
+SVNrev = '$Rev: 7702 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -94,7 +94,7 @@ for i = 1:numel(D.inv{val}.forward)
             vol = [];
             
             if exist(volfile, 'file')
-                vol = ft_read_vol(volfile);
+                vol = ft_read_headmodel(volfile);
                 if ~isfield(vol, 'unit') || ~isequal(vol.unit, 'm')
                     vol = [];
                 end

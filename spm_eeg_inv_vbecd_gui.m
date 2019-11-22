@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 7544 2019-03-15 16:20:16Z vladimir $
+% $Id: spm_eeg_inv_vbecd_gui.m 7702 2019-11-22 11:32:26Z guillaume $
 
 %%
 % Load data, if necessary
@@ -89,7 +89,7 @@ data = spm_eeg_inv_get_vol_sens(D, val, [], 'inv', P.modality);
 
 P.forward.vol     = data.(P.modality(1:3)).vol;
 if ischar(P.forward.vol)
-    P.forward.vol = ft_read_vol(P.forward.vol);
+    P.forward.vol = ft_read_headmodel(P.forward.vol);
 end
 
 P.forward.sens    = data.(P.modality(1:3)).sens;

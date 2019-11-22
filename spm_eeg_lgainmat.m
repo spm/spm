@@ -9,9 +9,9 @@ function [L,D] = spm_eeg_lgainmat(D,Is,channels)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 7255 2018-02-07 22:06:07Z vladimir $
+% $Id: spm_eeg_lgainmat.m 7702 2019-11-22 11:32:26Z guillaume $
 
-SVNrev = '$Rev: 7255 $';
+SVNrev = '$Rev: 7702 $';
 
 %-Get gain or lead-field matrix
 %--------------------------------------------------------------------------
@@ -73,7 +73,7 @@ catch
         vol  = forward(ind).vol;
         
         if ischar(vol)
-            vol = ft_read_vol(vol);
+            vol = ft_read_headmodel(vol);
         end
         
         modality = forward(ind).modality;
