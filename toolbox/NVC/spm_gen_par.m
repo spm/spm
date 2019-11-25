@@ -17,7 +17,7 @@ function Q = spm_gen_par(P,M,U)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id $
+% $Id$
 
 %--------------------------------------------------------------------------
 if nargin < 3, U.X = sparse(1,0); end
