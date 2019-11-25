@@ -1,6 +1,6 @@
 function [pE,pC,x] = spm_dcm_nvc_priors(DCM)
 % Priors for a multimodal DCM for fMRI and M/EEG
-% FORMAT: [pE,pC,x] = spm_dcm_nvc_priors(DCM)
+% FORMAT [pE,pC,x] = spm_dcm_nvc_priors(DCM)
 %
 % Input:
 % -------------------------------------------------------------------------
@@ -21,7 +21,7 @@ function [pE,pC,x] = spm_dcm_nvc_priors(DCM)
 % Copyright (C) 2019 Wellcome Trust Centre for Humman Neuroimaging
 
 % Amirhossein Jafarian 
-% $Id$
+% $Id: spm_dcm_nvc_priors.m 7713 2019-11-25 16:00:34Z spm $
 
 % Number of regions & model space (see spm_dcm_nvc.m for model details)
 %--------------------------------------------------------------------------

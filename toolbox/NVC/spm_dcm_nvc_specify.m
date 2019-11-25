@@ -26,7 +26,7 @@ function DCM = spm_dcm_nvc_specify(SPM,xY_fMRI,MEEG,model,n_exclude,sess_exclude
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id$
+% $Id: spm_dcm_nvc_specify.m 7713 2019-11-25 16:00:34Z spm $
 
 %-Get SPM file and DCM for MEG
 %--------------------------------------------------------------------------

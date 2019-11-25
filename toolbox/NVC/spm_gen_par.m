@@ -1,6 +1,6 @@
 function Q = spm_gen_par(P,M,U)
 % Generate condition specific parameters using DCM for M/EEG
-% FORMAT Q = spm_gen_erp(P,M,U)
+% FORMAT Q = spm_gen_par(P,M,U)
 %
 % P - parameters
 % M - neural-mass model structure
@@ -17,7 +17,7 @@ function Q = spm_gen_par(P,M,U)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id$
+% $Id: spm_gen_par.m 7713 2019-11-25 16:00:34Z spm $
 
 %--------------------------------------------------------------------------
 if nargin < 3, U.X = sparse(1,0); end

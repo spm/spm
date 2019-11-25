@@ -18,7 +18,7 @@ function neuronal_drive = spm_dcm_nvc_nd(DCM)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id$
+% $Id: spm_dcm_nvc_nd.m 7713 2019-11-25 16:00:34Z spm $
 
 % DCM for MEG simualtion
 %--------------------------------------------------------------------------

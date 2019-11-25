@@ -1,6 +1,6 @@
 function DCM  = spm_dcm_nvc(P)
 % Specify and estimate a DCM for multimodal fMRI and M/EEG
-% FORMAT [DCM] = spm_dcm_nvc_estimate(P)
+% FORMAT [DCM] = spm_dcm_nvc(P)
 %
 % Input:
 % -------------------------------------------------------------------------
@@ -78,7 +78,7 @@ function DCM  = spm_dcm_nvc(P)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
  
 % Amirhossein Jafarian
-% $Id$
+% $Id: spm_dcm_nvc.m 7713 2019-11-25 16:00:34Z spm $
 
 % Prepare input
 %--------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 function [ux, vx, wx] = spm_fx_cmc_tfm_gen(x,u,P,M,option)
-% Generates pre synaptic signals for multimodal DCM for fMRI and M/EEG
+% Generate pre synaptic signals for multimodal DCM for fMRI and M/EEG
 % FORMAT [u,v,w]  = spm_fx_cmc_tfm_gen(x,u,P,M)
 % FORMAT [u,v]    = spm_fx_cmc_tfm_gen(x,u,P,M)
 % FORMAT [u]      = spm_fx_cmc_tfm_gen(x,u,P,M)
@@ -68,7 +68,7 @@ function [ux, vx, wx] = spm_fx_cmc_tfm_gen(x,u,P,M,option)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian, and Karl Friston
-% $Id: spm_fx_cmc_tfm_gen.m 7705 2019-11-22 15:06:38Z spm $
+% $Id: spm_fx_cmc_tfm_gen.m 7713 2019-11-25 16:00:34Z spm $
 
 persistent in1 in2 in3 ;
 

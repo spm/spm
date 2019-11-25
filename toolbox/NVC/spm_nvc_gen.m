@@ -24,7 +24,7 @@ function [y] = spm_nvc_gen(P,M,U)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id$
+% $Id: spm_nvc_gen.m 7713 2019-11-25 16:00:34Z spm $
 
 % Neurovascular coupling signal (scaled summed neuronal drives)
 %--------------------------------------------------------------------------
