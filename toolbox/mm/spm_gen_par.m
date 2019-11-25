@@ -17,17 +17,18 @@ function Q = spm_gen_par(P,M,U)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id $
+% $Id: spm_gen_par.m 7708 2019-11-25 10:13:07Z spm $
+
 
 %--------------------------------------------------------------------------
 if nargin < 3, U.X = sparse(1,0); end
 
 % check input u = f(t,P,M) and switch off full delay operator
 %--------------------------------------------------------------------------
-try M.fu; catch, M.fu  = 'spm_erp_u'; end
-try M.ns; catch, M.ns  = 128;         end
-try M.N;  catch, M.N   = 0;           end
-try U.dt; catch, U.dt  = 0.004;       end
+try, M.fu; catch, M.fu  = 'spm_erp_u'; end
+try, M.ns; catch, M.ns  = 128;         end
+try, M.N;  catch, M.N   = 0;           end
+try, U.dt; catch, U.dt  = 0.004;       end
 
 % peristimulus time
 %--------------------------------------------------------------------------
@@ -69,6 +70,7 @@ end
 %==========================================================================
 y      = cell(size(X,1),1);
 c = P.xc ;
+
 % condition-specific parameters
 %----------------------------------------------------------------------
 Q   = spm_gen_Q(P,X(c,:));

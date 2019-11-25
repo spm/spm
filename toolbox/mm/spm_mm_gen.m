@@ -21,7 +21,8 @@ function [y] = spm_mm_gen(P,M,U)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id $
+% $Id: spm_mm_gen.m 7708 2019-11-25 10:13:07Z spm $
+
 
 % Neurovascular coupling signal (scaled summed neuronal drives)
 %==========================================================================
@@ -96,6 +97,7 @@ U.u   = a;
 
 % integrate
 %==========================================================================
+
 % haemodynamic model
 %--------------------------------------------------------------------------
 H.f   = @spm_fx_hdm;
@@ -104,6 +106,7 @@ H.x   = M.x;
 H.m   = M.m;
 H.l   = M.l;
 H.ns  = M.ns;
+
 % solve for haemodynamic responses
 %--------------------------------------------------------------------------
 y        =  spm_int(P.H,H,U);

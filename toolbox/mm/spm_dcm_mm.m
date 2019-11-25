@@ -1,6 +1,6 @@
 function DCM  = spm_dcm_mm(P)
 % Estimate DCM for multimodal fMRI and M/EEG
-% FORMAT [DCM] = spm_dcm_mm_estimate(P)
+% FORMAT DCM = spm_dcm_mm(P)
 %
 %--------------------------Input-------------------------------------------
 % P{1,1}  - Address of SPM or SPM.mat
@@ -61,7 +61,7 @@ function DCM  = spm_dcm_mm(P)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
  
 % Amirhossein Jafarian
-% $Id: spm_dcm_mm.m 7705 2019-11-22 15:06:38Z spm $
+% $Id: spm_dcm_mm.m 7708 2019-11-25 10:13:07Z spm $
 
 
 % Input
@@ -69,14 +69,14 @@ function DCM  = spm_dcm_mm(P)
 SPM                 =  P{1,1};
 xY                  =  P{1,2};
 MEEG                =  P{1,3};
-try Model           =  P{1,4};         catch, Model        = {'pre','d','int'};end
-try N_exclude       =  P{1,5};         catch, N_exclude    = ones (1,4)       ;end
-try Sess_exclude    =  P{1,6};         catch, Sess_exclude = 'not defined'    ;end
-try options.centre  =   P{1,7}.centre; catch, options.centre      =   1       ;end
-try options.hE      =   P{1,7}.hE ;    catch, options.hE          =   6       ;end
-try options.hC      =   P{1,7}.hC ;    catch, options.hC          =  1/128    ;end
-try options.maxit   =   P{1,7}.maxit;  catch, options.maxit       =  128      ;end
-try name            =   P{1,7}.name;   catch, name = sprintf('DCM_%s',date)   ;end
+try, Model          =  P{1,4};        catch, Model        = {'pre','d','int'}; end
+try, N_exclude      =  P{1,5};        catch, N_exclude    = ones (1,4)       ; end
+try, Sess_exclude   =  P{1,6};        catch, Sess_exclude = 'not defined'    ; end
+try, options.centre =  P{1,7}.centre; catch, options.centre      =   1       ; end
+try, options.hE     =  P{1,7}.hE ;    catch, options.hE          =   6       ; end
+try, options.hC     =  P{1,7}.hC ;    catch, options.hC          =  1/128    ; end
+try, options.maxit  =  P{1,7}.maxit;  catch, options.maxit       =  128      ; end
+try, name           =  P{1,7}.name;   catch, name = sprintf('DCM_%s',date)   ; end
 
 %--------------------------------------------------------------------------
 if (size(P,2) <5 || isempty(P{1,5}))
@@ -115,33 +115,34 @@ if ~size(Y.X0,2),   Y.X0 = ones(v,1); end
 
 % fMRI slice time sampling
 %--------------------------------------------------------------------------
-try M.delays = DCM.delays; catch, M.delays = ones(n,1); end
-try M.TE     = DCM.TE;     catch, M.TE = 0.04;          end
+try, M.delays = DCM.delays; catch, M.delays = ones(n,1); end
+try, M.TE     = DCM.TE;     catch, M.TE = 0.04;          end
+
 % prior 
 %--------------------------------------------------------------------------
-[pE,pC,x]       = spm_dcm_mm_priors(DCM);
+[pE,pC,x]     = spm_dcm_mm_priors(DCM);
 
 % neuronal drive function
 %--------------------------------------------------------------------------
-input           = spm_dcm_mm_nd(DCM);
+input         = spm_dcm_mm_nd(DCM);
 
 % hyperpriors over precision - expectation and covariance
 %--------------------------------------------------------------------------
-hE       = sparse(n,1) + DCM.options.hE;
-hC       = speye(n,n)  * DCM.options.hC;
+hE      = sparse(n,1) + DCM.options.hE;
+hC      = speye(n,n)  * DCM.options.hC;
 %--------------------------------------------------------------------------
-M.IS = @spm_mm_gen;                       
-M.x  = x;                                
-M.pE = pE;                                
-M.pC = pC;                                
-M.hE = hE;                                
-M.hC = hC;                                
-M.m  = n;                            
-M.n  = size(spm_vec(x),1);
-M.l  = n;
-M.ns = v;
-M.Nmax = options.maxit ;
-M.TE  = DCM.TE;
+M.IS    = @spm_mm_gen;                       
+M.x     = x;                                
+M.pE    = pE;                                
+M.pC    = pC;                                
+M.hE    = hE;                                
+M.hC    = hC;                                
+M.m     = n;                            
+M.n     = size(spm_vec(x),1);
+M.l     = n;
+M.ns    = v;
+M.Nmax  = options.maxit ;
+M.TE    = DCM.TE;
 M.input = input;
 M.Model = Model;
 M.nograph = spm('CmdLine');
@@ -155,26 +156,28 @@ yhat     = feval(M.IS,Ep,M,U);
 R        = Y.y - yhat;
 R        = R - Y.X0*spm_inv(Y.X0'*Y.X0)*(Y.X0'*R);
 Ce       = exp(-Eh);
-%Variance that is chaptured by the data
-%--------------------------------------------------------------------------
 
+% Variance that is chaptured by the data
+%--------------------------------------------------------------------------
 PSS      = sum(yhat.^2);
 RSS      = sum(R.^2);
 D        = 100.*PSS./(PSS + RSS);
-%Kernel
+
+% Kernel
 %--------------------------------------------------------------------------
 H.f      = @spm_fx_hdm;
 H.g      = @spm_gx_hdm;
 H.x      = M.x;
 H.m      = n; 
 [H0,H1]  = spm_kernels(H,Ep.H,64,1/2);
+
 %--------------------------------------------------------------------------
 T        = full(spm_vec(pE));
 sw       = warning('off','SPM:negativeVariance');
 Pp       = spm_unvec(1 - spm_Ncdf(T,abs(spm_vec(Ep)),diag(Cp)),Ep);
 Vp       = spm_unvec(full(diag(Cp)),Ep);
 warning(sw);
-try  M = rmfield(M,'nograph'); end
+try, M = rmfield(M,'nograph'); end
 
 % Store parameter estimates
 %--------------------------------------------------------------------------
