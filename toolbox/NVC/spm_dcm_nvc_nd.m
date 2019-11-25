@@ -2,11 +2,14 @@ function neuronal_drive = spm_dcm_nvc_nd(DCM)
 % Generate neuronal drive signals for multimodal DCM for fMRI and M/EEG
 % FORMAT neuronal_drive = spm_dcm_nvc_nd(DCM)
 %
-%------------------------------Inputs--------------------------------------
-% DCM              -  (unestiamted multimodal) DCM for fMRI and MEG.
+% Inputs:
+% -------------------------------------------------------------------------
+% DCM              -  (unestimated multimodal) DCM for fMRI and MEG.
+%                     see spm_dcm_nvc_specify.m
 %
-%------------------------------Inputs--------------------------------------
-% neural_drive    -  neural_drive signals.
+% Evaluates:
+% -------------------------------------------------------------------------
+% neuronal_drive   -  neural_drive signals.
 %__________________________________________________________________________
 % Jafarian, A., Litvak, V., Cagnan, H., Friston, K.J. and Zeidman, P., 2019.
 % Neurovascular coupling: insights from multi-modal dynamic causal modelling
@@ -17,15 +20,14 @@ function neuronal_drive = spm_dcm_nvc_nd(DCM)
 % Amirhossein Jafarian
 % $Id$
 
-
 % DCM for MEG simualtion
 %--------------------------------------------------------------------------
 rng('default')
 spm('defaults','EEG');
-Model          = DCM.model;
-Model{1,4}     = DCM.N    ;
-Uf             = DCM.U    ;
-DCM            = DCM.MEEG ;
+model          = DCM.model; % Model specification
+model{4}       = DCM.N    ; % Vector of included populations
+Uf             = DCM.U    ; % fMRI inputs
+DCM            = DCM.MEEG ; % M/EEG DCM
 
 %--------------------------------------------------------------------------
 Nc               =  size(DCM.C,1);
@@ -55,7 +57,7 @@ M.m    = length(B);
 M.n    = length(spm_vec(M.x));
 M.l    = Nc;
 M.ns   = DCM.M.ns;
-Num_condition = size(DCM.xY.y,2);
+num_condition = size(DCM.xY.y,2);
 
 %--------------------------------------------------------------------------
 dt          = DCM.xU.dt;
@@ -73,7 +75,7 @@ in.u        = feval('spm_erp_u',(1:M.ns)*U.dt,P,M);
 
 % Simulation of post-synaptic signals
 %--------------------------------------------------------------------------
-if (strcmp(Model{1}, 'post'))
+if (strcmp(model{1}, 'post'))
     i_reg       = 1: Ns            ;
     index_ss    = 8*(i_reg-1) + 1  ;
     index_sp    = index_ss    + 2  ;
@@ -83,7 +85,7 @@ if (strcmp(Model{1}, 'post'))
     n = size(pst,2);
     tap  = hanning(n, 'symmetric');
     
-    for i= 1: Num_condition
+    for i= 1: num_condition
         for j = 1: Ns
             for time = 1:size(pst,2)
                 SS{i,j}(time)    =(DCM.x{i,1}(time,index_ss(j)))' *tap(time);
@@ -93,7 +95,7 @@ if (strcmp(Model{1}, 'post'))
             end
         end
     end
-    for i= 1: Num_condition
+    for i= 1: num_condition
         for j = 1: Ns
             R_SS{i,j}  = rms(SS{i,j}) .* U_fMRI(:,i);
             R_SP{i,j}  = rms(SP{i,j}) .* U_fMRI(:,i);
@@ -104,7 +106,7 @@ if (strcmp(Model{1}, 'post'))
     for  j =1:Ns
         BSS = zeros(size(R_SS{1,1}));
         ASS=BSS ; ASP=BSS ;BSP=BSS ;AINH =BSS ; BINH = BSS ; ADP=BSS ; BDP=BSS ;
-        for  i = 1:Num_condition
+        for  i = 1:num_condition
             ASS(:)  =  R_SS{i,j};
             BSS(:)  =  BSS(:)+ASS(:);
             ASP(:)  =  R_SP{i,j};
@@ -114,26 +116,26 @@ if (strcmp(Model{1}, 'post'))
             ADP(:)  =  R_DP{i,j};
             BDP(:)  =  BDP(:)+ADP(:);
         end
-        neuronal_drive.input{j,1} = Model{1,4}(1).*BSS;
-        neuronal_drive.input{j,2} = Model{1,4}(2).*BSP;
-        neuronal_drive.input{j,3} = Model{1,4}(3).*BINH;
-        neuronal_drive.input{j,4} = Model{1,4}(4).*BDP;
+        neuronal_drive.input{j,1} = model{1,4}(1).*BSS;
+        neuronal_drive.input{j,2} = model{1,4}(2).*BSP;
+        neuronal_drive.input{j,3} = model{1,4}(3).*BINH;
+        neuronal_drive.input{j,4} = model{1,4}(4).*BDP;
     end
     neuronal_drive.num = 4;
 end
 
 % Simulation of pre-synaptic signals
 %--------------------------------------------------------------------------
-if (strcmp(Model{1}, 'pre'))
+if (strcmp(model{1}, 'pre'))
     sig = {};
     pq =[]; Q = {};
-    for i = 1 : Num_condition
+    for i = 1 : num_condition
         P.xc     = i;
         Q{end+1} = spm_gen_par(P,M,U);
         for j = 1 : size(pst,2)-1
             current_state = DCM.x{i,1}(j,:); %This is results for condition 1
             input = in.u(j);
-            [u] = spm_fx_cmc_tfm_gen(current_state,input,Q{1,i},M,Model);
+            [u] = spm_fx_cmc_tfm_gen(current_state,input,Q{1,i},M,model);
             pq(:,:,j) = u;
         end
         sig{i}= pq;
@@ -141,7 +143,7 @@ if (strcmp(Model{1}, 'pre'))
     n = size(pst,2);
     tap  = hanning(n, 'symmetric');
     tap_sig={};
-    for i = 1 : Num_condition
+    for i = 1 : num_condition
         for region = 1:Ns
             for pop = 1:num_pop
                 for time = 1: size(pst,2)-1
@@ -152,7 +154,7 @@ if (strcmp(Model{1}, 'pre'))
     end
     
     RMS_tap_sig = {};
-    for i = 1 : Num_condition
+    for i = 1 : num_condition
         for region = 1:Ns
             for pop = 1:num_pop
                 RMS_tap_sig{1,i}(region,pop) = rms(sig{1,i}(region,pop,:));
@@ -160,7 +162,7 @@ if (strcmp(Model{1}, 'pre'))
         end
     end
     Rep_sig ={};
-    for i = 1: Num_condition
+    for i = 1: num_condition
         for region = 1: Ns
             for pop = 1:num_pop
                 Rep_sig{1,i}(region,pop,: )  = RMS_tap_sig{1,i}(region,pop).*full(U_fMRI(:,i));
@@ -172,7 +174,7 @@ if (strcmp(Model{1}, 'pre'))
     BS = zeros(size(Rep_sig{1,1}));
     for  region =1:Ns
         for pop = 1:num_pop
-            for  i = 1:Num_condition
+            for  i = 1:num_condition
                 Dr(region,pop,:) =  Rep_sig{1,i}(region,pop,:);
                 BS(region,pop,:) =  BS(region,pop,:)+ Dr(region,pop,:);
                 Dr=[];
@@ -185,25 +187,25 @@ end
 
 % Simulation of decomposed pre-synaptic signals
 %--------------------------------------------------------------------------
-if (strcmp(Model{1}, 'de'))
+if (strcmp(model{1}, 'de'))
     sig = {};
     pq =[]; Q = {}; ux = {} ; vx = {}; wx = {};pe = []; pih = [];
-    for i = 1 : Num_condition
+    for i = 1 : num_condition
         P.xc     = i;
         Q{end+1} = spm_gen_par(P,M,U);
         for j = 1 : size(pst,2)-1
             current_state  = DCM.x{i,1}(j,:);
             input          = in.u(j);
-            [ux, vx, wx]   = spm_fx_cmc_tfm_gen(current_state,input,Q{1,i},M,Model);
+            [ux, vx, wx]   = spm_fx_cmc_tfm_gen(current_state,input,Q{1,i},M,model);
             pe(:,:,j)      =  ux;
             pih(:,:,j)     =  vx;
-            if (strcmp(Model{3}, 'ext'))
+            if (strcmp(model{3}, 'ext'))
                 pex(:,:,j) = wx;
             end
         end
         sig{1,i} = pe;
         sig{2,i} = pih;
-        if (strcmp(Model{3}, 'ext'))
+        if (strcmp(model{3}, 'ext'))
             sig{3,i}= pex;
         end
     end
@@ -211,13 +213,13 @@ if (strcmp(Model{1}, 'de'))
     n       = size(pst,2);
     tap     = hanning(n, 'symmetric');
     tap_sig ={};
-    for i = 1 : Num_condition
+    for i = 1 : num_condition
         for region = 1:Ns
             for pop = 1:num_pop
                 for time = 1: size(pst,2)-1
                     tap_sig{1,i}(region,pop, time)     = sig{1,i}(region,pop,time)* tap(time);
                     tap_sig{2,i}(region,pop, time)     = sig{2,i}(region,pop,time)* tap(time);
-                    if (strcmp(Model{3}, 'ext'))
+                    if (strcmp(model{3}, 'ext'))
                         tap_sig{3,i}(region,pop, time) = sig{3,i}(region,pop,time)* tap(time);
                     end
                 end
@@ -225,24 +227,24 @@ if (strcmp(Model{1}, 'de'))
         end
     end
     
-    for i = 1 : Num_condition
+    for i = 1 : num_condition
         for region = 1:Ns
             for pop = 1:num_pop
                 Rms_sig{1,i}(region,pop)     = rms(sig{1,i}(region,pop,:));
                 Rms_sig{2,i}(region,pop)     = rms(sig{2,i}(region,pop,:));
-                if (strcmp(Model{3}, 'ext'))
+                if (strcmp(model{3}, 'ext'))
                     Rms_sig{3,i}(region,pop) = rms(sig{3,i}(region,pop,:));
                 end
             end
         end
     end
     Rep_sig ={};
-    for i = 1: Num_condition
+    for i = 1: num_condition
         for region = 1: Ns
             for pop = 1:num_pop
                 Rep_sig{1,i}(region,pop,:)      = Rms_sig{1,i}(region,pop).*full(U_fMRI(:,i));
                 Rep_sig{2,i}(region,pop,:)      = Rms_sig{2,i}(region,pop).*full(U_fMRI(:,i));
-                if (strcmp(Model{3}, 'ext'))
+                if (strcmp(model{3}, 'ext'))
                     Rep_sig{3,i}(region,pop,:)  = Rms_sig{3,i}(region,pop).*full(U_fMRI(:,i)) ;
                 end
             end
@@ -254,7 +256,7 @@ if (strcmp(Model{1}, 'de'))
     Dr2 = Dr1 ;  Dr3 = Dr1 ;  BS1 = Dr1 ; BS2 = Dr1 ;BS3 = Dr1 ;
     for  region =1:Ns
         for pop = 1:num_pop
-            for  i = 1:Num_condition
+            for  i = 1:num_condition
                 Dr1(region,pop,:)     =  Rep_sig{1,i}(region,pop,:);
                 BS1(region,pop,:)     =  BS1(region,pop,:)+ Dr1(region,pop,:);
                 Dr1 = [];
@@ -263,7 +265,7 @@ if (strcmp(Model{1}, 'de'))
                 BS2(region,pop,:)     =  BS2(region,pop,:)+ Dr2(region,pop,:);
                 Dr2 = [];
                 
-                if (strcmp(Model{3}, 'ext'))
+                if (strcmp(model{3}, 'ext'))
                     Dr3(region,pop,:) =  Rep_sig{3,i}(region,pop,:);
                     BS3(region,pop,:) =  BS3(region,pop,:)+ Dr3(region,pop,:);
                     Dr3 = [];
@@ -272,11 +274,11 @@ if (strcmp(Model{1}, 'de'))
         end
         neuronal_drive.input{1,1}      = BS1;
         neuronal_drive.input{1,2}      = BS1;
-        if (strcmp(Model{3}, 'ext'))
+        if (strcmp(model{3}, 'ext'))
             neuronal_drive.input{1,3}  = BS3;
         end
     end
-    if (strcmp(Model{3}, 'ext'))
+    if (strcmp(model{3}, 'ext'))
         neuronal_drive.num = 3;
     else
         neuronal_drive.num = 2;

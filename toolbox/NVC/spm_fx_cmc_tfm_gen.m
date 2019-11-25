@@ -3,7 +3,8 @@ function [ux, vx, wx] = spm_fx_cmc_tfm_gen(x,u,P,M,option)
 % FORMAT [u,v,w]  = spm_fx_cmc_tfm_gen(x,u,P,M)
 % FORMAT [u,v]    = spm_fx_cmc_tfm_gen(x,u,P,M)
 % FORMAT [u]      = spm_fx_cmc_tfm_gen(x,u,P,M)
-%Input
+%
+% Inputs:
 % -------------------------------------------------------------------------
 % x      - state vector
 %   x(:,1) - voltage     (spiny stellate cells)
@@ -17,7 +18,7 @@ function [ux, vx, wx] = spm_fx_cmc_tfm_gen(x,u,P,M,option)
 % P        - parameters of canonical micro circuits
 % u        - exogenous input
 % M        - neural-mass model structure
-% options  - options for calculation pre synaptic signals:
+% option   - options for calculation pre synaptic signals:
 %   pre (pre synaptic),
 %   int (only regional neuronal signals are taken to account for simulating signals),
 %    d (different) , s (same) parameters of neurovascular scaling (this
@@ -38,7 +39,8 @@ function [ux, vx, wx] = spm_fx_cmc_tfm_gen(x,u,P,M,option)
 %                                    {'de',    'd',    'int', EX},
 %                                    {'de',    'd',    'ext', EX},
 %
-%-----------------------------Output---------------------------------------
+% Outputs:
+% -------------------------------------------------------------------------
 %  ux = spm_fx_cmc_tfm(x,u,P,M,option)
 %  ux  -  simulated presynaptic signal (including or exclude distal regions)
 %

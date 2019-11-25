@@ -3,16 +3,19 @@ function [y] = spm_nvc_gen(P,M,U)
 % (neurovascular coupling).
 % FORMAT [y] = spm_nvc_gen(P,M,U)
 %
-%------------------------------------Input---------------------------------
+% Inputs:
+% -------------------------------------------------------------------------
 %  P - parameters of neurovascular coupling and Extended Balloon model
 %  M - Neural mass model structure (M.input - neuronal drive functions)
 %  U - Inputs
-%-----------------------------------Output---------------------------------
+%
+% Outputs:
+% -------------------------------------------------------------------------
 %  y - BOLD predictions
 %
-% This code scaled neuronal drive signals by neurovascular coupling parameters
-% and used it as a single input (per each region) to haemodynamic function.
-% The output of the code is  BOLD responses.
+% This code scales neuronal drive signals by neurovascular coupling parameters
+% and uses it as a single input (per each region) to a haemodynamic function.
+% The outputs of the code are BOLD responses.
 %__________________________________________________________________________
 % Jafarian, A., Litvak, V., Cagnan, H., Friston, K.J. and Zeidman, P., 2019.
 % Neurovascular coupling: insights from multi-modal dynamic causal modelling
@@ -24,11 +27,12 @@ function [y] = spm_nvc_gen(P,M,U)
 % $Id$
 
 % Neurovascular coupling signal (scaled summed neuronal drives)
-%==========================================================================
+%--------------------------------------------------------------------------
 pf = M.input.input;
 n = M.l;
 a = [];
 
+% Pre-synaptic
 %--------------------------------------------------------------------------
 if (strcmp(M.Model(1), 'pre'))
     if (M.input.num == 1  && size(M.pE.J,2) == n)
@@ -42,6 +46,7 @@ if (strcmp(M.Model(1), 'pre'))
     end
 end
 
+% Decomposed
 %--------------------------------------------------------------------------
 if (strcmp(M.Model(1), 'de'))
     if (M.input.num == 3  && size(M.pE.J,2)== 3 && numel(size(M.pE.J))==2)
@@ -71,6 +76,7 @@ if (strcmp(M.Model(1), 'de'))
     end
 end
 
+% Post-synaptic
 %--------------------------------------------------------------------------
 if (strcmp(M.Model(1), 'post'))
     if (M.input.num == 4  && size(M.pE.J,2)== n)
@@ -94,9 +100,7 @@ end
 %--------------------------------------------------------------------------
 U.u   = a;
 
-% integrate
-%==========================================================================
-% haemodynamic model
+% Haemodynamic model
 %--------------------------------------------------------------------------
 H.f   = @spm_fx_hdm;
 H.g   = @spm_gx_hdm;
@@ -104,6 +108,7 @@ H.x   = M.x;
 H.m   = M.m;
 H.l   = M.l;
 H.ns  = M.ns;
-% solve for haemodynamic responses
+
+% Solve for haemodynamic responses
 %--------------------------------------------------------------------------
 y        =  spm_int(P.H,H,U);
