@@ -237,7 +237,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_conman.m 5786 2013-12-06 18:25:00Z guillaume $
+% $Id: spm_conman.m 7716 2019-11-26 17:06:46Z guillaume $
 
 
 %==========================================================================
@@ -487,7 +487,12 @@ if (nargin==0) || ~ischar(varargin{1})
     if spm_check_version('matlab','8.0') >= 0, my_isequaln = @isequaln;
     else my_isequaln = @isequalwithequalnans; end
     if ~my_isequaln(tmpSPM,SPM)
-        save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
+        fprintf('\t%-32s: %30s','Saving SPM.mat','...writing');         %-#
+        fmt = spm_get_defaults('mat.format');
+        s = whos('SPM');
+        if s.bytes > 2147483647, fmt = 'v7.3'; end
+        save('SPM.mat', 'SPM', fmt);
+        fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...SPM.mat saved')%-#
     end
 
     %-Reset and hide SelFileWin

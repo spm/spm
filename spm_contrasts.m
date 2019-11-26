@@ -11,7 +11,7 @@ function SPM = spm_contrasts(SPM,Ic)
 % Copyright (C) 2002-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Will Penny & Guillaume Flandin
-% $Id: spm_contrasts.m 7029 2017-02-24 15:39:07Z guillaume $
+% $Id: spm_contrasts.m 7716 2019-11-26 17:06:46Z guillaume $
 
 
 % Temporary copy of the SPM variable, to avoid saving it in SPM.mat unless
@@ -325,6 +325,9 @@ if spm_check_version('matlab','8.0') >= 0, my_isequaln = @isequaln;
 else my_isequaln = @isequalwithequalnans; end
 if ~my_isequaln(tmpSPM,SPM)
     fprintf('\t%-32s: %30s','Saving SPM.mat','...writing');             %-#
-    save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
+    fmt = spm_get_defaults('mat.format');
+    s = whos('SPM');
+    if s.bytes > 2147483647, fmt = 'v7.3'; end
+    save('SPM.mat', 'SPM', fmt);
     fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...SPM.mat saved')   %-#
 end
