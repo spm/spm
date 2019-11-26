@@ -15,7 +15,7 @@ function [X] = spm_conv(X,sx,sy)
 % Copyright (C) 1999-2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_conv.m 7698 2019-11-19 15:37:09Z guillaume $
+% $Id: spm_conv.m 7714 2019-11-26 11:25:50Z spm $
 
 
 % assume isomorphic smoothing
@@ -52,13 +52,23 @@ if lx > 1
     for i = 1:ly
         u      = X(:,i);
         v      = [flipud(u(1:Ex)); u; flipud(u((1:Ex) + lx - Ex))];
-        X(:,i) = sparse(conv(full(v),kx,shape{:}));
+        if isempty(shape)
+            V  = sparse(conv(full(v),kx));
+            X(:,i) = V([1:lx] + 2*Ex);
+        else
+            X(:,i) = sparse(conv(full(v),kx,shape{:}));
+        end
     end
 end
 if ly > 1
     for i = 1:lx
         u      = X(i,:);
         v      = [fliplr(u(1:Ey)) u fliplr(u((1:Ey) + ly - Ey))];
-        X(i,:) = sparse(conv(full(v),ky,shape{:}));
+        if isempty(shape)
+            V  = sparse(conv(full(v),ky));
+            X(i,:) = V([1:ly] + 2*Ey);
+        else
+            X(i,:) = sparse(conv(full(v),ky,shape{:}));
+        end
     end
 end

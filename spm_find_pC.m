@@ -17,10 +17,10 @@ function [i,pC,pE,Np] = spm_find_pC(varargin)
 % rE     - reduced expectation
 % 
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2019 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_find_pC.m 7607 2019-06-06 12:52:38Z peter $
+% $Id: spm_find_pC.m 7714 2019-11-26 11:25:50Z spm $
 
 %-parse input arguments
 %--------------------------------------------------------------------------
@@ -98,7 +98,7 @@ if isfield(DCM.options,'spatial')
     % EEG or MEG
     %----------------------------------------------------------------------
     if strcmpi(DCM.options.analysis,'IND')
-        [pE,~,pC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,DCM.Nf);
+        [pE,dummy,pC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,DCM.Nf);
     else
         [pE,  pC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,DCM.options.model);        
         

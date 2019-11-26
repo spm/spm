@@ -59,7 +59,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN_H(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN_H.m 6233 2014-10-12 09:43:50Z karl $
+% $Id: spm_nlsi_GN_H.m 7714 2019-11-26 11:25:50Z spm $
  
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------
@@ -68,7 +68,7 @@ pE    = spm_vec(M.pE);
 if isstruct(pC)
     pC = spm_vec(pC);
 end
-if isvector(pC);
+if isvector(pC)
     pC = diag(pC);
 end
 V     = spm_svd(pC);
@@ -155,9 +155,9 @@ for i = 1:4
     subplot(2,2,2),imagesc(xd,yd,F), axis square,title('Free energy landscape')
     
     for j = 1:size(XX,2)
-        M.P       = spm_unvec(V*XX(:,j),M.pE);
-        [~,~,~,F] = spm_nlsi_GN(M,U,Y);
-        SF(j)     = F;
+        M.P          = spm_unvec(V*XX(:,j),M.pE);
+        [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
+        SF(j)        = F;
     end
     SF    = reshape(SF,32,32);
     subplot(2,2,3),mesh(x,y,SF), axis square,     title('Free energy landscape')

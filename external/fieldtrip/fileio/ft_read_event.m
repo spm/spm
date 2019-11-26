@@ -224,7 +224,7 @@ if strcmp(eventformat, 'brainvision_vhdr')
   if ~isfield(vhdr, 'MarkerFile') || isempty(vhdr.MarkerFile)
     filename = [];
   else
-    [p, ~, ~] = fileparts(filename);
+    p        = fileparts(filename);
     filename = fullfile(p, vhdr.MarkerFile);
   end
 end

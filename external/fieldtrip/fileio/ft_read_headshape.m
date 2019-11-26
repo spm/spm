@@ -949,7 +949,7 @@ switch fileformat
   case 'obj'
     ft_hastoolbox('wavefront', 1);
     % Only tested for structure.io .obj thus far
-    [vertex, faces, texture, ~] = read_obj_new(filename);
+    [vertex, faces, texture] = read_obj_new(filename);
     
     shape.pos   = vertex;
     shape.pos   = shape.pos - repmat(sum(shape.pos)/length(shape.pos),...

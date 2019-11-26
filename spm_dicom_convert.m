@@ -33,10 +33,10 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 %            cellstring with filenames of created files. If no files are
 %            created, a cell with an empty string {''} is returned.
 %__________________________________________________________________________
-% Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7666 2019-09-24 16:30:13Z john $
+% $Id: spm_dicom_convert.m 7714 2019-11-26 11:25:50Z spm $
 
 
 %-Input parameters
@@ -1469,8 +1469,8 @@ if ~isempty(X)
     for k = 1:numel(tokens{1})
         if ~isempty(tokens{1}{k})
             try
-                [tlhrh, ~] = regexp(tokens{1}{k}, '(?:=)+', 'split', 'match');
-                [tlh, ~]   = regexp(tlhrh{1}, '(?:\.)+', 'split', 'match');
+                [tlhrh] = regexp(tokens{1}{k}, '(?:=)+', 'split', 'match');
+                [tlh]   = regexp(tlhrh{1}, '(?:\.)+', 'split', 'match');
                 tlh = cellfun(@genvarname, tlh, 'UniformOutput',false);
                 tlh = sprintf('.%s', tlh{:});
                 eval(sprintf('ret%s = %s;', tlh, tlhrh{2}));
