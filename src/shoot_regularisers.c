@@ -1,4 +1,4 @@
-/* $Id: shoot_regularisers.c 7685 2019-11-01 12:56:19Z john $ */
+/* $Id: shoot_regularisers.c 7723 2019-11-27 18:12:41Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -137,6 +137,26 @@ double trapprox(mwSize dm[], float a[], double s[])
 
 
 /************************************************************************************************/
+/* Returns the velocity-to-momentum convolution kernel.
+ *
+ * \param[in]  dm     Dimensions of the velocity lattice (voxels)
+ * \param[in]  s[0:2] Voxel size of the lattice (voxels/mm)
+ * \param[in]  s[3]   Parameter of the absolute displacement penalty
+ * \param[in]  s[4]   Parameter of the membrane energy (penalizes 
+ *                    elements of the Jacobian matrix -> 1st order 
+ *                    smoothness)
+ * \param[in]  s[5]   Parameter of the bending energy (penalizes 
+ *                    elements of the Hessian matrix -> 2nd order 
+ *                    smoothness)
+ * \param[in]  s[6]   Parameter of the linear elastic energy (penalizes 
+ *                    elements of the symmetric part of the Jacobian matrix 
+ *                    -> penalizes scaling and shearing)
+ * \param[in]  s[7]   Parameter of the linear elastic energy (penalizes 
+ *                    the divergence of the Jacobian matrix -> preserves 
+ *                    volumes)
+ * \param[out] f      Allocated array of size dm in which to store the  
+ *                    kernel
+ */
 void kernel(mwSize dm[], double s[], float f[])
 {
     double w000,w100,w200,
@@ -268,6 +288,28 @@ void kernel(mwSize dm[], double s[], float f[])
 
 
 /************************************************************************************************/
+/* Returns the sum of squares of (b - (L + H) * u)
+ *
+ * \param[in]    dm     Dimensions of the velocity lattice (voxels)
+ * \param[in]    a      (Optional) Symmetric tensor field H (i.e. a 3x3   
+ *                      symmetric matrix at each point of the lattice.).
+ * \param[in]    b      Point at which to solve the system.
+ * \param[in]    s[0:2] Voxel size of the lattice (voxels/mm)
+ * \param[in]    s[3]   Parameter of the absolute displacement penalty
+ * \param[in]    s[4]   Parameter of the membrane energy (penalizes 
+ *                      elements of the Jacobian matrix -> 1st order 
+ *                      smoothness)
+ * \param[in]    s[5]   Parameter of the bending energy (penalizes 
+ *                      elements of the Hessian matrix -> 2nd order 
+ *                      smoothness)
+ * \param[in]    s[6]   Parameter of the linear elastic energy (penalizes 
+ *                      elements of the symmetric part of the Jacobian  
+ *                      matrix -> penalizes scaling and shearing)
+ * \param[in]    s[7]   Parameter of the linear elastic energy (penalizes 
+ *                      the divergence of the Jacobian matrix -> preserves 
+ *                      volumes)
+ * \param[in]    u      Approximate solution.
+ */
 /*@unused@*/ static double sumsq(mwSize dm[], /*@null@*/float a[], float b[], double s[], float u[])
 {
     double w000,w100,w200,
@@ -495,6 +537,15 @@ void kernel(mwSize dm[], double s[], float f[])
 
 
 /************************************************************************************************/
+/* Pointwise matrix multiplication.
+ * Returns A[i] * p[i], where A contains M symmetric 3*3 matrix 
+ * (tensor field) and p contains M 3*1 vectors (velocity field).
+ * 
+ * \param[in]  dm  Dimension of the lattice (M = prod(dm))
+ * \param[in]  A   Symmetric tensor field
+ * \param[in]  p   Vector field
+ * \param[out] Ap  Result of the pointwise matrix multiplication (A * p)
+ */
 static void Atimesp1(mwSize dm[], /*@null@*/ float A[], float p[], float Ap[])
 {
     mwSize m = dm[0]*dm[1]*dm[2];
@@ -514,8 +565,29 @@ static void Atimesp1(mwSize dm[], /*@null@*/ float A[], float p[], float Ap[])
         pap3[i] += pa13[i]*pp1[i] + pa23[i]*pp2[i] + pa33[i]*pp3[i];
     }
 }
+/************************************************************************************************/
 
 
+/************************************************************************************************/
+/* Returns m = L * v in the case where L is made of a mixture of 
+ * regularization energies.
+ *
+ * \param dm     Dimensions of the velocity lattice (voxels)
+ * \param f      Velocities computed on the above lattice
+ * \param s[0:3] Voxel sizes (voxels/mm)
+ * \param s[3]   Parameter of the absolute displacement penalty (lam0)
+ * \param s[4]   Parameter of the membrane energy (lam1) (penalizes 
+ *               elements of the Jacobian matrix -> 1st order smoothness)
+ * \param s[5]   Parameter of the bending energy (lam2) (penalizes 
+ *               elements of the Hessian matrix -> 2nd order smoothness)
+ * \param s[6]   Parameter of the linear elastic energy (mu) (penalizes 
+ *               elements of the symmetric part of the Jacobian matrix 
+ *               -> penalizes scaling and shearing)
+ * \param s[7]   Parameter of the linear elastic energy (lam) (penalizes 
+ *               the divergence of the Jacobian matrix -> preserves 
+ *               volumes)
+ * \param g      Allocated array in which to store the output momentum 
+ */
 void vel2mom(mwSize dm[], float f[], double s[], float g[])
 {
     mwSignedIndex j, k;
@@ -689,17 +761,58 @@ void vel2mom(mwSize dm[], float f[], double s[], float g[])
         }
     }
 }
+/************************************************************************************************/
 
 
-void Atimesp(mwSize dm[], /*@null@*/ float a[], double param[], float p[], float Ap[])
+/************************************************************************************************/
+/* Pointwise matrix multiplication in the momentum space.
+ * Returns A[i] * vel2mom(p[i]), where A contains M symmetric 3*3 matrix 
+ * (tensor field) and p contains M 3*1 vectors (velocity field).
+ * 
+ * \param[in]  dm  Dimension of the lattice (M = prod(dm))
+ * \param[in]  A   Symmetric tensor field
+ * \param[in]  p   Vector field
+ * \param[in]  s   See vel2mom
+ * \param[out] Ap  Result of the pointwise matrix multiplication (A * p)
+ */
+void Atimesp(mwSize dm[], /*@null@*/ float A[], double s[], float p[], float Ap[])
 {
-    vel2mom(dm, p, param, Ap);
-    Atimesp1(dm, a, p, Ap);
+    vel2mom(dm, p, s, Ap);
+    Atimesp1(dm, A, p, Ap);
 }
 /************************************************************************************************/
 
 
 /************************************************************************************************/
+/* Relaxation iterations for linear elasticity penalty.
+ *
+ * . We solve for (L + H) * u = b
+ * . F = nondiag(L) (i.e., L without its diagonal elements)
+ * . E = H + diag(L) + sI (to ensure diagonal dominance)
+ * . u = E^{-1} * ( b - F * u )
+ *
+ * \param[in]    dm     Dimension of the lattice.
+ * \param[in]    a      Symmetric tensor field H (i.e. a 3x3 symmetric  
+ *                      matrix at each point of the lattice.).
+ * \param[in]    b      Point at which to solve the system.
+ * \param[in]    s[0:2] Voxel size of the lattice (voxels/mm)
+ * \param[in]    s[3]   Parameter of the absolute displacement penalty
+ * \param[in]    s[4]   Parameter of the membrane energy (penalizes 
+ *                      elements of the Jacobian matrix -> 1st order 
+ *                      smoothness)
+ * \param[in]    s[5]   Parameter of the bending energy (penalizes 
+ *                      elements of the Hessian matrix -> 2nd order 
+ *                      smoothness)
+ * \param[in]    s[6]   Parameter of the linear elastic energy (penalizes 
+ *                      elements of the symmetric part of the Jacobian  
+ *                      matrix -> penalizes scaling and shearing)
+ * \param[in]    s[7]   Parameter of the linear elastic energy (penalizes 
+ *                      the divergence of the Jacobian matrix -> preserves 
+ *                      volumes)
+ * \param[in]    nit    Number of relaxation iterations.
+ * \param[inout] u      [in] Initial guess for the solution.
+ *                      [out] Output relaxation solution.
+ */
 static void relax_le(mwSize dm[], /*@null@*/ float a[], float b[], double s[], int nit, float u[])
 {
     mwSignedIndex j, k;
@@ -856,8 +969,13 @@ static void relax_le(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
         printf("\n");
 #   endif
 }
+/************************************************************************************************/
 
 
+/************************************************************************************************/
+/* Relaxation iterations for membrane energy penalty.
+ * See documentation for relax_le.
+ */
 static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], int nit, float u[])
 {
     mwSignedIndex j, k;
@@ -1002,8 +1120,13 @@ static void relax_me(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
 #endif
 
 }
+/************************************************************************************************/
 
 
+/************************************************************************************************/
+/* Relaxation iterations for bending energy penalty.
+ * See documentation for relax_le.
+ */
 static void relax_be(mwSize dm[], /*@null@*/ float a[], float b[], double s[], int nit, float u[])
 {
     mwSignedIndex j, k;
@@ -1220,7 +1343,13 @@ static void relax_be(mwSize dm[], /*@null@*/ float a[], float b[], double s[], i
 #   endif
 }
 
+/************************************************************************************************/
 
+
+/************************************************************************************************/
+/* Relaxation iterations for combined penalty.
+ * See documentation for relax_le.
+ */
 static void relax_all(mwSize dm[], /*@null@*/ float a[], float b[], double s[], int nit, float u[])
 {
     mwSignedIndex j, k;
@@ -1482,7 +1611,39 @@ static void relax_all(mwSize dm[], /*@null@*/ float a[], float b[], double s[], 
 #   endif
 }
 
+/************************************************************************************************/
 
+
+/************************************************************************************************/
+/* Relaxation wrapper function
+ *
+ * . We solve for (L + H) * u = b
+ * . F = nondiag(L) (i.e., L without its diagonal elements)
+ * . E = H + diag(L) + sI (to ensure diagonal dominance)
+ * . u = E^{-1} * ( b - F * u )
+ *
+ * \param[in]    dm     Dimension of the lattice.
+ * \param[in]    a      Symmetric tensor field H (i.e. a 3x3 symmetric  
+ *                      matrix at each point of the lattice.).
+ * \param[in]    b      Point at which to solve the system.
+ * \param[in]    s[0:2] Voxel size of the lattice (voxels/mm)
+ * \param[in]    s[3]   Parameter of the absolute displacement penalty
+ * \param[in]    s[4]   Parameter of the membrane energy (penalizes 
+ *                      elements of the Jacobian matrix -> 1st order 
+ *                      smoothness)
+ * \param[in]    s[5]   Parameter of the bending energy (penalizes 
+ *                      elements of the Hessian matrix -> 2nd order 
+ *                      smoothness)
+ * \param[in]    s[6]   Parameter of the linear elastic energy (penalizes 
+ *                      elements of the symmetric part of the Jacobian  
+ *                      matrix -> penalizes scaling and shearing)
+ * \param[in]    s[7]   Parameter of the linear elastic energy (penalizes 
+ *                      the divergence of the Jacobian matrix -> preserves 
+ *                      volumes)
+ * \param[in]    nit    Number of relaxation iterations.
+ * \param[inout] u      [in] Initial guess for the solution.
+ *                      [out] Output relaxation solution.
+ */
 void relax(mwSize dm[], /*@null@*/ float a[], float b[], double s[], int nit, float u[])
 {
     if (s[5]==0.0 && s[6]==0.0 && s[7]==0.0)
