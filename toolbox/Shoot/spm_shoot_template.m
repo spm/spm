@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 7461 2018-10-29 15:59:58Z john $
+% $Id: spm_shoot_template.m 7718 2019-11-27 11:18:53Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -57,6 +57,7 @@ end
 spm_progress_bar('Init',n2,'Initial mean','Subjects done');
 dm = [size(NF(1,1).NI.dat) 1];
 dm = dm(1:3);
+M  = NF(1,1).NI.mat;
 
 NU     = nifti;
 NU(n2) = nifti;
@@ -92,16 +93,16 @@ for i=1:n2
     end
 
     NU(i).descrip = sprintf('Velocity (%.4g %.4g %.4g %.4g %.4g)', rparam(1), rparam(2), rparam(3), rparam(4), rparam(5));
-    NU(i).mat     = NF(1,i).NI.mat;
+    NU(i).mat     = M;
     NU(i).mat0    = NF(1,i).NI.mat0;
 
     NY(i).descrip = 'Deformation (templ. to. ind.)';
-    NY(i).mat     = NF(1,i).NI.mat;
-    NY(i).mat0    = NY(i).mat;
+    NY(i).mat     = M;
+    NY(i).mat0    = M;
 
     NJ(i).descrip = 'Jacobian det (templ. to. ind.)';
-    NJ(i).mat     = NF(1,i).NI.mat;
-    NJ(i).mat0    = NJ(i).mat;
+    NJ(i).mat     = M;
+    NJ(i).mat0    = M;
 
     create(NU(i)); NU(i).dat(:,:,:,:,:) = 0;
     create(NY(i)); NY(i).dat(:,:,:,:,:) = reshape(affind(spm_diffeo('Exp',zeros([dm,3],'single'),[0 1]),NU(i).mat0),[dm,1,3]);
