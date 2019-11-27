@@ -90,7 +90,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7476 2018-11-07 15:17:39Z peter $
+% $Id: spm_dcm_peb.m 7720 2019-11-27 12:45:04Z peter $
  
 
 % get filenames and set up
@@ -108,7 +108,6 @@ try
     DEM = P;
     P   = spm_dem2dcm(P);
 end
-
 
 % check parameter fields and design matrices
 %--------------------------------------------------------------------------
@@ -136,9 +135,11 @@ if size(P,2) > 1
     return
 end
 
-
 % get (first level) densities (summary statistics)
 %==========================================================================
+
+% select DCM parameters
+% -------------------------------------------------------------------------
 Ns    = numel(P);                               % number of subjects
 if isfield(M,'bC') && Ns > 1
     q = spm_find_pC(M.bC,M.bE,field);           % parameter indices
@@ -147,12 +148,14 @@ elseif isnumeric(field)
 else
     q = spm_find_pC(DCM,field);                 % parameter indices
 end
+
+% prepare field names
+% -------------------------------------------------------------------------
 try
     Pstr  = spm_fieldindices(DCM.M.pE,q);       % field names 
 catch
     if isfield(DCM,'Pnames')
         % PEB given as input. Field names have form covariate:fieldname
-        %------------------------------------------------------------------
         Pstr  = [];
         for i = 1:length(DCM.Xnames)
             str  = strcat(DCM.Xnames{i}, ': ', DCM.Pnames);
@@ -160,63 +163,73 @@ catch
         end
     else
         % Generate field names
-        %------------------------------------------------------------------
+        q = q(:);
         Pstr  = strcat('P', cellstr(num2str(q)));
     end
 end
-Np    = numel(q);                               % number of parameters
+
+% count parameters
+Np = numel(q);                               
 if Np == 1
     Pstr = {Pstr}; 
 end
 
+% read and unpack DCM(s)
+% -------------------------------------------------------------------------
 for i = 1:Ns
     
-    % get first(within subject) level DCM
-    %----------------------------------------------------------------------
+    % get DCM
     try, load(P{i}); catch, DCM = P{i}; end
     
-    % posterior densities over all parameters
-    %----------------------------------------------------------------------
+    % get prior and posterior densities over all parameters
     if isstruct(DCM.M.pC)
         pC{i} = diag(spm_vec(DCM.M.pC));
     else
         pC{i} = DCM.M.pC;
     end
-    pC{i} = pC{i};
     pE{i} = spm_vec(DCM.M.pE);
     qE{i} = spm_vec(DCM.Ep);
     qC{i} = DCM.Cp;
     
-    % deal with rank deficient priors
-    %----------------------------------------------------------------------
+    % check priors
     if i == 1
-        PE = pE{i}(q);
-        PC = pC{i}(q,q);
-        U  = spm_svd(PC);
         Ne = numel(pE{i});
-    else
-        if numel(pE{i}) ~= Ne
-            error('Please ensure all DCMs have the same parameterisation');
-        end
     end
+    if numel(pE{i}) ~= Ne
+        error('Please ensure all DCMs have the same parameterisation');
+    end
+    
+    % and get the free energy of model with full priors
+    iF(i) = DCM.F;
+    
+end
 
+% deal with variability across subjects' priors (arithmetic mean)
+% -------------------------------------------------------------------------
+PE = spm_zeros(pE{1}(q));
+PC = spm_zeros(pC{1}(q,q));
+for i = 1:Ns
+    PE = PE + pE{i}(q);
+    PC = PC + pC{i}(q,q);
+end
+PE = PE ./ Ns;
+PC = PC ./ Ns;
+
+% deal with rank deficient priors
+% -------------------------------------------------------------------------
+U = spm_svd(PC);
+
+for i = 1:Ns
     % select parameters in field
-    %----------------------------------------------------------------------
     pE{i} = U'*pE{i}(q); 
     pC{i} = U'*pC{i}(q,q)*U; 
     qE{i} = U'*qE{i}(q); 
     qC{i} = U'*qC{i}(q,q)*U;
     
     % shrink posterior to accommodate inefficient inversions
-    %----------------------------------------------------------------------
     if Ns > 1
        qC{i} = spm_inv(spm_inv(qC{i}) + spm_inv(pC{i})/16);
-    end
-    
-    % and free energy of model with full priors
-    %----------------------------------------------------------------------
-    iF(i) = DCM.F;
-    
+    end        
 end
 
 % hierarchical model design and defaults

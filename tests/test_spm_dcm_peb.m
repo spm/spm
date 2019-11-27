@@ -3,7 +3,7 @@ function tests = test_spm_dcm_peb
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_peb.m 7479 2018-11-09 14:17:33Z peter $
+% $Id: test_spm_dcm_peb.m 7720 2019-11-27 12:45:04Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -121,6 +121,31 @@ M = struct();
 M.X = [1 1; 1 -1];
 M.Q = 'none';
 PEB  = spm_dcm_peb({PEB1;PEB2},M);
+
+% -------------------------------------------------------------------------
+function test_peb_with_rank_deficient_priors(testCase)
+
+data_path = get_data_path();
+
+% Load first level DCMs
+GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
+GCM = GCM.GCM;
+
+% Prepare group level design matrix
+X = load(fullfile(data_path,'design_matrix.mat'));
+X = X.X;
+
+ns = size(X,1);
+X  = [ones(ns,1) X];
+
+% Include A matrix (parameters 1-4) and a switched off B parameter (5)
+fields = 1:5;
+
+% Estimate PEB
+PEB = spm_dcm_peb(GCM(:,1), X, fields);
+
+% Check output sizes
+testCase.assertTrue(all(PEB.Ep(5,:) == 0));
 
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
