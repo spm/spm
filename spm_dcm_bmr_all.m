@@ -63,7 +63,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 7654 2019-08-25 20:09:35Z karl $
+% $Id: spm_dcm_bmr_all.m 7717 2019-11-27 11:10:36Z peter $
 
 
 %-specification of null prior covariance
@@ -428,4 +428,8 @@ DCM.Pp    = Pp;        % Model posterior over parameters (with and without)
 DCM.Ep    = Ep;        % Bayesian model averages
 DCM.Cp    = Cp;        % Bayesian model variance
 
+% Clear free energy if supplied (which is no longer meaningful)
+if isfield(DCM,'F')
+    DCM = rmfield(DCM,'F');
+end
 
