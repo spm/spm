@@ -19,10 +19,20 @@ function [hrf,p] = spm_hrf(RT,P,T)
 % hrf  - haemodynamic response function
 % p    - parameters of the response function
 %__________________________________________________________________________
-% Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
+%
+% The parameters p(1:4) correspond to the shape and scale parameters of two
+% probability density functions of the Gamma distribution (see spm_Gpdf.m),
+% one corresponding to the main response and the other one to the
+% undershoot.
+% Note that the mean of the Gamma distribution is shape*scale and its mode
+% is (shape-1)*scale.  This means that with the default values of the
+% parameters the peak of the heamodynamic response function will be around
+% 5 seconds.
+%__________________________________________________________________________
+% Copyright (C) 1996-2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hrf.m 6594 2015-11-06 18:47:05Z guillaume $
+% $Id: spm_hrf.m 7721 2019-11-27 13:03:32Z guillaume $
 
 
 %-Parameters of the response function
