@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 7518 2019-01-24 11:14:40Z guillaume $
+% $Id: spm_check_installation.m 7719 2019-11-27 12:38:55Z guillaume $
 
 if isdeployed, return; end
 
@@ -134,7 +134,7 @@ if ispc
             'TAR file smart CR/LF conversion is disabled\n'...
             '(under the Miscellaneous Configuration Options).']));
     end
-    if ~exist(fullfile(d,'toolbox','dcm_meeg','spm_dcm_erp.m'),'file'),
+    if ~exist(fullfile(d,'toolbox','dcm_meeg','spm_dcm_erp.m'),'file')
         error(sprintf([...
             'There appears to be some problem with the installation.\n'...
             'This is probably something to do with the way that the\n'...
@@ -149,16 +149,27 @@ end
 try
     feval(@spm_bsplinc,1,ones(1,6));
 catch
+    if ismac
+        url = 'https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Mac_OS_(Intel)';
+    elseif isunix
+        url = 'https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Linux';
+    elseif ispc
+        url = 'https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Windows';
+    else
+        url = 'https://www.wikibooks.org/wiki/SPM#Installation';
+    end
+    if strcmpi(platform,'octave')
+        url = 'https://en.wikibooks.org/wiki/SPM/Octave#Compilation';
+    end
     error([...
         'SPM uses a number of MEX files, which are compiled functions.\n'...
         'These need to be compiled for the various platforms on which SPM\n'...
         'is run. It seems that the compiled files for your computer platform\n'...
         'are missing or not compatible. See\n'...
-        '   https://www.wikibooks.org/wiki/SPM#Installation\n'...
         '   %s\n'...
         'for information about how to compile MEX files for %s\n'...
         'in %s %s.'],...
-        fullfile(d,'src','Makefile'),computer,platform,version);
+        url,computer,platform,version);
 end
 
 %==========================================================================
