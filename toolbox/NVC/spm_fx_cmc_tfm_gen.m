@@ -68,7 +68,7 @@ function [ux, vx, wx] = spm_fx_cmc_tfm_gen(x,u,P,M,option)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian, and Karl Friston
-% $Id: spm_fx_cmc_tfm_gen.m 7713 2019-11-25 16:00:34Z spm $
+% $Id: spm_fx_cmc_tfm_gen.m 7728 2019-11-28 15:57:25Z peter $
 
 persistent in1 in2 in3 ;
 
@@ -183,78 +183,58 @@ end
 u      = zeros(n,4);                % intrinsic - inhibitory
 v      = zeros(n,4);                % intrinsic - excitatory
 w      = zeros(n,4);                % extrinsic - excitatory
-Pre_ext    = zeros(n,4); % pre-synaptics with extrinsic input;
-Pre_no_ext = zeros(n,4); % pre-synaptics without extrinsic input;
+pre_ext    = zeros(n,4);            % pre-synaptics with extrinsic input
+pre_no_ext = zeros(n,4);            % pre-synaptics without extrinsic input
+pincluded  = option{4};             % included populations (binary vector)
 
 % Granular layer (excitatory interneurons): spiny stellate: Hidden causes
 %--------------------------------------------------------------------------
 u(:,1) = G(:,1).*S(:,1) + g(1,3)*S(:,3) + g(1,2)*S(:,2);
 w(:,1) = A{1}*S(:,2) + U;
-Pre_ext(:,1)    = u(:,1);
-Pre_no_ext(:,1) = u(:,1) + w(:,1);
-
-if option{1,4}(1)== 0
-    u(:,1) = 0;
-    w(:,1) = 0;
-    Pre_ext   (:,1)    = 0;
-    Pre_no_ext(:,1)    = 0;
-end
+pre_no_ext(:,1) = u(:,1);
+pre_ext(:,1)    = u(:,1) + w(:,1);
 
 % Supra-granular layer (superficial pyramidal cells): Hidden causes - error
 %--------------------------------------------------------------------------
 u(:,2) = G(:,2).*S(:,2) + g(2,3)*S(:,3);
 v(:,2) = g(2,1)*S(:,1);
 w(:,2) = A{3}*S(:,4);
-Pre_ext(:,2)    = u(:,2) + v(:,2);
-Pre_no_ext(:,2) = u(:,2) + v(:,2) + w(:,2);
-
-if option{1,4}(2)== 0
-    u(:,2) = 0;
-    v(:,2) = 0;
-    w(:,2) = 0;
-    Pre_ext(:,2)    = 0;
-    Pre_no_ext(:,2) = 0;
-end
+pre_no_ext(:,2) = u(:,2) + v(:,2);
+pre_ext(:,2)    = u(:,2) + v(:,2) + w(:,2);
 
 % Supra-granular layer (inhibitory interneurons): Hidden states - error
 %--------------------------------------------------------------------------
 u(:,3) = G(:,3).*S(:,3);
 v(:,3) = g(3,1)*S(:,1) + g(3,4)*S(:,4) + g(3,2)*S(:,2);
 w(:,3) = A{4}*S(:,4);
-Pre_ext(:,3)    = u(:,3) + v(:,3);
-Pre_no_ext(:,3) = u(:,3) + v(:,3) + w(:,3);
-if option{1,4}(3)==0
-    u(:,3) = 0;
-    v(:,3) = 0;
-    w(:,3) = 0;
-    Pre_ext(:,3)    = 0;
-    Pre_no_ext(:,3) = 0;
-end
+pre_no_ext(:,3) = u(:,3) + v(:,3);
+pre_ext(:,3)    = u(:,3) + v(:,3) + w(:,3);
 
 % Infra-granular layer (deep pyramidal cells): Hidden states
 %--------------------------------------------------------------------------
 u(:,4) = G(:,4).*S(:,4) + g(4,3)*S(:,3);
 v(:,4) = g(4,2)*S(:,2);
 w(:,4) = A{2}*S(:,2);
-Pre_ext(:,4)    = u(:,4) + v(:,4);
-Pre_no_ext(:,4) = u(:,4) + v(:,4) + w(:,4);
-if option{1,4}(4)==0
-    u(:,4) = 0;
-    v(:,4) = 0;
-    w(:,4) = 0;
-    Pre_ext(:,4)    = 0;
-    Pre_no_ext(:,4) = 0;
-end
+pre_no_ext(:,4) = u(:,4) + v(:,4);
+pre_ext(:,4)    = u(:,4) + v(:,4) + w(:,4);
+
+% Switch off unused connections
+%--------------------------------------------------------------------------
+u(:,~pincluded)=0;
+v(:,~pincluded)=0;
+w(:,~pincluded)=0;
+pre_ext(:,~pincluded)=0;
+pre_no_ext(:,~pincluded)=0;
 
 % output
 %--------------------------------------------------------------------------
 t = 1 ;
 if (strcmp(option{3}, 'ext')&& strcmp(option{1}, 'pre'))
-    in1(:,:,t)  = Pre_ext;
+    in1(:,:,t)  = pre_ext;
     ux(:,:,t)    = in1;
 end
 if(strcmp(option{3}, 'int') && strcmp(option{1}, 'pre'))
-    in1(:,:,t)  = Pre_no_ext;
+    in1(:,:,t)  = pre_no_ext;
     ux(:,:,t)    = in1;
 end
 if(strcmp(option{1}, 'de'))
