@@ -62,7 +62,7 @@ if nargin==1
 
   try
     fid=fopen_or_error(FILENAME,'r','ieee-le');
-  catch err
+  catch
     fprintf(2,['Error LOADEDF: File ' FILENAME ' not found\n']);
     return;
   end;
