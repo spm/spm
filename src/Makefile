@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 7700 2019-11-21 17:09:15Z john $
+# $Id: Makefile 7724 2019-11-28 11:26:53Z guillaume $
 #
 ###############################################################################
 #
@@ -69,7 +69,7 @@ clean: verb.clean main-clean tbx-clean
 
 distclean: clean verb.distclean main-distclean tbx-distclean verb.distclean.end
 
-install: verb.install main-all main-install tbx-install verb.install.end
+install: verb.install main-all tbx-all main-install tbx-install verb.install.end
 
 external external-all external-clean external-distclean external-install external-tarball: verb.external
 	@ $(MAKE) -C ../external --no-print-directory $(subst -,,$(subst external,,$@))
@@ -289,11 +289,18 @@ spm_voronoi.$(MEXEXT): spm_voronoi.c
 spm_mrf.$(MEXEXT): spm_mrf.c
 	$(MEX) spm_mrf.c $(MEXEND)
 
-spm_diffeo.$(MEXEXT): spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c spm_openmp.c shoot_bsplines.c bsplines.c
-	$(MEX) spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c spm_openmp.c shoot_bsplines.c bsplines.c -DIMAGE_SINGLE $(MEXEND)
+spm_diffeo.$(MEXEXT): spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c\
+		shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c\
+		shoot_boundary.c spm_openmp.c shoot_bsplines.c bsplines.c
+	$(MEX) spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c\
+		shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c\
+		shoot_boundary.c spm_openmp.c shoot_bsplines.c bsplines.c\
+		-DIMAGE_SINGLE $(MEXEND)
 
-spm_field.$(MEXEXT): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_boundary.c spm_openmp.c
-	$(MEX) spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c spm_openmp.c $(MEXEND)
+spm_field.$(MEXEXT): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_boundary.c\
+		spm_openmp.c
+	$(MEX) spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c\
+		spm_openmp.c $(MEXEND)
 
 spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c
 	$(MEX) spm_jsonread.c jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)
@@ -312,7 +319,8 @@ libSPM.so: shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c\
 	   shoot_regularisers.h shoot_optim3d.h hist2.h shoot_expm3.h spm_openmp.h
 	$(CC) -O4 -shared -fPIC -Wl,-soname,$@ -o $@ -lm -DIMAGE_SINGLE\
 	   shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c\
-	   shoot_regularisers.c shoot_optim3d.c hist2.c shoot_invdef.c spm_openmp.c shoot_expm3.c $(OMPFLAG)
+	   shoot_regularisers.c shoot_optim3d.c hist2.c shoot_invdef.cshoot_expm3.c\
+	   spm_openmp.c  $(OMPFLAG)
 
 ###############################################################################
 # Display Messages
