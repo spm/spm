@@ -14,7 +14,7 @@ function Fmenu = spm_Menu(action, varargin)
 % Copyright (C) 2018-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_Menu.m 7606 2019-06-06 10:52:30Z guillaume $
+% $Id: spm_Menu.m 7727 2019-11-28 15:35:49Z guillaume $
 
 
 if nargin < 1, action = 'Create'; end
@@ -105,7 +105,14 @@ set(Fmenu,'Color',[1 1 1]*.8);
 %-Set SPM colour
 %--------------------------------------------------------------------------
 set(findobj(Fmenu,'Tag', 'frame'),'BackgroundColor',spm('colour'));
-if ismac
+if ispc && strcmpi(spm_check_version,'matlab')
+    try
+        %M   = getframe(Fmenu);
+        %col = double(M.cdata(floor(size(M.cdata,1)/3),floor(size(M.cdata,2)/2),:));
+        col = [204 204 204];
+        set(findobj(Fmenu,'UserData','LABEL'),'BackgroundColor',col/255);
+    end
+elseif ismac
     set(findobj(Fmenu,'UserData','LABEL'),'Visible','off','Tag','');
 end
 
