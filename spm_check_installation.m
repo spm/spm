@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 7732 2019-11-29 12:26:49Z guillaume $
+% $Id: spm_check_installation.m 7733 2019-11-29 17:31:10Z guillaume $
 
 if isdeployed, return; end
 
@@ -600,9 +600,9 @@ sts = true;
 svnprops = struct('file',f, 'id',[], 'date','', 'md5','');
 
 fp  = fopen(f,'rt');
-str = fread(fp,Inf,'*uchar');
+str = fread(fp,'*uint8');
 fclose(fp);
-str = char(str(:)');
+str = native2unicode(str(:)','iso-8859-1');
 
 r = regexp(str,['\$Id: (?<file>\S+) (?<id>[0-9]+) (?<date>\S+) ' ...
                 '(\S+Z) (?<author>\S+) \$'],'names');
