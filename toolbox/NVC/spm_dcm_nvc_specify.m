@@ -26,7 +26,7 @@ function DCM = spm_dcm_nvc_specify(SPM,xY_fMRI,MEEG,model,n_exclude,sess_exclude
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id: spm_dcm_nvc_specify.m 7713 2019-11-25 16:00:34Z spm $
+% $Id: spm_dcm_nvc_specify.m 7734 2019-12-01 22:15:22Z peter $
 
 %-Get SPM file and DCM for MEG
 %--------------------------------------------------------------------------
@@ -97,7 +97,7 @@ RT     = SPM.xY.RT;
 t0     = spm_get_defaults('stats.fmri.t0');
 t      = spm_get_defaults('stats.fmri.t');
 T0     = RT * t0 / t;
-DCM.delays = repmat(SPM.xY.RT/2,m,1);
+DCM.delays = repmat(T0,1,m);
 
 %-Echo time (TE) of data acquisition
 %--------------------------------------------------------------------------

@@ -38,7 +38,7 @@ function DCM  = spm_dcm_nvc(P)
 %
 %   Example: [ 1 0 1 1] means no NVC drive from inhibitory populations.
 %
-% P{6} - Binary vector which sessions (runs) to include.
+% P{6} - Binary vector indicating which sessions (runs) to include.
 %
 % P{7} - options structure for DCM for fMRI:  
 %    options.name                   % name for the DCM
@@ -78,7 +78,7 @@ function DCM  = spm_dcm_nvc(P)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
  
 % Amirhossein Jafarian
-% $Id: spm_dcm_nvc.m 7713 2019-11-25 16:00:34Z spm $
+% $Id: spm_dcm_nvc.m 7734 2019-12-01 22:15:22Z peter $
 
 % Prepare input
 %--------------------------------------------------------------------------
@@ -106,7 +106,7 @@ if isempty(sess_exclude)
     sess_exclude = 'not defined';
 end
 
-% Specify model
+% Specify haemodynamic model
 %--------------------------------------------------------------------------
 DCM    = spm_dcm_nvc_specify(SPM,xY,MEEG,model,n_exclude,sess_exclude,options);
 n      = DCM.n;         
@@ -118,7 +118,7 @@ U.u    = [];
 %--------------------------------------------------------------------------
 Y       = DCM.Y;         
 Y.y     = spm_detrend(Y.y);
-scale   = max(max((Y.y))) - min(min((Y.y)));
+scale   = max(max(Y.y)) - min(min(Y.y));
 scale   = 4/max(scale,4);
 Y.y     = Y.y*scale;
 Y.scale = scale;

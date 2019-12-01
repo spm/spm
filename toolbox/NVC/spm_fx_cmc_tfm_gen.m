@@ -68,7 +68,7 @@ function [ux, vx, wx] = spm_fx_cmc_tfm_gen(x,u,P,M,option)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian, and Karl Friston
-% $Id: spm_fx_cmc_tfm_gen.m 7728 2019-11-28 15:57:25Z peter $
+% $Id: spm_fx_cmc_tfm_gen.m 7734 2019-12-01 22:15:22Z peter $
 
 persistent in1 in2 in3 ;
 
@@ -156,9 +156,9 @@ T(:,i) = T(:,i).*exp(P.T);
 %     ss sp ii dp   % intrinsic connections
 %--------------------------------------------------------------------------
 g  = [-8 -4  -4  0;  % ss
-    4 -8  -2  0;  % sp
-    4  2  -4 -2;  % ii
-    0  1  -2 -4]; % dp
+       4 -8  -2  0;  % sp
+       4  2  -4 -2;  % ii
+       0  1  -2 -4]; % dp
 
 g  = g*256*exp(P.S);
 

@@ -1,9 +1,9 @@
-function Q = spm_gen_par(P,M,U)
+function Q = spm_gen_par(P,U)
 % Generate condition specific parameters using DCM for M/EEG
-% FORMAT Q = spm_gen_par(P,M,U)
+% FORMAT Q = spm_gen_par(P,U)
 %
 % P - parameters
-% M - neural-mass model structure
+%   P.xc - the index of the condition of interest
 % U - trial-effects
 %   U.X  - between-trial effects (encodes the number of trials)
 %   U.dt - time bins for within-trial effects
@@ -17,10 +17,10 @@ function Q = spm_gen_par(P,M,U)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id: spm_gen_par.m 7722 2019-11-27 17:18:56Z peter $
+% $Id: spm_gen_par.m 7734 2019-12-01 22:15:22Z peter $
 
 %--------------------------------------------------------------------------
-if nargin < 3, U.X = sparse(1,0); end
+if nargin < 2, U.X = sparse(1,0); end
 
 % between-trial (experimental) inputs
 %--------------------------------------------------------------------------
