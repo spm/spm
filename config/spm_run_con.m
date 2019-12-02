@@ -7,7 +7,7 @@ function out = spm_run_con(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 7716 2019-11-26 17:06:46Z guillaume $
+% $Id: spm_run_con.m 7738 2019-12-02 12:45:37Z guillaume $
 
 
 spm('FnBanner','spm_contrasts.m');
@@ -76,7 +76,7 @@ if job.delete && isfield(SPM,'xCon')
     if isempty(job.consess)
         fmt = spm_get_defaults('mat.format');
         s = whos('SPM');
-        if s.bytes > 2147483647, fmt = 'v7.3'; end
+        if s.bytes > 2147483647, fmt = '-v7.3'; end
         save(fullfile(SPM.swd,'SPM.mat'), 'SPM', fmt);
     end
     fprintf('%30s\n','...done');                                        %-#

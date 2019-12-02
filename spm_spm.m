@@ -268,10 +268,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 7716 2019-11-26 17:06:46Z guillaume $
+% $Id: spm_spm.m 7738 2019-12-02 12:45:37Z guillaume $
 
 
-SVNid = '$Rev: 7716 $';
+SVNid = '$Rev: 7738 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -749,7 +749,7 @@ SPM.swd        = pwd;
 fprintf('%-40s: %30s','Saving SPM.mat','...writing');                   %-#
 fmt = spm_get_defaults('mat.format');
 s = whos('SPM');
-if s.bytes > 2147483647, fmt = 'v7.3'; end
+if s.bytes > 2147483647, fmt = '-v7.3'; end
 save('SPM.mat','SPM', fmt);
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
 

@@ -237,7 +237,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_conman.m 7716 2019-11-26 17:06:46Z guillaume $
+% $Id: spm_conman.m 7738 2019-12-02 12:45:37Z guillaume $
 
 
 %==========================================================================
@@ -490,7 +490,7 @@ if (nargin==0) || ~ischar(varargin{1})
         fprintf('\t%-32s: %30s','Saving SPM.mat','...writing');         %-#
         fmt = spm_get_defaults('mat.format');
         s = whos('SPM');
-        if s.bytes > 2147483647, fmt = 'v7.3'; end
+        if s.bytes > 2147483647, fmt = '-v7.3'; end
         save('SPM.mat', 'SPM', fmt);
         fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...SPM.mat saved')%-#
     end
