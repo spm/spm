@@ -9,18 +9,21 @@ function DCM  = spm_dcm_nvc(P)
 % P{3} - Location of DCM for M/EEG .mat file or DCM structure
 % P{4} - Model specification for neurovascular coupling (NVC) mechanisms
 % P{5} - Which neuronal populations should drive haemodynamics 
-% P{6} - Which sessions to include
+% P{6} - Which fMRI experimental conditions to include
 % P{7} - DCM options
 %
 % Where:
 %
 % P{4} - A cell array of strings with three elements:
 %        
-%   P{4}{1} - 'pre', 'post' or decomposed ('de') neuronal signals excite NVC
+%   P{4}{1} - 'pre', 'post' or decomposed ('de') neuronal signals excite 
+%              NVC. Decomposed means activity is grouped into intrinsic-
+%              inhibitory, intrinisic-excitatory and extrinsic-excitatory.
 %   P{4}{2} - NVC has the same ('s') or different ('d') parameters for all
-%                  regions. 
-%   P{4}{3} - extrinsic ('ext') or intrinsic ('int') neuronal activity
-%             contribute to regional BOLD (for 'post', this should be 'na').
+%              regions. 
+%   P{4}{3} - extrinsic and intrinsic ('ext') or only intrinsic ('int') 
+%              neuronal activity contributes to regional BOLD 
+%              (for 'post', this should be 'na').
 %    
 %   Supported options:
 %   {'pre','d','int'},{'pre','s','int'}, {'pre','d','ext'},{'pre','s','ext'},
@@ -28,7 +31,7 @@ function DCM  = spm_dcm_nvc(P)
 %   {'post','d','na'},{'post','s','na'};
 %
 %   Example: P{4} = {'pre', 's', 'int'} means presynaptic neuronal drive
-%   (from intrinsic connections) inputs to a model of neurovascular
+%   (from intrinsic connections only) inputs to a model of neurovascular
 %   coupling that has the same parameters for all regions.
 %
 % P{5} - Which neuronal populations should drive haemodynamics, by setting
@@ -36,9 +39,9 @@ function DCM  = spm_dcm_nvc(P)
 %   [superficial pyramidal, inhibitory, excitatory, deep pyramidal]
 %   (default is [1 1 1 1]).
 %
-%   Example: [ 1 0 1 1] means no NVC drive from inhibitory populations.
+%   Example: [1 0 1 1] means no NVC drive from inhibitory populations.
 %
-% P{6} - Binary vector indicating which sessions (runs) to include.
+% P{6} - Binary vector indicating which experimental conditions to include.
 %
 % P{7} - options structure for DCM for fMRI:  
 %    options.name                   % name for the DCM
@@ -67,6 +70,32 @@ function DCM  = spm_dcm_nvc(P)
 % DCM.AIC                            % Akaike Information criterion
 % DCM.BIC                            % Bayesian Information criterion
 %
+% Notes on parameters:
+% -------------------------------------------------------------------------
+% This scheme estimates DCM.H (haemodynamic parameters) and DCM.J
+% (neurovascular coupling parameters):
+% 
+% DCM.Ep.H.transit - transit time (t0)
+% DCM.Ep.H.decay   - signal decay d(ds/dt)/ds)
+% DCM.Ep.H.epsilon - ratio of intra- to extra-vascular components of the
+%                    gradient echo signal
+%
+% DCM.Ep.J - neurovascular coupling parameters. The dimension depends upon 
+% the requested model specification. For p populations and n regions:
+%
+% P{7} (DCM.model)        dim(J)   notes
+% =========================================
+% {'pre'  'd' 'int'}      [p n]      
+% {'pre'  's' 'int'}      [p 1]
+% {'pre'  'd' 'ext'}      [p n]
+% {'pre'  's' 'ext'}      [p 1]
+% {'de'   's' 'int}       [p 2]    dim2: intrinsic inhibitory, excitatory
+% {'de'   's' 'ext'}      [p 3]    dim2: intrinsic inhibitory, excitatory, extrinsic 
+% {'de'   'd' 'int}       [p 2 n]  dim2: intrinsic inhibitory, excitatory
+% {'de'   'd' 'ext'}      [p 3 n]  dim2: intrinsic inhibitory, excitatory, extrinsic 
+% {'post' 's' 'na'}       [p 1]
+% {'post' 'd' 'na'}       [p n]
+%
 %__________________________________________________________________________
 % Jafarian, A., Litvak, V., Cagnan, H., Friston, K.J. and Zeidman, P., 2019.
 % Neurovascular coupling: insights from multi-modal dynamic causal modelling
@@ -78,7 +107,7 @@ function DCM  = spm_dcm_nvc(P)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
  
 % Amirhossein Jafarian
-% $Id: spm_dcm_nvc.m 7734 2019-12-01 22:15:22Z peter $
+% $Id: spm_dcm_nvc.m 7735 2019-12-02 09:15:27Z peter $
 
 % Prepare input
 %--------------------------------------------------------------------------

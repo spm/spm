@@ -1,6 +1,6 @@
-function DCM = spm_dcm_nvc_specify(SPM,xY_fMRI,MEEG,model,n_exclude,sess_exclude,options)
+function DCM = spm_dcm_nvc_specify(SPM,xY_fMRI,MEEG,model,n_exclude,fmri_cond,options)
 % Specify unestimated structure for (multimodal) DCM for fMRI and M/EEG
-% FORMAT DCM = spm_dcm_nvc_specify(SPM,xY_fMRI, MEEG, Model,N_exclude,Sess_exclude,options)
+% FORMAT DCM = spm_dcm_nvc_specify(SPM,xY_fMRI, MEEG, Model,N_exclude,fmri_cond,options)
 %
 % See spm_dcm_nvc.m for detailed descriptions of the parameters
 %
@@ -9,9 +9,9 @@ function DCM = spm_dcm_nvc_specify(SPM,xY_fMRI,MEEG,model,n_exclude,sess_exclude
 % SPM          -  SPM structure or location of SPM.mat
 % xY_fMRI      -  Cell array of VOI filenames (the same order as sources in EEG DCM)
 % MEEG         -  Location of DCM for M/EEG .mat file or DCM structure
-% model        -  Model space definition
+% model        -  Model space definition (see spm_dcm_nvc.m)
 % n_exclude    -  Which neuronal populations should drive haemodynamics (optional)
-% sess_exclude -  Which sessions to include (optional)
+% fmri_cond    -  Which fMRI conditions to include (optional)
 % options      -  DCM options
 %
 % Evaluates:
@@ -26,7 +26,7 @@ function DCM = spm_dcm_nvc_specify(SPM,xY_fMRI,MEEG,model,n_exclude,sess_exclude
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id: spm_dcm_nvc_specify.m 7734 2019-12-01 22:15:22Z peter $
+% $Id: spm_dcm_nvc_specify.m 7735 2019-12-02 09:15:27Z peter $
 
 %-Get SPM file and DCM for MEG
 %--------------------------------------------------------------------------
@@ -77,8 +77,8 @@ U.name = {};
 U.u    = [];
 U.idx  = [];
 
-if ~ischar(sess_exclude)
-    u = find(sess_exclude == 1);
+if isvector(fmri_cond)
+    u = find(fmri_cond == 1);
 else
     u = 1:length(Sess.U);
 end

@@ -18,17 +18,18 @@ function [ux, vx, wx] = spm_fx_cmc_tfm_gen(x,u,P,M,option)
 % P        - parameters of canonical micro circuits
 % u        - exogenous input
 % M        - neural-mass model structure
-% option   - options for calculation pre synaptic signals:
-%   pre (pre synaptic),
-%   int (only regional neuronal signals are taken to account for simulating signals),
-%    d (different) , s (same) parameters of neurovascular scaling (this
-%    option is only here for consistency in the multi model DCM - i.e., it is
-%    not used inside this code
-%   ext(external neuronal signals are taken into account for simulating presynaptic signals)
-%   EX (a 4x1 matrix  with either 0 or 1 elements (order as follows :[ x(:,1)  x(:,3) x(:,5) x(:,7)])
-%   to exclude some neuronal signals  from calculation of pre synaptic signals),
-%   de(decomposed pre synaptic  activities are taken into account for simulating
-%   presynaptic signals)
+% option   - options array for calculation pre synaptic signals {1 x 4}:
+%   option{1} - 'pre' (pre synaptic) or 'de' (decomposed into intrinsic
+%               inhibitory, intrinsic excitatory and extrinsic excitatory)
+%               NVC drive.
+%   option{2} - 'd' (different) or 's' (same) parameters of neurovascular 
+%               scaling (this option is not used within this function).
+%   option{3} - 'int' (only intrinsic neuronal signals are taken to account 
+%               for simulating presynaptic signals) or 'ext' (external  
+%               neuronal signals are additional included).
+%   option{4} - EX, a 4x1 matrix  with either 0 or 1 elements (order as 
+%               follows: [x(:,1) x(:,3) x(:,5) x(:,7)]) to exclude or  
+%               include populations from calculation of pre synaptic signal
 %
 %  Examples of options               {'pre',   'd',    'int', EX},
 %                                    {'pre',   's',    'int', EX},
@@ -68,7 +69,7 @@ function [ux, vx, wx] = spm_fx_cmc_tfm_gen(x,u,P,M,option)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian, and Karl Friston
-% $Id: spm_fx_cmc_tfm_gen.m 7734 2019-12-01 22:15:22Z peter $
+% $Id: spm_fx_cmc_tfm_gen.m 7735 2019-12-02 09:15:27Z peter $
 
 persistent in1 in2 in3 ;
 
