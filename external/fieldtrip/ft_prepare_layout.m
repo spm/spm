@@ -366,7 +366,7 @@ elseif isequal(cfg.layout, 'vertical') || isequal(cfg.layout, 'horizontal')
     cfg.channel = ft_channelselection(cfg.channel, data.label);
     if iscell(originalorder) && length(originalorder)==length(cfg.channel)
       % try to keep the order identical to that specified in the configuration
-      [~, sel] = match_str(originalorder, cfg.channel);
+      [dum, sel] = match_str(originalorder, cfg.channel);
       % re-order them according to the cfg specified by the user
       cfg.channel  = cfg.channel(sel);
     end
