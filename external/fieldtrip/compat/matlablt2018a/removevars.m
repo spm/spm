@@ -1,9 +1,14 @@
-function [varargout] = istable(varargin)
+function varargout = removevars(varargin)
 
-% ISTABLE is a drop-in replacement for the same function that was
-% introduced in MATLAB R2013b.
+% T2 = removevars(T1,vars) deletes the table variables specified
+% by vars and copies the remaining variables to T2 (see diagram). You
+% can specify variables by name, by position, or using logical indices.
 %
-% In all MATLAB versions prior to 2013b this function returns false.
+% Use as
+%   T2 = removevars(T1, vars)
+%
+% This is a compatibility function that should only be added to the path on
+% MATLAB versions prior to R2018a.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % see https://github.com/fieldtrip/fieldtrip/issues/899
@@ -37,11 +42,35 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % this is where the actual replacement code starts
-% function tf = istable(input)
+% function T2 = removevars(T1, vars)
 
-tf = false;
+% deal with the input arguments
+if nargin==2
+  [T1, vars] = deal(varargin{1:2});
+else
+  error('incorrect number of input arguments')
+end
+
+if islogical(vars)
+  vars = T1.Properties.VariableNames(vars);
+  T2 = removevars(T1, vars);
+elseif isnumeric(vars)
+  vars = T1.Properties.VariableNames(vars);
+  T2 = removevars(T1, vars);
+elseif ischar(vars)
+  vars = {vars};
+  T2 = removevars(T1, vars);
+elseif iscell(vars)
+  T2 = table();
+  for i=1:numel(T1.Properties.VariableNames)
+    var = T1.Properties.VariableNames{i};
+    if ~ismember(var, vars)
+      T2.(var) = T1.(var);
+    end
+  end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % deal with the output arguments
 
-varargout = {tf};
+varargout = {T2};
