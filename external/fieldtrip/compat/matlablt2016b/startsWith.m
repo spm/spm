@@ -26,7 +26,9 @@ alternatives = alternatives(keep);
 if exist(mfilename, 'builtin') || any(strncmp(alternatives, matlabroot, length(matlabroot)) & cellfun(@isempty, strfind(alternatives, fullfile('private', mfilename))))
   % remove this directory from the path
   p = fileparts(mfilename('fullpath'));
-  warning('removing "%s" from your path, see http://bit.ly/2SPPjUS', p);
+  sw = warning('off','backtrace');
+  warning('Removing "%s" from your path.\nSee http://www.fieldtriptoolbox.org/faq/should_i_add_fieldtrip_with_all_subdirectories_to_my_matlab_path/', p);
+  warning(sw);
   rmpath(p);
   % call the original MATLAB function
   if exist(mfilename, 'builtin')
