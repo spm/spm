@@ -156,7 +156,7 @@
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 5655 2013-09-25 17:58:48Z guillaume $
+% $Id: spm_spm_vb.m 7739 2019-12-02 14:00:18Z guillaume $
 
 
 %-Get SPM.mat if necessary
@@ -1093,7 +1093,7 @@ SPM.xM         = xM;            %-mask structure
 
 % Copy contrast structure 
 SPM.PPM.xCon   = SPM.xCon;
-for i=1:length(SPM.PPM.xCon),
+for i=1:length(SPM.PPM.xCon)
     SPM.PPM.xCon(i).PSTAT='T';
 end
 
@@ -1102,7 +1102,10 @@ SPM.xVol.VRpv=[];
 
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
-save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
+fmt = spm_get_defaults('mat.format');
+s = whos('SPM');
+if s.bytes > 2147483647, fmt = '-v7.3'; end
+save('SPM.mat', 'SPM', fmt);
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
 

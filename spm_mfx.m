@@ -78,9 +78,9 @@ function [SPM] = spm_mfx(SPM,c)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mfx.m 6380 2015-03-17 16:13:50Z guillaume $
+% $Id: spm_mfx.m 7739 2019-12-02 14:00:18Z guillaume $
 
-SVNid = '$Rev: 6380 $';
+SVNid = '$Rev: 7739 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -294,7 +294,10 @@ SPM       = S;
 SPM.swd   = fullfile(swd,'mfx');
 [st, me]  = mkdir(SPM.swd);
 if st
-    save(fullfile(SPM.swd,'SPM.mat'), 'SPM', spm_get_defaults('mat.format'));
+    fmt = spm_get_defaults('mat.format');
+    s = whos('SPM');
+    if s.bytes > 2147483647, fmt = '-v7.3'; end
+    save(fullfile(SPM.swd,'SPM.mat'), 'SPM', fmt);
 else
     error('Could not save SPM.mat in mfx: %s', me)
 end

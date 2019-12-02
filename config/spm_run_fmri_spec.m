@@ -8,9 +8,9 @@ function out = spm_run_fmri_spec(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2019 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 6562 2015-09-25 14:38:17Z guillaume $
+% $Id: spm_run_fmri_spec.m 7739 2019-12-02 14:00:18Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -31,7 +31,7 @@ cd(d);
 if exist(fullfile(pwd,'SPM.mat'),'file')
     str = {'Current directory contains existing SPM file:',...
            'Continuing will overwrite existing file!'};
-    if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
+    if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename)
         fprintf('%-40s: %30s\n\n',...
             'Abort...   (existing SPM file)',spm('time'));
         out = []; return
@@ -175,7 +175,7 @@ for i = 1:numel(job.sess)
             
             %-Mutiple Conditions: Time Modulation
             %--------------------------------------------------------------
-            if ~isfield(multicond,'tmod');
+            if ~isfield(multicond,'tmod')
                 cond.tmod = 0;
             else
                 try
@@ -303,7 +303,7 @@ for i = 1:numel(job.sess)
                     if isfield(tmp,'names')
                         names = tmp.names;
                     end
-                elseif isfield(tmp,'xY');
+                elseif isfield(tmp,'xY')
                     R = tmp.xY.u;
                     names = {tmp.xY.name};
                 elseif isfield(tmp,'PPI')
@@ -372,7 +372,7 @@ SPM.xM.gMT = job.mthresh;
 
 %-High Pass filter
 %--------------------------------------------------------------------------
-for i = 1:numel(job.sess),
+for i = 1:numel(job.sess)
     SPM.xX.K(i).HParam = job.sess(i).hpf;
 end
 
@@ -397,7 +397,10 @@ end
 %-Save SPM.mat
 %--------------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')                           %-#
-save('SPM.mat','SPM', spm_get_defaults('mat.format'));
+fmt = spm_get_defaults('mat.format');
+s = whos('SPM');
+if s.bytes > 2147483647, fmt = '-v7.3'; end
+save('SPM.mat','SPM', fmt);
 fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
 fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#

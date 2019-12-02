@@ -1,5 +1,5 @@
 function out = spm_run_fmri_data(job)
-% Set up the design matrix and run a design.
+% Set up the design matrix and run a design
 % SPM job execution function
 % takes a harvested job data structure and call SPM functions to perform
 % computations on the data.
@@ -8,9 +8,9 @@ function out = spm_run_fmri_data(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2019 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_data.m 6088 2014-07-03 17:57:09Z guillaume $
+% $Id: spm_run_fmri_data.m 7739 2019-12-02 14:00:18Z guillaume $
 
 
 original_dir = pwd;
@@ -34,7 +34,10 @@ end
 %-Save SPM.mat
 %--------------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')                           %-#
-save('SPM.mat','SPM', spm_get_defaults('mat.format'));
+fmt = spm_get_defaults('mat.format');
+s = whos('SPM');
+if s.bytes > 2147483647, fmt = '-v7.3'; end
+save('SPM.mat','SPM', fmt);
 fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
 out.spmmat{1} = fullfile(pwd, 'SPM.mat');

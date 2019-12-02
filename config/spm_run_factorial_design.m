@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 6219 2014-09-30 14:23:49Z guillaume $
+% $Id: spm_run_factorial_design.m 7739 2019-12-02 14:00:18Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -193,7 +193,7 @@ cd(d);
 if exist(fullfile(job.dir{1},'SPM.mat'),'file')
     str = { 'Current directory contains existing SPM file:',...
         'Continuing will overwrite existing file!'};
-    if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
+    if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename)
         fprintf('%-40s: %30s\n\n',...
             'Abort...   (existing SPM file)',spm('time'));
         return
@@ -1056,7 +1056,10 @@ end
 %-Save SPM.mat and set output argument
 %--------------------------------------------------------------------------
 fprintf('%-40s: ','Saving SPM configuration')                           %-#
-save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
+fmt = spm_get_defaults('mat.format');
+s = whos('SPM');
+if s.bytes > 2147483647, fmt = '-v7.3'; end
+save('SPM.mat', 'SPM', fmt);
 fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
 out.spmmat{1} = fullfile(pwd, 'SPM.mat');
