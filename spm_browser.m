@@ -14,10 +14,10 @@ function [H, HC] = spm_browser(url,F,pos,format)
 % H      - handle to the Java component
 % HC     - handle to the HG container
 %__________________________________________________________________________
-% Copyright (C) 2011-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_browser.m 7691 2019-11-08 17:08:21Z guillaume $
+% $Id: spm_browser.m 7743 2019-12-02 17:13:23Z guillaume $
 
 %-Input arguments
 %--------------------------------------------------------------------------
@@ -51,6 +51,9 @@ end
 %--------------------------------------------------------------------------
 ws = warning('off');
 try
+    if strcmp(getenv('SPM_HTML_BROWSER'),'0')
+        error('HTML browser disabled.');
+    end
     % if usejava('awt') && spm_check_version('matlab','7.4') >= 0
     %-Create HTML browser panel
     %----------------------------------------------------------------------
