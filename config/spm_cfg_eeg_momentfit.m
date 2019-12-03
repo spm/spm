@@ -1,14 +1,13 @@
 function momentfit = spm_cfg_eeg_momentfit
-% Configuration file for configuring imaging source inversion
-% reconstruction.
-% This version to supply position and orienatation parameters
-% idea is to estimate dipole moments given priors and return a model
-% evidence for these priors
+% Configuration file for imaging source inversion reconstruction.
+% This version to supply position and orientation parameters idea is to
+% estimate dipole moments given priors and return a model evidence for
+% these priors.
 %__________________________________________________________________________
-% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-
+% $Id: spm_cfg_eeg_momentfit.m 7746 2019-12-03 17:07:20Z spm $
 
 D = cfg_files;
 D.tag = 'D';
@@ -52,7 +51,6 @@ whatconditions.values = {all, conditions};
 whatconditions.val = {all};
 whatconditions.help = {'What conditions to include?'};
 
-
 woi = cfg_entry;
 woi.tag = 'woi';
 woi.name = 'Time window of interest';
@@ -61,7 +59,6 @@ woi.num = [1 2];
 woi.val = {[-Inf Inf]};
 woi.help = {'Time window to include in the inversion (ms)'};
 
-
 hanning = cfg_menu;
 hanning.tag = 'hanning';
 hanning.name = 'PST Hanning window';
@@ -69,7 +66,6 @@ hanning.help = {'Multiply the time series by a Hanning taper to emphasize the ce
 hanning.labels = {'yes', 'no'};
 hanning.values = {1, 0};
 hanning.val = {1};
-
 
 locs  = cfg_entry;
 locs.tag = 'locs';
@@ -139,10 +135,8 @@ momentfit.prog = @run_momentfit;
 momentfit.vout = @vout_momentfit;
 %dipfit.modality = {'MEG'};
 
+
 function  out = run_momentfit(job)
-
-
-
 
 D = {};
 
@@ -175,33 +169,29 @@ usesamples=intersect(find(D.time>=job.woi(1)./1000),find(D.time<=job.woi(2)./100
 if isfield(job.whatconditions,'all') %% all conditions
     condind=setdiff(1:D.ntrials,D.badtrials);
 else
-    condind=strmatch(job.whatconditions.condlabel,D.conditions)
-end;
+    condind = strmatch(job.whatconditions.condlabel,D.conditions);
+end
 
 
 fitdata=zeros(length(megind),length(usesamples)); %% pool over conditions
-for f=1:length(condind),
+for f=1:length(condind)
     fitdata=fitdata+squeeze(D(megind,usesamples,condind(f)));
-end;
+end
 fitdata=fitdata./length(condind);
-
 
 pos=coor2D(D)';                                                        %Uses info in MEG datafile (D) to print list of 2D locations of each channel (pos)
 labels=num2str(megind');                                               %Prints numerical label of each channel (labels)
-
-
-
 
 dippos_mni=job.locs;
 dipor_mni=job.source_ori;
 priormom=job.moms;
 priormomvar=job.momvar;
 
-
 ndips=size(dippos_mni,1); %% single dipoles
-if size(dipor_mni,1)~=ndips || size(priormom,1)~=ndips || size(priormomvar,1)~=ndips,
+if size(dipor_mni,1)~=ndips || size(priormom,1)~=ndips || size(priormomvar,1)~=ndips
     error('Inputs for prior mean and uncertainty should all have same number of rows (= number dipoles)');
-end;
+end
+
 %% Set up the forward model
 val=D.val;                                                             %Use the most recent forward model saved in D
 P=[];
@@ -213,6 +203,7 @@ P.Ic = megind;
 P.channels = D.chanlabels(P.Ic);
 
 spm_eeg_plotScalpData(P.y,pos,labels);
+
 %% Transform from MNI space
 M1 = D.inv{val}.datareg.fromMNI;
 [U, L, V] = svd(M1(1:3, 1:3));
@@ -233,17 +224,14 @@ hold on;
 
 dippos_ctf=dippos_mni.*0; %% coords in MEG space
 dipor_ctf=dippos_ctf;
-for d=1:ndips,
+for d=1:ndips
     
     dipor_mni(d,:)=dipor_mni(d,:)./sqrt(dot(dipor_mni(d,:),dipor_mni(d,:)));; % force to unit vector
     dipor_ctf(d,:)= orM1*dipor_mni(d,:)'; %% want orientation in ctf space
     
     pos_ctf=D.inv{val}.datareg.fromMNI*[dippos_mni(d,:) 1]';
     dippos_ctf(d,:)=pos_ctf(1:3);
-end;
-
-
-
+end
 
 
 %% The SNRamp is the average SNR for the peak you've identified across all sensors
@@ -288,7 +276,7 @@ P.dippos_ctf=dippos_ctf;
 P.dipor_ctf=dipor_ctf;
 P.priors.mom=priormom;
 P.priors.momvar=priormomvar;
-for j=1:job.niter,
+for j=1:job.niter
     
     Pout(j)        = spm_eeg_inv_vbecd_mom(P);
     varresids(j)   = var(Pout(j).y-Pout(j).ypost);
@@ -311,26 +299,21 @@ inverse.P=P;
 D.inv{job.val}.inverse=inverse;
 
 
-hf=figure;
+hf = figure;
 plot(inverse.Pout.y,inverse.Pout.ypost,'o',inverse.Pout.y,inverse.Pout.y,':');
 xlabel('measured');ylabel('modelled');
 title(sprintf('Free energy=%3.2f',inverse.F));
 
-
-
-
-
-
 if ~iscell(D)
     D = {D};
 end
-
 
 for i = 1:numel(D)
     save(D{i});
 end
 
 out.D = job.D;
+
 
 function dep = vout_momentfit(job)
 % Output is always in field "D", no matter how job is structured
@@ -340,4 +323,3 @@ dep.sname = 'M/EEG dataset(s) after imaging source reconstruction';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-
