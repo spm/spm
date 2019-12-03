@@ -4,7 +4,7 @@ function h = nifti(varargin)
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: nifti.m 7147 2017-08-03 14:07:01Z spm $
+% $Id: nifti.m 7744 2019-12-03 12:38:47Z guillaume $
 
 
 switch nargin
@@ -71,7 +71,22 @@ case 1
         h     = class(h,'nifti');
 
     elseif isstruct(varargin{1})
-        h     = class(varargin{1},'nifti');
+        if ~isempty(setdiff(fieldnames(varargin{1}),...
+                {'hdr','dat','extras'}))
+            error('Invalid input structure.');
+        end
+        h = varargin{1};
+        if ~isfield(h,'hdr'), [h.hdr] = deal(struct([])); end
+        if ~isfield(h,'dat'), [h.dat] = deal([]); end
+        if ~isfield(h,'extras'), [h.extras] = deal(struct); end
+        for i=1:numel(h)
+            if isempty(h(i).hdr)
+                h(i).hdr = empty_hdr;
+            elseif ischar(h(i).hdr)
+                h(i).hdr = empty_hdr(h(i).hdr);
+            end
+        end
+        h = class(h,'nifti');
 
     elseif iscell(varargin{1})
         fnames = varargin{1};
@@ -82,9 +97,9 @@ case 1
         end
 
     else
-        error('Don''t know what to do yet.');
+        error('Invalid syntax.');
     end
     
 otherwise
-    error('Don''t know what to do yet.');
+    error('Invalid syntax.');
 end

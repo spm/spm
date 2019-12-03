@@ -56,7 +56,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 6968 2016-12-09 15:58:00Z guillaume $
+% $Id: spm_jobman.m 7744 2019-12-03 12:38:47Z guillaume $
 
 
 %__________________________________________________________________________
@@ -173,7 +173,7 @@ switch action
             spm_select('init');
         catch
             S = which('spm_select','-all');
-            if numel(S) > 1
+            if iscell(S) && numel(S) > 1
                 fprintf('spm_select appears several times in your MATLAB path:\n');
                 for i=1:numel(S)
                     if i==1

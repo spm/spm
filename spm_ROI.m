@@ -17,10 +17,10 @@ function [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % XYZmm  - [3xn] filtered locations of voxels {mm} (m>=n) within VOI xY
 % j      - [1xn] indices of input locations XYZmm within VOI xY
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2019 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston, Guillaume Flandin
-% $Id: spm_ROI.m 6079 2014-06-30 18:25:37Z spm $
+% $Id: spm_ROI.m 7744 2019-12-03 12:38:47Z guillaume $
 
 if nargin < 2 && nargout > 1
     error('Too many output arguments.');
@@ -81,7 +81,7 @@ switch lower(xY.def)
     case 'mask'
     %----------------------------------------------------------------------
     if ~isfield(xY,'spec')
-        xY.spec = spm_vol(spm_select(1,'image','Specify Mask'));
+        xY.spec = spm_data_hdr_read(spm_select(1,{'image','mesh'},'Specify Mask'));
     else
         if ~isstruct(xY.spec)
             xY.spec = spm_vol(xY.spec);
@@ -153,8 +153,12 @@ switch lower(xY.def)
     
     case 'mask'
     %----------------------------------------------------------------------
-    XYZ    = xY.spec.mat \ [XYZmm; Q];
-    j      = find(spm_sample_vol(xY.spec, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0);
+    if spm_mesh_detect(xY.spec)
+        error('Not implemented.');
+    else
+        XYZ = xY.spec.mat \ [XYZmm; Q];
+        j   = find(spm_sample_vol(xY.spec, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0);
+    end
     
     case 'cluster'
     %----------------------------------------------------------------------

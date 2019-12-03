@@ -4,10 +4,11 @@ function [C,OutputFiles] = cifti(obj)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 
-%-Check input is a CIFTI file
-%--------------------------------------------------------------------------
 C = [];
 OutputFiles = {};
+
+%-Check input is a CIFTI file
+%--------------------------------------------------------------------------
 if ~isfield(obj.hdr,'ext') || isempty(obj.hdr.ext) || obj.hdr.ext.ecode ~= 32
     return;
 end

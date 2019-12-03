@@ -2,10 +2,10 @@ function spm_copy(source, dest, varargin)
 % Copy file(s)
 % FORMAT spm_copy(source, dest [,opts])
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2017-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_copy.m 7354 2018-06-22 10:44:22Z guillaume $
+% $Id: spm_copy.m 7744 2019-12-03 12:38:47Z guillaume $
 
 
 %-Source and destination
@@ -25,7 +25,9 @@ end
 
 %-Options (struct array or key/value pairs)
 %--------------------------------------------------------------------------
-opts = struct('gzip', false, 'gunzip', false, 'nifti', false, 'mode', {{}});
+opts = struct('gzip', false, 'gunzip', false, ...
+    'nifti', false, 'gifti', false, ...
+    'mode', {{}});
 if nargin > 2
     if isstruct(varargin{1})
         opt = varargin{1};
@@ -67,6 +69,12 @@ for i=1:numel(source)
         elseif strcmp(spm_file(source{i},'ext'),'nii')
             sts = copyfile(spm_file(source{i},'ext','mat'), dest{i}, opts.mode{:});
             sts = copyfile(spm_file(source{i},'ext','json'), dest{i}, opts.mode{:});
+        end
+    end
+    if opts.gifti
+        if strcmp(spm_file(source{i},'ext'),'gii')
+            sts = copyfile(spm_file(source{i},'ext','dat'), dest{i}, opts.mode{:});
+            % edit ExternalFileName in .gii file if full path or renaming
         end
     end
     if opts.gzip && ~strcmp(spm_file(source{i},'ext'),'gz')

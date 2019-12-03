@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 7370 2018-07-09 10:44:51Z guillaume $
+% $Id: subsasgn.m 7744 2019-12-03 12:38:47Z guillaume $
 
 
 switch subs(1).type
@@ -323,6 +323,26 @@ case {'.'}
                 error('"aux_file" must be a string.');
             end
 
+        case {'ext'}
+            if ~valid_fields(val1,{'esize','ecode','edata'})
+                error('Invalid extension.');
+            end
+            obj.hdr.ext = val1;
+            if ~isfield(obj.hdr.ext,'ecode')
+                error('NIfTI extension code missing.');
+            end
+            if ~isfield(obj.hdr.ext,'edata')
+                error('NIfTI extension data missing.');
+            end
+            if ~isa(obj.hdr.ext.edata,'uint8')
+                obj.hdr.ext.edata = uint8(obj.hdr.ext.edata);
+            end
+            obj.hdr.ext.ecode = obj.hdr.ext.ecode(:);
+            if ~isfield(obj.hdr.ext,'esize') || ~obj.hdr.ext.esize
+                obj.hdr.ext.esize = numel(obj.hdr.ext.edata) + 8;
+                obj.hdr.ext.esize = ceil(obj.hdr.ext.esize/16)*16;
+            end
+            
         case {'hdr'}
             error('hdr is a read-only field.');
             obj.hdr = val1;

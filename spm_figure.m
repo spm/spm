@@ -45,7 +45,7 @@ function varargout = spm_figure(varargin)
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 7640 2019-07-16 16:03:57Z guillaume $
+% $Id: spm_figure.m 7744 2019-12-03 12:38:47Z guillaume $
 
 
 %==========================================================================
@@ -918,7 +918,7 @@ if ~isempty(h)
     set(h,'FontUnits','points');
     fs = get(h,'FontSize');
     if ~iscell(fs), fs = {fs}; end
-    set(h,{'fontsize'},cellfun(@(x) max(x+sz,eps),fs,'UniformOutput',false));
+    set(h,{'FontSize'},cellfun(@(x) max(x+sz,eps),fs,'UniformOutput',false));
     set(h,{'FontUnits'},fu);
 end
 
