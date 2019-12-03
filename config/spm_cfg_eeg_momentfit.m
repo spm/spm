@@ -1,6 +1,9 @@
-function dipfit = spm_cfg_eeg_dipfit
+function momentfit = spm_cfg_eeg_momentfit
 % Configuration file for configuring imaging source inversion
-% reconstruction
+% reconstruction.
+% This version to supply position and orienatation parameters
+% idea is to estimate dipole moments given priors and return a model
+% evidence for these priors
 %__________________________________________________________________________
 % Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
@@ -70,35 +73,35 @@ hanning.val = {1};
 
 locs  = cfg_entry;
 locs.tag = 'locs';
-locs.name = 'Prior Source locations';
+locs.name = 'Source locations';
 locs.strtype = 'r';
 locs.num = [Inf 3];
-locs.help = {'Input source locations as n x 3 matrix'};
+locs.help = {'Source locations as n x 3 matrix'};
 locs.val = {zeros(0, 3)};
 
-locvar  = cfg_entry;
-locvar.tag = 'locvar';
-locvar.name = 'Prior Source location variance';
-locvar.strtype = 'r';
-locvar.num = [Inf 3];
-locvar.help = {'Source location variance as n x 3 matrix. So [100 100 100] means approx 10mm uncertainty in any direction'};
-locvar.val = {ones(1, 3)*100};
+source_ori  = cfg_entry;
+source_ori.tag = 'source_ori';
+source_ori.name  = 'Source orientations as n x 3 matrix';
+source_ori.strtype = 'r';
+source_ori.num  = [Inf 3];
+source_ori.help = {'Source orientation as n x 3 matrix of unit vectors'};
+source_ori.val = {ones(1, 3)};
 
 moms  = cfg_entry;
 moms.tag = 'moms';
-moms.name = 'Prior Source moments';
+moms.name = 'Prior mean of source moments';
 moms.strtype = 'r';
-moms.num = [Inf 3];
-moms.help = {'Input source moments as n x 3 matrix. If unsure of orientation leave this as zeros'};
-moms.val = {zeros(1, 3)};
+moms.num = [Inf 1];
+moms.help = {'Input source moments as n x 1 matrix (in nAm)'};
+moms.val = {zeros(1, 1)};
 
 momvar  = cfg_entry;
 momvar.tag = 'momvar';
-momvar.name = 'Prior Source moment variance';
+momvar.name = 'Prior variance of source moments';
 momvar.strtype = 'r';
-momvar.num = [Inf 3];
-momvar.help = {'Source moment variance as n x 3 matrix. So [100 100 100] means that expect to have magnitudes of around 10nAm'};
-momvar.val = {ones(1, 3)*100};
+momvar.num = [Inf 1];
+momvar.help = {'Prior source moment variance as n x 1 matrix (in (nAm) ^2)'};
+momvar.val = {ones(1,1 )*100};
 
 ampsnr  = cfg_entry;
 ampsnr.tag = 'ampsnr';
@@ -127,16 +130,16 @@ modality.values = {
     }';
 modality.val = {{'MEG'}};
 
-dipfit = cfg_exbranch;
-dipfit.tag = 'dipfit';
-dipfit.name = 'Bayesian Dipole fit';
-dipfit.val = {D, val, whatconditions, woi, locs, locvar,moms,momvar,ampsnr, niter,modality};
-dipfit.help = {'Run imaging source reconstruction'};
-dipfit.prog = @run_dipfit;
-dipfit.vout = @vout_dipfit;
+momentfit = cfg_exbranch;
+momentfit.tag = 'momentfit';
+momentfit.name = 'Bayesian moment fit';
+momentfit.val = {D, val, whatconditions, woi, locs, source_ori,moms,momvar,ampsnr, niter,modality};
+momentfit.help = {'Run imaging source reconstruction'};
+momentfit.prog = @run_momentfit;
+momentfit.vout = @vout_momentfit;
 %dipfit.modality = {'MEG'};
 
-function  out = run_dipfit(job)
+function  out = run_momentfit(job)
 
 
 
@@ -172,13 +175,10 @@ usesamples=intersect(find(D.time>=job.woi(1)./1000),find(D.time<=job.woi(2)./100
 if isfield(job.whatconditions,'all') %% all conditions
     condind=setdiff(1:D.ntrials,D.badtrials);
 else
-condind=strmatch(job.whatconditions.condlabel,D.conditions)
+    condind=strmatch(job.whatconditions.condlabel,D.conditions)
 end;
 
 
-% if length(condstr)>1,
-%     error('not implemented for more than 1 condition yet');
-% end;
 fitdata=zeros(length(megind),length(usesamples)); %% pool over conditions
 for f=1:length(condind),
     fitdata=fitdata+squeeze(D(megind,usesamples,condind(f)));
@@ -192,14 +192,14 @@ labels=num2str(megind');                                               %Prints n
 
 
 
-s0_mni=job.locs;
-w0_mni=job.moms;
-diags_s0_mni=job.locvar;
-diags_w0_mni=job.momvar;
+dippos_mni=job.locs;
+dipor_mni=job.source_ori;
+priormom=job.moms;
+priormomvar=job.momvar;
 
 
-ndips=size(job.locs,1); %% single dipole
-if size(w0_mni,1)~=ndips || size(diags_s0_mni,1)~=ndips || size(diags_w0_mni,1)~=ndips,
+ndips=size(dippos_mni,1); %% single dipoles
+if size(dipor_mni,1)~=ndips || size(priormom,1)~=ndips || size(priormomvar,1)~=ndips,
     error('Inputs for prior mean and uncertainty should all have same number of rows (= number dipoles)');
 end;
 %% Set up the forward model
@@ -213,56 +213,45 @@ P.Ic = megind;
 P.channels = D.chanlabels(P.Ic);
 
 spm_eeg_plotScalpData(P.y,pos,labels);
-%% Transform to mni space
-M1 = D.inv{val}.datareg.fromMNI; %% Error in previous versions fixed here. 03/12.2019
+%% Transform from MNI space
+M1 = D.inv{val}.datareg.fromMNI;
 [U, L, V] = svd(M1(1:3, 1:3));
+
 orM1(1:3,1:3) =U*V';                                                   %For switching orientation between meg and mni space
 
 
-mnivol = ft_transform_vol(M1, P.forward.vol);                          %Used for inside head calculation
-
-
-%% Put priors in ctf space
-alldiag_Wcov=[];
-alldiag_Scov=[];
+% Mnivert=[D.inv{val}.mesh.tess_mni.vert ones(size(D.inv{val}.mesh.tess_mni.vert,1),1)];
+% meshctf.vertices=D.inv{val}.datareg.fromMNI*Mnivert';
+% meshctf.vertices=meshctf.vertices(1:3,:)';
+% meshctf.faces=D.inv{val}.mesh.tess_mni.face;
+% meshctfnorms=spm_mesh_normals(meshctf);
+% meshctfnorms([6157 2087],:)
+% mnivol = ft_transform_vol(M1, P.forward.vol);                          %Used for inside head calculation
 
 figure;
 hold on;
 
+dippos_ctf=dippos_mni.*0; %% coords in MEG space
+dipor_ctf=dippos_ctf;
 for d=1:ndips,
     
-    ind=(d-1)*3+1:d*3;
-    Priors.mu_w0(ind)= orM1*w0_mni(ind)';
+    dipor_mni(d,:)=dipor_mni(d,:)./sqrt(dot(dipor_mni(d,:),dipor_mni(d,:)));; % force to unit vector
+    dipor_ctf(d,:)= orM1*dipor_mni(d,:)'; %% want orientation in ctf space
     
-    ctfpos=D.inv{val}.datareg.fromMNI*[s0_mni(ind) 1]';
-    plot3(ctfpos(1)./1000,ctfpos(2)./1000,ctfpos(3)./1000,'r*');
-    Priors.mu_s0(ind)=ctfpos(1:3); % ./1000;
-    alldiag_Wcov(ind)=ones(3,1)*diags_w0_mni(d);
-    alldiag_Scov(ind)=ones(3,1)*diags_s0_mni(d);
+    pos_ctf=D.inv{val}.datareg.fromMNI*[dippos_mni(d,:) 1]';
+    dippos_ctf(d,:)=pos_ctf(1:3);
 end;
 
 
 
-Priors.mu_s0=spm_vec(Priors.mu_s0);
-Priors.mu_w0=spm_vec(Priors.mu_w0);
-Priors.S_s0=diag(alldiag_Scov);
-Priors.S_w0= diag(alldiag_Wcov);
 
-
-P.priors=Priors;
-
-%% Calculate the covariance of the raw data
-
-%% Next line calculates the SNR at each sensor, for the peak you've identified
 
 %% The SNRamp is the average SNR for the peak you've identified across all sensors
 SNRamp=job.ampsnr;
 
-%% So, the SNR obviously varies across the brain, and is different at each sensor. How much of the variance observed in the sensor data is due to noise, and how much is due to real signal?
 %P.priors.hE=log(SNRamp^2);                                             %Expected log precision of data
-P.priors.hE=log(SNRamp);  %% seemed to be closets to value arrived at in line serach                                            %Expected log precision of data
+P.priors.hE=log(SNRamp);  
 %% run a line search over hE values
-%hevals=[0.001 0.1 0.5 1 2] %  1 2 5 10]
 
 %P.priors.hE=hevals(hind); %% log(SNRamp^2);                                             %Expected log precision of data
 hcpval=-2; %; %% was -2
@@ -284,9 +273,6 @@ if ischar(P.forward.vol)
 end
 P.forward.sens    = data.(P.modality(1:3)).sens;
 P.forward.siunits = data.siunits;
-% M1 = data.transforms.toMNI;
-% [U, L, V] = svd(M1(1:3, 1:3));
-% orM1(1:3,1:3) = U*V';                                                  %For switching orientation between meg and mni space
 
 if isempty(P.Ic)
     error(['The specified modality (' P.modality ') is missing from file ' D.fname]);
@@ -298,16 +284,18 @@ P.forward.chanunits = D.units(P.Ic);
     P.forward.vol, P.forward.sens, 'channel', P.channels);
 plot3(P.forward.sens.chanpos(:,1),P.forward.sens.chanpos(:,2),P.forward.sens.chanpos(:,3),'bo');
 
-for j=1:job.niter;
-    Pout(j)        = spm_eeg_inv_vbecd(P);
+P.dippos_ctf=dippos_ctf;
+P.dipor_ctf=dipor_ctf;
+P.priors.mom=priormom;
+P.priors.momvar=priormomvar;
+for j=1:job.niter,
+    
+    Pout(j)        = spm_eeg_inv_vbecd_mom(P);
     varresids(j)   = var(Pout(j).y-Pout(j).ypost);
     pov(j)         = 100*(1-varresids(j)/var(Pout(j).y));          %Percent variance explained
     allF(j)        = Pout(j).F;
-    dip_mom        = reshape(Pout(j).post_mu_w,3,length(Pout(j).post_mu_w)/3);
-    dip_amp(j,:)   = sqrt(dot(dip_mom,dip_mom));
-    megloc         = reshape(Pout(j).post_mu_s,3,length(Pout(j).post_mu_s)/3); %Loc of dip (3 x n_dip)
-    mniloc{j}      = D.inv{val}.datareg.toMNI*[megloc;ones(1,size(megloc,2))]; %Actual MNI location (with scaling)
-    megmom{j}      = reshape(Pout(j).post_mu_w,3,length(Pout(j).post_mu_w)/3); %Moments of dip (3 x n_dip)
+    
+    
 end                                                                %For j in serial loop
 
 %%%% Save VB-ECD results into Output structure and overwrite datafile
@@ -316,80 +304,22 @@ end                                                                %For j in ser
 
 
 inverse=[];
+
 inverse.F=maxF;
-inverse.modelmniloc=mniloc{maxind}(1:3,:)';
-inverse.modelmnimom=megmom{maxind}(1:3,:)';
 inverse.Pout=Pout(maxind);
 inverse.P=P;
 D.inv{job.val}.inverse=inverse;
 
-hf = spm_figure('FindWin','Graphics');
-figure(hf);
-spm_clf(hf);
-subplot(3,2,1);
+
+hf=figure;
 plot(inverse.Pout.y,inverse.Pout.ypost,'o',inverse.Pout.y,inverse.Pout.y,':');
 xlabel('measured');ylabel('modelled');
 title(sprintf('Free energy=%3.2f',inverse.F));
 
 
 
-axesY = axes(...
-    'Position',[0.1 0.4 0.3 0.2],...
-    'hittest','off');
-in.f = hf;
-in.noButtons = 1;
-in.ParentAxes = axesY;
 
 
-spm_eeg_plotScalpData(P.y,D.coor2D',P.channels,in)
-title(axesY,'measured data')
-
-axesY = axes(...
-    'Position',[0.5 0.4 0.3 0.2],...
-    'hittest','off');
-
-in.ParentAxes=axesY;
-spm_eeg_plotScalpData(inverse.Pout.ypost,D.coor2D',P.channels,in)
-title(axesY,'Modelled data');
-
-subplot(3,3,7); hold on;
-
-M=D.inv{val}.mesh.tess_mni;
-h=trisurf(M.face,M.vert(:,1),M.vert(:,2),M.vert(:,3));
-set(h,'Facecolor','cyan');
-set(h,'Edgecolor','none');
-alpha(0.1)
-plot3(inverse.modelmniloc(:,1),inverse.modelmniloc(:,2),inverse.modelmniloc(:,3),'k*');
-view([0 0 1]);
-
-
-subplot(3,3,8);  hold on;
-M=D.inv{val}.mesh.tess_mni;
-h=trisurf(M.face,M.vert(:,1),M.vert(:,2),M.vert(:,3));
-set(h,'Facecolor','cyan');
-set(h,'Edgecolor','none');
-alpha(0.1)
-plot3(inverse.modelmniloc(:,1),inverse.modelmniloc(:,2),inverse.modelmniloc(:,3),'k*');
-
-view([0 1 0]);
-
-subplot(3,3,9); hold on;
-M=D.inv{val}.mesh.tess_mni;
-h=trisurf(M.face,M.vert(:,1),M.vert(:,2),M.vert(:,3));
-set(h,'Facecolor','cyan');
-set(h,'Edgecolor','none');
-alpha(0.1)
-plot3(inverse.modelmniloc(:,1),inverse.modelmniloc(:,2),inverse.modelmniloc(:,3),'k*');
-
-view([1 0 0]);
-
-subplot(3,3,7);
-text(-50,-110,'MNI coord:');
-text(-50,-130,num2str(round(inverse.modelmniloc)));
-
-subplot(3,3,9);
-text(0,-190,-40,'MNI mom:');
-text(0,-140,-50,num2str(round(inverse.modelmnimom)));
 
 if ~iscell(D)
     D = {D};
@@ -402,7 +332,7 @@ end
 
 out.D = job.D;
 
-function dep = vout_dipfit(job)
+function dep = vout_momentfit(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
 dep.sname = 'M/EEG dataset(s) after imaging source reconstruction';
