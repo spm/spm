@@ -45,7 +45,7 @@ function varargout = spm_figure(varargin)
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 7744 2019-12-03 12:38:47Z guillaume $
+% $Id: spm_figure.m 7747 2019-12-04 13:46:22Z guillaume $
 
 
 %==========================================================================
@@ -1046,8 +1046,8 @@ h = figure('MenuBar','none',...
            'WindowStyle','Modal',...
            'Color',[1 1 1],...
            'Visible','off');
-pos = get(h,'Position');
-pos([3 4]) = [300 400];
+pos = get(ancestor(obj,'figure'),'Position');
+pos = [pos(1)+pos(3)/2-150, pos(2)+pos(4)/2, 300, 400];
 set(h,'Position',pos);
 set(h,'Visible','on');
 
