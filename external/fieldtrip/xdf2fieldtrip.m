@@ -124,7 +124,7 @@ srate = nan(size(streams));
 for i=1:numel(streams)
   srate(i) = streams{i}.info.effective_srate;
 end
-[~, indx] = max(srate);
+[dum, indx] = max(srate);
 
 if numel(data)>1
   % resample all data structures, except the one with the max sampling rate

@@ -327,7 +327,7 @@ case 'gbve'
 
           data_reordered = data_k(order,:);
           lags           = lags + tmin;
-          [data_aligned, ~] = perform_realign(data_reordered, data.time{1}, lags);
+          [data_aligned, dum] = perform_realign(data_reordered, data.time{1}, lags);
           data_aligned(~isfinite(data_aligned)) = nan;
           ep_evoked = nanmean(data_aligned);
           ep_evoked = ep_evoked ./ norm(ep_evoked);
@@ -364,7 +364,7 @@ case 'gbve'
     [data_aligned] = perform_realign(data_reordered, data.time{1}, lags );
     data_aligned(~isfinite(data_aligned)) = nan;
     
-    [~,order_inv] = sort(order);
+    [dum,order_inv] = sort(order);
     lags_no_order = lags(order_inv);
     data_aligned  = data_aligned(order_inv,:);
       

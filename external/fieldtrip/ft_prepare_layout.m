@@ -638,7 +638,7 @@ elseif (~isempty(cfg.image) || ~isempty(cfg.mesh)) && isempty(cfg.layout)
   if ~isempty(cfg.image)
     % deal with image file
     ft_info('reading background image from %s\n', cfg.image);
-    [~, ~, e] = fileparts(cfg.image);
+    [dum, dum, e] = fileparts(cfg.image);
     switch e
       case '.mat'
         img = loadvar(cfg.image);
