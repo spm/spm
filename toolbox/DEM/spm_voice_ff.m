@@ -1,5 +1,5 @@
 function [xY] = spm_voice_ff(Y,FS)
-% decomposition at fundamental frequency
+% Decomposition at fundamental frequency
 % FORMAT [xY] = spm_voice_ff(Y,FS)
 %
 % Y      - timeseries
@@ -48,10 +48,10 @@ function [xY] = spm_voice_ff(Y,FS)
 % transform. This has two key parameters that model inflection. Please see
 % the annotated code below for further details.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7749 2019-12-05 17:05:46Z guillaume $
+% $Id: spm_voice_ff.m 7750 2019-12-05 17:54:29Z spm $
 
 
 % defaults
@@ -171,6 +171,3 @@ Qj   = std(Q,[],1);
 i    = spm_voice_warp(Qi,6);
 j    = spm_voice_warp(Qj,3);
 Q    = Q(i,j);
-
-
-

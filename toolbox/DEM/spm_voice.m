@@ -1,5 +1,5 @@
 function spm_voice(PATH)
-% Creates lexical and prosody cell arrays from sound file exemplars
+% Create lexical and prosody cell arrays from sound file exemplars
 % FORMAT spm_voice(PATH)
 %
 % PATH         -  directory containing sound files of exemplar words
@@ -31,10 +31,10 @@ function spm_voice(PATH)
 %  various optimisation schemes and illustrations of online voice
 %  recognition
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_voice.m 7750 2019-12-05 17:54:29Z spm $
 
 
 %% setup options and files
@@ -490,7 +490,3 @@ try
     delete(fullfile(PATH,[str '.wav']))
 end
 audiowrite(fullfile(PATH,[str '.wav']),Y,FS)
-
-
-
-    

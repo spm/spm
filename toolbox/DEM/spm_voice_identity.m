@@ -1,5 +1,5 @@
 function [F0,F1] = spm_voice_identity(wfile,P)
-% Evaluates the fundamental and formant frequencies of a speaker
+% Evaluate the fundamental and formant frequencies of a speaker
 % FORMAT [F0,F1] = spm_voice_identity(wfile,P)
 %
 % wfile  - .wav file, audiorecorder object or (double) time series
@@ -16,10 +16,10 @@ function [F0,F1] = spm_voice_identity(wfile,P)
 % and first formant frequencies based upon speech with known lexical
 % content.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_identity.m 7644 2019-07-24 18:47:56Z karl $
+% $Id: spm_voice_identity.m 7750 2019-12-05 17:54:29Z spm $
 
 
 % global VOX
@@ -59,7 +59,7 @@ SEG   = spm_voice_read(read(wfile),P);
 %--------------------------------------------------------------------------
 L     = 0;
 nw    = numel(SEG);
-for w = 1:nw;
+for w = 1:nw
     L = L + SEG(w).L{3};
 end
 L     = spm_softmax(L/8);
@@ -128,4 +128,3 @@ if VOX.formant
     end, hold off
     
 end
-

@@ -1,5 +1,5 @@
 function [Y,I,FS] = spm_voice_get_next(wfile)
-% Evaluates the likelihood of the next word in a file or object
+% Evaluate the likelihood of the next word in a file or object
 % FORMAT [Y,I,FS] = spm_voice_get_next(wfile)
 %
 % wfile  - .wav file, audiorecorder object or (double) time series
@@ -14,12 +14,13 @@ function [Y,I,FS] = spm_voice_get_next(wfile)
 % than VOX.U. if no such peak exists it advances for 500 ms (at most four
 % times)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_next.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_voice_get_next.m 7750 2019-12-05 17:54:29Z spm $
 
-%% get peak identification parameters from VOX
+
+% get peak identification parameters from VOX
 %==========================================================================
 
 % get source (recorder) and FS
@@ -60,7 +61,7 @@ if isa(wfile,'audiorecorder')
 end
 
 
-%% find next peak
+% find next peak
 %==========================================================================
 
 % find next word (waiting for a couple of seconds if necessary)
@@ -121,4 +122,3 @@ end
 % break if EOF
 %--------------------------------------------------------------------------
 if isempty(I), Y  = []; return, end
-

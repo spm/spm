@@ -1,5 +1,5 @@
 function [xY,word,NI] = spm_voice_get_xY(PATH)
-% Creates word arrays from sound file exemplars
+% Create word arrays from sound file exemplars
 % FORMAT [xY,word,NI] = spm_voice_get_xY(PATH)
 %
 % PATH      -  directory containing sound files of exemplar words
@@ -17,13 +17,13 @@ function [xY,word,NI] = spm_voice_get_xY(PATH)
 %  transform operates on a word structure xY to create lexical and prosody
 %  parameters (Q and P respectively).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_xY.m 7616 2019-06-12 13:51:03Z karl $
+% $Id: spm_voice_get_xY.m 7750 2019-12-05 17:54:29Z spm $
 
 
-%% get corpus
+% get corpus
 %==========================================================================
 rng('default')
 
@@ -40,7 +40,7 @@ catch
 end
 [Y,FS]   = read(wfile(1).name,[1,1]);
 
-%% assemble cell array of word structures for subsequent characterisation
+% assemble cell array of word structures for subsequent characterisation
 %==========================================================================
 nw    = numel(wfile);                               % number of words
 ns    = 32;                                         % number of samples
@@ -104,6 +104,3 @@ for w = 1:nw
     end
     
 end
-
-return
-

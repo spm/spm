@@ -1,5 +1,5 @@
 function [L] = spm_voice_test(wfile,sfile)
-% Reads and translates a sound file to assess recognition accuracy
+% Read and translate a sound file to assess recognition accuracy
 % FORMAT [L] = spm_voice_test(wfile,sfile)
 %
 % wfile   - .wav file
@@ -17,10 +17,10 @@ function [L] = spm_voice_test(wfile,sfile)
 %  the accuracy of inference in relation to the known words and then plays
 %  them back with and without prosody (or lexical content)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7644 2019-07-24 18:47:56Z karl $
+% $Id: spm_voice_test.m 7750 2019-12-05 17:54:29Z spm $
 
 
 % create lexical structures for subsequent word recognition
@@ -142,6 +142,3 @@ if exist('nu','var')
     colorbar
 end
 drawnow
-
-return
-

@@ -1,5 +1,5 @@
 function [F0,F1] = spm_voice_fundamental(Y,FS)
-% Estimates and plots fundamental and format frequencies
+% Estimate and plot fundamental and format frequencies
 % FORMAT [F0,F1] = spm_voice_fundamental(Y,FS)
 %
 % Y    - timeseries
@@ -19,10 +19,10 @@ function [F0,F1] = spm_voice_fundamental(Y,FS)
 % This routine is not used for voice recognition but can be useful for
 % diagnostic purposes.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_fundamental.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_voice_fundamental.m 7750 2019-12-05 17:54:29Z spm $
 
 
 % find fundamental frequencies
@@ -116,9 +116,3 @@ plot(W(j),G(j)),               hold on
 plot([F1 F1],[0 max(G)],'r'),  hold off
 title('Relative energy (F1)','FontSize',16)
 xlabel('F1 frequency (hertz)'), spm_axis tight, box off
-
-
-
-
-
-

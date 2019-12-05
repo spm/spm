@@ -1,5 +1,5 @@
 function [i,P] = spm_voice_i(str)
-% Gets indices, word strings or priors from lexicon
+% Get indices, word strings or priors from lexicon
 % FORMAT [str] = spm_voice_i(i)
 % FORMAT [i  ] = spm_voice_i(str)
 % FORMAT [i,P] = spm_voice_i(str)
@@ -19,14 +19,14 @@ function [i,P] = spm_voice_i(str)
 %
 %  NB: If a string is not in the lexicon, 0 is returned.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_i.m 7622 2019-06-23 19:52:33Z karl $
+% $Id: spm_voice_i.m 7750 2019-12-05 17:54:29Z spm $
+
 
 % get timeseries from audio recorder(or from a path
 %--------------------------------------------------------------------------
-
 
 % words in lexicon
 %==========================================================================
@@ -70,9 +70,3 @@ end
 %--------------------------------------------------------------------------
 i    = find(strcmp(str,word));
 if isempty(i), i = 0; end
-
-
-
-
-
-

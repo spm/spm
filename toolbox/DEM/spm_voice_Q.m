@@ -1,5 +1,5 @@
 function [Q,U,V] = spm_voice_Q(W,G,Ni,ni)
-% inverse discrete cosine transform of formant coefficients
+% Inverse discrete cosine transform of formant coefficients
 % FORMAT [Q,U,V] = spm_voice_Q(W,G,Ni,ni)
 %
 % W     - log formant coefficients (weights)
@@ -14,12 +14,13 @@ function [Q,U,V] = spm_voice_Q(W,G,Ni,ni)
 % V     - DCT over intervals
 %
 % This  auxiliary routine scales and transforms log formant coefficients
-% using a pair of discrete cosine transforms with logarithmic scaling
+% using a pair of discrete cosine transforms with logarithmic scaling.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_Q.m 7598 2019-05-25 13:09:47Z karl $
+% $Id: spm_voice_Q.m 7750 2019-12-05 17:54:29Z spm $
+
 
 % defaults and (logarithmic) scaling
 %--------------------------------------------------------------------------
@@ -38,7 +39,6 @@ if nargin > 1
 
 end
 
-
 % sizes
 %--------------------------------------------------------------------------
 [Nu,Nv] = size(W);
@@ -51,7 +51,3 @@ Q  = U*W*V';                                 % log formants
 A  = 1 - exp(-(1:Ni)*8/Ni)*Tw;               % amplitude modulation
 Q  = bsxfun(@times,Q,A(:));                  % balance
 Q  = Q/std(Q(:));                            % normalise
-
-
-
-

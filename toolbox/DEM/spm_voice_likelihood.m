@@ -1,5 +1,5 @@
 function [L,M,N] = spm_voice_likelihood(xY,w)
-% returns the lexical likelihood
+% Return the lexical likelihood
 % FORMAT [L,M,N] = spm_voice_likelihood(xY,w)
 %
 % xY   - word structure array
@@ -29,10 +29,11 @@ function [L,M,N] = spm_voice_likelihood(xY,w)
 % scheme is used, with the opportunity to model the effects of (speech) in
 % noise with an additional variable: VOX.noise (see main body of script).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_likelihood.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_voice_likelihood.m 7750 2019-12-05 17:54:29Z spm $
+
 
 % defaults
 %--------------------------------------------------------------------------
@@ -217,6 +218,3 @@ for p = 1:numel(VOX.WHO)
         
     end
 end
-
-return
-

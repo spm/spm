@@ -1,5 +1,5 @@
 function [I] = spm_voice_frequency(Y,FS,F0)
-% segmentation of timeseries at fundamental frequency
+% Segmentation of timeseries at fundamental frequency
 % FORMAT [I] = spm_voice_frequency(Y,FS,F0)
 %
 % Y    - timeseries
@@ -13,11 +13,10 @@ function [I] = spm_voice_frequency(Y,FS,F0)
 % namely, inflection or fluctuations in fundamental wavelength (i.e.,
 % glottal pulse rate).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_frequency.m 7601 2019-06-03 09:41:06Z karl $
-
+% $Id: spm_voice_frequency.m 7750 2019-12-05 17:54:29Z spm $
 
 
 %% find fundamental frequencies
@@ -92,11 +91,3 @@ if VOX.interval
     xlabel('frequency (Hz)'), ylabel('spectral energy'), drawnow
     
 end
-
-
-
-
-
-
-
-

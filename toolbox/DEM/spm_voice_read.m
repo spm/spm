@@ -1,5 +1,5 @@
 function [SEG,W,P,R] = spm_voice_read(wfile,P)
-% Reads and translates a sound file or audio source
+% Read and translate a sound file or audio source
 % FORMAT [SEG,W,P,R] = spm_voice_read(wfile,[P])
 %
 % wfile  - .wav file or audio object or (double) timeseries
@@ -33,10 +33,10 @@ function [SEG,W,P,R] = spm_voice_read(wfile,P)
 %
 % see also: spm_voice_speak.m and spm_voice_segmentation.m
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_read.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_voice_read.m 7750 2019-12-05 17:54:29Z spm $
 
 
 %% setup
@@ -164,6 +164,3 @@ if ~nargout
     spm_figure('GetWin','Segmentation'); clf;
     spm_voice_segmentation(wfile,SEG);
 end
-
-
-

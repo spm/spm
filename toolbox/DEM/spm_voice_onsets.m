@@ -1,5 +1,5 @@
 function [I] = spm_voice_onsets(Y,FS,C,U)
-% identifies intervals containing acoustic energy and post onset minima
+% Identify intervals containing acoustic energy and post onset minima
 % FORMAT [I] = spm_voice_onsets(Y,FS,C,U)
 %
 % Y    - timeseries
@@ -18,10 +18,11 @@ function [I] = spm_voice_onsets(Y,FS,C,U)
 %
 % see also: spm_voice_onset.m
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_voice_onsets.m 7750 2019-12-05 17:54:29Z spm $
+
 
 % find the interval that contains spectral energy
 %==========================================================================
@@ -178,13 +179,3 @@ drawnow, pause(1/4)
 % uncomment to play interval
 %--------------------------------------------------------------------------
 % sound(Y(i),FS)
-
-
-
-
-
-
-
-
-
-

@@ -16,14 +16,15 @@ function [G,F0] = spm_voice_filter(Y,FS,F1,F2)
 % fundamental frequency F0 of 256 Hz.
 %
 % This routine is not used for voice recognition but can be useful for
-% diagnostics and plotting spectral envelope
+% diagnostics and plotting spectral envelope.
 %
 % see also: spm_voice_check.m
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_filter.m 7581 2019-05-01 12:50:13Z karl $
+% $Id: spm_voice_filter.m 7750 2019-12-05 17:54:29Z spm $
+
 
 % defaults
 %--------------------------------------------------------------------------
@@ -34,7 +35,7 @@ if nargin < 4; F2 = 16096; end
 % find acoutic energy using spm_wft
 %==========================================================================
 F0    = 256;
-k     = 1:round(F2/F0);                      % cycles per window                                % Hz
+k     = 1:round(F2/F0);                      % cycles per window       % Hz
 k     = k(k > F1/F0 & k < F2/F0);            % acoustic range
 n     = round(FS/(F0/2))*2;                  % window length (F0 Hz)
 g     = abs(spm_wft(Y,k,n));                 % wavlet transform
@@ -81,10 +82,3 @@ plot(w(i),fG(i)), hold on
 plot([F0 F0],[0 max(fG(i))],'r'), hold off
 title('Fundamental frequency','FontSize',16)
 xlabel('time (seconds)')
-
-
-
-
-
-
-

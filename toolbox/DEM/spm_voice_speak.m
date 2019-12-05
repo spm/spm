@@ -1,5 +1,5 @@
 function [xY,Y] = spm_voice_speak(q,p,r)
-% Generates a continuous state space word discrete causes
+% Generate a continuous state space word discrete causes
 % FORMAT [xY,Y] = spm_voice_speak(q,p,r)
 %
 % q      - lexcial index (2 x number of words)
@@ -27,10 +27,11 @@ function [xY,Y] = spm_voice_speak(q,p,r)
 %
 % see also: spm_voice_iff.m
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_voice_speak.m 7750 2019-12-05 17:54:29Z spm $
+
 
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
@@ -114,7 +115,3 @@ Y     = Y(1:ii(end));
 % send to speaker (at an accelerated sampling rate, depending upon F1)
 %--------------------------------------------------------------------------
 if ~nargout, sound(full(Y),FS); end
-
-return
-
-

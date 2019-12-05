@@ -1,5 +1,5 @@
 function [I] = spm_voice_warp(Y,N)
-% resamples a vector to normalise the phase at a particular frequency
+% Resample a vector to normalise the phase at a particular frequency
 % FORMAT [I] = spm_voice_warp(Y,N)
 %
 % Y    - timeseries
@@ -14,10 +14,10 @@ function [I] = spm_voice_warp(Y,N)
 % 
 % This routine is not actually used but is retained for reference
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_warp.m 7575 2019-04-21 16:47:39Z karl $
+% $Id: spm_voice_warp.m 7750 2019-12-05 17:54:29Z spm $
 
 
 % find Sigma points (maxima of Hilbert transform)
@@ -54,11 +54,3 @@ title('Original and warped vector'),xlabel('bins')
 subplot(2,1,2)
 plot((1:n),I,(1:n),(1:n),':')
 title('Indices'),xlabel('bins')
-
-
-
-
-
-
-
-

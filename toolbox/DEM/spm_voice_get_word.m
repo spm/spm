@@ -1,5 +1,5 @@
 function [O,I,J,F] = spm_voice_get_word(wfile,P)
-% Evaluates the likelihood of the next word in a file or object
+% Evaluate the likelihood of the next word in a file or object
 % FORMAT [O,I,J,F] = spm_voice_get_word(wfile,P)
 %
 % wfile  - .wav file, audiorecorder object or (double) time series
@@ -27,19 +27,19 @@ function [O,I,J,F] = spm_voice_get_word(wfile,P)
 %
 % This routine evaluates the likelihood of a word, prosody and identity by
 % inverting successive epochs of data from an audiofile or device starting
-% at VOX.IT.  Based on the word with the least variational free energy , it
+% at VOX.IT.  Based on the word with the least variational free energy, it
 % updates the index, ready for the next word. Priors over the words can be
 % specified to implement an Occam's window (of 3 nats); thereby
 % restricting the number of lexical entries evaluated - and augmenting the
 % likelihoods to give the posterior probability over words.
-% If called with more than one prior over lexical content,  this routine
+% If called with more than one prior over lexical content, this routine
 % will perform a tree search and return the likelihoods (and intervals)
-% with the path of greatest log evidence (i.e., free energy)
+% with the path of greatest log evidence (i.e., free energy).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_voice_get_word.m 7750 2019-12-05 17:54:29Z spm $
 
 
 %% log prior over lexical content
@@ -49,7 +49,7 @@ if nargin < 2 || size(P,2) < 1
     nw = numel(VOX.LEX);
     P  = ones(nw,1)/nw;
 end
-LP     = log(P + eps);                        % log prior for lexcicon
+LP     = log(P + eps);                        % log prior for lexicon
 try LL = VOX.LL; catch, LL = -512; end        % log prior for empty segment
 try LW = VOX.LW; catch, LW = 0;    end        % flag for last word
 
@@ -122,7 +122,7 @@ for i = 1:nj
     % select the most likely action (interval)
     %==================================================================
     [L,M,N]  = spm_voice_likelihood(xy,W);          % likelihoods 
-    L        = L + LP(:,1);                         % prior (lexical
+    L        = L + LP(:,1);                         % prior (lexical)
     L        = L + log(VOX.FI(i,:)*P(:,1) + eps);   % prior (peaks)
     Q        = spm_softmax(L);                      % posterior
     F(i)     = sum(Q.*(L - log(Q + eps)));          % free energy
@@ -160,11 +160,3 @@ O      = O{i};
 I      = [I; J(:,2)];
 J      = fix(J(i,:));
 VOX.IT = fix(J(2));
-
-
-return
-
-
-
-
-

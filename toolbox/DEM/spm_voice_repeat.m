@@ -1,5 +1,5 @@
 function spm_voice_repeat
-% illustrates voice recognition
+% Illustrates voice recognition
 % FORMAT spm_voice_repeat
 %
 % When invoked, this routine takes an audio input to estimate the
@@ -9,12 +9,12 @@ function spm_voice_repeat
 % this routinely uses dialogue boxes to step through the various
 % demonstrations.
 %
-% see also: spm_voice_speak.m and spm_voice_segmentation.m
+% See also: spm_voice_speak.m and spm_voice_segmentation.m
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_repeat.m 7644 2019-07-24 18:47:56Z karl $
+% $Id: spm_voice_repeat.m 7750 2019-12-05 17:54:29Z spm $
 
 
 %% setup
@@ -93,6 +93,3 @@ spm_voice_speak(W(1:size(R,2)),P,R); pause(1)
 uiwait(msgbox('play without priors','modal'))
 VOX.mute = 0;
 spm_voice_read(getaudiodata(VOX.audio));
-
-
-

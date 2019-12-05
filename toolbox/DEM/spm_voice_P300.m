@@ -1,5 +1,5 @@
 function spm_voice_P300
-% illustrates voice recognition with lexical priors
+% Illustrate voice recognition with lexical priors
 % FORMAT spm_voice_P300
 %
 % loads the global variable VOX.mat
@@ -22,10 +22,10 @@ function spm_voice_P300
 % (Sound files) directory; that can be specified by editing the script
 % below.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_voice_P300.m 7750 2019-12-05 17:54:29Z spm $
 
 
 %% demo mode loads sentence (.mat) files
@@ -211,7 +211,6 @@ hold on, h = fill(x,y/3,c); hold off
 set(h,'Facealpha',1/8,'EdgeAlpha',1/8);
 
 
-
 %% illustrate the relationship between belief updating and RMS responses
 %==========================================================================
 for i = 1:numel(SEG2)
@@ -249,7 +248,3 @@ plot(kl,B(1) + kl*B(2),':r','MarkerSize',16)
 xlabel('Bayesian suprise (KL - nats)'), ylabel('Evoked power')
 title('Belief updating','FontSize',16)
 spm_axis square
-
-
-
-return

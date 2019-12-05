@@ -1,5 +1,5 @@
 function [Y,W] = spm_voice_iff(xY)
-% inverse decomposition at fundamental frequency
+% Inverse decomposition at fundamental frequency
 % FORMAT [Y,W] = spm_voice_iff(xY)
 %
 % xY    -  cell array of word structures
@@ -24,15 +24,15 @@ function [Y,W] = spm_voice_iff(xY)
 % fundamental frequency. In other words, it applies the reverse sequence
 % of inverse transforms implemented by spm_voice_ff.m
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_voice_iff.m 7750 2019-12-05 17:54:29Z spm $
 
 % defaults
 %--------------------------------------------------------------------------
 global VOX
-if VOX.mute && ~nargout && ~VOX.graphics,
+if VOX.mute && ~nargout && ~VOX.graphics
     return
 end
 try, FS = VOX.FS; catch, FS  = spm_voice_FS; end    % sampling frequency
@@ -147,7 +147,7 @@ end
 
 return
 
-%% graphics for illustrations
+% graphics for illustrations
 %--------------------------------------------------------------------------
 subplot(2,1,1), hold off
 for j = 1:4
@@ -157,6 +157,3 @@ end
 xlabel('time (bins)'), ylabel('transients')
 title('Fundamental and first formant intervals','FontSize',16), drawnow
 spm_axis tight, box off
-
-
-

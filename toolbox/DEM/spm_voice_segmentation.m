@@ -1,5 +1,5 @@
 function [E,  PST] = spm_voice_segmentation(wfile,SEG)
-% Plos the results of a segmented sound fileor audio stream
+% Plot the results of a segmented sound fileor audio stream
 % FORMAT [EEG,PST] = spm_voice_segmentation(wfile,SEG)
 %
 % wfile      - (double) timeseries, .wav file or audiorecorder object
@@ -24,10 +24,11 @@ function [E,  PST] = spm_voice_segmentation(wfile,SEG)
 %
 % see also: spm_voice_read.m
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_segmentation.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_voice_segmentation.m 7750 2019-12-05 17:54:29Z spm $
+
 
 %% get  parameters from VOX
 %==========================================================================
@@ -167,7 +168,3 @@ title('Simulated EEG','FontSize',16), box off, set(gca,'YLim',[-1/2,1])
 %--------------------------------------------------------------------------
 VOX.EEG = E;
 VOX.PST = PST;
-
-
-
-

@@ -1,6 +1,6 @@
 function [G,Y] = spm_voice_check(Y,FS,C)
-% returns normalised spectral energy in acoustic range
-% FORMAT [G,Y]  = spm_voice_check(Y,FS,C)
+% Return normalised spectral energy in acoustic range
+% FORMAT [G,Y] = spm_voice_check(Y,FS,C)
 %
 % Y    - timeseries
 % FS   - sampling frequency
@@ -17,10 +17,11 @@ function [G,Y] = spm_voice_check(Y,FS,C)
 % 
 % see also: spm_voice_filter.m
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_check.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_voice_check.m 7750 2019-12-05 17:54:29Z spm $
+
 
 % find the interval that contains spectral energy
 %==========================================================================
@@ -46,18 +47,3 @@ subplot(2,1,1), plot(pst,G)
 title('Log energy','FontSize',16)
 xlabel('peristimulus time'), spm_axis tight
 drawnow
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

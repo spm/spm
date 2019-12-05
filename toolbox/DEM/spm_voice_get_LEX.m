@@ -1,5 +1,5 @@
 function [PP] = spm_voice_get_LEX(xY,word,NI)
-% Creates lexical, prosody and speaker structures from word structures
+% Create lexical, prosody and speaker structures from word structures
 % FORMAT [P] = spm_voice_get_LEX(xY,word)
 %
 % xY(nw,ns) -  structure array for ns samples of nw words
@@ -29,10 +29,10 @@ function [PP] = spm_voice_get_LEX(xY,word,NI)
 %  variable. In addition, the expected value of various coefficients are
 %  stored in VOX.W and VOX.P.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7749 2019-12-05 17:05:46Z guillaume $
+% $Id: spm_voice_get_LEX.m 7750 2019-12-05 17:54:29Z spm $
 
 
 % defaults
@@ -332,9 +332,9 @@ for i = 1:numel(Rstr)
 end
 
 i    = full(spm_cat(I));
-subplot(4,2,3), hist(i(1,:),32,'Color','c'), axis square
+subplot(4,2,3), hist(i(1,:),32), axis square
 title(sprintf('%s mean (sd): %.2f (%.3f)','onset',mean(i(1,:)),std(i(1,:))))
-subplot(4,2,4), hist(i(2,:),32,'c'), axis square
+subplot(4,2,4), hist(i(2,:),32), axis square
 title(sprintf('%s mean (sd): %.2f (%.3f)','offset',mean(i(2,:)),std(i(2,:))))
 
 

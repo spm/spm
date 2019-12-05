@@ -1,5 +1,5 @@
 function [W] = spm_voice_iQ(Q)
-% discrete cosine transform of formant coefficients
+% Discrete cosine transform of formant coefficients
 % FORMAT [W] = spm_voice_iQ(Q)
 %
 % Q     - log formant frequencies
@@ -15,12 +15,12 @@ function [W] = spm_voice_iQ(Q)
 %   Tv  - log timing  (pitch) 
 %
 % This  auxiliary routine scales and transforms log formant coefficients
-% using a pair of discrete cosine transforms with logarithmic scaling
+% using a pair of discrete cosine transforms with logarithmic scaling.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iQ.m 7600 2019-06-01 09:30:30Z karl $
+% $Id: spm_voice_iQ.m 7750 2019-12-05 17:54:29Z spm $
 
 
 % defaults and (logarithmic) scaling
@@ -40,5 +40,3 @@ U  = spm_voice_dct(Ni,Nu,Tu);                % DCT over formants
 V  = spm_voice_dct(ni,Nv,Tv);                % DCT over intervals
 W  = U\Q/V';                                 % coeficients
 W  = W/std(W(:));                            % normalise
-
-
