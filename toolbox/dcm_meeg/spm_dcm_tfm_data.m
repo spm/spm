@@ -29,7 +29,7 @@ function DCM = spm_dcm_tfm_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_data.m 6234 2014-10-12 09:59:10Z karl $
+% $Id: spm_dcm_tfm_data.m 7749 2019-12-05 17:05:46Z guillaume $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -192,9 +192,9 @@ R      = speye(Ns) - X0*X0';
 %--------------------------------------------------------------------------
 if han
     if Ns < 2048
-        R = R*sparse(diag(hanning(Ns)))*R;
+        R = R*sparse(diag(spm_hanning(Ns)))*R;
     else
-        R = sparse(diag(hanning(Ns)))*R;
+        R = sparse(diag(spm_hanning(Ns)))*R;
     end
 end
  

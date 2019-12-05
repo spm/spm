@@ -14,7 +14,7 @@ function [X] = spm_conv_full(X,sx,sy)
 % Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_conv_full.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_conv_full.m 7749 2019-12-05 17:05:46Z guillaume $
 
 
 % assume isomorphic smoothing
@@ -27,10 +27,10 @@ sy      = abs(sy);
 % kernels : FWHM -> n
 %--------------------------------------------------------------------------
 Ex    = min([fix(sx) lx]);
-kx    = hanning(2*Ex + 1);
+kx    = spm_hanning(2*Ex + 1);
 kx    = kx/sum(kx);
 Ey    = min([fix(sy) ly]);
-ky    = hanning(2*Ey + 1);
+ky    = spm_hanning(2*Ey + 1);
 ky    = ky/sum(ky);
 
 % convolve

@@ -32,7 +32,7 @@ function [PP] = spm_voice_get_LEX(xY,word,NI)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_voice_get_LEX.m 7749 2019-12-05 17:05:46Z guillaume $
 
 
 % defaults
@@ -354,7 +354,7 @@ xlabel(sprintf('eigenbasis (%i)',s)), axis square
 
 % prosody (based on correlation)
 %--------------------------------------------------------------------------
-[V,S] = spm_svd(corr(PP));
+[V,S] = spm_svd(corrcoef(PP));
 S     = diag(S);
 subplot(2,2,2), bar(S)
 title('Eigenvalues - prosody','FontSize',16)
@@ -364,7 +364,3 @@ subplot(2,1,2), bar(abs(V)')
 title('Eigenmodes - prosody','FontSize',16)
 xlabel('prosody mode'), ylabel('amplitude'), axis square
 legend(Pstr)
-
-
-
-return

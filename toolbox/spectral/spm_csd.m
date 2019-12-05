@@ -15,7 +15,7 @@ function [csd,Hz] = spm_csd(Y,Hz,ns)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_csd.m 7749 2019-12-05 17:05:46Z guillaume $
 
 % Nyquist
 %--------------------------------------------------------------------------
@@ -37,9 +37,9 @@ f     = 0:N;
 ci    = find(f >= Hz(1) & f <= Hz(end));
 
 if ns > 8
-    win = hanning(ns/4);  % EEG
+    win = spm_hanning(ns/4);  % EEG
 else
-    win = hanning(ns*64); % fMRI
+    win = spm_hanning(ns*64); % fMRI
 end
 
 % cross-spectral density

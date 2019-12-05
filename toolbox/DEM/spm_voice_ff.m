@@ -51,7 +51,7 @@ function [xY] = spm_voice_ff(Y,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_voice_ff.m 7749 2019-12-05 17:05:46Z guillaume $
 
 
 % defaults
@@ -95,7 +95,7 @@ end
 % discrete cosine transforms over formant frequencies and intervals
 % respectively to create formant parameters (Q)
 %--------------------------------------------------------------------------
-Q     = bsxfun(@times,Q,hanning(ni)');       % window
+Q     = bsxfun(@times,Q,spm_hanning(ni)');   % window
 Q     = log(Q + eps)/2;                      % log transform
 Q     = Q - mean(Q(:));                      % detrend
 T     = std(Q(:));                           % timbre
