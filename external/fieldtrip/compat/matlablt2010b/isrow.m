@@ -3,6 +3,13 @@ function [varargout] = isrow(varargin)
 % ISROW is a drop-in replacement for the same function that was
 % introduced in MATLAB R2010b.
 
+v = version;
+if v(1) ~= '7'
+    p = mfilename('fullpath');
+    p = p(1:end-6);
+    rmpath(p);
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % see https://github.com/fieldtrip/fieldtrip/issues/899
 
