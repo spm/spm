@@ -4,7 +4,7 @@ function bf = tbx_cfg_bf
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: tbx_cfg_bf.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: tbx_cfg_bf.m 7755 2019-12-16 13:19:28Z spm $
 
 tbxdir = fileparts(mfilename('fullpath'));
 
@@ -33,10 +33,10 @@ end
 % Generate the menu function automatically in case of a different directory
 % name (might fail if there is no write permission)
 [tbx_path, tbx_name] = fileparts(tbxdir);
-if ~isequal(tbx_name, 'beamforming')
+if ~isdeployed && ~isequal(tbx_name, 'beamforming')
     if ~exist(fullfile(tbxdir, ['spm_' tbx_name '.m']), 'file')
         try
-            fid = fopen(fullfile(tbxdir, ['spm_' tbx_name '.m']), 'w');
+            fid = fopen(fullfile(tbxdir, ['spm_' tbx_name '.m']), 'wt');
             fprintf(fid, 'function spm_%s\n\nspm_beamforming', tbx_name);
             fclose(fid);
         end

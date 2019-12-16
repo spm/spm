@@ -35,7 +35,7 @@ function [E,V] = spm_mmc_priors(A,B,C)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
  
 % Bernadette van Wijk
-% $Id$
+% $Id: spm_mmc_priors.m 7755 2019-12-16 13:19:28Z spm $
 
 
 % default: a single source model

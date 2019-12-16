@@ -15,7 +15,7 @@ function Headers = spm_dicom_headers(DicomFilenames, Essentials)
 % Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 7374 2018-07-09 17:09:46Z guillaume $
+% $Id: spm_dicom_headers.m 7755 2019-12-16 13:19:28Z spm $
 
 
 DicomFilenames = cellstr(DicomFilenames);
@@ -40,7 +40,7 @@ for i=1:numel(DicomFilenames)
     Header = spm_dicom_header(DicomFilenames{i}, DicomDictionary);
     Header = Essentials(Header);
     if ~isempty(Header)
-    	Headers{end+1} = Header;
+        Headers{end+1} = Header;
     end
     if numel(DicomFilenames)>1, spm_progress_bar('Set',i); end
 end

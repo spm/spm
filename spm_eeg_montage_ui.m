@@ -12,7 +12,7 @@ function montage = spm_eeg_montage_ui(montage)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_montage_ui.m 7119 2017-06-20 11:25:48Z guillaume $
+% $Id: spm_eeg_montage_ui.m 7755 2019-12-16 13:19:28Z spm $
 
 
 % Create the figure
@@ -132,7 +132,7 @@ montage.labelnew = newLabels;
 [filename, pathname] = uiputfile({'*.mat','MAT-files (*.mat)'}, ...
     'Save montage', 'SPMeeg_montage.mat');
 if ~isequal(filename, 0)
-	save(fullfile(pathname, filename), 'montage', spm_get_defaults('mat.format'));
+    save(fullfile(pathname, filename), 'montage', spm_get_defaults('mat.format'));
 end
 
 %==========================================================================

@@ -19,7 +19,7 @@ function [P]   = spm_dcm_fit(P,use_parfor)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fit.m 7364 2018-07-03 14:02:46Z peter $
+% $Id: spm_dcm_fit.m 7755 2019-12-16 13:19:28Z spm $
 
 if nargin < 2, use_parfor = false; end
 
@@ -149,7 +149,7 @@ switch model
     case{'DEM'}
         DCM = spm_DEM(DCM);
 
-	% default
+    % default
     %----------------------------------------------------------------------
     otherwise
         try

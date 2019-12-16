@@ -4,9 +4,9 @@ function dipoles = spm_eeg_dipoles_ui
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Christophe Phillips
-% $Id: spm_eeg_dipoles_ui.m 7132 2017-07-10 16:22:58Z guillaume $
+% $Id: spm_eeg_dipoles_ui.m 7755 2019-12-16 13:19:28Z spm $
 
-SVNrev = '$Rev: 7132 $';
+SVNrev = '$Rev: 7755 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -113,6 +113,6 @@ end
 %-Output variable
 %--------------------------------------------------------------------------
 dipoles = struct(...
-	'pnt', pnt, ....
+    'pnt', pnt, ....
     'ori', ori, ...
     'label',label);
