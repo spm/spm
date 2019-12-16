@@ -84,9 +84,9 @@ function [MDP] = spm_MDP_VB_XX(MDP,OPTIONS)
 % This implementation equips agents with the prior beliefs that they will
 % maximise expected free energy: expected free energy is the free energy of
 % future outcomes under the posterior predictive distribution. This can be
-% interpreted in several ways – most intuitively as minimising the KL
+% interpreted in several ways - most intuitively as minimising the KL
 % divergence between predicted and preferred outcomes (specified as prior
-% beliefs) – while simultaneously minimising ambiguity.
+% beliefs) - while simultaneously minimising ambiguity.
 %
 % This particular scheme is designed for any allowable policies or control
 % sequences specified in MDP.V. Constraints on allowable policies can limit
@@ -122,17 +122,17 @@ function [MDP] = spm_MDP_VB_XX(MDP,OPTIONS)
 % same outcomes.
 %
 % See also: spm_MDP, which uses multiple future states and a mean field
-% approximation for control states – but allows for different actions at
+% approximation for control states - but allows for different actions at
 % all times (as in control problems).
 %
 % See also: spm_MDP_game_KL, which uses a very similar formulation but just
 % maximises the KL divergence between the posterior predictive distribution
 % over hidden states and those specified by preferences or prior beliefs.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_XX.m 7753 2019-12-16 10:48:08Z karl $
+% $Id: spm_MDP_VB_XX.m 7754 2019-12-16 11:29:51Z spm $
 
 
 % deal with a sequence of trials
@@ -1139,7 +1139,7 @@ for t = 1:T
     
 end % end of loop over time
 
-% learning – accumulate concentration parameters
+% learning - accumulate concentration parameters
 %==========================================================================
 for m = 1:size(MDP,1)
     
@@ -1365,7 +1365,7 @@ for m = 1:size(MDP,1)
     
     if isfield(MDP(m),'O') && ~any(MDP(m).o(:)) && HMM
         
-        % probabilistic outcomes – assume hidden Markov model (HMM)
+        % probabilistic outcomes - assume hidden Markov model (HMM)
         %------------------------------------------------------------------
         T(m) = size(MDP(m).O{1},2);         % HMM mode
         V{m} = ones(T - 1,1);               % single 'policy'
@@ -1497,7 +1497,7 @@ function L = spm_MDP_VB_VOX(MDP,L,t)
 % L   - likelihood of lexical and prosody outcomes
 %
 % this subroutine determines who is currently generating auditory output
-% and produces synthetic speech – or uses the current audio recorder object
+% and produces synthetic speech - or uses the current audio recorder object
 % to evaluate the likelihood of the next word
 %__________________________________________________________________________
 

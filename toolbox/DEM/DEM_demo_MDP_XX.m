@@ -35,10 +35,10 @@ function MDP = DEM_demo_MDP_XX
 %
 % see also: DEM_demo_MDP_habits.m and spm_MPD_VB_X.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_XX.m 7753 2019-12-16 10:48:08Z karl $
+% $Id: DEM_demo_MDP_XX.m 7754 2019-12-16 11:29:51Z spm $
  
 % set up and preliminaries
 %==========================================================================
@@ -135,7 +135,7 @@ mdp.Aname = {'exteroceptive','interoceptive'};
 mdp.Bname = {'position','context'};
 mdp.tau   = 12;
 
-% true initial states – with context change at trial 12
+% true initial states - with context change at trial 12
 %--------------------------------------------------------------------------
 i              = [1,3];          % change context in a couple of trials
 [MDP(1:32)]    = deal(mdp);      % create structure array
@@ -146,7 +146,7 @@ i              = [1,3];          % change context in a couple of trials
 %==========================================================================
 MDP  = spm_MDP_VB_XX(MDP);
  
-% illustrate behavioural responses – first trial
+% illustrate behavioural responses - first trial
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1'); clf
 spm_MDP_VB_trial(MDP(1));

@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7750 2019-12-05 17:54:29Z spm $
+% $Id: spm_voice.m 7754 2019-12-16 11:29:51Z spm $
 
 
 %% setup options and files
@@ -44,7 +44,7 @@ function spm_voice(PATH)
 %--------------------------------------------------------------------------
 clear global VOX
 close all
-clear all
+%clear all
 clc
 if ~nargin
     PATH = 'C:\Users\karl\Dropbox\Papers\Voice recognition\Sound files';
@@ -187,7 +187,6 @@ xlabel('level'), ylabel('attribute'), title('Prosody','FontSize',16)
 set(gca,'Xtick',1:k),set(gca,'Ytick',1:j),set(gca,'YtickLabel',{VOX.PRO.str})
 
 
-thanks so
 %% auxiliary code
 %==========================================================================
 return
