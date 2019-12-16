@@ -4,7 +4,7 @@ function h = nifti(varargin)
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: nifti.m 7744 2019-12-03 12:38:47Z guillaume $
+% $Id: nifti.m 7758 2019-12-16 16:04:25Z guillaume $
 
 
 switch nargin
@@ -71,10 +71,11 @@ case 1
         h     = class(h,'nifti');
 
     elseif isstruct(varargin{1})
-        if ~isempty(setdiff(fieldnames(varargin{1}),...
-                {'hdr','dat','extras'}))
-            error('Invalid input structure.');
-        end
+        %-Commented code is slow
+        % if ~isempty(setdiff(fieldnames(varargin{1}),...
+        %         {'hdr','dat','extras'}))
+        %     error('Invalid input structure.');
+        % end
         h = varargin{1};
         if ~isfield(h,'hdr'), [h.hdr] = deal(struct([])); end
         if ~isfield(h,'dat'), [h.dat] = deal([]); end
