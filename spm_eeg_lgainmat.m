@@ -9,9 +9,9 @@ function [L,D] = spm_eeg_lgainmat(D,Is,channels)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 7702 2019-11-22 11:32:26Z guillaume $
+% $Id: spm_eeg_lgainmat.m 7757 2019-12-16 15:36:06Z spm $
 
-SVNrev = '$Rev: 7702 $';
+SVNrev = '$Rev: 7757 $';
 
 %-Get gain or lead-field matrix
 %--------------------------------------------------------------------------
@@ -96,7 +96,7 @@ catch
         if nvert > 100, Ibar = floor(linspace(1, nvert,100));
         else Ibar = [1:nvert]; end
         
-        if ~isequal(ft_voltype(vol), 'interpolate')
+        if ~isequal(ft_headmodeltype(vol), 'interpolate')
             Gxyz = zeros(length(forward(ind).channels), 3*nvert);
             for i = 1:nvert
                 if siunits
