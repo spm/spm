@@ -9,12 +9,12 @@ function spm_check_registration(varargin)
 % the bottom right. The fastest increment is in the left-to-right
 % direction (the same as you are reading this).
 %__________________________________________________________________________
-% Copyright (C) 1997-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1997-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_registration.m 7652 2019-08-07 11:30:35Z john $
+% $Id: spm_check_registration.m 7759 2019-12-19 11:50:50Z guillaume $
 
-SVNid = '$Rev: 7652 $';
+SVNid = '$Rev: 7759 $';
 
 %-Get input
 %--------------------------------------------------------------------------
@@ -67,18 +67,19 @@ end
 
 %-Display
 %--------------------------------------------------------------------------
-fg=spm_figure('GetWin','Graphics');
-spm_figure('Clear','Graphics');
+fg = spm_figure('GetWin','Graphics');
+spm_figure('Clear',fg);
 spm_orthviews('Reset');
 dm = get(fg,'Position');
 mn = length(images);
 
 minwasted = Inf;
+m = 0; n = 0;
 for m1=1:mn
     n1 = ceil(mn/m1);
     s  = max(dm(4)/m1,dm(3)/n1);
     wasted = (s*m1-dm(4))*dm(3) + (s*n1-dm(3))*dm(4) + (m1*n1-mn)*s^2*1.01;
-    if wasted<minwasted
+    if wasted < minwasted
         minwasted = wasted;
         m = m1;
         n = n1;

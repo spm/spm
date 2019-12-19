@@ -6,10 +6,10 @@ function ret = spm_ov_browser(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2013-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 7377 2018-07-23 13:56:24Z guillaume $
+% $Id: spm_ov_browser.m 7759 2019-12-19 11:50:50Z guillaume $
 
 
 if ~nargin, varargin = {'ui'}; end
@@ -336,30 +336,37 @@ switch spm_file(file,'ext')
         error('Unknown output file type.');
 end
 
-for i=1:numel(f)
-    set(hS,'Value',i);
-    browser_slider(hS);
-    
-    X  = frame2im(getframe(st.fig));
-    sz = size(X);
-    sz = [sz(1) sz(1) sz(2) sz(2)];
-    sz = ([1-a(2)-a(4),1-a(2),a(1),a(1)+a(3)] .* (sz-1)) + 1;
-    sz = round(sz);
-    X  = X(sz(1):sz(2),sz(3):sz(4),:);
-    
-    if outputtype == 1
-        writeVideo(writerObj,X);
-    elseif outputtype ==2
-        [A,map] = rgb2ind(X,256);
-        if i == 1
-            imwrite(A,map,file,'gif','DelayTime',delay,'LoopCount',loop);
-        else
-            imwrite(A,map,file,'gif','DelayTime',delay,'WriteMode','append');
+try
+    set(findobj(st.fig,'Type','uicontrol'),'Visible','off');
+    for i=1:numel(f)
+        set(hS,'Value',i);
+        browser_slider(hS);
+        
+        X  = frame2im(getframe(st.fig));
+        sz = size(X);
+        sz = [sz(1) sz(1) sz(2) sz(2)];
+        sz = ([1-a(2)-a(4),1-a(2),a(1),a(1)+a(3)] .* (sz-1)) + 1;
+        sz = round(sz);
+        X  = X(sz(1):sz(2),sz(3):sz(4),:);
+        
+        if outputtype == 1
+            writeVideo(writerObj,X);
+        elseif outputtype ==2
+            [A,map] = rgb2ind(X,256);
+            if i == 1
+                imwrite(A,map,file,'gif','DelayTime',delay,'LoopCount',loop);
+            else
+                imwrite(A,map,file,'gif','DelayTime',delay,'WriteMode','append');
+            end
+        elseif outputtype ==3
+            imwrite(X,spm_file(file,'suffix',sprintf('_%04d',i)),'png');
         end
-    elseif outputtype ==3
-        imwrite(X,spm_file(file,'suffix',sprintf('_%04d',i)),'png');
     end
+catch
+    set(findobj(st.fig,'Type','uicontrol'),'Visible','on');
+    rethrow(lasterror);
 end
+set(findobj(st.fig,'Type','uicontrol'),'Visible','on');
 
 if outputtype == 1, close(writerObj); end
 
