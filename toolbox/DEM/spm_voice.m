@@ -34,7 +34,7 @@ function spm_voice(PATH)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7754 2019-12-16 11:29:51Z spm $
+% $Id: spm_voice.m 7761 2019-12-29 17:48:04Z karl $
 
 
 %% setup options and files
@@ -82,7 +82,7 @@ f     = fix(np/2);
 for w = 1:nw
     for i = k
         for j = k
-            spm_voice_speak(w,[8;1;f;8;j;f;f;f;i;f;f],[3;3]); pause(1/2)
+            spm_voice_speak(w,[8;1;f;f;j;f;f;f;i;f;f],[3;3]); pause(1/2)
         end
     end
 end
@@ -276,7 +276,7 @@ VOX.RF       = 0;
 
 % get parameters for a particular word
 %--------------------------------------------------------------------------
-xY       = spm_voice_speak(14);
+xY       = spm_voice_speak(12);
 xY.P.lat = -8;
 P        = xY.P;
 
@@ -461,13 +461,14 @@ end
 
 %% prompt for audio file: 32 words, at one word per second
 %--------------------------------------------------------------------------
-str   = 'red';
+str   = 'please';
 audio = audiorecorder(16000,16,1);
 [FS,read] = spm_voice_FS(audio);
 stop(audio);
 
 % countdown
 %--------------------------------------------------------------------------
+record(audio,38);
 for i = 3:-1:1
     clc,disp(i);          pause(0.5)
     clc,disp('    -*- '); pause(0.5)
@@ -475,8 +476,7 @@ end
 
 % record
 %--------------------------------------------------------------------------
-record(audio,34);
-for i = 1:33
+for i = 1:32
     clc,disp(str);        pause(0.5)
     clc,disp('    -*- '); pause(0.5)
 end
