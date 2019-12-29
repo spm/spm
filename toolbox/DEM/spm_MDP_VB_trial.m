@@ -3,9 +3,7 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 % FORMAT spm_MDP_VB_trial(MDP,[f,g])
 %
 % MDP.P(M,T)      - probability of emitting action 1,...,M at time 1,...,T
-% MDP.Q(N,T)      - an array of conditional (posterior) expectations over
-%                   N hidden states and time 1,...,T
-% MDP.X           - and Bayesian model averages over policies
+% MDP.X           - conditional expectations over hidden states
 % MDP.R           - conditional expectations over policies
 % MDP.o           - outcomes at time 1,...,T
 % MDP.s           - states at time 1,...,T
@@ -15,7 +13,6 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 % MDP.xn  = Xn;   - simulated neuronal encoding of policies
 % MDP.wn  = wn;   - simulated neuronal encoding of precision
 % MDP.da  = dn;   - simulated dopamine responses (deconvolved)
-% MDP.rt  = rt;   - simulated reaction times
 %
 % [f,g]           - factors and outcomes to plot [Default: first 3]
 %
@@ -24,7 +21,7 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 7596 2019-05-23 18:42:23Z karl $
+% $Id: spm_MDP_VB_trial.m 7760 2019-12-29 17:45:58Z karl $
 
 % graphics
 %==========================================================================
@@ -83,7 +80,7 @@ Nu     = find(Nu);
 Np     = length(Nu);
 for f  = 1:Np
     subplot(3*Np,2,f*2)
-    P = MDP.P;
+    P  = MDP.P;
     if Nf > 1
         ind     = 1:Nf;
         for dim = 1:Nf
@@ -113,7 +110,7 @@ for f  = 1:Np
     subplot(3*Np,2,(Np + f - 1)*2 + 1)
     imagesc(MDP.V(:,:,Nu(f))')
     if f < 2
-    title(sprintf('Allowable policies - %s',MDP.label.factor{Nu(f)}));
+        title(sprintf('Allowable policies - %s',MDP.label.factor{Nu(f)}));
     else
         title(MDP.label.factor{Nu(f)});
     end
@@ -128,7 +125,7 @@ end
 
 % expectations over policies
 %--------------------------------------------------------------------------
-if Np > 1
+try
     subplot(3,2,4)
     image(64*(1 - MDP.un))
     title('Posterior probability')

@@ -23,7 +23,7 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 7653 2019-08-09 09:56:25Z karl $
+% $Id: spm_MDP_VB_LFP.m 7760 2019-12-29 17:45:58Z karl $
  
  
 % defaults
@@ -202,17 +202,15 @@ end
 
 % simulated dopamine responses (if not a moving policy)
 %==========================================================================
-if ~isfield(MDP,'U')
-    if Nt == 1, subplot(3,2,6), else, subplot(4,1,4),end
-    dn    = spm_vec(dn);
-    dn    = dn.*(dn > 0);
-    dn    = dn + (dn + 1/16).*rand(size(dn))/8;
-    bar(dn,1,'k'), title('Dopamine responses','FontSize',16)
-    xlabel('time (updates)','FontSize',12)
-    ylabel('change in precision','FontSize',12), spm_axis tight, box off
-    YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
-    if Nt == 1, axis square, end
-end
+if Nt == 1, subplot(3,2,6), else, subplot(4,1,4),end
+dn    = spm_vec(dn);
+dn    = dn.*(dn > 0);
+dn    = dn + (dn + 1/16).*rand(size(dn))/8;
+bar(dn,1,'k'), title('Dopamine responses','FontSize',16)
+xlabel('time (updates)','FontSize',12)
+ylabel('change in precision','FontSize',12), spm_axis tight, box off
+YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
+if Nt == 1, axis square, end
 
 % simulated rasters
 %==========================================================================

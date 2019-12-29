@@ -3,16 +3,13 @@ function Q = spm_MDP_VB_game(MDP)
 % FORMAT Q = spm_MDP_VB_game(MDP)
 %
 % MDP.P(M,T)      - probability of emitting action 1,...,M at time 1,...,T
-% MDP.Q(N,T)      - an array of conditional (posterior) expectations over
-%                   N hidden states and time 1,...,T
-% MDP.X           - and Bayesian model averages over policies
+% MDP.X           - conditional expectations over hidden states
 % MDP.R           - conditional expectations over policies
 % MDP.O(O,T)      - a sparse matrix encoding outcomes at time 1,...,T
 % MDP.S(N,T)      - a sparse matrix encoding states at time 1,...,T
 % MDP.U(M,T)      - a sparse matrix encoding action at time 1,...,T
 % MDP.W(1,T)      - posterior expectations of precision
 %
-% MDP.un  = un    - simulated neuronal encoding of hidden states
 % MDP.xn  = Xn    - simulated neuronal encoding of policies
 % MDP.wn  = wn    - simulated neuronal encoding of precision
 % MDP.da  = dn    - simulated dopamine responses (deconvolved)
@@ -32,7 +29,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 7307 2018-05-08 09:44:04Z karl $
+% $Id: spm_MDP_VB_game.m 7760 2019-12-29 17:45:58Z karl $
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
@@ -46,9 +43,9 @@ end
 
 % graphics
 %==========================================================================
-Nt    = length(MDP);               % number of trials
-Ne    = size(MDP(1).V,1) + 1;      % number of epochs per trial
-Np    = size(MDP(1).V,2) + 1;      % number of policies
+Nt    = numel(MDP);                      % number of trials
+Ne    = MDP(1).T;                        % number of outcomes per trial
+Np    = size(MDP(1).V,2);                % number of policies
 for i = 1:Nt
     
     % assemble expectations of hidden states and outcomes
@@ -66,8 +63,8 @@ for i = 1:Nt
     end
     s(:,i) = MDP(i).s(:,1);
     o(:,i) = MDP(i).o(:,end);
-    u(:,i) = MDP(i).R(:,end);
-    w(:,i) = mean(MDP(i).dn,2);
+    u{1,i} = MDP(i).R;
+    w(:,i) = MDP(i).dn,2;
     
     
     % assemble context learning
@@ -102,7 +99,14 @@ for i = 1:Nt
             p(i) = p(i) + log(U(MDP(i).o(g,t),t))/Ne;
         end
     end
-    q(i)   = sum(MDP(i).rt(2:end));
+    
+    % reaction time
+    %----------------------------------------------------------------------
+    try
+        q(i) = sum(MDP(i).rt(2:end));
+    catch
+        q(i) = 0;
+    end
     
 end
 
@@ -129,7 +133,7 @@ if Nt < 64
 else
     MarkerSize = 16;
 end
-image(64*(1 - u)),  hold on
+image(t,1:Np,64*(1 - spm_cat(u))),  hold on
 for f = 1:Nf
     for i = 1:max(s(f,:))
         j = find(s(f,:) == i);

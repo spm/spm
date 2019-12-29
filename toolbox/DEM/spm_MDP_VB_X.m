@@ -29,6 +29,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 %
 % MDP.alpha             - precision - action selection [512]
 % MDP.beta              - precision over precision (Gamma hyperprior - [1])
+% MDP.chi               - Occams window for deep updates
 % MDP.tau               - time constant for gradient descent [4]
 % MDP.eta               - learning rate for model parameters
 % MDP.zeta              - Occam's window for polcies [3]
@@ -132,7 +133,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_MDP_VB_X.m 7760 2019-12-29 17:45:58Z karl $
 
 
 % deal with a sequence of trials
@@ -493,7 +494,7 @@ for t = 1:T
                         if n == m
                             
                             % outcome that minimises free energy (i.e.,
-                            % accuracy)
+                            % maximises accuracy)
                             %----------------------------------------------
                             F             = spm_dot(spm_log(A{m,g}),xqq(m,:));
                             po            = spm_softmax(F*512);
@@ -1022,7 +1023,7 @@ for t = 1:T
             %==============================================================
             if t < T
                 
-                % marginal posterior over action (for each modality)
+                % marginal posterior over action (for each factor)
                 %----------------------------------------------------------
                 Pu    = zeros([Nu(m,:),1]);
                 for i = 1:Np(m)
