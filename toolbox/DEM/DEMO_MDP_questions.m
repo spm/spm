@@ -37,7 +37,7 @@ function MDP = DEMO_MDP_questions
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_questions.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: DEMO_MDP_questions.m 7766 2020-01-05 21:37:39Z karl $
  
 % set up and preliminaries: first level
 %==========================================================================
@@ -427,10 +427,10 @@ spm_MDP_VB_trial(MDP(1),[1 2 4],[1 3 4]);
 % illustrate phase-precession and responses
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2'); clf
-spm_MDP_VB_LFP(MDP,[],4);
+spm_MDP_VB_LFP(MDP,[],3);
 
 spm_figure('GetWin','Figure 2A'); clf
-spm_MDP_VB_LFP(MDP,[],4,1);
+spm_MDP_VB_LFP(MDP,[],3,1);
 
 spm_figure('GetWin','Figure 3'); clf
 spm_MDP_VB_ERP(MDP(4:6),[3,2]);

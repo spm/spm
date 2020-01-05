@@ -133,7 +133,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7760 2019-12-29 17:45:58Z karl $
+% $Id: spm_MDP_VB_X.m 7766 2020-01-05 21:37:39Z karl $
 
 
 % deal with a sequence of trials
@@ -1054,8 +1054,8 @@ for t = 1:T
                         V{m}(t,:,f) = MDP(m).u(f,t);
                     end
                     for j = 1:size(MDP(m).U,1)
-                        if (t + j) < T
-                            V{m}(t + j,:,:) = MDP(m).U(j,:,:);
+                        if (t + 1) < T
+                            V{m}(t + 1,:,:) = MDP(m).U(:,:);
                         end
                     end
                     
@@ -1222,7 +1222,6 @@ for m = 1:size(MDP,1)
     % assemble results and place in NDP structure
     %----------------------------------------------------------------------
     MDP(m).T  = T;            % number of belief updates
-    MDP(m).V  = V{m};         % policies
     MDP(m).O  = O{m};         % outcomes
     MDP(m).P  = P{m};         % probability of action at time 1,...,T - 1
     MDP(m).R  = u{m};         % conditional expectations over policies
@@ -1314,7 +1313,7 @@ for m = 1:size(MDP,1)
     % check for policies: hidden Markov model, with a single policy
     %----------------------------------------------------------------------
     if isfield(MDP(m),'U')
-        HMM = size(MDP(m).U,2) < 2;
+        HMM = size(MDP(m).U,1) < 2;
     elseif isfield(MDP(m),'V')
         HMM = size(MDP(m).V,2) < 2;
     else
@@ -1334,14 +1333,14 @@ for m = 1:size(MDP,1)
         % called with repeatable actions (U,T)
         %------------------------------------------------------------------
         T(m) = MDP(m).T;                    % number of updates
-        V{m} = MDP(m).U;                    % allowable actions (1,Np)
+        V{m}(1,:,:) = MDP(m).U;             % allowable actions (1,Np,Nf)
         HMM  = 0;
         
     elseif isfield(MDP(m),'V')
         
         % full sequential policies (V)
         %------------------------------------------------------------------
-        V{m} = MDP(m).V;                    % allowable policies (T - 1,Np)
+        V{m} = MDP(m).V;                    % allowable policies (T - 1,Np,Nf)
         T(m) = size(MDP(m).V,1) + 1;        % number of transitions
         HMM  = 0;
         

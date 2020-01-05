@@ -27,6 +27,7 @@ function [MDP] = spm_MDP_VB_XX(MDP,OPTIONS)
 % MDP.alpha             - precision - action selection [512]
 % MDP.chi               - Occams window for deep updates
 % MDP.eta               - learning rate for model parameters
+% MDP.N                 - depth of deep policy search [N <= T]
 %
 % MDP.demi.C            - Mixed model: cell array of true causes (DEM.C)
 % MDP.demi.U            - Bayesian model average (DEM.U) see: spm_MDP_DEM
@@ -118,7 +119,7 @@ function [MDP] = spm_MDP_VB_XX(MDP,OPTIONS)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_XX.m 7760 2019-12-29 17:45:58Z karl $
+% $Id: spm_MDP_VB_XX.m 7766 2020-01-05 21:37:39Z karl $
 
 
 % deal with a sequence of trials
@@ -128,6 +129,7 @@ function [MDP] = spm_MDP_VB_XX(MDP,OPTIONS)
 %--------------------------------------------------------------------------
 try, OPTIONS.plot;  catch, OPTIONS.plot  = 0; end
 try, OPTIONS.D;     catch, OPTIONS.D     = 0; end
+global COUNT
 
 % check MDP specification
 %--------------------------------------------------------------------------
@@ -198,16 +200,18 @@ end
 % set up and preliminaries
 %==========================================================================
 
+% number of outcomes T and policies U (and V for consistency with plotting
+% schemes)
+%--------------------------------------------------------------------------
+[T,U,V] = spm_MDP_get_T(MDP);
+
 % defaults
 %--------------------------------------------------------------------------
 try, alpha = MDP(1).alpha; catch, alpha = 512;  end % action precision
 try, eta   = MDP(1).eta;   catch, eta   = 1;    end % learning rate
 try, chi   = MDP(1).chi;   catch, chi   = 1/64; end % Occam window updates
-
-% number of outcomes T and policies U (and V for consistency with plotting
-% schemes)
-%--------------------------------------------------------------------------
-[T,U,V] = spm_MDP_get_T(MDP);
+try, N     = MDP(1).N;     catch, N     = T;    end % depth of policy search
+N          = min(N,T);
 
 % initialise model-specific parameters
 %==========================================================================
@@ -710,7 +714,7 @@ for t = 1:T
         %------------------------------------------------------------------
         if t > 1
             
-            % transition probabilities (using current action)
+            % use transition probabilities (using current action)
             %--------------------------------------------------------------
             Q{m,t} = B{m,K(m,t - 1)}*Q{m,t - 1};
             
@@ -722,16 +726,16 @@ for t = 1:T
         end
         
         
-        
         %  posterior over hidden states (Q) and expected free energy (G)
         %==================================================================
+        COUNT = 0;
         [G,Q(m,:)] = spm_forwards(...
-            O{m}(:,t),Q(m,:),A(m,:),B(m,:),C(m,:),E{m},H(m,:),W(m,:),t,T);
+            O{m}(:,t),Q(m,:),A(m,:),B(m,:),C(m,:),E{m},H(m,:),W(m,:),t,T,min(T,t + N));
         
         % save marginal posteriors over hidden states
         %------------------------------------------------------------------
         for i = 1:T
-            qx    = reshape(Q{m,i},Ns);
+            qx    = reshape(Q{m,i},[Ns,1]);
             for f = 1:Nf(m)
                 S{m,f}(:,i,t) = spm_margin(qx,f);
             end
@@ -740,10 +744,15 @@ for t = 1:T
             X{m,f}(:,t) = S{m,f}(:,t,t);
         end
         
-        % posterior beliefs about policies (u) and precision(w)
+        % posterior beliefs about policies (u) and precision (w)
         %------------------------------------------------------------------
         u{m,t}    = spm_softmax(G);
         w{m}(t)   = u{m,t}'*spm_log(u{m,t});
+        
+        % end policy search
+        %==================================================================
+        % disp(COUNT)
+        
         
         % check for residual uncertainty (in hierarchical schemes)
         %------------------------------------------------------------------
@@ -783,7 +792,7 @@ for t = 1:T
             
             % marginal posterior (P) over action (for each factor)
             %--------------------------------------------------------------
-            Pu    = zeros(Nu(m,:));
+            Pu    = zeros([Nu(m,:),1]);
             for k = 1:Np(m)
                 sub        = num2cell(U{m}(k,:));
                 Pu(sub{:}) = Pu(sub{:}) + Ru(k);
@@ -793,6 +802,7 @@ for t = 1:T
             
             % realised action
             %--------------------------------------------------------------
+            MDP(m).v(:,t)     = K(m,t);
             try
                 MDP(m).u(:,t) = MDP(m).u(:,t);
             catch
@@ -1023,7 +1033,7 @@ end
 
 % auxillary functions
 %==========================================================================
-function [G,P] = spm_forwards(O,P,A,B,C,E,H,W,t,T)
+function [G,P] = spm_forwards(O,P,A,B,C,E,H,W,t,T,N)
 % deep tree search over policies or paths
 %--------------------------------------------------------------------------
 % FORMAT [G,Q] = spm_G(O,P,A,B,C,E,H,W,t,T);
@@ -1037,6 +1047,7 @@ function [G,P] = spm_forwards(O,P,A,B,C,E,H,W,t,T)
 % W{g}   - state and outcome dependent novelty
 % t      - current time point
 % T      - time horizon
+% N      - policy horizon
 %
 % Q      - posterior over (vectorised) states for t
 %
@@ -1051,6 +1062,8 @@ function [G,P] = spm_forwards(O,P,A,B,C,E,H,W,t,T)
 %  hidden states and their most likely outcomes.
 %__________________________________________________________________________
 
+global COUNT
+COUNT = COUNT + 1;
 
 % Posterior over hidden states based on likelihood (L) and priors (P)
 %==========================================================================
@@ -1059,22 +1072,33 @@ L     = 1;
 for g = 1:numel(A)
     L = L.*spm_dot(A{g},O{g});
 end
-P{t} = spm_norm(L(:).*P{t});
+P{t}  = spm_norm(L(:).*P{t});
+
+% terminate search at time horizon
+%--------------------------------------------------------------------------
+if t == T, return, end
 
 % Expected free energy of subsequent action
 %==========================================================================
-if t < T                                     % if not horizon
-    for k = 1:size(B,2)                      % search over actions
+for k = 1:size(B,2)                       % search over actions
+    
+    % (negative) expected free energy
+    %----------------------------------------------------------------------
+    Q{k}   = B{k}*P{t};                   % predictive posterior Q{k}
+    for g  = 1:numel(A)
         
-        % (negative) expected free energy
-        %------------------------------------------------------------------
-        Q{k}   = B{k}*P{t};                     % predictive posterior Q{k}
-        for g  = 1:numel(A)
+        % predictive posterior and prior over outcomes
+        %--------------------------------------------------------------
+        qo   = A{g}(:,:)*Q{k};
+        po   = C{g}(:,t);
+        
+        if 0
             
-            % predictive posterior and prior over outcomes
+            % Bayesian risk only
             %--------------------------------------------------------------
-            qo   = A{g}(:,:)*Q{k};
-            po   = C{g}(:,t);
+            G(k) = G(k) + qo'*po;
+            
+        else
             
             % G(k)      = ambiguity  + risk
             %--------------------------------------------------------------
@@ -1085,28 +1109,28 @@ if t < T                                     % if not horizon
             G(k) = G(k) - qo'*W{g}*Q{k};
             
         end
-        
     end
 end
 
-
-
 % deep (recursive) search over action sequences ( i.e., paths)
 %==========================================================================
-if t < T                                     % if not horizon
+if t < N
     
     % probability over action (terminating search at a suitable threshold)
     %----------------------------------------------------------------------
-    u     = softmax(G);
+    u     = spm_softmax(G);
     k     = u <= 1/16;
     u(k)  = 0;
-    G(k)  = - 16;
+    G(k)  = - 64;
     for k = 1:size(B,2)                      % search over actions
         if u(k) > 1/16                       % evaluating plausible paths
             
             %  evaluate  expected free energy for plausible hidden states
             %--------------------------------------------------------------
             j     = find(Q{k} > 1/16);
+            if isempty(j)
+                j = find(Q{k} > 1/numel(Q{k}));
+            end
             for i = j(:)'
                 
                 % outcome probabilities under hidden state (i)
@@ -1118,7 +1142,7 @@ if t < T                                     % if not horizon
                 % prior over subsequent action under this hidden state
                 %----------------------------------------------------------
                 P{t + 1} = Q{k};
-                F        = spm_forwards(O,P,A,B,C,E,H,W,t + 1,T);
+                F        = spm_forwards(O,P,A,B,C,E,H,W,t + 1,T,N);
                 
                 % expected free energy marginalised over subsequent action
                 %----------------------------------------------------------
@@ -1133,6 +1157,7 @@ if t < T                                     % if not horizon
         end % plausible paths
     end % search over actions
     
+    
     % Predictive posterior over hidden states
     %----------------------------------------------------------------------
     u     = spm_softmax(G);
@@ -1142,7 +1167,7 @@ if t < T                                     % if not horizon
     end
     P{t + 1} = R;
     
-end % time horizon
+end
 
 
 function [L] = spm_backwards(O,Q,A,B,u,T)
@@ -1244,14 +1269,14 @@ for m = 1:size(MDP,1)
         %------------------------------------------------------------------
         T(m) = MDP(m).T;                    % number of updates
         U{m} = MDP(m).U;                    % allowable actions (Np,Nf)
-        V{m}(1,:,:) = MDP(m).U;             % allowable actions (Np,Nf)
+        V{m}(1,:,:) = MDP(m).U;             % allowable actions (1,Np,Nf)
         
     elseif isfield(MDP(m),'V')
         
         % full sequential policies (V)
         %------------------------------------------------------------------
         T(m) = MDP(m).T;                    % number of updates
-        U{m} = MDP(m).V(1,:,:);             % allowable actions (Np,Nf)
+        U{m} = MDP(m).V(1,:,:);             % allowable actions (1,Np,Nf)
         V{m} = MDP(m).V;                    % allowable actions (Np,Nf)
     end
     

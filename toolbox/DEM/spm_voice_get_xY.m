@@ -20,7 +20,7 @@ function [xY,word,NI] = spm_voice_get_xY(PATH)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_xY.m 7750 2019-12-05 17:54:29Z spm $
+% $Id: spm_voice_get_xY.m 7766 2020-01-05 21:37:39Z karl $
 
 
 % get corpus
@@ -66,12 +66,17 @@ for w = 1:nw
     subplot(2,1,1), plot(G), hold on, plot(I,G(I),'ro'), hold off
     title(sprintf('Power peaks - %s',word{w}),'FontSize',16)
     xlabel('frequency (hertz)'), ylabel('power'), box off
+    drawnow
     
     for s = 1:ns
         
         % retrieve (one second) epoch around midpoint and transform
         %------------------------------------------------------------------
-        Y     = read(wname,round([-1/2 1/2]*FS + I(s)));
+        i     = round([-1/2 1/2]*FS + I(s));
+        if i(1) < 1
+            i = i - i(1) + 1;
+        end
+        Y     = read(wname,i);
         i     = spm_voice_onsets(Y,FS);
         i     = i{end};
         ni    = numel(Y);

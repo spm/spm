@@ -41,7 +41,7 @@ function MDP = DEMO_MDP_maze
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_MDP_maze.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: DEMO_MDP_maze.m 7766 2020-01-05 21:37:39Z karl $
 
 % set up and preliminaries: first level
 %--------------------------------------------------------------------------
@@ -172,7 +172,7 @@ spm_maze_plot(MDP,END)
 %--------------------------------------------------------------------------
 for i = 1:8
     subplot(8,2,(i - 1)*2 + 2);
-    c = softmax(MDP(i).C{2}(:,1));
+    c = spm_softmax(MDP(i).C{2}(:,1));
     imagesc(spm_unvec(c,MAZE))
     axis image off, title(sprintf('%s %i','Trial',i))
 end

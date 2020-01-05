@@ -29,7 +29,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 7760 2019-12-29 17:45:58Z karl $
+% $Id: spm_MDP_VB_game.m 7766 2020-01-05 21:37:39Z karl $
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
@@ -40,6 +40,7 @@ else
     Nf = 1;
     Ng = 1;
 end
+
 
 % graphics
 %==========================================================================
@@ -61,9 +62,19 @@ for i = 1:Nt
             end
         end
     end
+    
+    % fill-in selected policies if missing
+    %----------------------------------------------------------------------
+    try
+        MDP(i).v;
+    catch
+        MDP(i).v = [];
+    end
+    
     s(:,i) = MDP(i).s(:,1);
     o(:,i) = MDP(i).o(:,end);
     u{1,i} = MDP(i).R;
+    v{1,i} = MDP(i).v;
     w(:,i) = MDP(i).dn,2;
     
     
@@ -126,6 +137,8 @@ end
 % Initial states and expected policies (habit in red)
 %--------------------------------------------------------------------------
 col   = {'r.','g.','b.','c.','m.','k.'};
+u     = spm_cat(u);
+v     = spm_cat(v);
 t     = 1:Nt;
 subplot(6,1,1)
 if Nt < 64
@@ -133,16 +146,15 @@ if Nt < 64
 else
     MarkerSize = 16;
 end
-image(t,1:Np,64*(1 - spm_cat(u))),  hold on
+image(t,1:Np,64*(1 - u)),  hold on
+plot(linspace(1,Nt,numel(v)),v,'c.','MarkerSize',16)
 for f = 1:Nf
     for i = 1:max(s(f,:))
         j = find(s(f,:) == i);
-        plot(t(j),j - j + f,col{rem(i - 1,6)+ 1},'MarkerSize',MarkerSize)
+        plot(t(j),j - j + f - Nf,col{rem(i - 1,6)+ 1},'MarkerSize',MarkerSize)
     end
 end
-try
-    plot(Np*(1 - u(Np,:)),'r')
-end
+set(gca,'YLim',[-Nf,Np] + 1/2), box off
 try
     E = spm_softmax(spm_cat({MDP.e}));
     plot(Np*(1 - E(end,:)),'r:')

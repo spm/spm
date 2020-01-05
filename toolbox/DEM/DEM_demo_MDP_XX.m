@@ -44,7 +44,7 @@ function MDP = DEM_demo_MDP_XX
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_XX.m 7760 2019-12-29 17:45:58Z karl $
+% $Id: DEM_demo_MDP_XX.m 7766 2020-01-05 21:37:39Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -111,14 +111,11 @@ B{2}  = eye(2);
 % priors: (utility) C
 %--------------------------------------------------------------------------
 % Finally, we have to specify the prior preferences in terms of log
-% probabilities over outcomes. Here, the agent prefers rewards to losses -
-% and does not like to be exposed
+% probabilities over outcomes. Here, the agent prefers rewards to losses
 %--------------------------------------------------------------------------
 T     = 3;
-C{1}  = kron(ones(1,T),[-1 0 0 0 0]');
-
-c     = 6;
-C{2}  = kron(ones(1,T),[0  c -c]');
+C{1}  = kron(ones(1,T),[0 0 0 0 0]');
+C{2}  = kron(ones(1,T),[0  2 -4]');
  
 % now specify prior beliefs about initial states, in terms of counts. Here
 % the hidden states are factorised into location and context:
@@ -141,6 +138,7 @@ mdp.A = A;                       % likelihood probabilities
 mdp.B = B;                       % transition probabilities
 mdp.C = C;                       % prior preferences
 mdp.d = d;                       % prior over initial states
+mdp.N = 2;                       % policy depth
 mdp.s = [1 1]';                  % true initial state
 
 mdp.label = label;
@@ -166,6 +164,7 @@ spm_MDP_VB_trial(MDP(1));
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2'); clf
 spm_MDP_VB_game(MDP);
+
  
 % illustrate phase-precession and responses to chosen option - 1st trial
 %--------------------------------------------------------------------------
@@ -180,7 +179,8 @@ spm_MDP_VB_LFP(MDP(1:8));
 % illustrate familiarity (c.f., MMN) and context learning
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 5'); clf
-i = find(ismember(spm_cat({MDP.u}'),[4 2],'rows')); i = (i + 1)/2;
+u  = spm_cat({MDP.u}');
+i  = find(ismember(u(:,1:2),[4,2],'rows')); i = (i + 1)/2;
 spm_MDP_VB_LFP(MDP([i(1),i(end)]),[1;2],2)
 subplot(4,1,1), title('Repetition suppression and DA transfer','FontSize',16)
 

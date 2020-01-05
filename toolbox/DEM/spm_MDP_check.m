@@ -30,7 +30,7 @@ function [MDP] = spm_MDP_check(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_check.m 7610 2019-06-09 16:38:16Z karl $
+% $Id: spm_MDP_check.m 7766 2020-01-05 21:37:39Z karl $
 
 
 % deal with a sequence of trials
@@ -80,9 +80,16 @@ for g = 1:Ng
 end
 
 % check policy specification (create default moving policy U, if necessary)
+% V = V(Nt,Np,Nf)
+% U = U(Np,Nf)
 %--------------------------------------------------------------------------
+if isfield(MDP,'U')
+    if size(MDP.U,1) == 1 && size(MDP.U,3) == Nf
+        MDP.U = shiftdim(MDP.U,1);
+    end
+end
 try
-    V = MDP.U;                      % allowable actions (1,Np)
+    V(1,:,:) = MDP.U;               % allowable actions (1,Np)
 catch
     try
         V = MDP.V;                  % allowable policies (T - 1,Np)
@@ -99,15 +106,16 @@ catch
                     u = kron(ones(1,Nu(i)),u);
                 end
             end
-            MDP.U(1,:,f)  = u;
+            MDP.U(:,f)  = u;
         end
-        V = MDP.U;
+        V(1,:,:) = MDP.U;
     end
 end
+MDP.V = V;
 
 % check policy specification
 %--------------------------------------------------------------------------
-if Nf ~= size(V,3) && size(V,3) > 1;
+if Nf ~= size(V,3) && size(V,3) > 1
     error('please ensure V(:,:,1:Nf) is consistent with MDP.B{1:Nf}')
 end
 
@@ -120,6 +128,9 @@ if ~isfield(MDP,'C')
 end
 for g = 1:Ng
     if iscell(MDP.C)
+        if isvector(MDP.C{g})
+            MDP.C{g} = spm_vec(MDP.C{g});
+        end
         if No(g) ~= size(MDP.C{g},1)
             error(['please ensure A{' num2str(g) '} and C{' num2str(g) '} are consistent'])
         end
@@ -133,28 +144,28 @@ if ~isfield(MDP,'D')
         MDP.D{f} = ones(Ns(f),1);
     end
 end
-if Nf  ~= numel(MDP.D);
+if Nf  ~= numel(MDP.D)
     error('please ensure V(:,:,1:Nf) is consistent with MDP.D{1:Nf}')
 end
 
 
 % check iinitial states and internal consistency
 %--------------------------------------------------------------------------
-if Nf  ~= numel(MDP.D);
+if Nf  ~= numel(MDP.D)
     error('please ensure V(:,:,1:Nf) is consistent with MDP.D{1:Nf}')
 end
 for f = 1:Nf
-    if Ns(f) ~= size(MDP.D{f},1);
+    if Ns(f) ~= size(MDP.D{f},1)
         error(['please ensure B{' num2str(f) '} and D{' num2str(f) '} are consistent'])
     end
     if size(V,3) > 1
-        if Nu(f) < max(spm_vec(V(:,:,f)));
+        if Nu(f) < max(spm_vec(V(:,:,f)))
             error(['please check V(:,:,' num2str(f) ') or U(:,:,' num2str(f) ')'])
         end
     end
     for g = 1:Ng
         Na  = size(MDP.A{g});
-        if ~all(Na(2:end) == Ns);
+        if ~all(Na(2:end) == Ns)
             error(['please ensure A{' num2str(g) '} and D{' num2str(f) '} are consistent'])
         end
     end
