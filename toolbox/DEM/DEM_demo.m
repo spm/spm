@@ -67,7 +67,8 @@ guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function axes5_CreateFcn(hObject, eventdata, handles)
-imagesc(imread('PDF.jpg')), axis off
+ax = handles.axes5;
+imagesc(imread('PDF.jpg'),'Parent',ax), axis(ax,'off');
 
 
 % --- Outputs from this function are returned to the command line.
@@ -79,6 +80,7 @@ function varargout = DEM_demo_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
+
 
 function run_demo_Callback(hObject, handles, file)
 if isdeployed
