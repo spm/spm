@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 7718 2019-11-27 11:18:53Z john $
+% $Id: spm_shoot_template.m 7773 2020-01-22 10:42:47Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -281,8 +281,7 @@ for it=1:nits
 
     % Re-generate template data from sufficient statistics
     if ~isempty(sparam) && smits~=0
-        g0 = reconv(g,bs_args);
-        g0 = spm_shoot_blur(t,[vx, prod(vx)*[sparam(1:2) sched(it+1)*sparam(3)]],smits,g0); % FIX THIS
+        g0 = spm_shoot_blur(t,[vx, prod(vx)*[sparam(1:2) sched(it+1)*sparam(3)]],smits); % FIX THIS
         g  = cell(n1+1,1);
         for j=1:n1+1
             g{j} = max(g0(:,:,:,j),1e-4);
@@ -342,16 +341,6 @@ function y1 = affind(y0,M)
 y1 = zeros(size(y0),'single');
 for d=1:3
     y1(:,:,:,d) = y0(:,:,:,1)*M(d,1) + y0(:,:,:,2)*M(d,2) + y0(:,:,:,3)*M(d,3) + M(d,4);
-end
-%=======================================================================
-
-%=======================================================================
-function g0 = reconv(g,bs_args)
-d = [size(g{1}), 1];
-[i1,i2,i3]=ndgrid(1:d(1),1:d(2),1:d(3));
-g0 = zeros([d,numel(g)],'single');
-for k=1:numel(g)
-    g0(:,:,:,k) = max(exp(spm_bsplins(g{k},i1,i2,i3,bs_args)),1e-4);
 end
 %=======================================================================
 

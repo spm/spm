@@ -4,7 +4,7 @@ function [sig,a] = spm_shoot_blur(t,prm,its,sig)
 %     t   - sufficient statistics
 %     prm - regularisation parameters (1,1,1, 0.01,0.02,1)
 %     its - max no. iterations (12)
-%     sig - optional starting estimates
+%     sig - optional starting estimates (ignored for now)
 %
 %     sig - "smoothed" average
 %     a   - parameters
@@ -12,7 +12,7 @@ function [sig,a] = spm_shoot_blur(t,prm,its,sig)
 % The core of this procedure is described in:
 %     John Ashburner & Karl J. Friston.
 %     "Computing Average Shaped Tissue Probability Templates"
-%     NeuroImage, In Press, Accepted Manuscript, Available online 24 December 2008
+%     Neuroimage. 2009 Apr 1;45(2):333-41.
 %
 % However, there is an additional modification such that the the null space
 % of the parameters is rotated out.
@@ -20,7 +20,7 @@ function [sig,a] = spm_shoot_blur(t,prm,its,sig)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_blur.m 7387 2018-08-03 15:13:57Z john $
+% $Id: spm_shoot_blur.m 7773 2020-01-22 10:42:47Z john $
 
 d   = [size(t),1,1,1];
 if nargin<3, its = 16;                         end % Maximum no. iterations
@@ -31,13 +31,13 @@ W    = zeros([d(1:3) round(((d(4)-1)*d(4))/2)],'single'); % 2nd derivatives
 gr   = zeros([d(1:3),d(4)-1],'single');                   % 1st derivatives
 
 % Re-organise sufficient statistics to a form that is easier to work with
-t    = max(t,eps('single')*1000);
+t    = max(t,eps);
 s    = sum(t,4);
 for k=1:d(4)
     t(:,:,:,k) = t(:,:,:,k)./s;
 end
 maxs   = max(s(:)); % Used for scaling the regularisation
-prm(4) = prm(4)+maxs*d(4)*1e-6;
+%prm(4) = prm(4)+maxs*d(4)*1e-6;
 
 % Only d(4)-1 fields need to be estimated because sum(a,4) = 0.  This matrix
 % is used to rotate out the null space
@@ -45,7 +45,12 @@ R     = null(ones(1,d(4)));
 
 % Initial starting estimates (if sig is passed)
 a     = zeros([d(1:3),d(4)-1],'single');
-if nargin>=4
+if false && nargin>=4
+    % This is disabled because starting estimates of 0 are much more stable
+    % compared to initialising with estimates that might have greater
+    % magnitudes than the values at the optimum. If this occurs, then
+    % Gauss-Newton becomes very unstable. Note that the Hessian when
+    % estimates are all zero is equal to Bohning's bound.
     for z=1:d(3) % Loop over planes
         sz = sig(:,:,z,:);
         sz = min(max(sz,0),1);
@@ -67,11 +72,10 @@ for i=1:its
     ll  = 0;
     for z=1:d(3) % Loop over planes
 
-        % Compute softmax for this plane
-        sig = double(reshape(sftmax(a(:,:,z,:),R),[d(1:2),d(4)]));
-
-        % -ve log likelihood of the likelihood
-        ll  = ll - sum(sum(sum(log(sig).*reshape(t(:,:,z,:),[d(1:2),d(4)]),3).*s(:,:,z)));
+        % Compute softmax and -ve log likelihood for this plane
+        [sig,ll1] = sftmax(a(:,:,z,:),R,t(:,:,z,:),s(:,:,z,:));
+        sig       = double(reshape(sig,[d(1:2),d(4)]));
+        ll        = ll - ll1;
 
         % Compute first derivatives (d(4)-1) x 1 
         grz = sig - double(reshape(t(:,:,z,:),[d(1:2),d(4)]));
@@ -140,16 +144,15 @@ for i=1:its
     % At convergence, the derivatives from the likelihood term should match those
     % from the prior (regularisation) term.
     ss1 = sum(sum(sum(sum(gr.^2))));
-    gr1 = spm_field('vel2mom',a,prm);        % 1st derivative of the prior term
+    gr1 = spm_field('vel2mom',a,prm);     % 1st derivative of the prior term
     ll1 = 0.5*sum(sum(sum(sum(gr1.*a)))); % -ve log probability of the prior term
     gr  = gr + gr1;                       % Combine the derivatives of the two terms
     ss2 = sum(sum(sum(sum(gr.^2))));      % This should approach zero at convergence
     mx  = max(max(max(sum(gr.^2,4))));
+    reg = double(1e-3*sqrt(mx)*d(4));
 
     fprintf('%2d %8.4f %8.4f %8.4f %g\n', i, ll/prod(d(1:3)),ll1/prod(d(1:3)), (ll+ll1)/prod(d(1:3)), (ss2)/prod(d(1:3)));
 
-    reg = double(0.01*sqrt(mx)*d(4));
-   %reg = double(0.1*sqrt(ss2/prod(d(1:3))));
     a   = a - spm_field(W,gr,[prm(1:3) prm(4)+reg prm(5:6) rits]); % Gauss-Newton update
 
     if ss2/ss1<1e-4, break; end        % Converged?
@@ -159,12 +162,12 @@ sig = sftmax(a,R);
 %________________________________________________________
 
 %________________________________________________________
-function sig = sftmax(a,R)
+function [sig,ll] = sftmax(a,R,t,s)
 % Softmax function
 
 d     = [size(a) 1 1 1];
 sig   = zeros([d(1:3),d(4)+1],'single');
-trunc = log(realmax('single')*(1-eps('single'))/(d(4)+1));
+ll    = 0;
 
 for j=1:size(a,3) % Loop over planes
 
@@ -179,13 +182,21 @@ for j=1:size(a,3) % Loop over planes
     end
 
     % Compute softmax
-    sj = min(max(sj,-trunc),trunc);
-    sj = exp(sj)+eps('single')*(d(4)+1);
-    s  = sum(sj,3);
-    for i=1:d(4)+1
-        sig(:,:,j,i) = single(sj(:,:,i)./s);
+    if nargin>=3
+        tj = double(reshape(t(:,:,j,:),[d(1:2),d(4)+1]));
+        st = double(s(:,:,j));
+        ll = ll + sum(sum(sum(sj.*tj,3).*st,2),1);
     end
-
+    mx = max(sj,[],3);
+    sj = sj - mx;
+    ej = exp(sj)+eps;
+    s  = sum(ej,3);
+    if nargin>=3
+        ll = ll - sum(sum(st.*(mx+log(s)),2),1);
+    end
+    for i=1:d(4)+1
+        sig(:,:,j,i) = single(ej(:,:,i)./s);
+    end
 end
 %________________________________________________________
 
