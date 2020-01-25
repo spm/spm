@@ -1,6 +1,6 @@
 function [gew,pve,H] = spm_csd2gew(csd,Hz,u)
 % Convert cross sspectral density to Geweke Granger causality
-% FORMAT [gew,pve,H] = spm_csd2gew(csd,Hz)
+% FORMAT [gew,pve,H] = spm_csd2gew(csd,Hz,u)
 %
 % ccf  (N,m,m)   - cross covariance functions
 % Hz   (n x 1)   - vector of frequencies (Hz)
@@ -23,7 +23,7 @@ function [gew,pve,H] = spm_csd2gew(csd,Hz,u)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd2gew.m 5908 2014-03-05 20:31:57Z karl $
+% $Id: spm_csd2gew.m 7774 2020-01-25 18:07:03Z karl $
 
 % preliminaries
 %--------------------------------------------------------------------------

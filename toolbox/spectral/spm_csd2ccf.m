@@ -4,7 +4,7 @@ function [ccf,pst] = spm_csd2ccf(csd,Hz,dt)
 %
 % csd  (n,:,:)          - cross spectral density (cf, mar.P)
 % Hz   (n x 1)          - vector of frequencies (Hz)
-% dt                    - samping interval (default = 1/(2*Hz(end)))
+% dt                    - samping interval [default = 1/(2*Hz(end))]
 %
 % ccf                   - cross covariance functions
 % pst  (N,1)            - vector of lags for evaluation (seconds)
@@ -18,7 +18,7 @@ function [ccf,pst] = spm_csd2ccf(csd,Hz,dt)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd2ccf.m 6395 2015-03-26 15:05:04Z adeel $
+% $Id: spm_csd2ccf.m 7774 2020-01-25 18:07:03Z karl $
 
 % Nyquist
 %--------------------------------------------------------------------------

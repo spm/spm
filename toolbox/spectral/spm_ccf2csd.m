@@ -7,15 +7,13 @@ function [csd,Hz] = spm_ccf2csd(ccf,Hz)
 %
 % csd  (n,:,:)          - cross spectral density (cf, mar.P)
 %
-% See also: 
-%  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m,
-%  spm_csd2coh.m and spm_Q
-%
+% See also: spm_???2???.m
+%     ??? = {'ccf','csd','gew','mar','coh','mtf','ker','ssm','dcm'}
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ccf2csd.m 5895 2014-02-26 14:28:23Z karl $
+% $Id: spm_ccf2csd.m 7774 2020-01-25 18:07:03Z karl $
  
 % unpack cells
 %--------------------------------------------------------------------------

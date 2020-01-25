@@ -1,15 +1,15 @@
-function [csd,mtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
+function [csd,mtf,coh,pha] = spm_mar2csd(mar,Hz,ns)
 % Get spectral estimates from MAR model
-% FORMAT [csd,dtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
+% FORMAT [csd,dtf,coh,pha] = spm_mar2csd(mar,Hz,ns)
 %
 % mar   - MAR coefficients or structure (see spm_mar.m)
-% freqs - [Nf x 1] vector of frequencies to evaluate spectra at
-% ns    - samples per second
+% Hz    - [Nf x 1] vector of frequencies to evaluate spectra at
+% ns    - samples per second [default: ns = 2*Hz(end)]
 %
 % csd   - cross spectral density
+% mtf   - modulation transfer function
 % coh   - coherence
 % pha   - phase
-% mtf   - modulation transfer function
 %
 % The mar coefficients are either specified in a cell array (as per
 % spm_mar) or as a vector of (positive) coefficients as per spm_Q. The
@@ -24,12 +24,12 @@ function [csd,mtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mar2csd.m 6560 2015-09-23 13:50:43Z karl $
+% $Id: spm_mar2csd.m 7774 2020-01-25 18:07:03Z karl $
 
 
 % Nyquist
 %--------------------------------------------------------------------------
-if nargin < 3, ns = 2*freqs(end); end
+if nargin < 3, ns = 2*Hz(end); end
 
 % format coefficients into an array of negative coeficients (cf lag.a)
 %--------------------------------------------------------------------------
@@ -65,8 +65,8 @@ end
 
 % frequencies
 %--------------------------------------------------------------------------
-Nf = length(freqs);
-w  = 2*pi*freqs/ns;
+Nf = length(Hz);
+w  = 2*pi*Hz/ns;
 
 % transfer function and complex cross spectral density
 %--------------------------------------------------------------------------

@@ -7,12 +7,15 @@ function [coh,fsd] = spm_csd2coh(csd,Hz)
 %
 % coh           - coherence
 % fsd           - frequency specific delay (seconds) 
-%               - phase-delay/radial frequnecy
+%               - phase-delay/radial frequency
+%
+% See also: spm_???2???.m
+%     ??? = {'ccf','csd','gew','mar','coh','mtf','ker','ssm','dcm'}
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd2coh.m 5816 2013-12-23 18:52:56Z karl $
+% $Id: spm_csd2coh.m 7774 2020-01-25 18:07:03Z karl $
  
 
 % unpack cells

@@ -3,7 +3,7 @@ function [mar,pcond] = spm_ccf2mar(ccf,p)
 % FORMAT [mar] = spm_ccf2mar(ccf,p)
 %
 % ccf  (N,m,m)   - cross covariance functions
-% p              - AR(p) order
+% p              - AR(p) order [default: p = 8]
 %
 % mar.noise_cov  - (m,m)         covariance of innovations   
 % mar.mean       - (p*m,m)       MAR coeficients (matrix format - positive)
@@ -18,8 +18,11 @@ function [mar,pcond] = spm_ccf2mar(ccf,p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ccf2mar.m 6254 2014-11-04 18:24:21Z karl $
+% $Id: spm_ccf2mar.m 7774 2020-01-25 18:07:03Z karl $
 
+% defaults: MAR order
+%--------------------------------------------------------------------------
+if nargin < 2, p  = 8; end                           
 
 % MAR coeficients
 %==========================================================================

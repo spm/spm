@@ -1,11 +1,11 @@
-function [gew,pve] = spm_dtf2gew(dtf,C)
+function [gew,pve] = spm_mtf2gew(mtf,C)
 % Converts directed transfer function to Geweke Granger causality
-% FORMAT [gew,pve] = spm_csd2gew(dtf,C)
+% FORMAT [gew,pve] = spm_csd2gew(mtf,C)
 %
-% dtf  (N,n,n)   - (unnormalised) directed or modulation transfer function
+% mtf  (N,n,n)   - (unnormalised) directed or modulation transfer function
 % C              - optional noise (fluctation) covariance matrix C(n,n)
 %                - or cross spectral density C(N,n,n)
-%                - or spectral power C(N,n)
+%                - or spectral power C(N,n) [default: C = eye(n,n)]
 %
 % gew  (N,n,n)   - Geweke's frequency domain Granger causality
 % pve  (N,n,n)   - proportion of variance explained
@@ -18,14 +18,14 @@ function [gew,pve] = spm_dtf2gew(dtf,C)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dtf2gew.m 7774 2020-01-25 18:07:03Z karl $
+% $Id: spm_mtf2gew.m 7774 2020-01-25 18:07:03Z karl $
 
 
 % preliminaries
 %--------------------------------------------------------------------------
-ns = size(dtf,3);
-n  = size(dtf,2);
-nw = size(dtf,1);
+ns = size(mtf,3);
+n  = size(mtf,2);
+nw = size(mtf,1);
 
 %  spectral density of fluctuations
 %--------------------------------------------------------------------------
@@ -48,7 +48,7 @@ end
 %--------------------------------------------------------------------------
 csd   = zeros(nw,n,n);
 for i = 1:nw
-    mtf        = squeeze(dtf(i,:,:));
+    mtf        = squeeze(mtf(i,:,:));
     C          = squeeze(c(i,:,:));
     csd(i,:,:) = mtf*C*mtf';
 end
@@ -61,7 +61,7 @@ for j = 1:n
     for k = 1:n
         rkj        = abs(c(:,j,j) - (c(:,j,k).^2)./c(:,k,k));
         sk         = abs(csd(:,k,k));
-        hkj        = abs(dtf(:,k,j)).^2;
+        hkj        = abs(mtf(:,k,j)).^2;
         pve(:,k,j) = rkj.*hkj./sk;
         gew(:,k,j) = -log(1 - pve(:,k,j));
     end

@@ -4,10 +4,10 @@ function [mar] = spm_csd2mar(csd,Hz,p,dt)
 %
 % csd  (N,:,:)   - cross spectral density
 % Hz   (n x 1)   - vector of frequencies (Hz)
-% p    (1)       - MAR(p) process
-% dt             - sampling interval
+% p    (1)       - MAR(p) process    [default: p  = 8]
+% dt             - sampling interval [default: dt = 1/(2*Hz(end))]
 %
-% amr  {1}       - see spm_mar
+% mar  {1}       - see spm_mar
 %
 % See also: 
 %  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m,
@@ -17,11 +17,12 @@ function [mar] = spm_csd2mar(csd,Hz,p,dt)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd2mar.m 5895 2014-02-26 14:28:23Z karl $
+% $Id: spm_csd2mar.m 7774 2020-01-25 18:07:03Z karl $
 
-% Nyquist
+% Defualts: MAR order and Nyquist
 %--------------------------------------------------------------------------
-if nargin < 4, dt  = 1/(2*Hz(end)); end
+if nargin < 3, p = 8;              end
+if nargin < 4, dt = 1/(2*Hz(end)); end
  
 % FFT and evalaute MAR coeficients
 %--------------------------------------------------------------------------

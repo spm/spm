@@ -3,7 +3,7 @@ function [ccf] = spm_mar2ccf(mar,n)
 % FORMAT [ccf] = spm_mar2ccf(mar,n)
 %
 % mar   - MAR coefficients or structure (see spm_mar.m)
-% n     - number of time bins
+% n     - number of time bins [default: n = 128]
 %
 % ccf   - (2*n + 1,i,j) cross covariance functions between I and J
 %
@@ -20,7 +20,7 @@ function [ccf] = spm_mar2ccf(mar,n)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mar2ccf.m 6481 2015-06-16 17:01:47Z karl $
+% $Id: spm_mar2ccf.m 7774 2020-01-25 18:07:03Z karl $
 
 
 % Nyquist
