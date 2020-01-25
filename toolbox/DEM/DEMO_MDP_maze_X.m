@@ -25,7 +25,7 @@ function MDP = DEMO_MDP_maze_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_MDP_maze_X.m 7766 2020-01-05 21:37:39Z karl $
+% $Id: DEMO_MDP_maze_X.m 7775 2020-01-25 18:10:41Z karl $
 
 % set up and preliminaries: first level
 %--------------------------------------------------------------------------
@@ -177,9 +177,11 @@ clear MDP
 mdp.a{1}  = ones(size(mdp.A{1}))/64;
 mdp.a{2}  = mdp.A{2}*128;
 mdp.C{2}  = spm_zeros(C{2});
+mdp.s     = START;
+mdp.D     = D;
 
 mdp.T = 2;
-mdp.N = 2;
+mdp.N = 1;
 for i = 1:64
     
     % proceed with subsequent trial
@@ -255,7 +257,7 @@ for p = 1:numel(MDP)
         plot(j,i,'.','MarkerSize',32,'Color','r'); hold off
     end
     
-    % cycle over  short-term searches
+    % cycle over short-term searches
     %----------------------------------------------------------------------
     subplot(2,2,1),hold on
     s     = MDP(p).s;

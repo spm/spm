@@ -119,7 +119,7 @@ function [MDP] = spm_MDP_VB_XX(MDP,OPTIONS)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_XX.m 7766 2020-01-05 21:37:39Z karl $
+% $Id: spm_MDP_VB_XX.m 7775 2020-01-25 18:10:41Z karl $
 
 
 % deal with a sequence of trials
@@ -735,7 +735,7 @@ for t = 1:T
         % save marginal posteriors over hidden states
         %------------------------------------------------------------------
         for i = 1:T
-            qx    = reshape(Q{m,i},[Ns,1]);
+            qx    = spm_unvec(Q{m,i},zeros([Ns,1]));
             for f = 1:Nf(m)
                 S{m,f}(:,i,t) = spm_margin(qx,f);
             end
@@ -836,11 +836,23 @@ end % end of loop over time
 %==========================================================================
 for m = 1:size(MDP,1)
     
+    % Backwards pass for posteriors over hidden states
+    %----------------------------------------------------------------------
+    if any(isfield(MDP,{'b','d'}))
+        for t = 1:T
+            L     = spm_backwards(O{m},Q(m,:),A(m,:),B(m,:),K(m,:),t,T);
+            L     = spm_unvec(L,zeros([Ns,1]));
+            for f = 1:Nf(m)
+                X{m,f}(:,t) = spm_margin(L,f);
+            end
+        end
+    end
     
     % learning - accumulate concentration parameters
     %======================================================================
     for t = 1:T
         
+
         % mapping from hidden states to outcomes: a
         %------------------------------------------------------------------
         if isfield(MDP,'a')
@@ -883,19 +895,11 @@ for m = 1:size(MDP,1)
     %----------------------------------------------------------------------
     if isfield(MDP,'d')
         
-        % posterior over initial states
-        %------------------------------------------------------------------
-        L     = spm_backwards(O{m},Q(m,:),A(m,:),B(m,:),K(m,:),T);
-        L     = reshape(L,Ns);
-        for f = 1:Nf(m)
-            x{f} = spm_margin(L,f);
-        end
-        
         %  accumulate Dirichlet counts
         %------------------------------------------------------------------
         for f = 1:Nf(m)
             i = MDP(m).d{f} > 0;
-            MDP(m).d{f}(i) = MDP(m).d{f}(i) + x{f}(i);
+            MDP(m).d{f}(i) = MDP(m).d{f}(i) + X{m,f}(i,1);
         end
     end
     
@@ -1170,7 +1174,7 @@ if t < N
 end
 
 
-function [L] = spm_backwards(O,Q,A,B,u,T)
+function [L] = spm_backwards(O,Q,A,B,u,t,T)
 % Backwards smoothing to evaluate posterior over initial states
 %--------------------------------------------------------------------------
 % O{g}   - cell array of outcome probabilities for modality g
@@ -1178,9 +1182,10 @@ function [L] = spm_backwards(O,Q,A,B,u,T)
 % A{g}   - likelihood mappings from hidden states
 % B{k}   - belief propagators (action dependent probability transitions)
 % u{t}   - posterior expectations over actions
+% t      - current time point
 % T      - time horizon
 %
-% L      - posterior over initial states
+% L      - posterior over states at time t
 %
 %  This subroutine evaluate the posterior over initial states using a
 %  backwards algorithm; namely, by evaluating the likelihood of each
@@ -1190,26 +1195,24 @@ function [L] = spm_backwards(O,Q,A,B,u,T)
 
 % initialise to posterior and accumulate likelihoods for each initial state
 %--------------------------------------------------------------------------
-L     = Q{1};
-q     = spm_zeros(L);
-for i = 1:numel(q)
-    qi    = q;
-    qi(i) = 1;
-    for t = 2:T
-        
-        % next distribution over hidden states
-        %------------------------------------------------------------------
-        qi    = B{u(t - 1)}*qi;
-        
+L     = Q{t};
+p     = 1;
+for j = (t + 1):T
+    
+    % belief propagation over hidden states
+    %------------------------------------------------------------------
+    p    = B{u(j - 1)}*p;
+    
+    for i = 1:numel(L)
         % and accumulate likelihood
         %------------------------------------------------------------------
         for g = 1:numel(A)
-            L(i) = L(i).*(O{g,t}'*A{g}(:,:)*qi);
+            L(i) = L(i).*(O{g,j}'*A{g}(:,:)*p(:,i));
         end
     end
 end
 
-% marginal distribution over initial states
+% marginal distribution over states
 %--------------------------------------------------------------------------
 L     = spm_norm(L(:));
 

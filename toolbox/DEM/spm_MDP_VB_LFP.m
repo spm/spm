@@ -23,7 +23,7 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 7760 2019-12-29 17:45:58Z karl $
+% $Id: spm_MDP_VB_LFP.m 7775 2020-01-25 18:10:41Z karl $
  
  
 % defaults
@@ -215,16 +215,16 @@ if Nt == 1, axis square, end
 % simulated rasters
 %==========================================================================
 Nr    = 16;
-if Nt == 1
+if Nt == 1 && size(z{1},2) < 128
     subplot(3,2,5)
     
     R  = kron(spm_cat(z)',ones(Nr,Nr));
     R  = rand(size(R)) > R*(1 - 1/16);
-    imagesc(t,1:(Nx*Ne + 1),R),title('Unit firing','FontSize',16)
+    imagesc(t,1:(Nx*Ne),R),title('Unit firing','FontSize',16)
     xlabel('time (sec)','FontSize',12)
     
     grid on, set(gca,'XTick',(1:(Ne*Nt))*Nb*dt)
-    grid on, set(gca,'YTick',1:(Ne*Nx))
+    grid on, set(gca,'YTick', 1:(Ne*Nx))
     set(gca,'YTickLabel',str), axis square
     
 end
