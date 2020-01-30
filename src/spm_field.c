@@ -1,4 +1,4 @@
-/* $Id: spm_field.c 7687 2019-11-07 11:26:02Z guillaume $ */
+/* $Id: spm_field.c 7776 2020-01-30 15:24:01Z yael $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"
@@ -169,6 +169,250 @@ static void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArr
     LtLf(dm, (float *)mxGetPr(prhs[0]), param, scal, (float *)mxGetPr(plhs[0]));
 }
 
+static void diaginv1_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    int nd, i;
+    mwSize dm[4];
+    static double param[] = {1.0, 1.0, 1.0, 1.0};
+    double scal[256];
+
+    if ((nrhs!=3 && nrhs!=4) || nlhs>1)
+        mexErrMsgTxt("Incorrect usage");
+    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
+        mexErrMsgTxt("Data must be numeric, real, full and single");
+    if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsSingle(prhs[1]))
+        mexErrMsgTxt("Data must be numeric, real, full and single");
+
+    nd = mxGetNumberOfDimensions(prhs[0]);
+    if (nd>4) mexErrMsgTxt("Wrong number of dimensions.");
+    for(i=0; i<nd; i++) dm[i] = mxGetDimensions(prhs[0])[i];
+    for(i=nd; i<4; i++) dm[i] = 1;
+    dm[3] = (mwSize)ceil((sqrt((double)(1+8*dm[3]))-1)/2);
+
+    nd = mxGetNumberOfDimensions(prhs[1]);
+    if (nd>3) mexErrMsgTxt("Wrong number of dimensions.");
+    for(i=0; i<nd; i++) if (mxGetDimensions(prhs[1])[i] != dm[i]) mexErrMsgTxt("Incompatible dimensions.");
+    for(i=nd; i<3; i++) if (dm[i] != 1) mexErrMsgTxt("Incompatible dimensions.");
+    nd = mxGetNumberOfDimensions(prhs[0]);
+
+    if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
+        mexErrMsgTxt("Parameters must be numeric, real, full and double");
+    if (mxGetNumberOfElements(prhs[2]) != 4)
+        mexErrMsgTxt("Parameters should contain vox1, vox2, vox3, param.");
+    param[0] = 1/mxGetPr(prhs[2])[0];
+    param[1] = 1/mxGetPr(prhs[2])[1];
+    param[2] = 1/mxGetPr(prhs[2])[2];
+    param[3] = mxGetPr(prhs[2])[3];
+
+    if (nrhs==4)
+    {
+        double *s;
+        if (!mxIsNumeric(prhs[3]) || mxIsComplex(prhs[3]) || mxIsSparse(prhs[3]) || !mxIsDouble(prhs[3]))
+            mexErrMsgTxt("Data must be numeric, real, full and double");
+        if (mxGetNumberOfElements(prhs[3]) != dm[3])
+            mexErrMsgTxt("Incompatible number of scales.");
+        s = (double *)mxGetPr(prhs[3]);
+        for(i=0; i< dm[3]; i++)
+            scal[i] = s[i];
+    }
+    else
+    {
+        for(i=0; i<dm[3]; i++)
+            scal[i] = 1.0;
+    }
+ 
+    plhs[0] = mxCreateNumericArray(nd, dm, mxSINGLE_CLASS, mxREAL);
+
+    diaginv(dm, (float *)mxGetPr(prhs[0]), (float *)mxGetPr(prhs[1]), param, scal, (float *)mxGetPr(plhs[0]));
+}
+
+static void trinv1_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    int nd, i;
+    mwSize dm[4];
+    static double param[] = {1.0, 1.0, 1.0, 1.0};
+    double scal[256], sum;
+
+    if ((nrhs!=3 && nrhs!=4) || nlhs>1)
+        mexErrMsgTxt("Incorrect usage");
+    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
+        mexErrMsgTxt("Data must be numeric, real, full and single");
+    if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsSingle(prhs[1]))
+        mexErrMsgTxt("Data must be numeric, real, full and single");
+
+    nd = mxGetNumberOfDimensions(prhs[0]);
+    if (nd>4) mexErrMsgTxt("Wrong number of dimensions.");
+    for(i=0; i<nd; i++) dm[i] = mxGetDimensions(prhs[0])[i];
+    for(i=nd; i<4; i++) dm[i] = 1;
+    dm[3] = (mwSize)ceil((sqrt((double)(1+8*dm[3]))-1)/2);
+
+    nd = mxGetNumberOfDimensions(prhs[1]);
+    if (nd>3) mexErrMsgTxt("Wrong number of dimensions.");
+    for(i=0; i<nd; i++) if (mxGetDimensions(prhs[1])[i] != dm[i]) mexErrMsgTxt("Incompatible dimensions.");
+    for(i=nd; i<3; i++) if (dm[i] != 1) mexErrMsgTxt("Incompatible dimensions.");
+    nd = mxGetNumberOfDimensions(prhs[0]);
+
+    if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
+        mexErrMsgTxt("Parameters must be numeric, real, full and double");
+    if (mxGetNumberOfElements(prhs[2]) != 4)
+        mexErrMsgTxt("Parameters should contain vox1, vox2, vox3, param.");
+    param[0] = 1/mxGetPr(prhs[2])[0];
+    param[1] = 1/mxGetPr(prhs[2])[1];
+    param[2] = 1/mxGetPr(prhs[2])[2];
+    param[3] = mxGetPr(prhs[2])[3];
+
+    if (nrhs==4)
+    {
+        double *s;
+        if (!mxIsNumeric(prhs[3]) || mxIsComplex(prhs[3]) || mxIsSparse(prhs[3]) || !mxIsDouble(prhs[3]))
+            mexErrMsgTxt("Data must be numeric, real, full and double");
+        if (mxGetNumberOfElements(prhs[3]) != dm[3])
+            mexErrMsgTxt("Incompatible number of scales.");
+        s = (double *)mxGetPr(prhs[3]);
+        for(i=0; i< dm[3]; i++)
+            scal[i] = s[i];
+    }
+    else
+    {
+        for(i=0; i<dm[3]; i++)
+            scal[i] = 1.0;
+    }
+ 
+    sum = diaginv(dm, (float *)mxGetPr(prhs[0]), (float *)mxGetPr(prhs[1]), param, scal, (float *)0);
+    plhs[0] = mxCreateDoubleScalar(sum);
+
+}
+
+static void vel2mom1_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    int nd, i;
+    mwSize dm[4];
+    static double param[] = {1.0, 1.0, 1.0, 1.0};
+    double scal[256];
+
+    if ((nrhs!=3 && nrhs!=4) || nlhs>1)
+        mexErrMsgTxt("Incorrect usage");
+    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
+        mexErrMsgTxt("Data must be numeric, real, full and single");
+    if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsSingle(prhs[1]))
+        mexErrMsgTxt("Data must be numeric, real, full and single");
+
+    nd = mxGetNumberOfDimensions(prhs[0]);
+    if (nd>4) mexErrMsgTxt("Wrong number of dimensions.");
+    for(i=0; i<nd; i++) dm[i] = mxGetDimensions(prhs[0])[i];
+    for(i=nd; i<4; i++) dm[i] = 1;
+
+    nd = mxGetNumberOfDimensions(prhs[1]);
+    if (nd>3) mexErrMsgTxt("Wrong number of dimensions.");
+    for(i=0; i<nd; i++) if (mxGetDimensions(prhs[1])[i] != dm[i]) mexErrMsgTxt("Incompatible dimensions.");
+    for(i=nd; i<3; i++) if (dm[i] != 1) mexErrMsgTxt("Incompatible dimensions.");
+    nd = mxGetNumberOfDimensions(prhs[0]);
+
+    if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
+        mexErrMsgTxt("Parameters must be numeric, real, full and double");
+    if (mxGetNumberOfElements(prhs[2]) != 4)
+        mexErrMsgTxt("Parameters should contain vox1, vox2, vox3, param.");
+    param[0] = 1/mxGetPr(prhs[2])[0];
+    param[1] = 1/mxGetPr(prhs[2])[1];
+    param[2] = 1/mxGetPr(prhs[2])[2];
+    param[3] = mxGetPr(prhs[2])[3];
+
+    if (nrhs==4)
+    {
+        double *s;
+        if (!mxIsNumeric(prhs[3]) || mxIsComplex(prhs[3]) || mxIsSparse(prhs[3]) || !mxIsDouble(prhs[3]))
+            mexErrMsgTxt("Data must be numeric, real, full and double");
+        if (mxGetNumberOfElements(prhs[3]) != dm[3])
+            mexErrMsgTxt("Incompatible number of scales.");
+        s = (double *)mxGetPr(prhs[3]);
+        for(i=0; i< dm[3]; i++)
+            scal[i] = s[i];
+    }
+    else
+    {
+        for(i=0; i<dm[3]; i++)
+            scal[i] = 1.0;
+    }
+ 
+    plhs[0] = mxCreateNumericArray(nd, dm, mxSINGLE_CLASS, mxREAL);
+
+    LtWLf(dm, (float *)mxGetPr(prhs[0]), (float *)mxGetPr(prhs[1]), param, scal, (float *)mxGetPr(plhs[0]));
+}
+
+static void Atimesp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    int nd, i, nparam;
+    mwSize dm[4];
+    float *A, *p, *Ap;
+    static double param[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0};
+    double scal[256];
+
+    if ((nrhs!=2 && nrhs!=3 && nrhs!=4) || nlhs>1)
+        mexErrMsgTxt("Incorrect usage");
+    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
+        mexErrMsgTxt("Data must be numeric, real, full and single");
+    if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsSingle(prhs[1]))
+        mexErrMsgTxt("Data must be numeric, real, full and single");
+
+    nd = mxGetNumberOfDimensions(prhs[1]);
+    if (nd>4) mexErrMsgTxt("Wrong number of dimensions.");
+    for(i=0; i<nd; i++) dm[i] = mxGetDimensions(prhs[1])[i];
+    for(i=nd; i<4; i++) dm[i] = 1;
+
+    nd = mxGetNumberOfDimensions(prhs[0]);
+    if (nd>4) mexErrMsgTxt("Wrong number of dimensions.");
+    if ((nd==4) && (mxGetDimensions(prhs[0])[3] != (dm[3]*(dm[3]+1))/2))
+        mexErrMsgTxt("Incompatible 4th dimension (must be (n*(n+1))/2).");
+    if (nd>3) nd=3;
+    for(i=0; i<nd; i++) if (mxGetDimensions(prhs[0])[i] != dm[i]) mexErrMsgTxt("Incompatible dimensions.");
+    for(i=nd; i<3; i++) if (dm[i] != 1) mexErrMsgTxt("Incompatible dimensions.");
+
+    if (nrhs>=3)
+    { 
+        if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
+            mexErrMsgTxt("Third argument must be numeric, real, full and double");
+        nparam = mxGetNumberOfElements(prhs[2]);
+    }
+    else
+        nparam = 0;
+
+    if (nparam > 6)
+        mexErrMsgTxt("Third argument should contain vox1, vox2, vox3, param1, param2, param3.");
+    if (nparam>=1) param[0] = 1/mxGetPr(prhs[2])[0]; else param[0] = 1.0;
+    if (nparam>=2) param[1] = 1/mxGetPr(prhs[2])[1]; else param[1] = 1.0;
+    if (nparam>=3) param[2] = 1/mxGetPr(prhs[2])[2]; else param[2] = 1.0;
+    if (nparam>=4) param[3] = mxGetPr(prhs[2])[3];   else param[3] = 0.0;
+    if (nparam>=5) param[4] = mxGetPr(prhs[2])[4];   else param[4] = 0.0;
+    if (nparam>=6) param[5] = mxGetPr(prhs[2])[5];   else param[5] = 0.0;
+    
+    if (nrhs==4)
+    {
+        double *s;
+        if (!mxIsNumeric(prhs[3]) || mxIsComplex(prhs[3]) || mxIsSparse(prhs[3]) || !mxIsDouble(prhs[3]))
+            mexErrMsgTxt("Data must be numeric, real, full and double");
+        if (mxGetNumberOfElements(prhs[3]) != dm[3])
+            mexErrMsgTxt("Incompatible number of scales.");
+        s = (double *)mxGetPr(prhs[3]);
+        for(i=0; i< dm[3]; i++)
+            scal[i] = s[i];
+    }
+    else
+    {
+        for(i=0; i<dm[3]; i++)
+            scal[i] = 1.0;
+    }
+    plhs[0] = mxCreateNumericArray(4,dm, mxSINGLE_CLASS, mxREAL);
+
+    A       = (float *)mxGetPr(prhs[0]);
+    p       = (float *)mxGetPr(prhs[1]);
+    Ap      = (float *)mxGetPr(plhs[0]);
+    if (param[3]>0.0 || param[4]>0.0 || param[5]>0.0)
+    {
+        LtLf(dm, p, param, scal, Ap);
+    }
+    Atimesp1(dm, A, p, Ap);
+}
+
 #include<string.h>
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -187,10 +431,30 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             mxFree(fnc_str);
             vel2mom_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
+        else if (!strcmp(fnc_str,"vel2mom1"))
+        {
+            mxFree(fnc_str);
+            vel2mom1_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+        else if (!strcmp(fnc_str,"diaginv1"))
+        {
+            mxFree(fnc_str);
+            diaginv1_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+        else if (!strcmp(fnc_str,"trinv1"))
+        {
+            mxFree(fnc_str);
+            trinv1_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
         else if (!strcmp(fnc_str,"fmg")  || !strcmp(fnc_str,"FMG"))
         {
             mxFree(fnc_str);
             fmg_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+        else if (!strcmp(fnc_str,"atimesp")  || !strcmp(fnc_str,"Atimesp")  || !strcmp(fnc_str,"Ap"))
+        {
+            mxFree(fnc_str);
+            Atimesp_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
         else if (!strcmp(fnc_str,"boundary")  || !strcmp(fnc_str,"bound"))
         {

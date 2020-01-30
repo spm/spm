@@ -64,11 +64,69 @@ function varargout = spm_field(varargin)
 % FORMAT spm_field('boundary',b)
 % Set the boundary condition.
 % b - boundary condition (0 or 1, see above). 
+% _______________________________________________________________________
+% _______________________________________________________________________
+%
+% L1: The following functions are dedicated to L1 types of penalties
+%     (total-variation, etc.), when solved using a reweighted least 
+%     squares algorithm.
+%     Currently, only membrane energy is implemented.
+% _______________________________________________________________________
+%
+% FORMAT u = spm_field('vel2mom1', v, w, param)
+% v     - A field (n1*n2*n3*n4, single).
+% w     - A field (n1*n2*n3, single) of positive weights.
+% param - 4 parameters (settings)
+%         - [1][2][3] Voxel sizes
+%         - [4]       Regularisation parameter (membrane energy)
+% u       - Result of applying differential operator (n1*n2*n3*n4, single).
+%
+% This is a generalisation of vel2mom for differential operators that are
+% locally weighted. w contains a map of positive weights that are shared
+% across channels.
+% _______________________________________________________________________
+%
+% FORMAT u = spm_field('diaginv1', H, w, param)
+% H     - Parameterisation of a Hessian at each voxel
+%         (n1*n2*n3*(n4*(n4-1)), single)
+% w     - A field (n1*n2*n3, single) of positive weights.
+% param - 4 parameters (settings)
+%         - [1][2][3] Voxel sizes
+%         - [4]       Regularisation parameter (membrane energy)
+% u       - diag(inv(H + L)).
+%
+% This function computes the diagonal of the inverse of the Hessian
+% (u = diag(inv(H + L))). To make the inversion tractable, L is 
+% approximated by its diagonal. It allows to approximate the posterior
+% uncertainty  in a (Bayesian) reweighted least-squares setting. 
+% _______________________________________________________________________
+%
+% FORMAT u = spm_field('trinv1', H, w, param)
+% H     - Parameterisation of a Hessian at each voxel
+%         (n1*n2*n3*(n4*(n4-1)), single)
+% w     - A field (n1*n2*n3, single) of positive weights.
+% param - 4 parameters (settings)
+%         - [1][2][3] Voxel sizes
+%         - [4]       Regularisation parameter (membrane energy)
+% u       - trace(inv(H + L)).
+%
+% This function computes the trace of the inverse of the Hessian
+% (u = trace(inv(H + L))). To make the inversion tractable, L is 
+% approximated by its diagonal. It allows to approximate the posterior
+% uncertainty  in a (Bayesian) reweighted least-squares setting. 
+% _______________________________________________________________________
+%
+% FORMAT Ap = spm_field('Atimesp', A, p)
+% A     - A field of symmetric matrices (n1*n2*n3*(n4*(n4-1)), single)
+% p     - A field (n1*n2*n3*n4, single).
+% Ap    - A*p.
+%
+% This function computes efficiently a lot of matrix-vector products.
 %_______________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_field.m 5981 2014-05-13 12:47:14Z john $
+% $Id: spm_field.m 7776 2020-01-30 15:24:01Z yael $
 
 
 %-This is merely the help file for the compiled routine

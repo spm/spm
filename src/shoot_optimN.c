@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 7685 2019-11-01 12:56:19Z john $ */
+/* $Id: shoot_optimN.c 7776 2020-01-30 15:24:01Z yael $ */
 /* (c) John Ashburner (2007) */
 
 #include<math.h>
@@ -59,7 +59,7 @@ static void cholls(mwSize n, double a[], double p[], /*@out@*/ double b[], /*@ou
     }
 }
 
-static void Atimesp1(mwSize dm[], float A[], float p[], float Ap[])
+void Atimesp1(mwSize dm[], float A[], float p[], float Ap[])
 {
     mwSize i, j, m = dm[0]*dm[1]*dm[2];
     float *pp[MAXD3], *pap[MAXD3], *pA[(MAXD3*(MAXD3+1))/2];
@@ -368,6 +368,138 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
     }
 }
 
+/* Non-stationary weighted version of LtLf.
+ * It is used by TV/MTV regularisation, in a reweighted least-squares 
+ * setting.
+ * Currently, only membrane energy is implemented.
+ *
+ * . dm   {4}       - Volume dimensions (x/y/z/k)
+ * . f    {dm(1:4)} - Input volume
+ * . h    {dm(1:3)} - Weight volume
+ * . s    {4}       - Regularisation parameters (vx/vy/vz/lam)
+ * . scal {dm(4)}   - Regularisation scaling per feature
+ * . g    {dm(1:4)} - Output voume
+ */
+void LtWLf(mwSize dm[], float f[], float h[], double s[], double scal[], float g[])
+{
+    mwSignedIndex i, j, k;
+    double w000_000, w000_100, w000_010, w000_001, 
+           w100_100, w010_010, w001_001;
+    double lam = s[3];
+    double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
+
+    // Convolution kernels used to create final convolution weights.
+    w000_000 =  lam*(v0 + v1 + v2);
+    w000_100 =  lam*v0/2;
+    w000_010 =  lam*v1/2;
+    w000_001 =  lam*v2/2;
+    w100_100 = -lam*v0/2;
+    w010_010 = -lam*v1/2;
+    w001_001 = -lam*v2/2;
+
+    // Correct kernel if data is not 3D
+    if (dm[0]==1)
+    {
+        w000_000 -= lam*v0;
+        w000_100  = 0.0;
+        w100_100  = 0.0;
+        if (dm[1]==1)
+        {
+            w000_000 -= lam*v1;
+            w000_010  = 0.0;
+            w010_010  = 0.0;
+        }
+        if (dm[2]==1)
+        {
+            w000_000 -= lam*v2;
+            w000_001  = 0.0;
+            w001_001  = 0.0;
+        }
+    }
+    else if (dm[1]==1)
+    {
+        w000_000 -= lam*v1;
+        w000_010  = 0.0;
+        w010_010  = 0.0;
+        if (dm[2]==1)
+        {
+            w000_000 -= lam*v2;
+            w000_001  = 0.0;
+            w001_001  = 0.0;
+        }
+    }
+    else if (dm[2]==1)
+    {
+        w000_000 -= lam*v2;
+        w000_001  = 0.0;
+        w001_001  = 0.0;
+    }
+    if (w000_000<0.0) w000_000=0.0;
+    
+#   pragma omp parallel for collapse(3)
+    for(k=0; k<(mwSignedIndex)dm[2]; k++)
+    {
+#       ifndef _OPENMP
+            mwSignedIndex km1,kp1;
+            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+#       endif
+
+        for(j=0; j<(mwSignedIndex)dm[1]; j++)
+        {
+#           ifndef _OPENMP
+                mwSignedIndex jm1,jp1;
+                jm1 = (bound(j-1,dm[1])-j)*dm[0];
+                jp1 = (bound(j+1,dm[1])-j)*dm[0];
+#           endif
+
+            for(i=0; i<(mwSignedIndex)dm[0]; i++)
+            {
+                mwSignedIndex im1,ip1;
+                im1 = bound(i-1,dm[0])-i;
+                ip1 = bound(i+1,dm[0])-i;
+
+#               ifdef _OPENMP
+                    mwSignedIndex jm1,jp1;
+                    jm1 = (bound(j-1,dm[1])-j)*dm[0];
+                    jp1 = (bound(j+1,dm[1])-j)*dm[0];
+                    mwSignedIndex km1,kp1;
+                    km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                    kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+#               endif
+
+                float *ph;
+                ph = h+i+dm[0]*(j+dm[1]*k);
+
+                // Create convolution weights (that depend on h)
+                double w1m00,w1p00,w01m0,w01p0,w001m,w001p;
+                double ph0 = ph[0];
+                w1m00 = w100_100*(ph0 + ph[im1]);
+                w1p00 = w100_100*(ph0 + ph[ip1]);
+                w01m0 = w010_010*(ph0 + ph[jm1]);
+                w01p0 = w010_010*(ph0 + ph[jp1]);
+                w001m = w001_001*(ph0 + ph[km1]);
+                w001p = w001_001*(ph0 + ph[kp1]);
+
+
+                mwSignedIndex m;
+                for(m=0; m<(mwSignedIndex)dm[3]; m++)
+                {
+                    float *pf, *pg;
+                    pf = f+i+dm[0]*(j+dm[1]*(k+dm[2]*m));
+                    pg = g+i+dm[0]*(j+dm[1]*(k+dm[2]*m));
+                    float pf0 = pf[0];
+
+                    // Perform final convolution
+                    pg[0] = (float)(( w1m00*(pf[im1]-pf0) + w1p00*(pf[ip1]-pf0)
+                                    + w01m0*(pf[jm1]-pf0) + w01p0*(pf[jp1]-pf0)
+                                    + w001m*(pf[km1]-pf0) + w001p*(pf[kp1]-pf0))*scal[m]);
+                }
+            }
+        }
+    }
+}
+
 void solve(mwSize dm[], float a[], float b[], double s[], double scal[], float u[])
 {
     double lam0 = s[3]; /* lam1 = s[4], lam2 = s[5]; */
@@ -408,7 +540,103 @@ void solve(mwSize dm[], float a[], float b[], double s[], double scal[], float u
     }
 }
 
+/* Compute the diagonal of the inverse of the Hessian: diag(inv(H+L)).
+ * To make the inversion tractable, L is approximated by its diagonal.
+ * It is used for TV/MTV regularisation, in a (Bayesian) reweighted 
+ * least-squares setting. Currently, only membrane energy is implemented.
+ *
+ * . dm   {4}         - Volume dimensions (x/y/z/f)
+ * . a    {dm(1:3) k} - Hessian (k=f(f+1)/2)
+ * . b    {dm(1:3)}   - Weight volume
+ * . s    {4}         - Regularisation parameters (vx/vy/vz/lam)
+ * . scal {f}         - Regularisation scaling per feature
+ * . u    {dm(1:3) f} - Output volume
+ *
+ * If (u==0), the function returns the trace of the inverse of the 
+ * Hessian: trace(inv(H+L)).
+ */
+double diaginv(mwSize dm[], float a[], float b[], double s[], double scal[], float u[])
+{
+    mwSignedIndex i, j, k;
+    double w000_000, w000_100, w000_010, w000_001;
+    double lam = s[3];
+    double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
+    double sum = 0;
 
+    // Convolution kernels used to create final convolution weights.
+    w000_000 = lam*(v0 + v1 + v2);
+    w000_100 = lam*v0/2;
+    w000_010 = lam*v1/2;
+    w000_001 = lam*v2/2;
+
+#   pragma omp parallel for collapse(3) reduction(+:sum)
+    for(k=0; k<(mwSignedIndex)dm[2]; k++)
+    {
+#       ifndef _OPENMP
+            mwSignedIndex km1,kp1;
+            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+#       endif
+
+        for(j=0; j<(mwSignedIndex)dm[1]; j++)
+        {
+#           ifndef _OPENMP
+                mwSignedIndex jm1,jp1;
+                jm1 = (bound(j-1,dm[1])-j)*dm[0];
+                jp1 = (bound(j+1,dm[1])-j)*dm[0];
+#           endif
+
+            for(i=0; i<(mwSignedIndex)dm[0]; i++)
+            {
+                mwSignedIndex im1,ip1;
+                im1 = bound(i-1,dm[0])-i;
+                ip1 = bound(i+1,dm[0])-i;
+
+#               ifdef _OPENMP
+                    mwSignedIndex jm1,jp1;
+                    jm1 = (bound(j-1,dm[1])-j)*dm[0];
+                    jp1 = (bound(j+1,dm[1])-j)*dm[0];
+                    mwSignedIndex km1,kp1;
+                    km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+                    kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+#               endif
+
+                // Create central convolution weight (that depends on h)
+                float *pb = b+i+dm[0]*(j+dm[1]*k);
+                double w000 =  w000_000*pb[0];
+                            +  w000_100*(pb[im1] + pb[ip1])
+                            +  w000_010*(pb[jm1] + pb[jp1])
+                            +  w000_001*(pb[km1] + pb[kp1]);
+
+                // Add diagonal approximation of L to H
+                mwSignedIndex m, mm;
+                double a1[MAXD3*MAXD3], cp[MAXD3], su[MAXD3];
+                float *pa[(MAXD3*(MAXD3+1))/2];
+                for(m=0; m<(mwSignedIndex)(dm[3]*(dm[3]+1))/2; m++)
+                    pa[m] = a+dm[0]*(j+dm[1]*(k+dm[2]*m));
+                get_a(dm[3], i, pa, a1);
+                for(m=0; m<(mwSignedIndex)dm[3]; m++) a1[m+dm[3]*m] += w000*scal[m];
+                // Solve for inverse diagonal elements using Cholesky
+                choldc(dm[3],a1,cp);
+                for(m=0; m<(mwSignedIndex)dm[3]; m++)
+                {
+                    for(mm=0; mm<(mwSignedIndex)dm[3]; mm++) su[mm] = 0;
+                    su[m] = 1;
+                    cholls(dm[3],a1,cp,su,su);
+                    if(u!=0)
+                    {
+                        float *pu = u + i + dm[0]*(j+dm[1]*(k+dm[2]*m));
+                        (*pu) = su[m];
+                    }
+                    else
+                        sum += su[m];
+                }
+
+            }
+        }
+    }
+    return(sum);
+}
 
 static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], int nit, float u[])
 {
@@ -765,3 +993,138 @@ void fmg(mwSize n0[], float *a0, float *b0, double param0[], double scal[], int 
 /*  printf("end=%g\n", sumsq(n0, a0, b0, param[0], scal, u0)); */
 }
 
+/**************************************************************************
+ *
+ * SYMBOLIC DERIVATIONS FOR THE WEIGHTED CONVOLUTION PROBLEM (LtWLf)
+ * (for MTV regularisation by reweighted least squares)
+ *
+ **************************************************************************
+
+syms lam                % membrane penalty = 1/b^2 (b: Laplace parameter)
+syms v0 v1 v2           % voxel size x/y/z (actually, 1/vx^2)
+N  = 3;                 % Nb voxels in each dimension
+% w  = sym(ones(N^3,1));  % This is the classical stationary case
+w = sym('w', [N N N]);  % This is the new non-stationary case
+
+O  = sym(zeros(N));
+OO = kron(kron(O,O),O);
+I  = sym(eye(N));
+G1 = sym(spdiags(repmat([-1 1],N,1),[ 0 1],N,N)); G1(N,1) =  1; % forward difference
+G2 = sym(spdiags(repmat([-1 1],N,1),[-1 0],N,N)); G2(1,N) = -1; % backward difference
+G  = {G1 G2};
+
+% Membrane energy
+LL = sym(zeros(N^3,N^3));
+for i=1:2
+    Di = kron(I,kron(I,G{i}))*sqrt(v0); % 1st order / x
+    LL = LL + lam*(Di.'*diag(w(:))*Di)/2;
+end
+for j=1:2
+    Dj = kron(I,kron(G{j},I))*sqrt(v1); % 1st order / y
+    LL = LL + lam*(Dj.'*diag(w(:))*Dj)/2;
+end
+for k=1:2
+    Dk = kron(G{k},kron(I,I))*sqrt(v2); % 1st order / z
+    LL = LL + lam*(Dk.'*diag(w(:))*Dk)/2;
+end
+
+% Reshape so that first 3: output voxels, second 3: input voxels
+LL = reshape(LL, [N N N N N N]);
+% Extract central output voxel
+c = ceil(N/2);
+LL = reshape(LL(c,c,c,:,:,:), [N N N]);
+% The output value depends on all input neighbouring values
+% We'll have some dependencies on the weight image 
+LL = simplify(LL, 100);
+
+% We have to construct 7 voxel-specific convolution weights.
+% Each of these weights is obtained by convolving the weight image
+
+wker = sym(zeros(N,N,N,N,N,N));
+for i=1:N
+for j=1:N
+for k=1:N
+    if ~isequal(LL(i,j,k), sym(0))
+        for ii=1:N
+        for jj=1:N
+        for kk=1:N
+            if ~isequal(LL(ii,jj,kk), sym(0))
+                ww = sprintf('w%d_%d_%d', ii, jj, kk);
+                wker(i,j,k,ii,jj,kk) = diff(LL(i,j,k),ww);
+            end
+        end
+        end
+        end
+    end
+end
+end
+end
+wker = simplify(wker, 100);
+c    = ceil(N/2);
+k111 = reshape(wker(c,c,c,:,:,:), [N N N]);
+k110 = reshape(wker(c,c,c-1,:,:,:), [N N N]);
+k112 = reshape(wker(c,c,c+1,:,:,:), [N N N]);
+k101 = reshape(wker(c,c-1,c,:,:,:), [N N N]);
+k121 = reshape(wker(c,c+1,c,:,:,:), [N N N]);
+k011 = reshape(wker(c-1,c,c,:,:,:), [N N N]);
+k211 = reshape(wker(c+1,c,c,:,:,:), [N N N]);
+
+
+% Convolution kernel for kernel weights:
+%
+% k000 (3x3x3)
+% ------------
+% kk000 = lam0 + 
+%         lam1*(v0 + v1 + v2) + 
+%         lam2*(4*v0^2 + 2*v0*v1 + 2*v0*v2 + 4*v1^2 + 2*v1*v2 + 4*v2^2)
+% kk+00 = kk-00 = lam1*(v0/2) + lam2*(v0*v1 + v0*v2 + v0^2)
+% kk0+0 = kk0-0 = lam1*(v1/2) + lam2*(v0*v1 + v1*v2 + v1^2)
+% kk00+ = kk00- = lam1*(v2/2) + lam2*(v0*v2 + v1*v2 + v2^2)
+% kk++0 = kk--0 = lam2*((v0*v1)/2)
+% kk+0+ = kk-0- = lam2*((v0*v2)/2)
+% kk0++ = kk0-- = lam2*((v1*v2)/2)
+%
+% 
+% k+00 = sym(k-00) (3x3x3)
+% ------------------------
+% kk000 = kk+00 = lam1*(-v0/2) + lam2*(-(v0*(4*v0 + 2*v1 + 2*v2))/2)
+% kk0+0 = kk0-0 = kk++0 = kk+-0 = lam2*(-(v0*v1)/2)
+% kk00+ = kk00- = kk+0+ = kk+0- = lam2*(-(v0*v2)/2)
+% kk-00 = 0
+% kk-+0 = 0
+% kk-0+ = 0
+%
+% k0+0 = sym(k0-0) (3x3x3)
+% ------------------------
+% kk000 = k0+0 = lam1*(-v1/2) + lam2*(-(v1*(2*v0 + 4*v1 + 2*v2))/2)
+% kk+00 = kk-00 = kk++0 = kk-+0 = lam2*(-(v0*v1)/2)
+% kk00+ = kk00- = kk0++ = kk0+- = lam2*(-(v1*v2)/2)
+% kk0-0 = 0
+% kk+-0 = 0
+% kk0-+ = 0
+%
+% k00+ = sym(k00-) (3x3x3)
+% ------------------------
+% kk000 = k00+ = lam1*(-v2/2) + lam2*(-(v2*(2*v0 + 2*v1 + 4*v2))/2)
+% kk00+ = kk00- = kk++0 = kk-+0 = lam2*(-(v0*v2)/2)
+% kk00+ = kk00- = kk0++ = kk0+- = lam2*(-(v1*v2)/2)
+% kk00- = 0
+% kk+0- = 0
+% kk0+- = 0
+%
+% k*00 = sym(k/00)
+% ----------------
+% kk+00 = lam2*v0^2
+%
+% k0*0 = sym(k0/0)
+% ----------------
+% kk0+0 = lam2*v1^2
+%
+% k00* = sym(k00/)
+% ----------------
+% kk00+ = lam2*v2^2
+%
+% k++0 = sym(k--0) = sym(k+-0) = sym(k-+0)
+% ----------------------------------------
+% kk000 = kk+00 = kk0+0 = kk++0 = lam2*((v0*v1)/2)
+*/
