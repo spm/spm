@@ -1,5 +1,5 @@
 function D = spm_opm_epoch_trigger(S)
-% Epoch M/EEG data based on triggers (channel type is TRIG) in the file.
+% Epoch M/EEG data based on supplied triggers or triggers in file;
 % FORMAT D = spm_opm_epoch_trigger(S)
 %   S               - input structure
 %  fields of S:
@@ -16,7 +16,7 @@ function D = spm_opm_epoch_trigger(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_epoch_trigger.m 7419 2018-09-14 13:17:03Z tim $
+% $Id: spm_opm_epoch_trigger.m 7779 2020-02-05 13:53:14Z tim $
 
 
 %-Set Defaults
