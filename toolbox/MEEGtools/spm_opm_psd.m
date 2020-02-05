@@ -17,7 +17,7 @@ function [po,freq] = spm_opm_psd(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_psd.m 7777 2020-02-05 13:51:29Z tim $
+% $Id: spm_opm_psd.m 7780 2020-02-05 13:57:53Z tim $
 
 %-ArgCheck
 %--------------------------------------------------------------------------
@@ -29,6 +29,8 @@ if ~isfield(S, 'bc'),            S.bc = 0; end
 if ~isfield(S, 'channels'),      S.channels = 'ALL'; end
 if ~isfield(S, 'plot'),          S.plot = 0; end
 if ~isfield(S, 'D'),             error('D is required'); end
+if ~isfield(S, 'trials'),        S.trials=0; end
+
 
 
 %-channel Selection
@@ -70,16 +72,18 @@ Nf= ceil((N+1)/2);
 nepochs=size(eD,3);
 pow = zeros(Nf,size(eD,1),nepochs);
 wind  = window(@hanning,size(eD,2));
-cFac = max(wind)/mean(wind);
+coFac= max(wind)/mean(wind);
 wind = repmat(wind,1,size(eD,1));
 
+%coFac = 1;
 %- create PSD
 %--------------------------------------------------------------------------
 
 for j = 1:nepochs
     Btemp=eD(:,:,j)';
-    Btemp = Btemp.*wind*cFac;
-    mu=mean(Btemp);
+     Btemp = Btemp.*wind*coFac;
+    
+    mu=median(Btemp);
     zf = bsxfun(@minus,Btemp,mu);
     if(S.bc)
         fzf = zf;
@@ -95,18 +99,27 @@ for j = 1:nepochs
     odd=mod(size(fzf,1),2)==1;
     if(odd)
         psdx(2:end) = sqrt(2)*psdx(2:end);
+         %psdx(2:end) = psdx(2:end);
     else
         psdx(2:end-1) = sqrt(2)*psdx(2:end-1);
+        %psdx(2:end-1) = psdx(2:end-1);
     end
     pow(:,:,j) =psdx;
 end
 
 %- plot
 %--------------------------------------------------------------------------
+if(S.trials)
+po = pow;
+else
 po = median(pow(:,:,:),3);
+end
+
+pow = median(pow(:,:,:),3);
+
 if(S.plot)
     figure()
-    semilogy(freq,po,'LineWidth',2);
+    semilogy(freq,pow,'LineWidth',2);
     hold on
     xp2 =0:round(freq(end));
     yp2=ones(1,round(freq(end))+1)*S.constant;
