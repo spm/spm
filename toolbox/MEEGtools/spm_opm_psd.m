@@ -17,7 +17,7 @@ function [po,freq] = spm_opm_psd(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_psd.m 7647 2019-07-25 13:58:53Z tim $
+% $Id: spm_opm_psd.m 7777 2020-02-05 13:51:29Z tim $
 
 %-ArgCheck
 %--------------------------------------------------------------------------
@@ -69,7 +69,8 @@ N =size(eD,2);
 Nf= ceil((N+1)/2);
 nepochs=size(eD,3);
 pow = zeros(Nf,size(eD,1),nepochs);
-wind  = window(@flattopwin,size(eD,2));
+wind  = window(@hanning,size(eD,2));
+cFac = max(wind)/mean(wind);
 wind = repmat(wind,1,size(eD,1));
 
 %- create PSD
@@ -77,7 +78,7 @@ wind = repmat(wind,1,size(eD,1));
 
 for j = 1:nepochs
     Btemp=eD(:,:,j)';
-    Btemp = Btemp.*wind;
+    Btemp = Btemp.*wind*cFac;
     mu=mean(Btemp);
     zf = bsxfun(@minus,Btemp,mu);
     if(S.bc)
