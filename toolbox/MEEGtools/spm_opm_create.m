@@ -15,7 +15,6 @@ function [D,L] = spm_opm_create(S)
 %   S.offset        - scalp to sensor distance(mm) - Default: 6.5
 %   S.nSamples      - number of samples            - Default: 1000
 %   S.Dens          - number of density checks     - Default: 40
-
 % SOURCE LEVEL INFO
 %   S.coordsystem   - coordsystem.json file        - Default: 
 %   S.positions     - positions.tsv file           - Default:
@@ -34,7 +33,7 @@ function [D,L] = spm_opm_create(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_create.m 7645 2019-07-25 13:58:25Z tim $
+% $Id: spm_opm_create.m 7778 2020-02-05 13:52:28Z tim $
 spm('FnBanner', mfilename);
 
 %-Set default values
