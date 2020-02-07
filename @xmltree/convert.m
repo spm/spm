@@ -18,10 +18,10 @@ function s = convert(tree,uid,varargin)
 % tree = convert(xmltree(xml));
 % <=> tree = struct('b',{{'field1', 'field3'}},'c','field2')
 %__________________________________________________________________________
-% Copyright (C) 2002-2019  https://www.artefact.tk/
+% Copyright (C) 2002-2020  https://www.artefact.tk/
 
 % Guillaume Flandin
-% $Id: convert.m 7623 2019-06-26 09:34:46Z guillaume $
+% $Id: convert.m 7781 2020-02-07 12:26:25Z guillaume $
 
 
 % Get the root uid of the output structure
@@ -102,24 +102,9 @@ function s = sub_convert(tree,s,uid,arg)
         case 'cdata'
             s = sub_setfield(s,arg{:},get(tree,uid,'value'));
         case 'pi'
-            % Processing instructions are evaluated if possible
-            app = get(tree,uid,'target');
-            switch app
-                case {'matlab',''}
-                    s = sub_setfield(s,arg{:},eval(get(tree,uid,'value')));
-                case 'unix'
-                    s = sub_setfield(s,arg{:},unix(get(tree,uid,'value')));
-                case 'dos'
-                    s = sub_setfield(s,arg{:},dos(get(tree,uid,'value')));
-                case 'system'
-                    s = sub_setfield(s,arg{:},system(get(tree,uid,'value')));
-                otherwise
-                    try
-                        s = sub_setfield(s,arg{:},feval(app,get(tree,uid,'value')));
-                    catch
-                        warning('[XMLTree] Unknown target application');
-                    end
-            end
+            % Processing instructions are ignored
+            %PITarget = get(tree,uid,'target');
+            %PIContent = get(tree,uid,'value');
         case 'comment'
             % Comments are ignored
         otherwise
