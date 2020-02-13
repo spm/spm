@@ -1,5 +1,5 @@
 /*
- * $Id: hist2.c 7684 2019-10-30 14:21:34Z john $
+ * $Id: hist2.c 7783 2020-02-13 12:57:30Z john $
  * John Ashburner
  */
 
@@ -21,19 +21,28 @@ static float samp(const mwSize d[3], unsigned char f[], float x, float y, float 
     ff   = f + ix-1+d[0]*(iy-1+d[1]*(iz-1));
     k222 = ff[   0]; k122 = ff[     1];
     k212 = ff[d[0]]; k112 = ff[d[0]+1];
-    ff  += d[0]*d[1];
-    k221 = ff[   0]; k121 = ff[     1];
-    k211 = ff[d[0]]; k111 = ff[d[0]+1];
+    if (iz < d[2]-1)
+    {
+        ff  += d[0]*d[1];
+        k221 = ff[   0]; k121 = ff[     1];
+        k211 = ff[d[0]]; k111 = ff[d[0]+1];
 
-    vf = (((k222*dx2+k122*dx1)*dy2       +
-           (k212*dx2+k112*dx1)*dy1))*dz2 +
-         (((k221*dx2+k121*dx1)*dy2       +
-           (k211*dx2+k111*dx1)*dy1))*dz1;
+        vf = (((k222*dx2+k122*dx1)*dy2       +
+               (k212*dx2+k112*dx1)*dy1))*dz2 +
+             (((k221*dx2+k121*dx1)*dy2       +
+               (k211*dx2+k111*dx1)*dy1))*dz1;
+    }
+    else
+    {
+        vf = (((k222*dx2+k122*dx1)*dy2       +
+               (k212*dx2+k112*dx1)*dy1));
+    }
     return(vf);
 }
 
+
 void hist2(double M[16], unsigned char g[], unsigned char f[], const mwSize dg[3], const mwSize df[3], 
-double H[65536], float s[3])
+double H[65536], float s0[3])
 {
     /* This is for dithering the sampling of the images.  The procedure seems to be similar to that
        used by Th\'evenaz, Bierlaire and Unser. "Halton Sampling for Image Registration Based on Mutual
@@ -50,15 +59,23 @@ double H[65536], float s[3])
                           0.833027,0.191863,0.638987,0.669,0.772088,0.379818,0.441585,0.48306,0.608106,
                           0.175996,0.00202556,0.790224,0.513609,0.213229,0.10345,0.157337,0.407515,0.407757,
                           0.0526927,0.941815,0.149972,0.384374,0.311059,0.168534,0.896648};
-    int iran=0;
+    int iran=0, i;
     float z;
-    for(z=1.0; z<dg[2]-s[2]; z+=s[2])
+    float s[3];
+    for(i=0; i<3; i++)
+    {
+        if (dg[i]>1)
+            s[i] = s0[i];
+        else
+            s[i] = 0.0;
+    }
+    for(z=1.0; z<=dg[2]-s[2]; z+=s0[2])
     {
         float y;
-        for(y=1.0; y<dg[1]-s[1]; y+=s[1])
+        for(y=1.0; y<dg[1]-s[1]; y+=s0[1])
         {
             float x;
-            for(x=1.0; x<dg[0]-s[0]; x+=s[0])
+            for(x=1.0; x<dg[0]-s[0]; x+=s0[0])
             {
                 float rx, ry, rz, xp, yp, zp;
 
@@ -70,7 +87,7 @@ double H[65536], float s[3])
                 yp  = M[1]*rx + M[5]*ry + M[ 9]*rz + M[13];
                 zp  = M[2]*rx + M[6]*ry + M[10]*rz + M[14];
 
-                if (zp>=1.0 && zp<df[2] && yp>=1.0 && yp<df[1] && xp>=1.0 && xp<df[0])
+                if (zp>=1.0 && zp<=df[2] && yp>=1.0 && yp<df[1] && xp>=1.0 && xp<df[0])
                 {
                     float vf;
                     int   ivf, ivg;
