@@ -3,28 +3,28 @@ function coreg = spm_cfg_coreg
 %__________________________________________________________________________
 % Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 7665 2019-09-23 11:27:40Z john $
+% $Id: spm_cfg_coreg.m 7784 2020-02-13 12:58:54Z john $
 
 
 %--------------------------------------------------------------------------
-% ref Reference Image
+% ref Fixed Image
 %--------------------------------------------------------------------------
 ref         = cfg_files;
 ref.tag     = 'ref';
-ref.name    = 'Reference Image';
-ref.help    = {'This is the image that is assumed to remain stationary (sometimes known as the target or template image), while the source image is moved to match it.'};
+ref.name    = 'Fixed Image';
+ref.help    = {'This is the image that is assumed to remain stationary (previously known as the reference image), while the moved (previously known as the reference) image is moved to match it. Although not ideal, note that slice-to-volume registration works better if the single slice is the fixed image.'};
 ref.filter  = 'image';
 ref.ufilter = '.*';
 ref.num     = [1 1];
 ref.preview = @(f) spm_image('Display',char(f));
 
 %--------------------------------------------------------------------------
-% source Source Image
+% source Moved Image
 %--------------------------------------------------------------------------
 source         = cfg_files;
 source.tag     = 'source';
-source.name    = 'Source Image';
-source.help    = {'This is the image that is jiggled about to best match the reference.'};
+source.name    = 'Moved Image';
+source.help    = {'This is the image that is jiggled about to best match the fixed (reference) image.'};
 source.filter  = 'image';
 source.ufilter = '.*';
 source.num     = [1 1];
@@ -37,7 +37,7 @@ other         = cfg_files;
 other.tag     = 'other';
 other.name    = 'Other Images';
 other.val     = {{''}};
-other.help    = {'These are any images that need to remain in alignment with the source image.'};
+other.help    = {'These are any images that need to remain in alignment with the moved image.'};
 other.filter  = 'image';
 other.ufilter = '.*';
 other.num     = [0 Inf];
@@ -133,7 +133,7 @@ estimate.help    = {
     ''
     'At the end of coregistration, the voxel-to-voxel affine transformation matrix is displayed, along with the histograms for the images in the original orientations, and the final orientations.  The registered images are displayed at the bottom.'
     ''
-    'Registration parameters are stored in the headers of the "source" and the "other" images.'
+    'Registration parameters are stored in the headers of the "moved" and the "other" images.'
     }';
 estimate.prog = @spm_run_coreg;
 estimate.vout = @vout_estimate;
@@ -144,7 +144,7 @@ estimate.vout = @vout_estimate;
 refwrite         = cfg_files;
 refwrite.tag     = 'ref';
 refwrite.name    = 'Image Defining Space';
-refwrite.help    = {'This is analogous to the reference image. Images are resliced to match this image (providing they have been coregistered first).'};
+refwrite.help    = {'This is analogous to the fixed (reference) image. Images are resliced to match this image (providing they have been coregistered first).'};
 refwrite.filter  = 'image';
 refwrite.ufilter = '.*';
 refwrite.num     = [1 1];
@@ -260,12 +260,12 @@ write.prog    = @spm_run_coreg;
 write.vout    = @vout_reslice;
 
 %--------------------------------------------------------------------------
-% source Source Image
+% source Moved Image
 %--------------------------------------------------------------------------
 source         = cfg_files;
 source.tag     = 'source';
-source.name    = 'Source Image';
-source.help    = {'This is the image that is jiggled about to best match the reference.'};
+source.name    = 'Moved Image';
+source.help    = {'This is the image that is jiggled about to best match the fixed (reference) image.'};
 source.filter  = 'image';
 source.ufilter = '.*';
 source.num     = [1 1];
@@ -287,7 +287,7 @@ estwrite.help = {
     ''
     'Please note that Coreg only attempts rigid alignment between the images. fMRI tend to have large distortions, which are not corrected by rigid-alignment alone. There is not yet any functionality in the SPM software that is intended to correct this type of distortion when aligning distorted fMRI with relatively undistorted anatomical scans (e.g. MPRAGE).'
     ''
-    'Registration parameters are stored in the headers of the "source" and the "other" images. These images are also resliced to match the source image voxel-for-voxel. The resliced images are named the same as the originals except that they are prefixed by ''r''.'
+    'Registration parameters are stored in the headers of the "moved" and the "other" images. These images are also resliced to match the fixed image voxel-for-voxel. The resliced images are named the same as the originals except that they are prefixed by ''r''.'
     }';
 estwrite.prog = @spm_run_coreg;
 estwrite.vout = @vout_estwrite;
