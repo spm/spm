@@ -1,13 +1,13 @@
 # Makefile default variables
 #
-# Copyright (C) 1991-2019 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 1991-2020 Wellcome Centre for Human Neuroimaging
 #
-# $Id: Makefile.var 7687 2019-11-07 11:26:02Z guillaume $
+# $Id: Makefile.var 7786 2020-02-14 10:56:11Z guillaume $
 #
 ###############################################################################
 #
 # This file defines variables used in Makefile and has been tested under
-# Linux, Windows and MacOS.
+# Linux, Windows and macOS.
 #
 # If you have to tweak this file to compile the SPM MEX-files for your
 # platform, please send the details to <fil.spm@ucl.ac.uk> so they can be
@@ -15,14 +15,11 @@
 #
 # You can find some more help online on the SPM wikibook:
 #  * Linux:
-#      https://en.wikibooks.org/wiki/SPM/Installation_on_Linux
 #      https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Linux
 #  * Windows:
-#      https://en.wikibooks.org/wiki/SPM/Installation_on_Windows
 #      https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Windows
 #      MinGW: http://www.mingw.org/
-#  * MacOS:
-#      https://en.wikibooks.org/wiki/SPM/Installation_on_Mac_OS_(Intel)
+#  * macOS:
 #      https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Mac_OS_(Intel)
 #
 ###############################################################################
@@ -64,11 +61,7 @@ endif
 ##### Windows #####
 ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM)))) # MSVC
   override PLATFORM = windows
-  ifeq (x86,$(PROCESSOR_ARCHITECTURE))
-    MEXEXT   = mexw32
-  else
-    MEXEXT   = mexw64
-  endif
+  MEXEXT   = mexw64
   MEXBIN    ?= cmd /c "mex.bat
   MEXOPTS   += -DSPM_WIN32
   MEXEND     = "
