@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 7776 2020-01-30 15:24:01Z yael $ */
+/* $Id: shoot_optimN.c 7787 2020-02-17 10:14:33Z spm $ */
 /* (c) John Ashburner (2007) */
 
 #include<math.h>
@@ -84,8 +84,8 @@ void Atimesp1(mwSize dm[], float A[], float p[], float Ap[])
              for(k=i+1; k<dm[3]; k++,o++)
              {
                  double  ao = pA[o][j];
-                 pap[i][j] += ao*pp[k][j];
-                 pap[k][j] += ao*pp[i][j];
+                 pap[i][j] += (float)(ao*pp[k][j]);
+                 pap[k][j] += (float)(ao*pp[i][j]);
              }
         }
     }
@@ -144,6 +144,9 @@ static void get_a(mwSize dm3, mwSignedIndex i, /*@out@*/ float *pa[], /*@out@*/ 
 
         for(j=0; j<(mwSignedIndex)dm[1]; j++)
         {
+            mwSignedIndex i, m, jm2,jm1,jp1,jp2;
+            float *p[MAXD3], *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
+            double a1[MAXD3*MAXD3];
 #           ifdef _OPENMP
                 mwSignedIndex km2,km1,kp1,kp2;
                 km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
@@ -151,9 +154,6 @@ static void get_a(mwSize dm3, mwSignedIndex i, /*@out@*/ float *pa[], /*@out@*/ 
                 kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
                 kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
 #           endif
-            mwSignedIndex i, m, jm2,jm1,jp1,jp2;
-            float *p[MAXD3], *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
-            double a1[MAXD3*MAXD3];
 
             for(m=0; m<(mwSignedIndex)dm[3]; m++)
             {
@@ -316,6 +316,8 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
 
         for(j=0; j<(mwSignedIndex)dm[1]; j++)
         {
+            mwSignedIndex i,m,jm2,jm1,jp1,jp2;
+            float *pf[MAXD3], *pg[MAXD3];
 #           ifdef _OPENMP
                 mwSignedIndex km2,km1,kp1,kp2;
                 km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
@@ -323,9 +325,6 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
                 kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
                 kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
 #           endif
-
-            mwSignedIndex i,m,jm2,jm1,jp1,jp2;
-            float *pf[MAXD3], *pg[MAXD3];
 
             for(m=0; m<(mwSignedIndex)dm[3]; m++)
             {
@@ -388,7 +387,7 @@ void LtWLf(mwSize dm[], float f[], float h[], double s[], double scal[], float g
     double lam = s[3];
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
 
-    // Convolution kernels used to create final convolution weights.
+    /* Convolution kernels used to create final convolution weights.  */
     w000_000 =  lam*(v0 + v1 + v2);
     w000_100 =  lam*v0/2;
     w000_010 =  lam*v1/2;
@@ -397,7 +396,7 @@ void LtWLf(mwSize dm[], float f[], float h[], double s[], double scal[], float g
     w010_010 = -lam*v1/2;
     w001_001 = -lam*v2/2;
 
-    // Correct kernel if data is not 3D
+    /* Correct kernel if data is not 3D */
     if (dm[0]==1)
     {
         w000_000 -= lam*v0;
@@ -456,24 +455,28 @@ void LtWLf(mwSize dm[], float f[], float h[], double s[], double scal[], float g
             for(i=0; i<(mwSignedIndex)dm[0]; i++)
             {
                 mwSignedIndex im1,ip1;
+#               ifdef _OPENMP
+                    mwSignedIndex jm1,jp1;
+                    mwSignedIndex km1,kp1;
+#               endif
+                mwSignedIndex m;
+                float *ph;
+                double w1m00,w1p00,w01m0,w01p0,w001m,w001p;
+                double ph0;
+
                 im1 = bound(i-1,dm[0])-i;
                 ip1 = bound(i+1,dm[0])-i;
 
 #               ifdef _OPENMP
-                    mwSignedIndex jm1,jp1;
                     jm1 = (bound(j-1,dm[1])-j)*dm[0];
                     jp1 = (bound(j+1,dm[1])-j)*dm[0];
-                    mwSignedIndex km1,kp1;
                     km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
                     kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
 #               endif
 
-                float *ph;
-                ph = h+i+dm[0]*(j+dm[1]*k);
-
-                // Create convolution weights (that depend on h)
-                double w1m00,w1p00,w01m0,w01p0,w001m,w001p;
-                double ph0 = ph[0];
+                /* Create convolution weights (that depend on h) */
+                ph    = h+i+dm[0]*(j+dm[1]*k);
+                ph0   = ph[0];
                 w1m00 = w100_100*(ph0 + ph[im1]);
                 w1p00 = w100_100*(ph0 + ph[ip1]);
                 w01m0 = w010_010*(ph0 + ph[jm1]);
@@ -482,15 +485,15 @@ void LtWLf(mwSize dm[], float f[], float h[], double s[], double scal[], float g
                 w001p = w001_001*(ph0 + ph[kp1]);
 
 
-                mwSignedIndex m;
                 for(m=0; m<(mwSignedIndex)dm[3]; m++)
                 {
                     float *pf, *pg;
-                    pf = f+i+dm[0]*(j+dm[1]*(k+dm[2]*m));
-                    pg = g+i+dm[0]*(j+dm[1]*(k+dm[2]*m));
-                    float pf0 = pf[0];
+                    float pf0;
+                    pf  = f+i+dm[0]*(j+dm[1]*(k+dm[2]*m));
+                    pg  = g+i+dm[0]*(j+dm[1]*(k+dm[2]*m));
+                    pf0 = pf[0];
 
-                    // Perform final convolution
+                    /* Perform final convolution */
                     pg[0] = (float)(( w1m00*(pf[im1]-pf0) + w1p00*(pf[ip1]-pf0)
                                     + w01m0*(pf[jm1]-pf0) + w01p0*(pf[jp1]-pf0)
                                     + w001m*(pf[km1]-pf0) + w001p*(pf[kp1]-pf0))*scal[m]);
@@ -531,11 +534,11 @@ void solve(mwSize dm[], float a[], float b[], double s[], double scal[], float u
             }
             choldc(dm[3],a1,cp);
             cholls(dm[3],a1,cp,su,su);
-            for(m=0; m<(mwSignedIndex)dm[3]; m++) pu[m][i] = su[m];
+            for(m=0; m<(mwSignedIndex)dm[3]; m++) pu[m][i] = (float)(su[m]);
         }
         else
         {
-            for(m=0; m<(mwSignedIndex)dm[3]; m++) pu[m][i] = pb[m][i]/(lam0*scal[m]);
+            for(m=0; m<(mwSignedIndex)dm[3]; m++) pu[m][i] = (float)(pb[m][i]/(lam0*scal[m]));
         }
     }
 }
@@ -563,7 +566,7 @@ double diaginv(mwSize dm[], float a[], float b[], double s[], double scal[], flo
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
     double sum = 0;
 
-    // Convolution kernels used to create final convolution weights.
+    /* Convolution kernels used to create final convolution weights. */
     w000_000 = lam*(v0 + v1 + v2);
     w000_100 = lam*v0/2;
     w000_010 = lam*v1/2;
@@ -589,34 +592,39 @@ double diaginv(mwSize dm[], float a[], float b[], double s[], double scal[], flo
             for(i=0; i<(mwSignedIndex)dm[0]; i++)
             {
                 mwSignedIndex im1,ip1;
-                im1 = bound(i-1,dm[0])-i;
-                ip1 = bound(i+1,dm[0])-i;
-
 #               ifdef _OPENMP
                     mwSignedIndex jm1,jp1;
+                    mwSignedIndex km1,kp1;
+#               endif
+                mwSignedIndex m, mm;
+                float *pb;
+                double w000;
+                double a1[MAXD3*MAXD3], cp[MAXD3], su[MAXD3];
+                float *pa[(MAXD3*(MAXD3+1))/2];
+
+                im1 = bound(i-1,dm[0])-i;
+                ip1 = bound(i+1,dm[0])-i;
+#               ifdef _OPENMP
                     jm1 = (bound(j-1,dm[1])-j)*dm[0];
                     jp1 = (bound(j+1,dm[1])-j)*dm[0];
-                    mwSignedIndex km1,kp1;
                     km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
                     kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
 #               endif
 
-                // Create central convolution weight (that depends on h)
-                float *pb = b+i+dm[0]*(j+dm[1]*k);
-                double w000 =  w000_000*pb[0];
-                            +  w000_100*(pb[im1] + pb[ip1])
-                            +  w000_010*(pb[jm1] + pb[jp1])
-                            +  w000_001*(pb[km1] + pb[kp1]);
+                /* Create central convolution weight (that depends on h) */
+                pb = b+i+dm[0]*(j+dm[1]*k);
+                w000 =  w000_000*pb[0];
+                     +  w000_100*(pb[im1] + pb[ip1])
+                     +  w000_010*(pb[jm1] + pb[jp1])
+                     +  w000_001*(pb[km1] + pb[kp1]);
 
-                // Add diagonal approximation of L to H
-                mwSignedIndex m, mm;
-                double a1[MAXD3*MAXD3], cp[MAXD3], su[MAXD3];
-                float *pa[(MAXD3*(MAXD3+1))/2];
+
+                /* Add diagonal approximation of L to H */
                 for(m=0; m<(mwSignedIndex)(dm[3]*(dm[3]+1))/2; m++)
                     pa[m] = a+dm[0]*(j+dm[1]*(k+dm[2]*m));
                 get_a(dm[3], i, pa, a1);
                 for(m=0; m<(mwSignedIndex)dm[3]; m++) a1[m+dm[3]*m] += w000*scal[m];
-                // Solve for inverse diagonal elements using Cholesky
+                /* Solve for inverse diagonal elements using Cholesky */
                 choldc(dm[3],a1,cp);
                 for(m=0; m<(mwSignedIndex)dm[3]; m++)
                 {
@@ -733,6 +741,7 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
 
             for(j=(it/3)%3; j<(mwSignedIndex)dm[1]; j+=3)
             {
+                float *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
 #               ifdef _OPENMP
                     mwSignedIndex km2, km1, kp1, kp2;
                     km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
@@ -740,7 +749,6 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                     kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
                     kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
 #               endif
-                float *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
                 mwSignedIndex i, m, jm2,jm1,jp1,jp2;
 
                 for(m=0; m<(mwSignedIndex)dm[3]; m++)
