@@ -36,7 +36,7 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 % Copyright (C) 2002-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7714 2019-11-26 11:25:50Z spm $
+% $Id: spm_dicom_convert.m 7788 2020-02-18 20:02:47Z yael $
 
 
 %-Input parameters
@@ -1097,6 +1097,7 @@ clean = dirty(msk);
 % function img = ReadImageData(Header)
 %==========================================================================
 function img = ReadImageData(Header)
+
 img = [];
 
 if Header.SamplesPerPixel ~= 1
@@ -1405,8 +1406,13 @@ end
 sa    = sprintf('%02d', floor(rem(AcquisitionTime,60)));
 ma    = sprintf('%02d', floor(rem(AcquisitionTime/60,60)));
 ha    = sprintf('%02d', floor(AcquisitionTime/3600));
-fname = sprintf('%s%s-%s%s%s-%.5d-%.5d-%d%s.%s', prefix, id, ha, ma, sa, ...
-        AcquisitionNumber, InstanceNumber, EchoNumbers, ImTyp, format);
+if ~isempty(CHA)
+    fname = sprintf('%s%s-%s%s%s-%.5d-%.5d-%d-%s%s.%s', prefix, id, ha, ma, sa, ...
+            AcquisitionNumber, InstanceNumber, EchoNumbers, CHA, ImTyp, format);
+else
+    fname = sprintf('%s%s-%s%s%s-%.5d-%.5d-%d%s.%s', prefix, id, ha, ma, sa, ...
+            AcquisitionNumber, InstanceNumber, EchoNumbers, ImTyp, format);
+end
 fname = fullfile(dname, fname);
 
 
