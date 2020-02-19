@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 7700 2019-11-21 17:09:15Z john $
+% $Id: spm_deformations.m 7790 2020-02-19 20:21:10Z john $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -227,7 +227,7 @@ end
 
 % Integrate a Dartel flow field
 y0      = spm_dartel_integrate(Nii.dat,job.times,job.K);
-if all(job.times == [0 1]),
+if all(job.times == [0 1])
     mat = Nii.mat0;
     Def = affine(y0,single(Mat));
 else
@@ -278,7 +278,7 @@ function fname = save_def(Def,mat,job)
 % Save a deformation field as an image
 
 ofname = job.ofname;
-if isempty(ofname), fname = {}; return; end;
+if isempty(ofname), fname = {}; return; end
 
 [pth,nam] = fileparts(ofname);
 if isfield(job.savedir,'savepwd')
@@ -319,7 +319,7 @@ function fname = jac_def(Def,mat,job)
 % Save Jacobian determinants of deformation field 
 
 ofname = job.ofname;
-if isempty(ofname), fname = {}; return; end;
+if isempty(ofname), fname = {}; return; end
 
 [pth,nam] = fileparts(ofname);
 if isfield(job.savedir,'savepwd')
@@ -554,10 +554,13 @@ if isfield(job.fov,'file')
     N1   = nifti(job.fov.file);
     mat0 = N1.mat;
     dim  = N1.dat.dim(1:3);
-else
+elseif isfield(job.fov,'bbvox')
     bb   = job.fov.bbvox.bb;
     vox  = job.fov.bbvox.vox;
     [mat0, dim] = spm_get_matdim('', vox, bb);
+else
+    dim  = job.fov.matdim.dim;
+    mat0 = job.fov.matdim.mat;
 end
 
 M   = inv(mat0);
