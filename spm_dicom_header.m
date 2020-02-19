@@ -25,7 +25,7 @@ function Header = spm_dicom_header(DicomFilename, DicomDictionary, Options)
 % Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_header.m 7374 2018-07-09 17:09:46Z guillaume $
+% $Id: spm_dicom_header.m 7791 2020-02-19 20:22:24Z john $
 
 
 if nargin < 3
@@ -93,6 +93,7 @@ while BytesRead < NumBytes
     %fprintf('(%.4X,%.4X) "%s" %d %d %s\n', Tag.Group, Tag.Element, Tag.VR, Tag.Length, Tag.ExtraBytes, Tag.Name);
 
     if Tag.Group==65534 && Tag.Element==57357 % FFFE,E00D ItemDelimitationItem
+        BytesRead = BytesRead + Tag.ExtraBytes;
         break;
     end
     if Tag.Length>0
@@ -227,7 +228,6 @@ while BytesRead < NumBytes
     BytesRead = BytesRead + Tag.ExtraBytes + Tag.Length;
 end
 
-
 %==========================================================================
 % function [Header, BytesRead] = ReadSQ(FID, TransferSyntax, DicomDictionary, Options, NumBytes)
 %==========================================================================
@@ -239,6 +239,7 @@ while BytesRead<NumBytes
     Tag.Group   = fread(FID,1,'ushort');
     Tag.Element = fread(FID,1,'ushort');
     Tag.Length  = fread(FID,1,'uint');
+
     if isempty(Tag.Length), return; end % End of file
     BytesRead   = BytesRead + 8;
     if (Tag.Group == 65534) && (Tag.Element == 57344)   % FFFE/E000 Item
@@ -286,13 +287,12 @@ while BytesRead<NumBytes
     end
 end
 
-
 %==========================================================================
 % function Tag = ReadTag(FID,TransferSyntax,DicomDictionary, Options)
 %==========================================================================
 function Tag = ReadTag(FID, TransferSyntax, DicomDictionary, Options)
-[GroupElement, Bytesread] = fread(FID,2,'ushort');
-if Bytesread < 2, Tag = []; return; end
+[GroupElement, ItemsRead] = fread(FID,2,'ushort');
+if ItemsRead < 2, Tag = []; return; end
 Tag.Group   = GroupElement(1);
 Tag.Element = GroupElement(2);
 if Tag.Group == 2, TransferSyntax = 'el'; end
@@ -385,11 +385,10 @@ if isempty(Tag.VR) || isempty(Tag.Length)
     return;
 end
 
-
 if rem(Tag.Length,2)
     if Tag.Length==4294967295 % FFFFFFFF
         if strcmp(Tag.VR,'UN')
-            warning('spm:dicom','%s: Unknown Value Representation of %s Tag, assuming ''SQ''.', fopen(FID), Tag.Name);
+           %warning('spm:dicom','%s: Unknown Value Representation of %s Tag, assuming ''SQ''.', fopen(FID), Tag.Name);
             Tag.VR = 'SQ';
         end
         return;
@@ -465,7 +464,7 @@ for i=1:n
         % This bit is just wierd
         t(i).item(j).xx  = fread(FID,4,'int32')'; % [x x 77 x]
         BytesToRead      = t(i).item(j).xx(1)-t(1).nitems;
-        if BytesToRead<0 || BytesToRead+Bytesread+4*4>NumBytes
+        if BytesToRead<0 || BytesToRead+BytesRead+4*4>NumBytes
             t(i).item(j).val = '';
             t(i).item        = t(i).item(1:j);
             BytesRead        = BytesRead + 4*4;
