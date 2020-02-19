@@ -34,10 +34,10 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,t,hE,hP)
 %      spm_sp_reml: for sparse patterns (c.f., ARD)
 %
 %__________________________________________________________________________
-% Copyright (C) 2002-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2020 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 7178 2017-10-02 18:12:16Z karl $
+% $Id: spm_reml.m 7789 2020-02-19 16:58:21Z guillaume $
 
 
 % check defaults
@@ -73,13 +73,9 @@ end
 % initialise h and specify hyperpriors
 %==========================================================================
 h   = zeros(m,1);
-d   = false(n,1);
 for i = 1:m
-    q      = diag(Q{i});
-    h(i,1) = any(q & ~d);
-    d      = d | q;
+    h(i) = any(diag(Q{i}));
 end
-h   = double(h);
 hE  = sparse(m,1) + hE;
 hP  = speye(m,m)*hP;
 dF  = Inf;
