@@ -59,7 +59,7 @@ function spm_reslice(P,flags)
 % Copyright (C) 1999-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_reslice.m 7141 2017-07-26 09:05:05Z guillaume $
+% $Id: spm_reslice.m 7792 2020-02-25 14:30:37Z john $
 
 %__________________________________________________________________________
 %
@@ -96,7 +96,7 @@ function spm_reslice(P,flags)
 %__________________________________________________________________________
 
 
-SVNid = '$Rev: 7141 $';
+SVNid = '$Rev: 7792 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -192,7 +192,7 @@ spm_progress_bar('Init',nread,'Reslicing','volumes completed');
 
 [x1,x2] = ndgrid(1:P(1).dim(1),1:P(1).dim(2));
 nread   = 0;
-d       = [flags.interp*[1 1 1]' flags.wrap(:)];
+d       = [abs(flags.interp)*[1 1 1]' flags.wrap(:)];
 
 for i = 1:numel(P)
 
@@ -222,18 +222,46 @@ for i = 1:numel(P)
                 end
             end
         else
-            C = spm_bsplinc(P(i), d);
-            v = zeros(P(1).dim);
-            for x3 = 1:P(1).dim(3)
-                [tmp,y1,y2,y3] = getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap);
-                v(:,:,x3)      = spm_bsplins(C, y1,y2,y3, d);
-                % v(~tmp)      = 0;
+            if flags.interp>=0
+                C = spm_bsplinc(P(i), d);
+                v = zeros(P(1).dim);
+                for x3 = 1:P(1).dim(3)
+                    [tmp,y1,y2,y3] = getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap);
+                    v(:,:,x3)      = spm_bsplins(C, y1,y2,y3, d);
+
+                    if flags.mean
+                        Integral(:,:,x3) = Integral(:,:,x3) + nan2zero(v(:,:,x3));
+                    end
+                    if flags.mask
+                        tmp = v(:,:,x3); tmp(msk{x3}) = NaN; v(:,:,x3) = tmp;
+                    end
+                end
+            else
+                % Warp labels (currently its very inefficient code)
+                f0 = spm_bsplinc(P(i),[0 0 0  0 0 0]);
+                U  = unique(f0(:));
+                if numel(U)>255
+                    error('Too many label values.');
+                end
+                v    = zeros(P(1).dim);
+                g1   = zeros(P(1).dim);
+                p1   = zeros(P(1).dim);
+                for u=U'
+                    g0     = double(f0==u);
+                    for x3 = 1:P(1).dim(3)
+                        [tmp,y1,y2,y3] = getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap); % Should just do this once
+                        g1(:,:,x3)     = spm_bsplins(g0, y1,y2,y3, d);
+                    end
+                    msk1     = (g1>p1);
+                    p1(msk1) = g1(msk1);
+                    v(msk1)  = u;
+                end
 
                 if flags.mean
-                    Integral(:,:,x3) = Integral(:,:,x3) + nan2zero(v(:,:,x3));
+                    warning('Cannot create mean.');
                 end
                 if flags.mask
-                    tmp = v(:,:,x3); tmp(msk{x3}) = NaN; v(:,:,x3) = tmp;
+                    warning('Cannot do masking.');
                 end
             end
         end

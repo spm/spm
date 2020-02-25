@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 7790 2020-02-19 20:21:10Z john $
+% $Id: spm_deformations.m 7792 2020-02-25 14:30:37Z john $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -509,12 +509,8 @@ for m=1:numel(PI)
                     end
                     f1   = zeros(dim(1:3),class(f0));
                     p1   = zeros(size(f1),'single');
-                    filt = [0.125 0.75 0.125];
                     for u=U'
                         g0       = single(f0==u);
-                        g0       = convn(g0,reshape(filt,[3,1,1]),'same');
-                        g0       = convn(g0,reshape(filt,[1,3,1]),'same');
-                        g0       = convn(g0,reshape(filt,[1,1,3]),'same');
                         tmp      = spm_diffeo('bsplins',g0,Y,[abs(intrp(1:3)) intrp(4:end)]);
                         msk1     = (tmp>p1);
                         p1(msk1) = tmp(msk1);
@@ -721,13 +717,13 @@ for m=1:numel(PI)
                         end
                         f1   = zeros(dim(1:3),class(f))+NaN;
                         p1   = zeros(size(f1),'single');
-                        filt = [0.125 0.75 0.125];
+                       %filt = [0.125 0.75 0.125];
                         for u=U'
                             g0       = single(f==u);
                             g0       = spm_diffeo('push',g0,y,dim);
-                            g0       = convn(g0,reshape(filt,[3,1,1]),'same');
-                            g0       = convn(g0,reshape(filt,[1,3,1]),'same');
-                            g0       = convn(g0,reshape(filt,[1,1,3]),'same');
+                           %g0       = convn(g0,reshape(filt,[3,1,1]),'same');
+                           %g0       = convn(g0,reshape(filt,[1,3,1]),'same');
+                           %g0       = convn(g0,reshape(filt,[1,1,3]),'same');
                             msk1     = (g0>p1);
                             p1(msk1) = g0(msk1);
                             f1(msk1) = u;

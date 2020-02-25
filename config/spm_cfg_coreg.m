@@ -3,7 +3,7 @@ function coreg = spm_cfg_coreg
 %__________________________________________________________________________
 % Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 7784 2020-02-13 12:58:54Z john $
+% $Id: spm_cfg_coreg.m 7792 2020-02-25 14:30:37Z john $
 
 
 %--------------------------------------------------------------------------
@@ -181,8 +181,9 @@ interp.labels  = {
                   '5th Degree B-Spline'
                   '6th Degree B-Spline'
                   '7th Degree B-Spline'
+                  'Label interpolation'
 }';
-interp.values  = {0 1 2 3 4 5 6 7};
+interp.values  = {0 1 2 3 4 5 6 7 -1};
 interp.def     = @(val)spm_get_defaults('coreg.write.interp', val{:});
 
 %--------------------------------------------------------------------------
