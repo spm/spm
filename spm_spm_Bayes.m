@@ -62,10 +62,10 @@ function [SPM] = spm_spm_Bayes(SPM)
 % using voxel-wise GLM-AR models that are spatially regularised
 % using the VB framework. This is implemented using spm_spm_vb.m.
 %__________________________________________________________________________
-% Copyright (C) 2002-2020 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 7789 2020-02-19 16:58:21Z guillaume $
+% $Id: spm_spm_Bayes.m 7793 2020-02-25 16:21:26Z guillaume $
 
 
 %-Say hello
@@ -294,19 +294,15 @@ for i = 1:s
     %----------------------------------------------------------------------
     X     = X - X0*(pinv(X0)*X);
 
-    % covariance components
-    %----------------------------------------------------------------------
-    Q    = cell(1, n+1);
-    
-    % covariance components induced by error non-sphericity {V}
-    %----------------------------------------------------------------------
-    Q{1} = SPM.xVi.V(u{i},u{i});
-    
     % covariance components induced by parameter variations {Q}
     %----------------------------------------------------------------------
     for j = 1:n
-        Q{j + 1} = X*sparse(j,j,1,n,n)*X';
+        Q{j} = X*sparse(j,j,1,n,n)*X';
     end
+
+    % covariance components induced by error non-sphericity {V}
+    %----------------------------------------------------------------------
+    Q{n + 1} = SPM.xVi.V(u{i},u{i});
 
     % ReML covariance component estimation
     %----------------------------------------------------------------------
