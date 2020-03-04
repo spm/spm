@@ -8,10 +8,10 @@ function out = spm_deformations(job)
 %
 % See spm_cfg_deformations.m for more information.
 %__________________________________________________________________________
-% Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2020 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 7792 2020-02-25 14:30:37Z john $
+% $Id: spm_deformations.m 7795 2020-03-04 15:48:40Z guillaume $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -191,9 +191,12 @@ function [Def,mat] = get_def(job)
 Nii = nifti(job{1});
 Def = single(Nii.dat(:,:,:,1,:));
 d   = size(Def);
-if d(4)~=1 || d(5)~=3, error('Deformation field is wrong!'); end
+if numel(d)~=5 || d(4)~=1 || d(5)~=3
+    error('The deformation field has a wrong size.');
+end
 Def = reshape(Def,[d(1:3) d(5)]);
 mat = Nii.mat;
+
 
 %==========================================================================
 % function [Def,mat] = get_dartel(job)
@@ -280,7 +283,7 @@ function fname = save_def(Def,mat,job)
 ofname = job.ofname;
 if isempty(ofname), fname = {}; return; end
 
-[pth,nam] = fileparts(ofname);
+nam = spm_file(ofname,'basename');
 if isfield(job.savedir,'savepwd')
     wd = pwd;
 elseif isfield(job.savedir,'saveusr')
@@ -321,7 +324,7 @@ function fname = jac_def(Def,mat,job)
 ofname = job.ofname;
 if isempty(ofname), fname = {}; return; end
 
-[pth,nam] = fileparts(ofname);
+nam = spm_file(ofname,'basename');
 if isfield(job.savedir,'savepwd')
     wd = pwd;
 elseif isfield(job.savedir,'saveusr')
