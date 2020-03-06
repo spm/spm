@@ -34,7 +34,7 @@ function spm_eeg_inv_ecd_DrawDip(action,varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_ecd_DrawDip.m 5021 2012-10-29 15:49:09Z guillaume $
+% $Id: spm_eeg_inv_ecd_DrawDip.m 7797 2020-03-06 16:44:42Z vladimir $
 
 global st
 
@@ -520,6 +520,10 @@ end
 %==========================================================================
 function dh = add1dip(loc,js,mark,col,ax,Fig,bb)
 % Plot the dipoles on the 3 views and return the handle to the plots
+
+global st
+is = inv(st.Space);
+loc = is(1:3,1:3)*loc(:)+is(1:3,4);
 
 loc(1,:) = loc(1,:) - bb(1,1)+1;
 loc(2,:) = loc(2,:) - bb(1,2)+1;
