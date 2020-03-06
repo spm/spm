@@ -4,7 +4,7 @@ function mfx = spm_cfg_mfx
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_mfx.m 6239 2014-10-13 14:53:48Z guillaume $
+% $Id: spm_cfg_mfx.m 7796 2020-03-06 10:37:25Z guillaume $
 
 %--------------------------------------------------------------------------
 % dir Directory
@@ -164,6 +164,9 @@ for i=1:numel(SPMS)
             matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).name = SPMS{i}.Sess(j).U(l).name{1};
             matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).onset = SPMS{i}.Sess(j).U(l).ons;
             matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).duration = SPMS{i}.Sess(j).U(l).dur;
+            matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).tmod = 0;
+            matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).pmod = struct('name', {}, 'param', {}, 'poly', {});
+            matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).orth = 1; % orthogonalisation ON
             o    = 1;
             nReg = numel(SPMS{i}.Sess(j).U(l).P);
             for m=1:nReg
