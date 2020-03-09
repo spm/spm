@@ -170,9 +170,9 @@ You can look at the loaded variables by typing the variable names.
  \item You should now be able to press the \textsc{Run} green arrow at the top of the Batch Editor window. This will specify and estimate the GLM.
 \end{enumerate}
 
-\subsection{Extracting time series}
+\subsection{Adding contrasts}
 
-Once you have specified and estimated the GLM, you should define t-contrasts that test for photic, motion, and attention, respectively. These serve to locate areas that show effects due to visual stimulation (e.g. in V1), motion (e.g. V5) and attention (e.g. V5 and superior parietal cortex, SPC). Because V5 shows both motion and attention effects, it is useful to mask the motion-contrast with the attention-contrast when extracting time series for V5. You should also compute an ``effects of interest'' F-contrast, which is needed for mean-correcting the extracted time series (see below).
+Once you have specified and estimated the GLM, you should define t-contrasts that test for photic, motion, and attention, respectively. These serve to locate areas that show ''photic'' effects due to visual stimulation (e.g. in V1), motion (e.g. V5) and attention (e.g. V5 and superior parietal cortex, SPC). You will also need to add an ``effects of interest'' F-contrast, which is required for mean-correcting the extracted time series. Any experimental effects not covered by this contrast will be regressed out of the signal.
 
 \begin{enumerate}
  \item From the main SPM window, click on the \textsc{Batch} button.
@@ -188,7 +188,14 @@ Once you have specified and estimated the GLM, you should define t-contrasts tha
  \item Press the \textsc{Run} green arrow at the top of the Batch Editor window. This will specify and estimate these 4 contrasts.
 \end{enumerate}
 
-Here is now a step-by-step example for extracting the V5 time series:
+\subsection{Extracting time series}
+
+The next step is to extract one representative fMRI time series from each brain region of interest: V5, V1 and SPC.
+
+\subsubsection{Extracting time series from V5}
+
+To locate visual area V5, we will identify voxels that respond to both visual motion AND attention to motion. This is referred to as ``masking'' one contrast by another. We will then extract time series from voxels identified by this contrast, restricted to a sphere positioned in the V5 region:
+
 \begin{enumerate}
  \item Press \textsc{Results}.
  \item Select the \texttt{SPM.mat} file.
@@ -198,16 +205,55 @@ Here is now a step-by-step example for extracting the V5 time series:
  \item Uncorrected mask p-value $p \leq 0.05$ and nature of mask: inclusive.
  \item p value adjustment to control: none with a threshold of 0.001 and extent 0
  \item To overlay these results on a structural scan, click ``overlays...'' in the SPM Results window, then click ``sections''. Navigate to the structural folder and select the file named ``nsM00587\_0002.img''.
- \item Select the global maxima that looks V5-ish, e.g. \texttt{[-36 -87 -3]}.
+ \item At the bottom of the results window, enter the following coordinates, which are V5-ish: \texttt{[-36 -87 -3]}.
  \item Press the \textsc{eigenvariate} button.
  \item Name of region: \texttt{V5}
  \item Adjust data for: \texttt{Effects of interest} (this effectively mean-corrects the time series)
  \item VOI definition: \texttt{sphere}
  \item VOI radius(mm): e.g. \texttt{8} mm
 \end{enumerate}
-SPM now computes the first principal component of the time series from all voxels included in the sphere. The result is stored (together with the original time series) in a file named \texttt{VOI\_V5\_1.mat} in the working directory (the ``1'' refers to session 1).
 
-You can now proceed to select time series for V1 (using the \textsc{Photic} contrast with ``Apply masking'' set to none) with an \texttt{8} mm sphere centered on V1 (here we are using coordinates \texttt{[0 -93 18]}). Do the same thing with SPC (using the \textsc{attention} contrast) with a sphere centred on \texttt{[-27 -84 36]}. This will create files \texttt{VOI\_V1\_1.mat} and \texttt{VOI\_SPC\_1.mat}.
+SPM now computes the first principal component of the time series from all super-threshold voxels included in the sphere. The result is stored (together with the original time series) in a file named \texttt{VOI\_V5\_1.mat} in the working directory (the ``1'' refers to session 1).
+
+\subsubsection{Extracting time series from V1}
+
+We will next identify visual area V1 (primary visual cortex) using the Photic contrast. This is the same procedure as for V5 above, except we will only by using one contrast (not masking one contrast by another):
+
+\begin{enumerate}
+	\item Press \textsc{Results}.
+	\item Select the \texttt{SPM.mat} file.
+	\item Choose the t-contrast for the \texttt{Photic} condition.
+	\item Apply masking: none
+	\item p value adjustment to control: none with a threshold of 0.001 and extent 0
+	\item To overlay these results on a structural scan, click ``overlays...'' in the SPM Results window, then click ``previous sections''.
+	\item Set the coordinates at the bottom of the Results window to \texttt{[0 -93 18]}.
+	\item Press the \textsc{eigenvariate} button.
+	\item Name of region: \texttt{V1}
+	\item Adjust data for: \texttt{Effects of interest} (this effectively mean-corrects the time series)
+	\item VOI definition: \texttt{sphere}
+	\item VOI radius(mm): e.g. \texttt{8} mm
+\end{enumerate}
+
+This will create the file \texttt{VOI\_V1\_1.mat}. 
+
+\subsubsection{Extracting time series from SPC}
+
+Finally, we will extract time series from superior parietal cortex (SPC). We will identify voxels in this region using the Attention contrast:
+
+\begin{enumerate}
+	\item Press \textsc{Results}.
+	\item Select the \texttt{SPM.mat} file.
+	\item Choose the t-contrast for the \texttt{Attention} condition.
+	\item Apply masking: none
+	\item p value adjustment to control: none with a threshold of 0.001 and extent 0
+	\item To overlay these results on a structural scan, click ``overlays...'' in the SPM Results window, then click ``previous sections''.
+	\item Set the coordinates at the bottom of the Results window to \texttt{[-27 -84 36]}.
+	\item Press the \textsc{eigenvariate} button.
+	\item Name of region: \texttt{SPC}
+	\item Adjust data for: \texttt{Effects of interest} (this effectively mean-corrects the time series)
+	\item VOI definition: \texttt{sphere}
+	\item VOI radius(mm): e.g. \texttt{8} mm
+\end{enumerate}
 
 \subsection{Specifying and estimating the DCM}
 
@@ -234,6 +280,7 @@ as follows:
 \item States per region: \texttt{one}
 \item Stochastic effects: \texttt{no}
 \item Centre input: \texttt{no}
+\item Fit timeseries or CSD: \texttt{timeseries}
 \item Define the following extrinsic connections: V1 to V5, V5 to V1, V5 to SPC, SPC to V5, i.e. a hierarchy with reciprocal connections between neighbouring areas. Note that the columns specify the source of the connection and the rows specify its target. Your connectivity matrix should look like the one in Fig.~\ref{dcm_fig4}.
 \item Specify Photic as a driving input into V1.  See Fig.~\ref{dcm_fig4}
 \item Specify Motion to modulate the connection from V1 to V5.  See Fig.~\ref{dcm_fig4}
@@ -286,13 +333,14 @@ Of course, you can also explore the model results at the level of the \matlab\ c
 
 Let us now specify an alternative model and compare it against the one that we defined and estimated above. The change that we are going to make is to assume that attention modulates the $V1 \rightarrow V5$ connection (as opposed to the $SPC \rightarrow V5$ connection in the previous model). For defining this model, you repeat all the steps from the above example, the only difference being that the model gets a new name (e.g. \verb!mod_fwd!) and that attention now acts on the forward connection. This DCM is shown schematically in Figure~\ref{fwd}.
 
-Estimate this new model as above. You can then perform a Bayesian model comparison as follows:
+Once you have specified this new model, estimate it as above. You can then perform a Bayesian model comparison as follows:
+
 \begin{enumerate}
  \item Press the ``DCM'' button.
  \item Choose \textsc{Compare}.
- \item In the Batch Editor window that opened, fill in the ``BMS: DCM'' module:
+ \item In the Batch Editor window that opened, fill in the boxes as follows:
  \begin{enumerate}
-   \item \texttt{Directory}: choose current directory,
+   \item \texttt{Directory}: choose current directory by clicking the small dot on the right hand side of the file selector then click Done,
    \item \texttt{Data}: add a New Subject with a New Session and select the two models, e.g. in the order \texttt{DCM\_mod\_bwd.mat} and \texttt{DCM\_mod\_fwd.mat},
    \item \texttt{Inference method}: choose ``Fixed effects (FFX)''.
  \end{enumerate}
