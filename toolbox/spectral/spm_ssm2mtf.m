@@ -13,7 +13,7 @@ function [mtf,Hz] = spm_ssm2mtf(dfdx,dfdu,dgdx,Hz)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ssm2mtf.m 7774 2020-01-25 18:07:03Z karl $
+% $Id: spm_ssm2mtf.m 7799 2020-03-12 17:23:14Z karl $
 
 % preliminaries
 %--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ s     = diag(s);
 
 % condition unstable eigenmodes
 %--------------------------------------------------------------------------
-s = 1j*imag(s) + min(real(s),-1/64);
+s = 1j*imag(s) + min(real(s),-1/16);
 
 % frequencies if unspecified
 %--------------------------------------------------------------------------
@@ -43,12 +43,9 @@ if nargin < 4
     Hz  = Hz*(1:128)'/128;
 end
 
-% Transfer functions
+% Modulaton transfer functions
 %==========================================================================
-
-% transfer functions (FFT of kernel)
-%--------------------------------------------------------------------------
-nw    = size(Hz(:),1);           % number of frequencies
+nw    = size(Hz(:),1);        % number of frequencies
 ng    = size(dgdx,1);         % number of outputs
 nu    = size(dfdu,2);         % number of inputs
 nk    = size(v,2);            % number of modes

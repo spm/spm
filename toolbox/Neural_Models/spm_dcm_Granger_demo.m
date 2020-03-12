@@ -2,7 +2,7 @@ function spm_dcm_Granger_demo
 % Demo routine for induced responses
 %==========================================================================
 %
-% This routine illustrates the relationship between Geweke Granger 
+% This routine illustrates the relationship between Granger-Geweke  
 % causality (GC) in frequency space and modulation transfer functions 
 % (MTF).  We first compare and contrast analytic results for GC with 
 % estimates based on a simulated time series. These synthetic data are 
@@ -26,7 +26,7 @@ function spm_dcm_Granger_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_Granger_demo.m 6059 2014-06-19 11:57:31Z vladimir $
+% $Id: spm_dcm_Granger_demo.m 7799 2020-03-12 17:23:14Z karl $
  
  
 % Model specification

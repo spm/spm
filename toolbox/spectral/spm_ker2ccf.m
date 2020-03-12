@@ -12,13 +12,29 @@ function [ccf,pst] = spm_ker2ccf(ker,dt)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ker2ccf.m 7774 2020-01-25 18:07:03Z karl $
+% $Id: spm_ker2ccf.m 7799 2020-03-12 17:23:14Z karl $
 
 
 % cross covariance function
 %==========================================================================
 
+% convolution of kernels
+%--------------------------------------------------------------------------
+N     = 2*size(ker,1) - 1;
+pst   = (1:N) - mean(1:N);
+pst   = pst*dt;
+ccf   = zeros(N,size(ker,2),size(ker,2));
+for i = 1:size(ker,2)
+    for j = 1:size(ker,2)
+        for k = 1:size(ker,3)
+            ccf(:,i,j) = ccf(:,i,j) + conv(ker(:,i,k),flip(ker(:,j,k)));
+        end
+    end
+end
+ccf   = ccf*dt/2;
+
+
 % via modulation transfer function
 %--------------------------------------------------------------------------
-[mtf,Hz]  = spm_ker2mtf(ker,dt);
-[ccf,pst] = spm_mtf2ccf(mtf,Hz);
+% [mtf,Hz]  = spm_ker2mtf(ker,dt);
+% [ccf,pst] = spm_mtf2ccf(mtf,Hz);

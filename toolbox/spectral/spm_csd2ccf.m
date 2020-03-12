@@ -18,7 +18,7 @@ function [ccf,pst] = spm_csd2ccf(csd,Hz,dt)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd2ccf.m 7774 2020-01-25 18:07:03Z karl $
+% $Id: spm_csd2ccf.m 7799 2020-03-12 17:23:14Z karl $
 
 % Nyquist
 %--------------------------------------------------------------------------
@@ -65,7 +65,7 @@ for i = 1:size(csd,2)
     else
         for j = 1:size(csd,3)
             g(gi)      = csd(gj,i,j);
-            f          = ifft([0; g; flipud(conj(g))]);
+            f          = ifft([g(1); g; flipud(conj(g))]);
             ccf(:,i,j) = real(fftshift(f))*N*dw;
         end
     end

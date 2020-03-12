@@ -17,7 +17,7 @@ function [csd] = spm_mtf2csd(mtf,C)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mtf2csd.m 7774 2020-01-25 18:07:03Z karl $
+% $Id: spm_mtf2csd.m 7799 2020-03-12 17:23:14Z karl $
 
 
 % preliminaries
@@ -36,10 +36,9 @@ if size(C,1) == nw
     for i = 1:ns
         c(:,i,i) = C(:,i);
     end
-end
-if size(C,1) < nw
+else
     for i = 1:nw
-        c(i,:,:) = C;
+        c(i,:,:) = C(1:ns,1:ns);
     end
 end
 

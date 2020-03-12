@@ -23,9 +23,10 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 %
 % DCM - Bayesian Model Average (BMA) over models in the final iteration of 
 %       the search:
-%
-%       DCM.Ep    - (BMA) posterior expectation
-%       DCM.Cp    - (BMA) posterior covariance
+%       DCM.M.pE  - reduced prior expectation
+%       DCM.M.pC  - reduced prior covariance
+%       DCM.Ep    - reduced (BMA/BMS) posterior expectation
+%       DCM.Cp    - reduced (BMA/BMS) posterior covariance
 %       DCM.Pp    - Model posterior over parameters (with and without)
 %
 % BMR -  (Nsub) summary structure reporting the model space from the last
@@ -63,7 +64,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 7717 2019-11-27 11:10:36Z peter $
+% $Id: spm_dcm_bmr_all.m 7799 2020-03-12 17:23:14Z karl $
 
 
 %-specification of null prior covariance
@@ -359,6 +360,8 @@ switch OPT
     otherwise
 end
 
+% convert BMA variances into a covariance matrix, if necessary
+%--------------------------------------------------------------------------
 if isstruct(Cp) || (spm_length(Cp) == spm_length(Ep))
     Cp = diag(spm_vec(Cp));
 end
@@ -377,41 +380,45 @@ Ep     = spm_vec(Ep);
 
 j = i(ismember(i,1:length(spm_vec(Ep))));
 
-% BMR summary and plotting
+% BMR summary and plotting, if requested
 %--------------------------------------------------------------------------
-try
-    Pnames     = spm_fieldindices(DCM.Ep,k);
-catch
+if nargout > 1
     try
-        Np     = numel(DCM.Pnames);
-        Pnames = DCM.Pnames(rem(k - 1,Np) + 1);
+        Pnames     = spm_fieldindices(DCM.Ep,k);
     catch
-        Pnames = 'all parameters';
+        try
+            Np     = numel(DCM.Pnames);
+            Pnames = DCM.Pnames(rem(k - 1,Np) + 1);
+        catch
+            Pnames = 'all parameters';
+        end
     end
+    BMR.name = Pnames;
+    BMR.F    = G;
+    BMR.P    = p;
+    BMR.K    = K;
+    BMR.k    = k;
+    
+    subplot(3,2,3), spm_plot_ci(qE(i),qC(i,i))
+    title('MAP (full)','FontSize',16)
+    axis square, a = axis;
+    
+    subplot(3,2,4), spm_plot_ci(Ep(j),abs(Cp(j,j)))
+    title('MAP (reduced)','FontSize',16), axis square, axis(a)
+    
+    subplot(3,2,5), imagesc(1 - K')
+    xlabel('model'), ylabel('parameter'), title('model space','FontSize',16)
+    set(gca,'YTickLabel',BMR.name);
+    axis tight, axis square
+    
+    subplot(3,2,6)
+    Np = length(i);
+    bar(1:Np,diag(Pp(i)))
+    xlabel('parameter'), title(' posterior','FontSize',16)
+    axis square
+    drawnow, axis([0 (Np + 1) 0 1])
+    
 end
-BMR.name = Pnames;
-BMR.F    = G;
-BMR.P    = p;
-BMR.K    = K;
-BMR.k    = k;
-
-subplot(3,2,3), spm_plot_ci(qE(i),qC(i,i))
-title('MAP (full)','FontSize',16)
-axis square, a = axis;
-
-subplot(3,2,4), spm_plot_ci(Ep(j),abs(Cp(j,j)))
-title('MAP (reduced)','FontSize',16), axis square, axis(a)
-
-subplot(3,2,5), imagesc(1 - K')
-xlabel('model'), ylabel('parameter'), title('model space','FontSize',16)
-set(gca,'YTickLabel',BMR.name);
-axis tight, axis square
-
-subplot(3,2,6)
-Np = length(i);
-bar(1:Np,diag(Pp(i)))
-xlabel('parameter'), title(' posterior','FontSize',16)
-axis square, drawnow, axis([0 (Np + 1) 0 1])
 
 
 %-Save Bayesian parameter average (Ep,Cp) and family-wise inference (Pp)
@@ -424,11 +431,14 @@ if isstruct(DCM.Ep)
     Ep    = spm_unvec(Ep,DCM.Ep);
 end
 
-DCM.Pp    = Pp;        % Model posterior over parameters (with and without)
+DCM.M.pE  = rE;        % reduced prior expectation
+DCM.M.pC  = rC;        % reduced prior covariance
 DCM.Ep    = Ep;        % Bayesian model averages
 DCM.Cp    = Cp;        % Bayesian model variance
+DCM.Pp    = Pp;        % Model posterior over parameters (with and without)
 
 % Clear free energy if supplied (which is no longer meaningful)
+%--------------------------------------------------------------------------
 if isfield(DCM,'F')
     DCM = rmfield(DCM,'F');
 end

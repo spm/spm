@@ -49,23 +49,80 @@ function [MB] = DEMO_DCM_MB
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_DCM_MB.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: DEMO_DCM_MB.m 7799 2020-03-12 17:23:14Z karl $
 
 
 SPM = load('C:\home\spm\SPM\analysis_set9\SPM.mat','SPM');
 MB  = spm_mb_ui('specify',SPM.SPM);
+MB  = spm_mb_ui('blocking',MB(1));
+
+% display the results in terms of particular partitions and eigenmodes
+%--------------------------------------------------------------------------
+spm_mb_ui('results',MB,'anatomy');
+
+% characterise connectivity at the smallest scale
+%--------------------------------------------------------------------------
+spm_mb_ui('results',MB,'distance');
+
+% characterise scaling behaviour in terms of scaling exponent
+%--------------------------------------------------------------------------
+spm_mb_ui('results',MB,'scaling');
+
+% characterise intrinsic coupling in terms of transfer functions
+%--------------------------------------------------------------------------
+spm_mb_ui('results',MB,'kernels');
+
+% display the results in terms of particular partitions and eigenmodes
+%--------------------------------------------------------------------------
+spm_mb_ui('results',MB,'dynamics');
+
+% characterise extrinsic coupling with a connectogram
+%--------------------------------------------------------------------------
+spm_mb_ui('results',MB(1:end - 1),'connectogram');
+
+% characterise extrinsic coupling in terms of cross covariance functions
+%--------------------------------------------------------------------------
+spm_mb_ui('results',MB(1:end - 1),'connectivity');
+
+% characterise intrinsic coupling in terms of dissipative flow
+%--------------------------------------------------------------------------
+spm_mb_ui('results',MB,'eigenmodes');
+
+% characterise eigenmodes in terms of design or inputs
+%--------------------------------------------------------------------------
+spm_mb_ui('results',MB,'responses');
+
+% input effects as active states at base level
+%--------------------------------------------------------------------------
+spm_mb_ui('results',MB,'inputs');
+
 
 return
 
-spm_mb_ui('results',MB,'anatomy');
 
-spm_mb_ui('results',MB,'distance');
+% Anti-symmetry (i.e., the emergence of anti-correlations)
+%==========================================================================
+for i = 1:numel(MB)
+    J    = full(MB{i}.J);
+    A(i) = norm(J - J')/norm(J + J');
+end
 
-spm_mb_ui('results',MB,'scaling');
-
-spm_mb_ui('results',MB,'kernels');
-
-spm_mb_ui('results',MB,'connectivity',xyz);
+% Anti-correlations
+%==========================================================================
+for i = 1:numel(MB)
+    
+    % Jacobian and cross covariance function
+    %----------------------------------------------------------------------
+    dfdx      = full(MB{i}.J);
+    [ccf,pst] = spm_ssm2ccf(dfdx);
+    cor       = spm_ccf2cor(ccf);
+    
+    %  predicted and recorded correlations (functional connectivity)
+    %----------------------------------------------------------------------
+    C{i} = spm_cov2corr(real(cor));
+    R{i} = corr(real(MB{i}.Y));
+    
+end
 
 
 

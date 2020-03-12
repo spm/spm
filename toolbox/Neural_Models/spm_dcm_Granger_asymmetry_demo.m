@@ -26,7 +26,7 @@ function spm_dcm_Granger_asymmetry_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_Granger_asymmetry_demo.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_dcm_Granger_asymmetry_demo.m 7799 2020-03-12 17:23:14Z karl $
  
  
 % Model specification
@@ -208,7 +208,7 @@ return
 
 % expected cross spectral density
 %--------------------------------------------------------------------------
-csd       = spm_csd_mtf(pE,M);
+csd = spm_csd_mtf(pE,M);
 
 % Get spectral profile of fluctuations and noise
 %--------------------------------------------------------------------------

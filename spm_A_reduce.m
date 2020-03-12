@@ -16,13 +16,13 @@ function [J,z,v,s] = spm_A_reduce(J,x,T,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_A_reduce.m 7655 2019-08-25 20:10:20Z karl $
+% $Id: spm_A_reduce.m 7799 2020-03-12 17:23:14Z karl $
 
 % preliminaries
 %--------------------------------------------------------------------------
 nx    = size(x,2);                  % number of partitions
 if nargin < 3
-    T = 8;                          % adiabatic threshold
+    T = 8;                          % adiabatic threshold (Hz)
 end
 if nargin < 4
     N = 8;                          % maxiumum number
@@ -43,8 +43,8 @@ for i = 1:nx
     
     % Adiabatic threshold
     %----------------------------------------------------------------------
-    n(i)  = sum(d > -T);
-    n(i)  = min(n(i),N);
+    t     = max(-T,d(min(end,N + 1)));
+    n(i)  = sum(d > t);
     s{i}  = r(  j(1:n(i)));
     v{i}  = e(:,j(1:n(i)));
     u{i}  = pinv(v{i});
