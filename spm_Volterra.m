@@ -23,7 +23,7 @@ function [X,Xname,Fc] = spm_Volterra(U,bf,V)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_Volterra.m 4925 2012-09-14 11:17:01Z guillaume $
+% $Id: spm_Volterra.m 7800 2020-03-12 17:25:34Z karl $
 
 
 %-Order of Volterra expansion
@@ -42,19 +42,19 @@ for i = 1:numel(U)
     ind   = [];
     ip    = [];
     for k = 1:size(U(i).u,2)
-    for p = 1:size(bf,2)
-        x = U(i).u(:,k);
-        d = 1:length(x);
-        x = conv(full(x),bf(:,p));
-        x = x(d);
-        X = [X x];
-
-        %-Indices and regressor names
-        %------------------------------------------------------------------
-        Xname{end + 1} = sprintf('%s*bf(%i)',U(i).name{k},p);
-        ind(end + 1)   = size(X,2);
-        ip(end + 1)    = k;
-    end
+        for p = 1:size(bf,2)
+            x = U(i).u(:,k);
+            d = 1:length(x);
+            x = conv(full(x),bf(:,p));
+            x = x(d);
+            X = [X x];
+            
+            %-Indices and regressor names
+            %------------------------------------------------------------------
+            Xname{end + 1} = sprintf('%s*bf(%i)',U(i).name{k},p);
+            ind(end + 1)   = size(X,2);
+            ip(end + 1)    = k;
+        end
     end
     Fc(end + 1).i = ind;
     Fc(end).name  = U(i).name{1};
@@ -67,31 +67,31 @@ if V == 1, return, end
 
 %-2nd order terms
 %==========================================================================
-for i = 1:numel(U) 
-for j = i:numel(U)
-    ind   = [];
-    ip    = [];
-    for p = 1:size(bf,2)
-    for q = 1:size(bf,2)
-        x = U(i).u(:,1);
-        y = U(j).u(:,1);
-        x = conv(full(x),bf(:,p));
-        y = conv(full(y),bf(:,q));
-        x = x(d);
-        y = y(d);
-        X = [X x.*y];
-
-        %-Indices and regressor names
-        %------------------------------------------------------------------
-        Xname{end + 1} = sprintf('%s*bf(%i)x%s*bf(%i)',...
-                            U(i).name{1}, p,...
-                            U(j).name{1}, q);
-        ind(end + 1)   = size(X,2);
-        ip(end + 1)    = 1;
+for i = 1:numel(U)
+    for j = i:numel(U)
+        ind   = [];
+        ip    = [];
+        for p = 1:size(bf,2)
+            for q = 1:size(bf,2)
+                x = U(i).u(:,1);
+                y = U(j).u(:,1);
+                x = conv(full(x),bf(:,p));
+                y = conv(full(y),bf(:,q));
+                x = x(d);
+                y = y(d);
+                X = [X x.*y];
+                
+                %-Indices and regressor names
+                %------------------------------------------------------------------
+                Xname{end + 1} = sprintf('%s*bf(%i)x%s*bf(%i)',...
+                    U(i).name{1}, p,...
+                    U(j).name{1}, q);
+                ind(end + 1)   = size(X,2);
+                ip(end + 1)    = 1;
+            end
+        end
+        Fc(end + 1).i = ind;
+        Fc(end).name  = [U(i).name{1} 'x' U(j).name{1}];
+        Fc(end).p     = ip;
     end
-    end
-    Fc(end + 1).i = ind;
-    Fc(end).name  = [U(i).name{1} 'x' U(j).name{1}];
-    Fc(end).p     = ip;
-end
 end

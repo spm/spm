@@ -24,7 +24,7 @@ function [Y,y,beta,Bcov,G] = spm_graph(SPM,XYZ,xG)
 % Copyright (C) 1996-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 6985 2017-01-11 11:51:49Z guillaume $
+% $Id: spm_graph.m 7800 2020-03-12 17:25:34Z karl $
 
 
 if nargin == 3 && isstruct(SPM) && isstruct(XYZ) && ishandle(xG)
@@ -374,7 +374,7 @@ switch xG.def
         %------------------------------------------------------------------
         P     = SPM.Sess(s).U(u).P(p).P;
         q     = [];
-        for i = 0:SPM.Sess(s).U(u).P(p).h;
+        for i = 0:SPM.Sess(s).U(u).P(p).h
             q = [q P.^i];
         end
         q     = spm_orth(q);
@@ -412,7 +412,7 @@ switch xG.def
         %------------------------------------------------------------------
         dt    = SPM.xBF.dt;
         bf    = SPM.xBF.bf/dt;
-        pst   = ([1:size(bf,1)] - 1)*dt;
+        pst   = ((1:size(bf,1)) - 1)*dt;
 
         % second order kernel
         %------------------------------------------------------------------
@@ -430,7 +430,7 @@ switch xG.def
                 end
             end
 
-        % first  order kernel
+        % first order kernel
         %------------------------------------------------------------------
         else
             B = beta(SPM.Sess(s).col(SPM.Sess(s).Fc(u).i(1:size(bf,2))));
