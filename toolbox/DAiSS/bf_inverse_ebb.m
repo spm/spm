@@ -3,7 +3,7 @@ function res = bf_inverse_ebb(BF, S)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: bf_inverse_ebb.m 7802 2020-03-23 15:01:19Z george $
+% $Id: bf_inverse_ebb.m 7803 2020-03-23 17:00:10Z george $
 
 % NOTE: this is an early developmental version so it comes with George's
 % "NO RESULTS GUARENTEED (TM)" warning.
@@ -88,29 +88,43 @@ pow     = zeros(1,nvert);
 pow_dual    = zeros(1,nvert);
 
 
-% Lead field optimisation (this is not negotiable for now!)
-%----------------------------------------------------------
+% Lead field optimisation (if multiple LFs per ROI are provided).
+%----------------------------------------------------------------
 spm('Pointer', 'Watch');drawnow;
-spm_progress_bar('Init', nvert,'Optimising lead field orientation'); drawnow;
+spm_progress_bar('Init', nvert,'Preparing lead fields'); drawnow;
 if nvert > 100, Ibar = floor(linspace(1, nvert,100));
 else Ibar = 1:nvert; end
 
-for i = 1:nvert
-    if ~isnan(L{i})
-        
-        lf    = U'*L{i};
-        
-        % Robert's code - to reduce the lead fields to optimal location
-        % TO DO: Add support for multiple lead fields per ROI.
-        [u, ~] = svd(real(pinv_plus(lf' * invCy *lf, reduce_rank, 0)),'econ');
-        eta = u(:,1);
-        lf  = lf * eta;
-        
-        % Store the smooth, reduced lead field
-        UL{i} = lf;
-        
-        if ismember(i, Ibar)
-            spm_progress_bar('Set', i); drawnow;
+if size(L{1},2)~=1
+    fprintf('Optimising leadfield orentations');
+    for i = 1:nvert
+        if ~isnan(L{i})
+            
+            lf    = U'*L{i};
+            
+            % Robert's code - to reduce the lead fields to optimal location
+            % TO DO: Add support for multiple lead fields per ROI.
+            [u, ~] = svd(real(pinv_plus(lf' * invCy *lf, reduce_rank, 0)),'econ');
+            eta = u(:,1);
+            lf  = lf * eta;
+            
+            % Store the smooth, reduced lead field
+            UL{i} = lf;
+            
+            if ismember(i, Ibar)
+                spm_progress_bar('Set', i); drawnow;
+            end
+        end
+    end
+else
+    % Just apply subspace projectors.
+    fprintf('Preparing lead fields\n');
+    for i = 1:nvert
+        if ~isnan(L{i})
+            UL{i}    = U'*L{i};
+            if ismember(i, Ibar)
+                spm_progress_bar('Set', i); drawnow;
+            end
         end
     end
 end
