@@ -93,7 +93,7 @@ end
 %-Cleanup
 %--------------------------------------------------------------------------
 hiSt = struct;
-[a b c] = fileparts(fnamedat(S.D));
+[a, b, ~] = fileparts(fnamedat(S.D));
 hiSt.D = [a filesep b '.mat'];
 hiSt.gradient = S.gradient;
 hiSt.prefix = S.prefix;
