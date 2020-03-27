@@ -40,9 +40,9 @@ function DCM = spm_dcm_fmri_csd(P)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 7497 2018-11-24 17:00:25Z karl $
+% $Id: spm_dcm_fmri_csd.m 7805 2020-03-27 06:23:15Z adeel $
 
-SVNid = '$Rev: 7497 $';
+SVNid = '$Rev: 7805 $';
 
 % Load DCM structure
 %--------------------------------------------------------------------------
@@ -64,11 +64,6 @@ try, DCM.options.centre;     catch, DCM.options.centre     = 0;     end
 try, DCM.options.analysis;   catch, DCM.options.analysis   = 'CSD'; end
 try, DCM.options.order;      catch, DCM.options.order      = 8;     end
 try, DCM.options.nograph;    catch, DCM.options.nograph    = spm('CmdLine');  end
-
-
-% parameter initialisation
-%--------------------------------------------------------------------------
-try, DCM.M.P = DCM.options.P; end
 
 % check max iterations
 %--------------------------------------------------------------------------
@@ -153,6 +148,24 @@ DCM.d   = zeros(n,n,0);
 %==========================================================================
 [pE,pC,x] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
 
+% check for pre-specified priors
+%--------------------------------------------------------------------------
+hE       = 8;
+hC       = 1/128;
+str        = 'Using specified priors ';
+str        = [str '(any changes to DCM.a,b,c,d will be ignored)\n'];
+ 
+try, DCM.M.P   = DCM.options.P;                end      % initial parameters
+try, pE        = DCM.options.pE; fprintf(str); end      % prior expectation
+try, pC        = DCM.options.pC; fprintf(str); end      % prior covariance
+try, hE        = DCM.options.hE; fprintf(str); end      % hyperprior expectation
+try, hC        = DCM.options.hC; fprintf(str); end      % hyperprior covariance
+ 
+try, pE        = DCM.M.pE; fprintf(str); end            % prior expectation
+try, pC        = DCM.M.pC; fprintf(str); end            % prior covariance
+try, hE        = DCM.M.hE; fprintf(str); end            % hyperprior expectation
+try, hC        = DCM.M.hC; fprintf(str); end            % hyperprior covariance
+
 % eigenvector constraints on pC for large models
 %--------------------------------------------------------------------------
 if n > DCM.options.maxnodes
@@ -180,13 +193,6 @@ end
 if isvector(DCM.a)
     DCM.M.modes = spm_svd(cov(DCM.Y.y));
 end
-
-% check for pre-specified priors
-%--------------------------------------------------------------------------
-hE       = 8;
-hC       = 1/128;
-try, pE  = DCM.M.pE; pC  = DCM.M.pC; end
-try, hE  = DCM.M.hE; hC  = DCM.M.hC; end
 
 % create DCM
 %--------------------------------------------------------------------------
@@ -306,14 +312,3 @@ DCM.version.DCM.revision = SVNid;
 save(P,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
 
 return
-
-
-
-
-
-
-
-
-
-
-
