@@ -3,7 +3,7 @@ function res = bf_inverse_ebb(BF, S)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: bf_inverse_ebb.m 7803 2020-03-23 17:00:10Z george $
+% $Id: bf_inverse_ebb.m 7807 2020-03-30 16:33:57Z george $
 
 % NOTE: this is an early developmental version so it comes with George's
 % "NO RESULTS GUARENTEED (TM)" warning.
@@ -23,11 +23,22 @@ if nargin == 0
     corr.tag      = 'corr';
     corr.name     = 'Correlated & homologous sources';
     corr.help     = {['Prior matrix is modified so to account for power in a location '...
-        'and its mirror in the saggital plane, allowing for correlated sources normally suppressed '...
-        'by beamformers to be reconstructed']};
+        'and its correlated partner, allowing for correlated sources normally suppressed '...
+        'by beamformers to be reconstructed. Correlated pairs can be definied in a matrix'...
+        '(see below) or automatically guessed by looking for the mirror along the saggital plane.']};
     corr.labels   = {'yes','no'};
     corr.values   = {true, false};
     corr.val      = {false};
+    
+    pairs = cfg_files;
+    pairs.tag = 'pairs';
+    pairs.name = 'Matrix of correlated pairs';
+    pairs.filter = 'mat';
+    pairs.num=[1 1];
+    pairs.val={''};
+    pairs.help = {['[OPTIONAL] BF.mat file containing a binary adjacency matrix of correlated pairs. '...
+        'If a matrix is not supplied, it will automatically look for a the homologous regions.'...
+        'TIP: If you want a source to not be correlated, pair it with itself (i.e. put a 1 on the diaconal element.']};
     
     iid           = cfg_menu;
     iid.tag       = 'iid';
@@ -59,7 +70,7 @@ if nargin == 0
     ebb      = cfg_branch;
     ebb.tag  = 'ebb';
     ebb.name = 'EBB';
-    ebb.val  = {keeplf,corr,iid,reml,noise};
+    ebb.val  = {keeplf,iid,corr,pairs,reml,noise};
     res = ebb;
     
     return
@@ -72,7 +83,6 @@ res = [];
 C       = BF.features.(S.modality).C;
 invCy   = BF.features.(S.modality).Cinv;
 U       = BF.features.(S.modality).U;
-
 reduce_rank = BF.sources.reduce_rank.(S.modality(1:3));
 
 % Nn      = 1; % The covariance has already been scaled in bf_features, so Nn=1.
@@ -162,14 +172,40 @@ else
     %------------------------------------------------------------------
     if S.corr
         
-        assert(~isempty(strmatch(BF.data.space,'MNI-aligned')),['Correlated source mode must '...
-            'be used with sources in MNI-aligned space, please check you options in the data module']);
-        
-        pos         = BF.sources.pos;
+        if isempty(S.pairs)
+            assert(~isempty(strmatch(BF.data.space,'MNI-aligned')),['Correlated source mode must '...
+                'be used with sources in MNI-aligned space, please check you options in the data module']);
+            
+            pos         = BF.sources.pos;
+            
+            
+            assert(size(pos,1)==nvert,'number of sources do not correspond with number of lead fields...');
+        else
+            if iscell(S.pairs)
+                S.pairs = cell2mat(S.pairs);
+            end
+            fprintf('Loading custom pairs matrix\n');
+            X = load(S.pairs);
+            flds = fields(X);
+            % Assume the file is the only field in the structure
+            assert(length(flds) == 1,['I cannot tell which variable in the pairs mat '...
+                'file is the one you want me to use, please only have one in there!']);
+            eval(['pairs = X.' flds{1} ';']);
+            % Check it has the correct size
+            assert(length(pairs)==nvert,'size of pairs mat doesnt correspond to number of sources');
+            % need to check if its symmetric - and make this fail if so.
+            % (except for the condition of an indetity matrix)
+            tmp = pairs - pairs';
+            assert(sum(abs(tmp(:)))~=0,'pairs mat cannot be symmetric!')
+            % now need to check if pairs are row-wise or columnwise and fix
+            % if its not what we are meant to be expecting
+            if numel(unique(sum(pairs,2))) > 1
+                pairs = pairs';
+                assert(numel(unique(sum(pairs,2)))==1,'you can only have one correlated source per source')
+            end
+            
+        end
         count       = zeros(1,nvert);
-        
-        assert(size(pos,1)==nvert,'number of sources do not correspond with number of lead fields...');
-        
         spm('Pointer', 'Watch');drawnow;
         spm_progress_bar('Init', nvert,'Adding correlated sources'); drawnow;
         if nvert > 100, Ibar = floor(linspace(1, nvert,100));
@@ -178,6 +214,7 @@ else
         for i = 1:nvert
             if ~isnan(L{i})
                 
+                if isempty(S.pairs)
                 % We are looking for sources in the mirror of the saggital
                 % plane, which means flipping the position in the x-axis and
                 % looking for the source which is the closest (Which isnt
@@ -187,6 +224,9 @@ else
                 ss      = dot(del',del');
                 ss(i)   = 1000;
                 [~,id] = min(ss);
+                else
+                    id = find(pairs(i,:));
+                end
                 
                 % pool lead fields together and calculate power
                 lf2 = UL{i}+UL{id};
