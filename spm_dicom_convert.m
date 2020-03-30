@@ -36,7 +36,7 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 % Copyright (C) 2002-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7788 2020-02-18 20:02:47Z yael $
+% $Id: spm_dicom_convert.m 7806 2020-03-30 09:31:23Z guillaume $
 
 
 %-Input parameters
@@ -622,8 +622,8 @@ for i=1:length(Headers)
     % Philips do things differently. The following is for using their scales instead.
     %     Chenevert, Thomas L., et al. "Errors in quantitative image analysis due to
     %     platform-dependent image scaling." Translational oncology 7.1 (2014): 65-71.
-    if isfield(Headers{i},'MRScaleSlope'), pinfos(i,1)     = 1/Headers{i}.MRScaleSlope;                 end
-    if isfield(Headers{i},'MRScaleIntercept'), pinfos(i,2) =  -Headers{i}.MRScaleIntercept*pinfos(i,1); end
+    if isfield(Headers{i},'MRScaleSlope') && ~isempty(Headers{i}.MRScaleSlope), pinfos(i,1)     = 1/Headers{i}.MRScaleSlope;                 end
+    if isfield(Headers{i},'MRScaleIntercept') && ~isempty(Headers{i}.MRScaleIntercept), pinfos(i,2) =  -Headers{i}.MRScaleIntercept*pinfos(i,1); end
 
 end
 
