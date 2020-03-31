@@ -125,7 +125,7 @@ function [MB] = spm_mb_ui(action,varargin)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mb_ui.m 7799 2020-03-12 17:23:14Z karl $
+% $Id: spm_mb_ui.m 7808 2020-03-31 11:18:26Z karl $
 
 OPT.d    = 32;                         % maximum connection length (mm)
 OPT.np   = 1024;                       % number of parcels (particles)
@@ -179,15 +179,15 @@ switch lower(action)
         %------------------------------------------------------------------
         Y      = SPM.xX.W*Y;
         X      = SPM.xX.xKXs.X;
-        M      = SPM.xVol.M(1:3,1:3);                     %-voxels to mm
-        VOX    = diag(sqrt(diag(M'*M))');                 %-voxel size
+        M      = SPM.xVol.M(1:3,1:3);                 %-voxels to mm
+        VOX    = diag(sqrt(diag(M'*M))');             %-voxel size
         
         %-Null-space
         %------------------------------------------------------------------
         X0      = [];
-        try, X0 = [X0 blkdiag(SPM.xX.K.X0)];     end      %-drift terms
-        try, X0 = [X0 spm_detrend(SPM.xGX.gSF)]; end      %-global estimate
-        X0      = full(spm_svd([X0, (X - X*c*pinv(c))])); %-null space of c
+        try, X0 = [X0 blkdiag(SPM.xX.K.X0(:,1:min(16,end)))]; end  %-drift terms
+        try, X0 = [X0 spm_detrend(SPM.xGX.gSF)];              end  %-global estimate
+        X0      = full(spm_svd([X0, (X - X*c*pinv(c))]));          %-null space of c
         Y       = Y - X0*(pinv(X0)*Y);
                 
         % exogenous inputs (decimated)
@@ -654,7 +654,7 @@ switch lower(action)
 
                 % extrapolate
                 %----------------------------------------------------------
-                bs  = exp(Bs(2)*(-8:4:16) + Bs(1))';
+                bs  = exp(Bs(2)*(-4:4:8) + Bs(1))';
                 br  = exp(A(1) + A(2)*log(bs));
                 S   = linspace(min(bs),max(bs),64);
                 
