@@ -39,7 +39,7 @@ function [RCM,BMC,BMA] = spm_dcm_bmr(P,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmr.m 7369 2018-07-09 09:58:03Z peter $
+% $Id: spm_dcm_bmr.m 7809 2020-03-31 11:55:09Z karl $
 
 
 % get filenames and set up
@@ -53,7 +53,7 @@ if isstruct(P), P = {P};         end
 
 % fields to plot
 %--------------------------------------------------------------------------
-if nargin < 2;
+if nargin < 2
     field = {'A','B'};
 end
 if ischar(field)

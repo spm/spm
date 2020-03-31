@@ -46,7 +46,7 @@ function [Ep,Cp,F] = spm_nlsi_Newton(M,U,Y)
 % Copyright (C) 2001-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_Newton.m 6587 2015-11-02 10:29:49Z karl $
+% $Id: spm_nlsi_Newton.m 7809 2020-03-31 11:55:09Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -78,7 +78,7 @@ end
 
 % unpack covariance
 %--------------------------------------------------------------------------
-if isstruct(pC);
+if isstruct(pC)
     pC = spm_diag(spm_vec(pC));
 end
 
@@ -128,7 +128,7 @@ for k = 1:M.Nmax
     %----------------------------------------------------------------------
     Cp    = inv(ipC - dfdpp);
     
-    % Fre  energy: F(p) = log evidence - divergence
+    % Free energy: F(p) = log evidence - divergence
     %======================================================================
     F     = f - p'*ipC*p/2 + spm_logdet(ipC*Cp)/2;
     G(k)  = F;
@@ -161,7 +161,7 @@ for k = 1:M.Nmax
         % decrease regularization
         %------------------------------------------------------------------
         v     = min(v + 1/2,4);
-        str   = 'EM:(+)';
+        str   = 'VB:(+)';
         
     else
         
@@ -172,7 +172,7 @@ for k = 1:M.Nmax
         % and increase regularization
         %------------------------------------------------------------------
         v     = min(v - 2,-4);
-        str   = 'EM:(-)';
+        str   = 'VB:(-)';
         
     end
     

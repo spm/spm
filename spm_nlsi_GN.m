@@ -97,7 +97,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 7279 2018-03-10 21:22:44Z karl $
+% $Id: spm_nlsi_GN.m 7809 2020-03-31 11:55:09Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -116,7 +116,11 @@ end
 try
     M.IS;
 catch
-    M.IS = 'spm_int';
+    try
+        M.IS = M.G;
+    catch
+        M.IS = 'spm_int';
+    end
 end
 
 % composition of feature selection and prediction (usually an integrator)
@@ -127,29 +131,39 @@ catch
     y  = Y;
 end
 
-try
+if isa(M.IS,'function_handle') && isa(M.FS,'function_handle')
     
-    % try FS(y,M)
+    % components feature selection and generation functions
     %----------------------------------------------------------------------
+    IS = @(P,M,U)M.FS(M.IS(P,M,U));
+    y  = feval(M.FS,y);
+    
+else
+    
     try
-        y  = feval(M.FS,y,M);
-        IS = inline([M.FS '(' M.IS '(P,M,U),M)'],'P','M','U');
         
-        % try FS(y)
+        % try FS(y,M)
         %------------------------------------------------------------------
+        try
+            y  = feval(M.FS,y,M);
+            IS = inline([M.FS '(' M.IS '(P,M,U),M)'],'P','M','U');
+            
+            % try FS(y)
+            %--------------------------------------------------------------
+        catch
+            y  = feval(M.FS,y);
+            IS = inline([M.FS '(' M.IS '(P,M,U))'],'P','M','U');
+        end
+        
     catch
-        y  = feval(M.FS,y);
-        IS = inline([M.FS '(' M.IS '(P,M,U))'],'P','M','U');
-    end
-    
-catch
-    
-    % otherwise FS(y) = y
-    %----------------------------------------------------------------------
-    try
-        IS = inline([M.IS '(P,M,U)'],'P','M','U');
-    catch
-        IS = M.IS;
+        
+        % otherwise FS(y) = y
+        %------------------------------------------------------------------
+        try
+            IS = inline([M.IS '(P,M,U)'],'P','M','U');
+        catch
+            IS = M.IS;
+        end
     end
 end
 

@@ -1,6 +1,6 @@
 function F = spm_Pcdf(x,l)
 % Cumulative Distribution Function (PDF) of Poisson distribution
-% FORMAT F = spm_Ppdf(x,l)
+% FORMAT F = spm_Pcdf(x,l)
 %
 % x - ordinates
 % l - Poisson mean parameter (lambda l>0) [Defaults to 1]
@@ -59,7 +59,7 @@ function F = spm_Pcdf(x,l)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Pcdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% $Id: spm_Pcdf.m 7809 2020-03-31 11:55:09Z karl $
 
 
 %-Format arguments, note & check sizes

@@ -7,7 +7,7 @@ function D = spm_diag(varargin)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_diag.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_diag.m 7809 2020-03-31 11:55:09Z karl $
 
 try
     X = varargin{1};
@@ -25,7 +25,7 @@ if ~iscell(X)
 %--------------------------------------------------------------------------
 else
 
-    try, K = varargin{2}; catch, K = 0; end
+    if nargin < 2, K = 0; else, K = varargin{2}; end
     [m,n]  = size(X);
 
     % return the cell array whose K-th diagonal is X

@@ -13,12 +13,14 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 7305 2018-05-07 13:35:06Z karl $
+% $Id: spm_plot_ci.m 7809 2020-03-31 11:55:09Z karl $
 
 
 % get axis
 %--------------------------------------------------------------------------
-ax = gca;
+ax   = gca;
+colf = [.8 .8 1];
+coll = spm_softmax(32*log(colf(:)))';
 
 % confidence region (CR) plotting
 %--------------------------------------------------------------------------
@@ -84,15 +86,19 @@ elseif isnumeric(C)
         c = ci*sqrt(C(j,:));
     elseif all(size(C') == size(O))
         c = ci*sqrt(C(:,j));
+        c = c(:)';
     else
         
         % try covariance matrix
         %------------------------------------------------------------------
         C = diag(C);
-        c = ci*sqrt(C(j,:));
+        c = ci*sqrt(C);
+        c = c(:)';
     end
     
 end
+
+
 
 % set plot parameters
 %--------------------------------------------------------------------------
@@ -125,15 +131,15 @@ if N >= 8
     %======================================================================
     if strcmpi(s,'exp')
         fill([x fliplr(x)],exp([full(E + c) fliplr(full(E - c))]),...
-            [.95 .95 1],'EdgeColor',[.8 .8 1],'Parent',ax);
+            colf,'EdgeColor','none','Parent',ax,'facealpha', 0.4);
         hold(ax,'on');
-        plot(x,exp(E));
+        plot(x,exp(E),'Color',coll);
         
     else
         fill([x fliplr(x)],[full(E + c) fliplr(full(E - c))],...
-            [.95 .95 1],'EdgeColor',[.8 .8 1],'Parent',ax);
+            colf,'EdgeColor','none','Parent',ax,'facealpha', 0.4);
         hold(ax,'on');
-        plot(ax,x,E,s);
+        plot(ax,x,E,s,'Color',coll);
     end    
     
 else
@@ -147,13 +153,14 @@ else
             
             % conditional means
             %--------------------------------------------------------------
-            bar(ax,exp(E),width,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8);
+            bar(ax,exp(E),width,'Edgecolor',colf,'Facecolor',colf);
             hold(ax,'on');
             
             % conditional variances
             %--------------------------------------------------------------
             for k = 1:n
-                line([k k],exp([-1 1]*c(k) + E(k)),'LineWidth',4,'Color',col,'Parent',ax);
+                line([k k],exp([-1 1]*c(k) + E(k)),...
+                    'LineWidth',4,'Color',col,'Parent',ax);
             end
             
         else
@@ -162,13 +169,13 @@ else
                 
                 % conditional means
                 %----------------------------------------------------------
-                bar(ax,E,width,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8);
+                bar(ax,E,width,'Edgecolor',colf,'Facecolor',colf);
                 hold(ax,'on');
                 
             else
                 % conditional means
                 %----------------------------------------------------------
-                bar(ax,E,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8);
+                bar(ax,E,'Edgecolor',colf,'Facecolor',colf);
                 hold(ax,'on');
                 
             end
@@ -197,7 +204,8 @@ else
             for m = 1:n
                 x = mean(get(get(h(m),'Children'),'Xdata'));
                 for k = 1:N
-                    line([x(k) x(k)],exp([-1 1]*c(m,k) + E(m,k)),'LineWidth',1,'Color',col,'Parent',ax);
+                    line([x(k) x(k)],exp([-1 1]*c(m,k) + E(m,k)),...
+                        'LineWidth',1,'Color',col,'Parent',ax,'facealpha',0.4);
                 end
             end
             
@@ -212,7 +220,8 @@ else
             for m = 1:N
                 x = mean(get(get(h(m),'Children'),'Xdata'));
                 for k = 1:n
-                    line([x(k) x(k)],[-1 1]*c(k,m) + E(k,m),'LineWidth',4,'Color',col,'Parent',ax);
+                    line([x(k) x(k)],[-1 1]*c(k,m) + E(k,m),...
+                        'LineWidth',4,'Color',col,'Parent',ax);
                 end
             end
             

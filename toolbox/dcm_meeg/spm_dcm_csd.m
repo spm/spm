@@ -41,7 +41,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 7279 2018-03-10 21:22:44Z karl $
+% $Id: spm_dcm_csd.m 7809 2020-03-31 11:55:09Z karl $
  
  
 % check options
@@ -90,7 +90,7 @@ if isempty(DCM.xU.X),    DCM.C    = sparse(Ns,0); end
 % check to see if neuronal priors have already been specified
 %--------------------------------------------------------------------------
 try
-    if spm_length(DCM.M.pE) == spm_length(pE);
+    if spm_length(DCM.M.pE) == spm_length(pE)
         pE = DCM.M.pE;
         pC = DCM.M.pC;
         fprintf('Using existing priors\n')

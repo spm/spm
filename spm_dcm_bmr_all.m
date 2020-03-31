@@ -64,7 +64,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 7799 2020-03-12 17:23:14Z karl $
+% $Id: spm_dcm_bmr_all.m 7809 2020-03-31 11:55:09Z karl $
 
 
 %-specification of null prior covariance
@@ -412,11 +412,10 @@ if nargout > 1
     axis tight, axis square
     
     subplot(3,2,6)
-    Np = length(i);
-    bar(1:Np,diag(Pp(i)))
+    bar(Pp(i))
     xlabel('parameter'), title(' posterior','FontSize',16)
     axis square
-    drawnow, axis([0 (Np + 1) 0 1])
+    drawnow, axis([0 (numel(i) + 1) 0 1])
     
 end
 
