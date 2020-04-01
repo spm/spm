@@ -1,5 +1,5 @@
 function [Y,X] = spm_COVID_gen(P,M,U)
-% generate predictions and hidden states of a COVID model
+% Generate predictions and hidden states of a COVID model
 % FORMAT [Y,X] = spm_COVID_gen(P,M,U)
 % P   - model parameters
 % M   - model structure (requires M.T - length of timeseries)
@@ -11,7 +11,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Y(:,4) - CCU bed occupancy
 %
 % X      - (M.T x 4) marginal densities over four factors
-% location   : {'home','out','CCU','norgue'};
+% location   : {'home','out','CCU','morgue'};
 % infection  : {'susceptible','infected','infectious','immune'};
 % clinical   : {'asymptomatic','symptoms','ARDS','death'};
 % diagnostic : {'untested','waiting','positive','negative'}
@@ -40,10 +40,10 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % A more detailed description of the generative model can be found in the
 % body of the script.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7809 2020-03-31 11:55:09Z karl $
+% $Id: spm_COVID_gen.m 7810 2020-04-01 13:58:56Z spm $
 
 
 % The generative model:
@@ -67,7 +67,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % be untested or waiting for the results of a test that can either be
 % positive or negative. With this setup, one can be in one of four places,
 % with any infectious status, expressing symptoms or not and having test
-% results or not. Note that – in this construction – it is possible to be
+% results or not. Note that - in this construction - it is possible to be
 % infected and yet be asymptomatic. However, the marginal distributions are
 % not independent, in virtue of the dynamics that describe the transition
 % among states within each factor. Crucially, the transitions within any
@@ -77,10 +77,10 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Similarly, the probability of developing symptoms depends upon whether
 % one is infected or not. The probability of being tested depends upon
 % whether one is symptomatic. These three examples are highlighted by the
-% curvilinear arrows – denoting that transition probabilities are
+% curvilinear arrows - denoting that transition probabilities are
 % conditioned upon the marginal distributions over other factors. Finally,
 % to complete the circular dependency, the probability of leaving home to
-% go to work depends upon the number of infected people in the population –
+% go to work depends upon the number of infected people in the population -
 % as a result of social distancing (please see main text). These
 % conditional dependencies constitute the mean field approximation and
 % enable the dynamics to be solved or integrated over time. At any one
@@ -148,7 +148,7 @@ for i = 1:M.T
     
     % recovery rate times the number of people in CCU with ARDS
     %----------------------------------------------------------------------
-    ps     = squeeze(sum(x,[2,4]));
+    ps     = squeeze(sum(sum(x,2),4));
     Pccu   = ps(3,3)/(sum(ps(:,3)) + eps);
     Y(i,3) = Pccu*(p{3}(4)*(1 - Pfat)/Pfat) + ...
              (1 - Pccu)*(p{3}(4)*Psur/(1 - Psur));

@@ -7,7 +7,7 @@ function [DCM,GCM] = DEM_COVID(data)
 % Laplace). It illustrates hierarchical Bayesian modelling by first
 % inverting a generative model of each country, and then combining the
 % posterior densities over the model parameters using parametric empirical
-% Bayesto leverage systematic differences between countries, as
+% Bayes to leverage systematic differences between countries, as
 % characterised by their population, geographical location etc.
 %
 % This routine produces a series of figures illustrating parameter
@@ -18,14 +18,14 @@ function [DCM,GCM] = DEM_COVID(data)
 % and initial (herd) immunity.
 %
 % Each subsection produces one or two figures that are described in the
-% annotated (Matlab)code. These subsections core various subroutines that
+% annotated (Matlab) code. These subsections core various subroutines that
 % provide a more detailed description of things like the generative model,
 % its priors and the evaluation confidence intervals.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID.m 7809 2020-03-31 11:55:09Z karl $
+% $Id: DEM_COVID.m 7810 2020-04-01 13:58:56Z spm $
 
 % F: -1.5701e+04 social distancing based upon P(infected)
 % F: -1.5969e+04 social distancing based upon P(symptomatic)
@@ -41,6 +41,7 @@ if nargin < 1,  data = DATA_COVID_JHU; end
 
 % Inversion (i.e., fitting) of empirical data
 %==========================================================================
+Fsi = spm_figure('GetWin','SI'); clf;
 
 % assemble (Gaussian) priors over model parameters
 %--------------------------------------------------------------------------
@@ -53,7 +54,7 @@ for i = 1:numel(data)
     
     % data for this country (here, and positive test rates)
     %----------------------------------------------------------------------
-    set(gcf,'name',data(i).country)
+    set(Fsi,'name',data(i).country)
     Y   = [data(i).death, data(i).cases];
     
     % variational Laplace (estimating log evidence (F) and posteriors)
@@ -83,8 +84,8 @@ spm_figure('GetWin','Bayesian model reduction'); clf;
 % instance, the models compared are at the second or between country level.
 % In other words, the models compared contained all combinations of (second
 % level) parameters (a parameter is removed by setting its prior covariance
-% to zero). If the model evidence increases – in virtue of reducing model
-% complexity – then this parameter is redundant. The redundant parameters
+% to zero). If the model evidence increases - in virtue of reducing model
+% complexity - then this parameter is redundant. The redundant parameters
 % are shown in the lower panels by comparing the posterior expectations
 % before and after Bayesian model reduction. The blue bars correspond to
 % posterior expectations, while the pink bars denote 90% Bayesian credible
@@ -128,7 +129,7 @@ GLM.Xnames = Xn;
 BPA       = spm_dcm_bpa(DCM,'nocd');
 
 
-% illustrate the largest between country effects
+% Illustrate the largest between country effects
 %==========================================================================
 spm_figure('GetWin','Second level effects'); clf;
 %--------------------------------------------------------------------------
@@ -169,7 +170,7 @@ spm_figure('GetWin','Parameter estimates'); clf;
 %--------------------------------------------------------------------------
 % (Bayesian parameter averages). This figure reports the Bayesian parameter
 % averages over countries following a hierarchical or parametric empirical
-% Bayesian analysis that tests for – and applies shrinkage priors to –
+% Bayesian analysis that tests for - and applies shrinkage priors to -
 % posterior parameter estimates for each country. The upper panel shows the
 % parameters as estimated in log space, while the lower panel shows the
 % same results for the corresponding scale parameters (scale parameters are
@@ -218,9 +219,9 @@ spm_figure('GetWin','Parameters');
 % in the United States and Australia. The blue bars represent the posterior
 % expectations, while the pink bars are 90% Bayesian credible intervals.
 % Notice that these intervals are not symmetrical about the mean because
-% scale parameters are plotted here – as opposed to the log parameters. The
-% next figure illustrates the predictions – in terms of new deaths and
-% cases – based upon these parameter estimates.
+% scale parameters are plotted here - as opposed to the log parameters. The
+% next figure illustrates the predictions - in terms of new deaths and
+% cases - based upon these parameter estimates.
 
 % assemble parameters
 %--------------------------------------------------------------------------
@@ -327,7 +328,7 @@ spm_figure('GetWin',['Sensitivity: ' country]);
 % rate. Interestingly, increasing both the period of symptoms and ARDS
 % decreases overall death rate; presumably, because there is more time to
 % recover to an asymptomatic state and the probability of infecting someone
-% else – when symptomatic – is attenuated. The next figure focuses on the
+% else - when symptomatic - is attenuated. The next figure focuses on the
 % effects of social distancing as a way of ameliorating the impact on
 % deaths.
 
@@ -416,8 +417,8 @@ spm_figure('GetWin',['Herd immunity:' country]); clf;
 % about 70%. The dashed line in the upper panel shows the equivalent deaths
 % over the same time period due to seasonal flu (based upon 2019 figures).
 % This death rate would require an initial or herd immunity of about 60%.
-% It is interesting to return to Figure 6 and identify at what point –
-% during the course of the infection episode – this level of herd immunity
+% It is interesting to return to Figure 6 and identify at what point -
+% during the course of the infection episode - this level of herd immunity
 % is obtained.
 
 %--------------------------------------------------------------------------
@@ -428,9 +429,9 @@ spm_figure('GetWin',['Herd immunity:' country]); clf;
 % rate for the flu.
 
 % The Department for Transport (DfT) has announced there were 1,784
-% reported road deaths in 2018, compared to 1,793 reported in 2017 – a 1%
+% reported road deaths in 2018, compared to 1,793 reported in 2017 - a 1%
 % fall. There were 25,511 people seriously injured in reported road traffic
-% accidents in 2018, compared to 24,831 in 2017 – a 3% year-on-year
+% accidents in 2018, compared to 24,831 in 2017 - a 3% year-on-year
 % increase
 %--------------------------------------------------------------------------
 
@@ -464,7 +465,7 @@ axis square,box off
 
 % demonstrate routines: predictive validity
 %==========================================================================
-% (predictive validity – early). This figure uses the same format as Figure
+% (predictive validity - early). This figure uses the same format as Figure
 % 5; however, here, the posterior estimates are based upon partial data,
 % from early in the timeseries for an exemplar country. These estimates are
 % based upon the empirical priors following parametric empirical Bayes. The

@@ -12,10 +12,10 @@ function spm_COVID_plot(Y,X,Z)
 % predicted outcomes are supplied, a threshold will be superimposed;
 % reflecting the typical number of beds available per population cell.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_plot.m 7809 2020-03-31 11:55:09Z karl $
+% $Id: spm_COVID_plot.m 7810 2020-04-01 13:58:56Z spm $
 
 % Plot outcomes
 %==========================================================================
@@ -73,5 +73,3 @@ if nargin > 2
     subplot(3,2,2), hold on, plot(t,cumsum(Z),'.k'), hold off
 end
 drawnow
-
-return

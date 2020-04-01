@@ -1,5 +1,5 @@
 function [P,C,str,rfx] = spm_COVID_priors
-% Generates prior expectation and covariance log parameters
+% Generate prior expectation and covariance log parameters
 % FORMAT [pE,pC,str,rfx] = spm_COVID_priors
 % 
 % pE          - prior expectation (structure)
@@ -33,10 +33,10 @@ function [P,C,str,rfx] = spm_COVID_priors
 % in terms of a prior expectation and covariance and Gaussian assumptions
 % (i.e., lognormal priors over scale parameters).
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors.m 7809 2020-03-31 11:55:09Z karl $
+% $Id: spm_COVID_priors.m 7810 2020-04-01 13:58:56Z spm $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -85,7 +85,7 @@ names{19} = 'test capacity'; %**
 names{20} = 'test rate'; %**
 names{21} = 'test delay'; %**
 
-% random effects (i.e., effects thatare common in countries)
+% random effects (i.e., effects that are common in countries)
 %--------------------------------------------------------------------------
 rfx       = [2:18];
 

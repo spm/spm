@@ -19,10 +19,10 @@ function spm_COVID_ci(Ep,Cp,Z)
 % requires a slight inflation of uncertainty. Here, the posterior
 % covariance is multiplied by a factor of four.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_ci.m 7809 2020-03-31 11:55:09Z karl $
+% $Id: spm_COVID_ci.m 7810 2020-04-01 13:58:56Z spm $
 
 % priors and names for plotting
 %--------------------------------------------------------------------------

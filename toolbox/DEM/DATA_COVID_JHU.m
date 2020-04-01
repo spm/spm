@@ -1,5 +1,5 @@
 function data = DATA_COVID_JHU
-% data retrieval function for COVID modelling
+% Data retrieval function for COVID modelling
 % FORMAT data = DATA_COVID_JHU
 %
 % This auxiliary routine retrieves data from comma separated data files
@@ -31,19 +31,10 @@ function data = DATA_COVID_JHU
 % Please see the main body of the script for a description of the graphical
 % outputs provided when the routine is called with at an output argument.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 7809 2020-03-31 11:55:09Z karl $
-
-%__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
-
-% Karl Friston
-% $Id: DATA_COVID_JHU.m 7809 2020-03-31 11:55:09Z karl $
-
-% demonstrate routines - inversion of empirical data
-%__________________________________________________________________________
+% $Id: DATA_COVID_JHU.m 7810 2020-04-01 13:58:56Z spm $
 
 
 % load data from https://github.com/CSSEGISandData/COVID-19/
@@ -173,7 +164,7 @@ if nargout, return, end
     
 spm_figure('GetWin','Data');
 
-subplot(3,2,1), histogram(T,32,'Edgecolor','none')
+subplot(3,2,1), hist(T,32,'Edgecolor','none')
 title('Duration (days)','Fontsize',16)
 xlabel('days'),ylabel('number of countries'), axis square
 
@@ -210,16 +201,3 @@ for i = 1:numel(data)
     subplot(3,2,6), text(sum(death(:,i)),sum(cases(:,i)),data(i).country,'FontSize',9)
     subplot(3,2,4), text(pop(i),sum(death(:,i)),         data(i).country,'FontSize',9)
 end
-
-
-
-
-
-
-
-
-
-
-
-
-

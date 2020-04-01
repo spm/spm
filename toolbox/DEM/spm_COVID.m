@@ -1,6 +1,6 @@
 function [F,Ep,Cp,pE,pC,Eh] = spm_COVID(Y,pE,pC)
-% variational inversion of COVID model
-% FORNAT [F,Ep,Cp,pE,pC,Eh] = spm_COVID(Y)
+% Variational inversion of COVID model
+% FORMAT [F,Ep,Cp,pE,pC,Eh] = spm_COVID(Y,pE,pC)
 % Y   - timeseries data
 % %
 % F   - log evidence (negative variational free energy)
@@ -34,10 +34,10 @@ function [F,Ep,Cp,pE,pC,Eh] = spm_COVID(Y,pE,pC)
 % transform is treated as a feature selection or link function; please see
 % the subroutine spm_COVID_FS.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID.m 7809 2020-03-31 11:55:09Z karl $
+% $Id: spm_COVID.m 7810 2020-04-01 13:58:56Z spm $
 
 
 % Gaussian priors over model parameters
@@ -77,7 +77,7 @@ function L = spm_COVID_LL(P,M,U,Y)
 % log-likelihood function
 % FORMAT L = spm_COVID_LL(P,M,U,Y)
 % P    - model parameters
-% M    - model structurel
+% M    - model structure
 % U    - inputs or control variables
 % Y    - outputs or response variables
 %
