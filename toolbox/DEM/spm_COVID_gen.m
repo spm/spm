@@ -45,7 +45,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7811 2020-04-05 12:00:43Z karl $
+% $Id: spm_COVID_gen.m 7812 2020-04-05 12:14:56Z karl $
 
 
 % The generative model:
@@ -150,14 +150,6 @@ for i = 1:M.T
     % cumulative number of positive tests
     %----------------------------------------------------------------------
     Y(i,2) = p{4}(3);
-    
-    % recovery rate times the number of people in CCU with ARDS
-    %----------------------------------------------------------------------
-    ps     = squeeze(sum(x,[2,4]));
-    Pccu   = ps(3,3)/(sum(ps(:,3)) + eps);
-    Y(i,3) = Pccu*(p{3}(4)*(1 - Pfat)/Pfat) + ...
-             (1 - Pccu)*(p{3}(4)*Psur/(1 - Psur));
-    Y(i,2) = N*p{4}(3);
 
     % CCU bed occupancy
     %----------------------------------------------------------------------
