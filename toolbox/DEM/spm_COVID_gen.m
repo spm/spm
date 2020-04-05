@@ -45,7 +45,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7812 2020-04-05 12:14:56Z karl $
+% $Id: spm_COVID_gen.m 7813 2020-04-05 12:18:02Z karl $
 
 
 % The generative model:
@@ -149,7 +149,7 @@ for i = 1:M.T
     
     % cumulative number of positive tests
     %----------------------------------------------------------------------
-    Y(i,2) = p{4}(3);
+    Y(i,2) = N*p{4}(3);
 
     % CCU bed occupancy
     %----------------------------------------------------------------------
