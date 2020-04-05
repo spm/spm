@@ -1,9 +1,10 @@
-function spm_COVID_ci(Ep,Cp,Z)
+function spm_COVID_ci(Ep,Cp,Z,U)
 % Graphics for coronavirus simulations - with confidence intervals
-% FORMAT spm_COVID_plot(Y,X,Z)
+% FORMAT spm_COVID_plot(Y,X,Z,N)
 % Ep     - posterior expectations
 % Cp     - posterior covariances
 % Z      - optional empirical data
+% U      - outputs to evaluate [default: 1:4]
 %
 % This routine evaluates a trajectory of outcome variables from a COVID
 % model and plots the expected trajectory and accompanying Bayesian
@@ -22,7 +23,12 @@ function spm_COVID_ci(Ep,Cp,Z)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_ci.m 7810 2020-04-01 13:58:56Z spm $
+% $Id: spm_COVID_ci.m 7811 2020-04-05 12:00:43Z karl $
+
+% default: number of outcomes to evaluate
+%--------------------------------------------------------------------------
+if nargin < 4,    U = 1:3; end
+if numel(U) == 1, U = 1:U; end
 
 % priors and names for plotting
 %--------------------------------------------------------------------------
@@ -30,16 +36,16 @@ function spm_COVID_ci(Ep,Cp,Z)
 
 % compensate for (variational) overconfidence
 %--------------------------------------------------------------------------
-Cp      = Cp*4;
+% Cp       = Cp*4;
 
 % evaluate confidence intervals (using a Taylor expansion)
 %==========================================================================
 
 % changes in outcomes with respect to parameters
 %--------------------------------------------------------------------------
-M.T      = 128;
+M.T      = 180;
 t        = (1:M.T)/7;
-[dYdP,Y] = spm_diff(@(P,M,U)spm_COVID_gen(P,M,U),Ep,M,4,1);
+[dYdP,Y] = spm_diff(@(P,M,U)spm_COVID_gen(P,M,U),Ep,M,U,1);
 
 % conditional covariances
 %--------------------------------------------------------------------------
@@ -60,13 +66,14 @@ CS    = dSdP*Cp*dSdP';
 
 % graphics
 %--------------------------------------------------------------------------
+outcome = str.outcome(U);
 for i = 1:Ny
     subplot(Ny,2,(i - 1)*2 + 1), hold off
     spm_plot_ci(Y(:,i)',C{i},t), hold on
     try, plot(t(1:numel(Z(:,i))),Z(:,i),'.k'), end
     xlabel('time (weeks)'),ylabel('number of cases/day')
-    title(str.outcome{i},'FontSize',16)
-    axis square, box off
+    title(outcome{i},'FontSize',16)
+    axis square, box off, spm_axis tight
 end
 
 subplot(2,2,2), hold off
@@ -74,7 +81,7 @@ spm_plot_ci(S',CS,t), hold on
 try, plot(t(1:numel(Z(:,1))),cumsum(Z(:,1)),'.k'), end
 xlabel('time (weeks)'),ylabel('number of cases')
 title('Cumulative deaths','FontSize',16)
-axis square, box off
+axis square, box off, spm_axis tight
 
 subplot(2,2,4), hold off
 spm_plot_ci(Ep,Cp,[],[],'exp'),               hold on

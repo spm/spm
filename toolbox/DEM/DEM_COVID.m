@@ -25,7 +25,7 @@ function [DCM,GCM] = DEM_COVID(data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID.m 7810 2020-04-01 13:58:56Z spm $
+% $Id: DEM_COVID.m 7811 2020-04-05 12:00:43Z karl $
 
 % F: -1.5701e+04 social distancing based upon P(infected)
 % F: -1.5969e+04 social distancing based upon P(symptomatic)
@@ -49,6 +49,7 @@ Fsi = spm_figure('GetWin','SI'); clf;
 
 % Bayesian inversion (placing posteriors in a cell array of structures)
 %--------------------------------------------------------------------------
+spm_figure('GetWin','SI');
 GCM   = cell(size(data(:)));
 for i = 1:numel(data)
     
@@ -68,6 +69,7 @@ for i = 1:numel(data)
     DCM.Ep   = Ep;
     DCM.Cp   = Cp;
     DCM.F    = F;
+    DCM.Y    = Y;
     
     % save this country (in a cell array)
     %----------------------------------------------------------------------
@@ -98,6 +100,14 @@ spm_figure('GetWin','Bayesian model reduction'); clf;
 
 % general linear model (constant, log-population, latitude and longitude)
 %--------------------------------------------------------------------------
+% M.X      - 2nd-level design matrix: X(:,1) = ones(N,1) [default]
+% M.bE     - 3rd-level prior expectation [default: DCM{1}.M.pE]
+% M.bC     - 3rd-level prior covariance  [default: DCM{1}.M.pC/M.alpha]
+% M.pC     - 2nd-level prior covariance  [default: DCM{1}.M.pC/M.beta]
+%
+% M.alpha  - optional scaling to specify M.bC [default = 1]
+% M.beta   - optional scaling to specify M.pC [default = 16]
+%--------------------------------------------------------------------------
 lat    = spm_vec([data.lat]);
 lon    = spm_vec([data.long]);
 lat    = lat*2*pi/360;
@@ -113,8 +123,12 @@ X      = [log(spm_vec([data.pop])) X];
 X      = [ones(numel(data),1) X];
 X      = spm_orth(X,'norm');
 X(:,1) = 1;
-GLM.X  = X;
+
+
+GLM.X      = X;
 GLM.Xnames = Xn;
+GLM.alpha  = 1;
+GLM.beta   = 16;
 
 % parametric empirical Bayes (with random effects in str.field)
 %--------------------------------------------------------------------------
@@ -124,10 +138,26 @@ GLM.Xnames = Xn;
 %--------------------------------------------------------------------------
 [BMA,BMR] = spm_dcm_bmr_all(PEB,str.field);
 
+
+% Repeat inversion using parametric empirical priors
+%==========================================================================
+for i = 1:numel(DCM)
+
+    % variational Laplace
+    %----------------------------------------------------------------------
+    [F,Ep,Cp] = spm_COVID(DCM{i}.Y,DCM{i}.M.pE,DCM{i}.M.pC);
+    
+    % assemble prior and posterior estimates (and log evidence)
+    %----------------------------------------------------------------------
+    DCM{i}.Ep = Ep;
+    DCM{i}.Cp = Cp;
+    DCM{i}.F  = F;
+    
+end
+
 % Bayesian parameter averaging (over countries)
 %--------------------------------------------------------------------------
 BPA       = spm_dcm_bpa(DCM,'nocd');
-
 
 % Illustrate the largest between country effects
 %==========================================================================
@@ -144,7 +174,6 @@ spm_figure('GetWin','Second level effects'); clf;
 % assemble parameters
 %--------------------------------------------------------------------------
 P     = [];                                   % posterior expectations
-C     = [];                                   % posterior variances
 for i = 1:numel(DCM)
     P(:,i) = spm_vec(DCM{i}.Ep);
 end
@@ -157,12 +186,23 @@ Ep      = abs(PEB.Ep);
 Ep(:,1) = 0;
 Sp      = sort(Ep(:),'descend');
 
-for i = 1:6
+for i = 1:4
     [I,J] = find(Ep == Sp(i));
     subplot(3,2,i), plot(X(:,J),P(I,:),'.','MarkerSize',32,'Color',[0.8 0.8 1])
     xlabel(PEB.Xnames{J}),ylabel([ 'log ' Pname{I}])
     title(Pname{I},'FontSize',16),axis square, box off
 end
+
+% GLM (second level) parameters
+%--------------------------------------------------------------------------
+subplot(3,1,3)
+i = PEB.Pind;
+imagesc(Ep), title('Parameters of GLM','FontSize',16)
+set(gca,'XTick',1:numel(GLM.Xnames) ,'Xticklabel',GLM.Xnames)
+set(gca,'YTick',1:numel(str.names(i)),'Yticklabel',str.names(i))
+set(gca,'XTickLabelRotation',90)
+axis square, box off
+
 
 % report Bayesian parameter averages, in relation to priors
 %--------------------------------------------------------------------------
@@ -208,7 +248,7 @@ camorbit(90,0), axis square, box off
 
 % Differences among countries, in terms of parameters
 %==========================================================================
-spm_figure('GetWin','Parameters');
+spm_figure('GetWin','Parameters'); clf;
 %--------------------------------------------------------------------------
 % (differences among countries). This figure reports the differences among
 % countries in terms of selected parameters of the generative model,
@@ -232,15 +272,51 @@ for i = 1:numel(DCM)
     C(:,i) = diag(DCM{i}.Cp);
 end
 
+% names{1}  = 'initial cases';        %**
+% names{2}  = 'size of population';
+% names{3}  = 'initial immunity';
+% names{4}  = 'P(work | home)';
+% names{5}  = 'social distancing';
+% names{6}  = 'bed availability';  
+% names{7}  = 'contacts: home';
+% names{8}  = 'contacts: work';
+% names{9}  = 'P(contagion | contact)';
+% names{10} = 'infected period';
+% names{11} = 'contagious period';
+% names{12} = 'P(symptoms | infected)';
+% names{13} = 'P(ARDS | symptoms)';
+% names{14} = 'symptomatic period';
+% names{15} = 'acute RDS  period';
+% names{16} = 'P(fatality | CCU)';
+% names{17} = 'P(survival | home)';
+% names{18} = 'threshold for testing';  %**
+% names{19} = 'test rate';              %**
+% names{20} = 'test delay';             %**
+% names{21} = 'P(tested | uninfected)'; %**
+
 % report selected parameters (see spm_COVID_priors)
 %--------------------------------------------------------------------------
-Np    = spm_length(pE);
-j     = 1:Np; j([1,3,5,7,11,15,18,19,21]) = [];
-for i = 1:length(j)
-    subplot(4,3,i) 
-    spm_plot_ci(P(j(i),:)',C(j(i),:),[],[],'exp')
-    title(str.names{j(i)},'FontSize',16)
+p     = [2,4,5,7,8,9,11,13,15,16,17,19];
+for i = 1:length(p)
+    
+    % posterior density
+    %----------------------------------------------------------------------
+    subplot(4,3,i)
+    Ep   = P(p(i),:);
+    Cp   = C(p(i),:);
+    spm_plot_ci(Ep',Cp,[],[],'exp'), hold on
+    title(str.names{p(i)},'FontSize',16)
     xlabel('country'), axis square, box off
+    
+    % country with greatest map estimate (and United Kingdom)
+    %----------------------------------------------------------------------
+    [d,j] = max(exp(Ep));
+    text(j,d,data(j).country,'FontSize',8);
+    [d,j] = min(exp(Ep));
+    text(j,d,data(j).country,'FontSize',8);
+    j     = find(ismember({data.country},'United Kingdom'));
+    text(j,exp(Ep(j)),'*','FontSize',12,'Color','r','HorizontalAlignment','center');
+    
 end
 
 
@@ -248,8 +324,8 @@ end
 %==========================================================================
 country = 'United Kingdom';                       % country to predict
 i       = find(ismember({data.country},country)); % country index
-Y       = [data(i).death, data(i).cases];         % empirical data
 M.T     = 180;                                    % six-month period
+Y       = DCM{i}.Y;                               % empirical data
 Ep      = DCM{i}.Ep;                              % posterior expectations
 Cp      = DCM{i}.Cp;                              % posterior covariances
 
@@ -277,8 +353,22 @@ spm_figure('GetWin',country); clf;
 % death rates itself accumulates. The mapping from parameters, through
 % ensemble dynamics to outcomes is mediated by latent or hidden states. The
 % trajectory of these states is illustrated in the subsequent figure.
-
+%--------------------------------------------------------------------------
+% Public Health England estimates that on average 17,000 people have died
+% from the flu in England annually between 2014/15 and 2018/19. However,
+% the yearly deaths vary widely, from a high of 28,330 in 2014/15 to a low
+% of 1,692 in 2018/19. Public Health England does not publish a mortality
+% rate for the flu.
+%--------------------------------------------------------------------------
 spm_COVID_ci(Ep,Cp,Y)
+
+% add seasonal flu rates
+%--------------------------------------------------------------------------
+FLU = [1692,28330];            % death rate for seasonal flu (per season)
+subplot(2,2,2), hold on
+x   = get(gca,'XLim');
+plot(x,[FLU(1) FLU(1)],'-.r',x,[FLU(2) FLU(2)],'-.r')
+spm_axis tight
 
 % and plot latent or hidden states
 %--------------------------------------------------------------------------
@@ -310,13 +400,13 @@ spm_figure('GetWin',['Predictions: ' country]); clf;
 % later. One might ask to what extent these trajectories depend upon
 % different model parameters. This is quantified in the next figure.
 
-[Z,X] = spm_COVID_gen(DCM{i}.Ep,M,4);
+[Z,X] = spm_COVID_gen(Ep,M,3);
 spm_COVID_plot(Z,X,Y)
 
 
 % Sensitivity analysis: which factors determine cumulative deaths?
 %==========================================================================
-spm_figure('GetWin',['Sensitivity: ' country]);
+spm_figure('GetWin',['Sensitivity: ' country]); clf
 %--------------------------------------------------------------------------
 % (sensitivity analysis). These panels show the change in outcome measures
 % (upper panel: death rate. lower panel: new cases). The bar charts are the
@@ -334,27 +424,30 @@ spm_figure('GetWin',['Sensitivity: ' country]);
 
 % sensitivity analysis in terms of partial derivatives
 %--------------------------------------------------------------------------
-[dYdP,Y] = spm_diff(@(P,M,U)spm_COVID_gen(P,M,U),Ep,M,2,1);
-Ny       = size(Y,2);
+[ddY,dY] = spm_diff(@(P,M,U)spm_COVID_gen(P,M,U),Ep,M,1,[1,1]);
+Np       = spm_length(Ep);
 
 % cumulative effects over time
 %--------------------------------------------------------------------------
-for i = 1:Ny
-    for j = 1:size(dYdP,2)
-        D{j} = dYdP{j}(:,i);
-    end
-    dRdP{i}  = sum(spm_cat(D));
+DY    = sum(dY);
+for i = 1:Np
+    DDY{i} = sum(ddY{i});
 end
+DDY   = spm_cat(DDY');
 
 % plot results
 %--------------------------------------------------------------------------
-for i = 1:Ny
-    subplot(Ny,1,i)
-    bar(dRdP{i})
-    set(gca,'XTick',1:spm_length(Ep),'Xticklabel',str.names,'FontSize',8)
-    ylabel(str.outcome{i},'FontSize',16), box off
-    camorbit(90,0),axis square
-end
+subplot(2,1,1)
+bar(DY)
+set(gca,'XTick',1:Np,'Xticklabel',str.names,'FontSize',8)
+ylabel('First-order sensitivity','FontSize',16), box off
+camorbit(90,0),axis square
+
+subplot(2,1,2)
+imagesc(DDY)
+set(gca,'YTick',1:Np,'Yticklabel',str.names,'FontSize',8)
+title('Second-order sensitivity','FontSize',16), box off
+axis square
 
 
 % Illustrate the effect of social distancing
@@ -381,13 +474,17 @@ spm_figure('GetWin',['Social distancing:' country]); clf;
 
 % increase social distancing exponent from 0 to 4
 %--------------------------------------------------------------------------
-P     = Ep;                                    % expansion point
-sde   = linspace(0,4,16);                      % range of social distancing
+P     = Ep;                                 % expansion point
+sde   = linspace(0,4,16);                   % range of social distancing
+P.Rin = BPA.Ep.Rin;
 S     = sde;
 for i = 1:numel(sde)
-    P.sde  = Ep.sde + log(sde(i) + 1e-6);
-    [Y,X]  = spm_COVID_gen(P,M,1);
-    S(i)   = sum(Y);
+    
+    % social distancing exponent
+    %----------------------------------------------------------------------
+    P.sde = Ep.sde + log(sde(i) + eps);
+    [Y,X] = spm_COVID_gen(P,M,1);
+    S(i)  = sum(Y(:,1));
     
     % plot results and hold graph
     %----------------------------------------------------------------------
@@ -399,10 +496,13 @@ end
 %--------------------------------------------------------------------------
 subplot(3,2,2), hold off
 plot(sde,S,[1 1]*exp(Ep.sde),[min(S) max(S)],'-.')
-title('Social distancing','FontSize',16), 
+title('Social distancing','FontSize',16),
 xlabel('social distancing exponent')
 ylabel('cumulative deaths')
 axis square,box off
+
+disp('lifes saved'), disp(max(S) - min(S))
+    
 
 
 % Herd immunity
@@ -422,12 +522,6 @@ spm_figure('GetWin',['Herd immunity:' country]); clf;
 % is obtained.
 
 %--------------------------------------------------------------------------
-% Public Health England estimates that on average 17,000 people have died
-% from the flu in England annually between 2014/15 and 2018/19. However,
-% the yearly deaths vary widely, from a high of 28,330 in 2014/15 to a low
-% of 1,692 in 2018/19. Public Health England does not publish a mortality
-% rate for the flu.
-
 % The Department for Transport (DfT) has announced there were 1,784
 % reported road deaths in 2018, compared to 1,793 reported in 2017 - a 1%
 % fall. There were 25,511 people seriously injured in reported road traffic
@@ -437,8 +531,7 @@ spm_figure('GetWin',['Herd immunity:' country]); clf;
 
 % progressively increase initial immunity
 %--------------------------------------------------------------------------
-FLU   = 1692/365;                  % death rate for seasonal flu (per day)
-m     = linspace(0,1,16);          % range of initial immunity
+m     = linspace(0,1,16);
 P     = Ep;
 S     = m;
 for i = 1:numel(m)
@@ -456,12 +549,26 @@ end
 % plot
 %--------------------------------------------------------------------------
 subplot(3,2,2), hold off
-plot(m,S,m,FLU*M.T*m.^0,'-.')
+S(S < 0) = 0;
+plot(m,S,m,FLU(1)*m.^0,'-.r',m,FLU(2)*m.^0,'-.r')
 title('Herd immunity','FontSize',16), 
 xlabel('proportion immune')
 ylabel('cumulative deaths')
 axis square,box off
 
+% ensemble dynamics in terms of basic reproduction rate
+%--------------------------------------------------------------------------
+spm_figure('GetWin',['Reproduction rate:' country]); clf;
+
+i       = find(ismember({data.country},country)); % country index
+U       = [1,4,5];
+spm_COVID_ci(DCM{i}.Ep,DCM{i}.Cp,[],U)
+
+% add seasonal flu rates
+%--------------------------------------------------------------------------
+subplot(2,2,2), hold on
+x       = get(gca,'XLim');
+plot(x,[FLU(1) FLU(1)],'-.r',x,[FLU(2) FLU(2)],'-.r')
 
 % demonstrate routines: predictive validity
 %==========================================================================
@@ -471,18 +578,23 @@ axis square,box off
 % based upon the empirical priors following parametric empirical Bayes. The
 % red dots show the outcomes that were observed but not used to estimate
 % the expected trajectories (or confidence intervals). This example
-% illustrates the predictive validity of the estimates for a two-week
+% illustrates the predictive validity of the estimates for a 10 day
 % period following the last datapoint. This captures the rise to the peak
 % of new cases in Italy.
 
+% Italy
+%--------------------------------------------------------------------------
+i  = find(ismember({data.country},'Italy'));
+spm_COVID_PV(DCM,i,10);
+
+return
+
+function spm_COVID_PV(DCM,i,T)
+% FORMAT spm_COVID_PV(DCM,i,T)
 % remove ( > T) data from country ( = i)
 %--------------------------------------------------------------------------
-% T           = 35;                         % number of days to withhold
-% i           = 1;                          % country index
-T             = 14;                         % number of days to withhold
-i             = 2;                          % country index
-
-
+% i  - country index
+% T  - number of days to withhold
 
 % use priors from parametric empirical Bayes
 %--------------------------------------------------------------------------
@@ -494,11 +606,12 @@ data(i).cases = data(i).cases(1:end - T);
 
 % invert (using incomplete data) and plot confidence intervals
 %--------------------------------------------------------------------------
-Y             = [data(i).death, data(i).cases];
-[F,Ep,Cp]     = spm_COVID(Y,pE,pC);
+Y         = [data(i).death, data(i).cases];
+[F,Ep,Cp] = spm_COVID(Y,pE,pC);
+fig       = ['predictive validity: ' data(i).country];
 
-spm_figure('GetWin','predictive validity'); clf
-spm_COVID_ci(Ep,Cp,Y)
+spm_figure('GetWin',fig); clf
+spm_COVID_ci(Ep,Cp,Y,3)
 
 % retrieve and overlay withheld data
 %--------------------------------------------------------------------------
@@ -510,9 +623,9 @@ CY   = cumsum(Y(:,1));
 i    = (NY - T):NY;
 t    = t(i);
 
-spm_figure('GetWin','predictive validity');
-subplot(4,2,1), hold on, plot(t,Y(i,1),'.r','MarkerSize',16)
-subplot(4,2,3), hold on, plot(t,Y(i,2),'.r','MarkerSize',16)
+spm_figure('GetWin',fig);
+subplot(3,2,1), hold on, plot(t,Y(i,1),'.r','MarkerSize',16)
+subplot(3,2,3), hold on, plot(t,Y(i,2),'.r','MarkerSize',16)
 subplot(2,2,2), hold on, plot(t,CY(i), '.r','MarkerSize',16)
 
 return
@@ -521,6 +634,38 @@ return
 
 % auxiliary routines
 %__________________________________________________________________________
+
+% table of posterior estimates
+%==========================================================================
+[pE,pC,str] = spm_COVID_priors;
+data        = DATA_COVID_JHU;
+
+i   = find(ismember({data.country},'United Kingdom'));
+Y   = DCM{i}.Y;
+Ep  = DCM{i}.Ep;
+Cp  = DCM{i}.Cp;
+Ep  = spm_vec(Ep); Cp = diag(Cp);
+Tab = {};
+c   = spm_invNcdf(0.05);
+for i = 1:numel(str.names)
+    Tab{i,1} = str.names{i};
+    Tab{i,2} = exp(Ep(i));
+    Tab{i,3} = exp(Ep(i) + c*sqrt(Cp(i)));
+    Tab{i,4} = exp(Ep(i) - c*sqrt(Cp(i)));
+end
+Table  = cell2table(Tab)
+writetable(Table,'Table','FileType','spreadsheet');
+
+
+% peaks
+%--------------------------------------------------------------------------
+Z     = spm_COVID_gen(Ep,M,3);
+for i = 1:size(Z,2)
+    [d,j]  = max(Z(:,i));
+    disp(j - length(Y)), disp('days to peak ')
+    j      = find(Z(:,i) > 16,1,'last');
+    disp(j - length(Y)), disp('days to < 16')
+end
 
 
 % demonstrate routines: face validation of inversion scheme

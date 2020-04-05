@@ -90,7 +90,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7720 2019-11-27 12:45:04Z peter $
+% $Id: spm_dcm_peb.m 7811 2020-04-05 12:00:43Z karl $
  
 
 % get filenames and set up
@@ -155,7 +155,9 @@ try
     Pstr  = spm_fieldindices(DCM.M.pE,q);       % field names 
 catch
     if isfield(DCM,'Pnames')
+        
         % PEB given as input. Field names have form covariate:fieldname
+        %------------------------------------------------------------------
         Pstr  = [];
         for i = 1:length(DCM.Xnames)
             str  = strcat(DCM.Xnames{i}, ': ', DCM.Pnames);
@@ -163,12 +165,14 @@ catch
         end
     else
         % Generate field names
-        q = q(:);
-        Pstr  = strcat('P', cellstr(num2str(q)));
+        %------------------------------------------------------------------
+        q    = q(:);
+        Pstr = strcat('P', cellstr(num2str(q)));
     end
 end
 
 % count parameters
+%--------------------------------------------------------------------------
 Np = numel(q);                               
 if Np == 1
     Pstr = {Pstr}; 
@@ -179,9 +183,11 @@ end
 for i = 1:Ns
     
     % get DCM
+    %----------------------------------------------------------------------
     try, load(P{i}); catch, DCM = P{i}; end
     
     % get prior and posterior densities over all parameters
+    %----------------------------------------------------------------------
     if isstruct(DCM.M.pC)
         pC{i} = diag(spm_vec(DCM.M.pC));
     else
@@ -192,6 +198,7 @@ for i = 1:Ns
     qC{i} = DCM.Cp;
     
     % check priors
+    %----------------------------------------------------------------------
     if i == 1
         Ne = numel(pE{i});
     end
@@ -200,6 +207,7 @@ for i = 1:Ns
     end
     
     % and get the free energy of model with full priors
+    %----------------------------------------------------------------------
     iF(i) = DCM.F;
     
 end
@@ -221,12 +229,14 @@ U = spm_svd(PC);
 
 for i = 1:Ns
     % select parameters in field
+    %----------------------------------------------------------------------
     pE{i} = U'*pE{i}(q); 
     pC{i} = U'*pC{i}(q,q)*U; 
     qE{i} = U'*qE{i}(q); 
     qC{i} = U'*qC{i}(q,q)*U;
     
     % shrink posterior to accommodate inefficient inversions
+    %----------------------------------------------------------------------
     if Ns > 1
        qC{i} = spm_inv(spm_inv(qC{i}) + spm_inv(pC{i})/16);
     end        

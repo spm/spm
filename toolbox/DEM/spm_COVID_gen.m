@@ -1,17 +1,19 @@
 function [Y,X] = spm_COVID_gen(P,M,U)
-% Generate predictions and hidden states of a COVID model
+% generate predictions and hidden states of a COVID model
 % FORMAT [Y,X] = spm_COVID_gen(P,M,U)
 % P   - model parameters
 % M   - model structure (requires M.T - length of timeseries)
-% U   - number of output variables [default: 2]
+% U   - number of output variables [default: 2] or indices e.g., [4 5]
 %
 % Y(:,1) - number of new deaths
 % Y(:,2) - number of new cases
-% Y(:,3) - recovered cases
-% Y(:,4) - CCU bed occupancy
+% Y(:,3) - CCU bed occupancy
+% Y(:,4) - basic reproduction rate
+% Y(:,5) - herd immunity
+% Y(:,6) - ...
 %
 % X      - (M.T x 4) marginal densities over four factors
-% location   : {'home','out','CCU','morgue'};
+% location   : {'home','out','CCU','norgue'};
 % infection  : {'susceptible','infected','infectious','immune'};
 % clinical   : {'asymptomatic','symptoms','ARDS','death'};
 % diagnostic : {'untested','waiting','positive','negative'}
@@ -40,10 +42,10 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % A more detailed description of the generative model can be found in the
 % body of the script.
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7810 2020-04-01 13:58:56Z spm $
+% $Id: spm_COVID_gen.m 7811 2020-04-05 12:00:43Z karl $
 
 
 % The generative model:
@@ -67,7 +69,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % be untested or waiting for the results of a test that can either be
 % positive or negative. With this setup, one can be in one of four places,
 % with any infectious status, expressing symptoms or not and having test
-% results or not. Note that - in this construction - it is possible to be
+% results or not. Note that – in this construction – it is possible to be
 % infected and yet be asymptomatic. However, the marginal distributions are
 % not independent, in virtue of the dynamics that describe the transition
 % among states within each factor. Crucially, the transitions within any
@@ -77,10 +79,10 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Similarly, the probability of developing symptoms depends upon whether
 % one is infected or not. The probability of being tested depends upon
 % whether one is symptomatic. These three examples are highlighted by the
-% curvilinear arrows - denoting that transition probabilities are
+% curvilinear arrows – denoting that transition probabilities are
 % conditioned upon the marginal distributions over other factors. Finally,
 % to complete the circular dependency, the probability of leaving home to
-% go to work depends upon the number of infected people in the population -
+% go to work depends upon the number of infected people in the population –
 % as a result of social distancing (please see main text). These
 % conditional dependencies constitute the mean field approximation and
 % enable the dynamics to be solved or integrated over time. At any one
@@ -96,19 +98,22 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 
 % setup and defaults (assume new deaths and cases as outcome variables)
 %--------------------------------------------------------------------------
-if (nargin < 3) || isempty(U), U = 2; end         % two outcomes
-try, M.T; catch, M.T = 176;           end         % over six months
+if (nargin < 3) || isempty(U), U = 1:2; end         % two outcomes
+if numel(U) == 1,              U = 1:U; end
+try, M.T; catch, M.T = 180;             end         % over six months
+
+% exponentiate parameters
+%--------------------------------------------------------------------------
+sP   = spm_vecfun(P,@exp);
 
 % initial marginals (Dirichlet parameters)
 %--------------------------------------------------------------------------
-n    = exp(P.n);        % number of initial cases
-N    = exp(P.N)*1e6;    % at risk population size
-m    = exp(P.m)*N;      % herd immunity (proportion immune)
-Pfat = exp(P.fat);      % P(fatality | CCU)
-Psur = exp(P.sur);      % P(survival | home)
+n    = sP.n;             % number of initial cases
+N    = sP.N*1e6;         % at risk population size
+m    = sP.m*N;           % herd immunity (proportion immune)
 N    = N - m;           % number of susceptible cases
 
-p{1} = [8 4 0 0]'; % location:   {'home','out','CCU','norgue'};
+p{1} = [3 1 0 0]'; % location:   {'home','out','CCU','norgue'};
 p{2} = [N n 0 m]'; % infection:  {'susceptible','infected','infectious','immune'};
 p{3} = [1 0 0 0]'; % clinical:   {'asymptomatic','symptoms','ARDS','death'};
 p{4} = [1 0 0 0]'; % testing:    {'untested','waiting','positive','negative'}
@@ -140,7 +145,7 @@ for i = 1:M.T
     
     % cumulative number of deaths
     %----------------------------------------------------------------------
-    Y(i,1) = p{3}(4);
+    Y(i,1) = N*p{3}(4);
     
     % cumulative number of positive tests
     %----------------------------------------------------------------------
@@ -148,29 +153,38 @@ for i = 1:M.T
     
     % recovery rate times the number of people in CCU with ARDS
     %----------------------------------------------------------------------
-    ps     = squeeze(sum(sum(x,2),4));
+    ps     = squeeze(sum(x,[2,4]));
     Pccu   = ps(3,3)/(sum(ps(:,3)) + eps);
     Y(i,3) = Pccu*(p{3}(4)*(1 - Pfat)/Pfat) + ...
              (1 - Pccu)*(p{3}(4)*Psur/(1 - Psur));
+    Y(i,2) = N*p{4}(3);
 
     % CCU bed occupancy
     %----------------------------------------------------------------------
-    Y(i,4) = p{1}(3);
+    Y(i,3) = N*p{1}(3);
     
-    % ...
+    % basic reproduction rate (R0) infection producing contacts per day (R)
     %----------------------------------------------------------------------
+    ps     = squeeze(sum(x,[3,4]));
+    ps     = ps(:,3)/sum(ps(:,3));                  % P(infectious | location)
+    R      = (ps(1)*sP.Rin + ps(2)*sP.Rou*sP.Tin);  % E(infectious contacts)
+    Y(i,4) = R*sP.trn*p{2}(1);                      % basic reproduction rate (R0)           
+
     
+    % herd immunity
+    %----------------------------------------------------------------------
+    Y(i,5) = p{2}(4);
     
 end
 
 % evaluate rates (per day) from cumulative counts 
 %--------------------------------------------------------------------------
-i      = 1:3;
+i      = 1:2;
 Y(:,i) = gradient(Y(:,i)')';
 
-% retain specified number of output variables
+% retain specified output variables
 %--------------------------------------------------------------------------
-Y        = N*Y(:,1:U);
+Y      = Y(:,U);
 
 return
 
@@ -204,26 +218,24 @@ p     = spm_marginal(x);
 dim   = size(x);
 I     = cell(ndims(x),1);
 for i = 1:ndims(x)
-    I{i} = eye(dim(i));
+    I{i} = speye(dim(i));
 end
 
 % exponentiate parameters
 %--------------------------------------------------------------------------
-P = spm_unvec(exp(spm_vec(P)),P);
+P     = spm_vecfun(P,@exp);
 
 % probabilistic transitions: location
 %==========================================================================
-% P.out = 0.3;                      % P(going work | home)
-% P.Tcu = 10;                       % period in CCU
-% P.sde = 1/128;                    % social distancing threshold
-% P.u_b = 16/100000;                % bed availability threshold (per capita)
-b       = cell(1,dim(1));
-
+% P.out                             % P(work | home)
+% P.sde                             % social distancing threshold
+% P.cap                             % bed availability threshold (per capita)
 % bed availability and social distancing
 %--------------------------------------------------------------------------
+b    = cell(1,dim(1));
 Psd  = (1 - p{2}(2))^(32*P.sde);    % P(social distancing)
-Pcca = spm_sigma(p{1}(3),P.u_b);    % P(bed available)
-Pout = Psd*P.out;                   % P(going work | home)
+Pcca = spm_sigma(p{1}(3),P.cap);    % P(bed capacity)
+Pout = Psd*P.out;                   % P(work | home)
 
 % marginal: location {1} | asymptomatic {3}(1)
 %--------------------------------------------------------------------------
@@ -263,18 +275,17 @@ B{1}  = spm_permute_kron(b,dim([1,3,2,4]),[1,3,2,4]);
         
 % probabilistic transitions: infection
 %==========================================================================
-% P.Rin = 2;                        % effective number of contacts: home
-% P.Rou = 16;                       % effective number of contacts: work
-% P.trn = .8;                       % P(transmission)
-% P.Tin = 5;                        % infected (pre-contagious) period
-% P.Tcn = 5;                        % contagious period
-b       = cell(1,dim(2));
-
-% marginal: infection p{2}
+% P.Rin                             % effective number of contacts: home
+% P.Rou                             % effective number of contacts: work
+% P.trn                             % P(transmission | contact)
+% P.Tin                             % infected (pre-contagious) period
+% P.Tcn                             % infectious (contagious) period
+% transmission probabilities
 %--------------------------------------------------------------------------
+b    = cell(1,dim(2));
 R    = (1 - P.trn*p{2}(3));         % P(no transmission per contact)
-Pinf = 1 - R^P.Rin;                 % 1 - P(no transmission) | home
-Pcon = 1 - R^P.Rou;                 % 1 - P(no transmission) | work
+Pinh = R^P.Rin;                     % P(no transmission) | home
+Pinw = R^P.Rou;                     % P(no transmission) | work
 Kinf = exp(-1/P.Tin);
 Kcon = exp(-1/P.Tcn);
     
@@ -282,15 +293,15 @@ Kcon = exp(-1/P.Tcn);
 %--------------------------------------------------------------------------
 %    susceptible  infected  infectious  immune
 %--------------------------------------------------------------------------
-b{1} = [(1 - Pinf) 0          0          0;
-        Pinf       Kinf       0          0;
+b{1} = [Pinh       0          0          0;
+        (1 - Pinh) Kinf       0          0;
         0          (1 - Kinf) Kcon       0;
         0          0          (1 - Kcon) 1];
     
 % marginal: infection {2} | work {1}(2)
 %--------------------------------------------------------------------------
-b{2} = [(1 - Pcon) 0          0          0;
-        Pcon       Kinf       0          0;
+b{2} = [Pinw       0          0          0;
+        (1 - Pinw) Kinf       0          0;
         0          (1 - Kinf) Kcon       0;
         0          0          (1 - Kcon) 1];
 
@@ -317,20 +328,20 @@ B{2}  = spm_permute_kron(b,dim([2,1,3,4]),[2,1,3,4]);
 
 % probabilistic transitions: clinical
 %==========================================================================
-% P.dev = 1/2;                      % P(developing symptoms | infected)
-% P.sev = 1/5;                      % P(severe symptoms | symptomatic)
-% P.Tsy = 8;                        % symptomatic period
-% P.Trd = 5;                        % acute RDS   period
-% P.fat = 0.2;                      % P(fatality | CCU)
-% P.rat = 0.8;                      % P(fatality | home)
-b       = cell(1,dim(3));
-
+% P.dev                             % P(developing symptoms | infected)
+% P.sev                             % P(severe symptoms | symptomatic)
+% P.Tsy                             % symptomatic period
+% P.Trd                             % acute RDS   period
+% P.fat                             % P(fatality | CCU)
+% P.sur                             % P(survival | home)
+% probabilities of developing symptoms
+%--------------------------------------------------------------------------
+b    = cell(1,dim(3));
 Psev = P.sev;                       % P(developing symptoms | infected)
 Ksym = exp(-1/P.Tsy);               % acute symptomatic rate
 Ksev = exp(-1/P.Trd);               % acute RDS rate
 Pdev = P.dev;                       % P(symptoms  | infected)
 Pfat = 1 - P.sur;                   % baseline fatality rate
-
 
 % marginal: clinical {3} | susceptible {2}(1)
 %--------------------------------------------------------------------------
@@ -370,14 +381,13 @@ b     = spm_permute_kron(b,dim([3,2,1]),[3,2,1]);
 
 % location dependent fatalities (P.fat in CCU)
 %--------------------------------------------------------------------------
-for i = 1:size(b,2)
-    if rem(i,numel(p{1}) + 1) == 3
-        k      = logical(b(:,i) == (1 - Ksev)*Pfat);
-        b(k,i) = (1 - Ksev)*P.fat;
-        k      = logical(b(:,i) == (1 - Ksev)*(1 - Pfat));
-        b(k,i) = (1 - Ksev)*(1 - P.fat);
-    end
+for i = 3:numel(p{1}):length(b)
+    k      = logical(b(:,i) == (1 - Ksev)*Pfat);
+    b(k,i) = (1 - Ksev)*P.fat;
+    k      = logical(b(:,i) == (1 - Ksev)*(1 - Pfat));
+    b(k,i) = (1 - Ksev)*(1 - P.fat);
 end
+
 
 % kroneckor form
 %--------------------------------------------------------------------------
@@ -386,47 +396,46 @@ B{3}  = spm_kron({b,I{4}});
 
 % probabilistic transitions: testing
 %==========================================================================
-% P.u_t = 1/128;           % threshold:   testing capacity
-% P.sen = 1/32;           % sensitivity: testing capacity
-% P.Tts = 1/2;             % delay:       testing capacity
-% P.tes = 1/8;             % relative probability of testing if an infected
-b       = cell(1,dim(4));
-
+% P.tft                       % threshold:   testing capacity
+% P.sen;                      % sensitivity: testing capacity
+% P.del                       % delay:       testing capacity
+% P.tes                       % relative probability of testing if an infected
 % test availability and prevalence of symptoms
 %--------------------------------------------------------------------------
-Ptes = P.sen*spm_sigma(p{4}(2),P.u_t);
+b    = cell(1,dim(4));
+Ptes = P.sen*spm_sigma(p{4}(2),P.tft);
 Pdia = P.tes*Ptes;
-Ktri = exp(-1/P.Tts);    % exp(-1/waiting period)
+Kdel = exp(-1/P.del);         % exp(-1/waiting period)
 
 % marginal: testing {4} | susceptible {2}(1)
 %--------------------------------------------------------------------------
 %    not tested  waiting       +ve -ve
 %--------------------------------------------------------------------------
 b{1} = [(1 - Pdia) 0            0   0;
-        Pdia       Ktri         0   0;
+        Pdia       Kdel         0   0;
         0          0            1   0;
-        0          (1 - Ktri)   0   1];
+        0          (1 - Kdel)   0   1];
 
 % marginal: testing {4} | infected {2}(2)
 %--------------------------------------------------------------------------
 b{2} = [(1 - Ptes) 0            0   0;
-        Ptes       Ktri         0   0;
-        0          (1 - Ktri)   1   0;
+        Ptes       Kdel         0   0;
+        0          (1 - Kdel)   1   0;
         0          0            0   1];
     
 % marginal: testing {4} | infectious {2}(3)
 %--------------------------------------------------------------------------
 b{3} = [(1 - Ptes) 0            0   0;
-        Ptes       Ktri         0   0;
-        0          (1 - Ktri)   1   0;
+        Ptes       Kdel         0   0;
+        0          (1 - Kdel)   1   0;
         0          0            0   1];
     
 % marginal: testing {4} | immune {2}(4)
 %--------------------------------------------------------------------------
 b{4} = [(1 - Pdia) 0            0   0;
-        Pdia       Ktri         0   0;
+        Pdia       Kdel         0   0;
         0          0            1   0;
-        0          (1 - Ktri)   0   1];
+        0          (1 - Kdel)   0   1];
 
 % kroneckor form
 %--------------------------------------------------------------------------

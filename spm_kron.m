@@ -20,12 +20,12 @@ function K = spm_kron(A,B)
 %   Previous versions by Paul Fackler, North Carolina State,
 %   and Jordan Rosenthal, Georgia Tech.
 %   Copyright 1984-2004 The MathWorks, Inc. 
-%   $Revision: 7760 $ $Date: 2004/06/25 18:52:18 $
+%   $Revision: 7811 $ $Date: 2004/06/25 18:52:18 $
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_kron.m 7760 2019-12-29 17:45:58Z karl $
+% $Id: spm_kron.m 7811 2020-04-05 12:00:43Z karl $
 
 
 % Deal with cell arrays
@@ -33,26 +33,13 @@ function K = spm_kron(A,B)
 if iscell(A)
     K = 1;
     for i = 1:numel(A)
-        K = spm_kron(A{i},K);
+        K = kron(A{i},K);
     end
     return
 end
 
 % Kronecker tensor product
 %--------------------------------------------------------------------------
-[ma,na] = size(A);
-[mb,nb] = size(B);
-
-[ia,ja,sa] = find(A);
-[ib,jb,sb] = find(B);
-ia = ia(:); ja = ja(:); sa = sa(:);
-ib = ib(:); jb = jb(:); sb = sb(:);
-ka = ones(size(sa));
-kb = ones(size(sb));
-t  = mb*(ia-1)';
-ik = t(kb,:)+ib(:,ka);
-t  = nb*(ja-1)';
-jk = t(kb,:)+jb(:,ka);
-K  = sparse(ik,jk,sb*sa.',ma*mb,na*nb);
+K = matlab.internal.sparse.kronSparse(sparse(A), sparse(B));
 
 

@@ -15,7 +15,7 @@ function spm_COVID_plot(Y,X,Z)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_plot.m 7810 2020-04-01 13:58:56Z spm $
+% $Id: spm_COVID_plot.m 7811 2020-04-05 12:00:43Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -27,10 +27,11 @@ function spm_COVID_plot(Y,X,Z)
 % 2019/20 this had risen to 5,900 (NHS England 2019b) (Figure 5). Of these,
 % around 70 per cent are for use by adults and the remainder for children
 % and infants
+% https://www.telegraph.co.uk/global-health/science-and-disease/huge-regional-differences-intensive-care-bed-numbers-threaten/
 %--------------------------------------------------------------------------
 [t,n] = size(Y);
 t     = (1:t)/7;
-u     = 2500;
+u     = 2000;
 
 % factors and names
 %--------------------------------------------------------------------------
@@ -39,21 +40,21 @@ u     = 2500;
 % graphics
 %--------------------------------------------------------------------------
 subplot(3,2,1)
-if n > 3
+if n > 2
     plot(t,Y,t,u*t.^0,':m')
 else
     plot(t,Y)
 end
 xlabel('time (weeks)'),ylabel('number of cases/day')
 title('Rates (per day)','FontSize',16)
-axis square, box off
+axis square, box off, set(gca,'XLim',[0, t(end)])
 legend(str.outcome{1:n}), legend('boxoff')
 
 subplot(3,2,2)
-plot(t,cumsum(Y(:,1:min(end,3))))
+plot(t,cumsum(Y(:,1:min(end,2))))
 xlabel('time (weeks)'),ylabel('number of cases')
 title('Cumulative cases','FontSize',16)
-set(gca,'YLim',[0, 24000]), box off
+set(gca,'YLim',[0, 50000]), box off
 
 % marginal densities
 %--------------------------------------------------------------------------
@@ -61,7 +62,7 @@ for i = 1:numel(X)
     subplot(3,2,2 + i)
     plot(t,X{i})
     xlabel('time (weeks)'),ylabel('probability')
-    title(str.factors{i},'FontSize',16), set(gca,'YLim',[0,1])
+    title(str.factors{i},'FontSize',16), set(gca,'YLim',[0,1]), set(gca,'XLim',[0, t(end)])
     axis square, box off, legend(str.factor{i}), legend('boxoff'), box off 
 end
 

@@ -36,7 +36,7 @@ function [P,C,str,rfx] = spm_COVID_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors.m 7810 2020-04-01 13:58:56Z spm $
+% $Id: spm_COVID_priors.m 7811 2020-04-05 12:00:43Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -64,30 +64,30 @@ function [P,C,str,rfx] = spm_COVID_priors
 % parameter names (where %** denotes fixed effects)
 %==========================================================================
 names{1}  = 'initial cases'; %**
-names{2}  = 'size of population';  %**
-names{3}  = 'initial immunity';  %**
+names{2}  = 'size of population';
+names{3}  = 'initial immunity';
 names{4}  = 'P(work | home)';
-names{5}  = 'P(tested | uninfected)';  %**
-names{6}  = 'social distancing';  %**
-names{7}  = 'bed availability';  %**
-names{8}  = 'contacts: home';
-names{9}  = 'contacts: work';
-names{10} = 'P(contagion | contact)';
-names{11} = 'infected period';
-names{12} = 'contagious period';
-names{13} = 'P(symptoms | infected)';
-names{14} = 'P(ARDS | symptoms)';
-names{15} = 'symptomatic period';
-names{16} = 'acute RDS  period';
-names{17} = 'P(fatality | CCU)';
-names{18} = 'P(survival | home)';
-names{19} = 'test capacity'; %**
-names{20} = 'test rate'; %**
-names{21} = 'test delay'; %**
+names{5}  = 'social distancing';
+names{6}  = 'bed availability';  
+names{7}  = 'contacts: home';
+names{8}  = 'contacts: work';
+names{9}  = 'P(contagion | contact)';
+names{10} = 'infected period';
+names{11} = 'contagious period';
+names{12} = 'P(symptoms | infected)';
+names{13} = 'P(ARDS | symptoms)';
+names{14} = 'symptomatic period';
+names{15} = 'acute RDS period';
+names{16} = 'P(fatality | CCU)';
+names{17} = 'P(survival | home)';
+names{18} = 'threshold for testing'; %**
+names{19} = 'test rate'; %**
+names{20} = 'test delay'; %**
+names{21} = 'P(tested | uninfected)';  %**
 
 % random effects (i.e., effects that are common in countries)
 %--------------------------------------------------------------------------
-rfx       = [2:18];
+rfx       = [2:17];
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -100,7 +100,7 @@ factor{4} = {'untested','waiting','positive','negative'};
 
 % labels or strings for plotting
 %--------------------------------------------------------------------------
-str.outcome = {'Death rate','New cases','Recovery rate','CCU occupancy'};
+str.outcome = {'Death rate','New cases','CCU occupancy','ERR','Herd immunity'};
 str.factors = factors;
 str.factor  = factor;
 str.names   = names;
@@ -109,8 +109,8 @@ str.names   = names;
 % cut and paste to see the effects of changing different prior expectations
 %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 if false
-    [pE,pC] = spm_COVID_priors; M.T = 128;
-    [Y,X]   = spm_COVID_gen(pE,M,4); spm_COVID_plot(Y,X)
+    [pE,pC,str] = spm_COVID_priors;
+    [Y,X]       = spm_COVID_gen(pE); spm_COVID_plot(Y,X)
 end
 %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
@@ -123,47 +123,45 @@ P.m   = 1e-6;                 % herd immunity (proportion)
 % location parameters
 %--------------------------------------------------------------------------
 P.out = 1/3;                  % P(work | home)
-P.tes = 1/8;                  % P(tested | uninfected)
 P.sde = 1;                    % social distancing exponent
-P.u_b = 128/100000;           % bed availability threshold (per capita)
+P.cap = 128/100000;           % bed availability threshold (per capita)
 
 % infection parameters
 %--------------------------------------------------------------------------
 P.Rin = 3;                    % effective number of contacts: home
-P.Rou = 32;                   % effective number of contacts: work
+P.Rou = 48;                   % effective number of contacts: work
 P.trn = 1/4;                  % P(contagion | contact)
 P.Tin = 5;                    % infected (pre-contagious) period
-P.Tcn = 8;                    % contagious period
+P.Tcn = 3;                    % infectious (contagious) period
 
 % clinical parameters
 %--------------------------------------------------------------------------
-P.dev = 1/4;                  % P(developing symptoms | infected)
-P.sev = 2/100;                % P(severe symptoms | symptomatic)
-P.Tsy = 8;                    % symptomatic period
-P.Trd = 10;                   % acute RDS   period
+P.dev = 1/3;                  % P(developing symptoms | infected)
+P.sev = 1/100;                % P(severe symptoms | symptomatic)
+P.Tsy = 5;                    % symptomatic period
+P.Trd = 12;                   % acute RDS   period
 P.fat = 1/3;                  % P(fatality | CCU)
 P.sur = 1/16;                 % P(survival | home)
 
 % testing parameters
 %--------------------------------------------------------------------------
-P.u_t = 500/100000;           % threshold: testing capacity
+P.tft = 500/100000;           % threshold: testing capacity
 P.sen = 1/100;                % rate:      testing capacity
-P.Tts = 2;                    % delay:     testing capacity
-
+P.del = 2;                    % delay:     testing capacity
+P.tes = 1/8;                  % P(tested | uninfected)
 
 % Variances (mildly informative priors, apart from initial cases and size)
 %==========================================================================
-C.n   = 4;                   % number of initial cases
-C.N   = 1/4;                 % size of population with complete mixing
+C.n   = 1/4;                 % number of initial cases
+C.N   = 1/16;                % size of population with mixing
 C.m   = 0;                   % herd immunity (proportion)
 
 % location parameters
 %--------------------------------------------------------------------------
 V     = 64;
-C.in  = 1/V;                % P(going home | work)
-C.tes = 1/V;                % P(testing | uninfected)
+C.out = 1/V;                % P(going home | work)
 C.sde = 1/V;                % social distancing exponent
-C.u_b = 1/V;                % bed availability threshold (per capita)
+C.cap = 1/V;                % bed availability threshold (per capita)
 
 % infection parameters
 %--------------------------------------------------------------------------
@@ -184,14 +182,15 @@ C.sur = 1/V;                % P(fatality | home)
 
 % testing parameters
 %--------------------------------------------------------------------------
-C.u_t = 1/V;                % threshold:   testing capacity
-C.sen = 1/V;                % sensitivity: testing capacity
-C.Tts = 1/V;                % delay:       testing capacity
+C.tft = 1/V;                % threshold for testing capacity
+C.sen = 1/V;                % sensitivity:  testing capacity
+C.del = 1/V;                % delay:        testing capacity
+C.tes = 1/V;                % P(testing | uninfected)
 
 
 % log transform
 %==========================================================================
-P = spm_unvec(log(spm_vec(P)),P);
+P         = spm_vecfun(P,@log);
 
 % field names of random effects
 %--------------------------------------------------------------------------
