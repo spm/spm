@@ -10,22 +10,14 @@ function K = spm_kron(A,B)
 %
 %      [ X(1,1)*Y  X(1,2)*Y  X(1,3)*Y
 %        X(2,1)*Y  X(2,2)*Y  X(2,3)*Y ]
-%
-%   Class support for inputs X,Y:
-%      float: double, single
 % 
 % When called with a single cell array input, the tensor product
 % is formed recursively 
-
-%   Previous versions by Paul Fackler, North Carolina State,
-%   and Jordan Rosenthal, Georgia Tech.
-%   Copyright 1984-2004 The MathWorks, Inc. 
-%   $Revision: 7811 $ $Date: 2004/06/25 18:52:18 $
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2020 Wellcome Centre for Human Neuroimaging
  
 % Karl Friston
-% $Id: spm_kron.m 7811 2020-04-05 12:00:43Z karl $
+% $Id: spm_kron.m 7814 2020-04-06 11:47:47Z guillaume $
 
 
 % Deal with cell arrays
@@ -40,6 +32,4 @@ end
 
 % Kronecker tensor product
 %--------------------------------------------------------------------------
-K = matlab.internal.sparse.kronSparse(sparse(A), sparse(B));
-
-
+K = kron(sparse(A), sparse(B));
