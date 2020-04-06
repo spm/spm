@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 7787 2020-02-17 10:14:33Z spm $ */
+/* $Id: shoot_optimN.c 7815 2020-04-06 12:58:21Z yael $ */
 /* (c) John Ashburner (2007) */
 
 #include<math.h>
@@ -382,16 +382,12 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
 void LtWLf(mwSize dm[], float f[], float h[], double s[], double scal[], float g[])
 {
     mwSignedIndex i, j, k;
-    double w000_000, w000_100, w000_010, w000_001, 
-           w100_100, w010_010, w001_001;
+    double w000_000, w100_100, w010_010, w001_001;
     double lam = s[3];
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
 
     /* Convolution kernels used to create final convolution weights.  */
     w000_000 =  lam*(v0 + v1 + v2);
-    w000_100 =  lam*v0/2;
-    w000_010 =  lam*v1/2;
-    w000_001 =  lam*v2/2;
     w100_100 = -lam*v0/2;
     w010_010 = -lam*v1/2;
     w001_001 = -lam*v2/2;
@@ -400,37 +396,31 @@ void LtWLf(mwSize dm[], float f[], float h[], double s[], double scal[], float g
     if (dm[0]==1)
     {
         w000_000 -= lam*v0;
-        w000_100  = 0.0;
         w100_100  = 0.0;
         if (dm[1]==1)
         {
             w000_000 -= lam*v1;
-            w000_010  = 0.0;
             w010_010  = 0.0;
         }
         if (dm[2]==1)
         {
             w000_000 -= lam*v2;
-            w000_001  = 0.0;
             w001_001  = 0.0;
         }
     }
     else if (dm[1]==1)
     {
         w000_000 -= lam*v1;
-        w000_010  = 0.0;
         w010_010  = 0.0;
         if (dm[2]==1)
         {
             w000_000 -= lam*v2;
-            w000_001  = 0.0;
             w001_001  = 0.0;
         }
     }
     else if (dm[2]==1)
     {
         w000_000 -= lam*v2;
-        w000_001  = 0.0;
         w001_001  = 0.0;
     }
     if (w000_000<0.0) w000_000=0.0;
@@ -613,7 +603,7 @@ double diaginv(mwSize dm[], float a[], float b[], double s[], double scal[], flo
 
                 /* Create central convolution weight (that depends on h) */
                 pb = b+i+dm[0]*(j+dm[1]*k);
-                w000 =  w000_000*pb[0];
+                w000 =  w000_000*pb[0]
                      +  w000_100*(pb[im1] + pb[ip1])
                      +  w000_010*(pb[jm1] + pb[jp1])
                      +  w000_001*(pb[km1] + pb[kp1]);
