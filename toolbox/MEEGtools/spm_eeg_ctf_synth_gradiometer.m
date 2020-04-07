@@ -15,7 +15,7 @@ function D = spm_eeg_ctf_synth_gradiometer(S)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-
+% $Id: spm_eeg_ctf_synth_gradiometer.m 7818 2020-04-07 10:30:26Z george $
 
 %-Set default options
 %--------------------------------------------------------------------------
