@@ -1,5 +1,5 @@
 function [Y,X] = spm_COVID_gen(P,M,U)
-% generate predictions and hidden states of a COVID model
+% Generate predictions and hidden states of a COVID model
 % FORMAT [Y,X] = spm_COVID_gen(P,M,U)
 % P   - model parameters
 % M   - model structure (requires M.T - length of timeseries)
@@ -13,7 +13,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Y(:,6) - ...
 %
 % X      - (M.T x 4) marginal densities over four factors
-% location   : {'home','out','CCU','norgue'};
+% location   : {'home','out','CCU','morgue'};
 % infection  : {'susceptible','infected','infectious','immune'};
 % clinical   : {'asymptomatic','symptoms','ARDS','death'};
 % diagnostic : {'untested','waiting','positive','negative'}
@@ -42,10 +42,10 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % A more detailed description of the generative model can be found in the
 % body of the script.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7820 2020-04-07 20:54:29Z karl $
+% $Id: spm_COVID_gen.m 7821 2020-04-07 22:21:46Z spm $
 
 
 % The generative model:
@@ -69,7 +69,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % be untested or waiting for the results of a test that can either be
 % positive or negative. With this setup, one can be in one of four places,
 % with any infectious status, expressing symptoms or not and having test
-% results or not. Note that – in this construction – it is possible to be
+% results or not. Note that - in this construction - it is possible to be
 % infected and yet be asymptomatic. However, the marginal distributions are
 % not independent, in virtue of the dynamics that describe the transition
 % among states within each factor. Crucially, the transitions within any
@@ -79,10 +79,10 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Similarly, the probability of developing symptoms depends upon whether
 % one is infected or not. The probability of being tested depends upon
 % whether one is symptomatic. These three examples are highlighted by the
-% curvilinear arrows – denoting that transition probabilities are
+% curvilinear arrows - denoting that transition probabilities are
 % conditioned upon the marginal distributions over other factors. Finally,
 % to complete the circular dependency, the probability of leaving home to
-% go to work depends upon the number of infected people in the population –
+% go to work depends upon the number of infected people in the population -
 % as a result of social distancing (please see main text). These
 % conditional dependencies constitute the mean field approximation and
 % enable the dynamics to be solved or integrated over time. At any one
@@ -113,7 +113,7 @@ N    = sP.N*1e6;         % at risk population size
 m    = sP.m*N;           % herd immunity (proportion immune)
 N    = N - m;            % number of susceptible cases
 
-p{1} = [3 1 0 0]'; % location:   {'home','out','CCU','norgue'};
+p{1} = [3 1 0 0]'; % location:   {'home','out','CCU','morgue'};
 p{2} = [N n 0 m]'; % infection:  {'susceptible','infected','infectious','immune'};
 p{3} = [1 0 0 0]'; % clinical:   {'asymptomatic','symptoms','ARDS','death'};
 p{4} = [1 0 0 0]'; % testing:    {'untested','waiting','positive','negative'}
@@ -157,7 +157,7 @@ for i = 1:M.T
     
     % basic reproduction rate (R0) infection producing contacts per day (R)
     %----------------------------------------------------------------------
-    ps     = squeeze(sum(x,[3,4]));
+    ps     = squeeze(spm_sum(x,[3,4]));
     ps     = ps(:,3)/sum(ps(:,3));                  % P(infectious | location)
     R      = (ps(1)*sP.Rin + ps(2)*sP.Rou*sP.Tin);  % E(infectious contacts)
     Y(i,4) = R*sP.trn*p{2}(1);                      % basic reproduction rate (R0)           
