@@ -3,6 +3,7 @@ function res = bf_features_tdcov(BF, S)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
+% $Id: bf_features_tdcov.m 7819 2020-04-07 11:01:01Z george $
 
 %--------------------------------------------------------------------------
 if nargin == 0
