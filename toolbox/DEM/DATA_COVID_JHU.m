@@ -34,7 +34,7 @@ function data = DATA_COVID_JHU
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 7810 2020-04-01 13:58:56Z spm $
+% $Id: DATA_COVID_JHU.m 7820 2020-04-07 20:54:29Z karl $
 
 
 % load data from https://github.com/CSSEGISandData/COVID-19/
@@ -134,8 +134,8 @@ end
 % China. Interestingly, there is little correlation between the total
 % number of deaths and population size. The middle right panel is a
 % logarithmic plot of the total deaths against population size in the
-% initial (48-day) period. However, there is a stronger correlation between
-% the total number of cases reported (within the first 48 days) and the
+% initial (64-day) period. However, there is a stronger correlation between
+% the total number of cases reported (within the first 64 days) and the
 % total number of deaths.
 
 % duration of pandemic
@@ -145,8 +145,8 @@ N   = spm_cat({Data.cum});
 
 % retain countries with over 48 days and 16 deaths
 %--------------------------------------------------------------------------
-t    = 48;
-i    = logical(T > t & N > 16);
+t    = 64;
+i    = logical(T > t & N > 128);
 data = Data(i);
 for i = 1:numel(data)
     death(:,i) = data(i).death(1:t);
@@ -176,19 +176,19 @@ xlabel('days'),ylabel('total deaths'), axis square
 %--------------------------------------------------------------------------
 subplot(3,2,3), plot(t,death)
 title('Death rate','Fontsize',16)
-xlabel('days'),ylabel('new cases')
+xlabel('days'),ylabel('deaths per day')
 axis square
 
 pop = [data.pop];
 subplot(3,2,4), loglog(pop,sum(death),'.','MarkerSize',32,'Color',[0.8 0.8 1])
 title('Population and deaths','Fontsize',16)
-xlabel('population'),ylabel('total deaths (within 48 days)')
+xlabel('population'),ylabel('deaths (within 48 days)')
 axis square
 
 subplot(3,2,5), plot(t,cumsum(death,1))
 title('Cumulative deaths','Fontsize',16)
-xlabel('days'),ylabel('new cases')
-axis square, legend({data(1:14).country}), legend('boxoff')
+xlabel('days'),ylabel('deaths (within 48 days)')
+axis square, legend({data(1:min(end,14)).country}), legend('boxoff')
 
 subplot(3,2,6), loglog(sum(death),sum(cases),'.','MarkerSize',32,'Color',[0.8 0.8 1])
 title('Cases and deaths','Fontsize',16)

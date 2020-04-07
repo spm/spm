@@ -1,4 +1,8 @@
-function [DCM,GCM] = DEM_COVID(data)
+function [DCM,GCM] = DEM_COVID(country,data)
+% FORMAT [DCM,GCM] = DEM_COVID(country,data)
+% data    - data    to model [default: data = DATA_COVID_JHU]
+% country - country to model [default: 'United Kingdom')
+%
 % Demonstration of COVID-19 modelling using variational Laplace
 %__________________________________________________________________________
 %
@@ -10,13 +14,6 @@ function [DCM,GCM] = DEM_COVID(data)
 % Bayes to leverage systematic differences between countries, as
 % characterised by their population, geographical location etc.
 %
-% This routine produces a series of figures illustrating parameter
-% estimates and their associated confidence intervals. It then moves on to
-% look at timeseries predictions for a specific country (currently
-% hardcoded to be United Kingdom). It considers the effects of various
-% model parameters such as those encoding the degree of social distancing
-% and initial (herd) immunity.
-%
 % Each subsection produces one or two figures that are described in the
 % annotated (Matlab) code. These subsections core various subroutines that
 % provide a more detailed description of things like the generative model,
@@ -25,7 +22,7 @@ function [DCM,GCM] = DEM_COVID(data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID.m 7811 2020-04-05 12:00:43Z karl $
+% $Id: DEM_COVID.m 7820 2020-04-07 20:54:29Z karl $
 
 % F: -1.5701e+04 social distancing based upon P(infected)
 % F: -1.5969e+04 social distancing based upon P(symptomatic)
@@ -36,8 +33,8 @@ function [DCM,GCM] = DEM_COVID(data)
 
 % Get data (see DATA_COVID): an array with a structure for each country
 %==========================================================================
-if nargin < 1,  data = DATA_COVID_JHU; end
-
+if nargin < 2, data    = DATA_COVID_JHU;   end
+if nargin < 1, country = 'United Kingdom'; end
 
 % Inversion (i.e., fitting) of empirical data
 %==========================================================================
@@ -128,7 +125,7 @@ X(:,1) = 1;
 GLM.X      = X;
 GLM.Xnames = Xn;
 GLM.alpha  = 1;
-GLM.beta   = 16;
+GLM.beta   = 8;
 
 % parametric empirical Bayes (with random effects in str.field)
 %--------------------------------------------------------------------------
@@ -168,8 +165,7 @@ spm_figure('GetWin','Second level effects'); clf;
 % in a general linear model of between country effects. The examples are
 % based upon a ranking of the absolute value of the second level parameter;
 % namely, the contribution of an explanatory variable to a model parameter.
-% Here, the effective size of the population cell appears to depend upon
-% the latitude of a country.
+% The lower panel shows the (absolute) parameters in image format
 
 % assemble parameters
 %--------------------------------------------------------------------------
@@ -221,13 +217,7 @@ spm_figure('GetWin','Parameter estimates'); clf;
 % model, to which a random (country specific) effect is added to generate
 % the ensemble dynamics for each country. In turn, these ensemble
 % distributions determine the likelihood of various outcome measures under
-% larger number (i.e., Poisson) assumptions. For example, the average
-% number of interpersonal contacts (that are potentially contagious) at
-% home is about four, while at work it is about 24. The two phases of
-% infection (infected and contagious) are roughly the same at around five
-% days. Notice that these estimates are not based upon empirical data.
-% These are the periods that provide the best explanation for the new cases
-% and deaths, reported from each country.
+% larger number (i.e., Poisson) assumptions.
 
 Ep = BPA.Ep;                                  % posterior expectations                         
 Cp = BPA.Cp;                                  % posterior covariances
@@ -322,7 +312,6 @@ end
 
 % Country specific predictions
 %==========================================================================
-country = 'United Kingdom';                       % country to predict
 i       = find(ismember({data.country},country)); % country index
 M.T     = 180;                                    % six-month period
 Y       = DCM{i}.Y;                               % empirical data
@@ -385,7 +374,7 @@ spm_figure('GetWin',['Predictions: ' country]); clf;
 % for the onset of an episode to induce social distancing, such that the
 % probability of being found at work falls, over a couple of weeks to
 % negligible levels. At this time, the number of infected people increases
-% (to about 18%) with a concomitant probability of being infectious a few
+% (to about 30%) with a concomitant probability of being infectious a few
 % days later. During this time, the probability of becoming immune
 % increases monotonically and saturates, within this cell, at about 20
 % weeks. Clinically, the probability of becoming symptomatic rises to about
@@ -416,11 +405,10 @@ spm_figure('GetWin',['Sensitivity: ' country]); clf
 % might expect, increasing social distancing, bed availability and the
 % probability of survival outside critical care, tend to decrease death
 % rate. Interestingly, increasing both the period of symptoms and ARDS
-% decreases overall death rate; presumably, because there is more time to
-% recover to an asymptomatic state and the probability of infecting someone
-% else - when symptomatic - is attenuated. The next figure focuses on the
-% effects of social distancing as a way of ameliorating the impact on
-% deaths.
+% decreases overall death rate, because there is more time to recover to an
+% asymptomatic state. The lower panel shows the second order derivatives or
+% sensitivity. The next figure focuses on the effects of social distancing
+% as a way of ameliorating the impact on deaths.
 
 % sensitivity analysis in terms of partial derivatives
 %--------------------------------------------------------------------------
@@ -465,18 +453,14 @@ spm_figure('GetWin',['Social distancing:' country]); clf;
 % progressively with social distancing. The cumulative death rate is shown
 % as a function of social distancing in the upper right panel. The vertical
 % line corresponds to the posterior expectation of the social distancing
-% exponent for this country. These results suggest that social distancing
-% relieves pressure on critical care capacities and ameliorates cumulative
-% deaths by about 3700 people. This is roughly four times the number of
-% people who die in the equivalent period due to road traffic accidents. In
-% the next figure, we repeat this analysis but looking at the effect of
-% herd immunity.
+% exponent for this country. In the next figure, we repeat this analysis
+% but looking at the effect of herd immunity.
 
 % increase social distancing exponent from 0 to 4
 %--------------------------------------------------------------------------
 P     = Ep;                                 % expansion point
 sde   = linspace(0,4,16);                   % range of social distancing
-P.Rin = BPA.Ep.Rin;
+P.Rin = BPA.Ep.Rin;                         % adjust contacts at home
 S     = sde;
 for i = 1:numel(sde)
     
@@ -504,7 +488,6 @@ axis square,box off
 disp('lifes saved'), disp(max(S) - min(S))
     
 
-
 % Herd immunity
 %==========================================================================
 spm_figure('GetWin',['Herd immunity:' country]); clf;
@@ -515,11 +498,11 @@ spm_figure('GetWin',['Herd immunity:' country]); clf;
 % immunity dramatically decreases death rates with a fall in the cumulative
 % deaths from several thousand to negligible levels with a herd immunity of
 % about 70%. The dashed line in the upper panel shows the equivalent deaths
-% over the same time period due to seasonal flu (based upon 2019 figures).
-% This death rate would require an initial or herd immunity of about 60%.
-% It is interesting to return to Figure 6 and identify at what point -
-% during the course of the infection episode - this level of herd immunity
-% is obtained.
+% over the same time period due to seasonal flu (based upon 2014/19
+% figures). This death rate would require an initial or herd immunity of
+% about 60%. It is interesting to return to Figure 6 and identify at what
+% point - during the course of the infection episode - this level of herd
+% immunity is obtained.
 
 %--------------------------------------------------------------------------
 % The Department for Transport (DfT) has announced there were 1,784
@@ -557,8 +540,15 @@ ylabel('cumulative deaths')
 axis square,box off
 
 % ensemble dynamics in terms of basic reproduction rate
-%--------------------------------------------------------------------------
+%==========================================================================
 spm_figure('GetWin',['Reproduction rate:' country]); clf;
+%--------------------------------------------------------------------------
+% (basic reproduction ratio). This figure plots the predicted death rates
+% for the country in question above the concomitant fluctuations
+% in the basic reproduction rate (R0) and herd immunity. The blue lines
+% represent the posterior expectations while the shaded areas correspond to
+% 90% credible intervals.
+
 
 i       = find(ismember({data.country},country)); % country index
 U       = [1,4,5];
@@ -644,14 +634,14 @@ i   = find(ismember({data.country},'United Kingdom'));
 Y   = DCM{i}.Y;
 Ep  = DCM{i}.Ep;
 Cp  = DCM{i}.Cp;
-Ep  = spm_vec(Ep); Cp = diag(Cp);
+ep  = spm_vec(Ep); Cp = diag(Cp);
 Tab = {};
 c   = spm_invNcdf(0.05);
 for i = 1:numel(str.names)
     Tab{i,1} = str.names{i};
-    Tab{i,2} = exp(Ep(i));
-    Tab{i,3} = exp(Ep(i) + c*sqrt(Cp(i)));
-    Tab{i,4} = exp(Ep(i) - c*sqrt(Cp(i)));
+    Tab{i,2} = exp(ep(i));
+    Tab{i,3} = exp(ep(i) + c*sqrt(Cp(i)));
+    Tab{i,4} = exp(ep(i) - c*sqrt(Cp(i)));
 end
 Table  = cell2table(Tab)
 writetable(Table,'Table','FileType','spreadsheet');
@@ -659,7 +649,8 @@ writetable(Table,'Table','FileType','spreadsheet');
 
 % peaks
 %--------------------------------------------------------------------------
-Z     = spm_COVID_gen(Ep,M,3);
+i     = find(ismember({data.country},'United Kingdom'));
+Z     = spm_COVID_gen(Ep,[],3);
 for i = 1:size(Z,2)
     [d,j]  = max(Z(:,i));
     disp(j - length(Y)), disp('days to peak ')

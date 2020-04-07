@@ -45,7 +45,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7813 2020-04-05 12:18:02Z karl $
+% $Id: spm_COVID_gen.m 7820 2020-04-07 20:54:29Z karl $
 
 
 % The generative model:
@@ -111,7 +111,7 @@ sP   = spm_vecfun(P,@exp);
 n    = sP.n;             % number of initial cases
 N    = sP.N*1e6;         % at risk population size
 m    = sP.m*N;           % herd immunity (proportion immune)
-N    = N - m;           % number of susceptible cases
+N    = N - m;            % number of susceptible cases
 
 p{1} = [3 1 0 0]'; % location:   {'home','out','CCU','norgue'};
 p{2} = [N n 0 m]'; % infection:  {'susceptible','infected','infectious','immune'};
@@ -162,7 +162,6 @@ for i = 1:M.T
     R      = (ps(1)*sP.Rin + ps(2)*sP.Rou*sP.Tin);  % E(infectious contacts)
     Y(i,4) = R*sP.trn*p{2}(1);                      % basic reproduction rate (R0)           
 
-    
     % herd immunity
     %----------------------------------------------------------------------
     Y(i,5) = p{2}(4);
@@ -391,7 +390,7 @@ B{3}  = spm_kron({b,I{4}});
 % P.tft                       % threshold:   testing capacity
 % P.sen;                      % sensitivity: testing capacity
 % P.del                       % delay:       testing capacity
-% P.tes                       % relative probability of testing if an infected
+% P.tes                       % relative probability of test if uninfected
 % test availability and prevalence of symptoms
 %--------------------------------------------------------------------------
 b    = cell(1,dim(4));

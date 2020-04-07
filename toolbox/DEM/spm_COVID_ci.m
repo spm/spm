@@ -23,7 +23,7 @@ function spm_COVID_ci(Ep,Cp,Z,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_ci.m 7811 2020-04-05 12:00:43Z karl $
+% $Id: spm_COVID_ci.m 7820 2020-04-07 20:54:29Z karl $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------
@@ -36,7 +36,7 @@ if numel(U) == 1, U = 1:U; end
 
 % compensate for (variational) overconfidence
 %--------------------------------------------------------------------------
-% Cp       = Cp*4;
+Cp       = Cp*4;
 
 % evaluate confidence intervals (using a Taylor expansion)
 %==========================================================================

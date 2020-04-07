@@ -36,7 +36,7 @@ function [P,C,str,rfx] = spm_COVID_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors.m 7811 2020-04-05 12:00:43Z karl $
+% $Id: spm_COVID_priors.m 7820 2020-04-07 20:54:29Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -158,7 +158,7 @@ C.m   = 0;                   % herd immunity (proportion)
 
 % location parameters
 %--------------------------------------------------------------------------
-V     = 64;
+V     = 128;
 C.out = 1/V;                % P(going home | work)
 C.sde = 1/V;                % social distancing exponent
 C.cap = 1/V;                % bed availability threshold (per capita)
