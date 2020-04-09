@@ -2,6 +2,8 @@ function [dat,sett] = spm_mb_init(cfg)
 % Initialisation of data structures
 % FORMAT [dat,sett] = spm_mb_init(cfg)
 
+% $Id$
+
 [dat,sett] = spm_mb_init1(cfg);
 
 % Done if there are no GMMs to fit

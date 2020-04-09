@@ -1,4 +1,8 @@
 function spm_mb_merge(cfg)
+% Combine tissue maps together
+
+% $Id$
+
 odir     = cfg.odir{1};
 onam     = cfg.onam;
 res_file = cfg.result{1};

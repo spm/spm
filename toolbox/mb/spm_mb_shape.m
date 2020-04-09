@@ -31,6 +31,8 @@ function varargout = spm_mb_shape(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
+% $Id$
+
 if nargin == 0
     help spm_mb_shape
     error('Not enough argument. Type ''help spm_mb_shape'' for help.');

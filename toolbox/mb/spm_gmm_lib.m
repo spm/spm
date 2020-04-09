@@ -70,6 +70,8 @@ function varargout = spm_gmm_lib(varargin)
 % mask-  M  x P        Mask of observed channels per 'missing code'
 %--------------------------------------------------------------------------
 
+% $Id$
+
 if nargin == 0
     help spm_gmm_lib
     error('Not enough argument. Type ''help spm_gmm_lib'' for help.');

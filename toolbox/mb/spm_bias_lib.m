@@ -32,6 +32,8 @@ function varargout = spm_bias_lib(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2018 Wellcome Centre for Human Neuroimaging
 
+% $Id$
+
 if nargin == 0
     help spm_bias_lib
     error('Not enough argument. Type ''help spm_bias_lib'' for help.');

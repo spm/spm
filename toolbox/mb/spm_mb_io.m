@@ -15,6 +15,8 @@ function varargout = spm_mb_io(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
+% $Id$
+
 if nargin == 0
     help spm_mb_io
     error('Not enough argument. Type ''help spm_mb_io'' for help.');
