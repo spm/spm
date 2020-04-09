@@ -34,21 +34,27 @@ function data = DATA_COVID_JHU
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 7820 2020-04-07 20:54:29Z karl $
+% $Id: DATA_COVID_JHU.m 7824 2020-04-09 16:53:49Z guillaume $
 
 
 % load data from https://github.com/CSSEGISandData/COVID-19/
 %--------------------------------------------------------------------------
+if strcmp(spm_check_version,'matlab')
+    loaddata = @importdata;
+else
+    loaddata = @myimportdata;
+end
 try
-    C  = importdata('time_series_covid19_confirmed_global.csv');
-    D  = importdata('time_series_covid19_deaths_global.csv'   );
-    R  = importdata('time_series_covid19_recovered_global.csv');
+    C  = loaddata('time_series_covid19_confirmed_global.csv');
+    D  = loaddata('time_series_covid19_deaths_global.csv'   );
+    R  = loaddata('time_series_covid19_recovered_global.csv');
 catch
     clc, warning('Please load csv files into the current working directory')
     help DATA_COVID_JHU
+    return;
 end
 
-N  = importdata('population.xlsx');          % population size
+N      = loaddata('population.csv');         % population size
 
 
 % preliminary extraction
@@ -143,7 +149,7 @@ end
 T   = spm_cat({Data.days});
 N   = spm_cat({Data.cum});
 
-% retain countries with over 48 days and 16 deaths
+% retain countries with over 64 days and 128 deaths
 %--------------------------------------------------------------------------
 t    = 64;
 i    = logical(T > t & N > 128);
@@ -182,17 +188,17 @@ axis square
 pop = [data.pop];
 subplot(3,2,4), loglog(pop,sum(death),'.','MarkerSize',32,'Color',[0.8 0.8 1])
 title('Population and deaths','Fontsize',16)
-xlabel('population'),ylabel('deaths (within 48 days)')
+xlabel('population'),ylabel('deaths (within 64 days)')
 axis square
 
 subplot(3,2,5), plot(t,cumsum(death,1))
 title('Cumulative deaths','Fontsize',16)
-xlabel('days'),ylabel('deaths (within 48 days)')
+xlabel('days'),ylabel('deaths (within 64 days)')
 axis square, legend({data(1:min(end,14)).country}), legend('boxoff')
 
 subplot(3,2,6), loglog(sum(death),sum(cases),'.','MarkerSize',32,'Color',[0.8 0.8 1])
 title('Cases and deaths','Fontsize',16)
-xlabel('cumulative deaths'),ylabel('total cases (within 48 days)')
+xlabel('cumulative deaths'),ylabel('total cases (within 64 days)')
 axis square
 
 % label countries
@@ -200,4 +206,24 @@ axis square
 for i = 1:numel(data)
     subplot(3,2,6), text(sum(death(:,i)),sum(cases(:,i)),data(i).country,'FontSize',9)
     subplot(3,2,4), text(pop(i),sum(death(:,i)),         data(i).country,'FontSize',9)
+end
+
+
+%==========================================================================
+function data = myimportdata(filename)
+
+S    = fileread(filename);
+ncol = numel(find(strtok(S,sprintf('\n'))==',')) + 1;
+S    = textscan(S,'%q','Delimiter',',');
+S    = reshape(S{1},ncol,[])';
+if size(S,2)>2
+    % time_series_covid19_*_global.csv
+    % first row is header and first two columns are state/country
+    data.data = cellfun(@(x)str2double(x),S(2:end,3:end));
+    data.textdata = S;
+    [data.textdata{2:end,3:end}] = deal('');
+else
+    % population.csv
+    data.data = cellfun(@(x)str2double(x),S(:,2));
+    data.textdata = S(:,1);
 end
