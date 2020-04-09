@@ -270,7 +270,7 @@ dff.tag         = 'v_settings';
 dff.name        = 'Shape regularisation';
 dff.strtype     = 'e';
 dff.num         = [1 5];
-dff.val         = {[0.0001 0 0.5 0.125 0.5];
+dff.val         = {[0.0001 0 0.5 0.125 0.5]};
 dff.help        = {'Regularisation settings for the diffeomorphic registration. The defaults work reasonably well.',''};
 
 odir            = cfg_files;
