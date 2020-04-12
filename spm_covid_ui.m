@@ -8,7 +8,7 @@ function spm_covid_ui
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 %
-% $Id: spm_covid_ui.m 7827 2020-04-12 13:37:20Z peter $
+% $Id: spm_covid_ui.m 7828 2020-04-12 14:34:58Z peter $
 
 % Check for the CSV files
 required = {'time_series_covid19_confirmed_global.csv';
@@ -513,7 +513,9 @@ estimate_model(hObject, handles);
 % -------------------------------------------------------------------------
 function callback_popupmenu_country(hObject, eventdata)
 handles = guidata(hObject);
-display_results(hObject, handles);
+if isfield(handles,'D') && isfield(handles.D,'DCM')
+    display_results(hObject, handles);
+end
 % -------------------------------------------------------------------------
 function callback_popupmenu_view(hObject, eventdata)
 handles = guidata(hObject);
