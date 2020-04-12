@@ -7,8 +7,9 @@ function spm_covid_ui
 % the tool.
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
-%
-% $Id: spm_covid_ui.m 7828 2020-04-12 14:34:58Z peter $
+
+% Peter Zeidman
+% $Id: spm_covid_ui.m 7829 2020-04-12 22:26:07Z guillaume $
 
 % Check for the CSV files
 required = {'time_series_covid19_confirmed_global.csv';
@@ -17,7 +18,7 @@ required = {'time_series_covid19_confirmed_global.csv';
 all_found = all(cellfun(@(x)exist(x,'file'), required));
 
 if ~all_found
-    str = ['Please ensure that the CSV files are on the Matlab path: ' ...
+    str = ['Please ensure that the CSV files are on the MATLAB path: ' ...
            'time_series_covid19_confirmed_global.csv, ' ...
            'time_series_covid19_deaths_global.csv and ' ...
            'time_series_covid19_recovered_global.csv. They can be ' ...
@@ -35,7 +36,7 @@ h = prepare_data_and_priors(h);
 
 % Disable certain controls if compiled
 if isdeployed
-    h.menu_gen.Enable = 'off';
+    set(h.menu_gen,'Enable','off');
 end
 
 % Store handles
@@ -92,29 +93,29 @@ h.label_view        = create_text(h.panel_results,      [m(1) 0.5+m(2) 0.3 0.2],
 h.popupmenu_view    = create_popupmenu(h.panel_results, [m(1)*2+0.3 0.5+m(2) 1-(m(1)*3+0.3) 0.2],          'popupmenu_view',    'Select result to view');
 h.label_country     = create_text(h.panel_results,      [m(1) 0.5+m(2)+0.2+m(2) 0.3 0.2],                  'label_country',     'Default country:');
 h.popupmenu_country = create_popupmenu(h.panel_results, [m(1)*2+0.3 0.5+m(2)+0.2+m(2) 1-(m(1)*3+0.3) 0.2], 'popupmenu_country', 'countries');
-h.label_view.HorizontalAlignment    = 'right';
-h.label_country.HorizontalAlignment = 'right';
-h.edit_legend.Enable = 'inactive';
+set(h.label_view,'HorizontalAlignment','right');
+set(h.label_country,'HorizontalAlignment','right');
+set(h.edit_legend','Enable','inactive');
 
 % Add controls (Bayesian model comparison panel)
 h.button_BMC     = create_button(h.panel_analysis,[0.10 0.5 0.35 0.4],'button_BMC','Selected country');
 h.button_BMC_all = create_button(h.panel_analysis,[0.55 0.5 0.35 0.4],'button_BMC_all','All countries');
 h.label_BMC      = create_text(h.panel_analysis,  [0.10 0.05 0.80 0.4],'label_BMC',...
     'Tip: in the file selector, hold down control (or command on Mac) to select multiple models');
-h.label_BMC.HorizontalAlignment = 'left';
+set(h.label_BMC','HorizontalAlignment','left');
 
 % Set callbacks
-h.menu_new.Callback          = @callback_menu_new;
-h.menu_open.Callback         = @callback_menu_open;
-h.button_estimate.Callback   = @callback_button_estimate;
-h.popupmenu_view.Callback    = @callback_popupmenu_view;
-h.popupmenu_country.Callback = @callback_popupmenu_country;
-h.button_BMC.Callback        = @callback_BMC;
-h.button_BMC_all.Callback    = @callback_BMC_all;
-h.menu_gen.Callback          = @callback_menu_edit;
-h.menu_saveas.Callback       = @callback_menu_saveas;
-h.menu_quit.Callback         = @callback_menu_quit;
-h.menu_guide.Callback        = @callback_menu_guide;
+set(h.menu_new','Callback',         @callback_menu_new);
+set(h.menu_open','Callback',        @callback_menu_open);
+set(h.button_estimate','Callback',  @callback_button_estimate);
+set(h.popupmenu_view','Callback',   @callback_popupmenu_view);
+set(h.popupmenu_country','Callback',@callback_popupmenu_country);
+set(h.button_BMC','Callback',       @callback_BMC);
+set(h.button_BMC_all','Callback',   @callback_BMC_all);
+set(h.menu_gen','Callback',         @callback_menu_edit);
+set(h.menu_saveas','Callback',      @callback_menu_saveas);
+set(h.menu_quit','Callback',        @callback_menu_quit);
+set(h.menu_guide','Callback',       @callback_menu_guide);
 
 % Disable controls that depend on results
 set_results_controls_enabled(false,h);
@@ -140,8 +141,8 @@ display_priors(h);
 display_country_list(h);
 
 % Reset menu items
-h.popupmenu_view.String = 'Select result to view';
-h.edit_legend.String    = '';
+set(h.popupmenu_view,'String','Select result to view');
+set(h.edit_legend,'String','');
 
 set_results_controls_enabled(false, h);
 
@@ -161,8 +162,9 @@ handles.D = D;
 function handles = update_priors_from_gui(handles)
 
 % Read GUI
-pE = handles.uitable_priors.Data(:,3); % expectation
-pC = handles.uitable_priors.Data(:,4); % variance
+data = get(handles.uitable_priors,'Data');
+pE = data(:,3); % expectation
+pC = data(:,4); % variance
 
 % Cell->matrix
 pE = cell2mat(pE);
@@ -214,9 +216,9 @@ pE = exp(pE);
 min_val = 1e-5;
 pE(pE <= min_val) = 0;
 
-handles.uitable_priors.Data           = [labels varnames num2cell([pE pC])];
-handles.uitable_priors.ColumnName     = {'Parameter description','Variable','Expectation','Variance'};
-handles.uitable_priors.ColumnEditable = [false false true true];
+set(handles.uitable_priors,'Data',[labels varnames num2cell([pE pC])]);
+set(handles.uitable_priors,'ColumnName',{'Parameter description','Variable','Expectation','Variance'});
+set(handles.uitable_priors,'ColumnEditable',[false false true true]);
 
 % -------------------------------------------------------------------------
 % Displays the list of countries
@@ -225,27 +227,27 @@ function display_country_list(handles)
 country   = handles.D.country;        % default country
 countries = {handles.D.data.country}; % list of countries
 
-handles.popupmenu_country.String = countries;
+set(handles.popupmenu_country,'String',countries);
 
 % Set default
 idx = find(strcmp(country,countries));
 if ~isempty(idx)
-    handles.popupmenu_country.Value = idx(1);
+    set(handles.popupmenu_country,'Value',idx(1));
 end
 
 % -------------------------------------------------------------------------
 % Prompts for a DCM file, loads it and stores it in handles
 function [TF,handles] = load_model(hObject,handles)
 
-[file,path] = uigetfile('*.mat','Load model');
+[filename,pathname] = uigetfile('*.mat','Load model');
 
-TF = (file ~= false);
+TF = ~isequal(filename,0) && ~isequal(pathname,0);
 if ~TF
     return;
 end
 
 % Unpack
-f = load(fullfile(path,file));
+f = load(fullfile(pathname,filename));
 handles.D.GCM = f.GCM;
 handles.D.DCM = f.DCM;
 handles.D.PEB = f.PEB;
@@ -257,8 +259,8 @@ handles.D.pC  = f.GCM{1}.M.pC;
 handles.D.str = f.GCM{1}.M.str;
 
 % Update figure title
-fig = get_parent_figure(hObject);
-fig.Name = file;
+fig = ancestor(hObject,'figure');
+set(fig,'Name',filename);
 
 % -------------------------------------------------------------------------
 % Fits the model to the data
@@ -299,7 +301,7 @@ for i = 1:numel(data)
 end
 
 % Second level analysis
-if length(GCM) > 1
+if numel(GCM) > 1
     % Build design matrix
     lat    = spm_vec([data.lat]);
     lon    = spm_vec([data.long]);
@@ -361,8 +363,8 @@ fn = sprintf('DCM_covid19_%s.mat',timestamp);
 save(fn,'GCM','DCM','BMA','BPA','PEB','BMR');
 
 % Update figure title
-fig = getParentFigure(hObject);
-fig.Name = fn;
+fig = ancestor(hObject,'figure');
+set(fig,'Name',fn);
 
 % Display results
 set_results_controls_enabled(true,handles);
@@ -437,8 +439,8 @@ if TF
 else
     str = 'off';
 end
-handles.popupmenu_view.Enable    = str;
-handles.menu_saveas.Enable       = str;
+set(handles.popupmenu_view','Enable',str);
+set(handles.menu_saveas','Enable',str);
 % -------------------------------------------------------------------------
 function callback_menu_new(hObject, eventdata)
 % Resets the GUI with a new model
@@ -447,8 +449,8 @@ function callback_menu_new(hObject, eventdata)
 h = guidata(hObject);
 
 % Reset title
-fig = get_parent_figure(hObject);
-fig.Name = 'DCM for COVID-19: Untitled model';
+fig = ancestor(hObject,'figure');
+set(fig,'Name','DCM for COVID-19: Untitled model');
 
 % Clear stored objects
 if isfield(h,'D')
@@ -501,12 +503,6 @@ if fn ~= false
     save(fn,'GCM','DCM','BMA','BPA','PEB','BMR');
 end
 % -------------------------------------------------------------------------
-function fig = get_parent_figure(fig)
-% Gets the parent figure of the given control
-while ~isempty(fig) && ~strcmp('figure', get(fig,'Type'))
-  fig = get(fig,'Parent');
-end
-% -------------------------------------------------------------------------
 function callback_button_estimate(hObject, eventdata)
 handles = guidata(hObject);
 estimate_model(hObject, handles);
@@ -522,11 +518,11 @@ handles = guidata(hObject);
 display_results(hObject, handles);
 % -------------------------------------------------------------------------
 function callback_menu_edit(hObject, eventdata)
-open('spm_COVID_gen');
+open('spm_COVID_gen.m');
 % -------------------------------------------------------------------------
 function callback_BMC(hObject, eventdata)
 handles     = guidata(hObject);
-country_idx = handles.popupmenu_country.Value;
+country_idx = get(handles.popupmenu_country,'Value');
 compare_models(handles,country_idx);
 % -------------------------------------------------------------------------
 function callback_BMC_all(hObject, eventdata)
@@ -534,11 +530,11 @@ handles = guidata(hObject);
 compare_models(handles);
 % -------------------------------------------------------------------------
 function callback_menu_quit(hObject, eventdata)
-fig = get_parent_figure(hObject);
+fig = ancestor(hObject,'figure');
 close(fig);
 % -------------------------------------------------------------------------
 function callback_menu_guide(hObject, eventdata)
-web('http://www.fil.ion.ucl.ac.uk/~pzeidman/covid19/guide.html');
+web('https://www.fil.ion.ucl.ac.uk/~pzeidman/covid19/guide.html');
 
 % -------------------------------------------------------------------------
 % Creates and styles a uipanel
@@ -593,7 +589,7 @@ BMA = handles.D.BMA;
 BPA = handles.D.BPA;
 
 % Get specific values for the selected country
-cidx = handles.popupmenu_country.Value;            % country index
+cidx = get(handles.popupmenu_country,'Value');     % country index
 M.T  = 180;                                        % six-month period
 cY    = DCM{cidx}.Y;                               % empirical data
 cEp   = DCM{cidx}.Ep;                              % posterior expectations
@@ -628,9 +624,9 @@ plot_str{HERD_IMMUNITY}        = 'Selected country: herd immunity';
 plot_str{REPRODUCTION_RATIO}    = 'Selected country: reproduction ratio (slow)';
 
 % Populate drop-down menu
-idx = handles.popupmenu_view.Value;
-handles.popupmenu_view.String = plot_str;
-handles.popupmenu_view.Value  = idx;
+idx = get(handles.popupmenu_view,'Value');
+set(handles.popupmenu_view,'String',plot_str);
+set(handles.popupmenu_view,'Value',idx);
 
 % Current plot type
 plot_type = idx;
@@ -990,4 +986,4 @@ switch plot_type
 end
 
 % Finish by displaying help text
-handles.edit_legend.String = textwrap(handles.edit_legend,{help_txt},45);
+set(handles.edit_legend,'String',textwrap(handles.edit_legend,{help_txt}));
