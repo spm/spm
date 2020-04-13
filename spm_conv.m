@@ -12,10 +12,10 @@ function [X] = spm_conv(X,sx,sy)
 % kernel by using one-dimensional convolutions and kernels that are
 % restricted to non near-zero values.
 %__________________________________________________________________________
-% Copyright (C) 1999-2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2020 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_conv.m 7714 2019-11-26 11:25:50Z spm $
+% $Id: spm_conv.m 7830 2020-04-13 09:27:30Z guillaume $
 
 
 % assume isomorphic smoothing
@@ -43,32 +43,17 @@ ky    = ky/sum(ky);
 
 % convolve
 %--------------------------------------------------------------------------
-if spm_check_version('matlab','7.5') > 0
-    shape = {'valid'};
-else
-    shape = {};
-end
 if lx > 1
     for i = 1:ly
         u      = X(:,i);
         v      = [flipud(u(1:Ex)); u; flipud(u((1:Ex) + lx - Ex))];
-        if isempty(shape)
-            V  = sparse(conv(full(v),kx));
-            X(:,i) = V([1:lx] + 2*Ex);
-        else
-            X(:,i) = sparse(conv(full(v),kx,shape{:}));
-        end
+        X(:,i) = sparse(conv(full(v),kx,'valid'));
     end
 end
 if ly > 1
     for i = 1:lx
         u      = X(i,:);
         v      = [fliplr(u(1:Ey)) u fliplr(u((1:Ey) + ly - Ey))];
-        if isempty(shape)
-            V  = sparse(conv(full(v),ky));
-            X(i,:) = V([1:ly] + 2*Ey);
-        else
-            X(i,:) = sparse(conv(full(v),ky,shape{:}));
-        end
+        X(i,:) = sparse(conv(full(v),ky,'valid'));
     end
 end
