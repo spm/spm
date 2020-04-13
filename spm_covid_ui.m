@@ -1,7 +1,6 @@
 function spm_covid_ui
 % FORMAT spm_covid_ui
-%
-% Graphical user interface for DCM for COVID-19 (DEM_COVID).
+% Graphical user interface for DCM for COVID-19 (DEM_COVID)
 % 
 % For a guide to this interface, please use the help menu after launching
 % the tool.
@@ -9,7 +8,12 @@ function spm_covid_ui
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_covid_ui.m 7829 2020-04-12 22:26:07Z guillaume $
+% $Id: spm_covid_ui.m 7831 2020-04-13 17:58:12Z guillaume $
+
+% Add DEM toolbox to path
+if ~isdeployed
+    addpath(fullfile(spm('Dir'),'toolbox','DEM'));
+end
 
 % Check for the CSV files
 required = {'time_series_covid19_confirmed_global.csv';
@@ -18,14 +22,14 @@ required = {'time_series_covid19_confirmed_global.csv';
 all_found = all(cellfun(@(x)exist(x,'file'), required));
 
 if ~all_found
-    str = ['Please ensure that the CSV files are on the MATLAB path: ' ...
-           'time_series_covid19_confirmed_global.csv, ' ...
-           'time_series_covid19_deaths_global.csv and ' ...
-           'time_series_covid19_recovered_global.csv. They can be ' ...
-           'downloaded from: ' ...
-           'https://github.com/CSSEGISandData/COVID-19/tree/master/' ...
+    str = ['Please ensure that the data files are on the MATLAB path:\n' ...
+           '* time_series_covid19_confirmed_global.csv\n' ...
+           '* time_series_covid19_deaths_global.csv\n' ...
+           '* time_series_covid19_recovered_global.csv\n' ...
+           'They can be  downloaded from: ' ...
+           '  https://github.com/CSSEGISandData/COVID-19/tree/master/' ...
            'csse_covid_19_data/csse_covid_19_time_series'];
-    error(str);
+    error(sprintf(str));
 end
 
 % Create GUI
@@ -53,18 +57,19 @@ position = [0.05 0.05 0.3 0.8];
 
 % Create figure
 f = figure('Units','normalized','position',position,...
-    'Name','DCM for COVID-19: Untitled model','NumberTitle','off','Toolbar','none','MenuBar','none','Visible','on');
+    'Name','DCM for COVID-19: Untitled model','NumberTitle','off',...
+    'Toolbar','none','MenuBar','none','Visible','on','HandleVisibility','off');
 
 % Create menu
 h.menu_file   = uimenu(f,          'Label','&File','Tag','menu_file');
-h.menu_new    = uimenu(h.menu_file,'Label','&New','Tag','menu_new');
-h.menu_open   = uimenu(h.menu_file,'Label','&Open model','Tag','menu_open');
-h.menu_saveas = uimenu(h.menu_file,'Label','&Save as','Tag','menu_saveas');
+h.menu_new    = uimenu(h.menu_file,'Label','&New...','Tag','menu_new');
+h.menu_open   = uimenu(h.menu_file,'Label','&Open Model...','Tag','menu_open');
+h.menu_saveas = uimenu(h.menu_file,'Label','&Save As...','Tag','menu_saveas');
 h.menu_quit   = uimenu(h.menu_file,'Label','&Quit','Tag','menu_quit');
 h.menu_edit   = uimenu(f,          'Label','&Edit','Tag','menu_edit');
-h.menu_gen    = uimenu(h.menu_edit,'Label','&Generative model','Tag','menu_gen');
+h.menu_gen    = uimenu(h.menu_edit,'Label','&Generative Model','Tag','menu_gen');
 h.menu_help   = uimenu(f,          'Label','&Help','Tag','menu_help');
-h.menu_guide  = uimenu(h.menu_help,'Label','&User guide','Tag','menu_guide');
+h.menu_guide  = uimenu(h.menu_help,'Label','&User Guide','Tag','menu_guide');
 
 % Set panel width, heights and bottoms (ordered bottom to top)
 pw = (1-(2*m(1)));
@@ -358,7 +363,7 @@ guidata(hObject,handles);
 
 % Save
 timestamp = datestr(now);
-timestamp = strrep(timestamp,':','-');
+timestamp = strrep(strrep(timestamp,':','-'),' ','_');
 fn = sprintf('DCM_covid19_%s.mat',timestamp);
 save(fn,'GCM','DCM','BMA','BPA','PEB','BMR');
 
@@ -492,15 +497,15 @@ BPA = handles.D.BPA;
 
 % Create default filename
 timestamp = datestr(now);
-timestamp = strrep(timestamp,':','-');
+timestamp = strrep(strrep(timestamp,':','-'),' ','_');
 defaultname = sprintf('DCM_covid19_%s.mat',timestamp);
 
 % Prompt
-fn = uiputfile('*.mat','Save model as', defaultname);
+[filename,pathname] = uiputfile('*.mat','Save model as', defaultname);
 
 % Save
-if fn ~= false
-    save(fn,'GCM','DCM','BMA','BPA','PEB','BMR');
+if ~isequal(filename,0) && ~isequal(pathname,0)
+    save(fullfile(pathname,filename),'GCM','DCM','BMA','BPA','PEB','BMR');
 end
 % -------------------------------------------------------------------------
 function callback_button_estimate(hObject, eventdata)
@@ -986,4 +991,4 @@ switch plot_type
 end
 
 % Finish by displaying help text
-set(handles.edit_legend,'String',textwrap(handles.edit_legend,{help_txt}));
+set(handles.edit_legend,'String',help_txt);
