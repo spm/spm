@@ -9,7 +9,6 @@ function varargout = spm_platform(varargin)
 %        - 'filesys' - type of filesystem
 %                      - 'unx' - UNIX
 %                      - 'win' - DOS
-%        - 'sepchar' - returns directory separator
 %        - 'user'    - returns username
 %        - 'host'    - returns system's host name
 %        - 'tempdir' - returns name of temp directory
@@ -49,10 +48,10 @@ function varargout = spm_platform(varargin)
 % Platform specific definitions are contained in the data structures at
 % the beginning of the init_platform subfunction at the end of this file.
 %__________________________________________________________________________
-% Copyright (C) 1999-2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2020 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 7541 2019-03-11 12:20:27Z spm $
+% $Id: spm_platform.m 7833 2020-04-17 10:43:06Z guillaume $
 
 
 %-Initialise
@@ -76,11 +75,6 @@ case 'filesys'                                         %-Return file system
 %==========================================================================
 varargout = {PLATFORM.filesys};
 
-case 'sepchar'                            %-Return file separator character
-%==========================================================================
-warning('Use FILESEP instead.')
-varargout = {PLATFORM.sepchar};
-
 case 'user'                                            %-Return user string
 %==========================================================================
 varargout = {PLATFORM.user};
@@ -88,10 +82,6 @@ varargout = {PLATFORM.user};
 case 'host'                                               %-Return hostname
 %==========================================================================
 varargout = {PLATFORM.host};
-
-case 'drives'                                               %-Return drives
-%==========================================================================
-error('Use spm_select(''ListDrives'') instead.');
 
 case 'tempdir'                                 %-Return temporary directory
 %==========================================================================
@@ -147,8 +137,6 @@ if nargin<1
             switch comp
                 case {'x86_64'}
                     comp = 'GLNXA64';
-                case {'i586','i686'}
-                    comp = 'GLNX86';
                 case {'armv6l','armv7l','armv8l','aarch64'}
                     comp = 'ARM';
                 otherwise
@@ -164,12 +152,8 @@ end
 
 %-Platform definitions
 %--------------------------------------------------------------------------
-PDefs = {'PCWIN',     'win',   0;...
-         'PCWIN64',   'win',   0;...
-         'MAC',       'unx',   1;...
-         'MACI',      'unx',   0;...
+PDefs = {'PCWIN64',   'win',   0;...
          'MACI64',    'unx',   0;...
-         'GLNX86',    'unx',   0;...
          'GLNXA64',   'unx',   0;...
          'ARM',       'unx',   0};
 
@@ -228,17 +212,17 @@ PLATFORM.host = strtok(PLATFORM.host,'.');
 %-Fonts
 %--------------------------------------------------------------------------
 switch comp
-    case {'MAC','MACI','MACI64'}
+    case 'MACI64'
         PLATFORM.font.helvetica = 'TrebuchetMS';
         PLATFORM.font.times     = 'Times';
         PLATFORM.font.courier   = 'Courier';
         PLATFORM.font.symbol    = 'Symbol';
-    case {'GLNX86','GLNXA64'}
+    case {'GLNXA64','ARM'}
         PLATFORM.font.helvetica = 'Helvetica';
         PLATFORM.font.times     = 'Times';
         PLATFORM.font.courier   = 'Courier';
         PLATFORM.font.symbol    = 'Symbol';
-    case {'PCWIN','PCWIN64'}
+    case 'PCWIN64'
         PLATFORM.font.helvetica = 'Arial Narrow';
         PLATFORM.font.times     = 'Times New Roman';
         PLATFORM.font.courier   = 'Courier New';

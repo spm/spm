@@ -2,7 +2,7 @@ function varargout = spm_figure(varargin)
 % Setup and callback functions for Graphics window
 % FORMAT varargout = spm_figure(varargin)
 %
-% spm_figure provides utility routines for using the SPM Graphics 
+% spm_figure provides utility routines for using the SPM Graphics
 % interface. Most used syntaxes are listed here, see the embedded callback
 % reference in the main body of this function, below the help text.
 %
@@ -45,7 +45,7 @@ function varargout = spm_figure(varargin)
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 7747 2019-12-04 13:46:22Z guillaume $
+% $Id: spm_figure.m 7833 2020-04-17 10:43:06Z guillaume $
 
 
 %==========================================================================
@@ -75,7 +75,7 @@ function varargout = spm_figure(varargin)
 %
 % FORMAT F = spm_figure('GetWin',Tag)
 % Like spm_figure('FindWin',Tag), except that if no such 'Tag'ged figure
-% is found and 'Tag' is recognized, one is created. Further, the "got" 
+% is found and 'Tag' is recognized, one is created. Further, the "got"
 % window is made current.
 % Tag   - Figure 'Tag' to get, defaults to 'Graphics'
 % F - Figure number (if found/created) or empty (if not).
@@ -105,7 +105,7 @@ function varargout = spm_figure(varargin)
 % Closes figures (deletion without confirmation)
 % Also closes the docking container if empty.
 % F - 'Tag' string or figure number of figure to clear, defaults to gcf
-% 
+%
 % FORMAT spm_figure('Print',F)
 % F - [Optional] Figure to print. ('Tag' or figure number)
 %     Defaults to figure 'Tag'ed as 'Graphics'.
@@ -319,7 +319,7 @@ else
         for tag = Tags(:)'
             delete(findall(allchild(F),'flat','Tag',tag{:}));
         end
-    end 
+    end
 end
 set(F,'Pointer','Arrow');
 sw = warning('off','MATLAB:Figure:UnableToSetRendererToOpenGL');
@@ -470,7 +470,7 @@ if isempty(hNextPage)
         hPrevPagePos = [565 022 015 015].*WS;
         hPageNo      = [550 005 060 015].*WS;
     end
-    
+
     hNextPage = uicontrol(F,'Style','Pushbutton',...
         'HandleVisibility','on',...
         'String','>','FontSize',FS(10),...
@@ -770,6 +770,7 @@ F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
 %-Help Menu
+drawnow;
 t0 = findall(allchild(F),'Flat','Label','&Help');
 if isempty(t0) || isdeployed, t0 = uimenu( F,'Label','&Help', 'HandleVisibility','off'); end
 set(t0,'Callback',''); set(t0,'Tag','');
@@ -876,7 +877,7 @@ uimenu(t1, 'Label', 'OpenGL',   'CallBack','spm_get_defaults(''renderer'',''open
 %-Satellite Table
 uimenu(t0,    'Label','&Results Table', 'HandleVisibility','off', ...
     'Separator','on', 'Callback','spm_figure(''CreateSatWin'');');
-    
+
 %==========================================================================
 case 'figcontextmenu'
 %==========================================================================

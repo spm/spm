@@ -8,7 +8,7 @@ function spm_covid_ui
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_covid_ui.m 7831 2020-04-13 17:58:12Z guillaume $
+% $Id: spm_COVID_ui.m 7833 2020-04-17 10:43:06Z guillaume $
 
 % Add DEM toolbox to path
 if ~isdeployed

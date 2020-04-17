@@ -11,7 +11,7 @@ function x = spm_load(f,v,hdr)
 % Copyright (C) 1995-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_load.m 7572 2019-04-12 16:16:32Z guillaume $
+% $Id: spm_load.m 7833 2020-04-17 10:43:06Z guillaume $
 
 
 %-Get a filename if none was passed
@@ -174,7 +174,7 @@ if strcmpi(spm_check_version,'octave') % bug #51093
     delim = '#';
 end
 if ~isempty(S)
-    d = textscan(S,'%s','Delimiter',delim);
+    d = textscan(S,'%q','Delimiter',delim);
 else
     d = {[]};
 end
