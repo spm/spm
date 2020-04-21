@@ -19,7 +19,7 @@ function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni
 %% Outputs
 %% Dnew- new dataset
 %% meshsourceind- vertex indices of sources on the mesh
-% $Id: spm_eeg_simulate.m 7118 2017-06-20 10:33:27Z guillaume $
+% $Id: spm_eeg_simulate.m 7835 2020-04-21 08:34:42Z gareth $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -396,7 +396,7 @@ if isempty(ormni)
     
     Nj      = size(mnivert,1);
     M       = X;
-    G       = sqrt(sparse(1:Nj,1,M,Nj,1));
+    G       = sqrt(sparse(1:Nj,1,abs(M),Nj,1)); %% ADDED IN ABS - NEED TO CHECK IN
     Fgraph  = spm_figure('GetWin','Graphics');
     j       = find(M);
     
