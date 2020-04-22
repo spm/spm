@@ -20,23 +20,15 @@ function k = xml_findstr(s,p,i,n)
 %
 %   See also STRFIND, FINDSTR
 %__________________________________________________________________________
-% Copyright (C) 2002-2011  http://www.artefact.tk/
+% Copyright (C) 2002-2020  https://www.artefact.tk/
 
 % Guillaume Flandin
-% $Id: xml_findstr.m 4460 2011-09-05 14:52:16Z guillaume $
+% $Id: xml_findstr.m 7836 2020-04-22 10:29:14Z guillaume $
 
-%error(sprintf('Missing MEX-file: %s', mfilename));
+%warning('xml_findstr.c not compiled');
 
-persistent runonce
-if isempty(runonce)
-    warning(sprintf(['xml_findstr is not compiled for your platform.\n'...
-    'This will result in a slowdown of the XML parsing.']));
-    runonce = 1;
-end
-
-% k = regexp(s(i:end),p,'once') + i - 1;
 if nargin < 3, i = 1;   end
 if nargin < 4, n = Inf; end
-j = strfind(s,p);
-k = j(j>=i);
+
+k = strfind(s(i:end),p) + i - 1;
 if ~isempty(k), k = k(1:min(n,length(k))); end
