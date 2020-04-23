@@ -8,10 +8,10 @@ function x = spm_load(f,v,hdr)
 %
 % x   - corresponding data array or structure
 %__________________________________________________________________________
-% Copyright (C) 1995-2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1995-2020 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_load.m 7833 2020-04-17 10:43:06Z guillaume $
+% $Id: spm_load.m 7837 2020-04-23 11:03:35Z guillaume $
 
 
 %-Get a filename if none was passed
@@ -128,7 +128,7 @@ end
 function x = dsvread(f,delim,header)
 % Read delimiter-separated values file into a structure array
 %  * header line of column names will be used if detected
-%  * 'n/a' fields are replaced with NaN
+%  * 'n/a' and 'NaN' fields are replaced with NaN
 
 %-Input arguments
 %--------------------------------------------------------------------------
@@ -185,7 +185,7 @@ for i=1:numel(var)
     sts = true;
     dd = zeros(size(d,1),1);
     for j=1:size(d,1)
-        if strcmp(d{j,i},'n/a')
+        if strcmpi(d{j,i},'n/a') || strcmpi(d{j,i},'NaN')
             dd(j) = NaN;
         else
             dd(j) = str2double(d{j,i}); % i,j considered as complex
