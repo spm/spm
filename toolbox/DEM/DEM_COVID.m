@@ -22,7 +22,7 @@ function [DCM,GCM] = DEM_COVID(country,data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID.m 7820 2020-04-07 20:54:29Z karl $
+% $Id: DEM_COVID.m 7838 2020-04-23 17:40:45Z karl $
 
 % F: -1.5701e+04 social distancing based upon P(infected)
 % F: -1.5969e+04 social distancing based upon P(symptomatic)
@@ -46,7 +46,6 @@ Fsi = spm_figure('GetWin','SI'); clf;
 
 % Bayesian inversion (placing posteriors in a cell array of structures)
 %--------------------------------------------------------------------------
-spm_figure('GetWin','SI');
 GCM   = cell(size(data(:)));
 for i = 1:numel(data)
     
@@ -76,7 +75,7 @@ end
 
 % Between country analysis (hierarchical or parametric empirical Bayes)
 %==========================================================================
-spm_figure('GetWin','Bayesian model reduction'); clf;
+spm_figure('GetWin','BMR - all'); clf;
 %--------------------------------------------------------------------------
 % (Bayesian model comparison). This figure with reports the result of
 % Bayesian model comparison (a.k.a. Bayesian model reduction). In this
@@ -116,19 +115,22 @@ for  i = 1:4
     Xn = {Xn{:}, sprintf('lat(%d)',i), sprintf('lon(%d)',i)};
 end
 
+% design matrix of explanatory variables
+%--------------------------------------------------------------------------
 X      = [log(spm_vec([data.pop])) X];
 X      = [ones(numel(data),1) X];
 X      = spm_orth(X,'norm');
 X(:,1) = 1;
 
-
+% placing general linear model
+%--------------------------------------------------------------------------
 GLM.X      = X;
 GLM.Xnames = Xn;
 GLM.alpha  = 1;
 GLM.beta   = 8;
 
 % parametric empirical Bayes (with random effects in str.field)
-%--------------------------------------------------------------------------
+%==========================================================================
 [PEB,DCM] = spm_dcm_peb(GCM,GLM,str.field);
 
 % Bayesian model averaging (over reduced models), testing for GLM effects
@@ -142,6 +144,7 @@ for i = 1:numel(DCM)
 
     % variational Laplace
     %----------------------------------------------------------------------
+    set(Fsi,'name',data(i).country)
     [F,Ep,Cp] = spm_COVID(DCM{i}.Y,DCM{i}.M.pE,DCM{i}.M.pC);
     
     % assemble prior and posterior estimates (and log evidence)
@@ -151,6 +154,12 @@ for i = 1:numel(DCM)
     DCM{i}.F  = F;
     
 end
+
+% save
+%--------------------------------------------------------------------------
+save COVID_DCM DCM
+
+
 
 % Bayesian parameter averaging (over countries)
 %--------------------------------------------------------------------------
@@ -230,7 +239,6 @@ camorbit(90,0), axis square, box off
 
 subplot(2,1,2)
 spm_plot_ci(Ep,Cp,[],[],'exp')
-set(gca,'yLim',[0 32])
 set(gca,'XTick',1:spm_length(Ep),'Xticklabel',str.names)
 ylabel('Parameters','FontSize',16)
 camorbit(90,0), axis square, box off
@@ -273,7 +281,7 @@ end
 % names{9}  = 'P(contagion | contact)';
 % names{10} = 'infected period';
 % names{11} = 'contagious period';
-% names{12} = 'P(symptoms | infected)';
+% names{12} = 'incubation period';
 % names{13} = 'P(ARDS | symptoms)';
 % names{14} = 'symptomatic period';
 % names{15} = 'acute RDS  period';
@@ -286,7 +294,7 @@ end
 
 % report selected parameters (see spm_COVID_priors)
 %--------------------------------------------------------------------------
-p     = [2,4,5,7,8,9,11,13,15,16,17,19];
+p     = [2,4,5,7,8,9,11,12,13,15,16,19];
 for i = 1:length(p)
     
     % posterior density
@@ -445,7 +453,7 @@ spm_figure('GetWin',['Social distancing:' country]); clf;
 % (the effects of social distancing). This figure uses the same format as
 % Figure 9. However, here trajectories are reproduced under different
 % levels of social distancing; from zero through to 4 (in 16 steps). This
-% parameter is the exponent applied to the probability of not being
+% parameter is the threshold applied to the probability of not being
 % infected. In other words, it scores the sensitivity of social distancing
 % to the prevalence of the virus in the population. In this example (based
 % upon posterior expectations for the United Kingdom), death rates (per
@@ -453,27 +461,29 @@ spm_figure('GetWin',['Social distancing:' country]); clf;
 % progressively with social distancing. The cumulative death rate is shown
 % as a function of social distancing in the upper right panel. The vertical
 % line corresponds to the posterior expectation of the social distancing
-% exponent for this country. In the next figure, we repeat this analysis
+% threshold for this country. In the next figure, we repeat this analysis
 % but looking at the effect of herd immunity.
 
-% increase social distancing exponent from 0 to 4
+% increase social distancing threshold from 0 to 4
 %--------------------------------------------------------------------------
 P     = Ep;                                 % expansion point
-sde   = linspace(0,4,16);                   % range of social distancing
-P.Rin = BPA.Ep.Rin;                         % adjust contacts at home
+sde   = linspace(-4,4,16);                  % range of social distancing
 S     = sde;
 for i = 1:numel(sde)
     
-    % social distancing exponent
+    % social distancing threshold
     %----------------------------------------------------------------------
-    P.sde = Ep.sde + log(sde(i) + eps);
+    P.sde = Ep.sde + sde(i);
     [Y,X] = spm_COVID_gen(P,M,1);
     S(i)  = sum(Y(:,1));
     
     % plot results and hold graph
     %----------------------------------------------------------------------
     spm_COVID_plot(Y,X)
-    for j = 1:6, subplot(3,2,j), hold on, end
+    for j = 1:6
+        subplot(3,2,j), hold on
+        set(gca,'ColorOrderIndex',1);
+    end
 end
 
 % cumulative deaths as a function of social distancing
@@ -481,7 +491,7 @@ end
 subplot(3,2,2), hold off
 plot(sde,S,[1 1]*exp(Ep.sde),[min(S) max(S)],'-.')
 title('Social distancing','FontSize',16),
-xlabel('social distancing exponent')
+xlabel('social distancing threshold')
 ylabel('cumulative deaths')
 axis square,box off
 
@@ -525,7 +535,10 @@ for i = 1:numel(m)
     % plot results and hold graph
     %----------------------------------------------------------------------
     spm_COVID_plot(Y,X)
-    for j = 1:6, subplot(3,2,j), hold on, end
+    for j = 1:6
+        subplot(3,2,j), hold on
+        set(gca,'ColorOrderIndex',1);
+    end
     
 end
 
@@ -560,6 +573,56 @@ subplot(2,2,2), hold on
 x       = get(gca,'XLim');
 plot(x,[FLU(1) FLU(1)],'-.r',x,[FLU(2) FLU(2)],'-.r')
 
+
+% demonstrate routines: mitigation strategies
+%==========================================================================
+spm_figure('GetWin','Mitigation: posterior predictions'); clf;
+%--------------------------------------------------------------------------
+% 
+
+% get country and priors
+%--------------------------------------------------------------------------
+c     = find(ismember({data.country},country)); % country index
+
+% different policies under different kinds of immunity
+%--------------------------------------------------------------------------
+Tim   = [4,32];                             % period of immunity (months)
+btw   = [0,1];                              % back-to-work policy
+sde   = [1/32 1/4];                         % social distance threshold
+for i = 1:numel(Tim)
+    for j = 1:numel(btw)
+        for k = 1:numel(sde)
+            
+            % set parameters
+            %--------------------------------------------------------------
+            P      = DCM{c}.Ep;
+            P.Tim  = log(Tim(i));
+            P.btw  = log(btw(j));
+            P.sde  = log(sde(k));
+            
+            % evaluate credible interval for punitive deaths
+            %--------------------------------------------------------------
+            pol{i,j,k} = sprintf('IMMUN(%d)-BTW(%d)-SD(%d)',i,j,k);
+            [S,CS]     = spm_COVID_ci(P,DCM{c}.Cp,DCM{c}.Y,1);
+            
+            % save predictive posterior over final values
+            %--------------------------------------------------------------
+            SE(i,j,k)  = full(S(end));
+            SC(i,j,k)  = full(CS(end,end));
+            
+        end
+    end
+end
+
+
+% plot results
+%--------------------------------------------------------------------------
+subplot(2,1,1)
+spm_plot_ci(SE(:),SC(:))
+ylabel('Mitigation; cumulative deaths','FontSize',16)
+set(gca,'XTick',1:numel(pol),'XTickLabel',pol)
+camorbit(90,0), axis square, box off
+
 % demonstrate routines: predictive validity
 %==========================================================================
 % (predictive validity - early). This figure uses the same format as Figure
@@ -578,48 +641,6 @@ i  = find(ismember({data.country},'Italy'));
 spm_COVID_PV(DCM,i,10);
 
 return
-
-function spm_COVID_PV(DCM,i,T)
-% FORMAT spm_COVID_PV(DCM,i,T)
-% remove ( > T) data from country ( = i)
-%--------------------------------------------------------------------------
-% i  - country index
-% T  - number of days to withhold
-
-% use priors from parametric empirical Bayes
-%--------------------------------------------------------------------------
-pE            = DCM{i}.M.pE;
-pC            = DCM{i}.M.pC;
-data          = DATA_COVID_JHU;
-data(i).death = data(i).death(1:end - T);
-data(i).cases = data(i).cases(1:end - T);
-
-% invert (using incomplete data) and plot confidence intervals
-%--------------------------------------------------------------------------
-Y         = [data(i).death, data(i).cases];
-[F,Ep,Cp] = spm_COVID(Y,pE,pC);
-fig       = ['predictive validity: ' data(i).country];
-
-spm_figure('GetWin',fig); clf
-spm_COVID_ci(Ep,Cp,Y,3)
-
-% retrieve and overlay withheld data
-%--------------------------------------------------------------------------
-data = DATA_COVID_JHU;
-Y    = [data(i).death, data(i).cases];
-NY   = size(Y,1);
-t    = (1:NY)/7;
-CY   = cumsum(Y(:,1));
-i    = (NY - T):NY;
-t    = t(i);
-
-spm_figure('GetWin',fig);
-subplot(3,2,1), hold on, plot(t,Y(i,1),'.r','MarkerSize',16)
-subplot(3,2,3), hold on, plot(t,Y(i,2),'.r','MarkerSize',16)
-subplot(2,2,2), hold on, plot(t,CY(i), '.r','MarkerSize',16)
-
-return
-
 
 
 % auxiliary routines

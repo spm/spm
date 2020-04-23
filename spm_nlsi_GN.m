@@ -34,7 +34,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % U.u  - inputs (or just U)
 % U.dt - sampling interval
 %
-% Y.y  - outputs (samples x observations x ...)
+% Y.y  - outputs (samples (time) x observations (first sort) x ...)
 % Y.dt - sampling interval for outputs
 % Y.X0 - confounds or null space      (over size(y,1) samples or all vec(y))
 % Y.Q  - q error precision components (over size(y,1) samples or all vec(y))
@@ -97,7 +97,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 7809 2020-03-31 11:55:09Z karl $
+% $Id: spm_nlsi_GN.m 7838 2020-04-23 17:40:45Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -283,7 +283,7 @@ end
 
 % unpack covariance
 %--------------------------------------------------------------------------
-if isstruct(pC);
+if isstruct(pC)
     pC = spm_diag(spm_vec(pC));
 end
 

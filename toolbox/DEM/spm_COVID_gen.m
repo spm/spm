@@ -14,7 +14,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 %
 % X      - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','CCU','morgue'};
-% infection  : {'susceptible','infected','infectious','immune'};
+% infection  : {'susceptible','infected','infectious','immune','resistant'};
 % clinical   : {'asymptomatic','symptoms','ARDS','death'};
 % diagnostic : {'untested','waiting','positive','negative'}
 %
@@ -45,7 +45,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7821 2020-04-07 22:21:46Z spm $
+% $Id: spm_COVID_gen.m 7838 2020-04-23 17:40:45Z karl $
 
 
 % The generative model:
@@ -94,7 +94,33 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % determines the expected number of positive cases reported. From these
 % expectations, the expected number of new cases per day can be generated.
 
-
+% References
+% neutralising antibodies : https://www.nature.com/articles/s41586-020-2012-7
+%--------------------------------------------------------------------------
+% seropositive: https://www.thelancet.com/journals/laninf/article/PIIS1473-3099(20)30196-1/fulltext
+%--------------------------------------------------------------------------
+% For 16 patients with serum samples available 14 days or longer after
+% symptom onset, rates of seropositivity were 94% for anti-NP IgG (n=15),
+% 88% for anti-NP IgM (n=14), 100% for anti-RBD IgG (n=16), and 94% for
+% anti-RBD IgM (n=15). Anti-SARS-CoV-2-NP or anti-SARS-CoV-2-RBD IgG levels
+% correlated with virus neutralisation titre (R2>0·9). No genome mutations
+% were detected on serial samples.
+%--------------------------------------------------------------------------
+% immunity : https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2271881/
+%--------------------------------------------------------------------------
+% In this group, antibody concentrations started to increase 1 week after
+% inoculation and reached a maximum about 1 week later. Thereafter antibody
+% titres slowly declined. Although concentrations were still slightly
+% raised 1 year later, this did not always prevent reinfection when
+% volunteers were then challenged with the homologous virus.
+%--------------------------------------------------------------------------
+% long-lasting immunity : https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2851497/
+%--------------------------------------------------------------------------
+% Among 176 patients who had had severe acute respiratory syndrome (SARS),
+% SARS-specific antibodies were maintained for an average of 2 years, and
+% significant reduction of immunoglobulin G–positive percentage and titers
+% occurred in the third year. Thus, SARS patients might be susceptible to
+% reinfection >3 years after initial exposure.
 
 % setup and defaults (assume new deaths and cases as outcome variables)
 %--------------------------------------------------------------------------
@@ -104,19 +130,19 @@ try, M.T; catch, M.T = 180;             end         % over six months
 
 % exponentiate parameters
 %--------------------------------------------------------------------------
-sP   = spm_vecfun(P,@exp);
+Q    = spm_vecfun(P,@exp);
 
 % initial marginals (Dirichlet parameters)
 %--------------------------------------------------------------------------
-n    = sP.n;             % number of initial cases
-N    = sP.N*1e6;         % at risk population size
-m    = sP.m*N;           % herd immunity (proportion immune)
-N    = N - m;            % number of susceptible cases
-
-p{1} = [3 1 0 0]'; % location:   {'home','out','CCU','morgue'};
-p{2} = [N n 0 m]'; % infection:  {'susceptible','infected','infectious','immune'};
-p{3} = [1 0 0 0]'; % clinical:   {'asymptomatic','symptoms','ARDS','death'};
-p{4} = [1 0 0 0]'; % testing:    {'untested','waiting','positive','negative'}
+n    = Q.n;                % number of initial cases
+N    = Q.N*1e6;            % population size
+m    = Q.m*N;              % number of immune cases
+r    = Q.r*N;              % number of resistant cases
+s    = N - n - m - r;      % number of susceptible cases
+p{1} = [3 1 0 0]';         % location 
+p{2} = [s n 0 m r]';       % infection 
+p{3} = [1 0 0 0]';         % clinical 
+p{4} = [1 0 0 0]';         % testing
 
 % normalise initial marginals
 %--------------------------------------------------------------------------
@@ -155,12 +181,12 @@ for i = 1:M.T
     %----------------------------------------------------------------------
     Y(i,3) = N*p{1}(3);
     
-    % basic reproduction rate (R0) infection producing contacts per day (R)
+    % effective reproduction rate (R)
     %----------------------------------------------------------------------
     ps     = squeeze(spm_sum(x,[3,4]));
     ps     = ps(:,3)/sum(ps(:,3));                  % P(infectious | location)
-    R      = (ps(1)*sP.Rin + ps(2)*sP.Rou*sP.Tin);  % E(infectious contacts)
-    Y(i,4) = R*sP.trn*p{2}(1);                      % basic reproduction rate (R0)           
+    R      = (ps(1)*Q.Rin + ps(2)*Q.Rou)*Q.Tcn;  % E(infectious contacts)
+    Y(i,4) = R*Q.trn*p{2}(1);                      % effective reproduction rate (R)           
 
     % herd immunity
     %----------------------------------------------------------------------
@@ -178,300 +204,3 @@ Y(:,i) = gradient(Y(:,i)')';
 Y      = Y(:,U);
 
 return
-
-
-% set up a generative model (state dependent probability transition matrix)
-%__________________________________________________________________________
-
-function T = spm_COVID_B(x,P)
-% state dependent probability transition matrices
-% FORMAT T = spm_COVID_B(p,P)
-% x      - probability distributions (tensor)
-% P      - model parameters
-% 
-% B      - probability transition matrices
-%
-% this subroutine creates a transition probability tensors as a function of
-% model parameters and the joint density over four factors, each with four
-% levels. With one exception, the transition probabilities of anyone factor
-% depend only upon another factor. The exception is the factor modelling
-% clinical status, where the transition from acute respiratory distress
-% (ARDS) to death depends upon infection status (infected or not
-% infected) and location (in a critical careunit will not).
-%__________________________________________________________________________
-
-% marginal probabilities
-%==========================================================================
-p     = spm_marginal(x);
-
-% identity matrices
-%--------------------------------------------------------------------------
-dim   = size(x);
-I     = cell(ndims(x),1);
-for i = 1:ndims(x)
-    I{i} = speye(dim(i));
-end
-
-% exponentiate parameters
-%--------------------------------------------------------------------------
-P     = spm_vecfun(P,@exp);
-
-% probabilistic transitions: location
-%==========================================================================
-% P.out                             % P(work | home)
-% P.sde                             % social distancing threshold
-% P.cap                             % bed availability threshold (per capita)
-% bed availability and social distancing
-%--------------------------------------------------------------------------
-b    = cell(1,dim(1));
-Psd  = (1 - p{2}(2))^(32*P.sde);    % P(social distancing)
-Pcca = spm_sigma(p{1}(3),P.cap);    % P(bed capacity)
-Pout = Psd*P.out;                   % P(work | home)
-
-% marginal: location {1} | asymptomatic {3}(1)
-%--------------------------------------------------------------------------
-%      home       work       CCU       morgue
-%--------------------------------------------------------------------------
-b{1} = [(1 - Pout) 1          1          0;
-        Pout       0          0          0;
-        0          0          0          0;
-        0          0          0          1];
-
-% marginal: location {1}  | symptoms {3}(2)
-%--------------------------------------------------------------------------
-b{2} = [1          1          1          0;
-        0          0          0          0;
-        0          0          0          0;
-        0          0          0          1];
-
-% marginal: location {1}  | ARDS {3}(3)
-%--------------------------------------------------------------------------
-b{3} = [(1 - Pcca) (1 - Pcca) 0          0;
-        0          0          0          0;
-        Pcca       Pcca       1          0;
-        0          0          0          1];
-
-% marginal: location {1}  | deceased {3}(4)
-%--------------------------------------------------------------------------
-b{4} = [0          0          0          0;
-        0          0          0          0;
-        0          0          0          0;
-        1          1          1          1];
-
-% kroneckor form (taking care to get the order of factors right)
-%--------------------------------------------------------------------------
-b     = spm_cat(spm_diag(b));
-b     = spm_kron({b,I{2},I{4}});
-B{1}  = spm_permute_kron(b,dim([1,3,2,4]),[1,3,2,4]);
-        
-% probabilistic transitions: infection
-%==========================================================================
-% P.Rin                             % effective number of contacts: home
-% P.Rou                             % effective number of contacts: work
-% P.trn                             % P(transmission | contact)
-% P.Tin                             % infected (pre-contagious) period
-% P.Tcn                             % infectious (contagious) period
-% transmission probabilities
-%--------------------------------------------------------------------------
-b    = cell(1,dim(2));
-R    = (1 - P.trn*p{2}(3));         % P(no transmission per contact)
-Pinh = R^P.Rin;                     % P(no transmission) | home
-Pinw = R^P.Rou;                     % P(no transmission) | work
-Kinf = exp(-1/P.Tin);
-Kcon = exp(-1/P.Tcn);
-    
-% marginal: infection {2} | home {1}(1)
-%--------------------------------------------------------------------------
-%    susceptible  infected  infectious  immune
-%--------------------------------------------------------------------------
-b{1} = [Pinh       0          0          0;
-        (1 - Pinh) Kinf       0          0;
-        0          (1 - Kinf) Kcon       0;
-        0          0          (1 - Kcon) 1];
-    
-% marginal: infection {2} | work {1}(2)
-%--------------------------------------------------------------------------
-b{2} = [Pinw       0          0          0;
-        (1 - Pinw) Kinf       0          0;
-        0          (1 - Kinf) Kcon       0;
-        0          0          (1 - Kcon) 1];
-
-% marginal: infection {2} | CCU {1}(3)
-%--------------------------------------------------------------------------
-b{3} = [1          0          0          0;
-        0          Kinf       0          0;
-        0          (1 - Kinf) Kcon       0;
-        0          0          (1 - Kcon) 1];
-
-% marginal: infection {2} | morgue {1}(4)
-%--------------------------------------------------------------------------
-b{4} = [0          0          0          0;
-        0          0          0          0;
-        0          0          0          0;
-        1          1          1          1];
-
-% kroneckor form
-%--------------------------------------------------------------------------
-b     = spm_cat(spm_diag(b));
-b     = spm_kron({b,I{3},I{4}});
-B{2}  = spm_permute_kron(b,dim([2,1,3,4]),[2,1,3,4]);
-
-
-% probabilistic transitions: clinical
-%==========================================================================
-% P.dev                             % P(developing symptoms | infected)
-% P.sev                             % P(severe symptoms | symptomatic)
-% P.Tsy                             % symptomatic period
-% P.Trd                             % acute RDS   period
-% P.fat                             % P(fatality | CCU)
-% P.sur                             % P(survival | home)
-% probabilities of developing symptoms
-%--------------------------------------------------------------------------
-b    = cell(1,dim(3));
-Psev = P.sev;                       % P(developing symptoms | infected)
-Ksym = exp(-1/P.Tsy);               % acute symptomatic rate
-Ksev = exp(-1/P.Trd);               % acute RDS rate
-Pdev = P.dev;                       % P(symptoms  | infected)
-Pfat = 1 - P.sur;                   % baseline fatality rate
-
-% marginal: clinical {3} | susceptible {2}(1)
-%--------------------------------------------------------------------------
-%  asymptomatic symptomatic acute RDS deceased
-%--------------------------------------------------------------------------
-b{1} = [1          1          1         0;
-        0          0          0         0;
-        0          0          0         0;
-        0          0          0         1];
-
-% marginal: clinical {3} | infected {2}(2)
-%--------------------------------------------------------------------------
-b{2} = [(1 - Pdev) (1 - Ksym)*(1 - Psev) (1 - Ksev)*(1 - Pfat) 0;
-        Pdev       Ksym                   0                    0;
-        0          (1 - Ksym)*Psev        Ksev                 0;
-        0          0                     (1 - Ksev)*Pfat       1];
-    
-% marginal: clinical {3} | infectious {2}(3)
-%--------------------------------------------------------------------------
-b{3} = [(1 - Pdev) (1 - Ksym)*(1 - Psev) (1 - Ksev)*(1 - Pfat) 0;
-        Pdev       Ksym                   0                    0;
-        0          (1 - Ksym)*Psev        Ksev                 0;
-        0          0                     (1 - Ksev)*Pfat       1];
-    
-% marginal: clinical {3} | immune {2}(4)
-%--------------------------------------------------------------------------
-b{4} = [1          1          1         0;
-        0          0          0         0;
-        0          0          0         0;
-        0          0          0         1];
-
-% kroneckor form
-%--------------------------------------------------------------------------
-b     = spm_cat(spm_diag(b));
-b     = spm_kron({b,I{1}});
-b     = spm_permute_kron(b,dim([3,2,1]),[3,2,1]);
-
-% location dependent fatalities (P.fat in CCU)
-%--------------------------------------------------------------------------
-for i = 3:numel(p{1}):length(b)
-    k      = logical(b(:,i) == (1 - Ksev)*Pfat);
-    b(k,i) = (1 - Ksev)*P.fat;
-    k      = logical(b(:,i) == (1 - Ksev)*(1 - Pfat));
-    b(k,i) = (1 - Ksev)*(1 - P.fat);
-end
-
-
-% kroneckor form
-%--------------------------------------------------------------------------
-B{3}  = spm_kron({b,I{4}});
-
-
-% probabilistic transitions: testing
-%==========================================================================
-% P.tft                       % threshold:   testing capacity
-% P.sen;                      % sensitivity: testing capacity
-% P.del                       % delay:       testing capacity
-% P.tes                       % relative probability of test if uninfected
-% test availability and prevalence of symptoms
-%--------------------------------------------------------------------------
-b    = cell(1,dim(4));
-Ptes = P.sen*spm_sigma(p{4}(2),P.tft);
-Pdia = P.tes*Ptes;
-Kdel = exp(-1/P.del);         % exp(-1/waiting period)
-
-% marginal: testing {4} | susceptible {2}(1)
-%--------------------------------------------------------------------------
-%    not tested  waiting       +ve -ve
-%--------------------------------------------------------------------------
-b{1} = [(1 - Pdia) 0            0   0;
-        Pdia       Kdel         0   0;
-        0          0            1   0;
-        0          (1 - Kdel)   0   1];
-
-% marginal: testing {4} | infected {2}(2)
-%--------------------------------------------------------------------------
-b{2} = [(1 - Ptes) 0            0   0;
-        Ptes       Kdel         0   0;
-        0          (1 - Kdel)   1   0;
-        0          0            0   1];
-    
-% marginal: testing {4} | infectious {2}(3)
-%--------------------------------------------------------------------------
-b{3} = [(1 - Ptes) 0            0   0;
-        Ptes       Kdel         0   0;
-        0          (1 - Kdel)   1   0;
-        0          0            0   1];
-    
-% marginal: testing {4} | immune {2}(4)
-%--------------------------------------------------------------------------
-b{4} = [(1 - Pdia) 0            0   0;
-        Pdia       Kdel         0   0;
-        0          0            1   0;
-        0          (1 - Kdel)   0   1];
-
-% kroneckor form
-%--------------------------------------------------------------------------
-b     = spm_cat(spm_diag(b));
-b     = spm_kron({b,I{1},I{3}});
-B{4}  = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
-    
-% probability transition matrix
-%==========================================================================
-T     = 1;
-for i = 1:numel(B)
-    T =  T*B{i};
-end
-
-
-return
-
-% Auxiliary functions
-%__________________________________________________________________________
-
-function p = spm_sigma(x,u,s)
-% reverse sigmoid function
-% FORMAT p = spm_sigma(p,u)
-% x    - probability
-% u    - threshold
-% u    - sensitivity (default four)
-%
-% p    - probability (0 < p < 1)
-%
-% this function is standard sigmoid function but scales the input argument
-% by the bias and flips the (biased) input. This provides a monotonically
-% decreasing sigmoid function of the input that hits 50 at the threshold
-% (u). The scaling ensures the probability at x = 0 is about one, for a
-% suitably large sensitivity parameter s.
-%--------------------------------------------------------------------------
-
-% default sensitivity
-%--------------------------------------------------------------------------
-if nargin < 3, s = 4; end
-
-% sigmoid function
-%--------------------------------------------------------------------------
-p = spm_phi(s*(u - x)/u);
-
-return
-
-
-

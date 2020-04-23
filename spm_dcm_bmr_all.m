@@ -10,7 +10,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 %  DCM.Cp    - posterior covariances
 %  DCM.beta  - prior expectation of reduced parameters (default: 0)
 %  DCM.gamma - prior variance    of reduced parameters (default: 0)
-%              NB: beta = 'pE' uses full priors
+%              NB: beta = 'char' uses full priors
 %
 % field      - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %             'All' will invoke all fields (i.e. random effects)
@@ -64,7 +64,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 7809 2020-03-31 11:55:09Z karl $
+% $Id: spm_dcm_bmr_all.m 7838 2020-04-23 17:40:45Z karl $
 
 
 %-specification of null prior covariance
@@ -81,7 +81,11 @@ if nargin < 2 || isempty(field)
     field = {'A','B'};
 end
 if ischar(field)
-    field = {field};
+    if strcmpi(field,'All') && isstruct(DCM.Ep)
+        field = fieldnames(DCM.Ep);
+    else
+        field = {field};
+    end
 end
 
 %-deal with filenames structure
@@ -423,7 +427,7 @@ end
 %-Save Bayesian parameter average (Ep,Cp) and family-wise inference (Pp)
 %==========================================================================
 if isstruct(DCM.Ep)
-    if Np < 32
+    if numel(Pp) < 32
         legend(spm_fieldindices(DCM.Ep,i))
     end
     Pp    = spm_unvec(Pp,DCM.Ep);

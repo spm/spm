@@ -13,7 +13,7 @@ function [Y] = spm_cross(X,x,varargin)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cross.m 7527 2019-02-06 19:12:56Z karl $
+% $Id: spm_cross.m 7838 2020-04-23 17:40:45Z karl $
 
 % handle single inputs
 %--------------------------------------------------------------------------
@@ -33,9 +33,11 @@ if iscell(x), x = spm_cross(x{:}); end
 
 % outer product of first pair of arguments (using bsxfun)
 %--------------------------------------------------------------------------
-A = reshape(full(X),[size(X) ones(1,ndims(x))]);
-B = reshape(full(x),[ones(1,ndims(X)) size(x)]);
-Y = squeeze(bsxfun(@times,A,B));
+A   = reshape(full(X),[size(X) ones(1,ndims(x))]);
+B   = reshape(full(x),[ones(1,ndims(X)) size(x)]);
+Y   = bsxfun(@times,A,B);
+siz = size(Y);
+Y   = reshape(Y,[siz(siz > 1) 1]);
 
 % and handle remaining arguments
 %--------------------------------------------------------------------------

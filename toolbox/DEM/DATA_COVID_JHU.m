@@ -34,7 +34,7 @@ function data = DATA_COVID_JHU
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 7824 2020-04-09 16:53:49Z guillaume $
+% $Id: DATA_COVID_JHU.m 7838 2020-04-23 17:40:45Z karl $
 
 
 % load data from https://github.com/CSSEGISandData/COVID-19/
@@ -74,10 +74,11 @@ Country{i} = 'US';
 % assemble data structure
 %==========================================================================
 Data  = struct([]);
+s     = 1;                                          % data smoothing (days)
 k     = 1;
 for i = 1:numel(State)
     j = find(ismember(Country,State{i}));
-    if numel(j) 
+    if numel(j)
         
         % confirmed cases
         %------------------------------------------------------------------
@@ -109,9 +110,9 @@ for i = 1:numel(State)
             Data(k).lat     = C.data(l,1);
             Data(k).long    = C.data(l,2);
             Data(k).date    = date{d};
-            Data(k).cases   = gradient(spm_conv([zeros(8,1); CY(d:end)],2));
-            Data(k).death   = gradient(spm_conv([zeros(8,1); DY(d:end)],2));
-            Data(k).recov   = gradient(spm_conv([zeros(8,1); RY(d:end)],2));
+            Data(k).cases   = gradient(spm_conv([zeros(8,1); CY(d:end)],s));
+            Data(k).death   = gradient(spm_conv([zeros(8,1); DY(d:end)],s));
+            Data(k).recov   = gradient(spm_conv([zeros(8,1); RY(d:end)],s));
             Data(k).days    = numel(Data(k).cases);
             Data(k).cum     = sum(Data(k).death);
             k = k + 1;
@@ -152,7 +153,7 @@ N   = spm_cat({Data.cum});
 % retain countries with over 64 days and 128 deaths
 %--------------------------------------------------------------------------
 t    = 64;
-i    = logical(T > t & N > 128);
+i    = logical(T > t & N > 256);
 data = Data(i);
 for i = 1:numel(data)
     death(:,i) = data(i).death(1:t);

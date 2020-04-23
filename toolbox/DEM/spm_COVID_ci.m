@@ -1,10 +1,13 @@
-function spm_COVID_ci(Ep,Cp,Z,U)
+function [S,CS] = spm_COVID_ci(Ep,Cp,Z,U)
 % Graphics for coronavirus simulations - with confidence intervals
 % FORMAT spm_COVID_plot(Y,X,Z,N)
 % Ep     - posterior expectations
 % Cp     - posterior covariances
 % Z      - optional empirical data
 % U      - outputs to evaluate [default: 1:4]
+%
+% S      - posterior expectation of cumulative deaths
+% CS     - posterior covariances of cumulative deaths
 %
 % This routine evaluates a trajectory of outcome variables from a COVID
 % model and plots the expected trajectory and accompanying Bayesian
@@ -23,7 +26,7 @@ function spm_COVID_ci(Ep,Cp,Z,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_ci.m 7820 2020-04-07 20:54:29Z karl $
+% $Id: spm_COVID_ci.m 7838 2020-04-23 17:40:45Z karl $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------
@@ -50,11 +53,15 @@ t        = (1:M.T)/7;
 % conditional covariances
 %--------------------------------------------------------------------------
 Ny    = size(Y,2);
-for i = 1:size(Y,2)
-    for j = 1:size(dYdP,2)
-        D{j} = dYdP{j}(:,i);
+for i = 1:Ny
+    if iscell(dYdP)
+        for j = 1:size(dYdP,2)
+            D{j} = dYdP{j}(:,i);
+        end
+        dydp{i}  = spm_cat(D);
+    else
+        dydp{i}  = dYdP;
     end
-    dydp{i}  = spm_cat(D);
     C{i}     = dydp{i}*Cp*dydp{i}';
 end
 
@@ -86,7 +93,6 @@ axis square, box off, spm_axis tight
 subplot(2,2,4), hold off
 spm_plot_ci(Ep,Cp,[],[],'exp'),               hold on
 bar(exp(spm_vec(pE)),1/4,'Edgecolor','none'), hold off
-set(gca,'yLim',[0 32])
 set(gca,'XTick',1:spm_length(Ep),'Xticklabel',str.names)
 ylabel('Parameters','FontSize',16), box off
 camorbit(90,0)

@@ -10,7 +10,7 @@ function [Y] = spm_marginal(X)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_marginal.m 7821 2020-04-07 22:21:46Z spm $
+% $Id: spm_marginal.m 7838 2020-04-23 17:40:45Z karl $
 
 
 % evaluate marginals
@@ -20,5 +20,6 @@ Y     = cell(n,1);
 for i = 1:n
     j    = 1:n;
     j(i) = [];
-    Y{i} = spm_vec(squeeze(spm_sum(X,j)));
+    
+    Y{i} = reshape(spm_sum(X,j),size(X,i),1);
 end
