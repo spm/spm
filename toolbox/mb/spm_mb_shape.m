@@ -532,12 +532,17 @@ for m=1:size(B,3)
 end
 
 df   = datn.dm;
-psi1 = spm_mb_io('GetData',datn.psi);
 psi0 = Affine(df,Mmu\Mr*Mn,samp);
 ds   = [size(psi0,1),size(psi0,2),size(psi0,3)];
-J    = spm_diffeo('jacobian',psi1);
-J    = reshape(Pull1(reshape(J,[d 3*3]),psi0),[ds 3 3]);
-psi  = Compose(psi1,psi0);
+psi1 = spm_mb_io('GetData',datn.psi);
+if ~isempty(psi1)
+    J    = spm_diffeo('jacobian',psi1);
+    J    = reshape(Pull1(reshape(J,[d 3*3]),psi0),[ds 3 3]);
+    psi  = Compose(psi1,psi0);
+else
+    J    = [];
+    psi  = psi0;
+end
 clear psi0  psi1
 
 mu1  = Pull1(mu,psi);
@@ -547,9 +552,13 @@ G    = zeros([ds M 3],'single');
 for m=1:M
     [~,Gm{1},Gm{2},Gm{3}] = spm_diffeo('bsplins',mu(:,:,:,m),psi,[1 1 1  0 0 0]);
     for i1=1:3
-        tmp = single(0);
-        for j1=1:3
-            tmp = tmp + J(:,:,:,j1,i1).*Gm{j1};
+        if ~isempty(J)
+            tmp = single(0);
+            for j1=1:3
+                tmp = tmp + J(:,:,:,j1,i1).*Gm{j1};
+            end
+        else
+            tmp = Gm{j1};
         end
         tmp(~isfinite(tmp)) = 0;
         G(:,:,:,m,i1) = tmp;
@@ -561,24 +570,25 @@ clear J mu
 msk       = all(isfinite(f),4) & all(isfinite(mu1),4);
 mu1(~isfinite(mu1)) = 0;
 a         = Mask(f - Softmax(mu1,4),msk);
-[H,g]     = AffineHessian(mu1,G,a,single(msk),accel);
+[H,g]     = AffineHessian(mu1,G,a,single(msk),accel,samp);
 g         = double(dM'*g);
 H         = dM'*H*dM;
-H         = H + eye(numel(q))*(norm(H)*1e-6 + 0.1);
+H         = H + eye(numel(q))*(norm(H)*1e-5 + 0.01);
 q         = q + scal*(H\g);
 datn.q    = q;
 end
 %==========================================================================
 
 %==========================================================================
-function [H,g] = AffineHessian(mu,G,a,w,accel)
+function [H,g] = AffineHessian(mu,G,a,w,accel,samp)
+if nargin<6, samp = [1 1 1]; end
 d  = [size(mu,1),size(mu,2),size(mu,3)];
 I  = Horder(3);
 H  = zeros(12,12);
 g  = zeros(12, 1);
-[x{1:4}] = ndgrid(1:d(1),1:d(2),1,1);
+[x{1:4}] = ndgrid(((1:d(1))-1)*samp(1)+1,((1:d(2))-1)*samp(2)+1,1,1);
 for i=1:d(3)
-    x{3} = x{3}*0+i;
+    x{3} = x{3}*0+(i-1)*samp(3)+1;
    %gv   = reshape(sum(a(:,:,i,:).*G(:,:,i,:,:),4),[d(1:2) 1 3]);
     gv   = reshape(sum(bsxfun(@times,a(:,:,i,:),G(:,:,i,:,:)),4),[d(1:2) 1 3]);
    %Hv   = w(:,:,i).*VelocityHessian(mu(:,:,i,:),G(:,:,i,:,:),accel);
@@ -730,6 +740,7 @@ end
 
 psi      = Affine(df,Mmu\Mr*Mn,samp);
 mu1      = Pull1(mu,psi);
+
 [f,datn] = GetClasses(datn,mu1,sett);
 [a,w]    = Push1(f - Softmax(mu1,4),psi,d,1);
 clear mu1 psi f
@@ -737,7 +748,7 @@ clear mu1 psi f
 [H,g]     = SimpleAffineHessian(mu,G,H0,a,w);
 g         = double(dM'*g);
 H         = dM'*H*dM;
-H         = H + eye(numel(q))*(norm(H)*1e-6 + 0.1);
+H         = H + eye(numel(q))*(norm(H)*1e-5 + 0.1);
 q         = q + scal*(H\g);
 datn.q    = q;
 end
@@ -745,6 +756,7 @@ end
 
 %==========================================================================
 function [H,g] = SimpleAffineHessian(mu,G,H0,a,w)
+samp = [1 1 1];
 d  = [size(mu,1),size(mu,2),size(mu,3)];
 I  = Horder(3);
 H  = zeros(12,12);
@@ -754,6 +766,7 @@ for i=1:d(3)
     x{3} = x{3}*0+i;
    %gv   = reshape(sum(a(:,:,i,:).*G(:,:,i,:,:),4),[d(1:2) 1 3]);
     gv   = reshape(sum(bsxfun(@times,a(:,:,i,:),G(:,:,i,:,:)),4),[d(1:2) 1 3]);
+
    %Hv   = w(:,:,i).*H0(:,:,i,:);
     Hv   = bsxfun(@times,w(:,:,i),H0(:,:,i,:));
     for i1=1:12
@@ -1252,10 +1265,16 @@ for i=1:n
     z                 = d./sz(i).d;
     sz(i).Mmu         = Mmu*[diag(z), (1-z(:))*0.5; 0 0 0 1];
     vx                = sqrt(sum(sz(i).Mmu(1:3,1:3).^2));
-    sz(i).v_settings  = [vx v_settings*(scale*abs(det(sz(i).Mmu(1:3,1:3))))];
+    scale_i           = scale*abs(det(sz(i).Mmu(1:3,1:3)));
+    % This adhoc value should really be 1, but this gives less extreme
+    % warps in the early iterations, which might help the clustering
+    % associate the right priors to each tissue class - without
+    % warping the priors to the wrong tissue.
+    adhoc             = 1.1; 
+    sz(i).v_settings  = [vx v_settings*scale_i.^adhoc]; 
     if isfield(mu,'create')
         mu_settings       = mu.create.mu_settings;
-        sz(i).mu_settings = [vx mu_settings*(scale*abs(det(sz(i).Mmu(1:3,1:3))))];
+        sz(i).mu_settings = [vx mu_settings*scale_i];
     end
 end
 end

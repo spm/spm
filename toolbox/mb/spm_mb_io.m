@@ -9,7 +9,6 @@ function varargout = spm_mb_io(varargin)
 % FORMAT           spm_mb_io('SaveTemplate',mu,sett)
 % FORMAT fout    = spm_mb_io('SetData',fin,f)
 % FORMAT           spm_mb_io('SetPath')
-% FORMAT           spm_mb_io('WriteNii',f,img,Mmu,descrip);
 % FORMAT dat     = spm_mb_io('SavePsi',dat,sett);
 %
 %__________________________________________________________________________
@@ -36,8 +35,6 @@ switch id
         [varargout{1:nargout}] = SetData(varargin{:});
     case 'SetPath'
         [varargout{1:nargout}] = SetPath(varargin{:});
-    case 'WriteNii'
-        [varargout{1:nargout}] = WriteNii(varargin{:});
     case 'SavePsi'
         [varargout{1:nargout}] = SavePsi(varargin{:});
     otherwise
@@ -266,33 +263,6 @@ pth = fileparts(which('spm'));
 addpath(pth);
 addpath(fullfile(pth,'toolbox','Longitudinal'));
 addpath(fullfile(pth,'toolbox','Shoot'));
-end
-%==========================================================================
-
-%==========================================================================
-function WriteNii(f,img,M,descrip,typ)
-if nargin<5, typ = 'float32'; end
-switch typ
-case 'float32'
-    fa = file_array(f,size(img),typ,0);
-case 'uint8'
-    mx = max(img(isfinite(img(:))));
-    fa = file_array(f,size(img),typ,0,mx/255,0);
-case 'int16'
-    mx = max(img(isfinite(img(:))));
-    mn = min(img(isfinite(img(:))));
-    s  = max(mx/32767,-mn/32768);
-    fa = file_array(f,size(img),typ,0,s,0);
-otherwise
-    error('Can''t do datatype "%s"', typ);
-end
-Nii         = nifti;
-Nii.dat     = fa;
-Nii.mat     = M;
-Nii.mat0    = M;
-Nii.descrip = descrip;
-create(Nii);
-Nii.dat(:,:,:,:,:,:) = img;
 end
 %==========================================================================
 

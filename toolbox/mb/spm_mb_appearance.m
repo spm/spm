@@ -232,11 +232,13 @@ f0    = SubSample(f0,dat.samp);
 samp  = dat.samp;
 samp2 = dat.samp2;
 
-% GMM posterior
+% GMM posterior: initial estimates at each iteration are made to be uncertain
 m    = gmm.m;
-b    = gmm.b;
-W    = gmm.W;
-n    = gmm.n;
+b    = gmm.b*0+1e-3;
+nval = C-1+1e-3;
+%W   = repmat(mean(bsxfun(@times,gmm.W,reshape(gmm.n,[1 1 Kmg])),3)/nval,[1 1 Kmg]);
+W    = bsxfun(@times,gmm.W,reshape(gmm.n,[1 1 numel(gmm.n)])./nval);
+n    = gmm.n*0+nval;
 mg_w = gmm.mg_w;
 
 
@@ -258,17 +260,14 @@ else
    %scl_samp = 1.0;
 end
 
-
 % Compute Gaussian parameters on a subset of the voxels
 [f,d] = SubSample( f0,samp2);
 mu    = SubSample(mu0,samp2);
-
 
 % Template
 mu    = vol2vec(spm_mb_shape('TemplateK1',mu)); % Make K + 1 template
 mu    = mu + GetLabels(dat,sett,true); % Add labels and template
 mu    = mu(:,mg_ix); % Expand, if using multiple Gaussians per tissue
-
 
 % Bias field related
 do_inu = ~cellfun(@isempty,gmm.T);
@@ -318,7 +317,6 @@ for it_appear=1:nit_appear
     n      = mog.n;
     lx     = lb.X(end)+lb.Z(end)+lb.P(end);
     lbs    = lb.sum(end)+lxb;
-   %[Z,lx] = Responsibility(m,b,W,n,inuf,ReWeightMu(mu,log(mg_w)),msk_chn);
     if (it_appear==nit_appear) || (abs(lbs - lbso)/abs(lbs) < tol_gmm) 
         % Finished
         break
@@ -367,8 +365,8 @@ for it_appear=1:nit_appear
                     gk = bsxfun(@minus, inuf{l}, mo.') * Ao(ixc,:).';
                     Hk = Ao(ixc,ixc);
 
-                    gk   = bsxfun(@times, gk, Z{l}(:,k));
-                    Hk   = bsxfun(@times, Hk, Z{l}(:,k));
+                    gk = bsxfun(@times, gk, Z{l}(:,k));
+                    Hk = bsxfun(@times, Hk, Z{l}(:,k));
 
                     % Accumulate across clusters
                     go = go + gk;

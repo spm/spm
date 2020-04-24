@@ -477,6 +477,7 @@ for em=1:iter_max
                 for k=1:size(MU,2)
                     [~,cholp] = chol(A(:,:,k));
                     if cholp ~= 0
+                        warning('A not positve definite - reverting to previous version')
                         A(:,:,k) = Ap(:,:,k);
                         if sum(n) > 0
                             V(:,:,k) = Vp(:,:,k);
@@ -486,7 +487,7 @@ for em=1:iter_max
                 end
                 mean = {MU,b};
                 if ~sum(n), prec = {A};
-                else       prec = {V,n};   end
+                else        prec = {V,n};   end
             end
 
             % -------------------------------------------------------------
@@ -514,8 +515,8 @@ for em=1:iter_max
         end
 
     else
-    % ---------------------------------------------------------------------
-    % Classical M-step
+        % ---------------------------------------------------------------------
+        % Classical M-step
 
         % -----------------------------------------------------------------
         % Compute sufficient statistics
@@ -527,18 +528,14 @@ for em=1:iter_max
         [MU,A,b,V,n] = updateclusters(SS0, SS1, SS2, [mean0 prec0]);
         for k=1:size(MU,2)
             [~,cholp] = chol(A(:,:,k));
-            if cholp == 0
-                A(:,:,k) = A(:,:,k);
-                if sum(n) > 0
-                    V(:,:,k) = V(:,:,k);
-                end
+            if cholp ~= 0
+                warning('A not positive definite');
             end
         end
         mean = {MU,b};
         if ~sum(n), prec =  {A};
-        else       prec = {V,n};   end
+        else        prec = {V,n};   end
         norm_term = normalisation(mean, prec);
-
     end
 
     % ---------------------------------------------------------------------
@@ -876,7 +873,7 @@ for j=1:numel(varargin)
     if ~isempty(Zj)
         for i=1:numel(Z)
             if iscell(Zj), Zji = Zj{i};
-            else          Zji = Zj; end
+            else           Zji = Zj; end
             Z{i} = bsxfun(@plus, Z{i}, Zji);
         end
     end
@@ -885,7 +882,7 @@ end
 % Exponentiate and normalise
 lb = 0;
 for i=1:numel(Z)
-    mx   =  max(Z{i}, [], 2);
+    mx   = max(Z{i}, [], 2);
     Z{i} = bsxfun(@minus, Z{i}, mx);
     Z{i} = exp(Z{i});
     sz   = sum(Z{i}, 2);
@@ -1442,26 +1439,23 @@ end
 
 % -------------------------------------------------------------------------
 % Scale/Precision
+V = zeros(size(SS2));
 if sum(n0) == 0
     % ---------------------------------------------------------------------
     % Without prior
     n   = [];
     for k=1:K
-        SS2(:,:,k) = SS2(:,:,k) / SS0(k) - (MU(:,k) * MU(:,k).');
+        V(:,:,k) = inv(SS2(:,:,k) / SS0(k) - (MU(:,k) * MU(:,k).'));
     end
 else
     % ---------------------------------------------------------------------
     % With prior
     n = n0 + SS0;
     for k=1:K
-        SS2(:,:,k) = SS2(:,:,k) +   b0(k) * MU0(:,k) * MU0(:,k).' ...
-                                -    b(k) * MU(:,k)  * MU(:,k).' ...
-                                + inv(V0(:,:,k));
+        V(:,:,k) = inv(SS2(:,:,k) + b0(k) * MU0(:,k) * MU0(:,k).' ...
+                                  -  b(k) * MU(:,k)  * MU(:,k).' ...
+                                  + inv(V0(:,:,k)));
     end
-end
-V = SS2;
-for k=1:K
-    V(:,:,k) = inv(V(:,:,k));
 end
 if sum(n) > 0
     A = bsxfun(@times, V, reshape(n, [1 1 K]));
@@ -1611,7 +1605,7 @@ if ~constrained
 
         % -----------------------------------------------------------------
         % Update n0 (mode, Gauss-Newton [convex])
-        E = inf;
+        E     = inf;
         for gniter=1:1000
 
             % -------------------------------------------------------------

@@ -107,7 +107,14 @@ for it0=1:nit_aff
     change = mean(abs(oEE - EE)./abs(EE));
 
     % Finished rigid alignment?
-    if change < sett.tol, break; end
+    if change < sett.tol
+        countdown = countdown - 1;
+        if countdown==0
+            break;
+        end
+    else
+        countdown = 4;
+    end
 end
 
 sett.tol = sett.tol*10;
@@ -165,14 +172,13 @@ for zm=numel(sz):-1:1 % loop over zoom levels
         end
         fprintf('\n');
 
-        if it0==nit_zm, break; end
        %% Check convergence and terminate if done
        %change = mean(abs(oEE - EE)./abs(EE));        
        %if change < sett.tol, break; end
 
         % Compute deformations from velocities (unless this is to be done
         % on the zoomed versions).
-        if updt_diff
+        if it0<nit_zm && updt_diff
             dat   = spm_mb_shape('UpdateWarps',dat,sett);
         end
     end
@@ -191,7 +197,7 @@ for zm=numel(sz):-1:1 % loop over zoom levels
     end
 
     if updt_diff
-        dat        = spm_mb_shape('UpdateWarps',dat,sett);       % Shoot new deformations
+        dat        = spm_mb_shape('UpdateWarps',dat,sett); % Shoot new deformations
     end
     do_save(mu,sett,dat);
     spm_plot_convergence('Clear');

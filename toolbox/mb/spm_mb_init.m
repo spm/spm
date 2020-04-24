@@ -332,15 +332,17 @@ for p=1:numel(sett.gmm) % Loop over populations
 
         % Uninformative prior for variance - based on variance of image
         vr                = double(mean(vr_all,2));
-        W                 = inv(diag(vr)/K1);    % Note the ad hoc scaling
-        sett.gmm(p).pr{3} = repmat(W,[1 1 K1]);
-        sett.gmm(p).pr{4} = ones(1,K1)*C;
+        nu0               = C-1+1e-4;                % Minimally informative
+        scale             = max(K1-1,1).^(2/C);      % Crude heuristic
+        W0                = diag(1./vr)*(scale/nu0);
+        sett.gmm(p).pr{3} = repmat(W0,[1 1 K1]);
+        sett.gmm(p).pr{4} = ones(1,K1)*nu0;
 
         % Random mean intensities, roughly sorted. Used to break symmetry.
         rng('default'); rng(1); % Want some reproducibility
-       %mu                = diag(sqrt(vr*(1-1/K1)))*randn(C,K1) + mu; % The 1-1/K1 is to match W by Pythagorous
-        mu                = bsxfun(@plus,0.1*diag(sqrt(vr*(1-1/K1)))*randn(C,K1), mu); % The 1-1/K1 is to match W by Pythagorous
-        d                 = sum(diag(sqrt(vr*(1-1/K1)))\mu,1);        % Heuristic measure of how positive
+       %mu                = diag(sqrt(vr*(1-1/scale)))*randn(C,K1) + mu; % The 1-1/scale is to match W by Pythagorous
+        mu                = bsxfun(@plus,0.01*diag(sqrt(vr)*(1-1/scale))*randn(C,K1), mu); 
+        d                 = sum(diag(sqrt(vr*(1-1/K1)))\mu,1);           % Heuristic measure of how positive
         [~,o]             = sort(-d); % Order the means, most positive first
         mu                = mu(:,o);
 
