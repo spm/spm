@@ -1,6 +1,6 @@
 function [S,CS] = spm_COVID_ci(Ep,Cp,Z,U)
 % Graphics for coronavirus simulations - with confidence intervals
-% FORMAT spm_COVID_plot(Y,X,Z,N)
+% FORMAT [S,CS] = spm_COVID_ci(Ep,Cp,Z,U)
 % Ep     - posterior expectations
 % Cp     - posterior covariances
 % Z      - optional empirical data
@@ -26,7 +26,7 @@ function [S,CS] = spm_COVID_ci(Ep,Cp,Z,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_ci.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: spm_COVID_ci.m 7840 2020-04-26 23:11:25Z spm $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 function dSYdP = spm_COVID_R_cii(DCM,U,name)
 % Graphics for coronavirus simulations - with confidence intervals
-% FORMAT spm_COVID_R_ci(DCM,U)
+% FORMAT dSYdP = spm_COVID_R_ci(DCM,U)
 % DCM.Ep - posterior expectations
 % DCM.Cp - posterior covariances
 % DCM.Y  - empirical data
@@ -29,7 +29,7 @@ function dSYdP = spm_COVID_R_cii(DCM,U,name)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_R_cii.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: spm_COVID_R_cii.m 7840 2020-04-26 23:11:25Z spm $
 
 % setup and default: number of outcomes to evaluate
 %--------------------------------------------------------------------------

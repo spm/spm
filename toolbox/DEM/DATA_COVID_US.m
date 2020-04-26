@@ -24,7 +24,7 @@ function [Y,Data] = DATA_COVID_US
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_US.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: DATA_COVID_US.m 7840 2020-04-26 23:11:25Z spm $
 
 
 % load data from https://github.com/CSSEGISandData/COVID-19/
@@ -34,7 +34,7 @@ try
     D  = importdata('time_series_covid19_deaths_US.csv',',',1   );
 catch
     clc, warning('Please load csv files into the current working directory')
-    help DATA_COVID_JHU
+    help DATA_COVID_US
 end
 
 
@@ -54,7 +54,7 @@ for i = 1:length(Pop)
         Lon(i) = 0;
     end
 end
-State      = unique(Region);               % common States
+State  = unique(Region);                 % common States
 
 
 % assemble data structure
@@ -86,15 +86,15 @@ for i = 1:numel(State)
     % create data structure
     %----------------------------------------------------------------------
     if DY(end) > 32
-        Data(k).state   = State{i};
-        Data(k).pop     = PY;
-        Data(k).lat     = lat;
-        Data(k).lon     = lon;
-        Data(k).date    = '20/1/2020';
-        Data(k).cases   = gradient(spm_conv(CY(T:end),s));
-        Data(k).death   = gradient(spm_conv(DY(T:end),s));
-        Data(k).cum     = sum(Data(k).death);
-        Data(k).first   = find(CY,1,'first');
+        Data(k).state  = State{i};
+        Data(k).pop    = PY;
+        Data(k).lat    = lat;
+        Data(k).lon    = lon;
+        Data(k).date   = '20/1/2020';
+        Data(k).cases  = gradient(spm_conv(CY(T:end),s));
+        Data(k).death  = gradient(spm_conv(DY(T:end),s));
+        Data(k).cum    = sum(Data(k).death);
+        Data(k).first  = find(CY,1,'first');
         k = k + 1;
     end
     
@@ -125,8 +125,3 @@ end
 % remove negative values
 %--------------------------------------------------------------------------
 Y(Y < 0) = 0;
-
-
-
-
-

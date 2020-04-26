@@ -45,7 +45,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: spm_COVID_gen.m 7840 2020-04-26 23:11:25Z spm $
 
 
 % The generative model:
@@ -103,7 +103,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % symptom onset, rates of seropositivity were 94% for anti-NP IgG (n=15),
 % 88% for anti-NP IgM (n=14), 100% for anti-RBD IgG (n=16), and 94% for
 % anti-RBD IgM (n=15). Anti-SARS-CoV-2-NP or anti-SARS-CoV-2-RBD IgG levels
-% correlated with virus neutralisation titre (R2>0·9). No genome mutations
+% correlated with virus neutralisation titre (R2>0.9). No genome mutations
 % were detected on serial samples.
 %--------------------------------------------------------------------------
 % immunity : https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2271881/
@@ -118,7 +118,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 %--------------------------------------------------------------------------
 % Among 176 patients who had had severe acute respiratory syndrome (SARS),
 % SARS-specific antibodies were maintained for an average of 2 years, and
-% significant reduction of immunoglobulin G–positive percentage and titers
+% significant reduction of immunoglobulin G-positive percentage and titers
 % occurred in the third year. Thus, SARS patients might be susceptible to
 % reinfection >3 years after initial exposure.
 

@@ -1,13 +1,13 @@
 function T = spm_COVID_B(x,P,r)
 % state dependent probability transition matrices
-% FORMAT T = spm_COVID_B(p,P,r)
+% FORMAT T = spm_COVID_B(x,P,r)
 % x      - probability distributions (tensor)
 % P      - model parameters
-% R      - marginals over regions
+% r      - marginals over regions
 % 
-% B      - probability transition matrices
+% T      - probability transition matrix
 %
-% this subroutine creates a transition probability tensors as a function of
+% This subroutine creates a transition probability tensors as a function of
 % model parameters and the joint density over four factors, each with four
 % levels. With one exception, the transition probabilities of anyone factor
 % depend only upon another factor. The exception is the factor modelling
@@ -18,7 +18,7 @@ function T = spm_COVID_B(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_B.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: spm_COVID_B.m 7840 2020-04-26 23:11:25Z spm $
 
 % marginal probabilities
 %==========================================================================
@@ -155,7 +155,8 @@ b{1} = [Pinh       0          0          (1 - Kimm) 0;
         0          (1 - Kinf) Kcon       0          0;
         0          0          (1 - Kcon) Kimm       0;
         0          0          0          0          1];
-    
+
+
 % marginal: infection {2} | work {1}(2)
 %--------------------------------------------------------------------------
 b{2} = [Pinw       0          0          (1 - Kimm) 0;

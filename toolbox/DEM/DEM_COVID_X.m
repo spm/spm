@@ -1,6 +1,6 @@
-function [DCM] = DEM_COVID_X(data)
-% FORMAT [DCM] = DEM_COVID_X(data)
-% data    - data    to model [default: data = DATA_COVID_JHU]
+function [DCM] = DEM_COVID_X(Y,Data)
+% FORMAT [DCM] = DEM_COVID_X(Y,data)
+% data    - data to model [default: data = DATA_COVID_US]
 %
 % Demonstration of COVID-19 modelling using variational Laplace
 %__________________________________________________________________________
@@ -41,12 +41,12 @@ function [DCM] = DEM_COVID_X(data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_X.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: DEM_COVID_X.m 7840 2020-04-26 23:11:25Z spm $
 
 
 % Get data (see DATA_COVID_US): an array with a structure for each State
 %==========================================================================
-if nargin < 1, [Y,Data] = DATA_COVID_US;   end
+if nargin < 1, [Y,Data] = DATA_COVID_US; end
 
 % number of regions (e.g.,US states)
 %--------------------------------------------------------------------------

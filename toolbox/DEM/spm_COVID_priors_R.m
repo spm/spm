@@ -1,8 +1,8 @@
 function [pE,pC,str,erc] = spm_COVID_priors_R(data)
 % Prior expectation and covariance of between region parameters
-% FORMAT [pE,pC,str] = spm_COVID_priors_R(data)
+% FORMAT [pE,pC,str,erc] = spm_COVID_priors_R(data)
 % 
-% data(N)    - Meta data, including distance between regions
+% data(N)     - Meta data, including distance between regions
 % 
 % pE          - prior expectation (structure)
 % pC          - prior covariances (structure)
@@ -15,7 +15,7 @@ function [pE,pC,str,erc] = spm_COVID_priors_R(data)
 % marginal distributions are coupled through probability transition
 % matrices. The marginal distributions correspond to 4 factors;
 % namely,location, infection, clinical and diagnostic or testing states.
-% Please see spm_COVID_priors for details. this routine prepares the priors
+% Please see spm_COVID_priors for details. This routine prepares the priors
 % for the parameters that couple different regions (e.g., American states).
 % These parameters include the (effective) connectivity that controls the
 % flux of people from one region to another. The total population size in
@@ -28,7 +28,7 @@ function [pE,pC,str,erc] = spm_COVID_priors_R(data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors_R.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: spm_COVID_priors_R.m 7840 2020-04-26 23:11:25Z spm $
 
 % set up
 %--------------------------------------------------------------------------
@@ -60,7 +60,7 @@ pC.fed = 0;                             % social distancing (federal)
 pnam  = fieldnames(pE);
 name  = {};
 for i = 1:numel(pnam)
-    for j = 1:numel(eval(['pE.' pnam{i}]))
+    for j = 1:numel(pE.(pnam{i}))
         name{end + 1} = pnam{i};
     end
 end

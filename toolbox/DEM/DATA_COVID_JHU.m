@@ -34,27 +34,22 @@ function data = DATA_COVID_JHU
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: DATA_COVID_JHU.m 7840 2020-04-26 23:11:25Z spm $
 
 
 % load data from https://github.com/CSSEGISandData/COVID-19/
 %--------------------------------------------------------------------------
-if strcmp(spm_check_version,'matlab')
-    loaddata = @importdata;
-else
-    loaddata = @myimportdata;
-end
 try
-    C  = loaddata('time_series_covid19_confirmed_global.csv');
-    D  = loaddata('time_series_covid19_deaths_global.csv'   );
-    R  = loaddata('time_series_covid19_recovered_global.csv');
+    C  = importdata('time_series_covid19_confirmed_global.csv');
+    D  = importdata('time_series_covid19_deaths_global.csv'   );
+    R  = importdata('time_series_covid19_recovered_global.csv');
 catch
     clc, warning('Please load csv files into the current working directory')
     help DATA_COVID_JHU
     return;
 end
 
-N      = loaddata('population.csv');         % population size
+N      = importdata('population.csv');       % population size
 
 
 % preliminary extraction
@@ -207,24 +202,4 @@ axis square
 for i = 1:numel(data)
     subplot(3,2,6), text(sum(death(:,i)),sum(cases(:,i)),data(i).country,'FontSize',9)
     subplot(3,2,4), text(pop(i),sum(death(:,i)),         data(i).country,'FontSize',9)
-end
-
-
-%==========================================================================
-function data = myimportdata(filename)
-
-S    = fileread(filename);
-ncol = numel(find(strtok(S,sprintf('\n'))==',')) + 1;
-S    = textscan(S,'%q','Delimiter',',');
-S    = reshape(S{1},ncol,[])';
-if size(S,2)>2
-    % time_series_covid19_*_global.csv
-    % first row is header and first two columns are state/country
-    data.data = cellfun(@(x)str2double(x),S(2:end,3:end));
-    data.textdata = S;
-    [data.textdata{2:end,3:end}] = deal('');
-else
-    % population.csv
-    data.data = cellfun(@(x)str2double(x),S(:,2));
-    data.textdata = S(:,1);
 end
