@@ -36,7 +36,7 @@ function [P,C,str,rfx] = spm_COVID_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: spm_COVID_priors.m 7841 2020-04-27 18:18:27Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -121,8 +121,8 @@ end
 
 % Expectations (either heuristic or taken from the above sources)
 %==========================================================================
-P.n   = exp(-4);              % number of initial cases
-P.N   = 20;                   % population size (in millions)
+P.n   = 1;                    % number of initial cases
+P.N   = 4;                    % population size (in millions)
 P.m   = 1e-6;                 % herd immunity (proportion)
 
 % location parameters
@@ -153,13 +153,13 @@ P.sur = 1/16;                 % P(survival | home)
 P.tft = 1/1024;               % threshold: testing capacity
 P.sen = 1/1024;               % rate:      testing capacity
 P.del = 2;                    % delay:     testing capacity
-P.tes = 1/4;                  % P(tested | uninfected)
+P.tes = 1/8;                  % P(tested | uninfected)
 
 % immunity
 %--------------------------------------------------------------------------
 P.Tim = 32;                   % period of immunity (months)
-P.btw = 1/128;                % back to work policy
-P.r   = 1/128;                % proportion resistant cases
+P.btw = 1/1024;               % back to work policy
+P.r   = 1/1024;               % proportion resistant cases
 
 % total mortality rate (for susceptible population)
 %--------------------------------------------------------------------------
@@ -168,13 +168,13 @@ P.r   = 1/128;                % proportion resistant cases
 
 % Variances (mildly informative priors, apart from initial cases and size)
 %==========================================================================
-C.n   = 1/4;                  % number of initial cases
-C.N   = 1/16;                 % size of population with mixing
+C.n   = 1;                    % number of initial cases
+C.N   = 1;                    % size of population with mixing
 C.m   = 0;                    % herd immunity (proportion)
 
 % location parameters
 %--------------------------------------------------------------------------
-V     = 64;
+V     = 128;
 C.out = 1/V;                  % P(going home | work)
 C.sde = 1/V;                  % social distancing threshold
 C.cap = 1/V;                  % bed availability threshold (per capita)

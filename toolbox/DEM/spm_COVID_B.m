@@ -18,7 +18,7 @@ function T = spm_COVID_B(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_B.m 7840 2020-04-26 23:11:25Z spm $
+% $Id: spm_COVID_B.m 7841 2020-04-27 18:18:27Z karl $
 
 % marginal probabilities
 %==========================================================================
@@ -36,6 +36,17 @@ end
 % exponentiate parameters
 %--------------------------------------------------------------------------
 P     = spm_vecfun(P,@exp);
+
+% upper bound probabilities
+%--------------------------------------------------------------------------
+P.out = 1 - exp(-P.out);
+P.trn = 1 - exp(-P.trn);
+P.sev = 1 - exp(-P.sev);
+P.fat = 1 - exp(-P.fat);
+P.sur = 1 - exp(-P.sur);
+P.sen = 1 - exp(-P.sen);
+P.tes = 1 - exp(-P.tes);
+
 
 % probabilistic transitions: location
 %==========================================================================
@@ -56,8 +67,8 @@ Psd = spm_sigma(Pco,P.sde*P.cap*8)*Psd;
 %--------------------------------------------------------------------------
 if nargin > 2
     
-    Rpn = r{2}(2) + r{2}(3);        % marginal over regions
-    Rco = r{1}(3);                  % marginal over regions
+    Rpn = r{2}(2) + r{2}(3);           % marginal over regions
+    Rco = r{1}(3);                     % marginal over regions
     
     % hard (threshold) strategy
     %----------------------------------------------------------------------
@@ -69,12 +80,12 @@ if nargin > 2
     Psd = Psd*(1 - P.fed) + Rsd*P.fed;
     
 end
-Pout = 1/128 + Psd*P.out;           % P(work | home)
+Pout = 1/128 + Psd*P.out;  % P(work | home)
 
 % bed availability
 %--------------------------------------------------------------------------
-Pcap = P.cap*(1 + p{1}(2));         % bed capacity threshold
-Pcca = spm_sigma(p{1}(3),Pcap);     % P(CCU  | home, work, ARDS)
+Pcap = P.cap*(1 + p{1}(2));            % bed capacity threshold
+Pcca = spm_sigma(p{1}(3),Pcap);        % P(CCU  | home, work, ARDS)
 b    = cell(1,dim(3));
 
 
@@ -279,7 +290,7 @@ B{3}(ij) = (1 - Ksev)*(1 - P.fat);
 % test availability and prevalence of symptoms
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
-Ptes = P.sen*spm_sigma(p{4}(2),P.tft);
+Ptes = P.sen*spm_sigma(p{4}(2),P.tft,3);
 Pdia = P.tes*Ptes;
 Kdel = exp(-1/P.del);         % exp(-1/waiting period)
 

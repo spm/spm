@@ -22,7 +22,7 @@ function [DCM,GCM] = DEM_COVID(country,data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: DEM_COVID.m 7841 2020-04-27 18:18:27Z karl $
 
 % F: -1.5701e+04 social distancing based upon P(infected)
 % F: -1.5969e+04 social distancing based upon P(symptomatic)
@@ -126,8 +126,6 @@ X(:,1) = 1;
 %--------------------------------------------------------------------------
 GLM.X      = X;
 GLM.Xnames = Xn;
-GLM.alpha  = 1;
-GLM.beta   = 8;
 
 % parametric empirical Bayes (with random effects in str.field)
 %==========================================================================
@@ -136,7 +134,6 @@ GLM.beta   = 8;
 % Bayesian model averaging (over reduced models), testing for GLM effects
 %--------------------------------------------------------------------------
 [BMA,BMR] = spm_dcm_bmr_all(PEB,str.field);
-
 
 % Repeat inversion using parametric empirical priors
 %==========================================================================
@@ -157,7 +154,8 @@ end
 
 % save
 %--------------------------------------------------------------------------
-save COVID_DCM DCM
+clear Fsi ans
+save COVID_DCM
 
 
 
@@ -270,7 +268,7 @@ for i = 1:numel(DCM)
     C(:,i) = diag(DCM{i}.Cp);
 end
 
-% names{1}  = 'initial cases';        %**
+% names{1}  = 'initial cases';          %**
 % names{2}  = 'size of population';
 % names{3}  = 'initial immunity';
 % names{4}  = 'P(work | home)';
@@ -562,7 +560,6 @@ spm_figure('GetWin',['Reproduction rate:' country]); clf;
 % represent the posterior expectations while the shaded areas correspond to
 % 90% credible intervals.
 
-
 i       = find(ismember({data.country},country)); % country index
 U       = [1,4,5];
 spm_COVID_ci(DCM{i}.Ep,DCM{i}.Cp,[],U)
@@ -578,7 +575,6 @@ plot(x,[FLU(1) FLU(1)],'-.r',x,[FLU(2) FLU(2)],'-.r')
 %==========================================================================
 spm_figure('GetWin','Mitigation: posterior predictions'); clf;
 %--------------------------------------------------------------------------
-% 
 
 % get country and priors
 %--------------------------------------------------------------------------

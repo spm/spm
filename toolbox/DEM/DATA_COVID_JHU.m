@@ -34,7 +34,7 @@ function data = DATA_COVID_JHU
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 7840 2020-04-26 23:11:25Z spm $
+% $Id: DATA_COVID_JHU.m 7841 2020-04-27 18:18:27Z karl $
 
 
 % load data from https://github.com/CSSEGISandData/COVID-19/
@@ -69,7 +69,7 @@ Country{i} = 'US';
 % assemble data structure
 %==========================================================================
 Data  = struct([]);
-s     = 1;                                          % data smoothing (days)
+s     = 2;                                          % data smoothing (days)
 k     = 1;
 for i = 1:numel(State)
     j = find(ismember(Country,State{i}));
@@ -145,7 +145,7 @@ end
 T   = spm_cat({Data.days});
 N   = spm_cat({Data.cum});
 
-% retain countries with over 64 days and 128 deaths
+% retain countries with over 64 days and 256 deaths
 %--------------------------------------------------------------------------
 t    = 64;
 i    = logical(T > t & N > 256);
