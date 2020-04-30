@@ -18,7 +18,7 @@ function T = spm_COVID_B(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_B.m 7841 2020-04-27 18:18:27Z karl $
+% $Id: spm_COVID_B.m 7843 2020-04-30 09:04:45Z karl $
 
 % marginal probabilities
 %==========================================================================
@@ -27,7 +27,6 @@ p     = spm_marginal(x);
 % identity matrices
 %--------------------------------------------------------------------------
 dim   = size(x);
-nx    = numel(x);
 I     = cell(ndims(x),1);
 for i = 1:ndims(x)
     I{i} = speye(dim(i));
@@ -39,13 +38,13 @@ P     = spm_vecfun(P,@exp);
 
 % upper bound probabilities
 %--------------------------------------------------------------------------
-P.out = 1 - exp(-P.out);
-P.trn = 1 - exp(-P.trn);
-P.sev = 1 - exp(-P.sev);
-P.fat = 1 - exp(-P.fat);
-P.sur = 1 - exp(-P.sur);
-P.sen = 1 - exp(-P.sen);
-P.tes = 1 - exp(-P.tes);
+P.out = min(P.out,1);
+P.trn = min(P.trn,1);
+P.sev = min(P.sev,1);
+P.fat = min(P.fat,1);
+P.sur = min(P.sur,1);
+
+Kday  = exp(-1);
 
 
 % probabilistic transitions: location
@@ -55,7 +54,7 @@ P.tes = 1 - exp(-P.tes);
 % P.cap                             % bed availability threshold (per capita)
 % social distancing, based on prevalence of infection
 %--------------------------------------------------------------------------
-Ppn = p{2}(2) + p{2}(3);            % prevalence of infection
+Ppn = p{2}(2);                      % prevalence of infection
 Pco = p{1}(3);                      % CCU occupancy
 
 % hard (threshold) strategy
@@ -67,7 +66,7 @@ Psd = spm_sigma(Pco,P.sde*P.cap*8)*Psd;
 %--------------------------------------------------------------------------
 if nargin > 2
     
-    Rpn = r{2}(2) + r{2}(3);           % marginal over regions
+    Rpn = r{2}(2);                     % marginal over regions
     Rco = r{1}(3);                     % marginal over regions
     
     % hard (threshold) strategy
@@ -80,44 +79,48 @@ if nargin > 2
     Psd = Psd*(1 - P.fed) + Rsd*P.fed;
     
 end
-Pout = 1/128 + Psd*P.out;  % P(work | home)
+Pout = 1/128 + Psd*P.out;              % P(work | home)
 
 % bed availability
 %--------------------------------------------------------------------------
-Pcap = P.cap*(1 + p{1}(2));            % bed capacity threshold
-Pcca = spm_sigma(p{1}(3),Pcap);        % P(CCU  | home, work, ARDS)
+Pcca = spm_sigma(Pco,P.cap);           % P(CCU  | home, work, ARDS)
+Piso = exp(-1/7);                      % period of self-isolation
 b    = cell(1,dim(3));
 
 
 % marginal: location {1} | asymptomatic {3}(1)
 %--------------------------------------------------------------------------
-%      home       work       CCU       morgue
+%      home       work       CCU       morgue     isolation
 %--------------------------------------------------------------------------
-b{1} = [(1 - Pout) 1          1          0;
-        Pout       0          0          0;
-        0          0          0          0;
-        0          0          0          1];
+b{1} = [(1 - Pout) 1          1          (1 - Kday) (1 - Piso);
+        Pout       0          0          0           0;
+        0          0          0          0           0;
+        0          0          0          Kday        0;
+        0          0          0          0           Piso];
 
 % marginal: location {1}  | symptoms {3}(2)
 %--------------------------------------------------------------------------
-b{2} = [1          1          1          0;
-        0          0          0          0;
-        0          0          0          0;
-        0          0          0          1];
-
+b{2} = [0          0          0          (1 - Kday)  0;
+        0          0          0          0           0;
+        0          0          0          0           0;
+        0          0          0          Kday        0;
+        1          1          1          0           1];
+    
 % marginal: location {1}  | ARDS {3}(3)
 %--------------------------------------------------------------------------
-b{3} = [(1 - Pcca) (1 - Pcca) 0          0;
-        0          0          0          0;
-        Pcca       Pcca       1          0;
-        0          0          0          1];
+b{3} = [0          0          0          (1 - Kday)  0;
+        0          0          0          0           0;
+        Pcca       Pcca       1          0           Pcca;
+        0          0          0          Kday        0;
+        (1 - Pcca) (1 - Pcca) 0          0           (1 - Pcca)];
 
 % marginal: location {1}  | deceased {3}(4)
 %--------------------------------------------------------------------------
-b{4} = [0          0          0          0;
-        0          0          0          0;
-        0          0          0          0;
-        1          1          1          1];
+b{4} = [0          0          0          (1 - Kday)  0;
+        0          0          0          0           0;
+        0          0          0          0           0;
+        1          1          1          Kday        1;
+        0          0          0          0           0];
 
 % kroneckor form (taking care to get the order of factors right)
 %--------------------------------------------------------------------------
@@ -125,21 +128,19 @@ b    = spm_cat(spm_diag(b));
 b    = spm_kron({b,I{2},I{4}});
 B{1} = spm_permute_kron(b,dim([1,3,2,4]),[1,3,2,4]);
 
-% immunity dependent return to work: third order dependencies
+% stop isolating if asymptomatic and negative : third order dependencies
 %--------------------------------------------------------------------------
-Pout = P.out*(Psd*(1 - P.btw) + P.btw);
-z    = zeros(dim); z(1,4,1,:) = 1; j = find(z);
-z    = zeros(dim); z(2,4,1,:) = 1; i = find(z);
-ij   = find(sparse(i,j,1,nx,nx));
-B{1}(ij) = Pout;
+ij   = Bij({5,1:5,1,4},{1,1:5,1,4},dim);  B{1}(ij) = 1;
+ij   = Bij({5,1:5,1,4},{5,1:5,1,4},dim);  B{1}(ij) = 0;
 
-z    = zeros(dim); z(1,4,1,:) = 1; j = find(z);
-z    = zeros(dim); z(1,4,1,:) = 1; i = find(z);
-ij   = find(sparse(i,j,1,nx,nx));
-B{1}(ij) = 1 - Pout;
+% isolate if positive : third order dependencies
+%--------------------------------------------------------------------------
+ij   = Bij({1,1:5,1,3},{5,1:5,1,3},dim);  B{1}(ij) = 1;
+ij   = Bij({1,1:5,1,3},{1,1:5,1,3},dim);  B{1}(ij) = 0;
+ij   = Bij({1,1:5,1,3},{2,1:5,1,3},dim);  B{1}(ij) = 0;
 
 
-        
+
 % probabilistic transitions: infection
 %==========================================================================
 % P.Rin                             % effective number of contacts: home
@@ -150,9 +151,11 @@ B{1}(ij) = 1 - Pout;
 % transmission probabilities
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
-R    = (1 - P.trn*p{2}(3));         % P(no transmission per contact)
-Pinh = R^P.Rin;                     % P(no transmission) | home
-Pinw = R^P.Rou;                     % P(no transmission) | work
+q    = spm_sum(x,[3 4]);
+ph   = q(1,:)/sum(q(1,:));
+pw   = q(2,:)/sum(q(2,:));
+Pinh = (1 - P.trn*ph(3))^P.Rin;     % P(no transmission) | home
+Pinw = (1 - P.trn*pw(3))^P.Rou;     % P(no transmission) | work
 Kimm = exp(-1/P.Tim/32);            % loss of immunity (per 32 days)
 Kinf = exp(-1/P.Tin);
 Kcon = exp(-1/P.Tcn);
@@ -166,8 +169,7 @@ b{1} = [Pinh       0          0          (1 - Kimm) 0;
         0          (1 - Kinf) Kcon       0          0;
         0          0          (1 - Kcon) Kimm       0;
         0          0          0          0          1];
-
-
+    
 % marginal: infection {2} | work {1}(2)
 %--------------------------------------------------------------------------
 b{2} = [Pinw       0          0          (1 - Kimm) 0;
@@ -185,7 +187,6 @@ b{3} = [1          0          0          (1 - Kimm) 0;
         0          0          (1 - Kcon) Kimm       0;
         0          0          0          0          1];
 
-
 % marginal: infection {2} | morgue {1}(4)
 %--------------------------------------------------------------------------
 b{4} = [0          0          0          0          0;
@@ -193,6 +194,10 @@ b{4} = [0          0          0          0          0;
         0          0          0          0          0;
         1          1          1          1          0;
         0          0          0          0          1];
+
+% marginal: infection {2} | isolation {1}(5)
+%--------------------------------------------------------------------------
+b{5} = b{3};
 
 
 % kroneckor form
@@ -223,41 +228,31 @@ Pfat = 1 - P.sur;                   % baseline fatality rate
 
 % marginal: clinical {3} | susceptible {2}(1)
 %--------------------------------------------------------------------------
-%  asymptomatic symptomatic acute RDS deceased
+%  asymptomatic   symptomatic            acute RDS         deceased
 %--------------------------------------------------------------------------
-b{1} = [1          1          1         0;
-        0          0          0         0;
-        0          0          0         0;
-        0          0          0         1];
-
+b{1} = [1         (1 - Ksym)             (1 - Ksev)*(1 - Pfat) (1 - Kday);
+        0          Ksym                   0                    0;
+        0          0                      Ksev                 0;
+        0          0                     (1 - Ksev)*Pfat       Kday];
+    
 % marginal: clinical {3} | infected {2}(2)
 %--------------------------------------------------------------------------
-b{2} = [Kdev       (1 - Ksym)*(1 - Psev) (1 - Ksev)*(1 - Pfat) 0;
+b{2} = [Kdev       (1 - Ksym)*(1 - Psev) (1 - Ksev)*(1 - Pfat) (1 - Kday);
         (1 - Kdev) Ksym                   0                    0;
         0          (1 - Ksym)*Psev        Ksev                 0;
-        0          0                     (1 - Ksev)*Pfat       1];
+        0          0                     (1 - Ksev)*Pfat       Kday];
     
 % marginal: clinical {3} | infectious {2}(3)
 %--------------------------------------------------------------------------
-b{3} = [Kdev       (1 - Ksym)*(1 - Psev) (1 - Ksev)*(1 - Pfat) 0;
-        (1 - Kdev)  Ksym                   0                    0;
-        0          (1 - Ksym)*Psev        Ksev                 0;
-        0          0                     (1 - Ksev)*Pfat       1];
+b{3} = b{2};
     
 % marginal: clinical {3} | immune {2}(4)
 %--------------------------------------------------------------------------
-b{4} = [1          1          1         0;
-        0          0          0         0;
-        0          0          0         0;
-        0          0          0         1];
+b{4} = b{1};
     
 % marginal: clinical {3} | resistant {2}(5)
 %--------------------------------------------------------------------------
-b{5} = [1          1          1         0;
-        0          0          0         0;
-        0          0          0         0;
-        0          0          0         1];
-
+b{5} = b{1};
 
 % kroneckor form
 %--------------------------------------------------------------------------
@@ -271,15 +266,8 @@ B{3} = spm_kron({b,I{4}});
 
 % location dependent fatalities (P.fat in CCU): third order dependencies
 %--------------------------------------------------------------------------
-z    = zeros(dim); z(3,[2,3],3,:) = 1; j = find(z);
-z    = zeros(dim); z(3,[2,3],4,:) = 1; i = find(z);
-ij   = find(sparse(i,j,1,nx,nx));
-B{3}(ij) = (1 - Ksev)*P.fat;
-
-z    = zeros(dim); z(3,[2,3],3,:) = 1; j = find(z);
-z    = zeros(dim); z(3,[2,3],1,:) = 1; i = find(z);
-ij   = find(sparse(i,j,1,nx,nx));
-B{3}(ij) = (1 - Ksev)*(1 - P.fat);
+ij   = Bij({3,1:5,3,1:4},{3,1:5,4,1:4},dim); B{3}(ij) = (1 - Ksev)*P.fat;
+ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ksev)*(1 - P.fat);
 
 % probabilistic transitions: testing
 %==========================================================================
@@ -290,47 +278,37 @@ B{3}(ij) = (1 - Ksev)*(1 - P.fat);
 % test availability and prevalence of symptoms
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
-Ptes = P.sen*spm_sigma(p{4}(2),P.tft,3);
-Pdia = P.tes*Ptes;
+Psen = P.sen*(p{2}(2)^P.exp) + P.bas*p{2}(4);
+Ptes = Psen*P.tes;
 Kdel = exp(-1/P.del);         % exp(-1/waiting period)
 
 % marginal: testing {4} | susceptible {2}(1)
 %--------------------------------------------------------------------------
 %    not tested  waiting       +ve -ve
 %--------------------------------------------------------------------------
-b{1} = [(1 - Pdia) 0            0   0;
-        Pdia       Kdel         0   0;
-        0          0            1   0;
-        0          (1 - Kdel)   0   1];
+b{1} = [(1 - Psen) 0            (1 - Kday) (1 - Kday);
+        Psen       Kdel         0          0;
+        0          0            Kday       0;
+        0          (1 - Kdel)   0          Kday];
 
 % marginal: testing {4} | infected {2}(2)
 %--------------------------------------------------------------------------
-b{2} = [(1 - Ptes) 0            0   0;
-        Ptes       Kdel         0   0;
-        0          (1 - Kdel)   1   0;
-        0          0            0   1];
+b{2} = [(1 - Ptes) 0            (1 - Kday) (1 - Kday);
+        Ptes       Kdel         0          0;
+        0          (1 - Kdel)   Kday       0;
+        0          0            0          Kday];
     
 % marginal: testing {4} | infectious {2}(3)
 %--------------------------------------------------------------------------
-b{3} = [(1 - Ptes) 0            0   0;
-        Ptes       Kdel         0   0;
-        0          (1 - Kdel)   1   0;
-        0          0            0   1];
+b{3} = b{2};
     
 % marginal: testing {4} | immune {2}(4)
 %--------------------------------------------------------------------------
-b{4} = [(1 - Pdia) 0            0   0;
-        Pdia       Kdel         0   0;
-        0          0            1   0;
-        0          (1 - Kdel)   0   1];
+b{4} = b{1};
     
 % marginal: testing {4} | resistant {2}(5)
 %--------------------------------------------------------------------------
-b{5} = [(1 - Pdia) 0            0   0;
-        Pdia       Kdel         0   0;
-        0          0            1   0;
-        0          (1 - Kdel)   0   1];
-
+b{5} = b{1};
 
 % kroneckor form
 %--------------------------------------------------------------------------
@@ -350,6 +328,17 @@ return
 
 % Auxiliary functions
 %__________________________________________________________________________
+
+function ij = Bij(j,i,dim)
+% returns linear indices of transition matrix
+% j - dimensions of source states
+% i - dimensions on target states
+%--------------------------------------------------------------------------
+nx   =  prod(dim);
+z    = zeros(dim); z(j{1},j{2},j{3},j{4}) = 1; j = find(z);
+z    = zeros(dim); z(i{1},i{2},i{3},i{4}) = 1; i = find(z);
+ij   = find(sparse(i,j,1,nx,nx));
+
 
 function p = spm_sigma(x,u,s)
 % reverse sigmoid function

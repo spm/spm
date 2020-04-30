@@ -36,7 +36,7 @@ function [P,C,str,rfx] = spm_COVID_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors.m 7841 2020-04-27 18:18:27Z karl $
+% $Id: spm_COVID_priors.m 7843 2020-04-30 09:04:45Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -80,32 +80,32 @@ names{14} = 'symptomatic period';
 names{15} = 'acute RDS period';
 names{16} = 'P(fatality | CCU)';
 names{17} = 'P(survival | home)';
-names{18} = 'threshold for testing'; %**
-names{19} = 'test rate'; %**
+names{18} = 'testing (post)'; %**
+names{19} = 'testing (initial)'; %**
 names{20} = 'test delay'; %**
-names{21} = 'P(tested | uninfected)';  %**
-names{22} = 'immune period';  %**
-names{23} = 'back to work policy';  %**
-names{24} = 'resistant';  %**
+names{21} = 'test selectivity'; %**
+names{22} = 'test exponent'; %**
+names{23} = 'immune period'; %**
+names{24} = 'resistant'; %**
 
 
 
 % random effects (i.e., effects that are common in countries)
 %--------------------------------------------------------------------------
-rfx       = [2:17];
+rfx       = 2:17;
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
 factors   = {'Location','Infection','Clinical','Testing'};
 
-factor{1} = {'home','work','CCU','morgue'};
+factor{1} = {'home','work','CCU','morgue','isolation'};
 factor{2} = {'susceptible','infected','infectious','immune','resistant'};
 factor{3} = {'none','symptoms','ARDS','deceased'};
 factor{4} = {'untested','waiting','positive','negative'};
 
 % labels or strings for plotting
 %--------------------------------------------------------------------------
-str.outcome = {'Death rate','New cases','CCU occupancy','ERR','Herd immunity'};
+str.outcome = {'Death rate','New cases','CCU occupancy','ERR','Herd immunity','Tests'};
 str.factors = factors;
 str.factor  = factor;
 str.names   = names;
@@ -135,41 +135,42 @@ P.cap = 16/100000;            % bed availability threshold (per capita)
 %--------------------------------------------------------------------------
 P.Rin = 4;                    % effective number of contacts: home
 P.Rou = 48;                   % effective number of contacts: work
-P.trn = 1/4;                  % P(contagion | contact)
-P.Tin = 4;                    % infected (pre-contagious) period
+P.trn = 1/3;                  % P(contagion | contact)
+P.Tin = 8;                    % infected (pre-contagious) period
 P.Tcn = 4;                    % infectious (contagious) period
 
 % clinical parameters
 %--------------------------------------------------------------------------
 P.Tic = 8;                    % incubation period (days)
-P.sev = 1/128;                % P(severe symptoms | symptomatic)
+P.sev = 1/500;                % P(severe symptoms | symptomatic)
 P.Tsy = 5;                    % symptomatic period
 P.Trd = 12;                   % acute RDS   period
-P.fat = 1/2;                  % P(fatality | CCU)
+P.fat = 1/3;                  % P(fatality | CCU)
 P.sur = 1/16;                 % P(survival | home)
 
 % testing parameters
 %--------------------------------------------------------------------------
-P.tft = 1/1024;               % threshold: testing capacity
-P.sen = 1/1024;               % rate:      testing capacity
-P.del = 2;                    % delay:     testing capacity
-P.tes = 1/8;                  % P(tested | uninfected)
+P.bas = 1/5000;               % testing sensitivity (to immunity)
+P.sen = 1/10000;              % testing sensitivity (to infection)
+P.del = 2;                    % delay (testing)
+P.tes = 4;                    % test selectivity (for infection)
+P.exp = 1/4;                  % testing exponent
+
 
 % immunity
 %--------------------------------------------------------------------------
 P.Tim = 32;                   % period of immunity (months)
-P.btw = 1/1024;               % back to work policy
-P.r   = 1/1024;               % proportion resistant cases
+P.r   = 1/10000;              % proportion resistant cases
 
 % total mortality rate (for susceptible population)
 %--------------------------------------------------------------------------
-% (1 - (1 - P.dev)^(P.Tin + P.Tcn))*P.sev*P.fat*100
+% (1 - (1 - exp(-1/P.Tic))^(P.Tin + P.Tcn))*P.sev*P.fat*100
 
 
 % Variances (mildly informative priors, apart from initial cases and size)
 %==========================================================================
-C.n   = 1;                    % number of initial cases
-C.N   = 1;                    % size of population with mixing
+C.n   = 4;                    % number of initial cases
+C.N   = 4;                    % size of population with mixing
 C.m   = 0;                    % herd immunity (proportion)
 
 % location parameters
@@ -198,15 +199,15 @@ C.sur = 1/V;                  % P(fatality | home)
 
 % testing parameters
 %--------------------------------------------------------------------------
-C.tft = 1/4;                  % threshold for testing capacity
-C.sen = 1/4;                  % sensitivity:  testing capacity
-C.del = 1/4;                  % delay:        testing capacity
-C.tes = 1/4;                  % P(testing | uninfected)
+C.bas = 1/4;                  % testing sensitivity (immunity)
+C.sen = 1/4;                  % testing sensitivity (infection)
+C.del = 1/V;                  % delay:        testing capacity
+C.tes = 1/4;                  % test selectivity (for infection)
+C.exp = 1/V;                  % testing exponent
 
 % immunity
 %--------------------------------------------------------------------------
-C.Tim = 1/V;                  % period of immunity
-C.btw = 0;                    % back to work policy
+C.Tim = 0;                    % period of immunity
 C.r   = 0;                    % proportion of people not susceptible
 
 

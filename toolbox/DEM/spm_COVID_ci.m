@@ -4,7 +4,7 @@ function [S,CS] = spm_COVID_ci(Ep,Cp,Z,U)
 % Ep     - posterior expectations
 % Cp     - posterior covariances
 % Z      - optional empirical data
-% U      - outputs to evaluate [default: 1:4]
+% U      - outputs to evaluate [default: 1:3]
 %
 % S      - posterior expectation of cumulative deaths
 % CS     - posterior covariances of cumulative deaths
@@ -26,7 +26,7 @@ function [S,CS] = spm_COVID_ci(Ep,Cp,Z,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_ci.m 7840 2020-04-26 23:11:25Z spm $
+% $Id: spm_COVID_ci.m 7843 2020-04-30 09:04:45Z karl $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------
@@ -49,6 +49,7 @@ Cp       = Cp*4;
 M.T      = 180;
 t        = (1:M.T)/7;
 [dYdP,Y] = spm_diff(@(P,M,U)spm_COVID_gen(P,M,U),Ep,M,U,1);
+
 
 % conditional covariances
 %--------------------------------------------------------------------------

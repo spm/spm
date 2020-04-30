@@ -1,9 +1,11 @@
-function spm_COVID_plot(Y,X,Z,u)
+function spm_COVID_plot(Y,X,Z,u,U)
 % Graphics for coronavirus simulations
 % FORMAT spm_COVID_plot(Y,X,Z)
 % Y      - expected timeseries (i.e., new depths and cases)
 % X      - latent (marginal ensemble density) states
 % Z      - optional empirical data
+% u      - optional bed capacity threshold
+% U      - optional indices of outcomes
 %
 % This auxiliary routine plots the trajectory of outcome variables
 % and underlying latent or hidden states, in the form of marginal densities
@@ -15,7 +17,7 @@ function spm_COVID_plot(Y,X,Z,u)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_plot.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: spm_COVID_plot.m 7843 2020-04-30 09:04:45Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -32,7 +34,11 @@ function spm_COVID_plot(Y,X,Z,u)
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin < 4, u = 2000; end
+[t,n] = size(Y);
+t     = (1:t)/7;
+
+if nargin < 5, U = 1:n;  end
+if nargin < 4, u = [];   end
 if nargin < 3 || isempty(Z), Z = zeros(0,size(Y,2),size(Y,3)); end
 
 
@@ -41,7 +47,7 @@ if nargin < 3 || isempty(Z), Z = zeros(0,size(Y,2),size(Y,3)); end
 Z  = Z(:,1:min(size(Y,2),end),:);
 if size(Y,3) > 1
     for i = 1:size(Y,3)
-        spm_COVID_plot(Y(:,:,i),X(:,i),Z(:,:,i),u)
+        spm_COVID_plot(Y(:,:,i),X(:,i),Z(:,:,i),u,U)
         for j = 1:6, subplot(3,2,j), hold on, end
     end
     return
@@ -49,8 +55,6 @@ end
 
 % plot hidden states and outcomes for this region or country
 %==========================================================================
-[t,n] = size(Y);
-t     = (1:t)/7;
 
 % factors and names
 %--------------------------------------------------------------------------
@@ -60,7 +64,7 @@ t     = (1:t)/7;
 %--------------------------------------------------------------------------
 subplot(3,2,1), set(gca,'ColorOrderIndex',1);
 
-if n > 2 && size(Y,3) == 1
+if ~isempty(u)
    p = plot(t,Y,t,u*t.^0,':m');
 else
    p = plot(t,Y);
@@ -68,7 +72,7 @@ end
 xlabel('time (weeks)'),ylabel('number per day')
 title('Rates (per day)','FontSize',16)
 axis square, box off, set(gca,'XLim',[0, t(end)])
-warning off, legend(p,str.outcome{1:n}), legend('boxoff'), warning on
+warning off, legend(p,str.outcome{U}), legend('boxoff'), warning on
 
 subplot(3,2,2), set(gca,'ColorOrderIndex',1);
 plot(t,cumsum(Y(:,1:min(end,2))))
@@ -89,6 +93,6 @@ end
 %--------------------------------------------------------------------------
 t = (1:size(Z,1))/7;
 subplot(3,2,1), set(gca,'ColorOrderIndex',1); hold on, plot(t,Z,'.'), hold off
-subplot(3,2,2), set(gca,'ColorOrderIndex',1); hold on, plot(t,cumsum(Z),'.k'), hold off
+subplot(3,2,2), set(gca,'ColorOrderIndex',1); hold on, plot(t,cumsum(Z(:,1:min(end,2))),'.k'), hold off
 
 drawnow

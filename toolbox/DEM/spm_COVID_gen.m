@@ -10,7 +10,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Y(:,3) - CCU bed occupancy
 % Y(:,4) - basic reproduction rate
 % Y(:,5) - herd immunity
-% Y(:,6) - ...
+% Y(:,6) - total number of tests
 %
 % X      - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','CCU','morgue'};
@@ -45,7 +45,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7840 2020-04-26 23:11:25Z spm $
+% $Id: spm_COVID_gen.m 7843 2020-04-30 09:04:45Z karl $
 
 
 % The generative model:
@@ -128,6 +128,7 @@ if (nargin < 3) || isempty(U), U = 1:2; end         % two outcomes
 if numel(U) == 1,              U = 1:U; end
 try, M.T; catch, M.T = 180;             end         % over six months
 
+
 % exponentiate parameters
 %--------------------------------------------------------------------------
 Q    = spm_vecfun(P,@exp);
@@ -139,7 +140,7 @@ N    = Q.N*1e6;            % population size
 m    = Q.m*N;              % number of immune cases
 r    = Q.r*N;              % number of resistant cases
 s    = N - n - m - r;      % number of susceptible cases
-p{1} = [3 1 0 0]';         % location 
+p{1} = [3 1 0 0 0]';       % location 
 p{2} = [s n 0 m r]';       % infection 
 p{3} = [1 0 0 0]';         % clinical 
 p{4} = [1 0 0 0]';         % testing
@@ -158,9 +159,9 @@ for i = 1:M.T
     
     % update ensemble density, with probability dependent transitions
     %----------------------------------------------------------------------
-    B    = spm_COVID_B(x,P);
-    x    = spm_unvec(B*spm_vec(x),x);
-    x    = x/sum(x(:));
+    B     = spm_COVID_B(x,P);
+    x     = spm_unvec(B*spm_vec(x),x);
+    x     = x/sum(x(:));
     
     % probabilistic mappings: outcomes based on marginal densities (p)
     %======================================================================
@@ -173,7 +174,7 @@ for i = 1:M.T
     %----------------------------------------------------------------------
     Y(i,1) = N*p{3}(4);
     
-    % cumulative number of positive tests
+    % number of positive tests
     %----------------------------------------------------------------------
     Y(i,2) = N*p{4}(3);
 
@@ -183,21 +184,20 @@ for i = 1:M.T
     
     % effective reproduction rate (R)
     %----------------------------------------------------------------------
-    ps     = squeeze(spm_sum(x,[3,4]));
-    ps     = ps(:,3)/sum(ps(:,3));                  % P(infectious | location)
-    R      = (ps(1)*Q.Rin + ps(2)*Q.Rou)*Q.Tcn;  % E(infectious contacts)
-    Y(i,4) = R*Q.trn*p{2}(1);                      % effective reproduction rate (R)           
+    q      = spm_sum(x,[3,4]);
+    q      = q(:,3)/sum(q(:,3));               % P(infectious | location)
+    R      = (q(1)*Q.Rin + q(2)*Q.Rou)*Q.Tcn;  % E(infectious contacts)
+    Y(i,4) = R*Q.trn*p{2}(1);                    % effective reproduction rate (R)           
 
     % herd immunity
     %----------------------------------------------------------------------
     Y(i,5) = p{2}(4);
     
+    % number of tests
+    %----------------------------------------------------------------------
+    Y(i,6) = N*(p{4}(3) + p{4}(4));
+    
 end
-
-% evaluate rates (per day) from cumulative counts 
-%--------------------------------------------------------------------------
-i      = 1:2;
-Y(:,i) = gradient(Y(:,i)')';
 
 % retain specified output variables
 %--------------------------------------------------------------------------

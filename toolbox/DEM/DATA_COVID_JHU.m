@@ -1,6 +1,8 @@
-function data = DATA_COVID_JHU
+function data = DATA_COVID_JHU(n)
 % Data retrieval function for COVID modelling
-% FORMAT data = DATA_COVID_JHU
+% FORMAT data = DATA_COVID_JHU(n)
+%
+% n   - number of countries to retain [default: n]
 %
 % This auxiliary routine retrieves data from comma separated data files
 % that can be downloaded from:
@@ -34,8 +36,11 @@ function data = DATA_COVID_JHU
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 7841 2020-04-27 18:18:27Z karl $
+% $Id: DATA_COVID_JHU.m 7843 2020-04-30 09:04:45Z karl $
 
+% defaults
+%--------------------------------------------------------------------------
+if nargin < 1, n = 16; end
 
 % load data from https://github.com/CSSEGISandData/COVID-19/
 %--------------------------------------------------------------------------
@@ -48,7 +53,6 @@ catch
     help DATA_COVID_JHU
     return;
 end
-
 N      = importdata('population.csv');       % population size
 
 
@@ -64,6 +68,8 @@ Country    = N.textdata;
 %--------------------------------------------------------------------------
 i          = logical(ismember(Country,{'United States of America','US'}));
 Country{i} = 'US';
+i          = logical(ismember(Country,{'Republic of Korea'}));
+Country{i} = 'Korea, South';
 
 
 % assemble data structure
@@ -90,28 +96,29 @@ for i = 1:numel(State)
         Ri  = logical(ismember(R.textdata(2:end,2),State{i}));
         RY  = sum(R.data(Ri,3:end),1)';
         
-        % manual check
-        %------------------------------------------------------------------
-        % if ismember(State{i},'China'), keyboard, end
-        
         % save from first reported case
         %------------------------------------------------------------------
         d   = find(cumsum(CY) > 1,1);
         l   = find(ismember(C.textdata(2:end,2),State{i}),1);
+
+        Data(k).country = State{i};
+        Data(k).pop     = Npop(j)*1e3;
+        Data(k).lat     = C.data(l,1);
+        Data(k).long    = C.data(l,2);
+        Data(k).date    = date{d};
+        Data(k).cases   = gradient(spm_conv([zeros(8,1); CY(d:end)],s));
+        Data(k).death   = gradient(spm_conv([zeros(8,1); DY(d:end)],s));
+        Data(k).recov   = gradient(spm_conv([zeros(8,1); RY(d:end)],s));
+        Data(k).days    = numel(Data(k).cases);
+        Data(k).cum     = sum(Data(k).cases);
         
-        if sum(CY) > 32
-            Data(k).country = State{i};
-            Data(k).pop     = Npop(j)*1e3;
-            Data(k).lat     = C.data(l,1);
-            Data(k).long    = C.data(l,2);
-            Data(k).date    = date{d};
-            Data(k).cases   = gradient(spm_conv([zeros(8,1); CY(d:end)],s));
-            Data(k).death   = gradient(spm_conv([zeros(8,1); DY(d:end)],s));
-            Data(k).recov   = gradient(spm_conv([zeros(8,1); RY(d:end)],s));
-            Data(k).days    = numel(Data(k).cases);
-            Data(k).cum     = sum(Data(k).death);
-            k = k + 1;
+        % population of Wuhan
+        %------------------------------------------------------------------
+        if ismember(State{i},'China')
+            Data(k).pop     = 11.08e6;
         end
+        
+        k = k + 1;
         
     end
 end
@@ -145,19 +152,16 @@ end
 T   = spm_cat({Data.days});
 N   = spm_cat({Data.cum});
 
-% retain countries with over 64 days and 256 deaths
+% rank cases
 %--------------------------------------------------------------------------
-t    = 64;
-i    = logical(T > t & N > 256);
-data = Data(i);
+[N,i] = sort(N,'descend');
+i     = i(1:n);
+data  = Data(i);
+t     = min(T(i));
 for i = 1:numel(data)
     death(:,i) = data(i).death(1:t);
     cases(:,i) = data(i).cases(1:t);
 end
-[d,j] = sort(sum(death),'descend');
-death = death(:,j);
-cases = cases(:,j);
-data  = data(j);
 t     = 1:t;
 
 % plot sorting, unless there is an outcome argument specified

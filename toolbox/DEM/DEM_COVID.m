@@ -22,7 +22,7 @@ function [DCM,GCM] = DEM_COVID(country,data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID.m 7841 2020-04-27 18:18:27Z karl $
+% $Id: DEM_COVID.m 7843 2020-04-30 09:04:45Z karl $
 
 % F: -1.5701e+04 social distancing based upon P(infected)
 % F: -1.5969e+04 social distancing based upon P(symptomatic)
@@ -33,8 +33,8 @@ function [DCM,GCM] = DEM_COVID(country,data)
 
 % Get data (see DATA_COVID): an array with a structure for each country
 %==========================================================================
-if nargin < 2, data    = DATA_COVID_JHU;   end
-if nargin < 1, country = 'United Kingdom'; end
+if nargin < 2, data    = DATA_COVID_JHU(16); end
+if nargin < 1, country = 'United Kingdom';   end
 
 % Inversion (i.e., fitting) of empirical data
 %==========================================================================
@@ -52,11 +52,14 @@ for i = 1:numel(data)
     % data for this country (here, and positive test rates)
     %----------------------------------------------------------------------
     set(Fsi,'name',data(i).country)
-    Y   = [data(i).death, data(i).cases];
+    Y     = [data(i).death, data(i).cases];
+    % pE.N  = log(data(i).pop/1e6);
     
     % variational Laplace (estimating log evidence (F) and posteriors)
     %======================================================================
+    
     [F,Ep,Cp,pE,pC] = spm_COVID(Y,pE,pC);
+    
     
     % assemble prior and posterior estimates (and log evidence)
     %----------------------------------------------------------------------
@@ -268,7 +271,7 @@ for i = 1:numel(DCM)
     C(:,i) = diag(DCM{i}.Cp);
 end
 
-% names{1}  = 'initial cases';          %**
+% names{1}  = 'initial cases'; %**
 % names{2}  = 'size of population';
 % names{3}  = 'initial immunity';
 % names{4}  = 'P(work | home)';
@@ -282,26 +285,29 @@ end
 % names{12} = 'incubation period';
 % names{13} = 'P(ARDS | symptoms)';
 % names{14} = 'symptomatic period';
-% names{15} = 'acute RDS  period';
+% names{15} = 'acute RDS period';
 % names{16} = 'P(fatality | CCU)';
 % names{17} = 'P(survival | home)';
-% names{18} = 'threshold for testing';  %**
-% names{19} = 'test rate';              %**
-% names{20} = 'test delay';             %**
-% names{21} = 'P(tested | uninfected)'; %**
+% names{18} = 'testing (post)'; %**
+% names{19} = 'testing (initial)'; %**
+% names{20} = 'test delay'; %**
+% names{21} = 'test selectivity'; %**
+% names{22} = 'test exponent'; %**
+% names{23} = 'immune period'; %**
+% names{24} = 'resistant'; %**
 
 % report selected parameters (see spm_COVID_priors)
 %--------------------------------------------------------------------------
-p     = [2,4,5,7,8,9,11,12,13,15,16,19];
+p     = 1:size(P,1); p([1 3 6 17 18 22 23 24]) = [];
 for i = 1:length(p)
     
     % posterior density
     %----------------------------------------------------------------------
-    subplot(4,3,i)
+    subplot(4,4,i)
     Ep   = P(p(i),:);
     Cp   = C(p(i),:);
     spm_plot_ci(Ep',Cp,[],[],'exp'), hold on
-    title(str.names{p(i)},'FontSize',16)
+    title(str.names{p(i)},'FontSize',12)
     xlabel('country'), axis square, box off
     
     % country with greatest map estimate (and United Kingdom)
@@ -312,6 +318,7 @@ for i = 1:length(p)
     text(j,d,data(j).country,'FontSize',8);
     j     = find(ismember({data.country},'United Kingdom'));
     text(j,exp(Ep(j)),'*','FontSize',12,'Color','r','HorizontalAlignment','center');
+    hold off
     
 end
 
@@ -562,7 +569,7 @@ spm_figure('GetWin',['Reproduction rate:' country]); clf;
 
 i       = find(ismember({data.country},country)); % country index
 U       = [1,4,5];
-spm_COVID_ci(DCM{i}.Ep,DCM{i}.Cp,[],U)
+spm_COVID_ci(DCM{i}.Ep,DCM{i}.Cp,[],U);
 
 % add seasonal flu rates
 %--------------------------------------------------------------------------
@@ -583,22 +590,22 @@ c     = find(ismember({data.country},country)); % country index
 % different policies under different kinds of immunity
 %--------------------------------------------------------------------------
 Tim   = [4,32];                             % period of immunity (months)
-btw   = [0,1];                              % back-to-work policy
+tes   = [1/8,1];                            % selective testing
 sde   = [1/32 1/4];                         % social distance threshold
 for i = 1:numel(Tim)
-    for j = 1:numel(btw)
+    for j = 1:numel(tes)
         for k = 1:numel(sde)
             
             % set parameters
             %--------------------------------------------------------------
             P      = DCM{c}.Ep;
             P.Tim  = log(Tim(i));
-            P.btw  = log(btw(j));
+            P.tes  = log(tes(j));
             P.sde  = log(sde(k));
             
             % evaluate credible interval for punitive deaths
             %--------------------------------------------------------------
-            pol{i,j,k} = sprintf('IMMUN(%d)-BTW(%d)-SD(%d)',i,j,k);
+            pol{i,j,k} = sprintf('IM(%d)-ST(%d)-SD(%d)',i,j,k);
             [S,CS]     = spm_COVID_ci(P,DCM{c}.Cp,DCM{c}.Y,1);
             
             % save predictive posterior over final values
