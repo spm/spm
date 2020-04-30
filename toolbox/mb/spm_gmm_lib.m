@@ -477,7 +477,7 @@ for em=1:iter_max
                 for k=1:size(MU,2)
                     [~,cholp] = chol(A(:,:,k));
                     if cholp ~= 0
-                        warning('A not positve definite - reverting to previous version')
+                        warning('A not positive definite - reverting to previous version')
                         A(:,:,k) = Ap(:,:,k);
                         if sum(n) > 0
                             V(:,:,k) = Vp(:,:,k);

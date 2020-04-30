@@ -558,7 +558,7 @@ for m=1:M
                 tmp = tmp + J(:,:,:,j1,i1).*Gm{j1};
             end
         else
-            tmp = Gm{j1};
+            tmp = Gm{i1};
         end
         tmp(~isfinite(tmp)) = 0;
         G(:,:,:,m,i1) = tmp;
