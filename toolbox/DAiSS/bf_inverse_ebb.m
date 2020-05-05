@@ -3,7 +3,7 @@ function res = bf_inverse_ebb(BF, S)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: bf_inverse_ebb.m 7807 2020-03-30 16:33:57Z george $
+% $Id: bf_inverse_ebb.m 7846 2020-05-05 14:33:24Z george $
 
 % NOTE: this is an early developmental version so it comes with George's
 % "NO RESULTS GUARENTEED (TM)" warning.
@@ -316,14 +316,14 @@ hC(end+1) = 16;
 switch lower(S.reml)
     case 'strict'
         fprintf('Using ReML: Strict hyperprior settings\n');
-        [Cy,h,~,F,Fa,Fc] = spm_reml_sc(C,[],[Qe LQpL],1,hP,diag(hC));
+        [Cy,h,~,F,Fa,Fc] = spm_reml_sc(C,[],[Qe LQpL],Nn,hP,diag(hC));
     case 'loose'
         fprintf('Using ReML: Loose hyperprior settings\n');
         % Need to add a final extra term here to allow ReML to not run into
         % trouble, a fixed (co)variance componenent which is ~1/100 the
         % magnitude of the sensor covariance.
         Q0          = exp(-5)*trace(C)*Qe{1};
-        [Cy,h,~,F,Fa,Fc]= spm_reml_sc(C,[],[Qe LQpL],1,-4,16,Q0);
+        [Cy,h,~,F,Fa,Fc]= spm_reml_sc(C,[],[Qe LQpL],Nn,-4,16,Q0);
 end
 
 % invC_reml = pinv_plus(full(C_reml));
@@ -369,6 +369,7 @@ res.F = F;
 reml.Cy = Cy;
 reml.Q = [Qe LQpL];
 reml.Qtype = [repmat({'noise'},1,Ne) repmat({'source'},1,Np)];
+reml.source_prior = pow;
 reml.h = h;
 reml.F = F;
 reml.Fa = Fa;
