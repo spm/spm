@@ -8,15 +8,16 @@ function fig = spm_glass(X,pos,varargin)
 %   S.brush         - brush size                   - Default: 0
 %   S.cmap          - colormap of plot             - Default: 'gray'
 %   S.dark          - dark mode                    - Default: false
-%   S.detail        - glass brain detail level:     
+%   S.detail        - glass brain detail level:
 %                     0=LOW, 1=NORMAL, 2=HIGH      - Default: 1
+%   S.grid          - overlay grid                 - Default false
 % Output:
 %   fig             - Handle for generated figure
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: spm_glass.m 7842 2020-04-28 15:15:09Z george $
+% $Id: spm_glass.m 7845 2020-05-05 14:25:32Z george $
 
 % prep
 %---------------------------------------------------------------------
@@ -32,10 +33,11 @@ end
 assert(length(X) == length(pos), ['number of values do not match '...
     'number of poistions!']);
 
-if ~isfield(S, 'brush'),     S.brush = 0; end
-if ~isfield(S, 'dark'),      S.dark = false; end
-if ~isfield(S, 'cmap'),      S.cmap = 'gray'; end
-if ~isfield(S, 'detail'),    S.detail = 1; end
+if ~isfield(S, 'brush'),        S.brush = 0; end
+if ~isfield(S, 'dark'),         S.dark = false; end
+if ~isfield(S, 'cmap'),         S.cmap = 'gray'; end
+if ~isfield(S, 'detail'),       S.detail = 1; end
+if ~isfield(S, 'grid'),         S.grid = false; end
 
 
 V = spm_vol(fullfile(spm('dir'),'canonical','avg152T1.nii'));
@@ -44,7 +46,7 @@ pos = ceil(ft_warp_apply(inv(V.mat),pos));
 if sum(X<0) & sum(X>0)
     div = 1;
     S.cmap = 'rdbu';
-else 
+else
     div = 0;
 end
 
@@ -57,62 +59,55 @@ end
 
 % saggital plane
 %----------------------------------------------------------------------
-p = NaN(V.dim(2),V.dim(3));
+p_sag = NaN(V.dim(2),V.dim(3));
 
 for ii = 1:length(id)
     
     pnt = [pos(id(ii),2),pos(id(ii),3)];
     bnd = -S.brush:S.brush;
-    p(pnt(1)+bnd,pnt(2)+bnd) = bin(id(ii));
+    p_sag(pnt(1)+bnd,pnt(2)+bnd) = bin(id(ii));
     
 end
 
-subplot(221);
-imagesc(rot90(p,1))
-overlay_glass_brain('side',S.dark,S.detail);
-
 % coronal plane
 %----------------------------------------------------------------------
-p = NaN(V.dim(1),V.dim(3));
+p_cor = NaN(V.dim(1),V.dim(3));
 
 for ii = 1:length(id)
     
     pnt = [pos(id(ii),1),pos(id(ii),3)];
     bnd = -S.brush:S.brush;
-    p(pnt(1)+bnd,pnt(2)+bnd) = bin(id(ii));
+    p_cor(pnt(1)+bnd,pnt(2)+bnd) = bin(id(ii));
     
 end
 
-subplot(222);
-imagesc(fliplr(rot90(p,1)))
-overlay_glass_brain('back',S.dark,S.detail);
 
 % axial plane
 %----------------------------------------------------------------------
-p = NaN(V.dim(2),V.dim(1));
+p_axi = NaN(V.dim(2),V.dim(1));
 
 for ii = 1:length(id)
     
     pnt = [pos(id(ii),2),pos(id(ii),1)];
     bnd = -S.brush:S.brush;
-    p(pnt(1)+bnd,pnt(2)+bnd) = bin(id(ii));
+    p_axi(pnt(1)+bnd,pnt(2)+bnd) = bin(id(ii));
     
 end
 
-subplot(223);
-imagesc(rot90(p,1))
-overlay_glass_brain('top',S.dark,S.detail);
 
-
-% common features
+% combine and plot
 %---------------------------------------------------------------------
-for ii = 1:3
-    subplot(2,2,ii)
-    set(gca,'XTickLabel',{},'YTickLabel',{});
-    axis image
-    grid on
-    caxis([0 64])
-end
+
+p_all = [rot90(p_sag,1) fliplr(rot90(p_cor,1));...
+    rot90(p_axi,1) NaN(size(rot90(p_cor,1)))];
+imagesc(p_all)
+set(gca,'XTickLabel',{},'YTickLabel',{});
+axis image
+
+caxis([0 64])
+overlay_glass_brain('side',S.dark,S.detail);
+overlay_glass_brain('back',S.dark,S.detail);
+overlay_glass_brain('top',S.dark,S.detail);
 
 c = feval(S.cmap,64);
 if S.dark
@@ -127,6 +122,13 @@ if S.dark
 else
     set(gcf,'color','w');
 end
+
+if S.grid
+    grid on
+else
+    axis off
+end
+
 fig = gcf;
 
 end
@@ -142,9 +144,9 @@ dat = glass.(orient);
 
 switch orient
     case 'top'
-        xform = [0 -1 0; 1 0 0; 0 0 1]*[0.185 0 0; 0 0.185 0; 10.5 82 1];
+        xform = [0 -1 0; 1 0 0; 0 0 1]*[0.185 0 0; 0 0.185 0; 10.5 173 1];
     case 'back'
-        xform = [0.185 0 0; 0 -0.185 0; 11 89 1];
+        xform = [0.185 0 0; 0 -0.185 0; 120 89 1];
     case 'side'
         xform = [0.185 0 0; 0 -0.185 0; 10.5 89 1];
 end
@@ -220,31 +222,6 @@ switch size(controlPts, 1)
             (3 * (1 - t) .^ 2 .* t) * controlPts(2, :) + ...
             (3 * (1 - t) .* t .^ 2) * controlPts(3, :) + ...
             (t .^ 3) * controlPts(4, :);
-        
-        %     otherwise
-        %         % compute using the recursive formula (but avoid recursion)
-        %         [count, dim] = size(controlPts);
-        %
-        %         % compute 4th diagonal
-        %         ptscomp = cell(count, count);
-        %         for i = 1:(count - 4 + 1)
-        %             ptscomp{i, i+3} = generate_bezier(controlPts(i:i+4-1, :), nCurvePoints);
-        %         end
-        %
-        %         % compute every diagonal after that
-        %         for i = 5:count
-        %             for j = 1:(count - i + 1)
-        %                 % use the entry to the left (ptscomp{j, i+j-2}) and below (ptscomp{j+1, i+j-1})
-        %                 ptscomp{j, i+j-1} =  repmat(1 - t, [1, dim]) .* ptscomp{j, i+j-2} + ...
-        %                     repmat(t, [1, dim]) .* ptscomp{j+1, i+j-1};
-        %
-        %                 % clean up the entry to the left (this is necessary if we have huge number of control pts)
-        %                 ptscomp{j, i + j - 2} = [];
-        %             end
-        %         end
-        %
-        %         % finally, get our points:
-        %         points = ptscomp{1, end};
 end
 
 % verify dimensions
