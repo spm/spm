@@ -1,4 +1,4 @@
-function res = spm_mb_output(dat,mu,sett)
+function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 %
 % Write output from groupwise normalisation and segmentation of images.
@@ -8,25 +8,30 @@ function res = spm_mb_output(dat,mu,sett)
 
 % $Id$
 
-if nargin==1
-    load(dat);
-    if isfield(sett.mu,'exist')
-        mu = sett.mu.exist.mu;
-    elseif isfield(sett.mu,'create')
-        mu = sett.mu.create.mu;
-    end
-    mu = nifti(mu);
-    mu = single(mu.dat(:,:,:,:,:));
+load(char(cfg.result));
+if isfield(sett.mu,'exist')
+    mu = sett.mu.exist.mu;
+elseif isfield(sett.mu,'create')
+    mu = sett.mu.create.mu;
 end
+mu = nifti(mu);
+mu = single(mu.dat(:,:,:,:,:));
 
 % struct for saving paths of data written to disk
 N   = numel(dat);
 cl  = cell(N,1);
 res = struct('inu',cl,'i',cl,'mi',cl,'c',cl,'wi',cl, ...
              'wmi',cl,'wc',cl,'mwc',cl);
-opt = struct('write_inu',false,...
-             'write_im',[false true false true],...
-             'write_tc',[true true true]);
+
+write_tc = false(sett.K+1,3);
+ind = cfg.c;   ind = ind(ind>=1 & ind<=sett.K+1); write_tc(ind,1) = true;
+ind = cfg.wc;  ind = ind(ind>=1 & ind<=sett.K+1); write_tc(ind,2) = true;
+ind = cfg.mwc; ind = ind(ind>=1 & ind<=sett.K+1); write_tc(ind,3) = true;
+
+opt = struct('write_inu',cfg.inu,...
+             'write_im',[cfg.i cfg.mi cfg.wi cfg.wmi],...
+             'write_tc',write_tc);
+
 spm_progress_bar('Init',N,'Writing MB output','Subjects complete');
 for n=1:N % Loop over subjects
     res(n) = ProcessSubject(dat(n),res(n),mu,sett,opt);

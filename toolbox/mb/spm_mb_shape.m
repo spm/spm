@@ -756,7 +756,6 @@ end
 
 %==========================================================================
 function [H,g] = SimpleAffineHessian(mu,G,H0,a,w)
-samp = [1 1 1];
 d  = [size(mu,1),size(mu,2),size(mu,3)];
 I  = Horder(3);
 H  = zeros(12,12);
@@ -936,6 +935,20 @@ else
     % Update appearance model
     [datn,P] = spm_mb_appearance('Update',datn,mun,sett);
 end
+
+if false
+figure(2)
+sl = ceil(size(P,1)/2);
+t  = Softmax(mun,4);
+subplot(3,2,1); imagesc(squeeze(P(sl,:,:,1))'); axis image xy off
+subplot(3,2,2); imagesc(squeeze(t(sl,:,:,1))'); axis image xy off
+subplot(3,2,3); imagesc(squeeze(P(sl,:,:,2))'); axis image xy off
+subplot(3,2,4); imagesc(squeeze(t(sl,:,:,2))'); axis image xy off
+subplot(3,2,5); imagesc(squeeze(1-sum(P(sl,:,:,:),4))'); axis image xy off
+subplot(3,2,6); imagesc(squeeze(1-sum(t(sl,:,:,:),4))'); axis image xy off
+drawnow
+end
+
 end
 %==========================================================================
 

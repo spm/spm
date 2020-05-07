@@ -71,7 +71,6 @@ end
 % Update affine only
 % No update of intensity priors during this phase.
 %------------------
-sett.tol = sett.tol*0.1;
 for n=1:numel(dat)
     dat(n).samp  = GetSamp(sett.ms.Mmu,dat(n).Mat,sett.sampdens);
     dat(n).samp2 = [1 1 1];
@@ -97,7 +96,7 @@ for it0=1:nit_aff
         sett  = spm_mb_appearance(updt_int,dat, sett);
 
         EE(i) = E;
-        fprintf('%13.5e', E);
+        fprintf('%12.4e', E);
     end
     fprintf('\n');
     do_save(mu,sett,dat);
@@ -116,8 +115,6 @@ for it0=1:nit_aff
         countdown = 4;
     end
 end
-
-sett.tol = sett.tol*10;
 spm_plot_convergence('Clear');
 
 
@@ -143,7 +140,7 @@ for zm=numel(sz):-1:1 % loop over zoom levels
         dat   = spm_mb_shape('UpdateAffines',dat,mu,sett);
         E     = sum(sum(cat(2,dat.E),2),1) + te; % Cost function after previous update
         sett  = spm_mb_appearance('UpdatePrior',dat, sett);
-        fprintf('%13.5e', E);
+        fprintf('%12.4e', E);
         spm_plot_convergence('Set',E);
     end
     fprintf('\n');
@@ -167,7 +164,7 @@ for zm=numel(sz):-1:1 % loop over zoom levels
             E     = sum(sum(cat(2,dat.E),2),1) + te; % Cost function after previous update
             sett  = spm_mb_appearance('UpdatePrior',dat, sett);
             EE(i) = E;
-            fprintf('%13.5e', E);
+            fprintf('%12.4e', E);
             spm_plot_convergence('Set',E);
         end
         fprintf('\n');
@@ -226,8 +223,9 @@ for it=1:nit_mu
     E        = sum(sum(cat(2,dat.E),2),1) + te; % Cost function after previous update
     sett     = spm_mb_appearance(updt_int,dat, sett);
     te       = spm_mb_shape('TemplateEnergy',mu,sett.ms.mu_settings);
-    fprintf('%13.5e', E);
+    fprintf('%12.4e', E);
     spm_plot_convergence('Set',E);
+    do_save(mu,sett,dat);
     if it>1 && (oE-E)/abs(E) < sett.tol; break; end
 end
 end

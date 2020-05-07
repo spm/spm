@@ -1,8 +1,9 @@
-function spm_mb_merge(cfg)
+function out = spm_mb_merge(cfg)
 % Combine tissue maps together
 
 % $Id$
 
+out      = struct('mu','priors');
 odir     = cfg.odir{1};
 onam     = cfg.onam;
 res_file = cfg.result{1};
@@ -29,6 +30,7 @@ if strcmp(ext,'.mat')
     end
 
     % Save the reordered priors for each population
+    out.priors = cell(numel(r.sett.gmm),1);
     for p=1:numel(r.sett.gmm)
         matname    = fullfile(odir,['prior_' onam '_' num2str(p) '.mat']);
         mg_ix      = ix(r.sett.gmm(p).mg_ix);
@@ -39,6 +41,7 @@ if strcmp(ext,'.mat')
         pr{3}      = pr{3}(:,:,si);  % W
         pr{4}      = pr{4}(:,si);    % n
         save(matname,'mg_ix','pr');
+        out.priors{p} = matname;
     end
 else
     mu_name = res_file;
@@ -51,7 +54,7 @@ Nmu.dat.fname  = fullfile(odir,['mu_' onam '.nii']);
 Nmu.dat.dim(4) = size(mu1,4);
 create(Nmu);
 Nmu.dat(:,:,:,:) = mu1;
-
+out.mu = {mu_name};
 
 
 

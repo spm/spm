@@ -232,35 +232,41 @@ f0    = SubSample(f0,dat.samp);
 samp  = dat.samp;
 samp2 = dat.samp2;
 
-% GMM posterior: initial estimates at each iteration are made to be uncertain
+% GMM posterior
 m    = gmm.m;
-b    = gmm.b*0+1e-3;
-nval = C-1+1e-3;
-%W   = repmat(mean(bsxfun(@times,gmm.W,reshape(gmm.n,[1 1 Kmg])),3)/nval,[1 1 Kmg]);
-W    = bsxfun(@times,gmm.W,reshape(gmm.n,[1 1 numel(gmm.n)])./nval);
-n    = gmm.n*0+nval;
+b    = gmm.b;
+W    = gmm.W;
+n    = gmm.n;
 mg_w = gmm.mg_w;
 
-
-% Things to test
-if true
-    % If template is missing, set corresponding voxels of
-    % f to missing too.
-    msk_vx = any(isnan(mu0),4);
-    for c=1:size(f0,4)
-        fc = f0(:,:,:,c);
-        fc(msk_vx) = NaN;
-        f0(:,:,:,c) = fc;
-    end
-   %scl_samp = numel(msk_vx)/(numel(msk_vx)-sum(msk_vx(:)));
-    clear msk_vx
-else
-    % Assume template is zero outside field of view
-    mu0(~isfinite(mu0)) = 0;
-   %scl_samp = 1.0;
+if false
+    % Broaden the variance to make less informative.
+    % Might sometimes help escape local optima. Broadened
+    % more when sample density is lowest. Needs further
+    % testing.
+    scal = prod(samp.*samp2).^(-1/4);
+    b    = b*scal;
+    n    = (n-C)*scal+C;
 end
 
-% Compute Gaussian parameters on a subset of the voxels
+% If template is missing, set corresponding voxels of
+% f to missing too.
+% Note that if the template doesn't cover the entire field
+% of view, this can cause the log-likelihood to behave oddly.
+msk_vx = any(isnan(mu0),4);
+for c=1:size(f0,4)
+    fc = f0(:,:,:,c);
+    fc(msk_vx) = NaN;
+    f0(:,:,:,c) = fc;
+end
+%scl_samp = numel(msk_vx)/(numel(msk_vx)-sum(msk_vx(:)));
+clear msk_vx
+
+% Compute Gaussian parameters on a subset of the voxels.
+% Note strange behaviour for interleaved images where there
+% are systematic differences between odd and even slices.
+% If the subset contains only odd slices, then the overall
+% log-likelihood can increase.
 [f,d] = SubSample( f0,samp2);
 mu    = SubSample(mu0,samp2);
 
@@ -270,9 +276,9 @@ mu    = mu + GetLabels(dat,sett,true); % Add labels and template
 mu    = mu(:,mg_ix); % Expand, if using multiple Gaussians per tissue
 
 % Bias field related
-do_inu = ~cellfun(@isempty,gmm.T);
+T      = gmm.T;
+do_inu = ~cellfun(@isempty,T);
 if any(do_inu)
-    T            = gmm.T;
     chan         = BiasBasis(T,df,Mat,reg,samp.*samp2);
     [inu,llpinu] = BiasField(T,chan);
     inuf         = inu.*f;
@@ -450,28 +456,27 @@ for it_appear=1:nit_appear
             end
             clear oT Update
         end
-        gmm.T = T;
     end
 end
 clear f inu mu
 
 % Update dat
 lbs      = lx+lxb+lb.MU(end)+lb.A(end);
+gmm.T    = T;
 gmm.m    = m;
 gmm.b    = b;
 gmm.W    = W;
 gmm.n    = n;
 gmm.lb   = lb;
 gmm.mg_w = mg_w;
-dat.model.gmm = gmm;
+
+%subset_ll = lx+lxb;
 
 if nargout > 1
     % Compute full size resps
-
     if any(samp2~=1)
         % Compute full-sized responsibilities on original data
-
-        if any(do_inu == true) % Bias correct
+        if any(do_inu) % Bias correct
             chan = BiasBasis(T,df,Mat,reg,samp);
             [inu,llpinu] = BiasField(T,chan);
             lxb  = SumLnINU(vol2vec(inu), code_image) + sum(llpinu);
@@ -493,6 +498,7 @@ if nargout > 1
         lbs      = lx+lxb+lb.MU(end)+lb.A(end);
         clear mu0
     end
+   %fprintf('subset=%12.5e full=%12.5e priors=%12.5e Total=%12.5e ',subset_ll,lx+lxb,lb.MU(end)+lb.A(end), lbs);
     Z = spm_gmm_lib('cell2obs', Z, code_image, msk_chn);
 
     % If using multiple Gaussians per tissue, collapse so that Z is of
@@ -508,7 +514,8 @@ if nargout > 1
     % Make 4D
     Z = vec2vol(Z,ds);
 end
-dat.E(1) = -lbs; %*scl_samp;
+dat.E(1)      = -lbs; %*scl_samp;
+dat.model.gmm = gmm;
 end
 %==========================================================================
 
@@ -526,6 +533,77 @@ if size(X2d,1)~=prod(dm(1:3))
     error('Incompatible dimensions.');
 end
 X4d = reshape(X2d,[dm(1:3) size(X2d,2)]);
+end
+%==========================================================================
+
+%==========================================================================
+function gmm = FixScaling(gmm,pr,df)
+% This function appears to make things worse for some reason. This will need
+% more thought to understand the reason why.
+return;
+
+% Adjust the DC part of INU to best match the GMM posteriors to the priors.
+msk    = ~cellfun(@isempty,gmm.T(:));    % Only rescale when required
+msk    = msk & any(diff(pr{1},[],2),2);  % Only rescale for informative priors
+if ~any(msk), return; end                % Return if nothing to do
+
+po     = {gmm.m, gmm.b, gmm.W, gmm.n};
+r      = zeros(size(pr{1},1),1);
+r(msk) = GetScaling(pr,po,msk);
+s      = exp(r);
+
+% Adjust distributions of mean and precision matrices
+gmm.m  = diag(1./s)*gmm.m;
+for k=1:size(gmm.W,3)
+    gmm.W(:,:,k) = diag(s)*gmm.W(:,:,k)*diag(s);
+end
+
+% Make corresponding change to bias field (accounting for DCT scaling)
+for m=find(msk(:)')
+    gmm.T{m}(1,1,1) = gmm.T{m}(1,1,1) - r(m)*sqrt(prod(df));
+end
+end
+%==========================================================================
+
+%==========================================================================
+function r = GetScaling(pr,po,msk)
+% Determine log of rescaling factor that best matches the priors
+% with the posteriors. This was based on Eq. 10.74 of Bishop's
+% PRML book.
+% Substitute m0 in 10.74 for diag(exp(r))*mu0, and W0 for
+% diag(exp(r))\W0/diag(exp(r)). Then differentiate w.r.t. r
+% to obtain gradients and Hessians for a Newton optimisation.
+
+[mu0,b0,W0,nu0] = deal(pr{:});
+[mu ,~ ,W ,nu ] = deal(po{:});
+[D,K]           = size(mu0);
+if nargin<3, msk = true(D,1); end
+
+% Ad hoc fix to reduce the chance of one class dominating the scaling.
+% Perhaps some form of hyper-priors might be a more elegant solution.
+b0   = min(b0,exp(mean(log(b0)))*10); 
+
+Alph = 0;
+beta = 0;
+gamm = 0;
+for k=1:K
+    Alph = Alph + nu(k)*(inv(W0(:,:,k)).*W(:,:,k)' + ...
+                  b0(k)*diag(mu0(:,k))'*W(:,:,k)*diag(mu0(:,k)));
+    beta = beta + b0(k)*nu(k)*diag(mu0(:,k))'*W(:,:,k)*mu(:,k);
+    gamm = gamm + nu0(k);
+end
+Alph = Alph(msk,msk);
+beta = beta(msk);
+r    = zeros(sum(msk),1);
+for it=1:100
+    s  = exp(r);
+    g  = s.*(Alph*s - beta -  gamm./(s   +eps));
+    H  = (s*s').*(Alph + diag(gamm./(s.^2+eps)));
+    H  = H + eye(size(H))*1e-6*max(diag(H));
+    dr = H\g;
+    r  = r - dr;
+    if sqrt(mean(dr.^2)) < 1e-9, break; end
+end
 end
 %==========================================================================
 

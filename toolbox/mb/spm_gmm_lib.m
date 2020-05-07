@@ -1039,10 +1039,10 @@ for i=1:size(L,1)
             xm  = double(X{i}(:,m));
             zx  = zk.*xm;
             SS1{i}(m,k)   = sum(zx);
-            SS2{i}(m,m,k) = sum(zx.*xm);
+            SS2{i}(m,m,k) = zx'*xm;
             for m1=(m+1):Po
                 xm  = double(X{i}(:,m1));
-                SS2{i}(m,m1,k) = sum(zx.*xm);
+                SS2{i}(m,m1,k) = zx'*xm;
                 SS2{i}(m1,m,k) = SS2{i}(m,m1,k);
             end
         end

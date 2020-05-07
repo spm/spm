@@ -220,7 +220,8 @@ if true
     mu = spm_mb_shape('TemplateK1',mu);
     mu = exp(mu);
     [pth,nam,ext] = fileparts(sett.mu.create.mu);
-    f        = fullfile(pth,[nam '_softmax' ext]);
+    nam      = ['softmax' nam(3:end)];
+    f        = fullfile(pth,[nam ext]);
     fa       = file_array(f,size(mu),'float32',0);
     Nmu      = nifti;
     Nmu.dat  = fa;

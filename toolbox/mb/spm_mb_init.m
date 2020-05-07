@@ -356,12 +356,23 @@ for p=1:numel(sett.gmm) % Loop over populations
         end
     else
         for n=1:N
-            % Set GMM starting estimates to priors
+            % Set GMM starting estimates based on priors
             n1                  = index(n);
-            dat(n1).model.gmm.m = sett.gmm(p).pr{1};
-            dat(n1).model.gmm.b = sett.gmm(p).pr{2};
-            dat(n1).model.gmm.W = sett.gmm(p).pr{3};
-            dat(n1).model.gmm.n = sett.gmm(p).pr{4};
+            m    = sett.gmm(p).pr{1};
+            b    = sett.gmm(p).pr{2};
+            W    = sett.gmm(p).pr{3};
+            nu   = sett.gmm(p).pr{4};
+            % Modify the estimates slightly. If the b values are too variable
+            % then the smaller ones might cause responsibilities that are
+            % very close to zero, never identifying tissue in that class.
+            b    = b*0+1e-3;
+            nval = size(m,1)-1+1e-3;
+            W    = bsxfun(@times,W,reshape(nu,[1 1 numel(nu)])./nval);
+            nu   = nu*0+nval;
+            dat(n1).model.gmm.m = m;
+            dat(n1).model.gmm.b = b;
+            dat(n1).model.gmm.W = W;
+            dat(n1).model.gmm.n = nu;
         end
     end
 end

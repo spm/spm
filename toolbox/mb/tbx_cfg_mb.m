@@ -40,7 +40,7 @@ inu_reg.tag  = 'inu_reg';
 inu_reg.name = 'Regularisation';
 inu_reg.strtype = 'e';
 inu_reg.num  = [1 1];
-inu_reg.val  = {1e4};
+inu_reg.val  = {2e4};
 inu_reg.help = {['Specify the bending energy penalty on the estimated intensity nonuniformity (INU) '...
                 'fields (bias fields). Larger values give smoother INU fields.'],''};
 % ---------------------------------------------------------------------
@@ -186,7 +186,7 @@ pop       = cfg_branch;
 pop.tag   = 'gmm';
 pop.name  = 'Pop. of scans';
 pop.val   = {chans, has_labels, pr,...
-             const('tol_gmm', 5e-5), const('nit_gmm_miss',32), const('nit_gmm',16), const('nit_appear', 4)};
+             const('tol_gmm', 2e-4), const('nit_gmm_miss',32), const('nit_gmm',8), const('nit_appear', 4)};
 pop.check = @check_pop;
 %pop.val  = {chans};
 pop.help  = {'Information about a population of subjects that all have the same set of scans.',''};
@@ -230,6 +230,7 @@ segs.help    = {['Images might have been segmented previously into a number of t
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
+%% Not used
 %is_imp        = cfg_menu;
 %is_imp.tag    = 'mat0';
 %is_imp.name   = 'Imported?';
@@ -357,7 +358,7 @@ mb             = cfg_exbranch;
 mb.tag         = 'run';
 mb.name        = 'Fit Multi-Brain model';
 mb.val         = {mu_prov, aff, dff, onam, odir, segs, pops, ...
-                   const('accel',0.8), const('min_dim', 12), const('tol',2e-4), const('sampdens',2),const('save',true),const('nworker',0)};
+                   const('accel',0.8), const('min_dim', 16), const('tol',5e-4), const('sampdens',2),const('save',true),const('nworker',0)};
 mb.prog        = @run_mb;
 mb.vout        = @vout_mb_run;
 mb.help        = {['This framework attempts to unify ``unified segmentation'''' with ``shoot'''', '...
@@ -420,15 +421,108 @@ mrg.tag  = 'merge';
 mrg.name = 'Merge tissues';
 mrg.val  = {res_file, ix, onam,odir};
 mrg.prog = @spm_mb_merge;
+mrg.vout = @vout_mb_merge;
 mrg.help = {['Merge tissues together and extract intensity priors '...
              'for later use.'],''};
 % ---------------------------------------------------------------------
 
+
+
 % ---------------------------------------------------------------------
-cfg        = cfg_repeat;
+res_file         = cfg_files;
+res_file.tag     = 'result';
+res_file.name    = 'MB results file';
+res_file.filter  = 'mat';
+res_file.ufilter = '^mb_fit.*';
+res_file.num     = [1 1];
+res_file.help    = {'Specify the results file from the groupwise alignment.',''};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+i        = cfg_menu;
+i.tag    = 'i';
+i.name   = 'Write Images';
+i.labels = {'No','Yes'};
+i.values = {false,true};
+i.val    = {false};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+mi        = cfg_menu;
+mi.tag    = 'mi';
+mi.name   = 'Write INU Corrected';
+mi.labels = {'No','Yes'};
+mi.values = {false,true};
+mi.val    = {false};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+wi        = cfg_menu;
+wi.tag    = 'wi';
+wi.name   = 'Write Warped Images';
+wi.labels = {'No','Yes'};
+wi.values = {false,true};
+wi.val    = {false};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+wmi        = cfg_menu;
+wmi.tag    = 'wmi';
+wmi.name   = 'Write WARPED INU Corrected';
+wmi.labels = {'No','Yes'};
+wmi.values = {false,true};
+wmi.val    = {false};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+inu        = cfg_menu;
+inu.tag    = 'inu';
+inu.name   = 'Write INU';
+inu.labels = {'No', 'Yes'};
+inu.values = {false,true};
+inu.val    = {false};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+c         = cfg_entry;
+c.tag     = 'c';
+c.name    = 'Tissues';
+c.strtype = 'n';
+c.num     = [0 Inf];
+c.val     = {[]};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+wc         = cfg_entry;
+wc.tag     = 'wc';
+wc.name    = 'Warped Tissues';
+wc.strtype = 'n';
+wc.num     = [0 Inf];
+wc.val     = {[]};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+mwc         = cfg_entry;
+mwc.tag     = 'mwc';
+mwc.name    = 'Warped Mod. Tissues';
+mwc.strtype = 'n';
+mwc.num     = [0 Inf];
+mwc.val     = {[]};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+out      = cfg_exbranch;
+out.tag  = 'out';
+out.name = 'Output';
+out.val  = {res_file, i, mi, wi, wmi, inu, c, wc, mwc};
+out.prog = @spm_mb_output;
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+cfg        = cfg_choice;
 cfg.tag    = 'mb';
 cfg.name   = 'Multi-Brain toolbox';
-cfg.values = {mb,mrg};
+cfg.values = {mb,mrg,out};
 %cfg.val   = {};
 cfg.help   = {'Welcome to the Multi-Brain toolbox.',''};
 %_______________________________________________________________________
@@ -545,4 +639,23 @@ for n=1:numel(dat)
     out.v{n}   = dat(n).v.dat.fname;
     out.psi{n} = dat(n).psi.dat.fname;
 end
+%_______________________________________________________________________
+%
+%_______________________________________________________________________
+function dep = vout_mb_merge(cfg)
+matdep            = cfg_dep;
+matdep.sname      = 'Intensity Priors';
+matdep.src_output = substruct('.','priors','()',{':'});
+matdep.tgt_spec   = cfg_findspec({{'filter','mat'}});
+
+mudep            = cfg_dep;
+mudep.sname      = 'Merged Template';
+mudep.src_output = substruct('.','mu','()',{':'});
+mudep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
+
+dep = [mudep, matdep];
+%_______________________________________________________________________
+%
+%_______________________________________________________________________
+
 
