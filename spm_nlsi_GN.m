@@ -97,7 +97,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: spm_nlsi_GN.m 7849 2020-05-13 19:48:29Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -260,7 +260,7 @@ if isempty(dfdu), dfdu = sparse(ny,0); end
 % hyperpriors - expectation (and initialize hyperparameters)
 %--------------------------------------------------------------------------
 try
-    hE  = M.hE;
+    hE  = M.hE(:);
     if length(hE) ~= nh
         hE = hE + sparse(nh,1);
     end

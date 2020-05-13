@@ -8,17 +8,20 @@ function T = spm_COVID_B(x,P,r)
 % T      - probability transition matrix
 %
 % This subroutine creates a transition probability tensors as a function of
-% model parameters and the joint density over four factors, each with four
-% levels. With one exception, the transition probabilities of anyone factor
-% depend only upon another factor. The exception is the factor modelling
-% clinical status, where the transition from acute respiratory distress
-% (ARDS) to death depends upon infection status (infected or not
-% infected) and location (in a critical careunit will not).
+% model parameters and the joint density over four factors, each with
+% several levels. Crucially the transition probabilities of any one factor
+% depend only upon another factor. for example, in the factor modelling
+% clinical status, the transition from acute respiratory distress (ARDS) to
+% death depends upon infection status (infected or not infected) and
+% location (in a critical care unit or not). This version has no absorbing
+% states. States such as contributing to daily deaths or tests are modelled
+% by remaining in that state for one day and then returning to another
+% state.
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_B.m 7843 2020-04-30 09:04:45Z karl $
+% $Id: spm_COVID_B.m 7849 2020-05-13 19:48:29Z karl $
 
 % marginal probabilities
 %==========================================================================
@@ -49,42 +52,42 @@ Kday  = exp(-1);
 
 % probabilistic transitions: location
 %==========================================================================
-% P.out                             % P(work | home)
-% P.sde                             % social distancing threshold
-% P.cap                             % bed availability threshold (per capita)
+% P.out                              % P(work | home)
+% P.sde                              % social distancing threshold
+% P.cap                              % bed threshold (per capita)
 % social distancing, based on prevalence of infection
 %--------------------------------------------------------------------------
-Ppn = p{2}(2);                      % prevalence of infection
-Pco = p{1}(3);                      % CCU occupancy
+Prev = p{2}(2) + p{2}(3);            % prevalence of infection
+Pcco = p{1}(3);                      % CCU occupancy
 
 % hard (threshold) strategy
 %--------------------------------------------------------------------------
-Psd = spm_sigma(Ppn,P.sde);
-Psd = spm_sigma(Pco,P.sde*P.cap*8)*Psd;
+Psde = spm_sigma(Prev,P.sde);
+% Psde = spm_sigma(Pcco,P.sde*P.cap*8)*Psde;
 
 % multiregional model
 %--------------------------------------------------------------------------
 if nargin > 2
     
-    Rpn = r{2}(2);                     % marginal over regions
-    Rco = r{1}(3);                     % marginal over regions
+    Rrev = r{2}(2) + r{2}(3);        % marginal over regions
+    Rcco = r{1}(3);                  % marginal over regions
     
     % hard (threshold) strategy
     %----------------------------------------------------------------------
-    Rsd = spm_sigma(Rpn,P.sde);
-    Rsd = spm_sigma(Rco,P.sde*P.cap*8)*Rsd;
+    Rsde = spm_sigma(Rrev,P.sde);
+ %   Rsde = spm_sigma(Rcco,P.sde*P.cap*8)*Rsde;
     
     % mixture of strategies
     %----------------------------------------------------------------------
-    Psd = Psd*(1 - P.fed) + Rsd*P.fed;
+    Psde = Psde*(1 - P.fed) + Rsde*P.fed;
     
 end
-Pout = 1/128 + Psd*P.out;              % P(work | home)
+Pout = Psde*P.out;                   % P(work | home)
 
 % bed availability
 %--------------------------------------------------------------------------
-Pcca = spm_sigma(Pco,P.cap);           % P(CCU  | home, work, ARDS)
-Piso = exp(-1/7);                      % period of self-isolation
+Pcca = spm_sigma(Pcco,P.cap);        % P(CCU  | home, work, ARDS)
+Piso = exp(-1/7);                    % period of self-isolation
 b    = cell(1,dim(3));
 
 
@@ -139,6 +142,11 @@ ij   = Bij({1,1:5,1,3},{5,1:5,1,3},dim);  B{1}(ij) = 1;
 ij   = Bij({1,1:5,1,3},{1,1:5,1,3},dim);  B{1}(ij) = 0;
 ij   = Bij({1,1:5,1,3},{2,1:5,1,3},dim);  B{1}(ij) = 0;
 
+% isolate if waiting : third order dependencies
+%--------------------------------------------------------------------------
+ij   = Bij({1,1:5,1,2},{5,1:5,1,2},dim);  B{1}(ij) = 1;
+ij   = Bij({1,1:5,1,2},{1,1:5,1,2},dim);  B{1}(ij) = 0;
+ij   = Bij({1,1:5,1,2},{2,1:5,1,2},dim);  B{1}(ij) = 0;
 
 
 % probabilistic transitions: infection
@@ -269,18 +277,22 @@ B{3} = spm_kron({b,I{4}});
 ij   = Bij({3,1:5,3,1:4},{3,1:5,4,1:4},dim); B{3}(ij) = (1 - Ksev)*P.fat;
 ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ksev)*(1 - P.fat);
 
+
 % probabilistic transitions: testing
 %==========================================================================
 % P.tft                       % threshold:   testing capacity
 % P.sen;                      % sensitivity: testing capacity
 % P.del                       % delay:       testing capacity
 % P.tes                       % relative probability of test if uninfected
-% test availability and prevalence of symptoms
+% test probabilities
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
-Psen = P.sen*(p{2}(2)^P.exp) + P.bas*p{2}(4);
-Ptes = Psen*P.tes;
+Prev = p{2}(2) + p{2}(3);     % prevalence of infection
+Pbas = P.bas + P.sen*p{2}(2) + P.exp*p{2}(4);
+Psen = Pbas/(1 - Prev + P.tes*Prev);
+Ptes = Psen*P.tes;            % probability if infected
 Kdel = exp(-1/P.del);         % exp(-1/waiting period)
+
 
 % marginal: testing {4} | susceptible {2}(1)
 %--------------------------------------------------------------------------
@@ -315,6 +327,13 @@ b{5} = b{1};
 b     = spm_cat(spm_diag(b));
 b     = spm_kron({b,I{1},I{3}});
 B{4}  = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
+
+% ttt if asymptomatic and infected : third order dependencies
+%--------------------------------------------------------------------------
+Ptes = Ptes + P.ttt*(1 - Ptes);
+ij   = Bij({1:3,2,1,1},{1:3,2,1,2},dim);  B{4}(ij) = Ptes;
+ij   = Bij({1:3,2,1,1},{1:3,2,1,1},dim);  B{4}(ij) = 1 - Ptes;
+
     
 % probability transition matrix
 %==========================================================================
@@ -349,9 +368,9 @@ function p = spm_sigma(x,u,s)
 %
 % p    - probability (0 < p < 1)
 %
-% this function is standard sigmoid function but scales the input argument
+% This function is reverse sigmoid function that scales the input argument
 % by the bias and flips the (biased) input. This provides a monotonically
-% decreasing sigmoid function of the input that hits 50 at the threshold
+% decreasing sigmoid function of the input that hits 50% at the threshold
 % (u). The scaling ensures the probability at x = 0 is about one, for a
 % suitably large sensitivity parameter s.
 %--------------------------------------------------------------------------

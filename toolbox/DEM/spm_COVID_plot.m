@@ -10,14 +10,12 @@ function spm_COVID_plot(Y,X,Z,u,U)
 % This auxiliary routine plots the trajectory of outcome variables
 % and underlying latent or hidden states, in the form of marginal densities
 % over the four factors that constitute the COVID model. if empirical data
-% are supplied, they will be superimposed. if more than four expected or
-% predicted outcomes are supplied, a threshold will be superimposed;
-% reflecting the typical number of beds available per population cell.
+% are supplied, they will be superimposed.
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_plot.m 7843 2020-04-30 09:04:45Z karl $
+% $Id: spm_COVID_plot.m 7849 2020-05-13 19:48:29Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -34,8 +32,8 @@ function spm_COVID_plot(Y,X,Z,u,U)
 
 % defaults
 %--------------------------------------------------------------------------
-[t,n] = size(Y);
-t     = (1:t)/7;
+[t,n,m] = size(Y);
+t       = (1:t)/7;
 
 if nargin < 5, U = 1:n;  end
 if nargin < 4, u = [];   end
@@ -66,18 +64,20 @@ subplot(3,2,1), set(gca,'ColorOrderIndex',1);
 
 if ~isempty(u)
    p = plot(t,Y,t,u*t.^0,':m');
+   legend(p,{str.outcome{U},'capacity'})
 else
    p = plot(t,Y);
+   legend(p,str.outcome{U})
 end
 xlabel('time (weeks)'),ylabel('number per day')
 title('Rates (per day)','FontSize',16)
 axis square, box off, set(gca,'XLim',[0, t(end)])
-warning off, legend(p,str.outcome{U}), legend('boxoff'), warning on
+legend('boxoff')
 
 subplot(3,2,2), set(gca,'ColorOrderIndex',1);
-plot(t,cumsum(Y(:,1:min(end,2))))
-xlabel('time (weeks)'),ylabel('number of cases')
-title('Cumulative cases','FontSize',16), box off
+plot(t,cumsum(Y(:,U)))
+xlabel('time (weeks)'),ylabel('number of cases'), set(gca,'XLim',[0, t(end)])
+title('Cumulative cases','FontSize',16), axis square, box off
 
 % marginal densities
 %--------------------------------------------------------------------------
@@ -92,7 +92,9 @@ end
 % add empirical data
 %--------------------------------------------------------------------------
 t = (1:size(Z,1))/7;
-subplot(3,2,1), set(gca,'ColorOrderIndex',1); hold on, plot(t,Z,'.'), hold off
-subplot(3,2,2), set(gca,'ColorOrderIndex',1); hold on, plot(t,cumsum(Z(:,1:min(end,2))),'.k'), hold off
-
+try
+    U   = U(ismember(U,1:size(Z,2)));
+    subplot(3,2,2), set(gca,'ColorOrderIndex',1); hold on, plot(t,cumsum(Z(:,U)),'.k'), hold off
+    subplot(3,2,1), set(gca,'ColorOrderIndex',1); hold on, plot(t,Z(:,U),'.'), hold off
+end
 drawnow

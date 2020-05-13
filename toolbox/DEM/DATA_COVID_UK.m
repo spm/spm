@@ -1,6 +1,11 @@
-function Y = DATA_COVID_UK
+function [Y,R] = DATA_COVID_UK(country)
 % Data retrieval function for COVID modelling (UK)
-% FORMAT Y = DATA_COVID_UK
+% FORMAT [Y,R] = DATA_COVID_UK(country)
+%
+% Y  - daily deaths and confirmed cases
+% R  - daily test rates for the UK
+%
+% country - optional country
 %
 % This auxiliary routine retrieves data from comma separated data files
 % that can be downloaded from:
@@ -36,7 +41,12 @@ function Y = DATA_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_UK.m 7843 2020-04-30 09:04:45Z karl $
+% $Id: DATA_COVID_UK.m 7849 2020-05-13 19:48:29Z karl $
+
+
+% defaults
+%--------------------------------------------------------------------------
+if nargin < 1, country = 'United Kingdom'; end
 
 
 % load data from https://github.com/CSSEGISandData/COVID-19/
@@ -56,24 +66,23 @@ end
 %--------------------------------------------------------------------------
 date  = D.textdata(1,5:end);                     % date
 
-
 % assemble data structure
 %==========================================================================
-s   = 4;                                          % data smoothing (days)
+s   = 2;                                          % data smoothing (days)
 
 % confirmed cases
 %--------------------------------------------------------------------------
-Ci  = logical(ismember(C.textdata(2:end,2),'United Kingdom'));
+Ci  = logical(ismember(C.textdata(2:end,2),country));
 CY  = sum(C.data(Ci,3:end),1)';
 
 % confirmed deaths
 %--------------------------------------------------------------------------
-Di  = logical(ismember(D.textdata(2:end,2),'United Kingdom'));
+Di  = logical(ismember(D.textdata(2:end,2),country));
 DY  = sum(D.data(Di,3:end),1)';
 
 % recovered
 %--------------------------------------------------------------------------
-Ri  = logical(ismember(R.textdata(2:end,2),'United Kingdom'));
+Ri  = logical(ismember(R.textdata(2:end,2),country));
 RY  = sum(R.data(Ri,3:end),1)';
 
 % Total tests, and align first date
@@ -89,8 +98,12 @@ CY  = gradient(spm_conv(CY(Ti:end),s));
 RY  = gradient(spm_conv(RY(Ti:end),s));
 TY  = gradient(spm_conv(TY(1 :end),s));
 
-
 % assemble response variables
 %==========================================================================
-j   = min(numel(TY),numel(DY));
-Y   = [DY(1:j) CY(1:j) TY(1:j)];
+Y   = [DY CY];
+R   = TY;
+
+
+
+
+

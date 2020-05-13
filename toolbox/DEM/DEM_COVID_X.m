@@ -41,7 +41,7 @@ function [DCM] = DEM_COVID_X(Y,Data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_X.m 7840 2020-04-26 23:11:25Z spm $
+% $Id: DEM_COVID_X.m 7849 2020-05-13 19:48:29Z karl $
 
 
 % Get data (see DATA_COVID_US): an array with a structure for each State
@@ -61,7 +61,11 @@ Fsi   = spm_figure('GetWin','SI'); clf;
 % assemble (Gaussian) priors over model parameters
 %----------------------------------------------------------------------
 [pE,pC,str] = spm_COVID_priors;
-
+pE.Tim      = log(16);                  % assume 16 month imunity
+pE.r        = log(1/3);                 % assume 50% resistance
+pC.r        = 1/256;                    % with some uncertainty
+    
+    
 % Bayesian inversion (placing posteriors in a cell array of structures)
 %----------------------------------------------------------------------
 for i = 1:numel(data)
@@ -70,9 +74,7 @@ for i = 1:numel(data)
     %------------------------------------------------------------------
     set(Fsi,'name',data(i).state)
     pE.N      = log(data(i).pop*1e-6);   % fix (log) population size
-    pC.N      = 0;                       % with no uncertainty
-    pE.r      = log(1/2);                % assume 50% resistance
-    pC.r      = 1/16;                    % with some uncertainty
+    pC.N      = 0;                       % with no uncertainty  
     [F,Ep,Cp] = spm_COVID(Y(:,:,i),pE,pC);
     
     % assemble prior and posterior estimates (and log evidence)
@@ -184,7 +186,7 @@ spm_figure('GetWin','Within region parameters'); clf;
 % cases - based upon these parameter estimates.
 %--------------------------------------------------------------------------
 [PE,PC,Pnm] = spm_COVID_priors;
-% names{1}  = 'initial cases';
+% names{1}  = 'initial cases'; %**
 % names{2}  = 'size of population';
 % names{3}  = 'initial immunity';
 % names{4}  = 'P(work | home)';
@@ -195,16 +197,20 @@ spm_figure('GetWin','Within region parameters'); clf;
 % names{9}  = 'P(contagion | contact)';
 % names{10} = 'infected period';
 % names{11} = 'contagious period';
-% names{12} = 'incubation period)';
+% names{12} = 'incubation period';
 % names{13} = 'P(ARDS | symptoms)';
 % names{14} = 'symptomatic period';
-% names{15} = 'acute RDS  period';
+% names{15} = 'CCU period';
 % names{16} = 'P(fatality | CCU)';
 % names{17} = 'P(survival | home)';
-% names{18} = 'threshold for testing';
-% names{19} = 'test rate';
-% names{20} = 'test delay';
-% names{21} = 'P(tested | uninfected)';
+% names{18} = 'trace and test'; %**
+% names{19} = 'response testing'; %**
+% names{20} = 'test delay'; %**
+% names{21} = 'test selectivity'; %**
+% names{22} = 'sustained testing'; %**
+% names{23} = 'immune period'; %**
+% names{24} = 'resistant'; %**
+% names{25} = 'initial testing'; %**
 
 % assemble parameters
 %--------------------------------------------------------------------------
@@ -329,7 +335,7 @@ spm_figure('GetWin','strategy analysis I'); clf
 M     = DCM.M;                              % model
 P     = DCM.Ep;                             % expansion point
 M.T   = 18*32;                              % over 18 months
-sde   = -4:1/2:4;                           % range of social distancing
+sde   = linspace(-2,4,16);                  % range of social distancing
 S     = sde;
 for i = 1:numel(sde)
     
@@ -507,7 +513,7 @@ spm_figure('GetWin','CA'); clf;
 % performance characteristics, the population prevalence of COVID-19 in
 % Santa Clara ranged from 2.49% (95CI 1.80-3.17%) to 4.16% (2.58-5.70%)
 %--------------------------------------------------------------------------
-T     = 17;   % days since Ab testing 4/3/2020 to 4/18/2020
+T     = 34;   % days since Ab testing 4/3/2020 to date
 i     = ismember([str.regions],'California');
 [Y,X] = spm_COVID_US(DCM.Ep,DCM.M,5);
 X     = X{2,i};

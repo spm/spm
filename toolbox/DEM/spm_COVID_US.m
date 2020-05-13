@@ -45,7 +45,7 @@ function [Y,X] = spm_COVID_US(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_US.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: spm_COVID_US.m 7849 2020-05-13 19:48:29Z karl $
 
 % prior connectivity
 %--------------------------------------------------------------------------
@@ -77,7 +77,7 @@ for j = 1:numel(M.data)
     end
     r    = exp(M.Q(j).Ep.r);                 % proportion of resistant cases
     s    = (1 - n - r);                      % proportion susceptible
-    p{1} = [3 1 0 0]'/4;                     % location
+    p{1} = [3 1 0 0 0]'/4;                     % location
     p{2} = [s n 0 0 r]';                     % infection
     p{3} = [1 0 0 0]';                       % clinical
     p{4} = [1 0 0 0]';                       % testing
@@ -111,8 +111,8 @@ for i = 1:M.T
             
             % from j to k
             %--------------------------------------------------------------
-            x{k}(2,m,1,1) = x{k}(2,m,1,1) + dN/N(k);
-            x{j}(2,m,1,1) = x{j}(2,m,1,1) - dN/N(j);
+            x{k}(2,m,1,1) = max(x{k}(2,m,1,1) + dN/N(k),0);
+            x{j}(2,m,1,1) = max(x{j}(2,m,1,1) - dN/N(j),0);
             
         end
         
@@ -171,13 +171,6 @@ for i = 1:M.T
     
 end
 
-% evaluate rates (per day) from cumulative counts
-%--------------------------------------------------------------------------
-for i = 1:2
-    for j = 1:size(Y,3)
-        Y(:,i,j) = gradient(Y(:,i,j));
-    end
-end
 
 % retain specified output variables
 %--------------------------------------------------------------------------

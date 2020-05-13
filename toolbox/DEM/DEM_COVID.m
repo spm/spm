@@ -22,7 +22,7 @@ function [DCM,GCM] = DEM_COVID(country,data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID.m 7843 2020-04-30 09:04:45Z karl $
+% $Id: DEM_COVID.m 7849 2020-05-13 19:48:29Z karl $
 
 % F: -1.5701e+04 social distancing based upon P(infected)
 % F: -1.5969e+04 social distancing based upon P(symptomatic)
@@ -52,12 +52,10 @@ for i = 1:numel(data)
     % data for this country (here, and positive test rates)
     %----------------------------------------------------------------------
     set(Fsi,'name',data(i).country)
-    Y     = [data(i).death, data(i).cases];
-    % pE.N  = log(data(i).pop/1e6);
-    
+    Y = [data(i).death, data(i).cases];
+   
     % variational Laplace (estimating log evidence (F) and posteriors)
     %======================================================================
-    
     [F,Ep,Cp,pE,pC] = spm_COVID(Y,pE,pC);
     
     
@@ -112,10 +110,10 @@ lon    = spm_vec([data.long]);
 lat    = lat*2*pi/360;
 lon    = lon*2*pi/360;
 X      = [];
-Xn     = {'const','log cell size'};
+Xn     = {'const','log(N)'};
 for  i = 1:4
     X  = [X sin(i*lon) sin(i*lat)];
-    Xn = {Xn{:}, sprintf('lat(%d)',i), sprintf('lon(%d)',i)};
+    Xn = [Xn(:)', {sprintf('lat(%d)',i)}, {sprintf('lon(%d)',i)}];
 end
 
 % design matrix of explanatory variables
@@ -125,7 +123,7 @@ X      = [ones(numel(data),1) X];
 X      = spm_orth(X,'norm');
 X(:,1) = 1;
 
-% placing general linear model
+% place in general linear model
 %--------------------------------------------------------------------------
 GLM.X      = X;
 GLM.Xnames = Xn;
@@ -155,16 +153,15 @@ for i = 1:numel(DCM)
     
 end
 
+% Bayesian parameter averaging (over countries)
+%--------------------------------------------------------------------------
+BPA       = spm_dcm_bpa(DCM,'nocd');
+
 % save
 %--------------------------------------------------------------------------
 clear Fsi ans
 save COVID_DCM
 
-
-
-% Bayesian parameter averaging (over countries)
-%--------------------------------------------------------------------------
-BPA       = spm_dcm_bpa(DCM,'nocd');
 
 % Illustrate the largest between country effects
 %==========================================================================
@@ -285,20 +282,21 @@ end
 % names{12} = 'incubation period';
 % names{13} = 'P(ARDS | symptoms)';
 % names{14} = 'symptomatic period';
-% names{15} = 'acute RDS period';
+% names{15} = 'CCU period';
 % names{16} = 'P(fatality | CCU)';
 % names{17} = 'P(survival | home)';
-% names{18} = 'testing (post)'; %**
-% names{19} = 'testing (initial)'; %**
+% names{18} = 'trace and test'; %**
+% names{19} = 'response testing'; %**
 % names{20} = 'test delay'; %**
 % names{21} = 'test selectivity'; %**
-% names{22} = 'test exponent'; %**
+% names{22} = 'sustained testing'; %**
 % names{23} = 'immune period'; %**
 % names{24} = 'resistant'; %**
+% names{25} = 'initial testing'; %**
 
 % report selected parameters (see spm_COVID_priors)
 %--------------------------------------------------------------------------
-p     = 1:size(P,1); p([1 3 6 17 18 22 23 24]) = [];
+p     = 1:size(P,1); p([1 3 17 18 20 21 22 23 24]) = [];
 for i = 1:length(p)
     
     % posterior density
@@ -325,11 +323,12 @@ end
 
 % Country specific predictions
 %==========================================================================
-i       = find(ismember({data.country},country)); % country index
-M.T     = 180;                                    % six-month period
-Y       = DCM{i}.Y;                               % empirical data
-Ep      = DCM{i}.Ep;                              % posterior expectations
-Cp      = DCM{i}.Cp;                              % posterior covariances
+i   = find(ismember({data.country},country)); % country index
+M   = DCM{i}.M;                               % model
+Y   = DCM{i}.Y;                               % empirical data
+Ep  = DCM{i}.Ep;                              % posterior expectations
+Cp  = DCM{i}.Cp;                              % posterior covariances
+M.T = 180;                                    % six-month period
 
 % show projections in terms of confidence intervals and superimpose data
 %--------------------------------------------------------------------------
@@ -401,7 +400,7 @@ spm_figure('GetWin',['Predictions: ' country]); clf;
 % The increase in (herd) immunity is interesting and will become important
 % later. One might ask to what extent these trajectories depend upon
 % different model parameters. This is quantified in the next figure.
-
+%--------------------------------------------------------------------------
 [Z,X] = spm_COVID_gen(Ep,M,3);
 spm_COVID_plot(Z,X,Y)
 
@@ -469,7 +468,7 @@ spm_figure('GetWin',['Social distancing:' country]); clf;
 % threshold for this country. In the next figure, we repeat this analysis
 % but looking at the effect of herd immunity.
 
-% increase social distancing threshold from 0 to 4
+% increase social distancing threshold from -4 to 4 (log scaling)
 %--------------------------------------------------------------------------
 P     = Ep;                                 % expansion point
 sde   = linspace(-4,4,16);                  % range of social distancing
@@ -628,17 +627,17 @@ camorbit(90,0), axis square, box off
 
 % demonstrate routines: predictive validity
 %==========================================================================
-% (predictive validity - early). This figure uses the same format as Figure
-% 5; however, here, the posterior estimates are based upon partial data,
-% from early in the timeseries for an exemplar country. These estimates are
+% (predictive validity - early). This figure uses the same format as above;
+% however, here, the posterior estimates are based upon partial data, from
+% early in the timeseries for an exemplar country. These estimates are
 % based upon the empirical priors following parametric empirical Bayes. The
 % red dots show the outcomes that were observed but not used to estimate
 % the expected trajectories (or confidence intervals). This example
-% illustrates the predictive validity of the estimates for a 10 day
-% period following the last datapoint. This captures the rise to the peak
-% of new cases in Italy.
+% illustrates the predictive validity of the estimates for a 10 day period
+% following the last datapoint. This captures the rise to the peak of new
+% cases in Italy.
 
-% Italy
+% 10 day ahead forecast for Italy 
 %--------------------------------------------------------------------------
 i  = find(ismember({data.country},'Italy'));
 spm_COVID_PV(DCM,i,10);

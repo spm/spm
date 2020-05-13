@@ -37,7 +37,7 @@ function [F,Ep,Cp,pE,pC,Eh] = spm_COVID(Y,pE,pC)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID.m 7810 2020-04-01 13:58:56Z spm $
+% $Id: spm_COVID.m 7849 2020-05-13 19:48:29Z karl $
 
 
 % Gaussian priors over model parameters
@@ -54,7 +54,7 @@ M.FS  = @spm_COVID_FS;            % feature selection (link function)
 M.pE  = pE;                       % prior expectations (parameters)
 M.pC  = pC;                       % prior covariances  (parameters)
 M.hE  = 0;                        % prior expectation  (log-precision)
-M.hC  = 1/64;                     % prior covariances  (log-precision)
+M.hC  = 1/256;                    % prior covariances  (log-precision)
 M.T   = size(Y,1);                % number of samples
 U     = size(Y,2);                % number of response variables
 

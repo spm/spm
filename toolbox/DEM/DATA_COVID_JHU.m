@@ -36,7 +36,7 @@ function data = DATA_COVID_JHU(n)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 7843 2020-04-30 09:04:45Z karl $
+% $Id: DATA_COVID_JHU.m 7849 2020-05-13 19:48:29Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -152,7 +152,7 @@ end
 T   = spm_cat({Data.days});
 N   = spm_cat({Data.cum});
 
-% rank cases
+% rank the number of cumulative cases
 %--------------------------------------------------------------------------
 [N,i] = sort(N,'descend');
 i     = i(1:n);
@@ -162,15 +162,15 @@ for i = 1:numel(data)
     death(:,i) = data(i).death(1:t);
     cases(:,i) = data(i).cases(1:t);
 end
-t     = 1:t;
 
-% plot sorting, unless there is an outcome argument specified
+
+% plot sorting, unless an outcome argument is specified
 %--------------------------------------------------------------------------
 if nargout, return, end
     
 spm_figure('GetWin','Data');
 
-subplot(3,2,1), hist(T,32,'Edgecolor','none')
+subplot(3,2,1), histogram(T,32,'Edgecolor','none')
 title('Duration (days)','Fontsize',16)
 xlabel('days'),ylabel('number of countries'), axis square
 
@@ -180,7 +180,7 @@ xlabel('days'),ylabel('total deaths'), axis square
 
 % compare initial statistics
 %--------------------------------------------------------------------------
-subplot(3,2,3), plot(t,death)
+subplot(3,2,3), plot(1:t,death)
 title('Death rate','Fontsize',16)
 xlabel('days'),ylabel('deaths per day')
 axis square
@@ -191,7 +191,7 @@ title('Population and deaths','Fontsize',16)
 xlabel('population'),ylabel('deaths (within 64 days)')
 axis square
 
-subplot(3,2,5), plot(t,cumsum(death,1))
+subplot(3,2,5), plot(1:t,cumsum(death,1))
 title('Cumulative deaths','Fontsize',16)
 xlabel('days'),ylabel('deaths (within 64 days)')
 axis square, legend({data(1:min(end,14)).country}), legend('boxoff')

@@ -29,7 +29,7 @@ function dSYdP = spm_COVID_R_cii(DCM,U,name)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_R_cii.m 7840 2020-04-26 23:11:25Z spm $
+% $Id: spm_COVID_R_cii.m 7849 2020-05-13 19:48:29Z karl $
 
 % setup and default: number of outcomes to evaluate
 %--------------------------------------------------------------------------
@@ -165,7 +165,7 @@ end
 xlabel('time (weeks)'),ylabel('number of deaths per day')
 title(out.outcome(U),'FontSize',16)
 box off, spm_axis tight
-set(gca,'YLim',[0 min(max(Y(:,U,:)))]);
+set(gca,'YLim',[0 4*min(max(Y(:,U,:)))]);
 
 % cumulative deaths
 %--------------------------------------------------------------------------

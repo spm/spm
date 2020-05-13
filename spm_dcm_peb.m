@@ -36,7 +36,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % M.Xnames - cell array of names for second level parameters [default: {}]
 % 
 % field    - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
-%            'All' will invoke all fields. This argument effectively allows 
+%            'all' will invoke all fields. This argument effectively allows 
 %            one to specify the parameters that constitute random effects.     
 % 
 % PEB      - hierarchical dynamic model
@@ -90,7 +90,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7811 2020-04-05 12:00:43Z karl $
+% $Id: spm_dcm_peb.m 7849 2020-05-13 19:48:29Z karl $
  
 
 % get filenames and set up
