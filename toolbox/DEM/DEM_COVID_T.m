@@ -4,7 +4,7 @@ function [DCM] = DEM_COVID_T
 % Demonstration of COVID-19 modelling using variational Laplace
 %__________________________________________________________________________
 %
-% this demo routine focuses on surveillance and mitigation strategies in
+% This demo routine focuses on surveillance and mitigation strategies in
 % the UK. It first estimate the parameters of a dynamic causal model for
 % the epidemic in the United Kingdom. Crucially, in this inversion the data
 % are supplemented with the total number of cases (in addition to positive
@@ -23,7 +23,7 @@ function [DCM] = DEM_COVID_T
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_T.m 7849 2020-05-13 19:48:29Z karl $
+% $Id: DEM_COVID_T.m 7850 2020-05-15 08:55:36Z spm $
 
 % Get data for the United Kingdom
 %==========================================================================
@@ -456,10 +456,10 @@ spm_figure('GetWin','Heisberg'); clf;
 % 14% of the 500 people tested. By comparing that number with the recorded
 % deaths in the town, the study suggested the virus kills only 0.37% of the
 % people infected. (The rate for seasonal influenza is about 0.1%.) The
-% team concluded in a two-page summary that “15% of the population can no
+% team concluded in a two-page summary that "15% of the population can no
 % longer be infected with SARS-CoV-2, and the process of reaching herd
-% immunity is already underway.” They recommended that politicians start to
-% lift some of the regions’ restrictions.
+% immunity is already underway." They recommended that politicians start to
+% lift some of the regions' restrictions.
 %--------------------------------------------------------------------------
 T     = 33;                    % days since Ab testing 6/3/2020 to date
 [Y,X] = spm_COVID_gen(GCM.Ep,GCM.M,5);

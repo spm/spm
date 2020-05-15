@@ -41,7 +41,7 @@ function [Y,R] = DATA_COVID_UK(country)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_UK.m 7849 2020-05-13 19:48:29Z karl $
+% $Id: DATA_COVID_UK.m 7850 2020-05-15 08:55:36Z spm $
 
 
 % defaults
@@ -58,7 +58,7 @@ try
     T  = importdata('covid-19-tests-uk.csv');
 catch
     clc, warning('Please load csv files into the current working directory')
-    help DATA_COVID_JHU
+    help DATA_COVID_UK
     return;
 end
 
