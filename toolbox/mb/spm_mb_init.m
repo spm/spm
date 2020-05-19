@@ -4,7 +4,8 @@ function [dat,sett] = spm_mb_init(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_init.m 7853 2020-05-19 16:28:55Z john $
+
+% $Id: spm_mb_init.m 7854 2020-05-19 19:39:54Z john $
 
 [dat,sett] = spm_mb_init1(cfg);
 
@@ -16,7 +17,6 @@ if sum(cellfun(@(c)isfield(c,'gmm'),{dat.model}))==0, return; end
 %==========================================================================
 function [dat,sett] = spm_mb_init1(cfg)
 sett     = cfg;
-
 mu       = sett.mu;
 sett.odir = sett.odir{1};
 if isfield(mu,'exist')
@@ -106,8 +106,8 @@ if numel(cfg.cat)>=1
         end
 
         [~,nam,~]   = fileparts(cl{1});
-        dat(n).onam = sprintf('%d_%.5d_%s_%s', 0, np, cfg.onam);
-	dat(n).odir = sett.odir;
+        dat(n).onam = sprintf('%d_%.5d_%s_%s', 0, np, nam, cfg.onam);
+        dat(n).odir = sett.odir;
         dat(n).v    = fullfile(dat(n).odir,['v_'   dat(n).onam '.nii']);
         dat(n).psi  = fullfile(dat(n).odir,['psi_' dat(n).onam '.nii']);
 
@@ -166,7 +166,7 @@ for p=1:numel(cfg.gmm)
             end
 
             [~,nam,~]   = fileparts(cl{1});
-	    dat(n).onam = sprintf('%d_%.5d_%s_%s', p, np, cfg.onam);
+            dat(n).onam = sprintf('%d_%.5d_%s_%s', p, np, nam, cfg.onam);
             dat(n).odir = sett.odir;
             dat(n).v    = fullfile(dat(n).odir,['v_'   dat(n).onam '.nii']);
             dat(n).psi  = fullfile(dat(n).odir,['psi_' dat(n).onam '.nii']);
@@ -263,7 +263,6 @@ for p=1:numel(cfg.gmm)
     end
 end
 
-if N==0, error('No images specified.'); end
 if isfield(sett.mu,'create')
     [sett.mu.Mmu,sett.mu.d] = SpecifyMean(dat,sett.mu.create.vx*[1 1 1]);
 end
@@ -384,6 +383,11 @@ end
 function [Mat,dm] = SpecifyMean(dat,vx)
 % Specify the voxel-to-world matrix (Mat) and dimensions (dm) of the template
 N  = numel(dat);     % Number of subjects
+if N==0
+    Mat = eye(4);
+    dm  = [0 0 0];
+    return
+end
 mn =  Inf*ones(3,N); % Minimum coordinates
 mx = -Inf*ones(3,N); % Maximum coordinates
 for n=1:N

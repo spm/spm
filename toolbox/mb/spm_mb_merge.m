@@ -1,15 +1,16 @@
 function out = spm_mb_merge(cfg)
 % Combine tissue maps together
 %__________________________________________________________________________
-% Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_merge.m 7853 2020-05-19 16:28:55Z john $
+% $Id: spm_mb_merge.m 7854 2020-05-19 19:39:54Z john $
 
 out      = struct('mu','priors');
 odir     = cfg.odir{1};
 onam     = cfg.onam;
 res_file = cfg.result{1};
 ix       = cfg.ix;
+bb       = cfg.bb;
 
 [~,~,ext] = fileparts(res_file);
 if strcmp(ext,'.mat')
@@ -35,6 +36,9 @@ if strcmp(ext,'.mat')
     out.priors = cell(numel(r.sett.gmm),1);
     for p=1:numel(r.sett.gmm)
         matname    = fullfile(odir,sprintf('prior_%s_%d.mat',onam,p));
+        if max(r.sett.gmm(p).mg_ix) ~= numel(ix)
+            error('The indices are incorrectly specified.');
+        end
         mg_ix      = ix(r.sett.gmm(p).mg_ix);
         [mg_ix,si] = sort(mg_ix);
         pr         = r.sett.gmm(p).pr;
@@ -49,18 +53,21 @@ else
     mu_name = res_file;
 end
 
-Nmu = nifti(mu_name);
-mu  = single(Nmu.dat(:,:,:,:));
-mu1 = MergeMu(mu,ix);
-Nmu.dat.fname  = fullfile(odir,['mu_' onam '.nii']);
-Nmu.dat.dim(4) = size(mu1,4);
+Nmu       = nifti(mu_name);
+[ind,mat] = SubVol(Nmu,bb);
+mu        = single(Nmu.dat(ind{:},:));
+mu1       = merge_mu(mu,ix);
+Nmu.dat.fname = fullfile(odir,['mu_' onam '.nii']);
+Nmu.dat.dim   = size(mu1);
+Nmu.mat   = mat;
+Nmu.mat0  = mat;
 create(Nmu);
 Nmu.dat(:,:,:,:) = mu1;
-out.mu = {mu_name};
+out.mu    = {Nmu.dat.fname};
 %==========================================================================
 
 %==========================================================================
-function mu1 = MergeMu(mu,ix)
+function mu1 = merge_mu(mu,ix)
 K  = size(mu,4)+1;
 if numel(ix)~=K
     error('Incorrect index dimension.\n The mean image suggests K=%d, whereas the indices assume K=%d.',K, numel(ix));
@@ -108,4 +115,26 @@ else
     end
     mk = log(mk)+mx;
 end
+
 %==========================================================================
+
+%==========================================================================
+function [ind,mat] = SubVol(Nii,bb)
+% Information for extracting a subvolume
+% FORMAT [ind,mat] = SubVol(Nii,bb)
+% V  - mapped file
+% bb - bounding box
+
+dm0       = [size(Nii.dat) 1];
+dm0       = dm0(1:3);
+msk       = ~isfinite(bb(1,:));
+bb(1,msk) = 1;
+bb1(1,:)  = round(max(bb(1,:),1));
+msk       = ~isfinite(bb(2,:));
+bb(2,msk) = dm0(msk);
+bb(2,:)   = round(min(bb(2,:),dm0));
+bb        = sort(bb);
+ind       = {bb(1,1):bb(2,1),bb(1,2):bb(2,2),bb(1,3):bb(2,3)};
+mat       = Nii.mat*[eye(4,3) [bb(1,:)'-1; 1]];
+%==========================================================================
+

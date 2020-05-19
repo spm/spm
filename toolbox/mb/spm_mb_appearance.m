@@ -11,7 +11,7 @@ function varargout = spm_mb_appearance(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7853 2020-05-19 16:28:55Z john $
+% $Id: spm_mb_appearance.m 7854 2020-05-19 19:39:54Z john $
 
 
 switch action
@@ -313,7 +313,12 @@ for it_appear=1:nit_appear
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Update bias field parameters
     % This computes the derivatives of the negative logarithm of the
-    % joint probability distribution
+    % joint probability distribution.
+    % The uncertainty with which the INU is estimated could be
+    % accounted for by extending the variational Bayes framework
+    % to account for the estimation of the INU. This could use:
+    %   E[f \exp(b)] = f \exp(\mu_b+\sigma^2_b/2)
+    % Var[f \exp(b)] = f^2 \exp(2 \mu_b + \sigma^2_b) (\exp(\sigma^2_b)-1)
     %------------------------------------------------------------
     if any(do_inu)
 
@@ -476,6 +481,9 @@ if nargout > 1
         mu0 = bsxfun(@plus, mu0(:,mg_ix), log(mg_w));
         mu0 = spm_gmm_lib('obs2cell', mu0, code_image, false);
 
+        % Many of the responsibilities here should really be
+        % computed with a mixture of Student's t distributions.
+        % See Eqns. 10.78-10.82 & B.68-B.72 in Bishop's PRML book.
         [Z,lx]   = Responsibility(m,b,W,n,inuf,mu0,msk_chn);
         lbs      = lx+lxb+lb.MU(end)+lb.A(end);
         clear mu0
@@ -738,3 +746,4 @@ function ind = SampleInd(df,samp)
 sk   = max([1 1 1],samp);
 ind  = {round(1:sk(1):df(1)), round(1:sk(2):df(2)), round(1:sk(3):df(3))};
 %==========================================================================
+

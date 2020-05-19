@@ -1,5 +1,5 @@
 function varargout = spm_mb_shape(action,varargin)
-% Shape model
+% Shape model 
 %
 % FORMAT psi0      = spm_mb_shape('Affine',d,Mat)
 % FORMAT B         = spm_mb_shape('AffineBases',code)
@@ -28,8 +28,7 @@ function varargout = spm_mb_shape(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7852 2020-05-19 14:00:48Z spm $
-
+% $Id: spm_mb_shape.m 7854 2020-05-19 19:39:54Z john $
 
 switch action
     case 'Affine'
@@ -172,7 +171,10 @@ function psi = Compose(psi1,psi0)
 if isempty(psi1)
     psi = psi0;
 else
+    bc = spm_diffeo('bound');
+    spm_diffeo('bound',1);
     psi = spm_diffeo('comp',psi1,psi0);
+    spm_diffeo('bound',bc);
 end
 if size(psi,3) == 1, psi(:,:,:,3) = 1; end % 2D
 %==========================================================================
@@ -542,15 +544,15 @@ for m=1:M
 end
 clear J mu
 
-msk       = all(isfinite(f),4) & all(isfinite(mu1),4);
+msk    = all(isfinite(f),4) & all(isfinite(mu1),4);
 mu1(~isfinite(mu1)) = 0;
-a         = Mask(f - Softmax(mu1,4),msk);
-[H,g]     = AffineHessian(mu1,G,a,single(msk),accel,samp);
-g         = double(dM'*g);
-H         = dM'*H*dM;
-H         = H + eye(numel(q))*(norm(H)*1e-5 + 0.01);
-q         = q + scal*(H\g);
-datn.q    = q;
+a      = Mask(f - Softmax(mu1,4),msk);
+[H,g]  = AffineHessian(mu1,G,a,single(msk),accel,samp);
+g      = double(dM'*g);
+H      = dM'*H*dM;
+H      = H + eye(numel(q))*(norm(H)*1e-5 + 0.01);
+q      = q + scal*(H\g);
+datn.q = q;
 %==========================================================================
 
 %==========================================================================
@@ -714,12 +716,12 @@ mu1      = Pull1(mu,psi);
 [a,w]    = Push1(f - Softmax(mu1,4),psi,d,1);
 clear mu1 psi f
 
-[H,g]     = SimpleAffineHessian(mu,G,H0,a,w);
-g         = double(dM'*g);
-H         = dM'*H*dM;
-H         = H + eye(numel(q))*(norm(H)*1e-5 + 0.1);
-q         = q + scal*(H\g);
-datn.q    = q;
+[H,g]    = SimpleAffineHessian(mu,G,H0,a,w);
+g        = double(dM'*g);
+H        = dM'*H*dM;
+H        = H + eye(numel(q))*(norm(H)*1e-5 + 0.1);
+q        = q + scal*(H\g);
+datn.q   = q;
 %==========================================================================
 
 %==========================================================================
@@ -951,12 +953,12 @@ for m1=1:M
         Gm21 = G(:,:,:,m2,1);
         Gm22 = G(:,:,:,m2,2);
         Gm23 = G(:,:,:,m2,3);
-        H1 = H1 + 2*tmp.*Gm11.*Gm21;
-        H2 = H2 + 2*tmp.*Gm12.*Gm22;
-        H3 = H3 + 2*tmp.*Gm13.*Gm23;
-        H4 = H4 + tmp.*(Gm11.*Gm22 + Gm21.*Gm12);
-        H5 = H5 + tmp.*(Gm11.*Gm23 + Gm21.*Gm13);
-        H6 = H6 + tmp.*(Gm12.*Gm23 + Gm22.*Gm13);
+        H1 = H1 + 2*tmp.* Gm11.*Gm21;
+        H2 = H2 + 2*tmp.* Gm12.*Gm22;
+        H3 = H3 + 2*tmp.* Gm13.*Gm23;
+        H4 = H4 +   tmp.*(Gm11.*Gm22 + Gm21.*Gm12);
+        H5 = H5 +   tmp.*(Gm11.*Gm23 + Gm21.*Gm13);
+        H6 = H6 +   tmp.*(Gm12.*Gm23 + Gm22.*Gm13);
     end
 end
 clear Gm11 Gm12 Gm13 Gm21 Gm22 Gm23 sm1 sm2 tmp
@@ -997,7 +999,7 @@ end
 
 %==========================================================================
 function datn = UpdateWarpsSub(datn,avg_v,kernel)
-v        = spm_mb_io('GetData',datn.v);
+v          = spm_mb_io('GetData',datn.v);
 if ~isempty(avg_v)
     v      = v - avg_v;
     datn.v = spm_mb_io('SetData',datn.v,v);

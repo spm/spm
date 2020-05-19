@@ -3,8 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-
-% $Id: tbx_cfg_mb.m 7853 2020-05-19 16:28:55Z john $
+% $Id: tbx_cfg_mb.m 7854 2020-05-19 19:39:54Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
@@ -233,19 +232,6 @@ segs.help    = {['Images might have been segmented previously into a number of t
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
-% %Not used
-%is_imp        = cfg_menu;
-%is_imp.tag    = 'mat0';
-%is_imp.name   = 'Imported?';
-%is_imp.labels = {'no','yes'};
-%is_imp.values = {false,true};
-%is_imp.val    = {false};
-%is_imp.help   = {['This option is included for backward compatibility with the old Dartel and Shoot toolboxes. '...
-%                  'Because rigid-body alignment is included within the model, images do not actually need to be in '...
-%                  'rigid alignment beforehand.'],''};
-% ---------------------------------------------------------------------
-
-% ---------------------------------------------------------------------
 spop          = cfg_branch;
 spop.tag      = 'cat';
 spop.name     = 'Tissue class maps';
@@ -364,6 +350,7 @@ mb.val         = {mu_prov, aff, dff, onam, odir, segs, pops, ...
                    const('accel',0.8), const('min_dim', 16), const('tol',5e-4), const('sampdens',2),const('save',true),const('nworker',0)};
 mb.prog        = @run_mb;
 mb.vout        = @vout_mb_run;
+mb.check       = @check_images;
 mb.help        = {['This framework attempts to unify ``unified segmentation'''' with ``shoot'''', '...
                     'as well as a great deal of other functionality. '...
                     'It has the general aim of integrating a number of disparate image analysis '...
@@ -414,6 +401,17 @@ ix.help   = {['Specify indices. For example, if the original model '...
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
+bb         = cfg_entry;
+bb.tag     = 'bb';
+bb.name    = 'Bounding box';
+bb.help    = {['The bounding box (in voxels) of the merged template volume. '...
+               'Non-finite values indicate to use original template dimensions.'],''};
+bb.strtype = 'r';
+bb.num     = [2 3];
+bb.val     = {[1 1 1; Inf Inf Inf]};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
 % Uses previously defined onam
 onam.val = {'merged'};
 % ---------------------------------------------------------------------
@@ -422,7 +420,7 @@ onam.val = {'merged'};
 mrg      = cfg_exbranch;
 mrg.tag  = 'merge';
 mrg.name = 'Merge tissues';
-mrg.val  = {res_file, ix, onam,odir};
+mrg.val  = {res_file, ix, bb, onam, odir};
 mrg.prog = @spm_mb_merge;
 mrg.vout = @vout_mb_merge;
 mrg.help = {['Merge tissues together and extract intensity priors '...
@@ -444,7 +442,7 @@ res_file.help    = {'Specify the results file from the groupwise alignment.',''}
 % ---------------------------------------------------------------------
 i        = cfg_menu;
 i.tag    = 'i';
-i.name   = 'Write Images';
+i.name   = 'Images';
 i.labels = {'No','Yes'};
 i.values = {false,true};
 i.val    = {false};
@@ -453,7 +451,7 @@ i.val    = {false};
 % ---------------------------------------------------------------------
 mi        = cfg_menu;
 mi.tag    = 'mi';
-mi.name   = 'Write INU Corrected';
+mi.name   = 'INU corrected';
 mi.labels = {'No','Yes'};
 mi.values = {false,true};
 mi.val    = {false};
@@ -462,7 +460,7 @@ mi.val    = {false};
 % ---------------------------------------------------------------------
 wi        = cfg_menu;
 wi.tag    = 'wi';
-wi.name   = 'Write Warped Images';
+wi.name   = 'Warped images';
 wi.labels = {'No','Yes'};
 wi.values = {false,true};
 wi.val    = {false};
@@ -471,7 +469,7 @@ wi.val    = {false};
 % ---------------------------------------------------------------------
 wmi        = cfg_menu;
 wmi.tag    = 'wmi';
-wmi.name   = 'Write WARPED INU Corrected';
+wmi.name   = 'Warped INU corrected';
 wmi.labels = {'No','Yes'};
 wmi.values = {false,true};
 wmi.val    = {false};
@@ -480,7 +478,7 @@ wmi.val    = {false};
 % ---------------------------------------------------------------------
 inu        = cfg_menu;
 inu.tag    = 'inu';
-inu.name   = 'Write INU';
+inu.name   = 'INU';
 inu.labels = {'No', 'Yes'};
 inu.values = {false,true};
 inu.val    = {false};
@@ -498,7 +496,7 @@ c.val     = {[]};
 % ---------------------------------------------------------------------
 wc         = cfg_entry;
 wc.tag     = 'wc';
-wc.name    = 'Warped Tissues';
+wc.name    = 'Warped tissues';
 wc.strtype = 'n';
 wc.num     = [0 Inf];
 wc.val     = {[]};
@@ -507,7 +505,7 @@ wc.val     = {[]};
 % ---------------------------------------------------------------------
 mwc         = cfg_entry;
 mwc.tag     = 'mwc';
-mwc.name    = 'Warped Mod. Tissues';
+mwc.name    = 'Warped mod. tissues';
 mwc.strtype = 'n';
 mwc.num     = [0 Inf];
 mwc.val     = {[]};
@@ -541,10 +539,15 @@ cfg.hidden   = true;
 %_______________________________________________________________________
 function  out = run_mb(cfg)
 [dat,sett]    = spm_mb_init(cfg);
-[dat,sett,mu] = spm_mb_fit(dat,sett);
-dat           = spm_mb_io('SavePsi',dat,sett);
-out           = out_mb_run(sett,dat);
-save(out.fit{1},'sett','dat');
+if ~isempty(dat)
+    [dat,sett,mu] = spm_mb_fit(dat,sett);
+    dat           = spm_mb_io('SavePsi',dat,sett);
+    out           = out_mb_run(sett,dat);
+    save(out.fit{1},'sett','dat');
+else
+    out           = struct('fit',{{''}},'mu',{{''}},'v',{{''}},'psi',{{''}});
+    warning('No images specified: Done nothing.');
+end
 %_______________________________________________________________________
 %
 %_______________________________________________________________________
@@ -555,8 +558,33 @@ dr          = fullfile(pth,'data');
 %_______________________________________________________________________
 %
 %_______________________________________________________________________
+function str = check_images(cfg)
+has_data = false;
+for c=1:numel(cfg.gmm)
+    if numel(cfg.gmm(c).chan)>0
+        if numel(cfg.gmm(c).chan(1).images)>0
+            has_data = true;
+            break
+        end
+    end
+end
+if numel(cfg.cat)>0
+    if numel(cfg.cat{1})>0
+        if ~isempty(cfg.cat{1}{1})
+            has_data = true;
+        end
+    end
+end
+if has_data
+    str = {};
+else
+    str = {'No images specified.'};
+end
+%_______________________________________________________________________
+%
+%_______________________________________________________________________
 function str = check_pop(cfg)
-str = '';
+str = {};
 N   = -1;
 for c=1:numel(cfg.chan)
     Nc = numel(cfg.chan(c).images);
@@ -564,21 +592,21 @@ for c=1:numel(cfg.chan)
         N = Nc;
     else
         if N~=Nc
-            str = 'Incompatible numbers of scans over channels.';
+            str = {'Incompatible numbers of scans over channels.'};
         end
     end
 end
 if isfield(cfg.labels,'true')
     Nc = numel(cfg.chan(c).images);
     if N~=Nc
-        str = 'Incompatible numbers of label images.';
+        str = {'Incompatible numbers of label images.'};
     end
 end
 %_______________________________________________________________________
 %
 %_______________________________________________________________________
 function str = check_segs(cfg)
-str    = '';
+str    = {};
 N      = -1;
 images = cfg.images;
 for c=1:numel(images)
@@ -587,7 +615,7 @@ for c=1:numel(images)
         N = Nc;
     else
         if N~=Nc
-            str = 'Incompatible numbers of categorical images.';
+            str = {'Incompatible numbers of categorical images.'};
         end
     end
 end
