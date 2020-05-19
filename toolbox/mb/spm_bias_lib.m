@@ -30,7 +30,7 @@ function varargout = spm_bias_lib(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_bias_lib.m 7852 2020-05-19 14:00:48Z spm $
+% $Id: spm_bias_lib.m 7856 2020-05-19 22:54:41Z spm $
 
 
 switch lower(action)
@@ -75,11 +75,11 @@ function nbcmp = fwhm2nbcomp(lattice, vs, fwhm)
 ndim = numel(lattice);
 vs = reshape(vs, 1, []);
 if numel(vs) < ndim
-    vs = padarray(vs, [0 ndim-numel(vs)], 'replicate', 'post');
+    vs = spm_padarray(vs, [0 ndim-numel(vs)], 'replicate', 'post');
 end
 fwhm = reshape(fwhm, 1, []);
 if numel(fwhm) < ndim
-    fwhm = padarray(fwhm, [0 ndim-numel(fwhm)], 'replicate', 'post');
+    fwhm = spm_padarray(fwhm, [0 ndim-numel(fwhm)], 'replicate', 'post');
 end
 
 % -------------------------------------------------------------------------
@@ -107,7 +107,7 @@ ndim = numel(lattice);
 % Preprocess input arguments
 nb_component = reshape(nb_component, 1, []);
 if numel(nb_component) < ndim
-    nb_component = padarray(nb_component, [0 ndim-numel(nb_component)], 'replicate', 'post');
+    nb_component = spm_padarray(nb_component, [0 ndim-numel(nb_component)], 'replicate', 'post');
 end
 
 % -------------------------------------------------------------------------
@@ -136,7 +136,7 @@ ndim = numel(lattice);
 % Preprocess input arguments
 nb_component = reshape(nb_component, 1, []);
 if numel(nb_component) < ndim
-    nb_component = padarray(nb_component, [0 ndim-numel(nb_component)], 'replicate', 'post');
+    nb_component = spm_padarray(nb_component, [0 ndim-numel(nb_component)], 'replicate', 'post');
 end
 
 % -------------------------------------------------------------------------
@@ -216,14 +216,14 @@ end
 ndim = numel(lattice);
 nb_component = reshape(nb_component, 1, []);
 if numel(nb_component) < ndim
-    nb_component = padarray(nb_component, [0 ndim-numel(nb_component)], 'replicate', 'post');
+    nb_component = spm_padarray(nb_component, [0 ndim-numel(nb_component)], 'replicate', 'post');
 end
 if nargin < 4
     vs = 1;
 end
 vs = reshape(vs, 1, []);
 if numel(vs) < ndim
-    vs = padarray(vs, [0 ndim-numel(vs)], 'replicate', 'post');
+    vs = spm_padarray(vs, [0 ndim-numel(vs)], 'replicate', 'post');
 end
 
 % -------------------------------------------------------------------------

@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7855 2020-05-19 22:17:56Z john $
+% $Id: spm_mb_init.m 7856 2020-05-19 22:54:41Z spm $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -105,7 +105,7 @@ if numel(cfg.cat)>=1
             end
         end
 
-        [~,nam,~]   = fileparts(cl{1});
+        [~,nam]     = fileparts(cl{1});
         dat(n).onam = sprintf('%d_%.5d_%s_%s', 0, np, nam, cfg.onam);
         dat(n).odir = sett.odir;
         dat(n).v    = fullfile(dat(n).odir,['v_'   dat(n).onam '.nii']);
@@ -165,7 +165,7 @@ for p=1:numel(cfg.gmm)
                 end
             end
 
-            [~,nam,~]   = fileparts(cl{1});
+            [~,nam]     = fileparts(cl{1});
             dat(n).onam = sprintf('%d_%.5d_%s_%s', p, np, nam, cfg.onam);
             dat(n).odir = sett.odir;
             dat(n).v    = fullfile(dat(n).odir,['v_'   dat(n).onam '.nii']);

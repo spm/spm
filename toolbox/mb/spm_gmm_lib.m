@@ -40,7 +40,7 @@ function varargout = spm_gmm_lib(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_gmm_lib.m 7853 2020-05-19 16:28:55Z john $
+% $Id: spm_gmm_lib.m 7856 2020-05-19 22:54:41Z spm $
 
 %--------------------------------------------------------------------------
 % Convention
@@ -424,7 +424,7 @@ for em=1:iter_max
     % ---------------------------------------------------------------------
     % Compute sufficient statistics (bin uncertainty part)
     if iscell(obs_uncertainty) ||  sum(obs_uncertainty) > 0
-    	SS2u = suffstat_uncertainty(obs_uncertainty, Z, weights, obs_channels);
+        SS2u = suffstat_uncertainty(obs_uncertainty, Z, weights, obs_channels);
     else
         SS2u = 0;
     end
@@ -2892,7 +2892,7 @@ function ld = logdet(A)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_gmm_lib.m 7853 2020-05-19 16:28:55Z john $
+% $Id: spm_gmm_lib.m 7856 2020-05-19 22:54:41Z spm $
 
 % Cholseki decomposition of A (A = C' * C, with C upper-triangular)
 [C, p] = chol(A);
