@@ -1,28 +1,19 @@
-function varargout = spm_mb_io(varargin)
-%__________________________________________________________________________
-%
-% Functions for I/O related stuff.
+function varargout = spm_mb_io(action,varargin)
+% File I/O Multi-Brain functionalities
 %
 % FORMAT fn      = spm_mb_io('GetImage',datn)
 % FORMAT [out,M] = spm_mb_io('GetData',in)
 % FORMAT [d,M]   = spm_mb_io('GetSize',fin)
 % FORMAT           spm_mb_io('SaveTemplate',mu,sett)
 % FORMAT fout    = spm_mb_io('SetData',fin,f)
-% FORMAT           spm_mb_io('SetPath')
 % FORMAT dat     = spm_mb_io('SavePsi',dat,sett);
 %
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id$
+% $Id: spm_mb_io.m 7852 2020-05-19 14:00:48Z spm $
 
-if nargin == 0
-    help spm_mb_io
-    error('Not enough argument. Type ''help spm_mb_io'' for help.');
-end
-id = varargin{1};
-varargin = varargin(2:end);
-switch id
+switch action
     case 'GetImage'
         [varargout{1:nargout}] = GetImage(varargin{:});
     case 'GetData'
@@ -33,14 +24,10 @@ switch id
         [varargout{1:nargout}] = SaveTemplate(varargin{:});
     case 'SetData'
         [varargout{1:nargout}] = SetData(varargin{:});
-    case 'SetPath'
-        [varargout{1:nargout}] = SetPath(varargin{:});
     case 'SavePsi'
         [varargout{1:nargout}] = SavePsi(varargin{:});
     otherwise
-        help spm_mb_io
-        error('Unknown function %s. Type ''help spm_mb_io'' for help.', id)
-end
+        error('Unknown function %s.', action)
 end
 %==========================================================================
 
@@ -79,9 +66,8 @@ if isa(in,'nifti')
             out(:) = in(1).dat.scl_slope(1);
         end
     end
-    return
-end
-error('Unknown datatype.');
+else
+    error('Unknown datatype.');
 end
 %==========================================================================
 
@@ -99,7 +85,6 @@ if any(jitter~=0)
     rng('default'); rng(1);
     fn = fn + bsxfun(@times,rand(size(fn)) - 1/2,jitter);
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -108,14 +93,12 @@ C = size(fn,4);
 for c=1:C
     fn(:,:,:,c) = ApplyMask(fn(:,:,:,c),modality(c));
 end
-end
 %==========================================================================
 
 %==========================================================================
 function f = ApplyMask(f,modality)
 if modality==2, f(~isfinite(f) | f == 0 | f < - 1020 | f > 3000) = NaN;
 else            f(~isfinite(f) | f == 0)                         = NaN;
-end
 end
 %==========================================================================
 
@@ -145,9 +128,8 @@ if isa(in,'nifti')
             out = reshape(out,[d(1:3) d(5)]);
         end
     end
-    return
-end
-error('Unknown datatype.');
+else
+    error('Unknown datatype.');
 end
 %==========================================================================
 
@@ -156,14 +138,12 @@ function [d,M] = GetSize(fin)
 d = [GetDimensions(fin) 1 1 1];
 M = d(4);
 d = d(1:3);
-end
 %==========================================================================
 
 %==========================================================================
 function dat  = SavePsi(dat,sett)
 for n=1:numel(dat)
     dat(n) = SavePsiSub(dat(n),sett);
-end
 end
 %==========================================================================
 
@@ -193,7 +173,6 @@ elseif isa(datn.psi(1),'nifti')
     create(datn.psi(1));
     datn.psi(1).dat(:,:,:,:,:) = reshape(psi,[d 1 3]);
     delete(to_delete);
-end
 end
 %==========================================================================
 
@@ -231,7 +210,6 @@ if true
     create(Nmu);
     Nmu.dat(:,:,:,:) = mu;
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -253,17 +231,6 @@ if isa(fin,'nifti')
     else
         fout(1).dat(:,:,:,:,:) = reshape(f,size(fout(1).dat));
     end
-    return
-end
-end
-%==========================================================================
-
-%==========================================================================
-function SetPath
-pth = fileparts(which('spm'));
-addpath(pth);
-addpath(fullfile(pth,'toolbox','Longitudinal'));
-addpath(fullfile(pth,'toolbox','Shoot'));
 end
 %==========================================================================
 
@@ -293,8 +260,6 @@ if isa(fin,'nifti')
             d = [d(1:3) d(5)];
         end
     end
-    return
-end
 end
 %==========================================================================
 

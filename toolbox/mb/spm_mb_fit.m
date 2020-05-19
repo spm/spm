@@ -8,41 +8,36 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 % mu                  - array with template data
 % sett  (inputParser) - struct storing final algorithm settings
 % model (inputParser) - struct storing shape and appearance model
-%
 %__________________________________________________________________________
-%
-%__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id$
+% $Id: spm_mb_fit.m 7852 2020-05-19 14:00:48Z spm $
+
 
 % Repeatable random numbers
+%--------------------------------------------------------------------------
 rng('default'); rng(1);
 
-%------------------
 % Get template size and orientation
-%------------------
+%--------------------------------------------------------------------------
 if isfield(sett.mu,'exist')
     mu0 = spm_mb_io('GetData',sett.mu.exist.mu);
 end
 Mmu = sett.mu.Mmu;
 
-%------------------
 % Get zoom (multi-scale) settings
-%------------------
+%--------------------------------------------------------------------------
 dmu     = sett.mu.d;
 nz      = max(ceil(log2(min(dmu(dmu~=1))) - log2(sett.min_dim)),1);
 sz      = spm_mb_shape('ZoomSettings',sett.v_settings,sett.mu,nz);
 sett.ms = sz(end);
 
-%------------------
 % Init shape model parameters
-%------------------
+%--------------------------------------------------------------------------
 dat = spm_mb_shape('InitDef',dat,sett.ms);
 
-%------------------
 % Init template
-%------------------
+%--------------------------------------------------------------------------
 if exist('mu0','var')
     % Shrink given template
     mu = spm_mb_shape('ShrinkTemplate',mu0,Mmu,sett);
@@ -51,14 +46,13 @@ else
     mu = randn([sett.ms.d sett.K],'single')*1.0;
 end
 
-%------------------
 % Start algorithm
-%------------------
-nit_zm0    = 3;
-nit_aff    = 128;
-updt_aff   = true;
-updt_diff  = all(isfinite(sett.v_settings));
-updt_mu    = ~exist('mu0','var');
+%--------------------------------------------------------------------------
+nit_zm0   = 3;
+nit_aff   = 128;
+updt_aff  = true;
+updt_diff = all(isfinite(sett.v_settings));
+updt_mu   = ~exist('mu0','var');
 if ~exist('mu0','var')
     te = spm_mb_shape('TemplateEnergy',mu,sett.ms.mu_settings);
     E  = [Inf Inf];
@@ -67,10 +61,9 @@ else
     E  = Inf;
 end
 
-%------------------
 % Update affine only
 % No update of intensity priors during this phase.
-%------------------
+%--------------------------------------------------------------------------
 for n=1:numel(dat)
     dat(n).samp  = GetSamp(sett.ms.Mmu,dat(n).Mat,sett.sampdens);
     dat(n).samp2 = [1 1 1];
@@ -118,13 +111,12 @@ end
 spm_plot_convergence('Clear');
 
 
-%------------------
 % Update affine and diffeo (iteratively decreases the template resolution)
-%------------------
+%--------------------------------------------------------------------------
 for zm=numel(sz):-1:1 % loop over zoom levels
     fprintf('\nzoom=%d: %d x %d x %d\n', 2^(zm-1), sett.ms.d);
     spm_plot_convergence('Init',['Diffeomorphic Alignment (' num2str(2^(zm-1)) ')'],'Objective','Iteration');
-    for n=1:numel(dat),
+    for n=1:numel(dat)
         dat(n).samp  = [1 1 1];
         dat(n).samp2 = GetSamp(sett.ms.Mmu,dat(n).Mat,sett.sampdens);
     end
@@ -169,7 +161,7 @@ for zm=numel(sz):-1:1 % loop over zoom levels
         end
         fprintf('\n');
 
-       %% Check convergence and terminate if done
+       % Check convergence and terminate if done
        %change = mean(abs(oEE - EE)./abs(EE));        
        %if change < sett.tol, break; end
 
@@ -199,7 +191,6 @@ for zm=numel(sz):-1:1 % loop over zoom levels
     do_save(mu,sett,dat);
     spm_plot_convergence('Clear');
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -209,7 +200,6 @@ vmu  = sqrt(sum(Mmu(1:3,1:3).^2));
 vf   = sqrt(sum( Mf(1:3,1:3).^2));
 samp = max(round(((prod(vmu)/prod(vf)/n).^(1/3))./vf),1);
 samp = min(samp,5);
-end
 %==========================================================================
 
 %==========================================================================
@@ -228,7 +218,6 @@ for it=1:nit_mu
     do_save(mu,sett,dat);
     if it>1 && (oE-E)/abs(E) < sett.tol; break; end
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -236,7 +225,6 @@ function to = CopyFields(from,to)
 fn = fieldnames(from);
 for i=1:numel(fn)
     to.(fn{i}) = from.(fn{i});
-end
 end
 %==========================================================================
 
@@ -248,6 +236,5 @@ if isfield(sett,'save') && sett.save
    %dat  = rmfield(dat,{'samp','samp2'});
    %sett = rmfield(sett,{'ms'});
     save(fullfile(sett.odir,['mb_fit_' sett.onam '.mat']),'sett','dat');
-end
 end
 %==========================================================================

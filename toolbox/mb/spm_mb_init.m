@@ -1,8 +1,10 @@
 function [dat,sett] = spm_mb_init(cfg)
-% Initialisation of data structures
+% Initialisation of Multi-Brain data structures
 % FORMAT [dat,sett] = spm_mb_init(cfg)
+%__________________________________________________________________________
+% Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id$
+% $Id: spm_mb_init.m 7852 2020-05-19 14:00:48Z spm $
 
 [dat,sett] = spm_mb_init1(cfg);
 
@@ -414,5 +416,3 @@ Mat = spm_matrix([mn 0 0 0 vx]) * spm_matrix([-1 -1 -1]);
 dm  = Mat \ [mx 1]';
 dm  = round(dm(1:3)');
 %==========================================================================
-
-

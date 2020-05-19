@@ -1,27 +1,20 @@
-function varargout = spm_mb_appearance(varargin)
-%__________________________________________________________________________
-%
-% Functions for appearance model related.
+function varargout = spm_mb_appearance(action,varargin)
+% Appearance model
 %
 % FORMAT chan       = spm_mb_appearance('BiasBasis',T,df,Mat,reg,samp)
-% FORMAT [inu,ll]    = spm_mb_appearance('BiasField',T,chan,d,varargin)
+% FORMAT [inu,ll]   = spm_mb_appearance('BiasField',T,chan,d,varargin)
 % FORMAT labels     = spm_mb_appearance('GetLabels',dat,sett,do_samp)
 % FORMAT [dat,sett] = spm_mb_appearance('IntroduceMG',dat,sett)
 % FORMAT z          = spm_mb_appearance('Responsibility',m,b,W,n,f,mu,msk_chn)
 % FORMAT [z,dat]    = spm_mb_appearance('Update',dat,mu0,sett)
 % FORMAT dat        = spm_mb_appearance('UpdatePrior',dat,sett)
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id$
+% $Id: spm_mb_appearance.m 7852 2020-05-19 14:00:48Z spm $
 
-if nargin == 0
-    help spm_mb_appearance
-    error('Not enough argument. Type ''help spm_mb_appearance'' for help.');
-end
-id       = varargin{1};
-varargin = varargin(2:end);
-switch id
+
+switch action
     case 'BiasBasis'
         [varargout{1:nargout}] = BiasBasis(varargin{:});
     case 'BiasField'
@@ -39,9 +32,7 @@ switch id
     case 'UpdateSharedPrior'
         [varargout{1:nargout}] = UpdateSharedPrior(varargin{:});
     otherwise
-        help spm_mb_appearance
-        error('Unknown function %s. Type ''help spm_mb_appearance'' for help.', id)
-end
+        error('Unknown function %s.', action)
 end
 %==========================================================================
 
@@ -65,7 +56,6 @@ for c=cr
         inu(:,:,z,c) = single(exp(inu_c));
     end
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -85,7 +75,6 @@ if ~isempty(T)
     t  = B1*t1*B2';
 else
     t  = zeros(size(B1,1),size(B2,1));
-end
 end
 %==========================================================================
 
@@ -108,7 +97,6 @@ for c=1:numel(T)
     chan(c).B1 = spm_dctmtx(df(1),d3(1),ind{1});
     chan(c).B2 = spm_dctmtx(df(2),d3(2),ind{2});
     chan(c).B3 = spm_dctmtx(df(3),d3(3),ind{3});
-end
 end
 %==========================================================================
 
@@ -134,8 +122,6 @@ cm     = GetLabelConfMatrix(cm_map,sett);
 
 % Build NxK1 label image using confusion matrix
 labels = cm(labels,:);
-
-end
 %==========================================================================
 
 %==========================================================================
@@ -175,7 +161,6 @@ for l=1:L % Loop over labels
     cm(l,~ix)     = log((1-w)/sum(~ix));
 end
 cm(L+1,:) = zeros(1,K1);
-end
 %==========================================================================
 
 %==========================================================================
@@ -196,7 +181,6 @@ function [z,lb] = Responsibility(m,b,W,n,f,mu,msk_chn)
 const  = spm_gmm_lib('Normalisation', {m,b}, {W,n}, msk_chn);
 f      = spm_gmm_lib('Marginal', f, {m,W,n}, const, msk_chn);
 [z,lb] = spm_gmm_lib('Responsibility', f, mu);
-end
 %==========================================================================
 
 %==========================================================================
@@ -516,14 +500,12 @@ if nargout > 1
 end
 dat.E(1)      = -lbs; %*scl_samp;
 dat.model.gmm = gmm;
-end
 %==========================================================================
 
 %==========================================================================
 function X2d = vol2vec(X4d)
 d   = [size(X4d) 1 1];
 X2d = reshape(X4d,[prod(d(1:3)) d(4)]);
-end
 %==========================================================================
 
 %==========================================================================
@@ -533,7 +515,6 @@ if size(X2d,1)~=prod(dm(1:3))
     error('Incompatible dimensions.');
 end
 X4d = reshape(X2d,[dm(1:3) size(X2d,2)]);
-end
 %==========================================================================
 
 %==========================================================================
@@ -561,7 +542,6 @@ end
 % Make corresponding change to bias field (accounting for DCT scaling)
 for m=find(msk(:)')
     gmm.T{m}(1,1,1) = gmm.T{m}(1,1,1) - r(m)*sqrt(prod(df));
-end
 end
 %==========================================================================
 
@@ -604,7 +584,6 @@ for it=1:100
     r  = r - dr;
     if sqrt(mean(dr.^2)) < 1e-9, break; end
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -638,7 +617,6 @@ for p=1:numel(sett.gmm) % Loop over populations
         % Update prior
         sett.gmm(p).pr = spm_gmm_lib('updatehyperpars',po,pr);
     end
-end
 end
 %==========================================================================
 
@@ -685,7 +663,6 @@ for p=1:numel(sett.gmm) % Loop over populations
         sett.gmm(p).pr = pr;
     end
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -718,7 +695,6 @@ else
         lb   = lb + sum(log(inu(msk,c)),'double');
     end
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -727,7 +703,6 @@ if sum(logmg_w) == 0, return; end
 for i=1:numel(mu)
    %mu{i} = mu{i} + logmg_w;
     mu{i} = bsxfun(@plus, mu{i}, logmg_w);
-end
 end
 %==========================================================================
 
@@ -759,13 +734,10 @@ else
     % downsampling
     w    = prod(df)/prod(d);
 end
-end
 %==========================================================================
 
 %==========================================================================
 function ind = SampleInd(df,samp)
 sk   = max([1 1 1],samp);
 ind  = {round(1:sk(1):df(1)), round(1:sk(2):df(2)), round(1:sk(3):df(3))};
-end
 %==========================================================================
-

@@ -1,45 +1,37 @@
-function varargout = spm_mb_shape(varargin)
+function varargout = spm_mb_shape(action,varargin)
+% Shape model
+%
+% FORMAT psi0      = spm_mb_shape('Affine',d,Mat)
+% FORMAT B         = spm_mb_shape('AffineBases',code)
+% FORMAT psi       = spm_mb_shape('Compose',psi1,psi0)
+% FORMAT id        = spm_mb_shape('Identity',d)
+% FORMAT dat       = spm_mb_shape('InitDef',dat,sett.ms)
+% FORMAT l         = spm_mb_shape('LSE',mu,ax)
+% FORMAT sett      = spm_mb_shape('MuValOutsideFOV',mu,sett);
+% FORMAT a1        = spm_mb_shape('Pull1',a0,psi,r)
+% FORMAT [f1,w1]   = spm_mb_shape('Push1',f,psi,d,r)
+% FORMAT sd        = spm_mb_shape('SampDens',Mmu,Mn)
+% FORMAT varargout = spm_mb_shape('Shoot',v0,kernel,args)
+% FORMAT mu1       = spm_mb_shape('ShrinkTemplate',mu,oMmu,sett)
+% FORMAT P         = spm_mb_shape('Softmax',mu,ax)
+% FORMAT E         = spm_mb_shape('TemplateEnergy',mu,sett)
+% FORMAT mun       = spm_mb_shape('TemplateK1',mun)
+% FORMAT dat       = spm_mb_shape('UpdateAffines',dat,mu,sett)
+% FORMAT [mu,dat]  = spm_mb_shape('UpdateMean',dat, mu, sett)
+% FORMAT dat       = spm_mb_shape('UpdateSimpleAffines',dat,mu,sett)
+% FORMAT [mu,dat]  = spm_mb_shape('UpdateSimpleMean',dat, mu, sett)
+% FORMAT dat       = spm_mb_shape('UpdateVelocities',dat,mu,sett)
+% FORMAT dat       = spm_mb_shape('UpdateWarps',dat,sett)
+% FORMAT [dat,mu]  = spm_mb_shape('ZoomVolumes',dat,mu,sett,oMmu)
+% FORMAT sz        = spm_mb_shape('ZoomSettings', v_settings, mu, n)
+% FORMAT [P,datn]  = spm_mb_io('GetClasses',datn,mu,sett)
 %__________________________________________________________________________
-%
-% Functions for shape model related.
-%
-% FORMAT psi0          = spm_mb_shape('Affine',d,Mat)
-% FORMAT B             = spm_mb_shape('AffineBases',code)
-% FORMAT psi           = spm_mb_shape('Compose',psi1,psi0)
-% FORMAT id            = spm_mb_shape('Identity',d)
-% FORMAT dat           = spm_mb_shape('InitDef',dat,sett.ms)
-% FORMAT l             = spm_mb_shape('LSE',mu,ax)
-% FORMAT sett          = spm_mb_shape('MuValOutsideFOV',mu,sett);
-% FORMAT a1            = spm_mb_shape('Pull1',a0,psi,r)
-% FORMAT [f1,w1]       = spm_mb_shape('Push1',f,psi,d,r)
-% FORMAT sd            = spm_mb_shape('SampDens',Mmu,Mn)
-% FORMAT varargout     = spm_mb_shape('Shoot',v0,kernel,args)
-% FORMAT mu1           = spm_mb_shape('ShrinkTemplate',mu,oMmu,sett)
-% FORMAT P             = spm_mb_shape('Softmax',mu,ax)
-% FORMAT E             = spm_mb_shape('TemplateEnergy',mu,sett)
-% FORMAT mun           = spm_mb_shape('TemplateK1',mun)
-% FORMAT dat           = spm_mb_shape('UpdateAffines',dat,mu,sett)
-% FORMAT [mu,dat]      = spm_mb_shape('UpdateMean',dat, mu, sett)
-% FORMAT dat           = spm_mb_shape('UpdateSimpleAffines',dat,mu,sett)
-% FORMAT [mu,dat]      = spm_mb_shape('UpdateSimpleMean',dat, mu, sett)
-% FORMAT dat           = spm_mb_shape('UpdateVelocities',dat,mu,sett)
-% FORMAT dat           = spm_mb_shape('UpdateWarps',dat,sett)
-% FORMAT [dat,mu]      = spm_mb_shape('ZoomVolumes',dat,mu,sett,oMmu)
-% FORMAT sz            = spm_mb_shape('ZoomSettings', v_settings, mu, n)
-% FORMAT [P,datn]      = spm_mb_io('GetClasses',datn,mu,sett)
-%
-%__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id$
+% $Id: spm_mb_shape.m 7852 2020-05-19 14:00:48Z spm $
 
-if nargin == 0
-    help spm_mb_shape
-    error('Not enough argument. Type ''help spm_mb_shape'' for help.');
-end
-id = varargin{1};
-varargin = varargin(2:end);
-switch id
+
+switch action
     case 'Affine'
         [varargout{1:nargout}] = Affine(varargin{:});
     case 'AffineBases'
@@ -89,9 +81,7 @@ switch id
     case 'GetClasses'
         [varargout{1:nargout}] = GetClasses(varargin{:});
     otherwise
-        help spm_mb_shape
-        error('Unknown function %s. Type ''help spm_mb_shape'' for help.', id)
-end
+        error('Unknown function %s.', action)
 end
 %==========================================================================
 
@@ -107,7 +97,6 @@ id    = Identity(d,samp);
 %psi0 = vec2vol(vol2vec(id)*Mat(1:3,1:3)' + Mat(1:3,4)',size(id));
 psi0  = vec2vol(bsxfun(@plus,vol2vec(id)*Mat(1:3,1:3)',Mat(1:3,4)'),size(id));
 if d(3) == 1, psi0(:,:,:,3) = 1; end
-end
 %==========================================================================
 
 %==========================================================================
@@ -174,7 +163,6 @@ elseif g.dim==3
         error('Unknown group.');
     end
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -187,7 +175,6 @@ else
     psi = spm_diffeo('comp',psi1,psi0);
 end
 if size(psi,3) == 1, psi(:,:,:,3) = 1; end % 2D
-end
 %==========================================================================
 
 %==========================================================================
@@ -203,7 +190,6 @@ id = zeros([ds(:)',3],'single');
 [id(:,:,:,1),id(:,:,:,2),id(:,:,:,3)] = ndgrid(single(1:samp(1):d(1)),...
                                                single(1:samp(2):d(2)),...
                                                single(1:samp(3):d(3)));
-end
 %==========================================================================
 
 %==========================================================================
@@ -252,7 +238,6 @@ for n=1:numel(dat)
         dat(n).psi       = nii;
     end
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -263,7 +248,6 @@ if nargin<2, ax = 4; end
 mx = max(mu,[],ax);
 %l = log(exp(-mx) + sum(exp(mu - mx),ax)) + mx;
 l  = log(exp(-mx) + sum(exp(bsxfun(@minus,mu,mx)),ax)) + mx;
-end
 %==========================================================================
 
 %==========================================================================
@@ -311,7 +295,6 @@ else
         end
         a1(:,:,:,l) = tmp/(numel(zrange)*numel(yrange)*numel(xrange));
     end
-end
 end
 %==========================================================================
 
@@ -379,13 +362,11 @@ else
     f1(~msk) = 0;
     w1       = single(all(msk,4));
 end
-end
 %==========================================================================
 
 %==========================================================================
 function r = range(n)
 r = (-floor((n-1)/2):ceil((n-1)/2))/n;
-end
 %==========================================================================
 
 %==========================================================================
@@ -393,7 +374,6 @@ function sd = SampDens(Mmu,Mn)
 vx_mu = sqrt(sum(Mmu(1:3,1:3).^2,1));
 vx_f  = sqrt(sum( Mn(1:3,1:3).^2,1));
 sd    = max(round(2.0*vx_f./vx_mu),1);
-end
 %==========================================================================
 
 %==========================================================================
@@ -438,7 +418,6 @@ if smo_wt~=0
         mu(:,:,:,k) = convn(mu(:,:,:,k),smo,'same');
     end
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -452,7 +431,6 @@ E   = exp(bsxfun(@minus,mu,mx));
 den = sum(E,ax)+exp(-mx);
 %P  = E./den;
 P   = bsxfun(@rdivide,E,den);
-end
 %==========================================================================
 
 %==========================================================================
@@ -468,7 +446,6 @@ if ~isempty(mu_settings)
 else
     E  = 0;
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -480,7 +457,6 @@ mx   = max(max(mun,[],ax),0);
 lse  = bsxfun(@plus,mx,log(sum(exp(bsxfun(@minus,mun,mx)),ax) + exp(-mx)));
 %mun = cat(ax,mun - lse, -lse);
 mun  = cat(ax,bsxfun(@minus,mun,lse), -lse);
-end
 %==========================================================================
 
 %==========================================================================
@@ -506,7 +482,6 @@ if ~isempty(B)
             dat(n).q = dat(n).q - mq;
         end
     end
-end
 end
 %==========================================================================
 
@@ -576,7 +551,6 @@ H         = dM'*H*dM;
 H         = H + eye(numel(q))*(norm(H)*1e-5 + 0.01);
 q         = q + scal*(H\g);
 datn.q    = q;
-end
 %==========================================================================
 
 %==========================================================================
@@ -603,7 +577,6 @@ for i=1:d(3)
             H(i1,i2) = H(i1,i2) + sum(sum(sum(x{k1x}.*Hv(:,:,:,I(k1g,k2g)).*x{k2x})));
         end
     end
-end
 end
 %==========================================================================
 
@@ -639,7 +612,6 @@ H  = AppearanceHessian(mu,accel,w);
 % Note that spm_field could be re-written to make these updates
 % converge more effectively.
 mu = mu - spm_field(H, g, [mu_settings s_settings]);
-end
 %==========================================================================
 
 %==========================================================================
@@ -658,7 +630,6 @@ psi      = Compose(spm_mb_io('GetData',datn.psi),Affine(df, Mmu\spm_dexpm(q,B)*M
 mu       = Pull1(mu,psi);
 [f,datn] = GetClasses(datn,mu,sett);
 [g,w]    = Push1(Softmax(mu,4) - f,psi,d,1);
-end
 %==========================================================================
 
 %==========================================================================
@@ -687,7 +658,6 @@ for m1=1:M
         end
     end
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -714,7 +684,6 @@ if ~isempty(B)
             dat(n).q = dat(n).q - mq;
         end
     end
-end
 end
 %==========================================================================
 
@@ -751,7 +720,6 @@ H         = dM'*H*dM;
 H         = H + eye(numel(q))*(norm(H)*1e-5 + 0.1);
 q         = q + scal*(H\g);
 datn.q    = q;
-end
 %==========================================================================
 
 %==========================================================================
@@ -778,7 +746,6 @@ for i=1:d(3)
             H(i1,i2) = H(i1,i2) + sum(sum(sum(x{k1x}.*Hv(:,:,:,I(k1g,k2g)).*x{k2x})));
         end
     end
-end
 end
 %==========================================================================
 
@@ -817,7 +784,6 @@ for it=1:ceil(4+2*log2(numel(dat)))
     % more effective.
     mu = mu - spm_field(H, g, [mu_settings s_settings]);
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -837,7 +803,6 @@ psi      = Compose(spm_mb_io('GetData',datn.psi),Affine(df,Mmu\spm_dexpm(q,B)*Mn
 mu       = Pull1(mu,psi);
 [f,datn] = GetClasses(datn,mu,sett);
 [g,w]    = Push1(f,psi,d,1);
-end
 %==========================================================================
 
 %==========================================================================
@@ -857,7 +822,6 @@ if nw > 1 && numel(dat) > 1 % PARFOR
     parfor(n=1:numel(dat),nw) dat(n) = UpdateVelocitiesSub(dat(n),mu,G,H0,sett); end
 else % FOR
     for n=1:numel(dat), dat(n) = UpdateVelocitiesSub(dat(n),mu,G,H0,sett); end
-end
 end
 %==========================================================================
 
@@ -901,7 +865,6 @@ if v_settings(1)==0             % Mean displacement should be 0
     v   = v - avg;
 end
 datn.v = spm_mb_io('SetData',datn.v,v);
-end
 %==========================================================================
 
 %==========================================================================
@@ -947,8 +910,6 @@ subplot(3,2,4); imagesc(squeeze(t(sl,:,:,2))'); axis image xy off
 subplot(3,2,5); imagesc(squeeze(1-sum(P(sl,:,:,:),4))'); axis image xy off
 subplot(3,2,6); imagesc(squeeze(1-sum(t(sl,:,:,:),4))'); axis image xy off
 drawnow
-end
-
 end
 %==========================================================================
 
@@ -1000,7 +961,6 @@ for m1=1:M
 end
 clear Gm11 Gm12 Gm13 Gm21 Gm22 Gm23 sm1 sm2 tmp
 H = cat(4, H1, H2, H3, H4, H5, H6);
-end
 %==========================================================================
 
 %==========================================================================
@@ -1033,7 +993,6 @@ if nw > 1 && numel(dat) > 1 % PARFOR
 else % FOR
     for n=1:numel(dat), dat(n) = UpdateWarpsSub(dat(n),avg_v,kernel); end
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -1047,7 +1006,6 @@ u0         = spm_diffeo('vel2mom', v, kernel.v_settings); % Initial momentum
 datn.E(2)  = 0.5*sum(u0(:).*v(:));                        % Prior term
 psi1       = Shoot(v, kernel, 8);                     % Geodesic shooting
 datn.psi   = spm_mb_io('SetData',datn.psi,psi1);
-end
 %==========================================================================
 
 %==========================================================================
@@ -1086,7 +1044,6 @@ if ~isempty(dat)
         end
     end
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -1106,7 +1063,6 @@ for i1=1:d
         I(i2,i1) = l;
     end
 end
-end
 %==========================================================================
 
 %==========================================================================
@@ -1114,7 +1070,6 @@ function f = Mask(f,msk)
 f(~isfinite(f)) = 0;
 %f = f.*msk;
 f  = bsxfun(@times,f,msk);
-end
 %==========================================================================
 
 %==========================================================================
@@ -1129,7 +1084,6 @@ if isa(fin,'nifti')
         fin(m).mat0 = Mat;
         create(fin(m));
     end
-end
 end
 %==========================================================================
 
@@ -1257,7 +1211,6 @@ for t=2:abs(T)
 end
 varargout{1} = psi;
 varargout{2} = v;
-end
 %==========================================================================
 
 %==========================================================================
@@ -1290,14 +1243,12 @@ for i=1:n
         sz(i).mu_settings = [vx mu_settings*scale_i];
     end
 end
-end
 %==========================================================================
 
 %==========================================================================
 function X2d = vol2vec(X4d)
 d   = [size(X4d) 1 1];
 X2d = reshape(X4d,[prod(d(1:3)) d(4)]);
-end
 %==========================================================================
 
 %==========================================================================
@@ -1307,7 +1258,6 @@ if size(X2d,1)~=prod(dm(1:3))
     error('Incompatible dimensions.');
 end
 X4d = reshape(X2d,[dm(1:3) size(X2d,2)]);
-end
 %==========================================================================
 
 %==========================================================================
@@ -1330,10 +1280,9 @@ if MemMax == 0 % default
             MemMax      = meminfo.PhysicalMemory.Available;
         else
             % UNIX
-            [~,meminfo] = system('free --mega');
-            meminfo     = string(meminfo);
-            meminfo     = strsplit(meminfo,' ');
-            MemMax      = str2double(meminfo{14}); % field that holds available RAM (MATLAB 2018a)
+            mem    = strsplit(fileread('/proc/meminfo')); % (in kB)
+            MemMax = str2double(mem(find(ismember(mem,'MemAvailable:'))+1));
+            MemMax = MemMax / 1024;
         end
     catch
         MemMax = 1024;
@@ -1351,6 +1300,4 @@ nw             = max(floor(MemMax/MemReq) - 1,0); % Number of parfor workers to 
 if NumWork >= 0
     nw = min(NumWork,nw);
 end
-end
 %==========================================================================
-

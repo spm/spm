@@ -1,7 +1,9 @@
 function out = spm_mb_merge(cfg)
 % Combine tissue maps together
+%__________________________________________________________________________
+% Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id$
+% $Id: spm_mb_merge.m 7852 2020-05-19 14:00:48Z spm $
 
 out      = struct('mu','priors');
 odir     = cfg.odir{1};
@@ -55,9 +57,9 @@ Nmu.dat.dim(4) = size(mu1,4);
 create(Nmu);
 Nmu.dat(:,:,:,:) = mu1;
 out.mu = {mu_name};
+%==========================================================================
 
-
-
+%==========================================================================
 function mu1 = MergeMu(mu,ix)
 K  = size(mu,4)+1;
 if numel(ix)~=K
@@ -77,8 +79,9 @@ for k1=1:(K1-1)
     mk  = combine(mu,find(ix==k1));
     mu1(:,:,:,k1) = mk - mK; 
 end
+%==========================================================================
 
-
+%==========================================================================
 function mk = combine(mu,ind)
 K = size(mu,4)+1;
 d = [size(mu,1) size(mu,2) size(mu,3)];
@@ -105,5 +108,4 @@ else
     end
     mk = log(mk)+mx;
 end
-
 %==========================================================================

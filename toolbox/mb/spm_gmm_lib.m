@@ -1,6 +1,4 @@
-function varargout = spm_gmm_lib(varargin)
-%__________________________________________________________________________
-%
+function varargout = spm_gmm_lib(action,varargin)
 % Library of functions for Gaussian Mixture modelling
 %
 %--------------------------------------------------------------------------
@@ -40,6 +38,9 @@ function varargout = spm_gmm_lib(varargin)
 %-------
 % * Extras              >> Extra utilitites
 %__________________________________________________________________________
+% Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
+
+% $Id: spm_gmm_lib.m 7852 2020-05-19 14:00:48Z spm $
 
 %--------------------------------------------------------------------------
 % Convention
@@ -70,15 +71,8 @@ function varargout = spm_gmm_lib(varargin)
 % mask-  M  x P        Mask of observed channels per 'missing code'
 %--------------------------------------------------------------------------
 
-% $Id$
 
-if nargin == 0
-    help spm_gmm_lib
-    error('Not enough argument. Type ''help spm_gmm_lib'' for help.');
-end
-id = varargin{1};
-varargin = varargin(2:end);
-switch lower(id)
+switch lower(action)
     case 'loop'
         [varargout{1:nargout}] = loop(varargin{:});
 %--------------------------------------------------------------------------
@@ -187,8 +181,7 @@ switch lower(id)
         % gmm = spm_gmm_lib('extras', 'more_gmms', gmm, part)
         % > A crude heuristic to replace a single Gaussian by a bunch of Gaussians.
     otherwise
-        help spm_gmm_lib
-        error('Unknown function %s. Type ''help spm_gmm_lib'' for help.', id)
+        error('Unknown function %s.', action)
 end
 
 %--------------------------------------------------------------------------
@@ -2255,7 +2248,7 @@ else
 end
 
 % =========================================================================
-function varargout = gmmplot(varargin)
+function varargout = gmmplot(action,varargin)
 % Custom visualisation tools for Gaussian Mixture modelling
 %
 % spm_gmm_lib('plot', 'lb', lb, (wintitle))
@@ -2277,13 +2270,7 @@ function varargout = gmmplot(varargin)
 % > Show categorical images
 %
 
-if nargin == 0
-    help spm_gmm_lib>gmmplot
-    error('Not enough argument. Type ''help spm_gmm_lib>gmmplot'' for help.');
-end
-id = varargin{1};
-varargin = varargin(2:end);
-switch lower(id)
+switch lower(action)
     case {'lowerbound','lb'}
         [varargout{1:nargout}] = plot_lowerbound(varargin{:});
     case {'gmm'}
@@ -2297,8 +2284,7 @@ switch lower(id)
     case {'showcatimg'}
         [varargout{1:nargout}] = show_cat_img(varargin{:});
     otherwise
-        help spm_gmm_lib>plot
-        error('Unknown function %s. Type ''help spm_gmm_lib>gmmplot'' for help.', id)
+        error('Unknown function %s.', action)
 end
 
 % =========================================================================
@@ -2369,7 +2355,7 @@ if nargin < 3, ticklabels = {}; end
 
 % -------------------------------------------------------------------------
 % Get figure (create if it does not exist)
-if nargin<4
+if nargin < 4
     figname = '(SPM) Plot GMM Categorical';
 end
 f = findobj('Type', 'Figure', 'Name', figname);
@@ -2535,17 +2521,13 @@ function plot_GaussPrior(GaussPrior,lkp,figname)
 
 if nargin < 2, lkp = []; end
 
-if nargin==3
-    figname0 = figname;
-else
-    figname0 = '(SPM) GaussPrior';
-end
+if nargin < 3, figname = '(SPM) GaussPrior'; end
 
 % ---------------------------------------------------------------------
 % Get figure (create if it does not exist)
-f = findobj('Type', 'Figure', 'Name', figname0);
+f = findobj('Type', 'Figure', 'Name', figname);
 if isempty(f)
-    f = figure('Name', figname0, 'NumberTitle', 'off');
+    f = figure('Name', figname, 'NumberTitle', 'off');
 end
 set(0, 'CurrentFigure', f);
 clf(f);
@@ -2909,7 +2891,7 @@ function ld = logdet(A)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_gmm_lib.m 7852 2020-05-19 14:00:48Z spm $
 
 % Cholseki decomposition of A (A = C' * C, with C upper-triangular)
 [C, p] = chol(A);

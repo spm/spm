@@ -1,6 +1,4 @@
-function varargout = spm_bias_lib(varargin)
-%__________________________________________________________________________
-%
+function varargout = spm_bias_lib(action,varargin)
 % Library of functions for Bias correction
 %
 % Bias correction is performed by optimising a GMM fit to the data.
@@ -21,26 +19,21 @@ function varargout = spm_bias_lib(varargin)
 %
 % [g,H]     = spm_bias_lib('derivatives', p, obs, basis, resp, cluster, codes, binvar)
 % [ll,bias] = spm_bias_lib('objective',   obs, resp, bias, mean, prec, codes, binvar)
-% [TODO] ll    = spm_bias_lib('prior',       coeff, precision)
+% [TODO] ll = spm_bias_lib('prior',       coeff, precision)
 %
 %--------------------------------------------------------------------------
 % Visualisation
 % -------------
 %
-% spm_bias_lib('Plot', 'LB',  lb)
-% spm_bias_lib('Plot', 'Bias', X, B)
+% spm_bias_lib('plot', 'LB',  lb)
+% spm_bias_lib('plot', 'Bias', X, B)
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id$
+% $Id: spm_bias_lib.m 7852 2020-05-19 14:00:48Z spm $
 
-if nargin == 0
-    help spm_bias_lib
-    error('Not enough argument. Type ''help spm_bias_lib'' for help.');
-end
-id = varargin{1};
-varargin = varargin(2:end);
-switch lower(id)
+
+switch lower(action)
     case 'fwhm2nbcomp'
         [varargout{1:nargout}] = fwhm2nbcomp(varargin{:});
     case 'dcbasis'
@@ -58,8 +51,7 @@ switch lower(id)
     case 'plot'
         [varargout{1:nargout}] = biasplot(varargin{:});
     otherwise
-        help spm_bias_lib
-        error('Unknown function %s. Type ''help spm_bias_lib'' for help.', id)
+        error('Unknown function %s.', action);
 end
 
 % =========================================================================
@@ -750,26 +742,21 @@ end
 lb = spm_gmm_lib('MarginalSum', lSS0, lSS1, lSS2, mean, prec, L, SS2b);
 
 % =========================================================================
-function varargout = biasplot(varargin)
+function varargout = biasplot(action,varargin)
 % Custom visualisation tools for Gaussian Mixture modelling
 %
-% spm_bias_lib('plot', 'lb', lb, (wintitle))
+% spm_bias_lib('plot', 'lb', lb, [figname])
 % > Plot lower bound
+% spm_bias_lib('plot', 'bias', X, B, lat, [figname])
+% > Plot bias field
 
-if nargin == 0
-    help spm_bias_lib>plot
-    error('Not enough argument. Type ''help spm_gmm_lib>plot'' for help.');
-end
-id = varargin{1};
-varargin = varargin(2:end);
-switch lower(id)
+switch lower(action)
     case {'lowerbound','lb'}
         [varargout{1:nargout}] = plot_lowerbound(varargin{:});
     case {'bias'}
         [varargout{1:nargout}] = plot_bias(varargin{:});
     otherwise
-        help spm_bias_lib>plot
-        error('Unknown function %s. Type ''help spm_bias_lib>plot'' for help.', id)
+        error('Unknown function %s.', action);
 end
 
 % =========================================================================
@@ -806,7 +793,7 @@ function plot_bias(X, B, lat, figname)
 
 % -------------------------------------------------------------------------
 % Get figure (create if it does not exist)
-if nargin < 5
+if nargin < 4
     figname = '(SPM) Plot bias field';
 end
 f = findobj('Type', 'Figure', 'Name', figname);

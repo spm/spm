@@ -1,12 +1,11 @@
 function res = spm_mb_output(cfg)
-%__________________________________________________________________________
+% Write output from groupwise normalisation and segmentation of images
+% FORMAT res = spm_mb_output(cfg)
 %
-% Write output from groupwise normalisation and segmentation of images.
-%
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id$
+% $Id: spm_mb_output.m 7852 2020-05-19 14:00:48Z spm $
 
 load(char(cfg.result));
 if isfield(sett.mu,'exist')
@@ -38,7 +37,6 @@ for n=1:N % Loop over subjects
     spm_progress_bar('Set',n);
 end
 spm_progress_bar('Clear');
-end
 %==========================================================================
 
 %==========================================================================
@@ -58,7 +56,6 @@ for i=1:nit
     spm_mrf(P,zn,G,vx2);
 end
 zn = single(P)/255;
-end
 %==========================================================================
 
 %==========================================================================
@@ -258,7 +255,7 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
 
     % If using multiple Gaussians per tissue, collapse so that zn is of size K1
     if Kmg > K1
-        for k=1:K1,
+        for k=1:K1
             zn(:,k) = sum(zn(:,mg_ix==k),2);
         end
         zn(:,K1 + 1:end)    = [];
@@ -325,15 +322,12 @@ if any(write_tc(:,2)) || any(write_tc(:,3))
         end
     end
 end
-
-end
 %==========================================================================
 
 %==========================================================================
 function phi = MatDefMul(phi,M)
 d   = size(phi);
 phi = reshape(bsxfun(@plus,reshape(phi,[prod(d(1:3)),3])*M(1:3,1:3)',M(1:3,4)'),d);
-end
 %==========================================================================
 
 %==========================================================================
@@ -360,6 +354,4 @@ Nii.mat0    = M;
 Nii.descrip = descrip;
 create(Nii);
 Nii.dat(:,:,:,:,:,:) = img;
-end
 %==========================================================================
-
