@@ -20,7 +20,7 @@ function [i,pC,pE,Np] = spm_find_pC(varargin)
 % Copyright (C) 2015-2019 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_find_pC.m 7714 2019-11-26 11:25:50Z spm $
+% $Id: spm_find_pC.m 7851 2020-05-19 10:48:59Z peter $
 
 %-parse input arguments
 %--------------------------------------------------------------------------
@@ -100,6 +100,9 @@ if isfield(DCM.options,'spatial')
     if strcmpi(DCM.options.analysis,'IND')
         [pE,dummy,pC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,DCM.Nf);
     else
+        if ~isfield(DCM,'C')
+            DCM.C = sparse(length(DCM.Sname) ,0);
+        end
         [pE,  pC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,DCM.options.model);        
         
         try                                                     %#ok<TRYNC>
