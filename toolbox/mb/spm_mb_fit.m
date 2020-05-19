@@ -11,7 +11,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 7853 2020-05-19 16:28:55Z john $
+% $Id: spm_mb_fit.m 7855 2020-05-19 22:17:56Z john $
 
 
 % Repeatable random numbers
@@ -21,7 +21,7 @@ rng('default'); rng(1);
 % Get template size and orientation
 %--------------------------------------------------------------------------
 if isfield(sett.mu,'exist')
-    mu0 = spm_mb_io('GetData',sett.mu.exist.mu);
+    mu0 = spm_mb_io('get_data',sett.mu.exist.mu);
 end
 Mmu = sett.mu.Mmu;
 
@@ -29,18 +29,18 @@ Mmu = sett.mu.Mmu;
 %--------------------------------------------------------------------------
 dmu     = sett.mu.d;
 nz      = max(ceil(log2(min(dmu(dmu~=1))) - log2(sett.min_dim)),1);
-sz      = spm_mb_shape('ZoomSettings',sett.v_settings,sett.mu,nz);
+sz      = spm_mb_shape('zoom_settings',sett.v_settings,sett.mu,nz);
 sett.ms = sz(end);
 
 % Init shape model parameters
 %--------------------------------------------------------------------------
-dat = spm_mb_shape('InitDef',dat,sett.ms);
+dat = spm_mb_shape('init_def',dat,sett.ms);
 
 % Init template
 %--------------------------------------------------------------------------
 if exist('mu0','var')
     % Shrink given template
-    mu = spm_mb_shape('ShrinkTemplate',mu0,Mmu,sett);
+    mu = spm_mb_shape('shrink_template',mu0,Mmu,sett);
 else
     % Random template
     mu = randn([sett.ms.d sett.K],'single')*1.0;
@@ -54,7 +54,7 @@ updt_aff  = true;
 updt_diff = all(isfinite(sett.v_settings));
 updt_mu   = ~exist('mu0','var');
 if ~exist('mu0','var')
-    te = spm_mb_shape('TemplateEnergy',mu,sett.ms.mu_settings);
+    te = spm_mb_shape('template_energy',mu,sett.ms.mu_settings);
     E  = [Inf Inf];
 else
     te = 0;
@@ -65,10 +65,10 @@ end
 % No update of intensity priors during this phase.
 %--------------------------------------------------------------------------
 for n=1:numel(dat)
-    dat(n).samp  = GetSamp(sett.ms.Mmu,dat(n).Mat,sett.sampdens);
+    dat(n).samp  = get_samp(sett.ms.Mmu,dat(n).Mat,sett.sampdens);
     dat(n).samp2 = [1 1 1];
 end
-updt_int = 'UpdatePrior';
+updt_int = 'update_prior';
 fprintf('Rigid (zoom=%d): %d x %d x %d\n',2^(numel(sz)-1),sett.ms.d);
 spm_plot_convergence('Init','Rigid Alignment & Burn In','Objective','Iteration');
 EE     = inf(1,sum([updt_mu, 1])); % For tracking objfun
@@ -77,14 +77,14 @@ for it0=1:nit_aff
     i   = 1;   % For tracking objfun
 
     if updt_mu
-        [mu,sett,dat,te,E] = IterateMean(mu,sett,dat,te,E,updt_int);
+        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,E,updt_int);
         EE(i) = E;
         i     = i + 1;
     end
 
     if true
         % UPDATE: rigid
-        dat   = spm_mb_shape('UpdateSimpleAffines',dat,mu,sett);
+        dat   = spm_mb_shape('update_simple_affines',dat,mu,sett);
         E     = sum(sum(cat(2,dat.E),2),1) + te;  % Cost function after previous update
         sett  = spm_mb_appearance(updt_int,dat, sett);
 
@@ -118,20 +118,20 @@ for zm=numel(sz):-1:1 % loop over zoom levels
     spm_plot_convergence('Init',['Diffeomorphic Alignment (' num2str(2^(zm-1)) ')'],'Objective','Iteration');
     for n=1:numel(dat)
         dat(n).samp  = [1 1 1];
-        dat(n).samp2 = GetSamp(sett.ms.Mmu,dat(n).Mat,sett.sampdens);
+        dat(n).samp2 = get_samp(sett.ms.Mmu,dat(n).Mat,sett.sampdens);
     end
 
     if ~updt_mu
-        mu = spm_mb_shape('ShrinkTemplate',mu0,Mmu,sett);
+        mu = spm_mb_shape('shrink_template',mu0,Mmu,sett);
     else
-        [mu,sett,dat,te,E] = IterateMean(mu,sett,dat,te,E);
+        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,E);
     end
 
     if updt_aff
         % UPDATE: rigid
-        dat   = spm_mb_shape('UpdateAffines',dat,mu,sett);
+        dat   = spm_mb_shape('update_affines',dat,mu,sett);
         E     = sum(sum(cat(2,dat.E),2),1) + te; % Cost function after previous update
-        sett  = spm_mb_appearance('UpdatePrior',dat, sett);
+        sett  = spm_mb_appearance('update_prior',dat, sett);
         fprintf('%12.4e', E);
         spm_plot_convergence('Set',E);
     end
@@ -145,16 +145,16 @@ for zm=numel(sz):-1:1 % loop over zoom levels
         i   = 1;   % For tracking objfun
 
         if updt_mu
-            [mu,sett,dat,te,E] = IterateMean(mu,sett,dat,te,E);
+            [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,E);
             EE(i)  = E;
             i      = i+1;
         end
 
         if updt_diff
             % UPDATE: diffeo
-            dat   = spm_mb_shape('UpdateVelocities',dat,mu,sett);
+            dat   = spm_mb_shape('update_velocities',dat,mu,sett);
             E     = sum(sum(cat(2,dat.E),2),1) + te; % Cost function after previous update
-            sett  = spm_mb_appearance('UpdatePrior',dat, sett);
+            sett  = spm_mb_appearance('update_prior',dat, sett);
             EE(i) = E;
             fprintf('%12.4e', E);
             spm_plot_convergence('Set',E);
@@ -168,25 +168,25 @@ for zm=numel(sz):-1:1 % loop over zoom levels
         % Compute deformations from velocities (unless this is to be done
         % on the zoomed versions).
         if it0<nit_zm && updt_diff
-            dat   = spm_mb_shape('UpdateWarps',dat,sett);
+            dat   = spm_mb_shape('update_warps',dat,sett);
         end
     end
 
     if zm > 1
         oMmu           = sett.ms.Mmu;
-        sett.ms        = CopyFields(sz(zm-1), sett.ms);
+        sett.ms        = copy_fields(sz(zm-1), sett.ms);
         if      updt_mu && updt_diff
-            [dat,mu]   = spm_mb_shape('ZoomVolumes',dat,mu,sett,oMmu);
+            [dat,mu]   = spm_mb_shape('zoom_volumes',dat,mu,sett,oMmu);
         elseif  updt_mu && ~updt_diff
-            [~,mu]     = spm_mb_shape('ZoomVolumes',[],mu,sett,oMmu);
+            [~,mu]     = spm_mb_shape('zoom_volumes',[],mu,sett,oMmu);
         elseif ~updt_mu && updt_diff
-            dat        = spm_mb_shape('ZoomVolumes',dat,mu,sett,oMmu);
+            dat        = spm_mb_shape('zoom_volumes',dat,mu,sett,oMmu);
         end
-        if updt_mu, te = spm_mb_shape('TemplateEnergy',mu,sett.ms.mu_settings); end % Compute template energy
+        if updt_mu, te = spm_mb_shape('template_energy',mu,sett.ms.mu_settings); end % Compute template energy
     end
 
     if updt_diff
-        dat        = spm_mb_shape('UpdateWarps',dat,sett); % Shoot new deformations
+        dat        = spm_mb_shape('update_warps',dat,sett); % Shoot new deformations
     end
     do_save(mu,sett,dat);
     spm_plot_convergence('Clear');
@@ -194,7 +194,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function samp = GetSamp(Mmu,Mf,sampdens)
+function samp = get_samp(Mmu,Mf,sampdens)
 if nargin<3
     n=16;
 else
@@ -207,16 +207,16 @@ samp = min(samp,5);
 %==========================================================================
 
 %==========================================================================
-function [mu,sett,dat,te,E] = IterateMean(mu,sett,dat,te,E,updt_int)
+function [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,E,updt_int)
 % UPDATE: mean
-if nargin<6, updt_int = 'UpdatePrior'; end
+if nargin<6, updt_int = 'update_prior'; end
 nit_mu = 5;
 for it=1:nit_mu
-    [mu,dat] = spm_mb_shape('UpdateMean',dat, mu, sett);
+    [mu,dat] = spm_mb_shape('update_mean',dat, mu, sett);
     oE       = E;
     E        = sum(sum(cat(2,dat.E),2),1) + te; % Cost function after previous update
     sett     = spm_mb_appearance(updt_int,dat, sett);
-    te       = spm_mb_shape('TemplateEnergy',mu,sett.ms.mu_settings);
+    te       = spm_mb_shape('template_energy',mu,sett.ms.mu_settings);
     fprintf('%12.4e', E);
     spm_plot_convergence('Set',E);
     do_save(mu,sett,dat);
@@ -225,7 +225,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function to = CopyFields(from,to)
+function to = copy_fields(from,to)
 fn = fieldnames(from);
 for i=1:numel(fn)
     to.(fn{i}) = from.(fn{i});
@@ -236,7 +236,7 @@ end
 function do_save(mu,sett,dat)
 if isfield(sett,'save') && sett.save
     % Save results so far
-    spm_mb_io('SaveTemplate',mu,sett);
+    spm_mb_io('save_template',mu,sett);
    %sett = rmfield(sett,{'ms'});
     save(fullfile(sett.odir,['mb_fit_' sett.onam '.mat']),'sett','dat');
 end

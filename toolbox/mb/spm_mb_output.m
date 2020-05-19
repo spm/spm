@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 7853 2020-05-19 16:28:55Z john $
+% $Id: spm_mb_output.m 7855 2020-05-19 22:17:56Z john $
 
 res  = load(char(cfg.result));
 sett = res.sett;
@@ -112,8 +112,8 @@ if isfield(datn.model,'gmm')
 
     if any(do_inu == true)
         % Get bias field
-        chan = spm_mb_appearance('BiasBasis',gmm.T,df,datn.Mat,ones(1,C));
-        inu  = spm_mb_appearance('BiasField',gmm.T,chan);
+        chan = spm_mb_appearance('inu_basis',gmm.T,df,datn.Mat,ones(1,C));
+        inu  = spm_mb_appearance('inu_field',gmm.T,chan);
         clear chan
 
         if any(write_inu == true) && any(do_inu == true)
@@ -137,7 +137,7 @@ if isfield(datn.model,'gmm')
 end
 
 if any(write_im(:)) || any(write_tc(:))
-    psi    = spm_mb_io('GetData',datn.psi);
+    psi    = spm_mb_io('get_data',datn.psi);
     psi    = MatDefMul(psi,inv(Mmu));
 end
 
@@ -145,15 +145,15 @@ end
 if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
 
     % Get image(s)
-    fn     = spm_mb_io('GetImage',gmm);
+    fn     = spm_mb_io('get_image',gmm);
 
     % Get warped tissue priors
-    mun    = spm_mb_shape('Pull1',mu,psi);
-    mun    = spm_mb_shape('TemplateK1',mun,4);
+    mun    = spm_mb_shape('pull1',mu,psi);
+    mun    = spm_mb_shape('template_k1',mun,4);
     mun    = reshape(mun,size(mun,1)*size(mun,2)*size(mun,3),size(mun,4));
 
     % Get labels
-    labels = spm_mb_appearance('GetLabels',datn,sett);
+    labels = spm_mb_appearance('get_labels',datn,sett);
     mun    = mun + labels;
     clear labels
 
@@ -168,7 +168,7 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
     mun                        = spm_gmm_lib('obs2cell', mun, code_image, false);
 
     % Get responsibilities
-    zn  = spm_mb_appearance('Responsibility',gmm.m,gmm.b,gmm.W,gmm.n,inufn,mun,msk_chn);
+    zn  = spm_mb_appearance('responsibility',gmm.m,gmm.b,gmm.W,gmm.n,inufn,mun,msk_chn);
     zn  = spm_gmm_lib('cell2obs', zn, code_image, msk_chn);
     clear mun msk_chn inufn
 
@@ -215,7 +215,7 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
     end
 
     % For improved push - subsampling density in each dimension
-    sd = spm_mb_shape('SampDens',Mmu,Mn);
+    sd = spm_mb_shape('samp_dens',Mmu,Mn);
 
     if any(write_im(:,3))
         % Write normalised image
@@ -225,7 +225,7 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
             if ~write_im(c,3), continue; end
             nam       = sprintf('wi%d_%s.nii',c,onam);
             fpth      = fullfile(dir_res,nam);
-            [img,cnt] = spm_mb_shape('Push1',fn(:,:,:,c)./inu(:,:,:,c), psi,dmu,sd);
+            [img,cnt] = spm_mb_shape('push1',fn(:,:,:,c)./inu(:,:,:,c), psi,dmu,sd);
             WriteNii(fpth,img./(cnt + eps('single')), Mmu, sprintf('Norm. (%d)',c), 'int16');
             clear img cnt
             c1           = c1 + 1;
@@ -242,7 +242,7 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
             if ~write_im(c,4), continue; end
             nam       = sprintf('wmi%d_%s.nii',c,onam);
             fpth      = fullfile(dir_res,nam);
-            [img,cnt] = spm_mb_shape('Push1',fn(:,:,:,c),psi,dmu,sd);
+            [img,cnt] = spm_mb_shape('push1',fn(:,:,:,c),psi,dmu,sd);
             WriteNii(fpth,img./(cnt + eps('single')), Mmu, sprintf('Norm. INU corr. (%d)',c),'int16');
             clear img cnt
             c1           = c1 + 1;
@@ -283,13 +283,13 @@ end
 if isfield(datn.model,'cat') && (any(write_tc(:,2)) || any(write_tc(:,3)))
     % Input data were segmentations
     %------------------
-    zn = spm_mb_io('GetData',datn.model.cat.f);
+    zn = spm_mb_io('get_data',datn.model.cat.f);
     zn = cat(4,zn,1 - sum(zn,4));
 end
 
 
 % For improved push - subsampling density in each dimension
-sd = spm_mb_shape('SampDens',Mmu,Mn);
+sd = spm_mb_shape('samp_dens',Mmu,Mn);
 
 if any(write_tc(:,2)) || any(write_tc(:,3))
     if any(write_tc(:,2)), resn.wc  = cell(1,sum(write_tc(:,2))); end
@@ -298,7 +298,7 @@ if any(write_tc(:,2)) || any(write_tc(:,3))
     kmwc = 0;
     for k=1:K1
         if write_tc(k,2) || write_tc(k,3)
-            [img,cnt] = spm_mb_shape('Push1',zn(:,:,:,k),psi,dmu,sd);
+            [img,cnt] = spm_mb_shape('push1',zn(:,:,:,k),psi,dmu,sd);
             if write_tc(k,2)
                 % Write normalised segmentation
                 kwc  = kwc + 1;

@@ -1,40 +1,39 @@
 function varargout = spm_mb_io(action,varargin)
 % File I/O Multi-Brain functionalities
 %
-% FORMAT fn      = spm_mb_io('GetImage',datn)
-% FORMAT [out,M] = spm_mb_io('GetData',in)
-% FORMAT [d,M]   = spm_mb_io('GetSize',fin)
-% FORMAT           spm_mb_io('SaveTemplate',mu,sett)
-% FORMAT fout    = spm_mb_io('SetData',fin,f)
-% FORMAT dat     = spm_mb_io('SavePsi',dat,sett);
+% FORMAT fn      = spm_mb_io('get_image',datn)
+% FORMAT [out,M] = spm_mb_io('get_data',in)
+% FORMAT [d,M]   = spm_mb_io('get_size',fin)
+% FORMAT           spm_mb_io('save_template',mu,sett)
+% FORMAT fout    = spm_mb_io('set_data',fin,f)
+% FORMAT dat     = spm_mb_io('save_psi',dat,sett);
 %
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_io.m 7853 2020-05-19 16:28:55Z john $
+% $Id: spm_mb_io.m 7855 2020-05-19 22:17:56Z john $
 
 switch action
-    case 'GetImage'
-        [varargout{1:nargout}] = GetImage(varargin{:});
-    case 'GetData'
-        [varargout{1:nargout}] = GetData(varargin{:});
-    case 'GetSize'
-        [varargout{1:nargout}] = GetSize(varargin{:});
-    case 'SaveTemplate'
-        [varargout{1:nargout}] = SaveTemplate(varargin{:});
-    case 'SetData'
-        [varargout{1:nargout}] = SetData(varargin{:});
-    case 'SavePsi'
-        [varargout{1:nargout}] = SavePsi(varargin{:});
+    case 'get_image'
+        [varargout{1:nargout}] = get_image(varargin{:});
+    case 'get_data'
+        [varargout{1:nargout}] = get_data(varargin{:});
+    case 'get_size'
+        [varargout{1:nargout}] = get_size(varargin{:});
+    case 'save_template'
+        [varargout{1:nargout}] = save_template(varargin{:});
+    case 'set_data'
+        [varargout{1:nargout}] = set_data(varargin{:});
+    case 'save_psi'
+        [varargout{1:nargout}] = save_psi(varargin{:});
     otherwise
         error('Unknown function %s.', action)
 end
 %==========================================================================
 
 %==========================================================================
-function out = GetScale(in)
+function out = get_scale(in)
 % Return a scale for adding random numbers
-
 
 if isnumeric(in)
     if isa(in,'integer')
@@ -72,12 +71,12 @@ end
 %==========================================================================
 
 %==========================================================================
-function fn = GetImage(gmm)
+function fn = get_image(gmm)
 % This is the place to do various image cleaning steps
-fn = spm_mb_io('GetData',gmm.f);
+fn = spm_mb_io('get_data',gmm.f);
 C  = size(fn,4);
-fn = Mask(fn,gmm.modality);
-jitter = GetScale(gmm.f);
+fn = mask(fn,gmm.modality);
+jitter = get_scale(gmm.f);
 jitter = reshape(jitter,[1 1 1 C]);
 if any(jitter~=0)
     % Data is an integer type, so to prevent aliasing in the histogram, small
@@ -88,15 +87,15 @@ end
 %==========================================================================
 
 %==========================================================================
-function fn = Mask(fn,modality)
+function fn = mask(fn,modality)
 C = size(fn,4);
 for c=1:C
-    fn(:,:,:,c) = ApplyMask(fn(:,:,:,c),modality(c));
+    fn(:,:,:,c) = apply_mask(fn(:,:,:,c),modality(c));
 end
 %==========================================================================
 
 %==========================================================================
-function f = ApplyMask(f,modality)
+function f = apply_mask(f,modality)
 if modality==2
     f(~isfinite(f) | f == 0 | f < - 1020 | f > 3000) = NaN;
 else
@@ -105,7 +104,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function [out,Mn] = GetData(in)
+function [out,Mn] = get_data(in)
 Mn = eye(4);
 if isnumeric(in)
     out = single(in);
@@ -136,21 +135,21 @@ end
 %==========================================================================
 
 %==========================================================================
-function [d,M] = GetSize(fin)
-d = [GetDimensions(fin) 1 1 1];
+function [d,M] = get_size(fin)
+d = [get_dimensions(fin) 1 1 1];
 M = d(4);
 d = d(1:3);
 %==========================================================================
 
 %==========================================================================
-function dat  = SavePsi(dat,sett)
+function dat  = save_psi(dat,sett)
 for n=1:numel(dat)
-    dat(n) = SavePsiSub(dat(n),sett);
+    dat(n) = save_psiSub(dat(n),sett);
 end
 %==========================================================================
 
 %==========================================================================
-function datn = SavePsiSub(datn,sett)
+function datn = save_psiSub(datn,sett)
 
 % Parse function settings
 B    = sett.B;
@@ -158,8 +157,8 @@ Mmu  = sett.ms.Mmu;
 d    = datn.dm;
 q    = double(datn.q);
 Mn   = datn.Mat;
-psi1 = GetData(datn.psi);
-psi  = spm_mb_shape('Compose',psi1,spm_mb_shape('Affine',d,Mmu\spm_dexpm(q,B)*Mn));
+psi1 = get_data(datn.psi);
+psi  = spm_mb_shape('compose',psi1,spm_mb_shape('affine',d,Mmu\spm_dexpm(q,B)*Mn));
 psi  = reshape(bsxfun(@plus, reshape(psi,[prod(d) 3])*Mmu(1:3,1:3)', Mmu(1:3,4)'),[d 3]);
 if isnumeric(datn.psi)
     datn.psi = psi;
@@ -179,7 +178,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function SaveTemplate(mu,sett)
+function save_template(mu,sett)
 
 if ~isfield(sett.mu,'create'), return; end
 
@@ -198,7 +197,7 @@ Nmu.dat(:,:,:,:) = mu;
 
 if true
     % Softmax
-    mu = spm_mb_shape('TemplateK1',mu);
+    mu = spm_mb_shape('template_k1',mu);
     mu = exp(mu);
     [pth,nam,ext] = fileparts(sett.mu.create.mu);
     nam      = ['softmax' nam(3:end)];
@@ -215,7 +214,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function fout = SetData(fin,f)
+function fout = set_data(fin,f)
 fout = fin;
 if isnumeric(fin)
     fout = f;
@@ -243,7 +242,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function d = GetDimensions(fin)
+function d = get_dimensions(fin)
 if isnumeric(fin)
     d = size(fin);
     d = [d 1 1];

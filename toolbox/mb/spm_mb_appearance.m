@@ -1,44 +1,40 @@
 function varargout = spm_mb_appearance(action,varargin)
 % Appearance model
 %
-% FORMAT chan       = spm_mb_appearance('BiasBasis',T,df,Mat,reg,samp)
-% FORMAT [inu,ll]   = spm_mb_appearance('BiasField',T,chan,d,varargin)
-% FORMAT labels     = spm_mb_appearance('GetLabels',dat,sett,do_samp)
-% FORMAT [dat,sett] = spm_mb_appearance('IntroduceMG',dat,sett)
-% FORMAT z          = spm_mb_appearance('Responsibility',m,b,W,n,f,mu,msk_chn)
-% FORMAT [z,dat]    = spm_mb_appearance('Update',dat,mu0,sett)
-% FORMAT dat        = spm_mb_appearance('UpdatePrior',dat,sett)
+% FORMAT chan       = spm_mb_appearance('inu_basis',T,df,Mat,reg,samp)
+% FORMAT [inu,ll]   = spm_mb_appearance('inu_field',T,chan,d,varargin)
+% FORMAT labels     = spm_mb_appearance('get_labels',dat,sett,do_samp)
+% FORMAT z          = spm_mb_appearance('responsibility',m,b,W,n,f,mu,msk_chn)
+% FORMAT [z,dat]    = spm_mb_appearance('update',dat,mu0,sett)
+% FORMAT dat        = spm_mb_appearance('update_prior',dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7854 2020-05-19 19:39:54Z john $
+% $Id: spm_mb_appearance.m 7855 2020-05-19 22:17:56Z john $
 
 
 switch action
-    case 'BiasBasis'
-        [varargout{1:nargout}] = BiasBasis(varargin{:});
-    case 'BiasField'
-        [varargout{1:nargout}] = BiasField(varargin{:});
-    case 'GetLabels'
-        [varargout{1:nargout}] = GetLabels(varargin{:});
-    case 'IntroduceMG'
-        [varargout{1:nargout}] = IntroduceMG(varargin{:});
-    case 'Responsibility'
-        [varargout{1:nargout}] = Responsibility(varargin{:});
-    case 'Update'
-        [varargout{1:nargout}] = Update(varargin{:});
-    case 'UpdatePrior'
-        [varargout{1:nargout}] = UpdatePrior(varargin{:});
-    case 'UpdateSharedPrior'
-        [varargout{1:nargout}] = UpdateSharedPrior(varargin{:});
+    case 'inu_basis'
+        [varargout{1:nargout}] = inu_basis(varargin{:});
+    case 'inu_field'
+        [varargout{1:nargout}] = inu_field(varargin{:});
+    case 'get_labels'
+        [varargout{1:nargout}] = get_labels(varargin{:});
+    case 'responsibility'
+        [varargout{1:nargout}] = responsibility(varargin{:});
+    case 'update'
+        [varargout{1:nargout}] = update(varargin{:});
+    case 'update_prior'
+        [varargout{1:nargout}] = update_prior(varargin{:});
+    case 'update_shared_prior'
+        [varargout{1:nargout}] = update_shared_prior(varargin{:});
     otherwise
         error('Unknown function %s.', action)
 end
 %==========================================================================
 
 %==========================================================================
-% BiasField()
-function [inu,ll] = BiasField(T,chan)
+function [inu,ll] = inu_field(T,chan)
 d  = [size(chan(1).B1,1) size(chan(1).B2,1) size(chan(1).B3,1)];
 nz = d(3);
 C  = numel(T);
@@ -52,18 +48,17 @@ for c=cr
     t = double(T{c});
     ll(c) = -0.5*t(:)'*chan(c).ICO*t(:);
     for z=1:nz
-        inu_c        = TransformBF(chan(c).B1,chan(c).B2,chan(c).B3(z,:),T{c});
+        inu_c        = inu_transform(chan(c).B1,chan(c).B2,chan(c).B3(z,:),T{c});
         inu(:,:,z,c) = single(exp(inu_c));
     end
 end
 %==========================================================================
 
 %==========================================================================
-% TransformBF()
-function t = TransformBF(B1,B2,B3,T)
+function t = inu_transform(B1,B2,B3,T)
 % Create an image-space log bias field from its basis function encoding.
 %
-% FORMAT t = TransformBF(B1,B2,B3,T)
+% FORMAT t = inu_transform(B1,B2,B3,T)
 % B1 - x-dim DCT basis [nx kx]
 % B2 - y-dim DCT basis [ny ky]
 % B3 - z-dim DCT basis [nz kz]
@@ -79,12 +74,12 @@ end
 %==========================================================================
 
 %==========================================================================
-function chan = BiasBasis(T,df,Mat,reg,samp)
+function chan = inu_basis(T,df,Mat,reg,samp)
 if nargin<5, samp = 0; end
 if nargin<4, reg  = ones(1,numel(T)); end
 cl   = cell(1, numel(T));
 chan = struct('ICO', cl, 'B1',cl, 'B2',cl, 'B3',cl);
-ind  = SampleInd(df,samp);
+ind  = sample_ind(df,samp);
 vx   = sqrt(sum(Mat(1:3,1:3).^2,1));
 for c=1:numel(T)
     d3 = [size(T{c}) 1];
@@ -101,8 +96,8 @@ end
 %==========================================================================
 
 %==========================================================================
-% GetLabels()
-function labels = GetLabels(dat,sett,samp)
+% get_labels()
+function labels = get_labels(dat,sett,samp)
 if nargin < 3, samp = [1 1 1]; end
 lab = dat.model.gmm.lab;
 if isempty(lab), labels = 0; return; end
@@ -110,23 +105,23 @@ if isempty(lab), labels = 0; return; end
 cm_map     = lab.cm_map; % cell array that defines the confusion matrix (cm)
 
 % Load labels
-labels = spm_mb_io('GetData',lab.f);
-labels = SubSample(labels,samp);
+labels = spm_mb_io('get_data',lab.f);
+labels = subsample(labels,samp);
 
 % Use labels2use to keep only labels of interest
 labels = round(labels(:));
 labels(labels<1 || labels>numel(cm_map)) = numel(cm_map)+1;
 
 % Get confusion matrix that maps from label value to probability value
-cm     = GetLabelConfMatrix(cm_map,sett);
+cm     = get_label_conf_matrix(cm_map,sett);
 
 % Build NxK1 label image using confusion matrix
 labels = cm(labels,:);
 %==========================================================================
 
 %==========================================================================
-% GetLabelConfMatrix()
-function cm = GetLabelConfMatrix(cm_map,w,K)
+% get_label_conf_matrix()
+function cm = get_label_conf_matrix(cm_map,w,K)
 % FORMAT CM = get_label_cm(cm_map,opt)
 % cm_map - Defines the confusion matrix
 % sett   - Options structure
@@ -164,11 +159,11 @@ cm(L+1,:) = zeros(1,K1);
 %==========================================================================
 
 %==========================================================================
-% Responsibility()
-function [z,lb] = Responsibility(m,b,W,n,f,mu,msk_chn)
+% responsibility()
+function [z,lb] = responsibility(m,b,W,n,f,mu,msk_chn)
 % Compute responsibilities.
 %
-% FORMAT z = Responsibility(m,b,W,n,f,mu,L,code)
+% FORMAT z = responsibility(m,b,W,n,f,mu,L,code)
 % m       - GMM Means
 % b       - GMM Mean d.f.
 % W       - GMM Scale matrices
@@ -184,10 +179,10 @@ f      = spm_gmm_lib('Marginal', f, {m,W,n}, const, msk_chn);
 %==========================================================================
 
 %==========================================================================
-function [dat,Z] = Update(dat,mu0,sett)
+function [dat,Z] = update(dat,mu0,sett)
 % Update appearance model for a single subject (GMM & bias field)
 %
-% FORMAT [dat,Z] = Update(dat,mu0,sett)
+% FORMAT [dat,Z] = update(dat,mu0,sett)
 % dat - Structure holding data for a single subject
 % mu0 - Log template
 % sett - Structure of settings
@@ -211,8 +206,8 @@ ds           = [size(mu0) 1 1];
 ds           = ds(1:3);
 
 % Get image data
-f0    = spm_mb_io('GetImage',gmm);
-f0    = SubSample(f0,dat.samp);
+f0    = spm_mb_io('get_image',gmm);
+f0    = subsample(f0,dat.samp);
 samp  = dat.samp;
 samp2 = dat.samp2;
 
@@ -249,20 +244,20 @@ clear msk_vx
 % are systematic differences between odd and even slices.
 % If the subset contains only odd slices, then the overall
 % log-likelihood can increase.
-[f,d] = SubSample( f0,samp2);
-mu    = SubSample(mu0,samp2);
+[f,d] = subsample( f0,samp2);
+mu    = subsample(mu0,samp2);
 
 % Template
-mu    = vol2vec(spm_mb_shape('TemplateK1',mu)); % Make K + 1 template
-mu    = mu + GetLabels(dat,sett,true); % Add labels and template
+mu    = vol2vec(spm_mb_shape('template_k1',mu)); % Make K + 1 template
+mu    = mu + get_labels(dat,sett,true); % Add labels and template
 mu    = mu(:,mg_ix); % Expand, if using multiple Gaussians per tissue
 
 % Bias field related
 T      = gmm.T;
 do_inu = ~cellfun(@isempty,T);
 if any(do_inu)
-    chan         = BiasBasis(T,df,Mat,reg,samp.*samp2);
-    [inu,llpinu] = BiasField(T,chan);
+    chan         = inu_basis(T,df,Mat,reg,samp.*samp2);
+    [inu,llpinu] = inu_field(T,chan);
     inuf         = inu.*f;
 else
     inuf         = f;
@@ -277,7 +272,7 @@ code_list                 = code_list(code_list ~= 0);
 lbs = -Inf;
 if any(do_inu)
     % Make sure bias field part of lower bound is correct
-    lxb = SumLnINU(vol2vec(inu),code_image) + sum(llpinu);
+    lxb = inu_sum_log(vol2vec(inu),code_image) + sum(llpinu);
 else
     lxb = 0;
 end
@@ -401,7 +396,7 @@ for it_appear=1:nit_appear
             clear b3
 
             % Gauss-Newton update of bias field parameters
-            Update = reshape((H + chan(c).ICO)\(gr + chan(c).ICO*T{c}(:)),size(T{c}));
+            T_update = reshape((H + chan(c).ICO)\(gr + chan(c).ICO*T{c}(:)),size(T{c}));
             clear H gr
 
             % Line-search
@@ -413,16 +408,16 @@ for it_appear=1:nit_appear
             for ls=1:nit_lsinu
 
                 % Update bias-field parameters
-                T{c} = T{c} - armijo*Update;
+                T{c} = T{c} - armijo*T_update;
 
                 % Compute new bias-field (only for channel c)
-                [inu(:,:,:,c),llpinu(c)] = BiasField(T(c),chan(c));
+                [inu(:,:,:,c),llpinu(c)] = inu_field(T(c),chan(c));
                 inuf  = spm_gmm_lib('obs2cell', vol2vec(inu.*f), code_image, true);
 
                 % Recompute responsibilities and lower bounds
                 % (with updated bias field)
-                [Z,lx] = Responsibility(m,b,W,n,inuf,ReWeightMu(mu,log(mg_w)),msk_chn);
-                lxb    = SumLnINU(vol2vec(inu), code_image) + sum(llpinu);
+                [Z,lx] = responsibility(m,b,W,n,inuf,reweight_mu(mu,log(mg_w)),msk_chn);
+                lxb    = inu_sum_log(vol2vec(inu), code_image) + sum(llpinu);
                 % Check new lower bound
                 if  ((lx + lxb) - (olx + olxb))/abs(lx + lxb) > -eps('single')
                     % Converged
@@ -433,15 +428,15 @@ for it_appear=1:nit_appear
                     if ls == nit_lsinu
                         % Did not converge -> reset
                         llpinu       = ollpinu;
-                        inu(:,:,:,c) = BiasField(T(c),chan(c));
+                        inu(:,:,:,c) = inu_field(T(c),chan(c));
                         inuf         = spm_gmm_lib('obs2cell', vol2vec(inu.*f), code_image, true);
 
                         % Recompute responsibilities
-                        Z = Responsibility(m,b,W,n,inuf,ReWeightMu(mu,log(mg_w)),msk_chn);
+                        Z = responsibility(m,b,W,n,inuf,reweight_mu(mu,log(mg_w)),msk_chn);
                     end
                 end
             end
-            clear oT Update
+            clear oT T_update
         end
     end
 end
@@ -464,9 +459,9 @@ if nargout > 1
     if any(samp2~=1)
         % Compute full-sized responsibilities on original data
         if any(do_inu) % Bias correct
-            chan = BiasBasis(T,df,Mat,reg,samp);
-            [inu,llpinu] = BiasField(T,chan);
-            lxb  = SumLnINU(vol2vec(inu), code_image) + sum(llpinu);
+            chan = inu_basis(T,df,Mat,reg,samp);
+            [inu,llpinu] = inu_field(T,chan);
+            lxb  = inu_sum_log(vol2vec(inu), code_image) + sum(llpinu);
             inuf = inu.*f0;
         else
             inuf = f0;
@@ -475,8 +470,8 @@ if nargout > 1
         [inuf,code_image,msk_chn] = spm_gmm_lib('obs2cell', vol2vec(inuf));
 
         % Template
-        mu0 = vol2vec(spm_mb_shape('TemplateK1',mu0));
-        mu0 = mu0 + GetLabels(dat,sett);
+        mu0 = vol2vec(spm_mb_shape('template_k1',mu0));
+        mu0 = mu0 + get_labels(dat,sett);
        %mu0 = mu0(:,mg_ix) + log(mg_w);
         mu0 = bsxfun(@plus, mu0(:,mg_ix), log(mg_w));
         mu0 = spm_gmm_lib('obs2cell', mu0, code_image, false);
@@ -484,7 +479,7 @@ if nargout > 1
         % Many of the responsibilities here should really be
         % computed with a mixture of Student's t distributions.
         % See Eqns. 10.78-10.82 & B.68-B.72 in Bishop's PRML book.
-        [Z,lx]   = Responsibility(m,b,W,n,inuf,mu0,msk_chn);
+        [Z,lx]   = responsibility(m,b,W,n,inuf,mu0,msk_chn);
         lbs      = lx+lxb+lb.MU(end)+lb.A(end);
         clear mu0
     end
@@ -524,7 +519,7 @@ X4d = reshape(X2d,[dm(1:3) size(X2d,2)]);
 %==========================================================================
 
 %==========================================================================
-function gmm = FixScaling(gmm,pr,df)
+function gmm = fix_scaling(gmm,pr,df)
 % This function appears to make things worse for some reason. This will need
 % more thought to understand the reason why.
 
@@ -535,7 +530,7 @@ if ~any(msk), return; end                % Return if nothing to do
 
 po     = {gmm.m, gmm.b, gmm.W, gmm.n};
 r      = zeros(size(pr{1},1),1);
-r(msk) = GetScaling(pr,po,msk);
+r(msk) = get_scaling(pr,po,msk);
 s      = exp(r);
 
 % Adjust distributions of mean and precision matrices
@@ -551,7 +546,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function r = GetScaling(pr,po,msk)
+function r = get_scaling(pr,po,msk)
 % Determine log of rescaling factor that best matches the priors
 % with the posteriors. This was based on Eq. 10.74 of Bishop's
 % PRML book.
@@ -592,7 +587,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function sett = UpdatePrior(dat, sett)
+function sett = update_prior(dat, sett)
 if isempty(sett.gmm), return; end
 
 % Get population indices
@@ -626,7 +621,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function sett = UpdateSharedPrior(dat, sett)
+function sett = update_shared_prior(dat, sett)
 if isempty(sett.gmm), return; end
 
 % Get population indices
@@ -677,10 +672,10 @@ end
 %==========================================================================
 
 %==========================================================================
-function lb = SumLnINU(varargin)
+function lb = inu_sum_log(varargin)
 % Compute parts of the lower bound
 %
-% FORMAT lb = SumLnINU(inu,code_image)
+% FORMAT lb = inu_sum_log(inu,code_image)
 % inu        - Exponentiated INU field [one channel]
 % code_image - integer type data indicating whether data present
 % lb         - Sum of the log bias field
@@ -703,7 +698,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function mu = ReWeightMu(mu,logmg_w)
+function mu = reweight_mu(mu,logmg_w)
 if sum(logmg_w) == 0, return; end
 for i=1:numel(mu)
    %mu{i} = mu{i} + logmg_w;
@@ -712,10 +707,10 @@ end
 %==========================================================================
 
 %==========================================================================
-function [of,d,w] = SubSample(f,samp)
+function [of,d,w] = subsample(f,samp)
 % Subsample a multichannel volume.
 %
-% FORMAT [of,d,scl_samp] = SubSample(f,samp);
+% FORMAT [of,d,scl_samp] = subsample(f,samp);
 % f    - Original volume
 % samp - Sampling distances in voxels
 % of   - Resampled volume
@@ -731,7 +726,7 @@ else
     df   = [size(f) 1];
     df   = df(1:3);
 
-    ind  = SampleInd(df,samp);
+    ind  = sample_ind(df,samp);
     d    = cellfun(@length,ind);  % New dimensions
     of   = f(ind{:},:,:);
 
@@ -742,8 +737,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function ind = SampleInd(df,samp)
+function ind = sample_ind(df,samp)
 sk   = max([1 1 1],samp);
 ind  = {round(1:sk(1):df(1)), round(1:sk(2):df(2)), round(1:sk(3):df(3))};
 %==========================================================================
-

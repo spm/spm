@@ -5,17 +5,17 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7854 2020-05-19 19:39:54Z john $
+% $Id: spm_mb_init.m 7855 2020-05-19 22:17:56Z john $
 
-[dat,sett] = spm_mb_init1(cfg);
+[dat,sett] = mb_init1(cfg);
 
 % Done if there are no GMMs to fit
 if sum(cellfun(@(c)isfield(c,'gmm'),{dat.model}))==0, return; end
-[sett,dat] = RandomInit(sett,dat);
+[sett,dat] = random_init(sett,dat);
 %==========================================================================
 
 %==========================================================================
-function [dat,sett] = spm_mb_init1(cfg)
+function [dat,sett] = mb_init1(cfg)
 sett     = cfg;
 mu       = sett.mu;
 sett.odir = sett.odir{1};
@@ -39,7 +39,7 @@ sett.K      = K;
 
 % Affine Lie algebra basis functions
 if ~isempty(sett.aff)
-    B   = spm_mb_shape('AffineBases',sett.aff);
+    B   = spm_mb_shape('affine_bases',sett.aff);
 else
     B   = zeros([3 3 0]);
 end
@@ -264,12 +264,12 @@ for p=1:numel(cfg.gmm)
 end
 
 if isfield(sett.mu,'create')
-    [sett.mu.Mmu,sett.mu.d] = SpecifyMean(dat,sett.mu.create.vx*[1 1 1]);
+    [sett.mu.Mmu,sett.mu.d] = specify_mean(dat,sett.mu.create.vx*[1 1 1]);
 end
 %==========================================================================
 
 %==========================================================================
-function [sett,dat] = RandomInit(sett,dat)
+function [sett,dat] = random_init(sett,dat)
 if isempty(sett.gmm), return; end
 
 code = zeros(numel(dat),1);
@@ -292,7 +292,7 @@ for p=1:numel(sett.gmm) % Loop over populations
         n1  = index(n);                  % Index of this subject
         gmm = dat(n1).model.gmm;         % GMM data for this subject
         dm  = dat(n1).dm;                % Image dimensions
-        f   = spm_mb_io('GetImage',gmm); % Image data
+        f   = spm_mb_io('get_image',gmm); % Image data
         f   = reshape(f,prod(dm),C);     % Vectorise
         T   = gmm.T;                     % INU parameters
         mu  = zeros(C,1);                % Mean
@@ -380,7 +380,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function [Mat,dm] = SpecifyMean(dat,vx)
+function [Mat,dm] = specify_mean(dat,vx)
 % Specify the voxel-to-world matrix (Mat) and dimensions (dm) of the template
 N  = numel(dat);     % Number of subjects
 if N==0
