@@ -3,7 +3,7 @@ function out = spm_mb_merge(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_merge.m 7852 2020-05-19 14:00:48Z spm $
+% $Id: spm_mb_merge.m 7853 2020-05-19 16:28:55Z john $
 
 out      = struct('mu','priors');
 odir     = cfg.odir{1};
@@ -34,7 +34,7 @@ if strcmp(ext,'.mat')
     % Save the reordered priors for each population
     out.priors = cell(numel(r.sett.gmm),1);
     for p=1:numel(r.sett.gmm)
-        matname    = fullfile(odir,['prior_' onam '_' num2str(p) '.mat']);
+        matname    = fullfile(odir,sprintf('prior_%s_%d.mat',onam,p));
         mg_ix      = ix(r.sett.gmm(p).mg_ix);
         [mg_ix,si] = sort(mg_ix);
         pr         = r.sett.gmm(p).pr;

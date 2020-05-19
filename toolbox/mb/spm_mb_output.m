@@ -5,9 +5,12 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 7852 2020-05-19 14:00:48Z spm $
+% $Id: spm_mb_output.m 7853 2020-05-19 16:28:55Z john $
 
-load(char(cfg.result));
+res  = load(char(cfg.result));
+sett = res.sett;
+dat  = res.dat;
+
 if isfield(sett.mu,'exist')
     mu = sett.mu.exist.mu;
 elseif isfield(sett.mu,'create')
@@ -115,16 +118,15 @@ if isfield(datn.model,'gmm')
 
         if any(write_inu == true) && any(do_inu == true)
             % Write bias field
-            descrip  = 'Bias field (';
             inu      = reshape(inu,[df(1:3) C]);
             resn.inu = cell(1,sum(write_inu));
             c1       = 0;
             for c=1:C
                 if ~write_inu(c,1), continue; end
                 c1   = c1 + 1;
-                nam  = ['inu' num2str(c) '_' onam '.nii'];
+                nam  = sprintf('inu%d_%s.nii',c,onam);
                 fpth = fullfile(dir_res,nam);
-                WriteNii(fpth,inu(:,:,:,c), Mn,[descrip 'c=' num2str(c) ')']);
+                WriteNii(fpth,inu(:,:,:,c), Mn, sprintf('INU (%d)',c));
                 c1           = c1 + 1;
                 resn.inu{c1} = fpth;
             end
@@ -186,14 +188,13 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
 
     if any(write_im(:,1))
         % Write image
-        descrip = 'Image (';
         resn.im = cell(1,sum(write_im(:,1)));
         c1      = 0;
         for c=1:C
             if ~write_im(c,1), continue; end
-            nam  = ['i' num2str(c) '_' onam '.nii'];
+            nam  = sprintf('i%d_%s.nii',c,onam);
             fpth = fullfile(dir_res,nam);
-            WriteNii(fpth,fn(:,:,:,c)./inu(:,:,:,c), Mn, [descrip 'c=' num2str(c) ')'], 'int16');
+            WriteNii(fpth,fn(:,:,:,c)./inu(:,:,:,c), Mn, sprintf('Image (%d)',c), 'int16');
             c1          = c1 + 1;
             resn.m{c1} = fpth;
         end
@@ -201,14 +202,13 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
 
     if any(write_im(:,2))
         % Write image corrected
-        descrip = 'Image corrected (';
         resn.mi = cell(1,sum(write_im(:,2)));
         c1      = 0;
         for c=1:C
             if ~write_im(c,2), continue; end
-            nam  = ['mi' num2str(c) '_' onam '.nii'];
+            nam  = sprintf('mi%d_%s.nii',c,onam);
             fpth = fullfile(dir_res,nam);
-            WriteNii(fpth, fn(:,:,:,c), Mn, [descrip 'c=' num2str(c) ')'], 'int16');
+            WriteNii(fpth, fn(:,:,:,c), Mn, sprintf('INU corr. (%d)',c), 'int16');
             c1           = c1 + 1;
             resn.mi{c1} = fpth;
         end
@@ -219,15 +219,14 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
 
     if any(write_im(:,3))
         % Write normalised image
-        descrip = 'Normalised image (';
         resn.wi = cell(1,sum(write_im(:,3)));
         c1      = 0;
         for c=1:C
             if ~write_im(c,3), continue; end
-            nam       = ['wi' num2str(c) '_' onam '.nii'];
+            nam       = sprintf('wi%d_%s.nii',c,onam);
             fpth      = fullfile(dir_res,nam);
             [img,cnt] = spm_mb_shape('Push1',fn(:,:,:,c)./inu(:,:,:,c), psi,dmu,sd);
-            WriteNii(fpth,img./(cnt + eps('single')), Mmu, [descrip 'c=' num2str(c) ')'], 'int16');
+            WriteNii(fpth,img./(cnt + eps('single')), Mmu, sprintf('Norm. (%d)',c), 'int16');
             clear img cnt
             c1           = c1 + 1;
             resn.wi{c1} = fpth;
@@ -237,15 +236,14 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
 
     if any(write_im(:,4))
         % Write normalised image corrected
-        descrip  = 'Normalised image corrected (';
         resn.wmi = cell(1,sum(write_im(:,4)));
         c1       = 0;
         for c=1:C
             if ~write_im(c,4), continue; end
-            nam       = ['wmi' num2str(c) '_' onam '.nii'];
+            nam       = sprintf('wmi%d_%s.nii',c,onam);
             fpth      = fullfile(dir_res,nam);
             [img,cnt] = spm_mb_shape('Push1',fn(:,:,:,c),psi,dmu,sd);
-            WriteNii(fpth,img./(cnt + eps('single')), Mmu,[descrip 'c=' num2str(c) ')'],'int16');
+            WriteNii(fpth,img./(cnt + eps('single')), Mmu, sprintf('Norm. INU corr. (%d)',c),'int16');
             clear img cnt
             c1           = c1 + 1;
             resn.wmi{c1} = fpth;
@@ -269,14 +267,13 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
 
     if any(write_tc(:,1) == true)
         % Write segmentations
-        descrip = 'Tissue (';
         resn.c  = cell(1,sum(write_tc(:,1)));
         k1      = 0;
         for k=1:K1
             if ~write_tc(k,1), continue; end
-            nam  = ['c' num2str(k) '_' onam '.nii'];
+            nam  = sprintf('c%.2d_%s.nii',k,onam);
             fpth = fullfile(dir_res,nam);
-            WriteNii(fpth,zn(:,:,:,k), Mn, [descrip 'k=' num2str(k) ')'], 'uint8');
+            WriteNii(fpth,zn(:,:,:,k), Mn, sprintf('Tissue (%d)',k), 'uint8');
             k1         = k1 + 1;
             resn.c{k1} = fpth;
         end
@@ -305,18 +302,18 @@ if any(write_tc(:,2)) || any(write_tc(:,3))
             if write_tc(k,2)
                 % Write normalised segmentation
                 kwc  = kwc + 1;
-                fpth = fullfile(dir_res, ['wc' num2str(k) '_' onam '.nii']);
+                fpth = fullfile(dir_res, sprintf('wc%.2d_%s.nii',k,onam));
                 resn.wc{kwc} = fpth;
                 WriteNii(fpth, img./(cnt + eps('single')),...
-                         Mmu, ['Norm. tiss. (k=' num2str(k) ')'], 'uint8');
+                         Mmu, sprintf('Norm. tissue (%d)',k), 'uint8');
             end
             if write_tc(k,3)
                 % Write normalised modulated segmentation
                 kmwc = kmwc + 1;
-                fpth = fullfile(dir_res,['mwc' num2str(k) '_' onam '.nii']);
+                fpth = fullfile(dir_res,sprintf('mwc%.2d_%s.nii',k,onam));
                 resn.mwc{kmwc} = fpth;
                 img  = img*abs(det(Mn(1:3,1:3))/det(Mmu(1:3,1:3)));
-                WriteNii(fpth,img, Mmu, ['Norm. mod. tiss. (k=' num2str(k) ')'], 'int16');
+                WriteNii(fpth,img, Mmu, sprintf('Norm. mod. tissue (%d)',k), 'int16');
             end
             clear img cnt
         end

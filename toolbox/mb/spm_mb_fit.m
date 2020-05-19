@@ -11,7 +11,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 7852 2020-05-19 14:00:48Z spm $
+% $Id: spm_mb_fit.m 7853 2020-05-19 16:28:55Z john $
 
 
 % Repeatable random numbers
@@ -141,7 +141,7 @@ for zm=numel(sz):-1:1 % loop over zoom levels
     nit_zm = nit_zm0 + (zm - 1); % use nit_zm0 only for zm = 1
     for it0=1:nit_zm
 
-        oEE = EE;
+       %oEE = EE;
         i   = 1;   % For tracking objfun
 
         if updt_mu
@@ -195,7 +195,11 @@ end
 
 %==========================================================================
 function samp = GetSamp(Mmu,Mf,sampdens)
-if nargin<3, n=16; else n = sampdens^3; end
+if nargin<3
+    n=16;
+else
+    n = sampdens^3;
+end
 vmu  = sqrt(sum(Mmu(1:3,1:3).^2));
 vf   = sqrt(sum( Mf(1:3,1:3).^2));
 samp = max(round(((prod(vmu)/prod(vf)/n).^(1/3))./vf),1);
@@ -233,7 +237,6 @@ function do_save(mu,sett,dat)
 if isfield(sett,'save') && sett.save
     % Save results so far
     spm_mb_io('SaveTemplate',mu,sett);
-   %dat  = rmfield(dat,{'samp','samp2'});
    %sett = rmfield(sett,{'ms'});
     save(fullfile(sett.odir,['mb_fit_' sett.onam '.mat']),'sett','dat');
 end

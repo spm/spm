@@ -4,7 +4,7 @@ function cfg = tbx_cfg_mb
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: tbx_cfg_mb.m 7852 2020-05-19 14:00:48Z spm $
+% $Id: tbx_cfg_mb.m 7853 2020-05-19 16:28:55Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
@@ -333,7 +333,7 @@ dff.tag         = 'v_settings';
 dff.name        = 'Shape regularisation';
 dff.strtype     = 'e';
 dff.num         = [1 5];
-dff.val         = {[0.0001 0 0.5 0.125 0.5]};
+dff.val         = {[0.0001 0 0.4 0.1 0.4]};
 dff.help        = {'Regularisation settings for the diffeomorphic registration. The defaults work reasonably well.',''};
 % ---------------------------------------------------------------------
 

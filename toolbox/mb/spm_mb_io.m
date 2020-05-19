@@ -11,7 +11,7 @@ function varargout = spm_mb_io(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_io.m 7852 2020-05-19 14:00:48Z spm $
+% $Id: spm_mb_io.m 7853 2020-05-19 16:28:55Z john $
 
 switch action
     case 'GetImage'
@@ -97,8 +97,10 @@ end
 
 %==========================================================================
 function f = ApplyMask(f,modality)
-if modality==2, f(~isfinite(f) | f == 0 | f < - 1020 | f > 3000) = NaN;
-else            f(~isfinite(f) | f == 0)                         = NaN;
+if modality==2
+    f(~isfinite(f) | f == 0 | f < - 1020 | f > 3000) = NaN;
+else
+    f(~isfinite(f) | f == 0)                         = NaN;
 end
 %==========================================================================
 

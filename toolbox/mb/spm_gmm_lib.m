@@ -40,7 +40,7 @@ function varargout = spm_gmm_lib(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_gmm_lib.m 7852 2020-05-19 14:00:48Z spm $
+% $Id: spm_gmm_lib.m 7853 2020-05-19 16:28:55Z john $
 
 %--------------------------------------------------------------------------
 % Convention
@@ -198,7 +198,7 @@ function [Z,cluster,prop,lb,mg_w] = loop(X, weights, cluster, props, varargin)
 % entry point. To fit a GMM without having to bother with these issues, use
 % spm_gmm instead.
 %
-% FORMAT [resp,cluster,prop,lb,mg_w,ss] = spm_gmm_lib('loop',obs,weights,cluster,prop,...)
+% FORMAT [resp,cluster,prop,lb,mg_w] = spm_gmm_lib('loop',obs,weights,cluster,prop,...)
 %
 % MANDATORY
 % ---------
@@ -283,6 +283,7 @@ p.addParameter('Labels',         [],    @(X) isnumeric(X) || iscell(X));
 p.addParameter('MultGaussPi',    {},    @iscell);
 p.parse(varargin{:});
 lb              = p.Results.LowerBound;
+Z               = p.Results.Resp;
 prop_prior      = p.Results.PropPrior;
 obs_channels    = p.Results.Missing;
 obs_uncertainty = p.Results.ObsUncertainty;
@@ -2891,7 +2892,7 @@ function ld = logdet(A)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_gmm_lib.m 7852 2020-05-19 14:00:48Z spm $
+% $Id: spm_gmm_lib.m 7853 2020-05-19 16:28:55Z john $
 
 % Cholseki decomposition of A (A = C' * C, with C upper-triangular)
 [C, p] = chol(A);

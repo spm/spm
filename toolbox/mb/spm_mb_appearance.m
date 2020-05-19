@@ -11,7 +11,7 @@ function varargout = spm_mb_appearance(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7852 2020-05-19 14:00:48Z spm $
+% $Id: spm_mb_appearance.m 7853 2020-05-19 16:28:55Z john $
 
 
 switch action
@@ -223,15 +223,13 @@ W    = gmm.W;
 n    = gmm.n;
 mg_w = gmm.mg_w;
 
-if false
-    % Broaden the variance to make less informative.
-    % Might sometimes help escape local optima. Broadened
-    % more when sample density is lowest. Needs further
-    % testing.
-    scal = prod(samp.*samp2).^(-1/4);
-    b    = b*scal;
-    n    = (n-C)*scal+C;
-end
+% % Broaden the variance to make less informative.
+% % Might sometimes help escape local optima. Broadened
+% % more when sample density is lowest. Needs further
+% % testing.
+% scal = prod(samp.*samp2).^(-1/4);
+% b    = b*scal;
+% n    = (n-C)*scal+C;
 
 % If template is missing, set corresponding voxels of
 % f to missing too.
@@ -521,7 +519,6 @@ X4d = reshape(X2d,[dm(1:3) size(X2d,2)]);
 function gmm = FixScaling(gmm,pr,df)
 % This function appears to make things worse for some reason. This will need
 % more thought to understand the reason why.
-return;
 
 % Adjust the DC part of INU to best match the GMM posteriors to the priors.
 msk    = ~cellfun(@isempty,gmm.T(:));    % Only rescale when required
