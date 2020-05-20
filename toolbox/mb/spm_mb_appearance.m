@@ -10,7 +10,7 @@ function varargout = spm_mb_appearance(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7855 2020-05-19 22:17:56Z john $
+% $Id: spm_mb_appearance.m 7859 2020-05-20 15:24:48Z mikael $
 
 
 switch action
@@ -102,7 +102,9 @@ if nargin < 3, samp = [1 1 1]; end
 lab = dat.model.gmm.lab;
 if isempty(lab), labels = 0; return; end
 
-cm_map     = lab.cm_map; % cell array that defines the confusion matrix (cm)
+K      = sett.K;
+cm_map = lab.cm_map; % cell array that defines the confusion matrix (cm)
+w      = lab.w;
 
 % Load labels
 labels = spm_mb_io('get_data',lab.f);
@@ -110,10 +112,10 @@ labels = subsample(labels,samp);
 
 % Use labels2use to keep only labels of interest
 labels = round(labels(:));
-labels(labels<1 || labels>numel(cm_map)) = numel(cm_map)+1;
+labels(labels<1 | labels>numel(cm_map)) = numel(cm_map)+1;
 
 % Get confusion matrix that maps from label value to probability value
-cm     = get_label_conf_matrix(cm_map,sett);
+cm = get_label_conf_matrix(cm_map,w,K);
 
 % Build NxK1 label image using confusion matrix
 labels = cm(labels,:);
@@ -208,6 +210,7 @@ ds           = ds(1:3);
 % Get image data
 f0    = spm_mb_io('get_image',gmm);
 f0    = subsample(f0,dat.samp);
+lab0  = get_labels(dat,sett,dat.samp);
 samp  = dat.samp;
 samp2 = dat.samp2;
 
@@ -246,10 +249,12 @@ clear msk_vx
 % log-likelihood can increase.
 [f,d] = subsample( f0,samp2);
 mu    = subsample(mu0,samp2);
+lab   = vol2vec(subsample(reshape(lab0,[size(f0,1),size(f0,2),size(f0,3),K + 1]),samp2));
 
 % Template
 mu    = vol2vec(spm_mb_shape('template_k1',mu)); % Make K + 1 template
-mu    = mu + get_labels(dat,sett,true); % Add labels and template
+mu    = mu + lab; % Add labels and template
+clear lab
 mu    = mu(:,mg_ix); % Expand, if using multiple Gaussians per tissue
 
 % Bias field related
@@ -471,7 +476,7 @@ if nargout > 1
 
         % Template
         mu0 = vol2vec(spm_mb_shape('template_k1',mu0));
-        mu0 = mu0 + get_labels(dat,sett);
+        mu0 = mu0 + lab0;
        %mu0 = mu0(:,mg_ix) + log(mg_w);
         mu0 = bsxfun(@plus, mu0(:,mg_ix), log(mg_w));
         mu0 = spm_gmm_lib('obs2cell', mu0, code_image, false);
