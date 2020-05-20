@@ -27,7 +27,7 @@ function varargout = spm_mb_shape(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7855 2020-05-19 22:17:56Z john $
+% $Id: spm_mb_shape.m 7858 2020-05-20 15:15:37Z mikael $
 
 switch action
     case 'affine'
@@ -666,16 +666,23 @@ function dat = update_simple_affines(dat,mu,sett)
 accel     = sett.accel;
 B         = sett.B;
 groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
+nw        = get_num_workers(sett,4*sett.K+4);
 
 % Update the affine parameters
 G  = spm_diffeo('grad',mu);
 H0 = velocity_hessian(mu,G,accel);
 
 if ~isempty(B)
-    for n=1:numel(dat)
-        dat(n) = update_simple_affines_sub(dat(n),mu,G,H0,sett);
+    if nw > 1 && numel(dat) > 1 % PARFOR
+        parfor(n=1:numel(dat),nw)
+            dat(n) = update_simple_affines_sub(dat(n),mu,G,H0,sett);
+        end
+    else
+        for n=1:numel(dat)
+            dat(n) = update_simple_affines_sub(dat(n),mu,G,H0,sett);
+        end
     end
-
+    
     if groupwise
         % Zero-mean the affine parameters
         mq = sum(cat(2,dat(:).q),2)/numel(dat);
