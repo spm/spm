@@ -27,7 +27,7 @@ function varargout = spm_mb_shape(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7858 2020-05-20 15:15:37Z mikael $
+% $Id: spm_mb_shape.m 7860 2020-05-20 15:47:23Z mikael $
 
 switch action
     case 'affine'
@@ -1277,6 +1277,11 @@ NumWork      = sett.nworker;
 dm           = sett.ms.d;  % current template dimensions
 K            = sett.K;     % template classes
 
+if NumWork <= 1
+    nw = 0;
+    return
+end
+
 if MemMax == 0 % default
     try
         % Get memory info automatically (in MB)
@@ -1299,7 +1304,7 @@ end
 if nargin<2
     NumVol     = (K*(K+1)/2+4*K);
 end
-NumFloats      = NumVol*prod(dm(1:3));            % times two..we also keep images, etc in memory (rough)
+NumFloats      = NumVol*prod(dm(1:3));            % float size of mean Hessian + padding (we also keep images, etc in memory (rough))
 FloatSizeBytes = 4;                               % One float is four bytes (single precision)
 MemReq         = (NumFloats*FloatSizeBytes)/1e6;  % to MB
 nw             = max(floor(MemMax/MemReq) - 1,0); % Number of parfor workers to use (minus one..for main thread)
