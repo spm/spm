@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7856 2020-05-19 22:54:41Z spm $
+% $Id: spm_mb_init.m 7857 2020-05-20 14:22:56Z mikael $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -221,7 +221,7 @@ for p=1:numel(cfg.gmm)
                 if ~all(lab.f.mat(:)==f(1).mat(:))
                     warning('Incompatible s-form matrices for subject %d in population %d', np, p);
                 end
-                if max(cellfun(@max,lab.cm_map)) > K || min(cellfun(@min,lab.cm_map)) < 1
+                if max(cellfun(@max,lab.cm_map)) > (K + 1) || min(cellfun(@min,lab.cm_map)) < 1
                     error('Poorly specified label mapping for population %d', p);
                 end
             else
