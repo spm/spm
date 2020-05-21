@@ -27,7 +27,7 @@ function varargout = spm_mb_shape(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7860 2020-05-20 15:47:23Z mikael $
+% $Id: spm_mb_shape.m 7861 2020-05-21 11:39:27Z guillaume $
 
 switch action
     case 'affine'
@@ -1272,30 +1272,19 @@ function nw = get_num_workers(sett,NumVol)
 % (if sett.gen.num_workers = -1)
 
 % Parse function settings
-MemMax       = 0;          % max memory usage (in MB)
-NumWork      = sett.nworker;
-dm           = sett.ms.d;  % current template dimensions
-K            = sett.K;     % template classes
+MemMax         = 0;          % max memory usage (in MB)
+NumWork        = sett.nworker;
+dm             = sett.ms.d;  % current template dimensions
+K              = sett.K;     % template classes
 
 if NumWork <= 1
     nw = 0;
     return
 end
 
-if MemMax == 0 % default
-    try
-        % Get memory info automatically (in MB)
-        if ispc
-            % Windows
-            [~,meminfo] = memory;
-            MemMax      = meminfo.PhysicalMemory.Available;
-        else
-            % UNIX
-            mem    = strsplit(fileread('/proc/meminfo')); % (in kB)
-            MemMax = str2double(mem(find(ismember(mem,'MemAvailable:'))+1));
-            MemMax = MemMax / 1024;
-        end
-    catch
+if MemMax == 0
+    MemMax     = spm_platform('memory','available') / 1024 / 1024;
+    if isnan(MemMax)
         MemMax = 1024;
     end
 end

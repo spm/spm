@@ -1,57 +1,45 @@
 function varargout = spm_platform(varargin)
-% Platform specific configuration parameters for SPM
+% Platform specific configuration parameters
 %
-% FORMAT ans = spm_platform(arg)
-% arg  - optional string argument, can be
-%        - 'bigend'  - return whether this architecture is bigendian
-%                      - 0   - is little endian
-%                      - 1   - is big endian
-%        - 'filesys' - type of filesystem
-%                      - 'unx' - UNIX
-%                      - 'win' - DOS
-%        - 'user'    - returns username
-%        - 'host'    - returns system's host name
-%        - 'tempdir' - returns name of temp directory
-%        - 'desktop' - returns whether or not the Desktop is in use
+% FORMAT ans = spm_platform(param)
+% param - optional string argument, can be
+%         - 'bigend'  - return whether this architecture is big endian
+%                       - false  - is little endian
+%                       - true   - is big endian
+%         - 'user'    - return username
+%         - 'host'    - return system's host name
+%         - 'tempdir' - return name of temp directory
+%         - 'desktop' - return whether or not the Desktop is in use
 %
 % FORMAT PlatFontNames = spm_platform('fonts')
-% Returns structure with fields named after the generic (UNIX) fonts, the
+% Return structure with fields named after the generic (UNIX) fonts, the
 % field containing the name of the platform specific font.
 %
 % FORMAT PlatFontName = spm_platform('font',GenFontName)
-% Maps generic (UNIX) FontNames to platform specific FontNames
+% Map generic (UNIX) FontNames to platform specific FontNames
 %
-% FORMAT PLATFORM = spm_platform('init',comp)
-% Initialises platform specific parameters in persistent PLATFORM
-% (External gateway to init_platform(comp) subfunction)
-% comp         - computer to use [defaults to MATLAB's `computer`]
-% PLATFORM - copy of persistent PLATFORM
+% FORMAT meminfo = spm_platform('memory',['available','total'])
+% Return memory information concerning the amount of available physical
+% memory or the total amount of physical memory.
 %
-% FORMAT spm_platform
-% Initialises platform specific parameters in persistent PLATFORM
-% (External gateway to init_platform(computer) subfunction)
+% FORMAT PLATFORM = spm_platform
+% Initialise platform specific parameters in persistent variable.
+% PLATFORM - copy of persistent variable containing platform specific
+% parameters.
 %
-%                              ----------------
-% SUBFUNCTIONS:
-%
-% FORMAT init_platform(comp)
-% Initialise platform specific parameters in persistent PLATFORM
-% comp         - computer to use [defaults to MATLAB's `computer`]
+% FORMAT PLATFORM = spm_platform('init')
+% (Re)initialise platform specific parameters in persistent variable.
 %
 %--------------------------------------------------------------------------
-%
 % Since calls to spm_platform will be made frequently, most platform
-% specific parameters are stored as a structure in the persistent variable
-% PLATFORM. Subsequent calls use the information from this persistent
-% variable, if it exists.
-%
-% Platform specific definitions are contained in the data structures at
-% the beginning of the init_platform subfunction at the end of this file.
+% specific parameters are stored in a persistent variable.
+% Subsequent calls use the information from this persistent variable, if
+% it exists.
 %__________________________________________________________________________
-% Copyright (C) 1999-2020 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2020 Wellcome Centre for Human Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 7833 2020-04-17 10:43:06Z guillaume $
+% $Id: spm_platform.m 7861 2020-05-21 11:39:27Z guillaume $
 
 
 %-Initialise
@@ -59,27 +47,27 @@ function varargout = spm_platform(varargin)
 persistent PLATFORM
 if isempty(PLATFORM), PLATFORM = init_platform; end
 
-if nargin==0, return, end
+if ~nargin, varargout = {PLATFORM}; return, end
 
 
 switch lower(varargin{1}), case 'init'                     %-(re)initialise
 %==========================================================================
-init_platform(varargin{2:end});
+PLATFORM = init_platform;
 varargout = {PLATFORM};
    
-case 'bigend'                         %-Return endian for this architecture
+case 'bigend'                     %-Return endianness for this architecture
 %==========================================================================
 varargout = {PLATFORM.bigend};
 
-case 'filesys'                                         %-Return file system
+case 'filesys'                            %-Return file system (deprecated)
 %==========================================================================
 varargout = {PLATFORM.filesys};
 
-case 'user'                                            %-Return user string
+case 'user'                                              %-Return user name
 %==========================================================================
 varargout = {PLATFORM.user};
 
-case 'host'                                               %-Return hostname
+case 'host'                                              %-Return host name
 %==========================================================================
 varargout = {PLATFORM.host};
 
@@ -112,7 +100,11 @@ case 'desktop'                                       %-Return desktop usage
 %==========================================================================
 varargout = {PLATFORM.desktop};
 
-    otherwise                                       %-Unknown Action string
+case 'memory'                                   %-Return memory information
+%==========================================================================
+varargout = {meminfo(varargin{2:end})};
+    
+otherwise                                           %-Unknown Action string
 %==========================================================================
 error('Unknown Action string')
 
@@ -126,36 +118,34 @@ end
 %==========================================================================
 
 
-function PLATFORM = init_platform(comp)     %-Initialise platform variables
+function PLATFORM = init_platform           %-Initialise platform variables
 %==========================================================================
-if nargin<1
-    if strcmpi(spm_check_version,'matlab')
-        comp = computer;
-    else
-        if isunix
-            comp = uname.machine;
-            switch comp
-                case {'x86_64'}
-                    comp = 'GLNXA64';
-                case {'armv6l','armv7l','armv8l','aarch64'}
-                    comp = 'ARM';
-                otherwise
-                    error('%s is not supported.',comp);
-            end
-        elseif ispc
-            comp = 'PCWIN64';
-        elseif ismac
-            comp = 'MACI64';
+if strcmpi(spm_check_version,'matlab')
+    comp = computer;
+else
+    if isunix
+        comp = uname.machine;
+        switch comp
+            case {'x86_64'}
+                comp = 'GLNXA64';
+            case {'armv6l','armv7l','armv8l','aarch64'}
+                comp = 'ARM';
+            otherwise
+                error('%s is not supported.',comp);
         end
+    elseif ispc
+        comp = 'PCWIN64';
+    elseif ismac
+        comp = 'MACI64';
     end
 end
 
 %-Platform definitions
 %--------------------------------------------------------------------------
-PDefs = {'PCWIN64',   'win',   0;...
-         'MACI64',    'unx',   0;...
-         'GLNXA64',   'unx',   0;...
-         'ARM',       'unx',   0};
+PDefs = {'PCWIN64',   'win',   false;...
+         'MACI64',    'unx',   false;...
+         'GLNXA64',   'unx',   false;...
+         'ARM',       'unx',   false};
 
 PDefs = cell2struct(PDefs,{'computer','filesys','endian'},2);
 
@@ -236,4 +226,44 @@ try
     PLATFORM.desktop = usejava('desktop');
 catch
     PLATFORM.desktop = false;
+end
+
+
+function mem = meminfo(opt)                            %-Memory information
+%==========================================================================
+try
+    if ispc
+        % https://www.mathworks.com/help/matlab/ref/memory.html
+        [uv,sv]   = memory;
+        mem.avail = sv.PhysicalMemory.Available; % or uv.MemAvailableAllArrays
+        mem.total = sv.PhysicalMemory.Total;
+    elseif ismac
+        % https://www.unix.com/man-page/osx/1/vm_stat/
+        [sts,m]   = system('vm_stat'); % (page size of 4096 bytes)
+        m         = strsplit(m,{':',sprintf('\n')});
+        mem.avail = str2double(m{find(ismember(m,'Pages free'))+1}) * 4096;
+        mem.avail = mem.avail + str2double(m{find(ismember(m,'Pages inactive'))+1}) * 4096;
+        mem.total = mem.avail + str2double(m{find(ismember(m,'Pages active'))+1}) * 4096;
+        mem.total = mem.total + str2double(m{find(ismember(m,'Pages speculative'))+1}) * 4096;
+        mem.total = mem.total + str2double(m{find(ismember(m,'Pages wired down'))+1}) * 4096;
+        mem.total = mem.total + str2double(m{find(ismember(m,'Pages occupied by compressor'))+1}) * 4096;
+    else
+        % http://man7.org/linux/man-pages/man5/proc.5.html
+        m         = strsplit(fileread('/proc/meminfo')); % (in kB)
+        mem.avail = str2double(m{find(ismember(m,'MemAvailable:'))+1}) * 1024;
+        mem.total = str2double(m{find(ismember(m,'MemTotal:'))+1}) * 1024;
+    end
+catch
+    mem = struct('avail',NaN,'total',NaN);
+end
+
+if ~nargin, return, end
+
+switch lower(opt)
+    case 'total'
+        mem = mem.total;
+    case 'available'
+        mem = mem.avail;
+    otherwise
+        error('Unknown memory option.');
 end
