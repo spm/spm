@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 7532 2019-02-14 12:03:24Z guillaume $
+ * $Id: spm_jsonread.c 7863 2020-05-26 10:50:07Z guillaume $
  * Guillaume Flandin
  */
 
@@ -34,6 +34,9 @@ mxArray *mexCallMATLABWithTrap(int nlhs, mxArray *plhs[], int nrhs, mxArray *prh
 #if defined(_WIN32) || defined(_WIN64)
   #define strcasecmp _stricmp
 #endif
+
+#define BUFLEN 64
+static char Prefix[BUFLEN];
 
 static enum jsonrepsty {
   JSON_REPLACEMENT_STYLE_NOP,
@@ -187,10 +190,10 @@ static char * get_string(char *js, int start, int end) {
     return js + start;
 }
 
-static char * valid_fieldname_underscore(char *field) {
+static char * valid_fieldname_underscore(char *field, int *need_free) {
     /* matlab.lang.makeValidName
        with ReplacementStyle == 'underscore' and Prefix == 'x' */
-    char *re = field, *wr = field;
+    char *re = field, *wr = field, *ret = NULL;
     int beg = 1;
     while (re[0] != '\0') {
         if ((re[0] == 32) || (re[0] == 9)) { /* ' ' or \t */
@@ -219,26 +222,37 @@ static char * valid_fieldname_underscore(char *field) {
         }
     }
     wr[0] = '\0';
+    ret = field;
     if ( (field[0] == '\0') || (field[0] == '_')
       || ((field[0] >= '0') && (field[0] <= '9')) ) {
-        field = field - 1;
-        field[0] = 'x';
+        if (strlen(Prefix) == 1) {
+            field = field - 1;
+            field[0] = Prefix[0];
+        }
+        else {
+            *need_free = 1;
+            ret = (char *)malloc(strlen(Prefix)+strlen(field)+1);
+            ret = strcpy(ret, Prefix);
+            ret = strcat(ret, field);
+        }
     }
-    return field;
+    return ret;
 }
 
 static char * valid_fieldname_hex(char *field) {
     /* matlab.lang.makeValidName
        with ReplacementStyle == 'hex' and Prefix == 'x' */
-    char *re = field, *wr = NULL, *ret = NULL, *str = NULL;
+    char *re = field, *wr = NULL, *ret = NULL, *str = NULL, *p = NULL;
     int sts, beg = 1;
-    size_t len = 4*strlen(field)+2; /* 'x' + all '0x??' + \0 */
+    size_t len = 4*strlen(field)+1+strlen(Prefix); /* Prefix + all '0x??' + \0 */
     mxArray *mx = NULL, *ma = NULL;
     ret = (char *)malloc(len);
     wr = ret;
     if (! (((re[0] >= 'a') && (re[0] <= 'z'))
         || ((re[0] >= 'A') && (re[0] <= 'Z'))) ) {
-        wr[0] = 'x'; wr++;
+        for (p = Prefix; *p != '\0'; p++) {
+            *wr++ = *p;
+        }
     }
     while (re[0] != '\0') {
         if ((re[0] == 32) || (re[0] == 9)) { /* ' ' or \t */
@@ -292,12 +306,12 @@ static char * valid_fieldname(char *field, int *need_free) {
             break;
         case JSON_REPLACEMENT_STYLE_UNDERSCORE:
         case JSON_REPLACEMENT_STYLE_DELETE:
-            field = valid_fieldname_underscore(field);
             *need_free = 0;
+            field = valid_fieldname_underscore(field, need_free); 
             break;
         case JSON_REPLACEMENT_STYLE_HEX:
-            field = valid_fieldname_hex(field);
             *need_free = 1;
+            field = valid_fieldname_hex(field);
             break;
         default:
             mexErrMsgTxt("Unknown ReplacementStyle.");
@@ -508,7 +522,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     size_t i, jslen = 0, nfields;
     jsmntok_t *tok = NULL;
     mxArray *mx = NULL;
-    char *repsty = NULL;
+    char *val = NULL;
 
     /* Validate input arguments */
     if (nrhs == 0) {
@@ -521,6 +535,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         mexErrMsgTxt("Input must be a string.");
     }
     ReplacementStyle = JSON_REPLACEMENT_STYLE_UNDERSCORE;
+    Prefix[0] = 'x'; Prefix[1] = '\0';
+    
     if (nrhs > 1) {
         if (!mxIsStruct(prhs[1])){
             mexErrMsgTxt("Input must be a struct.");
@@ -531,23 +547,32 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             if (!strcasecmp(field,"replacementStyle")) {
                 mx = mxGetFieldByNumber(prhs[1],0,i);
                 if (mx != NULL) {
-                    repsty = mxArrayToString(mx);
-                    if (!strcasecmp(repsty,"nop")) {
+                    val = mxArrayToString(mx);
+                    if (!strcasecmp(val,"nop")) {
                         ReplacementStyle = JSON_REPLACEMENT_STYLE_NOP;
                     }
-                    else if (!strcasecmp(repsty,"underscore")) {
+                    else if (!strcasecmp(val,"underscore")) {
                         ReplacementStyle = JSON_REPLACEMENT_STYLE_UNDERSCORE;
                     }
-                    else if (!strcasecmp(repsty,"hex")) {
+                    else if (!strcasecmp(val,"hex")) {
                         ReplacementStyle = JSON_REPLACEMENT_STYLE_HEX;
                     }
-                    else if (!strcasecmp(repsty,"delete")) {
+                    else if (!strcasecmp(val,"delete")) {
                         ReplacementStyle = JSON_REPLACEMENT_STYLE_DELETE;
                     }
                     else {
                         mexErrMsgTxt("Unknown replacementStyle.");
                     }
-                    mxFree(repsty);
+                    mxFree(val);
+                }
+            }
+            else if (!strcasecmp(field,"Prefix")) {
+                mx = mxGetFieldByNumber(prhs[1],0,i);
+                if (mx != NULL) {
+                    val = mxArrayToString(mx);
+                    strncpy(Prefix,val,BUFLEN-1);
+                    Prefix[BUFLEN-1] = '\0';
+                    mxFree(val);
                 }
             }
             else {
