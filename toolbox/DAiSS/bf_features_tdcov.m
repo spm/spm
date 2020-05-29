@@ -3,7 +3,7 @@ function res = bf_features_tdcov(BF, S)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: bf_features_tdcov.m 7846 2020-05-05 14:33:24Z george $
+% $Id: bf_features_tdcov.m 7865 2020-05-29 10:06:53Z george $
 
 %--------------------------------------------------------------------------
 if nargin == 0
@@ -22,7 +22,7 @@ if nargin == 0
     ntmodes.strtype = 'i';
     ntmodes.num = [1 1];
     ntmodes.val = {[4]};
-    ntmodes.help = {'Number of temporal modes'};
+    ntmodes.help = {'Number of temporal modes, set to 0 for automatic determination'};
     
     taper = cfg_menu;
     taper.tag = 'taper';
@@ -113,7 +113,8 @@ YY=YY./N;
 
 %
 
-if isempty(S.ntmodes) %% automatically assign appropriate number of temporal modes
+if ~S.ntmodes %% automatically assign appropriate number of temporal modes
+    fprintf('Determining number of temporal modes required:\n');
     [U E]  = spm_svd(YY,exp(-8));          % get temporal modes
     if isempty(U) %% fallback
         warning('nothing found using spm svd, using svd');
