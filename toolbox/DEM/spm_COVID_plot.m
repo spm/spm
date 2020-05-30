@@ -15,7 +15,7 @@ function spm_COVID_plot(Y,X,Z,u,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_plot.m 7849 2020-05-13 19:48:29Z karl $
+% $Id: spm_COVID_plot.m 7866 2020-05-30 09:57:38Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -75,7 +75,7 @@ axis square, box off, set(gca,'XLim',[0, t(end)])
 legend('boxoff')
 
 subplot(3,2,2), set(gca,'ColorOrderIndex',1);
-plot(t,cumsum(Y(:,U)))
+plot(t,cumsum(Y))
 xlabel('time (weeks)'),ylabel('number of cases'), set(gca,'XLim',[0, t(end)])
 title('Cumulative cases','FontSize',16), axis square, box off
 

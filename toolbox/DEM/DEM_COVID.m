@@ -22,7 +22,7 @@ function [DCM,GCM] = DEM_COVID(country,data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID.m 7849 2020-05-13 19:48:29Z karl $
+% $Id: DEM_COVID.m 7866 2020-05-30 09:57:38Z karl $
 
 % F: -1.5701e+04 social distancing based upon P(infected)
 % F: -1.5969e+04 social distancing based upon P(symptomatic)
@@ -43,6 +43,7 @@ Fsi = spm_figure('GetWin','SI'); clf;
 % assemble (Gaussian) priors over model parameters
 %--------------------------------------------------------------------------
 [pE,pC,str] = spm_COVID_priors;
+hC          = 1/64;
 
 % Bayesian inversion (placing posteriors in a cell array of structures)
 %--------------------------------------------------------------------------
@@ -56,7 +57,7 @@ for i = 1:numel(data)
    
     % variational Laplace (estimating log evidence (F) and posteriors)
     %======================================================================
-    [F,Ep,Cp,pE,pC] = spm_COVID(Y,pE,pC);
+    [F,Ep,Cp,pE,pC] = spm_COVID(Y,pE,pC,hC);
     
     
     % assemble prior and posterior estimates (and log evidence)
@@ -143,7 +144,7 @@ for i = 1:numel(DCM)
     % variational Laplace
     %----------------------------------------------------------------------
     set(Fsi,'name',data(i).country)
-    [F,Ep,Cp] = spm_COVID(DCM{i}.Y,DCM{i}.M.pE,DCM{i}.M.pC);
+    [F,Ep,Cp] = spm_COVID(DCM{i}.Y,DCM{i}.M.pE,DCM{i}.M.pC,hC);
     
     % assemble prior and posterior estimates (and log evidence)
     %----------------------------------------------------------------------
@@ -269,34 +270,34 @@ for i = 1:numel(DCM)
 end
 
 % names{1}  = 'initial cases'; %**
-% names{2}  = 'size of population';
+% names{2}  = 'population size';
 % names{3}  = 'initial immunity';
 % names{4}  = 'P(work | home)';
 % names{5}  = 'social distancing';
 % names{6}  = 'bed availability';  
 % names{7}  = 'contacts: home';
 % names{8}  = 'contacts: work';
-% names{9}  = 'P(contagion | contact)';
+% names{9}  = 'transmission strength';
 % names{10} = 'infected period';
 % names{11} = 'contagious period';
 % names{12} = 'incubation period';
 % names{13} = 'P(ARDS | symptoms)';
 % names{14} = 'symptomatic period';
-% names{15} = 'CCU period';
+% names{15} = 'time in CCU';
 % names{16} = 'P(fatality | CCU)';
 % names{17} = 'P(survival | home)';
 % names{18} = 'trace and test'; %**
-% names{19} = 'response testing'; %**
+% names{19} = 'testing latency'; %**
 % names{20} = 'test delay'; %**
 % names{21} = 'test selectivity'; %**
 % names{22} = 'sustained testing'; %**
-% names{23} = 'immune period'; %**
-% names{24} = 'resistant'; %**
-% names{25} = 'initial testing'; %**
+% names{23} = 'baseline testing'; %**
+% names{24} = 'immune period'; %**
+% names{25} = 'resistance'; %**
 
 % report selected parameters (see spm_COVID_priors)
 %--------------------------------------------------------------------------
-p     = 1:size(P,1); p([1 3 17 18 20 21 22 23 24]) = [];
+p     = 1:size(P,1); p([1 3 17 18 20 21 22 24 25]) = [];
 for i = 1:length(p)
     
     % posterior density
@@ -361,7 +362,7 @@ spm_figure('GetWin',country); clf;
 % of 1,692 in 2018/19. Public Health England does not publish a mortality
 % rate for the flu.
 %--------------------------------------------------------------------------
-spm_COVID_ci(Ep,Cp,Y)
+spm_COVID_ci(Ep,Cp,Y);
 
 % add seasonal flu rates
 %--------------------------------------------------------------------------
@@ -401,8 +402,8 @@ spm_figure('GetWin',['Predictions: ' country]); clf;
 % later. One might ask to what extent these trajectories depend upon
 % different model parameters. This is quantified in the next figure.
 %--------------------------------------------------------------------------
-[Z,X] = spm_COVID_gen(Ep,M,3);
-spm_COVID_plot(Z,X,Y)
+[Z,X] = spm_COVID_gen(Ep,M,1:3);
+spm_COVID_plot(Z,X,Y);
 
 
 % Sensitivity analysis: which factors determine cumulative deaths?
@@ -602,7 +603,7 @@ for i = 1:numel(Tim)
             P.tes  = log(tes(j));
             P.sde  = log(sde(k));
             
-            % evaluate credible interval for punitive deaths
+            % evaluate credible interval for cumulative deaths
             %--------------------------------------------------------------
             pol{i,j,k} = sprintf('IM(%d)-ST(%d)-SD(%d)',i,j,k);
             [S,CS]     = spm_COVID_ci(P,DCM{c}.Cp,DCM{c}.Y,1);
@@ -619,9 +620,9 @@ end
 
 % plot results
 %--------------------------------------------------------------------------
-subplot(2,1,1)
+subplot(2,1,2)
 spm_plot_ci(SE(:),SC(:))
-ylabel('Mitigation; cumulative deaths','FontSize',16)
+ylabel('Mitigation: cumulative deaths','FontSize',16)
 set(gca,'XTick',1:numel(pol),'XTickLabel',pol)
 camorbit(90,0), axis square, box off
 
@@ -673,7 +674,7 @@ writetable(Table,'Table','FileType','spreadsheet');
 % peaks
 %--------------------------------------------------------------------------
 i     = find(ismember({data.country},'United Kingdom'));
-Z     = spm_COVID_gen(Ep,[],3);
+Z     = spm_COVID_gen(Ep,[],1:3);
 for i = 1:size(Z,2)
     [d,j]  = max(Z(:,i));
     disp(j - length(Y)), disp('days to peak ')
@@ -693,7 +694,7 @@ end
 %--------------------------------------------------------------------------
 dP    = diag(sqrt(spm_vec(pC)))*randn(spm_length(pE),1);
 P     = spm_unvec(spm_vec(pE) + dP,pE);
-[Y,X] = spm_COVID_gen(P,M,2);
+[Y,X] = spm_COVID_gen(P,M,1:2);
 
 % plot synthetic data
 %--------------------------------------------------------------------------
@@ -723,7 +724,7 @@ camorbit(90,0), axis square
 % plot data fit
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Predictions');
-[Z,X] = spm_COVID_gen(Ep,M,4);
+[Z,X] = spm_COVID_gen(Ep,M,1:4);
 spm_COVID_plot(Z,X,Y)
 
 

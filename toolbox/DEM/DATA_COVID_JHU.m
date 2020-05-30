@@ -36,7 +36,7 @@ function data = DATA_COVID_JHU(n)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 7849 2020-05-13 19:48:29Z karl $
+% $Id: DATA_COVID_JHU.m 7866 2020-05-30 09:57:38Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -75,7 +75,7 @@ Country{i} = 'Korea, South';
 % assemble data structure
 %==========================================================================
 Data  = struct([]);
-s     = 2;                                          % data smoothing (days)
+s     = 4;                                          % data smoothing (days)
 k     = 1;
 for i = 1:numel(State)
     j = find(ismember(Country,State{i}));

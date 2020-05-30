@@ -41,7 +41,7 @@ function [DCM] = DEM_COVID_X(Y,Data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_X.m 7849 2020-05-13 19:48:29Z karl $
+% $Id: DEM_COVID_X.m 7866 2020-05-30 09:57:38Z karl $
 
 
 % Get data (see DATA_COVID_US): an array with a structure for each State
@@ -62,10 +62,7 @@ Fsi   = spm_figure('GetWin','SI'); clf;
 %----------------------------------------------------------------------
 [pE,pC,str] = spm_COVID_priors;
 pE.Tim      = log(16);                  % assume 16 month imunity
-pE.r        = log(1/3);                 % assume 50% resistance
-pC.r        = 1/256;                    % with some uncertainty
-    
-    
+
 % Bayesian inversion (placing posteriors in a cell array of structures)
 %----------------------------------------------------------------------
 for i = 1:numel(data)
@@ -98,7 +95,7 @@ M.FS   = @(Y)sqrt(Y);              % feature selection  (link function)
 M.pE   = pE;                       % prior expectations (parameters)
 M.pC   = pC;                       % prior covariances  (parameters)
 M.hE   = 0;                        % prior expectation  (log-precision)
-M.hC   = exp(-8);                  % prior covariances  (log-precision)
+M.hC   = 1/64;                     % prior covariances  (log-precision)
 M.T    = size(Y,1);                % number of samples  (time)
 M.data = data;                     % number of samples  (regions)
 M.erc  = erc;                      % effective regional connectivity
@@ -335,7 +332,7 @@ spm_figure('GetWin','strategy analysis I'); clf
 M     = DCM.M;                              % model
 P     = DCM.Ep;                             % expansion point
 M.T   = 18*32;                              % over 18 months
-sde   = linspace(-2,4,16);                  % range of social distancing
+sde   = linspace(-4,4,16);                  % range of social distancing
 S     = sde;
 for i = 1:numel(sde)
     
@@ -358,7 +355,7 @@ for i = 1:numel(sde)
     end
     Deaths(i)   = sum(Y(:,1));
     Days(i)     = sum(Y(:,4));
-    Duration(i) = sum(XX{1}(:,2) < 1/8)/7;
+    Duration(i) = sum(XX{1}(:,2) < 16/100)/7;
     
     % plot results and hold graph
     %----------------------------------------------------------------------
@@ -397,12 +394,12 @@ ylabel('weeks')
 axis square, box off
 
 subplot(2,2,4), hold off
-i = Duration(sde == 0);
+i = Duration(find(sde > 0,1,'first'));
 plot(Duration,Deaths,':',Duration,Deaths,'o',[i,i],[min(Deaths),max(Deaths)],'-.')
 title('Exit strategies','FontSize',16),
-xlabel('weeks')
+xlabel('weeks lost')
 ylabel('cumulative deaths')
-axis square, box off, set(gca,'XLim',[0 16])
+axis square, box off
 
 fprintf('%0.2f weeks\n',i)
 
@@ -513,7 +510,7 @@ spm_figure('GetWin','CA'); clf;
 % performance characteristics, the population prevalence of COVID-19 in
 % Santa Clara ranged from 2.49% (95CI 1.80-3.17%) to 4.16% (2.58-5.70%)
 %--------------------------------------------------------------------------
-T     = 34;   % days since Ab testing 4/3/2020 to date
+T     = datenum('03-Apr-2020') - datenum('20-Jan-2020') - 16;
 i     = ismember([str.regions],'California');
 [Y,X] = spm_COVID_US(DCM.Ep,DCM.M,5);
 X     = X{2,i};
@@ -531,7 +528,7 @@ axis square, box off
 
 % superimpose empirical estimates
 %--------------------------------------------------------------------------
-t   = j - T; hold on
+t   = T; hold on
 plot([t + 1,t + 1],[1.80,3.17],[t,t],[2.58,5.70],'Linewidth',8)
 legend({'infected','infectious','immune','prevalence','prevalence'})
 

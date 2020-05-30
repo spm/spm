@@ -1,8 +1,11 @@
-function [F,Ep,Cp,pE,pC,Eh] = spm_COVID(Y,pE,pC)
+function [F,Ep,Cp,pE,pC,Eh] = spm_COVID(Y,pE,pC,hC)
 % Variational inversion of COVID model
-% FORMAT [F,Ep,Cp,pE,pC,Eh] = spm_COVID(Y,pE,pC)
+% FORMAT [F,Ep,Cp,pE,pC,Eh] = spm_COVID(Y,pE,pC,hC)
 % Y   - timeseries data
-% %
+% pE  - prior expectation of parameters
+% pC  - prior covariances of parameters
+% hC  - prior covariances of precisions
+% 
 % F   - log evidence (negative variational free energy)
 % Ep  - posterior expectation of parameters
 % Cp  - posterior covariances of parameters
@@ -37,13 +40,16 @@ function [F,Ep,Cp,pE,pC,Eh] = spm_COVID(Y,pE,pC)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID.m 7849 2020-05-13 19:48:29Z karl $
+% $Id: spm_COVID.m 7866 2020-05-30 09:57:38Z karl $
 
 
 % Gaussian priors over model parameters
 %--------------------------------------------------------------------------
 if nargin < 3
     [pE,pC] = spm_COVID_priors;
+end
+if nargin < 4
+    hC = 1/256;
 end
 
 % complete model specification
@@ -54,9 +60,9 @@ M.FS  = @spm_COVID_FS;            % feature selection (link function)
 M.pE  = pE;                       % prior expectations (parameters)
 M.pC  = pC;                       % prior covariances  (parameters)
 M.hE  = 0;                        % prior expectation  (log-precision)
-M.hC  = 1/256;                    % prior covariances  (log-precision)
-M.T   = size(Y,1);                % number of samples
-U     = size(Y,2);                % number of response variables
+M.hC  = hC;                       % prior covariances  (log-precision)
+M.T   =   size(Y,1);              % number of samples
+U     = 1:size(Y,2);              % number of response variables
 
 % model inversion with Variational Laplace (Gauss Newton)
 %--------------------------------------------------------------------------

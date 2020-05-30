@@ -11,6 +11,9 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Y(:,4) - effective reproduction rate (R)
 % Y(:,5) - herd immunity
 % Y(:,6) - total number of tests
+% Y(:,7) - contagion risk (%)
+% Y(:,8) - prevalence of infection (%)
+% Y(:,9) - number of infected at home, untested and asymptomatic
 %
 % X      - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','CCU','morgue','isolation'};
@@ -45,7 +48,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7849 2020-05-13 19:48:29Z karl $
+% $Id: spm_COVID_gen.m 7866 2020-05-30 09:57:38Z karl $
 
 
 % The generative model:
@@ -123,7 +126,6 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % setup and defaults (assume new deaths and cases as outcome variables)
 %--------------------------------------------------------------------------
 if (nargin < 3) || isempty(U), U = 1:2; end         % two outcomes
-if numel(U) == 1,              U = 1:U; end
 try, M.T; catch, M.T = 180;             end         % over six months
 
 
@@ -152,25 +154,35 @@ end
 
 % ensemble density tensor and solve over the specified number of days
 %--------------------------------------------------------------------------
-ttt   = P.ttt;                       % time-dependent parameters (TTT)
-bas   = P.bas;                       % time-dependent parameters (rate)
-
 x     = spm_cross(p);
 for i = 1:M.T
     
     % time-dependent parameters
+    %======================================================================
+    
+    % baseline testing
     %----------------------------------------------------------------------
-    if isfield(M,'TTT')              % start of trace and track
-        P.ttt = ttt + log(spm_phi((i - M.TTT)/16));
-    end
-    if isfield(M,'R')                % Baseline testing
+    if isfield(M,'R')
         try
-            P.bas = bas + log(M.R(i + 2) + 1e-8);
+            P.bas = log(Q.bas * M.R(i + 2));
         catch
-            P.bas = bas + log(max(M.R));
+            P.bas = log(Q.bas * max(M.R));
         end
+    else
+        P.bas = log(Q.bas + Q.sus*spm_phi((i - 32*Q.ont)/16));
+    end
+
+    % start of trace and track
+    %----------------------------------------------------------------------
+    if isfield(M,'TTT')
+        P.ttt = log(Q.ttt) + log(spm_phi((i - M.TTT)/8));
     end
     
+    % early lockdown
+    %----------------------------------------------------------------------
+    if isfield(M,'TT')
+        P.sde = log(Q.sde) - spm_phi((M.TT  -  i)/8)*4;
+    end
     
     % update ensemble density, with probability dependent transitions
     %----------------------------------------------------------------------
@@ -201,13 +213,25 @@ for i = 1:M.T
     %----------------------------------------------------------------------
     Y(i,4) = p{2}(2) + p{2}(3); 
     
-    % herd immunity
+    % population immunity (%)
     %----------------------------------------------------------------------
-    Y(i,5) = p{2}(4);
+    Y(i,5) = p{2}(4)*100;
     
     % total number of daily tests (positive or negative)
     %----------------------------------------------------------------------
     Y(i,6) = N*(p{4}(3) + p{4}(4));
+    
+    % probability of contracting virus (in a class of 15)
+    %------------------------------------------------------------------
+    Y(i,7) = ( 1 - (1 - Q.trn*p{2}(3))^15 )*100;
+    
+    % prevalence of infection (%)
+    %------------------------------------------------------------------
+    Y(i,8) = p{2}(2)*100;
+    
+    % number of people at home, asymptomatic, untested but infected
+    %------------------------------------------------------------------
+    Y(i,9) = N*x(1,2,1,1);
     
 end
 

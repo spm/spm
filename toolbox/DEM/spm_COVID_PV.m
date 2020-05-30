@@ -8,7 +8,7 @@ function spm_COVID_PV(DCM,i,T)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_PV.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: spm_COVID_PV.m 7866 2020-05-30 09:57:38Z karl $
 
 % use priors from parametric empirical Bayes
 %--------------------------------------------------------------------------
@@ -25,7 +25,7 @@ Y         = [data(i).death, data(i).cases];
 fig       = ['predictive validity: ' data(i).country];
 
 spm_figure('GetWin',fig); clf
-spm_COVID_ci(Ep,Cp,Y,3);
+spm_COVID_ci(Ep,Cp,Y,1:3);
 
 % retrieve and overlay withheld data
 %--------------------------------------------------------------------------

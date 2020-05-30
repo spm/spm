@@ -41,12 +41,24 @@ function [Y,R] = DATA_COVID_UK(country)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_UK.m 7850 2020-05-15 08:55:36Z spm $
+% $Id: DATA_COVID_UK.m 7866 2020-05-30 09:57:38Z karl $
 
+% download data if required
+%==========================================================================
+if false
+    url = 'https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/';
+    urlwrite([url,'time_series_covid19_confirmed_global.csv'],'time_series_covid19_confirmed_global.csv');
+    urlwrite([url,'time_series_covid19_deaths_global.csv'],   'time_series_covid19_deaths_global.csv');
+    urlwrite([url,'time_series_covid19_recovered_global.csv'],'time_series_covid19_recovered_global.csv');
+    
+    url = 'https://raw.githubusercontent.com/tomwhite/covid-19-uk-data/master/data/'
+    urlwrite([url,'covid-19-totals-uk.csv'],'covid-19-totals-uk.csv');
+end
 
 % defaults
 %--------------------------------------------------------------------------
 if nargin < 1, country = 'United Kingdom'; end
+
 
 
 % load data from https://github.com/CSSEGISandData/COVID-19/
@@ -55,7 +67,7 @@ try
     C  = importdata('time_series_covid19_confirmed_global.csv');
     D  = importdata('time_series_covid19_deaths_global.csv'   );
     R  = importdata('time_series_covid19_recovered_global.csv');
-    T  = importdata('covid-19-tests-uk.csv');
+    T  = importdata('covid-19-totals-uk.csv');
 catch
     clc, warning('Please load csv files into the current working directory')
     help DATA_COVID_UK
@@ -64,7 +76,7 @@ end
 
 % dates of JHU data
 %--------------------------------------------------------------------------
-date  = D.textdata(1,5:end);                     % date
+date = D.textdata(1,5:end);                     % date
 
 % assemble data structure
 %==========================================================================
@@ -87,7 +99,7 @@ RY  = sum(R.data(Ri,3:end),1)';
 
 % Total tests, and align first date
 %--------------------------------------------------------------------------
-TY  = T.data(:,4);
+TY  = T.data(:,1);
 TT  = T.textdata(2:end,1);             disp(TT{1})
 Ti  = find(ismember(date,'1/25/20'));  disp(date{Ti})
 
@@ -97,6 +109,7 @@ DY  = gradient(spm_conv(DY(Ti:end),s));
 CY  = gradient(spm_conv(CY(Ti:end),s));
 RY  = gradient(spm_conv(RY(Ti:end),s));
 TY  = gradient(spm_conv(TY(1 :end),s));
+TY(isnan(TY)) = max(TY);
 
 % assemble response variables
 %==========================================================================

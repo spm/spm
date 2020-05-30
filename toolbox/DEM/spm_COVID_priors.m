@@ -35,7 +35,7 @@ function [P,C,str,rfx] = spm_COVID_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors.m 7849 2020-05-13 19:48:29Z karl $
+% $Id: spm_COVID_priors.m 7866 2020-05-30 09:57:38Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -79,14 +79,15 @@ names{14} = 'symptomatic period';
 names{15} = 'time in CCU';
 names{16} = 'P(fatality | CCU)';
 names{17} = 'P(survival | home)';
-names{18} = 'trace and test'; %**
-names{19} = 'response testing'; %**
+names{18} = 'track and trace'; %**
+names{19} = 'testing latency'; %**
 names{20} = 'test delay'; %**
 names{21} = 'test selectivity'; %**
 names{22} = 'sustained testing'; %**
-names{23} = 'immune period'; %**
-names{24} = 'resistance'; %**
-names{25} = 'baseline testing'; %**
+names{23} = 'baseline testing'; %**
+names{24} = 'immune period'; %**
+names{25} = 'resistance'; %**
+
 
 % random effects (i.e., effects that are common in countries)
 %--------------------------------------------------------------------------
@@ -103,7 +104,14 @@ factor{4} = {'untested','waiting','positive','negative'};
 
 % labels or strings for plotting
 %--------------------------------------------------------------------------
-str.outcome = {'Death rate','New cases','CCU occupancy','ERR','Herd immunity','Tests'};
+str.outcome = {'Death rate',...
+               'New cases',...
+               'CCU occupancy',...
+               'ERR',...
+               'Herd immunity',...
+               'Tests'...
+               'Contagion risk (%)'...
+               'Prevalence {%}'};
 str.factors = factors;
 str.factor  = factor;
 str.names   = names;
@@ -112,7 +120,7 @@ str.names   = names;
 %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 if false
     pE    = spm_COVID_priors; M.T = 365;
-    [Y,X] = spm_COVID_gen(pE,M,3); u = exp(pE.cap + pE.N)*1e6;
+    [Y,X] = spm_COVID_gen(pE,M,1:3); u = exp(pE.cap + pE.N)*1e6;
     spm_COVID_plot(Y,X,[],u)
 end
 %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -144,28 +152,31 @@ P.Tic = 5;                    % incubation period (days)
 P.sev = 1/128;                % P(severe symptoms | symptomatic)
 P.Tsy = 8;                    % symptomatic period
 P.Trd = 10;                   % CCU period
-P.fat = 1/3;                  % P(fatality | severe, CCU)
+P.fat = 1/2;                  % P(fatality | severe, CCU)
 P.sur = 1/8;                  % P(survival | severe, home)
 
 % testing parameters
 %--------------------------------------------------------------------------
-P.ttt = 1/10000;              % track, trace and test
-P.sen = 1/10000;              % response testing
+P.ttt = 1/10000;              % test, track and trace
+P.ont = 2;                    % testing latency (months)
 P.del = 2;                    % test delay (days)
-P.tes = 1;                    % test selectivity (for infection)
-P.exp = 1/10000;              % sustained testing
+P.tes = 2;                    % test selectivity (for infection)
+P.sus = 4/10000;              % sustained testing
+P.bas = 4/10000;              % baseline testing
 
 % immunity
 %--------------------------------------------------------------------------
 P.Tim = 32;                   % period of immunity (months)
-P.r   = 1e-6;                 % proportion resistant cases
-P.bas = 8/10000;              % baseline testing
+P.r   = 1/3;                  % proportion resistant cases
+
 
 
 % total mortality rate (for susceptible population)
 %--------------------------------------------------------------------------
 % IFR (hospital): P.sev*P.fat*100
 % IFR (carehome): P.sev*(1 - P.sur)*100
+% IFR (hospital): exp(Ep.sev)*exp(Ep.fat)*100
+% IFR (carehome): exp(Ep.sev)*(1 - exp(Ep.sur))*100
 
 % Variances (mildly informative priors, apart from initial cases and size)
 %==========================================================================
@@ -181,7 +192,7 @@ C.m   = 0;                    % herd immunity (proportion)
 %--------------------------------------------------------------------------
 C.out = W;                    % P(going home | work)
 C.sde = W;                    % social distancing threshold
-C.cap = V;                    % bed availability threshold (per capita)
+C.cap = W;                    % bed availability threshold (per capita)
 
 % infection parameters
 %--------------------------------------------------------------------------
@@ -202,17 +213,20 @@ C.sur = W;                    % P(fatality | home)
 
 % testing parameters
 %--------------------------------------------------------------------------
-C.ttt = U;                    % track, trace and test
-C.sen = U;                    % response testing
+C.ttt = U;                    % test, track and trace
+C.ont = U;                    % testing latency (months)
 C.del = W;                    % test delay (days)
 C.tes = V;                    % test selectivity (for infection)
-C.exp = U;                    % sustained testing
+C.sus = W;                    % sustained testing
+C.bas = W;                    % baseline testing
 
 % immunity
 %--------------------------------------------------------------------------
 C.Tim = 0;                    % period of immunity
-C.r   = 0;                    % proportion of people not susceptible
-C.bas = U;                    % baseline testing
+C.r   = W;                    % proportion of people not susceptible
+
+
+
 
 % log transform
 %==========================================================================

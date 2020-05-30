@@ -43,7 +43,7 @@ function [BPA] = spm_dcm_bpa(P,nocd)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_bpa.m 7081 2017-05-27 19:36:09Z karl $
+% $Id: spm_dcm_bpa.m 7866 2020-05-30 09:57:38Z karl $
 
  
 % Preiminaries
@@ -79,8 +79,6 @@ TOL   = exp(-16);
 sEp   = []; 
 Up    = []; 
 Pp    = [];
-pE    = [];
-
 for i = 1:N
     
     % get DCM structure

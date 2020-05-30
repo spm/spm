@@ -21,7 +21,7 @@ function T = spm_COVID_B(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_B.m 7849 2020-05-13 19:48:29Z karl $
+% $Id: spm_COVID_B.m 7866 2020-05-30 09:57:38Z karl $
 
 % marginal probabilities
 %==========================================================================
@@ -63,19 +63,16 @@ Pcco = p{1}(3);                      % CCU occupancy
 % hard (threshold) strategy
 %--------------------------------------------------------------------------
 Psde = spm_sigma(Prev,P.sde);
-% Psde = spm_sigma(Pcco,P.sde*P.cap*8)*Psde;
 
 % multiregional model
 %--------------------------------------------------------------------------
 if nargin > 2
     
     Rrev = r{2}(2) + r{2}(3);        % marginal over regions
-    Rcco = r{1}(3);                  % marginal over regions
-    
+ 
     % hard (threshold) strategy
     %----------------------------------------------------------------------
     Rsde = spm_sigma(Rrev,P.sde);
- %   Rsde = spm_sigma(Rcco,P.sde*P.cap*8)*Rsde;
     
     % mixture of strategies
     %----------------------------------------------------------------------
@@ -142,11 +139,11 @@ ij   = Bij({1,1:5,1,3},{5,1:5,1,3},dim);  B{1}(ij) = 1;
 ij   = Bij({1,1:5,1,3},{1,1:5,1,3},dim);  B{1}(ij) = 0;
 ij   = Bij({1,1:5,1,3},{2,1:5,1,3},dim);  B{1}(ij) = 0;
 
-% isolate if waiting : third order dependencies
+% isolate if infected : third order dependencies : efficacy of FTTI
 %--------------------------------------------------------------------------
-ij   = Bij({1,1:5,1,2},{5,1:5,1,2},dim);  B{1}(ij) = 1;
-ij   = Bij({1,1:5,1,2},{1,1:5,1,2},dim);  B{1}(ij) = 0;
-ij   = Bij({1,1:5,1,2},{2,1:5,1,2},dim);  B{1}(ij) = 0;
+ij   = Bij({1,2,1,1},{5,2,1,1},dim);  B{1}(ij) = P.ttt;
+ij   = Bij({1,2,1,1},{1,2,1,1},dim);  B{1}(ij) = (1 - Pout)*(1 - P.ttt);
+ij   = Bij({1,2,1,1},{2,2,1,1},dim);  B{1}(ij) = Pout*(1 - P.ttt);
 
 
 % probabilistic transitions: infection
@@ -160,8 +157,8 @@ ij   = Bij({1,1:5,1,2},{2,1:5,1,2},dim);  B{1}(ij) = 0;
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
 q    = spm_sum(x,[3 4]);
-ph   = q(1,:)/sum(q(1,:));
-pw   = q(2,:)/sum(q(2,:));
+ph   = q(1,:)/sum(q(1,:));          % infection probability at home
+pw   = q(2,:)/sum(q(2,:));          % infection probability at work
 Pinh = (1 - P.trn*ph(3))^P.Rin;     % P(no transmission) | home
 Pinw = (1 - P.trn*pw(3))^P.Rou;     % P(no transmission) | work
 Kimm = exp(-1/P.Tim/32);            % loss of immunity (per 32 days)
@@ -280,16 +277,14 @@ ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ksev)*(1 - P.fat);
 
 % probabilistic transitions: testing
 %==========================================================================
-% P.tft                       % threshold:   testing capacity
-% P.sen;                      % sensitivity: testing capacity
-% P.del                       % delay:       testing capacity
-% P.tes                       % relative probability of test if uninfected
+% P.bas                       % probability of being tested
+% P.del                       % delay: testing capacity
+% P.tes                       % relative probability if infected
 % test probabilities
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
 Prev = p{2}(2) + p{2}(3);     % prevalence of infection
-Pbas = P.bas + P.sen*p{2}(2) + P.exp*p{2}(4);
-Psen = Pbas/(1 - Prev + P.tes*Prev);
+Psen = P.bas/(1 - Prev + P.tes*Prev);
 Ptes = Psen*P.tes;            % probability if infected
 Kdel = exp(-1/P.del);         % exp(-1/waiting period)
 
@@ -327,12 +322,6 @@ b{5} = b{1};
 b     = spm_cat(spm_diag(b));
 b     = spm_kron({b,I{1},I{3}});
 B{4}  = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
-
-% ttt if asymptomatic and infected : third order dependencies
-%--------------------------------------------------------------------------
-Ptes = Ptes + P.ttt*(1 - Ptes);
-ij   = Bij({1:3,2,1,1},{1:3,2,1,2},dim);  B{4}(ij) = Ptes;
-ij   = Bij({1:3,2,1,1},{1:3,2,1,1},dim);  B{4}(ij) = 1 - Ptes;
 
     
 % probability transition matrix

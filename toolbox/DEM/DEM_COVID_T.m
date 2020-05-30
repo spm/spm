@@ -10,27 +10,34 @@ function [DCM] = DEM_COVID_T
 % are supplemented with the total number of cases (in addition to positive
 % cases and daily deaths). It rests upon an augmented DCM that includes a
 % state of self isolation. Moving from a state of isolation depends upon a
-% negative test. Tracing and tracking in this model by a small percentage
-% of being tested if infected that asymptomatic. Otherwise, the baseline
-% testing is in play. We will consider the effects of changing baseline
-% testing and tracing and tracking at various phases of the outbreak.
+% negative test. Tracing and tracking in this model is reflected as a small
+% percentage of being tested if infected and asymptomatic. Otherwise, the
+% baseline testing is in play. We will consider the effects of changing
+% baseline testing and tracing and tracking at various phases of the
+% outbreak.
 %
-% Finally, this routine performs in brief comparative analysis with Germany
-% to see if the differences between the UK can be explained in terms of
-% surveillance  or clinical management.
-
+% Finally, this routine performs a brief comparative analysis with Germany
+% to see if the differences with the UK can be explained in terms of
+% surveillance or clinical management.
+% 
+% NB: annotated notes appended to this routine illustrate a number of
+% analyses simulations relevant to various containment, suppression and
+% mitigation strategies. For example, the effect of early lockdowns, the
+% effect of maintaining a tracking and tracing policy at the inception of
+% the pandemic. In addition, there are notes showing how to incorporate
+% serological data during inversion of the dynamic causal model.
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_T.m 7850 2020-05-15 08:55:36Z spm $
+% $Id: DEM_COVID_T.m 7866 2020-05-30 09:57:38Z karl $
 
-% Get data for the United Kingdom
+% Get data for the United Kingdom (including total tests R)
 %==========================================================================
 [Y,R] = DATA_COVID_UK('United Kingdom');
 i     = min(size(Y,1),size(R,1));
-Y     = [Y(1:i,:),R(1:i,:)];       % supplement cases with tests
-R     = R/R(end);                  % empirical test rate
+Y     = [Y(1:i,:),R(1:i,:)];      % supplement cases with tests
+R     = R/R(end);                 % empirical test rate
 
 % assemble (Gaussian) priors over model parameters
 %--------------------------------------------------------------------------
@@ -54,8 +61,8 @@ M.G   = @spm_COVID_gen;           % generative function
 M.FS  = @(Y)sqrt(Y);              % feature selection  (link function)
 M.pE  = pE;                       % prior expectations (parameters)
 M.pC  = pC;                       % prior covariances  (parameters)
-M.hE  = [0 0 -4];                 % prior expectation  (log-precision)
-M.hC  = 1/64;                     % prior covariances  (log-precision)
+M.hE  = 0;                        % prior expectation  (log-precision)
+M.hC  = 1/256;                    % prior covariances  (log-precision)
 M.T   = size(Y,1);                % number of samples
 M.R   = R;                        % empirical test rate
 U     = [1 2 6];                  % outputs to model
@@ -66,6 +73,7 @@ U     = [1 2 6];                  % outputs to model
 
 % assemble prior and posterior estimates (and log evidence)
 %--------------------------------------------------------------------------
+M.date = '25-01-2020';            % date of first time point
 DCM.M  = M;
 DCM.Ep = Ep;
 DCM.Cp = Cp;
@@ -86,18 +94,10 @@ Cp     = DCM.Cp;                                 % posterior covariances
 %--------------------------------------------------------------------------
 spm_figure('GetWin','UK'); clf;
 %--------------------------------------------------------------------------
-% (predicted outcomes). This figure reports predicted new deaths and cases
-% for an exemplar country; here, the United Kingdom. The panels on the left
-% shows the predicted outcomes as a function of weeks. The blue line
-% corresponds to the expected trajectory, while the shaded areas are 90%
-% Bayesian credible intervals. The black dots represent empirical data,
-% upon which the parameter estimates are based. The lower right panel shows
-% the parameter estimates for the country in question. As in previous
-% figures, the prior expectations are shown as in bars over the posterior
-% expectations (and credible intervals). The upper right panel illustrates
-% the equivalent expectations in terms of cumulative deaths.
+% (predicted outcomes). predictions with confidence intervals for deaths,
+% positive cases and total counts
 %--------------------------------------------------------------------------
-spm_COVID_ci(Ep,Cp,Y,[1 2 6],M)
+spm_COVID_ci(Ep,Cp,Y,[1 2 6],M);
 
 % add seasonal flu rates
 %--------------------------------------------------------------------------
@@ -107,10 +107,10 @@ x   = get(gca,'XLim');
 plot(x,[FLU(1) FLU(1)],'-.r',x,[FLU(2) FLU(2)],'-.r')
 spm_axis tight
 
-% supplemented with effective reproduction ratio and herd immunity
+% supplemented with effective reproduction ratio (R) and herd immunity
 %--------------------------------------------------------------------------
 spm_figure('GetWin','R'); clf;
-spm_COVID_ci(Ep,Cp,[],[4 5],M)
+spm_COVID_ci(Ep,Cp,[],[4 5],M);
 
 
 % and plot latent or hidden states
@@ -118,7 +118,7 @@ spm_COVID_ci(Ep,Cp,[],[4 5],M)
 spm_figure('GetWin','Predictions: UK'); clf;
 %--------------------------------------------------------------------------
 % (latent causes of observed consequences). The upper panels reproduce the
-% expected trajectories of the previous figure, for an example country
+% expected trajectories of the previous figures, for an example country
 % (here the United Kingdom). Here, the expected death rate is shown in
 % blue, new cases in red, predicted recovery rate in orange. The black dots
 % correspond to empirical data. The lower four panels show the evolution of
@@ -129,6 +129,11 @@ M.T   = 365*1.5;                       % assume vaccination in 18 months
 [Z,X] = spm_COVID_gen(Ep,M, [1 2]);
 spm_COVID_plot(Z,X,DCM.Y,[],[1 2]);
 
+% illustration of social distancing basal probability of leaving home
+%--------------------------------------------------------------------------
+spm_COVID_dashboard(DCM);
+
+
 % Sensitivity analysis: which factors determine cumulative deaths?
 %==========================================================================
 spm_figure('GetWin','Sensitivity: UK'); clf
@@ -137,17 +142,17 @@ spm_figure('GetWin','Sensitivity: UK'); clf
 % (i.e., death rate) as a function of time. The bar charts are the
 % derivatives of final outcomes with respect to each testing parameter: 
 
-% names{18} = 'trace and test'; %**
-% names{19} = 'response testing'; %**
+% names{18} = 'track and trace'; %**
+% names{19} = 'testing latency'; %**
 % names{20} = 'test delay'; %**
 % names{21} = 'test selectivity'; %**
 % names{22} = 'sustained testing'; %**
-% names{25} = 'baseline testing'; %**
+% names{23} = 'baseline testing'; %**
 
 % sensitivity analysis in terms of partial derivatives
 %--------------------------------------------------------------------------
 Np  = spm_length(Ep);
-p   = [18 19 20 21 25];
+p   = [18 19 20 21 22 23];
 V   = sparse(p,p,1,Np,Np); V = V(:,p);
 dY  = spm_diff(@(P,M,U)spm_COVID_gen(P,M,U),Ep,M,1,1,{V});
 t   = (1:size(dY,1))/7;
@@ -189,35 +194,29 @@ spm_figure('GetWin','Testing: UK'); clf;
 
 % testing parameters
 %--------------------------------------------------------------------------
-% P.ttt = 1/10000;               % track, trace and test
-% P.sen = 1/10000;               % response testing
-% P.del = 2;                     % test delay (days)
-% P.tes = 2;                     % test selectivity (for infection)
-% P.exp = 1/10000;               % sustained testing
-% 
-% % immunity
-% %--------------------------------------------------------------------------
-% P.Tim = 32;                    % period of immunity (months)
-% P.r   = 1e-6;                  % proportion resistant cases
-% P.bas = 8/10000;               % baseline testing
+% P.ttt = 1/10000;              % test, track and trace
+% P.ont = 2;                    % testing latency (months)
+% P.del = 2;                    % test delay (days)
+% P.tes = 1;                    % test selectivity (for infection)
+% P.sus = 1/10000;              % sustained testing
+% P.bas = 8/10000;              % baseline testing
 
-% increase tracking test probability over 32 levels
+% increase track and trace probability over 32 levels
 %--------------------------------------------------------------------------
-M.TTT = 20*7;                    % late start (20 weeks)
-par   = linspace(1e-6,1,32);     % track, trace and test
+M.TTT = 20*7;                              % late start (20 weeks)
+par   = linspace(1e-6,1,32);               % track, trace and test
 S     = par;
 R     = par;
 for i = 1:numel(par)
     
     % social distancing threshold
     %----------------------------------------------------------------------
-    P     = Ep;                  % expansion point
-    P.ttt = log(par(i));         % parameter
-    [Y,X] = spm_COVID_gen(P,M,U);
-    S(i)  =  sum(Y(:,1));        % cumulative deaths
-    R(i)  =  max(Y(:,3));        % peak test rates
-    A(i)  = mean(Y(:,3));        % average test rates
-    
+    P     = Ep;                            % expansion point
+    P.ttt = log(par(i));                   % parameter
+    [Y,X] = spm_COVID_gen(P,M,[1 2 9]);    % outcomes and causes
+    S(i)  = sum(Y(:,1));                   % cumulative deaths
+    R(i)  = max(Y(:,3))*par(i);            % infected and asymptomatic
+
     % plot results and hold graph
     %----------------------------------------------------------------------
     if rem(i,2)
@@ -235,17 +234,17 @@ spm_figure('GetWin','Testing: UK II'); clf;
 
 subplot(2,2,1), plot(par,S)
 title('Cumulative deaths','FontSize',16),
-xlabel('track and trace')
+xlabel('efficacy of track and trace')
 ylabel('total deaths')
 axis square, box off
 
 subplot(2,2,2)
-plot(par,R,par,0*par + 250e3,':')
-title('Peak testing rates','FontSize',16),
-xlabel('track and trace')
-ylabel('tests per day')
+semilogy(par,R,par,0*par + 100000,':')
+title('Peak identification','FontSize',16),
+xlabel('efficacy of track and trace')
+ylabel('identifiable cases')
 axis square, box off
-legend ({'peak testing','capacity'}), legend boxoff
+legend ({'peak identification','capacity'}), legend boxoff
 
 
 % repeat with tracking and testing at the onset of the outbreak
@@ -255,12 +254,11 @@ for i = 1:numel(par)
     
     % social distancing threshold
     %----------------------------------------------------------------------
-    P     = Ep;                  % expansion point
-    P.ttt = log(par(i));         % parameter
-    Y     = spm_COVID_gen(P,M,U);
-    S(i)  =  sum(Y(:,1));        % cumulative deaths
-    R(i)  =  max(Y(:,3));        % peak test rates
-    A(i)  = mean(Y(:,3));        % average test rates
+    P     = Ep;
+    P.ttt = log(par(i));
+    Y     = spm_COVID_gen(P,M,[1,9]);
+    S(i)  = sum(Y(:,1));
+    R(i)  = max(Y(:,2))*par(i);
 
 end
 
@@ -269,7 +267,7 @@ end
 spm_figure('GetWin','Testing: UK II');
 subplot(2,2,1), hold on, plot(par,S,'-.')
 subplot(2,2,2), hold on, plot(par,R,'-.')
-legend({'peak testing','capacity','peak (first wave)'}), legend boxoff
+legend({'peak testing','capacity','peak testing (early)'}), legend boxoff
 
 
 
@@ -342,7 +340,7 @@ S    = sum([y{1}(:,1), y{2}(:,1), y{3}(:,1), y{4}(:,1)]);
 bar(max(S) - S)
 title('Lives saved','FontSize',16),
 xlabel('testing strategy')
-ylabel('cumulative deaths')
+ylabel('lives saved')
 axis square, box off
 
 
@@ -352,7 +350,6 @@ axis square, box off
 % in terms of parameters that underwrite surveillance as opposed to
 % clinical management. Using the same priors, the model is inverted for
 % German data and the respective parameters are then compared with the UK.
-
 
 % get data from Germany
 %--------------------------------------------------------------------------
@@ -445,7 +442,7 @@ title('Scale differences','FontSize',16)
 %==========================================================================
 % recent serologic testing in Germany can now be compared with the
 % predictions of the above model inversion:
-
+%--------------------------------------------------------------------------
 spm_figure('GetWin','Heisberg'); clf;
 %--------------------------------------------------------------------------
 % A German antibody survey was the first out of the gate several weeks ago.
@@ -461,7 +458,7 @@ spm_figure('GetWin','Heisberg'); clf;
 % immunity is already underway." They recommended that politicians start to
 % lift some of the regions' restrictions.
 %--------------------------------------------------------------------------
-T     = 33;                    % days since Ab testing 6/3/2020 to date
+T     = datenum('25-Jan-2020') - datenum('6-Apr-2020') + size(DCM.Y,1);
 [Y,X] = spm_COVID_gen(GCM.Ep,GCM.M,5);
 X     = X{2};
 
@@ -486,11 +483,337 @@ legend({'infected','infectious','immune','Streeck et al'})
 return
 
 
+% Study by the Office for National Statistics (ONS)
+%==========================================================================
+% this demonstration shows how to include serological data as point data
+% during the time series. These kinds of data are included in a timeseries
+% by setting the precision of the remaining time points to 0.
+%
+% The study, by the Office for National Statistics (ONS), tested 10,705
+% people in more than 5,000 households and estimated 0.27% of the
+% population in England were currently positive for Covid-19. The analysis
+% suggests about 148,000 people across the entire population would have
+% tested positive on any day between 27 April and 10 May 2020.
+%
+% As of 9 May 2020, the Office for National Statistics (ONS) had received
+% the results of swab tests collected from 7,087 individual participants in
+% the coronavirus (COVID-19) Infection Survey in England between 26 April
+% and 8 May 2020.
+%
+% It is estimated that 0.24% of the population in England tested positive
+% for COVID-19 (95% confidence interval: 0.14% to 0.40%).
+% Almost one in five people in London - 17 per cent - have already had the
+% coronavirus, according to surveillance testing, meaning that around
+% 1.53million people have been infected with the virus and recovered
+%
+% After making adjustments for the accuracy of the assay and the age and
+% gender distribution of the population, the overall adjusted prevalence in
+% London increased from 1.5% in week 13 to 12.3% in weeks 15-16 and 17.5%
+% in week 18.
+%
+% See: https://www.bmj.com/content/369/bmj.m1808
+% https://www.gov.uk/government/publications/national-covid-19-surveillance-reports/sero-surveillance-of-covid-19
+%--------------------------------------------------------------------------
+spm_figure('GetWin','ONS'); clf;
+%--------------------------------------------------------------------------
+Y    = struct;
+M    = DCM.M;
+Y.y  = DCM.Y;
+n    = size(Y.y,1);
+i    = (1:n);
+t    = i + datenum('25-Jan-2020');
+
+% serological datathis
+
+ST   = [13 15 18]*7 + datenum('01-Jan-2020') - datenum('25-Jan-2020');
+SY   = [1.5 12.3 17.5];
+
+% add PCR and serological data
+%--------------------------------------------------------------------------
+PT   = (datenum('20-Apr-2020'):datenum('10-May-2020')) - datenum('25-Jan-2020');
+Y.y  = [Y.y sparse(ST,1,SY,n,1) sparse(PT,1,0.24,n,1)];
+U    = [1 2 6 5 8];
+
+% precision components (with high precision for serology)
+%--------------------------------------------------------------------------
+Q    = cell(5,1);
+Q{1} = speye(n,n);                         % death rate
+Q{2} = speye(n,n);                         % positive cases
+Q{3} = speye(n,n);                         % total tests
+Q{4} = sparse(ST,ST,exp(6),n,n);           % antibodies
+Q{5} = sparse(PT,PT,exp(4),n,n);           % prevalence
+Q    = spm_cat(spm_diag(Q));
+
+% add PCR and serological data
+%--------------------------------------------------------------------------
+Y.Q     = Q;
+[Ep,Cp] = spm_nlsi_GN(M,U,Y); 
+
+
+% graphics
+%==========================================================================
+spm_figure('GetWin','ONS: predictions'); clf;
+%--------------------------------------------------------------------------
+M.T     = 365;
+[Z,X]   = spm_COVID_gen(Ep,M,[1 2]);
+spm_COVID_plot(Z,X,DCM.Y(:,1:2));
+
+% get infection status predictions for this state
+%--------------------------------------------------------------------------
+spm_figure('GetWin','ONS: serology'); clf;
+%--------------------------------------------------------------------------
+X     = X{2};
+X     = X(1:M.T,2:4);
+t     = (1:M.T) + datenum('25-Jan-2020');
+subplot(2,1,1), hold off, plot(t,X*100), datetick('x')
+ylabel('prevalence (%)'), title('Infection status','FontSize',16)
+xlabel('time (date)'), set(gca,'YLim',[0 32])
+axis square, box off
+
+% superimpose empirical estimates
+%--------------------------------------------------------------------------
+hold on
+T = PT + datenum('25-Jan-2020');
+plot(T,ones(size(T))*0.24,'-b','Linewidth',2)
+
+T = ST + datenum('25-Jan-2020');
+plot(T ,SY,'or')
+legend({'infected','infectious','immune','0.24%','17%'})
+legend('boxoff')
+
+
+return
+
+
+% Channel 4: predictions
+%==========================================================================
+% these notes illustrate simulations of early lockdown policies modelled in
+% terms of decreasing the threshold (on the prevalence of infection) that
+% elicits a social distancing response. This early intervention is modelled
+% by reducing the social distancing thresholdduring the initial phase of
+% the outbreak (as parameterised by M.T)
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Channel 4: predictions'); clf
+%--------------------------------------------------------------------------
+M       = DCM.M;
+Ep      = DCM.Ep;
+Cp      = DCM.Cp;
+Ep.Tim  = log(18);
+M.T     = 365;
+spm_COVID_ci(Ep,Cp,DCM.Y(:,1),1,M);
+
+% and plot latent or hidden states
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Channel 4: latent causes'); clf;
+%--------------------------------------------------------------------------
+[Z,X] = spm_COVID_gen(Ep,M,1);
+spm_COVID_plot(Z,X,DCM.Y,[],1);
+
+% hold plots for subsequent overlay and illustrate onset of lockdown
+%--------------------------------------------------------------------------
+for j = 1:6
+    subplot(3,2,j), hold on
+    set(gca,'ColorOrderIndex',1);
+end
+u      = 2/100;                              % threshold for lockdown
+t      = (1:M.T) + datenum('25-Jan-2020');   % time
+i      = find(X{1}(:,2) < u,1,'first');      % onset of lockdown
+j      = sum(X{1}(:,2) < u);                 % duration of lockdown
+subplot(3,2,3), plot([i,i]/7,[0 32],'r:')
+text(i/7,32,datestr(t(i)))
+
+% increase social distancing for the first 64 days
+%--------------------------------------------------------------------------
+M.TT   = 64;
+[Z,X]  = spm_COVID_gen(Ep,M,1);
+spm_COVID_plot(Z,X,DCM.Y,[],1);
+
+i      = find(X{1}(:,2) < u,1,'first');      % onset of lockdown
+j      = sum(X{1}(:,2) < u);                 % duration of lockdown
+subplot(3,2,3), plot([i,i]/7,[0 36],'r:')
+text(i/7,36,datestr(t(i)))
+
+% return to confidence interval graphics and overlay predictions
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Channel 4: predictions')
+subplot(2,1,1), hold on
+spm_COVID_ci(Ep,Cp,[],1,M);
 
 
 
-% https://mrc-ide.github.io/covid19estimates/#/download
+% tracking and testing
+%==========================================================================
+% repeat a similar kind of analysis in terms of the efficiency of FTTI
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Channel 4: tracking and testing'); clf;
+%--------------------------------------------------------------------------
+subplot(2,1,1), hold on
+M.T     = 365;
+M.TT    = 0;
+M.TTT   = datenum('01-Feb-2020') - datenum('25-Jan-2020');
+Ep.ttt  = log(1/10000);
+[Z,X]   = spm_COVID_gen(Ep,M,1);
+spm_COVID_plot(Z,X,DCM.Y,[],1);
 
+% hold the plots and repeat with an effective FTTI (of 50%)
+%--------------------------------------------------------------------------
+for j = 1:6
+    subplot(3,2,j), hold on
+    set(gca,'ColorOrderIndex',1);
+end
+Ep.ttt  = log(1/2);
+[Z,X]   = spm_COVID_gen(Ep,M,1);
+spm_COVID_plot(Z,X,DCM.Y,[],1);
+
+
+% tracking and testing - over a range of FTTI latencies
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Channel 4: tracking and testing I'); clf;
+%--------------------------------------------------------------------------
+M       = DCM.M;
+Ep      = DCM.Ep;
+Cp      = DCM.Cp;
+Ep.Tim  = log(18);
+Ep.ttt  = log(1/4);
+M.TT    = 0;
+M.T     = 180;
+
+TTT   = linspace(0,128,8);
+for i = 1:numel(TTT)
+    M.TTT   = TTT(i);
+    [Z,X]   = spm_COVID_gen(Ep,M,1);
+    spm_COVID_plot(Z,X,DCM.Y,[],1);
+    for j = 1:6
+        subplot(3,2,j), hold on
+        set(gca,'ColorOrderIndex',1);
+    end
+end
+
+% tracking and testing - over a range of FTTI efficacies
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Channel 4: tracking and testing II'); clf;
+%--------------------------------------------------------------------------
+M       = DCM.M;
+Ep      = DCM.Ep;
+Cp      = DCM.Cp;
+Ep.Tim  = log(18);
+M.TTT   = 0
+M.TT    = 0;
+M.T     = 356*2;
+
+TTT   = linspace(0,1,8);
+for i = 1:numel(TTT)
+    Ep.ttt = log(TTT(i));
+    [Z,X]  = spm_COVID_gen(Ep,M,1);
+    spm_COVID_plot(Z,X,DCM.Y,[],1);
+    for j = 1:6
+        subplot(3,2,j), hold on
+        set(gca,'ColorOrderIndex',1);
+    end
+end
+
+
+return
+
+
+% risk to children returning to school
+%==========================================================================
+% these notes illustrate how to evaluate the risk of morbidity and
+% mortality for children returning to a classroom of 15. This is based upon
+% the prevalence of infection and the number of contacts. Risk here is
+% assessed in relation to the probability of being involved in a fatal road
+% traffic accident.
+%
+% The overall death rate from covid-19 has been estimated at 0.66%, rising
+% sharply to 7.8% in people aged over 80 and declining to 0.0016% in
+% children aged 9 and under.
+%
+% It reported that 0.04% of 10-19 year olds would probably require hospital
+% care—as would 1.0% of people in their 20s, 3.4% of people aged 30-39,
+% 4.3% aged 40-49, 8.2% aged 50-59, 11.8% in their 60s, 16.6% in their 70s,
+% and 18.4% of those over 80.
+%
+% Verity R, Okell LC, Dorigatti I, et al. Estimates of the severity of
+% coronavirus disease 2019: a model-based analysis. Lancet Infect Dis 2020
+% Mar 30.
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Risk'); clf;
+%--------------------------------------------------------------------------
+
+% 2018: fatalities, 1782 injuries, 160378
+%--------------------------------------------------------------------------
+rta    = 1782/66/365; disp(rta)
+M      = DCM.M;
+Ep     = DCM.Ep;
+Cp     = DCM.Cp;
+M.date = '25-Jan-2020';
+M.T    = datenum('01-Sep-2020') - datenum(M.date);
+M.TTT  = datenum('01-Jun-2020') - datenum(M.date);
+%%% Ep.ttt = log(1/4);   % uncomment to implement tracking and tracing
+Ep.Tim = log(18);
+
+% get confidence intervals for levels of infection
+%--------------------------------------------------------------------------
+[S,CS,Y,C] = spm_COVID_ci(Ep,Cp,[],7,M);
+subplot(2,1,1)
+set(gca,'XLim',[datenum('01-Apr-2020') datenum('01-Aug-2020')])
+set(gca,'YLim',[0 24])
+hold on
+
+% plot an arbitrary threshold of 1% 
+%--------------------------------------------------------------------------
+i       = find(Y > 1,1,'last')
+d       = (1:M.T) + datenum(M.date);
+plot([1,1]*d(i),[0 8],'r')
+plot([datenum('01-Apr-2020') datenum('01-Aug-2020')],[1 1],'r-.')
+text(d(i),10,datestr(d(i)))
+xlabel('date'), ylabel('percent risk')
+
+% create a table of various risks (please see below)
+%--------------------------------------------------------------------------
+[Y,X]   = spm_COVID_gen(Ep,M,5);
+P       = spm_vecfun(Ep,@exp);
+datstr  = {'1-Jun-2020','15-Jun-2020','1-Sep-2020'};
+dstr    = {'Jun1','Jun15','Sep1'}
+R       = [15 P.Rin];
+
+for n = 1:numel(R)
+    for d = 1:numel(datstr)
+        
+        % prevalence of contagion
+        %------------------------------------------------------------------
+        T    = datenum(datstr{d}) - datenum('25-Jan-2020');
+        p    = X{2}(T,3);
+        
+        % probability of contagious child in a class of 15
+        %------------------------------------------------------------------
+        Prev = 1 - (1 - p)^R(n);
+        
+        % probability of contracting virus
+        %------------------------------------------------------------------
+        Pinf = 1 - (1 - P.trn*p)^R(n);
+        
+        % probability of dying from virus
+        %------------------------------------------------------------------
+        Pfat   = Pinf*0.0016/100;
+        
+        Tab(1,n,d) = Prev*100;
+        Tab(2,n,d) = Pinf*100;
+        Tab(3,n,d) = Pfat*1e6;
+    end
+end
+
+RowNames = {'contagious (%)',' contracting (%)','fatality (per million)'};
+table(Tab(:,:,1),Tab(:,:,2),Tab(:,:,3),'RowNames',RowNames,'VariableNames',dstr)
+
+
+return
+
+% exemplar estimates of reproduction ratio based upon conventional
+% modelling (these can be overlaid on the instantaneous estimates produced
+% above)
+% source: https://mrc-ide.github.io/covid19estimates/#/download
+%--------------------------------------------------------------------------
 % date: 13-02-2020; vs 25/1/2020 (19 days)
 
 R   = [3.935988661

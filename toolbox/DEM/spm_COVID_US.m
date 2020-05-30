@@ -45,7 +45,7 @@ function [Y,X] = spm_COVID_US(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_US.m 7849 2020-05-13 19:48:29Z karl $
+% $Id: spm_COVID_US.m 7866 2020-05-30 09:57:38Z karl $
 
 % prior connectivity
 %--------------------------------------------------------------------------
@@ -70,14 +70,10 @@ S     = spm_vecfun(P,@exp);                  % scale parameters
 N     = [M.data.pop];                        % population size
 for j = 1:numel(M.data)
     
-    if j == 1
-        n = S.n/N(j);                        % proportion of initial cases
-    else
-        n = 0;
-    end
+    n    = S.n(j)*exp(M.Q(j).Ep.n)/N(j);     % proportion of initial cases
     r    = exp(M.Q(j).Ep.r);                 % proportion of resistant cases
     s    = (1 - n - r);                      % proportion susceptible
-    p{1} = [3 1 0 0 0]'/4;                     % location
+    p{1} = [3 1 0 0 0]'/4;                   % location
     p{2} = [s n 0 0 r]';                     % infection
     p{3} = [1 0 0 0]';                       % clinical
     p{4} = [1 0 0 0]';                       % testing
@@ -91,7 +87,6 @@ end
 % generate outcomes for the specified number of days
 %==========================================================================
 R     = p;                                   % marginal over regions
-m     = 1:4;                                 % infection status of exchange
 for i = 1:M.T
     
     % for this region
@@ -100,35 +95,38 @@ for i = 1:M.T
         
         % coupling between states
         %------------------------------------------------------------------
-        for k = j:numel(M.data)
+        xj    = x{j}(2,:,1,1);
+        for k = 1:numel(M.data)
             
-            % transport between marginals
+            % transport between marginals (at work, asymptomatic and
+            % untested)
             %--------------------------------------------------------------
-            dNk           = x{k}(2,m,1,1)*N(k)*S.erc(j,k);
-            dNj           = x{j}(2,m,1,1);
-            dNj           = dNj * sum(dNk(:))/sum(dNj(:));
-            dN            = (dNj - dNk);
-            
-            % from j to k
-            %--------------------------------------------------------------
-            x{k}(2,m,1,1) = max(x{k}(2,m,1,1) + dN/N(k),0);
-            x{j}(2,m,1,1) = max(x{j}(2,m,1,1) - dN/N(j),0);
+            xk  = x{k}(2,:,1,1);
+            xj  = xj*(1 - S.erc(j,k)) + N(k)/N(j)*xk*S.erc(j,k);
             
         end
+        xj(xj < 0)    = 0;
+        x{j}(2,:,1,1) = xj;
         
-        % joint and marginal densities
+        % renormalise joint and marginal densities
         %------------------------------------------------------------------
-        x{j}(x{j} < 0) = 0;
         x{j} = x{j}/sum(x{j}(:));
         p    = spm_marginal(x{j});
 
         % state dependent transitions
         %==================================================================
+        Q     = M.Q(j).Ep;
+        
+        % time specific parameters
+        %------------------------------------------------------------------
+        Q.bas = log(exp(Q.bas) + exp(Q.sus)*spm_phi((i - 32*exp(Q.ont))/16));
         
         % region specific parameters
         %------------------------------------------------------------------
-        Q     = M.Q(j).Ep;
         Q.fed = P.fed;
+        
+        % update probability distribution
+        %------------------------------------------------------------------
         B     = spm_COVID_B(x{j},Q,R);
         x{j}  = spm_unvec(B*spm_vec(x{j}),x{j});
         

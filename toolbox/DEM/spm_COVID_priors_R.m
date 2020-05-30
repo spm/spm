@@ -28,7 +28,7 @@ function [pE,pC,str,erc] = spm_COVID_priors_R(data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors_R.m 7840 2020-04-26 23:11:25Z spm $
+% $Id: spm_COVID_priors_R.m 7866 2020-05-30 09:57:38Z karl $
 
 % set up
 %--------------------------------------------------------------------------
@@ -40,19 +40,19 @@ end
 % assemble priors
 %==========================================================================
 N      = numel(data);                   % number of regions
-erc    = triu(ones(N,N),1);             % full connectivity (all)
+erc    = 1 - eye(N,N);                  % full connectivity (all)
 ln     = @(x)log(x + exp(-32));
 
 % supplement with (priors over) between-region parameters
 %--------------------------------------------------------------------------
-pE.n   = -4;                            % initial (log) infection count
+pE.n   = zeros(N,1);                    % initial (log) infection count
 pE.erc = ln(erc) - 8;                   % effective (regional) connectivity
 pE.fed = ln(0);                         % social distancing (federal)
 
 % prior variances
 %--------------------------------------------------------------------------
-pC.n   = 1/4;                           % uninformative priors on onset
-pC.erc = erc/16;                        % effective (regional) connectivity
+pC.n   = ones(N,1);                     % uninformative priors on onset
+pC.erc = erc;                           % effective (regional) connectivity
 pC.fed = 0;                             % social distancing (federal)
 
 % augment strings with parameter field names

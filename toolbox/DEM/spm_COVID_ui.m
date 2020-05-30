@@ -1,5 +1,5 @@
-function spm_covid_ui
-% FORMAT spm_covid_ui
+function spm_COVID_ui
+% FORMAT spm_COVID_ui
 % Graphical user interface for DCM for COVID-19 (DEM_COVID)
 % 
 % For a guide to this interface, please use the help menu after launching
@@ -8,7 +8,7 @@ function spm_covid_ui
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_COVID_ui.m 7833 2020-04-17 10:43:06Z guillaume $
+% $Id: spm_COVID_ui.m 7866 2020-05-30 09:57:38Z karl $
 
 % Add DEM toolbox to path
 if ~isdeployed
@@ -828,7 +828,7 @@ switch plot_type
         'later. One might ask to what extent these trajectories depend upon ' ...
         'different model parameters. This is quantified in the next figure.'];
         
-        [Z,X] = spm_COVID_gen(cEp,M,3);
+        [Z,X] = spm_COVID_gen(cEp,M,1:3);
         spm_COVID_plot(Z,X,cY);
         
     case COUNTRY_SENSITIVITY
