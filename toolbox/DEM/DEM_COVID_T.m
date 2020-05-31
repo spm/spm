@@ -30,7 +30,7 @@ function [DCM] = DEM_COVID_T
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_T.m 7866 2020-05-30 09:57:38Z karl $
+% $Id: DEM_COVID_T.m 7867 2020-05-31 19:06:09Z karl $
 
 % Get data for the United Kingdom (including total tests R)
 %==========================================================================
@@ -47,10 +47,7 @@ R     = R/R(end);                 % empirical test rate
 %--------------------------------------------------------------------------
 pE.Tim = log(16);                 % period of immunity 
 pE.N   = log(66);                 % population of UK (M)
-pE.r   = log(1/3);                % non-susceptible proportion
-
 pC.N   = 0;
-pC.r   = 1/256;
 
 % variational Laplace (estimating log evidence (F) and posteriors)
 %==========================================================================
@@ -85,7 +82,7 @@ clear ans, save COVID_UK
 
 % Predictions
 %==========================================================================
-M.T    = 180;                                    % six-month period
+M.T    = 256;                                    % six-month period
 Y      = DCM.Y;                                  % empirical data
 Ep     = DCM.Ep;                                 % posterior expectations
 Cp     = DCM.Cp;                                 % posterior covariances

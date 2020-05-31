@@ -21,7 +21,7 @@ function T = spm_COVID_B(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_B.m 7866 2020-05-30 09:57:38Z karl $
+% $Id: spm_COVID_B.m 7867 2020-05-31 19:06:09Z karl $
 
 % marginal probabilities
 %==========================================================================
@@ -162,6 +162,8 @@ pw   = q(2,:)/sum(q(2,:));          % infection probability at work
 Pinh = (1 - P.trn*ph(3))^P.Rin;     % P(no transmission) | home
 Pinw = (1 - P.trn*pw(3))^P.Rou;     % P(no transmission) | work
 Kimm = exp(-1/P.Tim/32);            % loss of immunity (per 32 days)
+Kres = exp(-1/2048);                % period of innate immunity
+Pres = P.res;                       % proportion of innate immunity
 Kinf = exp(-1/P.Tin);
 Kcon = exp(-1/P.Tcn);
     
@@ -169,28 +171,28 @@ Kcon = exp(-1/P.Tcn);
 %--------------------------------------------------------------------------
 %    susceptible  infected  infectious  immune  resistant
 %--------------------------------------------------------------------------
-b{1} = [Pinh       0          0          (1 - Kimm) 0;
-        (1 - Pinh) Kinf       0          0          0;
-        0          (1 - Kinf) Kcon       0          0;
-        0          0          (1 - Kcon) Kimm       0;
-        0          0          0          0          1];
+b{1} = [Pinh       0                     0          (1 - Kimm) (1 - Kres);
+        (1 - Pinh) Kinf                  0          0          0;
+        0          (1 - Pres)*(1 - Kinf) Kcon       0          0;
+        0          0                     (1 - Kcon) Kimm       0;
+        0          Pres*(1 - Kinf)       0          0          Kres];
     
 % marginal: infection {2} | work {1}(2)
 %--------------------------------------------------------------------------
-b{2} = [Pinw       0          0          (1 - Kimm) 0;
-        (1 - Pinw) Kinf       0          0          0;
-        0          (1 - Kinf) Kcon       0          0;
-        0          0          (1 - Kcon) Kimm       0;
-        0          0          0          0          1];
+b{2} = [Pinw       0                     0          (1 - Kimm) (1 - Kres);
+        (1 - Pinw) Kinf                  0          0          0;
+        0          (1 - Pres)*(1 - Kinf) Kcon       0          0;
+        0          0                     (1 - Kcon) Kimm       0;
+        0          Pres*(1 - Kinf)       0          0          Kres];
 
 
 % marginal: infection {2} | CCU {1}(3)
 %--------------------------------------------------------------------------
-b{3} = [1          0          0          (1 - Kimm) 0;
-        0          Kinf       0          0          0;
-        0          (1 - Kinf) Kcon       0          0;
-        0          0          (1 - Kcon) Kimm       0;
-        0          0          0          0          1];
+b{3} = [1          0                     0          (1 - Kimm) (1 - Kres);
+        0          Kinf                  0          0          0;
+        0          (1 - Pres)*(1 - Kinf) Kcon       0          0;
+        0          0                     (1 - Kcon) Kimm       0;
+        0          Pres*(1 - Kinf)       0          0          Kres];
 
 % marginal: infection {2} | morgue {1}(4)
 %--------------------------------------------------------------------------

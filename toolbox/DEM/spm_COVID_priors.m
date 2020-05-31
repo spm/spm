@@ -35,7 +35,7 @@ function [P,C,str,rfx] = spm_COVID_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors.m 7866 2020-05-30 09:57:38Z karl $
+% $Id: spm_COVID_priors.m 7867 2020-05-31 19:06:09Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -87,7 +87,7 @@ names{22} = 'sustained testing'; %**
 names{23} = 'baseline testing'; %**
 names{24} = 'immune period'; %**
 names{25} = 'resistance'; %**
-
+names{26} = 'innate immunity'; %**
 
 % random effects (i.e., effects that are common in countries)
 %--------------------------------------------------------------------------
@@ -119,7 +119,7 @@ str.names   = names;
 % cut and paste to see the effects of changing different prior expectations
 %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 if false
-    pE    = spm_COVID_priors; M.T = 365;
+    pE    = spm_COVID_priors;      M.T = 365;
     [Y,X] = spm_COVID_gen(pE,M,1:3); u = exp(pE.cap + pE.N)*1e6;
     spm_COVID_plot(Y,X,[],u)
 end
@@ -167,8 +167,8 @@ P.bas = 4/10000;              % baseline testing
 % immunity
 %--------------------------------------------------------------------------
 P.Tim = 32;                   % period of immunity (months)
-P.r   = 1/3;                  % proportion resistant cases
-
+P.r   = 1/4;                  % proportion resistant cases
+P.res = 1/4;                  % proportion with innate immunity
 
 
 % total mortality rate (for susceptible population)
@@ -224,6 +224,7 @@ C.bas = W;                    % baseline testing
 %--------------------------------------------------------------------------
 C.Tim = 0;                    % period of immunity
 C.r   = W;                    % proportion of people not susceptible
+C.res = W;                    % proportion with innate immunity
 
 
 

@@ -22,7 +22,7 @@ function DEM_COVID_I
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_I.m 7866 2020-05-30 09:57:38Z karl $
+% $Id: DEM_COVID_I.m 7867 2020-05-31 19:06:09Z karl $
 
 % download data if required
 %__________________________________________________________________________
@@ -50,7 +50,6 @@ Fsi     = spm_figure('GetWin','SI'); clf;
 %--------------------------------------------------------------------------
 [pE,pC] = spm_COVID_priors;
 
-
 % Bayesian inversion (placing posteriors in a cell array of structures)
 %--------------------------------------------------------------------------
 Tim   = 1:32;
@@ -74,7 +73,7 @@ for i = 1:numel(data)
         M.pE   = pE;                   % prior expectations (parameters)
         M.pC   = pC;                   % prior covariances  (parameters)
         M.hE   = 0;                    % prior expectation  (log-precision)
-        M.hC   = 1/256;                % prior covariances  (log-precision)
+        M.hC   = 1/64;                 % prior covariances  (log-precision)
         M.T    = size(Y,1);            % number of samples
         U      = [1 2];                % outputs to model
         
@@ -116,11 +115,10 @@ save COVID_I
 
 % Bayesian parameter averaging (over N countries)
 %==========================================================================
-N    = 16;
-% for N = 2:32
-    
-DCM  = spm_dcm_bpa(GCM(1:N,:),'nocd');
-FN   = sum(F(1:N,:));
+N   = 32;
+i   = ismember({data.country},'United Kingdom');
+DCM = GCM(i,:);
+FN  = sum(F(1:N,:));
 
 % posterior over a period of immunity
 %==========================================================================
@@ -142,8 +140,6 @@ plot(Tim,c,[1,1]*c0,[0,1],'b-.',[1,1]*c1,[0,1],'b-.')
 xlabel('period of immunity (months)'),ylabel('probability')
 title('Cumulative probability','FontSize',16),axis square, box off
 
-% pause
-% end
 
 % predictions for three periods of immunity
 %==========================================================================
@@ -189,7 +185,7 @@ spm_figure('GetWin','data fits'); clf
 % death rate
 %--------------------------------------------------------------------------
 M.T   = 180;
-for i = 1:8
+for i = 1:16
     
     [Y,X] = spm_COVID_gen(GCM{i,I}.Ep,M,1:2);
     % spm_COVID_plot(Y,X,GCM{i,I}.Y)
@@ -197,22 +193,22 @@ for i = 1:8
     % death rate
     %----------------------------------------------------------------------
     subplot(2,1,1)
-    d  = find(X{2}(:,2) > 1/100,1,'first');
+    d  = find(X{2}(:,2) > 1/1000,1,'first');
     t  = (1:size(Y,1)) - d;
-    semilogy(t,cumsum(Y(:,1))), hold on
+    plot(t,cumsum(Y(:,1))), hold on
     t  = (1:size(GCM{i,I}.Y,1)) - d;
-    semilogy(t,cumsum(GCM{i,I}.Y(:,1)),'k.')
-    set(gca,'YLim',[1e3 2e5])
+    plot(t,cumsum(GCM{i,I}.Y(:,1)),'k.')
+    set(gca,'XLim',[0 200])
     text(M.T - d,sum(Y(:,1)),data(i).country,'Fontweight','bold','FontSize',8)
     
     % new cases
     %----------------------------------------------------------------------
     subplot(2,1,2)
     t  = (1:size(Y,1)) - d;
-    semilogy(t,cumsum(Y(:,2))), hold on
+    plot(t,cumsum(Y(:,2))), hold on
     t  = (1:size(GCM{i,I}.Y,1)) - d;
-    semilogy(t,cumsum(GCM{i,I}.Y(:,2)),'k.')
-    set(gca,'YLim',[1e4 2e6])
+    plot(t,cumsum(GCM{i,I}.Y(:,2)),'k.')
+    set(gca,'XLim',[0 200])
     text(M.T - d,sum(Y(:,2)),data(i).country,'Fontweight','bold','FontSize',8)
     drawnow
     
@@ -227,13 +223,13 @@ title('Cumulative cases','FontSize',16), box off
 %--------------------------------------------------------------------------
 spm_figure('GetWin','variability'); clf
 M.T   = 365*2;
-for i = 1:N
+for i = 1:16
     
     [Y,X] = spm_COVID_gen(GCM{i,I}.Ep,M,1);
     if i < 9
         spm_COVID_plot(Y,X,GCM{i,I}.Y),drawnow
         subplot(3,2,1), hold on
-        set(gca,'YLim',[0 500])
+
     end
  
     m        = find(diff(Y(1:end - 1)) > 0 & diff(Y(2:end)) < 0);
@@ -243,6 +239,7 @@ for i = 1:N
     tab{i,3} = datestr(d(2));
 end
 
+set(gca,'YLim',[0 1000])
 vstr = {'country','first','second'};
 Tab  = cell2table(tab);
 table(Tab(:,1),Tab(:,2),Tab(:,3),'VariableNames',vstr)

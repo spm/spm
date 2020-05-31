@@ -22,7 +22,7 @@ function [DCM,GCM] = DEM_COVID(country,data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID.m 7866 2020-05-30 09:57:38Z karl $
+% $Id: DEM_COVID.m 7867 2020-05-31 19:06:09Z karl $
 
 % F: -1.5701e+04 social distancing based upon P(infected)
 % F: -1.5969e+04 social distancing based upon P(symptomatic)
@@ -298,6 +298,7 @@ end
 % report selected parameters (see spm_COVID_priors)
 %--------------------------------------------------------------------------
 p     = 1:size(P,1); p([1 3 17 18 20 21 22 24 25]) = [];
+p     = p(1:16);
 for i = 1:length(p)
     
     % posterior density

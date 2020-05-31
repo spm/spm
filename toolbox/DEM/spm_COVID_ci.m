@@ -31,7 +31,7 @@ function [S,CS,Y,C] = spm_COVID_ci(Ep,Cp,Z,U,M)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_ci.m 7866 2020-05-30 09:57:38Z karl $
+% $Id: spm_COVID_ci.m 7867 2020-05-31 19:06:09Z karl $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------
@@ -99,7 +99,7 @@ if numel(U) == 1
     % label time
     %----------------------------------------------------------------------
     if isfield(M,'date')
-        datetick('x')
+        datetick('x','mmmdd')
         xlabel('date')
     else
         xlabel('time (weeks)')
@@ -120,7 +120,7 @@ for i = 1:Ny
     % label time
     %----------------------------------------------------------------------
     if isfield(M,'date')
-        datetick('x')
+        datetick('x','mmmdd')
         xlabel('date')
     else
         xlabel('time (weeks)')
@@ -138,7 +138,7 @@ axis square, box off, spm_axis tight
 % label time
 %----------------------------------------------------------------------
 if isfield(M,'date')
-    datetick('x')
+    datetick('x','mmmdd')
     xlabel('date')
 else
     xlabel('time (weeks)')
