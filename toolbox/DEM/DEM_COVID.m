@@ -22,7 +22,7 @@ function [DCM,GCM] = DEM_COVID(country,data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID.m 7867 2020-05-31 19:06:09Z karl $
+% $Id: DEM_COVID.m 7868 2020-06-02 16:39:02Z karl $
 
 % F: -1.5701e+04 social distancing based upon P(infected)
 % F: -1.5969e+04 social distancing based upon P(symptomatic)
@@ -204,7 +204,7 @@ i = PEB.Pind;
 imagesc(Ep), title('Parameters of GLM','FontSize',16)
 set(gca,'XTick',1:numel(GLM.Xnames) ,'Xticklabel',GLM.Xnames)
 set(gca,'YTick',1:numel(str.names(i)),'Yticklabel',str.names(i))
-set(gca,'XTickLabelRotation',90)
+try, set(gca,'XTickLabelRotation',90), end
 axis square, box off
 
 
@@ -297,7 +297,7 @@ end
 
 % report selected parameters (see spm_COVID_priors)
 %--------------------------------------------------------------------------
-p     = 1:size(P,1); p([1 3 17 18 20 21 22 24 25]) = [];
+p     = 1:size(P,1); p([1 3 17 18 20 21 22 23 24]) = [];
 p     = p(1:16);
 for i = 1:length(p)
     
@@ -543,7 +543,7 @@ for i = 1:numel(m)
     spm_COVID_plot(Y,X)
     for j = 1:6
         subplot(3,2,j), hold on
-        set(gca,'ColorOrderIndex',1);
+        try, set(gca,'ColorOrderIndex',1); end
     end
     
 end

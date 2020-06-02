@@ -15,7 +15,7 @@ function spm_COVID_plot(Y,X,Z,u,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_plot.m 7866 2020-05-30 09:57:38Z karl $
+% $Id: spm_COVID_plot.m 7868 2020-06-02 16:39:02Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -60,7 +60,7 @@ end
 
 % graphics
 %--------------------------------------------------------------------------
-subplot(3,2,1), set(gca,'ColorOrderIndex',1);
+subplot(3,2,1), try, set(gca,'ColorOrderIndex',1); end
 
 if ~isempty(u)
    p = plot(t,Y,t,u*t.^0,':m');
@@ -74,7 +74,7 @@ title('Rates (per day)','FontSize',16)
 axis square, box off, set(gca,'XLim',[0, t(end)])
 legend('boxoff')
 
-subplot(3,2,2), set(gca,'ColorOrderIndex',1);
+subplot(3,2,2), try, set(gca,'ColorOrderIndex',1); end
 plot(t,cumsum(Y))
 xlabel('time (weeks)'),ylabel('number of cases'), set(gca,'XLim',[0, t(end)])
 title('Cumulative cases','FontSize',16), axis square, box off
@@ -82,7 +82,7 @@ title('Cumulative cases','FontSize',16), axis square, box off
 % marginal densities
 %--------------------------------------------------------------------------
 for i = 1:numel(X)
-    subplot(3,2,2 + i), set(gca,'ColorOrderIndex',1);
+    subplot(3,2,2 + i), try, set(gca,'ColorOrderIndex',1); end
     plot(t,X{i}(:,2:end)*100)
     xlabel('time (weeks)'),ylabel('proportion (%)')
     title(str.factors{i},'FontSize',16), set(gca,'XLim',[0, t(end)])
@@ -94,7 +94,7 @@ end
 t = (1:size(Z,1))/7;
 try
     U   = U(ismember(U,1:size(Z,2)));
-    subplot(3,2,2), set(gca,'ColorOrderIndex',1); hold on, plot(t,cumsum(Z(:,U)),'.k'), hold off
-    subplot(3,2,1), set(gca,'ColorOrderIndex',1); hold on, plot(t,Z(:,U),'.'), hold off
+    subplot(3,2,2), try, set(gca,'ColorOrderIndex',1); end; hold on, plot(t,cumsum(Z(:,U)),'.k'), hold off
+    subplot(3,2,1), try, set(gca,'ColorOrderIndex',1); end; hold on, plot(t,Z(:,U),'.'), hold off
 end
 drawnow
