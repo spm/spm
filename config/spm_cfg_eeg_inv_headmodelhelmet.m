@@ -2,10 +2,10 @@ function headmodelhelmet = spm_cfg_eeg_inv_headmodelhelmet
 % Configuration file for specifying the head model for source reconstruction
 % This is for registration using new helmet design.
 %__________________________________________________________________________
-% Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2020 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 7869 2020-06-08 08:40:25Z guillaume $
 
 
 D = cfg_files;
@@ -120,7 +120,11 @@ type.num = [1 3];
 type.help = {'Type the coordinates (in MNI or native space depending on the MRI supplied) corresponding to the fiducial in the structural image.'};
 
 fiducials_filename = fullfile(spm('dir'), 'EEGtemplates', 'fiducials.sfp');
-fid = fopen(fiducials_filename ,'rt');
+if strcmpi(spm_check_version,'matlab')
+    fid = fopen(fiducials_filename ,'rt','n','US-ASCII');
+else
+    fid = fopen(fiducials_filename ,'rt');
+end
 if fid == -1, error('Cannot open "%s".',fiducials_filename); end
 fidtable = textscan(fid ,'%s %f %f %f');
 fclose(fid);
