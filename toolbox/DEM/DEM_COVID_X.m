@@ -41,7 +41,7 @@ function [DCM] = DEM_COVID_X(Y,Data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_X.m 7866 2020-05-30 09:57:38Z karl $
+% $Id: DEM_COVID_X.m 7870 2020-06-09 15:02:12Z karl $
 
 
 % Get data (see DATA_COVID_US): an array with a structure for each State
@@ -61,7 +61,6 @@ Fsi   = spm_figure('GetWin','SI'); clf;
 % assemble (Gaussian) priors over model parameters
 %----------------------------------------------------------------------
 [pE,pC,str] = spm_COVID_priors;
-pE.Tim      = log(16);                  % assume 16 month imunity
 
 % Bayesian inversion (placing posteriors in a cell array of structures)
 %----------------------------------------------------------------------

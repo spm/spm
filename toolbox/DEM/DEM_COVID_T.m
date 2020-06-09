@@ -30,7 +30,7 @@ function [DCM] = DEM_COVID_T
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_T.m 7867 2020-05-31 19:06:09Z karl $
+% $Id: DEM_COVID_T.m 7870 2020-06-09 15:02:12Z karl $
 
 % Get data for the United Kingdom (including total tests R)
 %==========================================================================
@@ -45,9 +45,8 @@ R     = R/R(end);                 % empirical test rate
 
 % priors for this analysis (use size of population and estimate resistance)
 %--------------------------------------------------------------------------
-pE.Tim = log(16);                 % period of immunity 
-pE.N   = log(66);                 % population of UK (M)
-pC.N   = 0;
+pE.N  = log(66);                 % population of UK (M)
+pC.N  = 0;
 
 % variational Laplace (estimating log evidence (F) and posteriors)
 %==========================================================================
@@ -433,6 +432,7 @@ set(gca,'XTick',1:numel(param),'Xticklabel',param,'FontSize',10)
 set(gca,'XTickLabelRotation',90)
 ylabel('relative differences '), axis square, box off
 title('Scale differences','FontSize',16)
+set(gca,'YLim',[0 8])
 
 
 % epilogue
@@ -477,7 +477,7 @@ plot([t,t - 7],[1,1]*15.1,'Linewidth',8)
 legend({'infected','infectious','immune','Streeck et al'})
 
 
-return
+
 
 
 % Study by the Office for National Statistics (ONS)
@@ -511,7 +511,7 @@ return
 % See: https://www.bmj.com/content/369/bmj.m1808
 % https://www.gov.uk/government/publications/national-covid-19-surveillance-reports/sero-surveillance-of-covid-19
 %--------------------------------------------------------------------------
-spm_figure('GetWin','ONS'); clf;
+load COVID_UK
 %--------------------------------------------------------------------------
 Y    = struct;
 M    = DCM.M;
@@ -520,8 +520,8 @@ n    = size(Y.y,1);
 i    = (1:n);
 t    = i + datenum('25-Jan-2020');
 
-% serological datathis
-
+% serological data
+%--------------------------------------------------------------------------
 ST   = [13 15 18]*7 + datenum('01-Jan-2020') - datenum('25-Jan-2020');
 SY   = [1.5 12.3 17.5];
 
@@ -537,7 +537,7 @@ Q    = cell(5,1);
 Q{1} = speye(n,n);                         % death rate
 Q{2} = speye(n,n);                         % positive cases
 Q{3} = speye(n,n);                         % total tests
-Q{4} = sparse(ST,ST,exp(6),n,n);           % antibodies
+Q{4} = sparse(ST,ST,exp(8),n,n);           % antibodies
 Q{5} = sparse(PT,PT,exp(4),n,n);           % prevalence
 Q    = spm_cat(spm_diag(Q));
 
@@ -579,7 +579,6 @@ legend({'infected','infectious','immune','0.24%','17%'})
 legend('boxoff')
 
 
-return
 
 
 % Channel 4: predictions
@@ -590,12 +589,11 @@ return
 % by reducing the social distancing thresholdduring the initial phase of
 % the outbreak (as parameterised by M.T)
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Channel 4: predictions'); clf
+load COVID_UK, spm_figure('GetWin','Channel 4: predictions'); clf
 %--------------------------------------------------------------------------
 M       = DCM.M;
 Ep      = DCM.Ep;
 Cp      = DCM.Cp;
-Ep.Tim  = log(18);
 M.T     = 365;
 spm_COVID_ci(Ep,Cp,DCM.Y(:,1),1,M);
 
@@ -612,21 +610,21 @@ for j = 1:6
     subplot(3,2,j), hold on
     set(gca,'ColorOrderIndex',1);
 end
-u      = 2/100;                              % threshold for lockdown
-t      = (1:M.T) + datenum('25-Jan-2020');   % time
-i      = find(X{1}(:,2) < u,1,'first');      % onset of lockdown
-j      = sum(X{1}(:,2) < u);                 % duration of lockdown
+u     = 2/100;                              % threshold for lockdown
+t     = (1:M.T) + datenum('25-Jan-2020');   % time
+i     = find(X{1}(:,2) < u,1,'first');      % onset of lockdown
+j     = sum(X{1}(:,2) < u);                 % duration of lockdown
 subplot(3,2,3), plot([i,i]/7,[0 32],'r:')
 text(i/7,32,datestr(t(i)))
 
 % increase social distancing for the first 64 days
 %--------------------------------------------------------------------------
-M.TT   = 64;
-[Z,X]  = spm_COVID_gen(Ep,M,1);
+M.TT  = 64;
+[Z,X] = spm_COVID_gen(Ep,M,1);
 spm_COVID_plot(Z,X,DCM.Y,[],1);
 
-i      = find(X{1}(:,2) < u,1,'first');      % onset of lockdown
-j      = sum(X{1}(:,2) < u);                 % duration of lockdown
+i     = find(X{1}(:,2) < u,1,'first');      % onset of lockdown
+j     = sum(X{1}(:,2) < u);                 % duration of lockdown
 subplot(3,2,3), plot([i,i]/7,[0 36],'r:')
 text(i/7,36,datestr(t(i)))
 
@@ -658,8 +656,8 @@ for j = 1:6
     subplot(3,2,j), hold on
     set(gca,'ColorOrderIndex',1);
 end
-Ep.ttt  = log(1/2);
-[Z,X]   = spm_COVID_gen(Ep,M,1);
+Ep.ttt = log(1/2);
+[Z,X]  = spm_COVID_gen(Ep,M,1);
 spm_COVID_plot(Z,X,DCM.Y,[],1);
 
 
@@ -667,18 +665,17 @@ spm_COVID_plot(Z,X,DCM.Y,[],1);
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Channel 4: tracking and testing I'); clf;
 %--------------------------------------------------------------------------
-M       = DCM.M;
-Ep      = DCM.Ep;
-Cp      = DCM.Cp;
-Ep.Tim  = log(18);
-Ep.ttt  = log(1/4);
-M.TT    = 0;
-M.T     = 180;
+M      = DCM.M;
+Ep     = DCM.Ep;
+Cp     = DCM.Cp;
+Ep.ttt = log(1/4);
+M.TT   = 0;
+M.T    = 180;
 
 TTT   = linspace(0,128,8);
 for i = 1:numel(TTT)
-    M.TTT   = TTT(i);
-    [Z,X]   = spm_COVID_gen(Ep,M,1);
+    M.TTT = TTT(i);
+    [Z,X] = spm_COVID_gen(Ep,M,1);
     spm_COVID_plot(Z,X,DCM.Y,[],1);
     for j = 1:6
         subplot(3,2,j), hold on
@@ -690,13 +687,12 @@ end
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Channel 4: tracking and testing II'); clf;
 %--------------------------------------------------------------------------
-M       = DCM.M;
-Ep      = DCM.Ep;
-Cp      = DCM.Cp;
-Ep.Tim  = log(18);
-M.TTT   = 0
-M.TT    = 0;
-M.T     = 356*2;
+M      = DCM.M;
+Ep     = DCM.Ep;
+Cp     = DCM.Cp;
+M.TTT  = 0;
+M.TT   = 0;
+M.T    = 356*2;
 
 TTT   = linspace(0,1,8);
 for i = 1:numel(TTT)
@@ -708,9 +704,6 @@ for i = 1:numel(TTT)
         set(gca,'ColorOrderIndex',1);
     end
 end
-
-
-return
 
 
 % risk to children returning to school
@@ -734,7 +727,7 @@ return
 % coronavirus disease 2019: a model-based analysis. Lancet Infect Dis 2020
 % Mar 30.
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Risk'); clf;
+load COVID_UK, spm_figure('GetWin','Risk'); clf;
 %--------------------------------------------------------------------------
 
 % 2018: fatalities, 1782 injuries, 160378
@@ -747,7 +740,6 @@ M.date = '25-Jan-2020';
 M.T    = datenum('01-Sep-2020') - datenum(M.date);
 M.TTT  = datenum('01-Jun-2020') - datenum(M.date);
 %%% Ep.ttt = log(1/4);   % uncomment to implement tracking and tracing
-Ep.Tim = log(18);
 
 % get confidence intervals for levels of infection
 %--------------------------------------------------------------------------
@@ -759,10 +751,10 @@ hold on
 
 % plot an arbitrary threshold of 1% 
 %--------------------------------------------------------------------------
-i       = find(Y > 1,1,'last')
-d       = (1:M.T) + datenum(M.date);
-plot([1,1]*d(i),[0 8],'r')
+d = (1:M.T) + datenum(M.date);
 plot([datenum('01-Apr-2020') datenum('01-Aug-2020')],[1 1],'r-.')
+i = find(Y > 1,1,'last');
+plot([1,1]*d(i),[0 8],'r')
 text(d(i),10,datestr(d(i)))
 xlabel('date'), ylabel('percent risk')
 
@@ -771,7 +763,7 @@ xlabel('date'), ylabel('percent risk')
 [Y,X]   = spm_COVID_gen(Ep,M,5);
 P       = spm_vecfun(Ep,@exp);
 datstr  = {'1-Jun-2020','15-Jun-2020','1-Sep-2020'};
-dstr    = {'Jun1','Jun15','Sep1'}
+dstr    = {'Jun1','Jun15','Sep1'};
 R       = [15 P.Rin];
 
 for n = 1:numel(R)

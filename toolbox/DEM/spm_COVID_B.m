@@ -21,7 +21,7 @@ function T = spm_COVID_B(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_B.m 7867 2020-05-31 19:06:09Z karl $
+% $Id: spm_COVID_B.m 7870 2020-06-09 15:02:12Z karl $
 
 % marginal probabilities
 %==========================================================================
@@ -162,45 +162,44 @@ pw   = q(2,:)/sum(q(2,:));          % infection probability at work
 Pinh = (1 - P.trn*ph(3))^P.Rin;     % P(no transmission) | home
 Pinw = (1 - P.trn*pw(3))^P.Rou;     % P(no transmission) | work
 Kimm = exp(-1/P.Tim/32);            % loss of immunity (per 32 days)
-Kres = exp(-1/2048);                % period of innate immunity
 Pres = P.res;                       % proportion of innate immunity
 Kinf = exp(-1/P.Tin);
 Kcon = exp(-1/P.Tcn);
     
 % marginal: infection {2} | home {1}(1)
 %--------------------------------------------------------------------------
-%    susceptible  infected  infectious  immune  resistant
+%    susceptible  infected           infectious     immune    resistant
 %--------------------------------------------------------------------------
-b{1} = [Pinh       0                     0          (1 - Kimm) (1 - Kres);
+b{1} = [Pinh       0                     0          (1 - Kimm) 0;
         (1 - Pinh) Kinf                  0          0          0;
         0          (1 - Pres)*(1 - Kinf) Kcon       0          0;
         0          0                     (1 - Kcon) Kimm       0;
-        0          Pres*(1 - Kinf)       0          0          Kres];
+        0          Pres*(1 - Kinf)       0          0          1];
     
 % marginal: infection {2} | work {1}(2)
 %--------------------------------------------------------------------------
-b{2} = [Pinw       0                     0          (1 - Kimm) (1 - Kres);
+b{2} = [Pinw       0                     0          (1 - Kimm) 0;
         (1 - Pinw) Kinf                  0          0          0;
         0          (1 - Pres)*(1 - Kinf) Kcon       0          0;
         0          0                     (1 - Kcon) Kimm       0;
-        0          Pres*(1 - Kinf)       0          0          Kres];
+        0          Pres*(1 - Kinf)       0          0          1];
 
 
 % marginal: infection {2} | CCU {1}(3)
 %--------------------------------------------------------------------------
-b{3} = [1          0                     0          (1 - Kimm) (1 - Kres);
+b{3} = [1          0                     0          (1 - Kimm) 0;
         0          Kinf                  0          0          0;
         0          (1 - Pres)*(1 - Kinf) Kcon       0          0;
         0          0                     (1 - Kcon) Kimm       0;
-        0          Pres*(1 - Kinf)       0          0          Kres];
+        0          Pres*(1 - Kinf)       0          0          1];
 
 % marginal: infection {2} | morgue {1}(4)
 %--------------------------------------------------------------------------
 b{4} = [0          0          0          0          0;
         0          0          0          0          0;
         0          0          0          0          0;
-        1          1          1          1          0;
-        0          0          0          0          1];
+        0          0          0          0          0;
+        1          1          1          1          1];
 
 % marginal: infection {2} | isolation {1}(5)
 %--------------------------------------------------------------------------
@@ -230,7 +229,7 @@ b    = cell(1,dim(2));
 Psev = P.sev;                       % P(developing symptoms | infected)
 Ksym = exp(-1/P.Tsy);               % acute symptomatic rate
 Ksev = exp(-1/P.Trd);               % acute RDS rate
-Kdev = exp(-1/P.Tic);               % acute RDS rate
+Kdev = exp(-1/P.Tic);               % symptomatic rate
 Pfat = 1 - P.sur;                   % baseline fatality rate
 
 % marginal: clinical {3} | susceptible {2}(1)
@@ -285,10 +284,13 @@ ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ksev)*(1 - P.fat);
 % test probabilities
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
-Prev = p{2}(2) + p{2}(3);     % prevalence of infection
-Psen = P.bas/(1 - Prev + P.tes*Prev);
-Ptes = Psen*P.tes;            % probability if infected
-Kdel = exp(-1/P.del);         % exp(-1/waiting period)
+Seni = .9;                            % PCR sensitivity (infected)
+Senc = .95;                           % PCR sensitivity (contagious)
+Prev = Seni*p{2}(2) + Senc*p{2}(3);   % prevalence of infection
+Psen = P.bas/(1 - Prev + P.tes*Prev); % probability of being tested
+Ptes = Psen*P.tes;                    % probability if infected
+Kdel = exp(-1/P.del);                 % exp(-1/waiting period)
+
 
 
 % marginal: testing {4} | susceptible {2}(1)
@@ -302,14 +304,17 @@ b{1} = [(1 - Psen) 0            (1 - Kday) (1 - Kday);
 
 % marginal: testing {4} | infected {2}(2)
 %--------------------------------------------------------------------------
-b{2} = [(1 - Ptes) 0            (1 - Kday) (1 - Kday);
-        Ptes       Kdel         0          0;
-        0          (1 - Kdel)   Kday       0;
-        0          0            0          Kday];
+b{2} = [(1 - Ptes) 0                     (1 - Kday) (1 - Kday);
+        Ptes       Kdel                   0          0;
+        0          Seni*(1 - Kdel)        Kday       0;
+        0          (1 - Seni)*(1 - Kdel)  0          Kday];
     
 % marginal: testing {4} | infectious {2}(3)
 %--------------------------------------------------------------------------
-b{3} = b{2};
+b{3} = [(1 - Ptes) 0                     (1 - Kday) (1 - Kday);
+        Ptes       Kdel                   0          0;
+        0          Senc*(1 - Kdel)        Kday       0;
+        0          (1 - Senc)*(1 - Kdel)  0          Kday];
     
 % marginal: testing {4} | immune {2}(4)
 %--------------------------------------------------------------------------

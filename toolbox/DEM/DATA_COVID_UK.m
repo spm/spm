@@ -41,7 +41,11 @@ function [Y,R] = DATA_COVID_UK(country)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_UK.m 7866 2020-05-30 09:57:38Z karl $
+% $Id: DATA_COVID_UK.m 7870 2020-06-09 15:02:12Z karl $
+
+% https://coronavirus.data.gov.uk/coronavirus-cases_latest.csv
+% https://coronavirus.data.gov.uk/coronavirus-deaths_latest.csv
+
 
 % download data if required
 %==========================================================================

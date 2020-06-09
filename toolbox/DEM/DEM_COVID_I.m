@@ -6,23 +6,17 @@ function DEM_COVID_I
 % Demonstration of COVID-19 modelling using variational Laplace
 %__________________________________________________________________________
 %
-% This routine illustrates the Bayesian model inversion of a generative
-% model of coronavirus spread using variational techniques (variational
-% Laplace). It illustrates hierarchical Bayesian modelling by first
-% inverting a generative model of each country, and then combining the
-% posterior densities over the model parameters using parametric empirical
-% Bayes to leverage systematic differences between countries, as
-% characterised by their population, geographical location etc.
-%
-% Each subsection produces one or two figures that are described in the
-% annotated (Matlab) code. These subsections core various subroutines that
-% provide a more detailed description of things like the generative model,
-% its priors and the evaluation confidence intervals.
+% This routine illustrates Bayesian model comparison using a line search
+% over periods of imunity and pooling over countries. In brief,32 countries
+% are inverted and 16 with the most informative posterior over the period
+% of immunity are retained for Bayesian parameter averaging. The Christian
+% predictive densities are then provided in various formats for the average
+% country and (16) individual countries.
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_I.m 7867 2020-05-31 19:06:09Z karl $
+% $Id: DEM_COVID_I.m 7870 2020-06-09 15:02:12Z karl $
 
 % download data if required
 %__________________________________________________________________________
@@ -49,6 +43,7 @@ Fsi     = spm_figure('GetWin','SI'); clf;
 % assemble (Gaussian) priors over model parameters
 %--------------------------------------------------------------------------
 [pE,pC] = spm_COVID_priors;
+pC.Tim  = 1/512;                       % tight shrinkage priors on immunity
 
 % Bayesian inversion (placing posteriors in a cell array of structures)
 %--------------------------------------------------------------------------
@@ -62,11 +57,11 @@ for i = 1:numel(data)
         set(Fsi,'name',data(i).country)
         Y = [data(i).death, data(i).cases];
         
-        % priors
+        % prior expectation of the period of immunity
         %------------------------------------------------------------------
         pE.Tim = log(Tim(j));
         
-        % variational Laplace (estimating log evidence (F) and posteriors)
+        % model specification
         %==================================================================
         M.G    = @spm_COVID_gen;       % generative function
         M.FS   = @(Y)real(sqrt(Y));    % feature selection  (link function)
@@ -77,7 +72,7 @@ for i = 1:numel(data)
         M.T    = size(Y,1);            % number of samples
         U      = [1 2];                % outputs to model
         
-        % initialisation
+        % initialisation (two previous posterior for this country)
         %------------------------------------------------------------------
         if j == 1
             M.P = pE;
@@ -113,47 +108,74 @@ clear Fsi ans
 save COVID_I
 
 
-% Bayesian parameter averaging (over N countries)
+% characterise second wave
 %==========================================================================
-N   = 32;
-i   = ismember({data.country},'United Kingdom');
-DCM = GCM(i,:);
-FN  = sum(F(1:N,:));
+load COVID_I
+
+% remove China
+%--------------------------------------------------------------------------
+j     = ~ismember({data.country},'China');
+F     = F(j,:);
+GCM   = GCM(j,:);
+data  = data(j);
+
+% retain minimum entropy countries
+%==========================================================================
+for i = 1:size(F,1)
+    p    = spm_softmax(spm_vec(F(i,:)));
+    E(i) = Tim*p;
+    H(i) = p'*log(p);
+end
+
+[G,J] = sort(H,'descend');
+J     = J(1:16);
+F     = F(J,:);
+GCM   = GCM(J,:);
+data  = data(J);
 
 % posterior over a period of immunity
 %==========================================================================
 spm_figure('GetWin','period of immunity'); clf;
 
-p   = spm_softmax(spm_vec(FN));
+p   = spm_softmax(spm_vec(sum(F,1)));
 c   = cumsum(p);
 c0  = Tim(find(c < 0.05,1,'last'));
 c1  = Tim(find(c > 0.95,1,'first'));
 e   = Tim*p;
 
 subplot(2,2,1)
-plot(Tim,p,[1,1]*e,[0,1],'b-.')
-xlabel('period of immunity (months)'),ylabel('probability')
-title('Period of immunity','FontSize',16),axis square, box off
+semilogy(Tim,log(p),[1,1]*e,[min(log(p)), max(log(p))],'b-.')
+xlabel('period of immunity (months)'),ylabel('log probability')
+title('Log probability','FontSize',16),axis square, box off
 
 subplot(2,2,2)
-plot(Tim,c,[1,1]*c0,[0,1],'b-.',[1,1]*c1,[0,1],'b-.')
+try, plot(Tim,c,[1,1]*c0,[0,1],'b-.',[1,1]*c1,[0,1],'b-.'), end
 xlabel('period of immunity (months)'),ylabel('probability')
 title('Cumulative probability','FontSize',16),axis square, box off
 
 
-% predictions for three periods of immunity
+% Bayesian parameter average
 %==========================================================================
+DCM   = spm_dcm_bpa(GCM,'nocd');
+
+% or use UK China
+%--------------------------------------------------------------------------
+j     = ismember({data.country},'United Kingdom');
+DCM   = GCM(j,:);
+
+% predictions for three periods of immunity
+%--------------------------------------------------------------------------
 spm_figure('GetWin','predictions'); clf;
 
-I     = find(c < 0.05,1,'last');
+I     = find(c > 0.5,1,'first');
 for i = [2,I,numel(p)]
     M      = DCM{i}.M;
-    M.T    = 365*2;
+    M.T    = 365*1.5;
     M.date = '25-Jan-2020';
     spm_COVID_ci(DCM{i}.Ep,DCM{i}.Cp,[],1,M);
 end
 title(sprintf('Death rates (%.0f,%.0f, and %.0f months)',Tim(1),Tim(I),Tim(end)))
-datetick('x','mmmyy'), set(gca,'YLim',[0 1000])
+datetick('x','mmmyy')
 
 
 % and plot latent or hidden states
@@ -176,9 +198,9 @@ spm_figure('GetWin','reproduction rate'); clf;
 spm_COVID_ci(DCM{I}.Ep,DCM{I}.Cp,[],4,M);
 subplot(2,1,1), hold on
 plot([datenum('01-Feb-2020'), datenum('01-Aug-2021')],[1,1],'r-.')
-set(gca,'YLim',[0 8])
 
-% Sensitivity analysis: which factors determine cumulative deaths?
+
+% illustrate accuracy
 %==========================================================================
 spm_figure('GetWin','data fits'); clf
 
@@ -220,28 +242,54 @@ subplot(2,1,2), xlabel('Time (days)'),ylabel('number')
 title('Cumulative cases','FontSize',16), box off
 
 % table of first and second peaks
-%--------------------------------------------------------------------------
+%==========================================================================
 spm_figure('GetWin','variability'); clf
 M.T   = 365*2;
 for i = 1:16
     
+    % posterior predictions of first and second peaks
+    %----------------------------------------------------------------------
     [Y,X] = spm_COVID_gen(GCM{i,I}.Ep,M,1);
-    if i < 9
-        spm_COVID_plot(Y,X,GCM{i,I}.Y),drawnow
-        subplot(3,2,1), hold on
-
-    end
- 
+    spm_COVID_plot(Y,X,GCM{i,I}.Y),drawnow
+    subplot(3,2,1), hold on
+    set(gca,'YLim',[0 1000])
+    
+    % table of first and second peaks
+    %----------------------------------------------------------------------
+    y        = GCM{i,I}.Y(:,1);
     m        = find(diff(Y(1:end - 1)) > 0 & diff(Y(2:end)) < 0);
-    d        = datenum(data(i).date) + [m; M.T; M.T];
+    m        = round([m; numel(Y)]);
+    m(1)     = find(y == max(y),1);
+    dat(i,:) = datenum(data(i).date) + m(1:2);
     tab{i,1} = data(i).country;
-    tab{i,2} = datestr(d(1));
-    tab{i,3} = datestr(d(2));
+    tab{i,2} = datestr(dat(i,1));
+    tab{i,3} = datestr(dat(i,2));
+    
+    tab{i,4} = round(max(X{2}(:,4))*100);
+    tab{i,5} = round(y(m(1)));
+    tab{i,6} = round(Y(m(2)));
+    tab{i,7} = round(exp(GCM{i,I}.Ep.res)*100);
+    tab{i,8} = round(exp(GCM{i,I}.Ep.N));
+    tab{i,9} = round(data(i).pop/1e6);
+    
 end
 
-set(gca,'YLim',[0 1000])
-vstr = {'country','first','second'};
-Tab  = cell2table(tab);
+% reorder table (mortality at first peak)
+%--------------------------------------------------------------------------
+[d,i] = sort([tab{:,5}],'descend');
+tab   = tab(i,:);
+dat   = dat(i,:);
+
+vstr  = {'country','first','second'};
+Tab   = cell2table(tab);
 table(Tab(:,1),Tab(:,2),Tab(:,3),'VariableNames',vstr)
+
+vstr  = {'country','immunity','initial','secondary','resistant','Effective','Total'};
+table(Tab(:,1),Tab(:,4),Tab(:,5),Tab(:,6),Tab(:,7),Tab(:,8),Tab(:,9),'VariableNames',vstr)
+
+% effective population as a percentage of total population
+%--------------------------------------------------------------------------
+% round(spm_vec(100*[tab{:,8}]./[tab{:,9}]))
+
 
 
