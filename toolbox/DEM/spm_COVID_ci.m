@@ -31,7 +31,7 @@ function [S,CS,Y,C] = spm_COVID_ci(Ep,Cp,Z,U,M)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_ci.m 7867 2020-05-31 19:06:09Z karl $
+% $Id: spm_COVID_ci.m 7871 2020-06-11 08:37:38Z karl $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------
@@ -80,9 +80,9 @@ CS    = dSdP*Cp*dSdP';
 %==========================================================================
 outcome  = str.outcome(U);
 if isfield(M,'date')
-   t  = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
+    t  = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
 else
-   t  = (1:M.T)/7;
+    t  = (1:M.T)/7;
 end
 
 % single outcome
@@ -94,7 +94,7 @@ if numel(U) == 1
     try, plot(t(1:numel(Z(:,i))),Z(:,i),'.k'), end
     ylabel('number of cases/day')
     title(outcome,'FontSize',16)
-    box off, spm_axis tight
+    
     
     % label time
     %----------------------------------------------------------------------
@@ -104,6 +104,9 @@ if numel(U) == 1
     else
         xlabel('time (weeks)')
     end
+    
+    box off, spm_axis tight
+    YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
     return
 end
 
@@ -115,7 +118,6 @@ for i = 1:Ny
     try, plot(t(1:numel(Z(:,i))),Z(:,i),'.k'), end
     ylabel('number of cases/day')
     title(outcome{i},'FontSize',16)
-    axis square, box off, spm_axis tight
     
     % label time
     %----------------------------------------------------------------------
@@ -125,7 +127,8 @@ for i = 1:Ny
     else
         xlabel('time (weeks)')
     end
-
+    axis square, box off, spm_axis tight
+    YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
 end
 
 subplot(2,2,2)
@@ -133,7 +136,6 @@ spm_plot_ci(S',CS,t), hold on
 try, plot(t(1:numel(Z(:,1))),cumsum(Z(:,1)),'.k'), end
 xlabel('time (weeks)'),ylabel('number of cases')
 title('Cumulative numbers','FontSize',16)
-axis square, box off, spm_axis tight
 
 % label time
 %----------------------------------------------------------------------
@@ -143,6 +145,9 @@ if isfield(M,'date')
 else
     xlabel('time (weeks)')
 end
+axis square, box off, spm_axis tight
+YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
+
 
 subplot(2,2,4)
 spm_plot_ci(Ep,Cp,[],[],'exp'),               hold on

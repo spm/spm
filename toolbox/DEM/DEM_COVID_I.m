@@ -16,7 +16,7 @@ function DEM_COVID_I
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_I.m 7870 2020-06-09 15:02:12Z karl $
+% $Id: DEM_COVID_I.m 7871 2020-06-11 08:37:38Z karl $
 
 % download data if required
 %__________________________________________________________________________
@@ -34,7 +34,7 @@ end
 
 % Get data (see DATA_COVID): an array with a structure for each country
 %==========================================================================
-data    = DATA_COVID_JHU(32);
+data    = DATA_COVID_JHU(16);
 
 % Inversion (i.e., fitting) of empirical data
 %==========================================================================
@@ -43,7 +43,7 @@ Fsi     = spm_figure('GetWin','SI'); clf;
 % assemble (Gaussian) priors over model parameters
 %--------------------------------------------------------------------------
 [pE,pC] = spm_COVID_priors;
-pC.Tim  = 1/512;                       % tight shrinkage priors on immunity
+pC.Tim  = 1/256;                      % tight shrinkage priors on immunity
 
 % Bayesian inversion (placing posteriors in a cell array of structures)
 %--------------------------------------------------------------------------
@@ -67,8 +67,8 @@ for i = 1:numel(data)
         M.FS   = @(Y)real(sqrt(Y));    % feature selection  (link function)
         M.pE   = pE;                   % prior expectations (parameters)
         M.pC   = pC;                   % prior covariances  (parameters)
-        M.hE   = 0;                    % prior expectation  (log-precision)
-        M.hC   = 1/64;                 % prior covariances  (log-precision)
+        M.hE   = [0 -2];               % prior expectation  (log-precision)
+        M.hC   = 1/512;                % prior covariances  (log-precision)
         M.T    = size(Y,1);            % number of samples
         U      = [1 2];                % outputs to model
         
@@ -121,14 +121,17 @@ data  = data(j);
 
 % retain minimum entropy countries
 %==========================================================================
+N     = 10;
 for i = 1:size(F,1)
     p    = spm_softmax(spm_vec(F(i,:)));
     E(i) = Tim*p;
     H(i) = p'*log(p);
+    L(i) = GCM{i,1}.M.T;
+    D(i) = sum(GCM{i,1}.Y(:,1));
 end
 
-[G,J] = sort(H,'descend');
-J     = J(1:16);
+[G,J] = sort(D,'descend');
+J     = J(1:N);
 F     = F(J,:);
 GCM   = GCM(J,:);
 data  = data(J);
@@ -154,11 +157,7 @@ xlabel('period of immunity (months)'),ylabel('probability')
 title('Cumulative probability','FontSize',16),axis square, box off
 
 
-% Bayesian parameter average
-%==========================================================================
-DCM   = spm_dcm_bpa(GCM,'nocd');
-
-% or use UK China
+% use UK
 %--------------------------------------------------------------------------
 j     = ismember({data.country},'United Kingdom');
 DCM   = GCM(j,:);
@@ -172,10 +171,17 @@ for i = [2,I,numel(p)]
     M      = DCM{i}.M;
     M.T    = 365*1.5;
     M.date = '25-Jan-2020';
-    spm_COVID_ci(DCM{i}.Ep,DCM{i}.Cp,[],1,M);
+    spm_COVID_ci(DCM{i}.Ep,DCM{i}.Cp,DCM{i}.Y,1,M);
 end
 title(sprintf('Death rates (%.0f,%.0f, and %.0f months)',Tim(1),Tim(I),Tim(end)))
 datetick('x','mmmyy')
+
+% and plot confidence intervals around reproduction rate
+%--------------------------------------------------------------------------
+spm_figure('GetWin','reproduction rate'); clf;
+spm_COVID_ci(DCM{I}.Ep,DCM{I}.Cp,[],4,M);
+subplot(2,1,1), hold on
+plot([datenum('01-Feb-2020'), datenum('01-Aug-2021')],[1,1],'r-.')
 
 
 % and plot latent or hidden states
@@ -189,15 +195,8 @@ spm_figure('GetWin','latent causes'); clf;
 % four panels show the evolution of latent (ensemble) dynamics, in terms of
 % the expected probability of being in various states.
 %--------------------------------------------------------------------------
-[Z,X] = spm_COVID_gen(DCM{I}.Ep,M,1:2);
-spm_COVID_plot(Z,X)
-
-% and plot confidence intervals around reproduction rate
-%--------------------------------------------------------------------------
-spm_figure('GetWin','reproduction rate'); clf;
-spm_COVID_ci(DCM{I}.Ep,DCM{I}.Cp,[],4,M);
-subplot(2,1,1), hold on
-plot([datenum('01-Feb-2020'), datenum('01-Aug-2021')],[1,1],'r-.')
+[Z,X] = spm_COVID_gen(DCM{I}.Ep,M,[1 2]);
+spm_COVID_plot(Z,X,DCM{I}.Y)
 
 
 % illustrate accuracy
@@ -207,7 +206,7 @@ spm_figure('GetWin','data fits'); clf
 % death rate
 %--------------------------------------------------------------------------
 M.T   = 180;
-for i = 1:16
+for i = 1:N
     
     [Y,X] = spm_COVID_gen(GCM{i,I}.Ep,M,1:2);
     % spm_COVID_plot(Y,X,GCM{i,I}.Y)
@@ -244,16 +243,16 @@ title('Cumulative cases','FontSize',16), box off
 % table of first and second peaks
 %==========================================================================
 spm_figure('GetWin','variability'); clf
-M.T   = 365*2;
-for i = 1:16
+M.T   = 365*1.5;
+for i = 1:N
     
     % posterior predictions of first and second peaks
     %----------------------------------------------------------------------
-    [Y,X] = spm_COVID_gen(GCM{i,I}.Ep,M,1);
+    [Y,X]    = spm_COVID_gen(GCM{i,I}.Ep,M,1);
     spm_COVID_plot(Y,X,GCM{i,I}.Y),drawnow
     subplot(3,2,1), hold on
     set(gca,'YLim',[0 1000])
-    
+
     % table of first and second peaks
     %----------------------------------------------------------------------
     y        = GCM{i,I}.Y(:,1);
@@ -261,16 +260,16 @@ for i = 1:16
     m        = round([m; numel(Y)]);
     m(1)     = find(y == max(y),1);
     dat(i,:) = datenum(data(i).date) + m(1:2);
-    tab{i,1} = data(i).country;
-    tab{i,2} = datestr(dat(i,1));
-    tab{i,3} = datestr(dat(i,2));
+    tab{i,1} = data(i).country;                 % country
+    tab{i,2} = datestr(dat(i,1));               % date first
+    tab{i,3} = datestr(dat(i,2));               % date second
     
-    tab{i,4} = round(max(X{2}(:,4))*100);
-    tab{i,5} = round(y(m(1)));
-    tab{i,6} = round(Y(m(2)));
-    tab{i,7} = round(exp(GCM{i,I}.Ep.res)*100);
-    tab{i,8} = round(exp(GCM{i,I}.Ep.N));
-    tab{i,9} = round(data(i).pop/1e6);
+    tab{i,4} = round(max(X{2}(:,4))*100);       % population immunity
+    tab{i,5} = round(y(m(1)));                  % death rate (first)
+    tab{i,6} = round(Y(m(2)));                  % death rate (second)
+    tab{i,7} = round(exp(GCM{i,I}.Ep.r)*100);   % resistant proportion
+    tab{i,8} = round(exp(GCM{i,I}.Ep.N));       % effective population
+    tab{i,9} = round(data(i).pop/1e6);          % total population
     
 end
 
@@ -284,7 +283,7 @@ vstr  = {'country','first','second'};
 Tab   = cell2table(tab);
 table(Tab(:,1),Tab(:,2),Tab(:,3),'VariableNames',vstr)
 
-vstr  = {'country','immunity','initial','secondary','resistant','Effective','Total'};
+vstr  = {'country','herd','initial','secondary','resistant','Effective','Total'};
 table(Tab(:,1),Tab(:,4),Tab(:,5),Tab(:,6),Tab(:,7),Tab(:,8),Tab(:,9),'VariableNames',vstr)
 
 % effective population as a percentage of total population

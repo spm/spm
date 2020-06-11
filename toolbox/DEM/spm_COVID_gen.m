@@ -9,7 +9,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Y(:,2) - number of new cases
 % Y(:,3) - CCU bed occupancy
 % Y(:,4) - effective reproduction rate (R)
-% Y(:,5) - herd immunity
+% Y(:,5) - population immunity (%)
 % Y(:,6) - total number of tests
 % Y(:,7) - contagion risk (%)
 % Y(:,8) - prevalence of infection (%)
@@ -48,7 +48,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7866 2020-05-30 09:57:38Z karl $
+% $Id: spm_COVID_gen.m 7871 2020-06-11 08:37:38Z karl $
 
 
 % The generative model:
