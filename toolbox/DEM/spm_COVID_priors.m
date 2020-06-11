@@ -35,7 +35,7 @@ function [P,C,str,rfx] = spm_COVID_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors.m 7870 2020-06-09 15:02:12Z karl $
+% $Id: spm_COVID_priors.m 7872 2020-06-11 23:29:11Z spm $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -182,7 +182,7 @@ P.res = 1/2;                  % proportion with innate immunity
 % We describe what we believe is the first instance of complete COVID-19
 % testing of all passengers and crew on an isolated cruise ship during the
 % current COVID-19 pandemic. Of the 217 passengers and crew on board, 128
-% tested positive for COVID-19 on reverse transcription–PCR (59 pc). Of the
+% tested positive for COVID-19 on reverse transcription-PCR (59 pc). Of the
 % COVID- 19-positive patients, 19 pc (24) were symptomatic; 6.2 pc (8)
 % required medical evacuation; 3.1 pc (4) were intubated and ventilated;
 % and the mortality was 0.8 pc (1). The majority of COVID-19-positive

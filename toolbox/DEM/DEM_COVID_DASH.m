@@ -47,7 +47,7 @@ function [DCM] = DEM_COVID_DASH
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_DASH.m 7871 2020-06-11 08:37:38Z karl $
+% $Id: DEM_COVID_DASH.m 7872 2020-06-11 23:29:11Z spm $
 
 % get data
 %==========================================================================
@@ -238,7 +238,7 @@ for r = 1:numel(DR)
     %----------------------------------------------------------------------
     [R,X] = spm_COVID_gen(DCM(r).Ep,DCM(r).M,[4 5 8 9]);
     
-    subplot(2,2,4),cla, axis([0 1 0 1])
+    subplot(2,2,4), cla reset, axis([0 1 0 1])
     title(STR,'FontSize',16)
     
     Tab(r,1) = Pop(r);

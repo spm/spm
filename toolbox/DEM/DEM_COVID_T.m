@@ -30,7 +30,7 @@ function [DCM] = DEM_COVID_T
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_T.m 7870 2020-06-09 15:02:12Z karl $
+% $Id: DEM_COVID_T.m 7872 2020-06-11 23:29:11Z spm $
 
 % Get data for the United Kingdom (including total tests R)
 %==========================================================================
@@ -719,7 +719,7 @@ end
 % children aged 9 and under.
 %
 % It reported that 0.04% of 10-19 year olds would probably require hospital
-% care—as would 1.0% of people in their 20s, 3.4% of people aged 30-39,
+% care - as would 1.0% of people in their 20s, 3.4% of people aged 30-39,
 % 4.3% aged 40-49, 8.2% aged 50-59, 11.8% in their 60s, 16.6% in their 70s,
 % and 18.4% of those over 80.
 %
