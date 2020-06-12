@@ -10,15 +10,16 @@ function varargout = spm_gmm_lib(action,varargin)
 % ------------
 % * InferMissing        >> Infer missing values
 % * Marginal            >> Compute log marginal distribution: E[log p(X|...)]
+% * Marginal_t          >> Compute log marginal t distribution: E[log p(X|...)]
 % * Responsibility      >> Compute posterior responsibilities: q(Z|...)
 % * SuffStat            >> Compute sufficient statistics 0th/1st/2nd order
 % * Normalisation       >> Compute normalisation term of the log marginal
 %--------------------------------------------------------------------------
 % Update parameters
 % -----------------
-% * UpdateClusters      >> Update posterior cluster parameters: q(MU,A)
+% * UpdateClusters      >> Update posterior cluster parameters: q(mu,A)
 % * UpdateProportions   >> Update posterior proportion parameters: q(PI)
-% * updateHyperPars     >> Update prior cluster parameters: MU0,b0,V0,n0
+% * updateHyperPars     >> Update prior cluster parameters: mu0,b0,V0,n0
 %--------------------------------------------------------------------------
 % Lower bound
 %------------
@@ -33,14 +34,10 @@ function varargout = spm_gmm_lib(action,varargin)
 % Plot
 %-----
 % * Plot                >> Plotting utilitites
-%--------------------------------------------------------------------------
-% Extras
-%-------
-% * Extras              >> Extra utilitites
 %__________________________________________________________________________
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_gmm_lib.m 7856 2020-05-19 22:54:41Z spm $
+% $Id: spm_gmm_lib.m 7873 2020-06-12 17:09:56Z john $
 
 %--------------------------------------------------------------------------
 % Convention
@@ -57,8 +54,7 @@ function varargout = spm_gmm_lib(action,varargin)
 % Z   -  N  x K        Clusters' responsibility
 % PI  - [N] x K        Clusters' proportions
 % a   -  1  x K        Proportions concentration       (Dirichlet prior)
-% W   - [N] x 1        Observations weights            (Histogram GMM)
-% MU  -  P  x K        Clusters' [expected] mean
+% mu  -  P  x K        Clusters' [expected] mean
 % A   -  P  x P  x K   Clusters' [expected] precision matrix
 % b   -  1  x K        Mean degrees of freedom         (Gauss prior)
 % V   -  P  x P  x K   Precision scale matrix          (Wishart prior)
@@ -80,22 +76,27 @@ switch lower(action)
 %--------------------------------------------------------------------------
     case 'infermissing'
         [varargout{1:nargout}] = infermissing(varargin{:});
-        % X = spm_gmm_lib('InferMissing', X, Z, {MU,A}, {code_im,code_list})
+        % X = spm_gmm_lib('InferMissing', X, Z, {mu,A}, {code_im,code_list})
         % > Infer missing values (this should only be done once, at the end)
     case 'marginal'
         [varargout{1:nargout}] = marginal(varargin{:});
-        % logp = spm_gmm_lib('Marginal', X, {MU,A},   const, mask, U)
-        % logp = spm_gmm_lib('Marginal', X, {MU,V,n}, const, mask, U)
+        % logp = spm_gmm_lib('Marginal', X, {mu,A},   const, mask, U)
+        % logp = spm_gmm_lib('Marginal', X, {mu,V,n}, const, mask, U)
         % > Observation's marginal log probability within each cluster
+    case 'marginal_t'
+        [varargout{1:nargout}] = marginal_t(varargin{:});
+        % logp = spm_gmm_lib('marginal_t', X, {mu,b,V,n}, [L], [E])
+        % > Observation's marginal log probability within each cluster
+        %   from a Student's t distribution.
     case 'responsibility'
         [varargout{1:nargout}] = responsibility(varargin{:});
         % Z = spm_gmm_lib('Responsibility', logpX, logPI)
         % > Compute & normalise responsibilities (safe softmax)
     case 'suffstat'
         [varargout{1:nargout}] = suffstat(varargin{:});
-        % FORMAT [SS0,SS1,SS2] = spm_gmm_lib('SuffStat', X, Z, W, (mask))
-        % FORMAT [SS0,SS1,SS2] = spm_gmm_lib('SuffStat', 'infer', SS0, SS1, SS2, {MU,A}, mask)
-        % FORMAT         [SS2] = spm_gmm_lib('SuffStat', 'uncertainty', U, Z, W, (mask))
+        % FORMAT [SS0,SS1,SS2] = spm_gmm_lib('SuffStat', X, Z, (mask))
+        % FORMAT [SS0,SS1,SS2] = spm_gmm_lib('SuffStat', 'infer', SS0, SS1, SS2, {mu,A}, mask)
+        % FORMAT         [SS2] = spm_gmm_lib('SuffStat', 'uncertainty', U, Z, (mask))
         % > Compute sufficient statistics (0th, 1st, 2nd order)
         %   default: no missing data            => E[z], E[z]*x, E[z]*xx'
         %            with mising data           => E[z], E[z]*g, E[z]*gg'
@@ -103,8 +104,8 @@ switch lower(action)
         %   'uncertainty': observed uncertainty => Tr(S\cov[gg'])
     case {'normalisation' 'normalization'}
         [varargout{1:nargout}] = normalisation(varargin{:});
-        % const = spm_gmm_lib('Normalisation',  MU,     A,    (mask))
-        % const = spm_gmm_lib('Normalisation', {MU,b}, {V,n}, (mask))
+        % const = spm_gmm_lib('Normalisation',  mu,     A,    (mask))
+        % const = spm_gmm_lib('Normalisation', {mu,b}, {V,n}, (mask))
         % > Normalisation term of a Gaussian log-distribution
         %   If mask is provided -> marginal distributions
 %--------------------------------------------------------------------------
@@ -112,8 +113,8 @@ switch lower(action)
 %--------------------------------------------------------------------------
     case 'updateclusters'
         [varargout{1:nargout}] = updateclusters(varargin{:});
-        % [MU,A]       = spm_gmm_lib('UpdateClusters', SS0, SS1, SS2)
-        % [MU,A,b,V,n] = spm_gmm_lib('UpdateClusters', SS0, SS1, SS2, {MU0,b0,V0,n0})
+        % [mu,A]       = spm_gmm_lib('UpdateClusters', SS0, SS1, SS2)
+        % [mu,A,b,V,n] = spm_gmm_lib('UpdateClusters', SS0, SS1, SS2, {mu0,b0,V0,n0})
         % > Update GMM parameters (ML or Bayesian posterior)
     case 'updateproportions'
         [varargout{1:nargout}] = updateproportions(varargin{:});
@@ -122,25 +123,25 @@ switch lower(action)
     case 'updatehyperpars'
         [varargout{1:nargout}] = updatehyperpars(varargin{:});
         % [GaussPrior,extras] = spm_gmm_lib('updatehyperpars',cluster,GaussPrior,varargin)
-        % > Update VB-GMM hyper-parameters (MU,b,V,n)
+        % > Update VB-GMM hyper-parameters (mu,b,V,n)
 %--------------------------------------------------------------------------
 % Lower bound
 %--------------------------------------------------------------------------
     case 'marginalsum'
         [varargout{1:nargout}] = marginalsum(varargin{:});
-        % [lb,const] = spm_gmm_lib('MarginalSum', SS0, SS1, SS2,  MU,     A,    mask, SS2u)
-        % [lb,const] = spm_gmm_lib('MarginalSum', SS0, SS1, SS2, {MU,b}, {V,n}, mask, SS2u)
-        % > Compute conditional datasum: E[ln p(g|MU,A,Z)]
+        % [lb,const] = spm_gmm_lib('MarginalSum', SS0, SS1, SS2,  mu,     A,    mask)
+        % [lb,const] = spm_gmm_lib('MarginalSum', SS0, SS1, SS2, {mu,b}, {V,n}, mask)
+        % > Compute conditional datasum: E[ln p(g|mu,A,Z)]
         %   Also returns the result of spm_gmm_lib('const')
     case 'kl'
         [varargout{1:nargout}] = kl(varargin{:});
-        % [klMU,klA] = spm_gmm_lib('KL', 'GaussWishart', {MU,b}, {V,n}, {MU0,b0}, {V0,n0})
+        % [klmu,klA] = spm_gmm_lib('KL', 'GaussWishart', {mu,b}, {V,n}, {mu0,b0}, {V0,n0})
         % > KL divergence between two Gauss-Wishart distributions
         %
         % klP = spm_gmm_lib('KL', 'Dirichlet', a, a0)
         % > KL divergence between two Dirichlet distributions
         %
-        % klZ = spm_gmm_lib('KL', 'Categorical', Z, W, logPI)
+        % klZ = spm_gmm_lib('KL', 'Categorical', Z, logPI)
         % > KL divergence between two Categorical distributions
 %--------------------------------------------------------------------------
 % "Missing code" image
@@ -162,7 +163,7 @@ switch lower(action)
         % spm_gmm_lib('Plot', 'LB', lb)
         % > Plot lower bound
         %
-        % spm_gmm_lib('Plot', 'GMM', X, W, mask, {MU,A}, PI)
+        % spm_gmm_lib('Plot', 'GMM', X, mask, {mu,A}, PI)
         % > Plot mixture fit
         %
         % spm_gmm_lib('plot', 'cat', dm, Z, Template, (wintitle))
@@ -176,10 +177,6 @@ switch lower(action)
 %--------------------------------------------------------------------------
 % Extras
 %--------------------------------------------------------------------------
-    case 'extras'
-        [varargout{1:nargout}] = gmm_extras(varargin{:});
-        % gmm = spm_gmm_lib('extras', 'more_gmms', gmm, part)
-        % > A crude heuristic to replace a single Gaussian by a bunch of Gaussians.
     otherwise
         error('Unknown function %s.', action)
 end
@@ -188,17 +185,17 @@ end
 % Main loop
 %--------------------------------------------------------------------------
 
-function [Z,cluster,prop,lb,mg_w] = loop(X, weights, cluster, props, varargin)
+function [Z,cluster,prop,lb,mg_w] = loop(X, cluster, props, varargin)
 %__________________________________________________________________________
 %
-% Fit a [Bayesian] Gaussian mixture model to observed [weighted] data.
+% Fit a [Bayesian] Gaussian mixture model to observed data.
 %
 % This function is the core of the fitting process. However, it needs all
 % inputs to be well formatted and initialised and is, thus, not the usual
 % entry point. To fit a GMM without having to bother with these issues, use
 % spm_gmm instead.
 %
-% FORMAT [resp,cluster,prop,lb,mg_w] = spm_gmm_lib('loop',obs,weights,cluster,prop,...)
+% FORMAT [resp,cluster,prop,lb,mg_w] = spm_gmm_lib('loop',obs,cluster,prop,...)
 %
 % MANDATORY
 % ---------
@@ -206,11 +203,8 @@ function [Z,cluster,prop,lb,mg_w] = loop(X, weights, cluster, props, varargin)
 % obs <- X
 %   X - {NoxPo} observations
 %
-% weights <- W
-%   W - {Nox1}  weights [1]
-%
-% cluster <- {MU,A}, {{MU,b},A}, {MU,{V,n}}, or {{MU,b},{V,n}}
-%   MU - PxK   means
+% cluster <- {mu,A}, {{mu,b},A}, {mu,{V,n}}, or {{mu,b},{V,n}}
+%   mu - PxK   means
 %   b  - 1xK   mean d.f. [0=ML]
 %   A  - PxPxK precision matrices
 %   V  - PxPxK scale matrices
@@ -227,8 +221,8 @@ function [Z,cluster,prop,lb,mg_w] = loop(X, weights, cluster, props, varargin)
 % -------
 %
 % LowerBound     - Pre-computed lower bound structure with fields:
-%                   sum, last, X, Z, P, MU, A
-% GaussPrior     - {MU0,b0,V0,n0} [{}=ML]
+%                   sum, last, X, Z, P, mu, A
+% GaussPrior     - {mu0,b0,V0,n0} [{}=ML]
 % PropPrior      - a0 [0=ML]
 % Missing        - Infer missing data [true]
 % Missing        - MxP Mask of observed channels per code
@@ -253,16 +247,15 @@ function [Z,cluster,prop,lb,mg_w] = loop(X, weights, cluster, props, varargin)
 % OUTPUT
 % ------
 % resp       - Responsibilities
-% cluster    - Structure with fields: MU, b, A, V, n
+% cluster    - Structure with fields: mu, b, A, V, n
 % prop       - Structure with fields: LogProp, Prop, Dir
-% lb         - Structure with fields: sum, last, X, Z, P, MU, A
+% lb         - Structure with fields: X, P, mu, A
 % mg_w       - Vector with weights
 %
 %__________________________________________________________________________
 % Copyright (C) 2018 Wellcome Centre for Human Neuroimaging
 
-lb0 = struct('sum', NaN, ...
-             'X', [], 'Z', [], 'P', [], 'MU', [], 'A', []);
+lb0 = struct('X', [], 'P', [], 'mu', [], 'A', []);
 
 % -------------------------------------------------------------------------
 % Parse inputs
@@ -283,10 +276,9 @@ p.addParameter('Labels',         [],    @(X) isnumeric(X) || iscell(X));
 p.addParameter('MultGaussPi',    {},    @iscell);
 p.parse(varargin{:});
 lb              = p.Results.LowerBound;
-Z               = p.Results.Resp;
 prop_prior      = p.Results.PropPrior;
 obs_channels    = p.Results.Missing;
-obs_uncertainty = p.Results.ObsUncertainty;
+E               = p.Results.ObsUncertainty;
 gauss_prior     = p.Results.GaussPrior;
 iter_max        = p.Results.IterMax;
 tolerance       = p.Results.Tolerance;
@@ -305,9 +297,9 @@ if ~iscell(cluster) || numel(cluster) < 2
     error('At least one mean and one precision matrix are needed.');
 else
     if ~iscell(cluster{1})
-        MU = cluster{1};
+        mu = cluster{1};
     else
-        MU = cluster{1}{1};
+        mu = cluster{1}{1};
         if numel(cluster{1}) >= 2
             b = cluster{1}{2};
         end
@@ -326,9 +318,9 @@ else
     end
 end
 if sum(b) > 0
-    mean = {MU,b};
+    mean = {mu,b};
 else
-    mean = MU;
+    mean = mu;
 end
 if sum(n) > 0
     prec = {V,n};
@@ -339,10 +331,10 @@ end
 % --- Gauss-Wishart prior
 b0    = 0;  % Mean degrees of freedom (prior)
 n0    = 0;  % Precision degrees of freedom (prior)
-MU0   = []; % Mean (prior)
+mu0   = []; % Mean (prior)
 V0    = []; % Scale matrix (prior)
 if numel(gauss_prior) >= 1
-    MU0 = gauss_prior{1};
+    mu0 = gauss_prior{1};
     if numel(gauss_prior) >= 2
         b0 = gauss_prior{2};
         if numel(gauss_prior) >= 3
@@ -353,7 +345,7 @@ if numel(gauss_prior) >= 1
         end
     end
 end
-mean0 = {MU0 b0};
+mean0 = {mu0 b0};
 prec0 = {V0 n0};
 
 % --- Proportions
@@ -385,8 +377,8 @@ end
 % -------------------------------------------------------------------------
 % For multiple Gaussians per class in Pi
 if isempty(mult_gauss)
-    mg_ix = 1:size(MU,2);
-    mg_w  = ones([1 size(MU,2)]);
+    mg_ix = 1:size(mu,2);
+    mg_w  = ones([1 size(mu,2)]);
 else
     mg_ix = mult_gauss{1};
     mg_w  = mult_gauss{2};
@@ -410,126 +402,93 @@ end
 % -------------------------------------------------------------------------
 % logpX (needed to initialise Z)
 norm_term = normalisation(mean, prec, obs_channels);
-logpX     = marginal(X, [{MU} prec], norm_term, obs_channels, obs_uncertainty);
+logpX     = marginal(X, [{mu} prec], norm_term, obs_channels, E);
 
 % -------------------------------------------------------------------------
 % EM loop
 for em=1:iter_max
 
+    olb = lb;
+
     % ---------------------------------------------------------------------
     % Compute responsibilities
-    Z = responsibility(logpX, log_prop, labels, log(mg_w));
+    [Z,lb.X] = responsibility(logpX, log_prop, labels, log(mg_w));
     clear logpX
 
-    % ---------------------------------------------------------------------
-    % Compute sufficient statistics (bin uncertainty part)
-    if iscell(obs_uncertainty) ||  sum(obs_uncertainty) > 0
-        SS2u = suffstat_uncertainty(obs_uncertainty, Z, weights, obs_channels);
-    else
-        SS2u = 0;
-    end
-
-    if ~isempty(obs_channels)
     % ---------------------------------------------------------------------
     % sub-EM algorithm to update Mean/Precision with missing data
     % . Responsibilities (E[z]) are kept fixed
     % . Missing values (E[z*h], E[z*hh']) are updated
-    % . Cluster parameters (MU,b,A/V,n) are updated
+    % . Cluster parameters (mu,b,A/V,n) are updated
 
-        % -----------------------------------------------------------------
-        % Compute fast sufficient statistics:
-        % > sum{E[z]}, sum{E[z]*g}, sum{E[z]*gg'}
-        %   for each configuration of missing data
-        [SS0m,SS1m,SS2m] = suffstat_missing(X, Z, weights, obs_channels);
+    % -----------------------------------------------------------------
+    % Compute fast sufficient statistics:
+    % > sum{E[z]}, sum{E[z]*g}, sum{E[z]*gg'}
+    %   for each configuration of missing data
+    [SS0m,SS1m,SS2m] = suffstat_missing(X, Z, obs_channels, E);
 
-        % -----------------------------------------------------------------
-        % Initialise objective function
-        [LMU,LA]       = kl_gausswishart(mean, prec, mean0, prec0);
-        [LX,norm_term] = marginalsum(SS0m, SS1m, SS2m, mean, prec, obs_channels, SS2u);
-        LB             = NaN(1,subiter_max);
-        LB(1)          = LMU + LA + LX;
-        for i=1:subiter_max
-
-            % -------------------------------------------------------------
-            % Save previous value
-            Ap      = A;
-            Vp      = V;
-            np      = n;
-
-            if numel(SS0m)==1, subsubiter_max = 1; else subsubiter_max = 4; end
-
-            for ii=1:subsubiter_max
-                % -------------------------------------------------------------
-                % Infer missing suffstat
-                % sum{E[z]}, sum{E[z*x]}, sum{E[z*xx']}
-                [SS0,SS1,SS2] = suffstat_infer(SS0m, SS1m, SS2m, {MU,A}, obs_channels);
-                SS2 = SS2 + SS2u;
-
-                % -------------------------------------------------------------
-                % Update GMM
-                [MU,A,b,V,n] = updateclusters(SS0, SS1, SS2, [mean0 prec0]);
-                for k=1:size(MU,2)
-                    [~,cholp] = chol(A(:,:,k));
-                    if cholp ~= 0
-                        warning('A not positive definite - reverting to previous version')
-                        A(:,:,k) = Ap(:,:,k);
-                        if sum(n) > 0
-                            V(:,:,k) = Vp(:,:,k);
-                            n(k)     = np(k);
-                        end
-                    end
-                end
-                mean = {MU,b};
-                if ~sum(n), prec = {A};
-                else        prec = {V,n};   end
-            end
-
-            % -------------------------------------------------------------
-            % Marginal / Objective function
-            [LMU,LA]       = kl_gausswishart(mean, prec, mean0, prec0);
-            [LX,norm_term] = marginalsum(SS0m, SS1m, SS2m, mean, prec, obs_channels, SS2u);
-            LB(i+1)        = LMU+LA+LX;
-            subgain        = (LB(i+1)-LB(i))/(max(LB(2:i+1))-min(LB(2:i+1)));
-            subgain1       = (LB(i+1)-LB(i))/abs(LB(i+1));
-
-            % -------------------------------------------------------------
-            % Print stuff
-            if numel(verbose) > 1 && verbose(2) > 0
-                switch sign(subgain)
-                    case 1,     incr = '(+)';
-                    case -1,    incr = '(-)';
-                    case 0,     incr = '(=)';
-                    otherwise,  incr = '';
-                end
-                fprintf('%-5s | %4d | lb = %-12.6g | gain = %-10.4g | %3s\n', 'sub', i, LB(i+1), subgain, incr);
-            end
-            if numel(SS0m)==1 || subgain < subtolerance || subgain1 < eps('single')
-                break
-            end
-        end
-
-    else
-        % ---------------------------------------------------------------------
-        % Classical M-step
-
-        % -----------------------------------------------------------------
-        % Compute sufficient statistics
-        [SS0,SS1,SS2] = suffstat_classic(X, Z, weights);
-        SS2 = SS2 + SS2u;
+    % -----------------------------------------------------------------
+    % Initialise objective function
+    [Lmu,LA]       = kl_gausswishart(mean, prec, mean0, prec0);
+    [LX,norm_term] = marginalsum(SS0m, SS1m, SS2m, mean, prec, obs_channels);
+    LB             = Lmu + LA + LX;
+    for i=1:subiter_max
 
         % -------------------------------------------------------------
-        % Update GMM
-        [MU,A,b,V,n] = updateclusters(SS0, SS1, SS2, [mean0 prec0]);
-        for k=1:size(MU,2)
-            [~,cholp] = chol(A(:,:,k));
-            if cholp ~= 0
-                warning('A not positive definite');
+        % Save previous value
+        Ap      = A;
+        Vp      = V;
+        np      = n;
+
+        if numel(SS0m)==1, subsubiter_max = 1; else subsubiter_max = 4; end
+
+        for ii=1:subsubiter_max
+            % -------------------------------------------------------------
+            % Infer missing suffstat
+            % sum{E[z]}, sum{E[z*x]}, sum{E[z*xx']}
+            [SS0,SS1,SS2] = suffstat_infer(SS0m, SS1m, SS2m, {mu,A}, obs_channels);
+
+            % -------------------------------------------------------------
+            % Update GMM
+            [mu,A,b,V,n] = updateclusters(SS0, SS1, SS2, [mean0 prec0]);
+            for k=1:size(mu,2)
+                [~,cholp] = chol(A(:,:,k));
+                if cholp ~= 0
+                    warning('A not positive definite - reverting to previous version')
+                    A(:,:,k) = Ap(:,:,k);
+                    if sum(n) > 0
+                        V(:,:,k) = Vp(:,:,k);
+                        n(k)     = np(k);
+                    end
+                end
             end
+            mean = {mu,b};
+            if ~sum(n), prec = {A};
+            else        prec = {V,n};   end
         end
-        mean = {MU,b};
-        if ~sum(n), prec =  {A};
-        else        prec = {V,n};   end
-        norm_term = normalisation(mean, prec);
+
+        % -------------------------------------------------------------
+        % Marginal / Objective function
+        [Lmu,LA]       = kl_gausswishart(mean, prec, mean0, prec0);
+        [LX,norm_term] = marginalsum(SS0m, SS1m, SS2m, mean, prec, obs_channels);
+        LBo            = LB;
+        LB             = Lmu+LA+LX;
+        subgain        = (LB-LBo);
+
+        % -------------------------------------------------------------
+        % Print stuff
+        if numel(verbose) > 1 && verbose(2) > 0
+            switch sign(subgain)
+                case 1,     incr = '(+)';
+                case -1,    incr = '(-)';
+                case 0,     incr = '(=)';
+                otherwise,  incr = '';
+            end
+            fprintf('%-5s | %4d | lb = %-12.6g | gain = %-10.4g | %3s\n', 'sub', i, LB(i+1), subgain, incr);
+        end
+        if numel(SS0m)==1 || subgain < subtolerance 
+            break
+        end
     end
 
     % ---------------------------------------------------------------------
@@ -540,7 +499,7 @@ for em=1:iter_max
 
     % ---------------------------------------------------------------------
     % Update weight for multiple Gaussians per prop class
-    for k=1:size(MU,2)
+    for k=1:size(mu,2)
         tmp     = SS0(mg_ix == mg_ix(k));
         mg_w(k) = (SS0(k) + eps*eps)/sum(tmp + eps*eps);
     end
@@ -548,37 +507,31 @@ for em=1:iter_max
     % ---------------------------------------------------------------------
     % Plot GMM
     if verbose(1) >= 3
-        plot_gmm(X, weights, obs_channels, {MU,A}, prop);
+        plot_gmm(X, obs_channels, {mu,A}, prop);
     end
 
     % ---------------------------------------------------------------------
     % Marginal / Objective function
-    logpX = marginal(X, [{MU} prec], norm_term, obs_channels, obs_uncertainty);
+    logpX = marginal(X, [{mu} prec], norm_term, obs_channels, E);
 
     % ---------------------------------------------------------------------
     % Compute lower bound
-    lb.P(end+1) = kl_dirichlet(prop_posterior, prop_prior);
-    lb.Z(end+1) = kl_categorical(Z, weights, log_prop, labels, log(mg_w));
+%   lb.P = kl_dirichlet(prop_posterior, prop_prior);
+%   lb.Z = kl_categorical(Z, log_prop, labels, log(mg_w));
     if isempty(obs_channels)
-        [lb.MU(end+1),lb.A(end+1)] = kl_gausswishart({MU,b}, prec, {MU0,b0}, {V0,n0});
-        lb.X(end+1) = sum(sum(bsxfun(@times, logpX, bsxfun(@times, Z, weights)),2),'double');
+        [lb.mu,lb.A] = kl_gausswishart({mu,b}, prec, {mu0,b0}, {V0,n0});
+        lb.X = sum(sum(bsxfun(@times, logpX, Z),2),'double');
     else
-        lb.MU(end+1) = LMU;
-        lb.A(end+1)  = LA;
-        lb.X(end+1)  = LX;
-    end
-    if isfield(lb, 'XB')
-        if isempty(lb.XB)
-            lb.XB = 0;
-        else
-            lb.XB(:,end+1) = lb.XB(:,end); % < Add bias normalisation term
-        end
+        lb.mu = Lmu;
+        lb.A  = LA;
+        lb.X  = LX;
     end
 
     % ---------------------------------------------------------------------
     % Check convergence
-    [lb,gain] = check_convergence(lb, em, verbose(1));
-    if gain < tolerance
+    osum = sum(olb.X)+sum(olb.mu)+sum(olb.A);
+    nsum = sum(lb.X)+sum(lb.mu)+sum(lb.A);
+    if em>2 && (nsum-osum) < tolerance 
         break;
     end
 
@@ -586,30 +539,18 @@ end
 
 % ---------------------------------------------------------------------
 % Compute final responsibilities
-Z = responsibility(logpX, log_prop, labels, log(mg_w));
+[Z,lb.X] = responsibility(logpX, log_prop, labels, log(mg_w));
 clear logpX
-
-% ---------------------------------------------------------------------
-% Recompute parts of lower bound that depends on responsibilities
-lb.Z(end+1) = kl_categorical(Z, weights, log_prop, labels, log(mg_w));
-if isempty(obs_channels)
-    lb.X(end+1) = sum(sum(bsxfun(@times, logpX, bsxfun(@times, Z, weights)),2),'double');
-else
-    [SS0m,SS1m,SS2m] = suffstat_missing(X, Z, weights, obs_channels);
-    LX               = marginalsum(SS0m, SS1m, SS2m, mean, prec, obs_channels, SS2u);
-    lb.X(end+1)      = LX;
-end
-lb = check_convergence(lb, em, verbose(1)); % Make sure lb.sum is correct
 
 % -------------------------------------------------------------------------
 % Format output
-cluster    = struct('MU', MU, 'b', b, 'A', A, 'V', V, 'n', n);
+cluster    = struct('mu', mu, 'b', b, 'A', A, 'V', V, 'n', n);
 prop       = struct('LogProp', log_prop, 'Prop', prop, 'Dir', prop_posterior);
 
 % =========================================================================
 function [lb,gain] = check_convergence(lb, em, verbose)
 % FORMAT [lb,gain] = check_convergence(lb, em, verbose)
-% lb      - Lower bound structure with fields X, Z, P, MU, A, sum, last
+% lb      - Lower bound structure with fields X, Z, P, mu, A, sum, last
 % em      - EM iteration
 % verbose - Verbosity level (>= 0)
 %
@@ -645,10 +586,10 @@ gain = abs(gain);
 
 % =========================================================================
 function X = infermissing(X, Z, cluster, codes, sample)
-% FORMAT X = spm_gmm_lib('missing', X, Z, {MU,A}, {C,L})
+% FORMAT X = spm_gmm_lib('missing', X, Z, {mu,A}, {C,L})
 % X  - NxP   observations
 % Z  - NxK   responsibilities
-% MU - PxK   (expected) means
+% mu - PxK   (expected) means
 % A  - PxPxK (expected) precision matrices
 % C  - Nx1   "missing value" code image
 % L  -       list of existing codes
@@ -661,7 +602,7 @@ if nargin < 5
     sample = false;
 end
 
-MU = [];
+mu = [];
 A  = [];
 C  = [];
 L  = [];
@@ -669,10 +610,10 @@ L  = [];
 %--------------------------------------------------------------------------
 % Read input arguments
 if ~iscell(cluster)
-    MU = cluster;
+    mu = cluster;
 else
     if numel(cluster) >= 1
-        MU = cluster{1};
+        mu = cluster{1};
         if numel(cluster) >= 2
             A = cluster{2};
         end
@@ -726,11 +667,11 @@ for i=1:numel(L)
     % 1) t = sum_k {z * ( mu[m] + A[m]/A[m,o]*(mu[o]-g) ) }
     for k=1:K
         X1k = zeros(1, 'like', X);
-        X1k = bsxfun(@plus,X1k,MU(im,k).');
-        X1k = bsxfun(@plus,X1k,bsxfun(@minus, MU(io,k).', X(msk,io)) * (A(io,im,k) / A(im,im,k)));
+        X1k = bsxfun(@plus,X1k,mu(im,k).');
+        X1k = bsxfun(@plus,X1k,bsxfun(@minus, mu(io,k).', X(msk,io)) * (A(io,im,k) / A(im,im,k)));
         if sample
            %Smk = inv(A(im,im,k));
-            X1k = X1k + chol(A(im,im,k))\randn(sum(im),Nm); % mvnrnd(zeros(1,Pm),Smk,Nm); %% mvnrnd is part of the statistics toolbox
+            X1k = X1k + chol(A(im,im,k))\randn(sum(im),Nm); % mvnrnd(zeros(1,Pm),Smk,Nm)
         end
         X(msk,im) = X(msk,im) + bsxfun(@times, X1k, Z(msk,k));
     end
@@ -738,11 +679,11 @@ end
 
 % =========================================================================
 function logpX = marginal(X, cluster, const, L, E)
-% logp = spm_gmm_lib('marginal', X, {MU,A},   const, [L], [E])
-% logp = spm_gmm_lib('marginal', X, {MU,V,n}, const, [L], [E])
+% logp = spm_gmm_lib('marginal', X, {mu,A},   const, [L], [E])
+% logp = spm_gmm_lib('marginal', X, {mu,V,n}, const, [L], [E])
 %
 % X         - {NoxP} Observed values
-% MU        -  PxK   (Expected) means
+% mu        -  PxK   (Expected) means
 % A         -  PxPxK (Expected) precision matrices
 % V         -  PxPxK Wishart scale matrices
 % n         -  1xK   Wishart degrees of freedom
@@ -753,7 +694,7 @@ function logpX = marginal(X, cluster, const, L, E)
 % logpX     - {NoxK} (Expected) log-likelihood of belonging to each class
 %
 % Compute the expected log-likelihood of each observation belonging to each
-% cluster: logpx(i,k) = E[ln p(g(i) | MU_k,A_k)]
+% cluster: logpx(i,k) = E[ln p(g(i) | mu_k,A_k)]
 
 %--------------------------------------------------------------------------
 % Read input arguments
@@ -762,7 +703,7 @@ if ~iscell(X)
     X = {X};
     L = ones(1,size(X,2));
 end
-MU = double(cluster{1});
+mu = double(cluster{1});
 A  = double(cluster{2});
 n  = [];
 if numel(cluster) >= 3
@@ -772,11 +713,11 @@ end
 
 % -------------------------------------------------------------------------
 % Allocate output
-P     = size(MU,1);
-K     = size(MU,2);
+P     = size(mu,1);
+K     = size(mu,2);
 logpX = cell(1,numel(X));
-if nargin < 5, E = zeros(1,P); end
-if isscalar(E), E = E*ones(1,P); end
+if nargin < 5,  E = zeros(1,P); end
+if ~iscell(E) && isscalar(E), E = E*ones(1,P); end
 
 % -------------------------------------------------------------------------
 % For each combination of missing voxels
@@ -818,20 +759,123 @@ for i=1:size(L,1)
         end
 
         % Quadratic term in observed values: (obs-mean) x (obs-mean)
-        l = bsxfun(@minus, X{i}, 2*MU(io,k)') * Ao;
+        l = bsxfun(@minus, X{i}, 2*mu(io,k)') * Ao;
         l = -0.5 * dot(l, X{i}, 2);
 
         % Binning uncertainty
         if ~isempty(E1) && any(any(E1))
             if size(E1,1)==1
-                l = l - 0.5 * trace(diag(E1) * Ao);
+                l = l - 0.5 * trace(diag(E1) * Ao) * size(X{i},1);
             else
                 l = l - 0.5 * sum(bsxfun(@times,diag(Ao)',E1),2);
             end
         end
 
-        % Reshape as a column vector
-        logpX{i}(:,k) = const(i,k) + l;
+        if ~isempty(const)
+            % Reshape as a column vector
+            logpX{i}(:,k) = const(i,k) + l;
+        else
+            logpX{i}(:,k) = l;
+        end
+    end
+
+end
+
+if arraymode, logpX = logpX{1}; end
+
+% =========================================================================
+function logpX = marginal_t(X, cluster, L, E)
+% logp = spm_gmm_lib('marginal_t', X, {mu,b,V,n}, [L], [E])
+%
+% X         - {NoxP} Observed values
+% mu        -  PxK   (Expected) means
+% b         - 
+% V         -  PxPxK Wishart scale matrices
+% n         -  1xK   Wishart degrees of freedom
+% L         -  MxP   Mask of missing patterns
+% E         - {NoxP} Uncertainty (or 1xP)
+%
+% logpX     - {NoxK} (Expected) log-likelihood of belonging to each class
+%
+% Compute the expected log-likelihood of each observation belonging to each
+% cluster: logpx(i,k) = E[ln p(g(i) | mu_k,A_k)]
+
+%--------------------------------------------------------------------------
+% Read input arguments
+arraymode = ~iscell(X);
+if ~iscell(X)
+    X = {X};
+    L = ones(1,size(X,2));
+end
+mu = double(cluster{1});
+b  = double(cluster{2});
+V  = double(cluster{3});
+n  = double(cluster{4});
+
+% -------------------------------------------------------------------------
+% Allocate output
+P     = size(mu,1);
+K     = size(mu,2);
+logpX = cell(1,numel(X));
+if nargin < 4,  E = zeros(1,P); end
+if ~iscell(E) && isscalar(E), E = E*ones(1,P); end
+
+% -------------------------------------------------------------------------
+% For each combination of missing voxels
+for i=1:size(L,1)
+
+    % ---------------------------------------------------------------------
+    % Get mask of missing values and modalities (with this particular code)
+    Nm = size(X{i},1);          % Number of voxels with that code
+    if Nm == 0, continue; end
+    io = L(i,:);                % Observed channels
+    Po = sum(io);               % Number of observed channels
+    im = ~io;                   % Missing channels
+    Pm = sum(im);               % Number of missing channels
+    if Po == 0, continue; end
+    if iscell(E), E1 = E{i}; else E1 = E(:,io); end % Uncertainty
+
+    % ---------------------------------------------------------------------
+    % Allocate logpX
+    logpX{i} = zeros([Nm K], 'like', X{i});
+
+    % ---------------------------------------------------------------------
+    % Non constant terms
+    for k=1:K
+
+        % /!\ Sub-covariance is different from the inverse sub-precision
+        % ML case:
+        %   inv(S(o,o)) = A(o,o) - A(o,m)*A(m,m)\A(m,o)
+        % Bayesian case:
+        %   inv(S(o,o)) ~ W(V(o,o) - V(o,m)*V(m,m)\V(m,o), n - Pm)
+        %   >> See Theorem 3.4.6 in:
+        %      Mardia, K.V., Kent, J.T., Bibby, J.M., 1980.
+        %      Multivariate Analysis, 1st edition. Academic Press.
+
+        % Wishart parameters over observed data
+        Vo   = V(io,io,k) - V(io,im,k)*(V(im,im,k)\V(im,io,k));
+        no   = n(k) - Pm;
+
+        % Parameters for Student's t: St(mu,Lam,nu) 
+        Lam  = ((no+1-Po)*b(k)/(b(k)+1)) * Vo; % Bishop's PRML eq. 10.82
+        nu   =   no+1-Po;                      % Bishop's PRML eq. 10.81
+
+        % Quadratic term in observed values: (obs-mean) x (obs-mean)
+        Del2 = bsxfun(@minus, X{i}, 2*mu(io,k)') * Lam;
+        Del2 = dot(Del2, X{i}, 2) + mu(io,k)'*Lam*mu(io,k);
+
+        % Binning uncertainty - double check this part
+        if ~isempty(E1) && any(any(E1))
+            if size(E1,1)==1
+                Del2 = Del2 + trace(diag(E1) * Lam)*size(X{i},1);
+            else
+                Del2 = Del2 + sum(bsxfun(@times,diag(Lam)',E1),2);
+            end
+        end
+
+        % Bishop's PRML eq. B.68
+        const = gammaln((nu+Po)/2) - gammaln(nu/2) + 0.5*logdet(Lam) - 0.5*Po*log(pi*nu);
+        logpX{i}(:,k) = const-(0.5*(nu+Po))*log(1+Del2/nu);
     end
 
 end
@@ -881,7 +925,7 @@ for i=1:numel(Z)
     Z{i} = exp(Z{i});
     sz   = sum(Z{i}, 2);
     if nargout>=2
-        lb = lb + sum(log(sz),1) + sum(mx,1);
+        lb = lb + sum(log(sz),1,'double') + sum(mx,1,'double');
     end
     Z{i} = bsxfun(@rdivide, Z{i}, sz);
 end
@@ -890,15 +934,14 @@ if arraymode, Z = Z{1}; end
 
 % =========================================================================
 function varargout = suffstat(varargin)
-% FORMAT [SS0,SS1,SS2] = spm_gmm_lib('suffstat', X, Z, W, [L])
+% FORMAT [SS0,SS1,SS2] = spm_gmm_lib('suffstat', X, Z, [L])
 % >> Compute sufficient statistics (per code)
-% FORMAT [SS0,SS1,SS2] = spm_gmm_lib('suffstat', 'infer', SS0, SS1, SS2, {MU,A}, L)
+% FORMAT [SS0,SS1,SS2] = spm_gmm_lib('suffstat', 'infer', SS0, SS1, SS2, {mu,A}, L)
 % >> Compute expected sufficient statics (from per-code suff stat)
-% FORMAT         [SS2] = spm_gmm_lib('suffstat', 'bin', E, Z, W, [L])
+% FORMAT         [SS2] = spm_gmm_lib('suffstat', 'bin', E, Z, [L])
 % >> Compute uncertainty-related statistics
 %
 % X    - {NoxP} Observed + Inferred values
-% W    - {Nox1} Observation weights
 % E    - {NoxP} Observation uncertainty (or 1xP)
 % Z    - {NoxK} Responsibilities
 % L    -   Mx1  List of missing codes
@@ -922,11 +965,7 @@ else
 end
 switch lower(id)
     case {'base'}
-        if iscell(varargin{1})
-            [varargout{1:nargout}] = suffstat_missing(varargin{:});
-        else
-            [varargout{1:nargout}] = suffstat_classic(varargin{:});
-        end
+        [varargout{1:nargout}] = suffstat_missing(varargin{:});
     case {'infer'}
         [varargout{1:nargout}] = suffstat_infer(varargin{:});
     case {'uncertainty'}
@@ -937,70 +976,20 @@ switch lower(id)
 end
 
 % =========================================================================
-function [SS0,SS1,SS2] = suffstat_classic(X, Z, W, varargin)
-% FORMAT [SS0,SS1,SS2] = suffstat_classic(X, Z, W)
-%
-% X    - NxP Observed + Inferred values
-% Z    - NxK Responsibilities
-% W    - Nx1 Observation weights
-%
-% Compute sufficient statistics (up to 2nd order)
-
-if nargin < 3, W = 1; end
-
-%--------------------------------------------------------------------------
-% Dimensions
-N = size(X, 1);
-P = size(X, 2);
-K = size(Z, 2);
-
-%--------------------------------------------------------------------------
-% Weight responsibilities
-Z = bsxfun(@times, Z, W);
-
-%--------------------------------------------------------------------------
-% Oth order
-SS0 = sum(Z, 1, 'omitnan', 'double');
-
-%--------------------------------------------------------------------------
-% 1st order
-SS1 = sum(bsxfun(@times, X, reshape(Z, [N 1 K])), 1, 'omitnan', 'double');
-SS1 = reshape(SS1, [P K]);
-
-%--------------------------------------------------------------------------
-% 1nd order
-SS2 = zeros(P,P,K, 'double');
-for i=1:P
-    SS2(i,i,:) = reshape(sum(bsxfun(@times, Z, X(:,i).^2),1,'omitnan', 'double'), [1 1 K]);
-    for j=i+1:P
-        SS2(i,j,:) = reshape(sum(bsxfun(@times, Z, X(:,i).*X(:,j)),1,'omitnan', 'double'), [1 1 K]);
-        SS2(j,i,:) = SS2(i,j,:);
-    end
-end
-
-% =========================================================================
-function [SS0,SS1,SS2] = suffstat_missing(X, Z, W, L)
-% FORMAT [{SS0},{SS1},{SS2}] = suffstat_missing(X, Z, W, L)
+function [SS0,SS1,SS2] = suffstat_missing(X, Z, L, E)
+% FORMAT [{SS0},{SS1},{SS2}] = suffstat_missing(X, Z, L,E)
 %
 % X    - {NoxP} Observed + Inferred values
 % Z    - {NoxK} Responsibilities
-% W    - {Nox1} Observation weights
 % L    -   MxP  Mask of missing channels
 %
 % Compute sufficient statistics for each missing pattern.
 
-if nargin < 3, W = 1; end
-
 %--------------------------------------------------------------------------
-% Multiply responsibility with observation weight
-for i=1:size(L,1)
-    if iscell(W), Z{i} = bsxfun(@times, Z{i}, W{i});
-    else         Z{i} = bsxfun(@times, Z{i}, W);    end
-end
+if nargin<4, E = []; end
 
-%--------------------------------------------------------------------------
 % Dimensions
-K = size(Z{1},2);
+K   = size(Z{1},2);
 
 SS0 = cell(1,numel(X));
 SS1 = cell(1,numel(X));
@@ -1039,30 +1028,33 @@ for i=1:size(L,1)
                 SS2{i}(m,m1,k) = zx'*xm;
                 SS2{i}(m1,m,k) = SS2{i}(m,m1,k);
             end
+            if ~isempty(E)
+                SS2{i}(m,m,k) = SS2{i}(m,m,k) + zk'*double(E{i}(:,m));
+            end
         end
     end
 end
 
 % =========================================================================
 function [SS0,SS1,SS2] = suffstat_infer(lSS0, lSS1, lSS2, cluster, L)
-% FORMAT [SS0,SS1,SS2] = suffstat_infer(SS0, SS1, SS2, {MU,A}, L)
+% FORMAT [SS0,SS1,SS2] = suffstat_infer(SS0, SS1, SS2, {mu,A}, L)
 %
 % SS0  - {1xK}     Oth order sufficient statistics
 % SS1  - {PoxK}    1st order sufficient statistics
 % SS2  - {PoxPoxK} 2nd order sufficient statistics
-% MU   - PxK       Clusters' mean
+% mu   - PxK       Clusters' mean
 % A    - PxPxK     Clusters' precision matrix
 % L    - MxP       Mask of observed channels
 %
 % Compute expected 1st/2nd order statistics.
 
-MU = double(cluster{1});
+mu = double(cluster{1});
 A  = double(cluster{2});
 
 %--------------------------------------------------------------------------
 % Dimensions
-P = size(MU,1);
-K = size(MU,2);
+P = size(mu,1);
+K = size(mu,2);
 
 SS0 = zeros(1,K, 'like', lSS0{1});
 if nargout > 1
@@ -1100,8 +1092,8 @@ for k=1:K
             % 0) precompute stuff
             ss1o = ss1(io,:);
             ss1m = ss1(im,:);
-            MUo  = MU(io,k);
-            MUm  = MU(im,k);
+            muo  = mu(io,k);
+            mum  = mu(im,k);
 
             iAkmm = inv(Ak(im,im));
             SA    = iAkmm*Ak(im,io);
@@ -1111,8 +1103,8 @@ for k=1:K
 
             % 2) missing
             % > t = mu(m) + A(m,m) \ A(m,o) * (mu(o) - g)
-            ss1m = ss1m + SS0k * MUm;
-            ss1m = ss1m + SA * (SS0k * MUo - SS1k);
+            ss1m = ss1m + SS0k * mum;
+            ss1m = ss1m + SA * (SS0k * muo - SS1k);
 
             ss1(io) = ss1o;
             ss1(im) = ss1m;
@@ -1127,22 +1119,22 @@ for k=1:K
             ss2oo = ss2(io,io);
             ss2mo = ss2(im,io);
             ss2mm = ss2(im,im);
-            MUMUm = SS0k * (MUm * MUm.');
-            MUMUo = SS0k * (MUo * MUo.');
-            GMUo  = SS1k * MUo.';
-            GMUm  = SS1k * MUm.';
+            mumum = SS0k * (mum * mum.');
+            mumuo = SS0k * (muo * muo.');
+            Gmuo  = SS1k * muo.';
+            Gmum  = SS1k * mum.';
 
             % 1) observed x observed
             ss2oo = ss2oo + SS2k;
 
             % 2) missing x observed
-            ss2mo = ss2mo + GMUm.' + SA * (GMUo.' - SS2k);
+            ss2mo = ss2mo + Gmum.' + SA * (Gmuo.' - SS2k);
 
             % 3) missing x missing
-            tmp   = SA * (SS0k * MUo - SS1k) * MUm.';
-            ss2mm = ss2mm + MUMUm ...
+            tmp   = SA * (SS0k * muo - SS1k) * mum.';
+            ss2mm = ss2mm + mumum ...
                           + (tmp+tmp') ...
-                          + SA * (SS2k + MUMUo - GMUo.' - GMUo) * SA.';
+                          + SA * (SS2k + mumuo - Gmuo.' - Gmuo) * SA.';
 
             % 4) uncertainty ~ missing
             ss2mm = ss2mm + SS0k*iAkmm;
@@ -1164,43 +1156,28 @@ for k=1:K
 end
 
 % =========================================================================
-function SS2 = suffstat_uncertainty(E, Z, W, L)
+function SS2 = suffstat_uncertainty(E, Z, L)
 
-if iscell(Z)
-    SS2 = suffstat_uncertainty_missing(E, Z, W, L);
-else
-    SS2 = suffstat_uncertainty_classic(E, Z, W);
-end
+SS2 = suffstat_uncertainty_missing(E, Z, L);
 
 % =========================================================================
-function SS2 = suffstat_uncertainty_missing(E, Z, W, L)
-% FORMAT SS2 = suffstat_uncertainty_missing(E, Z, W, L)
+function SS2 = suffstat_uncertainty_missing(E, Z, L)
+% FORMAT SS2 = suffstat_uncertainty_missing(E, Z, L)
 %
 % E  {NoxP} - Variance in each modality due to binning
 % Z  {NoxK} - Responisbilities
-% W  {Nox1} - Observation weights
 % L   MxP   - Mask of observed channel
 %
 % Compute "uncertainty" 2nd order statistics based on the posterior
 % precision matrix about inferred values.
 
-if nargin < 3 || isempty(W)
-    W = 1;
-end
 
 %--------------------------------------------------------------------------
 % Dimensions
 K = size(Z{1},2);
 P = size(L,2);
 SS2 = zeros(P,P,K);
-if sum(E) == 0, return; end
-
-%--------------------------------------------------------------------------
-% Multiply responsibility with observation weight
-for i=1:size(L,1)
-    if iscell(W), Z{i} = bsxfun(@times, Z{i}, W{i});
-    else          Z{i} = bsxfun(@times, Z{i}, W);    end
-end
+if ~iscell(E) && sum(E) == 0, return; end
 
 % -------------------------------------------------------------------------
 % 2nd order moment: uncertainty ~ binning
@@ -1224,50 +1201,12 @@ for i=1:size(L,1)
 end
 
 % =========================================================================
-function SS2 = suffstat_uncertainty_classic(E, Z, W, varargin)
-% FORMAT SS2 = suffstat_uncertainty_classic(E, Z, W)
-%
-% E  NxP - Variance in each modality due to binning
-% Z  NxK - Responisbilities
-% W  Nx1 - Observation weights
-%
-% Compute "uncertainty" 2nd order statistics based on the posterior
-% precision matrix about inferred values.
-
-if nargin < 3 || isempty(W)
-    W = 1;
-end
-
-%--------------------------------------------------------------------------
-% Dimensions
-K = size(Z,2);
-P = size(E,2);
-SS2 = zeros(P,P,K);
-if sum(E) == 0, return; end
-
-%--------------------------------------------------------------------------
-% Multiply responsibility with observation weight
-Z = bsxfun(@times, Z, W);
-
-% -------------------------------------------------------------------------
-% 2nd order moment: uncertainty ~ binning
-for p=1:P
-    if size(E,1)==1
-        SS2(p,p,:) = SS2(p,p,:) ...
-            + bsxfun(@times, reshape(sum(Z, 1, 'double'), [1 1 K]), E(p));
-    else
-        SS2(p,p,:) = SS2(p,p,:) ...
-            + reshape(sum(bsxfun(@times, Z, E(:,p)), 1, 'double'), [1 1 K]);
-    end
-end
-
-% =========================================================================
 function c = normalisation(mean,prec,L)
-% FORMAT c = spm_gmm_lib('normalisation', {MU,b}, {V,n})
-% FORMAT c = spm_gmm_lib('normalisation', {MU,b}, {A})
-% FORMAT c = spm_gmm_lib('normalisation', {MU},   {A})
+% FORMAT c = spm_gmm_lib('normalisation', {mu,b}, {V,n})
+% FORMAT c = spm_gmm_lib('normalisation', {mu,b}, {A})
+% FORMAT c = spm_gmm_lib('normalisation', {mu},   {A})
 % FORMAT c = spm_gmm_lib('normalisation', ..., L)
-% MU - (Expected) mean
+% mu - (Expected) mean
 % b  - Mean df (if isempty or 0 -> no Bayesian prior)
 % V  - Scale matrix     (if not n isempty or 0)
 % A  - Precision matrix (if n isempty or 0)
@@ -1278,7 +1217,7 @@ function c = normalisation(mean,prec,L)
 % Compute the constant term (w.r.t. voxels) of each Gaussian
 % (expected) log-likelihood.
 
-MU = [];
+mu = [];
 b  = [];
 V  = []; % It can actually be A (when n == 0)
 n  = [];
@@ -1286,10 +1225,10 @@ n  = [];
 %--------------------------------------------------------------------------
 % Read input arguments
 if ~iscell(mean)
-    MU = mean;
+    mu = mean;
 else
     if numel(mean) >= 1
-        MU = mean{1};
+        mu = mean{1};
         if numel(mean) >= 2
             b = mean{2};
         end
@@ -1309,15 +1248,15 @@ end
 
 %--------------------------------------------------------------------------
 % Use double precision
-MU = double(MU);
+mu = double(mu);
 b  = double(b);
 V  = double(V);
 n  = double(n);
 
 %--------------------------------------------------------------------------
 % Dimensions
-P = size(MU,1);
-K = size(MU,2);
+P = size(mu,1);
+K = size(mu,2);
 
 if nargin == 3 && ~isempty(L) && ~all(L(:)==1)
 %--------------------------------------------------------------------------
@@ -1325,19 +1264,19 @@ if nargin == 3 && ~isempty(L) && ~all(L(:)==1)
 
 % Assume that:
 % . A is a KxK positive-definite matrix
-% . A ~ W_K(V,n)
+% . A ~ V_K(V,n)
 % . S = inv(A)
 % . A is partitioned as [A11 A12: A12' A22] with A11 PxP
 % . V is partitioned as [V11 V12: V12' V22] with V11 PxP
 % . S is partitioned as [S11 S12: S12' S22] with S11 PxP
 % Then
-% . A11 ~ W_P(V11,n)
+% . A11 ~ V_P(V11,n)
 % . inv(S11) = A11 - A12*A22\A12'
-% . inv(S11) ~ W_P(V11 - V12*V22\V12', n - K + P)
+% . inv(S11) ~ V_P(V11 - V12*V22\V12', n - K + P)
 % This allows us to compute E[inv(S11)] and E[ln|S11]], which are needed to
 % compute the expected marginal distribution within each cluster.
 
-    c = zeros(size(L,1), K, 'like', MU);
+    c = zeros(size(L,1), K, 'like', mu);
     for i=1:size(L,1)
         io = L(i,:);                % Observed channels
         Po = sum(io);               % Number of observed channels
@@ -1349,10 +1288,10 @@ if nargin == 3 && ~isempty(L) && ~all(L(:)==1)
             if sum(n) > 0
                 no = n(k) - Pm;
                 c(i,k) = c(i,k) + 0.5 * wishart_elogdet(Vo,no) ...
-                                - 0.5 * no * MU(io,k).' * Vo * MU(io,k);
+                                - 0.5 * no * mu(io,k).' * Vo * mu(io,k);
             else
                 c(i,k) = c(i,k) + 0.5 * logdet(Vo) ...
-                                - 0.5 * MU(io,k).' * Vo * MU(io,k);
+                                - 0.5 * mu(io,k).' * Vo * mu(io,k);
             end
             if sum(b) > 0
                 c(i,k) = c(i,k) - 0.5 * Po / b(k);
@@ -1364,15 +1303,15 @@ if nargin == 3 && ~isempty(L) && ~all(L(:)==1)
 else
 %--------------------------------------------------------------------------
 % No missing dimensions
-    c = zeros(1,K, 'like', MU);
+    c = zeros(1,K, 'like', mu);
     for k=1:K
         c(k) = - 0.5 * P * log(2*pi);
         if sum(n) > 0
             c(k) = c(k) + 0.5 * wishart_elogdet(V(:,:,k),n(k)) ...
-                        - 0.5 * n(k) * MU(:,k)' * V(:,:,k) * MU(:,k);
+                        - 0.5 * n(k) * mu(:,k)' * V(:,:,k) * mu(:,k);
         else
             c(k) = c(k) + 0.5 * logdet(V(:,:,k)) ...
-                        - 0.5 * MU(:,k)' * V(:,:,k) * MU(:,k);
+                        - 0.5 * mu(:,k)' * V(:,:,k) * mu(:,k);
         end
         if sum(b) > 0
             c(k) = c(k) - 0.5 * P / b(k);
@@ -1381,8 +1320,8 @@ else
 end
 
 % =========================================================================
-function [MU,A,b,V,n] = updateclusters(SS0,SS1,SS2,pr)
-% FORMAT [MU,A,b,V,n] = updateclusters(SS0,SS1,SS2,{MU0,b0,V0,n0})
+function [mu,A,b,V,n] = updateclusters(SS0,SS1,SS2,pr)
+% FORMAT [mu,A,b,V,n] = updateclusters(SS0,SS1,SS2,{mu0,b0,V0,n0})
 % SS0 - 0th order sufficient statistics (sum Z_i)
 % SS1 - 1st order sufficient statistics (sum Z_i * X_i)
 % SS2 - 2nd order sufficient statistics (sum Z_i * (X_i * X_i'))
@@ -1393,12 +1332,12 @@ function [MU,A,b,V,n] = updateclusters(SS0,SS1,SS2,pr)
 if nargin<4, pr =[]; end
 
 K  = numel(SS0);
-MU0 = [];
+mu0 = [];
 b0  = [];
 V0  = [];
 n0  = [];
 if numel(pr) >= 1
-    MU0 = pr{1};
+    mu0 = pr{1};
     if numel(pr) >= 2
         b0 = pr{2};
         if numel(pr) >= 3
@@ -1412,7 +1351,7 @@ end
 
 %--------------------------------------------------------------------------
 % Use double precision
-MU0 = double(MU0);
+mu0 = double(mu0);
 b0  = double(b0);
 V0  = double(V0);
 n0  = double(n0);
@@ -1423,12 +1362,12 @@ if sum(b0) == 0
     % ---------------------------------------------------------------------
     % Without prior
     b  = [];
-    MU = bsxfun(@rdivide, SS1, SS0);
+    mu = bsxfun(@rdivide, SS1, SS0);
 else
     % ---------------------------------------------------------------------
     % With prior
     b  = b0 + SS0;
-    MU = bsxfun(@rdivide, SS1 + bsxfun(@times,b0,MU0), b);
+    mu = bsxfun(@rdivide, SS1 + bsxfun(@times,b0,mu0), b);
 end
 
 % -------------------------------------------------------------------------
@@ -1439,15 +1378,15 @@ if sum(n0) == 0
     % Without prior
     n   = [];
     for k=1:K
-        V(:,:,k) = inv(SS2(:,:,k) / SS0(k) - (MU(:,k) * MU(:,k).'));
+        V(:,:,k) = inv(SS2(:,:,k) / SS0(k) - (mu(:,k) * mu(:,k).'));
     end
 else
     % ---------------------------------------------------------------------
     % With prior
     n = n0 + SS0;
     for k=1:K
-        V(:,:,k) = inv(SS2(:,:,k) + b0(k) * MU0(:,k) * MU0(:,k).' ...
-                                  -  b(k) * MU(:,k)  * MU(:,k).' ...
+        V(:,:,k) = inv(SS2(:,:,k) + b0(k) * mu0(:,k) * mu0(:,k).' ...
+                                  -  b(k) * mu(:,k)  * mu(:,k).' ...
                                   + inv(V0(:,:,k)));
     end
 end
@@ -1490,8 +1429,8 @@ function [GaussPrior,extras] = updatehyperpars(cluster,GaussPrior,varargin)
 % FORMAT [GaussPrior,extras] = updatehyperpars(cluster,GaussPrior,varargin)
 %
 % REQUIRED
-% cluster    - 1xS cell array where cluster{s} = {{MU,b},{V,n}}
-% GaussPrior - {MU0,b0,V0,n0}
+% cluster    - 1xS cell array where cluster{s} = {{mu,b},{V,n}}
+% GaussPrior - {mu0,b0,V0,n0}
 %
 % OPTIONAL
 % constrained - Optimise hierarchical prior on V [false]
@@ -1499,10 +1438,10 @@ function [GaussPrior,extras] = updatehyperpars(cluster,GaussPrior,varargin)
 % verbose     - Verbosity level: [false]=quiet, true=display
 %
 % OUTPUT
-% GaussPrior - New {MU0,b0,V0,n0}
+% GaussPrior - New {mu0,b0,V0,n0}
 % extras     - Struct with lower bound information, etc.
 %
-% Update of VB-GMM hyper-parameters (m,b,W,n).
+% Update of VB-GMM hyper-parameters (m,b,V,n).
 
 % Parse optional arguments
 %--------------------------------------------------------------------------
@@ -1512,26 +1451,28 @@ p.addParameter('constrained',0,@islogical);
 p.addParameter('figname','',@ischar);
 p.addParameter('verbose',0,@islogical);
 p.addParameter('lkp',[],@isnumeric);
+p.addParameter('b0_priors',{0,0});
 p.parse(varargin{:});
 constrained = p.Results.constrained;
 figname     = p.Results.figname;
 verbose     = p.Results.verbose;
 lkp         = p.Results.lkp;
+b0_priors   = p.Results.b0_priors;
 
 % Parameters
 S = numel(cluster); % Number of posteriors
 
 m0 = GaussPrior{1};
 b0 = GaussPrior{2};
-W0 = GaussPrior{3};
+V0 = GaussPrior{3};
 n0 = GaussPrior{4};
 
 N = size(m0,1);
 K = size(m0,2);
 
 % pre-allocate
-LogDetW0  = zeros(size(n0));
-V         = zeros(size(W0));
+LogDetV0  = zeros(size(n0));
+V         = zeros(size(V0));
 p         = zeros(size(n0));
 p0        = 0;
 
@@ -1543,13 +1484,12 @@ for k=1:K
 
     % ---------------------------------------------------------------------
     % Update m0 (mode, closed-form)
-
     Lambda   = 0;
     LambdaMu = 0;
     for s=1:S
-        [m,~,W,n] = get_posteriors(cluster,s);
-        Lambda    = Lambda   + n(k)*W(:,:,k);
-        LambdaMu  = LambdaMu + n(k)*W(:,:,k)*m(:,k);
+        [m,~,V,n] = get_posteriors(cluster,s);
+        Lambda    = Lambda   + n(k)*V(:,:,k);
+        LambdaMu  = LambdaMu + n(k)*V(:,:,k)*m(:,k);
     end
     m0(:,k) = Lambda \ LambdaMu;
 
@@ -1558,15 +1498,18 @@ for k=1:K
 
     % ---------------------------------------------------------------------
     % Update b0 (mode, closed-form)
-
-    b0(k)= 0;
+    % b0 ~ \gamma(alpha,beta)
+    alpha0 = b0_priors{1};
+    beta0  = b0_priors{2};
+    b0(k)  = 0;
+    alph   = N*S;
+    bet    = 1;
     for s=1:S
-        [m,b,W,n] = get_posteriors(cluster,s);
-        m1 = m(:,k) - m0(:,k);
-        b0(k) = b0(k) + m1.' * (n(k)*W(:,:,k)) * m1 + N/b(k);
+        [m,b,V,n] = get_posteriors(cluster,s);
+        m1  = m(:,k) - m0(:,k);
+        bet = bet + m1.' * (n(k)*V(:,:,k)) * m1 + N/b(k);
     end
-    b0(k) = N*S/b0(k);
-
+    b0(k) = (alph+alpha0-1)/(bet+beta0);
     % ---------------------------------------------------------------------
 
 end
@@ -1586,16 +1529,16 @@ if ~constrained
         % Set up some constants
         sumLogDet = 0;
         sumPsi    = 0;
-        Wn        = 0;
+        Vn        = 0;
         for s=1:S
-            [~,~,W,n] = get_posteriors(cluster,s);
-            sumLogDet = sumLogDet + logdet( W(:,:,k));
+            [~,~,V,n] = get_posteriors(cluster,s);
+            sumLogDet = sumLogDet + logdet( V(:,:,k));
             sumPsi    = sumPsi    + DiGamma(n(k)/2, N);
-            Wn        = Wn        + n(k)*W(:,:,k);
+            Vn        = Vn        + n(k)*V(:,:,k);
         end
         sumLogDet = sumLogDet/S;
         sumPsi    = sumPsi/S;
-        Wn        = Wn/S;
+        Vn        = Vn/S;
 
         % -----------------------------------------------------------------
         % Update n0 (mode, Gauss-Newton [convex])
@@ -1603,15 +1546,15 @@ if ~constrained
         for gniter=1:1000
 
             % -------------------------------------------------------------
-            % Update W0 (mode, closed-form)
-            W0(:,:,k)   = Wn/n0(k);
-            LogDetW0(k) = logdet( W0(:,:,k));
+            % Update V0 (mode, closed-form)
+            V0(:,:,k)   = Vn/n0(k);
+            LogDetV0(k) = logdet( V0(:,:,k));
             % -------------------------------------------------------------
 
             % ---
             % Objective function
             Eprev = E;
-            E = 0.5*S*n0(k)*( LogDetW0(k) - sumLogDet - sumPsi ) ...
+            E = 0.5*S*n0(k)*( LogDetV0(k) - sumLogDet - sumPsi ) ...
                 + S*LogGamma(n0(k)/2, N);
 
             if E == Eprev
@@ -1620,7 +1563,7 @@ if ~constrained
 
             % ---
             % Gradient & Hessian
-            g = 0.5*S*( LogDetW0(k) - sumLogDet - sumPsi ...
+            g = 0.5*S*( LogDetV0(k) - sumLogDet - sumPsi ...
                          + DiGamma(n0(k)/2, N) );
             H = S/4*DiGamma(n0(k)/2, N, 1);
 
@@ -1639,13 +1582,13 @@ if ~constrained
     extras.b   = b0;
     extras.m   = m0;
     extras.n   = n0;
-    extras.W   = W0;
-    extras.ldW = LogDetW0;
+    extras.V   = V0;
+    extras.ldV = LogDetV0;
     extras.lb  = 0;
 
     GaussPrior{1} = m0;
     GaussPrior{2} = b0;
-    GaussPrior{3} = W0;
+    GaussPrior{3} = V0;
     GaussPrior{4} = n0;
 
 % =========================================================================
@@ -1662,8 +1605,8 @@ else
             for k=1:K
                 p0 = p0 + S*n0(k);
                 for s=1:S
-                    [~,~,W,n] = get_posteriors(cluster,s);
-                    V0 = V0 + inv(n(k)*W(:,:,k));
+                    [~,~,V,n] = get_posteriors(cluster,s);
+                    V0 = V0 + inv(n(k)*V(:,:,k));
                 end
             end
             p0 = p0/K;
@@ -1678,17 +1621,17 @@ else
 
             % ---
             % Set up some constants
-            % > compute sum E[logdet W] and sum psi(nu/2)
-            logDetW  = 0;
+            % > compute sum E[logdet V] and sum psi(nu/2)
+            logDetV  = 0;
             psiN     = 0;
             Lambda   = 0;
             for s=1:S
-                [~,~,W,n] = get_posteriors(cluster,s);
-                logDetW = logDetW  + logdet( W(:,:,k));
+                [~,~,V,n] = get_posteriors(cluster,s);
+                logDetV = logDetV  + logdet(V(:,:,k));
                 psiN    = psiN     + DiGamma(n(k)/2, N);
-                Lambda  = Lambda   + n(k)*W(:,:,k);
+                Lambda  = Lambda   + n(k)*V(:,:,k);
             end
-            logDetW  = logDetW/S;
+            logDetV  = logDetV/S;
             psiN = psiN/S;
 
 
@@ -1697,7 +1640,7 @@ else
             E = inf;
 
             % ---------------------------------------------------------
-            % Update {p,V} for W0 (posterior, closed form)
+            % Update {p,V} for V0 (posterior, closed form)
             p(k)       = p0 + S*n0(k);
            %V(:,:,k)   = inv(inv(V0) + Lambda); % NO NEED TO DO THIS MULTIPLE TIMES
             V(:,:,k)   = (V0*Lambda + eye(size(Lambda)))\V0;
@@ -1705,13 +1648,13 @@ else
             for gniter=1:100
 
                 % Useful values
-                W0(:,:,k)   = inv(wishart_e(V(:,:,k), p(k)));
-                LogDetW0(k) = -wishart_elogdet(V(:,:,k), p(k));
+                V0(:,:,k)   = inv(wishart_e(V(:,:,k), p(k)));
+                LogDetV0(k) = -wishart_elogdet(V(:,:,k), p(k));
                 % ---------------------------------------------------------
 
                 % ---
                 % Objective function
-                E1 = S*n0(k)/2 * (LogDetW0(k) - logDetW - psiN) ...
+                E1 = S*n0(k)/2 * (LogDetV0(k) - logDetV - psiN) ...
                      + S*LogGamma(n0(k)/2, N);
                 E = [E E1];
 
@@ -1723,7 +1666,7 @@ else
 
                 % ---
                 % Gradient & Hessian
-                g = S/2*(LogDetW0(k) - logDetW - psiN + DiGamma(n0(k)/2, N));
+                g = S/2*(LogDetV0(k) - logDetV - psiN + DiGamma(n0(k)/2, N));
                 H = S/4 * DiGamma(n0(k)/2, N, 1);
 
                 % ---
@@ -1810,8 +1753,8 @@ else
     extras.b   = b0;
     extras.m   = m0;
     extras.n   = n0;
-    extras.W   = W0;
-    extras.ldW = LogDetW0;
+    extras.V   = V0;
+    extras.ldV = LogDetV0;
     extras.V   = V;
     extras.p   = p;
     extras.V0  = V0;
@@ -1823,7 +1766,7 @@ else
 
     GaussPrior{1} = m0;
     GaussPrior{2} = b0;
-    GaussPrior{3} = W0;
+    GaussPrior{3} = V0;
     GaussPrior{4} = n0;
 end
 
@@ -1838,28 +1781,27 @@ end
 % -------------------------------------------------------------------------
 
 % =========================================================================
-function [lb,const] = marginalsum(SS0, SS1, SS2, mean, prec, L, SS2b)
-% [lb,const] = spm_gmm_lib('marginalsum', SS0, SS1, SS2, MU, A, L, SS2b)
-% [lb,const] = spm_gmm_lib('marginalsum', SS0, SS1, SS2, {MU,b}, {V,n}, L, SS2b)
+function [lb,const] = marginalsum(SS0, SS1, SS2, mean, prec, L)
+% [lb,const] = spm_gmm_lib('marginalsum', SS0, SS1, SS2, mu, A, L)
+% [lb,const] = spm_gmm_lib('marginalsum', SS0, SS1, SS2, {mu,b}, {V,n}, L)
 %
 % SS0       - {1xK}   Zero-th order moment (per config)
 % SS1       - {PxK}   First   order moment (per config)
 % SS1       - {PxPxK} Second  order moment (per config)
-% MU        - PxK     Means
+% mu        - PxK     Means
 % A/V       - PxPxK   Precision/Scale matrices
 % b         - 1xK     Mean degrees of freedom
 % n         - 1xK     Precision degrees of freedom
 % L         - Mx1     List of existing codes
-% SS2b      - PxPxK   Binning uncertainty
 %
 % lb        -         Sum of (expected) marginal likelihoods
 % const     - MxK     Constant terms
 %
 % Compute the expected log-likelihood of each observation belonging to each
-% cluster: lb = sum_{i,k} E[z_ik] E[ln p(g(i) | MU_k,A_k)]
+% cluster: lb = sum_{i,k} E[z_ik] E[ln p(g(i) | mu_k,A_k)]
 
 
-MU = [];
+mu = [];
 A  = [];
 V  = [];
 n  = [];
@@ -1867,10 +1809,10 @@ n  = [];
 %--------------------------------------------------------------------------
 % Read input arguments
 if ~iscell(mean)
-    MU = mean;
+    mu = mean;
 else
     if numel(mean) >= 1
-        MU = mean{1};
+        mu = mean{1};
         if numel(mean) >= 2
             b = mean{2};
         end
@@ -1890,14 +1832,11 @@ end
 if nargin < 6
     L = [];
 end
-if nargin < 7
-    SS2b = 0;
-end
 
 % -------------------------------------------------------------------------
 % Dimensions
-P  = size(MU,1);
-K  = size(MU,2);
+P  = size(mu,1);
+K  = size(mu,2);
 if isempty(L), L = ones(1,P); end % None missing
 
 % -------------------------------------------------------------------------
@@ -1939,13 +1878,10 @@ for i=1:size(L,1)
         end
 
         % 1) obs x mean
-        lb = lb + SS1{i}(:,k).' * Ao * MU(io,k);
+        lb = lb + SS1{i}(:,k).' * Ao * mu(io,k);
 
         % 1) obs x obs
         lb = lb - 0.5 * trace(Ao * SS2{i}(:,:,k));
-
-        % 3) Binning uncertainty
-        lb = lb - 0.5 * trace(Ao * SS2b);
 
     end
 
@@ -1955,13 +1891,13 @@ end
 function varargout = kl(varargin)
 % Useful KL-divergences for Gaussian Mixture modelling
 %
-% [klMU,klA] = spm_gmm_lib('kl', 'GaussWishart', {MU,b}, {V,n}, {MU0,b0}, {V0,n0})
+% [klmu,klA] = spm_gmm_lib('kl', 'GaussWishart', {mu,b}, {V,n}, {mu0,b0}, {V0,n0})
 % > KL divergence between two Gauss-Wishart distributions
 %
 % klP = spm_gmm_lib('kl', 'Dirichlet', a, a0)
 % > KL divergence between two Dirichlet distributions
 %
-% klZ = spm_gmm_lib('kl', 'Categorical', Z, W, logPI, labels, logmg_w)
+% klZ = spm_gmm_lib('kl', 'Categorical', Z, logPI, labels, logmg_w)
 % > KL divergence between two Categorical distributions
 
 if nargin == 0
@@ -1983,7 +1919,7 @@ switch lower(id)
 end
 
 % =========================================================================
-function klZ = kl_categorical(Z, W, logPI, labels, logmg_w)
+function klZ = kl_categorical(Z, logPI, labels, logmg_w)
 if nargin < 4, labels = 0; end
 if nargin < 5, logmg_w = 0; end
 
@@ -1996,20 +1932,19 @@ klZ = zeros(1, 'like', Z{1});
 
 for i=1:numel(Z)
     Z1 = Z{i};
-    if iscell(W), W1 = W{i}; else W1 = W; end
     if iscell(logPI), logPI1 = logPI{i}; else logPI1 = logPI; end
     if iscell(labels), labels1 = labels{i}; else labels1 = labels; end
 
     if ~isempty(labels1)
         % E[ln p(Z|labels)]
-        klZ = klZ + sum(sum(bsxfun(@times,Z1,labels1), 2) .* W1, 'double');
+        klZ = klZ + sum(sum(bsxfun(@times,Z1,labels1), 2), 'double');
     end
 
     % E[ln p(Z|PI)] (prior ~ responsibilities)
-    klZ = klZ + sum(sum(bsxfun(@times,Z1,bsxfun(@plus,logPI1,logmg_w)), 2) .* W1, 'double');
+    klZ = klZ + sum(sum(bsxfun(@times,Z1,bsxfun(@plus,logPI1,logmg_w)), 2), 'double');
 
     % -E[ln q(Z)] (posterior ~ responsibilities))
-    klZ = klZ - sum(sum(Z1 .* log(max(Z1,eps)), 2) .* W1, 'double');
+    klZ = klZ - sum(sum(Z1 .* log(max(Z1,eps)), 2), 'double');
 end
 
 % =========================================================================
@@ -2027,13 +1962,13 @@ if sum(a0) > 0
 end
 
 % =========================================================================
-function [klMU,klA] = kl_gausswishart(mean,prec,mean0,prec0)
+function [klmu,klA] = kl_gausswishart(mean,prec,mean0,prec0)
 
-MU  = [];
+mu  = [];
 b   = [];
 V   = []; % It can actually be A (when n == 0)
 n   = [];
-MU0 = [];
+mu0 = [];
 b0  = [];
 V0  = [];
 n0  = [];
@@ -2041,10 +1976,10 @@ n0  = [];
 %--------------------------------------------------------------------------
 % Read input arguments
 if ~iscell(mean)
-    MU = mean;
+    mu = mean;
 else
     if numel(mean) >= 1
-        MU = mean{1};
+        mu = mean{1};
         if numel(mean) >= 2
             b = mean{2};
         end
@@ -2062,10 +1997,10 @@ else
 end
 if nargin >= 3
     if ~iscell(mean0)
-        MU0 = mean0;
+        mu0 = mean0;
     else
         if numel(mean0) >= 1
-            MU0 = mean0{1};
+            mu0 = mean0{1};
             if numel(mean0) >= 2
                 b0 = mean0{2};
             end
@@ -2087,8 +2022,8 @@ end
 
 %--------------------------------------------------------------------------
 % Read input arguments
-P = size(MU,1);
-K = size(MU,2);
+P = size(mu,1);
+K = size(mu,2);
 LogDetA = zeros(1,K, 'like', V);
 if sum(n) > 0
     A = bsxfun(@times, V, reshape(n, [1 1 K]));
@@ -2103,19 +2038,19 @@ else
 end
 
 % Lower bound
-klMU = zeros(1, 'like', MU);
+klmu = zeros(1, 'like', mu);
 klA  = zeros(1, 'like', A);
 for k=1:K
     % + prior
     if sum(b0) > 0
         % prior
-        klMU = klMU - P*log(2*pi) ...
+        klmu = klmu - P*log(2*pi) ...
                     + P*log(b0(k)) ...
                     + LogDetA(k) ...
-                    - b0(k)*(MU(:,k)-MU0(:,k)).'*A(:,:,k)*(MU(:,k)-MU0(:,k)) ...
+                    - b0(k)*(mu(:,k)-mu0(:,k)).'*A(:,:,k)*(mu(:,k)-mu0(:,k)) ...
                     - P*b0(k)/b(k);
         % posterior
-        klMU = klMU + P*log(2*pi) ...
+        klmu = klmu + P*log(2*pi) ...
                     - P*log(b(k)) ...
                     - LogDetA(k) ...
                     + P;
@@ -2124,7 +2059,7 @@ for k=1:K
         klA = klA - wishart_kl(V(:,:,k), n(k), V0(:,:,k), n0(k));
     end
 end
-klMU = 0.5 * klMU;
+klmu = 0.5 * klmu;
 
 %--------------------------------------------------------------------------
 % "Missing code" image
@@ -2150,8 +2085,8 @@ if nargin < 2
 end
 codes = unique(C);
 codes = codes(codes ~= 0);
-Xo = cell(1,numel(codes));
-L  = false(numel(codes),size(X,2));
+Xo    = cell(1,numel(codes));
+L     = false(numel(codes),size(X,2));
 for i=1:numel(codes)
     msk    = (C == codes(i));
     io     = code2bin(codes(i),size(X,2));
@@ -2255,7 +2190,7 @@ function varargout = gmmplot(action,varargin)
 % spm_gmm_lib('plot', 'lb', lb, (wintitle))
 % > Plot lower bound
 %
-% spm_gmm_lib('plot', 'gmm', {X,W}, {MU,A}, PI, (wintitle))
+% spm_gmm_lib('plot', 'gmm', {X}, {mu,A}, PI, (wintitle))
 % > Plot mixture fit
 %
 % spm_gmm_lib('plot', 'cat', dm, Z, Template, (wintitle))
@@ -2335,7 +2270,7 @@ plot(sum(lb.P,1))
 box on
 title('Proportions (KL)')
 subplot(nrow, ncol, sub2ind([ncol nrow], 2, 2));
-plot(sum(lb.MU,1))
+plot(sum(lb.mu,1))
 box on
 title('Means (KL)')
 subplot(nrow, ncol, sub2ind([ncol nrow], 3, 2));
@@ -2370,22 +2305,20 @@ show_cat_img({Z,Template},{'Z','Template'},ticklabels);
 % =========================================================================
 
 % =========================================================================
-function plot_gmm(X, W, L, cluster, PI, part, figname)
-% spm_gmm_lib('plot', 'gmm', X, W, L, {MU,A}, PI, part)
+function plot_gmm(X, L, cluster, PI, part, figname)
+% spm_gmm_lib('plot', 'gmm', X, L, {mu,A}, PI, part)
 % X        {NoxPo}  Observations (or NxP)
-% W        {Nox1}   Weights      (or Nx1 or 1x1)
 % L         MxP     Mask of observed channels per code [ones]
-% MU        PxK     Means
+% mu        PxK     Means
 % A         PxPxK   Precisions
 % PI        1xC     Class proportions
 % part.lkp  1xC     Mapping from C classes to K clusters
 % part.mg   1xK     Cluster proportions
 
-MU = cluster{1};
+mu = cluster{1};
 A  = cluster{2};
 
 if ~iscell(X), X = {X}; end
-if ~iscell(W), W = {W}; end
 
 % -------------------------------------------------------------------------
 % Get figure (create if it does not exist)
@@ -2401,8 +2334,8 @@ clf(f);
 
 % -------------------------------------------------------------------------
 % Sizes / colors
-P = size(MU, 1);
-K = size(MU, 2);
+P = size(mu, 1);
+K = size(mu, 2);
 
 if nargin < 6
     lkp = 1:K;
@@ -2423,7 +2356,6 @@ centres = cell(1,P);
 weights = cell(1,P);
 for p=1:P
     X1 = [];
-    W1 = [];
     for i=1:numel(X)
         pp = [];
         if isempty(L)
@@ -2435,17 +2367,9 @@ for p=1:P
         end
         if ~isempty(pp)
             X1 = [X1; X{i}(:,pp)];
-            if iscell(W)
-                iw = min(i,numel(W));
-                if ~isscalar(W{iw})
-                    W1 = [W1; W{iw}(:)];
-                else
-                    W1 = [W1; W{iw}*ones(size(X{i},1),1)];
-                end
-            end
         end
     end
-    [centres{p},weights{p},~,width] = spm_histN(X1, 64, 'Weights', W1);
+    [centres{p},weights{p},~,width] = spm_histN(X1, 64);
     weights{p} = weights{p}./(sum(weights{p})*width);
     clear X1
 end
@@ -2465,8 +2389,8 @@ for p=1:P
     % -----------
     % GMM Density
     for k=1:K
-        x = linspace(MU(p,k)-3*A(p,p,k)^(-0.5),MU(p,k)+3*A(p,p,k)^(-0.5),100);
-        y = PI(k)*spm_Npdf(x, MU(p,k), A(p,p,k)^(-1));
+        x = linspace(mu(p,k)-3*A(p,p,k)^(-0.5),mu(p,k)+3*A(p,p,k)^(-0.5),100);
+        y = PI(k)*spm_Npdf(x, mu(p,k), A(p,p,k)^(-1));
         plot(x, y, 'Color', colors(lkp(k),:), 'LineWidth', 1)
         xlims = [min([xlims(1) x]) max([xlims(2) x])];
     end
@@ -2487,12 +2411,12 @@ for p=1:P
         subplot(2, P, P+p)
         hold on
         for k=1:K
-            Mu1     = MU([1 p],k);
-            Sigma2  = inv( A([1 p],[1 p],k));
+            mu1     = mu([1 p],k);
+            Sigma2  = inv(A([1 p],[1 p],k));
             Sigma   = sqrt(Sigma2);
-            [x1,x2] = meshgrid(linspace(Mu1(1)-3*Sigma(1,1),Mu1(1)+3*Sigma(1,1),100)', ...
-                               linspace(Mu1(2)-3*Sigma(2,2),Mu1(2)+3*Sigma(2,2),100)');
-            y = spm_mvNpdf([x1(:) x2(:)]', Mu1, Sigma2);
+            [x1,x2] = meshgrid(linspace(mu1(1)-3*Sigma(1,1),mu1(1)+3*Sigma(1,1),100)', ...
+                               linspace(mu1(2)-3*Sigma(2,2),mu1(2)+3*Sigma(2,2),100)');
+            y = spm_mvNpdf([x1(:) x2(:)]', mu1, Sigma2);
             contour(x2, x1, reshape(y, [100 100])', 1, 'color', colors(lkp(k),:), 'LineWidth', 1);
         end
         xlabel(sprintf('x%d',p))
@@ -2534,7 +2458,7 @@ set(0, 'CurrentFigure', f);
 clf(f);
 
 m0 = GaussPrior{1};
-W0 = GaussPrior{3};
+V0 = GaussPrior{3};
 n0 = GaussPrior{4};
 
 P = size(m0,1);
@@ -2546,8 +2470,8 @@ end
 
 colors = hsv(max(lkp));
 
-MU = m0;
-A  = bsxfun(@times,W0,reshape(n0,[1 1 K]));
+mu = m0;
+A  = bsxfun(@times,V0,reshape(n0,[1 1 K]));
 
 % ---------------------------------------------------------------------
 % For each input dimension
@@ -2563,8 +2487,8 @@ for p=1:P
     % -----------
     % GMM Density
     for k=1:K
-        x = linspace(MU(p,k)-3*A(p,p,k)^(-0.5),MU(p,k)+3*A(p,p,k)^(-0.5),100);
-        y = 1/K*spm_Npdf(x, MU(p,k), A(p,p,k)^(-1));
+        x = linspace(mu(p,k)-3*A(p,p,k)^(-0.5),mu(p,k)+3*A(p,p,k)^(-0.5),100);
+        y = 1/K*spm_Npdf(x, mu(p,k), A(p,p,k)^(-1));
         plot(x, y, 'Color', colors(lkp(k),:), 'LineWidth', 1)
         xlims = [min([xlims(1) x]) max([xlims(2) x])];
     end
@@ -2580,13 +2504,13 @@ for p=1:P
         subplot(2, P, P+p)
         hold on
         for k=1:K
-            Mu1     = MU([1 p],k);
+            mu1     = mu([1 p],k);
             Sigma2  = inv( A([1 p],[1 p],k));
             Sigma   = sqrt(Sigma2);
-            [x1,x2] = meshgrid(linspace(Mu1(1)-3*Sigma(1,1),Mu1(1)+3*Sigma(1,1),100)', ...
-                               linspace(Mu1(2)-3*Sigma(2,2),Mu1(2)+3*Sigma(2,2),100)');
+            [x1,x2] = meshgrid(linspace(mu1(1)-3*Sigma(1,1),mu1(1)+3*Sigma(1,1),100)', ...
+                               linspace(mu1(2)-3*Sigma(2,2),mu1(2)+3*Sigma(2,2),100)');
             Sigma2(1,2) = Sigma2(2,1); % Make sure symmetric, spm_mvNpdf complains otherwise - but it is just numerical accuracy
-            y = spm_mvNpdf([x1(:) x2(:)]', Mu1, Sigma2);
+            y = spm_mvNpdf([x1(:) x2(:)]', mu1, Sigma2);
             contour(x2, x1, reshape(y, [100 100])', 1, 'color', colors(lkp(k),:), 'LineWidth', 1);
         end
         xlabel(sprintf('x%d',p))
@@ -2730,154 +2654,15 @@ end
 drawnow
 %==========================================================================
 
-% =========================================================================
-function varargout = gmm_extras(varargin)
-% Additional GMM functions
-%
-% gmm = spm_gmm_lib('extras', 'more_gmms', gmm, part)
-% > A crude heuristic to replace a single Gaussian by a bunch of Gaussians.
-% gmm = spm_gmm_lib('extras', 'collapse_gmms', gmm, part)
-% > A crude heuristic to replace a bunch of Gaussian with a single Gaussian.
-%
-
-if nargin == 0
-    help spm_gmm_lib>extras
-    error('Not enough argument. Type ''help spm_gmm_lib>plot'' for help.');
-end
-id = varargin{1};
-varargin = varargin(2:end);
-switch lower(id)
-    case {'more_gmms'}
-        [varargout{1:nargout}] = more_gmms(varargin{:});
-    case {'collapse_gmms'}
-        [varargout{1:nargout}] = collapse_gmms(varargin{:});
-    otherwise
-        help spm_gmm_lib>extras
-        error('Unknown function %s. Type ''help spm_gmm_lib>extras'' for help.', id)
-end
-% =========================================================================
-
-% =========================================================================
-function [gmm,mg_w] = more_gmms(gmm,lkp)
-% FORMAT gmm = spm_gmm_lib('extras', 'more_gmms', gmm, lkp)
-%
-% gmm  - Cell with the following format {m,b,W,n}, where there are K
-%        Gaussians.
-% lkp - [1,K_p] vector partitioning a K GMM into a K_p GMM (K_P>=K). E.g.
-%        [1 1 1 2 3 4 5 6 6] means that the first Gaussian will be divided
-%        into 3 and the last into 2. The rest will remain the same.
-%
-% gmm  - Cell with the following format {m,b,W,n}, where there are K_p
-%        Gaussians.
-%
-% A crude heuristic to replace a single VB Gaussian by a bunch of VB Gaussians.
-% If there is only one Gaussian, then it should be the same as the
-% original distribution.
-%__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Centre for Human Neuroimaging
-
-MU0 = gmm{1};
-b0  = gmm{2};
-W0  = gmm{3};
-n0  = gmm{4};
-
-Kb = numel(n0);
-K  = numel(lkp);
-C  = size(MU0,1);
-
-A0 = bsxfun(@times,W0,reshape(n0,[1 1 Kb])); % E[Lambda]
-
-m  = zeros(C,K);
-b  = zeros(1,K);
-W  = zeros(C,C,K);
-n  = zeros(1,K);
-mg_w = ones(1,K);
-
-for k=1:Kb
-    kk = sum(lkp==k);
-    w  = 1./(1 + exp(-(kk - 1)*0.25)) - 0.5;
-    mn = MU0(:,k);
-    vr = inv(A0(:,:,k));
-
-    mn = sqrtm(vr)*sort(randn(C,kk),2)*w + repmat(mn,[1 kk]);
-    vr = vr*(1 - w);
-    pr = inv(vr);
-    W1 = (1/n0(k))*pr;
-
-    m(:,lkp==k)   = mn;
-    b(lkp==k)     = b0(k);
-    W(:,:,lkp==k) = repmat(W1,[1 1 kk]);
-    n(lkp==k)     = n0(k);
-
-    mg_w(lkp==k) = 1/kk;
-end
-
-gmm{1} = m;
-gmm{2} = b;
-gmm{3} = W;
-gmm{4} = n;
-%==========================================================================
-
-% =========================================================================
-function [gmm,mg] = collapse_gmms(gmm,lkp)
-% FORMAT gmm = spm_gmm_lib('extras', 'collapse', gmm, lkp)
-%
-% A crude heuristic to replace a bunch of Gaussian with a single Gaussian.
-%__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Centre for Human Neuroimaging
-
-MU0 = gmm{1};
-b0  = gmm{2};
-W0  = gmm{3};
-n0  = gmm{4};
-
-Kb = max(lkp);
-K  = numel(lkp);
-C  = size(MU0,1);
-
-A0 = bsxfun(@times,W0,reshape(n0,[1 1 K]));
-vr = zeros(size(A0));
-for k=1:K
-   vr(:,:,k) = inv(A0(:,:,k));
-end
-
-m  = zeros(C,Kb);
-b  = zeros(1,Kb);
-W  = zeros(C,C,Kb);
-n  = zeros(1,Kb);
-mg = ones(1,Kb);
-
-for k=1:Kb
-    kk = sum(lkp==k);
-
-    mn  = mean(MU0(:,lkp == k),2);
-    vr1 = mean(vr(:,:,lkp == k),3);
-
-    pr = inv(vr1);
-    W1 = (1/n0(k))*pr;
-
-    m(:,k)   = mn;
-    W(:,:,k) = W1;
-
-    b(k) = mean(b0(lkp == k))/kk;
-    n(k) = mean(n0(lkp == k))/kk;
-end
-
-gmm{1} = m;
-gmm{2} = b;
-gmm{3} = W;
-gmm{4} = n;
-%==========================================================================
-
 %==========================================================================
 % HELPER FUNCTIONS
 %==========================================================================
 
 %==========================================================================
-function [m,b,W,n] = get_posteriors(cluster,s)
+function [m,b,V,n] = get_posteriors(cluster,s)
 m = cluster{s}{1}{1};
 b = cluster{s}{1}{2};
-W = cluster{s}{2}{1};
+V = cluster{s}{2}{1};
 n = cluster{s}{2}{2};
 %==========================================================================
 
@@ -2892,7 +2677,7 @@ function ld = logdet(A)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_gmm_lib.m 7856 2020-05-19 22:54:41Z spm $
+% $Id: spm_gmm_lib.m 7873 2020-06-12 17:09:56Z john $
 
 % Cholseki decomposition of A (A = C' * C, with C upper-triangular)
 [C, p] = chol(A);
@@ -2907,52 +2692,6 @@ end
 % Hence: log|C| = sum(log(diag(C)))
 % And:   log|A| = log|C'*C| = log(|C|^2) = 2 * sum(log(diag(C)))
 ld = 2 * sum(log(diag(C)));
-
-% === loaddiag ===========================================================
-function A = loaddiag(A)
-% A  - A square matrix
-%
-% Load A's diagonal until it is well conditioned for inversion.
-%__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
-
-factor = 1e-7;
-while rcond(A) < 1e-5
-    A = A + factor * max([diag(A); eps]) * eye(size(A));
-    factor = 10 * factor;
-end
-
-% === inv ================================================================
-function A = inv_stable(A)
-% A  - A positive-definite square matrix
-% iA - Its inverse
-%
-% Stable inverse of a positive-definite matrix.
-% Eigendecomposition is used to compute a more stable inverse.
-%__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
-% I           = eye(size(A,1));
-% opts        = struct;
-% opts.POSDEF = true;
-% opts.SYM    = true;
-% A           = linsolve(A, I, opts);
-% A           = (A + A.')/2;
-% [V,D] = eig(A);
-% if any(diag(D) <= 0)
-%     warning('[spm_gmm_lib::inv_stable] Matrix has negative eigenvalues')
-%     D(D <= 0) = eps; % Threshold negative eigenvalues
-% end
-% D     = loaddiag(D);
-% A     = real(V * (D \ V'));
-% A     = (A+A.')/2;
-
-A     = inv(A);
-return
-
-[V,D] = eig(A);
-D     = max(diag(D), eps);
-A     = real(V * bsxfun(@ldivide, D, V'));
-A     = 0.5*(A + A.'); % Ensure symetric inverse
 
 % === wishart_elogdet =====================================================
 function out = wishart_elogdet(V, n, mode)

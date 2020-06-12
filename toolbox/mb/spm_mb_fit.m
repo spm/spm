@@ -11,7 +11,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 7855 2020-05-19 22:17:56Z john $
+% $Id: spm_mb_fit.m 7873 2020-06-12 17:09:56Z john $
 
 
 % Repeatable random numbers
@@ -70,16 +70,16 @@ for n=1:numel(dat)
 end
 updt_int = 'update_prior';
 fprintf('Rigid (zoom=%d): %d x %d x %d\n',2^(numel(sz)-1),sett.ms.d);
-spm_plot_convergence('Init','Rigid Alignment & Burn In','Objective','Iteration');
-EE     = inf(1,sum([updt_mu, 1])); % For tracking objfun
+spm_plot_convergence('Init','Rigid Alignment','Objective','Iteration');
+E      = Inf;
 for it0=1:nit_aff
-    oEE = EE;
-    i   = 1;   % For tracking objfun
-
+    if it0>1
+        oE  = E/nvox(dat);
+    else
+        oE  = Inf;
+    end
     if updt_mu
         [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,E,updt_int);
-        EE(i) = E;
-        i     = i + 1;
     end
 
     if true
@@ -88,18 +88,14 @@ for it0=1:nit_aff
         E     = sum(sum(cat(2,dat.E),2),1) + te;  % Cost function after previous update
         sett  = spm_mb_appearance(updt_int,dat, sett);
 
-        EE(i) = E;
-        fprintf('%12.4e', E);
+        fprintf('%12.4e', E/nvox(dat));
     end
     fprintf('\n');
     do_save(mu,sett,dat);
-    spm_plot_convergence('Set',E);
-
-    % Check convergence
-    change = mean(abs(oEE - EE)./abs(EE));
+    spm_plot_convergence('Set',E/nvox(dat));
 
     % Finished rigid alignment?
-    if change < sett.tol
+    if oE-E/nvox(dat) < sett.tol
         countdown = countdown - 1;
         if countdown==0
             break;
@@ -113,9 +109,10 @@ spm_plot_convergence('Clear');
 
 % Update affine and diffeo (iteratively decreases the template resolution)
 %--------------------------------------------------------------------------
+spm_plot_convergence('Init','Diffeomorphic Alignment','Objective','Iteration');
 for zm=numel(sz):-1:1 % loop over zoom levels
     fprintf('\nzoom=%d: %d x %d x %d\n', 2^(zm-1), sett.ms.d);
-    spm_plot_convergence('Init',['Diffeomorphic Alignment (' num2str(2^(zm-1)) ')'],'Objective','Iteration');
+   %spm_plot_convergence('Init',['Diffeomorphic Alignment (' num2str(2^(zm-1)) ')'],'Objective','Iteration');
     for n=1:numel(dat)
         dat(n).samp  = [1 1 1];
         dat(n).samp2 = get_samp(sett.ms.Mmu,dat(n).Mat,sett.sampdens);
@@ -132,8 +129,8 @@ for zm=numel(sz):-1:1 % loop over zoom levels
         dat   = spm_mb_shape('update_affines',dat,mu,sett);
         E     = sum(sum(cat(2,dat.E),2),1) + te; % Cost function after previous update
         sett  = spm_mb_appearance('update_prior',dat, sett);
-        fprintf('%12.4e', E);
-        spm_plot_convergence('Set',E);
+        fprintf('%12.4e', E/nvox(dat));
+        spm_plot_convergence('Set',E/nvox(dat));
     end
     fprintf('\n');
 
@@ -156,14 +153,10 @@ for zm=numel(sz):-1:1 % loop over zoom levels
             E     = sum(sum(cat(2,dat.E),2),1) + te; % Cost function after previous update
             sett  = spm_mb_appearance('update_prior',dat, sett);
             EE(i) = E;
-            fprintf('%12.4e', E);
-            spm_plot_convergence('Set',E);
+            fprintf('%12.4e', E/nvox(dat));
+            spm_plot_convergence('Set',E/nvox(dat));
         end
         fprintf('\n');
-
-       % Check convergence and terminate if done
-       %change = mean(abs(oEE - EE)./abs(EE));        
-       %if change < sett.tol, break; end
 
         % Compute deformations from velocities (unless this is to be done
         % on the zoomed versions).
@@ -189,7 +182,15 @@ for zm=numel(sz):-1:1 % loop over zoom levels
         dat        = spm_mb_shape('update_warps',dat,sett); % Shoot new deformations
     end
     do_save(mu,sett,dat);
-    spm_plot_convergence('Clear');
+end
+%spm_plot_convergence('Clear');
+%==========================================================================
+
+%==========================================================================
+function nv = nvox(dat)
+nv = 0;
+for n=1:numel(dat)
+    nv = nv+dat(n).nvox;
 end
 %==========================================================================
 
@@ -217,10 +218,10 @@ for it=1:nit_mu
     E        = sum(sum(cat(2,dat.E),2),1) + te; % Cost function after previous update
     sett     = spm_mb_appearance(updt_int,dat, sett);
     te       = spm_mb_shape('template_energy',mu,sett.ms.mu_settings);
-    fprintf('%12.4e', E);
-    spm_plot_convergence('Set',E);
+    fprintf('%12.4e', E/nvox(dat));
+    spm_plot_convergence('Set',E/nvox(dat));
     do_save(mu,sett,dat);
-    if it>1 && (oE-E)/abs(E) < sett.tol; break; end
+    if it>1 && oE-E < sett.tol*nvox(dat); break; end
 end
 %==========================================================================
 

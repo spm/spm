@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7864 2020-05-26 20:59:34Z mikael $
+% $Id: spm_mb_init.m 7873 2020-06-12 17:09:56Z john $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -19,9 +19,6 @@ function [dat,sett] = mb_init1(cfg)
 sett     = cfg;
 mu       = sett.mu;
 sett.odir = sett.odir{1};
-if ~(exist(sett.odir, 'dir') == 7)
-    mkdir(sett.odir);
-end
 if isfield(mu,'exist')
     fnam = sett.mu.exist{1};
     sett.mu.exist = struct('mu',fnam);
@@ -77,7 +74,8 @@ for p=1:numel(cfg.gmm)
 end
 
 cl  = cell(N,1);
-dat = struct('dm',cl, 'Mat',cl, 'samp',[1 1 1], 'samp2',[1 1 1], 'onam','', 'odir','', 'q',cl, 'v',cl, 'psi',cl, 'model',cl, 'E',cl);
+dat = struct('dm',cl, 'Mat',cl, 'samp',[1 1 1], 'samp2',[1 1 1], 'onam','', 'odir','',...
+             'q',cl, 'v',cl, 'psi',cl, 'model',cl, 'E',cl,'nvox',cl);
 n   = 0;
 
 % Process categorical data
@@ -108,7 +106,7 @@ if numel(cfg.cat)>=1
             end
         end
 
-        [~,nam]     = fileparts(cl{1});
+        [~,nam,~]   = fileparts(cl{1});
         dat(n).onam = sprintf('%d_%.5d_%s_%s', 0, np, nam, cfg.onam);
         dat(n).odir = sett.odir;
         dat(n).v    = fullfile(dat(n).odir,['v_'   dat(n).onam '.nii']);
@@ -130,7 +128,7 @@ if numel(cfg.cat)>=1
 end
 
 % Process scans (for gmm)
-sett.gmm  = struct('pr',cell(numel(cfg.gmm),1),'updt_intens',true, ....
+sett.gmm  = struct('pr',cell(numel(cfg.gmm),1),'hyperpriors',true, ....
                    'mg_ix', [], 'C',0, 'tol_gmm',[],'nit_gmm_miss',[],'nit_gmm',[],'nit_appear',[]);
 for p=1:numel(cfg.gmm)
     sett.gmm(p).tol_gmm      = cfg.gmm(p).tol_gmm;
@@ -139,6 +137,12 @@ for p=1:numel(cfg.gmm)
     sett.gmm(p).nit_appear   = cfg.gmm(p).nit_appear;
 
     Nc = numel(cfg.gmm(p).chan);
+    inu_reg  = zeros(Nc,1)+NaN;
+    for c=1:Nc
+        inu_reg(c)  = cfg.gmm(p).chan(c).inu.inu_reg;
+    end
+    sett.gmm(p).inu_reg = inu_reg;
+
     cl = cell(Nc,1);
     C  = -1;
     if numel(cfg.gmm(p).chan)>=1
@@ -168,7 +172,7 @@ for p=1:numel(cfg.gmm)
                 end
             end
 
-            [~,nam]     = fileparts(cl{1});
+            [~,nam,~]   = fileparts(cl{1});
             dat(n).onam = sprintf('%d_%.5d_%s_%s', p, np, nam, cfg.onam);
             dat(n).odir = sett.odir;
             dat(n).v    = fullfile(dat(n).odir,['v_'   dat(n).onam '.nii']);
@@ -180,13 +184,11 @@ for p=1:numel(cfg.gmm)
             end
             Cn       = sum(cf);
             inu_co   = zeros(Cn,1);
-            inu_reg  = zeros(Cn,1)+NaN;
             modality = zeros(Cn,1);
             ind      = 0;
             for c=1:Nc
                 ind           = max(ind) + (1:cf(c));
                 inu_co(ind)   = cfg.gmm(p).chan(c).inu.inu_co;
-                inu_reg(ind)  = cfg.gmm(p).chan(c).inu.inu_reg;
                 modality(ind) = cfg.gmm(p).chan(c).modality;
             end
 
@@ -224,7 +226,7 @@ for p=1:numel(cfg.gmm)
                 if ~all(lab.f.mat(:)==f(1).mat(:))
                     warning('Incompatible s-form matrices for subject %d in population %d', np, p);
                 end
-                if max(cellfun(@max,lab.cm_map)) > (K + 1) || min(cellfun(@min,lab.cm_map)) < 1
+                if max(cellfun(@max,lab.cm_map)) > K || min(cellfun(@min,lab.cm_map)) < 1
                     error('Poorly specified label mapping for population %d', p);
                 end
             else
@@ -232,10 +234,9 @@ for p=1:numel(cfg.gmm)
             end
 
             lb           = struct('sum', NaN, 'X', [], 'XB', [], 'Z', [], 'P', [], 'MU', [], 'A', []);
-            gmm          = struct('f',f, 'lab',lab, 'pop', p, 'modality', modality, ...
-                                  'T',{T}, 'inu_reg',inu_reg, 'lb', lb,...
+            gmm          = struct('f',f, 'lab',lab, 'pop', p, 'modality', modality, 'T',{T}, 'lb', lb,...
                                   'm',rand(Cn,K+1),'b',zeros(1,K+1)+1e-6,...
-                                  'W',repmat(eye(Cn,Cn),[1 1 K+1]),'n',zeros(1,K+1)+1e-6, 'mg_w',[]);
+                                  'V',repmat(eye(Cn,Cn),[1 1 K+1]),'n',zeros(1,K+1)+1e-6, 'mg_w',[]);
             dat(n).model = struct('gmm',gmm);
         end
     end
@@ -245,7 +246,7 @@ for p=1:numel(cfg.gmm)
     sett.gmm(p).C     = C;
     sett.gmm(p).pr    = {};
     sett.gmm(p).mg_ix = 1:(sett.K+1);
-    sett.gmm(p).updt_intens  = cfg.gmm(p).pr.update;
+    sett.gmm(p).hyperpriors = cfg.gmm(p).pr.hyperpriors;
     if ~isempty(cfg.gmm(p).pr.file) && ~isempty(cfg.gmm(p).pr.file{1})
         pr = load(cfg.gmm(p).pr.file{1});
         if isfield(pr,'mg_ix')
@@ -292,16 +293,15 @@ for p=1:numel(sett.gmm) % Loop over populations
     mu_all = zeros(C,N); % Means
     vr_all = zeros(C,N); % Diagonal of covariance
     for n=1:N % Loop over subjects
-        n1  = index(n);                   % Index of this subject
-        gmm = dat(n1).model.gmm;          % GMM data for this subject
-        m   = dat(n1).model.gmm.modality; % Get modality
-        dm  = dat(n1).dm;                 % Image dimensions
+        n1  = index(n);                  % Index of this subject
+        gmm = dat(n1).model.gmm;         % GMM data for this subject
+        dm  = dat(n1).dm;                % Image dimensions
         f   = spm_mb_io('get_image',gmm); % Image data
-        f   = reshape(f,prod(dm),C);      % Vectorise
-        T   = gmm.T;                      % INU parameters
-        mu  = zeros(C,1);                 % Mean
-        vr  = zeros(C,1);                 % Diagonal of covariance
-        for c=1:C                         % Loop over channels
+        f   = reshape(f,prod(dm),C);     % Vectorise
+        T   = gmm.T;                     % INU parameters
+        mu  = zeros(C,1);                % Mean
+        vr  = zeros(C,1);                % Diagonal of covariance
+        for c=1:C                        % Loop over channels
             fc    = f(:,c);                   % Image for this channel
             fc    = fc(isfinite(fc));         % Ignore non-finite values
             mn    = min(fc);                  % Minimum needed for e.g. CT
@@ -309,9 +309,9 @@ for p=1:numel(sett.gmm) % Loop over populations
             fc    = fc(fc>((mu(c)-mn)/8+mn)); % Voxels above some threshold (c.f. spm_global.m)
             mu(c) = mean(fc);                 % Mean of voxels above the threshold
             vr(c) = var(fc);                  % Variance of voxels above the threshold
-            if ~isempty(T{c}) && m ~= 2       % Should INU or global scaling be done?
-                s           = 1000;               % Scale means to this value
-                dc          = log(1000)-log(mu(c)); % Log of scalefactor
+            if ~isempty(T{c})                 % Should INU or global scaling be done?
+                s           = 1000;              % Scale means to this value
+                dc          = log(s)-log(mu(c)); % Log of scalefactor
                 bbb         = spm_dctmtx(dm(1),1,1)*spm_dctmtx(dm(2),1,1)*spm_dctmtx(dm(3),1,1);
                 T{c}(1,1,1) = dc/bbb;             % Adjust log-scalefactor to account for 3D DCT
                 vr(c) = vr(c).*(s./mu(c)).^2;     % Adjust variance for rescaling
@@ -339,13 +339,13 @@ for p=1:numel(sett.gmm) % Loop over populations
         vr                = double(mean(vr_all,2));
         nu0               = C-1+1e-4;                % Minimally informative
         scale             = max(K1-1,1).^(2/C);      % Crude heuristic
-        W0                = diag(1./vr)*(scale/nu0);
-        sett.gmm(p).pr{3} = repmat(W0,[1 1 K1]);
+        V0                = diag(1./vr)*(scale/nu0);
+        sett.gmm(p).pr{3} = repmat(V0,[1 1 K1]);
         sett.gmm(p).pr{4} = ones(1,K1)*nu0;
 
         % Random mean intensities, roughly sorted. Used to break symmetry.
         rng('default'); rng(1); % Want some reproducibility
-       %mu                = diag(sqrt(vr*(1-1/scale)))*randn(C,K1) + mu; % The 1-1/scale is to match W by Pythagorous
+       %mu                = diag(sqrt(vr*(1-1/scale)))*randn(C,K1) + mu; % The 1-1/scale is to match V by Pythagorous
         mu                = bsxfun(@plus,0.01*diag(sqrt(vr)*(1-1/scale))*randn(C,K1), mu); 
         d                 = sum(diag(sqrt(vr*(1-1/K1)))\mu,1);           % Heuristic measure of how positive
         [~,o]             = sort(-d); % Order the means, most positive first
@@ -356,7 +356,7 @@ for p=1:numel(sett.gmm) % Loop over populations
             n1                  = index(n);
             dat(n1).model.gmm.m = mu;                % Random means (break symmetry)
             dat(n1).model.gmm.b = sett.gmm(p).pr{2};
-            dat(n1).model.gmm.W = sett.gmm(p).pr{3};
+            dat(n1).model.gmm.V = sett.gmm(p).pr{3};
             dat(n1).model.gmm.n = sett.gmm(p).pr{4};
         end
     else
@@ -365,18 +365,18 @@ for p=1:numel(sett.gmm) % Loop over populations
             n1                  = index(n);
             m    = sett.gmm(p).pr{1};
             b    = sett.gmm(p).pr{2};
-            W    = sett.gmm(p).pr{3};
+            V    = sett.gmm(p).pr{3};
             nu   = sett.gmm(p).pr{4};
             % Modify the estimates slightly. If the b values are too variable
             % then the smaller ones might cause responsibilities that are
             % very close to zero, never identifying tissue in that class.
             b    = b*0+1e-3;
             nval = size(m,1)-1+1e-3;
-            W    = bsxfun(@times,W,reshape(nu,[1 1 numel(nu)])./nval);
+            V    = bsxfun(@times,V,reshape(nu,[1 1 numel(nu)])./nval);
             nu   = nu*0+nval;
             dat(n1).model.gmm.m = m;
             dat(n1).model.gmm.b = b;
-            dat(n1).model.gmm.W = W;
+            dat(n1).model.gmm.V = V;
             dat(n1).model.gmm.n = nu;
         end
     end

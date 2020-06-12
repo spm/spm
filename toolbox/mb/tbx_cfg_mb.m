@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 7855 2020-05-19 22:17:56Z john $
+% $Id: tbx_cfg_mb.m 7873 2020-06-12 17:09:56Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
@@ -42,7 +42,7 @@ inu_reg.tag  = 'inu_reg';
 inu_reg.name = 'Regularisation';
 inu_reg.strtype = 'e';
 inu_reg.num  = [1 1];
-inu_reg.val  = {2e4};
+inu_reg.val  = {1e4};
 inu_reg.help = {['Specify the bending energy penalty on the estimated intensity nonuniformity (INU) '...
                 'fields (bias fields). Larger values give smoother INU fields.'],''};
 % ---------------------------------------------------------------------
@@ -163,11 +163,11 @@ pr_dat.help    = {['Knowledge of Gaussian-Wishart priors for the intensity distr
 
 % ---------------------------------------------------------------------
 pr_upd         = cfg_menu;
-pr_upd.tag     = 'update';
+pr_upd.tag     = 'hyperpriors';
 pr_upd.name    = 'Optimise';
 pr_upd.labels  = {'Yes','No'};
-pr_upd.values  = {true, false};
-pr_upd.val     = {true};
+pr_upd.values  = {{'b0_priors',{1000,10}}, []};
+pr_upd.val     = {pr_upd.values{1}};
 pr_upd.help    = {['Specify whether the Gaussian-Wishart priors be updated at each iteration. '...
                    'Enabling this can slow down convergence if there are small numbers of subjects. '...
                    'If only one subject is to be modelled (using a pre-computed template), then '...
@@ -188,7 +188,7 @@ pop       = cfg_branch;
 pop.tag   = 'gmm';
 pop.name  = 'Pop. of scans';
 pop.val   = {chans, has_labels, pr,...
-             const('tol_gmm', 2e-4), const('nit_gmm_miss',32), const('nit_gmm',8), const('nit_appear', 4)};
+             const('tol_gmm', 0.0005), const('nit_gmm_miss',32), const('nit_gmm',8), const('nit_appear', 4)};
 pop.check = @check_pop;
 %pop.val  = {chans};
 pop.help  = {'Information about a population of subjects that all have the same set of scans.',''};
@@ -346,8 +346,9 @@ onam.help       = {'A key string may be included within all the output files.','
 mb             = cfg_exbranch;
 mb.tag         = 'run';
 mb.name        = 'Fit Multi-Brain model';
-mb.val         = {mu_prov, aff, dff, onam, odir, segs, pops, ...
-                   const('accel',0.8), const('min_dim', 16), const('tol',5e-4), const('sampdens',2),const('save',true),const('nworker',0)};
+mb.val         = {mu_prov, aff, dff, onam, odir, segs, pops,...
+                   const('accel',0.8), const('min_dim', 16), const('tol',0.001),...
+                   const('sampdens',2),const('save',true),const('nworker',0)};
 mb.prog        = @run_mb;
 mb.vout        = @vout_mb_run;
 mb.check       = @check_images;

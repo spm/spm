@@ -27,7 +27,7 @@ function varargout = spm_mb_shape(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7861 2020-05-21 11:39:27Z guillaume $
+% $Id: spm_mb_shape.m 7873 2020-06-12 17:09:56Z john $
 
 switch action
     case 'affine'
@@ -899,6 +899,7 @@ if isfield(datn.model,'cat')
         msk       = all(isfinite(P),4) & all(isfinite(mun),4);
         tmp       = sum(P.*mun,4) - LSE(mun,4);
         datn.E(1) = -sum(tmp(msk(:)));
+        datn.nvox = sum(msk(:));
     end
 else
     % Update appearance model

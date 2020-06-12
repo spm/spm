@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 7855 2020-05-19 22:17:56Z john $
+% $Id: spm_mb_output.m 7873 2020-06-12 17:09:56Z john $
 
 res  = load(char(cfg.result));
 sett = res.sett;
@@ -126,7 +126,7 @@ if isfield(datn.model,'gmm')
                 c1   = c1 + 1;
                 nam  = sprintf('inu%d_%s.nii',c,onam);
                 fpth = fullfile(dir_res,nam);
-                WriteNii(fpth,inu(:,:,:,c), Mn, sprintf('INU (%d)',c));
+                write_nii(fpth,inu(:,:,:,c), Mn, sprintf('INU (%d)',c));
                 c1           = c1 + 1;
                 resn.inu{c1} = fpth;
             end
@@ -164,20 +164,23 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
     mun  = bsxfun(@plus, mun, log(mg_w));
 
     % Format for spm_gmm
-    [inufn,code_image,msk_chn] = spm_gmm_lib('obs2cell', reshape(inu.*fn,[prod(df) C]));
-    mun                        = spm_gmm_lib('obs2cell', mun, code_image, false);
+    chan                    = spm_mb_appearance('inu_basis',gmm.T,df,datn.Mat,ones(1,C));
+    [llinu,mf,vf]           = spm_mb_appearance('inu_recon',fn,chan,gmm.T,gmm.Sig);
+    [mf,code_image,msk_chn] = spm_gmm_lib('obs2cell', reshape(mf,[prod(df) C]));
+    vf                      = spm_gmm_lib('obs2cell', reshape(vf,[prod(df) C]), code_image, true);
+    mun                     = spm_gmm_lib('obs2cell', mun, code_image, false);
 
     % Get responsibilities
-    zn  = spm_mb_appearance('responsibility',gmm.m,gmm.b,gmm.W,gmm.n,inufn,mun,msk_chn);
+    zn  = spm_mb_appearance('responsibility',gmm.m,gmm.b,gmm.V,gmm.n,mf,vf,mun,msk_chn);
     zn  = spm_gmm_lib('cell2obs', zn, code_image, msk_chn);
-    clear mun msk_chn inufn
+    clear mun msk_chn mf
 
     % Get bias field modulated image data
     fn = inu.*fn;
     if do_infer
         % Infer missing values
         sample_post = do_infer > 1;
-        A           = bsxfun(@times, gmm.W, reshape(gmm.n, [1 1 Kmg]));
+        A           = bsxfun(@times, gmm.V, reshape(gmm.n, [1 1 Kmg]));
         fn          = spm_gmm_lib('InferMissing',reshape(fn,[prod(df) C]),...
                                   zn,{gmm.m,A},code_image,sample_post);
         clear code
@@ -194,7 +197,7 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
             if ~write_im(c,1), continue; end
             nam  = sprintf('i%d_%s.nii',c,onam);
             fpth = fullfile(dir_res,nam);
-            WriteNii(fpth,fn(:,:,:,c)./inu(:,:,:,c), Mn, sprintf('Image (%d)',c), 'int16');
+            write_nii(fpth,fn(:,:,:,c)./inu(:,:,:,c), Mn, sprintf('Image (%d)',c), 'int16');
             c1          = c1 + 1;
             resn.m{c1} = fpth;
         end
@@ -208,7 +211,7 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
             if ~write_im(c,2), continue; end
             nam  = sprintf('mi%d_%s.nii',c,onam);
             fpth = fullfile(dir_res,nam);
-            WriteNii(fpth, fn(:,:,:,c), Mn, sprintf('INU corr. (%d)',c), 'int16');
+            write_nii(fpth, fn(:,:,:,c), Mn, sprintf('INU corr. (%d)',c), 'int16');
             c1           = c1 + 1;
             resn.mi{c1} = fpth;
         end
@@ -226,7 +229,7 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
             nam       = sprintf('wi%d_%s.nii',c,onam);
             fpth      = fullfile(dir_res,nam);
             [img,cnt] = spm_mb_shape('push1',fn(:,:,:,c)./inu(:,:,:,c), psi,dmu,sd);
-            WriteNii(fpth,img./(cnt + eps('single')), Mmu, sprintf('Norm. (%d)',c), 'int16');
+            write_nii(fpth,img./(cnt + eps('single')), Mmu, sprintf('Norm. (%d)',c), 'int16');
             clear img cnt
             c1           = c1 + 1;
             resn.wi{c1} = fpth;
@@ -243,7 +246,7 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
             nam       = sprintf('wmi%d_%s.nii',c,onam);
             fpth      = fullfile(dir_res,nam);
             [img,cnt] = spm_mb_shape('push1',fn(:,:,:,c),psi,dmu,sd);
-            WriteNii(fpth,img./(cnt + eps('single')), Mmu, sprintf('Norm. INU corr. (%d)',c),'int16');
+            write_nii(fpth,img./(cnt + eps('single')), Mmu, sprintf('Norm. INU corr. (%d)',c),'int16');
             clear img cnt
             c1           = c1 + 1;
             resn.wmi{c1} = fpth;
@@ -273,7 +276,7 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
             if ~write_tc(k,1), continue; end
             nam  = sprintf('c%.2d_%s.nii',k,onam);
             fpth = fullfile(dir_res,nam);
-            WriteNii(fpth,zn(:,:,:,k), Mn, sprintf('Tissue (%d)',k), 'uint8');
+            write_nii(fpth,zn(:,:,:,k), Mn, sprintf('Tissue (%d)',k), 'uint8');
             k1         = k1 + 1;
             resn.c{k1} = fpth;
         end
@@ -304,7 +307,7 @@ if any(write_tc(:,2)) || any(write_tc(:,3))
                 kwc  = kwc + 1;
                 fpth = fullfile(dir_res, sprintf('wc%.2d_%s.nii',k,onam));
                 resn.wc{kwc} = fpth;
-                WriteNii(fpth, img./(cnt + eps('single')),...
+                write_nii(fpth, img./(cnt + eps('single')),...
                          Mmu, sprintf('Norm. tissue (%d)',k), 'uint8');
             end
             if write_tc(k,3)
@@ -313,7 +316,7 @@ if any(write_tc(:,2)) || any(write_tc(:,3))
                 fpth = fullfile(dir_res,sprintf('mwc%.2d_%s.nii',k,onam));
                 resn.mwc{kmwc} = fpth;
                 img  = img*abs(det(Mn(1:3,1:3))/det(Mmu(1:3,1:3)));
-                WriteNii(fpth,img, Mmu, sprintf('Norm. mod. tissue (%d)',k), 'int16');
+                write_nii(fpth,img, Mmu, sprintf('Norm. mod. tissue (%d)',k), 'int16');
             end
             clear img cnt
         end
@@ -328,7 +331,7 @@ phi = reshape(bsxfun(@plus,reshape(phi,[prod(d(1:3)),3])*M(1:3,1:3)',M(1:3,4)'),
 %==========================================================================
 
 %==========================================================================
-function WriteNii(f,img,M,descrip,typ)
+function write_nii(f,img,M,descrip,typ)
 if nargin<5, typ = 'float32'; end
 switch typ
 case 'float32'
