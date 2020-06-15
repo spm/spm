@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 7564 2019-04-02 10:50:42Z guillaume $
+% $Id: spm_input.m 7874 2020-06-15 20:47:01Z guillaume $
 
 
 %=======================================================================
@@ -194,7 +194,7 @@ function varargout = spm_input(varargin)
 %   ...where ? in b?1 specifies edit widget type as with string & eval'd input
 %            - [p,YPos] = spm_input(Prompt,YPos,'n1',DefStr,mx)
 %            - [p,YPos] = spm_input(Prompt,YPos,'w1',DefStr,mx)
-% button dialog 
+% button dialog
 %            - [p,YPos] = spm_input(Prompt,YPos,'bd',...
 %                                Labels,Values,DefItem,Title)
 % menu       - [p,YPos] = spm_input(Prompt,YPos,'m',Labels,Values,DefItem)
@@ -206,7 +206,7 @@ function varargout = spm_input(varargin)
 %            - [p,YPos] = spm_input(Prompt,YPos,Labels,Values,DefItem)
 %
 % NB: Natural numbers are [1:Inf), Whole numbers are [0:Inf)
-% 
+%
 % -- Parameters (input) --
 %
 % Prompt   - prompt string
@@ -375,15 +375,15 @@ function varargout = spm_input(varargin)
 %               String input, same position as last used, prompted by str,
 %               default of 'Image' offered. YPos returns GUI position used.
 %       p = spm_input(str,'-1','y/n')
-%               Yes/No buttons for question with prompt str, in position one 
+%               Yes/No buttons for question with prompt str, in position one
 %               before the last used Returns 'y' or 'n'.
 %       p = spm_input(str,'-1','y/n',[1,0],2)
 %               As above, but returns 1 for yes response, 0 for no,
 %               with 'no' as the default response
 %       p = spm_input(str,4,'AnCova|Scaling')
-%               Presents two buttons labelled 'AnCova' & 'Scaling', with 
-%               prompt str, in position 4 of the dialog figure. Returns the 
-%               string on the depresed button, where buttons can be pressed 
+%               Presents two buttons labelled 'AnCova' & 'Scaling', with
+%               prompt str, in position 4 of the dialog figure. Returns the
+%               string on the depresed button, where buttons can be pressed
 %               with the mouse or by the respective keyboard accelerators
 %               'a' & 's' (or 'A' & 'S').
 %       p = spm_input(str,-4,'b','AnCova|Scaling',[],2)
@@ -392,7 +392,7 @@ function varargout = spm_input(varargin)
 %       p = spm_input(str,0,'b','AnCova|Scaling|None',[1,2,3])
 %               Prompts for [A]ncova / [S]caling / [N]one in MatLab command
 %               window, returns 1, 2, or 3 according to the first character
-%               of the entered string as one of 'a', 's', or 'n' (case 
+%               of the entered string as one of 'a', 's', or 'n' (case
 %               insensitive).
 %       p = spm_input(str,1,'b','AnCova',1)
 %       Since there's only one button, this just displays the response
@@ -413,8 +413,8 @@ function varargout = spm_input(varargin)
 %       p = spm_input(str,'!0','m','Single Subject|Multi Subject|Multi Study')
 %               Prints the prompt str in a pull down menu containing items
 %               'Single Subject', 'Multi Subject' & 'Multi Study'. When OK is
-%               clicked p is returned as the index of the  choice, 1,2, or 3 
-%               respectively. Uses last used position in GUI, irrespective of 
+%               clicked p is returned as the index of the  choice, 1,2, or 3
+%               respectively. Uses last used position in GUI, irrespective of
 %               global CMDLINE
 %       p = spm_input(str,5,'m',...
 %               'Single Subject|Multi Subject|Multi Study',...
@@ -471,13 +471,13 @@ function varargout = spm_input(varargin)
 % workspace variables are inaccessible (put what you need in UD), and
 % that any return arguments from CallBack functions are not passed back
 % to the base workspace).
-% 
+%
 %
 %-----------------------------------------------------------------------
 % UTILITY FUNCTIONS:
 %
 % FORMAT colour = spm_input('!Colour')
-% Returns colour for input widgets, as specified in COLOUR parameter at 
+% Returns colour for input widgets, as specified in COLOUR parameter at
 % start of code.
 % colour  - [r,g,b] colour triple
 %
@@ -575,7 +575,7 @@ function varargout = spm_input(varargin)
 % F     - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
 %     Not required if FRec3 is specified
 % FRec3 - Length of interactive figure in pixels
-% 
+%
 % FORMAT spm_input('!EditableKeyPressFcn',h,ch)
 % KeyPress callback for GUI string / eval input
 %
@@ -638,10 +638,10 @@ else            %-Should be an input request: get Type & YPos
         %-Locate (or create) figure to work in
         Finter = spm_input('!GetWin');
         COLOUR = get(Finter,'Color');
-    
+
         %-Find out which Y-position to use, setup for use
         YPos = spm_input('!SetNextPos',YPos,Finter,CmdLine);
-    
+
         %-Determine position of objects
         [FRec,QRec,PRec,RRec]=spm_input('!InputRects',YPos,'',Finter);
     end
@@ -971,7 +971,7 @@ end
 
 switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
 %=======================================================================
-    
+
     %-Make unique character keys for the Labels, sort DefItem
     %---------------------------------------------------------------
     nLabels     = size(Labels,1);
@@ -989,7 +989,7 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
         spm_input('!PrntPrmpt',Prompt,'',Title)
         %-Build prompt
         %-------------------------------------------------------
-        if ~isempty(Labs) 
+        if ~isempty(Labs)
             Prmpt = ['[',Keys(1),']',deblank(Labs(1,:)),' '];
             for i = 2:nLabels
                 Prmpt=[Prmpt,'/ [',Keys(i),']',deblank(Labs(i,:)),' '];
@@ -1057,18 +1057,18 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
             'HorizontalAlignment','Right',...
             'Position',PRec);
         if TTips, set(hPrmpt,'ToolTipString',Prompt); end
-    
+
         if nLabels==1
             %-Only one choice - auto-pick
             k = 1;
         else
             %-Draw buttons and process response
             dX = RRec(3)/nLabels;
-            
+
             if TTips, str = ['select with mouse or use kbd: ',...
                 sprintf('%c/',Keys(1:end-1)),Keys(end)];
             else str=''; end
-        
+
             %-Store button # in buttons 'UserData' property
             %-Store handle of prompt string in buttons 'Max' property
             %-Button callback sets UserData of prompt string to
@@ -1080,10 +1080,12 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
             for i=1:nLabels
                 if i==DefItem
                     %-Default button, outline it
-                    h = uicontrol(Finter,'Style','Frame',...
-                        'BackGroundColor','k',...
-                        'ForeGroundColor','k',...
+                    h = uipanel(Finter,...
+                        'BackgroundColor','k',...
+                        'ForegroundColor','k',...
+                        'BorderType','none',...
                         'Tag',Tag,...
+                        'Units','pixels',...
                         'Position',...
                         [RRec(1)+(i-1)*dX ...
                             RRec(2)-1 dX RRec(4)+2]);
@@ -1103,13 +1105,13 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
                 if i == DefItem, uifocus(h); end
                 H = [H,h];
             end
-        
+
             %-Figure ContextMenu for shortcuts
             hM = spm_input('!InptConMen',Finter,[hPrmpt,H]);
 
             %-Bring window to fore & jump pointer to default button
             [PLoc,cF]=spm_input('!PointerJump',RRec,Finter,XDisp);
-    
+
             %-Callback for KeyPress, to store valid button # in
             % UserData of Prompt, DefItem if (DefItem~=0)
             % & return (ASCII-13) is pressed
@@ -1132,7 +1134,7 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
             delete([H,hM]), set(Finter,'KeyPressFcn','')
             spm_input('!PointerJumpBack',PLoc,cF)
         end
-        
+
         %-Display answer
         uicontrol(Finter,'Style','Text',...
             'String',deblank(Labels(k,:)),...
@@ -1184,10 +1186,10 @@ if CmdLine
         k = size(Labels,1);
 
     else            %-Offer buttons, default or "specify..."
-    
+
         %-Build prompt
         %-------------------------------------------------------
-        if ~isempty(Labs) 
+        if ~isempty(Labs)
             Prmpt = ['[',Keys(1),']',deblank(Labs(1,:)),' '];
             for i = 2:nLabels
                 Prmpt=[Prmpt,'/ [',Keys(i),']',deblank(Labs(i,:)),' '];
@@ -1198,7 +1200,7 @@ if CmdLine
         end
         if DefItem, Prmpt = [Prmpt,...
             ' (Default: ',deblank(Labels(DefItem,:)),')']; end
-    
+
         %-Ask for user response
         %-------------------------------------------------------
         if nLabels==1
@@ -1236,13 +1238,13 @@ if CmdLine
             case 'r',  tstr=' real number';
             otherwise, tstr='';
         end
-        
+
         Prompt = sprintf('%s (a%s%s)',Prompt,tstr,strM);
         if ~isempty(DefStr)
             Prompt=sprintf('%s\b, default %s)',Prompt,DefStr); end
         str = input([Prompt,' : '],'s');
         if isempty(str), str=DefStr; end
-    
+
         %-Eval in Base workspace, catch errors
         [p,msg] = sf_eEval(str,Type(2),1,m);
         while ischar(p)
@@ -1425,7 +1427,7 @@ case 'm'                                             %-Process menu type
             end
         end
         fprintf('\n')
-    
+
     else
 
         Tag = ['GUIinput_',int2str(YPos)];  %-Tag for widgets
@@ -1438,9 +1440,11 @@ case 'm'                                             %-Process menu type
             Labs=[repmat(' ',nLabels,2),Labels];
             if ~isempty(DefItem)
                 Labs(DefItem,1)='*';
-                H = uicontrol(Finter,'Style','Frame',...
-                    'BackGroundColor','k',...
-                    'ForeGroundColor','k',...
+                H = uipanel(Finter,...
+                    'BackgroundColor','k',...
+                    'ForegroundColor','k',...
+                    'BorderType','none',...
+                    'Units','pixels',...
                     'Position',QRec+[-1,-1,+2,+2]);
             else
                 H = [];
@@ -1465,13 +1469,13 @@ case 'm'                                             %-Process menu type
                 'mouse or type option number (1-',...
                 num2str(nLabels),') & press return\n%s'],scLabs));
             end
-    
+
             %-Figure ContextMenu for shortcuts
             hM = spm_input('!InptConMen',Finter,[hPopUp,H]);
 
             %-Bring window to fore & jump pointer to menu widget
             [PLoc,cF] = spm_input('!PointerJump',RRec,Finter);
-    
+
             %-Callback for KeyPresses
             cb=['spm_input(''!PullDownKeyPressFcn'',',...
                 'findobj(gcf,''Tag'',''',Tag,'''),',...
@@ -1493,7 +1497,7 @@ case 'm'                                             %-Process menu type
                 'BackgroundColor',COLOUR)
             spm_input('!PointerJumpBack',PLoc,cF)
         end
-    
+
         %-Display answer
         uicontrol(Finter,'Style','Text',...
             'String',deblank(Labels(k,:)),...
@@ -1663,7 +1667,7 @@ if nargout>0, varargout={[],YPos}; end
 
 
 %=======================================================================
-% U T I L I T Y   F U N C T I O N S 
+% U T I L I T Y   F U N C T I O N S
 %=======================================================================
 
 case '!colour'
@@ -1924,7 +1928,7 @@ case '!currentpos'
     elseif isempty(H)
         varargout = {[],[]};
     else
-        %-Sort out 
+        %-Sort out
         tmp     = sort(YPos);
         CPos    = tmp(find([1,diff(tmp)]));
         nPos    = length(CPos);
@@ -2130,7 +2134,7 @@ cb  = tmp.cb;
 UD  = tmp.UD;
 
 %-Evaluate appropriate CallBack string (ignoring any return arguments)
-% NB: Using varargout={eval(cb{n})}; gives an error if the CallBack 
+% NB: Using varargout={eval(cb{n})}; gives an error if the CallBack
 % has no return arguments!
 if length(cb)==1, eval(char(cb)); else eval(cb{n}); end
 
@@ -2360,7 +2364,7 @@ elseif dn==2 && sum(isinf(n))==1
         p='!'; msg=sprintf('%d-vector(s) required',min(n));
     elseif sp(i)~=n
         p=p'; msg=[msg,' (input transposed)'];
-    end 
+    end
 
 else
     %-multi-dimensional matrix required - check dimensions
@@ -2381,7 +2385,7 @@ function uifocus(h)
 try
     if strcmpi(get(h, 'Style'), 'PushButton') == 1
         uicontrol(gcbo);
-    else 
-        uicontrol(h); 
+    else
+        uicontrol(h);
     end
 end
