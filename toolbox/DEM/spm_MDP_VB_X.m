@@ -133,7 +133,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7766 2020-01-05 21:37:39Z karl $
+% $Id: spm_MDP_VB_X.m 7876 2020-06-18 19:58:03Z thomas $
 
 
 % deal with a sequence of trials
@@ -1133,7 +1133,7 @@ for m = 1:size(MDP,1)
         %------------------------------------------------------------------
         if isfield(MDP,'c')
             for g = 1:Ng(m)
-                dc = O{m}(g,t);
+                dc = O{m}{g,t};
                 if size(MDP(m).c{g},2) > 1
                     dc = dc.*(MDP(m).c{g}(:,t) > 0);
                     MDP(m).c{g}(:,t) = MDP(m).c{g}(:,t) + dc*eta;
