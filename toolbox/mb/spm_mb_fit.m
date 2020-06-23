@@ -11,7 +11,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 7873 2020-06-12 17:09:56Z john $
+% $Id: spm_mb_fit.m 7877 2020-06-23 11:48:15Z john $
 
 
 % Repeatable random numbers
@@ -95,7 +95,9 @@ for it0=1:nit_aff
     spm_plot_convergence('Set',E/nvox(dat));
 
     % Finished rigid alignment?
-    if oE-E/nvox(dat) < sett.tol
+    % Note that for limited field of view templates, the objective
+    % function can increase as well as decrease.
+    if abs(oE-E/nvox(dat)) < sett.tol
         countdown = countdown - 1;
         if countdown==0
             break;
