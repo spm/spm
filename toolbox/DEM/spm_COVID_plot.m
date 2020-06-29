@@ -15,7 +15,7 @@ function spm_COVID_plot(Y,X,Z,u,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_plot.m 7868 2020-06-02 16:39:02Z karl $
+% $Id: spm_COVID_plot.m 7878 2020-06-29 16:09:33Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -29,6 +29,20 @@ function spm_COVID_plot(Y,X,Z,u,U)
 % and infants
 % https://www.telegraph.co.uk/global-health/science-and-disease/huge-regional-differences-intensive-care-bed-numbers-threaten/
 %--------------------------------------------------------------------------
+global CHOLD, if isempty(CHOLD); CHOLD = 1; end
+
+% deal with multiple groups or stratification
+%--------------------------------------------------------------------------
+if all(size(X) > 1)
+    for i = 1:size(X,2)
+        j = [i,size(Y,2)];
+        spm_COVID_plot(Y(:,j),X(:,i),Z(:,j))
+        for j = 1:6, subplot(3,2,j), hold on, end
+        if CHOLD, set(gca,'ColorOrderIndex',1); end          
+    end
+    return
+end
+
 
 % defaults
 %--------------------------------------------------------------------------
@@ -60,7 +74,7 @@ end
 
 % graphics
 %--------------------------------------------------------------------------
-subplot(3,2,1), try, set(gca,'ColorOrderIndex',1); end
+subplot(3,2,1), if CHOLD, set(gca,'ColorOrderIndex',1); end
 
 if ~isempty(u)
    p = plot(t,Y,t,u*t.^0,':m');
@@ -74,7 +88,7 @@ title('Rates (per day)','FontSize',16)
 axis square, box off, set(gca,'XLim',[0, t(end)])
 legend('boxoff')
 
-subplot(3,2,2), try, set(gca,'ColorOrderIndex',1); end
+subplot(3,2,2), if CHOLD, set(gca,'ColorOrderIndex',1); end
 plot(t,cumsum(Y))
 xlabel('time (weeks)'),ylabel('number of cases'), set(gca,'XLim',[0, t(end)])
 title('Cumulative cases','FontSize',16), axis square, box off
@@ -82,7 +96,7 @@ title('Cumulative cases','FontSize',16), axis square, box off
 % marginal densities
 %--------------------------------------------------------------------------
 for i = 1:numel(X)
-    subplot(3,2,2 + i), try, set(gca,'ColorOrderIndex',1); end
+    subplot(3,2,2 + i), if CHOLD, set(gca,'ColorOrderIndex',1); end
     plot(t,X{i}(:,2:end)*100)
     xlabel('time (weeks)'),ylabel('proportion (%)')
     title(str.factors{i},'FontSize',16), set(gca,'XLim',[0, t(end)])
@@ -94,7 +108,7 @@ end
 t = (1:size(Z,1))/7;
 try
     U   = U(ismember(U,1:size(Z,2)));
-    subplot(3,2,2), try, set(gca,'ColorOrderIndex',1); end; hold on, plot(t,cumsum(Z(:,U)),'.k'), hold off
-    subplot(3,2,1), try, set(gca,'ColorOrderIndex',1); end; hold on, plot(t,Z(:,U),'.'), hold off
+    subplot(3,2,2), if CHOLD, set(gca,'ColorOrderIndex',1); end; hold on, plot(t,cumsum(Z(:,U)),'.k'), hold off
+    subplot(3,2,1), if CHOLD, set(gca,'ColorOrderIndex',1); end; hold on, plot(t,Z(:,U),'.'), hold off
 end
 drawnow

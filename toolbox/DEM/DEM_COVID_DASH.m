@@ -47,7 +47,7 @@ function [DCM] = DEM_COVID_DASH
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_DASH.m 7872 2020-06-11 23:29:11Z spm $
+% $Id: DEM_COVID_DASH.m 7878 2020-06-29 16:09:33Z karl $
 
 % get data
 %==========================================================================
@@ -92,9 +92,11 @@ C    = importdata('coronavirus-cases_latest.csv');
 D    = importdata('COVID-19-total-announced-deaths.xlsx');
 
 DN   = D.textdata.Tab1DeathsByRegion(15,4:end - 4);
+DR   = D.textdata.Tab1DeathsByRegion(18:end,1);
+
 DY   = D.data.Tab1DeathsByRegion(3:end,2:end - 4);
 DY   = D.data.Tab2Deaths0x2DNoPostTest(3:end,2:end - 4) + DY;
-DR   = D.textdata.Tab1DeathsByRegion(18:end,1);
+DA   = D.data.Tab3DeathsByAge(3:end,2:end - 4);
 
 % find death by date
 %--------------------------------------------------------------------------

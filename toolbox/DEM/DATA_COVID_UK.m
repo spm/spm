@@ -41,7 +41,7 @@ function [Y,R] = DATA_COVID_UK(country)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_UK.m 7870 2020-06-09 15:02:12Z karl $
+% $Id: DATA_COVID_UK.m 7878 2020-06-29 16:09:33Z karl $
 
 % https://coronavirus.data.gov.uk/coronavirus-cases_latest.csv
 % https://coronavirus.data.gov.uk/coronavirus-deaths_latest.csv
@@ -49,20 +49,17 @@ function [Y,R] = DATA_COVID_UK(country)
 
 % download data if required
 %==========================================================================
-if false
-    url = 'https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/';
-    urlwrite([url,'time_series_covid19_confirmed_global.csv'],'time_series_covid19_confirmed_global.csv');
-    urlwrite([url,'time_series_covid19_deaths_global.csv'],   'time_series_covid19_deaths_global.csv');
-    urlwrite([url,'time_series_covid19_recovered_global.csv'],'time_series_covid19_recovered_global.csv');
-    
-    url = 'https://raw.githubusercontent.com/tomwhite/covid-19-uk-data/master/data/'
-    urlwrite([url,'covid-19-totals-uk.csv'],'covid-19-totals-uk.csv');
-end
+url = 'https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/';
+urlwrite([url,'time_series_covid19_confirmed_global.csv'],'time_series_covid19_confirmed_global.csv');
+urlwrite([url,'time_series_covid19_deaths_global.csv'],   'time_series_covid19_deaths_global.csv');
+urlwrite([url,'time_series_covid19_recovered_global.csv'],'time_series_covid19_recovered_global.csv');
+
+url = 'https://raw.githubusercontent.com/tomwhite/covid-19-uk-data/master/data/';
+urlwrite([url,'covid-19-totals-uk.csv'],'covid-19-totals-uk.csv');
 
 % defaults
 %--------------------------------------------------------------------------
 if nargin < 1, country = 'United Kingdom'; end
-
 
 
 % load data from https://github.com/CSSEGISandData/COVID-19/
@@ -84,7 +81,7 @@ date = D.textdata(1,5:end);                     % date
 
 % assemble data structure
 %==========================================================================
-s   = 2;                                          % data smoothing (days)
+s   = 7;                                          % data smoothing (days)
 
 % confirmed cases
 %--------------------------------------------------------------------------

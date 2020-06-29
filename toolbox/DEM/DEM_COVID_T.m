@@ -30,7 +30,7 @@ function [DCM] = DEM_COVID_T
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_T.m 7872 2020-06-11 23:29:11Z spm $
+% $Id: DEM_COVID_T.m 7878 2020-06-29 16:09:33Z karl $
 
 % Get data for the United Kingdom (including total tests R)
 %==========================================================================
@@ -579,6 +579,30 @@ legend({'infected','infectious','immune','0.24%','17%'})
 legend('boxoff')
 
 
+% Independent SAGE: predictions for FTTIS
+%==========================================================================
+% these notes illustrate simulations of enhanced FTTI S from the date
+% specified below. These plots are fatality rates and confidence intervals
+% under 50% tracking and tracing efficacy.
+%--------------------------------------------------------------------------
+load COVID_UK, spm_figure('GetWin','Indie_SAGE: predictions'); clf
+%--------------------------------------------------------------------------
+M       = DCM.M;
+Ep      = DCM.Ep;
+Cp      = DCM.Cp;
+
+subplot(2,1,1), hold on
+M.T     = 380;
+M.TTT   = datenum('01-Jul-2020') - datenum('25-Jan-2020');
+Ep.ttt  = log(1/10000);
+spm_COVID_ci(Ep,Cp,DCM.Y(:,1),1,M);
+Y0      = spm_COVID_gen(Ep,M,1);
+
+Ep.ttt  = log(1/2);
+spm_COVID_ci(Ep,Cp,DCM.Y(:,1),1,M);
+Y1      = spm_COVID_gen(Ep,M,1);
+
+sprintf('lives saved %.0f',sum(Y0) - sum(Y1))
 
 
 % Channel 4: predictions

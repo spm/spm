@@ -16,19 +16,15 @@ function DEM_COVID_I
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_I.m 7871 2020-06-11 08:37:38Z karl $
+% $Id: DEM_COVID_I.m 7878 2020-06-29 16:09:33Z karl $
 
-% download data if required
+% download data
 %__________________________________________________________________________
-if false
-    url = 'https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/';
-    urlwrite([url,'time_series_covid19_confirmed_global.csv'],'time_series_covid19_confirmed_global.csv');
-    urlwrite([url,'time_series_covid19_deaths_global.csv'],   'time_series_covid19_deaths_global.csv');
-    urlwrite([url,'time_series_covid19_recovered_global.csv'],'time_series_covid19_recovered_global.csv');
-    
-    url = 'https://raw.githubusercontent.com/tomwhite/covid-19-uk-data/master/data/'
-    urlwrite([url,'covid-19-tests-uk.csv'],'covid-19-tests-uk.csv');
-end
+
+url = 'https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/';
+urlwrite([url,'time_series_covid19_confirmed_global.csv'],'time_series_covid19_confirmed_global.csv');
+urlwrite([url,'time_series_covid19_deaths_global.csv'],   'time_series_covid19_deaths_global.csv');
+urlwrite([url,'time_series_covid19_recovered_global.csv'],'time_series_covid19_recovered_global.csv');
 %__________________________________________________________________________
 
 
@@ -166,11 +162,11 @@ DCM   = GCM(j,:);
 %--------------------------------------------------------------------------
 spm_figure('GetWin','predictions'); clf;
 
-I     = find(c > 0.5,1,'first');
-for i = [2,I,numel(p)]
-    M      = DCM{i}.M;
-    M.T    = 365*1.5;
-    M.date = '25-Jan-2020';
+I      = find(c > 0.5,1,'first');
+M      = DCM{1}.M;
+M.T    = 365*1.5;
+M.date = '25-Jan-2020';
+for  i = [1,I,numel(p)]
     spm_COVID_ci(DCM{i}.Ep,DCM{i}.Cp,DCM{i}.Y,1,M);
 end
 title(sprintf('Death rates (%.0f,%.0f, and %.0f months)',Tim(1),Tim(I),Tim(end)))
@@ -178,7 +174,7 @@ datetick('x','mmmyy')
 
 % and plot confidence intervals around reproduction rate
 %--------------------------------------------------------------------------
-spm_figure('GetWin','reproduction rate'); clf;
+spm_figure('GetWin','reproduction ratio'); clf;
 spm_COVID_ci(DCM{I}.Ep,DCM{I}.Cp,[],4,M);
 subplot(2,1,1), hold on
 plot([datenum('01-Feb-2020'), datenum('01-Aug-2021')],[1,1],'r-.')
@@ -249,7 +245,7 @@ for i = 1:N
     % posterior predictions of first and second peaks
     %----------------------------------------------------------------------
     [Y,X]    = spm_COVID_gen(GCM{i,I}.Ep,M,1);
-    spm_COVID_plot(Y,X,GCM{i,I}.Y),drawnow
+    spm_COVID_plot(Y,X),drawnow
     subplot(3,2,1), hold on
     set(gca,'YLim',[0 1000])
 
@@ -267,11 +263,14 @@ for i = 1:N
     tab{i,4} = round(max(X{2}(:,4))*100);       % population immunity
     tab{i,5} = round(y(m(1)));                  % death rate (first)
     tab{i,6} = round(Y(m(2)));                  % death rate (second)
-    tab{i,7} = round(exp(GCM{i,I}.Ep.r)*100);   % resistant proportion
-    tab{i,8} = round(exp(GCM{i,I}.Ep.N));       % effective population
-    tab{i,9} = round(data(i).pop/1e6);          % total population
-    
+    tab{i,7} = round(exp(GCM{i,I}.Ep.res)*100); % resistant proportion
+    tab{i,8} = round(exp(GCM{i,I}.Ep.r)*100);   % resistant proportion
+    tab{i,9} = round(exp(GCM{i,I}.Ep.N));       % effective population
+    tab{i,10} = round(data(i).pop/1e6);         % total population
+    tab{i,11} = round(100*tab{i,9}/tab{i,10});  % percent
 end
+subplot(3,2,1), legend({data.country}), legend 'boxoff'
+
 
 % reorder table (mortality at first peak)
 %--------------------------------------------------------------------------
@@ -283,12 +282,144 @@ vstr  = {'country','first','second'};
 Tab   = cell2table(tab);
 table(Tab(:,1),Tab(:,2),Tab(:,3),'VariableNames',vstr)
 
-vstr  = {'country','herd','initial','secondary','resistant','Effective','Total'};
-table(Tab(:,1),Tab(:,4),Tab(:,5),Tab(:,6),Tab(:,7),Tab(:,8),Tab(:,9),'VariableNames',vstr)
+vstr  = {'country','herd','initial','secondary','noncon','nonsus','Effective','Total'};
+table(Tab(:,1),Tab(:,4),Tab(:,5),Tab(:,6),Tab(:,7),Tab(:,8),Tab(:,9),Tab(:,10),'VariableNames',vstr)
 
 % effective population as a percentage of total population
 %--------------------------------------------------------------------------
 % round(spm_vec(100*[tab{:,8}]./[tab{:,9}]))
 
 
+% reproduction of the Lancet paper results
+%==========================================================================
+spm_figure('GetWin','LANCET'); clf
+I     = 3;
+M.T   = 180;
+for i = 1:N
+    
+    subplot(3,1,1), hold on
+    t     = (1:M.T) + datenum(data(i).date,'m/dd/yy');
+    T     = t(1:GCM{i,I}.M.T);
+    pop   = data(i).pop/1e6;
+    [Y,X] = spm_COVID_gen(GCM{i,I}.Ep,M,1);
+    plot(t,cumsum(Y(:,1))/pop,T,cumsum(GCM{i,I}.Y(:,1))/pop,'.b')
+    title('Cumulative deaths per million','FontSize',12)
+    xlabel('date'),ylabel('per million')
+    datetick('x','mmm')
+    axis square, box off
+    
+    subplot(3,1,2), hold on
+    T     = find(X{1}(:,2) < 1/8,1,'first');
+    N1    = sum(Y(1:T,1))/pop;
+    N2    = sum(Y(T + (1:6*7),1))/pop;
+    plot(log(N1),log(N2),'o')
+    title('Cumulative deaths and lockdown','FontSize',12)
+    xlabel('log deaths per million before')
+    ylabel('log deaths per million after')
+    axis square, box off
+    
+    subplot(3,1,3), hold on
+    plot(X{2}(:,4)*100,cumsum(Y(:,1))/pop)
+    title('Deaths and seroprevalence','FontSize',12)
+    xlabel('seroprevalence (%)')
+    ylabel('Cumulative deaths per million')
+    axis square, box off
+
+    
+end
+legend({data.country})
+
+
+
+% model comparison
+%==========================================================================
+spm_figure('GetWin','LANCET BMR'); clf
+I     = 3;
+G     = zeros(6,N);
+for i = 1:N
+    
+    % populations proportions
+    %----------------------------------------------------------------------
+    Pop(1,i) = data(i).pop/1e6;
+    Pop(2,i) = exp(GCM{i,I}.Ep.N);
+    
+    r(i)     = exp(GCM{i,I}.Ep.r);
+    res(i)   = exp(GCM{i,I}.Ep.res);
+    
+    % full and reduced priors
+    %----------------------------------------------------------------------
+    pE     = GCM{i,I}.M.pE;
+    pC     = GCM{i,I}.M.pC;
+    qE     = GCM{i,I}.Ep;
+    qC     = GCM{i,I}.Cp;
+   
+    % remove non-susceptible population
+    %----------------------------------------------------------------------
+    rE     = pE;
+    rE.N   = log(data(i).pop/1e6);
+    rC     = pC;
+    rC.N   = pC.N/1024;
+    F      = spm_log_evidence(qE,qC,pE,pC,rE,rC);
+    G(2,i) = F;
+    
+    % remove susceptibility heterogeneity
+    %----------------------------------------------------------------------
+    rE     = pE;
+    rE.r   = rE.r - 1;
+    rC     = pC;
+    F      = spm_log_evidence(qE,qC,pE,pC,rE,rC);
+    G(3,i) = F;
+    
+    % remove transmission heterogeneity
+    %----------------------------------------------------------------------
+    rE     = pE;
+    rE.res = rE.res - 1;
+    rC     = pC;
+    F      = spm_log_evidence(qE,qC,pE,pC,rE,rC);
+    G(4,i) = F;
+    
+    % suppress lockdown
+    %----------------------------------------------------------------------
+    rE     = pE;
+    rE.sde = rE.sde + 2;
+    rC     = pC;
+    F      = spm_log_evidence(qE,qC,pE,pC,rE,rC);
+    G(5,i) = F;
+    
+    % suppress herd immunity
+    %----------------------------------------------------------------------
+    rE     = pE;
+    rE.Tim = rE.Tim - 2;
+    rC     = pC;
+    F      = spm_log_evidence(qE,qC,pE,pC,rE,rC);
+    G(6,i) = F;
+    
+end
+
+subplot(2,1,1), bar(G)
+legend({data.country})
+title('Bayesian model comparison','FontSize',12)
+str = {'full model','exposure','susceptibility','transmission','no lockdown','no immunity'};
+set(gca,'XtickLabel',str)
+xlabel('epidemiological model')
+ylabel('log evidence')
+box off, legend 'boxoff'
+
+subplot(2,3,4), bar(Pop')
+title('Population size','FontSize',12)
+ylabel('millions')
+xlabel('country')
+axis square, box off, legend('total','effective'), legend 'boxoff'
+
+subplot(2,3,5), bar(r*100)
+title('non-susceptible','FontSize',12)
+ylabel('proportion (%)')
+xlabel('country')
+axis square, box off
+
+subplot(2,3,6), bar(res*100)
+title('Non-contagious','FontSize',12)
+ylabel('proportion (%)')
+xlabel('country')
+axis square, box off
 
