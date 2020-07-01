@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7880 2020-07-01 08:40:33Z mikael $
+% $Id: spm_mb_init.m 7881 2020-07-01 08:50:38Z mikael $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -296,15 +296,16 @@ for p=1:numel(sett.gmm) % Loop over populations
     mu_all = zeros(C,N); % Means
     vr_all = zeros(C,N); % Diagonal of covariance
     for n=1:N % Loop over subjects
-        n1  = index(n);                  % Index of this subject
-        gmm = dat(n1).model.gmm;         % GMM data for this subject
-        dm  = dat(n1).dm;                % Image dimensions
+        n1  = index(n);                   % Index of this subject
+        gmm = dat(n1).model.gmm;          % GMM data for this subject
+        dm  = dat(n1).dm;                 % Image dimensions
+        m   = dat(n1).model.gmm.modality; % Get modality
         f   = spm_mb_io('get_image',gmm); % Image data
-        f   = reshape(f,prod(dm),C);     % Vectorise
-        T   = gmm.T;                     % INU parameters
-        mu  = zeros(C,1);                % Mean
-        vr  = zeros(C,1);                % Diagonal of covariance
-        for c=1:C                        % Loop over channels
+        f   = reshape(f,prod(dm),C);      % Vectorise
+        T   = gmm.T;                      % INU parameters
+        mu  = zeros(C,1);                 % Mean
+        vr  = zeros(C,1);                 % Diagonal of covariance
+        for c=1:C                         % Loop over channels
             fc    = f(:,c);                   % Image for this channel
             fc    = fc(isfinite(fc));         % Ignore non-finite values
             mn    = min(fc);                  % Minimum needed for e.g. CT
@@ -312,7 +313,7 @@ for p=1:numel(sett.gmm) % Loop over populations
             fc    = fc(fc>((mu(c)-mn)/8+mn)); % Voxels above some threshold (c.f. spm_global.m)
             mu(c) = mean(fc);                 % Mean of voxels above the threshold
             vr(c) = var(fc);                  % Variance of voxels above the threshold
-            if ~isempty(T{c})                 % Should INU or global scaling be done?
+            if ~isempty(T{c}) && m ~= 2       % Should INU or global scaling be done?
                 s           = 1000;              % Scale means to this value
                 dc          = log(s)-log(mu(c)); % Log of scalefactor
                 bbb         = spm_dctmtx(dm(1),1,1)*spm_dctmtx(dm(2),1,1)*spm_dctmtx(dm(3),1,1);
