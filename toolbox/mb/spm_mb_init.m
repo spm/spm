@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7873 2020-06-12 17:09:56Z john $
+% $Id: spm_mb_init.m 7880 2020-07-01 08:40:33Z mikael $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -19,6 +19,9 @@ function [dat,sett] = mb_init1(cfg)
 sett     = cfg;
 mu       = sett.mu;
 sett.odir = sett.odir{1};
+if ~isempty(sett.odir) && ~(exist(sett.odir, 'dir') == 7)
+    mkdir(sett.odir);
+end
 if isfield(mu,'exist')
     fnam = sett.mu.exist{1};
     sett.mu.exist = struct('mu',fnam);
