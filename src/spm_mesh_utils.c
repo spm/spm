@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mesh_utils.c 7239 2017-12-15 17:14:33Z guillaume $
+ * $Id: spm_mesh_utils.c 7883 2020-07-01 21:16:23Z guillaume $
  * Guillaume Flandin
  */
 
@@ -202,7 +202,7 @@ void mexFunctionDijkstra(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
     ns = mxGetNumberOfElements(prhs[2]);
     source = mxMalloc(ns*sizeof(int));
     for (i=0;i<ns;i++) {
-        source[i] = (int)mxGetPr(prhs[2])[i];
+        source[i] = (int)mxGetPr(prhs[2])[i] - 1;
         if ((source[i]<0) || (source[i]>=nv)) mexErrMsgTxt("Invalid vertex index.");
     }
     
