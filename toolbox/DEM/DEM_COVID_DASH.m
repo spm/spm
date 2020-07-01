@@ -47,7 +47,7 @@ function [DCM] = DEM_COVID_DASH
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_DASH.m 7878 2020-06-29 16:09:33Z karl $
+% $Id: DEM_COVID_DASH.m 7882 2020-07-01 17:45:47Z karl $
 
 % get data
 %==========================================================================
@@ -121,7 +121,7 @@ regions = unique(C.textdata(i,1));
 %--------------------------------------------------------------------------
 for r = 1:numel(regions)
     i     = find(ismember(C.textdata(:,1),regions{r}));
-    cy{r} = C.data(i + 1,4);
+    cy{r} = C.data(i - 1,4);
     cn{r} = datenum(C.textdata(i,4),'yyyy-mm-dd');
 end
 
