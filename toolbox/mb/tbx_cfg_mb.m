@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 7873 2020-06-12 17:09:56Z john $
+% $Id: tbx_cfg_mb.m 7884 2020-07-02 10:13:47Z mikael $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
@@ -33,7 +33,8 @@ cm.tag    = 'cm';
 cm.name   = 'Confusion matrix';
 cm.values = {cm_map};
 %cm.val   = {};
-cm.help   = {'Specify rows of a confusion matrix, where each row corresponds to label values of 1, 2, ..., etc in the label maps.',''};
+cm.help   = {'Specify rows of a confusion matrix, where each row corresponds to label values of 1, 2, ..., L + 1, etc in a label map.'...
+             'L are the number of labels in the label map. The last row (L + 1) specifies unlabeled voxels..',''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -486,6 +487,24 @@ inu.val    = {false};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
+y        = cfg_menu;
+y.tag    = 'y';
+y.name   = 'Forward deformations';
+y.labels = {'No','Yes'};
+y.values = {false,true};
+y.val    = {false};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+v        = cfg_menu;
+v.tag    = 'v';
+v.name   = 'Initial velocities';
+v.labels = {'No','Yes'};
+v.values = {false,true};
+v.val    = {false};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
 c         = cfg_entry;
 c.tag     = 'c';
 c.name    = 'Tissues';
@@ -512,11 +531,21 @@ mwc.num     = [0 Inf];
 mwc.val     = {[]};
 % ---------------------------------------------------------------------
 
+%--------------------------------------------------------------------------
+mrf         = cfg_entry;
+mrf.tag     = 'mrf';
+mrf.name    = 'MRF Parameter';
+mrf.help    = {'When tissue class images are written out, a few iterations of a simple Markov Random Field (MRF) cleanup procedure are run.  This parameter controls the strength of the MRF. Setting the value to zero will disable the cleanup.'};
+mrf.strtype = 'r';
+mrf.num     = [1 1];
+mrf.val     = {1};
+% ---------------------------------------------------------------------
+
 % ---------------------------------------------------------------------
 out      = cfg_exbranch;
 out.tag  = 'out';
 out.name = 'Output';
-out.val  = {res_file, i, mi, wi, wmi, inu, c, wc, mwc};
+out.val  = {res_file, i, mi, wi, wmi, inu, y, v, c, wc, mwc, mrf};
 out.prog = @spm_mb_output;
 % ---------------------------------------------------------------------
 

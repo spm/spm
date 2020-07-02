@@ -9,7 +9,7 @@ function varargout = spm_mb_appearance(action,varargin) % Appearance model
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7873 2020-06-12 17:09:56Z john $
+% $Id: spm_mb_appearance.m 7884 2020-07-02 10:13:47Z mikael $
 
 
 switch action
@@ -172,14 +172,13 @@ function cm = get_label_conf_matrix(cm_map,w,K)
 w  = min(max(w,1e-7),1-1e-7);
 K1 = K + 1;
 L  = numel(cm_map); % Number of labels
-cm = zeros([L+1 K1],'single'); % Allocate confusion matrix
+cm = zeros([L K1],'single'); % Allocate confusion matrix
 for l=1:L % Loop over labels
     ix            = false(1,K1);
     ix(cm_map{l}) = true;
     cm(l, ix)     = log(w/sum( ix));
     cm(l,~ix)     = log((1-w)/sum(~ix));
 end
-cm(L+1,:) = zeros(1,K1);
 %==========================================================================
 
 %==========================================================================
@@ -553,7 +552,7 @@ Z = Z(:,1:K);
 
 %==========================================================================
 function X2d = vol2vec(X4d)
-d   = [size(X4d) 1 1];
+d   = [size(X4d) 1 1 1];
 X2d = reshape(X4d,[prod(d(1:3)) d(4)]);
 %==========================================================================
 

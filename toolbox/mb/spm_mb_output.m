@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 7873 2020-06-12 17:09:56Z john $
+% $Id: spm_mb_output.m 7884 2020-07-02 10:13:47Z mikael $
 
 res  = load(char(cfg.result));
 sett = res.sett;
@@ -32,7 +32,10 @@ ind = cfg.mwc; ind = ind(ind>=1 & ind<=sett.K+1); write_tc(ind,3) = true;
 
 opt = struct('write_inu',cfg.inu,...
              'write_im',[cfg.i cfg.mi cfg.wi cfg.wmi],...
-             'write_tc',write_tc);
+             'write_tc',write_tc,...
+             'write_y',cfg.y,...
+             'write_v',cfg.v,...
+             'mrf',cfg.mrf);
 
 spm_progress_bar('Init',N,'Writing MB output','Subjects complete');
 for n=1:N % Loop over subjects
@@ -51,6 +54,7 @@ spm_progress_bar('Clear');
 %==========================================================================
 % PostProcMRF()
 function zn = PostProcMRF(zn,Mn,strength,nit)
+if nargin < 4, nit = 10; end
 P   = zeros(size(zn),'uint8');
 G   = ones([size(zn,4),1],'single')*strength;
 vx  = sqrt(sum(Mn(1:3,1:3).^2));
@@ -70,11 +74,12 @@ dmu        = sett.mu.d;
 Mmu        = sett.mu.Mmu;
 dir_res    = sett.odir;
 do_infer   = true;
-mrf        = 0;
-nit_mrf    = 0;
+mrf        = opt.mrf;
 write_inu  = opt.write_inu; % field
 write_im   = opt.write_im;  % image, corrected, warped, warped corrected
 write_tc   = opt.write_tc;  % native, warped, warped-mod
+write_y    = opt.write_y;   % forward deformation
+write_v    = opt.write_v;   % initial velocity
 
 if ((~any(write_inu(:)) && ~any(write_im(:))) || ~isfield(datn.model,'gmm')) && ~any(write_tc(:))
     return;
@@ -265,7 +270,7 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
 
     if mrf > 0
         % Ad-hoc MRF clean-up of segmentation
-        zn = PostProcMRF(zn,Mn,mrf,nit_mrf);
+        zn = PostProcMRF(zn,Mn,mrf);
     end
 
     if any(write_tc(:,1) == true)
@@ -322,6 +327,10 @@ if any(write_tc(:,2)) || any(write_tc(:,3))
         end
     end
 end
+
+% Keep forward deformations and initial velocities?
+if ~write_y && isa(datn.psi,'nifti') && (exist(datn.psi.dat.fname, 'file') == 2), delete(datn.psi.dat.fname); end
+if ~write_v && isa(datn.v,'nifti') && (exist(datn.v.dat.fname, 'file') == 2), delete(datn.v.dat.fname); end
 %==========================================================================
 
 %==========================================================================
