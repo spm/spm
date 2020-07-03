@@ -1,12 +1,13 @@
-function [I, P] = spm_mesh_ray_intersect(M, R)
+function [I, P, t] = spm_mesh_ray_intersect(M, R)
 % Compute the intersection of ray(s) and triangle(s)
-% FORMAT [I, P] = spm_mesh_ray_intersect(M, R)
+% FORMAT [I, P, t] = spm_mesh_ray_intersect(M, R)
 % M   - a GIfTI object or patch structure or numeric array [v1;v2;v3]
 % R   - ray defined as a structure with fields 'orig' for origin and 'vec'
 %       for direction, stored as column vectors
 %
 % I   - logical vector indicating intersection hit
 % P   - coordinates of intersections [Mx3]
+% t   - distance to hit triangles
 %__________________________________________________________________________
 %
 % This function implements the Moller-Trumbore ray-triangle intersection
@@ -29,10 +30,29 @@ function [I, P] = spm_mesh_ray_intersect(M, R)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_ray_intersect.m 7879 2020-06-29 21:13:52Z guillaume $
+% $Id: spm_mesh_ray_intersect.m 7886 2020-07-03 16:06:55Z guillaume $
 
 
+%-Default outputs
+%--------------------------------------------------------------------------
+P = zeros(0,3);
+[t,u,v] = deal([]);
+
+%-Options
+%--------------------------------------------------------------------------
 prec = 1e-7;
+
+%-Face culling?
+switch 'all'
+    case 'all'
+        culling = @(x) abs(x) >= prec;
+    case 'front'
+        culling = @(x) x >= prec;
+    case 'back'
+        culling = @(x) -x >= prec;
+    otherwise
+        error('Unknown culling option.');
+end
 
 %-Get vertices coordinates for all triangles
 %--------------------------------------------------------------------------
@@ -44,21 +64,6 @@ else
     v1 = M(1,:)';
     v2 = M(2,:)';
     v3 = M(3,:)';
-end
-
-%-Default outputs
-%--------------------------------------------------------------------------
-P = zeros(0,3);
-%-Face culling?
-switch 'all'
-    case 'all'
-        culling = @(x) abs(x) >= prec;
-    case 'front'
-        culling = @(x) x >= prec;
-    case 'back'
-        culling = @(x) -x >= prec;
-    otherwise
-        error('Unknown culling option.');
 end
 
 %-Edges sharing vertex v1
@@ -92,7 +97,8 @@ if all(~I), return; end
 t = dotproduct(e2,q) ./ d;
 I = I & (t >= prec);
 if nargout > 1 && any(I)
-    P = (R.orig + R.vec .* t(I))';
+    t = t(I);
+    P = (R.orig + R.vec .* t)';
 end
 
 

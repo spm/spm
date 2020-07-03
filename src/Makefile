@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2020 Wellcome Centre for Human Neuroimaging
 #
-# $Id: Makefile 7786 2020-02-14 10:56:11Z guillaume $
+# $Id: Makefile 7886 2020-07-03 16:06:55Z guillaume $
 #
 ###############################################################################
 #
@@ -52,6 +52,7 @@ SPMMEX  =\
 	spm_voronoi.$(MEXEXT) spm_mesh_utils.$(MEXEXT) \
 	spm_mrf.$(MEXEXT) spm_diffeo.$(MEXEXT) spm_field.$(MEXEXT) \
 	spm_cat.$(MEXEXT) spm_jsonread.$(MEXEXT) spm_mesh_reduce.$(MEXEXT)
+	spm_mesh_geodesic.$(MEXEXT)
 
 SUBDIRS =\
 	@file_array/private \
@@ -307,6 +308,9 @@ spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c
         
 spm_mesh_reduce.$(MEXEXT): spm_mesh_reduce.cpp Simplify.h
 	$(MEX) spm_mesh_reduce.cpp $(MEXEND)
+
+spm_mesh_geodesic.$(MEXEXT): spm_mesh_geodesic.cpp
+	$(MEX) spm_mesh_geodesic.cpp $(MEXEND)
 
 ###############################################################################
 # Compile shared library libSPM
