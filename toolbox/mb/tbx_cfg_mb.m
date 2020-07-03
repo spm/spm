@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 7884 2020-07-02 10:13:47Z mikael $
+% $Id: tbx_cfg_mb.m 7885 2020-07-03 14:10:31Z mikael $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
@@ -34,7 +34,7 @@ cm.name   = 'Confusion matrix';
 cm.values = {cm_map};
 %cm.val   = {};
 cm.help   = {'Specify rows of a confusion matrix, where each row corresponds to label values of 1, 2, ..., L + 1, etc in a label map.'...
-             'L are the number of labels in the label map. The last row (L + 1) specifies unlabeled voxels..',''};
+             'L are the number of labels in the label map. The last row (L + 1) needs to specify what classes unlabeled voxels can take.',''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------

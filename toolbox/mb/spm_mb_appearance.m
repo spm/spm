@@ -9,7 +9,7 @@ function varargout = spm_mb_appearance(action,varargin) % Appearance model
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7884 2020-07-02 10:13:47Z mikael $
+% $Id: spm_mb_appearance.m 7885 2020-07-03 14:10:31Z mikael $
 
 
 switch action
@@ -135,10 +135,10 @@ end
 
 % Use labels2use to keep only labels of interest
 labels = round(labels(:));
-labels(labels<1 || labels>numel(cm_map)) = numel(cm_map)+1;
+labels(labels<1 | labels>numel(cm_map)) = numel(cm_map);
 
 % Get confusion matrix that maps from label value to probability value
-cm     = get_label_conf_matrix(cm_map,sett);
+cm = get_label_conf_matrix(cm_map,lab.w,sett.K);
 
 % Build NxK1 label image using confusion matrix
 labels = cm(labels,:);
@@ -251,13 +251,18 @@ Mat          = dat.Mat;
 df           = dat.dm;
 ds           = [size(mu0) 1 1];
 ds           = ds(1:3);
+K1           = sett.K + 1;
 
 % Get image data
 f0    = spm_mb_io('get_image',gmm);
 samp  = dat.samp;
 samp2 = dat.samp2;
 f0    = subsample(f0,dat.samp);
-mu0   = bsxfun(@plus,mu0,get_labels(dat,sett,samp)); % Add labels and template
+% Labels are of size [df0 K+1], so cannot be added to template at this stage
+lab0  = get_labels(dat,sett,samp);
+if lab0 ~= 0
+    lab0  = vec2vol(lab0,[size(f0,1) size(f0,2) size(f0,3) K1]);
+end
 
 % Intensity priors
 pr   = sett.gmm(gmm.pop).pr;
@@ -297,10 +302,12 @@ clear msk_vx
 % log-likelihood can increase.
 [f,d] = subsample( f0,samp2);
 mu    = subsample(mu0,samp2);
-
+lab   = vol2vec(subsample(lab0,samp2));
 
 % Template
 mu    = vol2vec(spm_mb_shape('template_k1',mu)); % Make K + 1 template
+mu    = bsxfun(@plus,mu,lab); % Add labels to template
+clear lab
 mu    = mu(:,mg_ix); % Expand, if using multiple Gaussians per tissue
 
 % Bias field related
@@ -506,6 +513,7 @@ if nargout > 1
 
         % Template
         mu0 = spm_mb_shape('template_k1',mu0);
+        mu0 = bsxfun(@plus,mu0,lab0); % Add labels to template
         mu0 = bsxfun(@plus, mu0(:,:,:,mg_ix), reshape(log(mg_w),[1 1 1 numel(mg_w)]));
 
        %[mf1,code_image,msk_chn] = spm_gmm_lib('obs2cell', mask(msk,mf));
