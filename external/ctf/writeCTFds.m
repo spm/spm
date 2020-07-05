@@ -210,7 +210,11 @@ end
 %  If it is missing, print a warning message.
 %  Sensor type indices : SQUIDs (0:7), ADCs (10), DACs(14), Clock (17), HLC (13,28,29)
 %  See Document CTF MEG File Formats (PN 900-0088), RES4 File Format/
-for index=[0:7 10 13 14 17 28 29]
+
+% GCO edit May 2020 - Fixes error with empty string arrays in matlab 2018+
+sensTypes = [0:7 10 13 14 17 28 29];
+available = intersect(sensTypes,unique([ds.res4.senres.sensorTypeIndex]));
+for index = available
   for k=find([ds.res4.senres.sensorTypeIndex]==index);
     if isempty(strfind(ds.res4.chanNames(k,:),'-'))
       fprintf(['writeCTFds: Channel %3d  %s     No sensor-file identification.',...
@@ -398,10 +402,10 @@ ds.meg4.fileSize=4*ndata+8*(1+floor(ndata/maxPtsPerFile));
 clear data pt pt1 ndata fidMeg4 ptsPerTrial maxPtsPerFile meg4Ext;
 
 %  Add dataset names to .hist
-if ~isfield(ds,'hist');ds.hist=char([]);end
-ds.hist=[ds.hist char(10) char(10) datestr(now) ' :' char(10) ...
-    '      Read into MATLAB as data set ' olddatasetname char(10) ...
-    '      Rewritten by writeCTFds as data set ' datasetname char(10)];
+% if ~isfield(ds,'hist');ds.hist=char([]);end
+% ds.hist=[ds.hist char(10) char(10) datestr(now) ' :' char(10) ...
+%     '      Read into MATLAB as data set ' olddatasetname char(10) ...
+%     '      Rewritten by writeCTFds as data set ' datasetname char(10)];
 
 %  If infods doesn't exist or is empty create it.
 if ~isfield(ds,'infods');ds.infods=[];end
