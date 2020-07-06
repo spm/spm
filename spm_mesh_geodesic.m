@@ -1,8 +1,10 @@
-function [D,L,P] = spm_mesh_geodesic(M,i)
+function [D,L,P] = spm_mesh_geodesic(M,i,d,s)
 % Compute geodesic distances on a triangle mesh - a compiled routine
 % FORMAT [D,L,P] = spm_mesh_geodesic(M,i)
 % M      - a patch structure with n vertices
 % i      - index of source vertices
+% d      - maximal distance from the sources [default: Inf]
+% s      - index of stop vertices [default: []]
 %
 % D      - a [nx1] vector of geodesic distances from i
 % L      - a [nx1] vector of index of the nearest source (Voronoi)
@@ -19,7 +21,7 @@ function [D,L,P] = spm_mesh_geodesic(M,i)
 % Copyright (C) 2010-2020 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_geodesic.m 7886 2020-07-03 16:06:55Z guillaume $
+% $Id: spm_mesh_geodesic.m 7889 2020-07-06 11:21:54Z guillaume $
 
 % % A previous version of this function was computing approximate
 % % geodesic distances using Dijkstra algorithm

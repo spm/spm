@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mesh_geodesic.cpp 7886 2020-07-03 16:06:55Z guillaume $
+ * $Id: spm_mesh_geodesic.cpp 7889 2020-07-06 11:21:54Z guillaume $
  * Guillaume Flandin
  */
 
@@ -3187,11 +3187,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mxArray *array = NULL;
     void *f = NULL, *v = NULL, *s = NULL;
     mwSize nv, nf, ns;
+    double dmax = geodesic::GEODESIC_INF;
     int i;
     bool isVdouble = true, isFdouble = true, isSdouble = true;
+    std::vector<geodesic::SurfacePoint> stop;
     
     if (nrhs < 2) mexErrMsgTxt("Not enough input arguments.");
-    if (nrhs > 2) mexErrMsgTxt("Too many input arguments.");
+    if (nrhs > 4) mexErrMsgTxt("Too many input arguments.");
     if (nlhs > 3) mexErrMsgTxt("Too many output arguments.");
     
     if ((!mxIsStruct(prhs[0])) || (mxIsClass(prhs[0],"gifti")))
@@ -3204,8 +3206,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgTxt("Vertices must be stored as floating point numbers.");
     else if (mxGetN(array) != 3)
         mexErrMsgTxt("Vertices must be stored in a nVx3 array.");
-    nv    = mxGetM(array);
-    v     = mxGetData(array);
+    nv = mxGetM(array);
+    v  = mxGetData(array);
     isVdouble = mxIsDouble(mxGetField(prhs[0], 0, "vertices"));
     
     array = mxGetField(prhs[0], 0, "faces");
@@ -3215,20 +3217,35 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgTxt("Faces must be stored as double or int32.");
     else if (mxGetN(array) != 3)
         mexErrMsgTxt("Faces must be stored in a nFx3 array.");
-    nf    = mxGetM(array);
-    f     = mxGetData(array);
+    nf = mxGetM(array);
+    f  = mxGetData(array);
     isFdouble = mxIsDouble(mxGetField(prhs[0], 0, "faces"));
     
     ns = mxGetNumberOfElements(prhs[1]);
     if (!mxIsDouble(prhs[1]) && !mxIsClass(prhs[1],"int32"))
         mexErrMsgTxt("Source indices must be stored as double or int32.");
-    s = mxGetData(prhs[1]);
+    s  = mxGetData(prhs[1]);
     isSdouble = mxIsDouble(prhs[1]);
+    
+    if (nrhs > 2)
+    {
+        if ((!mxIsNumeric(prhs[2])) || (mxGetNumberOfElements(prhs[2])!=1))
+            mexErrMsgTxt("Maximal distance must be a scalar numeric.");
+        dmax = mxGetScalar(prhs[2]);
+    }
     
     /* Mesh initialisation */
     geodesic::Mesh mesh;
     mesh.initialize_mesh_data((unsigned)nv, v, isVdouble,
                               (unsigned)nf, f, isFdouble);
+    
+    /* Stopping points */
+    if (nrhs > 3)
+    {
+        stop.resize(mxGetNumberOfElements(prhs[3]));
+        for (i=0;i<(int)stop.size();i++)
+            stop[i] = (geodesic::SurfacePoint(&mesh.vertices()[mxGetPr(prhs[3])[i]-1]));
+    }
     
     /* Algorithm initialisation */
     geodesic::GeodesicAlgorithmExact exact_algorithm(&mesh);
@@ -3244,7 +3261,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
 
     /* Propagation */
-    exact_algorithm.propagate(source,geodesic::GEODESIC_INF,NULL);
+    if (nrhs > 3)
+        exact_algorithm.propagate(source,dmax,&stop);
+    else
+        exact_algorithm.propagate(source,dmax,NULL);
 
     /* Tracing back */
     geodesic::SurfacePoint target;
