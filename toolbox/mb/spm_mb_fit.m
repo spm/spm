@@ -11,7 +11,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 7884 2020-07-02 10:13:47Z mikael $
+% $Id: spm_mb_fit.m 7888 2020-07-06 09:16:40Z mikael $
 
 
 % Repeatable random numbers
@@ -21,7 +21,11 @@ rng('default'); rng(1);
 % If SPM has been compiled with OpenMP support then the number of threads
 % are here set to speed up the algorithm
 %--------------------------------------------------------------------------
-setenv('SPM_NUM_THREADS',sprintf('%d',-1));
+if sett.nworker > 1
+    setenv('SPM_NUM_THREADS',sprintf('%d',0));
+else
+    setenv('SPM_NUM_THREADS',sprintf('%d',-1));
+end
 
 % Get template size and orientation
 %--------------------------------------------------------------------------
