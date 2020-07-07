@@ -35,7 +35,7 @@ function [P,C,str,rfx] = spm_COVID_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors.m 7872 2020-06-11 23:29:11Z spm $
+% $Id: spm_COVID_priors.m 7891 2020-07-07 16:34:13Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -64,7 +64,7 @@ function [P,C,str,rfx] = spm_COVID_priors
 %==========================================================================
 names{1}  = 'initial cases'; %**
 names{2}  = 'population size';
-names{3}  = 'initial immunity';
+names{3}  = 'initial proportion';
 names{4}  = 'P(work | home)';
 names{5}  = 'social distancing';
 names{6}  = 'bed availability';  
@@ -86,8 +86,9 @@ names{21} = 'test selectivity'; %**
 names{22} = 'sustained testing'; %**
 names{23} = 'baseline testing'; %**
 names{24} = 'immune period'; %**
-names{25} = 'resistance'; %**
-names{26} = 'innate immunity'; %**
+names{25} = 'exempt period'; %**
+names{26} = 'resistance'; %**
+names{27} = 'innate immunity'; %**
 
 % random effects (i.e., effects that are common in countries)
 %--------------------------------------------------------------------------
@@ -97,7 +98,7 @@ rfx       = 2:17;
 %--------------------------------------------------------------------------
 factors   = {'Location','Infection','Symptoms','Testing'};
 
-factor{1} = {'home','work','CCU','morgue','isolation'};
+factor{1} = {'home','work','CCU','exempt','isolation'};
 factor{2} = {'susceptible','infected','infectious','immune','resistant'};
 factor{3} = {'none','symptoms','ARDS','deceased'};
 factor{4} = {'untested','waiting','positive','negative'};
@@ -131,7 +132,7 @@ end
 %==========================================================================
 P.n   = 4;                    % number of initial cases
 P.N   = 8;                    % population size (in millions)
-P.m   = 1e-6;                 % herd immunity (proportion)
+P.m   = 1/4;                  % initial proportion
 
 % location parameters
 %--------------------------------------------------------------------------
@@ -160,14 +161,15 @@ P.sur = 1/8;                  % P(survival | severe, home)
 %--------------------------------------------------------------------------
 P.ttt = 1/10000;              % test, track and trace
 P.ont = 2;                    % testing latency (months)
-P.del = 2;                    % test delay (days)
-P.tes = 8;                    % test selectivity (for infection)
-P.sus = 4/10000;              % sustained testing
-P.bas = 4/10000;              % baseline testing
+P.del = 4;                    % test delay (days)
+P.tes = 2;                    % test selectivity (for infection)
+P.sus = 8/10000;              % sustained testing
+P.bas = 8/10000;              % baseline testing
 
 % immunity
 %--------------------------------------------------------------------------
 P.Tim = 16;                   % period of immunity (months)
+P.Tex = 2;                    % period of exemption (days)
 P.r   = 1/2;                  % proportion resistant cases
 P.res = 1/2;                  % proportion with innate immunity
 
@@ -208,7 +210,7 @@ W     = 1/256;                % precise priors
 
 C.n   = U;                    % number of initial cases
 C.N   = U;                    % size of population with mixing
-C.m   = 0;                    % herd immunity (proportion)
+C.m   = W;                    % initial proportion
 
 % location parameters
 %--------------------------------------------------------------------------
@@ -239,12 +241,13 @@ C.ttt = U;                    % test, track and trace
 C.ont = U;                    % testing latency (months)
 C.del = W;                    % test delay (days)
 C.tes = V;                    % test selectivity (for infection)
-C.sus = W;                    % sustained testing
-C.bas = W;                    % baseline testing
+C.sus = V;                    % sustained testing
+C.bas = V;                    % baseline testing
 
 % immunity
 %--------------------------------------------------------------------------
-C.Tim = 0;                    % period of immunity
+C.Tim = W;                    % period of immunity
+C.Tex = W;                    % period of exemption
 C.r   = W;                    % proportion of people not susceptible
 C.res = W;                    % proportion with innate immunity
 

@@ -22,7 +22,7 @@ function [DCM] = DEM_COVID_S
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_S.m 7878 2020-06-29 16:09:33Z karl $
+% $Id: DEM_COVID_S.m 7891 2020-07-07 16:34:13Z karl $
 
 % get data
 %==========================================================================
@@ -54,10 +54,10 @@ websave('coronavirus-cases_latest.csv',[url,'coronavirus-cases_latest.csv']);
 
 % retrieve recent data from https://www.england.nhs.uk
 %--------------------------------------------------------------------------
-url  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/06/';
-dstr = datestr(datenum(date) - 1,'dd-mmmm-yyyy');
+url  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/07/';
+dstr = datestr(datenum(date) - 1,'dd-mmm-yyyy');
 if strcmp(dstr(1),'0'),dstr = dstr(2:end); end
-url  = [url 'COVID-19-total-announced-deaths-' dstr '.xlsx'];
+url  = [url 'COVID-19-total-announced-deaths-' dstr '-1.xlsx'];
 websave('COVID-19-total-announced-deaths.xlsx',url);
 
 % load data
@@ -84,7 +84,7 @@ regions = unique(C.textdata(i,1));
 %--------------------------------------------------------------------------
 for r = 1:numel(regions)
     i     = find(ismember(C.textdata(:,1),regions{r}));
-    cy{r} = C.data(i + 1,4);
+    cy{r} = C.data(i - 1,4);
     cn{r} = datenum(C.textdata(i,4),'yyyy-mm-dd');
 end
 
@@ -106,41 +106,39 @@ DA   = [zeros(ns,16), DA];
 dn   = [(dn(1) - flip(1:16)) dn];
 
 % assemble and smooth data matrix
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 s        = 7;                        % seven day average
 Y        = [spm_conv(DA',s,0), gradient(spm_conv(CR,s))'];
 Y(Y < 0) = 0;
 
 % get (Gaussian) priors over model parameters
-%======================================================================
+%==========================================================================
 [pE,pC] = spm_COVID_priors;
 
 % specific priors for this analysis
 %--------------------------------------------------------------------------
 pE.N   = log(sum(Pop));               % population size
 pE.n   = 8;                           % initial cases
-pC.N   = 1/256;
-pC.sus = 1/16;
-pC.bas = 1/16;
+pC.N   = 0;
 
 % group specific parameters
 %--------------------------------------------------------------------------
-r      = [1 1 1 1 1]/2;               % proportion resistant 
+r      = [1 1 1 1 1]/4;               % proportion resistant 
 pE.r   = log(r + exp(-8));
 pC.r   = logical(r)/256;
 
 % contact matrices that couple ensemble densities
 %--------------------------------------------------------------------------
-Rin = [2 1 2 1 1;                     % effective number of contacts: home
-       2 1 2 1 1;
-       2 1 2 1 1;
-       1 1 1 2 1;
-       1 1 1 1 2]/2;
-Rou = [8 1 1 1 1;                     % effective number of contacts: work
-       1 8 4 4 1;
-       1 4 8 8 1;
-       1 1 8 8 4;
-       1 2 1 1 8]*2;
+Rin = [1 1 1 0 0;                     % effective number of contacts: home
+       1 1 1 0 0;
+       1 1 1 0 0;
+       0 0 1 2 0;
+       0 1 0 0 0];
+Rou = [15 1  0 0 0;                   % effective number of contacts: work
+       0 16 16 4 0;
+       0 16 16 4 0;
+       0 16 16 4 0;
+       0 1  0  0 8];
 pE.Rin = log(Rin + exp(-8));
 pE.Rou = log(Rou + exp(-8));
 pC.Rin = logical(Rin)/256;
@@ -164,7 +162,7 @@ U      = 1:(ns + 1);                  % outputs to model
 
 % model inversion with Variational Laplace (Gauss Newton)
 %--------------------------------------------------------------------------
-[Ep,Cp]   = spm_nlsi_GN(M,U,Y);
+[Ep,Cp] = spm_nlsi_GN(M,U,Y);
 
 % save prior and posterior estimates (and log evidence)
 %--------------------------------------------------------------------------

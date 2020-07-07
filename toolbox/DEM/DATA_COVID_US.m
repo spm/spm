@@ -24,15 +24,13 @@ function [Y,Data] = DATA_COVID_US
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_US.m 7866 2020-05-30 09:57:38Z karl $
+% $Id: DATA_COVID_US.m 7891 2020-07-07 16:34:13Z karl $
 
-% download data if required
+% download data
 %==========================================================================
-if false
-    url = 'https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/';
-    urlwrite([url,'time_series_covid19_confirmed_US.csv'],'time_series_covid19_confirmed_US.csv');
-    urlwrite([url,'time_series_covid19_deaths_US.csv'],   'time_series_covid19_deaths_US.csv');
-end
+url = 'https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/';
+urlwrite([url,'time_series_covid19_confirmed_US.csv'],'time_series_covid19_confirmed_US.csv');
+urlwrite([url,'time_series_covid19_deaths_US.csv'],   'time_series_covid19_deaths_US.csv');
 
 % load data from https://github.com/CSSEGISandData/COVID-19/
 %--------------------------------------------------------------------------

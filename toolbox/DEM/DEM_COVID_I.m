@@ -16,16 +16,7 @@ function DEM_COVID_I
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_I.m 7878 2020-06-29 16:09:33Z karl $
-
-% download data
-%__________________________________________________________________________
-
-url = 'https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/';
-urlwrite([url,'time_series_covid19_confirmed_global.csv'],'time_series_covid19_confirmed_global.csv');
-urlwrite([url,'time_series_covid19_deaths_global.csv'],   'time_series_covid19_deaths_global.csv');
-urlwrite([url,'time_series_covid19_recovered_global.csv'],'time_series_covid19_recovered_global.csv');
-%__________________________________________________________________________
+% $Id: DEM_COVID_I.m 7891 2020-07-07 16:34:13Z karl $
 
 
 % Get data (see DATA_COVID): an array with a structure for each country
@@ -39,13 +30,15 @@ Fsi     = spm_figure('GetWin','SI'); clf;
 % assemble (Gaussian) priors over model parameters
 %--------------------------------------------------------------------------
 [pE,pC] = spm_COVID_priors;
-pC.Tim  = 1/256;                      % tight shrinkage priors on immunity
 
 % Bayesian inversion (placing posteriors in a cell array of structures)
 %--------------------------------------------------------------------------
 Tim   = 1:32;
 GCM   = cell(size(data(:)));
 for i = 1:numel(data)
+    
+    pE.N  = log(data(i).pop/1e6);
+    pC.N  = 0;
     for j = 1:numel(Tim)
         
         % data for this country (here, and positive test rates)
@@ -91,7 +84,7 @@ for i = 1:numel(data)
         DCM.Y  = Y;
         
         % save this country (in a cell array)
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         GCM{i,j} = DCM;
         F(i,j)   = Fp
     end
@@ -107,30 +100,20 @@ save COVID_I
 % characterise second wave
 %==========================================================================
 load COVID_I
-
-% remove China
-%--------------------------------------------------------------------------
-j     = ~ismember({data.country},'China');
-F     = F(j,:);
-GCM   = GCM(j,:);
-data  = data(j);
+N     = 12;
 
 % retain minimum entropy countries
 %==========================================================================
-N     = 10;
 for i = 1:size(F,1)
     p    = spm_softmax(spm_vec(F(i,:)));
     E(i) = Tim*p;
-    H(i) = p'*log(p);
-    L(i) = GCM{i,1}.M.T;
-    D(i) = sum(GCM{i,1}.Y(:,1));
+    H(i) = p'*log(p + exp(-16));
+    p    = GCM{i,1}.Y(:,1);
+    p    = p/sum(p);
+    L(i) = (1:numel(p))*p;
 end
-
-[G,J] = sort(D,'descend');
-J     = J(1:N);
-F     = F(J,:);
-GCM   = GCM(J,:);
-data  = data(J);
+[d,j] = sort(L,'ascend');
+F     = F(j(1:8),:);
 
 % posterior over a period of immunity
 %==========================================================================
@@ -166,7 +149,7 @@ I      = find(c > 0.5,1,'first');
 M      = DCM{1}.M;
 M.T    = 365*1.5;
 M.date = '25-Jan-2020';
-for  i = [1,I,numel(p)]
+for  i = [I,numel(DCM)]
     spm_COVID_ci(DCM{i}.Ep,DCM{i}.Cp,DCM{i}.Y,1,M);
 end
 title(sprintf('Death rates (%.0f,%.0f, and %.0f months)',Tim(1),Tim(I),Tim(end)))
@@ -239,6 +222,8 @@ title('Cumulative cases','FontSize',16), box off
 % table of first and second peaks
 %==========================================================================
 spm_figure('GetWin','variability'); clf
+global CHOLD
+CHOLD = 0;
 M.T   = 365*1.5;
 for i = 1:N
     
@@ -251,33 +236,32 @@ for i = 1:N
 
     % table of first and second peaks
     %----------------------------------------------------------------------
-    y        = GCM{i,I}.Y(:,1);
-    m        = find(diff(Y(1:end - 1)) > 0 & diff(Y(2:end)) < 0);
-    m        = round([m; numel(Y)]);
-    m(1)     = find(y == max(y),1);
-    dat(i,:) = datenum(data(i).date) + m(1:2);
-    tab{i,1} = data(i).country;                 % country
-    tab{i,2} = datestr(dat(i,1));               % date first
-    tab{i,3} = datestr(dat(i,2));               % date second
+    y         = GCM{i,I}.Y(:,1);
+    m         = find(diff(Y(1:end - 1)) > 0 & diff(Y(2:end)) < 0);
+    m         = round([m; numel(Y)]);
+    m(1)      = find(y == max(y),1);
+    dat(i,:)  = datenum(data(i).date) + m(1:2);
+    tab{i,1}  = data(i).country;                 % country
+    tab{i,2}  = datestr(dat(i,1));               % date first
+    tab{i,3}  = datestr(dat(i,2));               % date second
     
-    tab{i,4} = round(max(X{2}(:,4))*100);       % population immunity
-    tab{i,5} = round(y(m(1)));                  % death rate (first)
-    tab{i,6} = round(Y(m(2)));                  % death rate (second)
-    tab{i,7} = round(exp(GCM{i,I}.Ep.res)*100); % resistant proportion
-    tab{i,8} = round(exp(GCM{i,I}.Ep.r)*100);   % resistant proportion
-    tab{i,9} = round(exp(GCM{i,I}.Ep.N));       % effective population
-    tab{i,10} = round(data(i).pop/1e6);         % total population
-    tab{i,11} = round(100*tab{i,9}/tab{i,10});  % percent
+    
+    n         = 1 - X{1}(end,4);
+    tab{i,4}  = round(max(X{2}(:,4))*100);       % population immunity
+    tab{i,5}  = round(y(m(1)));                  % death rate (first)
+    tab{i,6}  = round(Y(m(2)));                  % death rate (second)
+    tab{i,7}  = round(exp(GCM{i,I}.Ep.res)*100); % non-infectious proportion
+    tab{i,8}  = round(exp(GCM{i,I}.Ep.r)*100);   % non-susceptible proportion
+    tab{i,9}  = round(exp(GCM{i,I}.Ep.N)*n);     % effective population
+    tab{i,10} = round(data(i).pop/1e6);          % total population
+    tab{i,11} = round(100*n);                    % effective proportion
+
 end
 subplot(3,2,1), legend({data.country}), legend 'boxoff'
-
+CHOLD = 1;
 
 % reorder table (mortality at first peak)
 %--------------------------------------------------------------------------
-[d,i] = sort([tab{:,5}],'descend');
-tab   = tab(i,:);
-dat   = dat(i,:);
-
 vstr  = {'country','first','second'};
 Tab   = cell2table(tab);
 table(Tab(:,1),Tab(:,2),Tab(:,3),'VariableNames',vstr)
@@ -293,7 +277,7 @@ table(Tab(:,1),Tab(:,4),Tab(:,5),Tab(:,6),Tab(:,7),Tab(:,8),Tab(:,9),Tab(:,10),'
 % reproduction of the Lancet paper results
 %==========================================================================
 spm_figure('GetWin','LANCET'); clf
-I     = 3;
+I     = 7;
 M.T   = 180;
 for i = 1:N
     
@@ -309,7 +293,7 @@ for i = 1:N
     axis square, box off
     
     subplot(3,1,2), hold on
-    T     = find(X{1}(:,2) < 1/8,1,'first');
+    T     = find(X{1}(:,2) < X{1}(1,2)/2,1,'first');
     N1    = sum(Y(1:T,1))/pop;
     N2    = sum(Y(T + (1:6*7),1))/pop;
     plot(log(N1),log(N2),'o')
@@ -334,14 +318,13 @@ legend({data.country})
 % model comparison
 %==========================================================================
 spm_figure('GetWin','LANCET BMR'); clf
-I     = 3;
 G     = zeros(6,N);
 for i = 1:N
     
     % populations proportions
     %----------------------------------------------------------------------
-    Pop(1,i) = data(i).pop/1e6;
-    Pop(2,i) = exp(GCM{i,I}.Ep.N);
+    Pop(1,i) = tab{i,10};
+    Pop(2,i) = tab{i,9};
     
     r(i)     = exp(GCM{i,I}.Ep.r);
     res(i)   = exp(GCM{i,I}.Ep.res);

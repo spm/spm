@@ -47,7 +47,7 @@ function [DCM] = DEM_COVID_DASH
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_DASH.m 7882 2020-07-01 17:45:47Z karl $
+% $Id: DEM_COVID_DASH.m 7891 2020-07-07 16:34:13Z karl $
 
 % get data
 %==========================================================================
@@ -80,10 +80,10 @@ websave('coronavirus-cases_latest.csv',[url,'coronavirus-cases_latest.csv']);
 
 % retrieve recent data from https://www.england.nhs.uk
 %--------------------------------------------------------------------------
-url  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/06/';
-dstr = datestr(datenum(date) - 1,'dd-mmmm-yyyy'); 
+url  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/07/';
+dstr = datestr(datenum(date) - 1,'dd-mmm-yyyy');
 if strcmp(dstr(1),'0'),dstr = dstr(2:end); end
-url  = [url 'COVID-19-total-announced-deaths-' dstr '.xlsx'];
+url  = [url 'COVID-19-total-announced-deaths-' dstr '-1.xlsx'];
 websave('COVID-19-total-announced-deaths.xlsx',url);
 
 % load data
@@ -174,11 +174,10 @@ for r = 1:numel(DR)
     
     % priors for this analysis
     %----------------------------------------------------------------------
-    % pE.N   = log(66);                  % population of region (M)
-    % pC.N   = 0;
-    pE.n   = 4;                          % initial number of cases (n)
-    pC.sus = 1/16;                       % initial number of cases (n)
-    pC.bas = 1/16;                       % initial number of cases (n)
+    pE.N   = log(Pop(r));                 % population of region (M)
+    pC.N   = 1/256;
+    pE.n   = 4;                           % initial number of cases (n)
+
     
     % variational Laplace (estimating log evidence (F) and posteriors)
     %======================================================================
@@ -252,7 +251,7 @@ for r = 1:numel(DR)
     text(0,0.9,str,'FontSize',16,'Color','b')
     
     Tab(r,3) = R(end,1);
-    str      = sprintf('Reproduction rate %.2f',Tab(r,3));
+    str      = sprintf('Reproduction ratio %.2f',Tab(r,3));
     text(0,0.8,str,'FontSize',16,'Color','b')
     
     Tab(r,4) = R(end,4);

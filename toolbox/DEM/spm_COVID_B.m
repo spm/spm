@@ -21,11 +21,10 @@ function T = spm_COVID_B(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_B.m 7870 2020-06-09 15:02:12Z karl $
+% $Id: spm_COVID_B.m 7891 2020-07-07 16:34:13Z karl $
 
-% marginal probabilities
+% setup
 %==========================================================================
-p     = spm_marginal(x);
 
 % identity matrices
 %--------------------------------------------------------------------------
@@ -57,8 +56,11 @@ Kday  = exp(-1);
 % P.cap                              % bed threshold (per capita)
 % social distancing, based on prevalence of infection
 %--------------------------------------------------------------------------
-Prev = p{2}(2) + p{2}(3);            % prevalence of infection
-Pcco = p{1}(3);                      % CCU occupancy
+q    = spm_sum(x,[3 4]);
+q    = q(1:3,:);
+q    = q/sum(q(:));
+Prev = sum(q(:,2));                  % prevalence of infection
+Pcco = sum(q(3,:));                  % CCU occupancy
 
 % hard (threshold) strategy
 %--------------------------------------------------------------------------
@@ -87,39 +89,42 @@ Pcca = spm_sigma(Pcco,P.cap);        % P(CCU  | home, work, ARDS)
 Piso = exp(-1/7);                    % period of self-isolation
 b    = cell(1,dim(3));
 
+% viral spread
+%--------------------------------------------------------------------------
+Kspr = exp(-Psde*Prev/P.Tex);        % period of exemption
 
 % marginal: location {1} | asymptomatic {3}(1)
 %--------------------------------------------------------------------------
-%      home       work       CCU       morgue     isolation
+%      home       work       CCU       exempt     isolation
 %--------------------------------------------------------------------------
-b{1} = [(1 - Pout) 1          1          (1 - Kday) (1 - Piso);
+b{1} = [(1 - Pout) 1          1          (1 - Kspr) (1 - Piso);
         Pout       0          0          0           0;
         0          0          0          0           0;
-        0          0          0          Kday        0;
+        0          0          0          Kspr        0;
         0          0          0          0           Piso];
 
 % marginal: location {1}  | symptoms {3}(2)
 %--------------------------------------------------------------------------
-b{2} = [0          0          0          (1 - Kday)  0;
+b{2} = [0          0          0          (1 - Kspr)  0;
         0          0          0          0           0;
         0          0          0          0           0;
-        0          0          0          Kday        0;
+        0          0          0          Kspr        0;
         1          1          1          0           1];
     
 % marginal: location {1}  | ARDS {3}(3)
 %--------------------------------------------------------------------------
-b{3} = [0          0          0          (1 - Kday)  0;
+b{3} = [0          0          0          (1 - Kspr)  0;
         0          0          0          0           0;
         Pcca       Pcca       1          0           Pcca;
-        0          0          0          Kday        0;
+        0          0          0          Kspr        0;
         (1 - Pcca) (1 - Pcca) 0          0           (1 - Pcca)];
 
 % marginal: location {1}  | deceased {3}(4)
 %--------------------------------------------------------------------------
-b{4} = [0          0          0          (1 - Kday)  0;
+b{4} = [0          0          0          (1 - Kspr)  0;
         0          0          0          0           0;
         0          0          0          0           0;
-        1          1          1          Kday        1;
+        1          1          1          Kspr        1;
         0          0          0          0           0];
 
 % kroneckor form (taking care to get the order of factors right)
@@ -193,13 +198,13 @@ b{3} = [1          0                     0          (1 - Kimm) 0;
         0          0                     (1 - Kcon) Kimm       0;
         0          Pres*(1 - Kinf)       0          0          1];
 
-% marginal: infection {2} | morgue {1}(4)
+% marginal: infection {2} | exempt {1}(4)
 %--------------------------------------------------------------------------
-b{4} = [0          0          0          0          0;
-        0          0          0          0          0;
-        0          0          0          0          0;
-        0          0          0          0          0;
-        1          1          1          1          1];
+b{4} = [1          0          0          0          0;
+        0          1          0          0          0;
+        0          0          1          0          0;
+        0          0          0          1          0;
+        0          0          0          0          1];
 
 % marginal: infection {2} | isolation {1}(5)
 %--------------------------------------------------------------------------
@@ -286,7 +291,6 @@ ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ksev)*(1 - P.fat);
 b    = cell(1,dim(2));
 Seni = .9;                            % PCR sensitivity (infected)
 Senc = .95;                           % PCR sensitivity (contagious)
-Prev = Seni*p{2}(2) + Senc*p{2}(3);   % prevalence of infection
 Psen = P.bas/(1 - Prev + P.tes*Prev); % probability of being tested
 Ptes = Psen*P.tes;                    % probability if infected
 Kdel = exp(-1/P.del);                 % exp(-1/waiting period)

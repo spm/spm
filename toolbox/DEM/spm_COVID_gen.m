@@ -48,7 +48,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7871 2020-06-11 08:37:38Z karl $
+% $Id: spm_COVID_gen.m 7891 2020-07-07 16:34:13Z karl $
 
 
 % The generative model:
@@ -137,11 +137,13 @@ Q    = spm_vecfun(P,@exp);
 %--------------------------------------------------------------------------
 n    = Q.n;                % number of initial cases
 N    = Q.N*1e6;            % population size
-m    = Q.m*N;              % number of immune cases
+m    = (1 - Q.m)*N;        % number of sequestered cases
 r    = Q.r*N;              % number of resistant cases
-s    = N - n - m - r;      % number of susceptible cases
-p{1} = [3 1 0 0 0]';       % location 
-p{2} = [s n 0 m r]';       % infection 
+s    = N - n - r;          % number of susceptible cases
+h    = (N - m)*3/4;        % number at home
+w    = (N - m)*1/4;        % number at work
+p{1} = [h w 0 m 0]';       % location 
+p{2} = [s n 0 0 r]';       % infection 
 p{3} = [1 0 0 0]';         % clinical 
 p{4} = [1 0 0 0]';         % testing
 

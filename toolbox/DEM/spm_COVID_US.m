@@ -45,7 +45,7 @@ function [Y,X] = spm_COVID_US(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_US.m 7870 2020-06-09 15:02:12Z karl $
+% $Id: spm_COVID_US.m 7891 2020-07-07 16:34:13Z karl $
 
 % prior connectivity
 %--------------------------------------------------------------------------
@@ -71,10 +71,13 @@ N     = [M.data.pop];                        % population size
 for j = 1:numel(M.data)
     
     n    = exp(M.Q(j).Ep.n);                 % number of initial cases
+    m    = exp(M.Q(j).Ep.m);                 % proportion of exposed cases
     r    = exp(M.Q(j).Ep.r);                 % proportion of resistant cases
     n    = S.n(j)*n/N(j);                    % proportion of initial cases
     s    = (1 - n - r);                      % proportion susceptible
-    p{1} = [3 1 0 0 0]'/4;                   % location
+    h    = m*3/4;                            % proportion at home
+    w    = m*1/4;                            % proportion at work
+    p{1} = [h w 0 (1 - m) 0]';               % location
     p{2} = [s n 0 0 r]';                     % infection
     p{3} = [1 0 0 0]';                       % clinical
     p{4} = [1 0 0 0]';                       % testing

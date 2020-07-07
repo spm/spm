@@ -48,7 +48,7 @@ function [Y,X] = spm_COVID_S(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_S.m 7878 2020-06-29 16:09:33Z karl $
+% $Id: spm_COVID_S.m 7891 2020-07-07 16:34:13Z karl $
 
 % setup and defaults (assume new deaths and cases as outcome variables)
 %--------------------------------------------------------------------------
@@ -97,13 +97,16 @@ for i = 1:ns
     %----------------------------------------------------------------------
     n    = Q.n*R.n(i);              % number of initial cases
     N    = Q.N*R.N(i)*1e6;          % population size
-    m    = Q.m*N;                   % number of immune cases
+    m    = (1 - Q.m)*N;             % number of sequestered cases
     r    = Q.r(i)*N;                % number of resistant cases
-    q    = N - n - m - r;           % number of susceptible cases
-    p{1} = [3 1 0 0 0]';            % location
-    p{2} = [q n 0 m r]';            % infection
+    s    = N - n - r;               % number of susceptible cases
+    h    = (N - m)*3/4;             % number at home
+    w    = (N - m)*1/4;             % number at work
+    p{1} = [h w 0 m 0]';            % location
+    p{2} = [s n 0 0 r]';            % infection
     p{3} = [1 0 0 0]';              % clinical
     p{4} = [1 0 0 0]';              % testing
+
     
     % normalise initial marginals
     %----------------------------------------------------------------------
@@ -138,7 +141,9 @@ R.sev = linspace(-8,0,ns);          % log severe symptom rate
 R.res = linspace(0,-4,ns);          % log proportion with innate immunity
 R.out = log([1 1 1 1/2 1/64]);      % log P(work | home)
 
-m     = p;                          % initialise marginal over group
+% generate timeseries
+%--------------------------------------------------------------------------
+m     = x{1};                       % initialise marginal over group
 for t = 1:M.T
     
     for i = 1:ns
@@ -160,8 +165,11 @@ for t = 1:M.T
                       
         % marginal prevalence and occupancy
         %------------------------------------------------------------------
-        Prev = m{2}(2);% + m{2}(3);            % prevalence of infection
-        Pcco = m{1}(3);                      % CCU occupancy
+        q    = spm_sum(m,[3 4]);
+        q    = q(1:3,:);
+        q    = q/sum(q(:));
+        Prev = sum(q(:,2));                  % prevalence of infection
+        Pcco = sum(q(3,:));                  % CCU occupancy
                 
         % coupling between groups (contact)
         %==================================================================
@@ -206,9 +214,9 @@ for t = 1:M.T
     %----------------------------------------------------------------------
     m     = 0;
     for i = 1:ns
-        m = m + x{i};
+        m = m + R.N(i)*x{i};
     end
-    m     = spm_marginal(m/sum(m(:)));
+    m     = m/sum(m(:));
     
 end
 

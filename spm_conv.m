@@ -15,7 +15,7 @@ function [X] = spm_conv(X,sx,sy)
 % Copyright (C) 1999-2020 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_conv.m 7830 2020-04-13 09:27:30Z guillaume $
+% $Id: spm_conv.m 7891 2020-07-07 16:34:13Z karl $
 
 
 % assume isomorphic smoothing
@@ -43,14 +43,14 @@ ky    = ky/sum(ky);
 
 % convolve
 %--------------------------------------------------------------------------
-if lx > 1
+if lx > 1 && numel(kx) > 1
     for i = 1:ly
         u      = X(:,i);
         v      = [flipud(u(1:Ex)); u; flipud(u((1:Ex) + lx - Ex))];
         X(:,i) = sparse(conv(full(v),kx,'valid'));
     end
 end
-if ly > 1
+if ly > 1 && numel(ky) > 1
     for i = 1:lx
         u      = X(i,:);
         v      = [fliplr(u(1:Ey)) u fliplr(u((1:Ey) + ly - Ey))];

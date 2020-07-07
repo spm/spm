@@ -19,7 +19,7 @@ function T = spm_COVID_SB(P,I,dim,Prev,Pcco,Pinh,Pinw)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_SB.m 7878 2020-06-29 16:09:33Z karl $
+% $Id: spm_COVID_SB.m 7891 2020-07-07 16:34:13Z karl $
 
 
 
@@ -58,39 +58,42 @@ Pcca = spm_sigma(Pcco,P.cap);        % P(CCU  | home, work, ARDS)
 Piso = exp(-1/7);                    % period of self-isolation
 b    = cell(1,dim(3));
 
+% viral spread
+%--------------------------------------------------------------------------
+Kspr = exp(-Psde*Prev/P.Tex);        % period of exemption
 
 % marginal: location {1} | asymptomatic {3}(1)
 %--------------------------------------------------------------------------
-%      home       work       CCU       morgue     isolation
+%      home       work       CCU       exempt     isolation
 %--------------------------------------------------------------------------
-b{1} = [(1 - Pout) 1          1          (1 - Kday) (1 - Piso);
+b{1} = [(1 - Pout) 1          1          (1 - Kspr) (1 - Piso);
         Pout       0          0          0           0;
         0          0          0          0           0;
-        0          0          0          Kday        0;
+        0          0          0          Kspr        0;
         0          0          0          0           Piso];
 
 % marginal: location {1}  | symptoms {3}(2)
 %--------------------------------------------------------------------------
-b{2} = [0          0          0          (1 - Kday)  0;
+b{2} = [0          0          0          (1 - Kspr)  0;
         0          0          0          0           0;
         0          0          0          0           0;
-        0          0          0          Kday        0;
+        0          0          0          Kspr        0;
         1          1          1          0           1];
     
 % marginal: location {1}  | ARDS {3}(3)
 %--------------------------------------------------------------------------
-b{3} = [0          0          0          (1 - Kday)  0;
+b{3} = [0          0          0          (1 - Kspr)  0;
         0          0          0          0           0;
         Pcca       Pcca       1          0           Pcca;
-        0          0          0          Kday        0;
+        0          0          0          Kspr        0;
         (1 - Pcca) (1 - Pcca) 0          0           (1 - Pcca)];
 
 % marginal: location {1}  | deceased {3}(4)
 %--------------------------------------------------------------------------
-b{4} = [0          0          0          (1 - Kday)  0;
+b{4} = [0          0          0          (1 - Kspr)  0;
         0          0          0          0           0;
         0          0          0          0           0;
-        1          1          1          Kday        1;
+        1          1          1          Kspr        1;
         0          0          0          0           0];
 
 % kroneckor form (taking care to get the order of factors right)

@@ -30,7 +30,7 @@ function [DCM] = DEM_COVID_T
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_T.m 7878 2020-06-29 16:09:33Z karl $
+% $Id: DEM_COVID_T.m 7891 2020-07-07 16:34:13Z karl $
 
 % Get data for the United Kingdom (including total tests R)
 %==========================================================================
@@ -46,7 +46,7 @@ R     = R/R(end);                 % empirical test rate
 % priors for this analysis (use size of population and estimate resistance)
 %--------------------------------------------------------------------------
 pE.N  = log(66);                 % population of UK (M)
-pC.N  = 0;
+pC.N  = 1/256;
 
 % variational Laplace (estimating log evidence (F) and posteriors)
 %==========================================================================

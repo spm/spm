@@ -15,7 +15,7 @@ function spm_COVID_plot(Y,X,Z,u,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_plot.m 7878 2020-06-29 16:09:33Z karl $
+% $Id: spm_COVID_plot.m 7891 2020-07-07 16:34:13Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -31,11 +31,22 @@ function spm_COVID_plot(Y,X,Z,u,U)
 %--------------------------------------------------------------------------
 global CHOLD, if isempty(CHOLD); CHOLD = 1; end
 
+% defaults
+%--------------------------------------------------------------------------
+[t,n,m]   = size(Y);
+if nargin < 5, U = 1:n;  end
+if nargin < 4, u = [];   end
+if nargin < 3 || isempty(Z), Z = zeros(0,n,m); end
+
+% remove unpredicted data
+%--------------------------------------------------------------------------
+Z         = Z(:,1:min(n,end),:);
+
 % deal with multiple groups or stratification
 %--------------------------------------------------------------------------
-if all(size(X) > 1)
+if all(size(X) > 1) && m < 2
     for i = 1:size(X,2)
-        j = [i,size(Y,2)];
+        j = [i,n];
         spm_COVID_plot(Y(:,j),X(:,i),Z(:,j))
         for j = 1:6, subplot(3,2,j), hold on, end
         if CHOLD, set(gca,'ColorOrderIndex',1); end          
@@ -43,22 +54,10 @@ if all(size(X) > 1)
     return
 end
 
-
-% defaults
-%--------------------------------------------------------------------------
-[t,n,m] = size(Y);
-t       = (1:t)/7;
-
-if nargin < 5, U = 1:n;  end
-if nargin < 4, u = [];   end
-if nargin < 3 || isempty(Z), Z = zeros(0,size(Y,2),size(Y,3)); end
-
-
-% cheque for multi-region outcomes
+% deal with multi-region outcomes
 %==========================================================================
-Z  = Z(:,1:min(size(Y,2),end),:);
-if size(Y,3) > 1
-    for i = 1:size(Y,3)
+if m > 1
+    for i = 1:m
         spm_COVID_plot(Y(:,:,i),X(:,i),Z(:,:,i),u,U)
         for j = 1:6, subplot(3,2,j), hold on, end
     end
@@ -75,7 +74,7 @@ end
 % graphics
 %--------------------------------------------------------------------------
 subplot(3,2,1), if CHOLD, set(gca,'ColorOrderIndex',1); end
-
+t    = (1:t)/7;
 if ~isempty(u)
    p = plot(t,Y,t,u*t.^0,':m');
    legend(p,{str.outcome{U},'capacity'})
