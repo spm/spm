@@ -5,7 +5,7 @@ function [sig,a] = spm_dartel_smooth(t,lam,its,vx,a)
 % (c) Wellcome Centre for NeuroImaging (2007)
 
 % John Ashburner
-% $Id: spm_dartel_smooth.m 3102 2009-05-08 11:29:34Z john $
+% $Id: spm_dartel_smooth.m 7892 2020-07-10 16:39:18Z john $
 
 if nargin<5, a   = zeros(size(t),'single'); end
 if nargin<4, vx  = [1 1 1]; end;
@@ -40,7 +40,7 @@ for i=1:its,
     %a  = a - mean(a(:)); % unstable
     %a   = a - sum(sum(sum(sum(a))))/numel(a);
     fprintf(' %g,', sum(gr(:).^2)/numel(gr));
-    drawnow 
+    drawnow
 end;
 fprintf('\n');
 sig = softmax(a);

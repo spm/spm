@@ -11,10 +11,10 @@ function varargout = FieldMap(varargin)
 % button (which calls spm_help FieldMap.man). FieldMap is a multi function
 % function so that the toolbox routines can also be accessed without using
 % the GUI. A description of how to do this can be found in FieldMap_ngui.m
-% 
-% Input parameters and the mode in which the toolbox works can be 
-% customised using the defaults file called pm_defaults.m. 
-% 
+%
+% Input parameters and the mode in which the toolbox works can be
+% customised using the defaults file called pm_defaults.m.
+%
 % Main data structure:
 %
 % IP.P              : 4x1 cell array containing real part short TE,
@@ -22,11 +22,11 @@ function varargout = FieldMap(varargin)
 %                     imaginary part long TE.
 % IP.pP             : Cell containing pre-calculated phase map. N.B.
 %                     IP.P and IP.pP are mutually exclusive.
-% IP.epiP           : Cell containing EPI image used to demonstrate 
+% IP.epiP           : Cell containing EPI image used to demonstrate
 %                     effects of unwarping.
-% IP.fmagP          : Cell containing fieldmap magnitude image used for 
+% IP.fmagP          : Cell containing fieldmap magnitude image used for
 %                     coregistration
-% IP.wfmagP         : Cell containing forward warped fieldmap magnitude 
+% IP.wfmagP         : Cell containing forward warped fieldmap magnitude
 %                     image used for coregistration
 % IP.uepiP          : Cell containing unwarped EPI image.
 % IP.nwarp          : Cell containing non-distorted image.
@@ -35,26 +35,26 @@ function varargout = FieldMap(varargin)
 % IP.epifm          : Flag indicating EPI based field map (1) or not (0).
 % IP.blipdir        : Direction of phase-encode blips for k-space traversal
 %                    (1 = positive or -1 = negative)
-% IP.ajm            : Flag indicating if Jacobian modulation should be applied 
+% IP.ajm            : Flag indicating if Jacobian modulation should be applied
 %                    (1) or not (0).
 % IP.tert           : Total epi readout time (ms).
 % IP.maskbrain      : Flag indicating whether to mask the brain for fieldmap creation
 % IP.uflags         : Struct containing parameters guiding the unwrapping.
-%                     Further explanations of these parameters are in 
-%                     FieldMap.man and pm_make_fieldmap.m 
-% .iformat          : 'RI' or 'PM' 
+%                     Further explanations of these parameters are in
+%                     FieldMap.man and pm_make_fieldmap.m
+% .iformat          : 'RI' or 'PM'
 % .method           : 'Huttonish', 'Mark3D' or 'Mark2D'
 % .fwhm             : FWHM (mm) of Gaussian filter for field map smoothing
-% .pad              : Size (in-plane voxels) of padding kernel. 
-% .etd              : Echo time difference (ms).   
-% .bmask              
+% .pad              : Size (in-plane voxels) of padding kernel.
+% .etd              : Echo time difference (ms).
+% .bmask
 %
 % IP.mflags         : Struct containing parameters for brain maskin
 % .template         : Name of template for segmentation.
 % .fwhm             : fwhm of smoothing kernel for generating mask.
 % .nerode           : number of erosions
 % .ndilate          : number of dilations
-% .thresh           : threshold for smoothed mask. 
+% .thresh           : threshold for smoothed mask.
 % .reg              : bias field regularisation
 % .graphics         : display or not
 %
@@ -68,20 +68,20 @@ function varargout = FieldMap(varargin)
 % IP.vdm            : Struct with voxel displacement map information
 % IP.vdm.vdm        : Voxel displacement map (scaled version of IP.fm.fpm).
 % IP.vdm.jac        : Jacobian-1 of forward transform.
-% IP.vdm.ivdm       : Inverse transform of voxel displacement 
+% IP.vdm.ivdm       : Inverse transform of voxel displacement
 %                     (used to unwarp EPI image if field map is EPI based)
 %                     (used to warp flash image prior to coregistration
 %                     when field map is flash based (or other T2 weighting).
 % IP.vdm.ijac       : Jacobian-1 of inverse transform.
 % IP.jim            : Jacobian sampled in space of EPI.
 %
-% IP.cflags         : Struct containing flags for coregistration 
-%                     (these are the default SPM coregistration flags - 
+% IP.cflags         : Struct containing flags for coregistration
+%                     (these are the default SPM coregistration flags -
 %                     defaults.coreg).
-% .cost_fun         
-% .sep             
+% .cost_fun
+% .sep
 % .tol
-% .fwhm    
+% .fwhm
 %
 %__________________________________________________________________________
 % Refs and Background reading:
@@ -89,7 +89,7 @@ function varargout = FieldMap(varargin)
 % Jezzard P & Balaban RS. 1995. Correction for geometric distortion in
 % echo planar images from Bo field variations. MRM 34:65-73.
 %
-% Hutton C et al. 2002. Image Distortion Correction in fMRI: A Quantitative 
+% Hutton C et al. 2002. Image Distortion Correction in fMRI: A Quantitative
 % Evaluation, NeuroImage 16:217-240.
 %
 % Cusack R & Papadakis N. 2002. New robust 3-D phase unwrapping
@@ -100,13 +100,13 @@ function varargout = FieldMap(varargin)
 % unwrapping algorithm. MRM 49:193-197.
 %__________________________________________________________________________
 % Acknowledegments:
-% 
+%
 % Wellcome Trust and IBIM Consortium
 %__________________________________________________________________________
 % Copyright (C) 2006-2016 Wellcome Trust Centre for Neuroimaging
 
-% Jesper Andersson and Chloe Hutton 
-% $Id: FieldMap.m 6994 2017-01-26 16:19:14Z guillaume $
+% Jesper Andersson and Chloe Hutton
+% $Id: FieldMap.m 7892 2020-07-10 16:39:18Z john $
 
 
 persistent PF FS WS PM   % GUI related constants
@@ -125,11 +125,11 @@ end
 
 % Actions are divided into 3 categories:
 % 1) Functions that can be called directly from the GUI are at the
-% beginning. 
+% beginning.
 % 2) Next come other GUI-related 'utility' functions - ie those that
 % care of the GUI behind the scenes.
-% 3) Finally, call-back functions that are not GUI dependent and can 
-% be called from a script are situated towards the end. 
+% 3) Finally, call-back functions that are not GUI dependent and can
+% be called from a script are situated towards the end.
 % See FieldMap_ngui.m for details on how to use these.
 
 switch lower(Action)
@@ -140,13 +140,13 @@ switch lower(Action)
 %=======================================================================
 
    case 'welcome'
-              
+
       % Unless specified, set visibility to on
       visibility = 'On';
       if nargin==2 && strcmpi(varargin{2},'off')
           visibility = 'Off';
       end
-      
+
       DGW = 0;
 
       % Get all default values (these may effect GUI)
@@ -160,9 +160,9 @@ switch lower(Action)
          set(PM,'Visible',visibility);
          return
       end
- 
+
       S0   = spm('WinSize','0',1);
-      WS   = spm('WinScale');   
+      WS   = spm('WinScale');
       FS   = spm('FontSizes');
       PF   = spm_platform('fonts');
       rect = [100 100 510 520].*WS;
@@ -279,8 +279,8 @@ switch lower(Action)
           'Position',[125 280 90 022].*WS,...
           'ToolTipString','Load Analyze image containing finished field map (in Hz)',...
           'CallBack','FieldMap(''LoadFieldMap_Gui'');',...
-          'Tag','LoadFieldMap');  
-   
+          'Tag','LoadFieldMap');
+
       % Empty string written to Fieldmap value box
       uicontrol(PM,'Style','Text',...
           'Position',[340 280 50 020].*WS,...
@@ -325,7 +325,7 @@ switch lower(Action)
           'FontName',PF.times);
 
 %-Objects with Callbacks
-       
+
 
       uicontrol(PM,'style','RadioButton',...
           'String','Yes',...
@@ -356,7 +356,7 @@ switch lower(Action)
           'CallBack','FieldMap(''RadioButton'');',...
           'Tag','BlipDir',...
           'UserData',2);
-      
+
       uicontrol(PM,'style','RadioButton',...
           'String','Yes',...
           'Position',[300 140 60 022].*WS,...
@@ -371,7 +371,7 @@ switch lower(Action)
           'CallBack','FieldMap(''RadioButton'');',...
           'Tag','Jacobian',...
           'UserData',2);
-      
+
       uicontrol(PM,'Style','Edit',...
           'Position',[300 110 70 024].*WS,...
           'ToolTipString','Give total time for readout of EPI echo train ms',...
@@ -449,9 +449,9 @@ switch lower(Action)
            'ToolTipString','Site specific default files',...
            'Position',[390 480 90 22].*WS,...
            'callback','FieldMap(''DefaultFile_Gui'');',...
-           'UserData',def_files);          
+           'UserData',def_files);
       end
-      
+
 %-Apply defaults to buttons
 
       FieldMap('SynchroniseButtons');
@@ -460,7 +460,7 @@ switch lower(Action)
       % Disable necessary buttons and parameters until phase-map is finished.
       %
       FieldMap('Reset_Gui');
-      
+
 %=======================================================================
 %
 % Make sure buttons reflect current parameter values
@@ -504,7 +504,7 @@ switch lower(Action)
          FieldMap('RadioOn',h);
          IP.maskbrain = 0;
       end
-     
+
       % Set echo Times
 
       if ~isempty(IP.et{1})
@@ -553,7 +553,7 @@ switch lower(Action)
      FieldMap('RadioOn',h);
          IP.ajm = 0;
       end
-            
+
       % Set blip direction
 
       if ~isempty(IP.blipdir)
@@ -583,7 +583,7 @@ switch lower(Action)
 
 %=======================================================================
 %
-% Input format was changed 
+% Input format was changed
 %
 %=======================================================================
 
@@ -593,11 +593,11 @@ switch lower(Action)
       % Enforce radio behaviour.
       %
       index = get(gcbo,'UserData');
-      if index==1 
-         partner = 2; 
+      if index==1
+         partner = 2;
          IP.uflags.iformat = 'RI';
-      else 
-         partner = 1; 
+      else
+         partner = 1;
          IP.uflags.iformat = 'PM';
       end
 
@@ -609,10 +609,10 @@ switch lower(Action)
          set(h,'Value',get(h,'Min'));
       else
          set(h,'Value',get(h,'Max'));
-      end 
-            
+      end
+
       FieldMap('IFormat_Gui');
-            
+
 %=======================================================================
 %
 % A new default file has been chosen from the popup menu - gui version.
@@ -626,7 +626,7 @@ switch lower(Action)
       IP = FieldMap('SetParams',m_file);
       FieldMap('IFormat_Gui');
       FieldMap('SynchroniseButtons');
-      
+
 %=======================================================================
 %
 % Load real or imaginary part of dual echo-time data - gui version.
@@ -636,7 +636,7 @@ switch lower(Action)
    case 'loadfile_gui'
 
       FieldMap('Reset_Gui');
-      % 
+      %
       % File selection using gui
       %
       index = get(gcbo,'UserData');
@@ -658,7 +658,7 @@ switch lower(Action)
    case 'loadfilepm_gui'
 
       FieldMap('Reset_Gui');
-      % 
+      %
       % File selection using gui
       %
       index = get(gcbo,'UserData');
@@ -693,7 +693,7 @@ switch lower(Action)
          FieldMap('ToggleGUI','On',char('LoadFieldMap','WriteFieldMap'));
          %
          % Check that have correct parameters ready before allowing
-         % an image to be loaded for unwarping and hence conversion of 
+         % an image to be loaded for unwarping and hence conversion of
          % fieldmap to voxel shift map.
          %
          if (FieldMap('GatherVDMData'))
@@ -727,13 +727,13 @@ switch lower(Action)
           'ForegroundColor','k', 'BackgroundColor',col,...
           'FontName',PF.times, 'FontSize',FS(8));
 
-      FieldMap('DisplayImage',FieldMap('MakedP'),[.05 .75 .95 .2],1);       
+      FieldMap('DisplayImage',FieldMap('MakedP'),[.05 .75 .95 .2],1);
       FieldMap('ToggleGUI','Off',char('CreateFieldMap','WriteFieldMap',...
                                          'MatchVDM','WriteUnwarped',...
                                          'LoadStructural', 'MatchStructural'));
-      
+
       % Check that have correct parameters ready before allowing
-      % an image to be loaded for unwarping and hence conversion of 
+      % an image to be loaded for unwarping and hence conversion of
       % fieldmap to voxel shift map.
       %
       if (FieldMap('GatherVDMData'))
@@ -749,9 +749,9 @@ switch lower(Action)
 %=======================================================================
 
    case 'writefieldmap_gui'
-  
+
       FieldMap('Write',IP.P{1},IP.fm.fpm,'fpm_',64,'Fitted phase map in Hz');
-    
+
 %=======================================================================
 %
 % Load sample EPI image using gui, unwarp and display result
@@ -769,7 +769,7 @@ switch lower(Action)
 
       % The fm2vdm parameters may have been changed so must calculate
       % the voxel shift map with current parameters.
-     
+
       if (FieldMap('GatherVDMData'))
          FieldMap('FM2VDM',IP);
          FieldMap('UnwarpEPI',IP);
@@ -780,15 +780,15 @@ switch lower(Action)
       end
 
       %
-      % Redisplay phasemap in case .mat file associated with 
+      % Redisplay phasemap in case .mat file associated with
       % EPI image different from images that filadmap was
       % estimated from.
       %
       FieldMap('DisplayImage',FieldMap('MakedP'),[.05 .75 .95 .2],1);
-      
+
 %=======================================================================
 %
-% Coregister fieldmap magnitude image to EPI to unwarp using GUI 
+% Coregister fieldmap magnitude image to EPI to unwarp using GUI
 %
 %=======================================================================
 
@@ -821,9 +821,9 @@ switch lower(Action)
       FieldMap('DisplayImage',FieldMap('MakedP'),[.05 .75 .95 .2],1);
       FieldMap('DisplayImage',IP.epiP,[.05 .5 .95 .2],2);
       FieldMap('DisplayImage',IP.uepiP,[.05 .25 .95 .2],3);
-      
+
       FieldMap('ToggleGUI','On','MatchStructural');
-      
+
 %=======================================================================
 %
 % Match structural image to unwarped EPI
@@ -842,8 +842,8 @@ switch lower(Action)
 %=======================================================================
 
    case 'writeunwarped_gui'
-       
-      unwarp_info=sprintf('Unwarped EPI:echo time difference=%2.2fms, EPI readout time=%2.2fms, Jacobian=%d',IP.uflags.etd, IP.tert,IP.ajm);    
+
+      unwarp_info=sprintf('Unwarped EPI:echo time difference=%2.2fms, EPI readout time=%2.2fms, Jacobian=%d',IP.uflags.etd, IP.tert,IP.ajm);
       IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info);
       FieldMap('ToggleGUI','On', 'LoadStructural');
       FieldMap('ToggleGUI','Off', 'WriteUnwarped');
@@ -873,7 +873,7 @@ switch lower(Action)
             DGW = 0;
         else
             spm_figure('Clear','Graphics');
-        end    
+        end
       end
       PM = spm_figure('FindWin','FieldMap');
       if ~isempty(PM)
@@ -883,7 +883,7 @@ switch lower(Action)
 
 %=======================================================================
 %
-% The following functions are GUI related functions that go on behind 
+% The following functions are GUI related functions that go on behind
 % the scenes.
 %=======================================================================
 %
@@ -906,7 +906,7 @@ switch lower(Action)
           'HorizontalAlignment','left',...
           'String','');
 
-      % Disable input routes to make sure 
+      % Disable input routes to make sure
       % a new fieldmap is calculated.
       %
       FieldMap('ToggleGUI','Off',char('CreateFieldMap','WriteFieldMap',...
@@ -1014,11 +1014,11 @@ switch lower(Action)
       % Enforce radio behaviour.
       %
       index = get(gcbo,'UserData');
-      if index==1 
-         partner=2; 
+      if index==1
+         partner=2;
          IP.maskbrain=1;
-      else 
-         partner=1; 
+      else
+         partner=1;
          IP.maskbrain=0;
       end
       tag = get(gcbo,'Tag');
@@ -1029,7 +1029,7 @@ switch lower(Action)
          set(h,'Value',get(h,'Min'));
       else
          set(h,'Value',get(h,'Max'));
-      end 
+      end
 
       FieldMap('Assert');
 
@@ -1060,7 +1060,7 @@ switch lower(Action)
          end
          for i=3:4
             if (isempty(IP.P{i}) && strcmp(IP.uflags.iformat,'RI')), go = 0; end
-         end  
+         end
          h = findobj(get(PM,'Children'),'Tag','ShortTime');
          IP.et{1} = str2num(get(h,'String'));
          h = findobj(get(PM,'Children'),'Tag','LongTime');
@@ -1073,7 +1073,7 @@ switch lower(Action)
          FieldMap('ToggleGui','On','CreateFieldMap');
       else % Switch off fieldmap creation
          FieldMap('ToggleGui','Off','CreateFieldMap');
-      end   
+      end
 
 %=======================================================================
 %
@@ -1101,10 +1101,10 @@ switch lower(Action)
       % Enforce radio behaviour.
       %
       index = get(gcbo,'UserData');
-      if index==1 
-         partner=2; 
-      else 
-         partner=1; 
+      if index==1
+         partner=2;
+      else
+         partner=1;
       end
       tag = get(gcbo,'Tag');
       value = get(gcbo,'Value');
@@ -1114,7 +1114,7 @@ switch lower(Action)
          set(h,'Value',get(h,'Min'));
       else
          set(h,'Value',get(h,'Max'));
-      end 
+      end
 
       % Update Hz to voxel displacement map if the input parameters are ok
       if (FieldMap('GatherVDMData'))
@@ -1123,10 +1123,10 @@ switch lower(Action)
          %
          % Update unwarped EPI if one is loaded
          %
-         if ~isempty(IP.epiP) 
+         if ~isempty(IP.epiP)
             IP.uepiP = FieldMap('UnwarpEPI',IP);
             FieldMap('DisplayImage',IP.uepiP,[.05 .25 .95 .2],3);
-            FieldMap('ToggleGUI','On',char('WriteUnwarped')); 
+            FieldMap('ToggleGUI','On',char('WriteUnwarped'));
          end
       end
 
@@ -1139,15 +1139,15 @@ switch lower(Action)
    case 'radioon'
       my_gcbo = varargin{2};
       index = get(my_gcbo,'UserData');
-      if index==1 
-         partner=2; 
-      else 
-         partner=1; 
+      if index==1
+         partner=2;
+      else
+         partner=1;
       end
       set(my_gcbo,'Value',get(my_gcbo,'Max'));
       h = findobj(get(PM,'Children'),'Tag',get(my_gcbo,'Tag'),'UserData',partner);
-      set(h,'Value',get(h,'Min'));      
-      
+      set(h,'Value',get(h,'Min'));
+
 %=======================================================================
 %
 % Total readout-time was changed or entered
@@ -1164,18 +1164,18 @@ switch lower(Action)
       % which means (in the case of flash-based field map) coregistration
       % between field-map and sample EPI image should be redone. Phew!
       %
-                                       
-      if (FieldMap('GatherVDMData')) 
+
+      if (FieldMap('GatherVDMData'))
          FieldMap('FM2VDM',IP);
          % Update unwarped EPI if one is loaded
-         if ~isempty(IP.epiP) 
+         if ~isempty(IP.epiP)
             IP.uepiP = FieldMap('UnwarpEPI',IP);
             FieldMap('DisplayImage',IP.uepiP,[.05 .25 .95 .2],3);
             FieldMap('ToggleGUI','On',char('WriteUnwarped',...
                                           'LoadStructural'));
          end
          FieldMap('ToggleGUI','On',char('LoadEpi','EPI','BlipDir',...
-                                           'Jacobian','ReadTime')); 
+                                           'Jacobian','ReadTime'));
       else
          % If readtime is missing switch everything off...
          FieldMap('ToggleGUI','Off',char('LoadEpi','EPI',...
@@ -1195,35 +1195,35 @@ switch lower(Action)
 
       h = findobj(get(PM,'Children'),'Tag','EPI','UserData',1);
       v = get(h,{'Value','Max'});
-      if v{1} == 1 
-         IP.epifm = 1; 
+      if v{1} == 1
+         IP.epifm = 1;
       else
-         IP.epifm = 0; 
+         IP.epifm = 0;
       end
       h = findobj(get(PM,'Children'),'Tag','BlipDir','UserData',1);
       v = get(h,{'Value','Max'});
-      if v{1} == 1 %% CHLOE: Changed 
-         IP.blipdir = 1; 
+      if v{1} == 1 %% CHLOE: Changed
+         IP.blipdir = 1;
       else
-         IP.blipdir = -1; 
+         IP.blipdir = -1;
       end
       h = findobj(get(PM,'Children'),'Tag','Jacobian','UserData',1);
       v = get(h,{'Value','Max'});
-      if v{1} == 1 %% CHLOE: Changed 
-         IP.ajm = 1; 
+      if v{1} == 1 %% CHLOE: Changed
+         IP.ajm = 1;
       else
-         IP.ajm = 0; 
+         IP.ajm = 0;
       end
       h = findobj(get(PM,'Children'),'Tag','ReadTime');
       IP.tert = str2num(get(h,'String'));
 
-      if isempty(IP.tert) || isempty(IP.fm) || isempty(IP.fm.fpm)       
+      if isempty(IP.tert) || isempty(IP.fm) || isempty(IP.fm.fpm)
          varargout{1} = 0;
          FieldMap('ToggleGui','On','ReadTime');
       else
          varargout{1} = 1;
       end
-      
+
 %=======================================================================
 %
 % Draw transversal and sagittal image.
@@ -1237,22 +1237,22 @@ switch lower(Action)
          if ~isempty(ID{i}) && ~isempty(st.vols{i})
             set(st.vols{i}.ax{2}.ax,'Visible','Off'); % Disable event delivery in Coronal
             set(st.vols{i}.ax{2}.d,'Visible','Off');   % Make Coronal invisible
-            set(st.vols{i}.ax{1}.ax,'Position',ID{i}.tra_pos); 
+            set(st.vols{i}.ax{1}.ax,'Position',ID{i}.tra_pos);
             set(st.vols{i}.ax{1}.ax,'ButtonDownFcn','FieldMap(''Orthviews'');');
-            set(get(st.vols{i}.ax{1}.ax,'YLabel'),'String',ID{i}.label);      
-            set(st.vols{i}.ax{3}.ax,'Position',ID{i}.sag_pos); 
+            set(get(st.vols{i}.ax{1}.ax,'YLabel'),'String',ID{i}.label);
+            set(st.vols{i}.ax{3}.ax,'Position',ID{i}.sag_pos);
             set(st.vols{i}.ax{3}.ax,'ButtonDownFcn','FieldMap(''Orthviews'');');
          end
       end
-     
+
 %=======================================================================
 %
 % Callback for orthviews
 %
 %=======================================================================
 
-   case 'orthviews' 
-   
+   case 'orthviews'
+
    if strcmp(get(gcf,'SelectionType'),'normal')
       spm_orthviews('Reposition');
       %spm_orthviews('set_pos2cm');
@@ -1261,7 +1261,7 @@ switch lower(Action)
       %spm_orthviews('set_pos2cm');
       spm_orthviews('context_menu','ts',1);
    end;
-   curpos = spm_orthviews('pos',1); 
+   curpos = spm_orthviews('pos',1);
    set(st.in, 'String',sprintf('%3.3f',spm_sample_vol(st.vols{1},curpos(1),curpos(2),curpos(3),st.hld)));
 
 %=======================================================================
@@ -1273,7 +1273,7 @@ switch lower(Action)
    case 'displayimage'
 
       Fgraph = spm_figure('FindWin','Graphics');
-      
+
 %       if isempty(Fgraph)
 %          st.fig=spm_figure('Create','Graphics','Graphics');
 %          DGW = 1;
@@ -1283,7 +1283,7 @@ switch lower(Action)
       if isempty(Fgraph)
           return;
       end
-          
+
       if ~isempty(ID{varargin{4}})
          spm_orthviews('Delete',ID{varargin{4}}.h);
          ID{varargin{4}} = [];
@@ -1292,13 +1292,13 @@ switch lower(Action)
       h = spm_orthviews('Image',varargin{2},[.01 .01 .01 .01]);
 
       % Set bounding box to allow display of all images
-      spm_orthviews('MaxBB'); 
-      
+      spm_orthviews('MaxBB');
+
       % Put everything in space of original EPI image.
       if varargin{4} == 2
          %spm_orthviews('Space',h); % This was deleted for some reason
       end
-      
+
       %
       % Get best possible positioning and scaling for
       % transversal and sagittal views.
@@ -1329,18 +1329,18 @@ switch lower(Action)
                                'h',          h,...
                                'label',      label{varargin{4}});
       FieldMap('RedrawImages');
-    
+
       st.in = uicontrol(PM,'Style','Text',...
           'Position',[340 280 50 020].*WS,...
           'HorizontalAlignment','left',...
           'String','');
-    
+
 %=======================================================================
 %=======================================================================
 %
 % The functions below are called by the various gui buttons but are
 % not dependent on the gui to work. These functions can therefore also
-% be called from a script bypassing the gui and can return updated 
+% be called from a script bypassing the gui and can return updated
 % variables.
 %
 %=======================================================================
@@ -1353,7 +1353,7 @@ switch lower(Action)
 %=======================================================================
 
    case 'initialise'
-      
+
       %
       % Initialise parameters
       %
@@ -1377,12 +1377,12 @@ switch lower(Action)
       IP.uflags = struct('iformat','','method','','fwhm',[],'bmask',[],'pad',[],'etd',[],'ws',[]);
       IP.mflags = struct('template',[],'fwhm',[],'nerode',[],'ndilate',[],'thresh',[],'reg',[],'graphics',0);
 
-      % Initially set brain mask to be empty 
+      % Initially set brain mask to be empty
       IP.uflags.bmask = [];
 
       % Set parameter values according to defaults
       FieldMap('SetParams');
-      
+
       varargout{1}= IP;
 
 %=======================================================================
@@ -1413,7 +1413,7 @@ switch lower(Action)
       IP.uflags.fwhm = pm_def.FWHM;
       IP.uflags.pad = pm_def.PAD;
       IP.uflags.ws = pm_def.WS;
-      IP.uflags.etd = pm_def.LONG_ECHO_TIME - pm_def.SHORT_ECHO_TIME;     
+      IP.uflags.etd = pm_def.LONG_ECHO_TIME - pm_def.SHORT_ECHO_TIME;
 
       % Set parameters for brain masking
       IP.mflags.template = pm_def.MFLAGS.TEMPLATE;
@@ -1424,7 +1424,7 @@ switch lower(Action)
       IP.mflags.reg = pm_def.MFLAGS.REG;
       IP.mflags.graphics = pm_def.MFLAGS.GRAPHICS;
 
-      % Set parameters for unwarping 
+      % Set parameters for unwarping
       IP.ajm = pm_def.DO_JACOBIAN_MODULATION;
       IP.blipdir = pm_def.K_SPACE_TRAVERSAL_BLIP_DIR;
       IP.tert = pm_def.TOTAL_EPI_READOUT_TIME;
@@ -1458,7 +1458,7 @@ switch lower(Action)
          if isempty(menit{i}), menit{i} = 'Default'; end
       end
       varargout{1} = menit;
-      
+
 %=======================================================================
 %
 % Scale a phase map so that max = pi and min =-pi radians.
@@ -1473,7 +1473,7 @@ switch lower(Action)
    mn=min(vol(:));
    mx=max(vol(:));
    vol=-pi+(vol-mn)*2*pi/(mx-mn);
-   V.dt(1)=4;   
+   V.dt(1)=4;
    varargout{1} = FieldMap('Write',V,vol,'sc',V.dt(1),V.descrip);
 
 %=======================================================================
@@ -1554,7 +1554,7 @@ switch lower(Action)
       %
       % Select field map
       %
-      % 24/03/04 - Chloe change below to spm_get(1,'fpm_*.img')... 
+      % 24/03/04 - Chloe change below to spm_get(1,'fpm_*.img')...
       % IP.pP = spm_vol(spm_get(1,'fpm_*.img','Select field map'));
       % SPM5 Update
       IP.pP = spm_vol(spm_select(1,'^fpm.*\.img$','Select field map'));
@@ -1577,7 +1577,7 @@ switch lower(Action)
 
       IP=varargin{2};
 
-      % First check that images are in same space. 
+      % First check that images are in same space.
 
       if size([IP.P{1} IP.P{2} IP.P{3} IP.P{4}],2)==4
          ip_dim=cat(1,[IP.P{1}.dim' IP.P{2}.dim' IP.P{3}.dim' IP.P{4}.dim']');
@@ -1599,14 +1599,14 @@ switch lower(Action)
         varargout{1}=[];
       else
          % Update flags for unwarping (in case TEs have been adjusted
-         IP.uflags.etd = IP.et{2}-IP.et{1};      
+         IP.uflags.etd = IP.et{2}-IP.et{1};
 
-         % Clear any brain mask 
+         % Clear any brain mask
          IP.uflags.bmask = [];
 
          % SPM5 Update
          % If flag selected to mask brain and the field map is not based on EPI
-         if IP.maskbrain==1 
+         if IP.maskbrain==1
             IP.fmagP = FieldMap('Magnitude',IP);
             IP.uflags.bmask = pm_brain_mask(IP.fmagP,IP.mflags);
             varargout{2} = IP.fmagP;
@@ -1618,7 +1618,7 @@ switch lower(Action)
 
 %=======================================================================
 %
-% Convert field map to voxel displacement map and 
+% Convert field map to voxel displacement map and
 % do necessary inversions of displacement fields.
 %
 %=======================================================================
@@ -1662,13 +1662,13 @@ switch lower(Action)
       % Chloe added this: 26/02/05
       % Put fieldmap parameters in descrip field of vdm
 
-      vdm_info=sprintf('Voxel Displacement Map:echo time difference=%2.2fms, EPI readout time=%2.2fms',IP.uflags.etd, IP.tert);    
+      vdm_info=sprintf('Voxel Displacement Map:echo time difference=%2.2fms, EPI readout time=%2.2fms',IP.uflags.etd, IP.tert);
       if IP.epifm ==1
          spm_progress_bar('Init',3,'Inverting displacement map','');
          spm_progress_bar('Set',1);
          % Invert voxel shift map and multiply by -1...
          IP.vdm.ivdm = pm_invert_phasemap(-1*IP.vdm.vdm);
-         IP.vdm.ijac = pm_diff(IP.vdm.ivdm,2); 
+         IP.vdm.ijac = pm_diff(IP.vdm.ivdm,2);
          spm_progress_bar('Set',2);
          spm_progress_bar('Clear');
          FieldMap('Write',IP.vdmP,IP.vdm.ivdm,'',IP.vdmP.dt(1),vdm_info);
@@ -1685,7 +1685,7 @@ switch lower(Action)
 %=======================================================================
 
    case 'write'
-  
+
       V    = varargin{2};
       vol  = varargin{3};
       name = varargin{4};
@@ -1697,7 +1697,7 @@ switch lower(Action)
           'dt',     [varargin{5} spm_platform('bigend')],...
           'mat',    V.mat,...
           'descrip',varargin{6});
-      
+
       img = spm_write_vol(img,vol);
       varargout{1} = img;
 
@@ -1759,7 +1759,7 @@ switch lower(Action)
 %=======================================================================
 
    case 'unwarpepi'
-     
+
       %
       % Update unwarped EPI
       %
@@ -1774,8 +1774,8 @@ switch lower(Action)
       [x,y,z] = ndgrid(1:IP.epiP.dim(1),1:IP.epiP.dim(2),1:IP.epiP.dim(3));
       xyz = [x(:) y(:) z(:)];
 
-      % Space of EPI is IP.epiP{1}.mat and space of 
-      % voxel shift map is IP.vdmP{1}.mat 
+      % Space of EPI is IP.epiP{1}.mat and space of
+      % voxel shift map is IP.vdmP{1}.mat
       tM = inv(IP.epiP.mat\IP.vdmP.mat);
 
       x2 = tM(1,1)*x + tM(1,2)*y + tM(1,3)*z + tM(1,4);
@@ -1790,16 +1790,16 @@ switch lower(Action)
       msk = reshape(double(xyz2(:,1)>=1 & xyz2(:,1)<=IP.vdmP.dim(1) &...
                    xyz2(:,2)>=1 & xyz2(:,2)<=IP.vdmP.dim(2) &...
                    xyz2(:,3)>=1 & xyz2(:,3)<=IP.vdmP.dim(3)),IP.epiP.dim(1:3));
-              
+
       % Read in voxel displacement map in correct space
       tvdm = reshape(spm_sample_vol(spm_vol(IP.vdmP.fname),xyz2(:,1),...
                       xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));
 
-      % Voxel shift map must be added to the y-coordinates. 
+      % Voxel shift map must be added to the y-coordinates.
       uepi = reshape(spm_sample_vol(IP.epiP,xyz(:,1),...
                       xyz(:,2)+tvdm(:),xyz(:,3),1),IP.epiP.dim(1:3));% TEMP CHANGE
-      
-      % Sample Jacobian in correct space and apply if required 
+
+      % Sample Jacobian in correct space and apply if required
       if IP.ajm==1
          if IP.epifm==1 % If EPI, use inverted jacobian
 
@@ -1808,13 +1808,13 @@ switch lower(Action)
          else
             IP.jim = reshape(spm_sample_vol(IP.vdm.jac,xyz2(:,1),...
                       xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));
-         end  
+         end
          uepi = uepi.*(1+IP.jim);
       end
 
       IP.uepiP.dat=uepi.*msk;
       varargout{1}=IP.uepiP;
-      
+
 %=======================================================================
 %
 % Create unwarped epi - NO gui ***FOR XY***
@@ -1836,8 +1836,8 @@ switch lower(Action)
       [x,y,z] = ndgrid(1:IP.epiP.dim(1),1:IP.epiP.dim(2),1:IP.epiP.dim(3));
       xyz = [x(:) y(:) z(:)];
 
-      % Space of EPI is IP.epiP{1}.mat and space of 
-      % voxel shift map is IP.vdmP{1}.mat 
+      % Space of EPI is IP.epiP{1}.mat and space of
+      % voxel shift map is IP.vdmP{1}.mat
       tM = inv(IP.epiP.mat\IP.vdmP.mat);
 
       x2 = tM(1,1)*x + tM(1,2)*y + tM(1,3)*z + tM(1,4);
@@ -1852,16 +1852,16 @@ switch lower(Action)
       msk = reshape(double(xyz2(:,1)>=1 & xyz2(:,1)<=IP.vdmP.dim(1) &...
                            xyz2(:,2)>=1 & xyz2(:,2)<=IP.vdmP.dim(2) &...
                            xyz2(:,3)>=1 & xyz2(:,3)<=IP.vdmP.dim(3)),IP.epiP.dim(1:3));
-              
+
       % Read in voxel displacement map in correct space
       tvdm = reshape(spm_sample_vol(spm_vol(IP.vdmP.fname),xyz2(:,1),...
                       xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));
 
-      % Voxel shift map must be added to the x-coordinates. 
+      % Voxel shift map must be added to the x-coordinates.
       uepi = reshape(spm_sample_vol(IP.epiP,xyz(:,1)+tvdm(:),...
                       xyz(:,2),xyz(:,3),1),IP.epiP.dim(1:3));% TEMP CHANGE
-      
-      % Sample Jacobian in correct space and apply if required 
+
+      % Sample Jacobian in correct space and apply if required
       if IP.ajm==1
          if IP.epifm==1 % If EPI, use inverted jacobian
 
@@ -1870,7 +1870,7 @@ switch lower(Action)
          else
             IP.jim = reshape(spm_sample_vol(IP.vdm.jac,xyz2(:,1),...
                       xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));
-         end  
+         end
          uepi = uepi.*(1+IP.jim);
       end
 
@@ -1879,15 +1879,15 @@ switch lower(Action)
 
 %=======================================================================
 %
-% Coregister fieldmap magnitude image to EPI to unwarp 
+% Coregister fieldmap magnitude image to EPI to unwarp
 %
 %=======================================================================
 
    case 'matchvdm'
-   
+
       IP=varargin{2};
 
-      % 
+      %
       % Need a fieldmap magnitude image
       %
 
@@ -1899,10 +1899,10 @@ switch lower(Action)
             'dt',    IP.P{1}.dt,...
             'pinfo', IP.P{1}.pinfo,...
             'mat',   IP.P{1}.mat);
-      
+
          % If using real and imaginary data, calculate using sqrt(i1.^2 + i2.^2).
          % If using phase and magnitude, use magnitude image.
-         if strcmp(IP.uflags.iformat,'RI') 
+         if strcmp(IP.uflags.iformat,'RI')
             IP.fmagP = spm_imcalc(spm_vol([IP.P{1}.fname;IP.P{2}.fname]),IP.fmagP,'sqrt(i1.^2 + i2.^2)');
          else
             IP.fmagP = IP.P{2};
@@ -1914,8 +1914,8 @@ switch lower(Action)
          IP.fmagP = spm_vol(spm_select(1,'image','Select field map magnitude image'));
       end
 
-      % Now we have field map magnitude image, we want to coregister it to the 
-      % EPI to be unwarped. 
+      % Now we have field map magnitude image, we want to coregister it to the
+      % EPI to be unwarped.
       % If using an EPI field map:
       % 1) Coregister magnitude image to EPI.
       % 2) Apply resulting transformation matrix to voxel shift map
@@ -1923,7 +1923,7 @@ switch lower(Action)
       % 1) Forward warp magnitude image
       % 2) Coregister warped magnitude image to EPI.
       % 3) Apply resulting transformation matrix to voxel shift map
-    
+
       if IP.epifm==1
          [mi,M] = FieldMap('Coregister',IP.epiP,IP.fmagP);
          MM = IP.fmagP.mat;
@@ -1932,23 +1932,23 @@ switch lower(Action)
          [x,y,z] = ndgrid(1:IP.epiP.dim(1),1:IP.epiP.dim(2),1:IP.epiP.dim(3));
           xyz = [x(:) y(:) z(:)];
 
-         % Space of EPI is IP.epiP{1}.mat and space of fmagP is IP.fmagP.mat 
+         % Space of EPI is IP.epiP{1}.mat and space of fmagP is IP.fmagP.mat
          tM = inv(IP.epiP.mat\IP.fmagP.mat);
          x2 = tM(1,1)*x + tM(1,2)*y + tM(1,3)*z + tM(1,4);
          y2 = tM(2,1)*x + tM(2,2)*y + tM(2,3)*z + tM(2,4);
          z2 = tM(3,1)*x + tM(3,2)*y + tM(3,3)*z + tM(3,4);
          xyz2 = [x2(:) y2(:) z2(:)];
          wfmag = reshape(spm_sample_vol(IP.fmagP,xyz2(:,1),...
-                      xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));     
+                      xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));
 
          % Need to sample voxel shift map in space of EPI to be unwarped
          tvdm = reshape(spm_sample_vol(IP.vdm.vdm,xyz2(:,1),...
-                      xyz2(:,2),xyz2(:,3),0),IP.epiP.dim(1:3));            
-                      
+                      xyz2(:,2),xyz2(:,3),0),IP.epiP.dim(1:3));
+
          % Now apply warps to resampled forward warped magnitude image...
          wfmag = reshape(spm_sample_vol(wfmag,xyz(:,1),xyz(:,2)-tvdm(:),...
                        xyz(:,3),1),IP.epiP.dim(1:3));
-              
+
          % Write out forward warped magnitude image
          IP.wfmagP = struct('dim',  IP.epiP.dim,...
                          'dt',[64 spm_platform('bigend')],...
@@ -1959,19 +1959,19 @@ switch lower(Action)
          % Now coregister warped magnitude field map to EPI
          [mi,M] = FieldMap('Coregister',IP.epiP,IP.wfmagP);
 
-         % Update the .mat file of the forward warped mag image 
+         % Update the .mat file of the forward warped mag image
          spm_get_space(deblank(IP.wfmagP.fname),M*IP.wfmagP.mat);
 
-         % Get the original space of the fmap magnitude      
+         % Get the original space of the fmap magnitude
          MM = IP.fmagP.mat;
       end
 
       % Update .mat file for voxel displacement map
-      IP.vdmP.mat=M*MM;       
-      spm_get_space(deblank(IP.vdmP.fname),M*MM); 
+      IP.vdmP.mat=M*MM;
+      spm_get_space(deblank(IP.vdmP.fname),M*MM);
 
-      varargout{1} = IP.vdmP; 
-      
+      varargout{1} = IP.vdmP;
+
 %=======================================================================
 %
 % Coregister fieldmap magnitude image to EPI to do unwarpxy
@@ -1979,10 +1979,10 @@ switch lower(Action)
 %=======================================================================
 
    case 'matchvdmxy'
-   
+
       IP=varargin{2};
 
-      % 
+      %
       % Need a fieldmap magnitude image
       %
 
@@ -1994,10 +1994,10 @@ switch lower(Action)
              'dt',    IP.P{1}.dt,...
              'pinfo', IP.P{1}.pinfo,...
              'mat',   IP.P{1}.mat);
-      
+
          % If using real and imaginary data, calculate using sqrt(i1.^2 + i2.^2).
          % If using phase and magnitude, use magnitude image.
-         if strcmp(IP.uflags.iformat,'RI') 
+         if strcmp(IP.uflags.iformat,'RI')
             IP.fmagP = spm_imcalc(spm_vol([IP.P{1}.fname;IP.P{2}.fname]),IP.fmagP,'sqrt(i1.^2 + i2.^2)');
          else
             IP.fmagP = IP.P{2};
@@ -2011,8 +2011,8 @@ switch lower(Action)
          IP.fmagP = spm_vol(spm_select(1,'image','Select field map magnitude image'));
       end
 
-      % Now we have field map magnitude image, we want to coregister it to the 
-      % EPI to be unwarped. 
+      % Now we have field map magnitude image, we want to coregister it to the
+      % EPI to be unwarped.
       % If using an EPI field map:
       % 1) Coregister magnitude image to EPI.
       % 2) Apply resulting transformation matrix to voxel shift map
@@ -2020,7 +2020,7 @@ switch lower(Action)
       % 1) Forward warp magnitude image
       % 2) Coregister warped magnitude image to EPI.
       % 3) Apply resulting transformation matrix to voxel shift map
-    
+
       if IP.epifm==1
          [mi,M] = FieldMap('Coregister',IP.epiP,IP.fmagP);
          MM = IP.fmagP.mat;
@@ -2029,23 +2029,23 @@ switch lower(Action)
          [x,y,z] = ndgrid(1:IP.epiP.dim(1),1:IP.epiP.dim(2),1:IP.epiP.dim(3));
           xyz = [x(:) y(:) z(:)];
 
-         % Space of EPI is IP.epiP{1}.mat and space of fmagP is IP.fmagP.mat 
+         % Space of EPI is IP.epiP{1}.mat and space of fmagP is IP.fmagP.mat
          tM = inv(IP.epiP.mat\IP.fmagP.mat);
          x2 = tM(1,1)*x + tM(1,2)*y + tM(1,3)*z + tM(1,4);
          y2 = tM(2,1)*x + tM(2,2)*y + tM(2,3)*z + tM(2,4);
          z2 = tM(3,1)*x + tM(3,2)*y + tM(3,3)*z + tM(3,4);
          xyz2 = [x2(:) y2(:) z2(:)];
          wfmag = reshape(spm_sample_vol(IP.fmagP,xyz2(:,1),...
-                      xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));     
+                      xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));
 
          % Need to sample voxel shift map in space of EPI to be unwarped
          tvdm = reshape(spm_sample_vol(IP.vdm.vdm,xyz2(:,1),...
-                      xyz2(:,2),xyz2(:,3),0),IP.epiP.dim(1:3));            
-                      
+                      xyz2(:,2),xyz2(:,3),0),IP.epiP.dim(1:3));
+
          % Now apply warps to resampled forward warped magnitude image...
          wfmag = reshape(spm_sample_vol(wfmag,xyz(:,1)-tvdm(:),xyz(:,2),...
                        xyz(:,3),1),IP.epiP.dim(1:3));
-              
+
          % Write out forward warped magnitude image
          IP.wfmagP = struct('dim',  IP.epiP.dim,...
                          'dt',[64 spm_platform('bigend')],...
@@ -2056,19 +2056,19 @@ switch lower(Action)
          % Now coregister warped magnitude field map to EPI
          [mi,M] = FieldMap('Coregister',IP.epiP,IP.wfmagP);
 
-         % Update the .mat file of the forward warped mag image 
+         % Update the .mat file of the forward warped mag image
          spm_get_space(deblank(IP.wfmagP.fname),M*IP.wfmagP.mat);
 
-         % Get the original space of the fmap magnitude      
+         % Get the original space of the fmap magnitude
          MM = IP.fmagP.mat;
       end
 
       % Update .mat file for voxel displacement map
-      IP.vdmP.mat=M*MM;       
-      spm_get_space(deblank(IP.vdmP.fname),M*MM); 
+      IP.vdmP.mat=M*MM;
+      spm_get_space(deblank(IP.vdmP.fname),M*MM);
 
-      varargout{1} = IP.vdmP; 
-     
+      varargout{1} = IP.vdmP;
+
 %=======================================================================
 %
 % Invert voxel displacement map
@@ -2078,7 +2078,7 @@ switch lower(Action)
    case 'invert'
 
    vdm = pm_invert_phasemap(IP.vdm.vdm);
-   varargout{1} = vdm; 
+   varargout{1} = vdm;
 
 %=======================================================================
 %
@@ -2091,7 +2091,7 @@ switch lower(Action)
    IP=varargin{2};
 
    if isempty(IP.fmagP)
-      % 
+      %
       % Get fieldmap magnitude image
       %
       if isempty(IP.pP) && ~isempty(IP.P{1})
@@ -2099,13 +2099,13 @@ switch lower(Action)
          IP.fmagP=struct(...
              'fname', spm_file(IP.P{1}.fname,'prefix','mag_'),...
              'dim',   IP.P{1}.dim,...
-             'dt',    IP.P{1}.dt,...                         
+             'dt',    IP.P{1}.dt,...
              'pinfo', IP.P{1}.pinfo,...
              'mat',   IP.P{1}.mat);
-      
+
          % If using real and imaginary data, calculate using sqrt(i1.^2 + i2.^2).
          % If using phase and magnitude, use magnitude image.
-         if IP.uflags.iformat=='RI' 
+         if IP.uflags.iformat=='RI'
 
                IP.fmagP = spm_imcalc(spm_vol([IP.P{1}.fname;IP.P{2}.fname]),IP.fmagP,'sqrt(i1.^2 + i2.^2)');
          else
@@ -2123,9 +2123,9 @@ switch lower(Action)
        end
 
       end
-   end 
+   end
    varargout{1} = IP.fmagP;
-      
+
 %=======================================================================
 %
 % Load structural image
@@ -2146,7 +2146,7 @@ case 'loadstructural'
 %=======================================================================
 
    case 'matchstructural'
-   
+
      IP = varargin{2};
      [mi,M] = FieldMap('Coregister',IP.uepiP,IP.nwarp);
      MM = IP.nwarp.mat;
@@ -2161,7 +2161,7 @@ case 'loadstructural'
 %=======================================================================
 
    case 'coregister'
-     
+
       %
       % Coregisters image VF to image VG (use VF and VG like in SPM code)
       %
@@ -2172,7 +2172,7 @@ case 'loadstructural'
       IP.cflags.cost_fun = spm_get_defaults('coreg.estimate.cost_fun');
       IP.cflags.sep      = spm_get_defaults('coreg.estimate.sep');
       IP.cflags.tol      = spm_get_defaults('coreg.estimate.tol');
-      IP.cflags.fwhm     = spm_get_defaults('coreg.estimate.fwhm'); 
+      IP.cflags.fwhm     = spm_get_defaults('coreg.estimate.fwhm');
       IP.cflags.graphics = 0;
 
       % Voxel sizes (mm)
@@ -2183,7 +2183,7 @@ case 'loadstructural'
       fwhmg = sqrt(max([1 1 1]*IP.cflags.sep(end)^2 - vxg.^2, [0 0 0]))./vxg;
       fwhmf = sqrt(max([1 1 1]*IP.cflags.sep(end)^2 - vxf.^2, [0 0 0]))./vxf;
 
-   
+
       % Need to load data smoothed in unit8 format (as in spm_coreg_ui)
 %      if isfield(VG,'dat')
 %         VG=rmfield(VG,'dat');

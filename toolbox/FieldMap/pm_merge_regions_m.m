@@ -1,7 +1,7 @@
 function [varargout] = pm_merge_regions_m(opm,N,P,rima,gd)
 %
-% Merges regions as defined in connectogram to minimise 
-% total costfunction (sum of phase-differences across 
+% Merges regions as defined in connectogram to minimise
+% total costfunction (sum of phase-differences across
 % region borders).
 % FORMAT: pm = pm_merge_regions_m(pm,N,P,rima)
 % or
@@ -19,13 +19,13 @@ function [varargout] = pm_merge_regions_m(opm,N,P,rima,gd)
 %            by unique labels. Use pm_initial_regions to get rima.
 % gd       : g(raphical)d(isplay) if exist and equals 1 will produce
 %            a graphical display of the merging process. It might be useful
-%            for getting an understanding of what happens, but the 
+%            for getting an understanding of what happens, but the
 %            excitment wears pretty thin pretty soon.
 %
 % Output:
 % pm       : Phase-map after merging of all regions in rima that
 %            are connected.
-% rima     : Label map after merging of all possible regions (regions 
+% rima     : Label map after merging of all possible regions (regions
 %        with a common border). Note that if there are dissconnected
 %            regions in the original rima (e.g. in 2D where the temporal
 %            lobes may be disconnected from the rest of the brain) there
@@ -34,7 +34,7 @@ function [varargout] = pm_merge_regions_m(opm,N,P,rima,gd)
 % This routine is based on the MRM paper by Mark J. Very briefly it will
 % use the summary statistic in the matrices N and P, where each entry in
 % N signifies the number of voxels along the common border of the regions
-% whose labels correspond to row and column of the matrix. E.g. N(i,j) (for i<j) 
+% whose labels correspond to row and column of the matrix. E.g. N(i,j) (for i<j)
 % signifies the number of voxels along the border between regions labelled
 % i and j. The matrix P is organised in the same manner, with the difference
 % that the numbers correspond to the sum of differences of phase values
@@ -45,12 +45,12 @@ function [varargout] = pm_merge_regions_m(opm,N,P,rima,gd)
 % phase-wraps will have been resolved. An assumption here is that any
 % phase-wraps will always be along borders of the initial regions,
 % something that is (almost) guaranteed by the way in which we create them.
-% 
+%
 % There are two aspects to the merging
 % 1. We want to detect and correct for any phase-wrap between regions
 %    i and j when merging them.
 % 2. We want to merge the regions in such an order that more "important"
-%    regions are merged first. This is functionally similar to the 
+%    regions are merged first. This is functionally similar to the
 %    progression of wrapping from low->high varinace areas in region-growing
 %    approches.
 %
@@ -60,16 +60,16 @@ function [varargout] = pm_merge_regions_m(opm,N,P,rima,gd)
 %
 % The second goal is reached by merging the pairs of regions that have
 % the largest border (i.e. the largest N(i,j)) first (it is a little
-% more elaborate, but basically like that). 
+% more elaborate, but basically like that).
 %
 % The rest is really just about being really careful when updating the
 % stats regarding all the connections between a newly merged regions
 % and all the regions that bordered to one or both of the regions
 % constituting the new region.
 %
-% Jenkinson M. 2003. Fast, automated, N-dimensional phase-unwrapping 
+% Jenkinson M. 2003. Fast, automated, N-dimensional phase-unwrapping
 % algorithm. MRM 49:193-197.
-% 
+%
 % This is a .m version of pm_merge_regions.c. It is a fare bit slower
 % and produces identical results. Due to its relative simplicity and
 % its graphical output capabilities it might however be useful for
@@ -139,19 +139,19 @@ for cc=1:(cn-1)
 
    %
    % "Merge" the regions, using the optimal
-   % integer 2pi offset (l). Use the "label" 
-   % of the largest region of those constituting 
+   % integer 2pi offset (l). Use the "label"
+   % of the largest region of those constituting
    % the pair as the label for the new (merged) region.
    %
    if rs(i(mi)) > rs(j(mi))
-      mlbl = i(mi); olbl = j(mi); ooff = -l(mi); 
+      mlbl = i(mi); olbl = j(mi); ooff = -l(mi);
       rs(i(mi)) = rs(i(mi)) + rs(j(mi)); rs(j(mi)) = 0;
-   else     
-      mlbl = j(mi); olbl = i(mi); ooff = l(mi); 
+   else
+      mlbl = j(mi); olbl = i(mi); ooff = l(mi);
       rs(j(mi)) = rs(j(mi)) + rs(i(mi)); rs(i(mi)) = 0;
    end
    n(mi) = 0; p(mi) = 0;
-   
+
    %
    % Update stats of interfaces to old label
    %
@@ -187,11 +187,11 @@ for cc=1:(cn-1)
    k = -p./(2*pi*n);
    l = round(k);
    c = 8*pi^2*n.*(.5-abs(k-l));
-   
+
    %
    % Make changes in label image and phase-map
    %
-   indx = find(rima==olbl); 
+   indx = find(rima==olbl);
    rima(indx) = mlbl;
    upm(indx) = upm(indx) + 2*pi*ooff;
 
@@ -201,7 +201,7 @@ for cc=1:(cn-1)
    if length(i) == 0
       break;
    end
-end   
+end
 
 varargout{1} = upm;
 if nargout > 1

@@ -3,7 +3,7 @@ function out = spm_mb_merge(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_merge.m 7873 2020-06-12 17:09:56Z john $
+% $Id: spm_mb_merge.m 7892 2020-07-10 16:39:18Z john $
 
 out      = struct('mu','priors');
 odir     = cfg.odir{1};
@@ -44,7 +44,7 @@ if strcmp(ext,'.mat')
         pr         = r.sett.gmm(p).pr;
         pr{1}      = pr{1}(:,si);    % m
         pr{2}      = pr{2}(:,si);    % b
-        pr{3}      = pr{3}(:,:,si);  % V 
+        pr{3}      = pr{3}(:,:,si);  % V
         pr{4}      = pr{4}(:,si);    % n
         save(matname,'mg_ix','pr');
         out.priors{p} = matname;
@@ -84,7 +84,7 @@ mu1 = zeros([d K1-1],'single');
 mK  = combine(mu,find(ix==K1));
 for k1=1:(K1-1)
     mk  = combine(mu,find(ix==k1));
-    mu1(:,:,:,k1) = mk - mK; 
+    mu1(:,:,:,k1) = mk - mK;
 end
 %==========================================================================
 

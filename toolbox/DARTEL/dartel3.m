@@ -72,7 +72,7 @@ function varargout = dartel3(varargin)
 %
 % FORMAT v = dartel3('fmg',A, b, param)
 % v     - the solution n1*n2*n3*3
-% A     - parameterisation of 2nd derivatives 
+% A     - parameterisation of 2nd derivatives
 % b     - parameterisation of first derivatives
 % param - 6 parameters (settings)
 %         - [1] Regularisation type, can take values of
@@ -201,7 +201,7 @@ function varargout = dartel3(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: dartel3.m 5506 2013-05-14 17:13:43Z john $
+% $Id: dartel3.m 7892 2020-07-10 16:39:18Z john $
 
 %error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
 

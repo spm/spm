@@ -1,6 +1,6 @@
 function VDM = FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 % Function to prepare fieldmap data for processing
-% 
+%
 % FORMAT VDM = FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 % fm_dir    - name of directory containing fieldmap images
 % epi_dir   - name of directory containing epi images (needs first epi in time
@@ -12,7 +12,7 @@ function VDM = FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 %             vdm5_XXXX_'sessname'N.img where 'sessname is 'session' by
 %             default or another name if specified by the user as the fourth
 %             argument to the script.
-% pm_defs   - vector containing following values (optional flags in brackets): 
+% pm_defs   - vector containing following values (optional flags in brackets):
 %             [te1,te2,epifm,tert,kdir,(mask),(match),(write)];
 %
 % te1       - short echo time
@@ -20,30 +20,30 @@ function VDM = FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 % epifm     - epi-based fieldmap (1/0)?
 % tert      - total echo readout time
 % kdir      - blip direction (+1/-1)
-% mask      - (optional flag, default=1) Do brain masking or not 
+% mask      - (optional flag, default=1) Do brain masking or not
 %             (only if non-epi fieldmap)
 % match     - (optional flag, default=1) Match fieldmap to epi or not
 %
-% writeunwarped 
+% writeunwarped
 %           - (optional flag, default=1) Write unwarped epi or not
 %
 % sessname  - (optional string, default='session') This will be the name
 %             extension followed by an incremented integer for session specific vdm files.
 %
-% VDM       - cell array of file pointers to the VDM file(s) (voxel displacement map) 
+% VDM       - cell array of file pointers to the VDM file(s) (voxel displacement map)
 %             required for the Unwarping process. This will be written to the
 %             same directory as the fieldmap data.
 %
 % NB:
-% 1) This function takes input directory names and parameters and puts them 
+% 1) This function takes input directory names and parameters and puts them
 % into the correct format for creating fieldmaps
 % 2) The function assumes that only the fieldmap images are in the
 % fieldmap directory
-% 
-% Below is a list of the most common sequences and parameter lists 
+%
+% Below is a list of the most common sequences and parameter lists
 % used at the FIL:
 %
-% Sonata Siemens fieldmap parameters and default EPI fMRI'); 
+% Sonata Siemens fieldmap parameters and default EPI fMRI');
 % VDM=FieldMap_preprocess(fm_dir,epi_dir,[10.0,14.76,0,32,-1]);
 %
 % Allegra Siemens fieldmap parameters and default EPI fMRI
@@ -54,20 +54,20 @@ function VDM = FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 %
 % Allegra Siemens fieldmap parameters and 128 EPI fMRI
 % VDM=FieldMap_preprocess(fm_dir,epi_dir,[10.0,12.46,0,71.68,-1]);
-%  
+%
 % It is also possible to switch off the brain masking which is
-% done by default with a siemens field map (set 6th flag to 0) 
+% done by default with a siemens field map (set 6th flag to 0)
 % and the matching of the fieldmap to the EPI (set 7th flag to 0).
-% 
+%
 % This function generates session specific versions of the vdm file that
 % have been matched to the first image of each session.
 %__________________________________________________________________________
 % Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
 
-% Chloe Hutton 
-% $Id: FieldMap_preprocess.m 5962 2014-04-17 12:47:43Z spm $
+% Chloe Hutton
+% $Id: FieldMap_preprocess.m 7892 2020-07-10 16:39:18Z john $
 
- 
+
 if nargin < 3
   error('Usage: FieldMap_preprocess(fm_dir,epi_dir,pm_defs)');
 end
@@ -157,7 +157,7 @@ if strcmp(pm_def.INPUT_DATA_FORMAT,'PM')
       % up
       if nfiles>3
           nnfiles=0;
-          for filenum=1:nfiles        
+          for filenum=1:nfiles
               if ~strncmp(deblank(fm_imgs(filenum,:)),'sc',2)
                   nfm_imgs(nnfiles+1,:)=fm_imgs(filenum,:);
                   nnfiles=nnfiles+1;
@@ -184,10 +184,10 @@ if strcmp(pm_def.INPUT_DATA_FORMAT,'PM')
       end
    else
       error('Sorry. I cannot find the fieldmap files in %s',fm_dir);
-   end       
+   end
 elseif strcmp(pm_def.INPUT_DATA_FORMAT,'RI')
 
-   % This expects to find six EPI field map files: 
+   % This expects to find six EPI field map files:
    % 3 short (real, imag and mag) and 3 long (real, imag and mag).
 
    all_fm_imgs = strvcat(spm_select('List',fm_dir,'^f.*\.nii$'), spm_select('List',fm_dir,'^f.*\.img$'));
@@ -199,7 +199,7 @@ elseif strcmp(pm_def.INPUT_DATA_FORMAT,'RI')
       % Now the FieldMap creation expects the files in the order:
       % short-real, short-imag, long-real, long-imag
 
-      fm_imgs=all_fm_imgs([2 1 5 4],:); 
+      fm_imgs=all_fm_imgs([2 1 5 4],:);
       if (isempty(strfind(fm_imgs(1,:),'short-real')) || isempty(strfind(fm_imgs(2,:),'short-imag')) || isempty(strfind(fm_imgs(3,:),'long-real')) | isempty(strfind(fm_imgs(4,:),'long-imag')))
          error('There is a problem with the files. FieldMap needs short-real, short-imag, long-real, long-imag');
       end
@@ -209,6 +209,6 @@ else
 end
 
 %--------------------------------------------------------------------------
-% Run function to create vdm file 
+% Run function to create vdm file
 %--------------------------------------------------------------------------
 VDM = FieldMap_create(fm_imgs,epi_img,pm_def);

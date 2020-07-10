@@ -31,7 +31,7 @@ function vdm = FieldMap_Run(job)
 % Copyright (C) 2007-2015 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton & Jesper Andersson
-% $Id: FieldMap_Run.m 6656 2015-12-24 16:49:52Z guillaume $
+% $Id: FieldMap_Run.m 7892 2020-07-10 16:39:18Z john $
 
 
 %--------------------------------------------------------------------------
@@ -74,12 +74,12 @@ switch char(fieldnames(job.data))
             pm_defs.maskbrain  = 0;
         end
         pm_defs.uflags.iformat = '';
-        
+
     case 'presubphasemag' % && using presub
         tmp = FieldMap('Scale',spm_vol(job.data.presubphasemag.phase{1}));
         fm_imgs = [spm_vol(tmp.fname) spm_vol(job.data.presubphasemag.magnitude{1})];
         pm_defs.uflags.iformat = 'PM';
-        
+
     case 'phasemag'% && using double phase and magnitude
         tmp1 = FieldMap('Scale',spm_vol(job.data.phasemag.shortphase{1}));
         tmp2 = FieldMap('Scale',spm_vol(job.data.phasemag.longphase{1}));
@@ -88,14 +88,14 @@ switch char(fieldnames(job.data))
             spm_vol(tmp2.fname) ...
             spm_vol(job.data.phasemag.longmag{1})];
         pm_defs.uflags.iformat = 'PM';
-        
+
     case 'realimag' % && using real & imag
         fm_imgs = [spm_vol(job.data.realimag.shortreal{1}) ...
             spm_vol(job.data.realimag.shortimag{1}) ...
             spm_vol(job.data.realimag.longreal{1}) ...
             spm_vol(job.data.realimag.longimag{1})];
         pm_defs.uflags.iformat = 'RI';
-        
+
     otherwise
         error('Do not know what to do with this data. Please check your job');
 end
@@ -140,9 +140,9 @@ end
 [VDM, IPcell] = FieldMap_create(fm_imgs,epi_img,pm_defs);
 
 for sessnum=1:max([1 nsessions])
-    
+
     IP = IPcell{sessnum};
-    
+
     %----------------------------------------------------------------------
     % Display and print results
     %----------------------------------------------------------------------
@@ -158,7 +158,7 @@ for sessnum=1:max([1 nsessions])
     if ~isempty(IP.uepiP)
         FieldMap('DisplayImage',IP.uepiP,[.05 .25 .95 .2],3);
     end
-    
+
     %----------------------------------------------------------------------
     % Coregister structural with the unwarped image and display if required
     %----------------------------------------------------------------------
@@ -169,14 +169,14 @@ for sessnum=1:max([1 nsessions])
             do_matchanat = job.matchanat;
         end
     end
-    
+
     if ~isempty(IP.nwarp)==1 && ~isempty(IP.epiP)
         if do_matchanat == 1
             fprintf('\nMatching anatomical to unwarped EPI in session %d...\n\n',sessnum);
             FieldMap('MatchStructural',IP);
         end
     end
-    
+
     if ~isempty(IP.nwarp) && ~isempty(IP.epiP)
         FieldMap('DisplayImage',IP.nwarp,[.05 0.0 .95 .2],4);
         % Now need to redisplay other images to make it all look correct
@@ -189,6 +189,6 @@ for sessnum=1:max([1 nsessions])
         end
     end
     if ~isempty(fg), spm_print; end
-    
+
     vdm.vdmfile{sessnum} = {VDM{sessnum}.fname};
 end

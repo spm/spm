@@ -19,20 +19,20 @@ function seed = pm_seed(angvar,mask,pxs)
 % for low variance regions. This is then smoothed with a
 % very wide gaussian kernel (50mm). The maximum of
 % the smoothed map is then pretty much a centre-of-mass
-% of the "low-variance volume". It could however in 
-% principle be a relatively high variance voxel 
+% of the "low-variance volume". It could however in
+% principle be a relatively high variance voxel
 % surrounded by low-variance voxels. Therefore we pick
 % a percentage of the highest voxels in the smooth map
 % (i.e. we pick a neighbourhood) and then pick the location
 % of those that has the lowest variance in the original
 % variance map.
 %___________________________________________________________
-% Jesper Andersson 1/10-03 
+% Jesper Andersson 1/10-03
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Jesper Andersson 
-% $Id: pm_seed.m 4842 2012-08-15 18:02:30Z guillaume $
+% Jesper Andersson
+% $Id: pm_seed.m 7892 2020-07-10 16:39:18Z john $
 
 if nargin < 3
    mask = ones(size(angvar));
@@ -47,7 +47,7 @@ dim = size(angvar);
 if length(dim) == 2 dim(3) = 1; end
 
 M = eye(4)*diag([pxs(1) pxs(2) pxs(3) 1]);
-M = M - [zeros(4,3) M*[mean(1:dim(1)) mean(1:dim(2)) mean(1:dim(3)) 0]']; 
+M = M - [zeros(4,3) M*[mean(1:dim(1)) mean(1:dim(2)) mean(1:dim(3)) 0]'];
 
 P = struct('dim',     [dim 64],...
            'pinfo',   [1 0]',...
@@ -58,9 +58,9 @@ spm_smooth(P.dat,svol,50);
 
 %
 % A high value in svol "probably" indicates a
-% voxel with a low variance, surrounded by a 
+% voxel with a low variance, surrounded by a
 % lot of other voxels with low variance (i.e.
-% a good place to start unwrapping from). 
+% a good place to start unwrapping from).
 % However, it COULD also be a voxel with
 % "not so low variance" surrounded by low
 % variance voxels. To avoid that trap we pick

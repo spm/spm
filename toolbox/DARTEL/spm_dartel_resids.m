@@ -13,7 +13,7 @@ function out = spm_dartel_resids(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_resids.m 5668 2013-10-03 18:34:18Z guillaume $
+% $Id: spm_dartel_resids.m 7892 2020-07-10 16:39:18Z john $
 
 
 PG = job.template{1};
@@ -114,9 +114,9 @@ for i=1:numel(PI{1}),
     % as this makes more sense if the residuals are subsequently
     % smoothed.
     % dt = sqrt(dt);
- 
+
     f  = zeros([NU.dat.dim(1:3),n+1],'single');
- 
+
     [pth,nam,ext,num] = spm_fileparts(PI{1}{i});
     NI = nifti(fullfile(pth,[nam ext]));
     NO = NI;
@@ -183,7 +183,7 @@ for i=1:numel(PI{1}),
             vx = sqrt(sum(NO.mat(1:3,1:3).^2));
             spm_smooth(res,res,fwhm/vx); % Note the abuse of MATLAB
         end
-        NO.dat(:,:,:,1,j) = res; 
+        NO.dat(:,:,:,1,j) = res;
     end
 
     fprintf('\n');

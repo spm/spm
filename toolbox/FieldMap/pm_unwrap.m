@@ -13,7 +13,7 @@ function varargout = pm_unwrap(varargin)
 % FORMAT: [upm,(angvar),(mask),(opm)] = pm_unwrap(P,method)
 % or
 % FORMAT: [upm,(angvar),(mask),(opm)] = pm_unwrap(P)
-% 
+%
 % Input:
 % ci          : Complex image volume corresponding
 %               to  abs(te2).*exp(i*angle(te2))./exp(i*angle(te1));
@@ -21,7 +21,7 @@ function varargout = pm_unwrap(varargin)
 %               images obtained with the short and the long
 %               echo-time respectively, and i denotes sqrt(-1).
 % pxs         : 3x1 (or 2x1) array with pixel sizes.
-% 
+%
 % or
 %
 % P           : File structure (from) spm_vol, containing complex
@@ -31,12 +31,12 @@ function varargout = pm_unwrap(varargin)
 %               for phase-unwrapping. The options are
 %               'Huttonish', 'Mark2D', 'Mark3D' and 'hybrid'.
 % 'Huttonish' : Loosely (hence -ish) based on method described
-%               in Hutton et al. Gets an estimate of the 
+%               in Hutton et al. Gets an estimate of the
 %               uncertainty of the phase angle at each point
 %               and unwraps in a "watershed" fashion from
 %               a high certainty seed towards more uncertain
 %               areas.
-% 'Mark2D'    : Method suggested for high-res data in 
+% 'Mark2D'    : Method suggested for high-res data in
 %               Jenkinssons MRM paper.
 % 'Mark3D'    : Method suggested for low-res data in
 %               Jenkinssons MRM paper.
@@ -53,10 +53,10 @@ function varargout = pm_unwrap(varargin)
 % mask        : Binary mask indicating what voxels
 %               have been unwrapped.
 % opm         : angle(ci)
-%               
+%
 % Light reading:
-% 
-% Examples of water-shed/flood-fill based unwrapping 
+%
+% Examples of water-shed/flood-fill based unwrapping
 % algorithms:
 %
 % Hutton C, Bork A, Josephs O, Deichmann R, Ashburner J,
@@ -74,8 +74,8 @@ function varargout = pm_unwrap(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Jesper Andersson 
-% $Id: pm_unwrap.m 7661 2019-09-04 13:57:39Z guillaume $
+% Jesper Andersson
+% $Id: pm_unwrap.m 7892 2020-07-10 16:39:18Z john $
 
 %
 % The following are a set of parameters that
@@ -95,10 +95,10 @@ rr = 0;            % Should we remove linear ramps prior to unwrapping?
 
 %
 % These parameters guide the progression of the
-% unwrapping waterfront. We have found it very 
+% unwrapping waterfront. We have found it very
 % difficult to find a set of parameters that work
 % for "all" data sets. Sometimes it is better to
-% "pour" quickly in the beginning (large fthres) 
+% "pour" quickly in the beginning (large fthres)
 % and very slowly towards the end (large nthres).
 % Other times it is better to pour at an even
 % pace (fthres=0).
@@ -114,7 +114,7 @@ nthres = 100;           % No. of steps in between
 
 %
 % This, single, parameter guides the unwrapping
-% using Mark J's method, and has been found to be 
+% using Mark J's method, and has been found to be
 % useful for a large variety of data sets.
 %
 % Mark (2 and 3D)
@@ -153,7 +153,7 @@ end
 
 %
 % Generate (potentially wrapped) phase-map
-% 
+%
 opm = angle(ci);
 
 %
@@ -185,7 +185,7 @@ switch lower(method)
       %
       seed = pm_seed(angvar,mask,pxs);
       %
-      % Get series of thresholds that guide 
+      % Get series of thresholds that guide
       % evolution of unwrapping front.
       %
       thres = linspace(fthres,lthres,nthres);
@@ -207,11 +207,11 @@ switch lower(method)
       % limited angular span.
       %
       [irima,cn] = pm_initial_regions(opm,mask,nstep);
-      
+
       if isempty(getenv('SPM_PM_UNWRAP_FIX'))
          %
          % Added this little bug fix which prevents pm_merge_regions crashing
-         % because it has too many regions to merge. 
+         % because it has too many regions to merge.
          while cn > 1800 && nstep > 2
             nstep=nstep-1;
             [irima,cn] = pm_initial_regions(opm,mask,nstep);
@@ -224,7 +224,7 @@ switch lower(method)
          % Merge regions while updating connectogram
          %
          rs = histc(irima(:),[0:max(irima(:))]+0.5);
-         rs = rs(1:end-1); 
+         rs = rs(1:end-1);
          upm = pm_merge_regions(opm,irima,ii,jj,nn,pp,rs);
       else
          if cn > 1000 && nstep > 2
@@ -244,7 +244,7 @@ switch lower(method)
             upm = pm_merge_regions(opm,irima,ii,jj,nn,pp,rs);
          end
       end
-      
+
       wmap = mask;
    case 'mark2d'
       upm = zeros(size(opm));

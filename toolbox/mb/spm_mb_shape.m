@@ -1,5 +1,5 @@
 function varargout = spm_mb_shape(action,varargin)
-% Shape model 
+% Shape model
 %
 % FORMAT psi0      = spm_mb_shape('affine',d,Mat)
 % FORMAT B         = spm_mb_shape('affine_bases',code)
@@ -27,7 +27,7 @@ function varargout = spm_mb_shape(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7873 2020-06-12 17:09:56Z john $
+% $Id: spm_mb_shape.m 7892 2020-07-10 16:39:18Z john $
 
 switch action
     case 'affine'
@@ -682,7 +682,7 @@ if ~isempty(B)
             dat(n) = update_simple_affines_sub(dat(n),mu,G,H0,sett);
         end
     end
-    
+
     if groupwise
         % Zero-mean the affine parameters
         mq = sum(cat(2,dat(:).q),2)/numel(dat);
@@ -1243,8 +1243,8 @@ for i=1:n
     % warps in the early iterations, which might help the clustering
     % associate the right priors to each tissue class - without
     % warping the priors to the wrong tissue.
-    adhoc             = 1.1; 
-    sz(i).v_settings  = [vx v_settings*scale_i.^adhoc]; 
+    adhoc             = 1.1;
+    sz(i).v_settings  = [vx v_settings*scale_i.^adhoc];
     if isfield(mu,'create')
         mu_settings       = mu.create.mu_settings;
         sz(i).mu_settings = [vx mu_settings*scale_i];

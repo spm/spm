@@ -4,7 +4,7 @@ function out = spm_sextract(job)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_sextract.m 7652 2019-08-07 11:30:35Z john $
+% $Id: spm_sextract.m 7892 2020-07-10 16:39:18Z john $
 
 
 images = job.images;
@@ -15,7 +15,7 @@ out.Surface = {};
 for k=1:numel(job.surface)
     expression = job.surface(k).expression;
     thresh     = job.surface(k).thresh;
-    
+
     y = zeros(Vi(1).dim(1:3),'single');
     spm_progress_bar('Init',Vi(1).dim(3),expression,'planes completed');
     for p  = 1:Vi(1).dim(3)
@@ -33,11 +33,11 @@ for k=1:numel(job.surface)
         spm_progress_bar('Set',p);
     end
     spm_smooth(y,y,[1.5,1.5,1.5]);
-    
+
     [faces,vertices] = isosurface(y,thresh);
-    
+
     if isempty(vertices), error('No surface.'); end
-    
+
     % Swap around x and y because isosurface does for some
     % wierd and wonderful reason.
     Mat      = Vi(1).mat(1:3,:)*[0 1 0 0;1 0 0 0;0 0 1 0; 0 0 0 1];

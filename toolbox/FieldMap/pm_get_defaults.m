@@ -1,8 +1,8 @@
 function varargout = pm_get_defaults(defstr, varargin)
 
 % FORMAT defval = pm_get_defaults(defstr)
-% Return the defaults value associated with identifier "defstr". 
-% Currently, this is a '.' subscript reference into the global  
+% Return the defaults value associated with identifier "defstr".
+% Currently, this is a '.' subscript reference into the global
 % "defaults" variable defined in spm_defaults.m.
 %
 % FORMAT spm_get_defaults(defstr, defval)
@@ -16,7 +16,7 @@ function varargout = pm_get_defaults(defstr, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: pm_get_defaults.m 4572 2011-11-23 17:35:10Z chloe $
+% $Id: pm_get_defaults.m 7892 2020-07-10 16:39:18Z john $
 % ---------------------------------------------------------------------
 global pm_def
 if isempty(pm_def)

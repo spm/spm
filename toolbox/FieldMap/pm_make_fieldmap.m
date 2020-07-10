@@ -1,23 +1,23 @@
 function fm = pm_make_fieldmap(P,flags)
-% This function creates an unwrapped fieldmap (in Hz) from either 
-% a single or double echo complex image volume. In the case of a 
+% This function creates an unwrapped fieldmap (in Hz) from either
+% a single or double echo complex image volume. In the case of a
 % "single-echo" image, that will have been created by the vendor
-% sequence out of two acquisitions with different echo times. 
-% The complex image volume(s) may consist of either real and 
-% imaginary OR phase and magnitude components 
+% sequence out of two acquisitions with different echo times.
+% The complex image volume(s) may consist of either real and
+% imaginary OR phase and magnitude components
 %
 % FORMAT fm = pm_make_fieldmap(P,flags);
 %
-% Input: 
-% P           : A matrix of 2 or 4 filenames, or 
+% Input:
+% P           : A matrix of 2 or 4 filenames, or
 %               a struct array of 2 or 4 memory mapped image volumes.
 % flags       : Struct containing parameters guiding the unwrapping.
-% .iformat    : 'RI' or 'PM' 
+% .iformat    : 'RI' or 'PM'
 %               'RI' - input images are Real and Imaginary. (default)
 %               'PM' - input images are Phase and Magnitude
 % .method     : 'Huttonish', 'Mark3D' or 'Mark2D'
-%               'Huttonish': Flood-fill based unwrapping progressing 
-%                from low to high uncertainty areas. 
+%               'Huttonish': Flood-fill based unwrapping progressing
+%                from low to high uncertainty areas.
 %               'Mark3D': Region-merging based method merging 3D
 %                regions starting with the big ones. (default)
 %               'Mark2D': Region-merging based method merging
@@ -34,16 +34,16 @@ function fm = pm_make_fieldmap(P,flags)
 %               with an average of neighbouring unwrapped voxels.
 %               The size defines the size of the neighbourhood.
 %               (default = 0);
-% .etd        : Echo time difference (ms).(default = 10) 
+% .etd        : Echo time difference (ms).(default = 10)
 % .ws         : Weighted or unweighted smoothing (default = 1)
 % .bmask      : Brain mask
 %
 % Output:
 % fm          : Structure containing fieldmap information
 % The elements of the fm structure are:
-%   fm.upm    : unwrapped fieldmap in Hz 
+%   fm.upm    : unwrapped fieldmap in Hz
 %   fm.mask   : binary image used to mask fieldmap
-%   fm.opm    : phase map in radians 
+%   fm.opm    : phase map in radians
 %   fm.jac    : Jacobian of the fieldmap
 %_______________________________________________________________________
 %
@@ -56,9 +56,9 @@ function fm = pm_make_fieldmap(P,flags)
 % P(2)        : imaginary part of short echo time image
 % P(3)        : real part of long echo time image
 % P(4)        : imaginary part of long echo time image
-% 
+%
 %     Mode = 'PM'
-% 
+%
 % P(1)        : phase image
 % P(2)        : magnitude image
 %       OR
@@ -72,9 +72,9 @@ function fm = pm_make_fieldmap(P,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson and Chloe Hutton
-% $Id: pm_make_fieldmap.m 4842 2012-08-15 18:02:30Z guillaume $
+% $Id: pm_make_fieldmap.m 7892 2020-07-10 16:39:18Z john $
 
-% The default values below will be used if any flags haven't been defined 
+% The default values below will be used if any flags haven't been defined
 % or are empty.
 
 def_flags = struct('iformat',     'RI',...
@@ -174,8 +174,8 @@ if ~isempty(flags.bmask)
 end
 
 % Do a region growing such that any voxel that hasn't been
-% unwrapped and are less than flags.pad/2 voxels away 
-% from an unwrapped one will be replaced by an average of 
+% unwrapped and are less than flags.pad/2 voxels away
+% from an unwrapped one will be replaced by an average of
 % the surrounding unwrapped voxels.
 
 if flags.pad ~= 0
@@ -195,9 +195,9 @@ end
 % Note that the resulting weighted kernel is NOT
 % separable, why we have to do the whole (slow)
 % 3D thingie.
-% 
+%
 
-if flags.ws==1 
+if flags.ws==1
    fm.fpm = pm_smooth_phasemap(fm.upm.*fm.mask,angvar,pxs,flags.fwhm);
 else
    disp('Using normal smoothing');

@@ -15,7 +15,7 @@ function out = spm_dartel_import(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_import.m 5506 2013-05-14 17:13:43Z john $
+% $Id: spm_dartel_import.m 7892 2020-07-10 16:39:18Z john $
 
 matnames = job.matnames;
 for i=1:numel(matnames),
@@ -142,7 +142,7 @@ for z=1:length(x3),
 end;
 spm_progress_bar('clear');
 
-%[dat{1},dat{2},dat{3}] = clean_gwc(dat{1},dat{2},dat{3}, 2); 
+%[dat{1},dat{2},dat{3}] = clean_gwc(dat{1},dat{2},dat{3}, 2);
 if iopt,
     if bitand(iopt,2),
         nwm = 0;
@@ -184,11 +184,11 @@ bb(2,:) = vx*floor(bb(2,:)/vx);
 mm = [
     bb(1,1) bb(1,2) bb(1,3)
     bb(2,1) bb(1,2) bb(1,3)
-    bb(1,1) bb(2,2) bb(1,3)    
+    bb(1,1) bb(2,2) bb(1,3)
     bb(2,1) bb(2,2) bb(1,3)
-    bb(1,1) bb(1,2) bb(2,3)    
-    bb(2,1) bb(1,2) bb(2,3)    
-    bb(1,1) bb(2,2) bb(2,3)    
+    bb(1,1) bb(1,2) bb(2,3)
+    bb(2,1) bb(1,2) bb(2,3)
+    bb(1,1) bb(2,2) bb(2,3)
     bb(2,1) bb(2,2) bb(2,3)]';
 
 vx2 = inv(p.VG(1).mat)*[mm ; ones(1,8)];
@@ -245,7 +245,7 @@ if iopt,
         VT.descrip = 'Resliced';
         if bitand(iopt,2), VT.descrip = [VT.descrip ', bias corrected']; end;
         if bitand(iopt,4), VT.descrip = [VT.descrip ', skull stripped']; end;
-        
+
         VT = spm_create_vol(VT);
 
         Ni             = nifti(VT.fname);

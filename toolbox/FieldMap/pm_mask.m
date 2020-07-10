@@ -10,7 +10,7 @@ function mask = pm_mask(angvar,mthres,ndil)
 %              uncertain. Default value (pi^2)/6
 %              is half the variance of a U[-pi,pi]
 %              distribution.
-% ndil       : We can optionally specify a no. of 
+% ndil       : We can optionally specify a no. of
 %              erodes-dilates to apply to the mask
 %              in order to exclude areas connected
 %              only by thin bridges to the rest of
@@ -23,8 +23,8 @@ function mask = pm_mask(angvar,mthres,ndil)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Jesper Andersson 
-% $Id: pm_mask.m 1317 2008-04-08 16:16:38Z chloe $
+% Jesper Andersson
+% $Id: pm_mask.m 7892 2020-07-10 16:39:18Z john $
 
 if nargin < 2
    mthres = (pi^2)/6;
@@ -61,4 +61,4 @@ if ndil
 end
 
 return
- 
+

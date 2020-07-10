@@ -1,8 +1,8 @@
 function out = FieldMap_applyvdm(job)
-% Apply VDM and reslice images 
+% Apply VDM and reslice images
 % FORMAT FieldMap_applyvdm(job)
 % job.data(sessnum).scans   - images for session/run sessnum
-% job.data(sessnum).vdmfile - VDM file for session/run sessnum      
+% job.data(sessnum).vdmfile - VDM file for session/run sessnum
 % job.roptions.rinterp - interpolation method
 % job.roptions.wrap    - perform warp around in specified dimensions
 % job.roptions.mask    - perform masking
@@ -13,21 +13,21 @@ function out = FieldMap_applyvdm(job)
 % this dimension
 %__________________________________________________________________________
 %
-% A VDM (voxel displacement map) created using the FieldMap toolbox 
-% can be used to resample and reslice realigned images to the original 
-% subdirectory with the same (prefixed) filename. 
+% A VDM (voxel displacement map) created using the FieldMap toolbox
+% can be used to resample and reslice realigned images to the original
+% subdirectory with the same (prefixed) filename.
 %
-% Voxels in the images will be shifted according to the values in the VDM 
+% Voxels in the images will be shifted according to the values in the VDM
 % file along the direction specified by job.roptions.pedir (i.e. this is
-% usually the phase encode direction) and resliced to the space of the 
+% usually the phase encode direction) and resliced to the space of the
 % first image in the time series.
 %
 % Inputs:
 % A job structure containing fields for the input data and the processing
-% options. The input data contains the series of images conforming to 
-% SPM data format (see 'Data Format'), the relative displacement of the images 
-% is stored in their header and a VDM which has (probably) been created 
-% using the FieldMap toolbox and matched to the first image in the time 
+% options. The input data contains the series of images conforming to
+% SPM data format (see 'Data Format'), the relative displacement of the images
+% is stored in their header and a VDM which has (probably) been created
+% using the FieldMap toolbox and matched to the first image in the time
 % series (this can also be done via the FieldMap toolbox).
 %
 % Outputs:
@@ -36,7 +36,7 @@ function out = FieldMap_applyvdm(job)
 % Copyright (C) 2011-2014 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: FieldMap_applyvdm.m 6258 2014-11-07 18:15:40Z guillaume $
+% $Id: FieldMap_applyvdm.m 7892 2020-07-10 16:39:18Z john $
 
 tiny = 5e-2;
 
@@ -65,10 +65,10 @@ for i = 1:numel(job.data)
     ds(i).P=spm_vol(P{i});
     if ~isempty(job.data(i).vdmfile)
         sfP{i} = job.data(i).vdmfile{1};
-        ds(i).sfP=spm_vol(sfP{i}); 
+        ds(i).sfP=spm_vol(sfP{i});
     else
-        sfP{i} = [];       
-    end  
+        sfP{i} = [];
+    end
     ds(i).hold = [1 1 1 0 1 0];
 end
 
@@ -87,16 +87,16 @@ xyz = [x(:) y(:) z(:) ones(prod(ds(1).P(1).dim(1:3)),1)]; clear x y z;
 if flags.mask || flags.mean,
     spm_progress_bar('Init',ntot,'Computing available voxels',...
         'volumes completed');
-    
+
     if flags.mean
         Count    = zeros(prod(ds(1).P(1).dim(1:3)),1);
         Integral = zeros(prod(ds(1).P(1).dim(1:3)),1);
     end
-    
+
     % if flags.mask
     msk = zeros(prod(ds(1).P(1).dim(1:3)),1);
     % end
-    
+
     % To create mean, read each session specific vdmfile in
     % to the space of the first image of first session
     tv = 1;
@@ -123,7 +123,7 @@ if flags.mask || flags.mean,
         end
         msk = msk + sess_msk;
         if flags.mean, Count = Count + repmat(length(ds(s).P),prod(ds(s).P(1).dim(1:3)),1) - sess_msk; end
-        
+
         %
         % Include static field in estmation of mask.
         %
@@ -149,19 +149,19 @@ end
 spm_progress_bar('Init',ntot,'Reslicing','volumes completed');
 tv = 1;
 for s = 1:numel(ds)
-    
+
     % Get transformation between distortion field and first image
     T = ds(s).sfP.mat\ds(1).P(1).mat;
     txyz = xyz * T';
     c = spm_bsplinc(ds(s).sfP,ds(1).hold);
     ds(s).sfield = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds(1).hold);
     ds(s).sfield = ds(s).sfield(:);
-    
+
     % Read in each images in space of first image of first session
     for i = 1:numel(ds(s).P)
         T = inv(ds(s).P(i).mat) * ds(1).P(1).mat;
         txyz = xyz * T';
-        txyz(:,applydim) = txyz(:,applydim) + ds(s).sfield;       
+        txyz(:,applydim) = txyz(:,applydim) + ds(s).sfield;
         c = spm_bsplinc(ds(s).P(i),hold);
         ima = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),hold);
         %
@@ -181,7 +181,7 @@ for s = 1:numel(ds)
             PO   = spm_create_vol(PO);
             spm_write_vol(PO,ivol);
             if nargout > 0
-                  out.sess(s).rfiles{i} = PO.fname;   
+                  out.sess(s).rfiles{i} = PO.fname;
             end
         end
         %
@@ -203,7 +203,7 @@ end
 if flags.mean
    % Write integral image (16 bit signed)
    %-----------------------------------------------------------------------
-   sw = warning('off','MATLAB:divideByZero'); 
+   sw = warning('off','MATLAB:divideByZero');
    Integral   = Integral./Count;
    warning(sw);
    PO         = ds(1).P(1);

@@ -18,7 +18,7 @@ function [VDM,IPcell]=FieldMap_create(fm_imgs,epi_img,pm_defs)
 % Copyright (C) 2006-2015 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: FieldMap_create.m 6504 2015-07-22 13:42:43Z guillaume $
+% $Id: FieldMap_create.m 7892 2020-07-10 16:39:18Z john $
 
 if nargin < 3
     error('field map images, epi image and defaults');
@@ -186,13 +186,13 @@ elseif nsessions==1
             IP.vdmP = FieldMap('MatchVDM',IP);
         end
     end
-    
+
     %----------------------------------------------------------------------
     % Unwarp EPI
     %----------------------------------------------------------------------
-    
+
     IP.uepiP = FieldMap('UnwarpEPI',IP);
-    
+
     %----------------------------------------------------------------------
     % Write unwarped EPI
     % Outputs -> uNAME-OF-EPI.img
@@ -206,14 +206,14 @@ else
     % Copies the written file to
     %----------------------------------------------------------------------
     orig_vdm=IP.vdmP;
-    
+
     % get session specific fieldmap name
     if isfield(pm_defs,'sessname')
         sessname=pm_defs.sessname;
     else
         sessname='session';
     end
-    
+
     for sessnum=1:nsessions
         IP.vdmP=orig_vdm; % Make sure we start with original for each session
         Ovdm=IP.vdmP;
@@ -233,14 +233,14 @@ else
             Ovdm=struct('fname',newname,'mat',session_vdm.mat,'dim',session_vdm.dim,'dt',session_vdm.dt,'descrip',vdm_info);
             spm_write_vol(Ovdm,vol);
         end
-        
+
         %------------------------------------------------------------------
         % Unwarp EPI
         %------------------------------------------------------------------
         if isfield(pm_defs,'write_unwarped')
             if pm_defs.write_unwarped
                 IP.uepiP = FieldMap('UnwarpEPI',IP);
-                
+
                 %----------------------------------------------------------
                 % Write unwarped EPI
                 % Outputs -> uNAME-OF-EPI.img

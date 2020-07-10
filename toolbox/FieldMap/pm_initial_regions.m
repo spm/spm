@@ -11,7 +11,7 @@ function [irima,cn] = pm_initial_regions(pm,mask,nstep)
 % nstep   : Defines the number of equi-wide angle ranges
 %           between -pi and pi that we should use.
 %           If linear phase-ramps have been removed from
-%           the data we may have values outside the 
+%           the data we may have values outside the
 %           -pi->pi range. We will then simply divide
 %           the observed range into nstep steps.
 %
@@ -34,8 +34,8 @@ function [irima,cn] = pm_initial_regions(pm,mask,nstep)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Jesper Andersson 
-% $Id: pm_initial_regions.m 1317 2008-04-08 16:16:38Z chloe $
+% Jesper Andersson
+% $Id: pm_initial_regions.m 7892 2020-07-10 16:39:18Z john $
 if max(abs(pm(:))) > pi
    nstep = round(nstep * (max(pm(:))-min(pm(:))) / (2*pi));
    bins = linspace(min(pm(:))-eps,max(pm(:)),nstep+1);

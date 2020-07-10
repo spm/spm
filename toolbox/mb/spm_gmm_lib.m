@@ -37,7 +37,7 @@ function varargout = spm_gmm_lib(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_gmm_lib.m 7873 2020-06-12 17:09:56Z john $
+% $Id: spm_gmm_lib.m 7892 2020-07-10 16:39:18Z john $
 
 %--------------------------------------------------------------------------
 % Convention
@@ -486,7 +486,7 @@ for em=1:iter_max
             end
             fprintf('%-5s | %4d | lb = %-12.6g | gain = %-10.4g | %3s\n', 'sub', i, LB(i+1), subgain, incr);
         end
-        if numel(SS0m)==1 || subgain < subtolerance 
+        if numel(SS0m)==1 || subgain < subtolerance
             break
         end
     end
@@ -531,7 +531,7 @@ for em=1:iter_max
     % Check convergence
     osum = sum(olb.X)+sum(olb.mu)+sum(olb.A);
     nsum = sum(lb.X)+sum(lb.mu)+sum(lb.A);
-    if em>2 && (nsum-osum) < tolerance 
+    if em>2 && (nsum-osum) < tolerance
         break;
     end
 
@@ -789,7 +789,7 @@ function logpX = marginal_t(X, cluster, L, E)
 %
 % X         - {NoxP} Observed values
 % mu        -  PxK   (Expected) means
-% b         - 
+% b         -
 % V         -  PxPxK Wishart scale matrices
 % n         -  1xK   Wishart degrees of freedom
 % L         -  MxP   Mask of missing patterns
@@ -856,7 +856,7 @@ for i=1:size(L,1)
         Vo   = V(io,io,k) - V(io,im,k)*(V(im,im,k)\V(im,io,k));
         no   = n(k) - Pm;
 
-        % Parameters for Student's t: St(mu,Lam,nu) 
+        % Parameters for Student's t: St(mu,Lam,nu)
         Lam  = ((no+1-Po)*b(k)/(b(k)+1)) * Vo; % Bishop's PRML eq. 10.82
         nu   =   no+1-Po;                      % Bishop's PRML eq. 10.81
 
@@ -2677,7 +2677,7 @@ function ld = logdet(A)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_gmm_lib.m 7873 2020-06-12 17:09:56Z john $
+% $Id: spm_gmm_lib.m 7892 2020-07-10 16:39:18Z john $
 
 % Cholseki decomposition of A (A = C' * C, with C upper-triangular)
 [C, p] = chol(A);

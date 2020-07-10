@@ -35,7 +35,7 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 7182 2017-10-06 10:37:31Z christophe $
+% $Id: spm_dartel_norm_fun.m 7892 2020-07-10 16:39:18Z john $
 
 % If there is no passed tpm field (ie the default behaviour), then use the default.
 if isfield(job,'tpm')
@@ -72,13 +72,13 @@ dimt = size(Nt.dat);
 
 if any(isfinite(bb(:))) || any(isfinite(vox)),
     [bb0,vox0] = spm_get_bbox(Nt, 'old');
-    
+
     msk = ~isfinite(vox); vox(msk) = vox0(msk);
     msk = ~isfinite(bb);   bb(msk) =  bb0(msk);
-    
+
     bb  = sort(bb);
     vox = abs(vox);
-    
+
     % Adjust bounding box slightly - so it rounds to closest voxel.
     bb(:,1) = round(bb(:,1)/vox(1))*vox(1);
     bb(:,2) = round(bb(:,2)/vox(2))*vox(2);
@@ -116,7 +116,7 @@ if isfield(job.data,'subj') || isfield(job.data,'subjs'),
         mat_intent = 'Aligned';
     end
     fprintf('\n');
-    
+
     if isfield(job.data,'subjs')
         % Re-order data
         %------------------------------------------------------------------
@@ -133,7 +133,7 @@ if isfield(job.data,'subj') || isfield(job.data,'subjs'),
     else
         subj = job.data.subj;
     end
-    
+
     % Loop over subjects
     %----------------------------------------------------------------------
     out = cell(1,numel(subj));
@@ -143,7 +143,7 @@ if isfield(job.data,'subj') || isfield(job.data,'subjs'),
         fprintf('** "%s" **\n', nam);
         out{i} = deal_with_subject(subj(i).flowfield,subj(i).images,K,mat,dim,M,job.preserve,job.fwhm,mat_intent,output);
     end
-    
+
     if isfield(job.data,'subjs'),
         out1 = out;
         out  = cell(numel(subj),numel(subjs.images));
@@ -179,7 +179,7 @@ odm = zeros(1,3);
 oM  = zeros(4,4);
 out = cell(1,numel(PI));
 for m=1:numel(PI),
-    
+
     % Generate headers etc for output images
     %----------------------------------------------------------------------
     [pth,nam,ext,num] = spm_fileparts(PI{m});
@@ -215,16 +215,16 @@ for m=1:numel(PI),
     out{m} = NO.dat.fname;
     NO.extras = [];
     create(NO);
-    
+
     % Smoothing settings
     vx  = sqrt(sum(mat(1:3,1:3).^2));
     krn = max(fwhm./vx,0.1);
-    
+
     % Loop over volumes within the file
     %----------------------------------------------------------------------
     fprintf('%s',nam); drawnow;
     for j=1:size(NI.dat,4),
-        
+
         % Check if it is a Dartel "imported" image to normalise
         if sum(sum((NI.mat  - NU.mat ).^2)) < 0.0001 && ...
            sum(sum((NI.mat0 - NU.mat0).^2)) < 0.0001,
@@ -244,7 +244,7 @@ for m=1:numel(PI),
                     M0 = M1(:,:,j);
                 end
             end
-            
+
             M   = NU.mat0\M0;
             dm  = [size(NI.dat),1,1,1,1];
             if ~all(dm(1:3)==odm) || ~all(M(:)==oM(:)),
@@ -260,7 +260,7 @@ for m=1:numel(PI),
         end
         odm = dm(1:3);
         oM  = M;
-        
+
         % Write the warped data for this time point.
         %------------------------------------------------------------------
         for k=1:size(NI.dat,5),

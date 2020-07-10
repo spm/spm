@@ -15,8 +15,8 @@ function angvar = pm_angvar(cmap)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Jesper Andersson 
-% $Id: pm_angvar.m 4842 2012-08-15 18:02:30Z guillaume $
+% Jesper Andersson
+% $Id: pm_angvar.m 7892 2020-07-10 16:39:18Z john $
 
 % Get mutual histogram of Re and Im part of all voxels.
 %
@@ -60,7 +60,7 @@ sim(find(sim(:) < -pi)) = sim(find(sim(:) < -pi)) + 2*pi;
 sim(find(sim(:) > pi)) = sim(find(sim(:) > pi)) - 2*pi;
 variance = var(sim);
 angvar = reshape(interp1(avals,variance,abs(cmap(:)),'linear'),size(cmap));
- 
+
 %
 % Smooth ever so little
 %

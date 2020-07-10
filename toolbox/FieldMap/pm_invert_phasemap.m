@@ -1,12 +1,12 @@
 function varargout = pm_invert_phasemap(varargin)
 % Inverting phasemaps (trickier than it sounds).
-% FORMAT ipm = invert_phasemap(pm) 
-% or 
-% FORMAT ipm = invert_phasemap(pm,idim) 
+% FORMAT ipm = invert_phasemap(pm)
 % or
-% FORMAT ipm = invert_phasemap(P) 
+% FORMAT ipm = invert_phasemap(pm,idim)
 % or
-% FORMAT ipm = invert_phasemap(P,idim) 
+% FORMAT ipm = invert_phasemap(P)
+% or
+% FORMAT ipm = invert_phasemap(P,idim)
 % or
 % FORMAT invert_phasemap(P,fname)
 % or
@@ -22,12 +22,12 @@ function varargout = pm_invert_phasemap(varargin)
 % Output:
 % ipm     Displacement-field inverted along requested direction.
 %
-% This is a gateway function to invert_phasemap_dtj (do the job) 
-% which is a mex-file. The job of this routine is to handle some of 
+% This is a gateway function to invert_phasemap_dtj (do the job)
+% which is a mex-file. The job of this routine is to handle some of
 % the basic book-keeping regarding format and file creation.
 %_______________________________________________________________________
 % Jesper Andersson 10/1-02
-% 
+%
 % Added the possibility to specify along which direction
 % the field should be inverted.
 %_______________________________________________________________________
@@ -36,15 +36,15 @@ function varargout = pm_invert_phasemap(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Jesper Andersson 
-% $Id: pm_invert_phasemap.m 4842 2012-08-15 18:02:30Z guillaume $
+% Jesper Andersson
+% $Id: pm_invert_phasemap.m 7892 2020-07-10 16:39:18Z john $
 
 %
 % Decode first input parameter.
 %
 if isfield(varargin{1},'dim') || ischar(varargin{1})
    if isfield(varargin{1},'dim')
-      P = varargin{1}; 
+      P = varargin{1};
    elseif ischar(varargin{1})
       P = spm_vol(varargin{1});
    end
@@ -89,7 +89,7 @@ ipm = pm_invert_phasemap_dtj(pm,idim);
 % The next (dead) section shows the implementation in
 % Matlab code for documentation purposes.
 %
-if 1==0 
+if 1==0
    ipm = zeros(dim(1),dim(2),dim(3));
    y = zeros(1,dim(2));
    for sl = 1:dim(3)
@@ -97,7 +97,7 @@ if 1==0
          gy = [1:dim(2)]+pm(col,:,sl);
          for i=1:dim(2)
             indx = find(gy > i);
-            if ~isempty(indx) && indx(1) > 1 
+            if ~isempty(indx) && indx(1) > 1
                y(i) = (indx(1)-1) + (i-gy(indx(1)-1))*1/(gy(indx(1))-gy(indx(1)-1));
             else
                y(i) = NaN;
@@ -127,7 +127,7 @@ if length(varargin) == 2 && exist('P','var') == 1
                'dim',       [dim spm_type('int16')],...
                'mat',       P.mat,...
                'pinfo',     [1 0 0]',...
-               'descrip',   'Inverted displacements from phase map');        
+               'descrip',   'Inverted displacements from phase map');
    spm_write_vol(oP,ipm);
 end
 

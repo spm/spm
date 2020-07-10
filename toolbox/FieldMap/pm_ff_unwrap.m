@@ -5,10 +5,10 @@ function varargout = pm_ff_unwrap(varargin)
 % FORMAT [pm,wm] = pm_ff_unwrap(pm,vm,wm,mask,thres)
 %
 % Input:
-% pm     : 2 or 3D phasemap where some voxels have been unwrapped 
+% pm     : 2 or 3D phasemap where some voxels have been unwrapped
 %          and some not.
 % vm     : Variance map, indicating the variance of the phase estimate.
-% wm     : Wrap-map, where a non-zero value indicates corresponding 
+% wm     : Wrap-map, where a non-zero value indicates corresponding
 %          phase-value in pm has been unwrapped.
 % mask   : Mask that indicates which voxels are worth
 %          bothering with and which are not.
@@ -38,8 +38,8 @@ function varargout = pm_ff_unwrap(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Jesper Andersson 
-% $Id: pm_ff_unwrap.m 1317 2008-04-08 16:16:38Z chloe $
+% Jesper Andersson
+% $Id: pm_ff_unwrap.m 7892 2020-07-10 16:39:18Z john $
 
 error('mex-function pm_ff_unwrap.c not compiled');
 

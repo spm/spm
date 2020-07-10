@@ -9,7 +9,7 @@ function varargout = spm_mb_appearance(action,varargin) % Appearance model
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7885 2020-07-03 14:10:31Z mikael $
+% $Id: spm_mb_appearance.m 7892 2020-07-10 16:39:18Z john $
 
 
 switch action
@@ -362,7 +362,7 @@ for it_appear=1:nit_appear
     lx     = lb.X;
     lbs    = sum(lb.mu,'double')+sum(lb.A,'double')+lx+lxb;
     %fprintf('%g ', lbs/nvox);
-    if (it_appear==nit_appear) || (lbs-lbso < tol_gmm*nvox) 
+    if (it_appear==nit_appear) || (lbs-lbso < tol_gmm*nvox)
         % Finished
         break
     end
@@ -616,7 +616,7 @@ if nargin<3, msk = true(D,1); end
 
 % Ad hoc fix to reduce the chance of one class dominating the scaling.
 % Perhaps some form of hyper-priors might be a more elegant solution.
-b0   = min(b0,exp(mean(log(b0)))*10); 
+b0   = min(b0,exp(mean(log(b0)))*10);
 
 Alph = 0;
 beta = 0;
@@ -870,7 +870,7 @@ for c=1:C
                 % -E[ln q(t)]: 0.5*log(det(S)) + 0.5*D*log(2*pi) + 0.5*trace(S\S)
                 ll(1,c) = ll(1,c) + sum(log(diag(C)),'double') + 0.5*size(C,1) + 0.5*size(C,1)*log(2*pi);
                 % make it E[ln p(t|ICO)] instead of just p(t|ICO)
-                ll(1,c) = ll(1,c) - 0.5*sum(sum(ICO.*S,'double'),'double'); 
+                ll(1,c) = ll(1,c) - 0.5*sum(sum(ICO.*S,'double'),'double');
                 C       = reshape(C',[dt size(C,1)]);
             else
                if approx==0  % Diagonal approximation
@@ -892,7 +892,7 @@ for c=1:C
                     [V,D]  = eigs(double(S),approx);
                     U      = single(V*diag(sqrt(diag(D))));
                     s      = reshape(single(diag(S - U*U')),dt);
-                    U      = reshape(U,[dt approx]); 
+                    U      = reshape(U,[dt approx]);
                 end
 
                 % Basis functions for diagonal (part of the ) approximation
@@ -902,7 +902,7 @@ for c=1:C
             end
 
             for z=1:nz % Loop over slices
- 
+
                 %% Symbolic workings for E[f.*exp(x)] & Var[f.*exp(x)]
                 %  syms m x em1 real
                 %  syms f S positive
@@ -917,7 +917,7 @@ for c=1:C
                         vl = vl + inu_transform(B1,B2,B3(z,:),C(:,:,:,ii)).^2;
                     end
                 else
-                    % Approximate voxl-wise variance estimates from covariance matrix S 
+                    % Approximate voxl-wise variance estimates from covariance matrix S
                     vl = inu_transform(B1s,B2s,B3s(z,:),s); % Diagonal approximation
                     for ii=1:size(U,4)
                         vl = vl + inu_transform(B1,B2,B3(z,:),U(:,:,:,ii)).^2;

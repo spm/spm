@@ -3,7 +3,7 @@ function fieldmap = tbx_cfg_fieldmap
 %__________________________________________________________________________
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_fieldmap.m 7086 2017-06-01 11:50:28Z guillaume $
+% $Id: tbx_cfg_fieldmap.m 7892 2020-07-10 16:39:18Z john $
 
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','FieldMap')); end
@@ -558,7 +558,7 @@ generic.val    = {subj};
 generic.num    = [1 Inf];
 
 %--------------------------------------------------------------------------
-% calculatevdm calculate vdm* file 
+% calculatevdm calculate vdm* file
 %--------------------------------------------------------------------------
 calculatevdm      = cfg_exbranch;
 calculatevdm.tag  = 'calculatevdm';
@@ -780,7 +780,7 @@ end
 
 %==========================================================================
 function dep = vout_applyvdm(job)
-for k=1:numel(job.data)   
+for k=1:numel(job.data)
     if job.roptions.which(1) > 0
         cdep(1)            = cfg_dep;
         cdep(1).sname      = sprintf('VDM corrected images (Sess %d)', k);
