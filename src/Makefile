@@ -3,15 +3,15 @@
 #
 # Copyright (C) 1991-2020 Wellcome Centre for Human Neuroimaging
 #
-# $Id: Makefile 7886 2020-07-03 16:06:55Z guillaume $
+# $Id: Makefile 7893 2020-07-10 17:00:50Z john $
 #
 ###############################################################################
 #
 # This Makefile has been tested under Linux, Windows and MacOS.
-# 
-# If you have to tweak this Makefile or Makefile.var to compile the SPM 
-# mex-files for your platform, please send the details to <fil.spm@ucl.ac.uk> 
-# so they can be included here. 
+#
+# If you have to tweak this Makefile or Makefile.var to compile the SPM
+# mex-files for your platform, please send the details to <fil.spm@ucl.ac.uk>
+# so they can be included here.
 #
 # To compile and install SPM, type the following in a Unix console:
 # >  make distclean && make && make install
@@ -51,7 +51,7 @@ SPMMEX  =\
 	spm_dilate_erode.$(MEXEXT) spm_bwlabel.$(MEXEXT) spm_get_lm.$(MEXEXT)\
 	spm_voronoi.$(MEXEXT) spm_mesh_utils.$(MEXEXT) \
 	spm_mrf.$(MEXEXT) spm_diffeo.$(MEXEXT) spm_field.$(MEXEXT) \
-	spm_cat.$(MEXEXT) spm_jsonread.$(MEXEXT) spm_mesh_reduce.$(MEXEXT)
+	spm_cat.$(MEXEXT) spm_jsonread.$(MEXEXT) spm_mesh_reduce.$(MEXEXT) \
 	spm_mesh_geodesic.$(MEXEXT)
 
 SUBDIRS =\
@@ -305,7 +305,7 @@ spm_field.$(MEXEXT): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_bounda
 
 spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c
 	$(MEX) spm_jsonread.c jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)
-        
+
 spm_mesh_reduce.$(MEXEXT): spm_mesh_reduce.cpp Simplify.h
 	$(MEX) spm_mesh_reduce.cpp $(MEXEND)
 
@@ -365,10 +365,10 @@ verb.mex:
 
 verb.all.end:
 	$(call verb, "Compilation: done")
-        
+
 verb.distclean.end:
 	$(call verb, "Distclean: done")
-        
+
 verb.install.end:
 	$(call verb, "Installation: done")
 

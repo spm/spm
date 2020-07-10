@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 7699 2019-11-20 16:00:03Z yael $ */
+/* $Id: shoot_diffeo3d.c 7893 2020-07-10 17:00:50Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -429,7 +429,7 @@ void composition_jacdet(mwSize dm[], mwSize mm, float *B, float *JB, float *A, f
     composition_stuff(dm, mm, B, JB, A, JA, C, JC, 1);
 }
 
-static void def2jac_wrap(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s, int code)
+static void def2jac_fun(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s, int code)
 {
     mwSize i, j, k, k0, k2, mm;
 
@@ -467,117 +467,20 @@ static void def2jac_wrap(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s, 
             {
                 mwSignedIndex im, ip;
                 float j11, j12, j13, j21, j22, j23, j31, j32, j33;
-                im = bound(i-1,dm[0])-i;
-                ip = bound(i+1,dm[0])-i;
+                im = bound(i-1,dm[0]);
+                ip = bound(i+1,dm[0]);
 
-                j11 = (y1[i+ip]-y1[i+im])/(float)dm[0]; j11 = 0.5f*(j11 - (float)floor(j11+0.5))*(float)dm[0];
-                j21 = (y2[i+ip]-y2[i+im])/(float)dm[0]; j21 = 0.5f*(j21 - (float)floor(j21+0.5))*(float)dm[0];
-                j31 = (y3[i+ip]-y3[i+im])/(float)dm[0]; j31 = 0.5f*(j31 - (float)floor(j31+0.5))*(float)dm[0];
+                j11 = 0.5f*(y1[  ip]-y1[  im]+(float)(2-ip+im));
+                j21 = 0.5f*(y2[  ip]-y2[  im]);
+                j31 = 0.5f*(y3[  ip]-y3[  im]);
 
-                j12 = (y1[i+jp]-y1[i+jm])/(float)dm[1]; j12 = 0.5f*(j12 - (float)floor(j12+0.5))*(float)dm[1];
-                j22 = (y2[i+jp]-y2[i+jm])/(float)dm[1]; j22 = 0.5f*(j22 - (float)floor(j22+0.5))*(float)dm[1];
-                j32 = (y3[i+jp]-y3[i+jm])/(float)dm[1]; j32 = 0.5f*(j32 - (float)floor(j32+0.5))*(float)dm[1];
+                j12 = 0.5f*(y1[i+jp]-y1[i+jm]);
+                j22 = 0.5f*(y2[i+jp]-y2[i+jm]+(float)(2-jp+jm));
+                j32 = 0.5f*(y3[i+jp]-y3[i+jm]);
 
-                if (dm[2]>1)
-                {
-                    j13 = (y1[i+kp]-y1[i+km])/(float)dm[2]; j13 = 0.5f*(j13 - (float)floor(j13+0.5))*(float)dm[2];
-                    j23 = (y2[i+kp]-y2[i+km])/(float)dm[2]; j23 = 0.5f*(j23 - (float)floor(j23+0.5))*(float)dm[2];
-                    j33 = (y3[i+kp]-y3[i+km])/(float)dm[2]; j33 = 0.5f*(j33 - (float)floor(j33+0.5))*(float)dm[2];
-                }
-                else
-                {
-                    j13 = 0.0f;
-                    j23 = 0.0f;
-                    j33 = 1.0f;
-                }
-
-                if (code==0)
-                {
-                    dp[i] = j11*(j22*j33-j23*j32)+j21*(j13*j32-j12*j33)+j31*(j12*j23-j13*j22);
-                }
-                else
-                {
-                    dp[i     ] = j11; dp[i+mm  ] = j21; dp[i+mm*2] = j31;
-                    dp[i+mm*3] = j12; dp[i+mm*4] = j22; dp[i+mm*5] = j32;
-                    dp[i+mm*6] = j13; dp[i+mm*7] = j23; dp[i+mm*8] = j33;
-                }
-            }
-        }
-    }
-}
-
-static void def2jac_neuman(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s, int code)
-{
-    mwSize mm, k, k0, k2;
-
-    if (s!=-1)
-    {
-        k0 = (mwSize)(s-1);
-        k2 = (mwSize)s;
-    }
-    else
-    {
-        k0 = 0;
-        k2 = dm[2];
-    }
-    mm = dm[0]*dm[1]*(k2-k0);
-
-    for(k=k0; k<k2; k++)
-    {
-        mwSize j;
-        for(j=0; j<dm[1]; j++)
-        {
-            mwSize i;
-            float *y1, *y2, *y3, *dp;
-            y1 = Psi + dm[0]*(j+dm[1]*k);
-            y2 = Psi + dm[0]*(j+dm[1]*(k+dm[2]));
-            y3 = Psi + dm[0]*(j+dm[1]*(k+dm[2]*2));
-            dp = Jpsi + dm[0]*(j+dm[1]*k);
-
-            for(i=0; i<dm[0]; i++)
-            {
-                float j11, j12, j13, j21, j22, j23, j31, j32, j33;
-
-                if ((i==0) || (i==dm[0]-1))
-                {
-                    j11 = 1.0f;
-                    j21 = 0.0f;
-                    j31 = 0.0f;
-                }
-                else
-                {
-                    j11 = (y1[i+1]-y1[i-1])*0.5f;
-                    j21 = (y2[i+1]-y2[i-1])*0.5f;
-                    j31 = (y3[i+1]-y3[i-1])*0.5f;
-                }
-
-                if ((j==0) || (j==dm[1]-1))
-                {
-                    j12 = 0.0f;
-                    j22 = 1.0f;
-                    j32 = 0.0f;
-                }
-                else
-                {
-                    mwSignedIndex op = (mwSignedIndex)i+dm[0], om = (mwSignedIndex)i-dm[0];
-                    j12 = (y1[op]-y1[om])*0.5f;
-                    j22 = (y2[op]-y2[om])*0.5f;
-                    j32 = (y3[op]-y3[om])*0.5f;
-                }
-
-                if ((k==0) || (k==(dm[2])-1))
-                {
-                    j13 = 0.0f;
-                    j23 = 0.0f;
-                    j33 = 1.0f;
-                }
-                else
-                {
-                    mwSignedIndex op = (mwSignedIndex)i+dm[0]*dm[1], om = (mwSignedIndex)i-dm[0]*dm[1];
-                    j13 = (y1[op]-y1[om])*0.5f;
-                    j23 = (y2[op]-y2[om])*0.5f;
-                    j33 = (y3[op]-y3[om])*0.5f;
-                }
+                j13 = 0.5f*(y1[i+kp]-y1[i+km]);
+                j23 = 0.5f*(y2[i+kp]-y2[i+km]);
+                j33 = 0.5f*(y3[i+kp]-y3[i+km]+(float)(2-kp+km));
 
                 if (code==0)
                 {
@@ -596,18 +499,12 @@ static void def2jac_neuman(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s
 
 void def2det(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s)
 {
-    if (get_bound()!=0)
-        def2jac_neuman(dm, Psi, Jpsi, s, 0);
-    else
-        def2jac_wrap(dm, Psi, Jpsi, s, 0);
+    def2jac_fun(dm, Psi, Jpsi, s, 0);
 }
 
 void def2jac(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s)
 {
-    if (get_bound()!=0)
-        def2jac_neuman(dm, Psi, Jpsi, s, 1);
-    else
-        def2jac_wrap(dm, Psi, Jpsi, s, 1);
+    def2jac_fun(dm, Psi, Jpsi, s, 1);
 }
 
 #define TINY 5e-2f
@@ -654,7 +551,7 @@ void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@nul
             iz1  = bound(iz+1,dm0[2]);
 
             tmpz  = dm0[1] * iz;
-            tmpy  = dm0[0] *(iy+tmpz);
+            tmpy  = dm0[0] *(iy +tmpz);
             o000  = (mwSize)(ix +tmpy);
             o100  = (mwSize)(ix1+tmpy);
             tmpy  = dm0[0] *(iy1+tmpz);
@@ -850,85 +747,27 @@ void pushc_grads(mwSize dmo[], mwSize dm[], float Psi[], float Jpsi[], float pf[
                     else
                     {
                         /* Otherwise compute Jacobians from deformation */
-                        if (get_bound()==0)
-                        {
-                            /* Circulant boundary */
-                            mwSignedIndex i0m, i0p;
-                            i0m = bound(i0-1,dm[0])-i0;
-                            i0p = bound(i0+1,dm[0])-i0;
+                        mwSignedIndex i0m, i0p;
+                        i0m = bound(i0-1,dm[0])-i0;
+                        i0p = bound(i0+1,dm[0])-i0;
 
-                            j11 = (px[i0p]-px[i0m])/(float)dm[0]; j11 = 0.5f*(j11 - (float)floor(j11+0.5))*(float)dm[0];
-                            j21 = (py[i0p]-py[i0m])/(float)dm[0]; j21 = 0.5f*(j21 - (float)floor(j21+0.5))*(float)dm[0];
-                            j31 = (pz[i0p]-pz[i0m])/(float)dm[0]; j31 = 0.5f*(j31 - (float)floor(j31+0.5))*(float)dm[0];
+                        j11 = 0.5f*(px[i0p]-px[i0m]+(float)(2-i0p+i0m));
+                        j21 = 0.5f*(py[i0p]-py[i0m]);
+                        j31 = 0.5f*(pz[i0p]-pz[i0m]);
 
-                            j12 = (px[i1p]-px[i1m])/(float)dm[1]; j12 = 0.5f*(j12 - (float)floor(j12+0.5))*(float)dm[1];
-                            j22 = (py[i1p]-py[i1m])/(float)dm[1]; j22 = 0.5f*(j22 - (float)floor(j22+0.5))*(float)dm[1];
-                            j32 = (pz[i1p]-pz[i1m])/(float)dm[1]; j32 = 0.5f*(j32 - (float)floor(j32+0.5))*(float)dm[1];
+                        j12 = 0.5f*(px[i1p]-px[i1m]);
+                        j22 = 0.5f*(py[i1p]-py[i1m]+(float)(2-i1p+i1m));
+                        j32 = 0.5f*(pz[i1p]-pz[i1m]);
 
-                            if (dm[2]>1)
-                            {
-                                j13 = (px[i2p]-px[i2m])/(float)dm[2]; j13 = 0.5f*(j13 - (float)floor(j13+0.5))*(float)dm[2];
-                                j23 = (py[i2p]-py[i2m])/(float)dm[2]; j23 = 0.5f*(j23 - (float)floor(j23+0.5))*(float)dm[2];
-                                j33 = (pz[i2p]-pz[i2m])/(float)dm[2]; j33 = 0.5f*(j33 - (float)floor(j33+0.5))*(float)dm[2];
-                            }
-                            else
-                            {
-                                j13 = 0.0f;
-                                j23 = 0.0f;
-                                j33 = 1.0f;
-                            }
-                        }
-                        else
-                        {
-                            /* Neumann boundary - only discontinuities at edges */
-                            if ((i0==0) || (i0==dm[0]-1))
-                            {
-                                j11 = 1.0f;
-                                j21 = 0.0f;
-                                j31 = 0.0f;
-                            }
-                            else
-                            {
-                                j11 = (px[1]-px[-1])*0.5f;
-                                j21 = (py[1]-py[-1])*0.5f;
-                                j31 = (pz[1]-pz[-1])*0.5f;
-                            }
-
-                            if ((i1==0) || (i1==dm[1]-1))
-                            {
-                                 j12 = 0.0f;
-                                 j22 = 1.0f;
-                                 j32 = 0.0f;
-                            }
-                            else
-                            {
-                                j12 = (px[dm[0]]-px[-dm[0]])*0.5f;
-                                j22 = (py[dm[0]]-py[-dm[0]])*0.5f;
-                                j32 = (pz[dm[0]]-pz[-dm[0]])*0.5f;
-                            }
-
-                            if ((i2==0) || (i2==dm[2]-1))
-                            {
-                                j13 = 0.0f;
-                                j23 = 0.0f;
-                                j33 = 1.0f;
-                            }
-                            else
-                            {
-                                mwSignedIndex op = (mwSignedIndex)(dm[0]*dm[1]);
-                                j13 = (px[op]-px[-op])*0.5f;
-                                j23 = (py[op]-py[-op])*0.5f;
-                                j33 = (pz[op]-pz[-op])*0.5f;
-                            }
-                        }
+                        j13 = 0.5f*(px[i2p]-px[i2m]);
+                        j23 = 0.5f*(py[i2p]-py[i2m]);
+                        j33 = 0.5f*(pz[i2p]-pz[i2m]+(float)(2-i2p+i2m));
                     }
 
                     ij11 = j22*j33-j23*j32;
                     ij12 = j13*j32-j12*j33;
                     ij13 = j12*j23-j13*j22;
-                    dj   = j11*ij11 + j21*ij12 + j31*ij13;
-                    /* dj   = (dj*0.99+0.01); */
-                    dj   = 1.0f/dj;
+                    dj   = 1.0f/(j11*ij11 + j21*ij12 + j31*ij13);
 
                     ij11*= dj;
                     ij12*= dj;
@@ -962,26 +801,26 @@ void pushc_grads(mwSize dmo[], mwSize dm[], float Psi[], float Jpsi[], float pf[
                     w011 = dx2*dy1*dz1;
                     w111 = dx1*dy1*dz1;
 
-                    ix   = bound(ix, dmo[0]);
-                    iy   = bound(iy, dmo[1]);
-                    iz   = bound(iz, dmo[2]);
+                    ix   = bound(ix,   dmo[0]);
+                    iy   = bound(iy,   dmo[1]);
+                    iz   = bound(iz,   dmo[2]);
                     ix1  = bound(ix+1, dmo[0]);
                     iy1  = bound(iy+1, dmo[1]);
                     iz1  = bound(iz+1, dmo[2]);
 
                     /* Neighbouring voxels used for trilinear interpolation */
-                    tmpz  = dmo[1]*iz;
-                    tmpy  = dmo[0]*(iy + tmpz);
+                    tmpz  = dmo[1]*  iz;
+                    tmpy  = dmo[0]* (iy +tmpz);
                     o000  = (mwSize)(ix +tmpy);
                     o100  = (mwSize)(ix1+tmpy);
-                    tmpy  = dmo[0]*(iy1 + tmpz);
+                    tmpy  = dmo[0]* (iy1+tmpz);
                     o010  = (mwSize)(ix +tmpy);
                     o110  = (mwSize)(ix1+tmpy);
-                    tmpz  = dmo[1]*iz1;
-                    tmpy  = dmo[0]*(iy + tmpz);
+                    tmpz  = dmo[1]*  iz1;
+                    tmpy  = dmo[0]* (iy +tmpz);
                     o001  = (mwSize)(ix +tmpy);
                     o101  = (mwSize)(ix1+tmpy);
-                    tmpy  = dmo[0]*(iy1 + tmpz);
+                    tmpy  = dmo[0]* (iy1+tmpz);
                     o011  = (mwSize)(ix +tmpy);
                     o111  = (mwSize)(ix1+tmpy);
 
@@ -1063,6 +902,7 @@ void smalldef_jac(mwSize dm[], float sc, float V[], float Psi[], float Jpsi[])
 
                 om1 = (mwSize)bound(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
                 op1 = (mwSize)bound(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
+
                 Jpsi[o    ] = (V0[op1]-V0[om1])*sc2 + 1.0f;
                 Jpsi[o+  m] = (V1[op1]-V1[om1])*sc2;
                 Jpsi[o+2*m] = (V2[op1]-V2[om1])*sc2;
