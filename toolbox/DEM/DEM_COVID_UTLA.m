@@ -1,17 +1,12 @@
-function [DCM] = DEM_COVID_S
-% FORMAT [DCM] = DEM_COVID_S
+function [DCM] = DEM_COVID_UTLA
+% FORMAT [DCM] = DEM_COVID_UTLA
 %
 % Demonstration of COVID-19 modelling with stratified populations
 %__________________________________________________________________________
 %
-% This demonstration routine uses a stratified population by age to fit
-% death by date according to age bins. In brief, this uses the same kind of
-% DCM for each age group; and the accompanying population densities
-% are coupled via contact matrices; in other words, the number of people
-% from another group I expect to be in contact with perday. In addition,
-% some of the clinical and epidemiological parameters are group specific
-% using prespecified profiles encoded in R. the parameters of the contact
-% matrices are optimised and a reasonably uninformative priors.
+% This demonstration routine fixed multiple regional death by date and new
+% cases data and compiles estimates of latent states for local
+% authorities served by an NHS trust provider.
 %
 % Technical details about the dynamic causal model used here can be found
 % at https://www.fil.ion.ucl.ac.uk/spm/covid-19/.
@@ -22,11 +17,12 @@ function [DCM] = DEM_COVID_S
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7891 2020-07-07 16:34:13Z karl $
+% $Id: DEM_COVID_UTLA.m 7894 2020-07-12 09:34:25Z karl $
 
 
 % NHS postcode data
 %==========================================================================
+% http://geoportal.statistics.gov.uk/datasets/75edec484c5d49bcadd4893c0ebca0ff_0
 % xy   = readmatrix('NHS_Postcode.csv','range',[2 1  2643867 2]);
 % pc   = readmatrix('NHS_Postcode.csv','range',[2 5  2643867 5], 'OutputType','char');
 % cc   = readmatrix('NHS_Postcode.csv','range',[2 12 2643867 12],'OutputType','char');
@@ -140,7 +136,7 @@ for i = 1:numel(NHS)
     end
 end
 
-% finding unique local authorities
+% find unique local authorities served by each NHS provider code
 %--------------------------------------------------------------------------
 Area  = unique([D.code]);
 k     = 1;
@@ -159,33 +155,44 @@ D    = DD;
 
 % find local authorities not accounted for
 %--------------------------------------------------------------------------
-UniqueArea = unique(AreaCode);
+[UniqueArea,j] = unique(AreaCode);
+UniqueName = AreaName(j);
 j          = unique(find(~ismember(UniqueArea,Area)));
 UniqueArea = UniqueArea(j);
+UniqueName = UniqueName(j);
 
-Ncode = cell2mat([D.code]');
-Ncode = str2num(Ncode(:,3:end));
+% get centroids of local authorities with NHS trusts
+%--------------------------------------------------------------------------
+for i = 1:numel(D)
+    X(i) = mean(D(i).X);
+    Y(i) = mean(D(i).Y);
+end
+
+% assign local authorities to local authorities with NHS trusts
+%--------------------------------------------------------------------------
 for i = 1:numel(UniqueArea)
     
     % find closest area in D
     %----------------------------------------------------------------------
-    ncode = cell2mat(UniqueArea(i));
-    ncode = str2num(ncode(:,3:end));
-    [d,k] = min(abs(Ncode - ncode));
+    j     = find(ismember(G.LT,UniqueArea(i)));
+    x     = mean(G.X(j));
+    y     = mean(G.Y(j));
+    [d,k] = min((X - x).^2 + (Y - y).^2);
     
     % get local authority code of NHS trust
-    %------------------------------------------------------------------
+    %----------------------------------------------------------------------
     j  = find(ismember(AreaCode,UniqueArea(i)));
     l  = find(ismember(G.LT,UniqueArea(i)));
     
     % supplement area
     %----------------------------------------------------------------------
     D(k).code(end + 1) = UniqueArea(i);
+    D(k).name(end + 1) = UniqueName(i);
     D(k).X             = [D(k).X; G.X(l)];
     D(k).Y             = [D(k).Y; G.Y(l)];
     
     % add cumulative cases
-    %--------------------------------------------------------------
+    %----------------------------------------------------------------------
     CN    = datenum(AreaDate(j),'yyyy-mm-dd');
     for n = 1:numel(DN)
         [d,m]         = min(abs(CN - DN(n)));
@@ -203,27 +210,12 @@ i    = i(isfinite(j));
 j    = j(isfinite(j));
 UK   = sparse(i,j,1,n,2*n);
 
-% create image array
-%--------------------------------------------------------------------------
-clear G DD
-for k = 1:numel(D)
-    i        = ceil(n*D(k).X/7e5);
-    j        = ceil(n*D(k).Y/7e5);
-    i        = i(isfinite(j));
-    j        = j(isfinite(j));
-    D(k).X   = mean(i);
-    D(k).Y   = mean(j);
-    LA       = spm_conv(double(logical(sparse(i,j,1,n,n))),1,1);
-    ENG(:,k) = spm_vec(LA);
-end
-ENG = bsxfun(@rdivide,ENG,sum(ENG,2) + eps);
-
 % plot map
 %--------------------------------------------------------------------------
 GRAPHICS = 1;
 if GRAPHICS
     spm_figure('GetWin','UK - regional data'); clf;
-    subplot(2,1,1)
+    subplot(2,1,1), hold on
     imagesc(1 - log(UK + 1)'), axis xy image off
 end
 
@@ -263,6 +255,25 @@ for k = 1:numel(D)
     
 end
 
+% create image array
+%--------------------------------------------------------------------------
+clear G DD
+for k = 1:numel(D)
+    i        = ceil(n*D(k).X/7e5);
+    j        = ceil(n*D(k).Y/7e5);
+    i        = i(isfinite(j));
+    j        = j(isfinite(j));
+    D(k).X   = mean(i);
+    D(k).Y   = mean(j);
+    LA       = spm_conv(double(logical(sparse(i,j,1,n,n))),1,1);
+    ENG(:,k) = spm_vec(LA);
+end
+ENG = bsxfun(@rdivide,ENG,sum(ENG,2) + eps);
+
+% dates
+%--------------------------------------------------------------------------
+t     = D(1).date;
+T     = [t ((1:64) + t(end))];
 
 % fit each regional dataset
 %==========================================================================
@@ -296,7 +307,7 @@ for r = 1:numel(D)
     
     % model inversion with Variational Laplace (Gauss Newton)
     %----------------------------------------------------------------------
-    [Ep,Cp]   = spm_nlsi_GN(M,U,Y);
+    [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
     
     % save prior and posterior estimates (and log evidence)
     %----------------------------------------------------------------------
@@ -304,28 +315,36 @@ for r = 1:numel(D)
     DCM(r).Ep = Ep;
     DCM(r).Cp = Cp;
     DCM(r).Y  = Y;
+    DCM(r).F  = F;
     
     % now-casting for this region and date
-    %======================================================================-
+    %======================================================================
     spm_figure('GetWin',D(r).name{1}); clf;
     %----------------------------------------------------------------------
-    [Y,X] = spm_COVID_gen(DCM(r).Ep,DCM(r).M,[1 2]);
+    M.T   = numel(T);
+    [Y,X] = spm_COVID_gen(DCM(r).Ep,M,[1 2]);
     spm_COVID_plot(Y,X,DCM(r).Y);
     
     
     %----------------------------------------------------------------------
-    % Y(:,4) - effective reproduction ratio (R)
-    % Y(:,5) - population immunity (%)
-    % Y(:,8) - prevalence of infection (%)
-    % Y(:,9) - number of infected at home, untested and asymptomatic
+    % Y(:,1)  - number of new deaths
+    % Y(:,2)  - number of new cases
+    % Y(:,3)  - CCU bed occupancy
+    % Y(:,4)  - effective reproduction rate (R)
+    % Y(:,5)  - population immunity (%)
+    % Y(:,6)  - total number of tests
+    % Y(:,7)  - contagion risk (%)
+    % Y(:,8)  - prevalence of infection (%)
+    % Y(:,9)  - number of infected at home, untested and asymptomatic
+    % Y(:,10) - new cases per day
     %----------------------------------------------------------------------
-    Y       = spm_COVID_gen(DCM(r).Ep,DCM(r).M,[4 5 8 9]);
+    Y       = spm_COVID_gen(DCM(r).Ep,DCM(r).M,[4 5 8 9 10]);
     
     DR(:,r) = Y(:,1);                           % Reproduction ratio
     DI(:,r) = Y(:,2);                           % Prevalence of immunity
     DP(:,r) = Y(:,3);                           % Prevalence of infection
     DC(:,r) = Y(:,4);                           % Infected, asymptomatic people
-    DT(:,r) = 1e4*exp(Ep.N)*Y(:,3)/exp(Ep.Tin); % New infections today
+    DT(:,r) = Y(:,5);                           % New daily cases
     
     
     % supplement with table of posterior expectations
@@ -360,6 +379,9 @@ for r = 1:numel(D)
     
 end
 
+% save and reload
+%----------------------------------------------------------------------
+try, clear ans, end
 save COVID_LA
 
 load COVID_LA
@@ -423,4 +445,134 @@ for j = 1:numel(DD)
 end
 
 
+% fit average over regions
+%==========================================================================
+clear M
+Y     = 0;
+for r = 1:numel(D)
+    Y       = Y + D(r).YY;
+    EP(:,r) = spm_vec(DCM(r).Ep);
+end
+
+% priors for this analysis
+%--------------------------------------------------------------------------
+[pE,pC] = spm_COVID_priors;
+pE.N    = log(56);                    % population of local authority
+pC.N    = 0;
+pE.n    = 4;                          % initial number of cases (n)
+% pE.Tim = log(64)
+
+% complete model specification
+%--------------------------------------------------------------------------
+M.date = datestr(DN(1),'dd-mm-yyyy'); % date of first time point
+M.G    = @spm_COVID_gen;              % generative function
+M.FS   = @(Y)sqrt(Y);                 % feature selection  (link function)
+M.pE   = pE;                          % prior expectations (parameters)
+M.pC   = pC;                          % prior covariances  (parameters)
+M.hE   = [2 0];                       % prior expectation  (log-precision)
+M.hC   = 1/512;                       % prior covariances  (log-precision)
+M.T    = size(Y,1);                   % number of samples
+U      = [1 2];                       % outputs to model
+
+% model inversion with Variational Laplace (Gauss Newton)
+%--------------------------------------------------------------------------
+[Ep,Cp] = spm_nlsi_GN(M,U,Y);
+
+% forecast
+%--------------------------------------------------------------------------
+spm_figure('GetWin','England'); clf;
+%--------------------------------------------------------------------------
+t       = D(1).date;
+T       = [t ((1:64) + t(end))];
+M.T     = numel(T);
+[P,X]   = spm_COVID_gen(Ep,M,[1 2]);
+spm_COVID_plot(P,X,Y);
+
+% prevalence in terms of new cases per week and day
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Supression'); clf;
+%--------------------------------------------------------------------------
+[S,CS,P,C] = spm_COVID_ci(Ep,Cp,[],[8 10],M);
+k          = 7;
+Eq         = P(:,2)*k;
+Cq         = C{2}*(k^2);
+Sq         = sqrt(diag(Cq))*1.69;
+
+subplot(2,1,1), hold off
+spm_plot_ci(Eq',Cq,T), hold on
+title('New cases per week','Fontsize',16)
+datetick('x','mmm-dd')
+xlabel('date'),ylabel('new cases'), box off
+
+d      = datenum(date);
+j      = find(ismember(T,d));
+plot([d,d],[0 1e6],'b')
+txt{1} = sprintf('Cases/week : %.0f (%0.0f - %.0f)',Eq(j),Eq(j) - Sq(j),Eq(j) + Sq(j));
+Eq     = Eq/7; Sq = Sq/7;
+txt{2} = sprintf('Cases/day  : %.0f (%0.0f - %.0f)',Eq(j),Eq(j) - Sq(j),Eq(j) + Sq(j));
+Eq     = Eq/exp(Ep.N); Sq = Sq/exp(Ep.N);
+txt{3} = sprintf('Cases/day/M: %.0f (%0.0f - %.0f)',Eq(j),Eq(j) - Sq(j),Eq(j) + Sq(j));
+qE     = P(:,1); qS = sqrt(diag(C{1}))*1.69;
+txt{4} = sprintf('Prevalence of infection (%s): %.3f (%.3f - %.3f)','%',qE(j),qE(j) - qS(j),qE(j) + qS(j));
+
+text(d,1e6,txt,'FontSize',10,'Fontweight','bold')
+
+% plot in terms of cases per hundred thousand
+%--------------------------------------------------------------------------
+subplot(2,1,2), hold off
+Eq     = Eq/10;
+semilogy(T,Eq,'LineWidth',2), hold on
+
+plot(T,ones(size(T))*1,'-r'),  text(T(8),1,'Suppression (1 per 100,000)','FontSize',10,'Fontweight','bold')
+plot(T,ones(size(T))*10,'-r'), text(T(8),10,'Special measures (10 per 100,000)','FontSize',10,'Fontweight','bold')
+plot(T,ones(size(T))*100,'-r'),text(T(8),100,'Lockdown (100 per 100,000)','FontSize',10,'Fontweight','bold')
+title('New daily cases per 100,000','Fontsize',16)
+datetick('x','mmm-dd')
+xlabel('date'), ylabel('new cases')
+
+% projections and an enhanced FTTIS protocol
+%--------------------------------------------------------------------------
+Ep.ttt = log(1/4);
+M.TTT  = j;
+P      = spm_COVID_gen(Ep,M,10);
+Eq     = P/exp(Ep.N)/10;
+semilogy(T,Eq,'-.','LineWidth',1)
+
+text(T(end),Eq(end),'with 25% FTTIS','FontSize',10)
+plot([d,d],[1 50],'b')
+box off
+
 return
+
+
+
+% 'Cornwall.Isles of Scilly','E41000052',D(37) 'Cornwall and Isles of Scilly'
+%
+% 'City of London and Westminster' 'E07000324' D(149) 'Westminster'
+%
+% 'St Edmundsbury',  'E07000204'  D(99)  'West Suffolk'
+% 'Forest Heath',    'E07000201'  D(99)
+%
+% 'Suffolk coastal', 'E07000205'  D(98)  'East Suffolk'
+% 'Waveney',         'E07000 206' D(98)
+%
+% 'West Somerset',   'E07000191'  D(100) 'Somerset West and Taunton'
+% 'Taunton Deane',   'E07000190'  D(100)
+%
+% 'West Dorset',  'E07000052'     D(41)  'Dorset'
+% 'North Dorset', 'E07000050'     D(41)
+% 'East Dorset',  'E07000049'     D(41)
+%
+% 'Christchurch', 'E07000048'     D(40)  'Bournemouth, Christchurch and Poole'
+% 'Bournemouth',  'E07000028'     D(40)
+% 'Purbeck',      'E07000051'     D(40)
+% 'Poole',        'E07000029'     D(40)
+%
+%
+% 'East Herts',      'E07000097'  D(97)  'Stevenage'
+% 'Welwyn Hatfield', 'E07000104'  D(96)  'Welwyn Hatfield'
+% 'St Albans',       'E07000100'  D(95)  'St Albans'
+
+
+
+

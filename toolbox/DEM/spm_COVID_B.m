@@ -21,7 +21,7 @@ function T = spm_COVID_B(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_B.m 7891 2020-07-07 16:34:13Z karl $
+% $Id: spm_COVID_B.m 7894 2020-07-12 09:34:25Z karl $
 
 % setup
 %==========================================================================
@@ -62,25 +62,30 @@ q    = q/sum(q(:));
 Prev = sum(q(:,2));                  % prevalence of infection
 Pcco = sum(q(3,:));                  % CCU occupancy
 
-% hard (threshold) strategy
-%--------------------------------------------------------------------------
-Psde = spm_sigma(Prev,P.sde);
-
 % multiregional model
 %--------------------------------------------------------------------------
 if nargin > 2
     
-    Rrev = r{2}(2) + r{2}(3);        % marginal over regions
- 
-    % hard (threshold) strategy
+    % density over regions
     %----------------------------------------------------------------------
-    Rsde = spm_sigma(Rrev,P.sde);
+    q    = spm_sum(r,[3 4]);
+    q    = q(1:3,:);
+    q    = q/sum(q(:));
+    Rrev = sum(q(:,2));
     
     % mixture of strategies
     %----------------------------------------------------------------------
-    Psde = Psde*(1 - P.fed) + Rsde*P.fed;
+    if isfield(P,'fed')
+        Prev = Prev*(1 - P.fed) + Rrev*P.fed;
+    else
+        Prev = Rrev;
+    end
     
 end
+
+% lockdown (threshold) strategy
+%--------------------------------------------------------------------------
+Psde = spm_sigma(Prev,P.sde);        % 1 - P(lockdown)
 Pout = Psde*P.out;                   % P(work | home)
 
 % bed availability

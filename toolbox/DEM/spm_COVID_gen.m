@@ -1,21 +1,23 @@
-function [Y,X] = spm_COVID_gen(P,M,U)
+function [Y,X,Z] = spm_COVID_gen(P,M,U)
 % Generate predictions and hidden states of a COVID model
-% FORMAT [Y,X] = spm_COVID_gen(P,M,U)
-% P   - model parameters
-% M   - model structure (requires M.T - length of timeseries)
-% U   - number of output variables [default: 2] or indices e.g., [4 5]
+% FORMAT [Y,X,Z] = spm_COVID_gen(P,M,U)
+% P    - model parameters
+% M    - model structure (requires M.T - length of timeseries)
+% U    - number of output variables [default: 2] or indices e.g., [4 5]
+% Z{t} - joint density over hidden states at the time t
 %
-% Y(:,1) - number of new deaths
-% Y(:,2) - number of new cases
-% Y(:,3) - CCU bed occupancy
-% Y(:,4) - effective reproduction rate (R)
-% Y(:,5) - population immunity (%)
-% Y(:,6) - total number of tests
-% Y(:,7) - contagion risk (%)
-% Y(:,8) - prevalence of infection (%)
-% Y(:,9) - number of infected at home, untested and asymptomatic
+% Y(:,1)  - number of new deaths
+% Y(:,2)  - number of new cases
+% Y(:,3)  - CCU bed occupancy
+% Y(:,4)  - effective reproduction rate (R)
+% Y(:,5)  - population immunity (%)
+% Y(:,6)  - total number of tests
+% Y(:,7)  - contagion risk (%)
+% Y(:,8)  - prevalence of infection (%)
+% Y(:,9)  - number of infected at home, untested and asymptomatic
+% Y(:,10) - new cases per day
 %
-% X      - (M.T x 4) marginal densities over four factors
+% X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','CCU','morgue','isolation'};
 % infection  : {'susceptible','infected','infectious','immune','resistant'};
 % clinical   : {'asymptomatic','symptoms','ARDS','death'};
@@ -48,7 +50,7 @@ function [Y,X] = spm_COVID_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7891 2020-07-07 16:34:13Z karl $
+% $Id: spm_COVID_gen.m 7894 2020-07-12 09:34:25Z karl $
 
 
 % The generative model:
@@ -156,6 +158,8 @@ end
 
 % ensemble density tensor and solve over the specified number of days
 %--------------------------------------------------------------------------
+u     = sparse(U,1,1,16,1);
+q     = p;
 x     = spm_cross(p);
 for i = 1:M.T
     
@@ -183,12 +187,16 @@ for i = 1:M.T
     % early lockdown
     %----------------------------------------------------------------------
     if isfield(M,'TT')
-        P.sde = log(Q.sde) - spm_phi((M.TT  -  i)/8)*4;
+        P.sde = log(Q.sde) - spm_phi((M.TT - i)/8)*4;
     end
     
     % update ensemble density, with probability dependent transitions
     %----------------------------------------------------------------------
-    B     = spm_COVID_B(x,P);
+    if isfield(M,'r')
+        B = spm_COVID_B(x,P,M.r{i});
+    else
+        B = spm_COVID_B(x,P);
+    end
     x     = spm_unvec(B*spm_vec(x),x);
     x     = x/sum(x(:));
     
@@ -213,32 +221,48 @@ for i = 1:M.T
     
     % effective reproduction rate (R) (based on infection prevalence)
     %----------------------------------------------------------------------
-    Y(i,4) = p{2}(2) + p{2}(3); 
+    Y(i,4) = p{2}(2) + p{2}(3);
     
     % population immunity (%)
     %----------------------------------------------------------------------
     Y(i,5) = p{2}(4)*100;
-    
     % total number of daily tests (positive or negative)
     %----------------------------------------------------------------------
     Y(i,6) = N*(p{4}(3) + p{4}(4));
     
     % probability of contracting virus (in a class of 15)
-    %------------------------------------------------------------------
-    Y(i,7) = ( 1 - (1 - Q.trn*p{2}(3))^15 )*100;
+    %----------------------------------------------------------------------
+    Y(i,7) = (1 - (1 - Q.trn*p{2}(3))^15)*100;
     
-    % prevalence of infection (%)
-    %------------------------------------------------------------------
-    Y(i,8) = p{2}(2)*100;
+    % prevalence of (contagious) infection (%)
+    %----------------------------------------------------------------------
+    Y(i,8) = p{2}(3)*100;
     
     % number of people at home, asymptomatic, untested but infected
-    %------------------------------------------------------------------
+    %----------------------------------------------------------------------
     Y(i,9) = N*x(1,2,1,1);
     
+    % number of new cases
+    %----------------------------------------------------------------------
+    if u(10)
+        q       = x;
+        B       = B - diag(diag(B));
+        q       = spm_unvec(B*spm_vec(q),q);
+        q       = spm_marginal(q);
+        Y(i,10) = N*q{2}(3);
+    end
+    
+    
+    % joint density if requested
+    %----------------------------------------------------------------------
+    if nargout > 2
+        Z{i} = x;
+    end
+
 end
 
 % effective reproduction ratio: exp(K*Q.Tcn): K = dln(N)/dt
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Y(:,4) = exp(Q.Tcn*gradient(log(Y(:,4))));
 
 % retain specified output variables

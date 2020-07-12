@@ -5,7 +5,7 @@ function spm_plot_ci(E,C,x,j,s)
 % C - variance or covariance (structure or array)
 % x - domain
 % j - rows of E to plot
-% s - string to specify plot type:e.g. '--r' or 'exp'
+% s - string to specify plot type:e.g. '--r' or 'exp', 'log' etc
 %
 % If E is a row vector with two elements, confidence regions will be
 % plotted; otherwise, bar charts with confidence intervals are provided
@@ -13,7 +13,7 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 7809 2020-03-31 11:55:09Z karl $
+% $Id: spm_plot_ci.m 7894 2020-07-12 09:34:25Z karl $
 
 
 % get axis
@@ -135,6 +135,12 @@ if N >= 8
         hold(ax,'on');
         plot(x,exp(E),'Color',coll);
         
+    elseif strcmpi(s,'log')
+        fill([x fliplr(x)],log(abs([full(E + c) fliplr(full(E - c))])),...
+            colf,'EdgeColor','none','Parent',ax,'facealpha', 0.4);
+        hold(ax,'on');
+        plot(x,log(abs(E)),'Color',coll);
+        
     else
         fill([x fliplr(x)],[full(E + c) fliplr(full(E - c))],...
             colf,'EdgeColor','none','Parent',ax,'facealpha', 0.4);
@@ -160,6 +166,20 @@ else
             %--------------------------------------------------------------
             for k = 1:n
                 line([k k],exp([-1 1]*c(k) + E(k)),...
+                    'LineWidth',4,'Color',col,'Parent',ax);
+            end
+            
+        elseif strcmpi(s,'log')
+            
+            % conditional means
+            %--------------------------------------------------------------
+            bar(ax,log(abs(E)),width,'Edgecolor',colf,'Facecolor',colf);
+            hold(ax,'on');
+            
+            % conditional variances
+            %--------------------------------------------------------------
+            for k = 1:n
+                line([k k],log(abs([-1 1]*c(k) + E(k))),...
                     'LineWidth',4,'Color',col,'Parent',ax);
             end
             
