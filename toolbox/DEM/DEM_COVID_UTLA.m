@@ -17,7 +17,7 @@ function [DCM] = DEM_COVID_UTLA
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7894 2020-07-12 09:34:25Z karl $
+% $Id: DEM_COVID_UTLA.m 7895 2020-07-14 08:55:30Z karl $
 
 
 % NHS postcode data
@@ -30,6 +30,9 @@ function [DCM] = DEM_COVID_UTLA
 % G.Y  = xy(:,2);
 % G.PC = pc;
 % G.LT = cc;
+
+LTLA   = readmatrix('Population_LTLACD.xlsx','range',[6 1  35097 1], 'OutputType','char');
+Pop    = readmatrix('Population_LTLACD.xlsx','range',[6 4  35097 4], 'OutputType','char');
 
 % NHS provider code to post code
 %--------------------------------------------------------------------------
@@ -63,12 +66,19 @@ end
 %--------------------------------------------------------------------------
 C    = importdata('coronavirus-cases_latest.csv');
 D    = importdata('COVID-19-total-announced-deaths.xlsx');
+P    = importdata('Populations.xlsx');
+
 
 % get death by date from each NHS trust
 %--------------------------------------------------------------------------
 DN   = datenum(D.textdata.Tab4DeathsByTrust(15,6:end - 4),'dd-mmm-yy');
 NHS  = D.textdata.Tab4DeathsByTrust(18:end,3);
 DA   = D.data.Tab4DeathsByTrust(3:end,2:end - 4);
+
+% get population by lower tier local authority
+%--------------------------------------------------------------------------
+PN   = P.data;
+PCD  = P.textdata(2:end,1);
 
 % get new cases by (lower tier) local authority
 %--------------------------------------------------------------------------
@@ -85,7 +95,7 @@ AreaCase = C.data(j,4);
 
 % organise via NHS trust
 %--------------------------------------------------------------------------
-clear D C
+clear D C P
 k     = 1;
 for i = 1:numel(NHS)
     
@@ -108,6 +118,11 @@ for i = 1:numel(NHS)
         j  = find(ismember(AreaCode,LA));
         l  = find(ismember(G.LT,LA));
         
+        % get local authority population
+        %------------------------------------------------------------------
+        N  = PN(find(ismember(PCD,LA)));
+        
+        
         if numel(j)
             
             % get deaths
@@ -117,6 +132,7 @@ for i = 1:numel(NHS)
             D(k).name   = AreaName(j(1));
             D(k).NHS    = NHS(i);
             D(k).code   = LA;
+            D(k).N      = N;
             D(k).PC     = PC(1);
             D(k).X      = G.X(l);
             D(k).Y      = G.Y(l);
@@ -181,8 +197,12 @@ for i = 1:numel(UniqueArea)
     
     % get local authority code of NHS trust
     %----------------------------------------------------------------------
-    j  = find(ismember(AreaCode,UniqueArea(i)));
-    l  = find(ismember(G.LT,UniqueArea(i)));
+    j     = find(ismember(AreaCode,UniqueArea(i)));
+    l     = find(ismember(G.LT,UniqueArea(i)));
+    
+    % get local authority population
+    %------------------------------------------------------------------
+    N     = PN(find(ismember(PCD,UniqueArea(i))));
     
     % supplement area
     %----------------------------------------------------------------------
@@ -190,6 +210,7 @@ for i = 1:numel(UniqueArea)
     D(k).name(end + 1) = UniqueName(i);
     D(k).X             = [D(k).X; G.X(l)];
     D(k).Y             = [D(k).Y; G.Y(l)];
+    D(k).N             = D(k).N + N;
     
     % add cumulative cases
     %----------------------------------------------------------------------
@@ -285,8 +306,8 @@ for r = 1:numel(D)
     
     % priors for this analysis
     %----------------------------------------------------------------------
-    pE.N   = log(1/4);                    % population of local authority
-    pC.N   = 1/16;
+    pE.N   = log(D(r).N/1e6);             % population of local authority
+    pC.N   = 0;
     pE.n   = 0;                           % initial number of cases (n)
     
     % variational Laplace (estimating log evidence (F) and posteriors)
@@ -300,7 +321,7 @@ for r = 1:numel(D)
     M.FS   = @(Y)sqrt(Y);                 % feature selection  (link function)
     M.pE   = pE;                          % prior expectations (parameters)
     M.pC   = pC;                          % prior covariances  (parameters)
-    M.hE   = [2 0];                       % prior expectation  (log-precision)
+    M.hE   = [4 2];                       % prior expectation  (log-precision)
     M.hC   = 1/512;                       % prior covariances  (log-precision)
     M.T    = size(Y,1);                   % number of samples
     U      = [1 2];                       % outputs to model
@@ -352,28 +373,28 @@ for r = 1:numel(D)
     subplot(3,2,2), cla reset, axis([0 1 0 1])
     title(D(r).name,'Fontsize',16)
     
-    str      = sprintf('Effective population %.2f million',exp(Ep.N));
-    text(0,0.9,str,'FontSize',12,'Color','b')
+    str      = sprintf('Population %.2f million',exp(Ep.N));
+    text(0,0.9,str,'FontSize',10,'FontWeight','bold','Color','k')
     
     str      = sprintf('Reproduction ratio %.2f',DR(end,r));
-    text(0,0.8,str,'FontSize',12,'Color','b')
+    text(0,0.8,str,'FontSize',10,'FontWeight','bold','Color','k')
     
     str      = sprintf('Infected, asymptomatic people %.0f',DC(end,r));
-    text(0,0.7,str,'FontSize',12,'Color','b')
+    text(0,0.7,str,'FontSize',10,'FontWeight','bold','Color','k')
     
-    str      = sprintf('New infections today %.0f',DT(end,r));
-    text(0,0.6,str,'FontSize',12,'Color','b')
+    str      = sprintf('Daily new cases: %.0f per 100,000',DT(end,r)/exp(Ep.N)/10);
+    text(0,0.6,str,'FontSize',10,'FontWeight','bold','Color','r')
     
-    str      = sprintf('Prevalence of infection %.2f%s',DP(end,r),'%');
-    text(0,0.5,str,'FontSize',12,'Color','b')
+    str      = sprintf('Prevalence of infection: %.2f%s',DP(end,r),'%');
+    text(0,0.5,str,'FontSize',10,'FontWeight','bold','Color','r')
     
     str = sprintf('Prevalence of immunity %.1f%s',DI(end,r),'%');
-    text(0,0.4,str,'FontSize',12,'Color','b')
+    text(0,0.4,str,'FontSize',10,'FontWeight','bold','Color','k')
     
     str = {'The prevalences refer to the effective population' ...
         'as estimated from the new cases and deaths (shown as' ...
         'dots on the upper left panel)'};
-    text(0,0.0,str,'FontSize',9,'Color','k')
+    text(0,0.0,str,'FontSize',8,'Color','k')
     
     spm_axis tight, axis off
     
