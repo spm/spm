@@ -5,7 +5,7 @@ function varargout = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx,odir)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 7898 2020-07-14 13:25:41Z john $
+% $Id: spm_preproc_write8.m 7899 2020-07-14 16:05:00Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -206,9 +206,10 @@ clear tpm
 
 M0        = res.image(1).mat;
 cls       = clean_write_tissues(Q,mrf,cleanup,pth,nam,M0,tc(:,1));
-[rc,mat0] = write_imported_tissues(tc(:,[2 6]),d,M0,y,M1,cls,mat,vx,res,pth,nam,odim);
 
-if if exist('y','var')
+if exist('y','var')
+    [rc,mat0] = write_imported_tissues(tc(:,[2 6]),d,M0,y,M1,cls,mat,vx,res,pth,nam,odim);
+
     % Adjust stuff so that warped data (and deformations) have the
     % desired bounding box and voxel sizes, instead of being the same
     % as those of the tissue probability maps.
@@ -227,6 +228,10 @@ if if exist('y','var')
     [wc, mwc] = warped_tissues(tc(:,[3 4 7 8]),cls,y,d1,M0,M1,pth,nam);
 
     if df(2), write_inv_def(y,d1,M0,pth,nam,M1); end
+else
+    rc  = cell(size(tc,1),1);
+    wc  = rc;
+    mwc = rc;
 end
 
 for k=1:numel(cls), if ~tc(k,5), cls{k} = []; end; end
