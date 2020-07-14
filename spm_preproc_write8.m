@@ -5,7 +5,7 @@ function varargout = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx,odir)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 7892 2020-07-10 16:39:18Z john $
+% $Id: spm_preproc_write8.m 7897 2020-07-14 12:11:05Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -33,7 +33,7 @@ if nargin<7, bb = NaN(2,3);   end % Default to TPM bounding box
 if nargin<8, vx = NaN;        end % Default to TPM voxel size
 if nargin<9, odir = [];       end % Output directory
 
-tc = [tc false(size(tc,1),4-size(tc,2))];
+tc = [tc false(size(tc,1),8-size(tc,2))];
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
