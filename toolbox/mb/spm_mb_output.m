@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 7884 2020-07-02 10:13:47Z mikael $
+% $Id: spm_mb_output.m 7896 2020-07-14 09:02:01Z mikael $
 
 res  = load(char(cfg.result));
 sett = res.sett;
@@ -169,16 +169,25 @@ if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
     mun  = bsxfun(@plus, mun, log(mg_w));
 
     % Format for spm_gmm
-    chan                    = spm_mb_appearance('inu_basis',gmm.T,df,datn.Mat,ones(1,C));
-    [llinu,mf,vf]           = spm_mb_appearance('inu_recon',fn,chan,gmm.T,gmm.Sig);
-    [mf,code_image,msk_chn] = spm_gmm_lib('obs2cell', reshape(mf,[prod(df) C]));
-    vf                      = spm_gmm_lib('obs2cell', reshape(vf,[prod(df) C]), code_image, true);
-    mun                     = spm_gmm_lib('obs2cell', mun, code_image, false);
+    chan                   = spm_mb_appearance('inu_basis',gmm.T,df,datn.Mat,ones(1,C));
+    [~,mf,vf]              = spm_mb_appearance('inu_recon',fn,chan,gmm.T,gmm.Sig);
+    mf                     = reshape(mf,[prod(df) C]);
+    vf                     = reshape(vf,[prod(df) C]);
+    [~,code_image,msk_chn] = spm_gmm_lib('obs2cell', reshape(mf,[prod(df) C]));    
 
-    % Get responsibilities
-    zn  = spm_mb_appearance('responsibility',gmm.m,gmm.b,gmm.V,gmm.n,mf,vf,mun,msk_chn);
-    zn  = spm_gmm_lib('cell2obs', zn, code_image, msk_chn);
-    clear mun msk_chn mf
+    % Get responsibilities, making sure that missing values are 'filled in'
+    % by the template. For example, for CT, CSF can have intensity zero;
+    % but we consider this value as missing as background values can also be
+    % zero, which would bias the fitting of the GMM.
+    const             = spm_gmm_lib('Normalisation', {gmm.m,gmm.b}, {gmm.V,gmm.n}, msk_chn);
+    if ~isempty(vf)
+        zn            = spm_gmm_lib('Marginal', mf, {gmm.m,gmm.V,gmm.n}, const, msk_chn, vf);
+    else
+        zn            = spm_gmm_lib('Marginal', mf, {gmm.m,gmm.V,gmm.n}, const, msk_chn);
+    end
+    zn(~isfinite(zn)) = log(1e-3);  % NaN assumed to have small (log) probability
+    zn                = spm_gmm_lib('Responsibility', zn, mun);    
+    clear mun msk_chn mf vf
 
     % Get bias field modulated image data
     fn = inu.*fn;
