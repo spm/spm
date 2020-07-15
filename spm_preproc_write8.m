@@ -5,7 +5,7 @@ function varargout = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx,odir)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 7900 2020-07-15 11:36:48Z john $
+% $Id: spm_preproc_write8.m 7901 2020-07-15 18:53:03Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -204,11 +204,19 @@ end
 spm_progress_bar('clear');
 clear tpm
 
-M0        = res.image(1).mat;
-cls       = clean_write_tissues(Q,mrf,cleanup,pth,nam,M0,tc(:,1));
-mat0      = M0;
+M0   = res.image(1).mat;
+rc   = cell(size(tc,1),1);
+wc   = rc;
+mwc  = rc;
+mat0 = M0;
+cls  = rc;
+if do_cls
+    cls = clean_write_tissues(Q,mrf,cleanup,pth,nam,M0,tc(:,1));
+end
 if exist('y','var')
-    [rc,mat0] = write_imported_tissues(tc(:,[2 6]),d,M0,y,M1,cls,mat,vx,res,pth,nam,odim);
+    if do_cls
+        [rc,mat0] = write_imported_tissues(tc(:,[2 6]),d,M0,y,M1,cls,mat,vx,res,pth,nam,odim);
+    end
 
     % Adjust stuff so that warped data (and deformations) have the
     % desired bounding box and voxel sizes, instead of being the same
@@ -225,17 +233,15 @@ if exist('y','var')
     M1 = mat;
     d1 = odim;
 
-    [wc, mwc] = warped_tissues(tc(:,[3 4 7 8]),cls,y,d1,M0,M1,pth,nam);
+    if do_cls
+        [wc, mwc] = warped_tissues(tc(:,[3 4 7 8]),cls,y,d1,M0,M1,pth,nam);
+    end
 
     if df(2), write_inv_def(y,d1,M0,pth,nam,M1); end
-else
-    rc  = cell(size(tc,1),1);
-    wc  = rc;
-    mwc = rc;
 end
-
-for k=1:numel(cls), if ~tc(k,5), cls{k} = []; end; end
-
+if do_cls
+    for k=1:numel(cls), if ~tc(k,5), cls{k} = []; end; end
+end
 varargout = {{cls,M0},{rc,M1,mat0},{wc,M1},{mwc,M1}};
 
 
