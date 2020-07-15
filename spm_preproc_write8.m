@@ -5,7 +5,7 @@ function varargout = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx,odir)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 7899 2020-07-14 16:05:00Z john $
+% $Id: spm_preproc_write8.m 7900 2020-07-15 11:36:48Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -206,7 +206,7 @@ clear tpm
 
 M0        = res.image(1).mat;
 cls       = clean_write_tissues(Q,mrf,cleanup,pth,nam,M0,tc(:,1));
-
+mat0      = M0;
 if exist('y','var')
     [rc,mat0] = write_imported_tissues(tc(:,[2 6]),d,M0,y,M1,cls,mat,vx,res,pth,nam,odim);
 
