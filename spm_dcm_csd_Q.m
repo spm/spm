@@ -23,7 +23,7 @@ function Q = spm_dcm_csd_Q(csd)
 % number of averages comprising the estimate). In this routine, we use the
 % sample spectral density to create a frequency specific precision matrix
 % for the vectorised spectral densities - under the assumption that the
-% former of this sample spectral density resembles the predicted spectral
+% form of this sample spectral density resembles the predicted spectral
 % density (which will become increasingly plausible with convergence).
 %
 % Camba-Mendez, G., & Kapetanios, G. (2005). Estimating the Rank of the
@@ -33,7 +33,7 @@ function Q = spm_dcm_csd_Q(csd)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_csd_Q.m 7751 2019-12-06 11:59:09Z peter $
+% $Id: spm_dcm_csd_Q.m 7902 2020-07-16 14:26:52Z karl $
 
 
 %-Check for cell arrays

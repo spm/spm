@@ -36,7 +36,7 @@ function data = DATA_COVID_JHU(n)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 7891 2020-07-07 16:34:13Z karl $
+% $Id: DATA_COVID_JHU.m 7902 2020-07-16 14:26:52Z karl $
 
 % get data
 %--------------------------------------------------------------------------
@@ -81,11 +81,11 @@ Country{i} = 'Korea, South';
 % assemble data structure
 %==========================================================================
 Data  = struct([]);
-s     = 7;                                          % data smoothing (days)
+s     = 14;                                          % data smoothing (days)
 k     = 1;
 for i = 1:numel(State)
     j = find(ismember(Country,State{i}));
-    if numel(j)
+    if numel(j) && ~ismember(State(i),'China')
         
         % confirmed cases
         %------------------------------------------------------------------
@@ -107,14 +107,14 @@ for i = 1:numel(State)
         Data(k).lat     = C.data(l,1);
         Data(k).long    = C.data(l,2);
         Data(k).date    = date{d};
-        Data(k).cases   = gradient(spm_conv([zeros(8,1); CY(d:end)],s));
-        Data(k).death   = gradient(spm_conv([zeros(8,1); DY(d:end)],s));
+        Data(k).cases   = spm_conv(gradient([zeros(8,1); CY(d:end)]),s);
+        Data(k).death   = spm_conv(gradient([zeros(8,1); DY(d:end)]),s);
         Data(k).days    = numel(Data(k).cases);
-        Data(k).cum     = sum(Data(k).cases);
+        Data(k).cum     = sum(Data(k).death);
         
         % population of Wuhan
         %------------------------------------------------------------------
-        if ismember(State{i},'China')
+        if ismember(State(i),'China')
             Data(k).pop     = 11.08e6;
         end
         

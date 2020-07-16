@@ -17,7 +17,7 @@ function [DCM] = DEM_COVID_UTLA
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7895 2020-07-14 08:55:30Z karl $
+% $Id: DEM_COVID_UTLA.m 7902 2020-07-16 14:26:52Z karl $
 
 
 % NHS postcode data
@@ -248,10 +248,10 @@ for k = 1:numel(D)
     D(k).deaths = [zeros(1,16), D(k).deaths];
     D(k).date   = [(DN(1) - flip(1:16)) DN'];
     
-    % assemble and smooth data matrix
+    % assemble and smooth data matrix (14 day average)
     %----------------------------------------------------------------------
-    s        = 7;                        % seven day average
-    Y        = [spm_conv(D(k).deaths',s,0), gradient(spm_conv(D(k).cases,s))'];
+    s        = 14;
+    Y        = [spm_conv(D(k).deaths',s,0), spm_conv(gradient(D(k).cases),s)'];
     Y(Y < 0) = 0;
     D(k).YY  = Y;
     

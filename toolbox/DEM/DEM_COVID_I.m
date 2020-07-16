@@ -16,12 +16,24 @@ function DEM_COVID_I
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_I.m 7891 2020-07-07 16:34:13Z karl $
+% $Id: DEM_COVID_I.m 7902 2020-07-16 14:26:52Z karl $
 
 
 % Get data (see DATA_COVID): an array with a structure for each country
 %==========================================================================
-data    = DATA_COVID_JHU(16);
+data  = DATA_COVID_JHU(16);
+for i = 1:numel(data)
+    p    = data(i).death;
+    p    = p/sum(p);
+    t    = (1:numel(p));
+    t    = (t - mean(t)).^2;
+    L(i) = t*p;
+end
+
+% retain eight countries with a transient epidemic
+%--------------------------------------------------------------------------
+[d,j] = sort(L,'ascend');
+data  = data(j(1:8));
 
 % Inversion (i.e., fitting) of empirical data
 %==========================================================================
@@ -100,20 +112,6 @@ save COVID_I
 % characterise second wave
 %==========================================================================
 load COVID_I
-N     = 12;
-
-% retain minimum entropy countries
-%==========================================================================
-for i = 1:size(F,1)
-    p    = spm_softmax(spm_vec(F(i,:)));
-    E(i) = Tim*p;
-    H(i) = p'*log(p + exp(-16));
-    p    = GCM{i,1}.Y(:,1);
-    p    = p/sum(p);
-    L(i) = (1:numel(p))*p;
-end
-[d,j] = sort(L,'ascend');
-F     = F(j(1:8),:);
 
 % posterior over a period of immunity
 %==========================================================================
@@ -152,8 +150,8 @@ M.date = '25-Jan-2020';
 for  i = [I,numel(DCM)]
     spm_COVID_ci(DCM{i}.Ep,DCM{i}.Cp,DCM{i}.Y,1,M);
 end
-title(sprintf('Death rates (%.0f,%.0f, and %.0f months)',Tim(1),Tim(I),Tim(end)))
-datetick('x','mmmyy')
+title(sprintf('Death rates (%.0f, and %.0f months)',Tim(I),Tim(end)))
+datetick('x','mmm-yy')
 
 % and plot confidence intervals around reproduction rate
 %--------------------------------------------------------------------------
@@ -184,7 +182,8 @@ spm_figure('GetWin','data fits'); clf
 
 % death rate
 %--------------------------------------------------------------------------
-M.T   = 180;
+N     = 8;
+M.T   = 200;
 for i = 1:N
     
     [Y,X] = spm_COVID_gen(GCM{i,I}.Ep,M,1:2);
@@ -208,7 +207,7 @@ for i = 1:N
     plot(t,cumsum(Y(:,2))), hold on
     t  = (1:size(GCM{i,I}.Y,1)) - d;
     plot(t,cumsum(GCM{i,I}.Y(:,2)),'k.')
-    set(gca,'XLim',[0 200])
+    set(gca,'XLim',[0 (M.T + 32)])
     text(M.T - d,sum(Y(:,2)),data(i).country,'Fontweight','bold','FontSize',8)
     drawnow
     
@@ -247,14 +246,14 @@ for i = 1:N
     
     
     n         = 1 - X{1}(end,4);
-    tab{i,4}  = round(max(X{2}(:,4))*100);       % population immunity
-    tab{i,5}  = round(y(m(1)));                  % death rate (first)
-    tab{i,6}  = round(Y(m(2)));                  % death rate (second)
-    tab{i,7}  = round(exp(GCM{i,I}.Ep.res)*100); % non-infectious proportion
-    tab{i,8}  = round(exp(GCM{i,I}.Ep.r)*100);   % non-susceptible proportion
-    tab{i,9}  = round(exp(GCM{i,I}.Ep.N)*n);     % effective population
-    tab{i,10} = round(data(i).pop/1e6);          % total population
-    tab{i,11} = round(100*n);                    % effective proportion
+    tab{i,4}  = ceil(max(X{2}(:,4))*100);       % population immunity
+    tab{i,5}  = ceil(y(m(1)));                  % death rate (first)
+    tab{i,6}  = ceil(Y(m(2)));                  % death rate (second)
+    tab{i,7}  = ceil(exp(GCM{i,I}.Ep.res)*100); % non-infectious proportion
+    tab{i,8}  = ceil(exp(GCM{i,I}.Ep.r)*100);   % non-susceptible proportion
+    tab{i,9}  = ceil(exp(GCM{i,I}.Ep.N)*n);     % effective population
+    tab{i,10} = ceil(data(i).pop/1e6);          % total population
+    tab{i,11} = ceil(100*n);                    % effective proportion
 
 end
 subplot(3,2,1), legend({data.country}), legend 'boxoff'
@@ -278,7 +277,7 @@ table(Tab(:,1),Tab(:,4),Tab(:,5),Tab(:,6),Tab(:,7),Tab(:,8),Tab(:,9),Tab(:,10),'
 %==========================================================================
 spm_figure('GetWin','LANCET'); clf
 I     = 7;
-M.T   = 180;
+M.T   = 200;
 for i = 1:N
     
     subplot(3,1,1), hold on
@@ -293,7 +292,7 @@ for i = 1:N
     axis square, box off
     
     subplot(3,1,2), hold on
-    T     = find(X{1}(:,2) < X{1}(1,2)/2,1,'first');
+    T     = find(X{1}(:,2) < X{1}(8,2)/2,1,'first');
     N1    = sum(Y(1:T,1))/pop;
     N2    = sum(Y(T + (1:6*7),1))/pop;
     plot(log(N1),log(N2),'o')
@@ -318,7 +317,7 @@ legend({data.country})
 % model comparison
 %==========================================================================
 spm_figure('GetWin','LANCET BMR'); clf
-G     = zeros(6,N);
+G     = zeros(5,N);
 for i = 1:N
     
     % populations proportions
@@ -336,53 +335,52 @@ for i = 1:N
     qE     = GCM{i,I}.Ep;
     qC     = GCM{i,I}.Cp;
    
-    % remove non-susceptible population
+    % remove non-exposed population
     %----------------------------------------------------------------------
     rE     = pE;
-    rE.N   = log(data(i).pop/1e6);
+    rE.m   = log(1 - 1/16);
     rC     = pC;
-    rC.N   = pC.N/1024;
     F      = spm_log_evidence(qE,qC,pE,pC,rE,rC);
-    G(2,i) = F;
+    G(1,i) = F;
     
     % remove susceptibility heterogeneity
     %----------------------------------------------------------------------
     rE     = pE;
-    rE.r   = rE.r - 1;
+    rE.r   = log(1/16);
     rC     = pC;
     F      = spm_log_evidence(qE,qC,pE,pC,rE,rC);
-    G(3,i) = F;
+    G(2,i) = F;
     
     % remove transmission heterogeneity
     %----------------------------------------------------------------------
     rE     = pE;
-    rE.res = rE.res - 1;
+    rE.res = log(1/16);
     rC     = pC;
     F      = spm_log_evidence(qE,qC,pE,pC,rE,rC);
-    G(4,i) = F;
+    G(3,i) = F;
     
     % suppress lockdown
     %----------------------------------------------------------------------
     rE     = pE;
-    rE.sde = rE.sde + 2;
+    rE.sde = log(1/2);
     rC     = pC;
     F      = spm_log_evidence(qE,qC,pE,pC,rE,rC);
-    G(5,i) = F;
+    G(4,i) = F;
     
     % suppress herd immunity
     %----------------------------------------------------------------------
     rE     = pE;
-    rE.Tim = rE.Tim - 2;
+    rE.Tim = log(1);
     rC     = pC;
     F      = spm_log_evidence(qE,qC,pE,pC,rE,rC);
-    G(6,i) = F;
+    G(5,i) = F;
     
 end
 
 subplot(2,1,1), bar(G)
 legend({data.country})
 title('Bayesian model comparison','FontSize',12)
-str = {'full model','exposure','susceptibility','transmission','no lockdown','no immunity'};
+str = {'exposure','susceptibility','transmission','no lockdown','no immunity'};
 set(gca,'XtickLabel',str)
 xlabel('epidemiological model')
 ylabel('log evidence')
