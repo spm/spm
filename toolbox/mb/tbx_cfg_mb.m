@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 7885 2020-07-03 14:10:31Z mikael $
+% $Id: tbx_cfg_mb.m 7904 2020-07-20 16:18:59Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
@@ -487,24 +487,6 @@ inu.val    = {false};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
-y        = cfg_menu;
-y.tag    = 'y';
-y.name   = 'Forward deformations';
-y.labels = {'No','Yes'};
-y.values = {false,true};
-y.val    = {false};
-% ---------------------------------------------------------------------
-
-% ---------------------------------------------------------------------
-v        = cfg_menu;
-v.tag    = 'v';
-v.name   = 'Initial velocities';
-v.labels = {'No','Yes'};
-v.values = {false,true};
-v.val    = {false};
-% ---------------------------------------------------------------------
-
-% ---------------------------------------------------------------------
 c         = cfg_entry;
 c.tag     = 'c';
 c.name    = 'Tissues';
@@ -545,7 +527,7 @@ mrf.val     = {1};
 out      = cfg_exbranch;
 out.tag  = 'out';
 out.name = 'Output';
-out.val  = {res_file, i, mi, wi, wmi, inu, y, v, c, wc, mwc, mrf};
+out.val  = {res_file, i, mi, wi, wmi, inu, c, wc, mwc, mrf};
 out.prog = @spm_mb_output;
 % ---------------------------------------------------------------------
 
