@@ -17,7 +17,7 @@ function [DCM] = DEM_COVID_UTLA
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7902 2020-07-16 14:26:52Z karl $
+% $Id: DEM_COVID_UTLA.m 7903 2020-07-20 11:23:57Z guillaume $
 
 
 % NHS postcode data
@@ -31,8 +31,8 @@ function [DCM] = DEM_COVID_UTLA
 % G.PC = pc;
 % G.LT = cc;
 
-LTLA   = readmatrix('Population_LTLACD.xlsx','range',[6 1  35097 1], 'OutputType','char');
-Pop    = readmatrix('Population_LTLACD.xlsx','range',[6 4  35097 4], 'OutputType','char');
+%LTLA   = readmatrix('Population_LTLACD.xlsx','range',[6 1  35097 1], 'OutputType','char');
+%Pop    = readmatrix('Population_LTLACD.xlsx','range',[6 4  35097 4], 'OutputType','char');
 
 % NHS provider code to post code
 %--------------------------------------------------------------------------
@@ -54,10 +54,12 @@ websave('coronavirus-cases_latest.csv',[url,'coronavirus-cases_latest.csv']);
 URL  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/07/';
 for i = 0:4
     try
-        dstr = datestr(datenum(date) - i,'dd-mmm-yyyy');
+        dstr = datestr(datenum(date) - i,'dd-mmmm-yyyy');
         if strcmp(dstr(1),'0'),dstr = dstr(2:end); end
-        url  = [URL 'COVID-19-total-announced-deaths-' dstr '-1.xlsx'];
+        url  = [URL 'COVID-19-total-announced-deaths-' dstr '.xlsx'];
+        fprintf('Trying %s\n',url);
         websave('COVID-19-total-announced-deaths.xlsx',url);
+        fprintf('Using %s\n',url);
         break
     end
 end
@@ -71,7 +73,7 @@ P    = importdata('Populations.xlsx');
 
 % get death by date from each NHS trust
 %--------------------------------------------------------------------------
-DN   = datenum(D.textdata.Tab4DeathsByTrust(15,6:end - 4),'dd-mmm-yy');
+DN   = datenum(D.textdata.Tab4DeathsByTrust(15,6:end - 4),'dd/mmm/yy');
 NHS  = D.textdata.Tab4DeathsByTrust(18:end,3);
 DA   = D.data.Tab4DeathsByTrust(3:end,2:end - 4);
 
@@ -299,7 +301,7 @@ T     = [t ((1:64) + t(end))];
 % fit each regional dataset
 %==========================================================================
 for r = 1:numel(D)
-    
+    fprintf('%d out of %d\n',r,numel(D));
     % get (Gaussian) priors over model parameters
     %----------------------------------------------------------------------
     [pE,pC] = spm_COVID_priors;
@@ -340,7 +342,7 @@ for r = 1:numel(D)
     
     % now-casting for this region and date
     %======================================================================
-    spm_figure('GetWin',D(r).name{1}); clf;
+    H = spm_figure('GetWin',D(r).name{1}); clf;
     %----------------------------------------------------------------------
     M.T   = numel(T);
     [Y,X] = spm_COVID_gen(DCM(r).Ep,M,[1 2]);
@@ -397,7 +399,8 @@ for r = 1:numel(D)
     text(0,0.0,str,'FontSize',8,'Color','k')
     
     spm_axis tight, axis off
-    
+    savefig(H,[strrep(strrep(strrep(D(r).name{1},' ','_'),',',''),'''',''),'.fig']);
+    close(H);
 end
 
 % save and reload
