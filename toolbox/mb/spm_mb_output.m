@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 7904 2020-07-20 16:18:59Z john $
+% $Id: spm_mb_output.m 7905 2020-07-22 08:20:09Z mikael $
 
 res  = load(char(cfg.result));
 sett = res.sett;
@@ -18,6 +18,15 @@ elseif isfield(sett.mu,'create')
 end
 mu = nifti(mu);
 mu = single(mu.dat(:,:,:,:,:));
+
+% If SPM has been compiled with OpenMP support then the number of threads
+% are here set to speed up the algorithm
+%--------------------------------------------------------------------------
+if sett.nworker > 1
+    setenv('SPM_NUM_THREADS',sprintf('%d',0));
+else
+    setenv('SPM_NUM_THREADS',sprintf('%d',-1));
+end
 
 % struct for saving paths of data written to disk
 N   = numel(dat);
