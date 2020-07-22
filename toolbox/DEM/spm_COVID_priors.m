@@ -35,7 +35,7 @@ function [P,C,str,rfx] = spm_COVID_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors.m 7894 2020-07-12 09:34:25Z karl $
+% $Id: spm_COVID_priors.m 7906 2020-07-22 10:17:02Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -164,9 +164,9 @@ P.sur = 1/8;                  % P(survival | severe, home)
 P.ttt = 1/10000;              % test, track and trace
 P.ont = 2;                    % testing latency (months)
 P.del = 4;                    % test delay (days)
-P.tes = 2;                    % test selectivity (for infection)
-P.sus = 8/10000;              % sustained testing
-P.bas = 8/10000;              % baseline testing
+P.tes = 8;                    % test selectivity (for infection)
+P.sus = 4/10000;              % sustained testing
+P.bas = 4/10000;              % baseline testing
 
 % immunity
 %--------------------------------------------------------------------------
@@ -174,7 +174,7 @@ P.Tim = 16;                   % period of immunity (months)
 P.Tex = 2;                    % period of exemption (days)
 P.r   = 1/2;                  % proportion resistant cases
 P.res = 1/2;                  % proportion with innate immunity
-
+P.tts = 16;                   % testing buildup
 
 % total mortality rate (for susceptible population)
 %--------------------------------------------------------------------------
@@ -243,7 +243,7 @@ C.ttt = U;                    % test, track and trace
 C.ont = U;                    % testing latency (months)
 C.del = W;                    % test delay (days)
 C.tes = V;                    % test selectivity (for infection)
-C.sus = V;                    % sustained testing
+C.sus = U;                    % sustained testing
 C.bas = V;                    % baseline testing
 
 % immunity
@@ -252,7 +252,7 @@ C.Tim = W;                    % period of immunity
 C.Tex = W;                    % period of exemption
 C.r   = W;                    % proportion of people not susceptible
 C.res = W;                    % proportion with innate immunity
-
+C.tts = U;                    % testing buildup
 
 
 

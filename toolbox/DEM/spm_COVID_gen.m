@@ -50,7 +50,7 @@ function [Y,X,Z] = spm_COVID_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7894 2020-07-12 09:34:25Z karl $
+% $Id: spm_COVID_gen.m 7906 2020-07-22 10:17:02Z karl $
 
 
 % The generative model:
@@ -175,7 +175,11 @@ for i = 1:M.T
             P.bas = log(Q.bas * max(M.R));
         end
     else
-        P.bas = log(Q.bas + Q.sus*spm_phi((i - 32*Q.ont)/16));
+        if isfield(Q,'tts')
+            P.bas = log(Q.bas + Q.sus*spm_phi((i - 32*Q.ont)/Q.tts));
+        else
+            P.bas = log(Q.bas + Q.sus*spm_phi((i - 32*Q.ont)/16));
+        end
     end
 
     % start of trace and track

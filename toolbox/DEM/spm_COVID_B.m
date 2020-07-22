@@ -21,7 +21,7 @@ function T = spm_COVID_B(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_B.m 7894 2020-07-12 09:34:25Z karl $
+% $Id: spm_COVID_B.m 7906 2020-07-22 10:17:02Z karl $
 
 % setup
 %==========================================================================
@@ -294,9 +294,12 @@ ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ksev)*(1 - P.fat);
 % test probabilities
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
+q    = spm_sum(x,[2 3 4]);
+Pbas = P.bas*(1 - q(4));
 Seni = .9;                            % PCR sensitivity (infected)
 Senc = .95;                           % PCR sensitivity (contagious)
-Psen = P.bas/(1 - Prev + P.tes*Prev); % probability of being tested
+
+Psen = Pbas/(1 - Prev + P.tes*Prev);  % probability of being tested
 Ptes = Psen*P.tes;                    % probability if infected
 Kdel = exp(-1/P.del);                 % exp(-1/waiting period)
 
@@ -335,9 +338,14 @@ b{5} = b{1};
 
 % kroneckor form
 %--------------------------------------------------------------------------
-b     = spm_cat(spm_diag(b));
-b     = spm_kron({b,I{1},I{3}});
-B{4}  = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
+b    = spm_cat(spm_diag(b));
+b    = spm_kron({b,I{1},I{3}});
+B{4} = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
+
+% location dependent testing (exempt): third order dependencies
+%--------------------------------------------------------------------------
+ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,1},dim); B{4}(ij) = 1;
+ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,2},dim); B{4}(ij) = 0;
 
     
 % probability transition matrix
