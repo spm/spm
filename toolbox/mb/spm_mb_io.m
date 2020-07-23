@@ -6,28 +6,26 @@ function varargout = spm_mb_io(action,varargin)
 % FORMAT [d,M]   = spm_mb_io('get_size',fin)
 % FORMAT           spm_mb_io('save_template',mu,sett)
 % FORMAT fout    = spm_mb_io('set_data',fin,f)
-% FORMAT dat     = spm_mb_io('save_psi',dat,sett);
+% FORMAT dat     = spm_mb_io('save_mat',dat,mat);
 %
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_io.m 7855 2020-05-19 22:17:56Z john $
+% $Id: spm_mb_io.m 7907 2020-07-23 16:10:52Z john $
 
-switch action
-    case 'get_image'
-        [varargout{1:nargout}] = get_image(varargin{:});
-    case 'get_data'
-        [varargout{1:nargout}] = get_data(varargin{:});
-    case 'get_size'
-        [varargout{1:nargout}] = get_size(varargin{:});
-    case 'save_template'
-        [varargout{1:nargout}] = save_template(varargin{:});
-    case 'set_data'
-        [varargout{1:nargout}] = set_data(varargin{:});
-    case 'save_psi'
-        [varargout{1:nargout}] = save_psi(varargin{:});
-    otherwise
-        error('Unknown function %s.', action)
+[varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
+%==========================================================================
+
+%==========================================================================
+function out = save_mat(in,mat)
+% Write mat to header
+out = in;
+if isa(in,'char')
+    in = nifti(in);
+end
+if isa(in,'nifti') && numel(in)==1
+    out.mat = mat;
+    create(out);
 end
 %==========================================================================
 
@@ -48,7 +46,8 @@ if isa(in,'char')
 end
 if isa(in,'nifti')
     C   = numel(in);
-    d   = size(in(1).dat,[1 2 3 4 5]);
+    d   = [in(1).dat.dim 1 1 1 1 1];
+    d   = d(1:5);
     if d(4)>1 && C>1, error('Don''t know what to do with this image data.'); end
     d(4) = max(d(4),C);
     out  = zeros([1,1,1,d(4)]);
@@ -73,7 +72,7 @@ end
 %==========================================================================
 function fn = get_image(gmm)
 % This is the place to do various image cleaning steps
-fn = spm_mb_io('get_data',gmm.f);
+fn = get_data(gmm.f);
 C  = size(fn,4);
 fn = mask(fn,gmm.modality);
 jitter = get_scale(gmm.f);
@@ -115,7 +114,8 @@ if isa(in,'char')
 end
 if isa(in,'nifti')
     C  = numel(in);
-    d  = size(in(1).dat,[1 2 3 4 5]);
+    d  = [in(1).dat.dim 1 1 1 1 1];
+    d  = d(1:5);
     Mn = in(1).mat;
     if C>1
         d(4) = C;
@@ -142,42 +142,6 @@ d = d(1:3);
 %==========================================================================
 
 %==========================================================================
-function dat  = save_psi(dat,sett)
-for n=1:numel(dat)
-    dat(n) = save_psiSub(dat(n),sett);
-end
-%==========================================================================
-
-%==========================================================================
-function datn = save_psiSub(datn,sett)
-
-% Parse function settings
-B    = sett.B;
-Mmu  = sett.ms.Mmu;
-d    = datn.dm;
-q    = double(datn.q);
-Mn   = datn.Mat;
-psi1 = get_data(datn.psi);
-psi  = spm_mb_shape('compose',psi1,spm_mb_shape('affine',d,Mmu\spm_dexpm(q,B)*Mn));
-psi  = reshape(bsxfun(@plus, reshape(psi,[prod(d) 3])*Mmu(1:3,1:3)', Mmu(1:3,4)'),[d 3]);
-if isnumeric(datn.psi)
-    datn.psi = psi;
-elseif isa(datn.psi(1),'nifti')
-    to_delete   = datn.psi(1).dat.fname;
-    [pth,nam,~] = fileparts(datn.psi(1).dat.fname);
-    nam         = datn.onam;
-    fpth        = fullfile(pth,['y_' nam '.nii']);
-    datn.psi(1).dat.fname = fpth;
-    datn.psi(1).dat.dim   = [d 1 3];
-    datn.psi(1).mat       = datn.Mat;
-    datn.psi(1).descrip   = 'Deformation';
-    create(datn.psi(1));
-    datn.psi(1).dat(:,:,:,:,:) = reshape(psi,[d 1 3]);
-    delete(to_delete);
-end
-%==========================================================================
-
-%==========================================================================
 function save_template(mu,sett)
 
 if ~isfield(sett.mu,'create'), return; end
@@ -197,8 +161,7 @@ Nmu.dat(:,:,:,:) = mu;
 
 if true
     % Softmax
-    mu = spm_mb_shape('template_k1',mu);
-    mu = exp(mu);
+    mu  = spm_mb_shape('softmax',mu,4);
     [pth,nam,ext] = fileparts(sett.mu.create.mu);
     nam      = ['softmax' nam(3:end)];
     f        = fullfile(pth,[nam ext]);
@@ -253,7 +216,8 @@ if isa(fin,'char')
 end
 if isa(fin,'nifti')
     M    = numel(fin);
-    d    = size(fin(1).dat,[1 2 3 4 5]);
+    d    = [fin(1).dat.dim 1 1 1 1 1];
+    d    = d(1:5);
     if M>1
         d(4) = M;
     else

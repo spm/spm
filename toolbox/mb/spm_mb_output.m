@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 7905 2020-07-22 08:20:09Z mikael $
+% $Id: spm_mb_output.m 7907 2020-07-23 16:10:52Z john $
 
 res  = load(char(cfg.result));
 sett = res.sett;
@@ -147,25 +147,23 @@ if isfield(datn.model,'gmm')
 end
 
 if any(write_im(:)) || any(write_tc(:))
-    psi    = spm_mb_io('get_data',datn.psi);
-    psi    = MatDefMul(psi,inv(Mmu));
+    Mat = Mmu\spm_dexpm(double(datn.q),sett.B)*datn.Mat;
+    psi = spm_mb_io('get_data',datn.psi);
+    psi = MatDefMul(psi,inv(Mmu));
+    psi = spm_mb_shape('compose',psi,spm_mb_shape('affine',datn.dm,Mat));
 end
 
 
-if isfield(datn.model,'gmm') && any(write_im(:)) || any(write_tc(:))
+if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
 
     % Get image(s)
     fn     = spm_mb_io('get_image',gmm);
 
     % Get warped tissue priors
     mun    = spm_mb_shape('pull1',mu,psi);
-    mun    = spm_mb_shape('template_k1',mun,4);
+    mun    = spm_mb_classes('template_k1',mun,4);
+    mun    = mun + spm_mb_classes('get_labels',datn,size(mun,4));
     mun    = reshape(mun,size(mun,1)*size(mun,2)*size(mun,3),size(mun,4));
-
-    % Get labels
-    labels = spm_mb_appearance('get_labels',datn,sett);
-    mun    = mun + labels;
-    clear labels
 
     % Integrate use of multiple Gaussians per tissue
     mg_w = gmm.mg_w;
@@ -307,6 +305,7 @@ if isfield(datn.model,'cat') && (any(write_tc(:,2)) || any(write_tc(:,3)))
     %------------------
     zn = spm_mb_io('get_data',datn.model.cat.f);
     zn = cat(4,zn,1 - sum(zn,4));
+    K1 = sett.K+1;
 end
 
 

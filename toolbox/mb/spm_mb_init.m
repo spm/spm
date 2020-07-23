@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7892 2020-07-10 16:39:18Z john $
+% $Id: spm_mb_init.m 7907 2020-07-23 16:10:52Z john $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -77,8 +77,8 @@ for p=1:numel(cfg.gmm)
 end
 
 cl  = cell(N,1);
-dat = struct('dm',cl, 'Mat',cl, 'samp',[1 1 1], 'samp2',[1 1 1], 'onam','', 'odir','',...
-             'q',cl, 'v',cl, 'psi',cl, 'model',cl, 'E',cl,'nvox',cl);
+dat = struct('dm',cl, 'Mat',cl, 'samp',[1 1 1], 'onam','', 'odir','',...
+             'q',cl, 'v',cl, 'psi',cl, 'model',cl, 'lab',cl, 'E',cl,'nvox',cl);
 n   = 0;
 
 % Process categorical data
@@ -112,8 +112,8 @@ if numel(cfg.cat)>=1
         [~,nam,~]   = fileparts(cl{1});
         dat(n).onam = sprintf('%d_%.5d_%s_%s', 0, np, nam, cfg.onam);
         dat(n).odir = sett.odir;
-        dat(n).v    = fullfile(dat(n).odir,['v_'   dat(n).onam '.nii']);
-        dat(n).psi  = fullfile(dat(n).odir,['psi_' dat(n).onam '.nii']);
+        dat(n).v    = fullfile(dat(n).odir,['v_' dat(n).onam '.nii']);
+        dat(n).psi  = fullfile(dat(n).odir,['y_' dat(n).onam '.nii']);
 
         Kn = 0;
         for c=1:Nc
@@ -127,6 +127,7 @@ if numel(cfg.cat)>=1
             K = Kn;
         end
         dat(n).model = struct('cat',struct('f',f, 'K',K));
+        dat(n).lab   = [];
     end
 end
 
@@ -185,8 +186,8 @@ for p=1:numel(cfg.gmm)
             [~,nam,~]   = fileparts(cl{1});
             dat(n).onam = sprintf('%d_%.5d_%s_%s', p, np, nam, cfg.onam);
             dat(n).odir = sett.odir;
-            dat(n).v    = fullfile(dat(n).odir,['v_'   dat(n).onam '.nii']);
-            dat(n).psi  = fullfile(dat(n).odir,['psi_' dat(n).onam '.nii']);
+            dat(n).v    = fullfile(dat(n).odir,['v_' dat(n).onam '.nii']);
+            dat(n).psi  = fullfile(dat(n).odir,['y_' dat(n).onam '.nii']);
 
             cf = zeros(Nc,1);
             for c=1:Nc
@@ -242,9 +243,11 @@ for p=1:numel(cfg.gmm)
             else
                 lab = [];
             end
+            dat(n).lab   = lab;
 
             lb           = struct('sum', NaN, 'X', [], 'XB', [], 'Z', [], 'P', [], 'MU', [], 'A', []);
-            gmm          = struct('f',f, 'lab',lab, 'pop', p, 'modality', modality, 'T',{T}, 'lb', lb,...
+            gmm          = struct('f',f, 'pop', p, 'samp',[1 1 1],...
+                                  'modality', modality, 'T',{T}, 'lb', lb,...
                                   'm',rand(Cn,K+1),'b',zeros(1,K+1)+1e-6,...
                                   'V',repmat(eye(Cn,Cn),[1 1 K+1]),'n',zeros(1,K+1)+1e-6, 'mg_w',[]);
             dat(n).model = struct('gmm',gmm);

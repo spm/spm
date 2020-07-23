@@ -14,7 +14,6 @@ function varargout = spm_mb_shape(action,varargin)
 % FORMAT mu1       = spm_mb_shape('shrink_template',mu,oMmu,sett)
 % FORMAT P         = spm_mb_shape('softmax',mu,ax)
 % FORMAT E         = spm_mb_shape('template_energy',mu,sett)
-% FORMAT mun       = spm_mb_shape('template_k1',mun)
 % FORMAT dat       = spm_mb_shape('update_affines',dat,mu,sett)
 % FORMAT [mu,dat]  = spm_mb_shape('update_mean',dat, mu, sett)
 % FORMAT dat       = spm_mb_shape('update_simple_affines',dat,mu,sett)
@@ -23,62 +22,12 @@ function varargout = spm_mb_shape(action,varargin)
 % FORMAT dat       = spm_mb_shape('update_warps',dat,sett)
 % FORMAT [dat,mu]  = spm_mb_shape('zoom_volumes',dat,mu,sett,oMmu)
 % FORMAT sz        = spm_mb_shape('zoom_settings', v_settings, mu, n)
-% FORMAT [P,datn]  = spm_mb_io('get_classes',datn,mu,sett)
+% FORMAT psi       = get_def(dat,sett.ms.Mmu)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7892 2020-07-10 16:39:18Z john $
-
-switch action
-    case 'affine'
-        [varargout{1:nargout}] = affine(varargin{:});
-    case 'affine_bases'
-        [varargout{1:nargout}] = affine_bases(varargin{:});
-    case 'compose'
-        [varargout{1:nargout}] = compose(varargin{:});
-    case 'identity'
-        [varargout{1:nargout}] = identity(varargin{:});
-    case 'init_def'
-        [varargout{1:nargout}] = init_def(varargin{:});
-    case 'LSE'
-        [varargout{1:nargout}] = LSE(varargin{:});
-    case 'pull1'
-        [varargout{1:nargout}] = pull1(varargin{:});
-    case 'push1'
-        [varargout{1:nargout}] = push1(varargin{:});
-    case 'samp_dens'
-        [varargout{1:nargout}] = samp_dens(varargin{:});
-    case 'shoot'
-        [varargout{1:nargout}] = shoot(varargin{:});
-    case 'shrink_template'
-        [varargout{1:nargout}] = shrink_template(varargin{:});
-    case 'softmax'
-        [varargout{1:nargout}] = softmax(varargin{:});
-    case 'template_energy'
-        [varargout{1:nargout}] = template_energy(varargin{:});
-    case 'template_k1'
-        [varargout{1:nargout}] = template_k1(varargin{:});
-    case 'update_affines'
-        [varargout{1:nargout}] = update_affines(varargin{:});
-    case 'update_mean'
-        [varargout{1:nargout}] = update_mean(varargin{:});
-    case 'update_simple_affines'
-        [varargout{1:nargout}] = update_simple_affines(varargin{:});
-    case 'update_simple_mean'
-        [varargout{1:nargout}] = update_simple_mean(varargin{:});
-    case 'update_velocities'
-        [varargout{1:nargout}] = update_velocities(varargin{:});
-    case 'update_warps'
-        [varargout{1:nargout}] = update_warps(varargin{:});
-    case 'zoom_volumes'
-        [varargout{1:nargout}] = zoom_volumes(varargin{:});
-    case 'zoom_settings'
-        [varargout{1:nargout}] = zoom_settings(varargin{:});
-    case 'get_classes'
-        [varargout{1:nargout}] = get_classes(varargin{:});
-    otherwise
-        error('Unknown function %s.', action)
-end
+% $Id: spm_mb_shape.m 7907 2020-07-23 16:10:52Z john $
+[varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
 %==========================================================================
 
 %==========================================================================
@@ -189,54 +138,6 @@ id = zeros([ds(:)',3],'single');
 [id(:,:,:,1),id(:,:,:,2),id(:,:,:,3)] = ndgrid(single(1:samp(1):d(1)),...
                                                single(1:samp(2):d(2)),...
                                                single(1:samp(3):d(3)));
-%==========================================================================
-
-%==========================================================================
-function dat = init_def(dat,ms)
-% Possibly break up this function and put parts of it in the io file.
-
-% Parse function settings
-d       = ms.d;
-Mmu     = ms.Mmu;
-
-v    = zeros([d,3],'single');
-psi1 = identity(d);
-for n=1:numel(dat)
-    if ~isnumeric(dat(n).v) || ~isnumeric(dat(n).psi)
-        fa       = file_array('placeholder.nii',[d(1:3) 1 3],'float32',0);
-        nii      = nifti;
-        nii.dat  = fa;
-        nii.mat  = Mmu;
-        nii.mat0 = Mmu;
-    end
-    if isnumeric(dat(n).v)
-        dat(n).v   = v;
-    else
-        if ischar(dat(n).v)
-            nii.dat.fname = dat(n).v;
-        else
-            nii.dat.fname = dat(n).v.dat.fname;
-        end
-        nii.descrip = 'Velocity';
-        create(nii);
-        nii.dat(:,:,:,:) = v;
-        dat(n).v         = nii;
-    end
-
-    if isnumeric(dat(n).psi)
-        dat(n).psi   = psi1;
-    else
-        if ischar(dat(n).psi)
-            nii.dat.fname = dat(n).psi;
-        else
-            nii.dat.fname = dat(n).psi.dat.fname;
-        end
-        nii.descrip = 'Deformation (WIP)';
-        create(nii);
-        nii.dat(:,:,:,:) = psi1;
-        dat(n).psi       = nii;
-    end
-end
 %==========================================================================
 
 %==========================================================================
@@ -448,17 +349,6 @@ end
 %==========================================================================
 
 %==========================================================================
-% template_k1()
-function mun = template_k1(mun,ax)
-if nargin<2, ax = 4; end
-mx   = max(max(mun,[],ax),0);
-%lse = mx + log(sum(exp(mun - mx),ax) + exp(-mx));
-lse  = bsxfun(@plus,mx,log(sum(exp(bsxfun(@minus,mun,mx)),ax) + exp(-mx)));
-%mun = cat(ax,mun - lse, -lse);
-mun  = cat(ax,bsxfun(@minus,mun,lse), -lse);
-%==========================================================================
-
-%==========================================================================
 function dat = update_affines(dat,mu,sett)
 
 % Parse function settings
@@ -480,6 +370,12 @@ if ~isempty(B)
         for n=1:numel(dat)
             dat(n).q = dat(n).q - mq;
         end
+    end
+
+    % Update orientations in deformation headers when appropriate
+    for n=1:numel(dat)
+        Mdef       = spm_dexpm(dat(n).q,B)\sett.ms.Mmu;
+        dat(n).psi = spm_mb_io('save_mat',dat(n).psi,Mdef);
     end
 end
 %==========================================================================
@@ -508,7 +404,7 @@ end
 df   = datn.dm;
 psi0 = affine(df,Mmu\Mr*Mn,samp);
 ds   = [size(psi0,1),size(psi0,2),size(psi0,3)];
-psi1 = spm_mb_io('get_data',datn.psi);
+psi1 = get_def(datn,sett.ms.Mmu);
 if ~isempty(psi1)
     J    = spm_diffeo('jacobian',psi1);
     J    = reshape(pull1(reshape(J,[d 3*3]),psi0),[ds 3 3]);
@@ -520,7 +416,7 @@ end
 clear psi0  psi1
 
 mu1  = pull1(mu,psi);
-[f,datn] = get_classes(datn,mu1,sett);
+[f,datn] = spm_mb_classes(datn,mu1,sett);
 M    = size(mu,4);
 G    = zeros([ds M 3],'single');
 for m=1:M
@@ -625,9 +521,9 @@ q        = double(datn.q);
 Mn       = datn.Mat;
 samp     = datn.samp;
 
-psi      = compose(spm_mb_io('get_data',datn.psi),affine(df, Mmu\spm_dexpm(q,B)*Mn,samp));
+psi      = compose(get_def(datn,sett.ms.Mmu),affine(df, Mmu\spm_dexpm(q,B)*Mn,samp));
 mu       = pull1(mu,psi);
-[f,datn] = get_classes(datn,mu,sett);
+[f,datn] = spm_mb_classes(datn,mu,sett);
 [g,w]    = push1(softmax(mu,4) - f,psi,d,1);
 %==========================================================================
 
@@ -665,14 +561,14 @@ function dat = update_simple_affines(dat,mu,sett)
 % Parse function settings
 accel     = sett.accel;
 B         = sett.B;
-groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
-nw        = get_num_workers(sett,4*sett.K+4);
-
-% Update the affine parameters
-G  = spm_diffeo('grad',mu);
-H0 = velocity_hessian(mu,G,accel);
-
 if ~isempty(B)
+    groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
+    nw        = get_num_workers(sett,4*sett.K+4);
+
+    % Update the affine parameters
+    G  = spm_diffeo('grad',mu);
+    H0 = velocity_hessian(mu,G,accel);
+
     if nw > 1 && numel(dat) > 1 % PARFOR
         parfor(n=1:numel(dat),nw)
             dat(n) = update_simple_affines_sub(dat(n),mu,G,H0,sett);
@@ -689,6 +585,12 @@ if ~isempty(B)
         for n=1:numel(dat)
             dat(n).q = dat(n).q - mq;
         end
+    end
+
+    % Update orientations in deformation headers when appropriate
+    for n=1:numel(dat)
+        Mdef       = spm_dexpm(dat(n).q,B)\sett.ms.Mmu;
+        dat(n).psi = spm_mb_io('save_mat',dat(n).psi,Mdef);
     end
 end
 %==========================================================================
@@ -716,7 +618,7 @@ end
 psi      = affine(df,Mmu\Mr*Mn,samp);
 mu1      = pull1(mu,psi);
 
-[f,datn] = get_classes(datn,mu1,sett);
+[f,datn] = spm_mb_classes(datn,mu1,sett);
 [a,w]    = push1(f - softmax(mu1,4),psi,d,1);
 clear mu1 psi f
 
@@ -805,9 +707,9 @@ q     = double(datn.q);
 Mn    = datn.Mat;
 samp  = datn.samp;
 
-psi      = compose(spm_mb_io('get_data',datn.psi),affine(df,Mmu\spm_dexpm(q,B)*Mn,samp));
+psi      = compose(get_def(datn,sett.ms.Mmu),affine(df,Mmu\spm_dexpm(q,B)*Mn,samp));
 mu       = pull1(mu,psi);
-[f,datn] = get_classes(datn,mu,sett);
+[f,datn] = spm_mb_classes(datn,mu,sett);
 [g,w]    = push1(f,psi,d,1);
 %==========================================================================
 
@@ -849,9 +751,9 @@ samp      = datn.samp;
 Mr        = spm_dexpm(q,B);
 Mat       = Mmu\Mr*Mn;
 df        = datn.dm;
-psi       = compose(spm_mb_io('get_data',datn.psi),affine(df,Mat,samp));
+psi       = compose(get_def(datn,sett.ms.Mmu),affine(df,Mat,samp));
 mu        = pull1(mu,psi);
-[f,datn]  = get_classes(datn,mu,sett);
+[f,datn]  = spm_mb_classes(datn,mu,sett);
 [a,w]     = push1(f - softmax(mu,4),psi,d,1);
 clear psi f mu
 
@@ -871,53 +773,6 @@ if v_settings(1)==0             % Mean displacement should be 0
     v   = v - avg;
 end
 datn.v = spm_mb_io('set_data',datn.v,v);
-%==========================================================================
-
-%==========================================================================
-function [P,datn] = get_classes(datn,mun,sett)
-
-if false
-% Put a lower level on how confident the model is when template
-% probabilities gecome extremely small. This may improve the
-% apparent convergence because it tries less hard to make the
-% probabilities in the template approach 0 or 1.
-t    = log(eps('single')*128);
-lse  = LSE(mun,4);
-%mun = max(mun-lse,t)+min(lse,-t);
-mun  = bsxfun(@plus,max(bsxfun(@minus,mun,lse),t),min(lse,-t));
-end
-
-
-if isfield(datn.model,'cat')
-    % Categorical model
-    P  = spm_mb_io('get_data',datn.model.cat.f);
-    sk = datn.samp;
-    P  = P(1:sk:end,1:sk:end,1:sk:end,:);
-    if nargout > 1
-        % Compute subject-specific categorical cross-entropy loss between
-        % segmentation and template
-        msk       = all(isfinite(P),4) & all(isfinite(mun),4);
-        tmp       = sum(P.*mun,4) - LSE(mun,4);
-        datn.E(1) = -sum(tmp(msk(:)));
-        datn.nvox = sum(msk(:));
-    end
-else
-    % Update appearance model
-    [datn,P] = spm_mb_appearance('update',datn,mun,sett);
-end
-
-if false
-figure(2)
-sl = ceil(size(P,1)/2);
-t  = softmax(mun,4);
-subplot(3,2,1); imagesc(squeeze(P(sl,:,:,1))'); axis image xy off
-subplot(3,2,2); imagesc(squeeze(t(sl,:,:,1))'); axis image xy off
-subplot(3,2,3); imagesc(squeeze(P(sl,:,:,2))'); axis image xy off
-subplot(3,2,4); imagesc(squeeze(t(sl,:,:,2))'); axis image xy off
-subplot(3,2,5); imagesc(squeeze(1-sum(P(sl,:,:,:),4))'); axis image xy off
-subplot(3,2,6); imagesc(squeeze(1-sum(t(sl,:,:,:),4))'); axis image xy off
-drawnow
-end
 %==========================================================================
 
 %==========================================================================
@@ -996,14 +851,14 @@ end
 nw     = get_num_workers(sett,33);
 kernel = shoot(d,v_settings);
 if nw > 1 && numel(dat) > 1 % PARFOR
-    parfor(n=1:numel(dat),nw) dat(n) = update_warps_sub(dat(n),avg_v,kernel); end
+    parfor(n=1:numel(dat),nw) dat(n) = update_warps_sub(dat(n),avg_v,kernel,sett); end
 else % FOR
-    for n=1:numel(dat), dat(n) = update_warps_sub(dat(n),avg_v,kernel); end
+    for n=1:numel(dat), dat(n) = update_warps_sub(dat(n),avg_v,kernel,sett); end
 end
 %==========================================================================
 
 %==========================================================================
-function datn = update_warps_sub(datn,avg_v,kernel)
+function datn = update_warps_sub(datn,avg_v,kernel,sett)
 v          = spm_mb_io('get_data',datn.v);
 if ~isempty(avg_v)
     v      = v - avg_v;
@@ -1011,8 +866,8 @@ if ~isempty(avg_v)
 end
 u0         = spm_diffeo('vel2mom', v, kernel.v_settings); % Initial momentum
 datn.E(2)  = 0.5*sum(u0(:).*v(:));                        % Prior term
-psi1       = shoot(v, kernel, 8);                     % Geodesic shooting
-datn.psi   = spm_mb_io('set_data',datn.psi,psi1);
+psi1       = shoot(v, kernel, 8);                         % Geodesic shooting
+datn       = set_def(datn,sett.ms.Mmu,psi1);
 %==========================================================================
 
 %==========================================================================
@@ -1021,6 +876,7 @@ function [dat,mu] = zoom_volumes(dat,mu,sett,oMmu)
 % Parse function settings
 d     = sett.ms.d;
 Mmu   = sett.ms.Mmu;
+B     = sett.B;
 nw    = get_num_workers(sett,6+0.5*6);
 
 d0    = [size(mu,1) size(mu,2) size(mu,3)];
@@ -1037,8 +893,13 @@ if ~isempty(dat)
            %v          = spm_diffeo('pullc',v.*z,y);
             v          = spm_diffeo('pullc',bsxfun(@times,v,z),y);
             dat(n).v   = resize_file(dat(n).v  ,d,Mmu);
-            dat(n).psi = resize_file(dat(n).psi,d,Mmu);
             dat(n).v   = spm_mb_io('set_data',dat(n).v,v);
+            if ~isempty(B)
+                Mdef   = spm_dexpm(dat(n).q,B)\Mmu;
+            else
+                Mdef   = Mmu;
+            end
+            dat(n).psi = resize_file(dat(n).psi,d,Mdef);
         end
     else % FOR
         for n=1:numel(dat)
@@ -1046,8 +907,13 @@ if ~isempty(dat)
            %v          = spm_diffeo('pullc',v.*z,y);
             v          = spm_diffeo('pullc',bsxfun(@times,v,z),y);
             dat(n).v   = resize_file(dat(n).v  ,d,Mmu);
-            dat(n).psi = resize_file(dat(n).psi,d,Mmu);
             dat(n).v   = spm_mb_io('set_data',dat(n).v,v);
+            if ~isempty(B)
+                Mdef   = spm_dexpm(dat(n).q,B)\Mmu;
+            else
+                Mdef   = Mmu;
+            end
+            dat(n).psi = resize_file(dat(n).psi,d,Mdef);
         end
     end
 end
@@ -1077,21 +943,6 @@ function f = mask(f,msk)
 f(~isfinite(f)) = 0;
 %f = f.*msk;
 f  = bsxfun(@times,f,msk);
-%==========================================================================
-
-%==========================================================================
-function fin = resize_file(fin,d,Mat)
-if isa(fin,'char')
-    fin = nifti(fin);
-end
-if isa(fin,'nifti')
-    for m=1:numel(fin)
-        fin(m).dat.dim(1:3) = d(1:3);
-        fin(m).mat  = Mat;
-        fin(m).mat0 = Mat;
-        create(fin(m));
-    end
-end
 %==========================================================================
 
 %==========================================================================
@@ -1300,5 +1151,97 @@ MemReq         = (NumFloats*FloatSizeBytes)/1e6;  % to MB
 nw             = max(floor(MemMax/MemReq) - 1,0); % Number of parfor workers to use (minus one..for main thread)
 if NumWork >= 0
     nw = min(NumWork,nw);
+end
+%==========================================================================
+
+%==========================================================================
+function phi = MatDefMul(phi,M)
+d   = size(phi);
+phi = reshape(bsxfun(@plus,reshape(phi,[prod(d(1:3)),3])*M(1:3,1:3)',M(1:3,4)'),d);
+%==========================================================================
+
+%==========================================================================
+% Functions that should be integrated better with spm_mb_io.m.
+% This should include anything that relies on the nifti data
+% structure.
+%==========================================================================
+
+%==========================================================================
+function psi = get_def(datn,Mmu)
+psi    = spm_mb_io('get_data',datn.psi);
+if isa(datn.psi,'nifti')
+    psi = MatDefMul(psi,inv(Mmu));
+end
+%==========================================================================
+
+%==========================================================================
+function datn = set_def(datn,Mmu,psi)
+if isa(datn.psi,'nifti')
+    psi = MatDefMul(psi,Mmu);
+end
+datn.psi = spm_mb_io('set_data',datn.psi,psi);
+%==========================================================================
+
+%==========================================================================
+function fin = resize_file(fin,d,Mat)
+if isa(fin,'char')
+    fin = nifti(fin);
+end
+if isa(fin,'nifti')
+    for m=1:numel(fin)
+        fin(m).dat.dim(1:3) = d(1:3);
+        fin(m).mat  = Mat;
+        fin(m).mat0 = Mat;
+        create(fin(m));
+    end
+end
+%==========================================================================
+
+%==========================================================================
+function dat = init_def(dat,ms)
+% Possibly break up this function and put parts of it in the io file.
+
+% Parse function settings
+d       = ms.d;
+Mmu     = ms.Mmu;
+
+v    = zeros([d,3],'single');
+psi1 = identity(d);
+for n=1:numel(dat)
+    if ~isnumeric(dat(n).v) || ~isnumeric(dat(n).psi)
+        fa       = file_array('placeholder.nii',[d(1:3) 1 3],'float32',0);
+        nii      = nifti;
+        nii.dat  = fa;
+        nii.mat  = Mmu;
+        nii.mat0 = Mmu;
+    end
+    if isnumeric(dat(n).v)
+        dat(n).v   = v;
+    else
+        if ischar(dat(n).v)
+            nii.dat.fname = dat(n).v;
+        else
+            nii.dat.fname = dat(n).v.dat.fname;
+        end
+        nii.descrip = 'Velocity';
+        create(nii);
+        nii.dat(:,:,:,:) = v;
+        dat(n).v         = nii;
+    end
+
+    if isnumeric(dat(n).psi)
+        dat(n).psi   = psi1;
+    else
+        if ischar(dat(n).psi)
+            nii.dat.fname = dat(n).psi;
+        else
+            nii.dat.fname = dat(n).psi.dat.fname;
+        end
+        nii.descrip = 'Deformation';
+        nii.mat     = Mmu;
+        create(nii);
+        dat(n).psi  = nii;
+        dat(n)      = set_def(dat(n),Mmu,psi1);
+    end
 end
 %==========================================================================
