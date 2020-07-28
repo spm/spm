@@ -36,7 +36,7 @@ function data = DATA_COVID_JHU(n)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 7902 2020-07-16 14:26:52Z karl $
+% $Id: DATA_COVID_JHU.m 7909 2020-07-28 19:15:44Z karl $
 
 % get data
 %--------------------------------------------------------------------------
@@ -76,7 +76,14 @@ i          = logical(ismember(Country,{'United States of America','US'}));
 Country{i} = 'US';
 i          = logical(ismember(Country,{'Republic of Korea'}));
 Country{i} = 'Korea, South';
-
+i          = logical(ismember(Country,{'Russian Federation'}));
+Country{i} = 'Russia';
+i          = logical(ismember(Country,{'Venezuela (Bolivarian Republic of)'}));
+Country{i} = 'Venezuela';
+i          = logical(ismember(Country,{'Bolivia (Plurinational State of)'}));
+Country{i} = 'Bolivia';
+i          = logical(ismember(Country,{'Iran (Islamic Republic of)'}));
+Country{i} = 'Iran';
 
 % assemble data structure
 %==========================================================================

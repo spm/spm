@@ -97,7 +97,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 7849 2020-05-13 19:48:29Z karl $
+% $Id: spm_nlsi_GN.m 7909 2020-07-28 19:15:44Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -111,7 +111,7 @@ if ~M.nograph
     Fsi = spm_figure('GetWin','SI');
 end
 
-% check integrator
+% check integrator or generation scheme
 %--------------------------------------------------------------------------
 try
     M.IS;
@@ -122,6 +122,15 @@ catch
         M.IS = 'spm_int';
     end
 end
+
+% check feature selection
+%--------------------------------------------------------------------------
+try
+    M.FS;
+catch
+    M.FS = @(x)x;
+end
+
 
 % composition of feature selection and prediction (usually an integrator)
 %--------------------------------------------------------------------------

@@ -16,12 +16,12 @@ function DEM_COVID_COUNTRY(country)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_COUNTRY.m 7906 2020-07-22 10:17:02Z karl $
+% $Id: DEM_COVID_COUNTRY.m 7909 2020-07-28 19:15:44Z karl $
 
 % get figure and data
 %--------------------------------------------------------------------------
 Fsi     = spm_figure('GetWin','SI'); clf;
-data    = DATA_COVID_JHU(64);
+data    = DATA_COVID_JHU(168);
 i       = find(ismember({data.country},country));
 
 % get and set priors

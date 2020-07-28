@@ -17,7 +17,7 @@ function [DCM] = DEM_COVID_UTLA
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7903 2020-07-20 11:23:57Z guillaume $
+% $Id: DEM_COVID_UTLA.m 7909 2020-07-28 19:15:44Z karl $
 
 
 % NHS postcode data
@@ -73,7 +73,11 @@ P    = importdata('Populations.xlsx');
 
 % get death by date from each NHS trust
 %--------------------------------------------------------------------------
-DN   = datenum(D.textdata.Tab4DeathsByTrust(15,6:end - 4),'dd/mmm/yy');
+try
+    DN = datenum(D.textdata.Tab4DeathsByTrust(15,6:end - 4),'dd/mmm/yy');
+catch
+    DN = datenum(D.textdata.Tab4DeathsByTrust(15,6:end - 4),'dd-mmm-yy');
+end
 NHS  = D.textdata.Tab4DeathsByTrust(18:end,3);
 DA   = D.data.Tab4DeathsByTrust(3:end,2:end - 4);
 
@@ -174,10 +178,10 @@ D    = DD;
 % find local authorities not accounted for
 %--------------------------------------------------------------------------
 [UniqueArea,j] = unique(AreaCode);
-UniqueName = AreaName(j);
-j          = unique(find(~ismember(UniqueArea,Area)));
-UniqueArea = UniqueArea(j);
-UniqueName = UniqueName(j);
+UniqueName     = AreaName(j);
+j              = unique(find(~ismember(UniqueArea,Area)));
+UniqueArea     = UniqueArea(j);
+UniqueName     = UniqueName(j);
 
 % get centroids of local authorities with NHS trusts
 %--------------------------------------------------------------------------
@@ -190,18 +194,23 @@ end
 %--------------------------------------------------------------------------
 for i = 1:numel(UniqueArea)
     
-    % find closest area in D
+    % find closest area in D(k)
     %----------------------------------------------------------------------
     j     = find(ismember(G.LT,UniqueArea(i)));
+    
+    % check for April 2020 changes in LT code
+    %----------------------------------------------------------------------
+    if isempty(j)
+        if ismember(UniqueArea(i),{'E07000004','E07000005','E07000006','E07000007'})
+            j = find(ismember(G.LT,'E06000060'));
+        else
+            disp(UniqueArea(i))
+        end
+    end
     x     = mean(G.X(j));
     y     = mean(G.Y(j));
     [d,k] = min((X - x).^2 + (Y - y).^2);
-    
-    % get local authority code of NHS trust
-    %----------------------------------------------------------------------
-    j     = find(ismember(AreaCode,UniqueArea(i)));
-    l     = find(ismember(G.LT,UniqueArea(i)));
-    
+
     % get local authority population
     %------------------------------------------------------------------
     N     = PN(find(ismember(PCD,UniqueArea(i))));
@@ -210,12 +219,16 @@ for i = 1:numel(UniqueArea)
     %----------------------------------------------------------------------
     D(k).code(end + 1) = UniqueArea(i);
     D(k).name(end + 1) = UniqueName(i);
-    D(k).X             = [D(k).X; G.X(l)];
-    D(k).Y             = [D(k).Y; G.Y(l)];
+    D(k).X             = [D(k).X; G.X(j)];
+    D(k).Y             = [D(k).Y; G.Y(j)];
     D(k).N             = D(k).N + N;
     
     % add cumulative cases
+    %======================================================================
+    
+    % get local authority code of NHS trust
     %----------------------------------------------------------------------
+    j     = find(ismember(AreaCode,UniqueArea(i)));
     CN    = datenum(AreaDate(j),'yyyy-mm-dd');
     for n = 1:numel(DN)
         [d,m]         = min(abs(CN - DN(n)));
