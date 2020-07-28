@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 26-Mar-2020 19:01:04
+% Last Modified by GUIDE v2.5 24-Jul-2020 18:48:00
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -404,8 +404,8 @@ function pushbutton127_Callback(hObject, eventdata, handles)
 handles.web = 'Active inference sensory attenuation and illusions';
 run_demo_Callback(hObject, handles, 'ALAP_demo_attenuation')
 
-% --- Executes on button press in pushbutton128.
-function pushbutton128_Callback(hObject, eventdata, handles)
+% --- Executes on button press in pushbutton248.
+function pushbutton248_Callback(hObject, eventdata, handles)
 handles.web = 'Observing the Observer I';
 run_demo_Callback(hObject, handles, 'spm_meta_model')
 
@@ -525,8 +525,8 @@ function pushbutton159_Callback(hObject, eventdata, handles)
 handles.web = 'Anatomically informed basis functions';
 run_demo_Callback(hObject, handles, 'DEM_spatial_deconvolution')
 
-% --- Executes on button press in pushbutton160.
-function pushbutton160_Callback(hObject, eventdata, handles)
+% --- Executes on button press in pushbutton250.
+function pushbutton250_Callback(hObject, eventdata, handles)
 handles.web = 'Computational Nosology';
 run_demo_Callback(hObject, handles, 'DEM_demo_ontology')
 
@@ -535,8 +535,8 @@ function pushbutton161_Callback(hObject, eventdata, handles)
 handles.web = 'Active inference and learning';
 run_demo_Callback(hObject, handles, 'DEM_demo_MDP_habits')
 
-% --- Executes on button press in pushbutton162.
-function pushbutton162_Callback(hObject, eventdata, handles)
+% --- Executes on button press in pushbutton249.
+function pushbutton249_Callback(hObject, eventdata, handles)
 handles.web = 'Computational Phenotyping in Psychiatry';
 run_demo_Callback(hObject, handles, 'DEM_demo_MDP_fit')
 
@@ -610,8 +610,8 @@ function pushbutton212_Callback(hObject, eventdata, handles)
 handles.web = 'The graphical brain';
 run_demo_Callback(hObject, handles, 'DEM_demo_MDP_DEM')
 
-% --- Executes on button press in pushbutton213.
-function pushbutton213_Callback(hObject, eventdata, handles)
+% --- Executes on button press in pushbutton251.
+function pushbutton251_Callback(hObject, eventdata, handles)
 handles.web = 'Computational Phenotyping in Psychiatry';
 run_demo_Callback(hObject, handles, 'DEM_demo_MDP_fit_fields')
 
@@ -750,18 +750,22 @@ function pushbutton245_Callback(hObject, eventdata, handles)
 handles.web = 'A free energy principle for a particular physics';
 run_demo_Callback(hObject, handles, 'DEMO_DCM_MB')
 
+% --- Executes on button press in pushbutton252.
+function pushbutton252_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'DEM_COVID')
+
 % --- Executes on button press in pushbutton247.
 function pushbutton247_Callback(hObject, eventdata, handles)
+handles.web = 'A free energy principle for a particular physics';
+run_demo_Callback(hObject, handles, 'Markov_blankets_and_NESS')
+
+% --- Executes on button press in pushbutton258.
+function pushbutton258_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
 run_demo_Callback(hObject, handles, 'DEM_demo_MDP_XX')
 
-% --- Executes on button press in pushbutton248.
-function pushbutton248_Callback(hObject, eventdata, handles)
+% --- Executes on button press in pushbutton259.
+function pushbutton259_Callback(hObject, eventdata, handles)
 handles.web = 'Planning and navigation as active inference';
 run_demo_Callback(hObject, handles, 'DEMO_MDP_maze_X')
-
-% --- Executes on button press in pushbutton246.
-function pushbutton246_Callback(hObject, eventdata, handles)
-run_demo_Callback(hObject, handles, 'DEM_COVID')
-
 

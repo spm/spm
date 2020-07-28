@@ -1,19 +1,25 @@
-function [H,R] = spm_ness(J,G)
+function [H,R,J,G] = spm_ness(J,G)
 % Evaluation of hessian and solenoidal operators at NESS
-% FORMAT [H,R] = spm_ness(J,G)
+% FORMAT [H,R]     = spm_ness(J,G)
+% FORMAT [H,R,J,G] = spm_ness(J,G)
 % J  - Jacobian (dfdx)
 % G  - diffusion tensor (amplitude of random fluctuations)
 %
 % H  - Hessian matrix (i.e., precision of a Gaussian density)
-% R  - Skew symmetric solenoidal operator
+% R  - Skew symmetric solenoidal operator (-Q')
+%
+% if called with four output arguments, complex forms are returned
 %__________________________________________________________________________
-% This routine evaluates the hessian (i.e., precision) of a nonequilibrium
+% This routine evaluates the Hessian (i.e., precision) of a nonequilibrium
 % steady-state density (using a local linear approximation, under Gaussian
 % assumptions). This is evaluated  under linear constraints on the
 % solenoidal term of a Helmholtz decomposition. In short, given the flow
 % (encoded by the systems Jacobian) and amplitude of random fluctuations,
 % one can evaluate the steady-state density under nonequilibrium dynamics
 % implied by solenoidal flow.
+%
+% There are additional notes using symbolic maths and numerical examples in
+% the main body of the script.
 %
 % flow constraints (Jacobian J)(R = -Q')
 %--------------------------------------------------------------------------
@@ -27,34 +33,42 @@ function [H,R] = spm_ness(J,G)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness.m 7808 2020-03-31 11:18:26Z karl $
+% $Id: spm_ness.m 7910 2020-07-28 19:16:17Z karl $
 
 
 % solve for solenoidal (R) operator J*R + R*J' = J*G - G*J'
 %==========================================================================
-n = size(J,1);
-I = eye(n,n);
-X = kron(I,J) + kron(conj(J),I);
-Y = spm_vec(J*G - G*J');
-R = reshape(X\Y,n,n);
+if nargout < 3
+    n  = size(J,1);
+    I  = eye(n,n);
+    X  = kron(I,J) + kron(conj(J),I);
+    Y  = spm_vec(J*G - G*J');
+    R  = reshape(X\Y,n,n);
+    
+    % precision (inverse covariance) of steady-state density
+    %----------------------------------------------------------------------
+    H  = -(R + G)\J;
+    
+else
+    
+    % complex form
+    %======================================================================
+    
+    % eigenbasis
+    %----------------------------------------------------------------------
+    E  = eig(J,'nobalance','vector');
+    J  = pinv(E)*J*E;
+    G  = pinv(E)*G*E;
+    
+    % solenoidal and Hessian
+    %----------------------------------------------------------------------
+    R  = 1j*real(G)*imag(J)/real(J);
+    H  = - real(J)/G;
+    
+end
 
-% precision (inverse covariance) of steady-state density
-%--------------------------------------------------------------------------
-H = -(R + G)\J;
 
 return
-
-
-% complex analysis
-%==========================================================================
-[eJ,vJ] = eig(J,'nobalance','vector');
-J       = pinv(eJ)*J*eJ;
-G       = pinv(eJ)*G*eJ;
-
-% complex form
-%--------------------------------------------------------------------------
-R      = 1j*real(G)*imag(J)/real(J);
-H      = - real(J)/G;
 
 
 % NOTES: stochastic coupling (numerical analysis)
@@ -66,8 +80,8 @@ for i = 1:512
     % (random) Jacobian with separation of internal and external states
     %----------------------------------------------------------------------
     J = [1 1 0;
-        1 1 1;
-        0 1 1];
+         1 1 1;
+         0 1 1];
     J = kron(J,ones(n,n));
     J = J.*randn(size(J));
     J = J - diag(kron([0 0 m],ones(1,n)));
@@ -76,15 +90,12 @@ for i = 1:512
     %----------------------------------------------------------------------
     G     = diag(kron([1 1 1],ones(1,n)));
     [H,R] = spm_ness(J,G);
-    A     = -inv(G + R);
     
     % accumulate operators
     %----------------------------------------------------------------------
     RR(:,:,i) = R;
     HH(:,:,i) = H;
     JJ(:,:,i) = J;
-    GG(:,:,i) = G;
-    AA(:,:,i) = A;
     
 end
 
@@ -94,18 +105,25 @@ subplot(2,3,4),imagesc(std(RR,0,3)), axis image, title('Solenoidal','Fontsize',1
 subplot(2,3,5),imagesc(std(JJ,0,3)), axis image, title('Jacobian',  'Fontsize',16)
 subplot(2,3,6),imagesc(std(HH,0,3)), axis image, title('Hessian',   'Fontsize',16)
 
-% subplot(2,2,1),imagesc(mean(HH,3)), axis image, title('Hessian',   'Fontsize',16)
-% subplot(2,2,2),imagesc(mean(RR,3)), axis image, title('Solenoidal','Fontsize',16)
-% subplot(2,2,4),imagesc(mean(JJ,3)), axis image, title('Jacobian',  'Fontsize',16)
-% subplot(2,2,3),imagesc(mean(AA,3)), axis image, title('Diffusion', 'Fontsize',16)
 
-
-%  symbolic maths analysis (four dimensional system)
+% symbolic maths analysis (three dimensional system)
 %==========================================================================
+
+% backwards compatibility for symbolic maths
+%--------------------------------------------------------------------------
+if ~exist('str2sym')
+    str2sym = @(x)x;
+end
+
+% show Jacobian
+%--------------------------------------------------------------------------
 syms Jhh jhb K  jbh Jbb jbi    jib Jii;
 J = [Jhh jhb 0; jbh Jbb jbi; 0 jib Jii];
 J = J - diag([K K K])
 
+
+% solenoidal flow and Hessian (assuming G = I)
+%-------------------------------------------------------------------------
 n = size(J,1);
 I = eye(n,n);
 X = kron(I,J) + kron(J,I);
@@ -128,9 +146,9 @@ for ii = 1:n
         % get the expression for this element of the Hessian
         %------------------------------------------------------------------
         str   = char(simplify(H(ii,jj)));
-        i     = findstr(str,'/');
-        Nstr  = str(1:(i - 1));
-        Dstr  = str((i + 1):end);
+        i     = strfind(str,'/');
+        Nstr  = str2sym(str(1:(i - 1)));
+        Dstr  = str2sym(str((i + 1):end));
         
         % Ensure one division (i.e., a rational function)
         %------------------------------------------------------------------
@@ -176,8 +194,7 @@ clc
 disp(N)
 disp(D)
 
-
-% Numerical  analysis of the Hessian (between internal and external states)
+% Numerical analysis of the Hessian (between internal and external states)
 %==========================================================================
 str   = vectorize(char(simplify(H(3,1))));
 nn    = 10000;
