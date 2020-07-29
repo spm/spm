@@ -15,7 +15,7 @@ function varargout = spm_mb_classes(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_classes.m 7908 2020-07-24 18:30:35Z spm $
+% $Id: spm_mb_classes.m 7911 2020-07-29 13:42:02Z mikael $
 
 if isa(varargin{1},'char')
     [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
@@ -72,7 +72,7 @@ if isempty(dat.lab), lab = 0; return; end
 % Load labels
 lab    = spm_mb_io('get_data',dat.lab.f);
 sk     = dat.samp;
-lab    = lab(1:sk:end,1:sk:end,1:sk:end);
+lab    = lab(1:sk(1):end,1:sk(2):end,1:sk(3):end);
 dm     = [size(lab) 1 1];
 lab    = round(lab(:));
 cm_map = dat.lab.cm_map; % cell array that defines the confusion matrix
