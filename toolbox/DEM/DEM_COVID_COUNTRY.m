@@ -1,7 +1,7 @@
-function DEM_COVID_COUNTRY(country)
+function Ep = DEM_COVID_COUNTRY(country,T)
 % FORMAT DEM_COVID_COUNTRY(country)
-% data    - data    to model [default: data = DATA_COVID_JHU]
 % country - country to model [default: 'United Kingdom')
+% T       - prediction period (days)
 %
 % Demonstration of COVID-19 modelling using variational Laplace
 %__________________________________________________________________________
@@ -16,7 +16,12 @@ function DEM_COVID_COUNTRY(country)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_COUNTRY.m 7909 2020-07-28 19:15:44Z karl $
+% $Id: DEM_COVID_COUNTRY.m 7912 2020-08-02 10:11:43Z karl $
+
+% set up and preliminaries
+%==========================================================================
+if nargin < 1, country = 'United Kingdom'; end
+if nargin < 2, T       = 385; end
 
 % get figure and data
 %--------------------------------------------------------------------------
@@ -26,7 +31,7 @@ i       = find(ismember({data.country},country));
 
 % get and set priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_COVID_priors;
+[pE,pC] = spm_SARS_priors;
 pE.N    = log(data(i).pop/1e6);
 pC.N    = 0;
 
@@ -37,11 +42,11 @@ Y       = [data(i).death, data(i).cases];
 
 % model specification
 %==========================================================================
-M.G     = @spm_COVID_gen;       % generative function
+M.G     = @spm_SARS_gen;       % generative function
 M.FS    = @(Y)real(sqrt(Y));    % feature selection  (link function)
 M.pE    = pE;                   % prior expectations (parameters)
 M.pC    = pC;                   % prior covariances  (parameters)
-M.hE    = [0 -2];               % prior expectation  (log-precision)
+M.hE    = [2 1];                % prior expectation  (log-precision)
 M.hC    = 1/512;                % prior covariances  (log-precision)
 M.T     = size(Y,1);            % number of samples
 U       = [1 2];                % outputs to model
@@ -53,13 +58,13 @@ U       = [1 2];                % outputs to model
 % posterior predictions
 %==========================================================================
 spm_figure('GetWin',country); clf;
-M.T     = 385;
+M.T     = T;
 [Z,X]   = spm_COVID_gen(Ep,M,[1 2]);
 spm_COVID_plot(Z,X,Y)
 
 spm_figure('GetWin','confidence intervals'); clf;
-
-[S,CS,Y,C] = spm_COVID_ci(Ep,Cp,Y,[1 2],M)
+%--------------------------------------------------------------------------
+spm_COVID_ci(Ep,Cp,Y,[1 2],M);
 
 
 

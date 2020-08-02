@@ -36,7 +36,7 @@ function data = DATA_COVID_JHU(n)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 7909 2020-07-28 19:15:44Z karl $
+% $Id: DATA_COVID_JHU.m 7912 2020-08-02 10:11:43Z karl $
 
 % get data
 %--------------------------------------------------------------------------
@@ -85,6 +85,8 @@ Country{i} = 'Bolivia';
 i          = logical(ismember(Country,{'Iran (Islamic Republic of)'}));
 Country{i} = 'Iran';
 
+% i = find(ismember(State,'Spain'));
+
 % assemble data structure
 %==========================================================================
 Data  = struct([]);
@@ -114,8 +116,8 @@ for i = 1:numel(State)
         Data(k).lat     = C.data(l,1);
         Data(k).long    = C.data(l,2);
         Data(k).date    = date{d};
-        Data(k).cases   = spm_conv(gradient([zeros(8,1); CY(d:end)]),s);
-        Data(k).death   = spm_conv(gradient([zeros(8,1); DY(d:end)]),s);
+        Data(k).cases   = spm_hist_smooth(gradient([zeros(8,1); CY(d:end)]),s);
+        Data(k).death   = spm_hist_smooth(gradient([zeros(8,1); DY(d:end)]),s);
         Data(k).days    = numel(Data(k).cases);
         Data(k).cum     = sum(Data(k).death);
         
@@ -214,3 +216,36 @@ for i = 1:numel(data)
     subplot(3,2,6), text(sum(death(:,i)),sum(cases(:,i)),data(i).country,'FontSize',9)
     subplot(3,2,4), text(pop(i),sum(death(:,i)),         data(i).country,'FontSize',9)
 end
+
+return
+
+function x = spm_hist_smooth(x,s)
+% histogram smoothing
+% FORMAT x = spm_hist_smooth(x,s)
+%__________________________________________________________________________
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
+
+% Karl Friston
+% $Id: DATA_COVID_JHU.m 7912 2020-08-02 10:11:43Z karl $
+
+% remove negative values
+%--------------------------------------------------------------------------
+i    = x < 0;
+x(i) = 0;
+
+% remove spikes
+%--------------------------------------------------------------------------
+dx   = gradient(x);
+i    = abs(dx) > 4*std(dx);
+x(i) = 0;
+
+% graph Laplacian smoothing
+%--------------------------------------------------------------------------
+n    = numel(x);
+K    = spm_speye(n,n,-1) - 2*spm_speye(n,n,0) + spm_speye(n,n,1);
+K(1) = -1; K(end) = -1;
+K    = spm_speye(n,n,0) + K/4;
+K    = K^(s*4);
+x    = K*x;
+
+
