@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7907 2020-07-23 16:10:52Z john $
+% $Id: spm_mb_init.m 7915 2020-08-05 16:31:49Z mikael $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -32,7 +32,7 @@ if isfield(mu,'exist')
 else
     dmu  = [0 0 0];
     Mmu  = eye(4);
-    K    = cfg.mu.create.K-1;
+    K    = cfg.mu.create.K;
     sett.mu.create    = rmfield(sett.mu.create,'K');
     sett.mu.create.mu = fullfile(sett.odir,['mu_' cfg.onam '.nii']);
 end
