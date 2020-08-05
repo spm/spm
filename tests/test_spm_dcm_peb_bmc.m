@@ -3,7 +3,7 @@ function tests = test_spm_dcm_peb_bmc
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_peb_bmc.m 7327 2018-06-07 13:30:01Z peter $
+% $Id: test_spm_dcm_peb_bmc.m 7914 2020-08-05 12:10:55Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -67,6 +67,35 @@ testCase.assertTrue(BMA.Pw(2) < 0.95);
 testCase.assertEqual(Ep(connection,effect),0.2, 'AbsTol', 0.05);
 testCase.assertTrue(BMA.Px(1) > 0.95);
 testCase.assertTrue(BMA.Px(2) < 0.95);
+
+close all;
+
+% -------------------------------------------------------------------------
+function test_self_connection_onoff(testCase)
+% Implemented to confirm that self-connections on A in DCM for fMRI models
+% can be varied across models.
+data_path = get_data_path();
+
+% Get PEB full model
+PEB = load(fullfile(data_path,'PEB_test.mat'));
+PEB = PEB.PEB(1);
+
+% Get template models
+GCM_templates = load(fullfile(data_path,'models','GCM_simulated.mat'));
+GCM_templates = GCM_templates.GCM;
+
+% Create model space
+GCM_templates      = GCM_templates(1,1:2);
+GCM_templates{2}   = rmfield(GCM_templates{2},'M');
+GCM_templates{2}.b = GCM_templates{1}.b;
+GCM_templates{2}.a(2,2) = 0;
+GCM_templates{2}.b(2,1,2) = 0;
+
+% Run model comparison
+[BMA,BMR] = spm_dcm_peb_bmc(PEB(1),GCM_templates);
+
+% There should be two parameters varying across models
+testCase.assertTrue(length(BMA.Kname) == 2);
 
 close all;
 

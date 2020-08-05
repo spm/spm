@@ -28,7 +28,7 @@ function [pE,C,x,pC] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 7497 2018-11-24 17:00:25Z karl $
+% $Id: spm_dcm_fmri_priors.m 7914 2020-08-05 12:10:55Z peter $
 
 % number of regions
 %--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ if options.two_state
     % (6) initial states
     %----------------------------------------------------------------------
     x     = sparse(n,6);
-    A     = logical(A - diag(diag(A)));
+    A     = logical(A);
     
     % precision of log-connections (two-state)
     %---------------------------------------------------------------------
@@ -58,7 +58,7 @@ if options.two_state
     
     % prior expectations and variances
     %----------------------------------------------------------------------
-    pE.A  =  (A + eye(n,n))*32 - 32;
+    pE.A  =  A*32 - 32;
     pE.B  =  B*0;
     pE.C  =  C*0;
     pE.D  =  D*0;
@@ -66,7 +66,7 @@ if options.two_state
     % prior covariances
     %----------------------------------------------------------------------
     for i = 1:size(A,3)
-        pC.A(:,:,i) = A(:,:,i)/pA + eye(n,n)/pA;
+        pC.A(:,:,i) = A(:,:,i)/pA;
     end
     pC.B  =  B/4;
     pC.C  =  C*4;
@@ -95,11 +95,10 @@ else
     
     % prior expectations
     %----------------------------------------------------------------------
+    A = logical(A);
     if isvector(A)
-        A     = logical(A);
         pE.A  = (A(:) - 1)*dA;
-    else
-        A     = logical(A - diag(diag(A)));
+    else        
         pE.A  = A/128;
     end
     pE.B  = B*0;
@@ -112,7 +111,7 @@ else
         pC.A  = A(:);
     else
         for i = 1:size(A,3)
-            pC.A(:,:,i) = A(:,:,i)/pA + eye(n,n)/pA;
+            pC.A(:,:,i) = A(:,:,i)/pA;
         end
     end
     pC.B  = B;
