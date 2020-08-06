@@ -17,7 +17,7 @@ function [DCM] = DEM_COVID_UTLA
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7909 2020-07-28 19:15:44Z karl $
+% $Id: DEM_COVID_UTLA.m 7916 2020-08-06 13:26:58Z spm $
 
 
 % NHS postcode data
@@ -93,11 +93,11 @@ AreaType = C.textdata(2:end,3);
 AreaDate = C.textdata(2:end,4);
 AreaName = C.textdata(2:end,1);
 
-j        = find(ismember(AreaType,'Lower tier local authority'));
+j        = find(ismember(AreaType,'ltla'));
 AreaCode = AreaCode(j);
 AreaDate = AreaDate(j);
 AreaName = AreaName(j);
-AreaCase = C.data(j,4);
+AreaCase = C.data(j,2);
 
 % organise via NHS trust
 %--------------------------------------------------------------------------
