@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 7904 2020-07-20 16:18:59Z john $
+% $Id: tbx_cfg_mb.m 7924 2020-08-10 15:27:44Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
@@ -553,7 +553,6 @@ function  out = run_mb(cfg)
 [dat,sett]    = spm_mb_init(cfg);
 if ~isempty(dat)
     [dat,sett,mu] = spm_mb_fit(dat,sett);
-    dat           = spm_mb_io('save_psi',dat,sett);
     out           = out_mb_run(sett,dat);
     save(out.fit{1},'sett','dat');
 else
