@@ -8,7 +8,7 @@ function varargout = spm_mb_appearance(action,varargin) % Appearance model
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7907 2020-07-23 16:10:52Z john $
+% $Id: spm_mb_appearance.m 7917 2020-08-10 09:39:46Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
 %==========================================================================
 
@@ -176,7 +176,6 @@ f0    = subsample(f0,samp1);
 
 % Intensity priors
 pr   = sett.gmm(gmm.pop).pr;
-gmm  = fix_scaling(gmm,pr,df);
 
 % GMM posterior
 m    = gmm.m;
@@ -469,74 +468,6 @@ if size(X2d,1)~=prod(dm(1:3))
     error('Incompatible dimensions.');
 end
 X4d = reshape(X2d,[dm(1:3) size(X2d,2)]);
-%==========================================================================
-
-%==========================================================================
-function gmm = fix_scaling(gmm,pr,df)
-% This function appears to make things worse for some reason. This will need
-% more thought to understand the reason why.
-
-% Adjust the DC part of INU to best match the GMM posteriors to the priors.
-msk    = ~cellfun(@isempty,gmm.T(:));    % Only rescale when required
-msk    = msk & any(diff(pr{1},[],2),2);  % Only rescale for informative priors
-if ~any(msk), return; end                % Return if nothing to do
-
-po     = {gmm.m, gmm.b, gmm.V, gmm.n};
-r      = zeros(size(pr{1},1),1);
-r(msk) = get_scaling(pr,po,msk);
-s      = exp(r);
-
-% Adjust distributions of mean and precision matrices
-gmm.m  = diag(1./s)*gmm.m;
-for k=1:size(gmm.V,3)
-    gmm.V(:,:,k) = diag(s)*gmm.V(:,:,k)*diag(s);
-end
-
-% Make corresponding change to bias field (accounting for DCT scaling)
-for m=find(msk(:)')
-    gmm.T{m}(1,1,1) = gmm.T{m}(1,1,1) - r(m)*sqrt(prod(df));
-end
-%==========================================================================
-
-%==========================================================================
-function r = get_scaling(pr,po,msk)
-% Determine log of rescaling factor that best matches the priors
-% with the posteriors. This was based on Eq. 10.74 of Bishop's
-% PRML book.
-% Substitute m0 in 10.74 for diag(exp(r))*mu0, and V0 for
-% diag(exp(r))\V0/diag(exp(r)). Then differentiate w.r.t. r
-% to obtain gradients and Hessians for a Newton optimisation.
-
-[mu0,b0,V0,nu0] = deal(pr{:});
-[mu ,~ ,V ,nu ] = deal(po{:});
-[D,K]           = size(mu0);
-if nargin<3, msk = true(D,1); end
-
-% Ad hoc fix to reduce the chance of one class dominating the scaling.
-% Perhaps some form of hyper-priors might be a more elegant solution.
-b0   = min(b0,exp(mean(log(b0)))*10);
-
-Alph = 0;
-beta = 0;
-gamm = 0;
-for k=1:K
-    Alph = Alph + nu(k)*(inv(V0(:,:,k)).*V(:,:,k)' + ...
-                  b0(k)*diag(mu0(:,k))'*V(:,:,k)*diag(mu0(:,k)));
-    beta = beta + b0(k)*nu(k)*diag(mu0(:,k))'*V(:,:,k)*mu(:,k);
-    gamm = gamm + nu0(k);
-end
-Alph = Alph(msk,msk);
-beta = beta(msk);
-r    = zeros(sum(msk),1);
-for it=1:100
-    s  = exp(r);
-    g  = s.*(Alph*s - beta -  gamm./(s   +eps));
-    H  = (s*s').*(Alph + diag(gamm./(s.^2+eps)));
-    H  = H + eye(size(H))*1e-6*max(diag(H));
-    dr = H\g;
-    r  = r - dr;
-    if sqrt(mean(dr.^2)) < 1e-9, break; end
-end
 %==========================================================================
 
 %==========================================================================
