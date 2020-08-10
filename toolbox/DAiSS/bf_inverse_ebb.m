@@ -3,7 +3,7 @@ function res = bf_inverse_ebb(BF, S)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: bf_inverse_ebb.m 7846 2020-05-05 14:33:24Z george $
+% $Id: bf_inverse_ebb.m 7918 2020-08-10 10:41:19Z george $
 
 % NOTE: this is an early developmental version so it comes with George's
 % "NO RESULTS GUARENTEED (TM)" warning.
@@ -196,7 +196,10 @@ else
             % need to check if its symmetric - and make this fail if so.
             % (except for the condition of an indetity matrix)
             tmp = pairs - pairs';
-            assert(sum(abs(tmp(:)))~=0,'pairs mat cannot be symmetric!')
+            if sum(abs(tmp(:)))~=0
+                fprintf('WARNING: pairs matrix is symmetrical, taking bottom triangle')
+                pairs = tril(pairs);
+            end
             % now need to check if pairs are row-wise or columnwise and fix
             % if its not what we are meant to be expecting
             if numel(unique(sum(pairs,2))) > 1
@@ -316,14 +319,14 @@ hC(end+1) = 16;
 switch lower(S.reml)
     case 'strict'
         fprintf('Using ReML: Strict hyperprior settings\n');
-        [Cy,h,~,F,Fa,Fc] = spm_reml_sc(C,[],[Qe LQpL],Nn,hP,diag(hC));
+        [Cy,h,~,F,Fa,Fc] = bf_spm_reml_sc(C,[],[Qe LQpL],Nn,hP,diag(hC));
     case 'loose'
         fprintf('Using ReML: Loose hyperprior settings\n');
         % Need to add a final extra term here to allow ReML to not run into
         % trouble, a fixed (co)variance componenent which is ~1/100 the
         % magnitude of the sensor covariance.
         Q0          = exp(-5)*trace(C)*Qe{1};
-        [Cy,h,~,F,Fa,Fc]= spm_reml_sc(C,[],[Qe LQpL],Nn,-4,16,Q0);
+        [Cy,h,~,F,Fa,Fc]= bf_spm_reml_sc(C,[],[Qe LQpL],Nn,-4,16,Q0);
 end
 
 % invC_reml = pinv_plus(full(C_reml));
@@ -350,22 +353,10 @@ if S.keeplf
     L = UL;
 end
 
-% % conditional variance (leading diagonal)
-% % Cq    = Cp - Cp*L'*iC*L*Cp;
-% %----------------------------------------------------------------------
-% % Cq    = Cp - sum(LCp.*M')';
-%
-% % Pass back to DAiSS
-% %------------------------------------------------------------------
-% % res.W = cell(1,length(M));
-% % for j=1:length(M)
-% %     res.W{j} = M(j,:);
-% % end
 sz = size(M);
 res.W = mat2cell(M,ones(1,sz(1)),sz(2));
 res.L = L;
 res.F = F;
-% res.qC = pow;
 reml.Cy = Cy;
 reml.Q = [Qe LQpL];
 reml.Qtype = [repmat({'noise'},1,Ne) repmat({'source'},1,Np)];
