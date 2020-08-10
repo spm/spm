@@ -8,7 +8,7 @@ function varargout = spm_mb_appearance(action,varargin) % Appearance model
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7917 2020-08-10 09:39:46Z john $
+% $Id: spm_mb_appearance.m 7921 2020-08-10 11:23:03Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
 %==========================================================================
 
@@ -512,52 +512,6 @@ for p=1:numel(sett.gmm) % Loop over populations
         %end
         %sett.gmm(p).inu_reg = ss_inu1./ss_inu2;
 
-    end
-end
-%==========================================================================
-
-%==========================================================================
-function sett = update_shared_prior(dat, sett)
-if isempty(sett.gmm), return; end
-
-% Get population indices
-code = zeros(numel(dat),1);
-for n=1:numel(dat)
-    if isfield(dat(n).model,'gmm')
-        code(n) = dat(n).model.gmm.pop;
-    end
-end
-
-for p=1:numel(sett.gmm) % Loop over populations
-    if iscell(sett.gmm(p).hyperpriors)
-        index = find(code==p);
-        N     = numel(index);
-        pr    = sett.gmm(p).pr;
-        K     = size(pr{1},2);
-        pr{1} = mean(pr{1},2);
-        pr{2} = mean(pr{2},2);
-        pr{3} = mean(pr{3},3);
-        pr{4} = mean(pr{4},2);
-
-        % Get all posteriors
-        po    = cell(1,N*K);
-        for n=1:N
-            n1  = index(n);
-            gmm = dat(n1).model.gmm;
-            for k=1:K
-                nk     = (n-1)*K+k;
-                po{nk} = {{gmm.m(:,k),gmm.b(:,k)},{diag(diag(gmm.V(:,:,k))),gmm.n(:,k)}};
-            end
-        end
-
-        % Update prior
-        hp    = sett.gmm(p).hyperpriors;
-        pr    = spm_gmm_lib('updatehyperpars',po,pr,hp{:});
-        pr{1} = repmat(pr{1},1,K);
-        pr{2} = repmat(pr{2},1,K);
-        pr{3} = repmat(pr{3},1,1,K);
-        pr{4} = repmat(pr{4},1,K);
-        sett.gmm(p).pr = pr;
     end
 end
 %==========================================================================
