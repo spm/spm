@@ -8,7 +8,7 @@ function varargout = spm_mb_appearance(action,varargin) % Appearance model
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7921 2020-08-10 11:23:03Z john $
+% $Id: spm_mb_appearance.m 7922 2020-08-10 13:15:20Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
 %==========================================================================
 
@@ -211,7 +211,7 @@ clear msk_vx
 % log-likelihood can increase.
 [f,d] = subsample( f0,samp2);
 mu    = subsample(mu0,samp2);
-mu    = vol2vec(mu); 
+mu    = vol2vec(mu);
 mu    = mu(:,mg_ix); % Expand, if using multiple Gaussians per tissue
 
 % Bias field related
@@ -546,7 +546,7 @@ l  = log(sum(exp(bsxfun(@minus,mu,mx)),ax)) + mx;
 %==========================================================================
 
 %==========================================================================
-function [of,d,w] = subsample(f,samp)
+function [of,d] = subsample(f,samp)
 % Subsample a multichannel volume.
 %
 % FORMAT [of,d,scl_samp] = subsample(f,samp);
@@ -554,12 +554,10 @@ function [of,d,w] = subsample(f,samp)
 % samp - Sampling distances in voxels
 % of   - Resampled volume
 % d    - Output dimensions
-% w    - Proportion of sampled voxels
 
 if all(samp==1)
     of = f;
     d  = [size(f,1) size(f,2) size(f,3)];
-    w  = 1;
 else
     % Input image properties
     df   = [size(f) 1];
@@ -568,10 +566,6 @@ else
     ind  = sample_ind(df,samp);
     d    = cellfun(@length,ind);  % New dimensions
     of   = f(ind{:},:,:);
-
-    % For weighting data parts of lowerbound with factor based on amount of
-    % downsampling
-    w    = prod(df)/prod(d);
 end
 %==========================================================================
 
