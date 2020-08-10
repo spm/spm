@@ -15,7 +15,7 @@ function varargout = spm_mb_classes(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_classes.m 7913 2020-08-05 10:14:06Z john $
+% $Id: spm_mb_classes.m 7920 2020-08-10 11:18:53Z john $
 
 if isa(varargin{1},'char')
     [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
@@ -26,7 +26,6 @@ end
 
 %==========================================================================
 function [P,dat] = get_classes(dat,mu,sett)
-
 
 if isfield(dat.model,'cat')
     % Categorical model
@@ -125,9 +124,6 @@ function mu = template_k1(mu,ax)
 if nargin<2, ax = 4; end
 lse  = LSE(mu,ax);
 mu   = cat(ax,bsxfun(@minus,mu,lse), -lse);
-%d     = size(mu);
-%d(ax) = 1;
-%mu    = cat(ax,mu,zeros(d,'single'));
 %==========================================================================
 
 %==========================================================================
