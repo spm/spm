@@ -11,7 +11,7 @@ function varargout = spm_mb_io(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_io.m 7907 2020-07-23 16:10:52Z john $
+% $Id: spm_mb_io.m 7925 2020-08-12 12:27:51Z john $
 
 [varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
 %==========================================================================
@@ -82,6 +82,11 @@ if any(jitter~=0)
     % random values are added.
     rng('default'); rng(1);
     fn = fn + bsxfun(@times,rand(size(fn)) - 1/2,jitter);
+end
+for c=1:numel(gmm.modality)
+    if gmm.modality(c)==2
+        fn(:,:,:,c) = fn(:,:,:,c) + 1000;
+    end
 end
 %==========================================================================
 

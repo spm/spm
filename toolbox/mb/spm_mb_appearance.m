@@ -8,7 +8,7 @@ function varargout = spm_mb_appearance(action,varargin) % Appearance model
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7922 2020-08-10 13:15:20Z john $
+% $Id: spm_mb_appearance.m 7925 2020-08-12 12:27:51Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
 %==========================================================================
 
@@ -265,11 +265,11 @@ for it_appear=1:nit_appear
     n      = mog.n;
     lx     = lb.X;
     lbs    = sum(lb.mu,'double')+sum(lb.A,'double')+lx+lxb;
-    %fprintf('%g ', lbs/nvox);
     if (it_appear==nit_appear) || (lbs-lbso < tol_gmm*nvox)
         % Finished
         break
     end
+olbs = lbs;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Update bias field parameters
@@ -285,13 +285,14 @@ for it_appear=1:nit_appear
 
         % Update bias field parameters for each channel separately
         for c=1:C % Loop over channels
+
             if isempty(T{c}), continue; end
 
             % Compute mode, rather than expectations for the parameters
             % to update.
             [~,mf_c,vf_c] = inu_recon(f(:,:,:,c),chan(c),T(c));
-            mf = insert2cell(mf,code_image,vol2vec(mf_c),c);
-            vf = insert2cell(vf,code_image,vol2vec(vf_c),c);
+            mf = insert2cell(mf,code_image,vol2vec(mf_c),C,c);
+            vf = insert2cell(vf,code_image,vol2vec(vf_c),C,c);
 
             % Compute gradient and Hessian (in image space)
             gr_im = zeros(d(1:3),'single');
@@ -353,7 +354,7 @@ for it_appear=1:nit_appear
 
             % Actual Hessian is greater than the expected Hessian at some voxels,
             % so take the maximum of the expected and actual.
-            H_im(gr_im<0) = H_im(gr_im<0) - gr_im(gr_im<0);
+            H_im(gr_im>0) = H_im(gr_im>0) + gr_im(gr_im>0);
 
             % Compute gradient and Hessian
             d3 = numel(T{c}); % Number of DCT parameters
@@ -379,15 +380,14 @@ for it_appear=1:nit_appear
 
             % Compute new expectations (only for channel c)
             [llinu(:,c),mf_c,vf_c] = inu_recon(f(:,:,:,c),chan(c),T(c),Sig(c));
-            mf     = insert2cell(mf,code_image,vol2vec(mf_c),c);
-            vf     = insert2cell(vf,code_image,vol2vec(vf_c),c);
+            mf     = insert2cell(mf, code_image, vol2vec(mf_c), C, c);
+            vf     = insert2cell(vf, code_image, vol2vec(vf_c), C, c);
             lxb    = sum(llinu(:),'double');
             Z      = responsibility(m,b,V,n,mf,vf,reweight_mu(mu,log(mg_w)),msk_chn);
         end
     end
 end
 clear f mu
-
 % Update dat
 lbs      = lx+lxb+sum(lb.mu,'double')+sum(lb.A,'double');
 gmm.T    = T;
@@ -398,7 +398,6 @@ gmm.V    = V;
 gmm.n    = n;
 gmm.lb   = lb;
 gmm.mg_w = mg_w;
-
 if nargout > 1
 
     % Compute full size resps
@@ -412,10 +411,10 @@ if nargout > 1
             lxb = sum(llinu(:));
         else
             mf  = f0;
+            vf  = zeros(size(mf),'single');
             lxb = 0;
         end
 
-       %mu0 = bsxfun(@plus, mu0(:,:,:,mg_ix), reshape(log(mg_w),[1 1 1 numel(mg_w)]));
         mu0 = reweight_mu(mu0,log(mg_w),mg_ix);
         Z   = unmask1(msk,collapse_Z(spm_gmm_lib('cell2obs', Z, code_image, msk_chn),mg_ix));
 
@@ -423,10 +422,10 @@ if nargout > 1
         % See Eqns. 10.78-10.82 & B.68-B.72 in Bishop's PRML book.
         % In practice, it only improves probabilities by a tiny amount.
         msk      = ~msk;
-        [mf1,code_image,msk_chn] = spm_gmm_lib('obs2cell', mask(msk,mf));
+        [mf,code_image,msk_chn] = spm_gmm_lib('obs2cell', mask(msk,mf));
         mu1      = spm_gmm_lib('obs2cell', mask(msk,mu0), code_image, false);
-        vf1      = spm_gmm_lib('obs2cell', mask(msk, vf), code_image, true);
-        [Z2,lx2] = responsibility_t(m,b,V,n,mf1,vf1,mu1,msk_chn);
+        vf       = spm_gmm_lib('obs2cell', mask(msk, vf), code_image, true);
+        [Z2,lx2] = responsibility_t(m,b,V,n,mf,vf,mu1,msk_chn);
         Z        = unmask1(msk,collapse_Z(spm_gmm_lib('cell2obs', Z2, code_image, msk_chn),mg_ix),Z);
         nvox     = nvox + sum(code_image(:)>0);
         lbs      = lx+lx2+lxb+lb.mu+lb.A;
@@ -435,10 +434,9 @@ if nargout > 1
         Z = vec2vol(collapse_Z(spm_gmm_lib('cell2obs', Z, code_image, msk_chn),mg_ix),ds);
     end
 end
-dat.E(1)      = -lbs; %*scl_samp;
+dat.E(1)      = -lbs; 
 dat.nvox      = nvox;
 dat.model.gmm = gmm;
-%fprintf(' [%g] ', dat.E(1)/dat.nvox);
 %==========================================================================
 
 %==========================================================================
@@ -501,6 +499,13 @@ for p=1:numel(sett.gmm) % Loop over populations
         % Update prior
         hp = sett.gmm(p).hyperpriors;
         sett.gmm(p).pr = spm_gmm_lib('updatehyperpars',po,pr,hp{:});
+
+        % Attempt to increase stability by avoiding singular precision matrices
+        V  = sett.gmm(p).pr{3};
+        for k=1:size(V,3)
+            S        = inv(V(:,:,k));
+            V(:,:,k) = inv(0.999*S + 0.001*mean(diag(S))*eye(size(S)));
+        end
 
         %% Update INU regularisation. Disabled because it under-regularises
         %ss_inu0 = zeros(1,size(pr{1},1));
@@ -626,7 +631,7 @@ function [ll,mf,vf] = inu_recon(f,chan,T,Sig)
 d  = [size(chan(1).B1,1) size(chan(1).B2,1) size(chan(1).B3,1)];
 nz = d(3);
 C  = numel(T);
-if nargin<4,  Sig = cell(1,C); end
+if nargin<4 || isempty(Sig), Sig = cell(1,C); end
 if nargout>1, mf  = zeros([d C],'single'); end
 if nargout>2, vf  = zeros([d C],'single'); end
 ll = zeros(2,C);
@@ -708,7 +713,7 @@ for c=1:C
                         vl = vl + inu_transform(B1,B2,B3(z,:),C(:,:,:,ii)).^2;
                     end
                 else
-                    % Approximate voxl-wise variance estimates from covariance matrix S
+                    % Approximate voxel-wise variance estimates from covariance matrix S
                     vl = inu_transform(B1s,B2s,B3s(z,:),s); % Diagonal approximation
                     for ii=1:size(U,4)
                         vl = vl + inu_transform(B1,B2,B3(z,:),U(:,:,:,ii)).^2;
@@ -736,14 +741,14 @@ end
 %==========================================================================
 
 %==========================================================================
-function Xo = insert2cell(Xo,C,X,c)
+function Xo = insert2cell(Xo,C,X,nc,c)
 codes = unique(C);
 codes = codes(codes ~= 0);
 for i=1:numel(codes)
-    msk    = (C == codes(i));
-    io     = code2bin(codes(i),size(X,2));
+    msk = (C == codes(i));
+    io  = find(code2bin(codes(i),nc));
     if any(io==c)
-        Xo{i}(:,io==c) = X(msk);
+        Xo{i}(:,find(io==c)) = X(msk);
     end
 end
 %==========================================================================
