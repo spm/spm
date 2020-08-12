@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 7922 2020-08-10 13:15:20Z john $
+% $Id: spm_mb_output.m 7927 2020-08-12 16:07:42Z john $
 
 res  = load(char(cfg.result));
 sett = res.sett;
@@ -162,49 +162,43 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
     % Get warped tissue priors
     mun    = spm_mb_shape('pull1',mu,psi);
     mun    = spm_mb_classes('template_k1',mun,4);
-    mun    = mun + spm_mb_classes('get_labels',datn,size(mun,4));
+    mun    = bsxfun(@plus,mun,spm_mb_classes('get_labels',datn,size(mun,4)));
     mun    = reshape(mun,size(mun,1)*size(mun,2)*size(mun,3),size(mun,4));
 
     % Integrate use of multiple Gaussians per tissue
     mg_w = gmm.mg_w;
     mun  = mun(:,mg_ix);
-   %mun  = mun + log(mg_w);
     mun  = bsxfun(@plus, mun, log(mg_w));
 
     % Format for spm_gmm
-    chan                   = spm_mb_appearance('inu_basis',gmm.T,df,datn.Mat,ones(1,C));
-    [~,mf,vf]              = spm_mb_appearance('inu_recon',fn,chan,gmm.T,gmm.Sig);
-    mf                     = reshape(mf,[prod(df) C]);
-    vf                     = reshape(vf,[prod(df) C]);
-    [~,code_image,msk_chn] = spm_gmm_lib('obs2cell', reshape(mf,[prod(df) C]));
+    chan                     = spm_mb_appearance('inu_basis',gmm.T,df,datn.Mat,ones(1,C));
+    [~,mf,vf]                = spm_mb_appearance('inu_recon',fn,chan,gmm.T,gmm.Sig);
+    mf                       = reshape(mf,[prod(df) C]);
+    vf                       = reshape(vf,[prod(df) C]);
+    [mfc,code_image,msk_chn] = spm_gmm_lib('obs2cell', mf);
+    mun                      = spm_gmm_lib('obs2cell', mun, code_image, false);
+    vfc                      = spm_gmm_lib('obs2cell', vf,  code_image, true);
 
     % Get responsibilities, making sure that missing values are 'filled in'
     % by the template. For example, for CT, CSF can have intensity zero;
     % but we consider this value as missing as background values can also be
     % zero, which would bias the fitting of the GMM.
-    const             = spm_gmm_lib('Normalisation', {gmm.m,gmm.b}, {gmm.V,gmm.n}, msk_chn);
-    if ~isempty(vf)
-        zn            = spm_gmm_lib('Marginal', mf, {gmm.m,gmm.V,gmm.n}, const, msk_chn, vf);
-    else
-        zn            = spm_gmm_lib('Marginal', mf, {gmm.m,gmm.V,gmm.n}, const, msk_chn);
-    end
-    zn(~isfinite(zn)) = log(1e-3);  % NaN assumed to have small (log) probability
-    zn                = spm_gmm_lib('Responsibility', zn, mun);
-    clear mun msk_chn mf vf
+    zn      = spm_mb_appearance('responsibility',gmm.m,gmm.b,gmm.V,gmm.n,mfc,vfc,mun,msk_chn);
+    zn      = spm_gmm_lib('cell2obs', zn, code_image, msk_chn);
+    clear mun msk_chn vfc mfc
 
     % Get bias field modulated image data
-    fn = inu.*fn;
     if do_infer
         % Infer missing values
         sample_post = do_infer > 1;
         A           = bsxfun(@times, gmm.V, reshape(gmm.n, [1 1 Kmg]));
-        fn          = spm_gmm_lib('InferMissing',reshape(fn,[prod(df) C]),...
+        mf          = spm_gmm_lib('InferMissing',reshape(mf,[prod(df) C]),...
                                   zn,{gmm.m,A},code_image,sample_post);
         clear code
     end
-    clear code_image
+    clear code_image 
 
-    fn = reshape(fn,[df(1:3) C]);
+    mf = reshape(mf,[df(1:3) C]);
 
     if any(write_im(:,1))
         % Write image
@@ -214,7 +208,7 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
             if ~write_im(c,1), continue; end
             nam  = sprintf('i%d_%s.nii',c,onam);
             fpth = fullfile(dir_res,nam);
-            write_nii(fpth,fn(:,:,:,c)./inu(:,:,:,c), Mn, sprintf('Image (%d)',c), 'int16');
+            write_nii(fpth,mf(:,:,:,c)./inu(:,:,:,c), Mn, sprintf('Image (%d)',c), 'int16');
             c1          = c1 + 1;
             resn.m{c1} = fpth;
         end
@@ -228,7 +222,7 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
             if ~write_im(c,2), continue; end
             nam  = sprintf('mi%d_%s.nii',c,onam);
             fpth = fullfile(dir_res,nam);
-            write_nii(fpth, fn(:,:,:,c), Mn, sprintf('INU corr. (%d)',c), 'int16');
+            write_nii(fpth, mf(:,:,:,c), Mn, sprintf('INU corr. (%d)',c), 'int16');
             c1           = c1 + 1;
             resn.mi{c1} = fpth;
         end
@@ -245,7 +239,7 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
             if ~write_im(c,3), continue; end
             nam       = sprintf('wi%d_%s.nii',c,onam);
             fpth      = fullfile(dir_res,nam);
-            [img,cnt] = spm_mb_shape('push1',fn(:,:,:,c)./inu(:,:,:,c), psi,dmu,sd);
+            [img,cnt] = spm_mb_shape('push1',mf(:,:,:,c)./inu(:,:,:,c), psi,dmu,sd);
             write_nii(fpth,img./(cnt + eps('single')), Mmu, sprintf('Norm. (%d)',c), 'int16');
             clear img cnt
             c1           = c1 + 1;
@@ -262,14 +256,14 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
             if ~write_im(c,4), continue; end
             nam       = sprintf('wmi%d_%s.nii',c,onam);
             fpth      = fullfile(dir_res,nam);
-            [img,cnt] = spm_mb_shape('push1',fn(:,:,:,c),psi,dmu,sd);
+            [img,cnt] = spm_mb_shape('push1',mf(:,:,:,c),psi,dmu,sd);
             write_nii(fpth,img./(cnt + eps('single')), Mmu, sprintf('Norm. INU corr. (%d)',c),'int16');
             clear img cnt
             c1           = c1 + 1;
             resn.wmi{c1} = fpth;
         end
     end
-    clear fn
+    clear mf
 
     % If using multiple Gaussians per tissue, collapse so that zn is of size K1
     if Kmg > K1

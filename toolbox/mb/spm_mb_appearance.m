@@ -8,7 +8,7 @@ function varargout = spm_mb_appearance(action,varargin) % Appearance model
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7925 2020-08-12 12:27:51Z john $
+% $Id: spm_mb_appearance.m 7927 2020-08-12 16:07:42Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
 %==========================================================================
 
@@ -269,7 +269,6 @@ for it_appear=1:nit_appear
         % Finished
         break
     end
-olbs = lbs;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Update bias field parameters
