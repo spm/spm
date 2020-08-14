@@ -26,7 +26,7 @@ function varargout = spm_mb_shape(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7920 2020-08-10 11:18:53Z john $
+% $Id: spm_mb_shape.m 7928 2020-08-14 16:33:20Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
 %==========================================================================
 
@@ -324,13 +324,11 @@ P   = bsxfun(@rdivide,E,den);
 
 %==========================================================================
 function E = template_energy(mu,mu_settings)
+% mu(:)'*kron(eye(K)-1/(K+1),L)*mu(:), where L is the vel2mom regulariser
 if ~isempty(mu_settings)
     spm_field('bound',1);
-    m0 = sum(mu,4)/(size(mu,4)+1);
-    mu = bsxfun(@minus,mu,m0);
-    g  = spm_field('vel2mom', mu, mu_settings);
+    g  = reg_mu(mu, mu_settings);
     E  = 0.5*mu(:)'*g(:);
-    E = E + 0.5*sum(sum(sum(m0.*spm_field('vel2mom', m0, mu_settings))));
 else
     E  = 0;
 end
@@ -467,11 +465,10 @@ function [mu,dat] = update_mean(dat, mu, sett)
 % Parse function settings
 accel       = sett.accel;
 mu_settings = sett.ms.mu_settings;
-s_settings  = [2 2];
 nw          = get_num_workers(sett,4*sett.K+4);
 
 spm_field('bound',1);
-g  = spm_field('vel2mom', bsxfun(@minus,mu, sum(mu,4)/(size(mu,4)+1)), mu_settings);
+g  = reg_mu(mu,mu_settings);
 w  = zeros(sett.ms.d,'single');
 if nw > 1 && numel(dat) > 1 % PARFOR
     parfor(n=1:numel(dat),nw)
@@ -487,10 +484,56 @@ else
     end
 end
 clear gn wn
-H  = appearance_hessian(mu,accel,w);
-% Note that spm_field could be re-written to make these updates
-% converge more effectively.
-mu = mu - spm_field(H, g, [mu_settings s_settings]);
+mu = gn_mu_update(mu,g,w,mu_settings,accel);
+%==========================================================================
+
+%==========================================================================
+function mu = gn_mu_update(mu,g,w,mu_settings,accel)
+% Use Gauss-Seidel method for computing updates
+% https://en.wikipedia.org/wiki/Gauss%E2%80%93Seidel_method
+spm_field('bound',1);
+K   = size(mu,4);
+update_settings = [mu_settings(1:3) mu_settings(4:end)*(1-1/(K+1)) 2 2];
+if accel>0, s   = softmax(mu); end
+dmu = zeros(size(mu),'like',mu);
+for it=1:16
+    for k=1:K
+
+        % Diagonal elements of Hessian
+        if accel==0
+            h_kk = (0.5*(1-1/(K+1)))*w;
+        else
+            h_kk = (accel*(s(:,:,:,k)-s(:,:,:,k).^2) + (1-accel)*0.5*(1-1/(K+1))).*w;
+        end
+
+        % Dot product betwen off-diagonals of likelihood Hessian and dmu
+        g_k = zeros([size(mu,1),size(mu,2),size(mu,3)],'like',g);
+        for k1=1:K
+            if k1~=k
+                % Off-diaginal elements of Hessian
+                if accel==0
+                    g_k = g_k - dmu(:,:,:,k1).*(0.5/(K+1));
+                else
+                    g_k = g_k - dmu(:,:,:,k1).*(accel*(s(:,:,:,k).*s(:,:,:,k1)) + ((1-accel)*0.5/(K+1)));
+                end
+            end
+        end
+        g_k          = g_k.*w;
+
+        % Dot product between off-diagonals of regularisation Hessian and dmu
+        g_k          = g_k - spm_field('vel2mom', (sum(dmu,4)-dmu(:,:,:,k))/(K+1), mu_settings);
+
+        % Gauss-Seidel update
+        dmu(:,:,:,k) = spm_field(h_kk, g(:,:,:,k) - g_k, update_settings);
+    end
+end
+mu = mu - dmu;
+%==========================================================================
+
+%==========================================================================
+function g = reg_mu(mu,mu_settings)
+K = size(mu,4);
+g = spm_field('vel2mom', bsxfun(@minus,mu, sum(mu,4)/(K+1)), mu_settings);
 %==========================================================================
 
 %==========================================================================
@@ -668,7 +711,7 @@ for it=1:ceil(4+2*log2(numel(dat)))
     H  = appearance_hessian(mu,accel,w);
     g  = w.*softmax(mu,4) - gf;
     spm_field('bound',1);
-    g  = g  + spm_field('vel2mom', bsxfun(@minus,mu,sum(mu,4)/(size(mu,4)+1)), mu_settings);
+    g  = g  + reg_mu(mu, mu_settings);
     % Note that spm_field could be re-written to make the updates slightly
     % more effective.
     mu = mu - spm_field(H, g, [mu_settings s_settings]);
