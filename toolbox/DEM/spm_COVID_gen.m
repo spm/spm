@@ -50,7 +50,7 @@ function [Y,X,Z] = spm_COVID_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_gen.m 7906 2020-07-22 10:17:02Z karl $
+% $Id: spm_COVID_gen.m 7929 2020-08-16 13:43:49Z karl $
 
 
 % The generative model:
@@ -230,6 +230,7 @@ for i = 1:M.T
     % population immunity (%)
     %----------------------------------------------------------------------
     Y(i,5) = p{2}(4)*100;
+    
     % total number of daily tests (positive or negative)
     %----------------------------------------------------------------------
     Y(i,6) = N*(p{4}(3) + p{4}(4));

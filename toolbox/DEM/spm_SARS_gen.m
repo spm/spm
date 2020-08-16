@@ -1,4 +1,4 @@
-function [Y,X,Z] = spm_COVID_gen(P,M,U)
+function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Generate predictions and hidden states of a COVID model
 % FORMAT [Y,X,Z] = spm_COVID_gen(P,M,U)
 % P    - model parameters
@@ -50,7 +50,7 @@ function [Y,X,Z] = spm_COVID_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 7912 2020-08-02 10:11:43Z karl $
+% $Id: spm_SARS_gen.m 7929 2020-08-16 13:43:49Z karl $
 
 
 % The generative model:
@@ -139,7 +139,7 @@ Q    = spm_vecfun(P,@exp);
 %--------------------------------------------------------------------------
 n    = Q.n;                % number of initial cases
 N    = Q.N*1e6;            % population size
-m    = N - N/64;          % number of unexposed cases
+m    = N - N*Q.o;          % number of unexposed cases
 r    = Q.r*N;              % number of resistant cases
 s    = N - n - r;          % number of susceptible cases
 h    = (N - m)*3/4;        % number at home
@@ -166,16 +166,12 @@ for i = 1:M.T
     % time-dependent parameters
     %======================================================================
     
-    % baseline testing
+    % buildup of testing capacity
     %----------------------------------------------------------------------
-    if isfield(M,'R')
-        try
-            P.bas = log(Q.bas * M.R(i + 2));
-        catch
-            P.bas = log(Q.bas * max(M.R));
-        end
+    if isfield(Q,'sus')
+        P.lim = log(Q.lim + Q.sus*spm_phi((i - 32*Q.ont)/Q.stt));
     end
-
+    
     % start of trace and track
     %----------------------------------------------------------------------
     if isfield(M,'TTT')
@@ -262,7 +258,7 @@ end
 
 % effective reproduction ratio: exp(K*Q.Tcn): K = dln(N)/dt
 %--------------------------------------------------------------------------
-Y(:,4) = exp(Q.Tcn*gradient(log(Y(:,4))));
+Y(:,4) = exp((Q.Tcn + Q.Tin)*gradient(log(Y(:,4))));
 
 % retain specified output variables
 %--------------------------------------------------------------------------

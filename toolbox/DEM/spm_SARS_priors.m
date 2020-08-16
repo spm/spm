@@ -1,18 +1,18 @@
-function [P,C,str,rfx] = spm_COVID_priors
+function [P,C,str] = spm_SARS_priors
 % Generate prior expectation and covariance log parameters
-% FORMAT [pE,pC,str,rfx] = spm_COVID_priors
+% FORMAT [pE,pC,str,rfx] = spm_SARS_priors
 % 
 % pE          - prior expectation (structure)
 % pC          - prior covariances (structure)
 % str.factor  - latent or hidden factors
 % str.factors - levels of each factor
-% str.outcome - outcome names (see spm_COVID_gen)
+% str.outcome - outcome names (see spm_SARS_gen)
 % str.names   - parameter names
 % str.field   - field names of random effects
 % rfx         - indices of random effects
 %
 % This routine assembles the (Gaussian) and priors over the parameters of a
-% generative model for COVID-19. This generative model is based upon a mean
+% generative model for SARS-19. This generative model is based upon a mean
 % field approximation to ensemble of population dynamics, in which four
 % marginal distributions are coupled through probability transition
 % matrices. The marginal distributions correspond to 4 factors; namely,
@@ -35,7 +35,7 @@ function [P,C,str,rfx] = spm_COVID_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 7912 2020-08-02 10:11:43Z karl $
+% $Id: spm_SARS_priors.m 7929 2020-08-16 13:43:49Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -57,46 +57,59 @@ function [P,C,str,rfx] = spm_COVID_priors
 % positive.
 %--------------------------------------------------------------------------
 % As of 5pm on 27 March 2020, 1,019 patients in the UK who tested positive
-% for coronavirus (COVID-19) have died.
+% for coronavirus (SARS-19) have died.
 %--------------------------------------------------------------------------
 
 % parameter names (where %** denotes fixed effects)
 %==========================================================================
-names{1}  = 'initial cases'; %**
-names{2}  = 'population size';
-names{3}  = 'initial exposure';
-names{4}  = 'P(work | home)';
-names{5}  = 'social distancing';
-names{6}  = 'bed availability';  
-names{7}  = 'contacts: home';
-names{8}  = 'contacts: work';
-names{9}  = 'transmission strength';
-names{10} = 'infected   period';
-names{11} = 'infectious period';
-names{12} = 'incubation period';
-names{13} = 'P(ARDS | symptoms)';
-names{14} = 'symptomatic period';
-names{15} = 'period in CCU';
-names{16} = 'P(fatality | CCU)';
-names{17} = 'P(survival | home)';
-names{18} = 'test and trace'; %**
-names{19} = 'testing latency'; %**
-names{20} = 'test delay'; %**
-names{21} = 'test selectivity'; %**
-names{22} = 'capacity testing'; %**
-names{23} = 'baseline testing'; %**
-names{24} = 'immune period'; %**
-names{25} = 'quarantine sensitivity'; %**
-names{26} = 'pre-existing immunity'; %**
-names{27} = 'seronegative immunity'; %*
-names{28} = 'testing buildup'; %**
-names{29} = 'quarantine threshold'; %**
-names{30} = 'softmax parameter'; %**
+names{1}  = 'population size';
+names{2}  = 'initial cases';
+names{3}  = 'unexposed';
+names{4}  = 'pre-existing immunity';
+names{5}  = 'initial exposed';
 
-
-% random effects (i.e., effects that are common in countries)
+% location (exposure) parameters
 %--------------------------------------------------------------------------
-rfx       = 2:17;
+names{6}  = 'P(leaving home)';
+names{7}  = 'threshold: lockdown';  
+names{8}  = 'threshold: containment';
+names{9}  = 'viral spreading';
+names{10}  = 'bed availability';
+names{1} = 'sensitivity';
+
+% infection (transmission) parameters
+%--------------------------------------------------------------------------
+names{12} = 'contacts: home';
+names{13} = 'contacts: work';
+names{14} = 'contacts: rural';
+names{15} = 'transmission strength';
+names{16} = 'infected period';
+names{17} = 'infectious period';
+names{18} = 'seropositive immunity';
+names{19} = 'seronegative immunity';
+
+% clinical parameters
+%--------------------------------------------------------------------------
+names{20} = 'incubation period';
+names{21} = 'symptomatic period';
+names{22} = 'hospitalisation period';
+names{23} = 'P(ARDS|symptoms)';
+names{24} = 'P(fatality|CCU): early';
+names{25} = 'P(fatality|CCU): late';
+names{26} = 'P(survival|home)';
+
+% testing parameters
+%--------------------------------------------------------------------------
+names{27} = 'FTTI efficacy';
+names{28} = 'testing: seroprevalence';
+names{29} = 'testing: capacity';
+names{30} = 'test selectivity';
+names{31} = 'test delay';
+
+names{32} = 'buildup testing';
+names{33} = 'buildup latency';
+names{34} = 'buildup period';
+
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -126,90 +139,69 @@ str.names   = names;
 % cut and paste to see the effects of changing different prior expectations
 %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 if false
-    pE    = spm_COVID_priors; M.T = 365;
-    [Y,X] = spm_COVID_gen(pE,M,1:3);
+    pE    = spm_SARS_priors; M.T = 365;
+    [Y,X] = spm_SARS_gen(pE,M,1:3);
     u     = exp(pE.cap + pE.N)*1e6;
-    spm_COVID_plot(Y,X,[],u)
+    spm_SARS_plot(Y,X,[],u)
 end
 %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-% https://annals.org/aim/fullarticle/2762808/incubation-period-coronavirus-disease-2019-covid-19-from-publicly-reported
 
 % Expectations (either heuristic or taken from the above sources)
 %==========================================================================
-P.n   = 64;                   % (01) number of initial cases
-P.N   = 8;                    % (02) population size (in millions)
-P.m   = 1/3;                  % (03) unexposed portion
+P.N   = 64;                   % (01) population size (millions)
+P.n   = 64;                   % (02) initial cases (cases)
+P.m   = 1/2;                  % (03) unexposed (proportion)
+P.r   = 1/2;                  % (04) pre-existing immunity (proportion)
+P.o   = 1/16;                 % (05) initial exposed proportion
 
-% location parameters
+% location (exposure) parameters
 %--------------------------------------------------------------------------
-P.out = 1/3;                  % (04) P(work | home)
-P.sde = 1/64;                 % (05) social distancing threshold
-P.cap = 8/100000;             % (06) bed availability threshold (per capita)
+P.out = 1/3;                  % (06) P(leaving home)
+P.sde = 1/64;                 % (07) lockdown threshold
+P.qua = 1/256;                % (08) Quarantine threshold
+P.exp = 32;                   % (09) contacts (viral spreading)
+P.cap = 8/100000;             % (10) bed availability (per capita)
+P.s   = 4;                    % (11) sensitivity parameter
 
-% infection parameters
+% infection (transmission) parameters
 %--------------------------------------------------------------------------
-P.Rin = 4;                    % (07) effective number of contacts: home
-P.Rou = [48 32];               % (08) effective number of contacts: work
-P.trn = 1/3;                  % (09) P(contagion | contact)
-P.Tin = 4;                    % (10) infected (pre-contagious) period
-P.Tcn = 4;                    % (11) infectious (contagious) period
+P.Nin = 5;                    % (12) effective number of contacts: home
+P.Nou = 48;                   % (13) effective number of contacts: work
+P.Nru = 32;                   % (14) effective number of contacts: rural
+P.trn = 1/3;                  % (15) transmission strength
+P.Tin = 4;                    % (16) infected period (days)
+P.Tcn = 4;                    % (17) infectious period (days)
+P.Tim = 32;                   % (18) seropositive immunity (months)
+P.res = .4;                   % (19) seronegative immunity (proportion)
 
 % clinical parameters
 %--------------------------------------------------------------------------
-P.Tic = 16;                   % (12) time till symptoms (days)
-P.sev = 1/32;                 % (13) P(severe symptoms | symptomatic)
-P.Tsy = 8;                    % (14) symptomatic period
-P.Trd = 10;                   % (15) CCU period
-P.fat = [1/2 1/8];           % (16) P(fatality | severe, CCU)
-P.sur = 1/8;                  % (17) P(survival | severe, home)
+P.Tic = 12;                   % (20) incubation period (days)
+P.Tsy = 8;                    % (21) symptomatic period (days)
+P.Trd = 12;                   % (22) CCU period (days)
+P.sev = 1/32;                 % (23) P(ARDS | symptomatic)
+P.fat = 1/2;                  % (24) P(fatality | ARDS, CCU): early
+P.lat = 1/4;                  % (25) P(fatality | ARDS, CCU): late
+P.sur = 1/8;                  % (26) P(survival | ARDS, home)
 
 % testing parameters
 %--------------------------------------------------------------------------
-P.ttt = 1/8;                  % (18) test, trace and isolate
-P.ont = 1;              % (19) symptom  testing
-P.del = 4;                    % (20) test delay (days)
-P.tes = 16;                    % (21) test selectivity (for infection)
-P.sus = 1;              % (22) population testing
-P.bas = 16;              % (23) baseline testing
+P.ttt = 1/128;                % (27) FTTI efficacy
+P.tts = 1;                    % (28) testing: seroprevalence
+P.lim = 2/1000;               % (29) testing: capacity
+P.tes = 4;                    % (30) test selectivity (for infection)
+P.del = 4;                    % (31) test delay (days)
 
-% immunity
-%--------------------------------------------------------------------------
-P.Tim = 8;                    % (24) period of immunity (months)
-P.exp = 32;                   % (25) contacts (viral spreading)
-P.r   = 1/2;                  % (26) pre-existing immunity
-P.res = 1/2;                  % (27) seronegative immunity
-P.tts = 1;              % (28) immunity testing
-P.qua = 1/256;                % (29) Quarantine threshold
-P.s   = 4;                    % (30) softmax parameter
-P.lim = 8/10000;              % softmax parameter
+P.sus = 2/1000;               % (32) buildup testing
+P.ont = 2;                    % (33) buildup latency (months)
+P.stt = 8;                    % (34) buildup period (days)
 
-% total mortality rate (for susceptible population)
+% infection fatality (for susceptible population)
 %--------------------------------------------------------------------------
 % IFR (hospital): P.sev*P.fat*100
 % IFR (carehome): P.sev*(1 - P.sur)*100
 % IFR (hospital): exp(Ep.sev)*exp(Ep.fat)*100
 % IFR (carehome): exp(Ep.sev)*(1 - exp(Ep.sur))*100
-
-% We describe what we believe is the first instance of complete COVID-19
-% testing of all passengers and crew on an isolated cruise ship during the
-% current COVID-19 pandemic. Of the 217 passengers and crew on board, 128
-% tested positive for COVID-19 on reverse transcription-PCR (59 pc). Of the
-% COVID- 19-positive patients, 19 pc (24) were symptomatic; 6.2 pc (8)
-% required medical evacuation; 3.1 pc (4) were intubated and ventilated;
-% and the mortality was 0.8 pc (1). The majority of COVID-19-positive
-% patients were asymptomatic (81 pc, 104 patients).
-
-% probability of developing symptoms if infected (19%)
-%--------------------------------------------------------------------------
-% 1 - exp(-1/P.Tic)^(P.Tin + P.Tcn)
-
-% probability of ARDS if symptomatic (4/24)
-%--------------------------------------------------------------------------
-% P.sev
-
-% probability of dying if ARDS (1/4)
-%--------------------------------------------------------------------------
-% P.fat
 
 % Variances (mildly informative priors, apart from initial cases and size)
 %==========================================================================
@@ -217,52 +209,54 @@ U     = 1;                    % flat priors
 V     = 1/16;                 % informative priors
 W     = 1/256;                % precise priors
 
-C.n   = U;                    % number of initial cases
-C.N   = U;                    % size of population with mixing
-C.m   = W;                    % initial proportion
+C.N   = U;                    % (01) population size (millions)
+C.n   = U;                    % (02) initial cases (cases)
+C.m   = W;                    % (03) unexposed (proportion)
+C.r   = W;                    % (04) pre-existing immunity (proportion)
+C.o   = W;                    % (05) initial exposed proportion
 
-% location parameters
-%--------------------------------------------------------------------------
-C.out = W;                    % P(going home | work)
-C.sde = W;                    % social distancing threshold
-C.cap = W;                    % bed availability threshold (per capita)
 
-% infection parameters
+% location (exposure) parameters
 %--------------------------------------------------------------------------
-C.Rin = V;                    % effective number of contacts: home
-C.Rou = [V V];                % effective number of contacts: work
-C.trn = V;                    % P(transmission | infectious)
-C.Tin = W;                    % infected (pre-contagious) period
-C.Tcn = W;                    % contagious period
+C.out = W;                    % (06) P(leaving home)
+C.sde = W;                    % (07) lockdown threshold
+C.qua = V;                    % (08) Quarantine threshold
+C.exp = V;                    % (09) contacts (viral spreading)
+C.cap = W;                    % (10) bed availability (per capita)
+C.s   = W;                    % (11) sensitivity parameter
+
+% infection (transmission) parameters
+%--------------------------------------------------------------------------
+C.Nin = V;                    % (12) effective number of contacts: home
+C.Nou = V;                    % (13) effective number of contacts: work
+C.Nru = V;                    % (14) effective number of contacts: rural
+C.trn = W;                    % (15) transmission strength
+C.Tin = W;                    % (16) infected period (days)
+C.Tcn = W;                    % (17) infectious period (days)
+C.Tim = W;                    % (18) seropositive immunity (months)
+C.res = W;                    % (19) seronegative immunity (proportion)
 
 % clinical parameters
 %--------------------------------------------------------------------------
-C.Tic = W;                    % time until symptoms
-C.sev = W;                    % P(severe symptoms | symptomatic)
-C.Tsy = W;                    % symptomatic period
-C.Trd = W;                    % period in CCU
-C.fat = [W W];                % P(fatality | CCU)
-C.sur = W;                    % P(fatality | home)
+C.Tic = W;                    % (20) incubation period (days)
+C.Tsy = W;                    % (21) symptomatic period (days)
+C.Trd = W;                    % (22) CCU period (days)
+C.sev = W;                    % (23) P(ARDS | symptomatic)
+C.fat = W;                    % (24) P(fatality | ARDS, CCU): early
+C.lat = W;                    % (25) P(fatality | ARDS, CCU): late
+C.sur = W;                    % (26) P(survival | ARDS, home)
 
 % testing parameters
 %--------------------------------------------------------------------------
-C.ttt = V;                    % test, track and trace
-C.ont = V;                    % testing latency (months)
-C.del = W;                    % test delay (days)
-C.tes = V;                    % test selectivity (for infection)
-C.sus = V;                    % capacity testing
-C.bas = V;                    % baseline testing
+C.ttt = V;                    % (27) FTTI efficacy
+C.tts = W;                    % (28) testing: seroprevalence
+C.lim = V;                    % (29) testing capacity
+C.tes = V;                    % (30) test selectivity (for infection)
+C.del = W;                    % (31) test delay (days)
 
-% immunity
-%--------------------------------------------------------------------------
-C.Tim = V;                    % period of immunity
-C.exp = V;                    % period of exemption
-C.r   = W;                    % proportion of people not susceptible
-C.res = W;                    % proportion with innate immunity
-C.tts = V;                    % testing buildup
-C.qua = V;                    % Quarantine threshold
-C.s   = W;                    % softmax parameter
-C.lim = W;                    % softmax parameter
+C.sus = W;                    % (32) buildup testing
+C.ont = U;                    % (33) buildup latency (months)
+C.stt = U;                    % (34) buildup period (days)
 
 
 % log transform
@@ -271,7 +265,6 @@ P         = spm_vecfun(P,@log);
 
 % field names of random effects
 %--------------------------------------------------------------------------
-field     = fieldnames(P);
-str.field = field(rfx);
+str.field = fieldnames(P);
 
 return

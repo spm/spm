@@ -21,7 +21,7 @@ function T = spm_COVID_B(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_B.m 7906 2020-07-22 10:17:02Z karl $
+% $Id: spm_COVID_B.m 7929 2020-08-16 13:43:49Z karl $
 
 % setup
 %==========================================================================
@@ -91,7 +91,7 @@ Pout = Psde*P.out;                   % P(work | home)
 % bed availability
 %--------------------------------------------------------------------------
 Pcca = spm_sigma(Pcco,P.cap);        % P(CCU  | home, work, ARDS)
-Piso = exp(-1/7);                    % period of self-isolation
+Piso = exp(-1/10);                    % period of self-isolation
 b    = cell(1,dim(3));
 
 % viral spread
@@ -100,7 +100,7 @@ Kspr = exp(-Psde*Prev/P.Tex);        % period of exemption
 
 % marginal: location {1} | asymptomatic {3}(1)
 %--------------------------------------------------------------------------
-%      home       work       CCU       exempt     isolation
+%      home       work      hospital    removed     isolated
 %--------------------------------------------------------------------------
 b{1} = [(1 - Pout) 1          1          (1 - Kspr) (1 - Piso);
         Pout       0          0          0           0;
@@ -178,7 +178,7 @@ Kcon = exp(-1/P.Tcn);
     
 % marginal: infection {2} | home {1}(1)
 %--------------------------------------------------------------------------
-%    susceptible  infected           infectious     immune    resistant
+%    susceptible  infected           infectious     Ab +ve    Ab -ve
 %--------------------------------------------------------------------------
 b{1} = [Pinh       0                     0          (1 - Kimm) 0;
         (1 - Pinh) Kinf                  0          0          0;
@@ -195,7 +195,7 @@ b{2} = [Pinw       0                     0          (1 - Kimm) 0;
         0          Pres*(1 - Kinf)       0          0          1];
 
 
-% marginal: infection {2} | CCU {1}(3)
+% marginal: infection {2} | hospital {1}(3)
 %--------------------------------------------------------------------------
 b{3} = [1          0                     0          (1 - Kimm) 0;
         0          Kinf                  0          0          0;
@@ -203,15 +203,11 @@ b{3} = [1          0                     0          (1 - Kimm) 0;
         0          0                     (1 - Kcon) Kimm       0;
         0          Pres*(1 - Kinf)       0          0          1];
 
-% marginal: infection {2} | exempt {1}(4)
+% marginal: infection {2} | removed {1}(4)
 %--------------------------------------------------------------------------
-b{4} = [1          0          0          0          0;
-        0          1          0          0          0;
-        0          0          1          0          0;
-        0          0          0          1          0;
-        0          0          0          0          1];
+b{4} = b{3};
 
-% marginal: infection {2} | isolation {1}(5)
+% marginal: infection {2} | isolated {1}(5)
 %--------------------------------------------------------------------------
 b{5} = b{3};
 
@@ -244,7 +240,7 @@ Pfat = 1 - P.sur;                   % baseline fatality rate
 
 % marginal: clinical {3} | susceptible {2}(1)
 %--------------------------------------------------------------------------
-%  asymptomatic   symptomatic            acute RDS         deceased
+%  asymptomatic   symptomatic            ARDS                 deceased
 %--------------------------------------------------------------------------
 b{1} = [1         (1 - Ksym)             (1 - Ksev)*(1 - Pfat) (1 - Kday);
         0          Ksym                   0                    0;
@@ -262,11 +258,11 @@ b{2} = [Kdev       (1 - Ksym)*(1 - Psev) (1 - Ksev)*(1 - Pfat) (1 - Kday);
 %--------------------------------------------------------------------------
 b{3} = b{2};
     
-% marginal: clinical {3} | immune {2}(4)
+% marginal: clinical {3} | Ab +ve {2}(4)
 %--------------------------------------------------------------------------
 b{4} = b{1};
     
-% marginal: clinical {3} | resistant {2}(5)
+% marginal: clinical {3} | Ab -ve {2}(5)
 %--------------------------------------------------------------------------
 b{5} = b{1};
 
@@ -307,7 +303,7 @@ Kdel = exp(-1/P.del);                 % exp(-1/waiting period)
 
 % marginal: testing {4} | susceptible {2}(1)
 %--------------------------------------------------------------------------
-%    not tested  waiting       +ve -ve
+%    not tested    waiting      PCR +ve    PCR -ve
 %--------------------------------------------------------------------------
 b{1} = [(1 - Psen) 0            (1 - Kday) (1 - Kday);
         Psen       Kdel         0          0;
@@ -328,11 +324,11 @@ b{3} = [(1 - Ptes) 0                     (1 - Kday) (1 - Kday);
         0          Senc*(1 - Kdel)        Kday       0;
         0          (1 - Senc)*(1 - Kdel)  0          Kday];
     
-% marginal: testing {4} | immune {2}(4)
+% marginal: testing {4} | Ab +ve {2}(4)
 %--------------------------------------------------------------------------
 b{4} = b{1};
     
-% marginal: testing {4} | resistant {2}(5)
+% marginal: testing {4} | Ab -ve {2}(5)
 %--------------------------------------------------------------------------
 b{5} = b{1};
 

@@ -17,7 +17,7 @@ function [DCM] = DEM_COVID_UTLA
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7916 2020-08-06 13:26:58Z spm $
+% $Id: DEM_COVID_UTLA.m 7929 2020-08-16 13:43:49Z karl $
 
 
 % NHS postcode data
@@ -52,6 +52,8 @@ websave('coronavirus-cases_latest.csv',[url,'coronavirus-cases_latest.csv']);
 % retrieve recent data from https://www.england.nhs.uk
 %--------------------------------------------------------------------------
 URL  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/07/';
+URL  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/08/';
+
 for i = 0:4
     try
         dstr = datestr(datenum(date) - i,'dd-mmmm-yyyy');
@@ -153,7 +155,7 @@ for i = 1:numel(NHS)
             
             % next region
             %--------------------------------------------------------------
-            k = k + 1
+            k = k + 1;
         end
     end
 end
@@ -265,9 +267,9 @@ for k = 1:numel(D)
     
     % assemble and smooth data matrix (14 day average)
     %----------------------------------------------------------------------
-    s        = 14;
-    Y        = [spm_conv(D(k).deaths',s,0), spm_conv(gradient(D(k).cases),s)'];
-    Y(Y < 0) = 0;
+    s        = 16;
+    Y        = [spm_hist_smooth(D(k).deaths(:),s), ...
+                spm_hist_smooth(gradient(D(k).cases(:)),s)];
     D(k).YY  = Y;
     
     if GRAPHICS
@@ -304,7 +306,7 @@ for k = 1:numel(D)
     LA       = spm_conv(double(logical(sparse(i,j,1,n,n))),1,1);
     ENG(:,k) = spm_vec(LA);
 end
-ENG = bsxfun(@rdivide,ENG,sum(ENG,2) + eps);
+ENG   = bsxfun(@rdivide,ENG,sum(ENG,2) + eps);
 
 % dates
 %--------------------------------------------------------------------------
@@ -317,7 +319,7 @@ for r = 1:numel(D)
     fprintf('%d out of %d\n',r,numel(D));
     % get (Gaussian) priors over model parameters
     %----------------------------------------------------------------------
-    [pE,pC] = spm_COVID_priors;
+    [pE,pC] = spm_SARS_priors;
     
     % priors for this analysis
     %----------------------------------------------------------------------
@@ -332,7 +334,7 @@ for r = 1:numel(D)
     % complete model specification
     %----------------------------------------------------------------------
     M.date = datestr(DN(1),'dd-mm-yyyy'); % date of first time point
-    M.G    = @spm_COVID_gen;              % generative function
+    M.G    = @spm_SARS_gen;              % generative function
     M.FS   = @(Y)sqrt(Y);                 % feature selection  (link function)
     M.pE   = pE;                          % prior expectations (parameters)
     M.pC   = pC;                          % prior covariances  (parameters)
@@ -355,11 +357,11 @@ for r = 1:numel(D)
     
     % now-casting for this region and date
     %======================================================================
-    H = spm_figure('GetWin',D(r).name{1}); clf;
+    H     = spm_figure('GetWin',D(r).name{1}); clf;
     %----------------------------------------------------------------------
     M.T   = numel(T);
-    [Y,X] = spm_COVID_gen(DCM(r).Ep,M,[1 2]);
-    spm_COVID_plot(Y,X,DCM(r).Y);
+    [Y,X] = spm_SARS_gen(DCM(r).Ep,M,[1 2]);
+    spm_SARS_plot(Y,X,DCM(r).Y);
     
     
     %----------------------------------------------------------------------
@@ -374,7 +376,7 @@ for r = 1:numel(D)
     % Y(:,9)  - number of infected at home, untested and asymptomatic
     % Y(:,10) - new cases per day
     %----------------------------------------------------------------------
-    Y       = spm_COVID_gen(DCM(r).Ep,DCM(r).M,[4 5 8 9 10]);
+    Y       = spm_SARS_gen(DCM(r).Ep,DCM(r).M,[4 5 8 9 10]);
     
     DR(:,r) = Y(:,1);                           % Reproduction ratio
     DI(:,r) = Y(:,2);                           % Prevalence of immunity
@@ -419,8 +421,8 @@ end
 % save and reload
 %----------------------------------------------------------------------
 try, clear ans, end
+try, clear H,   end
 save COVID_LA
-
 load COVID_LA
 
 str = {'Reproduction ratio',...
@@ -482,7 +484,7 @@ for j = 1:numel(DD)
 end
 
 
-% fit average over regions
+% fit aggregate over regions
 %==========================================================================
 clear M
 Y     = 0;
@@ -493,20 +495,18 @@ end
 
 % priors for this analysis
 %--------------------------------------------------------------------------
-[pE,pC] = spm_COVID_priors;
-pE.N    = log(56);                    % population of local authority
+[pE,pC] = spm_SARS_priors;
+pE.N    = log(56);
 pC.N    = 0;
-pE.n    = 4;                          % initial number of cases (n)
-% pE.Tim = log(64)
 
 % complete model specification
 %--------------------------------------------------------------------------
 M.date = datestr(DN(1),'dd-mm-yyyy'); % date of first time point
-M.G    = @spm_COVID_gen;              % generative function
+M.G    = @spm_SARS_gen;               % generative function
 M.FS   = @(Y)sqrt(Y);                 % feature selection  (link function)
 M.pE   = pE;                          % prior expectations (parameters)
 M.pC   = pC;                          % prior covariances  (parameters)
-M.hE   = [2 0];                       % prior expectation  (log-precision)
+M.hE   = 2;                           % prior expectation  (log-precision)
 M.hC   = 1/512;                       % prior covariances  (log-precision)
 M.T    = size(Y,1);                   % number of samples
 U      = [1 2];                       % outputs to model
@@ -522,17 +522,17 @@ spm_figure('GetWin','England'); clf;
 t       = D(1).date;
 T       = [t ((1:64) + t(end))];
 M.T     = numel(T);
-[P,X]   = spm_COVID_gen(Ep,M,[1 2]);
-spm_COVID_plot(P,X,Y);
+[P,X]   = spm_SARS_gen(Ep,M,[1 2]);
+spm_SARS_plot(P,X,Y);
+
 
 % prevalence in terms of new cases per week and day
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Supression'); clf;
 %--------------------------------------------------------------------------
-[S,CS,P,C] = spm_COVID_ci(Ep,Cp,[],[8 10],M);
-k          = 7;
-Eq         = P(:,2)*k;
-Cq         = C{2}*(k^2);
+[S,CS,P,C] = spm_SARS_ci(Ep,Cp,[],[8 10],M);
+Eq         = P(:,2)*7;
+Cq         = C{2}*(7^2);
 Sq         = sqrt(diag(Cq))*1.69;
 
 subplot(2,1,1), hold off
@@ -542,47 +542,77 @@ datetick('x','mmm-dd')
 xlabel('date'),ylabel('new cases'), box off
 
 d      = datenum(date);
+m      = max(Eq);
 j      = find(ismember(T,d));
-plot([d,d],[0 1e6],'b')
-txt{1} = sprintf('Cases/week : %.0f (%0.0f - %.0f)',Eq(j),Eq(j) - Sq(j),Eq(j) + Sq(j));
+plot([d,d],[0 m],'b')
+txt{1} = sprintf(' Cases/week : %.0f (%0.0f - %.0f)',Eq(j),Eq(j) - Sq(j),Eq(j) + Sq(j));
 Eq     = Eq/7; Sq = Sq/7;
-txt{2} = sprintf('Cases/day  : %.0f (%0.0f - %.0f)',Eq(j),Eq(j) - Sq(j),Eq(j) + Sq(j));
-Eq     = Eq/exp(Ep.N); Sq = Sq/exp(Ep.N);
-txt{3} = sprintf('Cases/day/M: %.0f (%0.0f - %.0f)',Eq(j),Eq(j) - Sq(j),Eq(j) + Sq(j));
+txt{2} = sprintf(' Cases/day : %.0f (%0.0f - %.0f)',Eq(j),Eq(j) - Sq(j),Eq(j) + Sq(j));
+Eq     = Eq/exp(Ep.N)/10; Sq = Sq/exp(Ep.N)/10;
+txt{3} = sprintf(' Cases/day/100,000 : %.0f (%0.0f - %.0f)',Eq(j),Eq(j) - Sq(j),Eq(j) + Sq(j));
 qE     = P(:,1); qS = sqrt(diag(C{1}))*1.69;
-txt{4} = sprintf('Prevalence of infection (%s): %.3f (%.3f - %.3f)','%',qE(j),qE(j) - qS(j),qE(j) + qS(j));
+txt{4} = sprintf(' Prevalence (%s) : %.3f (%.3f - %.3f)','%',qE(j),qE(j) - qS(j),qE(j) + qS(j));
 
-text(d,1e6,txt,'FontSize',10,'Fontweight','bold')
+text(d,m,txt,'FontSize',10,'Fontweight','bold')
 
 % plot in terms of cases per hundred thousand
 %--------------------------------------------------------------------------
 subplot(2,1,2), hold off
-Eq     = Eq/10;
-semilogy(T,Eq,'LineWidth',2), hold on
+spm_plot_ci(Eq',Sq.^2,T,[],'log'), hold on
 
-plot(T,ones(size(T))*1,'-r'),  text(T(8),1,'Suppression (1 per 100,000)','FontSize',10,'Fontweight','bold')
-plot(T,ones(size(T))*10,'-r'), text(T(8),10,'Special measures (10 per 100,000)','FontSize',10,'Fontweight','bold')
-plot(T,ones(size(T))*100,'-r'),text(T(8),100,'Lockdown (100 per 100,000)','FontSize',10,'Fontweight','bold')
+plot(T,ones(size(T))*log(1),'-r'),  text(T(8),log(1),'Suppression (1 per 100,000)','FontSize',10,'Fontweight','bold')
+plot(T,ones(size(T))*log(10),'-r'), text(T(8),log(10),'Special measures (10 per 100,000)','FontSize',10,'Fontweight','bold')
+plot(T,ones(size(T))*log(100),'-r'),text(T(8),log(100),'Lockdown (100 per 100,000)','FontSize',10,'Fontweight','bold')
 title('New daily cases per 100,000','Fontsize',16)
 datetick('x','mmm-dd')
-xlabel('date'), ylabel('new cases')
+xlabel('date'), ylabel('log incidence')
 
 % projections and an enhanced FTTIS protocol
 %--------------------------------------------------------------------------
 Ep.ttt = log(1/4);
 M.TTT  = j;
-P      = spm_COVID_gen(Ep,M,10);
+P      = spm_SARS_gen(Ep,M,10);
 Eq     = P/exp(Ep.N)/10;
-semilogy(T,Eq,'-.','LineWidth',1)
+plot(T,log(Eq),'-.')
 
 text(T(end),Eq(end),'with 25% FTTIS','FontSize',10)
-plot([d,d],[1 50],'b')
+plot([d,d],log([1 100]),'b')
 box off
 
 return
 
 
+function x = spm_hist_smooth(x,s)
+% histogram smoothing
+% FORMAT x = spm_hist_smooth(x,s)
+%__________________________________________________________________________
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
+% Karl Friston
+% $Id: DEM_COVID_UTLA.m 7929 2020-08-16 13:43:49Z karl $
+
+% remove negative values
+%--------------------------------------------------------------------------
+i    = x < 0;
+x(i) = 0;
+
+% remove spikes
+%--------------------------------------------------------------------------
+dx   = gradient(x);
+i    = abs(dx) > 4*std(dx);
+x(i) = 0;
+
+% graph Laplacian smoothing
+%--------------------------------------------------------------------------
+n    = numel(x);
+K    = spm_speye(n,n,-1) - 2*spm_speye(n,n,0) + spm_speye(n,n,1);
+K(1) = -1; K(end) = -1;
+K    = spm_speye(n,n,0) + K/4;
+K    = K^(s*4);
+x    = K*x;
+
+% NB: changes in LTLA codes
+%--------------------------------------------------------------------------
 % 'Cornwall.Isles of Scilly','E41000052',D(37) 'Cornwall and Isles of Scilly'
 %
 % 'City of London and Westminster' 'E07000324' D(149) 'Westminster'
@@ -596,15 +626,14 @@ return
 % 'West Somerset',   'E07000191'  D(100) 'Somerset West and Taunton'
 % 'Taunton Deane',   'E07000190'  D(100)
 %
-% 'West Dorset',  'E07000052'     D(41)  'Dorset'
-% 'North Dorset', 'E07000050'     D(41)
-% 'East Dorset',  'E07000049'     D(41)
+% 'West Dorset',     'E07000052'  D(41)  'Dorset'
+% 'North Dorset',    'E07000050'  D(41)
+% 'East Dorset',     'E07000049'  D(41)
 %
-% 'Christchurch', 'E07000048'     D(40)  'Bournemouth, Christchurch and Poole'
-% 'Bournemouth',  'E07000028'     D(40)
-% 'Purbeck',      'E07000051'     D(40)
-% 'Poole',        'E07000029'     D(40)
-%
+% 'Christchurch',    'E07000048'  D(40)  'Bournemouth, Christchurch and Poole'
+% 'Bournemouth',     'E07000028'  D(40)
+% 'Purbeck',         'E07000051'  D(40)
+% 'Poole',           'E07000029'  D(40)
 %
 % 'East Herts',      'E07000097'  D(97)  'Stevenage'
 % 'Welwyn Hatfield', 'E07000104'  D(96)  'Welwyn Hatfield'

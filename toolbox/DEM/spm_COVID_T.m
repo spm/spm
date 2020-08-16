@@ -1,4 +1,4 @@
-function T = spm_COVID_B(x,P,r)
+function T = spm_COVID_T(x,P,r)
 % state dependent probability transition matrices
 % FORMAT T = spm_COVID_B(x,P,r)
 % x      - probability distributions (tensor)
@@ -21,7 +21,7 @@ function T = spm_COVID_B(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 7912 2020-08-02 10:11:43Z karl $
+% $Id: spm_COVID_T.m 7929 2020-08-16 13:43:49Z karl $
 
 % setup
 %==========================================================================
@@ -46,14 +46,18 @@ P.sev = min(P.sev,1);
 P.fat = min(P.fat,1);
 P.sur = min(P.sur,1);
 
+% daily rate
+%--------------------------------------------------------------------------
 Kday  = exp(-1);
 
+% divergence from endemic equilibrium
+%--------------------------------------------------------------------------
+q    = spm_sum(x,[2 3 4]);
+Q    = (q(4) - P.m)/(1 - P.m);
 
 % probabilistic transitions: location
 %==========================================================================
-% P.out                              % P(work | home)
-% P.sde                              % social distancing threshold
-% P.cap                              % bed threshold (per capita)
+
 % social distancing, based on prevalence of infection
 %--------------------------------------------------------------------------
 b    = cell(1,dim(3));
@@ -81,7 +85,6 @@ if nargin > 2
     else
         Prev = Rrev;
     end
-    
 end
 
 % lockdown (threshold) strategy
@@ -91,20 +94,18 @@ Pout = Psde*P.out;                   % P(work | home)
 
 % bed availability
 %--------------------------------------------------------------------------
-Pcca = spm_sigma(Pcco,P.cap);        % P(CCU  | home, work, ARDS)
-Piso = exp(-1/7);                    % period of self-isolation
+Pcca = spm_sigma(Pcco,P.cap,P.s);    % P(CCU  | home, work, ARDS)
+Piso = exp(-1/10);                   % period of self-isolation
 
 % viral spread
 %--------------------------------------------------------------------------
-q    = spm_sum(x,[2 3 4]);
-q    = (q(4) - P.m)/(1 - P.m);
-Psde = spm_sigma(Prev,P.qua);        % probability of leaving area
-Nexp = Psde*P.exp*q;                 % number of spreading contacts
+Psde = spm_sigma(Prev,P.qua,P.s);        % probability of leaving area
+Nexp = Psde*P.exp*Q;                 % number of spreading contacts
 Pexp = (1 - Prev)^Nexp;              % probability of no spreading
 
 % marginal: location {1} | asymptomatic {3}(1)
 %--------------------------------------------------------------------------
-%      home       work    hospital    removed     isolation
+%      home       work     hospital      removed    isolated
 %--------------------------------------------------------------------------
 b{1} = [(1 - Pout) 1          1          (1 - Pexp) (1 - Piso);
         Pout       0          0          0           0;
@@ -162,11 +163,7 @@ ij   = Bij({1,2,1,1},{2,2,1,1},dim);  B{1}(ij) = Pout*(1 - P.ttt);
 
 % probabilistic transitions: infection
 %==========================================================================
-% P.Rin                             % effective number of contacts: home
-% P.Rou                             % effective number of contacts: work
-% P.trn                             % P(transmission | contact)
-% P.Tin                             % infected (pre-contagious) period
-% P.Tcn                             % infectious (contagious) period
+
 % transmission probabilities
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
@@ -174,10 +171,8 @@ q    = spm_sum(x,[3 4]);
 ph   = q(1,:)/sum(q(1,:));          % infection probability at home
 pw   = q(2,:)/sum(q(2,:));          % infection probability at work
 
-q    = spm_sum(x,[2 3 4]);
-q    = (q(4) - P.m)/(1 - P.m);
-Ninw = P.Rou(1)*q + P.Rou(2)*(1 - q);
-Ninh = P.Rin;
+Ninw = P.Nou*Q + P.Nru*(1 - Q);
+Ninh = P.Nin;
 
 Pinh = (1 - P.trn*ph(3))^Ninh;      % P(no transmission) | home
 Pinw = (1 - P.trn*pw(3))^Ninw;      % P(no transmission) | work
@@ -215,16 +210,11 @@ b{3} = [1          0                     0          (1 - Kimm) 0;
 
 % marginal: infection {2} | removed {1}(4)
 %--------------------------------------------------------------------------
-b{4} = [1          0          0          0          0;
-        0          1          0          0          0;
-        0          0          1          0          0;
-        0          0          0          1          0;
-        0          0          0          0          1];
+b{4} = b{3};
 
 % marginal: infection {2} | isolated {1}(5)
 %--------------------------------------------------------------------------
 b{5} = b{3};
-
 
 % kroneckor form
 %--------------------------------------------------------------------------
@@ -235,25 +225,15 @@ B{2} = spm_permute_kron(b,dim([2,1,3,4]),[2,1,3,4]);
 
 % probabilistic transitions: clinical
 %==========================================================================
-% https://en.wikipedia.org/wiki/List_of_countries_by_life_expectancy
-%--------------------------------------------------------------------------
-% P.dev                             % P(developing symptoms | infected)
-% P.sev                             % P(severe symptoms | symptomatic)
-% P.Tsy                             % symptomatic period
-% P.Trd                             % acute RDS   period
-% P.fat                             % P(fatality | CCU)
-% P.sur                             % P(survival | home)
+
 % probabilities of developing symptoms
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
-q    = spm_sum(x,[2 3 4]);
-q    = (q(4) - P.m)/(1 - P.m);
 Psev = P.sev;                            % P(ARDS | infected)
-Pfat = P.fat(1)*q + P.fat(2)*(1 - q);    % P(fatality | ARDS)
+Pfat = P.fat*Q + P.lat*(1 - Q);          % P(fatality | ARDS)
 Ksym = exp(-1/P.Tsy);                    % acute symptomatic rate
 Ksev = exp(-1/P.Trd);                    % acute RDS rate
 Kdev = exp(-1/P.Tic);                    % symptomatic rate
-
 
 % marginal: clinical {3} | susceptible {2}(1)
 %--------------------------------------------------------------------------
@@ -301,27 +281,18 @@ ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ksev)*(1 - Pfat);
 
 % probabilistic transitions: testing
 %==========================================================================
-% P.bas                       % probability of being tested
-% P.del                       % delay: testing capacity
-% P.tes                       % relative probability if infected
+
 % test probabilities
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
-q1   = spm_sum(x,[2 3 4]);
-q2   = spm_sum(x,[1 3 4]);
-q3   = spm_sum(x,[1 2 4]);
-Pbas = P.bas + ...                    % baseline testing rate
-       P.sus*spm_log(1 - q1(4)) + ...        % population testing
-       P.tts*spm_log(q2(4)) + ...              % immunity testing
-       P.ont*spm_log(q3(2));                   % symptom testing
-   
-Pbas = P.lim*spm_phi(Pbas);
+q    = spm_sum(x,[1 3 4]);
+Pbas = P.tts*q(4);                    % seropositive testing
+Psen = P.lim*(1 + Pbas)*(1 - Q);      % probability of being tested
+Ptes = Psen*P.tes;                    % probability if infected
 
 Seni = .75;                           % PCR sensitivity (infected)
 Senc = .95;                           % PCR sensitivity (infectious)
 
-Psen = Pbas/(1 - Prev + P.tes*Prev);  % probability if susceptible
-Ptes = Psen*P.tes;                    % probability if infected
 Kdel = exp(-1/P.del);                 % exp(-1/waiting period)
 
 % marginal: testing {4} | susceptible {2}(1)
@@ -361,7 +332,7 @@ b    = spm_cat(spm_diag(b));
 b    = spm_kron({b,I{1},I{3}});
 B{4} = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
 
-% location dependent testing (removed): third order dependencies
+% location dependent testing (none when removed): third order dependencies
 %--------------------------------------------------------------------------
 ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,1},dim); B{4}(ij) = 1;
 ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,2},dim); B{4}(ij) = 0;
@@ -390,9 +361,6 @@ z    = zeros(dim); z(j{1},j{2},j{3},j{4}) = 1; j = find(z);
 z    = zeros(dim); z(i{1},i{2},i{3},i{4}) = 1; i = find(z);
 ij   = find(sparse(i,j,1,nx,nx));
 
-function p = spm_log(p)
-p    = log(p + 1e-16);
-
 
 function p = spm_sigma(x,u,s)
 % reverse sigmoid function
@@ -412,7 +380,7 @@ function p = spm_sigma(x,u,s)
 
 % default sensitivity
 %--------------------------------------------------------------------------
-if nargin < 3, s = 8; end
+if nargin < 3, s = 4; end
 
 % sigmoid function
 %--------------------------------------------------------------------------

@@ -35,7 +35,7 @@ function [P,C,str,rfx] = spm_COVID_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors.m 7906 2020-07-22 10:17:02Z karl $
+% $Id: spm_COVID_priors.m 7929 2020-08-16 13:43:49Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -98,10 +98,10 @@ rfx       = 2:17;
 %--------------------------------------------------------------------------
 factors   = {'Location','Infection','Symptoms','Testing'};
 
-factor{1} = {'home','work','CCU','exempt','isolation'};
-factor{2} = {'susceptible','infected','infectious','immune','resistant'};
+factor{1} = {'home','work','hospital','removed','isolated'};
+factor{2} = {'susceptible','infected','infectious','Ab +ve','Ab -ve'};
 factor{3} = {'none','symptoms','ARDS','deceased'};
-factor{4} = {'untested','waiting','positive','negative'};
+factor{4} = {'untested','waiting','PCR +ve','PCR -ve'};
 
 % labels or strings for plotting
 %--------------------------------------------------------------------------
