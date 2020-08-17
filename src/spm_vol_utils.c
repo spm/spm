@@ -1,5 +1,5 @@
 /*
- * $Id: spm_vol_utils.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_vol_utils.c 7931 2020-08-17 21:29:54Z john $
  * John Ashburner
  */
 
@@ -169,6 +169,72 @@
 #define PLANE plane_uint
 #endif
 #define IMAGE_DTYPE unsigned int
+#endif
+
+#ifdef SPM_UNSIGNED_LONG_LONG
+#ifdef SPM_BYTESWAP
+#define GET(x) getuint64(x)
+#define RESAMPLE resample_uint64_s
+#define RESAMPLE_D resample_d_uint64_s
+#define SLICE slice_uint64_s
+#define RESAMPLE_0 resample_uint64_s_0
+#define RESAMPLE_1 resample_uint64_s_1
+#define RESAMPLE_D_1 resample_d_uint64_s_1
+#define RESAMPLE_POLY resample_uint64_s_poly
+#define RESAMPLE_D_POLY resample_d_uint64_s_poly
+#define SLICE_0 slice_uint64_s_0
+#define SLICE_1 slice_uint64_s_1
+#define SLICE_POLY slice_uint64_s_poly
+#define PLANE plane_uint64_s
+#else
+#define GET(x) (x)
+#define RESAMPLE resample_uint64
+#define RESAMPLE_D resample_d_uint64
+#define SLICE slice_uint64
+#define RESAMPLE_0 resample_uint64_0
+#define RESAMPLE_1 resample_uint64_1
+#define RESAMPLE_D_1 resample_d_uint64_1
+#define RESAMPLE_POLY resample_uint64_poly
+#define RESAMPLE_D_POLY resample_d_uint64_poly
+#define SLICE_0 slice_uint64_0
+#define SLICE_1 slice_uint64_1
+#define SLICE_POLY slice_uint64_poly
+#define PLANE plane_uint64
+#endif
+#define IMAGE_DTYPE unsigned long long int
+#endif
+
+#ifdef SPM_SIGNED_LONG_LONG
+#ifdef SPM_BYTESWAP
+#define GET(x) getint64(x)
+#define RESAMPLE resample_int64_s
+#define RESAMPLE_D resample_d_int64_s
+#define SLICE slice_int64_s
+#define RESAMPLE_0 resample_int64_s_0
+#define RESAMPLE_1 resample_int64_s_1
+#define RESAMPLE_D_1 resample_d_int64_s_1
+#define RESAMPLE_POLY resample_int64_s_poly
+#define RESAMPLE_D_POLY resample_d_int64_s_poly
+#define SLICE_0 slice_int64_s_0
+#define SLICE_1 slice_int64_s_1
+#define SLICE_POLY slice_int64_s_poly
+#define PLANE plane_int64_s
+#else
+#define GET(x) (x)
+#define RESAMPLE resample_int64
+#define RESAMPLE_D resample_d_int64
+#define SLICE slice_int64
+#define RESAMPLE_0 resample_int64_0
+#define RESAMPLE_1 resample_int64_1
+#define RESAMPLE_D_1 resample_d_int64_1
+#define RESAMPLE_POLY resample_int64_poly
+#define RESAMPLE_D_POLY resample_d_int64_poly
+#define SLICE_0 slice_int64_0
+#define SLICE_1 slice_int64_1
+#define SLICE_POLY slice_int64_poly
+#define PLANE plane_int64
+#endif
+#define IMAGE_DTYPE long long int
 #endif
 
 #ifdef SPM_FLOAT

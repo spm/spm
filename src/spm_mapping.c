@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mapping.c 7568 2019-04-09 11:03:59Z guillaume $
+ * $Id: spm_mapping.c 7931 2020-08-17 21:29:54Z john $
  * John Ashburner
  */
 
@@ -92,6 +92,8 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
     else if (mxIsUint16(tmp)) dtype = SPM_UNSIGNED_SHORT;
     else if (mxIsInt8  (tmp)) dtype = SPM_SIGNED_CHAR;
     else if (mxIsUint8 (tmp)) dtype = SPM_UNSIGNED_CHAR;
+    else if (mxIsInt64  (ptr)) dtype = SPM_SIGNED_LONG_LONG;
+    else if (mxIsUint64 (ptr)) dtype = SPM_UNSIGNED_LONG_LONG;
     else
     {
         free_maps(maps,i);
@@ -141,6 +143,8 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
               ((pr[0] ==   4) && (dtype == SPM_SIGNED_SHORT)) || 
               ((pr[0] == 512) && (dtype == SPM_UNSIGNED_SHORT)) || 
               ((pr[0] ==   8) && (dtype == SPM_SIGNED_INT)) || 
+              ((pr[0] ==1280) && (dtype == SPM_UNSIGNED_LONG_LONG)) ||
+              ((pr[0] ==1024) && (dtype == SPM_SIGNED_LONG_LONG)) ||
               ((pr[0] == 768) && (dtype == SPM_UNSIGNED_INT)) || 
               ((pr[0] ==  16) && (dtype == SPM_FLOAT)) || 
               ((pr[0] ==  64) && (dtype == SPM_DOUBLE))))
@@ -270,6 +274,8 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
         else if (pr[0]==  512) {maps[i].dtype = SPM_UNSIGNED_SHORT; dsize = 16;}
         else if (pr[0]==    8) {maps[i].dtype = SPM_SIGNED_INT;     dsize = 32;}
         else if (pr[0]==  768) {maps[i].dtype = SPM_UNSIGNED_INT;   dsize = 32;}
+        else if (pr[0]== 1024) {maps[i].dtype = SPM_SIGNED_LONG_LONG;   dsize = 64;}
+        else if (pr[0]== 1280) {maps[i].dtype = SPM_UNSIGNED_LONG_LONG; dsize = 64;}
         else if (pr[0]==   16) {maps[i].dtype = SPM_FLOAT;          dsize = 32;}
         else if (pr[0]==   64) {maps[i].dtype = SPM_DOUBLE;         dsize = 64;}
         else {free_maps(maps,i+1);mexErrMsgTxt("Unknown datatype.");}
@@ -282,6 +288,8 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
         else if (pr[0]==  512) {maps[i].dtype = SPM_UNSIGNED_SHORT_S; dsize = 16;}
         else if (pr[0]==    8) {maps[i].dtype = SPM_SIGNED_INT_S;     dsize = 32;}
         else if (pr[0]==  768) {maps[i].dtype = SPM_UNSIGNED_INT_S;   dsize = 32;}
+        else if (pr[0]== 1024) {maps[i].dtype = SPM_SIGNED_LONG_LONG_S;   dsize = 64;}
+        else if (pr[0]== 1280) {maps[i].dtype = SPM_UNSIGNED_LONG_LONG_S; dsize = 64;}
         else if (pr[0]==   16) {maps[i].dtype = SPM_FLOAT_S;          dsize = 32;}
         else if (pr[0]==   64) {maps[i].dtype = SPM_DOUBLE_S;         dsize = 64;}
         else {free_maps(maps,i+1);mexErrMsgTxt("Unknown datatype.");}
@@ -491,6 +499,8 @@ static MAPTYPE *get_maps_3dvol(const mxArray *ptr, int *n)
     else if (mxIsUint16(ptr)) dtype = SPM_UNSIGNED_SHORT;
     else if (mxIsInt8  (ptr)) dtype = SPM_SIGNED_CHAR;
     else if (mxIsUint8 (ptr)) dtype = SPM_UNSIGNED_CHAR;
+    else if (mxIsInt64  (ptr)) dtype = SPM_SIGNED_LONG_LONG;
+    else if (mxIsUint64 (ptr)) dtype = SPM_UNSIGNED_LONG_LONG;
     else mexErrMsgTxt("Unknown volume datatype.");
 
     maps = (MAPTYPE *)mxCalloc(1, sizeof(MAPTYPE));

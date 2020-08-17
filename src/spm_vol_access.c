@@ -1,5 +1,5 @@
 /*
- * $Id: spm_vol_access.c 7568 2019-04-09 11:03:59Z guillaume $
+ * $Id: spm_vol_access.c 7931 2020-08-17 21:29:54Z john $
  * John Ashburner
  */
 
@@ -17,13 +17,15 @@
 
 int get_datasize(int type)
 {
-    if (type == SPM_UNSIGNED_CHAR || type == SPM_SIGNED_CHAR) return(8);
-    if (type == SPM_SIGNED_SHORT || type == SPM_SIGNED_SHORT_S) return(16);
-    if (type == SPM_UNSIGNED_SHORT || type == SPM_UNSIGNED_SHORT_S) return(16);
-    if (type == SPM_SIGNED_INT || type == SPM_SIGNED_INT_S) return(32);
-    if (type == SPM_UNSIGNED_INT || type == SPM_UNSIGNED_INT_S) return(32);
-    if (type == SPM_FLOAT || type == SPM_FLOAT_S) return(32);
-    if (type == SPM_DOUBLE || type == SPM_DOUBLE_S) return(64);
+    if (type == SPM_UNSIGNED_CHAR      || type == SPM_SIGNED_CHAR)          return(8);
+    if (type == SPM_SIGNED_SHORT       || type == SPM_SIGNED_SHORT_S)       return(16);
+    if (type == SPM_UNSIGNED_SHORT     || type == SPM_UNSIGNED_SHORT_S)     return(16);
+    if (type == SPM_SIGNED_INT         || type == SPM_SIGNED_INT_S)         return(32);
+    if (type == SPM_UNSIGNED_INT       || type == SPM_UNSIGNED_INT_S)       return(32);
+    if (type == SPM_UNSIGNED_LONG_LONG || type == SPM_UNSIGNED_LONG_LONG_S) return(64);
+    if (type == SPM_SIGNED_LONG_LONG   || type == SPM_SIGNED_LONG_LONG_S)   return(64);
+    if (type == SPM_FLOAT              || type == SPM_FLOAT_S)              return(32);
+    if (type == SPM_DOUBLE             || type == SPM_DOUBLE_S)             return(64);
     return(0);
 }
 
@@ -41,6 +43,8 @@ int resample(int m, MAPTYPE *vol, double *out, double *x, double *y, double *z, 
     extern void resample_ushort_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_int_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_uint_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_int64_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_uint64_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_float_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_double_s(int,void**,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
 
@@ -91,6 +95,18 @@ int resample(int m, MAPTYPE *vol, double *out, double *x, double *y, double *z, 
     else if (vol->dtype == SPM_DOUBLE_S)
         resample_double_s(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
             hold, background, vol->scale,vol->offset);
+    else if (vol->dtype == SPM_SIGNED_LONG_LONG)
+        resample_int64(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+            hold, background, vol->scale,vol->offset);
+    else if (vol->dtype == SPM_UNSIGNED_LONG_LONG)
+        resample_uint64(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+            hold, background, vol->scale,vol->offset);
+    else if (vol->dtype == SPM_SIGNED_LONG_LONG_S)
+        resample_int64_s(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+            hold, background, vol->scale,vol->offset);
+    else if (vol->dtype == SPM_UNSIGNED_LONG_LONG_S)
+        resample_uint64_s(m,vol->data,out,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+            hold, background, vol->scale,vol->offset);
     else
     {
         (void)fprintf(stderr,"%d: Unknown datatype.\n", vol->dtype);
@@ -118,12 +134,16 @@ int resample_d(int m, MAPTYPE *vol, double *out, double *gradx, double *grady, d
     extern void resample_d_uint(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_d_float(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_d_double(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_uint64(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_int64(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_d_short_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_d_ushort_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_d_int_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_d_uint_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_d_float_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
     extern void resample_d_double_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_uint64_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
+    extern void resample_d_int64_s(int,void**,double*,double*,double*,double*,double*,double*,double*,int,int,int,int,double,double*,double*);
 
 #ifdef _MSC_VER
     /* https://msdn.microsoft.com/en-us/library/windows/desktop/aa366801.aspx */
@@ -172,6 +192,18 @@ int resample_d(int m, MAPTYPE *vol, double *out, double *gradx, double *grady, d
     else if (vol->dtype == SPM_DOUBLE_S)
         resample_d_double_s(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
             hold, background, vol->scale,vol->offset);
+    else if (vol->dtype == SPM_UNSIGNED_LONG_LONG)
+        resample_d_uint64(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+            hold, background, vol->scale,vol->offset);
+    else if (vol->dtype == SPM_SIGNED_LONG_LONG)
+        resample_d_int64(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+            hold, background, vol->scale,vol->offset);
+    else if (vol->dtype == SPM_UNSIGNED_LONG_LONG_S)
+        resample_d_uint64_s(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+            hold, background, vol->scale,vol->offset);
+    else if (vol->dtype == SPM_SIGNED_LONG_LONG_S)
+        resample_d_int64_s(m,vol->data,out,gradx,grady,gradz,x,y,z,vol->dim[0],vol->dim[1],vol->dim[2],
+            hold, background, vol->scale,vol->offset);
     else
     {
         (void)fprintf(stderr,"%d: Unknown datatype.\n", vol->dtype);
@@ -199,13 +231,17 @@ int slice(double *mat, double *image, int xdim1, int ydim1, MAPTYPE *vol, int ho
     extern int slice_uint(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
     extern int slice_float(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
     extern int slice_double(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
+    extern int slice_uint64(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
+    extern int slice_int64(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
     extern int slice_short_s(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
     extern int slice_ushort_s(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
     extern int slice_int_s(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
     extern int slice_uint_s(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
     extern int slice_float_s(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
     extern int slice_double_s(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
-    
+    extern int slice_uint64_s(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
+    extern int slice_int64_s(double *, double *, int, int, void **, int, int, int, int, double, double*, double *);
+ 
     int sts = 1;
 #ifdef _MSC_VER
     /* https://msdn.microsoft.com/en-us/library/windows/desktop/aa366801.aspx */
@@ -253,6 +289,18 @@ int slice(double *mat, double *image, int xdim1, int ydim1, MAPTYPE *vol, int ho
             hold,background, vol->scale,vol->offset);
     else if (vol->dtype == SPM_DOUBLE_S)
         sts = slice_double_s(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2], 
+            hold,background, vol->scale,vol->offset);
+    else if (vol->dtype == SPM_UNSIGNED_LONG_LONG)
+        sts = slice_uint64(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2],
+            hold,background, vol->scale,vol->offset);
+    else if (vol->dtype == SPM_SIGNED_LONG_LONG)
+        sts = slice_int64(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2],
+            hold,background, vol->scale,vol->offset);
+    else if (vol->dtype == SPM_UNSIGNED_LONG_LONG_S)
+        sts = slice_uint64_s(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2],
+            hold,background, vol->scale,vol->offset);
+    else if (vol->dtype == SPM_SIGNED_LONG_LONG_S)
+        sts = slice_int64_s(mat, image, xdim1,ydim1, vol->data, vol->dim[0],vol->dim[1],vol->dim[2],
             hold,background, vol->scale,vol->offset);
     else
     {

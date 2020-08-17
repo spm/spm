@@ -1,5 +1,5 @@
 /*
- * $Id: spm_getdata.c 938 2007-10-12 19:09:31Z john $
+ * $Id: spm_getdata.c 7931 2020-08-17 21:29:54Z john $
  * John Ashburner
  */
  
@@ -60,3 +60,26 @@ double getdouble(double x)
     p2[1] = p1[6]; p2[0] = p1[7];
     return(y);
 }
+
+unsigned long long getuint64(unsigned long long x)
+{
+    char *p1, *p2; double y;
+    p1 = (char *)(&x); p2 = (char *)(&y);
+    p2[7] = p1[0]; p2[6] = p1[1];
+    p2[5] = p1[2]; p2[4] = p1[3];
+    p2[3] = p1[4]; p2[2] = p1[5];
+    p2[1] = p1[6]; p2[0] = p1[7];
+    return(y);
+}
+
+signed long long getint64(signed long long x)
+{
+    char *p1, *p2; double y;
+    p1 = (char *)(&x); p2 = (char *)(&y);
+    p2[7] = p1[0]; p2[6] = p1[1];
+    p2[5] = p1[2]; p2[4] = p1[3];
+    p2[3] = p1[4]; p2[2] = p1[5];
+    p2[1] = p1[6]; p2[0] = p1[7];
+    return(y);
+}
+

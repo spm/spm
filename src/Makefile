@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2020 Wellcome Centre for Human Neuroimaging
 #
-# $Id: Makefile 7893 2020-07-10 17:00:50Z john $
+# $Id: Makefile 7931 2020-08-17 21:29:54Z john $
 #
 ###############################################################################
 #
@@ -38,6 +38,8 @@ OBS     =\
 	utils_short_s.$(MEXEXT).o utils_int_s.$(MEXEXT).o\
 	utils_ushort_s.$(MEXEXT).o utils_uint_s.$(MEXEXT).o\
 	utils_float_s.$(MEXEXT).o utils_double_s.$(MEXEXT).o\
+        utils_uint64.$(MEXEXT).o utils_int64.$(MEXEXT).o\
+        utils_uint64_s.$(MEXEXT).o utils_int64_s.$(MEXEXT).o\
 	spm_make_lookup.$(MEXEXT).o spm_getdata.$(MEXEXT).o spm_vol_access.$(MEXEXT).o\
 	spm_mapping.$(MEXEXT).o
 
@@ -160,6 +162,14 @@ utils_double.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_DOUBLE $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
+utils_uint64.$(MEXEXT).o: $(UTILS)
+	$(MEX) -c spm_vol_utils.c -DSPM_UNSIGNED_LONG_LONG $(MEXEND)
+	$(MOVE) spm_vol_utils.$(MOSUF) $@
+
+utils_int64.$(MEXEXT).o: $(UTILS)
+	$(MEX) -c spm_vol_utils.c -DSPM_SIGNED_LONG_LONG $(MEXEND)
+	$(MOVE) spm_vol_utils.$(MOSUF) $@
+
 utils_short_s.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_SIGNED_SHORT -DSPM_BYTESWAP $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
@@ -182,6 +192,14 @@ utils_float_s.$(MEXEXT).o: $(UTILS)
 
 utils_double_s.$(MEXEXT).o: $(UTILS)
 	$(MEX) -c spm_vol_utils.c -DSPM_DOUBLE -DSPM_BYTESWAP $(MEXEND)
+	$(MOVE) spm_vol_utils.$(MOSUF) $@
+
+utils_uint64_s.$(MEXEXT).o: $(UTILS)
+	$(MEX) -c spm_vol_utils.c -DSPM_UNSIGNED_LONG_LONG -DSPM_BYTESWAP $(MEXEND)
+	$(MOVE) spm_vol_utils.$(MOSUF) $@
+
+utils_int64_s.$(MEXEXT).o: $(UTILS)
+	$(MEX) -c spm_vol_utils.c -DSPM_SIGNED_LONG_LONG -DSPM_BYTESWAP $(MEXEND)
 	$(MOVE) spm_vol_utils.$(MOSUF) $@
 
 ###############################################################################
