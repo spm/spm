@@ -1,5 +1,5 @@
 /*
- * $Id: mat2file.c 7510 2019-01-02 15:06:12Z guillaume $
+ * $Id: mat2file.c 7930 2020-08-17 16:11:21Z john $
  * John Ashburner
  */
 
@@ -81,7 +81,6 @@ static void swap64(int n, unsigned char id[], unsigned char od[])
     }
 }
 
-
 static Dtype table[] = {
 {   1, swap8 , mxLOGICAL_CLASS, 1,1},
 {   2, swap8 , mxUINT8_CLASS  , 8,1},
@@ -93,6 +92,8 @@ static Dtype table[] = {
 { 256, swap8 , mxINT8_CLASS   , 8,1},
 { 512, swap16, mxUINT16_CLASS ,16,1},
 { 768, swap32, mxUINT32_CLASS ,32,1},
+{1024, swap64, mxINT64_CLASS  ,64,1},
+{1280, swap64, mxUINT64_CLASS ,64,1},
 {1792, swap64, mxDOUBLE_CLASS ,64,2}
 };
 

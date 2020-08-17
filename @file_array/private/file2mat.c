@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 7568 2019-04-09 11:03:59Z guillaume $
+ * $Id: file2mat.c 7930 2020-08-17 16:11:21Z john $
  * John Ashburner
  */
 
@@ -305,6 +305,8 @@ static Dtype table[] = {
 { 256,get_8  , swap8 , mxINT8_CLASS   , 8,1},
 { 512,get_16 , swap16, mxUINT16_CLASS ,16,1},
 { 768,get_32 , swap32, mxUINT32_CLASS ,32,1},
+{1024,get_64 , swap64, mxINT64_CLASS  ,64,1},
+{1280,get_64 , swap64, mxUINT64_CLASS ,64,1},
 {1792,get_w64, swap64, mxDOUBLE_CLASS ,64,2}
 };
 
