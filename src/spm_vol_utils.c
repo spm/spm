@@ -1,5 +1,5 @@
 /*
- * $Id: spm_vol_utils.c 7931 2020-08-17 21:29:54Z john $
+ * $Id: spm_vol_utils.c 7932 2020-08-18 11:05:19Z john $
  * John Ashburner
  */
 
@@ -69,7 +69,7 @@
 #define SLICE_POLY slice_short_poly
 #define PLANE plane_short
 #endif
-#define IMAGE_DTYPE short int
+#define IMAGE_DTYPE signed short int
 #endif
 
 #ifdef SPM_UNSIGNED_SHORT
@@ -135,7 +135,7 @@
 #define SLICE_POLY slice_int_poly
 #define PLANE plane_int
 #endif
-#define IMAGE_DTYPE int
+#define IMAGE_DTYPE signed int
 #endif
 
 #ifdef SPM_UNSIGNED_INT
@@ -234,7 +234,7 @@
 #define SLICE_POLY slice_int64_poly
 #define PLANE plane_int64
 #endif
-#define IMAGE_DTYPE long long int
+#define IMAGE_DTYPE signed long long int
 #endif
 
 #ifdef SPM_FLOAT

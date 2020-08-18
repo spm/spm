@@ -24,16 +24,16 @@ function T = spm_type(x, arg)
 % Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_type.m 6656 2015-12-24 16:49:52Z guillaume $
+% $Id: spm_type.m 7932 2020-08-18 11:05:19Z john $
 
-prec   = {'uint8','int16','int32','float32','float64','int8','uint16','uint32'};
-conv   = {@uint8,@int16,@int32,@single,@double,@int8,@uint16,@uint32};
-types  = [    2      4      8   16   64   256    512    768];
-maxval = [2^8-1 2^15-1 2^31-1  Inf  Inf 2^7-1 2^16-1 2^32-1];
-minval = [    0  -2^15  -2^31 -Inf -Inf  -2^7      0      0];
-nanrep = [    0      0      0    1    1     0      0      0];
-bits   = [    8     16     32   32   64     8     16     32];
-intt   = [    1      1      1    0    0     1      1      1];
+prec   = {'uint8','int16','int32','float32','float64','int8','uint16','uint32','int64','uint64'};
+conv   = {@uint8,@int16,@int32,@single,@double,@int8,@uint16,@uint32,@int64,@uint64};
+types  = [    2      4      8   16   64   256    512    768   1024   1280];
+maxval = [2^8-1 2^15-1 2^31-1  Inf  Inf 2^7-1 2^16-1 2^32-1 2^63-1 2^64-1];
+minval = [    0  -2^15  -2^31 -Inf -Inf  -2^7      0      0  -2^63      0];
+nanrep = [    0      0      0    1    1     0      0      0      0      0];
+bits   = [    8     16     32   32   64     8     16     32     64     64];
+intt   = [    1      1      1    0    0     1      1      1      1      1];
 
 if ~nargin
     T = types;
@@ -70,3 +70,4 @@ else
         otherwise,     T = NaN;
     end
 end
+

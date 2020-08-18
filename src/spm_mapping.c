@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mapping.c 7931 2020-08-17 21:29:54Z john $
+ * $Id: spm_mapping.c 7932 2020-08-18 11:05:19Z john $
  * John Ashburner
  */
 
@@ -84,14 +84,14 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
         free_maps(maps,i);
         mexErrMsgTxt("Cant find dat.");
     }
-    if      (mxIsDouble(tmp)) dtype = SPM_DOUBLE;
-    else if (mxIsSingle(tmp)) dtype = SPM_FLOAT;
-    else if (mxIsInt32 (tmp)) dtype = SPM_SIGNED_INT;
-    else if (mxIsUint32(tmp)) dtype = SPM_UNSIGNED_INT;
-    else if (mxIsInt16 (tmp)) dtype = SPM_SIGNED_SHORT;
-    else if (mxIsUint16(tmp)) dtype = SPM_UNSIGNED_SHORT;
-    else if (mxIsInt8  (tmp)) dtype = SPM_SIGNED_CHAR;
-    else if (mxIsUint8 (tmp)) dtype = SPM_UNSIGNED_CHAR;
+    if      (mxIsDouble (tmp)) dtype = SPM_DOUBLE;
+    else if (mxIsSingle (tmp)) dtype = SPM_FLOAT;
+    else if (mxIsInt32  (tmp)) dtype = SPM_SIGNED_INT;
+    else if (mxIsUint32 (tmp)) dtype = SPM_UNSIGNED_INT;
+    else if (mxIsInt16  (tmp)) dtype = SPM_SIGNED_SHORT;
+    else if (mxIsUint16 (tmp)) dtype = SPM_UNSIGNED_SHORT;
+    else if (mxIsInt8   (tmp)) dtype = SPM_SIGNED_CHAR;
+    else if (mxIsUint8  (tmp)) dtype = SPM_UNSIGNED_CHAR;
     else if (mxIsInt64  (ptr)) dtype = SPM_SIGNED_LONG_LONG;
     else if (mxIsUint64 (ptr)) dtype = SPM_UNSIGNED_LONG_LONG;
     else
@@ -491,14 +491,14 @@ static MAPTYPE *get_maps_3dvol(const mxArray *ptr, int *n)
     MAPTYPE *maps;
     unsigned char *dptr;
 
-    if      (mxIsDouble(ptr)) dtype = SPM_DOUBLE;
-    else if (mxIsSingle(ptr)) dtype = SPM_FLOAT;
-    else if (mxIsInt32 (ptr)) dtype = SPM_SIGNED_INT;
-    else if (mxIsUint32(ptr)) dtype = SPM_UNSIGNED_INT;
-    else if (mxIsInt16 (ptr)) dtype = SPM_SIGNED_SHORT;
-    else if (mxIsUint16(ptr)) dtype = SPM_UNSIGNED_SHORT;
-    else if (mxIsInt8  (ptr)) dtype = SPM_SIGNED_CHAR;
-    else if (mxIsUint8 (ptr)) dtype = SPM_UNSIGNED_CHAR;
+    if      (mxIsDouble (ptr)) dtype = SPM_DOUBLE;
+    else if (mxIsSingle (ptr)) dtype = SPM_FLOAT;
+    else if (mxIsInt32  (ptr)) dtype = SPM_SIGNED_INT;
+    else if (mxIsUint32 (ptr)) dtype = SPM_UNSIGNED_INT;
+    else if (mxIsInt16  (ptr)) dtype = SPM_SIGNED_SHORT;
+    else if (mxIsUint16 (ptr)) dtype = SPM_UNSIGNED_SHORT;
+    else if (mxIsInt8   (ptr)) dtype = SPM_SIGNED_CHAR;
+    else if (mxIsUint8  (ptr)) dtype = SPM_UNSIGNED_CHAR;
     else if (mxIsInt64  (ptr)) dtype = SPM_SIGNED_LONG_LONG;
     else if (mxIsUint64 (ptr)) dtype = SPM_UNSIGNED_LONG_LONG;
     else mexErrMsgTxt("Unknown volume datatype.");

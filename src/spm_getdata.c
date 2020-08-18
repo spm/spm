@@ -1,5 +1,5 @@
 /*
- * $Id: spm_getdata.c 7931 2020-08-17 21:29:54Z john $
+ * $Id: spm_getdata.c 7932 2020-08-18 11:05:19Z john $
  * John Ashburner
  */
  
@@ -72,7 +72,7 @@ unsigned long long getuint64(unsigned long long x)
     return(y);
 }
 
-signed long long getint64(signed long long x)
+long long getint64(long long x)
 {
     char *p1, *p2; double y;
     p1 = (char *)(&x); p2 = (char *)(&y);
