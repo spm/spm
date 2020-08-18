@@ -17,7 +17,7 @@ function [DCM] = DEM_COVID_UTLA
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7929 2020-08-16 13:43:49Z karl $
+% $Id: DEM_COVID_UTLA.m 7933 2020-08-18 13:47:14Z spm $
 
 
 % NHS postcode data
@@ -390,13 +390,13 @@ for r = 1:numel(D)
     subplot(3,2,2), cla reset, axis([0 1 0 1])
     title(D(r).name,'Fontsize',16)
     
-    str      = sprintf('Population %.2f million',exp(Ep.N));
+    str      = sprintf('Population: %.2f million',exp(Ep.N));
     text(0,0.9,str,'FontSize',10,'FontWeight','bold','Color','k')
     
-    str      = sprintf('Reproduction ratio %.2f',DR(end,r));
+    str      = sprintf('Reproduction ratio: %.2f',DR(end,r));
     text(0,0.8,str,'FontSize',10,'FontWeight','bold','Color','k')
     
-    str      = sprintf('Infected, asymptomatic people %.0f',DC(end,r));
+    str      = sprintf('Infected, asymptomatic people: %.0f',DC(end,r));
     text(0,0.7,str,'FontSize',10,'FontWeight','bold','Color','k')
     
     str      = sprintf('Daily new cases: %.0f per 100,000',DT(end,r)/exp(Ep.N)/10);
@@ -405,12 +405,11 @@ for r = 1:numel(D)
     str      = sprintf('Prevalence of infection: %.2f%s',DP(end,r),'%');
     text(0,0.5,str,'FontSize',10,'FontWeight','bold','Color','r')
     
-    str = sprintf('Prevalence of immunity %.1f%s',DI(end,r),'%');
+    str = sprintf('Prevalence of immunity: %.1f%s',DI(end,r),'%');
     text(0,0.4,str,'FontSize',10,'FontWeight','bold','Color','k')
     
-    str = {'The prevalences refer to the effective population' ...
-        'as estimated from the new cases and deaths (shown as' ...
-        'dots on the upper left panel)'};
+    str = {'The prevalences refer to the estimated population ' ...
+        '(based on ONS census figures for lower tier local authorities)'};
     text(0,0.0,str,'FontSize',8,'Color','k')
     
     spm_axis tight, axis off
@@ -589,7 +588,7 @@ function x = spm_hist_smooth(x,s)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7929 2020-08-16 13:43:49Z karl $
+% $Id: DEM_COVID_UTLA.m 7933 2020-08-18 13:47:14Z spm $
 
 % remove negative values
 %--------------------------------------------------------------------------
