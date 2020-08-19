@@ -9,7 +9,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Y(:,1)  - number of new deaths
 % Y(:,2)  - number of new cases
 % Y(:,3)  - CCU bed occupancy
-% Y(:,4)  - effective reproduction rate (R)
+% Y(:,4)  - reproduction ratio (R)
 % Y(:,5)  - population immunity (%)
 % Y(:,6)  - total number of tests
 % Y(:,7)  - contagion risk (%)
@@ -50,7 +50,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 7929 2020-08-16 13:43:49Z karl $
+% $Id: spm_SARS_gen.m 7934 2020-08-19 09:34:35Z karl $
 
 
 % The generative model:
@@ -213,7 +213,7 @@ for i = 1:M.T
     %----------------------------------------------------------------------
     Y(i,3) = N*p{1}(3);
     
-    % effective reproduction rate (R) (based on infection prevalence)
+    % effective reproduction ratio (R) (based on infection prevalence)
     %----------------------------------------------------------------------
     Y(i,4) = p{2}(2) + p{2}(3);
     

@@ -17,7 +17,7 @@ function [DCM] = DEM_COVID_UTLA
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7933 2020-08-18 13:47:14Z spm $
+% $Id: DEM_COVID_UTLA.m 7934 2020-08-19 09:34:35Z karl $
 
 
 % NHS postcode data
@@ -409,7 +409,7 @@ for r = 1:numel(D)
     text(0,0.4,str,'FontSize',10,'FontWeight','bold','Color','k')
     
     str = {'The prevalences refer to the estimated population ' ...
-        '(based on ONS census figures for lower tier local authorities)'};
+           '(based on ONS census figures for lower tier local authorities)'};
     text(0,0.0,str,'FontSize',8,'Color','k')
     
     spm_axis tight, axis off
@@ -580,35 +580,6 @@ box off
 
 return
 
-
-function x = spm_hist_smooth(x,s)
-% histogram smoothing
-% FORMAT x = spm_hist_smooth(x,s)
-%__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
-
-% Karl Friston
-% $Id: DEM_COVID_UTLA.m 7933 2020-08-18 13:47:14Z spm $
-
-% remove negative values
-%--------------------------------------------------------------------------
-i    = x < 0;
-x(i) = 0;
-
-% remove spikes
-%--------------------------------------------------------------------------
-dx   = gradient(x);
-i    = abs(dx) > 4*std(dx);
-x(i) = 0;
-
-% graph Laplacian smoothing
-%--------------------------------------------------------------------------
-n    = numel(x);
-K    = spm_speye(n,n,-1) - 2*spm_speye(n,n,0) + spm_speye(n,n,1);
-K(1) = -1; K(end) = -1;
-K    = spm_speye(n,n,0) + K/4;
-K    = K^(s*4);
-x    = K*x;
 
 % NB: changes in LTLA codes
 %--------------------------------------------------------------------------

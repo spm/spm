@@ -47,7 +47,7 @@ function [DCM] = DEM_COVID_DASH
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_DASH.m 7891 2020-07-07 16:34:13Z karl $
+% $Id: DEM_COVID_DASH.m 7934 2020-08-19 09:34:35Z karl $
 
 % get data
 %==========================================================================
@@ -80,23 +80,32 @@ websave('coronavirus-cases_latest.csv',[url,'coronavirus-cases_latest.csv']);
 
 % retrieve recent data from https://www.england.nhs.uk
 %--------------------------------------------------------------------------
-url  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/07/';
-dstr = datestr(datenum(date) - 1,'dd-mmm-yyyy');
-if strcmp(dstr(1),'0'),dstr = dstr(2:end); end
-url  = [url 'COVID-19-total-announced-deaths-' dstr '-1.xlsx'];
-websave('COVID-19-total-announced-deaths.xlsx',url);
+URL  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/07/';
+URL  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/08/';
+
+for i = 0:4
+    try
+        dstr = datestr(datenum(date) - i,'dd-mmmm-yyyy');
+        if strcmp(dstr(1),'0'),dstr = dstr(2:end); end
+        url  = [URL 'COVID-19-total-announced-deaths-' dstr '.xlsx'];
+        fprintf('Trying %s\n',url);
+        websave('COVID-19-total-announced-deaths.xlsx',url);
+        fprintf('Using %s\n',url);
+        break
+    end
+end
 
 % load data
 %--------------------------------------------------------------------------
 C    = importdata('coronavirus-cases_latest.csv');
 D    = importdata('COVID-19-total-announced-deaths.xlsx');
+L    = importdata('Local_Authority_District_to_Region_(April_2019)_Lookup_in_England.xlsx');
 
 DN   = D.textdata.Tab1DeathsByRegion(15,4:end - 4);
 DR   = D.textdata.Tab1DeathsByRegion(18:end,1);
 
 DY   = D.data.Tab1DeathsByRegion(3:end,2:end - 4);
 DY   = D.data.Tab2Deaths0x2DNoPostTest(3:end,2:end - 4) + DY;
-DA   = D.data.Tab3DeathsByAge(3:end,2:end - 4);
 
 % find death by date
 %--------------------------------------------------------------------------
@@ -113,16 +122,21 @@ DY      = DY(:,i);
 
 % match death rates with reporting new cases
 %--------------------------------------------------------------------------
-j       = find(ismember(C.textdata(1,:),'Area type'));
-i       = find(ismember(C.textdata(:,j),'Region'));
-regions = unique(C.textdata(i,1));
+regions = unique(L.textdata(2:end,5));
 
 % get cumulative cases for each region
 %--------------------------------------------------------------------------
 for r = 1:numel(regions)
-    i     = find(ismember(C.textdata(:,1),regions{r}));
-    cy{r} = C.data(i - 1,4);
-    cn{r} = datenum(C.textdata(i,4),'yyyy-mm-dd');
+    i     = find(ismember(L.textdata(:,5),regions{r}));
+    i     = find(ismember(C.textdata(:,2),L.textdata(i,2)));
+    
+    dat   = unique(C.textdata(i,4));
+    cases = C.data(i - 1,3);
+    for d = 1:numel(dat)
+       j        = find(ismember(C.textdata(i,4),dat(d)));
+       cy{r}(d) = sum(cases(j));
+       cn{r}(d) = datenum(dat(d),'yyyy-mm-dd');
+    end
 end
 
 % and associate with death rates
@@ -164,13 +178,13 @@ for r = 1:numel(DR)
     
     % Get data for this region
     %======================================================================
-    s        = 7;                        % seven day average
-    Y        = [spm_conv(DY(r,:),s); spm_conv(gradient(CR(r,:)),s)]';
-    Y(Y < 0) = 0;
+    s        = 16;
+    Y        = [spm_hist_smooth(DY(r,:),s), ...
+                spm_hist_smooth(gradient(CR(r,:)),s)];
     
     % get (Gaussian) priors over model parameters
     %----------------------------------------------------------------------
-    [pE,pC]  = spm_COVID_priors;
+    [pE,pC]  = spm_SARS_priors;
     
     % priors for this analysis
     %----------------------------------------------------------------------
@@ -185,11 +199,11 @@ for r = 1:numel(DR)
     % complete model specification
     %----------------------------------------------------------------------
     M.date = datestr(dn(1),'dd-mm-yyyy'); % date of first time point
-    M.G    = @spm_COVID_gen;              % generative function
+    M.G    = @spm_SARS_gen;               % generative function
     M.FS   = @(Y)sqrt(Y);                 % feature selection  (link function)
     M.pE   = pE;                          % prior expectations (parameters)
     M.pC   = pC;                          % prior covariances  (parameters)
-    M.hE   = [0 -2];                      % prior expectation  (log-precision)
+    M.hE   = 2;                           % prior expectation  (log-precision)
     M.hC   = 1/512;                       % prior covariances  (log-precision)
     M.T    = size(Y,1);                   % number of samples
     U      = [1 2];                       % outputs to model
@@ -215,16 +229,17 @@ for r = 1:numel(DR)
     %----------------------------------------------------------------------
     M.T = 256;
     t   = datenum(date);
-    spm_COVID_ci(DCM(r).Ep,DCM(r).Cp,Y,[1 2 4],M);
+    spm_SARS_ci(DCM(r).Ep,DCM(r).Cp,Y,[1 2 4],M);
     
     subplot(3,2,5), XLim = get(gca,'XLim'); YLim = get(gca,'YLim');
     hold on, plot(XLim,[1,1],'r-.'), plot([t,t],YLim,'b:')
-    title('Reproduction rate (R)','Fontsize',16)
-    
+    title('Reproduction ratio (R)','Fontsize',16)
+    ylabel('reproduction ratio')
     
     % supplement with table of posterior expectations
     %----------------------------------------------------------------------
-    subplot(2,2,2), title('Cumulative deaths','Fontsize',16)
+    subplot(2,2,2), title('Cumulative deaths','Fontsize',16), ylabel('deaths')
+    subplot(3,2,1), ylabel('deaths per day')
     %----------------------------------------------------------------------
     % Y(:,1) - number of new deaths
     % Y(:,2) - number of new cases
@@ -237,7 +252,7 @@ for r = 1:numel(DR)
     % Y(:,9) - number of infected at home, untested and asymptomatic
     % and plot latent or hidden states
     %----------------------------------------------------------------------
-    [R,X] = spm_COVID_gen(DCM(r).Ep,DCM(r).M,[4 5 8 9]);
+    [R,X] = spm_SARS_gen(DCM(r).Ep,DCM(r).M,[4 5 8 9]);
     
     subplot(2,2,4), cla reset, axis([0 1 0 1])
     title(STR,'FontSize',16)
