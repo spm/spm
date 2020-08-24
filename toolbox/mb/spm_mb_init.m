@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7935 2020-08-20 10:11:25Z mikael $
+% $Id: spm_mb_init.m 7938 2020-08-24 11:26:41Z mikael $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -144,9 +144,13 @@ if isfield(cfg,'one_gmm_prior')
 else
     one_gmm_prior = false;
 end
+num_priors = numel(cfg.gmm);
+if one_gmm_prior
+    num_priors = 1;
+end
 
 % Process scans (for gmm)
-sett.gmm  = struct('pr',cell(numel(cfg.gmm),1),'hyperpriors',true, ....
+sett.gmm  = struct('pr',cell(num_priors,1),'hyperpriors',true, ....
                    'mg_ix', [], 'C',0, 'tol_gmm',[],'nit_gmm_miss',[],'nit_gmm',[],'nit_appear',[]);
 for p=1:numel(cfg.gmm)
     

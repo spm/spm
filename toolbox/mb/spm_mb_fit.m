@@ -11,7 +11,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 7907 2020-07-23 16:10:52Z john $
+% $Id: spm_mb_fit.m 7938 2020-08-24 11:26:41Z mikael $
 
 
 % Repeatable random numbers
@@ -91,6 +91,7 @@ for it0=1:nit_aff
     end
     if updt_mu
         [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,E,updt_int);
+        show_mu(mu, ['Affine (it=' num2str(it0) ' | N=' num2str(numel(dat)) ')']);
     end
 
     if true
@@ -137,8 +138,9 @@ for zm=numel(sz):-1:1 % loop over zoom levels
         mu = spm_mb_shape('shrink_template',mu0,Mmu,sett);
     else
         [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,E);
-    end
-
+        show_mu(mu, ['Diffeo (it=' num2str(zm) ' ' num2str(0) ')']);
+    end    
+    
     if updt_aff
         % UPDATE: rigid
         dat   = spm_mb_shape('update_affines',dat,mu,sett);
@@ -160,8 +162,9 @@ for zm=numel(sz):-1:1 % loop over zoom levels
             [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,E);
             EE(i)  = E;
             i      = i+1;
-        end
-
+            show_mu(mu, ['Diffeo (it=' num2str(zm) ' ' num2str(it0) ' | N=' num2str(numel(dat)) ')']);
+        end        
+        
         if updt_diff
             % UPDATE: diffeo
             dat   = spm_mb_shape('update_velocities',dat,mu,sett);
@@ -256,4 +259,48 @@ if isfield(sett,'save') && sett.save
    %sett = rmfield(sett,{'ms'});
     save(fullfile(sett.odir,['mb_fit_' sett.onam '.mat']),'sett','dat');
 end
+%==========================================================================
+
+%==========================================================================
+function show_mu(mu, titl, fig_name, do)    
+% Shows the template..
+if nargin < 2, titl = ''; end
+if nargin < 3, fig_name = 'Template'; end
+if nargin < 4, do = false; end
+
+if ~do, return; end
+% What slice index (ix) to show
+dm = size(mu);
+ix = round(0.5*dm);
+% Axis z
+mu1 = mu(:,:,ix(3),:); 
+mu1 = spm_mb_classes('template_k1',mu1,4);
+[~,ml1] = max(mu1,[],4); 
+% Axis y
+mu1 = mu(:,ix(2),:,:); 
+mu1 = spm_mb_classes('template_k1',mu1,4);
+[~,ml2] = max(mu1,[],4);
+ml2 = squeeze(ml2);
+% Axis x
+mu1 = mu(ix(1),:,:,:); 
+mu1 = spm_mb_classes('template_k1',mu1,4);
+[~,ml3] = max(mu1,[],4); 
+ml3 = squeeze(ml3);
+% Create/find figure
+f = findobj('Type', 'Figure', 'Name', fig_name);
+if isempty(f)
+    f = figure('Name', fig_name, 'NumberTitle', 'off');
+end
+set(0, 'CurrentFigure', f);
+clf(f);
+% Show figure
+colormap(hsv(dm(4)))
+subplot(131)
+imagesc(ml1); axis off image;
+subplot(132)
+imagesc(ml2); axis off image;
+title(titl)
+subplot(133)
+imagesc(ml3); axis off image; 
+drawnow
 %==========================================================================
