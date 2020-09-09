@@ -35,7 +35,7 @@ function [P,C,str] = spm_SARS_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 7929 2020-08-16 13:43:49Z karl $
+% $Id: spm_SARS_priors.m 7939 2020-09-09 11:02:14Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -74,8 +74,8 @@ names{6}  = 'P(leaving home)';
 names{7}  = 'threshold: lockdown';  
 names{8}  = 'threshold: containment';
 names{9}  = 'viral spreading';
-names{10}  = 'bed availability';
-names{1} = 'sensitivity';
+names{10} = 'bed availability';
+names{11} = 'sensitivity';
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -186,7 +186,7 @@ P.sur = 1/8;                  % (26) P(survival | ARDS, home)
 
 % testing parameters
 %--------------------------------------------------------------------------
-P.ttt = 1/128;                % (27) FTTI efficacy
+P.ttt = 1/16;                 % (27) FTTI efficacy
 P.tts = 1;                    % (28) testing: seroprevalence
 P.lim = 2/1000;               % (29) testing: capacity
 P.tes = 4;                    % (30) test selectivity (for infection)
@@ -220,16 +220,16 @@ C.o   = W;                    % (05) initial exposed proportion
 %--------------------------------------------------------------------------
 C.out = W;                    % (06) P(leaving home)
 C.sde = W;                    % (07) lockdown threshold
-C.qua = V;                    % (08) Quarantine threshold
-C.exp = V;                    % (09) contacts (viral spreading)
+C.qua = W;                    % (08) Quarantine threshold
+C.exp = W;                    % (09) contacts (viral spreading)
 C.cap = W;                    % (10) bed availability (per capita)
 C.s   = W;                    % (11) sensitivity parameter
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
 C.Nin = V;                    % (12) effective number of contacts: home
-C.Nou = V;                    % (13) effective number of contacts: work
-C.Nru = V;                    % (14) effective number of contacts: rural
+C.Nou = W;                    % (13) effective number of contacts: work
+C.Nru = W;                    % (14) effective number of contacts: rural
 C.trn = W;                    % (15) transmission strength
 C.Tin = W;                    % (16) infected period (days)
 C.Tcn = W;                    % (17) infectious period (days)
@@ -250,8 +250,8 @@ C.sur = W;                    % (26) P(survival | ARDS, home)
 %--------------------------------------------------------------------------
 C.ttt = V;                    % (27) FTTI efficacy
 C.tts = W;                    % (28) testing: seroprevalence
-C.lim = V;                    % (29) testing capacity
-C.tes = V;                    % (30) test selectivity (for infection)
+C.lim = W;                    % (29) testing capacity
+C.tes = W;                    % (30) test selectivity (for infection)
 C.del = W;                    % (31) test delay (days)
 
 C.sus = W;                    % (32) buildup testing

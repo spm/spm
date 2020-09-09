@@ -21,7 +21,7 @@ function T = spm_COVID_T(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 7929 2020-08-16 13:43:49Z karl $
+% $Id: spm_COVID_T.m 7939 2020-09-09 11:02:14Z karl $
 
 % setup
 %==========================================================================
@@ -177,6 +177,7 @@ Ninh = P.Nin;
 Pinh = (1 - P.trn*ph(3))^Ninh;      % P(no transmission) | home
 Pinw = (1 - P.trn*pw(3))^Ninw;      % P(no transmission) | work
 Kimm = exp(-1/P.Tim/32);            % loss of Ab+ immunity (per 32 days)
+Kinn = 1;                           % loss of Ab- immunity (per 32 days)
 Pres = P.res;                       % infectious proportion
 Kinf = exp(-1/P.Tin);
 Kcon = exp(-1/P.Tcn);
@@ -185,28 +186,28 @@ Kcon = exp(-1/P.Tcn);
 %--------------------------------------------------------------------------
 %    susceptible  infected           infectious     Ab+       Ab-
 %--------------------------------------------------------------------------
-b{1} = [Pinh       0                     0          (1 - Kimm) 0;
+b{1} = [Pinh       0                     0          (1 - Kimm) (1 - Kinn);
         (1 - Pinh) Kinf                  0          0          0;
         0          (1 - Pres)*(1 - Kinf) Kcon       0          0;
         0          0                     (1 - Kcon) Kimm       0;
-        0          Pres*(1 - Kinf)       0          0          1];
+        0          Pres*(1 - Kinf)       0          0          Kinn];
     
 % marginal: infection {2} | work {1}(2)
 %--------------------------------------------------------------------------
-b{2} = [Pinw       0                     0          (1 - Kimm) 0;
+b{2} = [Pinw       0                     0          (1 - Kimm) (1 - Kinn);
         (1 - Pinw) Kinf                  0          0          0;
         0          (1 - Pres)*(1 - Kinf) Kcon       0          0;
         0          0                     (1 - Kcon) Kimm       0;
-        0          Pres*(1 - Kinf)       0          0          1];
+        0          Pres*(1 - Kinf)       0          0          Kinn];
 
 
 % marginal: infection {2} | hospital {1}(3)
 %--------------------------------------------------------------------------
-b{3} = [1          0                     0          (1 - Kimm) 0;
+b{3} = [1          0                     0          (1 - Kimm) (1 - Kinn);
         0          Kinf                  0          0          0;
         0          (1 - Pres)*(1 - Kinf) Kcon       0          0;
         0          0                     (1 - Kcon) Kimm       0;
-        0          Pres*(1 - Kinf)       0          0          1];
+        0          Pres*(1 - Kinf)       0          0          Kinn];
 
 % marginal: infection {2} | removed {1}(4)
 %--------------------------------------------------------------------------

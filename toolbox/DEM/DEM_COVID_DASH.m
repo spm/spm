@@ -47,7 +47,7 @@ function [DCM] = DEM_COVID_DASH
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_DASH.m 7934 2020-08-19 09:34:35Z karl $
+% $Id: DEM_COVID_DASH.m 7939 2020-09-09 11:02:14Z karl $
 
 % get data
 %==========================================================================
@@ -189,7 +189,7 @@ for r = 1:numel(DR)
     % priors for this analysis
     %----------------------------------------------------------------------
     pE.N   = log(Pop(r));                 % population of region (M)
-    pC.N   = 1/256;
+    pC.N   = 0;
     pE.n   = 4;                           % initial number of cases (n)
 
     
@@ -258,10 +258,10 @@ for r = 1:numel(DR)
     title(STR,'FontSize',16)
     
     Tab(r,1) = Pop(r);
-    str      = sprintf('Total population %.2f million',Tab(r,1));
+    str      = sprintf('Census population %.2f million',Tab(r,1));
     text(0,1.0,str,'FontSize',16,'Color','b')
     
-    Tab(r,2) = exp(Ep.N);
+    Tab(r,2) = exp(Ep.N)*(1 - exp(Ep.m));
     str      = sprintf('Effective population %.2f million',Tab(r,2));
     text(0,0.9,str,'FontSize',16,'Color','b')
     

@@ -17,7 +17,7 @@ function [DCM] = DEM_COVID_UTLA
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7934 2020-08-19 09:34:35Z karl $
+% $Id: DEM_COVID_UTLA.m 7939 2020-09-09 11:02:14Z karl $
 
 
 % NHS postcode data
@@ -316,7 +316,9 @@ T     = [t ((1:64) + t(end))];
 % fit each regional dataset
 %==========================================================================
 for r = 1:numel(D)
+    
     fprintf('%d out of %d\n',r,numel(D));
+    
     % get (Gaussian) priors over model parameters
     %----------------------------------------------------------------------
     [pE,pC] = spm_SARS_priors;
@@ -382,7 +384,7 @@ for r = 1:numel(D)
     DI(:,r) = Y(:,2);                           % Prevalence of immunity
     DP(:,r) = Y(:,3);                           % Prevalence of infection
     DC(:,r) = Y(:,4);                           % Infected, asymptomatic people
-    DT(:,r) = Y(:,5);                           % New daily cases
+    DT(:,r) = Y(:,5)/exp(Ep.N)/10;              % New daily cases per 100K
     
     
     % supplement with table of posterior expectations
@@ -390,19 +392,19 @@ for r = 1:numel(D)
     subplot(3,2,2), cla reset, axis([0 1 0 1])
     title(D(r).name,'Fontsize',16)
     
-    str      = sprintf('Population: %.2f million',exp(Ep.N));
+    str = sprintf('Population: %.2f million',exp(Ep.N));
     text(0,0.9,str,'FontSize',10,'FontWeight','bold','Color','k')
     
-    str      = sprintf('Reproduction ratio: %.2f',DR(end,r));
+    str = sprintf('Reproduction ratio: %.2f',DR(end,r));
     text(0,0.8,str,'FontSize',10,'FontWeight','bold','Color','k')
     
-    str      = sprintf('Infected, asymptomatic people: %.0f',DC(end,r));
+    str = sprintf('Infected, asymptomatic people: %.0f',DC(end,r));
     text(0,0.7,str,'FontSize',10,'FontWeight','bold','Color','k')
     
-    str      = sprintf('Daily new cases: %.0f per 100,000',DT(end,r)/exp(Ep.N)/10);
+    str = sprintf('Daily new cases: %.0f per 100,000',DT(end,r)/exp(Ep.N)/10);
     text(0,0.6,str,'FontSize',10,'FontWeight','bold','Color','r')
     
-    str      = sprintf('Prevalence of infection: %.2f%s',DP(end,r),'%');
+    str = sprintf('Prevalence of infection: %.2f%s',DP(end,r),'%');
     text(0,0.5,str,'FontSize',10,'FontWeight','bold','Color','r')
     
     str = sprintf('Prevalence of immunity: %.1f%s',DI(end,r),'%');
@@ -426,7 +428,7 @@ load COVID_LA
 
 str = {'Reproduction ratio',...
        'Prevalence of infection (%)'...
-       'New infections per day'};
+       'Daily incidence per 100,000'};
 DD    = {DR,DP,DT};
 for j = 1:numel(DD)
     
