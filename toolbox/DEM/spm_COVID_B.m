@@ -21,7 +21,7 @@ function T = spm_COVID_B(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_B.m 7929 2020-08-16 13:43:49Z karl $
+% $Id: spm_COVID_B.m 7942 2020-09-10 22:00:08Z spm $
 
 % setup
 %==========================================================================
@@ -370,10 +370,10 @@ ij   = find(sparse(i,j,1,nx,nx));
 
 function p = spm_sigma(x,u,s)
 % reverse sigmoid function
-% FORMAT p = spm_sigma(p,u)
+% FORMAT p = spm_sigma(p,u,s)
 % x    - probability
 % u    - threshold
-% u    - sensitivity (default four)
+% s    - sensitivity (default four)
 %
 % p    - probability (0 < p < 1)
 %

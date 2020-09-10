@@ -1,6 +1,6 @@
 function T = spm_COVID_T(x,P,r)
 % state dependent probability transition matrices
-% FORMAT T = spm_COVID_B(x,P,r)
+% FORMAT T = spm_COVID_T(x,P,r)
 % x      - probability distributions (tensor)
 % P      - model parameters
 % r      - marginals over regions
@@ -21,7 +21,7 @@ function T = spm_COVID_T(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 7939 2020-09-09 11:02:14Z karl $
+% $Id: spm_COVID_T.m 7942 2020-09-10 22:00:08Z spm $
 
 % setup
 %==========================================================================
@@ -365,10 +365,10 @@ ij   = find(sparse(i,j,1,nx,nx));
 
 function p = spm_sigma(x,u,s)
 % reverse sigmoid function
-% FORMAT p = spm_sigma(p,u)
+% FORMAT p = spm_sigma(p,u,s)
 % x    - probability
 % u    - threshold
-% u    - sensitivity (default four)
+% s    - sensitivity (default four)
 %
 % p    - probability (0 < p < 1)
 %

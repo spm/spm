@@ -17,7 +17,7 @@ function [DCM] = DEM_COVID_UTLA
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7939 2020-09-09 11:02:14Z karl $
+% $Id: DEM_COVID_UTLA.m 7942 2020-09-10 22:00:08Z spm $
 
 
 % NHS postcode data
@@ -401,7 +401,7 @@ for r = 1:numel(D)
     str = sprintf('Infected, asymptomatic people: %.0f',DC(end,r));
     text(0,0.7,str,'FontSize',10,'FontWeight','bold','Color','k')
     
-    str = sprintf('Daily new cases: %.0f per 100,000',DT(end,r)/exp(Ep.N)/10);
+    str = sprintf('Daily new cases: %.0f per 100,000',DT(end,r));
     text(0,0.6,str,'FontSize',10,'FontWeight','bold','Color','r')
     
     str = sprintf('Prevalence of infection: %.2f%s',DP(end,r),'%');

@@ -37,7 +37,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % then generated as expected values. These include the rate of (new) deaths
 % and cases per day. This routine can be extended to generate other
 % outcomes, or indeed consider other factorisations of the probability
-% transition matrices. The subroutine (spm_COVID_B) creating the
+% transition matrices. The subroutine (spm_COVID_T) creating the
 % probability transition matrices given the current states and model
 % parameters defines the generative model. This model structure rests upon
 % a mean field approximation to the transition probabilities that,
@@ -50,7 +50,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 7934 2020-08-19 09:34:35Z karl $
+% $Id: spm_SARS_gen.m 7942 2020-09-10 22:00:08Z spm $
 
 
 % The generative model:
