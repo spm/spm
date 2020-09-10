@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7938 2020-08-24 11:26:41Z mikael $
+% $Id: spm_mb_init.m 7940 2020-09-10 18:14:43Z john $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -390,7 +390,6 @@ for p=1:numel(sett.gmm) % Loop over populations
 
         % Random mean intensities, roughly sorted. Used to break symmetry.
         rng('default'); rng(1); % Want some reproducibility
-       %mu                = diag(sqrt(vr*(1-1/scale)))*randn(C,K1) + mu; % The 1-1/scale is to match V by Pythagorous
         mu                = bsxfun(@plus,0.01*diag(sqrt(vr)*(1-1/scale))*randn(C,K1), mu);
         d                 = sum(diag(sqrt(vr*(1-1/K1)))\mu,1);           % Heuristic measure of how positive
         [~,o]             = sort(-d); % Order the means, most positive first
@@ -406,19 +405,21 @@ for p=1:numel(sett.gmm) % Loop over populations
         end
     else
         for n=1:N
-            % Set GMM starting estimates based on priors
-            n1                  = index(n);
-            m    = sett.gmm(p).pr{1};
-            b    = sett.gmm(p).pr{2};
-            V    = sett.gmm(p).pr{3};
-            nu   = sett.gmm(p).pr{4};
-            % Modify the estimates slightly. If the b values are too variable
-            % then the smaller ones might cause responsibilities that are
-            % very close to zero, never identifying tissue in that class.
-            b    = b*0+1e-3;
-            nval = size(m,1)-1+1e-3;
-            V    = bsxfun(@times,V,reshape(nu,[1 1 numel(nu)])./nval);
-            nu   = nu*0+nval;
+            n1   = index(n);
+
+            % Initial distribution for mean
+            m    = sett.gmm(p).pr{1};      % Use prior mean
+            b    = ones(1,K1)*1e-3;        % Uninformative
+
+            % Initial distribution for precision
+            nu0  = size(m,1)-1+1e-3;
+            nu   = ones(1,K1)*nu0;
+
+            vr   = double(mean(vr_all,2));
+            scal = max(K1-1,1).^(2/C);     % Crude heuristic
+            V    = diag(1./vr)*(scal/nu0); % Low precision
+            V    = repmat(V,[1 1 K1]);
+
             dat(n1).model.gmm.m = m;
             dat(n1).model.gmm.b = b;
             dat(n1).model.gmm.V = V;

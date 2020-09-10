@@ -15,7 +15,7 @@ function varargout = spm_mb_classes(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_classes.m 7936 2020-08-20 10:12:39Z mikael $
+% $Id: spm_mb_classes.m 7940 2020-09-10 18:14:43Z john $
 
 if isa(varargin{1},'char')
     [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
@@ -101,8 +101,8 @@ function cm = get_label_conf_matrix(cm_map, w, K1)
 
 % Parse function settings
 w  = min(max(w, 1e-7), 1-1e-7);
-L  = numel(cm_map);             % Number of labels
-cm = zeros([L + 1 K1], 'single'); % Allocate confusion matrix (including unknown)
+L  = numel(cm_map);              % Number of labels
+cm = zeros([L+1, K1], 'single'); % Allocate confusion matrix (including unknown)
 for l=1:L % Loop over labels
     ix            = false(1, K1);
     ix(cm_map{l}) = true;

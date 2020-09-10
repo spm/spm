@@ -26,7 +26,7 @@ function varargout = spm_mb_shape(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7928 2020-08-14 16:33:20Z john $
+% $Id: spm_mb_shape.m 7940 2020-09-10 18:14:43Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
 %==========================================================================
 
@@ -273,10 +273,9 @@ sd    = max(round(2.0*vx_f./vx_mu),1);
 %==========================================================================
 
 %==========================================================================
-function mu = shrink_template(mu,oMmu,sett,smo_wt)
+function mu = shrink_template(mu,oMmu,sett)
 
 % Parse function settings
-if nargin<4, smo_wt = 1; end
 d     = sett.ms.d;
 Mmu   = sett.ms.Mmu;
 d0    = [size(mu,1) size(mu,2) size(mu,3)];
@@ -290,24 +289,6 @@ if any(d0~=d) || norm(Mzoom-eye(4))>1e-4
     e      = eps('single');
     mu     = bsxfun(@rdivide,mu,max(c,e));
     mu     = bsxfun(@minus,log(max(mu,e)),log(max(1-sum(mu,4),e)));
-end
-smo_wt = min(max(smo_wt,0),1);
-if smo_wt~=0
-    smo = single([0.25 0.5 0.25]);
-    if d(3)>1
-        smo = reshape(kron(kron(smo,smo),smo),[3 3 3]);
-        del = zeros([3 3 3],'single');
-        del(2,2,2) = 1;
-        smo = smo*smo_wt+del*(1-smo_wt);
-    else
-        smo = smo'*smo;
-        del = zeros([3 3],'single');
-        del(2,2) = 1;
-        smo = smo*smo_wt+del*(1-smo_wt);
-    end
-    for k=1:size(mu,4)
-        mu(:,:,:,k) = convn(mu(:,:,:,k),smo,'same');
-    end
 end
 %==========================================================================
 
@@ -390,7 +371,7 @@ end
 df   = datn.dm;
 psi0 = affine(df,Mmu\Mr*Mn,samp);
 ds   = [size(psi0,1),size(psi0,2),size(psi0,3)];
-psi1 = get_def(datn,sett.ms.Mmu);
+psi1 = get_def(datn,Mmu);
 if ~isempty(psi1)
     J    = spm_diffeo('jacobian',psi1);
     J    = reshape(pull1(reshape(J,[d 3*3]),psi0),[ds 3 3]);
@@ -548,7 +529,7 @@ q        = double(datn.q);
 Mn       = datn.Mat;
 samp     = datn.samp;
 
-psi      = compose(get_def(datn,sett.ms.Mmu),affine(df, Mmu\spm_dexpm(q,B)*Mn,samp));
+psi      = compose(get_def(datn,Mmu),affine(df, Mmu\spm_dexpm(q,B)*Mn,samp));
 mu       = pull1(mu,psi);
 [f,datn] = spm_mb_classes(datn,mu,sett);
 [g,w]    = push1(softmax(mu,4) - f,psi,d,1);
@@ -731,7 +712,7 @@ q     = double(datn.q);
 Mn    = datn.Mat;
 samp  = datn.samp;
 
-psi      = compose(get_def(datn,sett.ms.Mmu),affine(df,Mmu\spm_dexpm(q,B)*Mn,samp));
+psi      = compose(get_def(datn,Mmu),affine(df,Mmu\spm_dexpm(q,B)*Mn,samp));
 mu       = pull1(mu,psi);
 [f,datn] = spm_mb_classes(datn,mu,sett);
 [g,w]    = push1(f,psi,d,1);
@@ -775,7 +756,7 @@ samp      = datn.samp;
 Mr        = spm_dexpm(q,B);
 Mat       = Mmu\Mr*Mn;
 df        = datn.dm;
-psi       = compose(get_def(datn,sett.ms.Mmu),affine(df,Mat,samp));
+psi       = compose(get_def(datn,Mmu),affine(df,Mat,samp));
 mu        = pull1(mu,psi);
 [f,datn]  = spm_mb_classes(datn,mu,sett);
 [a,w]     = push1(f - softmax(mu,4),psi,d,1);
@@ -801,50 +782,52 @@ datn.v = spm_mb_io('set_data',datn.v,v);
 function H = velocity_hessian(mu,G,accel)
 d  = [size(mu,1),size(mu,2),size(mu,3)];
 M  = size(mu,4);
-if accel>0, s  = softmax(mu,4); end
 Ab = 0.5*(eye(M)-1/(M+1)); % See Bohning's paper
-H1 = zeros(d,'single');
-H2 = H1;
-H3 = H1;
-H4 = H1;
-H5 = H1;
-H6 = H1;
-for m1=1:M
-    Gm11 = G(:,:,:,m1,1);
-    Gm12 = G(:,:,:,m1,2);
-    Gm13 = G(:,:,:,m1,3);
-    if accel==0
-        tmp = Ab(m1,m1);
-    else
-        sm1 = s(:,:,:,m1);
-        tmp = (max(sm1.*(1-sm1),0))*accel + (1-accel)*Ab(m1,m1);
-    end
-    H1 = H1 + tmp.*Gm11.*Gm11;
-    H2 = H2 + tmp.*Gm12.*Gm12;
-    H3 = H3 + tmp.*Gm13.*Gm13;
-    H4 = H4 + tmp.*Gm11.*Gm12;
-    H5 = H5 + tmp.*Gm11.*Gm13;
-    H6 = H6 + tmp.*Gm12.*Gm13;
-    for m2=(m1+1):M
+H  = zeros([d 6],'single');
+for i=1:d(3)
+    if accel>0, s = softmax(mu(:,:,i,:),4); end
+    H11 = zeros(d(1:2));
+    H22 = H11;
+    H33 = H11;
+    H12 = H11;
+    H13 = H11;
+    H23 = H11;
+    for m1=1:M
+        Gm11 = G(:,:,i,m1,1);
+        Gm12 = G(:,:,i,m1,2);
+        Gm13 = G(:,:,i,m1,3);
         if accel==0
-            tmp = Ab(m1,m2);
+            tmp = Ab(m1,m1);
         else
-            sm2 = s(:,:,:,m2);
-            tmp = (-sm1.*sm2)*accel + (1-accel)*Ab(m1,m2);
+            sm1 = s(:,:,1,m1);
+            tmp = (max(sm1.*(1-sm1),0))*accel + (1-accel)*Ab(m1,m1);
         end
-        Gm21 = G(:,:,:,m2,1);
-        Gm22 = G(:,:,:,m2,2);
-        Gm23 = G(:,:,:,m2,3);
-        H1 = H1 + 2*tmp.* Gm11.*Gm21;
-        H2 = H2 + 2*tmp.* Gm12.*Gm22;
-        H3 = H3 + 2*tmp.* Gm13.*Gm23;
-        H4 = H4 +   tmp.*(Gm11.*Gm22 + Gm21.*Gm12);
-        H5 = H5 +   tmp.*(Gm11.*Gm23 + Gm21.*Gm13);
-        H6 = H6 +   tmp.*(Gm12.*Gm23 + Gm22.*Gm13);
+        H11 = H11 + tmp.*Gm11.*Gm11;
+        H22 = H22 + tmp.*Gm12.*Gm12;
+        H33 = H33 + tmp.*Gm13.*Gm13;
+        H12 = H12 + tmp.*Gm11.*Gm12;
+        H13 = H13 + tmp.*Gm11.*Gm13;
+        H23 = H23 + tmp.*Gm12.*Gm13;
+        for m2=(m1+1):M
+            if accel==0
+                tmp = Ab(m1,m2);
+            else
+                sm2 = s(:,:,1,m2);
+                tmp = (-sm1.*sm2)*accel + (1-accel)*Ab(m1,m2);
+            end
+            Gm21 = G(:,:,i,m2,1);
+            Gm22 = G(:,:,i,m2,2);
+            Gm23 = G(:,:,i,m2,3);
+            H11  = H11 + 2*tmp.* Gm11.*Gm21;
+            H22  = H22 + 2*tmp.* Gm12.*Gm22;
+            H33  = H33 + 2*tmp.* Gm13.*Gm23;
+            H12  = H12 +   tmp.*(Gm11.*Gm22 + Gm21.*Gm12);
+            H13  = H13 +   tmp.*(Gm11.*Gm23 + Gm21.*Gm13);
+            H23  = H23 +   tmp.*(Gm12.*Gm23 + Gm22.*Gm13);
+        end
     end
+    H(:,:,i,:) = cat(4, H11, H22, H33, H12, H13, H23);
 end
-clear Gm11 Gm12 Gm13 Gm21 Gm22 Gm23 sm1 sm2 tmp
-H = cat(4, H1, H2, H3, H4, H5, H6);
 %==========================================================================
 
 %==========================================================================
@@ -1145,7 +1128,6 @@ function nw = get_num_workers(sett,NumVol)
 MemMax         = 0;          % max memory usage (in MB)
 NumWork        = sett.nworker;
 dm             = sett.ms.d;  % current template dimensions
-K              = sett.K;     % template classes
 
 if NumWork <= 1
     nw = 0;
@@ -1161,6 +1143,7 @@ end
 
 % Get memory requirement (with current template size)
 if nargin<2
+    K          = sett.K; % template classes
     NumVol     = (K*(K+1)/2+4*K);
 end
 NumFloats      = NumVol*prod(dm(1:3));            % float size of mean Hessian + padding (we also keep images, etc in memory (rough))

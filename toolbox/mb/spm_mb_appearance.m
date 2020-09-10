@@ -8,7 +8,7 @@ function varargout = spm_mb_appearance(action,varargin) % Appearance model
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7938 2020-08-24 11:26:41Z mikael $
+% $Id: spm_mb_appearance.m 7940 2020-09-10 18:14:43Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
 %==========================================================================
 
@@ -614,7 +614,7 @@ if nargin<3
     vol_out = zeros([dm dt],'like',vec_in);
 end
 for n1=1:prod(dt)
-    tmp         = zeros([dm 1],'like',vec_in);
+    tmp         = vol_out(ind{:},n1);
     tmp(msk(:)) = vec_in(:,n1);
     vol_out(ind{:},n1) = tmp;
 end
