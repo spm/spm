@@ -133,7 +133,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7876 2020-06-18 19:58:03Z thomas $
+% $Id: spm_MDP_VB_X.m 7943 2020-09-11 17:50:52Z thomas $
 
 
 % deal with a sequence of trials
@@ -310,6 +310,7 @@ for m = 1:size(MDP,1)
         %------------------------------------------------------------------
         if isfield(MDP,'b')
             pB{m,f} = MDP(m).b{f};
+            wB{m,f} = spm_wnorm(MDP(m).b{f}).*(pB{m,f} > 0);
         end
         
     end
@@ -928,6 +929,13 @@ for t = 1:T
                             %----------------------------------------------
                             if isfield(MDP,'a')
                                 Q(k) = Q(k) - spm_dot(wA{m,g},{qo xq{m,:}});
+                            end
+                        end
+                        if isfield(MDP,'b')
+                            for f = 1:Nf(m)
+                                if j < S && k <= size(wB{m,f},3)
+                                    Q(k) = Q(k) - spm_dot(wB{m,f}(:,:,k),{xq{m,f},x{m,f}(:,j+1,k)});
+                                end
                             end
                         end
                     end
