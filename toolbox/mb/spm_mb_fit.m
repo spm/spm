@@ -11,7 +11,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 7938 2020-08-24 11:26:41Z mikael $
+% $Id: spm_mb_fit.m 7944 2020-09-14 09:09:16Z john $
 
 
 % Repeatable random numbers
@@ -64,10 +64,8 @@ updt_diff = all(isfinite(sett.v_settings));
 updt_mu   = ~exist('mu0','var');
 if ~exist('mu0','var')
     te = spm_mb_shape('template_energy',mu,sett.ms.mu_settings);
-    E  = [Inf Inf];
 else
     te = 0;
-    E  = Inf;
 end
 
 % Update affine only
@@ -79,7 +77,6 @@ for n=1:numel(dat)
         dat(n).model.gmm.samp = [1 1 1];
     end
 end
-updt_int = 'update_prior';
 fprintf('Rigid (zoom=%d): %d x %d x %d\n',2^(numel(sz)-1),sett.ms.d);
 spm_plot_convergence('Init','Rigid Alignment','Objective','Iteration');
 E      = Inf;
@@ -90,7 +87,7 @@ for it0=1:nit_aff
         oE  = Inf;
     end
     if updt_mu
-        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,E,updt_int);
+        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te);
         show_mu(mu, ['Affine (it=' num2str(it0) ' | N=' num2str(numel(dat)) ')']);
     end
 
@@ -98,7 +95,7 @@ for it0=1:nit_aff
         % UPDATE: rigid
         dat   = spm_mb_shape('update_simple_affines',dat,mu,sett);
         E     = sum(sum(cat(2,dat.E),2),1) + te;  % Cost function after previous update
-        sett  = spm_mb_appearance(updt_int,dat, sett);
+        sett  = spm_mb_appearance('update_prior',dat, sett);
 
         fprintf('%12.4e', E/nvox(dat));
     end
@@ -137,10 +134,10 @@ for zm=numel(sz):-1:1 % loop over zoom levels
     if ~updt_mu
         mu = spm_mb_shape('shrink_template',mu0,Mmu,sett);
     else
-        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,E);
+        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te);
         show_mu(mu, ['Diffeo (it=' num2str(zm) ' ' num2str(0) ')']);
-    end    
-    
+    end
+
     if updt_aff
         % UPDATE: rigid
         dat   = spm_mb_shape('update_affines',dat,mu,sett);
@@ -151,35 +148,33 @@ for zm=numel(sz):-1:1 % loop over zoom levels
     end
     fprintf('\n');
 
-    EE     = inf(1,sum([updt_mu&&updt_diff, updt_diff])); % For tracking objfun
-    nit_zm = nit_zm0 + (zm - 1); % use nit_zm0 only for zm = 1
-    for it0=1:nit_zm
+    nit_max = nit_zm0 + (zm - 1)*3;
+    for it0=1:nit_max
 
-       %oEE = EE;
-        i   = 1;   % For tracking objfun
-
+        oE  = E/nvox(dat);
         if updt_mu
-            [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,E);
-            EE(i)  = E;
-            i      = i+1;
+            [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te);
             show_mu(mu, ['Diffeo (it=' num2str(zm) ' ' num2str(it0) ' | N=' num2str(numel(dat)) ')']);
-        end        
-        
+        end
+
         if updt_diff
             % UPDATE: diffeo
             dat   = spm_mb_shape('update_velocities',dat,mu,sett);
             E     = sum(sum(cat(2,dat.E),2),1) + te; % Cost function after previous update
             sett  = spm_mb_appearance('update_prior',dat, sett);
-            EE(i) = E;
             fprintf('%12.4e', E/nvox(dat));
             spm_plot_convergence('Set',E/nvox(dat));
         end
         fprintf('\n');
 
-        % Compute deformations from velocities (unless this is to be done
-        % on the zoomed versions).
-        if it0<nit_zm && updt_diff
-            dat   = spm_mb_shape('update_warps',dat,sett);
+        if it0==nit_max || (oE-E/nvox(dat) < sett.tol*4 && it0>=nit_zm0)
+            break;
+        else
+            % Compute deformations from velocities (unless this is to be done
+            % on the zoomed versions).
+            if updt_diff
+                dat   = spm_mb_shape('update_warps',dat,sett);
+            end
         end
     end
 
@@ -226,15 +221,15 @@ samp = min(samp,5);
 %==========================================================================
 
 %==========================================================================
-function [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,E,updt_int)
+function [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te)
 % UPDATE: mean
-if nargin<6, updt_int = 'update_prior'; end
 nit_mu = 5;
+E      = Inf;
 for it=1:nit_mu
     [mu,dat] = spm_mb_shape('update_mean',dat, mu, sett);
     oE       = E;
     E        = sum(sum(cat(2,dat.E),2),1) + te; % Cost function after previous update
-    sett     = spm_mb_appearance(updt_int,dat, sett);
+    sett     = spm_mb_appearance('update_prior',dat, sett);
     te       = spm_mb_shape('template_energy',mu,sett.ms.mu_settings);
     fprintf('%12.4e', E/nvox(dat));
     spm_plot_convergence('Set',E/nvox(dat));
@@ -262,7 +257,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function show_mu(mu, titl, fig_name, do)    
+function show_mu(mu, titl, fig_name, do)
 % Shows the template..
 if nargin < 2, titl = ''; end
 if nargin < 3, fig_name = 'Template'; end
@@ -273,18 +268,18 @@ if ~do, return; end
 dm = size(mu);
 ix = round(0.5*dm);
 % Axis z
-mu1 = mu(:,:,ix(3),:); 
+mu1 = mu(:,:,ix(3),:);
 mu1 = spm_mb_classes('template_k1',mu1,4);
-[~,ml1] = max(mu1,[],4); 
+[~,ml1] = max(mu1,[],4);
 % Axis y
-mu1 = mu(:,ix(2),:,:); 
+mu1 = mu(:,ix(2),:,:);
 mu1 = spm_mb_classes('template_k1',mu1,4);
 [~,ml2] = max(mu1,[],4);
 ml2 = squeeze(ml2);
 % Axis x
-mu1 = mu(ix(1),:,:,:); 
+mu1 = mu(ix(1),:,:,:);
 mu1 = spm_mb_classes('template_k1',mu1,4);
-[~,ml3] = max(mu1,[],4); 
+[~,ml3] = max(mu1,[],4);
 ml3 = squeeze(ml3);
 % Create/find figure
 f = findobj('Type', 'Figure', 'Name', fig_name);
@@ -301,6 +296,6 @@ subplot(132)
 imagesc(ml2); axis off image;
 title(titl)
 subplot(133)
-imagesc(ml3); axis off image; 
+imagesc(ml3); axis off image;
 drawnow
 %==========================================================================

@@ -17,7 +17,6 @@ function varargout = spm_mb_shape(action,varargin)
 % FORMAT dat       = spm_mb_shape('update_affines',dat,mu,sett)
 % FORMAT [mu,dat]  = spm_mb_shape('update_mean',dat, mu, sett)
 % FORMAT dat       = spm_mb_shape('update_simple_affines',dat,mu,sett)
-% FORMAT [mu,dat]  = spm_mb_shape('update_simple_mean',dat, mu, sett)
 % FORMAT dat       = spm_mb_shape('update_velocities',dat,mu,sett)
 % FORMAT dat       = spm_mb_shape('update_warps',dat,sett)
 % FORMAT [dat,mu]  = spm_mb_shape('zoom_volumes',dat,mu,sett,oMmu)
@@ -26,7 +25,7 @@ function varargout = spm_mb_shape(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7940 2020-09-10 18:14:43Z john $
+% $Id: spm_mb_shape.m 7944 2020-09-14 09:09:16Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
 %==========================================================================
 
@@ -236,15 +235,15 @@ if ~isempty(psi)
         for dy=yrange
             for dx=xrange
                 ids       = bsxfun(@plus, id, cat(4,dx,dy,dz));
-                psi1      = spm_diffeo('pullc',psi-id,    ids)+ids;
+                psi1      = spm_diffeo('pullc',psi-id,   ids)+ids;
                 fs        = spm_diffeo('pull',single(f), ids);
                 if nargout==1
-                    fs        = spm_diffeo('push',fs,        psi1,d);
-                    f1        = f1  + fs;
+                    fs      = spm_diffeo('push',fs, psi1,d);
+                    f1      = f1  + fs;
                 else
-                    [fs,ws]   = spm_diffeo('push',fs,        psi1,d);
-                    f1        = f1  + fs;
-                    w1        = w1  + ws;
+                    [fs,ws] = spm_diffeo('push',fs, psi1,d);
+                    f1      = f1  + fs;
+                    w1      = w1  + ws;
                 end
             end
         end
@@ -281,9 +280,7 @@ Mmu   = sett.ms.Mmu;
 d0    = [size(mu,1) size(mu,2) size(mu,3)];
 Mzoom = Mmu\oMmu;
 if any(d0~=d) || norm(Mzoom-eye(4))>1e-4
-    y      = reshape(bsxfun(@plus,...
-             reshape(identity(d0),[prod(d0),3])*Mzoom(1:3,1:3)',...
-             Mzoom(1:3,4)'),[d0 3]);
+    y      = affine(d0,Mzoom);
     mu     = exp(bsxfun(@minus,mu,LSE(mu,4)));
     [mu,c] = push1(mu,y,d,1);
     e      = eps('single');
@@ -308,10 +305,10 @@ function E = template_energy(mu,mu_settings)
 % mu(:)'*kron(eye(K)-1/(K+1),L)*mu(:), where L is the vel2mom regulariser
 if ~isempty(mu_settings)
     spm_field('bound',1);
-    g  = reg_mu(mu, mu_settings);
-    E  = 0.5*mu(:)'*g(:);
+    g = reg_mu(mu, mu_settings);
+    E = 0.5*mu(:)'*g(:);
 else
-    E  = 0;
+    E = 0;
 end
 %==========================================================================
 
@@ -352,11 +349,10 @@ function datn = update_affines_sub(datn,mu,sett)
 % This could be made more efficient.
 
 % Parse function settings
-accel = sett.accel;
+accel = 0.99;
 B     = sett.B;
 d     = sett.ms.d;
 Mmu   = sett.ms.Mmu;
-scal  = 0.9;
 
 q    = double(datn.q);
 Mn   = datn.Mat;
@@ -373,19 +369,19 @@ psi0 = affine(df,Mmu\Mr*Mn,samp);
 ds   = [size(psi0,1),size(psi0,2),size(psi0,3)];
 psi1 = get_def(datn,Mmu);
 if ~isempty(psi1)
-    J    = spm_diffeo('jacobian',psi1);
-    J    = reshape(pull1(reshape(J,[d 3*3]),psi0),[ds 3 3]);
-    psi  = compose(psi1,psi0);
+    J   = spm_diffeo('jacobian',psi1);
+    J   = reshape(pull1(reshape(J,[d 3*3]),psi0),[ds 3 3]);
+    psi = compose(psi1,psi0);
 else
-    J    = [];
-    psi  = psi0;
+    J   = [];
+    psi = psi0;
 end
 clear psi0  psi1
 
-mu1  = pull1(mu,psi);
+mu1 = pull1(mu,psi);
 [f,datn] = spm_mb_classes(datn,mu1,sett);
-M    = size(mu,4);
-G    = zeros([ds M 3],'single');
+M   = size(mu,4);
+G   = zeros([ds M 3],'single');
 for m=1:M
     [~,Gm{1},Gm{2},Gm{3}] = spm_diffeo('bsplins',mu(:,:,:,m),psi,[1 1 1  0 0 0]);
     for i1=1:3
@@ -411,17 +407,17 @@ a      = mask(f - softmax(mu1,4),msk);
 g      = double(dM'*g);
 H      = dM'*H*dM;
 H      = H + eye(numel(q))*(norm(H)*1e-5 + 0.01);
-q      = q + scal*(H\g);
+q      = q + (H\g);
 datn.q = q;
 %==========================================================================
 
 %==========================================================================
 function [H,g] = affine_hessian(mu,G,a,w,accel,samp)
 if nargin<6, samp = [1 1 1]; end
-d  = [size(mu,1),size(mu,2),size(mu,3)];
-I  = horder(3);
-H  = zeros(12,12);
-g  = zeros(12, 1);
+d = [size(mu,1),size(mu,2),size(mu,3)];
+I = horder(3);
+H = zeros(12,12);
+g = zeros(12, 1);
 [x{1:4}] = ndgrid(((1:d(1))-1)*samp(1)+1,((1:d(2))-1)*samp(2)+1,1,1);
 for i=1:d(3)
     x{3} = x{3}*0+(i-1)*samp(3)+1;
@@ -477,7 +473,7 @@ K   = size(mu,4);
 update_settings = [mu_settings(1:3) mu_settings(4:end)*(1-1/(K+1)) 2 2];
 if accel>0, s   = softmax(mu); end
 dmu = zeros(size(mu),'like',mu);
-for it=1:16
+for it=1:20
     for k=1:K
 
         % Diagonal elements of Hessian
@@ -499,10 +495,10 @@ for it=1:16
                 end
             end
         end
-        g_k          = g_k.*w;
+        g_k = g_k.*w;
 
         % Dot product between off-diagonals of regularisation Hessian and dmu
-        g_k          = g_k - spm_field('vel2mom', (sum(dmu,4)-dmu(:,:,:,k))/(K+1), mu_settings);
+        g_k = g_k - spm_field('vel2mom', (sum(dmu,4)-dmu(:,:,:,k))/(K+1), mu_settings);
 
         % Gauss-Seidel update
         dmu(:,:,:,k) = spm_field(h_kk, g(:,:,:,k) - g_k, update_settings);
@@ -536,39 +532,11 @@ mu       = pull1(mu,psi);
 %==========================================================================
 
 %==========================================================================
-function H = appearance_hessian(mu,accel,w)
-M  = size(mu,4);
-d  = [size(mu,1) size(mu,2) size(mu,3)];
-if accel>0, s  = softmax(mu,4); end
-Ab = 0.5*(eye(M)-1/(M+1)); % See Bohning's paper
-I  = horder(M);
-H  = zeros([d (M*(M+1))/2],'single');
-for m1=1:M
-    for m2=m1:M
-        if accel==0
-            tmp = Ab(m1,m2)*ones(d,'single');
-        else
-            if m2~=m1
-                tmp = accel*(-s(:,:,:,m1).*s(:,:,:,m2))           + (1-accel)*Ab(m1,m2);
-            else
-                tmp = accel*(max(s(:,:,:,m1).*(1-s(:,:,:,m1)),0)) + (1-accel)*Ab(m1,m2);
-            end
-        end
-        if nargin>=3
-            H(:,:,:,I(m1,m2)) = tmp.*w;
-        else
-            H(:,:,:,I(m1,m2)) = tmp;
-        end
-    end
-end
-%==========================================================================
-
-%==========================================================================
 function dat = update_simple_affines(dat,mu,sett)
 
 % Parse function settings
-accel     = sett.accel;
-B         = sett.B;
+accel = 0.99;
+B     = sett.B;
 if ~isempty(B)
     groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
     nw        = get_num_workers(sett,4*sett.K+4);
@@ -610,7 +578,6 @@ function datn = update_simple_affines_sub(datn,mu,G,H0,sett)
 B    = sett.B;
 d    = sett.ms.d;
 Mmu  = sett.ms.Mmu;
-scal = 0.9;
 
 df   = datn.dm;
 q    = double(datn.q);
@@ -625,7 +592,6 @@ end
 
 psi      = affine(df,Mmu\Mr*Mn,samp);
 mu1      = pull1(mu,psi);
-
 [f,datn] = spm_mb_classes(datn,mu1,sett);
 [a,w]    = push1(f - softmax(mu1,4),psi,d,1);
 clear mu1 psi f
@@ -634,7 +600,7 @@ clear mu1 psi f
 g        = double(dM'*g);
 H        = dM'*H*dM;
 H        = H + eye(numel(q))*(norm(H)*1e-5 + 0.1);
-q        = q + scal*(H\g);
+q        = q + (H\g);
 datn.q   = q;
 %==========================================================================
 
@@ -663,66 +629,10 @@ end
 %==========================================================================
 
 %==========================================================================
-function [mu,dat] = update_simple_mean(dat, mu, sett)
-% Unused functionality
-
-% Parse function settings
-accel       = sett.accel;
-mu_settings = sett.ms.mu_settings;
-s_settings  = [2 2];
-nw          = get_num_workers(sett,4*sett.K+4);
-
-w  = zeros(sett.ms.d,'single');
-gf = zeros(size(mu),'single');
-if nw > 1 && numel(dat) > 1 % PARFOR
-    parfor(n=1:numel(dat),nw)
-        [gn,wn,dat(n)] = update_simple_mean_sub(dat(n),mu,sett);
-        gf             = gf + gn;
-        w              = w  + wn;
-    end
-else
-    for n=1:numel(dat) % FOR
-        [gn,wn,dat(n)] = update_simple_mean_sub(dat(n),mu,sett);
-        gf             = gf + gn;
-        w              = w  + wn;
-    end
-end
-clear gn wn
-for it=1:ceil(4+2*log2(numel(dat)))
-    H  = appearance_hessian(mu,accel,w);
-    g  = w.*softmax(mu,4) - gf;
-    spm_field('bound',1);
-    g  = g  + reg_mu(mu, mu_settings);
-    % Note that spm_field could be re-written to make the updates slightly
-    % more effective.
-    mu = mu - spm_field(H, g, [mu_settings s_settings]);
-end
-%==========================================================================
-
-%==========================================================================
-function [g,w,datn] = update_simple_mean_sub(datn,mu,sett)
-% Unused functionality
-
-% Parse function settings
-B     = sett.B;
-d     = sett.ms.d;
-Mmu   = sett.ms.Mmu;
-df    = datn.dm;
-q     = double(datn.q);
-Mn    = datn.Mat;
-samp  = datn.samp;
-
-psi      = compose(get_def(datn,Mmu),affine(df,Mmu\spm_dexpm(q,B)*Mn,samp));
-mu       = pull1(mu,psi);
-[f,datn] = spm_mb_classes(datn,mu,sett);
-[g,w]    = push1(f,psi,d,1);
-%==========================================================================
-
-%==========================================================================
 function dat = update_velocities(dat,mu,sett)
 
 % Parse function settings
-accel = sett.accel;
+accel = 0.99; % Speed up the registration
 nw    = get_num_workers(sett,4*sett.K+4*3);
 
 G  = spm_diffeo('grad',mu);
@@ -746,20 +656,19 @@ B          = sett.B;
 d          = sett.ms.d;
 Mmu        = sett.ms.Mmu;
 s_settings = [2 2];
-scal       = 0.9;
 v_settings = sett.ms.v_settings;
 
-v         = spm_mb_io('get_data',datn.v);
-q         = datn.q;
-Mn        = datn.Mat;
-samp      = datn.samp;
-Mr        = spm_dexpm(q,B);
-Mat       = Mmu\Mr*Mn;
-df        = datn.dm;
-psi       = compose(get_def(datn,Mmu),affine(df,Mat,samp));
-mu        = pull1(mu,psi);
-[f,datn]  = spm_mb_classes(datn,mu,sett);
-[a,w]     = push1(f - softmax(mu,4),psi,d,1);
+v        = spm_mb_io('get_data',datn.v);
+q        = datn.q;
+Mn       = datn.Mat;
+samp     = datn.samp;
+Mr       = spm_dexpm(q,B);
+Mat      = Mmu\Mr*Mn;
+df       = datn.dm;
+psi      = compose(get_def(datn,Mmu),affine(df,Mat,samp));
+mu       = pull1(mu,psi);
+[f,datn] = spm_mb_classes(datn,mu,sett);
+[a,w]    = push1(f - softmax(mu,4),psi,d,1);
 clear psi f mu
 
 g         = reshape(sum(bsxfun(@times,a,G),4),[d 3]);
@@ -768,7 +677,7 @@ clear a w
 
 u0        = spm_diffeo('vel2mom', v, v_settings);                          % Initial momentum
 datn.E(2) = 0.5*sum(u0(:).*v(:));                                          % Prior term
-v         = v - scal*spm_diffeo('fmg',H, g + u0, [v_settings s_settings]); % Gauss-Newton update
+v         = v - spm_diffeo('fmg',H, g + u0, [v_settings s_settings]); % Gauss-Newton update
 
 if d(3)==1, v(:,:,:,3) = 0; end % If 2D
 if v_settings(1)==0             % Mean displacement should be 0
@@ -887,7 +796,7 @@ nw    = get_num_workers(sett,6+0.5*6);
 d0    = [size(mu,1) size(mu,2) size(mu,3)];
 z     = single(reshape(d./d0,[1 1 1 3]));
 Mzoom = oMmu\Mmu;
-y     = reshape(bsxfun(@plus,reshape(identity(d),[prod(d),3])*Mzoom(1:3,1:3)',Mzoom(1:3,4)'),[d 3]);
+y     = affine(d,Mzoom);
 if nargout > 1 || ~isempty(mu), mu = spm_diffeo('pullc',mu,y); end % only resize template if updating it
 
 if ~isempty(dat)
@@ -1078,10 +987,10 @@ d   = mu.d;
 Mmu = mu.Mmu;
 [dz{1:n}] = deal(d);
 if isfield(mu,'create')
-    sz        = struct('Mmu',Mmu,'d',dz, 'v_settings', [0 0 0 0 0],...
-                   'mu_settings',[0 0 0]);
+    sz = struct('Mmu',Mmu,'d',dz, 'v_settings', [1 1 1  0 0 0  0 0],...
+                'mu_settings',[1 1 1  0 0 0]);
 else
-    sz        = struct('Mmu',Mmu,'d',dz, 'v_settings', [0 0 0 0 0]);
+    sz = struct('Mmu',Mmu,'d',dz, 'v_settings', [1 1 1  0 0 0  0 0]);
 end
 
 scale = 1/abs(det(Mmu(1:3,1:3)));
@@ -1091,12 +1000,7 @@ for i=1:n
     sz(i).Mmu         = Mmu*[diag(z), (1-z(:))*0.5; 0 0 0 1];
     vx                = sqrt(sum(sz(i).Mmu(1:3,1:3).^2));
     scale_i           = scale*abs(det(sz(i).Mmu(1:3,1:3)));
-    % This adhoc value should really be 1, but this gives less extreme
-    % warps in the early iterations, which might help the clustering
-    % associate the right priors to each tissue class - without
-    % warping the priors to the wrong tissue.
-    adhoc             = 1.1;
-    sz(i).v_settings  = [vx v_settings*scale_i.^adhoc];
+    sz(i).v_settings  = [vx v_settings*scale_i];
     if isfield(mu,'create')
         mu_settings       = mu.create.mu_settings;
         sz(i).mu_settings = [vx mu_settings*scale_i];

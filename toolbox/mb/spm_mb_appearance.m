@@ -8,7 +8,7 @@ function varargout = spm_mb_appearance(action,varargin) % Appearance model
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7940 2020-09-10 18:14:43Z john $
+% $Id: spm_mb_appearance.m 7944 2020-09-14 09:09:16Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
 %==========================================================================
 
@@ -534,12 +534,10 @@ if sum(logmg_w) == 0, return; end
 if iscell(mu)
     for i=1:numel(mu)
         mu{i} = bsxfun(@plus, mu{i}, logmg_w);
-       %mu{i} = bsxfun(@minus,mu{i},LSE1(mu{i},2)); % Not needed
     end
 else
     % Do it on the volume
     mu = bsxfun(@plus, mu(:,:,:,mg_ix), reshape(logmg_w,[1 1 1 numel(logmg_w)]));
-   %mu = bsxfun(@minus,mu,LSE1(mu,4)); % Not needed
 end
 %==========================================================================
 

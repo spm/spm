@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 7924 2020-08-10 15:27:44Z john $
+% $Id: tbx_cfg_mb.m 7944 2020-09-14 09:09:16Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
@@ -32,7 +32,6 @@ cm        = cfg_repeat;
 cm.tag    = 'cm';
 cm.name   = 'Confusion matrix';
 cm.values = {cm_map};
-%cm.val   = {};
 cm.help   = {'Specify rows of a confusion matrix, where each row corresponds to label values of 1, 2, ..., L + 1, etc in a label map.'...
              'L are the number of labels in the label map. The last row (L + 1) needs to specify what classes unlabeled voxels can take.',''};
 % ---------------------------------------------------------------------
@@ -167,7 +166,8 @@ pr_upd         = cfg_menu;
 pr_upd.tag     = 'hyperpriors';
 pr_upd.name    = 'Optimise';
 pr_upd.labels  = {'Yes','No'};
-pr_upd.values  = {{'b0_priors',{1000,10}}, []};
+%pr_upd.values = {{'b0_priors',{1000,10}}, []};
+pr_upd.values  = {{}, []};
 pr_upd.val     = {pr_upd.values{1}};
 pr_upd.help    = {['Specify whether the Gaussian-Wishart priors be updated at each iteration. '...
                    'Enabling this can slow down convergence if there are small numbers of subjects. '...
@@ -191,7 +191,6 @@ pop.name  = 'Pop. of scans';
 pop.val   = {chans, has_labels, pr,...
              const('tol_gmm', 0.0005), const('nit_gmm_miss',32), const('nit_gmm',8), const('nit_appear', 4)};
 pop.check = @check_pop;
-%pop.val  = {chans};
 pop.help  = {'Information about a population of subjects that all have the same set of scans.',''};
 % ---------------------------------------------------------------------
 
@@ -536,7 +535,6 @@ cfg        = cfg_choice;
 cfg.tag    = 'mb';
 cfg.name   = 'Multi-Brain toolbox';
 cfg.values = {mb,mrg,out};
-%cfg.val   = {};
 cfg.help   = {'Welcome to the Multi-Brain toolbox.',''};
 %_______________________________________________________________________
 %
