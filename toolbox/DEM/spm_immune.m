@@ -1,6 +1,6 @@
 function [F,Ep,Cp,pE,pC,Eh] = spm_immune(Y,U,pE,pC,hC)
 % Variational inversion of immune model
-% FORMAT [F,Ep,Cp,pE,pC,Eh] = spm_immune(Y,pE,pC,hC)
+% FORMAT [F,Ep,Cp,pE,pC,Eh] = spm_immune(Y,U,pE,pC,hC)
 % Y   - timeseries data
 % pE  - prior expectation of parameters
 % pC  - prior covariances of parameters
@@ -12,10 +12,10 @@ function [F,Ep,Cp,pE,pC,Eh] = spm_immune(Y,U,pE,pC,hC)
 % pE  - prior expectation of parameters
 % pC  - prior covariances of parameters
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
  
 % Thomas Parr
-% $Id$
+% $Id: spm_immune.m 7946 2020-09-15 12:12:15Z spm $
 
 % Gaussian priors over model parameters
 %--------------------------------------------------------------------------
@@ -42,7 +42,6 @@ U     = U/24;                     % Convert from hours to days
 %--------------------------------------------------------------------------
 [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
 
-return
 
 function Y = spm_immune_FS(Y)
 % feature selection for COVID model
@@ -63,5 +62,3 @@ i      = logical(Y < 1); Y(i) = 1;
 % square root transform
 %--------------------------------------------------------------------------
 Y      = sqrt(Y);
-
-return

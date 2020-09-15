@@ -4,10 +4,10 @@ function [P,C] = spm_immune_priors
 % P - Prior expectations
 % C - Prior covariances
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
  
 % Thomas Parr
-% $Id$
+% $Id: spm_immune_priors.m 7946 2020-09-15 12:12:15Z spm $
 
 % Log scale parameters for initial states
 %--------------------------------------------------------------------------

@@ -9,10 +9,10 @@ function [DCM, PEB, BMA, BMR] = DEM_Immune
 % demonstrates the way in which the underlying model may be inverted to 
 % test these hypotheses. 
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
  
 % Thomas Parr
-% $Id$
+% $Id: DEM_Immune.m 7946 2020-09-15 12:12:15Z spm $
 
 % For reproducibility
 %--------------------------------------------------------------------------
@@ -121,4 +121,3 @@ GLM.Xn = {'const.','BCG'};
 % Bayesian model averaging (over reduced models), testing for GLM effects
 %--------------------------------------------------------------------------
 [BMA,BMR] = spm_dcm_bmr_all(PEB,{'TCP'});
-

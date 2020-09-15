@@ -6,10 +6,10 @@ function y = spm_immune_plot(P,c,U,Y)
 % U - inputs (timing of measurements)
 % Y - data
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
  
 % Thomas Parr
-% $Id$
+% $Id: spm_immune_plot.m 7946 2020-09-15 12:12:15Z spm $
 
 
 % Simulate model

@@ -7,15 +7,15 @@ function [Y,X] = spm_immune_gen(P,M,U)
 % M   - Model
 % U   - inputs (timing of measurements)
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
  
 % Thomas Parr
-% $Id$
+% $Id: spm_immune_gen.m 7946 2020-09-15 12:12:15Z spm $
 
 % setup and defaults
 %--------------------------------------------------------------------------
-try, M.T; catch, M.T = 1920;                     end         % 40 days
-try, U;   catch, U   = [1:M.T]/24;               end         % Days on which measurements are taken
+try, M.T; catch, M.T = 1920;       end     % 40 days
+try, U;   catch, U   = [1:M.T]/24; end     % Days on which measurements are taken
 
 
 % exponentiate parameters
