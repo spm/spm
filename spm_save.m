@@ -8,7 +8,7 @@ function spm_save(f,var,varargin)
 % Copyright (C) 2018-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_save.m 7668 2019-09-27 10:44:45Z guillaume $
+% $Id: spm_save.m 7947 2020-09-16 19:03:43Z guillaume $
 
 
 ext = lower(spm_file(f,'ext'));
@@ -35,17 +35,19 @@ switch ext
                     var{i} = var{i}(:);
                     if ~iscell(var{i})
                         var{i} = cellstr(num2str(var{i},16));
+                        var{i} = strtrim(var{i});
                         var{i}(cellfun(@(x) strcmp(x,'NaN'),var{i})) = {'n/a'};
                     end
                 end
                 var = [fn'; var{:}];
-            elseif iscell(var)
+            elseif iscell(var) || isnumeric(var) || islogical(var)
+                if isnumeric(var) || islogical(var)
+                    var = num2cell(var);
+                end
                 var = cellfun(@(x) num2str(x,16), var, 'UniformOutput',false);
-            elseif isnumeric(var) || islogical(var)
-                var = num2cell(var);
-                var = cellfun(@(x) num2str(x,16), var, 'UniformOutput',false);
+                var = strtrim(var);
+                var(cellfun(@(x) strcmp(x,'NaN'),var)) = {'n/a'};
             end
-            try, var = strtrim(var); end
             
             fid = fopen(f,'Wt');
             if fid == -1
