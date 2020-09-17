@@ -6,10 +6,10 @@ function ret = spm_ov_display(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2020 Wellcome Centre for Human Neuroimaging
 
-% Guillaume Flandin
-% $Id: spm_ov_display.m 7923 2020-08-10 13:15:26Z mikael $
+% Guillaume Flandin and Torben Lund
+% $Id: spm_ov_display.m 7948 2020-09-17 15:30:24Z guillaume $
 
 
 switch lower(varargin{1})
@@ -32,12 +32,16 @@ switch lower(varargin{1})
         item4 = uimenu(item0, ...
             'Label', 'Voxel size', ...
             'Tag', 'OVmenu_VoxelSize',...
-            'Callback', @orthviews_display);        
+            'Callback', @orthviews_display);
         item5 = uimenu(item0, ...
-            'Label', 'Labels');        
+            'Label', 'Description', ...
+            'Tag', 'OVmenu_Description',...
+            'Callback', @orthviews_display);
+        item6 = uimenu(item0, ...
+            'Label', 'Labels');
         list = spm_atlas('List','installed');
         for i=1:numel(list)
-            uimenu(item5, ...
+            uimenu(item6, ...
             'Label', list(i).name, ...
             'Tag', ['OVmenu_' list(i).name],...
             'Callback', @orthviews_display);
@@ -67,7 +71,7 @@ else
     set(findobj(st.fig,'-regexp','Tag','^OVmenu_'), 'Checked', 'off');
     set(findobj(st.fig,'Tag',['OVmenu_' get(hObj,'Label')]), 'Checked', 'on');
     dsp = get(hObj,'Label');
-    if ~ismember(dsp,{'Intensities','Filenames','Coordinates', 'Voxel size'})
+    if ~ismember(dsp,{'Intensities','Filenames','Coordinates','Voxel size','Description'})
         dsp = spm_atlas('Load',dsp);
     end
     for i=1:numel(st.vols)
@@ -111,11 +115,13 @@ for i=n
                 Ys = [spm_file(st.vols{i}.fname,'filename') ',' num2str(st.vols{i}.n(1))];
             case 'Voxel size'
                 vx = sqrt(sum(st.vols{i}.mat(1:3,1:3).^2));
-                Ys = sprintf('voxel size: %0.2f %0.2f %0.2f',vx);      
+                Ys = sprintf('voxel size: %0.2f %0.2f %0.2f',vx);
             case 'Coordinates'
                 XYZ   = spm_orthviews('pos',i);
                 XYZmm = st.vols{i}.mat(1:3,:)*[XYZ;1];
                 Ys    = sprintf('mm: %0.1f %0.1f %0.1f\nvx: %0.1f %0.1f %0.1f',XYZmm,XYZ);
+            case 'Description'
+                Ys = st.vols{i}.descrip;
             case 'Labels'
                 pos = spm_orthviews('pos',i);
                 try
