@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 7944 2020-09-14 09:09:16Z john $
+% $Id: tbx_cfg_mb.m 7949 2020-09-18 23:13:21Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
@@ -16,24 +16,6 @@ images.num    = [1 Inf];
 images.help   = {['Select one NIfTI format scan for each subject. Subjects must be in the same order if there are multiple channels. '...
                   'Image dimensions can differ over subjects, but (if there are multiple channels) the scans of each '...
                   'subject must all have the same dimensions and orientations.'],''};
-% ---------------------------------------------------------------------
-
-% ---------------------------------------------------------------------
-cm_map        = cfg_entry;
-cm_map.tag    = 'cm_map';
-cm_map.name   = 'Row';
-cm_map.strtype = 'n';
-cm_map.num    = [1 Inf];
-cm_map.help   = {'For this value in the label map, specify which tissue classes it can correspond to.',''};
-% ---------------------------------------------------------------------
-
-% ---------------------------------------------------------------------
-cm        = cfg_repeat;
-cm.tag    = 'cm';
-cm.name   = 'Confusion matrix';
-cm.values = {cm_map};
-cm.help   = {'Specify rows of a confusion matrix, where each row corresponds to label values of 1, 2, ..., L + 1, etc in a label map.'...
-             'L are the number of labels in the label map. The last row (L + 1) needs to specify what classes unlabeled voxels can take.',''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -65,7 +47,7 @@ inu           = cfg_branch;
 inu.tag       = 'inu';
 inu.name      = 'Intensity nonuniformity';
 inu.val       = {inu_reg,inu_co};
-inu.help      = {'Intensity nonuniformity (INU) settings.',''};
+inu.help      = {'Specify the intensity nonuniformity (INU) settings for the current channel, which consist of a regularisation setting and a cutoff.',''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -78,32 +60,55 @@ label_files.help   = {['Label maps are NIfTI images containing integer values, w
                        'dimensions and orientations as the scans of the corresponding subjects. '...
                        'Voxels of each value in the label map may be included in one or more tissue classes. '...
                        'For example, a label map showing the location of brain will include voxels that can '...
-                       'be in grey or white matter classes.'],''};
+                       'be in grey or white matter classes. This information is specified in the '...
+                       'confusion matrix.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
-label_pr        = cfg_const;
-label_pr.tag    = 'w';
-label_pr.name   = 'Confidence';
-label_pr.val    = {0.99};
-label_pr.hidden = true;
-label_pr.help   = {'Degree of confidence in the labels.',''};
+cm_map        = cfg_entry;
+cm_map.tag    = 'cm_map';
+cm_map.name   = 'Row';
+cm_map.strtype = 'n';
+cm_map.num    = [1 Inf];
+cm_map.help   = {'For this value in the label map, specify which tissue classes it can correspond to (including the K+1 implicit background class).',''};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+cm        = cfg_repeat;
+cm.tag    = 'cm';
+cm.name   = 'Confusion matrix';
+cm.values = {cm_map};
+cm.help   = {'Specify rows of a confusion matrix, where each row corresponds to label values of 1, 2, ..., L + 1, etc in a label map.'...
+             'L are the number of labels in the label map. The last row (L + 1) needs to specify what classes unlabeled voxels can take.',''};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+%label_pr        = cfg_const;
+%label_pr.tag    = 'w';
+%label_pr.name   = 'Confidence';
+%label_pr.val    = {0.99};
+%label_pr.hidden = true;
+%label_pr.help   = {'Degree of confidence in the labels.',''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
 labels         = cfg_branch;
 labels.tag     = 'true';
-labels.name    = 'Yes';
-labels.val     = {label_files,cm,label_pr};
-labels.help    = {'Subjects have corresponding label maps to guide the segmentation.',''};
+labels.name    = 'Has labels';
+labels.val     = {label_files,cm,const('w',0.99)};
+labels.help    = {['If subjects have corresponding label maps to guide the '...
+                   'segmentation, these need to be specified along with a '...
+                   'confusion matrix that relates values in the label maps '...
+                   'to which tissue classes they correspond with.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
-no_labels      = cfg_const;
-no_labels.tag  = 'false';
-no_labels.name = 'No';
-no_labels.val  = {[]};
-no_labels.help = {'Subjects do not have corresponding label maps.',''};
+%no_labels      = cfg_const;
+%no_labels.tag  = 'false';
+%no_labels.name = 'No';
+%no_labels.val  = {[]};
+%no_labels.help = {'Subjects do not have corresponding label maps.',''};
+no_labels = const('false',[]);
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -112,7 +117,8 @@ has_labels.tag    = 'labels';
 has_labels.name   = 'Labels?';
 has_labels.values = {labels,no_labels};
 has_labels.val    = {no_labels};
-has_labels.help   = {'Specify whether there are pre-defined label maps for the subjects.',''};
+has_labels.help   = {['Specify whether or not there are any pre-defined '...
+                      'label maps for (all) the subjects in the current population.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -122,7 +128,10 @@ modality.name = 'Modality';
 modality.labels = {'MRI','CT'};
 modality.values = {1,2};
 modality.val    = {1};
-modality.help   = {'Specify the modality of the scans in this channel.',''};
+modality.help   = {['Specify the modality of the scans in this channel. '...
+                    'The main reason this is done is so that CT files can have '...
+                    'a constant value of 1000 added to them to account for the '...
+                    'way Hounsfield units are defined.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -169,7 +178,7 @@ pr_upd.labels  = {'Yes','No'};
 %pr_upd.values = {{'b0_priors',{1000,10}}, []};
 pr_upd.values  = {{}, []};
 pr_upd.val     = {pr_upd.values{1}};
-pr_upd.help    = {['Specify whether the Gaussian-Wishart priors be updated at each iteration. '...
+pr_upd.help    = {['Specify whether the Gaussian-Wishart priors should be updated at each iteration. '...
                    'Enabling this can slow down convergence if there are small numbers of subjects. '...
                    'If only one subject is to be modelled (using a pre-computed template), then '...
                    'definitely turn off this option.'],''};
@@ -217,7 +226,10 @@ seg.filter   = 'nifti';
 seg.ufilter  = '.*c[0-9].*';
 seg.num      = [0 Inf];
 seg.val      = {{}};
-seg.help     = {'Tissue class images of the same class and multiple subjects produced by some previously run segmentation method.',''};
+seg.help     = {['For each of the tissue class types, the user should specify the '...
+                  'data to be included within the model fitting by selecting the files. '...
+                  'It is important that the subject ordering of the files is the same '...
+                  'across all classes.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -226,9 +238,10 @@ segs.tag     = 'images';
 segs.name    = 'Classes';
 segs.values  = {seg};
 segs.val     = {seg};
-segs.help    = {['Images might have been segmented previously into a number of tissue classes.'...
+segs.help    = {['Images might have been segmented previously into a number of tissue classes. '...
                  'This framework allows such pre-segmented images to be included in the model fitting, '...
-                 'in a similar way to the old Dartel toolbox for SPM.'],''};
+                 'in a similar way to the old Dartel toolbox for SPM. The user sets up a series '...
+                 'of tissue class types (e.g., grey matter and white matter).'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -237,7 +250,7 @@ spop.tag      = 'cat';
 spop.name     = 'Tissue class maps';
 spop.val      = {images};
 spop.check    = @check_segs;
-spop.help     = {'Specify the data to be included within the model.',''};
+spop.help     = {['UNUSED'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -252,7 +265,7 @@ mu_exist.help    = {['The model can be fit using a previously computed template,
                      'Note that the template contains K-1 volumes within it, and that K should be compatible '...
                      'with various aspects of the data to which the model is fit. The template does not '...
                      'actually encode the tissue probabilities, but rather these probabilities can be generated '...
-                     'from the template using a Softmax function/* (${\bf p} = \frac{\exp {\bf p}}{1 + \sum_k \exp p_k} )*/.'],''};
+                     'from the template using a Softmax function/* (${\bf p} = \frac{\exp {\bf p}}{1 + \sum_k \exp p_k}$)*/.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -273,7 +286,9 @@ vox.name     = 'Voxel size';
 vox.strtype  = 'e';
 vox.val      = {1};
 vox.num      = [1 1];
-vox.help     = {'Specify the voxel size of the template (mm). ',''};
+vox.help     = {['Specify the voxel size of the template to be created (mm). '...
+                 'The algorithm will automatically attempt to determine suitable '...
+                 'settings for its orientation and field of view.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -288,10 +303,12 @@ mu_sett.hidden = true;
 mu_create       = cfg_branch;
 mu_create.tag   = 'create';
 mu_create.name  = 'Create template';
-mu_create.val   = {nclass, vox, mu_sett};
+mu_create.val   = {nclass, vox, const('mu_settings',[1e-5 0.5 0])};
 mu_create.help  = {['A tissue probability template will be constructed from all the aligned images. '...
                     'The algorithm alternates between re-computing the template and re-aligning all the '...
-                    'images with this template.']};
+                    'images with this template. '...
+                    'The user gets to choose the voxel size of the template and the number of tissue '...
+                    'types it encodes.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -300,7 +317,11 @@ mu_prov.tag     = 'mu';
 mu_prov.name    = 'Template';
 mu_prov.values  = {mu_create, mu_exist};
 mu_prov.val     = {mu_create};
-mu_prov.help    = {'The model can be run using a pre-computed template, or it can implicitly compute its own template.',''};
+mu_prov.help    = {[...
+'The model can be run using a pre-computed template, or it can implicitly '...
+'create an average shaped template from the population(s) of scan data. '...
+'Here, the user gets to choose whether to create a template or use an existing one. '...
+'Templates are named ``mu_*.nii''''.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -310,7 +331,11 @@ aff.name        = 'Affine';
 aff.labels      = {'None', 'Translations', 'Rigid'};
 aff.values      = {'', 'T(3)', 'SE(3)'};
 aff.val         = {'SE(3)'};
-aff.help        = {'Type of affine transform to use in the model.',''};
+aff.help        = {[...
+'Type of affine transform to use in the model, which may be either '...
+'none, translations only (T(3)) or rigid body (SE(3)). The fitting '...
+'begins with affine registration, before continuing by interleaving '...
+'affine and diffeomorphic registrations over multiple spatial scales.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -320,7 +345,31 @@ dff.name        = 'Shape regularisation';
 dff.strtype     = 'e';
 dff.num         = [1 5];
 dff.val         = {[0.0001 0 0.4 0.1 0.4]};
-dff.help        = {'Regularisation settings for the diffeomorphic registration. The defaults work reasonably well.',''};
+dff.help        = {[...
+'Specify the regularisation settings for the diffeomorphic registration. '...
+'These consist of a vector of five values, which penalise different '...
+'aspects of the warps:'...
+'/* \begin{itemize}*/'],...
+['/* \item */Absolute displacements need to be penalised by a tiny amount. '...
+ 'The first element encodes the amount of penalty on these. '...
+ ' Ideally, absolute displacements should not be penalised, but it is usually '...
+ ' necessary for technical reasons.'],...
+['/* \item */ The `membrane energy'' of the deformation is penalised, usually by a '...
+ 'relatively small amount. This penalises the sum of squares of the '...
+ 'derivatives of the velocity field (i.e., the sum of squares of the elements '...
+ 'of the Jacobian tensors).'],...
+['/* \item */ The `bending energy'' is penalised (3rd element). This penalises the '...
+ 'sum of squares of the 2nd derivatives of the velocity.'],...
+['/* \item */Linear elasticity regularisation is also included. '...
+ 'This parameter (/*$\*/mu/*$*/) is similar to that for linear elasticity, '...
+ 'except it penalises the sum of squares of the Jacobian tensors after '...
+ 'they have been made symmetric (by averaging with the transpose). '...
+ 'This term essentially penalises length changes, without penalising rotations.'],...
+['/* \item */The final term also relates to linear elasticity, and is the weight that '...
+ 'denotes how much to penalise changes to the divergence of the velocities (/*$\*/lambda/*$*/). '...
+ 'This divergence is a measure of the rate of volumetric expansion or contraction.'],...
+'/*\end{itemize}*/',...
+['The default settings work reasonably well for most cases.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -330,7 +379,7 @@ odir.name       = 'Output directory';
 odir.filter     = 'dir';
 odir.num        = [1 1];
 odir.val        = {{'.'}};
-odir.help       = {'All output is written to the specified directory. The current working directory is used by default.',''};
+odir.help       = {'All output is written to the specified directory. If this is not specified, the current working directory will used by default.',''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -339,7 +388,7 @@ onam.tag        = 'onam';
 onam.name       = 'Output name';
 onam.strtype    = 's';
 onam.val        = {'mb'};
-onam.help       = {'A key string may be included within all the output files.',''};
+onam.help       = {'Specify a key string for inclusion within all the output file names.',''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -352,27 +401,12 @@ mb.val         = {mu_prov, aff, dff, onam, odir, segs, pops,...
 mb.prog        = @run_mb;
 mb.vout        = @vout_mb_run;
 mb.check       = @check_images;
-mb.help        = {['This framework attempts to unify ``unified segmentation'''' with ``shoot'''', '...
-                    'as well as a great deal of other functionality. '...
-                    'It has the general aim of integrating a number of disparate image analysis '...
-                    'components within a single unified generative modelling framework. '...
-                    'The objective is to achieve diffeomorphic alignment of a wide variety of medical '...
-                    'image modalities into a common anatomical space. This involves the ability to construct '...
-                    'a ``tissue probability template'''' from a population of scans through group-wise '...
-                    'alignment/* \cite{john_averageshape,blaiotta2018generative}*/, which incorporates '...
-                    'both rigid and diffeomorphic registration/* \cite{ashburner2013symmetric}*/. Diffeomorphic '...
-                    'deformations are computed within a geodesic shooting framework/* \cite{ashburner2011diffeomorphic}*/, '...
-                    'which is optimised with a Gauss-Newton strategy that uses a multi-grid approach to '...
-                    'solve the system of linear equations/* \cite{ashburner07}*/. Variability among image '...
-                    'contrasts is modelled using a much more sophisticated version of the Gaussian mixture '...
-                    'model with an intensity nonuniformity (INU) correction framework originally proposed by Ashburner & Friston/* \cite{ashburner05}*/, '...
-                    'and which has been extended to account for known variability of the intensity '...
-                    'distributions of different tissues/* \cite{blaiotta2016variational,blaiotta2018generative,brudfors2019empirical}*/. '...
-                    'This model has been shown to provide a good model of the intensity distributions of '...
-                    'different imaging modalities/* \cite{brudfors2019empirical}*/. Time permitting, additional '...
-                    'registration accuracy through the use of shape variability priors/* \cite{balbastre2018diffeomorphic}*/ '...
-                    'will also be incorporated.'],...
-                    'This work was funded by the EU Human Brain Project''s Grant Agreement No 785907 (SGA2).',...
+mb.help        = {['This is where the model fitting is actually done. '...
+                   'The outputs from the model fitting are an initial velocity field '...
+                   'and deformation field for each subject. In addition, fitting the '...
+                   'model may also generate a representation of a set of average shaped '...
+                   'tissue probability maps that can serve as a template for future '...
+                   'model fitting.'],...
                     ''};
 % ---------------------------------------------------------------------
 
@@ -385,7 +419,9 @@ res_file.name    = 'MB results file';
 res_file.filter  = 'mat';
 res_file.ufilter = '^mb_fit.*';
 res_file.num     = [1 1];
-res_file.help    = {'Specify the results file from the groupwise alignment.',''};
+res_file.help    = {['Specify the results file obtained from running ``Fit Multi-Brain model''''. '...
+                     'This will be named mb_fit_*.mat and contain a link to where any resulting '...
+                     'template may be found.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -424,8 +460,15 @@ mrg.name = 'Merge tissues';
 mrg.val  = {res_file, ix, bb, onam, odir};
 mrg.prog = @spm_mb_merge;
 mrg.vout = @vout_mb_merge;
-mrg.help = {['Merge tissues together and extract intensity priors '...
-             'for later use.'],''};
+mrg.help = {['This option is for merging template tissues together and '...
+             'extracting intensity priors for later use when running '...
+             '``Fit Multi-Brain model''''. This is typically used for '...
+             're-ordering tissue classes or combining multiple classes '...
+             '(e.g. from air, which has a non-Gaussian intensity distribution '...
+             'that is often has multiple ``tissues'''' fitted to it) '...
+             'into one. Generated templates also usually have '...
+             'a large field of view, so it is often desirable to trim them down '...
+             'so the field of view covers a smaller region of anatomy.'],''};
 % ---------------------------------------------------------------------
 
 
@@ -437,7 +480,7 @@ res_file.name    = 'MB results file';
 res_file.filter  = 'mat';
 res_file.ufilter = '^mb_fit.*';
 res_file.num     = [1 1];
-res_file.help    = {'Specify the results file from the groupwise alignment.',''};
+res_file.help    = {'Specify the results file obtained from previously running ``Fit Multi-Brain model''''.',''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -447,6 +490,8 @@ i.name   = 'Images';
 i.labels = {'No','Yes'};
 i.values = {false,true};
 i.val    = {false};
+i.help   = {['Specify whether versions of the original images, '...
+             'but with missing values filled in, should be written out.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -456,6 +501,8 @@ mi.name   = 'INU corrected';
 mi.labels = {'No','Yes'};
 mi.values = {false,true};
 mi.val    = {false};
+mi.help   = {['Specify whether INU corrected versions of the original images '...
+              '(with missing values filled in) should be written out.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -465,6 +512,8 @@ wi.name   = 'Warped images';
 wi.labels = {'No','Yes'};
 wi.values = {false,true};
 wi.val    = {false};
+wi.help   = {['Specify whether spatially normalised versions of the images '...
+              '(missing values filled in) should be written out.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -474,6 +523,8 @@ wmi.name   = 'Warped INU corrected';
 wmi.labels = {'No','Yes'};
 wmi.values = {false,true};
 wmi.val    = {false};
+wi.help   = {['Specify whether spatially normalised versions of the INU corrected images '...
+              '(missing values filled in) should be written out.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -483,6 +534,7 @@ inu.name   = 'INU';
 inu.labels = {'No', 'Yes'};
 inu.values = {false,true};
 inu.val    = {false};
+inu.help   = {'Specify whether the estimated INU fields should be written out.',''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -492,6 +544,7 @@ c.name    = 'Tissues';
 c.strtype = 'n';
 c.num     = [0 Inf];
 c.val     = {[]};
+c.help    = {'Specify the indices of any native-space tissue class images to be written.',''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -501,6 +554,7 @@ wc.name    = 'Warped tissues';
 wc.strtype = 'n';
 wc.num     = [0 Inf];
 wc.val     = {[]};
+wc.help    = {'Specify the indices of any spatially normalised tissue class images to be written.',''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -510,13 +564,14 @@ mwc.name    = 'Warped mod. tissues';
 mwc.strtype = 'n';
 mwc.num     = [0 Inf];
 mwc.val     = {[]};
+wmc.help    = {'Specify the indices of any spatially normalised and Jacobian-scaled (``modulated'') tissue class images to be written.',''};
 % ---------------------------------------------------------------------
 
 %--------------------------------------------------------------------------
 mrf         = cfg_entry;
 mrf.tag     = 'mrf';
 mrf.name    = 'MRF Parameter';
-mrf.help    = {'When tissue class images are written out, a few iterations of a simple Markov Random Field (MRF) cleanup procedure are run.  This parameter controls the strength of the MRF. Setting the value to zero will disable the cleanup.'};
+mrf.help    = {'When tissue class images are written out, a few iterations of a simple Markov random field (MRF) cleanup procedure are run.  This parameter controls the strength of the MRF. Setting the value to zero will disable the cleanup.'};
 mrf.strtype = 'r';
 mrf.num     = [1 1];
 mrf.val     = {1};
@@ -528,6 +583,22 @@ out.tag  = 'out';
 out.name = 'Output';
 out.val  = {res_file, i, mi, wi, wmi, inu, c, wc, mwc, mrf};
 out.prog = @spm_mb_output;
+out.help = {[...
+'When ``Fit Multi-Brain model'' is run, the resulting model fit contains '...
+'information that allows a lot of other derived images to be generated. '...
+'For example, the results file encodes the INU fields, which allows '...
+'images to be INU corrected. '...
+'It contains information about intensity distributions, which (when '...
+'combined with other extracted information) enables tissue segmentation '...
+'to be achieved. '...
+'And of course, the estimated deformations allow spatially normalised versions '...
+'of these results to be generated.'], [...
+'The ``Output'''' functionality allows a range of derived data to be '...
+'generated from these parameter estimates. When it is executed, it generates '...
+'the derived data from the images originally entered into ``Fit Multi-Brain model''''. '...
+'In order to do this, it needs to assume that the images, as well as the '...
+'results files, have not been moved from their original locations. '...
+'If they can not be fund, then ``Output'' will crash out in a not very elegant way.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -535,7 +606,26 @@ cfg        = cfg_choice;
 cfg.tag    = 'mb';
 cfg.name   = 'Multi-Brain toolbox';
 cfg.values = {mb,mrg,out};
-cfg.help   = {'Welcome to the Multi-Brain toolbox.',''};
+cfg.help   = {[...
+'The Multi-Brain (MB) toolbox has the general aim of integrating a number of disparate '...
+'image analysis components within a single unified generative modelling framework '...
+'(segmentation, nonlinear registration, image translation, etc.). '...
+'The model /* \cite{brudfors2020flexible} */ builds on a number of previous works and has '...
+'the objective of achieving diffeomorphic alignment of a wide variety of medical '...
+'image modalities into a common anatomical space. '...
+'This involves the ability to construct a ``tissue probability template'''' from '...
+'one or more populations of scans through group-wise alignment/* \cite{john_averageshape,blaiotta2018generative}*/. '...
+'Diffeomorphic deformations are computed within a geodesic shooting framework'...
+'/* \cite{ashburner2011diffeomorphic}*/, which is optimised with a Gauss-Newton '...
+'strategy that uses a multi-grid approach to solve the system of linear equations/* \cite{ashburner07}*/. '...
+'Variability among image contrasts is modelled using a more sophisticated version of '...
+'the Gaussian mixture model with bias correction framework originally proposed '...
+'in the ``Unified Segmentation'''' paper/* \cite{ashburner05}*/, '...
+'and which has been extended to account for known variability of the intensity '...
+'distributions of different tissues/* \cite{blaiotta2016variational}*/. '...
+'This model has been shown to provide a good model of the intensity distributions '...
+'of different imaging modalities/* \cite{brudfors2019empirical}*/.'],...
+'This work was funded by the EU Human Brain Project''s Grant Agreement No 785907 (SGA2).',''};
 %_______________________________________________________________________
 %
 %_______________________________________________________________________
