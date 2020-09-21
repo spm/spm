@@ -12,7 +12,7 @@ function [y,outside,leads]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 %% leads are the lead fields of the dipoles fit
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 %
-% $Id: spm_eeg_wrap_dipfit_vbecd.m 7544 2019-03-15 16:20:16Z vladimir $
+% $Id: spm_eeg_wrap_dipfit_vbecd.m 7953 2020-09-21 11:33:07Z gareth $
 
 x=U.u; %% input , unused
 
@@ -55,11 +55,16 @@ for i=1:Ndips,
     
     if siunits
         [tmp] = ft_compute_leadfield(1e-3*pos, sens, vol, 'reducerank',RANK,  'dipoleunit', 'nA*m', 'chanunit', chanunits);
-        outside = outside+ ~ft_inside_headmodel(1e-3*pos,vol);
+        if ~strcmp(M.Setup.forward.vol.type,'infinite_magneticdipole'),
+            outside = outside+ ~ft_inside_headmodel(1e-3*pos,vol);
+        end;
     else
         [tmp] = ft_compute_leadfield(pos, sens, vol, 'reducerank',RANK);
-        outside = outside+ ~ft_inside_headmodel(pos,vol);
-    end
+        if ~strcmp(M.Setup.forward.vol.type,'infinite_magneticdipole'),
+            outside = outside+ ~ft_inside_headmodel(1e-3*pos,vol);
+        end;
+    end;
+    
     
     gmn=tmp;
     leads(i,:,:)=gmn';

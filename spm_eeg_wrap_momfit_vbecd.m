@@ -15,7 +15,7 @@ function [y,outside,leads] = spm_eeg_wrap_momfit_vbecd(P,M,U)
 % Copyright (C) 2020 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_wrap_momfit_vbecd.m 7764 2020-01-02 15:34:03Z spm $
+% $Id: spm_eeg_wrap_momfit_vbecd.m 7953 2020-09-21 11:33:07Z gareth $
 
 
 x = U.u; % input , unused
@@ -24,6 +24,7 @@ sens = M.Setup.forward.sens;
 vol  = M.Setup.forward.vol;
 
 siunits = M.Setup.forward.siunits;
+
 if ~siunits
     warning('Data not in SI units, scaling (and therefore priors) maybe wrong');
 end
