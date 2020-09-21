@@ -17,7 +17,7 @@ function [DCM] = DEM_COVID_UTLA
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7942 2020-09-10 22:00:08Z spm $
+% $Id: DEM_COVID_UTLA.m 7956 2020-09-21 19:48:24Z karl $
 
 
 % NHS postcode data
@@ -53,7 +53,8 @@ websave('coronavirus-cases_latest.csv',[url,'coronavirus-cases_latest.csv']);
 %--------------------------------------------------------------------------
 URL  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/07/';
 URL  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/08/';
-
+URL  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/';
+URL  = [URL datestr(date,'yyyy/mm') '/'];
 for i = 0:4
     try
         dstr = datestr(datenum(date) - i,'dd-mmmm-yyyy');

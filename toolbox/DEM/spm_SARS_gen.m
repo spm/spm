@@ -50,7 +50,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 7942 2020-09-10 22:00:08Z spm $
+% $Id: spm_SARS_gen.m 7956 2020-09-21 19:48:24Z karl $
 
 
 % The generative model:
@@ -166,16 +166,15 @@ for i = 1:M.T
     % time-dependent parameters
     %======================================================================
     
-    % buildup of testing capacity
-    %----------------------------------------------------------------------
-    if isfield(Q,'sus')
-        P.lim = log(Q.lim + Q.sus*spm_phi((i - 32*Q.ont)/Q.stt));
-    end
-    
     % start of trace and track
     %----------------------------------------------------------------------
     if isfield(M,'TTT')
-        P.ttt = log(Q.ttt) + log(spm_phi((i - M.TTT)/8));
+        if isfield(M,'FTT')
+            Q.ttt = Q.ttt + spm_phi((i - M.TTT)/2)*(M.FTT - Q.ttt);
+            P.ttt = log(Q.ttt);
+        else
+            P.ttt = log(Q.ttt) + log(spm_phi((i - M.TTT)/2));
+        end
     end
     
     % early lockdown

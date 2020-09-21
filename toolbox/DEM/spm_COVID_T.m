@@ -21,7 +21,7 @@ function T = spm_COVID_T(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 7942 2020-09-10 22:00:08Z spm $
+% $Id: spm_COVID_T.m 7956 2020-09-21 19:48:24Z karl $
 
 % setup
 %==========================================================================
@@ -53,7 +53,7 @@ Kday  = exp(-1);
 % divergence from endemic equilibrium
 %--------------------------------------------------------------------------
 q    = spm_sum(x,[2 3 4]);
-Q    = (q(4) - P.m)/(1 - P.m);
+Q    = (q(4) - P.m)/(1 - P.o - P.m);
 
 % probabilistic transitions: location
 %==========================================================================
@@ -89,17 +89,17 @@ end
 
 % lockdown (threshold) strategy
 %--------------------------------------------------------------------------
-Psde = spm_sigma(Prev,P.sde,P.s);    % 1 - P(lockdown)
+Psde = spm_sigma(Prev,P.sde,2);      % 1 - P(lockdown)
 Pout = Psde*P.out;                   % P(work | home)
 
 % bed availability
 %--------------------------------------------------------------------------
-Pcca = spm_sigma(Pcco,P.cap,P.s);    % P(CCU  | home, work, ARDS)
+Pcca = spm_sigma(Pcco,P.cap,4);      % P(CCU  | home, work, ARDS)
 Piso = exp(-1/10);                   % period of self-isolation
 
 % viral spread
 %--------------------------------------------------------------------------
-Psde = spm_sigma(Prev,P.qua,P.s);        % probability of leaving area
+Psde = spm_sigma(Prev,P.qua,P.s);    % probability of leaving area
 Nexp = Psde*P.exp*Q;                 % number of spreading contacts
 Pexp = (1 - Prev)^Nexp;              % probability of no spreading
 
@@ -154,11 +154,11 @@ ij   = Bij({1,1:5,1,3},{5,1:5,1,3},dim);  B{1}(ij) = 1;
 ij   = Bij({1,1:5,1,3},{1,1:5,1,3},dim);  B{1}(ij) = 0;
 ij   = Bij({1,1:5,1,3},{2,1:5,1,3},dim);  B{1}(ij) = 0;
 
-% isolate if infected : third order dependencies : efficacy of FTTI
+% isolate if infected/ious : third order dependencies : efficacy of FTTI
 %--------------------------------------------------------------------------
-ij   = Bij({1,2,1,1},{5,2,1,1},dim);  B{1}(ij) = P.ttt;
-ij   = Bij({1,2,1,1},{1,2,1,1},dim);  B{1}(ij) = (1 - Pout)*(1 - P.ttt);
-ij   = Bij({1,2,1,1},{2,2,1,1},dim);  B{1}(ij) = Pout*(1 - P.ttt);
+ij   = Bij({1,2:3,1,1},{5,2:3,1,1},dim);  B{1}(ij) = P.ttt;
+ij   = Bij({1,2:3,1,1},{1,2:3,1,1},dim);  B{1}(ij) = (1 - Pout)*(1 - P.ttt);
+ij   = Bij({1,2:3,1,1},{2,2:3,1,1},dim);  B{1}(ij) = Pout*(1 - P.ttt);
 
 
 % probabilistic transitions: infection
@@ -230,8 +230,7 @@ B{2} = spm_permute_kron(b,dim([2,1,3,4]),[2,1,3,4]);
 % probabilities of developing symptoms
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
-Psev = P.sev;                            % P(ARDS | infected)
-Pfat = P.fat*Q + P.lat*(1 - Q);          % P(fatality | ARDS)
+Psev = P.sev*Q + P.lat*(1 - Q);          % P(ARDS | infected)
 Ksym = exp(-1/P.Tsy);                    % acute symptomatic rate
 Ksev = exp(-1/P.Trd);                    % acute RDS rate
 Kdev = exp(-1/P.Tic);                    % symptomatic rate
@@ -276,8 +275,8 @@ B{3} = spm_kron({b,I{4}});
 
 % location dependent fatalities (P.fat in CCU): third order dependencies
 %--------------------------------------------------------------------------
-ij   = Bij({3,1:5,3,1:4},{3,1:5,4,1:4},dim); B{3}(ij) = (1 - Ksev)*Pfat;
-ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ksev)*(1 - Pfat);
+ij   = Bij({3,1:5,3,1:4},{3,1:5,4,1:4},dim); B{3}(ij) = (1 - Ksev)*P.fat;
+ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ksev)*(1 - P.fat);
 
 
 % probabilistic transitions: testing
@@ -286,24 +285,26 @@ ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ksev)*(1 - Pfat);
 % test probabilities
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
-q    = spm_sum(x,[1 3 4]);
-Pbas = P.tts*q(4);                    % seropositive testing
-Psen = P.lim*(1 + Pbas)*(1 - Q);      % probability of being tested
-Ptes = Psen*P.tes;                    % probability if infected
+p    = spm_sum(x,[1 2 4]);  p = p(2); % probability of symptoms 
+q    = spm_sum(x,[1 2 3]);  q = q(2); % probability of waiting          
+Psen = P.sus*(1 - Q) + P.ont*p;       % demand for testing     
+Psen = P.lim*erf(Psen);               % probability of being tested
+Ptes = Psen*(P.tes + P.tts*q);        % probability if infected
 
-Seni = .75;                           % PCR sensitivity (infected)
-Senc = .95;                           % PCR sensitivity (infectious)
+Seni = 1 - P.fnr;                     % PCR false negative rate
+Senc = .99;                           % PCR sensitivity (infectious)
+Spec = 1 - P.fpr;                     % PCR false positive rate
 
 Kdel = exp(-1/P.del);                 % exp(-1/waiting period)
 
 % marginal: testing {4} | susceptible {2}(1)
 %--------------------------------------------------------------------------
-%    not tested  waiting        PCR+       PCR-
+%    not tested  waiting                 PCR+       PCR-
 %--------------------------------------------------------------------------
-b{1} = [(1 - Psen) 0            (1 - Kday) (1 - Kday);
-        Psen       Kdel         0          0;
-        0          0            Kday       0;
-        0          (1 - Kdel)   0          Kday];
+b{1} = [(1 - Psen) 0                    (1 - Kday) (1 - Kday);
+        Psen       Kdel                  0          0;
+        0          (1 - Spec)*(1 - Kdel) Kday       0;
+        0          Spec*(1 - Kdel)       0          Kday];
 
 % marginal: testing {4} | infected {2}(2)
 %--------------------------------------------------------------------------
