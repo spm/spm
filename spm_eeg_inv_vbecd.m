@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_inv_vbecd.m 7628 2019-06-27 11:48:39Z gareth $
+% $Id: spm_eeg_inv_vbecd.m 7952 2020-09-21 11:32:33Z gareth $
 
 
 
@@ -77,16 +77,21 @@ while outsideflag==1, %% don't use sources which end up outside the head
     %----------------------------------------------------------------------
     [u,s,v] = svd(S_s0);
     outside = 1;
+    warning('Turned off outside check for now');
+    
     while(outside)
         outside = 0;
         mu_s = mu_s0 + u*diag(sqrt(diag(s+eps)))*v'*randn(size(mu_s0)); %
         for i=1:3:length(mu_s), %% check each dipole is inside the head
             pos     = mu_s(i:i+2);
-            if P.forward.siunits
-                outside = outside+ ~ft_inside_headmodel(1e-3*pos',P.forward.vol);
-            else
-                outside = outside+ ~ft_inside_headmodel(pos',P.forward.vol);
-            end
+            if ~strcmp(P.forward.vol.type,'infinite_magneticdipole'),
+                %% don't check for magnetic phantom
+                if P.forward.siunits
+                    outside = outside+ ~ft_inside_headmodel(1e-3*pos',P.forward.vol);
+                else
+                    outside = outside+ ~ft_inside_headmodel(pos',P.forward.vol);
+                end
+            end;
         end;
     end;
     
@@ -106,8 +111,8 @@ while outsideflag==1, %% don't use sources which end up outside the head
     startguess=M.pE;
     M.Setup =P;             % pass volume conductor and sensor locations on
     M.sc_y =sc_y;           % pass on scaling factor
-  
-
+    
+    
     %% startguess=[-0.3553  -69.8440    1.0484    0.2545    0.3428    1.8526]'
     
     [starty]=spm_eeg_wrap_dipfit_vbecd(startguess,M,U);
