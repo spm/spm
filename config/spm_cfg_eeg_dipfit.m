@@ -115,6 +115,14 @@ niter.strtype = 'n';
 niter.help = {'Number of restarts of algorithm to avoid local extrema'};
 niter.val = {10};
 
+whichgenerator = cfg_menu;
+whichgenerator.tag = 'whichgenerator';
+whichgenerator.name = 'Fit current dipole (in volume conductor) or magnetic dipole (in free space) ';
+whichgenerator.labels = {'current',  'magnetic'};
+whichgenerator.values = {1,0};
+whichgenerator.help = {'Fitting field due to an electrical current within the head or a coil (magnetic dipole) outside of the head ?'};
+whichgenerator.val = {1};
+
 modality = cfg_menu;
 modality.tag = 'modality';
 modality.name = 'Select modalities';
@@ -130,7 +138,7 @@ modality.val = {{'MEG'}};
 dipfit = cfg_exbranch;
 dipfit.tag = 'dipfit';
 dipfit.name = 'Bayesian Dipole fit';
-dipfit.val = {D, val, whatconditions, woi, locs, locvar,moms,momvar,ampsnr, niter,modality};
+dipfit.val = {D, val, whatconditions,whichgenerator, woi, locs, locvar,moms,momvar,ampsnr, niter,modality};
 dipfit.help = {'Run imaging source reconstruction'};
 dipfit.prog = @run_dipfit;
 dipfit.vout = @vout_dipfit;
@@ -185,10 +193,19 @@ for f=1:length(condind),
 end;
 fitdata=fitdata./length(condind);
 
+labels=num2str(megind');
+pos=zeros(length(megind),2);
+modstr='MEG';
+if ~strcmp(job.modality,'MEG')
+    error('Only tested for MEG so far. Try gui for EEG version');
+end;
+        
 
-pos=coor2D(D)';                                                        %Uses info in MEG datafile (D) to print list of 2D locations of each channel (pos)
-labels=num2str(megind');                                               %Prints numerical label of each channel (labels)
-
+for f=1:length(megind), %% long-winded way of doing this
+    channame=D.chanlabels(megind(f));
+    sensind=strmatch(channame,D.sensors(modstr).label);
+    pos(f,:)=D.sensors(modstr).coilpos(sensind,1:2);
+end;
 
 
 
@@ -208,6 +225,9 @@ P=[];
 P.y=mean(fitdata,2);                                                    %Z=avdata at each sensor at 'fitind' (timepoint identified in VB_ECD_FindPeak)
 P.forward.sens = D.inv{val}.datareg.sensors;
 P.forward.vol  = D.inv{val}.forward.vol;
+
+
+
 P.modality = D.modality;
 P.Ic = megind;
 P.channels = D.chanlabels(P.Ic);
@@ -294,6 +314,10 @@ else
     P.channels = D.chanlabels(P.Ic);
 end
 P.forward.chanunits = D.units(P.Ic);
+if job.whichgenerator==0, %% if magnetic dipole override forward model    
+    P.forward.vol.type='infinite_magneticdipole';
+    disp('using magnetic dipole !');
+end;
 [P.forward.vol, P.forward.sens] =  ft_prepare_vol_sens( ...
     P.forward.vol, P.forward.sens, 'channel', P.channels);
 plot3(P.forward.sens.chanpos(:,1),P.forward.sens.chanpos(:,2),P.forward.sens.chanpos(:,3),'bo');
@@ -324,6 +348,9 @@ inverse.P=P;
 D.inv{job.val}.inverse=inverse;
 
 hf = spm_figure('FindWin','Graphics');
+if isempty(hf),
+    hf=1;
+end;
 figure(hf);
 spm_clf(hf);
 subplot(3,2,1);
@@ -341,7 +368,7 @@ in.noButtons = 1;
 in.ParentAxes = axesY;
 
 
-spm_eeg_plotScalpData(P.y,D.coor2D',P.channels,in)
+spm_eeg_plotScalpData(P.y,pos,P.channels,in)
 title(axesY,'measured data')
 
 axesY = axes(...
@@ -349,7 +376,7 @@ axesY = axes(...
     'hittest','off');
 
 in.ParentAxes=axesY;
-spm_eeg_plotScalpData(inverse.Pout.ypost,D.coor2D',P.channels,in)
+spm_eeg_plotScalpData(inverse.Pout.y,pos,labels,in)
 title(axesY,'Modelled data');
 
 subplot(3,3,7); hold on;

@@ -7,7 +7,7 @@ function momentfit = spm_cfg_eeg_momentfit
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_momentfit.m 7763 2020-01-02 15:01:38Z gareth $
+% $Id: spm_cfg_eeg_momentfit.m 7954 2020-09-21 11:33:43Z gareth $
 
 
 D = cfg_files;
@@ -147,39 +147,12 @@ momentfit.vout = @vout_momentfit;
 
 function  out = run_momentfit(job)
 
+D = spm_eeg_load(job.D{1});
 
-
-
-D = {};
-
-
-for i = 1:numel(job.D)
-    D{i} = spm_eeg_load(job.D{i});
-    
-    D{i}.val = job.val;
-    
-    D{i}.con = 1;
-    
-    if job.whichgenerator==1, %% if current dipole check for a forward model
-        if ~isfield(D{i}, 'inv')
-            error('Forward model is missing for subject %d.', i);
-        elseif  numel(D{i}.inv)<D{i}.val || ~isfield(D{i}.inv{D{i}.val}, 'forward')
-            if D{i}.val>1 && isfield(D{i}.inv{D{i}.val-1}, 'forward')
-                D{i}.inv{D{i}.val} = D{i}.inv{D{i}.val-1};
-                warning('Duplicating the last forward model for subject %d.', i);
-            else
-                error('Forward model is missing for subject %d.', i);
-            end
-        end
-    else
-        disp('Magdip fit: Not checking for volume conductor (assuming infinite medium)');
-    end; %% if whichgenerator
-    
-end
-
-D=D{1};
+% pos=D.sensors('MEG').chanpos
 megind=D.indchantype(job.modality);
 megind=setdiff(megind,D.badchannels);
+megnames=D.chanlabels(megind);
 
 usesamples=intersect(find(D.time>=job.woi(1)./1000),find(D.time<=job.woi(2)./1000));
 
@@ -190,15 +163,20 @@ else
     condind=strmatch(job.whatconditions.condlabel,D.conditions)
 end;
 
-
 fitdata=zeros(length(megind),length(usesamples)); %% pool over conditions
+
 for f=1:length(condind),
     fitdata=fitdata+squeeze(D(megind,usesamples,condind(f)));
 end;
 fitdata=fitdata./length(condind);
 
+if strmatch(job.modality,'MEG'),
+    pos=D.sensors('MEG').chanpos;
+else
+    disp('modality not supported yet');
+end;
+    
 
-pos=coor2D(D)';                                                        %Uses info in MEG datafile (D) to print list of 2D locations of each channel (pos)
 labels=num2str(megind');                                               %Prints numerical label of each channel (labels)
 
 
@@ -219,26 +197,17 @@ val=D.val;                                                             %Use the 
 P=[];
 P.y=mean(fitdata,2);                                                    %Z=avdata at each sensor at 'fitind' (timepoint identified in VB_ECD_FindPeak)
 P.forward.sens = D.inv{val}.datareg.sensors;
-
 P.modality = D.modality;
 P.Ic = megind;
 P.channels = D.chanlabels(P.Ic);
 
-spm_eeg_plotScalpData(P.y,pos,labels);
+%spm_eeg_plotScalpData(P.y,pos,labels);
 %% Transform from MNI space
 M1 = D.inv{val}.datareg.fromMNI;
 [U, L, V] = svd(M1(1:3, 1:3));
 
 orM1(1:3,1:3) =U*V';                                                   %For switching orientation between meg and mni space
 
-
-% Mnivert=[D.inv{val}.mesh.tess_mni.vert ones(size(D.inv{val}.mesh.tess_mni.vert,1),1)];
-% meshctf.vertices=D.inv{val}.datareg.fromMNI*Mnivert';
-% meshctf.vertices=meshctf.vertices(1:3,:)';
-% meshctf.faces=D.inv{val}.mesh.tess_mni.face;
-% meshctfnorms=spm_mesh_normals(meshctf);
-% meshctfnorms([6157 2087],:)
-% mnivol = ft_transform_vol(M1, P.forward.vol);                          %Used for inside head calculation
 
 figure;
 hold on;
@@ -285,12 +254,15 @@ P.forward.vol     = data.(P.modality(1:3)).vol;
 if ischar(P.forward.vol)
     P.forward.vol = ft_read_headmodel(P.forward.vol);
 end
-if job.whichgenerator==0, %% if magnetic dipole override forward model
-    
+
+if job.whichgenerator==0, %% if magnetic dipole override forward model    
     P.forward.vol.type='infinite_magneticdipole';
+    disp('using magnetic dipole !');
 end;
+
 P.forward.sens    = data.(P.modality(1:3)).sens;
 P.forward.siunits = data.siunits;
+
 
 if isempty(P.Ic)
     error(['The specified modality (' P.modality ') is missing from file ' D.fname]);
