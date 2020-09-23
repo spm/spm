@@ -50,7 +50,9 @@ function ft_sourceplot(cfg, functional, anatomical)
 %   cfg.downsample    = downsampling for resolution reduction, integer value (default = 1) (orig: from surface)
 %   cfg.atlas         = string, filename of atlas to use (default = []) see FT_READ_ATLAS
 %                        for ROI masking (see 'masking' below) or for orthogonal plots (see method='ortho' below)
-%   cfg.visible       = string, 'on' or 'off', whether figure will be visible (default = 'on')
+%   cfg.visible       = string, 'on' or 'off' whether figure will be visible (default = 'on')
+%   cfg.position      = location and size of the figure, specified as a vector of the form [left bottom width height]
+%   cfg.renderer      = string, 'opengl', 'zbuffer', 'painters', see MATLAB Figure Properties. If this function crashes, you should try 'painters'.
 %
 % The following parameters can be used for the functional data:
 %   cfg.funcolormap   = colormap for functional data, see COLORMAP (default = 'auto')
@@ -174,7 +176,7 @@ function ft_sourceplot(cfg, functional, anatomical)
 % a single or multiple triangulated surface mesh(es) in an Nx1 cell-array
 % to be plotted with the interpolated functional data (see FT_PLOT_CLOUD)
 %
-% The following parameters apply to cfg.method='elec'
+% The following parameters apply to cfg.method='cloud'
 %   cfg.cloudtype       = 'point' plots a single point at each sensor position
 %                         'cloud' (default) plots each a group of spherically arranged points at each sensor position
 %                         'surf' plots a single spherical surface mesh at each sensor position
@@ -210,8 +212,14 @@ function ft_sourceplot(cfg, functional, anatomical)
 %   slice in all directions
 %   surface also optimal when inside present
 %   come up with a good glass brain projection
+%
+% undocumented option
+%   cfg.intersectmesh = cell-array of mesh(es) to be plotted along with the
+%                       anatomy, useful for evaluating coregistration. Does
+%                       at present not check for coordinate system
 
-% Copyright (C) 2007-2016, Robert Oostenveld, Ingrid Nieuwenhuis
+% Copyright (C) 2007-2019, Robert Oostenveld, Ingrid Nieuwenhuis, J.M.
+% Schoffelen
 %
 % This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
@@ -262,11 +270,11 @@ cfg = ft_checkconfig(cfg, 'renamedval', {'maskparameter', 'avg.pow', 'pow'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'maskparameter', 'avg.coh', 'coh'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'maskparameter', 'avg.mom', 'mom'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'location', 'interactive', 'auto'});
-% instead of specifying cfg.coordsys, the user should specify the coordsys in the functional data
-cfg = ft_checkconfig(cfg, 'forbidden', {'units', 'inputcoordsys', 'coordinates', 'TTlookup'});
-cfg = ft_checkconfig(cfg, 'deprecated', 'coordsys');
+% instead of specifying cfg.coordsys, the user should specify the coordsys in the data
+cfg = ft_checkconfig(cfg, 'forbidden', {'units', 'coordsys', 'inputcoord', 'inputcoordsys', 'coordinates'});
 % see http://bugzilla.fieldtriptoolbox.org/show_bug.cgi?id=2837
 cfg = ft_checkconfig(cfg, 'renamed', {'viewdim', 'axisratio'});
+cfg = ft_checkconfig(cfg, 'renamed', {'newfigure', 'figure'});
 
 if isfield(cfg, 'atlas') && ~isempty(cfg.atlas)
   % the atlas lookup requires the specification of the coordsys
@@ -288,13 +296,14 @@ cfg.atlas         = ft_getopt(cfg, 'atlas',         []);
 cfg.marker        = ft_getopt(cfg, 'marker',        []);
 cfg.markersize    = ft_getopt(cfg, 'markersize',    5);
 cfg.markercolor   = ft_getopt(cfg, 'markercolor',   [1 1 1]);
-cfg.renderer      = ft_getopt(cfg, 'renderer',      'opengl');
 cfg.colorbar      = ft_getopt(cfg, 'colorbar',      'yes');
 cfg.colorbartext  = ft_getopt(cfg, 'colorbartext',  '');
 cfg.voxelratio    = ft_getopt(cfg, 'voxelratio',    'data'); % display size of the voxel, 'data' or 'square'
 cfg.axisratio     = ft_getopt(cfg, 'axisratio',     'data'); % size of the axes of the three orthoplots, 'square', 'voxel', or 'data'
 cfg.visible       = ft_getopt(cfg, 'visible',       'on');
 cfg.clim          = ft_getopt(cfg, 'clim',          [0 1]); % this is used to scale the orthoplot
+cfg.intersectmesh = ft_getopt(cfg, 'intersectmesh');
+cfg.renderer      = ft_getopt(cfg, 'renderer',      'opengl');
 
 if ~isfield(cfg, 'anaparameter')
   if isfield(functional, 'anatomy')
@@ -330,7 +339,7 @@ if isfield(functional, 'time') || isfield(functional, 'freq')
 end
 
 % the data can be passed as input argument or can be read from disk
-hasanatomical = exist('anatomical', 'var') && isfield(anatomical, 'anatomy');
+hasanatomical = exist('anatomical', 'var');
 
 if hasanatomical && ~strcmp(cfg.method, 'cloud') % cloud method should be able to take multiple surfaces and does not require interpolation
   % interpolate on the fly, this also does the downsampling if requested
@@ -371,26 +380,7 @@ end
 %% get the elements that will be plotted
 hasatlas = ~isempty(cfg.atlas);
 if hasatlas
-  if ischar(cfg.atlas)
-    % initialize the atlas
-    [p, f, x] = fileparts(cfg.atlas);
-    fprintf(['reading ', f, ' atlas coordinates and labels\n']);
-    atlas = ft_read_atlas(cfg.atlas);
-  else
-    atlas = cfg.atlas;
-  end
-  % ensure that the atlas is formatted properly
-  atlas = ft_checkdata(atlas, 'hasunit', isfield(functional, 'unit'), 'hascoordsys', isfield(functional, 'coordsys'));
-  if isfield(functional, 'unit')
-    % ensure that the units are consistent, convert the units if required
-    atlas = ft_convert_units(atlas, functional.unit);
-  end
-  if isfield(functional, 'coordsys')
-    % ensure that the coordinate systems match
-    functional = fixcoordsys(functional);
-    atlas      = fixcoordsys(atlas);
-    assert(isequal(functional.coordsys, atlas.coordsys), 'coordinate systems do not match');
-  end
+  [atlas, functional] = handle_atlas_input(cfg.atlas, functional);
 end
 
 hasroi = ~isempty(cfg.roi);
@@ -399,11 +389,8 @@ if hasroi
     ft_error('specify cfg.atlas which specifies cfg.roi')
   else
     % get the mask
-    tmpcfg          = [];
-    tmpcfg.roi      = cfg.roi;
-    tmpcfg.atlas    = cfg.atlas;
-    tmpcfg.inputcoord = functional.coordsys;
-    roi = ft_volumelookup(tmpcfg,functional);
+    tmpcfg = keepfields(cfg, {'roi', 'atlas'});
+    roi = ft_volumelookup(tmpcfg, functional);
   end
 end
 
@@ -724,26 +711,17 @@ if ~hasroi
 end
 
 %% start building the figure
-h = figure('visible', cfg.visible);
+
+% open a new figure with the specified settings
+h = open_figure(keepfields(cfg, {'figure', 'position', 'visible', 'renderer', 'figurename', 'title'}));
 set(h, 'color', [1 1 1]);
-set(h, 'renderer', cfg.renderer);
-if ~isempty(cfg.figurename)
-  % this appears as the name of the window
-  set(h, 'name', cfg.figurename);
-end
-if ~isempty(cfg.title)
-  % this appears above the axes
-  title(cfg.title);
-end
 
 %% set color and opacity mapping for this figure
 if hasfun
   if ischar(cfg.funcolormap) && ~strcmp(cfg.funcolormap, 'rgb')
-    colormap(cfg.funcolormap);
-    cfg.funcolormap = colormap;
-  elseif ~ischar(cfg.funcolormap)
-    colormap(cfg.funcolormap);
-    cfg.funcolormap = colormap;  
+    cfg.funcolormap = ft_colormap(cfg.funcolormap);
+  elseif iscell(cfg.funcolormap)
+    cfg.funcolormap = ft_colormap(cfg.funcolormap{:});
   end
 end
 if hasmsk
@@ -999,6 +977,10 @@ switch cfg.method
       zi = nearest(1:dim(3), loc(3));
     end
     
+    if numel(dim)<3
+      ft_error('the input source structure cannot be reshaped into a volumetric 3D representation');
+    end
+    
     xi = round(xi); xi = max(xi, 1); xi = min(xi, dim(1));
     yi = round(yi); yi = max(yi, 1); yi = min(yi, dim(2));
     zi = round(zi); zi = max(zi, 1); zi = min(zi, dim(3));
@@ -1047,9 +1029,6 @@ switch cfg.method
     set(h, 'windowbuttonupfcn',   @cb_buttonrelease);
     set(h, 'windowkeypressfcn',   @cb_keyboard);
     set(h, 'CloseRequestFcn',     @cb_quit);
-    
-    % ensure that this is done in interactive mode
-    set(h, 'renderer', cfg.renderer);
     
     %% create figure handles
     
@@ -1111,6 +1090,16 @@ switch cfg.method
     opt.queryrange    = cfg.queryrange;
     opt.funcolormap   = cfg.funcolormap;
     opt.crosshair     = istrue(cfg.crosshair);
+    if ~isempty(cfg.intersectmesh)
+      % the data will be plotted in voxel space, so transform the meshes
+      % accordingly, assuming the same coordinate system as the anatomical
+      if ~isa(cfg.intersectmesh, 'cell')
+        cfg.intersectmesh = {cfg.intersectmesh};
+      end
+      for m = 1:numel(cfg.intersectmesh)
+        opt.intersectmesh{m} = ft_transform_geometry(inv(functional.transform), cfg.intersectmesh{m});
+      end
+    end
     
     %% do the actual plotting
     setappdata(h, 'opt', opt);
@@ -1480,7 +1469,7 @@ switch cfg.method
       end
       
       % color settings
-      colormap(cmap);
+      ft_colormap(cmap);
       if ~isempty(clim) && clim(2)>clim(1)
         caxis(gca, clim);
       end
@@ -1636,7 +1625,7 @@ end
 if opt.hasatlas
   %tmp = [opt.ijk(:)' 1] * opt.atlas.transform; % atlas and functional might have different transformation matrices, so xyz cannot be used here anymore
   % determine the anatomical label of the current position
-  lab = atlas_lookup(opt.atlas, (xyz(1:3)), 'inputcoord', functional.coordsys, 'queryrange', opt.queryrange);
+  lab = atlas_lookup(opt.atlas, (xyz(1:3)), 'coordsys', functional.coordsys, 'queryrange', opt.queryrange);
   if isempty(lab)
     lab = 'NA';
     %fprintf('atlas labels: not found\n');
@@ -1654,9 +1643,16 @@ end
 
 
 if opt.hasana
+  options = {'transform', eye(4),     'location', opt.ijk, 'style', 'subplot',...
+    'update',    opt.update, 'doscale',  false,   'clim',  opt.clim};
+  if isfield(opt, 'intersectmesh')
+    options = cat(2, options, 'intersectmesh', opt.intersectmesh);
+  end
+  
   if opt.init
     tmph  = [h1 h2 h3];
-    ft_plot_ortho(opt.ana, 'transform', eye(4), 'location', opt.ijk, 'style', 'subplot', 'parents', tmph, 'update', opt.update, 'doscale', false, 'clim', opt.clim);
+    options = cat(2, options, {'parents', tmph});
+    ft_plot_ortho(opt.ana, options{:});
     
     opt.anahandles = findobj(opt.handlesfigure, 'type', 'surface')';
     for i=1:length(opt.anahandles)
@@ -1666,8 +1662,18 @@ if opt.hasana
     opt.anahandles = opt.anahandles(i3(i2)); % seems like swapping the order
     opt.anahandles = opt.anahandles(:)';
     set(opt.anahandles, 'tag', 'ana');
+    if isfield(opt, 'intersectmesh')
+      opt.patchhandles = findobj(opt.handlesfigure, 'type', 'patch');
+      opt.patchhandles = opt.patchhandles(i3(i2));
+      opt.patchhandles = opt.patchhandles(:)';
+      set(opt.patchhandles, 'tag', 'patch');
+    end
   else
-    ft_plot_ortho(opt.ana, 'transform', eye(4), 'location', opt.ijk, 'style', 'subplot', 'surfhandle', opt.anahandles, 'update', opt.update, 'doscale', false, 'clim', opt.clim);
+    options = cat(2, options, {'surfhandle', opt.anahandles});
+    if isfield(opt, 'intersectmesh')
+      options = cat(2, options, {'patchhandle', opt.patchhandles});
+    end
+    ft_plot_ortho(opt.ana, options{:});
   end
 end
 
@@ -1767,7 +1773,7 @@ elseif opt.hastime && opt.hasfun
 elseif strcmp(opt.colorbar,  'yes') && ~isfield(opt, 'hc')
   if opt.hasfun
     % vectorcolorbar = linspace(fscolmin, fcolmax,length(cfg.funcolormap));
-    % imagesc(vectorcolorbar,1,vectorcolorbar);colormap(cfg.funcolormap);
+    % imagesc(vectorcolorbar,1,vectorcolorbar);ft_colormap(cfg.funcolormap);
     % use a normal MATLAB colorbar, attach it to the invisible 4th subplot
     try
       caxis([opt.fcolmin opt.fcolmax]);

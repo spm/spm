@@ -223,7 +223,7 @@ cfg = ft_checkconfig(cfg, 'forbidden',   {'latency'}); % see bug 1376 and 1076
 cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'wltconvol', 'wavelet'});
 
 % select channels and trials of interest, by default this will select all channels and trials
-tmpcfg = keepfields(cfg, {'trials', 'channel', 'showcallinfo'});
+tmpcfg = keepfields(cfg, {'trials', 'channel', 'tolerance', 'showcallinfo'});
 data = ft_selectdata(tmpcfg, data);
 % restore the provenance information
 [cfg, data] = rollback_provenance(cfg, data);
@@ -247,7 +247,8 @@ switch cfg.method
     end
     % check for foi above Nyquist
     if isfield(cfg, 'foi')
-      if any(cfg.foi > (data.fsample/2))
+      if any(cfg.foi > (data.fsample+100*eps(data.fsample))/2)
+        % add a small number to allow for numeric tolerance issues
         ft_error('frequencies in cfg.foi are above Nyquist')
       end
       if isequal(cfg.taper, 'dpss') && not(isfield(cfg, 'tapsmofrq'))
@@ -490,17 +491,18 @@ end
 % this is done on trial basis to save memory
 
 ft_progress('init', cfg.feedback, 'processing trials');
+trlcnt = []; % only some methods need this variable, but it needs to be defined outside the trial loop
 for itrial = 1:ntrials
   
-  %disp(['processing trial ' num2str(itrial) ': ' num2str(size(data.trial{itrial},2)) ' samples']);
   fbopt.i = itrial;
   fbopt.n = ntrials;
   
   dat = data.trial{itrial}; % chansel has already been performed
   time = data.time{itrial};
   
-  % Perform specest call and set some specifics
   clear spectrum % in case of very large trials, this lowers peak mem usage a bit
+  
+  % Perform specest call and set some specifics
   switch cfg.method
     
     case 'mtmconvol'
@@ -704,7 +706,7 @@ for itrial = 1:ntrials
       switch keeprpt
         
         case 1 % cfg.keeptrials, 'no' &&  cfg.keeptapers, 'no'
-          if exist('trlcnt', 'var')
+          if ~isempty(trlcnt)
             trlcnt(1, ifoi, :) = trlcnt(1, ifoi, :) + shiftdim(double(acttboi(:)'),-1);
           end
           

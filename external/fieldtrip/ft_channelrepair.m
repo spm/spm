@@ -109,8 +109,7 @@ dtype = ft_datatype(data);
 data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 
 % select trials of interest
-tmpcfg = [];
-tmpcfg.trials = cfg.trials;
+tmpcfg = keepfields(cfg, {'trials', 'tolerance', 'showcallinfo'});
 data = ft_selectdata(tmpcfg, data);
 % restore the provenance information
 [cfg, data] = rollback_provenance(cfg, data);
@@ -159,7 +158,7 @@ if ~isempty(cfg.missingchannel) && strcmp(cfg.method, 'weighted')
 end
 
 % get selection of channels that are missing and/or bad
-cfg.missingchannel = cat(1, cfg.missingchannel(:), cfg.badchannel);
+cfg.missingchannel = cat(1, cfg.missingchannel(:), cfg.badchannel(:));
 cfg.missingchannel = setdiff(cfg.missingchannel, data.label);
 cfg.badchannel = ft_channelselection(cfg.badchannel, data.label);
 fprintf('There are %d bad channels\n', length(cfg.badchannel));

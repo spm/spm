@@ -24,7 +24,7 @@ function [cfg] = ft_databrowser(cfg, data)
 % The following configuration options are supported:
 %   cfg.ylim                    = vertical scaling, can be 'maxmin', 'maxabs' or [ymin ymax] (default = 'maxabs')
 %   cfg.zlim                    = color scaling to apply to component topographies, 'minmax', 'maxabs' (default = 'maxmin')
-%   cfg.blocksize               = duration in seconds for cutting the data up
+%   cfg.blocksize               = duration in seconds for cutting continuous data in segments
 %   cfg.trl                     = structure that defines the data segments of interest, only applicable for trial-based data
 %   cfg.continuous              = 'yes' or 'no', whether the data should be interpreted as continuous or trial-based
 %   cfg.allowoverlap            = 'yes' or 'no', whether data that is overlapping in multiple trials is allowed (default = 'no')
@@ -46,8 +46,9 @@ function [cfg] = ft_databrowser(cfg, data)
 %   cfg.selfun                  = string, name of function that is evaluated using the right-click context menu. The selected data and cfg.selcfg are passed on to this function.
 %   cfg.selcfg                  = configuration options for function in cfg.selfun
 %   cfg.seldat                  = 'selected' or 'all', specifies whether only the currently selected or all channels will be passed to the selfun (default = 'selected')
+%   cfg.visible                 = string, 'on' or 'off' whether figure will be visible (default = 'on')
+%   cfg.position                = location and size of the figure, specified as a vector of the form [left bottom width height]
 %   cfg.renderer                = string, 'opengl', 'zbuffer', 'painters', see MATLAB Figure Properties. If this function crashes, you should try 'painters'.
-%   cfg.position                = location and size of the figure, specified as a vector of the form [left bottom width height].
 %
 % The following options for the scaling of the EEG, EOG, ECG, EMG, MEG and NIRS channels
 % is optional and can be used to bring the absolute numbers of the different
@@ -132,9 +133,6 @@ function [cfg] = ft_databrowser(cfg, data)
 %
 % $Id$
 
-% FIXME these should be removed or documented
-% cfg.preproc
-
 % these are used by the ft_preamble/ft_postamble function and scripts
 ft_revision = '$Id$';
 ft_nargin   = nargin;
@@ -166,6 +164,9 @@ cfg = ft_checkconfig(cfg, 'renamed',    {'elecfile', 'elec'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'gradfile', 'grad'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'optofile', 'opto'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'channelcolormap', 'linecolor'});
+cfg = ft_checkconfig(cfg, 'renamed',    {'anonimize', 'anonymize'}); % fix typo in previous version of the code
+cfg = ft_checkconfig(cfg, 'renamed',    {'anonymise', 'anonymize'}); % use North American and Oxford British spelling
+cfg = ft_checkconfig(cfg, 'renamed',    {'newfigure', 'figure'});
 
 % ensure that the preproc specific options are located in the cfg.preproc substructure
 cfg = ft_checkconfig(cfg, 'createsubcfg',  {'preproc'});
@@ -173,11 +174,11 @@ cfg = ft_checkconfig(cfg, 'createsubcfg',  {'preproc'});
 % set the defaults
 cfg.ylim            = ft_getopt(cfg, 'ylim', 'maxabs');
 cfg.artfctdef       = ft_getopt(cfg, 'artfctdef', struct);
-cfg.selectfeature   = ft_getopt(cfg, 'selectfeature', 'visual');     % string or cell-array
+cfg.selectfeature   = ft_getopt(cfg, 'selectfeature', 'visual');   % string or cell-array
 cfg.selectmode      = ft_getopt(cfg, 'selectmode', 'markartifact');
 cfg.blocksize       = ft_getopt(cfg, 'blocksize');                 % now used for both continuous and non-continuous data, defaulting done below
 cfg.preproc         = ft_getopt(cfg, 'preproc');                   % see preproc for options
-cfg.selfun          = ft_getopt(cfg, 'selfun');                    % default functions: 'simpleFFT', 'multiplotER', 'topoplotER', 'topoplotVAR', 'movieplotER'
+cfg.selfun          = ft_getopt(cfg, 'selfun');                    % default functions are 'simpleFFT', 'multiplotER', 'topoplotER', 'topoplotVAR', 'movieplotER'
 cfg.selcfg          = ft_getopt(cfg, 'selcfg');                    % defaulting done below, requires layouts/etc to be processed
 cfg.seldat          = ft_getopt(cfg, 'seldat', 'current');
 cfg.colorgroups     = ft_getopt(cfg, 'colorgroups', 'sequential');
@@ -216,6 +217,15 @@ cfg.allowoverlap    = ft_getopt(cfg, 'allowoverlap', 'no');          % for ft_fe
 cfg.contournum      = ft_getopt(cfg, 'contournum', 0);               % topoplot contour lines
 cfg.trl             = ft_getopt(cfg, 'trl');
 
+% construct the low-level options as key-value pairs, these are passed to FT_READ_HEADER
+headeropt = {};
+headeropt  = ft_setopt(headeropt, 'headerformat',   ft_getopt(cfg, 'headerformat'));        % is passed to low-level function, empty implies autodetection
+headeropt  = ft_setopt(headeropt, 'readbids',       ft_getopt(cfg, 'readbids'));            % is passed to low-level function
+headeropt  = ft_setopt(headeropt, 'coordsys',       ft_getopt(cfg, 'coordsys', 'head'));    % is passed to low-level function
+headeropt  = ft_setopt(headeropt, 'coilaccuracy',   ft_getopt(cfg, 'coilaccuracy'));        % is passed to low-level function
+headeropt  = ft_setopt(headeropt, 'checkmaxfilter', ft_getopt(cfg, 'checkmaxfilter'));      % this allows to read non-maxfiltered neuromag data recorded with internal active shielding
+headeropt  = ft_setopt(headeropt, 'chantype',       ft_getopt(cfg, 'chantype', {}));        % 2017.10.10 AB required for NeuroOmega files
+
 if ~isfield(cfg, 'viewmode')
   % butterfly, vertical, component
   if hascomp
@@ -243,9 +253,7 @@ if ~isempty(cfg.chanscale)
   end
   
   % make sure chanscale is a column vector, not a row vector
-  if size(cfg.chanscale,2) > size(cfg.chanscale,1)
-    cfg.chanscale = cfg.chanscale';
-  end
+  cfg.chanscale = cfg.chanscale(:);
 end
 
 if ~isempty(cfg.mychanscale) && ~isfield(cfg, 'mychan')
@@ -267,7 +275,7 @@ end
 
 if strcmp(cfg.viewmode, 'component')
   % read or create the layout that will be used for the topoplots
-  tmpcfg = keepfields(cfg, {'layout', 'rows', 'columns', 'commentpos', 'scalepos', 'elec', 'grad', 'opto', 'showcallinfo'});
+  tmpcfg = keepfields(cfg, {'layout', 'rows', 'columns', 'commentpos', 'skipcomnt', 'scalepos', 'skipscale', 'projection', 'viewpoint', 'rotate', 'width', 'height', 'elec', 'grad', 'opto', 'showcallinfo'});
   if hasdata
     cfg.layout = ft_prepare_layout(tmpcfg, data);
   else
@@ -328,14 +336,7 @@ if hasdata
   end
   
   % this is how the input data is segmented
-  trlorg = data.sampleinfo;
-  trlorg(:,3) = 0;
-  
-  % recreate offset vector (databrowser depends on this for visualisation)
-  for ntrl = 1:numel(data.trial)
-    trlorg(ntrl,3) = time2offset(data.time{ntrl}, data.fsample);
-  end
-  Ntrials = size(trlorg, 1);
+  trlorg = sampleinfo2trl(data);
   
 else
   % check if the input cfg is valid for this function
@@ -344,7 +345,7 @@ else
   cfg = ft_checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
   cfg = ft_checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
   % read the header from file
-  hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
+  hdr = ft_read_header(cfg.headerfile, headeropt{:});
   
   if isempty(cfg.continuous)
     if hdr.nTrials==1
@@ -366,28 +367,31 @@ else
   chansel = match_str(hdr.label, cfg.channel);
   Nchans  = length(chansel);
   
-  if strcmp(cfg.continuous, 'yes')
-    Ntrials = 1;
-  else
-    Ntrials = hdr.nTrials;
-  end
-  
-  % construct trl-matrix for the data on disk
-  if ~isempty(cfg.trl)
-    % take the one specified by the user
-    trlorg = cfg.trl;
-  else
-    % make one that is according to the segments/trials in the data on disk
-    trlorg = zeros(Ntrials,3);
+  if ~isfield(cfg, 'trl') || isempty(cfg.trl)
+    % treat the data as continuous if possible, otherwise define all trials as indicated in the header
     if strcmp(cfg.continuous, 'yes')
-      trlorg(1, [1 2]) = [1 hdr.nSamples*hdr.nTrials];
+      trlorg = zeros(1, 3);
+      trlorg(1,1) = 1;
+      trlorg(1,2) = hdr.nSamples*hdr.nTrials;
+      trlorg(1,3) = -hdr.nSamplesPre;
     else
-      for k = 1:Ntrials
-        trlorg(k, [1 2]) = [1 hdr.nSamples] + [hdr.nSamples hdr.nSamples] .* (k-1);
+      trlorg = zeros(hdr.nTrials, 3);
+      for i=1:hdr.nTrials
+        trlorg(i,1) = (i-1)*hdr.nSamples + 1;
+        trlorg(i,2) = (i  )*hdr.nSamples    ;
+        trlorg(i,3) = -hdr.nSamplesPre;
       end
     end
+  elseif ischar(cfg.trl)
+    % load the trial information from file
+    trlorg = loadvar(cfg.trl, 'trl');
+  else
+    trlorg = cfg.trl;
   end
+  
 end % if hasdata
+
+Ntrials = size(trlorg, 1);
 
 if strcmp(cfg.continuous, 'no') && isempty(cfg.blocksize)
   cfg.blocksize = (trlorg(1,2) - trlorg(1,1)+1) ./ hdr.Fs;
@@ -434,7 +438,7 @@ if ischar(cfg.ylim)
     dat = data.trial{sel}(chansel,:);
   else
     % one second of data is read from file to determine the vertical scaling
-    dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', 1, 'endsample', round(hdr.Fs), 'chanindx', chansel, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat, 'headerformat', cfg.headerformat);
+    dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', 1, 'endsample', round(hdr.Fs), 'chanindx', chansel, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat, headeropt{:});
   end % if hasdata
   % convert the data to another numeric precision, i.e. double, single or int32
   if ~isempty(cfg.precision)
@@ -558,7 +562,7 @@ elseif isempty(cfg.selfun) && isempty(cfg.selcfg)
   cfg.selcfg{6} = [];
   cfg.selcfg{6}.audiofile = ft_getopt(cfg, 'audiofile');
   cfg.selcfg{6}.videofile = ft_getopt(cfg, 'videofile');
-  cfg.selcfg{6}.anonimize = ft_getopt(cfg, 'anonimize');
+  cfg.selcfg{6}.anonymize = ft_getopt(cfg, 'anonymize');
   cfg.selfun{6} = 'audiovideo';
 end
 
@@ -578,7 +582,8 @@ opt = [];
 if hasdata
   opt.orgdata   = data;
 else
-  opt.orgdata   = [];      % this means that it will read from cfg.dataset
+  opt.orgdata   = [];        % this means that it will read from cfg.dataset
+  opt.headeropt = headeropt; % these are passed to FT_READ_HEADER and FT_READ_DATA
 end
 if strcmp(cfg.continuous, 'yes')
   opt.trialviewtype = 'segment';
@@ -602,7 +607,6 @@ opt.eventtypecolorlabels = {'black', 'red', 'blue', 'green', 'cyan', 'grey', 'li
 opt.nanpaddata  = []; % this is used to allow horizontal scaling to be constant (when looking at last segment continuous data, or when looking at segmented/zoomed-out non-continuous data)
 opt.trllock     = []; % this is used when zooming into trial based data
 
-
 % save original layout when viewmode = component
 if strcmp(cfg.viewmode, 'component')
   opt.layorg = cfg.layout;
@@ -620,19 +624,12 @@ end
 % set changedchanflg as true for initialization
 opt.changedchanflg = true; % trigger for redrawing channel labels and preparing layout again (see bug 2065 and 2878)
 
-% create fig
-if isfield(cfg, 'position')
-  h = figure('Position', cfg.position);
-else
-  h = figure;
-end
+% open a new figure with the specified settings
+h = open_figure(keepfields(cfg, {'figure', 'position', 'visible', 'renderer'}));
 
 % put appdata in figure
 setappdata(h, 'opt', opt);
 setappdata(h, 'cfg', cfg);
-if ~isempty(cfg.renderer)
-  set(h, 'renderer', cfg.renderer);
-end
 
 % set interruptible to off, see bug 3123
 set(h, 'Interruptible', 'off', 'BusyAction', 'queue'); % enforce busyaction to queue to be sure
@@ -1629,9 +1626,9 @@ else
 end
 
 if isempty(opt.orgdata)
-  dat = ft_read_data(cfg.datafile, 'header', opt.hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'checkboundary', ~istrue(cfg.continuous), 'dataformat', cfg.dataformat, 'headerformat', cfg.headerformat);
+  dat = ft_read_data(cfg.datafile, 'header', opt.hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'checkboundary', ~istrue(cfg.continuous), 'dataformat', cfg.dataformat, opt.headeropt{:});
 else
-  dat = ft_fetch_data(opt.orgdata, 'header', opt.hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'allowoverlap', istrue(cfg.allowoverlap));
+  dat = ft_fetch_data(opt.orgdata, 'header', opt.hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'allowoverlap', cfg.allowoverlap);
 end
 art = ft_fetch_data(opt.artdata, 'begsample', begsample, 'endsample', endsample);
 
@@ -1782,11 +1779,11 @@ if strcmp(cfg.plotevents, 'yes')
       fprintf(eventlabellegend);
     end
     
-    % save stuff to able to shift event labels downwards when they occur at the same time-point
+    % save stuff to able to shift event labels downwards when they occur at a similar time-point
     eventcol = cell(1,numel(event));
     eventstr = cell(1,numel(event));
     eventtim = NaN(1,numel(event));
-    concount = NaN(1,numel(event));
+    shift=zeros(1,numel(event));
     
     % gather event info and plot lines
     for ievent = 1:numel(event)
@@ -1819,11 +1816,21 @@ if strcmp(cfg.plotevents, 'yes')
       setappdata(lh, 'ft_databrowser_eventtype', event(ievent).type);
       setappdata(lh, 'ft_databrowser_eventvalue', event(ievent).value);
       
-      % count the consecutive occurrence of each time point, this is used for the vertical shift of the event label
-      concount(ievent) = sum(eventtim(ievent)==eventtim(1:ievent-1));
+      % find the close events (i.e. within 1/10th of the horizontal time axis) and calculate shift for the event labels.
+      closeevent=find(eventtim(ievent)>eventtim(1:ievent-1)-0.1*diff(opt.hlim) & eventtim(ievent)<eventtim(1:ievent-1)+0.1*diff(opt.hlim));
+      emptyshift=find(diff(sort(shift(closeevent)))>1,1); % find a shift that has not been used by other close events
+      if ~isempty(emptyshift)
+        shift(ievent)=emptyshift;
+      elseif ~any(shift(closeevent)==0) % restart at 0 when no other close event is plotted at the highest level
+        shift(ievent)=0;
+      elseif closeevent
+        shift(ievent)=max(shift(closeevent))+1;
+      else
+        shift(ievent)=0;
+      end
       
       % plot the event label
-      ft_plot_text(eventtim(ievent), 0.9-concount(ievent)*.06, eventstr{ievent}, 'tag', 'event', 'Color', eventcol{ievent}, 'hpos', opt.hpos, 'vpos', opt.vpos, 'width', opt.width, 'height', opt.height, 'hlim', opt.hlim, 'vlim', [-1 1], 'FontSize', cfg.fontsize, 'FontUnits', cfg.fontunits, 'horizontalalignment', 'left');
+      ft_plot_text(eventtim(ievent), 0.9-shift(ievent)*.06, eventstr{ievent}, 'tag', 'event', 'Color', eventcol{ievent}, 'hpos', opt.hpos, 'vpos', opt.vpos, 'width', opt.width, 'height', opt.height, 'hlim', opt.hlim, 'vlim', [-1 1], 'FontSize', cfg.fontsize, 'FontUnits', cfg.fontunits, 'horizontalalignment', 'left');
     end
     
   end % if viewmode appropriate for events

@@ -9,16 +9,16 @@ function [dataout] = ft_eventtiminganalysis(cfg, data)
 % where data is single-channel raw data as obtained by FT_PREPROCESSING
 % and cfg is a configuration structure according to
 %
-%  cfg.method  = method for estimating event-related activity
+%   cfg.method  = method for estimating event-related activity
 %                 'aseo', analysis of single-trial ERP and ongoing
 %                         activity (according to Xu et al, 2009)
 %                 'gbve', graph-based variability estimation
 %                         (according to Gramfort et al, IEEE TBME 2009)
-%  cfg.channel = Nx1 cell-array with selection of channels (default = 'all'),
-%                see FT_CHANNELSELECTION for details
-%  cfg.trials  = 'all' or a selection given as a 1xN vector (default = 'all')
-%  cfg.output  = 'model', or 'residual', which returns the modelled data,
-%                or the residuals.
+%   cfg.channel = Nx1 cell-array with selection of channels (default = 'all'),
+%                 see FT_CHANNELSELECTION for details
+%   cfg.trials  = 'all' or a selection given as a 1xN vector (default = 'all')
+%   cfg.output  = 'model', or 'residual', which returns the modelled data,
+%                 or the residuals.
 %
 % Method specific options are specified in the appropriate substructure.
 %
@@ -43,7 +43,7 @@ function [dataout] = ft_eventtiminganalysis(cfg, data)
 %                              be a cell-array, one matrix per channel.
 %
 % For the GBVE method, the following options can be specified:
-%   cfg.gbve.sigma             = vector, range of sigma values to explore in 
+%   cfg.gbve.sigma             = vector, range of sigma values to explore in
 %                                cross-validation loop (default: 0.01:0.01:0.2)
 %   cfg.gbve.distance          = scalar, distance metric to use as
 %                                evaluation criterion, see plugin code for
@@ -62,7 +62,7 @@ function [dataout] = ft_eventtiminganalysis(cfg, data)
 %                                average smoothing (default: 1), see
 %                                eeglab's movav function for more
 %                                information.
-%   
+%
 % To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
@@ -135,7 +135,7 @@ data   = ft_selectdata(tmpcfg, data);
 if isfield(data, 'trial') && numel(data.trial)==0, ft_error('no trials were selected'); end
 if numel(data.label)==0, ft_error('no channels were selected'); end
 
-switch cfg.method  
+switch cfg.method
   case 'aseo'
     % define general variables that are used locally
     fsample = data.fsample; % Sampling Frequency in Hz
@@ -143,7 +143,7 @@ switch cfg.method
     nsample = numel(data.time{1}); %FIXME ASSUMING FIXED TIME AXIS ACROSS ALL TRIALS
 
     % setting a bunch of options, to be passed on to the lower level function
-    if ~isfield(cfg, 'aseo'), cfg.aseo = []; end 
+    if ~isfield(cfg, 'aseo'), cfg.aseo = []; end
     cfg.aseo.thresholdAmpH = ft_getopt(cfg.aseo, 'thresholdAmpH', 0.5);
     cfg.aseo.thresholdAmpL = ft_getopt(cfg.aseo, 'thresholdAmpL', 0.1);
     cfg.aseo.thresholdCorr = ft_getopt(cfg.aseo, 'thresholdCorr', 0.2);
@@ -153,7 +153,7 @@ switch cfg.method
     cfg.aseo.tapsmofrq     = ft_getopt(cfg.aseo, 'tapsmofrq',     5);
     cfg.aseo.fsample       = fsample;
     cfg.aseo.nsample       = nsample;
-    cfg.aseo.pad           = ft_getopt(cfg.aseo, 'pad', (2.*nsample)/fsample);    
+    cfg.aseo.pad           = ft_getopt(cfg.aseo, 'pad', (2.*nsample)/fsample);
     
     % deal with the different ways with which the initial waveforms can be defined
     initlatency      = ft_getopt(cfg.aseo, 'initlatency', {});
@@ -202,7 +202,7 @@ switch cfg.method
           initcomp{k}(begsmp:endsmp, m) = tmp;
         end
         initcomp{k} = initcomp{k} - repmat(mean(initcomp{k}),nsample,1);
-      end     
+      end
     else
       assert(numel(initcomp)==nchan);
     end
@@ -282,6 +282,7 @@ case 'gbve'
   cfg.gbve.disp_log          = ft_getopt(cfg.gbve, 'disp_log',          false);
   cfg.gbve.latency           = ft_getopt(cfg.gbve, 'latency',  [-inf inf]);
   cfg.gbve.xwin              = ft_getopt(cfg.gbve, 'xwin',     1); % default is a bit of smoothing
+  cfg.gbve.nfold             = ft_getopt(cfg.gbve, 'nfold',    5);
   
   nchan = numel(data.label);
   ntrl  = numel(data.trial);
@@ -308,7 +309,7 @@ case 'gbve'
     if length(alphas) > 1 % Use Cross validation error if multiple alphas are specified
       best_CVerr = -Inf;
 
-      K = 5;
+      K = cfg.gbve.nfold;
       disp(['--- Running K Cross Validation (K = ',num2str(K),')']);
 
       block_idx = fix(linspace(1, ntrl, K+1)); % K cross validation
@@ -327,7 +328,7 @@ case 'gbve'
 
           data_reordered = data_k(order,:);
           lags           = lags + tmin;
-          [data_aligned, dum] = perform_realign(data_reordered, data.time{1}, lags);
+          [data_aligned, ~] = perform_realign(data_reordered, data.time{1}, lags);
           data_aligned(~isfinite(data_aligned)) = nan;
           ep_evoked = nanmean(data_aligned);
           ep_evoked = ep_evoked ./ norm(ep_evoked);
@@ -364,7 +365,7 @@ case 'gbve'
     [data_aligned] = perform_realign(data_reordered, data.time{1}, lags );
     data_aligned(~isfinite(data_aligned)) = nan;
     
-    [dum,order_inv] = sort(order);
+    [~,order_inv] = sort(order);
     lags_no_order = lags(order_inv);
     data_aligned  = data_aligned(order_inv,:);
       
@@ -391,4 +392,3 @@ ft_postamble previous   data
 ft_postamble provenance dataout
 ft_postamble history    dataout
 ft_postamble savevar    dataout
-
