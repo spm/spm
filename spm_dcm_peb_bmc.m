@@ -1,4 +1,4 @@
-function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models)
+function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models,varargin)
 % hierarchical (PEB) model comparison and averaging (2nd level)
 % FORMAT [BMA] = spm_dcm_peb_bmc(PEB,models)
 % FORMAT [BMA] = spm_dcm_peb_bmc(PEB)
@@ -22,6 +22,11 @@ function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models)
 %
 % if models are not specified, all combinations of second level parameters
 % will be tested.
+%
+% fields - (optional) for use with pre-defined model spaces only. Limits 
+%          the parameters that vary across models to those with names 
+%          matching those provided. All excluded parameters are switched
+%          on in all models. Cell array of chars.
 %
 % BMA    - DCM structure of Bayesian model average
 % -------------------------------------------------------------------------
@@ -93,7 +98,7 @@ function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_dcm_peb_bmc.m 7958 2020-09-23 19:53:36Z peter $
 
 % checks
 %--------------------------------------------------------------------------
@@ -186,24 +191,42 @@ if ischar(models)
     
 elseif iscell(models)
     
-    % (RFX) BMA - define the model space in terms of a matrix
+    % model space is defined by an array of exemplar models
     %----------------------------------------------------------------------
+    Pind  = PEB.Pind;              % Indices of parameters from level below
+        
+    try
+        Pind0 = PEB.Pind0;         % Mapping to parameters in the DCM
+    catch
+        Pind0 = PEB.Pind;
+    end
+    
     Nm    = length(models);
-    Np    = length(PEB.Pind);
+    Np    = length(Pind);
     K     = ones(Nm,Np);
-    for i = 1:Nm
-        k      = spm_find_pC(models{i});
-        j      = find(~ismember(PEB.Pind,k));
+    for i = 1:Nm        
+        k = spm_find_pC(models{i});  
+        j = find(~ismember(Pind0,k));        
         K(i,j) = 0;
     end
     
 else
     
-    % model space in defined in terms of a matrix
+    % model space is defined in terms of a matrix
     %----------------------------------------------------------------------
     K     = models;
     
 end
+
+% Filter parameters that vary across models by name if requested
+if nargin > 2
+    fields = varargin{1};
+    if ~iscell(fields), fields = {fields}; end
+    k = contains(PEB.Pnames,fields);
+    K(:,~k) = 1;
+end
+
+% Complete model space
 [k,i]     = unique(K,'rows');
 K         = K(sort(i),:);
 [Nm,Np]   = size(K);
@@ -321,9 +344,10 @@ BMA   = spm_dcm_bma(BMR(i)');
 %--------------------------------------------------------------------------
 BMA.Snames = PEB.Snames;
 BMA.Pnames = PEB.Pnames;
-BMA.Pind   = PEB.Pind;
+BMA.Pind   = Pind;
+BMA.Pind0  = Pind0;
 BMA.Kname  = Kname;
-BMA.Kind   = PEB.Pind(k);
+BMA.Kind   = Pind(k);
 try BMA.Xnames = PEB.Xnames; catch, BMA.Xnames = {}; end
 
 BMA.F     = G;

@@ -3,7 +3,7 @@ function tests = test_spm_dcm_peb_bmc
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_peb_bmc.m 7914 2020-08-05 12:10:55Z peter $
+% $Id: test_spm_dcm_peb_bmc.m 7958 2020-09-23 19:53:36Z peter $
 
 tests = functiontests(localfunctions);
 
@@ -98,6 +98,65 @@ GCM_templates{2}.b(2,1,2) = 0;
 testCase.assertTrue(length(BMA.Kname) == 2);
 
 close all;
+
+% -------------------------------------------------------------------------
+function test_bmc_peb_of_pebs(testCase)
+% Tests model comparison with hierarchical models
+
+data_path = get_data_path();
+
+% Load first level DCMs
+GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
+GCM = GCM.GCM;
+
+% Prepare group level design matrix
+X = load(fullfile(data_path,'design_matrix.mat'));
+X = X.X;
+ns = size(X,1);
+X  = [ones(ns,1) X];
+
+% Assign subjects to groups
+g1 = (X(:,2) == -1);
+g2 = (X(:,2) == 1);
+
+% Get a random covariate (e.g. age)
+age_g1 = X(g1,3) - mean(X(g1,3));
+age_g2 = X(g2,3) - mean(X(g2,3));
+
+% Estimate PEB
+M = struct();
+M.Q = 'all';
+M.Xnames = {'Mean','Age'};
+
+M.X = [ones(ns/2,1) age_g1];
+PEB1 = spm_dcm_peb(GCM(g1,1),M);
+
+M.X = [ones(ns/2,1) age_g2];
+PEB2 = spm_dcm_peb(GCM(g2,1),M);
+
+% Group model
+M        = struct();
+M.X      = [1 1; 1 -1];
+M.Q      = 'none';
+M.Xnames = {'Commonalities','Differences'};
+PEB      = spm_dcm_peb({PEB1;PEB2},M);
+
+% Get template models
+GCM_templates = load(fullfile(data_path,'models','GCM_simulated.mat'));
+GCM_templates = GCM_templates.GCM;
+
+% Create model space
+GCM_templates      = GCM_templates(1,1:2);
+GCM_templates{1}   = rmfield(GCM_templates{1},'M');
+GCM_templates{2}   = rmfield(GCM_templates{2},'M');
+GCM_templates{2}.b = GCM_templates{1}.b;
+GCM_templates{2}.b(2,1,2) = 0;
+
+% Run model comparison: we expect one parameter to vary
+[BMA,BMR] = spm_dcm_peb_bmc(PEB,GCM_templates,'Mean');
+assert(length(BMA.Kname) == 1);
+
+close all
 
 % -------------------------------------------------------------------------
 function data_path = get_data_path()

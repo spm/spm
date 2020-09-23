@@ -43,8 +43,9 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % -------------------------------------------------------------------------
 %     PEB.Snames    - string array of first level model names
 %     PEB.Pnames    - string array of parameters of interest
-%     PEB.Pind      - indices of parameters in spm_vec(DCM{i}.Ep) 
-%     PEB.Xnames - names of second level parameters
+%     PEB.Pind      - indices of parameters at the level below
+%     PEB.Pind0     - indices of parameters in spm_vec(DCM{i}.Ep) 
+%     PEB.Xnames    - names of second level parameters
 % 
 %     PEB.M.X       - second level (between-subject) design matrix
 %     PEB.M.W       - second level (within-subject) design matrix
@@ -90,7 +91,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7849 2020-05-13 19:48:29Z karl $
+% $Id: spm_dcm_peb.m 7958 2020-09-23 19:53:36Z peter $
  
 
 % get filenames and set up
@@ -151,24 +152,23 @@ end
 
 % prepare field names
 % -------------------------------------------------------------------------
-try
-    Pstr  = spm_fieldindices(DCM.M.pE,q);       % field names 
-catch
-    if isfield(DCM,'Pnames')
-        
-        % PEB given as input. Field names have form covariate:fieldname
-        %------------------------------------------------------------------
-        Pstr  = [];
-        for i = 1:length(DCM.Xnames)
-            str  = strcat(DCM.Xnames{i}, ': ', DCM.Pnames);
-            Pstr = [Pstr; str];
-        end
-    else
-        % Generate field names
-        %------------------------------------------------------------------
+is_peb_of_pebs = isfield(DCM,'Pnames');         % PEB given as input?
+
+if is_peb_of_pebs
+    % PEBs given as input. Field names have form covariate:fieldname
+    Pstr  = [];
+    for i = 1:length(DCM.Xnames)
+        str  = strcat(DCM.Xnames{i}, ': ', DCM.Pnames);
+        Pstr = [Pstr; str];
+    end
+else
+    % DCMs given as input. Retrieve or generate field names
+    try
+        Pstr  = spm_fieldindices(DCM.M.pE,q);
+    catch
         q    = q(:);
         Pstr = strcat('P', cellstr(num2str(q)));
-    end
+    end        
 end
 
 % count parameters
@@ -631,6 +631,12 @@ PEB.Snames = Sstr';
 PEB.Pnames = Pstr';
 PEB.Pind   = q;
 PEB.Xnames = Xnames;
+
+if is_peb_of_pebs
+    PEB.Pind0 = repmat(DCM.Pind0, Nx, 1);
+else
+    PEB.Pind0 = PEB.Pind;
+end
 
 Ub       = kron(eye(Nx,Nx),U);
 PEB.M.X  = X;
