@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 7893 2020-07-10 17:00:50Z john $ */
+/* $Id: shoot_diffeo3d.c 7960 2020-09-24 19:34:30Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -448,20 +448,23 @@ static void def2jac_fun(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s, i
 
     for(k=k0; k<k2; k++)
     {
-        mwSignedIndex km, kp;
-        km = (bound(k-1,dm[2])-k)*dm[1]*dm[0];
-        kp = (bound(k+1,dm[2])-k)*dm[1]*dm[0];
-
+        mwSignedIndex km, kp, kmo, kpo;
+        km  = (bound(k-1,dm[2])-k);
+        kp  = (bound(k+1,dm[2])-k);
+        kmo = km*dm[0]*dm[1];
+        kpo = kp*dm[0]*dm[1];
         for(j=0; j<dm[1]; j++)
         {
-            mwSignedIndex jm, jp;
+            mwSignedIndex jm, jp, jmo, jpo;
             float *y1, *y2, *y3, *dp;
-            jm = (bound(j-1,dm[1])-j)*dm[0];
-            jp = (bound(j+1,dm[1])-j)*dm[0];
-            y1 = Psi + dm[0]*(j+dm[1]*k);
-            y2 = Psi + dm[0]*(j+dm[1]*(k+dm[2]));
-            y3 = Psi + dm[0]*(j+dm[1]*(k+dm[2]*2));
-            dp = Jpsi + dm[0]*(j+dm[1]*k);
+            jm  = (bound(j-1,dm[1])-j);
+            jp  = (bound(j+1,dm[1])-j);
+            jmo = jm*dm[0];
+            jpo = jp*dm[0];
+            y1  = Psi  + dm[0]*(j+dm[1]*k);
+            y2  = Psi  + dm[0]*(j+dm[1]*(k+dm[2]));
+            y3  = Psi  + dm[0]*(j+dm[1]*(k+dm[2]*2));
+            dp  = Jpsi + dm[0]*(j+dm[1]*k);
 
             for(i=0; i<dm[0]; i++)
             {
@@ -470,17 +473,17 @@ static void def2jac_fun(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s, i
                 im = bound(i-1,dm[0]);
                 ip = bound(i+1,dm[0]);
 
-                j11 = 0.5f*(y1[  ip]-y1[  im]+(float)(2-ip+im));
-                j21 = 0.5f*(y2[  ip]-y2[  im]);
-                j31 = 0.5f*(y3[  ip]-y3[  im]);
+                j11 = 0.5f*(y1[  ip ]-y1[  im ]+(float)(2-ip+im));
+                j21 = 0.5f*(y2[  ip ]-y2[  im ]);
+                j31 = 0.5f*(y3[  ip ]-y3[  im ]);
 
-                j12 = 0.5f*(y1[i+jp]-y1[i+jm]);
-                j22 = 0.5f*(y2[i+jp]-y2[i+jm]+(float)(2-jp+jm));
-                j32 = 0.5f*(y3[i+jp]-y3[i+jm]);
+                j12 = 0.5f*(y1[i+jpo]-y1[i+jmo]);
+                j22 = 0.5f*(y2[i+jpo]-y2[i+jmo]+(float)(2-jp+jm));
+                j32 = 0.5f*(y3[i+jpo]-y3[i+jmo]);
 
-                j13 = 0.5f*(y1[i+kp]-y1[i+km]);
-                j23 = 0.5f*(y2[i+kp]-y2[i+km]);
-                j33 = 0.5f*(y3[i+kp]-y3[i+km]+(float)(2-kp+km));
+                j13 = 0.5f*(y1[i+kpo]-y1[i+kmo]);
+                j23 = 0.5f*(y2[i+kpo]-y2[i+kmo]);
+                j33 = 0.5f*(y3[i+kpo]-y3[i+kmo]+(float)(2-kp+km));
 
                 if (code==0)
                 {
