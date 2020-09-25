@@ -17,7 +17,7 @@ function [po,freq] = spm_opm_psd(S)
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_psd.m 7780 2020-02-05 13:57:53Z tim $
+% $Id: spm_opm_psd.m 7962 2020-09-25 12:06:47Z vladimir $
 
 %-ArgCheck
 %--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ if ~isfield(S, 'trials'),        S.trials=0; end
 %-epoch dataset
 %--------------------------------------------------------------------------
 if size(S.D,3)>1
-    eD=S.D;
+    eD=S.D(chans, :, :);
 else
     nsamps = S.triallength/1000*S.D.fsample;
     beg = 1:nsamps:size(S.D,2);

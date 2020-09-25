@@ -5,10 +5,10 @@ function res = sconfounds(this, newsconfounds, append)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: sconfounds.m 6437 2015-05-14 12:27:21Z vladimir $
+% $Id: sconfounds.m 7962 2020-09-25 12:06:47Z vladimir $
 
 if nargin >= 2
-    meegind = indchantype(this, 'MEEG');
+    meegind = indchantype(this, 'MEEG', 'GOOD');
     
     [sel1, sel2] = match_str(chanlabels(this, meegind), newsconfounds.label);
 

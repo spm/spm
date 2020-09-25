@@ -13,7 +13,7 @@ function [this, ok] = check(this, option)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: check.m 6542 2015-09-09 11:48:34Z karl $
+% $Id: check.m 7962 2020-09-25 12:06:47Z vladimir $
 
 if nargin == 1
     option = 'basic';
@@ -92,9 +92,9 @@ if  ~isempty([eegind(:); megind(:); planarind(:)])
     if ~isfield(this.fiducials, 'pnt') || isempty(this.fiducials.pnt)
         if ~isempty(eegind)
             % Copy EEG sensors to fiducials.
-            this.fiducials.pnt = this.sensors.eeg.elecpos;
+            this.fiducials(1).pnt = this.sensors.eeg.elecpos;
         else
-            this.fiducials.pnt = sparse(0, 3);
+            this.fiducials(1).pnt = sparse(0, 3);
         end
     end
     

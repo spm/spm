@@ -31,7 +31,7 @@ function [M1] = spm_eeg_inv_icp(data1,data2,fid1,fid2,Fmri,Fhsp,aff)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Guillaume Flandin
-% $Id: spm_eeg_inv_icp.m 2345 2008-10-16 11:31:35Z guillaume $
+% $Id: spm_eeg_inv_icp.m 7962 2020-09-25 12:06:47Z vladimir $
 
 % use figure and fiducials if specified
 %--------------------------------------------------------------------------
@@ -69,8 +69,10 @@ for k = 1:64
 
     data2     = M*[data2; ones(1,size(data2,2))];
     data2     = data2(1:3,:);
-    fid2      = M*[fid2; ones(1,size(fid2,2))];
-    fid2      = fid2(1:3,:);
+    if ~isempty(fid2)
+        fid2      = M*[fid2; ones(1,size(fid2,2))];
+        fid2      = fid2(1:3,:);
+    end
     M1        = M*M1;
 
     % plot

@@ -9,7 +9,7 @@
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 7702 2019-11-22 11:32:26Z guillaume $
+% $Id: spm_eeg_ft_dipolefitting.m 7962 2020-09-25 12:06:47Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -50,7 +50,7 @@ if ~isfield(D, 'inv') || ~iscell(D.inv) ||...
     D = spm_eeg_inv_forward_ui(D, D.val);
 end
 
-volsens = spm_eeg_inv_get_vol_sens(D, [], [], [], modality);
+volsens = spm_eeg_inv_get_vol_sens(D, [], 'MNI-aligned', [], modality);
 
 vol  = volsens.(modality).vol;
 sens = volsens.(modality).sens;
@@ -58,9 +58,6 @@ sens = volsens.(modality).sens;
 if isa(vol, 'char')
     vol = ft_read_headmodel(vol);
 end
-
-
-
 
 %% ============ Select the data and convert to Fieldtrip struct
 if D.ntrials > 1
@@ -90,10 +87,24 @@ end
 
 cfg.latency  = 1e-3*spm_input('Time ([start end] in ms):', '+1', 'r', '', 2);
 
+init = spm_input('Initialisation (MNI):', '+1', 'r', 'NaN NaN NaN', 3)';
+
+
 if spm_input('What to fit?','+1', 'm', 'dipole|pair', [0 1])
     cfg.numdipoles = 2;
     cfg.symmetry = 'x';
+    
+    if ~any(isnan(init))
+        init = [abs(init(1)) init(2:3); -abs(init(1)) init(2:3)];
+    end
 end
+
+if ~any(isnan(init(:)))
+    init = spm_eeg_inv_transform_points(inv(volsens.transforms.toMNI), init);
+    cfg.gridsearch = 'no';
+    cfg.dip.pos = init;
+end
+
 
 source = ft_dipolefitting(cfg, data);
 

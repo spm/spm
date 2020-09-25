@@ -9,12 +9,12 @@ function res = copy(this, newname)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: copy.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: copy.m 7962 2020-09-25 12:06:47Z vladimir $
 
 [p, f] = fileparts(newname);
 
 if ~isempty(p)
-    if ~exist(p,'dir'), mkdir(p); end;
+    if ~exist(p,'dir'), spm_mkdir(p); end;
 else
     p = path(this);
 end
