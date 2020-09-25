@@ -37,7 +37,7 @@ function varargout = spm_gmm_lib(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_gmm_lib.m 7937 2020-08-24 11:00:58Z mikael $
+% $Id: spm_gmm_lib.m 7961 2020-09-25 08:06:54Z john $
 
 %--------------------------------------------------------------------------
 % Convention
@@ -1502,12 +1502,12 @@ for k=1:K
     alpha0 = b0_priors{1};
     beta0  = b0_priors{2};
     b0(k)  = 0;
-    alph   = N*S;
-    bet    = 1;
+    alph   = 0.5*N*S+1;
+    bet    = 0;
     for s=1:S
         [m,b,V,n] = get_posteriors(cluster,s);
         m1  = m(:,k) - m0(:,k);
-        bet = bet + m1.' * (n(k)*V(:,:,k)) * m1 + N/b(k);
+        bet = bet + 0.5*(m1.' * (n(k)*V(:,:,k)) * m1 + N/b(k));
     end
     b0(k) = (alph+alpha0-1)/(bet+beta0);
     % ---------------------------------------------------------------------
@@ -2677,7 +2677,7 @@ function ld = logdet(A)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_gmm_lib.m 7937 2020-08-24 11:00:58Z mikael $
+% $Id: spm_gmm_lib.m 7961 2020-09-25 08:06:54Z john $
 
 % Cholseki decomposition of A (A = C' * C, with C upper-triangular)
 [C, p] = chol(A);
