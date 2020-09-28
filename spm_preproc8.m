@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 7593 2019-05-20 18:58:16Z john $
+% $Id: spm_preproc8.m 7965 2020-09-28 16:58:14Z john $
 
 wp_reg    = 100; % Bias wp towards 1/Kb
 
@@ -796,10 +796,9 @@ for iter=1:30
         if ~isfield(obj,'Twarp')
             scal   = 2^max(10-iter,0);
             prm    = param;
-           %prm([5 7 8]) = param([5 7 8])*scal;
-            prm(6)       = param(6)*scal^2;
+            prm(6) = param(6)*scal;
         else
-            prm = [param(1:3)   param(4:8)];
+            prm = [param(1:3) param(4:8)];
         end
 
         % Add in the first derivatives of the prior term
