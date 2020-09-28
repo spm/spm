@@ -4,7 +4,7 @@ function spm_make_manual(c)
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_make_manual.m 7019 2017-02-16 10:49:48Z guillaume $
+% $Id: spm_make_manual.m 7964 2020-09-28 09:27:08Z john $
 
 
 if ~nargin, c = spm_cfg; end
@@ -115,6 +115,7 @@ sts = true;
 %==========================================================================
 function section(c,fp,lev)
 if nargin<3, lev = 1; end
+if strcmp(c.name,'Generic'), return; end
 sec = {'section','subsection','subsubsection','paragraph','subparagraph','textbf','textsc','textsl','textit'};
 if lev<=length(sec)
     fprintf(fp,'\n\\%s{%s}\n',sec{lev},texify(c.name));
