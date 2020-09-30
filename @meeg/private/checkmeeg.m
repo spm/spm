@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 6817 2016-06-20 17:10:50Z vladimir $
+% $Id: checkmeeg.m 7967 2020-09-30 10:39:51Z vladimir $
 
 
 %-Initialise data dimensions
@@ -347,6 +347,7 @@ end
 
 %-Check sensor description
 %--------------------------------------------------------------------------
+ft_warning off
 if ~isfield(this, 'sensors')
     this.sensors = struct([]);
 else
@@ -360,7 +361,7 @@ else
                     this.sensors.eeg = rmfield(this.sensors.eeg, 'chanunit');
                 end
             end
-            this.sensors.eeg = ft_datatype_sens(this.sensors.eeg, 'amplitude', 'V', 'distance', 'mm');        
+            this.sensors.eeg = ft_datatype_sens(this.sensors.eeg, 'version', 'latest', 'amplitude', 'V', 'distance', 'mm');        
         end
     end
     if isfield(this.sensors, 'meg')
@@ -372,12 +373,12 @@ else
                 if ~isempty(strmatch('fT', this.sensors.meg.chanunit))
                     this.sensors.meg = rmfield(this.sensors.meg, 'chanunit');
                 end
-            end
-            this.sensors.meg = ft_datatype_sens(this.sensors.meg, 'amplitude', 'T', 'distance', 'mm');
+            end            
+            this.sensors.meg = ft_datatype_sens(this.sensors.meg, 'version', 'latest', 'amplitude', 'T', 'distance', 'mm');
         end
     end
 end
-
+ft_warning on
 %-Check other fields
 %--------------------------------------------------------------------------
 if ~isfield(this, 'fiducials')
