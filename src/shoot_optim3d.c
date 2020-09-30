@@ -1,4 +1,4 @@
-/* $Id: shoot_optim3d.c 7684 2019-10-30 14:21:34Z john $ */
+/* $Id: shoot_optim3d.c 7968 2020-09-30 12:16:15Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<math.h>
@@ -315,9 +315,9 @@ void fmg3(mwSize n0[], float *a0, float *b0, double param0[], int c, int nit,
         if (a0)
             restrict_h(n[j-1],a[j-1],a[j],rbuf);
 
-        param[j][0] = param0[0]*(double)n[j][0]/n0[0];
-        param[j][1] = param0[1]*(double)n[j][1]/n0[1];
-        param[j][2] = param0[2]*(double)n[j][2]/n0[2];
+        param[j][0] = param0[0]*(double)n[j][0]/(double)n0[0];
+        param[j][1] = param0[1]*(double)n[j][1]/(double)n0[1];
+        param[j][2] = param0[2]*(double)n[j][2]/(double)n0[2];
         param[j][3] = param[0][3];
         param[j][4] = param[0][4];
         param[j][5] = param[0][5];
@@ -325,7 +325,7 @@ void fmg3(mwSize n0[], float *a0, float *b0, double param0[], int c, int nit,
         param[j][7] = param[0][7];
     }
 
-    if (u[0][0]==0) /* No starting estimate so do Full Multigrid */
+    if (u[0][0]==0.0f) /* No starting estimate so do Full Multigrid */
     {
         relax(n[ng-1], a[ng-1], b[ng-1], param[ng-1], nit, u[ng-1]); 
         for(j=ng-2; j>=0; j--)

@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 7960 2020-09-24 19:34:30Z john $ */
+/* $Id: shoot_diffeo3d.c 7968 2020-09-30 12:16:15Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <math.h>
@@ -431,7 +431,8 @@ void composition_jacdet(mwSize dm[], mwSize mm, float *B, float *JB, float *A, f
 
 static void def2jac_fun(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s, int code)
 {
-    mwSize i, j, k, k0, k2, mm;
+    mwSignedIndex i, j, k;
+    mwSize k0, k2, mm;
 
     if (s!=-1)
     {
@@ -446,19 +447,19 @@ static void def2jac_fun(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s, i
 
     mm = dm[0]*dm[1]*(k2-k0);
 
-    for(k=k0; k<k2; k++)
+    for(k=(mwSignedIndex)k0; k<(mwSignedIndex)k2; k++)
     {
         mwSignedIndex km, kp, kmo, kpo;
-        km  = (bound(k-1,dm[2])-k);
-        kp  = (bound(k+1,dm[2])-k);
+        km  = bound(k-1,dm[2])-k;
+        kp  = bound(k+1,dm[2])-k;
         kmo = km*dm[0]*dm[1];
         kpo = kp*dm[0]*dm[1];
-        for(j=0; j<dm[1]; j++)
+        for(j=0; j<(mwSignedIndex)dm[1]; j++)
         {
             mwSignedIndex jm, jp, jmo, jpo;
             float *y1, *y2, *y3, *dp;
-            jm  = (bound(j-1,dm[1])-j);
-            jp  = (bound(j+1,dm[1])-j);
+            jm  = bound(j-1,dm[1])-j;
+            jp  = bound(j+1,dm[1])-j;
             jmo = jm*dm[0];
             jpo = jp*dm[0];
             y1  = Psi  + dm[0]*(j+dm[1]*k);
@@ -466,7 +467,7 @@ static void def2jac_fun(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s, i
             y3  = Psi  + dm[0]*(j+dm[1]*(k+dm[2]*2));
             dp  = Jpsi + dm[0]*(j+dm[1]*k);
 
-            for(i=0; i<dm[0]; i++)
+            for(i=0; i<(mwSignedIndex)dm[0]; i++)
             {
                 mwSignedIndex im, ip;
                 float j11, j12, j13, j21, j22, j23, j31, j32, j33;
@@ -512,7 +513,7 @@ void def2jac(mwSize dm[], float *Psi, float *Jpsi, mwSignedIndex s)
 
 #define TINY 5e-2f
 
-void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@null@@out@*/float S0[], float F1[], unsigned int code)
+static void pushpull(mwSize dm0[], mwSize m1, mwSize n, float Psi[], float F0[], /*@null@@out@*/float S0[], float F1[], unsigned int code)
 {
     mwSize i, m0;
     float  *px, *py, *pz;

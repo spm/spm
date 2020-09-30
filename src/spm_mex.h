@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mex.h 7687 2019-11-07 11:26:02Z guillaume $
+ * $Id: spm_mex.h 7968 2020-09-30 12:16:15Z john $
  */
 
 #if defined (MATLAB_MEX_FILE) || defined (OCTAVE_MEX_FILE)
@@ -13,7 +13,7 @@
 #       define  mwSignedIndex signed   long long int
 #       define  mwIndex       unsigned long long int
 #       define  mwSize        unsigned long long int
-#       define  mxIsFinite(x) isfinite(x)
+#       define  mxIsFinite(x) (bool)isfinite(x)
 #       define  mxGetNaN() (NAN)
 #       define  mexErrMsgTxt(msg) perror(msg)
 #   endif
