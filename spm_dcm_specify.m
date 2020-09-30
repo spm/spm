@@ -8,16 +8,27 @@ function DCM = spm_dcm_specify(SPM,xY,settings)
 %
 % DCM      - DCM structure (see spm_dcm_ui)
 %
-% Example:
+% Example for a task-based experiment:
+% -------------------------------------------------------------------------
+% n   = 3;    % number of regions
+% nu  = 2;    % number of inputs (experimental conditions)
+% TR  = 2;    % volume repetition time (seconds)
+% TE  = 0.03; % echo time (seconds)
+% 
+% % Connectivity matrices
+% a  = ones(n,n);
+% b  = zeros(n,n,nu);
+% c  = ones(n,nu);
+% d  = zeros(n,n,0);
 %
 %  s = struct();
 %  s.name       = 'test';
 %  s.u          = [1 1]';
-%  s.delays     = [1.2 1.2];
-%  s.TE         = 0.05;
-%  s.nonlinear  = true;
-%  s.two_state  = true;
-%  s.stochastic = true;
+%  s.delays     = repmat(TR/2, 1, n);
+%  s.TE         = TE;
+%  s.nonlinear  = false;
+%  s.two_state  = false;
+%  s.stochastic = false;
 %  s.centre     = true;
 %  s.induced    = 0;
 %  s.a          = a;
@@ -25,11 +36,52 @@ function DCM = spm_dcm_specify(SPM,xY,settings)
 %  s.c          = c;
 %  s.d          = d;
 %  DCM = spm_dcm_specify(SPM,xY,s);
+%
+%
+% Tips: 
+% s.u(i,j) sets whether to include regressor j of condition i  from the 
+% design matrix in the DCM. If there are no parametric regressors, then j 
+% will always equal one.
+%
+% xY is a cell array of strings containing the filenames of the VOIs to 
+% include.
+%
+% Example for a resting state experiment:
+% -------------------------------------------------------------------------
+% n   = 2;    % number of regions
+% nu  = 1;    % number of inputs. For DCM for CSD we have one input: null
+% TR  = 2;    % volume repetition time (seconds)
+% TE  = 0.03; % echo time (seconds)
+% 
+% % Connectivity matrices
+% a  = ones(n,n);
+% b  = zeros(n,n,nu);
+% c  = zeros(n,nu);
+% d  = zeros(n,n,0);
+% 
+% % Specify DCM
+% s = struct();
+% s.name       = model_name;
+% s.u          = [];
+% s.delays     = repmat(TR/2, 1, n);
+% s.TE         = TE;
+% s.nonlinear  = false;
+% s.two_state  = false;
+% s.stochastic = false;
+% s.centre     = false;
+% s.induced    = 1;       % indicates DCM for CSD
+% s.a          = a;
+% s.b          = b;
+% s.c          = c;
+% s.d          = d;
+% 
+% DCM = spm_dcm_specify(SPM,xY,s);
+%
 %__________________________________________________________________________
 % Copyright (C) 2002-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 7264 2018-02-22 14:43:47Z peter $
+% $Id: spm_dcm_specify.m 7966 2020-09-30 08:38:13Z peter $
 
 if nargin < 3, settings = struct(); end
 
