@@ -62,7 +62,7 @@ if ~ft_senstype(input, 'eeg') && ~ft_datatype(input, 'volume')
   s = svd(transform(1:3,1:3));
   % allow for some numerical imprecision
   if any(abs(s./s(1)-1)>1e-3)
-    ft_error('only a global rescaling is allowed');
+    %ft_error('only a global rescaling is allowed');
   end
 end
 
