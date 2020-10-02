@@ -25,7 +25,7 @@ function varargout = spm_mb_shape(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7944 2020-09-14 09:09:16Z john $
+% $Id: spm_mb_shape.m 7970 2020-10-02 11:02:46Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
 %==========================================================================
 
@@ -349,7 +349,7 @@ function datn = update_affines_sub(datn,mu,sett)
 % This could be made more efficient.
 
 % Parse function settings
-accel = 0.99;
+accel = sett.accel;
 B     = sett.B;
 d     = sett.ms.d;
 Mmu   = sett.ms.Mmu;
@@ -535,7 +535,7 @@ mu       = pull1(mu,psi);
 function dat = update_simple_affines(dat,mu,sett)
 
 % Parse function settings
-accel = 0.99;
+accel = sett.accel;
 B     = sett.B;
 if ~isempty(B)
     groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
@@ -632,7 +632,7 @@ end
 function dat = update_velocities(dat,mu,sett)
 
 % Parse function settings
-accel = 0.99; % Speed up the registration
+accel = sett.accel;
 nw    = get_num_workers(sett,4*sett.K+4*3);
 
 G  = spm_diffeo('grad',mu);
@@ -677,7 +677,7 @@ clear a w
 
 u0        = spm_diffeo('vel2mom', v, v_settings);                          % Initial momentum
 datn.E(2) = 0.5*sum(u0(:).*v(:));                                          % Prior term
-v         = v - spm_diffeo('fmg',H, g + u0, [v_settings s_settings]); % Gauss-Newton update
+v         = v - 0.9*spm_diffeo('fmg', H, g + u0, [v_settings s_settings]); % Gauss-Newton update
 
 if d(3)==1, v(:,:,:,3) = 0; end % If 2D
 if v_settings(1)==0             % Mean displacement should be 0
@@ -1000,6 +1000,11 @@ for i=1:n
     sz(i).Mmu         = Mmu*[diag(z), (1-z(:))*0.5; 0 0 0 1];
     vx                = sqrt(sum(sz(i).Mmu(1:3,1:3).^2));
     scale_i           = scale*abs(det(sz(i).Mmu(1:3,1:3)));
+    % This fudge value (1.1) should really be 1, but this gives less
+    % extreme warps in the early iterations, which might help the
+    % clustering associate the right priors to each tissue class
+    % - without warping the priors to the wrong tissue.
+    scale_i           = scale_i^1.1;
     sz(i).v_settings  = [vx v_settings*scale_i];
     if isfield(mu,'create')
         mu_settings       = mu.create.mu_settings;

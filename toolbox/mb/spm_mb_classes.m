@@ -15,7 +15,7 @@ function varargout = spm_mb_classes(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_classes.m 7940 2020-09-10 18:14:43Z john $
+% $Id: spm_mb_classes.m 7970 2020-10-02 11:02:46Z john $
 
 if isa(varargin{1},'char')
     [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
@@ -86,7 +86,7 @@ lab = reshape(cm(lab,:), [dm(1:3) K1]);
 
 %==========================================================================
 function cm = get_label_conf_matrix(cm_map, w, K1)
-% FORMAT CM = get_label_cm(cm_map, w, K1)
+% FORMAT CM = get_label_conf_matrix(cm_map, w, K1)
 % cm_map - Defines the confusion matrix
 % w      - Weighting probability
 % K1     - Number of classes

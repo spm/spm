@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 7963 2020-09-25 13:28:53Z guillaume $
+% $Id: tbx_cfg_mb.m 7970 2020-10-02 11:02:46Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
@@ -175,8 +175,8 @@ pr_upd         = cfg_menu;
 pr_upd.tag     = 'hyperpriors';
 pr_upd.name    = 'Optimise';
 pr_upd.labels  = {'Yes','No'};
-%pr_upd.values = {{'b0_priors',{1000,10}}, []};
-pr_upd.values  = {{}, []};
+pr_upd.values = {{'b0_priors',{0.1,0.01}}, []};
+%pr_upd.values  = {{}, []};
 pr_upd.val     = {pr_upd.values{1}};
 pr_upd.help    = {['Specify whether the Gaussian-Wishart priors should be updated at each iteration. ' ...
                    'Enabling this can slow down convergence if there are small numbers of subjects. ' ...
