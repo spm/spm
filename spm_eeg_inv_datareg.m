@@ -25,25 +25,25 @@ function M1 = spm_eeg_inv_datareg(S)
 % Output:
 % M1 = homogenous transformation matrix
 %
-% If a template is used, the senor locations are transformed using an
+% If a template is used, the sensor locations are transformed using an
 % affine (rigid body) mapping.  If headshape locations are supplied
-% this is generalized to a full twelve parameter affine mapping (n.b.
+% this is generalised to a full twelve parameter affine mapping (n.b.
 % this might not be appropriate for MEG data).
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2020 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 7972 2020-10-05 12:50:20Z vladimir $
+% $Id: spm_eeg_inv_datareg.m 7974 2020-10-05 17:15:15Z guillaume $
 
 
 if ~isfield(S, 'targetfid')
-    error('Target fiducials are missing');
+    error('Target fiducials are missing.');
 else
     targetfid = ft_convert_units(S.targetfid, 'mm');
 end
 
 if ~isfield(S, 'sourcefid')
-    error('Source are missing');
+    error('Source are missing.');
 else
     sourcefid = ft_convert_units(S.sourcefid, 'mm');
     [sel1, sel2] = spm_match_str(targetfid.fid.label, sourcefid.fid.label);
@@ -68,14 +68,14 @@ sourcefid = ft_transform_geometry(M1, sourcefid);
 if S.template
 
     % constrained affine transform
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     aff   = S.template;
     for i = 1:64
 
         % scale
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         M       = pinv(sourcefid.fid.pnt(:))*targetfid.fid.pnt(:);
-        M       = full(sparse(1:4,1:4,[M M M 1]));
+        M       = diag([M M M 1]);
 
         sourcefid = ft_transform_geometry(M, sourcefid);
 
