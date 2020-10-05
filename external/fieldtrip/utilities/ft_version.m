@@ -151,7 +151,11 @@ else
   % get it from the Contents.m file in the FieldTrip directory
   if ~isdeployed
        tmp = ver(ftpath);
-       ftver = tmp.Version;
+       if isempty(tmp)
+           ftver = 'unknown';
+       else
+           ftver = tmp.Version;
+       end
   else
        ftver = 'deployed';
   end

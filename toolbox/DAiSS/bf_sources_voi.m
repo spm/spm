@@ -2,7 +2,7 @@ function voi = bf_sources_voi(BF, S)
 % Generate a set of VOIs specified in MNI coordinates
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: bf_sources_voi.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_sources_voi.m 7971 2020-10-05 09:53:16Z guillaume $
 
 %--------------------------------------------------------------------------
 if nargin == 0
@@ -85,7 +85,7 @@ iskull = export(gifti(BF.data.mesh.tess_iskull), 'ft');
 M1 = BF.data.transforms.toNative;
 M1 = BF.data.transforms.toMNI/M1;
 
-iskull = ft_convert_units(ft_transform_geometry(M1, iskull));
+iskull = ft_determine_units(ft_transform_geometry(M1, iskull));
 
        
 % transform MNI coords in MNI space into space where we are doing the

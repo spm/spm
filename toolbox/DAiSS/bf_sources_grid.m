@@ -3,7 +3,7 @@ function res = bf_sources_grid(BF, S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_sources_grid.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_sources_grid.m 7971 2020-10-05 09:53:16Z guillaume $
 
 %--------------------------------------------------------------------------
 if nargin == 0 
@@ -71,7 +71,7 @@ switch S.space
         M1 = eye(4);
 end
 
-constraint = ft_convert_units(ft_transform_geometry(M1, constraint));
+constraint = ft_determine_units(ft_transform_geometry(M1, constraint));
 
 mn = min(constraint.pnt);
 mx = max(constraint.pnt);
