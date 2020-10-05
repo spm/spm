@@ -33,7 +33,7 @@ function M1 = spm_eeg_inv_datareg(S)
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 7544 2019-03-15 16:20:16Z vladimir $
+% $Id: spm_eeg_inv_datareg.m 7972 2020-10-05 12:50:20Z vladimir $
 
 
 if ~isfield(S, 'targetfid')
@@ -75,7 +75,7 @@ if S.template
         % scale
         %----------------------------------------------------------------------
         M       = pinv(sourcefid.fid.pnt(:))*targetfid.fid.pnt(:);
-        M       = sparse(1:4,1:4,[M M M 1]);
+        M       = full(sparse(1:4,1:4,[M M M 1]));
 
         sourcefid = ft_transform_geometry(M, sourcefid);
 
