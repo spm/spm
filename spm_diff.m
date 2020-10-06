@@ -1,17 +1,17 @@
 function [varargout] = spm_diff(varargin)
-% matrix high-order numerical differentiation
+% Matrix high-order numerical differentiation
 % FORMAT [dfdx] = spm_diff(f,x,...,n)
 % FORMAT [dfdx] = spm_diff(f,x,...,n,V)
 % FORMAT [dfdx] = spm_diff(f,x,...,n,'q')
 %
-% f      - [inline] function f(x{1},...)
+% f      - [name or handle] function f(x{1},...)
 % x      - input argument[s]
 % n      - arguments to differentiate w.r.t.
 %
 % V      - cell array of matrices that allow for differentiation w.r.t.
-% to a linear transformation of the parameters: i.e., returns
+%          to a linear transformation of the parameters: i.e., returns
 %
-% df/dy{i};    x = V{i}y{i};    V = dx(i)/dy(i)
+%          df/dy{i};    x = V{i}y{i};    V = dx(i)/dy(i)
 %
 % q      - (char) flag to preclude default concatenation of dfdx
 %
@@ -19,16 +19,17 @@ function [varargout] = spm_diff(varargin)
 % dfdx{p}...{q} - df/dx{i}dx{j}(q)...dx{k}(p)  ; n = [i j ... k]
 %
 %
-% This routine has the same functionality as spm_ddiff, however it
-% uses one sample point to approximate gradients with numerical (finite)
+% This routine has the same functionality as spm_ddiff, however it uses one
+% sample point to approximate gradients with numerical (finite)
 % differences:
 %
 % dfdx  = (f(x + dx)- f(x))/dx
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2003-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_diff.m 7143 2017-07-29 18:50:38Z karl $
+% $Id: spm_diff.m 7975 2020-10-06 14:46:56Z spm $
+
 
 % step size for numerical derivatives
 %--------------------------------------------------------------------------
@@ -39,7 +40,7 @@ else
     dx = exp(-8);
 end
 
-% create inline object
+% create function handle
 %--------------------------------------------------------------------------
 f     = spm_funcheck(varargin{1});
 
@@ -49,19 +50,19 @@ if iscell(varargin{end})
     x = varargin(2:(end - 2));
     n = varargin{end - 1};
     V = varargin{end};
-    q = 1;
+    q = true;
 elseif isnumeric(varargin{end})
     x = varargin(2:(end - 1));
     n = varargin{end};
     V = cell(1,length(x));
-    q = 1;
+    q = true;
 elseif ischar(varargin{end})
     x = varargin(2:(end - 2));
     n = varargin{end - 1};
     V = cell(1,length(x));
-    q = 0;
+    q = false;
 else
-    error('improper call')
+    error('Improper call.')
 end
 
 % check transform matrices V = dxdy
@@ -72,7 +73,7 @@ for i = 1:length(x)
     catch
         V{i} = [];
     end
-    if isempty(V{i}) && any(n == i);
+    if isempty(V{i}) && any(n == i)
         V{i} = speye(spm_length(x{i}));
     end
 end
@@ -95,7 +96,6 @@ if length(n) == 1
         xi{m} = spm_unvec(xm + V{m}(:,i)*dx,x{m});
         J{i}  = spm_dfdx(f(xi{:}),f0,dx);
     end
-
     
     % return numeric array for first-order derivatives
     %======================================================================
@@ -121,12 +121,6 @@ if length(n) == 1
         J = spm_dfdx_cat(J);
     end
     
-    
-    % assign output argument and return
-    %----------------------------------------------------------------------
-    varargout{1} = J;
-    varargout{2} = f0;
-    
 else
     
     % dfdxdxdx....
@@ -149,13 +143,20 @@ else
     if p && q
         J = spm_dfdx_cat(J);
     end
-    varargout = [{J} f0];
+    
 end
 
+% assign output argument and return
+%--------------------------------------------------------------------------
+varargout = {J, f0};
 
+
+%==========================================================================
+% function dfdx = spm_dfdx(f,f0,dx)
+%==========================================================================
 function dfdx = spm_dfdx(f,f0,dx)
-% cell subtraction
-%__________________________________________________________________________
+% numerical differences
+
 if iscell(f)
     dfdx  = f;
     for i = 1:length(f(:))
@@ -167,11 +168,13 @@ else
     dfdx  = (f - f0)/dx;
 end
 
-return
 
+%==========================================================================
+% function J = spm_dfdx_cat(J)
+%==========================================================================
 function J = spm_dfdx_cat(J)
 % concatenate into a matrix
-%--------------------------------------------------------------------------
+
 if isvector(J{1})
     if size(J{1},2) == 1
         J = spm_cat(J);
@@ -179,5 +182,3 @@ if isvector(J{1})
         J = spm_cat(J')';
     end
 end
-
-

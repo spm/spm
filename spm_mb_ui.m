@@ -125,7 +125,7 @@ function [MB] = spm_mb_ui(action,varargin)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mb_ui.m 7808 2020-03-31 11:18:26Z karl $
+% $Id: spm_mb_ui.m 7975 2020-10-06 14:46:56Z spm $
 
 OPT.d    = 32;                         % maximum connection length (mm)
 OPT.np   = 1024;                       % number of parcels (particles)
@@ -389,7 +389,7 @@ switch lower(action)
 %               reciprocal of the largest negative real part. These two
 %               characterisations (principal frequency and time constant)
 %               speak to different aspects of intrinsic timescales; both of
-%               which contribute to the shape of an eigenstate’s
+%               which contribute to the shape of an eigenstate's
 %               correlation function of time. The first quantifies the
 %               frequency of solenoidal flow, while the second reflects the
 %               rate of decay associated with the dissipative flow.
@@ -583,7 +583,7 @@ switch lower(action)
 %               across the scales of the particular decomposition. The
 %               upper panel plots the real part of the eigenvalues of each
 %               particle against its spatial scale; namely the Calliper
-%               width of the particle’s eigenmode. This is replicated for
+%               width of the particle's eigenmode. This is replicated for
 %               each of the four scales, denoted by the different colours
 %               (green, pink, cyan and puce, respectively). The expected
 %               values are shown as encircled large dots. The lower left

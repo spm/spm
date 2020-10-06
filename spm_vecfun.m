@@ -1,8 +1,8 @@
 function [X] = spm_vecfun(X,fun)
-% apply a function to the numeric elements of a cell or structure array
+% Apply a function to the numeric elements of a cell or structure array
 % FORMAT [X] = spm_vecfun(X,fun)
 % X   - numeric, cell or stucture array
-% fun - function handle or inline function
+% fun - function handle
 %__________________________________________________________________________
 %
 % e.g., pE = spm_vecfun(pE,@log)
@@ -10,10 +10,7 @@ function [X] = spm_vecfun(X,fun)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimagings
 
 % Karl Friston
-% $Id: spm_vecfun.m 7811 2020-04-05 12:00:43Z karl $
-
-
-%error('spm_vec.c not compiled - see Makefile')
+% $Id: spm_vecfun.m 7975 2020-10-06 14:46:56Z spm $
 
 
 % vectorise numerical arrays

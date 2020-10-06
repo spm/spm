@@ -7,10 +7,10 @@ function H = spm_logdet(C)
 % full or sparse matrices. For non-positive definite cases, the determinant
 % is considered to be the product of the positive singular values.
 %__________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2004-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston and Ged Ridgway
-% $Id: spm_logdet.m 6321 2015-01-28 14:40:44Z karl $
+% $Id: spm_logdet.m 7975 2020-10-06 14:46:56Z spm $
 
 % Note that whether sparse or full, rank deficient cases are handled in the
 % same way as in spm_logdet revision 4068, using svd on a full version of C

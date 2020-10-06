@@ -21,7 +21,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 %
 %        q(t) = [1; x(t) - x(0)]
 %
-%___________________________________________________________________________
+%__________________________________________________________________________
 % Returns Matrix operators for the Bilinear approximation to the MIMO
 % system described by
 %
@@ -32,12 +32,11 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 %
 %       dq/dt = M0*q + u(1)*M1{1}*q + u(2)*M1{2}*q + ....
 %        y(i) = L1(i,:)*q + q'*L2{i}*q/2;
-%
-%--------------------------------------------------------------------------
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2001-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 6856 2016-08-10 17:55:05Z karl $
+% $Id: spm_bireduce.m 7975 2020-10-06 14:46:56Z spm $
 
 
 % set up

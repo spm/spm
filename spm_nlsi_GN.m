@@ -73,10 +73,10 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % If the free-energy starts to increase,  an abbreviated descent is
 % invoked.  The M-Step estimates the precision components of e, in terms
 % of log-precisions.  Although these two steps can be thought of in
-% terms of E and N steps they are in fact variational steps of a full
+% terms of E and M steps they are in fact variational steps of a full
 % variational Laplace scheme that accommodates conditional uncertainty
 % over both parameters and log precisions (c.f. hyperparameters with hyper
-% priors)
+% priors).
 %
 % An optional feature selection can be specified with parameters M.FS.
 %
@@ -86,18 +86,17 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Variational free energy and the Laplace approximation.
 % NeuroImage. 2007 Jan 1;34(1):220-34.
 %
-% This scheme handels complex data along the lines originally described in:
+% This scheme handles complex data along the lines originally described in:
 %
 % Sehpard RJ, Lordan BP, and Grant EH.
 % Least squares analysis of complex data with applications to permittivity
 % measurements.
 % J. Phys. D. Appl. Phys 1970 3:1759-1764.
-%
 %__________________________________________________________________________
-% Copyright (C) 2001-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2001-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 7909 2020-07-28 19:15:44Z karl $
+% $Id: spm_nlsi_GN.m 7975 2020-10-06 14:46:56Z spm $
 
 % options
 %--------------------------------------------------------------------------
@@ -178,13 +177,13 @@ end
 
 % converted to function handle
 %--------------------------------------------------------------------------
-IS  = spm_funcheck(IS);
+IS = spm_funcheck(IS);
 
-% paramter update eqation
+% parameter update eqation
 %--------------------------------------------------------------------------
-if isfield(M,'f'), M.f = spm_funcheck(M.f);  end
-if isfield(M,'g'), M.g = spm_funcheck(M.g);  end
-if isfield(M,'h'), M.h = spm_funcheck(M.h);  end
+if isfield(M,'f'), M.f = spm_funcheck(M.f); end
+if isfield(M,'g'), M.g = spm_funcheck(M.g); end
+if isfield(M,'h'), M.h = spm_funcheck(M.h); end
 
 
 % size of data (samples x response component x response component ...)
@@ -194,16 +193,16 @@ if iscell(y)
 else
     ns = size(y,1);
 end
-ny   = length(spm_vec(y));          % total number of response variables
-nr   = ny/ns;                       % number response components
-M.ns = ns;                          % number of samples M.ns
+ny     = length(spm_vec(y));           % total number of response variables
+nr     = ny/ns;                        % number of response components
+M.ns   = ns;                           % number of samples
 
 % initial states
 %--------------------------------------------------------------------------
 try
     M.x;
 catch
-    if ~isfield(M,'n'), M.n = 0;    end
+    if ~isfield(M,'n'), M.n = 0; end
     M.x = sparse(M.n,1);
 end
 
@@ -288,7 +287,6 @@ try
 catch
     ihC = speye(nh,nh)*exp(4);
 end
-
 
 % unpack covariance
 %--------------------------------------------------------------------------
@@ -458,7 +456,7 @@ for k = 1:M.Nmax
     
     % objective function: F(p) = log evidence - divergence
     %----------------------------------------------------------------------
-    L(1) = spm_logdet(iS)*nq/2  - real(e'*iS*e)/2 - ny*log(8*atan(1))/2;            ...
+    L(1) = spm_logdet(iS)*nq/2  - real(e'*iS*e)/2 - ny*log(8*atan(1))/2;
     L(2) = spm_logdet(ipC*Cp)/2 - p'*ipC*p/2;
     L(3) = spm_logdet(ihC*Ch)/2 - d'*ihC*d/2;
     F    = sum(L);
@@ -516,7 +514,6 @@ for k = 1:M.Nmax
     dp    = spm_dx(dFdpp,dFdp,{v});
     p     = p + dp;
     Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
-    
     
     
     % Graphics
@@ -577,7 +574,7 @@ for k = 1:M.Nmax
         end
         
         % subplot parameters
-        %--------------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(2,1,2)
         bar(full(V*p(ip)))
         xlabel('parameter')
@@ -597,7 +594,7 @@ for k = 1:M.Nmax
     criterion = [(dF < 1e-1) criterion(1:end - 1)];
     if all(criterion)
         if ~M.noprint
-            fprintf(' convergence\n')
+            fprintf(' convergence\n');
         end
         break
     end

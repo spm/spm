@@ -1,5 +1,5 @@
 function [dx] = spm_dx(dfdx,f,t)
-% returns dx(t) = (expm(dfdx*t) - I)*inv(dfdx)*f
+% Return dx(t) = (expm(dfdx*t) - I)*inv(dfdx)*f
 % FORMAT [dx] = spm_dx(dfdx,f,[t])
 % dfdx   = df/dx
 % f      = dx/dt
@@ -9,9 +9,9 @@ function [dx] = spm_dx(dfdx,f,t)
 %
 % dx     = x(t) - x(0)
 %--------------------------------------------------------------------------
-% Integration of a dynamic system using local linearization.  This scheme
-% accommodates nonlinearities in the state equation by using a functional of
-% f(x) = dx/dt.  This uses the equality
+% Integration of a dynamic system using local linearisation.  This scheme
+% accommodates nonlinearities in the state equation by using a functional
+% of f(x) = dx/dt.  This uses the equality
 %
 %             expm([0   0     ]) = (expm(t*dfdx) - I)*inv(dfdx)*f
 %                  [t*f t*dfdx]
@@ -29,13 +29,13 @@ function [dx] = spm_dx(dfdx,f,t)
 %                      expm(0*k*dfdx)*inv(dfdx)*f(0)
 %
 % When f = dF/dx (and dfdx = dF/dxdx), dx represents the update from a
-% Gauss-Newton ascent on F.  This can be regularised by specifying {t}
+% Gauss-Newton ascent on F.  This can be regularised by specifying {t}.
 % A heavy regularization corresponds to t = -4 and a light
 % regularization would be t = 4. This version of spm_dx uses an augmented
 % system and the Pade approximation to compute requisite matrix
-% exponentials
+% exponentials.
 %
-% references:
+% References:
 %
 % Friston K, Mattout J, Trujillo-Barreto N, Ashburner J, Penny W. (2007).
 % Variational free energy and the Laplace approximation. NeuroImage.
@@ -44,12 +44,11 @@ function [dx] = spm_dx(dfdx,f,t)
 % Ozaki T (1992) A bridge between nonlinear time-series models and
 % nonlinear stochastic dynamical systems: A local linearization approach.
 % Statistica Sin. 2:113-135.
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 7144 2017-07-31 13:55:55Z karl $
+% $Id: spm_dx.m 7975 2020-10-06 14:46:56Z spm $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -95,21 +94,19 @@ else
     % solve using matrix expectation
     %----------------------------------------------------------------------
     if n  <= nmax
-        dx    = spm_expm(J);
-        dx    = dx(:,1);
+        dx = spm_expm(J);
+        dx = dx(:,1);
     else       
-        x     = sparse(1,1,1,n + 1,1);
-        dx    = expv(1,J,x);
+        x  = sparse(1,1,1,n + 1,1);
+        dx = expv(1,J,x);
     end
     
     % recover update
     %----------------------------------------------------------------------
-    dx    = dx(2:end);
+    dx     = dx(2:end);
     
 end
 dx = spm_unvec(real(dx),xf);
-
-return
 
 
 %==========================================================================
@@ -365,8 +362,3 @@ for k = 1:s,
 end;
 
 return
-
-
-
-
-
