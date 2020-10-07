@@ -21,7 +21,7 @@ function T = spm_COVID_T(x,P,r)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 7956 2020-09-21 19:48:24Z karl $
+% $Id: spm_COVID_T.m 7976 2020-10-07 12:07:42Z guillaume $
 
 % setup
 %==========================================================================
@@ -358,10 +358,9 @@ function ij = Bij(j,i,dim)
 % j - dimensions of source states
 % i - dimensions on target states
 %--------------------------------------------------------------------------
-nx   =  prod(dim);
-z    = zeros(dim); z(j{1},j{2},j{3},j{4}) = 1; j = find(z);
-z    = zeros(dim); z(i{1},i{2},i{3},i{4}) = 1; i = find(z);
-ij   = find(sparse(i,j,1,nx,nx));
+z  = zeros(dim); z(j{1},j{2},j{3},j{4}) = 1; j = find(z);
+z  = zeros(dim); z(i{1},i{2},i{3},i{4}) = 1; i = find(z);
+ij = i + (j-1)*prod(dim);
 
 
 function p = spm_sigma(x,u,s)
