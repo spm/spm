@@ -28,7 +28,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2003-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_diff.m 7975 2020-10-06 14:46:56Z spm $
+% $Id: spm_diff.m 7977 2020-10-07 15:29:54Z guillaume $
 
 
 % step size for numerical derivatives
@@ -121,6 +121,10 @@ if length(n) == 1
         J = spm_dfdx_cat(J);
     end
     
+    % assign output argument and return
+    %----------------------------------------------------------------------
+    varargout = {J, f0};
+    
 else
     
     % dfdxdxdx....
@@ -144,11 +148,11 @@ else
         J = spm_dfdx_cat(J);
     end
     
+    % assign output argument and return
+    %----------------------------------------------------------------------
+    varargout = [{J}, f0];
+    
 end
-
-% assign output argument and return
-%--------------------------------------------------------------------------
-varargout = {J, f0};
 
 
 %==========================================================================
