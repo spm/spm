@@ -3,7 +3,7 @@ function coreg = spm_cfg_coreg
 %__________________________________________________________________________
 % Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 7792 2020-02-25 14:30:37Z john $
+% $Id: spm_cfg_coreg.m 7978 2020-10-08 10:20:06Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -12,7 +12,7 @@ function coreg = spm_cfg_coreg
 ref         = cfg_files;
 ref.tag     = 'ref';
 ref.name    = 'Fixed Image';
-ref.help    = {'This is the image that is assumed to remain stationary (previously known as the reference image), while the moved (previously known as the reference) image is moved to match it. Although not ideal, note that slice-to-volume registration works better if the single slice is the fixed image.'};
+ref.help    = {'This is the image that is assumed to remain stationary (previously known as the reference image), while the moved (previously known as the source) image is moved to match it. Although not ideal, note that slice-to-volume registration works better if the single slice is the fixed image.'};
 ref.filter  = 'image';
 ref.ufilter = '.*';
 ref.num     = [1 1];
