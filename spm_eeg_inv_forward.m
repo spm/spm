@@ -12,10 +12,10 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 7702 2019-11-22 11:32:26Z guillaume $
+% $Id: spm_eeg_inv_forward.m 7979 2020-10-08 17:13:07Z george $
 
 
-SVNrev = '$Rev: 7702 $';
+SVNrev = '$Rev: 7979 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -203,6 +203,16 @@ for i = 1:numel(D.inv{val}.forward)
             headshape                  = export(gifti(mesh.tess_iskull), 'ft');
             
             vol                        = ft_prepare_headmodel(cfg, headshape);
+            modality                   = 'MEG';
+        case 'Magnetic Dipole'
+            cfg                        = [];
+            cfg.feedback               = 'yes';
+            cfg.showcallino            = 'no';
+            cfg.grad                   = sens;
+            cfg.method                 = 'infinite';
+            cfg.siunits                = 'yes';
+            
+            vol                        = ft_prepare_headmodel(cfg);
             modality                   = 'MEG';
             
         otherwise
