@@ -15,11 +15,12 @@ function D = spm_eeg_ctf_synth_gradiometer(S)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: spm_eeg_ctf_synth_gradiometer.m 7818 2020-04-07 10:30:26Z george $
+% $Id: spm_eeg_ctf_synth_gradiometer.m 7980 2020-10-09 11:30:58Z george $
 
 %-Set default options
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename);
+SVNrev = '$Rev: 7980 $';
+spm('FnBanner', mfilename, SVNrev);
 errorMsg = 'an MEEG object must be supplied.';
 if ~isfield(S, 'D'),            error(errorMsg);            end
 if ~isfield(S, 'gradient'), 	S.gradient = 3;             end
@@ -59,8 +60,10 @@ end
 
 %-Gradiometry denoising
 %--------------------------------------------------------------------------
-fprintf('  Switching gradiometry mode from %s to %s:\n',...
-    upper(S.D.sensors('meg').balance.current),desired);
+fprintf('%-40s: %30s\n','Current order',...
+    upper(S.D.sensors('meg').balance.current)); 
+fprintf('%-40s: %30s\n','Target order',...
+    upper(desired)); 
 
 switch S.method
     case 'spm'
