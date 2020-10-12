@@ -15,7 +15,7 @@ function varargout = spm_mb_classes(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_classes.m 7970 2020-10-02 11:02:46Z john $
+% $Id: spm_mb_classes.m 7982 2020-10-12 11:07:27Z john $
 
 if isa(varargin{1},'char')
     [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
@@ -42,8 +42,11 @@ elseif isfield(dat.model,'gmm')
         mu = mu + lab;
     end
     clear lab
-
-    [dat,P] = spm_mb_appearance('update',dat,mu,sett);
+    if sett.gmm(dat.model.gmm.pop).nit_appear >0
+        [dat,P] = spm_mb_appearance('update',dat,mu,sett);
+    else
+        P = exp(bsxfun(@minus,mu(:,:,:,1:(size(mu,4)-1)),LSE1(mu,4)));
+    end
 else
     error('This should not happen');
 end

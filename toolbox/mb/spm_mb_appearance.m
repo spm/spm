@@ -1,4 +1,4 @@
-function varargout = spm_mb_appearance(action,varargin) % Appearance model
+function varargout = spm_mb_appearance(varargin) % Appearance model
 %
 % FORMAT chan       = spm_mb_appearance('inu_basis',T,df,Mat,reg,samp)
 % FORMAT [inu,ll]   = spm_mb_appearance('inu_field',T,chan,d,varargin)
@@ -8,8 +8,38 @@ function varargout = spm_mb_appearance(action,varargin) % Appearance model
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 7944 2020-09-14 09:09:16Z john $
-[varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
+% $Id: spm_mb_appearance.m 7982 2020-10-12 11:07:27Z john $
+[varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
+%==========================================================================
+
+%==========================================================================
+function dat = restart(dat,sett)
+% Allow a restart of the GMM
+for n=1:numel(dat)
+    if isfield(dat(n).model,'gmm')
+        p    = dat(n).model.gmm.pop;
+        same = all(sum(diff(sett.gmm(p).pr{1},1,2).^2,1))==0;
+        if same
+            % Intensity priors are identical for all clusters
+            % so need to break the symmetry.
+            % Increase variance of Gaussians and make the means
+            % more similar to each other.
+            dat(n).model.gmm.V = dat(n).model.gmm.V*0.1;
+            dat(n).model.gmm.m = bsxfun(@plus, dat(n).model.gmm.m*0.1,...
+                                        mean(dat(n).model.gmm.m,2)*0.9);
+        else
+            % Set all GMM parameters to be identical so the
+            % next GMM fit restarts everything at the current
+            % priors. Symmetry already broken with intensity
+            % priors.
+            [M,K1] = size(dat(n).model.gmm.m);
+            dat(n).model.gmm.m = ones(M,K1)*1000;
+            dat(n).model.gmm.b = ones(1,K1);
+            dat(n).model.gmm.V = repmat(eye(M,M)/1000,[1 1 K1]);
+            dat(n).model.gmm.n = ones(1,K1)*(M+1);
+        end
+    end
+end
 %==========================================================================
 
 %==========================================================================
@@ -433,7 +463,7 @@ if nargout > 1
         Z = vec2vol(collapse_Z(spm_gmm_lib('cell2obs', Z, code_image, msk_chn),mg_ix),ds);
     end
 end
-dat.E(1)      = -lbs; 
+dat.E(1)      = -lbs;
 dat.nvox      = nvox;
 dat.model.gmm = gmm;
 %==========================================================================

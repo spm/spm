@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 7927 2020-08-12 16:07:42Z john $
+% $Id: spm_mb_output.m 7982 2020-10-12 11:07:27Z john $
 
 res  = load(char(cfg.result));
 sett = res.sett;
@@ -196,7 +196,7 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
                                   zn,{gmm.m,A},code_image,sample_post);
         clear code
     end
-    clear code_image 
+    clear code_image
 
     mf = reshape(mf,[df(1:3) C]);
 

@@ -11,7 +11,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 7944 2020-09-14 09:09:16Z john $
+% $Id: spm_mb_fit.m 7982 2020-10-12 11:07:27Z john $
 
 
 % Repeatable random numbers
@@ -45,31 +45,13 @@ sett.ms = sz(end);
 %--------------------------------------------------------------------------
 dat = spm_mb_shape('init_def',dat,sett.ms);
 
-% Init template
-%--------------------------------------------------------------------------
-if exist('mu0','var')
-    % Shrink given template
-    mu = spm_mb_shape('shrink_template',mu0,Mmu,sett);
-else
-    % Random template
-    mu = randn([sett.ms.d sett.K],'single')*1.0;
-end
-
-% Start algorithm
-%--------------------------------------------------------------------------
 nit_zm0   = 3;
 nit_aff   = 128;
 updt_aff  = true;
 updt_diff = all(isfinite(sett.v_settings));
 updt_mu   = ~exist('mu0','var');
-if ~exist('mu0','var')
-    te = spm_mb_shape('template_energy',mu,sett.ms.mu_settings);
-else
-    te = 0;
-end
 
-% Update affine only
-% No update of intensity priors during this phase.
+% Specify subsampling
 %--------------------------------------------------------------------------
 for n=1:numel(dat)
     dat(n).samp  = get_samp(sett.ms.Mmu,dat(n).Mat,sett.sampdens);
@@ -77,6 +59,23 @@ for n=1:numel(dat)
         dat(n).model.gmm.samp = [1 1 1];
     end
 end
+
+% Init template
+%--------------------------------------------------------------------------
+if updt_mu,
+    % Random template
+    nit_mu = 1;
+    mu = randn([sett.ms.d sett.K],'single')*1.0;
+    mu = init_mu(dat,mu,sett);
+    te = spm_mb_shape('template_energy',mu,sett.ms.mu_settings);
+else
+    % Shrink given template
+    mu = spm_mb_shape('shrink_template',mu0,Mmu,sett);
+    te = 0;
+end
+
+% Update affine only
+%--------------------------------------------------------------------------
 fprintf('Rigid (zoom=%d): %d x %d x %d\n',2^(numel(sz)-1),sett.ms.d);
 spm_plot_convergence('Init','Rigid Alignment','Objective','Iteration');
 E      = Inf;
@@ -87,7 +86,10 @@ for it0=1:nit_aff
         oE  = Inf;
     end
     if updt_mu
-        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te);
+
+        if it0<=12 && ~rem(it0,3), dat = spm_mb_appearance('restart',dat,sett); end
+
+        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu);
         show_mu(mu, ['Affine (it=' num2str(it0) ' | N=' num2str(numel(dat)) ')']);
     end
 
@@ -96,7 +98,6 @@ for it0=1:nit_aff
         dat   = spm_mb_shape('update_simple_affines',dat,mu,sett);
         E     = sum(sum(cat(2,dat.E),2),1) + te;  % Cost function after previous update
         sett  = spm_mb_appearance('update_prior',dat, sett);
-
         fprintf('%12.4e', E/nvox(dat));
     end
     fprintf('\n');
@@ -106,7 +107,7 @@ for it0=1:nit_aff
     % Finished rigid alignment?
     % Note that for limited field of view templates, the objective
     % function can increase as well as decrease.
-    if abs(oE-E/nvox(dat)) < sett.tol
+    if it0>12 && abs(oE-E/nvox(dat)) < sett.tol
         countdown = countdown - 1;
         if countdown==0
             break;
@@ -116,14 +117,16 @@ for it0=1:nit_aff
     end
 end
 spm_plot_convergence('Clear');
-
+nit_mu = 2;
 
 % Update affine and diffeo (iteratively decreases the template resolution)
 %--------------------------------------------------------------------------
 spm_plot_convergence('Init','Diffeomorphic Alignment','Objective','Iteration');
 for zm=numel(sz):-1:1 % loop over zoom levels
     fprintf('\nzoom=%d: %d x %d x %d\n', 2^(zm-1), sett.ms.d);
-   %spm_plot_convergence('Init',['Diffeomorphic Alignment (' num2str(2^(zm-1)) ')'],'Objective','Iteration');
+
+    dat = spm_mb_appearance('restart',dat,sett);
+
     for n=1:numel(dat)
         dat(n).samp  = [1 1 1];
         if isfield(dat(n).model,'gmm')
@@ -134,7 +137,7 @@ for zm=numel(sz):-1:1 % loop over zoom levels
     if ~updt_mu
         mu = spm_mb_shape('shrink_template',mu0,Mmu,sett);
     else
-        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te);
+        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu);
         show_mu(mu, ['Diffeo (it=' num2str(zm) ' ' num2str(0) ')']);
     end
 
@@ -153,7 +156,7 @@ for zm=numel(sz):-1:1 % loop over zoom levels
 
         oE  = E/nvox(dat);
         if updt_mu
-            [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te);
+            [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu);
             show_mu(mu, ['Diffeo (it=' num2str(zm) ' ' num2str(it0) ' | N=' num2str(numel(dat)) ')']);
         end
 
@@ -221,9 +224,9 @@ samp = min(samp,5);
 %==========================================================================
 
 %==========================================================================
-function [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te)
+function [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu)
 % UPDATE: mean
-nit_mu = 5;
+if nargin<5, nit_mu = 1; end
 E      = Inf;
 for it=1:nit_mu
     [mu,dat] = spm_mb_shape('update_mean',dat, mu, sett);
@@ -235,6 +238,21 @@ for it=1:nit_mu
     spm_plot_convergence('Set',E/nvox(dat));
     do_save(mu,sett,dat);
     if it>1 && oE-E < sett.tol*nvox(dat); break; end
+end
+%==========================================================================
+
+%==========================================================================
+function mu = init_mu(dat,mu,sett)
+% Initialise from labelled scans only
+ind = false(numel(dat),1);
+for n=1:numel(dat)
+    if isfield(dat(n).model,'cat') || (isfield(dat(n).model,'gmm') && ~isempty(dat(n).lab))
+        ind(n) = true;
+    end
+end
+if sum(ind)>0
+    dat1 = dat(ind);
+    mu   = spm_mb_template(dat1, mu, sett);
 end
 %==========================================================================
 

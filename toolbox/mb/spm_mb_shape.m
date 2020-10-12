@@ -1,4 +1,4 @@
-function varargout = spm_mb_shape(action,varargin)
+function varargout = spm_mb_shape(varargin)
 % Shape model
 %
 % FORMAT psi0      = spm_mb_shape('affine',d,Mat)
@@ -25,8 +25,8 @@ function varargout = spm_mb_shape(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7970 2020-10-02 11:02:46Z john $
-[varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
+% $Id: spm_mb_shape.m 7982 2020-10-12 11:07:27Z john $
+[varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
 %==========================================================================
@@ -473,7 +473,7 @@ K   = size(mu,4);
 update_settings = [mu_settings(1:3) mu_settings(4:end)*(1-1/(K+1)) 2 2];
 if accel>0, s   = softmax(mu); end
 dmu = zeros(size(mu),'like',mu);
-for it=1:20
+for it=1:16
     for k=1:K
 
         % Diagonal elements of Hessian
@@ -632,8 +632,16 @@ end
 function dat = update_velocities(dat,mu,sett)
 
 % Parse function settings
-accel = sett.accel;
-nw    = get_num_workers(sett,4*sett.K+4*3);
+accel     = sett.accel;
+nw        = get_num_workers(sett,4*sett.K+4*3);
+
+groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
+if groupwise
+    scal = 1-1/numel(dat);
+else
+    scal = 1;
+end
+scal = min(scal,0.9);
 
 G  = spm_diffeo('grad',mu);
 H0 = velocity_hessian(mu,G,accel);
@@ -642,14 +650,14 @@ if size(G,3) == 1
     H0(:,:,:,3) = H0(:,:,:,3) + mean(reshape(H0(:,:,:,[1 2]),[],1));
 end
 if nw > 1 && numel(dat) > 1 % PARFOR
-    parfor(n=1:numel(dat),nw) dat(n) = update_velocities_sub(dat(n),mu,G,H0,sett); end
+    parfor(n=1:numel(dat),nw) dat(n) = update_velocities_sub(dat(n),mu,G,H0,sett,scal); end
 else % FOR
-    for n=1:numel(dat), dat(n) = update_velocities_sub(dat(n),mu,G,H0,sett); end
+    for n=1:numel(dat), dat(n) = update_velocities_sub(dat(n),mu,G,H0,sett,scal); end
 end
 %==========================================================================
 
 %==========================================================================
-function datn = update_velocities_sub(datn,mu,G,H0,sett)
+function datn = update_velocities_sub(datn,mu,G,H0,sett,scal)
 
 % Parse function settings
 B          = sett.B;
@@ -657,6 +665,8 @@ d          = sett.ms.d;
 Mmu        = sett.ms.Mmu;
 s_settings = [2 2];
 v_settings = sett.ms.v_settings;
+
+if nargin<6, scal=0.9; end
 
 v        = spm_mb_io('get_data',datn.v);
 q        = datn.q;
@@ -675,9 +685,9 @@ g         = reshape(sum(bsxfun(@times,a,G),4),[d 3]);
 H         = bsxfun(@times,w,H0);
 clear a w
 
-u0        = spm_diffeo('vel2mom', v, v_settings);                          % Initial momentum
-datn.E(2) = 0.5*sum(u0(:).*v(:));                                          % Prior term
-v         = v - 0.9*spm_diffeo('fmg', H, g + u0, [v_settings s_settings]); % Gauss-Newton update
+u0        = spm_diffeo('vel2mom', v, v_settings);                           % Initial momentum
+datn.E(2) = 0.5*sum(u0(:).*v(:));                                           % Prior term
+v         = v - scal*spm_diffeo('fmg', H, g + u0, [v_settings s_settings]); % Gauss-Newton update
 
 if d(3)==1, v(:,:,:,3) = 0; end % If 2D
 if v_settings(1)==0             % Mean displacement should be 0
@@ -1000,11 +1010,11 @@ for i=1:n
     sz(i).Mmu         = Mmu*[diag(z), (1-z(:))*0.5; 0 0 0 1];
     vx                = sqrt(sum(sz(i).Mmu(1:3,1:3).^2));
     scale_i           = scale*abs(det(sz(i).Mmu(1:3,1:3)));
-    % This fudge value (1.1) should really be 1, but this gives less
+    % This fudge value (1.15) should really be 1, but this gives less
     % extreme warps in the early iterations, which might help the
     % clustering associate the right priors to each tissue class
     % - without warping the priors to the wrong tissue.
-    scale_i           = scale_i^1.1;
+    scale_i           = scale_i^1.15;
     sz(i).v_settings  = [vx v_settings*scale_i];
     if isfield(mu,'create')
         mu_settings       = mu.create.mu_settings;

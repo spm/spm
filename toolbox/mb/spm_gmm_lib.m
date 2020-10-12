@@ -37,7 +37,7 @@ function varargout = spm_gmm_lib(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_gmm_lib.m 7970 2020-10-02 11:02:46Z john $
+% $Id: spm_gmm_lib.m 7982 2020-10-12 11:07:27Z john $
 
 %--------------------------------------------------------------------------
 % Convention
@@ -1539,6 +1539,7 @@ if ~constrained
         sumLogDet = sumLogDet/S;
         sumPsi    = sumPsi/S;
         Vn        = Vn/S;
+       %LogDetVn  = logdet(Vn);
 
         % -----------------------------------------------------------------
         % Update n0 (mode, Gauss-Newton [convex])
@@ -1549,6 +1550,7 @@ if ~constrained
             % Update V0 (mode, closed-form)
             V0(:,:,k)   = Vn/n0(k);
             LogDetV0(k) = logdet( V0(:,:,k));
+           %LogDetV0(k) = LogDetVn - N*log(n0(k));
             % -------------------------------------------------------------
 
             % ---
@@ -1569,8 +1571,9 @@ if ~constrained
 
             % ---
             % Update
-            n0(k) = max(n0(k) - H\g, N-1+2*eps);
-
+           %n0(k) = max(n0(k) - H\g, N-1+N*eps);
+            reg   = 0.001; % Regularise so n0 tends towards 0
+            n0(k) = max((H+reg)\(H*n0(k)-g), N-1+N*eps);
         end
         % -----------------------------------------------------------------
 
@@ -1671,7 +1674,7 @@ else
 
                 % ---
                 % Update
-                n0(k) = max(n0(k) - H\g, N-1+2*eps);
+                n0(k) = max(n0(k) - H\g, N-1+N*eps);
             end
             % ------------------------------------------------------------
 
@@ -1724,7 +1727,7 @@ else
 
             % ---
             % Update
-            p0 = max(p0 - H\g, N-1+2*eps);
+            p0 = max(p0 - H\g, N-1+N*eps);
 
         end
         % -----------------------------------------------------------------
@@ -2677,7 +2680,7 @@ function ld = logdet(A)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_gmm_lib.m 7970 2020-10-02 11:02:46Z john $
+% $Id: spm_gmm_lib.m 7982 2020-10-12 11:07:27Z john $
 
 % Cholseki decomposition of A (A = C' * C, with C upper-triangular)
 [C, p] = chol(A);
@@ -2740,7 +2743,7 @@ if nargin < 2
 end
 lg = (p*(p-1)/4)*log(pi);
 for i=1:p
-    lg = lg + gammaln(a + (1-p)/2);
+    lg = lg + gammaln(a + (1-i)/2);
 end
 
 % === DiGamma =============================================================

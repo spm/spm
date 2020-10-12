@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7941 2020-09-10 20:26:43Z john $
+% $Id: spm_mb_init.m 7982 2020-10-12 11:07:27Z john $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -401,6 +401,7 @@ for p=1:numel(sett.gmm) % Loop over populations
         for n=1:N
             n1                  = index(n);
             dat(n1).model.gmm.m = mu;                % Random means (break symmetry)
+           %dat(n1).model.gmm.m = bsxfun(@plus,0.01*diag(sqrt(vr)*(1-1/scale))*randn(C,K1), mu);
             dat(n1).model.gmm.b = sett.gmm(p).pr{2};
             dat(n1).model.gmm.V = sett.gmm(p).pr{3};
             dat(n1).model.gmm.n = sett.gmm(p).pr{4};
