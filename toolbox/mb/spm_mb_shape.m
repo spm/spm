@@ -25,7 +25,7 @@ function varargout = spm_mb_shape(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7982 2020-10-12 11:07:27Z john $
+% $Id: spm_mb_shape.m 7983 2020-10-13 09:50:50Z mikael $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -774,11 +774,19 @@ end
 
 nw     = get_num_workers(sett,33);
 kernel = shoot(d,v_settings);
+fprintf('update_warps_sub: ');
 if nw > 1 && numel(dat) > 1 % PARFOR
-    parfor(n=1:numel(dat),nw) dat(n) = update_warps_sub(dat(n),avg_v,kernel,sett); end
+    parfor(n=1:numel(dat),nw)
+        fprintf('.');
+        dat(n) = update_warps_sub(dat(n),avg_v,kernel,sett); 
+    end
 else % FOR
-    for n=1:numel(dat), dat(n) = update_warps_sub(dat(n),avg_v,kernel,sett); end
+    for n=1:numel(dat)
+        fprintf('.');
+        dat(n) = update_warps_sub(dat(n),avg_v,kernel,sett); 
+    end
 end
+fprintf(' done!\n');
 %==========================================================================
 
 %==========================================================================
@@ -810,8 +818,10 @@ y     = affine(d,Mzoom);
 if nargout > 1 || ~isempty(mu), mu = spm_diffeo('pullc',mu,y); end % only resize template if updating it
 
 if ~isempty(dat)
+    fprintf('zoom_volumes: ');
     if nw > 1 && numel(dat) > 1 % PARFOR
         parfor(n=1:numel(dat),nw)
+            fprintf('.');
             v          = spm_mb_io('get_data',dat(n).v);
             v          = spm_diffeo('pullc',bsxfun(@times,v,z),y);
             dat(n).v   = resize_file(dat(n).v  ,d,Mmu);
@@ -825,6 +835,7 @@ if ~isempty(dat)
         end
     else % FOR
         for n=1:numel(dat)
+            fprintf('.');
             v          = spm_mb_io('get_data',dat(n).v);
             v          = spm_diffeo('pullc',bsxfun(@times,v,z),y);
             dat(n).v   = resize_file(dat(n).v  ,d,Mmu);
@@ -837,6 +848,7 @@ if ~isempty(dat)
             dat(n).psi = resize_file(dat(n).psi,d,Mdef);
         end
     end
+    fprintf(' done!\n');
 end
 %==========================================================================
 
