@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 7982 2020-10-12 11:07:27Z john $
+% $Id: tbx_cfg_mb.m 7985 2020-10-13 16:55:15Z mikael $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
@@ -567,6 +567,16 @@ mwc.val     = {[]};
 wmc.help    = {'Specify the indices of any spatially normalised and Jacobian-scaled (``modulated'') tissue class images to be written.',''};
 % ---------------------------------------------------------------------
 
+% ---------------------------------------------------------------------
+sm         = cfg_entry;
+sm.tag     = 'sm';
+sm.name    = 'Scalar momentum';
+sm.strtype = 'n';
+sm.num     = [0 Inf];
+sm.val     = {[]};
+sm.help    = {'Specify the indices of any scalar momentums to be written.',''};
+% ---------------------------------------------------------------------
+
 %--------------------------------------------------------------------------
 mrf         = cfg_entry;
 mrf.tag     = 'mrf';
@@ -574,14 +584,14 @@ mrf.name    = 'MRF Parameter';
 mrf.help    = {'When tissue class images are written out, a few iterations of a simple Markov random field (MRF) cleanup procedure are run.  This parameter controls the strength of the MRF. Setting the value to zero will disable the cleanup.'};
 mrf.strtype = 'r';
 mrf.num     = [1 1];
-mrf.val     = {1};
+mrf.val     = {0};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
 out      = cfg_exbranch;
 out.tag  = 'out';
 out.name = 'Output';
-out.val  = {res_file, i, mi, wi, wmi, inu, c, wc, mwc, mrf};
+out.val  = {res_file, i, mi, wi, wmi, inu, c, wc, mwc, sm, mrf};
 out.prog = @spm_mb_output;
 out.help = {[...
 'When ``Fit Multi-Brain model'' is run, the resulting model fit contains ' ...
