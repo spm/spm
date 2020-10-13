@@ -11,7 +11,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 7982 2020-10-12 11:07:27Z john $
+% $Id: spm_mb_fit.m 7984 2020-10-13 10:05:34Z john $
 
 
 % Repeatable random numbers
@@ -252,7 +252,7 @@ for n=1:numel(dat)
 end
 if sum(ind)>0
     dat1 = dat(ind);
-    mu   = spm_mb_template(dat1, mu, sett);
+    mu   = spm_mb_shape('update_mean',dat1, mu, sett);
 end
 %==========================================================================
 
