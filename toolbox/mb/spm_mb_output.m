@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 7985 2020-10-13 16:55:15Z mikael $
+% $Id: spm_mb_output.m 7986 2020-10-16 14:04:31Z mikael $
 
 res  = load(char(cfg.result));
 sett = res.sett;
@@ -40,20 +40,12 @@ ind = cfg.wc;  ind = ind(ind>=1 & ind<=sett.K+1); write_tc(ind,2) = true;
 ind = cfg.mwc; ind = ind(ind>=1 & ind<=sett.K+1); write_tc(ind,3) = true;
 ind = cfg.sm;  ind = ind(ind>=1 & ind<=sett.K+1); write_tc(ind,4) = true;
 
-% Hidden option for smoothing of warped data
-if ~isfield(cfg,'fwhm')    
-    cfg.fwhm = 0;
-end
-if size(cfg.fwhm,2) == 1
-    % warped, warped modulated and scalar momentum can have individual
-    % FWHMs
-    cfg.fwhm = repmat(cfg.fwhm,1,size(write_tc,2) - 1);
-end
-    
 opt = struct('write_inu',cfg.inu,...
              'write_im',[cfg.i cfg.mi cfg.wi cfg.wmi],...
              'write_tc',write_tc,...
              'mrf',cfg.mrf,...
+             'vx',cfg.vox,...
+             'bb',cfg.bb,...
              'fwhm',cfg.fwhm);
 
 spm_progress_bar('Init',N,'Writing MB output','Subjects complete');
@@ -97,7 +89,9 @@ mrf        = opt.mrf;
 write_inu  = opt.write_inu; % field
 write_im   = opt.write_im;  % image, corrected, warped, warped corrected
 write_tc   = opt.write_tc;  % native, warped, warped-mod, scalar momentum
-fwhm       = opt.fwhm;   % FWHM for smoothing of warped tissues
+fwhm       = opt.fwhm;      % FWHM for smoothing of warped tissues
+vx         = opt.vx;        % Template space voxel size
+bb         = opt.bb;        % Template space bounding box
 
 if ((~any(write_inu(:)) && ~any(write_im(:))) || ~isfield(datn.model,'gmm')) && ~any(write_tc(:))
     return;
@@ -184,21 +178,26 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
     mun  = bsxfun(@plus, mun, log(mg_w));
 
     % Format for spm_gmm
-    chan                     = spm_mb_appearance('inu_basis',gmm.T,df,datn.Mat,ones(1,C));
-    [~,mf,vf]                = spm_mb_appearance('inu_recon',fn,chan,gmm.T,gmm.Sig);
-    mf                       = reshape(mf,[prod(df) C]);
-    vf                       = reshape(vf,[prod(df) C]);
-    [mfc,code_image,msk_chn] = spm_gmm_lib('obs2cell', mf);
-    mun                      = spm_gmm_lib('obs2cell', mun, code_image, false);
-    vfc                      = spm_gmm_lib('obs2cell', vf,  code_image, true);
+    chan                   = spm_mb_appearance('inu_basis',gmm.T,df,datn.Mat,ones(1,C));
+    [~,mf,vf]              = spm_mb_appearance('inu_recon',fn,chan,gmm.T,gmm.Sig);
+    clear fn
+    mf                     = reshape(mf,[prod(df) C]);
+    vf                     = reshape(vf,[prod(df) C]);
+    [~,code_image,msk_chn] = spm_gmm_lib('obs2cell', reshape(mf,[prod(df) C]));    
 
     % Get responsibilities, making sure that missing values are 'filled in'
     % by the template. For example, for CT, CSF can have intensity zero;
     % but we consider this value as missing as background values can also be
     % zero, which would bias the fitting of the GMM.
-    zn      = spm_mb_appearance('responsibility',gmm.m,gmm.b,gmm.V,gmm.n,mfc,vfc,mun,msk_chn);
-    zn      = spm_gmm_lib('cell2obs', zn, code_image, msk_chn);
-    clear mun msk_chn vfc mfc
+    const             = spm_gmm_lib('Normalisation', {gmm.m,gmm.b}, {gmm.V,gmm.n}, msk_chn);
+    if ~isempty(vf)
+        zn            = spm_gmm_lib('Marginal', mf, {gmm.m,gmm.V,gmm.n}, const, msk_chn, vf);
+    else
+        zn            = spm_gmm_lib('Marginal', mf, {gmm.m,gmm.V,gmm.n}, const, msk_chn);
+    end
+    zn(~isfinite(zn)) = min(zn(:));  % NaN assumed to have small (log) probability
+    zn                = spm_gmm_lib('Responsibility', zn, mun);    
+    clear mun msk_chn vf
 
     % Get bias field modulated image data
     if do_infer
@@ -335,6 +334,9 @@ if any(write_tc(:,2)) || any(write_tc(:,3)) || any(write_tc(:,4))
         mun = spm_mb_shape('softmax',mun,4);
         mun = cat(4,mun,max(1 - sum(mun,4),0));
     end
+    % Possibly modify template space images' voxel size and FOV
+    [Mmu,dmu,vx_mu,psi] = modify_fov(bb,vx,Mmu,dmu,vx_mu,psi,sett);
+    % Write output
     for k=1:K1
         if write_tc(k,2) || write_tc(k,3) || write_tc(k,4)
             if write_tc(k,2) || write_tc(k,3)
@@ -347,8 +349,7 @@ if any(write_tc(:,2)) || any(write_tc(:,3)) || any(write_tc(:,4))
                 resn.wc{kwc} = fpth;
                 wimg         = img./(cnt + eps('single'));
                 spm_smooth(wimg,wimg,fwhm(1)./vx_mu);  % Smooth
-                write_nii(fpth, wimg,...
-                         Mmu, sprintf('Norm. tissue (%d)',k), 'uint8');
+                write_nii(fpth, wimg, Mmu, sprintf('Norm. tissue (%d)',k), 'uint8');
             end
             if write_tc(k,3)
                 % Write normalised modulated segmentation
@@ -377,6 +378,43 @@ if any(write_tc(:,2)) || any(write_tc(:,3)) || any(write_tc(:,4))
             clear wimg
         end
     end
+end
+%==========================================================================
+
+%==========================================================================
+function [Mmu,dmu,vx_mu,psi] = modify_fov(bb_out,vx_out,Mmu,dmu,vx_mu,psi,sett)
+if any(isfinite(bb_out(:))) || any(isfinite(vx_out))
+    % Get bounding-box   
+    bb1 = spm_get_bbox(sett.mu.exist.mu, 'old');
+    bb_out(~isfinite(bb_out)) = bb1(~isfinite(bb_out));
+    if ~isfinite(vx_out), vx_out = abs(prod(vx_mu))^(1/3); end
+    bb_out(1,:) = vx_out*round(bb_out(1,:)/vx_out);
+    bb_out(2,:) = vx_out*round(bb_out(2,:)/vx_out);
+    % New output dimensions
+    dmu = abs(round((bb_out(2,1:3)-bb_out(1,1:3))/vx_out))+1;
+    % New orientation matrix
+    mm  = [[bb_out(1,1) bb_out(1,2) bb_out(1,3)
+            bb_out(2,1) bb_out(1,2) bb_out(1,3)
+            bb_out(1,1) bb_out(2,2) bb_out(1,3)
+            bb_out(2,1) bb_out(2,2) bb_out(1,3)
+            bb_out(1,1) bb_out(1,2) bb_out(2,3)
+            bb_out(2,1) bb_out(1,2) bb_out(2,3)
+            bb_out(1,1) bb_out(2,2) bb_out(2,3)
+            bb_out(2,1) bb_out(2,2) bb_out(2,3)]'; ones(1,8)];
+    vx3 = [[1       1       1
+            dmu(1) 1       1
+            1       dmu(2) 1
+            dmu(1) dmu(2) 1
+            1       1       dmu(3)
+            dmu(1) 1       dmu(3)
+            1       dmu(2) dmu(3)
+            dmu(1) dmu(2) dmu(3)]'; ones(1,8)];
+    M1    = mm/vx3;
+    M0    = M1\Mmu;
+    vx_mu = sqrt(sum(Mmu(1:3,1:3).^2));
+    Mmu   = M1;
+    % Modify deformation
+    psi = MatDefMul(psi,M0);
 end
 %==========================================================================
 
