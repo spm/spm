@@ -25,7 +25,7 @@ function varargout = spm_mb_shape(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7983 2020-10-13 09:50:50Z mikael $
+% $Id: spm_mb_shape.m 7987 2020-10-16 15:10:53Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -331,6 +331,13 @@ if ~isempty(B)
     if groupwise
         % Zero-mean the affine parameters
         mq = sum(cat(2,dat(:).q),2)/numel(dat);
+
+        if isfield(sett.mu.create,'issym') && sett.mu.create.issym>0
+            % Temporary fix so that affine transforms are not mean
+            % corrected when dealing with a symmetric template.
+            mq = mq*0;
+        end
+
         for n=1:numel(dat)
             dat(n).q = dat(n).q - mq;
         end
@@ -461,6 +468,13 @@ else
     end
 end
 clear gn wn
+
+if isfield(sett.mu.create,'issym') && sett.mu.create.issym>0
+    g  = (g  +  g(end:-1:1,:,:,:))/2;
+    w  = (w  +  w(end:-1:1,:,:))/2;
+    mu = (mu + mu(end:-1:1,:,:,:))/2;
+end
+
 mu = gn_mu_update(mu,g,w,mu_settings,accel);
 %==========================================================================
 
@@ -473,7 +487,7 @@ K   = size(mu,4);
 update_settings = [mu_settings(1:3) mu_settings(4:end)*(1-1/(K+1)) 2 2];
 if accel>0, s   = softmax(mu); end
 dmu = zeros(size(mu),'like',mu);
-for it=1:16
+for it=1:10
     for k=1:K
 
         % Diagonal elements of Hessian
@@ -558,9 +572,17 @@ if ~isempty(B)
     if groupwise
         % Zero-mean the affine parameters
         mq = sum(cat(2,dat(:).q),2)/numel(dat);
+
+        if isfield(sett.mu.create,'issym') && sett.mu.create.issym>0
+            % Temporary fix so that affine transforms are not mean
+            % corrected when dealing with a symmetric template.
+            mq = mq*0;
+        end
+
         for n=1:numel(dat)
             dat(n).q = dat(n).q - mq;
         end
+         
     end
 
     % Update orientations in deformation headers when appropriate
@@ -633,7 +655,7 @@ function dat = update_velocities(dat,mu,sett)
 
 % Parse function settings
 accel     = sett.accel;
-nw        = get_num_workers(sett,4*sett.K+4*3);
+nw        = get_num_workers(sett,7*sett.K+4*3+6);
 
 groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
 if groupwise
@@ -768,6 +790,13 @@ if groupwise
     end
     avg_v = avg_v/numel(dat);
     d     = [size(avg_v,1) size(avg_v,2) size(avg_v,3)];
+
+    % Handle situations where there may be left-right symmetry
+    if isfield(sett.mu.create,'issym') && sett.mu.create.issym>0
+        avg_v(:,:,:,1)   = (avg_v(:,:,:,1)   - avg_v(end:-1:1,:,:,1)  )/2;
+        avg_v(:,:,:,2:3) = (avg_v(:,:,:,2:3) + avg_v(end:-1:1,:,:,2:3))/2;
+    end
+
 else
     avg_v = [];
 end
@@ -1022,11 +1051,11 @@ for i=1:n
     sz(i).Mmu         = Mmu*[diag(z), (1-z(:))*0.5; 0 0 0 1];
     vx                = sqrt(sum(sz(i).Mmu(1:3,1:3).^2));
     scale_i           = scale*abs(det(sz(i).Mmu(1:3,1:3)));
-    % This fudge value (1.15) should really be 1, but this gives less
+    % This fudge value (1.1) should really be 1, but this gives less
     % extreme warps in the early iterations, which might help the
     % clustering associate the right priors to each tissue class
     % - without warping the priors to the wrong tissue.
-    scale_i           = scale_i^1.15;
+    scale_i           = scale_i^1.1;
     sz(i).v_settings  = [vx v_settings*scale_i];
     if isfield(mu,'create')
         mu_settings       = mu.create.mu_settings;

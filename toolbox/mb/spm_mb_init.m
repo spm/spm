@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7982 2020-10-12 11:07:27Z john $
+% $Id: spm_mb_init.m 7987 2020-10-16 15:10:53Z john $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -16,13 +16,12 @@ if sum(cellfun(@(c)isfield(c,'gmm'),{dat.model}))==0, return; end
 
 %==========================================================================
 function [dat,sett] = mb_init1(cfg)
-sett     = cfg;
-mu       = sett.mu;
+sett      = cfg;
 sett.odir = sett.odir{1};
 if ~isempty(sett.odir) && ~(exist(sett.odir, 'dir') == 7)
     mkdir(sett.odir);
 end
-if isfield(mu,'exist')
+if isfield(sett.mu,'exist')
     fnam = sett.mu.exist{1};
     sett.mu.exist = struct('mu',fnam);
     f    = nifti(fnam);

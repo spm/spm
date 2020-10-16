@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 7986 2020-10-16 14:04:31Z mikael $
+% $Id: tbx_cfg_mb.m 7987 2020-10-16 15:10:53Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
@@ -303,7 +303,7 @@ mu_sett.hidden = true;
 mu_create       = cfg_branch;
 mu_create.tag   = 'create';
 mu_create.name  = 'Create template';
-mu_create.val   = {nclass, vox, const('mu_settings',[1e-5 0.5 0])};
+mu_create.val   = {nclass, vox, const('mu_settings',[1e-5 0.5 0]),const('issym',0)};
 mu_create.help  = {['A tissue probability template will be constructed from all the aligned images. ' ...
                     'The algorithm alternates between re-computing the template and re-aligning all the ' ...
                     'images with this template. ' ...
