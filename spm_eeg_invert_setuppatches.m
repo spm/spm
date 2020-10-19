@@ -18,7 +18,7 @@ function [Qp,Qe,allpriornames] = spm_eeg_invert_setuppatches(allIp,mesh,base,pri
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_invert_setuppatches.m 7118 2017-06-20 10:33:27Z guillaume $
+% $Id: spm_eeg_invert_setuppatches.m 7989 2020-10-19 13:04:37Z george $
 
 
 Npatchiter=size(allIp,1);
@@ -111,7 +111,8 @@ order=1;
 sigma=FWHM./2.355;
 sigma2=sigma^2;
 
-d = spm_mesh_geodesic(M,i-1,order);
+M.faces = double(M.faces); % Force faces to be double for new spm_mesh_geodisic 
+d = spm_mesh_geodesic(M,i); % Updated syntax - GCO;
 
 useind2=find(d<10/1000); %% a much larger area so that for small FWHM the per vertex area can be calculated
 dist2fwhm=d(useind2);
