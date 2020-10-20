@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 7986 2020-10-16 14:04:31Z mikael $
+% $Id: spm_mb_output.m 7990 2020-10-20 10:12:42Z john $
 
 res  = load(char(cfg.result));
 sett = res.sett;
@@ -92,6 +92,10 @@ write_tc   = opt.write_tc;  % native, warped, warped-mod, scalar momentum
 fwhm       = opt.fwhm;      % FWHM for smoothing of warped tissues
 vx         = opt.vx;        % Template space voxel size
 bb         = opt.bb;        % Template space bounding box
+
+cl   = cell(1,1);
+resn = struct('inu',cl,'i',cl,'mi',cl,'c',cl,'wi',cl, ...
+              'wmi',cl,'wc',cl,'mwc',cl,'sm',cl);
 
 if ((~any(write_inu(:)) && ~any(write_im(:))) || ~isfield(datn.model,'gmm')) && ~any(write_tc(:))
     return;
@@ -214,15 +218,15 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
 
     if any(write_im(:,1))
         % Write image
-        resn.im = cell(1,sum(write_im(:,1)));
-        c1      = 0;
+        resn.i = cell(1,sum(write_im(:,1)));
+        c1     = 0;
         for c=1:C
             if ~write_im(c,1), continue; end
             nam  = sprintf('i%d_%s.nii',c,onam);
             fpth = fullfile(dir_res,nam);
             write_nii(fpth,mf(:,:,:,c)./inu(:,:,:,c), Mn, sprintf('Image (%d)',c), 'int16');
             c1          = c1 + 1;
-            resn.m{c1} = fpth;
+            resn.i{c1} = fpth;
         end
     end
 
@@ -334,8 +338,10 @@ if any(write_tc(:,2)) || any(write_tc(:,3)) || any(write_tc(:,4))
         mun = spm_mb_shape('softmax',mun,4);
         mun = cat(4,mun,max(1 - sum(mun,4),0));
     end
+
     % Possibly modify template space images' voxel size and FOV
     [Mmu,dmu,vx_mu,psi] = modify_fov(bb,vx,Mmu,dmu,vx_mu,psi,sett);
+
     % Write output
     for k=1:K1
         if write_tc(k,2) || write_tc(k,3) || write_tc(k,4)

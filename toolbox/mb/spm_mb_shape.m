@@ -25,7 +25,7 @@ function varargout = spm_mb_shape(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7987 2020-10-16 15:10:53Z john $
+% $Id: spm_mb_shape.m 7990 2020-10-20 10:12:42Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -803,7 +803,7 @@ end
 
 nw     = get_num_workers(sett,33);
 kernel = shoot(d,v_settings);
-fprintf('update_warps_sub: ');
+fprintf('Update warps: ');
 if nw > 1 && numel(dat) > 1 % PARFOR
     parfor(n=1:numel(dat),nw)
         fprintf('.');
@@ -847,7 +847,7 @@ y     = affine(d,Mzoom);
 if nargout > 1 || ~isempty(mu), mu = spm_diffeo('pullc',mu,y); end % only resize template if updating it
 
 if ~isempty(dat)
-    fprintf('zoom_volumes: ');
+    fprintf('Zoom volumes: ');
     if nw > 1 && numel(dat) > 1 % PARFOR
         parfor(n=1:numel(dat),nw)
             fprintf('.');
