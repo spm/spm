@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7987 2020-10-16 15:10:53Z john $
+% $Id: spm_mb_init.m 7993 2020-10-21 15:25:13Z mikael $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -337,18 +337,17 @@ for p=1:numel(sett.gmm) % Loop over populations
         mu  = zeros(C,1);                 % Mean
         vr  = zeros(C,1);                 % Diagonal of covariance
         for c=1:C                         % Loop over channels
-            m     = dat(n1).model.gmm.modality(c); % Get modality
             fc    = f(:,c);                        % Image for this channel
             fc    = fc(isfinite(fc));              % Ignore non-finite values
             if isempty(fc)
                 T{c} = []; % No observations in channel => do not model bias field
             end
-            mn    = min(fc);                       % Minimum needed for e.g. CT
-            mu(c) = sum(fc)/size(f,1);             % Mean (assuming missing values are zero)
-            fc    = fc(fc>((mu(c)-mn)/8+mn));      % Voxels above some threshold (c.f. spm_global.m)
-            mu(c) = mean(fc);                      % Mean of voxels above the threshold
-            vr(c) = var(fc);                       % Variance of voxels above the threshold
-            if ~isempty(T{c}) && m ~= 2            % Should INU or global scaling be done?
+            mn    = min(fc);                      % Minimum needed for e.g. CT
+            mu(c) = sum(fc)/size(f,1);            % Mean (assuming missing values are zero)
+            fc    = fc(fc>((mu(c)-mn)/8+mn));     % Voxels above some threshold (c.f. spm_global.m)
+            mu(c) = mean(fc);                     % Mean of voxels above the threshold
+            vr(c) = var(fc);                      % Variance of voxels above the threshold
+            if ~isempty(T{c})                     % Should INU or global scaling be done?
                 s           = 1000;               % Scale means to this value
                 dc          = log(s)-log(mu(c));  % Log of scalefactor
                 bbb         = spm_dctmtx(dm(1),1,1)*spm_dctmtx(dm(2),1,1)*spm_dctmtx(dm(3),1,1);

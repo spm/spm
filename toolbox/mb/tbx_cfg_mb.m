@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 7988 2020-10-19 10:40:02Z john $
+% $Id: tbx_cfg_mb.m 7993 2020-10-21 15:25:13Z mikael $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
@@ -624,10 +624,24 @@ vox.hidden  = true;
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
+proc_zn        = cfg_entry;
+proc_zn.tag    = 'proc_zn';
+proc_zn.name   = 'Process responsibilities';
+proc_zn.help   = {'Function for processing native space responsibilities, ' ...
+                  'given as a function handle @(x) foo(x). The argument (x) is of ' ...
+                  'size(x) = [1, 4], where the first three dimensions are the size ' ...
+                  'of the image and the last dimension is the number of segmentation ' ...
+                  'classes (K + 1).'};
+proc_zn.num    = [1 1];
+proc_zn.val    = {{}};
+proc_zn.hidden = true;
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
 out      = cfg_exbranch;
 out.tag  = 'out';
 out.name = 'Output';
-out.val  = {res_file, i, mi, wi, wmi, inu, c, wc, mwc, sm, mrf, fwhm, bb, vox};
+out.val  = {res_file, i, mi, wi, wmi, inu, c, wc, mwc, sm, mrf, fwhm, bb, vox, proc_zn};
 out.prog = @spm_mb_output;
 out.help = {[...
 'When ``Fit Multi-Brain model'' is run, the resulting model fit contains ' ...
