@@ -3,9 +3,9 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 7993 2020-10-21 15:25:13Z mikael $
+% $Id: tbx_cfg_mb.m 7994 2020-10-21 16:49:09Z mikael $
 
-if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','mb')); end
+if ~isdeployed && isempty(fileparts(which('spm_mb_fit'))), addpath(fullfile(spm('dir'),'toolbox','mb')); end
 
 % ---------------------------------------------------------------------
 images        = cfg_files;
@@ -632,7 +632,6 @@ proc_zn.help   = {'Function for processing native space responsibilities, ' ...
                   'size(x) = [1, 4], where the first three dimensions are the size ' ...
                   'of the image and the last dimension is the number of segmentation ' ...
                   'classes (K + 1).'};
-proc_zn.num    = [1 1];
 proc_zn.val    = {{}};
 proc_zn.hidden = true;
 % ---------------------------------------------------------------------

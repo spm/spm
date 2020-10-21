@@ -25,7 +25,7 @@ function varargout = spm_mb_shape(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7990 2020-10-20 10:12:42Z john $
+% $Id: spm_mb_shape.m 7994 2020-10-21 16:49:09Z mikael $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -1095,7 +1095,14 @@ if NumWork <= 1
 end
 
 if MemMax == 0
-    MemMax     = spm_platform('memory','available') / 1024 / 1024;
+    try
+        % Users of the GitHub version of this code can get errors because
+        % spm_platform('memory','available') is only available in recent
+        % versions of SPM.
+        MemMax = spm_platform('memory','available') / 1024 / 1024;
+    catch
+        MemMax = NaN;
+    end
     if isnan(MemMax)
         MemMax = 1024;
     end
