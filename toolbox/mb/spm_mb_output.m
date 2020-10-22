@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 7993 2020-10-21 15:25:13Z mikael $
+% $Id: spm_mb_output.m 7995 2020-10-22 09:20:25Z mikael $
 
 res  = load(char(cfg.result));
 sett = res.sett;
@@ -46,6 +46,7 @@ opt = struct('write_inu',cfg.inu,...
              'mrf',cfg.mrf,...
              'vx',cfg.vox,...
              'bb',cfg.bb,...
+             'odir',cfg.odir,...
              'fwhm',cfg.fwhm);
 opt.proc_zn = cfg.proc_zn;
 
@@ -82,18 +83,25 @@ zn = single(P)/255;
 function resn = ProcessSubject(datn,resn,mu,sett,opt)
 
 % Parse function settings
-dmu        = sett.mu.d;
-Mmu        = sett.mu.Mmu;
-dir_res    = sett.odir;
-do_infer   = true;
-mrf        = opt.mrf;
-write_inu  = opt.write_inu; % field
-write_im   = opt.write_im;  % image, corrected, warped, warped corrected
-write_tc   = opt.write_tc;  % native, warped, warped-mod, scalar momentum
-fwhm       = opt.fwhm;      % FWHM for smoothing of warped tissues
-vx         = opt.vx;        % Template space voxel size
-bb         = opt.bb;        % Template space bounding box
-proc_zn    = opt.proc_zn;   % Function for processing native space responsibilities
+dmu         = sett.mu.d;
+Mmu         = sett.mu.Mmu;
+if isempty(opt.odir)
+    dir_res = sett.odir;
+else
+    dir_res = opt.odir;
+    if ~(exist(dir_res,'dir') == 7)
+        mkdir(dir_res)
+    end
+end
+do_infer    = true;
+mrf         = opt.mrf;
+write_inu   = opt.write_inu; % field
+write_im    = opt.write_im;  % image, corrected, warped, warped corrected
+write_tc    = opt.write_tc;  % native, warped, warped-mod, scalar momentum
+fwhm        = opt.fwhm;      % FWHM for smoothing of warped tissues
+vx          = opt.vx;        % Template space voxel size
+bb          = opt.bb;        % Template space bounding box
+proc_zn     = opt.proc_zn;   % Function for processing native space responsibilities
 
 cl   = cell(1,1);
 resn = struct('inu',cl,'i',cl,'mi',cl,'c',cl,'wi',cl, ...

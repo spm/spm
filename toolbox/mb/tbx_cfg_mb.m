@@ -3,9 +3,16 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 7994 2020-10-21 16:49:09Z mikael $
+% $Id: tbx_cfg_mb.m 7995 2020-10-22 09:20:25Z mikael $
 
-if ~isdeployed && isempty(fileparts(which('spm_mb_fit'))), addpath(fullfile(spm('dir'),'toolbox','mb')); end
+if ~isdeployed
+    pth_mb = fileparts(which('spm_mb_fit'));
+    if isempty(pth_mb)
+        addpath(fullfile(spm('dir'),'toolbox','mb')); 
+    else
+        addpath(pth_mb);
+    end
+end
 
 % ---------------------------------------------------------------------
 images        = cfg_files;
@@ -637,10 +644,21 @@ proc_zn.hidden = true;
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
+odir        = cfg_files;
+odir.tag    = 'odir';
+odir.name   = 'Output directory';
+odir.filter = 'dir';
+odir.num    = [1 1];
+odir.val    = {{''}};
+odir.help   = {'All output is written to the specified directory. If this is not specified, the output directory of the run module will be used by default.',''};
+odir.hidden = true;
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
 out      = cfg_exbranch;
 out.tag  = 'out';
 out.name = 'Output';
-out.val  = {res_file, i, mi, wi, wmi, inu, c, wc, mwc, sm, mrf, fwhm, bb, vox, proc_zn};
+out.val  = {res_file, i, mi, wi, wmi, inu, c, wc, mwc, sm, mrf, fwhm, bb, vox, proc_zn, odir};
 out.prog = @spm_mb_output;
 out.help = {[...
 'When ``Fit Multi-Brain model'' is run, the resulting model fit contains ' ...
