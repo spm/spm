@@ -376,7 +376,7 @@ axesY = axes(...
     'hittest','off');
 
 in.ParentAxes=axesY;
-spm_eeg_plotScalpData(inverse.Pout.y,pos,labels,in)
+spm_eeg_plotScalpData(inverse.Pout.ypost,pos,labels,in)
 title(axesY,'Modelled data');
 
 subplot(3,3,7); hold on;
