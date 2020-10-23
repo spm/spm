@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 7967 2020-09-30 10:39:51Z vladimir $
+% $Id: checkmeeg.m 7997 2020-10-23 10:24:27Z vladimir $
 
 
 %-Initialise data dimensions
@@ -354,26 +354,14 @@ else
     if isfield(this.sensors, 'eeg')
         if isempty(this.sensors.eeg)
             this.sensors = rmfield(this.sensors, 'eeg');
-        else
-            try
-                % This can be removed in the future
-                if ~isempty(strmatch('uV', this.sensors.eeg.chanunit))
-                    this.sensors.eeg = rmfield(this.sensors.eeg, 'chanunit');
-                end
-            end
+        else   
             this.sensors.eeg = ft_datatype_sens(this.sensors.eeg, 'version', 'latest', 'amplitude', 'V', 'distance', 'mm');        
         end
     end
     if isfield(this.sensors, 'meg')
         if isempty(this.sensors.meg)           
             this.sensors = rmfield(this.sensors, 'meg');
-        else
-            try
-                % This can be removed in the future
-                if ~isempty(strmatch('fT', this.sensors.meg.chanunit))
-                    this.sensors.meg = rmfield(this.sensors.meg, 'chanunit');
-                end
-            end            
+        else              
             this.sensors.meg = ft_datatype_sens(this.sensors.meg, 'version', 'latest', 'amplitude', 'T', 'distance', 'mm');
         end
     end
