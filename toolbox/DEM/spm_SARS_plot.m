@@ -15,7 +15,7 @@ function spm_SARS_plot(Y,X,Z,u,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_plot.m 7929 2020-08-16 13:43:49Z karl $
+% $Id: spm_SARS_plot.m 8001 2020-11-03 19:05:40Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -94,12 +94,46 @@ title('Cumulative cases','FontSize',16), axis square, box off
 
 % marginal densities
 %--------------------------------------------------------------------------
+k     = 4;
 for i = 1:numel(X)
-    subplot(3,2,2 + i), if CHOLD, set(gca,'ColorOrderIndex',1); end
-    plot(t,X{i}(:,2:end)*100)
-    xlabel('time (weeks)'),ylabel('proportion (%)')
-    title(str.factors{i},'FontSize',16), set(gca,'XLim',[0, t(end)])
-    axis square, box off, legend(str.factor{i}(2:end)), legend('boxoff'), box off
+    k = k + 1;
+    subplot(6,2,k), if CHOLD, set(gca,'ColorOrderIndex',1); end
+    [d,j] = sort(max(X{i}));
+    
+    % remove redundant states
+    %----------------------------------------------------------------------
+    if i ~= 2
+        j(end) = [];
+    end
+    
+    plot(t,X{i}(:,j(1:2))*100)
+    ylabel('percent')
+    title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
+    box off, legend(str.factor{i}(j(1:2))), legend('boxoff'), box off
+    
+    % thresholds
+    %----------------------------------------------------------------------
+    if i == 2 % infection
+        semilogy(t,X{i}(:,j(1:2))*100)
+        ylabel('percent')
+        title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
+        box off, legend(str.factor{i}(j(1:2))), legend('boxoff'), box off
+        hold on
+        plot(t,spm_zeros(t) + exp(pE.sde),'--');
+        plot(t,spm_zeros(t) + exp(pE.qua),'-.');
+        hold off
+        legend([str.factor{i}(j(1:2)),'lockdown','travel'])
+    end
+
+    
+    k = k + 1;
+    subplot(6,2,k), if CHOLD, set(gca,'ColorOrderIndex',1); end
+    j(1:2) = [];
+    plot(t,X{i}(:,j)*100)
+    ylabel('percent')
+    title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
+    box off, legend(str.factor{i}(j)), legend('boxoff'), box off
+    
 end
 
 % add empirical data
@@ -108,6 +142,6 @@ t = (1:size(Z,1))/7;
 try
     U   = U(ismember(U,1:size(Z,2)));
     subplot(3,2,2), if CHOLD, set(gca,'ColorOrderIndex',1); end; hold on, plot(t,cumsum(Z(:,U)),'.k'), hold off
-    subplot(3,2,1), if CHOLD, set(gca,'ColorOrderIndex',1); end; hold on, plot(t,Z(:,U),'.'), hold off
+    subplot(3,2,1), if CHOLD, set(gca,'ColorOrderIndex',1); end; hold on, plot(t,Z(:,U),'.k'), hold off
 end
 drawnow

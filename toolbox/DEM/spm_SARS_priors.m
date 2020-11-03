@@ -35,7 +35,7 @@ function [P,C,str] = spm_SARS_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 7956 2020-09-21 19:48:24Z karl $
+% $Id: spm_SARS_priors.m 8001 2020-11-03 19:05:40Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -50,88 +50,112 @@ function [P,C,str] = spm_SARS_priors
 % around 70 per cent are for use by adults and the remainder for children
 % and infants.
 %--------------------------------------------------------------------------
-% https://www.gov.uk/guidance/coronavirus-covid-19-information-for-the-public
-%
-% As of 9am on 28 March 2020, a total of 120,776 people have been tested,
-% of which 103,687 were confirmed negative and 17,089 were confirmed
-% positive.
-%--------------------------------------------------------------------------
-% As of 5pm on 27 March 2020, 1,019 patients in the UK who tested positive
-% for coronavirus (SARS-19) have died.
+% https://royalsociety.org/-/media/policy/projects/set-c/set-covid-19-R-estimates.pdf
+% https://arxiv.org/abs/2006.01283
 %--------------------------------------------------------------------------
 
 % parameter names (where %** denotes fixed effects)
 %==========================================================================
 names{1}  = 'population size';
 names{2}  = 'initial cases';
-names{3}  = 'unexposed';
-names{4}  = 'pre-existing immunity';
-names{5}  = 'initial exposed';
+names{3}  = 'pre-existing immunity';
+names{4}  = 'initial exposed';
+
 
 % location (exposure) parameters
 %--------------------------------------------------------------------------
-names{6}  = 'P(leaving home)';
-names{7}  = 'threshold: lockdown';  
-names{8}  = 'threshold: containment';
-names{9}  = 'viral spreading';
-names{10} = 'bed availability';
-names{11} = 'sensitivity';
+names{5}  = 'P(leaving home)';
+names{6}  = 'threshold: lockdown';  
+names{7}  = 'threshold: containment';
+names{8}  = 'viral spreading';
+names{9}  = 'bed availability';
+names{10} = 'distancing sensitivity';
+names{11} = 'quarantine sensitivity';
+names{12} = 'mechanical sensitivity';
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
-names{12} = 'contacts: home';
-names{13} = 'contacts: work';
-names{14} = 'contacts: rural';
-names{15} = 'transmission strength';
-names{16} = 'infected period';
-names{17} = 'infectious period';
-names{18} = 'seropositive immunity';
-names{19} = 'seronegative immunity';
+names{13} = 'contacts: home';
+names{14} = 'contacts: work';
+names{15} = 'transmission (max)';
+names{16} = 'transmission (min)';
+names{17} = 'infected period';
+names{18} = 'infectious period';
+names{19} = 'loss of immunity';
+names{20} = 'seronegative proportion';
 
 % clinical parameters
 %--------------------------------------------------------------------------
-names{20} = 'incubation period';
-names{21} = 'symptomatic period';
-names{22} = 'hospitalisation period';
-names{23} = 'max P(ARDS|symptoms)';
-names{24} = 'P(fatality|CCU)';
-names{25} = 'min P(ARDS|symptoms)';
-names{26} = 'P(survival|home)';
+names{21} = 'incubation period';
+names{22} = 'symptomatic period';
+names{23} = 'hospitalisation period';
+names{24} = 'P(ARDS|symptoms)';
+names{25} = 'P(fatality|ARDS)';
+names{26} = 'P(ARDS|symptoms): days';
+names{27} = 'P(fatality|ARDS): days';
 
 % testing parameters
 %--------------------------------------------------------------------------
-names{27} = 'FTTI efficacy';
-names{28} = 'testing: seroprevalence';
-names{29} = 'test capacity';
-names{30} = 'test selectivity';
-names{31} = 'test delay';
+names{28} = 'FTTI efficacy';
+names{29} = 'infection bias';
+names{30} = 'test delay (days)';
+names{31} = 'seropositive-dependent';
+names{32} = 'symptom-dependent';
+names{33} = 'false-negative rate';
+names{34} = 'false-positive rate';
 
-names{32} = 'mass testing';
-names{33} = 'symptomatic testing';
-names{34} = 'false-negative rate';
-names{35} = 'false-positive rate';
+names{35} = 'testing: bias';
+names{36} = 'testing: capacity';
+names{37} = 'testing: constant';
+names{38} = 'testing: onset';
+
+names{39} = 'relative eflux';
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
 factors   = {'Location','Infection','Symptoms','Testing'};
 
-factor{1} = {'home','work','hospital','removed','isolated'};
+factor{1} = {'lo-risk','hi-risk','ccu','no-risk','isolated'};
 factor{2} = {'susceptible','infected','infectious','AB +ve','AB -ve'};
 factor{3} = {'none','symptoms','severe','deceased'};
 factor{4} = {'untested','waiting','PCR +ve','PCR -ve'};
 
 % labels or strings for plotting
 %--------------------------------------------------------------------------
-str.outcome = {'Death rate',...
-               'New tests',...
+% Y(:,1)  - daily deaths
+% Y(:,2)  - daily tests
+% Y(:,3)  - CCU occupancy
+% Y(:,4)  - reproduction ratio (R)
+% Y(:,5)  - seropositive immunity (%)
+% Y(:,6)  - PCR testing rate
+% Y(:,7)  - contagion risk (%)
+% Y(:,8)  - prevalence (%)
+% Y(:,9)  - daily contacts
+% Y(:,10) - daily incidence
+% Y(:,11) - number infected  
+% Y(:,12) - number symptomatic
+% Y(:,13) - mobility (%)
+% Y(:,14) - work (%)
+% Y(:,15) - hospital admissions
+% Y(:,16) - fatality rates
+% Y(:,17) - home (%)
+str.outcome = {'Daily deaths',...
+               'Daily tests',...
                'CCU occupancy',...
-               'ERR',...
-               'Herd immunity',...
-               'Tests',...
+               'Reproduction ratio',...
+               'Seropositive immunity',...
+               'PCR testing rate',...
                'Contagion risk (%)',...
                'Prevalence {%}',...
-               'FTTI target',...
-               'New cases'};
+               'Daily contacts',...
+               'daily incidence',...
+               'Number infected'...
+               'Number symptomatic'...
+               'Mobility (%)'...
+               'Workplace (%)'...
+               'Admissions'...
+               'Death rates'...
+               'Residential (%)'};
 str.factors = factors;
 str.factor  = factor;
 str.names   = names;
@@ -139,7 +163,7 @@ str.names   = names;
 % cut and paste to see the effects of changing different prior expectations
 %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 if false
-    pE    = spm_SARS_priors; M.T = 18*32;
+    pE    = spm_SARS_priors; M.T = 12*32;
     [Y,X] = spm_SARS_gen(pE,M,1:3);
     u     = exp(pE.cap + pE.N)*1e6/2;
     spm_SARS_plot(Y,X,[],u)
@@ -149,121 +173,170 @@ end
 % Expectations (either heuristic or taken from the above sources)
 %==========================================================================
 P.N   = 64;                   % (01) population size (millions)
-P.n   = 64;                   % (02) initial cases (cases)
-P.m   = 1/2;                  % (03) unexposed (proportion)
-P.r   = 1/2;                  % (04) pre-existing immunity (proportion)
-P.o   = 1/8;                  % (05) initial exposed proportion
+P.n   = 1;                    % (02) initial cases (cases)
+P.r   = 0.2;                  % (03) pre-existing immunity (proportion)
+P.o   = 0.2;                  % (04) initial exposed proportion
 
 % location (exposure) parameters
 %--------------------------------------------------------------------------
-P.out = 1/3;                  % (06) P(leaving home)
-P.sde = 1/32;                 % (07) lockdown threshold
-P.qua = 1/512;                % (08) Quarantine threshold
-P.exp = 8;                    % (09) contacts (viral spreading)
-P.cap = 16/100000;            % (10) bed availability (per capita)
-P.s   = 4;                    % (11) sensitivity parameter
+P.out = 0.5;                  % (05) P(leaving home)
+P.sde = 0.03;                 % (06) lockdown threshold
+P.qua = 0.004;                % (07) Quarantine threshold
+P.exp = 0.0008;               % (08) P(leaving area)
+P.cap = 16/100000;            % (09) bed availability (per capita)
+P.s   = 2;                    % (10) distancing sensitivity
+P.u   = 6;                    % (11) quarantine sensitivity
+P.c   = 1;                    % (12) mechanical sensitivity
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
-P.Nin = 4;                    % (12) effective number of contacts: home
-P.Nou = 48;                   % (13) effective number of contacts: work
-P.Nru = 32;                   % (14) effective number of contacts: rural
-P.trn = 1/3;                  % (15) transmission strength
-P.Tin = 4;                    % (16) infected period (days)
-P.Tcn = 4;                    % (17) infectious period (days)
-P.Tim = 32;                   % (18) seropositive immunity (months)
-P.res = 1/2;                  % (19) seronegative immunity (proportion)
+P.Nin = 2;                    % (13) effective number of contacts: home
+P.Nou = 64;                   % (14) effective number of contacts: work
+P.Nru = 0.5;                  % (15) transmission strength (max)
+P.trn = 0.5;                  % (16) transmission strength (min)
+P.Tin = 5;                    % (17) infected period (days)
+P.Tcn = 5;                    % (18) infectious period (days)
+P.Tim = 256;                  % (19) seropositive immunity (days)
+P.res = 0.5;                  % (20) seronegative proportion
 
 % clinical parameters
 %--------------------------------------------------------------------------
-P.Tic = 12;                   % (20) incubation period (days)
-P.Tsy = 8;                    % (21) symptomatic period (days)
-P.Trd = 12;                   % (22) CCU period (days)
-P.sev = 1/32;                 % (23) P(ARDS | symptomatic case): max
-P.fat = 1/2;                  % (24) P(fatality | ARDS, CCU)
-P.lat = 1/128;                % (25) P(ARDS | symptomatic case): min
-P.sur = 1/8;                  % (26) P(survival | ARDS, home)
+P.Tic = 4;                    % (21) incubation period (days)
+P.Tsy = 6;                    % (22) symptomatic period (days)
+P.Trd = 10;                   % (23) CCU period (days)
+
+P.sev = 0.3/100;              % (24) P(ARDS | symptoms)
+P.fat = 0.5;                  % (25) P(fatality | ARDS/symptoms)
+P.lat = 0.2/100;              % (26) P(ARDS | symptoms): late
+P.sur = 0.5;                  % (27) P(fatality | ARDS): late
 
 % testing parameters
 %--------------------------------------------------------------------------
-P.ttt = 1/32;                 % (27) FTTI efficacy
-P.tts = 128;                  % (28) testing: bias
-P.lim = 8/1000;               % (29) testing: capacity
-P.tes = 8;                    % (30) test selectivity (for infection)
-P.del = 4;                    % (31) test delay (days)
+P.ttt = 0.036;                % (28) FTTI efficacy
+P.tes = 2;                    % (29) test selectivity (for infection)
+P.del = 4;                    % (30) test delay (days)
+P.sus = 0.01;                 % (31) seropositive-dependent
+P.ont = 0.01;                 % (32) symptom-dependent
+P.fnr = 0.2;                  % (33) false-negative rate
+P.fpr = 0.002;                % (34) false-positive rate
 
-P.sus = 1;                    % (32) mass testing
-P.ont = 1;                    % (33) symptomatic testing
-P.fnr = 1/4;                  % (34) false-negative rate (infected)
-P.fpr = 1/256;                % (35) false-positive rate
+P.tts = 256;                  % (35) testing: bias
+P.lim = [0.02 0.002];         % (36) testing: capacity
+P.rat = [64    4];            % (37) testing: constant
+P.ons = [256 100];            % (38) testing: onset
+
+P.m   = 4;                    % (39) relative eflux
+
+
+
+% cut and paste to see the effects of changing different prior expectations
+%xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+if false
+    pE    = spm_SARS_priors; M.T = 12*32;
+    [Y,X] = spm_SARS_gen(pE,M,1:3);
+    u     = exp(pE.cap + pE.N)*1e6/2;
+    spm_SARS_plot(Y,X,[],u)
+end
+%xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 % infection fatality (for susceptible population)
 %--------------------------------------------------------------------------
 % IFR (hospital): P.sev*P.fat*100
-% IFR (carehome): P.sev*(1 - P.sur)*100
 % IFR (hospital): exp(Ep.sev)*exp(Ep.fat)*100
-% IFR (carehome): exp(Ep.sev)*(1 - exp(Ep.sur))*100
 
 % Variances (mildly informative priors, apart from initial cases and size)
 %==========================================================================
-U     = 1;                    % flat priors
+U     = 4;                    % flat priors
 V     = 1/16;                 % uninformative priors
-W     = 1/64;                % informative priors
+W     = 1/64;                 % informative priors
+X     = 1/1024;               % informative priors
 
 C.N   = U;                    % (01) population size (millions)
 C.n   = U;                    % (02) initial cases (cases)
-C.m   = W;                    % (03) unexposed (proportion)
-C.r   = W;                    % (04) pre-existing immunity (proportion)
-C.o   = W;                    % (05) initial exposed proportion
+C.r   = V;                    % (03) pre-existing immunity (proportion)
+C.o   = V;                    % (04) initial exposed proportion
 
 % location (exposure) parameters
 %--------------------------------------------------------------------------
-C.out = W;                    % (06) P(leaving home)
-C.sde = V;                    % (07) lockdown threshold
-C.qua = V;                    % (08) Quarantine threshold
-C.exp = V;                    % (09) contacts (viral spreading)
-C.cap = W;                    % (10) bed availability (per capita)
-C.s   = V;                    % (11) sensitivity parameter
+C.out = X;                    % (05) P(leaving home)
+C.sde = V;                    % (06) lockdown threshold
+C.qua = V;                    % (07) Quarantine threshold
+C.exp = V;                    % (08) contacts (viral spreading)
+C.cap = V;                    % (09) bed availability (per capita)
+C.s   = W;                    % (10) distancing sensitivity
+C.u   = W;                    % (11) quarantine sensitivity 
+C.c   = W;                    % (12) mechanical sensitivity
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
-C.Nin = W;                    % (12) effective number of contacts: home
-C.Nou = W;                    % (13) effective number of contacts: work
-C.Nru = W;                    % (14) effective number of contacts: rural
-C.trn = W;                    % (15) transmission strength
-C.Tin = W;                    % (16) infected period (days)
-C.Tcn = W;                    % (17) infectious period (days)
-C.Tim = W;                    % (18) seropositive immunity (months)
-C.res = W;                    % (19) seronegative immunity (proportion)
+C.Nin = V;                    % (13) effective number of contacts: home
+C.Nou = V;                    % (14) effective number of contacts: work
+C.Nru = W;                    % (15) transmission strength (max)
+C.trn = W;                    % (16) transmission strength (min)
+C.Tin = X;                    % (17) infected period (days)
+C.Tcn = X;                    % (18) infectious period (days)
+C.Tim = W;                    % (19) seropositive immunity (months)
+C.res = W;                    % (20) seronegative immunity (proportion)
 
 % clinical parameters
 %--------------------------------------------------------------------------
-C.Tic = W;                    % (20) incubation period (days)
-C.Tsy = W;                    % (21) symptomatic period (days)
-C.Trd = W;                    % (22) CCU period (days)
-C.sev = W;                    % (23) P(ARDS | symptomatic): max
-C.fat = W;                    % (24) P(fatality | ARDS, CCU)
-C.lat = V;                    % (25) P(ARDS | symptomatic): min
-C.sur = V;                    % (26) P(survival | ARDS, home)
+C.Tic = X;                    % (21) incubation period  (days)
+C.Tsy = X;                    % (22) symptomatic period (days)
+C.Trd = X;                    % (23) CCU period (days)
+C.sev = X;                    % (24) P(ARDS | symptoms)
+C.fat = X;                    % (25) P(fatality | ARDS)
+C.lat = U;                    % (26) P(ARDS | symptoms): decay
+C.sur = U;                    % (27) P(fatality | ARDS): decay
 
 % testing parameters
 %--------------------------------------------------------------------------
-C.ttt = W;                    % (27) FTTI efficacy
-C.tts = V;                    % (28) test bias
-C.lim = W;                    % (29) test capacity
-C.tes = W;                    % (30) test selectivity (for infection)
-C.del = W;                    % (31) test delay (days)
+C.ttt = X;                    % (28) FTTI efficacy
+C.tes = U;                    % (29) test selectivity (for infection)
+C.del = X;                    % (30) test delay (days)
+C.sus = U;                    % (31) seropositive-dependent
+C.ont = U;                    % (32) symptom-dependent
+C.fnr = X;                    % (33) false-negative rate
+C.fpr = X;                    % (34) false-positive rate
 
-C.sus = V;                    % (32) mass testing
-C.ont = V;                    % (33) symptomatic testing
-C.fnr = W;                    % (34) false-negative rate
-C.fpr = W;                    % (35) false-positive rate
+C.tts = U;                    % (25) testing: bias
+C.lim = U;                    % (36) testing: capacity
+C.rat = U;                    % (37) testing: constant (days)
+C.ons = U;                    % (38) testing: onset (days)
+
+C.m   = W;                    % (39) relative eflux
 
 
+% implicit prior confidence bounds
+%--------------------------------------------------------------------------
+s     = spm_invNcdf(1 - 0.01);
+field = fieldnames(P);
+for i = 1:numel(field)
+    b = log(P.(field{i})) + [-s s]*sqrt(C.(field{i}));
+    R.(field{i}) = exp(b);
+    
+    % check prior expectations and covariances are consistent
+    %---------------------------------------------------------------------
+    if numel(P.(field{i})) ~= numel(C.(field{i}))
+        C.(field{i}) = repmat(C.(field{i}),1,numel(P.(field{i})));
+    end
+end
 
 % log transform
 %==========================================================================
-P     = spm_vecfun(P,@log);
+P   = spm_vecfun(P,@log);
+
+% cut and paste to see the effects of changing different prior expectations
+%xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+if false
+    pE    = spm_SARS_priors; M.T = 12*32;
+    [Y,X] = spm_SARS_gen(pE,M,1:3);
+    u     = exp(pE.cap + pE.N)*1e6/2;
+    spm_SARS_plot(Y,X,[],u)
+end
+%xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+
 
 % field names of random effects
 %--------------------------------------------------------------------------

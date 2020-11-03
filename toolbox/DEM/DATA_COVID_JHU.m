@@ -36,7 +36,7 @@ function data = DATA_COVID_JHU(n)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 7912 2020-08-02 10:11:43Z karl $
+% $Id: DATA_COVID_JHU.m 8001 2020-11-03 19:05:40Z karl $
 
 % get data
 %--------------------------------------------------------------------------
@@ -90,7 +90,7 @@ Country{i} = 'Iran';
 % assemble data structure
 %==========================================================================
 Data  = struct([]);
-s     = 14;                                          % data smoothing (days)
+s     = 7;                                          % data smoothing (days)
 k     = 1;
 for i = 1:numel(State)
     j = find(ismember(Country,State{i}));
@@ -120,6 +120,12 @@ for i = 1:numel(State)
         Data(k).death   = spm_hist_smooth(gradient([zeros(8,1); DY(d:end)]),s);
         Data(k).days    = numel(Data(k).cases);
         Data(k).cum     = sum(Data(k).death);
+        
+        % check
+        %------------------------------------------------------------------
+        if ismember(State(i),'United Kingdom')
+            % keyboard;
+        end
         
         % population of Wuhan
         %------------------------------------------------------------------
@@ -218,34 +224,5 @@ for i = 1:numel(data)
 end
 
 return
-
-function x = spm_hist_smooth(x,s)
-% histogram smoothing
-% FORMAT x = spm_hist_smooth(x,s)
-%__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
-
-% Karl Friston
-% $Id: DATA_COVID_JHU.m 7912 2020-08-02 10:11:43Z karl $
-
-% remove negative values
-%--------------------------------------------------------------------------
-i    = x < 0;
-x(i) = 0;
-
-% remove spikes
-%--------------------------------------------------------------------------
-dx   = gradient(x);
-i    = abs(dx) > 4*std(dx);
-x(i) = 0;
-
-% graph Laplacian smoothing
-%--------------------------------------------------------------------------
-n    = numel(x);
-K    = spm_speye(n,n,-1) - 2*spm_speye(n,n,0) + spm_speye(n,n,1);
-K(1) = -1; K(end) = -1;
-K    = spm_speye(n,n,0) + K/4;
-K    = K^(s*4);
-x    = K*x;
 
 

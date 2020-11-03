@@ -47,7 +47,7 @@ function [DCM] = DEM_COVID_DASH
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_DASH.m 7939 2020-09-09 11:02:14Z karl $
+% $Id: DEM_COVID_DASH.m 8001 2020-11-03 19:05:40Z karl $
 
 % get data
 %==========================================================================
@@ -75,14 +75,13 @@ Pop(7) = 5.599;          %     {'South West'              }
 
 % retrieve recent data from https://coronavirus.data.gov.uk
 %--------------------------------------------------------------------------
-url  = 'https://c19downloads.azureedge.net/downloads/csv/';
+url  = 'https://coronavirus.data.gov.uk/downloads/csv/';
 websave('coronavirus-cases_latest.csv',[url,'coronavirus-cases_latest.csv']);
 
 % retrieve recent data from https://www.england.nhs.uk
 %--------------------------------------------------------------------------
-URL  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/07/';
-URL  = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/08/';
-
+URL   = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/';
+URL   = [URL datestr(date,'yyyy/mm') '/'];
 for i = 0:4
     try
         dstr = datestr(datenum(date) - i,'dd-mmmm-yyyy');
@@ -227,9 +226,9 @@ for r = 1:numel(DR)
     %----------------------------------------------------------------------
     spm_figure('GetWin',STR); clf;
     %----------------------------------------------------------------------
-    M.T = 256;
+    M.T = 385;
     t   = datenum(date);
-    spm_SARS_ci(DCM(r).Ep,DCM(r).Cp,Y,[1 2 4],M);
+    spm_SARS_ci(DCM(r).Ep,DCM(r).Cp,DCM(r).Y,[1 2 4],M);
     
     subplot(3,2,5), XLim = get(gca,'XLim'); YLim = get(gca,'YLim');
     hold on, plot(XLim,[1,1],'r-.'), plot([t,t],YLim,'b:')
@@ -259,31 +258,31 @@ for r = 1:numel(DR)
     
     Tab(r,1) = Pop(r);
     str      = sprintf('Census population %.2f million',Tab(r,1));
-    text(0,1.0,str,'FontSize',16,'Color','b')
+    text(0,1.0,str,'FontSize',14,'Color','k')
     
-    Tab(r,2) = exp(Ep.N)*(1 - exp(Ep.m));
-    str      = sprintf('Effective population %.2f million',Tab(r,2));
-    text(0,0.9,str,'FontSize',16,'Color','b')
+    Tab(r,2) = exp(Ep.N)*exp(Ep.o);
+    str      = sprintf('Initially exposed %.2f million',Tab(r,2));
+    text(0,0.9,str,'FontSize',14,'Color','k')
     
     Tab(r,3) = R(end,1);
     str      = sprintf('Reproduction ratio %.2f',Tab(r,3));
-    text(0,0.8,str,'FontSize',16,'Color','b')
+    text(0,0.8,str,'FontSize',14,'Color','k')
     
     Tab(r,4) = R(end,4);
     str      = sprintf('Infected, asymptomatic people %.0f',Tab(r,4));
-    text(0,0.7,str,'FontSize',16,'Color','b')
+    text(0,0.7,str,'FontSize',14,'Color','k')
     
     Tab(r,5) = 1e4*exp(Ep.N)*R(end,3)/exp(Ep.Tin);
     str      = sprintf('New infections today %.0f',Tab(r,5));
-    text(0,0.6,str,'FontSize',16,'Color','b')
+    text(0,0.6,str,'FontSize',14,'Color','k')
     
     Tab(r,6) = R(end,3)*exp(Ep.N)/Pop(r);
     str      = sprintf('Prevalence of infection %.2f%s',Tab(r,6),'%');
-    text(0,0.5,str,'FontSize',16,'Color','b')
+    text(0,0.5,str,'FontSize',14,'Color','k')
     
     Tab(r,7) = R(end,2)*exp(Ep.N)/Pop(r);
     str = sprintf('Prevalence of immunity %.1f%s',Tab(r,7),'%');
-    text(0,0.4,str,'FontSize',16,'Color','b')
+    text(0,0.4,str,'FontSize',14,'Color','k')
     
     str = {'The prevalences refer to the total population' ...
            'as estimated from the new cases and deaths (shown as' ...

@@ -16,7 +16,7 @@ function DCM = DEM_COVID_COUNTRY(country)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_COUNTRY.m 7956 2020-09-21 19:48:24Z karl $
+% $Id: DEM_COVID_COUNTRY.m 8001 2020-11-03 19:05:40Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -38,45 +38,57 @@ pC.N    = 0;
 %--------------------------------------------------------------------------
 set(Fsi,'name',data(i).country)
 Y       = [data(i).death, data(i).cases];
+h       = log(sum(Y));
+h       = mean(h) - h;
+h(1)    = h(1) + 2;
 
 % model specification
 %==========================================================================
-M.date  = datestr(datenum(data(i).date,'m/dd/yy'),'dd-mm-yyyy');
+M.date  = datestr(datenum(data(i).date,'m/dd/yy') - 8,'dd-mm-yyyy');
 M.G     = @spm_SARS_gen;        % generative function
 M.FS    = @(Y)real(sqrt(Y));    % feature selection  (link function)
 M.pE    = pE;                   % prior expectations (parameters)
 M.pC    = pC;                   % prior covariances  (parameters)
-M.hE    = 0;                    % prior expectation  (log-precision)
+M.hE    = h;                    % prior expectation  (log-precision)
 M.hC    = 1/512;                % prior covariances  (log-precision)
 M.T     = size(Y,1);            % number of samples
 U       = [1 2];                % outputs to model
 
 % model inversion with Variational Laplace (Gauss Newton)
 %--------------------------------------------------------------------------
-[Ep,Cp] = spm_nlsi_GN(M,U,Y);
-DCM.M   = M;
-DCM.Ep  = Ep;
-DCM.Cp  = Cp;
-DCM.Y   = Y;
+[Ep,Cp,Eh] = spm_nlsi_GN(M,U,Y);
+DCM.M      = M;
+DCM.Ep     = Ep;
+DCM.Eh     = Eh;
+DCM.Cp     = Cp;
+DCM.Y      = Y;
 
 % posterior predictions
 %==========================================================================
 spm_figure('GetWin',country); clf;
-M.T     = datenum('01-04-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
-[Z,X]   = spm_SARS_gen(Ep,M,[1 2]);
-spm_SARS_plot(Z,X,Y)
+M.T     = datenum('01-01-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
+[Z,X]   = spm_SARS_gen(DCM.Ep,M,[1 2 3]);
+spm_SARS_plot(Z,X,DCM.Y)
 
-spm_figure('GetWin','death rates'); clf;
+spm_figure('GetWin','confidence intervals'); clf;
+% death rates
 %--------------------------------------------------------------------------
+subplot(3,1,1)
 spm_SARS_ci(Ep,Cp,Y,1,M);
 
-spm_figure('GetWin','CCU admissions'); clf;
+% CCU admissions
 %--------------------------------------------------------------------------
+subplot(3,1,2)
 spm_SARS_ci(Ep,Cp,[],3,M);
 
-spm_figure('GetWin','reproduction ratio'); clf
+% reproduction ratio
 %--------------------------------------------------------------------------
+subplot(3,1,3)
 spm_SARS_ci(Ep,Cp,[],4,M);
+plot(get(gca,'XLim'),[1,1],'-.r')
+plot(datenum(date)*[1,1],get(gca,'YLim'),'-.b')
+
+return
 
 % repeat with rapid loss of immunity
 %==========================================================================
@@ -94,23 +106,66 @@ spm_SARS_ci(Ep,Cp,[],4,M);
 
 % repeat with efficient FTTIS
 %==========================================================================
-spm_figure('GetWin','death rates'); hold on
+subplot(3,1,1); hold on
 M.FTT = 1/4;
-for i = [0 4 8]*7
+for i = [0 4]*7
     M.TTT = datenum(date) - datenum(M.date,'dd-mm-yyyy') + i;
-    spm_SARS_ci(Ep,Cp,[],1,M);
+    spm_SARS_ci(Ep,Cp,Y,1,M);
 end
 
-% repeat for hospital admissions
+return
+
+% repeat for Circuit break
 %==========================================================================
-spm_figure('GetWin','CCU admissions'); hold on
+spm_figure('GetWin','Circuit break'); clf
 %--------------------------------------------------------------------------
-for i = [0 4 8]*7
-    M.TTT = datenum(date) - datenum(M.date,'dd-mm-yyyy') + i;
-    spm_SARS_ci(Ep,Cp,[],3,M);
+CBT   = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy') + 4;
+CBD   = 14;                         % duration of circuit breaker
+
+M     = DCM.M;
+M.T   = datenum('01-1-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
+[Z,X] = spm_SARS_gen(DCM.Ep,M,[1 2 3]);
+spm_SARS_plot(Z,X,DCM.Y)
+for j = 1:6
+    subplot(3,2,j), hold on
+    set(gca,'ColorOrderIndex',1);
 end
 
+M.CBT = CBT;
+M.CBD = CBD;
+[Z,X] = spm_SARS_gen(DCM.Ep,M,[1 2 3]);
+spm_SARS_plot(Z,X,DCM.Y)
 
+% fatalities in confidence intervals
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Circuit break - deaths'); clf
+M     = DCM.M;
+M.T   = datenum('01-01-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
+spm_SARS_ci(DCM.Ep,DCM.Cp,DCM.Y,1,M); hold on
+
+M.CBT = CBT;
+M.CBD = CBD;
+spm_SARS_ci(DCM.Ep,DCM.Cp,[],1,M);
+
+
+M.CBT = CBT;
+M.CBD = CBD;
+M.FTT = 1/4;
+M.TTT = CBT + 28;
+spm_SARS_ci(DCM.Ep,DCM.Cp,[],1,M);
+
+M.CBT = CBT;
+M.CBD = CBD;
+M.FTT = .8;
+M.TTT = CBT + 28;
+spm_SARS_ci(DCM.Ep,DCM.Cp,[],1,M);
+
+t   = datenum('01-1-2021','dd-mm-yyyy');
+t0  = t - 7*24;
+set(gca,'XLim',[t0,t])
+set(gca,'YLim',[0,200])
+set(gca,'XTick',[t0:14:t])
+datetick('x','mmm-dd','keeplimits','keepticks')
 
 
 

@@ -17,7 +17,7 @@ function [DCM] = DEM_COVID_UTLA
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 7956 2020-09-21 19:48:24Z karl $
+% $Id: DEM_COVID_UTLA.m 8001 2020-11-03 19:05:40Z karl $
 
 
 % NHS postcode data
@@ -31,8 +31,8 @@ function [DCM] = DEM_COVID_UTLA
 % G.PC = pc;
 % G.LT = cc;
 
-%LTLA   = readmatrix('Population_LTLACD.xlsx','range',[6 1  35097 1], 'OutputType','char');
-%Pop    = readmatrix('Population_LTLACD.xlsx','range',[6 4  35097 4], 'OutputType','char');
+% LTLA   = readmatrix('Population_LTLACD.xlsx','range',[6 1  35097 1], 'OutputType','char');
+% Pop    = readmatrix('Population_LTLACD.xlsx','range',[6 4  35097 4], 'OutputType','char');
 
 % NHS provider code to post code
 %--------------------------------------------------------------------------
@@ -46,7 +46,7 @@ load COVID_CODES
 
 % retrieve recent data from https://coronavirus.data.gov.uk
 %--------------------------------------------------------------------------
-url  = 'https://c19downloads.azureedge.net/downloads/csv/';
+url  = 'https://coronavirus.data.gov.uk/downloads/csv/';
 websave('coronavirus-cases_latest.csv',[url,'coronavirus-cases_latest.csv']);
 
 % retrieve recent data from https://www.england.nhs.uk
@@ -67,7 +67,7 @@ for i = 0:4
     end
 end
 
-% load (ONS Pillar 1) testing and (PHE) death-by-date data
+% load (ONS) testing and (PHE) death-by-date data
 %--------------------------------------------------------------------------
 C    = importdata('coronavirus-cases_latest.csv');
 D    = importdata('COVID-19-total-announced-deaths.xlsx');

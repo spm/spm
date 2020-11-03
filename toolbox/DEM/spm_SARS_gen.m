@@ -2,20 +2,25 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Generate predictions and hidden states of a COVID model
 % FORMAT [Y,X,Z] = spm_COVID_gen(P,M,U)
 % P    - model parameters
-% M    - model structure (requires M.T - length of timeseries)
+% M    - model structure (M.T - length of timeseries or data structure)
 % U    - number of output variables [default: 2] or indices e.g., [4 5]
 % Z{t} - joint density over hidden states at the time t
 %
-% Y(:,1)  - number of new deaths
-% Y(:,2)  - number of new cases
-% Y(:,3)  - CCU bed occupancy
+% Y(:,1)  - daily deaths
+% Y(:,2)  - daily tests
+% Y(:,3)  - CCU occupancy
 % Y(:,4)  - reproduction ratio (R)
-% Y(:,5)  - population immunity (%)
-% Y(:,6)  - total number of tests
+% Y(:,5)  - seropositive immunity (%)
+% Y(:,6)  - PCR testing rate
 % Y(:,7)  - contagion risk (%)
-% Y(:,8)  - prevalence of infection (%)
-% Y(:,9)  - number of infected at home, untested and asymptomatic
-% Y(:,10) - new cases per day
+% Y(:,8)  - prevalence (%)
+% Y(:,9)  - new contacts per day
+% Y(:,10) - daily incidence
+% Y(:,11) - number infected  
+% Y(:,12) - number symptomatic
+% Y(:,13) - mobility (%)
+% Y(:,14) - work (%)
+% Y(:,15) - home (%)
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','CCU','morgue','isolation'};
@@ -50,7 +55,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 7956 2020-09-21 19:48:24Z karl $
+% $Id: spm_SARS_gen.m 8001 2020-11-03 19:05:40Z karl $
 
 
 % The generative model:
@@ -130,6 +135,14 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 if (nargin < 3) || isempty(U), U = 1:2; end         % two outcomes
 try, M.T; catch, M.T = 180;             end         % over six months
 
+% deal with data structures (asynchronous timeseries)
+%--------------------------------------------------------------------------
+if isstruct(M.T)
+    D   = M.T;
+    d   = spm_vec(D.date);
+    M.T = max(d) - min(d) + 1;
+    d   = min(d):max(d);
+end
 
 % exponentiate parameters
 %--------------------------------------------------------------------------
@@ -156,11 +169,21 @@ for f = 1:Nf
     p{f}  = p{f}/sum(p{f});
 end
 
+% initial ensemble density
+%--------------------------------------------------------------------------
+x     = spm_cross(p);
+R     = P;
+R.n   = -16;
+R.t   = 0;
+for i =1:8
+    T     = spm_COVID_T(x,R);
+    x     = spm_unvec(T*spm_vec(x),x);
+    x     = x/sum(x(:));
+end
+
 % ensemble density tensor and solve over the specified number of days
 %--------------------------------------------------------------------------
-u     = sparse(U,1,1,16,1);
-q     = p;
-x     = spm_cross(p);
+Y     = zeros(M.T,20);
 for i = 1:M.T
     
     % time-dependent parameters
@@ -169,27 +192,31 @@ for i = 1:M.T
     % start of trace and track
     %----------------------------------------------------------------------
     if isfield(M,'TTT')
-        if isfield(M,'FTT')
-            Q.ttt = Q.ttt + spm_phi((i - M.TTT)/2)*(M.FTT - Q.ttt);
-            P.ttt = log(Q.ttt);
+        if i > M.TTT
+            if isfield(M,'FTT')
+                P.ttt = log(M.FTT);
+            else
+                P.ttt = log(Q.ttt) + 2;
+            end
         else
-            P.ttt = log(Q.ttt) + log(spm_phi((i - M.TTT)/2));
+            P.ttt = log(Q.ttt);
         end
     end
     
-    % early lockdown
+    % circuit breaker
     %----------------------------------------------------------------------
-    if isfield(M,'TT')
-        P.sde = log(Q.sde) - spm_phi((M.TT - i)/8)*4;
+    if isfield(M,'CBT')
+        if (i > M.CBT) && (i <= (M.CBT + M.CBD))
+            P.sde = log(Q.sde) - log(4);
+        else
+            P.sde = log(Q.sde);
+        end
     end
     
     % update ensemble density, with probability dependent transitions
     %----------------------------------------------------------------------
-    if isfield(M,'r')
-        T = spm_COVID_T(x,P,M.r{i});
-    else
-        T = spm_COVID_T(x,P);
-    end
+    P.t   = log(i);
+    T     = spm_COVID_T(x,P);
     x     = spm_unvec(T*spm_vec(x),x);
     x     = x/sum(x(:));
     
@@ -199,11 +226,15 @@ for i = 1:M.T
     for j = 1:Nf
         X{j}(i,:) = p{j};
     end
-    
-    % number of daily deaths
+
+    % number of daily deaths (plus incidental deaths due to prevalence)
     %----------------------------------------------------------------------
-    Y(i,1) = N*p{3}(4);
-    
+    if isfield(Q,'in')
+        Y(i,1) = N*p{3}(4) + Q.in*(p{2}(2) + p{2}(3));
+    else
+        Y(i,1) = N*p{3}(4);
+    end
+
     % number of daily (positive) tests
     %----------------------------------------------------------------------
     Y(i,2) = N*p{4}(3);
@@ -216,7 +247,7 @@ for i = 1:M.T
     %----------------------------------------------------------------------
     Y(i,4) = p{2}(2) + p{2}(3);
     
-    % population immunity (%)
+    % seropositive immunity (%)
     %----------------------------------------------------------------------
     Y(i,5) = p{2}(4)*100;
     
@@ -236,14 +267,50 @@ for i = 1:M.T
     %----------------------------------------------------------------------
     Y(i,9) = N*x(1,2,1,1);
     
-    % number of new cases
+    % incidence
     %----------------------------------------------------------------------
-    if u(10)
-        q       = x;
-        T       = T - diag(diag(T));
-        q       = spm_unvec(T*spm_vec(q),q);
-        q       = spm_marginal(q);
-        Y(i,10) = N*q{2}(3);
+    q       = x;
+    T       = T - diag(diag(T));
+    q       = spm_unvec(T*spm_vec(q),q);
+    q       = spm_marginal(q);
+    Y(i,10) = N*q{2}(3);
+    
+    % number of infected people
+    %----------------------------------------------------------------------
+    Y(i,11)  = N*(p{2}(2) + p{2}(3));
+    
+    % number of symptomatic people
+    %----------------------------------------------------------------------
+    if isfield(Q,'sy')
+        Y(i,12)  = Q.sy(1) * N * p{3}(2)^Q.sy(2);
+    end
+    
+    % mobility (% normal)
+    %----------------------------------------------------------------------
+    if isfield(Q,'mo')
+        Y(i,13)  = Q.mo(1) * p{1}(2) * p{2}(1)^Q.mo(2);
+    end
+
+    % work (% normal)
+    %----------------------------------------------------------------------
+    if isfield(P,'wo')
+        Y(i,14)  = Q.wo(1) * p{1}(2) * p{2}(1)^Q.wo(2);
+    end
+    
+    % number of COVID-19 admitted (a function of prevalence)
+    %----------------------------------------------------------------------
+    if isfield(P,'ad')
+        Y(i,15) = Q.ad(1) * N * p{2}(2)^Q.ad(2);
+    end
+    
+    % number of daily deaths due to COVID-19
+    %----------------------------------------------------------------------
+    Y(i,16) = N*p{3}(4);
+    
+    % home (% normal)
+    %----------------------------------------------------------------------
+    if isfield(P,'ho')
+        Y(i,17)  = Q.ho(1) * p{1}(2) * p{2}(1)^Q.ho(2);
     end
     
     
@@ -257,10 +324,20 @@ end
 
 % effective reproduction ratio: exp(K*Q.Tcn): K = dln(N)/dt
 %--------------------------------------------------------------------------
-Y(:,4) = exp((Q.Tcn + Q.Tin)*gradient(log(Y(:,4))));
+Y(:,4) = exp((Q.Tcn)*gradient(log(Y(:,4))));
 
 % retain specified output variables
 %--------------------------------------------------------------------------
 Y      = Y(:,U);
+
+% vectorise if data are asynchronous
+%--------------------------------------------------------------------------
+if exist('D','var')
+    for i = 1:numel(D)
+        j      = ismember(d,D(i).date);
+        D(i).Y = Y(j,i); 
+    end
+    Y  = spm_vec(D.Y);
+end
 
 return

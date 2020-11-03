@@ -31,7 +31,7 @@ function [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_ci.m 7929 2020-08-16 13:43:49Z karl $
+% $Id: spm_SARS_ci.m 8001 2020-11-03 19:05:40Z karl $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------
@@ -43,7 +43,7 @@ if nargin < 4, U = 1:3; end
 
 % compensate for (variational) overconfidence
 %--------------------------------------------------------------------------
-Cp = Cp*4;
+Cp = Cp*64;
 
 % evaluate confidence intervals (using a Taylor expansion)
 %==========================================================================
@@ -89,24 +89,29 @@ end
 %--------------------------------------------------------------------------
 if numel(U) == 1
     
-    subplot(2,1,1)
-    spm_plot_ci(Y(:,i)',C{i},t), hold on
-    try, plot(t(1:numel(Z(:,i))),Z(:,i),'.k'), end
-    ylabel('number of cases/day')
-    title(outcome,'FontSize',16)
-    
-    
-    % label time
-    %----------------------------------------------------------------------
-    if isfield(M,'date')
-        datetick('x','mmmdd')
-        xlabel('date')
-    else
-        xlabel('time (weeks)')
+    if nargout < 4
+        
+        spm_plot_ci(Y(:,i)',C{i},t), hold on
+        try, plot(t(1:numel(Z(:,i))),Z(:,i),'.k'), end
+        ylabel('number of cases/day')
+        title(outcome,'FontSize',14)
+        
+        sprintf('%s, %6.0f',outcome{1},sum(Y))
+        
+        % label time
+        %------------------------------------------------------------------
+        if isfield(M,'date')
+            datetick('x','mmm-dd','keeplimits','keepticks')
+            xlabel('date')
+        else
+            xlabel('time (weeks)')
+        end
+        
+        box off, spm_axis tight
+        YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
+        drawnow
+        
     end
-    
-    box off, spm_axis tight
-    YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
     return
 end
 
