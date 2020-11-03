@@ -11,7 +11,7 @@ function [X,s] = spm_ndgrid(x)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ndgrid.m 2032 2008-09-02 18:31:16Z karl $
+% $Id: spm_ndgrid.m 8000 2020-11-03 19:04:17Z karl $
  
 % event-space: domain s
 %--------------------------------------------------------------------------
@@ -25,7 +25,7 @@ else
 end
  
 % create X - coordinates of evaluation grid
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 for i = 1:n
     q     = 1;
     for j = 1:n

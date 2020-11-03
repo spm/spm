@@ -1,7 +1,7 @@
 function [H,R,J,G] = spm_ness(J,G)
 % Evaluation of hessian and solenoidal operators at NESS
 % FORMAT [H,R]     = spm_ness(J,G)
-% FORMAT [H,R,J,G] = spm_ness(J,G)
+% FORMAT [H,R,J,G] = spm_ness(J,G)   %%%% complex
 % J  - Jacobian (dfdx)
 % G  - diffusion tensor (amplitude of random fluctuations)
 %
@@ -33,17 +33,18 @@ function [H,R,J,G] = spm_ness(J,G)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness.m 7910 2020-07-28 19:16:17Z karl $
+% $Id: spm_ness.m 8000 2020-11-03 19:04:17Z karl $
 
 
 % solve for solenoidal (R) operator J*R + R*J' = J*G - G*J'
 %==========================================================================
 if nargout < 3
     n  = size(J,1);
-    I  = eye(n,n);
+    L  = speye(n*n)/512;
+    I  = speye(n,n);
     X  = kron(I,J) + kron(conj(J),I);
     Y  = spm_vec(J*G - G*J');
-    R  = reshape(X\Y,n,n);
+    R  = reshape((X'*X + L)\(X'*Y),n,n);
     
     % precision (inverse covariance) of steady-state density
     %----------------------------------------------------------------------

@@ -9,10 +9,10 @@ function A = spm_permute_kron(A,dim,order)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_permute_kron.m 7809 2020-03-31 11:55:09Z karl $
+% $Id: spm_permute_kron.m 8000 2020-11-03 19:04:17Z karl $
 
 
-% creating indices
+% create indices
 %--------------------------------------------------------------------------
 i     = reshape(1:prod(dim),dim);
 i     = permute(i,order);

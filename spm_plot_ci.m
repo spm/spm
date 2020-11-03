@@ -13,14 +13,16 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 7894 2020-07-12 09:34:25Z karl $
+% $Id: spm_plot_ci.m 8000 2020-11-03 19:04:17Z karl $
 
 
 % get axis
 %--------------------------------------------------------------------------
 ax   = gca;
-colf = [.8 .8 1];
-coll = spm_softmax(32*log(colf(:)))';
+col  = get(ax,'colororder');
+coli = get(ax,'colororderindex');
+coll = col(coli,:);
+colf = erf(coll + 1);
 
 % confidence region (CR) plotting
 %--------------------------------------------------------------------------
@@ -134,19 +136,24 @@ if N >= 8
             colf,'EdgeColor','none','Parent',ax,'facealpha', 0.4);
         hold(ax,'on');
         plot(x,exp(E),'Color',coll);
+        set(ax,'colororderindex',coli + 1);
         
     elseif strcmpi(s,'log')
         fill([x fliplr(x)],log(abs([full(E + c) fliplr(full(E - c))])),...
             colf,'EdgeColor','none','Parent',ax,'facealpha', 0.4);
         hold(ax,'on');
         plot(x,log(abs(E)),'Color',coll);
+        set(ax,'colororderindex',coli + 1);
+        
         
     else
         fill([x fliplr(x)],[full(E + c) fliplr(full(E - c))],...
             colf,'EdgeColor','none','Parent',ax,'facealpha', 0.4);
         hold(ax,'on');
         plot(ax,x,E,s,'Color',coll);
-    end    
+        set(ax,'colororderindex',coli + 1);
+        
+    end
     
 else
     

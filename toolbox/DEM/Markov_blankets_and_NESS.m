@@ -2,7 +2,7 @@ function Markov_blankets_and_NESS
 % Meta-modelling of Bayes-optimal responses (Newton's method)
 % FORMAT Markov_blankets_and_NESS
 %
-% this demonstration routine deals with the conditional independence in
+% This demonstration routine deals with the conditional independence in
 % this induced by sparse coupling in a random dynamical systems, where the
 % sparse coupling is characterised in terms of the system's Jacobian. At
 % nonequilibrium steady-state, this places linear constraints on the
@@ -24,7 +24,7 @@ function Markov_blankets_and_NESS
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: Markov_blankets_and_NESS.m 7910 2020-07-28 19:16:17Z karl $
+% $Id: Markov_blankets_and_NESS.m 8000 2020-11-03 19:04:17Z karl $
 
 % backwards compatibility for symbolic maths
 %--------------------------------------------------------------------------

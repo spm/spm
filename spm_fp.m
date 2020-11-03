@@ -25,7 +25,7 @@ function [M0,q0,X,x,f,M1,L] = spm_fp(M,x,u)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_fp.m 8000 2020-11-03 19:04:17Z karl $
  
 % default: first level of hierarchical model
 %--------------------------------------------------------------------------
@@ -62,8 +62,14 @@ end
 N     = length(X);
 f     = sparse(n,N);
 try
-    for i = 1:N
-        f(:,i) = feval(M.f,X(i,:)',u0,M.pE);
+    try
+        for i = 1:N
+            f(:,i) = M.f(X(i,:)',u0,M.pE);
+        end
+    catch
+        for i = 1:N
+            f(:,i) = feval(M.f,X(i,:)',u0,M.pE);
+        end
     end
 catch
     for i = 1:N
@@ -81,7 +87,7 @@ for i = 1:n
 end
 J     = sparse(N,N);
  
- 
+
 % cycle over dimensions of state space
 %--------------------------------------------------------------------------
 for i = 1:length(x)
@@ -119,7 +125,7 @@ for i = 1:length(x)
     J     = J + Dp*spdiags(u,0,N,N) + Dq*spdiags(v,0,N,N);
  
 end
- 
+
 % dispersion
 %--------------------------------------------------------------------------
 C     = inv(M.W);

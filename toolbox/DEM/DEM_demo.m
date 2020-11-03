@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 24-Jul-2020 18:48:00
+% Last Modified by GUIDE v2.5 26-Sep-2020 12:35:36
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -769,3 +769,7 @@ function pushbutton259_Callback(hObject, eventdata, handles)
 handles.web = 'Planning and navigation as active inference';
 run_demo_Callback(hObject, handles, 'DEMO_MDP_maze_X')
 
+% --- Executes on button press in pushbutton260.
+function pushbutton260_Callback(hObject, eventdata, handles)
+handles.web = 'A free energy principle for a particular physics';
+run_demo_Callback(hObject, handles, 'FEP_lorenz_surprise')
