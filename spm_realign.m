@@ -62,7 +62,7 @@ function P = spm_realign(P,flags)
 % modules.  What these matrices represent is a mapping from the voxel
 % coordinates (x0,y0,z0) (where the first voxel is at coordinate (1,1,1)),
 % to coordinates in millimeters (x1,y1,z1).
-%  
+%
 % x1 = M(1,1)*x0 + M(1,2)*y0 + M(1,3)*z0 + M(1,4)
 % y1 = M(2,1)*x0 + M(2,2)*y0 + M(2,3)*z0 + M(2,4)
 % z1 = M(3,1)*x0 + M(3,2)*y0 + M(3,3)*z0 + M(3,4)
@@ -86,11 +86,11 @@ function P = spm_realign(P,flags)
 % Copyright (C) 1994-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_realign.m 7141 2017-07-26 09:05:05Z guillaume $
+% $Id: spm_realign.m 8002 2020-11-04 12:15:38Z john $
 
 
-SVNid = '$Rev: 7141 $';
- 
+SVNid = '$Rev: 8002 $';
+
 %-Say hello
 %--------------------------------------------------------------------------
 SPMid = spm('FnBanner',mfilename,SVNid);
@@ -154,7 +154,7 @@ if ~nargout
         %-Save parameters as rp_*.txt files
         %------------------------------------------------------------------
         save_parameters(P{s});
-        
+
         %-Update voxel to world mapping in images header
         %------------------------------------------------------------------
         for i=1:numel(P{s})
@@ -187,8 +187,23 @@ function P = realign_series(P,flags)
 
 if numel(P)<2, return; end
 
-skip = sqrt(sum(P(1).mat(1:3,1:3).^2)).^(-1)*flags.sep;
-d    = P(1).dim(1:3);                                                                                                                        
+if isfield(flags,'sep') && isfinite(flags.sep)
+    skip = sqrt(sum(P(1).mat(1:3,1:3).^2)).^(-1)*flags.sep;
+else
+    skip = [1 1 1];
+end
+if isfield(flags,'fwhm') && isfinite(flags.fwhm)
+    fwhm = flags.fwhm;
+else
+    fwhm = 0;
+end
+if isfield(flags,'quality')
+    quality = flags.quality;
+else
+    quality = 1;
+end
+
+d    = P(1).dim(1:3);
 lkp  = flags.lkp;
 st   = rand('state'); % st = rng;
 rand('state',0); % rng(0,'v5uniform'); % rng('defaults');
@@ -201,7 +216,7 @@ else
     [x1,x2,x3] = ndgrid(1:skip(1):d(1)-.5, 1:skip(2):d(2)-.5, 1:skip(3):d(3)-.5);
     x1   = x1 + rand(size(x1))*0.5;
     x2   = x2 + rand(size(x2))*0.5;
-    x3   = x3 + rand(size(x3))*0.5; 
+    x3   = x3 + rand(size(x3))*0.5;
 end
 rand('state',st); % rng(st);
 
@@ -225,7 +240,7 @@ end
 
 %-Compute rate of change of chi2 w.r.t changes in parameters (matrix A)
 %--------------------------------------------------------------------------
-V   = smooth_vol(P(1),flags.interp,flags.wrap,flags.fwhm);
+V   = smooth_vol(P(1),flags.interp,flags.wrap,fwhm);
 deg = [flags.interp*[1 1 1]' flags.wrap(:)];
 
 [G,dG1,dG2,dG3] = spm_bsplins(V,x1,x2,x3,deg);
@@ -237,7 +252,7 @@ if ~isempty(wt), b = b.*wt; end
 
 %-Remove voxels that contribute very little to the final estimate
 %--------------------------------------------------------------------------
-if numel(P) > 2
+if numel(P) > 2 && quality<1
     % Simulated annealing or something similar could be used to
     % eliminate a better choice of voxels - but this way will do for
     % now. It basically involves removing the voxels that contribute
@@ -250,7 +265,7 @@ if numel(P) > 2
     det0  = det(Alpha);
     det1  = det0;
     spm_plot_convergence('Set',det1/det0);
-    while det1/det0 > flags.quality
+    while det1/det0 > quality
         dets = zeros(size(A0,1),1);
         for i=1:size(A0,1)
             tmp     = [A0(i,:) b(i)];
@@ -283,8 +298,11 @@ end
 %--------------------------------------------------------------------------
 
 spm_progress_bar('Init',numel(P)-1,'Registering Images');
+AA = A0'*A0;
+AA = AA + eye(size(AA))*(max(diag(AA))*1e-5);
+
 for i=2:numel(P)
-    V  = smooth_vol(P(i),flags.interp,flags.wrap,flags.fwhm);
+    V  = smooth_vol(P(i),flags.interp,flags.wrap,fwhm);
     d  = [size(V) 1 1];
     d  = d(1:3);
     ss = Inf;
@@ -297,11 +315,9 @@ for i=2:numel(P)
         F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),deg);
         if ~isempty(wt), F = F.*wt(msk); end
 
-        A          = A0(msk,:);
         b1         = b(msk);
-        sc         = sum(b1)/sum(F);
-        b1         = b1-F*sc;
-        soln       = (A'*A)\(A'*b1);
+        sc         = sum(b1.*F)/sum(b1.^2);
+        soln       = AA\(A0(msk,:)'*(b1-F*sc));
 
         p          = [0 0 0  0 0 0  1 1 1  0 0 0];
         p(lkp)     = p(lkp) + soln';
@@ -349,8 +365,11 @@ clear ave grad1 grad2 grad3
 % Loop over images
 %--------------------------------------------------------------------------
 spm_progress_bar('Init',length(P),'Registering Images to Mean');
+AA = A0'*A0;
+AA = AA + eye(size(AA))*(max(diag(AA))*1e-5);
+
 for i=1:numel(P)
-    V  = smooth_vol(P(i),flags.interp,flags.wrap,flags.fwhm);
+    V  = smooth_vol(P(i),flags.interp,flags.wrap,fwhm);
     d  = [size(V) 1 1 1];
     ss = Inf;
     countdown = -1;
@@ -362,11 +381,9 @@ for i=1:numel(P)
         F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),deg);
         if ~isempty(wt), F = F.*wt(msk); end
 
-        A          = A0(msk,:);
         b1         = b(msk);
-        sc         = sum(b1)/sum(F);
-        b1         = b1-F*sc;
-        soln       = (A'*A)\(A'*b1);
+        sc         = sum(b1.*F)/sum(b1.^2);
+        soln       = AA\(A0(msk,:)'*(b1-F*sc));
 
         p          = [0 0 0  0 0 0  1 1 1  0 0 0];
         p(lkp)     = p(lkp) + soln';
