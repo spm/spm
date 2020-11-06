@@ -5,7 +5,7 @@ function simulate = spm_cfg_eeg_inv_simulate
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_simulate.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_eeg_inv_simulate.m 8004 2020-11-06 14:52:25Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -248,7 +248,7 @@ if isfield(job.isinversion,'setsources'), %% defining individual sources
     else %% only one moment parameter given
         nAmdipmom=dipmom(:,1); %% total momnent in nAm
         dipfwhm=[];
-        if size(dipmom,1)==2,
+        if size(dipmom,2)==2,
             dipfwhm=dipmom(:,2); %% fhwm in mm
         end;
     end;
@@ -299,7 +299,12 @@ if isfield(job.isinversion,'setsources'), %% defining individual sources
         
     end; %% if isfield foi
     
-    simsignal=simsignal./repmat(std(simsignal'),size(simsignal,2),1)'; %% Set sim signal to have unit variance
+    for j=1:size(simsignal,1),
+        if max(max(abs(simsignal(j,:))))>0, %% if everythhing zero don't rescale
+        simsignal(j,:)=simsignal(j,:)./std(simsignal(j,:)); %% Set sim signal to have unit variance
+        end;
+    end;
+    
     %[D,meshsourceind,signal]=spm_eeg_simulate(D,job.prefix, job.isinversion.setsources.locs,simsignal,woi,whitenoisefT,SNRdB,trialind,mnimesh,SmthInit);
     figure;
     plot(D{1}.time(timeind),simsignal);
