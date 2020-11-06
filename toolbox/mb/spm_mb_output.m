@@ -5,11 +5,12 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 7995 2020-10-22 09:20:25Z mikael $
+% $Id: spm_mb_output.m 8003 2020-11-06 10:28:57Z mikael $
 
 res  = load(char(cfg.result));
 sett = res.sett;
 dat  = res.dat;
+nw   = spm_mb_shape('get_num_workers',sett,max(27,sett.K*5+17));
 
 if isfield(sett.mu,'exist')
     mu = sett.mu.exist.mu;
@@ -50,12 +51,18 @@ opt = struct('write_inu',cfg.inu,...
              'fwhm',cfg.fwhm);
 opt.proc_zn = cfg.proc_zn;
 
-spm_progress_bar('Init',N,'Writing MB output','Subjects complete');
-for n=1:N % Loop over subjects
-    res(n) = ProcessSubject(dat(n),res(n),mu,sett,opt);
-    spm_progress_bar('Set',n);
+if nw > 1 && numel(dat) > 1 % PARFOR
+    parfor(n=1:N,nw)
+        res(n) = ProcessSubject(dat(n),res(n),mu,sett,opt);
+    end
+else
+    spm_progress_bar('Init',N,'Writing MB output','Subjects complete');
+    for n=1:N % FOR
+        res(n) = ProcessSubject(dat(n),res(n),mu,sett,opt);
+        spm_progress_bar('Set',n);
+    end
+    spm_progress_bar('Clear');
 end
-spm_progress_bar('Clear');
 %==========================================================================
 
 %==========================================================================
