@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8001 2020-11-03 19:05:40Z karl $
+% $Id: DEM_COVID_UK.m 8005 2020-11-06 19:37:18Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -56,7 +56,7 @@ Y(2).unit = 'number/day';
 Y(2).U    = 1;
 Y(2).date = datenum(deaths.textdata(2:end,4),'dd-mm-yy');
 Y(2).Y    = deaths.data(:,1);
-Y(2).h    = 0;
+Y(2).h    = 4;
 
 Y(3).type = 'Ventilated patients (ONS)'; % CCU occupancy (mechanical)
 Y(3).unit = 'number';
@@ -69,7 +69,7 @@ Y(4).type = 'PCR tests (ONS)'; % daily PCR tests performed
 Y(4).unit = 'number/day';
 Y(4).U    = 6;
 Y(4).date = datenum(tests.textdata(2:end,4),'dd-mm-yy');
-Y(4).Y    = tests.data(:,3);
+Y(4).Y    = tests.data(:,1) + tests.data(:,2);
 Y(4).h    = 0;
 
 Y(5).type = 'Prevalence (ONS)'; % number of people infected (England)
@@ -115,6 +115,10 @@ Y(10).date = datenum(mobility.textdata(2:end,1),'dd-mm-yy');
 Y(10).Y    = mobility.data(:,5) + 100;
 Y(10).h    = 0;
 
+% data types to invert
+%--------------------------------------------------------------------------
+% Y    = Y([1 2 3]);
+
 % remove NANs and sort by date
 %--------------------------------------------------------------------------
 for i = 1:numel(Y)
@@ -154,7 +158,7 @@ for i = 1:numel(Y)
      h(i) = sum(Y(i).Y);
 end
 h   = log(h);
-h   = mean(h) - h + 2;
+h   = mean(h) - h;
 for i = 1:numel(Y)
      Y(i).h = Y(i).h + h(i);
 end
@@ -169,9 +173,18 @@ end
 
 % data structure with vectorised data and covariance components
 %--------------------------------------------------------------------------
-xY.y    = spm_vec(Y.Y);
-xY.Q    = spm_Ce(nY);
-hE      = spm_vec(Y.h);
+xY.y  = spm_vec(Y.Y);
+xY.Q  = spm_Ce(nY);
+hE    = spm_vec(Y.h);
+
+% fix prior precisions of different sorts of data
+%--------------------------------------------------------------------------
+Q     = sparse(0);
+for i = 1:numel(Y)
+    Q = Q + xY.Q{i}*exp(hE(i));
+end
+% xY.Q  = Q;
+% hE    = 0;
 
 % get and set priors
 %--------------------------------------------------------------------------
@@ -181,17 +194,21 @@ pC.N    = 0;
 
 % coefficients for likelihood model
 %--------------------------------------------------------------------------
-pE.sy   = log([1 1]);
-pC.sy   = exp([8,8]);
+pE.cc   = log(1/2);             % fraction of CCU on mechanical ventilation
+pC.sc   = 1;                    % prior variance
 
-pE.mo   = log([2048,2]);
-pE.wo   = log([2048,4]);
-pC.mo   = exp([8,8]);
-pC.wo   = exp([8,8]);
+pE.sy   = log(1);               % coefficients for reporting symptoms
+pC.sy   = 1;                    % prior variance
+
+pE.mo   = log([32,2]);          % coefficients for mobility
+pE.wo   = log([32,4]);          % coefficients for workplace
+pC.mo   = [1,1];                % prior variance
+pC.wo   = [1,1];                % prior variance
 
 % model specification
 %==========================================================================
 M.date  = datestr(d(1),'dd-mm-yyyy');
+M.Nmax  = 128;                  % maximum number of iterations
 M.G     = @spm_SARS_gen;        % generative function
 M.FS    = @(Y)real(sqrt(Y));    % feature selection  (link function)
 M.pE    = pE;                   % prior expectations (parameters)

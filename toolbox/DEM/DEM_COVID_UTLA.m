@@ -17,7 +17,7 @@ function [DCM] = DEM_COVID_UTLA
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UTLA.m 8001 2020-11-03 19:05:40Z karl $
+% $Id: DEM_COVID_UTLA.m 8005 2020-11-06 19:37:18Z karl $
 
 
 % NHS postcode data
@@ -492,7 +492,6 @@ clear M
 Y     = 0;
 for r = 1:numel(D)
     Y       = Y + D(r).YY;
-    EP(:,r) = spm_vec(DCM(r).Ep);
 end
 
 % priors for this analysis
@@ -500,6 +499,7 @@ end
 [pE,pC] = spm_SARS_priors;
 pE.N    = log(56);
 pC.N    = 0;
+pE.n    = 8;
 
 % complete model specification
 %--------------------------------------------------------------------------
@@ -534,7 +534,7 @@ spm_figure('GetWin','Supression'); clf;
 %--------------------------------------------------------------------------
 [S,CS,P,C] = spm_SARS_ci(Ep,Cp,[],[8 10],M);
 Eq         = P(:,2)*7;
-Cq         = C{2}*(7^2);
+Cq         = (7^2)*(C{2}/64);
 Sq         = sqrt(diag(Cq))*1.69;
 
 subplot(2,1,1), hold off
@@ -571,8 +571,8 @@ xlabel('date'), ylabel('log incidence')
 
 % projections and an enhanced FTTIS protocol
 %--------------------------------------------------------------------------
-Ep.ttt = log(1/4);
 M.TTT  = j;
+M.FTT  = 1/4;
 P      = spm_SARS_gen(Ep,M,10);
 Eq     = P/exp(Ep.N)/10;
 plot(T,log(Eq),'-.')

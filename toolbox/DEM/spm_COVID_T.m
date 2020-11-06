@@ -20,7 +20,7 @@ function T = spm_COVID_T(x,P)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8001 2020-11-03 19:05:40Z karl $
+% $Id: spm_COVID_T.m 8005 2020-11-06 19:37:18Z karl $
 
 % setup
 %==========================================================================
@@ -35,16 +35,15 @@ end
 
 % exponentiate parameters
 %--------------------------------------------------------------------------
-P     = spm_vecfun(P,@exp);
+P    = spm_vecfun(P,@exp);
 
 % daily rate
 %--------------------------------------------------------------------------
-Kday  = exp(-1);
+Kday = exp(-1);
 
 % divergence from endemic equilibrium (1,0)
 %--------------------------------------------------------------------------
-q    = spm_sum(x,[1 3 4]);
-Q    = q(1) + P.r;
+Q    = exp(-P.t/128);
 
 % probabilistic transitions: location
 %==========================================================================
@@ -151,11 +150,11 @@ q    = spm_sum(x,[3 4]);
 pin  = q(1,:)/sum(q(1,:));           % infection probability at home
 pou  = q(2,:)/sum(q(2,:));           % infection probability at work
 
-Ptrn = erf(P.trn*Q + P.Nru*(1 - Q)); % transmission strength
+Ptrn = erf(P.trn*Q + P.trm*(1 - Q)); % transmission strength
 Ptin = (1 - Ptrn*pin(3))^P.Nin;      % P(no transmission) | home
 Ptou = (1 - Ptrn*pou(3))^P.Nou;      % P(no transmission) | work
-Kimm = exp(-1/P.Tim);                % loss of Ab+ immunity (per days)
-Kinn = 1;                            % loss of Ab- immunity (per days)
+Kimm = exp(-1/P.Tim);                % loss of Ab+ immunity (per day)
+Kinn = exp(-1/Inf);                  % loss of Ab- immunity (per day)
 Kinf = exp(-1/P.Tin);                % infection rate
 Kcon = exp(-1/P.Tcn);                % infectious rate
 Pres = P.res;                        % infectious proportion
@@ -265,17 +264,16 @@ ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
 % test probabilities
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
-p    = spm_sum(x,[1 2 4]);  p = p(2); % probability of symptoms 
-q    = spm_sum(x,[1 2 3]);  q = q(2); % probability of waiting
-r    = spm_sum(x,[1 3 4]);  r = r(4); % probability of Ab+ 
+q    = spm_sum(x,[1 2 4]);  q = q(2); % probability of symptoms 
 
-Psen  = 0;
+Psen = 0;
 for i = 1:numel(P.lim)
     Psen  = Psen + P.lim(i)*spm_phi((P.t - P.ons(i))/P.rat(i));
 end
-   
-Psen = erf(Psen + P.sus*r + P.ont*p); % demand for testing   
-Ptes = erf(Psen*(P.tes + P.tts*q));   % probability if infected
+
+Ptes = P.tes*Q + P.tts*(1 - Q);       % testing bias
+Psen = erf(Psen + P.ont*q);           % demand for testing   
+Ptes = erf(Psen*Ptes);                % probability if infected
 Sens = 1 - P.fnr;                     % PCR false negative rate
 Spec = 1 - P.fpr;                     % PCR false positive rate
 Kdel = exp(-1/P.del);                 % exp(-1/waiting period)

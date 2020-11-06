@@ -15,7 +15,7 @@ function spm_SARS_plot(Y,X,Z,u,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_plot.m 8001 2020-11-03 19:05:40Z karl $
+% $Id: spm_SARS_plot.m 8005 2020-11-06 19:37:18Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -110,21 +110,6 @@ for i = 1:numel(X)
     ylabel('percent')
     title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
     box off, legend(str.factor{i}(j(1:2))), legend('boxoff'), box off
-    
-    % thresholds
-    %----------------------------------------------------------------------
-    if i == 2 % infection
-        semilogy(t,X{i}(:,j(1:2))*100)
-        ylabel('percent')
-        title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
-        box off, legend(str.factor{i}(j(1:2))), legend('boxoff'), box off
-        hold on
-        plot(t,spm_zeros(t) + exp(pE.sde),'--');
-        plot(t,spm_zeros(t) + exp(pE.qua),'-.');
-        hold off
-        legend([str.factor{i}(j(1:2)),'lockdown','travel'])
-    end
-
     
     k = k + 1;
     subplot(6,2,k), if CHOLD, set(gca,'ColorOrderIndex',1); end

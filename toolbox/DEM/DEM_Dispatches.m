@@ -14,7 +14,7 @@ function DCM = DEM_Dispatches
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_Dispatches.m 8001 2020-11-03 19:05:40Z karl $
+% $Id: DEM_Dispatches.m 8005 2020-11-06 19:37:18Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -60,7 +60,7 @@ plot(datenum(date)*[1,1],get(gca,'YLim'),'-.b')
 %--------------------------------------------------------------------------
 spm_figure('GetWin','enhanced testing'); clf;
 
-Ep.lim(1) = log(0.028);
+Ep.lim(1) = log(0.01);
 Ep.ons(1) = log(datenum('01-Jul-20','dd-mm-yy') - datenum(M.date,'dd-mm-yyyy'));
 Ep.rat(1) = log(4);
 

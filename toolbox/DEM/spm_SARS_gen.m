@@ -55,7 +55,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8001 2020-11-03 19:05:40Z karl $
+% $Id: spm_SARS_gen.m 8005 2020-11-06 19:37:18Z karl $
 
 
 % The generative model:
@@ -237,11 +237,15 @@ for i = 1:M.T
 
     % number of daily (positive) tests
     %----------------------------------------------------------------------
-    Y(i,2) = N*p{4}(3);
+    Y(i,2) = N * p{4}(3);
 
     % CCU bed occupancy
     %----------------------------------------------------------------------
-    Y(i,3) = N*p{1}(3);
+    if isfield(Q,'cc')
+        Y(i,3) = Q.cc(1) * N * p{1}(3);
+    else
+        Y(i,3) = N * p{1}(3);
+    end
     
     % effective reproduction ratio (R) (based on infection prevalence)
     %----------------------------------------------------------------------
@@ -253,7 +257,7 @@ for i = 1:M.T
     
     % total number of daily tests (positive or negative)
     %----------------------------------------------------------------------
-    Y(i,6) = N*(p{4}(3) + p{4}(4));
+    Y(i,6) = N * (p{4}(3) + p{4}(4));
     
     % probability of contracting virus (in a class of 15)
     %----------------------------------------------------------------------
@@ -265,7 +269,7 @@ for i = 1:M.T
     
     % number of people at home, asymptomatic, untested but infected
     %----------------------------------------------------------------------
-    Y(i,9) = N*x(1,2,1,1);
+    Y(i,9) = N * x(1,2,1,1);
     
     % incidence
     %----------------------------------------------------------------------
@@ -277,42 +281,32 @@ for i = 1:M.T
     
     % number of infected people
     %----------------------------------------------------------------------
-    Y(i,11)  = N*(p{2}(2) + p{2}(3));
+    Y(i,11)  = N * (p{2}(2) + p{2}(3));
     
     % number of symptomatic people
     %----------------------------------------------------------------------
     if isfield(Q,'sy')
-        Y(i,12)  = Q.sy(1) * N * p{3}(2)^Q.sy(2);
+        Y(i,12)  = Q.sy(1) * N * p{3}(2);
+    else
+        Y(i,12)  = N * p{3}(2);
     end
     
     % mobility (% normal)
     %----------------------------------------------------------------------
     if isfield(Q,'mo')
-        Y(i,13)  = Q.mo(1) * p{1}(2) * p{2}(1)^Q.mo(2);
+        Y(i,13)  = 100 * Q.mo(1) * p{1}(2) * p{2}(1)^Q.mo(2);
+    else
+        Y(i,13)  = 100 * p{1}(2);
     end
 
     % work (% normal)
     %----------------------------------------------------------------------
     if isfield(P,'wo')
-        Y(i,14)  = Q.wo(1) * p{1}(2) * p{2}(1)^Q.wo(2);
-    end
-    
-    % number of COVID-19 admitted (a function of prevalence)
-    %----------------------------------------------------------------------
-    if isfield(P,'ad')
-        Y(i,15) = Q.ad(1) * N * p{2}(2)^Q.ad(2);
-    end
-    
-    % number of daily deaths due to COVID-19
-    %----------------------------------------------------------------------
-    Y(i,16) = N*p{3}(4);
-    
-    % home (% normal)
-    %----------------------------------------------------------------------
-    if isfield(P,'ho')
-        Y(i,17)  = Q.ho(1) * p{1}(2) * p{2}(1)^Q.ho(2);
-    end
-    
+        Y(i,14)  = 100 * Q.wo(1) * p{1}(2) * p{2}(1)^Q.wo(2);
+    else
+        Y(i,14)  = 100 * p{1}(2);
+    end 
+
     
     % joint density if requested
     %----------------------------------------------------------------------
