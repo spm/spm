@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 7993 2020-10-21 15:25:13Z mikael $
+% $Id: spm_mb_init.m 8006 2020-11-09 17:48:31Z mikael $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -369,6 +369,11 @@ for p=1:numel(sett.gmm) % Loop over populations
         mu_all(c,~msk) = sum(mu_all(c,msk),2)/sum(msk,2);
     end
 
+    % Fix for when just a single subject, with one (or more) fully unobserved 
+    % modalities
+    mu_all(~isfinite(mu_all)) = 1000;
+    vr_all(~isfinite(vr_all)) = mean(vr_all(isfinite(vr_all)));
+    
     K1 = numel(sett.gmm(p).mg_ix); % Total number of Gaussians (some tissues may have more than one)
     if isempty(sett.gmm(p).pr)
 

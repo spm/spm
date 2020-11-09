@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 8003 2020-11-06 10:28:57Z mikael $
+% $Id: spm_mb_output.m 8006 2020-11-09 17:48:31Z mikael $
 
 res  = load(char(cfg.result));
 sett = res.sett;
@@ -52,9 +52,12 @@ opt = struct('write_inu',cfg.inu,...
 opt.proc_zn = cfg.proc_zn;
 
 if nw > 1 && numel(dat) > 1 % PARFOR
+    fprintf('Write output: ');
     parfor(n=1:N,nw)
+        fprintf('.');
         res(n) = ProcessSubject(dat(n),res(n),mu,sett,opt);
     end
+    fprintf(' done!\n');
 else
     spm_progress_bar('Init',N,'Writing MB output','Subjects complete');
     for n=1:N % FOR
@@ -216,7 +219,7 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
     else
         zn            = spm_gmm_lib('Marginal', mf, {gmm.m,gmm.V,gmm.n}, const, msk_chn);
     end
-    zn(~isfinite(zn)) = min(zn(:));  % NaN assumed to have small (log) probability
+    zn(~isfinite(zn)) = min(zn(isfinite(zn)));  % NaN assumed to have small (log) probability
     zn                = spm_gmm_lib('Responsibility', zn, mun);    
     clear mun msk_chn vf
 
@@ -224,10 +227,8 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
     if do_infer
         % Infer missing values
         sample_post = do_infer > 1;
-        A           = bsxfun(@times, gmm.V, reshape(gmm.n, [1 1 Kmg]));
-        mf          = spm_gmm_lib('InferMissing',reshape(mf,[prod(df) C]),...
-                                  zn,{gmm.m,A},code_image,sample_post);
-        clear code
+        A  = bsxfun(@times, gmm.V, reshape(gmm.n, [1 1 Kmg]));
+        mf = spm_gmm_lib('InferMissing',mf,zn,{gmm.m,A},code_image,sample_post);        
     end
     clear code_image
 
