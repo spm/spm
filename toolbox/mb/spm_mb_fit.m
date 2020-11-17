@@ -1,7 +1,6 @@
 function [dat,sett,mu] = spm_mb_fit(dat,sett)
 % Multi-Brain - Groupwise normalisation and segmentation of images
-%
-% FORMAT [dat,mu,sett] = spm_mb_fit(dat,sett)
+% FORMAT [dat,sett,mu] = spm_mb_fit(dat,sett)
 %
 % OUTPUT
 % dat                 - struct of length N storing each subject's information
@@ -11,7 +10,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 8007 2020-11-10 12:47:39Z mikael $
+% $Id: spm_mb_fit.m 8009 2020-11-17 19:58:10Z guillaume $
 
 
 % Repeatable random numbers
@@ -62,7 +61,7 @@ end
 
 % Init template
 %--------------------------------------------------------------------------
-if updt_mu,
+if updt_mu
     % Random template
     nit_mu = 1;
     mu = randn([sett.ms.d sett.K],'single')*1.0;
@@ -206,23 +205,20 @@ end
 
 %==========================================================================
 function nv = nvox(dat)
-nv = 0;
-for n=1:numel(dat)
-    nv = nv+dat(n).nvox;
-end
+nv = sum([dat.nvox]);
 %==========================================================================
 
 %==========================================================================
 function samp = get_samp(Mmu,Mf,sampdens)
 if nargin<3
-    n=16;
+    n = 16;
 else
     n = sampdens^3;
 end
-vmu  = sqrt(sum(Mmu(1:3,1:3).^2));
-vf   = sqrt(sum( Mf(1:3,1:3).^2));
-samp = max(round(((prod(vmu)/prod(vf)/n).^(1/3))./vf),1);
-samp = min(samp,5);
+vmu   = sqrt(sum(Mmu(1:3,1:3).^2));
+vf    = sqrt(sum( Mf(1:3,1:3).^2));
+samp  = max(round(((prod(vmu)/prod(vf)/n).^(1/3))./vf),1);
+samp  = min(samp,5);
 %==========================================================================
 
 %==========================================================================
@@ -271,19 +267,19 @@ function do_save(mu,sett,dat)
 if isfield(sett,'save') && sett.save
     % Save results so far
     spm_mb_io('save_template',mu,sett);
-   %sett = rmfield(sett,{'ms'});
+    %sett = rmfield(sett,{'ms'});
     save(fullfile(sett.odir,['mb_fit_' sett.onam '.mat']),'sett','dat');
 end
 %==========================================================================
 
 %==========================================================================
-function show_mu(mu, titl, fig_name, do)
+function show_mu(mu, titl, fig_name, do_show)
 % Shows the template..
 if nargin < 2, titl = ''; end
 if nargin < 3, fig_name = 'Template'; end
-if nargin < 4, do = false; end
+if nargin < 4, do_show = false; end
 
-if ~do, return; end
+if ~do_show, return; end
 % What slice index (ix) to show
 dm = size(mu);
 ix = round(0.5*dm);
