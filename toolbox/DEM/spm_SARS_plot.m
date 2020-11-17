@@ -15,7 +15,7 @@ function spm_SARS_plot(Y,X,Z,u,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_plot.m 8005 2020-11-06 19:37:18Z karl $
+% $Id: spm_SARS_plot.m 8010 2020-11-17 23:40:14Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -102,7 +102,7 @@ for i = 1:numel(X)
     
     % remove redundant states
     %----------------------------------------------------------------------
-    if i ~= 2
+    if i > 2
         j(end) = [];
     end
     
@@ -118,6 +118,7 @@ for i = 1:numel(X)
     ylabel('percent')
     title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
     box off, legend(str.factor{i}(j)), legend('boxoff'), box off
+
     
 end
 
