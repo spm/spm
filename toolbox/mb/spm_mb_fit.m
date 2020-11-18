@@ -10,7 +10,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 8009 2020-11-17 19:58:10Z guillaume $
+% $Id: spm_mb_fit.m 8011 2020-11-18 11:18:53Z mikael $
 
 
 % Repeatable random numbers
@@ -88,10 +88,12 @@ for it0=1:nit_aff
 
         if it0<=12 && ~rem(it0,3), dat = spm_mb_appearance('restart',dat,sett); end
 
-        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu);
-        show_mu(mu, ['Affine (it=' num2str(it0) ' | N=' num2str(numel(dat)) ')']);
+        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu);    
     end
 
+    % For visual debugging (disable/enable in debug_show_mu())
+    debug_show_mu(mu, ['Affine (it=' num2str(it0) ' | N=' num2str(numel(dat)) ')']);
+    
     if true
         % UPDATE: rigid
         dat   = spm_mb_shape('update_simple_affines',dat,mu,sett);
@@ -139,7 +141,6 @@ for zm=numel(sz):-1:1 % loop over zoom levels
         mu = spm_mb_shape('shrink_template',mu0,Mmu,sett);
     else
         [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu);
-        show_mu(mu, ['Diffeo (it=' num2str(zm) ' ' num2str(0) ')']);
     end
 
     if updt_aff
@@ -157,10 +158,12 @@ for zm=numel(sz):-1:1 % loop over zoom levels
 
         oE  = E/nvox(dat);
         if updt_mu
-            [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu);
-            show_mu(mu, ['Diffeo (it=' num2str(zm) ' ' num2str(it0) ' | N=' num2str(numel(dat)) ')']);
+            [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu);        
         end
 
+        % For visual debugging (disable/enable in debug_show_mu())
+        debug_show_mu(mu, ['Diffeo (it=' num2str(zm) ', ' num2str(it0) ' | N=' num2str(numel(dat)) ')']);
+        
         if updt_diff
             % UPDATE: diffeo
             dat   = spm_mb_shape('update_velocities',dat,mu,sett);
@@ -273,45 +276,7 @@ end
 %==========================================================================
 
 %==========================================================================
-function show_mu(mu, titl, fig_name, do_show)
-% Shows the template..
-if nargin < 2, titl = ''; end
-if nargin < 3, fig_name = 'Template'; end
-if nargin < 4, do_show = false; end
-
-if ~do_show, return; end
-% What slice index (ix) to show
-dm = size(mu);
-ix = round(0.5*dm);
-% Axis z
-mu1 = mu(:,:,ix(3),:);
-mu1 = spm_mb_classes('template_k1',mu1,4);
-[~,ml1] = max(mu1,[],4);
-% Axis y
-mu1 = mu(:,ix(2),:,:);
-mu1 = spm_mb_classes('template_k1',mu1,4);
-[~,ml2] = max(mu1,[],4);
-ml2 = squeeze(ml2);
-% Axis x
-mu1 = mu(ix(1),:,:,:);
-mu1 = spm_mb_classes('template_k1',mu1,4);
-[~,ml3] = max(mu1,[],4);
-ml3 = squeeze(ml3);
-% Create/find figure
-f = findobj('Type', 'Figure', 'Name', fig_name);
-if isempty(f)
-    f = figure('Name', fig_name, 'NumberTitle', 'off');
-end
-set(0, 'CurrentFigure', f);
-clf(f);
-% Show figure
-colormap(hsv(dm(4)))
-subplot(131)
-imagesc(ml1); axis off image;
-subplot(132)
-imagesc(ml2); axis off image;
-title(titl)
-subplot(133)
-imagesc(ml3); axis off image;
-drawnow
+function debug_show_mu(mu, fig_title)
+do_show = false;
+spm_mb_appearance('debug_show',mu,'template',1,fig_title,do_show);
 %==========================================================================

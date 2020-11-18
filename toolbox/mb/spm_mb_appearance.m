@@ -6,10 +6,11 @@ function varargout = spm_mb_appearance(varargin) % Appearance model
 % FORMAT dat        = spm_mb_appearance('restart',dat,sett)
 % FORMAT [z,dat]    = spm_mb_appearance('update',dat,mu0,sett)
 % FORMAT dat        = spm_mb_appearance('update_prior',dat,sett)
+% FORMAT            = spm_mb_appearance('debug_show',img,img_is,modality,fig_title,do)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 8007 2020-11-10 12:47:39Z mikael $
+% $Id: spm_mb_appearance.m 8011 2020-11-18 11:18:53Z mikael $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -204,11 +205,17 @@ df           = dat.dm;
 ds           = [size(mu0) 1 1];
 ds           = ds(1:3);
 
+% For visual debugging (disable/enable in debug_show())
+debug_show(mu0, 'template_k1');
+
 % Get image data
 f0    = spm_mb_io('get_image',gmm);
 samp1 = dat.samp;
 samp2 = gmm.samp;
 f0    = subsample(f0,samp1);
+
+% For visual debugging (disable/enable in debug_show())
+debug_show(f0, 'observed', gmm.modality);
 
 % Intensity priors
 pr   = sett.gmm(gmm.pop).pr;
@@ -469,6 +476,11 @@ if nargout > 1
         Z = vec2vol(collapse_Z(spm_gmm_lib('cell2obs', Z, code_image, msk_chn),mg_ix),ds);
     end
 end
+
+% For visual debugging (disable/enable in debug_show())
+debug_show(Z,'responsibilities');
+
+% Assign
 dat.E(1)      = -lbs;
 dat.nvox      = nvox;
 dat.model.gmm = gmm;
@@ -536,7 +548,7 @@ for p=1:numel(sett.gmm) % Loop over populations
         verbose = false;
         sett.gmm(p).pr = spm_gmm_lib('updatehyperpars',po,pr,hp{:}, ...
             'verbose',verbose,'figname',num2str(p),'lkp',sett.gmm(p).mg_ix);
-
+        
         % Attempt to increase stability by avoiding singular precision matrices
         V  = sett.gmm(p).pr{3};
         for k=1:size(V,3)
@@ -797,4 +809,83 @@ function bin = code2bin(code, length)
 base = uint64(2).^uint64(0:(length-1));
 bin  = bitand(uint64(code),base) > 0;
 
+%==========================================================================
+function debug_show(img,img_is,modality,fig_title,do_show)
+% FORMAT debug_show(img,img_is,modality,fig_title,do_show)
+%
+% Show 4D image, can be (img_is):
+% * 'observed' : Observed image data (if multi-channel, shows only first).
+% * 'responsibilities' : Tissue responsibilities.
+% * 'template_k1' : Tissue template with K + 1 classes.
+% * 'template' : Tissue template with K classes.
 
+if nargin < 2, img_is    = 'observed'; end
+if nargin < 3, modality  = 1; end
+if nargin < 4, fig_title = ''; end
+if nargin < 5, do_show   = false; end
+if ~do_show || ~any(strcmpi({'observed','responsibilities','template_k1','template'},img_is))
+    return; 
+end
+% Create/find figure
+f = findobj('Type', 'Figure', 'Name', img_is);
+if isempty(f)
+    f = figure('Name', img_is, 'NumberTitle', 'off');
+end
+set(0, 'CurrentFigure', f);
+clf(f);
+% Image type specific
+if strcmp(img_is,'responsibilities')
+    img = cat(4,img,1 - sum(img,4));
+elseif strcmp(img_is,'observed')
+    c   = 1;  % Channel to show
+    img = img(:,:,:,c);
+elseif strcmp(img_is,'template')
+    img = spm_mb_classes('template_k1',img,4);
+end
+clim = [-Inf Inf];
+if modality == 2  
+    clim = [1000 1100];  % CT scan
+end
+% What slice index (ix) to show
+dm         = [size(img) 1 1 1];
+ix         = round(0.5*dm(1:3));
+% Colormap
+if strcmp(img_is,'observed')
+    colormap('gray')
+else
+    num_colors = dm(4) + 1;
+    colormap(hsv(num_colors))
+end
+% Axis z
+img1 = img(:,:,ix(3),:);
+if ~strcmp(img_is,'observed')
+    msk       = any(~isfinite(img1),4);
+    [~,img1]  = max(img1,[],4);
+    img1(msk) = num_colors;
+end
+subplot(131)
+imagesc(img1,clim); axis off;
+% Axis y
+img2 = img(:,ix(2),:,:);
+if ~strcmp(img_is,'observed')
+    msk       = any(~isfinite(img2),4);
+    [~,img2]  = max(img2,[],4);
+    img2(msk) = num_colors;
+end
+img2 = squeeze(img2);
+subplot(132)
+imagesc(img2,clim); axis off;
+title(fig_title)
+% Axis x
+img3 = img(ix(1),:,:,:);
+if ~strcmp(img_is,'observed')
+    msk       = any(~isfinite(img3),4);
+    [~,img3]  = max(img3,[],4);
+    img3(msk) = num_colors;
+end
+img3 = squeeze(img3);
+subplot(133)
+imagesc(img3,clim); axis off;
+% Draw
+drawnow
+%==========================================================================

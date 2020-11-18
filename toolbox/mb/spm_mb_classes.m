@@ -15,7 +15,7 @@ function varargout = spm_mb_classes(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_classes.m 7982 2020-10-12 11:07:27Z john $
+% $Id: spm_mb_classes.m 8011 2020-11-18 11:18:53Z mikael $
 
 if isa(varargin{1},'char')
     [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
@@ -57,7 +57,7 @@ function [dat,P] = update_cat(dat,mu)
 % Categorical model
 P  = spm_mb_io('get_data',dat.model.cat.f);
 sk = dat.samp;
-P  = P(1:sk:end,1:sk:end,1:sk:end,:);
+P  = P(1:sk(1):end,1:sk(2):end,1:sk(3):end,:);
 
 % Compute subject-specific categorical cross-entropy loss between
 % segmentation and template

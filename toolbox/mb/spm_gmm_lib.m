@@ -37,7 +37,7 @@ function varargout = spm_gmm_lib(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_gmm_lib.m 8008 2020-11-17 10:13:34Z john $
+% $Id: spm_gmm_lib.m 8011 2020-11-18 11:18:53Z mikael $
 
 %--------------------------------------------------------------------------
 % Convention
@@ -440,7 +440,7 @@ for em=1:iter_max
         Vp      = V;
         np      = n;
 
-        do_iterate = numel(SS0m)~=1 || size(ss1m{1},1)<size(mu,1);
+        do_iterate = numel(SS0m)~=1 || size(SS1m{1},1)<size(mu,1);
         if do_iterate, subsubiter_max = 1; else subsubiter_max = 4; end
 
         for ii=1:subsubiter_max
@@ -2681,7 +2681,7 @@ function ld = logdet(A)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_gmm_lib.m 8008 2020-11-17 10:13:34Z john $
+% $Id: spm_gmm_lib.m 8011 2020-11-18 11:18:53Z mikael $
 
 % Cholseki decomposition of A (A = C' * C, with C upper-triangular)
 [C, p] = chol(A);
