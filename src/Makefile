@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2020 Wellcome Centre for Human Neuroimaging
 #
-# $Id: Makefile 7931 2020-08-17 21:29:54Z john $
+# $Id: Makefile 8014 2020-11-23 18:25:11Z john $
 #
 ###############################################################################
 #
@@ -54,7 +54,7 @@ SPMMEX  =\
 	spm_voronoi.$(MEXEXT) spm_mesh_utils.$(MEXEXT) \
 	spm_mrf.$(MEXEXT) spm_diffeo.$(MEXEXT) spm_field.$(MEXEXT) \
 	spm_cat.$(MEXEXT) spm_jsonread.$(MEXEXT) spm_mesh_reduce.$(MEXEXT) \
-	spm_mesh_geodesic.$(MEXEXT)
+	spm_mesh_geodesic.$(MEXEXT) spm_gmmlib.$(MEXEXT)
 
 SUBDIRS =\
 	@file_array/private \
@@ -321,6 +321,9 @@ spm_field.$(MEXEXT): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_bounda
 	$(MEX) spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c\
 		spm_openmp.c $(MEXEND)
 
+spm_gmmlib.$(MEXEXT): spm_gmmlib.c gmmlib.c gmmlib.h spm_openmp.c
+	$(MEX) spm_gmmlib.c gmmlib.c spm_openmp.c $(MEXEND)
+
 spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c
 	$(MEX) spm_jsonread.c jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)
 
@@ -336,13 +339,14 @@ spm_mesh_geodesic.$(MEXEXT): spm_mesh_geodesic.cpp
 
 libSPM.so: shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c\
 	   shoot_regularisers.c shoot_optim3d.c hist2.c shoot_invdef.c shoot_expm3.c\
-	   spm_openmp.c\
+	   gmmlib.c spm_openmp.c\
 	   shoot_diffeo3d.h shoot_optimN.h shoot_boundary.h shoot_multiscale.h\
-	   shoot_regularisers.h shoot_optim3d.h hist2.h shoot_expm3.h spm_openmp.h
+	   shoot_regularisers.h shoot_optim3d.h hist2.h shoot_expm3.h gmmlib.h\
+	   spm_openmp.h
 	$(CC) -O4 -shared -fPIC -Wl,-soname,$@ -o $@ -lm -DIMAGE_SINGLE\
 	   shoot_diffeo3d.c shoot_optimN.c shoot_boundary.c shoot_multiscale.c\
 	   shoot_regularisers.c shoot_optim3d.c hist2.c shoot_invdef.c shoot_expm3.c\
-	   spm_openmp.c  $(OMPFLAG)
+	   gmmlib.c spm_openmp.c  $(OMPFLAG)
 
 ###############################################################################
 # Display Messages

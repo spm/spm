@@ -1,12 +1,12 @@
 /*
- * $Id: gmmlib.c 8013 2020-11-23 10:44:46Z guillaume $
+ * $Id: gmmlib.c 8014 2020-11-23 18:25:11Z john $
  * John Ashburner, Mikael Brudfors & Yael Balbastre
  */
- 
+
 #include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
-
+#define EXP(x) fastexp(x)
 typedef signed long long int  Int64;
 
 typedef struct
@@ -24,35 +24,40 @@ typedef struct
     double *W;
     double *nu;
     double *gam;
-    double *ld;
     double *conN;
     double *conT;
-    double *con3;
 } GMMtype;
 
 static const double pi = 3.1415926535897931;
 static const size_t MaxChan=(size_t)50; /* largest integer valued float is 2^52 */
 static const size_t Undefined=(size_t)0xFFFFFFFFFFFFF;
-/*
-static void assign_gmm_pointers(size_t K, size_t P,
-                        double *a_ptr, double *b_ptr, double *c_ptr,
-                        GMM1type gmm[])
+
+static double fastexp(double x)
 {
-    size_t code,o0=0,o1=0,o2=0;
-    for(code=1; code<((size_t)1<<P); code++)
-    {
-        size_t i, m = 0;
-        for(i=0; i<P; i++) m += (code>>i) & (size_t)1;
-        gmm[code].P  = m;
-        gmm[code].c  = c_ptr+o0;
-        gmm[code].b  = b_ptr+o1;
-        gmm[code].a  = a_ptr+o2;
-        o0 += K;
-        o1 += K*m;
-        o2 += K*m*m;
-    } 
+    double r, rr;
+    signed long long i;
+    static double lkp_mem[256], *exp_lkp = lkp_mem+128;
+
+    /* exp(i+r) = exp(i)*exp(r), where:
+     *     exp(i) is from the lookup table;
+     *     exp(r) is from a generalised continued fraction
+     *            https://en.wikipedia.org/wiki/Exponential_function#Continued_fractions_for_ex
+     *
+     * Should not encounter values more extreme than -128 or 127,
+     * particularly as the upper limit of x will be 0 and values
+     * of x below log(eps)=-36.04 should be numerically equivalent.*/
+    i  = (signed long long)rint(x);
+    if (i<-128) i = -128;
+    if (i> 127) i =  127;
+    if (exp_lkp[i]==0.0) exp_lkp[i] = exp((double)i);
+
+    r  = x - (double)i;
+    rr = r*r;
+/*  return exp_lkp[i] * (1.0+2.0*r/(2.0-r+rr/(6.0+rr/(10.0+rr/14.0))));
+ *  return exp_lkp[i] * (1.0+2.0*r/(2.0-r+rr/(6.0+rr/(10.0)))); */
+    return exp_lkp[i] * (1.0+2.0*r/(2.0-r+rr/6.0));
 }
-*/
+
 
 SStype *suffstat_pointers(size_t P, size_t K, double *s0_ptr, double *s1_ptr, double *s2_ptr)
 {
@@ -103,7 +108,7 @@ static double lse(size_t K, double q[])
         if (q[k]>mx) mx = q[k];
     }
     for(k=0, s=0.0; k<K; k++)
-        s += exp(q[k]-mx);
+        s += EXP(q[k]-mx);
     return log(s)+mx;
 }
 
@@ -115,7 +120,7 @@ static double softmax1(size_t K, double q[], /*@out@*/ double p[])
     for(k=1, mx=q[0]; k<K; k++)
         if (q[k]>mx) mx = q[k];
     for(k=0, s=0.0; k<K; k++)
-        s += (p[k] = exp(q[k]-mx));
+        s += (p[k] = EXP(q[k]-mx));
     for(k=0; k<K; k++)
         p[k] /= s;
     return log(s) + mx;
@@ -128,8 +133,8 @@ static double softmax(size_t K, double q[], /*@out@*/ double p[])
     double mx, s;
     for(k=0, mx=0; k<K; k++)
         if (q[k]>mx) mx = q[k];
-    for(k=0, s=exp(-mx); k<K; k++)
-        s += (p[k] = exp(q[k]-mx));
+    for(k=0, s=EXP(-mx); k<K; k++)
+        s += (p[k] = EXP(q[k]-mx));
     for(k=0; k<K; k++)
         p[k] /= s;
     return log(s) + mx;
@@ -167,32 +172,6 @@ static double psi(double z)
 }
 
 
-static void Nconst(size_t P, size_t K, GMMtype *gmm)
-{
-    size_t code;
-    double log2pi = log(2*pi), log2 = log(2.0);
-    for(code=0; code<(size_t)1<<P; code++)
-    {
-        size_t k, Po = gmm[code].P;
-        double *conN, *b, *nu, *ld;
-        conN = gmm[code].conN;
-        b    = gmm[code].b;
-        nu   = gmm[code].nu;
-        ld   = gmm[code].ld;
-
-        for(k=0; k<K; k++)
-        {
-            size_t i;
-            double eld;
-            /* E[ln N(x | m, L^{-1})] w.r.t. Gaussian-Wishart */
-            for(i=0,eld=0.0; i<Po; i++) eld += psi((nu[k]-(double)i)*0.5);
-            eld    += Po*log2 + ld[k];
-            conN[k] = 0.5*(eld - Po*(log2pi+1.0/b[k]));
-        }
-    }
-}
-
-
 static double Nresp(size_t K, GMMtype gmm[], size_t code, double x[], double v[], double p[])
 {
     size_t P, k;
@@ -208,26 +187,6 @@ static double Nresp(size_t K, GMMtype gmm[], size_t code, double x[], double v[]
     for(k=0; k<K; k++, W+=P*P, mu+=P)
         p[k] += con[k] - 0.5*nu[k]*del2(P, mu, W, x, v);
     return softmax1(K,p,p);
-}
-
-
-static void Tconst(size_t P, size_t K, GMMtype *gmm)
-{
-    size_t code;
-    for(code=0; code<(size_t)1<<P; code++)
-    {
-        size_t k, Po = gmm[code].P;
-        double *conT, *nu, *ld;
-        conT = gmm[code].conT;
-        nu   = gmm[code].nu;
-        ld   = gmm[code].ld;
-
-        for(k=0; k<K; k++)
-        {
-            /* E[ln N(x | m, L^{-1})] w.r.t. Gaussian-Wishart */
-            conT[k] = lgamma(0.5*(nu[k]+1.0)) - lgamma(0.5*(nu[k]+1.0-Po)) + 0.5*ld[k] - 0.5*P*log((nu[k]+1-Po)*pi);
-        }
-    }
 }
 
 
@@ -262,7 +221,7 @@ static double Tresp(size_t K, GMMtype gmm[], size_t code, double x[], double v[]
     return softmax1(K,p,p);
 }
 
-static int get_priors(size_t N1, float *lp, size_t K, size_t *lkp, double *gam, double *p)
+static int get_priors(size_t N1, float *lp, size_t K, size_t *lkp, double *p)
 {
     size_t k;
     double l;
@@ -272,11 +231,13 @@ static int get_priors(size_t N1, float *lp, size_t K, size_t *lkp, double *gam, 
         lpk = (double)lp[N1*lkp[k]];
         if (!isfinite(lpk))
             return 0;
-        p[k] = lpk + gam[k];
+        p[k] = lpk;
     }
+    /*
     l = lse(K,p);
     for(k=0; k<K; k++)
         p[k] -= l;
+    */
     return 1;
 }
 
@@ -368,7 +329,7 @@ static GMMtype *allocate_gmm(size_t P, size_t K)
     space_needed(P, K, &n0, &n1, &n2);
 
     o     = ((size_t)1<<P)*sizeof(GMMtype);
-    bytes = calloc(o+(n0*(size_t)7+n1+n2)*sizeof(double),1);
+    bytes = calloc(o+(n0*(size_t)5+n1+n2)*sizeof(double),1);
     gmm   = (GMMtype *)bytes;
     if (gmm!=NULL)
     {
@@ -384,10 +345,8 @@ static GMMtype *allocate_gmm(size_t P, size_t K)
             gmm[code].W    = buf+o; o += K*nel*nel;
             gmm[code].nu   = buf+o; o += K;
             gmm[code].gam  = buf+o; o += K;
-            gmm[code].ld   = buf+o; o += K;
             gmm[code].conN = buf+o; o += K;
             gmm[code].conT = buf+o; o += K;
-            gmm[code].con3 = buf+o; o += K;
         }
     }
     return gmm;
@@ -416,6 +375,7 @@ static double invert(size_t P, double *W /* P*P */, double *S /* P*P */, double 
 
 static GMMtype *sub_gmm(size_t P, size_t K, double *mu, double *b, double *W, double *nu, double *gam)
 {
+    const double log2pi = log(2*pi), log2 = log(2.0);
     double *S, *Si;
     GMMtype *gmm;
     size_t k, code, PP = P*P;
@@ -434,6 +394,7 @@ static GMMtype *sub_gmm(size_t P, size_t K, double *mu, double *b, double *W, do
         for(code=0; code<(size_t)1<<P; code++)
         {
             size_t j,j1, Po;
+            double ld, eld;
             Po               = gmm[code].P;
             gmm[code].nu[k]  = nu[k] - (P-Po);
             gmm[code].b[k]   = b[k];
@@ -455,35 +416,23 @@ static GMMtype *sub_gmm(size_t P, size_t K, double *mu, double *b, double *W, do
                     j1++;
                 }
             }
-            gmm[code].ld[k] = invert(Po,Si,gmm[code].W+k*Po*Po,Si+Po*Po);
+            ld = invert(Po,Si,gmm[code].W+k*Po*Po,Si+Po*Po);
+
+            /* Constant term for mixture of Gaussians
+               E[ln N(x | m, L^{-1})] w.r.t. Gaussian-Wishart */
+            for(j=0,eld=0.0; j<Po; j++) eld += psi((gmm[code].nu[k]-(double)j)*0.5);
+            eld    += Po*log2 + ld;
+            gmm[code].conN[k] = 0.5*(eld - Po*(log2pi+1.0/gmm[code].b[k])) + lgam;
+
+            /* Constant term for mixture of T distributions */
+            gmm[code].conT[k] = lgamma(0.5*(gmm[code].nu[k]+1.0)) - lgamma(0.5*(gmm[code].nu[k]+1.0-Po)) +
+                                0.5*ld - 0.5*P*log((gmm[code].nu[k]+1-Po)*pi) + lgam;
         }
     }
     (void)free((void *)S);
     return gmm;
 }
 
-/*
-test(size_t P, size_t K, GMMtype *gmm)
-{
-    size_t n;
-
-    for(n=0; n<(size_t)1<<M; n++)
-    {
-        size_t i, j;
-        printf("**  %d **\nmu = [", n);
-        for(i=0; i<gmm[n].P; i++)
-            printf(" %g", gmm[n].mu[i]);
-        printf("]'\nb  = %g\nW  = [\n", gmm[n].b[0]);
-        for(j=0; j<gmm[n].P; j++)
-        {
-            for(i=0; i<gmm[n].P; i++)
-                printf(" %g", gmm[n].W[i+gmm[n].P*j]);
-            printf("\n");
-        }
-        printf("]\nld  = %g\n\n", gmm[n].ld[0]);
-    }
-}
-*/
 
 static double suffstats_missing(size_t nf[], float mf[], float vf[],
                       size_t K, GMMtype gmm[],
@@ -502,8 +451,6 @@ static double suffstats_missing(size_t nf[], float mf[], float vf[],
     n1 = nm[1]/skip[1]; if (n1>nf[1]) n1 = nf[1];
     n0 = nm[0]/skip[0]; if (n0>nf[0]) n0 = nf[0];
 
-    Nconst(P, K, gmm);
-
     for(i2=0; i2<n2; i2+=skip[2])
     {
         for(i1=0; i1<n1; i1+=skip[1])
@@ -517,7 +464,7 @@ static double suffstats_missing(size_t nf[], float mf[], float vf[],
                 i    = i0         + off_f;
                 im   = i0*skip[0] + off_m;
                 code = get_vox(Nf,P,mf+i,vf+i,x,e);
-                if (code>0 && get_priors(Nm, lp+im, K, lkp, gmm[code].gam, p)!=0)
+                if (code>0 && get_priors(Nm, lp+im, K, lkp, p)!=0)
                 {
                     size_t j, j1, k, Po;
                     double *s0, *s1, *s2;
@@ -528,16 +475,18 @@ static double suffstats_missing(size_t nf[], float mf[], float vf[],
                     s2  = suffstat[code].s2;
                     for(k=0; k<K; k++, s2+=Po*Po, s1+=Po, s0++)
                     {
-                        *s0 += p[k];
+                        double pk = p[k];
+                        *s0 += pk;
                         for(j=0; j<Po; j++)
                         {
-                            s1[j]      += p[k]*x[j];
-                            s2[j+Po*j] += p[k]*(x[j]*x[j]+e[j]);
+                            double xj = x[j], px = pk*xj;
+                            s1[j]      += px;
+                            s2[j+Po*j] += pk*(xj*xj+e[j]);
                             for(j1=j+1; j1<Po; j1++)
-                                s2[j1+Po*j] += p[k]*x[j]*x[j1];
+                                s2[j1+Po*j] += px*x[j1];
                         }
                     }
-                } 
+                }
             }
         }
     }
@@ -588,7 +537,7 @@ double call_suffstats_missing(size_t nf[], float mf[], float vf[],
 
 
 static double responsibilities(size_t nf[], size_t skip[], float mf[], float vf[],
-              size_t K, GMMtype *gmm, 
+              size_t K, GMMtype *gmm,
               size_t K1, size_t lkp[], float lp[],
               float r[])
 {
@@ -597,21 +546,19 @@ static double responsibilities(size_t nf[], size_t skip[], float mf[], float vf[
 
     P  = nf[3];
     N1 = nf[0]*nf[1]*nf[2];
-    Nconst(P, K, gmm);
-    Tconst(P, K, gmm);
 
-    for(i2=0; i2<nf[2]; i2+=skip[2])
+    for(i2=0; i2<nf[2]; i2++)
     {
-        for(i1=0; i1<nf[1]; i1+=skip[1])
+        for(i1=0; i1<nf[1]; i1++)
         {
             size_t off_f;
             off_f = nf[0]*(i1 + nf[1]*i2);
-            for(i0=0; i0<nf[0]; i0+=skip[0])
+            for(i0=0; i0<nf[0]; i0++)
             {
                 size_t i, code, k, k1;
                 i    = i0+off_f;
                 code = get_vox(N1,P,mf+i,vf+i,x,e);
-                if (get_priors(N1, lp+i, K, lkp, gmm[code].gam, p)!=0)
+                if (get_priors(N1, lp+i, K, lkp, p)!=0)
                 {
                     if (code!=0)
                     {
@@ -672,7 +619,6 @@ static double INUgrads(size_t nf[], float mf[], float vf[],
     double ll=0.0, x[MaxChan], e[MaxChan], p[128];
 
     P  = nf[3];
-    Nconst(P, K, gmm);
     Nf = nf[0]*nf[1]*nf[2];
     Nm = nm[0]*nm[1]*nm[2];
 
@@ -695,7 +641,7 @@ static double INUgrads(size_t nf[], float mf[], float vf[],
                 i    = i0         + off_f;
                 im   = i0*skip[0] + off_m;
                 code = get_vox(Nf,P,mf+i,vf+i,x,e);
-                if (code!=0 && get_priors(Nm, lp+im, K, lkp, gmm[code].gam, p)!=0)
+                if (code!=0 && get_priors(Nm, lp+im, K, lkp, p)!=0)
                 {
                     ll += Nresp(K, gmm, code, x, e, p);
                     if (index[code]!=Undefined)
