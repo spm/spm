@@ -1,14 +1,18 @@
-/* $Id$ */
-/* (c) John Ashburner, Mikael Brudfors & Yael Balbastre (2020) */
+/* 
+ * $Id: spm_gmmlib.c 8013 2020-11-23 10:44:46Z guillaume $
+ * John Ashburner, Mikael Brudfors & Yael Balbastre
+ */
 
-#include "mex.h"
 #include <math.h>
+#include <string.h>
+#include "mex.h"
 #include "gmmlib.h"
+#include "spm_openmp.h"
 
 /*
  * r = resp(m,b,W,nu,gam,lkp,mu,f,E,skip)
  */
-mwSize copy_dims(const mxArray *prhs, mwSize n[])
+static mwSize copy_dims(const mxArray *prhs, mwSize n[])
 {
     mwSize i, nd;
     const mwSize *dm;
@@ -173,9 +177,10 @@ static void moments_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArr
     mxFree(lkp);
 }
 
-void inugrads_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+static void inugrads_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    size_t K, K1, k, nf[5], nm[5], dc[5], skip[3], *lkp, dm0, dm1, dm2, c, nd;
+    mwSize nf[5];
+    size_t K, K1, k, nm[5], dc[5], skip[3], *lkp, dm0, dm1, dm2, c, nd;
     double *m, *b, *W, *nu, *gam, *ll;
     float *mu, *mf, *vf, *fc, *g1, *g2;
 

@@ -1,9 +1,13 @@
-/* $Id$ */
-/* (c) John Ashburner, Mikael Brudfors & Yael Balbastre (2020) */
+/*
+ * $Id: gmmlib.c 8013 2020-11-23 10:44:46Z guillaume $
+ * John Ashburner, Mikael Brudfors & Yael Balbastre
+ */
+ 
 #include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
-typedef   signed long long int  Int64;
+
+typedef signed long long int  Int64;
 
 typedef struct
 {
@@ -611,7 +615,7 @@ static double responsibilities(size_t nf[], size_t skip[], float mf[], float vf[
                 {
                     if (code!=0)
                     {
-                        if ((i2%skip[2])==0 && (i1%skip[1])==0 & (i0%skip[0])==0)
+                        if ((i2%skip[2])==0 && ((i1%skip[1])==0) & ((i0%skip[0])==0))
                             ll += Nresp(K, gmm, code, x, e, p);
                         else
                             ll += Tresp(K, gmm, code, x, e, p);

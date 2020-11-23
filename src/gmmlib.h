@@ -1,5 +1,8 @@
-/* $Id$ */
-/* (c) John Ashburner, Mikael Brudfors & Yael Balbastre (2020) */
+/*
+ * $Id: gmmlib.h 8013 2020-11-23 10:44:46Z guillaume $
+ * John Ashburner, Mikael Brudfors & Yael Balbastre 
+ */
+ 
 #include<math.h>
 #include<stdlib.h>
 
