@@ -22,11 +22,11 @@ function [DCM] = DEM_COVID_LTLA
 %==========================================================================
 url  = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&metric=newCasesBySpecimenDate&metric=newDeaths28DaysByDeathDate&format=csv';
 U    = webread(url);
-P    = importdata('Populations.xlsx');
+P    = importdata('LADCodesPopulation.xlsx');
 
 % get population by lower tier local authority
 %--------------------------------------------------------------------------
-PN   = P.data;
+PN   = P.data(2:end,1);
 PCD  = P.textdata(2:end,1);
 
 % get new cases by (lower tier) local authority
@@ -51,18 +51,16 @@ for i = 1:numel(Area)
     
     % get code
     %----------------------------------------------------------------------
-    k = k + 1;
     j = find(ismember(AreaCode,Area(i)));
     
     if any(isfinite(AreaCase(j))) && any(isfinite(AreaMort(j)))
-        
+        k           = k + 1;
         D(k).cases  = AreaCase(j);
         D(k).deaths = AreaMort(j);
         D(k).date   = datenum([AreaDate{j}]);
         D(k).name   = AreaName(j(1));
         D(k).code   = AreaCode(j(1));
-        D(k).N      = PN(find(ismember(PCD,D(i).code),1));
-        
+        D(k).N      = PN(find(ismember(PCD,D(k).code),1));
     end
     
 end
@@ -73,8 +71,9 @@ clear P PN PCD AreaCase AreaCode AreaDate AreaMort AreaName AreaType
 
 % dates to generate
 %--------------------------------------------------------------------------
-M.date = '01-Feb-2020';
-d0     = datenum(M.date,'dd-mmm-yyyy');
+d0     = min(spm_vec(D.date));
+d0     = min(d0,datenum('01-Feb-2020','dd-mmm-yyyy'));
+M.date = datestr(d0,'dd-mmm-yyyy');
 dates  = d0:max(spm_vec(D.date));
     
     
@@ -84,7 +83,6 @@ for r = 1:numel(D)
     
     fprintf('%d out of %d\n',r,numel(D));
     try, clear Y; end
-    
     
     % created data structure
     %----------------------------------------------------------------------
@@ -104,50 +102,12 @@ for r = 1:numel(D)
 
     % remove NANs and sort by date
     %----------------------------------------------------------------------
-    for i = 1:numel(Y)
-        j         = isfinite(Y(i).Y(:,1));
-        Y(i).date = Y(i).date(j);
-        Y(i).Y    = Y(i).Y(j,:);
-        
-        [d,j]     = sort(Y(i).date);
-        Y(i).date = Y(i).date(j);
-        Y(i).Y    = Y(i).Y(j,:);
-    end
-    
-    % smooth data using graph Laplacian (seven day average)
-    %----------------------------------------------------------------------
-    nY    = zeros(1,numel(Y));
-    for i = 1:numel(Y)
-        nY(i)     = numel(Y(i).Y);
-        if max(diff(Y(i).date)) < 2
-            Y(i).Y = spm_hist_smooth(Y(i).Y,7);
-        end
-    end
-    
-    % precisions based upon total counts
-    %----------------------------------------------------------------------
-    h     = zeros(1,numel(Y));
-    for i = 1:numel(Y)
-        h(i) = sum(Y(i).Y);
-    end
-    h   = log(h);
-    h   = mean(h) - h;
-    for i = 1:numel(Y)
-        Y(i).h = Y(i).h + h(i);
-    end
-    
-    % data matrix (smooth): NaN indicates missing data
-    %----------------------------------------------------------------------
-    YS  = NaN(numel(dates),numel(Y));
-    for i = 1:numel(Y)
-        j       = ismember(dates,Y(i).date);
-        YS(j,i) = Y(i).Y;
-    end
+    [Y,YS] = spm_COVID_Y(Y,M.date);
     
     % data structure with vectorised data and covariance components
     %----------------------------------------------------------------------
     xY.y  = spm_vec(Y.Y);
-    xY.Q  = spm_Ce(nY);
+    xY.Q  = spm_Ce([Y.n]);
     hE    = spm_vec(Y.h);
     
     % get and set priors

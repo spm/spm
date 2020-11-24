@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8015 2020-11-24 10:47:41Z karl $
+% $Id: DEM_COVID_UK.m 8017 2020-11-24 21:48:26Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -32,49 +32,65 @@ Fsi       = spm_figure('GetWin','SI'); clf;
 
 cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
 
+url        = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newCasesBySpecimenDate&format=csv';
+writetable(webread(url),'cases.csv');
+url        = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newDeaths28DaysByDeathDate&format=csv';
+writetable(webread(url),'deaths.csv');
+url        = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=covidOccupiedMVBeds&format=csv';
+writetable(webread(url),'critical.csv');
+url        = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newPillarOneTwoTestsByPublishDate&format=csv';
+writetable(webread(url),'tests.csv');
+url        = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newAdmissions&format=csv';
+writetable(webread(url),'admissions.csv');
+url        = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newOnsDeathsByRegistrationDate&format=csv';
+writetable(webread(url),'certified.csv');
+
 cases      = importdata('cases.csv');
 deaths     = importdata('deaths.csv');
 ccu        = importdata('critical.csv');
 tests      = importdata('tests.csv');
+certified  = importdata('certified.csv');
+admissions = importdata('admissions.csv');
+
 serology   = importdata('seropositive.csv');
 survey     = importdata('survey.csv');
 symptoms   = importdata('symptoms.csv');
 ratio      = importdata('rate.csv');
 mobility   = importdata('mobility.csv');
 transport  = importdata('transport.csv');
-certified  = importdata('certified.csv');
-admissions = importdata('admissions.csv');
+
 
 dstr      = 'dd/mm/yyyy';
+dONS      = 'yyyy-mm-dd';
 
 % created data structure
 %--------------------------------------------------------------------------
 Y(1).type = 'PCR cases (ONS)'; % daily PCR positive cases (by specimen)
 Y(1).unit = 'number/day';
 Y(1).U    = 2;
-Y(1).date = datenum(cases.textdata(2:end,4),dstr);
+Y(1).date = datenum(cases.textdata(2:end,1),dONS);
 Y(1).Y    = cases.data(:,1);
 Y(1).h    = 0;
 
 Y(2).type = 'Daily deaths (ONS: 28-days)'; % daily covid-related deaths (28 days)
 Y(2).unit = 'number/day';
 Y(2).U    = 1;
-Y(2).date = datenum(deaths.textdata(2:end,4),dstr);
+Y(2).date = datenum(deaths.textdata(2:end,1),dONS);
 Y(2).Y    = deaths.data(:,1);
 Y(2).h    = 2;
 
 Y(3).type = 'Ventilated patients (ONS)'; % CCU occupancy (mechanical)
 Y(3).unit = 'number';
 Y(3).U    = 3;
-Y(3).date = datenum(ccu.textdata(2:end,4),dstr);
+Y(3).date = datenum(ccu.textdata(2:end,1),dONS);
 Y(3).Y    = ccu.data(:,1);
 Y(3).h    = 0;
 
 Y(4).type = 'PCR tests (ONS)'; % daily PCR tests performed
 Y(4).unit = 'number/day';
 Y(4).U    = 6;
-Y(4).date = datenum(tests.textdata(2:end,4),dstr);
-Y(4).Y    = tests.data(:,1) + tests.data(:,2);
+Y(4).date = datenum(tests.textdata(2:end,1),dONS);
+Y(4).Y    = tests.data(:,1);
 Y(4).h    = 0;
 
 Y(5).type = 'Prevalence (ONS)'; % number of people infected (England)
@@ -123,89 +139,27 @@ Y(10).h    = 0;
 Y(11).type = 'Certified deaths (ONS)'; % weekly covid related deaths
 Y(11).unit = 'number';
 Y(11).U    = 15;
-Y(11).date = datenum(certified.textdata(2:end,4),dstr) - 7;
+Y(11).date = datenum(certified.textdata(2:end,1),dONS) - 7;
 Y(11).Y    = certified.data(:,1)/7;
 Y(11).h    = 0;
 
 Y(12).type = 'Admissions (ONS)'; % admissions to hospital
 Y(12).unit = 'number';
 Y(12).U    = 16;
-Y(12).date = datenum(admissions.textdata(2:end,4),dstr);
+Y(12).date = datenum(admissions.textdata(2:end,1),dONS);
 Y(12).Y    = admissions.data(:,1);
 Y(12).h    = 0;
 
-
-
-% data types to invert
-%--------------------------------------------------------------------------
-% Y = Y(2);
-
-% remove NANs and sort by date
-%--------------------------------------------------------------------------
-for i = 1:numel(Y)
-    j         = isfinite(Y(i).Y(:,1));
-    Y(i).date = Y(i).date(j);
-    Y(i).Y    = Y(i).Y(j,:);
-    
-    [d,j]     = sort(Y(i).date);
-    Y(i).date = Y(i).date(j);
-    Y(i).Y    = Y(i).Y(j,:);
-end
-
-% data matrix (original): NaN indicates missing data
-%--------------------------------------------------------------------------
-d   = spm_vec(Y.date);
-d   = min(d):max(d);
-YY  = NaN(numel(d),numel(Y));
-for i = 1:numel(Y)
-    j       = ismember(d,Y(i).date);
-    YY(j,i) = Y(i).Y;
-end
-
-% smooth data using graph Laplacian (seven day average)
-%--------------------------------------------------------------------------
-nY    = zeros(1,numel(Y));
-for i = 1:numel(Y)
-    nY(i)     = numel(Y(i).Y);
-    if max(diff(Y(i).date)) < 2
-        Y(i).Y = spm_hist_smooth(Y(i).Y,7);
-    end
-end
-
-% precisions based upon total counts
-%--------------------------------------------------------------------------
-h     = zeros(1,numel(Y));
-for i = 1:numel(Y)
-     h(i) = sum(Y(i).Y);
-end
-h   = log(h);
-h   = mean(h) - h;
-for i = 1:numel(Y)
-     Y(i).h = Y(i).h + h(i);
-end
-
-% data matrix (smooth): NaN indicates missing data
-%--------------------------------------------------------------------------
-YS  = NaN(numel(d),numel(Y));
-for i = 1:numel(Y)
-    j       = ismember(d,Y(i).date);
-    YS(j,i) = Y(i).Y;
-end
+% remove NANs, smooth and sort by date
+%==========================================================================
+M.date  = datestr(min(spm_vec(Y.date)),'dd-mm-yyyy');
+[Y,YS]  = spm_COVID_Y(Y,M.date);
 
 % data structure with vectorised data and covariance components
 %--------------------------------------------------------------------------
-xY.y  = spm_vec(Y.Y);
-xY.Q  = spm_Ce(nY);
-hE    = spm_vec(Y.h);
-
-% fix prior precisions of different sorts of data
-%--------------------------------------------------------------------------
-Q     = sparse(0);
-for i = 1:numel(Y)
-    Q = Q + xY.Q{i}*exp(hE(i));
-end
-% xY.Q  = Q;
-% hE    = 0;
+xY.y    = spm_vec(Y.Y);
+xY.Q    = spm_Ce([Y.n]);
+hE      = spm_vec(Y.h);
 
 % get and set priors
 %--------------------------------------------------------------------------
@@ -230,8 +184,7 @@ pC.dc   = exp(-2);              % prior variance
 
 % model specification
 %==========================================================================
-M.date  = datestr(d(1),'dd-mm-yyyy');
-M.Nmax  = 128;                  % maximum number of iterations
+M.Nmax  = 64;                   % maximum number of iterations
 M.G     = @spm_SARS_gen;        % generative function
 M.FS    = @(Y)real(sqrt(Y));    % feature selection  (link function)
 M.pE    = pE;                   % prior expectations (parameters)
@@ -256,7 +209,7 @@ DCM.U   = U;
 %==========================================================================
 spm_figure('GetWin','United Kingdom'); clf;
 %--------------------------------------------------------------------------
-M.T     = datenum('01-04-2021','dd-mm-yyyy') - min(spm_vec(Y.date));
+M.T     = datenum('01-04-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
 U       = U(1:min(numel(U),3));
 [Z,X]   = spm_SARS_gen(DCM.Ep,M,U);
 spm_SARS_plot(Z,X,YS,[],U)

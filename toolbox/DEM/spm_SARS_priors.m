@@ -35,7 +35,7 @@ function [P,C,str] = spm_SARS_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8015 2020-11-24 10:47:41Z karl $
+% $Id: spm_SARS_priors.m 8017 2020-11-24 21:48:26Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -179,50 +179,50 @@ P.m   = 0.3;                  % (05) relative eflux
 % location (exposure) parameters
 %--------------------------------------------------------------------------
 P.out = 0.5;                  % (06) P(leaving home)
-P.sde = 0.02;                 % (07) lockdown threshold
-P.qua = 0.8;                  % (08) seropositive contribution
-P.exp = 1 - exp(-1/256);      % (09) viral spreading (days)
-P.hos = 0.8;                  % (10) admission rate (hospital)
+P.sde = 0.03;                 % (07) lockdown threshold
+P.qua = 0.6;                  % (08) seropositive contribution
+P.exp = 0.0065;               % (09) viral spreading (days)
+P.hos = 0.72;                 % (10) admission rate (hospital)
 P.ccu = 0.01;                 % (11) admission rate (CCU)
-P.s   = 3;                    % (12) distancing sensitivity
+P.s   = 2.5;                  % (12) distancing sensitivity
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
-P.Nin = 2;                    % (13) effective number of contacts: home
+P.Nin = 1.5;                  % (13) effective number of contacts: home
 P.Nou = 48;                   % (14) effective number of contacts: work
 P.trn = 0.4;                  % (15) transmission strength (early)
-P.trm = 0.3;                  % (16) transmission strength (late)
-P.Tin = 5;                    % (17) infected period (days)
-P.Tcn = 4;                    % (18) infectious period (days)
-P.Tim = 128;                  % (19) seropositive immunity (days)
-P.res = 0.2;                  % (20) seronegative proportion
+P.trm = 0.2;                  % (16) transmission strength (late)
+P.Tin = 6;                    % (17) infected period (days)
+P.Tcn = 5;                    % (18) infectious period (days)
+P.Tim = 200;                  % (19) seropositive immunity (days)
+P.res = 0.12;                 % (20) seronegative proportion
 
 % clinical parameters
 %--------------------------------------------------------------------------
-P.Tic = 4;                    % (21) incubation period (days)
-P.Tsy = 6;                    % (22) symptomatic period (days)
-P.Trd = 14;                   % (23) CCU period (days)
+P.Tic = 6;                    % (21) incubation period (days)
+P.Tsy = 8;                    % (22) symptomatic period (days)
+P.Trd = 12;                   % (23) CCU period (days)
 
-P.sev = 0.8/100;              % (24) P(ARDS | symptoms): early
-P.lat = 0.8/100;              % (25) P(ARDS | symptoms): late
+P.sev = 0.5/100;              % (24) P(ARDS | symptoms): early
+P.lat = 0.4/100;              % (25) P(ARDS | symptoms): late
 P.fat = 0.5;                  % (26) P(fatality | ARDS): early
-P.sur = 0.5;                  % (27) P(fatality | ARDS): late
+P.sur = 0.4;                  % (27) P(fatality | ARDS): late
 
 % testing parameters
 %--------------------------------------------------------------------------
 P.ttt = 0.036;                % (28) FTTI efficacy
-P.tes = 8;                    % (29) bias (for infection): early
+P.tes = 6;                    % (29) bias (for infection): early
 P.tts = 8;                    % (30) bias (for infection): late
 P.del = 4;                    % (31) test delay (days)
 P.ont = 0.0002;               % (32) symptom-dependent
 P.fnr = 0.2;                  % (33) false-negative rate
 P.fpr = 0.002;                % (34) false-positive rate
 
-P.lim = [0.003 0.002];        % (35) testing: capacity
+P.lim = [0.004 0.001];        % (35) testing: capacity
 P.rat = [48    8];            % (36) testing: dispersion
-P.ons = [300 100];            % (37) testing: onset
+P.ons = [200 100];            % (37) testing: onset
 
-P.tcu = 128;                  % (38) ventilation (days)
+P.tcu = 256;                  % (38) ventilation (days)
 
 
 
