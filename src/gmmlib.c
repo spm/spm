@@ -1,5 +1,5 @@
 /*
- * $Id: gmmlib.c 8014 2020-11-23 18:25:11Z john $
+ * $Id: gmmlib.c 8016 2020-11-24 15:32:46Z john $
  * John Ashburner, Mikael Brudfors & Yael Balbastre
  */
 
@@ -200,13 +200,15 @@ static double Tresp(size_t K, GMMtype gmm[], size_t code, double x[], double v[]
        In practice, it only improves probabilities by a tiny amount.
 
        ln St(x|mu,Lam,tau)
-       lgamma((tau + P)/2.0) - lgamma(tau/2.0) + sum(log(diag(chol(Lam)))) - (P/2.0)*log(tau*pi) -
-       ((tau+P)/2)*log(1 + ((x-mu)'*Lam*(x-mu) + sum(diag(Lam).*vf))/tau)
+       gammaln((tau + P)/2.0) - gammaln(tau/2.0) + ld1/2 - (P/2.0)*log(tau*pi) - ((tau+P)/2)*log(1 + del2/tau)
        where:
-           Lam = (nu+1-P)*beta/(1+beta)*W
-           tau = nu+1-P
-
-       lgamma((nu+1)/2.0) - lgamma((nu+1-P)/2.0) +  sum(log(diag(chol(Lam)))) -(P/2.0)*log((nu+1-P)*pi) -
+           Lam  = W*(nu+1-P)*beta/(1+beta)
+           tau  = nu+1-P
+           del2 = (x-mu)'*Lam*(x-mu)
+           ld1  = log(det(Lam)) = log(det(W)) + P*log((nu+1-P)*beta/(1+beta))
+       This gives:
+       gammaln((nu+1)/2.0) - gammaln((nu+1-P)/2.0) + (ld + P*log((nu+1-P)*beta/(1+beta)))/2 - ...
+       (P/2.0)*log((nu+1-P)*pi) - ...
        ((nu+1)/2)*log(1 + beta/(beta+1)*((x-mu)'*W*(x-mu) + sum(diag(W).*vf)))
     */
     P   = gmm[code].P;
@@ -218,6 +220,7 @@ static double Tresp(size_t K, GMMtype gmm[], size_t code, double x[], double v[]
 
     for(k=0; k<K; k++, W+=P*P, mu+=P)
         p[k] += con[k] - 0.5*(nu[k]+1.0)*log(1.0 + b[k]/(b[k]+1.0)*del2(P, mu, W, x, v));
+
     return softmax1(K,p,p);
 }
 
@@ -394,7 +397,7 @@ static GMMtype *sub_gmm(size_t P, size_t K, double *mu, double *b, double *W, do
         for(code=0; code<(size_t)1<<P; code++)
         {
             size_t j,j1, Po;
-            double ld, eld;
+            double ld, ld1, eld;
             Po               = gmm[code].P;
             gmm[code].nu[k]  = nu[k] - (P-Po);
             gmm[code].b[k]   = b[k];
@@ -425,8 +428,9 @@ static GMMtype *sub_gmm(size_t P, size_t K, double *mu, double *b, double *W, do
             gmm[code].conN[k] = 0.5*(eld - Po*(log2pi+1.0/gmm[code].b[k])) + lgam;
 
             /* Constant term for mixture of T distributions */
+            ld1 = ld + Po*log((gmm[code].nu[k]+1.0-Po)*b[k]/(b[k]+1.0));
             gmm[code].conT[k] = lgamma(0.5*(gmm[code].nu[k]+1.0)) - lgamma(0.5*(gmm[code].nu[k]+1.0-Po)) +
-                                0.5*ld - 0.5*P*log((gmm[code].nu[k]+1-Po)*pi) + lgam;
+                                0.5*ld1 - 0.5*Po*log((gmm[code].nu[k]+1-Po)*pi) + lgam;
         }
     }
     (void)free((void *)S);
