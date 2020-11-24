@@ -20,7 +20,8 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Y(:,12) - number symptomatic
 % Y(:,13) - mobility (%)
 % Y(:,14) - work (%)
-% Y(:,15) - home (%)
+% Y(:,15) - certified deaths/day
+% Y(:,16) - hospitalisation
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','CCU','morgue','isolation'};
@@ -55,7 +56,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8005 2020-11-06 19:37:18Z karl $
+% $Id: spm_SARS_gen.m 8015 2020-11-24 10:47:41Z karl $
 
 
 % The generative model:
@@ -140,8 +141,13 @@ try, M.T; catch, M.T = 180;             end         % over six months
 if isstruct(M.T)
     D   = M.T;
     d   = spm_vec(D.date);
-    M.T = max(d) - min(d) + 1;
-    d   = min(d):max(d);
+    if isfield(M,'date')
+        d0 = datenum(M.date,'dd-mm-yyyy');
+    else
+        d0 = min(d);
+    end
+    M.T = max(d) - d0 + 1;
+    d   = d0:max(d);
 end
 
 % exponentiate parameters
@@ -157,7 +163,7 @@ r    = Q.r*N;              % number of resistant cases
 s    = N - n - r;          % number of susceptible cases
 h    = (N - m)*3/4;        % number at home
 w    = (N - m)*1/4;        % number at work
-p{1} = [h w 0 m 0]';       % location 
+p{1} = [h w 0 m 0 0]';     % location 
 p{2} = [s n 0 0 r]';       % infection 
 p{3} = [1 0 0 0]';         % clinical 
 p{4} = [1 0 0 0]';         % testing
@@ -175,7 +181,7 @@ x     = spm_cross(p);
 R     = P;
 R.n   = -16;
 R.t   = 0;
-for i =1:8
+for i = 1:8
     T     = spm_COVID_T(x,R);
     x     = spm_unvec(T*spm_vec(x),x);
     x     = x/sum(x(:));
@@ -220,17 +226,22 @@ for i = 1:M.T
     x     = spm_unvec(T*spm_vec(x),x);
     x     = x/sum(x(:));
     
+    
     % probabilistic mappings: outcomes based on marginal densities (p)
     %======================================================================
     p     = spm_marginal(x);
     for j = 1:Nf
         X{j}(i,:) = p{j};
     end
-
-    % number of daily deaths (plus incidental deaths due to prevalence)
+    
+    % outcomes
+    %======================================================================
+    R  = T - diag(diag(T));
+    
+    % number of daily deaths
     %----------------------------------------------------------------------
-    if isfield(Q,'in')
-        Y(i,1) = N*p{3}(4) + Q.in*(p{2}(2) + p{2}(3));
+    if isfield(P,'dc')
+        Y(i,1) = N * Q.dc(1) * p{3}(4);
     else
         Y(i,1) = N*p{3}(4);
     end
@@ -241,12 +252,8 @@ for i = 1:M.T
 
     % CCU bed occupancy
     %----------------------------------------------------------------------
-    if isfield(Q,'cc')
-        Y(i,3) = Q.cc(1) * N * p{1}(3);
-    else
-        Y(i,3) = N * p{1}(3);
-    end
-    
+    Y(i,3) = N * p{1}(3);
+
     % effective reproduction ratio (R) (based on infection prevalence)
     %----------------------------------------------------------------------
     Y(i,4) = p{2}(2) + p{2}(3);
@@ -273,41 +280,56 @@ for i = 1:M.T
     
     % incidence
     %----------------------------------------------------------------------
-    q       = x;
-    T       = T - diag(diag(T));
-    q       = spm_unvec(T*spm_vec(q),q);
+    q       = spm_unvec(R*spm_vec(x),x);
     q       = spm_marginal(q);
     Y(i,10) = N*q{2}(3);
     
     % number of infected people
     %----------------------------------------------------------------------
-    Y(i,11)  = N * (p{2}(2) + p{2}(3));
+    Y(i,11) = N * (p{2}(2) + p{2}(3));
     
     % number of symptomatic people
     %----------------------------------------------------------------------
-    if isfield(Q,'sy')
-        Y(i,12)  = Q.sy(1) * N * p{3}(2);
-    else
-        Y(i,12)  = N * p{3}(2);
-    end
-    
+    Y(i,12) =  N * p{3}(2);
+
     % mobility (% normal)
     %----------------------------------------------------------------------
+    q  = p{1}(2)/(1 - p{1}(4));
     if isfield(Q,'mo')
-        Y(i,13)  = 100 * Q.mo(1) * p{1}(2) * p{2}(1)^Q.mo(2);
+        Y(i,13) = 100 * Q.mo(1) * q^Q.mo(2);
     else
-        Y(i,13)  = 100 * p{1}(2);
+        Y(i,13) = 100 * q;
     end
 
     % work (% normal)
     %----------------------------------------------------------------------
     if isfield(P,'wo')
-        Y(i,14)  = 100 * Q.wo(1) * p{1}(2) * p{2}(1)^Q.wo(2);
+        Y(i,14) = 100 * Q.wo(1) * q^Q.wo(2);
     else
-        Y(i,14)  = 100 * p{1}(2);
+        Y(i,14) = 100 * q;
     end 
 
-    
+    % certified deaths per day
+    %----------------------------------------------------------------------
+    q  = p{3}(4);
+    if isfield(P,'cd')
+        Y(i,15) = N * Q.cd(1) * q;
+    else
+        Y(i,15) = N * q;
+    end
+
+    % number of hospital admissions
+    %----------------------------------------------------------------------
+    q  = spm_unvec(R*spm_vec(x),x);
+    q  = spm_marginal(q);
+    q  = q{1}(3) + q{1}(6);
+    if isfield(P,'ho')
+        Y(i,16) = N * Q.ho(1) * q^Q.ho(2);
+    else
+        Y(i,16) = N * q;
+    end
+  
+
     % joint density if requested
     %----------------------------------------------------------------------
     if nargout > 2

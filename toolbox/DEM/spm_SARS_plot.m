@@ -15,7 +15,7 @@ function spm_SARS_plot(Y,X,Z,u,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_plot.m 8010 2020-11-17 23:40:14Z karl $
+% $Id: spm_SARS_plot.m 8015 2020-11-24 10:47:41Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -74,14 +74,9 @@ end
 % graphics
 %--------------------------------------------------------------------------
 subplot(3,2,1), if CHOLD, set(gca,'ColorOrderIndex',1); end
-t    = (1:t)/7;
-if ~isempty(u)
-   p = plot(t,Y,t,u*t.^0,':m');
-   legend(p,{str.outcome{U},'capacity'})
-else
-   p = plot(t,Y);
-   legend(p,str.outcome{U})
-end
+t  = (1:t)/7;
+p  = plot(t,Y);
+legend(p,str.outcome{U})
 xlabel('time (weeks)'),ylabel('number per day')
 title('Rates (per day)','FontSize',16)
 axis square, box off, set(gca,'XLim',[0, t(end)])

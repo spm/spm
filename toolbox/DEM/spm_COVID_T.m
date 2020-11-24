@@ -20,7 +20,7 @@ function T = spm_COVID_T(x,P)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8005 2020-11-06 19:37:18Z karl $
+% $Id: spm_COVID_T.m 8015 2020-11-24 10:47:41Z karl $
 
 % setup
 %==========================================================================
@@ -43,7 +43,7 @@ Kday = exp(-1);
 
 % divergence from endemic equilibrium (1,0)
 %--------------------------------------------------------------------------
-Q    = exp(-P.t/128);
+Q    = (1 + cos(2*pi*P.t/365))/2;
 
 % probabilistic transitions: location
 %==========================================================================
@@ -51,11 +51,8 @@ Q    = exp(-P.t/128);
 % social distancing, based on prevalence of infection
 %--------------------------------------------------------------------------
 b    = cell(1,dim(3));
-q    = spm_sum(x,[3 4]);
-q    = q(1:3,:);
-q    = q/sum(q(:));
-Prev = sum(q(:,2));                  % prevalence of infection
-Pcco = sum(q(3,:));                  % CCU occupancy
+q    = spm_sum(x,[1 3 4]);
+Prev = q(2) + q(3) + P.qua*q(4);     % prevalence of infection
 
 % lockdown (threshold) strategy
 %--------------------------------------------------------------------------
@@ -64,49 +61,53 @@ Pout = 1 - Psde*P.out;               % P(staying at home)
 
 % viral spread
 %--------------------------------------------------------------------------
-Psde = spm_sigma(Prev,P.qua,P.u);    % 1 - P(quarantine)
-Pexp = 1 - Psde*P.exp;               % P(entering effective population)
+Pexp = 1 - Psde*P.exp;               % P(staying unexposed)
 Pdis = P.m*(1 - Pexp);               % P(leaving effective population)
 
 % bed availability
 %--------------------------------------------------------------------------
-Pcca = spm_sigma(Pcco,P.cap,P.c);    % P(CCU | ARDS)
-Piso = exp(-1/14);                   % period of self-isolation
-
+Phos = P.hos;                        % P(hospital | ARDS)
+Pcap = P.ccu*exp(-P.t/P.tcu);        % P(transfer to CCU)
+Piso = exp(-1/7);                    % period of self-isolation
 
 % marginal: location {1} | asymptomatic {3}(1)
 %--------------------------------------------------------------------------
-%      home       work     hospital      removed    isolated
+%      home       work       ccu      removed     isolated   hospital
 %--------------------------------------------------------------------------
-b{1} = [Pout*(1 - Pdis)       1     1    (1 - Pexp) (1 - Piso);
-        (1 - Pout)*(1 - Pdis) 0     0    0           0;
-        0                     0     0    0           0;
-        Pdis                  0     0    Pexp        0;
-        0                     0     0    0           Piso];
+b{1} = [Pout*(1 - Pdis) 1     0         (1 - Pexp)  (1 - Piso) 0;
+  (1 - Pout)*(1 - Pdis) 0     0          0           0         0;
+        0               0     0          0           0         0;
+        Pdis            0     0          Pexp        0         0;
+        0               0     1          0           Piso      1;
+        0               0     0          0           0         0];
 
 % marginal: location {1}  | symptoms {3}(2)
 %--------------------------------------------------------------------------
-b{2} = [0          0          0          0           0;
-        0          0          0          0           0;
-        0          0          0          0           0;
-        0          0          0          0           0;
-        1          1          1          1           1];
+b{2} = [0          0          0          0           0         0;
+        0          0          0          0           0         0;
+        0          0          0          0           0         0;
+        0          0          0          0           0         0;
+        1          1          1          1           1         1;
+        0          0          0          0           0         0];
     
 % marginal: location {1}  | ARDS {3}(3)
 %--------------------------------------------------------------------------
-b{3} = [0          0          0          0           0;
-        0          0          0          0           0;
-        Pcca       Pcca       1          Pcca        Pcca;
-        0          0          0          0           0;
-        (1 - Pcca) (1 - Pcca) 0          (1 - Pcca)  (1 - Pcca)];
+b{3} = [0          0          0          0           0         0;
+        0          0          0          0           0         0;
+        (1 - Phos) (1 - Phos) 1         (1 - Phos)  (1 - Phos) Pcap;
+        0          0          0          0           0         0;
+        0          0          0          0           0         0;
+        Phos       Phos       0          Phos        Phos      (1 - Pcap)];
+
 
 % marginal: location {1}  | deceased {3}(4)
 %--------------------------------------------------------------------------
-b{4} = [0          0          0          0           0;
-        0          0          0          0           0;
-        0          0          0          0           0;
-        1          1          1          1           1;
-        0          0          0          0           0];
+b{4} = [0          0          0          0           0         0;
+        0          0          0          0           0         0;
+        0          0          0          0           0         0;
+        1          1          1          1           1         1;
+        0          0          0          0           0         0;
+        0          0          0          0           0         0];
 
 % kroneckor form (taking care to get the order of factors right)
 %--------------------------------------------------------------------------
@@ -132,13 +133,15 @@ ij   = Bij({5,1:5,1,4},{5,1:5,1,4},dim);  B{1}(ij) = 0;
 ij   = Bij({1,1:5,1,3},{5,1:5,1,3},dim);  B{1}(ij) = 1;
 ij   = Bij({1,1:5,1,3},{1,1:5,1,3},dim);  B{1}(ij) = 0;
 ij   = Bij({1,1:5,1,3},{2,1:5,1,3},dim);  B{1}(ij) = 0;
+ij   = Bij({1,1:5,1,3},{4,1:5,1,3},dim);  B{1}(ij) = 0;
+
 
 % isolate if infected/ious : third order dependencies : efficacy of FTTI
 %--------------------------------------------------------------------------
 ij   = Bij({1,2:3,1,1},{5,2:3,1,1},dim);  B{1}(ij) = P.ttt;
 ij   = Bij({1,2:3,1,1},{1,2:3,1,1},dim);  B{1}(ij) = Pout*(1 - P.ttt);
 ij   = Bij({1,2:3,1,1},{2,2:3,1,1},dim);  B{1}(ij) = (1 - Pout)*(1 - P.ttt);
-
+ij   = Bij({1,2:3,1,1},{4,2:3,1,1},dim);  B{1}(ij) = 0;
 
 % probabilistic transitions: infection
 %==========================================================================
@@ -178,7 +181,7 @@ b{2} = [Ptou       0                     0          0          (1 - Kinn);
         0          Pres*(1 - Kinf)       0          (1 - Kimm) Kinn];
 
 
-% marginal: infection {2} | hospital {1}(3)
+% marginal: infection {2} | ccu {1}(3)
 %--------------------------------------------------------------------------
 b{3} = [1          0                     0          0         (1 - Kinn);
         0          Kinf                  0          0          0;
@@ -193,6 +196,10 @@ b{4} = b{3};
 % marginal: infection {2} | isolated {1}(5)
 %--------------------------------------------------------------------------
 b{5} = b{3};
+
+% marginal: infection {2} | hospital {1}(6)
+%--------------------------------------------------------------------------
+b{6} = b{1};
 
 % kroneckor form
 %--------------------------------------------------------------------------
@@ -252,7 +259,7 @@ b    = spm_permute_kron(b,dim([3,2,1]),[3,2,1]);
 %--------------------------------------------------------------------------
 B{3} = spm_kron({b,I{4}});
 
-% location dependent fatalities (P.fat in CCU): third order dependencies
+% location dependent fatalities (in hospital): third order dependencies
 %--------------------------------------------------------------------------
 ij   = Bij({3,1:5,3,1:4},{3,1:5,4,1:4},dim); B{3}(ij) = (1 - Ktrd)*Pfat;
 ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);

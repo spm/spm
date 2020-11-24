@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8005 2020-11-06 19:37:18Z karl $
+% $Id: DEM_COVID_UK.m 8015 2020-11-24 10:47:41Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -30,94 +30,115 @@ function DCM = DEM_COVID_UK
 %--------------------------------------------------------------------------
 Fsi       = spm_figure('GetWin','SI'); clf;
 
-cases     = importdata('cases.csv');
-deaths    = importdata('deaths.csv');
-ccu       = importdata('critical.csv');
-tests     = importdata('tests.csv');
-serology  = importdata('seropositive.csv');
-survey    = importdata('survey.csv');
-symptoms  = importdata('symptoms.csv');
-ratio     = importdata('rate.csv');
-mobility  = importdata('mobility.csv');
-transport = importdata('transport.csv');
+cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
 
+cases      = importdata('cases.csv');
+deaths     = importdata('deaths.csv');
+ccu        = importdata('critical.csv');
+tests      = importdata('tests.csv');
+serology   = importdata('seropositive.csv');
+survey     = importdata('survey.csv');
+symptoms   = importdata('symptoms.csv');
+ratio      = importdata('rate.csv');
+mobility   = importdata('mobility.csv');
+transport  = importdata('transport.csv');
+certified  = importdata('certified.csv');
+admissions = importdata('admissions.csv');
+
+dstr      = 'dd/mm/yyyy';
 
 % created data structure
 %--------------------------------------------------------------------------
 Y(1).type = 'PCR cases (ONS)'; % daily PCR positive cases (by specimen)
 Y(1).unit = 'number/day';
 Y(1).U    = 2;
-Y(1).date = datenum(cases.textdata(2:end,4),'dd-mm-yy');
+Y(1).date = datenum(cases.textdata(2:end,4),dstr);
 Y(1).Y    = cases.data(:,1);
 Y(1).h    = 0;
 
-Y(2).type = 'Daily deaths (ONS)'; % daily covid-related deaths (28 days)
+Y(2).type = 'Daily deaths (ONS: 28-days)'; % daily covid-related deaths (28 days)
 Y(2).unit = 'number/day';
 Y(2).U    = 1;
-Y(2).date = datenum(deaths.textdata(2:end,4),'dd-mm-yy');
+Y(2).date = datenum(deaths.textdata(2:end,4),dstr);
 Y(2).Y    = deaths.data(:,1);
-Y(2).h    = 4;
+Y(2).h    = 2;
 
 Y(3).type = 'Ventilated patients (ONS)'; % CCU occupancy (mechanical)
 Y(3).unit = 'number';
 Y(3).U    = 3;
-Y(3).date = datenum(ccu.textdata(2:end,4),'dd-mm-yy');
+Y(3).date = datenum(ccu.textdata(2:end,4),dstr);
 Y(3).Y    = ccu.data(:,1);
 Y(3).h    = 0;
 
 Y(4).type = 'PCR tests (ONS)'; % daily PCR tests performed
 Y(4).unit = 'number/day';
 Y(4).U    = 6;
-Y(4).date = datenum(tests.textdata(2:end,4),'dd-mm-yy');
+Y(4).date = datenum(tests.textdata(2:end,4),dstr);
 Y(4).Y    = tests.data(:,1) + tests.data(:,2);
 Y(4).h    = 0;
 
 Y(5).type = 'Prevalence (ONS)'; % number of people infected (England)
 Y(5).unit = 'number';
 Y(5).U    = 11;
-Y(5).date = datenum(survey.textdata(2:end,1),'dd-mm-yy') - 7;
+Y(5).date = datenum(survey.textdata(2:end,1),dstr) - 7;
 Y(5).Y    = survey.data(:,1)*66.79/56.28;
 Y(5).h    = 0;
 
 Y(6).type = 'Seropositive (GOV)'; % percentage seropositive
 Y(6).unit = 'percent';
 Y(6).U    = 5;
-Y(6).date = datenum(serology.textdata(2:end,1),'dd-mm-yy');
+Y(6).date = datenum(serology.textdata(2:end,1),dstr);
 Y(6).Y    = serology.data(:,1);
 Y(6).h    = 0;
 
 Y(7).type = 'Symptoms (KCL)'; % number of people reporting symptoms (UK)
 Y(7).unit = 'number';
 Y(7).U    = 12;
-Y(7).date = datenum(symptoms.textdata(2:end,1),'dd-mm-yy');
+Y(7).date = datenum(symptoms.textdata(2:end,1),dstr);
 Y(7).Y    = symptoms.data(:,1);
 Y(7).h    = 0;
 
 Y(8).type = 'R-ratio (GOV)'; % the production ratio
 Y(8).unit = 'ratio';
 Y(8).U    = 4;
-Y(8).date = [datenum(ratio.textdata(2:end,1),'dd-mm-yy') - 13; ...
-             datenum(ratio.textdata(2:end,1),'dd-mm-yy') - 14];
+Y(8).date = [datenum(ratio.textdata(2:end,1),dstr) - 13; ...
+             datenum(ratio.textdata(2:end,1),dstr) - 14];
 Y(8).Y    = [ratio.data(:,1); ratio.data(:,2)];
 Y(8).h    = 0;
 
 Y(9).type = 'Transport (GOV)'; % cars (percent)
 Y(9).unit = 'percent';
 Y(9).U    = 13;
-Y(9).date = datenum(transport.textdata(2:end,1),'dd-mm-yy');
+Y(9).date = datenum(transport.textdata(2:end,1),dstr);
 Y(9).Y    = transport.data(:,1)*100;
 Y(9).h    = 0;
 
 Y(10).type = 'Work (Google)'; % work (percent)
 Y(10).unit = 'percent';
 Y(10).U    = 14;
-Y(10).date = datenum(mobility.textdata(2:end,1),'dd-mm-yy');
+Y(10).date = datenum(mobility.textdata(2:end,1),dstr);
 Y(10).Y    = mobility.data(:,5) + 100;
 Y(10).h    = 0;
 
+Y(11).type = 'Certified deaths (ONS)'; % weekly covid related deaths
+Y(11).unit = 'number';
+Y(11).U    = 15;
+Y(11).date = datenum(certified.textdata(2:end,4),dstr) - 7;
+Y(11).Y    = certified.data(:,1)/7;
+Y(11).h    = 0;
+
+Y(12).type = 'Admissions (ONS)'; % admissions to hospital
+Y(12).unit = 'number';
+Y(12).U    = 16;
+Y(12).date = datenum(admissions.textdata(2:end,4),dstr);
+Y(12).Y    = admissions.data(:,1);
+Y(12).h    = 0;
+
+
+
 % data types to invert
 %--------------------------------------------------------------------------
-% Y    = Y([1 2 3]);
+% Y = Y(2);
 
 % remove NANs and sort by date
 %--------------------------------------------------------------------------
@@ -191,19 +212,21 @@ end
 [pE,pC] = spm_SARS_priors;
 pE.N    = log(66.65);
 pC.N    = 0;
+pE.n    = -8;
 
 % coefficients for likelihood model
 %--------------------------------------------------------------------------
-pE.cc   = log(1/2);             % fraction of CCU on mechanical ventilation
-pC.sc   = 1;                    % prior variance
+pE.mo   = log([2,1/2]);         % coefficients for mobility
+pC.mo   = exp([-2,-2]);         % prior variance
 
-pE.sy   = log(1);               % coefficients for reporting symptoms
-pC.sy   = 1;                    % prior variance
+pE.wo   = log([2,1/2]);         % coefficients for workplace
+pC.wo   = exp([-2,-2]);         % prior variance
 
-pE.mo   = log([32,2]);          % coefficients for mobility
-pE.wo   = log([32,4]);          % coefficients for workplace
-pC.mo   = [1,1];                % prior variance
-pC.wo   = [1,1];                % prior variance
+pE.ho   = log([1,  1]);         % coefficients for admissions
+pC.ho   = exp([-2,-2]);         % prior variance
+
+pE.dc   = log(1);               % death (28 days) coefficients
+pC.dc   = exp(-2);              % prior variance
 
 % model specification
 %==========================================================================
@@ -233,12 +256,13 @@ DCM.U   = U;
 %==========================================================================
 spm_figure('GetWin','United Kingdom'); clf;
 %--------------------------------------------------------------------------
-M.T     = datenum('01-01-2021','dd-mm-yyyy') - min(spm_vec(Y.date));
-[Z,X]   = spm_SARS_gen(DCM.Ep,M,U(1:3));
-spm_SARS_plot(Z,X,YS,[],U(1:3))
+M.T     = datenum('01-04-2021','dd-mm-yyyy') - min(spm_vec(Y.date));
+U       = U(1:min(numel(U),3));
+[Z,X]   = spm_SARS_gen(DCM.Ep,M,U);
+spm_SARS_plot(Z,X,YS,[],U)
+U       = DCM.U;
 
-
-spm_figure('GetWin','outcomes'); clf;
+spm_figure('GetWin','outcomes (1)'); clf;
 %--------------------------------------------------------------------------
 j     =  0;
 for i = 1:numel(Y)
@@ -277,10 +301,23 @@ if numel(Y) < 8
     set(gca,'YLim',[0 min(4,g(2))]), ylabel('ratio')
 end
 
+% save figures
+%--------------------------------------------------------------------------
+spm_figure('GetWin','outcomes (2)');
+savefig(gcf,'Fig2')
+
+spm_figure('GetWin','outcomes (1)');
+savefig(gcf,'Fig1')
+
+spm_figure('GetWin','United Kingdom');
+savefig(gcf,'Fig3')
+
 
 % Table
 %--------------------------------------------------------------------------
 Tab = spm_COVID_table(Ep,Cp,M)
+
+cd('C:\Users\karl\Dropbox\Coronavirus')
 
 return
 
