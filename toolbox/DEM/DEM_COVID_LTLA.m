@@ -20,14 +20,15 @@ function [DCM] = DEM_COVID_LTLA
 
 % load (ONS) testing death-by-date data
 %==========================================================================
-url  = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&metric=newCasesBySpecimenDate&metric=newDeaths28DaysByDeathDate&format=csv';
-U    = webread(url);
-P    = importdata('LADCodesPopulation.xlsx');
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&metric=newCasesBySpecimenDate&metric=newDeaths28DaysByDeathDate&format=csv';
+U   = webread(url);
+P   = importdata('LADCodesPopulation2019.xlsx');
 
 % get population by lower tier local authority
 %--------------------------------------------------------------------------
-PN   = P.data(2:end,1);
-PCD  = P.textdata(2:end,1);
+PN       = P.data(2:end,1);
+PCode    = P.textdata(2:end,1);
+PName    = P.textdata(:,2);
 
 % get new cases by (lower tier) local authority
 %--------------------------------------------------------------------------
@@ -59,8 +60,12 @@ for i = 1:numel(Area)
         D(k).deaths = AreaMort(j);
         D(k).date   = datenum([AreaDate{j}]);
         D(k).name   = AreaName(j(1));
-        D(k).code   = AreaCode(j(1));
-        D(k).N      = PN(find(ismember(PCD,D(k).code),1));
+        D(k).code   = Area(i);
+        D(k).N      = PN(find(ismember(PCode,Area(i)),1));
+        
+        if isempty(D(k).N)
+            k = k - 1; disp(Area(i));
+        end
     end
     
 end
@@ -203,6 +208,7 @@ for r = 1:numel(D)
     text(0,0.0,str,'FontSize',8,'Color','k')
     
     spm_axis tight, axis off
+    drawnow
     savefig(H,[strrep(strrep(strrep(D(r).name{1},' ','_'),',',''),'''',''),'.fig']);
     close(H);
     
