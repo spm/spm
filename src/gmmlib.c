@@ -1,5 +1,5 @@
 /*
- * $Id: gmmlib.c 8016 2020-11-24 15:32:46Z john $
+ * $Id: gmmlib.c 8019 2020-11-25 17:33:20Z john $
  * John Ashburner, Mikael Brudfors & Yael Balbastre
  */
 
@@ -150,7 +150,7 @@ static double del2(size_t P, double mu[], double W[], double x[], double v[])
         r  = x[j]-mu[j];
         d += wj[j]*(r*r+v[j]);
         for(i=j+1; i<P; i++)
-            d += 2.0*wj[i]*r*(x[i]-mu[i]);
+            d += 2.0*r*wj[i]*(x[i]-mu[i]);
     }
     return d;
 }
@@ -186,6 +186,7 @@ static double Nresp(size_t K, GMMtype gmm[], size_t code, double x[], double v[]
 
     for(k=0; k<K; k++, W+=P*P, mu+=P)
         p[k] += con[k] - 0.5*nu[k]*del2(P, mu, W, x, v);
+
     return softmax1(K,p,p);
 }
 
@@ -455,14 +456,14 @@ static double suffstats_missing(size_t nf[], float mf[], float vf[],
     n1 = nm[1]/skip[1]; if (n1>nf[1]) n1 = nf[1];
     n0 = nm[0]/skip[0]; if (n0>nf[0]) n0 = nf[0];
 
-    for(i2=0; i2<n2; i2+=skip[2])
+    for(i2=0; i2<n2; i2++)
     {
-        for(i1=0; i1<n1; i1+=skip[1])
+        for(i1=0; i1<n1; i1++)
         {
             size_t off_f, off_m;
             off_f = nf[0]*(i1         + nf[1]*i2);
             off_m = nm[0]*(i1*skip[1] + nm[1]*i2*skip[2]);
-            for(i0=0; i0<n0; i0+=skip[0])
+            for(i0=0; i0<n0; i0++)
             {
                 size_t i, im;
                 i    = i0         + off_f;
