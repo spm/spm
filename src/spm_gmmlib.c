@@ -1,7 +1,7 @@
 /* 
  * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: spm_gmmlib.c 8021 2020-11-26 15:47:56Z john $
+ * $Id: spm_gmmlib.c 8022 2020-11-26 19:45:13Z john $
  *
  */
 
@@ -182,7 +182,8 @@ static void moments_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArr
 static void inugrads_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     mwSize nf[5];
-    size_t K, K1, k, nm[5], dc[5], skip[3], *lkp, dm0, dm1, dm2, c, nd;
+    size_t K, K1, k, nm[5], dc[5], skip[3], *lkp, dm0, dm1, dm2, nd;
+    long long c;
     double *m, *b, *W, *nu, *gam, *ll;
     float *mu, *mf, *vf, *g1, *g2;
 
@@ -196,14 +197,14 @@ static void inugrads_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
         mexErrMsgTxt("Index must be numeric, real, full and UInt64.");
     nd  = copy_dims(prhs[10],dc);
     if (nd>2 || dc[0]!=1 || dc[1]!=1) mexErrMsgTxt("Index not a scalar.");
-    c = ((size_t *)mxGetPr(prhs[10]))[0] - 1;
-    if (c<0 || c>=nf[3]) mexErrMsgTxt("Index out of range.");
+    c = ((long long *)mxGetPr(prhs[10]))[0] - 1;
+    if (c<0 || c>=(long long)nf[3]) mexErrMsgTxt("Index out of range.");
 
     plhs[0] = mxCreateNumericArray(3,nf, mxSINGLE_CLASS, mxREAL); g1 = (float *)mxGetPr(plhs[0]);
     plhs[1] = mxCreateNumericArray(3,nf, mxSINGLE_CLASS, mxREAL); g2 = (float *)mxGetPr(plhs[1]);
     plhs[2] = mxCreateDoubleMatrix(1, 1, mxREAL);
     ll      = (double *)mxGetPr(plhs[2]);
-    ll[0]   = call_INUgrads(nf,mf,vf, K,m,b,W,nu,gam, nm,skip,lkp,mu, c, g1,g2);
+    ll[0]   = call_INUgrads(nf,mf,vf, K,m,b,W,nu,gam, nm,skip,lkp,mu, (size_t)c, g1,g2);
     mxFree(lkp);
 }
 
