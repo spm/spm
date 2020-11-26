@@ -1,6 +1,8 @@
 /* 
- * $Id: spm_gmmlib.c 8013 2020-11-23 10:44:46Z guillaume $
+ * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
+ * $Id: spm_gmmlib.c 8021 2020-11-26 15:47:56Z john $
+ *
  */
 
 #include <math.h>
@@ -182,35 +184,26 @@ static void inugrads_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
     mwSize nf[5];
     size_t K, K1, k, nm[5], dc[5], skip[3], *lkp, dm0, dm1, dm2, c, nd;
     double *m, *b, *W, *nu, *gam, *ll;
-    float *mu, *mf, *vf, *fc, *g1, *g2;
+    float *mu, *mf, *vf, *g1, *g2;
 
-    if (nrhs!=12 || nlhs>3) mexErrMsgTxt("Incorrect usage");
+    if (nrhs!=11 || nlhs>3) mexErrMsgTxt("Incorrect usage");
 
     parse_rhs(nrhs, prhs, &K, &m, &b, &W, &nu, &gam, &lkp, nm, &mu, nf, &mf, &vf, skip);
 
-    /* fc */
-    if (!mxIsNumeric(prhs[10]) || mxIsComplex(prhs[10]) ||
-          mxIsSparse(prhs[10]) || !mxIsSingle(prhs[10]))
-        mexErrMsgTxt("Image data must be numeric, real, full and single (fc).");
-    nd  = copy_dims(prhs[10],dc);
-    if (nd>3) mexErrMsgTxt("Wrong number of dimensions (fc).");
-    if (dc[0]!=nf[0] || dc[1]!=nf[1] || dc[2]!=nf[2]) mexErrMsgTxt("Incompatible dimensions (fc).");
-    fc = (float *)mxGetPr(prhs[10]);
-
     /* c */
-    if (!mxIsNumeric(prhs[11]) || mxIsComplex(prhs[11]) ||
-          mxIsSparse(prhs[11]) || !mxIsUint64(prhs[11]))
+    if (!mxIsNumeric(prhs[10]) || mxIsComplex(prhs[10]) ||
+          mxIsSparse(prhs[10]) || !mxIsUint64(prhs[10]))
         mexErrMsgTxt("Index must be numeric, real, full and UInt64.");
-    nd  = copy_dims(prhs[11],dc);
+    nd  = copy_dims(prhs[10],dc);
     if (nd>2 || dc[0]!=1 || dc[1]!=1) mexErrMsgTxt("Index not a scalar.");
-    c = ((size_t *)mxGetPr(prhs[11]))[0] - 1;
+    c = ((size_t *)mxGetPr(prhs[10]))[0] - 1;
     if (c<0 || c>=nf[3]) mexErrMsgTxt("Index out of range.");
 
     plhs[0] = mxCreateNumericArray(3,nf, mxSINGLE_CLASS, mxREAL); g1 = (float *)mxGetPr(plhs[0]);
     plhs[1] = mxCreateNumericArray(3,nf, mxSINGLE_CLASS, mxREAL); g2 = (float *)mxGetPr(plhs[1]);
     plhs[2] = mxCreateDoubleMatrix(1, 1, mxREAL);
     ll      = (double *)mxGetPr(plhs[2]);
-    ll[0]   = call_INUgrads(nf,mf,vf, K,m,b,W,nu,gam, nm,skip,lkp,mu, c,fc, g1,g2);
+    ll[0]   = call_INUgrads(nf,mf,vf, K,m,b,W,nu,gam, nm,skip,lkp,mu, c, g1,g2);
     mxFree(lkp);
 }
 

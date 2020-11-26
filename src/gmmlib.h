@@ -1,8 +1,10 @@
 /*
- * $Id: gmmlib.h 8013 2020-11-23 10:44:46Z guillaume $
- * John Ashburner, Mikael Brudfors & Yael Balbastre 
+ * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
+ * John Ashburner, Mikael Brudfors & Yael Balbastre
+ * $Id: gmmlib.h 8021 2020-11-26 15:47:56Z john $
+ *
  */
- 
+
 #include<math.h>
 #include<stdlib.h>
 
@@ -26,6 +28,6 @@ double call_responsibilities(size_t nf[], size_t skip[], float mf[], float vf[],
 double call_INUgrads(size_t nf[], float mf[], float vf[],
     size_t K, double mu[], double b[], double W[], double nu[], double gam[],
     size_t nm[], size_t skip[], size_t lkp[], float lp[],
-    size_t ic, float fc[],
+    size_t ic,
     float g1[], float g2[]);
 
