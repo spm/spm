@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: gmmlib.c 8021 2020-11-26 15:47:56Z john $
+ * $Id: gmmlib.c 8023 2020-11-26 21:24:00Z john $
  */
-
+#include "spm_mex.h"
 #include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
@@ -18,7 +18,7 @@ typedef struct
 
 typedef struct
 {
-    size_t  P;
+    mwSize  P;
     double *mu;
     double *b;
     double *W;
@@ -29,15 +29,15 @@ typedef struct
 } GMMtype;
 
 static const double pi = 3.1415926535897931;
-static const size_t MaxChan=(size_t)50; /* largest integer valued float is 2^52 */
-static const size_t Undefined=(size_t)0xFFFFFFFFFFFFF;
+static const mwSize MaxChan=(mwSize)50; /* largest integer valued float is 2^52 */
+static const mwSize Undefined=(mwSize)0xFFFFFFFFFFFFF;
 
 
 /* A (hopefully) fast approximation to exp. */
 static double fastexp(double x)
 {
     double r, rr;
-    signed long long i;
+    mwSignedIndex i;
     static double lkp_mem[256], *exp_lkp = lkp_mem+128;
 
     /* exp(i+r) = exp(i)*exp(r), where:
@@ -48,7 +48,7 @@ static double fastexp(double x)
      * Should not encounter values more extreme than -128 or 127,
      * particularly as the upper limit of x will be 0 and values
      * of x below log(eps)=-36.04 should be numerically equivalent.*/
-    i  = (signed long long)rint(x);
+    i  = (mwSignedIndex)rint(x);
     if (i<-128) i = -128;
     if (i> 127) i =  127;
     if (exp_lkp[i]==0.0) exp_lkp[i] = exp((double)i);
@@ -69,17 +69,17 @@ static double fastexp(double x)
  *                           statistics.
  * Returns the allocated data structure, with pointers assigned.
  */
-/*@null@*/ SStype *suffstat_pointers(size_t P, size_t K, double *s0_ptr, double *s1_ptr, double *s2_ptr)
+static /*@null@*/ SStype *suffstat_pointers(mwSize P, mwSize K, double *s0_ptr, double *s1_ptr, double *s2_ptr)
 {
     SStype /*@NULL@*/ *suffstat;
-    suffstat = (SStype *)calloc((size_t)1<<P,sizeof(SStype));
+    suffstat = (SStype *)calloc((size_t)1<<(size_t)P,sizeof(SStype));
     if (suffstat != NULL)
     {
-        size_t code,o0=0,o1=0,o2=0;
-        for(code=0; code<((size_t)1<<P); code++)
+        mwSize code,o0=0,o1=0,o2=0;
+        for(code=0; code<((mwSize)1<<P); code++)
         {
-            size_t i, Po;
-            for(i=0, Po=0; i<P; i++) Po += (code>>i) & (size_t)1;
+            mwSize i, Po;
+            for(i=0, Po=0; i<P; i++) Po += (code>>i) & (mwSize)1;
             suffstat[code].s0 = &(s0_ptr[o0]);
             suffstat[code].s1 = &(s1_ptr[o1]);
             suffstat[code].s2 = &(s2_ptr[o2]);
@@ -101,9 +101,9 @@ static double fastexp(double x)
  * v  - extracted variances, length P
  * Returns a code indicating which volumes have a finite value (ie data not missing)
  */
-static size_t get_vox(size_t N1, size_t P, float mf[], float vf[], /*@out@*/ double x[], /*@out@*/ double v[])
+static mwSize get_vox(mwSize N1, mwSize P, float mf[], float vf[], /*@out@*/ double x[], /*@out@*/ double v[])
 {
-    size_t j, j1, o, code;
+    mwSize j, j1, o, code;
     for(j=0, j1=0, o=0, code=0; j<P; j++, o+=N1)
     {
         double tmp = (double)mf[o];
@@ -111,7 +111,7 @@ static size_t get_vox(size_t N1, size_t P, float mf[], float vf[], /*@out@*/ dou
         {
             x[j1] = tmp;
             v[j1] = vf[o];
-            code |= (size_t)1<<j;
+            code |= (mwSize)1<<j;
             j1++;
         }
     }
@@ -122,9 +122,9 @@ static size_t get_vox(size_t N1, size_t P, float mf[], float vf[], /*@out@*/ dou
 /* log-sum-exp function: log(sum(exp(q)))
  * K - length of q
  *
-static double lse(size_t K, double q[])
+static double lse(mwSize K, double q[])
 {
-    size_t k;
+    mwSize k;
     double mx, s;
     for(k=1, mx=q[0]; k<K; k++)
     {
@@ -144,9 +144,9 @@ static double lse(size_t K, double q[])
  * Input and output could be the same
  * Returns lse(q)
  */
-static double softmax1(size_t K, double q[], /*@out@*/ double p[])
+static double softmax1(mwSize K, double q[], /*@out@*/ double p[])
 {
-    size_t k;
+    mwSize k;
     double mx, s;
     for(k=1, mx=q[0]; k<K; k++)
         if (q[k]>mx) mx = q[k];
@@ -165,9 +165,9 @@ static double softmax1(size_t K, double q[], /*@out@*/ double p[])
  * Input and output could be the same
  * Returns lse([q 0])
  */
-static double softmax(size_t K, double q[], /*@out@*/ double p[])
+static double softmax(mwSize K, double q[], /*@out@*/ double p[])
 {
-    size_t k;
+    mwSize k;
     double mx, s;
     for(k=0, mx=0; k<K; k++)
         if (q[k]>mx) mx = q[k];
@@ -186,9 +186,9 @@ static double softmax(size_t K, double q[], /*@out@*/ double p[])
  * x  - expectation of data, size P x 1
  * v  - variance of data, size P x 1 (ie diagonal of covariance)
  */
-static double del2(size_t P, double mu[], double W[], double x[], double v[])
+static double del2(mwSize P, double mu[], double W[], double x[], double v[])
 {
-    size_t j,i;
+    mwSize j,i;
     double d=0.0, r, *wj;
     for(j=0,wj=W; j<P; j++, wj+=P)
     {
@@ -231,9 +231,9 @@ static double psi(double z)
  *        on output: logs of likelihoods are added to the log priors
  *                   and the result passed through a softmax.
  */
-static double Nresp(size_t K, GMMtype gmm[], size_t code, double x[], double v[], double p[])
+static double Nresp(mwSize K, GMMtype gmm[], mwSize code, double x[], double v[], double p[])
 {
-    size_t P, k;
+    mwSize P, k;
     double *mu, *b, *W, *nu, *gam, *con;
     P   = gmm[code].P;
     mu  = gmm[code].mu;
@@ -262,9 +262,9 @@ static double Nresp(size_t K, GMMtype gmm[], size_t code, double x[], double v[]
  *        on output: logs of likelihoods are added to the log priors
  *                   and the result passed through a softmax.
  */
-static double Tresp(size_t K, GMMtype gmm[], size_t code, double x[], double v[], double p[])
+static double Tresp(mwSize K, GMMtype gmm[], mwSize code, double x[], double v[], double p[])
 {
-    size_t P, k;
+    mwSize P, k;
     double *mu, *b, *W, *nu, *con;
     /*
        Compute other responsibilities from a mixture of Student's t distributions.
@@ -306,9 +306,9 @@ static double Tresp(size_t K, GMMtype gmm[], size_t code, double x[], double v[]
  *       associated with which tissue class.
  * p   - Output vector of log tissue priors.
  */
-static int get_priors(size_t N1, float *lp, size_t K, size_t *lkp, /*@out@*/ double *p)
+static int get_priors(mwSize N1, float *lp, mwSize K, mwSize *lkp, /*@out@*/ double *p)
 {
-    size_t k;
+    mwSize k;
 /*  double l; */
     for(k=0; k<K; k++)
     {
@@ -335,10 +335,10 @@ static int get_priors(size_t N1, float *lp, size_t K, size_t *lkp, /*@out@*/ dou
  * A triangle of the input matrix is partially overwritten
  * by the output. Diagonal elements are stored in p.
  */
-static void choldc(size_t n, double a[], /*@out@*/ double p[])
+static void choldc(mwSize n, double a[], /*@out@*/ double p[])
 {
-    size_t    i, j;
-    long long k;
+    mwSize    i, j;
+    mwSignedIndex k;
     double sm, sm0;
 
     sm0  = 1e-40;
@@ -351,7 +351,7 @@ static void choldc(size_t n, double a[], /*@out@*/ double p[])
         for(j=i; j<n; j++)
         {
             sm = a[i*n+j];
-            for(k=(long long)i-1; k>=0; k--)
+            for(k=(mwSignedIndex)i-1; k>=0; k--)
                sm -= a[i*n+k] * a[j*n+k];
             if(i==j)
             {
@@ -373,23 +373,23 @@ static void choldc(size_t n, double a[], /*@out@*/ double p[])
  * b     - Vector of input data.
  * x     - Vector or outputs.
  */
-static void cholls(size_t n, const double a[], const double p[],
+static void cholls(mwSize n, const double a[], const double p[],
             const double b[], /*@out@*/ double x[])
 {
-    long long i, k;
+    mwSignedIndex i, k;
     double sm;
 
-    for(i=0; i<(long long)n; i++)
+    for(i=0; i<(mwSignedIndex)n; i++)
     {
         sm = b[i];
         for(k=i-1; k>=0; k--)
             sm -= a[i*n+k]*x[k];
         x[i] = sm/p[i];
     }
-    for(i=(long long)n-1; i>=0; i--)
+    for(i=(mwSignedIndex)n-1; i>=0; i--)
     {
         sm = x[i];
-        for(k=i+1; k<(long long)n; k++)
+        for(k=i+1; k<(mwSignedIndex)n; k++)
             sm -= a[k*n+i]*x[k];
         x[i] = sm/p[i];
     }
@@ -397,12 +397,12 @@ static void cholls(size_t n, const double a[], const double p[],
 
 
 /* n! */
-static size_t factorial(size_t n)
+static mwSize factorial(mwSize n)
 {
-    static size_t products[21];
+    static mwSize products[21];
     if (products[0]==0)
     {
-        size_t i;
+        mwSize i;
         products[0] = 1;
         for(i=1; i<21; i++)
             products[i] = products[i-1]*i;
@@ -418,12 +418,12 @@ static size_t factorial(size_t n)
  * *m0, *m1 & *m2 - Space needed for the zeroeth,
  *                  first and second moments.
  */
-void space_needed(size_t P, size_t K, size_t *m0, size_t *m1, size_t *m2)
+void space_needed(mwSize P, mwSize K, mwSize *m0, mwSize *m1, mwSize *m2)
 {
-    size_t m;
+    mwSize m;
     for(m=0, *m0=0, *m1=0, *m2=0; m<=P; m++)
     {
-        size_t nel;
+        mwSize nel;
         nel = K*factorial(P)/(factorial(m)*factorial(P - m));
         *m0 += nel;
         *m1 += nel*m;
@@ -437,24 +437,24 @@ void space_needed(size_t P, size_t K, size_t *m0, size_t *m1, size_t *m2)
  * P - Number of images/channels.
  * K - Number of Gaussians
  */
-static /*@null@*/ GMMtype *allocate_gmm(size_t P, size_t K)
+static /*@null@*/ GMMtype *allocate_gmm(mwSize P, mwSize K)
 {
-    size_t o, code, i, n0=0,n1=0,n2=0;
+    mwSize o, code, i, n0=0,n1=0,n2=0;
     double *buf;
     unsigned char *bytes;
     GMMtype /*@NULL@*/ *gmm;
     space_needed(P, K, &n0, &n1, &n2);
 
-    o     = ((size_t)1<<P)*sizeof(GMMtype);
-    bytes = calloc(o+(n0*(size_t)5+n1+n2)*sizeof(double),1);
+    o     = ((mwSize)1<<P)*sizeof(GMMtype);
+    bytes = calloc((size_t)o+(size_t)(n0*(mwSize)5+n1+n2)*sizeof(double),1);
     gmm   = (GMMtype *)bytes;
     if (gmm!=NULL)
     {
         buf   = (double *)(bytes + o);
         o     = 0;
-        for(code=0; code<((size_t)1<<P); code++)
+        for(code=0; code<((mwSize)1<<P); code++)
         {
-            size_t nel = 0;
+            mwSize nel = 0;
             for(i=0; i<code; i++) nel += (code>>i) & 1;
             gmm[code].P    = nel;
             gmm[code].mu   = buf+o; o += K*nel;
@@ -476,9 +476,9 @@ static /*@null@*/ GMMtype *allocate_gmm(size_t P, size_t K)
  * S - Matrix inverse (output, P \times P)
  * T - Scratch space (P*(P+1))
  */
-static double invert(size_t P, double *W /* P*P */, double *S /* P*P */, double *T /* P*(P+1) */)
+static double invert(mwSize P, double *W /* P*P */, double *S /* P*P */, double *T /* P*(P+1) */)
 {
-    size_t i, j, PP=P*P;
+    mwSize i, j, PP=P*P;
     double ld = 0.0, *p;
     for(i=0; i<PP; i++) T[i] = W[i];
     p = T+PP;
@@ -509,15 +509,15 @@ static double invert(size_t P, double *W /* P*P */, double *S /* P*P */, double 
  *
  * The function returns the data structure.
  */
-static /*@null@*/ GMMtype *sub_gmm(size_t P, size_t K, double *mu, double *b, double *W, double *nu, double *gam)
+static /*@null@*/ GMMtype *sub_gmm(mwSize P, mwSize K, double *mu, double *b, double *W, double *nu, double *gam)
 {
     const double log2pi = log(2*pi), log2 = log(2.0);
     double *S, *Si;
     GMMtype *gmm;
-    size_t k, code, PP = P*P;
+    mwSize k, code, PP = P*P;
 
     if ((gmm = allocate_gmm(P,K)) == NULL) return gmm;
-    if ((S   = (double *)calloc(P*((size_t)3*P+(size_t)1),sizeof(double))) == NULL)
+    if ((S   = (double *)calloc((size_t)(P*((mwSize)3*P+(mwSize)1)),sizeof(double))) == NULL)
     {
        (void)free((void *)gmm);
        return NULL;
@@ -527,23 +527,23 @@ static /*@null@*/ GMMtype *sub_gmm(size_t P, size_t K, double *mu, double *b, do
     {
         double lgam = log(gam[k]);
         (void)invert(P,W+PP*k,S,S+PP);
-        for(code=0; code<(size_t)1<<P; code++)
+        for(code=0; code<(mwSize)1<<P; code++)
         {
-            size_t j,j1, Po;
+            mwSize j,j1, Po;
             double ld, ld1, eld;
             Po               = gmm[code].P;
-            gmm[code].nu[k]  = nu[k] - (P-Po);
+            gmm[code].nu[k]  = nu[k] - (double)(P-Po);
             gmm[code].b[k]   = b[k];
             gmm[code].gam[k] = lgam;
             for(j=0, j1=0; j<P; j++)
             {
-                if ((((size_t)1<<j) & code) != 0)
+                if ((((mwSize)1<<j) & code) != 0)
                 {
-                    size_t i, i1;
+                    mwSize i, i1;
                     gmm[code].mu[j1+Po*k] = mu[j+P*k];
                     for(i=0, i1=0; i<P; i++)
                     {
-                        if ((((size_t)1<<i) & code) != 0)
+                        if ((((mwSize)1<<i) & code) != 0)
                         {
                             Si[i1+Po*j1] = S[i+P*j];
                             i1++;
@@ -558,12 +558,12 @@ static /*@null@*/ GMMtype *sub_gmm(size_t P, size_t K, double *mu, double *b, do
                E[ln N(x | m, L^{-1})] w.r.t. Gaussian-Wishart */
             for(j=0,eld=0.0; j<Po; j++) eld += psi((gmm[code].nu[k]-(double)j)*0.5);
             eld    += Po*log2 + ld;
-            gmm[code].conN[k] = 0.5*(eld - Po*(log2pi+1.0/gmm[code].b[k])) + lgam;
+            gmm[code].conN[k] = 0.5*(eld - (double)Po*(log2pi+1.0/gmm[code].b[k])) + lgam;
 
             /* Constant term for VB mixture of T distributions */
-            ld1 = ld + Po*log((gmm[code].nu[k]+1.0-Po)*b[k]/(b[k]+1.0));
-            gmm[code].conT[k] = lgamma(0.5*(gmm[code].nu[k]+1.0)) - lgamma(0.5*(gmm[code].nu[k]+1.0-Po)) +
-                                0.5*ld1 - 0.5*Po*log((gmm[code].nu[k]+1-Po)*pi) + lgam;
+            ld1 = ld + (double)Po*log((gmm[code].nu[k]+1.0-(double)Po)*b[k]/(b[k]+1.0));
+            gmm[code].conT[k] = lgamma(0.5*(gmm[code].nu[k]+1.0)) - lgamma(0.5*(gmm[code].nu[k]+1.0-(double)Po)) +
+                                0.5*ld1 - 0.5*Po*log((gmm[code].nu[k]+1.0-(double)Po)*pi) + lgam;
         }
     }
     (void)free((void *)S);
@@ -582,12 +582,12 @@ static /*@null@*/ GMMtype *sub_gmm(size_t P, size_t K, double *mu, double *b, do
  * lp   - Log tissue priors
  * suffstat - Data stucture to hold resulting sufficient statistics.
  */
-static double suffstats_missing(size_t nf[], float mf[], float vf[],
-                      size_t K, GMMtype gmm[],
-                      size_t nm[], size_t skip[], size_t lkp[], float lp[],
+static double suffstats_missing(mwSize nf[], float mf[], float vf[],
+                      mwSize K, GMMtype gmm[],
+                      mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
                       SStype suffstat[])
 {
-    size_t K1, i0,i1,i2, n2,n1,n0, P, Nf, Nm, code;
+    mwSize K1, i0,i1,i2, n2,n1,n0, P, Nf, Nm, code;
     double ll = 0.0, mx[MaxChan], vx[MaxChan], p[128];
 
     P  = nf[3];
@@ -603,18 +603,18 @@ static double suffstats_missing(size_t nf[], float mf[], float vf[],
     {
         for(i1=0; i1<n1; i1++)
         {
-            size_t off_f, off_m;
+            mwSize off_f, off_m;
             off_f = nf[0]*(i1         + nf[1]*i2);
             off_m = nm[0]*(i1*skip[1] + nm[1]*i2*skip[2]);
             for(i0=0; i0<n0; i0++)
             {
-                size_t i, im;
+                mwSize i, im;
                 i    = i0         + off_f;
                 im   = i0*skip[0] + off_m;
                 code = get_vox(Nf,P,mf+i,vf+i,mx,vx);
                 if (code>0 && get_priors(Nm, lp+im, K, lkp, p)!=0)
                 {
-                    size_t j, j1, k, Po;
+                    mwSize j, j1, k, Po;
                     double *s0, *s1, *s2;
                     ll += Nresp(K, gmm, code, mx, vx, p);
                     Po  = gmm[code].P;
@@ -641,9 +641,9 @@ static double suffstats_missing(size_t nf[], float mf[], float vf[],
     }
 
     /* Add in upper triangle second order sufficiant statistics */
-    for(code=1; code<((size_t)1<<P); code++)
+    for(code=1; code<((mwSize)1<<P); code++)
     {
-        size_t j, j1, k, Po;
+        mwSize j, j1, k, Po;
         double *s2;
         Po = gmm[code].P;
         s2 = suffstat[code].s2;
@@ -664,12 +664,12 @@ static double suffstats_missing(size_t nf[], float mf[], float vf[],
  * a structure containing pointers to the sufficient statistics.
  * It then calls suffstats_missing before freeing up the structures.
  */
-double call_suffstats_missing(size_t nf[], float mf[], float vf[],
-    size_t K, double mu[], double b[], double W[], double nu[], double gam[],
-    size_t nm[], size_t skip[], size_t lkp[], float lp[],
+double call_suffstats_missing(mwSize nf[], float mf[], float vf[],
+    mwSize K, double mu[], double b[], double W[], double nu[], double gam[],
+    mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
     double s0_ptr[], double s1_ptr[], double s2_ptr[])
 {
-    size_t P = nf[3];
+    mwSize P = nf[3];
     GMMtype *gmm;
     SStype  *suffstat;
     double ll=0.0;
@@ -704,12 +704,12 @@ double call_suffstats_missing(size_t nf[], float mf[], float vf[],
  * lp   - Log tissue priors
  * r    - Responsibilities (n_x, n_y, n_z, max(lkp)).
  */
-static double responsibilities(size_t nf[], size_t skip[], float mf[], float vf[],
-              size_t K, GMMtype *gmm,
-              size_t K1, size_t lkp[], float lp[],
+static double responsibilities(mwSize nf[], mwSize skip[], float mf[], float vf[],
+              mwSize K, GMMtype *gmm,
+              mwSize K1, mwSize lkp[], float lp[],
               float r[])
 {
-    size_t P, N1, i0,i1,i2;
+    mwSize P, N1, i0,i1,i2;
     double ll = 0.0, mx[MaxChan], vx[MaxChan], p[128];
 
     P  = nf[3];
@@ -719,11 +719,11 @@ static double responsibilities(size_t nf[], size_t skip[], float mf[], float vf[
     {
         for(i1=0; i1<nf[1]; i1++)
         {
-            size_t off_f;
+            mwSize off_f;
             off_f = nf[0]*(i1 + nf[1]*i2);
             for(i0=0; i0<nf[0]; i0++)
             {
-                size_t i, code, k, k1;
+                mwSize i, code, k, k1;
                 i    = i0+off_f;
                 code = get_vox(N1,P,mf+i,vf+i,mx,vx);
                 if (get_priors(N1, lp+i, K, lkp, p)!=0)
@@ -762,12 +762,12 @@ static double responsibilities(size_t nf[], size_t skip[], float mf[], float vf[
 /* Constructs a gmm structure from mu, b, W, nu, and gam, using this
  * to call responsibilities.
  */
-double call_responsibilities(size_t nf[], size_t skip[], float mf[], float vf[],
-    size_t K, double mu[], double b[], double W[], double nu[], double gam[],
-    size_t K1, size_t lkp[], float lp[],
+double call_responsibilities(mwSize nf[], mwSize skip[], float mf[], float vf[],
+    mwSize K, double mu[], double b[], double W[], double nu[], double gam[],
+    mwSize K1, mwSize lkp[], float lp[],
     float r[])
 {
-    size_t P = nf[3];
+    mwSize P = nf[3];
     GMMtype *gmm;
     double ll;
 
@@ -840,13 +840,13 @@ if simplify(H+g-H0)~=0, disp('There''s a problem.'); end
  * g2   - Output Hessian   (n_x, n_y, n_z).
  *
  */
-static double INUgrads(size_t nf[], float mf[], float vf[],
-              size_t K, GMMtype gmm[],
-              size_t nm[], size_t skip[], size_t lkp[], float lp[],
-              size_t index[],
+static double INUgrads(mwSize nf[], float mf[], float vf[],
+              mwSize K, GMMtype gmm[],
+              mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
+              mwSize index[],
               float  g1[], float g2[])
 {
-    size_t P, Nf, Nm, i0,i1,i2, n0,n1,n2;
+    mwSize P, Nf, Nm, i0,i1,i2, n0,n1,n2;
     double ll=0.0, mx[MaxChan], vx[MaxChan], p[128];
 
     P  = nf[3];
@@ -863,12 +863,12 @@ static double INUgrads(size_t nf[], float mf[], float vf[],
     {
         for(i1=0; i1<n1; i1++)
         {
-            size_t off_f, off_m;
+            mwSize off_f, off_m;
             off_f = nf[0]*(i1         + nf[1]*i2);
             off_m = nm[0]*(i1*skip[1] + nm[1]*i2*skip[2]);
             for(i0=0; i0<n0; i0++)
             {
-                size_t i, im, code;
+                mwSize i, im, code;
                 i    = i0         + off_f;
                 im   = i0*skip[0] + off_m;
                 code = get_vox(Nf,P,mf+i,vf+i,mx,vx);
@@ -878,7 +878,7 @@ static double INUgrads(size_t nf[], float mf[], float vf[],
                     if (index[code]!=Undefined)
                     {
                         double g=0.0, h=0.0, *mu, *W, *nu;
-                        size_t Po = gmm[code].P, j, nc, k;
+                        mwSize Po = gmm[code].P, j, nc, k;
                         mu    = gmm[code].mu;
                         W     = gmm[code].W;
                         nu    = gmm[code].nu;
@@ -912,15 +912,15 @@ static double INUgrads(size_t nf[], float mf[], float vf[],
  * ic    - Index of image of interest.
  * index - Index of the ic't volume for each code.
  */
-static void make_index(size_t P, size_t ic, size_t index[])
+static void make_index(mwSize P, mwSize ic, mwSize index[])
 {
-    size_t code,i,i1;
-    for(code=0; code<(size_t)1<<P; code++)
+    mwSize code,i,i1;
+    for(code=0; code<(mwSize)1<<P; code++)
     {
-        if ((code & (size_t)1<<ic)!=0)
+        if ((code & (mwSize)1<<ic)!=0)
         {
             for(i=0,i1=0; i<ic; i++)
-                if ((code & (size_t)1<<i)!=0) i1++;
+                if ((code & (mwSize)1<<i)!=0) i1++;
             index[code] = i1;
         }
         else
@@ -932,20 +932,20 @@ static void make_index(size_t P, size_t ic, size_t index[])
 /* Constructs a gmm structure from mu, b, W, nu, and gam, as well as a vector
  * of indices. These are then used when calling INUgrads.
  */
-double call_INUgrads(size_t nf[], float mf[], float vf[],
-    size_t K, double mu[], double b[], double W[], double nu[], double gam[],
-    size_t nm[], size_t skip[], size_t lkp[], float lp[],
-    size_t ic,
+double call_INUgrads(mwSize nf[], float mf[], float vf[],
+    mwSize K, double mu[], double b[], double W[], double nu[], double gam[],
+    mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
+    mwSize ic,
     float g1[], float g2[])
 {
-    size_t P = nf[3];
+    mwSize P = nf[3];
     GMMtype *gmm;
     double ll;
-    size_t *index;
+    mwSize *index;
 
     if (P>=MaxChan || K>=128) return NAN;
     if ((gmm = sub_gmm(P, K, mu, b, W, nu, gam))==NULL) return NAN;
-    index = (size_t *)calloc((size_t)1<<P, sizeof(size_t));
+    index = (mwSize *)calloc((size_t)1<<(size_t)P, sizeof(mwSize));
     if (index == NULL)
     {
         (void)free((void *)gmm);

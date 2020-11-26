@@ -1,7 +1,7 @@
 /* 
  * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: spm_gmmlib.c 8022 2020-11-26 19:45:13Z john $
+ * $Id: spm_gmmlib.c 8023 2020-11-26 21:24:00Z john $
  *
  */
 
@@ -9,7 +9,7 @@
 #include <string.h>
 #include "mex.h"
 #include "gmmlib.h"
-#include "spm_openmp.h"
+/* #include "spm_openmp.h" for later??*/
 
 /*
  * r = resp(m,b,W,nu,gam,lkp,mu,f,E,skip)
@@ -26,11 +26,11 @@ static mwSize copy_dims(const mxArray *prhs, mwSize n[])
     return nd;
 }
 
-static void parse_rhs(int nrhs, const mxArray *prhs[], size_t *Kp, double **mp, double **bp, double **Wp, double **nup, double **gamp,
-                      size_t **lkpp, size_t *nm, float **mup, size_t *nf, float **mfp, float **vfp, size_t *skip)
+static void parse_rhs(int nrhs, const mxArray *prhs[], mwSize *Kp, double **mp, double **bp, double **Wp, double **nup, double **gamp,
+                      mwSize **lkpp, mwSize *nm, float **mup, mwSize *nf, float **mfp, float **vfp, mwSize *skip)
 {
-    size_t nl[5], nd, i, k, P, K1;
-    unsigned long long *lkp0;
+    mwSize nl[5], nd, i, k, P, K1;
+    mwSignedIndex *lkp0;
 
     if (nrhs<9) mexErrMsgTxt("Incorrect usage");
 
@@ -69,13 +69,20 @@ static void parse_rhs(int nrhs, const mxArray *prhs[], size_t *Kp, double **mp, 
     if (nl[0]!=1 || nl[1]!=*Kp) mexErrMsgTxt("Incompatible dimensions (gam).");
     *gamp = mxGetPr(prhs[4]);
 
+    for(i=0; i<*Kp; i++)
+    {
+        if ( (*nup)[i]+1.0 <= (double)P) mexErrMsgTxt("Bad nu value.");
+        if (  (*bp)[i]     <= 0.0)       mexErrMsgTxt("Bad b value.");
+        if ((*gamp)[i]     <= 0.0)       mexErrMsgTxt("Bad gam value.");
+    }
+
     /* lkp */
     if (!mxIsNumeric(prhs[5]) || mxIsComplex(prhs[5]) || mxIsSparse(prhs[5]) || !mxIsUint64(prhs[5]))
         mexErrMsgTxt("Lookup data must be numeric, real, full and UInt64.");
     nd  = copy_dims(prhs[5],nl);
     if (nd>2) mexErrMsgTxt("Wrong number of dimensions (lkp).");
     if (nl[0]!=1 || nl[1]!=*Kp) mexErrMsgTxt("Incompatible dimensions (lkp).");
-    lkp0 = (unsigned long long int *)mxGetPr(prhs[5]);
+    lkp0 = (mwSignedIndex *)mxGetPr(prhs[5]);
 
 
     for(i=6; i<=8; i++)
@@ -109,15 +116,15 @@ static void parse_rhs(int nrhs, const mxArray *prhs[], size_t *Kp, double **mp, 
     skip[0] = skip[1] = skip[2] = 1;
     if (nrhs>=10)
     {
-        size_t ds[5], i;
-        unsigned long long *ptr;
+        mwSize ds[5], i;
+        mwSignedIndex *ptr;
         if (!mxIsNumeric(prhs[9]) || mxIsComplex(prhs[9]) ||
               mxIsSparse(prhs[9]) || !mxIsUint64(prhs[9]))
             mexErrMsgTxt("Skip data must be numeric, real, full and UInt64.");
         nd  = copy_dims(prhs[9],ds);
         if (nd>2) mexErrMsgTxt("Wrong number of dimensions (skip).");
         if (ds[0]*ds[1] > 3) mexErrMsgTxt("Wrong number of elements (skip).");
-        ptr = (unsigned long long *)mxGetPr(prhs[9]);
+        ptr = (mwSignedIndex *)mxGetPr(prhs[9]);
         for(i=0; i<ds[0]*ds[1]; i++)
         {
             if(ptr[i] > 0) skip[i] = ptr[i];
@@ -125,7 +132,7 @@ static void parse_rhs(int nrhs, const mxArray *prhs[], size_t *Kp, double **mp, 
     }
 
     /* lkp - allocated memory needs freeing later on */
-    *lkpp = (size_t *)mxCalloc(sizeof(size_t),*Kp);
+    *lkpp = (mwSize *)mxCalloc(sizeof(mwSize),*Kp);
     for(k=0; k<*Kp; k++) (*lkpp)[k] = lkp0[k]-1;
 }
 
@@ -135,7 +142,7 @@ static void resp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
     mwSize K, k, nf[5], nm[5], nr[5], skip[3];
     double *m, *b, *W, *nu, *gam, *ll;
     float *mu, *mf, *vf, *r;
-    size_t *lkp;
+    mwSize *lkp;
 
     if (nrhs<9 || nrhs>10 || nlhs>2) mexErrMsgTxt("Incorrect usage");
 
@@ -160,7 +167,7 @@ static void resp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 
 static void moments_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    size_t K, K1, k, nf[5], nm[5], skip[3], *lkp, dm0, dm1, dm2;
+    mwSize K, K1, k, nf[5], nm[5], skip[3], *lkp, dm0, dm1, dm2;
     double *m, *b, *W, *nu, *gam, *s0, *s1, *s2, *ll;
     float *mu, *mf, *vf, *r;
 
@@ -182,8 +189,8 @@ static void moments_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArr
 static void inugrads_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     mwSize nf[5];
-    size_t K, K1, k, nm[5], dc[5], skip[3], *lkp, dm0, dm1, dm2, nd;
-    long long c;
+    mwSize K, K1, k, nm[5], dc[5], skip[3], *lkp, dm0, dm1, dm2, nd;
+    mwSize c;
     double *m, *b, *W, *nu, *gam, *ll;
     float *mu, *mf, *vf, *g1, *g2;
 
@@ -197,21 +204,21 @@ static void inugrads_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
         mexErrMsgTxt("Index must be numeric, real, full and UInt64.");
     nd  = copy_dims(prhs[10],dc);
     if (nd>2 || dc[0]!=1 || dc[1]!=1) mexErrMsgTxt("Index not a scalar.");
-    c = ((long long *)mxGetPr(prhs[10]))[0] - 1;
-    if (c<0 || c>=(long long)nf[3]) mexErrMsgTxt("Index out of range.");
+    c = ((mwSize *)mxGetPr(prhs[10]))[0] - 1;
+    if (c<0 || c>=(mwSize)nf[3]) mexErrMsgTxt("Index out of range.");
 
     plhs[0] = mxCreateNumericArray(3,nf, mxSINGLE_CLASS, mxREAL); g1 = (float *)mxGetPr(plhs[0]);
     plhs[1] = mxCreateNumericArray(3,nf, mxSINGLE_CLASS, mxREAL); g2 = (float *)mxGetPr(plhs[1]);
     plhs[2] = mxCreateDoubleMatrix(1, 1, mxREAL);
     ll      = (double *)mxGetPr(plhs[2]);
-    ll[0]   = call_INUgrads(nf,mf,vf, K,m,b,W,nu,gam, nm,skip,lkp,mu, (size_t)c, g1,g2);
+    ll[0]   = call_INUgrads(nf,mf,vf, K,m,b,W,nu,gam, nm,skip,lkp,mu, (mwSize)c, g1,g2);
     mxFree(lkp);
 }
 
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    spm_set_num_threads(spm_get_num_threads());
+    /* spm_set_num_threads(spm_get_num_threads()); for later?? */
 
     if ((nrhs>=1) && mxIsChar(prhs[0]))
     {
