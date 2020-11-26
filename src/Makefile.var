@@ -2,7 +2,7 @@
 #
 # Copyright (C) 1991-2020 Wellcome Centre for Human Neuroimaging
 #
-# $Id: Makefile.var 7786 2020-02-14 10:56:11Z guillaume $
+# $Id: Makefile.var 8020 2020-11-26 15:00:31Z guillaume $
 #
 ###############################################################################
 #
@@ -37,6 +37,7 @@ MOVE         = mv -f
 TAR          = tar
 ZIP          = gzip -f
 OMPFLAG      = -fopenmp
+WARNFLAG     = -Wall -Wextra -Wpedantic
 USE_OPENMP  ?= 0
 
 ifndef PLATFORM
@@ -47,7 +48,7 @@ endif
 ifeq (Linux,$(PLATFORM))
   MEXEXT     = mexa64
   MEXBIN    ?= mex
-  #MEXOPTS   += CFLAGS='$$CFLAGS -Wall'
+  #MEXOPTS   += CFLAGS='$$CFLAGS $(WARNFLAG)'
 endif
 
 ##### MacOS #####
@@ -81,7 +82,7 @@ ifeq (octave,$(PLATFORM))
   MEXEXT     = mex
   MEXBIN    ?= mkoctfile
   MEXOPTS    = --mex -DOCTAVE_MEX_FILE
-  #MEXOPTS   += -Wall
+  #MEXOPTS   += $(WARNFLAG)
   override PLATFORM = $(shell $(UNAME))
   ifeq (MINGW64,$(word 1,$(subst _, ,$(PLATFORM))))
     MEXOPTS += -DSPM_WIN32
