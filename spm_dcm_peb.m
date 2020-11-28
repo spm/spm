@@ -91,7 +91,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 7958 2020-09-23 19:53:36Z peter $
+% $Id: spm_dcm_peb.m 8024 2020-11-28 12:09:53Z karl $
  
 
 % get filenames and set up
@@ -225,9 +225,9 @@ PC = PC ./ Ns;
 
 % deal with rank deficient priors
 % -------------------------------------------------------------------------
-U = spm_svd(PC);
-
+U     = spm_svd(PC);
 for i = 1:Ns
+    
     % select parameters in field
     %----------------------------------------------------------------------
     pE{i} = U'*pE{i}(q); 
@@ -265,7 +265,7 @@ end
 
 % design matrices
 %--------------------------------------------------------------------------
-if Ns > 1;
+if Ns > 1
     
     % between-subject design matrices and prior expectations
     %======================================================================
@@ -520,18 +520,32 @@ for n = 1:maxit
         
         dF = F - F0;
         F0 = F;
-        save('tmp.mat','b','g','F0','dFdb','dFdbb','dFdg','dFdgg');
         
+        tmp.b     = b;
+        tmp.g     = g;
+        tmp.F0    = F0;
+        tmp.dFdb  = dFdb;
+        tmp.dFdbb = dFdbb;
+        tmp.dFdg  = dFdg;
+        tmp.dFdgg = dFdgg;
+                
         % decrease regularisation
         %------------------------------------------------------------------
-        t  = min(t + 1/4,2);
+        t     = min(t + 1/4,2);
         
     else
         
         % otherwise, retrieve expansion point and increase regularisation
         %------------------------------------------------------------------
-        t  = max(t - 1,-4);
-        load('tmp.mat');
+        t     = max(t - 1,-4);
+        
+        b     = tmp.b;
+        g     = tmp.g;
+        F0    = tmp.F0;
+        dFdb  = tmp.dFdb;
+        dFdbb = tmp.dFdbb;
+        dFdg  = tmp.dFdg;
+        dFdgg = tmp.dFdgg;
         
     end
     
@@ -656,8 +670,6 @@ PEB.F    = F;
 for i = 1:length(Q)
     PEB.M.Q{i} = U*Q{i}*U';
 end
-
-spm_unlink('tmp.mat');
 
 % check for DEM structures
 %--------------------------------------------------------------------------

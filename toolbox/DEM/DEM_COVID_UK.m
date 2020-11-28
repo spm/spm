@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8017 2020-11-24 21:48:26Z karl $
+% $Id: DEM_COVID_UK.m 8024 2020-11-28 12:09:53Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -32,7 +32,7 @@ Fsi       = spm_figure('GetWin','SI'); clf;
 
 cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
 
-url        = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newCasesBySpecimenDate&format=csv';
+url        = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newCasesByPublishDate&format=csv';
 writetable(webread(url),'cases.csv');
 url        = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newDeaths28DaysByDeathDate&format=csv';
 writetable(webread(url),'deaths.csv');

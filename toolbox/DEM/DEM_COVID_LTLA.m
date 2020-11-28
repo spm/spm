@@ -1,5 +1,7 @@
-function [DCM] = DEM_COVID_LTLA
-% FORMAT [DCM] = DEM_COVID_LTLA
+function [DCM] = DEM_COVID_LTLA(LA)
+% FORMAT [DCM] = DEM_COVID_LTLA(LA)
+%
+% LA - local authority
 %
 % Demonstration of COVID-19 modelling
 %__________________________________________________________________________
@@ -15,8 +17,6 @@ function [DCM] = DEM_COVID_LTLA
 
 % Karl Friston
 % $Id: DEM_COVID_UTLA.m 8005 2020-11-06 19:37:18Z karl $
-
-
 
 % load (ONS) testing death-by-date data
 %==========================================================================
@@ -63,6 +63,13 @@ for i = 1:numel(Area)
         D(k).code   = Area(i);
         D(k).N      = PN(find(ismember(PCode,Area(i)),1));
         
+        % replace early NaNs with zero
+        %------------------------------------------------------------------
+        j = D(k).date(:) < mean(D(k).date) & isnan(D(k).cases);
+        D(k).cases(j)  = 0;
+        j = D(k).date(:) < mean(D(k).date) & isnan(D(k).deaths);
+        D(k).deaths(j) = 0;
+        
         if isempty(D(k).N)
             k = k - 1; disp(Area(i));
         end
@@ -74,14 +81,31 @@ end
 %--------------------------------------------------------------------------
 clear P PN PCD AreaCase AreaCode AreaDate AreaMort AreaName AreaType
 
+if nargin
+    try
+        i = find(ismember([D.name],LA));
+    catch
+        i = find(ismember([D.code],LA));
+    end
+    if isempty(i)
+        disp('local authority not found, please check code or name')
+        return
+    else
+        D = D(i);
+    end
+end
+
 % dates to generate
 %--------------------------------------------------------------------------
 d0     = min(spm_vec(D.date));
 d0     = min(d0,datenum('01-Feb-2020','dd-mmm-yyyy'));
 M.date = datestr(d0,'dd-mmm-yyyy');
 dates  = d0:max(spm_vec(D.date));
-    
-    
+
+% get empirical priors from national data
+%==========================================================================
+PCM    = DEM_COVID_UK;
+
 % fit each regional dataset
 %==========================================================================
 for r = 1:numel(D)
@@ -96,7 +120,7 @@ for r = 1:numel(D)
     Y(1).U    = 2;
     Y(1).date = D(r).date;
     Y(1).Y    = D(r).cases;
-    Y(1).h    = 0;
+    Y(1).h    = 2;
     
     Y(2).type = 'Daily deaths (ONS: 28-days)'; % daily covid-related deaths (28 days)
     Y(2).unit = 'number/day';
@@ -107,7 +131,7 @@ for r = 1:numel(D)
 
     % remove NANs and sort by date
     %----------------------------------------------------------------------
-    [Y,YS] = spm_COVID_Y(Y,M.date);
+    [Y,S] = spm_COVID_Y(Y,M.date);
     
     % data structure with vectorised data and covariance components
     %----------------------------------------------------------------------
@@ -117,15 +141,18 @@ for r = 1:numel(D)
     
     % get and set priors
     %----------------------------------------------------------------------
-    [pE,pC] = spm_SARS_priors;
-   
+    [PE,PC] = spm_SARS_priors;
+    pE     = spm_vec(PCM.Ep);
+    pE     = spm_unvec(pE(1:spm_length(PE)),PE);
+    pC     = spm_vec(PC);
+    pC     = spm_unvec(pC > exp(-3),PC);
+
     pE.N   = log(D(r).N/1e6);      % population of local authority
     pC.N   = 0;
-    pE.n   = -8;                   % initial number of cases (n)
 
     % model specification
     %======================================================================
-    M.Nmax = 16;                   % maximum number of iterations
+    M.Nmax = 32;                   % maximum number of iterations
     M.G    = @spm_SARS_gen;        % generative function
     M.FS   = @(Y)real(sqrt(Y));    % feature selection  (link function)
     M.pE   = pE;                   % prior expectations (parameters)
@@ -139,7 +166,6 @@ for r = 1:numel(D)
     %----------------------------------------------------------------------
     [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,xY);
     
-    
     % save prior and posterior estimates (and log evidence)
     %----------------------------------------------------------------------
     DCM(r).M  = M;
@@ -147,15 +173,17 @@ for r = 1:numel(D)
     DCM(r).Eh = Eh;
     DCM(r).Cp = Cp;
     DCM(r).Y  = Y;
+    DCM(r).xY = xY;
+    DCM(r).S  = S;
     DCM(r).F  = F;
-    
+
     % now-casting for this region and date
     %======================================================================
     H     = spm_figure('GetWin',D(r).name{1}); clf;
     %----------------------------------------------------------------------
     M.T   = numel(dates) + 32;
     [Y,X] = spm_SARS_gen(DCM(r).Ep,M,[1 2]);
-    spm_SARS_plot(Y,X,YS);
+    spm_SARS_plot(Y,X,S);
     
     
     %----------------------------------------------------------------------
@@ -172,36 +200,46 @@ for r = 1:numel(D)
     %----------------------------------------------------------------------
     M.T     = numel(dates);
     Y       = spm_SARS_gen(DCM(r).Ep,M,[4 5 8 9 10]);
-    
     DR(:,r) = Y(:,1);                       % Reproduction ratio
     DI(:,r) = Y(:,2);                       % Prevalence of immunity
     DP(:,r) = Y(:,3);                       % Prevalence of infection
     DC(:,r) = Y(:,4);                       % Infected, asymptomatic people
-    DT(:,r) = Y(:,5)/exp(Ep.N)/10;          % New daily cases per 100K
+    DT(:,r) = Y(:,5)*1000;                  % New daily cases per 100K
     
+    % cumulative incidence of infection (with 90% credible intervals)
+    %----------------------------------------------------------------------
+    subplot(3,2,2)
+    [S,CS]  = spm_SARS_ci(DCM(r).Ep,DCM(r).Cp,[],10,M);
+    CS      = 1.6449*sqrt(diag(CS));
+    TT(:,r) = S;                            % cumulative incidence (%)
+    TU(:,r) = S + CS;                       % upper bound
+    TL(:,r) = S - CS;                       % lower bound
     
     % supplement with table of posterior expectations
     %----------------------------------------------------------------------
     subplot(3,2,2), cla reset, axis([0 1 0 1])
     title(D(r).name,'Fontsize',16)
     
-    str = sprintf('Population: %.2f million',exp(Ep.N));
+    str = sprintf('Population: %.2f million', exp(Ep.N));
     text(0,0.9,str,'FontSize',10,'FontWeight','bold','Color','k')
     
-    str = sprintf('Reproduction ratio: %.2f',DR(end,r));
+    str = sprintf('Reproduction ratio: %.2f',          DR(end,r));
     text(0,0.8,str,'FontSize',10,'FontWeight','bold','Color','k')
     
-    str = sprintf('Infected, asymptomatic people: %.0f',DC(end,r));
+    str = sprintf('Infected asymptomatic people: %.0f',DC(end,r));
     text(0,0.7,str,'FontSize',10,'FontWeight','bold','Color','k')
     
-    str = sprintf('Daily new cases: %.0f per 100,000',DT(end,r));
+    str = sprintf('Daily new cases: %.0f per 100,000', DT(end,r));
     text(0,0.6,str,'FontSize',10,'FontWeight','bold','Color','r')
     
-    str = sprintf('Prevalence of infection: %.2f%s',DP(end,r),'%');
+    str = sprintf('Prevalence of infection: %.2f%s',   DP(end,r),'%');
     text(0,0.5,str,'FontSize',10,'FontWeight','bold','Color','r')
     
-    str = sprintf('Prevalence of immunity: %.1f%s',DI(end,r),'%');
+    str = sprintf('Prevalence of immunity: %.1f%s',    DI(end,r),'%');
     text(0,0.4,str,'FontSize',10,'FontWeight','bold','Color','k')
+    
+    str = sprintf('Proportion infected: %.1f (%.1f-%.1f)%s',TT(end,r),TL(end,r),TU(end,r),'%');
+    text(0,0.3,str,'FontSize',10,'FontWeight','bold','Color','k')
     
     str = {'The prevalences refer to the estimated population ' ...
            '(based on ONS census figures for lower tier local authorities)'};
@@ -209,9 +247,10 @@ for r = 1:numel(D)
     
     spm_axis tight, axis off
     drawnow
-    savefig(H,[strrep(strrep(strrep(D(r).name{1},' ','_'),',',''),'''',''),'.fig']);
-    close(H);
-    
+    if numel(D) > 16
+        savefig(H,[strrep(strrep(strrep(D(r).name{1},' ','_'),',',''),'''',''),'.fig']);
+        close(H);
+    end
 end
 
 % save

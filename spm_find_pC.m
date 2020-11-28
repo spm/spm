@@ -20,7 +20,7 @@ function [i,pC,pE,Np] = spm_find_pC(varargin)
 % Copyright (C) 2015-2019 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_find_pC.m 7851 2020-05-19 10:48:59Z peter $
+% $Id: spm_find_pC.m 8024 2020-11-28 12:09:53Z karl $
 
 %-parse input arguments
 %--------------------------------------------------------------------------
@@ -55,7 +55,7 @@ else
     q = diag(pC);
 end
 
-%-Get indices
+%-Get indices of parameters with non-trivial prior covariance
 %--------------------------------------------------------------------------
 i  = find(q > mean(q(q < 1024))/1024);
 Np = numel(q);

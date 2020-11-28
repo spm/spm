@@ -20,7 +20,7 @@ function T = spm_COVID_T(x,P)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8015 2020-11-24 10:47:41Z karl $
+% $Id: spm_COVID_T.m 8024 2020-11-28 12:09:53Z karl $
 
 % setup
 %==========================================================================
@@ -57,29 +57,34 @@ Prev = q(2) + q(3) + P.qua*q(4);     % prevalence of infection
 % lockdown (threshold) strategy
 %--------------------------------------------------------------------------
 Psde = spm_sigma(Prev,P.sde,P.s);    % 1 - P(lockdown)
-Pout = 1 - Psde*P.out;               % P(staying at home)
+Pout = Psde*P.out;                   % P(work | asymptomatic)
 
 % viral spread
 %--------------------------------------------------------------------------
-Pexp = 1 - Psde*P.exp;               % P(staying unexposed)
-Pdis = P.m*(1 - Pexp);               % P(leaving effective population)
+Pexp = Psde*P.exp;                   % P(exposed | asymptomatic)
+Pdis = P.m*Pexp;                     % P(leaving effective population)
 
 % bed availability
 %--------------------------------------------------------------------------
 Phos = P.hos;                        % P(hospital | ARDS)
-Pcap = P.ccu*exp(-P.t/P.tcu);        % P(transfer to CCU)
+Pnhs = 0.03;                         % P(hospital | NHS/care worker)
+Pcap = P.ccu*exp(-P.t/P.tcu);        % P(transfer to CCU | ARDS)
 Piso = exp(-1/7);                    % period of self-isolation
+
+Ph2h = (1 - Pout)*(1 - Pdis)*(1 - Pnhs);
+Ph2w = Pout*(1 - Pdis)*(1 - Pnhs);
+Ph2r = Pdis*(1 - Pnhs);
 
 % marginal: location {1} | asymptomatic {3}(1)
 %--------------------------------------------------------------------------
 %      home       work       ccu      removed     isolated   hospital
 %--------------------------------------------------------------------------
-b{1} = [Pout*(1 - Pdis) 1     0         (1 - Pexp)  (1 - Piso) 0;
-  (1 - Pout)*(1 - Pdis) 0     0          0           0         0;
-        0               0     0          0           0         0;
-        Pdis            0     0          Pexp        0         0;
-        0               0     1          0           Piso      1;
-        0               0     0          0           0         0];
+b{1} = [Ph2h       1          0          Pexp       (1 - Piso) 1;
+        Ph2w       0          0          0           0         0;
+        0          0          0          0           0         0;
+        Ph2r       0          0          (1 - Pexp)  0         0;
+        0          0          1          0           Piso      0;
+        Pnhs       0          0          0           0         0];
 
 % marginal: location {1}  | symptoms {3}(2)
 %--------------------------------------------------------------------------
@@ -134,14 +139,15 @@ ij   = Bij({1,1:5,1,3},{5,1:5,1,3},dim);  B{1}(ij) = 1;
 ij   = Bij({1,1:5,1,3},{1,1:5,1,3},dim);  B{1}(ij) = 0;
 ij   = Bij({1,1:5,1,3},{2,1:5,1,3},dim);  B{1}(ij) = 0;
 ij   = Bij({1,1:5,1,3},{4,1:5,1,3},dim);  B{1}(ij) = 0;
-
+ij   = Bij({1,1:5,1,3},{6,1:5,1,3},dim);  B{1}(ij) = 0;
 
 % isolate if infected/ious : third order dependencies : efficacy of FTTI
 %--------------------------------------------------------------------------
 ij   = Bij({1,2:3,1,1},{5,2:3,1,1},dim);  B{1}(ij) = P.ttt;
-ij   = Bij({1,2:3,1,1},{1,2:3,1,1},dim);  B{1}(ij) = Pout*(1 - P.ttt);
-ij   = Bij({1,2:3,1,1},{2,2:3,1,1},dim);  B{1}(ij) = (1 - Pout)*(1 - P.ttt);
+ij   = Bij({1,2:3,1,1},{1,2:3,1,1},dim);  B{1}(ij) = (1 - Pout)*(1 - P.ttt);
+ij   = Bij({1,2:3,1,1},{2,2:3,1,1},dim);  B{1}(ij) = Pout*(1 - P.ttt);
 ij   = Bij({1,2:3,1,1},{4,2:3,1,1},dim);  B{1}(ij) = 0;
+ij   = Bij({1,2:3,1,1},{6,2:3,1,1},dim);  B{1}(ij) = 0;
 
 % probabilistic transitions: infection
 %==========================================================================
@@ -150,14 +156,16 @@ ij   = Bij({1,2:3,1,1},{4,2:3,1,1},dim);  B{1}(ij) = 0;
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
 q    = spm_sum(x,[3 4]);
-pin  = q(1,:)/sum(q(1,:));           % infection probability at home
-pou  = q(2,:)/sum(q(2,:));           % infection probability at work
+pin  = q(1,:)/sum(q(1,:) + eps);     % infection probability at home
+pou  = q(2,:)/sum(q(2,:) + eps);     % infection probability at work
+phs  = q(6,:)/sum(q(6,:) + eps);     % infection probability at hospital
 
 Ptrn = erf(P.trn*Q + P.trm*(1 - Q)); % transmission strength
 Ptin = (1 - Ptrn*pin(3))^P.Nin;      % P(no transmission) | home
 Ptou = (1 - Ptrn*pou(3))^P.Nou;      % P(no transmission) | work
+Pths = (1 - Ptrn*phs(3))^P.Nou;      % P(no transmission) | hospital
 Kimm = exp(-1/P.Tim);                % loss of Ab+ immunity (per day)
-Kinn = exp(-1/Inf);                  % loss of Ab- immunity (per day)
+Kinn = exp(-1/2048);                 % loss of Ab- immunity (per day)
 Kinf = exp(-1/P.Tin);                % infection rate
 Kcon = exp(-1/P.Tcn);                % infectious rate
 Pres = P.res;                        % infectious proportion
@@ -199,7 +207,11 @@ b{5} = b{3};
 
 % marginal: infection {2} | hospital {1}(6)
 %--------------------------------------------------------------------------
-b{6} = b{1};
+b{6} = [Pths       0                     0          0         (1 - Kinn);
+        (1 - Pths) Kinf                  0          0          0;
+        0          (1 - Pres)*(1 - Kinf) Kcon       0          0;
+        0          0                     (1 - Kcon) Kimm       0;
+        0          Pres*(1 - Kinf)       0          (1 - Kimm) Kinn];
 
 % kroneckor form
 %--------------------------------------------------------------------------

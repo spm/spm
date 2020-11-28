@@ -15,7 +15,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Y(:,7)  - contagion risk (%)
 % Y(:,8)  - prevalence (%)
 % Y(:,9)  - new contacts per day
-% Y(:,10) - daily incidence
+% Y(:,10) - daily incidence (%)
 % Y(:,11) - number infected  
 % Y(:,12) - number symptomatic
 % Y(:,13) - mobility (%)
@@ -56,7 +56,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8015 2020-11-24 10:47:41Z karl $
+% $Id: spm_SARS_gen.m 8024 2020-11-28 12:09:53Z karl $
 
 
 % The generative model:
@@ -219,16 +219,20 @@ for i = 1:M.T
         end
     end
     
-    % update ensemble density, with probability dependent transitions
+    % update ensemble density (x)
     %----------------------------------------------------------------------
     P.t   = log(i);
     T     = spm_COVID_T(x,P);
     x     = spm_unvec(T*spm_vec(x),x);
     x     = x/sum(x(:));
     
-    
-    % probabilistic mappings: outcomes based on marginal densities (p)
-    %======================================================================
+    % incidence (per day) (r)
+    %----------------------------------------------------------------------
+    R     = T - diag(diag(T));
+    r     = spm_unvec(R*spm_vec(x),x);
+        
+    % marginal densities (p)
+    %----------------------------------------------------------------------
     p     = spm_marginal(x);
     for j = 1:Nf
         X{j}(i,:) = p{j};
@@ -236,7 +240,6 @@ for i = 1:M.T
     
     % outcomes
     %======================================================================
-    R  = T - diag(diag(T));
     
     % number of daily deaths
     %----------------------------------------------------------------------
@@ -278,11 +281,10 @@ for i = 1:M.T
     %----------------------------------------------------------------------
     Y(i,9) = N * x(1,2,1,1);
     
-    % incidence
+    % incidence of new cases
     %----------------------------------------------------------------------
-    q       = spm_unvec(R*spm_vec(x),x);
-    q       = spm_marginal(q);
-    Y(i,10) = N*q{2}(3);
+    q       = spm_marginal(r);
+    Y(i,10) = 100 * q{2}(3);
     
     % number of infected people
     %----------------------------------------------------------------------
@@ -290,7 +292,7 @@ for i = 1:M.T
     
     % number of symptomatic people
     %----------------------------------------------------------------------
-    Y(i,12) =  N * p{3}(2);
+    Y(i,12) = N * p{3}(2);
 
     % mobility (% normal)
     %----------------------------------------------------------------------
@@ -318,18 +320,17 @@ for i = 1:M.T
         Y(i,15) = N * q;
     end
 
-    % number of hospital admissions
+    % hospital admissions (symptomatic/ARDS people in hospital/CCU)
     %----------------------------------------------------------------------
-    q  = spm_unvec(R*spm_vec(x),x);
-    q  = spm_marginal(q);
-    q  = q{1}(3) + q{1}(6);
+    q  = squeeze(spm_sum(r,[2,4]));
+    q  = sum(sum(q([3,6],[2,3])));
     if isfield(P,'ho')
         Y(i,16) = N * Q.ho(1) * q^Q.ho(2);
     else
         Y(i,16) = N * q;
     end
-  
 
+    
     % joint density if requested
     %----------------------------------------------------------------------
     if nargout > 2
@@ -340,11 +341,11 @@ end
 
 % effective reproduction ratio: exp(K*Q.Tcn): K = dln(N)/dt
 %--------------------------------------------------------------------------
-Y(:,4) = exp((Q.Tcn)*gradient(log(Y(:,4))));
+Y(:,4)  = exp((Q.Tcn)*gradient(log(Y(:,4))));
 
 % retain specified output variables
 %--------------------------------------------------------------------------
-Y      = Y(:,U);
+Y       = Y(:,U);
 
 % vectorise if data are asynchronous
 %--------------------------------------------------------------------------
