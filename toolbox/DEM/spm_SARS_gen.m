@@ -22,6 +22,8 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Y(:,14) - work (%)
 % Y(:,15) - certified deaths/day
 % Y(:,16) - hospitalisation
+% Y(:,17) - hospital deaths
+% Y(:,18) - carehome deaths
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','CCU','morgue','isolation'};
@@ -56,7 +58,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8024 2020-11-28 12:09:53Z karl $
+% $Id: spm_SARS_gen.m 8025 2020-11-29 20:19:59Z karl $
 
 
 % The generative model:
@@ -240,22 +242,27 @@ for i = 1:M.T
     
     % outcomes
     %======================================================================
+    S   = (1 + cos(2*pi*i/365))/2; % seasonal fluctuations
     
     % number of daily deaths
     %----------------------------------------------------------------------
-    if isfield(P,'dc')
-        Y(i,1) = N * Q.dc(1) * p{3}(4);
+    if isfield(Q,'dc')
+        Y(i,1) = N * (S*Q.dc(1) + (1 - S)*Q.dc(2)) * p{3}(4);
     else
-        Y(i,1) = N*p{3}(4);
+        Y(i,1) = N * p{3}(4);
     end
 
     % number of daily (positive) tests
     %----------------------------------------------------------------------
     Y(i,2) = N * p{4}(3);
 
-    % CCU bed occupancy
+    % CCU bed occupancy (mechanical ventilation)
     %----------------------------------------------------------------------
-    Y(i,3) = N * p{1}(3);
+    if isfield(Q,'mv')
+        Y(i,3) = N * (S*Q.mv(1) + (1 - S)*Q.mv(2)) * p{1}(3);
+    else
+        Y(i,3) = N * p{1}(3);
+    end
 
     % effective reproduction ratio (R) (based on infection prevalence)
     %----------------------------------------------------------------------
@@ -305,7 +312,7 @@ for i = 1:M.T
 
     % work (% normal)
     %----------------------------------------------------------------------
-    if isfield(P,'wo')
+    if isfield(Q,'wo')
         Y(i,14) = 100 * Q.wo(1) * q^Q.wo(2);
     else
         Y(i,14) = 100 * q;
@@ -313,24 +320,35 @@ for i = 1:M.T
 
     % certified deaths per day
     %----------------------------------------------------------------------
-    q  = p{3}(4);
-    if isfield(P,'cd')
-        Y(i,15) = N * Q.cd(1) * q;
-    else
-        Y(i,15) = N * q;
-    end
+    Y(i,15) = N * p{3}(4);
 
     % hospital admissions (symptomatic/ARDS people in hospital/CCU)
     %----------------------------------------------------------------------
     q  = squeeze(spm_sum(r,[2,4]));
     q  = sum(sum(q([3,6],[2,3])));
     if isfield(P,'ho')
-        Y(i,16) = N * Q.ho(1) * q^Q.ho(2);
+        Y(i,16) = N * (S*Q.ho(1) + (1 - S)*Q.ho(2)) * q;
     else
         Y(i,16) = N * q;
     end
 
+    % excess deaths in hospital/CCU
+    %----------------------------------------------------------------------
+    q       = squeeze(spm_sum(x,[2,4]));
+    Y(i,17) = N * sum(q([3,6],4));
     
+    % excess deaths not in hospital
+    %----------------------------------------------------------------------
+    Y(i,18) = N * sum(q([1,2,4,5],4));
+    
+    % excess deaths > 60 and < 60 (as a function of place of death)
+    %----------------------------------------------------------------------
+    if isfield(Q,'ag')
+        Y(i,19) = N * Q.ag(1,:) * q([3,5,6],4);
+        Y(i,20) = N * Q.ag(2,:) * q([3,5,6],4);
+    end
+    
+
     % joint density if requested
     %----------------------------------------------------------------------
     if nargout > 2

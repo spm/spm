@@ -20,7 +20,7 @@ function T = spm_COVID_T(x,P)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8024 2020-11-28 12:09:53Z karl $
+% $Id: spm_COVID_T.m 8025 2020-11-29 20:19:59Z karl $
 
 % setup
 %==========================================================================
@@ -68,7 +68,7 @@ Pdis = P.m*Pexp;                     % P(leaving effective population)
 %--------------------------------------------------------------------------
 Phos = P.hos;                        % P(hospital | ARDS)
 Pnhs = 0.03;                         % P(hospital | NHS/care worker)
-Pcap = P.ccu*exp(-P.t/P.tcu);        % P(transfer to CCU | ARDS)
+Pcap = P.ccu;                        % P(transfer to CCU | ARDS)
 Piso = exp(-1/7);                    % period of self-isolation
 
 Ph2h = (1 - Pout)*(1 - Pdis)*(1 - Pnhs);
@@ -79,40 +79,35 @@ Ph2r = Pdis*(1 - Pnhs);
 %--------------------------------------------------------------------------
 %      home       work       ccu      removed     isolated   hospital
 %--------------------------------------------------------------------------
-b{1} = [Ph2h       1          0          Pexp       (1 - Piso) 1;
-        Ph2w       0          0          0           0         0;
-        0          0          0          0           0         0;
-        Ph2r       0          0          (1 - Pexp)  0         0;
-        0          0          1          0           Piso      0;
-        Pnhs       0          0          0           0         0];
+b{1} = [Ph2h       1          0          Pexp      (1 - Piso) 1;
+        Ph2w       0          0          0          0         0;
+        0          0          0          0          0         0;
+        Ph2r       0          0          (1 - Pexp) 0         0;
+        0          0          1          0          Piso      0;
+        Pnhs       0          0          0          0         0];
 
 % marginal: location {1}  | symptoms {3}(2)
 %--------------------------------------------------------------------------
-b{2} = [0          0          0          0           0         0;
-        0          0          0          0           0         0;
-        0          0          0          0           0         0;
-        0          0          0          0           0         0;
-        1          1          1          1           1         1;
-        0          0          0          0           0         0];
+b{2} = [0          0          0          0          0         0;
+        0          0          0          0          0         0;
+        0          0          0          0          0         0;
+        0          0          0          0          0         0;
+        1          1          1          1          1         1;
+        0          0          0          0          0         0];
     
 % marginal: location {1}  | ARDS {3}(3)
 %--------------------------------------------------------------------------
-b{3} = [0          0          0          0           0         0;
-        0          0          0          0           0         0;
-        (1 - Phos) (1 - Phos) 1         (1 - Phos)  (1 - Phos) Pcap;
-        0          0          0          0           0         0;
-        0          0          0          0           0         0;
-        Phos       Phos       0          Phos        Phos      (1 - Pcap)];
+b{3} = [0          0          0          0          0         0;
+        0          0          0          0          0         0;
+        0          0          1          0          0         Pcap;
+        0          0          0          0          0         0;
+        (1 - Phos) (1 - Phos) 0         (1 - Phos) (1 - Phos) 0;
+        Phos       Phos       0          Phos       Phos      (1 - Pcap)];
 
 
 % marginal: location {1}  | deceased {3}(4)
 %--------------------------------------------------------------------------
-b{4} = [0          0          0          0           0         0;
-        0          0          0          0           0         0;
-        0          0          0          0           0         0;
-        1          1          1          1           1         1;
-        0          0          0          0           0         0;
-        0          0          0          0           0         0];
+b{4} = eye(6,6);
 
 % kroneckor form (taking care to get the order of factors right)
 %--------------------------------------------------------------------------
@@ -275,6 +270,8 @@ B{3} = spm_kron({b,I{4}});
 %--------------------------------------------------------------------------
 ij   = Bij({3,1:5,3,1:4},{3,1:5,4,1:4},dim); B{3}(ij) = (1 - Ktrd)*Pfat;
 ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
+ij   = Bij({6,1:5,3,1:4},{6,1:5,4,1:4},dim); B{3}(ij) = (1 - Ktrd)*Pfat;
+ij   = Bij({6,1:5,3,1:4},{6,1:5,1,1:4},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
 
 
 % probabilistic transitions: testing

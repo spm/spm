@@ -18,6 +18,11 @@ function [DCM] = DEM_COVID_LTLA(LA)
 % Karl Friston
 % $Id: DEM_COVID_UTLA.m 8005 2020-11-06 19:37:18Z karl $
 
+% download from web options
+%--------------------------------------------------------------------------
+options = weboptions('ContentType','table'); 
+options.Timeout = 20;
+
 % load (ONS) testing death-by-date data
 %==========================================================================
 url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&metric=newCasesBySpecimenDate&metric=newDeaths28DaysByDeathDate&format=csv';
@@ -81,6 +86,8 @@ end
 %--------------------------------------------------------------------------
 clear P PN PCD AreaCase AreaCode AreaDate AreaMort AreaName AreaType
 
+% check requested if necessary
+%--------------------------------------------------------------------------
 if nargin
     try
         i = find(ismember([D.name],LA));
@@ -95,16 +102,45 @@ if nargin
     end
 end
 
+% get empirical priors from national data
+%==========================================================================
+if false
+    DCM = DEM_COVID_UK;
+    save('DCM_UK.mat','DCM')
+    PCM = DCM;
+else
+    PCM = load('DCM_UK.mat','DCM');
+    PCM = PCM.DCM;
+end
+
+
 % dates to generate
 %--------------------------------------------------------------------------
 d0     = min(spm_vec(D.date));
-d0     = min(d0,datenum('01-Feb-2020','dd-mmm-yyyy'));
+d0     = min(d0,datenum(PCM.M.date,'dd-mmm-yyyy'));
 M.date = datestr(d0,'dd-mmm-yyyy');
 dates  = d0:max(spm_vec(D.date));
 
-% get empirical priors from national data
+% free parameters of local model (fixed effects)
 %==========================================================================
-PCM    = DEM_COVID_UK;
+[pE,pC] = spm_SARS_priors;
+pC      = spm_zeros(pC);
+name    = fieldnames(pE); 
+free    = {'n','r','o','m','sde','qua','exp','s','Nin','Nou','trn','trm','lim','ons'};
+
+% (empirical) prior expectation
+%--------------------------------------------------------------------------
+for i = 1:numel(name)
+    pE.(name{i}) = PCM.Ep.(name{i});
+end
+
+% (empirical) prior covariances
+%--------------------------------------------------------------------------
+for i = 1:numel(free)
+    pC.(free{i}) = PCM.M.pC.(free{i});
+end
+
+try, D   = D(1:16); end %%%%
 
 % fit each regional dataset
 %==========================================================================
@@ -141,14 +177,7 @@ for r = 1:numel(D)
     
     % get and set priors
     %----------------------------------------------------------------------
-    [PE,PC] = spm_SARS_priors;
-    pE     = spm_vec(PCM.Ep);
-    pE     = spm_unvec(pE(1:spm_length(PE)),PE);
-    pC     = spm_vec(PC);
-    pC     = spm_unvec(pC > exp(-3),PC);
-
     pE.N   = log(D(r).N/1e6);      % population of local authority
-    pC.N   = 0;
 
     % model specification
     %======================================================================
