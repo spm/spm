@@ -76,6 +76,15 @@ locs.num = [Inf 3];
 locs.help = {'Input source locations as n x 3 matrix'};
 locs.val = {zeros(0, 3)};
 
+
+coordlocs  = cfg_menu;
+coordlocs.tag = 'coordlocs';
+coordlocs.name = 'Coords (and outputs) specified in MNI or Native space ?';
+coordlocs.labels = {'MNI',  'Native'};
+coordlocs.values = {1,0};
+coordlocs.help = {'Specify coordinate frame of locations/orientations in MNI space or Native MRI space'};
+coordlocs.val = {1};
+
 locvar  = cfg_entry;
 locvar.tag = 'locvar';
 locvar.name = 'Prior Source location variance';
@@ -138,7 +147,7 @@ modality.val = {{'MEG'}};
 dipfit = cfg_exbranch;
 dipfit.tag = 'dipfit';
 dipfit.name = 'Bayesian Dipole fit';
-dipfit.val = {D, val, whatconditions,whichgenerator, woi, locs, locvar,moms,momvar,ampsnr, niter,modality};
+dipfit.val = {D, val, whatconditions,whichgenerator, woi, locs, coordlocs, locvar,moms,momvar,ampsnr, niter,modality};
 dipfit.help = {'Run imaging source reconstruction'};
 dipfit.prog = @run_dipfit;
 dipfit.vout = @vout_dipfit;
@@ -180,7 +189,7 @@ usesamples=intersect(find(D.time>=job.woi(1)./1000),find(D.time<=job.woi(2)./100
 if isfield(job.whatconditions,'all') %% all conditions
     condind=setdiff(1:D.ntrials,D.badtrials);
 else
-condind=strmatch(job.whatconditions.condlabel,D.conditions)
+    condind=strmatch(job.whatconditions.condlabel,D.conditions)
 end;
 
 
@@ -199,50 +208,38 @@ modstr='MEG';
 if ~strcmp(job.modality,'MEG')
     error('Only tested for MEG so far. Try gui for EEG version');
 end;
-        
-
-for f=1:length(megind), %% long-winded way of doing this
-    channame=D.chanlabels(megind(f));
-    sensind=strmatch(channame,D.sensors(modstr).label);
-    pos(f,:)=D.sensors(modstr).coilpos(sensind,1:2);
-end;
 
 
+pos=coor2D(D, indchantype(D, modstr, 'GOOD'))
 
-s0_mni=job.locs;
-w0_mni=job.moms;
-diags_s0_mni=job.locvar;
-diags_w0_mni=job.momvar;
+%% get transform from MNI space
+val=D.val;
+M1 = D.inv{val}.datareg.fromMNI;
+[U, L, V] = svd(M1(1:3, 1:3));
+orM1(1:3,1:3) =U*V'; %% this is pure rotation (from MNI to native)
 
+
+mniflag=job.coordlocs; %% work in mni coords or not
 
 ndips=size(job.locs,1); %% single dipole
-if size(w0_mni,1)~=ndips || size(diags_s0_mni,1)~=ndips || size(diags_w0_mni,1)~=ndips,
+if size(job.moms,1)~=ndips || size(job.momvar,1)~=ndips || size(job.locvar,1)~=ndips,
     error('Inputs for prior mean and uncertainty should all have same number of rows (= number dipoles)');
 end;
 %% Set up the forward model
-val=D.val;                                                             %Use the most recent forward model saved in D
+%Use the most recent forward model saved in D
 P=[];
 P.y=mean(fitdata,2);                                                    %Z=avdata at each sensor at 'fitind' (timepoint identified in VB_ECD_FindPeak)
 P.forward.sens = D.inv{val}.datareg.sensors;
 P.forward.vol  = D.inv{val}.forward.vol;
-
-
-
 P.modality = D.modality;
 P.Ic = megind;
 P.channels = D.chanlabels(P.Ic);
 
 spm_eeg_plotScalpData(P.y,pos,labels);
-%% Transform to mni space
-M1 = D.inv{val}.datareg.fromMNI; %% Error in previous versions fixed here. 03/12.2019
-[U, L, V] = svd(M1(1:3, 1:3));
-orM1(1:3,1:3) =U*V';                                                   %For switching orientation between meg and mni space
 
+%For switching orientation between native and mni space
+%mnivol = ft_transform_vol(M1, P.forward.vol);                          %Used for inside head calculation
 
-mnivol = ft_transform_vol(M1, P.forward.vol);                          %Used for inside head calculation
-
-
-%% Put priors in ctf space
 alldiag_Wcov=[];
 alldiag_Scov=[];
 
@@ -252,13 +249,19 @@ hold on;
 for d=1:ndips,
     
     ind=(d-1)*3+1:d*3;
-    Priors.mu_w0(ind)= orM1*w0_mni(ind)';
+    if mniflag,
+        Priors.mu_w0(ind)= orM1*job.moms(d,:)';  %% transforming out of MNI spacee
+        Priors.mu_s0(ind)=D.inv{val}.datareg.fromMNI*[job.locs(d,:) 1]';
+        alldiag_Wcov(ind)=orM1*job.momvar(d,:); %% rotate variances from MNI to native space
+        alldiag_Scov(ind)=orM1*job.locvar(d,:);
+    else
+        Priors.mu_w0(ind)= job.moms(d,:);
+        Priors.mu_s0(ind)=job.locs(d,:);
+        alldiag_Wcov(ind)=job.momvar(d,:);
+        alldiag_Scov(ind)=job.locvar(d,:);
+    end;
     
-    ctfpos=D.inv{val}.datareg.fromMNI*[s0_mni(ind) 1]';
-    plot3(ctfpos(1)./1000,ctfpos(2)./1000,ctfpos(3)./1000,'r*');
-    Priors.mu_s0(ind)=ctfpos(1:3); % ./1000;
-    alldiag_Wcov(ind)=ones(3,1)*diags_w0_mni(d);
-    alldiag_Scov(ind)=ones(3,1)*diags_s0_mni(d);
+    
 end;
 
 
@@ -314,13 +317,24 @@ else
     P.channels = D.chanlabels(P.Ic);
 end
 P.forward.chanunits = D.units(P.Ic);
-if job.whichgenerator==0, %% if magnetic dipole override forward model    
+if job.whichgenerator==0, %% if magnetic dipole override forward model
     P.forward.vol.type='infinite_magneticdipole';
     disp('using magnetic dipole !');
 end;
 [P.forward.vol, P.forward.sens] =  ft_prepare_vol_sens( ...
     P.forward.vol, P.forward.sens, 'channel', P.channels);
 plot3(P.forward.sens.chanpos(:,1),P.forward.sens.chanpos(:,2),P.forward.sens.chanpos(:,3),'bo');
+hold on;
+% phantom holder was in slot 65 of the helmet, some details
+slot65.pos = [-82.39 -61.99 -5.52]./1000;
+slot65.rad = [-0.0236 0.0042 -0.9997];
+slot65.tan = [-0.8436 -0.5366 0.0200];
+plot3(slot65.pos(1),slot65.pos(2),slot65.pos(3),'rx');
+phpos = slot65.pos - 0.080*slot65.tan - 0/.05*slot65.rad;
+plot3([slot65.pos(1) phpos(1)],[slot65.pos(2) phpos(2)],[slot65.pos(3) phpos(3)],'r:');
+or_real = -slot65.rad;
+sc=0.01
+quiver3(phpos(1),phpos(2),phpos(3),slot65.rad(1).*sc,slot65.rad(2).*sc,slot65.rad(3).*sc);
 
 for j=1:job.niter;
     Pout(j)        = spm_eeg_inv_vbecd(P);
@@ -331,7 +345,7 @@ for j=1:job.niter;
     dip_amp(j,:)   = sqrt(dot(dip_mom,dip_mom));
     megloc         = reshape(Pout(j).post_mu_s,3,length(Pout(j).post_mu_s)/3); %Loc of dip (3 x n_dip)
     mniloc{j}      = D.inv{val}.datareg.toMNI*[megloc;ones(1,size(megloc,2))]; %Actual MNI location (with scaling)
-    megmom{j}      = reshape(Pout(j).post_mu_w,3,length(Pout(j).post_mu_w)/3); %Moments of dip (3 x n_dip)
+    megmom{j}      =pinv(orM1)* reshape(Pout(j).post_mu_w,3,length(Pout(j).post_mu_w)/3); %Moments of dip (3 x n_dip)
 end                                                                %For j in serial loop
 
 %%%% Save VB-ECD results into Output structure and overwrite datafile
@@ -368,7 +382,7 @@ in.noButtons = 1;
 in.ParentAxes = axesY;
 
 
-spm_eeg_plotScalpData(P.y,pos,P.channels,in)
+spm_eeg_plotScalpData(P.y,pos,P.channels,in);
 title(axesY,'measured data')
 
 axesY = axes(...
@@ -376,7 +390,7 @@ axesY = axes(...
     'hittest','off');
 
 in.ParentAxes=axesY;
-spm_eeg_plotScalpData(inverse.Pout.ypost,pos,labels,in)
+spm_eeg_plotScalpData(inverse.Pout.ypost,pos,labels,in);
 title(axesY,'Modelled data');
 
 subplot(3,3,7); hold on;
