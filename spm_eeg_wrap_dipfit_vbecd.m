@@ -12,7 +12,7 @@ function [y,outside,leads]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 %% leads are the lead fields of the dipoles fit
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 %
-% $Id: spm_eeg_wrap_dipfit_vbecd.m 7953 2020-09-21 11:33:07Z gareth $
+% $Id: spm_eeg_wrap_dipfit_vbecd.m 8027 2020-11-30 12:46:33Z gareth $
 
 x=U.u; %% input , unused
 
@@ -38,10 +38,10 @@ end; % if
 allpos=reshape(P(1:Ndips*Pospars),Pospars,Ndips)';
 allmom=reshape(P(Ndips*Pospars+1:Ndips*Ndippars),Mompars,Ndips)';
 
-if ft_senstype(sens, 'meg')
+if ft_senstype(sens, 'meg') && ~strfind(M.Setup.forward.vol.type,'magnetic'),
     RANK=2; %% restricting rank of MEG data, could change this in future
 else
-    RANK = 3;
+    RANK = 3; %% for eeg, or anything with magnetic dipole
 end
 
 y=0;
