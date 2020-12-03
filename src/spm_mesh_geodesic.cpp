@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mesh_geodesic.cpp 7889 2020-07-06 11:21:54Z guillaume $
+ * $Id: spm_mesh_geodesic.cpp 8028 2020-12-03 21:50:11Z guillaume $
  * Guillaume Flandin
  */
 
@@ -3188,7 +3188,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     void *f = NULL, *v = NULL, *s = NULL;
     mwSize nv, nf, ns;
     double dmax = geodesic::GEODESIC_INF;
-    int i;
+    int i, idx;
     bool isVdouble = true, isFdouble = true, isSdouble = true;
     std::vector<geodesic::SurfacePoint> stop;
     
@@ -3242,9 +3242,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /* Stopping points */
     if (nrhs > 3)
     {
+        if (!mxIsDouble(prhs[3]))
+            mexErrMsgTxt("Stop vertices indices must be stored as double.");
         stop.resize(mxGetNumberOfElements(prhs[3]));
         for (i=0;i<(int)stop.size();i++)
-            stop[i] = (geodesic::SurfacePoint(&mesh.vertices()[mxGetPr(prhs[3])[i]-1]));
+        {
+            idx = mxGetPr(prhs[3])[i];
+            if (idx < 1 || idx > (int)nv)
+                mexErrMsgTxt("Stop vertices indices not valid.");
+            stop[i] = (geodesic::SurfacePoint(&mesh.vertices()[idx-1]));
+        }
     }
     
     /* Algorithm initialisation */
@@ -3252,12 +3259,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     /* Source definition */
     std::vector<geodesic::SurfacePoint> source(ns);
-    for (i=0;i<ns;i++)
+    for (i=0;i<(int)ns;i++)
     {
         if (isSdouble)
-            source[i] = (geodesic::SurfacePoint(&mesh.vertices()[((double*)s)[i]-1]));
+            idx = ((double*)s)[i];
         else
-            source[i] = (geodesic::SurfacePoint(&mesh.vertices()[((int*)s)[i]-1]));
+            idx = ((int*)s)[i];
+        if (idx < 1 || idx > (int)nv)
+            mexErrMsgTxt("Source indices not valid.");
+        source[i] = geodesic::SurfacePoint(&mesh.vertices()[idx-1]);
     }
 
     /* Propagation */
@@ -3277,7 +3287,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         label = mxGetPr(plhs[1]);
     }
     
-    for (i=0;i<nv;i++)
+    for (i=0;i<(int)nv;i++)
     {
         target = (geodesic::SurfacePoint(&mesh.vertices()[i]));
         double l = exact_algorithm.best_source(target,dist[i]) + 1;
@@ -3288,7 +3298,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
         std::vector<geodesic::SurfacePoint> path;
         plhs[2] = mxCreateCellMatrix(nv, 1);
-        for (i=0;i<nv;i++)
+        for (i=0;i<(int)nv;i++)
         {
             target = (geodesic::SurfacePoint(&mesh.vertices()[i]));
             exact_algorithm.trace_back(target, path);
