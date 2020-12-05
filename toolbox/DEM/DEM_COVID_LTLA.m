@@ -26,7 +26,7 @@ options.Timeout = 20;
 % load (ONS) testing death-by-date data
 %==========================================================================
 url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&metric=newCasesBySpecimenDate&metric=newDeaths28DaysByDeathDate&format=csv';
-U   = webread(url);
+U   = webread(url,options);
 P   = importdata('LADCodesPopulation2019.xlsx');
 
 % get population by lower tier local authority
@@ -126,7 +126,8 @@ dates  = d0:max(spm_vec(D.date));
 [pE,pC] = spm_SARS_priors;
 pC      = spm_zeros(pC);
 name    = fieldnames(pE); 
-free    = {'n','r','o','m','sde','qua','exp','s','Nin','Nou','trn','trm','lim','ons'};
+free    = {'n','r','o','m','sde','qua','exp','s','Nin','Nou','trn','trm','ont','lim','ons'};
+% free  = {'n','r','o','m','sde','qua','exp','s'};
 
 % (empirical) prior expectation
 %--------------------------------------------------------------------------
@@ -163,11 +164,11 @@ for r = 1:numel(D)
     Y(2).U    = 1;
     Y(2).date = D(r).date;
     Y(2).Y    = D(r).deaths;
-    Y(2).h    = 2;
+    Y(2).h    = 0;
 
-    % remove NANs and sort by date
+    % remove NANs, smooth and sort by date
     %----------------------------------------------------------------------
-    [Y,S] = spm_COVID_Y(Y,M.date);
+    [Y,S] = spm_COVID_Y(Y,M.date,16);
     
     % data structure with vectorised data and covariance components
     %----------------------------------------------------------------------

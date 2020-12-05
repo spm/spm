@@ -20,7 +20,7 @@ function T = spm_COVID_T(x,P)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8025 2020-11-29 20:19:59Z karl $
+% $Id: spm_COVID_T.m 8029 2020-12-05 13:37:31Z karl $
 
 % setup
 %==========================================================================
@@ -164,6 +164,7 @@ Kinn = exp(-1/2048);                 % loss of Ab- immunity (per day)
 Kinf = exp(-1/P.Tin);                % infection rate
 Kcon = exp(-1/P.Tcn);                % infectious rate
 Pres = P.res;                        % infectious proportion
+Pvac = P.vac;                        % vaccination rate
     
 % marginal: infection {2} | home {1}(1)
 %--------------------------------------------------------------------------
@@ -202,11 +203,11 @@ b{5} = b{3};
 
 % marginal: infection {2} | hospital {1}(6)
 %--------------------------------------------------------------------------
-b{6} = [Pths       0                     0          0         (1 - Kinn);
-        (1 - Pths) Kinf                  0          0          0;
-        0          (1 - Pres)*(1 - Kinf) Kcon       0          0;
-        0          0                     (1 - Kcon) Kimm       0;
-        0          Pres*(1 - Kinf)       0          (1 - Kimm) Kinn];
+b{6} = [Pths*(1 - Pvac)       0                     0          0         (1 - Kinn);
+        (1 - Pths)*(1 - Pvac) Kinf                  0          0          0;
+        0                     (1 - Pres)*(1 - Kinf) Kcon       0          0;
+        0                     0                     (1 - Kcon) Kimm       0;
+        Pvac                  Pres*(1 - Kinf)       0          (1 - Kimm) Kinn];
 
 % kroneckor form
 %--------------------------------------------------------------------------

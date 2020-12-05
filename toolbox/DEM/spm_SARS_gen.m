@@ -1,4 +1,4 @@
-function [Y,X,Z] = spm_SARS_gen(P,M,U)
+function [Y,X,Z] = spm_SARS_gen(P,M,U,NPI)
 % Generate predictions and hidden states of a COVID model
 % FORMAT [Y,X,Z] = spm_COVID_gen(P,M,U)
 % P    - model parameters
@@ -6,24 +6,29 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % U    - number of output variables [default: 2] or indices e.g., [4 5]
 % Z{t} - joint density over hidden states at the time t
 %
-% Y(:,1)  - daily deaths
-% Y(:,2)  - daily tests
-% Y(:,3)  - CCU occupancy
-% Y(:,4)  - reproduction ratio (R)
-% Y(:,5)  - seropositive immunity (%)
+% Y(:,1)  - Daily deaths (28 days)
+% Y(:,2)  - Daily confirmed cases
+% Y(:,3)  - Mechanical ventilation
+% Y(:,4)  - Reproduction ratio (R)
+% Y(:,5)  - Seropositive immunityy (%)
 % Y(:,6)  - PCR testing rate
-% Y(:,7)  - contagion risk (%)
-% Y(:,8)  - prevalence (%)
-% Y(:,9)  - new contacts per day
-% Y(:,10) - daily incidence (%)
-% Y(:,11) - number infected  
-% Y(:,12) - number symptomatic
-% Y(:,13) - mobility (%)
-% Y(:,14) - work (%)
-% Y(:,15) - certified deaths/day
-% Y(:,16) - hospitalisation
-% Y(:,17) - hospital deaths
-% Y(:,18) - carehome deaths
+% Y(:,7)  - Contagion risk (%)
+% Y(:,8)  - Prevalence {%}
+% Y(:,9)  - Daily contacts
+% Y(:,10) - Daily incidence
+% Y(:,11) - Number infected 
+% Y(:,12) - Number symptomatic
+% Y(:,13) - Mobility (%)
+% Y(:,14) - Workplace (%)
+% Y(:,15) - Certified deaths
+% Y(:,16) - Hospital admissions
+% Y(:,17) - Hospital deaths
+% Y(:,18) - Non-hospital deaths
+% Y(:,19) - Deaths (>60 years)
+% Y(:,20) - Deaths (<60 years)
+% Y(:,21) - IFR (infection) (%)
+% Y(:,22) - IFR (symptoms) (%)
+% Y(:,23) - Daily vaccinations
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','CCU','morgue','isolation'};
@@ -58,7 +63,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8025 2020-11-29 20:19:59Z karl $
+% $Id: spm_SARS_gen.m 8029 2020-12-05 13:37:31Z karl $
 
 
 % The generative model:
@@ -136,6 +141,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U)
 % setup and defaults (assume new deaths and cases as outcome variables)
 %--------------------------------------------------------------------------
 if (nargin < 3) || isempty(U), U = 1:2; end         % two outcomes
+if (nargin < 4), NPI = [];              end         % interventions
 try, M.T; catch, M.T = 180;             end         % over six months
 
 % deal with data structures (asynchronous timeseries)
@@ -191,12 +197,37 @@ end
 
 % ensemble density tensor and solve over the specified number of days
 %--------------------------------------------------------------------------
-Y     = zeros(M.T,20);
+Y     = zeros(M.T,32);
 for i = 1:M.T
     
     % time-dependent parameters
     %======================================================================
     
+    % nonpharmacological interventions
+    %----------------------------------------------------------------------
+    for j = 1:numel(NPI)
+        
+        dstart = datenum(NPI(j).dates{1},'dd-mm-yyyy') - datenum(NPI(j).period{1},'dd-mm-yyyy');
+        dfinal = datenum(NPI(j).dates{2},'dd-mm-yyyy') - datenum(NPI(j).period{1},'dd-mm-yyyy');
+        if (i > dstart) && (i <= dfinal)
+            if ischar(NPI(j).param)
+                P.(NPI(j).param) = log(NPI(j).Q);
+            else
+                for k = 1:numel(NPI(j).param)
+                    P.(NPI(j).param{k}) = log(NPI(j).Q(k));
+                end
+            end
+        else
+            if ischar(NPI(j).param)
+                P.(NPI(j).param) = log(Q.(NPI(j).param));
+            else
+                for k = 1:numel(NPI(j).param)
+                    P.(NPI(j).param{k}) = log(Q.(NPI(j).param{k}));
+                end
+            end
+        end
+    end
+        
     % start of trace and track
     %----------------------------------------------------------------------
     if isfield(M,'TTT')
@@ -232,6 +263,7 @@ for i = 1:M.T
     %----------------------------------------------------------------------
     R     = T - diag(diag(T));
     r     = spm_unvec(R*spm_vec(x),x);
+    u     = spm_marginal(r);
         
     % marginal densities (p)
     %----------------------------------------------------------------------
@@ -290,8 +322,7 @@ for i = 1:M.T
     
     % incidence of new cases
     %----------------------------------------------------------------------
-    q       = spm_marginal(r);
-    Y(i,10) = 100 * q{2}(3);
+    Y(i,10) = 100 * u{2}(3);
     
     % number of infected people
     %----------------------------------------------------------------------
@@ -344,11 +375,24 @@ for i = 1:M.T
     % excess deaths > 60 and < 60 (as a function of place of death)
     %----------------------------------------------------------------------
     if isfield(Q,'ag')
-        Y(i,19) = N * Q.ag(1,:) * q([3,5,6],4);
-        Y(i,20) = N * Q.ag(2,:) * q([3,5,6],4);
+        Qag     = spm_softmax(P.ag);
+        Y(i,19) = N * Qag(1,:) * q([3,5,6],4);
+        Y(i,20) = N * Qag(2,:) * q([3,5,6],4);
     end
     
-
+    % incidence of new infections
+    %----------------------------------------------------------------------
+    Y(i,21) = u{2}(2);
+    
+    % incidence of new symptomatic cases
+    %----------------------------------------------------------------------
+    Y(i,22) = u{3}(2);
+    
+    % incidence of vaccinations
+    %----------------------------------------------------------------------
+    q       = squeeze(spm_sum(x,[2,4]));
+    Y(i,23) = N * Q.vac*q(6,1);
+    
     % joint density if requested
     %----------------------------------------------------------------------
     if nargout > 2
@@ -360,6 +404,11 @@ end
 % effective reproduction ratio: exp(K*Q.Tcn): K = dln(N)/dt
 %--------------------------------------------------------------------------
 Y(:,4)  = exp((Q.Tcn)*gradient(log(Y(:,4))));
+
+% infection fatality ratio (infection and symptomatic cases)
+%--------------------------------------------------------------------------
+Y(:,21) = (100/N) * cumsum(Y(:,1))./cumsum(Y(:,21));
+Y(:,22) = (100/N) * cumsum(Y(:,1))./cumsum(Y(:,22));
 
 % retain specified output variables
 %--------------------------------------------------------------------------

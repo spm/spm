@@ -1,6 +1,9 @@
-function [Y,S,dates] = spm_COVID_Y(Y,date0)
+function [Y,S,dates] = spm_COVID_Y(Y,date0,days)
 % prepares data array for COVID routines
 % FORMAT [Y,S,dates] = spm_COVID_Y(Y,date0)
+% Y     - structure array
+% date0 - initial date ('dd-mmm-yyy')
+% days  - number of days over which to average (smooth)
 %
 % Y     - structure array (time ordered, withough NaNs and smoothed)
 % S     - data matrix
@@ -23,6 +26,7 @@ function [Y,S,dates] = spm_COVID_Y(Y,date0)
 % set up
 %==========================================================================
 if nargin < 2, date0 = '01-Feb-2020'; end
+if nargin < 3, days  = 7;             end
 
 % remove NANs and sort by date
 %--------------------------------------------------------------------------
@@ -43,7 +47,7 @@ for i = 1:numel(Y)
     nY(i)  = numel(Y(i).Y);
     Y(i).n = nY(i);
     if max(diff(Y(i).date)) < 2
-        Y(i).Y = spm_hist_smooth(Y(i).Y,7);
+        Y(i).Y = spm_hist_smooth(Y(i).Y,days);
     end
 end
 

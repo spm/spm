@@ -15,7 +15,7 @@ function spm_SARS_plot(Y,X,Z,u,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_plot.m 8015 2020-11-24 10:47:41Z karl $
+% $Id: spm_SARS_plot.m 8029 2020-12-05 13:37:31Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -76,14 +76,14 @@ end
 subplot(3,2,1), if CHOLD, set(gca,'ColorOrderIndex',1); end
 t  = (1:t)/7;
 p  = plot(t,Y);
-legend(p,str.outcome{U})
+
 xlabel('time (weeks)'),ylabel('number per day')
 title('Rates (per day)','FontSize',16)
 axis square, box off, set(gca,'XLim',[0, t(end)])
-legend('boxoff')
+legend('off'), legend(p(1:numel(U)),str.outcome{U}), legend('boxoff')
 
 subplot(3,2,2), if CHOLD, set(gca,'ColorOrderIndex',1); end
-plot(t,cumsum(Y))
+plot(t,cumsum(Y));
 xlabel('time (weeks)'),ylabel('number of cases'), set(gca,'XLim',[0, t(end)])
 title('Cumulative cases','FontSize',16), axis square, box off
 
@@ -91,6 +91,7 @@ title('Cumulative cases','FontSize',16), axis square, box off
 %--------------------------------------------------------------------------
 k     = 4;
 for i = 1:numel(X)
+    
     k = k + 1;
     subplot(6,2,k), if CHOLD, set(gca,'ColorOrderIndex',1); end
     [d,j] = sort(max(X{i}));
@@ -113,7 +114,6 @@ for i = 1:numel(X)
     ylabel('percent')
     title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
     box off, legend(str.factor{i}(j)), legend('boxoff'), box off
-
     
 end
 
@@ -121,8 +121,16 @@ end
 %--------------------------------------------------------------------------
 t = (1:size(Z,1))/7;
 try
+    
     U   = U(ismember(U,1:size(Z,2)));
-    subplot(3,2,2), if CHOLD, set(gca,'ColorOrderIndex',1); end; hold on, plot(t,cumsum(Z(:,U)),'.k'), hold off
-    subplot(3,2,1), if CHOLD, set(gca,'ColorOrderIndex',1); end; hold on, plot(t,Z(:,U),'.k'), hold off
+    T   = numel(t);
+    i   = 1:(T - 8);
+    j   = (T - 7):T;
+    subplot(3,2,2), if CHOLD, set(gca,'ColorOrderIndex',1); end; hold on
+    plot(t,cumsum(Z(:,U)),'.k'), hold off
+    subplot(3,2,1), if CHOLD, set(gca,'ColorOrderIndex',1); end; hold on
+    plot(t(i),Z(i,U),'.k'), plot(t(j),Z(j,U),'.c'), hold off
+    legend('off'), legend(p(1:numel(U)),str.outcome{U}), legend('boxoff')
+
 end
 drawnow

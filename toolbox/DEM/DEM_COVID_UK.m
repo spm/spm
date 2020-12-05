@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8025 2020-11-29 20:19:59Z karl $
+% $Id: DEM_COVID_UK.m 8029 2020-12-05 13:37:31Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -69,6 +69,10 @@ url        = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity
 writetable(webread(url,options),'place.csv');
 url        = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/11/COVID-19-total-announced-deaths-27-November-2020.xlsx';
 [num,txt]  = xlsread(websave('ages.xlsx',url),5,'E16:JO23');
+
+% url      = 'https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fhealthandsocialcare%2fconditionsanddiseases%2fdatasets%2fcoronaviruscovid19infectionsurveydata%2f2020/covid19infectionsurveydatasets20201126.xlsx';
+% val      = xlsread(websave('survey.xlsx',url),5,'E16:JO23');
+
 
 cases      = importdata('cases.csv');
 deaths     = importdata('deaths.csv');
@@ -247,7 +251,7 @@ pC.mv   = [1 1]/8;              % prior variance
 pE.ho   = log([1 1]);           % coefficients for admissions
 pC.ho   = [1 1]/8;              % prior variance
 
-pE.mo   = log([2.0,0.5]);       % coefficients for mobility
+pE.mo   = log([1.5,0.3]);       % coefficients for mobility
 pC.mo   = [1 1];                % prior variance
 pE.wo   = log([1.5,0.3]);       % coefficients for workplace
 pC.wo   = [1 1];                % prior variance
@@ -342,6 +346,15 @@ if numel(Y) < 8
     set(gca,'YLim',[0 min(5,g(2))]), ylabel('ratio')
 end
 
+% infection fatality ratios (%)
+%--------------------------------------------------------------------------
+j = j + 1;
+subplot(4,2,j)
+spm_SARS_ci(Ep,Cp,[],21,M); hold on
+spm_SARS_ci(Ep,Cp,[],22,M); hold off
+ylabel('percent'),  title('IFR (infect/clincal)','FontSize',14)
+
+
 % save figures
 %--------------------------------------------------------------------------
 spm_figure('GetWin','outcomes (2)');
@@ -358,7 +371,9 @@ savefig(gcf,'Fig3')
 %--------------------------------------------------------------------------
 Tab = spm_COVID_table(Ep,Cp,M)
 
+save('DCM_UK.mat','DCM')
 cd('C:\Users\karl\Dropbox\Coronavirus')
+save('DCM_UK.mat','DCM')
 
 return
 

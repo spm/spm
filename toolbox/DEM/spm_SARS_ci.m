@@ -1,11 +1,12 @@
-function [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M)
+function [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI)
 % Graphics for coronavirus simulations - with confidence intervals
-% FORMAT [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M)
+% FORMAT [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI)
 % Ep     - posterior expectations
 % Cp     - posterior covariances
 % Z      - optional empirical data
 % U      - outcomes to evaluate [default: 1:3]
 % M      - model
+% NPI    - intervention array
 %
 % S      - posterior expectation of cumulative outcomes
 % CS     - posterior covariances of cumulative outcomes
@@ -31,11 +32,12 @@ function [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_ci.m 8001 2020-11-03 19:05:40Z karl $
+% $Id: spm_SARS_ci.m 8029 2020-12-05 13:37:31Z karl $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------
-if nargin < 4, U = 1:3; end
+if nargin < 4, U = 1:3;  end
+if nargin < 6, NPI = []; end 
 
 % priors and names for plotting
 %--------------------------------------------------------------------------
@@ -51,7 +53,7 @@ Cp = Cp*64;
 % changes in outcomes with respect to parameters
 %--------------------------------------------------------------------------
 try, M.T; catch, M.T = 180; end
-[dYdP,Y] = spm_diff(@(P,M,U)spm_SARS_gen(P,M,U),Ep,M,U,1);
+[dYdP,Y] = spm_diff(@(P,M,U,N)spm_SARS_gen(P,M,U,N),Ep,M,U,NPI,1);
 
 
 % conditional covariances

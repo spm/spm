@@ -35,7 +35,7 @@ function [P,C,str] = spm_SARS_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8025 2020-11-29 20:19:59Z karl $
+% $Id: spm_SARS_priors.m 8029 2020-12-05 13:37:31Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -107,6 +107,8 @@ names{35} = 'testing: capacity';
 names{36} = 'testing: constant';
 names{37} = 'testing: onset';
 
+names{38} = 'vaccination rate';
+
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -119,47 +121,54 @@ factor{4} = {'untested','waiting','PCR +ve','PCR -ve'};
 
 % labels or strings for plotting
 %--------------------------------------------------------------------------
-% Y(:,1)  - daily deaths
-% Y(:,2)  - daily tests
-% Y(:,3)  - CCU occupancy
-% Y(:,4)  - reproduction ratio (R)
-% Y(:,5)  - seropositive immunity (%)
+% Y(:,1)  - Daily deaths (28 days)
+% Y(:,2)  - Daily confirmed cases
+% Y(:,3)  - Mechanical ventilation
+% Y(:,4)  - Reproduction ratio (R)
+% Y(:,5)  - Seropositive immunityy (%)
 % Y(:,6)  - PCR testing rate
-% Y(:,7)  - contagion risk (%)
-% Y(:,8)  - prevalence (%)
-% Y(:,9)  - new contacts per day
-% Y(:,10) - daily incidence
-% Y(:,11) - number infected  
-% Y(:,12) - number symptomatic
-% Y(:,13) - mobility (%)
-% Y(:,14) - work (%)
-% Y(:,15) - certified deaths/day
-% Y(:,16) - hospitalisation
-% Y(:,17) - deaths in hospital
-% Y(:,18) - deaths in isolation
-% Y(:,19) - deaths > 60 yrs
-% Y(:,20) - deaths < 60 yrs
+% Y(:,7)  - Contagion risk (%)
+% Y(:,8)  - Prevalence {%}
+% Y(:,9)  - Daily contacts
+% Y(:,10) - Daily incidence
+% Y(:,11) - Number infected 
+% Y(:,12) - Number symptomatic
+% Y(:,13) - Mobility (%)
+% Y(:,14) - Workplace (%)
+% Y(:,15) - Certified deaths
+% Y(:,16) - Hospital admissions
+% Y(:,17) - Hospital deaths
+% Y(:,18) - Non-hospital deaths
+% Y(:,19) - Deaths (>60 years)
+% Y(:,20) - Deaths (<60 years)
+% Y(:,21) - IFR (infection) (%)
+% Y(:,22) - IFR (symptoms) (%)
+% Y(:,23) - Daily vaccinations
 
-str.outcome = {'Daily deaths',...
-               'Daily tests',...
-               'CCU occupancy',...
+
+str.outcome = {'Daily deaths (28 days)',...
+               'Daily confirmed cases',...
+               'Mechanical ventilation',...
                'Reproduction ratio',...
                'Seropositive immunity',...
                'PCR testing rate',...
                'Contagion risk (%)',...
                'Prevalence {%}',...
                'Daily contacts',...
-               'daily incidence',...
+               'Daily incidence',...
                'Number infected'...
                'Number symptomatic'...
                'Mobility (%)'...
                'Workplace (%)'...
                'Certified deaths',...
-               'Admissions'...
+               'Hospital admissions'...
                'Hospital deaths',...
-               'Carehome deaths'...
-               'Deaths (old)',...
-               'Deaths (young)'};
+               'Non-hospital deaths'...
+               'Deaths (>60 years)',...
+               'Deaths (<60 years)',...
+               'IFR (infection) (%)',...
+               'IFR (symptoms) (%)',...
+               'Daily vaccinations'};
            
 str.factors = factors;
 str.factor  = factor;
@@ -179,26 +188,26 @@ end
 %==========================================================================
 P.N   = 64;                   % (01) population size (millions)
 P.n   = 1;                    % (02) initial cases (cases)
-P.r   = 0.25;                 % (03) pre-existing immunity (proportion)
-P.o   = 0.10;                 % (04) initial exposed proportion
-P.m   = 0.50;                 % (05) relative eflux
+P.r   = 0.30;                 % (03) pre-existing immunity (proportion)
+P.o   = 0.03;                 % (04) initial exposed proportion
+P.m   = 1;                    % (05) relative eflux
 
 % location (exposure) parameters
 %--------------------------------------------------------------------------
 P.out = 0.5;                  % (06) P(leaving home)
-P.sde = 0.03;                 % (07) lockdown threshold
-P.qua = 0.50;                 % (08) seropositive contribution
-P.exp = 0.003;                % (09) viral spreading (days)
-P.hos = 0.35;                 % (10) admission rate (hospital)
-P.ccu = 0.20;                 % (11) admission rate (CCU)
-P.s   = 3.2;                  % (12) distancing sensitivity
+P.sde = 0.04;                 % (07) lockdown threshold
+P.qua = 0.8;                  % (08) seropositive contribution
+P.exp = 0.004;                % (09) viral spreading (days)
+P.hos = 0.4;                  % (10) admission rate (hospital)
+P.ccu = 0.14;                 % (11) admission rate (CCU)
+P.s   = 4.8;                  % (12) distancing sensitivity
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
-P.Nin = 1.5;                  % (13) effective number of contacts: home
-P.Nou = 36;                   % (14) effective number of contacts: work
-P.trn = 0.4;                  % (15) transmission strength (early)
-P.trm = 0.2;                  % (16) transmission strength (late)
+P.Nin = 2;                    % (13) effective number of contacts: home
+P.Nou = 32;                   % (14) effective number of contacts: work
+P.trn = 0.35;                 % (15) transmission strength (early)
+P.trm = 0.25;                 % (16) transmission strength (late)
 P.Tin = 6;                    % (17) infected period (days)
 P.Tcn = 4;                    % (18) infectious period (days)
 P.Tim = 200;                  % (19) seropositive immunity (days)
@@ -211,9 +220,9 @@ P.Tsy = 8;                    % (22) symptomatic period  (days)
 P.Trd = 6;                    % (23) CCU period (days)
 
 P.sev = 0.6/100;              % (24) P(ARDS | symptoms): early
-P.lat = 0.7/100;              % (25) P(ARDS | symptoms): late
-P.fat = 0.65;                 % (26) P(fatality | ARDS): early
-P.sur = 0.35;                 % (27) P(fatality | ARDS): late
+P.lat = 0.8/100;              % (25) P(ARDS | symptoms): late
+P.fat = 0.7;                  % (26) P(fatality | ARDS): early
+P.sur = 0.3;                  % (27) P(fatality | ARDS): late
 
 % testing parameters
 %--------------------------------------------------------------------------
@@ -221,19 +230,21 @@ P.ttt = 0.036;                % (28) FTTI efficacy
 P.tes = 4;                    % (29) bias (for infection): early
 P.tts = 5;                    % (30) bias (for infection): late
 P.del = 3.4;                  % (31) test delay (days)
-P.ont = 0.0002;               % (32) symptom-dependent
+P.ont = 0.01;                 % (32) symptom-dependent
 P.fnr = 0.2;                  % (33) false-negative rate
 P.fpr = 0.002;                % (34) false-positive rate
 
-P.lim = [0.004 0.002];        % (35) testing: capacity
-P.rat = [24   12];            % (36) testing: dispersion
-P.ons = [200 120];            % (37) testing: onset
+P.lim = [0.004 0.001];        % (35) testing: capacity
+P.rat = [32   8];             % (36) testing: dispersion
+P.ons = [200 100];            % (37) testing: onset
+
+P.vac = 1e-8;                 % (38) vaccination rate
 
 
 % cut and paste to see the effects of changing different prior expectations
 %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 if false
-    U     = [1 2 3 16];
+    U     = [1 2 3 16 23];
     pE    = spm_SARS_priors; M.T = 10*32;
     [Y,X] = spm_SARS_gen(pE,M,U);
     spm_SARS_plot(Y,X,[],[],U)
@@ -303,6 +314,7 @@ C.lim = V;                    % (35) testing: capacity
 C.rat = U;                    % (36) testing: constant (days)
 C.ons = U;                    % (37) testing: onset (days)
 
+C.vac = 0;                    % (38) vaccination rate
 
 % implicit prior confidence bounds
 %--------------------------------------------------------------------------
