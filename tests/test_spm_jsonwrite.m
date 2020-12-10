@@ -1,9 +1,9 @@
 function tests = test_spm_jsonwrite
 % Unit Tests for spm_jsonwrite
 %__________________________________________________________________________
-% Copyright (C) 2016-2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2016-2020 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_jsonwrite.m 7526 2019-02-06 14:33:18Z guillaume $
+% $Id: test_spm_jsonwrite.m 8031 2020-12-10 13:37:00Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -55,6 +55,8 @@ function test_options(testCase)
 exp = struct('Width',800,'Height',NaN,'Title','View','Bool',true);
 spm_jsonwrite(exp,'indent','');
 spm_jsonwrite(exp,'indent','  ');
+spm_jsonwrite(exp,'prettyPrint',false);
+spm_jsonwrite(exp,'prettyPrint',true);
 spm_jsonwrite(exp,'replacementStyle','underscore');
 spm_jsonwrite(exp,'replacementStyle','hex');
 spm_jsonwrite(exp,'convertInfAndNaN',true);
@@ -62,3 +64,6 @@ spm_jsonwrite(exp,'convertInfAndNaN',false);
 spm_jsonwrite(exp,'indent',' ','replacementStyle','hex','convertInfAndNaN',false);
 spm_jsonwrite(exp,struct('indent','\t'));
 spm_jsonwrite(exp,struct('indent','\t','convertInfAndNaN',false));
+spm_jsonwrite(exp,'prettyPrint',true,'replacementStyle','hex','convertInfAndNaN',false);
+spm_jsonwrite(exp,struct('prettyPrint',true));
+spm_jsonwrite(exp,struct('prettyPrint',true,'convertInfAndNaN',false));
