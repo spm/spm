@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 7660 2019-09-03 12:52:52Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 8030 2020-12-10 12:33:26Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -186,8 +186,8 @@ nsmodes.tag = 'nsmodes';
 nsmodes.name = 'Number of spatial modes';
 nsmodes.strtype = 'i';
 nsmodes.num = [1 1];
-nsmodes.val = {[100]};
-nsmodes.help = {'Number of spatial modes'};
+nsmodes.val = {0};
+nsmodes.help = {'Number of spatial modes. Zero for auto-select'};
 
 umodes = cfg_files;
 umodes.tag = 'umodes';
@@ -204,7 +204,7 @@ ntmodes.name = 'Number of temporal modes';
 ntmodes.strtype = 'i';
 ntmodes.num = [1 1];
 ntmodes.val = {[4]};
-ntmodes.help = {'Number of temporal modes'};
+ntmodes.help = {'Number of temporal modes. Zero for auto-select.'};
 
 
 priorsmask  = cfg_files;
@@ -353,11 +353,15 @@ if isfield(job.isstandard, 'custom')
         disp(sprintf('Using %d iterations of %d patches',Npatchiter,inverse.Np));
     end;
     inverse.Nm =  fix(max(job.isstandard.custom.nsmodes));
+    if inverse.Nm==0,
+        inverse.Nm=[];
+        disp('Auto selecting number of spatial modes');
+    end;
     
     inverse.Nt =  fix(max(job.isstandard.custom.ntmodes));
     if inverse.Nt==0,
         inverse.Nt=[];
-        disp('Auto selecting number of modes');
+        disp('Auto selecting number of temporal modes');
     end;
     inverse.smooth=job.isstandard.custom.patchfwhm;
     testchans=[];
