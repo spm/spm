@@ -5,10 +5,10 @@ function spm_save(f,var,varargin)
 % var   - data array or structure
 % opts  - optional inputs to be passed on to lower level function
 %__________________________________________________________________________
-% Copyright (C) 2018-2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2018-2020 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_save.m 7947 2020-09-16 19:03:43Z guillaume $
+% $Id: spm_save.m 8032 2020-12-11 15:45:45Z guillaume $
 
 
 ext = lower(spm_file(f,'ext'));
@@ -89,11 +89,33 @@ switch ext
         
     case 'mat'
         if nargin < 3, varargin = {spm_get_defaults('mat.format')}; end
-        if isstruct(var)
-            save(f,'-struct','var',varargin{:});
-        else
-            error('Unable to write file %s.', f);
+        if ~isstruct(var)
+%             if ~iscellstr([var, varargin])
+%                 error('Variable name must be a text scalar.');
+%             end
+%             var = struct(var,evalin('caller',var));
+%             for i=1:numel(varargin)
+%                 if varargin{i}(1) ~= '-'
+%                     var.(varargin{i}) = evalin('caller',varargin{i});
+%                     varargin{i} = '';
+%                 end
+%             end
+            
+            var = struct(inputname(2),var);
+            for i=1:numel(varargin)
+                if varargin{i}(1) ~= '-'
+                    name = inputname(i+2);
+                    if isempty(name)
+                        error('Variable name must be a text scalar.');
+                    end
+                    var.(name) = varargin{i};
+                    varargin{i} = '';
+                end
+            end
+            
+            varargin(cellfun('isempty',varargin)) = [];
         end
+        save(f,'-struct','var',varargin{:});
         
     case 'npy'
         fid = fopen(f,'W');
