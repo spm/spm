@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8029 2020-12-05 13:37:31Z karl $
+% $Id: DEM_COVID_UK.m 8033 2020-12-13 18:13:24Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -66,12 +66,11 @@ writetable(webread(url,options),'admissions.csv');
 url        = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newOnsDeathsByRegistrationDate&format=csv';
 writetable(webread(url,options),'certified.csv');
 url        = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending13november2020/00ba3836&format=csv';
+url        = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending27november2020/96f0e889&format=csv';
 writetable(webread(url,options),'place.csv');
 url        = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/11/COVID-19-total-announced-deaths-27-November-2020.xlsx';
-[num,txt]  = xlsread(websave('ages.xlsx',url),5,'E16:JO23');
-
-% url      = 'https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fhealthandsocialcare%2fconditionsanddiseases%2fdatasets%2fcoronaviruscovid19infectionsurveydata%2f2020/covid19infectionsurveydatasets20201126.xlsx';
-% val      = xlsread(websave('survey.xlsx',url),5,'E16:JO23');
+url        = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/12/COVID-19-total-announced-deaths-11-December-2020.xlsx';
+[num,txt]  = xlsread(websave('ages.xlsx',url),5,'E16:KC23');
 
 
 cases      = importdata('cases.csv');
@@ -140,7 +139,7 @@ Y(7).date = datenum(symptoms.textdata(2:end,1),'dd/mm/yyyy');
 Y(7).Y    = symptoms.data(:,1);
 Y(7).h    = 0;
 
-Y(8).type = 'R-ratio (GOV)'; % the production ratio
+Y(8).type = 'R-ratio (MRC/GOV)'; % the production ratio
 Y(8).unit = 'ratio';
 Y(8).U    = 4;
 Y(8).date = [datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 13; ...
@@ -155,11 +154,11 @@ Y(9).date = datenum(transport.textdata(2:end,1),'dd/mm/yyyy');
 Y(9).Y    = transport.data(:,1)*100;
 Y(9).h    = 0;
 
-Y(10).type = 'Work (Google)'; % work (percent)
+Y(10).type = 'Retail (Google)'; % retail and recreation (percent)
 Y(10).unit = 'percent';
 Y(10).U    = 14;
 Y(10).date = datenum(mobility.textdata(2:end,1),'dd/mm/yyyy');
-Y(10).Y    = mobility.data(:,5) + 100;
+Y(10).Y    = mobility.data(:,1) + 100;
 Y(10).h    = 0;
 
 Y(11).type = 'Certified deaths (ONS)'; % weekly covid related deaths
@@ -238,9 +237,9 @@ hE      = spm_vec(Y.h);
 % get and set priors
 %--------------------------------------------------------------------------
 [pE,pC] = spm_SARS_priors;
-pE.N    = log(66.65);
+pE.N    = log(67.886);
 pC.N    = 0;
-pE.n    = -8;
+pE.n    = -5;
 
 % coefficients for likelihood model
 %--------------------------------------------------------------------------
@@ -256,10 +255,16 @@ pC.mo   = [1 1];                % prior variance
 pE.wo   = log([1.5,0.3]);       % coefficients for workplace
 pC.wo   = [1 1];                % prior variance
 
-pE.ag   = log(ones(2,3));       % coefficients for age-related deaths
-pC.ag   = ones(2,3);            % prior variance
+pE.ag   = zeros(2,3);           % coefficients for age-related deaths
+pC.ag   = ones(size(pE.ag));    % prior variance
 
 
+% coefficients for mixture model
+%--------------------------------------------------------------------------
+% pE.R    = 0;
+% pE.SDE  = -1.3;
+% pC.R    = 0;
+% pC.SDE  = 0;
 
 % model specification
 %==========================================================================

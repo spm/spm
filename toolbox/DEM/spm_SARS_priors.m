@@ -35,7 +35,7 @@ function [P,C,str] = spm_SARS_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8029 2020-12-05 13:37:31Z karl $
+% $Id: spm_SARS_priors.m 8033 2020-12-13 18:13:24Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -114,8 +114,8 @@ names{38} = 'vaccination rate';
 %--------------------------------------------------------------------------
 factors   = {'Location','Infection','Symptoms','Testing'};
 
-factor{1} = {'lo-risk','hi-risk','ccu','no-risk','isolated','hospital'};
-factor{2} = {'susceptible','infected','infectious','AB +ve','AB -ve'};
+factor{1} = {'lo-risk','hi-risk','ICU','no-risk','isolated','hospital'};
+factor{2} = {'susceptible','infected','infectious','Ab +ve','Ab -ve'};
 factor{3} = {'none','symptoms','severe','deceased'};
 factor{4} = {'untested','waiting','PCR +ve','PCR -ve'};
 
@@ -125,12 +125,12 @@ factor{4} = {'untested','waiting','PCR +ve','PCR -ve'};
 % Y(:,2)  - Daily confirmed cases
 % Y(:,3)  - Mechanical ventilation
 % Y(:,4)  - Reproduction ratio (R)
-% Y(:,5)  - Seropositive immunityy (%)
+% Y(:,5)  - Seroprevalence {%}
 % Y(:,6)  - PCR testing rate
 % Y(:,7)  - Contagion risk (%)
 % Y(:,8)  - Prevalence {%}
 % Y(:,9)  - Daily contacts
-% Y(:,10) - Daily incidence
+% Y(:,10) - Daily incidence (%)
 % Y(:,11) - Number infected 
 % Y(:,12) - Number symptomatic
 % Y(:,13) - Mobility (%)
@@ -150,12 +150,12 @@ str.outcome = {'Daily deaths (28 days)',...
                'Daily confirmed cases',...
                'Mechanical ventilation',...
                'Reproduction ratio',...
-               'Seropositive immunity',...
+               'Seroprevalence {%}',...
                'PCR testing rate',...
                'Contagion risk (%)',...
                'Prevalence {%}',...
                'Daily contacts',...
-               'Daily incidence',...
+               'Daily incidence (%)',...
                'Number infected'...
                'Number symptomatic'...
                'Mobility (%)'...
@@ -178,7 +178,7 @@ str.names   = names;
 %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 if false
     U     = [1 2 3 16];
-    pE    = spm_SARS_priors; M.T = 10*32;
+    pE    = spm_SARS_priors; M.T = 12*32;
     [Y,X] = spm_SARS_gen(pE,M,U);
     spm_SARS_plot(Y,X,[],[],U)
 end
@@ -187,20 +187,20 @@ end
 % Expectations (either heuristic or taken from the above sources)
 %==========================================================================
 P.N   = 64;                   % (01) population size (millions)
-P.n   = 1;                    % (02) initial cases (cases)
-P.r   = 0.30;                 % (03) pre-existing immunity (proportion)
+P.n   = exp(0);               % (02) initial cases (cases)
+P.r   = 0.25;                 % (03) pre-existing immunity (proportion)
 P.o   = 0.03;                 % (04) initial exposed proportion
-P.m   = 1;                    % (05) relative eflux
+P.m   = 2;                    % (05) relative eflux
 
 % location (exposure) parameters
 %--------------------------------------------------------------------------
 P.out = 0.5;                  % (06) P(leaving home)
-P.sde = 0.04;                 % (07) lockdown threshold
-P.qua = 0.8;                  % (08) seropositive contribution
-P.exp = 0.004;                % (09) viral spreading (days)
+P.sde = 0.005;                % (07) lockdown threshold
+P.qua = 0.15;                 % (08) seropositive contribution
+P.exp = 0.01;                 % (09) viral spreading (days)
 P.hos = 0.4;                  % (10) admission rate (hospital)
 P.ccu = 0.14;                 % (11) admission rate (CCU)
-P.s   = 4.8;                  % (12) distancing sensitivity
+P.s   = 4;                    % (12) distancing sensitivity
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -208,10 +208,10 @@ P.Nin = 2;                    % (13) effective number of contacts: home
 P.Nou = 32;                   % (14) effective number of contacts: work
 P.trn = 0.35;                 % (15) transmission strength (early)
 P.trm = 0.25;                 % (16) transmission strength (late)
-P.Tin = 6;                    % (17) infected period (days)
+P.Tin = 5;                    % (17) infected period (days)
 P.Tcn = 4;                    % (18) infectious period (days)
-P.Tim = 200;                  % (19) seropositive immunity (days)
-P.res = 0.2;                  % (20) seronegative proportion
+P.Tim = 180;                  % (19) seropositive immunity (days)
+P.res = 0.1;                  % (20) seronegative proportion
 
 % clinical parameters
 %--------------------------------------------------------------------------
@@ -288,7 +288,7 @@ C.trm = W;                    % (15) transmission strength (late)
 C.Tin = X;                    % (17) infected period (days)
 C.Tcn = X;                    % (18) infectious period (days)
 C.Tim = W;                    % (19) seropositive immunity (months)
-C.res = V;                    % (20) seronegative immunity (proportion)
+C.res = W;                    % (20) seronegative immunity (proportion)
 
 % clinical parameters
 %--------------------------------------------------------------------------

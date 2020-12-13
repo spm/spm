@@ -133,7 +133,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 7943 2020-09-11 17:50:52Z thomas $
+% $Id: spm_MDP_VB_X.m 8033 2020-12-13 18:13:24Z karl $
 
 
 % deal with a sequence of trials
@@ -1292,7 +1292,7 @@ function sub = spm_ind2sub(siz,ndx)
 %--------------------------------------------------------------------------
 n = numel(siz);
 k = [1 cumprod(siz(1:end-1))];
-for i = n:-1:1,
+for i = n:-1:1
     vi       = rem(ndx - 1,k(i)) + 1;
     vj       = (ndx - vi)/k(i) + 1;
     sub(i,1) = vj;

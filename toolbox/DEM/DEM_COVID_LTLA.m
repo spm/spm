@@ -141,7 +141,7 @@ for i = 1:numel(free)
     pC.(free{i}) = PCM.M.pC.(free{i});
 end
 
-try, D   = D(1:16); end %%%%
+%%%% try, D   = D(1:16); end %%%%
 
 % fit each regional dataset
 %==========================================================================

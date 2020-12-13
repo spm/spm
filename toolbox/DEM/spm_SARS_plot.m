@@ -15,7 +15,7 @@ function spm_SARS_plot(Y,X,Z,u,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_plot.m 8029 2020-12-05 13:37:31Z karl $
+% $Id: spm_SARS_plot.m 8033 2020-12-13 18:13:24Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -76,11 +76,13 @@ end
 subplot(3,2,1), if CHOLD, set(gca,'ColorOrderIndex',1); end
 t  = (1:t)/7;
 p  = plot(t,Y);
+nu = numel(U);
+un = str.outcome(U);
 
 xlabel('time (weeks)'),ylabel('number per day')
 title('Rates (per day)','FontSize',16)
 axis square, box off, set(gca,'XLim',[0, t(end)])
-legend('off'), legend(p(1:numel(U)),str.outcome{U}), legend('boxoff')
+legend('off'), legend(p(1:nu),un), legend('boxoff')
 
 subplot(3,2,2), if CHOLD, set(gca,'ColorOrderIndex',1); end
 plot(t,cumsum(Y));
@@ -130,7 +132,7 @@ try
     plot(t,cumsum(Z(:,U)),'.k'), hold off
     subplot(3,2,1), if CHOLD, set(gca,'ColorOrderIndex',1); end; hold on
     plot(t(i),Z(i,U),'.k'), plot(t(j),Z(j,U),'.c'), hold off
-    legend('off'), legend(p(1:numel(U)),str.outcome{U}), legend('boxoff')
+    legend('off'), legend(p(1:nu),un), legend('boxoff')
 
 end
 drawnow

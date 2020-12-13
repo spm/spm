@@ -15,7 +15,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U,NPI)
 % Y(:,7)  - Contagion risk (%)
 % Y(:,8)  - Prevalence {%}
 % Y(:,9)  - Daily contacts
-% Y(:,10) - Daily incidence
+% Y(:,10) - Daily incidence (%)
 % Y(:,11) - Number infected 
 % Y(:,12) - Number symptomatic
 % Y(:,13) - Mobility (%)
@@ -63,7 +63,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U,NPI)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8029 2020-12-05 13:37:31Z karl $
+% $Id: spm_SARS_gen.m 8033 2020-12-13 18:13:24Z karl $
 
 
 % The generative model:
@@ -138,6 +138,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U,NPI)
 % occurred in the third year. Thus, SARS patients might be susceptible to
 % reinfection >3 years after initial exposure.
 
+
 % setup and defaults (assume new deaths and cases as outcome variables)
 %--------------------------------------------------------------------------
 if (nargin < 3) || isempty(U), U = 1:2; end         % two outcomes
@@ -160,6 +161,7 @@ end
 
 % exponentiate parameters
 %--------------------------------------------------------------------------
+O    = P;
 Q    = spm_vecfun(P,@exp);
 
 % initial marginals (Dirichlet parameters)
@@ -203,10 +205,12 @@ for i = 1:M.T
     % time-dependent parameters
     %======================================================================
     
-    % nonpharmacological interventions
+    % nonpharmacological interventions (NPI)
     %----------------------------------------------------------------------
     for j = 1:numel(NPI)
         
+        % start and end dates
+        %------------------------------------------------------------------
         dstart = datenum(NPI(j).dates{1},'dd-mm-yyyy') - datenum(NPI(j).period{1},'dd-mm-yyyy');
         dfinal = datenum(NPI(j).dates{2},'dd-mm-yyyy') - datenum(NPI(j).period{1},'dd-mm-yyyy');
         if (i > dstart) && (i <= dfinal)
@@ -253,7 +257,7 @@ for i = 1:M.T
     end
     
     % update ensemble density (x)
-    %----------------------------------------------------------------------
+    %======================================================================
     P.t   = log(i);
     T     = spm_COVID_T(x,P);
     x     = spm_unvec(T*spm_vec(x),x);
@@ -302,7 +306,7 @@ for i = 1:M.T
     
     % seropositive immunity (%)
     %----------------------------------------------------------------------
-    Y(i,5) = p{2}(4)*100;
+    Y(i,5) = 100 * p{2}(4);
     
     % total number of daily tests (positive or negative)
     %----------------------------------------------------------------------
@@ -320,7 +324,7 @@ for i = 1:M.T
     %----------------------------------------------------------------------
     Y(i,9) = N * x(1,2,1,1);
     
-    % incidence of new cases
+    % incidence of new cases (%)
     %----------------------------------------------------------------------
     Y(i,10) = 100 * u{2}(3);
     
@@ -390,8 +394,8 @@ for i = 1:M.T
     
     % incidence of vaccinations
     %----------------------------------------------------------------------
-    q       = squeeze(spm_sum(x,[2,4]));
-    Y(i,23) = N * Q.vac*q(6,1);
+    q       = squeeze(spm_sum(x,[3,4]));
+    Y(i,23) = N * exp(P.vac) * q(6,1);
     
     % joint density if requested
     %----------------------------------------------------------------------
@@ -413,6 +417,21 @@ Y(:,22) = (100/N) * cumsum(Y(:,1))./cumsum(Y(:,22));
 % retain specified output variables
 %--------------------------------------------------------------------------
 Y       = Y(:,U);
+
+% deal with mixture models
+%==========================================================================
+if isfield(P,'R')
+    
+    % evaluate mixtures of weekly lags
+    %----------------------------------------------------------------------
+    P     = rmfield(O,'R');
+    P.sde = P.sde + P.SDE;
+    y     = spm_SARS_gen(P,M,U,NPI);
+    R     = spm_softmax([0;O.R]);
+    Y     = R(1)*Y + R(2)*y;
+    
+end
+
 
 % vectorise if data are asynchronous
 %--------------------------------------------------------------------------

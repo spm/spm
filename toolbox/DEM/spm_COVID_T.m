@@ -20,7 +20,7 @@ function T = spm_COVID_T(x,P)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8029 2020-12-05 13:37:31Z karl $
+% $Id: spm_COVID_T.m 8033 2020-12-13 18:13:24Z karl $
 
 % setup
 %==========================================================================
@@ -52,7 +52,7 @@ Q    = (1 + cos(2*pi*P.t/365))/2;
 %--------------------------------------------------------------------------
 b    = cell(1,dim(3));
 q    = spm_sum(x,[1 3 4]);
-Prev = q(2) + q(3) + P.qua*q(4);     % prevalence of infection
+Prev = q(3) + P.qua*q(4);            % prevalence of infection
 
 % lockdown (threshold) strategy
 %--------------------------------------------------------------------------
@@ -69,7 +69,7 @@ Pdis = P.m*Pexp;                     % P(leaving effective population)
 Phos = P.hos;                        % P(hospital | ARDS)
 Pnhs = 0.03;                         % P(hospital | NHS/care worker)
 Pcap = P.ccu;                        % P(transfer to CCU | ARDS)
-Piso = exp(-1/7);                    % period of self-isolation
+Piso = exp(-1/10);                   % period of self-isolation
 
 Ph2h = (1 - Pout)*(1 - Pdis)*(1 - Pnhs);
 Ph2w = Pout*(1 - Pdis)*(1 - Pnhs);

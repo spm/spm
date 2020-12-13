@@ -33,7 +33,7 @@ end
 
 % parametric intervention
 %==========================================================================
-period     = {DCM.M.date,'03-12-2020'};         % duration of epidemic
+period     = {DCM.M.date,'03-04-2021'};         % duration of epidemic
 
 % NPI.period = period;                          % duration of epidemic
 % NPI.param  = 'ttt';                           % parameter to change
@@ -41,25 +41,10 @@ period     = {DCM.M.date,'03-12-2020'};         % duration of epidemic
 % NPI.dates  = {'01-11-2020','01-12-2020'};     % dates of implementation
 
 NPI.period = period;
-NPI.param  = 'sde';
-NPI.Q      = exp(DCM.Ep.sde)*(1 + 10/100);
-NPI.dates  = {'01-11-2020',period{2}};
+NPI.param  = {'sde','vac'};
+NPI.Q      = [exp(DCM.Ep.sde)*1.5 0.5];
+NPI.dates  = {'24-12-2020','01-01-2021'};
 
-period     = {DCM.M.date,'01-01-2022'};         % duration of epidemic
-for i = 1:8
-    NPI(i).period = period;
-    NPI(i).param  = 'vac'; 
-    NPI(i).Q      = i*1/8;
-    NPI(i).dates  = {'08-12-2020',period{2}};
-end
-
-period     = {DCM.M.date,'01-01-2022'};         % duration of epidemic
-for i = 1:8
-    NPI(i).period = period;
-    NPI(i).param  = {'ttt','vac'}; 
-    NPI(i).Q      = [i*1/16 i*1/8];
-    NPI(i).dates  = {'08-12-2020',period{2}};
-end
 
 % unpack model and posterior expectations
 %--------------------------------------------------------------------------
@@ -74,7 +59,7 @@ U   = DCM.U;                                 % indices of outputs
 spm_figure('GetWin','testing and cases'); clf;
 %--------------------------------------------------------------------------
 M.T    = datenum(period{2},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
-u      = [U([1 2 3]); 23];
+u      = U([1 2 3]);
 [Z,X]  = spm_SARS_gen(Ep,M,u);
 spm_SARS_plot(Z,X,S,[],u)
 
@@ -89,9 +74,6 @@ for i = 1:numel(NPI)
     spm_SARS_plot(Z,X,S,[],u)
     
 end
-
-
-return
 
 
 % quantify the effect of efficient intervention (NPI)
@@ -143,7 +125,7 @@ Yi = spm_SARS_gen(Ep,M,u,NPI);
 
 % indices of intervention period over which to evaluate outcomes
 %--------------------------------------------------------------------------
-i  = datenum(NPI.dates{1},'dd-mm-yyyy'):datenum(NPI.dates{2},'dd-mm-yyyy');
+i  = datenum(NPI.dates{1},'dd-mm-yyyy'):datenum(period{2},'dd-mm-yyyy');
 i  = i - datenum(NPI.period{1},'dd-mm-yyyy');
 j  = datenum(period{2},'dd-mm-yyyy') - datenum(NPI.period{1},'dd-mm-yyyy');
 E0 = mean(Y0(i,:));
@@ -178,8 +160,11 @@ Tab.Properties.VariableNames = VariableNames;
 
 % display
 %--------------------------------------------------------------------------
-fprintf('\n    Outcomes from %s to %s\n',NPI.dates{1},NPI.dates{2})
-fprintf('\n   (%s = %g versus %s = %g)\n\n',NPI.param,NPI.Q,NPI.param,exp(Ep.(NPI.param)))
+fprintf('\n    Intervention from %s to %s\n',NPI.dates{1},NPI.dates{2})
+fprintf('\n    Averages and sums from %s to %s\n',NPI.dates{1},period{2})
+try
+    fprintf('\n   (%s = %g versus %s = %g)\n\n',NPI.param,NPI.Q,NPI.param,exp(Ep.(NPI.param)))
+end
 disp(Tab)
 
 writetable(Tab,'Table.xlsx')
