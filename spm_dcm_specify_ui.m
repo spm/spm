@@ -4,6 +4,8 @@ function DCM = spm_dcm_specify_ui(SPM,xY,settings)
 %
 % SPM      - SPM structure from SPM.mat
 % xY       - (optional) VOI structures to be inserted into the DCM
+%            accepts a cell array of VOI structures (see spm_regions.m)
+%            or a nested cell array for multiple sessions (DCM for CSD)
 % settings - (optional) Structure of pre-populated settings for testing the
 %            GUI without mouse clicks.
 %
@@ -22,7 +24,7 @@ function DCM = spm_dcm_specify_ui(SPM,xY,settings)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify_ui.m 7264 2018-02-22 14:43:47Z peter $
+% $Id: spm_dcm_specify_ui.m 8034 2020-12-14 09:26:07Z peter $
 
 
 %-Interactive window
@@ -39,17 +41,32 @@ spm_input('Specify DCM:...  ',1,'d');
 % Outputs
 %==========================================================================
 
-%-Get cell array of region structures
+%-Get structure array of volumes of interest (VOIs)
 %--------------------------------------------------------------------------
+
+xY_multisess = {};  % structure to hold muli-session VOI structures
+
 if nargin < 2 || isempty(xY)
+    % Prompt for VOIs
     swd = SPM.swd;
     [P, sts] = spm_select([1 8],'^VOI.*\.mat$',{'select VOIs'},'',swd);
     if ~sts, DCM = []; return; end
-    P = cellstr(P);
-    
+    P  = cellstr(P);
     xY = voi_files_to_array(P);
-elseif iscell(xY) && ischar(xY{1})
-    xY = voi_files_to_array(xY);  
+    
+elseif iscell(xY) && ischar(xY{1})    
+    % VOI for a single session provided
+    xY = voi_files_to_array(xY);
+    
+elseif iscell(xY) && iscell(xY{1}) && isfield(settings,'induced') ...
+        && settings.induced
+    % VOIs for multiple sessions provided (DCM for CSD)
+    for i = 1:length(xY)
+        xY_multisess{i,1} = voi_files_to_array(xY{i});
+    end
+    
+    % Store the first session as an exemplar for dimensions etc
+    xY = xY_multisess{1};
 end
 
 m = numel(xY);
@@ -231,6 +248,23 @@ Y.X0  = xY(1).X0;
 for i = 1:n
     Y.y(:,i)  = xY(i).u;
     Y.name{i} = xY(i).name;
+end
+
+if isempty(xY_multisess)
+    % Single session
+    for i = 1:n
+        Y.y(:,i)  = xY(i).u;
+    end
+else
+    % Multiple sessions - Y.y becomes a cell array
+    nsess = length(xY_multisess);
+    y     = cell(1,nsess);
+    for s = 1:nsess
+        for i = 1:n
+            y{s}(:,i) = xY_multisess{s}(i).u;
+        end
+    end
+    Y.y = y;
 end
 
 %-Error precision components (one for each region) - i.i.d. (because of W)
