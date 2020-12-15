@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: gmmlib.c 8023 2020-11-26 21:24:00Z john $
+ * $Id: gmmlib.c 8035 2020-12-15 16:09:46Z john $
  */
 #include "spm_mex.h"
 #include<math.h>
@@ -29,8 +29,8 @@ typedef struct
 } GMMtype;
 
 static const double pi = 3.1415926535897931;
-static const mwSize MaxChan=(mwSize)50; /* largest integer valued float is 2^52 */
-static const mwSize Undefined=(mwSize)0xFFFFFFFFFFFFF;
+#define MaxChan   ((mwSize)50) /* largest integer valued float is 2^52 */
+#define Undefined ((mwSize)0xFFFFFFFFFFFFF)
 
 
 /* A (hopefully) fast approximation to exp. */
@@ -218,7 +218,7 @@ static double psi(double z)
     return f;
 }
 
-/* Compute responsibiliies from Normal distributions, accounting for uncertainty of
+/* Add log-likelihoods from Normal distributions, accounting for uncertainty of
  * the parameters
  *
  * K    - number of Gaussians.
@@ -229,9 +229,8 @@ static double psi(double z)
  * v    - Var[x]
  * p    - on input: a vector of logs of prior probabilities
  *        on output: logs of likelihoods are added to the log priors
- *                   and the result passed through a softmax.
  */
-static double Nresp(mwSize K, GMMtype gmm[], mwSize code, double x[], double v[], double p[])
+static void Nloglikelihoods(mwSize K, GMMtype gmm[], mwSize code, double x[], double v[], double p[])
 {
     mwSize P, k;
     double *mu, *b, *W, *nu, *gam, *con;
@@ -245,11 +244,9 @@ static double Nresp(mwSize K, GMMtype gmm[], mwSize code, double x[], double v[]
 
     for(k=0; k<K; k++, W+=P*P, mu+=P)
         p[k] += con[k] - 0.5*nu[k]*del2(P, mu, W, x, v);
-
-    return softmax1(K,p,p);
 }
 
-/* Compute responsibiliies from Student's T distributions, accounting
+/* Add log-likelihoods from Student's T distributions, accounting
  * for uncertainty of the parameters
  *
  * K    - number of Gaussians.
@@ -260,14 +257,13 @@ static double Nresp(mwSize K, GMMtype gmm[], mwSize code, double x[], double v[]
  * v    - Var[x]
  * p    - on input: a vector of logs of prior probabilities
  *        on output: logs of likelihoods are added to the log priors
- *                   and the result passed through a softmax.
  */
-static double Tresp(mwSize K, GMMtype gmm[], mwSize code, double x[], double v[], double p[])
+static void Tloglikelihoods(mwSize K, GMMtype gmm[], mwSize code, double x[], double v[], double p[])
 {
     mwSize P, k;
     double *mu, *b, *W, *nu, *con;
     /*
-       Compute other responsibilities from a mixture of Student's t distributions.
+       Compute other log-likelihoods from a mixture of Student's t distributions.
        See Eqns. 10.78-10.82 & B.68-B.72 in Bishop's PRML book.
        In practice, it only improves probabilities by a tiny amount.
 
@@ -292,10 +288,20 @@ static double Tresp(mwSize K, GMMtype gmm[], mwSize code, double x[], double v[]
 
     for(k=0; k<K; k++, W+=P*P, mu+=P)
         p[k] += con[k] - 0.5*(nu[k]+1.0)*log(1.0 + b[k]/(b[k]+1.0)*del2(P, mu, W, x, v));
-
-    return softmax1(K,p,p);
 }
 
+
+/*
+ * lnP = E[\ln A] 
+ * E[\ln {\bf a}_k] = \psi({\bf a}_k) - \psi(\sum_i a_{ik})
+ *
+ */
+static void Dloglikelihoods(mwSize i, mwSize K, double *lnP, double *p)
+{
+    mwSize k;
+    for(k=0; k<K; k++)
+        p[k] += lnP[i+256*k];
+}
 
 /* Construct a vector of log tissue priors for a voxel
  *
@@ -306,7 +312,7 @@ static double Tresp(mwSize K, GMMtype gmm[], mwSize code, double x[], double v[]
  *       associated with which tissue class.
  * p   - Output vector of log tissue priors.
  */
-static int get_priors(mwSize N1, float *lp, mwSize K, mwSize *lkp, /*@out@*/ double *p)
+static int logpriors(mwSize N1, float *lp, mwSize K, mwSize *lkp, /*@out@*/ double *p)
 {
     mwSize k;
 /*  double l; */
@@ -582,10 +588,10 @@ static /*@null@*/ GMMtype *sub_gmm(mwSize P, mwSize K, double *mu, double *b, do
  * lp   - Log tissue priors
  * suffstat - Data stucture to hold resulting sufficient statistics.
  */
-static double suffstats_missing(mwSize nf[], float mf[], float vf[],
-                      mwSize K, GMMtype gmm[],
+static double suffstats_missing(mwSize nf[], float mf[], float vf[], unsigned char label[],
+                      mwSize K, GMMtype gmm[], double lnP[],
                       mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
-                      SStype suffstat[])
+                      SStype suffstat[], double H[])
 {
     mwSize K1, i0,i1,i2, n2,n1,n0, P, Nf, Nm, code;
     double ll = 0.0, mx[MaxChan], vx[MaxChan], p[128];
@@ -612,11 +618,23 @@ static double suffstats_missing(mwSize nf[], float mf[], float vf[],
                 i    = i0         + off_f;
                 im   = i0*skip[0] + off_m;
                 code = get_vox(Nf,P,mf+i,vf+i,mx,vx);
-                if (code>0 && get_priors(Nm, lp+im, K, lkp, p)!=0)
+                if (code>0 && logpriors(Nm, lp+im, K, lkp, p)!=0)
                 {
                     mwSize j, j1, k, Po;
                     double *s0, *s1, *s2;
-                    ll += Nresp(K, gmm, code, mx, vx, p);
+                    Nloglikelihoods(K, gmm, code, mx, vx, p);
+
+                    if (label!=NULL)
+                    {
+                        mwSize labi = (mwSize)(label[im]);
+                        Dloglikelihoods(labi, K, lnP, p);
+                        ll += softmax1(K,p,p);
+                        for(k=0; k<K; k++)
+                            H[labi + 256*k] += p[k];
+                    }
+                    else
+                        ll += softmax1(K,p,p);
+
                     Po  = gmm[code].P;
                     s0  = suffstat[code].s0;
                     s1  = suffstat[code].s1;
@@ -664,10 +682,10 @@ static double suffstats_missing(mwSize nf[], float mf[], float vf[],
  * a structure containing pointers to the sufficient statistics.
  * It then calls suffstats_missing before freeing up the structures.
  */
-double call_suffstats_missing(mwSize nf[], float mf[], float vf[],
-    mwSize K, double mu[], double b[], double W[], double nu[], double gam[],
+double call_suffstats_missing(mwSize nf[], float mf[], float vf[], unsigned char label[],
+    mwSize K, double mu[], double b[], double W[], double nu[], double gam[], double lnP[],
     mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
-    double s0_ptr[], double s1_ptr[], double s2_ptr[])
+    double s0_ptr[], double s1_ptr[], double s2_ptr[], double H[])
 {
     mwSize P = nf[3];
     GMMtype *gmm;
@@ -682,7 +700,7 @@ double call_suffstats_missing(mwSize nf[], float mf[], float vf[],
         (void)free((void *)gmm);
         return NAN;
     }
-    ll = suffstats_missing(nf, mf, vf, K, gmm, nm, skip, lkp, lp, suffstat);
+    ll = suffstats_missing(nf, mf, vf, label, K, gmm, lnP, nm, skip, lkp, lp, suffstat, H);
     (void)free((void *)gmm);
     (void)free((void *)suffstat);
     return ll;
@@ -704,8 +722,8 @@ double call_suffstats_missing(mwSize nf[], float mf[], float vf[],
  * lp   - Log tissue priors
  * r    - Responsibilities (n_x, n_y, n_z, max(lkp)).
  */
-static double responsibilities(mwSize nf[], mwSize skip[], float mf[], float vf[],
-              mwSize K, GMMtype *gmm,
+static double responsibilities(mwSize nf[], mwSize skip[], float mf[], float vf[], unsigned char label[],
+              mwSize K, GMMtype *gmm, double lnP[],
               mwSize K1, mwSize lkp[], float lp[],
               float r[])
 {
@@ -726,14 +744,16 @@ static double responsibilities(mwSize nf[], mwSize skip[], float mf[], float vf[
                 mwSize i, code, k, k1;
                 i    = i0+off_f;
                 code = get_vox(N1,P,mf+i,vf+i,mx,vx);
-                if (get_priors(N1, lp+i, K, lkp, p)!=0)
+                if (logpriors(N1, lp+i, K, lkp, p)!=0)
                 {
                     if (code!=0)
                     {
+                        if (label!=NULL) Dloglikelihoods((mwSize)(label[i]), K, lnP, p);
                         if ((i2%skip[2])==0 && ((i1%skip[1])==0) & ((i0%skip[0])==0))
-                            ll += Nresp(K, gmm, code, mx, vx, p);
+                            Nloglikelihoods(K, gmm, code, mx, vx, p);
                         else
-                            ll += Tresp(K, gmm, code, mx, vx, p);
+                            Tloglikelihoods(K, gmm, code, mx, vx, p);
+                        ll += softmax1(K,p,p);
                         for(k=0; k<K; k++)
                         {
                             k1 = lkp[k];
@@ -743,7 +763,7 @@ static double responsibilities(mwSize nf[], mwSize skip[], float mf[], float vf[
                     }
                     else
                     {
-                        (void)softmax(K1,p,p);
+                     /* (void)softmax(K1,p,p); */
                         for(k1=0; k1<K1-1; k1++)
                             r[i+k1*N1]  = NAN;
                         /*  r[i+k1*N1] += p[k1]; */
@@ -762,8 +782,8 @@ static double responsibilities(mwSize nf[], mwSize skip[], float mf[], float vf[
 /* Constructs a gmm structure from mu, b, W, nu, and gam, using this
  * to call responsibilities.
  */
-double call_responsibilities(mwSize nf[], mwSize skip[], float mf[], float vf[],
-    mwSize K, double mu[], double b[], double W[], double nu[], double gam[],
+double call_responsibilities(mwSize nf[], mwSize skip[], float mf[], float vf[], unsigned char label[],
+    mwSize K, double mu[], double b[], double W[], double nu[], double gam[], double lnP[],
     mwSize K1, mwSize lkp[], float lp[],
     float r[])
 {
@@ -774,7 +794,7 @@ double call_responsibilities(mwSize nf[], mwSize skip[], float mf[], float vf[],
     if (P>=MaxChan || K>=128) return NAN;
     if ((gmm      = sub_gmm(P, K, mu, b, W, nu, gam))==NULL) return NAN;
 
-    ll = responsibilities(nf, skip, mf, vf, K, gmm, K1, lkp, lp, r);
+    ll = responsibilities(nf, skip, mf, vf, label, K, gmm, lnP, K1, lkp, lp, r);
 
     (void)free((void *)gmm);
     return ll;
@@ -840,8 +860,8 @@ if simplify(H+g-H0)~=0, disp('There''s a problem.'); end
  * g2   - Output Hessian   (n_x, n_y, n_z).
  *
  */
-static double INUgrads(mwSize nf[], float mf[], float vf[],
-              mwSize K, GMMtype gmm[],
+static double INUgrads(mwSize nf[], float mf[], float vf[], unsigned char label[],
+              mwSize K, GMMtype gmm[], double lnP[],
               mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
               mwSize index[],
               float  g1[], float g2[])
@@ -872,9 +892,11 @@ static double INUgrads(mwSize nf[], float mf[], float vf[],
                 i    = i0         + off_f;
                 im   = i0*skip[0] + off_m;
                 code = get_vox(Nf,P,mf+i,vf+i,mx,vx);
-                if (code!=0 && get_priors(Nm, lp+im, K, lkp, p)!=0)
+                if (code!=0 && logpriors(Nm, lp+im, K, lkp, p)!=0)
                 {
-                    ll += Nresp(K, gmm, code, mx, vx, p);
+                    if (label!=NULL) Dloglikelihoods((mwSize)(label[im]), K, lnP, p);
+                    Nloglikelihoods(K, gmm, code, mx, vx, p);
+                    ll += softmax1(K,p,p);
                     if (index[code]!=Undefined)
                     {
                         double g=0.0, h=0.0, *mu, *W, *nu;
@@ -893,7 +915,8 @@ static double INUgrads(mwSize nf[], float mf[], float vf[],
                         }
                         g = g*mx[nc]+h*vx[nc]        - 1.0;
                         h = h*(mx[nc]*mx[nc]+vx[nc]) + 1.0;
-                        if (g>0.0) h += g;
+                     /* if (g>0.0) h += g; */
+                        h += fabs(g);
 
                         g1[i] = (float)g;
                         g2[i] = (float)h;
@@ -932,8 +955,8 @@ static void make_index(mwSize P, mwSize ic, mwSize index[])
 /* Constructs a gmm structure from mu, b, W, nu, and gam, as well as a vector
  * of indices. These are then used when calling INUgrads.
  */
-double call_INUgrads(mwSize nf[], float mf[], float vf[],
-    mwSize K, double mu[], double b[], double W[], double nu[], double gam[],
+double call_INUgrads(mwSize nf[], float mf[], float vf[], unsigned char label[],
+    mwSize K, double mu[], double b[], double W[], double nu[], double gam[], double lnP[],
     mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
     mwSize ic,
     float g1[], float g2[])
@@ -952,7 +975,7 @@ double call_INUgrads(mwSize nf[], float mf[], float vf[],
         return NAN;
     }
     make_index(P, ic, index);
-    ll = INUgrads(nf, mf, vf, K, gmm, nm, skip, lkp, lp, index, g1, g2);
+    ll = INUgrads(nf, mf, vf, label, K, gmm, lnP, nm, skip, lkp, lp, index, g1, g2);
     (void)free((void *)gmm);
     (void)free((void *)index);
     return ll;

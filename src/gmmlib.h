@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: gmmlib.h 8023 2020-11-26 21:24:00Z john $
+ * $Id: gmmlib.h 8035 2020-12-15 16:09:46Z john $
  *
  */
 
@@ -15,18 +15,18 @@ double psi(double z);
 
 void space_needed(mwSize M, mwSize K, mwSize *m0, mwSize *m1, mwSize *m2);
 
-double call_suffstats_missing(mwSize nf[], float mf[], float vf[],
-    mwSize K, double mu[], double b[], double W[], double nu[], double gam[],
+double call_suffstats_missing(mwSize nf[], float mf[], float vf[], unsigned char label[],
+    mwSize K, double mu[], double b[], double W[], double nu[], double gam[], double lnP[],
     mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
-    double s0_ptr[], double s1_ptr[], double s2_ptr[]);
+    double s0_ptr[], double s1_ptr[], double s2_ptr[], double H[]);
 
-double call_responsibilities(mwSize nf[], mwSize skip[], float mf[], float vf[],
-    mwSize K, double mu[], double b[], double W[], double nu[], double gam[],
+double call_responsibilities(mwSize nf[], mwSize skip[], float mf[], float vf[], unsigned char label[],
+    mwSize K, double mu[], double b[], double W[], double nu[], double gam[], double lnP[],
     mwSize K1, mwSize lkp[], float lp[],
     float r[]);
 
-double call_INUgrads(mwSize nf[], float mf[], float vf[],
-    mwSize K, double mu[], double b[], double W[], double nu[], double gam[],
+double call_INUgrads(mwSize nf[], float mf[], float vf[], unsigned char label[],
+    mwSize K, double mu[], double b[], double W[], double nu[], double gam[], double lnP[],
     mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
     mwSize ic,
     float g1[], float g2[]);

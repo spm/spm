@@ -1,7 +1,7 @@
 /* 
  * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: spm_gmmlib.c 8023 2020-11-26 21:24:00Z john $
+ * $Id: spm_gmmlib.c 8035 2020-12-15 16:09:46Z john $
  *
  */
 
@@ -27,7 +27,8 @@ static mwSize copy_dims(const mxArray *prhs, mwSize n[])
 }
 
 static void parse_rhs(int nrhs, const mxArray *prhs[], mwSize *Kp, double **mp, double **bp, double **Wp, double **nup, double **gamp,
-                      mwSize **lkpp, mwSize *nm, float **mup, mwSize *nf, float **mfp, float **vfp, mwSize *skip)
+                      mwSize **lkpp, mwSize *nm, float **mup, mwSize *nf, float **mfp, float **vfp, mwSize *skip,
+                      unsigned char **labelp, double **lnPp)
 {
     mwSize nl[5], nd, i, k, P, K1;
     mwSignedIndex *lkp0;
@@ -131,6 +132,30 @@ static void parse_rhs(int nrhs, const mxArray *prhs[], mwSize *Kp, double **mp, 
         }
     }
 
+    /* labels */
+    *labelp = NULL;
+    *lnPp   = NULL;
+    if (nrhs>=12)
+    {
+        mwSize ds[5];
+        nd  = copy_dims(prhs[10],ds);
+        if (ds[0]*ds[1]*ds[2]*ds[3] > 0)
+        {
+            if (!mxIsNumeric(prhs[10]) || mxIsComplex(prhs[10]) || mxIsSparse(prhs[10]) || !mxIsUint8(prhs[10]))
+                mexErrMsgTxt("Label data must be numeric, real, full and UInt8.");
+            if (ds[0]!=nm[0] || ds[1]!=nm[1] || ds[2]!=nm[2] || ds[3]!=1 || ds[4]!=1)
+                mexErrMsgTxt("Incompatible dimensions (label).");
+            *labelp = (unsigned char *)mxGetPr(prhs[10]);
+
+            if (!mxIsNumeric(prhs[11]) || mxIsComplex(prhs[11]) || mxIsSparse(prhs[11]) || !mxIsDouble(prhs[11]))
+                mexErrMsgTxt("Label parameters must be numeric, real, full and double");
+            nd  = copy_dims(prhs[11],ds);
+            if (nd>2 || ds[0]!=256 || ds[1]!=*Kp)
+                mexErrMsgTxt("Incompatible dimensions (label parameters).");
+            *lnPp = (double *)mxGetPr(prhs[11]);
+         }
+    }
+
     /* lkp - allocated memory needs freeing later on */
     *lkpp = (mwSize *)mxCalloc(sizeof(mwSize),*Kp);
     for(k=0; k<*Kp; k++) (*lkpp)[k] = lkp0[k]-1;
@@ -140,13 +165,14 @@ static void resp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 {
     static mwSize scalar_dim[2] = {1,1};
     mwSize K, k, nf[5], nm[5], nr[5], skip[3];
-    double *m, *b, *W, *nu, *gam, *ll;
+    double *m, *b, *W, *nu, *gam, *lnP = NULL, *ll;
     float *mu, *mf, *vf, *r;
     mwSize *lkp;
+    unsigned char *label = NULL;
 
-    if (nrhs<9 || nrhs>10 || nlhs>2) mexErrMsgTxt("Incorrect usage");
+    if (nrhs<9 || nrhs>12 || nlhs>2) mexErrMsgTxt("Incorrect usage");
 
-    parse_rhs(nrhs, prhs, &K, &m, &b, &W, &nu, &gam, &lkp, nm, &mu, nf, &mf, &vf, skip);
+    parse_rhs(nrhs, prhs, &K, &m, &b, &W, &nu, &gam, &lkp, nm, &mu, nf, &mf, &vf, skip, &label, &lnP);
     if (nf[0]!=nm[0] || nf[1]!=nm[1] || nf[2]!=nm[2]) mexErrMsgTxt("Incompatible dimensions (mf).");
 
     /* r */
@@ -161,28 +187,36 @@ static void resp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
     plhs[1] = mxCreateNumericArray(2,scalar_dim, mxDOUBLE_CLASS, mxREAL);
     ll      = (double *)mxGetPr(plhs[1]);
 
-    ll[0] = call_responsibilities(nf,skip,mf,vf, K,m,b,W,nu,gam, nm[3],lkp,mu, r);
+    ll[0] = call_responsibilities(nf,skip,mf,vf, label, K,m,b,W,nu,gam, lnP, nm[3],lkp,mu, r);
     mxFree(lkp);
 }
 
 static void moments_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     mwSize K, K1, k, nf[5], nm[5], skip[3], *lkp, dm0, dm1, dm2;
-    double *m, *b, *W, *nu, *gam, *s0, *s1, *s2, *ll;
+    double *m, *b, *W, *nu, *gam, *lnP = NULL, *s0, *s1, *s2, *ll, *H;
     float *mu, *mf, *vf, *r;
+    unsigned char *label = NULL;
 
-    if (nrhs<9 || nrhs>10 || nlhs>4) mexErrMsgTxt("Incorrect usage");
+    if (nrhs<9 || nrhs>12 || nlhs>5) mexErrMsgTxt("Incorrect usage");
 
-    parse_rhs(nrhs, prhs, &K, &m, &b, &W, &nu, &gam, &lkp, nm, &mu, nf, &mf, &vf, skip);
-
+    parse_rhs(nrhs, prhs, &K, &m, &b, &W, &nu, &gam, &lkp, nm, &mu, nf, &mf, &vf, skip, &label, &lnP);
     space_needed(nf[3], K, &dm0, &dm1, &dm2);
     plhs[0] = mxCreateDoubleMatrix(dm0,1, mxREAL); s0 = (double *)mxGetPr(plhs[0]);
     plhs[1] = mxCreateDoubleMatrix(dm1,1, mxREAL); s1 = (double *)mxGetPr(plhs[1]);
     plhs[2] = mxCreateDoubleMatrix(dm2,1, mxREAL); s2 = (double *)mxGetPr(plhs[2]);
     plhs[3] = mxCreateDoubleMatrix(  1,1, mxREAL); ll = (double *)mxGetPr(plhs[3]);
-
-    ll[0]   = call_suffstats_missing(nf,mf,vf, K,m,b,W,nu,gam, nm,skip,lkp,mu, s0,s1,s2);
-
+    if (label!=NULL)
+    {
+        plhs[4] = mxCreateDoubleMatrix(256, K, mxREAL);
+        H       = (double *)mxGetPr(plhs[4]);
+    }
+    else
+    {
+        plhs[4] = mxCreateDoubleMatrix(0, 0, mxREAL);
+        H       = NULL;
+    }
+    ll[0]   = call_suffstats_missing(nf,mf,vf, label, K,m,b,W,nu,gam, lnP, nm,skip,lkp,mu, s0,s1,s2, H);
     mxFree(lkp);
 }
 
@@ -191,27 +225,29 @@ static void inugrads_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
     mwSize nf[5];
     mwSize K, K1, k, nm[5], dc[5], skip[3], *lkp, dm0, dm1, dm2, nd;
     mwSize c;
-    double *m, *b, *W, *nu, *gam, *ll;
+    double *m, *b, *W, *nu, *gam, *lnP = NULL, *ll;
     float *mu, *mf, *vf, *g1, *g2;
+    unsigned char *label = NULL;
 
-    if (nrhs!=11 || nlhs>3) mexErrMsgTxt("Incorrect usage");
-
-    parse_rhs(nrhs, prhs, &K, &m, &b, &W, &nu, &gam, &lkp, nm, &mu, nf, &mf, &vf, skip);
+    if (nrhs>13 || nlhs>3) mexErrMsgTxt("Incorrect usage");
+    parse_rhs(nrhs, prhs, &K, &m, &b, &W, &nu, &gam, &lkp, nm, &mu, nf, &mf, &vf, skip, &label, &lnP);
 
     /* c */
-    if (!mxIsNumeric(prhs[10]) || mxIsComplex(prhs[10]) ||
-          mxIsSparse(prhs[10]) || !mxIsUint64(prhs[10]))
+    if (!mxIsNumeric(prhs[12]) || mxIsComplex(prhs[12]) ||
+          mxIsSparse(prhs[12]) || !mxIsUint64(prhs[12]))
         mexErrMsgTxt("Index must be numeric, real, full and UInt64.");
-    nd  = copy_dims(prhs[10],dc);
+    nd  = copy_dims(prhs[12],dc);
     if (nd>2 || dc[0]!=1 || dc[1]!=1) mexErrMsgTxt("Index not a scalar.");
-    c = ((mwSize *)mxGetPr(prhs[10]))[0] - 1;
+    c = ((mwSize *)mxGetPr(prhs[12]))[0] - 1;
     if (c<0 || c>=(mwSize)nf[3]) mexErrMsgTxt("Index out of range.");
 
     plhs[0] = mxCreateNumericArray(3,nf, mxSINGLE_CLASS, mxREAL); g1 = (float *)mxGetPr(plhs[0]);
     plhs[1] = mxCreateNumericArray(3,nf, mxSINGLE_CLASS, mxREAL); g2 = (float *)mxGetPr(plhs[1]);
     plhs[2] = mxCreateDoubleMatrix(1, 1, mxREAL);
     ll      = (double *)mxGetPr(plhs[2]);
-    ll[0]   = call_INUgrads(nf,mf,vf, K,m,b,W,nu,gam, nm,skip,lkp,mu, (mwSize)c, g1,g2);
+
+    ll[0]   = call_INUgrads(nf,mf,vf, label, K,m,b,W,nu,gam, lnP, nm,skip,lkp,mu, (mwSize)c, g1,g2);
+
     mxFree(lkp);
 }
 
