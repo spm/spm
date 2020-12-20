@@ -36,7 +36,7 @@ end
 period = {DCM.M.date,'01-01-2022'};         % duration of epidemic
 for i  = 1:6
     NPI(i).period = period;
-    NPI(i).param  = {'vac'}; 
+    NPI(i).param  = {'vac','ttt'};  %%%% {'vac','ttt'}; 
     NPI(i).Q(1)   = 1e-8 + (i - 1)*1/5;
     NPI(i).Q(2)   = 0.24;
     NPI(i).dates  = {'08-12-2020',period{2}};

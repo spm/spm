@@ -35,7 +35,7 @@ function [P,C,str] = spm_SARS_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8033 2020-12-13 18:13:24Z karl $
+% $Id: spm_SARS_priors.m 8036 2020-12-20 19:19:56Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -99,15 +99,13 @@ names{28} = 'FTTI efficacy';
 names{29} = 'testing: bias (early)';
 names{30} = 'testing: bias (late)';
 names{31} = 'test delay (days)';
-names{32} = 'symptom demand';
+names{32} = 'vaccination rate';
 names{33} = 'false-negative rate';
 names{34} = 'false-positive rate';
 
 names{35} = 'testing: capacity';
 names{36} = 'testing: constant';
 names{37} = 'testing: onset';
-
-names{38} = 'vaccination rate';
 
 
 % latent or hidden factors
@@ -189,8 +187,8 @@ end
 P.N   = 64;                   % (01) population size (millions)
 P.n   = exp(0);               % (02) initial cases (cases)
 P.r   = 0.25;                 % (03) pre-existing immunity (proportion)
-P.o   = 0.03;                 % (04) initial exposed proportion
-P.m   = 2;                    % (05) relative eflux
+P.o   = 0.25;                 % (04) initial exposed proportion
+P.m   = 1;                    % (05) relative eflux
 
 % location (exposure) parameters
 %--------------------------------------------------------------------------
@@ -200,7 +198,7 @@ P.qua = 0.15;                 % (08) seropositive contribution
 P.exp = 0.01;                 % (09) viral spreading (days)
 P.hos = 0.4;                  % (10) admission rate (hospital)
 P.ccu = 0.14;                 % (11) admission rate (CCU)
-P.s   = 4;                    % (12) distancing sensitivity
+P.s   = 3;                    % (12) distancing sensitivity
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -211,7 +209,7 @@ P.trm = 0.25;                 % (16) transmission strength (late)
 P.Tin = 5;                    % (17) infected period (days)
 P.Tcn = 4;                    % (18) infectious period (days)
 P.Tim = 180;                  % (19) seropositive immunity (days)
-P.res = 0.1;                  % (20) seronegative proportion
+P.res = 0.16;                 % (20) seronegative proportion
 
 % clinical parameters
 %--------------------------------------------------------------------------
@@ -221,31 +219,28 @@ P.Trd = 6;                    % (23) CCU period (days)
 
 P.sev = 0.6/100;              % (24) P(ARDS | symptoms): early
 P.lat = 0.8/100;              % (25) P(ARDS | symptoms): late
-P.fat = 0.7;                  % (26) P(fatality | ARDS): early
+P.fat = 0.6;                  % (26) P(fatality | ARDS): early
 P.sur = 0.3;                  % (27) P(fatality | ARDS): late
 
 % testing parameters
 %--------------------------------------------------------------------------
 P.ttt = 0.036;                % (28) FTTI efficacy
-P.tes = 4;                    % (29) bias (for infection): early
-P.tts = 5;                    % (30) bias (for infection): late
-P.del = 3.4;                  % (31) test delay (days)
-P.ont = 0.01;                 % (32) symptom-dependent
+P.tes = 5;                    % (29) bias (for infection): early
+P.tts = 8;                    % (30) bias (for infection): late
+P.del = 3;                    % (31) test delay (days)
+P.vac = 1e-8;                 % (32) vaccination rate
 P.fnr = 0.2;                  % (33) false-negative rate
 P.fpr = 0.002;                % (34) false-positive rate
 
-P.lim = [0.004 0.001];        % (35) testing: capacity
-P.rat = [32   8];             % (36) testing: dispersion
-P.ons = [200 100];            % (37) testing: onset
-
-P.vac = 1e-8;                 % (38) vaccination rate
-
+P.lim = [0.001 0.004];        % (35) testing: capacity
+P.rat = [8 32];               % (36) testing: dispersion
+P.ons = [100 200];            % (37) testing: onset
 
 % cut and paste to see the effects of changing different prior expectations
 %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 if false
     U     = [1 2 3 16 23];
-    pE    = spm_SARS_priors; M.T = 10*32;
+    pE    = spm_SARS_priors; M.T = 12*32;
     [Y,X] = spm_SARS_gen(pE,M,U);
     spm_SARS_plot(Y,X,[],[],U)
 end
@@ -266,7 +261,7 @@ X     = exp(-6);              % informative priors
 C.N   = U;                    % (01) population size (millions)
 C.n   = U;                    % (02) initial cases (cases)
 C.r   = W;                    % (03) pre-existing immunity (proportion)
-C.o   = W;                    % (04) initial exposed proportion
+C.o   = V;                    % (04) initial exposed proportion
 C.m   = V;                    % (05) relative eflux
 
 % location (exposure) parameters
@@ -306,7 +301,7 @@ C.ttt = X;                    % (28) FTTI efficacy
 C.tes = V;                    % (29) testing: bias (early)
 C.tts = V;                    % (30) testing: bias (late)
 C.del = X;                    % (31) test delay (days)
-C.ont = U;                    % (32) symptom-dependent
+C.vac = 0;                    % (32) vaccination rate
 C.fnr = X;                    % (33) false-negative rate
 C.fpr = X;                    % (34) false-positive rate
 
@@ -314,18 +309,10 @@ C.lim = V;                    % (35) testing: capacity
 C.rat = U;                    % (36) testing: constant (days)
 C.ons = U;                    % (37) testing: onset (days)
 
-C.vac = 0;                    % (38) vaccination rate
-
-% implicit prior confidence bounds
+% check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------
-s     = spm_invNcdf(1 - 0.01);
 field = fieldnames(P);
 for i = 1:numel(field)
-    b = log(P.(field{i})) + [-s s]*sqrt(C.(field{i}));
-    R.(field{i}) = exp(b);
-    
-    % check prior expectations and covariances are consistent
-    %---------------------------------------------------------------------
     if numel(P.(field{i})) ~= numel(C.(field{i}))
         C.(field{i}) = repmat(C.(field{i}),1,numel(P.(field{i})));
     end

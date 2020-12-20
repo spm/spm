@@ -1,10 +1,11 @@
-function T = spm_COVID_T(x,P)
+function [T,R] = spm_COVID_T(x,P)
 % state dependent probability transition matrices
-% FORMAT T = spm_COVID_T(x,P)
+% FORMAT [T,R] = spm_COVID_T(x,P)
 % x      - probability distributions (tensor)
 % P      - model parameters
 % 
 % T      - probability transition matrix
+% R      - time varying parameters
 %
 % This subroutine creates a transition probability tensors as a function of
 % model parameters and the joint density over four factors, each with
@@ -20,7 +21,7 @@ function T = spm_COVID_T(x,P)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8033 2020-12-13 18:13:24Z karl $
+% $Id: spm_COVID_T.m 8036 2020-12-20 19:19:56Z karl $
 
 % setup
 %==========================================================================
@@ -45,6 +46,7 @@ Kday = exp(-1);
 %--------------------------------------------------------------------------
 Q    = (1 + cos(2*pi*P.t/365))/2;
 
+
 % probabilistic transitions: location
 %==========================================================================
 
@@ -52,12 +54,19 @@ Q    = (1 + cos(2*pi*P.t/365))/2;
 %--------------------------------------------------------------------------
 b    = cell(1,dim(3));
 q    = spm_sum(x,[1 3 4]);
-Prev = q(3) + P.qua*q(4);            % prevalence of infection
+
+Pout = P.out;                         % fluctuating mobility
+if isfield(P,'mob')
+    for i = 1:numel(P.mob)
+        Pout = Pout + log(P.mob(i)) * cos(i*2*pi*P.t/365)/8;
+    end
+end
 
 % lockdown (threshold) strategy
 %--------------------------------------------------------------------------
+Prev = q(3) + P.qua*q(4);            % prevalence of infection
 Psde = spm_sigma(Prev,P.sde,P.s);    % 1 - P(lockdown)
-Pout = Psde*P.out;                   % P(work | asymptomatic)
+Pout = Psde*Pout;                    % P(work | asymptomatic)
 
 % viral spread
 %--------------------------------------------------------------------------
@@ -155,7 +164,14 @@ pin  = q(1,:)/sum(q(1,:) + eps);     % infection probability at home
 pou  = q(2,:)/sum(q(2,:) + eps);     % infection probability at work
 phs  = q(6,:)/sum(q(6,:) + eps);     % infection probability at hospital
 
-Ptrn = erf(P.trn*Q + P.trm*(1 - Q)); % transmission strength
+Pmut = 0;                            % fluctuating transmission strength
+if isfield(P,'vir')
+    for i = 1:numel(P.vir)
+        Pmut = Pmut + log(P.vir(i)) * cos(i*2*pi*P.t/365)/8;
+    end
+end
+
+Ptrn = erf(P.trn*Q + P.trm*(1 - Q) + Pmut); % transmission strength
 Ptin = (1 - Ptrn*pin(3))^P.Nin;      % P(no transmission) | home
 Ptou = (1 - Ptrn*pou(3))^P.Nou;      % P(no transmission) | work
 Pths = (1 - Ptrn*phs(3))^P.Nou;      % P(no transmission) | hospital
@@ -281,15 +297,21 @@ ij   = Bij({6,1:5,3,1:4},{6,1:5,1,1:4},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
 % test probabilities
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
-q    = spm_sum(x,[1 2 4]);  q = q(2); % probability of symptoms 
 
-Psen = 0;
+Ppcr = 1;                             % fluctuations in testing rate
+if isfield(P,'pcr')
+    for i = 1:numel(P.pcr)
+        Ppcr = Ppcr + log(P.pcr(i)) * cos(i*2*pi*P.t/365)/8;
+    end
+end
+
+Psen = 0;                             % sustained phases of testing
 for i = 1:numel(P.lim)
-    Psen  = Psen + P.lim(i)*spm_phi((P.t - P.ons(i))/P.rat(i));
+    Psen = Psen + P.lim(i)*spm_phi((P.t - P.ons(i))/P.rat(i));
 end
 
 Ptes = P.tes*Q + P.tts*(1 - Q);       % testing bias
-Psen = erf(Psen + P.ont*q);           % demand for testing   
+Psen = erf(Psen*Ppcr);                % probability of testing 
 Ptes = erf(Psen*Ptes);                % probability if infected
 Sens = 1 - P.fnr;                     % PCR false negative rate
 Spec = 1 - P.fpr;                     % PCR false positive rate
@@ -342,6 +364,12 @@ for i = 1:numel(B)
     T =  T*B{i};
 end
 
+R.Pout = Pout;
+R.Ptrn = Ptrn;
+R.Psev = Psev;
+R.Pfat = Pfat;
+R.Psen = Psen;
+R.Ptes = Ptes;
 
 return
 

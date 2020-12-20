@@ -20,7 +20,7 @@ function [DCM] = DEM_COVID_LTLA(LA)
 
 % download from web options
 %--------------------------------------------------------------------------
-options = weboptions('ContentType','table'); 
+options = weboptions('ContentType','table');
 options.Timeout = 20;
 
 % load (ONS) testing death-by-date data
@@ -123,10 +123,10 @@ dates  = d0:max(spm_vec(D.date));
 
 % free parameters of local model (fixed effects)
 %==========================================================================
-[pE,pC] = spm_SARS_priors;
-pC      = spm_zeros(pC);
-name    = fieldnames(pE); 
-free    = {'n','r','o','m','sde','qua','exp','s','Nin','Nou','trn','trm','ont','lim','ons'};
+[pE,qC] = spm_SARS_priors;
+pC      = spm_zeros(qC);
+name    = fieldnames(pE);
+free    = {'n','r','o','m','sde','qua','exp','s','Nin','Nou','trn','trm','lim','ons'};
 % free  = {'n','r','o','m','sde','qua','exp','s'};
 
 % (empirical) prior expectation
@@ -138,7 +138,7 @@ end
 % (empirical) prior covariances
 %--------------------------------------------------------------------------
 for i = 1:numel(free)
-    pC.(free{i}) = PCM.M.pC.(free{i});
+    pC.(free{i}) = qC.(free{i});
 end
 
 %%%% try, D   = D(1:16); end %%%%
@@ -165,7 +165,7 @@ for r = 1:numel(D)
     Y(2).date = D(r).date;
     Y(2).Y    = D(r).deaths;
     Y(2).h    = 0;
-
+    
     % remove NANs, smooth and sort by date
     %----------------------------------------------------------------------
     [Y,S] = spm_COVID_Y(Y,M.date,16);
@@ -179,7 +179,7 @@ for r = 1:numel(D)
     % get and set priors
     %----------------------------------------------------------------------
     pE.N   = log(D(r).N/1e6);      % population of local authority
-
+    
     % model specification
     %======================================================================
     M.Nmax = 32;                   % maximum number of iterations
@@ -206,7 +206,7 @@ for r = 1:numel(D)
     DCM(r).xY = xY;
     DCM(r).S  = S;
     DCM(r).F  = F;
-
+    
     % now-casting for this region and date
     %======================================================================
     H     = spm_figure('GetWin',D(r).name{1}); clf;
@@ -272,7 +272,7 @@ for r = 1:numel(D)
     text(0,0.3,str,'FontSize',10,'FontWeight','bold','Color','k')
     
     str = {'The prevalences refer to the estimated population ' ...
-           '(based on ONS census figures for lower tier local authorities)'};
+        '(based on ONS census figures for lower tier local authorities)'};
     text(0,0.0,str,'FontSize',8,'Color','k')
     
     spm_axis tight, axis off
@@ -284,10 +284,145 @@ for r = 1:numel(D)
 end
 
 % save
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try, clear ans, end
 try, clear H,   end
 save COVID_LA
+
+
+return
+
+
+%%
+
+% regional analysis
+%==========================================================================
+
+% get testing rates
+%--------------------------------------------------------------------------
+load DCM_UK
+PCR = DCM.Y(:,4);
+d0  = datenum(DCM.M.date,'dd-mm-yyyy');
+
+% get regional data and parameter estimates
+%--------------------------------------------------------------------------
+load COVID_LA
+PCR  = PCR/max(PCR);
+dd   = dates(1) - d0;
+
+spm_figure('GetWin','Variation'), clf
+
+
+% Rank regions by first and second peaks (before and after 200 days)
+%==========================================================================
+spm_figure('GetWin','Variation'), clf
+%--------------------------------------------------------------------------
+n     = numel(dates);
+t1    = 1:200;
+t2    = 201:n;
+YC    = zeros(n,numel(DCM));
+YD    = zeros(n,numel(DCM));
+for i = 1:numel(DCM)
+    
+    % vectorised data and parameters
+    %----------------------------------------------------------------------
+    EP(:,i)  = spm_vec(DCM(i).Ep);
+    
+    % deal with missing data
+    %----------------------------------------------------------------------
+    S        = DCM(i).S;
+    S(isnan(S)) = 0;
+    j        = (1:size(S,1)) + n - size(S,1);
+    YC(j,i)  = S(:,1);                     % new cases
+    YD(j,i)  = S(:,2);                     % new deaths
+    
+end
+
+
+% plot new cases, deaths and estimated prevalence
+%--------------------------------------------------------------------------
+tstr  = {'reported cases','reported deaths','estimated cases'};
+xY    = {YC,YD,DP};
+for k = 1:numel(xY)
+    for i = 1:numel(DCM)
+        
+        % normalise to peak amplitude
+        %------------------------------------------------------------------
+        Y       = xY{k};
+        Y1(:,i) = Y(t1,i)/max(Y(t1,i));
+        Y2(:,i) = Y(t2,i)/max(Y(t2,i));
+        
+        % amplitude and time of peaks
+        %------------------------------------------------------------------
+        [m,j]   = max(Y(t1,i));
+        M1(i,1) = m;
+        T1(i,1) = j;
+        
+        [m,j]   = max(Y(t2,i));
+        M2(i,1) = m;
+        T2(i,1) = j;
+        
+    end
+
+    % Rank and plot
+    %----------------------------------------------------------------------
+    [s,j1] = sort(T1);
+    [s,j2] = sort(T2);
+    
+    subplot(4,2,(2*k - 1)), imagesc(1 - Y1(:,j1)')
+    title(tstr{k},'Fontsize',14), xlabel('days'), ylabel('local authority')
+    subplot(4,2,2*k),       imagesc(1 - Y2(:,j2)')
+    title('second peak',   'Fontsize',14), xlabel('days')
+
+end
+
+% add testing
+%--------------------------------------------------------------------------
+subplot(4,2,1); hold on
+plot((numel(DCM)  - PCR(t1)*300),'g')
+subplot(4,2,2); hold on
+plot((numel(DCM)  - PCR(t2)*300),'g')
+
+% canonical correlation analysis
+%==========================================================================
+ip    = find(spm_vec(DCM(1).M.pC));
+ip    = ip(ip <= 14);
+param = fieldnames(DCM(1).M.pC);
+param = param(ip);
+
+% CCA
+%-------------------------------------------------------------------------
+Y     = [M1 T1 M2 T2];
+c     = eye(numel(ip),numel(ip));
+X     = EP(ip,:)';
+X0    = ones(numel(DCM),1);
+CVA   = spm_cva(Y,X,X0)
+
+
+
+subplot(4,2,7), hold off
+for i = 1:1
+    plot(CVA.v(:,i),CVA.w(:,i),'.'), hold on
+end
+title('canonical variates','Fontsize',14), xlabel('parameters'), ylabel('timing')
+
+subplot(4,2,8),   bar(CVA.W(:,1))
+title('canonical vector','Fontsize',14),   xlabel('parameter'), ylabel('weight')
+set(gca,'XTicklabel',param)
+
+% correlations among amplitude and timing of first and second peaks
+%--------------------------------------------------------------------------
+[rho,pval] = corr([M1 T1 M2 T2])
+
+
+
+
+
+
+
+
+
+
 
 
 

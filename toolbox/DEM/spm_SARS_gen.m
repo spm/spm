@@ -1,10 +1,11 @@
-function [Y,X,Z] = spm_SARS_gen(P,M,U,NPI)
+function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % Generate predictions and hidden states of a COVID model
-% FORMAT [Y,X,Z] = spm_COVID_gen(P,M,U)
+% FORMAT [Y,X,Z,W] = spm_COVID_gen(P,M,U)
 % P    - model parameters
 % M    - model structure (M.T - length of timeseries or data structure)
 % U    - number of output variables [default: 2] or indices e.g., [4 5]
 % Z{t} - joint density over hidden states at the time t
+% W    - structure containing time varying parameters
 %
 % Y(:,1)  - Daily deaths (28 days)
 % Y(:,2)  - Daily confirmed cases
@@ -63,7 +64,7 @@ function [Y,X,Z] = spm_SARS_gen(P,M,U,NPI)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8033 2020-12-13 18:13:24Z karl $
+% $Id: spm_SARS_gen.m 8036 2020-12-20 19:19:56Z karl $
 
 
 % The generative model:
@@ -259,31 +260,30 @@ for i = 1:M.T
     % update ensemble density (x)
     %======================================================================
     P.t   = log(i);
-    T     = spm_COVID_T(x,P);
+    [T,V] = spm_COVID_T(x,P);
     x     = spm_unvec(T*spm_vec(x),x);
     x     = x/sum(x(:));
     
-    % incidence (per day) (r)
-    %----------------------------------------------------------------------
-    R     = T - diag(diag(T));
-    r     = spm_unvec(R*spm_vec(x),x);
-    u     = spm_marginal(r);
-        
     % marginal densities (p)
     %----------------------------------------------------------------------
     p     = spm_marginal(x);
     for j = 1:Nf
-        X{j}(i,:) = p{j};
+        X{j}(i,:)  = p{j};
     end
+    
+    % time-varying parameters
+    %----------------------------------------------------------------------
+    W(i)  = V;
     
     % outcomes
     %======================================================================
-    S   = (1 + cos(2*pi*i/365))/2; % seasonal fluctuations
+    S     = (1 + cos(2*pi*i/365))/2; % seasonal fluctuations
     
-    % number of daily deaths
+    % number of daily deaths (28 days)
     %----------------------------------------------------------------------
     if isfield(Q,'dc')
-        Y(i,1) = N * (S*Q.dc(1) + (1 - S)*Q.dc(2)) * p{3}(4);
+        q      = 1 - (1 - p{4}(3))^28;
+        Y(i,1) = N * (Q.dc(1) * p{3}(4) + Q.dc(2) * q/(365*82));
     else
         Y(i,1) = N * p{3}(4);
     end
@@ -324,10 +324,6 @@ for i = 1:M.T
     %----------------------------------------------------------------------
     Y(i,9) = N * x(1,2,1,1);
     
-    % incidence of new cases (%)
-    %----------------------------------------------------------------------
-    Y(i,10) = 100 * u{2}(3);
-    
     % number of infected people
     %----------------------------------------------------------------------
     Y(i,11) = N * (p{2}(2) + p{2}(3));
@@ -357,10 +353,10 @@ for i = 1:M.T
     %----------------------------------------------------------------------
     Y(i,15) = N * p{3}(4);
 
-    % hospital admissions (symptomatic/ARDS people in hospital/CCU)
+    % hospital admissions (ARDS people in hospital/CCU)
     %----------------------------------------------------------------------
-    q  = squeeze(spm_sum(r,[2,4]));
-    q  = sum(sum(q([3,6],[2,3])));
+    q  = squeeze(spm_sum(x,[2,4]));
+    q  = sum(q([1,2,4,5],3))*Q.hos;
     if isfield(P,'ho')
         Y(i,16) = N * (S*Q.ho(1) + (1 - S)*Q.ho(2)) * q;
     else
@@ -384,14 +380,6 @@ for i = 1:M.T
         Y(i,20) = N * Qag(2,:) * q([3,5,6],4);
     end
     
-    % incidence of new infections
-    %----------------------------------------------------------------------
-    Y(i,21) = u{2}(2);
-    
-    % incidence of new symptomatic cases
-    %----------------------------------------------------------------------
-    Y(i,22) = u{3}(2);
-    
     % incidence of vaccinations
     %----------------------------------------------------------------------
     q       = squeeze(spm_sum(x,[3,4]));
@@ -409,10 +397,13 @@ end
 %--------------------------------------------------------------------------
 Y(:,4)  = exp((Q.Tcn)*gradient(log(Y(:,4))));
 
-% infection fatality ratio (infection and symptomatic cases)
+% incidence of new (infection) cases (%) (loss of susceptibility)
 %--------------------------------------------------------------------------
-Y(:,21) = (100/N) * cumsum(Y(:,1))./cumsum(Y(:,21));
-Y(:,22) = (100/N) * cumsum(Y(:,1))./cumsum(Y(:,22));
+Y(:,10) = 100 * (diff(X{2}(1:2,1)) - gradient(X{2}(:,1)));
+
+% infection fatality ratio (%)
+%--------------------------------------------------------------------------
+Y(:,21) = 100 * cumsum(Y(:,1)/N)./cumsum(Y(:,10)/100 + exp(-16));
 
 % retain specified output variables
 %--------------------------------------------------------------------------
@@ -420,17 +411,24 @@ Y       = Y(:,U);
 
 % deal with mixture models
 %==========================================================================
-if isfield(P,'R')
+if isfield(O,'D')
     
-    % evaluate mixtures of weekly lags
+    % evaluate mixtures
     %----------------------------------------------------------------------
-    P     = rmfield(O,'R');
-    P.sde = P.sde + P.SDE;
-    y     = spm_SARS_gen(P,M,U,NPI);
-    R     = spm_softmax([0;O.R]);
-    Y     = R(1)*Y + R(2)*y;
+    nD    = numel(O.D);
+    for i = 1:numel(O.D)
+        P     = rmfield(O,'D');
+        param = fieldnames(O.D(i));
+        for j = 1:numel(param)
+            P.(param{j}) = O.D(i).(param{j});
+        end
+        y     = spm_SARS_gen(P,M,U,NPI);
+        Y     = Y + y;
+    end
+    Y  = Y/(1 + nD);
     
 end
+
 
 
 % vectorise if data are asynchronous
@@ -444,3 +442,22 @@ if exist('D','var')
 end
 
 return
+
+
+% Notes:incidence
+%----------------------------------------------------------------------
+a  = 1/8;
+T  = [(1 - a) 0; a 1];
+R  = T - diag(diag(T));
+x0 = [.7;0.3];
+x  = x0;
+for t = 1:64    
+    u(:,t) = spm_unvec(R*spm_vec(x),x);
+    x      = spm_unvec(T*spm_vec(x),x);
+end
+y = cumsum(u');
+y(end,:)
+x0 - x
+
+
+

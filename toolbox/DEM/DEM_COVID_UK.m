@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8033 2020-12-13 18:13:24Z karl $
+% $Id: DEM_COVID_UK.m 8036 2020-12-20 19:19:56Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -53,7 +53,7 @@ spm_figure('GetWin','SI'); clf;
 
 cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
 
-url        = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newCasesByPublishDate&format=csv';
+url        = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newCasesBySpecimenDate&format=csv';
 writetable(webread(url,options),'cases.csv');
 url        = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newDeaths28DaysByDeathDate&format=csv';
 writetable(webread(url,options),'deaths.csv');
@@ -69,7 +69,7 @@ url        = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity
 url        = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending27november2020/96f0e889&format=csv';
 writetable(webread(url,options),'place.csv');
 url        = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/11/COVID-19-total-announced-deaths-27-November-2020.xlsx';
-url        = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/12/COVID-19-total-announced-deaths-11-December-2020.xlsx';
+url        = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/12/COVID-19-total-announced-deaths-18-December-2020.xlsx';
 [num,txt]  = xlsread(websave('ages.xlsx',url),5,'E16:KC23');
 
 
@@ -83,7 +83,7 @@ admissions = importdata('admissions.csv');
 serology   = importdata('seropositive.csv');
 survey     = importdata('survey.csv');
 symptoms   = importdata('symptoms.csv');
-ratio      = importdata('rate.csv');
+ratio      = importdata('ratio.csv');
 mobility   = importdata('mobility.csv');
 transport  = importdata('transport.csv');
 place      = importdata('place.csv');
@@ -258,13 +258,21 @@ pC.wo   = [1 1];                % prior variance
 pE.ag   = zeros(2,3);           % coefficients for age-related deaths
 pC.ag   = ones(size(pE.ag));    % prior variance
 
-
 % coefficients for mixture model
 %--------------------------------------------------------------------------
-% pE.R    = 0;
-% pE.SDE  = -1.3;
-% pC.R    = 0;
-% pC.SDE  = 0;
+% pE.D(1).o   = pE.o   - 1/4;
+% pE.D(1).Nin = pE.Nin + 1/4;
+% pE.D(1).Nou = pE.Nou + 1/4;
+% pE.D(1).trn = pE.trn + 1/4;
+% pE.D(1).trm = pE.trm + 1/4;
+% 
+% for i = 1:numel(pE.D)
+%     param = fieldnames(pE.D(i));
+%     for j = 1:numel(param)
+%         pC.D(i).(param{j}) = pC.(param{j});
+%     end
+% end
+
 
 % model specification
 %==========================================================================
@@ -279,8 +287,29 @@ M.T     = Y;                    % data structure
 U       = spm_vec(Y.U);         % outputs to model
 
 % model inversion with Variational Laplace (Gauss Newton)
-%--------------------------------------------------------------------------
+%==========================================================================
 [Ep,Cp,Eh] = spm_nlsi_GN(M,U,xY);
+
+
+% fluctuations (adiabatic mean field approximation)
+%--------------------------------------------------------------------------
+fluct = {'vir','pcr'};
+for f = 1:numel(fluct)
+    
+    i               = 1:size(Cp,1);          % number of parameters
+    C               = Cp;                    % empirical prior covariance
+    M.pE            = Ep;                    % empirical prior expectation
+    M.pC            = spm_zeros(M.pC);       % fix expectations
+    M.pE.(fluct{f}) = zeros(1,16);           % add new prior expectation
+    M.pC.(fluct{f}) =  ones(1,16);           % add new prior covariance
+    
+    [Ep,Cp]  = spm_nlsi_GN(M,U,xY);          % new posterior expectation
+    Cp(i,i)  = C;                            % new posterior covariance
+    
+end
+
+% save in DCM structure
+%--------------------------------------------------------------------------
 DCM.M   = M;
 DCM.Ep  = Ep;
 DCM.Eh  = Eh;
@@ -288,16 +317,15 @@ DCM.Cp  = Cp;
 DCM.Y   = YS;
 DCM.U   = U;
 
-
 % posterior predictions
 %==========================================================================
 spm_figure('GetWin','United Kingdom'); clf;
 %--------------------------------------------------------------------------
-M.T     = datenum('01-04-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
-U       = U(1:min(numel(U),3));
-[Z,X]   = spm_SARS_gen(DCM.Ep,M,U);
-spm_SARS_plot(Z,X,YS,[],U)
-U       = DCM.U;
+M.T       = datenum('01-04-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
+U         = U(1:min(numel(U),3));
+[H,X,Z,R] = spm_SARS_gen(Ep,M,U);
+spm_SARS_plot(H,X,YS,[],U)
+U         = DCM.U;
 
 spm_figure('GetWin','outcomes (1)'); clf;
 %--------------------------------------------------------------------------
@@ -355,10 +383,17 @@ end
 %--------------------------------------------------------------------------
 j = j + 1;
 subplot(4,2,j)
-spm_SARS_ci(Ep,Cp,[],21,M); hold on
-spm_SARS_ci(Ep,Cp,[],22,M); hold off
-ylabel('percent'),  title('IFR (infect/clincal)','FontSize',14)
+spm_SARS_ci(Ep,Cp,[],21,M)
+ylabel('percent'),  title('Infection fatality ratio','FontSize',14)
 
+% transmission strength
+%--------------------------------------------------------------------------
+j    = j + 1;
+subplot(4,2,j)
+plot([R.Ptrn]), spm_axis tight
+title('Transmission strength','FontSize',14)
+set(gca,'YLim',[0 1]), ylabel('probability')
+hold on, plot([1,1]*size(DCM.Y,1),[0,1],':'), hold off
 
 % save figures
 %--------------------------------------------------------------------------
