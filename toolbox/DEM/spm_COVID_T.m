@@ -21,7 +21,7 @@ function [T,R] = spm_COVID_T(x,P)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8036 2020-12-20 19:19:56Z karl $
+% $Id: spm_COVID_T.m 8037 2020-12-27 21:36:21Z karl $
 
 % setup
 %==========================================================================
@@ -29,8 +29,9 @@ function [T,R] = spm_COVID_T(x,P)
 % identity matrices
 %--------------------------------------------------------------------------
 dim   = size(x);
-I     = cell(ndims(x),1);
-for i = 1:ndims(x)
+dim   = dim(1:4);
+I     = cell(numel(dim),1);
+for i = 1:numel(dim)
     I{i} = speye(dim(i));
 end
 
@@ -53,17 +54,17 @@ Q    = (1 + cos(2*pi*P.t/365))/2;
 % social distancing, based on prevalence of infection
 %--------------------------------------------------------------------------
 b    = cell(1,dim(3));
-q    = spm_sum(x,[1 3 4]);
-
-Pout = P.out;                         % fluctuating mobility
+Pout = 0;                            % fluctuating mobility
 if isfield(P,'mob')
     for i = 1:numel(P.mob)
-        Pout = Pout + log(P.mob(i)) * cos(i*2*pi*P.t/365)/8;
+        Pout = Pout + log(P.mob(i)) * cos(i*pi*P.t/365)/8;
     end
 end
+Pout = P.out*exp(Pout);
 
 % lockdown (threshold) strategy
 %--------------------------------------------------------------------------
+q    = spm_sum(x,[1 3 4 5]);
 Prev = q(3) + P.qua*q(4);            % prevalence of infection
 Psde = spm_sigma(Prev,P.sde,P.s);    % 1 - P(lockdown)
 Pout = Psde*Pout;                    % P(work | asymptomatic)
@@ -159,7 +160,7 @@ ij   = Bij({1,2:3,1,1},{6,2:3,1,1},dim);  B{1}(ij) = 0;
 % transmission probabilities
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
-q    = spm_sum(x,[3 4]);
+q    = spm_sum(x,[3 4 5]);
 pin  = q(1,:)/sum(q(1,:) + eps);     % infection probability at home
 pou  = q(2,:)/sum(q(2,:) + eps);     % infection probability at work
 phs  = q(6,:)/sum(q(6,:) + eps);     % infection probability at hospital
@@ -167,11 +168,13 @@ phs  = q(6,:)/sum(q(6,:) + eps);     % infection probability at hospital
 Pmut = 0;                            % fluctuating transmission strength
 if isfield(P,'vir')
     for i = 1:numel(P.vir)
-        Pmut = Pmut + log(P.vir(i)) * cos(i*2*pi*P.t/365)/8;
+        Pmut = Pmut + log(P.vir(i)) * cos(i*pi*P.t/365)/8;
     end
 end
+Pmut = exp(Pmut);
 
-Ptrn = erf(P.trn*Q + P.trm*(1 - Q) + Pmut); % transmission strength
+Ptrn = P.trn*Q + P.trm*(1 - Q);      % transmission strength
+Ptrn = erf(Ptrn*Pmut);               % modulated strength
 Ptin = (1 - Ptrn*pin(3))^P.Nin;      % P(no transmission) | home
 Ptou = (1 - Ptrn*pou(3))^P.Nou;      % P(no transmission) | work
 Pths = (1 - Ptrn*phs(3))^P.Nou;      % P(no transmission) | hospital
@@ -179,6 +182,7 @@ Kimm = exp(-1/P.Tim);                % loss of Ab+ immunity (per day)
 Kinn = exp(-1/2048);                 % loss of Ab- immunity (per day)
 Kinf = exp(-1/P.Tin);                % infection rate
 Kcon = exp(-1/P.Tcn);                % infectious rate
+Pres = erf(P.inn*Q + P.res*(1 - Q)); % infectious proportion
 Pres = P.res;                        % infectious proportion
 Pvac = P.vac;                        % vaccination rate
     
@@ -298,24 +302,34 @@ ij   = Bij({6,1:5,3,1:4},{6,1:5,1,1:4},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
 
-Ppcr = 1;                             % fluctuations in testing rate
+% fluctuations in testing rate (discrete cosine basis functions)
+%--------------------------------------------------------------------------
+Ppcr = 0;                             
 if isfield(P,'pcr')
     for i = 1:numel(P.pcr)
-        Ppcr = Ppcr + log(P.pcr(i)) * cos(i*2*pi*P.t/365)/8;
+        Ppcr = Ppcr + log(P.pcr(i)) * cos(i*pi*P.t/365)/8;
     end
 end
+Ppcr = exp(Ppcr);
 
-Psen = 0;                             % sustained phases of testing
+% (pillar one, two and LFT) phases of testing
+%--------------------------------------------------------------------------
+Pill  = zeros(1,numel(P.lim));
 for i = 1:numel(P.lim)
-    Psen = Psen + P.lim(i)*spm_phi((P.t - P.ons(i))/P.rat(i));
+    Pill(i) = P.lim(i)*spm_phi((P.t - P.ons(i))/P.rat(i));
 end
 
-Ptes = P.tes*Q + P.tts*(1 - Q);       % testing bias
-Psen = erf(Psen*Ppcr);                % probability of testing 
-Ptes = erf(Psen*Ptes);                % probability if infected
-Sens = 1 - P.fnr;                     % PCR false negative rate
-Spec = 1 - P.fpr;                     % PCR false positive rate
-Kdel = exp(-1/P.del);                 % exp(-1/waiting period)
+Psen = sum(Pill);
+q    = Pill/Psen;                              % relative probabilities
+Ptes = P.tes*q(1) + P.tts*(q(2) + q(3));       % testing bias
+Psen = erf(Psen*Ppcr);                         % probability of testing 
+Ptes = erf(Psen*Ptes);                         % probability if infected
+
+Pfnr = P.fnr*(q(1) + q(2)) + 0.2320*q(3);      % false negative rate
+Pfpr = P.fpr*(q(1) + q(2)) + 0.0032*q(3);      % false positive rate
+Sens = 1 - Pfnr;                               % sensitivity
+Spec = 1 - Pfpr;                               % specificity                    
+Kdel = exp(-1/P.del);                          % exp(-1/waiting period)
 
 % marginal: testing {4} | susceptible {2}(1)
 %--------------------------------------------------------------------------
@@ -356,14 +370,16 @@ B{4} = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
 ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,1},dim); B{4}(ij) = 1;
 ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,2},dim); B{4}(ij) = 0;
 
-    
+
 % probability transition matrix
 %==========================================================================
 T     = 1;
-for i = 1:numel(B)
+for i = 1:4
     T =  T*B{i};
 end
 
+% time-dependent parameters
+%--------------------------------------------------------------------------
 R.Pout = Pout;
 R.Ptrn = Ptrn;
 R.Psev = Psev;
@@ -372,6 +388,26 @@ R.Psen = Psen;
 R.Ptes = Ptes;
 
 return
+
+
+% probabilistic transitions: state of the nation
+%==========================================================================
+q    = spm_sum(x,[1 3 4 5]);
+Prev = q(2);                           % prevalence of infection
+
+% test probabilities
+%--------------------------------------------------------------------------
+Pt00 = 1 - Prev;                       % P(tier 1 | tier 0)
+Pt11 = exp(-1/P.mem);                  % P(tier 0 | tier 1)
+
+% marginal: tiers
+%--------------------------------------------------------------------------
+%  tier: 0         1
+%--------------------------------------------------------------------------
+B{5} = [Pt00  (1 - Pt11);
+        (1 - Pt00) Pt11];
+T    = spm_kron({T,B{5}});
+
 
 % Auxiliary functions
 %__________________________________________________________________________

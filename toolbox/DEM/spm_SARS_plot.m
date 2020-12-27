@@ -1,10 +1,9 @@
-function spm_SARS_plot(Y,X,Z,u,U)
+function spm_SARS_plot(Y,X,Z,U)
 % Graphics for coronavirus simulations
-% FORMAT spm_SARS_plot(Y,X,Z)
+% FORMAT spm_SARS_plot(Y,X,Z,U)
 % Y      - expected timeseries (i.e., new depths and cases)
 % X      - latent (marginal ensemble density) states
-% Z      - optional empirical data
-% u      - optional bed capacity threshold
+% Z      - optional empirical data (ordered as Y)
 % U      - optional indices of outcomes
 %
 % This auxiliary routine plots the trajectory of outcome variables
@@ -15,7 +14,7 @@ function spm_SARS_plot(Y,X,Z,u,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_plot.m 8033 2020-12-13 18:13:24Z karl $
+% $Id: spm_SARS_plot.m 8037 2020-12-27 21:36:21Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -34,8 +33,7 @@ global CHOLD, if isempty(CHOLD); CHOLD = 1; end
 % defaults
 %--------------------------------------------------------------------------
 [t,n,m]   = size(Y);
-if nargin < 5, U = 1:n;  end
-if nargin < 4, u = [];   end
+if nargin < 4, U = 1:n;  end
 if nargin < 3 || isempty(Z), Z = zeros(0,n,m); end
 
 % remove unpredicted data
@@ -47,7 +45,7 @@ Z         = Z(:,1:min(n,end),:);
 if all(size(X) > 1) && m < 2
     for i = 1:size(X,2)
         j = [i,n];
-        spm_SARS_plot(Y(:,j),X(:,i),Z(:,j))
+        spm_SARS_plot(Y(:,j),X(:,i),Z(:,j),U)
         for j = 1:6, subplot(3,2,j), hold on, end
         if CHOLD, set(gca,'ColorOrderIndex',1); end          
     end
@@ -58,7 +56,7 @@ end
 %==========================================================================
 if m > 1
     for i = 1:m
-        spm_SARS_plot(Y(:,:,i),X(:,i),Z(:,:,i),u,U)
+        spm_SARS_plot(Y(:,:,i),X(:,i),Z(:,:,i),U)
         for j = 1:6, subplot(3,2,j), hold on, end
     end
     return
@@ -73,7 +71,7 @@ end
 
 % graphics
 %--------------------------------------------------------------------------
-subplot(3,2,1), if CHOLD, set(gca,'ColorOrderIndex',1); end
+subplot(3,2,1), set(gca,'ColorOrderIndex',1);
 t  = (1:t)/7;
 p  = plot(t,Y);
 nu = numel(U);
@@ -84,7 +82,7 @@ title('Rates (per day)','FontSize',16)
 axis square, box off, set(gca,'XLim',[0, t(end)])
 legend('off'), legend(p(1:nu),un), legend('boxoff')
 
-subplot(3,2,2), if CHOLD, set(gca,'ColorOrderIndex',1); end
+subplot(3,2,2), set(gca,'ColorOrderIndex',1);
 plot(t,cumsum(Y));
 xlabel('time (weeks)'),ylabel('number of cases'), set(gca,'XLim',[0, t(end)])
 title('Cumulative cases','FontSize',16), axis square, box off
@@ -95,7 +93,7 @@ k     = 4;
 for i = 1:numel(X)
     
     k = k + 1;
-    subplot(6,2,k), if CHOLD, set(gca,'ColorOrderIndex',1); end
+    subplot(6,2,k), set(gca,'ColorOrderIndex',1);
     [d,j] = sort(max(X{i}));
     
     % remove redundant states
@@ -104,18 +102,29 @@ for i = 1:numel(X)
         j(end) = [];
     end
     
-    plot(t,X{i}(:,j(1:2))*100)
-    ylabel('percent')
-    title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
-    box off, legend(str.factor{i}(j(1:2))), legend('boxoff'), box off
-    
-    k = k + 1;
-    subplot(6,2,k), if CHOLD, set(gca,'ColorOrderIndex',1); end
-    j(1:2) = [];
-    plot(t,X{i}(:,j)*100)
-    ylabel('percent')
-    title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
-    box off, legend(str.factor{i}(j)), legend('boxoff'), box off
+    if i < 4
+        
+        plot(t,X{i}(:,j(1:2))*100)
+        ylabel('percent')
+        title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
+        box off, legend(str.factor{i}(j(1:2))), legend('boxoff'), box off
+        
+        k = k + 1;
+        subplot(6,2,k), set(gca,'ColorOrderIndex',1);
+        j(1:2) = [];
+        plot(t,X{i}(:,j)*100)
+        ylabel('percent')
+        title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
+        box off, legend(str.factor{i}(j)), legend('boxoff'), box off
+        
+    else
+        
+        plot(t,X{i}(:,j)*100)
+        ylabel('percent')
+        title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
+        box off, legend(str.factor{i}(j)), legend('boxoff'), box off
+        
+    end
     
 end
 
@@ -123,16 +132,13 @@ end
 %--------------------------------------------------------------------------
 t = (1:size(Z,1))/7;
 try
-    
-    U   = U(ismember(U,1:size(Z,2)));
     T   = numel(t);
     i   = 1:(T - 8);
     j   = (T - 7):T;
-    subplot(3,2,2), if CHOLD, set(gca,'ColorOrderIndex',1); end; hold on
-    plot(t,cumsum(Z(:,U)),'.k'), hold off
-    subplot(3,2,1), if CHOLD, set(gca,'ColorOrderIndex',1); end; hold on
-    plot(t(i),Z(i,U),'.k'), plot(t(j),Z(j,U),'.c'), hold off
+    subplot(3,2,2), set(gca,'ColorOrderIndex',1); hold on
+    plot(t,cumsum(Z),'.'), hold off
+    subplot(3,2,1), set(gca,'ColorOrderIndex',1); hold on
+    plot(t(i),Z(i,:),'.'), plot(t(j),Z(j,:),'.c'), hold off
     legend('off'), legend(p(1:nu),un), legend('boxoff')
-
 end
 drawnow

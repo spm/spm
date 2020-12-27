@@ -35,6 +35,10 @@ for i = 1:numel(Y)
     Y(i).date = Y(i).date(j);
     Y(i).Y    = Y(i).Y(j,:);
     
+    [d,j]     = unique(Y(i).date);
+    Y(i).date = Y(i).date(j);
+    Y(i).Y    = Y(i).Y(j,:);
+    
     [d,j]     = sort(Y(i).date);
     Y(i).date = Y(i).date(j);
     Y(i).Y    = Y(i).Y(j,:);
@@ -46,7 +50,7 @@ nY    = zeros(1,numel(Y));
 for i = 1:numel(Y)
     nY(i)  = numel(Y(i).Y);
     Y(i).n = nY(i);
-    if max(diff(Y(i).date)) < 2
+    if mean(diff(Y(i).date)) < 2
         Y(i).Y = spm_hist_smooth(Y(i).Y,days);
     end
 end
@@ -62,6 +66,7 @@ h   = mean(h) - h;
 for i = 1:numel(Y)
     Y(i).h = Y(i).h + h(i);
 end
+
 
 % dates to generate
 %--------------------------------------------------------------------------

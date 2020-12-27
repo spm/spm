@@ -66,7 +66,7 @@ for i = 1:numel(NPI)
     for j = 5:12,subplot(6,2,j), hold on, end
     
     [Z,X]  = spm_SARS_gen(Ep,M,u,NPI(i));
-    spm_SARS_plot(Z(:,1:3),X,S,[],u(1:3))
+    spm_SARS_plot(Z(:,1:3),X,S,u(1:3))
     
     % record number of deaths
     %----------------------------------------------------------------------
@@ -81,11 +81,11 @@ end
 spm_figure('GetWin','vaccinations'); clf;
 %--------------------------------------------------------------------------
 Z     = spm_SARS_gen(Ep,M,23);
-spm_SARS_plot(Z,[],[],[],23)
+spm_SARS_plot(Z,[],[],23)
 for i = 1:numel(NPI)
     for j = 1:2, subplot(3,2,j), hold on, end
     Z     = spm_SARS_gen(Ep,M,23,NPI(i));
-    spm_SARS_plot(Z,[],[],[],23)
+    spm_SARS_plot(Z,[],[],23)
 end
 title('Vaccinations','FontSize',14)
 ylabel('cumulative number')

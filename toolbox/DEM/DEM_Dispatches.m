@@ -14,7 +14,7 @@ function DCM = DEM_Dispatches
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_Dispatches.m 8015 2020-11-24 10:47:41Z karl $
+% $Id: DEM_Dispatches.m 8037 2020-12-27 21:36:21Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -64,7 +64,7 @@ plot(datenum(date)*[1,1],get(gca,'YLim'),'-.b')
 % Ep.rat(1) = log(4);
 % 
 % [Z,X]  = spm_SARS_gen(Ep,M,6);
-% spm_SARS_plot(Z,X,YS,[],6)
+% spm_SARS_plot(Z,X,[],6)
 
 % show the effects on new PCR cases and infections per day
 %--------------------------------------------------------------------------

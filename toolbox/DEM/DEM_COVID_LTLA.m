@@ -1,6 +1,5 @@
 function [DCM] = DEM_COVID_LTLA(LA)
 % FORMAT [DCM] = DEM_COVID_LTLA(LA)
-%
 % LA - local authority
 %
 % Demonstration of COVID-19 modelling
@@ -25,7 +24,7 @@ options.Timeout = 20;
 
 % load (ONS) testing death-by-date data
 %==========================================================================
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&metric=newCasesBySpecimenDate&metric=newDeaths28DaysByDeathDate&format=csv';
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&metric=newDeaths28DaysByDeathDateRate&metric=newOnsDeathsByRegistrationDate&metric=uniqueCasePositivityBySpecimenDateRollingSum&metric=uniquePeopleTestedBySpecimenDateRollingSum&metric=newCasesBySpecimenDate&format=csv';
 U   = webread(url,options);
 P   = importdata('LADCodesPopulation2019.xlsx');
 
@@ -46,8 +45,11 @@ j        = find(ismember(AreaType,'ltla') & ~ismember(AreaCode,'null') );
 AreaCode = AreaCode(j);
 AreaDate = AreaDate(j);
 AreaName = AreaName(j);
-AreaCase = table2array(U(j,5));
-AreaMort = table2array(U(j,6));
+newDeath = table2array(U(j,5));
+OnsDeath = table2array(U(j,6));
+Positive = table2array(U(j,7));
+Tested   = table2array(U(j,8));
+newCases = table2array(U(j,9));
 
 % organise via NHS trust
 %--------------------------------------------------------------------------
@@ -59,10 +61,14 @@ for i = 1:numel(Area)
     %----------------------------------------------------------------------
     j = find(ismember(AreaCode,Area(i)));
     
-    if any(isfinite(AreaCase(j))) && any(isfinite(AreaMort(j)))
+    if any(isfinite(newCases(j))) && any(isfinite(newDeath(j)))
         k           = k + 1;
-        D(k).cases  = AreaCase(j);
-        D(k).deaths = AreaMort(j);
+        D(k).cases  = newCases(j);
+        D(k).deaths = newDeath(j);
+        D(k).cert   = OnsDeath(j);
+        D(k).tests  = Tested(j);
+        D(k).rate   = Positive(j);
+        
         D(k).date   = datenum([AreaDate{j}]);
         D(k).name   = AreaName(j(1));
         D(k).code   = Area(i);
@@ -123,25 +129,25 @@ dates  = d0:max(spm_vec(D.date));
 
 % free parameters of local model (fixed effects)
 %==========================================================================
-[pE,qC] = spm_SARS_priors;
-pC      = spm_zeros(qC);
-name    = fieldnames(pE);
-free    = {'n','r','o','m','sde','qua','exp','s','Nin','Nou','trn','trm','lim','ons'};
-% free  = {'n','r','o','m','sde','qua','exp','s'};
+free  = {'n','r','o','m','sde','qua','exp','s','Nin','Nou','lim','ons','pcr'};
+free  = {'n','r','o','m','sde','qua','exp','s','Nin','Nou','tes','tts','pcr'};
+
 
 % (empirical) prior expectation
 %--------------------------------------------------------------------------
-for i = 1:numel(name)
-    pE.(name{i}) = PCM.Ep.(name{i});
+pE    = PCM.Ep;
+try
+    pE.pcr = spm_zeros(pE.pcr);
 end
 
 % (empirical) prior covariances
 %--------------------------------------------------------------------------
+pC    = spm_zeros(PCM.M.pC);
 for i = 1:numel(free)
-    pC.(free{i}) = qC.(free{i});
+    pC.(free{i}) = PCM.M.pC.(free{i});
 end
 
-%%%% try, D   = D(1:16); end %%%%
+%%% try, D   = D(1:8); end %%%%
 
 % fit each regional dataset
 %==========================================================================
@@ -165,10 +171,36 @@ for r = 1:numel(D)
     Y(2).date = D(r).date;
     Y(2).Y    = D(r).deaths;
     Y(2).h    = 0;
+   
+    Y(3).type = 'Certified deaths (ONS)'; % weekly covid related deaths
+    Y(3).unit = 'number';
+    Y(3).U    = 15;
+    Y(3).date = D(r).date - 10;
+    Y(3).Y    = D(r).cert/7;
+    Y(3).h    = 0;
+    Y(3).lag  = 0;
+    
+    Y(4).type = 'PCR positivity (GOV)'; % positivity (England)
+    Y(4).unit = 'percent';
+    Y(4).U    = 23;
+    Y(4).date = D(r).date;
+    Y(4).Y    = D(r).rate;
+    Y(4).h    = 0;
+    Y(4).lag  = 0;
+    
+    Y(5).type = 'PCR tests (ONS)'; % daily PCR tests performed
+    Y(5).unit = 'number/day';
+    Y(5).U    = 6;
+    Y(5).date = D(r).date;
+    Y(5).Y    = D(r).tests;
+    Y(5).h    = 0;
+    Y(5).lag  = 0;
     
     % remove NANs, smooth and sort by date
     %----------------------------------------------------------------------
     [Y,S] = spm_COVID_Y(Y,M.date,16);
+    Y     = Y(1:4);
+    Y     = Y([Y.n] > 8);
     
     % data structure with vectorised data and covariance components
     %----------------------------------------------------------------------
@@ -211,9 +243,11 @@ for r = 1:numel(D)
     %======================================================================
     H     = spm_figure('GetWin',D(r).name{1}); clf;
     %----------------------------------------------------------------------
-    M.T   = numel(dates) + 32;
-    [Y,X] = spm_SARS_gen(DCM(r).Ep,M,[1 2]);
-    spm_SARS_plot(Y,X,S);
+    M.T    = numel(dates) + 32;
+    u      = [1 2 23];
+    S      =  DCM(r).S(:,[2 1 4]); S(isnan(S)) = 0;
+    [Y,X]  = spm_SARS_gen(DCM(r).Ep,M,u);
+    spm_SARS_plot(Y,X,S,u);
     
     
     %----------------------------------------------------------------------
@@ -229,6 +263,7 @@ for r = 1:numel(D)
     % Y(:,10) - new cases per day
     %----------------------------------------------------------------------
     M.T     = numel(dates);
+    M.P     = Ep;
     Y       = spm_SARS_gen(DCM(r).Ep,M,[4 5 8 9 10]);
     DR(:,r) = Y(:,1);                       % Reproduction ratio
     DI(:,r) = Y(:,2);                       % Prevalence of immunity
@@ -397,8 +432,6 @@ c     = eye(numel(ip),numel(ip));
 X     = EP(ip,:)';
 X0    = ones(numel(DCM),1);
 CVA   = spm_cva(Y,X,X0)
-
-
 
 subplot(4,2,7), hold off
 for i = 1:1

@@ -61,7 +61,7 @@ spm_figure('GetWin','testing and cases'); clf;
 M.T    = datenum(period{2},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
 u      = U([1 2 3]);
 [Z,X]  = spm_SARS_gen(Ep,M,u);
-spm_SARS_plot(Z,X,S,[],u)
+spm_SARS_plot(Z,X,S,u)
 
 % quantify the effect of efficient intervention (NPI)
 %==========================================================================
@@ -71,7 +71,7 @@ for i = 1:numel(NPI)
     for j = 5:12,subplot(6,2,j), hold on, end
     
     [Z,X]  = spm_SARS_gen(Ep,M,u,NPI(i));
-    spm_SARS_plot(Z,X,S,[],u)
+    spm_SARS_plot(Z,X,S,u)
     
 end
 

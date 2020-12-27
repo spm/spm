@@ -27,9 +27,12 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % Y(:,18) - Non-hospital deaths
 % Y(:,19) - Deaths (>60 years)
 % Y(:,20) - Deaths (<60 years)
-% Y(:,21) - IFR (infection) (%)
-% Y(:,22) - IFR (symptoms) (%)
-% Y(:,23) - Daily vaccinations
+% Y(:,21) - Infection fatality ratio (%)
+% Y(:,22) - Daily vaccinations
+% Y(:,23) - PCR case positivity (%)
+% Y(:,24) - Lateral flow tests
+% Y(:,25) - Cumulative attack rate
+% Y(:,26) - Population immunity
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','CCU','morgue','isolation'};
@@ -64,7 +67,7 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8036 2020-12-20 19:19:56Z karl $
+% $Id: spm_SARS_gen.m 8037 2020-12-27 21:36:21Z karl $
 
 
 % The generative model:
@@ -178,6 +181,7 @@ p{1} = [h w 0 m 0 0]';     % location
 p{2} = [s n 0 0 r]';       % infection 
 p{3} = [1 0 0 0]';         % clinical 
 p{4} = [1 0 0 0]';         % testing
+% p{5} = [1 0]';           % tiers
 
 % normalise initial marginals
 %--------------------------------------------------------------------------
@@ -193,9 +197,9 @@ R     = P;
 R.n   = -16;
 R.t   = 0;
 for i = 1:8
-    T     = spm_COVID_T(x,R);
-    x     = spm_unvec(T*spm_vec(x),x);
-    x     = x/sum(x(:));
+    T = spm_COVID_T(x,R);
+    x = spm_unvec(T*spm_vec(x),x);
+    x = x/sum(x(:));
 end
 
 % ensemble density tensor and solve over the specified number of days
@@ -281,9 +285,9 @@ for i = 1:M.T
     
     % number of daily deaths (28 days)
     %----------------------------------------------------------------------
+    pcr   = 1 - (1 - p{4}(3))^28;
     if isfield(Q,'dc')
-        q      = 1 - (1 - p{4}(3))^28;
-        Y(i,1) = N * (Q.dc(1) * p{3}(4) + Q.dc(2) * q/(365*82));
+        Y(i,1) = N * (Q.dc(1)*p{3}(4) + Q.dc(2)*pcr/(365*82));
     else
         Y(i,1) = N * p{3}(4);
     end
@@ -302,7 +306,7 @@ for i = 1:M.T
 
     % effective reproduction ratio (R) (based on infection prevalence)
     %----------------------------------------------------------------------
-    Y(i,4) = p{2}(2) + p{2}(3);
+    Y(i,4) = p{2}(2);
     
     % seropositive immunity (%)
     %----------------------------------------------------------------------
@@ -358,7 +362,7 @@ for i = 1:M.T
     q  = squeeze(spm_sum(x,[2,4]));
     q  = sum(q([1,2,4,5],3))*Q.hos;
     if isfield(P,'ho')
-        Y(i,16) = N * (S*Q.ho(1) + (1 - S)*Q.ho(2)) * q;
+        Y(i,16) = N * (Q.ho(1)*q + Q.ho(2)*pcr/512);
     else
         Y(i,16) = N * q;
     end
@@ -383,7 +387,17 @@ for i = 1:M.T
     % incidence of vaccinations
     %----------------------------------------------------------------------
     q       = squeeze(spm_sum(x,[3,4]));
-    Y(i,23) = N * exp(P.vac) * q(6,1);
+    Y(i,22) = N * exp(P.vac) * q(6,1);
+    
+    % PCR case positivity (%)
+    %----------------------------------------------------------------------
+    q       = squeeze(spm_sum(x,[3,4]));
+    Y(i,23) = 100 * p{4}(3)/(p{4}(3) + p{4}(4));
+    
+    % lateral flow tests
+    %----------------------------------------------------------------------
+    Y(i,24) = N * Q.lim(3)*spm_phi((i - Q.ons(3))/Q.rat(3));
+    
     
     % joint density if requested
     %----------------------------------------------------------------------
@@ -395,15 +409,25 @@ end
 
 % effective reproduction ratio: exp(K*Q.Tcn): K = dln(N)/dt
 %--------------------------------------------------------------------------
-Y(:,4)  = exp((Q.Tcn)*gradient(log(Y(:,4))));
+K       = gradient(log(Y(:,4)));
+Y(:,4)  = 1 + K*(Q.Tin + Q.Tcn) + K.^2*Q.Tin*Q.Tcn;
 
-% incidence of new (infection) cases (%) (loss of susceptibility)
+% incidence of new infections (%) (loss of susceptibility)
 %--------------------------------------------------------------------------
 Y(:,10) = 100 * (diff(X{2}(1:2,1)) - gradient(X{2}(:,1)));
 
 % infection fatality ratio (%)
 %--------------------------------------------------------------------------
 Y(:,21) = 100 * cumsum(Y(:,1)/N)./cumsum(Y(:,10)/100 + exp(-16));
+
+% cumulative attack rate (%)
+%--------------------------------------------------------------------------
+Y(:,25) = cumsum(Y(:,10));
+
+% population immunity (seropositive and seronegative) (%)
+%--------------------------------------------------------------------------
+Y(:,26) = 100 * (X{2}(:,4) + X{2}(:,5));
+
 
 % retain specified output variables
 %--------------------------------------------------------------------------
@@ -429,7 +453,16 @@ if isfield(O,'D')
     
 end
 
-
+% reporting lags (first-order approximation)
+%--------------------------------------------------------------------------
+if isfield(O,'lag')
+    try
+        lag   = O.lag(U);
+        for i = 1:numel(U)
+            Y(:,i) = Y(:,i) - lag(i)*gradient(Y(:,i));
+        end
+    end
+end
 
 % vectorise if data are asynchronous
 %--------------------------------------------------------------------------
@@ -443,21 +476,6 @@ end
 
 return
 
-
-% Notes:incidence
-%----------------------------------------------------------------------
-a  = 1/8;
-T  = [(1 - a) 0; a 1];
-R  = T - diag(diag(T));
-x0 = [.7;0.3];
-x  = x0;
-for t = 1:64    
-    u(:,t) = spm_unvec(R*spm_vec(x),x);
-    x      = spm_unvec(T*spm_vec(x),x);
-end
-y = cumsum(u');
-y(end,:)
-x0 - x
 
 
 

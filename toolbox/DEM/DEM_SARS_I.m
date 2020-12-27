@@ -16,7 +16,7 @@ function DEM_COVID_I
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_SARS_I.m 7939 2020-09-09 11:02:14Z karl $
+% $Id: DEM_SARS_I.m 8037 2020-12-27 21:36:21Z karl $
 
 
 % Get data (see DATA_COVID): an array with a structure for each country
@@ -186,7 +186,7 @@ N     = 8;
 M.T   = 365;
 for i = 1:N
     
-    [Y,X] = spm_SARS_gen(GCM{i,I}.Ep,M,1:2);
+    [Y,X] = spm_SARS_gen(GCM{i,I}.Ep,M,[1,2]);
     % spm_SARS_plot(Y,X,GCM{i,I}.Y)
  
     % death rate
