@@ -129,16 +129,12 @@ dates  = d0:max(spm_vec(D.date));
 
 % free parameters of local model (fixed effects)
 %==========================================================================
-free  = {'n','r','o','m','sde','qua','exp','s','Nin','Nou','lim','ons','pcr'};
-free  = {'n','r','o','m','sde','qua','exp','s','Nin','Nou','tes','tts','pcr'};
+free  = {'n','r','o','m','sde','qua','exp','s','Nin','Nou','tes','tts','lim','ons'};
 
 
 % (empirical) prior expectation
 %--------------------------------------------------------------------------
 pE    = PCM.Ep;
-try
-    pE.pcr = spm_zeros(pE.pcr);
-end
 
 % (empirical) prior covariances
 %--------------------------------------------------------------------------
@@ -175,7 +171,7 @@ for r = 1:numel(D)
     Y(3).type = 'Certified deaths (ONS)'; % weekly covid related deaths
     Y(3).unit = 'number';
     Y(3).U    = 15;
-    Y(3).date = D(r).date - 10;
+    Y(3).date = D(r).date;
     Y(3).Y    = D(r).cert/7;
     Y(3).h    = 0;
     Y(3).lag  = 0;
@@ -184,7 +180,7 @@ for r = 1:numel(D)
     Y(4).unit = 'percent';
     Y(4).U    = 23;
     Y(4).date = D(r).date;
-    Y(4).Y    = D(r).rate;
+    Y(4).Y    = D(r).rate + 1;
     Y(4).h    = 0;
     Y(4).lag  = 0;
     
@@ -198,10 +194,8 @@ for r = 1:numel(D)
     
     % remove NANs, smooth and sort by date
     %----------------------------------------------------------------------
-    [Y,S] = spm_COVID_Y(Y,M.date,16);
-    Y     = Y(1:4);
-    Y     = Y([Y.n] > 8);
-    
+    [Y,S] = spm_COVID_Y(Y([1,2,4]),M.date,16);
+        
     % data structure with vectorised data and covariance components
     %----------------------------------------------------------------------
     xY.y  = spm_vec(Y.Y);
@@ -219,7 +213,7 @@ for r = 1:numel(D)
     M.FS   = @(Y)real(sqrt(Y));    % feature selection  (link function)
     M.pE   = pE;                   % prior expectations (parameters)
     M.pC   = pC;                   % prior covariances  (parameters)
-    M.hE   = hE;                   % prior expectation  (log-precision)
+    M.hE   = hE + 2;               % prior expectation  (log-precision)
     M.hC   = 1/512;                % prior covariances  (log-precision)
     M.T    = Y;                    % data structure
     U      = spm_vec(Y.U);         % outputs to model
@@ -241,13 +235,13 @@ for r = 1:numel(D)
     
     % now-casting for this region and date
     %======================================================================
-    H     = spm_figure('GetWin',D(r).name{1}); clf;
+    H      = spm_figure('GetWin',D(r).name{1}); clf;
     %----------------------------------------------------------------------
     M.T    = numel(dates) + 32;
-    u      = [1 2 23];
-    S      =  DCM(r).S(:,[2 1 4]); S(isnan(S)) = 0;
-    [Y,X]  = spm_SARS_gen(DCM(r).Ep,M,u);
-    spm_SARS_plot(Y,X,S,u);
+    u      = [find(U == 1) find(U == 2) find(U == 23)];
+    S      =  DCM(r).S(:,u); S(isnan(S)) = 0;
+    [Y,X]  = spm_SARS_gen(DCM(r).Ep,M,[1 2 23]);
+    spm_SARS_plot(Y,X,S,[1 2 23]);
     
     
     %----------------------------------------------------------------------

@@ -21,7 +21,7 @@ function [T,R] = spm_COVID_T(x,P)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8037 2020-12-27 21:36:21Z karl $
+% $Id: spm_COVID_T.m 8038 2021-01-01 16:33:49Z karl $
 
 % setup
 %==========================================================================
@@ -45,8 +45,8 @@ Kday = exp(-1);
 
 % divergence from endemic equilibrium (1,0)
 %--------------------------------------------------------------------------
-Q    = (1 + cos(2*pi*P.t/365))/2;
-
+Q    = (1 + cos(2*pi*(P.t - log(P.inn)*8)/365))/2;
+T    = exp(-P.t/128);
 
 % probabilistic transitions: location
 %==========================================================================
@@ -182,8 +182,7 @@ Kimm = exp(-1/P.Tim);                % loss of Ab+ immunity (per day)
 Kinn = exp(-1/2048);                 % loss of Ab- immunity (per day)
 Kinf = exp(-1/P.Tin);                % infection rate
 Kcon = exp(-1/P.Tcn);                % infectious rate
-Pres = erf(P.inn*Q + P.res*(1 - Q)); % infectious proportion
-Pres = P.res;                        % infectious proportion
+Pres = P.res;                        % resistant proportion
 Pvac = P.vac;                        % vaccination rate
     
 % marginal: infection {2} | home {1}(1)
@@ -243,7 +242,7 @@ B{2} = spm_permute_kron(b,dim([2,1,3,4]),[2,1,3,4]);
 b    = cell(1,dim(2));
 
 Psev = erf(P.sev*Q + P.lat*(1 - Q));     % P(ARDS | infected)
-Pfat = erf(P.fat*Q + P.sur*(1 - Q));     % P(fatality | ARDS, CCU)
+Pfat = erf(P.fat*T + P.sur*(1 - T));     % P(fatality | ARDS, CCU)
 Ksym = exp(-1/P.Tsy);                    % acute symptomatic rate
 Ktrd = exp(-1/P.Trd);                    % acute RDS rate
 Ktic = exp(-1/P.Tic);                    % symptomatic rate
@@ -316,17 +315,17 @@ Ppcr = exp(Ppcr);
 %--------------------------------------------------------------------------
 Pill  = zeros(1,numel(P.lim));
 for i = 1:numel(P.lim)
-    Pill(i) = P.lim(i)*spm_phi((P.t - P.ons(i))/P.rat(i));
+    p(i)    = spm_phi((P.t - P.ons(i))/P.rat(i));
+    Pill(i) = P.lim(i)*p(i);
 end
 
-Psen = sum(Pill);
-q    = Pill/Psen;                              % relative probabilities
-Ptes = P.tes*q(1) + P.tts*(q(2) + q(3));       % testing bias
+Psen = sum(Pill);                              % testing rate
+Ptes = P.tes*(1 - p(2)) + P.tts*p(2);          % testing bias
 Psen = erf(Psen*Ppcr);                         % probability of testing 
 Ptes = erf(Psen*Ptes);                         % probability if infected
 
-Pfnr = P.fnr*(q(1) + q(2)) + 0.2320*q(3);      % false negative rate
-Pfpr = P.fpr*(q(1) + q(2)) + 0.0032*q(3);      % false positive rate
+Pfnr = P.fnr*(1 - p(3)) + 0.25*p(3);           % false negative rate
+Pfpr = P.fpr*(1 - p(3)) + 0.0032*p(3);         % false positive rate
 Sens = 1 - Pfnr;                               % sensitivity
 Spec = 1 - Pfpr;                               % specificity                    
 Kdel = exp(-1/P.del);                          % exp(-1/waiting period)

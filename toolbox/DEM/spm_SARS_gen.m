@@ -7,6 +7,12 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % Z{t} - joint density over hidden states at the time t
 % W    - structure containing time varying parameters
 %
+% NPI  - nonpharmaceutical intervention
+%     NPI(i).period = {'dd-mm-yyyy','dd-mm-yyyy'}; % dates of epidemic
+%     NPI(i).param  = {'xyz',...};                 % parameter name
+%     NPI(i).Q      = (value1,...);                % parameter name
+%     NPI(i).dates  = {'dd-mm-yyyy','dd-mm-yyyy'}; % dates of interevention
+%
 % Y(:,1)  - Daily deaths (28 days)
 % Y(:,2)  - Daily confirmed cases
 % Y(:,3)  - Mechanical ventilation
@@ -33,9 +39,10 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % Y(:,24) - Lateral flow tests
 % Y(:,25) - Cumulative attack rate
 % Y(:,26) - Population immunity
+% Y(:,27) - Hospital cases
 %
 % X       - (M.T x 4) marginal densities over four factors
-% location   : {'home','out','CCU','morgue','isolation'};
+% location   : {'home','out','ccu','removed','isolated','hospital'};
 % infection  : {'susceptible','infected','infectious','immune','resistant'};
 % clinical   : {'asymptomatic','symptoms','ARDS','death'};
 % diagnostic : {'untested','waiting','positive','negative'}
@@ -67,7 +74,7 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8037 2020-12-27 21:36:21Z karl $
+% $Id: spm_SARS_gen.m 8038 2021-01-01 16:33:49Z karl $
 
 
 % The generative model:
@@ -285,9 +292,10 @@ for i = 1:M.T
     
     % number of daily deaths (28 days)
     %----------------------------------------------------------------------
-    pcr   = 1 - (1 - p{4}(3))^28;
+    pcr28   = 1 - (1 - p{4}(3))^28;
+    pcr14   = 1 - (1 - p{4}(3))^14;
     if isfield(Q,'dc')
-        Y(i,1) = N * (Q.dc(1)*p{3}(4) + Q.dc(2)*pcr/(365*82));
+        Y(i,1) = N * (Q.dc(1)*p{3}(4) + Q.dc(2)*pcr28/(365*82));
     else
         Y(i,1) = N * p{3}(4);
     end
@@ -362,9 +370,19 @@ for i = 1:M.T
     q  = squeeze(spm_sum(x,[2,4]));
     q  = sum(q([1,2,4,5],3))*Q.hos;
     if isfield(P,'ho')
-        Y(i,16) = N * (Q.ho(1)*q + Q.ho(2)*pcr/512);
+        Y(i,16) = N * (Q.ho(1)*q + Q.ho(2)*pcr14/512);
     else
         Y(i,16) = N * q;
+    end
+    
+    % hospital occupancy (ARDS people in hospital/CCU)
+    %----------------------------------------------------------------------
+    q  = squeeze(spm_sum(x,[2,4]));
+    q  = sum(q([3,6],3));
+    if isfield(P,'hc')
+        Y(i,27) = N * (Q.hc(1)*q + Q.hc(2)*pcr14/512);
+    else
+        Y(i,27) = N * q;
     end
 
     % excess deaths in hospital/CCU
@@ -391,7 +409,6 @@ for i = 1:M.T
     
     % PCR case positivity (%)
     %----------------------------------------------------------------------
-    q       = squeeze(spm_sum(x,[3,4]));
     Y(i,23) = 100 * p{4}(3)/(p{4}(3) + p{4}(4));
     
     % lateral flow tests

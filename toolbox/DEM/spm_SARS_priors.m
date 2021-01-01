@@ -35,7 +35,7 @@ function [P,C,str] = spm_SARS_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8037 2020-12-27 21:36:21Z karl $
+% $Id: spm_SARS_priors.m 8038 2021-01-01 16:33:49Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -88,8 +88,8 @@ names{20} = 'resistance (late)';
 names{21} = 'asymptomatic period (days)';
 names{22} = 'symptomatic period (days)';
 names{23} = 'ARDS period (days)';
-names{24} = 'P(ARDS|symptoms): early';
-names{25} = 'P(ARDS|symptoms): late';
+names{24} = 'P(ARDS|symptoms): winter';
+names{25} = 'P(ARDS|symptoms): summer';
 names{26} = 'P(fatality|ARDS): early';
 names{27} = 'P(fatality|ARDS): late';
 
@@ -149,6 +149,7 @@ factor{5} = {'tier 0','tier 1','tier 2'};
 % Y(:,24) - Lateral flow tests
 % Y(:,25) - Cumulative attack rate
 % Y(:,26) - Population immunity
+% Y(:,27) - Hospital cases
 
 str.outcome = {'Daily deaths (28 days)',...
                'Daily confirmed cases',...
@@ -175,7 +176,8 @@ str.outcome = {'Daily deaths (28 days)',...
                'PCR positivity (%)',...
                'Lateral flow tests',...
                'Attack rate (%)',...
-               'Herd immunity (%)'};
+               'Herd immunity (%)'...
+               'Hospital cases'};
            
 str.factors = factors;
 str.factor  = factor;
@@ -194,7 +196,7 @@ end
 % Expectations (either heuristic or taken from the above sources)
 %==========================================================================
 P.N   = 64;                   % (01) population size (millions)
-P.n   = exp(8);               % (02) initial cases (cases)
+P.n   = exp(4);               % (02) initial cases (cases)
 P.r   = 0.1;                  % (03) pre-existing immunity (proportion)
 P.o   = 0.1;                  % (04) initial exposed proportion
 P.m   = 0.1;                  % (05) relative eflux
@@ -204,15 +206,15 @@ P.m   = 0.1;                  % (05) relative eflux
 P.out = 0.36;                 % (06) P(leaving home)
 P.sde = 0.01;                 % (07) lockdown threshold
 P.qua = 0.2;                  % (08) seropositive contribution
-P.exp = 0.04;                 % (09) viral spreading (days)
+P.exp = 0.01;                 % (09) viral spreading (days)
 P.hos = 0.4;                  % (10) admission rate (hospital)
 P.ccu = 0.1;                  % (11) admission rate (CCU)
-P.s   = 3;                    % (12) distancing sensitivity
+P.s   = 2;                    % (12) distancing sensitivity
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
 P.Nin = 2;                    % (13) effective number of contacts: home
-P.Nou = 20;                   % (14) effective number of contacts: work
+P.Nou = 24;                   % (14) effective number of contacts: work
 P.trn = 0.3;                  % (15) transmission strength (early)
 P.trm = 0.3;                  % (16) transmission strength (late)
 P.Tin = 4;                    % (17) infected period (days)
@@ -222,7 +224,7 @@ P.res = 0.2;                  % (20) seronegative proportion (late)
 
 % clinical parameters
 %--------------------------------------------------------------------------
-P.Tic = 7;                    % (21) asymptomatic period (days)
+P.Tic = 5;                    % (21) asymptomatic period (days)
 P.Tsy = 8;                    % (22) symptomatic period  (days)
 P.Trd = 6;                    % (23) CCU period (days)
 
@@ -234,25 +236,25 @@ P.sur = 0.5;                  % (27) P(fatality | ARDS): late
 % testing parameters
 %--------------------------------------------------------------------------
 P.ttt = 0.036;                % (28) FTTI efficacy
-P.tes = 16;                   % (29) bias (for infection): pillar one
-P.tts = 8;                    % (30) bias (for infection): pillar two
+P.tes = 32;                  % (29) bias (for infection): pillar one
+P.tts = 16;                   % (30) bias (for infection): pillar two
 P.del = 3;                    % (31) test delay (days)
 P.vac = 1e-8;                 % (32) vaccination rate
 P.fnr = 0.2;                  % (33) false-negative rate
 P.fpr = 0.002;                % (34) false-positive rate
 
-P.lim = [0.001 0.004 0.001];  % (35) testing: capacity
+P.lim = [1 4 1]/1000;         % (35) testing: capacity
 P.rat = [8 32 8];             % (36) testing: dispersion
 P.ons = [100 200 300];        % (37) testing: onset
 
 P.lag = [1 1];                % (38) reporting lag
-P.inn = 0.2;                  % (39) seronegative proportion (early)
+P.inn = 1;                    % (39) seronegative proportion (early)
 P.mem = 160;                  % (40) lockdown decay (days)
 
 % cut and paste to see the effects of changing different prior expectations
 %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 if false
-    U     = [1 2 3 16];
+    U     = [1 2 3 16 27]; U = 23;
     pE    = spm_SARS_priors; M.T = 12*32;
     [Y,X] = spm_SARS_gen(pE,M,U);
     spm_SARS_plot(Y,X,[],U)
@@ -266,7 +268,7 @@ end
 
 % Variances (mildly informative priors, apart from initial cases and size)
 %==========================================================================
-U     = exp( 4);              % flat priors
+U     = exp( 2);              % flat priors
 V     = exp(-2);              % uninformative priors
 W     = exp(-4);              % informative priors
 X     = exp(-6);              % informative priors
@@ -296,7 +298,7 @@ C.trm = W;                    % (15) transmission strength (late)
 C.Tin = X;                    % (17) infected period (days)
 C.Tcn = X;                    % (18) infectious period (days)
 C.Tim = W;                    % (19) seropositive immunity (months)
-C.res = X;                    % (20) seronegative immunity (proportion)
+C.res = W;                    % (20) seronegative immunity (proportion)
 
 % clinical parameters
 %--------------------------------------------------------------------------
@@ -311,8 +313,8 @@ C.sur = X;                    % (27) P(fatality | ARDS): late
 % testing parameters
 %--------------------------------------------------------------------------
 C.ttt = X;                    % (28) FTTI efficacy
-C.tes = W;                    % (29) testing: bias (early)
-C.tts = W;                    % (30) testing: bias (late)
+C.tes = V;                    % (29) testing: bias (early)
+C.tts = V;                    % (30) testing: bias (late)
 C.del = X;                    % (31) test delay (days)
 C.vac = 0;                    % (32) vaccination rate
 C.fnr = X;                    % (33) false-negative rate
@@ -323,7 +325,7 @@ C.rat = U;                    % (36) testing: constant (days)
 C.ons = U;                    % (37) testing: onset (days)
 
 C.lag = V;                    % (38) reporting lag
-C.inn = 0;                    % (39) seronegative proportion (early)
+C.inn = U;                    % (39) seronegative proportion (early)
 C.mem = 0;                    % (40) lockdown decay (days)
 
 

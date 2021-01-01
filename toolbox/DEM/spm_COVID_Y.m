@@ -45,7 +45,7 @@ for i = 1:numel(Y)
 end
 
 % smooth data using graph Laplacian (seven day average)
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 nY    = zeros(1,numel(Y));
 for i = 1:numel(Y)
     nY(i)  = numel(Y(i).Y);
@@ -55,8 +55,12 @@ for i = 1:numel(Y)
     end
 end
 
+% remove low count data
+%--------------------------------------------------------------------------
+Y     = Y([Y.n] > 1);
+
 % precisions based upon total counts
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 h     = zeros(1,numel(Y));
 for i = 1:numel(Y)
     h(i) = sum(Y(i).Y);
@@ -73,7 +77,7 @@ end
 dates  = datenum(date0,'dd-mmm-yyyy'):max(spm_vec(Y.date));
 
 % data matrix (smooth): NaN indicates missing data
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 S  = NaN(numel(dates),numel(Y));
 for i = 1:numel(Y)
     j      = ismember(dates,Y(i).date);
