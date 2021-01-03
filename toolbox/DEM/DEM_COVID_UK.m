@@ -15,7 +15,7 @@ function DCM = DEM_COVID_UK(fluct)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8038 2021-01-01 16:33:49Z karl $
+% $Id: DEM_COVID_UK.m 8039 2021-01-03 09:46:59Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -327,8 +327,6 @@ pE.n    = -5;
 %--------------------------------------------------------------------------
 pE.dc   = log([1 1]);           % coefficients for death (28 days)
 pC.dc   = [1 1]/8;              % prior variance
-pE.mv   = log([1 1]);           % coefficients for ventilation
-pC.mv   = [1 1]/8;              % prior variance
 pE.ho   = log([1 1]);           % coefficients for admissions
 pC.ho   = [1 1]/8;              % prior variance
 pE.hc   = log([1 1]);           % coefficients for hospital cases
@@ -492,6 +490,21 @@ plot([R.Pout]), spm_axis tight
 title('Contact rate','FontSize',14)
 xlabel('days'),ylabel('probability')
 hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), hold off, box off
+
+j    = j + 1;
+subplot(4,2,j)
+plot(100 * [R.Pfat].*[R.Psev]), spm_axis tight
+title('Symptom fatality ratio','FontSize',14)
+xlabel('days'),ylabel('percent')
+hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), hold off, box off
+
+j    = j + 1;
+subplot(4,2,j)
+plot(100 * [R.Psen]), hold on, plot(100 * [R.Ptes]), spm_axis tight
+title('Testing rate','FontSize',14)
+xlabel('days'),ylabel('percent')
+hold on, plot([1,1]*size(DCM.Y,1),[0,5],':'), hold off, box off
+legend({'susceptible','infected'})
 
 % save figures
 %--------------------------------------------------------------------------

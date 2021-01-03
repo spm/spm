@@ -61,7 +61,7 @@ for i = 1:numel(Area)
     %----------------------------------------------------------------------
     j = find(ismember(AreaCode,Area(i)));
     
-    if any(isfinite(newCases(j))) && any(isfinite(newDeath(j)))
+    if any(isfinite(newCases(j))) && (any(isfinite(newDeath(j))) || any(isfinite(OnsDeath(j))))
         k           = k + 1;
         D(k).cases  = newCases(j);
         D(k).deaths = newDeath(j);
@@ -161,40 +161,42 @@ for r = 1:numel(D)
     Y(1).Y    = D(r).cases;
     Y(1).h    = 2;
     
-    Y(2).type = 'Daily deaths (ONS: 28-days)'; % daily covid-related deaths (28 days)
-    Y(2).unit = 'number/day';
-    Y(2).U    = 1;
-    Y(2).date = D(r).date;
-    Y(2).Y    = D(r).deaths;
-    Y(2).h    = 0;
-   
-    Y(3).type = 'Certified deaths (ONS)'; % weekly covid related deaths
-    Y(3).unit = 'number';
-    Y(3).U    = 15;
+    % deal with Welsh death data
+    %----------------------------------------------------------------------
+    if ismember('W',D(r).code{1})
+        
+        Y(2).type = 'Certified deaths (ONS)'; % weekly covid related deaths
+        Y(2).unit = 'number/day';
+        Y(2).U    = 1;
+        Y(2).date = D(r).date;
+        Y(2).Y    = D(r).cert/7;
+        Y(2).h    = 0;
+    else
+        Y(2).type = 'Daily deaths (ONS: 28-days)'; % daily covid-related deaths (28 days)
+        Y(2).unit = 'number/day';
+        Y(2).U    = 1;
+        Y(2).date = D(r).date;
+        Y(2).Y    = D(r).deaths;
+        Y(2).h    = 0;
+    end
+    
+    Y(3).type = 'PCR positivity (GOV)'; % positivity (England)
+    Y(3).unit = 'percent';
+    Y(3).U    = 23;
     Y(3).date = D(r).date;
-    Y(3).Y    = D(r).cert/7;
+    Y(3).Y    = D(r).rate + 1;
     Y(3).h    = 0;
-    Y(3).lag  = 0;
     
-    Y(4).type = 'PCR positivity (GOV)'; % positivity (England)
-    Y(4).unit = 'percent';
-    Y(4).U    = 23;
+    Y(4).type = 'PCR tests (ONS)'; % daily PCR tests performed
+    Y(4).unit = 'number/day';
+    Y(4).U    = 6;
     Y(4).date = D(r).date;
-    Y(4).Y    = D(r).rate + 1;
+    Y(4).Y    = D(r).tests;
     Y(4).h    = 0;
-    Y(4).lag  = 0;
-    
-    Y(5).type = 'PCR tests (ONS)'; % daily PCR tests performed
-    Y(5).unit = 'number/day';
-    Y(5).U    = 6;
-    Y(5).date = D(r).date;
-    Y(5).Y    = D(r).tests;
-    Y(5).h    = 0;
-    Y(5).lag  = 0;
     
     % remove NANs, smooth and sort by date
     %----------------------------------------------------------------------
-    [Y,S] = spm_COVID_Y(Y([1,2,4]),M.date,16);
+    [Y,S] = spm_COVID_Y(Y([1,2,3]),M.date,16);
         
     % data structure with vectorised data and covariance components
     %----------------------------------------------------------------------
@@ -307,24 +309,264 @@ for r = 1:numel(D)
     spm_axis tight, axis off
     drawnow
     if numel(D) > 16
+        
+        % save figure
+        %------------------------------------------------------------------
         savefig(H,[strrep(strrep(strrep(D(r).name{1},' ','_'),',',''),'''',''),'.fig']);
         close(H);
+        
+        % save working variables
+        %------------------------------------------------------------------
+        try, clear ans,     end
+        try, clear H,       end
+        try, save COVID_LA, end
+        
     end
 end
-
-% save
-%--------------------------------------------------------------------------
-try, clear ans, end
-try, clear H,   end
-save COVID_LA
 
 
 return
 
 
-%%
+%% regional analysis (one)
+%==========================================================================
 
-% regional analysis
+% get regional data and parameter estimates
+%--------------------------------------------------------------------------
+load COVID_LA
+dn    = 64;
+M.T   = numel(dates) + dn;
+DC    = zeros(M.T,numel(DCM));
+DP    = zeros(M.T,numel(DCM));
+DM    = zeros(M.T,numel(DCM));
+DV    = zeros(M.T,numel(DCM));
+DB    = zeros(M.T,numel(DCM));
+for r = 1:numel(DCM)
+    
+    % now-casting for this region and date
+    %----------------------------------------------------------------------
+    Y      = spm_SARS_gen(DCM(r).Ep,M,[2 8]);
+    %----------------------------------------------------------------------
+    % Y(:,1)  - number of new deaths
+    % Y(:,2)  - number of new cases
+    % Y(:,3)  - CCU bed occupancy
+    % Y(:,4)  - effective reproduction rate (R)
+    % Y(:,5)  - population immunity (%)
+    % Y(:,6)  - total number of tests
+    % Y(:,7)  - contagion risk (%)
+    % Y(:,8)  - prevalence of infection (%)
+    % Y(:,9)  - number of infected at home, untested and asymptomatic
+    % Y(:,10) - new cases per day
+    %----------------------------------------------------------------------
+    DC(:,r) = Y(:,1);                       % reported cases
+    DP(:,r) = Y(:,2);                       % prevalence 
+    
+    % remove fluctuations in transmission
+    %----------------------------------------------------------------------
+    Ep      = DCM(r).Ep;
+    Ep.vir  = spm_zeros(Ep.vir);
+    Y       = spm_SARS_gen(Ep,M,[2 8]);
+    DV(:,r) = Y(:,1);                       % prevalence (transmission)
+    
+    % remove fluctuations in contact rate
+    %----------------------------------------------------------------------
+    Ep      = DCM(r).Ep;
+    Ep.mob  = spm_zeros(Ep.mob);
+    Y       = spm_SARS_gen(Ep,M,[2 8]);
+    DM(:,r) = Y(:,1);                       % prevalence (contact rate)
+    
+    % remove fluctuations in both
+    %----------------------------------------------------------------------
+    Ep      = DCM(r).Ep;
+    Ep.vir  = spm_zeros(Ep.vir);
+    Ep.mob  = spm_zeros(Ep.mob);
+    Y       = spm_SARS_gen(Ep,M,[2 8]);
+    DB(:,r) = Y(:,1);                       % prevalence (both)
+    
+    disp(r)
+
+end
+    
+%% Rank regions by first and second peaks (before and after 200 days)
+%==========================================================================
+spm_figure('GetWin','Variation'), clf
+%--------------------------------------------------------------------------
+n     = numel(dates);
+t1    = 1:200;
+t2    = 201:n;
+YC    = zeros(n,numel(DCM));
+YD    = zeros(n,numel(DCM));
+for i = 1:numel(DCM)
+    
+    % vectorised data and parameters
+    %----------------------------------------------------------------------
+    EP(:,i)  = spm_vec(DCM(i).Ep);
+    
+    % deal with missing data
+    %----------------------------------------------------------------------
+    S        = DCM(i).S;
+    S(isnan(S)) = 0;
+    j        = (1:size(S,1)) + n - size(S,1);
+    YC(j,i)  = S(:,1);                     % new cases
+    
+end
+
+% plot reported cases
+%--------------------------------------------------------------------------
+YC    = [YC; zeros(dn,size(YC,2))];
+n     = size(YC,1);
+t1    = 1:200;
+t2    = 201:n;
+Y1    = zeros(numel(t1),numel(DCM));
+Y2    = zeros(numel(t2),numel(DCM));
+for i = 1:numel(DCM)
+    
+    % normalise to peak amplitude
+    %----------------------------------------------------------------------
+    Y       = YC;
+    Y1(:,i) = Y(t1,i)/max(Y(t1,i));
+    Y2(:,i) = Y(t2,i)/max(Y(t2,i));
+    
+    % amplitude and time of peaks
+    %----------------------------------------------------------------------
+    [m,j]   = max(Y(t1,i));
+    T1(i,1) = j;
+    
+    [m,j]   = max(Y(t2,i));
+    T2(i,1) = j;
+    
+end
+
+% Rank and plot
+%--------------------------------------------------------------------------
+[s,j1] = sort(T1);
+[s,j2] = sort(T2);
+
+subplot(4,2,1), imagesc(1 - Y1(:,j1)')
+title('reported cases: 1st peak','Fontsize',14), xlabel('days'), ylabel('local authority')
+subplot(4,2,2), imagesc(1 - Y2(:,j2)')
+title('reported cases: 2nd peak','Fontsize',14), xlabel('days')
+
+
+% plot estimated reported cases
+%--------------------------------------------------------------------------
+n     = size(DC,1);
+t1    = 1:200;
+t2    = 201:n;
+Y1    = zeros(numel(t1),numel(DCM));
+Y2    = zeros(numel(t2),numel(DCM));
+for i = 1:numel(DCM)
+    
+    % normalise to peak amplitude
+    %----------------------------------------------------------------------
+    Y       = DC;
+    Y1(:,i) = Y(t1,i)/max(Y(t1,i));
+    Y2(:,i) = Y(t2,i)/max(Y(t2,i));
+    
+    % amplitude and time of peaks
+    %----------------------------------------------------------------------
+    [m,j]   = max(Y(t1,i));
+    T1(i,1) = j;
+    [m,j]   = max(Y(t2,i));
+    T2(i,1) = j;
+    
+end
+
+% Rank and plot
+%----------------------------------------------------------------------
+[s,j1] = sort(T1);
+[s,j2] = sort(T2);
+
+subplot(4,2,3), imagesc(1 - Y1(:,j1)')
+title('predicted reports: 1st peak','Fontsize',14), xlabel('days'), ylabel('local authority')
+subplot(4,2,4), imagesc(1 - Y2(:,j2)')
+title('predicted reports: 2nd peak','Fontsize',14), xlabel('days')
+
+
+% plot estimated prevalence
+%--------------------------------------------------------------------------
+n     = size(DC,1);
+t2    = 201:n;
+Y2    = zeros(numel(t2),numel(DCM));
+for i = 1:numel(DCM)
+    
+    % normalise to peak amplitude
+    %----------------------------------------------------------------------
+    Y       = DP;
+    Y2(:,i) = Y(t2,i)/max(Y(t2,i));    
+    [m,j]   = max(Y(t2,i));
+    T2(i,1) = j;
+    
+end
+
+% Rank and plot
+%--------------------------------------------------------------------------
+[s,j2] = sort(T2);
+subplot(4,2,5), imagesc(1 - Y2(:,j2)')
+title('predicted prevalence: 2nd peak','Fontsize',14), xlabel('days')
+
+% plot estimated prevalence
+%--------------------------------------------------------------------------
+for i = 1:numel(DCM)
+    
+    % normalise to peak amplitude
+    %----------------------------------------------------------------------
+    Y       = DM;
+    Y2(:,i) = Y(t2,i)/max(Y(t2,i));    
+    [m,j]   = max(Y(t2,i));
+    T2(i,1) = j;
+end
+
+% Rank and plot
+%--------------------------------------------------------------------------
+[s,j2] = sort(T2);
+subplot(4,2,6), imagesc(1 - Y2(:,j2)')
+title('no contact-rate fluctuations','Fontsize',14), xlabel('days')
+
+% plot estimated prevalence
+%--------------------------------------------------------------------------
+for i = 1:numel(DCM)
+    
+    % normalise to peak amplitude
+    %----------------------------------------------------------------------
+    Y       = DV;
+    Y2(:,i) = Y(t2,i)/max(Y(t2,i));    
+    [m,j]   = max(Y(t2,i));
+    T2(i,1) = j;
+    
+end
+
+% Rank and plot
+%--------------------------------------------------------------------------
+[s,j2] = sort(T2);
+subplot(4,2,7), imagesc(1 - Y2(:,j2)')
+title('no transmission-risk fluctuations','Fontsize',14), xlabel('days')
+
+% plot estimated prevalence
+%--------------------------------------------------------------------------
+n     = size(DC,1);
+t2    = 201:n;
+Y2    = zeros(numel(t2),numel(DCM));
+for i = 1:numel(DCM)
+    
+    % normalise to peak amplitude
+    %----------------------------------------------------------------------
+    Y       = DB;
+    Y2(:,i) = Y(t2,i)/max(Y(t2,i));    
+    [m,j]   = max(Y(t2,i));
+    T2(i,1) = j;
+    
+end
+
+% Rank and plot
+%--------------------------------------------------------------------------
+[s,j2] = sort(T2);
+subplot(4,2,8), imagesc(1 - Y2(:,j2)')
+title('neither: second peak','Fontsize',14), xlabel('days')
+
+
+
+%% regional analysis (two)
 %==========================================================================
 
 % get testing rates
@@ -338,9 +580,6 @@ d0  = datenum(DCM.M.date,'dd-mm-yyyy');
 load COVID_LA
 PCR  = PCR/max(PCR);
 dd   = dates(1) - d0;
-
-spm_figure('GetWin','Variation'), clf
-
 
 % Rank regions by first and second peaks (before and after 200 days)
 %==========================================================================

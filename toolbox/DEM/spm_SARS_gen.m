@@ -26,7 +26,7 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % Y(:,11) - Number infected 
 % Y(:,12) - Number symptomatic
 % Y(:,13) - Mobility (%)
-% Y(:,14) - Workplace (%)
+% Y(:,14) - Retail (%)
 % Y(:,15) - Certified deaths
 % Y(:,16) - Hospital admissions
 % Y(:,17) - Hospital deaths
@@ -74,7 +74,7 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8038 2021-01-01 16:33:49Z karl $
+% $Id: spm_SARS_gen.m 8039 2021-01-03 09:46:59Z karl $
 
 
 % The generative model:
@@ -306,11 +306,7 @@ for i = 1:M.T
 
     % CCU bed occupancy (mechanical ventilation)
     %----------------------------------------------------------------------
-    if isfield(Q,'mv')
-        Y(i,3) = N * (S*Q.mv(1) + (1 - S)*Q.mv(2)) * p{1}(3);
-    else
-        Y(i,3) = N * p{1}(3);
-    end
+    Y(i,3) = N * p{1}(3);
 
     % effective reproduction ratio (R) (based on infection prevalence)
     %----------------------------------------------------------------------
