@@ -119,6 +119,6 @@ file `LICENCE.txt`, or at your option, any later version).  Further details on
 supplied as is.  No formal support or maintenance is provided or implied.
 
 ```
-Copyright (C) 1991,1994-2020 Wellcome Centre for Human Neuroimaging
-$Id: README.md 7765 2020-01-02 16:29:48Z spm $
+Copyright (C) 1991,1994-2021 Wellcome Centre for Human Neuroimaging
+$Id: README.md 8041 2021-01-04 14:24:00Z spm $
 ```
