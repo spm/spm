@@ -65,10 +65,10 @@ function varargout = spm_graph_ui(action, varargin)
 %
 % is assigned in base workspace for plots of contrasts and their error.
 %__________________________________________________________________________
-% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2021 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Guillaume Flandin
-% $Id: spm_graph_ui.m 6985 2017-01-11 11:51:49Z guillaume $
+% $Id: spm_graph_ui.m 8040 2021-01-04 13:40:46Z guillaume $
 
 
 if nargin && ~ischar(action)
@@ -463,7 +463,7 @@ case 'plot'                                                          %-Plot
             axis(ax,'square')
 
             ax = subplot(2,2,4,'Parent',Fgraph);
-            [j,i] = max(mean(Y,2));
+            [j,i] = max(abs(mean(Y,2)));
             plot(ax,P,Y(i,:),'LineWidth',4,'Color',Col(2,:))
             str   = sprintf('response at %0.1fs',i*SPM.xBF.dt);
             title(ax,str,'FontSize',FS(12))
