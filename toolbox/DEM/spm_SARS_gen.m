@@ -34,7 +34,7 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % Y(:,19) - Deaths (>60 years)
 % Y(:,20) - Deaths (<60 years)
 % Y(:,21) - Infection fatality ratio (%)
-% Y(:,22) - Daily vaccinations
+% Y(:,22) - Number vaccinated
 % Y(:,23) - PCR case positivity (%)
 % Y(:,24) - Lateral flow tests
 % Y(:,25) - Cumulative attack rate
@@ -74,7 +74,7 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8039 2021-01-03 09:46:59Z karl $
+% $Id: spm_SARS_gen.m 8042 2021-01-10 10:39:04Z karl $
 
 
 % The generative model:
@@ -188,7 +188,7 @@ p{1} = [h w 0 m 0 0]';     % location
 p{2} = [s n 0 0 r]';       % infection 
 p{3} = [1 0 0 0]';         % clinical 
 p{4} = [1 0 0 0]';         % testing
-% p{5} = [1 0]';           % tiers
+p{5} = [1 0]';             % vaccination
 
 % normalise initial marginals
 %--------------------------------------------------------------------------
@@ -288,7 +288,6 @@ for i = 1:M.T
     
     % outcomes
     %======================================================================
-    S     = (1 + cos(2*pi*i/365))/2; % seasonal fluctuations
     
     % number of daily deaths (28 days)
     %----------------------------------------------------------------------
@@ -398,10 +397,9 @@ for i = 1:M.T
         Y(i,20) = N * Qag(2,:) * q([3,5,6],4);
     end
     
-    % incidence of vaccinations
+    % number of people vaccinated (in millions)
     %----------------------------------------------------------------------
-    q       = squeeze(spm_sum(x,[3,4]));
-    Y(i,22) = N * exp(P.vac) * q(6,1);
+    Y(i,22) = N * p{5}(2) / 1e6;
     
     % PCR case positivity (%)
     %----------------------------------------------------------------------
@@ -409,7 +407,7 @@ for i = 1:M.T
     
     % lateral flow tests
     %----------------------------------------------------------------------
-    Y(i,24) = N * Q.lim(3)*spm_phi((i - Q.ons(3))/Q.rat(3));
+    Y(i,24) = N * Q.lim(end)*spm_phi((i - Q.ons(end))/Q.rat(end));
     
     
     % joint density if requested

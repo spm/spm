@@ -32,7 +32,7 @@ function [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_ci.m 8029 2020-12-05 13:37:31Z karl $
+% $Id: spm_SARS_ci.m 8042 2021-01-10 10:39:04Z karl $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------
@@ -103,7 +103,7 @@ if numel(U) == 1
         % label time
         %------------------------------------------------------------------
         if isfield(M,'date')
-            datetick('x','mmm-dd','keeplimits','keepticks')
+            datetick('x','dd-mmm','keeplimits','keepticks')
             xlabel('date')
         else
             xlabel('time (weeks)')

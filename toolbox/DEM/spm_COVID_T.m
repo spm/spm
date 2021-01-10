@@ -21,7 +21,7 @@ function [T,R] = spm_COVID_T(x,P)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8038 2021-01-01 16:33:49Z karl $
+% $Id: spm_COVID_T.m 8042 2021-01-10 10:39:04Z karl $
 
 % setup
 %==========================================================================
@@ -46,7 +46,6 @@ Kday = exp(-1);
 % divergence from endemic equilibrium (1,0)
 %--------------------------------------------------------------------------
 Q    = (1 + cos(2*pi*(P.t - log(P.inn)*8)/365))/2;
-T    = exp(-P.t/128);
 
 % probabilistic transitions: location
 %==========================================================================
@@ -165,25 +164,25 @@ pin  = q(1,:)/sum(q(1,:) + eps);     % infection probability at home
 pou  = q(2,:)/sum(q(2,:) + eps);     % infection probability at work
 phs  = q(6,:)/sum(q(6,:) + eps);     % infection probability at hospital
 
-Pmut = 0;                            % fluctuating transmission strength
-if isfield(P,'vir')
-    for i = 1:numel(P.vir)
-        Pmut = Pmut + log(P.vir(i)) * cos(i*pi*P.t/365)/8;
+Ptra = 0;                            % fluctuating transmission risk
+if isfield(P,'tra')
+    for i = 1:numel(P.tra)
+        Ptra = Ptra + log(P.tra(i)) * cos(i*pi*P.t/365)/8;
     end
 end
-Pmut = exp(Pmut);
+Ptra = exp(Ptra);
 
+q    = spm_sum(x,[1 2 3 4]);         % P(vaccination)
 Ptrn = P.trn*Q + P.trm*(1 - Q);      % transmission strength
-Ptrn = erf(Ptrn*Pmut);               % modulated strength
+Ptrn = erf(Ptrn*Ptra);               % modulated strength
 Ptin = (1 - Ptrn*pin(3))^P.Nin;      % P(no transmission) | home
 Ptou = (1 - Ptrn*pou(3))^P.Nou;      % P(no transmission) | work
 Pths = (1 - Ptrn*phs(3))^P.Nou;      % P(no transmission) | hospital
 Kimm = exp(-1/P.Tim);                % loss of Ab+ immunity (per day)
-Kinn = exp(-1/2048);                 % loss of Ab- immunity (per day)
+Kinn = exp(-1/P.mem);                % loss of Ab- immunity (per day)
 Kinf = exp(-1/P.Tin);                % infection rate
 Kcon = exp(-1/P.Tcn);                % infectious rate
-Pres = P.res;                        % resistant proportion
-Pvac = P.vac;                        % vaccination rate
+Pres = erf(P.res + P.vac*q(2));      % resistant proportion
     
 % marginal: infection {2} | home {1}(1)
 %--------------------------------------------------------------------------
@@ -222,11 +221,11 @@ b{5} = b{3};
 
 % marginal: infection {2} | hospital {1}(6)
 %--------------------------------------------------------------------------
-b{6} = [Pths*(1 - Pvac)       0                     0          0         (1 - Kinn);
-        (1 - Pths)*(1 - Pvac) Kinf                  0          0          0;
-        0                     (1 - Pres)*(1 - Kinf) Kcon       0          0;
-        0                     0                     (1 - Kcon) Kimm       0;
-        Pvac                  Pres*(1 - Kinf)       0          (1 - Kimm) Kinn];
+b{6} = [Pths       0                     0          0         (1 - Kinn);
+        (1 - Pths) Kinf                  0          0          0;
+        0         (1 - Pres)*(1 - Kinf)  Kcon       0          0;
+        0          0                     (1 - Kcon) Kimm       0;
+        0          Pres*(1 - Kinf)       0          (1 - Kimm) Kinn];
 
 % kroneckor form
 %--------------------------------------------------------------------------
@@ -240,12 +239,21 @@ B{2} = spm_permute_kron(b,dim([2,1,3,4]),[2,1,3,4]);
 % probabilities of developing symptoms
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
+Pvir = 0;                                    % fluctuating virulence
+if isfield(P,'vir')
+    for i = 1:numel(P.vir)
+        Pvir = Pvir + log(P.vir(i)) * cos(i*pi*P.t/365)/8;
+    end
+end
+Pvir = exp(Pvir);
 
-Psev = erf(P.sev*Q + P.lat*(1 - Q));     % P(ARDS | infected)
-Pfat = erf(P.fat*T + P.sur*(1 - T));     % P(fatality | ARDS, CCU)
-Ksym = exp(-1/P.Tsy);                    % acute symptomatic rate
-Ktrd = exp(-1/P.Trd);                    % acute RDS rate
-Ktic = exp(-1/P.Tic);                    % symptomatic rate
+Psev = P.sev*Q + P.lat*(1 - Q);              % P(ARDS | infected)
+Psev = Psev*Pvir;                            % P(ARDS | infected)
+Pfat = P.fat*exp(-P.t/P.sur);                % P(fatality | ARDS, CCU)
+Ksym = exp(-1/P.Tsy);                        % acute symptomatic rate
+Ktrd = exp(-1/P.Trd);                        % acute RDS rate
+Ktic = exp(-1/P.Tic);                        % incubation rate
+Ktic = (1 - Ktic); % *(1 - P.vac*q(2));      % symptom rate
 
 
 % marginal: clinical {3} | susceptible {2}(1)
@@ -259,8 +267,8 @@ b{1} = [1          (1 - Ksym)*(1 - Psev) 0         (1 - Kday);
     
 % marginal: clinical {3} | infected {2}(2)
 %--------------------------------------------------------------------------
-b{2} = [Ktic       (1 - Ksym)*(1 - Psev) 0         (1 - Kday);
-        (1 - Ktic) Ksym                  0                  0;
+b{2} = [(1 - Ktic) (1 - Ksym)*(1 - Psev) 0         (1 - Kday);
+        Ktic       Ksym                  0                  0;
         0          (1 - Ksym)*Psev       Ktrd               0;
         0          0                     (1 - Ktrd)      Kday];
     
@@ -275,6 +283,7 @@ b{4} = b{1};
 % marginal: clinical {3} | Ab- {2}(5)
 %--------------------------------------------------------------------------
 b{5} = b{1};
+    
 
 % kroneckor form
 %--------------------------------------------------------------------------
@@ -311,6 +320,14 @@ if isfield(P,'pcr')
 end
 Ppcr = exp(Ppcr);
 
+Pssb = 0;                                      % fluctuating self-selection
+if isfield(P,'ssb')
+    for i = 1:numel(P.ssb)
+        Pssb = Pssb + log(P.ssb(i)) * cos(i*pi*P.t/365)/8;
+    end
+end
+Pssb = exp(Pssb);
+
 % (pillar one, two and LFT) phases of testing
 %--------------------------------------------------------------------------
 Pill  = zeros(1,numel(P.lim));
@@ -318,14 +335,14 @@ for i = 1:numel(P.lim)
     p(i)    = spm_phi((P.t - P.ons(i))/P.rat(i));
     Pill(i) = P.lim(i)*p(i);
 end
-
+p    = p/sum(p);
 Psen = sum(Pill);                              % testing rate
-Ptes = P.tes*(1 - p(2)) + P.tts*p(2);          % testing bias
+Ptes = P.tes*p(1) + P.tts*(1 - p(1));          % testing bias
 Psen = erf(Psen*Ppcr);                         % probability of testing 
-Ptes = erf(Psen*Ptes);                         % probability if infected
+Ptes = erf(Psen*Ptes*Pssb);                    % probability if infected
 
-Pfnr = P.fnr*(1 - p(3)) + 0.25*p(3);           % false negative rate
-Pfpr = P.fpr*(1 - p(3)) + 0.0032*p(3);         % false positive rate
+Pfnr = P.fnr*(1 - p(end)) + 0.25*p(end);       % false negative rate
+Pfpr = P.fpr*(1 - p(end)) + 0.0032*p(end);     % false positive rate
 Sens = 1 - Pfnr;                               % sensitivity
 Spec = 1 - Pfpr;                               % specificity                    
 Kdel = exp(-1/P.del);                          % exp(-1/waiting period)
@@ -369,6 +386,11 @@ B{4} = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
 ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,1},dim); B{4}(ij) = 1;
 ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,2},dim); B{4}(ij) = 0;
 
+% location dependent testing (always in hospital): third order dependencies
+%--------------------------------------------------------------------------
+% ij   = Bij({6,1:5,1:4,1},{6,1:5,1:4,1},dim); B{4}(ij) = 0;
+% ij   = Bij({6,1:5,1:4,1},{6,1:5,1:4,2},dim); B{4}(ij) = 1;
+
 
 % probability transition matrix
 %==========================================================================
@@ -377,11 +399,29 @@ for i = 1:4
     T =  T*B{i};
 end
 
+
+% probabilistic transitions: vaccination
+%==========================================================================
+Pvac = spm_phi((P.t - P.rol(2))/P.rol(3));   % vaccination rollout
+Pvac = P.rol(1)*Pvac;                        % P(vaccinated)                          
+Pwan = exp(-1/P.mem);                        % P(waning)
+
+% marginal: tiers
+%--------------------------------------------------------------------------
+%  tier: 0         1
+%--------------------------------------------------------------------------
+B{5} = [(1 - Pvac)  (1 - Pwan);
+        Pvac        Pwan];
+T    = spm_kron({T,B{5}});
+
+
+
 % time-dependent parameters
 %--------------------------------------------------------------------------
 R.Pout = Pout;
 R.Ptrn = Ptrn;
 R.Psev = Psev;
+R.Pinf = Ktic;
 R.Pfat = Pfat;
 R.Psen = Psen;
 R.Ptes = Ptes;
@@ -389,23 +429,6 @@ R.Ptes = Ptes;
 return
 
 
-% probabilistic transitions: state of the nation
-%==========================================================================
-q    = spm_sum(x,[1 3 4 5]);
-Prev = q(2);                           % prevalence of infection
-
-% test probabilities
-%--------------------------------------------------------------------------
-Pt00 = 1 - Prev;                       % P(tier 1 | tier 0)
-Pt11 = exp(-1/P.mem);                  % P(tier 0 | tier 1)
-
-% marginal: tiers
-%--------------------------------------------------------------------------
-%  tier: 0         1
-%--------------------------------------------------------------------------
-B{5} = [Pt00  (1 - Pt11);
-        (1 - Pt00) Pt11];
-T    = spm_kron({T,B{5}});
 
 
 % Auxiliary functions

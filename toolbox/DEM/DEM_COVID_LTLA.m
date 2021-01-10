@@ -24,7 +24,7 @@ options.Timeout = 20;
 
 % load (ONS) testing death-by-date data
 %==========================================================================
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&metric=newDeaths28DaysByDeathDateRate&metric=newOnsDeathsByRegistrationDate&metric=uniqueCasePositivityBySpecimenDateRollingSum&metric=uniquePeopleTestedBySpecimenDateRollingSum&metric=newCasesBySpecimenDate&format=csv';
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=ltla&metric=newDeaths28DaysByDeathDate&metric=newOnsDeathsByRegistrationDate&metric=uniqueCasePositivityBySpecimenDateRollingSum&metric=uniquePeopleTestedBySpecimenDateRollingSum&metric=newCasesBySpecimenDate&format=csv';
 U   = webread(url,options);
 P   = importdata('LADCodesPopulation2019.xlsx');
 
@@ -50,6 +50,8 @@ OnsDeath = table2array(U(j,6));
 Positive = table2array(U(j,7));
 Tested   = table2array(U(j,8));
 newCases = table2array(U(j,9));
+
+if iscell(newCases(1)), newCases = str2double(newCases); end
 
 % organise via NHS trust
 %--------------------------------------------------------------------------
@@ -129,7 +131,7 @@ dates  = d0:max(spm_vec(D.date));
 
 % free parameters of local model (fixed effects)
 %==========================================================================
-free  = {'n','r','o','m','sde','qua','exp','s','Nin','Nou','tes','tts','lim','ons'};
+free  = {'n','o','m','sde','qua','exp','s','Nin','Nou','ssb','pcr'};
 
 
 % (empirical) prior expectation
@@ -345,7 +347,8 @@ for r = 1:numel(DCM)
     
     % now-casting for this region and date
     %----------------------------------------------------------------------
-    Y      = spm_SARS_gen(DCM(r).Ep,M,[2 8]);
+    Ep     = DCM(r).Ep;
+    Y      = spm_SARS_gen(Ep,M,[2 8]);
     %----------------------------------------------------------------------
     % Y(:,1)  - number of new deaths
     % Y(:,2)  - number of new cases
@@ -407,8 +410,8 @@ for i = 1:numel(DCM)
     S        = DCM(i).S;
     S(isnan(S)) = 0;
     j        = (1:size(S,1)) + n - size(S,1);
-    YC(j,i)  = S(:,1);                     % new cases
-    
+    YC(j,i)  = S(:,1);
+    N(i)     = exp(DCM(i).Ep.N);
 end
 
 % plot reported cases
@@ -424,8 +427,10 @@ for i = 1:numel(DCM)
     % normalise to peak amplitude
     %----------------------------------------------------------------------
     Y       = YC;
-    Y1(:,i) = Y(t1,i)/max(Y(t1,i));
-    Y2(:,i) = Y(t2,i)/max(Y(t2,i));
+    n1      = max(Y(t1,i));
+    n2      = max(Y(t2,i));
+    Y1(:,i) = Y(t1,i)/n1;
+    Y2(:,i) = Y(t2,i)/n2;
     
     % amplitude and time of peaks
     %----------------------------------------------------------------------
@@ -460,8 +465,10 @@ for i = 1:numel(DCM)
     % normalise to peak amplitude
     %----------------------------------------------------------------------
     Y       = DC;
-    Y1(:,i) = Y(t1,i)/max(Y(t1,i));
-    Y2(:,i) = Y(t2,i)/max(Y(t2,i));
+    n1      = max(Y(t1,i));
+    n2      = max(Y(t2,i));
+    Y1(:,i) = Y(t1,i)/n1;
+    Y2(:,i) = Y(t2,i)/n2;
     
     % amplitude and time of peaks
     %----------------------------------------------------------------------
@@ -493,7 +500,9 @@ for i = 1:numel(DCM)
     % normalise to peak amplitude
     %----------------------------------------------------------------------
     Y       = DP;
-    Y2(:,i) = Y(t2,i)/max(Y(t2,i));    
+    n1      = max(Y(t1,i));
+    n2      = max(Y(t2,i));
+    Y2(:,i) = Y(t2,i)/n2;    
     [m,j]   = max(Y(t2,i));
     T2(i,1) = j;
     
@@ -512,7 +521,8 @@ for i = 1:numel(DCM)
     % normalise to peak amplitude
     %----------------------------------------------------------------------
     Y       = DM;
-    Y2(:,i) = Y(t2,i)/max(Y(t2,i));    
+    n2      = max(Y(t2,i));
+    Y2(:,i) = Y(t2,i)/n2;    
     [m,j]   = max(Y(t2,i));
     T2(i,1) = j;
 end
@@ -530,7 +540,8 @@ for i = 1:numel(DCM)
     % normalise to peak amplitude
     %----------------------------------------------------------------------
     Y       = DV;
-    Y2(:,i) = Y(t2,i)/max(Y(t2,i));    
+    n2      = max(Y(t2,i));
+    Y2(:,i) = Y(t2,i)/n2;    
     [m,j]   = max(Y(t2,i));
     T2(i,1) = j;
     
@@ -552,7 +563,8 @@ for i = 1:numel(DCM)
     % normalise to peak amplitude
     %----------------------------------------------------------------------
     Y       = DB;
-    Y2(:,i) = Y(t2,i)/max(Y(t2,i));    
+    n2      = max(Y(t2,i));
+    Y2(:,i) = Y(t2,i)/n2;    
     [m,j]   = max(Y(t2,i));
     T2(i,1) = j;
     

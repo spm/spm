@@ -15,7 +15,7 @@ function DCM = DEM_COVID_UK(fluct)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8039 2021-01-03 09:46:59Z karl $
+% $Id: DEM_COVID_UK.m 8042 2021-01-10 10:39:04Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -27,9 +27,8 @@ function DCM = DEM_COVID_UK(fluct)
 % https://www.gov.uk/government/statistics/transport-use-during-the-coronavirus-covid-19-pandemic
 % https://www.google.com/covid19/mobility/
 
-% web options
-%--------------------------------------------------------------------------
-if nargin < 1, fluct = {'vir','mob','pcr'}; end
+% mem = 256:  F = -1.0257e+04 
+% mem = 2048: F = -1.0247e+04 
 
 % web options
 %--------------------------------------------------------------------------
@@ -72,24 +71,34 @@ try
     url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=cumPeopleReceivingFirstDose&format=csv';
     writetable(webread(url,options),'vaccine.csv');
     
+    % get age bands
+    %----------------------------------------------------------------------
+    url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newDeaths28DaysByDeathDateAgeDemographics&format=csv';
+    tab   = webread(url,options);
+    age   = unique(tab(:,6));
+    for r = 1:numel(age)
+        j = find(ismember(tab(:,6),age(r,1)));
+        ages(:,1)     = tab(j,1);
+        ages(:,r + 1) = tab(j,7);
+    end
+    ages = renamevars(ages,(1:numel(age)) + 1,table2array(age));
+    writetable(ages,'ages.csv')
+    
+    % mobility and transport
+    %----------------------------------------------------------------------
     url = 'https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/947572/COVID-19-transport-use-statistics.ods.ods';
     writetable(webread(url,options),'transport.csv');
     url = 'https://www.gstatic.com/covid19/mobility/2020_GB_Region_Mobility_Report.csv';
     tab = webread(url);
     writetable(tab(1:512,8:12),'mobility.csv');
     
-    % url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/articles/coronaviruscovid19infectionsinthecommunityinengland/december2020/b5e03a02&format=csv';
-    % writetable(webread(url,options),'seropositive.csv');
-    
     % https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending11december2020
-    url   = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending11december2020/5b38d1d2&format=csv';
+    url   = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending25december2020/b78a997b&format=csv';
     writetable(webread(url,options),'place.csv');
     
-    
-    % https://www.england.nhs.uk/statistics/statistical-work-areas/covid-19-daily-deaths/
-    url   = 'https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2020/12/COVID-19-total-announced-deaths-29-December-2020.xlsx';
-    websave('ages.xlsx',url);
-    
+    % url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/articles/coronaviruscovid19infectionsinthecommunityinengland/december2020/b5e03a02&format=csv';
+    % writetable(webread(url,options),'seropositive.csv');
+
     disp('download successful')
     
 catch
@@ -112,18 +121,19 @@ lateralft  = importdata('lateralft.csv');
 transport  = importdata('transport.csv');
 mobility   = importdata('mobility.csv');
 vaccine    = importdata('vaccine.csv');
+ages       = importdata('ages.csv');
+place      = importdata('place.csv');
 
 serology   = importdata('seropositive.csv');
 survey     = importdata('survey.csv');
 symptoms   = importdata('symptoms.csv');
 ratio      = importdata('ratio.csv');
-place      = importdata('place.csv');
 
-[num,txt]  = xlsread('ages.xlsx',5,'E16:KP23');
+
 
 % created data structure
 %--------------------------------------------------------------------------
-Y(1).type = 'PCR cases (ONS)'; % daily PCR positive cases (by specimen)
+Y(1).type = 'Positive virus tests (ONS)'; % daily PCR positive cases (by specimen)
 Y(1).unit = 'number/day';
 Y(1).U    = 2;
 Y(1).date = datenum(cases.textdata(5:end,1),'yyyy-mm-dd');
@@ -131,7 +141,7 @@ Y(1).Y    = cases.data(4:end,1);
 Y(1).h    = 0;
 Y(1).lag  = 1;
 
-Y(2).type = 'PCR tests (ONS)'; % daily PCR tests performed
+Y(2).type = 'Virus tests (ONS)'; % daily PCR tests performed
 Y(2).unit = 'number/day';
 Y(2).U    = 6;
 Y(2).date = datenum(tests.textdata(2:end,1),'yyyy-mm-dd');
@@ -152,7 +162,7 @@ Y(4).unit = 'number';
 Y(4).U    = 11;
 Y(4).date = datenum(survey.textdata(2:end,1),'dd/mm/yyyy') - 2;
 Y(4).Y    = survey.data(:,1)*EnglandUK;
-Y(4).h    = 2;
+Y(4).h    = 0;
 Y(4).lag  = 0;
 
 Y(5).type = 'Daily deaths (ONS: 28-days)'; % covid-related deaths (28 days)
@@ -192,7 +202,7 @@ Y(9).unit = 'number';
 Y(9).U    = 3;
 Y(9).date = datenum(ccu.textdata(2:end,1),'yyyy-mm-dd');
 Y(9).Y    = ccu.data(:,1);
-Y(9).h    = 2;
+Y(9).h    = 0;
 Y(9).lag  = 0;
 
 Y(10).type = 'Seropositive (GOV)'; % percentage seropositive
@@ -229,7 +239,7 @@ Y(13).date = datenum(transport.textdata(1 + (1:numel(Y(13).Y)),1),'dd-mm-yyyy');
 Y(13).h    = 0;
 Y(13).lag  = 0;
 
-Y(14).type = 'Retail (Google)'; % retail and recreation (percent)
+Y(14).type = 'Mobility (GOV/Google)'; % retail and recreation (percent)
 Y(14).unit = 'percent';
 Y(14).U    = 14;
 Y(14).date = datenum(mobility.textdata(2:end,1),'yyyy-mm-dd');
@@ -256,16 +266,16 @@ Y(16).lag  = 0;
 Y(17).type = 'deaths > 60 (PHE)'; % deaths (English hospitals)
 Y(17).unit = 'number';
 Y(17).U    = 19;
-Y(17).date = datenum(txt,'dd/mm/yyyy') - 1;
-Y(17).Y    = sum(num(6:7,:))'*EnglandUK;
+Y(17).date = datenum(ages.textdata(2:end,1),'yyyy-mm-dd');
+Y(17).Y    = ages.data(:,14)*EnglandUK;
 Y(17).h    = 0;
 Y(17).lag  = 0;
 
 Y(18).type = 'deaths </> 60 (PHE)'; % deaths (English hospitals)
 Y(18).unit = 'number';
 Y(18).U    = 20;
-Y(18).date = datenum(txt,'dd/mm/yyyy') - 3;
-Y(18).Y    = sum(num(3:5,:))'*EnglandUK;
+Y(18).date = datenum(ages.textdata(2:end,1),'yyyy-mm-dd');
+Y(18).Y    = ages.data(:,2)*EnglandUK;
 Y(18).h    = 0;
 Y(18).lag  = 0;
 
@@ -277,11 +287,11 @@ Y(19).Y    = positivity.data(:,1);
 Y(19).h    = 0;
 Y(19).lag  = 1;
 
-Y(20).type = 'Vaccination (GOV)'; % New first dose
-Y(20).unit = 'number';
+Y(20).type = 'Ab+/Vaccination (GOV)'; % cumulative people with first dose
+Y(20).unit = 'percent/millions';
 Y(20).U    = 22;
 Y(20).date = datenum(vaccine.textdata(2:end,1),'yyyy-mm-dd');
-Y(20).Y    = vaccine.data(:,1);
+Y(20).Y    = vaccine.data(:,1)/1e6;
 Y(20).h    = 0;
 Y(20).lag  = 0;
 
@@ -307,7 +317,6 @@ Y(18).Y = Y(18).Y*N/n;
 % remove NANs, smooth and sort by date
 %==========================================================================
 M.date  = datestr(min(spm_vec(Y.date)),'dd-mm-yyyy');
-Y(20)   = [];
 [Y,YS]  = spm_COVID_Y(Y,M.date);
 
 % data structure with vectorised data and covariance components
@@ -315,6 +324,15 @@ Y(20)   = [];
 xY.y    = spm_vec(Y.Y);
 xY.Q    = spm_Ce([Y.n]);
 hE      = spm_vec(Y.h);
+
+% focus on most recent data
+%--------------------------------------------------------------------------
+% for i = 1:numel(xY.Q)
+%     n       = Y(i).n;
+%     q       = exp(2*(1:n)/n);
+%     q       = n*q/sum(q);
+%     xY.Q{1} = diag(q);
+% end
 
 % get and set priors
 %--------------------------------------------------------------------------
@@ -348,8 +366,11 @@ pC.lag     = lag;               % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
-pE.vir     = zeros(1,8);        % transmission strength
-pC.vir     = ones(1,8)/256;     % prior variance
+% pE.vir   = zeros(1,8);        % virulence
+% pC.vir   = ones(1,8)/256;     % prior variance
+
+pE.tra     = zeros(1,8);        % transmission strength
+pC.tra     = ones(1,8)/256;     % prior variance
 
 pE.mob     = zeros(1,16);       % mobility
 pC.mob     = ones(1,16)/8;      % prior variance
@@ -357,14 +378,18 @@ pC.mob     = ones(1,16)/8;      % prior variance
 pE.pcr     = zeros(1,8);        % testing
 pC.pcr     = ones(1,8)/64;      % prior variance
 
+pE.ssb     = zeros(1,8);        % selection bias
+pC.ssb     = ones(1,8)/64;      % prior variance
+
 % shrink prior covariances for model comparison
 %--------------------------------------------------------------------------
-param = {'vir','mob','pcr'};
-for f = 1:numel(param)
-    if ~any(ismember(fluct,param{f}))
-        pC.(param{f}) = pC.(param{f})*exp(-8);
-    end
-end
+% param = {'vir','mob','pcr','tra','ssb'};
+% if nargin < 1, fluct = param; end
+% for f = 1:numel(param)
+%     if ~any(ismember(fluct,param{f}))
+%         pC.(param{f}) = pC.(param{f})*exp(-8);
+%     end
+% end
 
 
 % coefficients for mixture model
@@ -391,7 +416,7 @@ M.FS   = @(Y)real(sqrt(Y));    % feature selection  (link function)
 M.pE   = pE;                   % prior expectations (parameters)
 M.pC   = pC;                   % prior covariances  (parameters)
 M.hE   = hE;                   % prior expectation  (log-precision)
-M.hC   = 1/64;                 % prior covariances  (log-precision)
+M.hC   = 1/512;                % prior covariances  (log-precision)
 M.T    = Y;                    % data structure
 U      = spm_vec(Y.U);         % outputs to model
 
@@ -422,7 +447,7 @@ u         = [find(U == 1) find(U == 2) find(U == 3)];
 [H,X,Z,R] = spm_SARS_gen(Ep,M,[1 2 3]);
 spm_SARS_plot(H,X,YS(:,u),[1 2 3])
 
-spm_figure('GetWin','outcomes (1)'); clf;
+spm_figure('GetWin','outcomes (1)');
 %--------------------------------------------------------------------------
 j     = 0;
 for i = 1:numel(Y)
@@ -459,7 +484,7 @@ end
 
 % infection fatality ratios (%)
 %--------------------------------------------------------------------------
-spm_figure('GetWin','outcomes (3)');clf
+spm_figure('GetWin','outcomes (3)');
 j = 1;
 subplot(4,2,j)
 spm_SARS_ci(Ep,Cp,[],21,M);
@@ -476,7 +501,7 @@ ylabel('percent'),  title('Attack rate and immunity','FontSize',14)
 % transmission risk
 %--------------------------------------------------------------------------
 j    = j + 1;
-subplot(4,2,j)
+subplot(4,2,j), hold on
 plot([R.Ptrn]), spm_axis tight
 title('Transmission risk','FontSize',14)
 xlabel('days'),ylabel('probability')
@@ -485,26 +510,34 @@ hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), hold off, box off
 % contact rate
 %--------------------------------------------------------------------------
 j    = j + 1;
-subplot(4,2,j)
+subplot(4,2,j), hold on
 plot([R.Pout]), spm_axis tight
 title('Contact rate','FontSize',14)
 xlabel('days'),ylabel('probability')
 hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), hold off, box off
 
 j    = j + 1;
-subplot(4,2,j)
-plot(100 * [R.Pfat].*[R.Psev]), spm_axis tight
-title('Symptom fatality ratio','FontSize',14)
+subplot(4,2,j), hold on
+plot(100 * [R.Pfat]), spm_axis tight
+title('Fatality risk | ARDS','FontSize',14)
 xlabel('days'),ylabel('percent')
 hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), hold off, box off
 
 j    = j + 1;
-subplot(4,2,j)
+subplot(4,2,j), hold on
+plot(100 * [R.Psev]), spm_axis tight
+title('Virulence','FontSize',14)
+xlabel('days'),ylabel('percent')
+hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), hold off, box off
+
+j    = j + 1;
+subplot(4,2,j), hold on
 plot(100 * [R.Psen]), hold on, plot(100 * [R.Ptes]), spm_axis tight
-title('Testing rate','FontSize',14)
+title('Testing rate and bias','FontSize',14)
 xlabel('days'),ylabel('percent')
 hold on, plot([1,1]*size(DCM.Y,1),[0,5],':'), hold off, box off
 legend({'susceptible','infected'})
+
 
 % save figures
 %--------------------------------------------------------------------------
