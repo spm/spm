@@ -21,7 +21,7 @@ function [T,R] = spm_COVID_T(x,P)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8042 2021-01-10 10:39:04Z karl $
+% $Id: spm_COVID_T.m 8043 2021-01-10 18:43:24Z karl $
 
 % setup
 %==========================================================================
@@ -386,10 +386,10 @@ B{4} = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
 ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,1},dim); B{4}(ij) = 1;
 ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,2},dim); B{4}(ij) = 0;
 
-% location dependent testing (always in hospital): third order dependencies
+% location dependent testing (always when ill in hospital): third order dependencies
 %--------------------------------------------------------------------------
-% ij   = Bij({6,1:5,1:4,1},{6,1:5,1:4,1},dim); B{4}(ij) = 0;
-% ij   = Bij({6,1:5,1:4,1},{6,1:5,1:4,2},dim); B{4}(ij) = 1;
+ij   = Bij({6,1:5,2:3,1},{6,1:5,2:3,1},dim); B{4}(ij) = 0;
+ij   = Bij({6,1:5,2:3,1},{6,1:5,2:3,2},dim); B{4}(ij) = 1;
 
 
 % probability transition matrix

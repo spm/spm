@@ -35,7 +35,7 @@ function [P,C,str] = spm_SARS_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8042 2021-01-10 10:39:04Z karl $
+% $Id: spm_SARS_priors.m 8043 2021-01-10 18:43:24Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -244,9 +244,9 @@ P.vac = 0.5;                  % (32) vaccine efficacy
 P.fnr = 0.2;                  % (33) false-negative rate
 P.fpr = 0.002;                % (34) false-positive rate
 
-P.lim = [1 2 1 2]/1000;       % (35) testing: capacity
-P.rat = [8 32 8 16];          % (36) testing: dispersion
-P.ons = [100 200 300 400];    % (37) testing: onset
+P.lim = [1 2 1]/1000;         % (35) testing: capacity
+P.rat = [8 32 8];             % (36) testing: dispersion
+P.ons = [100 200 300];        % (37) testing: onset
 
 P.lag = [1 1];                % (38) reporting lag
 P.inn = 1;                    % (39) seasonal phase
