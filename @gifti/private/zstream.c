@@ -1,5 +1,5 @@
 /*
- * $Id: zstream.c 7523 2019-02-01 11:31:08Z guillaume $
+ * $Id: zstream.c 8044 2021-01-21 15:08:54Z guillaume $
  * Guillaume Flandin
  */
 
@@ -24,7 +24,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 char *action = NULL;
 unsigned char *IN = NULL, *OUT = NULL;
 size_t INlen, OUTlen;
-int flag = 0;
+int flags = 0;
 
 /* Check for proper number of arguments */
 if (nrhs < 2)
@@ -48,23 +48,24 @@ IN = mxGetData(prhs[1]);
 
 /* zlib stream (zlib header with adler32 checksum) or raw deflate stream */
 if (!strcmp(action,"D")) {
-    flag = TINFL_FLAG_PARSE_ZLIB_HEADER;
+    flags |= TINFL_FLAG_PARSE_ZLIB_HEADER;
 }
 else if (!strcmp(action,"C")) {
-    flag = TDEFL_WRITE_ZLIB_HEADER;
+    flags |= TDEFL_WRITE_ZLIB_HEADER;
 }
     
 if (!strcmp(action,"D") || !strcmp(action,"d")) {
 
     /* Decompress data */
-    OUT = tinfl_decompress_mem_to_heap(IN, INlen, &OUTlen, flag);
+    OUT = tinfl_decompress_mem_to_heap(IN, INlen, &OUTlen, flags);
 
     if (OUT == NULL)
         mexErrMsgTxt("Error when decompressing data.");
 }
 else if (!strcmp(action,"C") || !strcmp(action,"c")) {
     /* Compress data */
-    OUT = tdefl_compress_mem_to_heap(IN, INlen, &OUTlen, flag);
+    flags |= TDEFL_DEFAULT_MAX_PROBES;
+    OUT = tdefl_compress_mem_to_heap(IN, INlen, &OUTlen, flags);
     
     if (OUT == NULL)
         mexErrMsgTxt("Error when compressing data.");
