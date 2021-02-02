@@ -2,12 +2,12 @@ function [Y,S,dates] = spm_COVID_Y(Y,date0,days)
 % prepares data array for COVID routines
 % FORMAT [Y,S,dates] = spm_COVID_Y(Y,date0)
 % Y     - structure array
-% date0 - initial date ('dd-mmm-yyy')
+% date0 - initial date ('dd-mm-yyy')
 % days  - number of days over which to average (smooth)
 %
 % Y     - structure array (time ordered, withough NaNs and smoothed)
 % S     - data matrix
-% dates - date numbers from 'dd-mmm-yyyy' to last data point
+% dates - date numbers from 'dd-mm-yyyy' to last data point
 %
 %    Y(i).type = datatype (string)
 %    Y(i).unit = units (string)
@@ -25,20 +25,47 @@ function [Y,S,dates] = spm_COVID_Y(Y,date0,days)
 
 % set up
 %==========================================================================
-if nargin < 2, date0 = '01-Feb-2020'; end
-if nargin < 3, days  = 7;             end
+if nargin < 2, date0 = '01-02-2020'; end
+if nargin < 3, days  = 7;            end
 
-% remove NANs and sort by date
+d0     = datenum(date0,'dd-mm-yyyy');
+
+% check for missing fields
+%--------------------------------------------------------------------------
+if ~isfield(Y,'lag')
+    for i = 1:numel(Y), Y(i).lag = 0; end
+end
+if ~isfield(Y,'age')
+    for i = 1:numel(Y), Y(i).age = 0; end
+end
+if ~isfield(Y,'h')
+    for i = 1:numel(Y), Y(i).h   = 0; end
+end
+
+% sort and reorder data
 %--------------------------------------------------------------------------
 for i = 1:numel(Y)
+    
+    % remove NaNs
+    %----------------------------------------------------------------------
     j         = isfinite(Y(i).Y(:,1));
     Y(i).date = Y(i).date(j);
     Y(i).Y    = Y(i).Y(j,:);
     
+    % remove duplicate dates
+    %----------------------------------------------------------------------
     [d,j]     = unique(Y(i).date);
     Y(i).date = Y(i).date(j);
     Y(i).Y    = Y(i).Y(j,:);
     
+    % remove data prior to initial date
+    %----------------------------------------------------------------------
+    j         = Y(i).date >= d0;
+    Y(i).date = Y(i).date(j);
+    Y(i).Y    = Y(i).Y(j,:);
+    
+    % order data by date
+    %----------------------------------------------------------------------
     [d,j]     = sort(Y(i).date);
     Y(i).date = Y(i).date(j);
     Y(i).Y    = Y(i).Y(j,:);
@@ -74,7 +101,7 @@ end
 
 % dates to generate
 %--------------------------------------------------------------------------
-dates  = datenum(date0,'dd-mmm-yyyy'):max(spm_vec(Y.date));
+dates  = datenum(date0,'dd-mm-yyyy'):max(spm_vec(Y.date));
 
 % data matrix (smooth): NaN indicates missing data
 %--------------------------------------------------------------------------
@@ -83,6 +110,8 @@ for i = 1:numel(Y)
     j      = ismember(dates,Y(i).date);
     S(j,i) = Y(i).Y;
 end
+
+return
 
 
 

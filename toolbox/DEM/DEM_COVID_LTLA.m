@@ -31,8 +31,15 @@ P   = importdata('LADCodesPopulation2019.xlsx');
 % get population by lower tier local authority
 %--------------------------------------------------------------------------
 PN       = P.data(2:end,1);
+Page     = P.data(2:end,2:end);
 PCode    = P.textdata(2:end,1);
 PName    = P.textdata(:,2);
+
+% age bands
+%--------------------------------------------------------------------------
+PA(:,1)  = sum(Page(:,01:24),2);
+PA(:,2)  = sum(Page(:,25:64),2);
+PA(:,3)  = sum(Page(:,65:end),2);
 
 % get new cases by (lower tier) local authority
 %--------------------------------------------------------------------------
@@ -75,6 +82,9 @@ for i = 1:numel(Area)
         D(k).name   = AreaName(j(1));
         D(k).code   = Area(i);
         D(k).N      = PN(find(ismember(PCode,Area(i)),1));
+        for a = 1:size(PA,2)
+            D(k).A(a) = PA(find(ismember(PCode,Area(i)),1),a);
+        end
         
         % replace early NaNs with zero
         %------------------------------------------------------------------
@@ -92,7 +102,7 @@ end
 
 % clear
 %--------------------------------------------------------------------------
-clear P PN PCD AreaCase AreaCode AreaDate AreaMort AreaName AreaType
+clear U P PN PA AreaCode AreaDate AreaName AreaType
 
 % check requested if necessary
 %--------------------------------------------------------------------------
@@ -121,18 +131,15 @@ else
     PCM = PCM.DCM;
 end
 
-
 % dates to generate
 %--------------------------------------------------------------------------
-d0     = min(spm_vec(D.date));
-d0     = min(d0,datenum(PCM.M.date,'dd-mmm-yyyy'));
-M.date = datestr(d0,'dd-mmm-yyyy');
+M.date = PCM.M.date;
+d0     = datenum(M.date,'dd-mm-yyyy');
 dates  = d0:max(spm_vec(D.date));
 
-% free parameters of local model (fixed effects)
+% free parameters of local model (fixed effects - seeding and fluctuations)
 %==========================================================================
-free  = {'n','o','m','sde','qua','exp','s','Nin','Nou','ssb','pcr'};
-
+free  = {'n','pcr','mob'};
 
 % (empirical) prior expectation
 %--------------------------------------------------------------------------
@@ -208,7 +215,11 @@ for r = 1:numel(D)
     
     % get and set priors
     %----------------------------------------------------------------------
-    pE.N   = log(D(r).N/1e6);      % population of local authority
+    if numel(pE.N) > 1
+        pE.N      = log(D(r).A(:)/1e6);
+    else
+        pE.N = log(D(r).N/1e6);    % population of local authority
+    end
     
     % model specification
     %======================================================================
@@ -220,7 +231,7 @@ for r = 1:numel(D)
     M.hE   = hE + 2;               % prior expectation  (log-precision)
     M.hC   = 1/512;                % prior covariances  (log-precision)
     M.T    = Y;                    % data structure
-    U      = spm_vec(Y.U);         % outputs to model
+    U      = [Y.U];                % outputs to model
     
     % model inversion with Variational Laplace (Gauss Newton)
     %----------------------------------------------------------------------
@@ -262,54 +273,63 @@ for r = 1:numel(D)
     %----------------------------------------------------------------------
     M.T     = numel(dates);
     M.P     = Ep;
-    Y       = spm_SARS_gen(DCM(r).Ep,M,[4 5 8 9 10]);
+    Y       = spm_SARS_gen(DCM(r).Ep,M,[4 5 11 9 10]);
     DR(:,r) = Y(:,1);                       % Reproduction ratio
     DI(:,r) = Y(:,2);                       % Prevalence of immunity
-    DP(:,r) = Y(:,3);                       % Prevalence of infection
+    DP(:,r) = Y(:,3);                       % Prevalence of infection (%)
     DC(:,r) = Y(:,4);                       % Infected, asymptomatic people
     DT(:,r) = Y(:,5)*1000;                  % New daily cases per 100K
+    CT(:,r) = cumsum(Y(:,5));               % cumulative incidence (%)
     
-    % cumulative incidence of infection (with 90% credible intervals)
+    % cumulative incidence of infection
     %----------------------------------------------------------------------
-    subplot(3,2,2)
-    [S,CS]  = spm_SARS_ci(DCM(r).Ep,DCM(r).Cp,[],10,M);
-    CS      = 1.6449*sqrt(diag(CS));
-    TT(:,r) = S;                            % cumulative incidence (%)
-    TU(:,r) = S + CS;                       % upper bound
-    TL(:,r) = S - CS;                       % lower bound
-    
+    MIP     = exp(Ep.Tin) + exp(Ep.Tcn)/2;
+    CIT     = -(Y(end,3)/100/MIP)*log(1 - CT(end,r)/100)*100000;
+
     % supplement with table of posterior expectations
     %----------------------------------------------------------------------
     subplot(3,2,2), cla reset, axis([0 1 0 1])
     title(D(r).name,'Fontsize',16)
     
-    str = sprintf('Population: %.2f million', exp(Ep.N));
-    text(0,0.9,str,'FontSize',10,'FontWeight','bold','Color','k')
+    str = sprintf('Population: %.2f million', sum(exp(Ep.N)));
+    text(0,0.9,str,'FontSize',10,'FontWeight','bold')
     
-    str = sprintf('Reproduction ratio: %.2f',          DR(end,r));
-    text(0,0.8,str,'FontSize',10,'FontWeight','bold','Color','k')
+    str = sprintf('Reproduction ratio: %.2f',           DR(end,r));
+    text(0,0.8,str,'FontSize',10,'FontWeight','bold')
     
-    str = sprintf('Infected asymptomatic people: %.0f',DC(end,r));
-    text(0,0.7,str,'FontSize',10,'FontWeight','bold','Color','k')
+    str = sprintf('Undetected community cases: %.0f',   DC(end,r));
+    text(0,0.7,str,'FontSize',10,'FontWeight','bold')
     
-    str = sprintf('Daily new cases: %.0f per 100,000', DT(end,r));
-    text(0,0.6,str,'FontSize',10,'FontWeight','bold','Color','r')
+    str = sprintf('Daily incidence: %.0f per 100,000',  DT(end,r));
+    text(0,0.6,str,'FontSize',10,'FontWeight','bold')
     
-    str = sprintf('Prevalence of infection: %.2f%s',   DP(end,r),'%');
-    text(0,0.5,str,'FontSize',10,'FontWeight','bold','Color','r')
+    str = sprintf('Proportion seropositive: %.1f%s',    DI(end,r),'%');
+    text(0,0.5,str,'FontSize',10,'FontWeight','bold')
     
-    str = sprintf('Prevalence of immunity: %.1f%s',    DI(end,r),'%');
-    text(0,0.4,str,'FontSize',10,'FontWeight','bold','Color','k')
+    str = sprintf('Prevalence of infection (p): %.2f%s',DP(end,r),'%');
+    text(0,0.4,str,'FontSize',10,'FontWeight','bold')
     
-    str = sprintf('Proportion infected: %.1f (%.1f-%.1f)%s',TT(end,r),TL(end,r),TU(end,r),'%');
-    text(0,0.3,str,'FontSize',10,'FontWeight','bold','Color','k')
+    str = sprintf('Proportion previously infected (q): %.1f%s',CT(end,r),'%');
+    text(0,0.3,str,'FontSize',10,'FontWeight','bold')
     
-    str = {'The prevalences refer to the estimated population ' ...
-        '(based on ONS census figures for lower tier local authorities)'};
-    text(0,0.0,str,'FontSize',8,'Color','k')
+    str = sprintf('Infectious period (t): %.1f days',    MIP);
+    text(0,0.2,str,'FontSize',10,'FontWeight','bold')
+    
+    str = sprintf('Target incidence (r): %.0f per 100,000',CIT);
+
+    if DT(end,r) > CIT
+        text(0,0.1,str,'FontSize',10,'FontWeight','bold','Color','r')
+    else
+        text(0,0.1,str,'FontSize',10,'FontWeight','g')
+    end
+    
+    str = {'target incidence is evaluated as r = (p/t)log(1 - q) ' ...
+           '(based on ONS census figures for lower tier local authorities)'};
+    text(0,-0.1,str,'FontSize',8,'Color','k')
     
     spm_axis tight, axis off
     drawnow
+    
     if numel(D) > 16
         
         % save figure

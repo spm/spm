@@ -1,7 +1,9 @@
-function [P,C,str] = spm_SARS_priors
+function [P,C,str] = spm_SARS_priors(nN)
 % Generate prior expectation and covariance log parameters
-% FORMAT [pE,pC,str,rfx] = spm_SARS_priors
-% 
+% FORMAT [pE,pC,str,rfx] = spm_SARS_priors(nN)
+%
+% nN          - number of age groups
+%
 % pE          - prior expectation (structure)
 % pC          - prior covariances (structure)
 % str.factor  - latent or hidden factors
@@ -35,7 +37,7 @@ function [P,C,str] = spm_SARS_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8043 2021-01-10 18:43:24Z karl $
+% $Id: spm_SARS_priors.m 8047 2021-02-02 18:56:09Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -54,6 +56,55 @@ function [P,C,str] = spm_SARS_priors
 % https://arxiv.org/abs/2006.01283
 %--------------------------------------------------------------------------
 
+% priors for multiple age groups
+%==========================================================================
+if nargin
+    
+    % priors for single group
+    %----------------------------------------------------------------------
+    [P,C,str] = spm_SARS_priors;
+    
+    if nN == 1, return, end
+    
+    % free parameters for mixture model (age groups)
+    %----------------------------------------------------------------------
+    free  = {'N','Nin','Nou','hos','ccu','res','sev','lat','fat','sur','tes','tts','rol'};
+    for i = 1:numel(free)
+        P.(free{i}) = kron(ones(nN,1),P.(free{i}));
+        C.(free{i}) = kron(ones(nN,1),C.(free{i}));
+    end
+    
+    % Age-specific prior expectations
+    %----------------------------------------------------------------------
+    P.N   = P.N - log(nN);
+    P.n   = P.n - 8;
+    P.rol = log([0.01  565  8;
+                 0.02  465  8;
+                 0.04  365  8]);
+    C.rol = [1/8 1/1024 1/1024;
+             1/8 1/1024 1/1024;
+             1/8 1/1024 1/1024];
+    P.sev = log([0.0001;
+                 0.002;
+                 0.04]);
+    P.lat = P.sev;
+    
+    % contact matrices: number of contacts per day
+    %----------------------------------------------------------------------
+    P.Nin = log([4     1     1;
+                 1     4     1;
+                 1     1     4])/2;
+    
+    P.Nou = log([32    4     4;
+                 4     32    4;
+                 4     4     32]);
+             
+    C.Nin = (P.Nin > 0)*C.Nin(1);
+    C.Nou = (P.Nou > 0)*C.Nou(1);
+    
+    return
+end
+
 % parameter names
 %==========================================================================
 names{1}  = 'population size (M)';
@@ -65,12 +116,12 @@ names{5}  = 'relative eflux';
 % location (exposure) parameters
 %--------------------------------------------------------------------------
 names{6}  = 'P(leaving home)';
-names{7}  = 'lockdown threshold';  
-names{8}  = 'seropositive contribution';
+names{7}  = 'sensitivity to susceptible';
+names{8}  = 'sensitivity to prevalence';
 names{9}  = 'viral spreading (days)';
 names{10} = 'admission rate (hospital)';
 names{11} = 'admission rate (CCU)';
-names{12} = 'distancing sensitivity';
+names{12} = 'decay of social distancing';
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -114,13 +165,13 @@ names{41} = 'vaccination rollout';
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
-factors   = {'Location','Infection','Symptoms','Testing','Vaccination'};
+factors   = {'Location','Infection','Symptoms','Testing'};
 
 factor{1} = {'lo-risk','hi-risk','ICU','no-risk','isolated','hospital'};
-factor{2} = {'susceptible','infected','infectious','Ab +ve','Ab -ve','Vaccinated'};
+factor{2} = {'susceptible','infected','infectious','Ab +ve','Ab -ve','Vac +ve'};
 factor{3} = {'none','symptoms','severe','deceased'};
-factor{4} = {'untested','waiting','PCR +ve','PCR -ve'};
-factor{5} = {'vulnerable','vaccinated'};
+factor{4} = {'untested','waiting','PCR +ve','PCR -ve','LFD +ve','LFD -ve'};
+factor{5} = {' ',' '};
 
 % labels or strings for plotting
 %--------------------------------------------------------------------------
@@ -131,10 +182,10 @@ factor{5} = {'vulnerable','vaccinated'};
 % Y(:,5)  - Seroprevalence {%}
 % Y(:,6)  - PCR testing rate
 % Y(:,7)  - Contagion risk (%)
-% Y(:,8)  - Prevalence {%}
+% Y(:,8)  - Contagious {%}
 % Y(:,9)  - Daily contacts
 % Y(:,10) - Daily incidence (%)
-% Y(:,11) - Number infected 
+% Y(:,11) - Prevalence {%}
 % Y(:,12) - Number symptomatic
 % Y(:,13) - Mobility (%)
 % Y(:,14) - Workplace (%)
@@ -145,7 +196,7 @@ factor{5} = {'vulnerable','vaccinated'};
 % Y(:,19) - Deaths (>60 years)
 % Y(:,20) - Deaths (<60 years)
 % Y(:,21) - Infection fatality ratio (%)
-% Y(:,22) - Daily vaccinations
+% Y(:,22) - Cumulative first dose
 % Y(:,23) - PCR case positivity (%)
 % Y(:,24) - Lateral flow tests
 % Y(:,25) - Cumulative attack rate
@@ -153,46 +204,36 @@ factor{5} = {'vulnerable','vaccinated'};
 % Y(:,27) - Hospital cases
 
 str.outcome = {'Daily deaths (28 days)',...
-               'Daily confirmed cases',...
-               'Mechanical ventilation',...
-               'Reproduction ratio',...
-               'Seroprevalence {%}',...
-               'PCR testing rate',...
-               'Contagion risk (%)',...
-               'Prevalence {%}',...
-               'Daily contacts',...
-               'Daily incidence (%)',...
-               'Number infected'...
-               'Number symptomatic'...
-               'Mobility (%)'...
-               'Workplace (%)'...
-               'Certified deaths',...
-               'Hospital admissions'...
-               'Hospital deaths',...
-               'Non-hospital deaths'...
-               'Deaths (>60 years)',...
-               'Deaths (<60 years)',...
-               'IFR (%)',...
-               'Number vaccinated',...
-               'PCR positivity (%)',...
-               'Lateral flow tests',...
-               'Attack rate (%)',...
-               'Herd immunity (%)'...
-               'Hospital cases'};
-           
+    'Daily confirmed cases',...
+    'Mechanical ventilation',...
+    'Reproduction ratio',...
+    'Seroprevalence {%}',...
+    'PCR testing rate',...
+    'Contagion risk (%)',...
+    'Contagious {%}',...
+    'Daily contacts',...
+    'Daily incidence (%)',...
+    'Prevalence (%)'...
+    'Number symptomatic'...
+    'Mobility (%)'...
+    'Workplace (%)'...
+    'Certified deaths',...
+    'Hospital admissions'...
+    'Hospital deaths',...
+    'Non-hospital deaths'...
+    'Deaths (>60 years)',...
+    'Deaths (<60 years)',...
+    'IFR (%)',...
+    'Cumulative first dose',...
+    'PCR positivity (%)',...
+    'Lateral flow tests',...
+    'Attack rate (%)',...
+    'Herd immunity (%)'...
+    'Hospital cases'};
+
 str.factors = factors;
 str.factor  = factor;
 str.names   = names;
-
-% cut and paste to see the effects of changing different prior expectations
-%xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-if false
-    U     = [1 2 3 16];
-    pE    = spm_SARS_priors; M.T = 12*32;
-    [Y,X] = spm_SARS_gen(pE,M,U);
-    spm_SARS_plot(Y,X,[],U)
-end
-%xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 % Expectations (either heuristic or taken from the above sources)
 %==========================================================================
@@ -204,13 +245,13 @@ P.m   = 0.1;                  % (05) relative eflux
 
 % location (exposure) parameters
 %--------------------------------------------------------------------------
-P.out = 0.36;                 % (06) P(leaving home)
-P.sde = 0.01;                 % (07) lockdown threshold
-P.qua = 0.2;                  % (08) seropositive contribution
-P.exp = 0.005;                % (09) viral spreading (days)
-P.hos = 0.4;                  % (10) admission rate (hospital)
-P.ccu = 0.13;                 % (11) admission rate (CCU)
-P.s   = 3;                    % (12) distancing sensitivity
+P.out = 0.4;                  % (06) P(leaving home)
+P.sde = 0.01;                 % (07) sensitivity to susceptible
+P.qua = 4;                    % (08) sensitivity to prevalence
+P.exp = 0.01;                 % (09) viral spreading (days)
+P.hos = 0.8;                  % (10) admission rate (hospital)
+P.ccu = 0.2;                  % (11) admission rate (CCU)
+P.s   = 32;                   % (12) decay of social distancing (days)
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -218,21 +259,21 @@ P.Nin = 2;                    % (13) effective number of contacts: home
 P.Nou = 24;                   % (14) effective number of contacts: work
 P.trn = 0.3;                  % (15) transmission strength (winter)
 P.trm = 0.2;                  % (16) transmission strength (summer)
-P.Tin = 4;                    % (17) infected period (days)
+P.Tin = 3;                    % (17) infected period (days)
 P.Tcn = 5;                    % (18) infectious period (days)
 P.Tim = 150;                  % (19) seropositive immunity (days)
 P.res = 0.2;                  % (20) seronegative proportion (late)
 
 % clinical parameters
 %--------------------------------------------------------------------------
-P.Tic = 5;                    % (21) asymptomatic period (days)
+P.Tic = 4;                    % (21) asymptomatic period (days)
 P.Tsy = 8;                    % (22) symptomatic period  (days)
 P.Trd = 6;                    % (23) CCU period (days)
 
 P.sev = 0.01;                 % (24) P(ARDS | symptoms): winter
 P.lat = 0.01;                 % (25) P(ARDS | symptoms): summer
-P.fat = 0.5;                  % (26) P(fatality | ARDS): rate
-P.sur = 512;                  % (27) P(fatality | ARDS): days
+P.fat = 0.5;                  % (26) P(fatality | ARDS): winter
+P.sur = 0.5;                  % (27) P(fatality | ARDS): summer
 
 % testing parameters
 %--------------------------------------------------------------------------
@@ -240,28 +281,19 @@ P.ttt = 0.036;                % (28) FTTI efficacy
 P.tes = 16;                   % (29) bias (for infection): pillar one
 P.tts = 8;                    % (30) bias (for infection): pillar two
 P.del = 3;                    % (31) test delay (days)
-P.vac = 0.5;                  % (32) vaccine efficacy
+P.vac = 0.8;                  % (32) vaccine efficacy
 P.fnr = 0.2;                  % (33) false-negative rate
 P.fpr = 0.002;                % (34) false-positive rate
 
-P.lim = [1 2 1]/1000;         % (35) testing: capacity
-P.rat = [8 32 8];             % (36) testing: dispersion
-P.ons = [100 200 300];        % (37) testing: onset
+P.lim = [1 2 1 2]/1000;       % (35) testing: capacity
+P.rat = [8 24 24 8];          % (36) testing: dispersion
+P.ons = [100 200 300 400];    % (37) testing: onset
 
 P.lag = [1 1];                % (38) reporting lag
 P.inn = 1;                    % (39) seasonal phase
-P.mem = 2048;                 % (40) seronegative decay (days)
-P.rol = [0.0008 350 4];       % (41) vaccination rollout
+P.mem = 1024;                 % (40) seronegative decay (days)
+P.rol = [0.01 365 8];         % (41) vaccination rollout
 
-% cut and paste to see the effects of changing different prior expectations
-%xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-if false
-    U     = [1 2 3 16 27];
-    pE    = spm_SARS_priors; M.T = 15*32;
-    [Y,X] = spm_SARS_gen(pE,M,U);
-    spm_SARS_plot(Y,X,[],U)
-end
-%xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 % infection fatality (for susceptible population)
 %--------------------------------------------------------------------------
@@ -279,17 +311,17 @@ C.N   = U;                    % (01) population size (millions)
 C.n   = U;                    % (02) initial cases (cases)
 C.r   = W;                    % (03) pre-existing immunity (proportion)
 C.o   = W;                    % (04) initial exposed proportion
-C.m   = V;                    % (05) relative eflux
+C.m   = W;                    % (05) relative eflux
 
 % location (exposure) parameters
 %--------------------------------------------------------------------------
 C.out = X;                    % (06) P(leaving home)
-C.sde = V;                    % (07) lockdown threshold
-C.qua = V;                    % (08) seropositive contribution
+C.sde = V;                    % (07) sensitivity to susceptibility
+C.qua = V;                    % (08) sensitivity to seroprevalence
 C.exp = V;                    % (09) viral spreading (days)
 C.hos = W;                    % (10) admission rate (hospital)
 C.ccu = W;                    % (11) admission rate (CCU)
-C.s   = W;                    % (12) distancing sensitivity
+C.s   = W;                    % (12) decay of social distancing
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -299,7 +331,7 @@ C.trn = W;                    % (16) transmission strength (early)
 C.trm = W;                    % (15) transmission strength (late)
 C.Tin = X;                    % (17) infected period (days)
 C.Tcn = X;                    % (18) infectious period (days)
-C.Tim = W;                    % (19) seropositive immunity (months)
+C.Tim = X;                    % (19) seropositive immunity (months)
 C.res = W;                    % (20) seronegative immunity (proportion)
 
 % clinical parameters
@@ -318,18 +350,18 @@ C.ttt = X;                    % (28) FTTI efficacy
 C.tes = V;                    % (29) testing: bias (early)
 C.tts = V;                    % (30) testing: bias (late)
 C.del = X;                    % (31) test delay (days)
-C.vac = 0;                    % (32) vaccine efficacy
+C.vac = X;                    % (32) vaccine efficacy
 C.fnr = X;                    % (33) false-negative rate
 C.fpr = X;                    % (34) false-positive rate
 
 C.lim = V;                    % (35) testing: capacity
-C.rat = U;                    % (36) testing: constant (days)
+C.rat = X;                    % (36) testing: constant (days)
 C.ons = U;                    % (37) testing: onset (days)
 
 C.lag = V;                    % (38) reporting lag
 C.inn = U;                    % (39) seasonal phase
 C.mem = X;                    % (40) seronegative decay (days)
-C.rol = V;                    % (41) vaccination rollout
+C.rol = X;                    % (41) vaccination rollout
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------

@@ -19,47 +19,12 @@ function [DCM] = DEM_COVID_AGE
 
 %% age demographics
 %--------------------------------------------------------------------------
-sage = {
-    '00_04'
-    '05_09'
-    '10_14'
-    '15_19'
-    '20_24'
-    '25_29'
-    '30_34'
-    '35_39'
-    '40_44'
-    '45_49'
-    '50_54'
-    '55_59'
-    '60_64'
-    '65_69'
-    '70_74'
-    '75_79'
-    '80_84'
-    '85_89'
-    '90+'};
+sage = {'00_04','05_09','10_14','15_19','20_24','25_29','30_34','35_39',...
+        '40_44','45_49','50_54','55_59','60_64','65_69','70_74','75_79', ...
+        '80_84','85_89','90+'};
 
-page = [
-    3.86
-    4.15
-    3.95
-    3.66
-    4.15
-    4.51
-    4.5
-    4.4
-    4.02
-    4.4
-    4.66
-    4.41
-    3.76
-    3.37
-    3.32
-    2.33
-    1.72
-    1.04
-    0.61];
+page = [3.86, 4.15, 3.95, 3.66, 4.15, 4.51, 4.50, 4.40, 4.02, 4.4, 4.66, ...
+        4.41, 3.76, 3.37, 3.32, 2.33, 1.72, 1.04, 0.61];
 
 EnglandUK  = 66.79/56.28;
 
@@ -107,7 +72,7 @@ dates  = d0:max(spm_vec([DeathDate; CaseDate]));
 
 % free parameters of local model (fixed effects)
 %==========================================================================
-free  = {'n','res','sev','lat','fat','tes','tts','lim'};
+free  = {'n','res','sev','lat','fat','tes','tts','pcr'};
 
 % (empirical) prior expectation
 %--------------------------------------------------------------------------
@@ -117,7 +82,7 @@ pE    = PCM.Ep;
 %--------------------------------------------------------------------------
 pC    = spm_zeros(PCM.M.pC);
 for i = 1:numel(free)
-    pC.(free{i}) = PCM.M.pC.(free{i})*16;
+    pC.(free{i}) = spm_zeros(PCM.M.pC.(free{i})) + 1;
 end
 
 % fit each age bound
@@ -165,10 +130,10 @@ for r = 1:numel(age)
     
     Y(2).type = 'Daily deaths (ONS: 28-days)'; % daily covid-related deaths (28 days)
     Y(2).unit = 'number/day';
-    Y(2).U    = 1;
+    Y(2).U    = 15;
     Y(2).date = DeathDate(j);
     Y(2).Y    = D*EnglandUK;
-    Y(2).h    = 2;
+    Y(2).h    = 4;
     
     % remove NANs, smooth and sort by date
     %----------------------------------------------------------------------
@@ -226,22 +191,25 @@ end
 %% parametric intervention (vaccination)
 %==========================================================================
 spm_figure('GetWin','testing and cases'); clf; subplot(2,1,1)
-
 period = {M.date,'01-06-2021'};         % duration of epidemic
+
+% targeted vaccination rate
+%--------------------------------------------------------------------------
+rol           = exp(Ep.rol(1))*sum(Nage)/Nage(end);
 
 
 % no vaccine rollout
 %--------------------------------------------------------------------------
 NPI(1).period = period;
 NPI(1).param  = 'rol';
-NPI(1).Q   = [1e-8 exp(Ep.rol(2:3))];
-NPI(i).dates  = {'20-12-2020',period{2}};
+NPI(1).Q      = [1e-8 exp(Ep.rol(2:3))];
+NPI(1).dates  = {'20-12-2020',period{2}};
 
 % vaccine rollout based upon posterior estimates
 %--------------------------------------------------------------------------
 NPI(2).period = period;
 NPI(2).param  = 'rol';
-NPI(2).Q      = [0.04 exp(Ep.rol(2:3))];
+NPI(2).Q      = [rol exp(Ep.rol(2:3))];
 NPI(2).dates  = {'20-12-2020',period{2}};
 
 
@@ -271,7 +239,7 @@ for i = 1:2
         
         % quantify the effect of efficient intervention (NPI)
         %==================================================================
-        [Y,X] = spm_SARS_gen(Ep,M,[1 22],npi);
+        [Y,X] = spm_SARS_gen(Ep,M,[15 22],npi);
         
         % record number of deaths, vaccinations and empirical mortality
         %------------------------------------------------------------------
@@ -329,11 +297,10 @@ disp(YY(find(T >= d,1)))
 
 sprintf('%2.0f per week (max: %2.0f)',mean(DV)*7,max(DV)*7)
 
-return
-
-%% Notes
-
-datestr(datenum('20-Dec-2020','dd-mmm-yyyy') + round(13.9e6/(333324/7)))
+% Notes for Channel 4
+%==========================================================================
+vaccination_rate = 2431648 - 1296432;       % vaccination rate per week
+datestr(datenum('20-Dec-2020','dd-mmm-yyyy') + round(13.9e6/(vaccination_rate/7)))
 
 
 

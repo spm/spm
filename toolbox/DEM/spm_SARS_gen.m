@@ -1,17 +1,15 @@
-function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
+function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Generate predictions and hidden states of a COVID model
-% FORMAT [Y,X,Z,W] = spm_COVID_gen(P,M,U)
+% FORMAT [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % P    - model parameters
 % M    - model structure (M.T - length of timeseries or data structure)
 % U    - number of output variables [default: 2] or indices e.g., [4 5]
-% Z{t} - joint density over hidden states at the time t
-% W    - structure containing time varying parameters
-%
 % NPI  - nonpharmaceutical intervention
 %     NPI(i).period = {'dd-mm-yyyy','dd-mm-yyyy'}; % dates of epidemic
 %     NPI(i).param  = {'xyz',...};                 % parameter name
 %     NPI(i).Q      = (value1,...);                % parameter name
 %     NPI(i).dates  = {'dd-mm-yyyy','dd-mm-yyyy'}; % dates of interevention
+% age  - indices of age band (0 for average)
 %
 % Y(:,1)  - Daily deaths (28 days)
 % Y(:,2)  - Daily confirmed cases
@@ -20,10 +18,10 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % Y(:,5)  - Seropositive immunityy (%)
 % Y(:,6)  - PCR testing rate
 % Y(:,7)  - Contagion risk (%)
-% Y(:,8)  - Prevalence {%}
+% Y(:,8)  - Prevalence: contagious {%}
 % Y(:,9)  - Daily contacts
 % Y(:,10) - Daily incidence (%)
-% Y(:,11) - Number infected 
+% Y(:,11) - Prevalence: infected (%)
 % Y(:,12) - Number symptomatic
 % Y(:,13) - Mobility (%)
 % Y(:,14) - Retail (%)
@@ -31,8 +29,8 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % Y(:,16) - Hospital admissions
 % Y(:,17) - Hospital deaths
 % Y(:,18) - Non-hospital deaths
-% Y(:,19) - Deaths (>60 years)
-% Y(:,20) - Deaths (<60 years)
+% Y(:,19) -
+% Y(:,20) -
 % Y(:,21) - Infection fatality ratio (%)
 % Y(:,22) - Number vaccinated
 % Y(:,23) - PCR case positivity (%)
@@ -46,6 +44,9 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % infection  : {'susceptible','infected','infectious','immune','resistant'};
 % clinical   : {'asymptomatic','symptoms','ARDS','death'};
 % diagnostic : {'untested','waiting','positive','negative'}
+%
+% Z{t} - joint density over hidden states at the time t
+% W    - structure containing time varying parameters
 %
 % This function returns data Y and their latent states or causes X, given
 % the parameters of a generative model. This model is a mean field
@@ -74,7 +75,7 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8042 2021-01-10 10:39:04Z karl $
+% $Id: spm_SARS_gen.m 8047 2021-02-02 18:56:09Z karl $
 
 
 % The generative model:
@@ -154,11 +155,15 @@ function [Y,X,Z,W] = spm_SARS_gen(P,M,U,NPI)
 %--------------------------------------------------------------------------
 if (nargin < 3) || isempty(U), U = 1:2; end         % two outcomes
 if (nargin < 4), NPI = [];              end         % interventions
+if (nargin < 5), age = 0*U;             end         % age bands
 try, M.T; catch, M.T = 180;             end         % over six months
 
 % deal with data structures (asynchronous timeseries)
 %--------------------------------------------------------------------------
-if isstruct(M.T)
+if isstruct(M.T)        % predictions from multiple data types are required
+    
+    % extract data structure and specify temporal domain
+    %----------------------------------------------------------------------
     D   = M.T;
     d   = spm_vec(D.date);
     if isfield(M,'date')
@@ -168,310 +173,437 @@ if isstruct(M.T)
     end
     M.T = max(d) - d0 + 1;
     d   = d0:max(d);
+    U   = [D.U];
+    age = [D.age];
+    
 end
 
-% exponentiate parameters
+% unpack and exponentiate parameters
 %--------------------------------------------------------------------------
-O    = P;
-Q    = spm_vecfun(P,@exp);
+param = fieldnames(P);
+nN    = numel(P.N);
+N     = zeros(nN,1);
 
-% initial marginals (Dirichlet parameters)
-%--------------------------------------------------------------------------
-n    = Q.n;                % number of initial cases
-N    = Q.N*1e6;            % population size
-m    = N - N*Q.o;          % number of unexposed cases
-r    = Q.r*N;              % number of resistant cases
-s    = N - n - r;          % number of susceptible cases
-h    = (N - m)*3/4;        % number at home
-w    = (N - m)*1/4;        % number at work
-p{1} = [h w 0 m 0 0]';     % location 
-p{2} = [s n 0 0 r]';       % infection 
-p{3} = [1 0 0 0]';         % clinical 
-p{4} = [1 0 0 0]';         % testing
-p{5} = [1 0]';             % vaccination
-
-% normalise initial marginals
-%--------------------------------------------------------------------------
-Nf    = numel(p);
-for f = 1:Nf
-    p{f}  = p{f}/sum(p{f});
+Q     = cell(nN,1);
+R     = cell(nN,1);
+x     = cell(nN,1);
+p     = cell(nN,1);
+for n = 1:nN
+    
+    % create cell array of parameters for each group
+    %----------------------------------------------------------------------
+    for j = 1:numel(param)
+        if size(P.(param{j}),1) > 1
+            R{n}.(param{j}) = P.(param{j})(n,:);
+        else
+            R{n}.(param{j}) = P.(param{j})(1,:);
+        end
+    end
+    
+    % unpack and exponentiate parameters
+    %----------------------------------------------------------------------
+    Q{n}  = spm_vecfun(R{n},@exp);
+    R{n}  = Q{n};
+    
+    
+    % initial marginals (Dirichlet parameters)
+    %----------------------------------------------------------------------
+    c    = Q{n}.n;                % number of initial cases
+    N(n) = Q{n}.N*1e6;            % population size
+    m    = N(n) - N(n)*Q{n}.o;    % number of unexposed cases
+    r    = Q{n}.r*N(n);           % number of resistant cases
+    s    = N(n) - c - r;          % number of susceptible cases
+    h    = (N(n) - m)*3/4;        % number at home
+    w    = (N(n) - m)*1/4;        % number at work
+    p{n}{1} = [h w 0 m 0 0]';     % location
+    p{n}{2} = [s c 0 0 r 0]';     % infection
+    p{n}{3} = [1 0 0 0]';         % clinical
+    p{n}{4} = [1 0 0 0 0 0]';     % testing
+    
+    % normalise initial marginals
+    %----------------------------------------------------------------------
+    Nf    = numel(p{n});
+    for f = 1:Nf
+        p{n}{f}  = p{n}{f}/sum(p{n}{f});
+    end
+    
 end
 
-% initial ensemble density
+% identity matrices for each latent factor
 %--------------------------------------------------------------------------
-x     = spm_cross(p);
-R     = P;
-R.n   = -16;
-R.t   = 0;
-for i = 1:8
-    T = spm_COVID_T(x,R);
-    x = spm_unvec(T*spm_vec(x),x);
-    x = x/sum(x(:));
+for i = 1:numel(p{n})
+    I{i} = speye(numel(p{n}{i}));
 end
+
+% initial ensemble density (equilibrium)
+%--------------------------------------------------------------------------
+for n = 1:nN
+    x{n}  = spm_cross(p{n});
+    P     = R{n};
+    P.n   = 0;
+    P.t   = 1;
+    P.tin = 1;    % P(no transmission | home)
+    P.tou = 1;    % P(no transmission | work)
+    P.ths = 1;    % P(no transmission | hospital)
+    for i = 1:8
+        T    = spm_COVID_T(P,I);
+        x{n} = spm_unvec(T*spm_vec(x{n}),x{n});
+        x{n} = x{n}/sum(x{n}(:));
+    end
+end
+
+    
+% outputs that depend upon population size
+%--------------------------------------------------------------------------
+uN     = [1,2,3,6,9,11,12,15,16,17,18,22,24,27];
 
 % ensemble density tensor and solve over the specified number of days
 %--------------------------------------------------------------------------
-Y     = zeros(M.T,32);
+Y     = cell(nN,1);                    % outputs
+X     = cell(nN,1);                    % time series of marginal densities
+Z     = cell(nN,1);                    % joint densities at each time point
+W     = cell(nN,1);                    % time-dependent parameters
+Pout  = cell(nN,1);                    % probability lockdown
+for n = 1:nN
+    Pout{n} = 1;
+end
 for i = 1:M.T
-    
-    % time-dependent parameters
-    %======================================================================
-    
-    % nonpharmacological interventions (NPI)
-    %----------------------------------------------------------------------
-    for j = 1:numel(NPI)
+    for n = 1:nN
         
-        % start and end dates
+        % time-dependent parameters
+        %==================================================================
+        
+        % nonpharmacological interventions (NPI)
         %------------------------------------------------------------------
-        dstart = datenum(NPI(j).dates{1},'dd-mm-yyyy') - datenum(NPI(j).period{1},'dd-mm-yyyy');
-        dfinal = datenum(NPI(j).dates{2},'dd-mm-yyyy') - datenum(NPI(j).period{1},'dd-mm-yyyy');
-        if (i > dstart) && (i <= dfinal)
-            if ischar(NPI(j).param)
-                P.(NPI(j).param) = log(NPI(j).Q);
-            else
-                for k = 1:numel(NPI(j).param)
-                    P.(NPI(j).param{k}) = log(NPI(j).Q(k));
+        for j = 1:numel(NPI)
+            
+            % start and end dates
+            %--------------------------------------------------------------
+            dstart = datenum(NPI(j).dates{1},'dd-mm-yyyy') - datenum(NPI(j).period{1},'dd-mm-yyyy');
+            dfinal = datenum(NPI(j).dates{2},'dd-mm-yyyy') - datenum(NPI(j).period{1},'dd-mm-yyyy');
+            if (i > dstart) && (i <= dfinal)
+                if ischar(NPI(j).param)
+                    Q{n}.(NPI(j).param) = NPI(j).Q{n};
+                else
+                    for k = 1:numel(NPI(j).param)
+                        Q{n}.(NPI(j).param{k}) = NPI(j).Q{n}(k);
+                    end
                 end
-            end
-        else
-            if ischar(NPI(j).param)
-                P.(NPI(j).param) = log(Q.(NPI(j).param));
             else
-                for k = 1:numel(NPI(j).param)
-                    P.(NPI(j).param{k}) = log(Q.(NPI(j).param{k}));
+                if ischar(NPI(j).param)
+                    Q{n}.(NPI(j).param) = R{n}.(NPI(j).param);
+                else
+                    for k = 1:numel(NPI(j).param)
+                        Q{n}.(NPI(j).param{k}) = R{n}.(NPI(j).param{k});
+                    end
                 end
             end
         end
-    end
         
-    % start of trace and track
-    %----------------------------------------------------------------------
-    if isfield(M,'TTT')
-        if i > M.TTT
-            if isfield(M,'FTT')
-                P.ttt = log(M.FTT);
-            else
-                P.ttt = log(Q.ttt) + 2;
+
+        % coupling between groups (contact rates)
+        %==================================================================
+        
+        % probability of lockdown (a function of prevalence)
+        %------------------------------------------------------------------
+        q        = spm_sum(x{n},[1 3 4]);
+        Pout{n}  = (1 - Pout{n})/Q{n}.s + Pout{n}*(1 - erf(Q{n}.qua*q(2) + Q{n}.sde*q(1)));
+        Q{n}.out = R{n}.out*Pout{n};
+       
+        % seasonal fluctuations
+        %------------------------------------------------------------------
+        S    = (1 + cos(2*pi*(i - log(Q{n}.inn)*8)/365))/2;
+        
+        % fluctuating transmission risk
+        %------------------------------------------------------------------
+        Ptra = 0;
+        if isfield(Q{n},'tra')
+            for j = 1:numel(Q{n}.tra)
+                Ptra = Ptra + log(Q{n}.tra(j)) * cos(j*pi*i/365)/8;
             end
-        else
-            P.ttt = log(Q.ttt);
         end
-    end
-    
-    % circuit breaker
-    %----------------------------------------------------------------------
-    if isfield(M,'CBT')
-        if (i > M.CBT) && (i <= (M.CBT + M.CBD))
-            P.sde = log(Q.sde) - log(4);
-        else
-            P.sde = log(Q.sde);
+        Ptra = exp(Ptra);
+        Ptrn = Q{n}.trn*S + Q{n}.trm*(1 - S);    % seasonal risk
+        Ptrn = erf(Ptrn*Ptra);                   % fluctuating risk
+        
+        % contact rates
+        %------------------------------------------------------------------
+        tin  = 1;
+        tou  = 1;
+        ths  = 1;
+        for j = 1:nN
+            q   = spm_sum(x{j},[3 4 5]);
+            pin = q(1,:)/sum(q(1,:) + eps);      % P(infection | home)
+            pou = q(2,:)/sum(q(2,:) + eps);      % P(infection | work)
+            phs = q(6,:)/sum(q(6,:) + eps);      % P(infection | hospital)
+
+            tin = tin*(1 - Ptrn*pin(3))^Q{n}.Nin(j);
+            tou = tou*(1 - Ptrn*pou(3))^Q{n}.Nou(j);
+            ths = ths*(1 - Ptrn*phs(3))^Q{n}.Nou(j);
         end
-    end
-    
-    % update ensemble density (x)
-    %======================================================================
-    P.t   = log(i);
-    [T,V] = spm_COVID_T(x,P);
-    x     = spm_unvec(T*spm_vec(x),x);
-    x     = x/sum(x(:));
-    
-    % marginal densities (p)
-    %----------------------------------------------------------------------
-    p     = spm_marginal(x);
-    for j = 1:Nf
-        X{j}(i,:)  = p{j};
-    end
-    
-    % time-varying parameters
-    %----------------------------------------------------------------------
-    W(i)  = V;
-    
-    % outcomes
-    %======================================================================
-    
-    % number of daily deaths (28 days)
-    %----------------------------------------------------------------------
-    pcr28   = 1 - (1 - p{4}(3))^28;
-    pcr14   = 1 - (1 - p{4}(3))^14;
-    if isfield(Q,'dc')
-        Y(i,1) = N * (Q.dc(1)*p{3}(4) + Q.dc(2)*pcr28/(365*82));
-    else
-        Y(i,1) = N * p{3}(4);
-    end
+        
+        Q{n}.tin = tin;    % P(no transmission | home)
+        Q{n}.tou = tou;    % P(no transmission | work)
+        Q{n}.ths = ths;    % P(no transmission | hospital)
+                
+        
+        % update ensemble density (x)
+        %==================================================================
+        Q{n}.t = i;
+        [T,V]  = spm_COVID_T(Q{n},I);
+        x{n}   = spm_unvec(T*spm_vec(x{n}),x{n});
+        x{n}   = x{n}/sum(x{n}(:));
+        
+        % marginal densities (p)
+        %------------------------------------------------------------------
+        p{n}  = spm_marginal(x{n});
+        for j = 1:Nf
+            X{n,j}(i,:) = p{n}{j};
+        end
+        
+        
+        % outcomes
+        %==================================================================
+        
+        % probability of a test within 28 days
+        %------------------------------------------------------------------
+        pcr28   = (1 - p{n}{4}(1)^28);
+        pcr14   = (1 - p{n}{4}(1)^14);
+        
+        % time-varying parameters and other vaiables
+        %------------------------------------------------------------------
+        V.Ptrn  = Ptrn;
+        V.pcr28 = pcr28;
+        V.pcr14 = pcr14;
+        W{n}(i) = V;
+        
+        
+        % number of daily deaths (28 days)
+        %------------------------------------------------------------------
+        if isfield(Q{n},'dc')
+            Y{n}(i,1) = N(n) * p{n}{3}(4) * Q{n}.dc(1)*pcr28^Q{n}.dc(2);
+        else
+            Y{n}(i,1) = N(n) * p{n}{3}(4);
+        end
+        
+        % number of daily (positive) tests (PCR and LFD)
+        %------------------------------------------------------------------
+        Y{n}(i,2) = N(n) * (p{n}{4}(3) + p{n}{4}(5));
+        
+        % CCU bed occupancy (mechanical ventilation)
+        %------------------------------------------------------------------
+        Y{n}(i,3) = N(n) * p{n}{1}(3);
+        
+        % effective reproduction ratio (R) (based on infection prevalence)
+        %------------------------------------------------------------------
+        Y{n}(i,4) = p{n}{2}(2);
+        
+        % seropositive immunity (%) Ab+ and Vaccine+
+        %------------------------------------------------------------------
+        Y{n}(i,5) = 100 * (p{n}{2}(4) + p{n}{2}(6));
+        
+        % total number of daily virus tests (PCR and LFD)
+        %------------------------------------------------------------------
+        Y{n}(i,6) = N(n) * sum(p{n}{4}(3:6));
+        
+        % probability of contracting virus (in a class of 15)
+        %------------------------------------------------------------------
+        Y{n}(i,7) = (1 - (1 - Q{n}.trn*p{n}{2}(3))^15) * 100;
+        
+        % prevalence of (contagious) infection (%)
+        %------------------------------------------------------------------
+        Y{n}(i,8) = 100 * p{n}{2}(3);
+        
+        % number of people at home, asymptomatic, untested but infected
+        %------------------------------------------------------------------
+        Y{n}(i,9) = N(n) * x{n}(1,2,1,1);
+        
+        % prevalence of infection (%)
+        %------------------------------------------------------------------
+        Y{n}(i,11) = 100 * (p{n}{2}(2) + p{n}{2}(3));
+        
+        % number of symptomatic people
+        %------------------------------------------------------------------
+        Y{n}(i,12) = N(n) * p{n}{3}(2);
+        
+        % mobility (% normal)
+        %------------------------------------------------------------------
+        q  = p{n}{1}(2)/(1 - p{n}{1}(4));
+        if isfield(Q{n},'mo')
+            Y{n}(i,13) = 100 * Q{n}.mo(1)*q^Q{n}.mo(2);
+        else
+            Y{n}(i,13) = 100 * q;
+        end
+        
+        % work (% normal)
+        %------------------------------------------------------------------
+        if isfield(Q{n},'wo')
+            Y{n}(i,14) = 100 * Q{n}.wo(1)*q^Q{n}.wo(2);
+        else
+            Y{n}(i,14) = 100 * q;
+        end
+        
+        % certified deaths per day
+        %------------------------------------------------------------------
+        Y{n}(i,15) = N(n) * p{n}{3}(4);
+        
+        % hospital admissions (ARDS people in hospital/CCU)
+        %------------------------------------------------------------------
+        q  = squeeze(spm_sum(x{n},[2,4]));
+        q  = sum(q([1,2,4,5],3))*Q{n}.hos;
+        if isfield(Q{n},'ho')
+            Y{n}(i,16) = N(n) * q * Q{n}.ho(1)*pcr14^Q{n}.ho(2);
+        else
+            Y{n}(i,16) = N(n) * q;
+        end
+        
+        % hospital occupancy (ARDS people in hospital/CCU)
+        %------------------------------------------------------------------
+        q  = squeeze(spm_sum(x{n},[2,4]));
+        q  = sum(q([3,6],3));
+        if isfield(Q{n},'hc')
+            Y{n}(i,27) = N(n) * q * Q{n}.hc(1)*pcr14^Q{n}.hc(2);
+        else
+            Y{n}(i,27) = N(n) * q;
+        end
+        
+        % excess deaths in hospital/CCU
+        %------------------------------------------------------------------
+        q       = squeeze(spm_sum(x{n},[2,4]));
+        Y{n}(i,17) = N(n) * sum(q([3,6],4));
+        
+        % excess deaths not in hospital
+        %------------------------------------------------------------------
+        Y{n}(i,18) = N(n) * sum(q([1,2,4,5],4));
+        
+        % cumulative number of people vaccinated (in millions)
+        %------------------------------------------------------------------
+        Y{n}(i,22) = N(n) * p{n}{2}(6)/Q{n}.vac / 1e6;
+        
+        % PCR case positivity (%)(seven day rolling average)
+        %------------------------------------------------------------------
+        Y{n}(i,23) = 100 * (1 - (1 - p{n}{4}(3))^7)/(1 - (1 - p{n}{4}(3) - p{n}{4}(4))^7);
+        if isfield(P,'ps')
+            Y{n}(i,23) = Q{n}.ps * Y{n}(i,23);
+        end
 
-    % number of daily (positive) tests
-    %----------------------------------------------------------------------
-    Y(i,2) = N * p{4}(3);
-
-    % CCU bed occupancy (mechanical ventilation)
-    %----------------------------------------------------------------------
-    Y(i,3) = N * p{1}(3);
-
-    % effective reproduction ratio (R) (based on infection prevalence)
-    %----------------------------------------------------------------------
-    Y(i,4) = p{2}(2);
-    
-    % seropositive immunity (%)
-    %----------------------------------------------------------------------
-    Y(i,5) = 100 * p{2}(4);
-    
-    % total number of daily tests (positive or negative)
-    %----------------------------------------------------------------------
-    Y(i,6) = N * (p{4}(3) + p{4}(4));
-    
-    % probability of contracting virus (in a class of 15)
-    %----------------------------------------------------------------------
-    Y(i,7) = (1 - (1 - Q.trn*p{2}(3))^15)*100;
-    
-    % prevalence of (contagious) infection (%)
-    %----------------------------------------------------------------------
-    Y(i,8) = p{2}(3)*100;
-    
-    % number of people at home, asymptomatic, untested but infected
-    %----------------------------------------------------------------------
-    Y(i,9) = N * x(1,2,1,1);
-    
-    % number of infected people
-    %----------------------------------------------------------------------
-    Y(i,11) = N * (p{2}(2) + p{2}(3));
-    
-    % number of symptomatic people
-    %----------------------------------------------------------------------
-    Y(i,12) = N * p{3}(2);
-
-    % mobility (% normal)
-    %----------------------------------------------------------------------
-    q  = p{1}(2)/(1 - p{1}(4));
-    if isfield(Q,'mo')
-        Y(i,13) = 100 * Q.mo(1) * q^Q.mo(2);
-    else
-        Y(i,13) = 100 * q;
-    end
-
-    % work (% normal)
-    %----------------------------------------------------------------------
-    if isfield(Q,'wo')
-        Y(i,14) = 100 * Q.wo(1) * q^Q.wo(2);
-    else
-        Y(i,14) = 100 * q;
-    end 
-
-    % certified deaths per day
-    %----------------------------------------------------------------------
-    Y(i,15) = N * p{3}(4);
-
-    % hospital admissions (ARDS people in hospital/CCU)
-    %----------------------------------------------------------------------
-    q  = squeeze(spm_sum(x,[2,4]));
-    q  = sum(q([1,2,4,5],3))*Q.hos;
-    if isfield(P,'ho')
-        Y(i,16) = N * (Q.ho(1)*q + Q.ho(2)*pcr14/512);
-    else
-        Y(i,16) = N * q;
-    end
-    
-    % hospital occupancy (ARDS people in hospital/CCU)
-    %----------------------------------------------------------------------
-    q  = squeeze(spm_sum(x,[2,4]));
-    q  = sum(q([3,6],3));
-    if isfield(P,'hc')
-        Y(i,27) = N * (Q.hc(1)*q + Q.hc(2)*pcr14/512);
-    else
-        Y(i,27) = N * q;
-    end
-
-    % excess deaths in hospital/CCU
-    %----------------------------------------------------------------------
-    q       = squeeze(spm_sum(x,[2,4]));
-    Y(i,17) = N * sum(q([3,6],4));
-    
-    % excess deaths not in hospital
-    %----------------------------------------------------------------------
-    Y(i,18) = N * sum(q([1,2,4,5],4));
-    
-    % excess deaths > 60 and < 60 (as a function of place of death)
-    %----------------------------------------------------------------------
-    if isfield(Q,'ag')
-        Qag     = spm_softmax(P.ag);
-        Y(i,19) = N * Qag(1,:) * q([3,5,6],4);
-        Y(i,20) = N * Qag(2,:) * q([3,5,6],4);
-    end
-    
-    % number of people vaccinated (in millions)
-    %----------------------------------------------------------------------
-    Y(i,22) = N * p{5}(2) / 1e6;
-    
-    % PCR case positivity (%)
-    %----------------------------------------------------------------------
-    Y(i,23) = 100 * p{4}(3)/(p{4}(3) + p{4}(4));
-    
-    % lateral flow tests
-    %----------------------------------------------------------------------
-    Y(i,24) = N * Q.lim(end)*spm_phi((i - Q.ons(end))/Q.rat(end));
-    
-    
-    % joint density if requested
-    %----------------------------------------------------------------------
-    if nargout > 2
-        Z{i} = x;
+        % daily lateral flow tests (positive and negative)
+        %------------------------------------------------------------------
+        Y{n}(i,24) = N(n) * (p{n}{4}(5) + p{n}{4}(6));
+        
+        
+        % joint density if requested
+        %------------------------------------------------------------------
+        Z{n,i} = x{n};
+        
     end
 
 end
 
-% effective reproduction ratio: exp(K*Q.Tcn): K = dln(N)/dt
-%--------------------------------------------------------------------------
-K       = gradient(log(Y(:,4)));
-Y(:,4)  = 1 + K*(Q.Tin + Q.Tcn) + K.^2*Q.Tin*Q.Tcn;
-
-% incidence of new infections (%) (loss of susceptibility)
-%--------------------------------------------------------------------------
-Y(:,10) = 100 * (diff(X{2}(1:2,1)) - gradient(X{2}(:,1)));
-
-% infection fatality ratio (%)
-%--------------------------------------------------------------------------
-Y(:,21) = 100 * cumsum(Y(:,1)/N)./cumsum(Y(:,10)/100 + exp(-16));
-
-% cumulative attack rate (%)
-%--------------------------------------------------------------------------
-Y(:,25) = cumsum(Y(:,10));
-
-% population immunity (seropositive and seronegative) (%)
-%--------------------------------------------------------------------------
-Y(:,26) = 100 * (X{2}(:,4) + X{2}(:,5));
-
-
-% retain specified output variables
-%--------------------------------------------------------------------------
-Y       = Y(:,U);
+for n = 1:nN
+    
+    % effective reproduction ratio: exp(K*Q.Tcn): K = dln(N)/dt
+    %----------------------------------------------------------------------
+    K          = gradient(log(Y{n}(:,4)));
+    Y{n}(:,4)  = 1 + K*(Q{n}.Tin + Q{n}.Tcn) + K.^2*Q{n}.Tin*Q{n}.Tcn;
+    
+    % incidence of new infections (%) (loss of susceptibility)
+    %----------------------------------------------------------------------
+    Y{n}(:,10) = 100 * (diff(X{n,2}(1:2,1)) - gradient(X{n,2}(:,1)));
+    
+    % infection fatality ratio (%)
+    %----------------------------------------------------------------------
+    Y{n}(:,21) = 100 * cumsum(Y{n}(:,1)/N(n))./cumsum(Y{n}(:,10)/100 + exp(-16));
+    
+    % cumulative attack rate (%)
+    %----------------------------------------------------------------------
+    Y{n}(:,25) = cumsum(Y{n}(:,10));
+    
+    % population immunity (seropositive, seronegative and vaccine)(%)
+    %----------------------------------------------------------------------
+    Y{n}(:,26) = 100 * sum(X{n,2}(:,4:6),2);
+    
+    
+    % retain specified output variables
+    %----------------------------------------------------------------------
+    Y{n}   = Y{n}(:,U);
+    
+end
 
 % deal with mixture models
 %==========================================================================
-if isfield(O,'D')
+
+
+% proportion of each population
+%--------------------------------------------------------------------------
+n     = N/sum(N);
+Nt    = M.T;
+Nu    = numel(U);
+
+if numel(age) == 1 && age > 1
     
-    % evaluate mixtures
+    % return requested population
     %----------------------------------------------------------------------
-    nD    = numel(O.D);
-    for i = 1:numel(O.D)
-        P     = rmfield(O,'D');
-        param = fieldnames(O.D(i));
-        for j = 1:numel(param)
-            P.(param{j}) = O.D(i).(param{j});
-        end
-        y     = spm_SARS_gen(P,M,U,NPI);
-        Y     = Y + y;
-    end
-    Y  = Y/(1 + nD);
+    x = X(age,:);
+    y = Z(age,:);
     
+else
+    
+    % marginalise over populations
+    %----------------------------------------------------------------------
+    x      = cell(1,Nf); [x{:}] = deal(0);
+    z      = cell(1,Nt); [z{:}] = deal(0);
+    for i = 1:nN
+        for j = 1:Nf
+            x{1,j} = x{1,j} + X{i,j}*n(i);
+        end
+    end
+    for i = 1:nN
+        for j = 1:Nt
+            z{1,j} = z{1,j} + Z{i,j}*n(i);
+        end
+    end
+    
+end
+
+% age-specific outcomes or averages
+%--------------------------------------------------------------------------
+y     = zeros(Nt,Nu);
+for u = 1:Nu
+    
+    if age(u) > 0
+        
+        % age-specific outcomes
+        %------------------------------------------------------------------
+        y(:,u) = Y{age(u)}(:,u);
+
+        
+    else % pool over groups
+        
+        % absolute numbers (add)
+        %------------------------------------------------------------------
+        if ismember(U(u),uN)
+            for i = 1:nN
+                y(:,u) = y(:,u) + Y{i}(:,u);
+            end
+            
+        else
+            
+            % or proportions (average)
+            %--------------------------------------------------
+            for i = 1:nN
+                y(:,u) = y(:,u) + Y{i}(:,u)*n(i);
+            end
+        end
+    end
 end
 
 % reporting lags (first-order approximation)
 %--------------------------------------------------------------------------
-if isfield(O,'lag')
-    try
-        lag   = O.lag(U);
-        for i = 1:numel(U)
-            Y(:,i) = Y(:,i) - lag(i)*gradient(Y(:,i));
-        end
+try
+    lag   = log(P.lag(U));
+    for i = 1:Nu
+        y(:,i) = y(:,i) - lag(i)*gradient(y(:,i));
     end
 end
 
@@ -480,13 +612,11 @@ end
 if exist('D','var')
     for i = 1:numel(D)
         j      = ismember(d,D(i).date);
-        D(i).Y = Y(j,i); 
+        D(i).Y = y(j,i);
     end
-    Y  = spm_vec(D.Y);
+    y  = spm_vec(D.Y);
 end
 
 return
-
-
 
 

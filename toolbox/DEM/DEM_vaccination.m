@@ -31,7 +31,7 @@ else
     DCM = DCM.DCM;
 end
 
-% parametric intervention(vaccination and contact tracing)
+%% parametric intervention(vaccination and contact tracing)
 %==========================================================================
 period = {DCM.M.date,'01-01-2022'};         % duration of epidemic
 for i  = 1:6
@@ -117,7 +117,6 @@ subplot(3,2,6), bar(x),ylabel('percent'), xstr  = {str{1} str{i} 'diff.'};
 set(gca,'XTickLabels',xstr), title({'Seroprevalence'},'FontSize',14), box off
 legend({'susceptible','seropositive','seronegative'}), legend boxoff
 
-
 return
 
 %% quantify the effect of efficient intervention (NPI)
@@ -146,7 +145,7 @@ DCM = DCM.DCM;
 
 % parametric intervention(relaxation social distancing threshold)
 %==========================================================================
-period = {DCM.M.date,'01-04-2021'};         % duration of epidemic
+period = {DCM.M.date,'01-06-2021'};         % duration of epidemic
 for i  = 1:3
     NPI(i).period = period;
     NPI(i).param  = {'sde'};
@@ -203,5 +202,70 @@ end
 
 return
 
+
+%% scenario modelling for different Lockdown timings
+%==========================================================================
+clear
+DCM = load('DCM_UK.mat','DCM');
+DCM = DCM.DCM;
+
+% parametric intervention(relaxation social distancing threshold)
+%==========================================================================
+period = {DCM.M.date,'28-02-2021'};         % duration of epidemic
+for i  = 1:2
+    NPI(i).period = period;
+    NPI(i).param  = {'sde'};
+    NPI(i).Q      = exp(DCM.Ep.sde - (i - 1)/3 );
+    NPI(i).dates  = {'22-12-2020','28-02-2021',};
+end
+
+% unpack model and posterior expectations
+%--------------------------------------------------------------------------
+M   = DCM.M;                                 % model (priors)
+Ep  = DCM.Ep;                                % posterior expectation
+Cp  = DCM.Cp;                                % posterior covariances
+S   = DCM.Y;                                 % smooth timeseries
+U   = DCM.U;                                 % indices of outputs
+
+% plot epidemiological trajectories and hold plots
+%==========================================================================
+spm_figure('GetWin','lockdowns'); clf;
+%--------------------------------------------------------------------------
+M.T    = datenum(period{2},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
+u      = 13;
+
+% the effect of intervention (NPI) on latent states
+%==========================================================================
+for i = 1:numel(NPI)
+    
+    for j = 1:2, subplot(3,2,j), hold on, end
+    for j = 5:12,subplot(6,2,j), hold on, end
+    
+    [Z,X]  = spm_SARS_gen(Ep,M,u,NPI(i));
+    spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+    
+end
+
+%% illustrate outcomes
+%--------------------------------------------------------------------------
+spm_figure('GetWin','hospital cases'); clf;
+%--------------------------------------------------------------------------
+for i = 1:numel(NPI)
+    
+    subplot(3,1,1), hold on
+    u      = 13;
+    spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI(i));
+    
+    subplot(3,1,2), hold on
+    u      = 1;
+    spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI(i));
+    
+    subplot(3,1,3), hold on
+    u      = 27;
+    spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI(i));
+    
+end
+
+return
 
 

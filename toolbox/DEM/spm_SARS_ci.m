@@ -1,12 +1,13 @@
-function [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI)
+function [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI,age)
 % Graphics for coronavirus simulations - with confidence intervals
-% FORMAT [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI)
+% FORMAT [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI,age)
 % Ep     - posterior expectations
 % Cp     - posterior covariances
 % Z      - optional empirical data
 % U      - outcomes to evaluate [default: 1:3]
 % M      - model
 % NPI    - intervention array
+% age    - age band
 %
 % S      - posterior expectation of cumulative outcomes
 % CS     - posterior covariances of cumulative outcomes
@@ -32,12 +33,14 @@ function [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_ci.m 8042 2021-01-10 10:39:04Z karl $
+% $Id: spm_SARS_ci.m 8047 2021-02-02 18:56:09Z karl $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------
-if nargin < 4, U = 1:3;  end
-if nargin < 6, NPI = []; end 
+if nargin < 4, U   = 1:3;  end
+if nargin < 5, M.T = 180;  end
+if nargin < 6, NPI = [];   end 
+if nargin < 7, age = 0*U;  end
 
 % priors and names for plotting
 %--------------------------------------------------------------------------
@@ -53,7 +56,7 @@ Cp = Cp*64;
 % changes in outcomes with respect to parameters
 %--------------------------------------------------------------------------
 try, M.T; catch, M.T = 180; end
-[dYdP,Y] = spm_diff(@(P,M,U,N)spm_SARS_gen(P,M,U,N),Ep,M,U,NPI,1);
+[dYdP,Y] = spm_diff(@(P,M,U,N,A)spm_SARS_gen(P,M,U,N,A),Ep,M,U,NPI,age,1);
 
 
 % conditional covariances
@@ -91,29 +94,26 @@ end
 %--------------------------------------------------------------------------
 if numel(U) == 1
     
-    if nargout < 4
-        
-        spm_plot_ci(Y(:,i)',C{i},t), hold on
-        try, plot(t(1:numel(Z(:,i))),Z(:,i),'.k'), end
-        ylabel('number of cases/day')
-        title(outcome,'FontSize',14)
-        
-        sprintf('%s, %6.0f',outcome{1},sum(Y))
-        
-        % label time
-        %------------------------------------------------------------------
-        if isfield(M,'date')
-            datetick('x','dd-mmm','keeplimits','keepticks')
-            xlabel('date')
-        else
-            xlabel('time (weeks)')
-        end
-        
-        box off, spm_axis tight
-        YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
-        drawnow
-        
+    spm_plot_ci(Y(:,i)',C{i},t), hold on
+    try, plot(t(1:numel(Z(:,i))),Z(:,i),'.k'), end
+    ylabel('number of cases/day')
+    title(outcome,'FontSize',14)
+    
+    sprintf('%s, %6.0f',outcome{1},sum(Y))
+    
+    % label time
+    %----------------------------------------------------------------------
+    if isfield(M,'date')
+        datetick('x','dd-mmm','keeplimits','keepticks')
+        xlabel('date')
+    else
+        xlabel('time (weeks)')
     end
+    
+    box off, spm_axis tight
+    YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
+    drawnow
+    
     return
 end
 
@@ -129,7 +129,7 @@ for i = 1:Ny
     % label time
     %----------------------------------------------------------------------
     if isfield(M,'date')
-        datetick('x','mmmdd')
+        datetick('x','dd-mmm')
         xlabel('date')
     else
         xlabel('time (weeks)')
