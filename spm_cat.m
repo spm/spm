@@ -21,7 +21,7 @@ function [x] = spm_cat(x,d)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cat.m 5731 2013-11-04 18:11:44Z guillaume $
+% $Id: spm_cat.m 8045 2021-02-02 18:46:28Z karl $
 
 
 %error('spm_cat.c not compiled - see Makefile')
@@ -65,14 +65,14 @@ end
 % find dimensions to fill in empty partitions
 %--------------------------------------------------------------------------
 for i = 1:n
-for j = 1:m
-    if iscell(x{i,j})
-        x{i,j} = spm_cat(x{i,j});
+    for j = 1:m
+        if iscell(x{i,j})
+            x{i,j} = spm_cat(x{i,j});
+        end
+        [u,v]  = size(x{i,j});
+        I(i,j) = u;
+        J(i,j) = v;
     end
-    [u,v]  = size(x{i,j});
-    I(i,j) = u;
-    J(i,j) = v;
-end
 end
 I     = max(I,[],2);
 J     = max(J,[],1);
@@ -81,11 +81,11 @@ J     = max(J,[],1);
 %--------------------------------------------------------------------------
 [n,m] = size(x);
 for i = 1:n
-for j = 1:m
-    if isempty(x{i,j})
-        x{i,j} = sparse(I(i),J(j));
+    for j = 1:m
+        if isempty(x{i,j})
+            x{i,j} = sparse(I(i),J(j));
+        end
     end
-end
 end
  
 % concatenate

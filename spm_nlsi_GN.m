@@ -4,7 +4,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 %
 % [Dynamic] MIMO models
 %__________________________________________________________________________
-%
+% M.G  - or
 % M.IS - function name f(P,M,U) - generative model
 %        This function specifies the nonlinear model:
 %          y = Y.y = IS(P,M,U) + X0*P0 + e
@@ -96,7 +96,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 7975 2020-10-06 14:46:56Z spm $
+% $Id: spm_nlsi_GN.m 8045 2021-02-02 18:46:28Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -341,7 +341,7 @@ for k = 1:M.Nmax
         % check for stability
         %------------------------------------------------------------------
         normdfdp = norm(dfdp,'inf');
-        revert   = isnan(normdfdp) || normdfdp > exp(32);
+        revert   = isnan(normdfdp) || normdfdp > 1e32;
         
     catch
         revert   = true;

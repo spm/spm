@@ -1,6 +1,6 @@
 function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 % Bayesian model reduction of all permutations of model parameters
-% FORMAT [RCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
+% FORMAT [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 %
 % DCM      - A single estimated DCM (or PEB) structure:
 %
@@ -64,7 +64,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 7838 2020-04-23 17:40:45Z karl $
+% $Id: spm_dcm_bmr_all.m 8045 2021-02-02 18:46:28Z karl $
 
 
 %-specification of null prior covariance
