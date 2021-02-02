@@ -1,267 +1,203 @@
-function [p0,X,F,f,H,J,E] = spm_ness_hd(M,x)
+function [p0,X,F,f,NESS] = spm_ness_hd(M,x)
 % nonequilibrium steady-state under a Helmholtz decomposition
-% FORMAT [p0,X,F,f,H,J,E] = spm_ness_hd(M,x)
+% FORMAT [p0,X,F,f,NESS] = spm_ness_hd(M,x)
 %--------------------------------------------------------------------------
 % M   - model specification structure
 % Required fields:
 %    M.f   - dx/dt   = f(x,u,P)  {function string or m-file}
 %    M.pE  - P       = parameters of equation of motion
 %    M.x   - (n x 1) = x(0) = expansion point
-%    M.W   - (n x n) - precision matrix of state noise
+%    M.W   - (n x n) - precision matrix of random fluctuations
 % x    - cell array of vectors specifying evaluation grid
 %
-% p0   - nonequilibrium steady-state
-% X    - evaluation points of state space
-% F    - expected flow
-% f    - original flow
-% H    - expected Euclidian norm of Hessian
-% J    - expected Euclidian norm of Jacobian
-% E    - Lyapunov exponents
+% p0      - nonequilibrium steady-state
+% X       - evaluation points of state space
+% F       - expected flow
+% f       - original flow
+%
+% NESS.H  - expected Hessian
+% NESS.J  - expected Jacobian
+% NESS.E  - Lyapunov exponents
+% NESS.H2 - expected Euclidean norm of Hessian
+% NESS.J2 - expected Euclidean norm of Jacobian
+% NESS.D2 - correlation dimension
+% NESS.bS - p0 = spm_softmax(spm_dctmtx(nx,nb)*bS);
+% NESS.nb - number of basis functions
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8000 2020-11-03 19:04:17Z karl $
+% $Id: spm_ness_hd.m 8046 2021-02-02 18:48:05Z karl $
 
 
 % event space: get or create X - coordinates of evaluation grid
 %--------------------------------------------------------------------------
-n  = length(M.x);
-if nargin < 2
-    
-    % use M.X
-    %----------------------------------------------------------------------
-    X     = M.X;
-    for i = 1:size(X,2)
-        x{i} = unique(X(:,i));
-    end
-else
-    
-    % use x
-    %----------------------------------------------------------------------
-    [X,x] = spm_ndgrid(x);
-    
-end
+U  = spm_ness_U(M);
+X  = U.X;                                   % sample points
+f  = U.f;                                   % flow
+J  = U.J;                                   % Jacobian
+G  = U.G;                                   % dissipative flow operator
 
-% size of subspace
+% size of subspace (nx) and probability bin size (dx)
 %--------------------------------------------------------------------------
-nX    = size(X,1);
-nY    = nX*n;
-dx    = ones(1,n);
-nx    = ones(1,n);
-for i = 1:n
-    nx(i) = numel(x{i});
-    if nx(i) > 1
-        dx(i) = x{i}(2) - x{i}(1);
-    end
-end
+[nX,n] = size(X);
 
-% differential operators
-%==========================================================================
-spd = @(x)spdiags(x(:),0,numel(x),numel(x));
 
 % gradients based upon Helmholtz decomposition
 %==========================================================================
 
-% diffusion tensor more amplitude of random fluctuations (G)
+% initialise flow operator Q = (R + G) under the assumption dQ/dx = 0
 %--------------------------------------------------------------------------
-if isscalar(M.W)
-    G = eye(n,n)/M.W/2;
-else
-    G = inv(M.W)/2;
-end
-
-
-% flow constraints (Jacobian J = df/dx)(R = -Q')
-%--------------------------------------------------------------------------
-%   S     = ln(p(x))
-%   f     = (R + G)*dS/dx
-%   df/dx = J = -(R + G)*H
-%--------------------------------------------------------------------------
-f     = zeros(n,nX);
-J     = zeros(n,n,nX);
+I     = speye(n,n);                         % identity matrix
+Q     = zeros(n,n,nX);                      % flow operator
+d     = speye(n*n)/512;                     % regulariser
 for i = 1:nX
     
-    % Jacobian at this point in state space
+    % solenoidal operator (R = Q(:,:,i))
     %----------------------------------------------------------------------
-    s        = X(i,:)';
-    F        = M.f(s,0,M.pE);
-    if isfield(M,'J')
-        J(:,:,i) = full(M.J(s,0,M.pE,M));
-    else
-        J(:,:,i) = full(spm_diff(M.f,s,0,M.pE,M,1));
-    end
-    f(:,i)   = full(F);
-    
+    JJ       = kron(I,J(:,:,i)) + kron(conj(J(:,:,i)),I);
+    Y        = spm_vec(J(:,:,i)*G - G*J(:,:,i)');
+    Q(:,:,i) = reshape((JJ'*JJ + d)\(JJ'*Y),n,n);
+
 end
 
-I     = speye(n,n);
-Q     = zeros(n,n,nX);
-d     = speye(n*n)/512;
-for i = 1:nX
-    
-    % Hessian and solenoidal operator
-    %------------------------------------------------------------------
-    Z  = kron(I,J(:,:,i)) + kron(conj(J(:,:,i)),I);
-    Y  = spm_vec(J(:,:,i)*G - G*J(:,:,i)');
-    R  = reshape((Z'*Z + d)\(Z'*Y),n,n);
 
-    % potential gradients
-    %------------------------------------------------------------------
-    Q(:,:,i) = (R + G);
-    
-end
-
-% basis for expansion of Q operator
+% deal with the correction term by minimising |(f - L) - Q*dS/dx|
+%==========================================================================
+% where f = Q*dS/dx - L
+%         = Q*D*S   - L
+% subject to Q = Q + dQ: dQ = -qQ'
 %--------------------------------------------------------------------------
-b     = spm_dctmtx(nx,fix(nx/2));
-[Db,Dx]  = spm_dctmtx(nx,fix(nx/2),'diff',dx);
-for i = 1:n
-    bdb{i,1} = b'*Dx{i};
-end
-Db    = full(Db);
+b     = U.b;                     % orthonormal polynomial basis
+D     = U.D;                     % derivative operator
+dQdp  = U.dQdp;                  % gradients of Q  w.r.t. flow parameters
+dbQdp = U.dbQdp;                 % gradients of bQ w.r.t. flow parameters
+dLdp  = U.dLdp;                  % gradients of L w.r.t. flow parameters
+bG    = U.bG;                    % symmetric part of flow operator
 
+nb    = size(b,2);               % number of coefficients for potential
+nB    = numel(dQdp);             % number of coefficients for flow operator
 
-for i = 1:n
-    for j = 1:n
-        Qb(i,j,:) = b'*reshape(Q(i,j,:),nX,1);
-    end
-end
-
-
-dQd0  = cell(n,n); [dQd0{:}] = deal(sparse(nX,nX));
-dQdB  = {};
-for i = 1:n
-    for j = (i + 1):n
-        for k = 1:size(b,2)
-            
-            dQdb      = dQd0;
-            dQdb{i,j} =  spd(b(:,k));
-            dQdb{j,i} = -spd(b(:,k));
-            dQdB{end + 1}    = spm_cat(dQdb);
-            
-        end
-    end
-end
-
-nb    = size(b,2);
-nB    = numel(dQdB);
-dqdb  = {};
-for i = 1:n
-    for j = (i + 1):n
-        for k = 1:size(b,2)
-            
-            dqdb{end + 1}    = spm_zeros(Qb);
-            dqdb{end}(i,j,k) =  1;
-            dqdb{end}(j,i,k) = -1;
-            
-        end
-    end
-end
-
-dLdb  = cell(1,nB); [dLdb{:}] = deal(sparse(nb,n));
+% coefficients (bQ) of solenoidal operator Q 
+%--------------------------------------------------------------------------
+bQ    = zeros(n,n,nb);
 for i = 1:n
     for j = 1:n
-        for k = 1:nB
-            dLdb{k}(:,i) = dLdb{k}(:,i) - bdb{j}*reshape(dqdb{k}(i,j,:),nb,1);
-        end
+        bQ(i,j,:) = b'*squeeze(Q(i,j,:));
     end
 end
+Qp    = zeros(nB,1);
+for i = 1:nB
+    Qp(i) = dbQdp{i}(:)'*bQ(:)/2;
+end
 
-   
-dEdb  = zeros(nX*n,nB);
-QQ    = cell(n,n);
-for q = 1:8
+% iterated least-squares to estimate flow operator
+%==========================================================================
+dEdp  = zeros(nX*n,nB);                   % error gradients
+nm    = exp(-16);                         % norm
+Ib    = speye(nb,nb)*nm;                  % prior precision Qp
+IB    = speye(nB,nB)*nm;                  % prior precision Sp
+Db    = spm_cat(D);
+for k = 1:64
      
-
-    % correction terms state-dependent solenoidal flow
+    % solenoidal operator
     %----------------------------------------------------------------------
-    L     = zeros(nb,n);
-    for i = 1:n
-        for j = 1:n
-            L(:,i) = L(:,i) - bdb{j}*reshape(Qb(i,j,:),nb,1);
-        end
-    end
-    
-    % Kroneckor form of Q
-    %----------------------------------------------------------------------
-    for i = 1:n
-        for j = 1:n
-            QQ{i,j} = spd(b*squeeze(Qb(i,j,:)));
-        end
-    end
-    QZ  = spm_cat(QQ);
-        
-    % potential gradients f = QZ*DZ*b*b'*q0 - L
-    %----------------------------------------------------------------------
-    Z   = QZ*Db;
-    Y   = spm_vec(f' + b*L);
-    q0  = (Z'*Z + speye(nb,nb)*exp(-16))\(Z'*Y);
-
-    
-    % dEdb  = dLdb - dQdb*DZ*q0;
-    %----------------------------------------------------------------------
-    Dbq0 = Db*q0;
+    bQ    = 0;
     for i = 1:nB
-        dEdb(:,i) = dQdB{i}*Dbq0 - spm_vec(b*dLdb{i});
+        bQ = bQ + dbQdp{i}*Qp(i);
     end
     
-    % dEdb  = dLdb - dQdb*DZ*q0;
+    % correction term for solenoidal flow L and Kroneckor form of Q
+    %----------------------------------------------------------------------    
+    Q     = cell(n,n);
+    L     = zeros(nX,n);
+    for i = 1:n
+        for j = 1:n
+            bQij   = squeeze(bQ(i,j,:) + bG(i,j,:));
+            L(:,i) = L(:,i) - D{j}*bQij;
+            Q{i,j} = spdiags(b*bQij,0,nX,nX);
+        end
+    end
+    Q   = spm_cat(Q);
+        
+    % potential gradients f = Q*D*b*b'*S - L
     %----------------------------------------------------------------------
-    E     = Y - Z*q0;
-    B     = (dEdb'*dEdb + speye(nB,nB)*exp(-16))\(dEdb'*E);
-    for i = 1:numel(dqdb)
-        Qb = Qb + dqdb{i}*B(i);
+    QDb = Q*Db;
+    Y   = spm_vec(f' + L);
+    bS  = (QDb'*QDb + Ib)\(QDb'*Y);
+    
+    % dEdb  = dLdb - dQdb*D*b*b'*S;
+    %----------------------------------------------------------------------
+    DS    = Db*bS;
+    for i = 1:nB
+        dEdp(:,i) = dQdp{i}*DS - spm_vec(dLdp{i});
     end
     
-    subplot(3,2,1)
-    plot(spm_vec(f'),Z*q0 - spm_vec(b*L),'.','MarkerSize',1),drawnow
-    disp(norm(E(:)))
-    subplot(3,2,2)
-    p0  = reshape(b*q0,nx); imagesc(squeeze(sum(p0,3)))
+    % dEdb'*dEdb*db = dEdb'*E: E = f + b*L - Q*Dx*b*b'*S
+    %----------------------------------------------------------------------
+    E     = Y - QDb*bS;
+    dp    = (dEdp'*dEdp + IB)\(dEdp'*E);
+    Qp    = Qp + dp;
+    
+    % report
+    %----------------------------------------------------------------------
+    fprintf('%-6s: %i %-6.3e\n','NESS',k,norm(E))
     
 end
 
-
+% evaluate Q from basis function coefficients Qb
+%--------------------------------------------------------------------------
+Q     = zeros(n,n,nX);
 for i = 1:n
     for j = 1:n
-        Q(i,j,:) = b*reshape(Qb(i,j,:),nb,1);
+        Q(i,j,:) = b*reshape(bQ(i,j,:),nb,1);
     end
 end
 
-    
-% precision (inverse covariance) of steady-state density
+% Hessian D*D*S
 %--------------------------------------------------------------------------
 H     = zeros(n,n,nX);
-E     = zeros(n,nX);
-for i = 1:nX
-    
-    % precision (inverse covariance) of steady-state density
-    %----------------------------------------------------------------------
-    H(:,:,i) = -full(Q(:,:,i)\J(:,:,i));
-    
-    % eigenvalues of Jacobian
-    %----------------------------------------------------------------------
-    E(:,i)   = sort(eig(J(:,:,i)),'descend','ComparisonMethod','real');
-    
+HH    = cell(n,n);
+for i = 1:n
+    for j = 1:n
+       HH{i,j} = D{i}*b'*D{j}*bS;    
+    end
+end
+for i = 1:n
+    for j = 1:n
+        for k = 1:nX
+            H(i,j,k) = HH{i,j}(k);
+        end
+    end
 end
 
-% expected Euclidian norm of Hessian (first state is a blanket state)
+% eigenvalues of Jacobian
 %--------------------------------------------------------------------------
-p0  = spm_softmax(b*q0);
-H   = spm_dot(H.^2,p0);
-J   = spm_dot(J.^2,p0);
-E   = spm_dot(E   ,p0);
+E     = zeros(n,nX);
+for i = 1:nX
+    E(:,i)   = sort(eig(J(:,:,i)),'descend','ComparisonMethod','real');
+end
 
-% 2+abs(E(1)+E(2))/abs(E(3))
+% assemble NESS structure
+%--------------------------------------------------------------------------
+p0    = spm_softmax(b*bS);                % NESS density
+
+NESS.H  = spm_dot(H   ,p0);               % expected Hessian
+NESS.J  = spm_dot(J   ,p0);               % expected Jacobian
+NESS.E  = spm_dot(E   ,p0);               % Lyapunov exponents
+NESS.H2 = spm_dot(H.^2,p0);               % expected Euclidean norm of Hessian
+NESS.J2 = spm_dot(J.^2,p0);               % expected Euclidean norm of Jacobian
+NESS.D2 = 2 + abs(E(1) + E(2))/abs(E(3)); % correlation dimension
+NESS.bS = U.v*bS;                         % p0  = spm_softmax(spm_polymtx(x,nb)*bS);
+NESS.bQ = U.u*Qp;                         % parameters of solenoidal operator
 
 % reshape nonequilibrium steady-state density
 %--------------------------------------------------------------------------
-p0  = reshape(p0,nx);
+p0  = reshape(p0,U.nx);
 
-% predicted flow     Y   = spm_vec((f*b)' + L);
+% predicted flow: F   = Q*Dx*S - L
 %--------------------------------------------------------------------------
-F   = reshape(Z*q0,nX,n) - b*L;
+F   = reshape(QDb*bS,nX,n) - L;
 
 
 return
