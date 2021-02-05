@@ -4,7 +4,7 @@ function preproc = spm_cfg_preproc8
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 7629 2019-06-27 12:35:45Z john $
+% $Id: spm_cfg_preproc8.m 8048 2021-02-05 11:18:03Z john $
 
 
 %--------------------------------------------------------------------------
@@ -306,6 +306,9 @@ cleanup.help    = {
     'It begins by taking the white matter, and eroding it a couple of times to get rid of any odd voxels.  The algorithm continues on to do conditional dilations for several iterations, where the condition is based upon gray or white matter being present.This identified region is then used to clean up the grey and white matter partitions.  Note that the fluid class will also be cleaned, such that aqueous and vitreous humour in the eyeballs, as well as other assorted fluid regions (except CSF) will be removed.'
     ''
     'If you find pieces of brain being chopped out in your data, then you may wish to disable or tone down the cleanup procedure. Note that the procedure uses a number of assumptions about what each tissue class refers to.  If a different set of tissue priors are used, then this routine should be disabled.'
+    ''
+    'Note that the TPM.nii file usually used for segmentation includes eyeballs in the CSF class, meaning that the core algorithm includes these as CSF.  Those wishing to not have eyeballs in their CSF class should enable the Clean Up operation.  Sometimes, this may need to be set to do a thorough clean in order to strip them off properly.'
+    ''
     }';
 cleanup.labels = {
                   'Dont do cleanup'
