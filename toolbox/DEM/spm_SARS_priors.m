@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8047 2021-02-02 18:56:09Z karl $
+% $Id: spm_SARS_priors.m 8051 2021-02-06 21:57:52Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -160,7 +160,7 @@ names{37} = 'testing: onset';
 
 names{38} = 'reporting lag';
 names{39} = 'seasonal phase';
-names{40} = 'seronegative decay';
+names{40} = 'exposure exponent';
 names{41} = 'vaccination rollout';
 
 % latent or hidden factors
@@ -238,7 +238,7 @@ str.names   = names;
 % Expectations (either heuristic or taken from the above sources)
 %==========================================================================
 P.N   = 64;                   % (01) population size (millions)
-P.n   = exp(4);               % (02) initial cases (cases)
+P.n   = exp(-6);              % (02) initial cases (cases)
 P.r   = 0.1;                  % (03) pre-existing immunity (proportion)
 P.o   = 0.1;                  % (04) initial exposed proportion
 P.m   = 0.1;                  % (05) relative eflux
@@ -251,7 +251,7 @@ P.qua = 4;                    % (08) sensitivity to prevalence
 P.exp = 0.01;                 % (09) viral spreading (days)
 P.hos = 0.8;                  % (10) admission rate (hospital)
 P.ccu = 0.2;                  % (11) admission rate (CCU)
-P.s   = 32;                   % (12) decay of social distancing (days)
+P.s   = 48;                   % (12) decay of social distancing (days)
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -259,8 +259,8 @@ P.Nin = 2;                    % (13) effective number of contacts: home
 P.Nou = 24;                   % (14) effective number of contacts: work
 P.trn = 0.3;                  % (15) transmission strength (winter)
 P.trm = 0.2;                  % (16) transmission strength (summer)
-P.Tin = 3;                    % (17) infected period (days)
-P.Tcn = 5;                    % (18) infectious period (days)
+P.Tin = 4;                    % (17) infected period (days)
+P.Tcn = 4;                    % (18) infectious period (days)
 P.Tim = 150;                  % (19) seropositive immunity (days)
 P.res = 0.2;                  % (20) seronegative proportion (late)
 
@@ -291,7 +291,7 @@ P.ons = [100 200 300 400];    % (37) testing: onset
 
 P.lag = [1 1];                % (38) reporting lag
 P.inn = 1;                    % (39) seasonal phase
-P.mem = 1024;                 % (40) seronegative decay (days)
+P.mem = 2;                    % (40) exposure exponent
 P.rol = [0.01 365 8];         % (41) vaccination rollout
 
 
@@ -359,8 +359,8 @@ C.rat = X;                    % (36) testing: constant (days)
 C.ons = U;                    % (37) testing: onset (days)
 
 C.lag = V;                    % (38) reporting lag
-C.inn = U;                    % (39) seasonal phase
-C.mem = X;                    % (40) seronegative decay (days)
+C.inn = V;                    % (39) seasonal phase
+C.mem = V;                    % (40) exposure exponent
 C.rol = X;                    % (41) vaccination rollout
 
 % check prior expectations and covariances are consistent

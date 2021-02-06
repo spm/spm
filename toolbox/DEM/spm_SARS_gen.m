@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8047 2021-02-02 18:56:09Z karl $
+% $Id: spm_SARS_gen.m 8051 2021-02-06 21:57:52Z karl $
 
 
 % The generative model:
@@ -208,13 +208,14 @@ for n = 1:nN
     
     % initial marginals (Dirichlet parameters)
     %----------------------------------------------------------------------
-    c    = Q{n}.n;                % number of initial cases
+    c    = Q{n}.n;                % proportion of initial cases
     N(n) = Q{n}.N*1e6;            % population size
-    m    = N(n) - N(n)*Q{n}.o;    % number of unexposed cases
-    r    = Q{n}.r*N(n);           % number of resistant cases
-    s    = N(n) - c - r;          % number of susceptible cases
-    h    = (N(n) - m)*3/4;        % number at home
-    w    = (N(n) - m)*1/4;        % number at work
+    r    = Q{n}.r;                % proportion of resistant cases
+    h    = Q{n}.o*3/4;            % proportion at home
+    w    = Q{n}.o*1/4;            % proportion at work
+    m    = 1 - Q{n}.o;            % proportion of unexposed cases
+    s    = 1 - c - r;             % proportion of susceptible cases
+
     p{n}{1} = [h w 0 m 0 0]';     % location
     p{n}{2} = [s c 0 0 r 0]';     % infection
     p{n}{3} = [1 0 0 0]';         % clinical
@@ -308,13 +309,15 @@ for i = 1:M.T
         %------------------------------------------------------------------
         q        = spm_sum(x{n},[1 3 4]);
         Pout{n}  = (1 - Pout{n})/Q{n}.s + Pout{n}*(1 - erf(Q{n}.qua*q(2) + Q{n}.sde*q(1)));
-        Q{n}.out = R{n}.out*Pout{n};
+        Q{n}.out = R{n}.out*(Pout{n}^Q{n}.mem);
+        
+        
        
-        % seasonal fluctuations
+        % seasonal fluctuations in transmission risk
         %------------------------------------------------------------------
         S    = (1 + cos(2*pi*(i - log(Q{n}.inn)*8)/365))/2;
         
-        % fluctuating transmission risk
+        % and smooth fluctuations 
         %------------------------------------------------------------------
         Ptra = 0;
         if isfield(Q{n},'tra')

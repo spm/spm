@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8047 2021-02-02 18:56:09Z karl $
+% $Id: DEM_COVID_UK.m 8051 2021-02-06 21:57:52Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -259,10 +259,10 @@ Y(12).type = 'R-ratio (WHO/GOV)'; % the production ratio
 Y(12).unit = 'ratio';
 Y(12).U    = 4;
 Y(12).date = [datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 16; ...
-              datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 14];
+              datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 15];
 Y(12).Y    = [ratio.data(:,1); ratio.data(:,2)];
-Y(12).h    = 0;
-Y(12).lag  = 0;
+Y(12).h    = 2;
+Y(12).lag  = 1;
 Y(12).age  = 0;
 Y(12).hold = 0;
 
@@ -423,7 +423,6 @@ hE      = spm_vec(Y.h);
 [pE,pC] = spm_SARS_priors(nN);
 pE.N    = log(N(:));
 pC.N    = spm_zeros(pE.N);
-pE.n    = 0;
 
 % coefficients for likelihood model
 %--------------------------------------------------------------------------
@@ -455,7 +454,7 @@ pE.tra  = zeros(1,8);          % transmission strength
 pC.tra  = ones(1,8)/256;       % prior variance
 
 pE.mob  = zeros(1,16);         % mobility
-pC.mob  = ones(1,16)/64;       % prior variance
+pC.mob  = ones(1,16)/256;      % prior variance
 
 pE.pcr  = zeros(1,8);          % testing
 pC.pcr  = ones(1,8)/64;        % prior variance
@@ -600,11 +599,84 @@ plot([1,1]*size(DCM.Y,1),[0,5],':'), box off
 
 %% long-term forecasts
 %==========================================================================
-spm_figure('GetWin','Vaccine tracker');
+spm_figure('GetWin','long-term (1)');
 
+Ep = DCM.Ep;
+Cp = DCM.Cp;
+M  = DCM.M;
 
-% attack rate, herd immunity and herd immunity threshold
+% fatalities
 %--------------------------------------------------------------------------
+subplot(2,1,1)
+M.T = datenum('01-11-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
+t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
+i   = find(DCM.U == 1,1);  D = DCM.Y(:,i); spm_SARS_ci(Ep,Cp,D,1,M);  hold on
+i   = find(DCM.U == 15,1); D = DCM.Y(:,i); spm_SARS_ci(Ep,Cp,D,15,M); hold on
+
+plot(datenum(date,'dd-mm-yyyy')*[1,1],get(gca,'YLim'),':k')
+ylabel('number per day'), title('Daily deaths','FontSize',14)
+legend({'CI 28-day','PCR test within 28 days','ONS','CI certified','certified deaths'})
+legend boxoff
+drawnow
+
+% lockdown and mobility
+%--------------------------------------------------------------------------
+subplot(2,1,2)
+i         = find(DCM.U == 14,1); D = DCM.Y(:,i);
+[~,~,q,c] = spm_SARS_ci(Ep,Cp,D,14,M); hold on
+
+% thresholds
+%--------------------------------------------------------------------------
+U    = [0 40 75 85];
+dstr = datestr(t,'dd-mmm');
+
+% loop over levels
+%==========================================================================
+for i = 1:numel(U)
+    
+    % intervals for this level
+    %----------------------------------------------------------------------
+    if i == 1
+        j  = find(q <= U(i + 1));
+    elseif i == numel(U)
+        j  = find(q >= U(i));
+    else
+        j  = find(q >= U(i) & q <= U(i + 1));
+    end
+    
+    % Timeline
+    %----------------------------------------------------------------------
+    for k = 1:numel(j)
+        try
+            fill(t(j(k) + [0 1 1 0]),[0 0 1 1]*32,'r', ...
+                'FaceAlpha',(numel(U) - i)/16,'Edgecolor','none')
+        end
+    end
+    
+    % label level crossings
+    %----------------------------------------------------------------------
+    if i <numel(U)
+        j = find((q(1:end - 1) <= U(i + 1)) & (q(2:end) > U(i + 1)));
+    else
+        j = [];
+    end
+    for k = 1:numel(j)
+        text(t(j(k)),i*8,dstr(j(k),:),'Color','k','FontSize',10)
+    end
+    
+    % plot levels
+    %----------------------------------------------------------------------
+    plot([t(1),t(end)],U(i)*[1,1],':r')
+    
+end
+
+ylabel('percent'),  title('Mobility and lockdown','FontSize',14)
+legend({'credible interval','mobility (%)'}), legend boxoff
+drawnow
+
+% prevalence and reproduction ratio
+%--------------------------------------------------------------------------
+spm_figure('GetWin','long-term (2)');
 subplot(2,1,1)
 M.T = datenum('01-11-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
 t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
@@ -618,20 +690,16 @@ j   = find(t == datenum(date));
 q   = q(j);
 d   = sqrt(c{1}(j,j))*1.64;
 str = sprintf('Prevalence and reproduction ratio (%s): R = %.2f (CI %.2f to %.2f)',datestr(date,'dd-mmm-yy'),q,q - d,q + d);
- 
-% overlay original SPI-M estimators
-%--------------------------------------------------------------------------
-Rt  = DCM.Y(:,i);
-plot(t((1:numel(Rt)) + 16),Rt,'.c'), hold on
+
 
 % add R = 1 and current dateline
 %--------------------------------------------------------------------------
 plot(get(gca,'XLim'),[1,1],':k')
-plot(datenum(date)*[1,1],get(gca,'YLim'),'-.c')
+plot(datenum(date,'dd-mm-yyyy')*[1,1],get(gca,'YLim'),':k')
 set(gca,'YLim',[0 5]), ylabel('ratio / percent')
 ylabel('percent / millions'),  title(str,'FontSize',14)
 
-legend({'CI prevalence','Prevalence (%)','CI R-number','R DCM','R SPI-M','by reporting date'})
+legend({'CI prevalence','Prevalence (%)','CI R-number','R DCM','R SPI-M'})
 legend boxoff
 drawnow
 
@@ -659,11 +727,12 @@ qU  = 100*exp(q + d);
 str = sprintf('Attack rate and immunity: vaccine efficacy %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU);
 
 plot(t,HIT,t,VAC), hold on
-plot(t(i)*[1,1],[0,100],':'), set(gca,'YLim',[0,100])
+plot(t(i)*[1,1],[0,100],':k'), set(gca,'YLim',[0,100])
 ylabel('percent / millions'),  title(str,'FontSize',14)
 legend({'CI','Attack rate','CI','Herd immunity','Herd immunity threshold','Numer of vaccinations'})
 legend boxoff
-drawnow
+text(t(i),8,datestr(t(i),'dd-mmm-yy'),'FontSize',10), drawnow
+
 
 %% save figures
 %--------------------------------------------------------------------------
@@ -679,8 +748,11 @@ savefig(gcf,'Fig3')
 spm_figure('GetWin','United Kingdom');
 savefig(gcf,'Fig4')
 
-spm_figure('GetWin','Vaccine tracker');
-savefig(gcf,'Vaccine')
+spm_figure('GetWin','long-term (2)');
+savefig(gcf,'Fig5')
+
+spm_figure('GetWin','long-term (1)');
+savefig(gcf,'Fig6')
 
 % Table
 %--------------------------------------------------------------------------

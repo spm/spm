@@ -70,7 +70,9 @@ for i = 1:numel(Area)
     %----------------------------------------------------------------------
     j = find(ismember(AreaCode,Area(i)));
     
-    if any(isfinite(newCases(j))) && (any(isfinite(newDeath(j))) || any(isfinite(OnsDeath(j))))
+    if any(isfinite(newCases(j))) && ...
+          (any(isfinite(newDeath(j))) || any(isfinite(OnsDeath(j))))
+          
         k           = k + 1;
         D(k).cases  = newCases(j);
         D(k).deaths = newDeath(j);
@@ -93,9 +95,12 @@ for i = 1:numel(Area)
         j = D(k).date(:) < mean(D(k).date) & isnan(D(k).deaths);
         D(k).deaths(j) = 0;
         
-        if isempty(D(k).N)
-            k = k - 1; disp(Area(i));
+        if isempty(D(k).N) || sum(D(k).cases) < 64
+            k = k - 1; disp([Area(i),AreaName(j(1))]);
         end
+        
+    else
+        disp([Area(i),AreaName(j(1))]);
     end
     
 end
@@ -149,7 +154,7 @@ pE    = PCM.Ep;
 %--------------------------------------------------------------------------
 pC    = spm_zeros(PCM.M.pC);
 for i = 1:numel(free)
-    pC.(free{i}) = PCM.M.pC.(free{i});
+    pC.(free{i}) = PCM.M.pC.(free{i})*8;
 end
 
 %%% try, D   = D(1:8); end %%%%
@@ -281,7 +286,7 @@ for r = 1:numel(D)
     DT(:,r) = Y(:,5)*1000;                  % New daily cases per 100K
     CT(:,r) = cumsum(Y(:,5));               % cumulative incidence (%)
     
-    % cumulative incidence of infection
+    % mean infectious period (MIP) & critical herd immunity threshold (CIT)
     %----------------------------------------------------------------------
     MIP     = exp(Ep.Tin) + exp(Ep.Tcn)/2;
     CIT     = -(Y(end,3)/100/MIP)*log(1 - CT(end,r)/100)*100000;
@@ -312,7 +317,7 @@ for r = 1:numel(D)
     str = sprintf('Proportion previously infected (q): %.1f%s',CT(end,r),'%');
     text(0,0.3,str,'FontSize',10,'FontWeight','bold')
     
-    str = sprintf('Infectious period (t): %.1f days',    MIP);
+    str = sprintf('Infectious period (t): %.1f days',      MIP);
     text(0,0.2,str,'FontSize',10,'FontWeight','bold')
     
     str = sprintf('Target incidence (r): %.0f per 100,000',CIT);
@@ -320,10 +325,10 @@ for r = 1:numel(D)
     if DT(end,r) > CIT
         text(0,0.1,str,'FontSize',10,'FontWeight','bold','Color','r')
     else
-        text(0,0.1,str,'FontSize',10,'FontWeight','g')
+        text(0,0.1,str,'FontSize',10,'Color','g')
     end
     
-    str = {'target incidence is evaluated as r = (p/t)log(1 - q) ' ...
+    str = {'target incidence is evaluated as r = -(p/t)log(1 - q) ' ...
            '(based on ONS census figures for lower tier local authorities)'};
     text(0,-0.1,str,'FontSize',8,'Color','k')
     
