@@ -15,7 +15,7 @@ function [X] = spm_conv(X,sx,sy)
 % Copyright (C) 1999-2020 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_conv.m 7891 2020-07-07 16:34:13Z karl $
+% $Id: spm_conv.m 8052 2021-02-06 21:58:41Z karl $
 
 
 % assume isomorphic smoothing
@@ -57,3 +57,5 @@ if ly > 1 && numel(ky) > 1
         X(i,:) = sparse(conv(full(v),ky,'valid'));
     end
 end
+
+return
