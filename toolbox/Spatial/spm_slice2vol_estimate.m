@@ -34,7 +34,7 @@ function [Q,mu,Mmu,slice_o] = spm_slice2vol_estimate(Nii,slice_code,mm_sd, rad_s
 % Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: spm_slice2vol_estimate.m 8053 2021-02-08 11:51:17Z spm $
+% $Id: spm_slice2vol_estimate.m 8054 2021-02-08 13:11:31Z john $
 
 % Regularisation settings
 if nargin<2, slice_code = 1;            end % Slice ordering
@@ -76,12 +76,11 @@ for iter=1:8
     for subit=1:2
         fprintf(' motion [%2d]: ', iter); drawnow
         Q   = update_motion(dat,Q,mu,Mmu,slice_o,mm_sd,rad_sd);
-       %save motion.mat Q mu
     end
 end
 
 % Undo the padding
-mu  = mu((1:pad):(end-pad),(1:pad):(end-pad),(1:pad):(end-pad));
+mu  = mu((1+pad):(end-pad),(1+pad):(end-pad),(1+pad):(end-pad));
 Mmu = Mmu/[eye(3) [-pad -pad -pad]'; 0 0 0 1];
 %=======================================================================
 
