@@ -1,17 +1,16 @@
-function spm_slice2vol_reslice(Nii,Q, fwhm)
+function spm_slice2vol_reslice(Nii,Q,fwhm)
 % Slice-to-volume alignment reslicing
-% FORMAT [Q,mu] = spm_slice2vol_reslice(Nii,Q,fwhm)
+% FORMAT spm_slice2vol_reslice(Nii,Q,fwhm)
 %
 % Nii  - NIfTI data structure encoding volumes to align
 %        Most all have the same dimensions
 % Q    - A 3D array of slicewise motion parameters
 % fwhm - Smoothing FWHM (mm)
-%
 %__________________________________________________________________________
 % Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_slice2vol_reslice.m 8053 2021-02-08 11:51:17Z spm $
 
 if nargin<3 || fwhm==0
     fwhm = 0;

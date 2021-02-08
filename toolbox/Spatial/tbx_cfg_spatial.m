@@ -2,7 +2,7 @@ function spatial = tbx_cfg_spatial
 % MATLABBATCH Configuration file for toolbox 'Spatial Tools'
 
 % John Ashburner
-% $Id$
+% $Id: tbx_cfg_spatial.m 8053 2021-02-08 11:51:17Z spm $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Spatial')); end
 % -------------------------------------------------------------------------

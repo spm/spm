@@ -4,7 +4,7 @@ function out = spm_slice2vol(job)
 % Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_slice2vol.m 8053 2021-02-08 11:51:17Z spm $
 
 % Define the output filenames
 if job.fwhm>0, prefix = 'sr'; else, prefix = 'r'; end

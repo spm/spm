@@ -2,7 +2,7 @@ function slice2vol = spm_slice2vol_config
 % MATLABBATCH Configuration file for toolbox 'Spatial Tools'
 
 % John Ashburner
-% $Id$
+% $Id: spm_slice2vol_config.m 8053 2021-02-08 11:51:17Z spm $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Spatial')); end
 % -------------------------------------------------------------------------

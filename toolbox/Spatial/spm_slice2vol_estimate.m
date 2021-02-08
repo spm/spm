@@ -34,7 +34,7 @@ function [Q,mu,Mmu,slice_o] = spm_slice2vol_estimate(Nii,slice_code,mm_sd, rad_s
 % Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_slice2vol_estimate.m 8053 2021-02-08 11:51:17Z spm $
 
 % Regularisation settings
 if nargin<2, slice_code = 1;            end % Slice ordering
