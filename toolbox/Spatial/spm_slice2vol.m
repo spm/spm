@@ -4,7 +4,7 @@ function out = spm_slice2vol(job)
 % Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: spm_slice2vol.m 8053 2021-02-08 11:51:17Z spm $
+% $Id: spm_slice2vol.m 8055 2021-02-08 14:28:18Z john $
 
 % Define the output filenames
 if job.fwhm>0, prefix = 'sr'; else, prefix = 'r'; end
@@ -23,8 +23,7 @@ out.rparams  = spm_file(job.images{1}, 'prefix','rp_', 'ext','.mat');
 % Save parameters
 sd     = job.sd;
 images = strvcat(job.images);
-save(spm_file(out.rparams, 'prefix','rp_', 'ext','.mat'),...
-    'Q','slice_o','sd','images');
+save(out.rparams, 'Q','slice_o','sd','images');
 
 
 plot_parameters(Q,slice_o);
