@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2020 Wellcome Centre for Human Neuroimaging
 #
-# $Id: Makefile 8023 2020-11-26 21:24:00Z john $
+# $Id: Makefile 8056 2021-02-09 18:31:42Z john $
 #
 ###############################################################################
 #
@@ -321,8 +321,9 @@ spm_field.$(MEXEXT): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_bounda
 	$(MEX) spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c\
 		spm_openmp.c $(MEXEND)
 
+# This needs the -largeArrayDims flag
 spm_gmmlib.$(MEXEXT): spm_gmmlib.c gmmlib.c gmmlib.h 
-	$(MEX) spm_gmmlib.c gmmlib.c $(MEXEND)
+	$(MEX) spm_gmmlib.c gmmlib.c -largeArrayDims $(MEXEND)
 
 spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c
 	$(MEX) spm_jsonread.c jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)

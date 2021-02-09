@@ -1,7 +1,7 @@
 /* 
  * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: spm_gmmlib.c 8035 2020-12-15 16:09:46Z john $
+ * $Id: spm_gmmlib.c 8056 2021-02-09 18:31:42Z john $
  *
  */
 
@@ -251,6 +251,27 @@ static void inugrads_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
     mxFree(lkp);
 }
 
+static void infer_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    mwSize nf[5];
+    mwSize K, K1, k, nm[5], dc[5], skip[3], *lkp, dm0, dm1, dm2, nd;
+    double *m, *b, *W, *nu, *gam, *lnP = NULL, *sts;
+    float *mu, *mf, *vf, *mf1;
+    unsigned char *label = NULL;
+
+    if (nrhs>13 || nlhs>3) mexErrMsgTxt("Incorrect usage");
+    parse_rhs(nrhs, prhs, &K, &m, &b, &W, &nu, &gam, &lkp, nm, &mu, nf, &mf, &vf, skip, &label, &lnP);
+
+    plhs[0] = mxCreateNumericArray(4,nf, mxSINGLE_CLASS, mxREAL);
+    plhs[1] = mxCreateDoubleMatrix(1, 1, mxREAL);
+    mf1     = (float  *)mxGetPr(plhs[0]);
+    sts     = (double *)mxGetPr(plhs[1]);
+
+    sts[0]  = (double)call_fill_missing(nf,mf,vf, label, K, m,b,W,nu,gam, lnP, nm,skip,lkp,mu, mf1);
+
+    mxFree(lkp);
+}
+
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -278,6 +299,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         {
             mxFree(fnc_str);
             inugrads_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+        else if (!strcmp(fnc_str,"infer"))
+        {
+            mxFree(fnc_str);
+            infer_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
         else
         {

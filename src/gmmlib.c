@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: gmmlib.c 8035 2020-12-15 16:09:46Z john $
+ * $Id: gmmlib.c 8056 2021-02-09 18:31:42Z john $
  */
 #include "spm_mex.h"
 #include<math.h>
@@ -28,12 +28,26 @@ typedef struct
     double *conT;
 } GMMtype;
 
+typedef struct
+{
+    mwSize  Po;
+    mwSize  Pm;
+    unsigned char *observed;
+    double *Wt;
+    double *L_mm;
+    double *m_m;
+    double *m_o;
+    unsigned char *obs;
+} MissInfType;
+
 static const double pi = 3.1415926535897931;
 #define MaxChan   ((mwSize)50) /* largest integer valued float is 2^52 */
 #define Undefined ((mwSize)0xFFFFFFFFFFFFF)
 
 
-/* A (hopefully) fast approximation to exp. */
+/* A (hopefully) faster approximation to exp.
+ * Note that some precision is lost for values
+ * of x further from integers. */
 static double fastexp(double x)
 {
     double r, rr;
@@ -41,8 +55,8 @@ static double fastexp(double x)
     static double lkp_mem[256], *exp_lkp = lkp_mem+128;
 
     /* exp(i+r) = exp(i)*exp(r), where:
-     *     exp(i) is from the lookup table;
-     *     exp(r) is from a generalised continued fraction
+     *     exp(i) (where i is an integer) is from the lookup table;
+     *     exp(r) (residual) is from a generalised continued fraction
      *            https://en.wikipedia.org/wiki/Exponential_function#Continued_fractions_for_ex
      *
      * Should not encounter values more extreme than -128 or 127,
@@ -58,6 +72,19 @@ static double fastexp(double x)
 /*  return exp_lkp[i] * (1.0+2.0*r/(2.0-r+rr/(6.0+rr/(10.0+rr/14.0))));
  *  return exp_lkp[i] * (1.0+2.0*r/(2.0-r+rr/(6.0+rr/(10.0)))); */
     return exp_lkp[i] * (1.0+2.0*r/(2.0-r+rr/6.0));
+}
+
+static mwSize is_observed(mwSize code, mwSize i)
+{
+    return (code>>i) & (mwSize)1;
+}
+
+static mwSize num_observed(mwSize code, mwSize P)
+{
+    mwSize i, Po;
+    for(i=0, Po=0; i<P; i++)
+        Po += is_observed(code,i);
+    return Po;
 }
 
 
@@ -78,8 +105,8 @@ static /*@null@*/ SStype *suffstat_pointers(mwSize P, mwSize K, double *s0_ptr, 
         mwSize code,o0=0,o1=0,o2=0;
         for(code=0; code<((mwSize)1<<P); code++)
         {
-            mwSize i, Po;
-            for(i=0, Po=0; i<P; i++) Po += (code>>i) & (mwSize)1;
+            mwSize Po;
+            Po = num_observed(code,P);
             suffstat[code].s0 = &(s0_ptr[o0]);
             suffstat[code].s1 = &(s1_ptr[o1]);
             suffstat[code].s2 = &(s2_ptr[o2]);
@@ -107,7 +134,7 @@ static mwSize get_vox(mwSize N1, mwSize P, float mf[], float vf[], /*@out@*/ dou
     for(j=0, j1=0, o=0, code=0; j<P; j++, o+=N1)
     {
         double tmp = (double)mf[o];
-        if (isfinite(tmp))
+        if (isfinite(tmp)!=0)
         {
             x[j1] = tmp;
             v[j1] = vf[o];
@@ -165,7 +192,7 @@ static double softmax1(mwSize K, double q[], /*@out@*/ double p[])
  * Input and output could be the same
  * Returns lse([q 0])
  */
-static double softmax(mwSize K, double q[], /*@out@*/ double p[])
+static double /*@unused@*/ softmax(mwSize K, double q[], /*@out@*/ double p[])
 {
     mwSize k;
     double mx, s;
@@ -203,6 +230,9 @@ static double del2(mwSize P, double mu[], double W[], double x[], double v[])
 
 /* psi / digamma function
  * From http://web.science.mq.edu.au/~mjohnson/code/digamma.c
+ * by Mark Johnson, Professor of Language Sciences (CORE),
+ * Department of Computing, Faculty of Science,
+ * Macquarie University, Sydney, Australia. 
  */
 static double psi(double z)
 {
@@ -461,7 +491,7 @@ static /*@null@*/ GMMtype *allocate_gmm(mwSize P, mwSize K)
         for(code=0; code<((mwSize)1<<P); code++)
         {
             mwSize nel = 0;
-            for(i=0; i<code; i++) nel += (code>>i) & 1;
+            for(i=0; i<code; i++) nel += is_observed(code,i);
             gmm[code].P    = nel;
             gmm[code].mu   = buf+o; o += K*nel;
             gmm[code].b    = buf+o; o += K;
@@ -499,6 +529,151 @@ static double invert(mwSize P, double *W /* P*P */, double *S /* P*P */, double 
         cholls(P, T, p, S+j*P, S+j*P);
     }
     return -2.0*ld;
+}
+
+static /*@null@*/ MissInfType *allocate_missinf(mwSize P, mwSize K)
+{
+    mwSize o, code, m, mem;
+    unsigned char *bytes;
+    MissInfType /*@NULL@*/ *missinf;
+
+    for(m=0, mem=0; m<=P; m++)
+    {
+        mwSize nel;
+        nel = factorial(P)/(factorial(m)*factorial(P - m));
+        mem += nel*K*(P-m)*m*sizeof(double); /* L_mo */
+        mem += nel*K*P*sizeof(double);
+        mem += nel*K*m*m*sizeof(double);
+        mem += nel*((P+sizeof(double)-1)/sizeof(double))*sizeof(double);
+    }
+
+    o     = ((mwSize)1<<P)*sizeof(MissInfType);
+    bytes = calloc((size_t)(o + mem), (size_t)1);
+
+    missinf = (MissInfType *)bytes;
+    if (missinf!=NULL)
+    {
+        double *buf;
+ 
+        buf   = (double *)(bytes + o);
+        o     = 0;
+        for(code=0; code<((mwSize)1<<P); code++)
+        {
+            mwSize Po = num_observed(code,P);
+            mwSize Pm = P-Po;
+            missinf[code].Po   = Po;
+            missinf[code].Pm   = Pm;
+            missinf[code].Wt   = buf+o; o += K*Po*Pm;
+            missinf[code].L_mm = buf+o; o += K*Pm*Pm;
+            missinf[code].m_m  = buf+o; o += K*Pm;
+            missinf[code].m_o  = buf+o; o += K*Po;
+            missinf[code].obs  = (unsigned char *)(buf+o);
+            o += (P+sizeof(double)-1)/sizeof(double);
+        }
+    }
+    return missinf;
+}
+
+
+static MissInfType /*@NULL@*/ *prepare_missinf(mwSize P, mwSize K, double *L /* P*P */, double *m)
+{
+    MissInfType *missinf;
+    mwSize code;
+
+    missinf = allocate_missinf(P, K);
+    if (missinf==NULL) return missinf;
+
+    for(code=0; code<(mwSize)1<<P; code++)
+    {
+        mwSize i, j, jm, jo, k;
+        mwSize Po, Pm;
+        double p[64], *Lmm, *Lmo, *mm, *mo;
+        unsigned char *obs;
+
+        Po  = missinf[code].Po;
+        Pm  = missinf[code].Pm;
+        Lmm = missinf[code].L_mm; /* partially decomposed on output */
+        mm  = missinf[code].m_m;
+        mo  = missinf[code].m_o;
+        Lmo = missinf[code].Wt;
+        obs = missinf[code].obs;
+
+        for(j=0, jm=0, jo=0; j<P; j++)
+        {
+            if (is_observed(code,j)==0)
+            {/* missing */
+                obs[j] = (unsigned char)0;
+                jm ++;
+            }
+            else
+            {/* observed */
+                obs[j] = (unsigned char)1;
+                jo ++;
+            }
+        }
+
+        for(k=0; k<K; k++)
+        {
+            for(j=0, jm=0, jo=0; j<P; j++)
+            {
+                if (is_observed(code,j)==0)
+                {
+                    mwSize io, im;
+                    for(i=0, io=0,im=0; i<P; i++)
+                    {
+                        if (is_observed(code,i)==0)
+                            Lmm[(im++)+Pm*jm] = L[i+P*(j+P*k)];
+                        else
+                            Lmo[(io++)+Pm*jm] = L[i+P*(j+P*k)];
+                    }
+                    mm[jm++] = m[j+P*k];
+                }
+                else
+                    mo[jo++] = m[j+P*k];
+            }
+
+            /* Wt = Lmm\Lmo */
+            choldc(Pm,Lmm,p);
+            for(jo=0; jo<Po; jo++)
+                cholls(Pm,Lmm, p, Lmo+Pm*jo, Lmo+Pm*jo);
+
+            /* Update pointers to k'th vector/matrix */
+            mm  += Pm;
+            mo  += Po;
+            Lmm += Pm*Pm;
+            Lmo += Pm*Po;
+        }
+    }
+
+/* For debugging
+    for(code=0; code<(mwSize)1<<P; code++)
+    {
+        mwSize Po, Pm;
+        Po  = missinf[code].Po;
+        Pm  = missinf[code].Pm;
+        printf("\ncode=%d Po=%d Pm=%d\n", code, Po, Pm);
+        printf("\nLmm\n"); dispmat(missinf[code].L_mm,Pm,Pm,K);
+        printf("\nmm\n");  dispmat(missinf[code].m_m,1,Pm,K);
+        printf("\nmo\n");  dispmat(missinf[code].m_o,1,Po,K);
+        printf("\nLmo\n"); dispmat(missinf[code].Wt,Pm,Po,K);
+    }
+*/
+    return missinf;
+}
+
+static void dispmat(double *f, mwSize d1, mwSize d2, mwSize d3)
+{
+    mwSize i, j, k;
+    for(k=0; k<d3; k++)
+    {
+        for(i=0; i<d1; i++)
+        {
+            for(j=0; j<d2; j++)
+                printf(" %f", f[i+d1*(d2*k+j)]);
+            printf("\n");
+        }
+        printf("--\n");
+    }
 }
 
 /* Construct a data structure for storing a variational Gaussian
@@ -763,10 +938,13 @@ static double responsibilities(mwSize nf[], mwSize skip[], float mf[], float vf[
                     }
                     else
                     {
-                     /* (void)softmax(K1,p,p); */
                         for(k1=0; k1<K1-1; k1++)
                             r[i+k1*N1]  = NAN;
-                        /*  r[i+k1*N1] += p[k1]; */
+                        /*
+                        (void)softmax(K1,p,p);
+                        for(k1=0; k1<K1-1; k1++)
+                            r[i+k1*N1] += p[k1];
+                         */
                     }
                 }
                 else
@@ -877,7 +1055,7 @@ static double INUgrads(mwSize nf[], float mf[], float vf[], unsigned char label[
     n1 = nm[1]/skip[1]; if (n1>nf[1]) n1 = nf[1];
     n0 = nm[0]/skip[0]; if (n0>nf[0]) n0 = nf[0];
 
-    if (P>=MaxChan || K>=128) return -1;
+    if (P>=MaxChan || K>=128) return NAN;
 
     for(i2=0; i2<n2; i2++)
     {
@@ -913,9 +1091,8 @@ static double INUgrads(mwSize nf[], float mf[], float vf[], unsigned char label[
                             g += nup*gk;
                             h += nup*W[nc+Po*(nc+Po*k)];
                         }
-                        g = g*mx[nc]+h*vx[nc]        - 1.0;
-                        h = h*(mx[nc]*mx[nc]+vx[nc]) + 1.0;
-                     /* if (g>0.0) h += g; */
+                        g  = g*mx[nc]+h*vx[nc]        - 1.0;
+                        h  = h*(mx[nc]*mx[nc]+vx[nc]) + 1.0;
                         h += fabs(g);
 
                         g1[i] = (float)g;
@@ -979,5 +1156,129 @@ double call_INUgrads(mwSize nf[], float mf[], float vf[], unsigned char label[],
     (void)free((void *)gmm);
     (void)free((void *)index);
     return ll;
+}
+
+/* Fill in missing data, replacing NaNs with expectations
+ *
+ * nf   - Vector of dimensions (n_x, n_y, n_z, P).
+ * mf   - E[f], dimensions nf.
+ * vf   - Var[f], dimensions nf.
+ * gmm  - Gaussian mixture model data structure.
+ * nm   - Dimensions of log tissue priors (4 elements).
+ * skip - Sampling density for log tissue priors (in x, y and z).
+ * lkp  - Lookup table relating Gaussians to tissue classes.
+ * lp   - Log tissue priors
+ * mf1  - Output data (n_x, n_y, n_z, P).
+ */
+static int fill_missing(mwSize nf[], float mf[], float vf[], unsigned char label[],
+              mwSize K, GMMtype gmm[], MissInfType missinf[],double lnP[],
+              mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
+              float  mf1[])
+{
+    mwSize P, Nf, Nm, i0,i1,i2, n0,n1,n2;
+    double mx[MaxChan], vx[MaxChan], p[128];
+
+    P  = nf[3];
+    Nf = nf[0]*nf[1]*nf[2];
+    Nm = nm[0]*nm[1]*nm[2];
+
+    n2 = nm[2]/skip[2]; if (n2>nf[2]) n2 = nf[2];
+    n1 = nm[1]/skip[1]; if (n1>nf[1]) n1 = nf[1];
+    n0 = nm[0]/skip[0]; if (n0>nf[0]) n0 = nf[0];
+
+    if (P>=MaxChan || K>=128) return -1;
+
+    for(i2=0; i2<n2; i2++)
+    {
+        for(i1=0; i1<n1; i1++)
+        {
+            mwSize off_f, off_m;
+            off_f = nf[0]*(i1         + nf[1]*i2);
+            off_m = nm[0]*(i1*skip[1] + nm[1]*i2*skip[2]);
+            for(i0=0; i0<n0; i0++)
+            {
+                mwSize i, im, code;
+                i    = i0         + off_f;
+                im   = i0*skip[0] + off_m;
+                code = get_vox(Nf,P,mf+i,vf+i,mx,vx);
+                if (logpriors(Nm, lp+im, K, lkp, p)!=0)
+                {
+                    double *mm, *mo, *Wt;
+                    unsigned char *obs;
+                    mwSize Po,Pm, j, jm,jo;
+
+                    if (label!=NULL) Dloglikelihoods((mwSize)(label[i]), K, lnP, p);
+                    Nloglikelihoods(K, gmm, code, mx, vx, p);
+                    (void)softmax1(K,p,p);
+
+                    Po    = missinf[code].Po;
+                    Pm    = missinf[code].Pm;
+                    mm    = missinf[code].m_m;
+                    mo    = missinf[code].m_o;
+                    Wt    = missinf[code].Wt;
+                    obs   = missinf[code].obs;
+                    for(j=0, jm=0, jo=0; j<P; j++)
+                    {
+                        if (obs[j]!=(unsigned char)0)
+                        {   /* Simply copy existing data */
+                            mf1[i+j*Nf] = mx[jo++];
+                        }
+                        else
+                        {  /* Infer missing data using Bishop's PRML eq 2.96 */
+                            mwSize k;
+                            double tmp1;
+                            for(k=0, tmp1=0.0; k<K; k++)
+                            {
+                                mwSize io;
+                                double tmp = mm[jm+Pm*k];
+                                for(io=0; io<Po; io++)
+                                    tmp += Wt[io+Pm*(jm+Po*k)]*(mo[io+Po*k]-mx[io]);
+                                tmp1 += tmp*p[k]; /* weighted average */
+                            }
+                            mf1[i+j*Nf] = (float)tmp1;
+                            jm ++;
+                        }
+                    }
+                }
+                else
+                {
+                    unsigned char *obs;
+                    mwSize j, jo;
+                    obs   = missinf[code].obs;
+                    for(j=0, jo=0; j<P; j++)
+                    {
+                        if (obs[j]!=(unsigned char)0)
+                            mf1[i+j*Nf] = mx[jo++];
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+
+int call_fill_missing(mwSize nf[], float mf[], float vf[], unsigned char label[],
+    mwSize K, double mu[], double b[], double W[], double nu[], double gam[], double lnP[],
+    mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
+    float mf1[])
+{
+    mwSize P = nf[3];
+    GMMtype *gmm;
+    MissInfType *missinf;
+    int sts;
+
+    if (P>=MaxChan || K>=128) return -1;
+    if ((gmm = sub_gmm(P, K, mu, b, W, nu, gam))==NULL) return -1;
+    if ((missinf = prepare_missinf(P, K, W, mu))==NULL)
+    {
+        (void)free((void *)gmm);
+        return -1;
+    }
+
+    sts = fill_missing(nf, mf, vf, label, K, gmm, missinf, lnP, nm, skip, lkp, lp, mf1);
+    (void)free((void *)gmm);
+    (void)free((void *)missinf);
+    return sts;
 }
 

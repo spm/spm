@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: gmmlib.h 8035 2020-12-15 16:09:46Z john $
+ * $Id: gmmlib.h 8056 2021-02-09 18:31:42Z john $
  *
  */
 
@@ -30,4 +30,9 @@ double call_INUgrads(mwSize nf[], float mf[], float vf[], unsigned char label[],
     mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
     mwSize ic,
     float g1[], float g2[]);
+
+int    call_fill_missing(mwSize nf[], float mf[], float vf[], unsigned char label[],
+    mwSize K, double mu[], double b[], double W[], double nu[], double gam[], double lnP[],
+    mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
+    float mf1[]);
 
