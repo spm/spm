@@ -37,7 +37,7 @@ function varargout = spm_gmm_lib(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_gmm_lib.m 8011 2020-11-18 11:18:53Z mikael $
+% $Id: spm_gmm_lib.m 8057 2021-02-09 18:41:58Z john $
 
 %--------------------------------------------------------------------------
 % Convention
@@ -701,8 +701,8 @@ function logpX = marginal(X, cluster, const, L, E)
 % Read input arguments
 arraymode = ~iscell(X);
 if ~iscell(X)
+    L = true(1,size(X,2));
     X = {X};
-    L = ones(1,size(X,2));
 end
 mu = double(cluster{1});
 A  = double(cluster{2});
@@ -772,6 +772,8 @@ for i=1:size(L,1)
             end
         end
 
+%disp(-0.5*(mu(io,k)'-X{i}(1,:))*Ao*(mu(io,k)'-X{i}(1,:))' - 0.5*sum(bsxfun(@times,diag(Ao)',E1(1,:)),2))
+
         if ~isempty(const)
             % Reshape as a column vector
             logpX{i}(:,k) = const(i,k) + l;
@@ -805,8 +807,8 @@ function logpX = marginal_t(X, cluster, L, E)
 % Read input arguments
 arraymode = ~iscell(X);
 if ~iscell(X)
+    L = true(1,size(X,2));
     X = {X};
-    L = ones(1,size(X,2));
 end
 mu = double(cluster{1});
 b  = double(cluster{2});
@@ -1396,6 +1398,7 @@ if sum(n) > 0
 else
     A = V;
 end
+% =========================================================================
 
 % =========================================================================
 function [PI,logPI,a] = updateproportions(SS0, a0)
@@ -1921,6 +1924,7 @@ switch lower(id)
         help spm_gmm_lib>kl
         error('Unknown function %s. Type ''help spm_gmm_lib>kl'' for help.', id)
 end
+% =========================================================================
 
 % =========================================================================
 function klZ = kl_categorical(Z, logPI, labels, logmg_w)
@@ -2681,7 +2685,7 @@ function ld = logdet(A)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_gmm_lib.m 8011 2020-11-18 11:18:53Z mikael $
+% $Id: spm_gmm_lib.m 8057 2021-02-09 18:41:58Z john $
 
 % Cholseki decomposition of A (A = C' * C, with C upper-triangular)
 [C, p] = chol(A);

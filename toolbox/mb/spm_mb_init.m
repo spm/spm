@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 8011 2020-11-18 11:18:53Z mikael $
+% $Id: spm_mb_init.m 8057 2021-02-09 18:41:58Z john $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -250,9 +250,10 @@ for p=1:numel(cfg.gmm)
 
             % Deal with labels
             if isfield(cfg.gmm(p).labels,'true')
-                lab = struct('f', nifti(cfg.gmm(p).labels.true.images{np}),...
-                             'cm_map', {cfg.gmm(p).labels.true.cm_map},...
-                             'w',       cfg.gmm(p).labels.true.w);
+               %lab = struct('f', nifti(cfg.gmm(p).labels.true.images{np}),...
+               %             'cm_map', {cfg.gmm(p).labels.true.cm_map},...
+               %             'w',       cfg.gmm(p).labels.true.w);
+                lab = struct('f', nifti(cfg.gmm(p).labels.true.images{np}));
                 dmc = size(lab.f(1).dat,[1 2 3]);
                 if ~all(dmc==dm)
                     error('Incompatible image dimensions for images of subject %d in population %d (%dx%dx%d ~= %dx%dx%d)', np, p, dmc, dm);
@@ -260,19 +261,21 @@ for p=1:numel(cfg.gmm)
                 if ~all(lab.f.mat(:)==f(1).mat(:))
                     warning('Incompatible s-form matrices for subject %d in population %d', np, p);
                 end
-                if max(cellfun(@max,lab.cm_map)) > K + 1 || min(cellfun(@min,lab.cm_map)) < 1
-                    error('Poorly specified label mapping for population %d', p);
-                end
+               %if max(cellfun(@max,lab.cm_map)) > K+1 || min(cellfun(@min,lab.cm_map)) < 1
+               %    error('Poorly specified label mapping for population %d', p);
+               %end
+                Alpha = ones(256,K+1)*eps;
             else
-                lab = [];
+                lab   = [];
+                Alpha = [];
             end
             dat(n).lab   = lab;
 
-            lb           = struct('sum', NaN, 'X', [], 'XB', [], 'Z', [], 'P', [], 'MU', [], 'A', []);
+            lb           = struct('sum', NaN, 'X', [], 'XB', [], 'Z', [], 'P', [], 'mu', [], 'A', [],'Alpha',[]);
             gmm          = struct('f',f, 'pop', ix_gmm, 'samp',[1 1 1],...
                                   'modality', modality, 'T',{T}, 'lb', lb,...
                                   'm',rand(Cn,K+1),'b',zeros(1,K+1)+1e-6,...
-                                  'V',repmat(eye(Cn,Cn),[1 1 K+1]),'n',zeros(1,K+1)+1e-6, 'mg_w',[]);
+                                  'W',repmat(eye(Cn,Cn),[1 1 K+1]),'n',zeros(1,K+1)+1e-6, 'gam',[],'Alpha',Alpha);
             dat(n).model = struct('gmm',gmm);
         end
     end
@@ -374,8 +377,16 @@ for p=1:numel(sett.gmm) % Loop over populations
     % modalities
     mu_all(~isfinite(mu_all)) = 1000;
     vr_all(~isfinite(vr_all)) = mean(vr_all(isfinite(vr_all)));
-    
-    K1 = numel(sett.gmm(p).mg_ix); % Total number of Gaussians (some tissues may have more than one)
+
+    mg_ix  = sett.gmm(p).mg_ix; 
+    K1     = numel(mg_ix); % Total number of Gaussians (some tissues may have more than one)
+    gam    = ones(1,K1);
+    Krange = unique(mg_ix);
+    for k=Krange(:)'
+        ind      = Krange==k;
+        gam(ind) = 1/sum(ind);
+    end
+
     if isempty(sett.gmm(p).pr)
 
         % If no priors specified, then generate some that are reasonably uninformative
@@ -390,9 +401,15 @@ for p=1:numel(sett.gmm) % Loop over populations
         vr                = double(mean(vr_all,2));
         nu0               = C-1+1e-4;                % Minimally informative
         scale             = max(K1-1,1).^(2/C);      % Crude heuristic
-        V0                = diag(1./vr)*(scale/nu0);
-        sett.gmm(p).pr{3} = repmat(V0,[1 1 K1]);
+        W0                = diag(1./vr)*(scale/nu0);
+        sett.gmm(p).pr{3} = repmat(W0,[1 1 K1]);
         sett.gmm(p).pr{4} = ones(1,K1)*nu0;
+
+        % Uninformative priors for gam - unused
+        sett.gmm(p).pr{5} = ones(1,K1)*eps;
+
+        % Uninformative priors for Alpha - used for categorical mixture
+        sett.gmm(p).pr{6} = ones(256,K1)*eps; 
 
         % Random mean intensities, roughly sorted. Used to break symmetry.
         rng('default'); rng(1); % Want some reproducibility
@@ -403,12 +420,13 @@ for p=1:numel(sett.gmm) % Loop over populations
 
         % Assign the same GMM starting estimates for all subjects
         for n=1:N
-            n1                  = index(n);
-            dat(n1).model.gmm.m = mu;                % Random means (break symmetry)
-           %dat(n1).model.gmm.m = bsxfun(@plus,0.01*diag(sqrt(vr)*(1-1/scale))*randn(C,K1), mu);
-            dat(n1).model.gmm.b = sett.gmm(p).pr{2};
-            dat(n1).model.gmm.V = sett.gmm(p).pr{3};
-            dat(n1).model.gmm.n = sett.gmm(p).pr{4};
+            n1                    = index(n);
+            dat(n1).model.gmm.m   = mu;                % Random means (break symmetry)
+           %dat(n1).model.gmm.m   = bsxfun(@plus,0.01*diag(sqrt(vr)*(1-1/scale))*randn(C,K1), mu);
+            dat(n1).model.gmm.b   = sett.gmm(p).pr{2};
+            dat(n1).model.gmm.W   = sett.gmm(p).pr{3};
+            dat(n1).model.gmm.nu  = sett.gmm(p).pr{4};
+            dat(n1).model.gmm.gam = gam;
         end
     else
         for n=1:N
@@ -424,13 +442,19 @@ for p=1:numel(sett.gmm) % Loop over populations
 
             vr   = double(mean(vr_all,2));
             scal = max(K1-1,1).^(2/C);     % Crude heuristic
-            V    = diag(1./vr)*(scal/nu0); % Low precision
-            V    = repmat(V,[1 1 K1]);
+            W    = diag(1./vr)*(scal/nu0); % Low precision
+            W    = repmat(W,[1 1 K1]);
 
-            dat(n1).model.gmm.m = m;
-            dat(n1).model.gmm.b = b;
-            dat(n1).model.gmm.V = V;
-            dat(n1).model.gmm.n = nu;
+            dat(n1).model.gmm.m   = m;
+            dat(n1).model.gmm.b   = b;
+            dat(n1).model.gmm.W   = W;
+            dat(n1).model.gmm.nu  = nu;
+            dat(n1).model.gmm.gam = gam;
+            if isa(dat(n1).lab,'struct')
+                dat(n1).model.gmm.Alpha = ones(256,K1)*eps;
+            else
+                dat(n1).model.gmm.Alpha = [];
+            end
         end
     end
 end

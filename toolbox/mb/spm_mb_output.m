@@ -5,12 +5,13 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 8007 2020-11-10 12:47:39Z mikael $
+% $Id: spm_mb_output.m 8057 2021-02-09 18:41:58Z john $
 
-res  = load(char(cfg.result));
+res  = cfg.result;
+if iscell(res), res = res{1}; end
+if ischar(res), res  = load(res); end
 sett = res.sett;
 dat  = res.dat;
-nw   = spm_mb_shape('get_num_workers',sett,max(27,sett.K*5+17));
 
 if isfield(sett.mu,'exist')
     mu = sett.mu.exist.mu;
@@ -23,6 +24,7 @@ mu = single(mu.dat(:,:,:,:,:));
 % If SPM has been compiled with OpenMP support then the number of threads
 % are here set to speed up the algorithm
 %--------------------------------------------------------------------------
+nw   = spm_mb_shape('get_num_workers',sett,max(27,sett.K*5+17));
 if sett.nworker > 1
     setenv('SPM_NUM_THREADS',sprintf('%d',0));
 else
@@ -153,7 +155,7 @@ if isfield(datn.model,'gmm')
 
     if any(do_inu == true)
         % Get bias field
-        chan = spm_mb_appearance('inu_basis',gmm.T,df,datn.Mat,ones(1,C));
+        chan = spm_mb_appearance('inu_basis',gmm.T,df,datn.Mat);
         inu  = spm_mb_appearance('inu_field',gmm.T,chan);
         clear chan
 
@@ -193,33 +195,63 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
     % Get warped tissue priors
     mun    = spm_mb_shape('pull1',mu,psi);
     mun    = spm_mb_classes('template_k1',mun,4);
-    mun    = bsxfun(@plus,mun,spm_mb_classes('get_labels',datn,size(mun,4)));
-    mun    = reshape(mun,size(mun,1)*size(mun,2)*size(mun,3),size(mun,4));
 
     % Integrate use of multiple Gaussians per tissue
-    mg_w = gmm.mg_w;
-    mun  = mun(:,mg_ix);
-    mun  = bsxfun(@plus, mun, log(mg_w));
+    gam  = gmm.gam;
 
     % Format for spm_gmm
     chan                     = spm_mb_appearance('inu_basis',gmm.T,df,datn.Mat,ones(1,C));
-    [~,mf,vf]                = spm_mb_appearance('inu_recon',fn,chan,gmm.T,gmm.Sig);
-    mf                       = reshape(mf,[prod(df) C]);
-    vf                       = reshape(vf,[prod(df) C]);
-    [mfc,code_image,msk_chn] = spm_gmm_lib('obs2cell', mf);
-    vfc                      = spm_gmm_lib('obs2cell', vf,  code_image, true);    
-    % Compute responsibility (filling in unobserved image voxels with template)
-    zn = spm_mb_appearance('responsibility',gmm.m,gmm.b,gmm.V,gmm.n,mfc,vfc,mun,msk_chn,code_image);
-    clear mun msk_chn vfc mfc vf
+    [~,mf,vf]                = spm_mb_appearance('inu_recon',fn,[],chan,gmm.T,gmm.Sig);
+
+    % Get label data
+    if isa(datn.lab,'struct')
+        label = uint8(spm_mb_io('get_data', datn.lab.f));
+    else
+        label = [];
+    end
+    lnP = dirichlet_logexpect(gmm.Alpha);
+
+    % For improved push - subsampling density in each dimension
+    sd = spm_mb_shape('samp_dens',Mmu,Mn);
+
+    zn  = spm_gmmlib('resp',gmm.m,gmm.b,gmm.W,gmm.nu,gmm.gam,...
+                     uint64(mg_ix), mun,mf,vf, uint64(gmm.samp), label,lnP);
+    zn  = cat(4,zn,1-sum(zn,4));
+
+    if mrf > 0
+        % Ad-hoc MRF clean-up of segmentation
+        zn = PostProcMRF(zn,Mn,mrf);
+    end
+
+    if iscell(proc_zn) && ~isempty(proc_zn) && isa(proc_zn{1},'function_handle')
+        % Applies a function that processes the native space responsibilities
+        try
+            zn = proc_zn{1}(zn);
+        catch
+            warning('Incorrect definition of out.proc_zn, no processing performed.')
+        end
+    end
+
+    if any(write_tc(:,1) == true)
+        % Write segmentations
+        resn.c  = cell(1,sum(write_tc(:,1)));
+        k1      = 0;
+        for k=1:K1
+            if ~write_tc(k,1), continue; end
+            nam  = sprintf('c%.2d_%s.nii',k,onam);
+            fpth = fullfile(dir_res,nam);
+            write_nii(fpth,zn(:,:,:,k), Mn, sprintf('Tissue (%d)',k), 'uint8');
+            k1         = k1 + 1;
+            resn.c{k1} = fpth;
+        end
+    end
+
 
     if do_infer
         % Infer missing values
-        sample_post = do_infer > 1;
-        A  = bsxfun(@times, gmm.V, reshape(gmm.n, [1 1 Kmg]));
-        mf = spm_gmm_lib('InferMissing',mf,zn,{gmm.m,A},code_image,sample_post);        
+        mf = spm_gmmlib('infer', gmm.m,gmm.b,gmm.W,gmm.nu,gmm.gam, uint64(mg_ix), ...
+                                 mun,mf,vf, uint64([1 1 1]), label,lnP);
     end
-    clear code_image
-    mf = reshape(mf,[df(1:3) C]);
 
     if any(write_im(:,1))
         % Write image
@@ -230,7 +262,7 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
             nam  = sprintf('i%d_%s.nii',c,onam);
             fpth = fullfile(dir_res,nam);
             write_nii(fpth,mf(:,:,:,c)./inu(:,:,:,c), Mn, sprintf('Image (%d)',c), 'int16');
-            c1          = c1 + 1;
+            c1         = c1 + 1;
             resn.i{c1} = fpth;
         end
     end
@@ -244,13 +276,10 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
             nam  = sprintf('mi%d_%s.nii',c,onam);
             fpth = fullfile(dir_res,nam);
             write_nii(fpth, mf(:,:,:,c), Mn, sprintf('INU corr. (%d)',c), 'int16');
-            c1           = c1 + 1;
+            c1          = c1 + 1;
             resn.mi{c1} = fpth;
         end
     end
-
-    % For improved push - subsampling density in each dimension
-    sd = spm_mb_shape('samp_dens',Mmu,Mn);
 
     if any(write_im(:,3))
         % Write normalised image
@@ -284,44 +313,7 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
             resn.wmi{c1} = fpth;
         end
     end
-    clear mf
-
-    % If using multiple Gaussians per tissue, collapse so that zn is of size K1
-    if Kmg > K1
-        for k=1:K1
-            zn(:,k) = sum(zn(:,mg_ix==k),2);
-        end
-        zn(:,K1 + 1:end)    = [];
-    end
-    zn = reshape(zn,[df(1:3) K1]);
-
-    if mrf > 0
-        % Ad-hoc MRF clean-up of segmentation
-        zn = PostProcMRF(zn,Mn,mrf);
-    end
-
-    if iscell(proc_zn) && ~isempty(proc_zn) && isa(proc_zn{1},'function_handle')
-        % Applies a function that processes the native space responsibilities
-        try
-            zn = proc_zn{1}(zn);
-        catch
-            warning('Incorrect definition of out.proc_zn, no processing performed.')
-        end
-    end
-    
-    if any(write_tc(:,1) == true)
-        % Write segmentations
-        resn.c  = cell(1,sum(write_tc(:,1)));
-        k1      = 0;
-        for k=1:K1
-            if ~write_tc(k,1), continue; end
-            nam  = sprintf('c%.2d_%s.nii',k,onam);
-            fpth = fullfile(dir_res,nam);
-            write_nii(fpth,zn(:,:,:,k), Mn, sprintf('Tissue (%d)',k), 'uint8');
-            k1         = k1 + 1;
-            resn.c{k1} = fpth;
-        end
-    end
+    clear mf vf
 end
 
 if isfield(datn.model,'cat') && (any(write_tc(:,2)) || any(write_tc(:,3)))
@@ -382,9 +374,9 @@ if any(write_tc(:,2)) || any(write_tc(:,3)) || any(write_tc(:,4))
             end
             clear img cnt
             if write_tc(k,4)
-                % Write scalar momentum, reference:                   
-                % "A comparison of various MRI feature types for characterizing 
-                %  whole brain anatomical differences using linear pattern 
+                % Write scalar momentum, reference:
+                % "A comparison of various MRI feature types for characterizing
+                %  whole brain anatomical differences using linear pattern
                 %  recognition methods." Monte-Rubio, et al. NeuroImage (2018)
                 ksm          = ksm + 1;
                 fpth         = fullfile(dir_res,sprintf('sm%.2d_%s.nii',k,onam));
@@ -402,10 +394,22 @@ end
 %==========================================================================
 
 %==========================================================================
+function lnP = dirichlet_logexpect(Alpha)
+% Expectation of parameter lobs from Dirichlet distribution
+% Note: this is a separate function because there is a variable psi
+lnP = bsxfun(@minus, psi(Alpha), psi(sum(Alpha,1)));
+if ~isempty(Alpha), lnP(1,:) = 0; end
+%==========================================================================
+
+%==========================================================================
 function [Mmu,dmu,vx_mu,psi] = modify_fov(bb_out,vx_out,Mmu,dmu,vx_mu,psi,sett)
 if any(isfinite(bb_out(:))) || any(isfinite(vx_out))
-    % Get bounding-box           
-    [bb0,vox0] = spm_get_bbox(sett.mu.exist.mu, 'old');
+    % Get bounding-box
+    if isfield(sett.mu,'exist')
+        [bb0,vox0] = spm_get_bbox(sett.mu.exist.mu,  'old');
+    else
+        [bb0,vox0] = spm_get_bbox(sett.mu.create.mu, 'old');
+    end
     vx_out     = vx_out(1)*ones(1,3);
     msk    = ~isfinite(vx_out); vx_out(msk) = vox0(msk);
     msk    = ~isfinite(bb_out); bb_out(msk) =  bb0(msk);
@@ -420,13 +424,13 @@ if any(isfinite(bb_out(:))) || any(isfinite(vx_out))
     mat = [vx_out(1) 0 0 of(1) ; 0 vx_out(2) 0 of(2) ; 0 0 vx_out(3) of(3) ; 0 0 0 1];
     if det(Mmu(1:3,1:3)) < 0
         mat = mat*[-1 0 0 dim(1)+1; 0 1 0 0; 0 0 1 0; 0 0 0 1];
-    end    
-    M0    = mat\Mmu;    
+    end
+    M0    = mat\Mmu;
     Mmu   = mat;
     vx_mu = sqrt(sum(Mmu(1:3,1:3).^2));
-    dmu   = dim;    
+    dmu   = dim;
     % Modify deformation
-    psi = MatDefMul(psi,M0);   
+    psi = MatDefMul(psi,M0);
 end
 %==========================================================================
 

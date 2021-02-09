@@ -2,15 +2,16 @@ function varargout = spm_mb_appearance(varargin) % Appearance model
 %
 % FORMAT chan       = spm_mb_appearance('inu_basis',T,df,Mat,reg,samp)
 % FORMAT [inu,ll]   = spm_mb_appearance('inu_field',T,chan,d,varargin)
-% FORMAT z          = spm_mb_appearance('responsibility',m,b,V,n,f,mu,msk_chn)
+% FORMAT z          = spm_mb_appearance('responsibility',m,b,W,n,f,mu,msk_chn)
 % FORMAT dat        = spm_mb_appearance('restart',dat,sett)
-% FORMAT [z,dat]    = spm_mb_appearance('update',dat,mu0,sett)
+% FORMAT [z,dat]    = spm_mb_appearance('update',dat,mu,sett)
 % FORMAT dat        = spm_mb_appearance('update_prior',dat,sett)
 % FORMAT            = spm_mb_appearance('debug_show',img,img_is,modality,fig_title,do)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_appearance.m 8011 2020-11-18 11:18:53Z mikael $
+% Mikael Brudfors, John Ashburner & Yael Balbastre
+% $Id: spm_mb_appearance.m 8057 2021-02-09 18:41:58Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -26,168 +27,50 @@ for n=1:numel(dat)
             % so need to break the symmetry.
             % Increase variance of Gaussians and make the means
             % more similar to each other.
-            dat(n).model.gmm.V = dat(n).model.gmm.V*0.1;
+            dat(n).model.gmm.W = dat(n).model.gmm.W*0.1;
             dat(n).model.gmm.m = bsxfun(@plus, dat(n).model.gmm.m*0.1,...
                                         mean(dat(n).model.gmm.m,2)*0.9);
+            dat(n).model.gmm.Alpha = dat(n).model.gmm.Alpha*0+eps;
         else
             % Set all GMM parameters to be identical so the
             % next GMM fit restarts everything at the current
             % priors. Symmetry already broken with intensity
             % priors.
             [M,K1] = size(dat(n).model.gmm.m);
-            dat(n).model.gmm.m = ones(M,K1)*1000;
-            dat(n).model.gmm.b = ones(1,K1);
-            dat(n).model.gmm.V = repmat(eye(M,M)/1000,[1 1 K1]);
-            dat(n).model.gmm.n = ones(1,K1)*(M+1);
+            dat(n).model.gmm.m  = ones(M,K1)*1000;
+            dat(n).model.gmm.b  = ones(1,K1);
+            dat(n).model.gmm.W  = repmat(eye(M,M)/1000,[1 1 K1]);
+            dat(n).model.gmm.nu = ones(1,K1)*(M+1);
+            dat(n).model.gmm.Alpha = dat(n).model.gmm.Alpha*0+eps;
         end
     end
 end
 %==========================================================================
 
 %==========================================================================
-function [inu,ll] = inu_field(T,chan)
-d  = [size(chan(1).B1,1) size(chan(1).B2,1) size(chan(1).B3,1)];
-nz = d(3);
-C  = numel(T);
-cr = 1:C;
-
-% Compute full bias field (for all channels)
-inu = zeros([d C],'single');
-ll  = zeros(1,C);
-
-for c=cr
-    t = double(T{c});
-    ll(c) = -0.5*t(:)'*chan(c).ICO*t(:);
-    for z=1:nz
-        inu_c        = inu_transform(chan(c).B1,chan(c).B2,chan(c).B3(z,:),T{c});
-        inu(:,:,z,c) = single(exp(inu_c));
-    end
-end
-%==========================================================================
-
-%==========================================================================
-function t = inu_transform(B1,B2,B3,T)
-% Create an image-space log bias field from its basis function encoding.
-%
-% FORMAT t = inu_transform(B1,B2,B3,T)
-% B1 - x-dim DCT basis [nx kx]
-% B2 - y-dim DCT basis [ny ky]
-% B3 - z-dim DCT basis [nz kz]
-% T  - DCT encoding of the log bias field [kx ky kz]
-% t  - Reconstructed log bias field [nx ny nz]
-if ~isempty(T)
-    d2 = [size(T) 1];
-    t1 = reshape(reshape(T, d2(1)*d2(2),d2(3))*B3', d2(1), d2(2));
-    t  = B1*t1*B2';
-else
-    t  = zeros(size(B1,1),size(B2,1));
-end
-%==========================================================================
-
-%==========================================================================
-function chan = inu_basis(T,df,Mat,reg,samp)
-if nargin<5, samp = 0; end
-if nargin<4, reg  = ones(1,numel(T)); end
-cl   = cell(1, numel(T));
-chan = struct('ICO', cl, 'B1',cl, 'B2',cl, 'B3',cl);
-ind  = sample_ind(df,samp);
-vx   = sqrt(sum(Mat(1:3,1:3).^2,1));
-for c=1:numel(T)
-    d3 = [size(T{c}) 1];
-    d3 = d3(1:3);
-
-    % GAUSSIAN REGULARISATION for bias correction
-    chan(c).ICO = reg(c)*spm_bias_lib('regulariser','bending',df,d3,vx);
-
-    % Basis functions for bias correction
-    chan(c).B1 = spm_dctmtx(df(1),d3(1),ind{1});
-    chan(c).B2 = spm_dctmtx(df(2),d3(2),ind{2});
-    chan(c).B3 = spm_dctmtx(df(3),d3(3),ind{3});
-end
-%==========================================================================
-
-%==========================================================================
-function [tr,D] = inu_reg_suffstat(T,Sig,df,Mat)
-vx   = sqrt(sum(Mat(1:3,1:3).^2,1));
-C    = numel(T);
-tr   = zeros(1,C);
-D    = zeros(1,C);
-for c=1:numel(T)
-    d3   = size(T{c});
-    D(c) = prod(d3); % Should really subtract 1 because of the DC.
-    if prod(d3)>0
-        ICO = spm_bias_lib('regulariser','bending',df,d3,vx);
-        t   = T{c}(:);
-        S   = Sig{c};
-        if size(S,2)==1
-            % Diagonal approximation
-            tr(c) = sum(S.*t.^2) + sum(S.*diag(IC0));
-        else
-            tr(c) = t'*ICO*t + sum(sum(S.*ICO));
-        end
-    end
-end
-%==========================================================================
-
-%==========================================================================
-function [z,lb] = responsibility(m,b,V,n,mf,vf,mu,msk_chn,code_image)
+function [Z,lx] = responsibility(m,b,W,nu, mg_ix, mu,mf,vf)
 % Compute responsibilities.
 %
-% FORMAT z = responsibility(m,b,V,n,f,vf,mu,L,code)
+% FORMAT z = responsibility(m,b,W,nu, mg_ix, mu,mf,vf)
 % m       - GMM Means
 % b       - GMM Mean d.f.
-% V       - GMM Scale matrices
+% W       - GMM Scale matrices
 % n       - GMM Scale d.f.
+% mg_ix   - GMM indices
+% mu      - Deformed and template
 % mf      - Expectation of INU-corrected observed image in matrix form [nbvox nbchannel]
 % vf      - Variance of INU-corrected observed image in matrix form [nbvox nbchannel]
-% mu      - Deformed and exponentiated template
-% msk_chn - Mask of observed channels per code
-% z       - Image of responsibilities [nbvox K]
-
-const = spm_gmm_lib('Normalisation', {m,b}, {V,n}, msk_chn);
-if ~isempty(vf)
-    z = spm_gmm_lib('Marginal', mf, {m,V,n}, const, msk_chn, vf);
-else
-    z = spm_gmm_lib('Marginal', mf, {m,V,n}, const, msk_chn);
-end
-if nargin >= 9
-    % Allows for filling in unobserved image voxels with template
-    z               = spm_gmm_lib('cell2obs', z, code_image, msk_chn);
-    z(~isfinite(z)) = min(z(isfinite(z)));
-end
-[z,lb] = spm_gmm_lib('Responsibility', z, mu);
+% Z       - Image of responsibilities [nbvox K]
+[Z,lx] = spm_gmmlib('resp',m,b,W,nu, uint64(mg_ix),mu, mf,vf, uint64([1 1 1]));
 %==========================================================================
 
 %==========================================================================
-function [z,lb] = responsibility_t(m,b,V,n,mf,vf,mu,msk_chn)
-% Compute responsibilities.
-%
-% FORMAT z = responsibility(m,b,V,n,f,vf,mu,L,code)
-% m       - GMM Means
-% b       - GMM Mean d.f.
-% V       - GMM Scale matrices
-% n       - GMM Scale d.f.
-% mf      - Expectation of INU-corrected observed image in matrix form [nbvox nbchannel]
-% vf      - Variance of INU-corrected observed image in matrix form [nbvox nbchannel]
-% mu      - Deformed and exponentiated template
-% msk_chn - Mask of observed channels per code
-% z       - Image of responsibilities [nbvox K]
-
-if ~isempty(vf)
-    z      = spm_gmm_lib('Marginal_t', mf, {m,b,V,n}, msk_chn,vf);
-else
-    z      = spm_gmm_lib('Marginal_t', mf, {m,b,V,n}, msk_chn);
-end
-[z,lb] = spm_gmm_lib('Responsibility', z, mu);
-%==========================================================================
-
-%==========================================================================
-function [dat,Z] = update(dat,mu0,sett)
+function [dat,Z] = update(dat,mu,sett)
 % Update appearance model for a single subject (GMM & bias field)
 %
-% FORMAT [dat,Z] = update(dat,mu0,sett)
+% FORMAT [dat,Z] = update(dat,mu,sett)
 % dat - Structure holding data for a single subject
-% mu0 - Log template
+% mu  - Log template
 % sett - Structure of settings
 
 % Parse function settings
@@ -199,115 +82,68 @@ nit_appear   = sett.gmm(gmm.pop).nit_appear;
 tol_gmm      = sett.gmm(gmm.pop).tol_gmm;
 C            = sett.gmm(gmm.pop).C;
 inu_reg      = sett.gmm(gmm.pop).inu_reg;
-Kmg          = numel(mg_ix);
 Mat          = dat.Mat;
 df           = dat.dm;
-ds           = [size(mu0) 1 1];
+ds           = [size(mu) 1 1];
 ds           = ds(1:3);
 
 % For visual debugging (disable/enable in debug_show())
-debug_show(mu0, 'template_k1');
+debug_show(mu, 'template_k1');
 
 % Get image data
-f0    = spm_mb_io('get_image',gmm);
 samp1 = dat.samp;
 samp2 = gmm.samp;
-f0    = subsample(f0,samp1);
+f0    = subsample(spm_mb_io('get_image',gmm),samp1);
+
+if isa(dat.lab,'struct')
+    label = spm_mb_io('get_data', dat.lab.f);
+    label = uint8(subsample(label,samp1));
+else
+    label = [];
+end
 
 % For visual debugging (disable/enable in debug_show())
 debug_show(f0, 'observed', gmm.modality);
 
 % Intensity priors
-pr   = sett.gmm(gmm.pop).pr;
+pr      = sett.gmm(gmm.pop).pr;
 
 % GMM posterior
-m    = gmm.m;
-b    = gmm.b;
-V    = gmm.V;
-n    = gmm.n;
-mg_w = gmm.mg_w;
-
-% % Broaden the variance to make less informative.
-% % Might sometimes help escape local optima. Broadened
-% % more when sample density is lowest. Needs further
-% % testing.
-% scal = prod(samp1.*samp2).^(-1/4);
-% b    = b*scal;
-% n    = (n-C)*scal+C;
-
-% If template is missing, set corresponding voxels of
-% f to missing too.
-% Note that if the template doesn't cover the entire field
-% of view, this can cause the log-likelihood to behave oddly.
-msk_vx = any(isnan(mu0),4);
-for c=1:size(f0,4)
-    fc = f0(:,:,:,c);
-    fc(msk_vx) = NaN;
-    f0(:,:,:,c) = fc;
-end
-clear msk_vx
-
-% Compute Gaussian parameters on a subset of the voxels.
-% Note strange behaviour for interleaved images where there
-% are systematic differences between odd and even slices.
-% If the subset contains only odd slices, then the overall
-% log-likelihood can increase.
-[f,d] = subsample( f0,samp2);
-mu    = subsample(mu0,samp2);
-mu    = vol2vec(mu);
-mu    = mu(:,mg_ix); % Expand, if using multiple Gaussians per tissue
+cluster = {gmm.m,gmm.b,gmm.W,gmm.nu,gmm.gam,gmm.Alpha};
 
 % Bias field related
 T     = gmm.T;
 if isfield(gmm,'Sig')
-    Sig    = gmm.Sig;
+    Sig = gmm.Sig;
 else
-    Sig    = cell(size(T));
+    Sig = cell(size(T));
 end
 
-do_inu = ~cellfun(@isempty,T);
+do_inu     = ~cellfun(@isempty,T);
+ind        = sample_ind(ds,samp2);
+[msk,nvox] = data_mask(f0,mu,samp2);
 if any(do_inu)
     chan          = inu_basis(T,df,Mat,inu_reg,samp1.*samp2);
-    [llinu,mf,vf] = inu_recon(f,chan,T,Sig);
+    [llinu,mf,vf] = inu_recon(f0(ind{:},:),msk,chan,T,Sig);
     lxb           = sum(llinu(:),'double');
 else
-    mf            = f;
-    vf            = zeros(size(f),'single');
+    mf            = f0(ind{:},:);
+    vf            = zeros(size(mf),'single');
     lxb           = 0;
 end
-
-% Format for spm_gmm
-[mf,code_image,msk_chn] = spm_gmm_lib('obs2cell', vol2vec(mf));
-mu                      = spm_gmm_lib('obs2cell', mu, code_image, false);
-vf                      = spm_gmm_lib('obs2cell', vol2vec(vf), code_image, true);
-code_list               = unique(code_image);
-code_list               = code_list(code_list ~= 0);
-nvox                    = sum(code_image(:)>0);
-lbs                     = -Inf;
+lbs  = -Inf;
 
 for it_appear=1:nit_appear
+    [cluster,lb] = spm_mb_gmm(mf,vf, cluster, pr, uint64(mg_ix), mu, label, ...
+                             samp2, nit_gmm, nvox*tol_gmm, nit_gmm_miss, nvox*tol_gmm*0.1);
+    lnP    = bsxfun(@minus, psi(cluster{6}), psi(sum(cluster{6},1)));
+    if ~isempty(lnP), lnP(1,:) = 0; end
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Update GMM and get responsibilities (Z)
-    %------------------------------------------------------------
-    lbso = lbs;
-    [Z,mog,~,lb,mg_w] = spm_gmm_lib('loop',mf,...
-                                    {{m,b},{V,n}},{'LogProp', mu}, ...
-                                    'ObsUncertainty', vf, ...
-                                    'GaussPrior',     pr, ...
-                                    'Missing',        msk_chn, ...
-                                    'IterMax',        nit_gmm, ...
-                                    'Tolerance',      tol_gmm*nvox, ...
-                                    'SubIterMax',     nit_gmm_miss, ...
-                                    'SubTolerance',   tol_gmm*nvox*0.1, ...
-                                    'Verbose',        [0 0], ...
-                                    'MultGaussPi',    {mg_ix,mg_w});
-    m      = mog.mu;
-    b      = mog.b;
-    V      = mog.V;
-    n      = mog.n;
-    lx     = lb.X;
-    lbs    = sum(lb.mu,'double')+sum(lb.A,'double')+lx+lxb;
+    lx     = lb.X+lb.P+lb.Alpha;
+    lbso   = lbs;
+    lbs    = lb.mu+lb.A+lx+lxb;
+   %fprintf(' %8.4f', -lbs/nvox);
+
     if (it_appear==nit_appear) || (lbs-lbso < tol_gmm*nvox)
         % Finished
         break
@@ -324,79 +160,9 @@ for it_appear=1:nit_appear
     % Var[f \exp(b)] = f^2 \exp(2 \mu_b + \sigma^2_b) (\exp(\sigma^2_b)-1)
     %------------------------------------------------------------
     if any(do_inu)
-
-        % Update bias field parameters for each channel separately
         for c=1:C % Loop over channels
 
             if isempty(T{c}), continue; end
-
-            % Compute mode, rather than expectations for the parameters
-            % to update.
-            [~,mf_c,vf_c] = inu_recon(f(:,:,:,c),chan(c),T(c));
-            mf = insert2cell(mf,code_image,vol2vec(mf_c),C,c);
-            vf = insert2cell(vf,code_image,vol2vec(vf_c),C,c);
-
-            % Compute gradient and Hessian (in image space)
-            gr_im = zeros(d(1:3),'single');
-            H_im  = zeros(d(1:3),'single');
-            for l=1:size(msk_chn,1) % loop over combinations of missing voxels
-
-                % Get mask of missing modalities (with this particular code)
-                ixo = msk_chn(l,:);         % Observed channels
-                ixm = ~ixo;                 % Missing channels
-                nm  = sum(ixm);             % Number of missing channels
-                if ~ixo(c), continue; end
-
-                % Convert channel indices to observed indices
-                ixc = 1:C; % mapped_c
-                ixc = ixc(ixo);
-                ixc = find(ixc == c);
-
-                go = 0; % Gradient accumulated accross clusters
-                Ho = 0; % Hessian accumulated accross clusters
-                for k=1:Kmg
-                    % Compute expected precision (see GMM + missing data)
-                    Voo = V(ixo,ixo,k);
-                    Vom = V(ixo,ixm,k);
-                    Vmm = V(ixm,ixm,k);
-                    Vmo = V(ixm,ixo,k);
-                    Ao  = Voo - Vom*(Vmm\Vmo);
-                    Ao  = (n(k) - nm) * Ao;
-                    mo  = m(ixo,k);
-
-                    % Compute statistics
-                    gk = bsxfun(@minus, mf{l}, mo.') * Ao(ixc,:).';
-                    Hk = Ao(ixc,ixc);
-
-                    gk = bsxfun(@times, gk, Z{l}(:,k));
-                    Hk = bsxfun(@times, Hk, Z{l}(:,k));
-
-                    % Accumulate across clusters
-                    go = go + gk;
-                    Ho = Ho + Hk;
-                end
-
-                % Multiply with bias corrected value (chain rule)
-                omf = mf{l}(:,ixc);
-                go  = go .*  omf;
-                Ho  = Ho .* (omf.^2);
-                clear omf
-
-                % Add terms related to the normalisation (log(b))
-                go = go - 1;
-                Ho = Ho + 1; % Comes from subs(H,g,0)
-
-                % Accumulate across missing codes
-                ixvx        = (code_image == code_list(l));
-                gr_im(ixvx) = gr_im(ixvx) + go;
-                H_im(ixvx)  = H_im(ixvx)  + Ho;
-                clear ixvx
-            end
-            clear Z
-
-            % Actual Hessian is greater than the expected Hessian at some voxels,
-            % so take the maximum of the expected and actual.
-            H_im(gr_im>0) = H_im(gr_im>0) + gr_im(gr_im>0);
 
             % Compute gradient and Hessian
             d3 = numel(T{c}); % Number of DCT parameters
@@ -407,74 +173,60 @@ for it_appear=1:nit_appear
             B2 = double(chan(c).B2);
             B3 = double(chan(c).B3);
 
-            for z=1:d(3)
+            lx   = 0;
+            for z=1:size(mf,3)
+                if isempty(label)
+                    labz = [];
+                else
+                    labz = label(ind{1:2},ind{3}(z));
+                end
+                [gr_im,H_im,lxt] = spm_gmmlib('inugrads', cluster{1:5}, uint64(mg_ix),mu(ind{1:2},ind{3}(z),:),...
+                                              mf(:,:,z,:),vf(:,:,z,:), uint64([1 1 1]), labz,lnP, uint64(c));
+                lx = lx + lxt;
                 b3 = B3(z,:)';
-                gr = gr + kron(b3,spm_krutil(double(gr_im(:,:,z)),B1,B2,0));
-                H  = H  + kron(b3*b3',spm_krutil(double(H_im(:,:,z)),B1,B2,1));
+                gr = gr + kron(b3,spm_krutil(double(gr_im),B1,B2,0));
+                H  = H  + kron(b3*b3',spm_krutil(double(H_im),B1,B2,1));
             end
             clear gr_im H_im b3
 
             % Gauss-Newton update of bias field parameters
-            S      = inv(H + chan(c).ICO);
-            Sig{c} = diag(S);
-            T{c}   = T{c} - reshape(S*(gr + chan(c).ICO*T{c}(:)),size(T{c}));
+            Sig{c} = 1./diag(H + chan(c).L); % Diagonal approximation
+            T{c}   = T{c} - reshape((H + chan(c).L)\(gr + chan(c).L*T{c}(:)),size(T{c}));
             clear H gr
 
             % Compute new expectations (only for channel c)
-            [llinu(:,c),mf_c,vf_c] = inu_recon(f(:,:,:,c),chan(c),T(c),Sig(c));
-            mf     = insert2cell(mf, code_image, vol2vec(mf_c), C, c);
-            vf     = insert2cell(vf, code_image, vol2vec(vf_c), C, c);
+            [llinu(:,c),mf(:,:,:,c),vf(:,:,:,c)] = inu_recon(f0(ind{:},c),msk,chan(c),T(c),Sig(c));
             lxb    = sum(llinu(:),'double');
-            Z      = responsibility(m,b,V,n,mf,vf,reweight_mu(mu,log(mg_w)),msk_chn);
         end
     end
 end
-clear f mu
+
 % Update dat
-lbs      = lx+lxb+sum(lb.mu,'double')+sum(lb.A,'double');
-gmm.T    = T;
-gmm.Sig  = Sig;
-gmm.m    = m;
-gmm.b    = b;
-gmm.V    = V;
-gmm.n    = n;
-gmm.lb   = lb;
-gmm.mg_w = mg_w;
+lbs       = lx+lxb+lb.mu+lb.A+lb.Alpha;
+gmm.T     = T;
+gmm.Sig   = Sig;
+gmm.m     = cluster{1};
+gmm.b     = cluster{2};
+gmm.W     = cluster{3};
+gmm.nu    = cluster{4};
+gmm.gam   = cluster{5};
+gmm.Alpha = cluster{6};
+gmm.lb    = lb;
 if nargout > 1
+    [msk,nvox] = data_mask(f0,mu);
 
-    % Compute full size resps
-    if any(samp2~=1)
-        msk = subsample_mask(df,samp2);
-
-        % Compute full-sized responsibilities on original data
-        if any(do_inu) % Bias correct
-            chan          = inu_basis(T,df,Mat,inu_reg,samp1);
-            [llinu,mf,vf] = inu_recon(f0,chan,T,Sig);
-            lxb = sum(llinu(:));
-        else
-            mf  = f0;
-            vf  = zeros(size(mf),'single');
-            lxb = 0;
-        end
-
-        mu0 = reweight_mu(mu0,log(mg_w),mg_ix);
-        Z   = unmask1(msk,collapse_Z(spm_gmm_lib('cell2obs', Z, code_image, msk_chn),mg_ix));
-
-        % Compute other responsibilities from a mixture of Student's t distributions.
-        % See Eqns. 10.78-10.82 & B.68-B.72 in Bishop's PRML book.
-        % In practice, it only improves probabilities by a tiny amount.
-        msk      = ~msk;
-        [mf,code_image,msk_chn] = spm_gmm_lib('obs2cell', mask(msk,mf));
-        mu1      = spm_gmm_lib('obs2cell', mask(msk,mu0), code_image, false);
-        vf       = spm_gmm_lib('obs2cell', mask(msk, vf), code_image, true);
-        [Z2,lx2] = responsibility_t(m,b,V,n,mf,vf,mu1,msk_chn);
-        Z        = unmask1(msk,collapse_Z(spm_gmm_lib('cell2obs', Z2, code_image, msk_chn),mg_ix),Z);
-        nvox     = nvox + sum(code_image(:)>0);
-        lbs      = lx+lx2+lxb+lb.mu+lb.A;
-        clear mu0
+    % Compute full-sized responsibilities on original data
+    if any(do_inu) % Bias correct
+        chan          = inu_basis(T,df,Mat,inu_reg,samp1);
+        [llinu,mf,vf] = inu_recon(f0,msk,chan,T,Sig);
+        lxb = sum(llinu(:));
     else
-        Z = vec2vol(collapse_Z(spm_gmm_lib('cell2obs', Z, code_image, msk_chn),mg_ix),ds);
+        mf  = f0;
+        vf  = zeros(size(mf),'single');
+        lxb = 0;
     end
+    [Z,lx] = spm_gmmlib('resp',cluster{1:5}, uint64(mg_ix),mu, mf,vf, uint64(samp2), label,lnP);
+    lbs    = lx+lxb+lb.mu+lb.A+lb.Alpha;
 end
 
 % For visual debugging (disable/enable in debug_show())
@@ -484,35 +236,6 @@ debug_show(Z,'responsibilities');
 dat.E(1)      = -lbs;
 dat.nvox      = nvox;
 dat.model.gmm = gmm;
-%==========================================================================
-
-%==========================================================================
-function Z = collapse_Z(Z,mg_ix)
-% If using multiple Gaussians per tissue, collapse so that Z is of
-% size K.
-% Note: This assumes that mg_ix is sorted into increasing values.
-K = max(mg_ix)-1;
-if size(Z,2) > K
-    for k=1:K
-        Z(:,k) = sum(Z(:,mg_ix==k),2);
-    end
-end
-Z = Z(:,1:K);
-%==========================================================================
-
-%==========================================================================
-function X2d = vol2vec(X4d)
-d   = [size(X4d) 1 1 1];
-X2d = reshape(X4d,[prod(d(1:3)) d(4)]);
-%==========================================================================
-
-%==========================================================================
-function X4d = vec2vol(X2d,dm)
-dm = [dm(:)' 1 1];
-if size(X2d,1)~=prod(dm(1:3))
-    error('Incompatible dimensions.');
-end
-X4d = reshape(X2d,[dm(1:3) size(X2d,2)]);
 %==========================================================================
 
 %==========================================================================
@@ -534,27 +257,28 @@ for p=1:numel(sett.gmm) % Loop over populations
         pr    = sett.gmm(p).pr;
 
         % Get all posteriors
-        po      = cell(1,N);
+        po    = cell(1,N);
+        nlab  = 0;
         for n=1:N
-            n1          = index(n);
-            po{n}{1}{1} = dat(n1).model.gmm.m;
-            po{n}{1}{2} = dat(n1).model.gmm.b;
-            po{n}{2}{1} = dat(n1).model.gmm.V;
-            po{n}{2}{2} = dat(n1).model.gmm.n;
+            n1       = index(n);
+            po{n}{1} = dat(n1).model.gmm.m;
+            po{n}{2} = dat(n1).model.gmm.b;
+            po{n}{3} = dat(n1).model.gmm.W;
+            po{n}{4} = dat(n1).model.gmm.nu;
+            if ~isempty(dat(n1).model.gmm.Alpha), nlab = nlab + 1; end
         end
 
         % Update prior
         hp = sett.gmm(p).hyperpriors;
-        verbose = false;
-        sett.gmm(p).pr = spm_gmm_lib('updatehyperpars',po,pr,hp{:}, ...
-            'verbose',verbose,'figname',num2str(p),'lkp',sett.gmm(p).mg_ix);
-        
+        sett.gmm(p).pr = spm_mb_gmm('updatehyperpars',po,pr,hp{:});
+
         % Attempt to increase stability by avoiding singular precision matrices
-        V  = sett.gmm(p).pr{3};
-        for k=1:size(V,3)
-            S        = inv(V(:,:,k));
-            V(:,:,k) = inv(0.999*S + 0.001*mean(diag(S))*eye(size(S)));
+        W  = sett.gmm(p).pr{3};
+        for k=1:size(W,3)
+            S        = inv(W(:,:,k));
+            W(:,:,k) = inv(S + 0.0001*max(diag(S))*eye(size(S)));
         end
+        sett.gmm(p).pr{3} = W;
 
         %% Update INU regularisation. Disabled because it under-regularises
         %ss_inu0 = zeros(1,size(pr{1},1));
@@ -566,35 +290,70 @@ for p=1:numel(sett.gmm) % Loop over populations
         %end
         %sett.gmm(p).inu_reg = ss_inu1./ss_inu2;
 
+        % Dirichlet hyperpriors
+        if nlab>0
+            lb     = 0;
+            K1     = size(sett.gmm(p).pr{1},2);
+            Alpha  = zeros(255,nlab);
+            Alpha0 = zeros(256,K1);
+            for k=1:K1
+                n2 = 1;
+                for n=1:N
+                    n1 = index(n);
+                    if ~isempty(dat(n1).model.gmm.Alpha)
+                        Alpha(:,n2) = dat(n1).model.gmm.Alpha(2:end,k);
+                        n2          = n2 + 1;
+                    end
+                end
+                [Alpha0(2:end,k),lbk] = spm_mb_gmm('dirichlet_hyperparameters',Alpha);
+                lb = lb + lbk;
+            end
+            sett.gmm(p).pr{6} = Alpha0;
+        else
+            sett.gmm(p).pr{6} = [];
+        end
     end
 end
 %==========================================================================
 
 %==========================================================================
-%
-% Utility functions
-%
+function [tr,D] = inu_reg_suffstat(T,Sig,df,Mat)
+vs   = sqrt(sum(Mat(1:3,1:3).^2,1));
+C    = numel(T);
+tr   = zeros(1,C);
+D    = zeros(1,C);
+for c=1:numel(T)
+    d3   = size(T{c});
+    D(c) = prod(d3); % Should really subtract 1 because of the DC.
+    if prod(d3)>0
+        L = inu_regulariser(df,d3,vs);
+        t = T{c}(:);
+        S = Sig{c};
+        if size(S,2)==1
+            % Diagonal approximation
+            tr(c) = sum(S.*t.^2) + sum(S.*diag(L));
+        else
+            tr(c) = t'*L*t + sum(sum(S.*L));
+        end
+    end
+end
 %==========================================================================
 
 %==========================================================================
-function mu = reweight_mu(mu,logmg_w,mg_ix)
-if sum(logmg_w) == 0, return; end
-if iscell(mu)
-    for i=1:numel(mu)
-        mu{i} = bsxfun(@plus, mu{i}, logmg_w);
-    end
+function [msk,nvox] = data_mask(mf,mu,samp2)
+if nargin>=3
+    ind = sample_ind(size(mf),samp2);
 else
-    % Do it on the volume
-    mu = bsxfun(@plus, mu(:,:,:,mg_ix), reshape(logmg_w,[1 1 1 numel(logmg_w)]));
+    ind = {':',':',':'};
 end
-%==========================================================================
-
-%==========================================================================
-function l = LSE1(mu,ax)
-% log-sum-exp function
-if nargin<2, ax = 4; end
-mx = max(mu,[],ax);
-l  = log(sum(exp(bsxfun(@minus,mu,mx)),ax)) + mx;
+msk  = isfinite(mu(ind{:},1));
+if nargout>=2
+    mskf = false(size(msk));
+    for i=1:size(mf,4)
+        mskf = mskf | isfinite(mf(ind{:},i));
+    end
+    nvox = sum(mskf(:) & msk(:));
+end
 %==========================================================================
 
 %==========================================================================
@@ -622,63 +381,81 @@ end
 %==========================================================================
 
 %==========================================================================
-function msk = subsample_mask(d,samp)
-% Generate a binary mask of which voxels were sampled
-msk = false(d);
-ind = sample_ind(d,samp);
-msk(ind{:}) = true;
-%==========================================================================
-
-%==========================================================================
-function varargout = mask(msk,varargin)
-nt  = sum(msk(:));
-dm  = size(msk);
-if dm(2)==1, dm = dm(1); end % MATLAB fudge because ndim(msk)>=2
-[ind{1:numel(dm)}] = deal(':');
-varargout = cell(1,nargin-1);
-for n=1:nargin-1
-    vol_in  = varargin{n};
-    d       = [size(vol_in) 1];
-    dt      = d((numel(dm)+1):end);
-    vec_out = zeros([nt dt],'like',vol_in);
-    for n1=1:prod(dt)
-        tmp = vol_in(ind{:},n1);
-        vec_out(:,n1) = tmp(msk(:));
-    end
-    varargout{n} = vec_out;
-end
-%==========================================================================
-
-%==========================================================================
-function vol_out = unmask1(msk,vec_in,vol_out)
-dm  = size(msk);
-if dm(2)==1, dm = dm(1); end % MATLAB fudge because ndim(msk)>=2
-[ind{1:numel(dm)}] = deal(':');
-d       = size(vec_in);
-dt      = d(2:end);
-if nargin<3
-    vol_out = zeros([dm dt],'like',vec_in);
-end
-for n1=1:prod(dt)
-    tmp         = vol_out(ind{:},n1);
-    tmp(msk(:)) = vec_in(:,n1);
-    vol_out(ind{:},n1) = tmp;
-end
-%==========================================================================
-
-%==========================================================================
 function ind = sample_ind(df,samp)
+% Indices for sampling
+% FORMAT ind = sample_ind(df,samp)
+% df   - image dimensions
+% samp - spacing along the three dimensions
+% ind  - indices
+df   = [df(:)' 1 1];
+df   = df(1:3);
+samp = [samp(:)' 1 1];
+samp = samp(1:3);
 sk   = max([1 1 1],samp);
 ind  = {round(1:sk(1):df(1)), round(1:sk(2):df(2)), round(1:sk(3):df(3))};
 %==========================================================================
 
 %==========================================================================
-function [ll,mf,vf] = inu_recon(f,chan,T,Sig)
+function chan = inu_basis(T,df,Mat,reg,samp)
+if nargin<5, samp = 0; end
+if nargin<4, reg  = ones(1,numel(T)); end
+cl   = cell(1, numel(T));
+chan = struct('L', cl, 'B1',cl, 'B2',cl, 'B3',cl);
+ind  = sample_ind(df,samp);
+vs   = sqrt(sum(Mat(1:3,1:3).^2,1));
+for c=1:numel(T)
+    d3 = [size(T{c}) 1];
+    d3 = d3(1:3);
+
+    % Regulariser
+    chan(c).L  = reg(c)*inu_regulariser(df,d3,vs);
+
+    % Basis functions for bias correction
+    chan(c).B1 = spm_dctmtx(df(1),d3(1),ind{1});
+    chan(c).B2 = spm_dctmtx(df(2),d3(2),ind{2});
+    chan(c).B3 = spm_dctmtx(df(3),d3(3),ind{3});
+end
+%==========================================================================
+
+%==========================================================================
+function L = inu_regulariser(df,d3,vs)
+% Bending energy regulariser (precision matrix)
+kx = (pi*((1:d3(1))'-1)/df(1)/vs(1)).^2;
+ky = (pi*((1:d3(2))'-1)/df(2)/vs(2)).^2;
+kz = (pi*((1:d3(3))'-1)/df(3)/vs(3)).^2;
+L  =  (kron(kz.^2,kron(ky.^0,kx.^0)) + kron(kz.^0,kron(ky.^2,kx.^0)) + kron(kz.^0,kron(ky.^0,kx.^2)) +...
+    2*(kron(kz.^1,kron(ky.^1,kx.^0)) + kron(kz.^1,kron(ky.^0,kx.^1)) + kron(kz.^0,kron(ky.^1,kx.^1))) );
+L  = diag(max(L,0));
+%==========================================================================
+
+%==========================================================================
+function [inu,ll] = inu_field(T,chan)
+d  = [size(chan(1).B1,1) size(chan(1).B2,1) size(chan(1).B3,1)];
+nz = d(3);
+C  = numel(T);
+cr = 1:C;
+
+% Compute full bias field (for all channels)
+inu = zeros([d C],'single');
+ll  = zeros(1,C);
+
+for c=cr
+    t = double(T{c});
+    ll(c) = -0.5*t(:)'*chan(c).L*t(:);
+    for z=1:nz
+        inu_c        = inu_transform(chan(c).B1,chan(c).B2,chan(c).B3(z,:),T{c});
+        inu(:,:,z,c) = single(exp(inu_c));
+    end
+end
+%==========================================================================
+
+%==========================================================================
+function [ll,mf,vf] = inu_recon(f,msk,chan,T,Sig)
 % INU reconstruction
 d  = [size(chan(1).B1,1) size(chan(1).B2,1) size(chan(1).B3,1)];
 nz = d(3);
 C  = numel(T);
-if nargin<4 || isempty(Sig), Sig = cell(1,C); end
+if nargin<5 || isempty(Sig), Sig = cell(1,C); end
 if nargout>1, mf  = zeros([d C],'single'); end
 if nargout>2, vf  = zeros([d C],'single'); end
 ll = zeros(2,C);
@@ -688,14 +465,14 @@ for c=1:C
     dt = [size(t,1) size(t,2) size(t,3)];
     S  = Sig{c};
     if ~isempty(t)
-        B1      = chan(c).B1;
-        B2      = chan(c).B2;
-        B3      = chan(c).B3;
-        ICO     = chan(c).ICO;
+        B1 = chan(c).B1;
+        B2 = chan(c).B2;
+        B3 = chan(c).B3;
+        L  = chan(c).L;
 
-        % ln p(t|IC0). Note that there's no regularisation for the DC component, so to avoid dealing with
-        % a singular matrix, only ICO(2:end,2:end) is used for computing the determinant.
-        ll(1,c) = -0.5*t(:)'*ICO*t(:) + sum(log(diag(chol(ICO(2:end,2:end)))),'double') - 0.5*(size(ICO,1)-1)*log(2*pi);
+        % ln p(t|L). Note that there's no regularisation for the DC component, so to avoid dealing with
+        % a singular matrix, only L(2:end,2:end) is used for computing the determinant.
+        ll(1,c) = -0.5*t(:)'*L*t(:) + sum(log(diag(chol(L(2:end,2:end)))),'double') - 0.5*(size(L,1)-1)*log(2*pi);
 
         %% Use BIC to account for having no regularisation on the DC component.
         %% Need to check that this is the right thing to do.
@@ -712,8 +489,8 @@ for c=1:C
                 C       = chol(S);
                 % -E[ln q(t)]: 0.5*log(det(S)) + 0.5*D*log(2*pi) + 0.5*trace(S\S)
                 ll(1,c) = ll(1,c) + sum(log(diag(C)),'double') + 0.5*size(C,1) + 0.5*size(C,1)*log(2*pi);
-                % make it E[ln p(t|ICO)] instead of just p(t|ICO)
-                ll(1,c) = ll(1,c) - 0.5*sum(sum(ICO.*S,'double'),'double');
+                % make it E[ln p(t|L)] instead of just p(t|L)
+                ll(1,c) = ll(1,c) - 0.5*sum(sum(L.*S,'double'),'double');
                 C       = reshape(C',[dt size(C,1)]);
             else
                if approx==0  % Diagonal approximation
@@ -722,13 +499,13 @@ for c=1:C
                         s   = diag(S);
                     end
                     ll(1,c) = ll(1,c) + 0.5*sum(log(s),'double') + 0.5*size(s,1) + 0.5*size(s,1)*log(2*pi);
-                    ll(1,c) = ll(1,c) - 0.5*sum(diag(ICO).*s,'double');         % make it E[ln p(t|ICO)]
+                    ll(1,c) = ll(1,c) - 0.5*sum(diag(L).*s,'double');         % make it E[ln p(t|L)]
                     U       = zeros([0 0 0 0]);
                     s       = reshape(s,dt);
                 else
                     % -E[ln q(t)]
                     ll(1,c) = ll(1,c) + sum(log(diag(chol(S))),'double') + 0.5*size(S,1) + 0.5*size(S,1)*log(2*pi);
-                    ll(1,c) = ll(1,c) - 0.5*sum(sum(ICO.*S,'double'),'double'); % make it E[ln p(t|ICO)]
+                    ll(1,c) = ll(1,c) - 0.5*sum(sum(L.*S,'double'),'double'); % make it E[ln p(t|L)]
 
                     % Approximate with a few eigenmodes + diagonal
                     approx = min(approx,size(S,2)-1);
@@ -768,17 +545,27 @@ for c=1:C
                 end
 
                 ml         = inu_transform(B1,B2,B3(z,:),t);
+                if ~isempty(msk)
+                    mskz   = msk(:,:,z);
+                else
+                    mskz   = true(size(f,1),size(f,2));
+                end
                 fz         = f(:,:,z,c);
-                ll(2,c)    = ll(2,c) + sum(ml(isfinite(fz(:))),'double');
-                if nargout>1, mf(:,:,z,c) = f(:,:,z,c).*(exp(ml+vl/2)); end
-                if nargout>2, vf(:,:,z,c) = f(:,:,z,c).^2.*exp(2*ml).*exp(vl).*(exp(vl)-1); end
+                ll(2,c)    = ll(2,c) + sum(ml(isfinite(fz(:)) & mskz(:)),'double');
+                if nargout>1, mf(:,:,z,c) = fz.*(exp(ml+vl/2)); end
+                if nargout>2, vf(:,:,z,c) = fz.^2.*exp(2*ml).*exp(vl).*(exp(vl)-1); end
             end
         else
             for z=1:nz % Loop over slices
+                if ~isempty(msk)
+                    mskz   = msk(:,:,z);
+                else
+                    mskz   = true(size(f,1),size(f,2));
+                end
                 fz         = f(:,:,z,c);
                 ml         = inu_transform(B1,B2,B3(z,:),t);
-                ll(2,c)    = ll(2,c) + sum(ml(isfinite(fz(:))),'double');
-                if nargout>1, mf(:,:,z,c) = f(:,:,z,c).*exp(ml); end
+                ll(2,c)    = ll(2,c) + sum(ml(isfinite(fz(:)) & mskz(:)),'double');
+                if nargout>1, mf(:,:,z,c) = fz.*exp(ml); end
             end
         end
     else
@@ -788,26 +575,23 @@ end
 %==========================================================================
 
 %==========================================================================
-function Xo = insert2cell(Xo,C,X,nc,c)
-codes = unique(C);
-codes = codes(codes ~= 0);
-for i=1:numel(codes)
-    msk = (C == codes(i));
-    io  = find(code2bin(codes(i),nc));
-    if any(io==c)
-        Xo{i}(:,find(io==c)) = X(msk);
-    end
+function t = inu_transform(B1,B2,B3,T)
+% Create an image-space log bias field from its basis function encoding.
+%
+% FORMAT t = inu_transform(B1,B2,B3,T)
+% B1 - x-dim DCT basis [nx kx]
+% B2 - y-dim DCT basis [ny ky]
+% B3 - z-dim DCT basis [nz kz]
+% T  - DCT encoding of the log bias field [kx ky kz]
+% t  - Reconstructed log bias field [nx ny nz]
+if ~isempty(T)
+    d2 = [size(T) 1];
+    t1 = reshape(reshape(T, d2(1)*d2(2),d2(3))*B3', d2(1), d2(2));
+    t  = B1*t1*B2';
+else
+    t  = zeros(size(B1,1),size(B2,1));
 end
 %==========================================================================
-
-%==========================================================================
-function bin = code2bin(code, length)
-% FORMAT bin = code2bin(code, length)
-%
-% Convert a "missing code" to a mask of observed channels
-
-base = uint64(2).^uint64(0:(length-1));
-bin  = bitand(uint64(code),base) > 0;
 
 %==========================================================================
 function debug_show(img,img_is,modality,fig_title,do_show)
@@ -824,7 +608,7 @@ if nargin < 3, modality  = 1; end
 if nargin < 4, fig_title = ''; end
 if nargin < 5, do_show   = false; end
 if ~do_show || ~any(strcmpi({'observed','responsibilities','template_k1','template'},img_is))
-    return; 
+    return;
 end
 % Create/find figure
 f = findobj('Type', 'Figure', 'Name', img_is);
@@ -843,7 +627,7 @@ elseif strcmp(img_is,'template')
     img = spm_mb_classes('template_k1',img,4);
 end
 clim = [-Inf Inf];
-if modality == 2  
+if modality == 2
     clim = [1000 1100];  % CT scan
 end
 % What slice index (ix) to show

@@ -25,7 +25,7 @@ function varargout = spm_mb_shape(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 7994 2020-10-21 16:49:09Z mikael $
+% $Id: spm_mb_shape.m 8057 2021-02-09 18:41:58Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -171,9 +171,9 @@ else
         return
     end
     d  = [size(a0) 1 1];
-    if d(3)>1, zrange = range(r(3)); else zrange = 0; end
-    if d(2)>1, yrange = range(r(2)); else yrange = 0; end
-    if d(1)>1, xrange = range(r(1)); else xrange = 0; end
+    if d(3)>1, zrange = range(r(3)); else, zrange = 0; end
+    if d(2)>1, yrange = range(r(2)); else, yrange = 0; end
+    if d(1)>1, xrange = range(r(1)); else, xrange = 0; end
     id = identity(size(psi));
     a1 = zeros([size(psi,1),size(psi,2),size(psi,3),size(a0,4)],'single');
     for l=1:d(4)
@@ -224,9 +224,9 @@ if ~isempty(psi)
         return
     end
 
-    if d(3)>1, zrange = range(r(3)); else zrange = 0; end
-    if d(2)>1, yrange = range(r(2)); else yrange = 0; end
-    if d(1)>1, xrange = range(r(1)); else xrange = 0; end
+    if d(3)>1, zrange = range(r(3)); else, zrange = 0; end
+    if d(2)>1, yrange = range(r(2)); else, yrange = 0; end
+    if d(1)>1, xrange = range(r(1)); else, xrange = 0; end
 
     id    = identity(size(psi));
     f1    = single(0);
@@ -323,7 +323,7 @@ nw        = get_num_workers(sett,max(27,sett.K*5+17));
 % Update the affine parameters
 if ~isempty(B)
     if nw > 1 && numel(dat) > 1 % PARFOR
-        parfor(n=1:numel(dat),nw) dat(n) = update_affines_sub(dat(n),mu,sett); end
+        parfor(n=1:numel(dat),nw), dat(n) = update_affines_sub(dat(n),mu,sett); end
     else % FOR
         for n=1:numel(dat), dat(n) = update_affines_sub(dat(n),mu,sett); end
     end
@@ -486,19 +486,19 @@ spm_field('bound',1);
 K   = size(mu,4);
 update_settings = [mu_settings(1:3) mu_settings(4:end)*(1-1/(K+1)) 2 2];
 if accel>0, s   = softmax(mu); end
-dmu = zeros(size(mu),'like',mu);
+dmu = zeros(size(mu),'single');
 for it=1:10
     for k=1:K
 
         % Diagonal elements of Hessian
         if accel==0
-            h_kk = (0.5*(1-1/(K+1)))*w;
+            h_kk = (0.5*(1-1/(K+1)) + 1e-5)*w;
         else
-            h_kk = (accel*(s(:,:,:,k)-s(:,:,:,k).^2) + (1-accel)*0.5*(1-1/(K+1))).*w;
+            h_kk = (accel*(s(:,:,:,k)-s(:,:,:,k).^2) + (1-accel)*0.5*(1-1/(K+1)) + 1e-5).*w;
         end
 
         % Dot product betwen off-diagonals of likelihood Hessian and dmu
-        g_k = zeros([size(mu,1),size(mu,2),size(mu,3)],'like',g);
+        g_k = zeros([size(mu,1),size(mu,2),size(mu,3)],'single');
         for k1=1:K
             if k1~=k
                 % Off-diaginal elements of Hessian
@@ -672,7 +672,7 @@ if size(G,3) == 1
     H0(:,:,:,3) = H0(:,:,:,3) + mean(reshape(H0(:,:,:,[1 2]),[],1));
 end
 if nw > 1 && numel(dat) > 1 % PARFOR
-    parfor(n=1:numel(dat),nw) dat(n) = update_velocities_sub(dat(n),mu,G,H0,sett,scal); end
+    parfor(n=1:numel(dat),nw), dat(n) = update_velocities_sub(dat(n),mu,G,H0,sett,scal); end
 else % FOR
     for n=1:numel(dat), dat(n) = update_velocities_sub(dat(n),mu,G,H0,sett,scal); end
 end
@@ -784,7 +784,7 @@ if groupwise
     % Total initial velocity should be zero (Khan & Beg), so mean correct
     avg_v = single(0);
     if nw > 1 && numel(dat) > 1 % PARFOR
-        parfor(n=1:numel(dat),nw) avg_v = avg_v + spm_mb_io('get_data',dat(n).v); end
+        parfor(n=1:numel(dat),nw), avg_v = avg_v + spm_mb_io('get_data',dat(n).v); end
     else % FOR
         for n=1:numel(dat), avg_v = avg_v + spm_mb_io('get_data',dat(n).v); end
     end
@@ -803,19 +803,15 @@ end
 
 nw     = get_num_workers(sett,33);
 kernel = shoot(d,v_settings);
-fprintf('Update warps: ');
 if nw > 1 && numel(dat) > 1 % PARFOR
     parfor(n=1:numel(dat),nw)
-        fprintf('.');
         dat(n) = update_warps_sub(dat(n),avg_v,kernel,sett); 
     end
 else % FOR
     for n=1:numel(dat)
-        fprintf('.');
         dat(n) = update_warps_sub(dat(n),avg_v,kernel,sett); 
     end
 end
-fprintf(' done!\n');
 %==========================================================================
 
 %==========================================================================
@@ -847,10 +843,8 @@ y     = affine(d,Mzoom);
 if nargout > 1 || ~isempty(mu), mu = spm_diffeo('pullc',mu,y); end % only resize template if updating it
 
 if ~isempty(dat)
-    fprintf('Zoom volumes: ');
     if nw > 1 && numel(dat) > 1 % PARFOR
         parfor(n=1:numel(dat),nw)
-            fprintf('.');
             v          = spm_mb_io('get_data',dat(n).v);
             v          = spm_diffeo('pullc',bsxfun(@times,v,z),y);
             dat(n).v   = resize_file(dat(n).v  ,d,Mmu);
@@ -864,7 +858,6 @@ if ~isempty(dat)
         end
     else % FOR
         for n=1:numel(dat)
-            fprintf('.');
             v          = spm_mb_io('get_data',dat(n).v);
             v          = spm_diffeo('pullc',bsxfun(@times,v,z),y);
             dat(n).v   = resize_file(dat(n).v  ,d,Mmu);
@@ -877,7 +870,6 @@ if ~isempty(dat)
             dat(n).psi = resize_file(dat(n).psi,d,Mdef);
         end
     end
-    fprintf(' done!\n');
 end
 %==========================================================================
 

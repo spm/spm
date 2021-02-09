@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 8009 2020-11-17 19:58:10Z guillaume $
+% $Id: tbx_cfg_mb.m 8057 2021-02-09 18:41:58Z john $
 
 
 if ~isdeployed, addpath(fileparts(mfilename('fullpath'))); end
@@ -96,7 +96,8 @@ cm.help   = {'Specify rows of a confusion matrix, where each row corresponds to 
 labels         = cfg_branch;
 labels.tag     = 'true';
 labels.name    = 'Has labels';
-labels.val     = {label_files,cm,const('w',0.99)};
+%labels.val    = {label_files,cm,const('w',0.99)};
+labels.val     = {label_files};
 labels.help    = {['If subjects have corresponding label maps to guide the ' ...
                    'segmentation, these need to be specified along with a ' ...
                    'confusion matrix that relates values in the label maps ' ...
@@ -251,7 +252,7 @@ spop.tag      = 'cat';
 spop.name     = 'Tissue class maps';
 spop.val      = {images};
 spop.check    = @check_segs;
-spop.help     = {['UNUSED'],''};
+spop.help     = {'UNUSED',''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -370,7 +371,7 @@ dff.help        = {[...
  'denotes how much to penalise changes to the divergence of the velocities (/*$\*/lambda/*$*/). ' ...
  'This divergence is a measure of the rate of volumetric expansion or contraction.'],...
 '/*\end{itemize}*/',...
-['The default settings work reasonably well for most cases.'],''};
+'The default settings work reasonably well for most cases.',''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -711,8 +712,8 @@ cfg.hidden   = true;
 function  out = run_mb(cfg)
 [dat,sett]    = spm_mb_init(cfg);
 if ~isempty(dat)
-    [dat,sett,mu] = spm_mb_fit(dat,sett);
-    out           = out_mb_run(sett,dat);
+    [dat,sett] = spm_mb_fit(dat,sett);
+    out        = out_mb_run(sett,dat);
     save(out.fit{1},'sett','dat');
 else
     out           = struct('fit',{{''}},'mu',{{''}},'v',{{''}},'psi',{{''}});

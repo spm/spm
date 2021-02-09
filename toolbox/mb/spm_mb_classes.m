@@ -15,7 +15,7 @@ function varargout = spm_mb_classes(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_classes.m 8011 2020-11-18 11:18:53Z mikael $
+% $Id: spm_mb_classes.m 8057 2021-02-09 18:41:58Z john $
 
 if isa(varargin{1},'char')
     [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
@@ -39,13 +39,13 @@ elseif isfield(dat.model,'gmm')
     lab = get_labels(dat,size(mu,4));
     if numel(lab)>1
         % Add labels to template
-        mu = mu + lab;
+   %    mu = mu + lab;
     end
     clear lab
     if sett.gmm(dat.model.gmm.pop).nit_appear >0
         [dat,P] = spm_mb_appearance('update',dat,mu,sett);
     else
-        P = exp(bsxfun(@minus,mu(:,:,:,1:(size(mu,4)-1)),LSE1(mu,4)));
+        P       = exp(bsxfun(@minus,mu(:,:,:,1:(size(mu,4)-1)),LSE1(mu,4)));
     end
 else
     error('This should not happen');
@@ -69,6 +69,7 @@ dat.nvox =  sum(msk(:));
 
 %==========================================================================
 function lab = get_labels(dat, K1)
+lab=0; return;
 if isempty(dat.lab), lab = 0; return; end
 
 % Load labels
