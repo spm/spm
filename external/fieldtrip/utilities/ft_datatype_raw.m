@@ -85,7 +85,6 @@ for i=1:length(data.trial)
 end
 assert(length(unique(data.label))==length(data.label), 'channel labels must be unique');
 
-
 % convert it into true/false
 if isequal(hassampleinfo, 'ifmakessense')
   hassampleinfo = makessense(data, 'sampleinfo');
@@ -155,6 +154,12 @@ switch version
     
     if ~hastrialinfo && isfield(data, 'trialinfo')
       data = rmfield(data, 'trialinfo');
+    end
+    
+    if isfield(data, 'sampleinfo') && istable(data.sampleinfo)
+      % the sampleinfo contains two columns with the begsample and endsample and can always be represented as a numeric array
+      % the trialinfo can be either a numeric array or a table
+      data.sampleinfo = table2array(data.sampleinfo);
     end
     
   case '2010v2'

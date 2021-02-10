@@ -45,9 +45,8 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    sens.chantype = Mx1 cell-array with the type of the channel, see FT_CHANTYPE
 %    sens.chanunit = Mx1 cell-array with the units of the channel signal, e.g. 'V', 'fT' or 'T/cm', see FT_CHANUNIT
 %
-% The following fields are optional
-%    sens.type = string with the type of acquisition system, see FT_SENSTYPE
-%    sens.fid  = structure with fiducial information
+% Optional fields:
+%    type, unit, fid, chantype, chanunit
 %
 % Historical fields:
 %    pnt, pos, ori, pnt1, pnt2, fiberpos, fibertype, fiberlabel, transceiver, transmits, laserstrength
@@ -72,7 +71,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 % (2011v1) To facilitate determining the position of channels (e.g. for plotting)
 %  in case of balanced MEG or bipolar EEG, an explicit distinction has been made
 %  between chanpos+chanori and coilpos+coilori (for MEG) and chanpos and elecpos
-%  (for EEG). The pnt and ori fields are removed
+%  (for EEG). The pnt and ori fields are removed.
 %
 % (2010) Added support for bipolar or otherwise more complex linear combinations
 %  of EEG electrodes using sens.tra, similar to MEG.
@@ -153,10 +152,25 @@ end
 % this is needed further down
 nchan = length(sens.label);
 
-% there are many cases which are MEG, EEG or NIRS specific
-ismeg  = ft_senstype(sens, 'meg');
-iseeg  = ft_senstype(sens, 'eeg');
-isnirs = ft_senstype(sens, 'nirs');
+% these are used at multiple places, therefore we determine them only once
+if isfield(sens, 'coilpos')
+  ismeg = true;
+  iseeg = true;
+  isnirs = false;
+elseif isfield(sens, 'elecpos')
+  ismeg = false;
+  iseeg = true;
+  isnirs = false;
+elseif isfield(sens, 'optopos')
+  ismeg = false;
+  iseeg = false;
+  isnirs = true;
+else
+  % doing it this way takes a lot more CPU time
+  ismeg  = ft_senstype(sens, 'meg');
+  iseeg  = ft_senstype(sens, 'eeg');
+  isnirs = ft_senstype(sens, 'nirs');
+end
 
 switch version
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -172,8 +186,8 @@ switch version
       if isfield(sens, 'optotype') && isfield(sens, 'tra')
         % the read_artinis_oxy3 file returns the wrong sign for the receivers and transmitters
         % but since it is p-code, it cannot be fixed
-        correctT = all(sens.tra(:, strcmp(sens.optotype, 'transmitter'))>=0, 'all');
-        correctR = all(sens.tra(:, strcmp(sens.optotype, 'receiver'   ))<=0, 'all');
+        tmp = sens.tra(:, strcmp(sens.optotype, 'transmitter')); correctT = all(tmp(:)>=0);
+        tmp = sens.tra(:, strcmp(sens.optotype, 'receiver'   )); correctR = all(tmp(:)<=0);
         if ~correctT
           ft_warning('flipping sign for transmitters');
           sens.tra(:, strcmp(sens.optotype, 'transmitter')) = -sens.tra(:, strcmp(sens.optotype, 'transmitter'));
