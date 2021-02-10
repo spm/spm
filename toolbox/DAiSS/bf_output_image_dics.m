@@ -3,7 +3,7 @@ function res = bf_output_image_dics(BF, S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_output_image_dics.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_output_image_dics.m 8061 2021-02-10 15:14:57Z spm $
 
 %--------------------------------------------------------------------------
 if nargin == 0
@@ -141,12 +141,12 @@ if nargin == 0
         'bycondition'
         'bytrial'
         }';
-    result.val = {'singleimage'};
+    result.val = {'singleimage'};        
     
     scale         = cfg_menu;
     scale.tag     = 'scale';
-    scale.name    = 'Scale by filter norm';
-    scale.help    = {'Scale by IID noise projected through the filters.'};
+    scale.name    = 'Unit-noise-gain';
+    scale.help    =  {'Scale power by norm of the filters (unit-noise-gain)'};
     scale.labels  = {'yes', 'no'};
     scale.values  = {'yes', 'no'};
     scale.val = {'no'};

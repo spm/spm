@@ -4,7 +4,7 @@ function bf = tbx_cfg_bf
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: tbx_cfg_bf.m 7846 2020-05-05 14:33:24Z george $
+% $Id: tbx_cfg_bf.m 8061 2021-02-10 15:14:57Z spm $
 
 tbxdir = fileparts(mfilename('fullpath'));
 
@@ -18,8 +18,7 @@ components = {
     'bf_features'
     'bf_inverse'
     'bf_output'
-    'bf_write'
-    'bf_view'
+    'bf_write'    
     };
 
 bf = cfg_choice;

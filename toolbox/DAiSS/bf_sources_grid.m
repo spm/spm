@@ -3,7 +3,7 @@ function res = bf_sources_grid(BF, S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_sources_grid.m 7971 2020-10-05 09:53:16Z guillaume $
+% $Id: bf_sources_grid.m 8061 2021-02-10 15:14:57Z spm $
 
 %--------------------------------------------------------------------------
 if nargin == 0 

@@ -2,7 +2,7 @@ function voi = bf_sources_voi(BF, S)
 % Generate a set of VOIs specified in MNI coordinates
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: bf_sources_voi.m 7971 2020-10-05 09:53:16Z guillaume $
+% $Id: bf_sources_voi.m 8061 2021-02-10 15:14:57Z spm $
 
 %--------------------------------------------------------------------------
 if nargin == 0

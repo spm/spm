@@ -3,7 +3,7 @@ function out = bf_sources
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_sources.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_sources.m 8061 2021-02-10 15:14:57Z spm $
 
 % dir Directory
 % ---------------------------------------------------------------------
@@ -43,18 +43,26 @@ for i = 1:numel(source_funs)
     plugin.values{i} = feval(spm_file(source_funs{i},'basename'));
 end
 
+normalise_lf = cfg_menu;
+normalise_lf.tag = 'normalise_lf';
+normalise_lf.name = 'Normalise lead fields';
+normalise_lf.help = {'Normalise the lead fields to yield array gain beamformer'};
+normalise_lf.labels = {'yes', 'no'};
+normalise_lf.values = {true, false};
+normalise_lf.val = {false};
+
 visualise = cfg_menu;
 visualise.tag = 'visualise';
 visualise.name = 'Visualise head model and sources';
 visualise.help = {'Visualise head model and sourses to verify that everythin was done correctly'};
 visualise.labels = {'yes', 'no'};
-visualise.values = {1, 0};
-visualise.val = {1};
+visualise.values = {true, false};
+visualise.val = {true};
 
 out = cfg_exbranch;
 out.tag = 'sources';
 out.name = 'Define sources';
-out.val = {BF, reduce_rank, keep3d, plugin, visualise};
+out.val = {BF, reduce_rank, keep3d, plugin, normalise_lf, visualise};
 out.help = {'Define source space for beamforming'};
 out.prog = @bf_source_run;
 out.vout = @bf_source_vout;
@@ -102,9 +110,9 @@ for m = 1:numel(modalities)
             error(['No good ' modalities{m} ' channels were found.']);
         end
         
-        if ischar(BF.data.(modalities{m}).vol),           
+        if ischar(BF.data.(modalities{m}).vol)           
             BF.data.(modalities{m}).vol = ft_read_vol(BF.data.(modalities{m}).vol);
-        end;
+        end
                
         chanunits = units(BF.data.D, chanind);
         
@@ -125,7 +133,7 @@ for m = 1:numel(modalities)
         end
         
         if job.visualise
-            F = spm_figure('GetWin', modalities{m});clf;
+            F = spm_figure('GetWin', ['Head model for ' modalities{m}]);clf;
             
             if ismac
                 set(F,'renderer','zbuffer');
@@ -171,6 +179,10 @@ for m = 1:numel(modalities)
             elseif ~job.keep3d &&  reduce_rank(m) < 3
                  [U_, S_, V] = svd(L{i}, 'econ');
                  L{i} = L{i}*V(:,1:reduce_rank(m));
+            end
+            
+            if job.normalise_lf
+                L{i} = L{i}./norm(L{i}, 'fro');
             end
             
             if ismember(i, Ibar)

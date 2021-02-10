@@ -3,7 +3,7 @@ function out = bf_features
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_features.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_features.m 8061 2021-02-10 15:14:57Z spm $
 
 % dir Directory
 % ---------------------------------------------------------------------
@@ -72,6 +72,13 @@ fuse.labels = {'Don''t fuse' 'Fuse MEG only', 'Fuse all'};
 fuse.values = {'no', 'meg', 'all'};
 fuse.val = {'no'};
 
+cross_terms = cfg_menu;
+cross_terms.tag = 'cross_terms';
+cross_terms.name = 'Zero cross terms';
+cross_terms.help = {'When fusing, set cross-terms between modalities to zero'};
+cross_terms.labels = {'MEG to EEG only' 'MEG, MEGPLANAR, EEG', 'No'};
+cross_terms.values = {'megeeg', 'all', 'no'};
+cross_terms.val = {'megeeg'};
 %--------------------------------------------------------------------------
 % method
 %--------------------------------------------------------------------------
@@ -106,10 +113,18 @@ bootstrap.labels = {'yes', 'no'};
 bootstrap.values = {true, false};
 bootstrap.val = {false};
 
+visualise = cfg_menu;
+visualise.tag = 'visualise';
+visualise.name = 'Visualise eigen-spectrum';
+visualise.help = {'Visualise covariance log eigen-spectrum to check for effective data dimensionality.'};
+visualise.labels = {'yes', 'no'};
+visualise.values = {1, 0};
+visualise.val = {1};
+
 out = cfg_exbranch;
 out.tag = 'features';
 out.name = 'Covariance features';
-out.val = {BF, whatconditions, woi, modality, fuse, plugin, reg, bootstrap};
+out.val = {BF, whatconditions, woi, modality, fuse, cross_terms, plugin, reg, bootstrap, visualise};
 out.help = {'Define features for covariance computation'};
 out.prog = @bf_features_run;
 out.vout = @bf_features_vout;
@@ -130,7 +145,7 @@ plugin_name = cell2mat(fieldnames(job.plugin));
 S         = job.plugin.(plugin_name);
 
 %%%%%%%%%%%%
-% MWW 19/11/2014   
+% MWW 19/11/2014
 classchanind=[];
 try
     classchanind=find(strcmp(D.chanlabels,'Class')); % MWW 19/11/2014
@@ -138,29 +153,29 @@ catch
 end;
 
 if isempty(classchanind)
-%%%%%%%%%%%%
+    %%%%%%%%%%%%
     S(1).samples = {};
-
+    
     for i = 1:size(job.woi, 1)
         S.samples{i} = D.indsample(1e-3*job.woi(i, 1)):D.indsample(1e-3*job.woi(i, 2));
         if isnan(S.samples{i})
             error('Window specified not in dataset');
         end;
     end
-%%%%%%%%%%%%
-% MWW 19/11/2014                
+    %%%%%%%%%%%%
+    % MWW 19/11/2014
 else
     try
         classchanind=find(strcmp(D.chanlabels,'Class')); % MWW 19/11/2014
     catch
-        error('There must be a Class channel in D if job.woi is not specfied'); 
-    end; 
-end;
+        error('There must be a Class channel in D if job.woi is not specfied');
+    end
+end
 %%%%%%%%%%%%
 
 if isfield(job.whatconditions, 'all')
     S(1).trials = D.indtrial(D.condlist, 'GOOD');
-else    
+else
     S(1).trials = D.indtrial(job.whatconditions.condlabel, 'GOOD');
     if isempty(S.trials)
         error('No trials matched the selection, check the specified condition labels');
@@ -185,65 +200,132 @@ switch job.fuse
 end
 
 for m = 1:numel(modalities)
-    chanind = indchantype(BF.data.D, modalities{m}, 'GOOD');
-    if isempty(chanind)
-        error(['No good ' modalities{m} ' channels were found.']);
+    if ~isa(modalities{m}, 'cell')
+        cmod = modalities(m);
+    else
+        cmod = modalities{m};
     end
-    S.channels=chanind;
     
-    if isequal(char(modalities{m}), 'EEG') 
+    eegind = strmatch('EEG', cmod, 'exact');
+    megind = [strmatch('MEG', cmod, 'exact') strmatch('MEGMAG', cmod, 'exact')];
+    planarind = strmatch('MEGPLANAR', cmod, 'exact');
+    
+    chanind = cell(1, numel(cmod));
+    chanind_cov = cell(1, numel(cmod));
+    for n = 1:numel(cmod)
+        chanind{n} = indchantype(BF.data.D, cmod{n}, 'GOOD');
+        chanind_cov{n} = 1:length(chanind{n});
+        if n>1
+            chanind_cov{n} = chanind_cov{n} + length([chanind{1:(n-1)}]);
+        end
+    end
+    
+    S.channels=[chanind{:}];
+    
+    if isempty(S.channels)
+        if ~isa(modalities{m}, 'cell')
+            error('No good %s channels were found.\n', cmod{:});
+        end
+    end
+    
+    if isequal(char(modalities{m}), 'EEG')
         modality_name  = 'EEG';
     elseif isequal(char(modalities{m}), 'MEGPLANAR')
         modality_name  = 'MEGPLANAR';
-    elseif isequal(char(modalities{m}), 'MEGMAG') 
-        modality_name  = 'MEGMAG';    
+    elseif isequal(char(modalities{m}), 'MEGMAG')
+        modality_name  = 'MEGMAG';
     else
         modality_name  = 'MEG';
     end
     
     %%%%%%%%%%%%
-    % MWW 19/11/2014                
-    if isempty(classchanind)       
-    %%%%%%%%%%%%
-    
-        BF.features.(modality_name) = feval(['bf_features_' plugin_name], BF, S);
-
-        S1.modality = modality_name;
-        S1.chanind  = chanind;
-
-        BF.features.(modality_name) = feval(['bf_regularise_' reg_name], BF, S1);
-
-    %%%%%%%%%%%%
     % MWW 19/11/2014
-    % added to allow S.samples to be specified via a "Class" channel, which
-    % specifies which time points correspond to each class. This is so that
-    % class-specific features can be calculated separately using just the 
-    % timepoints for each class. This can then be used later for doing 
-    % source reconstruction specific to each class.   
-    % For example, the class specific features (covariances) can be used
-    % by bf_features_cov_bysamples and bf_inverse_lcmv_multicov
+    if isempty(classchanind)
+        %%%%%%%%%%%%
+        
+        BF.features.(modality_name) = feval(['bf_features_' plugin_name], BF, S);
+        
+        if numel(cmod)>1
+            if isequal(job.cross_terms, 'all') && ~isempty(megind) && ~isempty(planarind)
+                BF.features.(modality_name).C(chanind_cov{megind}, chanind_cov{planarind}) = 0;
+                BF.features.(modality_name).C(chanind_cov{planarind}, chanind_cov{megind}) = 0;
+            end
+            if isequal(job.cross_terms, 'megeeg') && ~isempty(megind) && ~isempty(eegind)
+                BF.features.(modality_name).C(chanind_cov{megind}, chanind_cov{eegind}) = 0;
+                BF.features.(modality_name).C(chanind_cov{eegind}, chanind_cov{megind}) = 0;
+            end
+            if isequal(job.cross_terms, 'megeeg') && ~isempty(planarind) && ~isempty(eegind)
+                BF.features.(modality_name).C(chanind_cov{planarind}, chanind_cov{eegind}) = 0;
+                BF.features.(modality_name).C(chanind_cov{eegind}, chanind_cov{planarind}) = 0;
+            end
+        end
+        
+        
+        if job.visualise
+            F = spm_figure('GetWin', ['Log-eigenspectrum for ' modality_name]);clf;
+            
+            [~, SS, ~] = svd(BF.features.(modality_name).C);
+            
+            semilogy(diag(SS), '-o');
+            
+            xlabel('Singular value index');
+            ylabel('Singular value');
+        end
+        
+        S1.modality = modality_name;
+        S1.chanind  = S.channels;
+        
+        BF.features.(modality_name) = feval(['bf_regularise_' reg_name], BF, S1);
+               
+        
+        %%%%%%%%%%%%
+        % MWW 19/11/2014
+        % added to allow S.samples to be specified via a "Class" channel, which
+        % specifies which time points correspond to each class. This is so that
+        % class-specific features can be calculated separately using just the
+        % timepoints for each class. This can then be used later for doing
+        % source reconstruction specific to each class.
+        % For example, the class specific features (covariances) can be used
+        % by bf_features_cov_bysamples and bf_inverse_lcmv_multicov
     else
-
+        
         disp('Ignoring job.woi. Using Class channel in D object to determine the time samples to use');
         NK=max(squash(D(classchanind,:,:)));
-        for ii=1:NK,
-
+        for ii=1:NK
+            
             S.samples = (D(classchanind,:,:)==ii);
-
+            
             BF.data.samples.(modality_name).class{ii}=S.samples;
-
+            
             BF.features.(modality_name).class{ii} = feval(['bf_features_' plugin_name], BF, S);
-
+            
+            
+            if numel(cmod)>1
+                if isequal(job.cross_terms, 'all') && ~isempty(megind) && ~isempty(planarind)
+                    BF.features.(modality_name).class{ii}.C(chanind_cov{megind}, chanind_cov{planarind}) = 0;
+                    BF.features.(modality_name).class{ii}.C(chanind_cov{planarind}, chanind_cov{megind}) = 0;
+                end
+                if isequal(job.cross_terms, 'megeeg') && ~isempty(megind) && ~isempty(eegind)
+                    BF.features.(modality_name).class{ii}.C(chanind_cov{megind}, chanind_cov{eegind}) = 0;
+                    BF.features.(modality_name).class{ii}.C(chanind_cov{eegind}, chanind_cov{megind}) = 0;
+                end
+                if isequal(job.cross_terms, 'megeeg') && ~isempty(planarind) && ~isempty(eegind)
+                    BF.features.(modality_name).class{ii}.C(chanind_cov{planarind}, chanind_cov{eegind}) = 0;
+                    BF.features.(modality_name).class{ii}.C(chanind_cov{eegind}, chanind_cov{planarind}) = 0;
+                end
+            end
+            
+            S1.chanind  = S.channels;
             S1.modality=modality_name;
             S1.class=ii;
             BF.features.(modality_name).class{ii} = feval(['bf_regularise_' reg_name], BF, S1);
-
-        end;   
+            
+        end
         
-    end; 
+    end
     %%%%%%%%%%%%
     
-    BF.features.(modality_name).chanind = chanind;
+    BF.features.(modality_name).chanind = S.channels;
 end
 
 BF.features.trials = S.trials;

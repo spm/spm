@@ -3,7 +3,7 @@ function res = bf_output_image_power(BF, S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_output_image_power.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_output_image_power.m 8061 2021-02-10 15:14:57Z spm $
 
 %--------------------------------------------------------------------------
 if nargin == 0
@@ -89,11 +89,11 @@ if nargin == 0
     
     scale         = cfg_menu;
     scale.tag     = 'scale';
-    scale.name    = 'Scale power by filter norm';
-    scale.help    = {'Scale power by norm of the filters'};
-    scale.labels  = {'norm only', 'with noise', 'no scaling'};
-    scale.values  = {2, 1, 0};
-    scale.val = {1};
+    scale.name    = 'Unit-noise-gain';
+    scale.help    = {'Scale power by norm of the filters (unit-noise-gain)'};
+    scale.labels  = {'yes', 'no'};
+    scale.values  = {true, false};
+    scale.val = {true};
     
     powermethod         = cfg_menu;
     powermethod.tag     = 'powermethod';
@@ -142,7 +142,7 @@ end
 
 nsamples = unique(cellfun(@length, samples));
 
-if length(nsamples)~=1,
+if length(nsamples)~=1
     error('all windows must be of equal length');
 end
 
@@ -154,7 +154,7 @@ dctT            = spm_dctmtx(nsamples,nsamples);
 nbands = size(S.foi, 1);
 allfreqind=[];
 
-for fband = 1:nbands, %% allows one to break up spectrum and ignore some frequencies
+for fband = 1:nbands %% allows one to break up spectrum and ignore some frequencies
     
     freqrange  = S.foi(fband,:);
     
@@ -165,9 +165,9 @@ for fband = 1:nbands, %% allows one to break up spectrum and ignore some frequen
 end % for fband=1:Nbands
 
 allfreqind = sort(unique(allfreqind));
-if isempty(allfreqind),
+if isempty(allfreqind)
     error('No valid frequency range found');
-end;
+end
 
 Tband = dctT(:, allfreqind); % filter to this band
 
@@ -243,7 +243,7 @@ switch S.result
         for i = 1:size(YY, 2)
             Cy{1, i} = squeeze(sum(cat(3, YY{:, i}), 3))./((nsamples-1)*ntrials);
         end
-    case 'bycondition';
+    case 'bycondition'
         for c = 1:numel(condind)
             for i = 1:size(YY, 2)
                 Cy{c, i} = squeeze(sum(cat(3, YY{condind{c}, i}), 3))./((nsamples-1)*length(condind{c}));
@@ -262,15 +262,6 @@ spm('Pointer', 'Watch');drawnow;
 
 scale = eye(nchan);
 
-if S.scale == 1
-    
-    sigma = svd(sumYY);
-    
-    disp('Using spm_pca_order to get scaling factor');
-    [M_opt,log_ev] = spm_pca_order(sumYY, N);
-    
-    scale = scale.*sum(sigma(M_opt:end))./nchan;         
-end
 
 for c = 1:size(Cy, 1)
     spm_progress_bar('Init', nvert, ...
