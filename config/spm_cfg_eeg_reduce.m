@@ -4,7 +4,7 @@ function reduce = spm_cfg_eeg_reduce
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_reduce.m 6929 2016-11-14 13:07:31Z guillaume $
+% $Id: spm_cfg_eeg_reduce.m 8059 2021-02-10 12:35:02Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -17,6 +17,16 @@ D.filter = 'mat';
 D.num    = [1 Inf];
 D.help   = {'Select the M/EEG mat file(s).'};
 
+%--------------------------------------------------------------------------
+% timewin
+%--------------------------------------------------------------------------
+timewin         = cfg_entry;
+timewin.tag     = 'timewin';
+timewin.name    = 'Time window';
+timewin.help    = {'Start and stop of the time window [ms].'};
+timewin.strtype = 'r';
+timewin.num     = [1 2];
+timewin.val     = {[-Inf Inf]};
 
 %--------------------------------------------------------------------------
 % method
@@ -57,13 +67,10 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'R'};
 
-%--------------------------------------------------------------------------
-% M/EEG Time-Frequency Analysis
-%--------------------------------------------------------------------------
 reduce = cfg_exbranch;
 reduce.tag = 'reduce';
 reduce.name = 'Data reduction';
-reduce.val = {D, spm_cfg_eeg_channel_selector, method, keeporig, keepothers, prefix};
+reduce.val = {D, timewin, spm_cfg_eeg_channel_selector, method, keeporig, keepothers, prefix};
 reduce.help = {'Perform data reduction.'};
 reduce.prog = @eeg_reduce;
 reduce.vout = @vout_eeg_reduce;

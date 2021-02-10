@@ -58,9 +58,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 7125 2017-06-23 09:49:29Z guillaume $
+% $Id: spm_eeg_merge.m 8059 2021-02-10 12:35:02Z vladimir $
 
-SVNrev = '$Rev: 7125 $';
+SVNrev = '$Rev: 8059 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -299,8 +299,8 @@ if ~isempty(megsens)
     if ~CmdLine, spm_figure('GetWin','Graphics');clf; end
     if ~isempty(eegsens)
         if ~CmdLine, h = subplot(2, 1, 1); end
-        aeegsens = ft_average_sens(eegsens, 'weights', Ntrials, 'feedback', h);
-        Dout = sensors(Dout, 'EEG', aeegsens);
+%        aeegsens = ft_average_sens(eegsens, 'weights', Ntrials, 'feedback', h);
+%        Dout = sensors(Dout, 'EEG', aeegsens);
         
         if ~CmdLine, h = subplot(2, 1, 2); end
     else

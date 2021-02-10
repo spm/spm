@@ -12,10 +12,10 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 7979 2020-10-08 17:13:07Z george $
+% $Id: spm_eeg_inv_forward.m 8059 2021-02-10 12:35:02Z vladimir $
 
 
-SVNrev = '$Rev: 7979 $';
+SVNrev = '$Rev: 8059 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -45,12 +45,23 @@ for i = 1:numel(D.inv{val}.forward)
     
     sens = D.inv{val}.datareg(i).sensors;
     
+    siunits = true;
     if isequal(D.inv{val}.datareg(i).modality, 'MEG')
-        sens = ft_datatype_sens(sens, 'amplitude', 'T', 'distance', 'm');
+        if  isequal(unique(sens.chanunit(strmatch('MEG', sens.chantype))), {'snr'})
+            sens = ft_datatype_sens(sens, 'distance', 'm');
+            siunits = false;
+        else
+            sens = ft_datatype_sens(sens, 'amplitude', 'T', 'distance', 'm');
+        end
     else
-        sens = ft_datatype_sens(sens, 'amplitude', 'V', 'distance', 'm');
+        if  isequal(unique(sens.chanunit(strmatch('EEG', sens.chantype))), {'snr'})
+            sens = ft_datatype_sens(sens, 'distance', 'm');
+            siunits = false;
+        else
+            sens = ft_datatype_sens(sens, 'amplitude', 'V', 'distance', 'm');
+        end
     end
-        
+    
     switch D.inv{val}.forward(i).voltype
         case 'EEG interpolated'
             vol = D.inv{val}.forward(i).vol;
@@ -223,7 +234,7 @@ for i = 1:numel(D.inv{val}.forward)
     D.inv{val}.forward(i).mesh            = mesh.tess_ctx;
     D.inv{val}.forward(i).mesh_correction = mesh_correction;
     D.inv{val}.forward(i).modality        = modality;   
-    D.inv{val}.forward(i).siunits         = 1;    
+    D.inv{val}.forward(i).siunits         = siunits;    
     
     D.inv{val}.forward(i).sensors  = sens;  
         

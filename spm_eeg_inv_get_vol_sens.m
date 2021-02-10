@@ -12,7 +12,7 @@ function data = spm_eeg_inv_get_vol_sens(D, val, space, gradsource, modality)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_get_vol_sens.m 7702 2019-11-22 11:32:26Z guillaume $
+% $Id: spm_eeg_inv_get_vol_sens.m 8059 2021-02-10 12:35:02Z vladimir $
 
 data   = [];
 
@@ -66,26 +66,16 @@ if megind > 0 && ~isequal(modality, 'EEG')
     datareg  = D.inv{val}.datareg(megind);
     forward  = D.inv{val}.forward(megind);
     
-    vol      = forward.vol;
-    
-    
-    if siunits      
-        toMNI    =  forward.toMNI;
-        to_mm    = diag([1e3 1e3 1e3 1]);
-    else
-        toMNI    = datareg.toMNI;
-        to_mm    = eye(4);
-    end
+    vol      = forward.vol;        
+        
+    toMNI    =  forward.toMNI;
+    to_mm    = diag([1e3 1e3 1e3 1]);    
     
     if isequal(gradsource, 'inv')
-        if siunits
-            sens     =  forward.sensors;           
-        else
-            sens     = datareg.sensors; 
-        end
+        sens     =  forward.sensors;
     else
-        sens     = D.sensors('MEG');
-    end      
+        sens     =  ft_convert_units(D.sensors('MEG'), 'm');
+    end
     
     if isfield(forward, 'mesh_correction')
         data.MEG.mesh_correction = forward.mesh_correction;
@@ -140,17 +130,11 @@ if eegind > 0 && ~strncmp(modality, 'MEG', 3)
     if isa(vol, 'char')
         vol = ft_read_headmodel(vol);
     end
-    
-    if siunits
-        sens     = forward.sensors;
-        toMNI    = forward.toMNI;
-        to_mm    = diag([1e3 1e3 1e3 1]);
-    else
-        sens     = datareg.sensors;
-        toMNI    = datareg.toMNI;
-        to_mm    = eye(4);
-    end   
-    
+        
+    sens     = forward.sensors;
+    toMNI    = forward.toMNI;
+    to_mm    = diag([1e3 1e3 1e3 1]);
+      
     data.EEG.vol  = vol;        
     data.EEG.sens = sens;             
                 

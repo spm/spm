@@ -5,7 +5,7 @@ function spm_eeg_inv_checkforward(varargin)
 % Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_checkforward.m 7702 2019-11-22 11:32:26Z guillaume $
+% $Id: spm_eeg_inv_checkforward.m 8059 2021-02-10 12:35:02Z vladimir $
 
 
 %-SPM data structure
@@ -26,11 +26,8 @@ end
 try
     vol      = forward(ind).vol;
     modality = forward(ind).modality;
-    if isfield(forward(ind), 'siunits') && forward(ind).siunits
-        sens     = forward(ind).sensors;
-    else %backward compatibility
-        sens     = D.inv{val}.datareg(ind).sensors;
-    end
+    sens     = forward(ind).sensors;
+
     Mcortex  = forward(ind).mesh;
 catch
     spm('alert!','Please coregister and create forward model',mfilename);

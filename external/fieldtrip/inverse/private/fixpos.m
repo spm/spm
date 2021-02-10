@@ -8,14 +8,9 @@ end
 
 if isa(mesh, 'delaunayTriangulation')
   % convert to structure, otherwise the code below won't work properly
-  ws = ft_warning('off', 'MATLAB:structOnObject');
+  ws = warning('off', 'MATLAB:structOnObject');
   mesh = struct(mesh);
   ft_warning(ws);
-end
-
-if isnumeric(mesh) && size(mesh,2)==3
-  % convert set of points into a mesh structure
-  mesh = struct('pos', mesh);
 end
 
 if ~isa(mesh, 'struct')
