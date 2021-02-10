@@ -1,7 +1,7 @@
 /* 
  * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: spm_gmmlib.c 8056 2021-02-09 18:31:42Z john $
+ * $Id: spm_gmmlib.c 8058 2021-02-10 10:38:31Z guillaume $
  *
  */
 
@@ -279,11 +279,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     if ((nrhs>=1) && mxIsChar(prhs[0]))
     {
-        int buflen;
-        char *fnc_str;
-        buflen = mxGetNumberOfElements(prhs[0]);
-        fnc_str = (char *)mxCalloc(buflen+1,sizeof(mxChar));
-        mxGetString(prhs[0],fnc_str,buflen+1);
+        char *fnc_str = mxArrayToString(prhs[0]);
 
         if (!strcmp(fnc_str,"resp"))
         {
@@ -316,4 +312,3 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         resp_mexFunction(nlhs, plhs, nrhs, prhs);
     }
 }
-
