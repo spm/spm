@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 8059 2021-02-10 12:35:02Z vladimir $
+% $Id: checkmeeg.m 8062 2021-02-11 10:50:41Z vladimir $
 
 
 %-Initialise data dimensions
@@ -355,9 +355,9 @@ else
         if isempty(this.sensors.eeg)
             this.sensors = rmfield(this.sensors, 'eeg');
         else   
-            if  isequal(unique(this.sensors.eeg.chanunit(strmatch('EEG', this.sensors.eeg.chantype))), {'snr'})
-                this.sensors.eeg = ft_datatype_sens(this.sensors.eeg, 'version', 'latest', 'distance', 'mm');
-            else
+            this.sensors.eeg = ft_datatype_sens(this.sensors.eeg, 'version', 'latest', 'distance', 'mm');
+            % Enforce units unless pre-whitened data
+            if ~isequal(unique(this.sensors.eeg.chanunit(strmatch('EEG', this.sensors.eeg.chantype))), {'snr'})
                 this.sensors.eeg = ft_datatype_sens(this.sensors.eeg, 'version', 'latest', 'amplitude', 'V', 'distance', 'mm');
             end
         end
@@ -365,11 +365,10 @@ else
     if isfield(this.sensors, 'meg')
         if isempty(this.sensors.meg)
             this.sensors = rmfield(this.sensors, 'meg');
-        else
-            if  isequal(unique(this.sensors.meg.chanunit(strmatch('MEG', this.sensors.meg.chantype))), {'snr'})
-                % This happens for pre-whitened data
-                this.sensors.meg = ft_datatype_sens(this.sensors.meg, 'version', 'latest', 'distance', 'mm');
-            else
+        else                    
+            this.sensors.meg = ft_datatype_sens(this.sensors.meg, 'version', 'latest', 'distance', 'mm');
+            % Enforce units unless pre-whitened data
+            if ~isequal(unique(this.sensors.meg.chanunit(strmatch('MEG', this.sensors.meg.chantype))), {'snr'})
                 this.sensors.meg = ft_datatype_sens(this.sensors.meg, 'version', 'latest', 'amplitude', 'T', 'distance', 'mm');
             end
         end
