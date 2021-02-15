@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8051 2021-02-06 21:57:52Z karl $
+% $Id: spm_SARS_gen.m 8063 2021-02-15 10:29:52Z karl $
 
 
 % The generative model:
@@ -251,12 +251,19 @@ for n = 1:nN
         x{n} = spm_unvec(T*spm_vec(x{n}),x{n});
         x{n} = x{n}/sum(x{n}(:));
     end
+    
+    % normalise initial marginals
+    %----------------------------------------------------------------------
+    Nf    = numel(p{n});
+    for f = 1:Nf
+        p{n}{f}  = p{n}{f}/sum(p{n}{f});
+    end
 end
 
     
 % outputs that depend upon population size
 %--------------------------------------------------------------------------
-uN     = [1,2,3,6,9,11,12,15,16,17,18,22,24,27];
+uN    = [1,2,3,6,9,12,15,16,17,18,22,24,27];
 
 % ensemble density tensor and solve over the specified number of days
 %--------------------------------------------------------------------------
@@ -264,9 +271,9 @@ Y     = cell(nN,1);                    % outputs
 X     = cell(nN,1);                    % time series of marginal densities
 Z     = cell(nN,1);                    % joint densities at each time point
 W     = cell(nN,1);                    % time-dependent parameters
-Pout  = cell(nN,1);                    % probability lockdown
+r     = cell(nN,1);                    % probability of lockdown levels
 for n = 1:nN
-    Pout{n} = 1;
+    r{n} = [1;0];
 end
 for i = 1:M.T
     for n = 1:nN
@@ -305,24 +312,41 @@ for i = 1:M.T
         % coupling between groups (contact rates)
         %==================================================================
         
+        % fluctuations in contact rates (mobility)
+        %------------------------------------------------------------------
+        Rout = 0;
+        if isfield(P,'mob')
+            for j = 1:numel(Q{n}.mob)
+                if j > numel(Q{n}.mob)/2
+                    Rout = Rout + log(Q{n}.mob(j)) * cos(2*j*pi*i/365)/8;
+                else
+                    Rout = Rout + log(Q{n}.mob(j)) * sin(2*j*pi*i/365)/8;
+                end
+            end
+        end
+        
         % probability of lockdown (a function of prevalence)
         %------------------------------------------------------------------
-        q        = spm_sum(x{n},[1 3 4]);
-        Pout{n}  = (1 - Pout{n})/Q{n}.s + Pout{n}*(1 - erf(Q{n}.qua*q(2) + Q{n}.sde*q(1)));
-        Q{n}.out = R{n}.out*(Pout{n}^Q{n}.mem);
+        q    = p{n}{2}(2)*Q{n}.sde;
+        k1   = exp(-i/Q{n}.mem)*q;
+        k2   = exp(-1/Q{n}.qua);
+        r{n} = [(1 - k1) (1 - k2);
+                     k1,      k2]*r{n};
         
-        
+        Pout     = r{n}(1)^Q{n}.s;                % P(going out)
+        Pout     = Pout*exp(Rout);                % add fluctuations
+        Q{n}.out = R{n}.out*Pout;                 % scale by baseline
        
-        % seasonal fluctuations in transmission risk
+        % seasonal variation in transmission risk
         %------------------------------------------------------------------
         S    = (1 + cos(2*pi*(i - log(Q{n}.inn)*8)/365))/2;
         
-        % and smooth fluctuations 
+        % and fluctuations 
         %------------------------------------------------------------------
         Ptra = 0;
         if isfield(Q{n},'tra')
             for j = 1:numel(Q{n}.tra)
-                Ptra = Ptra + log(Q{n}.tra(j)) * cos(j*pi*i/365)/8;
+                Ptra = Ptra + log(Q{n}.tra(j)) * cos(j*pi*i/512)/8;
             end
         end
         Ptra = exp(Ptra);
@@ -428,23 +452,24 @@ for i = 1:M.T
         % number of symptomatic people
         %------------------------------------------------------------------
         Y{n}(i,12) = N(n) * p{n}{3}(2);
-        
+
         % mobility (% normal)
         %------------------------------------------------------------------
-        q  = p{n}{1}(2)/(1 - p{n}{1}(4));
         if isfield(Q{n},'mo')
-            Y{n}(i,13) = 100 * Q{n}.mo(1)*q^Q{n}.mo(2);
+            q = 1 + Q{n}.mo(1)*Pout^Q{n}.mo(2) - Q{n}.mo(1);
         else
-            Y{n}(i,13) = 100 * q;
+            q = Pout;
         end
+        Y{n}(i,13) = 100 * q;
         
         % work (% normal)
         %------------------------------------------------------------------
         if isfield(Q{n},'wo')
-            Y{n}(i,14) = 100 * Q{n}.wo(1)*q^Q{n}.wo(2);
+            q = 1 + Q{n}.wo(1)*Pout^Q{n}.wo(2) - Q{n}.wo(1);
         else
-            Y{n}(i,14) = 100 * q;
+            q = Pout;
         end
+        Y{n}(i,14) = 100 * q;
         
         % certified deaths per day
         %------------------------------------------------------------------
@@ -472,7 +497,7 @@ for i = 1:M.T
         
         % excess deaths in hospital/CCU
         %------------------------------------------------------------------
-        q       = squeeze(spm_sum(x{n},[2,4]));
+        q          = squeeze(spm_sum(x{n},[2,4]));
         Y{n}(i,17) = N(n) * sum(q([3,6],4));
         
         % excess deaths not in hospital
@@ -495,7 +520,7 @@ for i = 1:M.T
         Y{n}(i,24) = N(n) * (p{n}{4}(5) + p{n}{4}(6));
         
         
-        % joint density if requested
+        % joint density
         %------------------------------------------------------------------
         Z{n,i} = x{n};
         
@@ -526,6 +551,9 @@ for n = 1:nN
     %----------------------------------------------------------------------
     Y{n}(:,26) = 100 * sum(X{n,2}(:,4:6),2);
     
+    % accommodate (3 week) delay in immunity following vaccination
+    %----------------------------------------------------------------------
+    Y{n}(:,22) = Y{n}(:,22) + 21*gradient(Y{n}(:,22));
     
     % retain specified output variables
     %----------------------------------------------------------------------

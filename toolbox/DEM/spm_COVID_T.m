@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8051 2021-02-06 21:57:52Z karl $
+% $Id: spm_COVID_T.m 8063 2021-02-15 10:29:52Z karl $
 
 % setup
 %==========================================================================
@@ -48,17 +48,11 @@ Q    = (1 + cos(2*pi*(P.t - log(P.inn)*8)/365))/2;
 % social distancing, based on prevalence of infection
 %--------------------------------------------------------------------------
 b    = cell(1,dim(3));
-Pout = 0;                            % fluctuating mobility
-if isfield(P,'mob')
-    for i = 1:numel(P.mob)
-        Pout = Pout + log(P.mob(i)) * cos(i*pi*P.t/365)/8;
-    end
-end
-Pout = erf(P.out*exp(Pout));         % P(leaving home | asymptomatic)
 
 % viral spread
 %--------------------------------------------------------------------------
-Pexp = Pout*P.exp;                   % P(exposed | asymptomatic)
+Pout = P.out;                        % P(leaving home | asymptomatic)
+Pexp = P.out*P.exp;                  % P(exposed | asymptomatic)
 Pdis = P.m*Pexp;                     % P(leaving effective population)
 
 % bed availability
@@ -305,7 +299,7 @@ b    = cell(1,dim(2));
 Ppcr = 0;                             
 if isfield(P,'pcr')
     for i = 1:numel(P.pcr)
-        Ppcr = Ppcr + log(P.pcr(i)) * cos(i*pi*P.t/365)/8;
+        Ppcr = Ppcr + log(P.pcr(i)) * cos(i*pi*P.t/512)/8;
     end
 end
 Ppcr = exp(Ppcr);
@@ -313,23 +307,26 @@ Ppcr = exp(Ppcr);
 
 % (pillar 1, 2 and LFD) phases of testing
 %--------------------------------------------------------------------------
-p     = zeros(1,numel(P.lim));
+% https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/943187/S0925_Innova_Lateral_Flow_SARS-CoV-2_Antigen_test_accuracy.pdf
+% https://www.bmj.com/content/bmj/369/bmj.m1808.full.pdf
+%--------------------------------------------------------------------------
+pill   = zeros(1,numel(P.lim));
 for i = 1:numel(P.lim)
-    p(i)    = P.lim(i)*spm_phi((P.t - P.ons(i))/P.rat(i));
+    pill(i) = P.lim(i)*spm_phi((P.t - P.ons(i))/P.rat(i));
 end
 
-pcr1 = p(1);                                   % pillar one testing   PCR
-pcr2 = Ppcr*p(2);                              % surveillance testing PCR
-plfd = Ppcr*sum(p(3:end));                     % surveillance testing LFD
+pcr1 = pill(1);                                % pillar one testing   PCR
+pcr2 = Ppcr*pill(2);                           % surveillance testing PCR
+Plfd = Ppcr*sum(pill(3) + pill(4));            % surveillance testing LFD
 Psen = erf(pcr1 + pcr2);                       % testing rate | susceptible PCR
 Ptes = erf(pcr1*P.tes + pcr2*P.tts);           % testing rate | infection   PCR
-Plen = erf(plfd);                              % testing rate | susceptible LFD
-Ples = erf(plfd*P.tts);                        % testing rate | infection   LFD
+Plen = erf(Plfd);                              % testing rate | susceptible LFD
+Ples = erf(Plfd);                              % testing rate | infection   LFD
 
 Sens = 1 - P.fnr;                              % sensitivity PCR
 Spec = 1 - P.fpr;                              % specificity PCR
-Lens = 1 - 0.25;                               % sensitivity LFD
-Lpec = 1 - 0.0032;                             % specificity LFD   
+Lens = 0.489;                                  % sensitivity LFD
+Lpec = 0.9993;                                 % specificity LFD   
 Kdel = exp(-1/P.del);                          % exp(-1/waiting period) PCR
 
 % marginal: testing {4} | susceptible {2}(1)
@@ -354,7 +351,12 @@ b{2} = [(1 - Ptes)*(1 - Ples) 0                   (1 - Kday) (1 - Kday) (1 - Kda
     
 % marginal: testing {4} | infectious {2}(3)
 %--------------------------------------------------------------------------
-b{3} = b{2};
+b{3} =  [(1 - Ptes)           0                   (1 - Kday) (1 - Kday) (1 - Kday) (1 - Kday);
+        Ptes                  Kdel                 0          0          0          0;
+        0                     Sens*(1 - Kdel)      Kday       0          0          0;
+        0                    (1 - Sens)*(1 - Kdel) 0          Kday       0          0;
+        0                     0                    0          0          Kday       0;
+        0                     0                    0          0          0      Kday];
     
 % marginal: testing {4} | Ab+ {2}(4)
 %--------------------------------------------------------------------------
@@ -374,12 +376,12 @@ b    = spm_cat(spm_diag(b));
 b    = spm_kron({b,I{1},I{3}});
 B{4} = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
 
-% location dependent testing (none when removed): third order dependencies
+% location dependent PCR testing (none when removed)
 %--------------------------------------------------------------------------
 ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,1},dim); B{4}(ij) = 1;
 ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,2},dim); B{4}(ij) = 0;
 
-% location dependent testing (always when ill in hospital): third order dependencies
+% location dependent PCR testing (always when ill in hospital)
 %--------------------------------------------------------------------------
 ij   = Bij({6,1:5,2:3,1},{6,1:5,2:3,1},dim); B{4}(ij) = 0;
 ij   = Bij({6,1:5,2:3,1},{6,1:5,2:3,2},dim); B{4}(ij) = 1;

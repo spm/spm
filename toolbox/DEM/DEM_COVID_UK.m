@@ -14,7 +14,9 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8051 2021-02-06 21:57:52Z karl $
+% $Id: DEM_COVID_UK.m 8063 2021-02-15 10:29:52Z karl $
+
+% DCM.F 06/02/2021: -1.8784e+04
 
 % set up and preliminaries
 %==========================================================================
@@ -178,10 +180,10 @@ Y(3).hold = 0;
 Y(4).type = 'Prevalence (ONS)'; % number of people infected (England)
 Y(4).unit = 'percent';
 Y(4).U    = 11;
-Y(4).date = datenum(survey.textdata(2:end,1),'dd/mm/yyyy') - 2;
+Y(4).date = datenum(survey.textdata(2:end,1),'dd/mm/yyyy');
 Y(4).Y    = survey.data(:,1)*100;
 Y(4).h    = 0;
-Y(4).lag  = 0;
+Y(4).lag  = 1;
 Y(4).age  = 0;
 Y(4).hold = 0;
 
@@ -432,14 +434,13 @@ pE.ho   = log([16 1/8]);       % coefficients for admissions
 pC.ho   = [1 1]/8;             % prior variance
 pE.hc   = log([8 1/4]);        % coefficients for hospital cases
 pC.hc   = [1 1]/8;             % prior variance
-
-pE.mo   = log([4,1]);          % coefficients for mobility
+pE.mo   = log([1 1]);          % coefficients for mobility
 pC.mo   = [1 1]/8;             % prior variance
-pE.wo   = log([4,1]);          % coefficients for workplace
+pE.wo   = log([1 1]);          % coefficients for workplace
 pC.wo   = [1 1]/8;             % prior variance
 
 pE.ps   = log(1);              % coefficient for positivity estimate
-pC.ps   = 1/256;               % prior variance
+pC.ps   = 1/8;                 % prior variance
 
 % reporting lags
 %--------------------------------------------------------------------------
@@ -601,15 +602,17 @@ plot([1,1]*size(DCM.Y,1),[0,5],':'), box off
 %==========================================================================
 spm_figure('GetWin','long-term (1)');
 
-Ep = DCM.Ep;
-Cp = DCM.Cp;
-M  = DCM.M;
+Ep  = DCM.Ep;
+Cp  = DCM.Cp;
+M   = DCM.M;
+M.T = datenum('01-11-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
+t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
+
 
 % fatalities
 %--------------------------------------------------------------------------
 subplot(2,1,1)
-M.T = datenum('01-11-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
-t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
+
 i   = find(DCM.U == 1,1);  D = DCM.Y(:,i); spm_SARS_ci(Ep,Cp,D,1,M);  hold on
 i   = find(DCM.U == 15,1); D = DCM.Y(:,i); spm_SARS_ci(Ep,Cp,D,15,M); hold on
 
@@ -622,12 +625,17 @@ drawnow
 % lockdown and mobility
 %--------------------------------------------------------------------------
 subplot(2,1,2)
-i         = find(DCM.U == 14,1); D = DCM.Y(:,i);
-[~,~,q,c] = spm_SARS_ci(Ep,Cp,D,14,M); hold on
+i       = find(DCM.U == 14,1); D = DCM.Y(:,i);
+q       = spm_SARS_gen(Ep,M,14);
+
+[~,~,q] = spm_SARS_ci(Ep,Cp,D,14,M); hold on
 
 % thresholds
 %--------------------------------------------------------------------------
-U    = [0 40 75 85];
+u1   = datenum('10-May-2020','dd-mmm-yyyy') - t(1) + 1;
+u2   = datenum('20-Aug-2020','dd-mmm-yyyy') - t(1) + 1;
+u3   = datenum('10-Mar-2021','dd-mmm-yyyy') - t(1) + 1;
+U    = sort([0 q(u1) q(u2) q(u3)]);
 dstr = datestr(t,'dd-mmm');
 
 % loop over levels
@@ -674,6 +682,7 @@ ylabel('percent'),  title('Mobility and lockdown','FontSize',14)
 legend({'credible interval','mobility (%)'}), legend boxoff
 drawnow
 
+
 % prevalence and reproduction ratio
 %--------------------------------------------------------------------------
 spm_figure('GetWin','long-term (2)');
@@ -703,7 +712,6 @@ legend({'CI prevalence','Prevalence (%)','CI R-number','R DCM','R SPI-M'})
 legend boxoff
 drawnow
 
-
 % attack rate, herd immunity and herd immunity threshold
 %--------------------------------------------------------------------------
 subplot(2,1,2)
@@ -711,9 +719,11 @@ spm_SARS_ci(Ep,Cp,[],25,M); hold on
 spm_SARS_ci(Ep,Cp,[],26,M); hold on
 
 [H,~,~,R] = spm_SARS_gen(Ep,M,[4 22 26]);
+i         = 1:32;                           % pre-pandemic period
 TRN       = [R{1}.Ptrn];                    % transmission risk
-R0        = H(8,1).*TRN(:)/TRN(8);          % basic reproduction ratio
-HIT       = 100 * (1 - 1./R0);              % herd immunity threshold
+R0        = mean(H(i,1));                   % basic reproduction ratio    
+RT        = R0*TRN(:)/mean(TRN(i));         % effective reproduction ratio
+HIT       = 100 * (1 - 1./RT);              % herd immunity threshold
 VAC       = H(:,2);                         % number of people vaccinated
 i         = find(H(:,3) > HIT,1);           % date threshold reached
 i         = min([i,M.T]);
@@ -725,13 +735,14 @@ qE  = 100*exp(q);
 qL  = 100*exp(q - d);
 qU  = 100*exp(q + d);
 str = sprintf('Attack rate and immunity: vaccine efficacy %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU);
+leg = sprintf('%s (HIT: %.1f%s)',datestr(t(i),'dd-mmm-yy'),HIT(i),'%');
 
 plot(t,HIT,t,VAC), hold on
 plot(t(i)*[1,1],[0,100],':k'), set(gca,'YLim',[0,100])
 ylabel('percent / millions'),  title(str,'FontSize',14)
 legend({'CI','Attack rate','CI','Herd immunity','Herd immunity threshold','Numer of vaccinations'})
 legend boxoff
-text(t(i),8,datestr(t(i),'dd-mmm-yy'),'FontSize',10), drawnow
+text(t(i),8,leg,'FontSize',10), drawnow
 
 
 %% save figures

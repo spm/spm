@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8051 2021-02-06 21:57:52Z karl $
+% $Id: spm_SARS_priors.m 8063 2021-02-15 10:29:52Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -78,9 +78,9 @@ if nargin
     %----------------------------------------------------------------------
     P.N   = P.N - log(nN);
     P.n   = P.n - 8;
-    P.rol = log([0.01  565  8;
-                 0.02  465  8;
-                 0.04  365  8]);
+    P.rol = log([0.01  (365 + 64) 8;
+                 0.02  (365 + 32) 8;
+                 0.04  (365 + 0 ) 8]);
     C.rol = [1/8 1/1024 1/1024;
              1/8 1/1024 1/1024;
              1/8 1/1024 1/1024];
@@ -93,14 +93,14 @@ if nargin
     %----------------------------------------------------------------------
     P.Nin = log([4     1     1;
                  1     4     1;
-                 1     1     4])/2;
+                 1     1     4]/2);
     
     P.Nou = log([32    4     4;
                  4     32    4;
                  4     4     32]);
              
-    C.Nin = (P.Nin > 0)*C.Nin(1);
-    C.Nou = (P.Nou > 0)*C.Nou(1);
+    C.Nin = (exp(P.Nin) > 0)*C.Nin(1);
+    C.Nou = (exp(P.Nou) > 0)*C.Nou(1);
     
     return
 end
@@ -160,7 +160,7 @@ names{37} = 'testing: onset';
 
 names{38} = 'reporting lag';
 names{39} = 'seasonal phase';
-names{40} = 'exposure exponent';
+names{40} = 'unlocking time constant';
 names{41} = 'vaccination rollout';
 
 % latent or hidden factors
@@ -235,10 +235,12 @@ str.factors = factors;
 str.factor  = factor;
 str.names   = names;
 
+% spm_SARS_plot(14)
+
 % Expectations (either heuristic or taken from the above sources)
 %==========================================================================
 P.N   = 64;                   % (01) population size (millions)
-P.n   = exp(-6);              % (02) initial cases (cases)
+P.n   = exp(-8);              % (02) proportion of initial cases (cases)
 P.r   = 0.1;                  % (03) pre-existing immunity (proportion)
 P.o   = 0.1;                  % (04) initial exposed proportion
 P.m   = 0.1;                  % (05) relative eflux
@@ -246,12 +248,12 @@ P.m   = 0.1;                  % (05) relative eflux
 % location (exposure) parameters
 %--------------------------------------------------------------------------
 P.out = 0.4;                  % (06) P(leaving home)
-P.sde = 0.01;                 % (07) sensitivity to susceptible
-P.qua = 4;                    % (08) sensitivity to prevalence
+P.sde = 4;                    % (07) time constant of lockdown
+P.qua = 64;                   % (08) time constant of unlocking
 P.exp = 0.01;                 % (09) viral spreading (days)
 P.hos = 0.8;                  % (10) admission rate (hospital)
 P.ccu = 0.2;                  % (11) admission rate (CCU)
-P.s   = 48;                   % (12) decay of social distancing (days)
+P.s   = 4;                    % (12) time constant of contact rates
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -261,7 +263,7 @@ P.trn = 0.3;                  % (15) transmission strength (winter)
 P.trm = 0.2;                  % (16) transmission strength (summer)
 P.Tin = 4;                    % (17) infected period (days)
 P.Tcn = 4;                    % (18) infectious period (days)
-P.Tim = 150;                  % (19) seropositive immunity (days)
+P.Tim = 128;                  % (19) seropositive immunity (days)
 P.res = 0.2;                  % (20) seronegative proportion (late)
 
 % clinical parameters
@@ -278,11 +280,11 @@ P.sur = 0.5;                  % (27) P(fatality | ARDS): summer
 % testing parameters
 %--------------------------------------------------------------------------
 P.ttt = 0.036;                % (28) FTTI efficacy
-P.tes = 16;                   % (29) bias (for infection): pillar one
-P.tts = 8;                    % (30) bias (for infection): pillar two
+P.tes = 4;                    % (29) bias (for infection): pillar one
+P.tts = 4;                    % (30) bias (for infection): pillar two
 P.del = 3;                    % (31) test delay (days)
-P.vac = 0.8;                  % (32) vaccine efficacy
-P.fnr = 0.2;                  % (33) false-negative rate
+P.vac = 0.6;                  % (32) vaccine efficacy
+P.fnr = 0.15;                 % (33) false-negative rate
 P.fpr = 0.002;                % (34) false-positive rate
 
 P.lim = [1 2 1 2]/1000;       % (35) testing: capacity
@@ -291,7 +293,7 @@ P.ons = [100 200 300 400];    % (37) testing: onset
 
 P.lag = [1 1];                % (38) reporting lag
 P.inn = 1;                    % (39) seasonal phase
-P.mem = 2;                    % (40) exposure exponent
+P.mem = 256;                  % (40) unlocking time constant
 P.rol = [0.01 365 8];         % (41) vaccination rollout
 
 
@@ -309,7 +311,7 @@ X     = exp(-6);              % informative priors
 
 C.N   = U;                    % (01) population size (millions)
 C.n   = U;                    % (02) initial cases (cases)
-C.r   = W;                    % (03) pre-existing immunity (proportion)
+C.r   = X;                    % (03) pre-existing immunity (proportion)
 C.o   = W;                    % (04) initial exposed proportion
 C.m   = W;                    % (05) relative eflux
 
@@ -360,7 +362,7 @@ C.ons = U;                    % (37) testing: onset (days)
 
 C.lag = V;                    % (38) reporting lag
 C.inn = V;                    % (39) seasonal phase
-C.mem = V;                    % (40) exposure exponent
+C.mem = V;                    % (40) unlocking time constant
 C.rol = X;                    % (41) vaccination rollout
 
 % check prior expectations and covariances are consistent
