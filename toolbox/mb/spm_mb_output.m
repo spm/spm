@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 8057 2021-02-09 18:41:58Z john $
+% $Id: spm_mb_output.m 8065 2021-02-15 12:42:04Z john $
 
 res  = cfg.result;
 if iscell(res), res = res{1}; end
@@ -212,7 +212,7 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
     lnP = dirichlet_logexpect(gmm.Alpha);
 
     % For improved push - subsampling density in each dimension
-    sd = spm_mb_shape('samp_dens',Mmu,Mn);
+    sd  = spm_mb_shape('samp_dens',Mmu,Mn);
 
     zn  = spm_gmmlib('resp',gmm.m,gmm.b,gmm.W,gmm.nu,gmm.gam,...
                      uint64(mg_ix), mun,mf,vf, uint64(gmm.samp), label,lnP);

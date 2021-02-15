@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: gmmlib.c 8056 2021-02-09 18:31:42Z john $
+ * $Id: gmmlib.c 8065 2021-02-15 12:42:04Z john $
  */
 #include "spm_mex.h"
 #include<math.h>
@@ -575,6 +575,22 @@ static /*@null@*/ MissInfType *allocate_missinf(mwSize P, mwSize K)
 }
 
 
+static void dispmat(double *f, mwSize d1, mwSize d2, mwSize d3)
+{
+    mwSize i, j, k;
+    for(k=0; k<d3; k++)
+    {
+        for(i=0; i<d1; i++)
+        {
+            for(j=0; j<d2; j++)
+                printf(" %g", f[i+d1*(d2*k+j)]);
+            printf("\n");
+        }
+        printf("--\n");
+    }
+}
+
+
 static MissInfType /*@NULL@*/ *prepare_missinf(mwSize P, mwSize K, double *L /* P*P */, double *m)
 {
     MissInfType *missinf;
@@ -585,7 +601,7 @@ static MissInfType /*@NULL@*/ *prepare_missinf(mwSize P, mwSize K, double *L /* 
 
     for(code=0; code<(mwSize)1<<P; code++)
     {
-        mwSize i, j, jm, jo, k;
+        mwSize i, j, im, io, jm, jo, k;
         mwSize Po, Pm;
         double p[64], *Lmm, *Lmo, *mm, *mo;
         unsigned char *obs;
@@ -614,22 +630,21 @@ static MissInfType /*@NULL@*/ *prepare_missinf(mwSize P, mwSize K, double *L /* 
 
         for(k=0; k<K; k++)
         {
-            for(j=0, jm=0, jo=0; j<P; j++)
+            for(i=0, im=0, io=0; i<P; i++)
             {
-                if (is_observed(code,j)==0)
+                if (is_observed(code,i)==0)
                 {
-                    mwSize io, im;
-                    for(i=0, io=0,im=0; i<P; i++)
+                    for(j=0, jo=0,jm=0; j<P; j++)
                     {
-                        if (is_observed(code,i)==0)
-                            Lmm[(im++)+Pm*jm] = L[i+P*(j+P*k)];
+                        if (is_observed(code,j)==0)
+                            Lmm[im+Pm*(jm++)] = L[i+P*(j+P*k)];
                         else
-                            Lmo[(io++)+Pm*jm] = L[i+P*(j+P*k)];
+                            Lmo[im+Pm*(jo++)] = L[i+P*(j+P*k)];
                     }
-                    mm[jm++] = m[j+P*k];
+                    mm[im++] = m[i+P*k];
                 }
                 else
-                    mo[jo++] = m[j+P*k];
+                    mo[io++] = m[i+P*k];
             }
 
             /* Wt = Lmm\Lmo */
@@ -645,7 +660,7 @@ static MissInfType /*@NULL@*/ *prepare_missinf(mwSize P, mwSize K, double *L /* 
         }
     }
 
-/* For debugging
+/* For debugging 
     for(code=0; code<(mwSize)1<<P; code++)
     {
         mwSize Po, Pm;
@@ -661,20 +676,6 @@ static MissInfType /*@NULL@*/ *prepare_missinf(mwSize P, mwSize K, double *L /* 
     return missinf;
 }
 
-static void dispmat(double *f, mwSize d1, mwSize d2, mwSize d3)
-{
-    mwSize i, j, k;
-    for(k=0; k<d3; k++)
-    {
-        for(i=0; i<d1; i++)
-        {
-            for(j=0; j<d2; j++)
-                printf(" %f", f[i+d1*(d2*k+j)]);
-            printf("\n");
-        }
-        printf("--\n");
-    }
-}
 
 /* Construct a data structure for storing a variational Gaussian
  * mixture model for handling missing data.
@@ -1168,12 +1169,12 @@ double call_INUgrads(mwSize nf[], float mf[], float vf[], unsigned char label[],
  * skip - Sampling density for log tissue priors (in x, y and z).
  * lkp  - Lookup table relating Gaussians to tissue classes.
  * lp   - Log tissue priors
- * mf1  - Output data (n_x, n_y, n_z, P).
+ * mx1  - Output data (n_x, n_y, n_z, P).
  */
 static int fill_missing(mwSize nf[], float mf[], float vf[], unsigned char label[],
               mwSize K, GMMtype gmm[], MissInfType missinf[],double lnP[],
               mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
-              float  mf1[])
+              float  mx1[])
 {
     mwSize P, Nf, Nm, i0,i1,i2, n0,n1,n2;
     double mx[MaxChan], vx[MaxChan], p[128];
@@ -1221,10 +1222,10 @@ static int fill_missing(mwSize nf[], float mf[], float vf[], unsigned char label
                     {
                         if (obs[j]!=(unsigned char)0)
                         {   /* Simply copy existing data */
-                            mf1[i+j*Nf] = mx[jo++];
+                            mx1[i+j*Nf] = mx[jo++];
                         }
                         else
-                        {  /* Infer missing data using Bishop's PRML eq 2.96 */
+                        {  /* Infer missing data using Bishop's PRML eq 2.96 & 2.97 */
                             mwSize k;
                             double tmp1;
                             for(k=0, tmp1=0.0; k<K; k++)
@@ -1232,10 +1233,10 @@ static int fill_missing(mwSize nf[], float mf[], float vf[], unsigned char label
                                 mwSize io;
                                 double tmp = mm[jm+Pm*k];
                                 for(io=0; io<Po; io++)
-                                    tmp += Wt[io+Pm*(jm+Po*k)]*(mo[io+Po*k]-mx[io]);
-                                tmp1 += tmp*p[k]; /* weighted average */
+                                    tmp += Wt[jm+Pm*(io+Po*k)]*(mo[io+Po*k]-mx[io]);
+                                tmp1 += tmp*p[k]; /* weight average by responsibilities */
                             }
-                            mf1[i+j*Nf] = (float)tmp1;
+                            mx1[i+j*Nf] = (float)tmp1;
                             jm ++;
                         }
                     }
@@ -1248,7 +1249,7 @@ static int fill_missing(mwSize nf[], float mf[], float vf[], unsigned char label
                     for(j=0, jo=0; j<P; j++)
                     {
                         if (obs[j]!=(unsigned char)0)
-                            mf1[i+j*Nf] = mx[jo++];
+                            mx1[i+j*Nf] = mx[jo++];
                     }
                 }
             }
@@ -1261,7 +1262,7 @@ static int fill_missing(mwSize nf[], float mf[], float vf[], unsigned char label
 int call_fill_missing(mwSize nf[], float mf[], float vf[], unsigned char label[],
     mwSize K, double mu[], double b[], double W[], double nu[], double gam[], double lnP[],
     mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
-    float mf1[])
+    float mx1[])
 {
     mwSize P = nf[3];
     GMMtype *gmm;
@@ -1276,7 +1277,7 @@ int call_fill_missing(mwSize nf[], float mf[], float vf[], unsigned char label[]
         return -1;
     }
 
-    sts = fill_missing(nf, mf, vf, label, K, gmm, missinf, lnP, nm, skip, lkp, lp, mf1);
+    sts = fill_missing(nf, mf, vf, label, K, gmm, missinf, lnP, nm, skip, lkp, lp, mx1);
     (void)free((void *)gmm);
     (void)free((void *)missinf);
     return sts;
