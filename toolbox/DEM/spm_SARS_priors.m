@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8063 2021-02-15 10:29:52Z karl $
+% $Id: spm_SARS_priors.m 8067 2021-02-21 16:15:48Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -78,9 +78,9 @@ if nargin
     %----------------------------------------------------------------------
     P.N   = P.N - log(nN);
     P.n   = P.n - 8;
-    P.rol = log([0.01  (365 + 64) 8;
-                 0.02  (365 + 32) 8;
-                 0.04  (365 + 0 ) 8]);
+    P.rol = log([0.01  (365 + 128) 8;
+                 0.02  (365 + 64 ) 8;
+                 0.04  (365 + 0  ) 8]);
     C.rol = [1/8 1/1024 1/1024;
              1/8 1/1024 1/1024;
              1/8 1/1024 1/1024];
@@ -193,8 +193,8 @@ factor{5} = {' ',' '};
 % Y(:,16) - Hospital admissions
 % Y(:,17) - Hospital deaths
 % Y(:,18) - Non-hospital deaths
-% Y(:,19) - Deaths (>60 years)
-% Y(:,20) - Deaths (<60 years)
+% Y(:,19) - Daily incidence (per hundred thousand)
+% Y(:,20) - Weekly confirmed cases (per hundred thousand)
 % Y(:,21) - Infection fatality ratio (%)
 % Y(:,22) - Cumulative first dose
 % Y(:,23) - PCR case positivity (%)
@@ -221,8 +221,8 @@ str.outcome = {'Daily deaths (28 days)',...
     'Hospital admissions'...
     'Hospital deaths',...
     'Non-hospital deaths'...
-    'Deaths (>60 years)',...
-    'Deaths (<60 years)',...
+    'Daily incidence (per 100,000)',...
+    'Weekly confirmed cases (per 100,000)',...
     'IFR (%)',...
     'Cumulative first dose',...
     'PCR positivity (%)',...
@@ -235,8 +235,6 @@ str.factors = factors;
 str.factor  = factor;
 str.names   = names;
 
-% spm_SARS_plot(14)
-
 % Expectations (either heuristic or taken from the above sources)
 %==========================================================================
 P.N   = 64;                   % (01) population size (millions)
@@ -248,9 +246,9 @@ P.m   = 0.1;                  % (05) relative eflux
 % location (exposure) parameters
 %--------------------------------------------------------------------------
 P.out = 0.4;                  % (06) P(leaving home)
-P.sde = 4;                    % (07) time constant of lockdown
+P.sde = 8;                    % (07) time constant of lockdown
 P.qua = 64;                   % (08) time constant of unlocking
-P.exp = 0.01;                 % (09) viral spreading (days)
+P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 0.8;                  % (10) admission rate (hospital)
 P.ccu = 0.2;                  % (11) admission rate (CCU)
 P.s   = 4;                    % (12) time constant of contact rates
@@ -280,12 +278,12 @@ P.sur = 0.5;                  % (27) P(fatality | ARDS): summer
 % testing parameters
 %--------------------------------------------------------------------------
 P.ttt = 0.036;                % (28) FTTI efficacy
-P.tes = 4;                    % (29) bias (for infection): pillar one
-P.tts = 4;                    % (30) bias (for infection): pillar two
+P.tes = [16 8];               % (29) bias (for infection): PCR (Pill. 1 & 2)
+P.tts = 1;                    % (30) bias (for infection): LFD
 P.del = 3;                    % (31) test delay (days)
 P.vac = 0.6;                  % (32) vaccine efficacy
-P.fnr = 0.15;                 % (33) false-negative rate
-P.fpr = 0.002;                % (34) false-positive rate
+P.fnr = 0.2;                  % (33) false-negative rate
+P.fpr = [0.002 0.02];         % (34) false-positive rate: (Sus. and Ab +ve)
 
 P.lim = [1 2 1 2]/1000;       % (35) testing: capacity
 P.rat = [8 24 24 8];          % (36) testing: dispersion
@@ -320,7 +318,7 @@ C.m   = W;                    % (05) relative eflux
 C.out = X;                    % (06) P(leaving home)
 C.sde = V;                    % (07) sensitivity to susceptibility
 C.qua = V;                    % (08) sensitivity to seroprevalence
-C.exp = V;                    % (09) viral spreading (days)
+C.exp = W;                    % (09) viral spreading (rate)
 C.hos = W;                    % (10) admission rate (hospital)
 C.ccu = W;                    % (11) admission rate (CCU)
 C.s   = W;                    % (12) decay of social distancing
@@ -353,15 +351,15 @@ C.tes = V;                    % (29) testing: bias (early)
 C.tts = V;                    % (30) testing: bias (late)
 C.del = X;                    % (31) test delay (days)
 C.vac = X;                    % (32) vaccine efficacy
-C.fnr = X;                    % (33) false-negative rate
-C.fpr = X;                    % (34) false-positive rate
+C.fnr = W;                    % (33) false-negative rate
+C.fpr = W;                    % (34) false-positive rate
 
 C.lim = V;                    % (35) testing: capacity
 C.rat = X;                    % (36) testing: constant (days)
 C.ons = U;                    % (37) testing: onset (days)
 
 C.lag = V;                    % (38) reporting lag
-C.inn = V;                    % (39) seasonal phase
+C.inn = W;                    % (39) seasonal phase
 C.mem = V;                    % (40) unlocking time constant
 C.rol = X;                    % (41) vaccination rollout
 

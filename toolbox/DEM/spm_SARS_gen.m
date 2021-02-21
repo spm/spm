@@ -29,8 +29,8 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,16) - Hospital admissions
 % Y(:,17) - Hospital deaths
 % Y(:,18) - Non-hospital deaths
-% Y(:,19) -
-% Y(:,20) -
+% Y(:,19) - Daily incidence (per hundred thousand)
+% Y(:,20) - Weekly confirmed cases (per hundred thousand)
 % Y(:,21) - Infection fatality ratio (%)
 % Y(:,22) - Number vaccinated
 % Y(:,23) - PCR case positivity (%)
@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8063 2021-02-15 10:29:52Z karl $
+% $Id: spm_SARS_gen.m 8067 2021-02-21 16:15:48Z karl $
 
 
 % The generative model:
@@ -335,7 +335,7 @@ for i = 1:M.T
         
         Pout     = r{n}(1)^Q{n}.s;                % P(going out)
         Pout     = Pout*exp(Rout);                % add fluctuations
-        Q{n}.out = R{n}.out*Pout;                 % scale by baseline
+        Q{n}.out = Pout*R{n}.out;                 % scale by baseline
        
         % seasonal variation in transmission risk
         %------------------------------------------------------------------
@@ -369,9 +369,9 @@ for i = 1:M.T
             ths = ths*(1 - Ptrn*phs(3))^Q{n}.Nou(j);
         end
         
-        Q{n}.tin = tin;    % P(no transmission | home)
-        Q{n}.tou = tou;    % P(no transmission | work)
-        Q{n}.ths = ths;    % P(no transmission | hospital)
+        Q{n}.tin = min(tin,1);    % P(no transmission | home)
+        Q{n}.tou = min(tou,1);    % P(no transmission | work)
+        Q{n}.ths = min(ths,1);    % P(no transmission | hospital)
                 
         
         % update ensemble density (x)
@@ -451,7 +451,12 @@ for i = 1:M.T
         
         % number of symptomatic people
         %------------------------------------------------------------------
-        Y{n}(i,12) = N(n) * p{n}{3}(2);
+        q          = p{n}{3}(2);
+        if isfield(Q{n},'sy')
+            Y{n}(i,12) = N(n) * Q{n}.sy(1)*q^Q{n}.sy(2);
+        else
+            Y{n}(i,12) = N(n) * q;
+        end
 
         % mobility (% normal)
         %------------------------------------------------------------------
@@ -535,14 +540,29 @@ for n = 1:nN
     K          = gradient(log(Y{n}(:,4)));
     Y{n}(:,4)  = 1 + K*(Q{n}.Tin + Q{n}.Tcn) + K.^2*Q{n}.Tin*Q{n}.Tcn;
     
-    % incidence of new infections (%) (loss of susceptibility)
+    % incidence of new infections (%)
     %----------------------------------------------------------------------
-    Y{n}(:,10) = 100 * (diff(X{n,2}(1:2,1)) - gradient(X{n,2}(:,1)));
+    Kinf       = 1 - exp(-1/Q{n}.Tin);
+    prev       = X{n,2}(:,2);
+    Y{n}(:,10) = 100 * (gradient(prev) + Kinf*prev);
+    
+    % Y(:,19) - Daily incidence (per hundred thousand)
+    %----------------------------------------------------------------------
+    Y{n}(:,19) = 1000 * Y{n}(:,10);
+    
+    % Y(:,20) - Weekly confirmed cases (per hundred thousand)
+    %----------------------------------------------------------------------
+    Y{n}(:,20) = 100000 * 7 * Y{n}(:,2) / N(n);
     
     % infection fatality ratio (%)
     %----------------------------------------------------------------------
-    Y{n}(:,21) = 100 * cumsum(Y{n}(:,1)/N(n))./cumsum(Y{n}(:,10)/100 + exp(-16));
-    
+    Psev       = [W{n}.Psev]';
+    Pfat       = [W{n}.Pfat]';
+    Pinf       = [W{n}.Pinf]';
+    Y{n}(:,21) = 100 * (1 - (1 - Pinf).^(Q{n}.Tin + Q{n}.Tcn)).*Psev.*Pfat;
+
+    % Y{n}(:,21) = 100 * cumsum(Y{n}(:,1)/N(n))./cumsum(Y{n}(:,10)/100 + exp(-16));
+
     % cumulative attack rate (%)
     %----------------------------------------------------------------------
     Y{n}(:,25) = cumsum(Y{n}(:,10));

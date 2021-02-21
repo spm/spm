@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8063 2021-02-15 10:29:52Z karl $
+% $Id: DEM_COVID_UK.m 8067 2021-02-21 16:15:48Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -35,11 +35,6 @@ function DCM = DEM_COVID_UK
 %--------------------------------------------------------------------------
 options = weboptions('ContentType','table');
 options.Timeout = 20;
-
-% England to UK operation conversion
-%--------------------------------------------------------------------------
-EnglandUK     = 66.79/56.28;
-EngandWalesUK = 66.79/(56.28 + 3.15);
 
 % set up and get data
 %==========================================================================
@@ -104,14 +99,8 @@ try
     writetable(webread(url,options),'transport.csv');
     url = 'https://www.gstatic.com/covid19/mobility/2020_GB_Region_Mobility_Report.csv';
     tab = webread(url);
-    writetable(tab(1:512,8:12),'mobility.csv');
+    writetable(tab(1:512,9:12),'mobility.csv');
     
-    % https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending11december2020
-    url   = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending15january2021/0b71dfc4&format=csv';
-    writetable(webread(url,options),'place.csv');
-    
-    % url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/articles/coronaviruscovid19infectionsinthecommunityinengland/december2020/b5e03a02&format=csv';
-    % writetable(webread(url,options),'seropositive.csv');
 
     disp('download successful')
     
@@ -119,6 +108,23 @@ catch
     
     disp('download failed')
     
+end
+
+% Files to be updated by hand
+%--------------------------------------------------------------------------
+if false
+    url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending5february2021/ea5bdef1&format=csv';
+    tab = webread(url,options);
+    nd  = size(tab,1);
+    dn  = (1:nd) + datenum(tab{end,1}) - nd;
+    ds  = datestr(dn,'dd/mm/yyyy');
+    for i = 1:nd
+        tab(i,1) = {ds(i,:)};
+    end
+    writetable(tab,'place.csv');
+    
+    url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/articles/coronaviruscovid19infectionsinthecommunityinengland/december2020/b5e03a02&format=csv';
+    writetable(webread(url,options),'seropositive.csv');
 end
 
 % import data
@@ -288,11 +294,18 @@ Y(14).lag  = 0;
 Y(14).age  = 0;
 Y(14).hold = 0;
 
+% scaling for data from England
+%--------------------------------------------------------------------------
+EngWale    = sum(sum(place.data(1:end - 8,1:4),2));
+UK         = sum(deaths.data(4:end,1));
+EngWaleUK  = UK/EngWale;
+
+
 Y(15).type = 'Hospital deaths (PHE)'; % hospital deaths
 Y(15).unit = 'number';
 Y(15).U    = 17;
-Y(15).date = datenum(place.textdata(2:end - 8,1),'dd-mmm-yyyy') - 1;
-Y(15).Y    = place.data(1:end - 8,4)*EngandWalesUK;
+Y(15).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yyyy') - 1;
+Y(15).Y    = place.data(1:end - 8,1)*EngWaleUK;
 Y(15).h    = 0;
 Y(15).lag  = 0;
 Y(15).age  = 0;
@@ -301,8 +314,8 @@ Y(15).hold = 1;
 Y(16).type = 'Hospital/Other deaths (PHE)'; % nonhospital deaths
 Y(16).unit = 'number';
 Y(16).U    = 18;
-Y(16).date = datenum(place.textdata(2:end - 8,1),'dd-mmm-yyyy') - 11;
-Y(16).Y    = sum(place.data(1:end - 8,1:3),2)*EngandWalesUK;
+Y(16).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yyyy') - 11;
+Y(16).Y    = sum(place.data(1:end - 8,2:3),2)*EngWaleUK;
 Y(16).h    = 0;
 Y(16).lag  = 0;
 Y(16).age  = 0;
@@ -328,6 +341,13 @@ Y(18).h    = 0;
 Y(18).lag  = 0;
 Y(18).age  = 0;
 Y(18).hold = 0;
+
+
+% scaling for data from England
+%--------------------------------------------------------------------------
+England    = sum(sum(ages.data(:,[1 3 4 5 6 7:13 15 16:21]),2));
+UK         = sum(deaths.data(4:end,1));
+EnglandUK  = UK/England;
 
 
 % age-specific data
@@ -428,9 +448,12 @@ pC.N    = spm_zeros(pE.N);
 
 % coefficients for likelihood model
 %--------------------------------------------------------------------------
+% pE.sy = log([1 1;1 1; 1 1]); % coefficients for symptoms
+% pC.sy = [1 1;1 1; 1 1]/8;    % prior variance
+
 pE.dc   = log([1 1/16]);       % coefficients for death (28 days)
 pC.dc   = [1 1]/8;             % prior variance
-pE.ho   = log([16 1/8]);       % coefficients for admissions
+pE.ho   = log([8 1/8]);        % coefficients for admissions
 pC.ho   = [1 1]/8;             % prior variance
 pE.hc   = log([8 1/4]);        % coefficients for hospital cases
 pC.hc   = [1 1]/8;             % prior variance
@@ -454,13 +477,11 @@ pC.lag  = lag;                 % prior variance
 pE.tra  = zeros(1,8);          % transmission strength
 pC.tra  = ones(1,8)/256;       % prior variance
 
-pE.mob  = zeros(1,16);         % mobility
-pC.mob  = ones(1,16)/256;      % prior variance
-
 pE.pcr  = zeros(1,8);          % testing
-pC.pcr  = ones(1,8)/64;        % prior variance
+pC.pcr  = ones(1,8)/8;       % prior variance
 
-
+pE.mob  = zeros(1,16);         % mobility
+pC.mob  = ones(1,16)/8;      % prior variance
 
 % model specification
 %==========================================================================
@@ -587,20 +608,20 @@ legend({'< 24yrs','25-64yrs','> 64yrs'})
 
 % testing rates
 %--------------------------------------------------------------------------
-j    = j + 1;
-subplot(4,2,j), hold on
-for i = 1:numel(R)
-    plot(100 * [R{i}.Psen]), plot(100 * [R{i}.Ptes])
-end
-spm_axis tight
-title('Testing rates (un/infected)','FontSize',14)
-xlabel('days'),ylabel('percent')
-plot([1,1]*size(DCM.Y,1),[0,5],':'), box off
+% j    = j + 1;
+% subplot(4,2,j), hold on
+% for i = 1:numel(R)
+%     plot(100 * [R{i}.Psen]), plot(100 * [R{i}.Ptes])
+% end
+% spm_axis tight
+% title('Testing rates (un/infected)','FontSize',14)
+% xlabel('days'),ylabel('percent')
+% plot([1,1]*size(DCM.Y,1),[0,5],':'), box off
 
 
 %% long-term forecasts
 %==========================================================================
-spm_figure('GetWin','long-term (1)');
+spm_figure('GetWin','outcomes (3)');
 
 Ep  = DCM.Ep;
 Cp  = DCM.Cp;
@@ -608,6 +629,18 @@ M   = DCM.M;
 M.T = datenum('01-11-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
 t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
 
+% infection fatality ratios (%)
+%--------------------------------------------------------------------------
+subplot(2,1,2)
+spm_SARS_ci(Ep,Cp,[],19,M); hold on
+spm_SARS_ci(Ep,Cp,[],20,M); hold on
+ylabel('cases per 100,000'), title('Incidence per 100,000','FontSize',14)
+plot(datenum(date)*[1,1],get(gca,'YLim'),':')
+legend({'CI per day','actual cases per day','CI per week','confirmed cases per week'})
+
+% switch windows
+%--------------------------------------------------------------------------
+spm_figure('GetWin','long-term (1)');
 
 % fatalities
 %--------------------------------------------------------------------------

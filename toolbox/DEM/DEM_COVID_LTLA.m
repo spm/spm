@@ -95,7 +95,7 @@ for i = 1:numel(Area)
         j = D(k).date(:) < mean(D(k).date) & isnan(D(k).deaths);
         D(k).deaths(j) = 0;
         
-        if isempty(D(k).N) || sum(D(k).cases) < 64
+        if isempty(D(k).N) || sum(D(k).cases) < 512
             k = k - 1; disp([Area(i),AreaName(j(1))]);
         end
         
@@ -221,7 +221,7 @@ for r = 1:numel(D)
     % get and set priors
     %----------------------------------------------------------------------
     if numel(pE.N) > 1
-        pE.N      = log(D(r).A(:)/1e6);
+        pE.N = log(D(r).A(:)/1e6);
     else
         pE.N = log(D(r).N/1e6);    % population of local authority
     end
@@ -259,10 +259,24 @@ for r = 1:numel(D)
     %----------------------------------------------------------------------
     M.T    = numel(dates) + 32;
     u      = [find(U == 1) find(U == 2) find(U == 23)];
-    S      =  DCM(r).S(:,u); S(isnan(S)) = 0;
+    S      = DCM(r).S(:,u); S(isnan(S)) = 0;
     [Y,X]  = spm_SARS_gen(DCM(r).Ep,M,[1 2 23]);
     spm_SARS_plot(Y,X,S,[1 2 23]);
     
+    % plot incidence
+    %----------------------------------------------------------------------
+    subplot(3,1,3)
+    spm_SARS_ci(Ep,Cp,[],19,M); hold on
+    spm_SARS_ci(Ep,Cp,[],20,M); hold on
+    ylabel('cases per 100,000'), title('Incidence per 100,000','FontSize',14)
+    plot(datenum(date)*[1,1],get(gca,'YLim'),':')
+    plot(get(gca,'XLim'),[100,100],'-.r')
+    plot(get(gca,'XLim'),[10,10],  '-.g')
+    text(datenum('01/02/2020','dd/mm/yyyy'), 100,'Red Zone','Color','r','FontSize',8)
+    text(datenum('01/02/2020','dd/mm/yyyy'), 10,'Greem Zone','Color','g','FontSize',8)
+    
+    legend({'CI per day','actual cases per day','CI per week','confirmed cases per week'},'Location','northwest')
+    legend boxoff
     
     %----------------------------------------------------------------------
     % Y(:,1)  - number of new deaths
@@ -289,7 +303,7 @@ for r = 1:numel(D)
     % mean infectious period (MIP) & critical herd immunity threshold (CIT)
     %----------------------------------------------------------------------
     MIP     = exp(Ep.Tin) + exp(Ep.Tcn)/2;
-    CIT     = -(Y(end,3)/100/MIP)*log(1 - CT(end,r)/100)*100000;
+    CIT     = (Y(end,3)/100/MIP) * 100000;
 
     % supplement with table of posterior expectations
     %----------------------------------------------------------------------
@@ -306,31 +320,36 @@ for r = 1:numel(D)
     text(0,0.7,str,'FontSize',10,'FontWeight','bold')
     
     str = sprintf('Daily incidence: %.0f per 100,000',  DT(end,r));
-    text(0,0.6,str,'FontSize',10,'FontWeight','bold')
+    if DT(end,r) > 100
+        text(0,0.6,str,'FontSize',10,'FontWeight','bold','Color','r')
+    elseif DT(end,r) < 10
+        text(0,0.6,str,'FontSize',10,'FontWeight','bold','Color','g')
+    else
+        text(0,0.6,str,'FontSize',10,'FontWeight','bold','Color',[1 1/2 1/4])
+    end
     
     str = sprintf('Proportion seropositive: %.1f%s',    DI(end,r),'%');
     text(0,0.5,str,'FontSize',10,'FontWeight','bold')
     
-    str = sprintf('Prevalence of infection (p): %.2f%s',DP(end,r),'%');
+    str = sprintf('Prevalence of infection: %.2f%s',DP(end,r),'%');
     text(0,0.4,str,'FontSize',10,'FontWeight','bold')
     
-    str = sprintf('Proportion previously infected (q): %.1f%s',CT(end,r),'%');
+    str = sprintf('Proportion previously infected: %.1f%s',CT(end,r),'%');
     text(0,0.3,str,'FontSize',10,'FontWeight','bold')
     
-    str = sprintf('Infectious period (t): %.1f days',      MIP);
+    str = sprintf('Infectious period: %.1f days',      MIP);
     text(0,0.2,str,'FontSize',10,'FontWeight','bold')
     
-    str = sprintf('Target incidence (r): %.0f per 100,000',CIT);
-
-    if DT(end,r) > CIT
-        text(0,0.1,str,'FontSize',10,'FontWeight','bold','Color','r')
-    else
-        text(0,0.1,str,'FontSize',10,'Color','g')
-    end
+%     str = sprintf('Target incidence (r): %.0f per 100,000',CIT);
+% 
+%     if DT(end,r) > CIT
+%         text(0,0.1,str,'FontSize',10,'FontWeight','bold','Color','r')
+%     else
+%         text(0,0.1,str,'FontSize',10,'Color','g')
+%     end
     
-    str = {'target incidence is evaluated as r = -(p/t)log(1 - q) ' ...
-           '(based on ONS census figures for lower tier local authorities)'};
-    text(0,-0.1,str,'FontSize',8,'Color','k')
+    str = {'(based on ONS census figures for lower tier local authorities)'};
+    text(0,0,str,'FontSize',8,'Color','k')
     
     spm_axis tight, axis off
     drawnow

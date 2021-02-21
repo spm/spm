@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8063 2021-02-15 10:29:52Z karl $
+% $Id: spm_COVID_T.m 8067 2021-02-21 16:15:48Z karl $
 
 % setup
 %==========================================================================
@@ -38,9 +38,10 @@ end
 %--------------------------------------------------------------------------
 Kday = exp(-1);
 
-% seasonal fluctuations
+% seasonal and monotonic fluctuations
 %--------------------------------------------------------------------------
-Q    = (1 + cos(2*pi*(P.t - log(P.inn)*8)/365))/2;
+Q    = (1 + cos(2*pi*P.t/365))/2;
+S    = exp(-P.t/512);
 
 % probabilistic transitions: location
 %==========================================================================
@@ -229,7 +230,7 @@ B{2} = spm_permute_kron(b,dim([2,1,3,4]),[2,1,3,4]);
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
 Psev = erf(P.sev*Q + P.lat*(1 - Q));         % P(ARDS | infected)
-Pfat = erf(P.fat*Q + P.sur*(1 - Q));         % P(fatality | ARDS, CCU)
+Pfat = erf(P.fat*S + P.sur*(1 - S));         % P(fatality | ARDS, CCU)
 Ksym = exp(-1/P.Tsy);                        % acute symptomatic rate
 Ktrd = exp(-1/P.Trd);                        % acute RDS rate
 Ktic = exp(-1/P.Tic);                        % incubation rate
@@ -319,12 +320,13 @@ pcr1 = pill(1);                                % pillar one testing   PCR
 pcr2 = Ppcr*pill(2);                           % surveillance testing PCR
 Plfd = Ppcr*sum(pill(3) + pill(4));            % surveillance testing LFD
 Psen = erf(pcr1 + pcr2);                       % testing rate | susceptible PCR
-Ptes = erf(pcr1*P.tes + pcr2*P.tts);           % testing rate | infection   PCR
+Ptes = erf(pcr1*P.tes(1) + pcr2*P.tes(2));     % testing rate | infection   PCR
 Plen = erf(Plfd);                              % testing rate | susceptible LFD
-Ples = erf(Plfd);                              % testing rate | infection   LFD
+Ples = erf(Plfd*P.tts);                        % testing rate | infection   LFD
 
-Sens = 1 - P.fnr;                              % sensitivity PCR
-Spec = 1 - P.fpr;                              % specificity PCR
+Sens = 1 - P.fnr;                              % sensitivity PCR | infection
+Spec = 1 - P.fpr(1);                           % specificity PCR
+Speb = 1 - P.fpr(2);                           % specificity PCR | Ab +ve
 Lens = 0.489;                                  % sensitivity LFD
 Lpec = 0.9993;                                 % specificity LFD   
 Kdel = exp(-1/P.del);                          % exp(-1/waiting period) PCR
@@ -351,16 +353,21 @@ b{2} = [(1 - Ptes)*(1 - Ples) 0                   (1 - Kday) (1 - Kday) (1 - Kda
     
 % marginal: testing {4} | infectious {2}(3)
 %--------------------------------------------------------------------------
-b{3} =  [(1 - Ptes)           0                   (1 - Kday) (1 - Kday) (1 - Kday) (1 - Kday);
-        Ptes                  Kdel                 0          0          0          0;
+b{3} = [(1 - Ptes)*(1 - Ples) 0                   (1 - Kday) (1 - Kday) (1 - Kday) (1 - Kday);
+        Ptes*(1 - Ples)       Kdel                 0          0          0          0;
         0                     Sens*(1 - Kdel)      Kday       0          0          0;
         0                    (1 - Sens)*(1 - Kdel) 0          Kday       0          0;
-        0                     0                    0          0          Kday       0;
-        0                     0                    0          0          0      Kday];
-    
+        Lens*Ples             0                    0          0          Kday       0;
+        (1 - Lens)*Ples       0                    0          0          0      Kday];
+
 % marginal: testing {4} | Ab+ {2}(4)
 %--------------------------------------------------------------------------
-b{4} = b{1};
+b{4} = [(1 - Psen)*(1 - Plen) 0                   (1 - Kday) (1 - Kday) (1 - Kday) (1 - Kday);
+        Psen*(1 - Plen)       Kdel                 0          0          0          0;
+        0                    (1 - Speb)*(1 - Kdel) Kday       0          0          0;
+        0                     Speb*(1 - Kdel)      0          Kday       0          0;
+        (1 - Lpec)*Plen       0                    0          0          Kday       0;
+        Lpec*Plen             0                    0          0          0      Kday];
     
 % marginal: testing {4} | Ab- {2}(5)
 %--------------------------------------------------------------------------
