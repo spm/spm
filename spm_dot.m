@@ -16,14 +16,14 @@ function [X] = spm_dot(X,x,i)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dot.m 8000 2020-11-03 19:04:17Z karl $
+% $Id: spm_dot.m 8068 2021-02-24 17:55:03Z thomas $
 
 % initialise dimensions
 %--------------------------------------------------------------------------
 if iscell(x)
     DIM = (1:numel(x)) + ndims(X) - numel(x);
 else
-    DIM = ndims(X);
+    DIM = find(size(X) == numel(x),1);
     x   = {x};
 end
 
