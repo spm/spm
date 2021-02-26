@@ -9,7 +9,7 @@ function this = read_freesurfer_file(filename)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: read_freesurfer_file.m 7471 2018-11-02 11:14:39Z guillaume $
+% $Id: read_freesurfer_file.m 8069 2021-02-26 18:23:02Z guillaume $
 
 
 [p,n,e] = fileparts(filename);
@@ -23,6 +23,8 @@ switch lower(e)
         this = read_fs_file_mesh(filename);
     case {'.curv','.area','.sulc'}
         this = read_fs_file_cdata(filename);
+    case '.annot'
+        this = read_fs_annotation(filename);
     otherwise
         error('Unknown file format.');
 end
@@ -150,4 +152,38 @@ nf = fread(fid,1,'int32');
 n  = fread(fid,1,'int32');
 this.cdata = fread(fid,[n nv],'float32')';
 
+fclose(fid);
+
+
+function this = read_fs_annotation(filename)
+fid = fopen(filename,'r','ieee-be');
+if fid == -1, error('Cannot open "%s".',filename); end
+
+nv = fread(fid,1,'int32');
+this.cdata = fread(fid,2*nv,'int32');
+this.cdata = reshape(this.cdata',2,[])'; % [vertex_index lut_index]
+
+ct = fread(fid,1,'int32'); % colortable
+if ~isempty(ct) && ct
+    ver = fread(fid,1,'int32');
+    if ver ~= -2
+        fclose(fid) ;
+        error('Only version 2 supported.');
+    end
+    N1    = fread(fid,1,'int32'); % numEntries
+    l     = fread(fid,1,'int32');
+    orig  = deblank(fread(fid,l,'*char')'); % original colortable file
+    N2    = fread(fid,1,'int32'); % numEntriesToRead
+    names = cell(1,N1);
+    lut   = zeros(1,N1);
+    RGBA  = zeros(4,N1);
+    for i=1:N2
+        s = fread(fid,1,'int32');
+        l = fread(fid,1,'int32');
+        names{s}  = deblank(fread(fid,l,'*char')');
+        RGBA(:,s) = fread(fid,4,'int32'); % RGBA
+        lut(s)    = [1 256 65536]*RGBA(1:3,s);
+    end
+    ct = struct('names',names,'RGBA',RGBA,'lut',lut);
+end
 fclose(fid) ;
