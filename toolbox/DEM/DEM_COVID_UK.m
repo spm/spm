@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8067 2021-02-21 16:15:48Z karl $
+% $Id: DEM_COVID_UK.m 8070 2021-02-27 18:12:45Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -101,7 +101,6 @@ try
     tab = webread(url);
     writetable(tab(1:512,9:12),'mobility.csv');
     
-
     disp('download successful')
     
 catch
@@ -111,21 +110,13 @@ catch
 end
 
 % Files to be updated by hand
+% https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending12february2021
 %--------------------------------------------------------------------------
-if false
-    url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending5february2021/ea5bdef1&format=csv';
-    tab = webread(url,options);
-    nd  = size(tab,1);
-    dn  = (1:nd) + datenum(tab{end,1}) - nd;
-    ds  = datestr(dn,'dd/mm/yyyy');
-    for i = 1:nd
-        tab(i,1) = {ds(i,:)};
-    end
-    writetable(tab,'place.csv');
-    
-    url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/articles/coronaviruscovid19infectionsinthecommunityinengland/december2020/b5e03a02&format=csv';
-    writetable(webread(url,options),'seropositive.csv');
-end
+% url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending12february2021/72e9fecb&format=csv';
+% writetable(webread(url,options),'place.csv');
+% url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/articles/coronaviruscovid19infectionsinthecommunityinengland/december2020/b5e03a02&format=csv';
+% writetable(webread(url,options),'seropositive.csv');
+
 
 % import data
 %--------------------------------------------------------------------------
@@ -208,7 +199,7 @@ Y(6).unit = 'number';
 Y(6).U    = 15;
 Y(6).date = datenum(certified.textdata(2:end,1),'yyyy-mm-dd') - 10;
 Y(6).Y    = certified.data(:,1)/7;
-Y(6).h    = 0;
+Y(6).h    = 2;
 Y(6).lag  = 0;
 Y(6).age  = 0;
 Y(6).hold = 0;
@@ -326,8 +317,8 @@ Y(17).unit = 'percent';
 Y(17).U    = 5;
 Y(17).date = [datenum(serology.textdata(2:end,1),'dd/mm/yyyy') + 1; ...
               datenum(serology.textdata(2:end,1),'dd/mm/yyyy') + 2];
-Y(17).Y    = [serology.data(:,2); serology.data(:,3)];
-Y(17).h    = 2;
+Y(17).Y    = [serology.data(:,2); serology.data(:,3)]*100;
+Y(17).h    = 0;
 Y(17).lag  = 0;
 Y(17).age  = 0;
 Y(17).hold = 1;
@@ -451,11 +442,11 @@ pC.N    = spm_zeros(pE.N);
 % pE.sy = log([1 1;1 1; 1 1]); % coefficients for symptoms
 % pC.sy = [1 1;1 1; 1 1]/8;    % prior variance
 
-pE.dc   = log([1 1/16]);       % coefficients for death (28 days)
+pE.dc   = log([1 1]);          % coefficients for death (28 days)
 pC.dc   = [1 1]/8;             % prior variance
-pE.ho   = log([8 1/8]);        % coefficients for admissions
+pE.ho   = log([1 1]);          % coefficients for admissions
 pC.ho   = [1 1]/8;             % prior variance
-pE.hc   = log([8 1/4]);        % coefficients for hospital cases
+pE.hc   = log([1 1]);          % coefficients for hospital cases
 pC.hc   = [1 1]/8;             % prior variance
 pE.mo   = log([1 1]);          % coefficients for mobility
 pC.mo   = [1 1]/8;             % prior variance
@@ -629,6 +620,11 @@ M   = DCM.M;
 M.T = datenum('01-11-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
 t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
 
+% Ep.vac = log(.25);
+% [H,X]  = spm_SARS_gen(Ep,M,[1 3]);
+% spm_SARS_plot(H,X,[],[1 3])
+
+
 % infection fatality ratios (%)
 %--------------------------------------------------------------------------
 subplot(2,1,2)
@@ -709,6 +705,15 @@ for i = 1:numel(U)
     %----------------------------------------------------------------------
     plot([t(1),t(end)],U(i)*[1,1],':r')
     
+end
+
+% Roadmap 3
+%----------------------------------------------------------------------
+phase = {'08-Mar-2021','05-Apr-2021','03-May-2021','07-Jun-2021','05-Jul-2021'};
+for i = 1:numel(phase)
+    d = datenum(phase{i},'dd-mmm-yyyy');
+    plot(d*[1,1],[0 120],'b:'), 
+    text(d,128,phase{i},'Color','b','FontSize',8,'Rotation',90)
 end
 
 ylabel('percent'),  title('Mobility and lockdown','FontSize',14)

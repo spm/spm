@@ -14,7 +14,7 @@ function spm_SARS_plot(Y,X,Z,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_plot.m 8047 2021-02-02 18:56:09Z karl $
+% $Id: spm_SARS_plot.m 8070 2021-02-27 18:12:45Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -41,6 +41,7 @@ if nargin < 2
     
     nN      = 3;
     pE      = spm_SARS_priors(nN);
+    
     M.T     = 15*32;
     [Y,X,Z] = spm_SARS_gen(pE,M,U);
     spm_SARS_plot(Y,X,Z,U)

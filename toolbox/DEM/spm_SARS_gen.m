@@ -37,7 +37,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,24) - Lateral flow tests
 % Y(:,25) - Cumulative attack rate
 % Y(:,26) - Population immunity
-% Y(:,27) - Hospital cases
+% Y(:,27) - Hospital occupancy
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','ccu','removed','isolated','hospital'};
@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8067 2021-02-21 16:15:48Z karl $
+% $Id: spm_SARS_gen.m 8070 2021-02-27 18:12:45Z karl $
 
 
 % The generative model:
@@ -408,7 +408,7 @@ for i = 1:M.T
         % number of daily deaths (28 days)
         %------------------------------------------------------------------
         if isfield(Q{n},'dc')
-            Y{n}(i,1) = N(n) * p{n}{3}(4) * Q{n}.dc(1)*pcr28^Q{n}.dc(2);
+            Y{n}(i,1) = N(n) * p{n}{3}(4) * (Q{n}.dc(1) + Q{n}.dc(2)*pcr28);
         else
             Y{n}(i,1) = N(n) * p{n}{3}(4);
         end
@@ -485,7 +485,7 @@ for i = 1:M.T
         q  = squeeze(spm_sum(x{n},[2,4]));
         q  = sum(q([1,2,4,5],3))*Q{n}.hos;
         if isfield(Q{n},'ho')
-            Y{n}(i,16) = N(n) * q * Q{n}.ho(1)*pcr14^Q{n}.ho(2);
+            Y{n}(i,16) = N(n) * q * (Q{n}.ho(1) + Q{n}.ho(2)*pcr14);
         else
             Y{n}(i,16) = N(n) * q;
         end
@@ -495,7 +495,7 @@ for i = 1:M.T
         q  = squeeze(spm_sum(x{n},[2,4]));
         q  = sum(q([3,6],3));
         if isfield(Q{n},'hc')
-            Y{n}(i,27) = N(n) * q * Q{n}.hc(1)*pcr14^Q{n}.hc(2);
+            Y{n}(i,27) = N(n) * q * (Q{n}.hc(1) + Q{n}.hc(2)*pcr14);
         else
             Y{n}(i,27) = N(n) * q;
         end

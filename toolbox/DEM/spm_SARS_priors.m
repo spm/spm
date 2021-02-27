@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8067 2021-02-21 16:15:48Z karl $
+% $Id: spm_SARS_priors.m 8070 2021-02-27 18:12:45Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -266,7 +266,7 @@ P.res = 0.2;                  % (20) seronegative proportion (late)
 
 % clinical parameters
 %--------------------------------------------------------------------------
-P.Tic = 4;                    % (21) asymptomatic period (days)
+P.Tic = [4 4];                % (21) asymptomatic period (days)
 P.Tsy = 8;                    % (22) symptomatic period  (days)
 P.Trd = 6;                    % (23) CCU period (days)
 

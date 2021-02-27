@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8067 2021-02-21 16:15:48Z karl $
+% $Id: spm_COVID_T.m 8070 2021-02-27 18:12:45Z karl $
 
 % setup
 %==========================================================================
@@ -143,21 +143,23 @@ ij   = Bij({1,2:3,1,1},{6,2:3,1,1},dim);  B{1}(ij) = 0;
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
 
-Ptin = P.tin;                        % P(no transmission) | home
-Ptou = P.tou;                        % P(no transmission) | work
-Pths = P.ths;                        % P(no transmission) | hospital
+Ptin = P.tin;                              % P(no transmission) | home
+Ptou = P.tou;                              % P(no transmission) | work
+Pths = P.ths;                              % P(no transmission) | hospital
 
-Kimm = exp(-1/P.Tim);                % loss of Ab+ immunity (per day)
-Kinn = exp(-1/1024);                 % loss of Ab- immunity (per day)
-Kinf = exp(-1/P.Tin);                % infection rate
-Kcon = exp(-1/P.Tcn);                % infectious rate
-Pres = P.res;                        % resistant proportion
+Kimm = exp(-1/P.Tim);                      % loss of Ab+ immunity (per day)
+Kinn = exp(-1/256);                        % loss of Ab- immunity (per day)
+Vimm = Kimm;                               % Loss of Ab+ vaccine  (per day)
 
-Rvac = spm_phi((P.t - P.rol(2))/P.rol(3));   % vaccination rollout
-Rvac = Rvac*P.rol(1);                        % P(vaccination)
-Rvac = Rvac*P.vac;                           % P(effective vaccination)
-Pnac = 1 - Rvac;                             % 1 - P( vaccination)
-Vimm = exp(-1/1024);                         % Loss of Ab | vaccination
+Kinf = exp(-1/P.Tin);                      % infection rate
+Kcon = exp(-1/P.Tcn);                      % infectious rate
+Pres = P.res;                              % resistant proportion
+
+Rvac = spm_phi((P.t - P.rol(2))/P.rol(3)); % vaccination rollout
+Rvac = Rvac*P.rol(1);                      % P(vaccination)
+Rvac = Rvac*P.vac;                         % P(effective vaccination)
+Pnac = 1 - Rvac;                           % 1 - P( vaccination)
+
 
 % marginal: infection {2} | home {1}(1)
 %--------------------------------------------------------------------------
@@ -233,8 +235,10 @@ Psev = erf(P.sev*Q + P.lat*(1 - Q));         % P(ARDS | infected)
 Pfat = erf(P.fat*S + P.sur*(1 - S));         % P(fatality | ARDS, CCU)
 Ksym = exp(-1/P.Tsy);                        % acute symptomatic rate
 Ktrd = exp(-1/P.Trd);                        % acute RDS rate
-Ktic = exp(-1/P.Tic);                        % incubation rate
-Ktic = (1 - Ktic);                           % symptom rate
+Ktic = exp(-1/P.Tic(1));                     % asymptomatic rate
+Ktis = exp(-1/P.Tic(2));                     % asymptomatic rate
+Ktic = (1 - Ktic);                           % symptomatic rate | infected
+Ktis = (1 - Ktis);                           % symptomatic rate | infectious
 
 
 % marginal: clinical {3} | susceptible {2}(1)
@@ -255,7 +259,10 @@ b{2} = [(1 - Ktic) (1 - Ksym)*(1 - Psev) 0         (1 - Kday);
     
 % marginal: clinical {3} | infectious {2}(3)
 %--------------------------------------------------------------------------
-b{3} = b{2};
+b{3} = [(1 - Ktis) (1 - Ksym)*(1 - Psev) 0         (1 - Kday);
+        Ktis        Ksym                 0                 0;
+        0          (1 - Ksym)*Psev       Ktrd              0;
+        0           0                   (1 - Ktrd)      Kday];
     
 % marginal: clinical {3} | Ab+ {2}(4)
 %--------------------------------------------------------------------------

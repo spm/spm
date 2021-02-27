@@ -319,7 +319,7 @@ for r = 1:numel(D)
     str = sprintf('Undetected community cases: %.0f',   DC(end,r));
     text(0,0.7,str,'FontSize',10,'FontWeight','bold')
     
-    str = sprintf('Daily incidence: %.0f per 100,000',  DT(end,r));
+    str = sprintf('Estimated new cases per day: %.0f per 100,000',  DT(end,r));
     if DT(end,r) > 100
         text(0,0.6,str,'FontSize',10,'FontWeight','bold','Color','r')
     elseif DT(end,r) < 10
