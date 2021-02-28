@@ -9,14 +9,14 @@ function [X] = spm_dot(X,x,i)
 % Y  - inner product obtained by summing the products of X and x along DIM
 %
 % If DIM is not specified the leading dimensions of X are omitted.
-% If x is a vector the inner product is over the leading dimension of X
+% If x is a vector the inner product is over the first matching dimension of X
 %
 % See also: spm_cross
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dot.m 8068 2021-02-24 17:55:03Z thomas $
+% $Id: spm_dot.m 8071 2021-02-28 16:12:22Z karl $
 
 % initialise dimensions
 %--------------------------------------------------------------------------

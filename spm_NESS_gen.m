@@ -3,8 +3,8 @@ function [F,Q,S,L,H] = spm_NESS_gen(P,M,U)
 % FORMAT [F,Q,S,L,H] = spm_NESS_gen(P,M,U)
 % FORMAT [F,Q,S,L,H] = spm_NESS_gen(P,M)
 %--------------------------------------------------------------------------
-% P.Qp    - orthonormal polynomial coefficients for solenoidal operator
-% P.Sp    - orthonormal polynomial coefficients for potential
+% P.Qp    - polynomial coefficients for solenoidal operator
+% P.Sp    - polynomial coefficients for potential
 %
 % F       - polynomial approximation to flow
 % Q       - flow operator (R + G) with solenoidal and symmetric parts
@@ -50,15 +50,20 @@ function [F,Q,S,L,H] = spm_NESS_gen(P,M,U)
 %% get domain structure if not specified
 %--------------------------------------------------------------------------
 if nargin < 3
+    
     U    = spm_ness_U(M);
+    
+    % project parameters for this orthonormal basis
+    %--------------------------------------------------------------------------
     P.Sp = U.v\P.Sp;
     P.Qp = U.u\P.Qp;
+    
 end
 
 % dimensions and correction terms to flow operator
 %==========================================================================
-n       = numel(U.D);
-[nX,nb] = size(U.b);
+n  = numel(U.D);
+nX = size(U.b,1);
 
 % sparse diagonal operator
 %--------------------------------------------------------------------------
@@ -83,8 +88,8 @@ F     = zeros(nX,n,'like',U.b(1));
 for i = 1:n
     for j = 1:n
         bQij   = squeeze(bQ(i,j,:) + U.bG(i,j,:));
-        L(:,i) = L(:,i) - U.D{j}*bQij;
-        Q{i,j} = spd(U.b*bQij);
+        L(:,i) = L(:,i) - U.V{j}*bQij;
+        Q{i,j} = spd(U.c*bQij);
     end
 end
 
@@ -104,12 +109,10 @@ S     = U.b*P.Sp;              % inverse (scalar) potential: ln p(x)
 
 % Hessian D*D*S
 %--------------------------------------------------------------------------
-[b,D,H] = spm_polymtx(U.x,U.K);
-
 HH    = cell(n,n);
 for i = 1:n
     for j = 1:n
-       HH{i,j} = H{i,j}*U.v*P.Sp;    
+       HH{i,j} = U.H{i,j}*U.v*P.Sp;    
     end
 end
 H     = zeros(n,n,nX,'like',U.b(1));
