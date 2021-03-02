@@ -39,17 +39,8 @@ if isfield(M,'FUN')
 else
     FUN = 'POLY';
 end
-switch FUN
-    case 'POLY'
-        J  = 3;
-        K  = (J - 1)*n;
-    case 'DCT'
-        J  = 5;
-        K  = (J - 1)*n;
-    otherwise
-        disp('unknown basis')
-end
 
+K   = 3;
 if nargin < 2
     
     % use M.X
@@ -57,20 +48,17 @@ if nargin < 2
     X     = M.X;
     for i = 1:size(X,1)
         x               = num2cell(X(i,:));
-        [bi,Di,Hi,o]    = spm_polymtx(x,J,FUN);
-        k               = sum(o) < K;
+        [bi,Di,Hi,o]    = spm_polymtx(x,K,FUN);
         b(i,:)          = full(bi);
-        c(i,:)          = b(i,k);
-            
         for j = 1:n
             D{j,1}(i,:) = full(Di{j});
-            V{j,1}(i,:) = D{j,1}(i,k);
-            for l = 1:n
-                H{j,l}(i,:) = full(Hi{j,l});
+            for k = 1:n
+                H{j,k}(i,:) = full(Hi{j,k});
             end
         end
+
     end
-    
+
     % use M.X
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
@@ -82,16 +70,19 @@ else
     % use x
     %----------------------------------------------------------------------
     [X,x]     = spm_ndgrid(x);
-    [b,D,H,o] = spm_polymtx(x,J,FUN);    
-    
-    k = sum(o) < K;
-    c = b(:,k);
-    V = cell(n,1);
-    for i = 1:n
-        V{i} = D{i}(:,k);
-    end
+    [b,D,H,o] = spm_polymtx(x,K,FUN);
     
 end
+
+% constraints on flow operator
+%==========================================================================
+k = sum(o) < K;
+c = b(:,k);
+V = cell(n,1);
+for i = 1:n
+    V{i} = D{i}(:,k);
+end
+
 
 % size of subspace (nx)
 %--------------------------------------------------------------------------
@@ -141,19 +132,6 @@ for i = 1:nX
 end
 
 
-% Preclude high order terms and apply flow constraints
-%--------------------------------------------------------------------------
-nb    = size(b,2);
-iu    = zeros(1,nb);
-% A     = isAlways(any(J,3));                            % flow adjacency
-% for i = 1:n
-%     for j = (i + 1):n
-%         if ~A(i,j)
-%             iu = iu | (o(i,:) & o(j,:));
-%         end
-%     end
-% end
-
 % orthonormal polynomial expansion
 %--------------------------------------------------------------------------
 nu  = (n^2 - n)/2;
@@ -161,7 +139,7 @@ if size(b,1) > 1
     
     % with coefficients p: x = b*p = dxdp*p for log density Sp
     %----------------------------------------------------------------------
-    v     = b\spm_orth(b(:,~iu),'norm'); 
+    v     = b\spm_orth(b,'norm'); 
     b     = b*v;
     for i = 1:n
         D{i} = D{i}*v;
@@ -253,6 +231,8 @@ U.dQdp  = dQdp;                  % gradients of Q  w.r.t. flow parameters
 U.dbQdp = dbQdp;                 % gradients of bQ w.r.t. flow parameters
 U.dLdp  = dLdp;                  % gradients of L  w.r.t. flow parameters
 U.nx    = nx;                    % dimensions
+U.o     = o;                    % orders
+
 
 return
 

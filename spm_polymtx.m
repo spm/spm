@@ -103,25 +103,6 @@ if n > 1
             end
         end
     end
-    
-    
-%     % remove high order terms
-%     %----------------------------------------------------------------------
-%     k  = ~any(o > 2);
-%     o  = o(:,k);
-%     b  = b(:,k);
-%     if nargout > 1
-%         for i = 1:n
-%             D{i} = D{i}(:,k);
-%         end
-%     end
-%     if nargout > 2
-%         for i = 1:n
-%             for j = 1:n
-%                 H{j,i} = H{j,i}(:,k);
-%             end
-%         end
-%     end
 
     return
 end
@@ -130,7 +111,7 @@ end
 %--------------------------------------------------------------------------
 N     = 32;
 o     = (1:K) - 1;
-x     = x{1}(:);
+x     = full(x{1}(:));
 b     = zeros(size(x,1),K,'like',x);
 switch FUN
     case {'POLY'}

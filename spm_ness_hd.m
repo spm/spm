@@ -27,7 +27,7 @@ function [p0,X,F,f,NESS] = spm_ness_hd(M,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8071 2021-02-28 16:12:22Z karl $
+% $Id: spm_ness_hd.m 8074 2021-03-02 20:58:49Z karl $
 
 
 % event space: get or create X - coordinates of evaluation grid
@@ -73,6 +73,7 @@ end
 %--------------------------------------------------------------------------
 b     = U.b;                     % orthonormal polynomial basis (S)
 c     = U.c;                     % orthonormal polynomial basis (Q)
+o     = U.o;                     % order of expansion
 D     = U.D;                     % derivative operator (S)
 V     = U.V;                     % derivative operator (Q)
 dQdp  = U.dQdp;                  % gradients of Q  w.r.t. flow parameters
@@ -87,8 +88,22 @@ nc    = size(c,2);               % number of coefficients for Q
 nB    = numel(dQdp);             % number of coefficients for flow operator
 nE    = exp(16);                 % initial error norm
 
-Ib    = speye(nb,nb)*exp(-16);   % prior precision Sp
-IB    = speye(nB,nB)*exp(-16);   % prior precision Qp
+% Preclude high order terms and apply flow constraints
+%--------------------------------------------------------------------------
+Ib    = speye(nb,nb)*exp(-16);               % prior precision Sp
+IB    = speye(nB,nB)*exp(-16);               % prior precision Qp
+
+k     = sum(o) > 3;                         % quadratic constraints
+A     = any(J,3);                           % flow adjacency
+for i = 1:n
+    for j = (i + 1):n
+        if ~A(i,j)
+            k = k | (o(i,:) & o(j,:));
+        end
+    end
+end
+k     = find(k); 
+Ib    = Ib + sparse(k,k,1,nb,nb)*exp(16); % contraints
 
 % initialise parameters Qp of flow operator
 %--------------------------------------------------------------------------
@@ -105,8 +120,8 @@ end
     
 % iterated least-squares to estimate flow operator
 %==========================================================================
-dEdp  = zeros(nX*n,nB);                   % error gradients
-D     = spm_cat(D);                       % derivative operator
+dEdp  = zeros(nX*n,nB);                     % error gradients
+D     = spm_cat(D);                         % derivative operator
 for k = 1:256
      
     % solenoidal operator
@@ -193,6 +208,7 @@ end
 
 % eigenvalues of Jacobian
 %--------------------------------------------------------------------------
+% NB correlation dimension = 2 + abs(E(1) + E(2))/abs(E(3))
 E     = zeros(n,nX);
 for i = 1:nX
     E(:,i)   = sort(eig(J(:,:,i)),'descend','ComparisonMethod','real');
@@ -218,6 +234,7 @@ NESS.H2 = spm_dot(H.^2,p0);               % expected Euclidean norm of Hessian
 NESS.J2 = spm_dot(J.^2,p0);               % expected Euclidean norm of Jacobian
 NESS.D2 = 2 + abs(E(1) + E(2))/abs(E(3)); % correlation dimension
 NESS.Ep = Ep;                             % parameters of flow
+NESS.nE = nE;                             % parameters of flow
 
 % reshape nonequilibrium steady-state density
 %--------------------------------------------------------------------------
