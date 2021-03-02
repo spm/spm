@@ -8,19 +8,19 @@ function spm_plot_ci(E,C,x,j,s)
 % s - string to specify plot type:e.g. '--r' or 'exp', 'log' etc
 %
 % If E is a row vector with two elements, confidence regions will be
-% plotted; otherwise, bar charts with confidence intervals are provided
+% plotted; otherwise, bar charts with confidence intervals are provided.
 %__________________________________________________________________________
-% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 8000 2020-11-03 19:04:17Z karl $
+% $Id: spm_plot_ci.m 8073 2021-03-02 19:55:30Z guillaume $
 
 
 % get axis
 %--------------------------------------------------------------------------
 ax   = gca;
-col  = get(ax,'colororder');
-coli = get(ax,'colororderindex');
+col  = get(ax,'ColorOrder');
+coli = get(ax,'ColorOrderIndex');
 coll = col(coli,:);
 colf = erf(coll + 1);
 
@@ -101,7 +101,6 @@ elseif isnumeric(C)
 end
 
 
-
 % set plot parameters
 %--------------------------------------------------------------------------
 switch lower(get(ax,'NextPlot'))
@@ -133,30 +132,29 @@ if N >= 8
     %======================================================================
     if strcmpi(s,'exp')
         fill([x fliplr(x)],exp([full(E + c) fliplr(full(E - c))]),...
-            colf,'EdgeColor','none','Parent',ax,'facealpha', 0.4);
+            colf,'EdgeColor','none','Parent',ax,'FaceAlpha', 0.4);
         hold(ax,'on');
         plot(x,exp(E),'Color',coll);
-        set(ax,'colororderindex',coli + 1);
+        set(ax,'ColorOrderIndex',coli + 1);
         
     elseif strcmpi(s,'log')
         fill([x fliplr(x)],log(abs([full(E + c) fliplr(full(E - c))])),...
-            colf,'EdgeColor','none','Parent',ax,'facealpha', 0.4);
+            colf,'EdgeColor','none','Parent',ax,'FaceAlpha', 0.4);
         hold(ax,'on');
         plot(x,log(abs(E)),'Color',coll);
-        set(ax,'colororderindex',coli + 1);
+        set(ax,'ColorOrderIndex',coli + 1);
         
         
     else
         fill([x fliplr(x)],[full(E + c) fliplr(full(E - c))],...
-            colf,'EdgeColor','none','Parent',ax,'facealpha', 0.4);
+            colf,'EdgeColor','none','Parent',ax,'FaceAlpha', 0.4);
         hold(ax,'on');
         plot(ax,x,E,s,'Color',coll);
-        set(ax,'colororderindex',coli + 1);
+        set(ax,'ColorOrderIndex',coli + 1);
         
     end
     
 else
-    
     
     % bar
     %======================================================================
@@ -166,7 +164,7 @@ else
             
             % conditional means
             %--------------------------------------------------------------
-            bar(ax,exp(E),width,'Edgecolor',colf,'Facecolor',colf);
+            bar(ax,exp(E),width,'Edgecolor',colf,'FaceColor',colf);
             hold(ax,'on');
             
             % conditional variances
@@ -180,7 +178,7 @@ else
             
             % conditional means
             %--------------------------------------------------------------
-            bar(ax,log(abs(E)),width,'Edgecolor',colf,'Facecolor',colf);
+            bar(ax,log(abs(E)),width,'EdgeColor',colf,'FaceColor',colf);
             hold(ax,'on');
             
             % conditional variances
@@ -196,13 +194,13 @@ else
                 
                 % conditional means
                 %----------------------------------------------------------
-                bar(ax,E,width,'Edgecolor',colf,'Facecolor',colf);
+                bar(ax,E,width,'EdgeColor',colf,'FaceColor',colf);
                 hold(ax,'on');
                 
             else
                 % conditional means
                 %----------------------------------------------------------
-                bar(ax,E,'Edgecolor',colf,'Facecolor',colf);
+                bar(ax,E,'EdgeColor',colf,'FaceColor',colf);
                 hold(ax,'on');
                 
             end
@@ -210,7 +208,8 @@ else
             % conditional variances
             %--------------------------------------------------------------
             for k = 1:n
-                line([k k],[-1 1]*c(k) + E(k),'LineWidth',4,'Color',col,'Parent',ax);
+                line([k k],[-1 1]*c(k) + E(k),...
+                    'LineWidth',4,'Color',col,'Parent',ax);
             end
             
         end
@@ -223,29 +222,37 @@ else
         if strcmpi(s,'exp')
             
             % conditional means (exponential)
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             h = bar(ax,exp(E)'); hold(ax,'on');
             
             % conditional variances
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             for m = 1:n
-                x = mean(get(get(h(m),'Children'),'Xdata'));
+                if ~isempty(get(h(m),'Children'))
+                    x = mean(get(get(h(m),'Children'),'XData'));
+                else
+                    x = get(h(m),'XEndPoints');
+                end
                 for k = 1:N
                     line([x(k) x(k)],exp([-1 1]*c(m,k) + E(m,k)),...
-                        'LineWidth',1,'Color',col,'Parent',ax,'facealpha',0.4);
+                        'LineWidth',1,'Color',col,'Parent',ax);
                 end
             end
             
         else
             
             % conditional means
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             h = bar(ax,E); hold(ax,'on');
             
             % conditional variances
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             for m = 1:N
-                x = mean(get(get(h(m),'Children'),'Xdata'));
+                if ~isempty(get(h(m),'Children'))
+                    x = mean(get(get(h(m),'Children'),'Xdata'));
+                else
+                    x = get(h(m),'XEndPoints');
+                end
                 for k = 1:n
                     line([x(k) x(k)],[-1 1]*c(k,m) + E(k,m),...
                         'LineWidth',4,'Color',col,'Parent',ax);
