@@ -1,13 +1,12 @@
-function [pnt, tri] = mesh_cube()
+function [output] = volumepad(input, n)
 
-% MESH_CUBE creates a triangulated cube
+% VOLUMEPAR is a helper function for segmentations. It adds a layer on all sides to
+% ensure that the tissue can be meshed all the way up to the edges this also ensures
+% that the mesh at the bottom of the neck will be closed.
 %
-% Use as
-%   [pos, tri] = mesh_cube()
-%
-% See also MESH_TETRAHEDRON, MESH_OCTAHEDRON, MESH_ICOSAHEDRON, MESH_SPHERE, MESH_CONE
+% See also VOLUMEFILLHOLES, VOLUMESMOOTH, VOLUMETHRESHOLD
 
-% Copyright (C) 2019, Robert Oostenveld
+% Copyrights (C) 2021, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
@@ -24,29 +23,17 @@ function [pnt, tri] = mesh_cube()
 %
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
+%
+% $Id$
 
-pnt = [
-  -1 -1 -1
-  -1  1 -1
-   1  1 -1
-   1 -1 -1
-  -1 -1  1
-  -1  1  1
-   1  1  1
-   1 -1  1
-  ];
+if nargin<2 || isempty(n)
+  n = 1;
+end
 
-tri = [
-  1 2 4
-  2 3 4
-  1 5 6
-  1 6 2
-  2 6 7
-  2 7 3
-  3 7 8
-  3 8 4
-  4 8 5
-  4 5 1
-  8 6 5
-  8 7 6
-  ];
+dim = size(input);
+output = false(dim+2*n);
+selx = (1+n):(dim(1)+n);
+sely = (1+n):(dim(2)+n);
+selz = (1+n):(dim(3)+n);
+% insert the original data in the padded boolean volume, the edges remain "false"
+output(selx, sely, selz) = input;
