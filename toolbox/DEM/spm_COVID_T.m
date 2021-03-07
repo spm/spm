@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8070 2021-02-27 18:12:45Z karl $
+% $Id: spm_COVID_T.m 8076 2021-03-07 15:41:40Z karl $
 
 % setup
 %==========================================================================
@@ -331,7 +331,8 @@ Ptes = erf(pcr1*P.tes(1) + pcr2*P.tes(2));     % testing rate | infection   PCR
 Plen = erf(Plfd);                              % testing rate | susceptible LFD
 Ples = erf(Plfd*P.tts);                        % testing rate | infection   LFD
 
-Sens = 1 - P.fnr;                              % sensitivity PCR | infection
+Sens = 1 - P.fnr(1);                           % sensitivity PCR | infected
+Senc = 1 - P.fnr(2);                           % sensitivity PCR | infectious
 Spec = 1 - P.fpr(1);                           % specificity PCR
 Speb = 1 - P.fpr(2);                           % specificity PCR | Ab +ve
 Lens = 0.489;                                  % sensitivity LFD
@@ -362,8 +363,8 @@ b{2} = [(1 - Ptes)*(1 - Ples) 0                   (1 - Kday) (1 - Kday) (1 - Kda
 %--------------------------------------------------------------------------
 b{3} = [(1 - Ptes)*(1 - Ples) 0                   (1 - Kday) (1 - Kday) (1 - Kday) (1 - Kday);
         Ptes*(1 - Ples)       Kdel                 0          0          0          0;
-        0                     Sens*(1 - Kdel)      Kday       0          0          0;
-        0                    (1 - Sens)*(1 - Kdel) 0          Kday       0          0;
+        0                     Senc*(1 - Kdel)      Kday       0          0          0;
+        0                    (1 - Senc)*(1 - Kdel) 0          Kday       0          0;
         Lens*Ples             0                    0          0          Kday       0;
         (1 - Lens)*Ples       0                    0          0          0      Kday];
 

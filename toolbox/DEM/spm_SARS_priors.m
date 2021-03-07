@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8070 2021-02-27 18:12:45Z karl $
+% $Id: spm_SARS_priors.m 8076 2021-03-07 15:41:40Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -282,7 +282,7 @@ P.tes = [16 8];               % (29) bias (for infection): PCR (Pill. 1 & 2)
 P.tts = 1;                    % (30) bias (for infection): LFD
 P.del = 3;                    % (31) test delay (days)
 P.vac = 0.6;                  % (32) vaccine efficacy
-P.fnr = 0.2;                  % (33) false-negative rate
+P.fnr = [0.2 0.1];            % (33) false-negative rate  (infected/ious]
 P.fpr = [0.002 0.02];         % (34) false-positive rate: (Sus. and Ab +ve)
 
 P.lim = [1 2 1 2]/1000;       % (35) testing: capacity

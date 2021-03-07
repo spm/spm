@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8070 2021-02-27 18:12:45Z karl $
+% $Id: DEM_COVID_UK.m 8076 2021-03-07 15:41:40Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -40,6 +40,14 @@ options.Timeout = 20;
 %==========================================================================
 spm_figure('GetWin','SI'); clf;
 cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
+
+% Files to be updated by hand
+% https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending12february2021
+%--------------------------------------------------------------------------
+% url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending19february2021/8714ef2a&format=csv';
+% writetable(webread(url,options),'place.csv');
+% url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/articles/coronaviruscovid19infectionsinthecommunityinengland/december2020/b5e03a02&format=csv';
+% writetable(webread(url,options),'seropositive.csv');
 
 
 try
@@ -109,13 +117,6 @@ catch
     
 end
 
-% Files to be updated by hand
-% https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending12february2021
-%--------------------------------------------------------------------------
-% url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending12february2021/72e9fecb&format=csv';
-% writetable(webread(url,options),'place.csv');
-% url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/articles/coronaviruscovid19infectionsinthecommunityinengland/december2020/b5e03a02&format=csv';
-% writetable(webread(url,options),'seropositive.csv');
 
 
 % import data
@@ -295,7 +296,7 @@ EngWaleUK  = UK/EngWale;
 Y(15).type = 'Hospital deaths (PHE)'; % hospital deaths
 Y(15).unit = 'number';
 Y(15).U    = 17;
-Y(15).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yyyy') - 1;
+Y(15).date = datenum(place.textdata(2:end - 8,1),'dd-mmm-yy') - 1;
 Y(15).Y    = place.data(1:end - 8,1)*EngWaleUK;
 Y(15).h    = 0;
 Y(15).lag  = 0;
@@ -305,7 +306,7 @@ Y(15).hold = 1;
 Y(16).type = 'Hospital/Other deaths (PHE)'; % nonhospital deaths
 Y(16).unit = 'number';
 Y(16).U    = 18;
-Y(16).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yyyy') - 11;
+Y(16).date = datenum(place.textdata(2:end - 8,1),'dd-mmm-yy') - 11;
 Y(16).Y    = sum(place.data(1:end - 8,2:3),2)*EngWaleUK;
 Y(16).h    = 0;
 Y(16).lag  = 0;
@@ -317,7 +318,7 @@ Y(17).unit = 'percent';
 Y(17).U    = 5;
 Y(17).date = [datenum(serology.textdata(2:end,1),'dd/mm/yyyy') + 1; ...
               datenum(serology.textdata(2:end,1),'dd/mm/yyyy') + 2];
-Y(17).Y    = [serology.data(:,2); serology.data(:,3)]*100;
+Y(17).Y    = [serology.data(:,2); serology.data(:,3)];
 Y(17).h    = 0;
 Y(17).lag  = 0;
 Y(17).age  = 0;
