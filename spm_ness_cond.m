@@ -15,10 +15,10 @@ function [m,C] = spm_ness_cond(n,K,Sp,ni,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_cond.m 8072 2021-02-28 16:27:02Z karl $
+% $Id: spm_ness_cond.m 8077 2021-03-07 15:44:38Z karl $
 
 
-% order of expansion o
+% order of expansion (o)
 %--------------------------------------------------------------------------
 o     = (1:K) - 1;
 for i = 2:n
@@ -30,8 +30,8 @@ o     = o(:,k);
 
 % evaluate expectation and precision
 %--------------------------------------------------------------------------
-E     = zeros(n,1);
-P     = zeros(n,n);
+E     = zeros(n,1,'like',Sp);
+P     = zeros(n,n,'like',Sp);
 for i = 1:n
     k     = (sum(o) == 1) & o(i,:) == 1;
     E(i)  = Sp(k);
@@ -47,11 +47,10 @@ for i = 1:n
         
     end
 end
-m     = -P\E;
-C     = inv(-P);
+C   = inv(-P);                         % covariance
+m   = C*E;                             % mean
 
-
-% Conditional moments if requested
+% Conditional moments, if requested
 %--------------------------------------------------------------------------
 if nargin < 4, return,   end
 if nargin < 5, x = ni*0; end
@@ -64,8 +63,8 @@ C11    = C(mi,mi);
 C12    = C(mi,ni);
 C21    = C(ni,mi);
 C22    = C(ni,ni);
-m      = m1 + C12*(C22\(x - m2));
-C      = C11 - C12*(C22\C21);
+m      = m1 + C12*(C22\(x - m2));      % conditional covariance
+C      = C11 - C12*(C22\C21);          % conditional mean
 
 return
 

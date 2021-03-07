@@ -88,8 +88,8 @@ F     = zeros(nX,n,'like',U.b(1));
 for i = 1:n
     for j = 1:n
         bQij   = squeeze(bQ(i,j,:) + U.bG(i,j,:));
-        L(:,i) = L(:,i) - U.V{j}*bQij;
-        Q{i,j} = spd(U.c*bQij);
+        L(:,i) = L(:,i) - U.D{j}*bQij;
+        Q{i,j} = spd(U.b*bQij);
     end
 end
 
@@ -105,7 +105,9 @@ end
 
 if nargout == 1, return, end
 
-S     = U.b*P.Sp;              % inverse (scalar) potential: ln p(x)
+% inverse (scalar) potential:  S = log(p(x))there
+%--------------------------------------------------------------------------
+S     = U.b*P.Sp;
 
 % Hessian D*D*S
 %--------------------------------------------------------------------------

@@ -1,6 +1,6 @@
-function [U] = spm_ness_U(M,x)
+function U = spm_ness_U(M,x)
 % nonequilibrium steady-state under a Helmholtz decomposition
-% FORMAT [U] = spm_ness_U(M,x)
+% FORMAT U = spm_ness_U(M,x)
 %--------------------------------------------------------------------------
 % M   - model specification structure
 % Required fields:
@@ -23,7 +23,8 @@ function [U] = spm_ness_U(M,x)
 % U.dQdp  - gradients of flow operator Q  w.r.t. flow parameters
 % U.dbQdp - gradients of bQ w.r.t. flow parameters
 % U.dLdp  - gradients of L w.r.t. flow parameters
-% U.K     - order polynomial expansion
+% U.nx    - dimensions
+% U.o     - orders
 
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
@@ -73,16 +74,6 @@ else
     [b,D,H,o] = spm_polymtx(x,K,FUN);
     
 end
-
-% constraints on flow operator
-%==========================================================================
-k = sum(o) < K;
-c = b(:,k);
-V = cell(n,1);
-for i = 1:n
-    V{i} = D{i}(:,k);
-end
-
 
 % size of subspace (nx)
 %--------------------------------------------------------------------------
@@ -148,28 +139,23 @@ if size(b,1) > 1
         end
     end
     
-    % with coefficients p: x = c*p = dxdp*p for flow operators Qp
+    % Kroneckor form for flow operators Qp
     %----------------------------------------------------------------------
-    u     = c\spm_orth(c,'norm'); 
-    c     = c*u;
-    for i = 1:n
-        V{i} = V{i}*u;
-    end
-    u     = kron(eye(nu,nu),u);
+    u     = kron(eye(nu,nu),v);
 
 else
     v = 1;
     u = 1;
 end
-nc    = size(c,2);
-nB    = nu*nc;
+nb    = size(b,2);
+nB    = nu*nb;
 
 % coefficients (bQ) of flow operator Q (symmetric part)
 %--------------------------------------------------------------------------
-bG    = zeros(n,n,nc,'like',c);
+bG    = zeros(n,n,nb,'like',b);
 for i = 1:n
     for j = 1:n
-        bG(i,j,1) = G(i,j)/c(1);
+        bG(i,j,1) = G(i,j)/b(1);
     end
 end
 
@@ -177,12 +163,12 @@ end
 %--------------------------------------------------------------------------
 q     = 0;
 dQ    = zeros(n,n);
-dbQ   = zeros(n,n,nc);
+dbQ   = zeros(n,n,nb);
 dQdp  = cell(nB,1);
 dbQdp = cell(nB,1);
 for i = 1:n
     for j = (i + 1):n
-        for k = 1:nc
+        for k = 1:nb
             
             % with respect to coefficients - dQdp
             %--------------------------------------------------------------
@@ -190,7 +176,7 @@ for i = 1:n
             dq      = dQ;
             dq(i,j) =  1;
             dq(j,i) = -1;
-            dQdp{q} = kron(dq,spd(c(:,k)));
+            dQdp{q} = kron(dq,spd(b(:,k)));
             
             % with respect to coefficients - dbQdp
             %--------------------------------------------------------------
@@ -207,7 +193,7 @@ dLdp  = cell(nB,1); [dLdp{:}] = deal(zeros(nX,n,'like',X));
 for i = 1:n
     for j = 1:n
         for k = 1:nB
-            dLdp{k}(:,i) = dLdp{k}(:,i) - V{j}*reshape(dbQdp{k}(i,j,:),nc,1);
+            dLdp{k}(:,i) = dLdp{k}(:,i) - D{j}*reshape(dbQdp{k}(i,j,:),nb,1);
         end
     end
 end
@@ -218,10 +204,8 @@ U.x     = x;                     % domain
 U.X     = X;                     % sample points
 U.f     = f;                     % expected flow at sample points
 U.J     = J;                     % Jacobian at sample points
-U.b     = b;                     % orthonormal polynomial basis (S)
-U.c     = c;                     % orthonormal polynomial basis (Q)
-U.D     = D;                     % derivative operator (S)
-U.V     = V;                     % derivative operator (Q)
+U.b     = b;                     % orthonormal polynomial basis
+U.D     = D;                     % derivative operator
 U.H     = H;                     % Hessian operator
 U.G     = G;                     % amplitude of random fluctuations
 U.v     = v;                     % orthonormal operator
@@ -231,7 +215,7 @@ U.dQdp  = dQdp;                  % gradients of Q  w.r.t. flow parameters
 U.dbQdp = dbQdp;                 % gradients of bQ w.r.t. flow parameters
 U.dLdp  = dLdp;                  % gradients of L  w.r.t. flow parameters
 U.nx    = nx;                    % dimensions
-U.o     = o;                    % orders
+U.o     = o;                     % orders
 
 
 return

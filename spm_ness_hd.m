@@ -1,6 +1,6 @@
-function [p0,X,F,f,NESS] = spm_ness_hd(M,x)
+function NESS = spm_ness_hd(M,x)
 % nonequilibrium steady-state under a Helmholtz decomposition
-% FORMAT [p0,X,F,f,NESS] = spm_ness_hd(M,x)
+% FORMAT NESS = spm_ness_hd(M,x)
 %--------------------------------------------------------------------------
 % M   - model specification structure
 % Required fields:
@@ -10,10 +10,10 @@ function [p0,X,F,f,NESS] = spm_ness_hd(M,x)
 %    M.W   - (n x n) - precision matrix of random fluctuations
 % x    - cell array of vectors specifying evaluation grid
 %
-% p0      - nonequilibrium steady-state
-% X       - evaluation points of state space
-% F       - expected flow
-% f       - original flow
+% NESS.p0 - nonequilibrium steady-state
+% NESS.X  - evaluation points of state space
+% NESS.F  - expected flow
+% NESS.f  - original flow
 %
 % NESS.H  - expected Hessian
 % NESS.J  - expected Jacobian
@@ -27,7 +27,7 @@ function [p0,X,F,f,NESS] = spm_ness_hd(M,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8074 2021-03-02 20:58:49Z karl $
+% $Id: spm_ness_hd.m 8077 2021-03-07 15:44:38Z karl $
 
 
 % event space: get or create X - coordinates of evaluation grid
@@ -72,10 +72,8 @@ end
 % subject to Q = Q + dQ: dQ = -qQ'
 %--------------------------------------------------------------------------
 b     = U.b;                     % orthonormal polynomial basis (S)
-c     = U.c;                     % orthonormal polynomial basis (Q)
 o     = U.o;                     % order of expansion
-D     = U.D;                     % derivative operator (S)
-V     = U.V;                     % derivative operator (Q)
+D     = U.D;                     % derivative operator
 dQdp  = U.dQdp;                  % gradients of Q  w.r.t. flow parameters
 dbQdp = U.dbQdp;                 % gradients of bQ w.r.t. flow parameters
 dLdp  = U.dLdp;                  % gradients of L  w.r.t. flow parameters
@@ -84,7 +82,6 @@ bG    = U.bG;                    % symmetric part of flow operator
 % precision of parameters
 %--------------------------------------------------------------------------
 nb    = size(b,2);               % number of coefficients for S
-nc    = size(c,2);               % number of coefficients for Q
 nB    = numel(dQdp);             % number of coefficients for flow operator
 nE    = exp(16);                 % initial error norm
 
@@ -93,8 +90,8 @@ nE    = exp(16);                 % initial error norm
 Ib    = speye(nb,nb)*exp(-16);               % prior precision Sp
 IB    = speye(nB,nB)*exp(-16);               % prior precision Qp
 
-k     = sum(o) > 3;                         % quadratic constraints
-A     = any(J,3);                           % flow adjacency
+k     = sum(o) > 3;                          % quadratic constraints
+A     = any(J,3);                            % flow adjacency
 for i = 1:n
     for j = (i + 1):n
         if ~A(i,j)
@@ -107,10 +104,10 @@ Ib    = Ib + sparse(k,k,1,nb,nb)*exp(16); % contraints
 
 % initialise parameters Qp of flow operator
 %--------------------------------------------------------------------------
-bQ    = zeros(n,n,nc);
+bQ    = zeros(n,n,nb);
 for i = 1:n
     for j = 1:n
-        bQ(i,j,:) = c'*squeeze(Q(i,j,:));
+        bQ(i,j,:) = b'*squeeze(Q(i,j,:));
     end
 end
 Qp    = zeros(nB,1);
@@ -121,7 +118,7 @@ end
 % iterated least-squares to estimate flow operator
 %==========================================================================
 dEdp  = zeros(nX*n,nB);                     % error gradients
-D     = spm_cat(D);                         % derivative operator
+Db    = spm_cat(D);                         % derivative operator
 for k = 1:256
      
     % solenoidal operator
@@ -138,21 +135,21 @@ for k = 1:256
     for i = 1:n
         for j = 1:n
             bQij   = squeeze(bQ(i,j,:) + bG(i,j,:));
-            L(:,i) = L(:,i) - V{j}*bQij;
-            Q{i,j} = spdiags(c*bQij,0,nX,nX);
+            L(:,i) = L(:,i) - D{j}*bQij;
+            Q{i,j} = spdiags(b*bQij,0,nX,nX);
         end
     end
     Q   = spm_cat(Q);
         
     % potential gradients f = Q*D*b*b'*S - L
     %----------------------------------------------------------------------
-    QD  = Q*D;
+    QD  = Q*Db;
     Y   = spm_vec(f' + L);
     Sp  = (QD'*QD + Ib)\(QD'*Y);
     
     % dEdb  = dLdb - dQdb*D*b*b'*S;
     %----------------------------------------------------------------------
-    DS    = D*Sp;
+    DS    = Db*Sp;
     for i = 1:nB
         dEdp(:,i) = dQdp{i}*DS - spm_vec(dLdp{i});
     end
@@ -177,7 +174,7 @@ end
 Q     = zeros(n,n,nX);
 for i = 1:n
     for j = 1:n
-        Q(i,j,:) = c*reshape(bQ(i,j,:),nc,1);
+        Q(i,j,:) = b*reshape(bQ(i,j,:),nb,1);
     end
 end
 
@@ -234,12 +231,18 @@ NESS.H2 = spm_dot(H.^2,p0);               % expected Euclidean norm of Hessian
 NESS.J2 = spm_dot(J.^2,p0);               % expected Euclidean norm of Jacobian
 NESS.D2 = 2 + abs(E(1) + E(2))/abs(E(3)); % correlation dimension
 NESS.Ep = Ep;                             % parameters of flow
-NESS.nE = nE;                             % parameters of flow
+NESS.o  = o;                              % parameter orders
 
 % reshape nonequilibrium steady-state density
 %--------------------------------------------------------------------------
 % p0    = spm_softmax(spm_polymtx(x,nb)*Ep.Sp);
-p0      = reshape(p0,U.nx);
+
+NESS.p0 = reshape(p0,U.nx);               % nonequilibrium steady-state
+NESS.X  = X;                              % evaluation points of state space
+NESS.F  = F;                              % expected flow
+NESS.f  = f';                              % original flow
+
+
 
 return
 

@@ -104,6 +104,25 @@ if n > 1
         end
     end
 
+    
+    % remove high order terms
+    %----------------------------------------------------------------------
+    k  = sum(o) < K;
+    o  = o(:,k);
+    b  = b(:,k);
+    if nargout > 1
+        for i = 1:n
+            D{i} = D{i}(:,k);
+        end
+    end
+    if nargout > 2
+        for i = 1:n
+            for j = 1:n
+                H{j,i} = H{j,i}(:,k);
+            end
+        end
+    end
+    
     return
 end
 
