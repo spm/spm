@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mesh_utils.c 7883 2020-07-01 21:16:23Z guillaume $
+ * $Id: spm_mesh_utils.c 8078 2021-03-12 22:19:57Z guillaume $
  * Guillaume Flandin
  */
 
@@ -72,9 +72,18 @@ void mexFunctionVolume(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[
     f     = mxGetPr(array);
     
     for (i=0,vol=0;i<nf;i++) {
-        x1 = v[(int)f[i]];      y1 = v[(int)f[i]+nv];      z1 = v[(int)f[i]+2*nv];
-        x2 = v[(int)f[i+nf]];   y2 = v[(int)f[i+nf]+nv];   z2 = v[(int)f[i+nf]+2*nv];
-        x3 = v[(int)f[i+2*nf]]; y3 = v[(int)f[i+2*nf]+nv]; z3 = v[(int)f[i+2*nf]+2*nv];
+        x1 = v[(int)f[i]-1];
+        x2 = v[(int)f[i+nf]-1];
+        x3 = v[(int)f[i+2*nf]-1];
+        
+        y1 = v[(int)f[i]+nv-1];
+        y2 = v[(int)f[i+nf]+nv-1];
+        y3 = v[(int)f[i+2*nf]+nv-1];
+        
+        z1 = v[(int)f[i]+2*nv-1];
+        z2 = v[(int)f[i+nf]+2*nv-1];
+        z3 = v[(int)f[i+2*nf]+2*nv-1];
+        
         vol += 1.0/6.0 * (-x3*y2*z1 + x2*y3*z1 + x3*y1*z2 - x1*y3*z2 - x2*y1*z3 + x1*y2*z3);
     }
     vol = (vol < 0)? -vol: vol;

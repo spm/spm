@@ -1,9 +1,10 @@
-function A = spm_mesh_area(M,PF)
+function A = spm_mesh_area(M,P)
 % Compute the surface area of a triangle mesh
+% FORMAT A = spm_mesh_area(M,P)
 % M        - patch structure: vertices and faces must be mx3 and nx3 arrays
 %            or 3xm array of edge distances
-% PF       - logical indicating whether to return surface area as a whole
-%            or per face [default: false]
+% P        - return overall surface area, or per face, or per vertex
+%            one of {'sum','face','vertex'} [default: 'sum']
 %
 % A        - surface area
 %__________________________________________________________________________
@@ -11,10 +12,22 @@ function A = spm_mesh_area(M,PF)
 % Computed using numerically stable version of Heron's formula:
 % See https://www.wikipedia.org/wiki/Heron%27s_formula
 %__________________________________________________________________________
-% Copyright (C) 2010-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_area.m 7367 2018-07-06 16:04:27Z guillaume $
+% $Id: spm_mesh_area.m 8078 2021-03-12 22:19:57Z guillaume $
+
+
+if nargin < 2
+    P = 'sum';
+elseif islogical(P)
+    % Backward compatibility with previous syntax
+    if P
+        P = 'face';
+    else
+        P = 'sum';
+    end
+end
 
 if isnumeric(M)
     A = M;
@@ -23,6 +36,7 @@ else
     A = permute(reshape(A',3,3,[]),[2 1 3]);
     A = squeeze(sqrt(sum((A([1 2 3],:,:) - A([2 3 1],:,:)).^2,2)));
 end
+
 A = sort(A,1,'descend');
 A = ( A(1,:) + ( A(2,:) + A(3,:) ) ) .* ...
     ( A(3,:) - ( A(1,:) - A(2,:) ) ) .* ...
@@ -31,6 +45,16 @@ A = ( A(1,:) + ( A(2,:) + A(3,:) ) ) .* ...
 A(A<0) = 0;
 A = 1/4 * sqrt(A);
 
-if nargin < 2 || ~PF
+if strcmp(P,'sum')
     A = sum(A);
+elseif strcmp(P,'face')
+    A = A;
+elseif strcmp(P,'vertex')
+    AV = zeros(size(M.vertices,1),1);
+    for i=1:3
+        AV = AV + accumarray(M.faces(:,i),A,size(AV));
+    end
+    A = AV / 3; % each triangle contributes a third to each of its vertices
+else
+    error('Unknown option.');
 end
