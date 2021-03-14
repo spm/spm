@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8076 2021-03-07 15:41:40Z karl $
+% $Id: spm_SARS_priors.m 8079 2021-03-14 13:32:22Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -78,8 +78,8 @@ if nargin
     %----------------------------------------------------------------------
     P.N   = P.N - log(nN);
     P.n   = P.n - 8;
-    P.rol = log([0.01  (365 + 128) 8;
-                 0.02  (365 + 64 ) 8;
+    P.rol = log([0.04  (365 + 128) 8;
+                 0.04  (365 + 64 ) 8;
                  0.04  (365 + 0  ) 8]);
     C.rol = [1/8 1/1024 1/1024;
              1/8 1/1024 1/1024;
@@ -285,8 +285,8 @@ P.vac = 0.6;                  % (32) vaccine efficacy
 P.fnr = [0.2 0.1];            % (33) false-negative rate  (infected/ious]
 P.fpr = [0.002 0.02];         % (34) false-positive rate: (Sus. and Ab +ve)
 
-P.lim = [1 2 1 2]/1000;       % (35) testing: capacity
-P.rat = [8 24 24 8];          % (36) testing: dispersion
+P.lim = [1   2   2   2]/1000; % (35) testing: capacity (P1, P2, & LFD)
+P.rat = [8   24  8   4];      % (36) testing: dispersion
 P.ons = [100 200 300 400];    % (37) testing: onset
 
 P.lag = [1 1];                % (38) reporting lag

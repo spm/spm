@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8076 2021-03-07 15:41:40Z karl $
+% $Id: spm_COVID_T.m 8079 2021-03-14 13:32:22Z karl $
 
 % setup
 %==========================================================================
@@ -165,11 +165,11 @@ Pnac = 1 - Rvac;                           % 1 - P( vaccination)
 %--------------------------------------------------------------------------
 %    susceptible     infected            infectious      Ab+             Ab-            Vaccine+
 %--------------------------------------------------------------------------
-b{1} = [Ptin*Pnac        0                     0          0              (1 - Kinn)*Pnac 0;
-        (1 - Ptin)*Pnac  Kinf                  0          0               0              0;
-        0               (1 - Pres)*(1 - Kinf)  Kcon       0               0              0;
-        0                0                    (1 - Kcon)  Kimm            0              0;
-        0                Pres*(1 - Kinf)       0         (1 - Kimm)       Kinn*Pnac     (1 - Vimm);
+b{1} = [Ptin*Pnac        0                     0          0              (1 - Kinn)*Pnac    0;
+        (1 - Ptin)*Pnac  Kinf                  0          0               0                 0;
+        0               (1 - Pres)*(1 - Kinf)  Kcon       0               0                 0;
+        0                0                    (1 - Kcon)  Kimm            0                 0;
+        0                Pres*(1 - Kinf)       0         (1 - Kimm)       Kinn*Pnac (1 - Vimm);
         Rvac             0                     0          0               Rvac           Vimm];
     
 % marginal: infection {2} | work {1}(2)
@@ -307,7 +307,7 @@ b    = cell(1,dim(2));
 Ppcr = 0;                             
 if isfield(P,'pcr')
     for i = 1:numel(P.pcr)
-        Ppcr = Ppcr + log(P.pcr(i)) * cos(i*pi*P.t/512)/8;
+        Ppcr = Ppcr + log(P.pcr(i)) * cos(i*pi*P.t/365)/8;
     end
 end
 Ppcr = exp(Ppcr);
@@ -343,8 +343,8 @@ Kdel = exp(-1/P.del);                          % exp(-1/waiting period) PCR
 %--------------------------------------------------------------------------
 %    not tested            waiting                PCR+       PCR-       LFD+      LFD-
 %--------------------------------------------------------------------------
-b{1} = [(1 - Psen)*(1 - Plen) 0                   (1 - Kday) (1 - Kday) (1 - Kday) (1 - Kday);
-        Psen*(1 - Plen)       Kdel                 0          0          0          0;
+b{1} = [(1 - Psen)*(1 - Plen) 0                   (1 - Kday) (1 - Kday)  0  (1 - Kday);
+        Psen*(1 - Plen)       Kdel                 0          0         (1 - Kday)  0;
         0                    (1 - Spec)*(1 - Kdel) Kday       0          0          0;
         0                     Spec*(1 - Kdel)      0          Kday       0          0;
         (1 - Lpec)*Plen       0                    0          0          Kday       0;
@@ -352,17 +352,17 @@ b{1} = [(1 - Psen)*(1 - Plen) 0                   (1 - Kday) (1 - Kday) (1 - Kda
 
 % marginal: testing {4} | infected {2}(2)
 %--------------------------------------------------------------------------
-b{2} = [(1 - Ptes)*(1 - Ples) 0                   (1 - Kday) (1 - Kday) (1 - Kday) (1 - Kday);
-        Ptes*(1 - Ples)       Kdel                 0          0          0          0;
+b{2} = [(1 - Ptes)*(1 - Ples) 0                   (1 - Kday) (1 - Kday)  0  (1 - Kday);
+        Ptes*(1 - Ples)       Kdel                 0          0         (1 - Kday)  0;
         0                     Sens*(1 - Kdel)      Kday       0          0          0;
         0                    (1 - Sens)*(1 - Kdel) 0          Kday       0          0;
         Lens*Ples             0                    0          0          Kday       0;
-        (1 - Lens)*Ples       0                    0          0          0      Kday];
+        (1 - Lens)*Ples       0                    0          0          0       Kday];
     
 % marginal: testing {4} | infectious {2}(3)
 %--------------------------------------------------------------------------
-b{3} = [(1 - Ptes)*(1 - Ples) 0                   (1 - Kday) (1 - Kday) (1 - Kday) (1 - Kday);
-        Ptes*(1 - Ples)       Kdel                 0          0          0          0;
+b{3} = [(1 - Ptes)*(1 - Ples) 0                   (1 - Kday) (1 - Kday)  0  (1 - Kday);
+        Ptes*(1 - Ples)       Kdel                 0          0         (1 - Kday)  0;
         0                     Senc*(1 - Kdel)      Kday       0          0          0;
         0                    (1 - Senc)*(1 - Kdel) 0          Kday       0          0;
         Lens*Ples             0                    0          0          Kday       0;
@@ -370,8 +370,8 @@ b{3} = [(1 - Ptes)*(1 - Ples) 0                   (1 - Kday) (1 - Kday) (1 - Kda
 
 % marginal: testing {4} | Ab+ {2}(4)
 %--------------------------------------------------------------------------
-b{4} = [(1 - Psen)*(1 - Plen) 0                   (1 - Kday) (1 - Kday) (1 - Kday) (1 - Kday);
-        Psen*(1 - Plen)       Kdel                 0          0          0          0;
+b{4} = [(1 - Psen)*(1 - Plen) 0                   (1 - Kday) (1 - Kday)  0  (1 - Kday);
+        Psen*(1 - Plen)       Kdel                 0          0         (1 - Kday)  0;
         0                    (1 - Speb)*(1 - Kdel) Kday       0          0          0;
         0                     Speb*(1 - Kdel)      0          Kday       0          0;
         (1 - Lpec)*Plen       0                    0          0          Kday       0;

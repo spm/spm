@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8076 2021-03-07 15:41:40Z karl $
+% $Id: DEM_COVID_UK.m 8079 2021-03-14 13:32:22Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -31,7 +31,7 @@ function DCM = DEM_COVID_UK
 % mem = 256:  F = -1.0257e+04 
 % mem = 2048: F = -1.0247e+04 
 
-% web options
+%% web options
 %--------------------------------------------------------------------------
 options = weboptions('ContentType','table');
 options.Timeout = 20;
@@ -119,7 +119,7 @@ end
 
 
 
-% import data
+%% import data
 %--------------------------------------------------------------------------
 cases      = importdata('cases.csv');
 deaths     = importdata('deaths.csv');
@@ -296,7 +296,7 @@ EngWaleUK  = UK/EngWale;
 Y(15).type = 'Hospital deaths (PHE)'; % hospital deaths
 Y(15).unit = 'number';
 Y(15).U    = 17;
-Y(15).date = datenum(place.textdata(2:end - 8,1),'dd-mmm-yy') - 1;
+Y(15).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yy') - 1;
 Y(15).Y    = place.data(1:end - 8,1)*EngWaleUK;
 Y(15).h    = 0;
 Y(15).lag  = 0;
@@ -306,7 +306,7 @@ Y(15).hold = 1;
 Y(16).type = 'Hospital/Other deaths (PHE)'; % nonhospital deaths
 Y(16).unit = 'number';
 Y(16).U    = 18;
-Y(16).date = datenum(place.textdata(2:end - 8,1),'dd-mmm-yy') - 11;
+Y(16).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yy') - 11;
 Y(16).Y    = sum(place.data(1:end - 8,2:3),2)*EngWaleUK;
 Y(16).h    = 0;
 Y(16).lag  = 0;
@@ -340,7 +340,6 @@ Y(18).hold = 0;
 England    = sum(sum(ages.data(:,[1 3 4 5 6 7:13 15 16:21]),2));
 UK         = sum(deaths.data(4:end,1));
 EnglandUK  = UK/England;
-
 
 % age-specific data
 %--------------------------------------------------------------------------
@@ -470,10 +469,10 @@ pE.tra  = zeros(1,8);          % transmission strength
 pC.tra  = ones(1,8)/256;       % prior variance
 
 pE.pcr  = zeros(1,8);          % testing
-pC.pcr  = ones(1,8)/8;       % prior variance
+pC.pcr  = ones(1,8)/8;         % prior variance
 
 pE.mob  = zeros(1,16);         % mobility
-pC.mob  = ones(1,16)/8;      % prior variance
+pC.mob  = ones(1,16)/8;        % prior variance
 
 % model specification
 %==========================================================================

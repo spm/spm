@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8070 2021-02-27 18:12:45Z karl $
+% $Id: spm_SARS_gen.m 8079 2021-03-14 13:32:22Z karl $
 
 
 % The generative model:
@@ -413,9 +413,9 @@ for i = 1:M.T
             Y{n}(i,1) = N(n) * p{n}{3}(4);
         end
         
-        % number of daily (positive) tests (PCR and LFD)
+        % number of daily (positive) tests (PCR and LFD confirmed)
         %------------------------------------------------------------------
-        Y{n}(i,2) = N(n) * (p{n}{4}(3) + p{n}{4}(5));
+        Y{n}(i,2) = N(n) * p{n}{4}(3);
         
         % CCU bed occupancy (mechanical ventilation)
         %------------------------------------------------------------------
@@ -509,7 +509,7 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Y{n}(i,18) = N(n) * sum(q([1,2,4,5],4));
         
-        % cumulative number of people vaccinated (in millions)
+        % cumulative number of people (first dose) vaccinated (in millions)
         %------------------------------------------------------------------
         Y{n}(i,22) = N(n) * p{n}{2}(6)/Q{n}.vac / 1e6;
         
@@ -583,7 +583,6 @@ end
 
 % deal with mixture models
 %==========================================================================
-
 
 % proportion of each population
 %--------------------------------------------------------------------------
