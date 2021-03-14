@@ -135,7 +135,7 @@ b     = zeros(size(x,1),K,'like',x);
 switch FUN
     case {'POLY'}
         for k = 1:K
-            b(:,k) = x.^(k - 1);
+            b(:,k) = x.^(k - 1)/factorial(k - 1);
         end
     case {'DCT'}
         for k = 1:K
@@ -153,7 +153,7 @@ if nargout > 1
     switch FUN
         case {'POLY'}
             for k = 2:K
-                D(:,k) = (k - 1)*(x.^(k - 2));
+                D(:,k) = (x.^(k - 2)*(k - 1))/factorial(k - 1);
             end
         case {'DCT'}
             for k = 1:K
@@ -171,7 +171,7 @@ if nargout > 2
     switch FUN
         case {'POLY'}
             for k = 3:K
-                H(:,k) = (k - 2)*(k - 1)*(x.^(k - 3));
+                H(:,k) = (x.^(k - 3)*(k - 1)*(k - 2))/factorial(k - 1);
             end
         case {'DCT'}
             for k = 1:K

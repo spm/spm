@@ -1,14 +1,14 @@
-function [F,Q,S,L,H] = spm_NESS_gen(P,M,U)
+function [F,S,Q,L,H] = spm_NESS_gen(P,M,U)
 % generates flow (f) at locations (U.X)
-% FORMAT [F,Q,S,L,H] = spm_NESS_gen(P,M,U)
-% FORMAT [F,Q,S,L,H] = spm_NESS_gen(P,M)
+% FORMAT [F,S,Q,L,H] = spm_NESS_gen(P,M,U)
+% FORMAT [F,S,Q,L,H] = spm_NESS_gen(P,M)
 %--------------------------------------------------------------------------
 % P.Qp    - polynomial coefficients for solenoidal operator
 % P.Sp    - polynomial coefficients for potential
 %
 % F       - polynomial approximation to flow
-% Q       - flow operator (R + G) with solenoidal and symmetric parts
 % S       - negative potential (log NESS density)
+% Q       - flow operator (R + G) with solenoidal and symmetric parts
 % L       - correction term for derivatives of solenoidal flow
 % H       - Hessian
 %
@@ -16,10 +16,9 @@ function [F,Q,S,L,H] = spm_NESS_gen(P,M,U)
 %--------------------------------------------------------------------------
 % M   - model specification structure
 % Required fields:
-%    M.x   - (n x 1) = x(0) = expansion point
-%    M.W   - (n x n) - precision matrix of random fluctuations
-%    M.X   - sample points
-%    M.K   - order of polynomial expansion
+%    M.X  - sample points
+%    M.W  - (n x n) - precision matrix of random fluctuations
+%    M.K  - order of polynomial expansion
 %
 % U       - domain (of state space) structure
 % U.x     - domain
@@ -47,14 +46,38 @@ function [F,Q,S,L,H] = spm_NESS_gen(P,M,U)
 % $Id: spm_ness_hd.m 8000 2020-11-03 19:04:17QDb karl $
 
 
-%% get domain structure if not specified
+%% use M.fs if specified
+%--------------------------------------------------------------------------
+if nargout < 3 && isfield(M,'fs')
+    w     = {M.W(1)};
+    Sp    = num2cell(P.Sp);
+    Qp    = num2cell(P.Qp);
+    for i = 1:size(M.X,1)
+        
+        % flow
+        %------------------------------------------------------------------
+        x      = num2cell(M.X(i,:));
+        F(i,:) = M.fs(Qp{:},Sp{2:end},w{:},x{:});
+        
+        % negative potential
+        %------------------------------------------------------------------
+        if nargout == 2
+            S(i)   = M.ss(Sp{:},x{:});
+        end
+    end
+    
+    return
+end
+
+
+%% get basis or expansion from M.X (or M.x)
 %--------------------------------------------------------------------------
 if nargin < 3
     
     U    = spm_ness_U(M);
     
     % project parameters for this orthonormal basis
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     P.Sp = U.v\P.Sp;
     P.Qp = U.u\P.Qp;
     

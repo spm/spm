@@ -15,7 +15,7 @@ function [m,C] = spm_ness_cond(n,K,Sp,ni,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_cond.m 8077 2021-03-07 15:44:38Z karl $
+% $Id: spm_ness_cond.m 8080 2021-03-14 13:32:56Z karl $
 
 
 % order of expansion (o)
@@ -38,7 +38,7 @@ for i = 1:n
     for j = i:n
         if j == i
             k = (sum(o) == 2) & (o(i,:) == 2);
-            P(i,j) = 2*Sp(k);
+            P(i,j) = Sp(k);
         else
             k = (sum(o) == 2) & (o(i,:) == 1) & (o(j,:) == 1);
             P(i,j) = Sp(k);

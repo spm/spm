@@ -40,8 +40,12 @@ if isfield(M,'FUN')
 else
     FUN = 'POLY';
 end
+if isfield(M,'K')
+    K   = M.K;
+else
+    K   = 3;
+end
 
-K   = 3;
 if nargin < 2
     
     % use M.X
@@ -125,7 +129,7 @@ end
 
 % orthonormal polynomial expansion
 %--------------------------------------------------------------------------
-nu  = (n^2 - n)/2;
+nu  = (n^2 + n)/2;
 if size(b,1) > 1
     
     % with coefficients p: x = b*p = dxdp*p for log density Sp
@@ -167,22 +171,40 @@ dbQ   = zeros(n,n,nb);
 dQdp  = cell(nB,1);
 dbQdp = cell(nB,1);
 for i = 1:n
-    for j = (i + 1):n
+    for j = (i + 0):n
         for k = 1:nb
             
-            % with respect to coefficients - dQdp
-            %--------------------------------------------------------------
-            q       = q + 1;
-            dq      = dQ;
-            dq(i,j) =  1;
-            dq(j,i) = -1;
-            dQdp{q} = kron(dq,spd(b(:,k)));
+            % initialise partial derivatives
+            %----------------------------------------------------------
+            q        = q + 1;
+            dq       = dQ;
+            dbQdp{q} = dbQ;
             
-            % with respect to coefficients - dbQdp
-            %--------------------------------------------------------------
-            dbQdp{q}        = dbQ;
-            dbQdp{q}(i,j,k) =  1;
-            dbQdp{q}(j,i,k) = -1;
+            if i == j
+                
+                % with respect to coefficients - dQdp
+                %----------------------------------------------------------
+                dq(i,j) = 1;
+                dQdp{q} = kron(dq,spd(b(:,k)));
+                
+                % with respect to coefficients - dbQdp
+                %----------------------------------------------------------
+                dbQdp{q}(i,j,k) =  1;
+                
+            else
+                
+                % with respect to coefficients - dQdp
+                %----------------------------------------------------------
+                dq(i,j) =  1;
+                dq(j,i) = -1;
+                dQdp{q} = kron(dq,spd(b(:,k)));
+                
+                % with respect to coefficients - dbQdp
+                %----------------------------------------------------------
+                dbQdp{q}(i,j,k) =  1;
+                dbQdp{q}(j,i,k) = -1;
+                
+            end
         end
     end
 end

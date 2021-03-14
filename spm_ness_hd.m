@@ -27,7 +27,7 @@ function NESS = spm_ness_hd(M,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8077 2021-03-07 15:44:38Z karl $
+% $Id: spm_ness_hd.m 8080 2021-03-14 13:32:56Z karl $
 
 
 % event space: get or create X - coordinates of evaluation grid
@@ -87,10 +87,11 @@ nE    = exp(16);                 % initial error norm
 
 % Preclude high order terms and apply flow constraints
 %--------------------------------------------------------------------------
-Ib    = speye(nb,nb)*exp(-16);               % prior precision Sp
-IB    = speye(nB,nB)*exp(-16);               % prior precision Qp
+Ib    = speye(nb,nb)*exp(-32);               % prior precision Sp
+IB    = speye(nB,nB)*exp(-32);               % prior precision Qp
 
 k     = sum(o) > 3;                          % quadratic constraints
+k     = k | ~sum(o);                         % suppress constant
 A     = any(J,3);                            % flow adjacency
 for i = 1:n
     for j = (i + 1):n
@@ -101,6 +102,7 @@ for i = 1:n
 end
 k     = find(k); 
 Ib    = Ib + sparse(k,k,1,nb,nb)*exp(16); % contraints
+
 
 % initialise parameters Qp of flow operator
 %--------------------------------------------------------------------------
