@@ -1,18 +1,22 @@
-function ksi = spm_mesh_euler(M)
+function X = spm_mesh_euler(M)
 % Compute the Euler characteristic of a triangle mesh
 % M        - patch structure
 %
-% ksi      - Euler characteristic
+% X        - Euler characteristic
 %__________________________________________________________________________
 %
 % The Euler characteristic is defined according to the formula:
-%                           \ksi = V - E + F
+%
+%                    X  =  V - E + F  =  2 - 2g - b
+%
+% where g is the genus and b the number of boundary components.
 % See https://www.wikipedia.org/wiki/Euler_characteristic
+%     https://www.wikipedia.org/wiki/Genus_(mathematics)
 %__________________________________________________________________________
 % Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_euler.m 7397 2018-08-15 11:04:26Z guillaume $
+% $Id: spm_mesh_euler.m 8081 2021-03-16 16:12:27Z guillaume $
 
 
-ksi = size(M.vertices,1) - size(spm_mesh_edges(M),1) + size(M.faces,1);
+X = size(M.vertices,1) - size(spm_mesh_edges(M),1) + size(M.faces,1);
