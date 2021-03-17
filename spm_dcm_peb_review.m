@@ -10,7 +10,7 @@ function spm_dcm_peb_review(PEB, DCM)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 7479 2018-11-09 14:17:33Z peter $
+% $Id: spm_dcm_peb_review.m 8082 2021-03-17 13:17:45Z peter $
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -228,7 +228,7 @@ if display_threshold
         Pp = [];
     end
     
-    xPEB.Pp = Pp;
+    xPEB.Pp = full(Pp);
     
     % Apply threshold
     if ~isempty(Pp) && threshold > 0
@@ -272,13 +272,15 @@ for p = 1:np
                                       xPEB.region_names, ...
                                       xPEB.input_names);
 
-    if isnan(parts{p}.input)
-        parts{p}.input = 1;
-    end
+    if ~isempty(parts{p})
+        if isnan(parts{p}.input)
+            parts{p}.input = 1;
+        end
 
-    if ~any(strcmp(parts{p}.field, fields))
-        fields{end+1} = parts{p}.field;
-    end        
+        if ~any(strcmp(parts{p}.field, fields))
+            fields{end+1} = parts{p}.field;
+        end        
+    end
 end
 
 xPEB.fields = fields;
@@ -650,14 +652,14 @@ str = ['(?<field>[A-Za-z0-9\{\},]+)\('... % Match field and open bracket
 
 parts = regexp(pname, str, 'names');
 
-parts.row   = str2double(parts.row);
-parts.col   = str2double(parts.col);
-parts.input = str2double(parts.input);
-
-if isempty(region_names)
+if isempty(parts) || isempty(region_names)
     out = pname;
     return;
 end
+
+parts.row   = str2double(parts.row);
+parts.col   = str2double(parts.col);
+parts.input = str2double(parts.input);
 
 % Skip G-matrix for CMC model
 if strcmp(parts.field,'G')
