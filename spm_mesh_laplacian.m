@@ -13,7 +13,7 @@ function L = spm_mesh_laplacian(M,T)
 % Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_laplacian.m 8081 2021-03-16 16:12:27Z guillaume $
+% $Id: spm_mesh_laplacian.m 8083 2021-03-18 18:52:59Z guillaume $
 
 
 if nargin < 2, T = 'graph'; end
@@ -43,7 +43,8 @@ elseif ismember(T,{'mesh','geometric','cotangent'})
     Af  = spm_mesh_area(l,'face');
     
     %-Cotan weights
-    cot = (1-2*eye(3)) * l.^2 ./ (4*Af);
+    %cot = (1-2*eye(3)) * l.^2 ./ repmat(4*Af,3,1);
+    cot = bsxfun(@rdivide, (1-2*eye(3)) * l.^2, 4*Af);
     
     %-Cotangent matrix
     i = [F(:,1);F(:,2);F(:,2);F(:,3);F(:,1);F(:,3);F(:,1);F(:,2);F(:,3)];
@@ -52,19 +53,8 @@ elseif ismember(T,{'mesh','geometric','cotangent'})
         -cot(1,:)-cot(3,:),-cot(1,:)-cot(2,:),-cot(2,:)-cot(3,:)] / 2;
     C = sparse(i,j,s,size(M.vertices,1),size(M.vertices,1));
     
-    %-Vertex areas
-    Av = zeros(size(M.vertices,1),1);
-    for i=1:3
-        Av = Av + accumarray(F(:,i),Af,size(Av));
-    end
-    Av = Av / 3;
-    
-    %-Mass matrix
-    n = size(Av,1);
-    Ma = spdiags(Av,0,n,n);
-    
-    %-Mesh Laplacian (discrete Laplace-Beltrami operator)
-    L = Ma \ C;
+    %-Mesh Laplacian (without mass matrix weighting)
+    L = C;
 
 else
     
