@@ -34,7 +34,7 @@ function U = spm_ness_U(M,x)
 
 % event space: get or create X - coordinates of evaluation grid
 %--------------------------------------------------------------------------
-n  = length(M.x);
+
 if isfield(M,'FUN')
     FUN = M.FUN;
 else
@@ -50,8 +50,9 @@ if nargin < 2
     
     % use M.X
     %----------------------------------------------------------------------
-    X     = M.X;
-    for i = 1:size(X,1)
+    X      = M.X;
+    [nX,n] = size(X);
+    for  i = 1:nX
         x               = num2cell(X(i,:));
         [bi,Di,Hi,o]    = spm_polymtx(x,K,FUN);
         b(i,:)          = full(bi);
@@ -66,7 +67,7 @@ if nargin < 2
 
     % use M.X
     %----------------------------------------------------------------------
-    for i = 1:size(X,2)
+    for i = 1:n
         x{i}  = unique(X(:,i));
     end
 
@@ -76,7 +77,7 @@ else
     %----------------------------------------------------------------------
     [X,x]     = spm_ndgrid(x);
     [b,D,H,o] = spm_polymtx(x,K,FUN);
-    
+    [nX,n]    = size(X);
 end
 
 % size of subspace (nx)
@@ -129,7 +130,13 @@ end
 
 % orthonormal polynomial expansion
 %--------------------------------------------------------------------------
-nu  = (n^2 + n)/2;
+DDG = 0;
+if DDG
+    nu = (n^2 - n)/2;
+else
+    nu = (n^2 + n)/2;
+end
+
 if size(b,1) > 1
     
     % with coefficients p: x = b*p = dxdp*p for log density Sp
@@ -171,7 +178,7 @@ dbQ   = zeros(n,n,nb);
 dQdp  = cell(nB,1);
 dbQdp = cell(nB,1);
 for i = 1:n
-    for j = (i + 0):n
+    for j = (i + DDG):n
         for k = 1:nb
             
             % initialise partial derivatives

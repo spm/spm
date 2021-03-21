@@ -27,7 +27,7 @@ function NESS = spm_ness_hd(M,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8080 2021-03-14 13:32:56Z karl $
+% $Id: spm_ness_hd.m 8085 2021-03-21 12:27:26Z karl $
 
 
 % event space: get or create X - coordinates of evaluation grid
@@ -100,22 +100,39 @@ for i = 1:n
         end
     end
 end
-k     = find(k); 
-Ib    = Ib + sparse(k,k,1,nb,nb)*exp(16); % contraints
+kb    = find(k);
+kB    = [];
+Ib    = Ib + sparse(kb,kb,1,nb,nb);          % contraints
+IB    = IB + sparse(kB,kB,1,nB,nB);          % contraints
 
+% supplement with prior expectations if specified
+%--------------------------------------------------------------------------
+if isfield(M,'pS')
+    pS     = M.pS;
+    pS(kb) = 0;
+    Ib     = Ib + speye(nb,nb)*exp(0);
+else
+    pS     = zeros(nb,1);
+end
+pS = U.v\pS;
+Ib = U.v\Ib/(U.v)';
+IB = U.u\IB/(U.u)';
 
 % initialise parameters Qp of flow operator
 %--------------------------------------------------------------------------
 bQ    = zeros(n,n,nb);
 for i = 1:n
     for j = 1:n
-        bQ(i,j,:) = b'*squeeze(Q(i,j,:));
+        bQ(i,j,:) = b\squeeze(Q(i,j,:));
     end
 end
 Qp    = zeros(nB,1);
 for i = 1:nB
     Qp(i) = dbQdp{i}(:)'*bQ(:);
 end
+qp     = U.u*Qp;
+qp(kB) = 0;
+Qp     = U.u\qp;
     
 % iterated least-squares to estimate flow operator
 %==========================================================================
@@ -147,7 +164,7 @@ for k = 1:256
     %----------------------------------------------------------------------
     QD  = Q*Db;
     Y   = spm_vec(f' + L);
-    Sp  = (QD'*QD + Ib)\(QD'*Y);
+    Sp  = (QD'*QD + Ib)\(QD'*Y + Ib*pS);
     
     % dEdb  = dLdb - dQdb*D*b*b'*S;
     %----------------------------------------------------------------------
@@ -235,14 +252,14 @@ NESS.D2 = 2 + abs(E(1) + E(2))/abs(E(3)); % correlation dimension
 NESS.Ep = Ep;                             % parameters of flow
 NESS.o  = o;                              % parameter orders
 
-% reshape nonequilibrium steady-state density
+% reshape nonequilibrium steady-state density p0
 %--------------------------------------------------------------------------
-% p0    = spm_softmax(spm_polymtx(x,nb)*Ep.Sp);
+% NB: generally, p0 = spm_softmax(spm_polymtx(x,nb)*Ep.Sp);
 
 NESS.p0 = reshape(p0,U.nx);               % nonequilibrium steady-state
 NESS.X  = X;                              % evaluation points of state space
 NESS.F  = F;                              % expected flow
-NESS.f  = f';                              % original flow
+NESS.f  = f';                             % original flow
 
 
 
