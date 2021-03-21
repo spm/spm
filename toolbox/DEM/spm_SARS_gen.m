@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8079 2021-03-14 13:32:22Z karl $
+% $Id: spm_SARS_gen.m 8084 2021-03-21 12:26:25Z karl $
 
 
 % The generative model:
@@ -312,6 +312,10 @@ for i = 1:M.T
         % coupling between groups (contact rates)
         %==================================================================
         
+        % assume vaccine rollout is maintained over age groups
+        %------------------------------------------------------------------
+        Q{n}.rol(1) = Q{1}.rol(1);
+        
         % fluctuations in contact rates (mobility)
         %------------------------------------------------------------------
         Rout = 0;
@@ -341,7 +345,7 @@ for i = 1:M.T
         %------------------------------------------------------------------
         S    = (1 + cos(2*pi*(i - log(Q{n}.inn)*8)/365))/2;
         
-        % and fluctuations 
+        % and fluctuation in transmissibility 
         %------------------------------------------------------------------
         Ptra = 0;
         if isfield(Q{n},'tra')

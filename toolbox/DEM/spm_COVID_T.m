@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8079 2021-03-14 13:32:22Z karl $
+% $Id: spm_COVID_T.m 8084 2021-03-21 12:26:25Z karl $
 
 % setup
 %==========================================================================
@@ -302,12 +302,16 @@ ij   = Bij({6,1:5,3,1:4},{6,1:5,1,1:4},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
 
-% fluctuations in testing rate (discrete cosine basis functions)
+% fluctuations in testing rate (Fourier basis functions)
 %--------------------------------------------------------------------------
 Ppcr = 0;                             
 if isfield(P,'pcr')
     for i = 1:numel(P.pcr)
-        Ppcr = Ppcr + log(P.pcr(i)) * cos(i*pi*P.t/365)/8;
+        if i > numel(P.pcr)/2
+            Ppcr = Ppcr + log(P.pcr(i)) * cos(2*i*pi*P.t/365)/8;
+        else
+            Ppcr = Ppcr + log(P.pcr(i)) * sin(2*i*pi*P.t/365)/8;
+        end
     end
 end
 Ppcr = exp(Ppcr);

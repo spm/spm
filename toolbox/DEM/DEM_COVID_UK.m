@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8079 2021-03-14 13:32:22Z karl $
+% $Id: DEM_COVID_UK.m 8084 2021-03-21 12:26:25Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -178,7 +178,7 @@ Y(3).hold = 0;
 Y(4).type = 'Prevalence (ONS)'; % number of people infected (England)
 Y(4).unit = 'percent';
 Y(4).U    = 11;
-Y(4).date = datenum(survey.textdata(2:end,1),'dd/mm/yyyy');
+Y(4).date = datenum(survey.textdata(2:end,1),'dd/mm/yyyy') - 7;
 Y(4).Y    = survey.data(:,1)*100;
 Y(4).h    = 0;
 Y(4).lag  = 1;
@@ -292,12 +292,11 @@ EngWale    = sum(sum(place.data(1:end - 8,1:4),2));
 UK         = sum(deaths.data(4:end,1));
 EngWaleUK  = UK/EngWale;
 
-
 Y(15).type = 'Hospital deaths (PHE)'; % hospital deaths
 Y(15).unit = 'number';
 Y(15).U    = 17;
 Y(15).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yy') - 1;
-Y(15).Y    = place.data(1:end - 8,1)*EngWaleUK;
+Y(15).Y    = place.data(1:end - 8,4)*EngWaleUK;
 Y(15).h    = 0;
 Y(15).lag  = 0;
 Y(15).age  = 0;
@@ -307,7 +306,7 @@ Y(16).type = 'Hospital/Other deaths (PHE)'; % nonhospital deaths
 Y(16).unit = 'number';
 Y(16).U    = 18;
 Y(16).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yy') - 11;
-Y(16).Y    = sum(place.data(1:end - 8,2:3),2)*EngWaleUK;
+Y(16).Y    = sum(place.data(1:end - 8,1:3),2)*EngWaleUK;
 Y(16).h    = 0;
 Y(16).lag  = 0;
 Y(16).age  = 0;
@@ -318,7 +317,7 @@ Y(17).unit = 'percent';
 Y(17).U    = 5;
 Y(17).date = [datenum(serology.textdata(2:end,1),'dd/mm/yyyy') + 1; ...
               datenum(serology.textdata(2:end,1),'dd/mm/yyyy') + 2];
-Y(17).Y    = [serology.data(:,2); serology.data(:,3)];
+Y(17).Y    = [serology.data(:,2); serology.data(:,3)]*100;
 Y(17).h    = 0;
 Y(17).lag  = 0;
 Y(17).age  = 0;
