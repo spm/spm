@@ -25,7 +25,7 @@ function varargout = spm_mb_shape(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 8057 2021-02-09 18:41:58Z john $
+% $Id: spm_mb_shape.m 8086 2021-04-01 09:13:20Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -115,10 +115,10 @@ function psi = compose(psi1,psi0)
 if isempty(psi1)
     psi = psi0;
 else
-    bc = spm_diffeo('bound');
-    spm_diffeo('bound',1);
+    bc = spm_diffeo('boundary');
+    spm_diffeo('boundary',0); % psi1 should have circulant boundaries
     psi = spm_diffeo('comp',psi1,psi0);
-    spm_diffeo('bound',bc);
+    spm_diffeo('boundary',bc);
 end
 if size(psi,3) == 1, psi(:,:,:,3) = 1; end % 2D
 %==========================================================================
@@ -159,40 +159,48 @@ function a1 = pull1(a0,psi,r)
 % a1  - Output image(s)
 %
 
+bc = spm_diffeo('boundary');
+spm_diffeo('boundary',1); % Neumann boundary conditions for images
+
 if nargin<3, r=[1 1 1]; end
 
+d  = [size(a0) 1 1 1];
 if isempty(a0)
     a1 = a0;
 elseif isempty(psi)
     a1 = a0;
 else
     if r==1
-        a1 = spm_diffeo('pull',a0,psi);
-        return
-    end
-    d  = [size(a0) 1 1];
-    if d(3)>1, zrange = range(r(3)); else, zrange = 0; end
-    if d(2)>1, yrange = range(r(2)); else, yrange = 0; end
-    if d(1)>1, xrange = range(r(1)); else, xrange = 0; end
-    id = identity(size(psi));
-    a1 = zeros([size(psi,1),size(psi,2),size(psi,3),size(a0,4)],'single');
-    for l=1:d(4)
-        tmp = single(0);
-        al  = single(a0(:,:,:,l));
-        for dz=zrange
-            for dy=yrange
-                for dx=xrange
-                    ids  = id  + cat(4,dx,dy,dz);
-                    psi1 = spm_diffeo('pull',psi-id,    ids)+ids;
-                    as   = spm_diffeo('pull',al,psi1);
-                   %ids  = id  - cat(4,dx,dy,dz);
-                    tmp  = tmp + spm_diffeo('push',as,  ids);
+        a1 = spm_diffeo('pull',reshape(a0,[d(1:3) prod(d(4:end))]),psi);
+        d1 = size(a1);
+        a1 = reshape(a1,[d1(1:3) d(4:end)]);
+    else
+        if d(3)>1, zrange = range(r(3)); else, zrange = 0; end
+        if d(2)>1, yrange = range(r(2)); else, yrange = 0; end
+        if d(1)>1, xrange = range(r(1)); else, xrange = 0; end
+        id = identity(size(psi));
+        a1 = zeros([size(psi,1),size(psi,2),size(psi,3),size(a0,4)],'single');
+        for l=1:prod(d(4:end))
+            tmp = single(0);
+            al  = single(a0(:,:,:,l));
+            for dz=zrange
+                for dy=yrange
+                    for dx=xrange
+                        ids  = id  + cat(4,dx,dy,dz);
+                        psi1 = spm_diffeo('pull',psi-id,    ids)+ids;
+                        as   = spm_diffeo('pull',al,psi1);
+                       %ids  = id  - cat(4,dx,dy,dz);
+                        tmp  = tmp + spm_diffeo('push',as,  ids);
+                    end
                 end
             end
+            a1(:,:,:,l) = tmp/(numel(zrange)*numel(yrange)*numel(xrange));
+            d1 = size(a1);
+            a1 = reshape(a1,[d1(1:3) d(4:end)]);
         end
-        a1(:,:,:,l) = tmp/(numel(zrange)*numel(yrange)*numel(xrange));
     end
 end
+spm_diffeo('boundary',bc);
 %==========================================================================
 
 %==========================================================================
@@ -208,55 +216,63 @@ function [f1,w1] = push1(f,psi,d,r)
 % f1  - "Pushed" image
 %
 
+bc = spm_diffeo('boundary');
+spm_diffeo('boundary',1); % Neumann boundary conditions for images
+
 if nargin<4, r = [1 1 1]; end
 if nargin<3, d = [size(f,1) size(f,2) size(f,3)]; end
 if numel(r)==1, r = repmat(r,[1 3]); end
+
+d1 = [size(f) 1 1];
+f  = reshape(single(f),[d1(1:3) prod(d1(4:end))]);
 
 %msk    = isfinite(f);
 %f(msk) = 0;
 if ~isempty(psi)
     if all(r==1)
         if nargout==1
-            f1      = spm_diffeo('push',single(f),psi,d);
+            f1      = spm_diffeo('push',f,psi,d);
         else
-            [f1,w1] = spm_diffeo('push',single(f),psi,d);
+            [f1,w1] = spm_diffeo('push',f,psi,d);
         end
-        return
-    end
+    else
 
-    if d(3)>1, zrange = range(r(3)); else, zrange = 0; end
-    if d(2)>1, yrange = range(r(2)); else, yrange = 0; end
-    if d(1)>1, xrange = range(r(1)); else, xrange = 0; end
+        if d(3)>1, zrange = range(r(3)); else, zrange = 0; end
+        if d(2)>1, yrange = range(r(2)); else, yrange = 0; end
+        if d(1)>1, xrange = range(r(1)); else, xrange = 0; end
 
-    id    = identity(size(psi));
-    f1    = single(0);
-    w1    = single(0);
-    for dz=zrange
-        for dy=yrange
-            for dx=xrange
-                ids       = bsxfun(@plus, id, cat(4,dx,dy,dz));
-                psi1      = spm_diffeo('pullc',psi-id,   ids)+ids;
-                fs        = spm_diffeo('pull',single(f), ids);
-                if nargout==1
-                    fs      = spm_diffeo('push',fs, psi1,d);
-                    f1      = f1  + fs;
-                else
-                    [fs,ws] = spm_diffeo('push',fs, psi1,d);
-                    f1      = f1  + fs;
-                    w1      = w1  + ws;
+        id    = identity(size(psi));
+        f1    = single(0);
+        w1    = single(0);
+        for dz=zrange
+            for dy=yrange
+                for dx=xrange
+                    ids       = bsxfun(@plus, id, cat(4,dx,dy,dz));
+                    psi1      = spm_diffeo('pullc',psi-id,   ids)+ids;
+                    fs        = spm_diffeo('pull',f, ids);
+                    if nargout==1
+                        fs      = spm_diffeo('push',fs, psi1,d(1:3));
+                        f1      = f1  + fs;
+                    else
+                        [fs,ws] = spm_diffeo('push',fs, psi1,d(1:3));
+                        f1      = f1  + fs;
+                        w1      = w1  + ws;
+                    end
                 end
             end
         end
+        scale = 1/(numel(zrange)*numel(yrange)*numel(xrange));
+        f1    = f1*scale;
+        w1    = w1*scale;
     end
-    scale = 1/(numel(zrange)*numel(yrange)*numel(xrange));
-    f1    = f1*scale;
-    w1    = w1*scale;
 else
     msk      = isfinite(f);
     f1       = f;
     f1(~msk) = 0;
     w1       = single(all(msk,4));
 end
+f1 = reshape(f1,[d d1(4:end)]);
+spm_diffeo('boundary',bc);
 %==========================================================================
 
 %==========================================================================
@@ -304,7 +320,6 @@ P   = bsxfun(@rdivide,E,den);
 function E = template_energy(mu,mu_settings)
 % mu(:)'*kron(eye(K)-1/(K+1),L)*mu(:), where L is the vel2mom regulariser
 if ~isempty(mu_settings)
-    spm_field('bound',1);
     g = reg_mu(mu, mu_settings);
     E = 0.5*mu(:)'*g(:);
 else
@@ -315,19 +330,17 @@ end
 %==========================================================================
 function dat = update_affines(dat,mu,sett)
 
-% Parse function settings
-B         = sett.B;
-groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
-nw        = get_num_workers(sett,max(27,sett.K*5+17));
-
 % Update the affine parameters
+B = sett.B;
 if ~isempty(B)
+    nw = get_num_workers(sett,dat,12,7*sett.K+20);
     if nw > 1 && numel(dat) > 1 % PARFOR
         parfor(n=1:numel(dat),nw), dat(n) = update_affines_sub(dat(n),mu,sett); end
     else % FOR
         for n=1:numel(dat), dat(n) = update_affines_sub(dat(n),mu,sett); end
     end
 
+    groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
     if groupwise
         % Zero-mean the affine parameters
         mq = sum(cat(2,dat(:).q),2)/numel(dat);
@@ -355,6 +368,7 @@ end
 function datn = update_affines_sub(datn,mu,sett)
 % This could be made more efficient.
 
+
 % Parse function settings
 accel = sett.accel;
 B     = sett.B;
@@ -376,6 +390,7 @@ psi0 = affine(df,Mmu\Mr*Mn,samp);
 ds   = [size(psi0,1),size(psi0,2),size(psi0,3)];
 psi1 = get_def(datn,Mmu);
 if ~isempty(psi1)
+    spm_diffeo('boundary',0);
     J   = spm_diffeo('jacobian',psi1);
     J   = reshape(pull1(reshape(J,[d 3*3]),psi0),[ds 3 3]);
     psi = compose(psi1,psi0);
@@ -390,6 +405,7 @@ mu1 = pull1(mu,psi);
 M   = size(mu,4);
 G   = zeros([ds M 3],'single');
 for m=1:M
+    % Tiny mismatch between bsplins (mirrored) boundaries and other Neumann boundaries
     [~,Gm{1},Gm{2},Gm{3}] = spm_diffeo('bsplins',mu(:,:,:,m),psi,[1 1 1  0 0 0]);
     for i1=1:3
         if ~isempty(J)
@@ -413,7 +429,7 @@ a      = mask(f - softmax(mu1,4),msk);
 [H,g]  = affine_hessian(mu1,G,a,single(msk),accel,samp);
 g      = double(dM'*g);
 H      = dM'*H*dM;
-H      = H + eye(numel(q))*(norm(H)*1e-5 + 0.01);
+H      = H + eye(numel(q))*(norm(H)*1e-6 + 0.001);
 q      = q + (H\g);
 datn.q = q;
 %==========================================================================
@@ -449,11 +465,10 @@ function [mu,dat] = update_mean(dat, mu, sett)
 % Parse function settings
 accel       = sett.accel;
 mu_settings = sett.ms.mu_settings;
-nw          = get_num_workers(sett,4*sett.K+4);
 
-spm_field('bound',1);
 g  = reg_mu(mu,mu_settings);
 w  = zeros(sett.ms.d,'single');
+nw = get_num_workers(sett,dat,sett.K+4,3*sett.K+6);
 if nw > 1 && numel(dat) > 1 % PARFOR
     parfor(n=1:numel(dat),nw)
         [gn,wn,dat(n)] = update_mean_sub(dat(n),mu,sett);
@@ -482,7 +497,7 @@ mu = gn_mu_update(mu,g,w,mu_settings,accel);
 function mu = gn_mu_update(mu,g,w,mu_settings,accel)
 % Use Gauss-Seidel method for computing updates
 % https://en.wikipedia.org/wiki/Gauss%E2%80%93Seidel_method
-spm_field('bound',1);
+spm_field('boundary',1);
 K   = size(mu,4);
 update_settings = [mu_settings(1:3) mu_settings(4:end)*(1-1/(K+1)) 2 2];
 if accel>0, s   = softmax(mu); end
@@ -524,6 +539,7 @@ mu = mu - dmu;
 %==========================================================================
 function g = reg_mu(mu,mu_settings)
 K = size(mu,4);
+spm_field('boundary',1);
 g = spm_field('vel2mom', bsxfun(@minus,mu, sum(mu,4)/(K+1)), mu_settings);
 %==========================================================================
 
@@ -540,6 +556,8 @@ Mn       = datn.Mat;
 samp     = datn.samp;
 
 psi      = compose(get_def(datn,Mmu),affine(df, Mmu\spm_dexpm(q,B)*Mn,samp));
+
+spm_diffeo('boundary',1); % Neumann
 mu       = pull1(mu,psi);
 [f,datn] = spm_mb_classes(datn,mu,sett);
 [g,w]    = push1(softmax(mu,4) - f,psi,d,1);
@@ -553,12 +571,13 @@ accel = sett.accel;
 B     = sett.B;
 if ~isempty(B)
     groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
-    nw        = get_num_workers(sett,4*sett.K+4);
 
     % Update the affine parameters
+    spm_diffeo('boundary',1);
     G  = spm_diffeo('grad',mu);
     H0 = velocity_hessian(mu,G,accel);
 
+    nw = get_num_workers(sett,dat,3*sett.K+4,3*sett.K+5);
     if nw > 1 && numel(dat) > 1 % PARFOR
         parfor(n=1:numel(dat),nw)
             dat(n) = update_simple_affines_sub(dat(n),mu,G,H0,sett);
@@ -655,22 +674,23 @@ function dat = update_velocities(dat,mu,sett)
 
 % Parse function settings
 accel     = sett.accel;
-nw        = get_num_workers(sett,7*sett.K+4*3+6);
-
 groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
 if groupwise
     scal = 1-1/numel(dat);
 else
     scal = 1;
 end
-scal = min(scal,0.9);
+scal = min(scal,1.0);
 
+spm_diffeo('boundary',1); % Neumann boundary
 G  = spm_diffeo('grad',mu);
 H0 = velocity_hessian(mu,G,accel);
 if size(G,3) == 1
     % Data is 2D -> add some regularisation
     H0(:,:,:,3) = H0(:,:,:,3) + mean(reshape(H0(:,:,:,[1 2]),[],1));
 end
+
+nw = get_num_workers(sett,dat,4*sett.K+28,3*sett.K+7);
 if nw > 1 && numel(dat) > 1 % PARFOR
     parfor(n=1:numel(dat),nw), dat(n) = update_velocities_sub(dat(n),mu,G,H0,sett,scal); end
 else % FOR
@@ -688,7 +708,7 @@ Mmu        = sett.ms.Mmu;
 s_settings = [2 2];
 v_settings = sett.ms.v_settings;
 
-if nargin<6, scal=0.9; end
+if nargin<6, scal=1.0; end
 
 v        = spm_mb_io('get_data',datn.v);
 q        = datn.q;
@@ -707,6 +727,7 @@ g         = reshape(sum(bsxfun(@times,a,G),4),[d 3]);
 H         = bsxfun(@times,w,H0);
 clear a w
 
+spm_diffeo('boundary',0); % Circulant boundary conditions
 u0        = spm_diffeo('vel2mom', v, v_settings);                           % Initial momentum
 datn.E(2) = 0.5*sum(u0(:).*v(:));                                           % Prior term
 v         = v - scal*spm_diffeo('fmg', H, g + u0, [v_settings s_settings]); % Gauss-Newton update
@@ -780,7 +801,7 @@ v_settings = sett.ms.v_settings;
 d          = sett.ms.d;
 
 if groupwise
-    nw    = get_num_workers(sett,9);
+    nw    = get_num_workers(sett,dat,9,0);
     % Total initial velocity should be zero (Khan & Beg), so mean correct
     avg_v = single(0);
     if nw > 1 && numel(dat) > 1 % PARFOR
@@ -801,8 +822,8 @@ else
     avg_v = [];
 end
 
-nw     = get_num_workers(sett,33);
 kernel = shoot(d,v_settings);
+nw     = get_num_workers(sett,dat,33,0);
 if nw > 1 && numel(dat) > 1 % PARFOR
     parfor(n=1:numel(dat),nw)
         dat(n) = update_warps_sub(dat(n),avg_v,kernel,sett); 
@@ -821,6 +842,7 @@ if ~isempty(avg_v)
     v      = v - avg_v;
     datn.v = spm_mb_io('set_data',datn.v,v);
 end
+spm_diffeo('boundary',0); % Circulant boundaries
 u0         = spm_diffeo('vel2mom', v, kernel.v_settings); % Initial momentum
 datn.E(2)  = 0.5*sum(u0(:).*v(:));                        % Prior term
 psi1       = shoot(v, kernel, 8);                         % Geodesic shooting
@@ -834,18 +856,22 @@ function [dat,mu] = zoom_volumes(dat,mu,sett,oMmu)
 d     = sett.ms.d;
 Mmu   = sett.ms.Mmu;
 B     = sett.B;
-nw    = get_num_workers(sett,6+0.5*6);
 
 d0    = [size(mu,1) size(mu,2) size(mu,3)];
 z     = single(reshape(d./d0,[1 1 1 3]));
 Mzoom = oMmu\Mmu;
 y     = affine(d,Mzoom);
-if nargout > 1 || ~isempty(mu), mu = spm_diffeo('pullc',mu,y); end % only resize template if updating it
+if nargout > 1 || ~isempty(mu) % only resize template if updating it
+    spm_diffeo('boundary',1);  % Neumann bounday for template
+    mu = spm_diffeo('pullc',mu,y);
+end 
 
 if ~isempty(dat)
+    nw = get_num_workers(sett,dat,6+0.5*6,0);
     if nw > 1 && numel(dat) > 1 % PARFOR
         parfor(n=1:numel(dat),nw)
             v          = spm_mb_io('get_data',dat(n).v);
+            spm_diffeo('boundary',0); % Circulant for velocities
             v          = spm_diffeo('pullc',bsxfun(@times,v,z),y);
             dat(n).v   = resize_file(dat(n).v  ,d,Mmu);
             dat(n).v   = spm_mb_io('set_data',dat(n).v,v);
@@ -859,6 +885,7 @@ if ~isempty(dat)
     else % FOR
         for n=1:numel(dat)
             v          = spm_mb_io('get_data',dat(n).v);
+            spm_diffeo('boundary',0); % Circulant for velocities
             v          = spm_diffeo('pullc',bsxfun(@times,v,z),y);
             dat(n).v   = resize_file(dat(n).v  ,d,Mmu);
             dat(n).v   = spm_mb_io('set_data',dat(n).v,v);
@@ -955,7 +982,7 @@ if nargin==2
         d = v0;
     end
     v_settings = kernel;
-    spm_diffeo('boundary',0);
+    spm_diffeo('boundary',0); % Circulant boundaries
     F   = spm_shoot_greens('kernel',d,v_settings);
     varargout{1} = struct('d',d, 'v_settings',v_settings, 'F', F);
     return;
@@ -991,7 +1018,7 @@ if ~isfinite(T)
     T = double(floor(sqrt(max(max(max(v0(:,:,:,1).^2+v0(:,:,:,2).^2+v0(:,:,:,3).^2)))))+1);
 end
 
-spm_diffeo('boundary',0);
+spm_diffeo('boundary',0); % Circulant for velocities and diffeos
 v   = v0;
 u   = spm_diffeo('vel2mom',v,kernel.v_settings); % Initial momentum (u_0 = L v_0)
 psi = id - v/T;
@@ -1043,11 +1070,11 @@ for i=1:n
     sz(i).Mmu         = Mmu*[diag(z), (1-z(:))*0.5; 0 0 0 1];
     vx                = sqrt(sum(sz(i).Mmu(1:3,1:3).^2));
     scale_i           = scale*abs(det(sz(i).Mmu(1:3,1:3)));
-    % This fudge value (1.1) should really be 1, but this gives less
+    % This fudge value (1.05) should really be 1, but this gives less
     % extreme warps in the early iterations, which might help the
     % clustering associate the right priors to each tissue class
     % - without warping the priors to the wrong tissue.
-    scale_i           = scale_i^1.1;
+    scale_i           = scale_i^1.05;
     sz(i).v_settings  = [vx v_settings*scale_i];
     if isfield(mu,'create')
         mu_settings       = mu.create.mu_settings;
@@ -1072,43 +1099,51 @@ X4d = reshape(X2d,[dm(1:3) size(X2d,2)]);
 %==========================================================================
 
 %==========================================================================
-function nw = get_num_workers(sett,NumVol)
+function nw = get_num_workers(sett,dat,NumVol,NumVolNative)
 % Estimate number of parfor workers from available system RAM
-% (if sett.gen.num_workers = -1)
+% Difficult to determine accurate values in practice because
+% they depend on the behaviour of broadcast variables, and
+% whether these are copied or not.
 
-% Parse function settings
-MemMax         = 0;          % max memory usage (in MB)
-NumWork        = sett.nworker;
-dm             = sett.ms.d;  % current template dimensions
-
+NumWork = sett.nworker;
 if NumWork <= 1
     nw = 0;
     return
 end
 
-if MemMax == 0
-    try
-        % Users of the GitHub version of this code can get errors because
-        % spm_platform('memory','available') is only available in recent
-        % versions of SPM.
-        MemMax = spm_platform('memory','available') / 1024 / 1024;
-    catch
-        MemMax = NaN;
-    end
-    if isnan(MemMax)
-        MemMax = 1024;
+K = sett.K;
+
+% Number of Template-space volumes
+if nargin<3
+    NumVol = (K*(K+1)/2+4*K);
+end
+dm = sett.ms.d;  % current template dimensions
+
+% Maximum image dimensions
+if nargin<4, NumVolNative = 0; end
+maxvox = 0;
+if NumVolNative>0
+    for n=1:numel(dat)
+        dn     = dat(n).dm(1:3);
+        smp    = dat(n).samp;
+        maxvox = max(maxvox,prod(ceil(dn./smp)));
     end
 end
 
-% Get memory requirement (with current template size)
-if nargin<2
-    K          = sett.K; % template classes
-    NumVol     = (K*(K+1)/2+4*K);
+NumFloats    = NumVol*prod(dm(1:3)) + NumVolNative*maxvox;
+MemReq       = (NumFloats*4)/1e6;  % MB
+
+
+try
+    % Users of the GitHub version of this code can get errors because
+    % spm_platform('memory','available') is only available in recent
+    % versions of SPM.
+    MemMax = spm_platform('memory','available') / 1024 / 1024;
+catch
+    MemMax = 1024;
 end
-NumFloats      = NumVol*prod(dm(1:3));            % float size of mean Hessian + padding (we also keep images, etc in memory (rough))
-FloatSizeBytes = 4;                               % One float is four bytes (single precision)
-MemReq         = (NumFloats*FloatSizeBytes)/1e6;  % to MB
-nw             = max(floor(MemMax/MemReq) - 1,0); % Number of parfor workers to use (minus one..for main thread)
+
+nw = max(floor(MemMax/MemReq) - 1,0); % Number of parfor workers to use (minus one..for main thread)
 if NumWork >= 0
     nw = min(NumWork,nw);
 end

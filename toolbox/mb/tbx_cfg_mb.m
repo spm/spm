@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 8057 2021-02-09 18:41:58Z john $
+% $Id: tbx_cfg_mb.m 8086 2021-04-01 09:13:20Z john $
 
 
 if ~isdeployed, addpath(fileparts(mfilename('fullpath'))); end
@@ -346,7 +346,7 @@ dff.tag         = 'v_settings';
 dff.name        = 'Shape regularisation';
 dff.strtype     = 'e';
 dff.num         = [1 5];
-dff.val         = {[0.00001 0 0.4 0.1 0.4]};
+dff.val         = {[0.00001 0 0.25 0.25 0.5]};
 dff.help        = {[...
 'Specify the regularisation settings for the diffeomorphic registration. ' ...
 'These consist of a vector of five values, which penalise different ' ...
@@ -398,7 +398,7 @@ mb             = cfg_exbranch;
 mb.tag         = 'run';
 mb.name        = 'Fit Multi-Brain model';
 mb.val         = {mu_prov, aff, dff, onam, odir, segs, pops,...
-                   const('accel',0.8), const('min_dim', 16), const('tol',0.001),...
+                   const('accel',0.8), const('min_dim', 8), const('tol',0.001),...
                    const('sampdens',2),const('save',true),const('nworker',0)};
 mb.prog        = @run_mb;
 mb.vout        = @vout_mb_run;

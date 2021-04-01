@@ -10,7 +10,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 8057 2021-02-09 18:41:58Z john $
+% $Id: spm_mb_fit.m 8086 2021-04-01 09:13:20Z john $
 
 
 % Repeatable random numbers
@@ -173,7 +173,7 @@ for zm=numel(sz):-1:1 % loop over zoom levels
         end
         fprintf('\n');
 
-        if it0==nit_max || (oE-E/nvox(dat) < sett.tol*2 && it0>=nit_zm0)
+        if it0==nit_max || (oE-E/nvox(dat) < sett.tol && it0>=nit_zm0)
             break;
         else
             % Compute deformations from velocities (unless this is to be done

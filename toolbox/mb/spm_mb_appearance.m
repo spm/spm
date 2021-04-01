@@ -11,12 +11,12 @@ function varargout = spm_mb_appearance(varargin) % Appearance model
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
 % Mikael Brudfors, John Ashburner & Yael Balbastre
-% $Id: spm_mb_appearance.m 8057 2021-02-09 18:41:58Z john $
+% $Id: spm_mb_appearance.m 8086 2021-04-01 09:13:20Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
 %==========================================================================
-function dat = restart(dat,sett)
+function [dat,sett] = restart(dat,sett)
 % Allow a restart of the GMM
 for n=1:numel(dat)
     if isfield(dat(n).model,'gmm')
@@ -276,7 +276,7 @@ for p=1:numel(sett.gmm) % Loop over populations
         W  = sett.gmm(p).pr{3};
         for k=1:size(W,3)
             S        = inv(W(:,:,k));
-            W(:,:,k) = inv(S + 0.0001*max(diag(S))*eye(size(S)));
+            W(:,:,k) = inv(S*(1-1e-9) + 1e-9*mean(diag(S))*eye(size(S)));
         end
         sett.gmm(p).pr{3} = W;
 
@@ -552,8 +552,8 @@ for c=1:C
                 end
                 fz         = f(:,:,z,c);
                 ll(2,c)    = ll(2,c) + sum(ml(isfinite(fz(:)) & mskz(:)),'double');
-                if nargout>1, mf(:,:,z,c) = fz.*(exp(ml+vl/2)); end
-                if nargout>2, vf(:,:,z,c) = fz.^2.*exp(2*ml).*exp(vl).*(exp(vl)-1); end
+                if nargout>1, mf(:,:,z,c) = fz.*(exp(ml + vl/2)); end
+                if nargout>2, vf(:,:,z,c) = fz.^2.*exp(2*ml + vl).*(exp(vl) - 1); end
             end
         else
             for z=1:nz % Loop over slices

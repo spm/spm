@@ -861,10 +861,11 @@ function [alpha0,E] = dirichlet_hyperparameters_ml(Alpha)
 % are hyperparameters of posterior distributions.
 [K,N] = size(Alpha);
 lnP   = bsxfun(@minus, psi(Alpha), psi(sum(Alpha,1))); % \ln \tilde{\pi}
+ss    = sum(lnP,2);        % Sufficient statistic
 la0   = zeros(K,1)-log(K); % Starting estimates (working with log(a0))
 for it=1:100
     alpha0  = exp(la0);
-    g   = alpha0.*(N*(psi(alpha0) - psi(sum(alpha0))) - sum(lnP,2));      % Gradient
+    g   = alpha0.*(N*(psi(alpha0) - psi(sum(alpha0))) - ss);              % Gradient
     H   = N*(alpha0*alpha0').*(diag(psi(1,alpha0)) - psi(1,sum(alpha0))); % E[Hessian]
     H   = H + diag(eps+max(g,0));                                         % Actual Hessian (where g>0)
     H   = H + eye(size(H))*(max(abs(diag(H)))*1e-6);
@@ -873,7 +874,7 @@ for it=1:100
     if norm(la0-lao)^2 <= norm(la0)^2*eps, break; end
 end
 alpha0 = exp(la0)+eps; % Add eps because psi(0) is minus infinity
-E     = sum((alpha0-1)'*lnP) + N*(gammaln(sum(alpha0)) - sum(gammaln(alpha0))); % ln p(Alpha|alpha0);
+E      = (alpha0-1)'*ss + N*(gammaln(sum(alpha0)) - sum(gammaln(alpha0))); % ln p(Alpha|alpha0);
 % =========================================================================
 
 % =========================================================================

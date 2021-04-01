@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 8057 2021-02-09 18:41:58Z john $
+% $Id: spm_mb_init.m 8086 2021-04-01 09:13:20Z john $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -275,7 +275,7 @@ for p=1:numel(cfg.gmm)
             gmm          = struct('f',f, 'pop', ix_gmm, 'samp',[1 1 1],...
                                   'modality', modality, 'T',{T}, 'lb', lb,...
                                   'm',rand(Cn,K+1),'b',zeros(1,K+1)+1e-6,...
-                                  'W',repmat(eye(Cn,Cn),[1 1 K+1]),'n',zeros(1,K+1)+1e-6, 'gam',[],'Alpha',Alpha);
+                                  'W',repmat(eye(Cn,Cn),[1 1 K+1]),'nu',zeros(1,K+1)+1e-6, 'gam',[],'Alpha',Alpha);
             dat(n).model = struct('gmm',gmm);
         end
     end

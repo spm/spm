@@ -1,4 +1,4 @@
-function varargout = spm_mb_io(action,varargin)
+function varargout = spm_mb_io(varargin)
 % File I/O Multi-Brain functionalities
 %
 % FORMAT fn      = spm_mb_io('get_image',datn)
@@ -11,9 +11,9 @@ function varargout = spm_mb_io(action,varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_io.m 7982 2020-10-12 11:07:27Z john $
+% $Id: spm_mb_io.m 8086 2021-04-01 09:13:20Z john $
 
-[varargout{1:nargout}] = spm_subfun(localfunctions,action,varargin{:});
+[varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
 %==========================================================================
