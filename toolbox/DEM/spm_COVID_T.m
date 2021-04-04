@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8084 2021-03-21 12:26:25Z karl $
+% $Id: spm_COVID_T.m 8088 2021-04-04 12:11:35Z karl $
 
 % setup
 %==========================================================================
@@ -149,7 +149,7 @@ Pths = P.ths;                              % P(no transmission) | hospital
 
 Kimm = exp(-1/P.Tim);                      % loss of Ab+ immunity (per day)
 Kinn = exp(-1/256);                        % loss of Ab- immunity (per day)
-Vimm = Kimm;                               % Loss of Ab+ vaccine  (per day)
+Vimm = Kinn;                               % Loss of Ab+ vaccine  (per day)
 
 Kinf = exp(-1/P.Tin);                      % infection rate
 Kcon = exp(-1/P.Tcn);                      % infectious rate
@@ -158,7 +158,7 @@ Pres = P.res;                              % resistant proportion
 Rvac = spm_phi((P.t - P.rol(2))/P.rol(3)); % vaccination rollout
 Rvac = Rvac*P.rol(1);                      % P(vaccination)
 Rvac = Rvac*P.vac;                         % P(effective vaccination)
-Pnac = 1 - Rvac;                           % 1 - P( vaccination)
+Pnac = 1 - Rvac;                           % 1 - P(vaccination)
 
 
 % marginal: infection {2} | home {1}(1)

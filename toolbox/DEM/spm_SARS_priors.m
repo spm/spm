@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8079 2021-03-14 13:32:22Z karl $
+% $Id: spm_SARS_priors.m 8088 2021-04-04 12:11:35Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -81,9 +81,9 @@ if nargin
     P.rol = log([0.04  (365 + 128) 8;
                  0.04  (365 + 64 ) 8;
                  0.04  (365 + 0  ) 8]);
-    C.rol = [1/8 1/1024 1/1024;
-             1/8 1/1024 1/1024;
-             1/8 1/1024 1/1024];
+    C.rol = [1/256 1/1024 1/256;
+             1/256 1/1024 1/256;
+             1/256 1/1024 1/256];
     P.sev = log([0.0001;
                  0.002;
                  0.04]);

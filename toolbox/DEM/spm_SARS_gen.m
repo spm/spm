@@ -15,7 +15,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,2)  - Daily confirmed cases
 % Y(:,3)  - Mechanical ventilation
 % Y(:,4)  - Reproduction ratio (R)
-% Y(:,5)  - Seropositive immunityy (%)
+% Y(:,5)  - Seropositive immunity (%)
 % Y(:,6)  - PCR testing rate
 % Y(:,7)  - Contagion risk (%)
 % Y(:,8)  - Prevalence: contagious {%}
@@ -32,7 +32,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,19) - Daily incidence (per hundred thousand)
 % Y(:,20) - Weekly confirmed cases (per hundred thousand)
 % Y(:,21) - Infection fatality ratio (%)
-% Y(:,22) - Number vaccinated
+% Y(:,22) - Percent vaccinated (%)
 % Y(:,23) - PCR case positivity (%)
 % Y(:,24) - Lateral flow tests
 % Y(:,25) - Cumulative attack rate
@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8084 2021-03-21 12:26:25Z karl $
+% $Id: spm_SARS_gen.m 8088 2021-04-04 12:11:35Z karl $
 
 
 % The generative model:
@@ -263,7 +263,7 @@ end
     
 % outputs that depend upon population size
 %--------------------------------------------------------------------------
-uN    = [1,2,3,6,9,12,15,16,17,18,22,24,27];
+uN    = [1,2,3,6,9,12,15,16,17,18,24,27];
 
 % ensemble density tensor and solve over the specified number of days
 %--------------------------------------------------------------------------
@@ -314,7 +314,7 @@ for i = 1:M.T
         
         % assume vaccine rollout is maintained over age groups
         %------------------------------------------------------------------
-        Q{n}.rol(1) = Q{1}.rol(1);
+        % Q{n}.rol(1) = Q{1}.rol(1);
         
         % fluctuations in contact rates (mobility)
         %------------------------------------------------------------------
@@ -513,9 +513,9 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Y{n}(i,18) = N(n) * sum(q([1,2,4,5],4));
         
-        % cumulative number of people (first dose) vaccinated (in millions)
+        % cumulative number of people (first dose) vaccinated (%)
         %------------------------------------------------------------------
-        Y{n}(i,22) = N(n) * p{n}{2}(6)/Q{n}.vac / 1e6;
+        Y{n}(i,22) = 100 * p{n}{2}(6)/Q{n}.vac;
         
         % PCR case positivity (%)(seven day rolling average)
         %------------------------------------------------------------------

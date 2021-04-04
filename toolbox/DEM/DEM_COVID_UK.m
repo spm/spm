@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8084 2021-03-21 12:26:25Z karl $
+% $Id: DEM_COVID_UK.m 8088 2021-04-04 12:11:35Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -82,11 +82,11 @@ try
     age   = unique(tab(:,6));
     for r = 1:numel(age)
         j = find(ismember(tab(:,6),age(r,1)));
-        ages(:,1)     = tab(j,1);
-        ages(:,r + 1) = tab(j,7);
+        agedeaths(:,1)     = tab(j,1);
+        agedeaths(:,r + 1) = tab(j,7);
     end
-    ages = renamevars(ages,(1:numel(age)) + 1,table2array(age));
-    writetable(ages,'ages.csv')
+    agedeaths = renamevars(agedeaths,(1:numel(age)) + 1,table2array(age));
+    writetable(agedeaths,'agedeaths.csv')
     
     % get cases by age
     %----------------------------------------------------------------------
@@ -105,9 +105,16 @@ try
     %----------------------------------------------------------------------
     url = 'https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/947572/COVID-19-transport-use-statistics.ods.ods';
     writetable(webread(url,options),'transport.csv');
+    
+    ndy = 321;
     url = 'https://www.gstatic.com/covid19/mobility/2020_GB_Region_Mobility_Report.csv';
     tab = webread(url);
-    writetable(tab(1:512,9:12),'mobility.csv');
+    writetable(tab(1:ndy,9:12),'mobility20.csv');
+
+    ndy = datenum(date) - datenum(datestr('01/01/2021','dd/mm/yyyy'));
+    url = 'https://www.gstatic.com/covid19/mobility/2021_GB_Region_Mobility_Report.csv';
+    tab = webread(url);
+    writetable(tab(1:ndy,9:12),'mobility21.csv');
     
     disp('download successful')
     
@@ -131,13 +138,14 @@ occupancy  = importdata('occupancy.csv');
 positivity = importdata('positivity.csv');
 lateralft  = importdata('lateralft.csv');
 transport  = importdata('transport.csv');
-mobility   = importdata('mobility.csv');
-vaccine    = importdata('vaccine.csv');
-ages       = importdata('ages.csv');
+mobility20 = importdata('mobility20.csv');
+mobility21 = importdata('mobility21.csv');
+vaccine    = importdata('vaccineage.csv');
+agedeaths  = importdata('agedeaths.csv');
 agecases   = importdata('agecases.csv');
 place      = importdata('place.csv');
 
-serology   = importdata('seropositive.csv');
+serology   = importdata('serology.csv');
 survey     = importdata('survey.csv');
 symptoms   = importdata('symptoms.csv');
 ratio      = importdata('ratio.csv');
@@ -279,8 +287,9 @@ Y(13).hold = 1;
 Y(14).type = 'Mobility (GOV/Google)'; % retail and recreation (percent)
 Y(14).unit = 'percent';
 Y(14).U    = 14;
-Y(14).date = datenum(mobility.textdata(2:end,1),'yyyy-mm-dd');
-Y(14).Y    = mobility.data(:,1) + 100;
+Y(14).date = [datenum(mobility20.textdata(2:end,1),'yyyy-mm-dd') ;
+              datenum(mobility21.textdata(2:end,1),'yyyy-mm-dd')];
+Y(14).Y    = [mobility20.data(:,1); mobility21.data(:,1)] + 100;
 Y(14).h    = 0;
 Y(14).lag  = 0;
 Y(14).age  = 0;
@@ -295,117 +304,153 @@ EngWaleUK  = UK/EngWale;
 Y(15).type = 'Hospital deaths (PHE)'; % hospital deaths
 Y(15).unit = 'number';
 Y(15).U    = 17;
-Y(15).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yy') - 1;
-Y(15).Y    = place.data(1:end - 8,4)*EngWaleUK;
+Y(15).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yyyy');
+Y(15).Y    = place.data(1:end - 8,1)*EngWaleUK;
 Y(15).h    = 0;
-Y(15).lag  = 0;
+Y(15).lag  = 1;
 Y(15).age  = 0;
 Y(15).hold = 1;
 
 Y(16).type = 'Hospital/Other deaths (PHE)'; % nonhospital deaths
 Y(16).unit = 'number';
 Y(16).U    = 18;
-Y(16).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yy') - 11;
-Y(16).Y    = sum(place.data(1:end - 8,1:3),2)*EngWaleUK;
+Y(16).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yyyy');
+Y(16).Y    = sum(place.data(1:end - 8,2:4),2)*EngWaleUK;
 Y(16).h    = 0;
-Y(16).lag  = 0;
+Y(16).lag  = 1;
 Y(16).age  = 0;
 Y(16).hold = 0;
 
-Y(17).type = 'Seropositive (GOV)'; % percentage seropositive
-Y(17).unit = 'percent';
-Y(17).U    = 5;
-Y(17).date = [datenum(serology.textdata(2:end,1),'dd/mm/yyyy') + 1; ...
-              datenum(serology.textdata(2:end,1),'dd/mm/yyyy') + 2];
-Y(17).Y    = [serology.data(:,2); serology.data(:,3)]*100;
-Y(17).h    = 0;
-Y(17).lag  = 0;
-Y(17).age  = 0;
-Y(17).hold = 1;
-
-Y(18).type = 'Ab+/Vaccination (GOV)'; % cumulative people with first dose
-Y(18).unit = 'percent/millions';
-Y(18).U    = 22;
-Y(18).date = datenum(vaccine.textdata(2:end,1),'yyyy-mm-dd');
-Y(18).Y    = vaccine.data(:,1)/1e6;
-Y(18).h    = 0;
-Y(18).lag  = 0;
-Y(18).age  = 0;
-Y(18).hold = 0;
-
-
 % scaling for data from England
 %--------------------------------------------------------------------------
-England    = sum(sum(ages.data(:,[1 3 4 5 6 7:13 15 16:21]),2));
+England    = sum(sum(agedeaths.data(:,[1 3 4 5 6 7:13 15 16:21]),2));
 UK         = sum(deaths.data(4:end,1));
 EnglandUK  = UK/England;
 
 % age-specific data
 %--------------------------------------------------------------------------
-Y(19).type = 'deaths < 25 (PHE)'; % deaths (English hospitals)
-Y(19).unit = 'number';
-Y(19).U    = 1;
-Y(19).date = datenum(ages.textdata(2:end,1),'yyyy-mm-dd');
-Y(19).Y    = sum(ages.data(:,[1 3 4 5 6]),2)*EnglandUK;
+Y(17).type = 'Seropositive < 25 (PHE)'; % percent antibody positive (England)
+Y(17).unit = 'percent';
+Y(17).U    = 5;
+Y(17).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
+Y(17).Y    = serology.data(:,4)*100;
+Y(17).h    = 2;
+Y(17).lag  = 0;
+Y(17).age  = 1;
+Y(17).hold = 1;
+
+Y(18).type = 'Seropositive 25-65 (PHE)'; % percent antibody positive (England)
+Y(18).unit = 'percent';
+Y(18).U    = 5;
+Y(18).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
+Y(18).Y    = mean(serology.data(:,7:3:16),2)*100;
+Y(18).h    = 2;
+Y(18).lag  = 0;
+Y(18).age  = 2;
+Y(18).hold = 1;
+
+Y(19).type = 'Seropositive 25-, 25-65, 65+ (PHE)'; % percent antibody positive (England)
+Y(19).unit = 'percent';
+Y(19).U    = 5;
+Y(19).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
+Y(19).Y    = mean(serology.data(:,19:3:28),2)*100;
 Y(19).h    = 2;
 Y(19).lag  = 0;
-Y(19).age  = 1;
+Y(19).age  = 3;
 Y(19).hold = 1;
 
-Y(20).type = 'deaths 25-65 (PHE)'; % deaths (English hospitals)
-Y(20).unit = 'number';
-Y(20).U    = 1;
-Y(20).date = datenum(ages.textdata(2:end,1),'yyyy-mm-dd');
-Y(20).Y    = sum(ages.data(:,[7:13 15]),2)*EnglandUK;
-Y(20).h    = 2;
+
+Y(20).type = 'Ab+/Vac < 25 (PHE)'; % percent vaccinated (England)
+Y(20).unit = 'percent';
+Y(20).U    = 22;
+Y(20).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
+Y(20).Y    = vaccine.data(:,1)*100;
+Y(20).h    = 0;
 Y(20).lag  = 0;
-Y(20).age  = 2;
+Y(20).age  = 1;
 Y(20).hold = 1;
 
-Y(21).type = 'deaths 25-, 25-65, 65+ (PHE)'; % deaths (English hospitals)
-Y(21).unit = 'number';
-Y(21).U    = 1;
-Y(21).date = datenum(ages.textdata(2:end,1),'yyyy-mm-dd');
-Y(21).Y    = sum(ages.data(:,16:21),2)*EnglandUK;
-Y(21).h    = 2;
+Y(21).type = 'Ab+/Vac 25-65 (PHE)'; % percent vaccinated (England)
+Y(21).unit = 'percent';
+Y(21).U    = 22;
+Y(21).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
+Y(21).Y    = mean(vaccine.data(:,4:3:13),2)*100;
+Y(21).h    = 0;
 Y(21).lag  = 0;
-Y(21).age  = 3;
-Y(21).hold = 0;
+Y(21).age  = 2;
+Y(21).hold = 1;
 
-
-Y(22).type = 'cases < 25 (PHE)';   % cases (United Kingdom)
-Y(22).unit = 'number';
-Y(22).U    = 2;
-Y(22).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
-Y(22).Y    = sum(agecases.data(:,[1 3 4 5 6]),2);
+Y(22).type = 'Ab+/Vac 25-, 25-65, 65+ (PHE)'; % percent vaccinated (England)
+Y(22).unit = 'percent';
+Y(22).U    = 22;
+Y(22).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
+Y(22).Y    = mean(vaccine.data(:,16:3:25),2)*100;
 Y(22).h    = 0;
-Y(22).lag  = 1;
-Y(22).age  = 1;
-Y(22).hold = 1;
+Y(22).lag  = 0;
+Y(22).age  = 3;
+Y(22).hold = 0;
 
-Y(23).type = 'cases 25-65 (PHE)'; % cases (United Kingdom)
+
+Y(23).type = 'deaths < 25 (PHE)'; % deaths (English hospitals)
 Y(23).unit = 'number';
-Y(23).U    = 2;
-Y(23).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
-Y(23).Y    = sum(agecases.data(:,[7:13 15]),2);
-Y(23).h    = 0;
-Y(23).lag  = 1;
-Y(23).age  = 2;
+Y(23).U    = 1;
+Y(23).date = datenum(agedeaths.textdata(2:end,1),'yyyy-mm-dd');
+Y(23).Y    = sum(agedeaths.data(:,[1 3 4 5 6]),2)*EnglandUK;
+Y(23).h    = 2;
+Y(23).lag  = 0;
+Y(23).age  = 1;
 Y(23).hold = 1;
 
-Y(24).type = 'cases 25-, 25-65, 65+ (PHE)'; % cases (United Kingdom)
+Y(24).type = 'deaths 25-65 (PHE)'; % deaths (English hospitals)
 Y(24).unit = 'number';
-Y(24).U    = 2;
-Y(24).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
-Y(24).Y    = sum(agecases.data(:,16:21),2);
-Y(24).h    = 0;
-Y(24).lag  = 1;
-Y(24).age  = 3;
-Y(24).hold = 0;
+Y(24).U    = 1;
+Y(24).date = datenum(agedeaths.textdata(2:end,1),'yyyy-mm-dd');
+Y(24).Y    = sum(agedeaths.data(:,[7:13 15]),2)*EnglandUK;
+Y(24).h    = 2;
+Y(24).lag  = 0;
+Y(24).age  = 2;
+Y(24).hold = 1;
 
-% remove location dependent data
-%--------------------------------------------------------------------------
-% Y([15 16]) = [];
+Y(25).type = 'deaths 25-, 25-65, 65+ (PHE)'; % deaths (English hospitals)
+Y(25).unit = 'number';
+Y(25).U    = 1;
+Y(25).date = datenum(agedeaths.textdata(2:end,1),'yyyy-mm-dd');
+Y(25).Y    = sum(agedeaths.data(:,16:21),2)*EnglandUK;
+Y(25).h    = 2;
+Y(25).lag  = 0;
+Y(25).age  = 3;
+Y(25).hold = 0;
+
+
+Y(26).type = 'cases < 25 (PHE)';  % PCR notifications (United Kingdom)
+Y(26).unit = 'number';
+Y(26).U    = 2;
+Y(26).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
+Y(26).Y    = sum(agecases.data(:,[1 3 4 5 6]),2);
+Y(26).h    = 0;
+Y(26).lag  = 1;
+Y(26).age  = 1;
+Y(26).hold = 1;
+
+Y(27).type = 'cases 25-65 (PHE)'; % PCR notifications  (United Kingdom)
+Y(27).unit = 'number';
+Y(27).U    = 2;
+Y(27).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
+Y(27).Y    = sum(agecases.data(:,[7:13 15]),2);
+Y(27).h    = 0;
+Y(27).lag  = 1;
+Y(27).age  = 2;
+Y(27).hold = 1;
+
+Y(28).type = 'cases 25-, 25-65, 65+ (PHE)'; % PCR notifications  (United Kingdom)
+Y(28).unit = 'number';
+Y(28).U    = 2;
+Y(28).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
+Y(28).Y    = sum(agecases.data(:,16:21),2);
+Y(28).h    = 0;
+Y(28).lag  = 1;
+Y(28).age  = 3;
+Y(28).hold = 0;
 
 
 % population sizes
@@ -510,7 +555,7 @@ if nargout, return, end
 %==========================================================================
 spm_figure('GetWin','United Kingdom'); clf;
 %--------------------------------------------------------------------------
-M.T       = datenum('01-04-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
+M.T       = 28 + datenum(date) - datenum(M.date,'dd-mm-yyyy');
 u         = [find(U == 1,1) find(U == 2,1) find(U == 3,1)];
 [H,X,~,R] = spm_SARS_gen(Ep,M,[1 2 3]);
 spm_SARS_plot(H,X,YS(:,u),[1 2 3])
@@ -742,8 +787,8 @@ str = sprintf('Prevalence and reproduction ratio (%s): R = %.2f (CI %.2f to %.2f
 %--------------------------------------------------------------------------
 plot(get(gca,'XLim'),[1,1],':k')
 plot(datenum(date,'dd-mm-yyyy')*[1,1],get(gca,'YLim'),':k')
-set(gca,'YLim',[0 5]), ylabel('ratio / percent')
-ylabel('percent / millions'),  title(str,'FontSize',14)
+set(gca,'YLim',[0 5]), ylabel('ratio or percent')
+title(str,'FontSize',14)
 
 legend({'CI prevalence','Prevalence (%)','CI R-number','R DCM','R SPI-M'})
 legend boxoff
@@ -776,8 +821,8 @@ leg = sprintf('%s (HIT: %.1f%s)',datestr(t(i),'dd-mmm-yy'),HIT(i),'%');
 
 plot(t,HIT,t,VAC), hold on
 plot(t(i)*[1,1],[0,100],':k'), set(gca,'YLim',[0,100])
-ylabel('percent / millions'),  title(str,'FontSize',14)
-legend({'CI','Attack rate','CI','Herd immunity','Herd immunity threshold','Numer of vaccinations'})
+ylabel('percent'),  title(str,'FontSize',14)
+legend({'CI','Attack rate','CI','Herd immunity','Herd immunity threshold','Effective vaccination'})
 legend boxoff
 text(t(i),8,leg,'FontSize',10), drawnow
 
