@@ -130,18 +130,12 @@ end
 
 % orthonormal polynomial expansion
 %--------------------------------------------------------------------------
-DDG = 0;
-if DDG
-    nu = (n^2 - n)/2;
-else
-    nu = (n^2 + n)/2;
-end
-
+nu = (n^2 + n)/2;
 if size(b,1) > 1
     
     % with coefficients p: x = b*p = dxdp*p for log density Sp
     %----------------------------------------------------------------------
-    v     = b\spm_orth(b,'norm'); 
+    v     = b\full(spm_en(b)); 
     b     = b*v;
     for i = 1:n
         D{i} = D{i}*v;
@@ -178,7 +172,7 @@ dbQ   = zeros(n,n,nb);
 dQdp  = cell(nB,1);
 dbQdp = cell(nB,1);
 for i = 1:n
-    for j = (i + DDG):n
+    for j = i:n
         for k = 1:nb
             
             % initialise partial derivatives

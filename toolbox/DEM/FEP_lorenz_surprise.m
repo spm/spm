@@ -21,7 +21,7 @@ function FEP_lorenz_surprise
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_lorenz_surprise.m 8085 2021-03-21 12:27:26Z karl $
+% $Id: FEP_lorenz_surprise.m 8089 2021-04-04 12:12:06Z karl $
 
 
 %% dynamics and parameters of a Lorentz system (with Jacobian)
@@ -30,16 +30,16 @@ function FEP_lorenz_surprise
 %--------------------------------------------------------------------------
 f    = @(x,v,P,M) [P(1)*x(2) - P(1)*x(1);
                    P(3)*x(1) - x(2) - x(1)*x(3);
-                   P(2)*x(3) + x(1)*x(2)]/64;
+                  -P(2)*x(3) + x(1)*x(2)]/64;
 J    = @(x,v,P,M) [[     -P(1),P(1),     0];
                    [P(3) - x(3), -1, -x(1)];
-                   [     x(2), x(1),  P(2)]]/64;
-P    = [10; -8/3; 32];                 % parameters [sig, beta, rho]
+                   [     x(2), x(1), -P(2)]]/64;
+P    = [10; 8/3; 32];                  % parameters [sig, beta, rho]
 x0   = [1; 1; 24];                     % initial state
-W    = diag([1 1 1]/16);               % precision of random fluctuations
+W    = 1/16;                           % precision of random fluctuations
 
 disp('Lyapunov dimnesion')
-disp(3 - 2*(P(1) - P(2) + 1)/(P(1) + 1 + sqrt((P(1) - 1)^2 + 4*P(1)*P(3))))
+disp(3 - 2*(P(1) + P(2) + 1)/(P(1) + 1 + sqrt((P(1) - 1)^2 + 4*P(1)*P(3))))
 
 % state-space model (for SPM integrators)
 %--------------------------------------------------------------------------
@@ -50,7 +50,6 @@ M.x  = x0;
 M.m  = 0;
 M.pE = P;
 M.W  = W;
-M.K  = 3;
 
 % solution of stochastic and underlying ordinary differential equation
 % -------------------------------------------------------------------------
@@ -68,93 +67,101 @@ title('Trajectory','Fontsize',16)
 xlabel('time'), ylabel('states')
 spm_axis tight, box off
 
-subplot(3,1,2)
+subplot(3,2,3)
 plot3(t(:,1),t(:,2),t(:,3)), hold on, set(gca,'ColorOrderIndex',1)
 plot3(r(:,1),r(:,2),r(:,3),':'), hold off
 title('State-space','Fontsize',16)
 xlabel('1st state'), ylabel('2nd state'), zlabel('3rd state')
 axis square, box off
 
-% priors over potential parameters
-%--------------------------------------------------------------------------
-% M.pS = spm_ness_m2S(mean(r),cov(r));
 
+%% illustrate analytic form for Lorentz system
+%==========================================================================
+[sp,qp] = spm_Lap2Lorenz(P);
+Ep.Sp   = sp;
+Ep.Qp   = qp/64;
 
-%% state-space four (Laplace) solution 
+% solve for a trajectory using Laplace form 
 %--------------------------------------------------------------------------
-N    = 4;                                     % number of bins
-d    = 18;
+T     = 2048;
+t     = zeros(3,T);
+dt    = 1/4;
+s     = x0;
+M.W   = 32;
+for i = 1:T
+    M.X    = s';
+    [ds,j] = spm_NESS_gen(Ep,M);
+    s      = s + ds'*dt; 
+    t(:,i) = s;                                % expected trajectory
+    LF(i)  = -j;                               % Lyapunvov function
+end
+
+subplot(3,2,4)
+plot3(t(1,:),t(2,:),t(3,:))
+title('State-space','Fontsize',16)
+xlabel('1st state'), ylabel('2nd state'), zlabel('3rd state')
+axis square, box off
+
+subplot(3,2,5)
+plot(LF)
+title('Potential','Fontsize',16)
+xlabel('time'), ylabel('self-information')
+axis square xy, box off
+
+% marginal nonequilibrium steady-state
+%--------------------------------------------------------------------------
+N    = 64;
+x{1} = linspace(-32,32,N);
+x{2} = linspace(-32,32,N);
+x{3} = linspace(  0,64,N);
+p0   = spm_softmax(spm_polymtx(x)*Ep.Sp);
+p0   = reshape(p0,[N N N]);
+
+% nonequilibrium steady-state (marginal)
+%--------------------------------------------------------------------------
+subplot(3,2,6)
+imagesc(x{2},x{1},log(squeeze(sum(p0,3))))
+hold on, plot(t(2,:),t(1,:),'r.'), hold off
+xlabel('2nd state'), ylabel('1st state')
+title('Global potential','Fontsize',14)
+axis square xy
+
+spm_figure('GetWin','NESS (4)'); clf
+
+spm_ness_flows(Ep,x,M)
+
+% Laplace approximation under dissipation constraints
+%==========================================================================
+M.CON = 1;                               % flow constraints
+M.DIS = 1;                               % dissipation constraints
+M.HES = 0;                               % Hessian diagonal constraints
+M.W   = diag([1/8 1/16 1/32]);           % precision of random fluctuations
+M.K   = 3;
+
+%% state-space for (Laplace) solution 
+%--------------------------------------------------------------------------
+N    = 4;                                % number of bins
+d    = 8;                                % distance
 m    = [0 0 28];
 x{1} = linspace(m(1) - d,m(1) + d,N);
 x{2} = linspace(m(2) - d,m(2) + d,N);
 x{3} = linspace(m(3) - d,m(3) + d,N);
+%--------------------------------------------------------------------------
+% auxiliary code performing align search over precision
+%--------------------------------------------------------------------------
+% W  = (1:64);
+% nE = W;
+% for i = 1:numel(W)
+%     M.W   = diag([1/W(i) 1/32  1/8]);
+%     NESS  = spm_ness_hd(M,x);
+%     nE(i) = NESS.nE;
+% end
+%--------------------------------------------------------------------------
 
 % Fokker-Planck operator and equilibrium density
 %==========================================================================
-NESS = spm_ness_hd(M,x);                       % NESS density
-n    = numel(x);                               % dimensionality
-
-%% functional form of polynomial flow
-%==========================================================================
-Ep    = NESS.Ep;
-syms  w 'real'
-syms  x [1 n] 'real'
-syms  s [numel(Ep.Sp) 1] 'real'
-syms  q [numel(Ep.Qp) 1] 'real'
-
-% equation of motion as a Matlab function
-%--------------------------------------------------------------------------
-Ep.Sp   = s;
-Ep.Qp   = q;
-O       = M;
-O.X     = x;
-O.W     = diag(kron(ones(n,1),w));
-[fs,ss,qs,ls,hs] = spm_NESS_gen(Ep,O);
-
-qs      = reshape(cat(1,qs{:}),n,n);
-M.fs    = matlabFunction(fs);
-M.ss    = matlabFunction(ss);
-M.qs    = matlabFunction(qs);
-M.ls    = matlabFunction(ls);
-M.hs    = matlabFunction(hs);
-
-
-%% evaluate flow as a Matlab function of states
-%--------------------------------------------------------------------------
-w   = {W(1)};
-Sp  = num2cell(NESS.Ep.Sp);
-Qp  = num2cell(NESS.Ep.Qp);
-
-sympref('FloatingPointOutput',1);
-disp('ss = ')
-disp(latex(M.ss(Sp{:},x(1),x(2),x(3))')), disp(' ')
-disp('qs = ')
-disp(latex(M.qs(Qp{:},w{:},x(1),x(2),x(3))')), disp(' ')
-disp('fs = ')
-disp(latex(M.fs(Qp{:},Sp{2:end},w{:},x(1),x(2),x(3))')), disp(' ')
-
-% solve for a trajectory using a polynomial approximation to flow 
-%--------------------------------------------------------------------------
-T     = 4096;
-t     = zeros(n,T);
-dt    = 1/4;
-s     = x0;
-for i = 1:T
-    x      = num2cell(s');
-    ds     = M.fs(Qp{:},Sp{2:end},w{:},x{:});
-    s      = s + ds'*dt; 
-    t(:,i) = s;                                % expected trajectory
-end
-
-% illustrate convergence to nonequilibrium steady-state
-%--------------------------------------------------------------------------
-spm_figure('GetWin','NESS (1)'); clf
-subplot(3,1,1)
-plot(t')
-title('trajectory','Fontsize',16)
-xlabel('time'), ylabel('states')
-spm_axis tight, box off
-
+NESS  = spm_ness_hd(M,x);                         % NESS density
+n     = numel(x);                                 % dimensionality
 
 %% solve for a trajectory using a polynomial approximation to flow 
 %--------------------------------------------------------------------------
@@ -166,16 +173,17 @@ s     = x0;
 r     = x0;
 Ep    = NESS.Ep;
 for i = 1:T
-    M.X    = s';
-    [ds,j] = spm_NESS_gen(Ep,M);
-    s      = s + ds'*dt; 
-    t(:,i) = s;                                % expected trajectory
-    LF(i)  = j;                                % Lyapunvov function
+    M.X      = s';                                  % current state
+    [ds,j,q] = spm_NESS_gen(Ep,M);                  % flow
+    s        = s + ds'*dt;                          % update
+    t(:,i)   = s;                                   % expected trajectory
+    LF(i)    = -j;                                  % Lyapunvov function
     
-    M.X    = r';
-    dr     = spm_NESS_gen(Ep,M);
-    r      = r + dr'*dt + sqrtm(inv(W))*randn(n,1)/2*dt; 
-    u(:,i) = r;                                % stochastic solution
+    M.X      = r';                                  % stochastic solution
+    [dr,j,q] = spm_NESS_gen(Ep,M);                  % flow
+    w        = sqrtm(abs(diag(diag(spm_cat(q)))));  % covariance of w
+    r        = r + dr'*dt + w*randn(n,1)*dt;        % update
+    u(:,i)   = r;                                   % next state
 end
 
 % illustrate convergence to nonequilibrium steady-state
@@ -198,9 +206,9 @@ axis square, box off
 % marginal nonequilibrium steady-state
 %--------------------------------------------------------------------------
 N    = 64;
-x{1} = linspace(-32,32,N);
-x{2} = linspace(-32,32,N);
-x{3} = linspace(  0,64,N);
+x{1} = linspace(-48,48,N);
+x{2} = linspace(-48,48,N);
+x{3} = linspace(  0,48,N);
 p0   = spm_softmax(spm_polymtx(x,M.K)*NESS.Ep.Sp);
 p0   = reshape(p0,[N N N]);
 
@@ -208,6 +216,7 @@ p0   = reshape(p0,[N N N]);
 %--------------------------------------------------------------------------
 subplot(3,3,1)
 imagesc(x{3},x{2},squeeze(sum(p0,1)))
+hold on, plot(u(3,:),u(2,:),'m:'),
 hold on, plot(t(3,:),t(2,:),'r.'), hold off
 xlabel('3rd state'), ylabel('2bd state')
 title('NESS density','Fontsize',14)
@@ -217,6 +226,7 @@ axis square xy
 %--------------------------------------------------------------------------
 subplot(3,3,2)
 imagesc(x{3},x{1},squeeze(sum(p0,2)))
+hold on, plot(u(3,:),u(1,:),'m:'),
 hold on, plot(t(3,:),t(1,:),'r.'), hold off
 xlabel('3rd state'), ylabel('1st state')
 title('NESS density','Fontsize',14)
@@ -226,6 +236,7 @@ axis square xy
 %--------------------------------------------------------------------------
 subplot(3,3,3)
 imagesc(x{2},x{1},squeeze(sum(p0,3)))
+hold on, plot(u(2,:),u(1,:),'m:'),
 hold on, plot(t(2,:),t(1,:),'r.'), hold off
 xlabel('2nd state'), ylabel('1st state')
 title('NESS density','Fontsize',14)
@@ -246,14 +257,24 @@ xlabel('approximate flow'), ylabel('true flow')
 axis square xy, box off
 
 
+
 %% illustrate conditional dependencies
 %==========================================================================
 spm_figure('GetWin','NESS (2)'); clf
 
 % covariance based upon a Laplace approximation to surprisal
 %--------------------------------------------------------------------------
-% m   = NESS.q0(:)'*NESS.X;
-% C   = full(NESS.X'*bsxfun(@times,NESS.q0(:),NESS.X) - m'*m);
+% auxillary code for numerical evaluation of moments
+%--------------------------------------------------------------------------
+% N     = 32;
+% x{1}  = linspace(-64,64,N);
+% x{2}  = linspace(-64,64,N);
+% x{3}  = linspace(-64,64,N);
+% p0    = spm_softmax(spm_polymtx(x)*NESS.Ep.Sp);
+% U     = spm_ness_U(M,x);
+% m     = p0(:)'*U.X;
+% C     = full(U.X'*bsxfun(@times,p0(:),U.X) - m'*m);
+%--------------------------------------------------------------------------
 [m,C] = spm_ness_cond(n,3,NESS.Ep.Sp);
 
 
@@ -262,16 +283,14 @@ spm_figure('GetWin','NESS (2)'); clf
 subplot(3,3,1)
 imagesc(-log(NESS.J2 + exp(-16))), axis square
 title('log |Jacobian|','Fontsize',12)
-
 subplot(3,3,2)
 imagesc(-log(C.^2 + exp(-16))), axis square
 title('log |Covariance|','Fontsize',12)
-
 subplot(3,3,3)
 imagesc(-log(NESS.H2 + exp(-16))), axis square
 title('log |Hessian|','Fontsize',12)
 
-% illustrate conditional densities
+%% illustrate conditional densities
 %==========================================================================
 s     = round(linspace(-24,24,5));
 for i = 1:numel(s)
@@ -314,7 +333,7 @@ for i = 1:T
     s       = x;
     s{b}    = t(b,i);
     s{m}    = 0;
-    pH(:,i) = spm_softmax(spm_polymtx(s)*NESS.Ep.Sp);
+    pH(:,i) = spm_softmax(4*spm_polymtx(s,M.K)*NESS.Ep.Sp);
    
     % manifold (conditional expectations)
     %----------------------------------------------------------------------
@@ -323,15 +342,14 @@ for i = 1:T
 end
 
 subplot(6,1,6), hold off
-imagesc(1:T,x{h},(1 - pH).^2), hold on
+imagesc(1:T,x{h},1 - pH), hold on
 plot(t(h,:),'r'), plot(eH,'w'), axis xy
 title('Conditional density and expectations','Fontsize',14)
 xlabel('time'), ylabel('1st state')
-
+drawnow
 
 %% functional form of polynomial flow
 %==========================================================================
-TOL   = 1e-4;
 Ep    = NESS.Ep;
 syms  w 'real'
 syms  x [1 n] 'real'
@@ -339,13 +357,10 @@ syms  s [numel(Ep.Sp) 1] 'real'
 syms  q [numel(Ep.Qp) 1] 'real'
 sympref('FloatingPointOutput',0);
 
-Sp  = NESS.Ep.Sp;
-Qp  = NESS.Ep.Qp;
-i   = abs(Sp) < TOL; s(i) = 0;
-i   = abs(Qp) < TOL; q(i) = 0;
-
 % replace sample points with symbolic variables
 %--------------------------------------------------------------------------
+s(~Ep.Sp) = 0;
+q(~Ep.Qp) = 0;
 Ep.Sp = s;
 Ep.Qp = q;
 O     = M;
@@ -354,33 +369,34 @@ O.W   = diag(kron(ones(n,1),w));
 
 % evaluate flow, flow operators and Hessians for display
 %--------------------------------------------------------------------------
-U           = spm_ness_U(O);
+U  = spm_ness_U(O);
 [F,S,Q,L,H] = spm_NESS_gen(Ep,O);
+f  = real(U.f);
+
 F = F'
 Q = reshape(cat(1,Q{:}),n,n)
 S = S
+D = [diff(S,x1); diff(S,x2); diff(S,x3)];
 L = L'
 H = H
-D = [diff(S,x1); diff(S,x2); diff(S,x3)];
-f = real(U.f);
 
 disp('f = ')
 disp(latex(f)), disp(' ')
 disp('F = ')
 disp(latex(F)), disp(' ')
+disp('S = ')
+disp(latex(S)), disp(' ')
 disp('Q = ')
 disp(latex(Q)), disp(' ')
+disp('D = ')
+disp(latex(D)), disp(' ')
 disp('L = ')
 disp(latex(L)), disp(' ')
 disp('H = ')
 disp(latex(H)), disp(' ')
 
-disp('S = ')
-disp(latex(S)), disp(' ')
-disp('dS/dx = ')
-disp(latex(D)), disp(' ')
 
-% ensure the Laplace approximation is chaotic
+%% ensure the Laplace approximation is chaotic
 %==========================================================================
 
 % Jacobian function with polynomial form
@@ -389,15 +405,17 @@ syms  w 'real'
 syms  x [1 n] 'real'
 syms  s [numel(Ep.Sp) 1] 'real'
 syms  q [numel(Ep.Qp) 1] 'real'
-sympref('FloatingPointOutput',1);
+syms  P [numel(M.pE) 1] 'real'
+sympref('FloatingPointOutput',0);
 
-J    = symfun([diff(F,x1), diff(F,x2), diff(F,x3)],[q',s',w,x]);
+dF   = [diff(F,x1), diff(F,x2), diff(F,x3)];
+J    = symfun(dF,[q',s',w,x]);
 J    = matlabFunction(J);
 
 % state space for evaluation
 %--------------------------------------------------------------------------
-N    = 28;
-d    = 28;
+N    = 32;
+d    = 32;
 x    = cell(3,1);
 x{1} = linspace(-d,d,N);
 x{2} = linspace(-d,d,N);
@@ -409,11 +427,13 @@ w    = W(1);
 
 % evaluate eigenvalues of Jacobian
 %--------------------------------------------------------------------------
-Sp  = num2cell(NESS.Ep.Sp);
-Qp  = num2cell(NESS.Ep.Qp);
-nX  = size(X,1);
-E   = zeros(n,nX);
-Ji  = zeros(n,n,nX);
+Sp    = NESS.Ep.Sp;
+Qp    = NESS.Ep.Qp;
+Sp    = num2cell(Sp);
+Qp    = num2cell(Qp);
+nX    = size(X,1);
+E     = zeros(n,nX);
+Ji    = zeros(n,n,nX);
 for i = 1:nX
     s         = num2cell(full(X(i,:)));
     Ji(:,:,i) = J(Qp{:},Sp{:},w,s{:});
@@ -422,9 +442,9 @@ end
 
 % Lyapunov exponent and Hausdorff dimension (Kaplan-Yorke conjecture)
 %--------------------------------------------------------------------------
-LE  = spm_dot(E,p0(:))
-j   = sum(LE > 0);
-CD  = j + sum(LE(1:j))/abs(LE(j + 1))
+LE    = spm_dot(E,p0(:))
+j     = sum(LE >= 0);
+CD    = j + sum(LE(1:j))/abs(LE(j + 1))
 
 clear
 
@@ -444,22 +464,22 @@ clear
 f    = @(x,v,P,M) [
     P(1)*x(2) - P(1)*(x(1)*(1 - P(4)) + x(4)*P(4));
     P(3)*x(1) - x(2) - x(1)*x(3);
-    P(2)*x(3) + x(1)*x(2);
+   -P(2)*x(3) + x(1)*x(2);
     P(1)*x(5) - P(1)*(x(4)*(1 - P(4)) + x(1)*P(4));
     P(3)*x(4) - x(5) - x(4)*x(6);
-    P(2)*x(6) + x(4)*x(5)]/64;
+   -P(2)*x(6) + x(4)*x(5)]/64;
 
 J    = @(x,v,P,M) [
     [P(1)*(P(4) - 1), P(1),   0,  -P(1)*P(4),  0,   0]
     [  P(3) - x(3), -1, -x(1),             0,  0,   0]
-    [  x(2), x(1),  P(2),                  0,  0,   0]
+    [  x(2), x(1),  -P(2),                 0,  0,   0]
     [ -P(1)*P(4),    0,   0, P(1)*(P(4) - 1), P(1), 0]
     [       0,  0,   0,   P(3) - x(6),      -1, -x(4)]
-    [       0,  0,   0,          x(5), x(4),     P(2)]]/64;
+    [       0,  0,   0,          x(5), x(4),    -P(2)]]/64;
 
-P    = [10; -8/3; 32; -1/2];            % parameters
-x0   = [1; 1; 32; 1; 0; 24];            % initial states
-W    = diag([1 1 1 1 1 1]/16);          % precision of random fluctuations
+P    = [10; 8/3; 32; -1/2];                    % parameters
+x0   = [1; 1; 32; 1; 0; 24];                   % initial states
+
 
 % state space model
 %--------------------------------------------------------------------------
@@ -469,12 +489,16 @@ M.g  = @(x,v,P,M) x;
 M.x  = x0;
 M.m  = 0;
 M.pE = P;
-M.W  = W;
+
+M.CON = 1;                                    % flow constraints
+M.DIS = 1;                                    % dissipation constraints
+M.HES = 0;                                    % Hessian diagonal constraints
+M.W   = diag([1/8 1/16 1/32 1/8 1/16 1/32]);
 
 % state space
 %--------------------------------------------------------------------------
 N    = 4;                                     % number of bins
-d    = 18;
+d    = 8;
 x{1} = linspace(-d,d,N);
 x{2} = linspace(-d,d,N);
 x{3} = linspace(28 - d,28 + d,N);
@@ -492,7 +516,7 @@ n    = numel(x);                              % dimensionality
 T     = 1024;
 t     = zeros(n,T);
 u     = zeros(n,T);
-dt    = 1/2;
+dt    = 1/4;
 s     = x0;
 r     = x0;
 Ep    = NESS.Ep;
@@ -501,12 +525,12 @@ for i = 1:T
     [ds,j] = spm_NESS_gen(Ep,M);
     s      = s + ds'*dt; 
     t(:,i) = s;                                % expected trajectory
-    LF(i)  = j;                                % Lyapunvov function
     
-    M.X    = r';
-    dr     = spm_NESS_gen(Ep,M);
-    r      = r + dr'*dt + sqrtm(inv(W))*randn(n,1)/2*dt; 
-    u(:,i) = r;                                % stochastic solution
+    M.X      = r';
+    [dr,j,q] = spm_NESS_gen(Ep,M);
+    w        = diag(diag(spm_cat(q)));
+    r        = r + dr'*dt + sqrtm(w)*randn(n,1)*dt; 
+    u(:,i)   = r;                              % stochastic solution
 end
 
 % illustrate convergence to nonequilibrium steady-state
@@ -524,18 +548,18 @@ plot3(t(5,:),t(4,:),t(6,:),'c'), hold on
 plot3(t(2,:),t(1,:),t(3,:),'b')
 plot3(u(5,:),u(4,:),u(6,:),':c')
 plot3(u(2,:),u(1,:),u(3,:),':b')
-
 title('State-space','Fontsize',16)
 xlabel('2nd states'), ylabel('1st states'), zlabel('3rd states')
 axis square, box off
 
-% marginal nonequilibrium steady-state
+
+%% marginal nonequilibrium steady-state
 %--------------------------------------------------------------------------
 N    = 32;
 s    = cell(6,1);
-s{1} = linspace(-32,32,N);
-s{2} = linspace(-32,32,N);
-s{3} = linspace(  0,64,N);
+s{1} = linspace(-48,48,N);
+s{2} = linspace(-48,48,N);
+s{3} = linspace(  0,48,N);
 s{4} = 0;
 s{5} = 0;
 s{6} = 0;
@@ -546,6 +570,7 @@ p0   = reshape(p0,[N N N]);
 %--------------------------------------------------------------------------
 subplot(3,3,1)
 imagesc(s{3},s{2},squeeze(sum(p0,1)))
+hold on, plot(u(3,:),u(2,:),'m:'),
 hold on, plot(t(3,:),t(2,:),'r.'), hold off
 xlabel('3rd state'), ylabel('2nd state')
 title('NESS density','Fontsize',14)
@@ -555,6 +580,7 @@ axis square xy
 %--------------------------------------------------------------------------
 subplot(3,3,2)
 imagesc(s{3},s{1},squeeze(sum(p0,2)))
+hold on, plot(u(3,:),u(1,:),'m:'),
 hold on, plot(t(3,:),t(1,:),'r.'), hold off
 xlabel('3rd state'), ylabel('1st state')
 title('NESS density','Fontsize',14)
@@ -564,6 +590,7 @@ axis square xy
 %--------------------------------------------------------------------------
 subplot(3,3,3)
 imagesc(s{2},s{1},squeeze(sum(p0,3)))
+hold on, plot(u(2,:),u(1,:),'m:'),
 hold on, plot(t(2,:),t(1,:),'r.'), hold off
 xlabel('2nd state'), ylabel('1st state')
 title('NESS density','Fontsize',14)
@@ -584,23 +611,18 @@ spm_figure('GetWin','NESS (4)'); clf
 
 % mean and covariance
 %--------------------------------------------------------------------------
-TOL   = 1e-4;
-Sp    = NESS.Ep.Sp;
-i     = abs(Sp) < TOL; Sp(i) = 0;
-[m,C] = spm_ness_cond(n,3,Sp);
+[m,C] = spm_ness_cond(n,3,NESS.Ep.Sp);
 
 % log normal of Jacobian and hessian
 %--------------------------------------------------------------------------
 subplot(3,3,1)
-imagesc(-log(NESS.J2 + exp(-16))), axis square
+imagesc(-log(NESS.J2 + exp(-32))), axis square
 title('log |Jacobian|','Fontsize',12)
-
 subplot(3,3,2)
-imagesc(-log(C.^2 + exp(-16))), axis square
+imagesc(-log(C.^2 + exp(-32))), axis square
 title('log |Covariance|','Fontsize',12)
-
 subplot(3,3,3)
-imagesc(-log(NESS.H2 + exp(-16))), axis square
+imagesc(-log(NESS.H2 + exp(-32))), axis square
 title('log |Hessian|','Fontsize',12)
 
 
@@ -634,7 +656,7 @@ title('Conditional density over external state','Fontsize',14)
 ylabel('states'), spm_axis tight, box off
 
 
-%% functional form of conditional independencies
+%% functional form of conditional independencies (under Laplace)
 %--------------------------------------------------------------------------
 clear Ep
 syms  W  'real'
@@ -643,7 +665,6 @@ syms  bs 'real'
 
 % set small polynomial coefficients to zero
 %--------------------------------------------------------------------------
-TOL   = 1e-4;
 for i = 1:numel(NESS.Ep.Sp)
     o     = NESS.o(:,i);
     if sum(o) == 0
@@ -659,12 +680,12 @@ for i = 1:numel(NESS.Ep.Sp)
         end
     end
     Ep.Sp(i,1) = sym(str,'real');
-    if abs(NESS.Ep.Sp(i)) < TOL
+    if abs(NESS.Ep.Sp(i)) < 1e-6
         Ep.Sp(i,1) = 0;
     end
 end
 
-% display conditional moments
+% display conditional moments, symbolic and Latex
 %--------------------------------------------------------------------------
 sympref('FloatingPointOutput',0);
 [m,C]  = spm_ness_cond(n,3,Ep.Sp,b,bs)
@@ -678,10 +699,10 @@ disp(latex(C(1,1))),    disp(' ')
 disp('E[h] = E[m] x ')
 disp(latex(m(1)/m(4))), disp(' ')
 
-return
 
-%% functional form of polynomial flow
+%% functional form of polynomial flow: symbolic and Latex
 %==========================================================================
+TOL   = 1e-6;
 Ep    = NESS.Ep;
 syms  w 'real'
 syms  x [1 n] 'real'
@@ -689,9 +710,8 @@ syms  s [numel(Ep.Sp) 1] 'real'
 syms  q [numel(Ep.Qp) 1] 'real'
 sympref('FloatingPointOutput',0);
 
-TOL   = 1e-4;
-i     = abs(NESS.Ep.Sp) < TOL; s(i) = 0;
-i     = abs(NESS.Ep.Qp) < TOL; q(i) = 0;
+i     = abs(Ep.Sp) < TOL*max(abs(Ep.Sp)); s(i) = 0;
+i     = abs(Ep.Qp) < TOL*max(abs(Ep.Qp)); q(i) = 0;
 
 % replace sample points with symbolic variables
 %--------------------------------------------------------------------------
@@ -704,13 +724,17 @@ O.W   = diag(kron(ones(n,1),w));
 % evaluate flow, flow operators and Hessians for display
 %--------------------------------------------------------------------------
 [F,S,Q,L,H] = spm_NESS_gen(Ep,O);
-
-for i = 1:n
-    for j = i:n
-        fprintf('Q = %i%i\n',i,j)
-        disp(Q{1,1}), disp(latex(Q{1,1})), disp(' ')
-    end
-end
+%--------------------------------------------------------------------------
+% for i = 1:n
+%     for j = i:n
+%         fprintf('Q = %i%i\n',i,j)
+%         disp(Q{i,j}), disp(latex(Q{i,j})), disp(' ')
+%     end
+% end
+%--------------------------------------------------------------------------
+disp(reshape(cat(1,Q{:}),n,n))
+disp(L')
+disp(H)
 disp('L = ')
 disp(latex(L')), disp(' ')
 disp('H = ')
@@ -721,7 +745,6 @@ return
 
 function varargout = num2csl(a)
 varargout = num2cell(a);
-
 
 return
 
@@ -736,7 +759,7 @@ P    = [P1;P2;P3];
 
 f    = symfun([P(1)*x(2) - P(1)*x(1);
                P(3)*x(1) - x(2) - x(1)*x(3);
-               P(2)*x(3) + x(1)*x(2)]/64,x);
+              -P(2)*x(3) + x(1)*x(2)]/64,x);
     
 J    = [diff(f,x1) diff(f,x2) diff(f,x3)]
 K    = [diff(J,x1) diff(J,x2) diff(J,x3)]
@@ -752,13 +775,12 @@ x    = [x1;x2;x3;x4;x5;x6];
 P    = [P1;P2;P3;P4];
 ff   = symfun([P(1)*x(2) - P(1)*(x(1)*(1 - P(4)) + x(4)*P(4));
                P(3)*x(1) - x(2) - x(1)*x(3);
-               P(2)*x(3) + x(1)*x(2);
+              -P(2)*x(3) + x(1)*x(2);
                P(1)*x(5) - P(1)*(x(4)*(1 - P(4)) + x(1)*P(4));
                P(3)*x(4) - x(5) - x(4)*x(6);
-               P(2)*x(6) + x(4)*x(5)]/64,x);
+              -P(2)*x(6) + x(4)*x(5)]/64,x);
 
-J   = [diff(ff,x1) diff(ff,x2) diff(ff,x3) diff(ff,x4) diff(ff,x5) diff(ff,x6)]
-
+J    = [diff(ff,x1) diff(ff,x2) diff(ff,x3) diff(ff,x4) diff(ff,x5) diff(ff,x6)]
 
 f
 disp(latex(f)),  disp(' ')
@@ -780,7 +802,7 @@ f    = @(x,v,P,M) [                               x(4)
                                                   x(6)
                              (P(1)*x(5))/64 - (P(1)*x(4))/64
 x(4)*(P(3)/64 - x(3)/64) - (x(1)*x(6))/32 - (x(3)*x(4))/64 - x(5)/64
-                (P(2)*x(6))/64 + (x(1)*x(5))/32 + (x(2)*x(4))/32];
+                (-P(2)*x(6))/64 + (x(1)*x(5))/32 + (x(2)*x(4))/32];
 
 J    = @(x,v,P,M) [
 [     0,     0,      0,             1,     0,      0]
@@ -800,23 +822,18 @@ W    = diag([1 1 1 1 1 1]/64);         % precision of random fluctuations
 [b,D,H,o] = spm_polymtx([{0},{0},{0}],3);
 n    = numel(D);                               % dimensionality
 nb   = numel(b);
-DDG  = 0;
-if DDG
-    nu = (n^2 - n)/2;
-else
-    nu = (n^2 + n)/2;
-end
+nu   = (n^2 + n)/2;
 nB   = nu*nb;
 
-% dxdt = f(x) + w:  see notes at the end of this script
+% dxdt = f(x) + w
 %--------------------------------------------------------------------------
 f    = @(x,v,P,M) [P(1)*x(2) - P(1)*x(1);
                    P(3)*x(1) - x(2) - x(1)*x(3);
-                   P(2)*x(3) + x(1)*x(2)]/64;
+                  -P(2)*x(3) + x(1)*x(2)]/64;
 J    = @(x,v,P,M) [[     -P(1),P(1),     0];
                    [P(3) - x(3), -1, -x(1)];
-                   [     x(2), x(1),  P(2)]]/64;
-P    = [10; -8/3; 32];                 % parameters [sig, beta, rho]
+                   [     x(2), x(1), -P(2)]]/64;
+P    = [10; 8/3; 32];                  % parameters [sig, beta, rho]
 x0   = [1; 1; 24];                     % initial state
 
 
@@ -839,7 +856,7 @@ syms  q [nB 1] 'real'
 M.X   = x;
 M.W   = diag(kron(ones(n,1),w));
 
-i     = find(~any(U.o == 2)); s(i) = 0;
+i     = find(~any(o == 2)); s(i) = 0;
 J     = M.J(ones(1,n),[],P,M);
 Ep.Sp = s;
 Ep.Qp = q;
@@ -876,4 +893,69 @@ for i = 1:n
         end
     end
 end
+
+
+%% Matlab functional form for efficient solutions
+%==========================================================================
+Ep    = NESS.Ep;
+syms  w 'real'
+syms  x [1 n] 'real'
+syms  s [numel(Ep.Sp) 1] 'real'
+syms  q [numel(Ep.Qp) 1] 'real'
+
+% equations of motion as a Matlab function
+%--------------------------------------------------------------------------
+Ep.Sp = s;
+Ep.Qp = q;
+O     = M;
+O.X   = x;
+O.W   = diag(kron(ones(n,1),w));
+[fs,ss,qs,ls,hs] = spm_NESS_gen(Ep,O);
+
+qs   = reshape(cat(1,qs{:}),n,n);
+M.fs = matlabFunction(fs);
+M.ss = matlabFunction(ss);
+M.qs = matlabFunction(qs);
+M.ls = matlabFunction(ls);
+M.hs = matlabFunction(hs);
+
+
+%% evaluate flow as a Matlab function of states
+%--------------------------------------------------------------------------
+w   = {W(1)};
+Sp  = num2cell(NESS.Ep.Sp);
+Qp  = num2cell(NESS.Ep.Qp);
+
+sympref('FloatingPointOutput',1);
+disp('ss = ')
+disp(latex(M.ss(Sp{:},x(1),x(2),x(3))')), disp(' ')
+disp('qs = ')
+disp(latex(M.qs(Qp{:},w{:},x(1),x(2),x(3))')), disp(' ')
+disp('fs = ')
+disp(latex(M.fs(Qp{:},Sp{2:end},w{:},x(1),x(2),x(3))')), disp(' ')
+
+% solve for a trajectory using a polynomial approximation to flow 
+%--------------------------------------------------------------------------
+T     = 4096;
+t     = zeros(n,T);
+dt    = 1/(4*64);
+s     = x0;
+for i = 1:T
+    x      = num2cell(s');
+    ds     = M.fs(Qp{:},Sp{2:end},w{:},x{:});
+    s      = s + ds'*dt; 
+    t(:,i) = s;
+end
+
+% illustrate convergence to nonequilibrium steady-state
+%--------------------------------------------------------------------------
+spm_figure('GetWin','NESS (1)'); clf
+subplot(3,1,1)
+plot(t')
+title('trajectory','Fontsize',16)
+xlabel('time'), ylabel('states')
+spm_axis tight, box off
+
+return
+
 

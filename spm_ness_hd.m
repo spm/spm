@@ -27,7 +27,7 @@ function NESS = spm_ness_hd(M,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8085 2021-03-21 12:27:26Z karl $
+% $Id: spm_ness_hd.m 8089 2021-04-04 12:12:06Z karl $
 
 
 % event space: get or create X - coordinates of evaluation grid
@@ -61,7 +61,7 @@ for i = 1:nX
     JJ       = kron(I,J(:,:,i)) + kron(conj(J(:,:,i)),I);
     Y        = spm_vec(J(:,:,i)*G - G*J(:,:,i)');
     Q(:,:,i) = reshape((JJ'*JJ + d)\(JJ'*Y),n,n);
-
+    
 end
 
 
@@ -85,11 +85,18 @@ nb    = size(b,2);               % number of coefficients for S
 nB    = numel(dQdp);             % number of coefficients for flow operator
 nE    = exp(16);                 % initial error norm
 
-% Preclude high order terms and apply flow constraints
-%--------------------------------------------------------------------------
-Ib    = speye(nb,nb)*exp(-32);               % prior precision Sp
-IB    = speye(nB,nB)*exp(-32);               % prior precision Qp
 
+% constraints on polynomial coefficients
+%==========================================================================
+
+% constraints on parameters
+%--------------------------------------------------------------------------
+if ~isfield(M,'CON'),  M.CON = 0; end
+if ~isfield(M,'DIS'),  M.DIS = 0; end
+if ~isfield(M,'HES'),  M.HES = 0; end
+
+% constraints on potential parameters due to dissipative flow
+%--------------------------------------------------------------------------
 k     = sum(o) > 3;                          % quadratic constraints
 k     = k | ~sum(o);                         % suppress constant
 A     = any(J,3);                            % flow adjacency
@@ -100,23 +107,76 @@ for i = 1:n
         end
     end
 end
-kb    = find(k);
-kB    = [];
-Ib    = Ib + sparse(kb,kb,1,nb,nb);          % contraints
-IB    = IB + sparse(kB,kB,1,nB,nB);          % contraints
-
-% supplement with prior expectations if specified
-%--------------------------------------------------------------------------
-if isfield(M,'pS')
-    pS     = M.pS;
-    pS(kb) = 0;
-    Ib     = Ib + speye(nb,nb)*exp(0);
-else
-    pS     = zeros(nb,1);
+if M.HES
+    k = k | any(o == 2);                     % diagonal terms of Hessian
 end
-pS = U.v\pS;
-Ib = U.v\Ib/(U.v)';
-IB = U.u\IB/(U.u)';
+jb    = find(~k);
+
+% constraints due to diagonal elements of Hessian
+%----------------------------------------------------------------------
+k     = cell(n,n);
+for i = 1:n
+    for j = 1:n
+        if ~A(i,j)
+            k{i,j} = ones(1,nb);
+            k{j,i} = ones(1,nb);
+        else
+            k{i,j} = zeros(1,nb);
+            k{i,j} = zeros(1,nb);
+        end
+    end
+end
+
+% constraints due to non-negative gradients
+%----------------------------------------------------------------------
+for i = 1:n
+    for j = 1:n
+        if ~A(i,j)
+            for q = 1:n
+                k{i,q} = k{i,q} | o(j,:);
+            end
+        end
+    end
+end
+
+% assemble and combine constraints
+%----------------------------------------------------------------------
+if M.CON
+    kB    = [];
+    for i = 1:n
+        for j = i:n
+            kB = [kB (k{i,j} | k{j,i})];
+        end
+    end
+else
+    kB    = zeros(1,nB);
+end
+
+% constraints due to diagonal elements of Hessian
+%----------------------------------------------------------------------
+k     = cell(n,n);
+for i = 1:n
+    for j = i:n
+        if i == j
+            k{i,j} = ones(1,nb);
+        else
+            k{i,j} = zeros(1,nb);
+            k{i,j} = zeros(1,nb);
+        end
+    end
+end
+
+if M.DIS
+    kD    = [];
+    for i = 1:n
+        for j = i:n
+            kD = [kD k{i,j}];
+        end
+    end
+else
+    kD    = zeros(1,nB);
+end
+jB    = find(~(kB | kD));
 
 % initialise parameters Qp of flow operator
 %--------------------------------------------------------------------------
@@ -128,18 +188,25 @@ for i = 1:n
 end
 Qp    = zeros(nB,1);
 for i = 1:nB
-    Qp(i) = dbQdp{i}(:)'*bQ(:);
+    qp(i) = dbQdp{i}(:)'*bQ(:);
 end
-qp     = U.u*Qp;
-qp(kB) = 0;
-Qp     = U.u\qp;
-    
+Qp(jB) = qp(jB);
+
+% shrinkage priors
+%--------------------------------------------------------------------------
+nj    = numel(jb);
+nJ    = numel(jB);
+Ib    = speye(nj,nj)*1e-6;
+IB    = speye(nJ,nJ)*1e-6;
+
 % iterated least-squares to estimate flow operator
 %==========================================================================
-dEdp  = zeros(nX*n,nB);                     % error gradients
+dEdp  = zeros(nX*n,nj);                     % error gradients
 Db    = spm_cat(D);                         % derivative operator
+Db    = Db(:,jb);
+Sp    = zeros(nb,1);
 for k = 1:256
-     
+    
     % solenoidal operator
     %----------------------------------------------------------------------
     bQ    = 0;
@@ -148,7 +215,7 @@ for k = 1:256
     end
     
     % correction term for solenoidal flow L and Kroneckor form of Q
-    %----------------------------------------------------------------------    
+    %----------------------------------------------------------------------
     Q     = cell(n,n);
     L     = zeros(nX,n);
     for i = 1:n
@@ -158,29 +225,30 @@ for k = 1:256
             Q{i,j} = spdiags(b*bQij,0,nX,nX);
         end
     end
-    Q   = spm_cat(Q);
-        
+    Q     = spm_cat(Q);
+    
     % potential gradients f = Q*D*b*b'*S - L
     %----------------------------------------------------------------------
-    QD  = Q*Db;
-    Y   = spm_vec(f' + L);
-    Sp  = (QD'*QD + Ib)\(QD'*Y + Ib*pS);
+    QD     = Q*Db;
+    Y      = spm_vec(f' + L);
+    Sp(jb) = (QD'*QD + Ib)\(QD'*Y);
     
-    % dEdb  = dLdb - dQdb*D*b*b'*S;
+    % dEdb = dLdb - dQdb*D*b*b'*S;
     %----------------------------------------------------------------------
-    DS    = Db*Sp;
-    for i = 1:nB
-        dEdp(:,i) = dQdp{i}*DS - spm_vec(dLdp{i});
+    DS    = Db*Sp(jb);
+    for i = 1:nJ
+        dEdp(:,i) = dQdp{jB(i)}*DS - spm_vec(dLdp{jB(i)});
     end
     
     % dEdb'*dEdb*db = dEdb'*E: E = f + b*L - Q*Dx*b*b'*S
     %----------------------------------------------------------------------
-    E     = Y  - QD*Sp;
-    Qp    = Qp + (dEdp'*dEdp + IB)\(dEdp'*E);
+    E      = Y  - QD*Sp(jb);
+    Qp(jB) = Qp(jB) + (dEdp'*dEdp + IB)\(dEdp'*E);
+    
     
     % report
     %----------------------------------------------------------------------
-    if (nE - norm(E)) < 1/64
+    if (nE - norm(E)) < 1/128
         break
     end
     nE    = norm(E);
@@ -197,13 +265,13 @@ for i = 1:n
     end
 end
 
-% NESS density
-%--------------------------------------------------------------------------
-p0    = spm_softmax(b*Sp);              
-
 % predicted flow: F   = Q*Dx*S - L
 %--------------------------------------------------------------------------
-F     = reshape(QD*Sp,nX,n) - L;
+F     = reshape(QD*Sp(jb),nX,n) - L;
+
+% NESS density
+%--------------------------------------------------------------------------
+p0    = spm_softmax(b*Sp);
 
 % Hessian D*D*S
 %--------------------------------------------------------------------------
@@ -211,7 +279,7 @@ H     = zeros(n,n,nX);
 HH    = cell(n,n);
 for i = 1:n
     for j = 1:n
-       HH{i,j} = U.H{i,j}*Sp;    
+        HH{i,j} = U.H{i,j}*Sp;
     end
 end
 for i = 1:n
@@ -251,6 +319,7 @@ NESS.J2 = spm_dot(J.^2,p0);               % expected Euclidean norm of Jacobian
 NESS.D2 = 2 + abs(E(1) + E(2))/abs(E(3)); % correlation dimension
 NESS.Ep = Ep;                             % parameters of flow
 NESS.o  = o;                              % parameter orders
+NESS.nE = nE;                             % error norm
 
 % reshape nonequilibrium steady-state density p0
 %--------------------------------------------------------------------------

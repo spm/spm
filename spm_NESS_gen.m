@@ -1,7 +1,7 @@
-function [F,S,Q,L,H] = spm_NESS_gen(P,M,U)
+function [F,S,Q,L,H,DS] = spm_NESS_gen(P,M,U)
 % generates flow (f) at locations (U.X)
-% FORMAT [F,S,Q,L,H] = spm_NESS_gen(P,M,U)
-% FORMAT [F,S,Q,L,H] = spm_NESS_gen(P,M)
+% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M,U)
+% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M)
 %--------------------------------------------------------------------------
 % P.Qp    - polynomial coefficients for solenoidal operator
 % P.Sp    - polynomial coefficients for potential
@@ -11,6 +11,7 @@ function [F,S,Q,L,H] = spm_NESS_gen(P,M,U)
 % Q       - flow operator (R + G) with solenoidal and symmetric parts
 % L       - correction term for derivatives of solenoidal flow
 % H       - Hessian
+% D       - potential gradients
 %
 % U = spm_ness_U(M)
 %--------------------------------------------------------------------------
@@ -118,17 +119,20 @@ end
 
 % predicted flow: F   = Q*D*S - L
 %--------------------------------------------------------------------------
+DS    = cell(n,1);
+for j = 1:n
+    DS{j} = U.D{j}*P.Sp;
+end
 for i = 1:n
     for j = 1:n
-        DS     = U.D{j}*P.Sp;
-        F(:,i) = F(:,i) + Q{i,j}*DS;
+        F(:,i) = F(:,i) + Q{i,j}*DS{j};
     end
     F(:,i) = F(:,i) - L(:,i);
 end
 
 if nargout == 1, return, end
 
-% inverse (scalar) potential:  S = log(p(x))there
+% inverse (scalar) potential:  S = log(p(x))
 %--------------------------------------------------------------------------
 S     = U.b*P.Sp;
 

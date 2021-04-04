@@ -133,7 +133,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 8085 2021-03-21 12:27:26Z karl $
+% $Id: spm_MDP_VB_X.m 8089 2021-04-04 12:12:06Z karl $
 
 
 % deal with a sequence of trials
@@ -641,7 +641,7 @@ for t = 1:T
             MDP(m).mdp(t) = spm_MDP_VB_X(mdp);
             
 
-            % get inferred outcomes from subordinate MDP
+            % get inferred outcomes from subordinate MDP (MDP(m).mdp(t))
             %==============================================================
             for f = 1:size(MDP(m).link,1)
                 for g = 1:size(MDP(m).link,2)
