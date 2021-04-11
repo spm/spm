@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8088 2021-04-04 12:11:35Z karl $
+% $Id: DEM_COVID_UK.m 8091 2021-04-11 19:31:28Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -47,7 +47,7 @@ cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
 % url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending19february2021/8714ef2a&format=csv';
 % writetable(webread(url,options),'place.csv');
 % url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/articles/coronaviruscovid19infectionsinthecommunityinengland/december2020/b5e03a02&format=csv';
-% writetable(webread(url,options),'seropositive.csv');
+% writetable(webread(url,options),'serology.csv');
 
 
 try
@@ -125,6 +125,31 @@ catch
 end
 
 
+% population sizes (millions)
+%--------------------------------------------------------------------------
+% {'00_04','05_09','10_14','15_19','20_24','25_29','30_34','35_39',...
+%  '40_44','45_49','50_54','55_59','60_64','65_69','70_74','75_79', ...
+%  '80_84','85_89','90+'};
+N  = [3.86, 4.15, 3.95, 3.66, 4.15, 4.51, 4.50, 4.40, 4.02, 4.4, 4.66, ...
+      4.41, 3.76, 3.37, 3.32, 2.33, 1.72, 1.04, 0.61];
+  
+% ONS age bands
+%--------------------------------------------------------------------------
+ons{1} = [sum(N(4:5))];
+ons{2} = [sum(N(6:7)) sum(N(8:10)) sum(N(11:12)) N(13)];
+ons{3} = [N(14:16) sum(N(17:end))];
+vac    = ons{1}'/sum(N(1:5));
+ons{1} = ons{1}'/sum(ons{1});
+ons{2} = ons{2}'/sum(ons{2});
+ons{3} = ons{3}'/sum(ons{3});
+
+% DCM age bands
+%--------------------------------------------------------------------------
+N   = [sum(N(1:5)) sum(N(6:13)) sum(N(14:end))];
+nN  = numel(N);
+
+
+
 
 %% import data
 %--------------------------------------------------------------------------
@@ -143,20 +168,22 @@ mobility21 = importdata('mobility21.csv');
 vaccine    = importdata('vaccineage.csv');
 agedeaths  = importdata('agedeaths.csv');
 agecases   = importdata('agecases.csv');
-place      = importdata('place.csv');
 
 serology   = importdata('serology.csv');
+place      = importdata('place.csv');
 survey     = importdata('survey.csv');
+surveyage  = importdata('surveyage.csv');
 symptoms   = importdata('symptoms.csv');
 ratio      = importdata('ratio.csv');
 
+d          = find(ismember(cases.textdata(1,1:end),'date'));
 
 % create data structure
 %--------------------------------------------------------------------------
 Y(1).type = 'Positive virus tests (ONS)'; % daily PCR positive cases (by specimen)
 Y(1).unit = 'number/day';
 Y(1).U    = 2;
-Y(1).date = datenum(cases.textdata(5:end,1),'yyyy-mm-dd');
+Y(1).date = datenum(cases.textdata(5:end,d),'yyyy-mm-dd');
 Y(1).Y    = cases.data(4:end,1);
 Y(1).h    = 0;
 Y(1).lag  = 1;
@@ -166,7 +193,7 @@ Y(1).hold = 0;
 Y(2).type = 'Virus tests (ONS)'; % daily PCR tests performed
 Y(2).unit = 'number/day';
 Y(2).U    = 6;
-Y(2).date = datenum(tests.textdata(2:end,1),'yyyy-mm-dd');
+Y(2).date = datenum(tests.textdata(2:end,d),'yyyy-mm-dd');
 Y(2).Y    = tests.data(:,1);
 Y(2).h    = 0;
 Y(2).lag  = 0;
@@ -176,7 +203,7 @@ Y(2).hold = 1;
 Y(3).type = 'Virus/LFD tests (GOV)'; % newLFDTests (England)
 Y(3).unit = 'number/day';
 Y(3).U    = 24;
-Y(3).date = datenum(lateralft.textdata(2:end,1),'yyyy-mm-dd');
+Y(3).date = datenum(lateralft.textdata(2:end,d),'yyyy-mm-dd');
 Y(3).Y    = lateralft.data(:,1);
 Y(3).h    = 0;
 Y(3).lag  = 0;
@@ -196,7 +223,7 @@ Y(4).hold = 0;
 Y(5).type = 'Daily deaths (ONS: 28-days)'; % covid-related deaths (28 days)
 Y(5).unit = 'number/day';
 Y(5).U    = 1;
-Y(5).date = datenum(deaths.textdata(5:end,1),'yyyy-mm-dd');
+Y(5).date = datenum(deaths.textdata(5:end,d),'yyyy-mm-dd');
 Y(5).Y    = deaths.data(4:end,1);
 Y(5).h    = 2;
 Y(5).lag  = 1;
@@ -206,7 +233,7 @@ Y(5).hold = 0;
 Y(6).type = 'Certified deaths (ONS)'; % weekly covid related deaths
 Y(6).unit = 'number';
 Y(6).U    = 15;
-Y(6).date = datenum(certified.textdata(2:end,1),'yyyy-mm-dd') - 10;
+Y(6).date = datenum(certified.textdata(2:end,d),'yyyy-mm-dd') - 10;
 Y(6).Y    = certified.data(:,1)/7;
 Y(6).h    = 2;
 Y(6).lag  = 0;
@@ -216,7 +243,7 @@ Y(6).hold = 0;
 Y(7).type = 'Admissions (ONS)'; % admissions to hospital
 Y(7).unit = 'number';
 Y(7).U    = 16;
-Y(7).date = datenum(admissions.textdata(2:end,1),'yyyy-mm-dd');
+Y(7).date = datenum(admissions.textdata(2:end,d),'yyyy-mm-dd');
 Y(7).Y    = admissions.data(:,1);
 Y(7).h    = 0;
 Y(7).lag  = 0;
@@ -226,7 +253,7 @@ Y(7).hold = 0;
 Y(8).type = 'Occupancy (ONS)'; % Hospital cases
 Y(8).unit = 'number';
 Y(8).U    = 27;
-Y(8).date = datenum(occupancy.textdata(2:end,1),'yyyy-mm-dd');
+Y(8).date = datenum(occupancy.textdata(2:end,d),'yyyy-mm-dd');
 Y(8).Y    = occupancy.data(:,1);
 Y(8).h    = 0;
 Y(8).lag  = 1;
@@ -236,7 +263,7 @@ Y(8).hold = 0;
 Y(9).type = 'Ventilated patients (ONS)'; % CCU occupancy (mechanical)
 Y(9).unit = 'number';
 Y(9).U    = 3;
-Y(9).date = datenum(ccu.textdata(2:end,1),'yyyy-mm-dd');
+Y(9).date = datenum(ccu.textdata(2:end,d),'yyyy-mm-dd');
 Y(9).Y    = ccu.data(:,1);
 Y(9).h    = 2;
 Y(9).lag  = 0;
@@ -246,7 +273,7 @@ Y(9).hold = 0;
 Y(10).type = 'PCR positivity (GOV)'; % positivity (England)
 Y(10).unit = 'percent';
 Y(10).U    = 23;
-Y(10).date = datenum(positivity.textdata(2:end,1),'yyyy-mm-dd');
+Y(10).date = datenum(positivity.textdata(2:end,d),'yyyy-mm-dd');
 Y(10).Y    = positivity.data(:,1);
 Y(10).h    = 0;
 Y(10).lag  = 1;
@@ -333,7 +360,7 @@ Y(17).type = 'Seropositive < 25 (PHE)'; % percent antibody positive (England)
 Y(17).unit = 'percent';
 Y(17).U    = 5;
 Y(17).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
-Y(17).Y    = serology.data(:,4)*100;
+Y(17).Y    = serology.data(:,1)*(vac + (1 - vac)/2)*100;
 Y(17).h    = 2;
 Y(17).lag  = 0;
 Y(17).age  = 1;
@@ -343,7 +370,7 @@ Y(18).type = 'Seropositive 25-65 (PHE)'; % percent antibody positive (England)
 Y(18).unit = 'percent';
 Y(18).U    = 5;
 Y(18).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
-Y(18).Y    = mean(serology.data(:,7:3:16),2)*100;
+Y(18).Y    = serology.data(:,4:3:13)*ons{2}*100;
 Y(18).h    = 2;
 Y(18).lag  = 0;
 Y(18).age  = 2;
@@ -353,45 +380,45 @@ Y(19).type = 'Seropositive 25-, 25-65, 65+ (PHE)'; % percent antibody positive (
 Y(19).unit = 'percent';
 Y(19).U    = 5;
 Y(19).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
-Y(19).Y    = mean(serology.data(:,19:3:28),2)*100;
+Y(19).Y    = serology.data(:,16:3:25)*ons{3}*100;
 Y(19).h    = 2;
 Y(19).lag  = 0;
 Y(19).age  = 3;
-Y(19).hold = 1;
+Y(19).hold = 0;
 
 
-Y(20).type = 'Ab+/Vac < 25 (PHE)'; % percent vaccinated (England)
+Y(20).type = 'First dose < 25 (PHE)'; % percent vaccinated (England)
 Y(20).unit = 'percent';
 Y(20).U    = 22;
 Y(20).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
-Y(20).Y    = vaccine.data(:,1)*100;
+Y(20).Y    = vaccine.data(:,1)*vac*100;
 Y(20).h    = 0;
 Y(20).lag  = 0;
 Y(20).age  = 1;
 Y(20).hold = 1;
 
-Y(21).type = 'Ab+/Vac 25-65 (PHE)'; % percent vaccinated (England)
+Y(21).type = 'First dose 25-65 (PHE)'; % percent vaccinated (England)
 Y(21).unit = 'percent';
 Y(21).U    = 22;
 Y(21).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
-Y(21).Y    = mean(vaccine.data(:,4:3:13),2)*100;
+Y(21).Y    = vaccine.data(:,4:3:13)*ons{2}*100;
 Y(21).h    = 0;
 Y(21).lag  = 0;
 Y(21).age  = 2;
 Y(21).hold = 1;
 
-Y(22).type = 'Ab+/Vac 25-, 25-65, 65+ (PHE)'; % percent vaccinated (England)
+Y(22).type = 'First dose 25-, 25-65, 65+ (PHE)'; % percent vaccinated (England)
 Y(22).unit = 'percent';
 Y(22).U    = 22;
 Y(22).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
-Y(22).Y    = mean(vaccine.data(:,16:3:25),2)*100;
+Y(22).Y    = vaccine.data(:,16:3:25)*ons{3}*100;
 Y(22).h    = 0;
 Y(22).lag  = 0;
 Y(22).age  = 3;
 Y(22).hold = 0;
 
 
-Y(23).type = 'deaths < 25 (PHE)'; % deaths (English hospitals)
+Y(23).type = 'Deaths < 25 (PHE)'; % deaths (English hospitals)
 Y(23).unit = 'number';
 Y(23).U    = 1;
 Y(23).date = datenum(agedeaths.textdata(2:end,1),'yyyy-mm-dd');
@@ -401,7 +428,7 @@ Y(23).lag  = 0;
 Y(23).age  = 1;
 Y(23).hold = 1;
 
-Y(24).type = 'deaths 25-65 (PHE)'; % deaths (English hospitals)
+Y(24).type = 'Deaths 25-65 (PHE)'; % deaths (English hospitals)
 Y(24).unit = 'number';
 Y(24).U    = 1;
 Y(24).date = datenum(agedeaths.textdata(2:end,1),'yyyy-mm-dd');
@@ -411,7 +438,7 @@ Y(24).lag  = 0;
 Y(24).age  = 2;
 Y(24).hold = 1;
 
-Y(25).type = 'deaths 25-, 25-65, 65+ (PHE)'; % deaths (English hospitals)
+Y(25).type = 'Deaths 25-, 25-65, 65+ (PHE)'; % deaths (English hospitals)
 Y(25).unit = 'number';
 Y(25).U    = 1;
 Y(25).date = datenum(agedeaths.textdata(2:end,1),'yyyy-mm-dd');
@@ -422,7 +449,7 @@ Y(25).age  = 3;
 Y(25).hold = 0;
 
 
-Y(26).type = 'cases < 25 (PHE)';  % PCR notifications (United Kingdom)
+Y(26).type = 'PCR cases < 25 (PHE)';  % PCR notifications (United Kingdom)
 Y(26).unit = 'number';
 Y(26).U    = 2;
 Y(26).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
@@ -432,7 +459,7 @@ Y(26).lag  = 1;
 Y(26).age  = 1;
 Y(26).hold = 1;
 
-Y(27).type = 'cases 25-65 (PHE)'; % PCR notifications  (United Kingdom)
+Y(27).type = 'PCR cases 25-65 (PHE)'; % PCR notifications  (United Kingdom)
 Y(27).unit = 'number';
 Y(27).U    = 2;
 Y(27).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
@@ -442,7 +469,7 @@ Y(27).lag  = 1;
 Y(27).age  = 2;
 Y(27).hold = 1;
 
-Y(28).type = 'cases 25-, 25-65, 65+ (PHE)'; % PCR notifications  (United Kingdom)
+Y(28).type = 'PCR cases 25-, 25-65, 65+ (PHE)'; % PCR notifications  (United Kingdom)
 Y(28).unit = 'number';
 Y(28).U    = 2;
 Y(28).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
@@ -453,15 +480,36 @@ Y(28).age  = 3;
 Y(28).hold = 0;
 
 
-% population sizes
-%--------------------------------------------------------------------------
-% {'00_04','05_09','10_14','15_19','20_24','25_29','30_34','35_39',...
-%  '40_44','45_49','50_54','55_59','60_64','65_69','70_74','75_79', ...
-%  '80_84','85_89','90+'};
-N  = [3.86, 4.15, 3.95, 3.66, 4.15, 4.51, 4.50, 4.40, 4.02, 4.4, 4.66, ...
-      4.41, 3.76, 3.37, 3.32, 2.33, 1.72, 1.04, 0.61];
-N  = [sum(N(1:5)) sum(N(6:13)) sum(N(14:end))]; % age bands
-nN = numel(N);
+Y(29).type = 'Prevalence < 25 (PHE)';  % Estimated positivity (England)
+Y(29).unit = 'percent';
+Y(29).U    = 11;
+Y(29).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
+Y(29).Y    = mean(surveyage.data(:,(1:24)*3 - 2),2);
+Y(29).h    = 0;
+Y(29).lag  = 0;
+Y(29).age  = 1;
+Y(29).hold = 1;
+
+Y(30).type = 'Prevalence 25-65 (PHE)'; % Estimated positivity (England)
+Y(30).unit = 'percent';
+Y(30).U    = 11;
+Y(30).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
+Y(30).Y    = mean(surveyage.data(:,(25:64)*3 - 2),2);
+Y(30).h    = 0;
+Y(30).lag  = 0;
+Y(30).age  = 2;
+Y(30).hold = 1;
+
+Y(31).type = 'Prevalence 25-, 25-65, 65+ (PHE)'; % Estimated positivity (England)
+Y(31).unit = 'percent';
+Y(31).U    = 11;
+Y(31).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
+Y(31).Y    = mean(surveyage.data(:,(65:79)*3 - 2),2);
+Y(31).h    = 0;
+Y(31).lag  = 0;
+Y(31).age  = 3;
+Y(31).hold = 0;
+
 
 % remove NANs, smooth and sort by date
 %==========================================================================
@@ -563,6 +611,7 @@ spm_SARS_plot(H,X,YS(:,u),[1 2 3])
 spm_figure('GetWin','outcomes (1)');
 %--------------------------------------------------------------------------
 j     = 0;
+k     = 0;
 for i = 1:numel(Y)
     
     j = j + 1;
@@ -587,7 +636,12 @@ for i = 1:numel(Y)
     % new figure
     %----------------------------------------------------------------------
     if j == 8
-        spm_figure('GetWin','outcomes (2)');
+        if k > 0
+            spm_figure('GetWin','outcomes (3)');
+        else
+            spm_figure('GetWin','outcomes (2)');
+            k = k + 1;
+        end
         j = 0;
     end
     
@@ -598,7 +652,7 @@ end
 
 % infection fatality ratios (%)
 %--------------------------------------------------------------------------
-spm_figure('GetWin','outcomes (3)');
+spm_figure('GetWin','outcomes (4)');
 j = 1;
 subplot(4,2,j)
 for i = 1:numel(N)
@@ -656,7 +710,7 @@ legend({'< 24yrs','25-64yrs','> 64yrs'})
 
 %% long-term forecasts
 %==========================================================================
-spm_figure('GetWin','outcomes (3)');
+spm_figure('GetWin','outcomes (4)');
 
 Ep  = DCM.Ep;
 Cp  = DCM.Cp;
@@ -806,7 +860,7 @@ TRN       = [R{1}.Ptrn];                    % transmission risk
 R0        = mean(H(i,1));                   % basic reproduction ratio    
 RT        = R0*TRN(:)/mean(TRN(i));         % effective reproduction ratio
 HIT       = 100 * (1 - 1./RT);              % herd immunity threshold
-VAC       = H(:,2);                         % number of people vaccinated
+VAC       = H(:,2);                         % percent of people vaccinated
 i         = find(H(:,3) > HIT,1);           % date threshold reached
 i         = min([i,M.T]);
 
@@ -817,12 +871,12 @@ qE  = 100*exp(q);
 qL  = 100*exp(q - d);
 qU  = 100*exp(q + d);
 str = sprintf('Attack rate and immunity: vaccine efficacy %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU);
-leg = sprintf('%s (HIT: %.1f%s)',datestr(t(i),'dd-mmm-yy'),HIT(i),'%');
+leg = sprintf('%s (EIT: %.1f%s)',datestr(t(i),'dd-mmm-yy'),HIT(i),'%');
 
 plot(t,HIT,t,VAC), hold on
 plot(t(i)*[1,1],[0,100],':k'), set(gca,'YLim',[0,100])
 ylabel('percent'),  title(str,'FontSize',14)
-legend({'CI','Attack rate','CI','Herd immunity','Herd immunity threshold','Effective vaccination'})
+legend({'CI','Attack rate','CI','Population immunity','Effective immunity threshold','First vaccination'})
 legend boxoff
 text(t(i),8,leg,'FontSize',10), drawnow
 
@@ -838,14 +892,17 @@ savefig(gcf,'Fig2')
 spm_figure('GetWin','outcomes (3)');
 savefig(gcf,'Fig3')
 
-spm_figure('GetWin','United Kingdom');
+spm_figure('GetWin','outcomes (4)');
 savefig(gcf,'Fig4')
 
-spm_figure('GetWin','long-term (2)');
+spm_figure('GetWin','United Kingdom');
 savefig(gcf,'Fig5')
 
-spm_figure('GetWin','long-term (1)');
+spm_figure('GetWin','long-term (2)');
 savefig(gcf,'Fig6')
+
+spm_figure('GetWin','long-term (1)');
+savefig(gcf,'Fig7')
 
 % Table
 %--------------------------------------------------------------------------

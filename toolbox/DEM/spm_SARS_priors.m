@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8088 2021-04-04 12:11:35Z karl $
+% $Id: spm_SARS_priors.m 8091 2021-04-11 19:31:28Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -78,26 +78,26 @@ if nargin
     %----------------------------------------------------------------------
     P.N   = P.N - log(nN);
     P.n   = P.n - 8;
-    P.rol = log([0.04  (365 + 128) 8;
-                 0.04  (365 + 64 ) 8;
+    P.rol = log([0.02  (365 + 128) 8;
+                 0.03  (365 + 64 ) 8;
                  0.04  (365 + 0  ) 8]);
     C.rol = [1/256 1/1024 1/256;
              1/256 1/1024 1/256;
              1/256 1/1024 1/256];
-    P.sev = log([0.0001;
+    P.sev = log([0.00002;
                  0.002;
-                 0.04]);
+                 0.03]);
     P.lat = P.sev;
     
     % contact matrices: number of contacts per day
     %----------------------------------------------------------------------
     P.Nin = log([4     1     1;
-                 1     4     1;
-                 1     1     4]/2);
+                 1     3     1;
+                 1     1     2]/2);
     
     P.Nou = log([32    4     4;
-                 4     32    4;
-                 4     4     32]);
+                 4     24    4;
+                 4     4     16]);
              
     C.Nin = (exp(P.Nin) > 0)*C.Nin(1);
     C.Nou = (exp(P.Nou) > 0)*C.Nou(1);
