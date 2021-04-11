@@ -27,7 +27,7 @@ function NESS = spm_ness_hd(M,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8089 2021-04-04 12:12:06Z karl $
+% $Id: spm_ness_hd.m 8090 2021-04-11 19:29:48Z karl $
 
 
 % event space: get or create X - coordinates of evaluation grid
@@ -101,7 +101,7 @@ k     = sum(o) > 3;                          % quadratic constraints
 k     = k | ~sum(o);                         % suppress constant
 A     = any(J,3);                            % flow adjacency
 for i = 1:n
-    for j = (i + 1):n
+    for j = 1:n
         if ~A(i,j)
             k = k | (o(i,:) & o(j,:));
         end
@@ -308,6 +308,13 @@ i     = abs(Qp) < exp(-16);
 Qp(i) = 0;
 Ep.Sp = Sp;
 Ep.Qp = Qp;
+
+
+% evaluate Jacobian from polynomial coefficients
+%--------------------------------------------------------------------------
+% for i = 1:nX
+%     J(:,:,i) = spm_diff('spm_NESS_gen',Ep,M,X(i,:),3);
+% end
 
 % assemble NESS structure
 %--------------------------------------------------------------------------

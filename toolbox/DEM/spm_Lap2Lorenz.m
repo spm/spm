@@ -22,14 +22,8 @@ function [s,q,f] = spm_Lap2Lorenz(P,w,x)
 % $Id: spm_ness_hd.m 8085 2021-03-21 12:27:26Z karl $
 
 
-% assume the fixed part of G is zero unless otherwise specified
+% initialise polynomial coefficients
 %--------------------------------------------------------------------------
-if nargin < 2
-    g = 0;
-else
-    g = 1/(2*w);
-end
-
 s  = zeros(10,1,'like',P);
 q  = zeros(60,1,'like',P);
 
@@ -49,24 +43,24 @@ q(57) = P(2)/s(7);
 
 G(3)  = (q(44) - q(57))/s(7);
 
-% add specified dissipation and switch sign of flow coefficients
+% switch sign of flow coefficients
 %--------------------------------------------------------------------------
-q(1)  = -G(1) + g;
-q(31) = -G(2) + g;
-q(51) = -G(3) + g;
-q     = -q;
+q(1)  = -G(1);
+q(31) = -G(2);
+q(51) = -G(3);
+
 
 return
 
 % Notes for functional form of Laplace coefficients
 %==========================================================================
+sympref('FloatingPointOutput',1);
 syms  x [1 3] 'real'
 P     = [10; 8/3; 32];                  % parameters [sig, beta, rho]
 [s,q] = spm_Lap2Lorenz(P);
 
 % undo sign switch of flow coefficients
 %--------------------------------------------------------------------------
-q    = -q;
 G(1) = -q(1);
 G(2) = -q(31);
 G(3) = -q(51);
@@ -85,7 +79,7 @@ L  = [0;
       0;
      q(44) - q(57)];
          
-f = Q*dS - L;
+f = Q*dS - L
 
 return
 

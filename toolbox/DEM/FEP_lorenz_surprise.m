@@ -21,7 +21,7 @@ function FEP_lorenz_surprise
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_lorenz_surprise.m 8089 2021-04-04 12:12:06Z karl $
+% $Id: FEP_lorenz_surprise.m 8090 2021-04-11 19:29:48Z karl $
 
 
 %% dynamics and parameters of a Lorentz system (with Jacobian)
@@ -78,7 +78,7 @@ axis square, box off
 %% illustrate analytic form for Lorentz system
 %==========================================================================
 [sp,qp] = spm_Lap2Lorenz(P);
-Ep.Sp   = sp;
+Ep.Sp   = -sp;
 Ep.Qp   = qp/64;
 
 % solve for a trajectory using Laplace form 
@@ -87,7 +87,7 @@ T     = 2048;
 t     = zeros(3,T);
 dt    = 1/4;
 s     = x0;
-M.W   = 32;
+M.W   = Inf;
 for i = 1:T
     M.X    = s';
     [ds,j] = spm_NESS_gen(Ep,M);
@@ -126,9 +126,19 @@ xlabel('2nd state'), ylabel('1st state')
 title('Global potential','Fontsize',14)
 axis square xy
 
-spm_figure('GetWin','NESS (4)'); clf
-
+% quiver plot of flow decomposition 
+%--------------------------------------------------------------------------
+spm_figure('GetWin','NESS (5)'); clf
+N    = 4;                                % number of bins
+d    = 32;                                 % distance
+m    = [0 0 28];
+x{1} = linspace(m(1) - d,m(1) + d,N);
+x{2} = linspace(m(2) - d,m(2) + d,N);
+x{3} = linspace(m(3) - d,m(3) + d,N);
+subplot(2,1,1);
 spm_ness_flows(Ep,x,M)
+
+
 
 % Laplace approximation under dissipation constraints
 %==========================================================================
@@ -162,6 +172,19 @@ x{3} = linspace(m(3) - d,m(3) + d,N);
 %==========================================================================
 NESS  = spm_ness_hd(M,x);                         % NESS density
 n     = numel(x);                                 % dimensionality
+
+% quiver plot of flow decomposition 
+%--------------------------------------------------------------------------
+N    = 4;                                         % number of bins
+d    = 32;                                        % distance
+m    = [0 0 28];
+x{1} = linspace(m(1) - d,m(1) + d,N);
+x{2} = linspace(m(2) - d,m(2) + d,N);
+x{3} = linspace(m(3) - d,m(3) + d,N);
+spm_figure('GetWin','NESS (5)');
+subplot(2,1,2);
+spm_ness_flows(NESS.Ep,x,M)
+
 
 %% solve for a trajectory using a polynomial approximation to flow 
 %--------------------------------------------------------------------------
@@ -399,22 +422,9 @@ disp(latex(H)), disp(' ')
 %% ensure the Laplace approximation is chaotic
 %==========================================================================
 
-% Jacobian function with polynomial form
-%--------------------------------------------------------------------------
-syms  w 'real'
-syms  x [1 n] 'real'
-syms  s [numel(Ep.Sp) 1] 'real'
-syms  q [numel(Ep.Qp) 1] 'real'
-syms  P [numel(M.pE) 1] 'real'
-sympref('FloatingPointOutput',0);
-
-dF   = [diff(F,x1), diff(F,x2), diff(F,x3)];
-J    = symfun(dF,[q',s',w,x]);
-J    = matlabFunction(J);
-
 % state space for evaluation
 %--------------------------------------------------------------------------
-N    = 32;
+N    = 16;
 d    = 32;
 x    = cell(3,1);
 x{1} = linspace(-d,d,N);
@@ -423,20 +433,9 @@ x{3} = linspace(28 - d,28 + d,N);
 p0   = spm_softmax(spm_polymtx(x)*NESS.Ep.Sp);
 p0   = reshape(p0,[N N N]);
 X    = spm_ndgrid(x);
-w    = W(1);
 
-% evaluate eigenvalues of Jacobian
-%--------------------------------------------------------------------------
-Sp    = NESS.Ep.Sp;
-Qp    = NESS.Ep.Qp;
-Sp    = num2cell(Sp);
-Qp    = num2cell(Qp);
-nX    = size(X,1);
-E     = zeros(n,nX);
-Ji    = zeros(n,n,nX);
-for i = 1:nX
-    s         = num2cell(full(X(i,:)));
-    Ji(:,:,i) = J(Qp{:},Sp{:},w,s{:});
+for i = 1:size(X,1)
+    Ji(:,:,i) = spm_ness_J(NESS.Ep,M,X(i,:));
     E(:,i)    = sort(real(eig(Ji(:,:,i))),'descend');
 end
 
@@ -459,7 +458,26 @@ clear
 % second-order terms that are precluded by the Jacobian (i.e., dynamical
 % coupling)
 %==========================================================================
-% dxdt = f(x) + w
+
+% asymmetric coupling
+%--------------------------------------------------------------------------
+% f    = @(x,v,P,M) [
+%        P(1)*x(2) - P(1)*(P(4)*x(4) - x(1)*(P(4) - 1));
+%                          P(3)*x(1) - x(2) - x(1)*x(3);
+%                                 x(1)*x(2) - P(2)*x(3);
+%                                 P(1)*x(5) - P(1)*x(4);
+%   P(3)*x(4) - P(4)*x(2) - x(4)*x(6) + x(5)*(P(4) - 1);
+%                                 x(4)*x(5) - P(2)*x(6)]/64;
+% 
+% J    = @(x,v,P,M) [
+%     [P(1)*(P(4) - 1),  P(1),   0,  -P(1)*P(4),  0,   0]
+%     [    P(3) - x(3),  -1, -x(1),       0,      0,   0]
+%     [         x(2),  x(1), -P(2),       0,      0,   0]
+%     [          0,    0,    0,     -P(1),     P(1),   0]
+%     [      0, -P(4),   0, P(3) - x(6), P(4) - 1, -x(4)]
+%     [      0,   0,   0,      x(5),     x(4), -P(2)]/64];
+          
+% symmetric coupling
 %--------------------------------------------------------------------------
 f    = @(x,v,P,M) [
     P(1)*x(2) - P(1)*(x(1)*(1 - P(4)) + x(4)*P(4));
@@ -476,7 +494,7 @@ J    = @(x,v,P,M) [
     [ -P(1)*P(4),    0,   0, P(1)*(P(4) - 1), P(1), 0]
     [       0,  0,   0,   P(3) - x(6),      -1, -x(4)]
     [       0,  0,   0,          x(5), x(4),    -P(2)]]/64;
-
+ 
 P    = [10; 8/3; 32; -1/2];                    % parameters
 x0   = [1; 1; 32; 1; 0; 24];                   % initial states
 
@@ -494,6 +512,29 @@ M.CON = 1;                                    % flow constraints
 M.DIS = 1;                                    % dissipation constraints
 M.HES = 0;                                    % Hessian diagonal constraints
 M.W   = diag([1/8 1/16 1/32 1/8 1/16 1/32]);
+
+% solution of stochastic and underlying ordinary differential equation
+% -------------------------------------------------------------------------
+spm_figure('GetWin','NESS (6)'); clf
+T    = 2^10;
+U.u  = sparse(T,M(1).m);
+U.dt = 1;
+t    = spm_int_ode(M.pE,M,U);
+r    = spm_int_sde(M.pE,M,U);
+
+subplot(3,1,1)
+plot(t), hold on, set(gca,'ColorOrderIndex',1)
+plot(r,':'), hold off
+title('Trajectory','Fontsize',16)
+xlabel('time'), ylabel('states')
+spm_axis tight, box off
+
+subplot(3,2,3)
+plot3(t(:,1),t(:,2),t(:,3)), hold on, set(gca,'ColorOrderIndex',1)
+plot3(r(:,1),r(:,2),r(:,3),':'), hold off
+title('State-space','Fontsize',16)
+xlabel('1st state'), ylabel('2nd state'), zlabel('3rd state')
+axis square, box off
 
 % state space
 %--------------------------------------------------------------------------
@@ -619,7 +660,7 @@ subplot(3,3,1)
 imagesc(-log(NESS.J2 + exp(-32))), axis square
 title('log |Jacobian|','Fontsize',12)
 subplot(3,3,2)
-imagesc(-log(C.^2 + exp(-32))), axis square
+imagesc(-log(C.^2 + exp(-32))),    axis square
 title('log |Covariance|','Fontsize',12)
 subplot(3,3,3)
 imagesc(-log(NESS.H2 + exp(-32))), axis square
@@ -769,7 +810,7 @@ K    = [diff(J,x1) diff(J,x2) diff(J,x3)]
 ff   = symfun([v; J*v + (1/2)*K*kron(x,v) + (1/2)*K*kron(v,x)],[x;v])
 JJ   = [diff(ff,x1) diff(ff,x2) diff(ff,x3) diff(ff,x4) diff(ff,x5) diff(ff,x6)]
 
-% coupled oscillators
+% coupled oscillators - symmetric
 %--------------------------------------------------------------------------
 x    = [x1;x2;x3;x4;x5;x6];
 P    = [P1;P2;P3;P4];
@@ -786,6 +827,22 @@ f
 disp(latex(f)),  disp(' ')
 ff
 disp(latex(ff)), disp(' ')
+
+% coupled oscillators - asymmetric
+%--------------------------------------------------------------------------
+x    = [x1;x2;x3;x4;x5;x6];
+P    = [P1;P2;P3;P4];
+ff   = symfun([P(1)*x(2) - P(1)*(x(1)*(1 - P(4)) + x(4)*P(4));
+               P(3)*x(1) - x(2) - x(1)*x(3);
+              -P(2)*x(3) + x(1)*x(2);
+               P(1)*x(5) - P(1)*x(4);
+               P(3)*x(4) - (x(5)*(1 - P(4)) + x(2)*P(4)) - x(4)*x(6);
+              -P(2)*x(6) + x(4)*x(5)],x)
+
+J    = [diff(ff,x1) diff(ff,x2) diff(ff,x3) diff(ff,x4) diff(ff,x5) diff(ff,x6)]
+
+
+
 
 
 %% Notes (generalised coordinates of motion)

@@ -1,7 +1,8 @@
 function [F,S,Q,L,H,DS] = spm_NESS_gen(P,M,U)
 % generates flow (f) at locations (U.X)
-% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M,U)
 % FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M)
+% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M,U)
+% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M,X)
 %--------------------------------------------------------------------------
 % P.Qp    - polynomial coefficients for solenoidal operator
 % P.Sp    - polynomial coefficients for potential
@@ -47,6 +48,13 @@ function [F,S,Q,L,H,DS] = spm_NESS_gen(P,M,U)
 % $Id: spm_ness_hd.m 8000 2020-11-03 19:04:17QDb karl $
 
 
+%% model specification
+%--------------------------------------------------------------------------
+if nargin > 2
+    if ~isstruct(U), M.X = U; U = []; end
+end
+
+
 %% use M.fs if specified
 %--------------------------------------------------------------------------
 if nargout < 3 && isfield(M,'fs')
@@ -73,8 +81,10 @@ end
 
 %% get basis or expansion from M.X (or M.x)
 %--------------------------------------------------------------------------
-if nargin < 3
+if nargin < 3 || ~isstruct(U)
     
+    % get basis set and derivatives
+    %----------------------------------------------------------------------
     U    = spm_ness_U(M);
     
     % project parameters for this orthonormal basis

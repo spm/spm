@@ -34,7 +34,6 @@ function U = spm_ness_U(M,x)
 
 % event space: get or create X - coordinates of evaluation grid
 %--------------------------------------------------------------------------
-
 if isfield(M,'FUN')
     FUN = M.FUN;
 else

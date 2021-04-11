@@ -13,31 +13,34 @@ function spm_ness_flows(P,x,M)
 % Karl Friston
 % $Id: spm_ness_hd.m 8085 2021-03-21 12:27:26Z karl $
 
-
-U = spm_ness_U(M,x);                    % get state space and flow
-
-% solve for a trajectory using Laplace form 
+                
+% evaluate flows at sample points 
 %--------------------------------------------------------------------------
-for i = 1:size(U.X,1)
-    M.X    = U.X(i,:);
+X     = spm_ndgrid(x);                   % get sample points
+X     = X';
+n     = numel(x);
+f1    = X;
+f2    = X;
+f3    = X;
+for i = 1:size(X,2)
+    M.X     = X(:,i)';
     [F,S,Q,L,H,D] = spm_NESS_gen(P,M);
+    Q       = reshape(cat(1,Q{:}),n,n);
+    D       = cat(1,D{:});
+    G       = diag(diag(Q));
+    Q       = Q - G;
     
-    f1(i,:) = 1;
-    
+    f1(:,i) = G*D;
+    f2(:,i) = Q*D;
+    f3(:,i) = -L';
 end
 
-subplot(3,2,4)
-plot3(t(1,:),t(2,:),t(3,:))
-title('State-space','Fontsize',16)
+quiver3(X(1,:),X(2,:),X(3,:),f1(1,:),f1(2,:),f1(3,:)), hold on
+quiver3(X(1,:),X(2,:),X(3,:),f2(1,:),f2(2,:),f2(3,:)), hold on
+quiver3(X(1,:),X(2,:),X(3,:),f3(1,:),f3(2,:),f3(3,:)), hold on
 xlabel('1st state'), ylabel('2nd state'), zlabel('3rd state')
-axis square, box off
-
-subplot(3,2,5)
-plot(LF)
-title('Potential','Fontsize',16)
-xlabel('time'), ylabel('self-information')
-axis square xy, box off
-
+title('Flow decomposition','Fontsize',16), axis square
+legend({'Gradient flow','Solenoidal flow','Correction'})
 
 return
 
