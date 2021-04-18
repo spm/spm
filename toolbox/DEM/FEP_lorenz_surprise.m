@@ -21,7 +21,7 @@ function FEP_lorenz_surprise
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_lorenz_surprise.m 8090 2021-04-11 19:29:48Z karl $
+% $Id: FEP_lorenz_surprise.m 8093 2021-04-18 09:44:48Z karl $
 
 
 %% dynamics and parameters of a Lorentz system (with Jacobian)
@@ -143,10 +143,15 @@ spm_ness_flows(Ep,x,M)
 % Laplace approximation under dissipation constraints
 %==========================================================================
 M.CON = 1;                               % flow constraints
-M.DIS = 1;                               % dissipation constraints
+M.DIS = 0;                               % dissipation constraints
 M.HES = 0;                               % Hessian diagonal constraints
 M.W   = diag([1/8 1/16 1/32]);           % precision of random fluctuations
 M.K   = 3;
+M.L   = 3;
+
+M.W   = diag([1/8 1/16 1/32]);           % precision of random fluctuations
+M.K   = 4;
+M.L   = 3;
 
 %% state-space for (Laplace) solution 
 %--------------------------------------------------------------------------
@@ -191,10 +196,11 @@ spm_ness_flows(NESS.Ep,x,M)
 T     = 2048;
 t     = zeros(n,T);
 u     = zeros(n,T);
-dt    = 1/4;
+dt    = 1/16;
 s     = x0;
 r     = x0;
 Ep    = NESS.Ep;
+w     = 0;
 for i = 1:T
     M.X      = s';                                  % current state
     [ds,j,q] = spm_NESS_gen(Ep,M);                  % flow
@@ -204,7 +210,7 @@ for i = 1:T
     
     M.X      = r';                                  % stochastic solution
     [dr,j,q] = spm_NESS_gen(Ep,M);                  % flow
-    w        = sqrtm(abs(diag(diag(spm_cat(q)))));  % covariance of w
+%    w        = sqrtm(abs(diag(diag(spm_cat(q)))));  % covariance of w
     r        = r + dr'*dt + w*randn(n,1)*dt;        % update
     u(:,i)   = r;                                   % next state
 end
@@ -279,6 +285,7 @@ title('Flows','Fontsize',16)
 xlabel('approximate flow'), ylabel('true flow')
 axis square xy, box off
 
+return
 
 
 %% illustrate conditional dependencies

@@ -27,7 +27,7 @@ function NESS = spm_ness_hd(M,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8090 2021-04-11 19:29:48Z karl $
+% $Id: spm_ness_hd.m 8093 2021-04-18 09:44:48Z karl $
 
 
 % event space: get or create X - coordinates of evaluation grid
@@ -91,13 +91,15 @@ nE    = exp(16);                 % initial error norm
 
 % constraints on parameters
 %--------------------------------------------------------------------------
+if ~isfield(M,'K'),    M.K   = 3; end
+if ~isfield(M,'L'),    M.L   = 3; end
 if ~isfield(M,'CON'),  M.CON = 0; end
 if ~isfield(M,'DIS'),  M.DIS = 0; end
 if ~isfield(M,'HES'),  M.HES = 0; end
 
 % constraints on potential parameters due to dissipative flow
 %--------------------------------------------------------------------------
-k     = sum(o) > 3;                          % quadratic constraints
+k     = sum(o) > M.K;                        % polynomial order constraints
 k     = k | ~sum(o);                         % suppress constant
 A     = any(J,3);                            % flow adjacency
 for i = 1:n
@@ -112,71 +114,60 @@ if M.HES
 end
 jb    = find(~k);
 
-% constraints due to diagonal elements of Hessian
-%----------------------------------------------------------------------
+% constraints on the order of the polynomial expansion
+%--------------------------------------------------------------------------
 k     = cell(n,n);
 for i = 1:n
     for j = 1:n
-        if ~A(i,j)
-            k{i,j} = ones(1,nb);
-            k{j,i} = ones(1,nb);
-        else
-            k{i,j} = zeros(1,nb);
-            k{i,j} = zeros(1,nb);
-        end
+        k{i,j} = sum(o) > M.L;
     end
 end
 
-% constraints due to non-negative gradients
-%----------------------------------------------------------------------
-for i = 1:n
-    for j = 1:n
-        if ~A(i,j)
-            for q = 1:n
-                k{i,q} = k{i,q} | o(j,:);
+if M.CON
+    
+    % constraints due to diagonal elements of Hessian
+    %----------------------------------------------------------------------
+    for i = 1:n
+        for j = 1:n
+            if ~A(i,j)
+                k{i,j} = ones(1,nb);
+                k{j,i} = ones(1,nb);
             end
         end
+    end
+    
+    % constraints due to non-negative gradients
+    %----------------------------------------------------------------------
+    for i = 1:n
+        for j = 1:n
+            if ~A(i,j)
+                for q = 1:n
+                    k{i,q} = k{i,q} | o(j,:);
+                end
+            end
+        end
+    end
+    
+end
+
+
+% constraints due to diagonal elements of Hessian
+%--------------------------------------------------------------------------
+if M.DIS
+    for i = 1:n
+        k{i,i} = ones(1,nb);
     end
 end
 
 % assemble and combine constraints
-%----------------------------------------------------------------------
-if M.CON
-    kB    = [];
-    for i = 1:n
-        for j = i:n
-            kB = [kB (k{i,j} | k{j,i})];
-        end
-    end
-else
-    kB    = zeros(1,nB);
-end
-
-% constraints due to diagonal elements of Hessian
-%----------------------------------------------------------------------
-k     = cell(n,n);
+%--------------------------------------------------------------------------
+kB    = [];
 for i = 1:n
     for j = i:n
-        if i == j
-            k{i,j} = ones(1,nb);
-        else
-            k{i,j} = zeros(1,nb);
-            k{i,j} = zeros(1,nb);
-        end
+        kB = [kB (k{i,j} | k{j,i})];
     end
 end
-
-if M.DIS
-    kD    = [];
-    for i = 1:n
-        for j = i:n
-            kD = [kD k{i,j}];
-        end
-    end
-else
-    kD    = zeros(1,nB);
-end
-jB    = find(~(kB | kD));
+jB    = find(~kB);
 
 % initialise parameters Qp of flow operator
 %--------------------------------------------------------------------------
