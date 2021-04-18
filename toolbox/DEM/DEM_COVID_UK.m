@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8091 2021-04-11 19:31:28Z karl $
+% $Id: DEM_COVID_UK.m 8092 2021-04-18 09:44:10Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -72,31 +72,29 @@ try
     writetable(webread(url,options),'positivity.csv');
     url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newLFDTests&format=csv';
     writetable(webread(url,options),'lateralft.csv');
-    url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=cumPeopleVaccinatedFirstDoseByVaccinationDate&format=csv';
-    writetable(webread(url,options),'vaccine.csv');
     
-    % get death by age
+    % get death by age (England)
     %----------------------------------------------------------------------
     url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newDeaths28DaysByDeathDateAgeDemographics&format=csv';
     tab   = webread(url,options);
-    age   = unique(tab(:,6));
+    age   = unique(tab(:,5));
     for r = 1:numel(age)
-        j = find(ismember(tab(:,6),age(r,1)));
-        agedeaths(:,1)     = tab(j,1);
-        agedeaths(:,r + 1) = tab(j,7);
+        j = find(ismember(tab(:,5),age(r,1)));
+        agedeaths(:,1)     = tab(j,4);
+        agedeaths(:,r + 1) = tab(j,6);
     end
     agedeaths = renamevars(agedeaths,(1:numel(age)) + 1,table2array(age));
     writetable(agedeaths,'agedeaths.csv')
     
-    % get cases by age
+    % get cases by age (UK)
     %----------------------------------------------------------------------
     url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newCasesBySpecimenDateAgeDemographics&format=csv';
     tab   = webread(url,options);
-    age   = unique(tab(:,6));
+    age   = unique(tab(:,5));
     for r = 1:numel(age)
-        j = find(ismember(tab(:,6),age(r,1)));
-        agecases(:,1)     = tab(j,1);
-        agecases(:,r + 1) = tab(j,7);
+        j = find(ismember(tab(:,5),age(r,1)));
+        agecases(:,1)     = tab(j,4);
+        agecases(:,r + 1) = tab(j,6);
     end
     agecases = renamevars(agecases,(1:numel(age)) + 1,table2array(age));
     writetable(agecases,'agecases.csv')
@@ -947,7 +945,8 @@ for f = 1:numel(fluct)
     
 end
 
-
+% Interventions
+%==========================================================================
 
 
 

@@ -31,7 +31,7 @@ else
     DCM = DCM.DCM;
 end
 
-%% parametric intervention(vaccination and contact tracing)
+%% parametric intervention (vaccination and contact tracing)
 %==========================================================================
 period = {DCM.M.date,'01-01-2022'};         % duration of epidemic
 for i  = 1:6
@@ -143,9 +143,9 @@ clear
 DCM = load('DCM_UK.mat','DCM');
 DCM = DCM.DCM;
 
-% parametric intervention(relaxation social distancing threshold)
+% parametric intervention (relaxation social distancing threshold)
 %==========================================================================
-period = {DCM.M.date,'01-06-2021'};         % duration of epidemic
+period = {DCM.M.date,'01-06-2021'};          % duration of epidemic
 for i  = 1:3
     NPI(i).period = period;
     NPI(i).param  = {'sde'};
@@ -265,6 +265,143 @@ for i = 1:numel(NPI)
     spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI(i));
     
 end
+
+
+%% scenario modelling for lockdown and vaccinationin response to the 
+% Prime Minister's statement on April 13, 2021
+%==========================================================================
+clear
+DCM = load('DCM_UK.mat','DCM');
+DCM = DCM.DCM;
+
+% parametric intervention (relaxation social distancing threshold)
+%==========================================================================
+period = {DCM.M.date,'01-10-2021'};         % duration of epidemic
+
+NPI(1).period = period;
+NPI(1).param  = {'qua'};
+NPI(1).Q      = 1/32;
+NPI(1).dates  = {'01-02-2021','01-10-2021',};
+
+NPI(2).period = period;
+NPI(2).param  = {'rol'};
+NPI(2).Q      = exp(-16);
+NPI(2).dates  = {'01-02-2021','01-10-2021',};
+
+NPI(3).period = period;
+NPI(3).param  = {'rol','qua'};
+NPI(3).Q      = [exp(-16) 1/32];
+NPI(3).dates  = {'01-02-2021','01-10-2021',};
+
+% unpack model and posterior expectations
+%--------------------------------------------------------------------------
+M   = DCM.M;                                 % model (priors)
+Ep  = DCM.Ep;                                % posterior expectation
+Cp  = DCM.Cp;                                % posterior covariances
+S   = DCM.Y;                                 % smooth timeseries
+U   = DCM.U;                                 % indices of outputs
+
+% plot epidemiological trajectories and hold plots
+%==========================================================================
+spm_figure('GetWin','states'); clf;
+%--------------------------------------------------------------------------
+M.T    = datenum(period{2},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
+u      = 1;
+[Z,X]  = spm_SARS_gen(Ep,M,u);
+spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+
+
+% the effect of intervention (NPI) on latent states
+%==========================================================================
+for i = 1:numel(NPI)
+    
+    for j = 1:2, subplot(3,2,j), hold on, end
+    for j = 5:12,subplot(6,2,j), hold on, end
+    
+    [Z,X]  = spm_SARS_gen(Ep,M,u,NPI(i));
+    spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+    
+end
+
+spm_figure('GetWin','outcomes'); clf;subplot(2,1,1), hold on
+%--------------------------------------------------------------------------
+spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M);
+for i = 1:numel(NPI)
+    spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI(i));
+end
+
+return
+
+
+%% scenario modelling for an early relaxation of lockdown on March 8 2021
+%==========================================================================
+clear
+DCM = load('DCM_UK.mat','DCM');
+DCM = DCM.DCM;
+
+% parametric intervention (relaxation social distancing threshold)
+%==========================================================================
+period = {DCM.M.date,'01-08-2021'};         % duration of epidemic
+
+% scenario one: relaxation of (third) lockdown on March 8, 2021
+%--------------------------------------------------------------------------
+NPI(1).period = period;
+NPI(1).param  = {'qua'};
+NPI(1).Q      = 8;
+NPI(1).dates  = {'08-03-2021','01-08-2021',};
+
+
+% scenario two: maintenance of (second November 5) lockdown on December 2
+% 2020 until January 4,2021
+%--------------------------------------------------------------------------
+% NPI(1).period = period;
+% NPI(1).param  = {'sde'};
+% NPI(1).Q      = exp(DCM.Ep.sde + 1/2);
+% NPI(1).dates  = {'02-12-2020','04-01-2021',};
+
+% scenario three: early second lockdown on September 21, 2020
+%--------------------------------------------------------------------------
+% NPI(1).period = period;
+% NPI(1).param  = {'sde'};
+% NPI(1).Q      = exp(DCM.Ep.sde + 1);
+% NPI(1).dates  = {'21-10-2020','05-11-2020',};
+
+% unpack model and posterior expectations
+%--------------------------------------------------------------------------
+M   = DCM.M;                                 % model (priors)
+Ep  = DCM.Ep;                                % posterior expectation
+Cp  = DCM.Cp;                                % posterior covariances
+S   = DCM.Y;                                 % smooth timeseries
+U   = DCM.U;                                 % indices of outputs
+
+% plot epidemiological trajectories and hold plots
+%==========================================================================
+spm_figure('GetWin','states'); clf;
+%--------------------------------------------------------------------------
+M.T    = datenum(period{2},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
+u      = 1;
+[Z,X]  = spm_SARS_gen(Ep,M,u);
+spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+
+Deaths(1) = sum(Z);
+
+% the effect of intervention (NPI) on latent states
+%--------------------------------------------------------------------------
+for j = 1:2, subplot(3,2,j), hold on, end
+for j = 5:12,subplot(6,2,j), hold on, end
+[Z,X] = spm_SARS_gen(Ep,M,u,NPI);
+spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+Deaths(2) = sum(Z)
+diff(Deaths)
+ 
+spm_figure('GetWin','outcomes'); clf;
+%--------------------------------------------------------------------------
+subplot(2,1,1), hold on, u = 1;
+spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M);
+spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI);
+subplot(2,1,2), hold on, u = 14;
+spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M);
+spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI);
 
 return
 

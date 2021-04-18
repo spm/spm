@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8088 2021-04-04 12:11:35Z karl $
+% $Id: spm_SARS_gen.m 8092 2021-04-18 09:44:10Z karl $
 
 
 % The generative model:
@@ -291,10 +291,18 @@ for i = 1:M.T
             dfinal = datenum(NPI(j).dates{2},'dd-mm-yyyy') - datenum(NPI(j).period{1},'dd-mm-yyyy');
             if (i > dstart) && (i <= dfinal)
                 if ischar(NPI(j).param)
-                    Q{n}.(NPI(j).param) = NPI(j).Q{n};
+                    if isnumeric(NPI(j).Q)
+                        Q{n}.(NPI(j).param) = NPI(j).Q;
+                    else
+                        Q{n}.(NPI(j).param) = NPI(j).Q{n};
+                    end
                 else
                     for k = 1:numel(NPI(j).param)
-                        Q{n}.(NPI(j).param{k}) = NPI(j).Q{n}(k);
+                        if isnumeric(NPI(j).Q)
+                            Q{n}.(NPI(j).param{k})(1) = NPI(j).Q(k);
+                        else
+                            Q{n}.(NPI(j).param{k})(1) = NPI(j).Q{n}(k);
+                        end
                     end
                 end
             else

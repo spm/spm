@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8091 2021-04-11 19:31:28Z karl $
+% $Id: spm_SARS_priors.m 8092 2021-04-18 09:44:10Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -68,7 +68,7 @@ if nargin
     
     % free parameters for mixture model (age groups)
     %----------------------------------------------------------------------
-    free  = {'N','Nin','Nou','hos','ccu','res','sev','lat','fat','sur','tes','tts','rol'};
+    free  = {'N','Nin','Nou','qua','hos','ccu','res','sev','lat','fat','sur','tes','tts','rol'};
     for i = 1:numel(free)
         P.(free{i}) = kron(ones(nN,1),P.(free{i}));
         C.(free{i}) = kron(ones(nN,1),C.(free{i}));
@@ -78,8 +78,8 @@ if nargin
     %----------------------------------------------------------------------
     P.N   = P.N - log(nN);
     P.n   = P.n - 8;
-    P.rol = log([0.02  (365 + 128) 8;
-                 0.03  (365 + 64 ) 8;
+    P.rol = log([0.01  (365 + 128) 32;
+                 0.02  (365 + 64 ) 16;
                  0.04  (365 + 0  ) 8]);
     C.rol = [1/256 1/1024 1/256;
              1/256 1/1024 1/256;
@@ -91,8 +91,8 @@ if nargin
     
     % contact matrices: number of contacts per day
     %----------------------------------------------------------------------
-    P.Nin = log([4     1     1;
-                 1     3     1;
+    P.Nin = log([2     1     1;
+                 1     2     1;
                  1     1     2]/2);
     
     P.Nou = log([32    4     4;
@@ -251,7 +251,7 @@ P.qua = 64;                   % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 0.8;                  % (10) admission rate (hospital)
 P.ccu = 0.2;                  % (11) admission rate (CCU)
-P.s   = 4;                    % (12) time constant of contact rates
+P.s   = 2;                    % (12) time constant of contact rates
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
