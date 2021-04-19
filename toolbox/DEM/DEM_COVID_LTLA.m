@@ -43,20 +43,30 @@ PA(:,3)  = sum(Page(:,65:end),2);
 
 % get new cases by (lower tier) local authority
 %--------------------------------------------------------------------------
-AreaCode = table2cell(U(:,3));
-AreaType = table2cell(U(:,2));
-AreaDate = table2cell(U(:,1));
-AreaName = table2cell(U(:,4));
+vnames   = U.Properties.VariableNames;
+j        = find(ismember(vnames,'areaCode'));
+AreaCode = table2cell(U(:,j));
+j        = find(ismember(vnames,'areaType'));
+AreaType = table2cell(U(:,j));
+j        = find(ismember(vnames,'date'));
+AreaDate = table2cell(U(:,j));
+j        = find(ismember(vnames,'areaName'));
+AreaName = table2cell(U(:,j));
 
-j        = find(ismember(AreaType,'ltla') & ~ismember(AreaCode,'null') );
-AreaCode = AreaCode(j);
-AreaDate = AreaDate(j);
-AreaName = AreaName(j);
-newDeath = table2array(U(j,5));
-OnsDeath = table2array(U(j,6));
-Positive = table2array(U(j,7));
-Tested   = table2array(U(j,8));
-newCases = table2array(U(j,9));
+i        = find(ismember(AreaType,'ltla') & ~ismember(AreaCode,'null') );
+AreaCode = AreaCode(i);
+AreaDate = AreaDate(i);
+AreaName = AreaName(i);
+j        = find(ismember(vnames,'newDeaths28DaysByDeathDate'));
+newDeath = table2array(U(i,j));
+j        = find(ismember(vnames,'newOnsDeathsByRegistrationDate'));
+OnsDeath = table2array(U(i,j));
+j        = find(ismember(vnames,'uniqueCasePositivityBySpecimenDateRollingSum'));
+Positive = table2array(U(i,j));
+j        = find(ismember(vnames,'uniquePeopleTestedBySpecimenDateRollingSum'));
+Tested   = table2array(U(i,j));
+j        = find(ismember(vnames,'newCasesBySpecimenDate'));
+newCases = table2array(U(i,j));
 
 if iscell(newCases(1)), newCases = str2double(newCases); end
 
@@ -154,10 +164,11 @@ pE    = PCM.Ep;
 %--------------------------------------------------------------------------
 pC    = spm_zeros(PCM.M.pC);
 for i = 1:numel(free)
-    pC.(free{i}) = PCM.M.pC.(free{i})*8;
+    pE.(free{i}) = PCM.M.pE.(free{i});
+    pC.(free{i}) = PCM.M.pC.(free{i});
 end
 
-%%% try, D   = D(1:8); end %%%%
+%%%% try, D   = D(1:8); end %%%%
 
 % fit each regional dataset
 %==========================================================================

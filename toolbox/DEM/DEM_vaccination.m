@@ -348,8 +348,7 @@ period = {DCM.M.date,'01-08-2021'};         % duration of epidemic
 NPI(1).period = period;
 NPI(1).param  = {'qua'};
 NPI(1).Q      = 8;
-NPI(1).dates  = {'08-03-2021','01-08-2021',};
-
+NPI(1).dates  = {'08-03-2021','01-08-2021'};
 
 % scenario two: maintenance of (second November 5) lockdown on December 2
 % 2020 until January 4,2021
@@ -357,14 +356,14 @@ NPI(1).dates  = {'08-03-2021','01-08-2021',};
 % NPI(1).period = period;
 % NPI(1).param  = {'sde'};
 % NPI(1).Q      = exp(DCM.Ep.sde + 1/2);
-% NPI(1).dates  = {'02-12-2020','04-01-2021',};
+% NPI(1).dates  = {'02-12-2020','04-01-2021'};
 
-% scenario three: early second lockdown on September 21, 2020
+% scenario three: early second lockdown on October 21, 2020
 %--------------------------------------------------------------------------
 % NPI(1).period = period;
 % NPI(1).param  = {'sde'};
 % NPI(1).Q      = exp(DCM.Ep.sde + 1);
-% NPI(1).dates  = {'21-10-2020','05-11-2020',};
+% NPI(1).dates  = {'21-10-2020','05-11-2020'};
 
 % unpack model and posterior expectations
 %--------------------------------------------------------------------------
@@ -383,25 +382,31 @@ u      = 1;
 [Z,X]  = spm_SARS_gen(Ep,M,u);
 spm_SARS_plot(Z,X,S(:,find(U == u)),u)
 
-Deaths(1) = sum(Z);
-
 % the effect of intervention (NPI) on latent states
 %--------------------------------------------------------------------------
 for j = 1:2, subplot(3,2,j), hold on, end
 for j = 5:12,subplot(6,2,j), hold on, end
 [Z,X] = spm_SARS_gen(Ep,M,u,NPI);
 spm_SARS_plot(Z,X,S(:,find(U == u)),u)
-Deaths(2) = sum(Z)
-diff(Deaths)
- 
+
 spm_figure('GetWin','outcomes'); clf;
 %--------------------------------------------------------------------------
 subplot(2,1,1), hold on, u = 1;
-spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M);
-spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI);
+[m1,c1] = spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M);
+[m2,c2] = spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI);
 subplot(2,1,2), hold on, u = 14;
 spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M);
 spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI);
+
+m1  = m1(end);
+m2  = m2(end);
+c1  = c1(end);
+c2  = c2(end);
+d   = m1 - m2;
+
+sprintf('1st %.0f (%.0f to %.0f)',m1,m1 - 1.64*sqrt(c1),m1 + 1.64*sqrt(c1))
+sprintf('2nd %.0f (%.0f to %.0f)',m2,m2 - 1.64*sqrt(c2),m2 + 1.64*sqrt(c2))
+sprintf('Dif %.0f (%.0f to %.0f)',d, d  - 1.64*sqrt(c1),d  + 1.64*sqrt(c1))
 
 return
 

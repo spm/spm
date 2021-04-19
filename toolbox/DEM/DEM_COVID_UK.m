@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8092 2021-04-18 09:44:10Z karl $
+% $Id: DEM_COVID_UK.m 8094 2021-04-19 20:16:57Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -31,24 +31,23 @@ function DCM = DEM_COVID_UK
 % mem = 256:  F = -1.0257e+04 
 % mem = 2048: F = -1.0247e+04 
 
-%% web options
-%--------------------------------------------------------------------------
-options = weboptions('ContentType','table');
-options.Timeout = 20;
-
 % set up and get data
 %==========================================================================
 spm_figure('GetWin','SI'); clf;
 cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
 
 % Files to be updated by hand
-% https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending12february2021
 %--------------------------------------------------------------------------
+% url = 'https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/datasets/coronaviruscovid19antibodydatafortheuk/2021/20210414covid19infectionsurveydatasets.xlsx'
+% tab = webread(url);
 % url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/bulletins/deathsregisteredweeklyinenglandandwalesprovisional/weekending19february2021/8714ef2a&format=csv';
 % writetable(webread(url,options),'place.csv');
-% url = 'https://www.ons.gov.uk/generator?uri=/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/articles/coronaviruscovid19infectionsinthecommunityinengland/december2020/b5e03a02&format=csv';
-% writetable(webread(url,options),'serology.csv');
 
+
+%% web options
+%--------------------------------------------------------------------------
+options = weboptions('ContentType','table');
+options.Timeout = 20;
 
 try
     
