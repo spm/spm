@@ -1,6 +1,6 @@
-function [p0,X,F,f,NESS] = spm_ness_GN(M)
+function [NESS] = spm_ness_GN(M,x)
 % nonequilibrium steady-state under a Helmholtz decomposition
-% FORMAT [p0,X,F,f,NESS] = spm_ness_GN(M)
+% FORMAT [NESS] = spm_ness_GN(M,x)
 %--------------------------------------------------------------------------
 % M   - model specification structure
 % Required fields:
@@ -29,95 +29,54 @@ function [p0,X,F,f,NESS] = spm_ness_GN(M)
 % Karl Friston
 % $Id: spm_ness_hd.m 8000 2020-11-03 19:04:17QDb karl $
 
-% scale space search
+
+
+% get domain of phase-space and polynomial basis set
 %==========================================================================
-for s = 1:1
-    
-    % affine scaling of sample points
-    %----------------------------------------------------------------------
-    x   = mean(M.X);
-    M.X = bsxfun(@minus,M.X,x)/s;
-    M.X = bsxfun(@plus,M.X,x);
-    
-    % get domain of phase-space and polynomial basis set
-    %======================================================================
-    U      = spm_ness_U(M);       % basis set for this domain
-    [~,~,~,o] = spm_polymtx(U.x,U.K);
-    [nX,n] = size(U.X);
-    
+U      = spm_ness_U(M,x);      % get state space and flow
+f      = U.f';                 % target flow
+[nX,n] = size(U.X);            % number of sample points and states 
 
-    if s == 1
-        
-        % initialise priors using iterated maximum likelihood solution
-        %------------------------------------------------------------------
-        [~,X,~,f,NESS] = spm_ness_hd(M);
-        
-        pE.Sp = NESS.bS;
-        pE.Qp = NESS.bQ;
-        pC.Sp = spm_zeros(pE.Sp) + exp(8);
-        pC.Qp = spm_zeros(pE.Qp) + exp(8);
-        pC    = diag(spm_vec(pC));
-        
-    end
-    
-    % constraints on solenoidal coefficients
-    %----------------------------------------------------------------------
-    r    = o < 3;
-    for i = 1:n
-        for j = (i + 1):n
-            r = [r (o < 2)];
-        end
-    end
-    R    = diag(~r);
-    pC   = R*pC*R;
-
-    % rotate priors to orthonormal coefficients
-    %----------------------------------------------------------------------
-    nu    = (n^2 - n)/2 + 1;
-    u     = kron(eye(nu,nu),inv(U.v));
-    pE    = spm_unvec(u*spm_vec(pE),pE);
-    pC    = u*pC*u';
-
-
-    % model specification
-    %======================================================================
-    S.Nmax = 32;                    % maximum number of iterations
-    S.G    = @spm_NESS_gen;        % generative function
-    S.FS   = @(y)y(:);             % generative function
-    S.pE   = pE;                   % prior expectations (parameters)
-    S.pC   = pC;                   % prior covariances  (parameters)
-    S.hE   = 4;                    % prior expectation  (log-precision)
-    S.hC   = 0;                    % prior covariances  (log-precision)
-    
-    % model inversion with Variational Laplace (Gauss Newton)
-    %======================================================================
-    [Ep,Cp] = spm_nlsi_GN(S,U,U.f');
-    
-    % emprical priors (Bayesian belief updating)
-    %----------------------------------------------------------------------
-    v   = kron(eye(nu,nu),U.v);
-    pE  = spm_unvec(v*spm_vec(Ep),Ep);
-    pC  = v*Cp*v';
-
-end
-
-
-% Bayesian model reduction
+% initialise priors using iterated maximum likelihood solution
 %--------------------------------------------------------------------------
-% DCM.M.pE  = v*spm_vec(S.pE);
-% DCM.M.pC  = v*S.pC*v;
-% DCM.Ep    = v*spm_vec(Ep);
-% DCM.Cp    = v*Cp*v;
-% 
-% RCM = spm_dcm_bmr_all(DCM,'All','BMS')
+NESS   = spm_ness_hd(M,x);     % estimate and fixed G
+pE.Sp  = U.v\NESS.Ep.Sp;
+pE.Qp  = U.u\NESS.Ep.Qp;
 
-% recompute Hessian D*D*S
+% get constraints (allowing G to be free parameters)
+%--------------------------------------------------------------------------
+[ks,kq,kg] = spm_NESS_constraints(U.o,any(U.J,3),M.K,M.L);
+k      = [ks (kq | kg)];
+i      = find(~k);
+np     = numel(k);
+pC     = sparse(i,i,16,np,np);
+
+% model specification
+%==========================================================================
+S.Nmax = 32;                   % maximum number of iterations
+S.G    = @spm_NESS_gen;        % generative function
+S.FS   = @(y)y(:);             % generative function
+S.pE   = pE;                   % prior expectations (parameters)
+S.pC   = pC;                   % prior covariances  (parameters)
+S.hE   = 8;                    % prior expectation  (log-precision)
+S.hC   = 1/512;                % prior covariances  (log-precision)
+
+% model inversion with Variational Laplace (Gauss Newton)
+%==========================================================================
+Ep    = spm_nlsi_GN(S,U,f);
+
+% NESS density and expected flow
+%--------------------------------------------------------------------------
+p0    = spm_softmax(U.b*Ep.Sp);
+F     = spm_NESS_gen(Ep,M,U);           
+
+% Hessian D*D*S
 %--------------------------------------------------------------------------
 H     = zeros(n,n,nX);
 HH    = cell(n,n);
 for i = 1:n
     for j = 1:n
-        HH{i,j} = U.D{i}*U.b'*U.D{j}*Ep.Sp;
+        HH{i,j} = U.H{i,j}*Ep.Sp;
     end
 end
 for i = 1:n
@@ -128,23 +87,23 @@ for i = 1:n
     end
 end
 
+% emprical priors (Bayesian belief updating)
+%--------------------------------------------------------------------------
+pE.Sp  = U.v*pE.Sp;
+pE.Qp  = U.u*pE.Qp;
+Ep.Sp  = U.v*Ep.Sp;
+Ep.Qp  = U.u*Ep.Qp;
+
 % update NESS structure
 %--------------------------------------------------------------------------
-p0      = spm_softmax(U.b*Ep.Sp);         % NESS density
-NESS.H  = spm_dot(H   ,p0);               % expected Hessian
-NESS.H2 = spm_dot(H.^2,p0);               % expected Euclidean norm of Hessian
-NESS.Ep = pE;                             % posterior expectations
-NESS.Cp = pC;                             % posterior covariances
-NESS.bS = pE.Sp;                          % p0 = spm_softmax(spm_polymtx(x,nb)*bS);
-NESS.bQ = pE.Qp;                          % parameters of solenoidal operator
+NESS.H  = spm_dot(H   ,p0);           % expected Hessian
+NESS.H2 = spm_dot(H.^2,p0);           % expected Euclidean norm of Hessian
+NESS.pE = pE;                         % posterior expectations
+NESS.Ep = Ep;                         % posterior expectations
 
-
-% reshape nonequilibrium steady-state density
-%--------------------------------------------------------------------------
-p0  = reshape(p0,U.nx);
-
-% predicted flow: F   = Q*Dx*S - L
-%--------------------------------------------------------------------------
-F   = spm_NESS_gen(Ep,M,U);
+NESS.p0 = reshape(p0,U.nx);           % nonequilibrium steady-state
+NESS.X  = U.X;                        % evaluation points of state space
+NESS.F  = F;                          % expected flow
+NESS.f  = f;                        up  % original flow
 
 return

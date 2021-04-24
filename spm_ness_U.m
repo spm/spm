@@ -19,7 +19,6 @@ function U = spm_ness_U(M,x)
 % U.D     - derivative operator
 % U.G     - amplitude of random fluctuations
 % U.v     - orthonormal operator
-% U.bG    - projection of flow operator (symmetric part: G)
 % U.dQdp  - gradients of flow operator Q  w.r.t. flow parameters
 % U.dbQdp - gradients of bQ w.r.t. flow parameters
 % U.dLdp  - gradients of L w.r.t. flow parameters
@@ -88,7 +87,6 @@ end
 
 % sparse diagonal operator
 %--------------------------------------------------------------------------
-nX      = size(X,1);
 if nX > 1
     spd = @(x)sparse(1:numel(x),1:numel(x),x(:),numel(x),numel(x));
 else
@@ -124,6 +122,7 @@ for i = 1:nX
         J(:,:,i) = full(spm_diff(M.f,s,0,M.pE,M,1));
     end
     f(:,i)   = full(F);
+    
 end
 
 
@@ -153,15 +152,6 @@ else
 end
 nb    = size(b,2);
 nB    = nu*nb;
-
-% coefficients (bQ) of flow operator Q (symmetric part)
-%--------------------------------------------------------------------------
-bG    = zeros(n,n,nb,'like',b);
-for i = 1:n
-    for j = 1:n
-        bG(i,j,1) = G(i,j)/b(1);
-    end
-end
 
 % derivatives of flow operator Q
 %--------------------------------------------------------------------------
@@ -232,7 +222,6 @@ U.H     = H;                     % Hessian operator
 U.G     = G;                     % amplitude of random fluctuations
 U.v     = v;                     % orthonormal operator
 U.u     = u;                     % orthonormal operator (Kroneckor form)
-U.bG    = bG;                    % projection of flow operator
 U.dQdp  = dQdp;                  % gradients of Q  w.r.t. flow parameters
 U.dbQdp = dbQdp;                 % gradients of bQ w.r.t. flow parameters
 U.dLdp  = dLdp;                  % gradients of L  w.r.t. flow parameters

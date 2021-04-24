@@ -121,11 +121,12 @@ L     = zeros(nX,n,'like',U.b(1));
 F     = zeros(nX,n,'like',U.b(1));
 for i = 1:n
     for j = 1:n
-        bQij   = squeeze(bQ(i,j,:) + U.bG(i,j,:));
+        bQij   = squeeze(bQ(i,j,:));
+        Q{i,j} = spd(U.b*bQij + U.G(i,j));
         L(:,i) = L(:,i) - U.D{j}*bQij;
-        Q{i,j} = spd(U.b*bQij);
     end
 end
+
 
 % predicted flow: F   = Q*D*S - L
 %--------------------------------------------------------------------------
@@ -162,7 +163,6 @@ for i = 1:n
         end
     end
 end
-
 
 return
 

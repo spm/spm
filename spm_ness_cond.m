@@ -1,6 +1,6 @@
 function [m,C] = spm_ness_cond(n,K,Sp,ni,x)
 % Conditional moments of a Gaussian density (polynomial parameterisation)
-% FORMAT [p0,X,F,f,NESS] = spm_ness_hd(M,x)
+% FORMAT [m,C] = spm_ness_cond(n,K,Sp,ni,x)
 %--------------------------------------------------------------------------
 % n  - Dimensionality of state space
 % K  - Order of polynomial expansion (K = 3 corresponds to quadratic)
@@ -15,7 +15,7 @@ function [m,C] = spm_ness_cond(n,K,Sp,ni,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_cond.m 8080 2021-03-14 13:32:56Z karl $
+% $Id: spm_ness_cond.m 8097 2021-04-24 20:28:27Z karl $
 
 
 % order of expansion (o)
@@ -53,7 +53,9 @@ m   = C*E;                             % mean
 % Conditional moments, if requested
 %--------------------------------------------------------------------------
 if nargin < 4, return,   end
+ni     = ni(:);
 if nargin < 5, x = ni*0; end
+x      = x(:);
 
 mi     = 1:n;
 mi(ni) = [];

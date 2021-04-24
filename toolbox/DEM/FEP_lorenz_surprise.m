@@ -21,7 +21,7 @@ function FEP_lorenz_surprise
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_lorenz_surprise.m 8093 2021-04-18 09:44:48Z karl $
+% $Id: FEP_lorenz_surprise.m 8097 2021-04-24 20:28:27Z karl $
 
 
 %% dynamics and parameters of a Lorentz system (with Jacobian)
@@ -140,20 +140,14 @@ spm_ness_flows(Ep,x,M)
 
 
 
-% Laplace approximation under dissipation constraints
+%% Laplace approximation under dissipation constraints
 %==========================================================================
-M.CON = 1;                               % flow constraints
-M.DIS = 0;                               % dissipation constraints
-M.HES = 0;                               % Hessian diagonal constraints
 M.W   = diag([1/8 1/16 1/32]);           % precision of random fluctuations
 M.K   = 3;
 M.L   = 3;
 
-M.W   = diag([1/8 1/16 1/32]);           % precision of random fluctuations
-M.K   = 4;
-M.L   = 3;
 
-%% state-space for (Laplace) solution 
+% state-space for (Laplace) solution 
 %--------------------------------------------------------------------------
 N    = 4;                                % number of bins
 d    = 8;                                % distance
@@ -175,13 +169,15 @@ x{3} = linspace(m(3) - d,m(3) + d,N);
 
 % Fokker-Planck operator and equilibrium density
 %==========================================================================
-NESS  = spm_ness_hd(M,x);                         % NESS density
-n     = numel(x);                                 % dimensionality
+% NESS = spm_ness_GN(M,x);                          % NESS density
+%--------------------------------------------------------------------------
+NESS = spm_ness_hd(M,x);                            % NESS density
+n    = numel(x);                                    % dimensionality
 
 % quiver plot of flow decomposition 
 %--------------------------------------------------------------------------
-N    = 4;                                         % number of bins
-d    = 32;                                        % distance
+N    = 4;                                           % number of bins
+d    = 32;                                          % distance
 m    = [0 0 28];
 x{1} = linspace(m(1) - d,m(1) + d,N);
 x{2} = linspace(m(2) - d,m(2) + d,N);
@@ -196,7 +192,7 @@ spm_ness_flows(NESS.Ep,x,M)
 T     = 2048;
 t     = zeros(n,T);
 u     = zeros(n,T);
-dt    = 1/16;
+dt    = 1/4;
 s     = x0;
 r     = x0;
 Ep    = NESS.Ep;
@@ -210,7 +206,7 @@ for i = 1:T
     
     M.X      = r';                                  % stochastic solution
     [dr,j,q] = spm_NESS_gen(Ep,M);                  % flow
-%    w        = sqrtm(abs(diag(diag(spm_cat(q)))));  % covariance of w
+    w        = sqrtm(abs(diag(diag(spm_cat(q)))));  % covariance of w
     r        = r + dr'*dt + w*randn(n,1)*dt;        % update
     u(:,i)   = r;                                   % next state
 end
@@ -282,10 +278,10 @@ for i = 1:n
     plot(NESS.f(:,i),NESS.F(:,i),'.','MarkerSize',1), hold on
 end, hold off
 title('Flows','Fontsize',16)
-xlabel('approximate flow'), ylabel('true flow')
+xlabel('true flow'),ylabel('approximate flow')
 axis square xy, box off
 
-return
+% return
 
 
 %% illustrate conditional dependencies
@@ -361,7 +357,7 @@ for i = 1:T
     % get marginals over external and internal states
     %----------------------------------------------------------------------
     s       = x;
-    s{b}    = t(b,i);
+    s{b}    = u(b,i);
     s{m}    = 0;
     pH(:,i) = spm_softmax(4*spm_polymtx(s,M.K)*NESS.Ep.Sp);
    
@@ -373,8 +369,8 @@ end
 
 subplot(6,1,6), hold off
 imagesc(1:T,x{h},1 - pH), hold on
-plot(t(h,:),'r'), plot(eH,'w'), axis xy
-title('Conditional density and expectations','Fontsize',14)
+plot(u(h,:),'r'), plot(eH,'w'), axis xy
+title('Conditional density of 1st state given the 2nd','Fontsize',14)
 xlabel('time'), ylabel('1st state')
 drawnow
 
@@ -454,6 +450,7 @@ CD    = j + sum(LE(1:j))/abs(LE(j + 1))
 
 clear
 
+% return
 
 %% coupled oscillators
 %--------------------------------------------------------------------------
@@ -514,11 +511,7 @@ M.g  = @(x,v,P,M) x;
 M.x  = x0;
 M.m  = 0;
 M.pE = P;
-
-M.CON = 1;                                    % flow constraints
-M.DIS = 1;                                    % dissipation constraints
-M.HES = 0;                                    % Hessian diagonal constraints
-M.W   = diag([1/8 1/16 1/32 1/8 1/16 1/32]);
+M.W  = diag([1/8 1/16 1/32 1/8 1/16 1/32]);
 
 % solution of stochastic and underlying ordinary differential equation
 % -------------------------------------------------------------------------
@@ -564,7 +557,7 @@ n    = numel(x);                              % dimensionality
 T     = 1024;
 t     = zeros(n,T);
 u     = zeros(n,T);
-dt    = 1/4;
+dt    = 1/8;
 s     = x0;
 r     = x0;
 Ep    = NESS.Ep;
@@ -679,6 +672,7 @@ title('log |Hessian|','Fontsize',12)
 
 % get conditional marginals over external and internal states
 %--------------------------------------------------------------------------
+t     = u;                                     % use stochastic realisation
 b     = 1;                                     % blanket state
 E     = zeros(n - 1,T);
 V     = zeros(n - 1,T);
@@ -736,16 +730,17 @@ end
 % display conditional moments, symbolic and Latex
 %--------------------------------------------------------------------------
 sympref('FloatingPointOutput',0);
-[m,C]  = spm_ness_cond(n,3,Ep.Sp,b,bs)
-
-disp('/nmu = ')
+[m,C]  = spm_ness_cond(n,3,Ep.Sp,b,x(b));
+m      = simplify(m)
+disp('E[mu|s] = ')
 disp(latex(m(4))),      disp(' ')
-disp('E[q] = ')
+disp('E[h|s] = ')
 disp(latex(m(1))),      disp(' ')
 disp('Cov[q] = ')
 disp(latex(C(1,1))),    disp(' ')
-disp('E[h] = E[m] x ')
+disp('E[h|s] = E[m|s] x ')
 disp(latex(m(1)/m(4))), disp(' ')
+
 
 
 %% functional form of polynomial flow: symbolic and Latex
@@ -769,9 +764,103 @@ O     = M;
 O.X   = x;
 O.W   = diag(kron(ones(n,1),w));
 
+
+% generative model
+%--------------------------------------------------------------------------
+[m,C]  = spm_ness_cond(n,3,Ep.Sp);
+m      = simplify(m)
+C      = simplify(inv(C))
+disp('generative model (mean) = ')
+disp(latex(m)),    disp(' ')
+disp('generative model (precision)')
+disp(latex(C)),    disp(' ')
+
+% marginal over particular states (free energy)
+%--------------------------------------------------------------------------
+[m,C]  = spm_ness_cond(n,3,Ep.Sp);
+p      = [1,4,5,6];                         % particular states
+m      = simplify(m(p))
+C      = simplify(inv(C(p,p)))
+disp('free energy (mean)')
+disp(latex(m)),     disp(' ')
+disp('free energy (precision)')
+disp(latex(C)),   disp(' ')
+
+% likelihood
+%--------------------------------------------------------------------------
+p      = [2 3];                             % hidden states
+[m,C]  = spm_ness_cond(n,3,Ep.Sp,p,x(p));
+m      = simplify(m)
+C      = simplify(inv(C))
+disp('likelihood (mean) = ')
+disp(latex(m)),    disp(' ')
+disp('likelihood (precision)')
+disp(latex(C)),    disp(' ')
+
+% Prior
+%--------------------------------------------------------------------------
+p      = [2 3];                             % hidden states
+[m,C]  = spm_ness_cond(n,3,Ep.Sp);
+m      = simplify(m(p))
+C      = simplify(inv(C(p,p)))
+disp('Prior (mean) = ')
+disp(latex(m)),    disp(' ')
+disp('Prior (precision)')
+disp(latex(C)),    disp(' ')
+
+% posterior
+%--------------------------------------------------------------------------
+p      = [1,4,5,6];                         % particular states
+[m,C]  = spm_ness_cond(n,3,Ep.Sp,p,x(p));
+m      = simplify(m)
+C      = simplify(inv(C))
+disp('posterior (mean) = ')
+disp(latex(m)),    disp(' ')
+disp('posterior (precision)')
+disp(latex(C)),    disp(' ')
+
+% conditional expectations
+%--------------------------------------------------------------------------
+p      = 1;
+[m,C]  = spm_ness_cond(n,3,Ep.Sp,p,x(p));
+m      = simplify(m(1:2))
+disp('E[h|s] = ')
+disp(latex(m)),    disp(' ')
+
+p      = [2 3];
+[m,C]  = spm_ness_cond(n,3,Ep.Sp,p,x(p));
+m      = simplify(m)
+disp('E[pi|h] = ')
+disp(latex(m)),    disp(' ')
+
+p      = 1;
+[m,C]  = spm_ness_cond(n,3,Ep.Sp,p,x(p));
+m      = simplify(m(3))
+disp('E[a|s] = ')
+disp(latex(m)),    disp(' ')
+
+p      = 1;
+[m,C]  = spm_ness_cond(n,3,Ep.Sp,p,x(p));
+m      = simplify(m(4))
+disp('E[mu|s] = ')
+disp(latex(m)),    disp(' ')
+
+p      = [1 5];
+[m,C]  = spm_ness_cond(n,3,Ep.Sp,p,x(p));
+m      = simplify(m(3))
+disp('E[s|a,mu] = ')
+disp(latex(m)),    disp(' ')
+
+p      = [1 4];
+[m,C]  = spm_ness_cond(n,3,Ep.Sp,p,x(p));
+m      = simplify(m(3))
+disp('E[mu|a,s] = ')
+disp(latex(m)),    disp(' ')
+
+
 % evaluate flow, flow operators and Hessians for display
 %--------------------------------------------------------------------------
-[F,S,Q,L,H] = spm_NESS_gen(Ep,O);
+[F,S,Q,L,H,D] = spm_NESS_gen(Ep,O);
 %--------------------------------------------------------------------------
 % for i = 1:n
 %     for j = i:n
@@ -787,6 +876,22 @@ disp('L = ')
 disp(latex(L')), disp(' ')
 disp('H = ')
 disp(latex(H)), disp(' ')
+
+i     = 4;                              % internal state
+q     = 0;
+for j = 1:n
+    if j ~= i
+    q = q + Q{i,j}*D{j};
+    end
+end
+disp('flow of internal state')
+disp(latex(F(i))),          disp(' ')
+disp('flow of internal state (solenoidal)')
+disp(latex(q)),             disp(' ')
+disp('flow of internal state (gradient)')
+disp(latex(Q(i,i)*D{i})),   disp(' ')
+disp('flow of internal state (housekeeping)')
+disp(latex(L(i))),          disp(' ')
 
 return
 

@@ -27,7 +27,7 @@ function NESS = spm_ness_hd(M,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8093 2021-04-18 09:44:48Z karl $
+% $Id: spm_ness_hd.m 8097 2021-04-24 20:28:27Z karl $
 
 
 % event space: get or create X - coordinates of evaluation grid
@@ -72,12 +72,12 @@ end
 % subject to Q = Q + dQ: dQ = -qQ'
 %--------------------------------------------------------------------------
 b     = U.b;                     % orthonormal polynomial basis (S)
-o     = U.o;                     % order of expansion
+o     = U.o;                     % orders of expansion
 D     = U.D;                     % derivative operator
+G     = U.G;                     % dissipation (G)
 dQdp  = U.dQdp;                  % gradients of Q  w.r.t. flow parameters
 dbQdp = U.dbQdp;                 % gradients of bQ w.r.t. flow parameters
 dLdp  = U.dLdp;                  % gradients of L  w.r.t. flow parameters
-bG    = U.bG;                    % symmetric part of flow operator
 
 % precision of parameters
 %--------------------------------------------------------------------------
@@ -93,81 +93,23 @@ nE    = exp(16);                 % initial error norm
 %--------------------------------------------------------------------------
 if ~isfield(M,'K'),    M.K   = 3; end
 if ~isfield(M,'L'),    M.L   = 3; end
-if ~isfield(M,'CON'),  M.CON = 0; end
-if ~isfield(M,'DIS'),  M.DIS = 0; end
+if ~isfield(M,'DIS'),  M.DIS = 1; end
 if ~isfield(M,'HES'),  M.HES = 0; end
 
-% constraints on potential parameters due to dissipative flow
+% get indices of constraintsfor this polynomial expansion
 %--------------------------------------------------------------------------
-k     = sum(o) > M.K;                        % polynomial order constraints
-k     = k | ~sum(o);                         % suppress constant
-A     = any(J,3);                            % flow adjacency
-for i = 1:n
-    for j = 1:n
-        if ~A(i,j)
-            k = k | (o(i,:) & o(j,:));
-        end
-    end
-end
+[ks,kq,kg,kh] = spm_NESS_constraints(o,any(J,3),M.K,M.L);
+
 if M.HES
-    k = k | any(o == 2);                     % diagonal terms of Hessian
+    jb = find(~(ks | kh));
+else
+    jb = find(~ks);
 end
-jb    = find(~k);
-
-% constraints on the order of the polynomial expansion
-%--------------------------------------------------------------------------
-k     = cell(n,n);
-for i = 1:n
-    for j = 1:n
-        k{i,j} = sum(o) > M.L;
-    end
-end
-
-if M.CON
-    
-    % constraints due to diagonal elements of Hessian
-    %----------------------------------------------------------------------
-    for i = 1:n
-        for j = 1:n
-            if ~A(i,j)
-                k{i,j} = ones(1,nb);
-                k{j,i} = ones(1,nb);
-            end
-        end
-    end
-    
-    % constraints due to non-negative gradients
-    %----------------------------------------------------------------------
-    for i = 1:n
-        for j = 1:n
-            if ~A(i,j)
-                for q = 1:n
-                    k{i,q} = k{i,q} | o(j,:);
-                end
-            end
-        end
-    end
-    
-end
-
-
-% constraints due to diagonal elements of Hessian
-%--------------------------------------------------------------------------
 if M.DIS
-    for i = 1:n
-        k{i,i} = ones(1,nb);
-    end
+    jB = find(~(kq | kg));
+else
+    jB = find(~kq);
 end
-
-% assemble and combine constraints
-%--------------------------------------------------------------------------
-kB    = [];
-for i = 1:n
-    for j = i:n
-        kB = [kB (k{i,j} | k{j,i})];
-    end
-end
-jB    = find(~kB);
 
 % initialise parameters Qp of flow operator
 %--------------------------------------------------------------------------
@@ -211,12 +153,12 @@ for k = 1:256
     L     = zeros(nX,n);
     for i = 1:n
         for j = 1:n
-            bQij   = squeeze(bQ(i,j,:) + bG(i,j,:));
+            bQij   = squeeze(bQ(i,j,:));
+            Q{i,j} = spdiags(b*bQij + G(i,j),0,nX,nX);
             L(:,i) = L(:,i) - D{j}*bQij;
-            Q{i,j} = spdiags(b*bQij,0,nX,nX);
         end
     end
-    Q     = spm_cat(Q);
+    Q      = spm_cat(Q);
     
     % potential gradients f = Q*D*b*b'*S - L
     %----------------------------------------------------------------------
