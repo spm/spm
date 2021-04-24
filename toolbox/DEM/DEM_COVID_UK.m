@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8094 2021-04-19 20:16:57Z karl $
+% $Id: DEM_COVID_UK.m 8096 2021-04-24 20:27:35Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -28,8 +28,8 @@ function DCM = DEM_COVID_UK
 % https://www.gov.uk/government/statistics/transport-use-during-the-coronavirus-covid-19-pandemic
 % https://www.google.com/covid19/mobility/
 
-% mem = 256:  F = -1.0257e+04 
-% mem = 2048: F = -1.0247e+04 
+% mem = 256:  F = -1.0257e+04
+% mem = 2048: F = -1.0247e+04
 
 % set up and get data
 %==========================================================================
@@ -49,78 +49,77 @@ cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
 options = weboptions('ContentType','table');
 options.Timeout = 20;
 
-try
-    
-    % download data and write to CSV files
-    %--------------------------------------------------------------------------
-    url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newCasesBySpecimenDate&format=csv';
-    writetable(webread(url,options),'cases.csv');
-    url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newDeaths28DaysByDeathDate&format=csv';
-    writetable(webread(url,options),'deaths.csv');
-    url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=covidOccupiedMVBeds&format=csv';
-    writetable(webread(url,options),'critical.csv');
-    url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newPillarOneTwoTestsByPublishDate&format=csv';
-    writetable(webread(url,options),'tests.csv');
-    url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newAdmissions&format=csv';
-    writetable(webread(url,options),'admissions.csv');
-    url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=hospitalCases&format=csv';
-    writetable(webread(url,options),'occupancy.csv');
-    url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newOnsDeathsByRegistrationDate&format=csv';
-    writetable(webread(url,options),'certified.csv');
-    url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=uniqueCasePositivityBySpecimenDateRollingSum&format=csv';
-    writetable(webread(url,options),'positivity.csv');
-    url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newLFDTests&format=csv';
-    writetable(webread(url,options),'lateralft.csv');
-    
-    % get death by age (England)
-    %----------------------------------------------------------------------
-    url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newDeaths28DaysByDeathDateAgeDemographics&format=csv';
-    tab   = webread(url,options);
-    age   = unique(tab(:,5));
-    for r = 1:numel(age)
-        j = find(ismember(tab(:,5),age(r,1)));
-        agedeaths(:,1)     = tab(j,4);
-        agedeaths(:,r + 1) = tab(j,6);
-    end
-    agedeaths = renamevars(agedeaths,(1:numel(age)) + 1,table2array(age));
-    writetable(agedeaths,'agedeaths.csv')
-    
-    % get cases by age (UK)
-    %----------------------------------------------------------------------
-    url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newCasesBySpecimenDateAgeDemographics&format=csv';
-    tab   = webread(url,options);
-    age   = unique(tab(:,5));
-    for r = 1:numel(age)
-        j = find(ismember(tab(:,5),age(r,1)));
-        agecases(:,1)     = tab(j,4);
-        agecases(:,r + 1) = tab(j,6);
-    end
-    agecases = renamevars(agecases,(1:numel(age)) + 1,table2array(age));
-    writetable(agecases,'agecases.csv')
-    
-    % mobility and transport
-    %----------------------------------------------------------------------
-    url = 'https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/947572/COVID-19-transport-use-statistics.ods.ods';
-    writetable(webread(url,options),'transport.csv');
-    
-    ndy = 321;
-    url = 'https://www.gstatic.com/covid19/mobility/2020_GB_Region_Mobility_Report.csv';
-    tab = webread(url);
-    writetable(tab(1:ndy,9:12),'mobility20.csv');
 
-    ndy = datenum(date) - datenum(datestr('01/01/2021','dd/mm/yyyy'));
-    url = 'https://www.gstatic.com/covid19/mobility/2021_GB_Region_Mobility_Report.csv';
-    tab = webread(url);
-    writetable(tab(1:ndy,9:12),'mobility21.csv');
-    
-    disp('download successful')
-    
-catch
-    
-    disp('download failed')
-    
+
+% download data and write to CSV files
+%--------------------------------------------------------------------------
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newCasesBySpecimenDate&format=csv';
+writetable(webread(url,options),'cases.csv');
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newDeaths28DaysByDeathDate&format=csv';
+writetable(webread(url,options),'deaths.csv');
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=covidOccupiedMVBeds&format=csv';
+writetable(webread(url,options),'critical.csv');
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newPillarOneTwoTestsByPublishDate&format=csv';
+writetable(webread(url,options),'tests.csv');
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newAdmissions&format=csv';
+writetable(webread(url,options),'admissions.csv');
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=hospitalCases&format=csv';
+writetable(webread(url,options),'occupancy.csv');
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newOnsDeathsByRegistrationDate&format=csv';
+writetable(webread(url,options),'certified.csv');
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=uniqueCasePositivityBySpecimenDateRollingSum&format=csv';
+writetable(webread(url,options),'positivity.csv');
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newLFDTests&format=csv';
+writetable(webread(url,options),'lateralft.csv');
+
+% get death by age (England)
+%--------------------------------------------------------------------------
+url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newDeaths28DaysByDeathDateAgeDemographics&format=csv';
+tab   = webread(url,options);
+vnames = tab.Properties.VariableNames;
+aa     = find(ismember(vnames,'age'));
+ad     = find(ismember(vnames,'date'));
+an     = find(ismember(vnames,'deaths'));
+age   = unique(tab(:,aa));
+for r = 1:numel(age)
+    j = find(ismember(tab(:,aa),age(r,1)));
+    agedeaths(:,1)     = tab(j,ad);
+    agedeaths(:,r + 1) = tab(j,an);
 end
+agedeaths = renamevars(agedeaths,(1:numel(age)) + 1,table2array(age));
+writetable(agedeaths,'agedeaths.csv')
 
+% get cases by age (UK)
+%----------------------------------------------------------------------
+url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDateAgeDemographics&format=csv';
+tab   = webread(url,options);
+vnames = tab.Properties.VariableNames;
+aa     = find(ismember(vnames,'age'));
+ad     = find(ismember(vnames,'date'));
+an     = find(ismember(vnames,'cases'));
+age   = unique(tab(:,aa));
+for r = 1:numel(age)
+    j = find(ismember(tab(:,aa),age(r,1)));
+    agecases(:,1)     = tab(j,ad);
+    agecases(:,r + 1) = tab(j,an);
+end
+agecases = renamevars(agecases,(1:numel(age)) + 1,table2array(age));
+writetable(agecases,'agecases.csv')
+
+% mobility and transport
+%--------------------------------------------------------------------------
+url = 'https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/947572/COVID-19-transport-use-statistics.ods.ods';
+writetable(webread(url,options),'transport.csv');
+
+ndy = 321;
+url = 'https://www.gstatic.com/covid19/mobility/2020_GB_Region_Mobility_Report.csv';
+tab = webread(url);
+writetable(tab(1:ndy,9:12),'mobility20.csv');
+
+ndy = datenum(date) - datenum(datestr('01/01/2021','dd/mm/yyyy'));
+url = 'https://www.gstatic.com/covid19/mobility/2021_GB_Region_Mobility_Report.csv';
+tab = webread(url);
+writetable(tab(1:ndy,9:12),'mobility21.csv');
 
 % population sizes (millions)
 %--------------------------------------------------------------------------
@@ -128,8 +127,8 @@ end
 %  '40_44','45_49','50_54','55_59','60_64','65_69','70_74','75_79', ...
 %  '80_84','85_89','90+'};
 N  = [3.86, 4.15, 3.95, 3.66, 4.15, 4.51, 4.50, 4.40, 4.02, 4.4, 4.66, ...
-      4.41, 3.76, 3.37, 3.32, 2.33, 1.72, 1.04, 0.61];
-  
+    4.41, 3.76, 3.37, 3.32, 2.33, 1.72, 1.04, 0.61];
+
 % ONS age bands
 %--------------------------------------------------------------------------
 ons{1} = [sum(N(4:5))];
@@ -291,7 +290,7 @@ Y(12).type = 'R-ratio (WHO/GOV)'; % the production ratio
 Y(12).unit = 'ratio';
 Y(12).U    = 4;
 Y(12).date = [datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 16; ...
-              datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 15];
+    datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 15];
 Y(12).Y    = [ratio.data(:,1); ratio.data(:,2)];
 Y(12).h    = 2;
 Y(12).lag  = 1;
@@ -312,7 +311,7 @@ Y(14).type = 'Mobility (GOV/Google)'; % retail and recreation (percent)
 Y(14).unit = 'percent';
 Y(14).U    = 14;
 Y(14).date = [datenum(mobility20.textdata(2:end,1),'yyyy-mm-dd') ;
-              datenum(mobility21.textdata(2:end,1),'yyyy-mm-dd')];
+    datenum(mobility21.textdata(2:end,1),'yyyy-mm-dd')];
 Y(14).Y    = [mobility20.data(:,1); mobility21.data(:,1)] + 100;
 Y(14).h    = 0;
 Y(14).lag  = 0;
@@ -329,7 +328,7 @@ Y(15).type = 'Hospital deaths (PHE)'; % hospital deaths
 Y(15).unit = 'number';
 Y(15).U    = 17;
 Y(15).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yyyy');
-Y(15).Y    = place.data(1:end - 8,1)*EngWaleUK;
+Y(15).Y    = place.data(1:end - 8,4)*EngWaleUK;
 Y(15).h    = 0;
 Y(15).lag  = 1;
 Y(15).age  = 0;
@@ -339,7 +338,7 @@ Y(16).type = 'Hospital/Other deaths (PHE)'; % nonhospital deaths
 Y(16).unit = 'number';
 Y(16).U    = 18;
 Y(16).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yyyy');
-Y(16).Y    = sum(place.data(1:end - 8,2:4),2)*EngWaleUK;
+Y(16).Y    = sum(place.data(1:end - 8,1:3),2)*EngWaleUK;
 Y(16).h    = 0;
 Y(16).lag  = 1;
 Y(16).age  = 0;
@@ -367,7 +366,7 @@ Y(18).type = 'Seropositive 25-65 (PHE)'; % percent antibody positive (England)
 Y(18).unit = 'percent';
 Y(18).U    = 5;
 Y(18).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
-Y(18).Y    = serology.data(:,4:3:13)*ons{2}*100;
+Y(18).Y    = serology.data(:,6:5:21)*ons{2}*100;
 Y(18).h    = 2;
 Y(18).lag  = 0;
 Y(18).age  = 2;
@@ -377,7 +376,7 @@ Y(19).type = 'Seropositive 25-, 25-65, 65+ (PHE)'; % percent antibody positive (
 Y(19).unit = 'percent';
 Y(19).U    = 5;
 Y(19).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
-Y(19).Y    = serology.data(:,16:3:25)*ons{3}*100;
+Y(19).Y    = serology.data(:,26:5:41)*ons{3}*100;
 Y(19).h    = 2;
 Y(19).lag  = 0;
 Y(19).age  = 3;
@@ -398,7 +397,7 @@ Y(21).type = 'First dose 25-65 (PHE)'; % percent vaccinated (England)
 Y(21).unit = 'percent';
 Y(21).U    = 22;
 Y(21).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
-Y(21).Y    = vaccine.data(:,4:3:13)*ons{2}*100;
+Y(21).Y    = vaccine.data(:,6:5:21)*ons{2}*100;
 Y(21).h    = 0;
 Y(21).lag  = 0;
 Y(21).age  = 2;
@@ -408,7 +407,7 @@ Y(22).type = 'First dose 25-, 25-65, 65+ (PHE)'; % percent vaccinated (England)
 Y(22).unit = 'percent';
 Y(22).U    = 22;
 Y(22).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
-Y(22).Y    = vaccine.data(:,16:3:25)*ons{3}*100;
+Y(22).Y    = vaccine.data(:,26:5:41)*ons{3}*100;
 Y(22).h    = 0;
 Y(22).lag  = 0;
 Y(22).age  = 3;
@@ -807,7 +806,7 @@ end
 phase = {'08-Mar-2021','05-Apr-2021','03-May-2021','07-Jun-2021','05-Jul-2021'};
 for i = 1:numel(phase)
     d = datenum(phase{i},'dd-mmm-yyyy');
-    plot(d*[1,1],[0 120],'b:'), 
+    plot(d*[1,1],[0 120],'b:'),
     text(d,128,phase{i},'Color','b','FontSize',8,'Rotation',90)
 end
 
@@ -825,7 +824,7 @@ t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
 
 i   = find(DCM.U == 4,1);
 Rt  = DCM.Y(:,i);
-            spm_SARS_ci(Ep,Cp,[],11,M); hold on
+spm_SARS_ci(Ep,Cp,[],11,M); hold on
 [~,~,q,c] = spm_SARS_ci(Ep,Cp,Rt,4 ,M); hold on
 
 j   = find(t == datenum(date));
@@ -854,7 +853,7 @@ spm_SARS_ci(Ep,Cp,[],26,M); hold on
 [H,~,~,R] = spm_SARS_gen(Ep,M,[4 22 26]);
 i         = 1:32;                           % pre-pandemic period
 TRN       = [R{1}.Ptrn];                    % transmission risk
-R0        = mean(H(i,1));                   % basic reproduction ratio    
+R0        = mean(H(i,1));                   % basic reproduction ratio
 RT        = R0*TRN(:)/mean(TRN(i));         % effective reproduction ratio
 HIT       = 100 * (1 - 1./RT);              % herd immunity threshold
 VAC       = H(:,2);                         % percent of people vaccinated

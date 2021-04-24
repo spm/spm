@@ -358,12 +358,12 @@ NPI(1).dates  = {'08-03-2021','01-08-2021'};
 % NPI(1).Q      = exp(DCM.Ep.sde + 1/2);
 % NPI(1).dates  = {'02-12-2020','04-01-2021'};
 
-% scenario three: early second lockdown on October 21, 2020
+% scenario three: early second lockdown on October 26, 2020
 %--------------------------------------------------------------------------
-% NPI(1).period = period;
-% NPI(1).param  = {'sde'};
-% NPI(1).Q      = exp(DCM.Ep.sde + 1);
-% NPI(1).dates  = {'21-10-2020','05-11-2020'};
+NPI(1).period = period;
+NPI(1).param  = {'sde'};
+NPI(1).Q      = exp(DCM.Ep.sde + 1);
+NPI(1).dates  = {'26-10-2020','27-11-2020'};
 
 % unpack model and posterior expectations
 %--------------------------------------------------------------------------

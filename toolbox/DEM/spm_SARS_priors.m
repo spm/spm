@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8092 2021-04-18 09:44:10Z karl $
+% $Id: spm_SARS_priors.m 8096 2021-04-24 20:27:35Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -68,7 +68,7 @@ if nargin
     
     % free parameters for mixture model (age groups)
     %----------------------------------------------------------------------
-    free  = {'N','Nin','Nou','qua','hos','ccu','res','sev','lat','fat','sur','tes','tts','rol'};
+    free  = {'N','Nin','Nou','hos','ccu','res','sev','lat','fat','sur','tes','tts','rol'};
     for i = 1:numel(free)
         P.(free{i}) = kron(ones(nN,1),P.(free{i}));
         C.(free{i}) = kron(ones(nN,1),C.(free{i}));

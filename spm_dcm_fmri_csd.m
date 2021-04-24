@@ -40,9 +40,9 @@ function DCM = spm_dcm_fmri_csd(P)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 7805 2020-03-27 06:23:15Z adeel $
+% $Id: spm_dcm_fmri_csd.m 8096 2021-04-24 20:27:35Z karl $
 
-SVNid = '$Rev: 7805 $';
+SVNid = '$Rev: 8096 $';
 
 % Load DCM structure
 %--------------------------------------------------------------------------
@@ -152,8 +152,8 @@ DCM.d   = zeros(n,n,0);
 %--------------------------------------------------------------------------
 hE       = 8;
 hC       = 1/128;
-str        = 'Using specified priors ';
-str        = [str '(any changes to DCM.a,b,c,d will be ignored)\n'];
+str      = 'Using specified priors ';
+str      = [str '(any changes to DCM.a,b,c,d will be ignored)\n'];
  
 try, DCM.M.P   = DCM.options.P;                end      % initial parameters
 try, pE        = DCM.options.pE; fprintf(str); end      % prior expectation
