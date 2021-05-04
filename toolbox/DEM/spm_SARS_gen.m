@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8092 2021-04-18 09:44:10Z karl $
+% $Id: spm_SARS_gen.m 8098 2021-05-04 10:43:11Z karl $
 
 
 % The generative model:
@@ -272,6 +272,8 @@ X     = cell(nN,1);                    % time series of marginal densities
 Z     = cell(nN,1);                    % joint densities at each time point
 W     = cell(nN,1);                    % time-dependent parameters
 r     = cell(nN,1);                    % probability of lockdown levels
+pvac  = zeros(n,1);
+Vimm  = exp(-1/256);
 for n = 1:nN
     r{n} = [1;0];
 end
@@ -523,7 +525,8 @@ for i = 1:M.T
         
         % cumulative number of people (first dose) vaccinated (%)
         %------------------------------------------------------------------
-        Y{n}(i,22) = 100 * p{n}{2}(6)/Q{n}.vac;
+        Y{n}(i,22) = 100 * (p{n}{2}(6) + pvac(n))/Q{n}.vac;
+        pvac(n)    = pvac(n) + p{n}{2}(6)*(1 - Vimm);
         
         % PCR case positivity (%)(seven day rolling average)
         %------------------------------------------------------------------

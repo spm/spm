@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8096 2021-04-24 20:27:35Z karl $
+% $Id: spm_SARS_priors.m 8098 2021-05-04 10:43:11Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -78,12 +78,12 @@ if nargin
     %----------------------------------------------------------------------
     P.N   = P.N - log(nN);
     P.n   = P.n - 8;
-    P.rol = log([0.01  (365 + 128) 32;
-                 0.02  (365 + 64 ) 16;
-                 0.04  (365 + 0  ) 8]);
-    C.rol = [1/256 1/1024 1/256;
-             1/256 1/1024 1/256;
-             1/256 1/1024 1/256];
+    P.rol = log([0.01  (390 + 128) 128;
+                 0.02  (390 + 64)  64;
+                 0.04  (390 + 0  ) 32]);
+    C.rol = [1/64 1/256 1/256;
+             1/64 1/256 1/256;
+             1/64 1/256 1/256];
     P.sev = log([0.00002;
                  0.002;
                  0.03]);
@@ -306,6 +306,7 @@ U     = exp( 2);              % flat priors
 V     = exp(-2);              % uninformative priors
 W     = exp(-4);              % informative priors
 X     = exp(-6);              % informative priors
+Z     = exp(-8);              % informative priors
 
 C.N   = U;                    % (01) population size (millions)
 C.n   = U;                    % (02) initial cases (cases)
@@ -350,7 +351,7 @@ C.ttt = X;                    % (28) FTTI efficacy
 C.tes = V;                    % (29) testing: bias (early)
 C.tts = V;                    % (30) testing: bias (late)
 C.del = X;                    % (31) test delay (days)
-C.vac = X;                    % (32) vaccine efficacy
+C.vac = Z;                    % (32) vaccine efficacy
 C.fnr = W;                    % (33) false-negative rate
 C.fpr = W;                    % (34) false-positive rate
 

@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8096 2021-04-24 20:27:35Z karl $
+% $Id: DEM_COVID_UK.m 8098 2021-05-04 10:43:11Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -388,7 +388,7 @@ Y(20).unit = 'percent';
 Y(20).U    = 22;
 Y(20).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
 Y(20).Y    = vaccine.data(:,1)*vac*100;
-Y(20).h    = 0;
+Y(20).h    = 2;
 Y(20).lag  = 0;
 Y(20).age  = 1;
 Y(20).hold = 1;
@@ -397,8 +397,8 @@ Y(21).type = 'First dose 25-65 (PHE)'; % percent vaccinated (England)
 Y(21).unit = 'percent';
 Y(21).U    = 22;
 Y(21).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
-Y(21).Y    = vaccine.data(:,6:5:21)*ons{2}*100;
-Y(21).h    = 0;
+Y(21).Y    = vaccine.data(:,7:6:25)*ons{2}*100;
+Y(21).h    = 2;
 Y(21).lag  = 0;
 Y(21).age  = 2;
 Y(21).hold = 1;
@@ -407,8 +407,8 @@ Y(22).type = 'First dose 25-, 25-65, 65+ (PHE)'; % percent vaccinated (England)
 Y(22).unit = 'percent';
 Y(22).U    = 22;
 Y(22).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
-Y(22).Y    = vaccine.data(:,26:5:41)*ons{3}*100;
-Y(22).h    = 0;
+Y(22).Y    = vaccine.data(:,31:6:49)*ons{3}*100;
+Y(22).h    = 2;
 Y(22).lag  = 0;
 Y(22).age  = 3;
 Y(22).hold = 0;
