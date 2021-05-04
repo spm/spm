@@ -1,6 +1,6 @@
-function [NESS] = spm_ness_GN(M,x)
+function [NESS] = spm_ness_Lap(M,x)
 % nonequilibrium steady-state under a Helmholtz decomposition
-% FORMAT [NESS] = spm_ness_GN(M,x)
+% FORMAT [NESS] = spm_ness_Lap(M,x)
 %--------------------------------------------------------------------------
 % M   - model specification structure
 % Required fields:
@@ -29,29 +29,64 @@ function [NESS] = spm_ness_GN(M,x)
 % Karl Friston
 % $Id: spm_ness_hd.m 8000 2020-11-03 19:04:17QDb karl $
 
+
 % get domain of phase-space and polynomial basis set
 %==========================================================================
 U      = spm_ness_U(M,x);      % get state space and flow
 f      = U.f';                 % target flow
 [nX,n] = size(U.X);            % number of sample points and states 
 
-% initialise priors using iterated maximum likelihood solution
-%--------------------------------------------------------------------------
-NESS   = spm_ness_hd(M,x);     % estimate and fixed G
-pE     = NESS.Ep;
-
 % get constraints (allowing G to be free parameters)
 %--------------------------------------------------------------------------
-[ks,kq,kg] = spm_NESS_constraints(U.o,any(U.J,3),M.K,M.L);
-k      = [ks (kq | kg)];
-i      = find(~k);
-np     = numel(k);
-pC     = sparse(i,i,16,np,np);
+J      = any(U.J,3);
+J      = J'.*J;
+[ks,kq,kg] = spm_NESS_constraints(U.o,J,M.K,M.L);
+k      = find(~(kq | kg));
+k      = find(~(kg));
+nb     = size(U.b,2);
+nQ     = n*n/2 + n/2;
+
+pE.Qp  = zeros(nb*nQ,1);       % polynomial coefficients for solenoidal operator
+pE.Rp  = zeros(1 ,n);          % polynomial coefficients for mean
+pE.Sp  = zeros(nb,n,n);        % polynomial coefficients for Kernel
+
+pC.Qp  = pE.Qp;
+pC.Rp  = pE.Rp;
+pC.Sp  = pE.Sp;
+
+% constraints on solenoidal operator
+%--------------------------------------------------------------------------
+pC.Qp(k) = 1;
+
+% constraints on mean
+%--------------------------------------------------------------------------
+for i = 1:n
+    pE.Rp(1,i)  = mean(x{i});
+    pC.Rp(1,i)  = 1;
+end
+
+% constraints on potential
+%--------------------------------------------------------------------------
+k     = sum(U.o) < M.K;
+for i = 1:n
+    for j = 1:n
+        if i == j
+           pE.Sp(1,i,j) = 1/8;
+        end
+        if j >= i
+           pC.Sp(k,i,j) = 1;
+        end
+    end
+end
+
+% priors
+%--------------------------------------------------------------------------
+pC     = diag(spm_vec(pC));
 
 % model specification
 %==========================================================================
-S.Nmax = 32;                   % maximum number of iterations
-S.G    = @spm_NESS_gen;        % generative function
+S.Nmax = 64;                   % maximum number of iterations
+S.G    = @spm_NESS_gen_lap;    % generative function
 S.FS   = @(y)y(:);             % generative function
 S.pE   = pE;                   % prior expectations (parameters)
 S.pC   = pC;                   % prior covariances  (parameters)
@@ -64,25 +99,8 @@ Ep    = spm_nlsi_GN(S,U,f);
 
 % NESS density and expected flow
 %--------------------------------------------------------------------------
-p0    = spm_softmax(U.b*Ep.Sp);
-F     = spm_NESS_gen(Ep,M,U);           
-
-% Hessian D*D*S
-%--------------------------------------------------------------------------
-H     = zeros(n,n,nX);
-HH    = cell(n,n);
-for i = 1:n
-    for j = 1:n
-        HH{i,j} = U.H{i,j}*Ep.Sp;
-    end
-end
-for i = 1:n
-    for j = 1:n
-        for k = 1:nX
-            H(i,j,k) = HH{i,j}(k);
-        end
-    end
-end
+[F,S,Q,L,H] = spm_NESS_gen_lap(Ep,M,U);           
+p0          = spm_softmax(-S(:));
 
 % update NESS structure
 %--------------------------------------------------------------------------

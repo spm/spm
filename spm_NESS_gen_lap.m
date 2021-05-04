@@ -1,11 +1,11 @@
-function [F,S,Q,L,H,DS] = spm_NESS_gen(P,M,U)
-% generates flow (f) at locations (U.X)
-% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M)
-% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M,U)
-% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M,X)
+function [F,S,Q,L,H,DS] = spm_NESS_gen_lap(P,M,x)
+% generates flow (f) at locations x
+% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen_lap(P,M,x)
+% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen_lap(P,M,U)
 %--------------------------------------------------------------------------
 % P.Qp    - polynomial coefficients for solenoidal operator
-% P.Sp    - polynomial coefficients for potential
+% P.Sp    - polynomial coefficients for Kernel
+% P.Rp    - polynomial coefficients for mean
 %
 % F       - polynomial approximation to flow
 % S       - negative potential (log NESS density)
@@ -17,10 +17,6 @@ function [F,S,Q,L,H,DS] = spm_NESS_gen(P,M,U)
 % U = spm_ness_U(M)
 %--------------------------------------------------------------------------
 % M   - model specification structure
-% Required fields:
-%    M.X  - sample points
-%    M.W  - (n x n) - precision matrix of random fluctuations
-%    M.K  - order of polynomial expansion
 %
 % U       - domain (of state space) structure
 % U.x     - domain
@@ -41,47 +37,21 @@ function [F,S,Q,L,H,DS] = spm_NESS_gen(P,M,U)
 % $Id: spm_ness_hd.m 8000 2020-11-03 19:04:17QDb karl $
 
 
-%% model specification
+%% get basis set and gradients
 %--------------------------------------------------------------------------
-if nargin > 2
-    if ~isstruct(U), M.X = U; U = []; end
-end
-
-
-%% use M.fs if specified
-%--------------------------------------------------------------------------
-if nargout < 3 && isfield(M,'fs')
-    w     = {M.W(1)};
-    Sp    = num2cell(P.Sp);
-    Qp    = num2cell(P.Qp);
-    for i = 1:size(M.X,1)
-        
-        % flow
-        %------------------------------------------------------------------
-        x      = num2cell(M.X(i,:));
-        F(i,:) = M.fs(Qp{:},Sp{2:end},w{:},x{:});
-        
-        % negative potential
-        %------------------------------------------------------------------
-        if nargout == 2
-            S(i)   = M.ss(Sp{:},x{:});
-        end
+if ~isstruct(x)
+    if ~iscell(x)
+        x = num2cell(x(:)'); 
     end
-    
-    return
-end
-
-
-%% get basis or expansion from M.X (or M.x)
-%--------------------------------------------------------------------------
-if nargin < 3 || ~isstruct(U)
-    U    = spm_ness_U(M);
+    U   = spm_ness_U(M,x,'NOF');
+else
+    U = x;
 end
 
 % dimensions and correction terms to flow operator
 %==========================================================================
-n  = numel(U.D);
-nX = size(U.b,1);
+n    = numel(U.D);
+nX   = size(U.b,1);
 
 % sparse diagonal operator
 %--------------------------------------------------------------------------
@@ -98,7 +68,7 @@ for i = 1:numel(U.dbQdp)
     bQ = bQ + U.dbQdp{i}*P.Qp(i);
 end
 
-% correction term for solenoidal flow (L) and Kroneckor form of Q
+% correction term for solenoidal flow (L) and Kroneckor form of Q (Qp)
 %--------------------------------------------------------------------------
 Q     = cell(n,n);
 L     = zeros(nX,n,'like',U.b(1));
@@ -111,51 +81,76 @@ for i = 1:n
     end
 end
 
-
-% predicted flow: F   = Q*D*S - L
+% kernel for Hessian Sp
 %--------------------------------------------------------------------------
-DS    = cell(n,1);
-for j = 1:n
-    DS{j} = U.D{j}*P.Sp;
-end
 for i = 1:n
-    for j = 1:n
-        F(:,i) = F(:,i) + Q{i,j}*DS{j};
-    end
-    F(:,i) = F(:,i) - L(:,i);
-end
-
-if nargout == 1, return, end
-
-% (scalar) potential:  S = -log(p(x))
-%--------------------------------------------------------------------------
-S     = -U.b*P.Sp;
-
-% Hessian D*D*S
-%--------------------------------------------------------------------------
-HH    = cell(n,n);
-for i = 1:n
-    for j = 1:n
-       HH{i,j} = -U.H{i,j}*P.Sp;    
-    end
-end
-H     = zeros(n,n,nX,'like',U.b(1));
-for i = 1:n
-    for j = 1:n
-        for k = 1:nX
-            H(i,j,k) = HH{i,j}(k);
+    for j = i:n
+        K(i,j,:) = U.b*P.Sp(:,i,j);
+        K(j,i,:) = K(i,j,:);
+        for k = 1:n
+            DK(i,j,k,:) = U.D{k}*P.Sp(:,i,j);
+            DK(j,i,k,:) = DK(i,j,k,:);
         end
     end
+end
+
+% expectation (mean) Rp
+%--------------------------------------------------------------------------
+E = U.b(:,1)*P.Rp;
+
+% gradients D*S
+%--------------------------------------------------------------------------
+DS    = cell(n,1);
+for k = 1:nX
+    X          = U.X(k,:) - E(k,:);
+    H(:,:,k)   = K(:,:,k)'*K(:,:,k);
+    S(k,1)     = X*H(:,:,k)*X'/2;
+    for j = 1:n
+        DS{j}(k,1) = X*DK(:,:,j,k)'*K(:,:,k)*X' + H(j,:,k)*X';
+    end
+end
+
+% predicted flow: F   = -Q*D*S - L
+%--------------------------------------------------------------------------
+for i = 1:n
+    for j = 1:n
+        F(:,i) = F(:,i) - Q{i,j}*DS{j};
+    end
+    F(:,i) = F(:,i) - L(:,i);
 end
 
 return
 
 
 
+% kernel for Hessian Sp
+%--------------------------------------------------------------------------
+for i = 1:n
+    for j = i:n
+        if i == j
+            H(i,j,:) = (U.b*P.Sp(:,i,j)).^2;
+            for k = 1:n
+                DH(i,j,k,:) = 2*(U.D{k}*P.Sp(:,i,j)).*squeeze(H(i,j,:));
+            end
+        else
+            H(i,j,:) = U.b*P.Sp(:,i,j);
+            H(j,i,:) = H(i,j,:);
+            for k = 1:n
+                DH(i,j,k,:) = U.D{k}*P.Sp(:,i,j);
+                DH(j,i,k,:) = DH(i,j,k,:);
+            end
+        end
+    end
+end
 
-
-
-
-
-
+% gradients D*S
+%--------------------------------------------------------------------------
+DS    = cell(n,1);
+for k = 1:nX
+    X      = U.X(k,:) - E(k,:);
+    S(k,1) = X*H(:,:,k)*X'/2;
+    for j = 1:n
+        DS{j}(k,1) = X*DH(:,:,j,k)*X' + H(j,:,k)*X';
+    end
+end
 

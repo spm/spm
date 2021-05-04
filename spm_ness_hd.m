@@ -27,7 +27,7 @@ function NESS = spm_ness_hd(M,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8097 2021-04-24 20:28:27Z karl $
+% $Id: spm_ness_hd.m 8099 2021-05-04 10:43:50Z karl $
 
 
 % event space: get or create X - coordinates of evaluation grid
@@ -71,7 +71,7 @@ end
 %         = Q*D*S   - L
 % subject to Q = Q + dQ: dQ = -qQ'
 %--------------------------------------------------------------------------
-b     = U.b;                     % orthonormal polynomial basis (S)
+b     = U.b;                     % polynomial basis (S)
 o     = U.o;                     % orders of expansion
 D     = U.D;                     % derivative operator
 G     = U.G;                     % dissipation (G)
@@ -212,7 +212,7 @@ H     = zeros(n,n,nX);
 HH    = cell(n,n);
 for i = 1:n
     for j = 1:n
-        HH{i,j} = U.H{i,j}*Sp;
+        HH{i,j} = -U.H{i,j}*Sp;
     end
 end
 for i = 1:n
@@ -233,8 +233,6 @@ end
 
 % parameters of log NESS density Sp and flow operator Qp
 %--------------------------------------------------------------------------
-Sp    = U.v*Sp;
-Qp    = U.u*Qp;
 i     = abs(Sp) < exp(-16);
 Sp(i) = 0;
 i     = abs(Qp) < exp(-16);

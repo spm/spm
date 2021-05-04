@@ -1,6 +1,6 @@
-function U = spm_ness_U(M,x)
+function U = spm_ness_U(M,x,NOF)
 % nonequilibrium steady-state under a Helmholtz decomposition
-% FORMAT U = spm_ness_U(M,x)
+% FORMAT U = spm_ness_U(M,x,[NOF])
 %--------------------------------------------------------------------------
 % M   - model specification structure
 % Required fields:
@@ -11,14 +11,16 @@ function U = spm_ness_U(M,x)
 %    M.X   - sample points
 %    M.K   - order of polynomial expansion
 %
+% x       - sample points
+% NOF     - optional flag to omit evaluation of function and Jacobian
+%
 % U.x     - domain
 % U.X     - sample points
 % U.f     - expected flow at sample points
 % U.J     - Jacobian at sample points
-% U.b     - orthonormal polynomial basis
+% U.b     - polynomial basis
 % U.D     - derivative operator
 % U.G     - amplitude of random fluctuations
-% U.v     - orthonormal operator
 % U.dQdp  - gradients of flow operator Q  w.r.t. flow parameters
 % U.dbQdp - gradients of bQ w.r.t. flow parameters
 % U.dLdp  - gradients of L w.r.t. flow parameters
@@ -33,16 +35,11 @@ function U = spm_ness_U(M,x)
 
 % event space: get or create X - coordinates of evaluation grid
 %--------------------------------------------------------------------------
-if isfield(M,'FUN')
-    FUN = M.FUN;
-else
-    FUN = 'POLY';
-end
-if isfield(M,'K')
-    K   = M.K;
-else
-    K   = 3;
-end
+if nargin > 2,       NOF = true;  else, NOF = false;  end
+if isfield(M,'FUN'), FUN = M.FUN; else, FUN = 'POLY'; end
+K   = 3;
+if isfield(M,'K'),   K   = M.K;        end
+if isfield(M,'L'),   K   = max(K,M.L); end
 
 if nargin < 2
     
@@ -110,46 +107,26 @@ end
 X     = full(X);
 f     = zeros(n,nX,'like',X);
 J     = zeros(n,n,nX,'like',X);
-for i = 1:nX
-    
-    % Jacobian at this point in state space
-    %----------------------------------------------------------------------
-    s        = X(i,:)';
-    F        = M.f(s,0,M.pE);
-    if isfield(M,'J')
-        J(:,:,i) = full(M.J(s,0,M.pE,M));
-    else
-        J(:,:,i) = full(spm_diff(M.f,s,0,M.pE,M,1));
-    end
-    f(:,i)   = full(F);
-    
-end
-
-
-% orthonormal polynomial expansion
-%--------------------------------------------------------------------------
-nu = (n^2 + n)/2;
-if size(b,1) > 1
-    
-    % with coefficients p: x = b*p = dxdp*p for log density Sp
-    %----------------------------------------------------------------------
-    v     = b\full(spm_en(b)); 
-    b     = b*v;
-    for i = 1:n
-        D{i} = D{i}*v;
-        for j = 1:n
-            H{i,j} = H{i,j}*v;
+if ~NOF
+    for i = 1:nX
+        
+        % Jacobian at this point in state space
+        %------------------------------------------------------------------
+        s        = X(i,:)';
+        F        = M.f(s,0,M.pE,M);
+        if isfield(M,'J')
+            J(:,:,i) = full(M.J(s,0,M.pE,M));
+        else
+            J(:,:,i) = full(spm_diff(M.f,s,0,M.pE,M,1));
         end
-    end
-    
-    % Kroneckor form for flow operators Qp
-    %----------------------------------------------------------------------
-    u     = kron(eye(nu,nu),v);
+        f(:,i)   = full(F);
 
-else
-    v = 1;
-    u = 1;
+    end
 end
+
+% orders of polynomial expansion
+%--------------------------------------------------------------------------
+nu    = (n^2 + n)/2;
 nb    = size(b,2);
 nB    = nu*nb;
 
@@ -216,12 +193,10 @@ U.x     = x;                     % domain
 U.X     = X;                     % sample points
 U.f     = f;                     % expected flow at sample points
 U.J     = J;                     % Jacobian at sample points
-U.b     = b;                     % orthonormal polynomial basis
+U.b     = b;                     % polynomial basis
 U.D     = D;                     % derivative operator
 U.H     = H;                     % Hessian operator
 U.G     = G;                     % amplitude of random fluctuations
-U.v     = v;                     % orthonormal operator
-U.u     = u;                     % orthonormal operator (Kroneckor form)
 U.dQdp  = dQdp;                  % gradients of Q  w.r.t. flow parameters
 U.dbQdp = dbQdp;                 % gradients of bQ w.r.t. flow parameters
 U.dLdp  = dLdp;                  % gradients of L  w.r.t. flow parameters
