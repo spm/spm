@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8098 2021-05-04 10:43:11Z karl $
+% $Id: DEM_COVID_UK.m 8101 2021-05-08 15:01:43Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -352,11 +352,12 @@ EnglandUK  = UK/England;
 
 % age-specific data
 %--------------------------------------------------------------------------
+j          = find(~ismember(serology.textdata(1,2:end),''));
 Y(17).type = 'Seropositive < 25 (PHE)'; % percent antibody positive (England)
 Y(17).unit = 'percent';
 Y(17).U    = 5;
 Y(17).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
-Y(17).Y    = serology.data(:,1)*(vac + (1 - vac)/2)*100;
+Y(17).Y    = serology.data(:,j(1))*(vac + (1 - vac)/2)*100;
 Y(17).h    = 2;
 Y(17).lag  = 0;
 Y(17).age  = 1;
@@ -366,7 +367,7 @@ Y(18).type = 'Seropositive 25-65 (PHE)'; % percent antibody positive (England)
 Y(18).unit = 'percent';
 Y(18).U    = 5;
 Y(18).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
-Y(18).Y    = serology.data(:,6:5:21)*ons{2}*100;
+Y(18).Y    = serology.data(:,j(2:5))*ons{2}*100;
 Y(18).h    = 2;
 Y(18).lag  = 0;
 Y(18).age  = 2;
@@ -376,18 +377,18 @@ Y(19).type = 'Seropositive 25-, 25-65, 65+ (PHE)'; % percent antibody positive (
 Y(19).unit = 'percent';
 Y(19).U    = 5;
 Y(19).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
-Y(19).Y    = serology.data(:,26:5:41)*ons{3}*100;
+Y(19).Y    = serology.data(:,j(6:9))*ons{3}*100;
 Y(19).h    = 2;
 Y(19).lag  = 0;
 Y(19).age  = 3;
 Y(19).hold = 0;
 
-
+j          = find(~ismember(vaccine.textdata(1,2:end),''));
 Y(20).type = 'First dose < 25 (PHE)'; % percent vaccinated (England)
 Y(20).unit = 'percent';
 Y(20).U    = 22;
 Y(20).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
-Y(20).Y    = vaccine.data(:,1)*vac*100;
+Y(20).Y    = vaccine.data(:,j(1))*vac*100;
 Y(20).h    = 2;
 Y(20).lag  = 0;
 Y(20).age  = 1;
@@ -397,7 +398,7 @@ Y(21).type = 'First dose 25-65 (PHE)'; % percent vaccinated (England)
 Y(21).unit = 'percent';
 Y(21).U    = 22;
 Y(21).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
-Y(21).Y    = vaccine.data(:,7:6:25)*ons{2}*100;
+Y(21).Y    = vaccine.data(:,j(2:5))*ons{2}*100;
 Y(21).h    = 2;
 Y(21).lag  = 0;
 Y(21).age  = 2;
@@ -407,7 +408,7 @@ Y(22).type = 'First dose 25-, 25-65, 65+ (PHE)'; % percent vaccinated (England)
 Y(22).unit = 'percent';
 Y(22).U    = 22;
 Y(22).date = datenum(vaccine.textdata(2:end,1),'dd/mm/yyyy');
-Y(22).Y    = vaccine.data(:,31:6:49)*ons{3}*100;
+Y(22).Y    = vaccine.data(:,j(6:9))*ons{3}*100;
 Y(22).h    = 2;
 Y(22).lag  = 0;
 Y(22).age  = 3;

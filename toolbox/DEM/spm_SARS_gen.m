@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8098 2021-05-04 10:43:11Z karl $
+% $Id: spm_SARS_gen.m 8101 2021-05-08 15:01:43Z karl $
 
 
 % The generative model:
@@ -273,7 +273,7 @@ Z     = cell(nN,1);                    % joint densities at each time point
 W     = cell(nN,1);                    % time-dependent parameters
 r     = cell(nN,1);                    % probability of lockdown levels
 pvac  = zeros(n,1);
-Vimm  = exp(-1/256);
+Vimm  = exp(-1/512);
 for n = 1:nN
     r{n} = [1;0];
 end

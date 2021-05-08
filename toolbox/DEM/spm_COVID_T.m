@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8098 2021-05-04 10:43:11Z karl $
+% $Id: spm_COVID_T.m 8101 2021-05-08 15:01:43Z karl $
 
 % setup
 %==========================================================================
@@ -149,7 +149,7 @@ Pths = P.ths;                              % P(no transmission) | hospital
 
 Kimm = exp(-1/P.Tim);                      % loss of Ab+ immunity (per day)
 Kinn = exp(-1/256);                        % loss of Ab- immunity (per day)
-Vimm = exp(-1/256);                        % Loss of Ab+ vaccine  (per day)
+Vimm = exp(-1/512);                        % Loss of Ab+ vaccine  (per day)
 
 Kinf = exp(-1/P.Tin);                      % infection rate
 Kcon = exp(-1/P.Tcn);                      % infectious rate
