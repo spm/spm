@@ -16,7 +16,7 @@ function DCM = DEM_COVID_COUNTRY(country)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_COUNTRY.m 8001 2020-11-03 19:05:40Z karl $
+% $Id: DEM_COVID_COUNTRY.m 8100 2021-05-08 15:00:05Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -66,7 +66,7 @@ DCM.Y      = Y;
 % posterior predictions
 %==========================================================================
 spm_figure('GetWin',country); clf;
-M.T     = datenum('01-01-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
+M.T     = datenum(date) + 64 - datenum(M.date,'dd-mm-yyyy');
 [Z,X]   = spm_SARS_gen(DCM.Ep,M,[1 2 3]);
 spm_SARS_plot(Z,X,DCM.Y)
 
