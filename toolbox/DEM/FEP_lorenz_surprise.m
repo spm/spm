@@ -21,7 +21,7 @@ function FEP_lorenz_surprise
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_lorenz_surprise.m 8099 2021-05-04 10:43:50Z karl $
+% $Id: FEP_lorenz_surprise.m 8102 2021-05-08 15:02:30Z karl $
 
 
 %% dynamics and parameters of a Lorentz system (with Jacobian)
@@ -144,7 +144,6 @@ spm_ness_flows(Ep,x,M)
 M.W   = diag([1/8 1/16 1/32]);           % precision of random fluctuations
 M.K   = 3;
 M.L   = 2;
-
 
 % state-space for (Laplace) solution 
 %--------------------------------------------------------------------------
@@ -765,7 +764,6 @@ O     = M;
 O.X   = x;
 O.W   = diag(kron(ones(n,1),w));
 
-
 % generative model
 %--------------------------------------------------------------------------
 [m,C]  = spm_ness_cond(n,3,Ep.Sp);
@@ -1280,6 +1278,149 @@ end, hold off
 title('Flows','Fontsize',16)
 xlabel('Lorenz flow'),ylabel('Laplace flow')
 axis square xy, box off
+
+return
+
+%% dynamics and parameters of a Lorentz system (with Jacobian)
+%==========================================================================
+clear
+% dxdt = f(x) + w:  see notes at the end of this script
+%--------------------------------------------------------------------------
+f    = @(x,v,P,M) [P(1)*x(2) - P(1)*x(1);
+                   P(3)*x(1) - x(2) - x(1)*x(3);
+                  -P(2)*x(3) + x(1)*x(2)]/64;
+J    = @(x,v,P,M) [[     -P(1),P(1),     0];
+                   [P(3) - x(3), -1, -x(1)];
+                   [     x(2), x(1), -P(2)]]/64;
+P    = [10; 8/3; 32];                  % parameters [sig, beta, rho]
+x0   = [1; 1; 24];                     % initial state
+W    = 1/16;                           % precision of random fluctuations
+
+disp('Lyapunov dimnesion')
+disp(3 - 2*(P(1) + P(2) + 1)/(P(1) + 1 + sqrt((P(1) - 1)^2 + 4*P(1)*P(3))))
+
+% state-space model (for SPM integrators)
+%--------------------------------------------------------------------------
+M.f  = f;
+M.J  = J;
+M.g  = @(x,v,P,M) x;
+M.x  = x0;
+M.m  = 0;
+M.pE = P;
+M.W  = diag([1/8 1/16 1/32]);           % precision of random fluctuations
+M.K  = 2;
+M.L  = 3;
+
+% state-space for (Laplace) solution 
+%==========================================================================
+N    = 4;                                % number of bins
+d    = 8;                                % distance
+m    = [0 0 28];
+x{1} = linspace(m(1) - d,m(1) + d,N);
+x{2} = linspace(m(2) - d,m(2) + d,N);
+x{3} = linspace(m(3) - d,m(3) + d,N);
+
+% parameters of equilibrium density
+%--------------------------------------------------------------------------
+NESS = spm_ness_hd(M,x);                            % NESS density
+n    = numel(x);                                    % dimensionality
+
+% Density dynamics
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Density dynamics'); clf
+N    = 32
+x{1} = linspace(-48,48,N);
+x{2} = linspace(-48,48,N);
+x{3} = linspace(  0,48,N);
+
+% initial (Gaussian) density
+%--------------------------------------------------------------------------
+p1   = exp(-(x{1} + 4).^2/32);
+p2   = exp(-(x{2} - 16).^2/32);
+p3   = exp(-(x{3} - 12).^2/32);
+p0   = spm_cross(p1(:),p2(:));
+p0   = spm_cross(p0,p3(:));
+p0   = p0/sum(p0(:));
+
+% and corresponding polynomial coefficients
+%--------------------------------------------------------------------------
+[b,D]   = spm_polymtx(x,3);
+[nX,nb] = size(b);
+Sp      = (b\log(p0(:) + exp(-32)))*2;
+
+% Run system backwards in time to get initial state
+%--------------------------------------------------------------------------
+Ep    = NESS.Ep;
+Ep.G  = inv(M.W)/2;
+dt    = 1/8;
+for t = 1:25
+    dS = spm_NESS_ds(Sp,Ep,x);
+    Sp = Sp - dS*dt;
+    
+    p0 = spm_softmax(b*Sp);
+    p0 = reshape(p0,[N N N]);
+    subplot(2,1,1)
+    imagesc(x{2},x{1},squeeze(sum(p0,3)))
+    axis square xy
+    xlabel('2nd state'), ylabel('1st state')
+    title('NESS density','Fontsize',14)
+    drawnow
+    
+end
+
+% Run system forwards in time to nonequilibrium steady-state density
+%--------------------------------------------------------------------------
+dt    = 1/8
+for T = 1:8
+    P0    = 0;
+    for t = 1:16
+        
+        dS = spm_NESS_ds(Sp,Ep,x);
+        Sp = Sp + dS*dt;
+        
+        p0 = spm_softmax(b*Sp);
+        p0 = reshape(p0,[N N N]);
+        
+        P0 = P0 + p0*exp(-t/32);
+        
+        subplot(2,1,2)
+        imagesc(x{2},x{1},1 - squeeze(sum(p0,3)))
+        axis square xy
+        xlabel('2nd state'), ylabel('1st state')
+        title('NESS density','Fontsize',14)
+        drawnow
+        
+    end
+    
+    % plot epoch
+    %----------------------------------------------------------------------
+    subplot(4,4,T)
+    imagesc(x{2},x{1},1 - squeeze(sum(P0,3)))
+    axis square xy
+    xlabel('2nd state'), ylabel('1st state')
+    str = sprintf('t = %2.0f sec',T*16*dt);
+    title(str,'Fontsize',13)
+    drawnow
+
+end
+
+%% density dynamics as a function
+%--------------------------------------------------------------------------
+syms  x [1 n] 'real'
+syms  s [numel(Ep.Sp) 1] 'real'
+syms  h [numel(Ep.Sp) 1] 'real'
+syms  q [numel(Ep.Qp) 1] 'real'
+syms  G [1 n] 'real'
+
+% equations of motion as a Matlab function
+%--------------------------------------------------------------------------
+[b,D] = spm_polymtx({x1,x2,x3},3);
+Sp    = h;
+Ep.Sp = s;
+Ep.Qp = q;
+Ep.G  = diag(G);
+
+[dS,ds] = spm_NESS_ds(Sp,Ep,{x1,x2,x3});
 
 return
 
