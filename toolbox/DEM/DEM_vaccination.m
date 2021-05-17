@@ -411,3 +411,69 @@ sprintf('Dif %.0f (%.0f to %.0f)',d, d  - 1.64*sqrt(c1),d  + 1.64*sqrt(c1))
 return
 
 
+
+%% scenario modelling for increased transmissibility (80%) on 1 May 2021
+%==========================================================================
+clear
+DCM = load('DCM_UK.mat','DCM');
+DCM = DCM.DCM;
+
+% parametric intervention (relaxation social distancing threshold)
+%==========================================================================
+period = {DCM.M.date,'01-01-2022'};         % duration of epidemic
+
+% scenario one: relaxation of (third) lockdown on March 8, 2021
+%--------------------------------------------------------------------------
+NPI(1).period = period;
+NPI(1).param  = {'trn','trm'};
+NPI(1).Q      = [exp(DCM.Ep.trn + log(1.8)) exp(DCM.Ep.trm + log(1.8))];
+NPI(1).dates  = {'01-05-2021',period{2}};
+
+
+% unpack model and posterior expectations
+%--------------------------------------------------------------------------
+M   = DCM.M;                                 % model (priors)
+Ep  = DCM.Ep;                                % posterior expectation
+Cp  = DCM.Cp;                                % posterior covariances
+S   = DCM.Y;                                 % smooth timeseries
+U   = DCM.U;                                 % indices of outputs
+
+% plot epidemiological trajectories and hold plots
+%==========================================================================
+spm_figure('GetWin','states'); clf;
+%--------------------------------------------------------------------------
+M.T    = datenum(period{2},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
+u      = 1;
+[Z,X]  = spm_SARS_gen(Ep,M,u);
+spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+
+% the effect of intervention (NPI) on latent states
+%--------------------------------------------------------------------------
+for j = 1:2, subplot(3,2,j), hold on, end
+for j = 5:12,subplot(6,2,j), hold on, end
+[Z,X] = spm_SARS_gen(Ep,M,u,NPI);
+spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+
+spm_figure('GetWin','outcomes'); clf;
+%--------------------------------------------------------------------------
+subplot(2,1,1), hold on, u = 1;
+[m1,c1] = spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M);
+[m2,c2] = spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI);
+subplot(2,1,2), hold on, u = 14;
+spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M);
+spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI);
+
+m1  = m1(end);
+m2  = m2(end);
+c1  = c1(end);
+c2  = c2(end);
+d   = m1 - m2;
+
+sprintf('1st %.0f (%.0f to %.0f)',m1,m1 - 1.64*sqrt(c1),m1 + 1.64*sqrt(c1))
+sprintf('2nd %.0f (%.0f to %.0f)',m2,m2 - 1.64*sqrt(c2),m2 + 1.64*sqrt(c2))
+sprintf('Dif %.0f (%.0f to %.0f)',d, d  - 1.64*sqrt(c1),d  + 1.64*sqrt(c1))
+
+return
+
+
+

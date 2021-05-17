@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8098 2021-05-04 10:43:11Z karl $
+% $Id: spm_SARS_priors.m 8103 2021-05-17 09:48:20Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -257,7 +257,7 @@ P.s   = 2;                    % (12) time constant of contact rates
 %--------------------------------------------------------------------------
 P.Nin = 2;                    % (13) effective number of contacts: home
 P.Nou = 24;                   % (14) effective number of contacts: work
-P.trn = 0.3;                  % (15) transmission strength (winter)
+P.trn = 0.2;                  % (15) transmission strength (winter)
 P.trm = 0.2;                  % (16) transmission strength (summer)
 P.Tin = 4;                    % (17) infected period (days)
 P.Tcn = 4;                    % (18) infectious period (days)
@@ -330,15 +330,15 @@ C.Nin = W;                    % (13) effective number of contacts: home
 C.Nou = W;                    % (14) effective number of contacts: work
 C.trn = W;                    % (16) transmission strength (early)
 C.trm = W;                    % (15) transmission strength (late)
-C.Tin = X;                    % (17) infected period (days)
-C.Tcn = X;                    % (18) infectious period (days)
+C.Tin = Z;                    % (17) infected period (days)
+C.Tcn = Z;                    % (18) infectious period (days)
 C.Tim = X;                    % (19) seropositive immunity (months)
-C.res = W;                    % (20) seronegative immunity (proportion)
+C.res = X;                    % (20) seronegative immunity (proportion)
 
 % clinical parameters
 %--------------------------------------------------------------------------
-C.Tic = X;                    % (21) asymptomatic period (days)
-C.Tsy = X;                    % (22) symptomatic period  (days)
+C.Tic = Z;                    % (21) asymptomatic period (days)
+C.Tsy = Z;                    % (22) symptomatic period  (days)
 C.Trd = X;                    % (23) CCU period (days)
 C.sev = X;                    % (24) P(ARDS | symptoms): winter
 C.lat = X;                    % (25) P(ARDS | symptoms): summer

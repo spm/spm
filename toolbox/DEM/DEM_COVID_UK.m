@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8101 2021-05-08 15:01:43Z karl $
+% $Id: DEM_COVID_UK.m 8103 2021-05-17 09:48:20Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -476,12 +476,16 @@ Y(28).lag  = 1;
 Y(28).age  = 3;
 Y(28).hold = 0;
 
-
+j          = find(~ismember(surveyage.textdata(1,2:end),''));
+cj         = [mean(surveyage.data(end,j(1:3)),2);
+              mean(surveyage.data(end,j(4:5)),2);
+              mean(surveyage.data(end,j(6:7)),2)];
+cj         = survey.data(end,1)/( (N*cj)/sum(N) );
 Y(29).type = 'Prevalence < 25 (PHE)';  % Estimated positivity (England)
 Y(29).unit = 'percent';
 Y(29).U    = 11;
 Y(29).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
-Y(29).Y    = mean(surveyage.data(:,(1:24)*3 - 2),2);
+Y(29).Y    = mean(surveyage.data(:,j(1:3)),2)*100*cj;
 Y(29).h    = 0;
 Y(29).lag  = 0;
 Y(29).age  = 1;
@@ -491,7 +495,7 @@ Y(30).type = 'Prevalence 25-65 (PHE)'; % Estimated positivity (England)
 Y(30).unit = 'percent';
 Y(30).U    = 11;
 Y(30).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
-Y(30).Y    = mean(surveyage.data(:,(25:64)*3 - 2),2);
+Y(30).Y    = mean(surveyage.data(:,j(4:5)),2)*100*cj;
 Y(30).h    = 0;
 Y(30).lag  = 0;
 Y(30).age  = 2;
@@ -501,7 +505,7 @@ Y(31).type = 'Prevalence 25-, 25-65, 65+ (PHE)'; % Estimated positivity (England
 Y(31).unit = 'percent';
 Y(31).U    = 11;
 Y(31).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
-Y(31).Y    = mean(surveyage.data(:,(65:79)*3 - 2),2);
+Y(31).Y    = mean(surveyage.data(:,j(6:7)),2)*100*cj;
 Y(31).h    = 0;
 Y(31).lag  = 0;
 Y(31).age  = 3;
@@ -554,8 +558,8 @@ pC.lag  = lag;                 % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
-pE.tra  = zeros(1,8);          % transmission strength
-pC.tra  = ones(1,8)/256;       % prior variance
+pE.tra  = zeros(1,8) - 4;      % transmission strength
+pC.tra  = ones(1,8)/8;         % prior variance
 
 pE.pcr  = zeros(1,8);          % testing
 pC.pcr  = ones(1,8)/8;         % prior variance
@@ -873,7 +877,7 @@ leg = sprintf('%s (EIT: %.1f%s)',datestr(t(i),'dd-mmm-yy'),HIT(i),'%');
 plot(t,HIT,t,VAC), hold on
 plot(t(i)*[1,1],[0,100],':k'), set(gca,'YLim',[0,100])
 ylabel('percent'),  title(str,'FontSize',14)
-legend({'CI','Attack rate','CI','Population immunity','Effective immunity threshold','First vaccination'})
+legend({'CI','Attack rate','CI','Population immunity','Effective immunity threshold','Vaccine coverage'})
 legend boxoff
 text(t(i),8,leg,'FontSize',10), drawnow
 

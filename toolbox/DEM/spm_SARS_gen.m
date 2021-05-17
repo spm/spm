@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8101 2021-05-08 15:01:43Z karl $
+% $Id: spm_SARS_gen.m 8103 2021-05-17 09:48:20Z karl $
 
 
 % The generative model:
@@ -357,13 +357,12 @@ for i = 1:M.T
         
         % and fluctuation in transmissibility 
         %------------------------------------------------------------------
-        Ptra = 0;
+        Ptra = 1;
         if isfield(Q{n},'tra')
             for j = 1:numel(Q{n}.tra)
-                Ptra = Ptra + log(Q{n}.tra(j)) * cos(j*pi*i/512)/8;
+                Ptra = Ptra + Q{n}.tra(j) * erf((i - j*64)/32);
             end
         end
-        Ptra = exp(Ptra);
         Ptrn = Q{n}.trn*S + Q{n}.trm*(1 - S);    % seasonal risk
         Ptrn = erf(Ptrn*Ptra);                   % fluctuating risk
         
