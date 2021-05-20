@@ -154,19 +154,21 @@ dates  = d0:max(spm_vec(D.date));
 
 % free parameters of local model (fixed effects - seeding and fluctuations)
 %==========================================================================
-free  = {'n','pcr','mob'};
+free  = {'n','pcr','mob','tra','vac'};
 
-% (empirical) prior expectation
+% (empirical) priors: posterior expectations and prior covariance for
+% parameters
 %--------------------------------------------------------------------------
 pE    = PCM.Ep;
-
-% (empirical) prior covariances
-%--------------------------------------------------------------------------
 pC    = spm_zeros(PCM.M.pC);
 for i = 1:numel(free)
-    pE.(free{i}) = PCM.M.pE.(free{i});
     pC.(free{i}) = PCM.M.pC.(free{i});
 end
+
+% allow for increases in transmissibility due to new variants
+%--------------------------------------------------------------------------
+pE.tra(end) = 0;
+pC.tra(end) = 1;
 
 %%%% try, D   = D(1:8); end %%%%
 
@@ -308,7 +310,7 @@ for r = 1:numel(D)
     DI(:,r) = Y(:,2);                       % Prevalence of immunity
     DP(:,r) = Y(:,3);                       % Prevalence of infection (%)
     DC(:,r) = Y(:,4);                       % Infected, asymptomatic people
-    DT(:,r) = Y(:,5)*1000;                  % New daily cases per 100K
+    DT(:,r) = Y(:,5)*1000*7;                % New weekly cases per 100K
     CT(:,r) = cumsum(Y(:,5));               % cumulative incidence (%)
     
     % mean infectious period (MIP) & critical herd immunity threshold (CIT)
@@ -330,7 +332,7 @@ for r = 1:numel(D)
     str = sprintf('Undetected community cases: %.0f',   DC(end,r));
     text(0,0.7,str,'FontSize',10,'FontWeight','bold')
     
-    str = sprintf('Estimated new cases per day: %.0f per 100,000',  DT(end,r));
+    str = sprintf('Estimated new cases per week: %.0f per 100,000',  DT(end,r));
     if DT(end,r) > 100
         text(0,0.6,str,'FontSize',10,'FontWeight','bold','Color','r')
     elseif DT(end,r) < 10

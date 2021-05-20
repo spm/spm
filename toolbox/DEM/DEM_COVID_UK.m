@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8103 2021-05-17 09:48:20Z karl $
+% $Id: DEM_COVID_UK.m 8105 2021-05-20 10:10:28Z karl $
 
 % DCM.F 06/02/2021: -1.8784e+04
 
@@ -48,8 +48,6 @@ cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
 %--------------------------------------------------------------------------
 options = weboptions('ContentType','table');
 options.Timeout = 20;
-
-
 
 % download data and write to CSV files
 %--------------------------------------------------------------------------
@@ -127,7 +125,7 @@ writetable(tab(1:ndy,9:12),'mobility21.csv');
 %  '40_44','45_49','50_54','55_59','60_64','65_69','70_74','75_79', ...
 %  '80_84','85_89','90+'};
 N  = [3.86, 4.15, 3.95, 3.66, 4.15, 4.51, 4.50, 4.40, 4.02, 4.4, 4.66, ...
-    4.41, 3.76, 3.37, 3.32, 2.33, 1.72, 1.04, 0.61];
+      4.41, 3.76, 3.37, 3.32, 2.33, 1.72, 1.04, 0.61];
 
 % ONS age bands
 %--------------------------------------------------------------------------
@@ -558,11 +556,12 @@ pC.lag  = lag;                 % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
-pE.tra  = zeros(1,8) - 4;      % transmission strength
-pC.tra  = ones(1,8)/8;         % prior variance
+k       = ceil((datenum(date) - datenum(M.date))/64);
+pE.tra  = zeros(1,k) - 4;      % transmission strength
+pC.tra  = ones(1,k)/8;         % prior variance
 
-pE.pcr  = zeros(1,8);          % testing
-pC.pcr  = ones(1,8)/8;         % prior variance
+pE.pcr  = zeros(1,k);          % testing
+pC.pcr  = ones(1,k)/8;         % prior variance
 
 pE.mob  = zeros(1,16);         % mobility
 pC.mob  = ones(1,16)/8;        % prior variance

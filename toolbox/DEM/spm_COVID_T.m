@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8103 2021-05-17 09:48:20Z karl $
+% $Id: spm_COVID_T.m 8105 2021-05-20 10:10:28Z karl $
 
 % setup
 %==========================================================================
@@ -149,7 +149,7 @@ Pths = P.ths;                              % P(no transmission) | hospital
 
 Kimm = exp(-1/P.Tim);                      % loss of Ab+ immunity (per day)
 Kinn = exp(-1/512);                        % loss of Ab- immunity (per day)
-Vimm = exp(-1/512);                        % Loss of Ab+ vaccine  (per day)
+Vimm = exp(-1/1024);                       % Loss of Ab+ vaccine  (per day)
 
 Kinf = exp(-1/P.Tin);                      % infection rate
 Kcon = exp(-1/P.Tcn);                      % infectious rate
@@ -302,16 +302,12 @@ ij   = Bij({6,1:5,3,1:4},{6,1:5,1,1:4},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
 
-% fluctuations in testing rate (Fourier basis functions)
+% fluctuations in testing rate: Gaussian basis functions
 %--------------------------------------------------------------------------
-Ppcr = 0;                             
+Ppcr = 0;
 if isfield(P,'pcr')
     for i = 1:numel(P.pcr)
-        if i > numel(P.pcr)/2
-            Ppcr = Ppcr + log(P.pcr(i)) * cos(2*i*pi*P.t/365)/8;
-        else
-            Ppcr = Ppcr + log(P.pcr(i)) * sin(2*i*pi*P.t/365)/8;
-        end
+        Ppcr = Ppcr + log(P.pcr(i)) * exp(-(P.t - i*64)^2/1024);
     end
 end
 Ppcr = exp(Ppcr);

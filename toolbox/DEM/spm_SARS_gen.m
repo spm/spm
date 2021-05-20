@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8103 2021-05-17 09:48:20Z karl $
+% $Id: spm_SARS_gen.m 8105 2021-05-20 10:10:28Z karl $
 
 
 % The generative model:
@@ -273,7 +273,7 @@ Z     = cell(nN,1);                    % joint densities at each time point
 W     = cell(nN,1);                    % time-dependent parameters
 r     = cell(nN,1);                    % probability of lockdown levels
 pvac  = zeros(n,1);
-Vimm  = exp(-1/512);
+Vimm  = exp(-1/1024);
 for n = 1:nN
     r{n} = [1;0];
 end
@@ -326,7 +326,7 @@ for i = 1:M.T
         %------------------------------------------------------------------
         % Q{n}.rol(1) = Q{1}.rol(1);
         
-        % fluctuations in contact rates (mobility)
+        % fluctuations in contact rates (mobility): annual duty cycle
         %------------------------------------------------------------------
         Rout = 0;
         if isfield(P,'mob')
@@ -355,12 +355,12 @@ for i = 1:M.T
         %------------------------------------------------------------------
         S    = (1 + cos(2*pi*(i - log(Q{n}.inn)*8)/365))/2;
         
-        % and fluctuation in transmissibility 
+        % and fluctuation in transmissibility: cumulative error functions 
         %------------------------------------------------------------------
         Ptra = 1;
         if isfield(Q{n},'tra')
             for j = 1:numel(Q{n}.tra)
-                Ptra = Ptra + Q{n}.tra(j) * erf((i - j*64)/32);
+                Ptra = Ptra + Q{n}.tra(j) * (1 + erf((i - j*64)/32));
             end
         end
         Ptrn = Q{n}.trn*S + Q{n}.trm*(1 - S);    % seasonal risk
