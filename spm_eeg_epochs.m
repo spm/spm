@@ -49,9 +49,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 7125 2017-06-23 09:49:29Z guillaume $
+% $Id: spm_eeg_epochs.m 8106 2021-05-20 12:36:30Z vladimir $
 
-SVNrev = '$Rev: 7125 $';
+SVNrev = '$Rev: 8106 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -199,6 +199,13 @@ if S.bc
     end
 end
 
+
+events_new = cell(1, ntrial);
+events_old = D.events;
+if ~isempty(events_old)      
+    [times,ind] = sort([events_old(:).time]);
+end
+
 %-Epoch data
 %--------------------------------------------------------------------------
 fprintf('%-40s: %30s\n','Baseline correction',num2str(S.bc));           %-#
@@ -206,7 +213,7 @@ fprintf('%-40s: %30s\n','Number of trials',num2str(ntrial));            %-#
 spm_progress_bar('Init', ntrial, 'Trials completed');
 if ntrial > 100, Ibar = floor(linspace(1, ntrial, 100));
 else Ibar = [1:ntrial]; end
-
+   
 for i = 1:ntrial
     if isTF
         d = D(:, :, trl(i, 1):trl(i, 2), 1);
@@ -222,10 +229,17 @@ for i = 1:ntrial
         Dnew(:, :, i) = d;
     end
     
-    Dnew = events(Dnew, i, select_events(D.events, ...
-        D.trialonset+[trl(i, 1)/D.fsample-S.eventpadding  trl(i, 2)/D.fsample+S.eventpadding]));
+    if ~isempty(events_old)
+        timeseg       = D.trialonset+[trl(i, 1)/D.fsample-S.eventpadding  trl(i, 2)/D.fsample+S.eventpadding];
+        selectind     = ind(times >= timeseg(1) & times <= timeseg(2));
+        events_new{i} = events_old(selectind);
+    end           
     
     if any(Ibar == i), spm_progress_bar('Set', i); end
+end
+
+if ~isempty(events_old)
+    Dnew = events(Dnew, ':', events_new);
 end
 
 Dnew = conditions(Dnew, ':', conditionlabels);
@@ -248,19 +262,7 @@ save(D);
 
 %-Cleanup
 %--------------------------------------------------------------------------
+clear select_events
 spm_progress_bar('Clear');
 fprintf('%-40s: %30s\n','Completed',spm('time'));                       %-#
 spm('FigName','M/EEG epoching: done'); spm('Pointer','Arrow');
-
-
-%==========================================================================
-function event = select_events(event, timeseg)
-% Utility function to select events according to time segment
-
-if ~isempty(event)
-    [time,ind] = sort([event(:).time]);
-
-    selectind  = ind(time >= timeseg(1) & time <= timeseg(2));
-
-    event      = event(selectind);
-end
