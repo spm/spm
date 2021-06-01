@@ -18,10 +18,10 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,5)  - Seropositive immunity (%)
 % Y(:,6)  - PCR testing rate
 % Y(:,7)  - Contagion risk (%)
-% Y(:,8)  - Prevalence: contagious {%}
+% Y(:,8)  - Prevalence: infectious {%}
 % Y(:,9)  - Daily contacts
 % Y(:,10) - Daily incidence (%)
-% Y(:,11) - Prevalence: infected (%)
+% Y(:,11) - Prevalence: infection (%)
 % Y(:,12) - Number symptomatic
 % Y(:,13) - Mobility (%)
 % Y(:,14) - Retail (%)
@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8105 2021-05-20 10:10:28Z karl $
+% $Id: spm_SARS_gen.m 8108 2021-06-01 14:20:26Z karl $
 
 
 % The generative model:
@@ -273,7 +273,7 @@ Z     = cell(nN,1);                    % joint densities at each time point
 W     = cell(nN,1);                    % time-dependent parameters
 r     = cell(nN,1);                    % probability of lockdown levels
 pvac  = zeros(n,1);
-Vimm  = exp(-1/1024);
+Vimm  = exp(-1/Q{n}.vac);
 for n = 1:nN
     r{n} = [1;0];
 end
@@ -331,11 +331,14 @@ for i = 1:M.T
         Rout = 0;
         if isfield(P,'mob')
             for j = 1:numel(Q{n}.mob)
-                if j > numel(Q{n}.mob)/2
-                    Rout = Rout + log(Q{n}.mob(j)) * cos(2*j*pi*i/365)/8;
-                else
-                    Rout = Rout + log(Q{n}.mob(j)) * sin(2*j*pi*i/365)/8;
-                end
+                % if j > numel(Q{n}.mob)/2
+                %    Rout = Rout + log(Q{n}.mob(j)) * cos(2*j*pi*i/365)/8;
+                % else
+                %    Rout = Rout + log(Q{n}.mob(j)) * sin(2*j*pi*i/365)/8;
+                % end
+                % radial basis functions
+                %------------------------------------------------------------------
+                Rout = Rout + log(Q{n}.mob(j)) * exp(-(i - j*32).^2/256)/8;
             end
         end
         
@@ -355,7 +358,7 @@ for i = 1:M.T
         %------------------------------------------------------------------
         S    = (1 + cos(2*pi*(i - log(Q{n}.inn)*8)/365))/2;
         
-        % and fluctuation in transmissibility: cumulative error functions 
+        % and fluctuations in transmissibility: cumulative error functions 
         %------------------------------------------------------------------
         Ptra = 1;
         if isfield(Q{n},'tra')
@@ -363,7 +366,7 @@ for i = 1:M.T
                 Ptra = Ptra + Q{n}.tra(j) * (1 + erf((i - j*64)/32));
             end
         end
-        Ptrn = Q{n}.trn*S + Q{n}.trm*(1 - S);    % seasonal risk
+        Ptrn = Q{n}.trn + Q{n}.trm*S;            % seasonal risk
         Ptrn = erf(Ptrn*Ptra);                   % fluctuating risk
         
         % contact rates
@@ -462,11 +465,11 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Y{n}(i,11) = 100 * (p{n}{2}(2) + p{n}{2}(3));
         
-        % number of symptomatic people
+        % number of symptomatic people: (estimate of prevalence)
         %------------------------------------------------------------------
         q          = p{n}{3}(2);
         if isfield(Q{n},'sy')
-            Y{n}(i,12) = N(n) * Q{n}.sy(1)*q^Q{n}.sy(2);
+            Y{n}(i,12) = N(n) * Q{n}.sy*q;
         else
             Y{n}(i,12) = N(n) * q;
         end
@@ -524,7 +527,7 @@ for i = 1:M.T
         
         % cumulative number of people (first dose) vaccinated (%)
         %------------------------------------------------------------------
-        Y{n}(i,22) = 100 * (p{n}{2}(6) + pvac(n))/Q{n}.vac;
+        Y{n}(i,22) = 100 * (p{n}{2}(6) + pvac(n));
         pvac(n)    = pvac(n) + p{n}{2}(6)*(1 - Vimm);
         
         % PCR case positivity (%)(seven day rolling average)

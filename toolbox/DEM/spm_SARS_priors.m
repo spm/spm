@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8103 2021-05-17 09:48:20Z karl $
+% $Id: spm_SARS_priors.m 8108 2021-06-01 14:20:26Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -78,12 +78,12 @@ if nargin
     %----------------------------------------------------------------------
     P.N   = P.N - log(nN);
     P.n   = P.n - 8;
-    P.rol = log([0.01  (390 + 128) 128;
-                 0.02  (390 + 64)  64;
-                 0.04  (390 + 0  ) 32]);
-    C.rol = [1/64 1/256 1/256;
-             1/64 1/256 1/256;
-             1/64 1/256 1/256];
+    P.rol = log([0.01  (365 + 128) 64  0.01;
+                 0.02  (365 + 64 ) 32  0.02;
+                 0.04  (365 + 0  ) 16  0.04]);
+    C.rol = [1/64 1/256 1/256 1/64;
+             1/64 1/256 1/256 1/64;
+             1/64 1/256 1/256 1/64];
     P.sev = log([0.00002;
                  0.002;
                  0.03]);
@@ -127,8 +127,8 @@ names{12} = 'decay of social distancing';
 %--------------------------------------------------------------------------
 names{13} = 'contacts: home';
 names{14} = 'contacts: work';
-names{15} = 'transmission (early)';
-names{16} = 'transmission (late)';
+names{15} = 'transmission strength';
+names{16} = 'seasonality';
 names{17} = 'infected period   (days)';
 names{18} = 'infectious period (days)';
 names{19} = 'loss of immunity  (days)';
@@ -150,7 +150,7 @@ names{28} = 'FTTI efficacy';
 names{29} = 'testing: bias (early)';
 names{30} = 'testing: bias (late)';
 names{31} = 'test delay (days)';
-names{32} = 'vaccine efficacy';
+names{32} = 'vaccine constant (days)';
 names{33} = 'false-negative rate';
 names{34} = 'false-positive rate';
 
@@ -251,14 +251,14 @@ P.qua = 64;                   % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 0.8;                  % (10) admission rate (hospital)
 P.ccu = 0.2;                  % (11) admission rate (CCU)
-P.s   = 2;                    % (12) time constant of contact rates
+P.s   = 2;                    % (12) exponent of contact rates
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
 P.Nin = 2;                    % (13) effective number of contacts: home
 P.Nou = 24;                   % (14) effective number of contacts: work
-P.trn = 0.2;                  % (15) transmission strength (winter)
-P.trm = 0.2;                  % (16) transmission strength (summer)
+P.trn = 0.2;                  % (15) transmission strength (secondary attack rate)
+P.trm = 0.04;                 % (16) seasonality
 P.Tin = 4;                    % (17) infected period (days)
 P.Tcn = 4;                    % (18) infectious period (days)
 P.Tim = 128;                  % (19) seropositive immunity (days)
@@ -281,7 +281,7 @@ P.ttt = 0.036;                % (28) FTTI efficacy
 P.tes = [16 8];               % (29) bias (for infection): PCR (Pill. 1 & 2)
 P.tts = 1;                    % (30) bias (for infection): LFD
 P.del = 3;                    % (31) test delay (days)
-P.vac = 0.6;                  % (32) vaccine efficacy
+P.vac = 1024;                 % (32) vaccination time constant (days)
 P.fnr = [0.2 0.1];            % (33) false-negative rate  (infected/ious]
 P.fpr = [0.002 0.02];         % (34) false-positive rate: (Sus. and Ab +ve)
 
@@ -292,7 +292,7 @@ P.ons = [100 200 300 400];    % (37) testing: onset
 P.lag = [1 1];                % (38) reporting lag
 P.inn = 1;                    % (39) seasonal phase
 P.mem = 256;                  % (40) unlocking time constant
-P.rol = [0.01 365 8];         % (41) vaccination rollout
+P.rol = [0.02 365 32 0.02];   % (41) vaccination rollout
 
 
 % infection fatality (for susceptible population)
@@ -328,8 +328,8 @@ C.s   = W;                    % (12) decay of social distancing
 %--------------------------------------------------------------------------
 C.Nin = W;                    % (13) effective number of contacts: home
 C.Nou = W;                    % (14) effective number of contacts: work
-C.trn = W;                    % (16) transmission strength (early)
-C.trm = W;                    % (15) transmission strength (late)
+C.trn = X;                    % (16) transmission strength
+C.trm = W;                    % (15) seasonality
 C.Tin = Z;                    % (17) infected period (days)
 C.Tcn = Z;                    % (18) infectious period (days)
 C.Tim = X;                    % (19) seropositive immunity (months)
@@ -351,7 +351,7 @@ C.ttt = X;                    % (28) FTTI efficacy
 C.tes = V;                    % (29) testing: bias (early)
 C.tts = V;                    % (30) testing: bias (late)
 C.del = X;                    % (31) test delay (days)
-C.vac = Z;                    % (32) vaccine efficacy
+C.vac = W;                    % (32) vaccine efficacy
 C.fnr = W;                    % (33) false-negative rate
 C.fpr = W;                    % (34) false-positive rate
 

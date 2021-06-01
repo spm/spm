@@ -445,7 +445,7 @@ spm_figure('GetWin','states'); clf;
 M.T    = datenum(period{2},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
 u      = 1;
 [Z,X]  = spm_SARS_gen(Ep,M,u);
-spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+spm_SARS_plot(Z,X,S(:,find(U == u(1))),u)
 
 % the effect of intervention (NPI) on latent states
 %--------------------------------------------------------------------------
