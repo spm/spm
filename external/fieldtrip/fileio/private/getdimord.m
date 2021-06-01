@@ -417,7 +417,50 @@ switch field
     end
     
   case {'mom' 'itc' 'aa' 'stat','pval' 'statitc' 'pitc'}
-    if isequal(datsiz, [npos nori nrpt])
+    % first are a few bivariate cases, mainly for source-level connectivity
+    if isequal(datsiz, [npos npos nori nrpt])
+      dimord = 'pos_pos_ori_rpt';
+    elseif isequal(datsiz, [npos npos nori ntime])
+      dimord = 'pos_pos_ori_time';
+    elseif isequal(datsiz, [npos npos nori nfreq])
+      dimord = 'pos_pos_ori_nfreq';
+    elseif isequal(datsiz, [npos npos ntime])
+      dimord = 'pos_pos_time';
+    elseif isequal(datsiz, [npos npos nfreq])
+      dimord = 'pos_pos_freq';
+    elseif isequal(datsiz, [npos npos 3])
+      dimord = 'pos_pos_ori';
+    elseif isequal(datsiz, [npos npos 1])
+      dimord = 'pos_pos';
+    elseif isequal(datsiz, [npos npos nrpt])
+      dimord = 'pos_pos_rpt';
+    elseif isequalwithoutnans(datsiz, [npos npos nori nrpt])
+      dimord = 'pos_pos_ori_rpt';
+    elseif isequalwithoutnans(datsiz, [npos npos nori nrpttap])
+      dimord = 'pos_pos_ori_rpttap';
+    elseif isequalwithoutnans(datsiz, [npos npos nori ntime])
+      dimord = 'pos_pos_ori_time';
+    elseif isequalwithoutnans(datsiz, [npos npos nori nfreq])
+      dimord = 'pos_pos_ori_nfreq';
+    elseif isequalwithoutnans(datsiz, [npos npos ntime])
+      dimord = 'pos_pos_time';
+    elseif isequalwithoutnans(datsiz, [npos npos nfreq])
+      dimord = 'pos_pos_freq';
+    elseif isequalwithoutnans(datsiz, [npos npos 3])
+      dimord = 'pos_pos_ori';
+    elseif isequalwithoutnans(datsiz, [npos npos 1])
+      dimord = 'pos_pos';
+    elseif isequalwithoutnans(datsiz, [npos npos nrpt])
+      dimord = 'pos_pos_rpt';
+    elseif isequalwithoutnans(datsiz, [npos npos nrpt nori ntime])
+      dimord = 'pos_pos_rpt_ori_time';
+    elseif isequalwithoutnans(datsiz, [npos npos nrpt 1 ntime])
+      dimord = 'pos_pos_rpt_ori_time';
+    elseif isequal(datsiz, [npos npos nfreq ntime])
+      dimord = 'pos_pos_freq_time';
+    
+    % then there are a few univariate cases
+    elseif isequal(datsiz, [npos nori nrpt])
       dimord = 'pos_ori_rpt';
     elseif isequal(datsiz, [npos nori ntime])
       dimord = 'pos_ori_time';
@@ -457,6 +500,10 @@ switch field
       dimord = 'pos_rpt_ori_time';
     elseif isequal(datsiz, [npos nfreq ntime])
       dimord = 'pos_freq_time';
+    elseif isequal(datsiz, [ndim1 ndim2 ndim3 nori ntime])
+      dimord = 'dim1_dim2_dim3_ori_time';
+    elseif isequal(datsiz, [ndim1 ndim2 ndim3 nori nfreq])
+      dimord = 'dim1_dim2_dim3_ori_freq';
     end
     
   case {'filter'}
@@ -555,9 +602,14 @@ switch field
 end % switch field
 
 % deal with possible first pos which is a cell
-if exist('dimord', 'var') && strcmp(dimord(1:3), 'pos') && iscell(data.(field))
-  dimord = ['{pos}' dimord(4:end)];
+if exist('dimord', 'var') && iscell(data.(field))
+  if startsWith(dimord, 'pos_pos')
+    dimord = ['{pos_pos}' dimord(8:end)];
+  elseif startsWith(dimord, 'pos')
+    dimord = ['{pos}' dimord(4:end)];
+  end
 end
+
 
 if ~exist('dimord', 'var')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -590,6 +642,7 @@ if ~exist('dimord', 'var')
     return
   end
 end % if dimord does not exist
+
 
 if ~exist('dimord', 'var')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -633,6 +686,7 @@ if ~exist('dimord', 'var')
   end
 end % if dimord does not exist
 
+
 if ~exist('dimord', 'var')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % ATTEMPT 6: check whether it is a 3-D volume
@@ -640,12 +694,20 @@ if ~exist('dimord', 'var')
   if isequal(datsiz, [ndim1 ndim2 ndim3])
     dimord = 'dim1_dim2_dim3';
     return
+  elseif isequal(datsiz, [ndim1 ndim2 ndim3 ntime])
+    dimord = 'dim1_dim2_dim3_time';
+    return
+  elseif isequal(datsiz, [ndim1 ndim2 ndim3 nfreq])
+    dimord = 'dim1_dim2_dim3_freq';
+    return
+  elseif isequal(datsiz, [ndim1 ndim2 ndim3 nfreq ntime])
+    dimord = 'dim1_dim2_dim3_freq_time';
+    return
   elseif isfield(data, 'pos') && prod(datsiz)==size(data.pos, 1)
     dimord = 'dim1_dim2_dim3';
     return
   end
 end % if dimord does not exist
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -706,7 +768,7 @@ else
 end
 
 msg = sprintf('%s\n\n%s', msg, content);
-ft_warning(msg);
+ft_warning('FieldTrip:getdimord:warning_dimord_could_not_be_determined', msg);
 end % function warning_dimord_could_not_be_determined
 
 

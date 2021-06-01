@@ -72,5 +72,3 @@ while ~isempty(S1)
 
 end % ~isempty(S1)
 
-fclose(fid);
-

@@ -30,10 +30,10 @@ function [cfg] = ft_databrowser(cfg, data)
 %   cfg.allowoverlap            = 'yes' or 'no', whether data that is overlapping in multiple trials is allowed (default = 'no')
 %   cfg.channel                 = cell-array with channel labels, see FT_CHANNELSELECTION
 %   cfg.channelclamped          = cell-array with channel labels, that when using the 'vertical' viewmode will always be shown at the bottom. This is useful for showing ECG/EOG channels along with the other channels
-%   cfg.compscale               = string, 'global' or 'local', defines whether the colormap for the topographic scaling is applied per topography or on all visualized components (default 'global')
-%   cfg.viewmode                = string, 'butterfly', 'vertical', 'component' for visualizing ICA/PCA components (default is 'butterfly')
+%   cfg.compscale               = string, 'global' or 'local', defines whether the colormap for the topographic scaling is applied per topography or on all visualized components (default = 'local')
+%   cfg.viewmode                = string, 'vertical', 'butterfly', or 'component' for visualizing ICA/PCA topographies together with the timecourses (default = 'vertical')
 %   cfg.plotlabels              = 'yes', 'no' or 'some', whether to plot channel labels in vertical viewmode. The option 'some' plots one label for every ten channels, which is useful if there are many channels (default = 'some')
-%   cfg.plotevents              = 'no' or 'yes', whether to plot event markers. (default is 'yes')
+%   cfg.plotevents              = 'no' or 'yes', whether to plot event markers (default = 'yes')
 %   cfg.ploteventlabels         = 'type=value', 'colorvalue' (default = 'type=value')
 %   cfg.artfctdef.xxx.artifact  = Nx2 matrix with artifact segments see FT_ARTIFACT_xxx functions
 %   cfg.selectfeature           = string, name of feature to be selected/added (default = 'visual')
@@ -162,6 +162,7 @@ hasdata = exist('data', 'var');
 hascomp = hasdata && ft_datatype(data, 'comp'); % can be 'raw+comp' or 'timelock+comp'
 
 % check if the input cfg is valid for this function
+cfg = ft_checkconfig(cfg, 'forbidden',  {'channels'}); % prevent accidental typos, see issue 1729
 cfg = ft_checkconfig(cfg, 'unused',     {'comps', 'inputfile', 'outputfile'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'zscale', 'ylim'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'ylim', 'auto', 'maxabs'});
@@ -208,7 +209,7 @@ cfg.plotlabels          = ft_getopt(cfg, 'plotlabels', 'some');
 cfg.event               = ft_getopt(cfg, 'event');                       % this only exists for backward compatibility and should not be documented
 cfg.continuous          = ft_getopt(cfg, 'continuous');                  % the default is set further down in the code, conditional on the input data
 cfg.precision           = ft_getopt(cfg, 'precision', 'double');
-cfg.compscale           = ft_getopt(cfg, 'compscale', 'global');
+cfg.compscale           = ft_getopt(cfg, 'compscale', 'local');
 cfg.renderer            = ft_getopt(cfg, 'renderer');
 cfg.fontsize            = ft_getopt(cfg, 'fontsize', 12);
 cfg.fontunits           = ft_getopt(cfg, 'fontunits', 'points');         % inches, centimeters, normalized, points, pixels
@@ -248,7 +249,7 @@ headeropt  = ft_setopt(headeropt, 'coilaccuracy',   ft_getopt(cfg, 'coilaccuracy
 headeropt  = ft_setopt(headeropt, 'checkmaxfilter', ft_getopt(cfg, 'checkmaxfilter'));      % this allows to read non-maxfiltered neuromag data recorded with internal active shielding
 headeropt  = ft_setopt(headeropt, 'chantype',       ft_getopt(cfg, 'chantype', {}));        % 2017.10.10 AB required for NeuroOmega files
 
-if ~isfield(cfg, 'viewmode')
+if isempty(ft_getopt(cfg, 'viewmode'))
   % can be 'butterfly', 'vertical', or 'component'
   if hascomp
     cfg.viewmode = 'component';
@@ -257,8 +258,8 @@ if ~isfield(cfg, 'viewmode')
   end
 end
 
-if ~isfield(cfg, 'colorgroups')
-  % can be 'sequential', 'allblack', 'labelcharx', 'chantype', or a vector with the length of the number of channels defining the groups
+if isempty(ft_getopt(cfg, 'colorgroups'))
+  % can be 'sequential', 'allblack', 'labelcharN', 'chantype', or a vector with the length of the number of channels defining the groups
   if hascomp
     cfg.colorgroups = 'allblack';
   else
@@ -273,7 +274,6 @@ if ~isempty(cfg.chanscale)
   elseif numel(cfg.channel) ~= numel(cfg.chanscale)
     ft_error('cfg.chanscale should have the same number of elements as cfg.channel');
   end
-  
   % make sure chanscale is a column vector, not a row vector
   cfg.chanscale = cfg.chanscale(:);
 end
@@ -283,7 +283,7 @@ if ~isempty(cfg.mychanscale) && ~isfield(cfg, 'mychan')
   cfg.mychanscale = [];
 end
 
-if ~isfield(cfg, 'channel')
+if isempty(ft_getopt(cfg, 'channel'))
   if hascomp
     if size(data.topo,2)>9
       cfg.channel = 1:10;
@@ -297,8 +297,11 @@ end
 
 if strcmp(cfg.viewmode, 'component')
   % read or create the layout that will be used for the topoplots
-  tmpcfg = keepfields(cfg, {'layout', 'channel', 'rows', 'columns', 'commentpos', 'skipcomnt', 'scalepos', 'skipscale', 'projection', 'viewpoint', 'rotate', 'width', 'height', 'elec', 'grad', 'opto', 'showcallinfo'});
+  tmpcfg = keepfields(cfg, {'layout', 'rows', 'columns', 'commentpos', 'skipcomnt', 'scalepos', 'skipscale', 'projection', 'viewpoint', 'rotate', 'width', 'height', 'elec', 'grad', 'opto', 'showcallinfo'});
   if hasdata
+    % select those channels from the layout that are relevant for the
+    % decomposition that is being plotted
+    tmpcfg.channel = data.topolabel;
     cfg.layout = ft_prepare_layout(tmpcfg, data);
   else
     cfg.layout = ft_prepare_layout(tmpcfg);
@@ -690,66 +693,71 @@ if any(strcmp(cfg.viewmode, {'component', 'vertical'}))
   set(h, 'ReSizeFcn',           @resize_cb); % resize will now trigger redraw and replotting of labels
 end
 
-% make the user interface elements for the data view
-uicontrol('tag', 'labels',  'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', opt.trialviewtype, 'userdata', 't')
-uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '<', 'userdata', 'leftarrow')
-uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '>', 'userdata', 'rightarrow')
-
-if strcmp(cfg.viewmode, 'component')
-  uicontrol('tag', 'labels',  'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'component', 'userdata', 'c')
+if ~isempty(findobj(h, 'tag', 'navigateui'))
+  % assume that the graphical user interface elements are already present
+  % this speeds up plottingin cases like this https://www.fieldtriptoolbox.org/example/video_eeg/
+  
 else
-  uicontrol('tag', 'labels',  'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'channel', 'userdata', 'c')
-end
-
-uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '<', 'userdata', 'uparrow')
-uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '>', 'userdata', 'downarrow')
-
-uicontrol('tag', 'labels',  'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'horizontal', 'userdata', 'h')
-uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '-', 'userdata', 'shift+leftarrow')
-uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '+', 'userdata', 'shift+rightarrow')
-
-uicontrol('tag', 'labels',  'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'vertical', 'userdata', 'v')
-uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '-', 'userdata', 'shift+downarrow')
-uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '+', 'userdata', 'shift+uparrow')
-
-% legend artifacts/features
-for iArt = 1:length(artlabel)
-  uicontrol('tag', 'artifactui', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', artlabel{iArt}, 'userdata', num2str(iArt), 'position', [0.91, 0.9 - ((iArt-1)*0.09), 0.08, 0.04], 'backgroundcolor', opt.artifactcolors(iArt,:))
-  uicontrol('tag', 'artifactui', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '<', 'userdata', ['shift+' num2str(iArt)], 'position', [0.91, 0.855 - ((iArt-1)*0.09), 0.03, 0.04], 'backgroundcolor', opt.artifactcolors(iArt,:))
-  uicontrol('tag', 'artifactui', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '>', 'userdata', ['control+' num2str(iArt)], 'position', [0.96, 0.855 - ((iArt-1)*0.09), 0.03, 0.04], 'backgroundcolor', opt.artifactcolors(iArt,:))
-end
-if length(artlabel)>1 % highlight the first one as active
-  arth = findobj(h, 'tag', 'artifactui');
-  arth = arth(end:-1:1); % order is reversed so reverse it again
-  hsel = [1 2 3] + (opt.artsel-1) .*3;
-  set(arth(hsel), 'fontweight', 'bold')
-end
-
-if true % strcmp(cfg.viewmode, 'butterfly')
-  % button to find label of nearest channel to datapoint
-  uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'identify', 'userdata', 'i', 'position', [0.91, 0.1, 0.08, 0.05], 'backgroundcolor', [1 1 1])
-end
-
-% 'edit preproc'-button
-uicontrol('tag', 'preproccfg', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'cfg.preproc', 'position', [0.91, 0.55 - ((iArt-1)*0.09), 0.08, 0.04], 'callback', @preproc_cfg1_cb)
-
-ft_uilayout(h, 'tag', 'labels',  'width', 0.10, 'height', 0.05);
-ft_uilayout(h, 'tag', 'buttons', 'width', 0.05, 'height', 0.05);
-
-ft_uilayout(h, 'tag', 'labels',     'style', 'pushbutton', 'callback', @keyboard_cb);
-ft_uilayout(h, 'tag', 'buttons',    'style', 'pushbutton', 'callback', @keyboard_cb);
-ft_uilayout(h, 'tag', 'artifactui', 'style', 'pushbutton', 'callback', @keyboard_cb);
-
-ft_uilayout(h, 'tag', 'labels',  'retag', 'viewui');
-ft_uilayout(h, 'tag', 'buttons', 'retag', 'viewui');
-ft_uilayout(h, 'tag', 'viewui', 'BackgroundColor', [0.8 0.8 0.8], 'hpos', 'auto', 'vpos', 0);
-
-% add a menu to the figure, but only if the current figure does not have subplots
-tmpcfg = cfg;
-if hasdata && isfield(data, 'cfg')
-  tmpcfg.previous = data.cfg;
-end
-menu_fieldtrip(h, tmpcfg, false);
+  % plot the graphical user interface elements
+  uicontrol('tag', 'labels',  'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', opt.trialviewtype, 'userdata', 't')
+  uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '<', 'userdata', 'leftarrow')
+  uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '>', 'userdata', 'rightarrow')
+  
+  if strcmp(cfg.viewmode, 'component')
+    uicontrol('tag', 'labels',  'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'component', 'userdata', 'c')
+  else
+    uicontrol('tag', 'labels',  'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'channel', 'userdata', 'c')
+  end
+  
+  uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '<', 'userdata', 'uparrow')
+  uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '>', 'userdata', 'downarrow')
+  
+  uicontrol('tag', 'labels',  'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'horizontal', 'userdata', 'h')
+  uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '-', 'userdata', 'shift+leftarrow')
+  uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '+', 'userdata', 'shift+rightarrow')
+  
+  uicontrol('tag', 'labels',  'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'vertical', 'userdata', 'v')
+  uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '-', 'userdata', 'shift+downarrow')
+  uicontrol('tag', 'buttons', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '+', 'userdata', 'shift+uparrow')
+  
+  % legend artifacts/features
+  for iArt = 1:length(artlabel)
+    uicontrol('tag', 'artifactui', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', artlabel{iArt}, 'userdata',  num2str(iArt),  'position', [0.91, 0.900 - ((2+iArt-1)*0.09), 0.08, 0.04], 'backgroundcolor', opt.artifactcolors(iArt,:))
+    uicontrol('tag', 'artifactui', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '<', 'userdata', ['shift+'   num2str(iArt)], 'position', [0.91, 0.855 - ((2+iArt-1)*0.09), 0.03, 0.04], 'backgroundcolor', opt.artifactcolors(iArt,:))
+    uicontrol('tag', 'artifactui', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '>', 'userdata', ['control+' num2str(iArt)], 'position', [0.96, 0.855 - ((2+iArt-1)*0.09), 0.03, 0.04], 'backgroundcolor', opt.artifactcolors(iArt,:))
+  end
+  if length(artlabel)>1 % highlight the first one as active
+    arth = findobj(h, 'tag', 'artifactui');
+    arth = arth(end:-1:1); % order is reversed so reverse it again
+    hsel = [1 2 3] + (opt.artsel-1) .*3;
+    set(arth(hsel), 'fontweight', 'bold')
+  end
+  
+  % preproc button - allows updating the preprocessing options on the fly
+  uicontrol('parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'preproc', 'userdata', 'p', 'position', [0.91, 0.88, 0.08, 0.04], 'callback', @keyboard_cb)
+  
+  % identify button - to find label of nearest channel to datapoint
+  uicontrol('parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'identify', 'userdata', 'i', 'position', [0.91, 0.83, 0.08, 0.04], 'callback', @keyboard_cb)
+  
+  ft_uilayout(h, 'tag', 'labels',  'width', 0.10, 'height', 0.05);
+  ft_uilayout(h, 'tag', 'buttons', 'width', 0.05, 'height', 0.05);
+  
+  ft_uilayout(h, 'tag', 'labels',     'style', 'pushbutton', 'callback', @keyboard_cb);
+  ft_uilayout(h, 'tag', 'buttons',    'style', 'pushbutton', 'callback', @keyboard_cb);
+  ft_uilayout(h, 'tag', 'artifactui', 'style', 'pushbutton', 'callback', @keyboard_cb);
+  
+  ft_uilayout(h, 'tag', 'labels',  'retag', 'navigateui'); % this renames the existing tags
+  ft_uilayout(h, 'tag', 'buttons', 'retag', 'navigateui'); % this renames the existing tags
+  ft_uilayout(h, 'tag', 'navigateui', 'BackgroundColor', [0.8 0.8 0.8], 'hpos', 'auto', 'vpos', 0);
+  
+  % add a menu to the figure, but only if the current figure does not have subplots
+  tmpcfg = cfg;
+  if hasdata && isfield(data, 'cfg')
+    tmpcfg.previous = data.cfg;
+  end
+  menu_fieldtrip(h, tmpcfg, false);
+  
+end % if findobj pushbutton
 
 definetrial_cb(h);
 redraw_cb(h);
@@ -1024,10 +1032,10 @@ if isempty(cmenulab)
         ft_error('cfg.selectmode = ''markpeakevent'' and ''marktroughevent'' only supported with 1 channel in the data')
       end
       if strcmp(cfg.selectmode, 'markpeakevent')
-        [dum ind_minmax] = max(dat(begsel-begsample+1:endsel-begsample+1));
+        [dum, ind_minmax] = max(dat(begsel-begsample+1:endsel-begsample+1));
         val = 'peak';
       elseif strcmp(cfg.selectmode, 'marktroughevent')
-        [dum ind_minmax] = min(dat(begsel-begsample+1:endsel-begsample+1));
+        [dum, ind_minmax] = min(dat(begsel-begsample+1:endsel-begsample+1));
         val = 'trough';
       end
       samp_minmax = begsel + ind_minmax - 1;
@@ -1102,8 +1110,8 @@ end % function select_range_cb
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function preproc_cfg1_cb(h,eventdata)
-parent = get(h, 'parent');
+function preproc_cfg1_cb(h, eventdata)
+parent = getparent(h);
 cfg = getappdata(parent, 'cfg');
 
 editfontsize = cfg.editfontsize;
@@ -1395,6 +1403,8 @@ switch key
     setappdata(h, 'opt', opt);
     setappdata(h, 'cfg', cfg);
     redraw_cb(h, eventdata);
+  case 'p'
+    preproc_cfg1_cb(h, eventdata);
   case 'q'
     setappdata(h, 'opt', opt);
     setappdata(h, 'cfg', cfg);
@@ -1461,7 +1471,7 @@ switch key
     delete(findobj(h, 'tag', 'chanlabel'));  % remove channel labels here, and not in redrawing to save significant execution time (see bug 2065)
     redraw_cb(h, eventdata);
   case 'i'
-    delete(findobj(h, 'tag', 'identify'));
+    delete(findobj(h, 'tag', 'identified'));
     % click in data and get name of nearest channel
     fprintf('click in the figure to identify the name of the closest channel\n');
     val = ginput(1);
@@ -1502,13 +1512,13 @@ switch key
       else
         ypos = .9;
       end
-      ft_plot_text(pos, ypos, channame, 'FontSize', cfg.fontsize, 'FontUnits', cfg.fontunits, 'tag', 'identify', 'FontSize', cfg.fontsize, 'FontUnits', cfg.fontunits);
+      ft_plot_text(pos, ypos, channame, 'FontSize', cfg.fontsize, 'FontUnits', cfg.fontunits, 'tag', 'identified', 'FontSize', cfg.fontsize, 'FontUnits', cfg.fontunits);
       if ~ishold
         hold on
-        ft_plot_vector(opt.curdata.time{1}, opt.curdata.trial{1}(channb,:)', 'box', false, 'tag', 'identify', 'hpos', opt.laytime.pos(chanposind,1), 'vpos', opt.laytime.pos(chanposind,2), 'width', opt.laytime.width(chanposind), 'height', opt.laytime.height(chanposind), 'hlim', opt.hlim, 'vlim', opt.vlim, 'color', 'k', 'linewidth', 2);
+        ft_plot_vector(opt.curdata.time{1}, opt.curdata.trial{1}(channb,:)', 'box', false, 'tag', 'identified', 'hpos', opt.laytime.pos(chanposind,1), 'vpos', opt.laytime.pos(chanposind,2), 'width', opt.laytime.width(chanposind), 'height', opt.laytime.height(chanposind), 'hlim', opt.hlim, 'vlim', opt.vlim, 'color', 'k', 'linewidth', 2);
         hold off
       else
-        ft_plot_vector(opt.curdata.time{1}, opt.curdata.trial{1}(channb,:)', 'box', false, 'tag', 'identify', 'hpos', opt.laytime.pos(chanposind,1), 'vpos', opt.laytime.pos(chanposind,2), 'width', opt.laytime.width(chanposind), 'height', opt.laytime.height(chanposind), 'hlim', opt.hlim, 'vlim', opt.vlim, 'color', 'k', 'linewidth', 2);
+        ft_plot_vector(opt.curdata.time{1}, opt.curdata.trial{1}(channb,:)', 'box', false, 'tag', 'identified', 'hpos', opt.laytime.pos(chanposind,1), 'vpos', opt.laytime.pos(chanposind,2), 'width', opt.laytime.width(chanposind), 'height', opt.laytime.height(chanposind), 'hlim', opt.hlim, 'vlim', opt.vlim, 'color', 'k', 'linewidth', 2);
       end
     else
       ft_warning('only supported with cfg.viewmode=''butterfly/vertical''');
@@ -1882,7 +1892,7 @@ end % if plot events
 %fprintf('plotting data...\n');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 delete(findobj(h, 'tag', 'timecourse'));
-delete(findobj(h, 'tag', 'identify'));
+delete(findobj(h, 'tag', 'identified'));
 
 % not removing channel labels, they cause the bulk of redrawing time for the slow text function (note, interpreter = none hardly helps)
 % warning, when deleting the labels using the line below, one can easily tripple the excution time of redrawing in viewmode = vertical (see bug 2065)
@@ -2059,7 +2069,10 @@ if strcmp(cfg.viewmode, 'component')
     chany = laychan.pos(sel2,2);
     
     if strcmp(cfg.compscale, 'global')
-      for i=1:length(chanindx) % loop through all components to get max and min
+      % compute scaling factors for all components that are plotted together
+      zmin = nan(1, length(chanindx));
+      zmax = nan(1, length(chanindx));
+      for i=1:length(chanindx)
         zmin(i) = min(opt.orgdata.topo(sel1,chanindx(i)));
         zmax(i) = max(opt.orgdata.topo(sel1,chanindx(i)));
       end
@@ -2068,12 +2081,21 @@ if strcmp(cfg.viewmode, 'component')
         zmin = min(zmin);
         zmax = max(zmax);
       elseif strcmp(cfg.zlim, 'maxabs')
-        zmax = max([abs(zmin) abs(zmax)]);
+        zmax = max(abs([zmin zmax]));
         zmin = -zmax;
+      elseif strcmp(cfg.zlim, 'zeromax')
+        zmin = 0;
+        zmax = max(zmax);
+      elseif strcmp(cfg.zlim, 'minzero')
+        zmin = min(zmin);
+        zmax = 0;
+      elseif isnumeric(cfg.zlim) && numel(cfg.zlim)==2
+        zmin = cfg.zlim(1);
+        zmax = cfg.zlim(2);
       else
-        ft_error('configuration option for component scaling could not be recognized');
+        ft_error('unsupported specification of cfg.zlim');
       end
-    end
+    end % if cfg.compscale
     
     for i=1:length(chanindx)
       % plot the topography of this component
@@ -2081,15 +2103,26 @@ if strcmp(cfg.viewmode, 'component')
       chanz = opt.orgdata.topo(sel1,chanindx(i));
       
       if strcmp(cfg.compscale, 'local')
-        % compute scaling factors here
+        % compute scaling factors for each individual component
         if strcmp(cfg.zlim, 'maxmin')
           zmin = min(chanz);
           zmax = max(chanz);
         elseif strcmp(cfg.zlim, 'maxabs')
           zmax = max(abs(chanz));
           zmin = -zmax;
+        elseif strcmp(cfg.zlim, 'zeromax')
+          zmin = 0;
+          zmax = max(chanz);
+        elseif strcmp(cfg.zlim, 'minzero')
+          zmin = min(chanz);
+          zmax = 0;
+        elseif isnumeric(cfg.zlim) && numel(cfg.zlim)==2
+          zmin = cfg.zlim(1);
+          zmax = cfg.zlim(2);
+        else
+          ft_error('unsupported specification of cfg.zlim');
         end
-      end
+      end % if cfg.compscale
       
       % scaling
       chanz = (chanz - zmin) ./  (zmax- zmin);

@@ -101,6 +101,7 @@ end
 data = ft_checkdata(data, 'datatype', {'raw+comp', 'raw'}, 'feedback', 'yes', 'hassampleinfo', 'yes');
 
 % check if the input cfg is valid for this function
+cfg = ft_checkconfig(cfg, 'forbidden',  {'channels', 'trial'}); % prevent accidental typos, see issue 1729
 cfg = ft_checkconfig(cfg, 'forbidden',  {'normalizecov', 'normalizevar'});
 cfg = ft_checkconfig(cfg, 'forbidden',  {'blcovariance', 'blcovariancewindow'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'blc', 'demean'});
@@ -140,7 +141,7 @@ if computecov
   tmpcfg.latency = cfg.covariancewindow;
   datacov = ft_selectdata(tmpcfg, data);
   % restore the provenance information
-  [~, datacov] = rollback_provenance(cfg, datacov); % not sure what to do here
+  [dum, datacov] = rollback_provenance(cfg, datacov); % not sure what to do here
   datacov      = ft_checkdata(datacov, 'datatype', 'timelock');
   
   if isfield(datacov, 'trial')

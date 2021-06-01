@@ -12,7 +12,7 @@ function [event] = ft_read_event(filename, varargin)
 %   'headerformat'   = string
 %   'eventformat'    = string
 %   'header'         = header structure, see FT_READ_HEADER
-%   'detectflank'    = string, can be 'up', 'down', 'both', 'updiff', 'downdiff', 'bit' (default is system specific)
+%   'detectflank'    = string, can be 'up', 'updiff', 'down', 'downdiff', 'both', 'any', 'biton', 'bitoff' (default is system specific)
 %   'trigshift'      = integer, number of samples to shift from flank to detect trigger value (default = 0)
 %   'chanindx'       = list with channel numbers for trigger detection, specify -1 in case you don't want to detect triggers (default is automatic)
 %   'threshold'      = threshold for analog trigger channels (default is system specific)
@@ -239,7 +239,7 @@ if strcmp(eventformat, 'brainvision_vhdr')
   if ~isfield(vhdr, 'MarkerFile') || isempty(vhdr.MarkerFile)
     filename = [];
   else
-    [p, ~, ~] = fileparts(filename);
+    [p, f, x] = fileparts(filename);
     filename = fullfile(p, vhdr.MarkerFile);
   end
 end
@@ -2295,7 +2295,7 @@ switch eventformat
     
     % ensure that the filename contains a full path specification,
     % otherwise the low-level function fails
-    [p,~,~] = fileparts(filename);
+    [p, f, x] = fileparts(filename);
     if ~isempty(p)
       % this is OK
     elseif isempty(p)

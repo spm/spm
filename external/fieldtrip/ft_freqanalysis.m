@@ -118,7 +118,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %
 %
 % SUPERLET performs time-frequency analysis on any time series trial data using the
-% 'wavelet method' based on a frequency-wise combination of Morlet wavelets of varying cycle 
+% 'wavelet method' based on a frequency-wise combination of Morlet wavelets of varying cycle
 % widths (see Moca et al. 2019, https://doi.org/10.1101/583732).
 %   cfg.foi                 = vector 1 x numfoi, frequencies of interest
 %       OR
@@ -130,9 +130,9 @@ function [freq] = ft_freqanalysis(cfg, data)
 %                             deviations of the implicit Gaussian kernel and should
 %                             be choosen >= 3; (default = 3)
 %   cfg.superlet.combine    = 'additive', 'multiplicative' (default = 'additive')
-%                             determines if cycle numbers of wavelets comprising a superlet 
+%                             determines if cycle numbers of wavelets comprising a superlet
 %                             are chosen additively or multiplicatively
-%   cfg.superlet.order      = vector 1 x numfoi, superlet order, i.e. number of combined 
+%   cfg.superlet.order      = vector 1 x numfoi, superlet order, i.e. number of combined
 %                             wavelets, for individual frequencies of interest.
 %
 % The standard deviation in the frequency domain (sf) at frequency f0 is
@@ -225,26 +225,27 @@ if ft_abort
   return
 end
 
-% ensure that the required options are present
+% check if the input data is valid for this function
+data = ft_checkdata(data, 'datatype', {'raw', 'raw+comp', 'mvar'}, 'feedback', 'yes', 'hassampleinfo', 'yes');
+
+% check if the input cfg is valid for this function
+cfg = ft_checkconfig(cfg, 'forbidden',  {'channels', 'trial'}); % prevent accidental typos, see issue 1729
+cfg = ft_checkconfig(cfg, 'renamed',    {'label', 'channel'});
+cfg = ft_checkconfig(cfg, 'renamed',    {'sgn',   'channel'});
+cfg = ft_checkconfig(cfg, 'renamed',    {'labelcmb', 'channelcmb'});
+cfg = ft_checkconfig(cfg, 'renamed',    {'sgncmb',   'channelcmb'});
+cfg = ft_checkconfig(cfg, 'required',   {'method'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'fft',    'mtmfft'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'convol', 'mtmconvol'});
+cfg = ft_checkconfig(cfg, 'forbidden',  {'latency'}); % see bug 1376 and 1076
+cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'wltconvol', 'wavelet'});
+
+% set the defaults
 cfg.feedback    = ft_getopt(cfg, 'feedback',   'text');
 cfg.inputlock   = ft_getopt(cfg, 'inputlock',  []);  % this can be used as mutex when doing distributed computation
 cfg.outputlock  = ft_getopt(cfg, 'outputlock', []);  % this can be used as mutex when doing distributed computation
 cfg.trials      = ft_getopt(cfg, 'trials',     'all', 1);
 cfg.channel     = ft_getopt(cfg, 'channel',    'all');
-
-% check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', {'raw', 'raw+comp', 'mvar'}, 'feedback', cfg.feedback, 'hassampleinfo', 'yes');
-
-% check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'renamed',     {'label', 'channel'});
-cfg = ft_checkconfig(cfg, 'renamed',     {'sgn',   'channel'});
-cfg = ft_checkconfig(cfg, 'renamed',     {'labelcmb', 'channelcmb'});
-cfg = ft_checkconfig(cfg, 'renamed',     {'sgncmb',   'channelcmb'});
-cfg = ft_checkconfig(cfg, 'required',    {'method'});
-cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'fft',    'mtmfft'});
-cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'convol', 'mtmconvol'});
-cfg = ft_checkconfig(cfg, 'forbidden',   {'latency'}); % see bug 1376 and 1076
-cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'wltconvol', 'wavelet'});
 
 % select channels and trials of interest, by default this will select all channels and trials
 tmpcfg = keepfields(cfg, {'trials', 'channel', 'tolerance', 'showcallinfo'});
@@ -330,7 +331,7 @@ switch cfg.method
   case 'wavelet'
     cfg.width  = ft_getopt(cfg, 'width',  7);
     cfg.gwidth = ft_getopt(cfg, 'gwidth', 3);
-
+    
   case 'superlet'
     cfg.superlet.basewidth = ft_getopt(cfg.superlet, 'basewidth', 3);
     cfg.superlet.gwidth = ft_getopt(cfg.superlet, 'gwidth', 3);
@@ -446,7 +447,7 @@ end
 
 % determine the corresponding indices of all channels
 chanind    = match_str(data.label, cfg.channel);
-nchan      = size(chanind,1);
+nchan      = numel(chanind);
 if csdflg
   assert(nchan>1, 'CSD output requires multiple channels');
   % determine the corresponding indices of all channel combinations
@@ -561,11 +562,11 @@ for itrial = 1:ntrials
     case 'mtmfft'
       [spectrum,ntaper,foi] = ft_specest_mtmfft(dat, time, 'taper', cfg.taper, options{:}, 'feedback', fbopt);
       hastime = false;
-    
+      
     case 'irasa'
       [spectrum,ntaper,foi] = ft_specest_irasa(dat, time, options{:}, 'feedback', fbopt);
       hastime = false;
-
+      
     case 'wavelet'
       [spectrum,foi,toi] = ft_specest_wavelet(dat, time, 'timeoi', cfg.toi, 'width', cfg.width, 'gwidth', cfg.gwidth,options{:}, 'feedback', fbopt);
       
@@ -579,10 +580,10 @@ for itrial = 1:ntrials
       ntaper = ones(1,numel(foi));
       % modify spectrum for same reason as fake ntaper
       spectrum = reshape(spectrum,[1 nchan numel(foi) numel(toi)]);
-
+      
     case 'superlet'
       % calculate number of wavelets and respective cycle width dependent on superlet order
-      % equivalent one-liners: 
+      % equivalent one-liners:
       %   multiplicative: cycles = arrayfun(@(order) arrayfun(@(wl_num) cfg.superlet.basewidth*wl_num, 1:order), cfg.superlet.order,'uni',0)
       %   additive: cycles = arrayfun(@(order) arrayfun(@(wl_num) cfg.superlet.basewidth+wl_num-1, 1:order), cfg.superlet.order,'uni',0)
       cycles = cell(length(cfg.foi),1);
@@ -599,7 +600,7 @@ for itrial = 1:ntrials
         end
         cycles{i_f} = frq_cyc;
       end
-
+      
       % compute superlets
       spectrum = NaN(nchan,length(cfg.foi),length(cfg.toi));
       % index of 'freqoi' value in 'options'
@@ -612,7 +613,7 @@ for itrial = 1:ntrials
         opt{idx_freqoi} = cfg.foi(i_f);
         % compute responses for individual wavelets
         for i_wl = 1:cfg.superlet.order(i_f)
-          [spec_f(i_wl,:,:),~,toi] = ft_specest_wavelet(dat, time, 'timeoi', cfg.toi, 'width', cycles{i_f}(i_wl), 'gwidth', cfg.superlet.gwidth, opt{:}, 'feedback', fbopt);
+          [spec_f(i_wl,:,:), dum, toi] = ft_specest_wavelet(dat, time, 'timeoi', cfg.toi, 'width', cycles{i_f}(i_wl), 'gwidth', cfg.superlet.gwidth, opt{:}, 'feedback', fbopt);
         end
         % geometric mean across individual wavelets
         spectrum(:,i_f,:) = prod(spec_f, 1).^(1/cfg.superlet.order(i_f));
