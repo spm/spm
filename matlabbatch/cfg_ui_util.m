@@ -11,9 +11,9 @@ function varargout = cfg_ui_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui_util.m 7473 2018-11-06 10:26:44Z guillaume $
+% $Id: cfg_ui_util.m 8110 2021-06-02 15:23:08Z guillaume $
 
-rev = '$Rev: 7473 $';  %#ok<NASGU>
+rev = '$Rev: 8110 $';  %#ok<NASGU>
 
 switch lower(cmd)
     case {'preview'}
@@ -422,7 +422,7 @@ switch lower(cmd)
         [id, stop, help] = cfg_util('listmod', ciid{:}, cfg_findspec, ...
             cfg_tropts(cfg_findspec,1,1,1,1,false), {'showdoc'});
         set(handles.helpbox, 'Value',1, 'ListboxTop',1, 'string',cfg_justify(handles.helpbox, help{1}{1}));
-        if contents{7} && ~isempty(contents{10})
+        if contents{7} && numel(contents) > 9 && ~isempty(contents{10})
             set(findobj(fig,'-regexp', 'Tag','.*Preview$'), 'Visible','on', ...
                               'Enable','on');
         end
