@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8108 2021-06-01 14:20:26Z karl $
+% $Id: spm_SARS_gen.m 8111 2021-06-05 20:24:56Z karl $
 
 
 % The generative model:
@@ -363,7 +363,7 @@ for i = 1:M.T
         Ptra = 1;
         if isfield(Q{n},'tra')
             for j = 1:numel(Q{n}.tra)
-                Ptra = Ptra + Q{n}.tra(j) * (1 + erf((i - j*64)/32));
+                Ptra = Ptra + Q{n}.tra(j) * (1 + erf((i - j*64)/32))/64;
             end
         end
         Ptrn = Q{n}.trn + Q{n}.trm*S;            % seasonal risk

@@ -14,9 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8108 2021-06-01 14:20:26Z karl $
-
-% DCM.F 06/02/2021: -1.8784e+04
+% $Id: DEM_COVID_UK.m 8111 2021-06-05 20:24:56Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -28,8 +26,6 @@ function DCM = DEM_COVID_UK
 % https://www.gov.uk/government/statistics/transport-use-during-the-coronavirus-covid-19-pandemic
 % https://www.google.com/covid19/mobility/
 
-% mem = 256:  F = -1.0257e+04
-% mem = 2048: F = -1.0247e+04
 
 % set up and get data
 %==========================================================================
@@ -557,8 +553,7 @@ pC.lag  = lag;                 % prior variance
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
 k       = ceil((datenum(date) - datenum(M.date))/64);
-tra     = log(0.02);           % increases in secondary attack rate or
-pE.tra  = zeros(1,k) + tra;    % transmission strength
+pE.tra  = zeros(1,k);          % increases in transmission strength
 pC.tra  = ones(1,k)/8;         % prior variance
 
 pE.pcr  = zeros(1,k);          % testing
@@ -728,9 +723,9 @@ ylabel('cases per 100,000'), title('Incidence per 100,000','FontSize',14)
 plot(datenum(date)*[1,1],get(gca,'YLim'),':')
 legend({'CI per day','actual cases per day','CI per week','confirmed cases per week'})
 
-% switch windows
+%% switch windows
 %--------------------------------------------------------------------------
-spm_figure('GetWin','long-term (1)');
+spm_figure('GetWin','long-term (1)'); clf
 
 % fatalities
 %--------------------------------------------------------------------------
@@ -816,13 +811,11 @@ legend({'credible interval','mobility (%)'}), legend boxoff
 drawnow
 
 
-% prevalence and reproduction ratio
+%% prevalence and reproduction ratio
 %--------------------------------------------------------------------------
-spm_figure('GetWin','long-term (2)');
-subplot(2,1,1)
-M.T = datenum('01-11-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
-t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
+spm_figure('GetWin','long-term (2)'); clf
 
+subplot(2,1,1)
 i   = find(DCM.U == 4,1);
 Rt  = DCM.Y(:,i);
 spm_SARS_ci(Ep,Cp,[],11,M); hold on
@@ -833,24 +826,8 @@ q   = q(j);
 d   = sqrt(c{1}(j,j))*1.64;
 str = sprintf('Prevalence and reproduction ratio (%s): R = %.2f (CI %.2f to %.2f)',datestr(date,'dd-mmm-yy'),q,q - d,q + d);
 
-
-% add R = 1 and current dateline
-%--------------------------------------------------------------------------
-plot(get(gca,'XLim'),[1,1],':k')
-plot(datenum(date,'dd-mm-yyyy')*[1,1],get(gca,'YLim'),':k')
-set(gca,'YLim',[0 5]), ylabel('ratio or percent')
-title(str,'FontSize',14)
-
-legend({'CI prevalence','Prevalence (%)','CI R-number','R DCM','R SPI-M'})
-legend boxoff
-drawnow
-
 % attack rate, herd immunity and herd immunity threshold
 %--------------------------------------------------------------------------
-subplot(2,1,2)
-spm_SARS_ci(Ep,Cp,[],25,M); hold on
-spm_SARS_ci(Ep,Cp,[],26,M); hold on
-
 [H,~,~,R] = spm_SARS_gen(Ep,M,[4 22 26]);
 i         = 1:64;                           % pre-pandemic period
 TRN       = [R{1}.Ptrn];                    % transmission risk
@@ -860,6 +837,31 @@ HIT       = 100 * (1 - 1./RT);              % herd immunity threshold
 VAC       = H(:,2);                         % percent of people vaccinated
 i         = find(H(:,3) > HIT,1);           % date threshold reached
 i         = min([i,M.T]);
+
+% Add R0
+%--------------------------------------------------------------------------
+alpha = datenum('20-Sep-2020','dd-mmm-yyyy');
+delta = datenum('20-Mar-2021','dd-mmm-yyyy');
+plot(t,RT)
+text(alpha,2.5,'alpha')
+text(delta,5.0,'delta')
+
+% add R = 1 and current dateline
+%--------------------------------------------------------------------------
+plot(get(gca,'XLim'),[1,1],':k')
+plot(datenum(date,'dd-mm-yyyy')*[1,1],get(gca,'YLim'),':k')
+set(gca,'YLim',[0 8]), ylabel('ratio or percent')
+title(str,'FontSize',14)
+
+legend({'CI prevalence','Prevalence (%)','CI R-number','R DCM','R SPI-M','R0'})
+legend boxoff
+drawnow
+
+% attack rate, herd immunity and herd immunity threshold
+%--------------------------------------------------------------------------
+subplot(2,1,2)
+spm_SARS_ci(Ep,Cp,[],25,M); hold on
+spm_SARS_ci(Ep,Cp,[],26,M); hold on
 
 q   = Ep.vac;
 d   = spm_unvec(diag(Cp),Ep);
@@ -876,7 +878,6 @@ ylabel('percent'),  title(str,'FontSize',14)
 legend({'CI','Attack rate','CI','Population immunity','Effective immunity threshold','Vaccine coverage'})
 legend boxoff
 text(t(i),8,leg,'FontSize',10), drawnow
-
 
 %% save figures
 %--------------------------------------------------------------------------
@@ -908,6 +909,11 @@ Tab = spm_COVID_table(Ep,Cp,M)
 save('DCM_UK.mat','DCM')
 cd('C:\Users\karl\Dropbox\Coronavirus')
 save('DCM_UK.mat','DCM')
+
+disp('relative transmissibility');
+disp(100*TRN(j)/mean(TRN(1:j)))
+disp('basic reproduction number');
+disp(RT(j))
 
 return
 
