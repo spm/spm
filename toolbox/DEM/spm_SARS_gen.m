@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8111 2021-06-05 20:24:56Z karl $
+% $Id: spm_SARS_gen.m 8112 2021-06-16 20:06:47Z karl $
 
 
 % The generative model:
@@ -246,6 +246,7 @@ for n = 1:nN
     P.tin = 1;    % P(no transmission | home)
     P.tou = 1;    % P(no transmission | work)
     P.ths = 1;    % P(no transmission | hospital)
+    P.vad = 1;    % P(no transmission | hospital)
     for i = 1:8
         T    = spm_COVID_T(P,I);
         x{n} = spm_unvec(T*spm_vec(x{n}),x{n});
@@ -326,18 +327,11 @@ for i = 1:M.T
         %------------------------------------------------------------------
         % Q{n}.rol(1) = Q{1}.rol(1);
         
-        % fluctuations in contact rates (mobility): annual duty cycle
+        % fluctuations in contact rates (mobility): radial basis functions
         %------------------------------------------------------------------
         Rout = 0;
         if isfield(P,'mob')
             for j = 1:numel(Q{n}.mob)
-                % if j > numel(Q{n}.mob)/2
-                %    Rout = Rout + log(Q{n}.mob(j)) * cos(2*j*pi*i/365)/8;
-                % else
-                %    Rout = Rout + log(Q{n}.mob(j)) * sin(2*j*pi*i/365)/8;
-                % end
-                % radial basis functions
-                %------------------------------------------------------------------
                 Rout = Rout + log(Q{n}.mob(j)) * exp(-(i - j*32).^2/256)/8;
             end
         end
@@ -385,14 +379,25 @@ for i = 1:M.T
             ths = ths*(1 - Ptrn*phs(3))^Q{n}.Nou(j);
         end
         
-        Q{n}.tin = min(tin,1);    % P(no transmission | home)
-        Q{n}.tou = min(tou,1);    % P(no transmission | work)
-        Q{n}.ths = min(ths,1);    % P(no transmission | hospital)
-                
+        Q{n}.tin = min(tin,1);          % P(no transmission | home)
+        Q{n}.tou = min(tou,1);          % P(no transmission | work)
+        Q{n}.ths = min(ths,1);          % P(no transmission | hospital)
+        
+        % link between ARDS and vaccination coverage
+        %------------------------------------------------------------------
+        q        = p{n}{2}(6)*Q{n}.vef; % vaccinated susceptible proportion
+        q        = q/(q + p{n}{2}(1));  % susceptible proportion vaccinated
+        res      = (1 - R{n}.res)*q*(1 - Q{n}.ves);
+        q        = (1 - q) + Q{n}.lnk*q;
+
+        Q{n}.sev = R{n}.sev*q;          % vaccine efficiency: pathogenicity
+        Q{n}.lat = R{n}.lat*q;          % vaccine efficiency: pathogenicity
+        Q{n}.res = R{n}.res + res;      % vaccine efficiency: transmission
+        Q{n}.t   = i;                   % time (days)
+        
         
         % update ensemble density (x)
         %==================================================================
-        Q{n}.t = i;
         [T,V]  = spm_COVID_T(Q{n},I);
         x{n}   = spm_unvec(T*spm_vec(x{n}),x{n});
         x{n}   = x{n}/sum(x{n}(:));
@@ -403,7 +408,6 @@ for i = 1:M.T
         for j = 1:Nf
             X{n,j}(i,:) = p{n}{j};
         end
-        
         
         % outcomes
         %==================================================================
@@ -527,8 +531,8 @@ for i = 1:M.T
         
         % cumulative number of people (first dose) vaccinated (%)
         %------------------------------------------------------------------
-        Y{n}(i,22) = 100 * (p{n}{2}(6) + pvac(n));
-        pvac(n)    = pvac(n) + p{n}{2}(6)*(1 - Vimm);
+        pvac(n)    = pvac(n) + (1 - pvac(n))*V.Rvac;
+        Y{n}(i,22) = 100 * pvac(n);
         
         % PCR case positivity (%)(seven day rolling average)
         %------------------------------------------------------------------
@@ -555,7 +559,7 @@ for n = 1:nN
     % effective reproduction ratio: exp(K*Q.Tcn): K = dln(N)/dt
     %----------------------------------------------------------------------
     K          = gradient(log(Y{n}(:,4)));
-    Y{n}(:,4)  = 1 + K*(Q{n}.Tin + Q{n}.Tcn) + K.^2*Q{n}.Tin*Q{n}.Tcn;
+    Y{n}(:,4)  = 1 + K*(Q{n}.Tin + Q{n}.Tcn) + (K.^2)*Q{n}.Tin*Q{n}.Tcn;
     
     % incidence of new infections (%)
     %----------------------------------------------------------------------
@@ -576,7 +580,7 @@ for n = 1:nN
     Psev       = [W{n}.Psev]';
     Pfat       = [W{n}.Pfat]';
     Pinf       = [W{n}.Pinf]';
-    Y{n}(:,21) = 100 * (1 - (1 - Pinf).^(Q{n}.Tin + Q{n}.Tcn)).*Psev.*Pfat;
+    Y{n}(:,21) = 100 * (1 - Pinf.^(Q{n}.Tin + Q{n}.Tcn)).*Psev.*Pfat;
 
     % Y{n}(:,21) = 100 * cumsum(Y{n}(:,1)/N(n))./cumsum(Y{n}(:,10)/100 + exp(-16));
 

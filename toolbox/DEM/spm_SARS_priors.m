@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8108 2021-06-01 14:20:26Z karl $
+% $Id: spm_SARS_priors.m 8112 2021-06-16 20:06:47Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -68,7 +68,7 @@ if nargin
     
     % free parameters for mixture model (age groups)
     %----------------------------------------------------------------------
-    free  = {'N','Nin','Nou','hos','ccu','res','sev','lat','fat','sur','tes','tts','rol'};
+    free  = {'N','Nin','Nou','hos','ccu','res', 'Tic','Tim', 'sev','lat','fat','sur','tes','tts','rol'};
     for i = 1:numel(free)
         P.(free{i}) = kron(ones(nN,1),P.(free{i}));
         C.(free{i}) = kron(ones(nN,1),C.(free{i}));
@@ -81,9 +81,9 @@ if nargin
     P.rol = log([0.01  (365 + 128) 64  0.01;
                  0.02  (365 + 64 ) 32  0.02;
                  0.04  (365 + 0  ) 16  0.04]);
-    C.rol = [1/64 1/256 1/256 1/64;
-             1/64 1/256 1/256 1/64;
-             1/64 1/256 1/256 1/64];
+    C.rol = [1/16 1/64 1/64 1/16;
+             1/16 1/64 1/64 1/16;
+             1/16 1/64 1/64 1/16];
     P.sev = log([0.00002;
                  0.002;
                  0.03]);
@@ -162,6 +162,11 @@ names{38} = 'reporting lag';
 names{39} = 'seasonal phase';
 names{40} = 'unlocking time constant';
 names{41} = 'vaccination rollout';
+names{42} = 'loss of T-cell immunity';
+names{43} = 'vaccine efficacy: sterilising';
+names{44} = 'vaccine efficacy: pathogenicity';
+names{45} = 'vaccine efficacy: transmission';
+
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -249,7 +254,7 @@ P.out = 0.4;                  % (06) P(leaving home)
 P.sde = 8;                    % (07) time constant of lockdown
 P.qua = 64;                   % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
-P.hos = 0.8;                  % (10) admission rate (hospital)
+P.hos = 1;                    % (10) admission rate (hospital) [erf]
 P.ccu = 0.2;                  % (11) admission rate (CCU)
 P.s   = 2;                    % (12) exponent of contact rates
 
@@ -281,7 +286,7 @@ P.ttt = 0.036;                % (28) FTTI efficacy
 P.tes = [16 8];               % (29) bias (for infection): PCR (Pill. 1 & 2)
 P.tts = 1;                    % (30) bias (for infection): LFD
 P.del = 3;                    % (31) test delay (days)
-P.vac = 1024;                 % (32) vaccination time constant (days)
+P.vac = 512;                  % (32) vaccination time constant (days)
 P.fnr = [0.2 0.1];            % (33) false-negative rate  (infected/ious]
 P.fpr = [0.002 0.02];         % (34) false-positive rate: (Sus. and Ab +ve)
 
@@ -293,6 +298,11 @@ P.lag = [1 1];                % (38) reporting lag
 P.inn = 1;                    % (39) seasonal phase
 P.mem = 256;                  % (40) unlocking time constant
 P.rol = [0.02 365 32 0.02];   % (41) vaccination rollout
+P.Tnn = 512;                  % (42) loss of T-cell immunity (days)
+P.vef = 1;                    % (43) vaccine efficacy: infection
+P.lnk = 0.1;                  % (44) vaccine efficacy: pathogenicity
+P.ves = 0.1;                  % (45) vaccine efficacy: transmission
+
 
 
 % infection fatality (for susceptible population)
@@ -311,8 +321,8 @@ Z     = exp(-8);              % informative priors
 C.N   = U;                    % (01) population size (millions)
 C.n   = U;                    % (02) initial cases (cases)
 C.r   = X;                    % (03) pre-existing immunity (proportion)
-C.o   = W;                    % (04) initial exposed proportion
-C.m   = W;                    % (05) relative eflux
+C.o   = X;                    % (04) initial exposed proportion
+C.m   = X;                    % (05) relative eflux
 
 % location (exposure) parameters
 %--------------------------------------------------------------------------
@@ -340,8 +350,8 @@ C.res = X;                    % (20) seronegative immunity (proportion)
 C.Tic = Z;                    % (21) asymptomatic period (days)
 C.Tsy = Z;                    % (22) symptomatic period  (days)
 C.Trd = X;                    % (23) CCU period (days)
-C.sev = X;                    % (24) P(ARDS | symptoms): winter
-C.lat = X;                    % (25) P(ARDS | symptoms): summer
+C.sev = W;                    % (24) P(ARDS | symptoms): winter
+C.lat = W;                    % (25) P(ARDS | symptoms): summer
 C.fat = X;                    % (26) P(fatality | ARDS): rate
 C.sur = X;                    % (27) P(fatality | ARDS): decay
 
@@ -351,9 +361,9 @@ C.ttt = X;                    % (28) FTTI efficacy
 C.tes = V;                    % (29) testing: bias (early)
 C.tts = V;                    % (30) testing: bias (late)
 C.del = X;                    % (31) test delay (days)
-C.vac = W;                    % (32) vaccine efficacy
-C.fnr = W;                    % (33) false-negative rate
-C.fpr = W;                    % (34) false-positive rate
+C.vac = X;                    % (32) vaccine efficacy
+C.fnr = X;                    % (33) false-negative rate
+C.fpr = X;                    % (34) false-positive rate
 
 C.lim = V;                    % (35) testing: capacity
 C.rat = X;                    % (36) testing: constant (days)
@@ -363,6 +373,11 @@ C.lag = V;                    % (38) reporting lag
 C.inn = W;                    % (39) seasonal phase
 C.mem = V;                    % (40) unlocking time constant
 C.rol = X;                    % (41) vaccination rollout
+C.Tnn = X;                    % (42) loss of T-cell immunity (days)
+C.vef = 0;                    % (43) vaccine efficacy: infection
+C.lnk = X;                    % (44) vaccine efficacy: pathogenicity
+C.ves = X;                    % (45) vaccine efficacy: transmission
+
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------

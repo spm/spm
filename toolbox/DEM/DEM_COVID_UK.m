@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8111 2021-06-05 20:24:56Z karl $
+% $Id: DEM_COVID_UK.m 8112 2021-06-16 20:06:47Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -351,7 +351,7 @@ Y(17).type = 'Seropositive < 25 (PHE)'; % percent antibody positive (England)
 Y(17).unit = 'percent';
 Y(17).U    = 5;
 Y(17).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
-Y(17).Y    = serology.data(:,j(1))*(vac + (1 - vac)/2)*100;
+Y(17).Y    = serology.data(:,j(1))*ons{1}*100;
 Y(17).h    = 2;
 Y(17).lag  = 0;
 Y(17).age  = 1;
@@ -510,7 +510,7 @@ Y(31).hold = 0;
 %==========================================================================
 M.date  = datestr(min(spm_vec(Y.date)),'dd-mm-yyyy');
 M.date  = '01-02-2020';
-[Y,YS]  = spm_COVID_Y(Y,M.date);
+[Y,YS]  = spm_COVID_Y(Y,M.date,16);
 
 % data structure with vectorised data and covariance components
 %--------------------------------------------------------------------------
@@ -564,7 +564,7 @@ pC.mob  = ones(1,2*k)/8;       % prior variance
 
 % model specification
 %==========================================================================
-M.Nmax = 64;                   % maximum number of iterations
+M.Nmax = 32;                   % maximum number of iterations
 M.G    = @spm_SARS_gen;        % generative function
 M.FS   = @(Y)real(sqrt(Y));    % feature selection  (link function)
 M.pE   = pE;                   % prior expectations (parameters)
@@ -648,8 +648,7 @@ end
 
 % infection fatality ratios (%)
 %--------------------------------------------------------------------------
-spm_figure('GetWin','outcomes (4)');
-j = 1;
+j     = j + 1;
 subplot(4,2,j)
 for i = 1:numel(N)
     spm_SARS_ci(Ep,Cp,[],21,M,[],i); hold on
@@ -677,7 +676,6 @@ title('Contact rate','FontSize',14)
 xlabel('days'),ylabel('probability')
 hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), box off
 
-
 % case fatality ratio
 %--------------------------------------------------------------------------
 j    = j + 1;
@@ -690,18 +688,6 @@ title('Fatality risk | ARDS','FontSize',14)
 xlabel('days'),ylabel('percent')
 hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), box off
 legend({'< 24yrs','25-64yrs','> 64yrs'})
-
-% testing rates
-%--------------------------------------------------------------------------
-% j    = j + 1;
-% subplot(4,2,j), hold on
-% for i = 1:numel(R)
-%     plot(100 * [R{i}.Psen]), plot(100 * [R{i}.Ptes])
-% end
-% spm_axis tight
-% title('Testing rates (un/infected)','FontSize',14)
-% xlabel('days'),ylabel('percent')
-% plot([1,1]*size(DCM.Y,1),[0,5],':'), box off
 
 
 %% long-term forecasts Newton(six months from the current data)
@@ -716,7 +702,7 @@ t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
 
 % infection fatality ratios (%)
 %--------------------------------------------------------------------------
-subplot(2,1,2)
+subplot(2,1,1)
 spm_SARS_ci(Ep,Cp,[],19,M); hold on
 spm_SARS_ci(Ep,Cp,[],20,M); hold on
 ylabel('cases per 100,000'), title('Incidence per 100,000','FontSize',14)
@@ -753,7 +739,7 @@ i       = find(DCM.U == 14,1); D = DCM.Y(:,i);
 %--------------------------------------------------------------------------
 u1   = datenum('10-May-2020','dd-mmm-yyyy') - t(1) + 1;
 u2   = datenum('10-Aug-2020','dd-mmm-yyyy') - t(1) + 1;
-u3   = datenum('10-Sep-2020','dd-mmm-yyyy') - t(1) + 1;
+u3   = datenum('31-Aug-2020','dd-mmm-yyyy') - t(1) + 1;
 U    = sort([0 q(u1) q(u2) q(u3)]);
 dstr = datestr(t,'dd-mmm');
 
@@ -797,15 +783,6 @@ for i = 1:numel(U)
     
 end
 
-% Roadmap 3
-%----------------------------------------------------------------------
-% phase = {'08-Mar-2021','05-Apr-2021','03-May-2021','07-Jun-2021','05-Jul-2021'};
-% for i = 1:numel(phase)
-%     d = datenum(phase{i},'dd-mmm-yyyy');
-%     plot(d*[1,1],[0 120],'b:'),
-%     text(d,128,phase{i},'Color','b','FontSize',8,'Rotation',90)
-% end
-
 ylabel('percent'),  title('Mobility and lockdown','FontSize',14)
 legend({'credible interval','mobility (%)'}), legend boxoff
 drawnow
@@ -829,7 +806,7 @@ str = sprintf('Prevalence and reproduction ratio (%s): R = %.2f (CI %.2f to %.2f
 % attack rate, herd immunity and herd immunity threshold
 %--------------------------------------------------------------------------
 [H,~,~,R] = spm_SARS_gen(Ep,M,[4 22 26]);
-i         = 1:64;                           % pre-pandemic period
+i         = 16:32;                           % pre-pandemic period
 TRN       = [R{1}.Ptrn];                    % transmission risk
 R0        = mean(H(i,1));                   % basic reproduction ratio
 RT        = R0*TRN(:)/mean(TRN(i));         % effective reproduction ratio
@@ -843,8 +820,8 @@ i         = min([i,M.T]);
 alpha = datenum('20-Sep-2020','dd-mmm-yyyy');
 delta = datenum('20-Mar-2021','dd-mmm-yyyy');
 plot(t,RT)
-text(alpha,2.5,'alpha')
-text(delta,5.0,'delta')
+text(alpha,4,'alpha','FontSize',10)
+text(delta,4,'delta','FontSize',10)
 
 % add R = 1 and current dateline
 %--------------------------------------------------------------------------
@@ -863,13 +840,20 @@ subplot(2,1,2)
 spm_SARS_ci(Ep,Cp,[],25,M); hold on
 spm_SARS_ci(Ep,Cp,[],26,M); hold on
 
-q   = Ep.vac;
+q   = Ep.lnk;
 d   = spm_unvec(diag(Cp),Ep);
-d   = sqrt(d.vac)*1.64;
-qE  = 100*exp(-180/exp(q));
-qL  = 100*exp(-180/exp(q - d));
-qU  = 100*exp(-180/exp(q + d));
+d   = sqrt(d.lnk)*1.64;
+qE  = 100*(1 - exp(q));
+qL  = 100*(1 - exp(q + d));
+qU  = 100*(1 - exp(q - d));
 str = sprintf('Attack rate and immunity: vaccine efficacy %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU);
+q   = Ep.ves;
+d   = spm_unvec(diag(Cp),Ep);
+d   = sqrt(d.lnk)*1.64;
+qE  = 100*(1 - exp(q));
+qL  = 100*(1 - exp(q + d));
+qU  = 100*(1 - exp(q - d));
+sprintf('vaccine efficacy (transmission) %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU)
 leg = sprintf('%s (EIT: %.1f%s)',datestr(t(i),'dd-mmm-yy'),HIT(i),'%');
 
 plot(t,HIT,t,VAC), hold on
@@ -950,7 +934,7 @@ for f = 1:numel(fluct)
     
 end
 
-% Interventions
+%% Interventions
 %==========================================================================
 clear
 DCM = load('DCM_UK.mat','DCM');
@@ -969,8 +953,12 @@ U   = DCM.U;                                 % indices of outputs
 spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
-u      = 12;
-[Z,X]  = spm_SARS_gen(Ep,M,u);
+M.T    = M.T + 180;
+
+u      = 1;
+Ep.vef = log(.64);
+
+[Z,X]  = spm_SARS_gen(Ep,M,u,[],3);
 spm_SARS_plot(Z,X,S(:,find(U == u(1))),u)
 
 

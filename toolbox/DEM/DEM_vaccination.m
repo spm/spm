@@ -267,7 +267,7 @@ for i = 1:numel(NPI)
 end
 
 
-%% scenario modelling for lockdown and vaccinationin response to the 
+%% scenario modelling for lockdown and vaccination in response to the 
 % Prime Minister's statement on April 13, 2021
 %==========================================================================
 clear
@@ -475,5 +475,89 @@ sprintf('Dif %.0f (%.0f to %.0f)',d, d  - 1.64*sqrt(c1),d  + 1.64*sqrt(c1))
 
 return
 
+
+
+
+%% scenario modelling for relaxing restrictions on 21st of June 2021
+%==========================================================================
+clear
+DCM = load('DCM_UK.mat','DCM');
+DCM = DCM.DCM;
+
+% parametric intervention (relaxation social distancing threshold)
+%==========================================================================
+period = {DCM.M.date,'01-01-2022'};          % duration of epidemic
+
+% scenario: relaxation of restrictions on 21st of June
+%--------------------------------------------------------------------------
+NPI(1).period = period;
+NPI(1).param  = {'qua'};
+NPI(1).Q      = 1;
+NPI(1).dates  = {'21-06-2021','01-10-2021',};
+
+NPI(2).period = period;
+NPI(2).param  = {'qua'};
+NPI(2).Q      = 1;
+NPI(2).dates  = {'21-07-2021','01-10-2021',};
+
+NPI(3).period = period;
+NPI(3).param  = {'qua'};
+NPI(3).Q      = 1;
+NPI(3).dates  = {'21-08-2021','01-10-2021',};
+
+% unpack model and posterior expectations
+%--------------------------------------------------------------------------
+M   = DCM.M;                                 % model (priors)
+Ep  = DCM.Ep;                                % posterior expectation
+Cp  = DCM.Cp;                                % posterior covariances
+S   = DCM.Y;                                 % smooth timeseries
+U   = DCM.U;                                 % indices of outputs
+
+% plot epidemiological trajectories and hold plots
+%==========================================================================
+spm_figure('GetWin','states'); clf;
+%--------------------------------------------------------------------------
+M.T    = datenum(period{2},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
+u      = 22;
+[Z,X]  = spm_SARS_gen(Ep,M,u);
+spm_SARS_plot(Z,X,S(:,find(U == u(1))),u)
+
+%% the effect of intervention (NPI) on latent states
+%--------------------------------------------------------------------------
+for i = 1:numel(NPI)
+    for j = 1:2, subplot(3,2,j), hold on, end
+    for j = 5:12,subplot(6,2,j), hold on, end
+    
+    [Z,X] = spm_SARS_gen(Ep,M,u,NPI(i));
+    spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+end
+
+
+%% confidence intervals: fatalities (u = 1) and retail (u = 16)
+%--------------------------------------------------------------------------
+spm_figure('GetWin','outcomes'); clf;
+%--------------------------------------------------------------------------
+subplot(2,1,1), hold on, u = 16;
+[m1,c1] = spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M);
+subplot(2,1,2), hold on, u = 27;
+spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M);
+
+for i = 1:numel(NPI)
+    subplot(2,1,1), hold on, u = 16;
+    [m2,c2] = spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI(i));
+    subplot(2,1,2), hold on, u = 27;
+    spm_SARS_ci(Ep,Cp,S(:,find(U == u)),u,M,NPI(i));
+    
+    m1  = m1(end);
+    m2  = m2(end);
+    c1  = c1(end);
+    c2  = c2(end);
+    d   = m1 - m2;
+    
+    sprintf('1st %.0f (%.0f to %.0f)',m1,m1 - 1.64*sqrt(c1),m1 + 1.64*sqrt(c1))
+    sprintf('2nd %.0f (%.0f to %.0f)',m2,m2 - 1.64*sqrt(c2),m2 + 1.64*sqrt(c2))
+    sprintf('Dif %.0f (%.0f to %.0f)',d, d  - 1.64*sqrt(c1),d  + 1.64*sqrt(c1))
+end
+return
 
 
