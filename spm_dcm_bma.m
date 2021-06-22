@@ -33,7 +33,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 %           If Ni > 1 then inference is based on subject-specific RFX posterior
 % post_indx models to use in BMA (position of models in subj structure)
 % subj      subj(n).sess(s).model(m).fname: DCM filename
-% Nsamp     Number of samples (default = 1e3)
+% Nsamp     Number of samples (default = 1e4)
 % oddsr     posterior odds ratio for defining Occam's window (default=0, ie
 %           all models used in average)
 %
@@ -88,12 +88,12 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_dcm_bma.m 8113 2021-06-22 14:58:08Z peter $
 
 % defaults
 %--------------------------------------------------------------------------
 if nargin < 4 || isempty(Nsamp)
-    Nsamp = 1e3;
+    Nsamp = 1e4;
 end
 if nargin < 5 || isempty(oddsr)
     oddsr = 0;
