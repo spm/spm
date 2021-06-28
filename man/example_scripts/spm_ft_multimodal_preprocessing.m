@@ -60,13 +60,13 @@ cfg = [];
 cfg.resamplefs = 200;
 cfg.detrend    = 'no';
 data = ft_resampledata(cfg, data);
-%% Convert to SPM8 format
+%% Convert to SPM format
 D = spm_eeg_ft2spm(data, ['ft_' spm_file(datasets{1}, 'basename')]);
 
 %% Posp-processing of converted data
 
 % Read sensors and fiducials from the first dataset
-D = sensors(D, 'MEG', ft_convert_units(ft_read_sens(fullfile(root, datasets{1})), 'mm'));
+D = sensors(D, 'MEG',  ft_datatype_sens(ft_read_sens(fullfile(root, datasets{1})), 'version', 'latest', 'amplitude', 'T', 'distance', 'mm'));
 D = fiducials(D, ft_convert_units(ft_read_headshape(fullfile(root, datasets{1})), 'mm'));
 
 %% Set condition labels using the previously stored numbers of trials
