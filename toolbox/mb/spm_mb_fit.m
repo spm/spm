@@ -10,7 +10,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 8086 2021-04-01 09:13:20Z john $
+% $Id: spm_mb_fit.m 8115 2021-06-30 08:55:47Z john $
 
 
 % Repeatable random numbers
@@ -107,7 +107,7 @@ for it0=1:nit_aff
     % Finished rigid alignment?
     % Note that for limited field of view templates, the objective
     % function can increase as well as decrease.
-    if it0>12 && abs(oE-E/nvox(dat)) < sett.tol
+    if it0>12 && abs(oE-E/nvox(dat)) < sett.tol*2
         countdown = countdown - 1;
         if countdown==0
             break;
@@ -116,6 +116,30 @@ for it0=1:nit_aff
         countdown = 6;
     end
 end
+
+% Finish affine registration of any subjects that need a few more iterations
+for it0=1:3
+
+    if updt_mu
+        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu);
+    end
+
+    for n=1:numel(dat)
+        En = Inf;
+        for it1=1:nit_aff
+            oEn    = En;
+            dat(n) = spm_mb_shape('update_simple_affines',dat(n),mu,sett);
+            En     = sum(dat(n).E)/nvox(dat(n));
+            if abs(oEn-En) < sett.tol*0.2, break; end
+        end
+    end
+
+    E   = sum(sum(cat(2,dat.E),2),1) + te;  % Cost function after previous update
+    fprintf('%8.4f\n', E/nvox(dat));
+    spm_plot_convergence('Set',E/nvox(dat));
+    do_save(mu,sett,dat);
+end
+
 spm_plot_convergence('Clear');
 nit_mu = 2;
 
