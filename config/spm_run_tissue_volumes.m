@@ -3,17 +3,18 @@ function out = spm_run_tissue_volumes(cmd, job)
 %
 % See also: spm_cfg_tissue_volumes, spm_summarise
 %__________________________________________________________________________
-% Copyright (C) 2013-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_run_tissue_volumes.m 7460 2018-10-29 15:55:12Z john $
+% $Id: spm_run_tissue_volumes.m 8116 2021-06-30 21:10:11Z guillaume $
 
 
 switch lower(cmd)
-    %----------------------------------------------------------------------    
+    
+    %======================================================================
     case 'exec'
         
-        %%
+        % input parameters
         mat = job.matfiles;
         T   = job.tmax;
         msk = char(job.mask);
@@ -22,9 +23,9 @@ switch lower(cmd)
             msk = 'all';
         end
         
-        %%
+        % 
         N = numel(mat);
-        vol = nan(N, T);
+        vol = NaN(N, T);
         for n = 1:N
             res = load(mat{n});
             
@@ -36,7 +37,7 @@ switch lower(cmd)
             end
             
             % determine number of tissue classes Kb
-            if isfield(res, 'mg'),
+            if isfield(res, 'mg')
                 Kb  = max(res.lkp);
             else
                 Kb  = size(res.intensity(1).lik, 2);
@@ -68,7 +69,7 @@ switch lower(cmd)
             % add to mat file for future reuse
             volumes.litres  = vol(n, :);
             volumes.mask    = msk;
-            save(mat{n}, 'volumes', '-append')
+            save(mat{n}, 'volumes', '-append', spm_get_defaults('mat.format'))
             
             % if mwc newly created above, delete now
             for t = 1:T
@@ -76,13 +77,13 @@ switch lower(cmd)
             end
         end
         
-        %% Put into output structure for use with dependencies
+        % Put into output structure for use with dependencies
         for t = 1:T
             out.(sprintf('vol%d', t)) = vol(:, t);
         end
         out.vol_sum = sum(vol, 2); % (total intracranial volume if T=1:3)
         
-        %% Optionally save in CSV format
+        % Optionally save in CSV format
         if ~isempty(outf)
             [pth, nam, ext] = spm_fileparts(outf);
             if isempty(ext), ext = '.csv'; end
@@ -100,12 +101,13 @@ switch lower(cmd)
             fclose(fid);
         end
         
-        %% Display in command window
+        % Display in command window
         fprintf('\nSegmentation files:\n');
         fprintf('\t%s\n', mat{:});
         fprintf('\nVolumes (litres):\n');
         disp(vol);
-        %------------------------------------------------------------------
+        
+    %======================================================================
     case 'vout'
         try
             T = job.tmax;
