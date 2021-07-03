@@ -12,7 +12,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % age  - indices of age band (0 for average)
 %
 % Y(:,1)  - Daily deaths (28 days)
-% Y(:,2)  - Daily confirmed cases
+% Y(:,2)  - Daily confirmed cases (PCR and LFD)
 % Y(:,3)  - Mechanical ventilation
 % Y(:,4)  - Reproduction ratio (R)
 % Y(:,5)  - Seropositive immunity (%)
@@ -24,7 +24,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,11) - Prevalence: infection (%)
 % Y(:,12) - Number symptomatic
 % Y(:,13) - Mobility (%)
-% Y(:,14) - Retail (%)
+% Y(:,14) - Workplace (%)
 % Y(:,15) - Certified deaths
 % Y(:,16) - Hospital admissions
 % Y(:,17) - Hospital deaths
@@ -75,7 +75,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8112 2021-06-16 20:06:47Z karl $
+% $Id: spm_SARS_gen.m 8118 2021-07-03 10:45:45Z karl $
 
 
 % The generative model:
@@ -246,7 +246,6 @@ for n = 1:nN
     P.tin = 1;    % P(no transmission | home)
     P.tou = 1;    % P(no transmission | work)
     P.ths = 1;    % P(no transmission | hospital)
-    P.vad = 1;    % P(no transmission | hospital)
     for i = 1:8
         T    = spm_COVID_T(P,I);
         x{n} = spm_unvec(T*spm_vec(x{n}),x{n});
@@ -274,7 +273,6 @@ Z     = cell(nN,1);                    % joint densities at each time point
 W     = cell(nN,1);                    % time-dependent parameters
 r     = cell(nN,1);                    % probability of lockdown levels
 pvac  = zeros(n,1);
-Vimm  = exp(-1/Q{n}.vac);
 for n = 1:nN
     r{n} = [1;0];
 end
@@ -323,10 +321,6 @@ for i = 1:M.T
         % coupling between groups (contact rates)
         %==================================================================
         
-        % assume vaccine rollout is maintained over age groups
-        %------------------------------------------------------------------
-        % Q{n}.rol(1) = Q{1}.rol(1);
-        
         % fluctuations in contact rates (mobility): radial basis functions
         %------------------------------------------------------------------
         Rout = 0;
@@ -338,9 +332,9 @@ for i = 1:M.T
         
         % probability of lockdown (a function of prevalence)
         %------------------------------------------------------------------
-        q    = p{n}{2}(2)*Q{n}.sde;
-        k1   = exp(-i/Q{n}.mem)*q;
-        k2   = exp(-1/Q{n}.qua);
+        q    = p{n}{2}(2)*Q{n}.sde;               % prevalence dependent
+        k1   = exp(-i/Q{n}.mem)*q;                % contact rates
+        k2   = exp(-1/Q{n}.qua);                  % relaxation
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
         
@@ -383,18 +377,27 @@ for i = 1:M.T
         Q{n}.tou = min(tou,1);          % P(no transmission | work)
         Q{n}.ths = min(ths,1);          % P(no transmission | hospital)
         
-        % link between ARDS and vaccination coverage
+        % link between pathogenicity and vaccination
         %------------------------------------------------------------------
         q        = p{n}{2}(6)*Q{n}.vef; % vaccinated susceptible proportion
         q        = q/(q + p{n}{2}(1));  % susceptible proportion vaccinated
-        res      = (1 - R{n}.res)*q*(1 - Q{n}.ves);
-        q        = (1 - q) + Q{n}.lnk*q;
+        qr       = (1 - R{n}.res)*q*(1 - Q{n}.ves);
+        qp       = (1 - q) + Q{n}.lnk*q;
+        qf       = (1 - q) + Q{n}.lnf*q;
 
-        Q{n}.sev = R{n}.sev*q;          % vaccine efficiency: pathogenicity
-        Q{n}.lat = R{n}.lat*q;          % vaccine efficiency: pathogenicity
-        Q{n}.res = R{n}.res + res;      % vaccine efficiency: transmission
+        Q{n}.sev = R{n}.sev*qp;         % vaccine efficiency: pathogenicity
+        Q{n}.lat = R{n}.lat*qp;         % vaccine efficiency: pathogenicity
+        Q{n}.fat = R{n}.fat*qf;         % vaccine efficiency: fatality
+        Q{n}.sur = R{n}.sur*qf;         % vaccine efficiency: fatality
+        Q{n}.res = R{n}.res + qr;       % vaccine efficiency: transmission
         Q{n}.t   = i;                   % time (days)
         
+        % exponential decay
+        %--------------------------------------------------------------------------
+        S        = exp(-i/512);
+        
+        Q{n}.sev = erf(Q{n}.sev*S + Q{n}.lat*(1 - S));  % P(ARDS | infected)
+        Q{n}.fat = erf(Q{n}.fat*S + Q{n}.sur*(1 - S));  % P(fatality | ARDS, CCU)
         
         % update ensemble density (x)
         %==================================================================
@@ -412,7 +415,7 @@ for i = 1:M.T
         % outcomes
         %==================================================================
         
-        % probability of a test within 28 days
+        % probability of a positive PCR test within 28 days
         %------------------------------------------------------------------
         pcr28   = (1 - p{n}{4}(1)^28);
         pcr14   = (1 - p{n}{4}(1)^14);
@@ -424,18 +427,14 @@ for i = 1:M.T
         V.pcr14 = pcr14;
         W{n}(i) = V;
         
-        
         % number of daily deaths (28 days)
         %------------------------------------------------------------------
-        if isfield(Q{n},'dc')
-            Y{n}(i,1) = N(n) * p{n}{3}(4) * (Q{n}.dc(1) + Q{n}.dc(2)*pcr28);
-        else
-            Y{n}(i,1) = N(n) * p{n}{3}(4);
-        end
-        
-        % number of daily (positive) tests (PCR and LFD confirmed)
+        q         = erf(Q{n}.hos);
+        Y{n}(i,1) = N(n) * p{n}{3}(4)*(q + (1 - q)*pcr28);
+ 
+        % number of daily (positive) tests (PCR and LFD)
         %------------------------------------------------------------------
-        Y{n}(i,2) = N(n) * p{n}{4}(3);
+        Y{n}(i,2) = N(n) * (p{n}{4}(3) + p{n}{4}(5));
         
         % CCU bed occupancy (mechanical ventilation)
         %------------------------------------------------------------------
@@ -467,7 +466,7 @@ for i = 1:M.T
         
         % prevalence of infection (%)
         %------------------------------------------------------------------
-        Y{n}(i,11) = 100 * (p{n}{2}(2) + p{n}{2}(3));
+        Y{n}(i,11) = 100 * (p{n}{2}(2)*Q{n}.rel + p{n}{2}(3));
         
         % number of symptomatic people: (estimate of prevalence)
         %------------------------------------------------------------------
@@ -537,10 +536,7 @@ for i = 1:M.T
         % PCR case positivity (%)(seven day rolling average)
         %------------------------------------------------------------------
         Y{n}(i,23) = 100 * (1 - (1 - p{n}{4}(3))^7)/(1 - (1 - p{n}{4}(3) - p{n}{4}(4))^7);
-        if isfield(P,'ps')
-            Y{n}(i,23) = Q{n}.ps * Y{n}(i,23);
-        end
-
+        
         % daily lateral flow tests (positive and negative)
         %------------------------------------------------------------------
         Y{n}(i,24) = N(n) * (p{n}{4}(5) + p{n}{4}(6));

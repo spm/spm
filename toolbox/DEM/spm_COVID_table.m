@@ -1,14 +1,16 @@
 function Tab = spm_COVID_table(Ep,Cp,M)
 % FORMAT Tab = spm_COVID_table(Ep,Cp,M)
+% FORMAT Tab = spm_COVID_table(DCM)
 % Ep  - conditional expectations
-% Cp  - conditional covariance as
+% Cp  - conditional covariances
+% M   - model
 %
 % Tab - table of conditional estimators
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_table.m 8005 2020-11-06 19:37:18Z karl $
+% $Id: spm_COVID_table.m 8118 2021-07-03 10:45:45Z karl $
 
 % Get data for the United Kingdom (including total tests R)
 %==========================================================================
@@ -66,27 +68,30 @@ for i = 1:numel(str.field)
     Tab{i,2}  = sprintf('%s',lower(str.field{i}));
     Tab{i,3}  = sprintf('%s',str.names{i});
     
-    Tab{i,4}  = sprintf('%g',Pe);
-    Tab{i,5}  = sprintf('%g',1/pc);
-
-    Tab{i,6}  = sprintf('%g',lB);
-    Tab{i,7}  = sprintf('%g',uB);
+    Tab{i,4}  = sprintf('%g',eP);
+    Tab{i,5}  = sprintf('%g',lb);
+    Tab{i,6} = sprintf('%g',ub);
     
-    Tab{i,8}  = sprintf('%g',eP);
-    Tab{i,9}  = sprintf('%g',lb);
-    Tab{i,10} = sprintf('%g',ub);
-        
+    Tab{i,7}  = sprintf('%g',Pe);
+    Tab{i,8}  = sprintf('%g',1/pc);
+
+    Tab{i,9}  = sprintf('%g',lB);
+    Tab{i,10}  = sprintf('%g',uB);
+   
 end
+
 VariableNames{1}  = 'number';
 VariableNames{2}  = 'name';
 VariableNames{3}  = 'description';
-VariableNames{4}  = 'prior';
-VariableNames{5}  = 'precision';
-VariableNames{6}  = 'lower';
-VariableNames{7}  = 'upper';
-VariableNames{8}  = 'posterior';
-VariableNames{9}  = 'from';
-VariableNames{10} = 'to';
+
+VariableNames{4}  = 'posterior';
+VariableNames{5}  = 'from';
+VariableNames{6} = 'to';
+
+VariableNames{7}  = 'prior';
+VariableNames{8}  = 'precision';
+VariableNames{9}  = 'lower';
+VariableNames{10}  = 'upper';
 
 Tab = cell2table(Tab);
 Tab.Properties.Description  = 'parameter estimates';
@@ -94,6 +99,40 @@ Tab.Properties.VariableNames = VariableNames;
 
 writetable(Tab,'Parameters.csv','FileType','text','Delimiter',',')
 
+% age specific parameters
+%==========================================================================
+clear tab
+i     = 0;
+for j = 1:numel(str.field)
+    
+    % scale parameters
+    %----------------------------------------------------------------------
+    ep = Ep.(str.field{j});                % posterior expectation  
+    ep = ep(:,1);
+    if size(ep,1) > 1
+        
+        i = i + 1;
+        
+        % posteriors
+        %----------------------------------------------------------------------
+        eP = exp(ep);                      % exponentiated
+        
+        tab{i,1}  = sprintf('%g',j);
+        tab{i,2}  = sprintf('%s',lower(str.field{j}));
+        tab{i,3}  = sprintf('%s',str.names{j});
+        
+        for k = 1:size(ep,1)
+            tab{i,3 + k}  = sprintf('%g',eP(k,1));
+        end
+        
+    end
+    
+end
+
+tab = cell2table(tab);
+tab.Properties.Description  = 'parameter estimates'
+
+return
 
 
 

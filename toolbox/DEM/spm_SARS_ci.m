@@ -33,7 +33,7 @@ function [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_ci.m 8047 2021-02-02 18:56:09Z karl $
+% $Id: spm_SARS_ci.m 8118 2021-07-03 10:45:45Z karl $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------
@@ -56,30 +56,41 @@ Cp = Cp*64;
 % changes in outcomes with respect to parameters
 %--------------------------------------------------------------------------
 try, M.T; catch, M.T = 180; end
-[dYdP,Y] = spm_diff(@(P,M,U,N,A)spm_SARS_gen(P,M,U,N,A),Ep,M,U,NPI,age,1);
-
-
-% conditional covariances
-%--------------------------------------------------------------------------
-Ny    = size(Y,2);
-for i = 1:Ny
-    if iscell(dYdP)
-        for j = 1:size(dYdP,2)
-            D{j} = dYdP{j}(:,i);
+if numel(U) == 1
+    
+    Y    = spm_SARS_gen(Ep,M,U,NPI,age);
+    C{1} = diag((Y/8).^2);
+    S    = cumsum(Y);
+    CS   = diag((S/8).^2);
+    
+else
+    
+    % partial derivatives
+    %----------------------------------------------------------------------
+    [dYdP,Y] = spm_diff(@(P,M,U,N,A)spm_SARS_gen(P,M,U,N,A),Ep,M,U,NPI,age,1);
+    
+    
+    % conditional covariances
+    %----------------------------------------------------------------------
+    Ny    = size(Y,2);
+    for i = 1:Ny
+        if iscell(dYdP)
+            for j = 1:size(dYdP,2)
+                D{j} = dYdP{j}(:,i);
+            end
+            dydp{i}  = spm_cat(D);
+        else
+            dydp{i}  = dYdP;
         end
-        dydp{i}  = spm_cat(D);
-    else
-        dydp{i}  = dYdP;
+        C{i}     = dydp{i}*Cp*dydp{i}';
     end
-    C{i}     = dydp{i}*Cp*dydp{i}';
+    
+    % cumulative rates
+    %--------------------------------------------------------------------------
+    S     = cumsum(Y(:,1));
+    dSdP  = cumsum(dydp{1});
+    CS    = dSdP*Cp*dSdP';
 end
-
-% cumulative death rates
-%--------------------------------------------------------------------------
-S     = cumsum(Y(:,1));
-dSdP  = cumsum(dydp{1});
-CS    = dSdP*Cp*dSdP';
-
 
 % graphics
 %==========================================================================
@@ -94,8 +105,8 @@ end
 %--------------------------------------------------------------------------
 if numel(U) == 1
     
-    spm_plot_ci(Y(:,i)',C{i},t), hold on
-    try, plot(t(1:numel(Z(:,i))),Z(:,i),'.k'), end
+    spm_plot_ci(Y',C{1},t), hold on
+    try, plot(t(1:numel(Z)),Z,'.k'), end
     ylabel('number of cases/day')
     title(outcome,'FontSize',14)
     

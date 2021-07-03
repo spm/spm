@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8112 2021-06-16 20:06:47Z karl $
+% $Id: DEM_COVID_UK.m 8118 2021-07-03 10:45:45Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -340,7 +340,11 @@ Y(16).hold = 0;
 
 % scaling for data from England
 %--------------------------------------------------------------------------
-England    = sum(sum(agedeaths.data(:,[1 3 4 5 6 7:13 15 16:21]),2));
+ig1        = [1 3 4 5 6];                                % <25
+ig2        = [7:13 15];                                  % 25-65
+ig3        = [16:21];                                    % >65
+ig         = [ig1 ig2 ig3];
+England    = sum(sum(agedeaths.data(:,ig),2));
 UK         = sum(deaths.data(4:end,1));
 EnglandUK  = UK/England;
 
@@ -413,7 +417,7 @@ Y(23).type = 'Deaths < 25 (PHE)'; % deaths (English hospitals)
 Y(23).unit = 'number';
 Y(23).U    = 1;
 Y(23).date = datenum(agedeaths.textdata(2:end,1),'yyyy-mm-dd');
-Y(23).Y    = sum(agedeaths.data(:,[1 3 4 5 6]),2)*EnglandUK;
+Y(23).Y    = sum(agedeaths.data(:,ig1),2)*EnglandUK;
 Y(23).h    = 2;
 Y(23).lag  = 0;
 Y(23).age  = 1;
@@ -423,7 +427,7 @@ Y(24).type = 'Deaths 25-65 (PHE)'; % deaths (English hospitals)
 Y(24).unit = 'number';
 Y(24).U    = 1;
 Y(24).date = datenum(agedeaths.textdata(2:end,1),'yyyy-mm-dd');
-Y(24).Y    = sum(agedeaths.data(:,[7:13 15]),2)*EnglandUK;
+Y(24).Y    = sum(agedeaths.data(:,ig2),2)*EnglandUK;
 Y(24).h    = 2;
 Y(24).lag  = 0;
 Y(24).age  = 2;
@@ -433,7 +437,7 @@ Y(25).type = 'Deaths 25-, 25-65, 65+ (PHE)'; % deaths (English hospitals)
 Y(25).unit = 'number';
 Y(25).U    = 1;
 Y(25).date = datenum(agedeaths.textdata(2:end,1),'yyyy-mm-dd');
-Y(25).Y    = sum(agedeaths.data(:,16:21),2)*EnglandUK;
+Y(25).Y    = sum(agedeaths.data(:,ig3),2)*EnglandUK;
 Y(25).h    = 2;
 Y(25).lag  = 0;
 Y(25).age  = 3;
@@ -444,7 +448,7 @@ Y(26).type = 'PCR cases < 25 (PHE)';  % PCR notifications (United Kingdom)
 Y(26).unit = 'number';
 Y(26).U    = 2;
 Y(26).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
-Y(26).Y    = sum(agecases.data(:,[1 3 4 5 6]),2);
+Y(26).Y    = sum(agecases.data(:,ig1),2);
 Y(26).h    = 0;
 Y(26).lag  = 1;
 Y(26).age  = 1;
@@ -454,7 +458,7 @@ Y(27).type = 'PCR cases 25-65 (PHE)'; % PCR notifications  (United Kingdom)
 Y(27).unit = 'number';
 Y(27).U    = 2;
 Y(27).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
-Y(27).Y    = sum(agecases.data(:,[7:13 15]),2);
+Y(27).Y    = sum(agecases.data(:,ig2),2);
 Y(27).h    = 0;
 Y(27).lag  = 1;
 Y(27).age  = 2;
@@ -464,7 +468,7 @@ Y(28).type = 'PCR cases 25-, 25-65, 65+ (PHE)'; % PCR notifications  (United Kin
 Y(28).unit = 'number';
 Y(28).U    = 2;
 Y(28).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
-Y(28).Y    = sum(agecases.data(:,16:21),2);
+Y(28).Y    = sum(agecases.data(:,ig3),2);
 Y(28).h    = 0;
 Y(28).lag  = 1;
 Y(28).age  = 3;

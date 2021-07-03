@@ -35,11 +35,19 @@ Page     = P.data(2:end,2:end);
 PCode    = P.textdata(2:end,1);
 PName    = P.textdata(:,2);
 
-% age bands
+% age bands (3)
 %--------------------------------------------------------------------------
 PA(:,1)  = sum(Page(:,01:24),2);
 PA(:,2)  = sum(Page(:,25:64),2);
 PA(:,3)  = sum(Page(:,65:end),2);
+
+% age bands (4)
+%--------------------------------------------------------------------------
+PA(:,1)  = sum(Page(:,01:14),2);
+PA(:,2)  = sum(Page(:,15:34),2);
+PA(:,3)  = sum(Page(:,35:69),2);
+PA(:,4)  = sum(Page(:,70:end),2);
+
 
 % get new cases by (lower tier) local authority
 %--------------------------------------------------------------------------
@@ -154,7 +162,7 @@ dates  = d0:max(spm_vec(D.date));
 
 % free parameters of local model (fixed effects - seeding and fluctuations)
 %==========================================================================
-free  = {'n','pcr','mob','tra','vac'};
+free  = {'n','pcr','mob','tra'};
 
 % (empirical) priors: posterior expectations and prior covariance for
 % parameters
@@ -164,11 +172,6 @@ pC    = spm_zeros(PCM.M.pC);
 for i = 1:numel(free)
     pC.(free{i}) = PCM.M.pC.(free{i});
 end
-
-% allow for increases in transmissibility due to new variants
-%--------------------------------------------------------------------------
-pE.tra(end) = 0;
-pC.tra(end) = 1;
 
 %%%% try, D   = D(1:8); end %%%%
 

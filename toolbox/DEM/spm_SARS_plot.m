@@ -14,7 +14,7 @@ function spm_SARS_plot(Y,X,Z,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_plot.m 8070 2021-02-27 18:12:45Z karl $
+% $Id: spm_SARS_plot.m 8118 2021-07-03 10:45:45Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -33,15 +33,19 @@ global CHOLD, if isempty(CHOLD); CHOLD = 1; end
 % plot prior responses
 %==========================================================================
 if nargin < 2
+    
+    % default outputs of interest (death, cases and hospitalisation)
+    %----------------------------------------------------------------------
     if nargin < 1
         U = [1 2 3 16 27];
     else
         U = Y;
     end
     
-    nN      = 3;
+    % number of age groups if not specified
+    %----------------------------------------------------------------------
+    nN      = 4;
     pE      = spm_SARS_priors(nN);
-    
     M.T     = 15*32;
     [Y,X,Z] = spm_SARS_gen(pE,M,U);
     spm_SARS_plot(Y,X,Z,U)
